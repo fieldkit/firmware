@@ -1,5 +1,4 @@
-.gdb_history
-
 *.swp
-
+dependencies.cmake
+.gdb_history
 build
