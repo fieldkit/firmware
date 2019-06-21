@@ -30,13 +30,13 @@ SECTIONS
     *(.rel.iplt)
   } > BOOTLOADER
 
-  .ARM.extab :
+  .ARM.extab ALIGN(0x4) :
   {
     *(.ARM.extab* .gnu.linkonce.armextab.*)
   } > BOOTLOADER
 
   __exidx_start = .;
-  .ARM.exidx :
+  .ARM.exidx ALIGN(0x4) :
   {
     *(.ARM.exidx* .gnu.linkonce.armexidx.*)
   } > BOOTLOADER
