@@ -5,9 +5,15 @@ BUILD ?= $(abspath build)
 SHELL := /bin/bash
 OFFLINE := /bin/false
 
-default: all
+default: setup all
 
 all: test samd51
+
+setup: .python-setup
+
+.python-setup:
+	pip install lief
+	touch .python-setup
 
 samd51: dependencies
 	mkdir -p $(BUILD)/samd51
