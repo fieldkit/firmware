@@ -12,6 +12,8 @@ extern void board_minimal_initialize(void);
 
 extern void board_initialize();
 
+uint32_t millis();
+
 void delay(uint32_t ms);
 
 extern uint32_t __cm_app_vectors_ptr;
@@ -143,12 +145,17 @@ int32_t main() {
     launch();
 
     /* If we're here then no launching occurred! */
-
     debug_println("bl: delay before trying again.");
 
-    while (1) {
-        delay(100);
+    while (millis() < 60 * 1000 * 2) {
+        delay(1000);
     }
+
+    debug_println("bl: hup!");
+
+    delay(1000);
+
+    NVIC_SystemReset();
 
     return 0;
 }
@@ -192,6 +199,10 @@ volatile uint32_t system_ticks = 0;
 
 void cm_systick() {
     system_ticks++;
+}
+
+uint32_t millis() {
+    return system_ticks;
 }
 
 void delay(uint32_t ms) {
