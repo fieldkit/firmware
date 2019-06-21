@@ -1,0 +1,5 @@
+#!/bin/bash
+
+PATH=~/tools/jlink:$PATH
+
+JLinkGDBServer -if SWD -device ATSAMD51P20

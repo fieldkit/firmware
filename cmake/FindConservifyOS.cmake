@@ -1,7 +1,7 @@
 #
 #
 #
-set(ConservifyOS_PATH ${CMAKE_SOURCE_DIR}/libraries/arduino-osh/src)
+set(ConservifyOS_PATH ${CMAKE_SOURCE_DIR}/libraries/jlewallen/arduino-osh/src)
 
 file(GLOB sources ${ConservifyOS_PATH}/*.c ${ConservifyOS_PATH}/*.s ${ConservifyOS_PATH}/*.cpp)
 

@@ -1,0 +1,24 @@
+#
+#
+#
+include(Arduino)
+
+enable_arduino_toolchain()
+
+enable_m4_board(fieldkit_core)
+
+file(GLOB sources *.cpp *.c *.h)
+
+add_arduino_library(fkbl "${sources}")
+
+target_compile_options(fkbl PRIVATE -Wall -Werror -Wno-main)
+
+find_package(SeggerRTT)
+target_link_libraries(fkbl SeggerRTT)
+
+find_package(CortexLoading)
+target_link_libraries(fkbl CortexLoading)
+
+configure_firmware_linker_script(fkbl ${CMAKE_SOURCE_DIR}/boards/samd51/bootloader.ld)
+
+add_arduino_bootloader(fkbl)

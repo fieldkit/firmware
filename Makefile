@@ -3,7 +3,7 @@
 #
 BUILD ?= $(abspath build)
 SHELL := /bin/bash
-OFFLINE := /bin/true
+OFFLINE := /bin/false
 
 default: all
 
@@ -24,13 +24,16 @@ test: amd64
 
 dependencies: libraries
 
-LIBRARY_REPOSITORIES := jlewallen/arduino-osh jlewallen/loading conservify/phylum conservify/lwstreams conservify/lwcron conservify/arduino-logging conservify/WiFi101 conservify/Adafruit_SPIFlash conservify/Adafruit_QSPI nanopb/nanopb olikraus/u8g2 mikalhart/TinyGPS
+LIBRARY_REPOSITORIES := jlewallen/arduino-osh jlewallen/loading conservify/segger \
+	conservify/phylum conservify/lwstreams conservify/lwcron conservify/arduino-logging \
+	conservify/WiFi101 conservify/Adafruit_SPIFlash conservify/Adafruit_QSPI nanopb/nanopb \
+	olikraus/u8g2 mikalhart/TinyGPS
 LOCAL_LIBRARY_PATHS := $(patsubst %, libraries/%, $(LIBRARY_REPOSITORIES))
 
 libraries: $(LOCAL_LIBRARY_PATHS)
 
 $(LOCAL_LIBRARY_PATHS):
-	$(OFFLINE) || simple-deps --config libraries/dependencies.sd --dir libraries
+	$(OFFLINE) || simple-deps --nested --config libraries/dependencies.sd --dir libraries
 
 deps-initialize:
 	+@for l in $(LIBRARY_REPOSITORIES); do                                                     \
@@ -44,6 +47,9 @@ deps-update:
 
 veryclean: clean
 	rm -rf gitdeps
+	@for l in $(LOCAL_LIBRARY_PATHS); do                                                       \
+		rm -rf $$l                                                                               \
+	done
 
 clean:
 	rm -rf $(BUILD)

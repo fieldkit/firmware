@@ -5,7 +5,7 @@ if(TARGET SeggerRTT)
   return()
 endif()
 
-set(SeggerRTT_PATH ${CMAKE_SOURCE_DIR}/libraries/SeggerRTT)
+set(SeggerRTT_PATH ${CMAKE_SOURCE_DIR}/libraries/conservify/segger)
 
 file(GLOB sources ${SeggerRTT_PATH}/*.c)
 
