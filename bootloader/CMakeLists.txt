@@ -5,9 +5,11 @@ include(Arduino)
 
 enable_arduino_toolchain()
 
+enable_language(ASM)
+
 enable_m4_board(fieldkit_core)
 
-file(GLOB sources *.cpp *.c *.h)
+file(GLOB sources *.cpp *.c *.s *.h)
 
 add_arduino_library(fkbl "${sources}")
 
