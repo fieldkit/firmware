@@ -1,0 +1,8 @@
+#+TITLE:	README for firmware
+#+AUTHOR:	Jacob Lewallen
+#+EMAIL:	jacob@conservify.org
+
+* Overview
+* Dependencies
+
+  - CMake

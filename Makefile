@@ -3,6 +3,7 @@
 #
 BUILD ?= $(abspath build)
 SHELL := /bin/bash
+OFFLINE := /bin/true
 
 default: all
 
@@ -21,34 +22,30 @@ amd64: dependencies
 test: amd64
 	cd $(BUILD)/amd64 && $(MAKE) test
 
-dependencies: gitdeps
+dependencies: libraries
 
-gitdeps:
-	simple-deps --config libraries/dependencies.sd
+LIBRARY_REPOSITORIES := jlewallen/arduino-osh jlewallen/loading conservify/phylum conservify/lwstreams conservify/lwcron conservify/arduino-logging conservify/WiFi101 conservify/Adafruit_SPIFlash conservify/Adafruit_QSPI nanopb/nanopb olikraus/u8g2 mikalhart/TinyGPS
+LOCAL_LIBRARY_PATHS := $(patsubst %, libraries/%, $(LIBRARY_REPOSITORIES))
+
+libraries: $(LOCAL_LIBRARY_PATHS)
+
+$(LOCAL_LIBRARY_PATHS):
+	$(OFFLINE) || simple-deps --config libraries/dependencies.sd --dir libraries
 
 deps-initialize:
-	git subtree add --prefix libraries/phylum https://github.com/conservify/phylum.git master --squash
-	git subtree add --prefix libraries/lwstreams https://github.com/conservify/lwstreams.git master --squash
-	git subtree add --prefix libraries/lwcron https://github.com/conservify/lwcron.git master --squash
-	git subtree add --prefix libraries/nanopb https://github.com/nanopb/nanopb.git master --squash
-	git subtree add --prefix libraries/arduino-logging https://github.com/Conservify/arduino-logging.git master --squash
-	git subtree add --prefix libraries/WiFi101 https://github.com/conservify/WiFi101.git master --squash
-	git subtree add --prefix libraries/Adafruit_SPIFlash https://github.com/conservify/Adafruit_SPIFlash.git master --squash
-	git subtree add --prefix libraries/Adafruit_QSPI https://github.com/conservify/Adafruit_QSPI.git master --squash
-	git subtree add --prefix libraries/u8g2 https://github.com/olikraus/u8g2.git master --squash
-	git subtree add --prefix libraries/TinyGPS https://github.com/mikalhart/TinyGPS.git master --squash
+	+@for l in $(LIBRARY_REPOSITORIES); do                                                     \
+		git subtree add --prefix libraries/$(l) https://github.com/$(l).git master --squash;     \
+	done
 
 deps-update:
-	git subtree pull --prefix libraries/phylum https://github.com/conservify/phylum.git master --squash
-	git subtree pull --prefix libraries/lwstreams https://github.com/conservify/lwstreams.git master --squash
-	git subtree pull --prefix libraries/lwcron https://github.com/conservify/lwcron.git master --squash
-	git subtree pull --prefix libraries/nanopb https://github.com/nanopb/nanopb.git master --squash
-	git subtree pull --prefix libraries/arduino-logging https://github.com/Conservify/arduino-logging.git master --squash
-	git subtree pull --prefix libraries/WiFi101 https://github.com/conservify/WiFi101.git master --squash
-	git subtree pull --prefix libraries/Adafruit_SPIFlash https://github.com/conservify/Adafruit_SPIFlash.git master --squash
-	git subtree pull --prefix libraries/Adafruit_QSPI https://github.com/conservify/Adafruit_QSPI.git master --squash
-	git subtree pull --prefix libraries/u8g2 https://github.com/olikraus/u8g2.git master --squash
-	git subtree pull --prefix libraries/TinyGPS https://github.com/mikalhart/TinyGPS.git master --squash
+	+@for l in $(LIBRARY_REPOSITORIES); do                                                     \
+		git subtree pull --prefix libraries/$(l) https://github.com/$(l).git master --squash;    \
+	done
+
+veryclean: clean
+	rm -rf gitdeps
 
 clean:
 	rm -rf $(BUILD)
+
+.PHONY: libraries
