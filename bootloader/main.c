@@ -134,9 +134,9 @@ int32_t main() {
     debug_println("");
     debug_println("bl: starting!");
 
-    // SysTick_Config(F_CPU / 1000);
+    board_initialize();
 
-    board_minimal_initialize();
+    SysTick_Config(F_CPU / 1000);
 
     debug_println("bl: board ready");
 

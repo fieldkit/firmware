@@ -1,11 +1,11 @@
 #
 #
 #
+set(CortexLoading_PATH ${CMAKE_SOURCE_DIR}/libraries/jlewallen/loading)
+
 if(TARGET CortexLoading)
   return()
 endif()
-
-set(CortexLoading_PATH ${CMAKE_SOURCE_DIR}/libraries/jlewallen/loading)
 
 file(GLOB sources ${CortexLoading_PATH}/src/*.c ${CortexLoading_PATH}/src/*.s ${CortexLoading_PATH}/src/*.cpp)
 

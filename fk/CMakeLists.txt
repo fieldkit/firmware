@@ -2,6 +2,7 @@
 #
 #
 include(Arduino)
+include(ArduinoTools)
 
 enable_arduino_toolchain()
 
@@ -27,3 +28,5 @@ target_link_libraries(fk-bundled ConservifyOS)
 configure_firmware_linker_script(fk-bundled ${CMAKE_SOURCE_DIR}/boards/samd51/main.ld)
 
 add_arduino_firmware(fk-bundled)
+
+enable_fkb_firmware(fk-bundled)
