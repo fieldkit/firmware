@@ -24,6 +24,8 @@ test: amd64
 
 dependencies: libraries
 
+gitdeps: libraries
+
 LIBRARY_REPOSITORIES := jlewallen/arduino-osh jlewallen/loading conservify/segger \
 	conservify/phylum conservify/lwstreams conservify/lwcron conservify/arduino-logging \
 	conservify/WiFi101 conservify/Adafruit_SPIFlash conservify/Adafruit_QSPI nanopb/nanopb \
