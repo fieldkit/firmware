@@ -42,13 +42,20 @@ SECTIONS
   } > BOOTLOADER
   __exidx_end = .;
 
-  __etext_rtt = .;
+  __etext_global = .;
 
-  .rtt : AT(__etext_rtt)
+  .data.fkb.launch (NOLOAD): AT(__etext_global)
   {
+    KEEP(*(.fkb.launch))
   } > RAM
 
-  __etext = __etext_rtt + SIZEOF(.rtt);
+  .data.rtt :
+  {
+    *(SORT_BY_INIT_PRIORITY(.rtt.control))
+    *(SORT_BY_INIT_PRIORITY(.rtt.buffers))
+  } > RAM
+
+  __etext = __etext_global + SIZEOF(.data.rtt) + SIZEOF(.data.fkb.launch);
 
   .data : AT (__etext)
   {
@@ -83,6 +90,7 @@ SECTIONS
 
   PROVIDE(__cm_app_vectors_ptr = ORIGIN(BOOTLOADER) + LENGTH(BOOTLOADER));
 
+  __cm_ram_origin = ORIGIN(RAM);
   __cm_ram_end__ = ORIGIN(RAM) + LENGTH(RAM) - 1;
   __cm_stack_top = ORIGIN(RAM) + LENGTH(RAM);
   __cm_stack_max = __cm_stack_top - SIZEOF(.stack);
