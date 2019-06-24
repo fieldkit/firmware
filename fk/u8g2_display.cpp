@@ -1,10 +1,23 @@
 #include "fk.h"
 #include "u8g2_display.h"
-#include "logos/conservify_bw_logo-56.h"
-#include "logos/fk_bw-128x27.h"
 #include "printf.h"
 
 namespace fk {
+
+#include "logos/conservify_logo_bw-56.h"
+#include "logos/fk_logo_bw-128x27.h"
+#include "logos/fk_logo_bw-100x21.h"
+#include "logos/fk_logo_bw-80x17.h"
+
+constexpr char glyph_open_iconic_all_arrow_door = '\x40';
+constexpr char glyph_open_iconic_all_clock = '\x7B';
+constexpr char glyph_open_iconic_all_gps = '\xD1';
+constexpr char glyph_open_iconic_all_wifi_1 = '\xF7';
+constexpr char glyph_open_iconic_all_wifi_2 = '\xF8';
+constexpr char glyph_open_iconic_all_bug = '\x68';
+constexpr char glyph_open_iconic_all_glass = '\xCF';
+
+constexpr char glyph_battery19[] = { '1', '2', '3', '4', '5' };
 
 /**
  * I2C address for the SH1106 driver for the OLED display. Note that the u8g2
@@ -32,18 +45,6 @@ constexpr uint8_t OLED_X_OFFSET = 0;
  */
 constexpr uint8_t OLED_Y_OFFSET = 8;
 
-xbm_data_t conservify_bw_logo_56 = {
-    .w = CONSERVIFY_BW_LOGO_56_WIDTH,
-    .h = CONSERVIFY_BW_LOGO_56_HEIGHT,
-    .data = conservify_bw_logo_56_data,
-};
-
-xbm_data_t fk_bw_logo_128x27 = {
-    .w = FK_BW_128X27_WIDTH,
-    .h = FK_BW_128X27_HEIGHT,
-    .data = fk_bw_128x27_data,
-};
-
 U8g2Display::U8g2Display() : draw_(U8G2_R0, U8X8_PIN_NONE, PIN_WIRE_SCL, PIN_WIRE_SDA) {
     draw_.setI2CAddress(OLED_ADDRESS);
 }
@@ -68,7 +69,7 @@ void U8g2Display::on() {
     draw_.sendBuffer();
 }
 
-void U8g2Display::centered(xbm_data_t &xbm) {
+void U8g2Display::centered(const xbm_data_t &xbm) {
     auto x = (OLED_WIDTH / 2) - (xbm.w / 2) + OLED_X_OFFSET;
     auto y = (OLED_HEIGHT / 2) - (xbm.h / 2) + OLED_Y_OFFSET;
     draw_.drawXBM(x, y, xbm.w, xbm.h, xbm.data);
@@ -77,26 +78,16 @@ void U8g2Display::centered(xbm_data_t &xbm) {
 void U8g2Display::company_logo() {
     draw_.setPowerSave(0);
     draw_.clearBuffer();
-    centered(conservify_bw_logo_56);
+    centered(conservify_logo_bw_56);
     draw_.sendBuffer();
 }
 
 void U8g2Display::fk_logo() {
     draw_.setPowerSave(0);
     draw_.clearBuffer();
-    centered(fk_bw_logo_128x27);
+    centered(fk_logo_bw_128x27);
     draw_.sendBuffer();
 }
-
-/*
-constexpr char arrow_door = '\x40';
-constexpr char clock = '\x7B';
-constexpr char gps = '\xD1';
-constexpr char wifi_1 = '\xF7';
-constexpr char wifi_2 = '\xF8';
-constexpr char bug = '\x68';
-constexpr char glass = '\xCF';
-*/
 
 static bool toggle_every(uint32_t time, uint32_t interval) {
     return (time / interval ) % 2 == 0;
@@ -111,18 +102,26 @@ void U8g2Display::home(home_screen_t data) {
     draw_.setPowerSave(0);
     draw_.clearBuffer();
 
-    draw_.setFont(u8g2_font_courB14_tf);
-    draw_.drawStr(OLED_X_OFFSET, 26, "FIELDKIT");
+    auto &logo = fk_logo_bw_80x17;
+    draw_.drawXBM(2, logo.h - 4, logo.w, logo.h, logo.data);
 
     draw_.setFont(u8g2_font_battery19_tn);
-    draw_.drawStr(OLED_WIDTH - 8, 30, "5");
+    draw_.drawGlyph(OLED_WIDTH - 8, 30, glyph_battery19[sizeof(glyph_battery19) - 1]);
 
     draw_.setFont(u8g2_font_open_iconic_all_2x_t);
     if (toggle_every(data.time, 1000)) {
-        draw_.drawStr(OLED_WIDTH - 28, 30, "\xF7");
+        draw_.drawGlyph(OLED_WIDTH - 44, 30, glyph_open_iconic_all_wifi_1);
     }
     else {
-        draw_.drawStr(OLED_WIDTH - 28, 30, "\xF8");
+        draw_.drawGlyph(OLED_WIDTH - 44, 30, glyph_open_iconic_all_wifi_2);
+    }
+
+    draw_.setFont(u8g2_font_open_iconic_all_2x_t);
+    if (toggle_every(data.time, 1000)) {
+        draw_.drawGlyph(OLED_WIDTH - 28, 30, glyph_open_iconic_all_gps);
+    }
+    else {
+        draw_.drawGlyph(OLED_WIDTH - 28, 30, glyph_open_iconic_all_gps);
     }
 
     char buffer[128];
