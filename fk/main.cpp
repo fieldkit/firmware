@@ -18,6 +18,14 @@ static void task_handler_idle(void *params) {
     }
 }
 
+void run_tasks() {
+    OS_CHECK(os_initialize());
+
+    OS_CHECK(os_task_initialize(&idle_task, "idle", OS_TASK_START_RUNNING, &task_handler_idle, NULL, idle_stack, sizeof(idle_stack)));
+
+    OS_CHECK(os_start());
+}
+
 void setup() {
     debug_println("fk: hello!");
 
@@ -31,11 +39,22 @@ void setup() {
 
     display->fk_logo();
 
-    OS_CHECK(os_initialize());
+    delay(1000);
 
-    OS_CHECK(os_task_initialize(&idle_task, "idle", OS_TASK_START_RUNNING, &task_handler_idle, NULL, idle_stack, sizeof(idle_stack)));
+    while (true) {
+        home_screen_t screen = {
+            .time = fk_uptime(),
+            .wifi = true,
+            .gps = true,
+            .battery = 1.0f,
+        };
 
-    OS_CHECK(os_start());
+        display->home(screen);
+
+        delay(10);
+    }
+
+    run_tasks();
 }
 
 void loop() {

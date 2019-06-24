@@ -21,6 +21,7 @@ public:
     void centered(xbm_data_t &xbm) override;
     void company_logo() override;
     void fk_logo() override;
+    void home(home_screen_t data) override;
 
 };
 
