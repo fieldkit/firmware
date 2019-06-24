@@ -10,6 +10,8 @@ enable_language(ASM)
 
 enable_m4_board(fieldkit_core)
 
+include(${CMAKE_SOURCE_DIR}/libraries/dependencies.cmake)
+
 file(GLOB sources *.cpp *.c *.h)
 
 add_arduino_library(fk-bundled "${sources}")
@@ -24,6 +26,9 @@ target_link_libraries(fk-bundled CortexLoading)
 
 find_package(ConservifyOS)
 target_link_libraries(fk-bundled ConservifyOS)
+
+find_package(u8g2)
+target_link_libraries(fk-bundled u8g2)
 
 configure_firmware_linker_script(fk-bundled ${CMAKE_SOURCE_DIR}/boards/samd51/main.ld)
 
