@@ -1,5 +1,7 @@
 #pragma once
 
+#include "common.h"
+
 namespace fk {
 
 typedef struct xbm_data_t {

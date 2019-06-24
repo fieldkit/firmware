@@ -1,8 +1,10 @@
-#include <Arduino.h>
 #include <loading.h>
 #include <os.h>
 
+#include "platform.h"
 #include "self_check.h"
+
+#include <Arduino.h>
 
 using namespace fk;
 
