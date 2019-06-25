@@ -27,6 +27,9 @@ target_link_libraries(fk-bundled CortexLoading)
 find_package(ConservifyOS)
 target_link_libraries(fk-bundled ConservifyOS)
 
+find_package(WiFi101)
+target_link_libraries(fk-bundled WiFi101)
+
 find_package(u8g2)
 target_link_libraries(fk-bundled u8g2)
 
