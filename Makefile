@@ -12,7 +12,7 @@ all: test samd51
 setup: .python-setup
 
 .python-setup:
-	pip install lief
+	pip3 install lief
 	touch .python-setup
 
 samd51: dependencies
