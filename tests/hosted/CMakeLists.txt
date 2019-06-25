@@ -9,9 +9,12 @@ find_package(Threads REQUIRED)
 include(ExternalProject)
 
 # Download and install GoogleTest
+set(GTEST_URL ${CMAKE_SOURCE_DIR}/third-party/googletest-1.8.0.zip)
+set(GTEST_SHA256 SHA256=f3ed3b58511efd272eb074a3a6d6fb79d7c2e6a0e374323d1e6bcbcc1ef141bf)
 ExternalProject_Add(
     gtest
-    URL https://github.com/google/googletest/archive/release-1.8.0.zip
+    URL ${GTEST_URL}
+    URL_HASH ${GTEST_SHA256}
     PREFIX ${CMAKE_CURRENT_BINARY_DIR}/gtest
     # Disable install step
     INSTALL_COMMAND ""
