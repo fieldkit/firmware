@@ -7,7 +7,7 @@ OFFLINE := /bin/false
 
 default: setup all
 
-all: test samd51
+all: samd51 test
 
 setup: .python-setup
 

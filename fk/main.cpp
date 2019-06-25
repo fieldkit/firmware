@@ -14,7 +14,7 @@ static uint32_t idle_stack[OS_STACK_MINIMUM_SIZE_WORDS];
 static void task_handler_idle(void *params) {
     while (true) {
         delay(1000);
-        debug_println("fk: ping");
+        fkb_external_println("fk: ping");
     }
 }
 
@@ -27,7 +27,7 @@ void run_tasks() {
 }
 
 void setup() {
-    debug_println("fk: hello!");
+    fkb_external_println("fk: hello!");
 
     DisplayFactory display_factory;
     Display *display = display_factory.get_display();
