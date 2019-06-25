@@ -10,7 +10,7 @@ class FkReloadAll(gdb.Command):
 
   def invoke(self, arg, from_tty):
     gdb.execute("load build/samd51/bootloader/fkbl.elf")
-    gdb.execute("load build/samd51/fk/fk-bundled.fkb")
+    gdb.execute("load build/samd51/fk/fk-bundled-fkb.elf")
     gdb.execute("monitor reset")
 
 end
