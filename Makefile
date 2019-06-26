@@ -26,7 +26,7 @@ amd64: dependencies
 	cd $(BUILD)/amd64 && $(MAKE)
 
 test: amd64
-	cd $(BUILD)/amd64 && $(MAKE) test
+	cd $(BUILD)/amd64 && env GTEST_COLOR=1 $(MAKE) test ARGS=-VV
 
 dependencies: libraries
 
