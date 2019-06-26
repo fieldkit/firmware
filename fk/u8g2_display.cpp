@@ -2,6 +2,8 @@
 #include "u8g2_display.h"
 #include "printf.h"
 
+#if defined(FK_HARDWARE_FULL)
+
 namespace fk {
 
 #include "logos/conservify_logo_bw-56.h"
@@ -140,3 +142,5 @@ void U8g2Display::off() {
 }
 
 }
+
+#endif

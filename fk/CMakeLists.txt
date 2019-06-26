@@ -16,7 +16,7 @@ file(GLOB sources *.cpp *.c *.h)
 
 add_arduino_library(fk-bundled "${sources}")
 
-target_compile_options(fk-bundled PRIVATE -Wall -Werror)
+target_compile_options(fk-bundled PRIVATE -Wall -Werror -DFK_HARDWARE_FULL)
 
 find_package(SeggerRTT)
 target_link_libraries(fk-bundled SeggerRTT)
@@ -32,6 +32,12 @@ target_link_libraries(fk-bundled WiFi101)
 
 find_package(u8g2)
 target_link_libraries(fk-bundled u8g2)
+
+find_package(lwstreams)
+target_link_libraries(fk-bundled lwstreams)
+
+find_package(HttpParser)
+target_link_libraries(fk-bundled HttpParser)
 
 configure_firmware_linker_script(fk-bundled ${CMAKE_SOURCE_DIR}/boards/samd51/main.ld)
 

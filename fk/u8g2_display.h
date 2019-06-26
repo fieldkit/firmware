@@ -1,5 +1,7 @@
 #pragma once
 
+#if defined(FK_HARDWARE_FULL)
+
 #include <U8g2lib.h>
 
 #include "display.h"
@@ -26,3 +28,5 @@ public:
 };
 
 }
+
+#endif

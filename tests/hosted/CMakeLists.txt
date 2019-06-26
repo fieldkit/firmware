@@ -2,13 +2,12 @@
 #
 #
 
-# Dependencies...
+include(${CMAKE_SOURCE_DIR}/libraries/dependencies.cmake)
+
 find_package(Threads REQUIRED)
 
-# Enable ExternalProject CMake module
 include(ExternalProject)
 
-# Download and install GoogleTest
 set(GTEST_URL ${CMAKE_SOURCE_DIR}/third-party/googletest-1.8.0.zip)
 set(GTEST_SHA256 SHA256=f3ed3b58511efd272eb074a3a6d6fb79d7c2e6a0e374323d1e6bcbcc1ef141bf)
 ExternalProject_Add(
@@ -26,8 +25,6 @@ ExternalProject_Get_Property(gtest source_dir binary_dir)
 # Create a libgtest target to be used as a dependency by test programs
 add_library(libgtest IMPORTED STATIC GLOBAL)
 add_dependencies(libgtest gtest)
-
-# Set libgtest properties
 set_target_properties(libgtest PROPERTIES
   "IMPORTED_LOCATION" "${binary_dir}/googlemock/gtest/libgtest.a"
   "IMPORTED_LINK_INTERFACE_LIBRARIES" "${CMAKE_THREAD_LIBS_INIT}"
@@ -36,8 +33,6 @@ set_target_properties(libgtest PROPERTIES
 # Create a libgmock target to be used as a dependency by test programs
 add_library(libgmock IMPORTED STATIC GLOBAL)
 add_dependencies(libgmock gtest)
-
-# Set libgmock properties
 set_target_properties(libgmock PROPERTIES
   "IMPORTED_LOCATION" "${binary_dir}/googlemock/libgmock.a"
   "IMPORTED_LINK_INTERFACE_LIBRARIES" "${CMAKE_THREAD_LIBS_INIT}"
@@ -47,10 +42,21 @@ set_target_properties(libgmock PROPERTIES
 include_directories("${source_dir}/googletest/include"
                     "${source_dir}/googlemock/include")
 
-file(GLOB sources *.cpp)
+file(GLOB fk_sources ../../fk/*.cpp ../../fk/httpd/*.cpp)
+list(FILTER fk_sources EXCLUDE REGEX ".*main.cpp$")
+list(FILTER fk_sources EXCLUDE REGEX ".*platform.cpp$")
+
+file(GLOB sources *.cpp ${fk_sources})
 
 add_executable(testall ${sources})
 
+find_package(lwstreams)
+target_link_libraries(testall lwstreams)
+
+find_package(HttpParser)
+target_link_libraries(testall HttpParser)
+
+target_include_directories(testall PRIVATE ../../fk)
 target_compile_options(testall PUBLIC -Wall -pedantic)
 target_link_libraries(testall libgtest libgmock)
-add_test(NAME testall COMMAND testall --erase-ff)
+add_test(NAME testall COMMAND testall)

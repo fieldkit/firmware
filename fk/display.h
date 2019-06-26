@@ -19,12 +19,12 @@ typedef struct home_screen_t {
 
 class Display {
 public:
-    virtual void on();
-    virtual void off();
-    virtual void centered(const xbm_data_t &xbm);
-    virtual void company_logo();
-    virtual void fk_logo();
-    virtual void home(home_screen_t data);
+    virtual void on() = 0;
+    virtual void off() = 0;
+    virtual void centered(const xbm_data_t &xbm) = 0;
+    virtual void company_logo() = 0;
+    virtual void fk_logo() = 0;
+    virtual void home(home_screen_t data) = 0;
 
 };
 
@@ -36,6 +36,10 @@ public:
     void company_logo() override { }
     void fk_logo() override { }
     void home(home_screen_t data) override { }
+
+    bool begin() {
+        return true;
+    }
 
 };
 
