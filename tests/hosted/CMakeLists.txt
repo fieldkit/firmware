@@ -50,8 +50,8 @@ file(GLOB sources *.cpp ${fk_sources})
 
 add_executable(testall ${sources})
 
-# find_package(u8g2)
-# target_link_libraries(testall u8g2)
+find_package(lwstreams)
+target_link_libraries(testall lwstreams)
 
 target_include_directories(testall PRIVATE ../../fk)
 target_compile_options(testall PUBLIC -Wall -pedantic)
