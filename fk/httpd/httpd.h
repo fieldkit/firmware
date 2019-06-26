@@ -6,10 +6,26 @@
 
 namespace fk {
 
+enum class HttpRequestState {
+    New,
+    URL,
+    Headers,
+    Body,
+    Consumed,
+    Error,
+    Done
+};
+
 class HttpRequest {
 private:
     http_parser parser_;
     http_parser_settings settings_{ 0 };
+
+    /**
+     * Current state of this HTTP request. Basically set in response to the
+     * parser callbacks.
+     */
+    HttpRequestState state_{ HttpRequestState::New };
 
     /**
      * URL being acted upon. Eventually this should probably be more flexible,
@@ -25,7 +41,7 @@ private:
     size_t header_name_len_{ 0 };
 
     /**
-     * Length of this request, per the Content-Length header.
+     * Length of this request, as supplied in the Content-Length header.
      */
     uint32_t length_;
 
@@ -36,6 +52,18 @@ public:
     int32_t parse(const char *data, size_t length);
 
 public:
+    HttpRequestState state() const {
+        return state_;
+    }
+
+    bool done() const {
+        return state_ == HttpRequestState::Error || state_ == HttpRequestState::Done;
+    }
+
+    bool consumed() const {
+        return state_ == HttpRequestState::Consumed;
+    }
+
     const char *url() const {
         return url_;
     }
