@@ -12,9 +12,11 @@ enable_m4_board(fieldkit_core)
 
 include(${CMAKE_SOURCE_DIR}/libraries/dependencies.cmake)
 
-file(GLOB sources *.cpp *.c *.h)
+file(GLOB_RECURSE sources *.cpp *.c *.h)
 
 add_arduino_library(fk-bundled "${sources}")
+
+target_include_directories(fk-bundled PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_compile_options(fk-bundled PRIVATE -Wall -Werror -DFK_HARDWARE_FULL)
 
