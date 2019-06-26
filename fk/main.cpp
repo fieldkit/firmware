@@ -33,24 +33,29 @@ void run_tasks() {
  * RADIO_MOSI  PB26
  * RADIO_MISO  PB29
  * RADIO_SCK   PB27
-
+ *
  * WIFI_CS     PB05
  * WIFI_ENABLE PC25
  * WIFI_RESET  PC26
  * WIFI_IRQ    PC27
-
+ *
  * WIFI_POWER  PB07
  *
  * GPS_TX      PB24
  * GPS_RX      PB25
  * GPS_POWER   PB06
+ *
+ * Wire1
+ * RAD_SDA     PC22
+ * RAD_SCL     PC23
  */
 
-constexpr uint8_t WINC1500_CS = 54u;
+constexpr uint8_t WINC1500_CS = 54u;  /* This is moving */
 constexpr uint8_t WINC1500_ENABLE = 95u;
 constexpr uint8_t WINC1500_IRQ = 97u;
 constexpr uint8_t WINC1500_RESET = 96u;
 constexpr uint8_t WINC1500_POWER = 56u;
+
 constexpr uint8_t GPS_POWER = 55u;
 
 void gps() {
@@ -91,7 +96,6 @@ void wifi() {
 
     fkb_external_println("fk: wifi found!");
 }
-
 
 uint16_t read_u16(uint8_t address, uint8_t reg) {
     Wire1.beginTransmission(address);
@@ -135,6 +139,23 @@ void fuel_gauge() {
 void setup() {
     fkb_external_println("fk: hello!");
 
+    if (false) {
+        pinMode(PIN_WIRE1_SDA, OUTPUT);
+        pinMode(PIN_WIRE1_SCL, OUTPUT);
+
+        while (true) {
+            digitalWrite(PIN_WIRE1_SDA, LOW);
+            digitalWrite(PIN_WIRE1_SCL, LOW);
+
+            delay(1000);
+
+            digitalWrite(PIN_WIRE1_SDA, HIGH);
+            digitalWrite(PIN_WIRE1_SCL, HIGH);
+
+            delay(1000);
+        }
+    }
+
     pinMode(WINC1500_CS, OUTPUT);
     pinMode(WINC1500_IRQ, INPUT);
     pinMode(WINC1500_RESET, OUTPUT);
@@ -152,14 +173,6 @@ void setup() {
     delay(100);
 
     Serial1.begin(9600);
-
-    while (true) {
-        fuel_gauge();
-
-        wifi();
-
-        delay(500);
-    }
 
     DisplayFactory display_factory;
     Display *display = display_factory.get_display();
