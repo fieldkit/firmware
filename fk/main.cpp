@@ -3,7 +3,7 @@
 
 #include "platform.h"
 #include "self_check.h"
-#include "httpd/httpd.h"
+#include "httpd/server.h"
 #include "secrets.h"
 
 #include <Arduino.h>
@@ -51,12 +51,6 @@ void run_tasks() {
  * RAD_SDA     PC22
  * RAD_SCL     PC23
  */
-
-constexpr uint8_t WINC1500_CS = 54u;  /* This is moving */
-constexpr uint8_t WINC1500_ENABLE = 95u;
-constexpr uint8_t WINC1500_IRQ = 97u;
-constexpr uint8_t WINC1500_RESET = 96u;
-constexpr uint8_t WINC1500_POWER = 56u;
 
 constexpr uint8_t GPS_POWER = 55u;
 
@@ -138,87 +132,6 @@ void fuel_gauge() {
     }
 }
 
-class WebServer {
-private:
-    WiFiServer server_{ 80 };
-
-public:
-    bool begin() {
-        SPI1.begin();
-
-        WiFi.setPins(WINC1500_CS, WINC1500_IRQ, WINC1500_RESET);
-
-        if (WiFi.status() == WL_NO_SHIELD) {
-            fkb_external_println("fk: no wifi");
-            return false;
-        }
-
-        fkb_external_println("fk: connecting to AP...");
-
-        while (WiFi.status() != WL_CONNECTED) {
-            #if defined(FK_WIFI_0_SSID) && defined(FK_WIFI_0_PASSWORD)
-            WiFi.begin(FK_WIFI_0_SSID, FK_WIFI_0_PASSWORD);
-            #else
-            WiFi.begin(FK_WIFI_0_SSID, FK_WIFI_0_PASSWORD);
-            #endif
-
-            auto started = fk_uptime();
-            while (fk_uptime() - started < 10 * 1000 && WiFi.status() != WL_CONNECTED) {
-                delay(100);
-            }
-        }
-
-        server_.begin();
-
-        IPAddress ip = WiFi.localIP();
-
-        fkb_external_println("fk: connected (ip = %d.%d.%d.%d)", ip[0], ip[1], ip[2], ip[3]);
-
-        return true;
-    }
-
-    void tick() {
-        auto wcl = server_.available();
-        if (!wcl) {
-            return;
-        }
-
-        fkb_external_println("fk: connection!");
-
-        uint8_t buffer[1024] = { 0 };
-        size_t position = 0;
-        HttpRequest req;
-
-        while (wcl.connected()) {
-            if (wcl.available()) {
-                auto available = sizeof(buffer) - position;
-                auto nread = wcl.read(buffer, available);
-                if (nread < 0) {
-                    continue;
-                }
-
-                if (req.parse((const char *)(buffer + position), nread) != 0) {
-                    // ERROR
-                }
-
-                if (req.consumed()) {
-                    wcl.println("HTTP/1.1 204 OK");
-                    wcl.println("Content-Length: 0");
-                    wcl.println("Content-Type: text/html");
-                    wcl.println("Connection: close");
-                    wcl.println();
-                    break;
-                }
-
-                position += nread;
-            }
-        }
-
-        wcl.stop();
-    }
-
-};
-
 void setup() {
     fkb_external_println("fk: hello!");
 
@@ -269,9 +182,13 @@ void setup() {
 
     delay(1000);
 
-    WebServer web;
+    #if defined(FK_WIFI_0_SSID) && defined(FK_WIFI_0_PASSWORD)
+    HttpServer http_server{ FK_WIFI_0_SSID, FK_WIFI_0_PASSWORD };
+    #else
+    HttpServer http_server{ nullptr, nullptr };
+    #endif
 
-    if (!web.begin()) {
+    if (!http_server.begin()) {
         fkb_external_println("fk: Wifi missing");
         while (true) {
         }
@@ -287,7 +204,7 @@ void setup() {
 
         display->home(screen);
 
-        web.tick();
+        http_server.tick();
 
         delay(10);
     }
