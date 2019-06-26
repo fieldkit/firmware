@@ -33,6 +33,9 @@ target_link_libraries(fk-bundled u8g2)
 find_package(lwstreams)
 target_link_libraries(fk-bundled lwstreams)
 
+find_package(HttpParser)
+target_link_libraries(fk-bundled HttpParser)
+
 configure_firmware_linker_script(fk-bundled ${CMAKE_SOURCE_DIR}/boards/samd51/main.ld)
 
 add_arduino_firmware(fk-bundled)

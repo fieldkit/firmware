@@ -53,6 +53,9 @@ add_executable(testall ${sources})
 find_package(lwstreams)
 target_link_libraries(testall lwstreams)
 
+find_package(HttpParser)
+target_link_libraries(testall HttpParser)
+
 target_include_directories(testall PRIVATE ../../fk)
 target_compile_options(testall PUBLIC -Wall -pedantic)
 target_link_libraries(testall libgtest libgmock)
