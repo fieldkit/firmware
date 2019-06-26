@@ -16,7 +16,7 @@ file(GLOB sources *.cpp *.c *.h)
 
 add_arduino_library(fk-bundled "${sources}")
 
-target_compile_options(fk-bundled PRIVATE -Wall -Werror)
+target_compile_options(fk-bundled PRIVATE -Wall -Werror -DFK_HARDWARE_FULL)
 
 find_package(SeggerRTT)
 target_link_libraries(fk-bundled SeggerRTT)
