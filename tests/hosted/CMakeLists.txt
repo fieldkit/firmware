@@ -4,6 +4,8 @@
 
 include(${CMAKE_SOURCE_DIR}/libraries/dependencies.cmake)
 
+set(CMAKE_BUILD_TYPE DEBUG)
+
 find_package(Threads REQUIRED)
 
 include(ExternalProject)

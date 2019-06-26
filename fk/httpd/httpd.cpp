@@ -1,0 +1,108 @@
+#include <cstring>
+
+#include "common.h"
+#include "httpd.h"
+
+namespace fk {
+
+constexpr const char *HTTP_CONTENT_LENGTH = "Content-Length";
+
+static int http_on_message_begin_callback(http_parser* parser) {
+    return reinterpret_cast<HttpRequest*>(parser->data)->on_message_begin();
+}
+
+static int http_url_callback(http_parser* parser, const char *at, size_t length) {
+    return reinterpret_cast<HttpRequest*>(parser->data)->on_url(at, length);
+}
+
+static int http_header_field_callback(http_parser* parser, const char *at, size_t length) {
+    return reinterpret_cast<HttpRequest*>(parser->data)->on_header_field(at, length);
+}
+
+static int http_header_value_callback(http_parser* parser, const char *at, size_t length) {
+    return reinterpret_cast<HttpRequest*>(parser->data)->on_header_value(at, length);
+}
+
+static int http_headers_complete_callback(http_parser* parser) {
+    return reinterpret_cast<HttpRequest*>(parser->data)->on_headers_complete();
+}
+
+static int http_body_callback(http_parser* parser, const char *at, size_t length) {
+    return reinterpret_cast<HttpRequest*>(parser->data)->on_data(at, length);
+}
+
+static int http_message_complete_callback(http_parser* parser) {
+    return reinterpret_cast<HttpRequest*>(parser->data)->on_message_complete();
+}
+
+HttpRequest::HttpRequest() {
+    settings_.on_url = http_url_callback;
+    settings_.on_message_begin = http_on_message_begin_callback;
+    settings_.on_header_field = http_header_field_callback;
+    settings_.on_header_value = http_header_value_callback;
+    settings_.on_headers_complete = http_headers_complete_callback;
+    settings_.on_body = http_body_callback;
+    settings_.on_message_complete = http_message_complete_callback;
+
+    http_parser_init(&parser_, HTTP_REQUEST);
+    http_parser_set_max_header_size(1024);
+
+    parser_.data = this;
+}
+
+int32_t HttpRequest::parse(const char *data, size_t length) {
+    return http_parser_execute(&parser_, &settings_, data, length);
+}
+
+int32_t HttpRequest::on_message_begin() {
+    // printf("hi: %s\n", __PRETTY_FUNCTION__);
+
+    return 0;
+}
+
+int32_t HttpRequest::on_url(const char *at, size_t length) {
+    // printf("hi: %s\n", __PRETTY_FUNCTION__);
+
+    auto n = std::min(length, sizeof(url_));
+    strncpy(url_, at, n);
+    url_[length] = 0;
+
+    return 0;
+}
+
+int32_t HttpRequest::on_header_field(const char *at, size_t length) {
+    // printf("hi: %s\n", __PRETTY_FUNCTION__);
+
+    header_name_ = at;
+    header_name_len_ = length;
+
+    return 0;
+}
+
+int32_t HttpRequest::on_header_value(const char *at, size_t length) {
+    // printf("hi: %s\n", __PRETTY_FUNCTION__);
+
+    auto n = std::min(header_name_len_, strlen(HTTP_CONTENT_LENGTH));
+    if (strncasecmp(header_name_, HTTP_CONTENT_LENGTH, n) == 0) {
+        length_ = atoi(at);
+    }
+
+    return 0;
+}
+
+int32_t HttpRequest::on_headers_complete() {
+    // printf("hi: %s\n", __PRETTY_FUNCTION__);
+    return 0;
+}
+
+int32_t HttpRequest::on_data(const char *at, size_t length) {
+    // printf("hi: %s\n", __PRETTY_FUNCTION__);
+    return 0;
+}
+
+int32_t HttpRequest::on_message_complete() {
+    // printf("hi: %s\n", __PRETTY_FUNCTION__);
+    return 0;
+}
+
+}
