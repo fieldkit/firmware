@@ -3,6 +3,28 @@
 
 python
 
+class FkSegger(gdb.Command):
+  "Segger mode."
+  def __init__ (self):
+    super(FkSegger, self).__init__("js", gdb.COMMAND_SUPPORT, gdb.COMPLETE_NONE, True)
+
+  def invoke(self, arg, from_tty):
+    gdb.execute("target extended-remote :2331")
+    gdb.execute("load")
+    gdb.execute("monitor reset")
+    gdb.execute("continue")
+
+class FkRunHosted(gdb.Command):
+  "Run hosted tests."
+  def __init__ (self):
+    super(FkRunHosted, self).__init__("jrh", gdb.COMMAND_SUPPORT, gdb.COMPLETE_NONE, True)
+
+  def invoke(self, arg, from_tty):
+    made = subprocess.run(["make", "amd64", "-j4"])
+    if made.returncode != 0:
+      return False
+    gdb.execute("run")
+
 class FkReloadAll(gdb.Command):
   "Reload all."
   def __init__ (self):
@@ -16,8 +38,6 @@ class FkReloadAll(gdb.Command):
 end
 
 python FkReloadAll()
+python FkSegger()
+python FkRunHosted()
 
-target extended-remote :2331
-load
-monitor reset
-continue
