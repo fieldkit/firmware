@@ -9,7 +9,7 @@ default: setup all
 
 all: samd51 test
 
-setup: .python-setup
+setup: .python-setup fk/secrets.h
 
 .python-setup:
 	pip3 install lief
@@ -39,6 +39,9 @@ LIBRARY_REPOSITORIES := jlewallen/arduino-osh jlewallen/loading conservify/segge
 LOCAL_LIBRARY_PATHS := $(patsubst %, libraries/%, $(LIBRARY_REPOSITORIES))
 
 libraries: $(LOCAL_LIBRARY_PATHS)
+
+fk/secrets.h: fk/secrets.h.template
+	cp $^ $@
 
 $(LOCAL_LIBRARY_PATHS):
 	$(OFFLINE) || simple-deps --nested --config libraries/dependencies.sd --dir libraries
