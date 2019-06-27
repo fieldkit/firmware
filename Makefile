@@ -9,6 +9,8 @@ default: setup all
 
 all: samd51 test
 
+ci: all doc
+
 setup: .python-setup fk/secrets.h
 
 .python-setup:
@@ -27,6 +29,9 @@ amd64: dependencies
 
 test: amd64
 	cd $(BUILD)/amd64 && env GTEST_COLOR=1 $(MAKE) test ARGS=-VV
+
+doc:
+	cd $(BUILD)/amd64 && $(MAKE) doc
 
 dependencies: libraries
 
@@ -65,4 +70,4 @@ veryclean: clean
 clean:
 	rm -rf $(BUILD)
 
-.PHONY: libraries
+.PHONY: libraries doc
