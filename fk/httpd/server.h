@@ -20,6 +20,7 @@ private:
     WiFiServer server_{ 80 };
 
 public:
+    HttpServer();
     HttpServer(const char *ssid, const char *password);
 
 public:

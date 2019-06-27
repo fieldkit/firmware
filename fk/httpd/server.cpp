@@ -6,6 +6,13 @@
 
 namespace fk {
 
+static bool wifi_ready() {
+    return WiFi.status() == WL_CONNECTED || WiFi.status() == WL_AP_LISTENING;
+}
+
+HttpServer::HttpServer() : ssid_(nullptr), password_(nullptr) {
+}
+
 HttpServer::HttpServer(const char *ssid, const char *password) : ssid_(ssid), password_(password) {
 }
 
@@ -19,13 +26,18 @@ bool HttpServer::begin() {
         return false;
     }
 
-    fkb_external_println("fk: connecting to AP...");
+    fkb_external_println("fk: establishing wifi...");
 
-    while (WiFi.status() != WL_CONNECTED) {
-        WiFi.begin(ssid_, password_);
+    while (!wifi_ready()) {
+        if (ssid_ == nullptr) {
+            WiFi.beginAP("FK-DARWIN");
+        }
+        else {
+            WiFi.begin(ssid_, password_);
+        }
 
         auto started = fk_uptime();
-        while (fk_uptime() - started < 10 * 1000 && WiFi.status() != WL_CONNECTED) {
+        while (fk_uptime() - started < 10 * 1000 && !wifi_ready()) {
             delay(100);
         }
     }

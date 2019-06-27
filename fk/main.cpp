@@ -185,7 +185,7 @@ void setup() {
     #if defined(FK_WIFI_0_SSID) && defined(FK_WIFI_0_PASSWORD)
     HttpServer http_server{ FK_WIFI_0_SSID, FK_WIFI_0_PASSWORD };
     #else
-    HttpServer http_server{ nullptr, nullptr };
+    HttpServer http_server;
     #endif
 
     if (!http_server.begin()) {
