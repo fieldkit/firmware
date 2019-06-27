@@ -127,7 +127,7 @@ void U8g2Display::home(home_screen_t data) {
     }
 
     char buffer[128];
-    fk_snprintf(buffer, sizeof(buffer), "Temp: 22.4°C pH: 8.32");
+    fk_snprintf(buffer, sizeof(buffer), "Temp: 22.4°C pH: 6.97");
     draw_.setFontMode(0);
     draw_.setFont(u8g2_font_courB18_tf);
     auto width = draw_.getUTF8Width(buffer);
