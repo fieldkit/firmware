@@ -12,7 +12,7 @@ all: samd51 test
 setup: .python-setup fk/secrets.h
 
 .python-setup:
-	pip3 install lief
+	pip3 install -U lief sphinx
 	touch .python-setup
 
 samd51: dependencies
