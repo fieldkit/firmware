@@ -96,7 +96,7 @@ TEST_F(HttpRoutingSuite, WithMultipleBasicRoutes) {
       { "/fk/v4", &handlers[3] }
     };
 
-    for (auto i = (size_t)0; i < sizeof(routes); ++i) {
+    for (auto i = (size_t)0; i < 4; ++i) {
         router.add_route(&routes[i]);
     }
 

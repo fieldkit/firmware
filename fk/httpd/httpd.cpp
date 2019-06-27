@@ -128,7 +128,7 @@ int32_t HttpRequest::on_message_complete() {
 }
 
 HttpHandler *HttpRouter::route(const char *url) {
-    for (auto i = (size_t)0; i < sizeof(routes_); ++i) {
+    for (auto i = (size_t)0; i < maximum_number_of_routes(); ++i) {
         if (routes_[i] == nullptr) {
             return nullptr;
         }
@@ -140,7 +140,7 @@ HttpHandler *HttpRouter::route(const char *url) {
 }
 
 bool HttpRouter::add_route(HttpRoute *route) {
-    for (auto i = (size_t)0; i < sizeof(routes_); ++i) {
+    for (auto i = (size_t)0; i < maximum_number_of_routes(); ++i) {
         if (routes_[i] == nullptr) {
             routes_[i] = route;
             return true;

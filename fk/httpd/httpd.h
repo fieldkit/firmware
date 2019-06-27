@@ -59,6 +59,13 @@ public:
      */
     bool add_route(HttpRoute *route);
 
+    /**
+     * Returns the maximum number of routes.
+     */
+    constexpr size_t maximum_number_of_routes() {
+        return HttpMaximumRoutes;
+    }
+
 };
 
 class HttpRequest {
