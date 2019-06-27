@@ -60,6 +60,10 @@ public:
         return state_ == HttpRequestState::Error || state_ == HttpRequestState::Done;
     }
 
+    bool have_headers() const {
+        return state_ == HttpRequestState::Body;
+    }
+
     bool consumed() const {
         return state_ == HttpRequestState::Consumed;
     }

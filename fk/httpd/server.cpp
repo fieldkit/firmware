@@ -51,16 +51,29 @@ void HttpServer::tick() {
     size_t position = 0;
     HttpRequest req;
 
+    // TODO: 414 Request-URI Too Long
+    // TODO: 431 Request Header Fields Too Large.
+    // TODO: 413 Payload Too Large
+    // TODO: 500 Service Unavailable
+    // TODO: 503 Service Unavailable
+
     while (wcl.connected()) {
         if (wcl.available()) {
             auto available = sizeof(buffer) - position;
             auto nread = wcl.read(buffer, available);
             if (nread < 0) {
+                fkb_external_println("fk: EOS read");
+                continue;
+            }
+            if (nread == 0) {
+                fkb_external_println("fk: empty read");
                 continue;
             }
 
             if (req.parse((const char *)(buffer + position), nread) != 0) {
-                // ERROR
+            }
+
+            if (req.have_headers()) {
             }
 
             if (req.consumed()) {
