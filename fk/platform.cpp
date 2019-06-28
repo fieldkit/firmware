@@ -15,7 +15,17 @@ uint32_t fk_uptime() {
     return millis();
 }
 
+uint32_t fk_delay(uint32_t ms) {
+    delay(ms);
+    return 0;
+}
+
 #else
+
+uint32_t fk_delay(uint32_t ms) {
+    return 0;
+}
+
 #endif
 
 }

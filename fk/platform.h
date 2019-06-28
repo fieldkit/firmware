@@ -9,6 +9,8 @@ namespace fk {
  */
 uint32_t fk_uptime();
 
+uint32_t fk_delay(uint32_t ms);
+
 }
 
 #ifdef __cplusplus
