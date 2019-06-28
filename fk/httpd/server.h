@@ -7,13 +7,13 @@ namespace fk {
 
 class HttpServer {
 private:
+    Wifi *wifi_;
     const char *ssid_;
     const char *password_;
-    Wifi *wifi_;
 
 public:
-    HttpServer();
-    HttpServer(const char *ssid, const char *password);
+    HttpServer(Wifi *wifi);
+    HttpServer(Wifi *wifi, const char *ssid, const char *password);
 
 public:
     bool begin();

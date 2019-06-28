@@ -11,6 +11,7 @@ class FkSegger(gdb.Command):
   def invoke(self, arg, from_tty):
     gdb.execute("target extended-remote :2331")
     gdb.execute("load")
+    gdb.execute("b DummyHandler")
     gdb.execute("monitor reset")
     gdb.execute("continue")
 

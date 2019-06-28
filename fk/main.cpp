@@ -183,10 +183,11 @@ void setup() {
 
     delay(1000);
 
+    MetalWifi wifi;
     #if defined(FK_WIFI_0_SSID) && defined(FK_WIFI_0_PASSWORD)
-    HttpServer http_server{ FK_WIFI_0_SSID, FK_WIFI_0_PASSWORD };
+    HttpServer http_server{ &wifi, FK_WIFI_0_SSID, FK_WIFI_0_PASSWORD };
     #else
-    HttpServer http_server;
+    HttpServer http_server{ &wifi };
     #endif
 
     if (!http_server.begin()) {

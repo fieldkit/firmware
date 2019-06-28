@@ -51,7 +51,6 @@ class MetalWifi : public Wifi {
 private:
     char service_name_[64];
     WifiSettings settings_;
-    WiFiClass wifi_;
     WiFiServer server_{ 80 };
     WiFiUDP udp_;
     MDNS mdns_{ udp_ };

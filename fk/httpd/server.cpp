@@ -11,19 +11,19 @@ static bool wifi_ready(WifiStatus status) {
     return status == WifiStatus::Connected || status == WifiStatus::Listening;
 }
 
-HttpServer::HttpServer() : ssid_(nullptr), password_(nullptr) {
+HttpServer::HttpServer(Wifi *wifi) : wifi_(wifi), ssid_(nullptr), password_(nullptr) {
 }
 
-HttpServer::HttpServer(const char *ssid, const char *password) : ssid_(ssid), password_(password) {
+HttpServer::HttpServer(Wifi *wifi, const char *ssid, const char *password) : wifi_(wifi), ssid_(ssid), password_(password) {
 }
 
 WifiSettings HttpServer::get_settings() {
     if (ssid_ == nullptr) {
         return {
             .create = true,
-            .ssid = "FK-DEVICE",
+            .ssid = "FkDevice",
             .password = nullptr,
-            .name = "FK-DEVICE",
+            .name = "FkDevice",
             .port = 80,
         };
     }
@@ -39,17 +39,19 @@ WifiSettings HttpServer::get_settings() {
 bool HttpServer::begin() {
     auto settings = get_settings();
 
-    if (wifi_->begin(settings)) {
-        fkb_external_println("fk: no wifi");
+    if (!wifi_->begin(settings)) {
+        fkb_external_println("fk: unable to configure wifi");
         return false;
     }
 
-    fkb_external_println("fk: establishing wifi...");
+    fkb_external_println("fk: waiting on wifi...");
 
     while (!wifi_ready(wifi_->status())) {
         fk_delay(100);
     }
 
+
+    fkb_external_println("fk: serving");
 
     wifi_->serve();
 

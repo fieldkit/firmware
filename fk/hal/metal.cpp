@@ -41,18 +41,22 @@ bool MetalWifiConnection::stop() {
 bool MetalWifi::begin(WifiSettings settings) {
     SPI1.begin();
 
-    wifi_.setPins(WINC1500_CS, WINC1500_IRQ, WINC1500_RESET);
+    fkb_external_println("fk: checking wifi...");
 
-    if (wifi_.status() == WL_NO_SHIELD) {
+    WiFi.setPins(WINC1500_CS, WINC1500_IRQ, WINC1500_RESET);
+
+    if (WiFi.status() == WL_NO_SHIELD) {
         fkb_external_println("fk: no wifi");
         return false;
     }
 
+    fkb_external_println("fk: connecting/creating AP...");
+
     if (settings.create) {
-        wifi_.beginAP(settings.ssid, settings.password);
+        WiFi.beginAP(settings.ssid, settings.password);
     }
     else {
-        wifi_.begin(settings.ssid, settings.password);
+        WiFi.begin(settings.ssid, settings.password);
     }
 
     settings_ = settings;
@@ -84,7 +88,7 @@ bool MetalWifi::serve() {
 }
 
 WifiStatus MetalWifi::status() {
-    switch (wifi_.status()) {
+    switch (WiFi.status()) {
     case WL_NO_SHIELD: return WifiStatus::Error;
     case WL_CONNECTED: return WifiStatus::Connected;
     case WL_AP_LISTENING: return WifiStatus::Listening;
@@ -93,7 +97,7 @@ WifiStatus MetalWifi::status() {
 }
 
 uint32_t MetalWifi::ip_address() {
-    return wifi_.localIP();
+    return WiFi.localIP();
 }
 
 WifiConnection *MetalWifi::accept() {
@@ -109,7 +113,7 @@ WifiConnection *MetalWifi::accept() {
 }
 
 bool MetalWifi::stop() {
-    wifi_.end();
+    WiFi.end();
 
     return true;
 }
