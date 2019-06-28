@@ -2,6 +2,8 @@
 
 #if defined(ARDUINO)
 
+#include <algorithm>
+
 #include "hal/hal.h"
 #include "hal/wifi.h"
 
@@ -10,6 +12,9 @@
 #include <WiFi101.h>
 #include <WiFiUdp.h>
 #include <ArduinoMDNS.h>
+
+#undef min
+#undef max
 
 namespace fk {
 
@@ -44,6 +49,7 @@ public:
 
 class MetalWifi : public Wifi {
 private:
+    char service_name_[64];
     WifiSettings settings_;
     WiFiClass wifi_;
     WiFiServer server_{ 80 };

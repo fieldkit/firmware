@@ -65,15 +65,20 @@ bool MetalWifi::serve() {
 
     IPAddress ip = WiFi.localIP();
 
-    fkb_external_println("fk: connected (ip = %d.%d.%d.%d)", ip[0], ip[1], ip[2], ip[3]);
+    strncpy(service_name_, settings_.name, sizeof(service_name_) - 5);
+    auto n = std::min(strlen(service_name_), sizeof(service_name_) - 5);
+    strncpy(service_name_ + n, ".fk_", 4);
+    service_name_[n + 4] = 0;
 
     if (!mdns_.begin(ip, settings_.name)) {
         fkb_external_println("fk: unable to start mdns responder!");
         return false;
     }
 
-    // TODO: Build a real name using settings._name
-    mdns_.addServiceRecord("station._fk", 80, MDNSServiceTCP);
+    mdns_.addServiceRecord(service_name_, 80, MDNSServiceTCP);
+
+    fkb_external_println("fk: ready (ip = %d.%d.%d.%d) (service = %s)",
+                         ip[0], ip[1], ip[2], ip[3], service_name_);
 
     return true;
 }

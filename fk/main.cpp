@@ -5,6 +5,7 @@
 #include "self_check.h"
 #include "httpd/server.h"
 #include "secrets.h"
+#include "hal/hal.h"
 
 #include <Arduino.h>
 #include <WiFi101.h>

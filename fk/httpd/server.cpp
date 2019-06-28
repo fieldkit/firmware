@@ -1,13 +1,14 @@
+#include <cstring>
+
 #include "common.h"
 #include "platform.h"
 #include "httpd/server.h"
-
-#include <SPI.h>
+#include "hal/hal.h"
 
 namespace fk {
 
-static bool wifi_ready() {
-    return WiFi.status() == WL_CONNECTED || WiFi.status() == WL_AP_LISTENING;
+static bool wifi_ready(WifiStatus status) {
+    return status == WifiStatus::Connected || status == WifiStatus::Listening;
 }
 
 HttpServer::HttpServer() : ssid_(nullptr), password_(nullptr) {
@@ -16,69 +17,48 @@ HttpServer::HttpServer() : ssid_(nullptr), password_(nullptr) {
 HttpServer::HttpServer(const char *ssid, const char *password) : ssid_(ssid), password_(password) {
 }
 
+WifiSettings HttpServer::get_settings() {
+    if (ssid_ == nullptr) {
+        return {
+            .create = true,
+            .ssid = "FK-DEVICE",
+            .password = nullptr,
+            .name = "FK-DEVICE",
+            .port = 80,
+        };
+    }
+    return {
+        .create = false,
+        .ssid = ssid_,
+        .password = password_,
+        .name = "FK-DEVICE",
+        .port = 80,
+    };
+}
+
 bool HttpServer::begin() {
-    SPI1.begin();
+    auto settings = get_settings();
 
-    WiFi.setPins(WINC1500_CS, WINC1500_IRQ, WINC1500_RESET);
-
-    if (WiFi.status() == WL_NO_SHIELD) {
+    if (wifi_->begin(settings)) {
         fkb_external_println("fk: no wifi");
         return false;
     }
 
-    const char *name = "FK-DARWIN";
-
     fkb_external_println("fk: establishing wifi...");
 
-    while (!wifi_ready()) {
-        if (ssid_ == nullptr) {
-            WiFi.beginAP(name);
-        }
-        else {
-            WiFi.begin(ssid_, password_);
-        }
-
-        auto started = fk_uptime();
-        while (fk_uptime() - started < 10 * 1000 && !wifi_ready()) {
-            delay(100);
-        }
+    while (!wifi_ready(wifi_->status())) {
+        fk_delay(100);
     }
 
-    server_.begin();
 
-    IPAddress ip = WiFi.localIP();
-
-    fkb_external_println("fk: connected (ip = %d.%d.%d.%d)", ip[0], ip[1], ip[2], ip[3]);
-
-    if (!mdns_.begin(WiFi.localIP(), name)) {
-        fkb_external_println("fk: unable to start mdns responder!");
-        return false;
-    }
-
-    mdns_.addServiceRecord("station._fk", 80, MDNSServiceTCP);
+    wifi_->serve();
 
     return true;
 }
 
-static uint32_t available = true;
-static uint32_t changed = 0;
-
 void HttpServer::tick() {
-    mdns_.run();
-
-    if ((fk_uptime() - changed) > 30 * 1000) {
-        if (!available) {
-            mdns_.addServiceRecord("station._fk", 80, MDNSServiceTCP);
-        }
-        else {
-            mdns_.removeServiceRecord(80, MDNSServiceTCP);
-        }
-        available = !available;
-        changed = fk_uptime();
-    }
-
-    auto wcl = server_.available();
-    if (!wcl) {
+    auto connection = wifi_->accept();
+    if (connection == nullptr) {
         return;
     }
 
@@ -94,10 +74,10 @@ void HttpServer::tick() {
     // TODO: 500 Service Unavailable
     // TODO: 503 Service Unavailable
 
-    while (wcl.connected()) {
-        if (wcl.available()) {
+    while (connection->status() == WifiConnectionStatus::Connected) {
+        if (connection->available()) {
             auto available = sizeof(buffer) - position;
-            auto nread = wcl.read(buffer, available);
+            auto nread = connection->read(buffer, available);
             if (nread < 0) {
                 fkb_external_println("fk: EOS read");
                 continue;
@@ -114,11 +94,11 @@ void HttpServer::tick() {
             }
 
             if (req.consumed()) {
-                wcl.println("HTTP/1.1 204 OK");
-                wcl.println("Content-Length: 0");
-                wcl.println("Content-Type: text/html");
-                wcl.println("Connection: close");
-                wcl.println();
+                connection->write("HTTP/1.1 204 OK");
+                connection->write("Content-Length: 0");
+                connection->write("Content-Type: text/html");
+                connection->write("Connection: close");
+                connection->write("");
                 break;
             }
 
@@ -126,7 +106,7 @@ void HttpServer::tick() {
         }
     }
 
-    wcl.stop();
+    connection->stop();
 }
 
 }
