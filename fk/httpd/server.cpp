@@ -96,11 +96,11 @@ void HttpServer::tick() {
             }
 
             if (req.consumed()) {
-                connection->write("HTTP/1.1 204 OK");
-                connection->write("Content-Length: 0");
-                connection->write("Content-Type: text/html");
-                connection->write("Connection: close");
-                connection->write("");
+                connection->write("HTTP/1.1 204 OK\n");
+                connection->write("Content-Length: 0\n");
+                connection->write("Content-Type: text/html\n");
+                connection->write("Connection: close\n");
+                connection->write("\n");
                 break;
             }
 
