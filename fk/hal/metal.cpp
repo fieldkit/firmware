@@ -71,7 +71,7 @@ bool MetalWifi::serve() {
 
     strncpy(service_name_, settings_.name, sizeof(service_name_) - 5);
     auto n = std::min(strlen(service_name_), sizeof(service_name_) - 5);
-    strncpy(service_name_ + n, ".fk_", 4);
+    strncpy(service_name_ + n, "._fk", 4);
     service_name_[n + 4] = 0;
 
     if (!mdns_.begin(ip, settings_.name)) {
