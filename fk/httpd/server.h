@@ -2,6 +2,8 @@
 
 // NOTE: I'd like to push this into an implementation. 
 #include <WiFi101.h>
+#include <WiFiUdp.h>
+#include <ArduinoMDNS.h>
 
 #include "httpd/httpd.h"
 
@@ -18,6 +20,9 @@ private:
     const char *ssid_;
     const char *password_;
     WiFiServer server_{ 80 };
+    HttpRouter router_;
+    WiFiUDP udp_;
+    MDNS mdns_{ udp_ };
 
 public:
     HttpServer();

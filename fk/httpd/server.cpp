@@ -26,11 +26,13 @@ bool HttpServer::begin() {
         return false;
     }
 
+    const char *name = "FK-DARWIN";
+
     fkb_external_println("fk: establishing wifi...");
 
     while (!wifi_ready()) {
         if (ssid_ == nullptr) {
-            WiFi.beginAP("FK-DARWIN");
+            WiFi.beginAP(name);
         }
         else {
             WiFi.begin(ssid_, password_);
@@ -48,10 +50,33 @@ bool HttpServer::begin() {
 
     fkb_external_println("fk: connected (ip = %d.%d.%d.%d)", ip[0], ip[1], ip[2], ip[3]);
 
+    if (!mdns_.begin(WiFi.localIP(), name)) {
+        fkb_external_println("fk: unable to start mdns responder!");
+        return false;
+    }
+
+    mdns_.addServiceRecord("station._fk", 80, MDNSServiceTCP);
+
     return true;
 }
 
+static uint32_t available = true;
+static uint32_t changed = 0;
+
 void HttpServer::tick() {
+    mdns_.run();
+
+    if ((fk_uptime() - changed) > 30 * 1000) {
+        if (!available) {
+            mdns_.addServiceRecord("station._fk", 80, MDNSServiceTCP);
+        }
+        else {
+            mdns_.removeServiceRecord(80, MDNSServiceTCP);
+        }
+        available = !available;
+        changed = fk_uptime();
+    }
+
     auto wcl = server_.available();
     if (!wcl) {
         return;
