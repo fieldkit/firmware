@@ -51,12 +51,17 @@ bool MetalWifi::begin(WifiSettings settings) {
         return false;
     }
 
-    fkb_external_println("fk: connecting/creating AP...");
-
     if (settings.create) {
-        WiFi.beginAP(settings.ssid, settings.password);
+        fkb_external_println("fk: creating %s...", settings.ssid);
+        if (settings.password != nullptr) {
+            WiFi.beginAP(settings.ssid, settings.password);
+        }
+        else {
+            WiFi.beginAP(settings.ssid);
+        }
     }
     else {
+        fkb_external_println("fk: connecting AP...", settings.ssid);
         WiFi.begin(settings.ssid, settings.password);
     }
 

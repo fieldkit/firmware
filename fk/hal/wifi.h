@@ -5,7 +5,7 @@
 namespace fk {
 
 enum class WifiStatus {
-    Error,
+    Error = 0,
     Ready,
     Off,
     Listening,
