@@ -1,7 +1,6 @@
 #pragma once
 
-#include <cinttypes>
-#include <memory>
+#include <inttypes.h>
 #include <alogging/alogging.h>
 
 namespace fk {
@@ -9,12 +8,22 @@ namespace fk {
 /**
  *
  */
-#define fkinfo(f, ...)   loginfof("fk", f, ##__VA_ARGS__)
+#define FK_ASSERT(expression)                         (void)((expression) || (fk_assert(#expression, __FILE__, __LINE__), 0))
 
 /**
  *
  */
-#define fkerror(f, ...)  loginfof("fk", f, ##__VA_ARGS__)
+void fk_assert(const char *assertion, const char *file, int line);
+
+/**
+ *
+ */
+#define fkinfo(f, ...)                                loginfof("fk", f, ##__VA_ARGS__)
+
+/**
+ *
+ */
+#define fkerror(f, ...)                               loginfof("fk", f, ##__VA_ARGS__)
 
 /**
  * This is the theorhetical maximum number of modules that can be physically

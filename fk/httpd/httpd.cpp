@@ -1,5 +1,6 @@
 #include <cstring>
 #include <cstdlib>
+#include <memory>
 
 #include "common.h"
 #include "platform.h"
