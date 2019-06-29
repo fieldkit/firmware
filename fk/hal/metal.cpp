@@ -42,17 +42,17 @@ bool MetalWifiConnection::stop() {
 bool MetalWifi::begin(WifiSettings settings) {
     SPI1.begin();
 
-    fkb_external_println("fk: checking wifi...");
+    fkinfo("checking wifi...");
 
     WiFi.setPins(WINC1500_CS, WINC1500_IRQ, WINC1500_RESET);
 
     if (WiFi.status() == WL_NO_SHIELD) {
-        fkb_external_println("fk: no wifi");
+        fkinfo("no wifi");
         return false;
     }
 
     if (settings.create) {
-        fkb_external_println("fk: creating %s...", settings.ssid);
+        fkinfo("creating '%s'", settings.ssid);
         if (settings.password != nullptr) {
             WiFi.beginAP(settings.ssid, settings.password);
         }
@@ -61,7 +61,7 @@ bool MetalWifi::begin(WifiSettings settings) {
         }
     }
     else {
-        fkb_external_println("fk: connecting AP...", settings.ssid);
+        fkinfo("connecting '%s'", settings.ssid);
         WiFi.begin(settings.ssid, settings.password);
     }
 
@@ -82,14 +82,14 @@ bool MetalWifi::serve() {
     service_name_[n + 4] = 0;
 
     if (!mdns_.begin(ip, settings_.name)) {
-        fkb_external_println("fk: unable to start mdns responder!");
+        fkerror("unable to start mdns responder!");
         return false;
     }
 
     mdns_.addServiceRecord(service_name_, 80, MDNSServiceTCP);
 
-    fkb_external_println("fk: ready (ip = %d.%d.%d.%d) (service = %s)",
-                         ip[0], ip[1], ip[2], ip[3], service_name_);
+    fkinfo("ready (ip = %d.%d.%d.%d) (service = %s)",
+           ip[0], ip[1], ip[2], ip[3], service_name_);
 
     return true;
 }

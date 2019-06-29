@@ -44,6 +44,9 @@ target_link_libraries(fk-bundled HttpParser)
 find_package(ArduinoMDNS)
 target_link_libraries(fk-bundled ArduinoMDNS)
 
+find_package(arduino-logging)
+target_link_libraries(fk-bundled arduino-logging)
+
 configure_firmware_linker_script(fk-bundled ${CMAKE_SOURCE_DIR}/boards/samd51/main.ld)
 
 add_arduino_firmware(fk-bundled)

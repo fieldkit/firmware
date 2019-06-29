@@ -21,6 +21,9 @@ target_link_libraries(fkbl SeggerRTT)
 find_package(CortexLoading)
 target_link_libraries(fkbl CortexLoading)
 
+find_package(arduino-logging)
+target_link_libraries(fkbl arduino-logging)
+
 configure_firmware_linker_script(fkbl ${CMAKE_SOURCE_DIR}/boards/samd51/bootloader.ld)
 
 add_arduino_bootloader(fkbl)

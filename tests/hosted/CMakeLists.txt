@@ -58,6 +58,9 @@ target_link_libraries(testall lwstreams)
 find_package(HttpParser)
 target_link_libraries(testall HttpParser)
 
+find_package(arduino-logging)
+target_link_libraries(testall arduino-logging)
+
 target_include_directories(testall PRIVATE ../../fk)
 target_compile_options(testall PUBLIC -Wall -pedantic)
 target_link_libraries(testall libgtest libgmock)

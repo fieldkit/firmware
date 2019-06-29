@@ -6,6 +6,7 @@
 #pragma once
 
 #include <memory>
+#include <alogging/alogging.h>
 
 namespace fk {
 

@@ -20,7 +20,7 @@ static uint32_t idle_stack[OS_STACK_MINIMUM_SIZE_WORDS];
 static void task_handler_idle(void *params) {
     while (true) {
         delay(1000);
-        fkb_external_println("fk: ping");
+        fkinfo("ping");
     }
 }
 
@@ -56,7 +56,7 @@ void run_tasks() {
 constexpr uint8_t GPS_POWER = 55u;
 
 void gps() {
-    fkb_external_println("fk: checking gps");
+    fkinfo("checking gps");
 
     auto working = false;
 
@@ -70,28 +70,28 @@ void gps() {
     }
 
     if (working) {
-        fkb_external_println("fk: gps found!");
+        fkinfo("gps found!");
     }
     else {
-        fkb_external_println("fk: no gps!");
+        fkinfo("no gps!");
     }
 }
 
 void wifi() {
-    fkb_external_println("fk: checking wifi");
+    fkinfo("checking wifi");
 
     SPI1.begin();
 
     WiFi.setPins(WINC1500_CS, WINC1500_IRQ, WINC1500_RESET);
 
     if (WiFi.status() == WL_NO_SHIELD) {
-        fkb_external_println("fk: no wifi");
+        fkinfo("no wifi");
         return;
     }
 
     WiFi.end();
 
-    fkb_external_println("fk: wifi found!");
+    fkinfo("wifi found!");
 }
 
 uint16_t read_u16(uint8_t address, uint8_t reg) {
@@ -119,22 +119,28 @@ void fuel_gauge() {
         auto address = 0x36;
 
         if (!write_u16(address, 0x18, 2000 * 2)) {
-            fkb_external_println("fk: failed to write capacity");
+            fkinfo("failed to write capacity");
             break;
         }
 
         auto raw_voltage = read_u16(address, 0x09);
         auto voltage = (float)raw_voltage * 7.8125e-5f;
 
-        fkb_external_println("fk: raw voltage=%d", raw_voltage);
-        fkb_external_println("fk: %f", voltage);
+        fkinfo("raw voltage=%d", raw_voltage);
+        fkinfo("%f", voltage);
 
         break;
     }
 }
 
+size_t write_log(const LogMessage *m, const char *line) {
+    return fkb_external_printf("%06" PRIu32 " %s: %s\n", m->uptime, m->facility, m->message);
+}
+
 void setup() {
-    fkb_external_println("fk: hello!");
+    log_configure_writer(write_log);
+
+    fkinfo("hello!");
 
     if (false) {
         pinMode(PIN_WIRE1_SDA, OUTPUT);
@@ -206,12 +212,9 @@ void setup() {
             }
             else {
                 if (!http_server.begin()) {
-                    fkb_external_println("fk: Wifi missing");
-                    while (true) {
-                    }
+                    fkerror("wifi missing");
                 }
             }
-
             last_changed = fk_uptime();
         }
 

@@ -40,18 +40,18 @@ bool HttpServer::begin() {
     auto settings = get_settings();
 
     if (!wifi_->begin(settings)) {
-        fkb_external_println("fk: unable to configure wifi");
+        fkinfo("unable to configure wifi");
         return false;
     }
 
-    fkb_external_println("fk: waiting on wifi...");
+    fkinfo("waiting on wifi...");
 
     while (!wifi_ready(wifi_->status())) {
         fk_delay(100);
     }
 
 
-    fkb_external_println("fk: serving");
+    fkinfo("serving");
 
     wifi_->serve();
 
@@ -64,7 +64,7 @@ void HttpServer::tick() {
         return;
     }
 
-    fkb_external_println("fk: connection!");
+    fkinfo("connection!");
 
     uint8_t buffer[1024] = { 0 };
     size_t position = 0;
@@ -81,11 +81,11 @@ void HttpServer::tick() {
             auto available = sizeof(buffer) - position;
             auto nread = connection->read(buffer, available);
             if (nread < 0) {
-                fkb_external_println("fk: EOS read");
+                fkinfo("EOS read");
                 continue;
             }
             if (nread == 0) {
-                fkb_external_println("fk: empty read");
+                fkinfo("empty read");
                 continue;
             }
 
@@ -112,7 +112,7 @@ void HttpServer::tick() {
 }
 
 void HttpServer::stop() {
-    fkb_external_println("fk: http stopping");
+    fkinfo("http stopping");
 
     wifi_->stop();
 }

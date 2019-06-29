@@ -8,7 +8,7 @@
 namespace fk {
 
 #if defined(FK_LOG_HTTPD_VERBOSE)
-#define FK_HTTPD_LOG(f, ...)    fkb_external_println(f, ## __VA_ARGS__)
+#define FK_HTTPD_LOG(f, ...)    fkinfo(f, ##__VA_ARGS__)
 #else
 #define FK_HTTPD_LOG(f, ...)
 #endif

@@ -2,8 +2,19 @@
 
 #include <cinttypes>
 #include <memory>
+#include <alogging/alogging.h>
 
 namespace fk {
+
+/**
+ *
+ */
+#define fkinfo(f, ...)   loginfof("fk", f, ##__VA_ARGS__)
+
+/**
+ *
+ */
+#define fkerror(f, ...)  loginfof("fk", f, ##__VA_ARGS__)
 
 /**
  * This is the theorhetical maximum number of modules that can be physically
