@@ -49,6 +49,7 @@ public:
 
 class MetalWifi : public Wifi {
 private:
+    bool enabled_{ false };
     char service_name_[64];
     WifiSettings settings_;
     WiFiServer server_{ 80 };
@@ -67,6 +68,8 @@ public:
     WifiConnection *accept() override;
 
     bool stop() override;
+
+    bool enabled() override;
 
 };
 

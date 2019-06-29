@@ -190,11 +190,7 @@ void setup() {
     HttpServer http_server{ &wifi };
     #endif
 
-    if (!http_server.begin()) {
-        fkb_external_println("fk: Wifi missing");
-        while (true) {
-        }
-    }
+    auto last_changed = 0;
 
     while (true) {
         home_screen_t screen = {
@@ -203,6 +199,21 @@ void setup() {
             .gps = true,
             .battery = 1.0f,
         };
+
+        if (last_changed == 0 || fk_uptime() - last_changed > 60 * 1000) {
+            if (http_server.enabled()) {
+                http_server.stop();
+            }
+            else {
+                if (!http_server.begin()) {
+                    fkb_external_println("fk: Wifi missing");
+                    while (true) {
+                    }
+                }
+            }
+
+            last_changed = fk_uptime();
+        }
 
         display->home(screen);
 

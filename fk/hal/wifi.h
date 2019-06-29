@@ -55,6 +55,8 @@ public:
 
     virtual bool stop() = 0;
 
+    virtual bool enabled() = 0;
+
 };
 
 }

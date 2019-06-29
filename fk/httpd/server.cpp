@@ -111,4 +111,10 @@ void HttpServer::tick() {
     connection->stop();
 }
 
+void HttpServer::stop() {
+    fkb_external_println("fk: http stopping");
+
+    wifi_->stop();
+}
+
 }

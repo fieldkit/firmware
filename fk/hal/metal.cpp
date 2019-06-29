@@ -66,6 +66,7 @@ bool MetalWifi::begin(WifiSettings settings) {
     }
 
     settings_ = settings;
+    enabled_ = true;
 
     return true;
 }
@@ -119,9 +120,14 @@ WifiConnection *MetalWifi::accept() {
 }
 
 bool MetalWifi::stop() {
+    mdns_.removeServiceRecord(80, MDNSServiceTCP);
     WiFi.end();
-
+    enabled_ = false;
     return true;
+}
+
+bool MetalWifi::enabled() {
+    return enabled_;
 }
 
 }

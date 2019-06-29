@@ -18,6 +18,10 @@ public:
 public:
     bool begin();
     void tick();
+    void stop();
+    bool enabled() const {
+        return wifi_->enabled();
+    }
 
 private:
     WifiSettings get_settings();
