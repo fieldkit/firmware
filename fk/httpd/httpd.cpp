@@ -68,7 +68,7 @@ int32_t HttpRequest::parse(const char *data, size_t length) {
 }
 
 int32_t HttpRequest::on_message_begin() {
-    FK_HTTPD_LOG("hi: %s", __PRETTY_FUNCTION__);
+    FK_HTTPD_LOG("%s", __PRETTY_FUNCTION__);
 
     state_ = HttpRequestState::URL;
 
@@ -76,7 +76,7 @@ int32_t HttpRequest::on_message_begin() {
 }
 
 int32_t HttpRequest::on_url(const char *at, size_t length) {
-    FK_HTTPD_LOG("hi: %s", __PRETTY_FUNCTION__);
+    FK_HTTPD_LOG("%s", __PRETTY_FUNCTION__);
 
     auto n = std::min(length, sizeof(url_));
     strncpy(url_, at, n);
@@ -88,7 +88,7 @@ int32_t HttpRequest::on_url(const char *at, size_t length) {
 }
 
 int32_t HttpRequest::on_header_field(const char *at, size_t length) {
-    FK_HTTPD_LOG("hi: %s", __PRETTY_FUNCTION__);
+    FK_HTTPD_LOG("%s", __PRETTY_FUNCTION__);
 
     header_name_ = at;
     header_name_len_ = length;
@@ -97,7 +97,7 @@ int32_t HttpRequest::on_header_field(const char *at, size_t length) {
 }
 
 int32_t HttpRequest::on_header_value(const char *at, size_t length) {
-    FK_HTTPD_LOG("hi: %s", __PRETTY_FUNCTION__);
+    FK_HTTPD_LOG("%s", __PRETTY_FUNCTION__);
 
     auto n = std::min(header_name_len_, strlen(HTTP_CONTENT_LENGTH));
     if (strncasecmp(header_name_, HTTP_CONTENT_LENGTH, n) == 0) {
@@ -108,7 +108,7 @@ int32_t HttpRequest::on_header_value(const char *at, size_t length) {
 }
 
 int32_t HttpRequest::on_headers_complete() {
-    FK_HTTPD_LOG("hi: %s", __PRETTY_FUNCTION__);
+    FK_HTTPD_LOG("%s", __PRETTY_FUNCTION__);
 
     state_ = HttpRequestState::Body;
 
@@ -116,12 +116,12 @@ int32_t HttpRequest::on_headers_complete() {
 }
 
 int32_t HttpRequest::on_data(const char *at, size_t length) {
-    FK_HTTPD_LOG("hi: %s", __PRETTY_FUNCTION__);
+    FK_HTTPD_LOG("%s", __PRETTY_FUNCTION__);
     return 0;
 }
 
 int32_t HttpRequest::on_message_complete() {
-    FK_HTTPD_LOG("hi: %s", __PRETTY_FUNCTION__);
+    FK_HTTPD_LOG("%s", __PRETTY_FUNCTION__);
 
     state_ = HttpRequestState::Consumed;
 
