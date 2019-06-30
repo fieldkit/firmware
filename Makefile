@@ -19,12 +19,12 @@ setup: .python-setup fk/secrets.h
 
 samd51: dependencies
 	mkdir -p $(BUILD)/samd51
-	cd $(BUILD)/samd51 && cmake -DTARGET_ARCH=samd51 ../../
+	cd $(BUILD)/samd51 && cmake -DTARGET_ARCH=samd51 --graphviz=fk.dot ../../
 	cd $(BUILD)/samd51 && $(MAKE)
 
 amd64: dependencies
 	mkdir -p $(BUILD)/amd64
-	cd $(BUILD)/amd64 && cmake -DTARGET_ARCH=amd64 ../../
+	cd $(BUILD)/amd64 && cmake -DTARGET_ARCH=amd64 --graphviz=fk.dot ../../
 	cd $(BUILD)/amd64 && $(MAKE)
 
 test: amd64
