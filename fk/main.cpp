@@ -14,20 +14,40 @@
 
 using namespace fk;
 
-static os_task_t idle_task;
-static uint32_t idle_stack[OS_STACK_MINIMUM_SIZE_WORDS];
-
 static void task_handler_idle(void *params) {
     while (true) {
-        delay(1000);
+        os_delay(1000);
         fkinfo("ping");
     }
 }
 
+static void task_handler_display(void *params) {
+    while (true) {
+        os_delay(10000);
+    }
+}
+
+static void task_handler_httpd(void *params) {
+    while (true) {
+        os_delay(10000);
+    }
+}
+
 void run_tasks() {
+    static os_task_t idle_task;
+    static uint32_t idle_stack[4096 / sizeof(uint32_t)];
+
+    static os_task_t display_task;
+    static uint32_t display_stack[4096 / sizeof(uint32_t)];
+
+    static os_task_t httpd_task;
+    static uint32_t httpd_stack[4096 / sizeof(uint32_t)];
+
     OS_CHECK(os_initialize());
 
     OS_CHECK(os_task_initialize(&idle_task, "idle", OS_TASK_START_RUNNING, &task_handler_idle, NULL, idle_stack, sizeof(idle_stack)));
+    OS_CHECK(os_task_initialize(&display_task, "display", OS_TASK_START_RUNNING, &task_handler_display, NULL, display_stack, sizeof(display_stack)));
+    OS_CHECK(os_task_initialize(&httpd_task, "httpd", OS_TASK_START_RUNNING, &task_handler_httpd, NULL, httpd_stack, sizeof(httpd_stack)));
 
     OS_CHECK(os_start());
 }
@@ -97,7 +117,7 @@ void setup() {
 
     auto last_changed = 0;
 
-    while (true) {
+    while (false) {
         home_screen_t screen = {
             .time = fk_uptime(),
             .wifi = true,

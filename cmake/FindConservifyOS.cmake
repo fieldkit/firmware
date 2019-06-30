@@ -14,6 +14,8 @@ add_arduino_library(ConservifyOS "${sources}")
 find_package(SeggerRTT)
 target_link_libraries(ConservifyOS SeggerRTT)
 
+target_compile_options(ConservifyOS PRIVATE -Wall -Werror) # -DOS_CONFIG_DEBUG_SCHEDULE)
+
 target_include_directories(ConservifyOS
   PUBLIC ${ConservifyOS_PATH}
   PRIVATE ${ConservifyOS_PATH}
