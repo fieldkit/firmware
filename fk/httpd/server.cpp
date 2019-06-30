@@ -17,25 +17,6 @@ HttpServer::HttpServer(Wifi *wifi) : wifi_(wifi), ssid_(nullptr), password_(null
 HttpServer::HttpServer(Wifi *wifi, const char *ssid, const char *password) : wifi_(wifi), ssid_(ssid), password_(password) {
 }
 
-WifiSettings HttpServer::get_settings() {
-    if (ssid_ == nullptr) {
-        return {
-            .create = true,
-            .ssid = "FkDevice",
-            .password = nullptr,
-            .name = "FkDevice",
-            .port = 80,
-        };
-    }
-    return {
-        .create = false,
-        .ssid = ssid_,
-        .password = password_,
-        .name = "FK-DEVICE",
-        .port = 80,
-    };
-}
-
 bool HttpServer::begin() {
     auto settings = get_settings();
 
@@ -109,12 +90,33 @@ void HttpServer::tick() {
     }
 
     connection->stop();
+
+    delete connection;
 }
 
 void HttpServer::stop() {
     fkinfo("http stopping");
 
     wifi_->stop();
+}
+
+WifiSettings HttpServer::get_settings() {
+    if (ssid_ == nullptr) {
+        return {
+            .create = true,
+            .ssid = "FkDevice",
+            .password = nullptr,
+            .name = "FkDevice",
+            .port = 80,
+        };
+    }
+    return {
+        .create = false,
+        .ssid = ssid_,
+        .password = password_,
+        .name = "FK-DEVICE",
+        .port = 80,
+    };
 }
 
 }

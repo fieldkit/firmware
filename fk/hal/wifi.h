@@ -27,6 +27,10 @@ struct WifiSettings {
 
 class WifiConnection {
 public:
+    virtual ~WifiConnection() {
+    }
+
+public:
     virtual WifiConnectionStatus status() = 0;
 
     virtual bool available() = 0;

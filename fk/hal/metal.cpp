@@ -10,6 +10,9 @@ MetalWifiConnection::MetalWifiConnection() {
 MetalWifiConnection::MetalWifiConnection(WiFiClient wcl) : wcl_(wcl) {
 }
 
+MetalWifiConnection::~MetalWifiConnection() {
+}
+
 WifiConnectionStatus MetalWifiConnection::status() {
     if (wcl_.connected()) {
         return WifiConnectionStatus::Connected;

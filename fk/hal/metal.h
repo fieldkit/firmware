@@ -31,6 +31,7 @@ private:
 public:
     MetalWifiConnection();
     MetalWifiConnection(WiFiClient wcl);
+    ~MetalWifiConnection() override;
 
 public:
     WifiConnectionStatus status() override;
