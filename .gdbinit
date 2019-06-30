@@ -13,6 +13,7 @@ class FkSegger(gdb.Command):
     gdb.execute("load")
     gdb.execute("b Dummy_Handler")
     gdb.execute("b osi_assert")
+    gdb.execute("b osi_hard_fault_report")
     gdb.execute("monitor reset")
     gdb.execute("continue")
 

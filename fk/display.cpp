@@ -11,11 +11,19 @@ static U8g2Display u8g2_display;
 static NullDisplay u8g2_display;
 #endif
 
+static Display *picked = nullptr;
+
 Display *DisplayFactory::get_display() {
-    if (u8g2_display.begin()) {
-        return &u8g2_display;
+    if (picked == nullptr) {
+        if (u8g2_display.begin()) {
+            picked = &u8g2_display;
+        }
+        else {
+            picked = &null_display;
+        }
+        FK_ASSERT(picked != nullptr);
     }
-    return &null_display;
+    return picked;
 }
 
 }
