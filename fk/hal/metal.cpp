@@ -4,6 +4,10 @@
 
 namespace fk {
 
+#define loginfo(f, ...)  loginfof("wifi", f, ##__VA_ARGS__)
+
+#define logerror(f, ...) logerrorf("wifi", f, ##__VA_ARGS__)
+
 MetalWifiConnection::MetalWifiConnection() {
 }
 
@@ -49,17 +53,17 @@ bool MetalWifiConnection::stop() {
 bool MetalWifi::begin(WifiSettings settings) {
     SPI1.begin();
 
-    fkinfo("checking wifi...");
+    loginfo("checking wifi...");
 
     WiFi.setPins(WINC1500_CS, WINC1500_IRQ, WINC1500_RESET);
 
     if (WiFi.status() == WL_NO_SHIELD) {
-        fkinfo("no wifi");
+        logerror("no wifi");
         return false;
     }
 
     if (settings.create) {
-        fkinfo("creating '%s'", settings.ssid);
+        loginfo("creating '%s'", settings.ssid);
         if (settings.password != nullptr) {
             WiFi.beginAP(settings.ssid, settings.password);
         }
@@ -68,7 +72,7 @@ bool MetalWifi::begin(WifiSettings settings) {
         }
     }
     else {
-        fkinfo("connecting '%s'", settings.ssid);
+        loginfo("connecting '%s'", settings.ssid);
         WiFi.begin(settings.ssid, settings.password);
     }
 
@@ -95,7 +99,7 @@ bool MetalWifi::serve() {
 
     mdns_.addServiceRecord(service_name_, 80, MDNSServiceTCP);
 
-    fkinfo("ready (ip = %d.%d.%d.%d) (service = %s)",
+    loginfo("ready (ip = %d.%d.%d.%d) (service = %s)",
            ip[0], ip[1], ip[2], ip[3], service_name_);
 
     return true;
@@ -127,6 +131,8 @@ WifiConnection *MetalWifi::accept() {
 }
 
 bool MetalWifi::stop() {
+    loginfo("stopping");
+
     mdns_.removeServiceRecord(80, MDNSServiceTCP);
     // Ensure the previous removal gets loose.
     delay(100);

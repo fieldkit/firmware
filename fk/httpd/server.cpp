@@ -8,6 +8,10 @@
 
 namespace fk {
 
+#define loginfo(f, ...)  loginfof("httpd", f, ##__VA_ARGS__)
+
+#define logerror(f, ...) logerrorf("httpd", f, ##__VA_ARGS__)
+
 static bool wifi_ready(WifiStatus status) {
     return status == WifiStatus::Connected || status == WifiStatus::Listening;
 }
@@ -22,18 +26,17 @@ bool HttpServer::begin() {
     auto settings = get_settings();
 
     if (!wifi_->begin(settings)) {
-        fkinfo("unable to configure wifi");
+        loginfo("unable to configure wifi");
         return false;
     }
 
-    fkinfo("waiting on wifi...");
+    loginfo("waiting on wifi...");
 
     while (!wifi_ready(wifi_->status())) {
         fk_delay(100);
     }
 
-
-    fkinfo("serving");
+    loginfo("serving");
 
     wifi_->serve();
 
@@ -67,7 +70,7 @@ public:
         for (auto i = (size_t)0; i < MaximumConnections; ++i) {
             if (pool_[i].c != nullptr) {
                 if (!service(&pool_[i])) {
-                    // fkinfo("%d removing", i);
+                    // loginfo("%d removing", i);
                     pool_[i].c->stop();
                     delete pool_[i].c;
                     pool_[i] = { };
@@ -79,7 +82,7 @@ public:
     void queue(WifiConnection *c) {
         for (auto i = (size_t)0; i < MaximumConnections; ++i) {
             if (pool_[i].c == nullptr) {
-                // fkinfo("%d queued", i);
+                // loginfo("%d queued", i);
                 pool_[i].c = c;
                 pool_[i].position = 0;
                 pool_[i].req.begin();
@@ -104,12 +107,12 @@ private:
             auto available = (sizeof(c->data) - 1) - c->position;
             auto nread = c->c->read(c->data, available);
             if (nread < 0) {
-                fkinfo("EOS read");
+                loginfo("EOS read");
                 return false;
             }
 
             if (nread == 0) {
-                fkinfo("empty read");
+                loginfo("empty read");
                 return false;
             }
 
@@ -123,6 +126,7 @@ private:
         }
 
         if (c->req.have_headers()) {
+            loginfo("routing '%s' (%lu bytes)", c->req.url(), c->req.length());
         }
 
         if (c->req.consumed()) {
@@ -145,7 +149,7 @@ void HttpServer::tick() {
     if (pool.available() > 0) {
         auto connection = wifi_->accept();
         if (connection != nullptr) {
-            fkinfo("connection (0x%p) %ld", connection, connection->socket());
+            loginfo("connection (0x%p) %ld", connection, connection->socket());
             pool.queue(connection);
         }
     }
@@ -154,7 +158,7 @@ void HttpServer::tick() {
 }
 
 void HttpServer::stop() {
-    fkinfo("http stopping");
+    loginfo("stopping");
 
     wifi_->stop();
 }
