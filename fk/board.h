@@ -12,6 +12,15 @@ constexpr uint8_t WINC1500_POWER = 56u;
 
 constexpr uint8_t GPS_POWER = 55u;
 
+constexpr uint8_t QSPI_FLASH_CS = 90u; // PB11
+
+// constexpr uint8_t SPI_SD_CS = 0;
+
+constexpr uint8_t SPI_FLASH_CS_BANK_1 = 44u; // PC11
+constexpr uint8_t SPI_FLASH_CS_BANK_2 = 41u; // PC12
+constexpr uint8_t SPI_FLASH_CS_BANK_3 = 40u; // PC13
+constexpr uint8_t SPI_FLASH_CS_BANK_4 = 43u; // PC14
+
 class SpiWrapper {
 private:
     void *ptr_;

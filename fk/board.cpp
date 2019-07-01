@@ -46,6 +46,8 @@ void Board::initialize() {
     pinMode(WINC1500_IRQ, INPUT);
     pinMode(WINC1500_RESET, OUTPUT);
 
+    pinMode(GPS_POWER, OUTPUT);
+
     disable_everything();
 }
 
@@ -61,6 +63,8 @@ void Board::disable_everything() {
 }
 
 void Board::enable_everything() {
+    enable_gps();
+    enable_wifi();
 }
 
 void Board::disable_gps() {

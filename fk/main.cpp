@@ -99,12 +99,29 @@ size_t write_log(const LogMessage *m, const char *line) {
 
 void setup() {
     board.initialize();
-    delay(100);
-    board.enable_wifi();
+
+    board.enable_everything();
 
     log_configure_writer(write_log);
 
     fkinfo("hello!");
+
+    /*
+    pinMode(PIN_WIRE1_SDA, OUTPUT);
+    pinMode(PIN_WIRE1_SCL, OUTPUT);
+    pinMode(GPS_POWER, OUTPUT);
+
+    while (true) {
+        digitalWrite(PIN_WIRE1_SDA, HIGH);
+        digitalWrite(PIN_WIRE1_SCL, HIGH);
+        digitalWrite(GPS_POWER, HIGH);
+        delay(500);
+        digitalWrite(PIN_WIRE1_SDA, LOW);
+        digitalWrite(PIN_WIRE1_SCL, LOW);
+        digitalWrite(GPS_POWER, LOW);
+        delay(500);
+    }
+    */
 
     MetalWifi wifi;
     DisplayFactory display_factory;
