@@ -23,7 +23,7 @@ TEST_F(HttpParsingSuite, SimpleGet1) {
 
     HttpRequest req;
 
-    ASSERT_EQ(req.parse(req_header, strlen(req_header)), (int32_t)strlen(req_header));
+    ASSERT_EQ(req.parse(req_header, strlen(req_header)), 0);
 
     ASSERT_STREQ(req.url(), "/");
     ASSERT_EQ(req.length(), (uint32_t)0);
@@ -45,12 +45,12 @@ TEST_F(HttpParsingSuite, SimpleGet2) {
 
     HttpRequest req;
 
-    ASSERT_EQ(req.parse(req_header, strlen(req_header)), (int32_t)strlen(req_header));
+    ASSERT_EQ(req.parse(req_header, strlen(req_header)), 0);
 
     ASSERT_STREQ(req.url(), "/fk/1/status");
     ASSERT_EQ(req.length(), (uint32_t)32);
 
-    ASSERT_EQ(req.parse(body, sizeof(body)), (int32_t)sizeof(body));
+    ASSERT_EQ(req.parse(body, sizeof(body)), 0);
 }
 
 class HttpRoutingSuite : public ::testing::Test {

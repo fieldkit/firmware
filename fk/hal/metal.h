@@ -40,6 +40,8 @@ public:
 
     bool stop() override;
 
+    int32_t socket() override;
+
 };
 
 class MetalWifi : public Wifi {

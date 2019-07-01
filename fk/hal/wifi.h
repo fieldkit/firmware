@@ -41,6 +41,8 @@ public:
 
     virtual int32_t write(const char *str) = 0;
 
+    virtual int32_t socket() = 0;
+
     virtual bool stop() = 0;
 
 };

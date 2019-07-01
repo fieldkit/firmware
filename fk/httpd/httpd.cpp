@@ -49,6 +49,10 @@ static int http_message_complete_callback(http_parser* parser) {
 }
 
 HttpRequest::HttpRequest() {
+    begin();
+}
+
+void HttpRequest::begin() {
     settings_.on_url = http_url_callback;
     settings_.on_message_begin = http_on_message_begin_callback;
     settings_.on_header_field = http_header_field_callback;
@@ -64,7 +68,12 @@ HttpRequest::HttpRequest() {
 }
 
 int32_t HttpRequest::parse(const char *data, size_t length) {
-    return http_parser_execute(&parser_, &settings_, data, length);
+    http_parser_execute(&parser_, &settings_, data, length);
+    if (parser_.http_errno != 0) {
+        return parser_.http_errno;
+    }
+
+    return 0;
 }
 
 int32_t HttpRequest::on_message_begin() {

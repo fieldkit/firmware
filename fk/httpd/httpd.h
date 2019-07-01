@@ -101,6 +101,14 @@ public:
     HttpRequest();
 
 public:
+    /**
+     *
+     */
+    void begin();
+
+    /**
+     *
+     */
     int32_t parse(const char *data, size_t length);
 
 public:
