@@ -124,8 +124,12 @@ WifiConnection *MetalWifi::accept() {
 
 bool MetalWifi::stop() {
     mdns_.removeServiceRecord(80, MDNSServiceTCP);
+    // Ensure the previous removal gets loose.
+    delay(100);
+    udp_.stop();
     WiFi.end();
     enabled_ = false;
+    // TODO: board.disable_wifi();
     return true;
 }
 
