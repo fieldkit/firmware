@@ -50,6 +50,10 @@ list(FILTER fk_sources EXCLUDE REGEX ".*external.cpp$")
 list(FILTER fk_sources EXCLUDE REGEX ".*httpd/server.cpp$")
 # TODO: Remove
 list(FILTER fk_sources EXCLUDE REGEX ".*self_check.cpp$")
+# TODO: Remove (Wire.h dependency)
+list(FILTER fk_sources EXCLUDE REGEX ".*temperature.cpp$")
+list(FILTER fk_sources EXCLUDE REGEX ".*battery_gauge.cpp$")
+list(FILTER fk_sources EXCLUDE REGEX ".*clock.cpp$")
 
 file(GLOB sources *.cpp ${fk_sources})
 

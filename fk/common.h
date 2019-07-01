@@ -23,7 +23,12 @@ void fk_assert(const char *assertion, const char *file, int line);
 /**
  *
  */
-#define fkerror(f, ...)                               loginfof("fk", f, ##__VA_ARGS__)
+#define fkerror(f, ...)                               logerrorf("fk", f, ##__VA_ARGS__)
+
+/**
+ *
+ */
+#define I2C_CHECK(expr)                               ((expr) == 0)
 
 /**
  * This is the theorhetical maximum number of modules that can be physically
