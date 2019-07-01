@@ -37,7 +37,7 @@ int32_t MetalWifiConnection::write(uint8_t *buffer, size_t size) {
 }
 
 int32_t MetalWifiConnection::socket() {
-    return 0; // wcl_._socket;
+    return wcl_.socket();
 }
 
 bool MetalWifiConnection::stop() {

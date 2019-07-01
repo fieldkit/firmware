@@ -101,11 +101,8 @@ private:
         }
 
         if (c->c->available()) {
-            auto available = sizeof(c->data) - c->position;
+            auto available = (sizeof(c->data) - 1) - c->position;
             auto nread = c->c->read(c->data, available);
-
-            c->data[c->position + nread] = 0;
-
             if (nread < 0) {
                 fkinfo("EOS read");
                 return false;
@@ -116,8 +113,9 @@ private:
                 return false;
             }
 
-            if (c->req.parse((const char *)(c->data + c->position), nread) != 0) {
-                fkinfo("parse error");
+            auto ptr = (char *)(c->data + c->position);
+            ptr[nread] = 0;
+            if (c->req.parse(ptr, nread) != 0) {
                 return false;
             }
 

@@ -69,7 +69,14 @@ void HttpRequest::begin() {
 
 int32_t HttpRequest::parse(const char *data, size_t length) {
     http_parser_execute(&parser_, &settings_, data, length);
-    if (parser_.http_errno != 0) {
+
+    if (parser_.http_errno > 0) {
+        // NOTE: The caller always adds a NULL terminator to this.
+        if (strlen(data) > 0) {
+            fkerror("parser: '%s'", data);
+        }
+        auto err = (enum http_errno)parser_.http_errno;
+        fkerror("parser: %s: %s", http_errno_name(err), http_errno_description(err));
         return parser_.http_errno;
     }
 
