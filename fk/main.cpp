@@ -74,13 +74,13 @@ void run_tasks() {
      * .data section, which is below the heap in memory.
      */
     os_task_t idle_task;
-    uint32_t idle_stack[4096 / sizeof(uint32_t)];
+    uint32_t idle_stack[1024 / sizeof(uint32_t)];
 
     os_task_t display_task;
     uint32_t display_stack[4096 / sizeof(uint32_t)];
 
     os_task_t httpd_task;
-    uint32_t httpd_stack[4096 / sizeof(uint32_t)];
+    uint32_t httpd_stack[8096 / sizeof(uint32_t)];
 
     OS_CHECK(os_initialize());
 
