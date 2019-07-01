@@ -23,11 +23,6 @@
 
 #include "common.h"
 #include "platform.h"
+#include "board.h"
 #include "wifi.h"
 #include "metal.h"
-
-namespace fk {
-
-constexpr uint8_t GPS_POWER = 55u;
-
-}
