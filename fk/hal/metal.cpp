@@ -117,7 +117,7 @@ uint32_t MetalWifi::ip_address() {
 WifiConnection *MetalWifi::accept() {
     mdns_.run();
 
-    auto wcl = server_.available();
+    auto wcl = server_.available(nullptr, true);
     if (!wcl) {
         return nullptr;
     }
