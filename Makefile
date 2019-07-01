@@ -65,7 +65,7 @@ deps-update:
 veryclean: clean
 	rm -rf gitdeps
 	@for l in $(LOCAL_LIBRARY_PATHS); do                                                       \
-		rm -rf $$l                                                                               \
+		rm -rf $$l;                                                                              \
 	done
 
 clean:
