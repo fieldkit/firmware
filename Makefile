@@ -40,7 +40,8 @@ gitdeps: libraries
 LIBRARY_REPOSITORIES := jlewallen/arduino-osh jlewallen/loading conservify/segger \
 	conservify/phylum conservify/lwstreams conservify/lwcron conservify/arduino-logging \
 	conservify/WiFi101 conservify/Adafruit_SPIFlash conservify/Adafruit_QSPI nanopb/nanopb \
-	olikraus/u8g2 mikalhart/TinyGPS nodejs/http-parser arduino-libraries/ArduinoMDNS
+	olikraus/u8g2 mikalhart/TinyGPS nodejs/http-parser arduino-libraries/ArduinoMDNS \
+	PaulStoffregen/SerialFlash
 LOCAL_LIBRARY_PATHS := $(patsubst %, libraries/%, $(LIBRARY_REPOSITORIES))
 
 libraries: $(LOCAL_LIBRARY_PATHS)
