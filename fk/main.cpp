@@ -46,7 +46,7 @@ static void task_handler_httpd(void *params) {
     auto last_changed = 0;
 
     while (true) {
-        if (last_changed == 0 || fk_uptime() - last_changed > 60 * 1000) {
+        if (last_changed == 0 || fk_uptime() - last_changed > 5 * 60 * 1000) {
             if (http_server.enabled()) {
                 http_server.stop();
             }
@@ -88,14 +88,15 @@ void run_tasks() {
     OS_CHECK(os_task_initialize(&display_task, "display", OS_TASK_START_RUNNING, &task_handler_display, NULL, display_stack, sizeof(display_stack)));
     OS_CHECK(os_task_initialize(&httpd_task, "httpd", OS_TASK_START_RUNNING, &task_handler_httpd, NULL, httpd_stack, sizeof(httpd_stack)));
 
-    fkinfo("free after stacks = %lu", fk_free_memory());
+    auto total_stacks = sizeof(idle_stack) + sizeof(display_stack) + sizeof(httpd_stack);
+    fkinfo("free after stacks = %lu (stacks = %zu)", fk_free_memory(), total_stacks);
     fkinfo("starting os!");
 
     OS_CHECK(os_start());
 }
 
 size_t write_log(const LogMessage *m, const char *line) {
-    return fkb_external_printf("%06" PRIu32 " %s: %s\n", m->uptime, m->facility, m->message);
+    return fkb_external_printf(RTT_CTRL_TEXT_GREEN "%06" PRIu32 RTT_CTRL_TEXT_YELLOW " %s" RTT_CTRL_RESET ": %s\n", m->uptime, m->facility, m->message);
 }
 
 void setup() {
