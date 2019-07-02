@@ -103,36 +103,59 @@ public:
 
 public:
     /**
-     *
+     * Resets the state for this HttpRequest. This includes emptying buffers and
+     * starting the parser logic over again.
      */
     void begin();
 
     /**
-     *
+     * Parse data received from the client.
      */
     int32_t parse(const char *data, size_t length);
 
 public:
+    /**
+     * Returns the current state machine state of the request.
+     */
     HttpRequestState state() const {
         return state_;
     }
 
+    /**
+     * Returns true if the handling for this request is done and the associated
+     * resources can be freed.
+     */
     bool done() const {
         return state_ == HttpRequestState::Error || state_ == HttpRequestState::Done;
     }
 
+    /**
+     * Returns true if the headers for the request have come in and the body has
+     * begun, if one is present.
+     */
     bool have_headers() const {
         return state_ == HttpRequestState::Body || state_ == HttpRequestState::Consumed;
     }
 
+    /**
+     * Returns true if the request has been completely consumed.
+     */
     bool consumed() const {
         return state_ == HttpRequestState::Consumed;
     }
 
+    /**
+     * Returns the URL being operated in in this HttpRequest. This is only valid
+     * after headers have been consumed.
+     */
     const char *url() const {
         return url_;
     }
 
+    /**
+     * Returns the length, in bytes, of the body of this request. This is only
+     * valid after headers have been consumed.
+     */
     uint32_t length() const {
         return length_;
     }

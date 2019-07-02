@@ -27,6 +27,10 @@ void fk_assert(const char *assertion, const char *file, int line) {
     }
 }
 
+uint32_t fk_free_memory() {
+    return 0;
+}
+
 #else
 
 void fk_assert(const char *assertion, const char *file, int line) {
@@ -34,6 +38,10 @@ void fk_assert(const char *assertion, const char *file, int line) {
 }
 
 uint32_t fk_delay(uint32_t ms) {
+    return 0;
+}
+
+uint32_t fk_free_memory() {
     return 0;
 }
 

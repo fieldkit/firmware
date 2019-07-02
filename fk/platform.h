@@ -5,11 +5,13 @@
 namespace fk {
 
 /**
- * Returnt he number of milliseconds since the hardware was started.
+ * Return the number of milliseconds since the hardware was started.
  */
 uint32_t fk_uptime();
 
 uint32_t fk_delay(uint32_t ms);
+
+uint32_t fk_free_memory();
 
 }
 
