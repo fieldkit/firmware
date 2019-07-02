@@ -27,8 +27,11 @@ void fk_assert(const char *assertion, const char *file, int line) {
     }
 }
 
+extern "C" char *sbrk(int32_t i);
+
 uint32_t fk_free_memory() {
-    return 0;
+    char stack_dummy = 0;
+    return &stack_dummy - sbrk(0);
 }
 
 #else

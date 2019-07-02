@@ -88,7 +88,7 @@ void run_tasks() {
     OS_CHECK(os_task_initialize(&display_task, "display", OS_TASK_START_RUNNING, &task_handler_display, NULL, display_stack, sizeof(display_stack)));
     OS_CHECK(os_task_initialize(&httpd_task, "httpd", OS_TASK_START_RUNNING, &task_handler_httpd, NULL, httpd_stack, sizeof(httpd_stack)));
 
-    fkinfo("starting os!");
+    fkinfo("starting os (free = %lu)!", fk_free_memory());
 
     OS_CHECK(os_start());
 }
@@ -104,7 +104,7 @@ void setup() {
 
     log_configure_writer(write_log);
 
-    fkinfo("hello!");
+    fkinfo("hello (free = %lu)!", fk_free_memory());
 
     /*
     pinMode(PIN_WIRE1_SDA, OUTPUT);
