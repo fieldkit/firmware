@@ -1,5 +1,8 @@
+#include <fk-app-protocol.h>
+
 #include "tests.h"
 #include "httpd/httpd.h"
+
 #include <http_parser.h>
 
 #define TOKEN "000000000000000000000000000000000000." \
@@ -8,20 +11,19 @@
 
 using namespace fk;
 
-class HttpParsingSuite : public ::testing::Test {
+class HttpBasicParsingSuite : public ::testing::Test {
 protected:
-    void SetUp() override {
-    }
+    MallocPool pool_{ "tests", 1024 * 100 };
 };
 
-TEST_F(HttpParsingSuite, SimpleGet1) {
+TEST_F(HttpBasicParsingSuite, SimpleGet1) {
     const char *req_header =
         "GET / HTTP/1.1\n"
         "Content-Type: text/plain\n"
         "Content-Length: 0\n"
         "\n";
 
-    HttpRequest req;
+    HttpRequest req{ &pool_ };
 
     ASSERT_EQ(req.parse(req_header, strlen(req_header)), 0);
 
@@ -29,7 +31,7 @@ TEST_F(HttpParsingSuite, SimpleGet1) {
     ASSERT_EQ(req.length(), (uint32_t)0);
 }
 
-TEST_F(HttpParsingSuite, SimpleGet2) {
+TEST_F(HttpBasicParsingSuite, SimpleGet2) {
     char body[32] = { 0 };
 
     const char *req_header =
@@ -43,7 +45,7 @@ TEST_F(HttpParsingSuite, SimpleGet2) {
         "Accept: */*\n"
         "\n";
 
-    HttpRequest req;
+    HttpRequest req{ &pool_ };
 
     ASSERT_EQ(req.parse(req_header, strlen(req_header)), 0);
 
@@ -105,4 +107,31 @@ TEST_F(HttpRoutingSuite, WithMultipleBasicRoutes) {
     ASSERT_EQ(router.route("/fk/v4"), &handlers[3]);
     ASSERT_EQ(router.route("/fk/v2"), &handlers[1]);
     ASSERT_EQ(router.route("/fk/v1"), &handlers[0]);
+}
+
+class HttpParsingQuerySuite : public ::testing::Test {
+protected:
+    MallocPool pool_{ "tests", 1024 * 100 };
+};
+
+TEST_F(HttpParsingQuerySuite, SimpleGet1) {
+    fk_app_WireMessageQuery query = fk_app_WireMessageQuery_init_default;
+    query.type = fk_app_QueryType_QUERY_STATUS;
+
+    size_t size = 0;
+    auto buffer = pool_.encode(fk_app_WireMessageQuery_fields, &query, &size);
+
+    auto req_header = pool_.sprintf(
+        "GET / HTTP/1.1\n"
+        "Content-Type: text/plain\n"
+        "Content-Length: %d\n"
+        "\n", size);
+
+    HttpRequest req{ &pool_ };
+
+    ASSERT_EQ(req.parse(req_header, strlen(req_header)), 0);
+    ASSERT_EQ(req.parse((const char *)buffer, size), 0);
+
+    ASSERT_STREQ(req.url(), "/");
+    ASSERT_EQ(req.length(), (uint32_t)3);
 }

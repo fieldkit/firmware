@@ -2,16 +2,21 @@
 #include <cstdlib>
 #include <memory>
 
+#include <fk-app-protocol.h>
+
 #include "common.h"
 #include "platform.h"
 #include "httpd.h"
 
 namespace fk {
 
-#if defined(FK_LOG_HTTPD_VERBOSE)
-#define FK_HTTPD_LOG(f, ...)    fkinfo(f, ##__VA_ARGS__)
+#define loginfo(f, ...)       loginfof("httpd", f, ##__VA_ARGS__)
+#define logerror(f, ...)      logerrorf("httpd", f, ##__VA_ARGS__)
+
+#if true || defined(FK_LOG_HTTPD_VERBOSE)
+#define logverbose(f, ...)    loginfo(f, ##__VA_ARGS__)
 #else
-#define FK_HTTPD_LOG(f, ...)
+#define logverbose(f, ...)
 #endif
 
 constexpr const char *HTTP_CONTENT_LENGTH = "Content-Length";
@@ -48,7 +53,7 @@ static int http_message_complete_callback(http_parser* parser) {
     return get_object(parser)->on_message_complete();
 }
 
-HttpRequest::HttpRequest() {
+HttpRequest::HttpRequest(Pool *pool) : pool_(pool) {
     begin();
 }
 
@@ -84,7 +89,7 @@ int32_t HttpRequest::parse(const char *data, size_t length) {
 }
 
 int32_t HttpRequest::on_message_begin() {
-    FK_HTTPD_LOG("%s", __PRETTY_FUNCTION__);
+    logverbose("%s", __PRETTY_FUNCTION__);
 
     state_ = HttpRequestState::URL;
 
@@ -92,7 +97,7 @@ int32_t HttpRequest::on_message_begin() {
 }
 
 int32_t HttpRequest::on_url(const char *at, size_t length) {
-    FK_HTTPD_LOG("%s", __PRETTY_FUNCTION__);
+    logverbose("%s", __PRETTY_FUNCTION__);
 
     auto n = std::min(length, sizeof(url_));
     strncpy(url_, at, n);
@@ -104,7 +109,7 @@ int32_t HttpRequest::on_url(const char *at, size_t length) {
 }
 
 int32_t HttpRequest::on_header_field(const char *at, size_t length) {
-    FK_HTTPD_LOG("%s", __PRETTY_FUNCTION__);
+    logverbose("%s", __PRETTY_FUNCTION__);
 
     header_name_ = at;
     header_name_len_ = length;
@@ -113,7 +118,7 @@ int32_t HttpRequest::on_header_field(const char *at, size_t length) {
 }
 
 int32_t HttpRequest::on_header_value(const char *at, size_t length) {
-    FK_HTTPD_LOG("%s", __PRETTY_FUNCTION__);
+    logverbose("%s", __PRETTY_FUNCTION__);
 
     auto n = std::min(header_name_len_, strlen(HTTP_CONTENT_LENGTH));
     if (strncasecmp(header_name_, HTTP_CONTENT_LENGTH, n) == 0) {
@@ -124,7 +129,7 @@ int32_t HttpRequest::on_header_value(const char *at, size_t length) {
 }
 
 int32_t HttpRequest::on_headers_complete() {
-    FK_HTTPD_LOG("%s", __PRETTY_FUNCTION__);
+    logverbose("%s", __PRETTY_FUNCTION__);
 
     state_ = HttpRequestState::Body;
 
@@ -132,12 +137,19 @@ int32_t HttpRequest::on_headers_complete() {
 }
 
 int32_t HttpRequest::on_data(const char *at, size_t length) {
-    FK_HTTPD_LOG("%s", __PRETTY_FUNCTION__);
+    logverbose("%s(0x%p, %zu)", __PRETTY_FUNCTION__, at, length);
+
+    if (length_ == length) {
+        auto fields = fk_app_WireMessageQuery_fields;
+        auto query = (fk_app_WireMessageQuery *)pool_->decode(fields, (uint8_t *)at, length, sizeof(fk_app_WireMessageQuery));
+        FK_ASSERT(query != nullptr);
+    }
+
     return 0;
 }
 
 int32_t HttpRequest::on_message_complete() {
-    FK_HTTPD_LOG("%s", __PRETTY_FUNCTION__);
+    logverbose("%s", __PRETTY_FUNCTION__);
 
     state_ = HttpRequestState::Consumed;
 

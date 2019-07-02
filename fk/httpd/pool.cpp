@@ -25,7 +25,6 @@ void ConnectionPool::service() {
                 // loginfo("%d removing", i);
                 pool_[i].c->stop();
                 delete pool_[i].c;
-                pool_[i] = { };
             }
         }
     }

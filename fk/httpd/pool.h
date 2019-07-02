@@ -9,7 +9,8 @@ class ConnectionPool {
 private:
     typedef struct Connection {
         WifiConnection *c{ nullptr };
-        HttpRequest req;
+        StaticPool<128> pool{ "conn" };
+        HttpRequest req{ &pool };
         uint8_t data[1024];
         size_t position;
     } Connection;

@@ -4,6 +4,7 @@
 #include <http_parser.h>
 
 #include "common.h"
+#include "../pool.h"
 
 namespace fk {
 
@@ -98,8 +99,13 @@ private:
      */
     uint32_t length_{ 0 };
 
+    /**
+     * Memory pool to allocate request data from.
+     */
+    Pool *pool_;
+
 public:
-    HttpRequest();
+    HttpRequest(Pool *pool);
 
 public:
     /**
