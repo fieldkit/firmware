@@ -56,6 +56,7 @@ bool Connection::service() {
     // TODO: 500 Service Unavailable
     // TODO: 503 Service Unavailable
     if (conn_->status() != WifiConnectionStatus::Connected) {
+        loginfo("disconnected");
         return false;
     }
 
@@ -69,18 +70,19 @@ bool Connection::service() {
         auto available = (size_ - 1) - position_;
         auto nread = conn_->read(buffer_ + position_, available);
         if (nread < 0) {
-            loginfo("EOS read");
+            loginfo("error reading - eos");
             return false;
         }
 
         if (nread == 0) {
-            loginfo("empty read");
+            loginfo("error reading - empty");
             return false;
         }
 
         auto ptr = (char *)(buffer_ + position_);
         ptr[nread] = 0;
         if (req_.parse(ptr, nread) != 0) {
+            loginfo("error parsing");
             return false;
         }
 
@@ -92,6 +94,7 @@ bool Connection::service() {
     }
 
     if (req_.consumed()) {
+        loginfo("replying/closing");
         conn_->write("HTTP/1.1 204 OK\n");
         conn_->write("Content-Length: 0\n");
         conn_->write("Content-Type: text/html\n");

@@ -120,6 +120,12 @@ int32_t HttpRequest::on_header_field(const char *at, size_t length) {
 int32_t HttpRequest::on_header_value(const char *at, size_t length) {
     logverbose("%s", __PRETTY_FUNCTION__);
 
+    if (false) {
+        auto name = pool_->strndup(header_name_, header_name_len_);
+        auto value = pool_->strndup(at, length);
+        loginfo("%s = %s", name, value);
+    }
+
     auto n = std::min(header_name_len_, strlen(HTTP_CONTENT_LENGTH));
     if (strncasecmp(header_name_, HTTP_CONTENT_LENGTH, n) == 0) {
         length_ = atoi(at);
