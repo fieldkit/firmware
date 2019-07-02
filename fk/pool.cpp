@@ -91,6 +91,38 @@ char *Pool::sprintf(const char *str, ...) {
     return ptr;
 }
 
+uint8_t *Pool::encode(const pb_msgdesc_t *fields, void *src, size_t *size) {
+    size_t required = 0;
+    if (!pb_get_encoded_size(&required, fields, src)) {
+        return nullptr;
+    }
+
+    // TODO: Make this actually calculate the required bytes for the length.
+    required += 4;
+
+    auto buffer = (uint8_t *)malloc(required);
+    auto stream = pb_ostream_from_buffer(buffer, required);
+    if (!pb_encode_delimited(&stream, fields, src)) {
+        return nullptr;
+    }
+
+    if (size != nullptr) {
+        *size = stream.bytes_written;
+    }
+
+    return buffer;
+}
+
+void *Pool::decode(const pb_msgdesc_t *fields, uint8_t *src, size_t size, size_t message_size) {
+    auto ptr = malloc(message_size);
+    auto stream = pb_istream_from_buffer(src, size);
+    if (!pb_decode_delimited(&stream, fields, ptr)) {
+        return nullptr;
+    }
+
+    return ptr;
+}
+
 Pool Pool::freeze(const char *name) {
     // TODO: Ideally this would keep track of children and warn about
     // allocations on them when we unfreeze.

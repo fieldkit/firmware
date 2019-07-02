@@ -4,6 +4,9 @@
 #include <cstdlib>
 #include <type_traits>
 
+#include <pb_encode.h>
+#include <pb_decode.h>
+
 #include "common.h"
 
 namespace fk {
@@ -55,6 +58,8 @@ public:
     void *copy(void *ptr, size_t size);
     char *strdup(const char *str);
     char *sprintf(const char *str, ...);
+    uint8_t *encode(const pb_msgdesc_t *fields, void *src, size_t *size);
+    void *decode(const pb_msgdesc_t *fields, uint8_t *src, size_t size, size_t message_size);
     Pool freeze(const char *name);
 
 };
