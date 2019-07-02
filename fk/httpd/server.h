@@ -1,7 +1,7 @@
 #pragma once
 
 #include "httpd/httpd.h"
-#include "httpd/pool.h"
+#include "httpd/cpool.h"
 #include "hal/wifi.h"
 
 namespace fk {
