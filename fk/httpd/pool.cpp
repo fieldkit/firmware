@@ -1,3 +1,5 @@
+#include <fk-app-protocol.h>
+
 #include "pool.h"
 
 namespace fk {

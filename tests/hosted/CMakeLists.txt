@@ -68,6 +68,9 @@ target_link_libraries(testall HttpParser)
 find_package(arduino-logging)
 target_link_libraries(testall arduino-logging)
 
+find_package(Protocols)
+target_link_libraries(testall app-protocol)
+
 target_include_directories(testall PRIVATE ../../fk)
 target_compile_options(testall PUBLIC -Wall -Wno-variadic-macros)
 target_link_libraries(testall libgtest libgmock)

@@ -56,6 +56,9 @@ target_link_libraries(fk-bundled SerialFlash)
 find_package(RTClib)
 target_link_libraries(fk-bundled RTClib)
 
+find_package(Protocols)
+target_link_libraries(fk-bundled app-protocol)
+
 configure_firmware_linker_script(fk-bundled ${CMAKE_SOURCE_DIR}/boards/samd51/main.ld)
 
 add_arduino_firmware(fk-bundled)
