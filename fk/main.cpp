@@ -80,7 +80,7 @@ void run_tasks() {
     uint32_t display_stack[4096 / sizeof(uint32_t)];
 
     os_task_t httpd_task;
-    uint32_t httpd_stack[8096 / sizeof(uint32_t)];
+    uint32_t httpd_stack[32768 / sizeof(uint32_t)];
 
     OS_CHECK(os_initialize());
 
