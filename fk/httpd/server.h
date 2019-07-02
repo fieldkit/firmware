@@ -1,12 +1,14 @@
 #pragma once
 
 #include "httpd/httpd.h"
+#include "httpd/pool.h"
 #include "hal/wifi.h"
 
 namespace fk {
 
 class HttpServer {
 private:
+    ConnectionPool pool_;
     Wifi *wifi_;
     const char *ssid_;
     const char *password_;

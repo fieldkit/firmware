@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstring>
 #include <http_parser.h>
 
 #include "../common.h"

@@ -69,6 +69,6 @@ find_package(arduino-logging)
 target_link_libraries(testall arduino-logging)
 
 target_include_directories(testall PRIVATE ../../fk)
-target_compile_options(testall PUBLIC -Wall -pedantic)
+target_compile_options(testall PUBLIC -Wall -Wno-variadic-macros)
 target_link_libraries(testall libgtest libgmock)
 add_test(NAME testall COMMAND testall)

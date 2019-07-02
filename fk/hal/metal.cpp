@@ -131,7 +131,7 @@ WifiConnection *MetalWifi::accept() {
 }
 
 bool MetalWifi::stop() {
-    loginfo("stopping");
+    loginfo("stop");
 
     mdns_.removeServiceRecord(80, MDNSServiceTCP);
     // Ensure the previous removal gets loose.
