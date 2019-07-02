@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <string.h>
 
+#include "printf.h"
 #include "pool.h"
 #include "platform.h"
 
@@ -71,6 +72,22 @@ char *Pool::strdup(const char *str) {
     auto length = strlen(str);
     auto ptr = (char *)malloc(length + 1);
     strncpy(ptr, str, length + 1);
+    return ptr;
+}
+
+char *Pool::sprintf(const char *str, ...) {
+    va_list args;
+    va_start(args, str);
+    auto req = fk_vsnprintf(nullptr, 0, str, args);
+    va_end(args);
+
+    auto ptr = (char *)malloc(req + 1);
+
+    va_start(args, str);
+    fk_vsnprintf(ptr, req + 1, str, args);
+    va_end(args);
+
+    ptr[req] = 0;
     return ptr;
 }
 

@@ -27,6 +27,17 @@ public:
     Pool(const char *name, size_t size, void *block);
 
 public:
+    void *block() {
+        return block_;
+    }
+
+    void block(void *block, size_t size) {
+        block_ = block;
+        ptr_ = block;
+        size_ = size;
+        remaining_ = size;
+    }
+
     size_t allocated() const {
         return size_ - remaining_;
     }
@@ -43,6 +54,7 @@ public:
     void *malloc(size_t size);
     void *copy(void *ptr, size_t size);
     char *strdup(const char *str);
+    char *sprintf(const char *str, ...);
     Pool freeze(const char *name);
 
 };
@@ -54,6 +66,18 @@ private:
 
 public:
     StaticPool(const char *name) : Pool(name, aligned_size(N), (void *)data) {
+    }
+
+};
+
+class MallocPool : public Pool {
+public:
+    MallocPool(const char *name, size_t size) : Pool(name, size, (void *)::malloc(size)) {
+    }
+
+    ~MallocPool() {
+        free(block());
+        block(nullptr, 0);
     }
 
 };

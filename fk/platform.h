@@ -19,9 +19,9 @@ uint32_t fk_free_memory();
 extern "C" {
 #endif
 
-uint32_t fkb_external_printf(const char *str, ...);
+uint32_t fkb_external_printf(const char *str, ...) __attribute__((format(printf, 1, 2)));
 
-uint32_t fkb_external_println(const char *str, ...);
+uint32_t fkb_external_println(const char *str, ...) __attribute__((format(printf, 1, 2)));
 
 #ifdef __cplusplus
 }
