@@ -132,11 +132,13 @@ void setup() {
 
     self_check.check();
 
+    /*
     delay(1000);
 
     display->fk_logo();
 
     delay(1000);
+    */
 
     run_tasks();
 }
