@@ -75,6 +75,17 @@ char *Pool::strdup(const char *str) {
     return ptr;
 }
 
+char *Pool::strndup(const char *str, size_t length) {
+    if (str == nullptr) {
+        return nullptr;
+    }
+
+    auto ptr = (char *)malloc(length + 1);
+    strncpy(ptr, str, length + 1);
+    ptr[length] = 0;
+    return ptr;
+}
+
 char *Pool::sprintf(const char *str, ...) {
     va_list args;
     va_start(args, str);
