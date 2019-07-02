@@ -50,4 +50,9 @@ constexpr size_t HttpFixedRoutes = 2;
  */
 constexpr size_t HttpMaximumRoutes = MaximumNumberOfModules + HttpFixedRoutes;
 
+/**
+ * The maximum length of an incoming URL.
+ */
+constexpr size_t HttpdMaximumUrlLength = 64;
+
 }

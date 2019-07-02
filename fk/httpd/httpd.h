@@ -3,7 +3,7 @@
 #include <cstring>
 #include <http_parser.h>
 
-#include "../common.h"
+#include "common.h"
 
 namespace fk {
 
@@ -84,7 +84,7 @@ private:
      * URL being acted upon. Eventually this should probably be more flexible,
      * size wise. This should handle most cases initially, though.
      */
-    char url_[64];
+    char url_[HttpdMaximumUrlLength];
 
     /**
      * Previous header field parsed. This will be valid because we always
