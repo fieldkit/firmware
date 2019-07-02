@@ -80,7 +80,7 @@ void run_tasks() {
     uint32_t display_stack[4096 / sizeof(uint32_t)];
 
     os_task_t httpd_task;
-    uint32_t httpd_stack[32768 / sizeof(uint32_t)];
+    uint32_t httpd_stack[4096 / sizeof(uint32_t)];
 
     OS_CHECK(os_initialize());
 
@@ -88,7 +88,8 @@ void run_tasks() {
     OS_CHECK(os_task_initialize(&display_task, "display", OS_TASK_START_RUNNING, &task_handler_display, NULL, display_stack, sizeof(display_stack)));
     OS_CHECK(os_task_initialize(&httpd_task, "httpd", OS_TASK_START_RUNNING, &task_handler_httpd, NULL, httpd_stack, sizeof(httpd_stack)));
 
-    fkinfo("starting os (free = %lu)!", fk_free_memory());
+    fkinfo("free after stacks = %lu", fk_free_memory());
+    fkinfo("starting os!");
 
     OS_CHECK(os_start());
 }
@@ -104,7 +105,7 @@ void setup() {
 
     log_configure_writer(write_log);
 
-    fkinfo("hello (free = %lu)!", fk_free_memory());
+    fkinfo("hello (memory = %lu)!", fk_free_memory());
 
     /*
     pinMode(PIN_WIRE1_SDA, OUTPUT);

@@ -45,7 +45,8 @@ void HttpServer::tick() {
     if (pool_.available() > 0) {
         auto connection = wifi_->accept();
         if (connection != nullptr) {
-            loginfo("connection (0x%p) %ld", connection, connection->socket());
+            loginfo("connection (ptr = 0x%p) (fd = %ld) (free = %lu)",
+                    connection, connection->socket(), fk_free_memory());
             pool_.queue(connection);
         }
     }
