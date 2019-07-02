@@ -96,7 +96,7 @@ private:
     /**
      * Length of this request, as supplied in the Content-Length header.
      */
-    uint32_t length_;
+    uint32_t length_{ 0 };
 
 public:
     HttpRequest();
@@ -122,7 +122,7 @@ public:
     }
 
     bool have_headers() const {
-        return state_ == HttpRequestState::Body;
+        return state_ == HttpRequestState::Body || state_ == HttpRequestState::Consumed;
     }
 
     bool consumed() const {
