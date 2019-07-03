@@ -2,8 +2,6 @@
 #include <cstdlib>
 #include <memory>
 
-#include <fk-app-protocol.h>
-
 #include "common.h"
 #include "platform.h"
 #include "httpd.h"
@@ -145,6 +143,7 @@ int32_t HttpRequest::on_headers_complete() {
 int32_t HttpRequest::on_data(const char *at, size_t length) {
     logverbose("%s(0x%p, %zu)", __PRETTY_FUNCTION__, at, length);
 
+    // HACK
     if (length_ == length) {
         auto fields = fk_app_WireMessageQuery_fields;
         auto query = (fk_app_WireMessageQuery *)pool_->decode(fields, (uint8_t *)at, length, sizeof(fk_app_WireMessageQuery));

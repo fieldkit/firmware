@@ -1,6 +1,7 @@
 #include <fk-app-protocol.h>
 
-#include "cpool.h"
+#include "httpd/cpool.h"
+#include "protobuf.h"
 
 namespace fk {
 
@@ -86,6 +87,15 @@ bool Connection::service() {
             return false;
         }
 
+        auto query = req_.query();
+        if (query != nullptr) {
+            switch (query->type) {
+            default: {
+                break;
+            }
+            }
+        }
+
         position_ += nread;
     }
 
@@ -95,15 +105,93 @@ bool Connection::service() {
 
     if (req_.consumed()) {
         loginfo("replying/closing");
-        conn_->write("HTTP/1.1 204 OK\n");
-        conn_->write("Content-Length: 0\n");
-        conn_->write("Content-Type: text/html\n");
-        conn_->write("Connection: close\n");
-        conn_->write("\n");
+        busy("Busy");
         return false;
     }
 
     return true;
+}
+
+int32_t Connection::write(fk_app_WireMessageReply *reply) {
+    size_t size = 0;
+    auto fields = fk_app_WireMessageQuery_fields;
+    auto serialized = pool_.encode(fields, reply, &size);
+    if (serialized == nullptr) {
+        return fault();
+    }
+
+    conn_->write("HTTP/1.1 200 OK\n");
+    conn_->writef("Content-Length: %d\n", size);
+    conn_->write("Content-Type: application/octet-stream\n");
+    conn_->write("Connection: close\n");
+    conn_->write("\n");
+
+    conn_->write(serialized, size);
+
+    return size;
+}
+
+int32_t Connection::fault() {
+    conn_->write("HTTP/1.1 500 Internal Server Error\n");
+    conn_->write("Content-Length: 0\n");
+    conn_->write("Content-Type: text/plain\n");
+    conn_->write("Connection: close\n");
+    conn_->write("\n");
+    return 0;
+}
+
+int32_t Connection::busy(const char *message) {
+    fk_app_Error errors[] = {
+        {
+            .message = {
+                .funcs = {
+                    .encode = pb_encode_string,
+                },
+                .arg = (void *)message,
+            },
+        }
+    };
+
+    pb_array_t errors_array = {
+        .length = sizeof(errors) / sizeof(fk_app_Error),
+        .itemSize = sizeof(fk_app_Error),
+        .buffer = pool_.copy(errors, sizeof(errors)),
+        .fields = fk_app_Error_fields,
+    };
+
+    fk_app_WireMessageReply reply = fk_app_WireMessageReply_init_default;
+    reply.type = fk_app_ReplyType_REPLY_BUSY;
+    reply.errors.funcs.encode = pb_encode_array;
+    reply.errors.arg = (void *)pool_.copy(&errors_array, sizeof(errors_array));
+
+    return write(&reply);
+}
+
+int32_t Connection::error(const char *message) {
+    fk_app_Error errors[] = {
+        {
+            .message = {
+                .funcs = {
+                    .encode = pb_encode_string,
+                },
+                .arg = (void *)message,
+            },
+        }
+    };
+
+    pb_array_t errors_array = {
+        .length = sizeof(errors) / sizeof(fk_app_Error),
+        .itemSize = sizeof(fk_app_Error),
+        .buffer = pool_.copy(errors, sizeof(errors)),
+        .fields = fk_app_Error_fields,
+    };
+
+    fk_app_WireMessageReply reply = fk_app_WireMessageReply_init_default;
+    reply.type = fk_app_ReplyType_REPLY_ERROR;
+    reply.errors.funcs.encode = pb_encode_array;
+    reply.errors.arg = (void *)pool_.copy(&errors_array, sizeof(errors_array));
+
+    return write(&reply);
 }
 
 }

@@ -3,6 +3,8 @@
 #include <cstring>
 #include <http_parser.h>
 
+#include <fk-app-protocol.h>
+
 #include "common.h"
 #include "pool.h"
 
@@ -104,6 +106,11 @@ private:
      */
     Pool *pool_;
 
+    /**
+     * Any wire message query provided.
+     */
+    fk_app_WireMessageQuery *query_{ nullptr };
+
 public:
     HttpRequest(Pool *pool);
 
@@ -120,6 +127,14 @@ public:
     int32_t parse(const char *data, size_t length);
 
 public:
+    /**
+     * Returns the most recently parsed fk_app_WireMessageQuery that has come in
+     * over this channel.
+     */
+    fk_app_WireMessageQuery *query() {
+        return query_;
+    }
+
     /**
      * Returns the current state machine state of the request.
      */
