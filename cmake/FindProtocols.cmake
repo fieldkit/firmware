@@ -1,7 +1,7 @@
 #
 #
 #
-if(TARGET Protocols)
+if(TARGET app-protocol)
   return()
 endif()
 
