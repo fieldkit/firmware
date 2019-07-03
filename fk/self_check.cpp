@@ -149,11 +149,22 @@ bool SelfCheck::gps() {
 }
 
 bool SelfCheck::wifi() {
-    board.enable_wifi();
+    return single_check("wifi", [&]() {
+        MetalWifi wifi;
+        auto settings = WifiSettings{
+            .create = false,
+            .ssid = nullptr,
+            .password = nullptr,
+            .name = nullptr,
+            .port = 0,
+        };
+        auto ok = wifi.begin(settings);
+        if (ok) {
+            wifi.stop();
+        }
 
-    loginfo("wifi... OK");
-
-    return true;
+        return ok;
+    });
 }
 
 }

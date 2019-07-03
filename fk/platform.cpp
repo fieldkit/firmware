@@ -22,7 +22,7 @@ uint32_t fk_delay(uint32_t ms) {
 }
 
 void fk_assert(const char *assertion, const char *file, int line) {
-    fkb_external_printf("Assertion \"%s\" failed: file \"%s\", line %d\n", assertion, file, line);
+    fkb_external_printf("\n\nassertion \"%s\" failed: file \"%s\", line %d\n", assertion, file, line);
     while (true) {
     }
 }
@@ -45,7 +45,7 @@ uint32_t fk_delay(uint32_t ms) {
 }
 
 void fk_assert(const char *assertion, const char *file, int line) {
-    fkb_external_printf("Assertion \"%s\" failed: file \"%s\", line %d\n", assertion, file, line);
+    fkb_external_printf("\n\nassertion \"%s\" failed: file \"%s\", line %d\n", assertion, file, line);
 }
 
 uint32_t fk_free_memory() {

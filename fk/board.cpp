@@ -81,6 +81,7 @@ void Board::disable_wifi() {
 
 void Board::enable_wifi() {
     digitalWrite(WINC1500_POWER, HIGH);
+    SPI1.begin();
 }
 
 SpiWrapper Board::spi_flash() {

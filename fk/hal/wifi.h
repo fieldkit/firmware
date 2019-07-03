@@ -23,6 +23,7 @@ struct WifiSettings {
     const char *password;
     const char *name;
     uint16_t port;
+
 };
 
 class WifiConnection {

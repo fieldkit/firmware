@@ -65,29 +65,28 @@ bool MetalWifiConnection::stop() {
 }
 
 bool MetalWifi::begin(WifiSettings settings) {
-    SPI1.begin();
-
-    loginfo("checking wifi...");
+    board.enable_wifi();
 
     WiFi.setPins(WINC1500_CS, WINC1500_IRQ, WINC1500_RESET);
 
     if (WiFi.status() == WL_NO_SHIELD) {
-        logerror("no wifi");
         return false;
     }
 
-    if (settings.create) {
-        loginfo("creating '%s'", settings.ssid);
-        if (settings.password != nullptr) {
-            WiFi.beginAP(settings.ssid, settings.password);
+    if (settings.ssid != nullptr) {
+        if (settings.create) {
+            loginfo("creating '%s'", settings.ssid);
+            if (settings.password != nullptr) {
+                WiFi.beginAP(settings.ssid, settings.password);
+            }
+            else {
+                WiFi.beginAP(settings.ssid);
+            }
         }
         else {
-            WiFi.beginAP(settings.ssid);
+            loginfo("connecting '%s'", settings.ssid);
+            WiFi.begin(settings.ssid, settings.password);
         }
-    }
-    else {
-        loginfo("connecting '%s'", settings.ssid);
-        WiFi.begin(settings.ssid, settings.password);
     }
 
     settings_ = settings;
@@ -145,15 +144,13 @@ WifiConnection *MetalWifi::accept() {
 }
 
 bool MetalWifi::stop() {
-    loginfo("stop");
-
     mdns_.removeServiceRecord(80, MDNSServiceTCP);
     // Ensure the previous removal gets loose.
     delay(100);
     udp_.stop();
     WiFi.end();
     enabled_ = false;
-    // TODO: board.disable_wifi();
+    board.disable_wifi();
     return true;
 }
 

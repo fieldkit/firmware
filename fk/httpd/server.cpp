@@ -26,6 +26,8 @@ HttpServer::HttpServer(Wifi *wifi, const char *ssid, const char *password) : wif
 bool HttpServer::begin() {
     auto settings = get_settings();
 
+    loginfo("checking wifi...");
+
     if (!wifi_->begin(settings)) {
         loginfo("unable to configure wifi");
         return false;
