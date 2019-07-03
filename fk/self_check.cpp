@@ -3,6 +3,7 @@
 #include "clock.h"
 #include "battery_gauge.h"
 #include "temperature.h"
+#include "hal/metal/metal.h"
 
 #include <Wire.h>
 #include <Adafruit_QSPI.h>

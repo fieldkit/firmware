@@ -6,6 +6,7 @@
 #include "httpd/server.h"
 #include "board.h"
 #include "hal/hal.h"
+#include "hal/metal/metal.h"
 
 #include "secrets.h"
 
