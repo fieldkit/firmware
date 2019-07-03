@@ -96,7 +96,7 @@ void run_tasks() {
 }
 
 size_t write_log(const LogMessage *m, const char *line) {
-    return fkb_external_printf(RTT_CTRL_TEXT_GREEN "%06" PRIu32 RTT_CTRL_TEXT_YELLOW " %s" RTT_CTRL_RESET ": %s\n", m->uptime, m->facility, m->message);
+    return fkb_external_printf(RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_YELLOW " %s" RTT_CTRL_RESET ": %s\n", m->uptime, m->facility, m->message);
 }
 
 void setup() {

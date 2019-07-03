@@ -1,7 +1,9 @@
 #pragma once
 
+#include "common.h"
+#include "pool.h"
 #include "hal/hal.h"
-#include "httpd.h"
+#include "httpd/req.h"
 
 namespace fk {
 

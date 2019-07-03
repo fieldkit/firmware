@@ -13,7 +13,7 @@ namespace fk {
 #define loginfo(f, ...)       loginfof("httpd", f, ##__VA_ARGS__)
 #define logerror(f, ...)      logerrorf("httpd", f, ##__VA_ARGS__)
 
-#if true || defined(FK_LOG_HTTPD_VERBOSE)
+#if defined(FK_LOG_HTTPD_VERBOSE)
 #define logverbose(f, ...)    loginfo(f, ##__VA_ARGS__)
 #else
 #define logverbose(f, ...)
