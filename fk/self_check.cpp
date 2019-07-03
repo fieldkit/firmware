@@ -35,55 +35,62 @@ void SelfCheck::check() {
     loginfo("done");
 }
 
+template<typename T>
+bool single_check(const char *name, T fn) {
+    auto ok = fn();
+    loginfo("%s... %s", name, ok ? "OK" : "ERROR");
+    return ok;
+}
+
 bool SelfCheck::rtc() {
-    CoreClock clock{ Wire };
+    return single_check("rtc", [&]() {
+        CoreClock clock{ Wire };
 
-    if (!clock.begin()) {
-        loginfo("rtc... ERROR");
-        return false;
-    }
+        if (!clock.begin()) {
+            return false;
+        }
 
-    loginfo("rtc... OK");
-    return true;
+        return true;
+    });
 }
 
 bool SelfCheck::temperature() {
-    CoreTemperature temp{ Wire };
+    return single_check("temperature", [&]() {
+        CoreTemperature temp{ Wire };
 
-    if (!temp.begin()) {
-        loginfo("temperature... ERROR");
-        return false;
-    }
+        if (!temp.begin()) {
+            return false;
+        }
 
-    loginfo("temperature... OK");
-    return true;
+        return true;
+    });
 }
 
 bool SelfCheck::battery_gauge() {
-    BatteryGauge gauge{ Wire1 };
+    return single_check("battery gauge", [&]() {
+        BatteryGauge gauge{ Wire1 };
 
-    if (!gauge.begin()) {
-        loginfo("battery gauge... ERROR");
-        return false;
-    }
+        if (!gauge.begin()) {
+            return false;
+        }
 
-    loginfo("battery gauge... OK");
-    return true;
+        return true;
+    });
 }
 
 bool SelfCheck::qspi_memory() {
-    Adafruit_QSPI_Flash qspi_flash;
+    return single_check("qspi memory", [&]() {
+        Adafruit_QSPI_Flash qspi_flash;
 
-    pinMode(QSPI_FLASH_CS, OUTPUT);
-    digitalWrite(QSPI_FLASH_CS, LOW);
+        pinMode(QSPI_FLASH_CS, OUTPUT);
+        digitalWrite(QSPI_FLASH_CS, LOW);
 
-    if (!qspi_flash.begin()){
-        loginfo("qspi memory... ERROR");
-        return false;
-    }
+        if (!qspi_flash.begin()){
+            return false;
+        }
 
-    loginfo("qspi memory... OK");
-    return true;
+        return true;
+    });
 }
 
 bool SelfCheck::spi_memory() {
@@ -116,29 +123,29 @@ bool SelfCheck::spi_memory() {
 }
 
 bool SelfCheck::gps() {
-    Serial1.begin(9600);
+    return single_check("gps", [&]() {
+        Serial1.begin(9600);
 
-    board.enable_gps();
+        board.enable_gps();
 
-    auto received = 0;
-    auto started = fk_uptime();
-    while ((fk_uptime() - started) < 5000) {
-        if (Serial1.available()) {
-            Serial1.read();
-            received++;
-            if (received == 10) {
-                break;
+        auto received = 0;
+        auto started = fk_uptime();
+        while ((fk_uptime() - started) < 5000) {
+            if (Serial1.available()) {
+                Serial1.read();
+                received++;
+                if (received == 10) {
+                    break;
+                }
             }
         }
-    }
 
-    if (received < 10) {
-        loginfo("gps... ERROR");
-        return false;
-    }
+        if (received < 10) {
+            return false;
+        }
 
-    loginfo("gps... OK");
-    return true;
+        return true;
+    });
 }
 
 bool SelfCheck::wifi() {
