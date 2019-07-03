@@ -121,7 +121,7 @@ int32_t Connection::write(fk_app_WireMessageReply *reply) {
     }
 
     conn_->write("HTTP/1.1 200 OK\n");
-    conn_->writef("Content-Length: %d\n", size);
+    conn_->writef("Content-Length: %zu\n", size);
     conn_->write("Content-Type: application/octet-stream\n");
     conn_->write("Connection: close\n");
     conn_->write("\n");
