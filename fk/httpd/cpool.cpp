@@ -107,7 +107,8 @@ bool Connection::service() {
     if (req_.consumed()) {
         auto elapsed = fk_uptime() - started_;
         loginfo("replying/closing (%" PRIu32 "ms)", elapsed);
-        busy("Busy");
+        // busy("Busy");
+        plain("Hello, world!");
         return false;
     }
 
