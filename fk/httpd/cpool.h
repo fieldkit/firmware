@@ -12,7 +12,7 @@ constexpr static size_t HttpdConnectionWorkSize = 2048;
 
 class Connection {
 private:
-    WifiConnection *conn_{ nullptr };
+    NetworkConnection *conn_{ nullptr };
     MallocPool pool_;
     HttpRequest req_{ &pool_ };
     uint8_t *buffer_;
@@ -21,7 +21,7 @@ private:
     uint32_t started_{ 0 };
 
 public:
-    Connection(WifiConnection *conn, size_t size);
+    Connection(NetworkConnection *conn, size_t size);
     virtual ~Connection();
 
 public:
@@ -55,7 +55,7 @@ public:
 
     void service();
 
-    void queue(WifiConnection *c);
+    void queue(NetworkConnection *c);
 
 };
 

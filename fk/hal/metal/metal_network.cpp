@@ -1,52 +1,52 @@
 #include "printf.h"
-#include "hal/metal/metal_wifi.h"
+#include "hal/metal/metal_network.h"
 
 #if defined(ARDUINO)
 
 namespace fk {
 
-#define loginfo(f, ...)  loginfof("wifi", f, ##__VA_ARGS__)
+#define loginfo(f, ...)  loginfof("network", f, ##__VA_ARGS__)
 
-#define logerror(f, ...) logerrorf("wifi", f, ##__VA_ARGS__)
+#define logerror(f, ...) logerrorf("network", f, ##__VA_ARGS__)
 
-MetalWifiConnection::MetalWifiConnection() {
+MetalNetworkConnection::MetalNetworkConnection() {
 }
 
-MetalWifiConnection::MetalWifiConnection(WiFiClient wcl) : wcl_(wcl) {
+MetalNetworkConnection::MetalNetworkConnection(WiFiClient wcl) : wcl_(wcl) {
 }
 
-MetalWifiConnection::~MetalWifiConnection() {
+MetalNetworkConnection::~MetalNetworkConnection() {
 }
 
-WifiConnectionStatus MetalWifiConnection::status() {
+NetworkConnectionStatus MetalNetworkConnection::status() {
     if (wcl_.connected()) {
-        return WifiConnectionStatus::Connected;
+        return NetworkConnectionStatus::Connected;
     }
-    return WifiConnectionStatus::Disconnected;
+    return NetworkConnectionStatus::Disconnected;
 }
 
-bool MetalWifiConnection::available() {
+bool MetalNetworkConnection::available() {
     return wcl_.available();
 }
 
-int32_t MetalWifiConnection::read(uint8_t *buffer, size_t size) {
+int32_t MetalNetworkConnection::read(uint8_t *buffer, size_t size) {
     return wcl_.read(buffer, size);
 }
 
-int32_t MetalWifiConnection::write(const char *str) {
+int32_t MetalNetworkConnection::write(const char *str) {
     return wcl_.write(str, strlen(str));
 }
 
-int32_t MetalWifiConnection::write(uint8_t *buffer, size_t size) {
+int32_t MetalNetworkConnection::write(uint8_t *buffer, size_t size) {
     return wcl_.write(buffer, size);
 }
 
 static void write_connection(char c, void *arg) {
-    WiFiClient *wcl = (WiFiClient *)arg;
+    auto wcl = reinterpret_cast<WiFiClient*>(arg);
     wcl->write((uint8_t)c);
 }
 
-int32_t MetalWifiConnection::writef(const char *str, ...) {
+int32_t MetalNetworkConnection::writef(const char *str, ...) {
     va_list args;
     va_start(args, str);
     fk_vfctprintf(write_connection, &wcl_, str, args);
@@ -54,17 +54,17 @@ int32_t MetalWifiConnection::writef(const char *str, ...) {
     return 0;
 }
 
-int32_t MetalWifiConnection::socket() {
+int32_t MetalNetworkConnection::socket() {
     return wcl_.socket();
 }
 
-bool MetalWifiConnection::stop() {
+bool MetalNetworkConnection::stop() {
     wcl_.flush();
     wcl_.stop();
     return true;
 }
 
-bool MetalWifi::begin(WifiSettings settings) {
+bool MetalNetwork::begin(NetworkSettings settings) {
     board.enable_wifi();
 
     WiFi.setPins(WINC1500_CS, WINC1500_IRQ, WINC1500_RESET);
@@ -95,7 +95,7 @@ bool MetalWifi::begin(WifiSettings settings) {
     return true;
 }
 
-bool MetalWifi::serve() {
+bool MetalNetwork::serve() {
     server_.begin();
 
     IPAddress ip = WiFi.localIP();
@@ -118,20 +118,20 @@ bool MetalWifi::serve() {
     return true;
 }
 
-WifiStatus MetalWifi::status() {
+NetworkStatus MetalNetwork::status() {
     switch (WiFi.status()) {
-    case WL_NO_SHIELD: return WifiStatus::Error;
-    case WL_CONNECTED: return WifiStatus::Connected;
-    case WL_AP_LISTENING: return WifiStatus::Listening;
+    case WL_NO_SHIELD: return NetworkStatus::Error;
+    case WL_CONNECTED: return NetworkStatus::Connected;
+    case WL_AP_LISTENING: return NetworkStatus::Listening;
     }
-    return WifiStatus::Ready;
+    return NetworkStatus::Ready;
 }
 
-uint32_t MetalWifi::ip_address() {
+uint32_t MetalNetwork::ip_address() {
     return WiFi.localIP();
 }
 
-WifiConnection *MetalWifi::accept() {
+NetworkConnection *MetalNetwork::accept() {
     mdns_.run();
 
     auto wcl = server_.available(nullptr, true);
@@ -140,10 +140,10 @@ WifiConnection *MetalWifi::accept() {
     }
 
     // TODO: Temporary
-    return new MetalWifiConnection(wcl);
+    return new MetalNetworkConnection(wcl);
 }
 
-bool MetalWifi::stop() {
+bool MetalNetwork::stop() {
     mdns_.removeServiceRecord(80, MDNSServiceTCP);
     // Ensure the previous removal gets loose.
     delay(100);
@@ -154,7 +154,7 @@ bool MetalWifi::stop() {
     return true;
 }
 
-bool MetalWifi::enabled() {
+bool MetalNetwork::enabled() {
     return enabled_;
 }
 

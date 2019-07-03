@@ -7,24 +7,24 @@ namespace fk {
 class HttpServer {
 private:
     ConnectionPool pool_;
-    Wifi *wifi_;
+    Network *network_;
     const char *ssid_;
     const char *password_;
 
 public:
-    HttpServer(Wifi *wifi);
-    HttpServer(Wifi *wifi, const char *ssid, const char *password);
+    HttpServer(Network *network);
+    HttpServer(Network *network, const char *ssid, const char *password);
 
 public:
     bool begin();
     void tick();
     void stop();
     bool enabled() const {
-        return wifi_->enabled();
+        return network_->enabled();
     }
 
 private:
-    WifiSettings get_settings();
+    NetworkSettings get_settings();
 
 };
 

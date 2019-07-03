@@ -45,8 +45,8 @@ static void signal_handler(int32_t s){
 }
 
 void server(Fake *fake) {
-    fk::LinuxWifi wifi;
-    fk::HttpServer http_server{ &wifi };
+    fk::LinuxNetwork network;
+    fk::HttpServer http_server{ &network };
 
     if (!http_server.begin()) {
         return;

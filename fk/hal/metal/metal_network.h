@@ -36,17 +36,17 @@
 
 namespace fk {
 
-class MetalWifiConnection : public WifiConnection {
+class MetalNetworkConnection : public NetworkConnection {
 private:
     WiFiClient wcl_;
 
 public:
-    MetalWifiConnection();
-    MetalWifiConnection(WiFiClient wcl);
-    ~MetalWifiConnection() override;
+    MetalNetworkConnection();
+    MetalNetworkConnection(WiFiClient wcl);
+    ~MetalNetworkConnection() override;
 
 public:
-    WifiConnectionStatus status() override;
+    NetworkConnectionStatus status() override;
 
     bool available() override;
 
@@ -64,25 +64,25 @@ public:
 
 };
 
-class MetalWifi : public Wifi {
+class MetalNetwork : public Network {
 private:
     bool enabled_{ false };
     char service_name_[64];
-    WifiSettings settings_;
+    NetworkSettings settings_;
     WiFiServer server_{ 80 };
     WiFiUDP udp_;
     MDNS mdns_{ udp_ };
 
 public:
-    bool begin(WifiSettings settings) override;
+    bool begin(NetworkSettings settings) override;
 
-    WifiStatus status() override;
+    NetworkStatus status() override;
 
     bool serve() override;
 
     uint32_t ip_address() override;
 
-    WifiConnection *accept() override;
+    NetworkConnection *accept() override;
 
     bool stop() override;
 

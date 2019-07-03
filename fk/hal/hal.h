@@ -4,4 +4,4 @@
 #include "platform.h"
 #include "board.h"
 
-#include "hal/wifi.h"
+#include "hal/network.h"

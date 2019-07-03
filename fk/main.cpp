@@ -41,11 +41,11 @@ static void task_handler_display(void *params) {
 }
 
 static void task_handler_httpd(void *params) {
-    MetalWifi wifi;
+    MetalNetwork network;
     #if defined(FK_WIFI_0_SSID) && defined(FK_WIFI_0_PASSWORD)
-    HttpServer http_server{ &wifi, FK_WIFI_0_SSID, FK_WIFI_0_PASSWORD };
+    HttpServer http_server{ &network, FK_WIFI_0_SSID, FK_WIFI_0_PASSWORD };
     #else
-    HttpServer http_server{ &wifi };
+    HttpServer http_server{ &network };
     #endif
 
     auto last_changed = 0;
@@ -57,7 +57,7 @@ static void task_handler_httpd(void *params) {
             }
             else {
                 if (!http_server.begin()) {
-                    fkerror("wifi missing");
+                    fkerror("error starting server");
                 }
             }
             last_changed = fk_uptime();
@@ -131,10 +131,10 @@ void setup() {
     }
     */
 
-    MetalWifi wifi;
+    MetalNetwork network;
     DisplayFactory display_factory;
     Display *display = display_factory.get_display();
-    SelfCheck self_check(display, &wifi);
+    SelfCheck self_check(display, &network);
 
     self_check.check();
 

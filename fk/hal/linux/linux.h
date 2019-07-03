@@ -1,3 +1,3 @@
 #pragma once
 
-#include "hal/linux/linux_wifi.h"
+#include "hal/linux/linux_network.h"

@@ -4,7 +4,7 @@
 
 namespace fk {
 
-enum class WifiStatus {
+enum class NetworkStatus {
     Error = 0,
     Ready,
     Off,
@@ -12,12 +12,12 @@ enum class WifiStatus {
     Connected
 };
 
-enum class WifiConnectionStatus {
+enum class NetworkConnectionStatus {
     Connected,
     Disconnected
 };
 
-struct WifiSettings {
+struct NetworkSettings {
     bool create;
     const char *ssid;
     const char *password;
@@ -26,13 +26,13 @@ struct WifiSettings {
 
 };
 
-class WifiConnection {
+class NetworkConnection {
 public:
-    virtual ~WifiConnection() {
+    virtual ~NetworkConnection() {
     }
 
 public:
-    virtual WifiConnectionStatus status() = 0;
+    virtual NetworkConnectionStatus status() = 0;
 
     virtual bool available() = 0;
 
@@ -50,17 +50,17 @@ public:
 
 };
 
-class Wifi {
+class Network {
 public:
-    virtual bool begin(WifiSettings settings) = 0;
+    virtual bool begin(NetworkSettings settings) = 0;
 
     virtual bool serve() = 0;
 
-    virtual WifiStatus status() = 0;
+    virtual NetworkStatus status() = 0;
 
     virtual uint32_t ip_address() = 0;
 
-    virtual WifiConnection *accept() = 0;
+    virtual NetworkConnection *accept() = 0;
 
     virtual bool stop() = 0;
 

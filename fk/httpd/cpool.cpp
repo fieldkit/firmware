@@ -33,7 +33,7 @@ void ConnectionPool::service() {
     }
 }
 
-void ConnectionPool::queue(WifiConnection *c) {
+void ConnectionPool::queue(NetworkConnection *c) {
     for (auto i = (size_t)0; i < MaximumConnections; ++i) {
         if (pool_[i] == nullptr) {
             pool_[i] = new Connection(c, HttpdConnectionWorkSize);
@@ -43,7 +43,7 @@ void ConnectionPool::queue(WifiConnection *c) {
     FK_ASSERT(false);
 }
 
-Connection::Connection(WifiConnection *conn, size_t size) : conn_(conn), pool_{ "conn", size }, req_{ &pool_ }, buffer_{ nullptr }, size_{ 0 }, position_{ 0 } {
+Connection::Connection(NetworkConnection *conn, size_t size) : conn_(conn), pool_{ "conn", size }, req_{ &pool_ }, buffer_{ nullptr }, size_{ 0 }, position_{ 0 } {
     started_ = fk_uptime();
 }
 
@@ -57,7 +57,7 @@ bool Connection::service() {
     // TODO: 413 Payload Too Large
     // TODO: 500 Service Unavailable
     // TODO: 503 Service Unavailable
-    if (conn_->status() != WifiConnectionStatus::Connected) {
+    if (conn_->status() != NetworkConnectionStatus::Connected) {
         loginfo("disconnected");
         return false;
     }

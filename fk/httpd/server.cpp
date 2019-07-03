@@ -12,31 +12,31 @@ namespace fk {
 
 #define logerror(f, ...) logerrorf("httpd", f, ##__VA_ARGS__)
 
-static bool wifi_ready(WifiStatus status) {
-    return status == WifiStatus::Connected || status == WifiStatus::Listening;
+static bool network_ready(NetworkStatus status) {
+    return status == NetworkStatus::Connected || status == NetworkStatus::Listening;
 }
 
-HttpServer::HttpServer(Wifi *wifi) : wifi_(wifi), ssid_(nullptr), password_(nullptr) {
+HttpServer::HttpServer(Network *network) : network_(network), ssid_(nullptr), password_(nullptr) {
 }
 
-HttpServer::HttpServer(Wifi *wifi, const char *ssid, const char *password) : wifi_(wifi), ssid_(ssid), password_(password) {
+HttpServer::HttpServer(Network *network, const char *ssid, const char *password) : network_(network), ssid_(ssid), password_(password) {
 }
 
 bool HttpServer::begin() {
     auto settings = get_settings();
 
-    loginfo("checking wifi...");
+    loginfo("checking network...");
 
-    if (!wifi_->begin(settings)) {
-        loginfo("unable to configure wifi");
+    if (!network_->begin(settings)) {
+        loginfo("unable to configure network");
         return false;
     }
 
-    while (!wifi_ready(wifi_->status())) {
+    while (!network_ready(network_->status())) {
         fk_delay(100);
     }
 
-    wifi_->serve();
+    network_->serve();
 
     loginfo("serving");
 
@@ -45,7 +45,7 @@ bool HttpServer::begin() {
 
 void HttpServer::tick() {
     if (pool_.available() > 0) {
-        auto connection = wifi_->accept();
+        auto connection = network_->accept();
         if (connection != nullptr) {
             auto mi = mallinfo();
             loginfo("connection (fd = %" PRId32 ") (free = %" PRIu32 ") (arena = %d) (uordblks = %d)",
@@ -60,10 +60,10 @@ void HttpServer::tick() {
 void HttpServer::stop() {
     loginfo("stop");
 
-    wifi_->stop();
+    network_->stop();
 }
 
-WifiSettings HttpServer::get_settings() {
+NetworkSettings HttpServer::get_settings() {
     if (ssid_ == nullptr) {
         return {
             .create = true,

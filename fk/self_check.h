@@ -9,10 +9,10 @@ namespace fk {
 class SelfCheck {
 private:
     Display *display_;
-    Wifi *wifi_;
+    Network *network_;
 
 public:
-    SelfCheck(Display *display, Wifi *wifi);
+    SelfCheck(Display *display, Network *network);
 
 public:
     void check();

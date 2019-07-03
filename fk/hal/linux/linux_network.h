@@ -6,17 +6,17 @@
 
 namespace fk {
 
-class LinuxWifiConnection : public WifiConnection {
+class LinuxNetworkConnection : public NetworkConnection {
 private:
     int32_t s_;
 
 public:
-    LinuxWifiConnection();
-    LinuxWifiConnection(int32_t s);
-    ~LinuxWifiConnection() override;
+    LinuxNetworkConnection();
+    LinuxNetworkConnection(int32_t s);
+    ~LinuxNetworkConnection() override;
 
 public:
-    WifiConnectionStatus status() override;
+    NetworkConnectionStatus status() override;
 
     bool available() override;
 
@@ -34,23 +34,23 @@ public:
 
 };
 
-class LinuxWifi : public Wifi {
+class LinuxNetwork : public Network {
 private:
     bool enabled_{ false };
     char service_name_[64];
-    WifiSettings settings_;
+    NetworkSettings settings_;
     int32_t listening_;
 
 public:
-    bool begin(WifiSettings settings) override;
+    bool begin(NetworkSettings settings) override;
 
-    WifiStatus status() override;
+    NetworkStatus status() override;
 
     bool serve() override;
 
     uint32_t ip_address() override;
 
-    WifiConnection *accept() override;
+    NetworkConnection *accept() override;
 
     bool stop() override;
 

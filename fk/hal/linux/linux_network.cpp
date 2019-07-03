@@ -1,6 +1,6 @@
 #include "printf.h"
 #include "hal/linux/linux.h"
-#include "hal/linux/linux_wifi.h"
+#include "hal/linux/linux_network.h"
 
 #if !defined(ARDUINO)
 
@@ -12,24 +12,24 @@
 
 namespace fk {
 
-#define loginfo(f, ...)  loginfof("wifi", f, ##__VA_ARGS__)
+#define loginfo(f, ...)  loginfof("network", f, ##__VA_ARGS__)
 
-#define logerror(f, ...) logerrorf("wifi", f, ##__VA_ARGS__)
+#define logerror(f, ...) logerrorf("network", f, ##__VA_ARGS__)
 
-LinuxWifiConnection::LinuxWifiConnection() {
+LinuxNetworkConnection::LinuxNetworkConnection() {
 }
 
-LinuxWifiConnection::LinuxWifiConnection(int32_t s) : s_(s) {
+LinuxNetworkConnection::LinuxNetworkConnection(int32_t s) : s_(s) {
 }
 
-LinuxWifiConnection::~LinuxWifiConnection() {
+LinuxNetworkConnection::~LinuxNetworkConnection() {
 }
 
-WifiConnectionStatus LinuxWifiConnection::status() {
-    return WifiConnectionStatus::Connected;
+NetworkConnectionStatus LinuxNetworkConnection::status() {
+    return NetworkConnectionStatus::Connected;
 }
 
-bool LinuxWifiConnection::available() {
+bool LinuxNetworkConnection::available() {
     fd_set rfd;
     FD_ZERO(&rfd);
     FD_SET(s_, &rfd);
@@ -46,19 +46,19 @@ bool LinuxWifiConnection::available() {
     return true;
 }
 
-int32_t LinuxWifiConnection::read(uint8_t *buffer, size_t size) {
+int32_t LinuxNetworkConnection::read(uint8_t *buffer, size_t size) {
     return ::read(s_, buffer, size);
 }
 
-int32_t LinuxWifiConnection::write(const char *str) {
+int32_t LinuxNetworkConnection::write(const char *str) {
     return ::write(s_, str, strlen(str));
 }
 
-int32_t LinuxWifiConnection::write(uint8_t *buffer, size_t size) {
+int32_t LinuxNetworkConnection::write(uint8_t *buffer, size_t size) {
     return ::write(s_, buffer, size);
 }
 
-int32_t LinuxWifiConnection::writef(const char *str, ...) {
+int32_t LinuxNetworkConnection::writef(const char *str, ...) {
     va_list args;
     va_start(args, str);
     auto needed = fk_vsnprintf(nullptr, 0, str, args);
@@ -72,11 +72,11 @@ int32_t LinuxWifiConnection::writef(const char *str, ...) {
     return 0;
 }
 
-int32_t LinuxWifiConnection::socket() {
+int32_t LinuxNetworkConnection::socket() {
     return s_;
 }
 
-bool LinuxWifiConnection::stop() {
+bool LinuxNetworkConnection::stop() {
     if (s_ > 0) {
         close(s_);
         s_ = -1;
@@ -84,14 +84,14 @@ bool LinuxWifiConnection::stop() {
     return true;
 }
 
-bool LinuxWifi::begin(WifiSettings settings) {
+bool LinuxNetwork::begin(NetworkSettings settings) {
     settings_ = settings;
     enabled_ = true;
 
     return true;
 }
 
-bool LinuxWifi::serve() {
+bool LinuxNetwork::serve() {
     strncpy(service_name_, settings_.name, sizeof(service_name_) - 5);
     auto n = std::min(strlen(service_name_), sizeof(service_name_) - 5);
     strncpy(service_name_ + n, "._fk", 4);
@@ -121,15 +121,15 @@ bool LinuxWifi::serve() {
     return true;
 }
 
-WifiStatus LinuxWifi::status() {
-    return WifiStatus::Listening;
+NetworkStatus LinuxNetwork::status() {
+    return NetworkStatus::Listening;
 }
 
-uint32_t LinuxWifi::ip_address() {
+uint32_t LinuxNetwork::ip_address() {
     return 0;
 }
 
-WifiConnection *LinuxWifi::accept() {
+NetworkConnection *LinuxNetwork::accept() {
     fd_set rfd;
     FD_ZERO(&rfd);
     FD_SET(listening_, &rfd);
@@ -150,10 +150,10 @@ WifiConnection *LinuxWifi::accept() {
         return nullptr;
     }
 
-    return new LinuxWifiConnection(s);
+    return new LinuxNetworkConnection(s);
 }
 
-bool LinuxWifi::stop() {
+bool LinuxNetwork::stop() {
     if (enabled_) {
         enabled_ = false;
         close(listening_);
@@ -162,7 +162,7 @@ bool LinuxWifi::stop() {
     return true;
 }
 
-bool LinuxWifi::enabled() {
+bool LinuxNetwork::enabled() {
     return enabled_;
 }
 

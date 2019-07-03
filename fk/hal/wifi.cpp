@@ -1,5 +1,0 @@
-#include "wifi.h"
-
-namespace {
-
-}

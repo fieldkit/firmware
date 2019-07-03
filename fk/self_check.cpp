@@ -16,7 +16,7 @@ namespace fk {
 
 #define logerror(f, ...) logerrorf("check", f, ##__VA_ARGS__)
 
-SelfCheck::SelfCheck(Display *display, Wifi *wifi) : display_(display), wifi_(wifi) {
+SelfCheck::SelfCheck(Display *display, Network *network) : display_(display), network_(network) {
 }
 
 void SelfCheck::check() {
@@ -151,17 +151,17 @@ bool SelfCheck::gps() {
 
 bool SelfCheck::wifi() {
     return single_check("wifi", [&]() {
-        MetalWifi wifi;
-        auto settings = WifiSettings{
+        MetalNetwork network;
+        auto settings = NetworkSettings{
             .create = false,
             .ssid = nullptr,
             .password = nullptr,
             .name = nullptr,
             .port = 0,
         };
-        auto ok = wifi.begin(settings);
+        auto ok = network.begin(settings);
         if (ok) {
-            wifi.stop();
+            network.stop();
         }
 
         return ok;
