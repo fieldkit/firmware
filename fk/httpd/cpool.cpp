@@ -123,21 +123,29 @@ int32_t Connection::write(fk_app_WireMessageReply *reply) {
     }
 
     conn_->write("HTTP/1.1 200 OK\n");
-    conn_->writef("Content-Length: %zu\n", size);
-    conn_->write("Content-Type: application/octet-stream\n");
     conn_->write("Connection: close\n");
+    conn_->write("Content-Type: application/octet-stream\n");
+    conn_->writef("Content-Length: %zu\n", size);
     conn_->write("\n");
-
     conn_->write(serialized, size);
-
     return size;
+}
+
+int32_t Connection::plain(const char *text) {
+    conn_->write("HTTP/1.1 200 OK\n");
+    conn_->write("Connection: close\n");
+    conn_->write("Content-Type: text/plain\n");
+    conn_->writef("Content-Length: %zu\n", strlen(text));
+    conn_->write("\n");
+    conn_->write(text);
+    return 0;
 }
 
 int32_t Connection::fault() {
     conn_->write("HTTP/1.1 500 Internal Server Error\n");
-    conn_->write("Content-Length: 0\n");
-    conn_->write("Content-Type: text/plain\n");
     conn_->write("Connection: close\n");
+    conn_->write("Content-Type: text/plain\n");
+    conn_->write("Content-Length: 0\n");
     conn_->write("\n");
     return 0;
 }

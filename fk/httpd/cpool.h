@@ -29,6 +29,8 @@ public:
 
     int32_t write(fk_app_WireMessageReply *reply);
 
+    int32_t plain(const char *message);
+
     int32_t busy(const char *message);
 
     int32_t error(const char *message);
