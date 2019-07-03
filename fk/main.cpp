@@ -89,7 +89,8 @@ void run_tasks() {
     OS_CHECK(os_task_initialize(&httpd_task, "httpd", OS_TASK_START_RUNNING, &task_handler_httpd, NULL, httpd_stack, sizeof(httpd_stack)));
 
     auto total_stacks = sizeof(idle_stack) + sizeof(display_stack) + sizeof(httpd_stack);
-    fkinfo("free after stacks = %lu (stacks = %zu)", fk_free_memory(), total_stacks);
+    fkinfo("stacks = %lu", total_stacks);
+    fkinfo("free = %lu", fk_free_memory());
     fkinfo("starting os!");
 
     OS_CHECK(os_start());

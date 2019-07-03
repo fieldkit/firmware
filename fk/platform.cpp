@@ -36,12 +36,16 @@ uint32_t fk_free_memory() {
 
 #else
 
-void fk_assert(const char *assertion, const char *file, int line) {
-    fkb_external_printf("Assertion \"%s\" failed: file \"%s\", line %d\n", assertion, file, line);
+uint32_t fk_uptime() {
+    return 0;
 }
 
 uint32_t fk_delay(uint32_t ms) {
     return 0;
+}
+
+void fk_assert(const char *assertion, const char *file, int line) {
+    fkb_external_printf("Assertion \"%s\" failed: file \"%s\", line %d\n", assertion, file, line);
 }
 
 uint32_t fk_free_memory() {

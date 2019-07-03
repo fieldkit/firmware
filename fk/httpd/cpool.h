@@ -18,6 +18,7 @@ private:
     uint8_t *buffer_;
     size_t size_;
     size_t position_;
+    uint32_t started_{ 0 };
 
 public:
     Connection(WifiConnection *conn, size_t size);

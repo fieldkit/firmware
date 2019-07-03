@@ -47,8 +47,8 @@ void HttpServer::tick() {
         auto connection = wifi_->accept();
         if (connection != nullptr) {
             auto mi = mallinfo();
-            loginfo("connection (ptr = 0x%p) (fd = %ld) (free = %lu) (arena = %zu) (uordblks = %zu)",
-                    connection, connection->socket(), fk_free_memory(), mi.arena, mi.uordblks);
+            loginfo("connection (fd = %ld) (free = %lu) (arena = %zu) (uordblks = %zu)",
+                    connection->socket(), fk_free_memory(), mi.arena, mi.uordblks);
             pool_.queue(connection);
         }
     }

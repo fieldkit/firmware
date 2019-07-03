@@ -44,6 +44,7 @@ void ConnectionPool::queue(WifiConnection *c) {
 }
 
 Connection::Connection(WifiConnection *conn, size_t size) : conn_(conn), pool_{ "conn", size }, req_{ &pool_ }, buffer_{ nullptr }, size_{ 0 }, position_{ 0 } {
+    started_ = fk_uptime();
 }
 
 Connection::~Connection() {
@@ -104,7 +105,8 @@ bool Connection::service() {
     }
 
     if (req_.consumed()) {
-        loginfo("replying/closing");
+        auto elapsed = fk_uptime() - started_;
+        loginfo("replying/closing (%" PRIu32 "ms)", elapsed);
         busy("Busy");
         return false;
     }
