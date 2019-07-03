@@ -43,4 +43,6 @@ bool pb_encode_data(pb_ostream_t *stream, const pb_field_t *field, void * const 
 
 bool pb_decode_data(pb_istream_t *stream, const pb_field_t *field, void **arg);
 
+size_t pb_varint_size(uint32_t value);
+
 }

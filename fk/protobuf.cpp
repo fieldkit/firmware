@@ -132,4 +132,35 @@ bool pb_decode_data(pb_istream_t *stream, const pb_field_t *field, void **arg) {
     return true;
 }
 
+static size_t pb_varint_size(uint32_t low, uint32_t high) {
+    size_t i = 0;
+    low >>= 7;
+
+    while (i < 4 && (low != 0 || high != 0)) {
+        i++;
+        low >>= 7;
+    }
+
+    if (high) {
+        high >>= 3;
+        while (high) {
+            i++;
+            high >>= 7;
+        }
+    }
+
+    i++;
+
+    return i;
+}
+
+size_t pb_varint_size(uint32_t value) {
+    if (value <= 0x7F) {
+        return 1;
+    }
+    else {
+        return pb_varint_size(value, 0);
+    }
+}
+
 }

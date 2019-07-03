@@ -1,9 +1,10 @@
 #include <cstdlib>
-#include <string.h>
+#include <cstring>
 
 #include "printf.h"
 #include "pool.h"
 #include "platform.h"
+#include "protobuf.h"
 
 namespace fk {
 
@@ -108,14 +109,15 @@ uint8_t *Pool::encode(const pb_msgdesc_t *fields, void *src, size_t *size) {
         return nullptr;
     }
 
-    // TODO: Make this actually calculate the required bytes for the length.
-    required += 4;
+    required += pb_varint_size(required);
 
     auto buffer = (uint8_t *)malloc(required);
     auto stream = pb_ostream_from_buffer(buffer, required);
     if (!pb_encode_delimited(&stream, fields, src)) {
         return nullptr;
     }
+
+    FK_ASSERT(stream.bytes_written == required);
 
     if (size != nullptr) {
         *size = stream.bytes_written;
