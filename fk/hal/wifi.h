@@ -39,6 +39,8 @@ public:
 
     virtual int32_t write(uint8_t *buffer, size_t size) = 0;
 
+    virtual int32_t writef(const char *str, ...) __attribute__((format(printf, 2, 3))) = 0;
+
     virtual int32_t write(const char *str) = 0;
 
     virtual int32_t socket() = 0;

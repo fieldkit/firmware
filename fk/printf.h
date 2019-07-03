@@ -73,6 +73,7 @@ int fk_vsnprintf(char* buffer, size_t count, const char* format, va_list va);
  */
 int fk_fctprintf(void (*out)(char character, void* arg), void* arg, const char* format, ...);
 
+int fk_vfctprintf(void (*out)(char character, void* arg), void* arg, const char* format, va_list va);
 
 #ifdef __cplusplus
 }

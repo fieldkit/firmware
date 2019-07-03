@@ -1,3 +1,4 @@
+#include "printf.h"
 #include "metal.h"
 
 #if defined(ARDUINO)
@@ -38,6 +39,19 @@ int32_t MetalWifiConnection::write(const char *str) {
 
 int32_t MetalWifiConnection::write(uint8_t *buffer, size_t size) {
     return wcl_.write(buffer, size);
+}
+
+static void write_connection(char c, void *arg) {
+    WiFiClient *wcl = (WiFiClient *)arg;
+    wcl->write((uint8_t)c);
+}
+
+int32_t MetalWifiConnection::writef(const char *str, ...) {
+    va_list args;
+    va_start(args, str);
+    fk_vfctprintf(write_connection, &wcl_, str, args);
+    va_end(args);
+    return 0;
 }
 
 int32_t MetalWifiConnection::socket() {
