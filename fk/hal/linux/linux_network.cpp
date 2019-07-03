@@ -54,7 +54,7 @@ int32_t LinuxNetworkConnection::write(const char *str) {
     return ::write(s_, str, strlen(str));
 }
 
-int32_t LinuxNetworkConnection::write(uint8_t *buffer, size_t size) {
+int32_t LinuxNetworkConnection::write(const uint8_t *buffer, size_t size) {
     return ::write(s_, buffer, size);
 }
 

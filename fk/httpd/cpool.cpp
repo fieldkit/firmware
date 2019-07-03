@@ -9,6 +9,30 @@ namespace fk {
 
 #define logerror(f, ...) logerrorf("httpd", f, ##__VA_ARGS__)
 
+static bool write_callback(pb_ostream_t *stream, const uint8_t *buf, size_t c) {
+    auto nc = reinterpret_cast<NetworkConnection*>(stream->state);
+    return nc->write(buf, c) == (int32_t)c;
+}
+
+static bool read_callback(pb_istream_t *stream, uint8_t *buf, size_t c) {
+    auto nc = reinterpret_cast<NetworkConnection*>(stream->state);
+    auto nread = nc->read(buf, c);
+    if (nread <= 0) {
+        stream->bytes_left = 0; /* EOF */
+    }
+    return nread == (int32_t)c;
+}
+
+pb_ostream_t pb_ostream_from_connection(NetworkConnection *nc) {
+    pb_ostream_t stream = { &write_callback, (void *)nc, SIZE_MAX, 0 };
+    return stream;
+}
+
+pb_istream_t pb_istream_from_connection(NetworkConnection *nc) {
+    pb_istream_t stream = { &read_callback, (void *)nc, SIZE_MAX };
+    return stream;
+}
+
 ConnectionPool::ConnectionPool() : memory_("httpd", 0 * HttpdConnectionWorkSize * MaximumConnections) {
 }
 
@@ -107,8 +131,7 @@ bool Connection::service() {
     if (req_.consumed()) {
         auto elapsed = fk_uptime() - started_;
         loginfo("replying/closing (%" PRIu32 "ms)", elapsed);
-        // busy("Busy");
-        plain("Hello, world!");
+        busy("Busy");
         return false;
     }
 

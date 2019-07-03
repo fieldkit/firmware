@@ -22,7 +22,7 @@ public:
 
     int32_t read(uint8_t *buffer, size_t size) override;
 
-    int32_t write(uint8_t *buffer, size_t size) override;
+    int32_t write(const uint8_t *buffer, size_t size) override;
 
     int32_t writef(const char *str, ...) override;
 

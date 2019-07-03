@@ -44,7 +44,7 @@ bool single_check(const char *name, T fn) {
 }
 
 bool SelfCheck::rtc() {
-    return single_check("rtc", [&]() {
+    return single_check("rtc", []() {
         CoreClock clock{ Wire };
 
         if (!clock.begin()) {
@@ -56,7 +56,7 @@ bool SelfCheck::rtc() {
 }
 
 bool SelfCheck::temperature() {
-    return single_check("temperature", [&]() {
+    return single_check("temperature", []() {
         CoreTemperature temp{ Wire };
 
         if (!temp.begin()) {
@@ -68,7 +68,7 @@ bool SelfCheck::temperature() {
 }
 
 bool SelfCheck::battery_gauge() {
-    return single_check("battery gauge", [&]() {
+    return single_check("battery gauge", []() {
         BatteryGauge gauge{ Wire1 };
 
         if (!gauge.begin()) {
@@ -80,7 +80,7 @@ bool SelfCheck::battery_gauge() {
 }
 
 bool SelfCheck::qspi_memory() {
-    return single_check("qspi memory", [&]() {
+    return single_check("qspi memory", []() {
         Adafruit_QSPI_Flash qspi_flash;
 
         pinMode(QSPI_FLASH_CS, OUTPUT);
@@ -124,7 +124,7 @@ bool SelfCheck::spi_memory() {
 }
 
 bool SelfCheck::gps() {
-    return single_check("gps", [&]() {
+    return single_check("gps", []() {
         Serial1.begin(9600);
 
         board.enable_gps();
@@ -150,7 +150,7 @@ bool SelfCheck::gps() {
 }
 
 bool SelfCheck::wifi() {
-    return single_check("wifi", [&]() {
+    return single_check("wifi", []() {
         MetalNetwork network;
         auto settings = NetworkSettings{
             .create = false,

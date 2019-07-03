@@ -47,7 +47,6 @@ include_directories("${source_dir}/googletest/include"
 file(GLOB_RECURSE fk_sources ../../fk/*.cpp)
 list(FILTER fk_sources EXCLUDE REGEX ".*main.cpp$")
 list(FILTER fk_sources EXCLUDE REGEX ".*external.cpp$")
-list(FILTER fk_sources EXCLUDE REGEX ".*httpd/server.cpp$")
 # TODO: Remove
 list(FILTER fk_sources EXCLUDE REGEX ".*self_check.cpp$")
 # TODO: Remove (Wire.h dependency)

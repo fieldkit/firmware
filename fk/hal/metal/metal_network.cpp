@@ -37,7 +37,7 @@ int32_t MetalNetworkConnection::write(const char *str) {
     return wcl_.write(str, strlen(str));
 }
 
-int32_t MetalNetworkConnection::write(uint8_t *buffer, size_t size) {
+int32_t MetalNetworkConnection::write(const uint8_t *buffer, size_t size) {
     return wcl_.write(buffer, size);
 }
 
