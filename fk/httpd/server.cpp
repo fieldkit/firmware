@@ -1,4 +1,5 @@
 #include <cstring>
+#include <malloc.h>
 #include <os.h>
 
 #include "common.h"
@@ -45,8 +46,9 @@ void HttpServer::tick() {
     if (pool_.available() > 0) {
         auto connection = wifi_->accept();
         if (connection != nullptr) {
-            loginfo("connection (ptr = 0x%p) (fd = %ld) (free = %lu)",
-                    connection, connection->socket(), fk_free_memory());
+            auto mi = mallinfo();
+            loginfo("connection (ptr = 0x%p) (fd = %ld) (free = %lu) (arena = %zu) (uordblks = %zu)",
+                    connection, connection->socket(), fk_free_memory(), mi.arena, mi.uordblks);
             pool_.queue(connection);
         }
     }
