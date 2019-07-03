@@ -1,5 +1,5 @@
 #include "printf.h"
-#include "metal_wifi.h"
+#include "hal/metal/metal_wifi.h"
 
 #if defined(ARDUINO)
 

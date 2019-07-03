@@ -6,6 +6,8 @@
 #if defined(__SAMD51__)
 #include <Arduino.h>
 #include <SEGGER_RTT.h>
+#else
+#include <chrono>
 #endif
 
 namespace fk {
@@ -36,8 +38,10 @@ uint32_t fk_free_memory() {
 
 #else
 
+using namespace std::chrono;
+
 uint32_t fk_uptime() {
-    return 0;
+    return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
 }
 
 uint32_t fk_delay(uint32_t ms) {

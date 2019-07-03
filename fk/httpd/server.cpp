@@ -1,6 +1,5 @@
 #include <cstring>
 #include <malloc.h>
-#include <os.h>
 
 #include "common.h"
 #include "platform.h"
@@ -49,7 +48,7 @@ void HttpServer::tick() {
         auto connection = wifi_->accept();
         if (connection != nullptr) {
             auto mi = mallinfo();
-            loginfo("connection (fd = %ld) (free = %lu) (arena = %zu) (uordblks = %zu)",
+            loginfo("connection (fd = %" PRId32 ") (free = %" PRIu32 ") (arena = %d) (uordblks = %d)",
                     connection->socket(), fk_free_memory(), mi.arena, mi.uordblks);
             pool_.queue(connection);
         }

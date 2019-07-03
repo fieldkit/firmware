@@ -2,6 +2,7 @@
 #
 #
 if(${TARGET_ARCH} MATCHES "amd64")
+  add_subdirectory(fake)
   add_subdirectory(hosted)
 endif()
 
