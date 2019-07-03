@@ -11,6 +11,10 @@
 
 using namespace fk;
 
+#define loginfo(f, ...)  loginfof("main", f, ##__VA_ARGS__)
+
+#define logerror(f, ...) logerrorf("main", f, ##__VA_ARGS__)
+
 static void task_handler_idle(void *params) {
     while (true) {
         os_delay(1000);
@@ -89,9 +93,9 @@ void run_tasks() {
     OS_CHECK(os_task_initialize(&httpd_task, "httpd", OS_TASK_START_RUNNING, &task_handler_httpd, NULL, httpd_stack, sizeof(httpd_stack)));
 
     auto total_stacks = sizeof(idle_stack) + sizeof(display_stack) + sizeof(httpd_stack);
-    fkinfo("stacks = %lu", total_stacks);
-    fkinfo("free = %lu", fk_free_memory());
-    fkinfo("starting os!");
+    loginfo("stacks = %d", total_stacks);
+    loginfo("free = %lu", fk_free_memory());
+    loginfo("starting os!");
 
     OS_CHECK(os_start());
 }
@@ -107,7 +111,7 @@ void setup() {
 
     log_configure_writer(write_log);
 
-    fkinfo("hello (memory = %lu)!", fk_free_memory());
+    loginfo("hello (memory = %lu)!", fk_free_memory());
 
     /*
     pinMode(PIN_WIRE1_SDA, OUTPUT);
