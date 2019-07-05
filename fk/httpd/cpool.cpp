@@ -140,7 +140,7 @@ bool Connection::service() {
 
 int32_t Connection::write(fk_app_WireMessageReply *reply) {
     size_t size = 0;
-    auto fields = fk_app_WireMessageQuery_fields;
+    auto fields = fk_app_WireMessageReply_fields;
     auto serialized = pool_.encode(fields, reply, &size);
     if (serialized == nullptr) {
         return fault();
