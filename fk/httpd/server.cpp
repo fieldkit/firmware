@@ -32,8 +32,14 @@ bool HttpServer::begin() {
         return false;
     }
 
+    auto started = fk_uptime();
     while (!network_ready(network_->status())) {
         fk_delay(100);
+
+        if (fk_uptime() - started > WifiConnectionTimeoutMs) {
+            logerror("networking took too long");
+            return false;
+        }
     }
 
     network_->serve();

@@ -112,7 +112,7 @@ void setup() {
 
     log_configure_writer(write_log);
 
-    loginfo("hello (memory = %lu)!", fk_free_memory());
+    loginfo("hello (memory = %lu)", fk_free_memory());
 
     /*
     pinMode(PIN_WIRE1_SDA, OUTPUT);

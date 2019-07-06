@@ -55,4 +55,9 @@ constexpr size_t HttpMaximumRoutes = MaximumNumberOfModules + HttpFixedRoutes;
  */
 constexpr size_t HttpdMaximumUrlLength = 64;
 
+/**
+ * How long to wait for a WiFi connection to establish.
+ */
+constexpr uint32_t WifiConnectionTimeoutMs = 30 * 1000;
+
 }
