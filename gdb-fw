@@ -1,0 +1,5 @@
+#!/bin/bash
+
+set -xe
+
+gdb-multiarch build/samd51/fk/fk-bundled-fkb.elf
