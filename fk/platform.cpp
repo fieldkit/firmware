@@ -8,6 +8,8 @@
 #include <SEGGER_RTT.h>
 #else
 #include <chrono>
+#include <vector>
+#include <queue>
 #endif
 
 namespace fk {
@@ -40,7 +42,22 @@ uint32_t fk_free_memory() {
 
 using namespace std::chrono;
 
+std::queue<uint32_t> uptimes;
+
+uint32_t fk_fake_uptime(std::vector<uint32_t> more) {
+    for (auto a : more) {
+        uptimes.push(a);
+    }
+    return uptimes.size();
+}
+
 uint32_t fk_uptime() {
+    if (uptimes.size() > 0) {
+        auto time = uptimes.front();
+        uptimes.pop();
+        return time;
+
+    }
     return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
 }
 
