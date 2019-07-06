@@ -111,6 +111,8 @@ bool SelfCheck::spi_memory() {
 
     auto nbanks = 0;
 
+    delay(1000);
+
     for (auto pin : cs_pins) {
         SerialFlashChip flash;
 
@@ -119,6 +121,9 @@ bool SelfCheck::spi_memory() {
             nbanks++;
         }
     }
+
+    MetalDataMemory memory;
+    memory.begin();
 
     return nbanks > 0;
 }
