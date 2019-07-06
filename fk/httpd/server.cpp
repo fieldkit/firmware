@@ -42,7 +42,9 @@ bool HttpServer::begin() {
         }
     }
 
-    network_->serve();
+    if (!network_->serve()) {
+        return false;
+    }
 
     loginfo("serving");
 

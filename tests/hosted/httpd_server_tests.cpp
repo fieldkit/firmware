@@ -10,10 +10,9 @@ using testing::_;
 using namespace fk;
 
 class HttpServerSuite : public ::testing::Test {
-protected:
 };
 
-TEST_F(HttpServerSuite, BeginSuccessful) {
+TEST_F(HttpServerSuite, WhenThingsAllWork) {
     MockNetwork network;
     HttpServer server{ &network };
 
@@ -24,19 +23,25 @@ TEST_F(HttpServerSuite, BeginSuccessful) {
     ASSERT_TRUE(server.begin());
 }
 
-static NetworkStatus flow_time_and_return_disconnected() {
-    return NetworkStatus::Ready;
-}
-
-TEST_F(HttpServerSuite, BeginTakesTooLong) {
+TEST_F(HttpServerSuite, WhenBeginTakesTooLong) {
     MockNetwork network;
     HttpServer server{ &network };
 
-    std::vector<uint32_t> times = { 0, 1000, 5000, 31000 };
-    fk_fake_uptime(times);
+    fk_fake_uptime({ 0, 1000, 5000, 31000 });
 
     EXPECT_CALL(network, begin(_)).WillOnce(Return(true));
-    EXPECT_CALL(network, status()).WillRepeatedly(InvokeWithoutArgs(flow_time_and_return_disconnected));
+    EXPECT_CALL(network, status()).WillRepeatedly(Return(NetworkStatus::Ready));
+
+    ASSERT_FALSE(server.begin());
+}
+
+TEST_F(HttpServerSuite, WhenServeFails) {
+    MockNetwork network;
+    HttpServer server{ &network };
+
+    EXPECT_CALL(network, begin(_)).WillOnce(Return(true));
+    EXPECT_CALL(network, status()).WillOnce(Return(NetworkStatus::Connected));
+    EXPECT_CALL(network, serve()).WillOnce(Return(false));
 
     ASSERT_FALSE(server.begin());
 }

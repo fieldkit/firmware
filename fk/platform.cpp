@@ -56,7 +56,6 @@ uint32_t fk_uptime() {
         auto time = uptimes.front();
         uptimes.pop();
         return time;
-
     }
     return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
 }
