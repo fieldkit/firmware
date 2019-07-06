@@ -31,8 +31,16 @@ const uint8_t qspi_pins[] = {
     PIN_QSPI_IO3,
 };
 
-const uint8_t spi_cs_pins[] = {
+const uint8_t radio_spi_cs_pins[] = {
     WINC1500_CS,
+};
+
+const uint8_t core_spi_cs_pins[] = {
+    SPI_FLASH_CS_BANK_1,
+    SPI_FLASH_CS_BANK_2,
+    SPI_FLASH_CS_BANK_3,
+    SPI_FLASH_CS_BANK_4,
+    // SPI_SD_CS,
 };
 
 const uint8_t power_pins[] = {
@@ -47,6 +55,16 @@ void Board::initialize() {
     pinMode(WINC1500_RESET, OUTPUT);
 
     pinMode(GPS_POWER, OUTPUT);
+
+    for (auto pin : radio_spi_cs_pins) {
+        pinMode(pin, OUTPUT);
+        digitalWrite(pin, HIGH);
+    }
+
+    for (auto pin : core_spi_cs_pins) {
+        pinMode(pin, OUTPUT);
+        digitalWrite(pin, HIGH);
+    }
 
     disable_everything();
 }
