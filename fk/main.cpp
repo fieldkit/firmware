@@ -102,7 +102,14 @@ void run_tasks() {
 }
 
 size_t write_log(const LogMessage *m, const char *line) {
-    return fkb_external_printf(RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_YELLOW " %s" RTT_CTRL_RESET ": %s\n", m->uptime, m->facility, m->message);
+    const char *f;
+    if ((LogLevels)m->level == LogLevels::ERROR) {
+        f = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_RED " %s" ": %s" RTT_CTRL_RESET "\n";
+    }
+    else {
+        f = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_YELLOW " %s" RTT_CTRL_RESET ": %s\n";
+    }
+    return fkb_external_printf(f, m->uptime, m->facility, m->message);
 }
 
 void setup() {

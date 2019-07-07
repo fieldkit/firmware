@@ -120,7 +120,7 @@ bool SelfCheck::spi_memory() {
         delay(100);
 
         if (bank.begin()) {
-            check_message("bank memory", true);
+            loginfo("memory bank #%d... OK", nbanks);
             nbanks++;
         }
     }
@@ -131,7 +131,18 @@ bool SelfCheck::spi_memory() {
     }
 
     auto g = memory.get_geometry();
-    loginfo("bank memory ready (%luMB)", g.total_size / OneMegabyte);
+
+    if (false) {
+        auto started = fk_uptime();
+        for (uint32_t i = 0; i < g.nblocks; ++i) {
+            uint8_t buffer[32];
+            FK_ASSERT(memory.read(i * g.block_size, buffer, sizeof(buffer)));
+        }
+
+        loginfo("scan done %lums", fk_uptime() - started);
+    }
+
+    loginfo("bank memory ready (%luMB) (%lu blocks)", g.total_size / OneMegabyte, g.nblocks);
 
     return nbanks > 0;
 }

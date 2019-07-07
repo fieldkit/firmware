@@ -231,19 +231,40 @@ uint8_t SpiFlash::read_status() {
 }
 
 bool SpiFlash::is_ready() {
-    // TODO: We can send command and then read bytes in a loop.
+    auto ok = false;
+
+    enable();
+    SPI.beginTransaction(SpiSettings);
+    uint8_t command[] = { CMD_GET_FEATURE, CMD_REGISTER_3 };
+    SPI.transfer(command[0]);
+    SPI.transfer(command[1]);
+
     auto started = fk_uptime();
     while (true) {
-        auto status = read_status();
+        auto status = SPI.transfer(0xff);
+
+        if ((status & STATUS_FLAG_PROGRAM_FAIL) == STATUS_FLAG_PROGRAM_FAIL) {
+            break;
+        }
+        if ((status & STATUS_FLAG_ERASE_FAIL) == STATUS_FLAG_ERASE_FAIL) {
+            break;
+        }
         if ((status & STATUS_FLAG_BUSY) != STATUS_FLAG_BUSY) {
-            return true;
+            ok = true;
+            break;
         }
+
         if (fk_uptime() - started > SpiFlashTimeoutMs) {
-            return false;
+            break;
         }
-        delay(1);
+
+        delay(1); // Is this too long?
     }
-    return false;
+
+    SPI.endTransaction();
+    disable();
+
+    return ok;
 }
 
 void SpiFlash::enable() {
