@@ -109,9 +109,13 @@ size_t write_log(const LogMessage *m, const char *fstring, va_list args) {
         f = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_YELLOW " %s" RTT_CTRL_RESET ": ";
     }
 
+    SEGGER_RTT_LOCK();
+
     fkb_external_printf(f, m->uptime, m->facility);
     fkb_external_vprintf(fstring, args);
     fkb_external_printf("\n");
+
+    SEGGER_RTT_UNLOCK();
 
     return true;
 }
