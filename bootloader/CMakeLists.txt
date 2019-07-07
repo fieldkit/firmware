@@ -19,6 +19,7 @@ find_package(SeggerRTT)
 target_link_libraries(fkbl SeggerRTT)
 
 find_package(CortexLoading)
+target_compile_options(CortexLoading PUBLIC -DFKB_EXTERNAL_NEED_PRINTF)
 target_link_libraries(fkbl CortexLoading)
 
 find_package(arduino-logging)
