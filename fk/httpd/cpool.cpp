@@ -141,8 +141,7 @@ bool Connection::service(HttpRouter &router) {
 int32_t Connection::write(fk_app_WireMessageReply *reply) {
     size_t size = 0;
     auto fields = fk_app_WireMessageReply_fields;
-    auto serialized = pool_.encode(fields, reply, &size);
-    if (serialized == nullptr) {
+    if (!pb_get_encoded_size(&size, fields, reply)) {
         return fault();
     }
 
@@ -151,7 +150,12 @@ int32_t Connection::write(fk_app_WireMessageReply *reply) {
     conn_->write("Content-Type: application/octet-stream\n");
     conn_->write("Connection: close\n");
     conn_->write("\n");
-    conn_->write(serialized, size);
+
+    auto ostream = pb_ostream_from_connection(conn_);
+    if (!pb_encode_delimited(&ostream, fields, reply)) {
+        return size;
+    }
+
     return size;
 }
 

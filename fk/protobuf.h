@@ -7,8 +7,6 @@
 
 namespace fk {
 
-constexpr size_t ProtoBufEncodeOverhead = 16;
-
 struct pb_array_t;
 
 typedef bool (*pb_decode_array_item)(pb_istream_t *stream, pb_array_t *array);

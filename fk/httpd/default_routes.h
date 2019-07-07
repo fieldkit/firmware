@@ -24,12 +24,13 @@ private:
 
 public:
     void add_routes(HttpRouter &router) {
-        router.add_route(&api);
-        router.add_route(&download);
+        // NOTE: Order is important here.
         router.add_route(&modules[0]);
         router.add_route(&modules[1]);
         router.add_route(&modules[2]);
         router.add_route(&modules[3]);
+        router.add_route(&download);
+        router.add_route(&api);
     }
 
 };
