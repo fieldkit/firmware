@@ -13,6 +13,7 @@ class FkSegger(gdb.Command):
     gdb.execute("load")
     gdb.execute("b Dummy_Handler")
     gdb.execute("b osi_assert")
+    gdb.execute("b fk_assert")
     gdb.execute("b osi_hard_fault_report")
     gdb.execute("b __cxa_pure_virtual") 
     gdb.execute("monitor reset")
@@ -29,6 +30,15 @@ class FkRunHosted(gdb.Command):
       return False
     gdb.execute("run")
 
+class FkRestart(gdb.Command):
+    "Restart."
+    def __init__ (self):
+      super(FkRestart, self).__init__("rs", gdb.COMMAND_SUPPORT, gdb.COMPLETE_NONE, True)
+
+    def invoke(self, arg, from_tty):
+      gdb.execute("monitor reset")
+      gdb.execute("c")
+
 class FkReloadAll(gdb.Command):
   "Reload all."
   def __init__ (self):
@@ -44,4 +54,5 @@ end
 python FkReloadAll()
 python FkSegger()
 python FkRunHosted()
+python FkRestart()
 

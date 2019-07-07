@@ -122,6 +122,7 @@ void setup() {
     board.enable_everything();
 
     log_configure_writer(write_log);
+    // log_configure_level(LogLevels::TRACE);
 
     loginfo("hello (memory = %lu)", fk_free_memory());
 

@@ -84,6 +84,8 @@ bool Connection::service() {
         return false;
     }
 
+    // FK_ASSERT(fk_uptime() - started_ < 1000);
+
     if (conn_->available()) {
         if (buffer_ == nullptr) {
             size_ = HttpdConnectionBufferSize;
