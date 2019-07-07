@@ -34,7 +34,7 @@ void SelfCheck::check() {
 }
 
 void check_message(const char *name, bool ok) {
-    loginfo("%s... %s", name, ok ? "OK" : "ERROR");
+    alogf(ok ? LogLevels::INFO : LogLevels::ERROR, LOG_FACILITY, "%s... %s", name, ok ? "OK" : "ERROR");
 }
 
 template<typename T>
