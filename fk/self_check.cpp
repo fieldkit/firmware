@@ -139,6 +139,18 @@ bool SelfCheck::spi_memory() {
 
         loginfo("scan done %lums", fk_uptime() - started);
     }
+    else {
+        auto block = g.nblocks / 2;
+        auto started = fk_uptime();
+        do {
+            uint8_t buffer[32];
+            FK_ASSERT(memory.read(block * g.block_size, buffer, sizeof(buffer)));
+            block /= 2;
+        }
+        while (block > 1);
+
+        loginfo("scan done %lums", fk_uptime() - started);
+    }
 
     loginfo("bank memory ready (%luMB) (%lu blocks)", g.total_size / OneMegabyte, g.nblocks);
 
