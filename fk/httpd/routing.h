@@ -8,12 +8,24 @@
 
 namespace fk {
 
+/**
+ * Interface to be overriden for custom HTTP route handlers. These are then
+ * registered with an HttpRoute in the HttpRouter.
+ */
 class HttpHandler {
 public:
+    /**
+     * Handle an incoming HTTP request.
+     */
     virtual bool handle(HttpRequest &req) = 0;
 
 };
 
+/**
+ * Defines the relationship between a URL and a specific HttpHandler. May
+ * include fancier forms of matching, like eventually headers and the like.
+ * Right now we do simple URL matching.
+ */
 class HttpRoute {
 private:
     const char *url_;
@@ -24,16 +36,26 @@ public:
     }
 
 public:
+    /**
+     * Test to see if the URL matches this route.
+     */
     virtual bool matches(const char *url) const {
         return strncmp(url_, url, strlen(url_)) == 0;
     }
 
+    /**
+     * The HttpHandler that should handle the requests that match this route.
+     */
     HttpHandler *handler() {
         return handler_;
     }
 
 };
 
+/**
+ * Manages all available HTTP routes and oversees matching incoming URLs to a
+ * specific HttpHandler.
+ */
 class HttpRouter {
 private:
     HttpRoute *routes_[HttpMaximumRoutes] = { nullptr };

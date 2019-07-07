@@ -124,7 +124,7 @@ bool Connection::service(HttpRouter &router) {
         }
         else {
             if (!handler->handle(req_)) {
-                plain(500, "internal server error", "");
+                plain(500, "internal error", "");
             }
         }
     }
