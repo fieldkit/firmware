@@ -37,6 +37,12 @@ static SPISettings SpiSettings{ 50000000, MSBFIRST, SPI_MODE0 };
 
 class FlashSpi {
 private:
+    constexpr static uint32_t PageSize = 2112;
+    constexpr static uint32_t BlockSize = 2112 * 64;
+    constexpr static uint32_t NumberOfBlocks = 2048;
+    constexpr static uint32_t SpiFlashTimeoutMs = 500;
+
+private:
     uint8_t cs_;
 
 public:
@@ -52,7 +58,7 @@ public:
 
 public:
     geometry_t get_geometry() const {
-        return { 2112, (2112 * 64), 2048 };
+        return { PageSize, BlockSize, NumberOfBlocks };
     }
 
     bool begin() {
@@ -63,10 +69,13 @@ public:
         disable();
 
         // First byte is a dummy byte (p31)
-        // TODO: Add SpiFlashTimeoutMs
+        auto started = fk_uptime();
         uint8_t jedec_id_response[3] = { 0xff, 0xff, 0xff };
         while (jedec_id_response[1] == 0xff) {
             read_command(CMD_READ_JEDEC_ID, jedec_id_response, 3);
+            if (fk_uptime() - started > SpiFlashTimeoutMs) {
+                return false;
+            }
         }
         FK_ASSERT(jedec_id_response[1] == FLASH_JEDEC_MANUFACTURE);
         FK_ASSERT(jedec_id_response[2] == FLASH_JEDEC_DEVICE);
@@ -187,14 +196,16 @@ private:
     */
 
     void row_address_to_bytes(uint32_t address, uint8_t *bytes) {
-        bytes[2] = (address >> 16) & 0xff;
-        bytes[1] = (address >> 8) & 0xff;
-        bytes[0] = (address & 0xff);
+        uint32_t row = (address / PageSize);
+        bytes[0] = (row >> 16) & 0xff;
+        bytes[1] = (row >> 8) & 0xff;
+        bytes[2] = (row & 0xff);
     }
 
     void column_address_to_bytes(uint32_t address, uint8_t *bytes) {
-        bytes[1] = (address >> 8) & 0xff;
-        bytes[0] = (address & 0xff);
+        uint32_t column = (address % PageSize);
+        bytes[0] = (column >> 8) & 0xff;
+        bytes[1] = (column & 0xff);
     }
 
     bool enable_writes() {
@@ -234,12 +245,15 @@ private:
     }
 
     bool is_ready() {
-        // TODO: Add SpiFlashTimeoutMs
         // TODO: We can send command and then read bytes in a loop.
+        auto started = fk_uptime();
         while (true) {
             auto status = read_status();
             if ((status & STATUS_FLAG_BUSY) != STATUS_FLAG_BUSY) {
                 return true;
+            }
+            if (fk_uptime() - started > SpiFlashTimeoutMs) {
+                return false;
             }
             delay(1);
         }
@@ -323,25 +337,41 @@ bool MetalDataMemory::begin() {
 
     FK_ASSERT(spi.begin());
 
-    // Read a block of memory.
-    uint32_t address = 0x0;
-    uint8_t memory[2112] = { 0x00 };
+    if (false) {
+        uint32_t address = 0x0;
+        uint8_t memory[2112] = { 0x00 };
 
-    FK_ASSERT(spi.read(address, memory, sizeof(memory)));
-    dump_memory(memory, sizeof(memory));
+        FK_ASSERT(spi.erase_block(address));
 
-    FK_ASSERT(spi.erase_block(address));
+        FK_ASSERT(spi.read(address, memory, sizeof(memory)));
+        dump_memory(memory, sizeof(memory));
 
-    FK_ASSERT(spi.read(address, memory, sizeof(memory)));
-    dump_memory(memory, sizeof(memory));
+        for (size_t i = 0; i < sizeof(memory); ++i) {
+            memory[i] = i & 0xff;
+        }
+        FK_ASSERT(spi.write(address, memory, sizeof(memory)));
 
-    for (size_t i = 0; i < sizeof(memory); ++i) {
-        memory[i] = i & 0xff;
+        FK_ASSERT(spi.read(address, memory, sizeof(memory)));
+        dump_memory(memory, sizeof(memory));
     }
-    FK_ASSERT(spi.write(address, memory, sizeof(memory)));
 
-    FK_ASSERT(spi.read(address, memory, sizeof(memory)));
-    dump_memory(memory, sizeof(memory));
+    {
+        uint8_t memory[128] = { 0x00 };
+        FK_ASSERT(spi.read(0, memory, sizeof(memory)));
+        dump_memory(memory, sizeof(memory));
+    }
+
+    {
+        uint8_t memory[128] = { 0x00 };
+        FK_ASSERT(spi.read(128, memory, sizeof(memory)));
+        dump_memory(memory, sizeof(memory));
+    }
+
+    {
+        uint8_t memory[128] = { 0x00 };
+        FK_ASSERT(spi.read(2112, memory, sizeof(memory)));
+        dump_memory(memory, sizeof(memory));
+    }
 
     return true;
 }
