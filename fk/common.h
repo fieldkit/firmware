@@ -61,6 +61,8 @@ constexpr uint32_t WifiConnectionTimeoutMs = 30 * 1000;
     static void loginfo(const char *f, ...) __attribute__((unused));  \
     static void logerror(const char *f, ...) __attribute__((unused)); \
     static void logwarn(const char *f, ...) __attribute__((unused));  \
+    static void logtrace(const char *f, ...) __attribute__((unused)); \
+    static void logdebug(const char *f, ...) __attribute__((unused)); \
     static void loginfo(const char *f, ...) {    \
         va_list args;                            \
         va_start(args, f);                       \
@@ -71,6 +73,18 @@ constexpr uint32_t WifiConnectionTimeoutMs = 30 * 1000;
         va_list args;                            \
         va_start(args, f);                       \
         valogf(LogLevels::ERROR, name, f, args); \
+        va_end(args);                            \
+    }                                            \
+    static void logdebug(const char *f, ...) {   \
+        va_list args;                            \
+        va_start(args, f);                       \
+        valogf(LogLevels::DEBUG, name, f, args); \
+        va_end(args);                            \
+    }                                            \
+    static void logtrace(const char *f, ...) {   \
+        va_list args;                            \
+        va_start(args, f);                       \
+        valogf(LogLevels::TRACE, name, f, args); \
         va_end(args);                            \
     }                                            \
     static void logwarn(const char *f, ...) {    \

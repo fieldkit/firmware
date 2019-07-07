@@ -29,8 +29,8 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef _PRINTF_H_
-#define _PRINTF_H_
+#ifndef FK_PRINTF_H_
+#define FK_PRINTF_H_
 
 #include <stdarg.h>
 #include <stddef.h>

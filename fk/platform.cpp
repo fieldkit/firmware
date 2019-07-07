@@ -99,6 +99,10 @@ uint32_t fkb_external_println(const char *str, ...) {
     return r;
 }
 
+uint32_t fkb_external_vprintf(const char *str, va_list args) {
+    return (uint32_t)SEGGER_RTT_vprintf(0, str, &args);
+}
+
 #else
 
 uint32_t fkb_external_printf(const char *str, ...) {
@@ -116,6 +120,10 @@ uint32_t fkb_external_println(const char *str, ...) {
     auto n = fprintf(stderr, "\n");
     va_end(args);
     return n;
+}
+
+uint32_t fkb_external_vprintf(const char *str, va_list args) {
+    return vfprintf(stderr, str, args);
 }
 
 #endif

@@ -7,6 +7,7 @@
 #include "board.h"
 #include "hal/hal.h"
 #include "hal/metal/metal.h"
+#include "printf.h"
 
 #include "secrets.h"
 
@@ -99,15 +100,20 @@ void run_tasks() {
     OS_CHECK(os_start());
 }
 
-size_t write_log(const LogMessage *m, const char *line) {
+size_t write_log(const LogMessage *m, const char *fstring, va_list args) {
     const char *f;
     if ((LogLevels)m->level == LogLevels::ERROR) {
-        f = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_RED " %s" ": %s" RTT_CTRL_RESET "\n";
+        f = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_RED " %s" RTT_CTRL_RESET ": ";
     }
     else {
-        f = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_YELLOW " %s" RTT_CTRL_RESET ": %s\n";
+        f = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_YELLOW " %s" RTT_CTRL_RESET ": ";
     }
-    return fkb_external_printf(f, m->uptime, m->facility, m->message);
+
+    fkb_external_printf(f, m->uptime, m->facility);
+    fkb_external_vprintf(fstring, args);
+    fkb_external_printf("\n");
+
+    return true;
 }
 
 void setup() {

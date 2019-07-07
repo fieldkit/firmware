@@ -10,12 +10,6 @@ namespace fk {
 
 FK_DECLARE_LOGGER("httpd");
 
-#if defined(FK_LOG_HTTPD_VERBOSE)
-#define logverbose(f, ...)    loginfo(f, ##__VA_ARGS__)
-#else
-#define logverbose(f, ...)
-#endif
-
 constexpr const char *HTTP_CONTENT_LENGTH = "Content-Length";
 
 static inline HttpRequest *get_object(http_parser* parser) {
@@ -73,10 +67,6 @@ int32_t HttpRequest::parse(const char *data, size_t length) {
     http_parser_execute(&parser_, &settings_, data, length);
 
     if (parser_.http_errno > 0) {
-        // NOTE: The caller always adds a NULL terminator to this.
-        if (strlen(data) > 0) {
-            logerror("parser: '%s'", data);
-        }
         auto err = (enum http_errno)parser_.http_errno;
         logerror("parser: %s: %s", http_errno_name(err), http_errno_description(err));
         return parser_.http_errno;
@@ -86,7 +76,7 @@ int32_t HttpRequest::parse(const char *data, size_t length) {
 }
 
 int32_t HttpRequest::on_message_begin() {
-    logverbose("%s", __PRETTY_FUNCTION__);
+    logtrace("%s", __PRETTY_FUNCTION__);
 
     state_ = HttpRequestState::URL;
 
@@ -94,7 +84,7 @@ int32_t HttpRequest::on_message_begin() {
 }
 
 int32_t HttpRequest::on_url(const char *at, size_t length) {
-    logverbose("%s", __PRETTY_FUNCTION__);
+    logtrace("%s", __PRETTY_FUNCTION__);
 
     auto n = std::min(length, sizeof(url_));
     strncpy(url_, at, n);
@@ -106,7 +96,7 @@ int32_t HttpRequest::on_url(const char *at, size_t length) {
 }
 
 int32_t HttpRequest::on_header_field(const char *at, size_t length) {
-    logverbose("%s", __PRETTY_FUNCTION__);
+    logtrace("%s", __PRETTY_FUNCTION__);
 
     header_name_ = at;
     header_name_len_ = length;
@@ -115,7 +105,7 @@ int32_t HttpRequest::on_header_field(const char *at, size_t length) {
 }
 
 int32_t HttpRequest::on_header_value(const char *at, size_t length) {
-    logverbose("%s", __PRETTY_FUNCTION__);
+    logtrace("%s", __PRETTY_FUNCTION__);
 
     if (false) {
         auto name = pool_->strndup(header_name_, header_name_len_);
@@ -132,7 +122,7 @@ int32_t HttpRequest::on_header_value(const char *at, size_t length) {
 }
 
 int32_t HttpRequest::on_headers_complete() {
-    logverbose("%s", __PRETTY_FUNCTION__);
+    logtrace("%s", __PRETTY_FUNCTION__);
 
     state_ = HttpRequestState::Body;
 
@@ -140,7 +130,7 @@ int32_t HttpRequest::on_headers_complete() {
 }
 
 int32_t HttpRequest::on_data(const char *at, size_t length) {
-    logverbose("%s(0x%p, %zu)", __PRETTY_FUNCTION__, at, length);
+    logtrace("%s(0x%p, %zu)", __PRETTY_FUNCTION__, at, length);
 
     // HACK
     if (length_ == length) {
@@ -153,7 +143,7 @@ int32_t HttpRequest::on_data(const char *at, size_t length) {
 }
 
 int32_t HttpRequest::on_message_complete() {
-    logverbose("%s", __PRETTY_FUNCTION__);
+    logtrace("%s", __PRETTY_FUNCTION__);
 
     state_ = HttpRequestState::Consumed;
 
