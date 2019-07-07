@@ -4,6 +4,7 @@
 #include "pool.h"
 #include "hal/hal.h"
 #include "httpd/req.h"
+#include "httpd/routing.h"
 
 namespace fk {
 
@@ -14,7 +15,7 @@ class Connection {
 private:
     NetworkConnection *conn_{ nullptr };
     MallocPool pool_;
-    HttpRequest req_{ &pool_ };
+    HttpRequest req_;
     uint8_t *buffer_;
     size_t size_;
     size_t position_;
@@ -25,11 +26,11 @@ public:
     virtual ~Connection();
 
 public:
-    bool service();
+    bool service(HttpRouter &router);
 
     int32_t write(fk_app_WireMessageReply *reply);
 
-    int32_t plain(const char *message);
+    int32_t plain(int32_t status, const char *status_description, const char *text);
 
     int32_t busy(const char *message);
 
@@ -53,7 +54,7 @@ public:
 public:
     size_t available();
 
-    void service();
+    void service(HttpRouter &router);
 
     void queue(NetworkConnection *c);
 

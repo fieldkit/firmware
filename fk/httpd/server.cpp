@@ -4,11 +4,14 @@
 #include "common.h"
 #include "platform.h"
 #include "httpd/server.h"
+#include "httpd/default_routes.h"
 #include "hal/hal.h"
 
 namespace fk {
 
 FK_DECLARE_LOGGER("httpd");
+
+static DefaultRoutes default_routes;
 
 static bool network_ready(NetworkStatus status) {
     return status == NetworkStatus::Connected || status == NetworkStatus::Listening;
@@ -22,6 +25,8 @@ HttpServer::HttpServer(Network *network, const char *ssid, const char *password)
 
 bool HttpServer::begin() {
     auto settings = get_settings();
+
+    default_routes.add_routes(router_);
 
     loginfo("checking network...");
 
@@ -60,7 +65,7 @@ void HttpServer::tick() {
         }
     }
 
-    pool_.service();
+    pool_.service(router_);
 }
 
 void HttpServer::stop() {

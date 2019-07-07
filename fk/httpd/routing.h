@@ -4,12 +4,13 @@
 
 #include "common.h"
 #include "pool.h"
+#include "httpd/req.h"
 
 namespace fk {
 
 class HttpHandler {
 public:
-    virtual bool handle() = 0;
+    virtual bool handle(HttpRequest &req) = 0;
 
 };
 

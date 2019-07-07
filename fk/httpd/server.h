@@ -1,6 +1,10 @@
 #pragma once
 
-#include "httpd.h"
+#include "hal/hal.h"
+#include "httpd/req.h"
+#include "httpd/cpool.h"
+#include "httpd/server.h"
+#include "httpd/routing.h"
 
 namespace fk {
 
@@ -8,6 +12,7 @@ class HttpServer {
 private:
     ConnectionPool pool_;
     Network *network_;
+    HttpRouter router_;
     const char *ssid_;
     const char *password_;
 

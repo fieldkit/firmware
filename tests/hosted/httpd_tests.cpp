@@ -23,7 +23,7 @@ TEST_F(HttpBasicParsingSuite, SimpleGet1) {
         "Content-Length: 0\n"
         "\n";
 
-    HttpRequest req{ &pool_ };
+    HttpRequest req{ nullptr, &pool_ };
 
     ASSERT_EQ(req.parse(req_header, strlen(req_header)), 0);
 
@@ -45,7 +45,7 @@ TEST_F(HttpBasicParsingSuite, SimpleGet2) {
         "Accept: */*\n"
         "\n";
 
-    HttpRequest req{ &pool_ };
+    HttpRequest req{ nullptr, &pool_ };
 
     ASSERT_EQ(req.parse(req_header, strlen(req_header)), 0);
 
@@ -61,9 +61,9 @@ protected:
     }
 };
 
-class Http204Handler : public HttpHandler {
+class DummyHandler : public HttpHandler {
 public:
-    bool handle() override {
+    bool handle(HttpRequest &req) override {
         return true;
     }
 
@@ -79,7 +79,7 @@ TEST_F(HttpRoutingSuite, WhenEmpty) {
 
 TEST_F(HttpRoutingSuite, WithASingleBasicRoute) {
     HttpRouter router;
-    Http204Handler h1;
+    DummyHandler h1;
     HttpRoute r1{ "/fk/v1", &h1 };
 
     router.add_route(&r1);
@@ -90,7 +90,7 @@ TEST_F(HttpRoutingSuite, WithASingleBasicRoute) {
 
 TEST_F(HttpRoutingSuite, WithMultipleBasicRoutes) {
     HttpRouter router;
-    Http204Handler handlers[4];
+    DummyHandler handlers[4];
     HttpRoute routes[4]{
       { "/fk/v1", &handlers[0] },
       { "/fk/v2", &handlers[1] },
@@ -127,7 +127,7 @@ TEST_F(HttpParsingQuerySuite, SimpleGet1) {
         "Content-Length: %d\n"
         "\n", size);
 
-    HttpRequest req{ &pool_ };
+    HttpRequest req{ nullptr, &pool_ };
 
     ASSERT_EQ(req.parse(req_header, strlen(req_header)), 0);
     ASSERT_EQ(req.parse((const char *)buffer, size), 0);

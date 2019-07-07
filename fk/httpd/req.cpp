@@ -44,7 +44,7 @@ static int http_message_complete_callback(http_parser* parser) {
     return get_object(parser)->on_message_complete();
 }
 
-HttpRequest::HttpRequest(Pool *pool) : pool_(pool) {
+HttpRequest::HttpRequest(Connection *conn, Pool *pool) : pool_(pool), conn_(conn) {
     begin();
 }
 

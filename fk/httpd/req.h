@@ -10,6 +10,8 @@
 
 namespace fk {
 
+class Connection;
+
 enum class HttpRequestState {
     New,
     URL,
@@ -59,8 +61,13 @@ private:
      */
     fk_app_WireMessageQuery *query_{ nullptr };
 
+    /**
+     * Network connection handling this request.
+     */
+    Connection *conn_;
+
 public:
-    HttpRequest(Pool *pool);
+    HttpRequest(Connection *conn, Pool *pool);
 
 public:
     /**
@@ -127,6 +134,13 @@ public:
      */
     uint32_t length() const {
         return length_;
+    }
+
+    /**
+     * Returns the connection handling this request.
+     */
+    Connection *connection() {
+        return conn_;
     }
 
 public:

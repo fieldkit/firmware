@@ -44,10 +44,10 @@ size_t ConnectionPool::available() {
     return MaximumConnections - used;
 }
 
-void ConnectionPool::service() {
+void ConnectionPool::service(HttpRouter &router) {
     for (auto i = (size_t)0; i < MaximumConnections; ++i) {
         if (pool_[i] != nullptr) {
-            if (!pool_[i]->service()) {
+            if (!pool_[i]->service(router)) {
                 delete pool_[i];
                 pool_[i] = nullptr;
             }
@@ -65,7 +65,7 @@ void ConnectionPool::queue(NetworkConnection *c) {
     FK_ASSERT(false);
 }
 
-Connection::Connection(NetworkConnection *conn, size_t size) : conn_(conn), pool_{ "conn", size }, req_{ &pool_ }, buffer_{ nullptr }, size_{ 0 }, position_{ 0 } {
+Connection::Connection(NetworkConnection *conn, size_t size) : conn_(conn), pool_{ "conn", size }, req_{ this, &pool_ }, buffer_{ nullptr }, size_{ 0 }, position_{ 0 } {
     started_ = fk_uptime();
 }
 
@@ -73,7 +73,7 @@ Connection::~Connection() {
     conn_->stop();
 }
 
-bool Connection::service() {
+bool Connection::service(HttpRouter &router) {
     // TODO: 414 Request-URI Too Long
     // TODO: 431 Request Header Fields Too Large.
     // TODO: 413 Payload Too Large
@@ -112,26 +112,26 @@ bool Connection::service() {
             return false;
         }
 
-        auto query = req_.query();
-        if (query != nullptr) {
-            switch (query->type) {
-            default: {
-                break;
-            }
-            }
-        }
-
         position_ += nread;
     }
 
     if (req_.have_headers()) {
         loginfo("routing '%s' (%" PRIu32 " bytes)", req_.url(), req_.length());
+
+        auto handler = router.route(req_.url());
+        if (handler == nullptr) {
+            plain(404, "not found", "");
+        }
+        else {
+            if (!handler->handle(req_)) {
+                plain(500, "internal server error", "");
+            }
+        }
     }
 
     if (req_.consumed()) {
         auto elapsed = fk_uptime() - started_;
         loginfo("replying/closing (%" PRIu32 "ms)", elapsed);
-        busy("Busy");
         return false;
     }
 
@@ -155,8 +155,8 @@ int32_t Connection::write(fk_app_WireMessageReply *reply) {
     return size;
 }
 
-int32_t Connection::plain(const char *text) {
-    conn_->write("HTTP/1.1 200 OK\n");
+int32_t Connection::plain(int32_t status, const char *status_description, const char *text) {
+    conn_->writef("HTTP/1.1 %" PRId32 " %s\n", status, status_description);
     conn_->writef("Content-Length: %zu\n", strlen(text));
     conn_->write("Content-Type: text/plain\n");
     conn_->write("Connection: close\n");
