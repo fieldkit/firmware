@@ -41,10 +41,19 @@ SpiFlash::SpiFlash(uint8_t cs) : cs_(cs) {
 }
 
 flash_geometry_t SpiFlash::get_geometry() const {
-    return { PageSize, BlockSize, NumberOfBlocks };
+    if (status_ != Status::Available) {
+        return { 0, 0, 0, 0 };
+    }
+    return { PageSize, BlockSize, NumberOfBlocks, NumberOfBlocks * BlockSize };
 }
 
 bool SpiFlash::begin() {
+    if (status_ != Status::Unknown) {
+        return status_ == Status::Available;
+    }
+
+    status_ = Status::Unavailable;
+
     SPI.begin();
 
     enable();
@@ -60,7 +69,7 @@ bool SpiFlash::begin() {
     uint8_t jedec_id[3] = { 0xff, 0xff, 0xff };
     while (jedec_id[1] == 0xff) {
         read_command(CMD_READ_JEDEC_ID, jedec_id, 3);
-        if (fk_uptime() - started > SpiFlashTimeoutMs) {
+        if (fk_uptime() - started > SpiFlashReadyMs) {
             return false;
         }
     }
@@ -87,6 +96,8 @@ bool SpiFlash::begin() {
     if (!is_ready()) {
         return false;
     }
+
+    status_ = Status::Available;
 
     return true;
 }

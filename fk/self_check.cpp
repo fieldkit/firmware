@@ -35,10 +35,14 @@ void SelfCheck::check() {
     loginfo("done");
 }
 
+void check_message(const char *name, bool ok) {
+    loginfo("%s... %s", name, ok ? "OK" : "ERROR");
+}
+
 template<typename T>
 bool single_check(const char *name, T fn) {
     auto ok = fn();
-    loginfo("%s... %s", name, ok ? "OK" : "ERROR");
+    check_message(name, ok);
     return ok;
 }
 
@@ -93,28 +97,41 @@ bool SelfCheck::qspi_memory() {
     });
 }
 
+constexpr uint32_t OneMegabyte = 1024 * 1024;
+
 bool SelfCheck::spi_memory() {
-    uint8_t cs_pins[] = {
-        SPI_FLASH_CS_BANK_1,
-        SPI_FLASH_CS_BANK_2,
-        SPI_FLASH_CS_BANK_3,
-        SPI_FLASH_CS_BANK_4,
+    MetalDataMemory banks[]{
+        { SPI_FLASH_CS_BANK_1 },
+        { SPI_FLASH_CS_BANK_2 },
+        { SPI_FLASH_CS_BANK_3 },
+        { SPI_FLASH_CS_BANK_4 },
     };
+    DataMemory *bank_pointers[]{
+        &banks[0],
+        &banks[1],
+        &banks[2],
+        &banks[3],
+    };
+    BankedDataMemory memory{ bank_pointers, 4 };
 
     auto nbanks = 0;
-
-    for (auto pin : cs_pins) {
-        MetalDataMemory memory{ pin };
-
+    for (auto &bank : banks) {
         // TODO: Why is this necessary?
         delay(100);
 
-        if (memory.begin()) {
-            loginfo("spi memory (%d)... OK", pin);
+        if (bank.begin()) {
+            check_message("bank memory", true);
             nbanks++;
         }
     }
 
+    if (!memory.begin()) {
+        check_message("bank memory", false);
+        return false;
+    }
+
+    auto g = memory.get_geometry();
+    loginfo("bank memory ready (%luMB)", g.total_size / OneMegabyte);
 
     return nbanks > 0;
 }

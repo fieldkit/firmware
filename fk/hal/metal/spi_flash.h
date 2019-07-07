@@ -10,9 +10,17 @@ private:
     constexpr static uint32_t PageSize = 2112;
     constexpr static uint32_t BlockSize = 2112 * 64;
     constexpr static uint32_t NumberOfBlocks = 2048;
+    constexpr static uint32_t SpiFlashReadyMs = 10;
     constexpr static uint32_t SpiFlashTimeoutMs = 500;
 
+    enum class Status {
+        Unknown,
+        Available,
+        Unavailable
+    };
+
 private:
+    Status status_{ Status::Unknown };
     uint8_t cs_;
 
 public:
