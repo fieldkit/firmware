@@ -53,9 +53,6 @@ target_link_libraries(fk-bundled arduino-logging)
 find_package(Adafruit_QSPI)
 target_link_libraries(fk-bundled Adafruit_QSPI)
 
-find_package(SerialFlash)
-target_link_libraries(fk-bundled SerialFlash)
-
 find_package(RTClib)
 target_link_libraries(fk-bundled RTClib)
 

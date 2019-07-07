@@ -40,7 +40,7 @@ static SPISettings SpiSettings{ 50000000, MSBFIRST, SPI_MODE0 };
 SpiFlash::SpiFlash(uint8_t cs) : cs_(cs) {
 }
 
-SpiFlash::geometry_t SpiFlash::get_geometry() const {
+flash_geometry_t SpiFlash::get_geometry() const {
     return { PageSize, BlockSize, NumberOfBlocks };
 }
 
@@ -48,20 +48,25 @@ bool SpiFlash::begin() {
     SPI.begin();
 
     enable();
-    simple_command(CMD_RESET);
+    auto ok = simple_command(CMD_RESET);
     disable();
+
+    if (!ok) {
+        return false;
+    }
 
     // First byte is a dummy byte (p31)
     auto started = fk_uptime();
-    uint8_t jedec_id_response[3] = { 0xff, 0xff, 0xff };
-    while (jedec_id_response[1] == 0xff) {
-        read_command(CMD_READ_JEDEC_ID, jedec_id_response, 3);
+    uint8_t jedec_id[3] = { 0xff, 0xff, 0xff };
+    while (jedec_id[1] == 0xff) {
+        read_command(CMD_READ_JEDEC_ID, jedec_id, 3);
         if (fk_uptime() - started > SpiFlashTimeoutMs) {
             return false;
         }
     }
-    FK_ASSERT(jedec_id_response[1] == FLASH_JEDEC_MANUFACTURE);
-    FK_ASSERT(jedec_id_response[2] == FLASH_JEDEC_DEVICE);
+    if (jedec_id[1] != FLASH_JEDEC_MANUFACTURE || jedec_id[2] != FLASH_JEDEC_DEVICE) {
+        return false;
+    }
 
     /* Unlock all blocks. */
     set_feature(CMD_REGISTER_1, 0xB8);
@@ -115,7 +120,7 @@ bool SpiFlash::read(uint32_t address, uint8_t *data, uint32_t length) {
     return true;
 }
 
-bool SpiFlash::write(uint32_t address, uint8_t *data, uint32_t length) {
+bool SpiFlash::write(uint32_t address, const uint8_t *data, uint32_t length) {
     uint8_t program_load_command[] = { CMD_PROGRAM_LOAD, 0x00, 0x00 }; // 4dummy/12
     uint8_t program_execute_command[] = { CMD_PROGRAM_EXECUTE, 0x00, 0x00, 0x00 }; // 7dummy/17
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.h"
+#include "hal/memory.h"
 
 namespace fk {
 
@@ -18,20 +19,13 @@ public:
     SpiFlash(uint8_t cs);
 
 public:
-    typedef struct geometry_t {
-        uint32_t page_size;
-        uint32_t block_size;
-        uint32_t nblocks;
-    } geometry_t;
-
-public:
-    geometry_t get_geometry() const;
+    flash_geometry_t get_geometry() const;
 
     bool begin();
 
     bool read(uint32_t address, uint8_t *data, uint32_t length);
 
-    bool write(uint32_t address, uint8_t *data, uint32_t length);
+    bool write(uint32_t address, const uint8_t *data, uint32_t length);
 
     bool erase_block(uint32_t address);
 

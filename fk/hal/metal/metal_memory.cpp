@@ -6,73 +6,27 @@
 
 namespace fk {
 
-#define loginfo(f, ...)  loginfof("memory", f, ##__VA_ARGS__)
-
-#define logerror(f, ...) logerrorf("memory", f, ##__VA_ARGS__)
-
-MetalDataMemory::MetalDataMemory() {
-}
-
-static void dump_memory(uint8_t *ptr, size_t size) {
-    fkb_external_printf("\n");
-    for (size_t i = 0; i < size; ++i) {
-        fkb_external_printf("0x%02x ", ptr[i]);
-        if (((i + 1) % 32) == 0) {
-            fkb_external_printf("\n");
-        }
-    }
-    fkb_external_printf("\n");
+MetalDataMemory::MetalDataMemory(uint8_t cs_pin) : flash_{ cs_pin } {
 }
 
 bool MetalDataMemory::begin() {
-    SpiFlash banks[4]{
-        SPI_FLASH_CS_BANK_1,
-        SPI_FLASH_CS_BANK_2,
-        SPI_FLASH_CS_BANK_3,
-        SPI_FLASH_CS_BANK_4,
-    };
+    return flash_.begin();
+}
 
-    auto &spi = banks[0];
+flash_geometry_t MetalDataMemory::get_geometry() const {
+    return flash_.get_geometry();
+}
 
-    FK_ASSERT(spi.begin());
+bool MetalDataMemory::read(uint32_t address, uint8_t *data, uint32_t length) {
+    return flash_.read(address, data, length);
+}
 
-    if (false) {
-        uint32_t address = 0x0;
-        uint8_t memory[2112] = { 0x00 };
+bool MetalDataMemory::write(uint32_t address, const uint8_t *data, uint32_t length) {
+    return flash_.write(address, data, length);
+}
 
-        FK_ASSERT(spi.erase_block(address));
-
-        FK_ASSERT(spi.read(address, memory, sizeof(memory)));
-        dump_memory(memory, sizeof(memory));
-
-        for (size_t i = 0; i < sizeof(memory); ++i) {
-            memory[i] = i & 0xff;
-        }
-        FK_ASSERT(spi.write(address, memory, sizeof(memory)));
-
-        FK_ASSERT(spi.read(address, memory, sizeof(memory)));
-        dump_memory(memory, sizeof(memory));
-    }
-
-    {
-        uint8_t memory[128] = { 0x00 };
-        FK_ASSERT(spi.read(0, memory, sizeof(memory)));
-        dump_memory(memory, sizeof(memory));
-    }
-
-    {
-        uint8_t memory[128] = { 0x00 };
-        FK_ASSERT(spi.read(128, memory, sizeof(memory)));
-        dump_memory(memory, sizeof(memory));
-    }
-
-    {
-        uint8_t memory[128] = { 0x00 };
-        FK_ASSERT(spi.read(2112, memory, sizeof(memory)));
-        dump_memory(memory, sizeof(memory));
-    }
-
-    return true;
+bool MetalDataMemory::erase_block(uint32_t address) {
+    return flash_.erase_block(address);
 }
 
 }

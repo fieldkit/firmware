@@ -8,7 +8,6 @@
 #include <Wire.h>
 #include <Adafruit_QSPI.h>
 #include <Adafruit_QSPI_Flash.h>
-#include <SerialFlash.h>
 
 namespace fk {
 
@@ -102,28 +101,20 @@ bool SelfCheck::spi_memory() {
         SPI_FLASH_CS_BANK_4,
     };
 
-    for (auto pin : cs_pins) {
-        pinMode(pin, OUTPUT);
-        digitalWrite(pin, HIGH);
-    }
-
-    SPI.begin();
-
     auto nbanks = 0;
 
-    delay(1000);
-
     for (auto pin : cs_pins) {
-        SerialFlashChip flash;
+        MetalDataMemory memory{ pin };
 
-        if (flash.begin(pin)) {
+        // TODO: Why is this necessary?
+        delay(100);
+
+        if (memory.begin()) {
             loginfo("spi memory (%d)... OK", pin);
             nbanks++;
         }
     }
 
-    MetalDataMemory memory;
-    memory.begin();
 
     return nbanks > 0;
 }
