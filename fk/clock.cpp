@@ -2,9 +2,7 @@
 
 namespace fk {
 
-#define loginfo(f, ...)  loginfof("clock", f, ##__VA_ARGS__)
-
-#define logerror(f, ...) logerrorf("clock", f, ##__VA_ARGS__)
+FK_DECLARE_LOGGER("clock");
 
 static uint8_t bcd2bin(uint8_t val) {
     return val - 6 * (val >> 4);

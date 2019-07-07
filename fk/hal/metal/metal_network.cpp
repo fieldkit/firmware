@@ -5,9 +5,7 @@
 
 namespace fk {
 
-#define loginfo(f, ...)  loginfof("network", f, ##__VA_ARGS__)
-
-#define logerror(f, ...) logerrorf("network", f, ##__VA_ARGS__)
+FK_DECLARE_LOGGER("network");
 
 MetalNetworkConnection::MetalNetworkConnection() {
 }
@@ -106,7 +104,7 @@ bool MetalNetwork::serve() {
     service_name_[n + 4] = 0;
 
     if (!mdns_.begin(ip, settings_.name)) {
-        fkerror("unable to start mdns responder!");
+        logerror("unable to start mdns responder!");
         return false;
     }
 

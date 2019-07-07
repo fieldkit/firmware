@@ -8,9 +8,7 @@
 
 namespace fk {
 
-#define loginfo(f, ...)  loginfof("pool", f, ##__VA_ARGS__)
-
-#define logerror(f, ...) logerrorf("pool", f, ##__VA_ARGS__)
+FK_DECLARE_LOGGER("pool");
 
 // #define FK_LOGGING_POOL_VERBOSE
 

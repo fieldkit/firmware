@@ -12,9 +12,7 @@
 
 namespace fk {
 
-#define loginfo(f, ...)  loginfof("network", f, ##__VA_ARGS__)
-
-#define logerror(f, ...) logerrorf("network", f, ##__VA_ARGS__)
+FK_DECLARE_LOGGER("network");
 
 LinuxNetworkConnection::LinuxNetworkConnection() {
 }

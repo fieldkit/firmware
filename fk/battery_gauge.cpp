@@ -4,6 +4,8 @@
 
 namespace fk {
 
+FK_DECLARE_LOGGER("battery");
+
 /*
 static uint16_t read_u16(uint8_t address, uint8_t reg) {
     Wire1.beginTransmission(address);
@@ -44,7 +46,7 @@ bool BatteryGauge::begin() {
         return false;
     }
 
-    fkinfo("gauge version: %d", value);
+    loginfo("gauge version: %d", value);
 
     return true;
 }

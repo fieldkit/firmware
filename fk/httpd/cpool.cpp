@@ -5,9 +5,7 @@
 
 namespace fk {
 
-#define loginfo(f, ...)  loginfof("httpd", f, ##__VA_ARGS__)
-
-#define logerror(f, ...) logerrorf("httpd", f, ##__VA_ARGS__)
+FK_DECLARE_LOGGER("httpd");
 
 static bool write_callback(pb_ostream_t *stream, const uint8_t *buf, size_t c) {
     auto nc = reinterpret_cast<NetworkConnection*>(stream->state);

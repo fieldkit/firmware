@@ -12,9 +12,7 @@
 
 using namespace fk;
 
-#define loginfo(f, ...)  loginfof("main", f, ##__VA_ARGS__)
-
-#define logerror(f, ...) logerrorf("main", f, ##__VA_ARGS__)
+FK_DECLARE_LOGGER("main");
 
 static void task_handler_idle(void *params) {
     while (true) {
@@ -57,7 +55,7 @@ static void task_handler_httpd(void *params) {
             }
             else {
                 if (!http_server.begin()) {
-                    fkerror("error starting server");
+                    logerror("error starting server");
                 }
             }
             last_changed = fk_uptime();

@@ -6,27 +6,20 @@
 namespace fk {
 
 /**
- *
+ * Halts execution if the given expression evaluates to false. See the fk_assert
+ * function for more information.
  */
 #define FK_ASSERT(expression)                         (void)((expression) || (fk_assert(#expression, __FILE__, __LINE__), 0))
 
 /**
- *
+ * Assertion failure handler, invoked by the FK_ASSERT macro when an assertion
+ * fails and logs the message and the location of the assertion.
  */
 void fk_assert(const char *assertion, const char *file, int line);
 
 /**
- *
- */
-#define fkinfo(f, ...)                                loginfof("fk", f, ##__VA_ARGS__)
-
-/**
- *
- */
-#define fkerror(f, ...)                               logerrorf("fk", f, ##__VA_ARGS__)
-
-/**
- *
+ * Check the return value of an I2C operation and return true if the operation
+ * succeeded and false otherwise.
  */
 #define I2C_CHECK(expr)                               ((expr) == 0)
 
@@ -59,5 +52,32 @@ constexpr size_t HttpdMaximumUrlLength = 64;
  * How long to wait for a WiFi connection to establish.
  */
 constexpr uint32_t WifiConnectionTimeoutMs = 30 * 1000;
+
+/**
+ * Declare loginfo, logerror, logwarn functions and any other necessary helpers
+ * for a specific logger. Typically used at the top of a file.
+ */
+#define FK_DECLARE_LOGGER(name)                  \
+    static void loginfo(const char *f, ...) __attribute__((unused));  \
+    static void logerror(const char *f, ...) __attribute__((unused)); \
+    static void logwarn(const char *f, ...) __attribute__((unused));  \
+    static void loginfo(const char *f, ...) {    \
+        va_list args;                            \
+        va_start(args, f);                       \
+        valogf(LogLevels::INFO, name, f, args);  \
+        va_end(args);                            \
+    }                                            \
+    static void logerror(const char *f, ...) {   \
+        va_list args;                            \
+        va_start(args, f);                       \
+        valogf(LogLevels::ERROR, name, f, args); \
+        va_end(args);                            \
+    }                                            \
+    static void logwarn(const char *f, ...) {    \
+        va_list args;                            \
+        va_start(args, f);                       \
+        valogf(LogLevels::WARN, name, f, args);  \
+        va_end(args);                            \
+    }
 
 }

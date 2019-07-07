@@ -8,8 +8,7 @@
 
 namespace fk {
 
-#define loginfo(f, ...)       loginfof("httpd", f, ##__VA_ARGS__)
-#define logerror(f, ...)      logerrorf("httpd", f, ##__VA_ARGS__)
+FK_DECLARE_LOGGER("httpd");
 
 #if defined(FK_LOG_HTTPD_VERBOSE)
 #define logverbose(f, ...)    loginfo(f, ##__VA_ARGS__)
@@ -76,10 +75,10 @@ int32_t HttpRequest::parse(const char *data, size_t length) {
     if (parser_.http_errno > 0) {
         // NOTE: The caller always adds a NULL terminator to this.
         if (strlen(data) > 0) {
-            fkerror("parser: '%s'", data);
+            logerror("parser: '%s'", data);
         }
         auto err = (enum http_errno)parser_.http_errno;
-        fkerror("parser: %s: %s", http_errno_name(err), http_errno_description(err));
+        logerror("parser: %s: %s", http_errno_name(err), http_errno_description(err));
         return parser_.http_errno;
     }
 

@@ -8,9 +8,7 @@
 
 namespace fk {
 
-#define loginfo(f, ...)  loginfof("httpd", f, ##__VA_ARGS__)
-
-#define logerror(f, ...) logerrorf("httpd", f, ##__VA_ARGS__)
+FK_DECLARE_LOGGER("httpd");
 
 static bool network_ready(NetworkStatus status) {
     return status == NetworkStatus::Connected || status == NetworkStatus::Listening;

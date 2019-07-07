@@ -11,9 +11,7 @@
 
 namespace fk {
 
-#define loginfo(f, ...)  loginfof("check", f, ##__VA_ARGS__)
-
-#define logerror(f, ...) logerrorf("check", f, ##__VA_ARGS__)
+FK_DECLARE_LOGGER("check");
 
 SelfCheck::SelfCheck(Display *display, Network *network) : display_(display), network_(network) {
 }

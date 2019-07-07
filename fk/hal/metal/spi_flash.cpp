@@ -7,9 +7,7 @@
 
 namespace fk {
 
-#define loginfo(f, ...)  loginfof("memory", f, ##__VA_ARGS__)
-
-#define logerror(f, ...) logerrorf("memory", f, ##__VA_ARGS__)
+FK_DECLARE_LOGGER("memory");
 
 constexpr uint8_t CMD_RESET = 0xff;
 constexpr uint8_t CMD_READ_JEDEC_ID = 0x9f;
