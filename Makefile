@@ -37,6 +37,11 @@ amd64: dependencies
 test: amd64
 	cd $(BUILD)/amd64 && env GTEST_COLOR=1 $(MAKE) test ARGS=-VV
 
+fake: amd64
+
+run-fake: fake
+	build/amd64/tests/fake/fake
+
 doc:
 	cd $(BUILD)/amd64 && $(MAKE) doc
 
