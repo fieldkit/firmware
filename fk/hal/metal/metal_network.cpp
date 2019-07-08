@@ -152,7 +152,7 @@ NetworkConnection *MetalNetwork::accept() {
 bool MetalNetwork::stop() {
     mdns_.removeServiceRecord(80, MDNSServiceTCP);
     // Ensure the previous removal gets loose.
-    delay(100);
+    fk_delay(100);
     udp_.stop();
     WiFi.end();
     enabled_ = false;

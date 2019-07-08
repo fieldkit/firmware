@@ -6,6 +6,7 @@
 #if defined(__SAMD51__)
 #include <Arduino.h>
 #include <SEGGER_RTT.h>
+#include <os.h>
 #else
 #include <chrono>
 #include <vector>
@@ -21,8 +22,7 @@ uint32_t fk_uptime() {
 }
 
 uint32_t fk_delay(uint32_t ms) {
-    delay(ms);
-    return 0;
+    return os_delay(ms);
 }
 
 void fk_assert(const char *assertion, const char *file, int line) {

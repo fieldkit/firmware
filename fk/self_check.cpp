@@ -115,7 +115,7 @@ bool SelfCheck::spi_memory() {
     auto nbanks = 0;
     for (auto &bank : banks) {
         // TODO: Why is this necessary?
-        delay(100);
+        fk_delay(100);
 
         if (bank.begin()) {
             loginfo("memory bank #%d... OK", nbanks);

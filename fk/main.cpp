@@ -19,7 +19,7 @@ FK_DECLARE_LOGGER("main");
 
 static void task_handler_idle(void *params) {
     while (true) {
-        os_delay(1000);
+        delay(1000); // This is intentionally NOT using fk_delay.
     }
 }
 
@@ -37,7 +37,7 @@ static void task_handler_display(void *params) {
 
         display->home(screen);
 
-        os_delay(10);
+        fk_delay(10);
     }
 }
 
@@ -66,7 +66,7 @@ static void task_handler_httpd(void *params) {
 
         http_server.tick();
 
-        os_delay(10);
+        fk_delay(10);
     }
 }
 
@@ -81,13 +81,13 @@ static void task_handler_gps(void *params) {
     while (true) {
         GpsFix fix;
         gps->service(fix);
-        os_delay(10);
+        fk_delay(10);
     }
 }
 
 static void task_handler_readings(void *params) {
     while (true) {
-        os_delay(1000);
+        fk_delay(1000);
     }
 }
 
@@ -120,7 +120,7 @@ void run_tasks() {
     OS_CHECK(os_task_initialize(&idle_task, "idle", OS_TASK_START_RUNNING, &task_handler_idle, NULL, idle_stack, sizeof(idle_stack)));
     OS_CHECK(os_task_initialize(&display_task, "display", OS_TASK_START_RUNNING, &task_handler_display, NULL, display_stack, sizeof(display_stack)));
     OS_CHECK(os_task_initialize(&httpd_task, "httpd", OS_TASK_START_RUNNING, &task_handler_httpd, NULL, httpd_stack, sizeof(httpd_stack)));
-    OS_CHECK(os_task_initialize(&gps_task, "httpd", OS_TASK_START_RUNNING, &task_handler_gps, NULL, gps_stack, sizeof(gps_stack)));
+    OS_CHECK(os_task_initialize(&gps_task, "gps", OS_TASK_START_RUNNING, &task_handler_gps, NULL, gps_stack, sizeof(gps_stack)));
     OS_CHECK(os_task_initialize(&readings_task, "readings", OS_TASK_START_RUNNING, &task_handler_readings, NULL, readings_stack, sizeof(readings_stack)));
 
     auto total_stacks = sizeof(idle_stack) + sizeof(display_stack) + sizeof(httpd_stack) + sizeof(gps_stack);
@@ -181,11 +181,11 @@ void setup() {
         digitalWrite(PIN_WIRE1_SDA, HIGH);
         digitalWrite(PIN_WIRE1_SCL, HIGH);
         digitalWrite(GPS_POWER, HIGH);
-        delay(500);
+        fk_delay(500);
         digitalWrite(PIN_WIRE1_SDA, LOW);
         digitalWrite(PIN_WIRE1_SCL, LOW);
         digitalWrite(GPS_POWER, LOW);
-        delay(500);
+        fk_delay(500);
     }
     */
 
@@ -197,11 +197,11 @@ void setup() {
     self_check.check();
 
     /*
-    delay(1000);
+    fk_delay(1000);
 
     display->fk_logo();
 
-    delay(1000);
+    fk_delay(1000);
     */
 
     run_tasks();

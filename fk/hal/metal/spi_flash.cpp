@@ -256,7 +256,7 @@ bool SpiFlash::is_ready() {
             break;
         }
 
-        delay(1); // Is this too long?
+        fk_delay(1); // Is this too long?
     }
 
     SPI.endTransaction();
