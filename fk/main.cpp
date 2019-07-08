@@ -81,7 +81,13 @@ static void task_handler_gps(void *params) {
     while (true) {
         GpsFix fix;
         gps->service(fix);
-        delay(10);
+        os_delay(10);
+    }
+}
+
+static void task_handler_readings(void *params) {
+    while (true) {
+        os_delay(1000);
     }
 }
 
@@ -98,13 +104,16 @@ void run_tasks() {
     uint32_t idle_stack[1024 / sizeof(uint32_t)];
 
     os_task_t display_task;
-    uint32_t display_stack[4096 / sizeof(uint32_t)];
+    uint32_t display_stack[2048 / sizeof(uint32_t)];
 
     os_task_t httpd_task;
     uint32_t httpd_stack[4096 / sizeof(uint32_t)];
 
     os_task_t gps_task;
-    uint32_t gps_stack[4096 / sizeof(uint32_t)];
+    uint32_t gps_stack[2048 / sizeof(uint32_t)];
+
+    os_task_t readings_task;
+    uint32_t readings_stack[4096 / sizeof(uint32_t)];
 
     OS_CHECK(os_initialize());
 
@@ -112,6 +121,7 @@ void run_tasks() {
     OS_CHECK(os_task_initialize(&display_task, "display", OS_TASK_START_RUNNING, &task_handler_display, NULL, display_stack, sizeof(display_stack)));
     OS_CHECK(os_task_initialize(&httpd_task, "httpd", OS_TASK_START_RUNNING, &task_handler_httpd, NULL, httpd_stack, sizeof(httpd_stack)));
     OS_CHECK(os_task_initialize(&gps_task, "httpd", OS_TASK_START_RUNNING, &task_handler_gps, NULL, gps_stack, sizeof(gps_stack)));
+    OS_CHECK(os_task_initialize(&readings_task, "readings", OS_TASK_START_RUNNING, &task_handler_readings, NULL, readings_stack, sizeof(readings_stack)));
 
     auto total_stacks = sizeof(idle_stack) + sizeof(display_stack) + sizeof(httpd_stack) + sizeof(gps_stack);
     loginfo("stacks = %d", total_stacks);
