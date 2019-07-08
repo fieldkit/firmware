@@ -7,3 +7,4 @@
 #include "hal/network.h"
 #include "hal/memory.h"
 #include "hal/gps.h"
+#include "hal/display.h"

@@ -1,6 +1,6 @@
 #include "fk.h"
-#include "display.h"
-#include "u8g2_display.h"
+#include "hal/display.h"
+#include "hal/metal/u8g2_display.h"
 
 namespace fk {
 

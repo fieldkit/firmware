@@ -4,7 +4,7 @@
 
 #include <U8g2lib.h>
 
-#include "display.h"
+#include "hal/display.h"
 
 namespace fk {
 

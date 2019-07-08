@@ -1,7 +1,6 @@
 #pragma once
 
 #include "common.h"
-#include "display.h"
 #include "hal/hal.h"
 
 namespace fk {

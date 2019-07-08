@@ -1,6 +1,6 @@
 #include "fk.h"
-#include "u8g2_display.h"
 #include "printf.h"
+#include "hal/metal/u8g2_display.h"
 
 #if defined(FK_HARDWARE_FULL)
 
