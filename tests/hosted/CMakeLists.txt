@@ -69,6 +69,7 @@ target_link_libraries(testall arduino-logging)
 
 find_package(Protocols)
 target_link_libraries(testall app-protocol)
+target_link_libraries(testall data-protocol)
 
 find_package(CortexLoading)
 target_link_libraries(testall CortexLoading)

@@ -35,6 +35,7 @@ target_link_libraries(fake arduino-logging)
 
 find_package(Protocols)
 target_link_libraries(fake app-protocol)
+target_link_libraries(fake data-protocol)
 
 find_package(CortexLoading)
 target_link_libraries(fake CortexLoading)
