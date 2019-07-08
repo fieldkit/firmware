@@ -5,7 +5,7 @@ if(TARGET SeggerRTT)
   return()
 endif()
 
-set(SeggerRTT_PATH ${CMAKE_SOURCE_DIR}/libraries/conservify/segger)
+set(SeggerRTT_PATH ${segger_PATH})
 
 file(GLOB sources ${SeggerRTT_PATH}/*.c)
 if(${TARGET_ARCH} MATCHES "amd64")
