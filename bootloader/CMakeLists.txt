@@ -3,6 +3,8 @@
 #
 include(Arduino)
 
+include(${CMAKE_CURRENT_SOURCE_DIR}/dependencies.cmake)
+
 enable_arduino_toolchain()
 
 enable_language(ASM)

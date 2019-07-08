@@ -16,7 +16,7 @@ function(enable_fkb_firmware target)
   add_custom_command(
     OUTPUT ${fkb_elf_file}
     DEPENDS ${elf_file}
-    COMMAND ${CortexLoading_PATH}/tools/mkfirmware.py --elf ${elf_file} --fkb ${fkb_elf_file}
+    COMMAND ${loading_PATH}/tools/mkfirmware.py --elf ${elf_file} --fkb ${fkb_elf_file}
     WORKING_DIRECTORY ${binary_dir}
     )
 

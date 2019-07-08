@@ -1,11 +1,11 @@
 #
 #
 #
-set(CortexLoading_PATH ${CMAKE_SOURCE_DIR}/libraries/jlewallen/loading)
-
 if(TARGET CortexLoading)
   return()
 endif()
+
+set(CortexLoading_PATH ${loading_PATH})
 
 if(${TARGET_ARCH} MATCHES "amd64")
   file(GLOB sources ${CortexLoading_PATH}/src/external.c)

@@ -2,15 +2,16 @@
 #
 #
 include(Arduino)
+
 include(ArduinoTools)
+
+include(${CMAKE_SOURCE_DIR}/libraries/dependencies.cmake)
 
 enable_arduino_toolchain()
 
 enable_language(ASM)
 
 enable_m4_board(fieldkit_core)
-
-include(${CMAKE_SOURCE_DIR}/libraries/dependencies.cmake)
 
 file(GLOB_RECURSE sources *.cpp *.c *.h)
 
