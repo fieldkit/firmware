@@ -134,10 +134,10 @@ void run_tasks() {
 static size_t write_log(const LogMessage *m, const char *fstring, va_list args) {
     const char *f;
     if ((LogLevels)m->level == LogLevels::ERROR) {
-        f = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_RED " %s %s: ";
+        f = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_RED " %6s %s: ";
     }
     else {
-        f = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_YELLOW " %s %s" RTT_CTRL_RESET ": ";
+        f = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_YELLOW " %6s %s" RTT_CTRL_RESET ": ";
     }
 
     SEGGER_RTT_LOCK();
