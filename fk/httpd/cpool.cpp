@@ -130,8 +130,10 @@ bool Connection::service(HttpRouter &router) {
     }
 
     if (req_.done()) {
+        auto size = pool_.size();
+        auto used = pool_.used();
         auto elapsed = fk_uptime() - started_;
-        loginfo("closing (%d bytes) (%" PRIu32 "ms)", wrote_, elapsed);
+        loginfo("closing (%d bytes) (%d/%d pooled) (%" PRIu32 "ms)", wrote_, used, size, elapsed);
         return false;
     }
 

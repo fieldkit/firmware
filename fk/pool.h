@@ -49,6 +49,10 @@ public:
         return size_;
     }
 
+    size_t used() const {
+        return size_ - remaining_;
+    }
+
     bool frozen() const {
         return frozen_;
     }

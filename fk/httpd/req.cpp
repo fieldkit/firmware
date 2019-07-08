@@ -12,6 +12,7 @@ FK_DECLARE_LOGGER("httpd");
 
 constexpr const char *HTTP_CONTENT_LENGTH = "Content-Length";
 constexpr const char *HTTP_CONTENT_TYPE = "Content-Type";
+constexpr const char *HTTP_USER_AGENT = "User-Agent";
 
 static inline HttpRequest *get_object(http_parser* parser) {
     return reinterpret_cast<HttpRequest*>(parser->data);
@@ -143,6 +144,11 @@ int32_t HttpRequest::on_header_value(const char *at, size_t length) {
         auto value = trim(pool_->strndup(at, length));
         content_type_ = get_content_type(value);
         logdebug("content-type: %s (%d)", value, content_type_);
+    }
+
+    if (strncasecmp(header_name_, HTTP_USER_AGENT, header_name_len_) == 0) {
+        auto value = trim(pool_->strndup(at, length));
+        logdebug("user-agent: %s", value);
     }
 
     return 0;

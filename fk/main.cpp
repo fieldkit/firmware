@@ -19,7 +19,7 @@ FK_DECLARE_LOGGER("main");
 
 static void task_handler_idle(void *params) {
     while (true) {
-        delay(1000); // This is intentionally NOT using fk_delay.
+        fk_delay(1000);
     }
 }
 
