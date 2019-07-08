@@ -11,6 +11,8 @@
 
 #include "secrets.h"
 
+extern const struct fkb_header_t fkb_header;
+
 using namespace fk;
 
 FK_DECLARE_LOGGER("main");
@@ -132,7 +134,12 @@ void setup() {
 
     fk_serial_number_t sn;
     fk_serial_number_get(&sn);
-    loginfo("%08x-%08x-%08x-%08x", sn.dwords[0], sn.dwords[1], sn.dwords[2], sn.dwords[3]);
+    loginfo("serial = %08x-%08x-%08x-%08x", sn.dwords[0], sn.dwords[1], sn.dwords[2], sn.dwords[3]);
+
+    loginfo("fw = %s", fkb_header.firmware.name);
+    char hash_string[128];
+    bytes_to_hex_string(hash_string, sizeof(hash_string), fkb_header.firmware.hash, fkb_header.firmware.hash_size);
+    loginfo("hash = %s", hash_string);
 
     /*
     pinMode(PIN_WIRE1_SDA, OUTPUT);

@@ -9,7 +9,11 @@ endif()
 
 file(GLOB sources ${ConservifyOS_PATH}/*.c ${ConservifyOS_PATH}/*.s ${ConservifyOS_PATH}/*.cpp)
 
-add_arduino_library(ConservifyOS "${sources}")
+if(${TARGET_ARCH} MATCHES "amd64")
+  add_library(ConservifyOS STATIC "${sources}")
+else()
+  add_arduino_library(ConservifyOS "${sources}")
+endif()
 
 find_package(SeggerRTT)
 target_link_libraries(ConservifyOS SeggerRTT)

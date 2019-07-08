@@ -44,7 +44,7 @@ set_target_properties(libgmock PROPERTIES
 include_directories("${source_dir}/googletest/include"
                     "${source_dir}/googlemock/include")
 
-file(GLOB_RECURSE fk_sources ../../fk/*.cpp)
+file(GLOB_RECURSE fk_sources ../../fk/*.cpp ../../fk/*.c)
 list(FILTER fk_sources EXCLUDE REGEX ".*main.cpp$")
 list(FILTER fk_sources EXCLUDE REGEX ".*external.cpp$")
 # TODO: Remove
@@ -69,6 +69,12 @@ target_link_libraries(testall arduino-logging)
 
 find_package(Protocols)
 target_link_libraries(testall app-protocol)
+
+find_package(CortexLoading)
+target_link_libraries(testall CortexLoading)
+
+find_package(ConservifyOS)
+target_link_libraries(testall ConservifyOS)
 
 target_include_directories(testall PRIVATE ../../fk)
 target_compile_options(testall PUBLIC -Wall -Wno-variadic-macros)

@@ -7,9 +7,13 @@ if(TARGET CortexLoading)
   return()
 endif()
 
-file(GLOB sources ${CortexLoading_PATH}/src/*.c ${CortexLoading_PATH}/src/*.s ${CortexLoading_PATH}/src/*.cpp)
-
-add_arduino_library(CortexLoading "${sources}")
+if(${TARGET_ARCH} MATCHES "amd64")
+  file(GLOB sources ${CortexLoading_PATH}/src/external.c)
+  add_library(CortexLoading STATIC ${sources})
+else()
+  file(GLOB sources ${CortexLoading_PATH}/src/*.c ${CortexLoading_PATH}/src/*.s ${CortexLoading_PATH}/src/*.cpp)
+  add_arduino_library(CortexLoading "${sources}")
+endif()
 
 find_package(SeggerRTT)
 target_link_libraries(CortexLoading SeggerRTT)

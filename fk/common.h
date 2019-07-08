@@ -17,6 +17,8 @@ namespace fk {
  */
 void fk_assert(const char *assertion, const char *file, int line);
 
+size_t bytes_to_hex_string(char *buffer, size_t buffer_size, const uint8_t *data, size_t data_size);
+
 /**
  * Check the return value of an I2C operation and return true if the operation
  * succeeded and false otherwise.
