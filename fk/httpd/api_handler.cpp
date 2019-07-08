@@ -35,7 +35,7 @@ bool send_status(HttpRequest &req) {
     reply.status.power.battery.voltage = 4000;
     reply.status.power.battery.percentage = 45;
 
-    reply.status.memory.sramAvailable = fk_uptime();
+    reply.status.memory.sramAvailable = fk_free_memory();
     reply.status.memory.programAvailable = 1024 * 1024 - BootloaderSize - fkb_header.firmware.binary_size;
     reply.status.memory.extendedMemoryAvailable = 8 * 1024 * 1024;
     reply.status.memory.dataMemoryAvailable = 0;
