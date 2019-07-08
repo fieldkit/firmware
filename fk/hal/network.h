@@ -4,6 +4,13 @@
 
 namespace fk {
 
+typedef struct ip4_address {
+    union {
+        uint32_t dword;
+        uint8_t bytes[4];
+    } u;
+} ip4_address;
+
 enum class NetworkStatus {
     Error = 0,
     Ready,
@@ -47,6 +54,8 @@ public:
     virtual int32_t write(const char *str) = 0;
 
     virtual int32_t socket() = 0;
+
+    virtual uint32_t remote_address() = 0;
 
     virtual bool stop() = 0;
 

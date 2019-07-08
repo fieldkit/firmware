@@ -60,6 +60,10 @@ int32_t MetalNetworkConnection::socket() {
     return wcl_.socket();
 }
 
+uint32_t MetalNetworkConnection::remote_address() {
+    return wcl_.remoteIP();
+}
+
 bool MetalNetworkConnection::stop() {
     wcl_.flush();
     wcl_.stop();

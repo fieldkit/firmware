@@ -17,7 +17,7 @@ FK_DECLARE_LOGGER("network");
 LinuxNetworkConnection::LinuxNetworkConnection() {
 }
 
-LinuxNetworkConnection::LinuxNetworkConnection(int32_t s) : s_(s) {
+LinuxNetworkConnection::LinuxNetworkConnection(int32_t s, uint32_t remote_address) : s_(s), remote_address_(remote_address) {
 }
 
 LinuxNetworkConnection::~LinuxNetworkConnection() {
@@ -77,6 +77,10 @@ int32_t LinuxNetworkConnection::vwritef(const char *str, va_list args) {
 
 int32_t LinuxNetworkConnection::socket() {
     return s_;
+}
+
+uint32_t LinuxNetworkConnection::remote_address() {
+    return remote_address_;
 }
 
 bool LinuxNetworkConnection::stop() {
@@ -153,7 +157,7 @@ NetworkConnection *LinuxNetwork::accept() {
         return nullptr;
     }
 
-    return new LinuxNetworkConnection(s);
+    return new LinuxNetworkConnection(s, claddr.sin_addr.s_addr);
 }
 
 bool LinuxNetwork::stop() {

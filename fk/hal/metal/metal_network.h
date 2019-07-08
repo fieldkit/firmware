@@ -60,9 +60,11 @@ public:
 
     int32_t write(const char *str) override;
 
-    bool stop() override;
-
     int32_t socket() override;
+
+    uint32_t remote_address() override;
+
+    bool stop() override;
 
 };
 
