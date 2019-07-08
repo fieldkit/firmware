@@ -47,9 +47,13 @@ static void write_connection(char c, void *arg) {
 int32_t MetalNetworkConnection::writef(const char *str, ...) {
     va_list args;
     va_start(args, str);
-    fk_vfctprintf(write_connection, &wcl_, str, args);
+    auto rv = vwritef(str, args);
     va_end(args);
-    return 0;
+    return rv;
+}
+
+int32_t MetalNetworkConnection::vwritef(const char *str, va_list args) {
+    return fk_vfctprintf(write_connection, &wcl_, str, args);
 }
 
 int32_t MetalNetworkConnection::socket() {

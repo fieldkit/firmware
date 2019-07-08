@@ -59,15 +59,20 @@ int32_t LinuxNetworkConnection::write(const uint8_t *buffer, size_t size) {
 int32_t LinuxNetworkConnection::writef(const char *str, ...) {
     va_list args;
     va_start(args, str);
-    auto needed = fk_vsnprintf(nullptr, 0, str, args);
+    auto rv = vwritef(str, args);
     va_end(args);
+    return rv;
+}
+
+int32_t LinuxNetworkConnection::vwritef(const char *str, va_list args) {
+    va_list copy;
+    va_copy(copy, args);
+    auto needed = fk_vsnprintf(nullptr, 0, str, copy);
     auto buffer = (char *)malloc(needed + 1);
-    va_start(args, str);
     fk_vsnprintf(buffer, needed + 1, str, args);
     write(buffer);
     free(buffer);
-    va_end(args);
-    return 0;
+    return needed;
 }
 
 int32_t LinuxNetworkConnection::socket() {

@@ -131,7 +131,7 @@ bool Connection::service(HttpRouter &router) {
 
     if (req_.done()) {
         auto elapsed = fk_uptime() - started_;
-        loginfo("replying/closing (%" PRIu32 "ms)", elapsed);
+        loginfo("closing (%" PRIu32 "ms) (%d bytes)", elapsed, wrote_);
         return false;
     }
 
@@ -208,29 +208,41 @@ int32_t Connection::write(fk_app_HttpReply *reply) {
 
     logdebug("reply length: %d", size);
 
-    conn_->write("HTTP/1.1 200 OK\n");
-    conn_->writef("Content-Length: %zu\n", size);
-    conn_->write("Content-Type: application/octet-stream\n");
-    conn_->write("Connection: close\n");
-    conn_->write("\n");
+    wrote_ += conn_->write("HTTP/1.1 200 OK\n");
+    wrote_ += conn_->writef("Content-Length: %zu\n", size);
+    wrote_ += conn_->write("Content-Type: application/octet-stream\n");
+    wrote_ += conn_->write("Connection: close\n");
+    wrote_ += conn_->write("\n");
 
     auto ostream = pb_ostream_from_connection(conn_);
     if (!pb_encode_delimited(&ostream, fields, reply)) {
         return size;
     }
 
+    wrote_ += size;
+
     req_.finished();
 
     return size;
 }
 
+int32_t Connection::write(const char *s, ...) {
+    va_list args;
+    va_start(args, s);
+    auto r = conn_->vwritef(s, args);
+    va_end(args);
+    return r;
+}
+
 int32_t Connection::plain(int32_t status, const char *status_description, const char *text) {
-    conn_->writef("HTTP/1.1 %" PRId32 " %s\n", status, status_description);
-    conn_->writef("Content-Length: %zu\n", strlen(text));
-    conn_->write("Content-Type: text/plain\n");
-    conn_->write("Connection: close\n");
-    conn_->write("\n");
-    conn_->write(text);
+    auto length = strlen(text);
+
+    wrote_ += conn_->writef("HTTP/1.1 %" PRId32 " %s\n", status, status_description);
+    wrote_ += conn_->writef("Content-Length: %zu\n", length);
+    wrote_ += conn_->write("Content-Type: text/plain\n");
+    wrote_ += conn_->write("Connection: close\n");
+    wrote_ += conn_->write("\n");
+    wrote_ += conn_->write(text);
 
     req_.finished();
 

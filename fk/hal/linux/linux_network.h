@@ -26,6 +26,8 @@ public:
 
     int32_t writef(const char *str, ...) override;
 
+    int32_t vwritef(const char *str, va_list args) override;
+
     int32_t write(const char *str) override;
 
     bool stop() override;
