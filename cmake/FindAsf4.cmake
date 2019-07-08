@@ -5,8 +5,6 @@ if(TARGET Asf4)
   return()
 endif()
 
-message("${asf4_PATH}")
-
 file(GLOB sources ${asf4_PATH}/samd51/hal/src/*.c ${asf4_PATH}/samd51/hpl/*/*.c)
 
 add_arduino_library(Asf4 "${sources}")
