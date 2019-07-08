@@ -7,10 +7,46 @@
 #include <Arduino.h>
 #include <SEGGER_RTT.h>
 #include <os.h>
-#else
+#include <loading.h>
+#else // __SAMD51__
 #include <chrono>
 #include <vector>
 #include <queue>
+#endif // __SAMD51__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#if defined(__SAMD51__)
+
+#else // __SAMD51__
+
+uint32_t fkb_external_printf(const char *str, ...) {
+    va_list args;
+    va_start(args, str);
+    auto n = vfprintf(stderr, str, args);
+    va_end(args);
+    return n;
+}
+
+uint32_t fkb_external_println(const char *str, ...) {
+    va_list args;
+    va_start(args, str);
+    vfprintf(stderr, str, args);
+    auto n = fprintf(stderr, "\n");
+    va_end(args);
+    return n;
+}
+
+uint32_t fkb_external_vprintf(const char *str, va_list args) {
+    return vfprintf(stderr, str, args);
+}
+
+#endif // __SAMD51__
+
+#ifdef __cplusplus
+}
 #endif
 
 namespace fk {
@@ -46,7 +82,7 @@ uint32_t fk_serial_number_get(fk_serial_number_t *sn) {
     return 128;
 }
 
-#else
+#else // __SAMD51__
 
 using namespace std::chrono;
 
@@ -88,62 +124,6 @@ uint32_t fk_serial_number_get(fk_serial_number_t *sn) {
     return 0;
 }
 
-#endif
+#endif // __SAMD51__
 
-}
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#if defined(__SAMD51__)
-
-uint32_t fkb_external_printf(const char *str, ...) {
-    va_list args;
-    va_start(args, str);
-    uint32_t r = (uint32_t)SEGGER_RTT_vprintf(0, str, &args);
-    va_end(args);
-    return r;
-}
-
-uint32_t fkb_external_println(const char *str, ...) {
-    va_list args;
-    va_start(args, str);
-    uint32_t r = (uint32_t)SEGGER_RTT_vprintf(0, str, &args);
-    SEGGER_RTT_WriteString(0, "\n");
-    va_end(args);
-    return r;
-}
-
-uint32_t fkb_external_vprintf(const char *str, va_list args) {
-    return (uint32_t)SEGGER_RTT_vprintf(0, str, &args);
-}
-
-#else
-
-uint32_t fkb_external_printf(const char *str, ...) {
-    va_list args;
-    va_start(args, str);
-    auto n = vfprintf(stderr, str, args);
-    va_end(args);
-    return n;
-}
-
-uint32_t fkb_external_println(const char *str, ...) {
-    va_list args;
-    va_start(args, str);
-    vfprintf(stderr, str, args);
-    auto n = fprintf(stderr, "\n");
-    va_end(args);
-    return n;
-}
-
-uint32_t fkb_external_vprintf(const char *str, va_list args) {
-    return vfprintf(stderr, str, args);
-}
-
-#endif
-
-#ifdef __cplusplus
-}
-#endif
+} // namespace fk
