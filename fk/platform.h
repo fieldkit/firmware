@@ -2,6 +2,11 @@
 
 #include "common.h"
 
+
+typedef struct fk_serial_number_t {
+    uint32_t dwords[4];
+} fk_serial_number_t;
+
 #if !defined(__SAMD51__)
 #include <vector>
 #endif
@@ -20,6 +25,8 @@ uint32_t fk_free_memory();
 #if !defined(__SAMD51__)
 uint32_t fk_fake_uptime(std::vector<uint32_t> more);
 #endif
+
+uint32_t fk_serial_number_get(fk_serial_number_t *sn);
 
 }
 

@@ -38,6 +38,14 @@ uint32_t fk_free_memory() {
     return &stack_dummy - sbrk(0);
 }
 
+uint32_t fk_serial_number_get(fk_serial_number_t *sn) {
+    sn->dwords[0] = *(uint32_t *)0x008061FC;
+    sn->dwords[1] = *(uint32_t *)0x00806010;
+    sn->dwords[2] = *(uint32_t *)0x00806014;
+    sn->dwords[3] = *(uint32_t *)0x00806018;
+    return 128;
+}
+
 #else
 
 using namespace std::chrono;
@@ -69,6 +77,14 @@ void fk_assert(const char *assertion, const char *file, int line) {
 }
 
 uint32_t fk_free_memory() {
+    return 0;
+}
+
+uint32_t fk_serial_number_get(fk_serial_number_t *sn) {
+    sn->dwords[0] = 0;
+    sn->dwords[1] = 0;
+    sn->dwords[2] = 0;
+    sn->dwords[3] = 0;
     return 0;
 }
 

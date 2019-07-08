@@ -29,8 +29,7 @@ void CoreClock::adjust(DateTime now) {
     wire_->endTransmission();
 
     if (bsm != 0) {
-        loginfo("fixing BSM = 0x%x", bsm);
-
+        loginfo("fixing battery switch mode = 0x%x", bsm);
         wire_->beginTransmission(Address);
         wire_->write(0x26);
         wire_->write(0x00);

@@ -130,6 +130,10 @@ void setup() {
 
     loginfo("hello (memory = %lu)", fk_free_memory());
 
+    fk_serial_number_t sn;
+    fk_serial_number_get(&sn);
+    loginfo("%08x-%08x-%08x-%08x", sn.dwords[0], sn.dwords[1], sn.dwords[2], sn.dwords[3]);
+
     /*
     pinMode(PIN_WIRE1_SDA, OUTPUT);
     pinMode(PIN_WIRE1_SCL, OUTPUT);
