@@ -121,18 +121,19 @@ void run_tasks() {
     OS_CHECK(os_start());
 }
 
-size_t write_log(const LogMessage *m, const char *fstring, va_list args) {
+static size_t write_log(const LogMessage *m, const char *fstring, va_list args) {
     const char *f;
     if ((LogLevels)m->level == LogLevels::ERROR) {
-        f = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_RED " %s: ";
+        f = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_RED " %s %s: ";
     }
     else {
-        f = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_YELLOW " %s" RTT_CTRL_RESET ": ";
+        f = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_YELLOW " %s %s" RTT_CTRL_RESET ": ";
     }
 
     SEGGER_RTT_LOCK();
 
-    fkb_external_printf(f, m->uptime, m->facility);
+    auto level = alog_get_log_level((LogLevels)m->level);
+    fkb_external_printf(f, m->uptime, level, m->facility);
     fkb_external_vprintf(fstring, args);
     fkb_external_printf(RTT_CTRL_RESET "\n");
 
@@ -147,7 +148,8 @@ void setup() {
     board.enable_everything();
 
     log_configure_writer(write_log);
-    // log_configure_level(LogLevels::TRACE);
+
+    log_configure_level(LogLevels::DEBUG);
 
     loginfo("hello (memory = %lu)", fk_free_memory());
 

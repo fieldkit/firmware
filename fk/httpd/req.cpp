@@ -105,7 +105,7 @@ int32_t HttpRequest::on_header_field(const char *at, size_t length) {
     return 0;
 }
 
-char *trim(char *s) {
+static char *trim(char *s) {
     auto n = strlen(s);
     if (n == 0) {
         return s;
@@ -118,37 +118,31 @@ char *trim(char *s) {
     return s;
 }
 
+static WellKnownContentType get_content_type(const char *value) {
+    if (strstr(value, "application/fkhttp") != nullptr) {
+        return WellKnownContentType::ApplicationFkHttp;
+    }
+    else if (strstr(value, "text/plain") != nullptr) {
+        return WellKnownContentType::TextPlain;
+    }
+    else if (strstr(value, "application/octet-stream") != nullptr) {
+        return WellKnownContentType::ApplicationOctetStream;
+    }
+    return WellKnownContentType::Unknown;
+}
+
 int32_t HttpRequest::on_header_value(const char *at, size_t length) {
     logtrace("%s", __PRETTY_FUNCTION__);
 
-    if (false) {
-        auto name = pool_->strndup(header_name_, header_name_len_);
-        auto value = pool_->strndup(at, length);
-        loginfo("%s = %s", name, value);
+    if (strncasecmp(header_name_, HTTP_CONTENT_LENGTH, header_name_len_) == 0) {
+        length_ = atoi(at);
+        logdebug("content-length: %d", length_);
     }
 
-    {
-        auto n = std::min(header_name_len_, strlen(HTTP_CONTENT_LENGTH));
-        if (strncasecmp(header_name_, HTTP_CONTENT_LENGTH, n) == 0) {
-            length_ = atoi(at);
-        }
-    }
-
-    {
-        auto n = std::min(header_name_len_, strlen(HTTP_CONTENT_TYPE));
-        if (strncasecmp(header_name_, HTTP_CONTENT_TYPE, n) == 0) {
-            auto name = trim(pool_->strndup(at, n));
-            if (strstr(name, "application/fkhttp") != nullptr) {
-                content_type_ = WellKnownContentType::ApplicationFkHttp;
-            }
-            else if (strstr(name, "text/plain") != nullptr) {
-                content_type_ = WellKnownContentType::TextPlain;
-            }
-            else if (strstr(name, "application/octet-stream") != nullptr) {
-                content_type_ = WellKnownContentType::ApplicationOctetStream;
-            }
-            logtrace("content-type: %s (%d)", name, content_type_);
-        }
+    if (strncasecmp(header_name_, HTTP_CONTENT_TYPE, header_name_len_) == 0) {
+        auto value = trim(pool_->strndup(at, length));
+        content_type_ = get_content_type(value);
+        logdebug("content-type: %s (%d)", value, content_type_);
     }
 
     return 0;
@@ -163,14 +157,23 @@ int32_t HttpRequest::on_headers_complete() {
 }
 
 int32_t HttpRequest::on_data(const char *at, size_t length) {
-    logtrace("%s(0x%p, %zu)", __PRETTY_FUNCTION__, at, length);
+    logtrace("%s(0x%p, %d)", __PRETTY_FUNCTION__, at, (int32_t)length);
 
-    // HACK
-    if (length_ == length) {
-        auto fields = fk_app_WireMessageQuery_fields;
-        auto query = (fk_app_WireMessageQuery *)pool_->decode(fields, (uint8_t *)at, length, sizeof(fk_app_WireMessageQuery));
-        FK_ASSERT(query != nullptr);
-        query_ = query;
+    /// TODO: This should maybe eventually be handled in the handler.
+    if (content_type_ == WellKnownContentType::ApplicationFkHttp) {
+        if (length_ == length) {
+            auto fields = fk_app_HttpQuery_fields;
+            auto query = (fk_app_HttpQuery *)pool_->decode(fields, (uint8_t *)at, length, sizeof(fk_app_HttpQuery));
+            if (query != nullptr) {
+                query_ = query;
+            }
+            else {
+                logerror("unable to parse body");
+            }
+        }
+        else {
+            logerror("incomplete body (%d vs %d)", length_, length);
+        }
     }
 
     return 0;

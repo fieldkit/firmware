@@ -66,7 +66,7 @@ private:
     /**
      * Any wire message query provided.
      */
-    fk_app_WireMessageQuery *query_{ nullptr };
+    fk_app_HttpQuery *query_{ nullptr };
 
     /**
      * Network connection handling this request.
@@ -95,10 +95,10 @@ public:
 
 public:
     /**
-     * Returns the most recently parsed fk_app_WireMessageQuery that has come in
+     * Returns the most recently parsed fk_app_HttpQuery that has come in
      * over this channel.
      */
-    fk_app_WireMessageQuery *query() {
+    fk_app_HttpQuery *query() {
         return query_;
     }
 

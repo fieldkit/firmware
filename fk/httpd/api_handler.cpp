@@ -61,22 +61,27 @@ bool send_status(HttpRequest &req) {
 }
 
 bool ApiHandler::handle(HttpRequest &req) {
-    auto query = req.query();
-    if (query != nullptr) {
-        switch (query->type) {
-        case fk_app_QueryType_QUERY_STATUS: {
-            return send_status(req);
-            break;
-        }
-        default: {
-            logerror("unknown query type");
-            return false;
-        }
-        }
+    if (req.content_type() != WellKnownContentType::ApplicationFkHttp) {
+        req.connection()->error("unexpected content-type");
+        return true;
     }
 
-    req.connection()->busy("Busy");
+    auto query = req.query();
+    if (query == nullptr) {
+        req.connection()->error("missing query");
+        return true;
+    }
 
+    switch (query->type) {
+    case fk_app_QueryType_QUERY_STATUS: {
+        return send_status(req);
+    }
+    default: {
+        break;
+    }
+    }
+
+    req.connection()->error("unknown query type");
     return true;
 }
 
