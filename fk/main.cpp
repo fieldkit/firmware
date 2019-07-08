@@ -103,7 +103,7 @@ void run_tasks() {
 size_t write_log(const LogMessage *m, const char *fstring, va_list args) {
     const char *f;
     if ((LogLevels)m->level == LogLevels::ERROR) {
-        f = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_RED " %s" RTT_CTRL_RESET ": ";
+        f = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_RED " %s: ";
     }
     else {
         f = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_YELLOW " %s" RTT_CTRL_RESET ": ";
@@ -113,7 +113,7 @@ size_t write_log(const LogMessage *m, const char *fstring, va_list args) {
 
     fkb_external_printf(f, m->uptime, m->facility);
     fkb_external_vprintf(fstring, args);
-    fkb_external_printf("\n");
+    fkb_external_printf(RTT_CTRL_RESET "\n");
 
     SEGGER_RTT_UNLOCK();
 

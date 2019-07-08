@@ -9,9 +9,7 @@
 #include "hal/linux/linux.h"
 #include "httpd/httpd.h"
 
-#define loginfo(f, ...)  loginfof("main", f, ##__VA_ARGS__)
-
-#define logerror(f, ...) logerrorf("main", f, ##__VA_ARGS__)
+FK_DECLARE_LOGGER("main");
 
 class Fake {
 private:
@@ -65,6 +63,8 @@ void server(Fake *fake) {
 
 __int32_t main(__int32_t argc, const char **argv) {
     std::thread server_thread(server, &fake);
+
+    log_configure_level(LogLevels::TRACE);
 
     loginfo("hello");
 

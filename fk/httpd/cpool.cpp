@@ -129,7 +129,7 @@ bool Connection::service(HttpRouter &router) {
         }
     }
 
-    if (req_.consumed()) {
+    if (req_.done()) {
         auto elapsed = fk_uptime() - started_;
         loginfo("replying/closing (%" PRIu32 "ms)", elapsed);
         return false;
@@ -138,12 +138,75 @@ bool Connection::service(HttpRouter &router) {
     return true;
 }
 
-int32_t Connection::write(fk_app_WireMessageReply *reply) {
+static void initialize_callbacks(fk_app_HttpReply *reply) {
+    reply->errors.funcs.encode = pb_encode_array;
+    if (reply->errors.arg != nullptr) {
+        auto array = (pb_array_t *)reply->errors.arg;
+        for (size_t i = 0; i < array->length; ++i) {
+            fk_app_Error *error = &((fk_app_Error *)array->buffer)[i];
+            error->message.funcs.encode = pb_encode_string;
+        }
+    }
+
+    reply->status.identity.device.funcs.encode = pb_encode_string;
+    reply->status.identity.stream.funcs.encode = pb_encode_string;
+    reply->status.identity.deviceId.funcs.encode = pb_encode_data;
+    reply->status.identity.firmware.funcs.encode = pb_encode_string;
+    reply->status.identity.build.funcs.encode = pb_encode_string;
+    reply->modules.funcs.encode = pb_encode_array;
+    if (reply->modules.arg != nullptr) {
+        auto array = (pb_array_t *)reply->modules.arg;
+        for (size_t i = 0; i < array->length; ++i) {
+            fk_app_ModuleCapabilities *module = &((fk_app_ModuleCapabilities *)array->buffer)[i];
+            module->name.funcs.encode = pb_encode_string;
+            module->path.funcs.encode = pb_encode_string;
+            module->sensors.funcs.encode = pb_encode_array;
+            if (module->sensors.arg != nullptr) {
+                auto array = (pb_array_t *)module->sensors.arg;
+                for (size_t i = 0; i < array->length; ++i) {
+                    fk_app_SensorCapabilities *module = &((fk_app_SensorCapabilities *)array->buffer)[i];
+                    module->name.funcs.encode = pb_encode_string;
+                    module->path.funcs.encode = pb_encode_string;
+                    module->unitOfMeasure.funcs.encode = pb_encode_string;
+                }
+            }
+        }
+    }
+
+    reply->streams.funcs.encode = pb_encode_array;
+    if (reply->streams.arg != nullptr) {
+        auto array = (pb_array_t *)reply->streams.arg;
+        for (size_t i = 0; i < array->length; ++i) {
+            fk_app_DataStream *stream = &((fk_app_DataStream *)array->buffer)[i];
+            stream->name.funcs.encode = pb_encode_string;
+            stream->path.funcs.encode = pb_encode_string;
+            stream->hash.funcs.encode = pb_encode_data;
+        }
+    }
+
+    reply->networkSettings.networks.funcs.encode = pb_encode_array;
+    if (reply->networkSettings.networks.arg != nullptr) {
+        auto array = (pb_array_t *)reply->networkSettings.networks.arg;
+        for (size_t i = 0; i < array->length; ++i) {
+            fk_app_NetworkInfo *network = &((fk_app_NetworkInfo *)array->buffer)[i];
+            network->ssid.funcs.encode = pb_encode_string;
+            network->password.funcs.encode = pb_encode_string;
+        }
+    }
+}
+
+int32_t Connection::write(fk_app_HttpReply *reply) {
+    initialize_callbacks(reply);
+
     size_t size = 0;
-    auto fields = fk_app_WireMessageReply_fields;
+    auto fields = fk_app_HttpReply_fields;
     if (!pb_get_encoded_size(&size, fields, reply)) {
         return fault();
     }
+
+    size += pb_varint_size(size);
+
+    logdebug("reply length: %d", size);
 
     conn_->write("HTTP/1.1 200 OK\n");
     conn_->writef("Content-Length: %zu\n", size);
@@ -156,6 +219,8 @@ int32_t Connection::write(fk_app_WireMessageReply *reply) {
         return size;
     }
 
+    req_.finished();
+
     return size;
 }
 
@@ -166,25 +231,21 @@ int32_t Connection::plain(int32_t status, const char *status_description, const 
     conn_->write("Connection: close\n");
     conn_->write("\n");
     conn_->write(text);
+
+    req_.finished();
+
     return 0;
 }
 
 int32_t Connection::fault() {
-    conn_->write("HTTP/1.1 500 Internal Server Error\n");
-    conn_->write("Content-Length: 0\n");
-    conn_->write("Content-Type: text/plain\n");
-    conn_->write("Connection: close\n");
-    conn_->write("\n");
-    return 0;
+    return plain(500, "internal error", "");
 }
 
 int32_t Connection::busy(const char *message) {
     fk_app_Error errors[] = {
         {
             .message = {
-                .funcs = {
-                    .encode = pb_encode_string,
-                },
+                .funcs = {},
                 .arg = (void *)message,
             },
         }
@@ -197,9 +258,8 @@ int32_t Connection::busy(const char *message) {
         .fields = fk_app_Error_fields,
     };
 
-    fk_app_WireMessageReply reply = fk_app_WireMessageReply_init_default;
+    fk_app_HttpReply reply = fk_app_HttpReply_init_default;
     reply.type = fk_app_ReplyType_REPLY_BUSY;
-    reply.errors.funcs.encode = pb_encode_array;
     reply.errors.arg = (void *)pool_.copy(&errors_array, sizeof(errors_array));
 
     return write(&reply);
@@ -209,9 +269,7 @@ int32_t Connection::error(const char *message) {
     fk_app_Error errors[] = {
         {
             .message = {
-                .funcs = {
-                    .encode = pb_encode_string,
-                },
+                .funcs = {},
                 .arg = (void *)message,
             },
         }
@@ -224,9 +282,8 @@ int32_t Connection::error(const char *message) {
         .fields = fk_app_Error_fields,
     };
 
-    fk_app_WireMessageReply reply = fk_app_WireMessageReply_init_default;
+    fk_app_HttpReply reply = fk_app_HttpReply_init_default;
     reply.type = fk_app_ReplyType_REPLY_ERROR;
-    reply.errors.funcs.encode = pb_encode_array;
     reply.errors.arg = (void *)pool_.copy(&errors_array, sizeof(errors_array));
 
     return write(&reply);

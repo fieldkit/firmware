@@ -11,6 +11,7 @@ namespace fk {
 FK_DECLARE_LOGGER("httpd");
 
 constexpr const char *HTTP_CONTENT_LENGTH = "Content-Length";
+constexpr const char *HTTP_CONTENT_TYPE = "Content-Type";
 
 static inline HttpRequest *get_object(http_parser* parser) {
     return reinterpret_cast<HttpRequest*>(parser->data);
@@ -104,6 +105,19 @@ int32_t HttpRequest::on_header_field(const char *at, size_t length) {
     return 0;
 }
 
+char *trim(char *s) {
+    auto n = strlen(s);
+    if (n == 0) {
+        return s;
+    }
+    char *p = s + n - 1;
+    while (p >= s && isspace(*p)) {
+        *p = '\0';
+        p--;
+    }
+    return s;
+}
+
 int32_t HttpRequest::on_header_value(const char *at, size_t length) {
     logtrace("%s", __PRETTY_FUNCTION__);
 
@@ -113,9 +127,28 @@ int32_t HttpRequest::on_header_value(const char *at, size_t length) {
         loginfo("%s = %s", name, value);
     }
 
-    auto n = std::min(header_name_len_, strlen(HTTP_CONTENT_LENGTH));
-    if (strncasecmp(header_name_, HTTP_CONTENT_LENGTH, n) == 0) {
-        length_ = atoi(at);
+    {
+        auto n = std::min(header_name_len_, strlen(HTTP_CONTENT_LENGTH));
+        if (strncasecmp(header_name_, HTTP_CONTENT_LENGTH, n) == 0) {
+            length_ = atoi(at);
+        }
+    }
+
+    {
+        auto n = std::min(header_name_len_, strlen(HTTP_CONTENT_TYPE));
+        if (strncasecmp(header_name_, HTTP_CONTENT_TYPE, n) == 0) {
+            auto name = trim(pool_->strndup(at, n));
+            if (strstr(name, "application/fkhttp") != nullptr) {
+                content_type_ = WellKnownContentType::ApplicationFkHttp;
+            }
+            else if (strstr(name, "text/plain") != nullptr) {
+                content_type_ = WellKnownContentType::TextPlain;
+            }
+            else if (strstr(name, "application/octet-stream") != nullptr) {
+                content_type_ = WellKnownContentType::ApplicationOctetStream;
+            }
+            logtrace("content-type: %s (%d)", name, content_type_);
+        }
     }
 
     return 0;
@@ -137,6 +170,7 @@ int32_t HttpRequest::on_data(const char *at, size_t length) {
         auto fields = fk_app_WireMessageQuery_fields;
         auto query = (fk_app_WireMessageQuery *)pool_->decode(fields, (uint8_t *)at, length, sizeof(fk_app_WireMessageQuery));
         FK_ASSERT(query != nullptr);
+        query_ = query;
     }
 
     return 0;

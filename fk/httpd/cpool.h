@@ -28,7 +28,7 @@ public:
 public:
     bool service(HttpRouter &router);
 
-    int32_t write(fk_app_WireMessageReply *reply);
+    int32_t write(fk_app_HttpReply *reply);
 
     int32_t plain(int32_t status, const char *status_description, const char *text);
 

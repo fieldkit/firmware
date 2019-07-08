@@ -22,6 +22,13 @@ enum class HttpRequestState {
     Done
 };
 
+enum class WellKnownContentType {
+    Unknown,
+    TextPlain,
+    ApplicationOctetStream,
+    ApplicationFkHttp
+};
+
 class HttpRequest {
 private:
     http_parser parser_;
@@ -65,6 +72,11 @@ private:
      * Network connection handling this request.
      */
     Connection *conn_;
+
+    /**
+     * A well-known content type.
+     */
+    WellKnownContentType content_type_{ WellKnownContentType::Unknown };
 
 public:
     HttpRequest(Connection *conn, Pool *pool);
@@ -121,6 +133,13 @@ public:
     }
 
     /**
+     * Returns true if the request has been completely consumed.
+     */
+    void finished() {
+        state_ = HttpRequestState::Done;
+    }
+
+    /**
      * Returns the URL being operated in in this HttpRequest. This is only valid
      * after headers have been consumed.
      */
@@ -141,6 +160,13 @@ public:
      */
     Connection *connection() {
         return conn_;
+    }
+
+    /**
+     * Returns the Content-Type of this request.
+     */
+    WellKnownContentType content_type() {
+        return content_type_;
     }
 
 public:
