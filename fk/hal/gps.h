@@ -5,11 +5,13 @@
 namespace fk {
 
 struct GpsFix {
-    uint32_t satellites;
+    bool valid;
+    uint16_t satellites;
     uint32_t time;
     float longitude;
     float latitude;
     float altitude;
+    uint16_t hdop;
 };
 
 class Gps {
