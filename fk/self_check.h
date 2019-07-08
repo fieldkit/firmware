@@ -24,6 +24,7 @@ private:
     bool spi_memory();
     bool gps();
     bool wifi();
+    bool sd_card();
 
 };
 

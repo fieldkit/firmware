@@ -40,7 +40,7 @@ const uint8_t core_spi_cs_pins[] = {
     SPI_FLASH_CS_BANK_2,
     SPI_FLASH_CS_BANK_3,
     SPI_FLASH_CS_BANK_4,
-    // SPI_SD_CS,
+    PIN_SD_CS,
 };
 
 const uint8_t power_pins[] = {

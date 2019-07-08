@@ -64,6 +64,9 @@ target_link_libraries(fk-bundled data-protocol)
 find_package(TinyGPS)
 target_link_libraries(fk-bundled TinyGPS)
 
+find_package(Phylum)
+target_link_libraries(fk-bundled phylum)
+
 configure_firmware_linker_script(fk-bundled ${CMAKE_SOURCE_DIR}/boards/samd51/main.ld)
 
 add_arduino_firmware(fk-bundled)

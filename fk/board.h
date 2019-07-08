@@ -14,12 +14,16 @@ constexpr uint8_t GPS_POWER = 55u;
 
 constexpr uint8_t QSPI_FLASH_CS = 90u; // PB11
 
-// constexpr uint8_t SPI_SD_CS = 0;
+constexpr uint8_t PIN_SD_CS = 8u;  // PB18
 
 constexpr uint8_t SPI_FLASH_CS_BANK_1 = 44u; // PC11
 constexpr uint8_t SPI_FLASH_CS_BANK_2 = 41u; // PC12
 constexpr uint8_t SPI_FLASH_CS_BANK_3 = 40u; // PC13
 constexpr uint8_t SPI_FLASH_CS_BANK_4 = 43u; // PC14
+
+constexpr uint8_t BUTTON_RIGHT = 32u;        // PA21
+constexpr uint8_t BUTTON_MIDDLE = 31u;       // PA22
+constexpr uint8_t BUTTON_LEFT = 30u;         // PA23
 
 class SpiWrapper {
 private:

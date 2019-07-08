@@ -9,6 +9,9 @@
 #include <Adafruit_QSPI.h>
 #include <Adafruit_QSPI_Flash.h>
 
+#include <phylum/backend.h>
+#include <backends/arduino_sd/arduino_sd.h>
+
 namespace fk {
 
 FK_DECLARE_LOGGER("check");
@@ -29,6 +32,7 @@ void SelfCheck::check() {
     spi_memory();
     gps();
     wifi();
+    sd_card();
 
     loginfo("done");
 }
@@ -199,6 +203,25 @@ bool SelfCheck::wifi() {
         }
 
         return ok;
+    });
+}
+
+bool SelfCheck::sd_card() {
+    return single_check("sd card", []() {
+        SPI2.begin();
+
+        phylum::Geometry g;
+        phylum::ArduinoSdBackend storage;
+        if (!storage.initialize(g, PIN_SD_CS)) {
+            logwarn("initialize failed");
+            return false;
+        }
+
+        if (!storage.open()) {
+            logwarn("open failed");
+            return false;
+        }
+        return true;
     });
 }
 
