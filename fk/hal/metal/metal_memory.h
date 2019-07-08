@@ -18,7 +18,7 @@ public:
 public:
     bool begin() override;
 
-    flash_geometry_t get_geometry() const override;
+    flash_geometry_t geometry() const override;
 
     bool read(uint32_t address, uint8_t *data, uint32_t length) override;
 

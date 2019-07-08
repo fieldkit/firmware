@@ -27,7 +27,7 @@ public:
     SpiFlash(uint8_t cs);
 
 public:
-    flash_geometry_t get_geometry() const;
+    flash_geometry_t geometry() const;
 
     bool begin();
 

@@ -128,7 +128,7 @@ bool SelfCheck::spi_memory() {
         return false;
     }
 
-    auto g = memory.get_geometry();
+    auto g = memory.geometry();
 
     if (false) {
         auto started = fk_uptime();

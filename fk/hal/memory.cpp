@@ -10,7 +10,7 @@ bool with_bank(DataMemory **memories, size_t size, uint32_t address, F fn) {
     auto bank_address = address;
     for (size_t i = 0; i < size; ++i) {
         auto &bank = *memories[i];
-        auto g = bank.get_geometry();
+        auto g = bank.geometry();
 
         if (bank_address < g.total_size) {
             return fn(bank, bank_address);
@@ -29,7 +29,7 @@ bool BankedDataMemory::begin() {
     for (size_t i = 0; i < size_; ++i) {
         auto bank = memories_[i];
         if (bank->begin()) {
-            auto g = bank->get_geometry();
+            auto g = bank->geometry();
             if (geometry_.page_size == 0) {
                 geometry_.page_size = g.page_size;
                 geometry_.block_size = g.block_size;
@@ -44,7 +44,7 @@ bool BankedDataMemory::begin() {
     return nbanks > 0;
 }
 
-flash_geometry_t BankedDataMemory::get_geometry() const {
+flash_geometry_t BankedDataMemory::geometry() const {
     return geometry_;
 }
 

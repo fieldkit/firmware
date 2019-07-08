@@ -13,8 +13,8 @@ bool MetalDataMemory::begin() {
     return flash_.begin();
 }
 
-flash_geometry_t MetalDataMemory::get_geometry() const {
-    return flash_.get_geometry();
+flash_geometry_t MetalDataMemory::geometry() const {
+    return flash_.geometry();
 }
 
 bool MetalDataMemory::read(uint32_t address, uint8_t *data, uint32_t length) {
