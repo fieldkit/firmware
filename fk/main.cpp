@@ -70,6 +70,21 @@ static void task_handler_httpd(void *params) {
     }
 }
 
+static void task_handler_gps(void *params) {
+    auto gps = get_gps();
+
+    if (!gps->begin()) {
+        logerror("gps failed");
+        return;
+    }
+
+    while (true) {
+        GpsFix fix;
+        gps->service(fix);
+        delay(10);
+    }
+}
+
 void run_tasks() {
     /**
      * This is very deliberate. By placing these on the stack this way, we
@@ -88,11 +103,15 @@ void run_tasks() {
     os_task_t httpd_task;
     uint32_t httpd_stack[4096 / sizeof(uint32_t)];
 
+    os_task_t gps_task;
+    uint32_t gps_stack[4096 / sizeof(uint32_t)];
+
     OS_CHECK(os_initialize());
 
     OS_CHECK(os_task_initialize(&idle_task, "idle", OS_TASK_START_RUNNING, &task_handler_idle, NULL, idle_stack, sizeof(idle_stack)));
     OS_CHECK(os_task_initialize(&display_task, "display", OS_TASK_START_RUNNING, &task_handler_display, NULL, display_stack, sizeof(display_stack)));
     OS_CHECK(os_task_initialize(&httpd_task, "httpd", OS_TASK_START_RUNNING, &task_handler_httpd, NULL, httpd_stack, sizeof(httpd_stack)));
+    OS_CHECK(os_task_initialize(&gps_task, "httpd", OS_TASK_START_RUNNING, &task_handler_gps, NULL, gps_stack, sizeof(gps_stack)));
 
     auto total_stacks = sizeof(idle_stack) + sizeof(display_stack) + sizeof(httpd_stack);
     loginfo("stacks = %d", total_stacks);
