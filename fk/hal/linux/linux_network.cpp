@@ -1,4 +1,5 @@
-#include "printf.h"
+#include <tiny_printf.h>
+
 #include "hal/linux/linux.h"
 #include "hal/linux/linux_network.h"
 
@@ -67,9 +68,9 @@ int32_t LinuxNetworkConnection::writef(const char *str, ...) {
 int32_t LinuxNetworkConnection::vwritef(const char *str, va_list args) {
     va_list copy;
     va_copy(copy, args);
-    auto needed = fk_vsnprintf(nullptr, 0, str, copy);
+    auto needed = tiny_vsnprintf(nullptr, 0, str, copy);
     auto buffer = (char *)malloc(needed + 1);
-    fk_vsnprintf(buffer, needed + 1, str, args);
+    tiny_vsnprintf(buffer, needed + 1, str, args);
     write(buffer);
     free(buffer);
     return needed;

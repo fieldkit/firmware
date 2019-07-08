@@ -1,7 +1,8 @@
+#include <tiny_printf.h>
+
 #include <cstdlib>
 #include <cstring>
 
-#include "printf.h"
 #include "pool.h"
 #include "platform.h"
 #include "protobuf.h"
@@ -88,13 +89,13 @@ char *Pool::strndup(const char *str, size_t length) {
 char *Pool::sprintf(const char *str, ...) {
     va_list args;
     va_start(args, str);
-    auto req = fk_vsnprintf(nullptr, 0, str, args);
+    auto req = tiny_vsnprintf(nullptr, 0, str, args);
     va_end(args);
 
     auto ptr = (char *)malloc(req + 1);
 
     va_start(args, str);
-    fk_vsnprintf(ptr, req + 1, str, args);
+    tiny_vsnprintf(ptr, req + 1, str, args);
     va_end(args);
 
     ptr[req] = 0;

@@ -1,8 +1,9 @@
 #pragma once
 
+#include <tiny_printf.h>
+
 #include <gmock/gmock.h>
 
-#include "printf.h"
 #include "hal/network.h"
 
 namespace fk {
@@ -32,11 +33,11 @@ public:
     int32_t writef(const char *str, ...) override {
         va_list args;
         va_start(args, str);
-        auto needed = fk_vsnprintf(nullptr, 0, str, args);
+        auto needed = tiny_vsnprintf(nullptr, 0, str, args);
         va_end(args);
         auto buffer = (char *)malloc(needed + 1);
         va_start(args, str);
-        fk_vsnprintf(buffer, needed + 1, str, args);
+        tiny_vsnprintf(buffer, needed + 1, str, args);
         write(buffer);
         free(buffer);
         va_end(args);

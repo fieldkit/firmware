@@ -1,4 +1,5 @@
-#include "printf.h"
+#include <tiny_printf.h>
+
 #include "hal/metal/metal_network.h"
 
 #if defined(ARDUINO)
@@ -53,7 +54,7 @@ int32_t MetalNetworkConnection::writef(const char *str, ...) {
 }
 
 int32_t MetalNetworkConnection::vwritef(const char *str, va_list args) {
-    return fk_vfctprintf(write_connection, &wcl_, str, args);
+    return tiny_vfctprintf(write_connection, &wcl_, str, args);
 }
 
 int32_t MetalNetworkConnection::socket() {

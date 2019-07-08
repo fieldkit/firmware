@@ -1,5 +1,6 @@
+#include <tiny_printf.h>
+
 #include "common.h"
-#include "printf.h"
 
 namespace fk {
 
@@ -8,7 +9,7 @@ size_t bytes_to_hex_string(char *buffer, size_t buffer_size, const uint8_t *data
     FK_ASSERT(buffer_size >= data_size * 2);
 
     for (size_t i = 0; i < data_size; ++i) {
-        fk_snprintf(s, 3, "%02x", data[i]);
+        tiny_snprintf(s, 3, "%02x", data[i]);
         s += 2;
     }
 
