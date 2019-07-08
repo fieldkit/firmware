@@ -82,15 +82,17 @@ bool MetalGps::service(GpsFix &fix) {
 
             fix.valid = ok;
 
-            if (i == sizeof(buffer) - 1 || c == '\n') {
-                if (i > 0) {
-                    logtrace("%s", buffer);
+            if (false) {
+                if (i == sizeof(buffer) - 1 || c == '\n') {
+                    if (i > 0) {
+                        logtrace("%s", buffer);
+                    }
+                    i = 0;
                 }
-                i = 0;
-            }
-            else {
-                buffer[i++] = c;
-                buffer[i] = 0;
+                else {
+                    buffer[i++] = c;
+                    buffer[i] = 0;
+                }
             }
         }
         fk_delay(10);
