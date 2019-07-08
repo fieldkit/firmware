@@ -113,7 +113,7 @@ void run_tasks() {
     OS_CHECK(os_task_initialize(&httpd_task, "httpd", OS_TASK_START_RUNNING, &task_handler_httpd, NULL, httpd_stack, sizeof(httpd_stack)));
     OS_CHECK(os_task_initialize(&gps_task, "httpd", OS_TASK_START_RUNNING, &task_handler_gps, NULL, gps_stack, sizeof(gps_stack)));
 
-    auto total_stacks = sizeof(idle_stack) + sizeof(display_stack) + sizeof(httpd_stack);
+    auto total_stacks = sizeof(idle_stack) + sizeof(display_stack) + sizeof(httpd_stack) + sizeof(gps_stack);
     loginfo("stacks = %d", total_stacks);
     loginfo("free = %lu", fk_free_memory());
     loginfo("starting os!");

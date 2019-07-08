@@ -41,7 +41,7 @@ LIBRARY_REPOSITORIES := jlewallen/arduino-osh jlewallen/loading conservify/segge
 	conservify/phylum conservify/lwstreams conservify/lwcron conservify/arduino-logging \
 	conservify/WiFi101 conservify/Adafruit_SPIFlash conservify/Adafruit_QSPI nanopb/nanopb \
 	olikraus/u8g2 mikalhart/TinyGPS nodejs/http-parser arduino-libraries/ArduinoMDNS \
-	fieldkit/app-protocol conservify/asf4
+	fieldkit/app-protocol fieldkit/data-protocol conservify/asf4
 LOCAL_LIBRARY_PATHS := $(patsubst %, libraries/%, $(LIBRARY_REPOSITORIES))
 
 libraries: $(LOCAL_LIBRARY_PATHS)

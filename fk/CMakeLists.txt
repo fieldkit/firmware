@@ -58,6 +58,7 @@ target_link_libraries(fk-bundled RTClib)
 
 find_package(Protocols)
 target_link_libraries(fk-bundled app-protocol)
+target_link_libraries(fk-bundled data-protocol)
 
 find_package(TinyGPS)
 target_link_libraries(fk-bundled TinyGPS)
