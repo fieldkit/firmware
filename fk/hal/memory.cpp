@@ -1,4 +1,7 @@
 #include "hal/memory.h"
+#include "hal/metal/metal_memory.h"
+#include "hal/linux/linux_memory.h"
+#include "board.h"
 
 namespace fk {
 
@@ -64,6 +67,28 @@ bool BankedDataMemory::erase_block(uint32_t address) {
     return with_bank(memories_, size_, address, [&](DataMemory &bank, uint32_t bank_address) {
         return bank.erase_block(bank_address);
     });
+}
+
+#if defined(FK_HARDWARE_FULL)
+MetalDataMemory banks[MemoryFactory::NumberOfDataMemoryBanks]{
+    { SPI_FLASH_CS_BANK_1 },
+    { SPI_FLASH_CS_BANK_2 },
+    { SPI_FLASH_CS_BANK_3 },
+    { SPI_FLASH_CS_BANK_4 },
+};
+#else
+LinuxDataMemory banks[MemoryFactory::NumberOfDataMemoryBanks];
+#endif
+
+DataMemory *bank_pointers[]{ &banks[0], &banks[1], &banks[2], &banks[3] };
+BankedDataMemory memory{ bank_pointers, 4 };
+
+DataMemory **MemoryFactory::get_data_memory_banks() {
+    return bank_pointers;
+}
+
+DataMemory *MemoryFactory::get_data_memory() {
+    return &memory;
 }
 
 }

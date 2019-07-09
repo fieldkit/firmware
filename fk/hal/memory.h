@@ -51,4 +51,13 @@ public:
 
 };
 
+class MemoryFactory {
+public:
+    constexpr static size_t NumberOfDataMemoryBanks = 4;
+
+public:
+    static DataMemory **get_data_memory_banks();
+    static DataMemory *get_data_memory();
+};
+
 }
