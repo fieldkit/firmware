@@ -102,22 +102,13 @@ bool SelfCheck::qspi_memory() {
 constexpr uint32_t OneMegabyte = 1024 * 1024;
 
 bool SelfCheck::spi_memory() {
-    MetalDataMemory banks[]{
-        { SPI_FLASH_CS_BANK_1 },
-        { SPI_FLASH_CS_BANK_2 },
-        { SPI_FLASH_CS_BANK_3 },
-        { SPI_FLASH_CS_BANK_4 },
-    };
-    DataMemory *bank_pointers[]{
-        &banks[0],
-        &banks[1],
-        &banks[2],
-        &banks[3],
-    };
-    BankedDataMemory memory{ bank_pointers, 4 };
+    auto banks = MemoryFactory::get_data_memory_banks();
+    auto memory = MemoryFactory::get_data_memory();
 
     auto nbanks = 0;
-    for (auto &bank : banks) {
+    for (size_t i = 0; i < MemoryFactory::NumberOfDataMemoryBanks; ++i) {
+        auto &bank = *banks[i];
+
         // TODO: Why is this necessary?
         fk_delay(100);
 
@@ -127,18 +118,18 @@ bool SelfCheck::spi_memory() {
         }
     }
 
-    if (!memory.begin()) {
+    if (!memory->begin()) {
         check_message("bank memory", false);
         return false;
     }
 
-    auto g = memory.geometry();
+    auto g = memory->geometry();
 
     if (false) {
         auto started = fk_uptime();
         for (uint32_t i = 0; i < g.nblocks; ++i) {
             uint8_t buffer[32];
-            FK_ASSERT(memory.read(i * g.block_size, buffer, sizeof(buffer)));
+            FK_ASSERT(memory->read(i * g.block_size, buffer, sizeof(buffer)));
         }
 
         loginfo("scan done %lums", fk_uptime() - started);
@@ -148,7 +139,7 @@ bool SelfCheck::spi_memory() {
         auto started = fk_uptime();
         do {
             uint8_t buffer[32];
-            FK_ASSERT(memory.read(block * g.block_size, buffer, sizeof(buffer)));
+            FK_ASSERT(memory->read(block * g.block_size, buffer, sizeof(buffer)));
             block /= 2;
         }
         while (block > 1);
