@@ -43,6 +43,9 @@ target_link_libraries(fake CortexLoading)
 find_package(ConservifyOS)
 target_link_libraries(fake ConservifyOS)
 
+find_package(Phylum)
+target_link_libraries(fake phylum)
+
 target_include_directories(fake PRIVATE ../../fk)
 target_compile_options(fake PUBLIC -Wall -Wno-variadic-macros)
 target_link_libraries(fake ${CMAKE_THREAD_LIBS_INIT})
