@@ -1,9 +1,13 @@
+#include <algorithm>
+
 #include "hal/memory.h"
 #include "hal/metal/metal_memory.h"
 #include "hal/linux/linux_memory.h"
 #include "board.h"
 
 namespace fk {
+
+FK_DECLARE_LOGGER("memory");
 
 BankedDataMemory::BankedDataMemory(DataMemory **memories, size_t size) : memories_(memories), size_(size) {
 }
@@ -67,6 +71,59 @@ bool BankedDataMemory::erase_block(uint32_t address) {
     return with_bank(memories_, size_, address, [&](DataMemory &bank, uint32_t bank_address) {
         return bank.erase_block(bank_address);
     });
+}
+
+SequentialMemory::SequentialMemory(DataMemory *memory) : memory_(memory) {
+}
+
+static uint32_t remaining_in_page(flash_geometry_t &g, uint32_t address) {
+    return g.page_size - (address % g.page_size);
+}
+
+uint32_t SequentialMemory::read(uint32_t address, uint8_t *data, uint32_t length) {
+    uint32_t nbytes = 0;
+
+    auto g = memory_->geometry();
+    auto p = data;
+    auto remaining = length;
+
+    while (nbytes != length) {
+        auto left = remaining_in_page(g, address);
+        auto reading = std::min(remaining, left);
+        if (!memory_->read(address, p, reading)) {
+            return nbytes;
+        }
+
+        address += reading;
+        remaining -= reading;
+        nbytes += reading;
+        p += reading;
+    }
+
+    return nbytes;
+}
+
+uint32_t SequentialMemory::write(uint32_t address, uint8_t *data, uint32_t length) {
+    auto nbytes = (uint32_t)0;
+
+    auto g = memory_->geometry();
+    auto p = data;
+    auto remaining = length;
+
+    while (nbytes != length) {
+        auto left = remaining_in_page(g, address);
+        auto writing = std::min(remaining, left);
+        if (!memory_->write(address, p, writing)) {
+            return nbytes;
+        }
+
+        address += writing;
+        remaining -= writing;
+        nbytes += writing;
+        p += writing;
+    }
+
+    return nbytes;
 }
 
 #if defined(FK_HARDWARE_FULL)

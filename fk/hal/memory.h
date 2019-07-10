@@ -51,6 +51,19 @@ public:
 
 };
 
+class SequentialMemory {
+private:
+    DataMemory *memory_;
+
+public:
+    SequentialMemory(DataMemory *memory);
+
+public:
+    uint32_t read(uint32_t address, uint8_t *data, uint32_t length);
+    uint32_t write(uint32_t address, uint8_t *data, uint32_t length);
+
+};
+
 class MemoryFactory {
 public:
     constexpr static size_t NumberOfDataMemoryBanks = 4;
