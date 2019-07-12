@@ -51,26 +51,28 @@ uint32_t hash_block(void *ptr, size_t size, Hash &hash);
 struct FileHeader {
     uint32_t tail{ InvalidAddress };
     uint32_t sequence{ 0 };
+    uint32_t size{ 0 };
     uint32_t version{ 0 };
 
     FileHeader() {
     }
 
-    FileHeader(uint32_t tail, uint32_t sequence, uint32_t version)
-        : tail(tail), sequence(sequence), version(version) {
+    FileHeader(uint32_t tail, uint32_t sequence, uint32_t size, uint32_t version)
+        : tail(tail), sequence(sequence), size(size), version(version) {
     }
 };
 
 struct OpenedFile {
     uint32_t tail{ InvalidAddress };
     uint32_t sequence{ 0 };
+    uint32_t size{ 0 };
     uint32_t version{ 0 };
 
     OpenedFile() {
     }
 
-    OpenedFile(uint32_t tail, uint32_t sequence, uint32_t version)
-        : tail(tail), sequence(sequence), version(version) {
+    OpenedFile(uint32_t tail, uint32_t sequence, uint32_t size, uint32_t version)
+        : tail(tail), sequence(sequence), size(size), version(version) {
     }
 };
 
@@ -146,6 +148,10 @@ public:
 
     uint32_t sequence(uint8_t file) const {
         return files_[file].sequence;
+    }
+
+    uint32_t size(uint8_t file) const {
+        return files_[file].size;
     }
 
 private:

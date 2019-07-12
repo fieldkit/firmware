@@ -86,6 +86,8 @@ bool Storage::seek(SeekSettings settings) {
             fh.sequence = record_head.sequence + 1;
         }
 
+        fh.size += record_head.size;
+
         // Skip over the record head, the actual record, and the tail (hash)
         address += sizeof(RecordHead) + record_head.size + sizeof(RecordTail);
     }
@@ -117,6 +119,7 @@ bool Storage::begin() {
                 files_[i] = OpenedFile{
                     block_header.files[i].tail,
                     block_header.files[i].sequence,
+                    block_header.files[i].size,
                     block_header.files[i].version,
                 };
             }
@@ -180,6 +183,7 @@ uint32_t Storage::allocate(uint8_t file) {
         block_header.files[i] = FileHeader{
             files_[i].tail,
             files_[i].sequence,
+            files_[i].size,
             files_[i].version,
         };
     }
@@ -232,6 +236,7 @@ bool Storage::append(uint8_t file, uint8_t *record, size_t size) {
     }
 
     fh.tail += sizeof(hash);
+    fh.size += size;
 
     return true;
 }

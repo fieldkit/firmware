@@ -104,7 +104,10 @@ TEST_F(StorageSuite, AppendingMultipleRecords) {
     ASSERT_EQ(storage.tail(0), actual_tail);
 
     ASSERT_EQ(storage.sequence(0), (uint32_t)100);
+    ASSERT_EQ(storage.size(0), (uint32_t)25600);
+
     ASSERT_EQ(storage.sequence(1), (uint32_t)0);
+    ASSERT_EQ(storage.size(1), (uint32_t)0);
 }
 
 TEST_F(StorageSuite, AppendingToMultipleFiles) {
@@ -120,5 +123,8 @@ TEST_F(StorageSuite, AppendingToMultipleFiles) {
     ASSERT_TRUE(storage.append(1, data1, sizeof(data1)));
 
     ASSERT_EQ(storage.sequence(0), (uint32_t)1);
+    ASSERT_EQ(storage.size(0), (uint32_t)256);
+
     ASSERT_EQ(storage.sequence(1), (uint32_t)1);
+    ASSERT_EQ(storage.size(1), (uint32_t)256);
 }
