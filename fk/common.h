@@ -9,14 +9,11 @@ namespace fk {
  * Halts execution if the given expression evaluates to false. See the fk_assert
  * function for more information.
  */
-#define FK_ASSERT(expression)                         (void)((expression) || (fk_assert(#expression, __FILE__, __LINE__), 0))
+#define FK_ASSERT(expression)                         (void)((expression) || (__cfy_assert(#expression, __FILE__, __LINE__), 0))
 
 /**
- * Assertion failure handler, invoked by the FK_ASSERT macro when an assertion
- * fails and logs the message and the location of the assertion.
+ * Write hex representation of bytes to a separate buffer.
  */
-void fk_assert(const char *assertion, const char *file, int line);
-
 size_t bytes_to_hex_string(char *buffer, size_t buffer_size, const uint8_t *data, size_t data_size);
 
 /**

@@ -61,12 +61,6 @@ uint32_t fk_delay(uint32_t ms) {
     return os_delay(ms);
 }
 
-void fk_assert(const char *assertion, const char *file, int line) {
-    fkb_external_printf("\n\nassertion \"%s\" failed: file \"%s\", line %d\n", assertion, file, line);
-    while (true) {
-    }
-}
-
 extern "C" char *sbrk(int32_t i);
 
 uint32_t fk_free_memory() {
@@ -106,10 +100,6 @@ uint32_t fk_uptime() {
 
 uint32_t fk_delay(uint32_t ms) {
     return 0;
-}
-
-void fk_assert(const char *assertion, const char *file, int line) {
-    fkb_external_printf("\n\nassertion \"%s\" failed: file \"%s\", line %d\n", assertion, file, line);
 }
 
 uint32_t fk_free_memory() {
