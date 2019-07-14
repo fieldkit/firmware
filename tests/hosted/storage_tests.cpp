@@ -211,12 +211,13 @@ TEST_F(StorageSuite, LargeFiles) {
 
     auto file_write = storage.file(0);
 
+    uint8_t expected[256] = { 0xcc };
+
     auto bytes_wrote = 0;
     while (bytes_wrote < 10 * 1024 * 1024) {
-        uint8_t data[256] = { 0xcc };
-        ASSERT_EQ(file_write.write(data, sizeof(data)), (int32_t)sizeof(data));
+        ASSERT_EQ(file_write.write(expected, sizeof(expected)), (int32_t)sizeof(expected));
 
-        bytes_wrote += sizeof(data);
+        bytes_wrote += sizeof(expected);
     }
 
     ASSERT_TRUE(storage.begin());
@@ -229,6 +230,57 @@ TEST_F(StorageSuite, LargeFiles) {
     while (bytes_read < 10 * 1024 * 1024) {
         uint8_t data[256] = { 0x00 };
         ASSERT_EQ(file_read.read(data, sizeof(data)), (int32_t)sizeof(data));
+
+        ASSERT_EQ(memcmp(expected, data, sizeof(data)), 0);
+
+        bytes_read += sizeof(data);
+    }
+}
+
+TEST_F(StorageSuite, MultipleLargeFiles) {
+    Storage storage{ memory_ };
+
+    ASSERT_TRUE(storage.clear());
+
+    auto file0_write = storage.file(0);
+    auto file1_write = storage.file(1);
+
+    uint8_t expected[256] = { 0xcc };
+
+    auto bytes_wrote = 0;
+    while (bytes_wrote < 10 * 1024 * 1024) {
+        ASSERT_EQ(file0_write.write(expected, sizeof(expected)), (int32_t)sizeof(expected));
+        ASSERT_EQ(file1_write.write(expected, sizeof(expected)), (int32_t)sizeof(expected));
+
+        bytes_wrote += sizeof(expected);
+    }
+
+    ASSERT_TRUE(storage.begin());
+
+    auto file0_read = storage.file(0);
+
+    ASSERT_TRUE(file0_read.seek(0));
+
+    auto bytes_read = 0;
+    while (bytes_read < 10 * 1024 * 1024) {
+        uint8_t data[256] = { 0x00 };
+        ASSERT_EQ(file0_read.read(data, sizeof(data)), (int32_t)sizeof(data));
+
+        ASSERT_EQ(memcmp(expected, data, sizeof(data)), 0);
+
+        bytes_read += sizeof(data);
+    }
+
+    auto file1_read = storage.file(1);
+
+    ASSERT_TRUE(file0_read.seek(0));
+
+    bytes_read = 0;
+    while (bytes_read < 10 * 1024 * 1024) {
+        uint8_t data[256] = { 0x00 };
+        ASSERT_EQ(file1_read.read(data, sizeof(data)), (int32_t)sizeof(data));
+
+        ASSERT_EQ(memcmp(expected, data, sizeof(data)), 0);
 
         bytes_read += sizeof(data);
     }

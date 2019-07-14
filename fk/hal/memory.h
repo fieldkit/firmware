@@ -17,6 +17,14 @@ typedef struct flash_geometry_t {
     uint32_t remaining_in_block(uint32_t address) {
         return block_size - (address % block_size);
     }
+
+    bool start_of_block(uint32_t address) {
+        return address % block_size == 0;
+    }
+
+    bool spans_block(uint32_t address, uint32_t length) {
+        return (address / block_size) != ((address + length) / block_size);
+    }
 } flash_geometry_t;
 
 class DataMemory {

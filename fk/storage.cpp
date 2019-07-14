@@ -1,5 +1,6 @@
 #include "storage.h"
 
+#include <phylum/crc.h>
 #include <phylum/blake2b.h>
 
 namespace fk {
@@ -39,6 +40,14 @@ struct BlockRange {
 
 SeekSettings SeekSettings::end_of(uint8_t file) {
     return SeekSettings{ file, LastRecord };
+}
+
+uint32_t RecordHead::sign() {
+    return phylum::crc32_checksum((uint8_t *)this, sizeof(uint32_t) * 2);
+}
+
+bool RecordHead::valid() {
+    return sign() == crc;
 }
 
 Storage::Storage(DataMemory *memory) : memory_(memory) {
@@ -277,6 +286,7 @@ int32_t File::write(uint8_t *record, uint32_t size) {
             RecordHead record_header = { 0 };
             record_header.size = size;
             record_header.record = record_++;
+            record_header.crc = record_header.sign();
             if (memory.write(tail_, (uint8_t *)&record_header, sizeof(record_header)) != sizeof(record_header)) {
                 return 0;
             }

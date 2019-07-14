@@ -133,7 +133,11 @@ struct BlockTail {
 struct RecordHead {
     uint32_t size;
     uint32_t record;
-    uint32_t reserved[2];
+    uint32_t crc;
+    uint32_t reserved[3];
+
+    uint32_t sign();
+    bool valid();
 };
 
 struct RecordTail {
