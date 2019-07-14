@@ -8,11 +8,26 @@
 namespace fk {
 
 using block_index_t = uint32_t;
+using record_number_t = uint32_t;
 using address_t = uint32_t;
 
 constexpr uint32_t InvalidAddress = (uint32_t)(-1);
 constexpr uint32_t InvalidSize = (uint32_t)(-1);
+constexpr uint32_t InvalidRecord = (uint32_t)(-1);
+constexpr uint32_t InvalidVersion = (uint32_t)(-1);
+
 constexpr uint32_t LastBlock = (uint32_t)(-1);
+constexpr uint32_t LastRecord = (uint32_t)(-1);
+
+constexpr int32_t NumberOfFiles = 4;
+
+static inline bool is_block_valid(uint32_t block) {
+    return block != InvalidAddress;
+}
+
+static inline bool is_address_valid(uint32_t address) {
+    return address != InvalidAddress;
+}
 
 struct BlockMagic {
     static constexpr char MagicKey[] = "phylum0";
@@ -50,33 +65,17 @@ uint32_t hash_block(void *ptr, size_t size, Hash &hash);
 
 struct FileHeader {
     uint32_t tail{ InvalidAddress };
-    uint32_t sequence{ 0 };
+    uint32_t record{ 0 };
     uint32_t size{ 0 };
     uint32_t version{ 0 };
 
     FileHeader() {
     }
 
-    FileHeader(uint32_t tail, uint32_t sequence, uint32_t size, uint32_t version)
-        : tail(tail), sequence(sequence), size(size), version(version) {
+    FileHeader(uint32_t tail, uint32_t record, uint32_t size, uint32_t version)
+        : tail(tail), record(record), size(size), version(version) {
     }
 };
-
-struct OpenedFile {
-    uint32_t tail{ InvalidAddress };
-    uint32_t sequence{ 0 };
-    uint32_t size{ 0 };
-    uint32_t version{ 0 };
-
-    OpenedFile() {
-    }
-
-    OpenedFile(uint32_t tail, uint32_t sequence, uint32_t size, uint32_t version)
-        : tail(tail), sequence(sequence), size(size), version(version) {
-    }
-};
-
-constexpr int32_t NumberOfFiles = 4;
 
 struct BlockHeader {
     BlockMagic magic;
@@ -98,13 +97,31 @@ struct BlockHeader {
 struct SeekSettings {
     uint8_t file{ 0 };
     uint32_t starting{ 0 };
-    uint32_t desired_record{ 0 };
+    uint32_t record{ 0 };
 
     SeekSettings() {
     }
 
-    SeekSettings(uint8_t file, uint32_t starting, uint32_t desired_record)
-        : file(file), starting(starting), desired_record(desired_record) {
+    SeekSettings(uint8_t file, uint32_t starting, uint32_t record)
+        : file(file), starting(starting), record(record) {
+    }
+
+    static SeekSettings end_of(uint8_t file);
+};
+
+struct SeekValue {
+    uint32_t address{ InvalidAddress };
+    uint32_t record{ InvalidRecord };
+    uint32_t position{ InvalidAddress };
+
+    SeekValue() {
+    }
+
+    SeekValue(uint32_t address, uint32_t record, uint32_t position) : address(address), record(record), position(position) {
+    }
+
+    bool valid() {
+        return is_address_valid(address);
     }
 };
 
@@ -115,7 +132,7 @@ struct BlockTail {
 
 struct RecordHead {
     uint32_t size;
-    uint32_t sequence;
+    uint32_t record;
     uint32_t reserved[2];
 };
 
@@ -123,39 +140,65 @@ struct RecordTail {
     Hash hash;
 };
 
+class Storage;
+
+class File {
+private:
+    Storage *storage_;
+    uint8_t file_;
+    uint32_t tail_{ InvalidAddress };
+    uint32_t record_{ InvalidRecord };
+    uint32_t size_{ InvalidSize };
+    uint32_t version_{ InvalidVersion };
+
+public:
+    File(Storage *storage, uint8_t file, FileHeader fh);
+    virtual ~File();
+
+public:
+    bool write(uint8_t *record, uint32_t size);
+    bool write(fk_data_DataRecord *record);
+    bool seek(uint32_t record);
+    bool read(uint8_t *record, uint32_t size);
+
+public:
+    uint32_t tail() const {
+        return tail_;
+    }
+
+    uint32_t record() const {
+        return record_;
+    }
+
+    uint32_t size() const {
+        return size_;
+    }
+
+private:
+    void update();
+
+};
+
 class Storage {
 private:
     DataMemory *memory_;
-    OpenedFile files_[NumberOfFiles];
+    FileHeader files_[NumberOfFiles];
     uint32_t free_block_{ 0 };
 
 public:
     Storage(DataMemory *memory);
 
 public:
+    friend class File;
+
+public:
     bool begin();
     bool clear();
-
-public:
-    bool append(uint8_t file, uint8_t *record, uint32_t size);
-    bool append(uint8_t file, fk_data_DataRecord *record);
-    bool seek(SeekSettings settings);
-
-public:
-    uint32_t tail(uint8_t file) const {
-        return files_[file].tail;
-    }
-
-    uint32_t sequence(uint8_t file) const {
-        return files_[file].sequence;
-    }
-
-    uint32_t size(uint8_t file) const {
-        return files_[file].size;
-    }
+    File file(uint8_t file);
 
 private:
     uint32_t allocate(uint8_t file);
+    SeekValue seek(SeekSettings settings);
 
 };
 
