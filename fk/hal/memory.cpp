@@ -76,10 +76,6 @@ bool BankedDataMemory::erase_block(uint32_t address) {
 SequentialMemory::SequentialMemory(DataMemory *memory) : memory_(memory) {
 }
 
-static uint32_t remaining_in_page(flash_geometry_t &g, uint32_t address) {
-    return g.page_size - (address % g.page_size);
-}
-
 uint32_t SequentialMemory::read(uint32_t address, uint8_t *data, uint32_t length) {
     uint32_t nbytes = 0;
 
@@ -87,8 +83,12 @@ uint32_t SequentialMemory::read(uint32_t address, uint8_t *data, uint32_t length
     auto p = data;
     auto remaining = length;
 
+    auto rib = g.remaining_in_block(address);
+
+    FK_ASSERT(length <= rib);
+
     while (nbytes != length) {
-        auto left = remaining_in_page(g, address);
+        auto left = g.remaining_in_page(address);
         auto reading = std::min(remaining, left);
         if (!memory_->read(address, p, reading)) {
             return nbytes;
@@ -110,8 +110,12 @@ uint32_t SequentialMemory::write(uint32_t address, uint8_t *data, uint32_t lengt
     auto p = data;
     auto remaining = length;
 
+    auto rib = g.remaining_in_block(address);
+
+    FK_ASSERT(length <= rib);
+
     while (nbytes != length) {
-        auto left = remaining_in_page(g, address);
+        auto left = g.remaining_in_page(address);
         auto writing = std::min(remaining, left);
         if (!memory_->write(address, p, writing)) {
             return nbytes;

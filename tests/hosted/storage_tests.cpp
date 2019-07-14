@@ -128,3 +128,17 @@ TEST_F(StorageSuite, AppendingToMultipleFiles) {
     ASSERT_EQ(storage.sequence(1), (uint32_t)1);
     ASSERT_EQ(storage.size(1), (uint32_t)256);
 }
+
+TEST_F(StorageSuite, FillingABlock) {
+    Storage storage{ memory_ };
+
+    ASSERT_TRUE(storage.clear());
+    ASSERT_TRUE(storage.begin());
+
+    auto length = 1024;
+    auto data = (uint8_t *)pool_.malloc(length);
+
+    for (uint32_t i = 0; i < (g_.block_size / length) + 10; ++i) {
+        ASSERT_TRUE(storage.append(0, data, length));
+    }
+}

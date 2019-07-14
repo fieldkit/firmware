@@ -196,39 +196,57 @@ uint32_t Storage::allocate(uint8_t file) {
     return address + sizeof(BlockHeader);
 }
 
-bool Storage::append(uint8_t file, uint8_t *record, size_t size) {
+bool Storage::append(uint8_t file, uint8_t *record, uint32_t size) {
     FK_ASSERT(file < NumberOfFiles);
 
     SequentialMemory memory{ memory_ };
-
+    auto g = memory_->geometry();
     auto &fh = files_[file];
-
-    if (!is_address_valid(fh.tail)) {
-        auto allocated = allocate(file);
-        fh.tail = allocated;
-    }
+    BLAKE2b b2b;
+    b2b.reset(Hash::Length);
 
     logtrace("[%d] appending %d @ 0x%06x (%d)", file, fh.sequence, fh.tail, size);
 
-    RecordHead header = { 0 };
-    header.size = size;
-    header.sequence = fh.sequence++;
-    if (memory.write(fh.tail, (uint8_t *)&header, sizeof(header)) != sizeof(header)) {
-        return false;
+    auto available = g.remaining_in_block(fh.tail);
+    auto wrote = (uint32_t)0;
+    auto header = false;
+    auto footer = false;
+    while (!header || wrote < size || !footer) {
+        if (!is_address_valid(fh.tail) || (!header && available < sizeof(RecordHead)) || available == 0 || (!footer && available < sizeof(RecordTail))) {
+            fh.tail = allocate(file);
+            available = g.remaining_in_block(fh.tail);
+        }
+
+        if (!header) {
+            RecordHead record_header = { 0 };
+            record_header.size = size;
+            record_header.sequence = fh.sequence++;
+            if (memory.write(fh.tail, (uint8_t *)&record_header, sizeof(record_header)) != sizeof(record_header)) {
+                return false;
+            }
+
+            fh.tail += sizeof(record_header);
+            available -= sizeof(record_header);
+            header = true;
+
+            b2b.update(&header, sizeof(header));
+        }
+        else if (wrote < size) {
+            auto writing = std::min(available, size);
+            if (memory.write(fh.tail, (uint8_t *)record + wrote, writing) != size) {
+                return false;
+            }
+
+            fh.tail += writing;
+            wrote += writing;
+            available -= writing;
+        }
+        else {
+            break;
+        }
     }
-
-    fh.tail += sizeof(RecordHead);
-
-    if (memory.write(fh.tail, (uint8_t *)record, size) != size) {
-        return false;
-    }
-
-    fh.tail += size;
 
     uint8_t hash[Hash::Length];
-    BLAKE2b b2b;
-    b2b.reset(Hash::Length);
-    b2b.update(&header, sizeof(header));
     b2b.update(record, size);
     b2b.finalize(hash, sizeof(hash));
     if (memory.write(fh.tail, (uint8_t *)hash, sizeof(hash)) != sizeof(hash)) {

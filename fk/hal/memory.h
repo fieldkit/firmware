@@ -9,6 +9,14 @@ typedef struct flash_geometry_t {
     uint32_t block_size;
     uint32_t nblocks;
     uint32_t total_size;
+
+    uint32_t remaining_in_page(uint32_t address) {
+        return page_size - (address % page_size);
+    }
+
+    uint32_t remaining_in_block(uint32_t address) {
+        return block_size - (address % block_size);
+    }
 } flash_geometry_t;
 
 class DataMemory {

@@ -137,7 +137,7 @@ public:
     bool clear();
 
 public:
-    bool append(uint8_t file, uint8_t *record, size_t size);
+    bool append(uint8_t file, uint8_t *record, uint32_t size);
     bool append(uint8_t file, fk_data_DataRecord *record);
     bool seek(SeekSettings settings);
 
