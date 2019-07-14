@@ -19,6 +19,11 @@ bool LinuxDataMemory::begin() {
     }
     size_ = BlockSize * NumberOfBlocks;
     memory_ = (uint8_t *)malloc(size_);
+
+    log_.logging(false);
+    log_.clear();
+    log_.append(LogEntry{ OperationType::Opened, 0x0, memory_ });
+
     return true;
 }
 
@@ -40,6 +45,8 @@ bool LinuxDataMemory::read(uint32_t address, uint8_t *data, uint32_t length) {
 
     auto p = memory_ + address;
     memcpy(data, p, length);
+
+    log_.append(LogEntry{ OperationType::Read, address, p, length });
 
     return true;
 }
@@ -70,6 +77,8 @@ bool LinuxDataMemory::write(uint32_t address, const uint8_t *data, uint32_t leng
     verify_erased(address, p, length);
     memcpy(p, data, length);
 
+    log_.append(LogEntry{ OperationType::Write, address, p, length });
+
     return true;
 }
 
@@ -77,7 +86,10 @@ bool LinuxDataMemory::erase_block(uint32_t address) {
     assert(address >= 0 && address < size_);
     assert(address % BlockSize == 0);
 
-    memset(memory_ + address, EraseByte, BlockSize);
+    auto p = memory_ + address;
+    memset(p, EraseByte, BlockSize);
+
+    log_.append(LogEntry{ OperationType::EraseBlock, address, p });
 
     return true;
 }

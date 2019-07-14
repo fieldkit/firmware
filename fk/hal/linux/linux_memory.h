@@ -3,6 +3,7 @@
 #if defined(linux)
 
 #include "hal/memory.h"
+#include "hal/linux/debug_log.h"
 
 namespace fk {
 
@@ -14,6 +15,7 @@ private:
     constexpr static uint32_t NumberOfBlocks = 2048;
 
 private:
+    StorageLog log_;
     flash_geometry_t geometry_;
     uint8_t *memory_{ nullptr };
     size_t size_{ 0 };
@@ -34,6 +36,11 @@ public:
     bool write(uint32_t address, const uint8_t *data, uint32_t length) override;
 
     bool erase_block(uint32_t address) override;
+
+public:
+    StorageLog &log() {
+        return log_;
+    }
 
 };
 

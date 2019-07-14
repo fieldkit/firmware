@@ -29,7 +29,32 @@ protected:
 
         memory_->begin();
 
-        log_configure_level(LogLevels::TRACE);
+        log_configure_level(LogLevels::DEBUG);
+    }
+
+    void TearDown() override {
+        auto erases = 0;
+        auto reads = 0;
+        auto writes = 0;
+
+        for (size_t i = 0; i < MemoryFactory::NumberOfDataMemoryBanks; ++i) {
+            auto &log = banks_[i]->log();
+
+            erases += log.number_of(OperationType::EraseBlock);
+            reads += log.number_of(OperationType::Read);
+            writes += log.number_of(OperationType::Write);
+            // loginfo("bank[%d] %d ops %d reads %d writes %d erase", i, log.size(), reads, writes, erases);
+        }
+
+        loginfo("bank[A] %d reads %d writes %d erase", reads, writes, erases);
+    }
+
+protected:
+    void clear_logs() {
+        for (size_t i = 0; i < MemoryFactory::NumberOfDataMemoryBanks; ++i) {
+            auto &log = banks_[i]->log();
+            log.clear();
+        }
     }
 
 };

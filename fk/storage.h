@@ -7,9 +7,8 @@
 
 namespace fk {
 
-using block_index_t = uint32_t;
-using record_number_t = uint32_t;
-using address_t = uint32_t;
+using BlockAddress = uint32_t;
+using StorageAddress = uint32_t;
 
 constexpr uint32_t InvalidAddress = (uint32_t)(-1);
 constexpr uint32_t InvalidSize = (uint32_t)(-1);
