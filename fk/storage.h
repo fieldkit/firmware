@@ -15,6 +15,7 @@ constexpr uint32_t InvalidAddress = (uint32_t)(-1);
 constexpr uint32_t InvalidSize = (uint32_t)(-1);
 constexpr uint32_t InvalidRecord = (uint32_t)(-1);
 constexpr uint32_t InvalidVersion = (uint32_t)(-1);
+constexpr uint32_t InvalidTimestamp  = (uint32_t)(-1);
 
 constexpr uint32_t LastBlock = (uint32_t)(-1);
 constexpr uint32_t LastRecord = (uint32_t)(-1);
@@ -79,7 +80,8 @@ struct FileHeader {
 
 struct BlockHeader {
     BlockMagic magic;
-    uint32_t block_file;
+    uint32_t timestamp;
+    uint32_t file;
     FileHeader files[NumberOfFiles];
     Hash hash;
 
@@ -96,14 +98,13 @@ struct BlockHeader {
 
 struct SeekSettings {
     uint8_t file{ 0 };
-    uint32_t starting{ 0 };
     uint32_t record{ 0 };
 
     SeekSettings() {
     }
 
-    SeekSettings(uint8_t file, uint32_t starting, uint32_t record)
-        : file(file), starting(starting), record(record) {
+    SeekSettings(uint8_t file, uint32_t record)
+        : file(file), record(record) {
     }
 
     static SeekSettings end_of(uint8_t file);
@@ -150,16 +151,17 @@ private:
     uint32_t record_{ InvalidRecord };
     uint32_t size_{ InvalidSize };
     uint32_t version_{ InvalidVersion };
+    uint32_t nrecord_{ InvalidAddress };
 
 public:
     File(Storage *storage, uint8_t file, FileHeader fh);
     virtual ~File();
 
 public:
-    bool write(uint8_t *record, uint32_t size);
-    bool write(fk_data_DataRecord *record);
-    bool seek(uint32_t record);
-    bool read(uint8_t *record, uint32_t size);
+    int32_t write(uint8_t *record, uint32_t size);
+    int32_t write(fk_data_DataRecord *record);
+    int32_t seek(uint32_t record);
+    int32_t read(uint8_t *record, uint32_t size);
 
 public:
     uint32_t tail() const {
@@ -183,6 +185,7 @@ class Storage {
 private:
     DataMemory *memory_;
     FileHeader files_[NumberOfFiles];
+    uint32_t timestamp_{ InvalidTimestamp };
     uint32_t free_block_{ 0 };
 
 public:

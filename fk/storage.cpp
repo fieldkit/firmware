@@ -38,7 +38,7 @@ struct BlockRange {
 };
 
 SeekSettings SeekSettings::end_of(uint8_t file) {
-    return SeekSettings{ file, 0, LastRecord };
+    return SeekSettings{ file, LastRecord };
 }
 
 Storage::Storage(DataMemory *memory) : memory_(memory) {
@@ -53,28 +53,39 @@ bool Storage::begin() {
         files_[i] = { };
     }
 
-    BlockHeader block_header;
+    // Look for the first available free block.
+    auto had_valid_blocks = false;
     auto range = BlockRange{ 0, g.nblocks };
     while (!range.empty()) {
+        BlockHeader block_header;
         auto address = range.middle_block() * g.block_size;
         if (!memory_->read(address, (uint8_t *)&block_header, sizeof(block_header))) {
             return false;
         }
 
         if (block_header.magic.valid()) {
-            logtrace("[%d] found valid block (0x%06x)", block_header.block_file, address);
+            logtrace("[%d] found valid block (0x%06x)", block_header.file, address);
 
             for (auto i = 0; i < NumberOfFiles; ++i) {
                 files_[i] = block_header.files[i];
             }
 
             range = range.second_half();
+            had_valid_blocks = true;
         }
         else {
             range = range.first_half();
         }
     }
 
+    if (!had_valid_blocks) {
+        return false;
+    }
+
+    free_block_ = range.start;
+
+    // Make sure our header records are fully up to date by seeking to the end
+    // of each file.
     for (auto file = (uint8_t)0; file < NumberOfFiles; ++file) {
         if (is_address_valid(files_[file].tail)) {
             auto sv = seek(SeekSettings::end_of(file));
@@ -87,9 +98,7 @@ bool Storage::begin() {
         }
     }
 
-    free_block_ = range.start;
-
-    logtrace("opened!");
+    logtrace("opened (block = %d)", free_block_);
 
     return true;
 }
@@ -120,16 +129,22 @@ uint32_t Storage::allocate(uint8_t file) {
     loginfo("[%d] allocated block #%d (0x%06x)", file, free_block_, address);
 
     free_block_++;
+    timestamp_++;
 
     files_[file].tail = address + sizeof(BlockHeader);
 
     BlockHeader block_header;
     block_header.magic.fill();
-    block_header.block_file = file;
+    block_header.file = file;
+    block_header.timestamp = timestamp_;
     for (auto i = 0; i < NumberOfFiles; ++i) {
         block_header.files[i] = files_[i];
     }
     block_header.fill_hash();
+
+    if (!memory_->erase_block(address)) {
+        return InvalidAddress;
+    }
 
     if (!memory_->write(address, (uint8_t *)&block_header, sizeof(BlockHeader))) {
         return InvalidAddress;
@@ -141,10 +156,43 @@ uint32_t Storage::allocate(uint8_t file) {
 SeekValue Storage::seek(SeekSettings settings) {
     SequentialMemory memory{ memory_ };
     auto g = memory_->geometry();
-    auto &fh = files_[settings.file];
-    auto address = is_block_valid(settings.starting) ? settings.starting : fh.tail;
     auto record = (uint32_t)0;
     auto position = (uint32_t)0;
+    auto address = InvalidAddress;
+
+    // If we don't have a starting address then fall back on a binary search.
+    if (!is_address_valid(address)) {
+        BlockHeader block_header;
+        auto range = BlockRange{ 0, g.nblocks };
+        while (!range.empty()) {
+            auto address = range.middle_block() * g.block_size;
+            if (!memory_->read(address, (uint8_t *)&block_header, sizeof(block_header))) {
+                return { };
+            }
+
+            if (block_header.magic.valid()) {
+                auto &bfh = block_header.files[settings.file];
+
+                if (settings.record != InvalidRecord) {
+                    if (bfh.record > settings.record) {
+                        range = range.first_half();
+                    }
+                    else {
+                        range = range.second_half();
+                    }
+                }
+                else {
+                    range = range.second_half();
+                }
+            }
+            else {
+                // Search earlier in the range for a valid block.
+                range = range.first_half();
+            }
+        }
+
+        address = range.start * g.block_size;
+    }
 
     FK_ASSERT(is_address_valid(address));
 
@@ -153,7 +201,7 @@ SeekValue Storage::seek(SeekSettings settings) {
         address += sizeof(BlockHeader);
     }
 
-    logtrace("[%d] seeking #%d from 0x%06x", settings.file, settings.record, settings.starting);
+    logtrace("[%d] seeking #%d (0x%06x)", settings.file, settings.record, address);
 
     while (true) {
         auto record_head = RecordHead{};
@@ -201,13 +249,13 @@ File::File(Storage *storage, uint8_t file, FileHeader fh) : storage_(storage), f
 File::~File() {
 }
 
-bool File::write(uint8_t *record, uint32_t size) {
+int32_t File::write(uint8_t *record, uint32_t size) {
     SequentialMemory memory{ storage_->memory_ };
     auto g = storage_->memory_->geometry();
-    auto wrote = (uint32_t)0;
     auto header = false;
     auto footer = false;
     auto available = g.remaining_in_block(tail_);
+    auto wrote = 0;
 
     BLAKE2b b2b;
     b2b.reset(Hash::Length);
@@ -217,9 +265,9 @@ bool File::write(uint8_t *record, uint32_t size) {
         available = g.remaining_in_block(tail_);
     }
 
-    logtrace("[%d] write #%d @ 0x%06x (%d)", file_, record_, tail_, size);
+    logtrace("[%d] write 0x%06x (%d bytes) #%d", file_, tail_, size, record_);
 
-    while (!header || wrote < size || !footer) {
+    while (!header || (uint32_t)wrote < size || !footer) {
         if (!is_address_valid(tail_) || (!header && available < sizeof(RecordHead)) || available == 0 || (!footer && available < sizeof(RecordTail))) {
             tail_ = storage_->allocate(file_);
             available = g.remaining_in_block(tail_);
@@ -230,7 +278,7 @@ bool File::write(uint8_t *record, uint32_t size) {
             record_header.size = size;
             record_header.record = record_++;
             if (memory.write(tail_, (uint8_t *)&record_header, sizeof(record_header)) != sizeof(record_header)) {
-                return false;
+                return 0;
             }
 
             tail_ += sizeof(record_header);
@@ -239,10 +287,11 @@ bool File::write(uint8_t *record, uint32_t size) {
 
             b2b.update(&header, sizeof(header));
         }
-        else if (wrote < size) {
-            auto writing = std::min(available, size);
+        else if ((uint32_t)wrote < size) {
+            auto writing = std::min(available, size - wrote);
+            FK_ASSERT(writing > 0);
             if (memory.write(tail_, (uint8_t *)record + wrote, writing) != writing) {
-                return false;
+                return 0;
             }
 
             tail_ += writing;
@@ -258,29 +307,29 @@ bool File::write(uint8_t *record, uint32_t size) {
     b2b.update(record, size);
     b2b.finalize(hash, sizeof(hash));
     if (memory.write(tail_, (uint8_t *)hash, sizeof(hash)) != sizeof(hash)) {
-        return false;
+        return 0; // NOTE: Hmmm.
     }
 
     tail_ += sizeof(hash);
-    size_ += size;
+    size_ += wrote;
 
     update();
 
-    return true;
+    return wrote;
 }
 
-bool File::write(fk_data_DataRecord *record) {
+int32_t File::write(fk_data_DataRecord *record) {
     size_t size = 0;
     auto fields = fk_data_DataRecord_fields;
     if (!pb_get_encoded_size(&size, fields, record)) {
-        return false;
+        return 0;
     }
 
-    return true;
+    return 0;
 }
 
-bool File::seek(uint32_t record) {
-    auto sv = storage_->seek(SeekSettings{ file_, 0, record });
+int32_t File::seek(uint32_t record) {
+    auto sv = storage_->seek(SeekSettings{ file_, record });
     if (!sv.valid()) {
         return false;
     }
@@ -288,66 +337,52 @@ bool File::seek(uint32_t record) {
     tail_ = sv.address;
     record_ = sv.record;
     size_ = sv.position;
+    nrecord_ = sv.address;
 
     return true;
 }
 
-bool File::read(uint8_t *record, uint32_t size) {
+int32_t File::read(uint8_t *record, uint32_t size) {
     SequentialMemory memory{ storage_->memory_ };
     auto g = storage_->memory_->geometry();
-    BLAKE2b b2b;
-    b2b.reset(Hash::Length);
-
     auto available = g.remaining_in_block(tail_);
     auto bytes_read = (uint32_t)0;
-    auto header = false;
-    auto footer = false;
-    while (!header || bytes_read < size || !footer) {
-        if (!header) {
+
+    while (bytes_read < size) {
+        if (tail_ == nrecord_) {
             RecordHead record_header = { 0 };
             if (memory.read(tail_, (uint8_t *)&record_header, sizeof(record_header)) != sizeof(record_header)) {
-                return false;
+                return bytes_read;
+            }
+
+            if (record_header.size == 0 || record_header.size == InvalidSize) {
+                break;
             }
 
             tail_ += sizeof(record_header);
             available -= sizeof(record_header);
-            header = true;
-
-            b2b.update(&header, sizeof(header));
+            nrecord_ = tail_ + record_header.size + sizeof(RecordTail);
         }
         else if (bytes_read < size) {
-            auto reading = std::min(available, size);
+            auto reading = std::min(available, size - bytes_read);
+            FK_ASSERT(reading > 0);
             if (memory.read(tail_, (uint8_t *)record + bytes_read, reading) != reading) {
-                return false;
+                return bytes_read;
             }
 
             tail_ += reading;
             bytes_read += reading;
             available -= reading;
+            if (available == 0) {
+                available = g.remaining_in_block(tail_);
+            }
         }
         else {
             break;
         }
     }
 
-    uint8_t actual[Hash::Length];
-    uint8_t expected[Hash::Length];
-    b2b.update(record, size);
-    b2b.finalize(expected, sizeof(expected));
-    if (memory.read(tail_, (uint8_t *)actual, sizeof(actual)) != sizeof(actual)) {
-        return false;
-    }
-
-    if (memcmp(actual, expected, Hash::Length) != 0) {
-        char actual_hex[Hash::Length * 2];
-        char expected_hex[Hash::Length * 2];
-        bytes_to_hex_string(actual_hex, sizeof(actual_hex), actual, Hash::Length);
-        bytes_to_hex_string(expected_hex, sizeof(expected_hex), expected, Hash::Length);
-        logerror("hash mismatch %s != %s", actual_hex, expected_hex);
-        return false;
-    }
-
-    return true;
+    return bytes_read;
 }
 
 void File::update() {
