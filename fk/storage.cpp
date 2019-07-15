@@ -1,8 +1,5 @@
 #include "storage.h"
 
-#include <phylum/crc.h>
-#include <phylum/blake2b.h>
-
 namespace fk {
 
 FK_DECLARE_LOGGER("storage");
@@ -260,7 +257,8 @@ File Storage::file(uint8_t file) {
     return File{ this, file, files_[file] };
 }
 
-File::File(Storage *storage, uint8_t file, FileHeader fh) : storage_(storage), file_(file), tail_(fh.tail), record_(fh.record), size_(fh.size) {
+File::File(Storage *storage, uint8_t file, FileHeader fh)
+    : storage_(storage), file_(file), tail_(fh.tail), record_(fh.record), size_(fh.size) {
     FK_ASSERT(file_ < NumberOfFiles);
 }
 
@@ -275,8 +273,7 @@ int32_t File::write(uint8_t *record, uint32_t size) {
     auto wrote = 0;
     auto left_in_block = (uint32_t)(g.remaining_in_block(tail_) - sizeof(BlockTail));
 
-    BLAKE2b b2b;
-    b2b.reset(Hash::Length);
+    hash_.reset(Hash::Length);
 
     if (!is_address_valid(tail_)) {
         tail_ = storage_->allocate(file_);
@@ -330,7 +327,7 @@ int32_t File::write(uint8_t *record, uint32_t size) {
             left_in_block -= sizeof(record_header);
             header = true;
 
-            b2b.update(&header, sizeof(header));
+            hash_.update(&header, sizeof(header));
         }
         else if ((uint32_t)wrote < size) {
             auto writing = std::min(left_in_block, size - wrote);
@@ -350,16 +347,15 @@ int32_t File::write(uint8_t *record, uint32_t size) {
         }
         else if ((uint32_t)wrote == size && !footer) {
             uint8_t hash[Hash::Length];
-            b2b.update(record, size);
-            b2b.finalize(hash, sizeof(hash));
-
-            logverbose("[%d] 0x%06x write footer (lib = %d)", file_, tail_, left_in_block);
+            hash_.update(record, size);
+            hash_.finalize(hash, sizeof(hash));
+            if (memory.write(tail_, (uint8_t *)hash, sizeof(RecordTail)) != sizeof(RecordTail)) {
+                return 0;
+            }
 
             FK_ASSERT(sizeof(hash) == sizeof(RecordTail));
 
-            if (memory.write(tail_, (uint8_t *)hash, sizeof(RecordTail)) != sizeof(RecordTail)) {
-                return 0; // NOTE: Hmmm.
-            }
+            logverbose("[%d] 0x%06x write footer (lib = %d)", file_, tail_, left_in_block);
 
             tail_ += sizeof(RecordTail);
             size_ += wrote;
@@ -437,6 +433,9 @@ int32_t File::read(uint8_t *record, uint32_t size) {
                 break;
             }
 
+            hash_.reset(Hash::Length);
+            hash_.update(&record_header, sizeof(RecordHeader));
+
             record_remaining_ = record_header.size;
 
             logverbose("[%d] 0x%06x record header (%d bytes) #%d", file_, tail_, record_remaining_, record_header.record);
@@ -451,6 +450,8 @@ int32_t File::read(uint8_t *record, uint32_t size) {
             if (memory.read(tail_, (uint8_t *)record + bytes_read, reading) != reading) {
                 return bytes_read;
             }
+
+            hash_.update(record + bytes_read, reading);
 
             logverbose("[%d] 0x%06x data (%d bytes)", file_, tail_, reading);
 

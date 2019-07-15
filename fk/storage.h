@@ -5,6 +5,9 @@
 
 #include <fk-data-protocol.h>
 
+#include <phylum/crc.h>
+#include <phylum/blake2b.h>
+
 namespace fk {
 
 using BlockAddress = uint32_t;
@@ -168,6 +171,7 @@ private:
     uint32_t size_{ InvalidSize };
     uint32_t version_{ InvalidVersion };
     uint32_t record_remaining_{ InvalidAddress };
+    BLAKE2b hash_;
 
 public:
     File(Storage *storage, uint8_t file, FileHeader fh);
