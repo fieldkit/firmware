@@ -57,6 +57,8 @@ dependencies: $(LOCAL_LIBRARY_PATHS)
 
 $(LOCAL_LIBRARY_PATHS): simple-deps
 
+gitdeps: dependencies
+
 simple-deps: bootloader/dependencies.cmake libraries/dependencies.cmake
 
 bootloader/dependencies.cmake:
