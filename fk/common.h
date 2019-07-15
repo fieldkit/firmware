@@ -57,12 +57,12 @@ constexpr uint32_t WifiConnectionTimeoutMs = 30 * 1000;
  * for a specific logger. Typically used at the top of a file.
  */
 #define FK_DECLARE_LOGGER(name)                  \
-    constexpr const char *LOG_FACILITY = name;                        \
-    static void loginfo(const char *f, ...) __attribute__((unused));  \
-    static void logerror(const char *f, ...) __attribute__((unused)); \
-    static void logwarn(const char *f, ...) __attribute__((unused));  \
-    static void logtrace(const char *f, ...) __attribute__((unused)); \
-    static void logdebug(const char *f, ...) __attribute__((unused)); \
+    constexpr const char *LOG_FACILITY = name;                          \
+    static void loginfo(const char *f, ...) __attribute__((unused));    \
+    static void logerror(const char *f, ...) __attribute__((unused));   \
+    static void logwarn(const char *f, ...) __attribute__((unused));    \
+    static void logtrace(const char *f, ...) __attribute__((unused));   \
+    static void logdebug(const char *f, ...) __attribute__((unused));   \
     static void loginfo(const char *f, ...) {    \
         va_list args;                            \
         va_start(args, f);                       \

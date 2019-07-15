@@ -5,6 +5,8 @@
 
 namespace fk {
 
+#define logverbose(f, ...)
+
 FK_DECLARE_LOGGER("storage");
 
 constexpr char BlockMagic::MagicKey[];
@@ -205,15 +207,15 @@ SeekValue Storage::seek(SeekSettings settings) {
 
     FK_ASSERT(is_address_valid(address));
 
-    // Adjust start position if we're at the start of a block.
-    if (address % g.block_size == 0) {
-        address += sizeof(BlockHeader);
-    }
-
     logtrace("[%d] seeking #%d (0x%06x)", settings.file, settings.record, address);
 
     while (true) {
         auto record_head = RecordHead{};
+
+        // If at the start of the block, bump.
+        if (g.start_of_block(address)) {
+            address += sizeof(BlockHeader);
+        }
 
         // NOTE: This needs to cross blocks.
         if (memory.read(address, (uint8_t *)&record_head, sizeof(record_head)) != sizeof(record_head)) {
@@ -221,7 +223,7 @@ SeekValue Storage::seek(SeekSettings settings) {
         }
 
         // Is there a valid record here?
-        if (record_head.size == 0 || record_head.size == InvalidSize) {
+        if (record_head.size == 0 || record_head.size == InvalidSize || !record_head.valid()) {
             break;
         }
 
@@ -235,8 +237,13 @@ SeekValue Storage::seek(SeekSettings settings) {
             record = record_head.record + 1;
         }
 
+        auto record_length = sizeof(RecordHead) + record_head.size + sizeof(RecordTail);
+
+        logverbose("[%d] seeking: 0x%06x + %4d/%4d", settings.file, address, record_length, record_head.size);
+
         // Skip over the record head, the actual record, and the tail (hash)
-        address += sizeof(RecordHead) + record_head.size + sizeof(RecordTail);
+        FK_ASSERT(!g.spans_block(address, record_length));
+        address += record_length;
 
         // Update size of the data we've scanned through.
         position += record_head.size;
@@ -263,23 +270,33 @@ int32_t File::write(uint8_t *record, uint32_t size) {
     auto g = storage_->memory_->geometry();
     auto header = false;
     auto footer = false;
-    auto available = g.remaining_in_block(tail_);
     auto wrote = 0;
+    auto left_in_block = g.remaining_in_block(tail_);
 
     BLAKE2b b2b;
     b2b.reset(Hash::Length);
 
     if (!is_address_valid(tail_)) {
         tail_ = storage_->allocate(file_);
-        available = g.remaining_in_block(tail_);
+        left_in_block = g.remaining_in_block(tail_);
+
+        FK_ASSERT(is_address_valid(tail_));
+        FK_ASSERT(left_in_block > 0);
     }
 
-    logtrace("[%d] write 0x%06x (%d bytes) #%d", file_, tail_, size, record_);
+    logtrace("[%d] 0x%06x BEGIN write (%d bytes) #%d (%d w/ overhead)", file_, tail_, size, record_,
+             sizeof(RecordHead) + sizeof(RecordTail) + size);
 
     while (!header || (uint32_t)wrote < size || !footer) {
-        if (!is_address_valid(tail_) || (!header && available < sizeof(RecordHead)) || available == 0 || (!footer && available < sizeof(RecordTail))) {
+        if (!is_address_valid(tail_) || left_in_block == 0 ||
+            (!header && !footer && left_in_block < sizeof(RecordHead)) ||
+            (!footer && (uint32_t)wrote == size && left_in_block < sizeof(RecordTail))) {
+
             tail_ = storage_->allocate(file_);
-            available = g.remaining_in_block(tail_);
+            left_in_block = g.remaining_in_block(tail_);
+
+            FK_ASSERT(is_address_valid(tail_));
+            FK_ASSERT(left_in_block > 0);
         }
 
         if (!header) {
@@ -287,41 +304,67 @@ int32_t File::write(uint8_t *record, uint32_t size) {
             record_header.size = size;
             record_header.record = record_++;
             record_header.crc = record_header.sign();
+
+            FK_ASSERT(wrote == 0);
+
+            logverbose("[%d] 0x%06x write header (lib = %d) (%d bytes)", file_, tail_, left_in_block, size);
+
             if (memory.write(tail_, (uint8_t *)&record_header, sizeof(record_header)) != sizeof(record_header)) {
                 return 0;
             }
 
             tail_ += sizeof(record_header);
-            available -= sizeof(record_header);
+            left_in_block -= sizeof(record_header);
             header = true;
 
             b2b.update(&header, sizeof(header));
         }
         else if ((uint32_t)wrote < size) {
-            auto writing = std::min(available, size - wrote);
+            auto writing = std::min(left_in_block, size - wrote);
+
             FK_ASSERT(writing > 0);
+
+            logverbose("[%d] 0x%06x write data (%d bytes) (%d lib) (%d to write)",
+                     file_, tail_, writing, left_in_block, size - wrote);
+
             if (memory.write(tail_, (uint8_t *)record + wrote, writing) != writing) {
                 return 0;
             }
 
             tail_ += writing;
             wrote += writing;
-            available -= writing;
+            left_in_block -= writing;
+        }
+        else if ((uint32_t)wrote == size && !footer) {
+            uint8_t hash[Hash::Length];
+            b2b.update(record, size);
+            b2b.finalize(hash, sizeof(hash));
+
+            logverbose("[%d] 0x%06x write footer (lib = %d)", file_, tail_, left_in_block);
+
+            FK_ASSERT(sizeof(hash) == sizeof(RecordTail));
+
+            if (memory.write(tail_, (uint8_t *)hash, sizeof(RecordTail)) != sizeof(RecordTail)) {
+                return 0; // NOTE: Hmmm.
+            }
+
+            tail_ += sizeof(RecordTail);
+            size_ += wrote;
+            left_in_block -= sizeof(RecordTail);
+            footer = true;
         }
         else {
             break;
         }
     }
 
-    uint8_t hash[Hash::Length];
-    b2b.update(record, size);
-    b2b.finalize(hash, sizeof(hash));
-    if (memory.write(tail_, (uint8_t *)hash, sizeof(hash)) != sizeof(hash)) {
-        return 0; // NOTE: Hmmm.
-    }
+    if (left_in_block == 0) {
+        tail_ = storage_->allocate(file_);
+        left_in_block = g.remaining_in_block(tail_);
 
-    tail_ += sizeof(hash);
-    size_ += wrote;
+        FK_ASSERT(is_address_valid(tail_));
+        FK_ASSERT(left_in_block > 0);
+    }
 
     update();
 
@@ -347,7 +390,7 @@ int32_t File::seek(uint32_t record) {
     tail_ = sv.address;
     record_ = sv.record;
     size_ = sv.position;
-    nrecord_ = sv.address;
+    record_remaining_ = 0;
 
     return true;
 }
@@ -355,11 +398,13 @@ int32_t File::seek(uint32_t record) {
 int32_t File::read(uint8_t *record, uint32_t size) {
     SequentialMemory memory{ storage_->memory_ };
     auto g = storage_->memory_->geometry();
-    auto available = g.remaining_in_block(tail_);
+    auto left_in_block = g.remaining_in_block(tail_);
     auto bytes_read = (uint32_t)0;
 
+    logtrace("[%d] 0x%06x BEGIN read (%d bytes)", file_, tail_, size);
+
     while (bytes_read < size) {
-        if (tail_ == nrecord_) {
+        if (record_remaining_ == 0) {
             RecordHead record_header = { 0 };
             if (memory.read(tail_, (uint8_t *)&record_header, sizeof(record_header)) != sizeof(record_header)) {
                 return bytes_read;
@@ -369,22 +414,66 @@ int32_t File::read(uint8_t *record, uint32_t size) {
                 break;
             }
 
+            record_remaining_ = record_header.size;
+
+            logverbose("[%d] 0x%06x record header (%d bytes)", file_, tail_, record_remaining_);
+
             tail_ += sizeof(record_header);
-            available -= sizeof(record_header);
-            nrecord_ = tail_ + record_header.size + sizeof(RecordTail);
+            left_in_block -= sizeof(record_header);
         }
         else if (bytes_read < size) {
-            auto reading = std::min(available, size - bytes_read);
+            auto buffer_remaining = size - bytes_read;
+            auto reading = std::min(left_in_block, std::min(buffer_remaining, record_remaining_));
             FK_ASSERT(reading > 0);
             if (memory.read(tail_, (uint8_t *)record + bytes_read, reading) != reading) {
                 return bytes_read;
             }
 
+            logverbose("[%d] 0x%06x data (%d bytes)", file_, tail_, reading);
+
             tail_ += reading;
             bytes_read += reading;
-            available -= reading;
-            if (available == 0) {
-                available = g.remaining_in_block(tail_);
+            left_in_block -= reading;
+            record_remaining_ -= reading;
+
+            auto dangling_header = false;
+            if (record_remaining_ == 0) {
+                logverbose("[%d] 0x%06x end of record", file_, tail_);
+                if (left_in_block >= sizeof(RecordTail)) {
+                    tail_ += sizeof(RecordTail);
+                    left_in_block -= sizeof(RecordTail);
+                }
+                else {
+                    tail_ += left_in_block;
+                    left_in_block = 0;
+                    dangling_header = true;
+                }
+            }
+            if (left_in_block < sizeof(RecordHead)) {
+                logverbose("[%d] 0x%06x end of block", file_, tail_);
+
+                BlockHeader block_header;
+                while (true) {
+                    if (memory.read(tail_, (uint8_t *)&block_header, sizeof(block_header)) != sizeof(block_header)) {
+                        break;
+                    }
+
+                    if (!block_header.verify_hash()) {
+                        logerror("[%d] 0x%06x header has bad hash", file_, tail_);
+                    }
+
+                    if (block_header.file == file_) {
+                        break;
+                    }
+
+                    tail_ += g.block_size;
+                }
+
+                tail_ += sizeof(BlockHeader);
+                if (dangling_header) {
+                    tail_ += sizeof(RecordTail);
+                }
+                left_in_block = g.remaining_in_block(tail_);
             }
         }
         else {

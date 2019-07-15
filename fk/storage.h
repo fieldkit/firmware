@@ -154,7 +154,7 @@ private:
     uint32_t record_{ InvalidRecord };
     uint32_t size_{ InvalidSize };
     uint32_t version_{ InvalidVersion };
-    uint32_t nrecord_{ InvalidAddress };
+    uint32_t record_remaining_{ InvalidAddress };
 
 public:
     File(Storage *storage, uint8_t file, FileHeader fh);

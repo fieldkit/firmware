@@ -43,7 +43,6 @@ protected:
             erases += log.number_of(OperationType::EraseBlock);
             reads += log.number_of(OperationType::Read);
             writes += log.number_of(OperationType::Write);
-            // loginfo("bank[%d] %d ops %d reads %d writes %d erase", i, log.size(), reads, writes, erases);
         }
 
         loginfo("bank[A] %d reads %d writes %d erase", reads, writes, erases);
@@ -158,10 +157,12 @@ TEST_F(StorageSuite, AppendingToMultipleFiles) {
     auto file0 = storage.file(0);
     auto file1 = storage.file(1);
 
-    uint8_t data0[256] = { (uint8_t)0 };
+    uint8_t data0[256];
+    memset(data0, 0x00, sizeof(data0));
     ASSERT_EQ(file0.write(data0, sizeof(data0)), (int32_t)sizeof(data0));
 
-    uint8_t data1[256] = { (uint8_t)1 };
+    uint8_t data1[256];
+    memset(data1, 0x01, sizeof(data1));
     ASSERT_EQ(file1.write(data1, sizeof(data1)), (int32_t)sizeof(data0));
 
     ASSERT_EQ(file0.record(), (uint32_t)1);
@@ -180,6 +181,7 @@ TEST_F(StorageSuite, FillingABlock) {
 
     auto length = 1024;
     auto data = (uint8_t *)pool_.malloc(length);
+    memset(data, 0xcd, length);
 
     for (uint32_t i = 0; i < (g_.block_size / length) + 10; ++i) {
         ASSERT_EQ(file.write(data, length), length);
@@ -193,12 +195,16 @@ TEST_F(StorageSuite, ReadingARecord) {
 
     auto file = storage.file(0);
 
-    uint8_t expected[256] = { 0xcc };
+    uint8_t expected[256];
+    memset(expected, 0xcc, sizeof(expected));
     ASSERT_EQ(file.write(expected, sizeof(expected)), (int32_t)sizeof(expected));
+
+    ASSERT_TRUE(storage.begin());
 
     ASSERT_TRUE(file.seek(0));
 
-    uint8_t actual[256] = { 0x00 };
+    uint8_t actual[256];
+    memset(actual, 0x00, sizeof(actual));
     ASSERT_EQ(file.read(actual, sizeof(actual)), (int32_t)sizeof(actual));
 
     ASSERT_EQ(memcmp(expected, actual, sizeof(actual)), 0);
@@ -211,7 +217,8 @@ TEST_F(StorageSuite, LargeFiles) {
 
     auto file_write = storage.file(0);
 
-    uint8_t expected[256] = { 0xcc };
+    uint8_t expected[256];
+    memset(expected, 0xcc, sizeof(expected));
 
     auto bytes_wrote = 0;
     while (bytes_wrote < 10 * 1024 * 1024) {
@@ -228,7 +235,8 @@ TEST_F(StorageSuite, LargeFiles) {
 
     auto bytes_read = 0;
     while (bytes_read < 10 * 1024 * 1024) {
-        uint8_t data[256] = { 0x00 };
+        uint8_t data[256];
+        memset(data, 0x00, sizeof(data));
         ASSERT_EQ(file_read.read(data, sizeof(data)), (int32_t)sizeof(data));
 
         ASSERT_EQ(memcmp(expected, data, sizeof(data)), 0);
@@ -245,7 +253,8 @@ TEST_F(StorageSuite, MultipleLargeFiles) {
     auto file0_write = storage.file(0);
     auto file1_write = storage.file(1);
 
-    uint8_t expected[256] = { 0xcc };
+    uint8_t expected[256];
+    memset(expected, 0xcc, sizeof(expected));
 
     auto bytes_wrote = 0;
     while (bytes_wrote < 10 * 1024 * 1024) {
@@ -257,13 +266,16 @@ TEST_F(StorageSuite, MultipleLargeFiles) {
 
     ASSERT_TRUE(storage.begin());
 
+    loginfo("file #0");
+
     auto file0_read = storage.file(0);
 
     ASSERT_TRUE(file0_read.seek(0));
 
     auto bytes_read = 0;
     while (bytes_read < 10 * 1024 * 1024) {
-        uint8_t data[256] = { 0x00 };
+        uint8_t data[256];
+        memset(data, 0x00, sizeof(data));
         ASSERT_EQ(file0_read.read(data, sizeof(data)), (int32_t)sizeof(data));
 
         ASSERT_EQ(memcmp(expected, data, sizeof(data)), 0);
@@ -271,13 +283,16 @@ TEST_F(StorageSuite, MultipleLargeFiles) {
         bytes_read += sizeof(data);
     }
 
+    loginfo("file #1");
+
     auto file1_read = storage.file(1);
 
-    ASSERT_TRUE(file0_read.seek(0));
+    ASSERT_TRUE(file1_read.seek(0));
 
     bytes_read = 0;
     while (bytes_read < 10 * 1024 * 1024) {
-        uint8_t data[256] = { 0x00 };
+        uint8_t data[256];
+        memset(data, 0x00, sizeof(data));
         ASSERT_EQ(file1_read.read(data, sizeof(data)), (int32_t)sizeof(data));
 
         ASSERT_EQ(memcmp(expected, data, sizeof(data)), 0);
