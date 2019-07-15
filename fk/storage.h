@@ -91,6 +91,8 @@ struct BlockHeader {
     bool verify_hash() {
         Hash expected;
         hash_block(this, sizeof(BlockHeader) - sizeof(Hash), expected);
+        // fk_dump_memory((uint8_t *)&hash, sizeof(Hash));
+        // fk_dump_memory((uint8_t *)&expected, sizeof(Hash));
         return memcmp(expected.hash, hash.hash, sizeof(Hash)) == 0;
     }
 };
@@ -128,6 +130,17 @@ struct SeekValue {
 struct BlockTail {
     uint32_t linked{ 0 };
     uint32_t reserved[3] = { 0xdeadbeef, 0xdeadbeef, 0xdeadbeef };
+    Hash hash;
+
+    void fill_hash() {
+        hash_block(this, sizeof(BlockTail) - sizeof(Hash), hash);
+    }
+
+    bool verify_hash() {
+        Hash expected;
+        hash_block(this, sizeof(BlockTail) - sizeof(Hash), expected);
+        return memcmp(expected.hash, hash.hash, sizeof(Hash)) == 0;
+    }
 };
 
 struct RecordHeader {
