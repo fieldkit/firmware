@@ -13,7 +13,7 @@ BankedDataMemory::BankedDataMemory(DataMemory **memories, size_t size) : memorie
 }
 
 template<typename F>
-bool with_bank(DataMemory **memories, size_t size, uint32_t address, F fn) {
+size_t with_bank(DataMemory **memories, size_t size, uint32_t address, F fn) {
     auto bank_address = address;
     for (size_t i = 0; i < size; ++i) {
         auto &bank = *memories[i];
@@ -55,19 +55,19 @@ flash_geometry_t BankedDataMemory::geometry() const {
     return geometry_;
 }
 
-bool BankedDataMemory::read(uint32_t address, uint8_t *data, uint32_t length) {
+size_t BankedDataMemory::read(uint32_t address, uint8_t *data, size_t length) {
     return with_bank(memories_, size_, address, [&](DataMemory &bank, uint32_t bank_address) {
         return bank.read(bank_address, data, length);
     });
 }
 
-bool BankedDataMemory::write(uint32_t address, const uint8_t *data, uint32_t length) {
+size_t BankedDataMemory::write(uint32_t address, const uint8_t *data, size_t length) {
     return with_bank(memories_, size_, address, [&](DataMemory &bank, uint32_t bank_address) {
         return bank.write(bank_address, data, length);
     });
 }
 
-bool BankedDataMemory::erase_block(uint32_t address) {
+size_t BankedDataMemory::erase_block(uint32_t address) {
     return with_bank(memories_, size_, address, [&](DataMemory &bank, uint32_t bank_address) {
         return bank.erase_block(bank_address);
     });
@@ -76,8 +76,8 @@ bool BankedDataMemory::erase_block(uint32_t address) {
 SequentialMemory::SequentialMemory(DataMemory *memory) : memory_(memory) {
 }
 
-uint32_t SequentialMemory::read(uint32_t address, uint8_t *data, uint32_t length) {
-    uint32_t nbytes = 0;
+size_t SequentialMemory::read(uint32_t address, uint8_t *data, size_t length) {
+    size_t nbytes = 0;
 
     auto g = memory_->geometry();
     auto p = data;
@@ -89,7 +89,7 @@ uint32_t SequentialMemory::read(uint32_t address, uint8_t *data, uint32_t length
 
     while (nbytes != length) {
         auto left = g.remaining_in_page(address);
-        auto reading = std::min(remaining, left);
+        auto reading = std::min<size_t>(remaining, left);
         if (!memory_->read(address, p, reading)) {
             return nbytes;
         }
@@ -103,8 +103,8 @@ uint32_t SequentialMemory::read(uint32_t address, uint8_t *data, uint32_t length
     return nbytes;
 }
 
-uint32_t SequentialMemory::write(uint32_t address, uint8_t *data, uint32_t length) {
-    auto nbytes = (uint32_t)0;
+size_t SequentialMemory::write(uint32_t address, uint8_t *data, size_t length) {
+    size_t nbytes = 0;
 
     auto g = memory_->geometry();
     auto p = data;
@@ -116,7 +116,7 @@ uint32_t SequentialMemory::write(uint32_t address, uint8_t *data, uint32_t lengt
 
     while (nbytes != length) {
         auto left = g.remaining_in_page(address);
-        auto writing = std::min(remaining, left);
+        auto writing = std::min<size_t>(remaining, left);
         if (!memory_->write(address, p, writing)) {
             return nbytes;
         }

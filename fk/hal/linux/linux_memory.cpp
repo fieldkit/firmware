@@ -31,16 +31,16 @@ flash_geometry_t LinuxDataMemory::geometry() const {
     return { PageSize, BlockSize, NumberOfBlocks, NumberOfBlocks * BlockSize };
 }
 
-bool LinuxDataMemory::read(uint32_t address, uint8_t *data, uint32_t length) {
+size_t LinuxDataMemory::read(uint32_t address, uint8_t *data, size_t length) {
     assert(address >= 0 && address < size_);
     assert(address + length <= size_);
     assert(length <= PageSize);
 
-    uint32_t page = address / PageSize;
+    size_t page = address / PageSize;
     assert((address + length - 1) / PageSize == page);
 
-    uint32_t block = address / BlockSize;
-    uint32_t start_of_block = block * BlockSize;
+    size_t block = address / BlockSize;
+    size_t start_of_block = block * BlockSize;
     assert(address >= start_of_block && address + length <= start_of_block + BlockSize);
 
     auto p = memory_ + address;
@@ -48,7 +48,7 @@ bool LinuxDataMemory::read(uint32_t address, uint8_t *data, uint32_t length) {
 
     log_.append(LogEntry{ OperationType::Read, address, p, length });
 
-    return true;
+    return length;
 }
 
 static void verify_erased(uint32_t address, uint8_t *p, size_t length) {
@@ -61,16 +61,16 @@ static void verify_erased(uint32_t address, uint8_t *p, size_t length) {
     }
 }
 
-bool LinuxDataMemory::write(uint32_t address, const uint8_t *data, uint32_t length) {
+size_t LinuxDataMemory::write(uint32_t address, const uint8_t *data, size_t length) {
     assert(address >= 0 && address < size_);
     assert(address + length <= size_);
     assert(length <= PageSize);
 
-    uint32_t page = address / PageSize;
+    size_t page = address / PageSize;
     assert((address + length - 1) / PageSize == page);
 
-    uint32_t block = address / BlockSize;
-    uint32_t start_of_block = block * BlockSize;
+    size_t block = address / BlockSize;
+    size_t start_of_block = block * BlockSize;
     assert(address >= start_of_block && address + length <= start_of_block + BlockSize);
 
     auto p = memory_ + address;
@@ -79,10 +79,10 @@ bool LinuxDataMemory::write(uint32_t address, const uint8_t *data, uint32_t leng
 
     log_.append(LogEntry{ OperationType::Write, address, p, length });
 
-    return true;
+    return length;
 }
 
-bool LinuxDataMemory::erase_block(uint32_t address) {
+size_t LinuxDataMemory::erase_block(uint32_t address) {
     assert(address >= 0 && address < size_);
     assert(address % BlockSize == 0);
 

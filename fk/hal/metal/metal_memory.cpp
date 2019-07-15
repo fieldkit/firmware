@@ -17,15 +17,15 @@ flash_geometry_t MetalDataMemory::geometry() const {
     return flash_.geometry();
 }
 
-bool MetalDataMemory::read(uint32_t address, uint8_t *data, uint32_t length) {
+size_t MetalDataMemory::read(uint32_t address, uint8_t *data, size_t length) {
     return flash_.read(address, data, length);
 }
 
-bool MetalDataMemory::write(uint32_t address, const uint8_t *data, uint32_t length) {
+size_t MetalDataMemory::write(uint32_t address, const uint8_t *data, size_t length) {
     return flash_.write(address, data, length);
 }
 
-bool MetalDataMemory::erase_block(uint32_t address) {
+size_t MetalDataMemory::erase_block(uint32_t address) {
     return flash_.erase_block(address);
 }
 

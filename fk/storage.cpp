@@ -156,7 +156,7 @@ uint32_t Storage::allocate(uint8_t file) {
         return InvalidAddress;
     }
 
-    if (!memory_->write(address, (uint8_t *)&block_header, sizeof(BlockHeader))) {
+    if (memory_->write(address, (uint8_t *)&block_header, sizeof(BlockHeader)) != sizeof(BlockHeader)) {
         return InvalidAddress;
     }
 

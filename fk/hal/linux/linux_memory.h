@@ -31,11 +31,11 @@ public:
 
     flash_geometry_t geometry() const override;
 
-    bool read(uint32_t address, uint8_t *data, uint32_t length) override;
+    size_t read(uint32_t address, uint8_t *data, size_t length) override;
 
-    bool write(uint32_t address, const uint8_t *data, uint32_t length) override;
+    size_t write(uint32_t address, const uint8_t *data, size_t length) override;
 
-    bool erase_block(uint32_t address) override;
+    size_t erase_block(uint32_t address) override;
 
 public:
     StorageLog &log() {

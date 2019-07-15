@@ -33,11 +33,11 @@ public:
 
     virtual flash_geometry_t geometry() const = 0;
 
-    virtual bool read(uint32_t address, uint8_t *data, uint32_t length) = 0;
+    virtual size_t read(uint32_t address, uint8_t *data, size_t length) = 0;
 
-    virtual bool write(uint32_t address, const uint8_t *data, uint32_t length) = 0;
+    virtual size_t write(uint32_t address, const uint8_t *data, size_t length) = 0;
 
-    virtual bool erase_block(uint32_t address) = 0;
+    virtual size_t erase_block(uint32_t address) = 0;
 
     bool available() {
         return geometry().total_size > 0;
@@ -59,11 +59,11 @@ public:
 
     flash_geometry_t geometry() const override;
 
-    bool read(uint32_t address, uint8_t *data, uint32_t length) override;
+    size_t read(uint32_t address, uint8_t *data, size_t length) override;
 
-    bool write(uint32_t address, const uint8_t *data, uint32_t length) override;
+    size_t write(uint32_t address, const uint8_t *data, size_t length) override;
 
-    bool erase_block(uint32_t address) override;
+    size_t erase_block(uint32_t address) override;
 
 };
 
@@ -75,8 +75,8 @@ public:
     SequentialMemory(DataMemory *memory);
 
 public:
-    uint32_t read(uint32_t address, uint8_t *data, uint32_t length);
-    uint32_t write(uint32_t address, uint8_t *data, uint32_t length);
+    size_t read(uint32_t address, uint8_t *data, size_t length);
+    size_t write(uint32_t address, uint8_t *data, size_t length);
 
 };
 

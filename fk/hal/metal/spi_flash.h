@@ -31,11 +31,11 @@ public:
 
     bool begin();
 
-    bool read(uint32_t address, uint8_t *data, uint32_t length);
+    int32_t read(uint32_t address, uint8_t *data, size_t length);
 
-    bool write(uint32_t address, const uint8_t *data, uint32_t length);
+    int32_t write(uint32_t address, const uint8_t *data, size_t length);
 
-    bool erase_block(uint32_t address);
+    int32_t erase_block(uint32_t address);
 
 private:
     /*

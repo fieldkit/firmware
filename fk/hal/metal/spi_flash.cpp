@@ -100,7 +100,7 @@ bool SpiFlash::begin() {
     return true;
 }
 
-bool SpiFlash::read(uint32_t address, uint8_t *data, uint32_t length) {
+int32_t SpiFlash::read(uint32_t address, uint8_t *data, size_t length) {
     uint8_t read_cell_command[] = { CMD_READ_CELL_ARRAY, 0x00, 0x00, 0x00 }; // 7dummy/17 (Row)
     uint8_t read_buffer_command[] = { CMD_READ_BUFFER, 0x00, 0x00, 0x00 };   // 4dummy/12/8dummy // (Col)
 
@@ -108,28 +108,28 @@ bool SpiFlash::read(uint32_t address, uint8_t *data, uint32_t length) {
     column_address_to_bytes(address, read_buffer_command + 1);
 
     if (!is_ready()) {
-        return false;
+        return 0;
     }
 
     /* Load page into buffer. */
     if (!complex_command(read_cell_command, sizeof(read_cell_command))) {
-        return false;
+        return 0;
     }
 
     /* Wait for buffer to fill with data from cell array. */
     if (!is_ready()) {
-        return false;
+        return 0;
     }
 
     /* Read the buffer in. */
     if (!transfer(read_buffer_command, sizeof(read_buffer_command), nullptr, data, length)) {
-        return false;
+        return 0;
     }
 
-    return true;
+    return length;
 }
 
-bool SpiFlash::write(uint32_t address, const uint8_t *data, uint32_t length) {
+int32_t SpiFlash::write(uint32_t address, const uint8_t *data, size_t length) {
     uint8_t program_load_command[] = { CMD_PROGRAM_LOAD, 0x00, 0x00 }; // 4dummy/12
     uint8_t program_execute_command[] = { CMD_PROGRAM_EXECUTE, 0x00, 0x00, 0x00 }; // 7dummy/17
 
@@ -137,46 +137,50 @@ bool SpiFlash::write(uint32_t address, const uint8_t *data, uint32_t length) {
     row_address_to_bytes(address, program_execute_command + 1);
 
     if (!is_ready()) {
-        return false;
+        return 0;
     }
 
     if (!enable_writes()) {
-        return false;
+        return 0;
     }
 
     if (!transfer(program_load_command, sizeof(program_load_command), data, nullptr, length)) {
-        return false;
+        return 0;
     }
 
     /* May be unnecessary. */
     if (!is_ready()) {
-        return false;
+        return 0;
     }
 
     if (!complex_command(program_execute_command, sizeof(program_execute_command))) {
-        return false;
+        return 0;
     }
 
     if (!is_ready()) {
-        return false;
+        return 0;
     }
 
-    return true;
+    return length;
 }
 
-bool SpiFlash::erase_block(uint32_t address) {
+int32_t SpiFlash::erase_block(uint32_t address) {
     uint8_t command[] = { CMD_ERASE_BLOCK, 0x00, 0x00, 0x00 }; // 7dummy/17 (Row)
     row_address_to_bytes(address, command + 1);
 
     if (!is_ready()) {
-        return false;
+        return 0;
     }
 
     if (!enable_writes()) {
-        return false;
+        return 0;
     }
 
-    return transfer(command, sizeof(command), nullptr, nullptr, 0);
+    if (!transfer(command, sizeof(command), nullptr, nullptr, 0)) {
+        return 0;
+    }
+
+    return 1;
 }
 
 void SpiFlash::row_address_to_bytes(uint32_t address, uint8_t *bytes) {
