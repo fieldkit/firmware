@@ -44,11 +44,11 @@ SeekSettings SeekSettings::end_of(uint8_t file) {
     return SeekSettings{ file, LastRecord };
 }
 
-uint32_t RecordHead::sign() {
+uint32_t RecordHeader::sign() {
     return phylum::crc32_checksum((uint8_t *)this, sizeof(uint32_t) * 2);
 }
 
-bool RecordHead::valid() {
+bool RecordHeader::valid() {
     return sign() == crc;
 }
 
@@ -210,7 +210,7 @@ SeekValue Storage::seek(SeekSettings settings) {
     logtrace("[%d] seeking #%d (0x%06x)", settings.file, settings.record, address);
 
     while (true) {
-        auto record_head = RecordHead{};
+        auto record_head = RecordHeader{};
 
         // If at the start of the block, bump.
         if (g.start_of_block(address)) {
@@ -237,7 +237,7 @@ SeekValue Storage::seek(SeekSettings settings) {
             record = record_head.record + 1;
         }
 
-        auto record_length = sizeof(RecordHead) + record_head.size + sizeof(RecordTail);
+        auto record_length = sizeof(RecordHeader) + record_head.size + sizeof(RecordTail);
 
         logverbose("[%d] seeking: 0x%06x + %4d/%4d", settings.file, address, record_length, record_head.size);
 
@@ -285,11 +285,11 @@ int32_t File::write(uint8_t *record, uint32_t size) {
     }
 
     logtrace("[%d] 0x%06x BEGIN write (%d bytes) #%d (%d w/ overhead)", file_, tail_, size, record_,
-             sizeof(RecordHead) + sizeof(RecordTail) + size);
+             sizeof(RecordHeader) + sizeof(RecordTail) + size);
 
     while (!header || (uint32_t)wrote < size || !footer) {
         if (!is_address_valid(tail_) || left_in_block == 0 ||
-            (!header && !footer && left_in_block < sizeof(RecordHead)) ||
+            (!header && !footer && left_in_block < sizeof(RecordHeader)) ||
             (!footer && (uint32_t)wrote == size && left_in_block < sizeof(RecordTail))) {
 
             tail_ = storage_->allocate(file_);
@@ -300,7 +300,7 @@ int32_t File::write(uint8_t *record, uint32_t size) {
         }
 
         if (!header) {
-            RecordHead record_header = { 0 };
+            RecordHeader record_header = { 0 };
             record_header.size = size;
             record_header.record = record_++;
             record_header.crc = record_header.sign();
@@ -405,7 +405,7 @@ int32_t File::read(uint8_t *record, uint32_t size) {
 
     while (bytes_read < size) {
         if (record_remaining_ == 0) {
-            RecordHead record_header = { 0 };
+            RecordHeader record_header = { 0 };
             if (memory.read(tail_, (uint8_t *)&record_header, sizeof(record_header)) != sizeof(record_header)) {
                 return bytes_read;
             }
@@ -449,7 +449,7 @@ int32_t File::read(uint8_t *record, uint32_t size) {
                     dangling_header = true;
                 }
             }
-            if (left_in_block < sizeof(RecordHead)) {
+            if (left_in_block < sizeof(RecordHeader)) {
                 logverbose("[%d] 0x%06x end of block", file_, tail_);
 
                 BlockHeader block_header;

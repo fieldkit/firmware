@@ -61,7 +61,7 @@ protected:
 TEST_F(StorageSuite, DisplayStructSizes) {
     loginfo("sizeof(BlockHeader) = %d", sizeof(BlockHeader));
     loginfo("sizeof(BlockTail) = %d", sizeof(BlockTail));
-    loginfo("sizeof(RecordHead) = %d", sizeof(RecordHead));
+    loginfo("sizeof(RecordHeader) = %d", sizeof(RecordHeader));
     loginfo("sizeof(RecordTail) = %d", sizeof(RecordTail));
 }
 
@@ -94,7 +94,7 @@ TEST_F(StorageSuite, AppendingARecord) {
     uint8_t data[256] = { 0xcc };
     ASSERT_EQ(file_write.write(data, sizeof(data)), (int32_t)sizeof(data));
 
-    auto expected = sizeof(BlockHeader) + sizeof(RecordHead) + sizeof(data) + sizeof(RecordTail);
+    auto expected = sizeof(BlockHeader) + sizeof(RecordHeader) + sizeof(data) + sizeof(RecordTail);
     ASSERT_EQ(file_write.tail(), expected);
 
     ASSERT_TRUE(storage.begin());
@@ -115,7 +115,7 @@ TEST_F(StorageSuite, AppendingRecordsAcrossAPage) {
     auto data = (uint8_t *)pool_.malloc(length);
     ASSERT_EQ(file.write(data, length), (int32_t)length);
 
-    auto expected = sizeof(BlockHeader) + sizeof(RecordHead) + length + sizeof(RecordTail);
+    auto expected = sizeof(BlockHeader) + sizeof(RecordHeader) + length + sizeof(RecordTail);
     ASSERT_EQ(file.tail(), expected);
 
     ASSERT_TRUE(storage.begin());

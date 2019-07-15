@@ -130,7 +130,7 @@ struct BlockTail {
     uint32_t reserved[3];
 };
 
-struct RecordHead {
+struct RecordHeader {
     uint32_t size;
     uint32_t record;
     uint32_t crc;
