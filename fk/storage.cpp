@@ -313,7 +313,7 @@ int32_t File::write(uint8_t *record, uint32_t size) {
         }
 
         if (!header) {
-            RecordHeader record_header = { 0 };
+            RecordHeader record_header;
             record_header.size = size;
             record_header.record = record_++;
             record_header.crc = record_header.sign();
@@ -428,7 +428,7 @@ int32_t File::read(uint8_t *record, uint32_t size) {
 
     while (bytes_read < size) {
         if (record_remaining_ == 0) {
-            RecordHeader record_header = { 0 };
+            RecordHeader record_header;
             if (memory.read(tail_, (uint8_t *)&record_header, sizeof(record_header)) != sizeof(record_header)) {
                 return bytes_read;
             }
