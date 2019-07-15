@@ -220,7 +220,7 @@ public:
     File file(uint8_t file);
 
 private:
-    uint32_t allocate(uint8_t file);
+    uint32_t allocate(uint8_t file, uint32_t tail_address);
     SeekValue seek(SeekSettings settings);
 
 };

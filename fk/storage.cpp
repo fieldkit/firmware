@@ -132,7 +132,7 @@ bool Storage::clear() {
     return true;
 }
 
-uint32_t Storage::allocate(uint8_t file) {
+uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address) {
     auto g = memory_->geometry();
     auto address = free_block_ * g.block_size;
 
@@ -159,6 +159,17 @@ uint32_t Storage::allocate(uint8_t file) {
     if (memory_->write(address, (uint8_t *)&block_header, sizeof(BlockHeader)) != sizeof(BlockHeader)) {
         return InvalidAddress;
     }
+
+    if (is_address_valid(previous_tail_address)) {
+        BlockTail block_tail;
+        block_tail.linked = address;
+        block_tail.fill_hash();
+        if (memory_->write(previous_tail_address, (uint8_t *)&block_tail, sizeof(BlockTail)) != sizeof(BlockTail)) {
+            return 0;
+        }
+    }
+
+    FK_ASSERT(is_address_valid(files_[file].tail));
 
     return files_[file].tail;
 }
@@ -276,11 +287,8 @@ int32_t File::write(uint8_t *record, uint32_t size) {
     hash_.reset(Hash::Length);
 
     if (!is_address_valid(tail_)) {
-        tail_ = storage_->allocate(file_);
+        tail_ = storage_->allocate(file_, tail_);
         left_in_block = g.remaining_in_block(tail_) - sizeof(BlockTail);
-
-        FK_ASSERT(is_address_valid(tail_));
-        FK_ASSERT(left_in_block > 0);
     }
 
     logtrace("[%d] 0x%06x BEGIN write (%d bytes) #%d (%d w/ overhead)", file_, tail_, size, record_,
@@ -291,22 +299,8 @@ int32_t File::write(uint8_t *record, uint32_t size) {
             (!header && !footer && left_in_block < sizeof(RecordHeader)) ||
             (!footer && (uint32_t)wrote == size && left_in_block < sizeof(RecordTail))) {
 
-            auto old_tail = tail_ + left_in_block;
-            tail_ = storage_->allocate(file_);
+            tail_ = storage_->allocate(file_, tail_ + left_in_block);
             left_in_block = g.remaining_in_block(tail_) - sizeof(BlockTail);
-
-            BlockTail block_tail;
-            block_tail.linked = tail_ - sizeof(BlockHeader);
-            block_tail.fill_hash();
-            if (memory.write(old_tail, (uint8_t *)&block_tail, sizeof(BlockTail)) != sizeof(BlockTail)) {
-                return 0;
-            }
-
-            logverbose("[%d] 0x%06x btail", file_, old_tail);
-
-            FK_ASSERT(block_tail.verify_hash());
-            FK_ASSERT(is_address_valid(tail_));
-            FK_ASSERT(left_in_block > 0);
         }
 
         if (!header) {
@@ -368,21 +362,8 @@ int32_t File::write(uint8_t *record, uint32_t size) {
     }
 
     if (left_in_block == 0) {
-        auto old_tail = tail_;
-
-        tail_ = storage_->allocate(file_);
+        tail_ = storage_->allocate(file_, tail_);
         left_in_block = g.remaining_in_block(tail_);
-
-        BlockTail block_tail;
-        block_tail.linked = tail_ - sizeof(BlockHeader);
-        block_tail.fill_hash();
-        if (memory.write(old_tail, (uint8_t *)&block_tail, sizeof(BlockTail)) != sizeof(BlockTail)) {
-            return 0;
-        }
-
-        FK_ASSERT(block_tail.verify_hash());
-        FK_ASSERT(is_address_valid(tail_));
-        FK_ASSERT(left_in_block > 0);
     }
 
     update();
