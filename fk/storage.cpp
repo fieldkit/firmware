@@ -5,9 +5,9 @@
 
 namespace fk {
 
-#define logverbose(f, ...)
-
 FK_DECLARE_LOGGER("storage");
+
+#define logverbose(f, ...)
 
 constexpr char BlockMagic::MagicKey[];
 
@@ -271,14 +271,14 @@ int32_t File::write(uint8_t *record, uint32_t size) {
     auto header = false;
     auto footer = false;
     auto wrote = 0;
-    auto left_in_block = g.remaining_in_block(tail_);
+    auto left_in_block = (uint32_t)(g.remaining_in_block(tail_) - sizeof(BlockTail));
 
     BLAKE2b b2b;
     b2b.reset(Hash::Length);
 
     if (!is_address_valid(tail_)) {
         tail_ = storage_->allocate(file_);
-        left_in_block = g.remaining_in_block(tail_);
+        left_in_block = g.remaining_in_block(tail_) - sizeof(BlockTail);
 
         FK_ASSERT(is_address_valid(tail_));
         FK_ASSERT(left_in_block > 0);
@@ -292,8 +292,16 @@ int32_t File::write(uint8_t *record, uint32_t size) {
             (!header && !footer && left_in_block < sizeof(RecordHeader)) ||
             (!footer && (uint32_t)wrote == size && left_in_block < sizeof(RecordTail))) {
 
+            auto old_tail = tail_;
             tail_ = storage_->allocate(file_);
-            left_in_block = g.remaining_in_block(tail_);
+            left_in_block = g.remaining_in_block(tail_) - sizeof(BlockTail);
+
+            BlockTail block_tail;
+            block_tail.linked = tail_;
+            if (memory.write(old_tail, (uint8_t *)&block_tail, sizeof(BlockTail)) != sizeof(BlockTail)) {
+                return 0;
+            }
+
 
             FK_ASSERT(is_address_valid(tail_));
             FK_ASSERT(left_in_block > 0);
@@ -398,7 +406,7 @@ int32_t File::seek(uint32_t record) {
 int32_t File::read(uint8_t *record, uint32_t size) {
     SequentialMemory memory{ storage_->memory_ };
     auto g = storage_->memory_->geometry();
-    auto left_in_block = g.remaining_in_block(tail_);
+    auto left_in_block = (uint32_t)(g.remaining_in_block(tail_) - sizeof(BlockTail));
     auto bytes_read = (uint32_t)0;
 
     logtrace("[%d] 0x%06x BEGIN read (%d bytes)", file_, tail_, size);
@@ -450,6 +458,7 @@ int32_t File::read(uint8_t *record, uint32_t size) {
                 }
             }
             if (left_in_block < sizeof(RecordHeader)) {
+                tail_ += sizeof(BlockTail);
                 logverbose("[%d] 0x%06x end of block", file_, tail_);
 
                 BlockHeader block_header;
@@ -473,7 +482,7 @@ int32_t File::read(uint8_t *record, uint32_t size) {
                 if (dangling_header) {
                     tail_ += sizeof(RecordTail);
                 }
-                left_in_block = g.remaining_in_block(tail_);
+                left_in_block = g.remaining_in_block(tail_) - sizeof(BlockTail);
             }
         }
         else {

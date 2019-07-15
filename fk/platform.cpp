@@ -76,6 +76,9 @@ uint32_t fk_serial_number_get(fk_serial_number_t *sn) {
     return 128;
 }
 
+void fk_dump_memory(uint8_t *p, size_t size) {
+}
+
 #else // __SAMD51__
 
 using namespace std::chrono;
@@ -112,6 +115,17 @@ uint32_t fk_serial_number_get(fk_serial_number_t *sn) {
     sn->dwords[2] = 0;
     sn->dwords[3] = 0;
     return 0;
+}
+
+void fk_dump_memory(uint8_t *p, size_t size) {
+    fprintf(stderr, "(%zu bytes)\n", size);
+    for (auto i = (size_t)0; i < size; ++i) {
+        fprintf(stderr, "%02x ", p[i]);
+        if ((i + 1) % 32 == 0) {
+            fprintf(stderr, "\n");
+        }
+    }
+    fprintf(stderr, "\n");
 }
 
 #endif // __SAMD51__

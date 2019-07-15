@@ -126,15 +126,15 @@ struct SeekValue {
 };
 
 struct BlockTail {
-    uint32_t linked;
-    uint32_t reserved[3];
+    uint32_t linked{ 0 };
+    uint32_t reserved[3] = { 0xdeadbeef, 0xdeadbeef, 0xdeadbeef };
 };
 
 struct RecordHeader {
     uint32_t size;
     uint32_t record;
     uint32_t crc;
-    uint32_t reserved[3];
+    uint32_t reserved[3] = { 0xdeadbeef, 0xdeadbeef, 0xdeadbeef };
 
     uint32_t sign();
     bool valid();
