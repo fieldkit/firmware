@@ -136,12 +136,17 @@ uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address) {
     auto g = memory_->geometry();
     auto address = free_block_ * g.block_size;
 
+    FK_ASSERT(is_address_valid(address));
+
     loginfo("[%d] allocated block #%d (0x%06x)", file, free_block_, address);
 
     free_block_++;
     timestamp_++;
 
-    files_[file].tail = address + sizeof(BlockHeader);
+    auto after_header = address + sizeof(BlockHeader);
+
+    // Do this before writing header so the new value gets written.
+    files_[file].tail = after_header;
 
     BlockHeader block_header;
     block_header.magic.fill();
@@ -152,6 +157,7 @@ uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address) {
     }
     block_header.fill_hash();
 
+    // Erase new block and write header.
     if (!memory_->erase_block(address)) {
         return InvalidAddress;
     }
@@ -160,6 +166,7 @@ uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address) {
         return InvalidAddress;
     }
 
+    // We have a good new block, so link the previous block to the new one.
     if (is_address_valid(previous_tail_address)) {
         BlockTail block_tail;
         block_tail.linked = address;
@@ -169,9 +176,7 @@ uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address) {
         }
     }
 
-    FK_ASSERT(is_address_valid(files_[file].tail));
-
-    return files_[file].tail;
+    return after_header;
 }
 
 SeekValue Storage::seek(SeekSettings settings) {
@@ -309,27 +314,26 @@ int32_t File::write(uint8_t *record, uint32_t size) {
             record_header.record = record_++;
             record_header.crc = record_header.sign();
 
-            FK_ASSERT(wrote == 0);
-
             logverbose("[%d] 0x%06x write header (lib = %d) (%d bytes)", file_, tail_, left_in_block, size);
+
+            FK_ASSERT(wrote == 0);
 
             if (memory.write(tail_, (uint8_t *)&record_header, sizeof(record_header)) != sizeof(record_header)) {
                 return 0;
             }
 
+            hash_.update(&header, sizeof(header));
+
             tail_ += sizeof(record_header);
             left_in_block -= sizeof(record_header);
             header = true;
-
-            hash_.update(&header, sizeof(header));
         }
         else if ((uint32_t)wrote < size) {
             auto writing = std::min(left_in_block, size - wrote);
-
-            FK_ASSERT(writing > 0);
-
             logverbose("[%d] 0x%06x write data (%d bytes) (%d lib) (%d to write)",
                      file_, tail_, writing, left_in_block, size - wrote);
+
+            FK_ASSERT(writing > 0);
 
             if (memory.write(tail_, (uint8_t *)record + wrote, writing) != writing) {
                 return 0;
@@ -340,20 +344,18 @@ int32_t File::write(uint8_t *record, uint32_t size) {
             left_in_block -= writing;
         }
         else if ((uint32_t)wrote == size && !footer) {
-            uint8_t hash[Hash::Length];
+            RecordTail record_tail;
             hash_.update(record, size);
-            hash_.finalize(hash, sizeof(hash));
-            if (memory.write(tail_, (uint8_t *)hash, sizeof(RecordTail)) != sizeof(RecordTail)) {
+            hash_.finalize(record_tail.hash.hash, sizeof(record_tail.hash.hash));
+            if (memory.write(tail_, (uint8_t *)&record_tail, sizeof(RecordTail)) != sizeof(RecordTail)) {
                 return 0;
             }
-
-            FK_ASSERT(sizeof(hash) == sizeof(RecordTail));
 
             logverbose("[%d] 0x%06x write footer (lib = %d)", file_, tail_, left_in_block);
 
             tail_ += sizeof(RecordTail);
-            size_ += wrote;
             left_in_block -= sizeof(RecordTail);
+            size_ += wrote;
             footer = true;
         }
         else {
