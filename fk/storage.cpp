@@ -132,13 +132,13 @@ bool Storage::clear() {
     return true;
 }
 
-uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address) {
+uint32_t Storage::allocate(uint8_t file, uint32_t overflow, uint32_t previous_tail_address) {
     auto g = memory_->geometry();
     auto address = free_block_ * g.block_size;
 
     FK_ASSERT(is_address_valid(address));
 
-    logdebug("[%d] allocated block #%d (0x%06x)", file, free_block_, address);
+    logdebug("[%d] allocated block #%d (0x%06x) (%d)", file, free_block_, address, overflow);
 
     free_block_++;
     timestamp_++;
@@ -152,6 +152,7 @@ uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address) {
     block_header.magic.fill();
     block_header.file = file;
     block_header.timestamp = timestamp_;
+    block_header.overflow = overflow;
     for (auto i = 0; i < NumberOfFiles; ++i) {
         block_header.files[i] = files_[i];
     }
@@ -189,6 +190,7 @@ SeekValue Storage::seek(SeekSettings settings) {
     // If we don't have a starting address then fall back on a binary search.
     if (!is_address_valid(address)) {
         BlockHeader block_header;
+
         auto range = BlockRange{ 0, g.nblocks };
         while (!range.empty()) {
             auto address = range.middle_block() * g.block_size;
@@ -217,12 +219,13 @@ SeekValue Storage::seek(SeekSettings settings) {
             }
         }
 
-        address = range.start * g.block_size;
+        // If at the start of the block, bump.
+        address = range.start * g.block_size + sizeof(BlockHeader) + block_header.overflow;
     }
 
     FK_ASSERT(is_address_valid(address));
 
-    logtrace("[%d] 0x%06x seeking #%d", settings.file, address, settings.record);
+    logtrace("[%d] 0x%06x seeking #%d %d", settings.file, address, settings.record, sizeof(BlockHeader));
 
     while (true) {
         auto record_head = RecordHeader{};
@@ -294,7 +297,7 @@ size_t File::write(uint8_t *record, size_t size) {
     hash_.reset(Hash::Length);
 
     if (!is_address_valid(tail_)) {
-        tail_ = storage_->allocate(file_, tail_);
+        tail_ = storage_->allocate(file_, 0, tail_);
         left_in_block = g.remaining_in_block(tail_) - sizeof(BlockTail);
     }
 
@@ -305,8 +308,12 @@ size_t File::write(uint8_t *record, size_t size) {
         if (!is_address_valid(tail_) || left_in_block == 0 ||
             (!header && !footer && left_in_block < sizeof(RecordHeader)) ||
             (!footer && (uint32_t)wrote == size && left_in_block < sizeof(RecordTail))) {
+            auto overflow = size - wrote;
+            if (!footer) {
+                overflow += sizeof(RecordTail);
+            }
 
-            tail_ = storage_->allocate(file_, tail_ + left_in_block);
+            tail_ = storage_->allocate(file_, overflow, tail_ + left_in_block);
             left_in_block = g.remaining_in_block(tail_) - sizeof(BlockTail);
         }
 
@@ -366,7 +373,7 @@ size_t File::write(uint8_t *record, size_t size) {
     }
 
     if (left_in_block == 0) {
-        tail_ = storage_->allocate(file_, tail_);
+        tail_ = storage_->allocate(file_, 0, tail_);
         left_in_block = g.remaining_in_block(tail_);
     }
 

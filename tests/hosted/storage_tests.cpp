@@ -60,10 +60,10 @@ protected:
 };
 
 TEST_F(StorageSuite, DisplayStructSizes) {
-    loginfo("sizeof(BlockHeader) = %d", sizeof(BlockHeader));
-    loginfo("sizeof(BlockTail) = %d", sizeof(BlockTail));
-    loginfo("sizeof(RecordHeader) = %d", sizeof(RecordHeader));
-    loginfo("sizeof(RecordTail) = %d", sizeof(RecordTail));
+    loginfo("sizeof(BlockHeader) = %d (0x%x)", sizeof(BlockHeader), sizeof(BlockHeader));
+    loginfo("sizeof(BlockTail) = %d (0x%x)", sizeof(BlockTail), sizeof(BlockTail));
+    loginfo("sizeof(RecordHeader) = %d (0x%x)", sizeof(RecordHeader), sizeof(RecordHeader));
+    loginfo("sizeof(RecordTail) = %d (0x%x)", sizeof(RecordTail), sizeof(RecordTail));
 }
 
 TEST_F(StorageSuite, WhenMountingUnformatted) {
@@ -287,4 +287,25 @@ TEST_F(StorageSuite, MultipleLargeFilesOneMuchSmaller) {
 
     pattern.verify(file1_read, size / 4096);
 }
+
+TEST_F(StorageSuite, SeekingToARecord) {
+    Storage storage{ memory_ };
+
+    ASSERT_TRUE(storage.clear());
+
+    auto file_write = storage.file(0);
+    auto size = 10 * 1024 * 1024;
+
+    SequentialPattern pattern;
+    pattern.write(file_write, size);
+
+    ASSERT_TRUE(storage.begin());
+
+    auto file_read = storage.file(0);
+
+    ASSERT_TRUE(file_read.seek(100));
+    pattern.verifY_record(file_read, 100);
+
+    ASSERT_TRUE(file_read.seek(size / 256 / 2));
+    pattern.verifY_record(file_read, (size / 256 / 2) & 0xff);
 }

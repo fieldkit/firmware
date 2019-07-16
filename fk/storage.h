@@ -84,6 +84,7 @@ struct BlockHeader {
     BlockMagic magic;
     uint32_t timestamp;
     uint32_t file;
+    uint32_t overflow;
     FileHeader files[NumberOfFiles];
     Hash hash;
 
@@ -94,8 +95,6 @@ struct BlockHeader {
     bool verify_hash() {
         Hash expected;
         hash_block(this, sizeof(BlockHeader) - sizeof(Hash), expected);
-        // fk_dump_memory((uint8_t *)&hash, sizeof(Hash));
-        // fk_dump_memory((uint8_t *)&expected, sizeof(Hash));
         return memcmp(expected.hash, hash.hash, sizeof(Hash)) == 0;
     }
 };
@@ -220,7 +219,7 @@ public:
     File file(uint8_t file);
 
 private:
-    uint32_t allocate(uint8_t file, uint32_t tail_address);
+    uint32_t allocate(uint8_t file, uint32_t first, uint32_t tail_address);
     SeekValue seek(SeekSettings settings);
 
 };
