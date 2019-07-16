@@ -281,13 +281,13 @@ File::File(Storage *storage, uint8_t file, FileHeader fh)
 File::~File() {
 }
 
-int32_t File::write(uint8_t *record, uint32_t size) {
+size_t File::write(uint8_t *record, size_t size) {
     SequentialMemory memory{ storage_->memory_ };
     auto g = storage_->memory_->geometry();
     auto header = false;
     auto footer = false;
-    auto wrote = 0;
-    auto left_in_block = (uint32_t)(g.remaining_in_block(tail_) - sizeof(BlockTail));
+    auto wrote = (size_t)0;
+    auto left_in_block = (g.remaining_in_block(tail_) - sizeof(BlockTail));
 
     hash_.reset(Hash::Length);
 
@@ -328,8 +328,8 @@ int32_t File::write(uint8_t *record, uint32_t size) {
             left_in_block -= sizeof(record_header);
             header = true;
         }
-        else if ((uint32_t)wrote < size) {
-            auto writing = std::min(left_in_block, size - wrote);
+        else if (wrote < size) {
+            auto writing = std::min<size_t>(left_in_block, size - wrote);
             logverbose("[%d] 0x%06x write data (%d bytes) (%d lib) (%d to write)",
                      file_, tail_, writing, left_in_block, size - wrote);
 
@@ -343,7 +343,7 @@ int32_t File::write(uint8_t *record, uint32_t size) {
             wrote += writing;
             left_in_block -= writing;
         }
-        else if ((uint32_t)wrote == size && !footer) {
+        else if (wrote == size && !footer) {
             RecordTail record_tail;
             hash_.update(record, size);
             hash_.finalize(record_tail.hash.hash, sizeof(record_tail.hash.hash));
@@ -373,7 +373,7 @@ int32_t File::write(uint8_t *record, uint32_t size) {
     return wrote;
 }
 
-int32_t File::write(fk_data_DataRecord *record) {
+size_t File::write(fk_data_DataRecord *record) {
     size_t size = 0;
     auto fields = fk_data_DataRecord_fields;
     if (!pb_get_encoded_size(&size, fields, record)) {
@@ -383,7 +383,7 @@ int32_t File::write(fk_data_DataRecord *record) {
     return 0;
 }
 
-int32_t File::seek(uint32_t record) {
+size_t File::seek(uint32_t record) {
     auto sv = storage_->seek(SeekSettings{ file_, record });
     if (!sv.valid()) {
         return false;
@@ -397,11 +397,11 @@ int32_t File::seek(uint32_t record) {
     return true;
 }
 
-int32_t File::read(uint8_t *record, uint32_t size) {
+size_t File::read(uint8_t *record, size_t size) {
     SequentialMemory memory{ storage_->memory_ };
     auto g = storage_->memory_->geometry();
     auto left_in_block = (uint32_t)(g.remaining_in_block(tail_) - sizeof(BlockTail));
-    auto bytes_read = (uint32_t)0;
+    auto bytes_read = (size_t)0;
 
     logtrace("[%d] 0x%06x BEGIN read (%d bytes)", file_, tail_, size);
 
@@ -428,7 +428,7 @@ int32_t File::read(uint8_t *record, uint32_t size) {
         }
         else if (bytes_read < size) {
             auto buffer_remaining = size - bytes_read;
-            auto reading = std::min(left_in_block, std::min(buffer_remaining, record_remaining_));
+            auto reading = std::min<size_t>(left_in_block, std::min<size_t>(buffer_remaining, record_remaining_));
             FK_ASSERT(reading > 0);
             if (memory.read(tail_, (uint8_t *)record + bytes_read, reading) != reading) {
                 return bytes_read;
