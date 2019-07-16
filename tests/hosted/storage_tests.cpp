@@ -29,7 +29,7 @@ protected:
 
         memory_->begin();
 
-        log_configure_level(LogLevels::DEBUG);
+        log_configure_level(LogLevels::INFO);
     }
 
     void TearDown() override {

@@ -138,7 +138,7 @@ uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address) {
 
     FK_ASSERT(is_address_valid(address));
 
-    loginfo("[%d] allocated block #%d (0x%06x)", file, free_block_, address);
+    logdebug("[%d] allocated block #%d (0x%06x)", file, free_block_, address);
 
     free_block_++;
     timestamp_++;
