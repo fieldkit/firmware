@@ -35,7 +35,7 @@ bool BatteryGauge::begin() {
     auto address = 0x36;
 
     Wire1.beginTransmission(address);
-    Wire1.write(0x21);
+    Wire1.write(0x00);
     if (!I2C_CHECK(Wire1.endTransmission())) {
         return false;
     }

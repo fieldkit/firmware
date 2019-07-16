@@ -4,11 +4,10 @@
 
 namespace fk {
 
-constexpr uint8_t WINC1500_CS = 54u;  /* This is moving */
-// constexpr uint8_t WINC1500_ENABLE = 95u;
-constexpr uint8_t WINC1500_IRQ = 97u;
-constexpr uint8_t WINC1500_RESET = 96u;
-constexpr uint8_t WINC1500_POWER = 56u;
+constexpr uint8_t WINC1500_CS = 95u;         // PC25
+constexpr uint8_t WINC1500_POWER = 56u;      // PB7
+constexpr uint8_t WINC1500_IRQ = 97u;        // PC27
+constexpr uint8_t WINC1500_RESET = 96u;      // PC26
 
 constexpr uint8_t GPS_POWER = 55u;
 
