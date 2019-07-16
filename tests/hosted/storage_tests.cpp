@@ -210,18 +210,37 @@ TEST_F(StorageSuite, ReadingARecord) {
     ASSERT_EQ(memcmp(expected, actual, sizeof(actual)), 0);
 }
 
+static void read_and_verify_file(File &file, size_t expected_length) {
+    ASSERT_TRUE(file.seek(0));
+
+    uint8_t expected[256];
+    memset(expected, 0xcc, sizeof(expected));
+
+    size_t bytes_read = 0;
+    while (bytes_read < expected_length) {
+        uint8_t data[256];
+        memset(data, 0x00, sizeof(data));
+        ASSERT_EQ(file.read(data, sizeof(data)), sizeof(data));
+
+        ASSERT_EQ(memcmp(expected, data, sizeof(data)), 0);
+
+        bytes_read += sizeof(data);
+    }
+}
+
 TEST_F(StorageSuite, LargeFiles) {
     Storage storage{ memory_ };
 
     ASSERT_TRUE(storage.clear());
 
     auto file_write = storage.file(0);
+    auto size = 10 * 1024 * 1024;
 
     uint8_t expected[256];
     memset(expected, 0xcc, sizeof(expected));
 
     auto bytes_wrote = 0;
-    while (bytes_wrote < 10 * 1024 * 1024) {
+    while (bytes_wrote < size) {
         ASSERT_EQ(file_write.write(expected, sizeof(expected)), sizeof(expected));
 
         bytes_wrote += sizeof(expected);
@@ -231,18 +250,7 @@ TEST_F(StorageSuite, LargeFiles) {
 
     auto file_read = storage.file(0);
 
-    ASSERT_TRUE(file_read.seek(0));
-
-    auto bytes_read = 0;
-    while (bytes_read < 10 * 1024 * 1024) {
-        uint8_t data[256];
-        memset(data, 0x00, sizeof(data));
-        ASSERT_EQ(file_read.read(data, sizeof(data)), sizeof(data));
-
-        ASSERT_EQ(memcmp(expected, data, sizeof(data)), 0);
-
-        bytes_read += sizeof(data);
-    }
+    read_and_verify_file(file_read, size);
 }
 
 TEST_F(StorageSuite, MultipleLargeFiles) {
@@ -252,12 +260,13 @@ TEST_F(StorageSuite, MultipleLargeFiles) {
 
     auto file0_write = storage.file(0);
     auto file1_write = storage.file(1);
+    auto size = 10 * 1024 * 1024;
 
     uint8_t expected[256];
     memset(expected, 0xcc, sizeof(expected));
 
     auto bytes_wrote = 0;
-    while (bytes_wrote < 10 * 1024 * 1024) {
+    while (bytes_wrote < size) {
         ASSERT_EQ(file0_write.write(expected, sizeof(expected)), sizeof(expected));
         ASSERT_EQ(file1_write.write(expected, sizeof(expected)), sizeof(expected));
 
@@ -266,39 +275,13 @@ TEST_F(StorageSuite, MultipleLargeFiles) {
 
     ASSERT_TRUE(storage.begin());
 
-    loginfo("file #0");
-
     auto file0_read = storage.file(0);
 
-    ASSERT_TRUE(file0_read.seek(0));
-
-    auto bytes_read = 0;
-    while (bytes_read < 10 * 1024 * 1024) {
-        uint8_t data[256];
-        memset(data, 0x00, sizeof(data));
-        ASSERT_EQ(file0_read.read(data, sizeof(data)), sizeof(data));
-
-        ASSERT_EQ(memcmp(expected, data, sizeof(data)), 0);
-
-        bytes_read += sizeof(data);
-    }
-
-    loginfo("file #1");
+    read_and_verify_file(file0_read, size);
 
     auto file1_read = storage.file(1);
 
-    ASSERT_TRUE(file1_read.seek(0));
-
-    bytes_read = 0;
-    while (bytes_read < 10 * 1024 * 1024) {
-        uint8_t data[256];
-        memset(data, 0x00, sizeof(data));
-        ASSERT_EQ(file1_read.read(data, sizeof(data)), sizeof(data));
-
-        ASSERT_EQ(memcmp(expected, data, sizeof(data)), 0);
-
-        bytes_read += sizeof(data);
-    }
+    read_and_verify_file(file1_read, size);
 }
 
 TEST_F(StorageSuite, MultipleLargeFilesOneMuchSmaller) {
@@ -308,12 +291,13 @@ TEST_F(StorageSuite, MultipleLargeFilesOneMuchSmaller) {
 
     auto file0_write = storage.file(0);
     auto file1_write = storage.file(1);
+    auto size = 10 * 1024 * 1024;
 
     uint8_t expected[256];
     memset(expected, 0xcc, sizeof(expected));
 
     auto bytes_wrote = 0;
-    while (bytes_wrote < 10 * 1024 * 1024) {
+    while (bytes_wrote < size) {
         ASSERT_EQ(file0_write.write(expected, sizeof(expected)), sizeof(expected));
 
         if (bytes_wrote % 4096 == 0) {
@@ -325,37 +309,11 @@ TEST_F(StorageSuite, MultipleLargeFilesOneMuchSmaller) {
 
     ASSERT_TRUE(storage.begin());
 
-    loginfo("file #0");
-
     auto file0_read = storage.file(0);
 
-    ASSERT_TRUE(file0_read.seek(0));
-
-    auto bytes_read = 0;
-    while (bytes_read < 10 * 1024 * 1024) {
-        uint8_t data[256];
-        memset(data, 0x00, sizeof(data));
-        ASSERT_EQ(file0_read.read(data, sizeof(data)), sizeof(data));
-
-        ASSERT_EQ(memcmp(expected, data, sizeof(data)), 0);
-
-        bytes_read += sizeof(data);
-    }
-
-    loginfo("file #1");
+    read_and_verify_file(file0_read, size);
 
     auto file1_read = storage.file(1);
 
-    ASSERT_TRUE(file1_read.seek(0));
-
-    bytes_read = 0;
-    while (bytes_read < (10 * 1024 * 1024) / 4096) {
-        uint8_t data[256];
-        memset(data, 0x00, sizeof(data));
-        ASSERT_EQ(file1_read.read(data, sizeof(data)), sizeof(data));
-
-        ASSERT_EQ(memcmp(expected, data, sizeof(data)), 0);
-
-        bytes_read += sizeof(data);
-    }
+    read_and_verify_file(file1_read, size / 4096);
 }
