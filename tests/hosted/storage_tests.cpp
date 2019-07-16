@@ -4,6 +4,7 @@
 #include "pool.h"
 #include "hal/linux/linux.h"
 #include "storage.h"
+#include "patterns.h"
 
 using namespace fk;
 
@@ -195,37 +196,15 @@ TEST_F(StorageSuite, ReadingARecord) {
 
     auto file = storage.file(0);
 
-    uint8_t expected[256];
-    memset(expected, 0xcc, sizeof(expected));
-    ASSERT_EQ(file.write(expected, sizeof(expected)), sizeof(expected));
+    StaticPattern pattern;
+
+    ASSERT_EQ(file.write(pattern.data, sizeof(pattern.data)), sizeof(pattern.data));
 
     ASSERT_TRUE(storage.begin());
 
     ASSERT_TRUE(file.seek(0));
 
-    uint8_t actual[256];
-    memset(actual, 0x00, sizeof(actual));
-    ASSERT_EQ(file.read(actual, sizeof(actual)), sizeof(actual));
-
-    ASSERT_EQ(memcmp(expected, actual, sizeof(actual)), 0);
-}
-
-static void read_and_verify_file(File &file, size_t expected_length) {
-    ASSERT_TRUE(file.seek(0));
-
-    uint8_t expected[256];
-    memset(expected, 0xcc, sizeof(expected));
-
-    size_t bytes_read = 0;
-    while (bytes_read < expected_length) {
-        uint8_t data[256];
-        memset(data, 0x00, sizeof(data));
-        ASSERT_EQ(file.read(data, sizeof(data)), sizeof(data));
-
-        ASSERT_EQ(memcmp(expected, data, sizeof(data)), 0);
-
-        bytes_read += sizeof(data);
-    }
+    pattern.verify_record(file);
 }
 
 TEST_F(StorageSuite, LargeFiles) {
@@ -236,21 +215,14 @@ TEST_F(StorageSuite, LargeFiles) {
     auto file_write = storage.file(0);
     auto size = 10 * 1024 * 1024;
 
-    uint8_t expected[256];
-    memset(expected, 0xcc, sizeof(expected));
-
-    auto bytes_wrote = 0;
-    while (bytes_wrote < size) {
-        ASSERT_EQ(file_write.write(expected, sizeof(expected)), sizeof(expected));
-
-        bytes_wrote += sizeof(expected);
-    }
+    StaticPattern pattern;
+    pattern.write(file_write, size);
 
     ASSERT_TRUE(storage.begin());
 
     auto file_read = storage.file(0);
 
-    read_and_verify_file(file_read, size);
+    pattern.verify(file_read, size);
 }
 
 TEST_F(StorageSuite, MultipleLargeFiles) {
@@ -262,26 +234,25 @@ TEST_F(StorageSuite, MultipleLargeFiles) {
     auto file1_write = storage.file(1);
     auto size = 10 * 1024 * 1024;
 
-    uint8_t expected[256];
-    memset(expected, 0xcc, sizeof(expected));
+    StaticPattern pattern;
 
     auto bytes_wrote = 0;
     while (bytes_wrote < size) {
-        ASSERT_EQ(file0_write.write(expected, sizeof(expected)), sizeof(expected));
-        ASSERT_EQ(file1_write.write(expected, sizeof(expected)), sizeof(expected));
+        ASSERT_EQ(file0_write.write(pattern.data, sizeof(pattern.data)), sizeof(pattern.data));
+        ASSERT_EQ(file1_write.write(pattern.data, sizeof(pattern.data)), sizeof(pattern.data));
 
-        bytes_wrote += sizeof(expected);
+        bytes_wrote += sizeof(pattern.data);
     }
 
     ASSERT_TRUE(storage.begin());
 
     auto file0_read = storage.file(0);
 
-    read_and_verify_file(file0_read, size);
+    pattern.verify(file0_read, size);
 
     auto file1_read = storage.file(1);
 
-    read_and_verify_file(file1_read, size);
+    pattern.verify(file1_read, size);
 }
 
 TEST_F(StorageSuite, MultipleLargeFilesOneMuchSmaller) {
@@ -293,27 +264,27 @@ TEST_F(StorageSuite, MultipleLargeFilesOneMuchSmaller) {
     auto file1_write = storage.file(1);
     auto size = 10 * 1024 * 1024;
 
-    uint8_t expected[256];
-    memset(expected, 0xcc, sizeof(expected));
+    StaticPattern pattern;
 
     auto bytes_wrote = 0;
     while (bytes_wrote < size) {
-        ASSERT_EQ(file0_write.write(expected, sizeof(expected)), sizeof(expected));
+        ASSERT_EQ(file0_write.write(pattern.data, sizeof(pattern.data)), sizeof(pattern.data));
 
         if (bytes_wrote % 4096 == 0) {
-            ASSERT_EQ(file1_write.write(expected, sizeof(expected)), sizeof(expected));
+            ASSERT_EQ(file1_write.write(pattern.data, sizeof(pattern.data)), sizeof(pattern.data));
         }
 
-        bytes_wrote += sizeof(expected);
+        bytes_wrote += sizeof(pattern.data);
     }
 
     ASSERT_TRUE(storage.begin());
 
     auto file0_read = storage.file(0);
 
-    read_and_verify_file(file0_read, size);
+    pattern.verify(file0_read, size);
 
     auto file1_read = storage.file(1);
 
-    read_and_verify_file(file1_read, size / 4096);
+    pattern.verify(file1_read, size / 4096);
+}
 }

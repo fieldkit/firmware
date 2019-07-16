@@ -222,7 +222,7 @@ SeekValue Storage::seek(SeekSettings settings) {
 
     FK_ASSERT(is_address_valid(address));
 
-    logtrace("[%d] seeking #%d (0x%06x)", settings.file, settings.record, address);
+    logtrace("[%d] 0x%06x seeking #%d", settings.file, address, settings.record);
 
     while (true) {
         auto record_head = RecordHeader{};
@@ -239,11 +239,13 @@ SeekValue Storage::seek(SeekSettings settings) {
 
         // Is there a valid record here?
         if (record_head.size == 0 || record_head.size == InvalidSize || !record_head.valid()) {
+            logtrace("[%d] 0x%06x invalid head", settings.file, address);
             break;
         }
 
         // Is this the record they're looking for?
         if (settings.record != InvalidRecord && record_head.record == settings.record) {
+            logtrace("[%d] 0x%06x found record #%d", settings.file, settings.record, address);
             break;
         }
 
@@ -254,7 +256,7 @@ SeekValue Storage::seek(SeekSettings settings) {
 
         auto record_length = sizeof(RecordHeader) + record_head.size + sizeof(RecordTail);
 
-        logverbose("[%d] seeking: 0x%06x + %4d/%4d", settings.file, address, record_length, record_head.size);
+        logverbose("[%d] 0x%06x seeking + %4d/%4d", settings.file, address, record_length, record_head.size);
 
         // Skip over the record head, the actual record, and the tail (hash)
         FK_ASSERT(!g.spans_block(address, record_length));
@@ -264,7 +266,7 @@ SeekValue Storage::seek(SeekSettings settings) {
         position += record_head.size;
     }
 
-    logtrace("[%d] seek done @ 0x%06x (%d) (%d bytes)", settings.file, address, record, position);
+    logtrace("[%d] 0x%06x seek done @ (%d) (%d bytes)", settings.file, address, record, position);
 
     return SeekValue{ address, record, position };
 }
