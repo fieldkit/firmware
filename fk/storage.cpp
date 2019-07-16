@@ -175,6 +175,8 @@ uint32_t Storage::allocate(uint8_t file, uint32_t overflow, uint32_t previous_ta
         if (memory_->write(previous_tail_address, (uint8_t *)&block_tail, sizeof(BlockTail)) != sizeof(BlockTail)) {
             return 0;
         }
+
+        logtrace("[%d] 0x%06x btail", file, previous_tail_address);
     }
 
     return after_header;
@@ -293,10 +295,12 @@ size_t File::write(uint8_t *record, size_t size) {
     auto footer = false;
     auto wrote = (size_t)0;
     auto left_in_block = (g.remaining_in_block(tail_) - sizeof(BlockTail));
+    auto total_required = sizeof(RecordHeader) + size + sizeof(RecordTail);
 
-    hash_.reset(Hash::Length);
-
-    if (!is_address_valid(tail_)) {
+    if (!is_address_valid(tail_) || total_required > left_in_block) {
+        if (is_address_valid(tail_)) {
+            tail_ += left_in_block;
+        }
         tail_ = storage_->allocate(file_, 0, tail_);
         left_in_block = g.remaining_in_block(tail_) - sizeof(BlockTail);
     }
@@ -304,15 +308,17 @@ size_t File::write(uint8_t *record, size_t size) {
     logtrace("[%d] 0x%06x BEGIN write (%d bytes) #%d (%d w/ overhead)", file_, tail_, size, record_,
              sizeof(RecordHeader) + sizeof(RecordTail) + size);
 
+    hash_.reset(Hash::Length);
+
     while (!header || (uint32_t)wrote < size || !footer) {
         if (!is_address_valid(tail_) || left_in_block == 0 ||
             (!header && !footer && left_in_block < sizeof(RecordHeader)) ||
             (!footer && (uint32_t)wrote == size && left_in_block < sizeof(RecordTail))) {
+
             auto overflow = size - wrote;
             if (!footer) {
                 overflow += sizeof(RecordTail);
             }
-
             tail_ = storage_->allocate(file_, overflow, tail_ + left_in_block);
             left_in_block = g.remaining_in_block(tail_) - sizeof(BlockTail);
         }
@@ -411,18 +417,47 @@ size_t File::read(uint8_t *record, size_t size) {
     auto g = storage_->memory_->geometry();
     auto left_in_block = (uint32_t)(g.remaining_in_block(tail_) - sizeof(BlockTail));
     auto bytes_read = (size_t)0;
+    auto minimum_record_size = sizeof(RecordHeader) + sizeof(RecordTail);
 
     logtrace("[%d] 0x%06x BEGIN read (%d bytes)", file_, tail_, size);
 
     while (bytes_read < size) {
-        if (record_remaining_ == 0) {
+        if (left_in_block < minimum_record_size) {
+            tail_ += left_in_block;
+
+            BlockTail block_tail;
+            if (memory.read(tail_, (uint8_t *)&block_tail, sizeof(block_tail)) != sizeof(block_tail)) {
+                break;
+            }
+
+            logverbose("[%d] 0x%06x btail (0x%06x)", file_, tail_, block_tail.linked);
+
+            tail_ += sizeof(BlockTail);
+
+            tail_ = block_tail.linked;
+
+            BlockHeader block_header;
+            if (memory.read(tail_, (uint8_t *)&block_header, sizeof(block_header)) != sizeof(block_header)) {
+                break;
+            }
+
+            FK_ASSERT(block_header.verify_hash());
+
+            FK_ASSERT(block_header.file == file_);
+
+            tail_ += sizeof(BlockHeader);
+            left_in_block = g.remaining_in_block(tail_) - sizeof(BlockTail);
+        }
+        else if (record_remaining_ == 0) {
             RecordHeader record_header;
             if (memory.read(tail_, (uint8_t *)&record_header, sizeof(record_header)) != sizeof(record_header)) {
                 return bytes_read;
             }
 
-            if (record_header.size == 0 || record_header.size == InvalidSize) {
-                break;
+            if (!record_header.valid()) {
+                tail_ += left_in_block;
+                left_in_block = (uint32_t)(g.remaining_in_block(tail_) - sizeof(BlockTail));
+                continue;
             }
 
             hash_.reset(Hash::Length);
@@ -452,47 +487,10 @@ size_t File::read(uint8_t *record, size_t size) {
             left_in_block -= reading;
             record_remaining_ -= reading;
 
-            auto dangling_header = false;
             if (record_remaining_ == 0) {
                 logverbose("[%d] 0x%06x end of record", file_, tail_);
-                if (left_in_block >= sizeof(RecordTail)) {
-                    tail_ += sizeof(RecordTail);
-                    left_in_block -= sizeof(RecordTail);
-                }
-                else {
-                    tail_ += left_in_block;
-                    left_in_block = 0;
-                    dangling_header = true;
-                }
-            }
-            if (left_in_block < sizeof(RecordHeader)) {
-                tail_ += left_in_block;
-
-                BlockTail block_tail;
-                if (memory.read(tail_, (uint8_t *)&block_tail, sizeof(block_tail)) != sizeof(block_tail)) {
-                    break;
-                }
-
-                logverbose("[%d] 0x%06x btail (0x%06x)", file_, tail_, block_tail.linked);
-
-                tail_ += sizeof(BlockTail);
-
-                tail_ = block_tail.linked;
-
-                BlockHeader block_header;
-                if (memory.read(tail_, (uint8_t *)&block_header, sizeof(block_header)) != sizeof(block_header)) {
-                    break;
-                }
-
-                FK_ASSERT(block_header.verify_hash());
-
-                FK_ASSERT(block_header.file == file_);
-
-                tail_ += sizeof(BlockHeader);
-                if (dangling_header) {
-                    tail_ += sizeof(RecordTail);
-                }
-                left_in_block = g.remaining_in_block(tail_) - sizeof(BlockTail);
+                tail_ += sizeof(RecordTail);
+                left_in_block -= sizeof(RecordTail);
             }
         }
         else {
