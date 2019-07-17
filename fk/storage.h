@@ -196,6 +196,8 @@ public:
     }
 
 private:
+    size_t read_record_header();
+    size_t read_record_tail();
     void update();
 
 };

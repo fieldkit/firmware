@@ -413,22 +413,19 @@ size_t File::seek(uint32_t record) {
     return true;
 }
 
-size_t File::read(uint8_t *record, size_t size) {
+size_t File::read_record_header() {
     SequentialMemory memory{ storage_->memory_ };
     auto g = storage_->memory_->geometry();
     auto left_in_block = (uint32_t)(g.remaining_in_block(tail_) - sizeof(BlockTail));
-    auto bytes_read = (size_t)0;
     auto minimum_record_size = sizeof(RecordHeader) + sizeof(RecordTail);
 
-    logtrace("[%d] 0x%06x BEGIN read (%d bytes) (rr = %d) (lib = %d)", file_, tail_, size, record_remaining_, left_in_block);
-
-    while (bytes_read < size) {
+    for (auto i = 0; i < 3; ++i) {
         if (left_in_block < minimum_record_size) {
             tail_ += left_in_block;
 
             BlockTail block_tail;
             if (memory.read(tail_, (uint8_t *)&block_tail, sizeof(block_tail)) != sizeof(block_tail)) {
-                break;
+                return 0;
             }
 
             logverbose("[%d] 0x%06x btail (0x%06x)", file_, tail_, block_tail.linked);
@@ -439,7 +436,7 @@ size_t File::read(uint8_t *record, size_t size) {
 
             BlockHeader block_header;
             if (memory.read(tail_, (uint8_t *)&block_header, sizeof(block_header)) != sizeof(block_header)) {
-                break;
+                return 0;
             }
 
             FK_ASSERT(block_header.verify_hash());
@@ -449,27 +446,70 @@ size_t File::read(uint8_t *record, size_t size) {
             tail_ += sizeof(BlockHeader);
             left_in_block = g.remaining_in_block(tail_) - sizeof(BlockTail);
         }
-        else if (record_remaining_ == 0) {
+        else {
+            logverbose("[%d] 0x%06x trying header", file_, tail_);
+
             RecordHeader record_header;
             if (memory.read(tail_, (uint8_t *)&record_header, sizeof(record_header)) != sizeof(record_header)) {
+                return 0;
+            }
+
+            if (record_header.valid()) {
+                hash_.reset(Hash::Length);
+                hash_.update(&record_header, sizeof(RecordHeader));
+
+                record_remaining_ = record_header.size;
+
+                logverbose("[%d] 0x%06x record header (%d bytes) #%d", file_, tail_, record_remaining_, record_header.record);
+
+                tail_ += sizeof(record_header);
+
+                return record_remaining_;
+            }
+
+            tail_ += left_in_block;
+            left_in_block = (uint32_t)(g.remaining_in_block(tail_) - sizeof(BlockTail));
+        }
+    }
+
+    return 0;
+}
+
+size_t File::read_record_tail() {
+    SequentialMemory memory{ storage_->memory_ };
+
+    logverbose("[%d] 0x%06x end of record", file_, tail_);
+
+    RecordTail record_tail;
+    if (memory.read(tail_, (uint8_t *)&record_tail, sizeof(RecordTail)) != sizeof(RecordTail)) {
+        return 0;
+    }
+
+    // TODO: We can recover from this better.
+    Hash hash;
+    hash_.finalize(&hash.hash, Hash::Length);
+    FK_ASSERT(memcmp(hash.hash, record_tail.hash.hash, Hash::Length) == 0);
+
+    tail_ += sizeof(RecordTail);
+
+    return sizeof(RecordTail);
+}
+
+size_t File::read(uint8_t *record, size_t size) {
+    SequentialMemory memory{ storage_->memory_ };
+    auto g = storage_->memory_->geometry();
+    auto left_in_block = (uint32_t)(g.remaining_in_block(tail_) - sizeof(BlockTail));
+    auto bytes_read = (size_t)0;
+
+    logtrace("[%d] 0x%06x BEGIN read (%d bytes) (rr = %d) (lib = %d)", file_, tail_, size, record_remaining_, left_in_block);
+
+    while (bytes_read < size) {
+        if (record_remaining_ == 0) {
+            if (read_record_header() == 0) {
                 return bytes_read;
             }
 
-            if (!record_header.valid()) {
-                tail_ += left_in_block;
-                left_in_block = (uint32_t)(g.remaining_in_block(tail_) - sizeof(BlockTail));
-                continue;
-            }
-
-            hash_.reset(Hash::Length);
-            hash_.update(&record_header, sizeof(RecordHeader));
-
-            record_remaining_ = record_header.size;
-
-            logverbose("[%d] 0x%06x record header (%d bytes) #%d", file_, tail_, record_remaining_, record_header.record);
-
-            tail_ += sizeof(record_header);
-            left_in_block -= sizeof(record_header);
+            left_in_block = (uint32_t)(g.remaining_in_block(tail_) - sizeof(BlockTail));
         }
         else if (bytes_read < size) {
             auto buffer_remaining = size - bytes_read;
@@ -489,19 +529,10 @@ size_t File::read(uint8_t *record, size_t size) {
             record_remaining_ -= reading;
 
             if (record_remaining_ == 0) {
-                logverbose("[%d] 0x%06x end of record", file_, tail_);
-
-                RecordTail record_tail;
-                if (memory.read(tail_, (uint8_t *)&record_tail, sizeof(RecordTail)) != sizeof(RecordTail)) {
+                if (read_record_tail() == 0) {
                     return bytes_read;
                 }
 
-                // TODO: We can recover from this better.
-                Hash hash;
-                hash_.finalize(&hash.hash, Hash::Length);
-                FK_ASSERT(memcmp(hash.hash, record_tail.hash.hash, Hash::Length) == 0);
-
-                tail_ += sizeof(RecordTail);
                 left_in_block -= sizeof(RecordTail);
             }
         }
