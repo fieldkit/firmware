@@ -291,8 +291,6 @@ File::~File() {
 size_t File::write(uint8_t *record, size_t size) {
     SequentialMemory memory{ storage_->memory_ };
     auto g = storage_->memory_->geometry();
-    auto header = false;
-    auto footer = false;
     auto wrote = (size_t)0;
     auto left_in_block = (g.remaining_in_block(tail_) - sizeof(BlockTail));
     auto total_required = sizeof(RecordHeader) + size + sizeof(RecordTail);
@@ -310,75 +308,53 @@ size_t File::write(uint8_t *record, size_t size) {
 
     hash_.reset(Hash::Length);
 
-    while (!header || (uint32_t)wrote < size || !footer) {
-        if (!is_address_valid(tail_) || left_in_block == 0 ||
-            (!header && !footer && left_in_block < sizeof(RecordHeader)) ||
-            (!footer && (uint32_t)wrote == size && left_in_block < sizeof(RecordTail))) {
+    RecordHeader record_header;
+    record_header.size = size;
+    record_header.record = record_++;
+    record_header.crc = record_header.sign();
 
-            auto overflow = size - wrote;
-            if (!footer) {
-                overflow += sizeof(RecordTail);
-            }
-            tail_ = storage_->allocate(file_, overflow, tail_ + left_in_block);
-            left_in_block = g.remaining_in_block(tail_) - sizeof(BlockTail);
-        }
+    logverbose("[%d] 0x%06x write header (lib = %d) (%d bytes)", file_, tail_, left_in_block, size);
 
-        if (!header) {
-            RecordHeader record_header;
-            record_header.size = size;
-            record_header.record = record_++;
-            record_header.crc = record_header.sign();
+    FK_ASSERT(wrote == 0);
 
-            logverbose("[%d] 0x%06x write header (lib = %d) (%d bytes)", file_, tail_, left_in_block, size);
-
-            FK_ASSERT(wrote == 0);
-
-            if (memory.write(tail_, (uint8_t *)&record_header, sizeof(record_header)) != sizeof(record_header)) {
-                return 0;
-            }
-
-            hash_.update(&record_header, sizeof(record_header));
-
-            tail_ += sizeof(record_header);
-            left_in_block -= sizeof(record_header);
-            header = true;
-        }
-        else if (wrote < size) {
-            auto writing = std::min<size_t>(left_in_block, size - wrote);
-            logverbose("[%d] 0x%06x write data (%d bytes) (%d lib) (%d to write)",
-                     file_, tail_, writing, left_in_block, size - wrote);
-
-            FK_ASSERT(writing > 0);
-
-            if (memory.write(tail_, (uint8_t *)record + wrote, writing) != writing) {
-                return 0;
-            }
-
-            hash_.update(record, size);
-
-            tail_ += writing;
-            wrote += writing;
-            left_in_block -= writing;
-        }
-        else if (wrote == size && !footer) {
-            RecordTail record_tail;
-            hash_.finalize(record_tail.hash.hash, sizeof(record_tail.hash.hash));
-            if (memory.write(tail_, (uint8_t *)&record_tail, sizeof(RecordTail)) != sizeof(RecordTail)) {
-                return 0;
-            }
-
-            logverbose("[%d] 0x%06x write footer (lib = %d)", file_, tail_, left_in_block);
-
-            tail_ += sizeof(RecordTail);
-            left_in_block -= sizeof(RecordTail);
-            size_ += wrote;
-            footer = true;
-        }
-        else {
-            break;
-        }
+    if (memory.write(tail_, (uint8_t *)&record_header, sizeof(record_header)) != sizeof(record_header)) {
+        return 0;
     }
 
+    hash_.update(&record_header, sizeof(record_header));
+
+    tail_ += sizeof(record_header);
+    left_in_block -= sizeof(record_header);
+
+    while ((uint32_t)wrote < size) {
+        auto writing = std::min<size_t>(left_in_block, size - wrote);
+        logverbose("[%d] 0x%06x write data (%d bytes) (%d lib) (%d to write)",
+                   file_, tail_, writing, left_in_block, size - wrote);
+
+        FK_ASSERT(writing > 0);
+
+        if (memory.write(tail_, (uint8_t *)record + wrote, writing) != writing) {
+            return 0;
+        }
+
+        hash_.update(record, size);
+
+        tail_ += writing;
+        wrote += writing;
+        left_in_block -= writing;
+    }
+
+    RecordTail record_tail;
+    hash_.finalize(record_tail.hash.hash, sizeof(record_tail.hash.hash));
+    if (memory.write(tail_, (uint8_t *)&record_tail, sizeof(RecordTail)) != sizeof(RecordTail)) {
+        return 0;
+    }
+
+    logverbose("[%d] 0x%06x write footer (lib = %d)", file_, tail_, left_in_block);
+
+    tail_ += sizeof(RecordTail);
+    left_in_block -= sizeof(RecordTail);
+    size_ += wrote;
     if (left_in_block == 0) {
         tail_ = storage_->allocate(file_, 0, tail_);
         left_in_block = g.remaining_in_block(tail_);

@@ -361,8 +361,6 @@ TEST_F(StorageSuite, WritingProtobuf) {
 
     ASSERT_TRUE(storage.clear());
 
-    verbose();
-
     fk_data_DataRecord record = fk_data_DataRecord_init_default;
     record.log.uptime = fk_uptime();
     record.log.time = 0;
