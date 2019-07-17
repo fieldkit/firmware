@@ -172,23 +172,6 @@ void setup() {
     bytes_to_hex_string(hash_string, sizeof(hash_string), fkb_header.firmware.hash, fkb_header.firmware.hash_size);
     loginfo("hash = %s", hash_string);
 
-    /*
-    pinMode(PIN_WIRE1_SDA, OUTPUT);
-    pinMode(PIN_WIRE1_SCL, OUTPUT);
-    pinMode(GPS_POWER, OUTPUT);
-
-    while (true) {
-        digitalWrite(PIN_WIRE1_SDA, HIGH);
-        digitalWrite(PIN_WIRE1_SCL, HIGH);
-        digitalWrite(GPS_POWER, HIGH);
-        fk_delay(500);
-        digitalWrite(PIN_WIRE1_SDA, LOW);
-        digitalWrite(PIN_WIRE1_SCL, LOW);
-        digitalWrite(GPS_POWER, LOW);
-        fk_delay(500);
-    }
-    */
-
     MetalNetwork network;
     DisplayFactory display_factory;
     Display *display = display_factory.get_display();
@@ -196,13 +179,13 @@ void setup() {
 
     self_check.check();
 
-    /*
-    fk_delay(1000);
+    if (fkc.slow_startup) {
+        fk_delay(1000);
 
-    display->fk_logo();
+        display->fk_logo();
 
-    fk_delay(1000);
-    */
+        fk_delay(1000);
+    }
 
     run_tasks();
 }
