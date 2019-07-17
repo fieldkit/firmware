@@ -50,6 +50,10 @@ protected:
     }
 
 protected:
+    void verbose() {
+        log_configure_level(LogLevels::TRACE);
+    }
+
     void clear_logs() {
         for (size_t i = 0; i < MemoryFactory::NumberOfDataMemoryBanks; ++i) {
             auto &log = banks_[i]->log();
@@ -308,4 +312,28 @@ TEST_F(StorageSuite, SeekingToARecord) {
 
     ASSERT_TRUE(file_read.seek(size / 256 / 2));
     pattern.verifY_record(file_read, (size / 256 / 2) & 0xff);
+}
+
+TEST_F(StorageSuite, ReadingAtEoF) {
+    Storage storage{ memory_ };
+
+    ASSERT_TRUE(storage.clear());
+
+    auto file_write = storage.file(0);
+
+    SequentialPattern pattern;
+    pattern.write(file_write, 1024);
+
+    ASSERT_TRUE(storage.begin());
+
+    uint8_t data[128];
+    ASSERT_EQ(file_write.read(data, sizeof(data)), (size_t)0);
+
+    auto file_read = storage.file(0);
+
+    loginfo("seek");
+
+    ASSERT_TRUE(file_read.seek(LastRecord));
+
+    ASSERT_EQ(file_read.read(data, sizeof(data)), (size_t)0);
 }

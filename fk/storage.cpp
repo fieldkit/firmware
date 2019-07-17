@@ -261,7 +261,7 @@ SeekValue Storage::seek(SeekSettings settings) {
 
         auto record_length = sizeof(RecordHeader) + record_head.size + sizeof(RecordTail);
 
-        logverbose("[%d] 0x%06x seeking + %4d/%4d", settings.file, address, record_length, record_head.size);
+        logverbose("[%d] 0x%06x seeking %4d/%4d", settings.file, address, record_length, record_head.size);
 
         // Skip over the record head, the actual record, and the tail (hash)
         FK_ASSERT(!g.spans_block(address, record_length));
@@ -419,7 +419,7 @@ size_t File::read(uint8_t *record, size_t size) {
     auto bytes_read = (size_t)0;
     auto minimum_record_size = sizeof(RecordHeader) + sizeof(RecordTail);
 
-    logtrace("[%d] 0x%06x BEGIN read (%d bytes)", file_, tail_, size);
+    logtrace("[%d] 0x%06x BEGIN read (%d bytes) (rr = %d) (lib = %d)", file_, tail_, size, record_remaining_, left_in_block);
 
     while (bytes_read < size) {
         if (left_in_block < minimum_record_size) {

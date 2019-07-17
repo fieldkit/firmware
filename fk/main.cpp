@@ -7,7 +7,8 @@
 #include "board.h"
 #include "hal/hal.h"
 #include "hal/metal/metal.h"
-#include "printf.h"
+#include "tiny_printf.h"
+#include "storage.h"
 
 #include "secrets.h"
 

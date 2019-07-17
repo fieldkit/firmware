@@ -169,7 +169,7 @@ private:
     uint32_t record_{ InvalidRecord };
     uint32_t size_{ InvalidSize };
     uint32_t version_{ InvalidVersion };
-    uint32_t record_remaining_{ InvalidAddress };
+    uint32_t record_remaining_{ 0 };
     BLAKE2b hash_;
 
 public:
