@@ -7,6 +7,7 @@
 
 #include <memory>
 #include <alogging/alogging.h>
+#include "config.h"
 
 namespace fk {
 

@@ -30,9 +30,11 @@ void SelfCheck::check() {
     temperature();
     qspi_memory();
     spi_memory();
-    gps();
     wifi();
-    sd_card();
+    if (fkc.full_self_check) {
+        gps();
+        sd_card();
+    }
 
     loginfo("done");
 }
