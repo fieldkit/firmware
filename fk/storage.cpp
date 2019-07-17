@@ -288,11 +288,11 @@ File::File(Storage *storage, uint8_t file, FileHeader fh)
 File::~File() {
 }
 
-size_t File::write(uint8_t *record, size_t size) {
+size_t File::write_record_header(size_t size) {
     SequentialMemory memory{ storage_->memory_ };
     auto g = storage_->memory_->geometry();
-    auto wrote = (size_t)0;
-    auto left_in_block = (g.remaining_in_block(tail_) - sizeof(BlockTail));
+
+    auto left_in_block = g.remaining_in_block(tail_) - sizeof(BlockTail);
     auto total_required = sizeof(RecordHeader) + size + sizeof(RecordTail);
 
     if (!is_address_valid(tail_) || total_required > left_in_block) {
@@ -300,13 +300,7 @@ size_t File::write(uint8_t *record, size_t size) {
             tail_ += left_in_block;
         }
         tail_ = storage_->allocate(file_, 0, tail_);
-        left_in_block = g.remaining_in_block(tail_) - sizeof(BlockTail);
     }
-
-    logtrace("[%d] 0x%06x BEGIN write (%d bytes) #%d (%d w/ overhead)", file_, tail_, size, record_,
-             sizeof(RecordHeader) + sizeof(RecordTail) + size);
-
-    hash_.reset(Hash::Length);
 
     RecordHeader record_header;
     record_header.size = size;
@@ -315,34 +309,39 @@ size_t File::write(uint8_t *record, size_t size) {
 
     logverbose("[%d] 0x%06x write header (lib = %d) (%d bytes)", file_, tail_, left_in_block, size);
 
-    FK_ASSERT(wrote == 0);
-
     if (memory.write(tail_, (uint8_t *)&record_header, sizeof(record_header)) != sizeof(record_header)) {
         return 0;
     }
 
+    hash_.reset(Hash::Length);
     hash_.update(&record_header, sizeof(record_header));
 
     tail_ += sizeof(record_header);
-    left_in_block -= sizeof(record_header);
 
-    while ((uint32_t)wrote < size) {
-        auto writing = std::min<size_t>(left_in_block, size - wrote);
-        logverbose("[%d] 0x%06x write data (%d bytes) (%d lib) (%d to write)",
-                   file_, tail_, writing, left_in_block, size - wrote);
+    return sizeof(record_header);
+}
 
-        FK_ASSERT(writing > 0);
+size_t File::write_partial(uint8_t *record, size_t size) {
+    SequentialMemory memory{ storage_->memory_ };
+    auto g = storage_->memory_->geometry();
+    auto left_in_block = (g.remaining_in_block(tail_) - sizeof(BlockTail));
+    FK_ASSERT(left_in_block >= size);
 
-        if (memory.write(tail_, (uint8_t *)record + wrote, writing) != writing) {
-            return 0;
-        }
+    logverbose("[%d] 0x%06x write data (%d bytes) (%d lib)", file_, tail_, size, left_in_block);
 
-        hash_.update(record, size);
-
-        tail_ += writing;
-        wrote += writing;
-        left_in_block -= writing;
+    if (memory.write(tail_, (uint8_t *)record, size) != size) {
+        return 0;
     }
+
+    hash_.update(record, size);
+
+    tail_ += size;
+
+    return size;
+}
+
+size_t File::write_record_tail(size_t size) {
+    SequentialMemory memory{ storage_->memory_ };
 
     RecordTail record_tail;
     hash_.finalize(record_tail.hash.hash, sizeof(record_tail.hash.hash));
@@ -352,17 +351,33 @@ size_t File::write(uint8_t *record, size_t size) {
 
     logverbose("[%d] 0x%06x write footer (lib = %d)", file_, tail_, left_in_block);
 
-    tail_ += sizeof(RecordTail);
-    left_in_block -= sizeof(RecordTail);
-    size_ += wrote;
-    if (left_in_block == 0) {
-        tail_ = storage_->allocate(file_, 0, tail_);
-        left_in_block = g.remaining_in_block(tail_);
+    tail_ += sizeof(record_tail);
+    size_ += size;
+
+    return sizeof(record_tail);
+}
+
+size_t File::write(uint8_t *record, size_t size) {
+    SequentialMemory memory{ storage_->memory_ };
+
+    logtrace("[%d] 0x%06x BEGIN write (%d bytes) #%d (%d w/ overhead)", file_, tail_, size, record_,
+             sizeof(RecordHeader) + sizeof(RecordTail) + size);
+
+    if (write_record_header(size) == 0) {
+        return 0;
+    }
+
+    if (write_partial(record, size) != size) {
+        return 0;
+    }
+
+    if (!write_record_tail(size)) {
+        return 0;
     }
 
     update();
 
-    return wrote;
+    return size;
 }
 
 size_t File::seek(uint32_t record) {
@@ -530,7 +545,7 @@ typedef struct pb_file_t {
             return true;
         }
 
-        if (file->write(buffer, position) != position) {
+        if (file->write_partial(buffer, position) != position) {
             return false;
         }
 
@@ -567,9 +582,7 @@ static bool read_callback(pb_istream_t *stream, uint8_t *buf, size_t c) {
         pbf->bytes_read = reading;
     }
 
-    if (pbf->position + c > pbf->bytes_read) {
-        return false;
-    }
+    FK_ASSERT(pbf->position + c <= pbf->bytes_read);
 
     memcpy(buf, pbf->buffer + pbf->position, c);
     pbf->position += c;
@@ -598,12 +611,20 @@ size_t File::write(fk_data_DataRecord *record) {
         return 0;
     }
 
+    if (write_record_header(pbf.record_size) == 0) {
+        return 0;
+    }
+
     pb_ostream_t ostream = pb_ostream_from_file(&pbf);
     if (!pb_encode(&ostream, fields, record)) {
         return 0;
     }
 
     if (!pbf.flush()) {
+        return 0;
+    }
+
+    if (write_record_tail(pbf.record_size) == 0) {
         return 0;
     }
 

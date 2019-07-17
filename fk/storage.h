@@ -182,6 +182,7 @@ public:
     size_t read(uint8_t *record, size_t size);
     size_t write(fk_data_DataRecord *record);
     size_t read(fk_data_DataRecord *record);
+    size_t write_partial(uint8_t *record, size_t size);
 
 public:
     uint32_t tail() const {
@@ -197,6 +198,8 @@ public:
     }
 
 private:
+    size_t write_record_header(size_t size);
+    size_t write_record_tail(size_t size);
     size_t read_record_header();
     size_t read_record_tail();
     void update();
