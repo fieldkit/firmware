@@ -18,6 +18,12 @@ using namespace fk;
 
 FK_DECLARE_LOGGER("main");
 
+os_task_t idle_task;
+os_task_t display_task;
+os_task_t httpd_task;
+os_task_t gps_task;
+os_task_t readings_task;
+
 static void task_handler_idle(void *params) {
     while (true) {
         fk_delay(5000);
@@ -91,9 +97,6 @@ static void task_handler_gps(void *params) {
 }
 
 static void task_handler_readings(void *params) {
-    while (true) {
-        fk_delay(1000);
-    }
 }
 
 void run_tasks() {
@@ -105,19 +108,10 @@ void run_tasks() {
      * Declaring these static, for exmaple, will cause them to be placed in the
      * .data section, which is below the heap in memory.
      */
-    os_task_t idle_task;
     uint32_t idle_stack[1024 / sizeof(uint32_t)];
-
-    os_task_t display_task;
     uint32_t display_stack[2048 / sizeof(uint32_t)];
-
-    os_task_t httpd_task;
     uint32_t httpd_stack[4096 / sizeof(uint32_t)];
-
-    os_task_t gps_task;
     uint32_t gps_stack[2048 / sizeof(uint32_t)];
-
-    os_task_t readings_task;
     uint32_t readings_stack[4096 / sizeof(uint32_t)];
 
     OS_CHECK(os_initialize());
