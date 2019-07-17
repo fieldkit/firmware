@@ -127,28 +127,6 @@ bool SelfCheck::spi_memory() {
 
     auto g = memory->geometry();
 
-    if (false) {
-        auto started = fk_uptime();
-        for (uint32_t i = 0; i < g.nblocks; ++i) {
-            uint8_t buffer[32];
-            FK_ASSERT(memory->read(i * g.block_size, buffer, sizeof(buffer)));
-        }
-
-        loginfo("scan done %lums", fk_uptime() - started);
-    }
-    else {
-        auto block = g.nblocks / 2;
-        auto started = fk_uptime();
-        do {
-            uint8_t buffer[32];
-            FK_ASSERT(memory->read(block * g.block_size, buffer, sizeof(buffer)));
-            block /= 2;
-        }
-        while (block > 1);
-
-        loginfo("scan done %lums", fk_uptime() - started);
-    }
-
     loginfo("bank memory ready (%luMB) (%lu blocks)", g.total_size / OneMegabyte, g.nblocks);
 
     return nbanks > 0;
