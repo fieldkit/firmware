@@ -332,8 +332,6 @@ TEST_F(StorageSuite, ReadingAtEoF) {
 
     auto file_read = storage.file(0);
 
-    loginfo("seek");
-
     ASSERT_TRUE(file_read.seek(LastRecord));
 
     ASSERT_EQ(file_read.read(data, sizeof(data)), (size_t)0);
@@ -372,7 +370,7 @@ TEST_F(StorageSuite, WritingProtobuf) {
 
     auto file_write = storage.file(0);
 
-    ASSERT_EQ(file_write.write(&record), (size_t)28);
+    ASSERT_EQ(file_write.write(&record, fk_data_DataRecord_fields), (size_t)28);
 
     auto file_read = storage.file(0);
 
@@ -384,5 +382,5 @@ TEST_F(StorageSuite, WritingProtobuf) {
     record.log.message.arg = (void *)&pool_;
     record.log.message.funcs.decode = pb_decode_string;
 
-    ASSERT_EQ(file_read.read(&record), (size_t)28);
+    ASSERT_EQ(file_read.read(&record, fk_data_DataRecord_fields), (size_t)28);
 }

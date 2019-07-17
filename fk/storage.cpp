@@ -55,8 +55,6 @@ Storage::Storage(DataMemory *memory) : memory_(memory) {
 bool Storage::begin() {
     auto g = memory_->geometry();
 
-    logtrace("opening");
-
     for (auto i = 0; i < NumberOfFiles; ++i) {
         files_[i] = { };
     }
@@ -115,8 +113,6 @@ bool Storage::begin() {
 
 bool Storage::clear() {
     auto g = memory_->geometry();
-
-    loginfo("formatting");
 
     auto range = BlockRange{ 0, g.nblocks };
     while (!range.empty()) {
@@ -598,7 +594,7 @@ pb_istream_t pb_istream_from_file(pb_file_t *pbf, size_t size) {
     return { &read_callback, (void *)pbf, size };
 }
 
-size_t File::write(fk_data_DataRecord *record) {
+size_t File::write(void *record, const pb_msgdesc_t *fields) {
     pb_file_t pbf;
     pbf.buffer_size = sizeof(pbf.buffer);
     pbf.record_size = 0;
@@ -606,7 +602,6 @@ size_t File::write(fk_data_DataRecord *record) {
     pbf.bytes_read = 0;
     pbf.file = this;
 
-    auto fields = fk_data_DataRecord_fields;
     if (!pb_get_encoded_size(&pbf.record_size, fields, record)) {
         return 0;
     }
@@ -631,7 +626,7 @@ size_t File::write(fk_data_DataRecord *record) {
     return pbf.record_size;
 }
 
-size_t File::read(fk_data_DataRecord *record) {
+size_t File::read(void *record, const pb_msgdesc_t *fields) {
     pb_file_t pbf;
     pbf.buffer_size = sizeof(pbf.buffer);
     pbf.record_size = 0;
@@ -645,8 +640,6 @@ size_t File::read(fk_data_DataRecord *record) {
     }
 
     pb_istream_t istream = pb_istream_from_file(&pbf, pbf.record_size);
-
-    auto fields = fk_data_DataRecord_fields;
     if (!pb_decode(&istream, fields, record)) {
         return 0;
     }

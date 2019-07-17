@@ -180,8 +180,8 @@ public:
     size_t seek(uint32_t record);
     size_t write(uint8_t *record, size_t size);
     size_t read(uint8_t *record, size_t size);
-    size_t write(fk_data_DataRecord *record);
-    size_t read(fk_data_DataRecord *record);
+    size_t write(void *record, const pb_msgdesc_t *fields);
+    size_t read(void *record, const pb_msgdesc_t *fields);
     size_t write_partial(uint8_t *record, size_t size);
 
 public:
