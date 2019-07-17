@@ -50,6 +50,7 @@ private:
 private:
     MallocPool memory_;
     Connection *pool_[MaximumConnections] = { nullptr };
+    uint32_t activity_{ 0 };
 
 public:
     ConnectionPool();
@@ -60,6 +61,19 @@ public:
     void service(HttpRouter &router);
 
     void queue(NetworkConnection *c);
+
+    uint32_t activity() const {
+        return activity_;
+    }
+
+    bool active_connections() const {
+        for (size_t i = 0; i < MaximumConnections; ++i) {
+            if (pool_[i] != nullptr) {
+                return true;
+            }
+        }
+        return false;
+    }
 
 };
 

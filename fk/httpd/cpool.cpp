@@ -48,6 +48,8 @@ void ConnectionPool::service(HttpRouter &router) {
     for (auto i = (size_t)0; i < MaximumConnections; ++i) {
         if (pool_[i] != nullptr) {
             if (!pool_[i]->service(router)) {
+                // Do this before freeing to avoid a race.
+                activity_ = fk_uptime();
                 delete pool_[i];
                 pool_[i] = nullptr;
             }
@@ -58,6 +60,7 @@ void ConnectionPool::service(HttpRouter &router) {
 void ConnectionPool::queue(NetworkConnection *c) {
     for (auto i = (size_t)0; i < MaximumConnections; ++i) {
         if (pool_[i] == nullptr) {
+            activity_ = fk_uptime();
             pool_[i] = new Connection(c, HttpdConnectionWorkSize);
             return;
         }

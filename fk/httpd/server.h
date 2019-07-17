@@ -22,10 +22,21 @@ public:
 
 public:
     bool begin();
+
     void tick();
+
     void stop();
+
     bool enabled() const {
         return network_->enabled();
+    }
+
+    uint32_t activity() const {
+        return pool_.activity();
+    }
+
+    bool active_connections() const {
+        return pool_.active_connections();
     }
 
 private:

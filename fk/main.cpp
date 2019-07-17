@@ -25,12 +25,27 @@ os_task_t gps_task;
 os_task_t readings_task;
 
 static void task_handler_idle(void *params) {
+    auto last_readings = fk_uptime();
+
     while (true) {
         fk_delay(5000);
 
         auto reading = get_battery_gauge()->get();
 
         loginfo("battery(%dmv %d%% %dC %fs %fs)", reading.cellv, reading.soc, reading.temp, reading.tte, reading.ttf);
+
+
+        if (fk_uptime() - last_readings > 30 * 1000) {
+            auto status = os_task_get_status(&readings_task);
+            if (status == OS_TASK_STATUS_SUSPENDED || status == OS_TASK_STATUS_FINISHED) {
+                loginfo("starting task '%s'", readings_task.name);
+                os_task_start(&readings_task);
+            }
+            else {
+                loginfo("task is still busy %s", readings_task.name);
+            }
+            last_readings = fk_uptime();
+        }
     }
 }
 
@@ -60,23 +75,15 @@ static void task_handler_httpd(void *params) {
     HttpServer http_server{ &network };
     #endif
 
-    auto last_changed = 0;
+    if (!http_server.begin()) {
+        logerror("error starting server");
+        return;
+    }
 
-    while (true) {
-        if (last_changed == 0 || fk_uptime() - last_changed > 5 * 60 * 1000) {
-            if (http_server.enabled()) {
-                http_server.stop();
-            }
-            else {
-                if (!http_server.begin()) {
-                    logerror("error starting server");
-                }
-            }
-            last_changed = fk_uptime();
-        }
+    constexpr static uint32_t FiveMinutes = 5 * 60 * 1000;
 
+    while (http_server.active_connections() || fk_uptime() - http_server.activity() < FiveMinutes) {
         http_server.tick();
-
         fk_delay(10);
     }
 }
