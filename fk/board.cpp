@@ -83,6 +83,7 @@ void Board::disable_everything() {
 void Board::enable_everything() {
     enable_gps();
     enable_wifi();
+    Wire1.begin();
 }
 
 void Board::disable_gps() {

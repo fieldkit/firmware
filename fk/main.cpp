@@ -20,7 +20,11 @@ FK_DECLARE_LOGGER("main");
 
 static void task_handler_idle(void *params) {
     while (true) {
-        fk_delay(1000);
+        fk_delay(5000);
+
+        auto reading = get_battery_gauge()->get();
+
+        loginfo("battery(%dmv %d%% %dC %fs %fs)", reading.cellv, reading.soc, reading.temp, reading.tte, reading.ttf);
     }
 }
 
@@ -144,9 +148,9 @@ static size_t write_log(const LogMessage *m, const char *fstring, va_list args) 
     SEGGER_RTT_LOCK();
 
     auto level = alog_get_log_level((LogLevels)m->level);
-    fkb_external_printf(f, m->uptime, level, m->facility);
-    fkb_external_vprintf(fstring, args);
-    fkb_external_printf(RTT_CTRL_RESET "\n");
+    SEGGER_RTT_printf(0, f, m->uptime, level, m->facility);
+    SEGGER_RTT_vprintf(0, fstring, &args);
+    SEGGER_RTT_WriteString(0, RTT_CTRL_RESET "\n");
 
     SEGGER_RTT_UNLOCK();
 

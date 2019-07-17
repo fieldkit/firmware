@@ -1,7 +1,6 @@
 #include "fk.h"
 #include "self_check.h"
 #include "clock.h"
-#include "battery_gauge.h"
 #include "temperature.h"
 #include "hal/metal/metal.h"
 
@@ -76,9 +75,9 @@ bool SelfCheck::temperature() {
 
 bool SelfCheck::battery_gauge() {
     return single_check("battery gauge", []() {
-        BatteryGauge gauge{ Wire1 };
+        auto gauge = get_battery_gauge();
 
-        if (!gauge.begin()) {
+        if (!gauge->begin()) {
             return false;
         }
 

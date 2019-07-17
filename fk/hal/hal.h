@@ -8,3 +8,4 @@
 #include "hal/memory.h"
 #include "hal/gps.h"
 #include "hal/display.h"
+#include "hal/battery_gauge.h"

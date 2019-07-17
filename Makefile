@@ -34,6 +34,8 @@ amd64: dependencies
 	cd $(BUILD)/amd64 && cmake -DTARGET_ARCH=amd64 ../../
 	cd $(BUILD)/amd64 && $(MAKE)
 
+fw: samd51
+
 test: amd64
 	cd $(BUILD)/amd64 && env GTEST_COLOR=1 $(MAKE) test ARGS=-VV
 
