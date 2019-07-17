@@ -62,7 +62,7 @@ struct SequentialPattern {
         }
     }
 
-    void verifY_record(File &file, uint8_t value) {
+    void verify_record(File &file, uint8_t value) {
         ASSERT_EQ(file.read(data, sizeof(data)), sizeof(data));
 
         uint8_t expected[256];

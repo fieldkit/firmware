@@ -337,7 +337,7 @@ size_t File::write(uint8_t *record, size_t size) {
                 return 0;
             }
 
-            hash_.update(&header, sizeof(header));
+            hash_.update(&record_header, sizeof(record_header));
 
             tail_ += sizeof(record_header);
             left_in_block -= sizeof(record_header);
@@ -354,13 +354,14 @@ size_t File::write(uint8_t *record, size_t size) {
                 return 0;
             }
 
+            hash_.update(record, size);
+
             tail_ += writing;
             wrote += writing;
             left_in_block -= writing;
         }
         else if (wrote == size && !footer) {
             RecordTail record_tail;
-            hash_.update(record, size);
             hash_.finalize(record_tail.hash.hash, sizeof(record_tail.hash.hash));
             if (memory.write(tail_, (uint8_t *)&record_tail, sizeof(RecordTail)) != sizeof(RecordTail)) {
                 return 0;
@@ -489,6 +490,17 @@ size_t File::read(uint8_t *record, size_t size) {
 
             if (record_remaining_ == 0) {
                 logverbose("[%d] 0x%06x end of record", file_, tail_);
+
+                RecordTail record_tail;
+                if (memory.read(tail_, (uint8_t *)&record_tail, sizeof(RecordTail)) != sizeof(RecordTail)) {
+                    return bytes_read;
+                }
+
+                // TODO: We can recover from this better.
+                Hash hash;
+                hash_.finalize(&hash.hash, Hash::Length);
+                FK_ASSERT(memcmp(hash.hash, record_tail.hash.hash, Hash::Length) == 0);
+
                 tail_ += sizeof(RecordTail);
                 left_in_block -= sizeof(RecordTail);
             }

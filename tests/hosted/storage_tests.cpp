@@ -308,10 +308,10 @@ TEST_F(StorageSuite, SeekingToARecord) {
     auto file_read = storage.file(0);
 
     ASSERT_TRUE(file_read.seek(100));
-    pattern.verifY_record(file_read, 100);
+    pattern.verify_record(file_read, 100);
 
     ASSERT_TRUE(file_read.seek(size / 256 / 2));
-    pattern.verifY_record(file_read, (size / 256 / 2) & 0xff);
+    pattern.verify_record(file_read, (size / 256 / 2) & 0xff);
 }
 
 TEST_F(StorageSuite, ReadingAtEoF) {
@@ -336,4 +336,21 @@ TEST_F(StorageSuite, ReadingAtEoF) {
     ASSERT_TRUE(file_read.seek(LastRecord));
 
     ASSERT_EQ(file_read.read(data, sizeof(data)), (size_t)0);
+}
+
+TEST_F(StorageSuite, ReadingBackSingleRecord) {
+    Storage storage{ memory_ };
+
+    ASSERT_TRUE(storage.clear());
+
+    auto file_write = storage.file(0);
+
+    SequentialPattern pattern;
+    pattern.write(file_write, 256);
+
+    auto file_read = storage.file(0);
+
+    file_read.seek(0);
+
+    pattern.verify_record(file_read, 0x00);
 }
