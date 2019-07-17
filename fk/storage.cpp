@@ -227,7 +227,7 @@ SeekValue Storage::seek(SeekSettings settings) {
 
     FK_ASSERT(is_address_valid(address));
 
-    logtrace("[%d] 0x%06x seeking #%d %d", settings.file, address, settings.record, sizeof(BlockHeader));
+    logtrace("[%d] 0x%06x seeking #%d", settings.file, address, settings.record);
 
     while (true) {
         auto record_head = RecordHeader{};
@@ -250,7 +250,7 @@ SeekValue Storage::seek(SeekSettings settings) {
 
         // Is this the record they're looking for?
         if (settings.record != InvalidRecord && record_head.record == settings.record) {
-            logtrace("[%d] 0x%06x found record #%d", settings.file, settings.record, address);
+            logtrace("[%d] 0x%06x found record #%d", settings.file, address, settings.record);
             break;
         }
 
@@ -387,16 +387,6 @@ size_t File::write(uint8_t *record, size_t size) {
     update();
 
     return wrote;
-}
-
-size_t File::write(fk_data_DataRecord *record) {
-    size_t size = 0;
-    auto fields = fk_data_DataRecord_fields;
-    if (!pb_get_encoded_size(&size, fields, record)) {
-        return 0;
-    }
-
-    return 0;
 }
 
 size_t File::seek(uint32_t record) {
@@ -549,6 +539,122 @@ void File::update() {
     fh.tail = tail_;
     fh.size = size_;
     fh.record = record_;
+}
+
+typedef struct pb_file_t {
+    uint8_t buffer[1024];
+    size_t position;
+    size_t buffer_size;
+    size_t record_size;
+    size_t bytes_read;
+    File *file;
+
+    bool flush() {
+        if (position == 0) {
+            return true;
+        }
+
+        if (file->write(buffer, position) != position) {
+            return false;
+        }
+
+        position = 0;
+
+        return true;
+    }
+} pb_file_t;
+
+static bool write_callback(pb_ostream_t *stream, const uint8_t *buf, size_t c) {
+    auto pbf = reinterpret_cast<pb_file_t*>(stream->state);
+    auto available = pbf->buffer_size - pbf->position;
+    if (c > available) {
+        if (!pbf->flush()) {
+            return false;
+        }
+    }
+
+    memcpy(pbf->buffer + pbf->position, buf, c);
+    pbf->position += c;
+
+    return true;
+}
+
+static bool read_callback(pb_istream_t *stream, uint8_t *buf, size_t c) {
+    auto pbf = reinterpret_cast<pb_file_t*>(stream->state);
+    if (pbf->bytes_read == 0) {
+        auto reading = std::min<size_t>(pbf->buffer_size, pbf->record_size);
+        if (pbf->file->read(pbf->buffer, reading) != reading) {
+            return false;
+        }
+
+        pbf->position = 0;
+        pbf->bytes_read = reading;
+    }
+
+    if (pbf->position + c > pbf->bytes_read) {
+        return false;
+    }
+
+    memcpy(buf, pbf->buffer + pbf->position, c);
+    pbf->position += c;
+
+    return true;
+}
+
+pb_ostream_t pb_ostream_from_file(pb_file_t *pbf) {
+    return { &write_callback, (void *)pbf, SIZE_MAX, 0 };
+}
+
+pb_istream_t pb_istream_from_file(pb_file_t *pbf, size_t size) {
+    return { &read_callback, (void *)pbf, size };
+}
+
+size_t File::write(fk_data_DataRecord *record) {
+    pb_file_t pbf;
+    pbf.buffer_size = sizeof(pbf.buffer);
+    pbf.record_size = 0;
+    pbf.position = 0;
+    pbf.bytes_read = 0;
+    pbf.file = this;
+
+    auto fields = fk_data_DataRecord_fields;
+    if (!pb_get_encoded_size(&pbf.record_size, fields, record)) {
+        return 0;
+    }
+
+    pb_ostream_t ostream = pb_ostream_from_file(&pbf);
+    if (!pb_encode(&ostream, fields, record)) {
+        return 0;
+    }
+
+    if (!pbf.flush()) {
+        return 0;
+    }
+
+    return pbf.record_size;
+}
+
+size_t File::read(fk_data_DataRecord *record) {
+    pb_file_t pbf;
+    pbf.buffer_size = sizeof(pbf.buffer);
+    pbf.record_size = 0;
+    pbf.position = 0;
+    pbf.bytes_read = 0;
+    pbf.file = this;
+
+    pbf.record_size = read_record_header();
+    if (pbf.record_size == 0) {
+        return 0;
+    }
+
+    pb_istream_t istream = pb_istream_from_file(&pbf, pbf.record_size);
+
+    auto fields = fk_data_DataRecord_fields;
+    if (!pb_decode(&istream, fields, record)) {
+        return 0;
+    }
+
+    return pbf.record_size;
 }
 
 }

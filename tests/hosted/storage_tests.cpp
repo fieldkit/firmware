@@ -5,6 +5,7 @@
 #include "hal/linux/linux.h"
 #include "storage.h"
 #include "patterns.h"
+#include "protobuf.h"
 
 using namespace fk;
 
@@ -353,4 +354,37 @@ TEST_F(StorageSuite, ReadingBackSingleRecord) {
     file_read.seek(0);
 
     pattern.verify_record(file_read, 0x00);
+}
+
+TEST_F(StorageSuite, WritingProtobuf) {
+    Storage storage{ memory_ };
+
+    ASSERT_TRUE(storage.clear());
+
+    verbose();
+
+    fk_data_DataRecord record = fk_data_DataRecord_init_default;
+    record.log.uptime = fk_uptime();
+    record.log.time = 0;
+    record.log.level = (uint32_t)LogLevels::INFO;
+    record.log.facility.arg = (void *)"facility";
+    record.log.facility.funcs.encode = pb_encode_string;
+    record.log.message.arg = (void *)"message";
+    record.log.message.funcs.encode = pb_encode_string;
+
+    auto file_write = storage.file(0);
+
+    ASSERT_EQ(file_write.write(&record), (size_t)28);
+
+    auto file_read = storage.file(0);
+
+    file_read.seek(0);
+
+    record = fk_data_DataRecord_init_default;
+    record.log.facility.arg = (void *)&pool_;
+    record.log.facility.funcs.decode = pb_decode_string;
+    record.log.message.arg = (void *)&pool_;
+    record.log.message.funcs.decode = pb_decode_string;
+
+    ASSERT_EQ(file_read.read(&record), (size_t)28);
 }

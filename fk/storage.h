@@ -177,10 +177,11 @@ public:
     virtual ~File();
 
 public:
-    size_t write(uint8_t *record, size_t size);
-    size_t write(fk_data_DataRecord *record);
     size_t seek(uint32_t record);
+    size_t write(uint8_t *record, size_t size);
     size_t read(uint8_t *record, size_t size);
+    size_t write(fk_data_DataRecord *record);
+    size_t read(fk_data_DataRecord *record);
 
 public:
     uint32_t tail() const {
