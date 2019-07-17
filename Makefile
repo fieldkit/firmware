@@ -61,10 +61,8 @@ gitdeps: dependencies
 
 simple-deps: bootloader/dependencies.cmake libraries/dependencies.cmake
 
-bootloader/dependencies.cmake:
+bootloader/dependencies.cmake libraries/dependencies.cmake:
 	$(OFFLINE) || simple-deps --nested --config bootloader/dependencies.sd --dir libraries
-
-libraries/dependencies.cmake:
 	$(OFFLINE) || simple-deps --nested --config libraries/dependencies.sd --dir libraries
 
 deps-initialize:
