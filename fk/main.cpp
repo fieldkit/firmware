@@ -55,9 +55,7 @@ static void task_handler_scheduler(void *params) {
         }
 
         void *message = nullptr;
-        if (get_ipc()->dequeue(&message, 5000)) {
-            loginfo("message!");
-
+        if (get_ipc()->dequeue(&message, FiveSecondsMs)) {
             auto status = os_task_get_status(&network_task);
             if (status == OS_TASK_STATUS_SUSPENDED || status == OS_TASK_STATUS_FINISHED) {
                 loginfo("starting task '%s'", network_task.name);
