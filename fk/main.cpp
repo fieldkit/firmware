@@ -207,8 +207,11 @@ static void log_diagnostics() {
 
 void setup() {
     MetalModMux mmm;
-    FK_ASSERT(mmm.begin());
-    FK_ASSERT(mmm.disable_all_modules());
+
+    if (false) {
+        FK_ASSERT(mmm.begin());
+        FK_ASSERT(mmm.disable_all_modules());
+    }
 
     board.initialize();
 
