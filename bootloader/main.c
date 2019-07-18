@@ -34,7 +34,7 @@ int32_t main() {
 
     SEGGER_RTT_Init();
 
-    fkb_external_println("");
+    fkb_external_println(RTT_CTRL_RESET "");
     fkb_external_println("bl: starting!");
 
     board_initialize();
