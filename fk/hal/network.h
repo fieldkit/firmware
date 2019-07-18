@@ -24,14 +24,13 @@ enum class NetworkConnectionStatus {
     Disconnected
 };
 
-struct NetworkSettings {
+typedef struct NetworkSettings {
     bool create;
     const char *ssid;
     const char *password;
     const char *name;
     uint16_t port;
-
-};
+} NetworkSettings;
 
 class NetworkConnection {
 public:

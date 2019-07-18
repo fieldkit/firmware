@@ -28,14 +28,13 @@ static void task_handler_idle(void *params) {
     auto last_readings = fk_uptime();
 
     while (true) {
-        fk_delay(5000);
+        fk_delay(FiveSecondsMs);
 
         auto reading = get_battery_gauge()->get();
 
         loginfo("battery(%dmv %d%% %dC %fs %fs)", reading.cellv, reading.soc, reading.temp, reading.tte, reading.ttf);
 
-
-        if (fk_uptime() - last_readings > 30 * 1000) {
+        if (fk_uptime() - last_readings > ThirtySecondsMs) {
             auto status = os_task_get_status(&readings_task);
             if (status == OS_TASK_STATUS_SUSPENDED || status == OS_TASK_STATUS_FINISHED) {
                 loginfo("starting task '%s'", readings_task.name);
@@ -63,7 +62,7 @@ static void task_handler_display(void *params) {
 
         display->home(screen);
 
-        fk_delay(10);
+        fk_delay(1000);
     }
 }
 
@@ -80,9 +79,7 @@ static void task_handler_httpd(void *params) {
         return;
     }
 
-    constexpr static uint32_t FiveMinutes = 5 * 60 * 1000;
-
-    while (http_server.active_connections() || fk_uptime() - http_server.activity() < FiveMinutes) {
+    while (http_server.active_connections() || fk_uptime() - http_server.activity() < fkc.network.uptime) {
         http_server.tick();
         fk_delay(10);
     }
@@ -129,7 +126,7 @@ void run_tasks() {
     OS_CHECK(os_task_initialize(&gps_task, "gps", OS_TASK_START_RUNNING, &task_handler_gps, NULL, gps_stack, sizeof(gps_stack)));
     OS_CHECK(os_task_initialize(&readings_task, "readings", OS_TASK_START_RUNNING, &task_handler_readings, NULL, readings_stack, sizeof(readings_stack)));
 
-    auto total_stacks = sizeof(idle_stack) + sizeof(display_stack) + sizeof(httpd_stack) + sizeof(gps_stack);
+    auto total_stacks = sizeof(idle_stack) + sizeof(display_stack) + sizeof(httpd_stack) + sizeof(gps_stack) + sizeof(readings_stack);
     loginfo("stacks = %d", total_stacks);
     loginfo("free = %lu", fk_free_memory());
     loginfo("starting os!");

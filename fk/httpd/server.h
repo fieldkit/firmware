@@ -1,5 +1,6 @@
 #pragma once
 
+#include "config.h"
 #include "hal/hal.h"
 #include "httpd/req.h"
 #include "httpd/cpool.h"
