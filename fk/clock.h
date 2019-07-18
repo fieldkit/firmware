@@ -13,6 +13,7 @@ private:
     constexpr static uint8_t Address = 0x51u;
 
 private:
+    bool configured_{ false };
     TwoWire *wire_;
 
 public:
@@ -21,11 +22,19 @@ public:
 public:
     bool begin();
 
-    bool now(DateTime &now);
+    bool internal(DateTime &now);
+
+    bool external(DateTime &now);
 
     bool adjust(DateTime now);
 
+    bool sync();
+
+    bool configure();
+
     DateTime now();
+
+    DateTime get_external();
 
 public:
     void read_timestamp_registers();

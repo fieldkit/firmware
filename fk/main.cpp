@@ -43,8 +43,15 @@ static void task_handler_scheduler(void *params) {
 
         {
             CoreClock clock{ Wire };
-            FormattedTime formatted{ clock.now().unixtime() };
-            loginfo("now: %s", formatted.cstr());
+            DateTime internal;
+            DateTime external;
+
+            FK_ASSERT(clock.internal(internal));
+            FK_ASSERT(clock.external(external));
+
+            FormattedTime internal_formatted{ internal.unixtime() };
+            FormattedTime external_formatted{ external.unixtime() };
+            loginfo("now: %s %s", internal_formatted.cstr(), external_formatted.cstr());
         }
 
         void *message = nullptr;
