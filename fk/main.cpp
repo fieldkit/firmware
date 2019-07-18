@@ -222,7 +222,9 @@ void setup() {
 
     self_check.check();
 
-    FK_ASSERT(mmm.enable_all_modules());
+    if (false) {
+        FK_ASSERT(mmm.enable_all_modules());
+    }
 
     if (fkc.slow_startup) {
         fk_delay(1000);
