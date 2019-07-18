@@ -5,3 +5,4 @@
 #include "hal/linux/linux_memory.h"
 #include "hal/linux/linux_gps.h"
 #include "hal/linux/linux_battery_gauge.h"
+#include "hal/linux/linux_buttons.h"

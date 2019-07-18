@@ -155,15 +155,7 @@ static size_t write_log(const LogMessage *m, const char *fstring, va_list args) 
     return true;
 }
 
-void setup() {
-    board.initialize();
-
-    board.enable_everything();
-
-    log_configure_writer(write_log);
-
-    log_configure_level(LogLevels::DEBUG);
-
+static void log_diagnostics() {
     loginfo("hello (memory = %lu)", fk_free_memory());
 
     fk_serial_number_t sn;
@@ -174,11 +166,25 @@ void setup() {
     char hash_string[128];
     bytes_to_hex_string(hash_string, sizeof(hash_string), fkb_header.firmware.hash, fkb_header.firmware.hash_size);
     loginfo("hash = %s", hash_string);
+}
+
+void setup() {
+    board.initialize();
+
+    board.enable_everything();
+
+    log_configure_writer(write_log);
+
+    log_configure_level(LogLevels::DEBUG);
+
+    log_diagnostics();
 
     MetalNetwork network;
     DisplayFactory display_factory;
     Display *display = display_factory.get_display();
     SelfCheck self_check(display, &network);
+
+    FK_ASSERT(get_buttons()->begin());
 
     self_check.check();
 

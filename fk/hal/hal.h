@@ -9,3 +9,4 @@
 #include "hal/gps.h"
 #include "hal/display.h"
 #include "hal/battery_gauge.h"
+#include "hal/buttons.h"
