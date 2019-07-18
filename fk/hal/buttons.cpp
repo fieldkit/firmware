@@ -19,6 +19,10 @@ void Button::changed(uint8_t pin, bool down) {
         down_ = false;
         time_ = 0;
         loginfo("%d (%dms)", pin, elapsed);
+
+        if (!get_ipc()->enqueue(this, 0)) {
+            logerror("ipc error");
+        }
     }
 }
 
