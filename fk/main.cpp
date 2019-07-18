@@ -199,6 +199,10 @@ static void log_diagnostics() {
 }
 
 void setup() {
+    MetalModMux mmm;
+    FK_ASSERT(mmm.begin());
+    FK_ASSERT(mmm.disable_all_modules());
+
     board.initialize();
 
     board.enable_everything();
@@ -216,11 +220,9 @@ void setup() {
 
     FK_ASSERT(get_buttons()->begin());
 
-    MetalModMux mmm;
-    FK_ASSERT(mmm.begin());
-    FK_ASSERT(mmm.enable_all_modules());
-
     self_check.check();
+
+    FK_ASSERT(mmm.enable_all_modules());
 
     if (fkc.slow_startup) {
         fk_delay(1000);
