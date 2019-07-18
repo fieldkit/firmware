@@ -32,6 +32,7 @@ pb_istream_t pb_istream_from_connection(NetworkConnection *nc) {
 }
 
 ConnectionPool::ConnectionPool() : memory_("httpd", 0 * HttpdConnectionWorkSize * MaximumConnections) {
+    activity_ = fk_uptime();
 }
 
 size_t ConnectionPool::available() {

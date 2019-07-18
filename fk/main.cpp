@@ -1,15 +1,16 @@
 #include <loading.h>
 #include <os.h>
 
-#include "platform.h"
-#include "self_check.h"
-#include "httpd/server.h"
 #include "board.h"
+#include "platform.h"
 #include "hal/hal.h"
 #include "hal/metal/metal.h"
-#include "tiny_printf.h"
+#include "httpd/server.h"
+#include "self_check.h"
 #include "storage.h"
+#include "clock.h"
 
+#include "tiny_printf.h"
 #include "secrets.h"
 
 extern const struct fkb_header_t fkb_header;
@@ -38,6 +39,12 @@ static void task_handler_scheduler(void *params) {
         auto reading = get_battery_gauge()->get();
         if (reading.available) {
             loginfo("battery(%dmv %d%% %dC %fs %fs)", reading.cellv, reading.soc, reading.temp, reading.tte, reading.ttf);
+        }
+
+        {
+            CoreClock clock{ Wire };
+            FormattedTime formatted{ clock.now().unixtime() };
+            loginfo("now: %s", formatted.cstr());
         }
 
         void *message = nullptr;
