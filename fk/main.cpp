@@ -216,6 +216,10 @@ void setup() {
 
     FK_ASSERT(get_buttons()->begin());
 
+    MetalModMux mmm;
+    FK_ASSERT(mmm.begin());
+    FK_ASSERT(mmm.enable_all_modules());
+
     self_check.check();
 
     if (fkc.slow_startup) {
