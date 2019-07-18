@@ -23,7 +23,7 @@ public:
 
     bool now(DateTime &now);
 
-    void adjust(DateTime now);
+    bool adjust(DateTime now);
 
     DateTime now();
 

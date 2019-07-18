@@ -45,7 +45,7 @@ bool SimpleNTP::service() {
 
         CoreClock clock{ Wire };
         auto old_epoch = clock.now().unixtime();
-        clock.adjust(new_epoch);
+        FK_ASSERT(clock.adjust(new_epoch));
 
         FormattedTime new_formatted{ new_epoch };
         FormattedTime old_formatted{ old_epoch };
