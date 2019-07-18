@@ -7,7 +7,7 @@ namespace fk {
 FK_DECLARE_LOGGER("buttons");
 
 static void irq_button_right() {
-    reinterpret_cast<MetalButtons*>(get_buttons())->irq(BUTTON_RIGHT, 0);
+    reinterpret_cast<MetalButtons*>(get_buttons())->irq(BUTTON_RIGHT, 2);
 }
 
 static void irq_button_middle() {
@@ -15,7 +15,7 @@ static void irq_button_middle() {
 }
 
 static void irq_button_left() {
-    reinterpret_cast<MetalButtons*>(get_buttons())->irq(BUTTON_LEFT, 2);
+    reinterpret_cast<MetalButtons*>(get_buttons())->irq(BUTTON_LEFT, 0);
 }
 
 MetalButtons::MetalButtons() {

@@ -20,11 +20,7 @@ public:
 
 class Buttons {
 protected:
-    Button buttons_[3]{
-        { "left" },
-        { "middle" },
-        { "right" },
-    };
+    Button buttons_[3]{ { "L" }, { "M" }, { "R" } };
 
 public:
     virtual bool begin() = 0;
