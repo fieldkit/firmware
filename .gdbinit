@@ -3,6 +3,16 @@
 
 python
 
+irq_handlers = [
+  "EIC_0_Handler", "EIC_1_Handler", "EIC_2_Handler", "EIC_3_Handler", "EIC_4_Handler",
+  # Buttons
+  # "EIC_5_Handler", "EIC_6_Handler", "EIC_7_Handler",
+  "EIC_8_Handler", "EIC_9_Handler", "EIC_10_Handler",
+  # WiFi
+  # "EIC_11_Handler"
+  "EIC_12_Handler", "EIC_13_Handler", "EIC_14_Handler", "EIC_15_Handler"
+]
+
 class FkSegger(gdb.Command):
   "Segger mode."
   def __init__ (self):
@@ -15,7 +25,10 @@ class FkSegger(gdb.Command):
     gdb.execute("b osi_assert")
     gdb.execute("b fk_assert")
     gdb.execute("b osi_hard_fault_report")
-    gdb.execute("b __cxa_pure_virtual") 
+    gdb.execute("b __cxa_pure_virtual")
+    if False:
+      for h in irq_handlers:
+        gdb.execute("b " + h)
     gdb.execute("monitor reset")
     gdb.execute("continue")
 
@@ -55,4 +68,3 @@ python FkReloadAll()
 python FkSegger()
 python FkRunHosted()
 python FkRestart()
-
