@@ -18,6 +18,11 @@ typedef struct flash_geometry_t {
         return block_size - (address % block_size);
     }
 
+    uint32_t truncate_to_block(uint32_t address) {
+        uint32_t block = (address / block_size);
+        return block * block_size;
+    }
+
     bool start_of_block(uint32_t address) {
         return address % block_size == 0;
     }

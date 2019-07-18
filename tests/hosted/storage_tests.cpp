@@ -51,7 +51,11 @@ protected:
     }
 
 protected:
-    void verbose() {
+    void enable_debug() {
+        log_configure_level(LogLevels::DEBUG);
+    }
+
+    void enable_trace() {
         log_configure_level(LogLevels::TRACE);
     }
 
@@ -244,7 +248,7 @@ TEST_F(StorageSuite, LargeFiles) {
     ASSERT_EQ(file_read.position(), size);
 }
 
-TEST_F(StorageSuite, DISABLED_MultipleLargeFiles) {
+TEST_F(StorageSuite, MultipleLargeFiles) {
     Storage storage{ memory_ };
 
     ASSERT_TRUE(storage.clear());
@@ -301,7 +305,7 @@ TEST_F(StorageSuite, DISABLED_MultipleLargeFiles) {
     ASSERT_EQ(file1_read.position(), (size_t)size);
 }
 
-TEST_F(StorageSuite, DISABLED_MultipleLargeFilesOneMuchSmaller) {
+TEST_F(StorageSuite, MultipleLargeFilesOneMuchSmaller) {
     Storage storage{ memory_ };
 
     ASSERT_TRUE(storage.clear());
@@ -323,10 +327,12 @@ TEST_F(StorageSuite, DISABLED_MultipleLargeFilesOneMuchSmaller) {
         bytes_wrote += sizeof(pattern.data);
     }
 
+    auto smaller_size = (size_t)(size / 4096) * sizeof(pattern.data);
+
     ASSERT_EQ(file0_write.position(), (size_t)size);
     ASSERT_EQ(file0_write.size(), (size_t)size);
-    ASSERT_EQ(file1_write.position(), (size_t)size / (4096 / 256));
-    ASSERT_EQ(file1_write.size(), (size_t)size / (4096 / 256));
+    ASSERT_EQ(file1_write.position(), smaller_size);
+    ASSERT_EQ(file1_write.size(), smaller_size);
 
     ASSERT_TRUE(storage.begin());
 
@@ -340,11 +346,11 @@ TEST_F(StorageSuite, DISABLED_MultipleLargeFilesOneMuchSmaller) {
     auto file1_read = storage.file(1);
 
     ASSERT_EQ(file1_read.position(), (size_t)0);
-    ASSERT_EQ(file1_read.size(), (size_t)size / (4096 / 256));
+    ASSERT_EQ(file1_read.size(), smaller_size);
 
-    pattern.verify(file1_read, size / 4096);
+    pattern.verify(file1_read, smaller_size);
 
-    ASSERT_EQ(file1_read.position(), (size_t)size / (4096 / 256));
+    ASSERT_EQ(file1_read.position(), smaller_size);
 }
 
 TEST_F(StorageSuite, SeekingToARecord) {

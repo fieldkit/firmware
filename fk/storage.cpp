@@ -134,7 +134,8 @@ uint32_t Storage::allocate(uint8_t file, uint32_t overflow, uint32_t previous_ta
 
     FK_ASSERT(is_address_valid(address));
 
-    logdebug("[%d] allocated block #%d (0x%06x) (%d)", file, free_block_, address, overflow);
+
+    logdebug("[%d] allocated block #%d (0x%06x) (%d) (%d bytes)", file, free_block_, address, overflow, files_[file].size);
 
     free_block_++;
     timestamp_++;
@@ -153,8 +154,6 @@ uint32_t Storage::allocate(uint8_t file, uint32_t overflow, uint32_t previous_ta
         block_header.files[i] = files_[i];
     }
     block_header.fill_hash();
-
-    logverbose("[%d] allocated block #%d (0x%06x) (%d) (%d bytes)", file, free_block_, address, overflow, block_header.files[file].size);
 
     // Erase new block and write header.
     if (!memory_->erase_block(address)) {
@@ -187,7 +186,7 @@ SeekValue Storage::seek(SeekSettings settings) {
     auto position = (uint32_t)0;
     auto address = InvalidAddress;
 
-    loginfo("[%d] seeking #%d", settings.file, settings.record);
+    logdebug("[%d] seeking #%d", settings.file, settings.record);
 
     // Binary search for the block to start with.
     BlockHeader file_block_header;
@@ -225,13 +224,16 @@ SeekValue Storage::seek(SeekSettings settings) {
     // FK_ASSERT(file_block_header.timestamp > 0);
 
     // If at the start of the block, bump.
-    auto size_at_block = file_block_header.files[settings.file].size;
-    address = range.start * g.block_size + sizeof(BlockHeader) + file_block_header.overflow;
+    auto &fh = file_block_header.files[settings.file];
+    auto size_at_block = fh.size;
+    auto tail = fh.tail;
+    address = tail; // + sizeof(BlockHeader) + file_block_header.overflow;
     position = size_at_block;
 
     FK_ASSERT(is_address_valid(address));
 
-    logverbose("[%d] 0x%06x seeking #%d (%d) from %d", settings.file, address, settings.record, position, starting_block);
+    logdebug("[%d] tail = 0x%06x (block %d)", settings.file, tail, tail / g.block_size);
+    logdebug("[%d] 0x%06x seeking #%d (%d) from #%d (bsz = %d bytes)", settings.file, address, settings.record, position, tail / g.block_size, size_at_block);
 
     while (true) {
         auto record_head = RecordHeader{};
@@ -353,7 +355,7 @@ size_t File::write_record_tail(size_t size) {
         return 0;
     }
 
-    logverbose("[%d] 0x%06x write footer (lib = %d)", file_, tail_, left_in_block);
+    logverbose("[%d] 0x%06x write footer", file_, tail_);
 
     tail_ += sizeof(record_tail);
     size_ += size;
