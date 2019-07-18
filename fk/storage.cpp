@@ -154,6 +154,8 @@ uint32_t Storage::allocate(uint8_t file, uint32_t overflow, uint32_t previous_ta
     }
     block_header.fill_hash();
 
+    logverbose("[%d] allocated block #%d (0x%06x) (%d) (%d bytes)", file, free_block_, address, overflow, block_header.files[file].size);
+
     // Erase new block and write header.
     if (!memory_->erase_block(address)) {
         return InvalidAddress;
@@ -185,45 +187,51 @@ SeekValue Storage::seek(SeekSettings settings) {
     auto position = (uint32_t)0;
     auto address = InvalidAddress;
 
-    // If we don't have a starting address then fall back on a binary search.
-    if (!is_address_valid(address)) {
+    loginfo("[%d] seeking #%d", settings.file, settings.record);
+
+    // Binary search for the block to start with.
+    BlockHeader file_block_header;
+    file_block_header.timestamp = 0;
+    auto range = BlockRange{ 0, g.nblocks };
+    while (!range.empty()) {
         BlockHeader block_header;
+        auto address = range.middle_block() * g.block_size;
+        if (!memory_->read(address, (uint8_t *)&block_header, sizeof(block_header))) {
+            return { };
+        }
 
-        auto range = BlockRange{ 0, g.nblocks };
-        while (!range.empty()) {
-            auto address = range.middle_block() * g.block_size;
-            if (!memory_->read(address, (uint8_t *)&block_header, sizeof(block_header))) {
-                return { };
-            }
-
-            if (block_header.magic.valid()) {
-                auto &bfh = block_header.files[settings.file];
-
-                if (settings.record != InvalidRecord) {
-                    if (bfh.record > settings.record) {
-                        range = range.first_half();
-                    }
-                    else {
-                        range = range.second_half();
-                    }
+        if (block_header.magic.valid()) {
+            auto &bfh = block_header.files[settings.file];
+            if (settings.record != InvalidRecord) {
+                if (bfh.record > settings.record) {
+                    range = range.first_half();
                 }
                 else {
                     range = range.second_half();
                 }
             }
             else {
-                // Search earlier in the range for a valid block.
-                range = range.first_half();
+                range = range.second_half();
             }
-        }
 
-        // If at the start of the block, bump.
-        address = range.start * g.block_size + sizeof(BlockHeader) + block_header.overflow;
+            memcpy(&file_block_header, &block_header, sizeof(BlockHeader));
+        }
+        else {
+            // Search earlier in the range for a valid block.
+            range = range.first_half();
+        }
     }
+
+    // FK_ASSERT(file_block_header.timestamp > 0);
+
+    // If at the start of the block, bump.
+    auto size_at_block = file_block_header.files[settings.file].size;
+    address = range.start * g.block_size + sizeof(BlockHeader) + file_block_header.overflow;
+    position = size_at_block;
 
     FK_ASSERT(is_address_valid(address));
 
-    logtrace("[%d] 0x%06x seeking #%d", settings.file, address, settings.record);
+    logverbose("[%d] 0x%06x seeking #%d (%d) from %d", settings.file, address, settings.record, position, starting_block);
 
     while (true) {
         auto record_head = RecordHeader{};
@@ -267,7 +275,7 @@ SeekValue Storage::seek(SeekSettings settings) {
         position += record_head.size;
     }
 
-    logtrace("[%d] 0x%06x seek done @ (%d) (%d bytes)", settings.file, address, record, position);
+    logverbose("[%d] 0x%06x seek done @ (%d) (%d bytes) (%d in block)", settings.file, address, record, position, position - size_at_block);
 
     return SeekValue{ address, record, position };
 }
@@ -277,7 +285,7 @@ File Storage::file(uint8_t file) {
 }
 
 File::File(Storage *storage, uint8_t file, FileHeader fh)
-    : storage_(storage), file_(file), tail_(fh.tail), record_(fh.record), size_(fh.size) {
+    : storage_(storage), file_(file), tail_(fh.tail), record_(fh.record), position_(0), size_(fh.size) {
     FK_ASSERT(file_ < NumberOfFiles);
 }
 
@@ -349,6 +357,7 @@ size_t File::write_record_tail(size_t size) {
 
     tail_ += sizeof(record_tail);
     size_ += size;
+    position_ += size;
 
     return sizeof(record_tail);
 }
@@ -367,7 +376,7 @@ size_t File::write(uint8_t *record, size_t size) {
         return 0;
     }
 
-    if (!write_record_tail(size)) {
+    if (write_record_tail(size) == 0) {
         return 0;
     }
 
@@ -384,8 +393,11 @@ size_t File::seek(uint32_t record) {
 
     tail_ = sv.address;
     record_ = sv.record;
-    size_ = sv.position;
+    position_ = sv.position;
     record_remaining_ = 0;
+    if (record == LastRecord) {
+        size_ = position_;
+    }
 
     return true;
 }
@@ -504,6 +516,7 @@ size_t File::read(uint8_t *record, size_t size) {
             bytes_read += reading;
             left_in_block -= reading;
             record_remaining_ -= reading;
+            position_ += reading;
 
             if (record_remaining_ == 0) {
                 if (read_record_tail() == 0) {

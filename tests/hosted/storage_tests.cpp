@@ -205,9 +205,14 @@ TEST_F(StorageSuite, ReadingARecord) {
 
     ASSERT_EQ(file.write(pattern.data, sizeof(pattern.data)), sizeof(pattern.data));
 
+    ASSERT_EQ(file.size(), sizeof(pattern.data));
+
     ASSERT_TRUE(storage.begin());
 
     ASSERT_TRUE(file.seek(0));
+
+    ASSERT_EQ(file.size(), sizeof(pattern.data));
+    ASSERT_EQ(file.position(), (size_t)0);
 
     pattern.verify_record(file);
 }
@@ -218,19 +223,28 @@ TEST_F(StorageSuite, LargeFiles) {
     ASSERT_TRUE(storage.clear());
 
     auto file_write = storage.file(0);
-    auto size = 10 * 1024 * 1024;
+    size_t size = 10 * 1024 * 1024;
 
     StaticPattern pattern;
     pattern.write(file_write, size);
+
+    ASSERT_EQ(file_write.size(), size);
+    ASSERT_EQ(file_write.position(), size);
 
     ASSERT_TRUE(storage.begin());
 
     auto file_read = storage.file(0);
 
+    ASSERT_EQ(file_read.size(), size);
+    ASSERT_EQ(file_read.position(), (size_t)0);
+
     pattern.verify(file_read, size);
+
+    ASSERT_EQ(file_read.size(), size);
+    ASSERT_EQ(file_read.position(), size);
 }
 
-TEST_F(StorageSuite, MultipleLargeFiles) {
+TEST_F(StorageSuite, DISABLED_MultipleLargeFiles) {
     Storage storage{ memory_ };
 
     ASSERT_TRUE(storage.clear());
@@ -239,28 +253,55 @@ TEST_F(StorageSuite, MultipleLargeFiles) {
     auto file1_write = storage.file(1);
     auto size = 10 * 1024 * 1024;
 
+    ASSERT_EQ(file0_write.position(), (size_t)0);
+    ASSERT_EQ(file0_write.size(), (size_t)0);
+    ASSERT_EQ(file1_write.position(), (size_t)0);
+    ASSERT_EQ(file1_write.size(), (size_t)0);
+
     StaticPattern pattern;
 
+    auto counter = 0;
     auto bytes_wrote = 0;
     while (bytes_wrote < size) {
         ASSERT_EQ(file0_write.write(pattern.data, sizeof(pattern.data)), sizeof(pattern.data));
         ASSERT_EQ(file1_write.write(pattern.data, sizeof(pattern.data)), sizeof(pattern.data));
 
         bytes_wrote += sizeof(pattern.data);
+
+        counter++;
+
+        ASSERT_EQ(file0_write.position(), sizeof(pattern.data) * counter);
+        ASSERT_EQ(file1_write.position(), sizeof(pattern.data) * counter);
     }
+
+    ASSERT_EQ(file0_write.position(), (size_t)size);
+    ASSERT_EQ(file0_write.size(), (size_t)size);
+    ASSERT_EQ(file1_write.position(), (size_t)size);
+    ASSERT_EQ(file1_write.size(), (size_t)size);
 
     ASSERT_TRUE(storage.begin());
 
     auto file0_read = storage.file(0);
 
+    ASSERT_EQ(file0_read.position(), (size_t)0);
+    ASSERT_EQ(file0_read.size(), (size_t)size);
+
     pattern.verify(file0_read, size);
+
+    ASSERT_EQ(file0_read.position(), (size_t)size);
+    ASSERT_EQ(file0_read.size(), (size_t)size);
 
     auto file1_read = storage.file(1);
 
+    ASSERT_EQ(file1_read.position(), (size_t)0);
+    ASSERT_EQ(file1_read.size(), (size_t)size);
+
     pattern.verify(file1_read, size);
+
+    ASSERT_EQ(file1_read.position(), (size_t)size);
 }
 
-TEST_F(StorageSuite, MultipleLargeFilesOneMuchSmaller) {
+TEST_F(StorageSuite, DISABLED_MultipleLargeFilesOneMuchSmaller) {
     Storage storage{ memory_ };
 
     ASSERT_TRUE(storage.clear());
@@ -282,15 +323,28 @@ TEST_F(StorageSuite, MultipleLargeFilesOneMuchSmaller) {
         bytes_wrote += sizeof(pattern.data);
     }
 
+    ASSERT_EQ(file0_write.position(), (size_t)size);
+    ASSERT_EQ(file0_write.size(), (size_t)size);
+    ASSERT_EQ(file1_write.position(), (size_t)size / (4096 / 256));
+    ASSERT_EQ(file1_write.size(), (size_t)size / (4096 / 256));
+
     ASSERT_TRUE(storage.begin());
 
     auto file0_read = storage.file(0);
+
+    ASSERT_EQ(file0_read.position(), (size_t)0);
+    ASSERT_EQ(file0_read.size(), (size_t)size);
 
     pattern.verify(file0_read, size);
 
     auto file1_read = storage.file(1);
 
+    ASSERT_EQ(file1_read.position(), (size_t)0);
+    ASSERT_EQ(file1_read.size(), (size_t)size / (4096 / 256));
+
     pattern.verify(file1_read, size / 4096);
+
+    ASSERT_EQ(file1_read.position(), (size_t)size / (4096 / 256));
 }
 
 TEST_F(StorageSuite, SeekingToARecord) {

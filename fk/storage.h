@@ -167,9 +167,10 @@ private:
     uint8_t file_;
     uint32_t tail_{ InvalidAddress };
     uint32_t record_{ InvalidRecord };
-    uint32_t size_{ InvalidSize };
     uint32_t version_{ InvalidVersion };
     uint32_t record_remaining_{ 0 };
+    uint32_t position_{ 0 };
+    uint32_t size_{ 0 };
     BLAKE2b hash_;
 
 public:
@@ -191,6 +192,10 @@ public:
 
     uint32_t record() const {
         return record_;
+    }
+
+    uint32_t position() const {
+        return position_;
     }
 
     uint32_t size() const {
