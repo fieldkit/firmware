@@ -122,6 +122,8 @@ bool MetalNetwork::serve() {
     loginfo("ready (ip = %d.%d.%d.%d) (service = %s)",
            ip[0], ip[1], ip[2], ip[3], service_name_);
 
+    ntp_.start();
+
     return true;
 }
 
@@ -140,6 +142,7 @@ uint32_t MetalNetwork::ip_address() {
 
 NetworkConnection *MetalNetwork::accept() {
     mdns_.run();
+    ntp_.service();
 
     auto wcl = server_.available(nullptr, true);
     if (!wcl) {
@@ -155,6 +158,7 @@ bool MetalNetwork::stop() {
     // Ensure the previous removal gets loose.
     fk_delay(100);
     udp_.stop();
+    ntp_.stop();
     WiFi.end();
     enabled_ = false;
     board.disable_wifi();

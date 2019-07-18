@@ -100,6 +100,8 @@ static void task_handler_network(void *params) {
         http_server.tick();
         fk_delay(10);
     }
+
+    loginfo("network stopped");
 }
 
 static void task_handler_gps(void *params) {
@@ -132,7 +134,7 @@ void run_tasks() {
     uint32_t idle_stack[256 / sizeof(uint32_t)];
     uint32_t scheduler_stack[1024 / sizeof(uint32_t)];
     uint32_t display_stack[2048 / sizeof(uint32_t)];
-    uint32_t network_stack[4096 / sizeof(uint32_t)];
+    uint32_t network_stack[(4096 + 1024) / sizeof(uint32_t)];
     uint32_t gps_stack[2048 / sizeof(uint32_t)];
     uint32_t readings_stack[4096 / sizeof(uint32_t)];
 

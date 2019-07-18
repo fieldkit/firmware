@@ -24,6 +24,7 @@
 #if defined(ARDUINO)
 
 #include "hal/hal.h"
+#include "hal/metal/simple_ntp.h"
 
 #include <Arduino.h>
 #include <SPI.h>
@@ -76,6 +77,7 @@ private:
     WiFiServer server_{ 80 };
     WiFiUDP udp_;
     MDNS mdns_{ udp_ };
+    SimpleNTP ntp_;
 
 public:
     bool begin(NetworkSettings settings) override;

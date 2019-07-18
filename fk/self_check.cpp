@@ -57,6 +57,9 @@ bool SelfCheck::rtc() {
             return false;
         }
 
+        FormattedTime formatted{ clock.now().unixtime() };
+        loginfo("now: %s", formatted.cstr());
+
         return true;
     });
 }
