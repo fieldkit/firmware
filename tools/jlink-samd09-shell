@@ -1,0 +1,5 @@
+#!/bin/bash
+
+PATH=~/tools/jlink:$PATH
+
+JLinkExe -if SWD -device ATSAMD09D14A
