@@ -19,21 +19,37 @@ using namespace fk;
 FK_DECLARE_LOGGER("main");
 
 os_task_t idle_task;
+os_task_t scheduler_task;
 os_task_t display_task;
-os_task_t httpd_task;
+os_task_t network_task;
 os_task_t gps_task;
 os_task_t readings_task;
-os_task_t queue_task;
 
 static void task_handler_idle(void *params) {
+    while (true) {
+        fk_delay(FiveSecondsMs);
+    }
+}
+
+static void task_handler_scheduler(void *params) {
     auto last_readings = fk_uptime();
 
     while (true) {
-        fk_delay(FiveSecondsMs);
-
         auto reading = get_battery_gauge()->get();
+        if (reading.available) {
+            loginfo("battery(%dmv %d%% %dC %fs %fs)", reading.cellv, reading.soc, reading.temp, reading.tte, reading.ttf);
+        }
 
-        loginfo("battery(%dmv %d%% %dC %fs %fs)", reading.cellv, reading.soc, reading.temp, reading.tte, reading.ttf);
+        void *message = nullptr;
+        if (get_ipc()->dequeue(&message, 5000)) {
+            loginfo("message!");
+
+            auto status = os_task_get_status(&network_task);
+            if (status == OS_TASK_STATUS_SUSPENDED || status == OS_TASK_STATUS_FINISHED) {
+                loginfo("starting task '%s'", network_task.name);
+                os_task_start(&network_task);
+            }
+        }
 
         if (fk_uptime() - last_readings > ThirtySecondsMs) {
             auto status = os_task_get_status(&readings_task);
@@ -45,15 +61,6 @@ static void task_handler_idle(void *params) {
                 loginfo("task is still busy %s", readings_task.name);
             }
             last_readings = fk_uptime();
-        }
-    }
-}
-
-static void task_handler_queue(void *params) {
-    while (true) {
-        void *message = nullptr;
-        if (get_ipc()->dequeue(&message, 5000)) {
-            loginfo("message!");
         }
     }
 }
@@ -76,7 +83,7 @@ static void task_handler_display(void *params) {
     }
 }
 
-static void task_handler_httpd(void *params) {
+static void task_handler_network(void *params) {
     MetalNetwork network;
     #if defined(FK_WIFI_0_SSID) && defined(FK_WIFI_0_PASSWORD)
     HttpServer http_server{ &network, FK_WIFI_0_SSID, FK_WIFI_0_PASSWORD };
@@ -122,23 +129,23 @@ void run_tasks() {
      * Declaring these static, for exmaple, will cause them to be placed in the
      * .data section, which is below the heap in memory.
      */
-    uint32_t idle_stack[1024 / sizeof(uint32_t)];
+    uint32_t idle_stack[256 / sizeof(uint32_t)];
+    uint32_t scheduler_stack[1024 / sizeof(uint32_t)];
     uint32_t display_stack[2048 / sizeof(uint32_t)];
-    uint32_t httpd_stack[4096 / sizeof(uint32_t)];
+    uint32_t network_stack[4096 / sizeof(uint32_t)];
     uint32_t gps_stack[2048 / sizeof(uint32_t)];
     uint32_t readings_stack[4096 / sizeof(uint32_t)];
-    uint32_t queue_stack[2048 / sizeof(uint32_t)];
 
     OS_CHECK(os_initialize());
 
     OS_CHECK(os_task_initialize(&idle_task, "idle", OS_TASK_START_RUNNING, &task_handler_idle, NULL, idle_stack, sizeof(idle_stack)));
+    OS_CHECK(os_task_initialize(&scheduler_task, "scheduler", OS_TASK_START_RUNNING, &task_handler_scheduler, NULL, scheduler_stack, sizeof(scheduler_stack)));
     OS_CHECK(os_task_initialize(&display_task, "display", OS_TASK_START_RUNNING, &task_handler_display, NULL, display_stack, sizeof(display_stack)));
-    OS_CHECK(os_task_initialize(&httpd_task, "httpd", OS_TASK_START_RUNNING, &task_handler_httpd, NULL, httpd_stack, sizeof(httpd_stack)));
+    OS_CHECK(os_task_initialize(&network_task, "network", OS_TASK_START_RUNNING, &task_handler_network, NULL, network_stack, sizeof(network_stack)));
     OS_CHECK(os_task_initialize(&gps_task, "gps", OS_TASK_START_RUNNING, &task_handler_gps, NULL, gps_stack, sizeof(gps_stack)));
     OS_CHECK(os_task_initialize(&readings_task, "readings", OS_TASK_START_RUNNING, &task_handler_readings, NULL, readings_stack, sizeof(readings_stack)));
-    OS_CHECK(os_task_initialize(&queue_task, "queue", OS_TASK_START_RUNNING, &task_handler_queue, NULL, queue_stack, sizeof(queue_stack)));
 
-    auto total_stacks = sizeof(idle_stack) + sizeof(display_stack) + sizeof(httpd_stack) + sizeof(gps_stack) + sizeof(readings_stack) + sizeof(queue_stack);
+    auto total_stacks = sizeof(idle_stack) + sizeof(display_stack) + sizeof(network_stack) + sizeof(gps_stack) + sizeof(readings_stack) + sizeof(scheduler_stack);
     loginfo("stacks = %d", total_stacks);
     loginfo("free = %lu", fk_free_memory());
     loginfo("starting os!");

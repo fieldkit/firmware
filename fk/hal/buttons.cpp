@@ -18,7 +18,7 @@ void Button::changed(uint8_t pin, bool down) {
         auto elapsed = fk_uptime() - time_;
         down_ = false;
         time_ = 0;
-        loginfo("%d (%dms)", pin, elapsed);
+        loginfo("%s (%dms)", name_, elapsed);
 
         if (!get_ipc()->enqueue(this, 0)) {
             logerror("ipc error");
