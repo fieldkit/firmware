@@ -11,15 +11,22 @@ namespace fk {
 FK_DECLARE_LOGGER("worker");
 
 void task_handler_worker(void *params) {
-    StatisticsMemory memory{ MemoryFactory::get_data_memory() };
-    Storage storage{ &memory };
+    FK_ASSERT(params != nullptr);
 
-    if (!storage.begin()) {
-        logerror("error opening storage");
-        return;
+    auto worker = reinterpret_cast<Worker*>(params);
+
+    if (false) {
+        StatisticsMemory memory{ MemoryFactory::get_data_memory() };
+        Storage storage{ &memory };
+        if (!storage.begin()) {
+            logerror("error opening storage");
+            return;
+        }
     }
 
-    memory.log_statistics();
+    WorkerContext wc;
+
+    worker->run(wc);
 }
 
 }
