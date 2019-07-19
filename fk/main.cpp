@@ -4,7 +4,7 @@
 #include "board.h"
 #include "platform.h"
 #include "self_check.h"
-#include "storage.h"
+#include "factory_wipe.h"
 
 #include "tasks/tasks.h"
 
@@ -99,35 +99,6 @@ static void log_diagnostics() {
     loginfo("hash = %s", hash_string);
 }
 
-static bool factory_wipe_if_necessary() {
-    auto buttons = get_buttons();
-
-    if (buttons->number_pressed() > 0) {
-        loginfo("buttons pressed, possible factory wipe...");
-
-        auto wipe = false;
-        auto started = fk_uptime();
-        while (buttons->number_pressed() > 0) {
-            fk_delay(100);
-            if (!wipe && fk_uptime() - started > 5000) {
-                loginfo("will wipe on release!");
-                wipe = true;
-            }
-        }
-
-        if (!wipe) {
-            return true;
-        }
-    }
-
-    loginfo("factory wipe!");
-
-    auto memory = MemoryFactory::get_data_memory();
-    Storage storage{ memory };
-
-    return storage.clear();
-}
-
 void setup() {
     MetalModMux mmm;
 
@@ -155,7 +126,8 @@ void setup() {
 
     self_check.check();
 
-    FK_ASSERT(factory_wipe_if_necessary());
+    FactoryWipe fw{ get_buttons(), MemoryFactory::get_data_memory() };
+    FK_ASSERT(fw.wipe_if_necessary());
 
     if (false) {
         FK_ASSERT(mmm.enable_all_modules());
