@@ -1,6 +1,7 @@
 #include <loading.h>
 
 #include "httpd/api_handler.h"
+#include "storage.h"
 #include "protobuf.h"
 #include "printf.h"
 
@@ -14,6 +15,9 @@ constexpr static uint32_t BootloaderSize = 0x4000;
 
 bool send_status(HttpRequest &req) {
     loginfo("handling %s", "QUERY_STATUS");
+
+    StatisticsMemory memory{ MemoryFactory::get_data_memory() };
+    Storage storage{ &memory };
 
     fk_serial_number_t sn;
     fk_serial_number_get(&sn);
@@ -47,6 +51,46 @@ bool send_status(HttpRequest &req) {
     reply.status.gps.longitude = 0.0f;
     reply.status.gps.latitude = 0.0f;
     reply.status.gps.altitude = 0.0f;
+
+    auto file = storage.file(0);
+
+    FK_ASSERT(file.seek(LastRecord));
+
+    fk_app_DataStream streams[] = {
+        {
+            .id = 1,
+            .time = 0,
+            .size = file.size(),
+            .version = 0,
+            .block = file.record(),
+            .hash = {
+                .funcs = {},
+                .arg = nullptr,
+            },
+            .name = {
+                .funcs = {
+                    .encode = pb_encode_string,
+                },
+                .arg = (void *)"data.fkpb",
+            },
+            .path = {
+                .funcs = {
+                    .encode = pb_encode_string,
+                },
+                .arg = (void *)"/fk/v1/download",
+            },
+        },
+    };
+
+    pb_array_t streams_array = {
+        .length = (size_t)1,
+        .itemSize = sizeof(fk_app_DataStream),
+        .buffer = &streams,
+        .fields = fk_app_DataStream_fields,
+    };
+
+    reply.streams.funcs.encode = pb_encode_array;
+    reply.streams.arg = (void *)&streams_array;
 
     if (fkb_header.firmware.hash_size > 0) {
         char firmware_hash_string[128];
