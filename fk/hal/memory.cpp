@@ -130,6 +130,42 @@ size_t SequentialMemory::write(uint32_t address, uint8_t *data, size_t length) {
     return nbytes;
 }
 
+bool StatisticsMemory::begin() {
+    return target_->begin();
+}
+
+flash_geometry_t StatisticsMemory::geometry() const {
+    return target_->geometry();
+}
+
+size_t StatisticsMemory::read(uint32_t address, uint8_t *data, size_t length) {
+    statistics_.nreads++;
+    statistics_.bytes_read += length;
+    return target_->read(address, data, length);
+}
+
+size_t StatisticsMemory::write(uint32_t address, const uint8_t *data, size_t length) {
+    statistics_.nwrites++;
+    statistics_.bytes_wrote += length;
+    return target_->write(address, data, length);
+}
+
+size_t StatisticsMemory::erase_block(uint32_t address) {
+    statistics_.nerases++;
+    return target_->erase_block(address);
+}
+
+memory_statistics_t &StatisticsMemory::statistics() {
+    return statistics_;
+}
+
+void StatisticsMemory::log_statistics() const {
+    loginfo("%d reads (%d bytes) %d writes (%d bytes) %d erases",
+            statistics_.nreads, statistics_.bytes_read,
+            statistics_.nwrites, statistics_.bytes_wrote,
+            statistics_.nerases);
+}
+
 #if defined(FK_HARDWARE_FULL)
 MetalDataMemory banks[MemoryFactory::NumberOfDataMemoryBanks]{
     { SPI_FLASH_CS_BANK_1 },

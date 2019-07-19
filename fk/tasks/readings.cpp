@@ -11,8 +11,8 @@ namespace fk {
 FK_DECLARE_LOGGER("readings");
 
 void task_handler_readings(void *params) {
-    auto memory = MemoryFactory::get_data_memory();
-    Storage storage{ memory };
+    StatisticsMemory memory{ MemoryFactory::get_data_memory() };
+    Storage storage{ &memory };
 
     if (!storage.begin()) {
         return;
@@ -59,7 +59,9 @@ void task_handler_readings(void *params) {
         logerror("error saving readings");
     }
 
-    loginfo("wrote %d bytes (%d bytes)", bytes_wrote, file.size());
+    loginfo("wrote %d bytes (%d bytes) (0x%06x)", bytes_wrote, file.size(), file.tail());
+
+    memory.log_statistics();
 }
 
 }

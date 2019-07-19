@@ -4,6 +4,14 @@
 
 namespace fk {
 
+typedef struct memory_statistics_t {
+    uint32_t nreads{ 0 };
+    uint32_t nwrites{ 0 };
+    uint32_t nerases{ 0 };
+    uint32_t bytes_read{ 0 };
+    uint32_t bytes_wrote{ 0 };
+} memory_statistics_t;
+
 typedef struct flash_geometry_t {
     uint32_t page_size;
     uint32_t block_size;
@@ -47,6 +55,32 @@ public:
     bool available() {
         return geometry().total_size > 0;
     }
+
+};
+
+class StatisticsMemory : public DataMemory {
+private:
+    DataMemory *target_;
+    memory_statistics_t statistics_;
+
+public:
+    StatisticsMemory(DataMemory *target) : target_(target) {
+    }
+
+public:
+    bool begin() override;
+
+    flash_geometry_t geometry() const override;
+
+    size_t read(uint32_t address, uint8_t *data, size_t length) override;
+
+    size_t write(uint32_t address, const uint8_t *data, size_t length) override;
+
+    size_t erase_block(uint32_t address) override;
+
+    memory_statistics_t &statistics();
+
+    void log_statistics() const;
 
 };
 

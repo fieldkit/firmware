@@ -186,7 +186,7 @@ SeekValue Storage::seek(SeekSettings settings) {
     auto position = (uint32_t)0;
     auto address = InvalidAddress;
 
-    logdebug("[%d] seeking #%d", settings.file, settings.record);
+    logtrace("[%d] seeking #%d", settings.file, settings.record);
 
     // Binary search for the block to start with.
     BlockHeader file_block_header;
@@ -225,15 +225,13 @@ SeekValue Storage::seek(SeekSettings settings) {
 
     // If at the start of the block, bump.
     auto &fh = file_block_header.files[settings.file];
-    auto size_at_block = fh.size;
-    auto tail = fh.tail;
-    address = tail; // + sizeof(BlockHeader) + file_block_header.overflow;
-    position = size_at_block;
+    address = fh.tail;
+    position = fh.size;
 
     FK_ASSERT(is_address_valid(address));
 
-    logdebug("[%d] tail = 0x%06x (block %d)", settings.file, tail, tail / g.block_size);
-    logdebug("[%d] 0x%06x seeking #%d (%d) from #%d (bsz = %d bytes)", settings.file, address, settings.record, position, tail / g.block_size, size_at_block);
+    logtrace("[%d] tail = 0x%06x (block %d)", settings.file, fh.tail, fh.tail / g.block_size);
+    logtrace("[%d] 0x%06x seeking #%d (%d) from #%d (bsz = %d bytes)", settings.file, address, settings.record, position, fh.tail / g.block_size, fh.size);
 
     while (true) {
         auto record_head = RecordHeader{};
@@ -277,7 +275,7 @@ SeekValue Storage::seek(SeekSettings settings) {
         position += record_head.size;
     }
 
-    logverbose("[%d] 0x%06x seek done @ (%d) (%d bytes) (%d in block)", settings.file, address, record, position, position - size_at_block);
+    logdebug("[%d] 0x%06x seek done @ (%d) (%d bytes) (%d in block)", settings.file, address, record, position, position - fh.size);
 
     return SeekValue{ address, record, position };
 }
