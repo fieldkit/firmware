@@ -5,18 +5,31 @@
 
 namespace fk {
 
-FK_DECLARE_LOGGER("sched");
+FK_DECLARE_LOGGER("schededule");
 
 void task_handler_scheduler(void *params) {
     auto last_readings = fk_uptime();
 
     while (true) {
+        // This throttles this loop, so we take a pass when we dequeue or timeout.
+        void *message = nullptr;
+        if (get_ipc()->dequeue(&message, FiveSecondsMs)) {
+            auto status = os_task_get_status(&network_task);
+            if (status == OS_TASK_STATUS_SUSPENDED || status == OS_TASK_STATUS_FINISHED) {
+                loginfo("starting task '%s'", network_task.name);
+                os_task_start(&network_task);
+            }
+        }
+
         auto reading = get_battery_gauge()->get();
         if (reading.available) {
             loginfo("battery(%dmv %d%% %dC %fs %fs)", reading.cellv, reading.soc, reading.temp, reading.tte, reading.ttf);
         }
 
-        {
+        void *outgoing = (void *)0xdeadbeef;
+        FK_ASSERT(get_ipc()->enqueue_data(outgoing, 250));
+
+        if (false) {
             auto clock = get_clock();
             DateTime internal;
             DateTime external;
@@ -27,15 +40,6 @@ void task_handler_scheduler(void *params) {
             FormattedTime internal_formatted{ internal.unixtime() };
             FormattedTime external_formatted{ external.unixtime() };
             loginfo("now: %s %s", internal_formatted.cstr(), external_formatted.cstr());
-        }
-
-        void *message = nullptr;
-        if (get_ipc()->dequeue(&message, FiveSecondsMs)) {
-            auto status = os_task_get_status(&network_task);
-            if (status == OS_TASK_STATUS_SUSPENDED || status == OS_TASK_STATUS_FINISHED) {
-                loginfo("starting task '%s'", network_task.name);
-                os_task_start(&network_task);
-            }
         }
 
         if (fk_uptime() - last_readings > ThirtySecondsMs) {

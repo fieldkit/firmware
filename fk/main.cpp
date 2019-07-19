@@ -16,7 +16,7 @@ using namespace fk;
 
 FK_DECLARE_LOGGER("main");
 
-void run_tasks() {
+static void run_tasks() {
     /**
      * This is very deliberate. By placing these on the stack this way, we
      * ensure that the stack pointer relative to the heap location is as
@@ -25,13 +25,13 @@ void run_tasks() {
      * Declaring these static, for example, will cause them to be placed in the
      * .data section, which is below the heap in memory.
      */
-    uint32_t idle_stack[256 / sizeof(uint32_t)];
+    uint32_t idle_stack[768 / sizeof(uint32_t)];
     uint32_t scheduler_stack[1024 / sizeof(uint32_t)];
     uint32_t display_stack[2048 / sizeof(uint32_t)];
     uint32_t network_stack[(4096 + 1024) / sizeof(uint32_t)];
     uint32_t gps_stack[2048 / sizeof(uint32_t)];
     uint32_t readings_stack[4096 / sizeof(uint32_t)];
-    uint32_t data_stack[512 / sizeof(uint32_t)];
+    uint32_t data_stack[768 / sizeof(uint32_t)];
 
     OS_CHECK(os_initialize());
 

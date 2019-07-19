@@ -22,8 +22,7 @@ class FkSegger(gdb.Command):
     gdb.execute("target extended-remote :2331")
     gdb.execute("load")
     gdb.execute("b Dummy_Handler")
-    gdb.execute("b osi_assert")
-    gdb.execute("b fk_assert")
+    gdb.execute("b osi_panic")
     gdb.execute("b osi_hard_fault_report")
     gdb.execute("b __cxa_pure_virtual")
     if False:
