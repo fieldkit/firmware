@@ -78,4 +78,6 @@ public:
 
 };
 
+Network *get_network();
+
 }
