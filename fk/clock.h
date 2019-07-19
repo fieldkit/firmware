@@ -74,4 +74,6 @@ public:
 
 };
 
+CoreClock *get_clock();
+
 }

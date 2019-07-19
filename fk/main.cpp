@@ -42,12 +42,12 @@ static void task_handler_scheduler(void *params) {
         }
 
         {
-            CoreClock clock{ Wire };
+            auto clock = get_clock();
             DateTime internal;
             DateTime external;
 
-            FK_ASSERT(clock.internal(internal));
-            FK_ASSERT(clock.external(external));
+            FK_ASSERT(clock->internal(internal));
+            FK_ASSERT(clock->external(external));
 
             FormattedTime internal_formatted{ internal.unixtime() };
             FormattedTime external_formatted{ external.unixtime() };

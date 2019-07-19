@@ -276,4 +276,10 @@ void CoreClock::log_tsr(uint8_t *ts) {
         );
 }
 
+static CoreClock clock{ Wire };
+
+CoreClock *get_clock() {
+    return &clock;
+}
+
 }

@@ -43,9 +43,9 @@ bool SimpleNTP::service() {
         auto seconds_since_1900 = high << 16 | low;
         auto new_epoch = (uint32_t)(seconds_since_1900 - SeventyYears);
 
-        CoreClock clock{ Wire };
-        auto old_epoch = clock.get_external().unixtime();
-        FK_ASSERT(clock.adjust(new_epoch));
+        auto clock = get_clock();
+        auto old_epoch = clock->get_external().unixtime();
+        FK_ASSERT(clock->adjust(new_epoch));
 
         FormattedTime new_formatted{ new_epoch };
         FormattedTime old_formatted{ old_epoch };

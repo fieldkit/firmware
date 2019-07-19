@@ -51,9 +51,9 @@ bool single_check(const char *name, T fn) {
 
 bool SelfCheck::rtc() {
     return single_check("rtc", []() {
-        CoreClock clock{ Wire };
+        auto clock = get_clock();
 
-        if (!clock.begin()) {
+        if (!clock->begin()) {
             return false;
         }
 
