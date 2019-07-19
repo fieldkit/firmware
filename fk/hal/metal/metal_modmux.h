@@ -4,16 +4,16 @@
 
 namespace fk {
 
-class MetalModMux {
+class MetalModMux : public ModMux {
 private:
 
 public:
     MetalModMux();
 
 public:
-    bool begin();
-    bool enable_all_modules();
-    bool disable_all_modules();
+    bool begin() override;
+    bool enable_all_modules() override;
+    bool disable_all_modules() override;
 
 };
 

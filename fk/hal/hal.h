@@ -11,3 +11,4 @@
 #include "hal/battery_gauge.h"
 #include "hal/buttons.h"
 #include "hal/ipc.h"
+#include "hal/modmux.h"
