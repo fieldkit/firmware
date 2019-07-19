@@ -259,13 +259,13 @@ SeekValue Storage::seek(SeekSettings settings) {
         }
 
         // Keep track of maximum record for the file.
-        if (record_head.record > record) {
+        if (record_head.record >= record) {
             record = record_head.record + 1;
         }
 
         auto record_length = sizeof(RecordHeader) + record_head.size + sizeof(RecordTail);
 
-        logverbose("[%d] 0x%06x seeking %4d/%4d", settings.file, address, record_length, record_head.size);
+        logverbose("[%d] 0x%06x seeking %4d/%4d (#%d)", settings.file, address, record_length, record_head.size, record_head.record);
 
         // Skip over the record head, the actual record, and the tail (hash)
         FK_ASSERT(!g.spans_block(address, record_length));

@@ -444,3 +444,43 @@ TEST_F(StorageSuite, WritingProtobuf) {
 
     ASSERT_EQ(file_read.read(&record, fk_data_DataRecord_fields), (size_t)28);
 }
+
+TEST_F(StorageSuite, WritingSequentiallyHasCorrectRecordNumbers) {
+    Storage storage{ memory_ };
+    StaticPattern pattern;
+
+    ASSERT_TRUE(storage.clear());
+
+    auto file_write = storage.file(0);
+
+    for (auto i = 0; i < 10; ++i) {
+        pattern.write(file_write, 256);
+    }
+
+    size_t size = 256 * 10;
+    ASSERT_EQ(file_write.size(), size);
+    ASSERT_EQ(file_write.position(), size);
+
+    ASSERT_TRUE(storage.begin());
+
+    auto file_read = storage.file(0);
+}
+
+TEST_F(StorageSuite, WritingOncePerOpenHasCorrectRecordNumbers) {
+    Storage storage{ memory_ };
+    StaticPattern pattern;
+
+    {
+        ASSERT_TRUE(storage.clear());
+        auto file_write = storage.file(0);
+        pattern.write(file_write, 256);
+        ASSERT_EQ(file_write.record(), (uint32_t)1);
+    }
+
+    for (auto i = 0; i < 9; ++i) {
+        ASSERT_TRUE(storage.begin());
+        auto file_write = storage.file(0);
+        pattern.write(file_write, 256);
+        ASSERT_EQ(file_write.record(), (uint32_t)2 + i);
+    }
+}
