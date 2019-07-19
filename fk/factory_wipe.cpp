@@ -9,22 +9,24 @@ FactoryWipe::FactoryWipe(Buttons *buttons, DataMemory *memory) : buttons_(button
 }
 
 bool FactoryWipe::wipe_if_necessary() {
-    if (buttons_->number_pressed() > 0) {
-        loginfo("buttons pressed, possible factory wipe...");
+    if (buttons_->number_pressed() == 0) {
+        return true;
+    }
 
-        auto wipe = false;
-        auto started = fk_uptime();
-        while (buttons_->number_pressed() > 0) {
-            fk_delay(100);
-            if (!wipe && fk_uptime() - started > 5000) {
-                loginfo("will wipe on release!");
-                wipe = true;
-            }
-        }
+    loginfo("buttons pressed, possible factory wipe...");
 
-        if (!wipe) {
-            return true;
+    auto wipe = false;
+    auto started = fk_uptime();
+    while (buttons_->number_pressed() > 0) {
+        fk_delay(100);
+        if (!wipe && fk_uptime() - started > 5000) {
+            loginfo("will wipe on release!");
+            wipe = true;
         }
+    }
+
+    if (!wipe) {
+        return true;
     }
 
     loginfo("factory wipe!");

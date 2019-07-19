@@ -138,7 +138,6 @@ uint32_t Storage::allocate(uint8_t file, uint32_t overflow, uint32_t previous_ta
 
     FK_ASSERT(is_address_valid(address));
 
-
     logdebug("[%d] allocated block #%d (0x%06x) (%d) (%d bytes)", file, free_block_, address, overflow, files_[file].size);
 
     free_block_++;
