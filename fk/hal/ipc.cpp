@@ -49,6 +49,9 @@ bool IPC::dequeue_data(void **ptr, uint32_t to) {
     *ptr = tuple.value.ptr;
     return true;
 }
+bool IPC::available() {
+    return os_is_running();
+}
 
 #else
 
@@ -69,6 +72,10 @@ bool IPC::enqueue_data(void *ptr, uint32_t to) {
 }
 
 bool IPC::dequeue_data(void **ptr, uint32_t to) {
+    return false;
+}
+
+bool IPC::available() {
     return false;
 }
 
