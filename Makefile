@@ -18,27 +18,25 @@ all: samd51 test
 
 ci: all doc
 
-setup: .python-setup fk/secrets.h
-
-cmake: dependencies $(BUILD)/samd51 $(BUILD)/amd64
+setup: .python-setup fk/secrets.h libraries/done
 
 .python-setup:
 	pip3 install -U lief sphinx
 	touch .python-setup
 
-samd51: dependencies $(BUILD)/samd51
-	cd $(BUILD)/samd51 && $(MAKE)
-
-amd64: dependencies $(BUILD)/amd64
-	cd $(BUILD)/amd64 && $(MAKE)
-
-$(BUILD)/samd51:
+$(BUILD)/samd51: setup
 	mkdir -p $(BUILD)/samd51
 	cd $(BUILD)/samd51 && cmake -DTARGET_ARCH=samd51 ../../
 
-$(BUILD)/amd64:
+$(BUILD)/amd64: setup
 	mkdir -p $(BUILD)/amd64
 	cd $(BUILD)/amd64 && cmake -DTARGET_ARCH=amd64 ../../
+
+samd51: $(BUILD)/samd51
+	cd $(BUILD)/samd51 && $(MAKE)
+
+amd64: $(BUILD)/amd64
+	cd $(BUILD)/amd64 && $(MAKE)
 
 fw: samd51
 
@@ -56,22 +54,14 @@ doc:
 fk/secrets.h: fk/secrets.h.template
 	cp $^ $@
 
-dependencies: $(LOCAL_LIBRARY_PATHS)
-	@for l in $(LOCAL_LIBRARY_PATHS); do                                                       \
-		if [[ ! -d $$l ]]; then                                                                  \
-			echo $$l;                                                                              \
-	  fi;                                                                                      \
-	done
-
-$(LOCAL_LIBRARY_PATHS): simple-deps
+dependencies: libraries/done
 
 gitdeps: dependencies
 
-simple-deps: bootloader/dependencies.cmake libraries/dependencies.cmake
-
-bootloader/dependencies.cmake libraries/dependencies.cmake:
+libraries/done:
 	$(OFFLINE) || simple-deps --nested --config bootloader/dependencies.sd --dir libraries
 	$(OFFLINE) || simple-deps --nested --config libraries/dependencies.sd --dir libraries
+	touch libraries/done
 
 deps-initialize:
 	+@for l in $(LIBRARY_REPOSITORIES); do                                                     \
@@ -84,7 +74,7 @@ deps-update:
 	done
 
 veryclean: clean
-	rm -rf bootloader/dependencies.cmake libraries/dependencies.cmake
+	rm -rf bootloader/dependencies.cmake libraries/dependencies.cmake libraries/done
 	@for l in $(LOCAL_LIBRARY_PATHS); do                                                       \
 		echo rm -rf $$l; rm -rf $$l;                                                             \
 	done
