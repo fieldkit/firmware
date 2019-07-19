@@ -484,3 +484,22 @@ TEST_F(StorageSuite, WritingOncePerOpenHasCorrectRecordNumbers) {
         ASSERT_EQ(file_write.record(), (uint32_t)2 + i);
     }
 }
+
+TEST_F(StorageSuite, ClearingAfterWritingToFiles) {
+    Storage storage{ memory_ };
+    StaticPattern pattern;
+
+    ASSERT_TRUE(storage.clear());
+
+    auto file_write = storage.file(0);
+    size_t size = 256 * 10;
+    pattern.write(file_write, size);
+    ASSERT_EQ(file_write.size(), size);
+    ASSERT_EQ(file_write.position(), size);
+
+    ASSERT_TRUE(storage.clear());
+    file_write = storage.file(0);
+    pattern.write(file_write, size);
+    ASSERT_EQ(file_write.size(), size);
+    ASSERT_EQ(file_write.position(), size);
+}

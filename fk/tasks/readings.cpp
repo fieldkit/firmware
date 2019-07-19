@@ -15,7 +15,11 @@ void task_handler_readings(void *params) {
     Storage storage{ &memory };
 
     if (!storage.begin()) {
-        return;
+        logwarn("error opening storage, wiping...");
+        if (!storage.clear()) {
+            logerror("wiping storage failed!");
+            return;
+        }
     }
 
     auto now = get_clock()->now().unixtime();

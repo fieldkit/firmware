@@ -123,6 +123,10 @@ bool Storage::clear() {
         range = range.first_half();
     }
 
+    for (auto i = 0; i < NumberOfFiles; ++i) {
+        files_[i] = { };
+    }
+
     free_block_ = 0;
 
     return true;
@@ -220,8 +224,6 @@ SeekValue Storage::seek(SeekSettings settings) {
             range = range.first_half();
         }
     }
-
-    // FK_ASSERT(file_block_header.timestamp > 0);
 
     // If at the start of the block, bump.
     auto &fh = file_block_header.files[settings.file];
