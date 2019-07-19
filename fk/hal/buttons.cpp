@@ -9,7 +9,7 @@ FK_DECLARE_LOGGER("buttons");
 Button::Button(const char *name) : name_(name) {
 }
 
-void Button::changed(uint8_t pin, bool down) {
+void Button::changed(bool down) {
     if (down) {
         down_ = true;
         time_ = fk_uptime();

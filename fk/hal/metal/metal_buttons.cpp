@@ -6,38 +6,61 @@ namespace fk {
 
 FK_DECLARE_LOGGER("buttons");
 
-static void irq_button_right() {
-    reinterpret_cast<MetalButtons*>(get_buttons())->irq(BUTTON_RIGHT, 2);
+static void irq_button_left() {
+    reinterpret_cast<MetalButtons*>(get_buttons())->irq(BUTTON_LEFT, Buttons::Left);
 }
 
 static void irq_button_middle() {
-    reinterpret_cast<MetalButtons*>(get_buttons())->irq(BUTTON_MIDDLE, 1);
+    reinterpret_cast<MetalButtons*>(get_buttons())->irq(BUTTON_MIDDLE, Buttons::Middle);
 }
 
-static void irq_button_left() {
-    reinterpret_cast<MetalButtons*>(get_buttons())->irq(BUTTON_LEFT, 0);
+static void irq_button_right() {
+    reinterpret_cast<MetalButtons*>(get_buttons())->irq(BUTTON_RIGHT, Buttons::Right);
 }
 
 MetalButtons::MetalButtons() {
 }
 
 bool MetalButtons::begin() {
-    pinMode(BUTTON_RIGHT, INPUT_PULLUP);
-    attachInterrupt(digitalPinToInterrupt(BUTTON_RIGHT), irq_button_right, CHANGE);
+    struct setup_t {
+        uint8_t pin;
+        uint8_t index;
+        void (*irq_handler)(void);
+    };
 
-    pinMode(BUTTON_MIDDLE, INPUT_PULLUP);
-    attachInterrupt(digitalPinToInterrupt(BUTTON_MIDDLE), irq_button_middle, CHANGE);
+    setup_t setups[] = {
+        { BUTTON_LEFT, Buttons::Left, irq_button_left },
+        { BUTTON_MIDDLE, Buttons::Middle, irq_button_middle },
+        { BUTTON_RIGHT, Buttons::Right, irq_button_right },
+    };
 
-    pinMode(BUTTON_LEFT, INPUT_PULLUP);
-    attachInterrupt(digitalPinToInterrupt(BUTTON_LEFT), irq_button_left, CHANGE);
+    for (auto &s : setups) {
+        pinMode(s.pin, INPUT_PULLUP);
+        attachInterrupt(digitalPinToInterrupt(s.pin), s.irq_handler, CHANGE);
+        if (digitalRead(s.pin) == LOW) {
+            buttons_[s.index].changed(true);
+        }
+    }
 
     return true;
+}
+
+uint8_t MetalButtons::number_pressed() const {
+    auto n = 0;
+
+    for (auto i = 0; i < NumberOfButtons; ++i) {
+        if (buttons_[i].down()) {
+            n++;
+        }
+    }
+
+    return n;
 }
 
 void MetalButtons::irq(uint8_t pin, uint8_t index) {
     auto down = digitalRead(pin) == LOW;
     auto &b = buttons_[index];
-    b.changed(pin, down);
+    b.changed(down);
 }
 
 }

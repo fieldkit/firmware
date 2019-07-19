@@ -10,6 +10,7 @@ public:
 
 public:
     bool begin() override;
+    uint8_t number_pressed() const override;
 
 };
 
