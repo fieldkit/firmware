@@ -422,6 +422,10 @@ size_t File::read_record_header() {
 
             tail_ += sizeof(BlockTail);
 
+            if (!is_address_valid(block_tail.linked)) {
+                return 0;
+            }
+
             tail_ = block_tail.linked;
 
             BlockHeader block_header;

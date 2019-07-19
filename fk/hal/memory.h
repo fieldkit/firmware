@@ -38,6 +38,10 @@ typedef struct flash_geometry_t {
     bool spans_block(uint32_t address, uint32_t length) {
         return (address / block_size) != ((address + length) / block_size);
     }
+
+    bool is_address_valid(uint32_t address) {
+        return address >= 0 && address < total_size;
+    }
 } flash_geometry_t;
 
 class DataMemory {

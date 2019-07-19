@@ -83,6 +83,8 @@ size_t SequentialMemory::read(uint32_t address, uint8_t *data, size_t length) {
     auto p = data;
     auto remaining = length;
 
+    FK_ASSERT(g.is_address_valid(address));
+
     auto rib = g.remaining_in_block(address);
 
     FK_ASSERT(length <= rib);
@@ -109,6 +111,8 @@ size_t SequentialMemory::write(uint32_t address, uint8_t *data, size_t length) {
     auto g = memory_->geometry();
     auto p = data;
     auto remaining = length;
+
+    FK_ASSERT(g.is_address_valid(address));
 
     auto rib = g.remaining_in_block(address);
 
@@ -151,6 +155,8 @@ size_t StatisticsMemory::write(uint32_t address, const uint8_t *data, size_t len
 }
 
 size_t StatisticsMemory::erase_block(uint32_t address) {
+    FK_ASSERT(geometry().is_address_valid(address));
+
     statistics_.nerases++;
     return target_->erase_block(address);
 }
