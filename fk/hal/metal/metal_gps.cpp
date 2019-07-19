@@ -33,11 +33,6 @@ bool MetalGps::check() {
 }
 
 bool MetalGps::service(GpsFix &fix) {
-    char buffer[64];
-    size_t i = 0;
-
-    gps_ = TinyGPS();
-
     uint32_t position_fix_age;
     struct time_args_t {
         uint32_t year;
@@ -52,51 +47,48 @@ bool MetalGps::service(GpsFix &fix) {
         uint32_t time;
     } time;
 
-    while (true) {
-        if (Serial1.available()) {
-            char c = Serial1.read();
-            gps_.encode(c);
+    while (Serial1.available()) {
+        char c = Serial1.read();
+        gps_.encode(c);
 
-            fix.satellites = gps_.satellites();
-            fix.altitude = gps_.f_altitude();
-            fix.hdop = gps_.hdop();
-            gps_.f_get_position(&fix.latitude, &fix.longitude, &position_fix_age);
-            gps_.crack_datetime((int *)&time.year, &time.month, &time.day, &time.hour, &time.minute, &time.second, &time.hundredths, &time.time_fix_age);
-            gps_.get_datetime(&time.date, &time.time, &time.time_fix_age);
+        fix.satellites = gps_.satellites();
+        fix.altitude = gps_.f_altitude();
+        fix.hdop = gps_.hdop();
+        gps_.f_get_position(&fix.latitude, &fix.longitude, &position_fix_age);
+        gps_.crack_datetime((int *)&time.year, &time.month, &time.day, &time.hour, &time.minute, &time.second, &time.hundredths, &time.time_fix_age);
+        gps_.get_datetime(&time.date, &time.time, &time.time_fix_age);
+        gps_.stats(&fix.chars, &fix.good, &fix.failed);
 
-            auto ok = true;
+        auto ok = true;
 
-            if (fix.longitude != TinyGPS::GPS_INVALID_ANGLE && fix.latitude != TinyGPS::GPS_INVALID_ANGLE) {
+        if (fix.longitude != TinyGPS::GPS_INVALID_ANGLE && fix.latitude != TinyGPS::GPS_INVALID_ANGLE) {
+        }
+        else {
+            ok = false;
+        }
 
+        if (time.date != TinyGPS::GPS_INVALID_DATE && time.time != TinyGPS::GPS_INVALID_TIME) {
+            auto now = DateTime(time.year, time.month, time.day, time.hour, time.minute, time.second);
+            fix.time = now.unixtime();
+        }
+        else {
+            ok = false;
+        }
+
+        fix.valid = ok;
+
+        if (fkc.logging.gps_raw) {
+            if (i == sizeof(buffer) - 1 || c == '\n') {
+                if (i > 0) {
+                    logtrace("%s", buffer);
+                }
+                i = 0;
             }
             else {
-                ok = false;
-            }
-
-            if (time.date != TinyGPS::GPS_INVALID_DATE && time.time != TinyGPS::GPS_INVALID_TIME) {
-                auto now = DateTime(time.year, time.month, time.day, time.hour, time.minute, time.second);
-                fix.time = now.unixtime();
-            }
-            else {
-                ok = false;
-            }
-
-            fix.valid = ok;
-
-            if (fkc.logging.gps_raw) {
-                if (i == sizeof(buffer) - 1 || c == '\n') {
-                    if (i > 0) {
-                        logtrace("%s", buffer);
-                    }
-                    i = 0;
-                }
-                else {
-                    buffer[i++] = c;
-                    buffer[i] = 0;
-                }
+                buffer[i++] = c;
+                buffer[i] = 0;
             }
         }
-        fk_delay(10);
     }
 
     return true;

@@ -53,6 +53,11 @@ constexpr size_t HttpdMaximumUrlLength = 64;
 constexpr uint32_t WifiConnectionTimeoutMs = 30 * 1000;
 
 /**
+ * Buffer size for storing GPS sentences for debugging purposes.
+ */
+constexpr size_t GpsDebuggingBuffer = 64;
+
+/**
  * Declare loginfo, logerror, logwarn functions and any other necessary helpers
  * for a specific logger. Typically used at the top of a file.
  */

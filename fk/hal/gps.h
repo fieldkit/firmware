@@ -12,6 +12,9 @@ struct GpsFix {
     float latitude;
     float altitude;
     uint16_t hdop;
+    uint32_t chars;
+    uint16_t good;
+    uint16_t failed;
 };
 
 class Gps {
