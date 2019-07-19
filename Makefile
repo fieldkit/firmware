@@ -20,19 +20,25 @@ ci: all doc
 
 setup: .python-setup fk/secrets.h
 
+cmake: dependencies $(BUILD)/samd51 $(BUILD)/amd64
+
 .python-setup:
 	pip3 install -U lief sphinx
 	touch .python-setup
 
-samd51: dependencies
-	mkdir -p $(BUILD)/samd51
-	cd $(BUILD)/samd51 && cmake -DTARGET_ARCH=samd51 ../../
+samd51: dependencies $(BUILD)/samd51
 	cd $(BUILD)/samd51 && $(MAKE)
 
-amd64: dependencies
+amd64: dependencies $(BUILD)/amd64
+	cd $(BUILD)/amd64 && $(MAKE)
+
+$(BUILD)/samd51:
+	mkdir -p $(BUILD)/samd51
+	cd $(BUILD)/samd51 && cmake -DTARGET_ARCH=samd51 ../../
+
+$(BUILD)/amd64:
 	mkdir -p $(BUILD)/amd64
 	cd $(BUILD)/amd64 && cmake -DTARGET_ARCH=amd64 ../../
-	cd $(BUILD)/amd64 && $(MAKE)
 
 fw: samd51
 
@@ -78,12 +84,12 @@ deps-update:
 	done
 
 veryclean: clean
+	rm -rf bootloader/dependencies.cmake libraries/dependencies.cmake
 	@for l in $(LOCAL_LIBRARY_PATHS); do                                                       \
 		echo rm -rf $$l; rm -rf $$l;                                                             \
 	done
 
 clean:
-	rm -rf bootloader/dependencies.cmake libraries/dependencies.cmake
 	rm -rf $(BUILD)
 
 .PHONY: dependencies doc

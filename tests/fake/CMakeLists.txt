@@ -6,6 +6,12 @@ include(${CMAKE_SOURCE_DIR}/libraries/dependencies.cmake)
 
 set(CMAKE_BUILD_TYPE DEBUG)
 
+find_program(CCACHE_PROGRAM ccache)
+
+if(CCACHE_PROGRAM)
+  set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
+endif()
+
 find_package(Threads REQUIRED)
 
 include(ExternalProject)
