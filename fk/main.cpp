@@ -32,6 +32,7 @@ static void run_tasks() {
     uint32_t gps_stack[2048 / sizeof(uint32_t)];
     uint32_t readings_stack[4096 / sizeof(uint32_t)];
     uint32_t data_stack[768 / sizeof(uint32_t)];
+    uint32_t worker_stack[2048 / sizeof(uint32_t)];
 
     OS_CHECK(os_initialize());
 
@@ -43,6 +44,7 @@ static void run_tasks() {
     OS_CHECK(os_task_initialize(&network_task, "network", OS_TASK_START_RUNNING, &task_handler_network, NULL, network_stack, sizeof(network_stack)));
     OS_CHECK(os_task_initialize(&gps_task, "gps", OS_TASK_START_RUNNING, &task_handler_gps, NULL, gps_stack, sizeof(gps_stack)));
     OS_CHECK(os_task_initialize(&readings_task, "readings", OS_TASK_START_RUNNING, &task_handler_readings, NULL, readings_stack, sizeof(readings_stack)));
+    OS_CHECK(os_task_initialize(&worker_task, "worker", OS_TASK_START_SUSPENDED, &task_handler_worker, NULL, worker_stack, sizeof(worker_stack)));
 
     os_task_options_t data_task_options = {
         "data",
@@ -55,7 +57,7 @@ static void run_tasks() {
     };
     OS_CHECK(os_task_initialize_options(&data_task, &data_task_options));
 
-    auto total_stacks = sizeof(idle_stack) + sizeof(display_stack) + sizeof(network_stack) + sizeof(gps_stack) + sizeof(readings_stack) + sizeof(scheduler_stack);
+    auto total_stacks = sizeof(idle_stack) + sizeof(display_stack) + sizeof(network_stack) + sizeof(gps_stack) + sizeof(readings_stack) + sizeof(scheduler_stack) + sizeof(worker_stack);
     loginfo("stacks = %d", total_stacks);
     loginfo("free = %lu", fk_free_memory());
     loginfo("starting os!");
