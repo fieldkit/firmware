@@ -63,6 +63,22 @@ typedef struct configuration_t {
      */
     bool full_self_check{ false };
 
+
+    /**
+     * Logging configuration.
+     */
+    typedef struct logging_t {
+        /**
+         * Log raw GPS information, very verbose.
+         */
+        bool gps_raw{ false };
+    } logging_t;
+
+    /**
+     * Logging configuration.
+     */
+    logging_t logging;
+
     /**
      * Configuration for an individual WiFi network.
      */

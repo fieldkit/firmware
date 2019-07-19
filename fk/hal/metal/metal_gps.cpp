@@ -1,6 +1,7 @@
 #include "hal/metal/metal_gps.h"
 #include "board.h"
 #include "platform.h"
+#include "config.h"
 
 #if defined(ARDUINO)
 
@@ -82,7 +83,7 @@ bool MetalGps::service(GpsFix &fix) {
 
             fix.valid = ok;
 
-            if (false) {
+            if (fkc.logging.gps_raw) {
                 if (i == sizeof(buffer) - 1 || c == '\n') {
                     if (i > 0) {
                         logtrace("%s", buffer);
