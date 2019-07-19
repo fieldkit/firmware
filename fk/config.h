@@ -41,6 +41,11 @@ constexpr uint32_t FiveMinutesMs = 5 * 60 * 1000;
 constexpr uint32_t MaximumNumberOfWifiNetworks = 2;
 
 /**
+ * Precisely 1024 * 1024.
+ */
+constexpr uint32_t OneMegabyte = 1024 * 1024;
+
+/**
  * Runtime configuration informationthat is unavailable in the mobile
  * application. This can be updated after compilation to build binaries for
  * various situations.

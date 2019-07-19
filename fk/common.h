@@ -101,4 +101,9 @@ constexpr uint32_t WifiConnectionTimeoutMs = 30 * 1000;
         va_end(args);                            \
     }
 
+/**
+ * Evaluates to 1 shifted by the given position.
+ */
+#define BIT(nr)               (1UL << (nr))
+
 }

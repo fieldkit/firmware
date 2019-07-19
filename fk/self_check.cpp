@@ -100,8 +100,6 @@ bool SelfCheck::qspi_memory() {
     });
 }
 
-constexpr uint32_t OneMegabyte = 1024 * 1024;
-
 bool SelfCheck::spi_memory() {
     auto banks = MemoryFactory::get_data_memory_banks();
     auto memory = MemoryFactory::get_data_memory();

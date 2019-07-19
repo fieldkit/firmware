@@ -7,35 +7,33 @@
 
 namespace fk {
 
-#define BIT(nr) (1UL << (nr))
+#define CTRL_OFFSET           0x24
+#define CTRL_OSCILLATOR       0x25
+#define CTRL_BATTERY          0x26
+#define CTRL_PIN_IO           0x27
+#define CTRL_FUNCTION         0x28
+#define CTRL_INTA_EN          0x29
+#define CTRL_INTB_EN          0x2a
+#define CTRL_FLAGS            0x2b
+#define CTRL_RAMBYTE          0x2c
+#define CTRL_WDOG             0x2d
+#define CTRL_STOP_EN          0x2e
+#define CTRL_RESETS           0x2f
+#define CTRL_RAM              0x40
 
-#define CTRL_OFFSET	0x24
-#define CTRL_OSCILLATOR	0x25
-#define CTRL_BATTERY	0x26
-#define CTRL_PIN_IO	0x27
-#define CTRL_FUNCTION	0x28
-#define CTRL_INTA_EN	0x29
-#define CTRL_INTB_EN	0x2a
-#define CTRL_FLAGS	0x2b
-#define CTRL_RAMBYTE	0x2c
-#define CTRL_WDOG	0x2d
-#define CTRL_STOP_EN	0x2e
-#define CTRL_RESETS	0x2f
-#define CTRL_RAM	0x40
-
-#define FLAGS_TSR1F	  BIT(0)
-#define FLAGS_TSR2F	  BIT(1)
-#define FLAGS_TSR3F	  BIT(2)
-#define FLAGS_BSF     BIT(3)
-#define FLAGS_WDF     BIT(4)
-#define FLAGS_A1F     BIT(5)
-#define FLAGS_A2F     BIT(6)
-#define FLAGS_PIF     BIT(7)
+#define FLAGS_TSR1F	          BIT(0)
+#define FLAGS_TSR2F	          BIT(1)
+#define FLAGS_TSR3F	          BIT(2)
+#define FLAGS_BSF             BIT(3)
+#define FLAGS_WDF             BIT(4)
+#define FLAGS_A1F             BIT(5)
+#define FLAGS_A2F             BIT(6)
+#define FLAGS_PIF             BIT(7)
 
 
-#define NVRAM_SIZE	  0x40
-#define RESET_CPR	    0xa4
-#define STOP_EN_STOP	BIT(0)
+#define NVRAM_SIZE	          0x40
+#define RESET_CPR	            0xa4
+#define STOP_EN_STOP	        BIT(0)
 
 FK_DECLARE_LOGGER("clock");
 
@@ -157,7 +155,6 @@ bool CoreClock::adjust(DateTime now) {
     wire_->write(bin2bcd(now.month()));
     wire_->write(bin2bcd(now.year() - 2000));
     if (!I2C_CHECK(wire_->endTransmission())) {
-        logerror("F1");
         return false;
     }
 
@@ -165,7 +162,6 @@ bool CoreClock::adjust(DateTime now) {
     wire_->write(CTRL_STOP_EN);
     wire_->write(0);
     if (!I2C_CHECK(wire_->endTransmission())) {
-        logerror("F2");
         return false;
     }
 
