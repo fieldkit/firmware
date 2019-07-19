@@ -21,7 +21,7 @@ void run_tasks() {
      * ensure that the stack pointer relative to the heap location is as
      * expected by code in the standard library.
      *
-     * Declaring these static, for exmaple, will cause them to be placed in the
+     * Declaring these static, for example, will cause them to be placed in the
      * .data section, which is below the heap in memory.
      */
     uint32_t idle_stack[256 / sizeof(uint32_t)];
@@ -30,6 +30,7 @@ void run_tasks() {
     uint32_t network_stack[(4096 + 1024) / sizeof(uint32_t)];
     uint32_t gps_stack[2048 / sizeof(uint32_t)];
     uint32_t readings_stack[4096 / sizeof(uint32_t)];
+    uint32_t data_stack[512 / sizeof(uint32_t)];
 
     OS_CHECK(os_initialize());
 
@@ -41,6 +42,17 @@ void run_tasks() {
     OS_CHECK(os_task_initialize(&network_task, "network", OS_TASK_START_RUNNING, &task_handler_network, NULL, network_stack, sizeof(network_stack)));
     OS_CHECK(os_task_initialize(&gps_task, "gps", OS_TASK_START_RUNNING, &task_handler_gps, NULL, gps_stack, sizeof(gps_stack)));
     OS_CHECK(os_task_initialize(&readings_task, "readings", OS_TASK_START_RUNNING, &task_handler_readings, NULL, readings_stack, sizeof(readings_stack)));
+
+    os_task_options_t data_task_options = {
+        "data",
+        OS_TASK_START_RUNNING,
+        task_handler_data,
+        NULL,
+        data_stack,
+        sizeof(data_stack),
+        OS_PRIORITY_NORMAL - 4
+    };
+    OS_CHECK(os_task_initialize_options(&data_task, &data_task_options));
 
     auto total_stacks = sizeof(idle_stack) + sizeof(display_stack) + sizeof(network_stack) + sizeof(gps_stack) + sizeof(readings_stack) + sizeof(scheduler_stack);
     loginfo("stacks = %d", total_stacks);
