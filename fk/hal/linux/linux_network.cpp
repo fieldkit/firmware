@@ -25,10 +25,17 @@ LinuxNetworkConnection::~LinuxNetworkConnection() {
 }
 
 NetworkConnectionStatus LinuxNetworkConnection::status() {
+    if (s_ == -1) {
+        return NetworkConnectionStatus::Disconnected;
+    }
     return NetworkConnectionStatus::Connected;
 }
 
 bool LinuxNetworkConnection::available() {
+    if (s_ == -1) {
+        return false;
+    }
+
     fd_set rfd;
     FD_ZERO(&rfd);
     FD_SET(s_, &rfd);
