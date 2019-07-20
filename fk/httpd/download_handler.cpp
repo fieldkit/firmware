@@ -53,12 +53,13 @@ void DownloadWorker::run(WorkerContext &wc) {
     loginfo("File: size = %" PRIu32 " record = %" PRIu32 "", file.size(), file.record());
     loginfo("File: start = %" PRIu32 " final = %" PRIu32 "", start_position, final_position);
 
-    req_->connection()->write("HTTP/1.1 200 OK\n");
-    req_->connection()->write("Content-Length: %" PRIu32 "\n", size);
-    req_->connection()->write("Content-Type: %s\n", "application/octet-stream");
-    req_->connection()->write("Connection: close\n");
-    req_->connection()->write("Fk-Sync: %" PRIu32 ", %" PRIu32 "\n", first_block, actual_last_block);
-    req_->connection()->write("\n");
+    #define CHECK(expr)  if ((expr) == 0) { return; }
+    CHECK(req_->connection()->write("HTTP/1.1 200 OK\n"));
+    CHECK(req_->connection()->write("Content-Length: %" PRIu32 "\n", size));
+    CHECK(req_->connection()->write("Content-Type: %s\n", "application/octet-stream"));
+    CHECK(req_->connection()->write("Connection: close\n"));
+    CHECK(req_->connection()->write("Fk-Sync: %" PRIu32 ", %" PRIu32 "\n", first_block, actual_last_block));
+    CHECK(req_->connection()->write("\n"));
 
     auto bytes_copied = (size_t)0;
     while (bytes_copied < size) {

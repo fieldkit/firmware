@@ -216,7 +216,9 @@ static void initialize_callbacks(fk_app_HttpReply *reply) {
 }
 
 int32_t Connection::write(uint8_t *buffer, size_t size) {
-    return conn_->write(buffer, size);
+    auto bytes = conn_->write(buffer, size);
+    wrote_ += bytes;
+    return bytes;
 }
 
 int32_t Connection::write(fk_app_HttpReply *reply) {
@@ -255,6 +257,7 @@ int32_t Connection::write(const char *s, ...) {
     va_start(args, s);
     auto r = conn_->vwritef(s, args);
     va_end(args);
+    wrote_ += r;
     return r;
 }
 
