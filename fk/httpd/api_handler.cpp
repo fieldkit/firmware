@@ -100,6 +100,7 @@ bool send_status(HttpRequest &req) {
     }
 
     req.connection()->write(&reply);
+    req.connection()->close();
 
     return true;
 }

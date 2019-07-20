@@ -34,6 +34,8 @@ public:
 
     int32_t write(fk_app_HttpReply *reply);
 
+    int32_t write(uint8_t *buffer, size_t size);
+
     int32_t plain(int32_t status, const char *status_description, const char *text);
 
     int32_t busy(const char *message);
@@ -41,6 +43,8 @@ public:
     int32_t error(const char *message);
 
     int32_t fault();
+
+    int32_t close();
 
 };
 

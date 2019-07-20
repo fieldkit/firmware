@@ -215,6 +215,10 @@ static void initialize_callbacks(fk_app_HttpReply *reply) {
     }
 }
 
+int32_t Connection::write(uint8_t *buffer, size_t size) {
+    return conn_->write(buffer, size);
+}
+
 int32_t Connection::write(fk_app_HttpReply *reply) {
     initialize_callbacks(reply);
 
@@ -321,6 +325,11 @@ int32_t Connection::error(const char *message) {
     logerror(message);
 
     return write(&reply);
+}
+
+int32_t Connection::close() {
+    conn_->stop();
+    return 0;
 }
 
 }
