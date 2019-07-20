@@ -35,6 +35,15 @@ ConnectionPool::ConnectionPool() : memory_("httpd", 0 * HttpdConnectionWorkSize 
     activity_ = fk_uptime();
 }
 
+ConnectionPool::~ConnectionPool() {
+    for (auto i = (size_t)0; i < MaximumConnections; ++i) {
+        if (pool_[i] != nullptr) {
+            delete pool_[i];
+            pool_[i] = nullptr;
+        }
+    }
+}
+
 size_t ConnectionPool::available() {
     size_t used = 0;
     for (auto i = (size_t)0; i < MaximumConnections; ++i) {
@@ -49,7 +58,8 @@ void ConnectionPool::service(HttpRouter &router) {
     for (auto i = (size_t)0; i < MaximumConnections; ++i) {
         if (pool_[i] != nullptr) {
             if (!pool_[i]->service(router)) {
-                // Do this before freeing to avoid a race.
+                // Do this before freeing to avoid a race empty pool after a
+                // long connection, for example.
                 activity_ = fk_uptime();
                 delete pool_[i];
                 pool_[i] = nullptr;
@@ -62,6 +72,7 @@ void ConnectionPool::queue(NetworkConnection *c) {
     for (auto i = (size_t)0; i < MaximumConnections; ++i) {
         if (pool_[i] == nullptr) {
             activity_ = fk_uptime();
+            // TODO: MALLOC
             pool_[i] = new Connection(c, HttpdConnectionWorkSize);
             return;
         }
@@ -119,17 +130,20 @@ bool Connection::service(HttpRouter &router) {
         position_ += nread;
     }
 
-    if (req_.have_headers()) {
-        loginfo("routing '%s' (%" PRIu32 " bytes)", req_.url(), req_.length());
+    if (!routed_) {
+        if (req_.have_headers()) {
+            loginfo("routing '%s' (%" PRIu32 " bytes)", req_.url(), req_.length());
 
-        auto handler = router.route(req_.url());
-        if (handler == nullptr) {
-            plain(404, "not found", "");
-        }
-        else {
-            if (!handler->handle(req_)) {
-                plain(500, "internal error", "");
+            auto handler = router.route(req_.url());
+            if (handler == nullptr) {
+                plain(404, "not found", "");
             }
+            else {
+                if (!handler->handle(req_)) {
+                    plain(500, "internal error", "");
+                }
+            }
+            routed_ = true;
         }
     }
 

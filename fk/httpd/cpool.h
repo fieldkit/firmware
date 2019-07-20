@@ -21,6 +21,7 @@ private:
     size_t position_;
     uint32_t started_{ 0 };
     uint32_t wrote_{ 0 };
+    bool routed_{ false };
 
 public:
     Connection(NetworkConnection *conn, size_t size);
@@ -54,6 +55,7 @@ private:
 
 public:
     ConnectionPool();
+    virtual ~ConnectionPool();
 
 public:
     size_t available();

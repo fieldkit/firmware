@@ -149,7 +149,7 @@ NetworkConnection *MetalNetwork::accept() {
         return nullptr;
     }
 
-    // TODO: Temporary
+    // TODO: MALLOC
     return new MetalNetworkConnection(wcl);
 }
 
