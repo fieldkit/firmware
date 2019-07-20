@@ -11,6 +11,8 @@ using namespace fk;
 
 FK_DECLARE_LOGGER("tests");
 
+static size_t write_reading(File &file);
+
 class StorageSuite : public ::testing::Test {
 protected:
     MallocPool pool_{ "storage", 1024 * 100 };
@@ -364,15 +366,57 @@ TEST_F(StorageSuite, SeekingToARecord) {
     SequentialPattern pattern;
     pattern.write(file_write, size);
 
-    ASSERT_TRUE(storage.begin());
+    {
+        ASSERT_TRUE(storage.begin());
 
-    auto file_read = storage.file(0);
+        auto file_read = storage.file(0);
 
-    ASSERT_TRUE(file_read.seek(100));
-    pattern.verify_record(file_read, 100);
+        ASSERT_TRUE(file_read.seek(size / 256 / 2));
+        ASSERT_EQ(file_read.position(), (size_t)((size / 256) / 2) * 256);
+        pattern.verify_record(file_read, (size / 256 / 2) & 0xff);
 
-    ASSERT_TRUE(file_read.seek(size / 256 / 2));
-    pattern.verify_record(file_read, (size / 256 / 2) & 0xff);
+        ASSERT_TRUE(file_read.seek(100));
+        ASSERT_EQ(file_read.position(), (size_t)(100 * 256));
+        pattern.verify_record(file_read, 100);
+    }
+
+    {
+        ASSERT_TRUE(storage.begin());
+
+        auto file_read = storage.file(0);
+
+        ASSERT_TRUE(file_read.seek(100));
+        ASSERT_EQ(file_read.position(), (size_t)(100 * 256));
+        pattern.verify_record(file_read, 100);
+
+        ASSERT_TRUE(file_read.seek(size / 256 / 2));
+        ASSERT_EQ(file_read.position(), (size_t)((size / 256) / 2) * 256);
+        pattern.verify_record(file_read, (size / 256 / 2) & 0xff);
+    }
+}
+
+TEST_F(StorageSuite, SeekingToARecordWithSmallerFile) {
+    Storage storage{ memory_ };
+
+    ASSERT_TRUE(storage.clear());
+
+    auto file_write = storage.file(0);
+    auto size = (size_t)256 * 1000;
+
+    SequentialPattern pattern;
+    pattern.write(file_write, size);
+
+    {
+        ASSERT_TRUE(storage.begin());
+
+        auto file_read = storage.file(0);
+
+        ASSERT_TRUE(file_read.seek(LastRecord));
+        ASSERT_EQ(file_read.position(), size);
+
+        ASSERT_TRUE(file_read.seek(0));
+        ASSERT_EQ(file_read.position(), (size_t)0);
+    }
 }
 
 TEST_F(StorageSuite, ReadingAtEoF) {
@@ -430,7 +474,7 @@ TEST_F(StorageSuite, WritingProtobuf) {
 
     auto file_write = storage.file(0);
 
-    ASSERT_EQ(file_write.write(&record, fk_data_DataRecord_fields), (size_t)28);
+    ASSERT_EQ(file_write.write(&record, fk_data_DataRecord_fields), (size_t)29);
 
     auto file_read = storage.file(0);
 
@@ -442,7 +486,7 @@ TEST_F(StorageSuite, WritingProtobuf) {
     record.log.message.arg = (void *)&pool_;
     record.log.message.funcs.decode = pb_decode_string;
 
-    ASSERT_EQ(file_read.read(&record, fk_data_DataRecord_fields), (size_t)28);
+    ASSERT_EQ(file_read.read(&record, fk_data_DataRecord_fields), (size_t)29);
 }
 
 TEST_F(StorageSuite, WritingSequentiallyHasCorrectRecordNumbers) {
@@ -502,4 +546,71 @@ TEST_F(StorageSuite, ClearingAfterWritingToFiles) {
     pattern.write(file_write, size);
     ASSERT_EQ(file_write.size(), size);
     ASSERT_EQ(file_write.position(), size);
+}
+
+TEST_F(StorageSuite, SeekingToAReading) {
+    Storage storage{ memory_ };
+
+    ASSERT_TRUE(storage.clear());
+
+    auto file_write = storage.file(0);
+    auto size = file_write.size();
+
+    for (auto i = 0; i < 1000; ++i) {
+        auto wrote = write_reading(file_write);
+        FK_ASSERT(wrote > 0);
+        size += wrote;
+    }
+
+    ASSERT_TRUE(storage.begin());
+
+    auto file_read = storage.file(0);
+
+    ASSERT_TRUE(file_read.seek(LastRecord));
+    ASSERT_EQ(file_read.position(), size);
+
+    ASSERT_TRUE(file_read.seek(0));
+    ASSERT_EQ(file_read.position(), (size_t)0);
+}
+
+static size_t write_reading(File &file) {
+    fk_data_SensorAndValue readings[] = {
+        { 0, (float)random() },
+        { 1, (float)random() },
+        { 2, (float)random() },
+        { 3, (float)random() },
+        { 4, (float)random() },
+        { 5, (float)random() },
+        { 6, (float)random() },
+        { 7, (float)random() },
+        { 8, (float)random() },
+        { 9, (float)random() },
+    };
+
+    pb_array_t readings_array = {
+        .length = (size_t)10,
+        .itemSize = sizeof(fk_data_SensorAndValue),
+        .buffer = &readings,
+        .fields = fk_data_SensorAndValue_fields,
+    };
+
+    fk_data_DataRecord record = fk_data_DataRecord_init_default;
+    record.readings.time = fk_uptime();
+    record.readings.reading = file.record();
+    record.readings.flags = 0;
+    record.readings.location.fix = 0;
+    record.readings.location.time = fk_uptime();
+    record.readings.location.longitude = -118.2709223;
+    record.readings.location.latitude = 34.0318047;
+    record.readings.location.altitude = 100.0f;
+    record.readings.readings.funcs.encode = pb_encode_array;
+    record.readings.readings.arg = &readings_array;
+
+    auto wrote = file.write(&record, fk_data_DataRecord_fields);
+    if (wrote == 0) {
+        logerror("error saving readings");
+        return 0;
+    }
+
+    return wrote;
 }

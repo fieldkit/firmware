@@ -138,7 +138,8 @@ uint32_t Storage::allocate(uint8_t file, uint32_t overflow, uint32_t previous_ta
 
     FK_ASSERT(is_address_valid(address));
 
-    logdebug("[%d] allocated block #%d (0x%06x) (%d) (%d bytes)", file, free_block_, address, overflow, files_[file].size);
+    logdebug("[%d] allocated block #%d (0x%06x) (%d) (#%d) (%d bytes)",
+             file, free_block_, address, overflow, files_[file].record, files_[file].size);
 
     free_block_++;
     timestamp_++;
@@ -204,6 +205,8 @@ SeekValue Storage::seek(SeekSettings settings) {
 
         if (block_header.magic.valid()) {
             auto &bfh = block_header.files[settings.file];
+            logtrace("[%d] found valid block (0x%06x) (%d)", block_header.file, address, bfh.size);
+
             if (settings.record != InvalidRecord) {
                 if (bfh.record > settings.record) {
                     range = range.first_half();
@@ -219,6 +222,8 @@ SeekValue Storage::seek(SeekSettings settings) {
             memcpy(&file_block_header, &block_header, sizeof(BlockHeader));
         }
         else {
+            logtrace("[?] invalid block (0x%06x)", address);
+
             // Search earlier in the range for a valid block.
             range = range.first_half();
         }
@@ -640,6 +645,8 @@ size_t File::write(void *record, const pb_msgdesc_t *fields) {
     if (write_record_tail(pbf.record_size) == 0) {
         return 0;
     }
+
+    update();
 
     return pbf.record_size;
 }
