@@ -41,6 +41,9 @@ void DownloadWorker::run(WorkerContext &wc) {
 
     FK_ASSERT(file.seek(last_block));
     auto final_position = file.position();
+    // When we seek to LastRecord this is the record that will be written,
+    // otherwise it's the record we're on.
+    auto actual_last_block = last_block == LastRecord ? file.record() - 1 : file.record();
 
     FK_ASSERT(file.seek(first_block));
     auto start_position = file.position();
@@ -54,7 +57,7 @@ void DownloadWorker::run(WorkerContext &wc) {
     req_->connection()->write("Content-Length: %" PRIu32 "\n", size);
     req_->connection()->write("Content-Type: %s\n", "application/octet-stream");
     req_->connection()->write("Connection: close\n");
-    req_->connection()->write("Fk-Sync: %" PRIu32 ", %" PRIu32 "\n", first_block, last_block);
+    req_->connection()->write("Fk-Sync: %" PRIu32 ", %" PRIu32 "\n", first_block, actual_last_block);
     req_->connection()->write("\n");
 
     auto bytes_copied = (size_t)0;
@@ -65,7 +68,10 @@ void DownloadWorker::run(WorkerContext &wc) {
         auto bytes_read = file.read(buffer, to_read);
         FK_ASSERT(bytes_read == to_read);
 
-        req_->connection()->write(buffer, to_read);
+        if (req_->connection()->write(buffer, to_read) != (int32_t)to_read) {
+            logwarn("write error");
+            break;
+        }
 
         bytes_copied += bytes_read;
     }
