@@ -1,10 +1,11 @@
 #pragma once
 
-#include "hal/gps.h"
-
 #if defined(ARDUINO)
 
 #include <TinyGPS.h>
+
+#include "hal/gps.h"
+#include "config.h"
 
 namespace fk {
 

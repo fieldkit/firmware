@@ -1,6 +1,7 @@
 #pragma once
 
 #include <inttypes.h>
+#include <string.h>
 
 namespace fk {
 
@@ -49,6 +50,46 @@ constexpr uint32_t OneMegabyte = 1024 * 1024;
  * How long the user should hold the button to initiate a factory wipe.
  */
 constexpr uint32_t FactoryWipeButtonDuration = FiveSecondsMs;
+
+/**
+ * This is the theorhetical maximum number of modules that can be physically
+ * connected to a single station. This is governed by the largest backplanes and
+ * their possible combinations.
+ */
+constexpr size_t MaximumNumberOfModules = 8;
+
+/**
+ * The number of fixed HTTP routes that the firmware registers. These are routes
+ * that are always there and never change with configuration.
+ */
+constexpr size_t HttpFixedRoutes = 2;
+
+/**
+ * The maximum number of HTTP routes that can be registered. Trying to register
+ * more than this will fail. This is a function of the maximum number of modules
+ * and the number of fixed routes.
+ */
+constexpr size_t HttpMaximumRoutes = MaximumNumberOfModules + HttpFixedRoutes;
+
+/**
+ * The maximum length of an incoming URL.
+ */
+constexpr size_t HttpdMaximumUrlLength = 64;
+
+/**
+ * How long to wait for a WiFi connection to establish.
+ */
+constexpr uint32_t WifiConnectionTimeoutMs = 30 * 1000;
+
+/**
+ * Buffer size for storing GPS sentences for debugging purposes.
+ */
+constexpr size_t GpsDebuggingBuffer = 64;
+
+/**
+ * Maximum size of all the headers in an HTTP request.
+ */
+constexpr size_t HttpMaximumHeaderSize = 1024;
 
 /**
  * Runtime configuration informationthat is unavailable in the mobile

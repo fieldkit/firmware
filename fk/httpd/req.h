@@ -7,6 +7,7 @@
 
 #include "common.h"
 #include "pool.h"
+#include "config.h"
 
 namespace fk {
 

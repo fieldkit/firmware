@@ -24,41 +24,6 @@ size_t bytes_to_hex_string(char *buffer, size_t buffer_size, const uint8_t *data
 #define I2C_CHECK(expr)                               ((expr) == 0)
 
 /**
- * This is the theorhetical maximum number of modules that can be physically
- * connected to a single station. This is governed by the largest backplanes and
- * their possible combinations.
- */
-constexpr size_t MaximumNumberOfModules = 8;
-
-/**
- * The number of fixed HTTP routes that the firmware registers. These are routes
- * that are always there and never change with configuration.
- */
-constexpr size_t HttpFixedRoutes = 2;
-
-/**
- * The maximum number of HTTP routes that can be registered. Trying to register
- * more than this will fail. This is a function of the maximum number of modules
- * and the number of fixed routes.
- */
-constexpr size_t HttpMaximumRoutes = MaximumNumberOfModules + HttpFixedRoutes;
-
-/**
- * The maximum length of an incoming URL.
- */
-constexpr size_t HttpdMaximumUrlLength = 64;
-
-/**
- * How long to wait for a WiFi connection to establish.
- */
-constexpr uint32_t WifiConnectionTimeoutMs = 30 * 1000;
-
-/**
- * Buffer size for storing GPS sentences for debugging purposes.
- */
-constexpr size_t GpsDebuggingBuffer = 64;
-
-/**
  * Declare loginfo, logerror, logwarn functions and any other necessary helpers
  * for a specific logger. Typically used at the top of a file.
  */

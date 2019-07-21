@@ -5,6 +5,7 @@
 #include "common.h"
 #include "platform.h"
 #include "httpd.h"
+#include "config.h"
 
 namespace fk {
 
@@ -60,7 +61,7 @@ void HttpRequest::begin() {
     settings_.on_message_complete = http_message_complete_callback;
 
     http_parser_init(&parser_, HTTP_REQUEST);
-    http_parser_set_max_header_size(1024);
+    http_parser_set_max_header_size(HttpMaximumHeaderSize);
 
     parser_.data = this;
 }
