@@ -4,13 +4,26 @@
 #include <alogging/alogging.h>
 #include <string.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/**
+ * Invoked to handle assertion failures.
+ */
+void __fk_assert(const char *assertion, const char *file, int line);
+
+#ifdef __cplusplus
+}
+#endif
+
 namespace fk {
 
 /**
  * Halts execution if the given expression evaluates to false. See the fk_assert
  * function for more information.
  */
-#define FK_ASSERT(expression)                         (void)((expression) || (__cfy_assert(#expression, __FILE__, __LINE__), 0))
+#define FK_ASSERT(expression)                         (void)((expression) || (__fk_assert(#expression, __FILE__, __LINE__), 0))
 
 /**
  * Write hex representation of bytes to a separate buffer.

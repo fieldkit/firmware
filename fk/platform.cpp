@@ -20,6 +20,11 @@ extern "C" {
 
 #if defined(__SAMD51__)
 
+void __fk_assert(const char *assertion, const char *file, int line) {
+    logerrorf("assertion", "\"%s\" failed: file \"%s\", line %d", assertion, file, line);
+    os_panic(OS_PANIC_ASSERTION);
+}
+
 #else // __SAMD51__
 
 uint32_t fkb_external_printf(const char *str, ...) {
@@ -41,6 +46,10 @@ uint32_t fkb_external_println(const char *str, ...) {
 
 uint32_t fkb_external_vprintf(const char *str, va_list args) {
     return vfprintf(stderr, str, args);
+}
+
+void __fk_assert(const char *assertion, const char *file, int line) {
+    fprintf(stderr, "\n\nassertion \"%s\" failed: file \"%s\", line %d\n", assertion, file, line);
 }
 
 #endif // __SAMD51__
