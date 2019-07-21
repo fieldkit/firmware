@@ -123,12 +123,13 @@ void setup() {
     DisplayFactory display_factory;
     Display *display = display_factory.get_display();
     SelfCheck self_check(display, &network);
+    Storage storage{ MemoryFactory::get_data_memory() };
 
     FK_ASSERT(get_buttons()->begin());
 
     self_check.check();
 
-    FactoryWipe fw{ get_buttons(), MemoryFactory::get_data_memory() };
+    FactoryWipe fw{ get_buttons(), &storage };
     FK_ASSERT(fw.wipe_if_necessary());
 
     if (false) {

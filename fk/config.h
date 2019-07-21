@@ -46,6 +46,11 @@ constexpr uint32_t MaximumNumberOfWifiNetworks = 2;
 constexpr uint32_t OneMegabyte = 1024 * 1024;
 
 /**
+ * How long the user should hold the button to initiate a factory wipe.
+ */
+constexpr uint32_t FactoryWipeButtonDuration = FiveSecondsMs;
+
+/**
  * Runtime configuration informationthat is unavailable in the mobile
  * application. This can be updated after compilation to build binaries for
  * various situations.
