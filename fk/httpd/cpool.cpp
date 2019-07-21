@@ -215,6 +215,11 @@ static void initialize_callbacks(fk_app_HttpReply *reply) {
     }
 }
 
+int32_t Connection::read(uint8_t *buffer, size_t size) {
+    auto bytes = conn_->read(buffer, size);
+    return bytes;
+}
+
 int32_t Connection::write(uint8_t *buffer, size_t size) {
     auto bytes = conn_->write(buffer, size);
     wrote_ += bytes;

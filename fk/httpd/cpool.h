@@ -36,6 +36,8 @@ public:
 
     int32_t write(uint8_t *buffer, size_t size);
 
+    int32_t read(uint8_t *buffer, size_t size);
+
     int32_t plain(int32_t status, const char *status_description, const char *text);
 
     int32_t busy(const char *message);

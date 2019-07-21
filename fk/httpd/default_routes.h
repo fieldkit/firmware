@@ -3,6 +3,7 @@
 #include "api_handler.h"
 #include "module_handler.h"
 #include "download_handler.h"
+#include "receive_handler.h"
 
 namespace fk {
 
@@ -10,6 +11,9 @@ class DefaultRoutes {
 private:
     ApiHandler api_handler;
     HttpRoute api{ "/fk/v1", &api_handler };
+
+    ReceiveHandler receive_handler;
+    HttpRoute receive{ "/fk/v1/upload", &receive_handler };
 
     DownloadHandler download_handler;
     HttpRoute downloads[2]{
@@ -34,6 +38,7 @@ public:
         router.add_route(&modules[3]);
         router.add_route(&downloads[0]);
         router.add_route(&downloads[1]);
+        router.add_route(&receive);
         router.add_route(&api);
     }
 

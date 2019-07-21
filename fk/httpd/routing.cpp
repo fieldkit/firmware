@@ -2,6 +2,8 @@
 
 namespace fk {
 
+FK_DECLARE_LOGGER("httpd");
+
 HttpHandler *HttpRouter::route(const char *url) {
     for (auto i = (size_t)0; i < maximum_number_of_routes(); ++i) {
         if (routes_[i] == nullptr) {
