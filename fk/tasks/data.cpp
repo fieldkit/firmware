@@ -18,7 +18,9 @@ void task_handler_data(void *params) {
             __disable_irq();
             for (auto iter = osg.tasks; iter != nullptr; iter = iter->np) {
                 if (iter->priority > os_task_self()->priority) {
-                    FK_ASSERT(iter->status != OS_TASK_STATUS_IDLE);
+                    if (iter->status != OS_TASK_STATUS_FINISHED && iter->status != OS_TASK_STATUS_WAIT && iter->status != OS_TASK_STATUS_SUSPENDED) {
+                        logerror("%s has status %s", iter->name, os_task_status_str(iter->status));
+                    }
                 }
             }
             __enable_irq();
