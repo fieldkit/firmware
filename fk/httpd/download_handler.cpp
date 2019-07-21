@@ -54,11 +54,11 @@ void DownloadWorker::run(WorkerContext &wc) {
         .last_block = actual_last_block,
     };
     if (write_headers(info)) {
+        // TOOO: MALLOC
+        uint8_t *buffer = (uint8_t *)malloc(1024);
+
         auto bytes_copied = (size_t)0;
         while (bytes_copied < size) {
-            // TOOO: MALLOC
-            uint8_t buffer[1024];
-
             auto to_read = std::min<size_t>(sizeof(buffer), size - bytes_copied);
             auto bytes_read = file.read(buffer, to_read);
             FK_ASSERT(bytes_read == to_read);
@@ -70,6 +70,8 @@ void DownloadWorker::run(WorkerContext &wc) {
 
             bytes_copied += bytes_read;
         }
+
+        free(buffer);
 
         loginfo("done (%d)", bytes_copied);
     }
