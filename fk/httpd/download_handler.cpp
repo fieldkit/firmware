@@ -5,13 +5,6 @@ namespace fk {
 
 FK_DECLARE_LOGGER("download");
 
-bool DownloadHandler::handle(HttpRequest &req) {
-    // TODO: MALLOC
-    get_ipc()->launch_worker(new DownloadWorker(&req));
-
-    return true;
-}
-
 DownloadWorker::DownloadWorker(HttpRequest *req) : req_(req) {
 }
 
@@ -77,6 +70,13 @@ bool DownloadWorker::write_headers(HeaderInfo header_info) {
     CHECK(req_->connection()->write("Connection: close\n"));
     CHECK(req_->connection()->write("Fk-Sync: %" PRIu32 ", %" PRIu32 "\n", header_info.first_block, header_info.last_block));
     CHECK(req_->connection()->write("\n"));
+
+    return true;
+}
+
+bool DownloadHandler::handle(HttpRequest &req) {
+    // TODO: MALLOC
+    get_ipc()->launch_worker(new DownloadWorker(&req));
 
     return true;
 }

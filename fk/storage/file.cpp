@@ -75,6 +75,7 @@ size_t File::write_record_tail(size_t size) {
     SequentialMemory memory{ storage_->memory_ };
 
     RecordTail record_tail;
+    record_tail.size = size;
     hash_.finalize(record_tail.hash.hash, sizeof(record_tail.hash.hash));
     if (memory.write(tail_, (uint8_t *)&record_tail, sizeof(RecordTail)) != sizeof(RecordTail)) {
         return 0;
