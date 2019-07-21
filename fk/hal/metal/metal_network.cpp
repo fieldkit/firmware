@@ -122,7 +122,9 @@ bool MetalNetwork::serve() {
     loginfo("ready (ip = %d.%d.%d.%d) (service = %s)",
            ip[0], ip[1], ip[2], ip[3], service_name_);
 
-    ntp_.start();
+    if (!settings_.create) {
+        ntp_.start();
+    }
 
     return true;
 }
@@ -142,7 +144,10 @@ uint32_t MetalNetwork::ip_address() {
 
 NetworkConnection *MetalNetwork::accept() {
     mdns_.run();
-    ntp_.service();
+
+    if (!settings_.create) {
+        ntp_.service();
+    }
 
     auto wcl = server_.available(nullptr, true);
     if (!wcl) {
