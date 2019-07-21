@@ -40,7 +40,11 @@ public:
      * Test to see if the URL matches this route.
      */
     virtual bool matches(const char *url) const {
-        return strncmp(url_, url, strlen(url_)) == 0;
+        auto route_len = strlen(url_);
+        if (route_len != strlen(url)) {
+            return false;
+        }
+        return strncmp(url_, url, route_len) == 0;
     }
 
     /**
