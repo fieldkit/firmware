@@ -7,3 +7,4 @@
 #include "hal/metal/metal_battery_gauge.h"
 #include "hal/metal/metal_buttons.h"
 #include "hal/metal/metal_modmux.h"
+#include "hal/metal/metal_ipc.h"

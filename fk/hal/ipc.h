@@ -7,15 +7,15 @@ namespace fk {
 
 class IPC {
 public:
-    virtual bool available();
-    virtual bool begin();
-    virtual bool enqueue(void *ptr, uint32_t to);
-    virtual bool dequeue(void **ptr, uint32_t to);
-    virtual bool enqueue_data(void *ptr, uint32_t to);
-    virtual bool dequeue_data(void **ptr, uint32_t to);
+    virtual bool available() = 0;
+    virtual bool begin() = 0;
+    virtual bool enqueue(void *ptr, uint32_t to) = 0;
+    virtual bool dequeue(void **ptr, uint32_t to) = 0;
+    virtual bool enqueue_data(void *ptr, uint32_t to) = 0;
+    virtual bool dequeue_data(void **ptr, uint32_t to) = 0;
 
 public:
-    virtual bool launch_worker(Worker *worker);
+    virtual bool launch_worker(Worker *worker) = 0;
 
 };
 
