@@ -209,7 +209,9 @@ size_t File::read_record_tail() {
     // TODO: We can recover from this better.
     Hash hash;
     hash_.finalize(&hash.hash, Hash::Length);
-    FK_ASSERT(memcmp(hash.hash, record_tail.hash.hash, Hash::Length) == 0);
+    if (memcmp(hash.hash, record_tail.hash.hash, Hash::Length) != 0) {
+        logerror("hash mismatch: 0x%06x (#%d)", tail_, record_);
+    }
 
     tail_ += sizeof(RecordTail);
 
