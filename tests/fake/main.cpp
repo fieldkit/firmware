@@ -128,7 +128,7 @@ static void server(Fake *fake) {
 }
 
 __int32_t main(__int32_t argc, const char **argv) {
-    log_configure_level(LogLevels::TRACE);
+    log_configure_level(LogLevels::DEBUG);
 
     loginfo("hello");
 
