@@ -1,10 +1,11 @@
 #include "tasks/tasks.h"
 
 #include "hal/hal.h"
-
 #include "clock.h"
-#include "storage.h"
 #include "protobuf.h"
+#include "storage/storage.h"
+
+#include <fk-data-protocol.h>
 
 namespace fk {
 

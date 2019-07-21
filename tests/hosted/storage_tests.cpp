@@ -3,7 +3,7 @@
 #include "tests.h"
 #include "pool.h"
 #include "hal/linux/linux.h"
-#include "storage.h"
+#include "storage/storage.h"
 #include "patterns.h"
 #include "protobuf.h"
 

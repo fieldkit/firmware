@@ -1,6 +1,5 @@
 #include "httpd/download_handler.h"
-
-#include "storage.h"
+#include "storage/storage.h"
 
 namespace fk {
 

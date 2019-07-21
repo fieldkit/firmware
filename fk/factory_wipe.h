@@ -1,7 +1,7 @@
 #pragma once
 
 #include "hal/hal.h"
-#include "storage.h"
+#include "storage/storage.h"
 
 namespace fk {
 

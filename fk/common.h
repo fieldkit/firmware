@@ -2,6 +2,7 @@
 
 #include <inttypes.h>
 #include <alogging/alogging.h>
+#include <string.h>
 
 namespace fk {
 

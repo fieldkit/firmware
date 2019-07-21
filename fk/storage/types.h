@@ -1,12 +1,6 @@
 #pragma once
 
 #include "common.h"
-#include "hal/hal.h"
-
-#include <fk-data-protocol.h>
-
-#include <phylum/crc.h>
-#include <phylum/blake2b.h>
 
 namespace fk {
 
@@ -31,6 +25,14 @@ static inline bool is_block_valid(uint32_t block) {
 static inline bool is_address_valid(uint32_t address) {
     return address != InvalidAddress;
 }
+
+struct Hash {
+    constexpr static int32_t Length = 32;
+
+    uint8_t hash[Length];
+};
+
+uint32_t hash_block(void *ptr, size_t size, Hash &hash);
 
 struct BlockMagic {
     static constexpr char MagicKey[] = "phylum0";
@@ -57,14 +59,6 @@ struct BlockMagic {
         memcpy(data, MagicKey, sizeof(MagicKey));
     }
 };
-
-struct Hash {
-    constexpr static int32_t Length = 32;
-
-    uint8_t hash[Length];
-};
-
-uint32_t hash_block(void *ptr, size_t size, Hash &hash);
 
 struct FileHeader {
     uint32_t tail{ InvalidAddress };
@@ -99,36 +93,6 @@ struct BlockHeader {
     }
 };
 
-struct SeekSettings {
-    uint8_t file{ 0 };
-    uint32_t record{ 0 };
-
-    SeekSettings() {
-    }
-
-    SeekSettings(uint8_t file, uint32_t record)
-        : file(file), record(record) {
-    }
-
-    static SeekSettings end_of(uint8_t file);
-};
-
-struct SeekValue {
-    uint32_t address{ InvalidAddress };
-    uint32_t record{ InvalidRecord };
-    uint32_t position{ InvalidAddress };
-
-    SeekValue() {
-    }
-
-    SeekValue(uint32_t address, uint32_t record, uint32_t position) : address(address), record(record), position(position) {
-    }
-
-    bool valid() {
-        return is_address_valid(address);
-    }
-};
-
 struct BlockTail {
     uint32_t linked{ 0 };
     uint32_t reserved[3] = { 0xdeadbeef, 0xdeadbeef, 0xdeadbeef };
@@ -159,80 +123,34 @@ struct RecordTail {
     Hash hash;
 };
 
-class Storage;
+struct SeekSettings {
+    uint8_t file{ 0 };
+    uint32_t record{ 0 };
 
-class File {
-private:
-    Storage *storage_;
-    uint8_t file_;
-    uint32_t tail_{ InvalidAddress };
-    uint32_t record_{ InvalidRecord };
-    uint32_t version_{ InvalidVersion };
-    uint32_t record_remaining_{ 0 };
-    uint32_t position_{ 0 };
-    uint32_t size_{ 0 };
-    BLAKE2b hash_;
-
-public:
-    File(Storage *storage, uint8_t file, FileHeader fh);
-    virtual ~File();
-
-public:
-    size_t seek(uint32_t record);
-    size_t write(uint8_t *record, size_t size);
-    size_t read(uint8_t *record, size_t size);
-    size_t write(void *record, const pb_msgdesc_t *fields);
-    size_t read(void *record, const pb_msgdesc_t *fields);
-    size_t write_partial(uint8_t *record, size_t size);
-
-public:
-    uint32_t tail() const {
-        return tail_;
+    SeekSettings() {
     }
 
-    uint32_t record() const {
-        return record_;
+    SeekSettings(uint8_t file, uint32_t record)
+        : file(file), record(record) {
     }
 
-    uint32_t position() const {
-        return position_;
-    }
-
-    uint32_t size() const {
-        return size_;
-    }
-
-private:
-    size_t write_record_header(size_t size);
-    size_t write_record_tail(size_t size);
-    size_t read_record_header();
-    size_t read_record_tail();
-    void update();
-
+    static SeekSettings end_of(uint8_t file);
 };
 
-class Storage {
-private:
-    DataMemory *memory_;
-    FileHeader files_[NumberOfFiles];
-    uint32_t timestamp_{ InvalidTimestamp };
-    uint32_t free_block_{ 0 };
+struct SeekValue {
+    uint32_t address{ InvalidAddress };
+    uint32_t record{ InvalidRecord };
+    uint32_t position{ InvalidAddress };
 
-public:
-    Storage(DataMemory *memory);
+    SeekValue() {
+    }
 
-public:
-    friend class File;
+    SeekValue(uint32_t address, uint32_t record, uint32_t position) : address(address), record(record), position(position) {
+    }
 
-public:
-    bool begin();
-    bool clear();
-    File file(uint8_t file);
-
-private:
-    uint32_t allocate(uint8_t file, uint32_t first, uint32_t tail_address);
-    SeekValue seek(SeekSettings settings);
-
+    bool valid() {
+        return is_address_valid(address);
+    }
 };
 
 }

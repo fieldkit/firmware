@@ -5,6 +5,8 @@
 #include <unistd.h>
 #include <thread>
 
+#include <fk-data-protocol.h>
+
 #include "fk.h"
 #include "hal/linux/linux.h"
 #include "httpd/httpd.h"

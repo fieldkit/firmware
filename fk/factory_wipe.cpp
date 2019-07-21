@@ -1,5 +1,5 @@
 #include "factory_wipe.h"
-#include "storage.h"
+#include "storage/storage.h"
 #include "config.h"
 
 namespace fk {
