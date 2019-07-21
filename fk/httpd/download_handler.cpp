@@ -56,6 +56,7 @@ void DownloadWorker::run(WorkerContext &wc) {
     if (write_headers(info)) {
         auto bytes_copied = (size_t)0;
         while (bytes_copied < size) {
+            // TOOO: MALLOC
             uint8_t buffer[1024];
 
             auto to_read = std::min<size_t>(sizeof(buffer), size - bytes_copied);

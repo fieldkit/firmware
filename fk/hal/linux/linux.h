@@ -6,4 +6,5 @@
 #include "hal/linux/linux_gps.h"
 #include "hal/linux/linux_battery_gauge.h"
 #include "hal/linux/linux_buttons.h"
+#include "hal/linux/linux_modmux.h"
 #include "hal/linux/linux_ipc.h"
