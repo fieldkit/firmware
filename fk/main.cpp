@@ -104,37 +104,38 @@ static void log_diagnostics() {
 void setup() {
     MetalModMux mmm;
 
-    if (false) {
-        FK_ASSERT(mmm.begin());
-        FK_ASSERT(mmm.disable_all_modules());
-    }
-
-    board.initialize();
-
-    board.enable_everything();
-
     log_configure_writer(write_log);
 
     log_configure_level(LogLevels::DEBUG);
 
     log_diagnostics();
 
+    board.initialize();
+
+    // NOTE: We do this ASAP because the GPIO on the modmux can be in any state.
+    if (mmm.begin()) {
+        mmm.disable_all_modules();
+    }
+    else {
+        logwarn("modmux error, missing backplane?");
+    }
+
+    board.enable_everything();
+
+    FK_ASSERT(get_buttons()->begin());
+
     MetalNetwork network;
     DisplayFactory display_factory;
     Display *display = display_factory.get_display();
     SelfCheck self_check(display, &network);
-    Storage storage{ MemoryFactory::get_data_memory() };
-
-    FK_ASSERT(get_buttons()->begin());
 
     self_check.check();
 
+    Storage storage{ MemoryFactory::get_data_memory() };
     FactoryWipe fw{ get_buttons(), &storage };
     FK_ASSERT(fw.wipe_if_necessary());
 
-    if (false) {
-        FK_ASSERT(mmm.enable_all_modules());
-    }
+    mmm.enable_all_modules();
 
     if (fkc.slow_startup) {
         fk_delay(1000);

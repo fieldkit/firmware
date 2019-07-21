@@ -6,6 +6,7 @@ namespace fk {
 
 class MetalModMux : public ModMux {
 private:
+    bool available_{ false };
 
 public:
     MetalModMux();

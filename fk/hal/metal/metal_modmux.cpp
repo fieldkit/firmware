@@ -45,10 +45,16 @@ bool MetalModMux::begin() {
         return false;
     }
 
+    available_ = true;
+
     return true;
 }
 
 bool MetalModMux::enable_all_modules() {
+    if (!available_) {
+        return false;
+    }
+
     Wire2.beginTransmission(Mcp23008Address);
     Wire2.write((byte)MCP23008_GPIO);
     Wire2.write((byte)0xff);
@@ -60,6 +66,10 @@ bool MetalModMux::enable_all_modules() {
 }
 
 bool MetalModMux::disable_all_modules() {
+    if (!available_) {
+        return false;
+    }
+
     Wire2.beginTransmission(Mcp23008Address);
     Wire2.write((byte)MCP23008_GPIO);
     Wire2.write((byte)0x00);
