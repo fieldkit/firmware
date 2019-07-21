@@ -10,6 +10,9 @@ class WorkerContext {
 class Worker {
 public:
     virtual void run(WorkerContext &wc) = 0;
+    virtual ~Worker() {
+    }
+
 
 };
 

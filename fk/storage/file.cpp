@@ -273,6 +273,7 @@ void File::update() {
 }
 
 typedef struct pb_file_t {
+    // TODO: MALLOC
     uint8_t buffer[1024];
     size_t position;
     size_t buffer_size;

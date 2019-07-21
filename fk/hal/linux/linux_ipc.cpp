@@ -37,6 +37,7 @@ bool LinuxIPC::launch_worker(Worker *worker) {
 
     WorkerContext wc;
     worker->run(wc);
+    delete worker;
 
     return true;
 }

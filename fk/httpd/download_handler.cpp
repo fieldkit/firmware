@@ -6,15 +6,6 @@ namespace fk {
 FK_DECLARE_LOGGER("download");
 
 bool DownloadHandler::handle(HttpRequest &req) {
-    auto query = req.query();
-    if (query != nullptr) {
-        switch (query->type) {
-        default: {
-            break;
-        }
-        }
-    }
-
     // TODO: MALLOC
     get_ipc()->launch_worker(new DownloadWorker(&req));
 

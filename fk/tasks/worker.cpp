@@ -15,6 +15,7 @@ void task_handler_worker(void *params) {
     auto worker = reinterpret_cast<Worker*>(params);
     WorkerContext wc;
     worker->run(wc);
+    delete worker;
 }
 
 }
