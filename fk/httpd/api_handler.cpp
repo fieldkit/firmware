@@ -52,17 +52,19 @@ bool send_status(HttpRequest &req) {
     reply.status.gps.latitude = 0.0f;
     reply.status.gps.altitude = 0.0f;
 
-    auto file = storage.file(0);
+    auto data = storage.file(0);
+    auto meta = storage.file(1);
 
-    FK_ASSERT(file.seek(LastRecord));
+    FK_ASSERT(data.seek(LastRecord));
+    FK_ASSERT(meta.seek(LastRecord));
 
     fk_app_DataStream streams[] = {
         {
-            .id = 1,
+            .id = 0,
             .time = 0,
-            .size = file.size(),
+            .size = data.size(),
             .version = 0,
-            .block = file.record(),
+            .block = data.record(),
             .hash = {
                 .funcs = {},
                 .arg = nullptr,
@@ -77,7 +79,30 @@ bool send_status(HttpRequest &req) {
                 .funcs = {
                     .encode = pb_encode_string,
                 },
-                .arg = (void *)"/fk/v1/download",
+                .arg = (void *)"/fk/v1/download/0",
+            },
+        },
+        {
+            .id = 1,
+            .time = 0,
+            .size = meta.size(),
+            .version = 0,
+            .block = meta.record(),
+            .hash = {
+                .funcs = {},
+                .arg = nullptr,
+            },
+            .name = {
+                .funcs = {
+                    .encode = pb_encode_string,
+                },
+                .arg = (void *)"meta.fkpb",
+            },
+            .path = {
+                .funcs = {
+                    .encode = pb_encode_string,
+                },
+                .arg = (void *)"/fk/v1/download/1",
             },
         },
     };
