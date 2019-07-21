@@ -5,6 +5,7 @@ function(enable_fkb_firmware target)
   get_target_property(binary_dir ${target} BINARY_DIR)
 
   set(elf_target ${target}.elf)
+  set(bin_target ${target}.bin)
   set(fkb_elf_target ${target}-fkb.elf)
   set(fkb_bin_target ${target}-fkb.bin)
 
@@ -20,7 +21,8 @@ function(enable_fkb_firmware target)
     WORKING_DIRECTORY ${binary_dir}
     )
 
-  add_custom_target(${fkb_elf_target} ALL DEPENDS ${elf_file})
+  add_custom_target(${fkb_elf_target} ALL DEPENDS ${fkb_elf_file})
+  add_dependencies(${fkb_elf_target} ${elf_target})
 
   set_target_properties(${fkb_elf_target} PROPERTIES OUTPUT_NAME ${fkb_elf_file})
 
@@ -32,6 +34,7 @@ function(enable_fkb_firmware target)
     )
 
   add_custom_target(${fkb_bin_target} ALL DEPENDS ${fkb_bin_file})
+  add_dependencies(${fkb_bin_target} ${fkb_elf_target})
 
   set_target_properties(${fkb_bin_target} PROPERTIES OUTPUT_NAME ${fkb_bin_file})
 
