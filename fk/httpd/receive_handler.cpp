@@ -32,7 +32,9 @@ void ReceiveWorker::run(WorkerContext &wc) {
 
 bool ReceiveHandler::handle(HttpRequest &req) {
     // TODO: MALLOC
-    get_ipc()->launch_worker(new ReceiveWorker(&req));
+    if (!get_ipc()->launch_worker(new ReceiveWorker(&req))) {
+        return false;
+    }
 
     return true;
 }

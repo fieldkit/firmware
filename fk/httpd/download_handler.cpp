@@ -76,7 +76,9 @@ bool DownloadWorker::write_headers(HeaderInfo header_info) {
 
 bool DownloadHandler::handle(HttpRequest &req) {
     // TODO: MALLOC
-    get_ipc()->launch_worker(new DownloadWorker(&req));
+    if (!get_ipc()->launch_worker(new DownloadWorker(&req))) {
+        return false;
+    }
 
     return true;
 }
