@@ -32,8 +32,6 @@ void DownloadWorker::run(WorkerContext &wc) {
     uint32_t first_block = 0;
     uint32_t last_block = LastRecord;
 
-    // Required: File, Block
-
     auto memory = MemoryFactory::get_data_memory();
     Storage storage{ memory };
 
@@ -50,36 +48,44 @@ void DownloadWorker::run(WorkerContext &wc) {
 
     auto size = final_position - start_position;
 
-    loginfo("File: size = %" PRIu32 " record = %" PRIu32 "", file.size(), file.record());
-    loginfo("File: start = %" PRIu32 " final = %" PRIu32 "", start_position, final_position);
+    auto info = HeaderInfo{
+        .size = size,
+        .first_block = first_block,
+        .last_block = actual_last_block,
+    };
+    if (write_headers(info)) {
+        auto bytes_copied = (size_t)0;
+        while (bytes_copied < size) {
+            uint8_t buffer[1024];
 
-    #define CHECK(expr)  if ((expr) == 0) { return; }
-    CHECK(req_->connection()->write("HTTP/1.1 200 OK\n"));
-    CHECK(req_->connection()->write("Content-Length: %" PRIu32 "\n", size));
-    CHECK(req_->connection()->write("Content-Type: %s\n", "application/octet-stream"));
-    CHECK(req_->connection()->write("Connection: close\n"));
-    CHECK(req_->connection()->write("Fk-Sync: %" PRIu32 ", %" PRIu32 "\n", first_block, actual_last_block));
-    CHECK(req_->connection()->write("\n"));
+            auto to_read = std::min<size_t>(sizeof(buffer), size - bytes_copied);
+            auto bytes_read = file.read(buffer, to_read);
+            FK_ASSERT(bytes_read == to_read);
 
-    auto bytes_copied = (size_t)0;
-    while (bytes_copied < size) {
-        uint8_t buffer[1024];
+            if (req_->connection()->write(buffer, to_read) != (int32_t)to_read) {
+                logwarn("write error");
+                break;
+            }
 
-        auto to_read = std::min<size_t>(sizeof(buffer), size - bytes_copied);
-        auto bytes_read = file.read(buffer, to_read);
-        FK_ASSERT(bytes_read == to_read);
-
-        if (req_->connection()->write(buffer, to_read) != (int32_t)to_read) {
-            logwarn("write error");
-            break;
+            bytes_copied += bytes_read;
         }
 
-        bytes_copied += bytes_read;
+        loginfo("done (%d)", bytes_copied);
     }
 
-    loginfo("done (%d)", bytes_copied);
-
     req_->connection()->close();
+}
+
+bool DownloadWorker::write_headers(HeaderInfo header_info) {
+    #define CHECK(expr)  if ((expr) == 0) { return false; }
+    CHECK(req_->connection()->write("HTTP/1.1 200 OK\n"));
+    CHECK(req_->connection()->write("Content-Length: %" PRIu32 "\n", header_info.size));
+    CHECK(req_->connection()->write("Content-Type: %s\n", "application/octet-stream"));
+    CHECK(req_->connection()->write("Connection: close\n"));
+    CHECK(req_->connection()->write("Fk-Sync: %" PRIu32 ", %" PRIu32 "\n", header_info.first_block, header_info.last_block));
+    CHECK(req_->connection()->write("\n"));
+
+    return true;
 }
 
 }

@@ -21,6 +21,15 @@ public:
 public:
     void run(WorkerContext &wc) override;
 
+private:
+    struct HeaderInfo {
+        uint32_t size;
+        uint32_t first_block;
+        uint32_t last_block;
+    };
+
+    bool write_headers(HeaderInfo header_info);
+
 };
 
 }
