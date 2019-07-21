@@ -12,7 +12,10 @@ private:
     HttpRoute api{ "/fk/v1", &api_handler };
 
     DownloadHandler download_handler;
-    HttpRoute download{ "/fk/v1/download", &download_handler };
+    HttpRoute downloads[2]{
+        { "/fk/v1/download/0", &download_handler },
+        { "/fk/v1/download/1", &download_handler },
+    };
 
     ModuleHandler module_handler;
     HttpRoute modules[4]{
@@ -29,7 +32,8 @@ public:
         router.add_route(&modules[1]);
         router.add_route(&modules[2]);
         router.add_route(&modules[3]);
-        router.add_route(&download);
+        router.add_route(&downloads[0]);
+        router.add_route(&downloads[1]);
         router.add_route(&api);
     }
 
