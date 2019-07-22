@@ -293,4 +293,26 @@ File Storage::file(uint8_t file) {
     return File{ this, file, files_[file] };
 }
 
+uint32_t Storage::fsck() {
+    auto file = this->file(0);
+
+    if (!file.seek(LastRecord)) {
+        return 0;
+    }
+
+    auto size = file.size();
+    auto bytes_read = (size_t)0;
+
+    FK_ASSERT(file.seek(0));
+
+    while (bytes_read < size) {
+        uint8_t buffer[512];
+        auto to_read = std::min<size_t>(sizeof(buffer), size - bytes_read);
+        FK_ASSERT(file.read(buffer, to_read) == to_read);
+        bytes_read += to_read;
+    }
+
+    return 0;
+}
+
 }
