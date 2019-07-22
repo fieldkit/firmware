@@ -79,9 +79,6 @@ bool SpiFlash::begin() {
     set_feature(CMD_REGISTER_1, 0xB8);
     set_feature(CMD_REGISTER_1, 0x00 | (0x1 << 7));
 
-    /* Disable high speed read mode. */
-    // set_feature(CMD_REGISTER_2, 0x14);
-
     if (false) {
         uint8_t features[] = { 0xA0, 0xB0, 0xC0 };
         for (auto a : features) {
@@ -110,6 +107,9 @@ int32_t SpiFlash::read(uint32_t address, uint8_t *data, size_t length) {
     if (!is_ready()) {
         return 0;
     }
+
+    /* Disable high speed read mode. */
+    // set_feature(CMD_REGISTER_2, 0x14);
 
     /* Load page into buffer. */
     if (!complex_command(read_cell_command, sizeof(read_cell_command))) {

@@ -10,8 +10,8 @@ namespace fk {
 class LinuxDataMemory : public DataMemory {
 private:
     /* These mimic a single bank of memory. */
-    constexpr static uint32_t PageSize = 2112;
-    constexpr static uint32_t BlockSize = 2112 * 64;
+    constexpr static uint32_t PageSize = 2048;
+    constexpr static uint32_t BlockSize = 2048 * 64;
     constexpr static uint32_t NumberOfBlocks = 2048;
 
 private:
