@@ -294,6 +294,8 @@ File Storage::file(uint8_t file) {
 }
 
 uint32_t Storage::fsck() {
+    loginfo("fsck...");
+
     auto file = this->file(0);
 
     if (!file.seek(LastRecord)) {
@@ -311,6 +313,8 @@ uint32_t Storage::fsck() {
         FK_ASSERT(file.read(buffer, to_read) == to_read);
         bytes_read += to_read;
     }
+
+    loginfo("done");
 
     return 0;
 }
