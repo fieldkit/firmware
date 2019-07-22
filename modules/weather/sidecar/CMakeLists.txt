@@ -77,6 +77,7 @@ target_link_libraries(fk-weather-sidecar Asf4)
 
 add_custom_command(
   OUTPUT ${elf_file}
+  DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/libfk-weather-sidecar.a
   COMMAND ${CMAKE_C_COMPILER} -Os -Wl,--gc-sections -save-temps -T${linker_script} -mcpu=${target_mcu} -mthumb
   --specs=nano.specs --specs=nosys.specs -Wl,--check-sections ${target_board_libraries}
   -Wl,--unresolved-symbols=report-all -Wl,--warn-common -Wl,--warn-section-align
