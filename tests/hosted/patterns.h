@@ -70,7 +70,7 @@ struct SequentialPattern {
 
         auto equal = memcmp(expected, data, sizeof(data));
         if (equal != 0) {
-            fk_dump_memory(data, sizeof(data));
+            fk_dump_memory("", data, sizeof(data));
             ASSERT_EQ(memcmp(expected, data, sizeof(data)), 0);
         }
     }

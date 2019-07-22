@@ -224,7 +224,7 @@ SeekValue Storage::seek(SeekSettings settings) {
             memcpy(&file_block_header, &block_header, sizeof(BlockHeader));
         }
         else {
-            logtrace("[?] invalid block (0x%06x)", address);
+            logverbose("[?] invalid block (0x%06x)", address);
 
             // Search earlier in the range for a valid block.
             range = range.first_half();
@@ -263,7 +263,7 @@ SeekValue Storage::seek(SeekSettings settings) {
 
         // Is this the record they're looking for?
         if (settings.record != InvalidRecord && record_head.record == settings.record) {
-            logtrace("[%d] 0x%06x found record #%d", settings.file, address, settings.record);
+            logverbose("[%d] 0x%06x found record #%d", settings.file, address, settings.record);
             break;
         }
 
