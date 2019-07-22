@@ -111,6 +111,30 @@ static void log_diagnostics() {
     loginfo("hash = %s", hash_string);
 }
 
+static void verify_data(Storage &storage) {
+    auto file = storage.file(0);
+
+    if (!file.seek(LastRecord)) {
+        return;
+    }
+
+    auto size = file.size();
+    auto bytes_read = (size_t)0;
+
+    FK_ASSERT(file.seek(0));
+
+    while (bytes_read < size) {
+        uint8_t buffer[512];
+        auto to_read = std::min<size_t>(sizeof(buffer), size - bytes_read);
+        auto nread = file.read(buffer, to_read);
+        if (nread != to_read) {
+            logwarn("%d vs %d", to_read, nread);
+        }
+        FK_ASSERT(nread == to_read);
+        bytes_read += nread;
+    }
+}
+
 void setup() {
     MetalModMux mmm;
 
@@ -146,6 +170,8 @@ void setup() {
     FK_ASSERT(fw.wipe_if_necessary());
 
     mmm.enable_all_modules();
+
+    verify_data(storage);
 
     if (fkc.slow_startup) {
         fk_delay(1000);

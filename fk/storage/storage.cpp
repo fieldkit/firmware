@@ -236,9 +236,10 @@ SeekValue Storage::seek(SeekSettings settings) {
     address = fh.tail;
     position = fh.size;
 
-    FK_ASSERT(is_address_valid(address));
+    if (!is_address_valid(address)) {
+        return SeekValue{ };
+    }
 
-    logtrace("[%d] tail = 0x%06x (block %d)", settings.file, fh.tail, fh.tail / g.block_size);
     logtrace("[%d] 0x%06x seeking #%d (%d) from #%d (bsz = %d bytes)", settings.file, address, settings.record, position, fh.tail / g.block_size, fh.size);
 
     while (true) {
