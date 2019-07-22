@@ -100,18 +100,14 @@ void I2C_0_example(void)
 	io_write(I2C_0_io, (uint8_t *)"Hello World!", 12);
 }
 
-/**
- * Example of using SPI_0 to write "Hello World" using the IO abstraction.
- */
-static uint8_t example_SPI_0[12] = "Hello World!";
-
-void SPI_0_example(void)
+void I2C_1_example(void)
 {
-	struct io_descriptor *io;
-	spi_m_sync_get_io_descriptor(&SPI_0, &io);
+	struct io_descriptor *I2C_1_io;
 
-	spi_m_sync_enable(&SPI_0);
-	io_write(io, example_SPI_0, 12);
+	i2c_m_sync_get_io_descriptor(&I2C_1, &I2C_1_io);
+	i2c_m_sync_enable(&I2C_1);
+	i2c_m_sync_set_slaveaddr(&I2C_1, 0x12, I2C_M_SEVEN);
+	io_write(I2C_1_io, (uint8_t *)"Hello World!", 12);
 }
 
 void delay_example(void)

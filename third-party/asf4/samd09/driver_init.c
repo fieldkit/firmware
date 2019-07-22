@@ -13,13 +13,14 @@
 #include <hpl_gclk_base.h>
 #include <hpl_pm_base.h>
 
-struct crc_sync_descriptor   CRC_0;
-struct spi_m_sync_descriptor SPI_0;
-struct timer_descriptor      TIMER_0;
+struct crc_sync_descriptor CRC_0;
+struct timer_descriptor    TIMER_0;
 
 struct flash_descriptor FLASH_0;
 
 struct i2c_m_sync_desc I2C_0;
+
+struct i2c_m_sync_desc I2C_1;
 
 struct calendar_descriptor CALENDAR_0;
 
@@ -94,37 +95,10 @@ void I2C_0_init(void)
 	I2C_0_PORT_init();
 }
 
-void SPI_0_PORT_init(void)
+void I2C_1_PORT_init(void)
 {
 
-	gpio_set_pin_level(PA22,
-	                   // <y> Initial level
-	                   // <id> pad_initial_level
-	                   // <false"> Low
-	                   // <true"> High
-	                   false);
-
-	// Set pin direction to output
-	gpio_set_pin_direction(PA22, GPIO_DIRECTION_OUT);
-
-	gpio_set_pin_function(PA22, PINMUX_PA22C_SERCOM1_PAD0);
-
-	gpio_set_pin_level(PA23,
-	                   // <y> Initial level
-	                   // <id> pad_initial_level
-	                   // <false"> Low
-	                   // <true"> High
-	                   false);
-
-	// Set pin direction to output
-	gpio_set_pin_direction(PA23, GPIO_DIRECTION_OUT);
-
-	gpio_set_pin_function(PA23, PINMUX_PA23C_SERCOM1_PAD1);
-
-	// Set pin direction to input
-	gpio_set_pin_direction(PA08, GPIO_DIRECTION_IN);
-
-	gpio_set_pin_pull_mode(PA08,
+	gpio_set_pin_pull_mode(PA22,
 	                       // <y> Pull configuration
 	                       // <id> pad_pull_config
 	                       // <GPIO_PULL_OFF"> Off
@@ -132,20 +106,31 @@ void SPI_0_PORT_init(void)
 	                       // <GPIO_PULL_DOWN"> Pull-down
 	                       GPIO_PULL_OFF);
 
-	gpio_set_pin_function(PA08, PINMUX_PA08C_SERCOM1_PAD2);
+	gpio_set_pin_function(PA22, PINMUX_PA22C_SERCOM1_PAD0);
+
+	gpio_set_pin_pull_mode(PA23,
+	                       // <y> Pull configuration
+	                       // <id> pad_pull_config
+	                       // <GPIO_PULL_OFF"> Off
+	                       // <GPIO_PULL_UP"> Pull-up
+	                       // <GPIO_PULL_DOWN"> Pull-down
+	                       GPIO_PULL_OFF);
+
+	gpio_set_pin_function(PA23, PINMUX_PA23C_SERCOM1_PAD1);
 }
 
-void SPI_0_CLOCK_init(void)
+void I2C_1_CLOCK_init(void)
 {
 	_pm_enable_bus_clock(PM_BUS_APBC, SERCOM1);
 	_gclk_enable_channel(SERCOM1_GCLK_ID_CORE, CONF_GCLK_SERCOM1_CORE_SRC);
+	_gclk_enable_channel(SERCOM1_GCLK_ID_SLOW, CONF_GCLK_SERCOM1_SLOW_SRC);
 }
 
-void SPI_0_init(void)
+void I2C_1_init(void)
 {
-	SPI_0_CLOCK_init();
-	spi_m_sync_init(&SPI_0, SERCOM1);
-	SPI_0_PORT_init();
+	I2C_1_CLOCK_init();
+	i2c_m_sync_init(&I2C_1, SERCOM1);
+	I2C_1_PORT_init();
 }
 
 void delay_driver_init(void)
@@ -209,7 +194,7 @@ void system_init(void)
 
 	I2C_0_init();
 
-	SPI_0_init();
+	I2C_1_init();
 
 	delay_driver_init();
 

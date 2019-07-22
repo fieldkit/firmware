@@ -27,28 +27,26 @@ endif
 # List the subdirectories for creating object files
 SUB_DIRS +=  \
  \
-hpl/evsys \
-armcc/Device/SAMD09/Source \
-examples \
-hpl/systick \
 hpl/tc \
 armcc/Device/SAMD09/Source/ARM \
+hpl/systick \
 hpl/dmac \
+hpl/evsys \
+armcc/Device/SAMD09/Source \
+hpl/pac \
 hal/src \
 hal/utils/src \
+hpl/pm \
+hpl/core \
+hpl/sysctrl \
+hpl/eic \
+hpl/sercom \
+examples \
+hpl/gclk \
 hpl/wdt \
 hpl/rtc \
-hpl/pm \
-hpl/sysctrl \
-hpl/gclk \
-temperature_sensor/at30tse75x \
-hpl/pac \
-hpl/sercom \
-hpl/dsu \
-temperature_sensor \
 hpl/nvmctrl \
-hpl/eic \
-hpl/core
+hpl/dsu
 
 # List the object files
 OBJS +=  \
@@ -57,15 +55,12 @@ armcc/Device/SAMD09/Source/system_samd09.o \
 hpl/systick/hpl_systick.o \
 hal/src/hal_calendar.o \
 hpl/wdt/hpl_wdt.o \
-temperature_sensor/at30tse75x/at30tse75x.o \
 hpl/eic/hpl_eic.o \
 hpl/evsys/hpl_evsys.o \
 hpl/nvmctrl/hpl_nvmctrl.o \
-hal/src/hal_spi_m_sync.o \
 hal/src/hal_timer.o \
 hal/src/hal_i2c_m_sync.o \
 hal/src/hal_delay.o \
-temperature_sensor_main.o \
 hpl/sysctrl/hpl_sysctrl.o \
 hpl/core/hpl_init.o \
 hal/src/hal_wdt.o \
@@ -83,7 +78,6 @@ hal/utils/src/utils_list.o \
 hpl/rtc/hpl_rtc.o \
 examples/driver_examples.o \
 driver_init.o \
-temperature_sensor/temperature_sensor.o \
 hal/src/hal_ext_irq.o \
 armcc/Device/SAMD09/Source/ARM/startup_SAMD09.o \
 hal/src/hal_gpio.o \
@@ -102,15 +96,12 @@ OBJS_AS_ARGS +=  \
 "hpl/systick/hpl_systick.o" \
 "hal/src/hal_calendar.o" \
 "hpl/wdt/hpl_wdt.o" \
-"temperature_sensor/at30tse75x/at30tse75x.o" \
 "hpl/eic/hpl_eic.o" \
 "hpl/evsys/hpl_evsys.o" \
 "hpl/nvmctrl/hpl_nvmctrl.o" \
-"hal/src/hal_spi_m_sync.o" \
 "hal/src/hal_timer.o" \
 "hal/src/hal_i2c_m_sync.o" \
 "hal/src/hal_delay.o" \
-"temperature_sensor_main.o" \
 "hpl/sysctrl/hpl_sysctrl.o" \
 "hpl/core/hpl_init.o" \
 "hal/src/hal_wdt.o" \
@@ -128,7 +119,6 @@ OBJS_AS_ARGS +=  \
 "hpl/rtc/hpl_rtc.o" \
 "examples/driver_examples.o" \
 "driver_init.o" \
-"temperature_sensor/temperature_sensor.o" \
 "hal/src/hal_ext_irq.o" \
 "armcc/Device/SAMD09/Source/ARM/startup_SAMD09.o" \
 "hal/src/hal_gpio.o" \
@@ -152,18 +142,15 @@ DEPS_AS_ARGS +=  \
 "hpl/systick/hpl_systick.d" \
 "armcc/Device/SAMD09/Source/ARM/startup_SAMD09.d" \
 "hpl/eic/hpl_eic.d" \
-"temperature_sensor/at30tse75x/at30tse75x.d" \
 "hal/src/hal_crc_sync.d" \
 "hal/src/hal_i2c_m_sync.d" \
 "hpl/nvmctrl/hpl_nvmctrl.d" \
 "armcc/Device/SAMD09/Source/system_samd09.d" \
 "hal/src/hal_timer.d" \
-"hal/src/hal_spi_m_sync.d" \
 "hpl/core/hpl_core_m0plus_base.d" \
 "hal/src/hal_wdt.d" \
 "hpl/pac/hpl_pac.d" \
 "hal/utils/src/utils_assert.d" \
-"temperature_sensor_main.d" \
 "hal/src/hal_delay.d" \
 "hpl/core/hpl_init.d" \
 "hpl/sysctrl/hpl_sysctrl.d" \
@@ -172,7 +159,6 @@ DEPS_AS_ARGS +=  \
 "hpl/dmac/hpl_dmac.d" \
 "hal/src/hal_init.d" \
 "driver_init.d" \
-"temperature_sensor/temperature_sensor.d" \
 "main.d" \
 "examples/driver_examples.d" \
 "hpl/rtc/hpl_rtc.d" \
@@ -223,7 +209,7 @@ $(OBJS_AS_ARGS)
 	@echo Building file: $<
 	@echo ARMCC Compiler
 	$(QUOTE)armcc$(QUOTE) --c99 -c -DDEBUG -O1 -g --apcs=interwork --split_sections --cpu Cortex-M0+ -D__SAMD09D14A__ \
--I"../" -I"../config" -I"../examples" -I"../hal/include" -I"../hal/utils/include" -I"../hpl/core" -I"../hpl/dmac" -I"../hpl/dsu" -I"../hpl/eic" -I"../hpl/evsys" -I"../hpl/gclk" -I"../hpl/nvmctrl" -I"../hpl/pac" -I"../hpl/pm" -I"../hpl/port" -I"../hpl/rtc" -I"../hpl/sercom" -I"../hpl/sysctrl" -I"../hpl/systick" -I"../hpl/tc" -I"../hpl/wdt" -I"../hri" -I"../" -I"../temperature_sensor" -I"../temperature_sensor/at30tse75x" -I"../" -I"../CMSIS/Core/Include" -I"../include"  \
+-I"../" -I"../config" -I"../examples" -I"../hal/include" -I"../hal/utils/include" -I"../hpl/core" -I"../hpl/dmac" -I"../hpl/dsu" -I"../hpl/eic" -I"../hpl/evsys" -I"../hpl/gclk" -I"../hpl/nvmctrl" -I"../hpl/pac" -I"../hpl/pm" -I"../hpl/port" -I"../hpl/rtc" -I"../hpl/sercom" -I"../hpl/sysctrl" -I"../hpl/systick" -I"../hpl/tc" -I"../hpl/wdt" -I"../hri" -I"../" -I"../CMSIS/Core/Include" -I"../include"  \
 --depend "$@"  -o "$@" "$<"
 
 	@echo Finished building: $<
@@ -232,7 +218,7 @@ $(OBJS_AS_ARGS)
 	@echo Building file: $<
 	@echo ARMCC Assembler
 	$(QUOTE)armasm$(QUOTE) -g --apcs=interwork --cpu Cortex-M0+ --pd "D__SAMD09D14A__ SETA 1" \
--I"../" -I"../config" -I"../examples" -I"../hal/include" -I"../hal/utils/include" -I"../hpl/core" -I"../hpl/dmac" -I"../hpl/dsu" -I"../hpl/eic" -I"../hpl/evsys" -I"../hpl/gclk" -I"../hpl/nvmctrl" -I"../hpl/pac" -I"../hpl/pm" -I"../hpl/port" -I"../hpl/rtc" -I"../hpl/sercom" -I"../hpl/sysctrl" -I"../hpl/systick" -I"../hpl/tc" -I"../hpl/wdt" -I"../hri" -I"../" -I"../temperature_sensor" -I"../temperature_sensor/at30tse75x" -I"../" -I"../CMSIS/Core/Include" -I"../include"  \
+-I"../" -I"../config" -I"../examples" -I"../hal/include" -I"../hal/utils/include" -I"../hpl/core" -I"../hpl/dmac" -I"../hpl/dsu" -I"../hpl/eic" -I"../hpl/evsys" -I"../hpl/gclk" -I"../hpl/nvmctrl" -I"../hpl/pac" -I"../hpl/pm" -I"../hpl/port" -I"../hpl/rtc" -I"../hpl/sercom" -I"../hpl/sysctrl" -I"../hpl/systick" -I"../hpl/tc" -I"../hpl/wdt" -I"../hri" -I"../" -I"../CMSIS/Core/Include" -I"../include"  \
 --depend "$(@:%.o=%.d)" -o "$@" "$<"
 
 	@echo Finished building: $<
@@ -241,7 +227,7 @@ $(OBJS_AS_ARGS)
 	@echo Building file: $<
 	@echo ARMCC Preprocessing Assembler
 	$(QUOTE)armcc$(QUOTE) --c99 -c -DDEBUG -O1 -g --apcs=interwork --split_sections --cpu Cortex-M0+ -D__SAMD09D14A__ \
--I"../" -I"../config" -I"../examples" -I"../hal/include" -I"../hal/utils/include" -I"../hpl/core" -I"../hpl/dmac" -I"../hpl/dsu" -I"../hpl/eic" -I"../hpl/evsys" -I"../hpl/gclk" -I"../hpl/nvmctrl" -I"../hpl/pac" -I"../hpl/pm" -I"../hpl/port" -I"../hpl/rtc" -I"../hpl/sercom" -I"../hpl/sysctrl" -I"../hpl/systick" -I"../hpl/tc" -I"../hpl/wdt" -I"../hri" -I"../" -I"../temperature_sensor" -I"../temperature_sensor/at30tse75x" -I"../" -I"../CMSIS/Core/Include" -I"../include"  \
+-I"../" -I"../config" -I"../examples" -I"../hal/include" -I"../hal/utils/include" -I"../hpl/core" -I"../hpl/dmac" -I"../hpl/dsu" -I"../hpl/eic" -I"../hpl/evsys" -I"../hpl/gclk" -I"../hpl/nvmctrl" -I"../hpl/pac" -I"../hpl/pm" -I"../hpl/port" -I"../hpl/rtc" -I"../hpl/sercom" -I"../hpl/sysctrl" -I"../hpl/systick" -I"../hpl/tc" -I"../hpl/wdt" -I"../hri" -I"../" -I"../CMSIS/Core/Include" -I"../include"  \
 --depend "$@"  -o "$@" "$<"
 
 	@echo Finished building: $<

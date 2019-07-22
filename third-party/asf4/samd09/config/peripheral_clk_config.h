@@ -29,7 +29,7 @@
  * \brief EIC's Clock frequency
  */
 #ifndef CONF_GCLK_EIC_FREQUENCY
-#define CONF_GCLK_EIC_FREQUENCY 1000000
+#define CONF_GCLK_EIC_FREQUENCY 8000000
 #endif
 
 /**
@@ -37,7 +37,7 @@
  * \brief CPU's Clock frequency
  */
 #ifndef CONF_CPU_FREQUENCY
-#define CONF_CPU_FREQUENCY 1000000
+#define CONF_CPU_FREQUENCY 8000000
 #endif
 
 // <y> Core Clock Source
@@ -77,7 +77,7 @@
 
 // <i> Select the slow clock source.
 #ifndef CONF_GCLK_SERCOM0_SLOW_SRC
-#define CONF_GCLK_SERCOM0_SLOW_SRC GCLK_CLKCTRL_GEN_GCLK3_Val
+#define CONF_GCLK_SERCOM0_SLOW_SRC GCLK_CLKCTRL_GEN_GCLK0_Val
 #endif
 
 /**
@@ -85,7 +85,7 @@
  * \brief SERCOM0's Core Clock frequency
  */
 #ifndef CONF_GCLK_SERCOM0_CORE_FREQUENCY
-#define CONF_GCLK_SERCOM0_CORE_FREQUENCY 1000000
+#define CONF_GCLK_SERCOM0_CORE_FREQUENCY 8000000
 #endif
 
 /**
@@ -93,7 +93,7 @@
  * \brief SERCOM0's Slow Clock frequency
  */
 #ifndef CONF_GCLK_SERCOM0_SLOW_FREQUENCY
-#define CONF_GCLK_SERCOM0_SLOW_FREQUENCY 400000
+#define CONF_GCLK_SERCOM0_SLOW_FREQUENCY 8000000
 #endif
 
 // <y> Core Clock Source
@@ -133,7 +133,7 @@
 
 // <i> Select the slow clock source.
 #ifndef CONF_GCLK_SERCOM1_SLOW_SRC
-#define CONF_GCLK_SERCOM1_SLOW_SRC GCLK_CLKCTRL_GEN_GCLK3_Val
+#define CONF_GCLK_SERCOM1_SLOW_SRC GCLK_CLKCTRL_GEN_GCLK0_Val
 #endif
 
 /**
@@ -141,7 +141,7 @@
  * \brief SERCOM1's Core Clock frequency
  */
 #ifndef CONF_GCLK_SERCOM1_CORE_FREQUENCY
-#define CONF_GCLK_SERCOM1_CORE_FREQUENCY 1000000
+#define CONF_GCLK_SERCOM1_CORE_FREQUENCY 8000000
 #endif
 
 /**
@@ -149,7 +149,7 @@
  * \brief SERCOM1's Slow Clock frequency
  */
 #ifndef CONF_GCLK_SERCOM1_SLOW_FREQUENCY
-#define CONF_GCLK_SERCOM1_SLOW_FREQUENCY 400000
+#define CONF_GCLK_SERCOM1_SLOW_FREQUENCY 8000000
 #endif
 
 // <y> RTC Clock Source
@@ -177,7 +177,7 @@
  * \brief RTC's Clock frequency
  */
 #ifndef CONF_GCLK_RTC_FREQUENCY
-#define CONF_GCLK_RTC_FREQUENCY 1000000
+#define CONF_GCLK_RTC_FREQUENCY 8000000
 #endif
 
 // <y> TC Clock Source
@@ -205,7 +205,7 @@
  * \brief TC1's Clock frequency
  */
 #ifndef CONF_GCLK_TC1_FREQUENCY
-#define CONF_GCLK_TC1_FREQUENCY 1000000
+#define CONF_GCLK_TC1_FREQUENCY 8000000
 #endif
 
 // <y> EVSYS Channel 0 Clock Source
@@ -234,7 +234,7 @@
  */
 
 #ifndef CONF_GCLK_EVSYS_CHANNEL_0_FREQUENCY
-#define CONF_GCLK_EVSYS_CHANNEL_0_FREQUENCY 1000000.0
+#define CONF_GCLK_EVSYS_CHANNEL_0_FREQUENCY 8000000.0
 #endif
 
 // <y> EVSYS Channel 1 Clock Source
@@ -263,7 +263,7 @@
  */
 
 #ifndef CONF_GCLK_EVSYS_CHANNEL_1_FREQUENCY
-#define CONF_GCLK_EVSYS_CHANNEL_1_FREQUENCY 1000000.0
+#define CONF_GCLK_EVSYS_CHANNEL_1_FREQUENCY 8000000.0
 #endif
 
 // <y> EVSYS Channel 2 Clock Source
@@ -292,7 +292,7 @@
  */
 
 #ifndef CONF_GCLK_EVSYS_CHANNEL_2_FREQUENCY
-#define CONF_GCLK_EVSYS_CHANNEL_2_FREQUENCY 1000000.0
+#define CONF_GCLK_EVSYS_CHANNEL_2_FREQUENCY 8000000.0
 #endif
 
 // <y> EVSYS Channel 3 Clock Source
@@ -321,7 +321,7 @@
  */
 
 #ifndef CONF_GCLK_EVSYS_CHANNEL_3_FREQUENCY
-#define CONF_GCLK_EVSYS_CHANNEL_3_FREQUENCY 1000000.0
+#define CONF_GCLK_EVSYS_CHANNEL_3_FREQUENCY 8000000.0
 #endif
 
 // <y> EVSYS Channel 4 Clock Source
@@ -350,7 +350,7 @@
  */
 
 #ifndef CONF_GCLK_EVSYS_CHANNEL_4_FREQUENCY
-#define CONF_GCLK_EVSYS_CHANNEL_4_FREQUENCY 1000000.0
+#define CONF_GCLK_EVSYS_CHANNEL_4_FREQUENCY 8000000.0
 #endif
 
 // <y> EVSYS Channel 5 Clock Source
@@ -379,7 +379,7 @@
  */
 
 #ifndef CONF_GCLK_EVSYS_CHANNEL_5_FREQUENCY
-#define CONF_GCLK_EVSYS_CHANNEL_5_FREQUENCY 1000000.0
+#define CONF_GCLK_EVSYS_CHANNEL_5_FREQUENCY 8000000.0
 #endif
 
 // <y> WDT Clock Source
@@ -406,7 +406,7 @@
  * \brief WDT's Clock frequency
  */
 #ifndef CONF_GCLK_WDT_FREQUENCY
-#define CONF_GCLK_WDT_FREQUENCY 1000000
+#define CONF_GCLK_WDT_FREQUENCY 8000000
 #endif
 
 // <<< end of configuration section >>>

@@ -38,7 +38,7 @@
 #include <utils.h>
 #include <utils_assert.h>
 
-#ifdef __MINGW32__
+#if defined(__MINGW32__) || defined(__GNUC__)
 #define ffs __builtin_ffs
 #endif
 #if defined(__CC_ARM) || defined(__ICCARM__)

@@ -7,22 +7,13 @@ versions:
   content: 1.0.1600
   content_pack_name: acme-packs-all
   format: '2'
-  frontend: 1.6.1878
+  frontend: 1.6.1881
 board:
   identifier: CustomBoard
   device: SAMD09D14A-MU
 details: null
 application: null
-middlewares:
-  TEMPERATURE_SENSOR_0:
-    user_label: TEMPERATURE_SENSOR_0
-    configuration:
-      conf_resolution: 11-bits
-    definition: Atmel:Generic_Temperature_Sensor:0.0.1::AT30TSE75X
-    functionality: Temperature_Sensor
-    api: Sensor:Temperature-Sensor:AT30TSE75X
-    dependencies:
-      I2C instance: I2C_0
+middlewares: {}
 drivers:
   CRC_0:
     user_label: CRC_0
@@ -227,42 +218,38 @@ drivers:
           external: false
           external_frequency: 0
         - name: Slow
-          input: Generic clock generator 3
+          input: Generic clock generator 0
           external: false
           external_frequency: 0
         configuration:
           core_gclk_selection: Generic clock generator 0
-          slow_gclk_selection: Generic clock generator 3
-  SPI_0:
-    user_label: SPI_0
-    definition: Atmel:SAMD09_Drivers:0.0.1::SAMD09D14A-MU::SERCOM1::driver_config_definition::SPI.Master::HAL:Driver:SPI.Master.Sync
-    functionality: SPI
-    api: HAL:Driver:SPI_Master_Sync
+          slow_gclk_selection: Generic clock generator 0
+  I2C_1:
+    user_label: I2C_1
+    definition: Atmel:SAMD09_Drivers:0.0.1::SAMD09D14A-MU::SERCOM1::driver_config_definition::I2C.Master.Standard~2FFast-mode::HAL:Driver:I2C.Master.Sync
+    functionality: I2C
+    api: HAL:Driver:I2C_Master_Sync
     configuration:
-      spi_master_advanced: false
-      spi_master_arch_cpha: Sample input on leading edge
-      spi_master_arch_cpol: SCK is low when idle
-      spi_master_arch_dbgstop: Keep running
-      spi_master_arch_dord: MSB first
-      spi_master_arch_ibon: In data stream
-      spi_master_arch_runstdby: false
-      spi_master_baud_rate: 50000
-      spi_master_character_size: 8 bits
-      spi_master_dummybyte: 511
-      spi_master_rx_enable: true
+      i2c_master_advanced: false
+      i2c_master_arch_dbgstop: Keep running
+      i2c_master_arch_inactout: Disabled
+      i2c_master_arch_lowtout: false
+      i2c_master_arch_mexttoen: false
+      i2c_master_arch_runstdby: false
+      i2c_master_arch_sdahold: 300-600ns hold time
+      i2c_master_arch_sexttoen: false
+      i2c_master_arch_trise: 215
+      i2c_master_baud_rate: 100000
     optional_signals: []
     variant:
-      specification: TXPO=0, RXPO=2
+      specification: SDA=0, SCL=1
       required_signals:
       - name: SERCOM1/PAD/0
         pad: PA22
-        label: MOSI
+        label: SDA
       - name: SERCOM1/PAD/1
         pad: PA23
-        label: SCK
-      - name: SERCOM1/PAD/2
-        pad: PA08
-        label: MISO
+        label: SCL
     clocks:
       domain_group:
         nodes:
@@ -271,12 +258,12 @@ drivers:
           external: false
           external_frequency: 0
         - name: Slow
-          input: Generic clock generator 3
+          input: Generic clock generator 0
           external: false
           external_frequency: 0
         configuration:
           core_gclk_selection: Generic clock generator 0
-          slow_gclk_selection: Generic clock generator 3
+          slow_gclk_selection: Generic clock generator 0
   DELAY_0:
     user_label: DELAY_0
     definition: Atmel:SAMD09_Drivers:0.0.1::SAMD09D14A-MU::SysTick::driver_config_definition::Delay::HAL:Driver:Delay
@@ -772,7 +759,7 @@ drivers:
       osc8m_arch_ondemand: true
       osc8m_arch_overwrite_calibration: false
       osc8m_arch_runstdby: false
-      osc8m_presc: '8'
+      osc8m_presc: '1'
       osculp32k_arch_calib: 0
       osculp32k_arch_overwrite_calibration: false
       osculp32k_arch_wrtlock: false
@@ -818,12 +805,6 @@ drivers:
         configuration:
           wdt_gclk_selection: Generic clock generator 0
 pads:
-  PA08:
-    name: PA08
-    definition: Atmel:SAMD09_Drivers:0.0.1::SAMD09D14A-MU::pad::PA08
-    mode: Digital input
-    user_label: PA08
-    configuration: null
   PA14:
     name: PA14
     definition: Atmel:SAMD09_Drivers:0.0.1::SAMD09D14A-MU::pad::PA14
@@ -839,13 +820,13 @@ pads:
   PA22:
     name: PA22
     definition: Atmel:SAMD09_Drivers:0.0.1::SAMD09D14A-MU::pad::PA22
-    mode: Digital output
+    mode: I2C
     user_label: PA22
     configuration: null
   PA23:
     name: PA23
     definition: Atmel:SAMD09_Drivers:0.0.1::SAMD09D14A-MU::pad::PA23
-    mode: Digital output
+    mode: I2C
     user_label: PA23
     configuration: null
 toolchain_options: []

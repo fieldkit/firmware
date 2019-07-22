@@ -27,7 +27,8 @@ extern "C" {
 #include <hal_flash.h>
 
 #include <hal_i2c_m_sync.h>
-#include <hal_spi_m_sync.h>
+
+#include <hal_i2c_m_sync.h>
 
 #include <hal_delay.h>
 
@@ -43,8 +44,9 @@ extern struct crc_sync_descriptor CRC_0;
 
 extern struct flash_descriptor FLASH_0;
 
-extern struct i2c_m_sync_desc       I2C_0;
-extern struct spi_m_sync_descriptor SPI_0;
+extern struct i2c_m_sync_desc I2C_0;
+
+extern struct i2c_m_sync_desc I2C_1;
 
 extern struct calendar_descriptor CALENDAR_0;
 extern struct timer_descriptor    TIMER_0;
@@ -58,9 +60,9 @@ void I2C_0_CLOCK_init(void);
 void I2C_0_init(void);
 void I2C_0_PORT_init(void);
 
-void SPI_0_PORT_init(void);
-void SPI_0_CLOCK_init(void);
-void SPI_0_init(void);
+void I2C_1_CLOCK_init(void);
+void I2C_1_init(void);
+void I2C_1_PORT_init(void);
 
 void delay_driver_init(void);
 

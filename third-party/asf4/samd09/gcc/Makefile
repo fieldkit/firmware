@@ -30,28 +30,26 @@ endif
 # List the subdirectories for creating object files
 SUB_DIRS +=  \
  \
-hpl/evsys \
-examples \
-hpl/systick \
 hpl/tc \
+hpl/systick \
 hpl/dmac \
+hpl/evsys \
+hpl/pac \
 hal/src \
 hal/utils/src \
-hpl/wdt \
-hpl/rtc \
 gcc \
 hpl/pm \
+hpl/core \
 hpl/sysctrl \
-hpl/gclk \
-gcc/gcc \
-temperature_sensor/at30tse75x \
-hpl/pac \
-hpl/sercom \
-hpl/dsu \
-temperature_sensor \
-hpl/nvmctrl \
 hpl/eic \
-hpl/core
+hpl/sercom \
+examples \
+hpl/gclk \
+hpl/wdt \
+gcc/gcc \
+hpl/rtc \
+hpl/nvmctrl \
+hpl/dsu
 
 # List the object files
 OBJS +=  \
@@ -59,16 +57,13 @@ hal/src/hal_io.o \
 hpl/systick/hpl_systick.o \
 hal/src/hal_calendar.o \
 hpl/wdt/hpl_wdt.o \
-temperature_sensor/at30tse75x/at30tse75x.o \
 hpl/eic/hpl_eic.o \
 hpl/evsys/hpl_evsys.o \
 hal/utils/src/utils_syscalls.o \
 hpl/nvmctrl/hpl_nvmctrl.o \
-hal/src/hal_spi_m_sync.o \
 hal/src/hal_timer.o \
 hal/src/hal_i2c_m_sync.o \
 hal/src/hal_delay.o \
-temperature_sensor_main.o \
 hpl/sysctrl/hpl_sysctrl.o \
 hpl/core/hpl_init.o \
 hal/src/hal_wdt.o \
@@ -87,7 +82,6 @@ hpl/rtc/hpl_rtc.o \
 gcc/system_samd09.o \
 examples/driver_examples.o \
 driver_init.o \
-temperature_sensor/temperature_sensor.o \
 hal/src/hal_ext_irq.o \
 hal/src/hal_gpio.o \
 hal/src/hal_evsys.o \
@@ -105,16 +99,13 @@ OBJS_AS_ARGS +=  \
 "hpl/systick/hpl_systick.o" \
 "hal/src/hal_calendar.o" \
 "hpl/wdt/hpl_wdt.o" \
-"temperature_sensor/at30tse75x/at30tse75x.o" \
 "hpl/eic/hpl_eic.o" \
 "hpl/evsys/hpl_evsys.o" \
 "hal/utils/src/utils_syscalls.o" \
 "hpl/nvmctrl/hpl_nvmctrl.o" \
-"hal/src/hal_spi_m_sync.o" \
 "hal/src/hal_timer.o" \
 "hal/src/hal_i2c_m_sync.o" \
 "hal/src/hal_delay.o" \
-"temperature_sensor_main.o" \
 "hpl/sysctrl/hpl_sysctrl.o" \
 "hpl/core/hpl_init.o" \
 "hal/src/hal_wdt.o" \
@@ -133,7 +124,6 @@ OBJS_AS_ARGS +=  \
 "gcc/system_samd09.o" \
 "examples/driver_examples.o" \
 "driver_init.o" \
-"temperature_sensor/temperature_sensor.o" \
 "hal/src/hal_ext_irq.o" \
 "hal/src/hal_gpio.o" \
 "hal/src/hal_evsys.o" \
@@ -171,9 +161,6 @@ DIR_INCLUDES +=  \
 -I"../hpl/wdt" \
 -I"../hri" \
 -I"../" \
--I"../temperature_sensor" \
--I"../temperature_sensor/at30tse75x" \
--I"../" \
 -I"../CMSIS/Core/Include" \
 -I"../include"
 
@@ -188,17 +175,14 @@ DEPS_AS_ARGS +=  \
 "hpl/systick/hpl_systick.d" \
 "hpl/eic/hpl_eic.d" \
 "hal/utils/src/utils_syscalls.d" \
-"temperature_sensor/at30tse75x/at30tse75x.d" \
 "hal/src/hal_crc_sync.d" \
 "hal/src/hal_i2c_m_sync.d" \
 "hpl/nvmctrl/hpl_nvmctrl.d" \
 "hal/src/hal_timer.d" \
-"hal/src/hal_spi_m_sync.d" \
 "hpl/core/hpl_core_m0plus_base.d" \
 "hal/src/hal_wdt.d" \
 "hpl/pac/hpl_pac.d" \
 "hal/utils/src/utils_assert.d" \
-"temperature_sensor_main.d" \
 "hal/src/hal_delay.d" \
 "hpl/core/hpl_init.d" \
 "hpl/sysctrl/hpl_sysctrl.d" \
@@ -207,7 +191,6 @@ DEPS_AS_ARGS +=  \
 "hpl/dmac/hpl_dmac.d" \
 "hal/src/hal_init.d" \
 "driver_init.d" \
-"temperature_sensor/temperature_sensor.d" \
 "main.d" \
 "examples/driver_examples.d" \
 "gcc/system_samd09.d" \

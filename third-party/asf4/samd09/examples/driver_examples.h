@@ -20,6 +20,8 @@ void FLASH_0_example(void);
 
 void I2C_0_example(void);
 
+void I2C_1_example(void);
+
 void delay_example(void);
 
 void CALENDAR_0_example(void);
