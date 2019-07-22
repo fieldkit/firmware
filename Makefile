@@ -70,6 +70,8 @@ gitdeps: dependencies
 libraries/done:
 	$(OFFLINE) || simple-deps --nested --config bootloader/dependencies.sd --dir libraries
 	$(OFFLINE) || simple-deps --nested --config libraries/dependencies.sd --dir libraries
+	$(OFFLINE) || simple-deps --nested --config modules/weather/sidecar/dependencies.sd --dir libraries
+	$(OFFLINE) || simple-deps --nested --config modules/weather/main/dependencies.sd --dir libraries
 	touch libraries/done
 
 deps-initialize:
@@ -84,6 +86,7 @@ deps-update:
 
 veryclean: clean
 	rm -rf bootloader/dependencies.cmake libraries/dependencies.cmake libraries/done
+	rm -rf modules/weather/sidecar/dependencies.cmake modules/weather/main/dependencies.cmake
 	@for l in $(LOCAL_LIBRARY_PATHS); do                                                       \
 		echo rm -rf $$l; rm -rf $$l;                                                             \
 	done

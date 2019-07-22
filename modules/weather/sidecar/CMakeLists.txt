@@ -1,5 +1,7 @@
 include(ArduinoTools)
 
+include(dependencies.cmake)
+
 set(asf4_PATH ${CMAKE_SOURCE_DIR}/third-party/asf4)
 
 
@@ -30,20 +32,29 @@ set(map_file ${CMAKE_CURRENT_BINARY_DIR}/${target_name}.map)
 set(elf_target ${target_name}.elf)
 set(bin_target ${target_name}.bin)
 
-file(GLOB asf_sources ${asf4_PATH}/samd09/atmel_start.c
-  ${asf4_PATH}/samd09/driver_init.c
-  ${asf4_PATH}/samd09/gcc/gcc/startup_samd09.c)
 file(GLOB sources *.s *.c)
-add_library(fk-weather-sidecar STATIC ${sources} ${asf_sources})
+add_library(fk-weather-sidecar STATIC ${sources})
 target_compile_options(fk-weather-sidecar PRIVATE ${target_c_flags})
 
 
-file(GLOB sources
+
+file(GLOB segger_sources ${segger_PATH}/*.c)
+add_library(SeggerRTT STATIC ${segger_sources})
+target_compile_options(SeggerRTT PRIVATE ${target_c_flags})
+target_include_directories(SeggerRTT PUBLIC ${segger_PATH})
+target_link_libraries(fk-weather-sidecar SeggerRTT)
+
+
+
+file(GLOB asf_sources
   ${asf4_PATH}/samd09/hal/src/*.c
   ${asf4_PATH}/samd09/hpl/*/*.c
   ${asf4_PATH}/samd09/hal/utils/src/*.c
-  )
-add_library(Asf4 STATIC "${sources}")
+  ${asf4_PATH}/samd09/atmel_start.c
+  ${asf4_PATH}/samd09/driver_init.c
+  ${asf4_PATH}/samd09/gcc/gcc/startup_samd09.c
+)
+add_library(Asf4 STATIC ${asf_sources})
 target_compile_options(Asf4 PRIVATE ${target_c_flags})
 target_include_directories(Asf4
   PUBLIC
