@@ -12,9 +12,9 @@ FK_DECLARE_LOGGER("storage");
 
 #define logverbose(f, ...)
 
-// #define FK_STORAGE_LOGGING_HASHING
-#define FK_OP_STR_READ  "rd"
-#define FK_OP_STR_WRITE "wr"
+#define FK_STORAGE_LOGGING_HASHING
+#define FK_OP_STR_READ     "rd"
+#define FK_OP_STR_WRITE    "wr"
 
 static void log_hashed_data(const char *op, uint8_t file, uint32_t record, uint32_t address, void *data, size_t size) {
     #if defined(FK_STORAGE_LOGGING_HASHING)
