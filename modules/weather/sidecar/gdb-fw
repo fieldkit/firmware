@@ -1,0 +1,5 @@
+#!/bin/bash
+
+set -xe
+
+gdb-multiarch ../../../build/samd09/modules/weather/sidecar/fk-weather-sidecar.elf

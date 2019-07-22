@@ -18,14 +18,16 @@ enable_testing()
 
 add_subdirectory(libraries)
 
-add_subdirectory(tests)
-
 add_subdirectory(boards)
 
 if(${TARGET_ARCH} MATCHES "samd51")
   add_subdirectory(bootloader)
   add_subdirectory(fk)
 endif()
+
+add_subdirectory(modules)
+
+add_subdirectory(tests)
 
 # Add a target to generate API documentation with Doxygen
 find_package(Doxygen)

@@ -2,4 +2,4 @@
 
 PATH=~/tools/jlink:$PATH
 
-JLinkGDBServer -if SWD -device ATSAMD09D14A
+JLinkGDBServer -if SWD -device ATSAMD09D14A -port 4331

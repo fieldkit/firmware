@@ -47,3 +47,21 @@ function(enable_fkb_firmware target)
     "${CMAKE_CURRENT_BINARY_DIR}/${target}-fkb.bin"
     "${CMAKE_CURRENT_BINARY_DIR}/${target}.map")
 endfunction()
+
+function(enable_samd09_firmware target)
+endfunction()
+
+if (NOT DEFINED ARDUINO_IDE)
+  foreach(path $ENV{HOME}/arduino-1.8.3 $ENV{HOME}/conservify/arduino-1.8.3
+               $ENV{HOME}/workspace/arduino-1.8.3
+               ${PROJECT_SOURCE_DIR}/../arduino-1.8.3 ${PROJECT_SOURCE_DIR}/../../arduino-1.8.3)
+      if (EXISTS ${path})
+        set(ARDUINO_IDE ${path})
+        break()
+    endif()
+  endforeach()
+
+  if (NOT DEFINED ARDUINO_IDE)
+    message(FATAL_ERROR "Unable to find Arduino IDE")
+  endif()
+endif()

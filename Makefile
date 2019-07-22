@@ -14,7 +14,7 @@ LOCAL_LIBRARY_PATHS := $(patsubst %, libraries/%, $(LIBRARY_REPOSITORIES))
 
 default: setup all
 
-all: samd51 test
+all: samd51 samd09 test
 
 ci: all doc
 
@@ -24,6 +24,8 @@ setup: .python-setup fk/secrets.h libraries/done
 	pip3 install -U lief sphinx
 	touch .python-setup
 
+cmake: $(BUILD)/samd51 $(BUILD)/samd09 $(BUILD)/amd64
+
 $(BUILD)/samd51: setup
 	mkdir -p $(BUILD)/samd51
 	cd $(BUILD)/samd51 && cmake -DTARGET_ARCH=samd51 ../../
@@ -32,13 +34,20 @@ $(BUILD)/amd64: setup
 	mkdir -p $(BUILD)/amd64
 	cd $(BUILD)/amd64 && cmake -DTARGET_ARCH=amd64 ../../
 
+$(BUILD)/samd09: setup
+	mkdir -p $(BUILD)/samd09
+	cd $(BUILD)/samd09 && cmake -DTARGET_ARCH=samd09 ../../
+
 samd51: $(BUILD)/samd51
 	cd $(BUILD)/samd51 && $(MAKE)
+
+samd09: $(BUILD)/samd09
+	cd $(BUILD)/samd09 && $(MAKE)
 
 amd64: $(BUILD)/amd64
 	cd $(BUILD)/amd64 && $(MAKE)
 
-fw: samd51
+fw: samd51 samd09
 
 test: amd64
 	cd $(BUILD)/amd64 && env GTEST_COLOR=1 $(MAKE) test ARGS=-VV
@@ -82,4 +91,4 @@ veryclean: clean
 clean:
 	rm -rf $(BUILD)
 
-.PHONY: dependencies doc
+.PHONY: dependencies doc cmake

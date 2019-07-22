@@ -26,7 +26,9 @@ SECTIONS
      * 113-240	256-word
      */
     . = ALIGN(0x1000);
+    _sfixed = .;
     KEEP(*(.isr_vector))
+    KEEP(*(.vectors))
     *(.text*)
 
     KEEP(*(.init))
@@ -77,10 +79,12 @@ SECTIONS
   } > RAM
 
   __etext = __etext_global + SIZEOF(.data.rtt) + SIZEOF(.data.fkb.launch);
+  _etext = __etext;
 
   .data : AT(__etext)
   {
     __data_start__ = .;
+    _srelocate = .;
     *(vtable)
     *(.data*)
 
@@ -107,16 +111,19 @@ SECTIONS
     KEEP(*(.jcr*))
     . = ALIGN(16);
     __data_end__ = .;
+    _erelocate = .;
   } > RAM
 
   .bss :
   {
     . = ALIGN(4);
     __bss_start__ = .;
+    _szero = .;
     *(.bss*)
     *(COMMON)
     . = ALIGN(4);
     __bss_end__ = .;
+    _ezero = .;
   } > RAM
 
   .got :
@@ -158,6 +165,7 @@ SECTIONS
   PROVIDE(__stack = __StackTop);
 
   __ram_end__ = ORIGIN(RAM) + LENGTH(RAM) - 1;
+  _estack = ORIGIN(RAM) + LENGTH(RAM) - 1;
 
   /* Check if data + heap + stack exceeds RAM limit */
   ASSERT(__StackLimit >= __HeapLimit, "Region RAM overflowed with stack")
