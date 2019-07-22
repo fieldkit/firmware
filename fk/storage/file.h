@@ -15,6 +15,7 @@ class File {
 private:
     Storage *storage_;
     uint8_t file_;
+    uint32_t record_address_{ InvalidAddress };
     uint32_t tail_{ InvalidAddress };
     uint32_t record_{ InvalidRecord };
     uint32_t version_{ InvalidVersion };
@@ -40,6 +41,10 @@ public:
         return tail_;
     }
 
+    uint32_t record_address() const {
+        return record_address_;
+    }
+
     uint32_t record() const {
         return record_;
     }
@@ -50,6 +55,10 @@ public:
 
     uint32_t size() const {
         return size_;
+    }
+
+    bool valid() const {
+        return is_address_valid(tail_);
     }
 
 private:

@@ -47,6 +47,7 @@ size_t File::write_record_header(size_t size) {
     hash_.reset(Hash::Length);
     hash_.update(&record_header, sizeof(record_header));
 
+    record_address_ = tail_;
     tail_ += sizeof(record_header);
 
     return sizeof(record_header);
@@ -176,10 +177,13 @@ size_t File::read_record_header() {
             }
 
             if (record_header.valid()) {
+                record_ = record_header.record;
+                record_remaining_ = record_header.size;
+                record_address_ = tail_;
+
                 hash_.reset(Hash::Length);
                 hash_.update(&record_header, sizeof(RecordHeader));
 
-                record_remaining_ = record_header.size;
 
                 logverbose("[%d] 0x%06x record header (%d bytes) #%d", file_, tail_, record_remaining_, record_header.record);
 
@@ -194,28 +198,6 @@ size_t File::read_record_header() {
     }
 
     return 0;
-}
-
-size_t File::read_record_tail() {
-    SequentialMemory memory{ storage_->memory_ };
-
-    logverbose("[%d] 0x%06x end of record", file_, tail_);
-
-    RecordTail record_tail;
-    if (memory.read(tail_, (uint8_t *)&record_tail, sizeof(RecordTail)) != sizeof(RecordTail)) {
-        return 0;
-    }
-
-    // TODO: We can recover from this better.
-    Hash hash;
-    hash_.finalize(&hash.hash, Hash::Length);
-    if (memcmp(hash.hash, record_tail.hash.hash, Hash::Length) != 0) {
-        logerror("hash mismatch: 0x%06x (#%d)", tail_, record_);
-    }
-
-    tail_ += sizeof(RecordTail);
-
-    return sizeof(RecordTail);
 }
 
 size_t File::read(uint8_t *record, size_t size) {
@@ -266,6 +248,30 @@ size_t File::read(uint8_t *record, size_t size) {
     }
 
     return bytes_read;
+}
+
+size_t File::read_record_tail() {
+    SequentialMemory memory{ storage_->memory_ };
+
+    logverbose("[%d] 0x%06x end of record", file_, tail_);
+
+    RecordTail record_tail;
+    if (memory.read(tail_, (uint8_t *)&record_tail, sizeof(RecordTail)) != sizeof(RecordTail)) {
+        return 0;
+    }
+
+    // TODO: We can recover from this better.
+    Hash hash;
+    hash_.finalize(&hash.hash, Hash::Length);
+    if (memcmp(hash.hash, record_tail.hash.hash, Hash::Length) != 0) {
+        logerror("[%d] hash mismatch: 0x%06x (#%d) (record address = 0x%06x)", file_, tail_, record_, record_address_);
+        fk_dump_memory(record_tail.hash.hash, Hash::Length);
+        fk_dump_memory(hash.hash, Hash::Length);
+    }
+
+    tail_ += sizeof(RecordTail);
+
+    return sizeof(RecordTail);
 }
 
 void File::update() {

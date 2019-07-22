@@ -126,14 +126,23 @@ uint32_t fk_serial_number_get(fk_serial_number_t *sn) {
 #endif // __SAMD51__
 
 void fk_dump_memory(uint8_t *p, size_t size) {
-    fkb_external_printf("(%d bytes)\n", size);
-    for (auto i = (size_t)0; i < size; ++i) {
-        fkb_external_printf("%02x ", p[i]);
-        if ((i + 1) % 32 == 0) {
-            fkb_external_printf("\n");
+    if (size > 32) {
+        fkb_external_printf("(%d bytes)\n", size);
+        for (auto i = (size_t)0; i < size; ++i) {
+            fkb_external_printf("%02x ", p[i]);
+            if ((i + 1) % 32 == 0) {
+                fkb_external_printf("\n");
+            }
         }
+        fkb_external_printf("\n");
     }
-    fkb_external_printf("\n");
+    else {
+        fkb_external_printf("(%d bytes) ", size);
+        for (auto i = (size_t)0; i < size; ++i) {
+            fkb_external_printf("%02x", p[i]);
+        }
+        fkb_external_printf("\n");
+    }
 }
 
 } // namespace fk
