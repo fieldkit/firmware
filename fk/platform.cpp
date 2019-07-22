@@ -126,7 +126,9 @@ uint32_t fk_serial_number_get(fk_serial_number_t *sn) {
 #endif // __SAMD51__
 
 void fk_dump_memory(const char *prefix, const uint8_t *p, size_t size) {
+    #if defined(__SAMD51__)
     SEGGER_RTT_LOCK();
+    #endif
     fkb_external_printf("%s", prefix);
     for (auto i = (size_t)0; i < size; ++i) {
         fkb_external_printf("%02x ", p[i]);
@@ -137,7 +139,9 @@ void fk_dump_memory(const char *prefix, const uint8_t *p, size_t size) {
         }
     }
     fkb_external_printf(" (%d bytes)\n", size);
+    #if defined(__SAMD51__)
     SEGGER_RTT_UNLOCK();
+    #endif
 }
 
 } // namespace fk
