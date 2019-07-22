@@ -67,6 +67,8 @@ void task_handler_readings(void *params) {
     loginfo("wrote %d bytes (%d bytes) (0x%06x)", bytes_wrote, file.size(), file.tail());
 
     memory.log_statistics();
+
+    storage.fsck();
 }
 
 }
