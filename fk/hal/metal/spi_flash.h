@@ -7,6 +7,7 @@ namespace fk {
 
 class SpiFlash {
 private:
+    constexpr static uint32_t FullPageSize = 2048 + 64;
     constexpr static uint32_t PageSize = 2048;
     constexpr static uint32_t BlockSize = 2048 * 64;
     constexpr static uint32_t NumberOfBlocks = 2048;
@@ -64,11 +65,15 @@ private:
 
     uint8_t read_status();
 
-    bool is_ready();
+    bool is_ready(bool ecc_check = false);
 
     void enable();
 
     void disable();
+
+    void ecc_check();
+
+    void read_ecc_information();
 
     bool simple_command(uint8_t command);
 

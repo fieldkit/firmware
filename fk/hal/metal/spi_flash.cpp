@@ -27,11 +27,15 @@ constexpr uint8_t FLASH_JEDEC_DEVICE = 0xcb;
 constexpr uint8_t CMD_REGISTER_1 = 0xa0;
 constexpr uint8_t CMD_REGISTER_2 = 0xb0;
 constexpr uint8_t CMD_REGISTER_3 = 0xc0;
+constexpr uint8_t CMD_ECC_STATUS_0 = 0x40;
+constexpr uint8_t CMD_ECC_STATUS_1 = 0x50;
 
 constexpr uint8_t STATUS_FLAG_BUSY = 0x1;
 constexpr uint8_t STATUS_FLAG_WRITE_ENABLED = 0x1 << 1;
 constexpr uint8_t STATUS_FLAG_ERASE_FAIL = 0x1 << 2;
 constexpr uint8_t STATUS_FLAG_PROGRAM_FAIL = 0x1 << 3;
+constexpr uint8_t STATUS_FLAG_ECC_STATUS_MASK = (0x1 << 4) | (0x1 << 5);
+constexpr uint8_t STATUS_FLAG_ECC_STATUS_Pos = (4);
 
 static SPISettings SpiSettings{ 50000000, MSBFIRST, SPI_MODE0 };
 
@@ -117,7 +121,7 @@ int32_t SpiFlash::read(uint32_t address, uint8_t *data, size_t length) {
     }
 
     /* Wait for buffer to fill with data from cell array. */
-    if (!is_ready()) {
+    if (!is_ready(false)) {
         return 0;
     }
 
@@ -161,6 +165,8 @@ int32_t SpiFlash::write(uint32_t address, const uint8_t *data, size_t length) {
         return 0;
     }
 
+    // ecc_check();
+
     return length;
 }
 
@@ -194,6 +200,15 @@ void SpiFlash::column_address_to_bytes(uint32_t address, uint8_t *bytes) {
     uint32_t column = (address % PageSize);
     bytes[0] = (column >> 8) & 0xff;
     bytes[1] = (column & 0xff);
+}
+
+void SpiFlash::ecc_check() {
+    auto status = read_status();
+
+    auto ecc = (((status) & STATUS_FLAG_ECC_STATUS_MASK) >> STATUS_FLAG_ECC_STATUS_Pos);
+    if (ecc > 0) {
+        logwarn("ecc status flags: 0b%b (0b%b) (0b%b)", ecc, status, STATUS_FLAG_ECC_STATUS_MASK);
+    }
 }
 
 bool SpiFlash::enable_writes() {
@@ -232,7 +247,14 @@ uint8_t SpiFlash::read_status() {
     return status;
 }
 
-bool SpiFlash::is_ready() {
+void SpiFlash::read_ecc_information() {
+    uint8_t ecc[2] = { 0x00, 0x00 };
+    get_feature(CMD_ECC_STATUS_0, &ecc[0]);
+    get_feature(CMD_ECC_STATUS_1, &ecc[1]);
+    loginfo("ecc(bfr): 0b%b 0b%b", ecc[0], ecc[0]);
+}
+
+bool SpiFlash::is_ready(bool ecc_check) {
     auto ok = false;
 
     enable();
@@ -242,8 +264,9 @@ bool SpiFlash::is_ready() {
     SPI.transfer(command[1]);
 
     auto started = fk_uptime();
+    auto status = 0x00;
     while (true) {
-        auto status = SPI.transfer(0xff);
+        status = SPI.transfer(0xff);
 
         if ((status & STATUS_FLAG_PROGRAM_FAIL) == STATUS_FLAG_PROGRAM_FAIL) {
             break;
@@ -255,12 +278,19 @@ bool SpiFlash::is_ready() {
             ok = true;
             break;
         }
-
         if (fk_uptime() - started > SpiFlashTimeoutMs) {
             break;
         }
 
         fk_delay(1); // Is this too long?
+    }
+
+    if (ecc_check) {
+        auto ecc = (((status) & STATUS_FLAG_ECC_STATUS_MASK) >> STATUS_FLAG_ECC_STATUS_Pos);
+        if (ecc > 0) {
+            logwarn("ecc status: 0b%b (0b%b) (0b%b)", ecc, status, STATUS_FLAG_ECC_STATUS_MASK);
+            read_ecc_information();
+        }
     }
 
     SPI.endTransaction();

@@ -14,7 +14,7 @@ bool FactoryWipe::wipe_if_necessary() {
         return true;
     }
 
-    loginfo("buttons pressed, possible factory wipe...");
+    loginfo("possible factory wipe...");
 
     auto wipe = false;
     auto started = fk_uptime();
