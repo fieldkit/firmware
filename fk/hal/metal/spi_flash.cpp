@@ -282,7 +282,8 @@ bool SpiFlash::is_ready(bool ecc_check) {
             break;
         }
 
-        fk_delay(1); // Is this too long?
+        // This was an fk_delay, which would yield, also... is this too long?
+        delay(1);
     }
 
     if (ecc_check) {
