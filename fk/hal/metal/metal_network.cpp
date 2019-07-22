@@ -40,11 +40,6 @@ int32_t MetalNetworkConnection::write(const uint8_t *buffer, size_t size) {
     return wcl_.write(buffer, size);
 }
 
-static void write_connection(char c, void *arg) {
-    auto wcl = reinterpret_cast<WiFiClient*>(arg);
-    wcl->write((uint8_t)c);
-}
-
 int32_t MetalNetworkConnection::writef(const char *str, ...) {
     va_list args;
     va_start(args, str);
@@ -53,8 +48,38 @@ int32_t MetalNetworkConnection::writef(const char *str, ...) {
     return rv;
 }
 
+typedef struct buffered_write_t {
+    uint8_t buffer[256];
+    size_t buffer_size{ 256 };
+    size_t position{ 0 };
+    WiFiClient *wcl;
+    int32_t return_value{ 0 };
+    int32_t flush() {
+        if (position > 0) {
+            auto wrote = wcl->write(buffer, position);
+            if (wrote > 0) {
+                return_value += wrote;
+            }
+            position = 0;
+        }
+        return return_value;
+    }
+} buffered_write_t;
+
+static void write_connection(char c, void *arg) {
+    auto buffers = reinterpret_cast<buffered_write_t*>(arg);
+    buffers->buffer[buffers->position++] = c;
+    if (buffers->position == buffers->buffer_size) {
+        buffers->flush();
+    }
+}
+
 int32_t MetalNetworkConnection::vwritef(const char *str, va_list args) {
-    return tiny_vfctprintf(write_connection, &wcl_, str, args);
+    buffered_write_t buffers;
+    buffers.wcl = &wcl_;
+    tiny_vfctprintf(write_connection, &buffers, str, args);
+    buffers.flush();
+    return buffers.return_value;
 }
 
 int32_t MetalNetworkConnection::socket() {
