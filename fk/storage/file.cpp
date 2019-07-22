@@ -12,10 +12,16 @@ FK_DECLARE_LOGGER("storage");
 
 #define logverbose(f, ...)
 
-static void log_hashed_data(uint8_t file, uint32_t record, uint32_t address, void *data, size_t size) {
+// #define FK_STORAGE_LOGGING_HASHING
+#define FK_OP_STR_READ  "rd"
+#define FK_OP_STR_WRITE "wr"
+
+static void log_hashed_data(const char *op, uint8_t file, uint32_t record, uint32_t address, void *data, size_t size) {
+    #if defined(FK_STORAGE_LOGGING_HASHING)
     char prefix[32];
-    tiny_snprintf(prefix, sizeof(prefix), "hash %d 0x%06x ", record, address);
+    tiny_snprintf(prefix, sizeof(prefix), "%s hash %5d 0x%06x ", op, record, address);
     fk_dump_memory(prefix, (const uint8_t *)data, size);
+    #endif
 }
 
 File::File(Storage *storage, uint8_t file, FileHeader fh)
@@ -54,7 +60,7 @@ size_t File::write_record_header(size_t size) {
     hash_.reset(Hash::Length);
     hash_.update(&record_header, sizeof(record_header));
 
-    log_hashed_data(file_, record_ - 1, tail_, &record_header, sizeof(record_header));
+    log_hashed_data(FK_OP_STR_WRITE, file_, record_ - 1, tail_, &record_header, sizeof(record_header));
 
     record_address_ = tail_;
     tail_ += sizeof(record_header);
@@ -76,7 +82,7 @@ size_t File::write_partial(uint8_t *record, size_t size) {
 
     hash_.update(record, size);
 
-    log_hashed_data(file_, record_ - 1, tail_, record, size);
+    log_hashed_data(FK_OP_STR_WRITE, file_, record_ - 1, tail_, record, size);
 
     tail_ += size;
 
@@ -98,7 +104,7 @@ size_t File::write_record_tail(size_t size) {
     #if defined(FK_STORAGE_LOGGING_HASHING)
     char buffer[Hash::Length * 2];
     bytes_to_hex_string(buffer, sizeof(buffer), record_tail.hash.hash, Hash::Length);
-    logtrace("[%d] 0x%06x hash(#%d) %s", file_, record_address_, record_ - 1, buffer);
+    logdebug("[%d] 0x%06x hash(#%d) %s", file_, record_address_, record_ - 1, buffer);
     #endif
 
     tail_ += sizeof(record_tail);
@@ -201,7 +207,7 @@ size_t File::read_record_header() {
                 hash_.reset(Hash::Length);
                 hash_.update(&record_header, sizeof(RecordHeader));
 
-                log_hashed_data(file_, record_, tail_, &record_header, sizeof(RecordHeader));
+                log_hashed_data(FK_OP_STR_READ, file_, record_, tail_, &record_header, sizeof(RecordHeader));
 
                 logverbose("[%d] 0x%06x record header (%d bytes) #%d", file_, tail_, record_remaining_, record_header.record);
 
@@ -244,7 +250,7 @@ size_t File::read(uint8_t *record, size_t size) {
 
             hash_.update(record + bytes_read, reading);
 
-            log_hashed_data(file_, record_, tail_, record + bytes_read, reading);
+            log_hashed_data(FK_OP_STR_READ, file_, record_, tail_, record + bytes_read, reading);
 
             logverbose("[%d] 0x%06x data (%d bytes)", file_, tail_, reading);
 
