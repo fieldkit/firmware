@@ -13,6 +13,7 @@ private:
     constexpr static uint32_t NumberOfBlocks = 2048;
     constexpr static uint32_t SpiFlashReadyMs = 10;
     constexpr static uint32_t SpiFlashTimeoutMs = 500;
+    constexpr static uint32_t IdSize = 16;
 
     enum class Status {
         Unknown,
@@ -23,6 +24,7 @@ private:
 private:
     Status status_{ Status::Unknown };
     uint8_t cs_;
+    uint8_t id_[IdSize];
 
 public:
     SpiFlash(uint8_t cs);
@@ -37,6 +39,10 @@ public:
     int32_t write(uint32_t address, const uint8_t *data, size_t length);
 
     int32_t erase_block(uint32_t address);
+
+    const uint8_t *id() const {
+        return id_;
+    }
 
 private:
     /*
@@ -62,6 +68,8 @@ private:
     bool get_feature(uint8_t address, uint8_t *reg);
 
     bool set_feature(uint8_t address, uint8_t value);
+
+    bool read_unique_id();
 
     uint8_t read_status();
 

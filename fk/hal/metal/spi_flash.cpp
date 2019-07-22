@@ -96,6 +96,16 @@ bool SpiFlash::begin() {
         return false;
     }
 
+    if (!read_unique_id()) {
+        return false;
+    }
+
+    if (false) {
+        char id_string[sizeof(id_) * 2];
+        bytes_to_hex_string(id_string, sizeof(id_string), id_, sizeof(id_));
+        loginfo("%s", id_string);
+    }
+
     status_ = Status::Available;
 
     return true;
@@ -187,6 +197,41 @@ int32_t SpiFlash::erase_block(uint32_t address) {
     }
 
     return 1;
+}
+
+bool SpiFlash::read_unique_id() {
+    constexpr static uint8_t ENABLE_READ_ID_PAGE = 0b1010110;
+    constexpr static uint8_t DISABLE_READ_ID_PAGE = 0b10110;
+
+    uint8_t read_cell_command[] = { CMD_READ_CELL_ARRAY, 0x00, 0x00, 0x00 }; // 7dummy/17 (Row)
+    uint8_t read_buffer_command[] = { CMD_READ_BUFFER, 0x00, 0x00, 0x00 };   // 4dummy/12/8dummy (Col)
+
+    // 1. Set Feature (1Fh) with address B0h and set bit [6]. : To set the IDR_E bit in the feature table.
+    // 2. Read Cell Array (13h) with address 00h. : To read the unique ID.
+    // 3. Get Feature (0Fh) : To read the status (OIP bit) of the device.
+    // 4. Read Buffer (03h or 0Bh) with address 00h. : To output the 16 copies of the Unique ID.
+    // 5. Set Feature (1Fh) with address B0h and clear bit [6]
+
+    set_feature(CMD_REGISTER_2, ENABLE_READ_ID_PAGE);
+
+    /* Load page into buffer. */
+    if (!complex_command(read_cell_command, sizeof(read_cell_command))) {
+        return 0;
+    }
+
+    /* Wait for buffer to fill with data from cell array. */
+    if (!is_ready(false)) {
+        return 0;
+    }
+
+    /* Read the buffer in. */
+    if (!transfer(read_buffer_command, sizeof(read_buffer_command), nullptr, id_, sizeof(id_))) {
+        return 0;
+    }
+
+    set_feature(CMD_REGISTER_2, DISABLE_READ_ID_PAGE);
+
+    return true;
 }
 
 void SpiFlash::row_address_to_bytes(uint32_t address, uint8_t *bytes) {
