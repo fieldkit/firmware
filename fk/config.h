@@ -8,7 +8,7 @@ namespace fk {
 /**
  * Maximum number of memory banks we're capable of supporting.
  */
-#define FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS (1)
+#define FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS (2)
 
 /**
  * One second in milliseconds.
