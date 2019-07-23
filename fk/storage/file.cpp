@@ -13,7 +13,7 @@ FK_DECLARE_LOGGER("storage");
 #define logverbose(f, ...)
 
 #if !defined(linux)
-#define FK_STORAGE_LOGGING_HASHING
+// #define FK_STORAGE_LOGGING_HASHING
 #endif
 #define FK_OP_STR_READ     "rd"
 #define FK_OP_STR_WRITE    "wr"

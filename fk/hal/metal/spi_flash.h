@@ -7,7 +7,6 @@ namespace fk {
 
 class SpiFlash {
 private:
-    constexpr static uint32_t FullPageSize = 2048 + 64;
     constexpr static uint32_t PageSize = 2048;
     constexpr static uint32_t BlockSize = 2048 * 64;
     constexpr static uint32_t NumberOfBlocks = 2048;
@@ -25,6 +24,9 @@ private:
     Status status_{ Status::Unknown };
     uint8_t cs_;
     uint8_t id_[IdSize];
+    bool cached_dirty_{ false };
+    uint32_t cached_page_{ ((uint32_t)-1) };
+    uint8_t cache_[PageSize];
 
 public:
     SpiFlash(uint8_t cs);
@@ -56,6 +58,8 @@ private:
       Block Page Column
       ROW    ROW
     */
+
+    bool flush();
 
     void row_address_to_bytes(uint32_t address, uint8_t *bytes);
 

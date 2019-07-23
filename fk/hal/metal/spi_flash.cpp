@@ -112,43 +112,57 @@ bool SpiFlash::begin() {
 }
 
 int32_t SpiFlash::read(uint32_t address, uint8_t *data, size_t length) {
-    uint8_t read_cell_command[] = { CMD_READ_CELL_ARRAY, 0x00, 0x00, 0x00 }; // 7dummy/17 (Row)
-    uint8_t read_buffer_command[] = { CMD_READ_BUFFER, 0x00, 0x00, 0x00 };   // 4dummy/12/8dummy // (Col)
+    FK_ASSERT((address % PageSize) + length <= PageSize);
 
-    row_address_to_bytes(address, read_cell_command + 1);
-    column_address_to_bytes(address, read_buffer_command + 1);
+    if ((cached_page_ / PageSize) != (address / PageSize)) {
+        uint8_t read_cell_command[] = { CMD_READ_CELL_ARRAY, 0x00, 0x00, 0x00 }; // 7dummy/17 (Row)
+        uint8_t read_buffer_command[] = { CMD_READ_BUFFER, 0x00, 0x00, 0x00 };   // 4dummy/12/8dummy // (Col)
 
-    if (!is_ready()) {
-        return 0;
+        if (cached_dirty_) {
+            flush();
+        }
+
+        row_address_to_bytes(address, read_cell_command + 1);
+        // column_address_to_bytes(address, read_buffer_command + 1);
+
+        if (!is_ready()) {
+            return 0;
+        }
+
+        /* Disable high speed read mode. */
+        // set_feature(CMD_REGISTER_2, 0x14);
+
+        /* Load page into buffer. */
+        if (!complex_command(read_cell_command, sizeof(read_cell_command))) {
+            return 0;
+        }
+
+        /* Wait for buffer to fill with data from cell array. */
+        if (!is_ready(false)) {
+            return 0;
+        }
+
+        /* Read the buffer in. */
+        if (!transfer(read_buffer_command, sizeof(read_buffer_command), nullptr, cache_, PageSize)) {
+            return 0;
+        }
+
+        cached_page_ = address;
     }
 
-    /* Disable high speed read mode. */
-    // set_feature(CMD_REGISTER_2, 0x14);
-
-    /* Load page into buffer. */
-    if (!complex_command(read_cell_command, sizeof(read_cell_command))) {
-        return 0;
-    }
-
-    /* Wait for buffer to fill with data from cell array. */
-    if (!is_ready(false)) {
-        return 0;
-    }
-
-    /* Read the buffer in. */
-    if (!transfer(read_buffer_command, sizeof(read_buffer_command), nullptr, data, length)) {
-        return 0;
+    if (data != nullptr) {
+        memcpy(data, cache_ + (address % PageSize), length);
     }
 
     return length;
 }
 
-int32_t SpiFlash::write(uint32_t address, const uint8_t *data, size_t length) {
+bool SpiFlash::flush() {
     uint8_t program_load_command[] = { CMD_PROGRAM_LOAD, 0x00, 0x00 }; // 4dummy/12
     uint8_t program_execute_command[] = { CMD_PROGRAM_EXECUTE, 0x00, 0x00, 0x00 }; // 7dummy/17
 
-    column_address_to_bytes(address, program_load_command + 1);
-    row_address_to_bytes(address, program_execute_command + 1);
+    row_address_to_bytes(cached_page_, program_execute_command + 1);
+    // column_address_to_bytes(cached_page_, program_load_command + 1);
 
     if (!is_ready()) {
         return 0;
@@ -158,7 +172,7 @@ int32_t SpiFlash::write(uint32_t address, const uint8_t *data, size_t length) {
         return 0;
     }
 
-    if (!transfer(program_load_command, sizeof(program_load_command), data, nullptr, length)) {
+    if (!transfer(program_load_command, sizeof(program_load_command), cache_, nullptr, PageSize)) {
         return 0;
     }
 
@@ -175,7 +189,21 @@ int32_t SpiFlash::write(uint32_t address, const uint8_t *data, size_t length) {
         return 0;
     }
 
-    // ecc_check();
+    cached_dirty_ = false;
+
+    return true;
+}
+
+int32_t SpiFlash::write(uint32_t address, const uint8_t *data, size_t length) {
+    if ((cached_page_ / PageSize) != (address / PageSize)) {
+        read(address, NULL, 0);
+    }
+
+    FK_ASSERT((address % PageSize) + length <= PageSize);
+
+    memcpy(cache_ + (address % PageSize), data, length);
+
+    cached_dirty_ = true;
 
     return length;
 }
@@ -183,6 +211,10 @@ int32_t SpiFlash::write(uint32_t address, const uint8_t *data, size_t length) {
 int32_t SpiFlash::erase_block(uint32_t address) {
     uint8_t command[] = { CMD_ERASE_BLOCK, 0x00, 0x00, 0x00 }; // 7dummy/17 (Row)
     row_address_to_bytes(address, command + 1);
+
+    if ((cached_page_ / PageSize) == (address / PageSize)) {
+        cached_page_ = ((uint32_t)-1);
+    }
 
     if (!is_ready()) {
         return 0;
