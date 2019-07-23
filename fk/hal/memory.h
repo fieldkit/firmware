@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.h"
+#include "config.h"
 
 namespace fk {
 
@@ -125,7 +126,7 @@ public:
 
 class MemoryFactory {
 public:
-    constexpr static size_t NumberOfDataMemoryBanks = 4;
+    constexpr static size_t NumberOfDataMemoryBanks = FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS;
 
 public:
     static DataMemory **get_data_memory_banks();

@@ -173,18 +173,29 @@ void StatisticsMemory::log_statistics() const {
 }
 
 #if defined(FK_HARDWARE_FULL)
-MetalDataMemory banks[MemoryFactory::NumberOfDataMemoryBanks]{
+#if FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS == 4
+MetalDataMemory banks[MemoryFactory::NumberOfDataMemoryBanks] {
     { SPI_FLASH_CS_BANK_1 },
     { SPI_FLASH_CS_BANK_2 },
     { SPI_FLASH_CS_BANK_3 },
     { SPI_FLASH_CS_BANK_4 },
 };
+DataMemory *bank_pointers[]{ &banks[0], &banks[1], &banks[2], &banks[3] };
+#elif FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS == 2
+MetalDataMemory banks[MemoryFactory::NumberOfDataMemoryBanks] {
+    { SPI_FLASH_CS_BANK_1 },
+    { SPI_FLASH_CS_BANK_2 },
+};
+DataMemory *bank_pointers[]{ &banks[0], &banks[1] };
+#else
+MetalDataMemory banks[MemoryFactory::NumberOfDataMemoryBanks]{ { SPI_FLASH_CS_BANK_1 } };
+DataMemory *bank_pointers[]{ &banks[0] };
+#endif
 #else
 LinuxDataMemory banks[MemoryFactory::NumberOfDataMemoryBanks];
 #endif
 
-DataMemory *bank_pointers[]{ &banks[0], &banks[1], &banks[2], &banks[3] };
-BankedDataMemory memory{ bank_pointers, 4 };
+BankedDataMemory memory{ bank_pointers, MemoryFactory::NumberOfDataMemoryBanks };
 
 DataMemory **MemoryFactory::get_data_memory_banks() {
     return bank_pointers;
