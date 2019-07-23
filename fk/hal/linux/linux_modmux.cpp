@@ -20,6 +20,10 @@ bool LinuxModMux::disable_all_modules() {
     return true;
 }
 
+bool LinuxModMux::choose(uint8_t position) {
+    return true;
+}
+
 }
 
 #endif

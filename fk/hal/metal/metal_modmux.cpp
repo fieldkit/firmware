@@ -9,7 +9,8 @@ namespace fk {
 
 FK_DECLARE_LOGGER("modmux");
 
-constexpr uint8_t Mcp23008Address = 0x20;
+constexpr uint8_t MCP23008_ADDRESS = 0x20;
+constexpr uint8_t TCA9548A_ADDRESS = 0x70;
 
 constexpr uint8_t MCP23008_IODIR = 0x00;
 constexpr uint8_t MCP23008_IPOL = 0x01;
@@ -29,7 +30,7 @@ MetalModMux::MetalModMux() {
 bool MetalModMux::begin() {
     Wire2.begin();
 
-    Wire2.beginTransmission(Mcp23008Address);
+    Wire2.beginTransmission(MCP23008_ADDRESS);
     Wire2.write((byte)MCP23008_IODIR);
     Wire2.write((byte)0b10101010); // IODIR
     Wire2.write((byte)0x00);       // IPOL
@@ -41,7 +42,7 @@ bool MetalModMux::begin() {
     Wire2.write((byte)0x00);       // INTF
     Wire2.write((byte)0x00);       // INTCAP
     Wire2.write((byte)0x00);       // GPIO
-    if (Wire2.endTransmission() != 0) {
+    if (!I2C_CHECK(Wire2.endTransmission())) {
         return false;
     }
 
@@ -55,10 +56,10 @@ bool MetalModMux::enable_all_modules() {
         return false;
     }
 
-    Wire2.beginTransmission(Mcp23008Address);
+    Wire2.beginTransmission(MCP23008_ADDRESS);
     Wire2.write((byte)MCP23008_GPIO);
     Wire2.write((byte)0xff);
-    if (Wire2.endTransmission() != 0) {
+    if (!I2C_CHECK(Wire2.endTransmission())) {
         return false;
     }
 
@@ -70,10 +71,24 @@ bool MetalModMux::disable_all_modules() {
         return false;
     }
 
-    Wire2.beginTransmission(Mcp23008Address);
+    Wire2.beginTransmission(MCP23008_ADDRESS);
     Wire2.write((byte)MCP23008_GPIO);
     Wire2.write((byte)0x00);
-    if (Wire2.endTransmission() != 0) {
+    if (!I2C_CHECK(Wire2.endTransmission())) {
+        return false;
+    }
+
+    return true;
+}
+
+bool MetalModMux::choose(uint8_t position) {
+    if (!available_) {
+        return false;
+    }
+
+    Wire2.beginTransmission(TCA9548A_ADDRESS);
+    Wire2.write(1 << position);
+    if (!I2C_CHECK(Wire2.endTransmission())) {
         return false;
     }
 
