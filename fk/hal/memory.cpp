@@ -4,6 +4,7 @@
 #include "hal/metal/metal_memory.h"
 #include "hal/linux/linux_memory.h"
 #include "board.h"
+#include "config.h"
 
 namespace fk {
 
@@ -173,7 +174,9 @@ void StatisticsMemory::log_statistics() const {
 }
 
 #if defined(FK_HARDWARE_FULL)
+
 #if FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS == 4
+
 MetalDataMemory banks[MemoryFactory::NumberOfDataMemoryBanks] {
     { SPI_FLASH_CS_BANK_1 },
     { SPI_FLASH_CS_BANK_2 },
@@ -181,18 +184,43 @@ MetalDataMemory banks[MemoryFactory::NumberOfDataMemoryBanks] {
     { SPI_FLASH_CS_BANK_4 },
 };
 DataMemory *bank_pointers[]{ &banks[0], &banks[1], &banks[2], &banks[3] };
+
 #elif FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS == 2
+
+MetalDataMemory banks[MemoryFactory::NumberOfDataMemoryBanks] {
+                         { SPI_FLASH_CS_BANK_1 },
+                         { SPI_FLASH_CS_BANK_2 },
+                             };
+DataMemory *bank_pointers[]{ &banks[0], &banks[1] };
+
+#elif FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS == 1
+
 MetalDataMemory banks[MemoryFactory::NumberOfDataMemoryBanks] {
     { SPI_FLASH_CS_BANK_1 },
-    { SPI_FLASH_CS_BANK_2 },
 };
-DataMemory *bank_pointers[]{ &banks[0], &banks[1] };
-#else
-MetalDataMemory banks[MemoryFactory::NumberOfDataMemoryBanks]{ { SPI_FLASH_CS_BANK_1 } };
 DataMemory *bank_pointers[]{ &banks[0] };
+
 #endif
+
 #else
+
+#if FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS == 4
+
 LinuxDataMemory banks[MemoryFactory::NumberOfDataMemoryBanks];
+DataMemory *bank_pointers[]{ &banks[0], &banks[1], &banks[2], &banks[3] };
+
+#elif FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS == 2
+
+LinuxDataMemory banks[MemoryFactory::NumberOfDataMemoryBanks];
+DataMemory *bank_pointers[]{ &banks[0], &banks[1] };
+
+#elif FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS == 1
+
+LinuxDataMemory banks[MemoryFactory::NumberOfDataMemoryBanks];
+DataMemory *bank_pointers[]{ &banks[0] };
+
+#endif
+
 #endif
 
 BankedDataMemory memory{ bank_pointers, MemoryFactory::NumberOfDataMemoryBanks };
