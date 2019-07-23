@@ -11,6 +11,11 @@ namespace fk {
 constexpr uint32_t OneSecondMs = 1000;
 
 /**
+ * Two seconds in milliseconds.
+ */
+constexpr uint32_t TwoSecondsMs = 2000;
+
+/**
  * Five seconds in milliseconds.
  */
 constexpr uint32_t FiveSecondsMs = 5000;
@@ -49,7 +54,7 @@ constexpr uint32_t OneMegabyte = 1024 * 1024;
 /**
  * How long the user should hold the button to initiate a factory wipe.
  */
-constexpr uint32_t FactoryWipeButtonDuration = FiveSecondsMs;
+constexpr uint32_t FactoryWipeButtonDuration = TwoSecondsMs;
 
 /**
  * This is the theorhetical maximum number of modules that can be physically
