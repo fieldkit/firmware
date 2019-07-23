@@ -13,6 +13,8 @@ class FkSegger(gdb.Command):
     gdb.execute("load")
     gdb.execute("b HardFault_Handler")
     gdb.execute("b NonMaskableInt_Handler")
+    gdb.execute("b passed")
+    gdb.execute("b failed")
     gdb.execute("monitor reset")
 
 class FkRestart(gdb.Command):
