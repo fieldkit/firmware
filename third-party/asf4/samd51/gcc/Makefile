@@ -46,19 +46,16 @@ hpl/eic \
 hpl/wdt \
 hpl/rtc \
 hpl/trng \
-hpl/usb \
 hpl/pm \
 hpl/aes \
 hpl/cmcc \
 hpl/gclk \
 hal/utils/src \
 hpl/mclk \
-temperature_sensor/at30tse75x \
 hpl/pac \
 hpl/icm \
 hpl/sercom \
 hpl/core \
-temperature_sensor \
 hpl/nvmctrl \
 hpl/dsu
 
@@ -70,7 +67,6 @@ hal/src/hal_cache.o \
 hal/src/hal_calendar.o \
 hpl/wdt/hpl_wdt.o \
 samd51a/gcc/system_samd51.o \
-temperature_sensor/at30tse75x/at30tse75x.o \
 hpl/eic/hpl_eic.o \
 hpl/evsys/hpl_evsys.o \
 hpl/core/hpl_core_m4.o \
@@ -83,18 +79,16 @@ hal/src/hal_timer.o \
 hpl/aes/hpl_aes.o \
 hal/src/hal_i2c_m_sync.o \
 hal/src/hal_delay.o \
-temperature_sensor_main.o \
 hal/src/hal_sha_sync.o \
-hpl/oscctrl/hpl_oscctrl.o \
+hpl/pm/hpl_pm.o \
 hpl/core/hpl_init.o \
 hpl/ramecc/hpl_ramecc.o \
 hal/src/hal_wdt.o \
 hal/utils/src/utils_assert.o \
 hpl/pac/hpl_pac.o \
-hpl/cmcc/hpl_cmcc.o \
+hpl/oscctrl/hpl_oscctrl.o \
 hal/src/hal_rand_sync.o \
 hpl/trng/hpl_trng.o \
-hal/src/hal_usart_sync.o \
 hpl/mclk/hpl_mclk.o \
 hpl/sercom/hpl_sercom.o \
 hpl/gclk/hpl_gclk.o \
@@ -102,27 +96,24 @@ hal/src/hal_flash.o \
 hal/src/hal_init.o \
 hpl/icm/hpl_icm.o \
 hal/src/hal_crc_sync.o \
-hal/src/hal_usb_device.o \
 main.o \
 hal/utils/src/utils_list.o \
 hpl/osc32kctrl/hpl_osc32kctrl.o \
 hpl/rtc/hpl_rtc.o \
 examples/driver_examples.o \
 driver_init.o \
-temperature_sensor/temperature_sensor.o \
 hal/src/hal_ext_irq.o \
+hal/src/hal_atomic.o \
 hal/src/hal_gpio.o \
 hal/src/hal_qspi_sync.o \
 hal/src/hal_evsys.o \
 hal/utils/src/utils_event.o \
 hal/src/hal_sleep.o \
 hpl/dmac/hpl_dmac.o \
-hpl/pm/hpl_pm.o \
 samd51a/gcc/gcc/startup_samd51.o \
 atmel_start.o \
-hpl/usb/hpl_usb.o \
 hpl/tc/hpl_tc.o \
-hal/src/hal_atomic.o \
+hpl/cmcc/hpl_cmcc.o \
 hpl/dsu/hpl_dsu.o
 
 OBJS_AS_ARGS +=  \
@@ -132,7 +123,6 @@ OBJS_AS_ARGS +=  \
 "hal/src/hal_calendar.o" \
 "hpl/wdt/hpl_wdt.o" \
 "samd51a/gcc/system_samd51.o" \
-"temperature_sensor/at30tse75x/at30tse75x.o" \
 "hpl/eic/hpl_eic.o" \
 "hpl/evsys/hpl_evsys.o" \
 "hpl/core/hpl_core_m4.o" \
@@ -145,18 +135,16 @@ OBJS_AS_ARGS +=  \
 "hpl/aes/hpl_aes.o" \
 "hal/src/hal_i2c_m_sync.o" \
 "hal/src/hal_delay.o" \
-"temperature_sensor_main.o" \
 "hal/src/hal_sha_sync.o" \
-"hpl/oscctrl/hpl_oscctrl.o" \
+"hpl/pm/hpl_pm.o" \
 "hpl/core/hpl_init.o" \
 "hpl/ramecc/hpl_ramecc.o" \
 "hal/src/hal_wdt.o" \
 "hal/utils/src/utils_assert.o" \
 "hpl/pac/hpl_pac.o" \
-"hpl/cmcc/hpl_cmcc.o" \
+"hpl/oscctrl/hpl_oscctrl.o" \
 "hal/src/hal_rand_sync.o" \
 "hpl/trng/hpl_trng.o" \
-"hal/src/hal_usart_sync.o" \
 "hpl/mclk/hpl_mclk.o" \
 "hpl/sercom/hpl_sercom.o" \
 "hpl/gclk/hpl_gclk.o" \
@@ -164,27 +152,24 @@ OBJS_AS_ARGS +=  \
 "hal/src/hal_init.o" \
 "hpl/icm/hpl_icm.o" \
 "hal/src/hal_crc_sync.o" \
-"hal/src/hal_usb_device.o" \
 "main.o" \
 "hal/utils/src/utils_list.o" \
 "hpl/osc32kctrl/hpl_osc32kctrl.o" \
 "hpl/rtc/hpl_rtc.o" \
 "examples/driver_examples.o" \
 "driver_init.o" \
-"temperature_sensor/temperature_sensor.o" \
 "hal/src/hal_ext_irq.o" \
+"hal/src/hal_atomic.o" \
 "hal/src/hal_gpio.o" \
 "hal/src/hal_qspi_sync.o" \
 "hal/src/hal_evsys.o" \
 "hal/utils/src/utils_event.o" \
 "hal/src/hal_sleep.o" \
 "hpl/dmac/hpl_dmac.o" \
-"hpl/pm/hpl_pm.o" \
 "samd51a/gcc/gcc/startup_samd51.o" \
 "atmel_start.o" \
-"hpl/usb/hpl_usb.o" \
 "hpl/tc/hpl_tc.o" \
-"hal/src/hal_atomic.o" \
+"hpl/cmcc/hpl_cmcc.o" \
 "hpl/dsu/hpl_dsu.o"
 
 # List the directories containing header files
@@ -217,12 +202,8 @@ DIR_INCLUDES +=  \
 -I"../hpl/systick" \
 -I"../hpl/tc" \
 -I"../hpl/trng" \
--I"../hpl/usb" \
 -I"../hpl/wdt" \
 -I"../hri" \
--I"../" \
--I"../temperature_sensor" \
--I"../temperature_sensor/at30tse75x" \
 -I"../" \
 -I"../CMSIS/Core/Include" \
 -I"../samd51a/include"
@@ -240,7 +221,7 @@ DEPS_AS_ARGS +=  \
 "hpl/core/hpl_core_m4.d" \
 "hpl/eic/hpl_eic.d" \
 "hal/utils/src/utils_syscalls.d" \
-"temperature_sensor/at30tse75x/at30tse75x.d" \
+"samd51a/gcc/system_samd51.d" \
 "hal/src/hal_crc_sync.d" \
 "hal/src/hal_i2c_m_sync.d" \
 "hpl/aes/hpl_aes.d" \
@@ -252,25 +233,19 @@ DEPS_AS_ARGS +=  \
 "hpl/pac/hpl_pac.d" \
 "hal/utils/src/utils_assert.d" \
 "hal/src/hal_sha_sync.d" \
-"temperature_sensor_main.d" \
 "hal/src/hal_delay.d" \
 "hpl/core/hpl_init.d" \
-"hpl/oscctrl/hpl_oscctrl.d" \
+"hpl/pm/hpl_pm.d" \
 "hal/src/hal_flash.d" \
 "hpl/gclk/hpl_gclk.d" \
-"hal/src/hal_usb_device.d" \
 "hpl/dmac/hpl_dmac.d" \
 "hpl/icm/hpl_icm.d" \
 "hal/src/hal_init.d" \
-"hal/src/hal_usart_sync.d" \
 "hpl/trng/hpl_trng.d" \
 "hal/src/hal_rand_sync.d" \
-"hpl/usb/hpl_usb.d" \
 "hpl/mclk/hpl_mclk.d" \
 "driver_init.d" \
-"temperature_sensor/temperature_sensor.d" \
 "hpl/systick/hpl_systick.d" \
-"samd51a/gcc/system_samd51.d" \
 "hpl/osc32kctrl/hpl_osc32kctrl.d" \
 "hal/src/hal_cache.d" \
 "main.d" \
@@ -287,7 +262,7 @@ DEPS_AS_ARGS +=  \
 "atmel_start.d" \
 "hal/src/hal_atomic.d" \
 "hpl/tc/hpl_tc.d" \
-"hpl/pm/hpl_pm.d" \
+"hpl/oscctrl/hpl_oscctrl.d" \
 "hpl/dsu/hpl_dsu.d" \
 "samd51a/gcc/gcc/startup_samd51.d" \
 "hpl/sercom/hpl_sercom.d"

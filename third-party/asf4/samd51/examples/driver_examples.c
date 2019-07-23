@@ -202,6 +202,26 @@ void I2C_0_example(void)
 	io_write(I2C_0_io, (uint8_t *)"Hello World!", 12);
 }
 
+void I2C_1_example(void)
+{
+	struct io_descriptor *I2C_1_io;
+
+	i2c_m_sync_get_io_descriptor(&I2C_1, &I2C_1_io);
+	i2c_m_sync_enable(&I2C_1);
+	i2c_m_sync_set_slaveaddr(&I2C_1, 0x12, I2C_M_SEVEN);
+	io_write(I2C_1_io, (uint8_t *)"Hello World!", 12);
+}
+
+void I2C_2_example(void)
+{
+	struct io_descriptor *I2C_2_io;
+
+	i2c_m_sync_get_io_descriptor(&I2C_2, &I2C_2_io);
+	i2c_m_sync_enable(&I2C_2);
+	i2c_m_sync_set_slaveaddr(&I2C_2, 0x12, I2C_M_SEVEN);
+	io_write(I2C_2_io, (uint8_t *)"Hello World!", 12);
+}
+
 /**
  * Example of using SPI_0 to write "Hello World" using the IO abstraction.
  */
@@ -217,25 +237,31 @@ void SPI_0_example(void)
 }
 
 /**
- * Example of using USART_0 to write "Hello World" using the IO abstraction.
+ * Example of using SPI_1 to write "Hello World" using the IO abstraction.
  */
-void USART_0_example(void)
+static uint8_t example_SPI_1[12] = "Hello World!";
+
+void SPI_1_example(void)
 {
 	struct io_descriptor *io;
-	usart_sync_get_io_descriptor(&USART_0, &io);
-	usart_sync_enable(&USART_0);
+	spi_m_sync_get_io_descriptor(&SPI_1, &io);
 
-	io_write(io, (uint8_t *)"Hello World!", 12);
+	spi_m_sync_enable(&SPI_1);
+	io_write(io, example_SPI_1, 12);
 }
 
-void I2C_INSTANCE_example(void)
-{
-	struct io_descriptor *I2C_INSTANCE_io;
+/**
+ * Example of using SPI_2 to write "Hello World" using the IO abstraction.
+ */
+static uint8_t example_SPI_2[12] = "Hello World!";
 
-	i2c_m_sync_get_io_descriptor(&I2C_INSTANCE, &I2C_INSTANCE_io);
-	i2c_m_sync_enable(&I2C_INSTANCE);
-	i2c_m_sync_set_slaveaddr(&I2C_INSTANCE, 0x12, I2C_M_SEVEN);
-	io_write(I2C_INSTANCE_io, (uint8_t *)"Hello World!", 12);
+void SPI_2_example(void)
+{
+	struct io_descriptor *io;
+	spi_m_sync_get_io_descriptor(&SPI_2, &io);
+
+	spi_m_sync_enable(&SPI_2);
+	io_write(io, example_SPI_2, 12);
 }
 
 void delay_example(void)

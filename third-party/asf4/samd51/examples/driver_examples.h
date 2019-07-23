@@ -28,9 +28,9 @@ void CALENDAR_0_example(void);
 
 void I2C_0_example(void);
 
-void USART_0_example(void);
+void I2C_1_example(void);
 
-void I2C_INSTANCE_example(void);
+void I2C_2_example(void);
 
 void delay_example(void);
 

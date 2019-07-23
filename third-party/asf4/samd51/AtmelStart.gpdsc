@@ -54,8 +54,6 @@
         <file category="doc" condition="ARMCC, GCC, IAR" name="hal/documentation/sha_sync.rst"/>
         <file category="doc" condition="ARMCC, GCC, IAR" name="hal/documentation/spi_master_sync.rst"/>
         <file category="doc" condition="ARMCC, GCC, IAR" name="hal/documentation/timer.rst"/>
-        <file category="doc" condition="ARMCC, GCC, IAR" name="hal/documentation/usart_sync.rst"/>
-        <file category="doc" condition="ARMCC, GCC, IAR" name="hal/documentation/usb_device_async.rst"/>
         <file category="doc" condition="ARMCC, GCC, IAR" name="hal/documentation/wdt.rst"/>
         <file category="header" condition="ARMCC, GCC, IAR" name="hal/include/hal_aes_sync.h"/>
         <file category="header" condition="ARMCC, GCC, IAR" name="hal/include/hal_atomic.h"/>
@@ -75,7 +73,6 @@
         <file category="header" condition="ARMCC, GCC, IAR" name="hal/include/hal_sha_sync.h"/>
         <file category="header" condition="ARMCC, GCC, IAR" name="hal/include/hal_sleep.h"/>
         <file category="header" condition="ARMCC, GCC, IAR" name="hal/include/hal_spi_m_sync.h"/>
-        <file category="header" condition="ARMCC, GCC, IAR" name="hal/include/hal_usb_device.h"/>
         <file category="header" condition="ARMCC, GCC, IAR" name="hal/include/hal_wdt.h"/>
         <file category="header" condition="ARMCC, GCC, IAR" name="hal/include/hpl_aes.h"/>
         <file category="header" condition="ARMCC, GCC, IAR" name="hal/include/hpl_aes_sync.h"/>
@@ -109,9 +106,6 @@
         <file category="header" condition="ARMCC, GCC, IAR" name="hal/include/hpl_spi_sync.h"/>
         <file category="header" condition="ARMCC, GCC, IAR" name="hal/include/hpl_time_measure.h"/>
         <file category="header" condition="ARMCC, GCC, IAR" name="hal/include/hpl_usart.h"/>
-        <file category="header" condition="ARMCC, GCC, IAR" name="hal/include/hpl_usb.h"/>
-        <file category="header" condition="ARMCC, GCC, IAR" name="hal/include/hpl_usb_device.h"/>
-        <file category="header" condition="ARMCC, GCC, IAR" name="hal/include/hpl_usb_host.h"/>
         <file category="header" condition="ARMCC, GCC, IAR" name="hal/include/hpl_user_area.h"/>
         <file category="header" condition="ARMCC, GCC, IAR" name="hal/include/hpl_wdt.h"/>
         <file category="source" condition="ARMCC, GCC, IAR" name="hal/src/hal_aes_sync.c"/>
@@ -129,7 +123,6 @@
         <file category="source" condition="ARMCC, GCC, IAR" name="hal/src/hal_rand_sync.c"/>
         <file category="source" condition="ARMCC, GCC, IAR" name="hal/src/hal_sha_sync.c"/>
         <file category="source" condition="ARMCC, GCC, IAR" name="hal/src/hal_sleep.c"/>
-        <file category="source" condition="ARMCC, GCC, IAR" name="hal/src/hal_usb_device.c"/>
         <file category="source" condition="ARMCC, GCC, IAR" name="hal/src/hal_wdt.c"/>
         <file category="header" condition="ARMCC, GCC, IAR" name="hal/utils/include/compiler.h"/>
         <file category="header" condition="ARMCC, GCC, IAR" name="hal/utils/include/err_codes.h"/>
@@ -183,11 +176,6 @@
         <file category="header" condition="ARMCC, GCC, IAR" name="hri/hri_trng_d51.h"/>
         <file category="header" condition="ARMCC, GCC, IAR" name="hri/hri_usb_d51.h"/>
         <file category="header" condition="ARMCC, GCC, IAR" name="hri/hri_wdt_d51.h"/>
-        <file category="doc" condition="ARMCC, GCC, IAR" name="documentation/temperature_sensor.rst"/>
-        <file category="source" condition="ARMCC, GCC, IAR" name="temperature_sensor/at30tse75x/at30tse75x.c"/>
-        <file category="header" condition="ARMCC, GCC, IAR" name="temperature_sensor/at30tse75x/at30tse75x.h"/>
-        <file category="source" condition="ARMCC, GCC, IAR" name="temperature_sensor/temperature_sensor.c"/>
-        <file category="header" condition="ARMCC, GCC, IAR" name="temperature_sensor/temperature_sensor.h"/>
         <file category="source" condition="ARMCC, GCC, IAR" name="main.c"/>
         <file category="source" condition="ARMCC, GCC, IAR" name="driver_init.c"/>
         <file category="header" condition="ARMCC, GCC, IAR" name="driver_init.h"/>
@@ -195,7 +183,6 @@
         <file category="header" condition="ARMCC, GCC, IAR" name="examples/driver_examples.h"/>
         <file category="source" condition="ARMCC, GCC, IAR" name="examples/driver_examples.c"/>
         <file category="header" condition="ARMCC, GCC, IAR" name="hal/include/hal_timer.h"/>
-        <file category="header" condition="ARMCC, GCC, IAR" name="hal/include/hal_usart_sync.h"/>
         <file category="header" condition="ARMCC, GCC, IAR" name="hal/include/hpl_calendar.h"/>
         <file category="header" condition="ARMCC, GCC, IAR" name="hal/include/hpl_missing_features.h"/>
         <file category="header" condition="ARMCC, GCC, IAR" name="hal/include/hpl_pwm.h"/>
@@ -212,7 +199,6 @@
         <file category="source" condition="ARMCC, GCC, IAR" name="hal/src/hal_ext_irq.c"/>
         <file category="source" condition="ARMCC, GCC, IAR" name="hal/src/hal_spi_m_sync.c"/>
         <file category="source" condition="ARMCC, GCC, IAR" name="hal/src/hal_timer.c"/>
-        <file category="source" condition="ARMCC, GCC, IAR" name="hal/src/hal_usart_sync.c"/>
         <file category="header" condition="ARMCC, GCC, IAR" name="hal/utils/include/parts.h"/>
         <file category="source" condition="ARMCC, GCC, IAR" name="hpl/aes/hpl_aes.c"/>
         <file category="source" condition="ARMCC, GCC, IAR" name="hpl/cmcc/hpl_cmcc.c"/>
@@ -243,11 +229,8 @@
         <file category="source" condition="ARMCC, GCC, IAR" name="hpl/tc/hpl_tc.c"/>
         <file category="header" condition="ARMCC, GCC, IAR" name="hpl/tc/hpl_tc_base.h"/>
         <file category="source" condition="ARMCC, GCC, IAR" name="hpl/trng/hpl_trng.c"/>
-        <file category="source" condition="ARMCC, GCC, IAR" name="hpl/usb/hpl_usb.c"/>
         <file category="source" condition="ARMCC, GCC, IAR" name="hpl/wdt/hpl_wdt.c"/>
         <file category="header" condition="ARMCC, GCC, IAR" name="hpl/wdt/hpl_wdt_base.h"/>
-        <file category="source" condition="ARMCC, GCC, IAR" name="temperature_sensor_main.c"/>
-        <file category="header" condition="ARMCC, GCC, IAR" name="temperature_sensor_main.h"/>
         <file category="header" condition="ARMCC, GCC, IAR" name="atmel_start.h"/>
         <file category="source" condition="ARMCC, GCC, IAR" name="atmel_start.c"/>
         <file attr="config" category="header" condition="ARMCC, GCC, IAR" name="config/hpl_aes_config.h"/>
@@ -267,10 +250,8 @@
         <file attr="config" category="header" condition="ARMCC, GCC, IAR" name="config/hpl_systick_config.h"/>
         <file attr="config" category="header" condition="ARMCC, GCC, IAR" name="config/hpl_tc_config.h"/>
         <file attr="config" category="header" condition="ARMCC, GCC, IAR" name="config/hpl_trng_config.h"/>
-        <file attr="config" category="header" condition="ARMCC, GCC, IAR" name="config/hpl_usb_config.h"/>
         <file attr="config" category="header" condition="ARMCC, GCC, IAR" name="config/hpl_wdt_config.h"/>
         <file attr="config" category="header" condition="ARMCC, GCC, IAR" name="config/peripheral_clk_config.h"/>
-        <file attr="config" category="header" condition="ARMCC, GCC, IAR" name="temperature_sensor/at30tse75x/at30tse75x_config.h"/>
         <file category="include" condition="ARMCC, GCC, IAR" name=""/>
         <file category="include" condition="ARMCC, GCC, IAR" name="config"/>
         <file category="include" condition="ARMCC, GCC, IAR" name="examples"/>
@@ -299,12 +280,8 @@
         <file category="include" condition="ARMCC, GCC, IAR" name="hpl/systick"/>
         <file category="include" condition="ARMCC, GCC, IAR" name="hpl/tc"/>
         <file category="include" condition="ARMCC, GCC, IAR" name="hpl/trng"/>
-        <file category="include" condition="ARMCC, GCC, IAR" name="hpl/usb"/>
         <file category="include" condition="ARMCC, GCC, IAR" name="hpl/wdt"/>
         <file category="include" condition="ARMCC, GCC, IAR" name="hri"/>
-        <file category="include" condition="ARMCC, GCC, IAR" name=""/>
-        <file category="include" condition="ARMCC, GCC, IAR" name="temperature_sensor"/>
-        <file category="include" condition="ARMCC, GCC, IAR" name="temperature_sensor/at30tse75x"/>
         <file category="include" condition="ARMCC, GCC, IAR" name=""/>
       </files>
     </component>

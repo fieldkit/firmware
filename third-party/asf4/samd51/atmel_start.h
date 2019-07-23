@@ -6,7 +6,6 @@ extern "C" {
 #endif
 
 #include "driver_init.h"
-#include "temperature_sensor_main.h"
 
 /**
  * Initializes MCU, drivers and middleware in the project

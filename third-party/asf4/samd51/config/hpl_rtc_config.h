@@ -35,7 +35,7 @@
 // <id> rtc_arch_prescaler
 #ifndef CONF_RTC_PRESCALER
 
-#define CONF_RTC_PRESCALER 0xB // jlewallen: Modified
+#define CONF_RTC_PRESCALER 0x1
 
 #endif
 

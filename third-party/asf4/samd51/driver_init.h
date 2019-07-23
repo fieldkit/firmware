@@ -37,19 +37,19 @@ extern "C" {
 #include <hal_calendar.h>
 
 #include <hal_i2c_m_sync.h>
-#include <hal_spi_m_sync.h>
-
-#include <hal_usart_sync.h>
 
 #include <hal_i2c_m_sync.h>
+
+#include <hal_i2c_m_sync.h>
+#include <hal_spi_m_sync.h>
+#include <hal_spi_m_sync.h>
+#include <hal_spi_m_sync.h>
 
 #include <hal_delay.h>
 #include <hal_timer.h>
 #include <hpl_tc_base.h>
 
 #include <hal_rand_sync.h>
-
-#include "hal_usb_device.h"
 
 #include <hal_wdt.h>
 
@@ -63,12 +63,14 @@ extern struct qspi_sync_descriptor QUAD_SPI_0;
 
 extern struct calendar_descriptor CALENDAR_0;
 
-extern struct i2c_m_sync_desc       I2C_0;
+extern struct i2c_m_sync_desc I2C_0;
+
+extern struct i2c_m_sync_desc I2C_1;
+
+extern struct i2c_m_sync_desc       I2C_2;
 extern struct spi_m_sync_descriptor SPI_0;
-
-extern struct usart_sync_descriptor USART_0;
-
-extern struct i2c_m_sync_desc I2C_INSTANCE;
+extern struct spi_m_sync_descriptor SPI_1;
+extern struct spi_m_sync_descriptor SPI_2;
 
 extern struct timer_descriptor TIMER_0;
 
@@ -90,25 +92,30 @@ void I2C_0_CLOCK_init(void);
 void I2C_0_init(void);
 void I2C_0_PORT_init(void);
 
+void I2C_1_CLOCK_init(void);
+void I2C_1_init(void);
+void I2C_1_PORT_init(void);
+
+void I2C_2_CLOCK_init(void);
+void I2C_2_init(void);
+void I2C_2_PORT_init(void);
+
 void SPI_0_PORT_init(void);
 void SPI_0_CLOCK_init(void);
 void SPI_0_init(void);
 
-void USART_0_PORT_init(void);
-void USART_0_CLOCK_init(void);
-void USART_0_init(void);
+void SPI_1_PORT_init(void);
+void SPI_1_CLOCK_init(void);
+void SPI_1_init(void);
 
-void I2C_INSTANCE_CLOCK_init(void);
-void I2C_INSTANCE_init(void);
-void I2C_INSTANCE_PORT_init(void);
+void SPI_2_PORT_init(void);
+void SPI_2_CLOCK_init(void);
+void SPI_2_init(void);
 
 void delay_driver_init(void);
 
 void RAND_0_CLOCK_init(void);
 void RAND_0_init(void);
-
-void USB_0_CLOCK_init(void);
-void USB_0_init(void);
 
 void WDT_0_CLOCK_init(void);
 void WDT_0_init(void);
