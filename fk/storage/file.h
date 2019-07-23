@@ -22,6 +22,7 @@ private:
     uint32_t record_remaining_{ 0 };
     uint32_t position_{ 0 };
     uint32_t size_{ 0 };
+    uint32_t number_hash_errors_{ 0 };
     BLAKE2b hash_;
 
 public:
@@ -59,6 +60,10 @@ public:
 
     bool valid() const {
         return is_address_valid(tail_);
+    }
+
+    uint32_t number_of_hash_errors() const {
+        return number_hash_errors_;
     }
 
 private:
