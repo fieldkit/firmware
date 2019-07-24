@@ -1,7 +1,7 @@
 #include <fk-app-protocol.h>
 
 #include "tests.h"
-#include "httpd/httpd.h"
+#include "networking/networking.h"
 
 #include <http_parser.h>
 

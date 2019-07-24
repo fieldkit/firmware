@@ -9,7 +9,7 @@
 
 #include "fk.h"
 #include "hal/linux/linux.h"
-#include "httpd/httpd.h"
+#include "networking/networking.h"
 #include "protobuf.h"
 
 FK_DECLARE_LOGGER("main");

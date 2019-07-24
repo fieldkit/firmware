@@ -1,9 +1,9 @@
 #pragma once
 
-#include "api_handler.h"
-#include "module_handler.h"
-#include "download_handler.h"
-#include "receive_handler.h"
+#include "networking/api_handler.h"
+#include "networking/module_handler.h"
+#include "networking/download_handler.h"
+#include "networking/receive_handler.h"
 
 namespace fk {
 

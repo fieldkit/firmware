@@ -3,8 +3,8 @@
 #include "common.h"
 #include "pool.h"
 #include "hal/hal.h"
-#include "httpd/req.h"
-#include "httpd/routing.h"
+#include "networking/req.h"
+#include "networking/routing.h"
 
 namespace fk {
 

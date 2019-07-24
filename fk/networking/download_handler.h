@@ -1,7 +1,7 @@
 #pragma once
 
-#include "httpd/httpd.h"
 #include "worker.h"
+#include "networking/networking.h"
 
 namespace fk {
 

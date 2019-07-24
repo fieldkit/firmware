@@ -1,7 +1,7 @@
 #include "tasks/tasks.h"
 
 #include "hal/hal.h"
-#include "httpd/server.h"
+#include "networking/server.h"
 
 #include "secrets.h"
 

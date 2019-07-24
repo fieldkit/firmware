@@ -2,10 +2,10 @@
 
 #include "config.h"
 #include "hal/hal.h"
-#include "httpd/req.h"
-#include "httpd/cpool.h"
-#include "httpd/server.h"
-#include "httpd/routing.h"
+#include "networking/req.h"
+#include "networking/cpool.h"
+#include "networking/server.h"
+#include "networking/routing.h"
 
 namespace fk {
 

@@ -1,6 +1,6 @@
 #include <fk-app-protocol.h>
 
-#include "httpd/cpool.h"
+#include "networking/cpool.h"
 #include "protobuf.h"
 
 namespace fk {

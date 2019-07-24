@@ -3,8 +3,8 @@
 
 #include "common.h"
 #include "platform.h"
-#include "httpd/server.h"
-#include "httpd/default_routes.h"
+#include "networking/server.h"
+#include "networking/default_routes.h"
 #include "hal/hal.h"
 
 namespace fk {

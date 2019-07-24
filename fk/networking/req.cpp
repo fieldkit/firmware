@@ -4,8 +4,8 @@
 
 #include "common.h"
 #include "platform.h"
-#include "httpd.h"
 #include "config.h"
+#include "networking/networking.h"
 
 namespace fk {
 

@@ -1,6 +1,6 @@
 #include <loading.h>
 
-#include "httpd/api_handler.h"
+#include "networking/api_handler.h"
 #include "storage/storage.h"
 #include "protobuf.h"
 #include "printf.h"

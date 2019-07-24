@@ -4,7 +4,7 @@
 
 #include "common.h"
 #include "pool.h"
-#include "httpd/req.h"
+#include "networking/req.h"
 
 namespace fk {
 

@@ -1,10 +1,10 @@
 #pragma once
 
-#include "httpd/httpd.h"
+#include "networking/networking.h"
 
 namespace fk {
 
-class ModuleHandler : public HttpHandler {
+class ApiHandler : public HttpHandler {
 public:
     bool handle(HttpRequest &req) override;
 
