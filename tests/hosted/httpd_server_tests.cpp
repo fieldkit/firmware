@@ -21,6 +21,9 @@ TEST_F(HttpServerSuite, WhenThingsAllWork) {
     EXPECT_CALL(network, serve()).WillOnce(Return(true));
 
     ASSERT_TRUE(server.begin());
+
+    // Called in the dtor.
+    EXPECT_CALL(network, stop()).WillOnce(Return(true));
 }
 
 TEST_F(HttpServerSuite, WhenBeginTakesTooLong) {
@@ -33,6 +36,9 @@ TEST_F(HttpServerSuite, WhenBeginTakesTooLong) {
     EXPECT_CALL(network, status()).WillRepeatedly(Return(NetworkStatus::Ready));
 
     ASSERT_FALSE(server.begin());
+
+    // Called in the dtor.
+    EXPECT_CALL(network, stop()).WillOnce(Return(true));
 }
 
 TEST_F(HttpServerSuite, WhenServeFails) {
@@ -44,4 +50,7 @@ TEST_F(HttpServerSuite, WhenServeFails) {
     EXPECT_CALL(network, serve()).WillOnce(Return(false));
 
     ASSERT_FALSE(server.begin());
+
+    // Called in the dtor.
+    EXPECT_CALL(network, stop()).WillOnce(Return(true));
 }

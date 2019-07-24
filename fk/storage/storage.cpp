@@ -250,7 +250,6 @@ SeekValue Storage::seek(SeekSettings settings) {
             address += sizeof(BlockHeader);
         }
 
-        // NOTE: This needs to cross blocks.
         if (memory.read(address, (uint8_t *)&record_head, sizeof(record_head)) != sizeof(record_head)) {
             return SeekValue{ };
         }
@@ -264,6 +263,10 @@ SeekValue Storage::seek(SeekSettings settings) {
         // Is this the record they're looking for?
         if (settings.record != InvalidRecord && record_head.record == settings.record) {
             logverbose("[%d] 0x%06x found record #%d", settings.file, address, settings.record);
+            break;
+        }
+        if (settings.record < record_head.record) {
+            logverbose("[%d] 0x%06x found nearby record #%d", settings.file, address, settings.record);
             break;
         }
 
@@ -284,7 +287,9 @@ SeekValue Storage::seek(SeekSettings settings) {
         position += record_head.size;
     }
 
-    logdebug("[%d] 0x%06x seek done @ (%d) (%d bytes) (%d in block)", settings.file, address, record, position, position - fh.size);
+    logdebug("[%d] 0x%06x seeking #%d done (#%d) (%d bytes) (%d in block)",
+             settings.file, address, settings.record,
+             record, position, position - fh.size);
 
     return SeekValue{ address, record, position };
 }
