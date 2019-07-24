@@ -1,7 +1,6 @@
 #include <loading.h>
 #include <os.h>
 
-#include "board.h"
 #include "platform.h"
 #include "self_check.h"
 #include "factory_wipe.h"
@@ -130,7 +129,7 @@ void setup() {
 
     log_diagnostics();
 
-    board.initialize();
+    get_board()->initialize();
 
     FK_ASSERT(fk_random_initialize() == 0);
 
@@ -142,7 +141,7 @@ void setup() {
         logwarn("modmux error, missing backplane?");
     }
 
-    board.enable_everything();
+    get_board()->enable_everything();
 
     FK_ASSERT(get_buttons()->begin());
 

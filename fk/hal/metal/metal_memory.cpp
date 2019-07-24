@@ -1,6 +1,5 @@
+#include "hal/hal.h"
 #include "hal/metal/metal.h"
-#include "hal/metal/spi_flash.h"
-#include "board.h"
 
 #if defined(ARDUINO)
 

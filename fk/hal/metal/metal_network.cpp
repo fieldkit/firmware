@@ -97,7 +97,7 @@ bool MetalNetworkConnection::stop() {
 }
 
 bool MetalNetwork::begin(NetworkSettings settings) {
-    board.enable_wifi();
+    get_board()->enable_wifi();
 
     WiFi.setPins(WINC1500_CS, WINC1500_IRQ, WINC1500_RESET);
 
@@ -192,7 +192,7 @@ bool MetalNetwork::stop() {
         ntp_.stop();
         WiFi.end();
         enabled_ = false;
-        board.disable_wifi();
+        get_board()->disable_wifi();
     }
     return true;
 }

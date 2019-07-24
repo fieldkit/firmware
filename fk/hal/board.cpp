@@ -8,7 +8,11 @@
 
 namespace fk {
 
-Board board;
+static Board board;
+
+Board *get_board() {
+    return &board;
+}
 
 #if defined(ARDUINO)
 
@@ -107,6 +111,10 @@ SpiWrapper Board::spi_flash() {
     return { &SPI };
 }
 
+SpiWrapper Board::spi_sd() {
+    return { &SPI2 };
+}
+
 SpiWrapper Board::spi_radio() {
     return { &SPI1 };
 }
@@ -124,7 +132,7 @@ TwoWireWrapper Board::i2c_radio() {
 }
 
 TwoWireWrapper Board::i2c_module() {
-    return { nullptr };
+    return { &Wire2 };
 }
 
 void SpiWrapper::begin() {
@@ -148,6 +156,11 @@ void SpiWrapper::end() {
         pinMode(PIN_SPI1_MOSI, INPUT);
         pinMode(PIN_SPI1_SCK, INPUT);
     }
+    else if (ptr_ == &SPI2) {
+        pinMode(PIN_SPI2_MISO, INPUT);
+        pinMode(PIN_SPI2_MOSI, INPUT);
+        pinMode(PIN_SPI2_SCK, INPUT);
+    }
 }
 
 void TwoWireWrapper::begin() {
@@ -168,6 +181,10 @@ void TwoWireWrapper::end() {
     else if (ptr_ == &Wire1) {
         pinMode(PIN_WIRE1_SDA, INPUT);
         pinMode(PIN_WIRE1_SCL, INPUT);
+    }
+    else if (ptr_ == &Wire2) {
+        pinMode(PIN_WIRE2_SDA, INPUT);
+        pinMode(PIN_WIRE2_SCL, INPUT);
     }
 }
 

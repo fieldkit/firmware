@@ -133,7 +133,7 @@ bool SelfCheck::gps() {
     return single_check("gps", []() {
         Serial1.begin(9600);
 
-        board.enable_gps();
+        get_board()->enable_gps();
 
         auto received = 0;
         auto started = fk_uptime();

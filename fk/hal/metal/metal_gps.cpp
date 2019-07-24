@@ -1,5 +1,5 @@
-#include "hal/metal/metal_gps.h"
-#include "board.h"
+#include "hal/hal.h"
+#include "hal/metal/metal.h"
 #include "platform.h"
 #include "config.h"
 
@@ -19,7 +19,7 @@ constexpr const char *PMTK_API_SET_FIX_CTL_1HZ = "$PMTK300,1000,0,0,0,0*1C";
 bool MetalGps::begin() {
     Serial1.begin(9600);
 
-    board.enable_gps();
+    get_board()->enable_gps();
 
     Serial1.println(PGCMD_ANTENNA);
     Serial1.println(PMTK_SET_NMEA_UPDATE_1HZ);

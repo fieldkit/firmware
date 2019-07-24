@@ -64,6 +64,7 @@ public:
 
 public:
     SpiWrapper spi_flash();
+    SpiWrapper spi_sd();
     SpiWrapper spi_radio();
     SpiWrapper spi_module();
     TwoWireWrapper i2c_core();
@@ -72,6 +73,6 @@ public:
 
 };
 
-extern Board board;
+Board *get_board();
 
 }

@@ -2,7 +2,8 @@
 
 #include "common.h"
 #include "platform.h"
-#include "board.h"
+
+#include "hal/board.h"
 
 #include "hal/random.h"
 #include "hal/network.h"
