@@ -4,6 +4,7 @@
 #include "platform.h"
 #include "board.h"
 
+#include "hal/random.h"
 #include "hal/network.h"
 #include "hal/memory.h"
 #include "hal/gps.h"

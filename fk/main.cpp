@@ -132,6 +132,8 @@ void setup() {
 
     board.initialize();
 
+    FK_ASSERT(fk_random_initialize() == 0);
+
     // NOTE: We do this ASAP because the GPIO on the modmux can be in any state.
     if (mmm.begin()) {
         mmm.disable_all_modules();
