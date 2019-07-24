@@ -16,8 +16,8 @@ void DownloadWorker::run(WorkerContext &wc) {
     uint32_t last_block = LastRecord;
 
     auto started = fk_uptime();
-    auto memory = MemoryFactory::get_data_memory();
-    Storage storage{ memory };
+    StatisticsMemory memory{ MemoryFactory::get_data_memory() };
+    Storage storage{ &memory };
 
     auto file = storage.file(file_number);
 
@@ -64,6 +64,8 @@ void DownloadWorker::run(WorkerContext &wc) {
     }
 
     req_->connection()->close();
+
+    memory.log_statistics();
 }
 
 bool DownloadWorker::write_headers(HeaderInfo header_info) {
