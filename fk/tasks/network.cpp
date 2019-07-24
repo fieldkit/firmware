@@ -27,6 +27,8 @@ void task_handler_network(void *params) {
         fk_delay(10);
     }
 
+    http_server.stop();
+
     loginfo("network stopped");
 }
 

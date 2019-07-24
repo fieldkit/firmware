@@ -20,6 +20,7 @@ private:
 public:
     HttpServer(Network *network);
     HttpServer(Network *network, const char *ssid, const char *password);
+    ~HttpServer();
 
 public:
     bool begin();

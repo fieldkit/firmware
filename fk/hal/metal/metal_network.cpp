@@ -184,14 +184,16 @@ NetworkConnection *MetalNetwork::accept() {
 }
 
 bool MetalNetwork::stop() {
-    mdns_.removeServiceRecord(80, MDNSServiceTCP);
-    // Ensure the previous removal gets loose.
-    fk_delay(100);
-    udp_.stop();
-    ntp_.stop();
-    WiFi.end();
-    enabled_ = false;
-    board.disable_wifi();
+    if (enabled_) {
+        mdns_.removeServiceRecord(80, MDNSServiceTCP);
+        // Ensure the previous removal gets loose.
+        fk_delay(100);
+        udp_.stop();
+        ntp_.stop();
+        WiFi.end();
+        enabled_ = false;
+        board.disable_wifi();
+    }
     return true;
 }
 

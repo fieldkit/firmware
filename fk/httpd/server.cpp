@@ -23,6 +23,10 @@ HttpServer::HttpServer(Network *network) : network_(network), ssid_(nullptr), pa
 HttpServer::HttpServer(Network *network, const char *ssid, const char *password) : network_(network), ssid_(ssid), password_(password) {
 }
 
+HttpServer::~HttpServer() {
+    stop();
+}
+
 bool HttpServer::begin() {
     auto settings = get_settings();
 
@@ -74,8 +78,6 @@ void HttpServer::tick() {
 }
 
 void HttpServer::stop() {
-    loginfo("stop");
-
     network_->stop();
 }
 
