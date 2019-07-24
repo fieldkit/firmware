@@ -15,6 +15,7 @@ void DownloadWorker::run(WorkerContext &wc) {
     uint32_t first_block = 0;
     uint32_t last_block = LastRecord;
 
+    auto started = fk_uptime();
     auto memory = MemoryFactory::get_data_memory();
     Storage storage{ memory };
 
@@ -57,7 +58,9 @@ void DownloadWorker::run(WorkerContext &wc) {
 
         free(buffer);
 
-        loginfo("done (%d)", bytes_copied);
+        auto elapsed = fk_uptime() - started;
+        auto speed = ((bytes_copied / 1024.0f) / (elapsed / 1000.0f));
+        loginfo("done (%d) (%dms) %.2fkbps", bytes_copied, elapsed, speed);
     }
 
     req_->connection()->close();
