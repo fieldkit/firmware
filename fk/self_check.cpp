@@ -131,9 +131,9 @@ bool SelfCheck::spi_memory() {
 
 bool SelfCheck::gps() {
     return single_check("gps", []() {
-        Serial1.begin(9600);
-
         get_board()->enable_gps();
+
+        Serial1.begin(9600);
 
         auto received = 0;
         auto started = fk_uptime();

@@ -67,6 +67,23 @@ bool MetalIPC::launch_worker(Worker *worker) {
     return true;
 }
 
+bool Mutex::create() {
+    os_mutex_create(&mutex_, &def_);
+    return true;
+}
+
+Mutex::Lock Mutex::acquire(uint32_t to) {
+    if (os_mutex_acquire(&mutex_, to) == OSS_SUCCESS) {
+        return { this };
+    }
+    return { nullptr };
+}
+
+bool Mutex::release() {
+    os_mutex_release(&mutex_);
+    return false;
+}
+
 }
 
 #endif
