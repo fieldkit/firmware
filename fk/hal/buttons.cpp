@@ -13,6 +13,7 @@ void Button::changed(bool down) {
     if (down) {
         down_ = true;
         time_ = fk_uptime();
+        loginfo("%s (DOWN)", name_);
     }
     else if (down_) {
         auto elapsed = fk_uptime() - time_;

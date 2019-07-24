@@ -80,6 +80,7 @@ struct BlockHeader {
     uint32_t timestamp;
     uint32_t file;
     uint32_t overflow;
+    uint32_t version;
     FileHeader files[NumberOfFiles];
     Hash hash;
 
