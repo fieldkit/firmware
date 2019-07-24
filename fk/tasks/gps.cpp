@@ -11,7 +11,7 @@ void task_handler_gps(void *params) {
 
     FK_ASSERT(gps->begin());
 
-    auto status = fk_uptime() + TenSecondsMs;
+    auto status = fk_uptime() + OneMinuteMs;
 
     // TODO: This would be way better if we used an IRQ to wake this task and
     // slurp down the latest characters.
@@ -24,7 +24,7 @@ void task_handler_gps(void *params) {
             loginfo("satellites(%d) time(%d) location(%f, %f) statistics(%dchrs, %d/%d)",
                     fix.satellites, fix.time, fix.longitude, fix.latitude,
                     fix.chars, fix.good, fix.failed);
-            status = fk_uptime() + TenSecondsMs;
+            status = fk_uptime() + OneMinuteMs;
         }
     }
 }
