@@ -10,6 +10,7 @@ using StorageAddress = uint32_t;
 constexpr uint32_t InvalidAddress = (uint32_t)(-1);
 constexpr uint32_t InvalidSize = (uint32_t)(-1);
 constexpr uint32_t InvalidRecord = (uint32_t)(-1);
+constexpr uint32_t InvalidBlock = (uint32_t)(-1);
 constexpr uint32_t InvalidVersion = (uint32_t)(-1);
 constexpr uint32_t InvalidTimestamp  = (uint32_t)(-1);
 
@@ -143,11 +144,12 @@ struct SeekValue {
     uint32_t address{ InvalidAddress };
     uint32_t record{ InvalidRecord };
     uint32_t position{ InvalidAddress };
+    uint32_t block{ InvalidBlock };
 
     SeekValue() {
     }
 
-    SeekValue(uint32_t address, uint32_t record, uint32_t position) : address(address), record(record), position(position) {
+    SeekValue(uint32_t address, uint32_t record, uint32_t position, uint32_t block) : address(address), record(record), position(position), block(block) {
     }
 
     bool valid() {

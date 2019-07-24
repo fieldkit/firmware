@@ -105,6 +105,10 @@ bool Storage::begin() {
             files_[file].tail = sv.address;
             files_[file].size = sv.position;
             files_[file].record = sv.record;
+
+            if (sv.block >= free_block_) {
+                free_block_ = sv.block + 1;
+            }
         }
     }
 
@@ -188,9 +192,6 @@ uint32_t Storage::allocate(uint8_t file, uint32_t overflow, uint32_t previous_ta
 SeekValue Storage::seek(SeekSettings settings) {
     SequentialMemory memory{ memory_ };
     auto g = memory_->geometry();
-    auto record = (uint32_t)0;
-    auto position = (uint32_t)0;
-    auto address = InvalidAddress;
 
     logtrace("[%d] seeking #%d", settings.file, settings.record);
 
@@ -233,8 +234,10 @@ SeekValue Storage::seek(SeekSettings settings) {
 
     // If at the start of the block, bump.
     auto &fh = file_block_header.files[settings.file];
-    address = fh.tail;
-    position = fh.size;
+    auto address = fh.tail;
+    auto block = address / g.block_size;
+    auto position = fh.size;
+    auto record = (uint32_t)0;
 
     if (!is_address_valid(address)) {
         return SeekValue{ };
@@ -291,7 +294,7 @@ SeekValue Storage::seek(SeekSettings settings) {
              settings.file, address, settings.record,
              record, position, position - fh.size);
 
-    return SeekValue{ address, record, position };
+    return SeekValue{ address, record, position, block };
 }
 
 File Storage::file(uint8_t file) {

@@ -573,6 +573,39 @@ TEST_F(StorageSuite, SeekingToAReading) {
     ASSERT_EQ(file_read.position(), (size_t)0);
 }
 
+TEST_F(StorageSuite, WritingThroughABlockClosingAndWritingAnother) {
+    Storage storage{ memory_ };
+
+    ASSERT_TRUE(storage.clear());
+
+    auto file_write1 = storage.file(0);
+    auto size = file_write1.size();
+
+    for (auto i = 0; i < 600; ++i) {
+        auto wrote = write_reading(file_write1);
+        FK_ASSERT(wrote > 0);
+        size += wrote;
+    }
+
+    ASSERT_TRUE(storage.begin());
+
+    auto file_write2 = storage.file(0);
+
+    for (auto i = 0; i < 1500; ++i) {
+        auto wrote = write_reading(file_write2);
+        FK_ASSERT(wrote > 0);
+        size += wrote;
+    }
+
+    auto file_read = storage.file(0);
+
+    ASSERT_TRUE(file_read.seek(LastRecord));
+    ASSERT_EQ(file_read.position(), size);
+
+    ASSERT_TRUE(file_read.seek(0));
+    ASSERT_EQ(file_read.position(), (size_t)0);
+}
+
 static size_t write_reading(File &file) {
     fk_data_SensorAndValue readings[] = {
         { 0, (float)random() },
