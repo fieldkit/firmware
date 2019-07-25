@@ -11,9 +11,9 @@ constexpr uint8_t WINC1500_RESET = 96u;      // PC26
 
 constexpr uint8_t GPS_POWER = 55u;
 
-constexpr uint8_t QSPI_FLASH_CS = 90u; // PB11
+constexpr uint8_t QSPI_FLASH_CS = 90u;       // PB11
 
-constexpr uint8_t PIN_SD_CS = 8u;  // PB18
+constexpr uint8_t PIN_SD_CS = 8u;            // PB18
 
 constexpr uint8_t SPI_FLASH_CS_BANK_1 = 44u; // PC11
 constexpr uint8_t SPI_FLASH_CS_BANK_2 = 41u; // PC12
@@ -26,6 +26,7 @@ constexpr uint8_t BUTTON_LEFT = 30u;         // PA23
 
 class SpiWrapper {
 private:
+    const char *name_;
     void *ptr_;
 
 public:
@@ -33,32 +34,38 @@ public:
     void end();
 
 public:
-    SpiWrapper(void *ptr) : ptr_(ptr) {
-    }
+    SpiWrapper(const char *name, void *ptr);
+    ~SpiWrapper();
 
 };
 
 class TwoWireWrapper {
 private:
+    const char *name_;
     void *ptr_;
+
+public:
+    TwoWireWrapper(const char *name, void *ptr);
+    ~TwoWireWrapper();
 
 public:
     void begin();
     void end();
 
 public:
-    TwoWireWrapper(void *ptr) : ptr_(ptr) {
-    }
+    int32_t read(uint8_t address, void *data, int32_t size);
+    int32_t write(uint8_t address, const void *data, int32_t size);
 
 };
 
 class SerialWrapper {
 private:
+    const char *name_;
     void *ptr_;
 
 public:
-    SerialWrapper(void *ptr) : ptr_(ptr) {
-    }
+    SerialWrapper(const char *name, void *ptr);
+    ~SerialWrapper();
 
 public:
     bool begin(uint32_t baud);
