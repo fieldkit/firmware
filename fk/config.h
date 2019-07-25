@@ -11,6 +11,11 @@ namespace fk {
 #define FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS (2)
 
 /**
+ * Maximum number of memory banks we're capable of supporting.
+ */
+constexpr size_t MaximumNumberOfMemoryBanks = FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS;
+
+/**
  * One second in milliseconds.
  */
 constexpr uint32_t OneSecondMs = 1000;

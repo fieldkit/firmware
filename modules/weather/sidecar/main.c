@@ -3,6 +3,8 @@
 #include <hal_delay.h>
 #include <string.h>
 
+#include <modules/modules.h>
+
 #include "eeprom.h"
 
 void passed() {
@@ -13,6 +15,38 @@ void failed() {
     delay_ms(100);
 }
 
+int32_t ensure_module_header() {
+    ModuleHeader expected = {
+        .manufacturer = 0x01,
+        .kind = 0x01,
+        .version = 0x01,
+        .reserved = { 0x00, 0x00, 0x00, 0x00 },
+        .crc = 0x00,
+    };
+    ModuleHeader actual;
+    int32_t rv;
+
+    rv = eeprom_read(&I2C_0, 0x00, (uint8_t *)&actual, sizeof(actual));
+    if (rv != 0) {
+        return 0;
+    }
+
+    // Calculate hash of expected header, which is the entire block minus the 4
+    // bytes at the end for the CRC itself.
+    expected.crc = fk_module_header_sign(&expected);
+
+    if (memcmp(&actual, &expected, sizeof(ModuleHeader)) == 0) {
+        return 1;
+    }
+
+    rv = eeprom_write(&I2C_0, 0x00, (uint8_t *)&expected, sizeof(expected));
+    if (rv != ERR_NONE) {
+        return 0;
+    }
+
+    return 1;
+}
+
 __int32_t main() {
     system_init();
     delay_driver_init();
@@ -20,36 +54,12 @@ __int32_t main() {
     I2C_0_init();
     I2C_1_init();
 
-    uint8_t counter = 0;
-
-    while (true) {
-        {
-            uint8_t writing[3] = { counter, 0xbb, 0xcc };
-            int32_t rv = eeprom_write(&I2C_0, 0x00, writing, sizeof(writing));
-            if (rv != ERR_NONE) {
-                failed();
-            }
-        }
-
-        {
-            uint8_t reading[3];
-            int32_t rv = eeprom_read(&I2C_0, 0x00, reading, sizeof(reading));
-            if (rv != 0) {
-                failed();
-            }
-            if (reading[0] == counter) {
-                passed();
-            }
-        }
-
-        delay_ms(500);
-
-        counter++;
+    if (!ensure_module_header()) {
+        failed();
     }
 
-    volatile uint32_t i = 0;
-    while (1) {
-        i++;
+    while (true) {
+        delay_ms(500);
     }
 
     return 0;

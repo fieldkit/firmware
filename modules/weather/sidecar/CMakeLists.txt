@@ -32,9 +32,11 @@ set(map_file ${CMAKE_CURRENT_BINARY_DIR}/${target_name}.map)
 set(elf_target ${target_name}.elf)
 set(bin_target ${target_name}.bin)
 
+file(GLOB fk_sources ${CMAKE_SOURCE_DIR}/fk/modules/*.c)
 file(GLOB sources *.s *.c)
-add_library(fk-weather-sidecar STATIC ${sources})
+add_library(fk-weather-sidecar STATIC ${sources} ${fk_sources})
 target_compile_options(fk-weather-sidecar PRIVATE ${target_c_flags})
+target_include_directories(fk-weather-sidecar PUBLIC ${CMAKE_SOURCE_DIR}/fk)
 
 
 
