@@ -1,5 +1,4 @@
 #include "tasks/tasks.h"
-
 #include "hal/hal.h"
 #include "clock.h"
 
@@ -20,14 +19,6 @@ void task_handler_scheduler(void *params) {
                 os_task_start(&network_task);
             }
         }
-
-        auto reading = get_battery_gauge()->get();
-        if (reading.available) {
-            loginfo("battery(%dmv %d%% %dC %fs %fs)", reading.cellv, reading.soc, reading.temp, reading.tte, reading.ttf);
-        }
-
-        void *outgoing = (void *)0xdeadbeef;
-        FK_ASSERT(get_ipc()->enqueue_data(outgoing, 250));
 
         if (fk_uptime() - last_readings > ThirtySecondsMs) {
             auto status = os_task_get_status(&readings_task);
