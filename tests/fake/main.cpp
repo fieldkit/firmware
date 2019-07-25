@@ -111,8 +111,9 @@ static void setup_fake_data() {
 }
 
 static void server(Fake *fake) {
+    configuration_t fkc;
     LinuxNetwork network;
-    HttpServer http_server{ &network };
+    HttpServer http_server{ &network, &fkc };
 
     if (!http_server.begin()) {
         return;

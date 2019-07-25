@@ -3,6 +3,9 @@
 #include <inttypes.h>
 #include <string.h>
 
+// NOTE: I'd like to remove this eventually.
+#include "secrets.h"
+
 namespace fk {
 
 /**

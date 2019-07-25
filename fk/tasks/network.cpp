@@ -3,19 +3,13 @@
 #include "hal/hal.h"
 #include "networking/server.h"
 
-#include "secrets.h"
-
 namespace fk {
 
 FK_DECLARE_LOGGER("network");
 
 void task_handler_network(void *params) {
     auto network = get_network();
-    #if defined(FK_WIFI_0_SSID) && defined(FK_WIFI_0_PASSWORD)
-    HttpServer http_server{ network, FK_WIFI_0_SSID, FK_WIFI_0_PASSWORD };
-    #else
-    HttpServer http_server{ network };
-    #endif
+    auto http_server = HttpServer{ network, &fkc };
 
     if (!http_server.begin()) {
         logerror("error starting server");

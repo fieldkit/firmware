@@ -12,14 +12,12 @@ namespace fk {
 class HttpServer {
 private:
     ConnectionPool pool_;
-    Network *network_;
     HttpRouter router_;
-    const char *ssid_;
-    const char *password_;
+    Network *network_;
+    configuration_t *fkc_;
 
 public:
-    HttpServer(Network *network);
-    HttpServer(Network *network, const char *ssid, const char *password);
+    HttpServer(Network *network, configuration_t *fkc);
     ~HttpServer();
 
 public:
@@ -29,6 +27,7 @@ public:
 
     void stop();
 
+public:
     bool enabled() const {
         return network_->enabled();
     }
@@ -42,7 +41,9 @@ public:
     }
 
 private:
-    NetworkSettings get_settings();
+    bool try_configurations();
+
+    NetworkSettings get_settings(configuration_t::wifi_network_t &network);
 
 };
 

@@ -17,10 +17,7 @@ static bool network_ready(NetworkStatus status) {
     return status == NetworkStatus::Connected || status == NetworkStatus::Listening;
 }
 
-HttpServer::HttpServer(Network *network) : network_(network), ssid_(nullptr), password_(nullptr) {
-}
-
-HttpServer::HttpServer(Network *network, const char *ssid, const char *password) : network_(network), ssid_(ssid), password_(password) {
+HttpServer::HttpServer(Network *network, configuration_t *fkc) : network_(network), fkc_(fkc) {
 }
 
 HttpServer::~HttpServer() {
@@ -28,26 +25,13 @@ HttpServer::~HttpServer() {
 }
 
 bool HttpServer::begin() {
-    auto settings = get_settings();
-
-    default_routes.add_routes(router_);
-
     loginfo("checking network...");
 
-    if (!network_->begin(settings)) {
-        loginfo("unable to configure network");
+    if (!try_configurations()) {
         return false;
     }
 
-    auto started = fk_uptime();
-    while (!network_ready(network_->status())) {
-        fk_delay(100);
-
-        if (fk_uptime() - started > WifiConnectionTimeoutMs) {
-            logerror("networking took too long");
-            return false;
-        }
-    }
+    default_routes.add_routes(router_);
 
     if (!network_->serve()) {
         return false;
@@ -81,8 +65,43 @@ void HttpServer::stop() {
     network_->stop();
 }
 
-NetworkSettings HttpServer::get_settings() {
-    if (ssid_ == nullptr) {
+bool HttpServer::try_configurations() {
+    for (auto &config : fkc_->network.networks) {
+        auto settings = get_settings(config);
+
+        loginfo("trying '%s'", settings.ssid);
+
+        if (!network_->begin(settings)) {
+            loginfo("unable to configure network");
+            continue;
+        }
+
+        auto started = fk_uptime();
+        auto ready = false;
+        while (!ready) {
+            if (network_ready(network_->status())) {
+                ready = true;
+                break;
+            }
+
+            fk_delay(100);
+
+            if (fk_uptime() - started > WifiConnectionTimeoutMs) {
+                logerror("networking took too long");
+                break;
+            }
+        }
+
+        if (ready) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+NetworkSettings HttpServer::get_settings(configuration_t::wifi_network_t &network) {
+    if (network.ssid == nullptr) {
         return {
             .create = true,
             .ssid = "FkDevice",
@@ -93,8 +112,8 @@ NetworkSettings HttpServer::get_settings() {
     }
     return {
         .create = false,
-        .ssid = ssid_,
-        .password = password_,
+        .ssid = network.ssid,
+        .password = network.password,
         .name = "FK-DEVICE",
         .port = 80,
     };
