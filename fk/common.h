@@ -9,9 +9,10 @@ extern "C" {
 #endif
 
 /**
- * Invoked to handle assertion failures.
+ * Invoked to handle assertion failures. This is variadic so we can create more
+ * useful messages, with interpolated values, etc...
  */
-void __fk_assert(const char *assertion, const char *file, int line);
+void __fk_assert(const char *assertion, const char *file, int32_t line, const char *f, ...);
 
 #ifdef __cplusplus
 }
@@ -23,7 +24,43 @@ namespace fk {
  * Halts execution if the given expression evaluates to false. See the fk_assert
  * function for more information.
  */
-#define FK_ASSERT(expression)                         (void)((expression) || (__fk_assert(#expression, __FILE__, __LINE__), 0))
+#define FK_ASSERT_INTERNAL(expression, f, ...)        (void)((expression) || (__fk_assert(#expression, __FILE__, __LINE__, f, ##__VA_ARGS__), 0))
+
+/**
+ * Halts execution if the given expression evaluates to false. See the fk_assert
+ * function for more information.
+ */
+#define FK_ASSERT(expression)                         FK_ASSERT_INTERNAL(expression, "")
+
+/**
+ *
+ */
+#define FK_ASSERT_EQ(a, b)                            FK_ASSERT_INTERNAL((a) == (b), "%d == %d", a, b)
+
+/**
+ *
+ */
+#define FK_ASSERT_NE(a, b)                            FK_ASSERT_INTERNAL((a) != (b), "%d != %d", a, b)
+
+/**
+ *
+ */
+#define FK_ASSERT_LE(a, b)                            FK_ASSERT_INTERNAL((a) <= (b), "%d <= %d", a, b)
+
+/**
+ *
+ */
+#define FK_ASSERT_LT(a, b)                            FK_ASSERT_INTERNAL((a) < (b), "%d < %d", a, b)
+
+/**
+ *
+ */
+#define FK_ASSERT_GE(a, b)                            FK_ASSERT_INTERNAL((a) >= (b), "%d >= %d", a, b)
+
+/**
+ *
+ */
+#define FK_ASSERT_GT(a, b)                            FK_ASSERT_INTERNAL((a) > (b), "%d > %d", a, b)
 
 /**
  * Write hex representation of bytes to a separate buffer.

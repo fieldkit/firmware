@@ -112,7 +112,7 @@ bool SpiFlash::begin() {
 }
 
 int32_t SpiFlash::read(uint32_t address, uint8_t *data, size_t length) {
-    FK_ASSERT((address % PageSize) + length <= PageSize);
+    FK_ASSERT_LE((address % PageSize) + length, PageSize);
 
     if ((cached_page_ / PageSize) != (address / PageSize)) {
         uint8_t read_cell_command[] = { CMD_READ_CELL_ARRAY, 0x00, 0x00, 0x00 }; // 7dummy/17 (Row)
@@ -212,13 +212,14 @@ int32_t SpiFlash::write(uint32_t address, const uint8_t *data, size_t length) {
         // NOTE: PageSize is weird here, I know... we return the length on
         // success though so this is easier than changing things completely just
         // for this scenario.
-        if (!read(address, NULL, PageSize)) {
+        auto page_address = ((size_t)(address / PageSize)) * PageSize;
+        if (!read(page_address, NULL, PageSize)) {
             logerror("write: read failed");
             return 0;
         }
     }
 
-    FK_ASSERT((address % PageSize) + length <= PageSize);
+    FK_ASSERT_LE((address % PageSize) + length, PageSize);
 
     memcpy(cache_ + (address % PageSize), data, length);
 
