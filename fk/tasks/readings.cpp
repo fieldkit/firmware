@@ -12,6 +12,9 @@ namespace fk {
 FK_DECLARE_LOGGER("readings");
 
 void task_handler_readings(void *params) {
+    auto memory_bus = get_board()->spi_flash();
+    auto module_bus = get_board()->i2c_module();
+
     StatisticsMemory memory{ MemoryFactory::get_data_memory() };
     Storage storage{ &memory };
 

@@ -11,6 +11,8 @@ DownloadWorker::DownloadWorker(HttpRequest *req) : req_(req) {
 void DownloadWorker::run(WorkerContext &wc) {
     loginfo("downloading");
 
+    auto memory_bus = get_board()->spi_flash();
+
     uint32_t file_number = 0;
     uint32_t first_block = 0;
     uint32_t last_block = LastRecord;

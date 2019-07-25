@@ -16,6 +16,8 @@ constexpr static uint32_t BootloaderSize = 0x4000;
 bool send_status(HttpRequest &req) {
     loginfo("handling %s", "QUERY_STATUS");
 
+    auto memory_bus = get_board()->spi_flash();
+
     StatisticsMemory memory{ MemoryFactory::get_data_memory() };
     Storage storage{ &memory };
 

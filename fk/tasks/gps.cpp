@@ -7,6 +7,7 @@ namespace fk {
 FK_DECLARE_LOGGER("gps");
 
 void task_handler_gps(void *params) {
+    auto gps_serial = get_board()->gps_serial();
     auto gps = get_gps();
 
     FK_ASSERT(gps->begin());

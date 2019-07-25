@@ -5,6 +5,7 @@
 namespace fk {
 
 static void refresh() {
+    auto bus = get_board()->i2c_core();
     auto display = get_display();
 
     home_screen_t screen = {
