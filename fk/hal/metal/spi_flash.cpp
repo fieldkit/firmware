@@ -209,7 +209,10 @@ bool SpiFlash::flush() {
 
 int32_t SpiFlash::write(uint32_t address, const uint8_t *data, size_t length) {
     if ((cached_page_ / PageSize) != (address / PageSize)) {
-        if (!read(address, NULL, 0)) {
+        // NOTE: PageSize is weird here, I know... we return the length on
+        // success though so this is easier than changing things completely just
+        // for this scenario.
+        if (!read(address, NULL, PageSize)) {
             logerror("write: read failed");
             return 0;
         }
@@ -244,6 +247,11 @@ int32_t SpiFlash::erase_block(uint32_t address) {
 
     if (!transfer(command, sizeof(command), nullptr, nullptr, 0)) {
         logerror("erase: erase failed");
+        return 0;
+    }
+
+    if (!is_ready()) {
+        logerror("erase: erase !ready");
         return 0;
     }
 

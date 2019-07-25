@@ -199,25 +199,27 @@ size_t File::read_record_header() {
                 return 0;
             }
 
-            if (record_header.valid()) {
-                record_ = record_header.record;
-                record_remaining_ = record_header.size;
-                record_address_ = tail_;
-
-                hash_.reset(Hash::Length);
-                hash_.update(&record_header, sizeof(RecordHeader));
-
-                log_hashed_data(FK_OP_STR_READ, file_, record_, tail_, &record_header, sizeof(RecordHeader));
-
-                logverbose("[%d] 0x%06x record header (%d bytes) #%d", file_, tail_, record_remaining_, record_header.record);
-
-                tail_ += sizeof(record_header);
-
-                return record_remaining_;
+            if (!record_header.valid()) {
+                loginfo("[%d] 0x%06x invalid header", file_, tail_);
+                tail_ += left_in_block;
+                left_in_block = (uint32_t)(g.remaining_in_block(tail_) - sizeof(BlockTail));
+                continue;
             }
 
-            tail_ += left_in_block;
-            left_in_block = (uint32_t)(g.remaining_in_block(tail_) - sizeof(BlockTail));
+            record_ = record_header.record;
+            record_remaining_ = record_header.size;
+            record_address_ = tail_;
+
+            hash_.reset(Hash::Length);
+            hash_.update(&record_header, sizeof(RecordHeader));
+
+            log_hashed_data(FK_OP_STR_READ, file_, record_, tail_, &record_header, sizeof(RecordHeader));
+
+            logverbose("[%d] 0x%06x record header (%d bytes) #%d", file_, tail_, record_remaining_, record_header.record);
+
+            tail_ += sizeof(record_header);
+
+            return record_remaining_;
         }
     }
 
