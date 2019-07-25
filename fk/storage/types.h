@@ -114,8 +114,8 @@ struct BlockTail {
 struct RecordHeader {
     uint32_t size{ 0 };
     uint32_t record{ 0 };
-    uint32_t crc{ 0 };
     uint32_t reserved[3] = { 0xdeadbeef, 0xdeadbeef, 0xdeadbeef };
+    uint32_t crc{ 0 };
 
     uint32_t sign();
     bool valid();

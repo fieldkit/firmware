@@ -19,4 +19,6 @@ public:
 
 };
 
+ModMux *get_modmux();
+
 }

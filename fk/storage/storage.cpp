@@ -42,7 +42,7 @@ SeekSettings SeekSettings::end_of(uint8_t file) {
 }
 
 uint32_t RecordHeader::sign() {
-    return phylum::crc32_checksum((uint8_t *)this, sizeof(uint32_t) * 2);
+    return phylum::crc32_checksum((uint8_t *)this, sizeof(RecordHeader) - sizeof(uint32_t));
 }
 
 bool RecordHeader::valid() {

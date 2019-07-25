@@ -2,12 +2,13 @@
 #include <os.h>
 
 #include "platform.h"
+#include "hal/metal/metal.h"
+
 #include "self_check.h"
 #include "factory_wipe.h"
+#include "scanning.h"
 
 #include "tasks/tasks.h"
-
-#include "hal/metal/metal.h"
 
 extern const struct fkb_header_t fkb_header;
 
@@ -121,8 +122,6 @@ static void log_diagnostics() {
 }
 
 void setup() {
-    MetalModMux mmm;
-
     log_configure_writer(write_log);
 
     log_configure_level(LogLevels::DEBUG);
@@ -134,8 +133,9 @@ void setup() {
     FK_ASSERT(fk_random_initialize() == 0);
 
     // NOTE: We do this ASAP because the GPIO on the modmux can be in any state.
-    if (mmm.begin()) {
-        mmm.disable_all_modules();
+    auto mm = get_modmux();
+    if (mm->begin()) {
+        mm->disable_all_modules();
     }
     else {
         logwarn("modmux error, missing backplane?");
@@ -156,7 +156,8 @@ void setup() {
     FactoryWipe fw{ get_buttons(), &storage };
     FK_ASSERT(fw.wipe_if_necessary());
 
-    mmm.enable_all_modules();
+    ModuleScanning scanning{ get_modmux() };
+    FK_ASSERT(scanning.scan());
 
     storage.fsck();
 
