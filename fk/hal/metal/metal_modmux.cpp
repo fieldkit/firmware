@@ -30,6 +30,7 @@ MetalModMux::MetalModMux() {
 bool MetalModMux::begin() {
     Wire2.begin();
 
+    // Configure IO directions and disable everything.
     Wire2.beginTransmission(MCP23008_ADDRESS);
     Wire2.write((byte)MCP23008_IODIR);
     Wire2.write((byte)0b10101010); // IODIR
@@ -43,6 +44,7 @@ bool MetalModMux::begin() {
     Wire2.write((byte)0x00);       // INTCAP
     Wire2.write((byte)0x00);       // GPIO
     if (!I2C_CHECK(Wire2.endTransmission())) {
+        logwarn("mcp23008 error, missing backplane?");
         return false;
     }
 

@@ -43,10 +43,6 @@ public:
 
 };
 
-class DisplayFactory {
-public:
-    Display *get_display();
-
-};
+Display *get_display();
 
 }

@@ -14,7 +14,7 @@ static NullDisplay u8g2_display;
 
 static Display *picked = nullptr;
 
-Display *DisplayFactory::get_display() {
+Display *get_display() {
     if (picked == nullptr) {
         if (u8g2_display.begin()) {
             picked = &u8g2_display;

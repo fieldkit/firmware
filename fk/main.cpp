@@ -121,34 +121,23 @@ static void log_diagnostics() {
     loginfo("hash = %s", hash_string);
 }
 
+static void initialize_hardware() {
+    get_board()->initialize();
+    // NOTE: We do this ASAP because the GPIO on the modmux can be in any state.
+    get_modmux()->begin();
+    FK_ASSERT(fk_random_initialize() == 0);
+    FK_ASSERT(get_buttons()->begin());
+}
+
 void setup() {
     log_configure_writer(write_log);
-
     log_configure_level(LogLevels::DEBUG);
-
     log_diagnostics();
 
-    get_board()->initialize();
+    initialize_hardware();
 
-    FK_ASSERT(fk_random_initialize() == 0);
-
-    // NOTE: We do this ASAP because the GPIO on the modmux can be in any state.
-    auto mm = get_modmux();
-    if (mm->begin()) {
-        mm->disable_all_modules();
-    }
-    else {
-        logwarn("modmux error, missing backplane?");
-    }
-
-    get_board()->enable_everything();
-
-    FK_ASSERT(get_buttons()->begin());
-
-    MetalNetwork network;
-    DisplayFactory display_factory;
-    Display *display = display_factory.get_display();
-    SelfCheck self_check(display, &network);
+    auto display = get_display();
+    SelfCheck self_check(display, get_network());
 
     self_check.check();
 

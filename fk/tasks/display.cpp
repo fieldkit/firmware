@@ -5,8 +5,7 @@
 namespace fk {
 
 void task_handler_display(void *params) {
-    DisplayFactory display_factory;
-    Display *display = display_factory.get_display();
+    auto display = get_display();
 
     while (true) {
         home_screen_t screen = {
