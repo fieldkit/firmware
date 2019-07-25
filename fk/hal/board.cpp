@@ -135,6 +135,10 @@ TwoWireWrapper Board::i2c_module() {
     return { &Wire2 };
 }
 
+SerialWrapper Board::gps_serial() {
+    return { &Serial1 };
+}
+
 void SpiWrapper::begin() {
     if (ptr_ == nullptr) return;
 
@@ -187,6 +191,25 @@ void TwoWireWrapper::end() {
         pinMode(PIN_WIRE2_SCL, INPUT);
     }
 }
+
+bool SerialWrapper::begin(uint32_t baud) {
+    reinterpret_cast<Uart*>(ptr_)->begin(baud);
+    return true;
+}
+
+bool SerialWrapper::end() {
+    reinterpret_cast<Uart*>(ptr_)->end();
+    return true;
+}
+
+int32_t SerialWrapper::available() {
+    return reinterpret_cast<Uart*>(ptr_)->available();
+}
+
+int8_t SerialWrapper::read() {
+    return reinterpret_cast<Uart*>(ptr_)->read();
+}
+
 
 #endif
 

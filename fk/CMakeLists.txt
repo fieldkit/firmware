@@ -45,6 +45,9 @@ target_link_libraries(fk-bundled WiFi101)
 find_package(u8g2)
 target_link_libraries(fk-bundled u8g2)
 
+find_package(lwcron)
+target_link_libraries(fk-bundled lwcron)
+
 find_package(lwstreams)
 target_link_libraries(fk-bundled lwstreams)
 

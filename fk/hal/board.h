@@ -52,6 +52,22 @@ public:
 
 };
 
+class SerialWrapper {
+private:
+    void *ptr_;
+
+public:
+    SerialWrapper(void *ptr) : ptr_(ptr) {
+    }
+
+public:
+    bool begin(uint32_t baud);
+    bool end();
+    int32_t available();
+    int8_t read();
+
+};
+
 class Board {
 public:
     void initialize();
@@ -70,6 +86,7 @@ public:
     TwoWireWrapper i2c_core();
     TwoWireWrapper i2c_radio();
     TwoWireWrapper i2c_module();
+    SerialWrapper gps_serial();
 
 };
 
