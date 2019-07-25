@@ -6,8 +6,6 @@ namespace fk {
 
 FK_DECLARE_LOGGER("storage");
 
-#define logverbose(f, ...)
-
 constexpr char BlockMagic::MagicKey[];
 
 uint32_t hash_block(void *ptr, size_t size, Hash &hash) {

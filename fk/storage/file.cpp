@@ -10,8 +10,6 @@ namespace fk {
 
 FK_DECLARE_LOGGER("storage");
 
-#define logverbose(f, ...)
-
 #if !defined(linux)
 // #define FK_STORAGE_LOGGING_HASHING
 #endif
