@@ -8,6 +8,7 @@ namespace fk {
 FK_DECLARE_LOGGER("network");
 
 void task_handler_network(void *params) {
+    auto &fkc = fk_config();
     auto network = get_network();
     auto http_server = HttpServer{ network, &fkc };
 

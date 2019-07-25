@@ -30,7 +30,7 @@ void SelfCheck::check() {
     qspi_memory();
     spi_memory();
     wifi();
-    if (fkc.full_self_check) {
+    if (fk_config().full_self_check) {
         gps();
         sd_card();
     }

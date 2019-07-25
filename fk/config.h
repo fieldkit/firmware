@@ -3,9 +3,6 @@
 #include <inttypes.h>
 #include <string.h>
 
-// NOTE: I'd like to remove this eventually.
-#include "secrets.h"
-
 namespace fk {
 
 /**
@@ -127,7 +124,6 @@ typedef struct configuration_t {
      */
     bool full_self_check{ false };
 
-
     /**
      * Logging configuration.
      */
@@ -191,8 +187,13 @@ typedef struct configuration_t {
 } configuration_t;
 
 /**
- * Singleton instance of the runtime configuration data.
+ *
  */
-extern configuration_t fkc;
+configuration_t &fk_config_initialize();
+
+/**
+ *
+ */
+configuration_t &fk_config();
 
 }

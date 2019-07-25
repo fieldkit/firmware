@@ -128,6 +128,8 @@ static void initialize_hardware() {
 }
 
 void setup() {
+    fk_config_initialize();
+
     log_configure_writer(write_log);
     log_configure_level(LogLevels::DEBUG);
     log_diagnostics();
@@ -148,7 +150,7 @@ void setup() {
 
     storage.fsck();
 
-    if (fkc.slow_startup) {
+    if (fk_config().slow_startup) {
         fk_delay(1000);
 
         display->fk_logo();

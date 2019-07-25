@@ -77,7 +77,7 @@ bool MetalGps::service(GpsFix &fix) {
 
         fix.valid = ok;
 
-        if (fkc.logging.gps_raw) {
+        if (fk_config().logging.gps_raw) {
             if (i == sizeof(buffer) - 1 || c == '\n') {
                 if (i > 0) {
                     logtrace("%s", buffer);
