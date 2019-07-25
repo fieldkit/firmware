@@ -334,7 +334,7 @@ uint32_t Storage::fsck() {
 
     free(buffer);
 
-    loginfo("done");
+    loginfo("fsck done");
 
     return 0;
 }

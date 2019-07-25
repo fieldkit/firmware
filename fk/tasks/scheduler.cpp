@@ -29,19 +29,6 @@ void task_handler_scheduler(void *params) {
         void *outgoing = (void *)0xdeadbeef;
         FK_ASSERT(get_ipc()->enqueue_data(outgoing, 250));
 
-        if (false) {
-            auto clock = get_clock();
-            DateTime internal;
-            DateTime external;
-
-            FK_ASSERT(clock->internal(internal));
-            FK_ASSERT(clock->external(external));
-
-            FormattedTime internal_formatted{ internal.unixtime() };
-            FormattedTime external_formatted{ external.unixtime() };
-            loginfo("now: %s %s", internal_formatted.cstr(), external_formatted.cstr());
-        }
-
         if (fk_uptime() - last_readings > ThirtySecondsMs) {
             auto status = os_task_get_status(&readings_task);
             if (status == OS_TASK_STATUS_SUSPENDED || status == OS_TASK_STATUS_FINISHED) {

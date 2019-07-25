@@ -4,18 +4,22 @@
 
 namespace fk {
 
-void task_handler_display(void *params) {
+static void refresh() {
     auto display = get_display();
 
-    while (true) {
-        home_screen_t screen = {
-            .time = fk_uptime(),
-            .wifi = true,
-            .gps = true,
-            .battery = 1.0f,
-        };
+    home_screen_t screen = {
+        .time = fk_uptime(),
+        .wifi = true,
+        .gps = true,
+        .battery = 1.0f,
+    };
 
-        display->home(screen);
+    display->home(screen);
+}
+
+void task_handler_display(void *params) {
+    while (true) {
+        refresh();
 
         fk_delay(1000);
     }
