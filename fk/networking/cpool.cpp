@@ -330,7 +330,7 @@ int32_t Connection::error(const char *message) {
     reply.type = fk_app_ReplyType_REPLY_ERROR;
     reply.errors.arg = (void *)pool_.copy(&errors_array, sizeof(errors_array));
 
-    logerror(message);
+    logwarn(message);
 
     return write(&reply);
 }

@@ -66,6 +66,7 @@ bool Storage::begin() {
         BlockHeader block_header;
         auto address = range.middle_block() * g.block_size;
         if (!memory_->read(address, (uint8_t *)&block_header, sizeof(block_header))) {
+            logerror("[?] read failed 0x%06x", address);
             return false;
         }
 
@@ -82,6 +83,8 @@ bool Storage::begin() {
             had_valid_blocks = true;
         }
         else {
+            logtrace("[?] invalid block (0x%06x)", address);
+
             range = range.first_half();
         }
     }
@@ -122,6 +125,7 @@ bool Storage::clear() {
     while (!range.empty()) {
         auto address = range.middle_block() * g.block_size;
         if (!memory_->erase_block(address)) {
+            logerror("erase block 0x%06x failed", address);
             return false;
         }
         range = range.first_half();
@@ -165,10 +169,12 @@ uint32_t Storage::allocate(uint8_t file, uint32_t overflow, uint32_t previous_ta
 
     // Erase new block and write header.
     if (!memory_->erase_block(address)) {
+        logerror("allocate: erase failed");
         return InvalidAddress;
     }
 
     if (memory_->write(address, (uint8_t *)&block_header, sizeof(BlockHeader)) != sizeof(BlockHeader)) {
+        logerror("allocate: write header failed");
         return InvalidAddress;
     }
 
@@ -178,6 +184,7 @@ uint32_t Storage::allocate(uint8_t file, uint32_t overflow, uint32_t previous_ta
         block_tail.linked = address;
         block_tail.fill_hash();
         if (memory_->write(previous_tail_address, (uint8_t *)&block_tail, sizeof(BlockTail)) != sizeof(BlockTail)) {
+            logerror("allocate: write tail failed");
             return 0;
         }
 
@@ -201,6 +208,7 @@ SeekValue Storage::seek(SeekSettings settings) {
         BlockHeader block_header;
         auto address = range.middle_block() * g.block_size;
         if (!memory_->read(address, (uint8_t *)&block_header, sizeof(block_header))) {
+            logerror("[%d] read failed 0x%06x", settings.file, address);
             return { };
         }
 
@@ -238,6 +246,7 @@ SeekValue Storage::seek(SeekSettings settings) {
     auto record = (uint32_t)0;
 
     if (!is_address_valid(address)) {
+        logwarn("[%d] no valid files", settings.file);
         return SeekValue{ };
     }
 
@@ -307,6 +316,7 @@ uint32_t Storage::fsck() {
     auto file = this->file(0);
 
     if (!file.seek(LastRecord)) {
+        logwarn("seek eof failed");
         return 0;
     }
 
