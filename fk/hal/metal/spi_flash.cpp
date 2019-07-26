@@ -374,9 +374,11 @@ bool SpiFlash::is_ready(bool ecc_check) {
         status = SPI.transfer(0xff);
 
         if ((status & STATUS_FLAG_PROGRAM_FAIL) == STATUS_FLAG_PROGRAM_FAIL) {
+            logwarn("program failed");
             break;
         }
         if ((status & STATUS_FLAG_ERASE_FAIL) == STATUS_FLAG_ERASE_FAIL) {
+            logwarn("erase failed");
             break;
         }
         if ((status & STATUS_FLAG_BUSY) != STATUS_FLAG_BUSY) {
