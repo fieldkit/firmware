@@ -198,7 +198,7 @@ SeekValue Storage::seek(SeekSettings settings) {
     SequentialMemory memory{ memory_ };
     auto g = memory_->geometry();
 
-    logtrace("[%d] seeking #%d", settings.file, settings.record);
+    logtrace("[%d] seeking #%" PRIu32, settings.file, settings.record);
 
     // Binary search for the block to start with.
     BlockHeader file_block_header;
@@ -250,7 +250,7 @@ SeekValue Storage::seek(SeekSettings settings) {
         return SeekValue{ };
     }
 
-    logtrace("[%d] 0x%06x seeking #%d (%d) from #%d (bsz = %d bytes)", settings.file, address, settings.record, position, fh.tail / g.block_size, fh.size);
+    logtrace("[%d] 0x%06x seeking #% " PRIu32 " (%d) from blk #%" PRIu32 " (bsz = %d bytes)", settings.file, address, settings.record, position, fh.tail / g.block_size, fh.size);
 
     while (true) {
         auto record_head = RecordHeader{};
@@ -272,11 +272,11 @@ SeekValue Storage::seek(SeekSettings settings) {
 
         // Is this the record they're looking for?
         if (settings.record != InvalidRecord && record_head.record == settings.record) {
-            logverbose("[%d] 0x%06x found record #%d", settings.file, address, settings.record);
+            logverbose("[%d] 0x%06x found record #%" PRIu32, settings.file, address, settings.record);
             break;
         }
         if (settings.record < record_head.record) {
-            logverbose("[%d] 0x%06x found nearby record #%d", settings.file, address, settings.record);
+            logverbose("[%d] 0x%06x found nearby record #%" PRIu32, settings.file, address, settings.record);
             break;
         }
 
@@ -287,7 +287,7 @@ SeekValue Storage::seek(SeekSettings settings) {
 
         auto record_length = sizeof(RecordHeader) + record_head.size + sizeof(RecordTail);
 
-        logverbose("[%d] 0x%06x seeking %4d/%4d (#%d)", settings.file, address, record_length, record_head.size, record_head.record);
+        logverbose("[%d] 0x%06x seeking %4d/%4d (#%" PRIu32 ")", settings.file, address, record_length, record_head.size, record_head.record);
 
         // Skip over the record head, the actual record, and the tail (hash)
         FK_ASSERT(!g.spans_block(address, record_length));
@@ -297,7 +297,7 @@ SeekValue Storage::seek(SeekSettings settings) {
         position += record_head.size;
     }
 
-    logdebug("[%d] 0x%06x seeking #%d done (#%d) (%d bytes) (%d in block)",
+    logdebug("[%d] 0x%06x seeking #%" PRIu32 " done (#% " PRIu32 ") (%d bytes) (%d in block)",
              settings.file, address, settings.record,
              record, position, position - fh.size);
 
