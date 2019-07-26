@@ -24,6 +24,10 @@ int32_t fk_random_get(uint32_t *data, size_t size) {
     return 0;
 }
 
+int32_t fk_random_i32(int32_t start, int32_t end) {
+    return (rand_sync_read32(&random_main) % (end - start)) + start;
+}
+
 #endif
 
 #if defined(linux)
@@ -38,6 +42,10 @@ int32_t fk_random_get(uint32_t *data, size_t size) {
         data++;
     }
     return 0;
+}
+
+int32_t fk_random_i32(int32_t start, int32_t end) {
+    return (rand() % (end - start)) + start;
 }
 
 #endif

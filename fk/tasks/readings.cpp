@@ -31,16 +31,16 @@ void task_handler_readings(void *params) {
     auto file = storage.file(0);
 
     fk_data_SensorAndValue readings[] = {
-        { 0, (float)random(20, 100) },
-        { 1, (float)random(20, 100) },
-        { 2, (float)random(20, 100) },
-        { 3, (float)random(20, 100) },
-        { 4, (float)random(20, 100) },
-        { 5, (float)random(20, 100) },
-        { 6, (float)random(20, 100) },
-        { 7, (float)random(20, 100) },
-        { 8, (float)random(20, 100) },
-        { 9, (float)random(20, 100) },
+        { 0, (float)fk_random_i32(20, 100) },
+        { 1, (float)fk_random_i32(20, 100) },
+        { 2, (float)fk_random_i32(20, 100) },
+        { 3, (float)fk_random_i32(20, 100) },
+        { 4, (float)fk_random_i32(20, 100) },
+        { 5, (float)fk_random_i32(20, 100) },
+        { 6, (float)fk_random_i32(20, 100) },
+        { 7, (float)fk_random_i32(20, 100) },
+        { 8, (float)fk_random_i32(20, 100) },
+        { 9, (float)fk_random_i32(20, 100) },
     };
 
     pb_array_t readings_array = {
