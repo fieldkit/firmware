@@ -26,7 +26,7 @@ void task_handler_readings(void *params) {
         }
     }
 
-    auto now = get_clock()->now().unixtime();
+    auto now = get_clock()->now().unix_time();
 
     auto file = storage.file(0);
 

@@ -63,9 +63,6 @@ target_link_libraries(fk-bundled arduino-logging)
 find_package(Adafruit_QSPI)
 target_link_libraries(fk-bundled Adafruit_QSPI)
 
-find_package(RTClib)
-target_link_libraries(fk-bundled RTClib)
-
 find_package(Protocols)
 target_link_libraries(fk-bundled app-protocol)
 target_link_libraries(fk-bundled data-protocol)

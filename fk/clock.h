@@ -4,9 +4,11 @@
 #include "hal/board.h"
 #include "tiny_printf.h"
 
-#include <RTClib.h>
+#include <lwcron/lwcron.h>
 
 namespace fk {
+
+using DateTime = lwcron::DateTime;
 
 class CoreClock {
 private:

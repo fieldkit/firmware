@@ -40,6 +40,9 @@ target_link_libraries(fake HttpParser)
 find_package(arduino-logging)
 target_link_libraries(fake arduino-logging)
 
+find_package(lwcron)
+target_link_libraries(fake lwcron)
+
 find_package(Protocols)
 target_link_libraries(fake app-protocol)
 target_link_libraries(fake data-protocol)

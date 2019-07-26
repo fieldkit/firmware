@@ -30,7 +30,6 @@ namespace fk {
 #define FLAGS_A2F             BIT(6)
 #define FLAGS_PIF             BIT(7)
 
-
 #define NVRAM_SIZE	          0x40
 #define RESET_CPR	            0xa4
 #define STOP_EN_STOP	        BIT(0)
@@ -97,8 +96,8 @@ bool CoreClock::sync() {
         return false;
     }
 
-    FormattedTime formatted{ trusted.unixtime() };
-    loginfo("%s (%d)", formatted.cstr(), trusted.unixtime());
+    FormattedTime formatted{ trusted.unix_time() };
+    loginfo("%s (%d)", formatted.cstr(), trusted.unix_time());
 
     // Set the internal time from our trusted, external source.
     struct calendar_time time;
@@ -184,18 +183,18 @@ bool CoreClock::external(DateTime &time) {
         return false;
     }
 
-    auto os_flag = data[1] & B10000000;
+    auto os_flag = data[1] & 0b10000000;
     if (os_flag) {
         loginfo("possible accuracy error!");
     }
 
     time = DateTime{
         (uint16_t)(bcd2bin(data[7]) + 2000),
-        bcd2bin(data[6] & B00011111),
-        bcd2bin(data[4] & B00111111),
-        bcd2bin(data[3] & B00111111),
-        bcd2bin(data[2] & B01111111),
-        bcd2bin(data[1] & B01111111)
+        bcd2bin(data[6] & 0b00011111),
+        bcd2bin(data[4] & 0b00111111),
+        bcd2bin(data[3] & 0b00111111),
+        bcd2bin(data[2] & 0b01111111),
+        bcd2bin(data[1] & 0b01111111)
     };
 
     return true;
@@ -237,11 +236,11 @@ void CoreClock::clear_timestamp_registers() {
 void CoreClock::log_tsr(uint8_t *ts) {
     loginfo("tsr: %04d/%02d/%02d %02d:%02d:%02d.%d",
             bcd2bin(ts[6]) + 2000,
-            bcd2bin(ts[5] & B00011111),
-            bcd2bin(ts[4] & B00111111),
-            bcd2bin(ts[3] & B00111111),
-            bcd2bin(ts[2] & B01111111),
-            bcd2bin(ts[1] & B01111111),
+            bcd2bin(ts[5] & 0b00011111),
+            bcd2bin(ts[4] & 0b00111111),
+            bcd2bin(ts[3] & 0b00111111),
+            bcd2bin(ts[2] & 0b01111111),
+            bcd2bin(ts[1] & 0b01111111),
             bcd2bin(ts[0])
         );
 }

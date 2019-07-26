@@ -2,10 +2,10 @@
 #include "hal/metal/metal.h"
 #include "platform.h"
 #include "config.h"
+#include "clock.h"
 
 #if defined(ARDUINO)
 
-#include <RTClib.h>
 #include <Arduino.h>
 
 namespace fk {
@@ -69,7 +69,7 @@ bool MetalGps::service(GpsFix &fix) {
 
         if (time.date != TinyGPS::GPS_INVALID_DATE && time.time != TinyGPS::GPS_INVALID_TIME) {
             auto now = DateTime(time.year, time.month, time.day, time.hour, time.minute, time.second);
-            fix.time = now.unixtime();
+            fix.time = now.unix_time();
         }
         else {
             ok = false;

@@ -74,6 +74,9 @@ target_link_libraries(testall HttpParser)
 find_package(arduino-logging)
 target_link_libraries(testall arduino-logging)
 
+find_package(lwcron)
+target_link_libraries(testall lwcron)
+
 find_package(Protocols)
 target_link_libraries(testall app-protocol)
 target_link_libraries(testall data-protocol)
