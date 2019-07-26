@@ -4,7 +4,6 @@
 #include "temperature.h"
 #include "hal/metal/metal.h"
 
-#include <Wire.h>
 #include <Adafruit_QSPI.h>
 #include <Adafruit_QSPI_Flash.h>
 
@@ -63,7 +62,7 @@ bool SelfCheck::rtc() {
 
 bool SelfCheck::temperature() {
     return single_check("temperature", []() {
-        CoreTemperature temp{ Wire };
+        CoreTemperature temp{ get_board()->i2c_core() };
 
         if (!temp.begin()) {
             return false;

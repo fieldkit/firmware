@@ -2,7 +2,7 @@
 
 namespace fk {
 
-CoreTemperature::CoreTemperature(TwoWire &wire) : wire_(&wire) {
+CoreTemperature::CoreTemperature(TwoWireWrapper wire) : wire_(wire) {
 }
 
 bool CoreTemperature::begin() {
@@ -10,11 +10,14 @@ bool CoreTemperature::begin() {
 }
 
 bool CoreTemperature::read(float *temperature) {
-    wire_->beginTransmission(Address);
-    wire_->write(0x00);
-    wire_->requestFrom(0x48, 2);
-    auto lsb = wire_->read();
-    auto msb = wire_->read();
+    uint8_t buffer[2];
+
+    if (!I2C_CHECK(wire_.read_register_buffer(Address, 0x00, buffer, sizeof(buffer)))) {
+        return false;
+    }
+
+    auto lsb = buffer[0];
+    auto msb = buffer[1];
 
     auto temp_data = ((lsb << 8) | msb) >> 5;
 

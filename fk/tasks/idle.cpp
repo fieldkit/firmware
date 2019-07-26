@@ -1,5 +1,4 @@
 #include "tasks/tasks.h"
-
 #include "config.h"
 
 namespace fk {

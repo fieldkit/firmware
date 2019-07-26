@@ -1,5 +1,4 @@
 #include "tasks/tasks.h"
-
 #include "hal/metal/metal.h"
 
 namespace fk {

@@ -1,5 +1,4 @@
 #include "tasks/tasks.h"
-
 #include "hal/hal.h"
 #include "clock.h"
 #include "protobuf.h"
