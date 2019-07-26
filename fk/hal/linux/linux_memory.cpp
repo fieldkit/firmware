@@ -19,6 +19,7 @@ bool LinuxDataMemory::begin() {
     }
     size_ = BlockSize * NumberOfBlocks;
     memory_ = (uint8_t *)malloc(size_);
+    memset(memory_, 0xff, size_);
 
     log_.logging(false);
     log_.clear();

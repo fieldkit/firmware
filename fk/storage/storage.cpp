@@ -148,15 +148,42 @@ bool Storage::clear() {
 
 uint32_t Storage::allocate(uint8_t file, uint32_t overflow, uint32_t previous_tail_address) {
     auto g = memory_->geometry();
-    auto address = free_block_ * g.block_size;
+    auto address = InvalidAddress;
 
-    FK_ASSERT(is_address_valid(address));
+    // Find a good block.
+    for (auto i = 0; i < 8; ++i) {
+        address = free_block_ * g.block_size;
+
+        uint8_t buffer[32];
+        if (memory_->read(address, buffer, sizeof(buffer)) != sizeof(buffer)) {
+            logwarn("allocate: read failed");
+            continue;
+        }
+
+        // This is the bad block indicator, creative.
+        if (buffer[0] != 0x00) {
+            break;
+        }
+
+        logwarn("allocate: bad block: %d", free_block_);
+
+        free_block_++;
+        address = InvalidAddress;
+    }
+
+    FK_ASSERT(g.is_address_valid(address));
+
+    // Erase new block and write header.
+    if (!memory_->erase_block(address)) {
+        logerror("allocate: erase failed");
+        return InvalidAddress;
+    }
 
     logdebug("[%d] allocated block #%d (0x%06x) (%d) (#%d) (%d bytes)",
              file, free_block_, address, overflow, files_[file].record, files_[file].size);
 
-    free_block_++;
     timestamp_++;
+    free_block_++;
 
     auto after_header = address + sizeof(BlockHeader);
 
@@ -172,12 +199,6 @@ uint32_t Storage::allocate(uint8_t file, uint32_t overflow, uint32_t previous_ta
         block_header.files[i] = files_[i];
     }
     block_header.fill_hash();
-
-    // Erase new block and write header.
-    if (!memory_->erase_block(address)) {
-        logerror("allocate: erase failed");
-        return InvalidAddress;
-    }
 
     if (memory_->write(address, (uint8_t *)&block_header, sizeof(BlockHeader)) != sizeof(BlockHeader)) {
         logerror("allocate: write header failed");
