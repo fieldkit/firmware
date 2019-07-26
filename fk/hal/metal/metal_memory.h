@@ -26,6 +26,7 @@ public:
 
     size_t erase_block(uint32_t address) override;
 
+    size_t flush() override;
 };
 
 }

@@ -42,6 +42,8 @@ public:
 
     int32_t erase_block(uint32_t address);
 
+    bool flush();
+
     const uint8_t *id() const {
         return id_;
     }
@@ -58,8 +60,6 @@ private:
       Block Page Column
       ROW    ROW
     */
-
-    bool flush();
 
     void row_address_to_bytes(uint32_t address, uint8_t *bytes);
 

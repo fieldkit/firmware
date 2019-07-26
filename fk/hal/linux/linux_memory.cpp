@@ -94,6 +94,10 @@ size_t LinuxDataMemory::erase_block(uint32_t address) {
     return true;
 }
 
+size_t LinuxDataMemory::flush() {
+    return 0;
+}
+
 }
 
 #endif

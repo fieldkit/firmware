@@ -52,6 +52,12 @@ bool RecordHeader::valid() {
 Storage::Storage(DataMemory *memory) : memory_(memory) {
 }
 
+Storage::~Storage() {
+    if (memory_ != nullptr) {
+        memory_->flush();
+    }
+}
+
 bool Storage::begin() {
     auto g = memory_->geometry();
 

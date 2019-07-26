@@ -15,6 +15,7 @@ private:
 
 public:
     Storage(DataMemory *memory);
+    virtual ~Storage();
 
 public:
     friend class File;

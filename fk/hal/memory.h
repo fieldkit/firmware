@@ -57,6 +57,8 @@ public:
 
     virtual size_t erase_block(uint32_t address) = 0;
 
+    virtual size_t flush() = 0;
+
     bool available() {
         return geometry().total_size > 0;
     }
@@ -82,6 +84,8 @@ public:
     size_t write(uint32_t address, const uint8_t *data, size_t length) override;
 
     size_t erase_block(uint32_t address) override;
+
+    size_t flush() override;
 
     memory_statistics_t &statistics();
 
@@ -109,6 +113,8 @@ public:
 
     size_t erase_block(uint32_t address) override;
 
+    size_t flush() override;
+
 };
 
 class SequentialMemory {
@@ -121,6 +127,7 @@ public:
 public:
     size_t read(uint32_t address, uint8_t *data, size_t length);
     size_t write(uint32_t address, uint8_t *data, size_t length);
+    size_t flush();
 
 };
 

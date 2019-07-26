@@ -74,6 +74,15 @@ size_t BankedDataMemory::erase_block(uint32_t address) {
     });
 }
 
+size_t BankedDataMemory::flush() {
+    size_t flushed = 0;
+    for (size_t i = 0; i < size_; ++i) {
+        auto bank = memories_[i];
+        flushed += bank->flush();
+    }
+    return flushed;
+}
+
 SequentialMemory::SequentialMemory(DataMemory *memory) : memory_(memory) {
 }
 
@@ -135,6 +144,10 @@ size_t SequentialMemory::write(uint32_t address, uint8_t *data, size_t length) {
     return nbytes;
 }
 
+size_t SequentialMemory::flush() {
+    return memory_->flush();
+}
+
 bool StatisticsMemory::begin() {
     return target_->begin();
 }
@@ -171,6 +184,10 @@ void StatisticsMemory::log_statistics() const {
             statistics_.nreads, statistics_.bytes_read,
             statistics_.nwrites, statistics_.bytes_wrote,
             statistics_.nerases);
+}
+
+size_t StatisticsMemory::flush() {
+    return target_->flush();
 }
 
 #if defined(FK_HARDWARE_FULL)
