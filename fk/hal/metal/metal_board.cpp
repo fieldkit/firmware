@@ -146,6 +146,55 @@ void SpiWrapper::begin() {
     reinterpret_cast<SPIClass*>(ptr_)->begin();
 }
 
+bool SpiWrapper::simple_command(uint8_t command) {
+    return transfer_command(command, nullptr, nullptr, 0);
+}
+
+bool SpiWrapper::complex_command(uint8_t *command, uint32_t command_length) {
+    return transfer(command, command_length, nullptr, nullptr, 0);
+}
+
+bool SpiWrapper::read_command(uint8_t command, uint8_t *data, uint32_t data_length) {
+    return transfer_command(command, nullptr, data, data_length);
+}
+
+bool SpiWrapper::write_command(uint8_t command, uint8_t *data, uint32_t data_length) {
+    return transfer_command(command, data, nullptr, data_length);
+}
+
+bool SpiWrapper::transfer_command(uint8_t command, const uint8_t *data_w, uint8_t *data_r, uint32_t data_length) {
+    return transfer(&command, 1, data_w, data_r, data_length);
+}
+
+
+bool SpiWrapper::transfer(uint8_t *command, uint32_t command_length, const uint8_t *data_w, uint8_t *data_r, uint32_t data_length) {
+    SPISettings spi_settings{ 50000000, MSBFIRST, SPI_MODE0 };
+    auto bus = reinterpret_cast<SPIClass*>(ptr_);
+    // enable();
+    bus->beginTransaction(spi_settings);
+    for (uint32_t i = 0; i < command_length; ++i) {
+        bus->transfer(command[i]);
+    }
+    if (data_r != nullptr && data_w != nullptr) {
+        for (uint32_t i = 0; i < data_length; ++i) {
+            data_r[i] = bus->transfer(data_w[i]);
+        }
+    }
+    else if (data_r != nullptr) {
+        for (uint32_t i = 0; i < data_length; ++i) {
+            data_r[i] = bus->transfer(0xff);
+        }
+    }
+    else if (data_w != nullptr) {
+        for (uint32_t i = 0; i < data_length; ++i) {
+            bus->transfer(data_w[i]);
+        }
+    }
+    bus->endTransaction();
+    // disable();
+    return true;
+}
+
 void SpiWrapper::end() {
     if (ptr_ == nullptr) return;
 

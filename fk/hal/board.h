@@ -30,12 +30,20 @@ private:
     void *ptr_;
 
 public:
+    SpiWrapper(const char *name, void *ptr);
+    ~SpiWrapper();
+
+public:
     void begin();
     void end();
 
 public:
-    SpiWrapper(const char *name, void *ptr);
-    ~SpiWrapper();
+    bool simple_command(uint8_t command);
+    bool complex_command(uint8_t *command, uint32_t command_length);
+    bool read_command(uint8_t command, uint8_t *data, uint32_t data_length);
+    bool write_command(uint8_t command, uint8_t *data, uint32_t data_length);
+    bool transfer_command(uint8_t command, const uint8_t *data_w, uint8_t *data_r, uint32_t data_length);
+    bool transfer(uint8_t *command, uint32_t command_length, const uint8_t *data_w, uint8_t *data_r, uint32_t data_length);
 
 };
 

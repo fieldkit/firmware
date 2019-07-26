@@ -58,7 +58,7 @@ class FkReloadAll(gdb.Command):
     super(FkReloadAll, self).__init__("jra", gdb.COMMAND_SUPPORT, gdb.COMPLETE_NONE, True)
 
   def invoke(self, arg, from_tty):
-    made = subprocess.run(["make", "fw", "-j"])
+    made = subprocess.run(["make", "fw", "-j4"])
     if made.returncode != 0:
       return False
     gdb.execute("load build/samd51/bootloader/fkbl.elf")
