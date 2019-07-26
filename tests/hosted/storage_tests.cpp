@@ -17,7 +17,9 @@ class StorageSuite : public ::testing::Test {
 protected:
     MallocPool pool_{ "storage", 1024 * 100 };
     LinuxDataMemory *banks_[MemoryFactory::NumberOfDataMemoryBanks] = { nullptr };
-    DataMemory *memory_{ nullptr };
+    DataMemory *data_memory_{ nullptr };
+    StatisticsMemory statistics_memory_{ data_memory_ };
+    DataMemory *memory_{ &statistics_memory_ };
     flash_geometry_t g_;
 
 protected:
@@ -27,7 +29,9 @@ protected:
             banks_[i] = reinterpret_cast<LinuxDataMemory*>(opaque[i]);
         }
 
-        memory_ = MemoryFactory::get_data_memory();
+        data_memory_ = MemoryFactory::get_data_memory();
+        statistics_memory_ = StatisticsMemory{ data_memory_ };
+
         g_ = memory_->geometry();
         pool_.clear();
 
@@ -49,7 +53,11 @@ protected:
             writes += log.number_of(OperationType::Write);
         }
 
-        loginfo("bank[A] %d reads %d writes %d erase", reads, writes, erases);
+        if (false) {
+            loginfo("bank[A] %d reads %d writes %d erase", reads, writes, erases);
+        }
+
+        statistics_memory_.log_statistics();
     }
 
 protected:
