@@ -1,9 +1,9 @@
 #pragma once
 
 #include "common.h"
+#include "hal/board.h"
 #include "tiny_printf.h"
 
-#include <Wire.h>
 #include <RTClib.h>
 
 namespace fk {
@@ -14,10 +14,11 @@ private:
 
 private:
     bool configured_{ false };
-    TwoWire *wire_;
+    TwoWireWrapper wire_;
 
 public:
-    CoreClock(TwoWire &wire);
+    CoreClock();
+    CoreClock(TwoWireWrapper wire);
 
 public:
     bool begin();
@@ -35,6 +36,8 @@ public:
     DateTime now();
 
     DateTime get_external();
+
+    bool valid();
 
 public:
     void read_timestamp_registers();
