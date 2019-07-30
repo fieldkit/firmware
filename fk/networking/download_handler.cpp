@@ -76,8 +76,7 @@ bool DownloadWorker::write_headers(HeaderInfo header_info) {
     CHECK(req_->connection()->write("Content-Length: %" PRIu32 "\n", header_info.size));
     CHECK(req_->connection()->write("Content-Type: %s\n", "application/octet-stream"));
     CHECK(req_->connection()->write("Connection: close\n"));
-    CHECK(req_->connection()->write("Fk-Sync: %" PRIu32 ", %" PRIu32 "\n", header_info.first_block, header_info.last_block));
-    CHECK(req_->connection()->write("\n"));
+    CHECK(req_->connection()->write("Fk-Sync: %" PRIu32 ", %" PRIu32 "\n\n", header_info.first_block, header_info.last_block));
 
     return true;
 }
