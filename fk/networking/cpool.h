@@ -5,13 +5,14 @@
 #include "hal/hal.h"
 #include "networking/req.h"
 #include "networking/routing.h"
+#include "writer.h"
 
 namespace fk {
 
 constexpr static size_t HttpdConnectionBufferSize = 1024;
 constexpr static size_t HttpdConnectionWorkSize = 2048;
 
-class Connection {
+class Connection : public Writable {
 private:
     NetworkConnection *conn_{ nullptr };
     MallocPool pool_;
@@ -34,7 +35,7 @@ public:
 
     int32_t write(fk_app_HttpReply *reply);
 
-    int32_t write(uint8_t *buffer, size_t size);
+    int32_t write(uint8_t *buffer, size_t size) override;
 
     int32_t read(uint8_t *buffer, size_t size);
 

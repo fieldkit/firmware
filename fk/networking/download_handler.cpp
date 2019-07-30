@@ -1,5 +1,8 @@
+#include <tiny_printf.h>
+
 #include "networking/download_handler.h"
 #include "storage/storage.h"
+#include "writer.h"
 
 namespace fk {
 
@@ -70,13 +73,67 @@ void DownloadWorker::run(WorkerContext &wc) {
     memory.log_statistics();
 }
 
+static void write_buffered_writer(char c, void *arg);
+
+class BufferedWriter {
+private:
+    uint8_t buffer_[128];
+    size_t buffer_size_{ 128 };
+    size_t position_{ 0 };
+    int32_t return_value_{ 0 };
+    Writable *writer_;
+
+public:
+    BufferedWriter(Writable *writer) : writer_(writer) {
+    }
+
+    virtual ~BufferedWriter() {
+        flush();
+    }
+
+    int32_t write(const char *s, ...) {
+        va_list args;
+        va_start(args, s);
+        auto r = tiny_vfctprintf(write_buffered_writer, this, s, args);
+        va_end(args);
+        return r;
+    }
+
+    int32_t write(char c) {
+        if (c != 0) {
+            buffer_[position_++] = c;
+            if (position_ == buffer_size_ - 1) {
+                return flush();
+            }
+        }
+        return 1;
+    }
+
+    int32_t flush() {
+        if (position_ > 0) {
+            buffer_[position_] = 0;
+            auto rv = writer_->write(buffer_, position_);
+            position_ = 0;
+            return rv;
+        }
+        return position_;
+    }
+
+};
+
+static void write_buffered_writer(char c, void *arg) {
+    reinterpret_cast<BufferedWriter*>(arg)->write(c);
+}
+
 bool DownloadWorker::write_headers(HeaderInfo header_info) {
+    BufferedWriter buffered{ req_->connection() };
+
     #define CHECK(expr)  if ((expr) == 0) { return false; }
-    CHECK(req_->connection()->write("HTTP/1.1 200 OK\n"));
-    CHECK(req_->connection()->write("Content-Length: %" PRIu32 "\n", header_info.size));
-    CHECK(req_->connection()->write("Content-Type: %s\n", "application/octet-stream"));
-    CHECK(req_->connection()->write("Connection: close\n"));
-    CHECK(req_->connection()->write("Fk-Sync: %" PRIu32 ", %" PRIu32 "\n\n", header_info.first_block, header_info.last_block));
+    CHECK(buffered.write("HTTP/1.1 200 OK\n"));
+    CHECK(buffered.write("Content-Length: %" PRIu32 "\n", header_info.size));
+    CHECK(buffered.write("Content-Type: %s\n", "application/octet-stream"));
+    CHECK(buffered.write("Connection: close\n"));
+    CHECK(buffered.write("Fk-Sync: %" PRIu32 ", %" PRIu32 "\n\n", header_info.first_block, header_info.last_block));
 
     return true;
 }
