@@ -107,6 +107,12 @@ constexpr size_t GpsDebuggingBuffer = 64;
 constexpr size_t HttpMaximumHeaderSize = 1024;
 
 /**
+ * Maximum number of blocks to look ahead for an available block. This means we
+ * can't deal with this many bad blocks sequentially.
+ */
+constexpr int32_t StorageAvailableBlockLookAhead = 10;
+
+/**
  * Runtime configuration informationthat is unavailable in the mobile
  * application. This can be updated after compilation to build binaries for
  * various situations.

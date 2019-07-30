@@ -151,7 +151,7 @@ uint32_t Storage::allocate(uint8_t file, uint32_t overflow, uint32_t previous_ta
     auto address = InvalidAddress;
 
     // Find a good block.
-    for (auto i = 0; i < 8; ++i) {
+    for (auto i = 0; i < StorageAvailableBlockLookAhead; ++i) {
         address = free_block_ * g.block_size;
 
         uint8_t buffer[32];
