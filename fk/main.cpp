@@ -117,6 +117,8 @@ static void log_diagnostics() {
     char hash_string[128];
     bytes_to_hex_string(hash_string, sizeof(hash_string), fkb_header.firmware.hash, fkb_header.firmware.hash_size);
     loginfo("hash = %s", hash_string);
+
+    loginfo("storage rec-ovhd = %d + %d", sizeof(RecordHeader), sizeof(RecordTail));
 }
 
 static void initialize_hardware() {

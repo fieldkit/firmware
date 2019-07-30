@@ -157,14 +157,12 @@ flash_geometry_t StatisticsMemory::geometry() const {
 }
 
 size_t StatisticsMemory::read(uint32_t address, uint8_t *data, size_t length) {
-    statistics_.nreads++;
-    statistics_.bytes_read += length;
+    statistics_.add_read(length);
     return target_->read(address, data, length);
 }
 
 size_t StatisticsMemory::write(uint32_t address, const uint8_t *data, size_t length) {
-    statistics_.nwrites++;
-    statistics_.bytes_wrote += length;
+    statistics_.add_write(length);
     return target_->write(address, data, length);
 }
 

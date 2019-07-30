@@ -11,6 +11,16 @@ typedef struct memory_statistics_t {
     uint32_t nerases{ 0 };
     uint32_t bytes_read{ 0 };
     uint32_t bytes_wrote{ 0 };
+
+    void add_read(uint32_t bytes) {
+        nreads++;
+        bytes_read += bytes;
+    }
+
+    void add_write(uint32_t bytes) {
+        nwrites++;
+        bytes_wrote += bytes;
+    }
 } memory_statistics_t;
 
 typedef struct flash_geometry_t {
