@@ -1,5 +1,6 @@
 #include "tasks/tasks.h"
 #include "hal/hal.h"
+#include "state.h"
 
 namespace fk {
 
@@ -12,6 +13,12 @@ void task_handler_gps(void *params) {
     FK_ASSERT(gps->begin());
 
     auto status = fk_uptime() + OneMinuteMs;
+    auto update_gs = fk_uptime() + FiveSecondsMs;
+
+    get_ipc()->enqueue_data(change_state([](GlobalState *gs) {
+        gs->gps = { };
+        gs->gps.enabled = true;
+    }), 5000);
 
     // TODO: This would be way better if we used an IRQ to wake this task and
     // slurp down the latest characters.
@@ -26,7 +33,22 @@ void task_handler_gps(void *params) {
                     fix.chars, fix.good, fix.failed);
             status = fk_uptime() + OneMinuteMs;
         }
+
+        if (fk_uptime() > update_gs) {
+            get_ipc()->enqueue_data(change_state([=](GlobalState *gs) {
+                gs->gps.enabled = true;
+                gs->gps.fixed = fix.good;
+                gs->gps.longitude = fix.longitude;
+                gs->gps.latitude = fix.latitude;
+            }), 5000);
+            update_gs = fk_uptime() + FiveSecondsMs;
+        }
     }
+
+    get_ipc()->enqueue_data(change_state([](GlobalState *gs) {
+        gs->gps.enabled = false;
+        gs->gps.fixed = false;
+    }), 5000);
 }
 
 }

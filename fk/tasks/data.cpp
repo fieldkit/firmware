@@ -1,5 +1,6 @@
 #include "tasks/tasks.h"
 #include "hal/hal.h"
+#include "state.h"
 
 namespace fk {
 
@@ -29,6 +30,11 @@ void task_handler_data(void *params) {
         void *message = nullptr;
         if (get_ipc()->dequeue_data(&message, FiveSecondsMs)) {
             verify_tasks_priority();
+
+            auto state_change = reinterpret_cast<StateChange*>(message);
+            auto gs = get_global_state_rw();
+            state_change->apply(gs.get());
+            delete state_change;
         }
     }
 }

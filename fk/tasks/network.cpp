@@ -1,6 +1,7 @@
 #include "tasks/tasks.h"
 #include "hal/hal.h"
 #include "networking/server.h"
+#include "state.h"
 
 namespace fk {
 
@@ -16,12 +17,21 @@ void task_handler_network(void *params) {
         return;
     }
 
+    get_ipc()->enqueue_data(change_state([](GlobalState *gs) {
+        gs->network.enabled = fk_uptime();
+        gs->network.ip = get_network()->ip_address();
+    }), 5000);
+
     while (http_server.active_connections() || fk_uptime() - http_server.activity() < fkc.network.uptime) {
         http_server.tick();
         fk_delay(10);
     }
 
     http_server.stop();
+
+    get_ipc()->enqueue_data(change_state([](GlobalState *gs) {
+        gs->network = { };
+    }), 5000);
 
     loginfo("network stopped");
 }
