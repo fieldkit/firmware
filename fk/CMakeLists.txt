@@ -13,6 +13,28 @@ include(ArduinoTools)
 
 include(${CMAKE_SOURCE_DIR}/libraries/dependencies.cmake)
 
+function(fk_add_builtin_module name)
+  set(module_dir ${CMAKE_SOURCE_DIR}/modules/${name})
+  set(module_firmware_dir ${module_dir}/main)
+  set(target_name fk-module-${name})
+
+  file(GLOB_RECURSE sources ${module_firmware_dir}/*.cpp ${module_firmware_dir}/*.c ${module_firmware_dir}/*.h)
+
+  add_arduino_library(${target_name} "${sources}")
+  set_target_properties(${target_name} PROPERTIES LINK_WHOLE_LIBRARY YES)
+  target_include_directories(${target_name} PUBLIC ${CMAKE_SOURCE_DIR}/fk)
+  target_link_libraries(fk-bundled ${target_name})
+
+  find_package(arduino-logging)
+  target_link_libraries(${target_name} arduino-logging)
+
+  find_package(SeggerRTT)
+  target_link_libraries(${target_name} SeggerRTT)
+
+  find_package(Asf4)
+  target_link_libraries(${target_name} Asf4)
+endfunction()
+
 enable_arduino_toolchain()
 
 enable_language(ASM)
@@ -72,6 +94,8 @@ target_link_libraries(fk-bundled TinyGPS)
 
 find_package(Phylum)
 target_link_libraries(fk-bundled phylum)
+
+fk_add_builtin_module(weather)
 
 configure_firmware_linker_script(fk-bundled ${CMAKE_SOURCE_DIR}/boards/samd51/main.ld)
 

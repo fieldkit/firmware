@@ -5,25 +5,35 @@
 #include "clock.h"
 #include "protobuf.h"
 #include "storage/storage.h"
-#include "scanning.h"
 #include "state.h"
+
+#include "scanning.h"
+#include "registry.h"
 
 namespace fk {
 
 FK_DECLARE_LOGGER("readings");
 
-static bool discover_modules() {
-    ModuleScanning scanning{ get_modmux() };
-    FK_ASSERT(scanning.scan());
-
-    return true;
-}
-
 void task_handler_readings(void *params) {
     auto started = fk_uptime();
 
-    if (!discover_modules()) {
+    ModuleScanning scanning{ get_modmux() };
+    FK_ASSERT(scanning.scan());
+
+    if (scanning.number_of_modules() == 0) {
+        loginfo("no modules, skipping");
         return;
+    }
+
+    ModuleRegistry registry;
+    for (size_t i = 0; i < MaximumNumberOfModules; ++i) {
+        auto meta = registry.lookup(scanning.header(i));
+        if (meta == nullptr) {
+            continue;
+        }
+
+        loginfo("have '%s' mk=%02x%02x version=%d", meta->name,
+                meta->manufacturer, meta->kind, meta->version);
     }
 
     auto memory_bus = get_board()->spi_flash();
