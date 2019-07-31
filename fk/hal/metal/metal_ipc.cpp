@@ -42,17 +42,17 @@ bool MetalIPC::dequeue(void **ptr, uint32_t to) {
     return true;
 }
 
-bool MetalIPC::enqueue_data(void *ptr, uint32_t to) {
+bool MetalIPC::enqueue_data(StateChange *ptr, uint32_t to) {
     auto tuple = os_queue_enqueue(os_queue(data_queue), ptr, to);
     return tuple.status == OSS_SUCCESS;
 }
 
-bool MetalIPC::dequeue_data(void **ptr, uint32_t to) {
+bool MetalIPC::dequeue_data(StateChange **ptr, uint32_t to) {
     auto tuple = os_queue_dequeue(os_queue(data_queue), to);
     if (tuple.status != OSS_SUCCESS) {
         return false;
     }
-    *ptr = tuple.value.ptr;
+    *ptr = reinterpret_cast<StateChange*>(tuple.value.ptr);
     return true;
 }
 

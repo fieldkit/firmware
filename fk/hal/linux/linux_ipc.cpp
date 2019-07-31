@@ -24,11 +24,11 @@ bool LinuxIPC::dequeue(void **ptr, uint32_t to) {
     return false;
 }
 
-bool LinuxIPC::enqueue_data(void *ptr, uint32_t to) {
+bool LinuxIPC::enqueue_data(StateChange *ptr, uint32_t to) {
     return false;
 }
 
-bool LinuxIPC::dequeue_data(void **ptr, uint32_t to) {
+bool LinuxIPC::dequeue_data(StateChange **ptr, uint32_t to) {
     return false;
 }
 

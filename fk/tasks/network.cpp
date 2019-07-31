@@ -17,10 +17,10 @@ void task_handler_network(void *params) {
         return;
     }
 
-    get_ipc()->enqueue_data(change_state([](GlobalState *gs) {
+    get_ipc()->enqueue_data([](GlobalState *gs) {
         gs->network.enabled = fk_uptime();
         gs->network.ip = get_network()->ip_address();
-    }), 5000);
+    });
 
     while (http_server.active_connections() || fk_uptime() - http_server.activity() < fkc.network.uptime) {
         http_server.tick();
@@ -29,9 +29,9 @@ void task_handler_network(void *params) {
 
     http_server.stop();
 
-    get_ipc()->enqueue_data(change_state([](GlobalState *gs) {
+    get_ipc()->enqueue_data([](GlobalState *gs) {
         gs->network = { };
-    }), 5000);
+    });
 
     loginfo("network stopped");
 }

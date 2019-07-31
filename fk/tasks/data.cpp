@@ -27,11 +27,12 @@ static void verify_tasks_priority() {
 
 void task_handler_data(void *params) {
     while (true) {
-        void *message = nullptr;
-        if (get_ipc()->dequeue_data(&message, FiveSecondsMs)) {
+        StateChange *state_change = nullptr;
+        if (get_ipc()->dequeue_data(&state_change, FiveSecondsMs)) {
             verify_tasks_priority();
 
-            auto state_change = reinterpret_cast<StateChange*>(message);
+            loginfo("updating 0x%p", state_change);
+
             auto gs = get_global_state_rw();
             state_change->apply(gs.get());
             delete state_change;
