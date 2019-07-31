@@ -41,7 +41,7 @@ bool ModuleScanning::scan() {
             continue;
         }
 
-        loginfo("[%d] mk=%02x%02x version=%d", header.manufacturer, header.kind, header.version);
+        loginfo("[%d] mk=%02x%02x version=%d", i, header.manufacturer, header.kind, header.version);
 
         number_of_modules++;
     }

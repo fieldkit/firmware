@@ -3,11 +3,8 @@
 
 #include "platform.h"
 #include "hal/metal/metal.h"
-
 #include "self_check.h"
 #include "factory_wipe.h"
-#include "scanning.h"
-
 #include "tasks/tasks.h"
 
 extern const struct fkb_header_t fkb_header;
@@ -44,7 +41,7 @@ static void run_tasks() {
 
     os_task_options_t readings_task_options = {
         "readings",
-        OS_TASK_START_SUSPENDED,
+        OS_TASK_START_RUNNING,
         task_handler_readings,
         NULL,
         readings_stack,
@@ -121,6 +118,14 @@ static void log_diagnostics() {
     loginfo("storage rec-ovhd = %d + %d", sizeof(RecordHeader), sizeof(RecordTail));
 }
 
+static void configure_logging() {
+    SEGGER_RTT_SetFlagsUpBuffer(0, SEGGER_RTT_MODE_BLOCK_IF_FIFO_FULL);
+
+    log_configure_writer(write_log);
+    log_configure_level(LogLevels::DEBUG);
+    log_diagnostics();
+}
+
 static void initialize_hardware() {
     get_board()->initialize();
     // NOTE: We do this ASAP because the GPIO on the modmux can be in any state.
@@ -132,24 +137,17 @@ static void initialize_hardware() {
 void setup() {
     fk_config_initialize();
 
-    log_configure_writer(write_log);
-    log_configure_level(LogLevels::DEBUG);
-    log_diagnostics();
+    configure_logging();
 
     initialize_hardware();
 
     auto display = get_display();
     SelfCheck self_check(display, get_network());
-
     self_check.check();
 
     Storage storage{ MemoryFactory::get_data_memory() };
     FactoryWipe fw{ get_buttons(), &storage };
     FK_ASSERT(fw.wipe_if_necessary());
-
-    ModuleScanning scanning{ get_modmux() };
-    FK_ASSERT(scanning.scan());
-
     storage.fsck();
 
     if (fk_config().slow_startup) {

@@ -293,8 +293,10 @@ size_t File::read_record_tail() {
     hash_.finalize(&hash.hash, Hash::Length);
     if (memcmp(hash.hash, record_tail.hash.hash, Hash::Length) != 0) {
         logerror("[%d] hash mismatch: 0x%06x (#%d) (record address = 0x%06x)", file_, tail_, record_, record_address_);
-        fk_dump_memory("GOOD ", record_tail.hash.hash, Hash::Length);
-        fk_dump_memory("BAD  ", hash.hash, Hash::Length);
+        if (false) {
+            fk_dump_memory("GOOD ", record_tail.hash.hash, Hash::Length);
+            fk_dump_memory("BAD  ", hash.hash, Hash::Length);
+        }
         number_hash_errors_++;
     }
 

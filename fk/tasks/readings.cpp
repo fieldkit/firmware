@@ -5,14 +5,26 @@
 #include "clock.h"
 #include "protobuf.h"
 #include "storage/storage.h"
+#include "scanning.h"
 #include "state.h"
 
 namespace fk {
 
 FK_DECLARE_LOGGER("readings");
 
+static bool discover_modules() {
+    ModuleScanning scanning{ get_modmux() };
+    FK_ASSERT(scanning.scan());
+
+    return true;
+}
+
 void task_handler_readings(void *params) {
     auto started = fk_uptime();
+
+    if (!discover_modules()) {
+        return;
+    }
 
     auto memory_bus = get_board()->spi_flash();
     auto module_bus = get_board()->i2c_module();
