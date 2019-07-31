@@ -11,6 +11,8 @@ namespace fk {
 FK_DECLARE_LOGGER("readings");
 
 void task_handler_readings(void *params) {
+    auto started = fk_uptime();
+
     auto memory_bus = get_board()->spi_flash();
     auto module_bus = get_board()->i2c_module();
 
@@ -66,7 +68,7 @@ void task_handler_readings(void *params) {
         logerror("error saving readings");
     }
 
-    loginfo("wrote %d bytes (%d bytes) (0x%06x)", bytes_wrote, file.size(), file.tail());
+    loginfo("wrote %d bytes (%d bytes) (0x%06x) (%dms)", bytes_wrote, file.size(), file.tail(), fk_uptime() - started);
 
     memory.log_statistics();
 

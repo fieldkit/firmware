@@ -338,6 +338,8 @@ File Storage::file(uint8_t file) {
 uint32_t Storage::fsck() {
     constexpr static size_t BufferSize = 1024;
 
+    auto started = fk_uptime();
+
     loginfo("fsck...");
 
     auto file = this->file(0);
@@ -361,7 +363,7 @@ uint32_t Storage::fsck() {
 
     free(buffer);
 
-    loginfo("fsck done");
+    loginfo("fsck done (%dms)", fk_uptime() - started);
 
     return 0;
 }
