@@ -37,9 +37,10 @@ void task_handler_gps(void *params) {
         if (fk_uptime() > update_gs) {
             get_ipc()->enqueue_data([=](GlobalState *gs) {
                 gs->gps.enabled = true;
-                gs->gps.fixed = fix.good;
+                gs->gps.fix = fix.good;
                 gs->gps.longitude = fix.longitude;
                 gs->gps.latitude = fix.latitude;
+                gs->gps.altitude = fix.altitude;
             });
             update_gs = fk_uptime() + FiveSecondsMs;
         }
@@ -47,7 +48,7 @@ void task_handler_gps(void *params) {
 
     get_ipc()->enqueue_data([](GlobalState *gs) {
         gs->gps.enabled = false;
-        gs->gps.fixed = false;
+        gs->gps.fix = false;
     });
 }
 

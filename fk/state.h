@@ -33,7 +33,7 @@ struct NetworkState {
 
 struct GpsState {
     uint32_t enabled{ 0 };
-    uint32_t fixed{ 0 };
+    uint32_t fix{ 0 };
     float longitude { 0.0f };
     float latitude { 0.0f };
     float altitude { 0.0f };

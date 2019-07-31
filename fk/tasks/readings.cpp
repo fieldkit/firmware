@@ -1,10 +1,11 @@
+#include <fk-data-protocol.h>
+
 #include "tasks/tasks.h"
 #include "hal/hal.h"
 #include "clock.h"
 #include "protobuf.h"
 #include "storage/storage.h"
-
-#include <fk-data-protocol.h>
+#include "state.h"
 
 namespace fk {
 
@@ -51,15 +52,17 @@ void task_handler_readings(void *params) {
         .fields = fk_data_SensorAndValue_fields,
     };
 
+    auto gs = get_global_state_ro();
+
     fk_data_DataRecord record = fk_data_DataRecord_init_default;
     record.readings.time = now;
     record.readings.reading = file.record();
     record.readings.flags = 0;
-    record.readings.location.fix = 0;
     record.readings.location.time = now;
-    record.readings.location.longitude = -118.2709223;
-    record.readings.location.latitude = 34.0318047;
-    record.readings.location.altitude = 100.0f;
+    record.readings.location.fix = gs.get()->gps.fix;
+    record.readings.location.longitude = gs.get()->gps.longitude;
+    record.readings.location.latitude = gs.get()->gps.latitude;
+    record.readings.location.altitude = gs.get()->gps.altitude;
     record.readings.readings.funcs.encode = pb_encode_array;
     record.readings.readings.arg = &readings_array;
 
