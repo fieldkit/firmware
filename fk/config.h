@@ -212,11 +212,11 @@ typedef struct configuration_t {
 /**
  *
  */
-configuration_t &fk_config_initialize();
+configuration_t const &fk_config_initialize();
 
 /**
  *
  */
-configuration_t &fk_config();
+configuration_t const &fk_config();
 
 }

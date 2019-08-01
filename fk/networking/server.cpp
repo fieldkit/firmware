@@ -17,7 +17,7 @@ static bool network_ready(NetworkStatus status) {
     return status == NetworkStatus::Connected || status == NetworkStatus::Listening;
 }
 
-HttpServer::HttpServer(Network *network, configuration_t *fkc) : network_(network), fkc_(fkc) {
+HttpServer::HttpServer(Network *network, configuration_t const *fkc) : network_(network), fkc_(fkc) {
 }
 
 HttpServer::~HttpServer() {
@@ -100,7 +100,7 @@ bool HttpServer::try_configurations() {
     return false;
 }
 
-NetworkSettings HttpServer::get_settings(configuration_t::wifi_network_t &network) {
+NetworkSettings HttpServer::get_settings(configuration_t::wifi_network_t const &network) {
     if (network.ssid == nullptr) {
         return {
             .create = true,

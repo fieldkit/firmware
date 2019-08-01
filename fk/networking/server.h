@@ -14,10 +14,10 @@ private:
     ConnectionPool pool_;
     HttpRouter router_;
     Network *network_;
-    configuration_t *fkc_;
+    configuration_t const *fkc_;
 
 public:
-    HttpServer(Network *network, configuration_t *fkc);
+    HttpServer(Network *network, configuration_t const *fkc);
     ~HttpServer();
 
 public:
@@ -43,7 +43,7 @@ public:
 private:
     bool try_configurations();
 
-    NetworkSettings get_settings(configuration_t::wifi_network_t &network);
+    NetworkSettings get_settings(configuration_t::wifi_network_t const &network);
 
 };
 

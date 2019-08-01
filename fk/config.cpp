@@ -5,7 +5,7 @@ namespace fk {
 
 configuration_t fkc;
 
-configuration_t &fk_config_initialize() {
+configuration_t const &fk_config_initialize() {
     #if defined(FK_WIFI_0_SSID) && defined(FK_WIFI_0_PASSWORD)
     fkc.network.networks[0].ssid = FK_WIFI_0_SSID;
     fkc.network.networks[0].password = FK_WIFI_0_PASSWORD;
@@ -17,7 +17,7 @@ configuration_t &fk_config_initialize() {
     return fkc;
 }
 
-configuration_t &fk_config() {
+configuration_t const &fk_config() {
     return fkc;
 }
 
