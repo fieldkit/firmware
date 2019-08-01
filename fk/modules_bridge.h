@@ -6,12 +6,36 @@ namespace fk {
 
 class ModuleContext {
 private:
+    int32_t module_{ -1 };
 
 public:
     ModuleContext();
+    ModuleContext(ModuleContext &from, int32_t module);
     virtual ~ModuleContext();
 
 public:
+    ModuleContext module(int32_t module);
+
+};
+
+class ModuleReadings {
+private:
+    typedef struct ModuleReading {
+        float value{ 0.0f };
+    } ModuleReading;
+
+    size_t nreadings_{ 0 };
+    ModuleReading *readings_{ nullptr };
+
+public:
+    ModuleReadings();
+    ModuleReadings(size_t n);
+    virtual ~ModuleReadings();
+
+public:
+    size_t size() const;
+    void set(int32_t i, float value);
+    float get(int32_t i) const;
 
 };
 
@@ -21,8 +45,8 @@ public:
     virtual ~Module() { }
 
 public:
-    virtual bool initialize(ModuleContext &mc) = 0;
-    virtual bool take_readings(ModuleContext &mc) = 0;
+    virtual bool initialize(ModuleContext mc) = 0;
+    virtual ModuleReadings *take_readings(ModuleContext mc) = 0;
 
 };
 

@@ -2,10 +2,10 @@
 
 using namespace fk;
 
-bool WaterModule::initialize(ModuleContext &mc) {
+bool WaterModule::initialize(ModuleContext mc) {
     return true;
 }
 
-bool WaterModule::take_readings(ModuleContext &mc) {
-    return true;
+ModuleReadings *WaterModule::take_readings(ModuleContext mc) {
+    return nullptr;
 }

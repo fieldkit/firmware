@@ -17,6 +17,13 @@ FK_DECLARE_LOGGER("readings");
 void task_handler_readings(void *params) {
     auto started = fk_uptime();
 
+    ModuleContext mc;
+    auto memory_bus = get_board()->spi_flash();
+    auto module_bus = get_board()->i2c_module();
+
+
+    auto pool = MallocPool{ "readings", 1024 };
+
     ModuleScanning scanning{ get_modmux() };
     FK_ASSERT(scanning.scan());
 
@@ -32,12 +39,17 @@ void task_handler_readings(void *params) {
             continue;
         }
 
-        loginfo("have '%s' mk=%02x%02x version=%d", meta->name,
+        loginfo("calling '%s' mk=%02x%02x version=%d", meta->name,
                 meta->manufacturer, meta->kind, meta->version);
-    }
 
-    auto memory_bus = get_board()->spi_flash();
-    auto module_bus = get_board()->i2c_module();
+        auto module = meta->ctor();
+
+        auto readings = module->take_readings(mc.module(i));
+
+        delete readings;
+
+        delete module;
+    }
 
     StatisticsMemory memory{ MemoryFactory::get_data_memory() };
     Storage storage{ &memory };
