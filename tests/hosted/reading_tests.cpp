@@ -66,6 +66,26 @@ TEST_F(ReadingsSuite, TakingReadingsNoModules) {
     ResolvedModules resolved;
 
     ASSERT_TRUE(readings.take_readings(resolved, 0, pool));
+
+    size_t size = 0;
+    auto buffer = pool.encode(fk_data_DataRecord_fields, &readings.record(), &size);
+
+    ASSERT_NE(buffer, nullptr);
+}
+
+TEST_F(ReadingsSuite, TakingReadingsModuleWithNoReadings) {
+    StaticPool<1024> pool{ "readings" };
+    GlobalState gs;
+    Readings readings{ &gs };
+    ResolvedModules resolved;
+    resolved.set(0, &fk_test_module_fake_empty);
+
+    ASSERT_TRUE(readings.take_readings(resolved, 0, pool));
+
+    size_t size = 0;
+    auto buffer = pool.encode(fk_data_DataRecord_fields, &readings.record(), &size);
+
+    ASSERT_NE(buffer, nullptr);
 }
 
 TEST_F(ReadingsSuite, TakingReadingsOneModule) {
@@ -76,5 +96,26 @@ TEST_F(ReadingsSuite, TakingReadingsOneModule) {
 
     Readings readings{ &gs };
     ASSERT_TRUE(readings.take_readings(resolved, 0, pool));
+
+    size_t size = 0;
+    auto buffer = pool.encode(fk_data_DataRecord_fields, &readings.record(), &size);
+
+    ASSERT_NE(buffer, nullptr);
+}
+
+TEST_F(ReadingsSuite, TakingReadingsTwoModules) {
+    StaticPool<1024> pool{ "readings" };
+    GlobalState gs;
+    ResolvedModules resolved;
+    resolved.set(0, &fk_test_module_fake_1);
+    resolved.set(1, &fk_test_module_fake_2);
+
+    Readings readings{ &gs };
+    ASSERT_TRUE(readings.take_readings(resolved, 0, pool));
+
+    size_t size = 0;
+    auto buffer = pool.encode(fk_data_DataRecord_fields, &readings.record(), &size);
+
+    ASSERT_NE(buffer, nullptr);
 }
 

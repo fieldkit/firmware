@@ -16,7 +16,7 @@ namespace fk {
 FK_DECLARE_LOGGER("readings");
 
 void task_handler_readings(void *params) {
-    auto pool = MallocPool{ "readings", 1024 };
+    auto pool = MallocPool{ "readings", 2048 };
     auto memory_bus = get_board()->spi_flash();
     auto module_bus = get_board()->i2c_module();
     auto started = fk_uptime();
@@ -53,19 +53,24 @@ void task_handler_readings(void *params) {
 
     Readings readings{ gs.get() };
     if (!readings.take_readings(modules, 0, pool)) {
+        logerror("error takign readings");
         return;
     }
 
     auto bytes_wrote = file.write(&readings.record(), fk_data_DataRecord_fields);
     if (bytes_wrote == 0) {
         logerror("error saving readings");
+        return;
     }
 
-    loginfo("wrote %d bytes (%d bytes) (0x%06x) (%dms)", bytes_wrote, file.size(), file.tail(), fk_uptime() - started);
+    loginfo("wrote %d bytes (%d bytes) (0x%06x) (%dms)",
+            bytes_wrote, file.size(), file.tail(), fk_uptime() - started);
 
     memory.log_statistics();
 
     storage.fsck();
+
+    loginfo("done (pool = %d/%d bytes)", pool.used(), pool.size());
 }
 
 }
