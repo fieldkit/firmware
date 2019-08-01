@@ -1,6 +1,7 @@
 #include "scanning.h"
 #include "eeprom.h"
 #include "state.h"
+#include "config.h"
 
 namespace fk {
 
@@ -57,6 +58,23 @@ bool ModuleScanning::scan(ModuleScan &scan) {
         loginfo("[%d] mk=%02x%02x v%d", i, header.manufacturer, header.kind, header.version);
 
         nmodules++;
+    }
+
+    // If the random module is enabled, sneak the module into the final
+    // position. Right now we don't have a backplane that will support this many
+    // modules anyway, still make sure we're safe.
+    if (fk_config().readings.enable_random_module) {
+        auto &header = scan.headers_[MaximumNumberOfModules - 1];
+        if (header.manufacturer == 0) {
+            header.manufacturer = FK_MODULES_MANUFACTURER;
+            header.kind = FK_MODULES_KIND_RANDOM;
+            header.version = 0x1;
+            fk_module_header_sign(&header);
+
+            loginfo("[%d] mk=%02x%02x v%d", 7, header.manufacturer, header.kind, header.version);
+
+            nmodules++;
+        }
     }
 
     scan.size_ = nmodules;

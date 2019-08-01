@@ -190,6 +190,23 @@ typedef struct configuration_t {
      * Network related configuration.
      */
     network_t network;
+
+    /**
+     * Configuration related to collecting readings.
+     */
+    typedef struct readings_t {
+        /**
+         * If true then the random module is enabled and will be consulted for
+         * readings, this can inflate the data being written, which is handy for
+         * debugging.
+         */
+        bool enable_random_module{ true };
+    } readings_t;
+
+    /**
+     * Configuration related to collecting readings.
+     */
+    readings_t readings;
 } configuration_t;
 
 /**
