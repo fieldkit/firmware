@@ -7,8 +7,8 @@ using namespace fk;
 
 extern "C" {
 
-static Module *fk_module_create_water() {
-    return new WaterModule();
+static Module *fk_module_create_water(Pool &pool) {
+    return new(pool) WaterModule();
 }
 
 ModuleMetadata const fk_module_meta_water = {

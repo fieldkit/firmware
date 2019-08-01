@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.h"
+#include "pool.h"
 
 namespace fk {
 
@@ -45,15 +46,15 @@ public:
     virtual ~Module() { }
 
 public:
-    virtual bool initialize(ModuleContext mc) = 0;
-    virtual ModuleReadings *take_readings(ModuleContext mc) = 0;
+    virtual bool initialize(ModuleContext mc, Pool &pool) = 0;
+    virtual ModuleReadings *take_readings(ModuleContext mc, Pool &pool) = 0;
 
 };
 
 /**
  *
  */
-typedef Module*(*fk_module_create_fn_t)();
+typedef Module*(*fk_module_create_fn_t)(Pool &pool);
 
 /**
  * Metadata for a particular module. This is stored in a registry.

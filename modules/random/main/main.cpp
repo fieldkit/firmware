@@ -7,8 +7,8 @@ using namespace fk;
 
 extern "C" {
 
-static Module *fk_module_create_random() {
-    return new RandomModule();
+static Module *fk_module_create_random(Pool &pool) {
+    return new(pool) RandomModule();
 }
 
 ModuleMetadata const fk_module_meta_random = {
