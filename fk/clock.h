@@ -81,4 +81,6 @@ public:
 
 CoreClock *get_clock();
 
+uint32_t get_clock_now();
+
 }

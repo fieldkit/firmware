@@ -1,11 +1,17 @@
+#if defined(ARDUINO)
 #include <compiler.h>
 #include <hal_init.h>
 #include <hal/include/hpl_calendar.h>
 #include <hal/include/hal_calendar.h>
+#else
+#include <ctime>
+#endif
 
 #include "clock.h"
 
 namespace fk {
+
+#if defined(ARDUINO)
 
 #define CTRL_OFFSET           0x24
 #define CTRL_OSCILLATOR       0x25
@@ -255,5 +261,17 @@ CoreClock *get_clock() {
     }
     return &clock;
 }
+
+uint32_t get_clock_now() {
+    return get_clock()->now().unix_time();
+}
+
+#else
+
+uint32_t get_clock_now() {
+    return std::time(0);
+}
+
+#endif
 
 }
