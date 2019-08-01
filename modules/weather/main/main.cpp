@@ -1,13 +1,22 @@
 #include <common.h>
 #include <modules.h>
 
+#include "weather_module.h"
+
+using namespace fk;
+
 extern "C" {
 
-fk::ModuleMetadata const fk_module_meta_weather = {
-    .manufacturer = 0x01,
-    .kind = 0x01,
+static Module *fk_module_create_weather() {
+    return new WeatherModule();
+}
+
+ModuleMetadata const fk_module_meta_weather = {
+    .manufacturer = FK_MODULES_MANUFACTURER,
+    .kind = FK_MODULES_KIND_WEATHER,
     .version = 0x01,
     .name = "weather",
+    .ctor = fk_module_create_weather,
 };
 
 __attribute__((constructor))

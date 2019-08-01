@@ -1,13 +1,22 @@
 #include <common.h>
 #include <modules.h>
 
+#include "random_module.h"
+
+using namespace fk;
+
 extern "C" {
 
-fk::ModuleMetadata const fk_module_meta_random = {
-    .manufacturer = 0x01,
-    .kind = 0xa1,
+static Module *fk_module_create_random() {
+    return new RandomModule();
+}
+
+ModuleMetadata const fk_module_meta_random = {
+    .manufacturer = FK_MODULES_MANUFACTURER,
+    .kind = FK_MODULES_KIND_RANDOM,
     .version = 0x01,
     .name = "random",
+    .ctor = fk_module_create_random,
 };
 
 __attribute__((constructor))

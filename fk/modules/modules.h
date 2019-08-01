@@ -22,6 +22,11 @@ uint32_t fk_module_header_sign(ModuleHeader *header);
 
 uint32_t fk_module_header_valid(ModuleHeader *header);
 
+#define FK_MODULES_MANUFACTURER                    (0x01)
+#define FK_MODULES_KIND_WEATHER                    (0x01)
+#define FK_MODULES_KIND_WATER                      (0x02)
+#define FK_MODULES_KIND_RANDOM                     (0xa1)
+
 #ifdef __cplusplus
 }
 #endif
