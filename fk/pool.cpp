@@ -7,6 +7,10 @@
 #include "platform.h"
 #include "protobuf.h"
 
+void *operator new(size_t size, fk::Pool &pool) {
+    return pool.malloc(size);
+}
+
 namespace fk {
 
 FK_DECLARE_LOGGER("pool");

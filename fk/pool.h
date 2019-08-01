@@ -63,9 +63,9 @@ public:
     char *strdup(const char *str);
     char *strndup(const char *str, size_t len);
     char *sprintf(const char *str, ...);
+    Pool freeze(const char *name);
     uint8_t *encode(const pb_msgdesc_t *fields, void *src, size_t *size);
     void *decode(const pb_msgdesc_t *fields, uint8_t *src, size_t size, size_t message_size);
-    Pool freeze(const char *name);
 
 };
 
@@ -104,3 +104,10 @@ public:
 #define PoolHere(var, size) var(__FILE__ ":" __POOL_LINE(__LINE__), size)
 
 }
+
+/**
+ * New operator that allocates from a memory pool. Note that this is global
+ * because the compiler can't really tell which new or delete you're referring
+ * to in all scenarios. Taking a Pool makes things safe, though.
+ */
+void *operator new(size_t size, fk::Pool &pool);
