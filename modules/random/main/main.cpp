@@ -1,9 +1,9 @@
 #include <common.h>
-#include <modules/modules.h>
+#include <modules.h>
 
 extern "C" {
 
-const ModuleMetadata fk_module_meta_random = {
+fk::ModuleMetadata const fk_module_meta_random = {
     .manufacturer = 0x01,
     .kind = 0xa1,
     .version = 0x01,

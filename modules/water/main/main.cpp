@@ -1,9 +1,9 @@
 #include <common.h>
-#include <modules/modules.h>
+#include <modules.h>
 
 extern "C" {
 
-const ModuleMetadata fk_module_meta_water = {
+fk::ModuleMetadata const fk_module_meta_water = {
     .manufacturer = 0x01,
     .kind = 0x02,
     .version = 0x01,
