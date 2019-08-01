@@ -33,6 +33,10 @@ function(fk_add_builtin_module name)
 
   find_package(Asf4)
   target_link_libraries(${target_name} Asf4)
+
+  # TODO: REMOVE
+  find_package(nanopb)
+  target_link_libraries(${target_name} nanopb)
 endfunction()
 
 enable_arduino_toolchain()

@@ -635,6 +635,25 @@ static size_t write_reading(File &file) {
         .fields = fk_data_SensorAndValue_fields,
     };
 
+    fk_data_SensorGroup groups[] = {
+        {
+            .module = 0,
+            .readings = {
+                .funcs = {
+                    .encode = pb_encode_array,
+                },
+                .arg = &readings_array,
+            },
+        }
+    };
+
+    pb_array_t sensor_groups_array = {
+        .length = (size_t)1,
+        .itemSize = sizeof(fk_data_SensorGroup),
+        .buffer = &groups,
+        .fields = fk_data_SensorGroup_fields,
+    };
+
     fk_data_DataRecord record = fk_data_DataRecord_init_default;
     record.readings.time = fk_uptime();
     record.readings.reading = file.record();
@@ -644,8 +663,8 @@ static size_t write_reading(File &file) {
     record.readings.location.longitude = -118.2709223;
     record.readings.location.latitude = 34.0318047;
     record.readings.location.altitude = 100.0f;
-    record.readings.readings.funcs.encode = pb_encode_array;
-    record.readings.readings.arg = &readings_array;
+    record.readings.sensorGroups.funcs.encode = pb_encode_array;
+    record.readings.sensorGroups.arg = &sensor_groups_array;
 
     auto wrote = file.write(&record, fk_data_DataRecord_fields);
     if (wrote == 0) {
