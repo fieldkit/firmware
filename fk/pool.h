@@ -67,6 +67,16 @@ public:
     uint8_t *encode(const pb_msgdesc_t *fields, void *src, size_t *size);
     void *decode(const pb_msgdesc_t *fields, uint8_t *src, size_t size, size_t message_size);
 
+    template<typename T>
+    T *malloc() {
+        return (T *)malloc(sizeof(T));
+    }
+
+    template<typename T>
+    T *malloc(size_t n) {
+        return (T *)malloc(sizeof(T) * n);
+    }
+
 };
 
 template<size_t N>

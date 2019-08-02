@@ -26,7 +26,7 @@ bool Readings::take_readings(ResolvedModules const &modules, uint32_t reading_nu
         return true;
     }
 
-    auto groups = (fk_data_SensorGroup *)pool.malloc(sizeof(fk_data_SensorGroup) * modules.size());
+    auto groups = pool.malloc<fk_data_SensorGroup>(modules.size());
     auto group_number = 0;
 
     bzero(groups, sizeof(fk_data_SensorGroup) * modules.size());
@@ -47,8 +47,8 @@ bool Readings::take_readings(ResolvedModules const &modules, uint32_t reading_nu
             continue;
         }
 
-        auto readings_array = (pb_array_t *)pool.malloc(sizeof(pb_array_t));
-        auto sensor_values = (fk_data_SensorAndValue *)pool.malloc(sizeof(fk_data_SensorAndValue) * readings->size());
+        auto readings_array = pool.malloc<pb_array_t>();
+        auto sensor_values = pool.malloc<fk_data_SensorAndValue>(readings->size());
 
         for (uint32_t i = 0; i < readings->size(); ++i) {
             sensor_values[i] = { i, readings->get(i) };
@@ -70,7 +70,7 @@ bool Readings::take_readings(ResolvedModules const &modules, uint32_t reading_nu
         loginfo("'%s' %d readings", meta->name, readings->size());
     }
 
-    auto sensor_groups_array = (pb_array_t *)pool.malloc(sizeof(pb_array_t));
+    auto sensor_groups_array = pool.malloc<pb_array_t>();
 
     *sensor_groups_array = {
         .length = (size_t)modules.size(),
