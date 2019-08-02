@@ -7,7 +7,7 @@ bool RandomModule::initialize(ModuleContext mc, fk::Pool &pool) {
 }
 
 ModuleReadings *RandomModule::take_readings(ModuleContext mc, fk::Pool &pool) {
-    auto mr = new(pool) ModuleReadings(10);
+    auto mr = new(pool) NModuleReadings<10>();
     for (auto i = 0; i < mr->size(); i++) {
         mr->set(i, (float)fk_random_i32(20, 100));
     }

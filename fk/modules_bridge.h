@@ -20,23 +20,40 @@ public:
 };
 
 class ModuleReadings {
+public:
+    ModuleReadings() {
+    }
+    virtual ~ModuleReadings() {
+    }
+
+public:
+    virtual size_t size() const = 0;
+    virtual void set(int32_t i, float value) = 0;
+    virtual float get(int32_t i) const = 0;
+};
+
+template<size_t N>
+class NModuleReadings : public ModuleReadings {
 private:
     typedef struct ModuleReading {
         float value{ 0.0f };
     } ModuleReading;
 
-    size_t nreadings_{ 0 };
-    ModuleReading *readings_{ nullptr };
+    size_t nreadings_{ N };
+    ModuleReading readings_[N];
 
 public:
-    ModuleReadings();
-    ModuleReadings(size_t n);
-    virtual ~ModuleReadings();
+    size_t size() const override {
+        return nreadings_;
+    }
 
-public:
-    size_t size() const;
-    void set(int32_t i, float value);
-    float get(int32_t i) const;
+    void set(int32_t i, float value) override {
+        readings_[i].value = value;
+    }
+
+    float get(int32_t i) const override {
+        return readings_[i].value;
+    }
 
 };
 

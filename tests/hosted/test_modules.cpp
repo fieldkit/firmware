@@ -34,7 +34,7 @@ public:
     }
 
     ModuleReadings *take_readings(ModuleContext mc, Pool &pool) override {
-        auto mr = new(pool) ModuleReadings(1);
+        auto mr = new(pool) NModuleReadings<1>();
         mr->set(0, (float)fk_random_i32(20, 100));
         return mr;
     }
@@ -59,7 +59,7 @@ public:
     }
 
     ModuleReadings *take_readings(ModuleContext mc, Pool &pool) override {
-        auto mr = new(pool) ModuleReadings(10);
+        auto mr = new(pool) NModuleReadings<10>();
         for (size_t i = 0; i < mr->size(); i++) {
             mr->set(i, (float)fk_random_i32(20, 100));
         }
