@@ -1,8 +1,8 @@
 #pragma once
 
 #include <inttypes.h>
-#include <alogging/alogging.h>
 #include <string.h>
+#include <alogging/alogging.h>
 
 #ifdef __cplusplus
 extern "C" {

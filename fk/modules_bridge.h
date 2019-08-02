@@ -2,30 +2,32 @@
 
 #include "common.h"
 #include "pool.h"
+#include "hal/board.h"
 
 namespace fk {
 
 class ModuleContext {
 private:
+    TwoWireWrapper *module_bus_{ nullptr };
     int32_t module_{ -1 };
 
 public:
     ModuleContext();
+    ModuleContext(TwoWireWrapper &module_bus);
     ModuleContext(ModuleContext &from, int32_t module);
     virtual ~ModuleContext();
 
 public:
     ModuleContext module(int32_t module);
 
+public:
+    TwoWireWrapper &module_bus() {
+        return *module_bus_;
+    }
+
 };
 
 class ModuleReadings {
-public:
-    ModuleReadings() {
-    }
-    virtual ~ModuleReadings() {
-    }
-
 public:
     virtual size_t size() const = 0;
     virtual void set(int32_t i, float value) = 0;

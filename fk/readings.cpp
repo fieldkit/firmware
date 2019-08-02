@@ -31,7 +31,8 @@ bool Readings::take_readings(ResolvedModules const &modules, uint32_t reading_nu
 
     bzero(groups, sizeof(fk_data_SensorGroup) * modules.size());
 
-    ModuleContext mc;
+    auto module_bus = get_board()->i2c_module();
+    ModuleContext mc{ module_bus };
     for (size_t i = 0; i < MaximumNumberOfModules; ++i) {
         auto meta = modules.get(i);
         if (meta == nullptr) {
@@ -47,13 +48,13 @@ bool Readings::take_readings(ResolvedModules const &modules, uint32_t reading_nu
             continue;
         }
 
-        auto readings_array = pool.malloc<pb_array_t>();
         auto sensor_values = pool.malloc<fk_data_SensorAndValue>(readings->size());
 
         for (uint32_t i = 0; i < readings->size(); ++i) {
             sensor_values[i] = { i, readings->get(i) };
         }
 
+        auto readings_array = pool.malloc<pb_array_t>();
         *readings_array = {
             .length = (size_t)readings->size(),
             .itemSize = sizeof(fk_data_SensorAndValue),
