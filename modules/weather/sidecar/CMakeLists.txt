@@ -37,6 +37,7 @@ file(GLOB sources *.s *.c)
 add_library(fk-weather-sidecar STATIC ${sources} ${fk_sources})
 target_compile_options(fk-weather-sidecar PRIVATE ${target_c_flags})
 target_include_directories(fk-weather-sidecar PUBLIC ${CMAKE_SOURCE_DIR}/fk)
+target_include_directories(fk-weather-sidecar PUBLIC ${CMAKE_SOURCE_DIR}/modules/weather/main)
 
 
 
@@ -86,6 +87,7 @@ add_custom_command(
   -Wl,-Map,${map_file} -o ${elf_file} -L${CMAKE_SOURCE_DIR}/boards/samd09
   ${CMAKE_CURRENT_BINARY_DIR}/libfk-weather-sidecar.a
   ${CMAKE_CURRENT_BINARY_DIR}/libAsf4.a
+  ${CMAKE_CURRENT_BINARY_DIR}/libSeggerRTT.a
 )
 
 add_custom_target(${elf_target} ALL DEPENDS ${elf_file})

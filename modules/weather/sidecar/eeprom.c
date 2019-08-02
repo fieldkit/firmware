@@ -16,12 +16,8 @@ int32_t eeprom_write(struct i2c_m_sync_desc *i2c, uint16_t address, uint8_t *dat
 
     i2c_m_sync_enable(i2c);
 
-    gpio_set_pin_direction(PA16, GPIO_DIRECTION_OUT);
-
-    gpio_set_pin_level(PA16, 0);
-
     struct _i2c_m_msg msg;
-    msg.addr   = EEPROM_ADDRESS;
+    msg.addr   = EEPROM_I2C_ADDRESS;
     msg.flags  = I2C_M_STOP;
     msg.buffer = buffer;
     msg.len    = size + sizeof(address);
@@ -40,8 +36,6 @@ int32_t eeprom_write(struct i2c_m_sync_desc *i2c, uint16_t address, uint8_t *dat
         to--;
     }
 
-    gpio_set_pin_level(PA16, 1);
-
     return ret;
 }
 
@@ -53,7 +47,7 @@ int32_t eeprom_read(struct i2c_m_sync_desc *i2c, uint16_t address, uint8_t *data
 
     i2c_m_sync_enable(i2c);
 
-    msg.addr   = EEPROM_ADDRESS;
+    msg.addr   = EEPROM_I2C_ADDRESS;
     msg.len    = sizeof(uint16_t);
     msg.flags  = 0;
     msg.buffer = (void *)&address;
@@ -77,4 +71,20 @@ int32_t eeprom_read(struct i2c_m_sync_desc *i2c, uint16_t address, uint8_t *data
     }
 
     return ERR_NONE;
+}
+
+int32_t eeprom_write_enable_always() {
+    gpio_set_pin_direction(PA16, GPIO_DIRECTION_IN);
+    return 0;
+}
+
+int32_t eeprom_write_enable() {
+    gpio_set_pin_direction(PA16, GPIO_DIRECTION_OUT);
+    gpio_set_pin_level(PA16, 0);
+    return 0;
+}
+
+int32_t eeprom_write_disable() {
+    gpio_set_pin_level(PA16, 1);
+    return 0;
 }
