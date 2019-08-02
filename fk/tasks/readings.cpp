@@ -52,7 +52,7 @@ void task_handler_readings(void *params) {
     auto gs = get_global_state_ro();
 
     Readings readings{ gs.get() };
-    if (!readings.take_readings(modules, 0, pool)) {
+    if (!readings.take_readings(modules, file.record(), pool)) {
         logerror("error takign readings");
         return;
     }
