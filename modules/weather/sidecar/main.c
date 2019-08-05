@@ -8,6 +8,7 @@
 #include <weather.h>
 
 #include "sidecar.h"
+#include "board.h"
 #include "eeprom.h"
 #include "sensors.h"
 
@@ -49,111 +50,10 @@ int32_t read_configuration(fk_weather_config_t *config) {
     return FK_SUCCESS;
 }
 
-static void error(const char *message) {
-    SEGGER_RTT_WriteString(0, "w: error! ");
-    SEGGER_RTT_WriteString(0, message);
-    SEGGER_RTT_WriteString(0, "\n");
-}
-
-static void debug(uint32_t status, sht31_reading_t *reading) {
-    SEGGER_RTT_WriteString(0, "w: debug\n");
-}
-
-int32_t counters_configure(struct i2c_m_sync_desc *i2c, uint8_t address) {
-    int32_t rv;
-    uint8_t buffer[] = {
-        0x00,  // IODIR (Address)
-        0x00,  // IODIR
-        0x00,  // IPOL
-        0x00,  // GPINTEN
-        0x00,  // DEFVAL
-        0x00,  // INTCON
-        0x00,  // IOCON
-        0x00,  // GPPU
-        0x00,  // INTF
-        0x00,  // INTCAP
-        0x00,  // GPIO
-    };
-
-    i2c_m_sync_enable(i2c);
-
-    struct _i2c_m_msg msg;
-    msg.addr   = address;
-    msg.flags  = I2C_M_SEVEN;
-    msg.buffer = (void *)&buffer;
-    msg.len    = sizeof(buffer);
-
-    rv = _i2c_m_sync_transfer(&i2c->device, &msg);
-    if (rv != 0) {
-        return rv;
-    }
-
-    return FK_SUCCESS;
-}
-
-int32_t read_sht31() {
-    int32_t rv;
-
-    rv = sht31_initialize(&I2C_1);
-    if (rv != FK_SUCCESS) {
-        error("sht31 error initializing");
-        return rv;
-    }
-
-    uint16_t status;
-    rv = sht31_status_get(&I2C_1, &status);
-    if (rv != FK_SUCCESS) {
-        error("sht31 error getting status");
-        return rv;
-    }
-
-    sht31_reading_t reading;
-    rv = sht31_reading_get(&I2C_1, &reading);
-    if (rv != FK_SUCCESS) {
-        error("sht31 error getting reading");
-        return rv;
-    }
-
-    SEGGER_RTT_WriteString(0, "w: sht31 success\n");
-
-    return FK_SUCCESS;
-}
-
-int32_t read_mpl3115a2() {
-    int32_t rv;
-
-    rv = mpl3115a2_initialize(&I2C_1);
-    if (rv != FK_SUCCESS) {
-        error("mpl3115a2 error initializing");
-        return rv;
-    }
-
-    SEGGER_RTT_WriteString(0, "w: mpl3115a2 success\n");
-
-    return FK_SUCCESS;
-}
-
-static void found(int32_t address) {
-    SEGGER_RTT_WriteString(0, "FOUND\n");
-}
-
-// ➜  ~ git:(master) ✗ 33 (counter 1)
-// ➜  ~ git:(master) ✗ 34 (counter 2)
-// ➜  ~ git:(master) ✗ 68 (sht31)
-// ➜  ~ git:(master) ✗ 80
-// ➜  ~ git:(master) ✗ 96 (mpl3115a2)
-
 __int32_t main() {
-    system_init();
+    board_initialize();
 
-    SEGGER_RTT_Init();
-    SEGGER_RTT_WriteString(0, "w: initializing...\n");
-
-    delay_driver_init();
-    I2C_0_init();
-    I2C_1_init();
-
-    SEGGER_RTT_WriteString(0, "w: checking eeprom...\n");
+    loginfo("checking eeprom...");
 
     // Always leave EEPROM ready for writes.
     eeprom_write_enable_always();
@@ -164,7 +64,7 @@ __int32_t main() {
         // NOTE: This is bad!
     }
 
-    SEGGER_RTT_WriteString(0, "w: reading configuration...\n");
+    loginfo("configuration...");
 
     // Read configuration, if that fails use the default.
     fk_weather_config_t config;
@@ -172,35 +72,29 @@ __int32_t main() {
         config = fk_weather_config_default;
     }
 
-    int32_t rv;
+    loginfo("sensors...");
 
-    SEGGER_RTT_WriteString(0, "w: configure counter 1...\n");
-
-    rv = counters_configure(&I2C_1, 0x20 + 0x1);
-    if (rv != FK_SUCCESS) {
-        error("counters error initializing");
+    if (sensors_initialize(&I2C_1) != FK_SUCCESS) {
+        logerror("sensors: error initializing");
     }
 
-    SEGGER_RTT_WriteString(0, "w: configure counter 2...\n");
-
-    rv = counters_configure(&I2C_1, 0x20 + 0x2);
-    if (rv != FK_SUCCESS) {
-        error("counters error initializing");
-    }
-
-    SEGGER_RTT_WriteString(0, "w: sensors...\n");
-
-    read_sht31();
-
-    read_mpl3115a2();
-
-    if (adc_initialize(&I2C_1) != FK_SUCCESS) {
-        error("adc error initializing");
-    }
-
-    SEGGER_RTT_WriteString(0, "w: ready!\n");
+    loginfo("ready!");
 
     while (true) {
+        adc081c_reading_t wind_direction;
+        if (adc081c_reading_get(&I2C_1, &wind_direction) != FK_SUCCESS) {
+        }
+
+        mpl3115a2_reading_t pressure;
+        if (mpl3115a2_reading_get(&I2C_1, &pressure) != FK_SUCCESS) {
+        }
+
+        sht31_reading_t humidity_and_temperature;
+        if (sht31_reading_get(&I2C_1, &humidity_and_temperature) != FK_SUCCESS) {
+        }
+
+        loginfo("tick");
+
         delay_ms(1000);
     }
 
