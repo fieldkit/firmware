@@ -33,6 +33,37 @@
 #define MPL3115A2_BAR_IN_LSB                             (0x15)
 #define MPL3115A2_WHOAMI_EXPECTED                        (0xC4)
 
+#define MPL3115A2_REGISTER_STATUS_TDR       0x02
+#define MPL3115A2_REGISTER_STATUS_PDR        0x04
+#define MPL3115A2_REGISTER_STATUS_PTDR       0x08
+
+#define MPL3115A2_CTRL_REG1         (0x26)
+#define MPL3115A2_CTRL_REG2            (0x27)
+#define MPL3115A2_CTRL_REG3            (0x28)
+#define MPL3115A2_CTRL_REG4            (0x29)
+#define MPL3115A2_CTRL_REG5             (0x2A)
+
+#define MPL3115A2_CTRL_REG1_SBYB    0x01
+#define MPL3115A2_CTRL_REG1_OST      0x02
+#define MPL3115A2_CTRL_REG1_RST       0x04
+#define MPL3115A2_CTRL_REG1_RAW      0x40
+#define MPL3115A2_CTRL_REG1_ALT     0x80
+#define MPL3115A2_CTRL_REG1_BAR      0x00
+
+#define MPL3115A2_PT_DATA_CFG        0x13
+#define MPL3115A2_PT_DATA_CFG_TDEFE      0x01
+#define MPL3115A2_PT_DATA_CFG_PDEFE      0x02
+#define MPL3115A2_PT_DATA_CFG_DREM       0x04
+
+#define MPL3115A2_CTRL_REG1_OS1      0x00
+#define MPL3115A2_CTRL_REG1_OS2      0x08
+#define MPL3115A2_CTRL_REG1_OS4      0x10
+#define MPL3115A2_CTRL_REG1_OS8      0x18
+#define MPL3115A2_CTRL_REG1_OS16         0x20
+#define MPL3115A2_CTRL_REG1_OS32         0x28
+#define MPL3115A2_CTRL_REG1_OS64         0x30
+#define MPL3115A2_CTRL_REG1_OS128        0x38
+
 #define ADC081C_I2C_ADDRESS                              (0x50)
 #define ADC081C_REGISTER_READING                         (0x00)
 #define ADC081C_REGISTER_ALERT_STATUS                    (0x01)
@@ -293,6 +324,29 @@ int32_t mpl3115a2_initialize(struct i2c_m_sync_desc *i2c) {
     if (identity != MPL3115A2_WHOAMI_EXPECTED) {
         return FK_ERROR_GENERAL;
     }
+
+
+    i2c_write_u8(i2c, MPL3115A2_I2C_ADDRESS, MPL3115A2_CTRL_REG1, MPL3115A2_CTRL_REG1_RST);
+    delay_ms(10);
+
+    // TODO: TIMEOUT
+    while (true) {
+        uint8_t value;
+        rv = i2c_read_u8(i2c, MPL3115A2_I2C_ADDRESS, MPL3115A2_CTRL_REG1, &value);
+        if (rv != FK_SUCCESS) {
+            return rv;
+        }
+
+        if ((value & MPL3115A2_CTRL_REG1_RST) == 0)  {
+            break;
+        }
+
+        delay_ms(10);
+    }
+
+    i2c_write_u8(i2c, MPL3115A2_I2C_ADDRESS, MPL3115A2_CTRL_REG1, MPL3115A2_CTRL_REG1_OS128 | MPL3115A2_CTRL_REG1_ALT);
+
+    i2c_write_u8(i2c, MPL3115A2_I2C_ADDRESS, MPL3115A2_PT_DATA_CFG, MPL3115A2_PT_DATA_CFG_TDEFE | MPL3115A2_PT_DATA_CFG_PDEFE | MPL3115A2_PT_DATA_CFG_DREM);
 
     return FK_SUCCESS;
 }
