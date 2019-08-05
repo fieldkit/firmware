@@ -21,3 +21,5 @@ typedef struct mpl3115a2_reading_t {
 } mpl3115a2_reading_t;
 
 int32_t mpl3115a2_reading_get(struct i2c_m_sync_desc *i2c);
+
+int32_t adc_initialize(struct i2c_m_sync_desc *i2c);

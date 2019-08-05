@@ -96,21 +96,21 @@ int32_t read_sht31() {
 
     rv = sht31_initialize(&I2C_1);
     if (rv != FK_SUCCESS) {
-        error("SHT31 error initializing");
+        error("sht31 error initializing");
         return rv;
     }
 
     uint16_t status;
     rv = sht31_status_get(&I2C_1, &status);
     if (rv != FK_SUCCESS) {
-        error("SHT31 error getting status");
+        error("sht31 error getting status");
         return rv;
     }
 
     sht31_reading_t reading;
     rv = sht31_reading_get(&I2C_1, &reading);
     if (rv != FK_SUCCESS) {
-        error("SHT31 error getting reading");
+        error("sht31 error getting reading");
         return rv;
     }
 
@@ -124,14 +124,24 @@ int32_t read_mpl3115a2() {
 
     rv = mpl3115a2_initialize(&I2C_1);
     if (rv != FK_SUCCESS) {
-        error("MPL3115A2 error initializing");
+        error("mpl3115a2 error initializing");
         return rv;
     }
 
-    SEGGER_RTT_WriteString(0, "w: sht31 success\n");
+    SEGGER_RTT_WriteString(0, "w: mpl3115a2 success\n");
 
     return FK_SUCCESS;
 }
+
+static void found(int32_t address) {
+    SEGGER_RTT_WriteString(0, "FOUND\n");
+}
+
+// ➜  ~ git:(master) ✗ 33 (counter 1)
+// ➜  ~ git:(master) ✗ 34 (counter 2)
+// ➜  ~ git:(master) ✗ 68 (sht31)
+// ➜  ~ git:(master) ✗ 80
+// ➜  ~ git:(master) ✗ 96 (mpl3115a2)
 
 __int32_t main() {
     system_init();
@@ -143,6 +153,8 @@ __int32_t main() {
     I2C_0_init();
     I2C_1_init();
 
+    SEGGER_RTT_WriteString(0, "w: checking eeprom...\n");
+
     // Always leave EEPROM ready for writes.
     eeprom_write_enable_always();
 
@@ -152,6 +164,8 @@ __int32_t main() {
         // NOTE: This is bad!
     }
 
+    SEGGER_RTT_WriteString(0, "w: reading configuration...\n");
+
     // Read configuration, if that fails use the default.
     fk_weather_config_t config;
     if (read_configuration(&config) != FK_SUCCESS) {
@@ -160,27 +174,33 @@ __int32_t main() {
 
     int32_t rv;
 
-    rv = counters_configure(&I2C_1, 0x20 + 0x2);
-    if (rv == FK_SUCCESS) {
-    }
-    else {
-        error("counters error initializing");
-    }
+    SEGGER_RTT_WriteString(0, "w: configure counter 1...\n");
 
     rv = counters_configure(&I2C_1, 0x20 + 0x1);
-    if (rv == FK_SUCCESS) {
-    }
-    else {
+    if (rv != FK_SUCCESS) {
         error("counters error initializing");
     }
 
+    SEGGER_RTT_WriteString(0, "w: configure counter 2...\n");
+
+    rv = counters_configure(&I2C_1, 0x20 + 0x2);
+    if (rv != FK_SUCCESS) {
+        error("counters error initializing");
+    }
+
+    SEGGER_RTT_WriteString(0, "w: sensors...\n");
+
     read_sht31();
+
+    read_mpl3115a2();
+
+    if (adc_initialize(&I2C_1) != FK_SUCCESS) {
+        error("adc error initializing");
+    }
 
     SEGGER_RTT_WriteString(0, "w: ready!\n");
 
     while (true) {
-        read_mpl3115a2();
-
         delay_ms(1000);
     }
 
