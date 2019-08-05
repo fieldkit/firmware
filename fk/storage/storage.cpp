@@ -165,7 +165,7 @@ uint32_t Storage::allocate(uint8_t file, uint32_t overflow, uint32_t previous_ta
             break;
         }
 
-        logwarn("allocate: bad block: %d", free_block_);
+        logwarn("[%d] allocating ignoring bad block: %d", file, free_block_);
 
         free_block_++;
         address = InvalidAddress;
@@ -179,7 +179,7 @@ uint32_t Storage::allocate(uint8_t file, uint32_t overflow, uint32_t previous_ta
         return InvalidAddress;
     }
 
-    logdebug("[%d] allocated block #%d (0x%06x) (%d) (#%d) (%d bytes)",
+    logdebug("[%d] allocating block #%d (0x%06x) (%d) (#%d) (%d bytes)",
              file, free_block_, address, overflow, files_[file].record, files_[file].size);
 
     timestamp_++;
@@ -357,7 +357,10 @@ uint32_t Storage::fsck() {
 
     while (bytes_read < size) {
         auto to_read = std::min<size_t>(BufferSize, size - bytes_read);
-        FK_ASSERT(file.read(buffer, to_read) == to_read);
+        auto nread = file.read(buffer, to_read);
+        if (nread != to_read) {
+            logwarn("fsck: (%d != %d)", nread, to_read);
+        }
         bytes_read += to_read;
     }
 
