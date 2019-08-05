@@ -1,5 +1,6 @@
 #include "board.h"
 #include "sensors.h"
+#include "tiny_printf.h"
 
 #define SHT31_I2C_ADDRESS                                (0x44 >> 1)
 #define SHT31_MEAS_HIGHREP_STRETCH                       (0x2C06)

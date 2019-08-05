@@ -19,7 +19,7 @@ set(CMAKE_ASM_COMPILER ${ARM_TOOLS}/arm-none-eabi-gcc)
 enable_language(ASM)
 
 set(target_mcu "cortex-m0plus")
-set(target_board_flags -D__SAMD09__ -D__SAMD09D14A__)
+set(target_board_flags -D__SAMD09__ -D__SAMD09D14A__ -DTINY_PRINTF_FEATURES_SMALL)
 set(target_c_flags -g -Os -s -fdata-sections -ffunction-sections -nostdlib --param max-inline-insns-single=500 -MMD -mcpu=${target_mcu} -mthumb ${target_board_flags} -fstack-usage -std=c99)
 set(linker_script ${CMAKE_SOURCE_DIR}/boards/samd09/main.ld)
 set(target_board_libraries)
