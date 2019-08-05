@@ -83,14 +83,17 @@ __int32_t main() {
     while (true) {
         adc081c_reading_t wind_direction;
         if (adc081c_reading_get(&I2C_1, &wind_direction) != FK_SUCCESS) {
+            logerror("adc081c reading");
         }
 
         mpl3115a2_reading_t pressure;
         if (mpl3115a2_reading_get(&I2C_1, &pressure) != FK_SUCCESS) {
+            logerror("mpl3115a2 reading");
         }
 
         sht31_reading_t humidity_and_temperature;
         if (sht31_reading_get(&I2C_1, &humidity_and_temperature) != FK_SUCCESS) {
+            logerror("sht31 reading");
         }
 
         loginfo("tick");

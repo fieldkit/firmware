@@ -13,5 +13,8 @@ int32_t board_initialize() {
     I2C_0_init();
     I2C_1_init();
 
+    i2c_m_sync_enable(&I2C_0);
+    i2c_m_sync_enable(&I2C_1);
+
     return FK_SUCCESS;
 }
