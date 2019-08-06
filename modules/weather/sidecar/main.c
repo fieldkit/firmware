@@ -86,15 +86,21 @@ __int32_t main() {
             logerror("adc081c reading");
         }
 
-        mpl3115a2_reading_t pressure;
-        if (mpl3115a2_reading_get(&I2C_1, &pressure) != FK_SUCCESS) {
+        mpl3115a2_reading_t mpl3115a2_reading;
+        if (mpl3115a2_reading_get(&I2C_1, &mpl3115a2_reading) != FK_SUCCESS) {
             logerror("mpl3115a2 reading");
         }
 
-        sht31_reading_t humidity_and_temperature;
-        if (sht31_reading_get(&I2C_1, &humidity_and_temperature) != FK_SUCCESS) {
+        loginfof("pressure: %d", mpl3115a2_reading.pressure);
+        loginfof("temp: %d", mpl3115a2_reading.temperature);
+
+        sht31_reading_t sht31_reading;
+        if (sht31_reading_get(&I2C_1, &sht31_reading) != FK_SUCCESS) {
             logerror("sht31 reading");
         }
+
+        loginfof("humidity: %d", sht31_reading.humidity);
+        loginfof("temp: %d", sht31_reading.temperature);
 
         loginfo("tick");
 
