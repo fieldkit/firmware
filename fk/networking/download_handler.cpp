@@ -22,6 +22,8 @@ void DownloadWorker::run(WorkerContext &wc) {
     StatisticsMemory memory{ MemoryFactory::get_data_memory() };
     Storage storage{ &memory };
 
+    FK_ASSERT(storage.begin());
+
     auto file = storage.file(file_number);
 
     FK_ASSERT(file.seek(last_block));
