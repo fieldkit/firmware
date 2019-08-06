@@ -109,6 +109,7 @@ bool Storage::begin() {
                 files_[i] = block_header.files[i];
             }
 
+            timestamp_ = block_header.timestamp;
             version_ = block_header.version;
             range = range.second_half();
             had_valid_blocks = true;
@@ -136,12 +137,17 @@ bool Storage::begin() {
             if (!sv.valid()) {
                 return false;
             }
+
             files_[file].tail = sv.address;
             files_[file].size = sv.position;
             files_[file].record = sv.record;
 
             if (sv.block >= free_block_) {
                 free_block_ = sv.block + 1;
+            }
+
+            if (sv.timestamp > timestamp_) {
+                timestamp_ = sv.timestamp;
             }
         }
     }
@@ -169,6 +175,7 @@ bool Storage::clear() {
     }
 
     free_block_ = 0;
+    timestamp_ = 0;
     version_ = fk_random_i32(0, INT32_MAX);
 
     return true;
@@ -255,6 +262,9 @@ uint32_t Storage::allocate(uint8_t file, uint32_t overflow, uint32_t previous_ta
 SeekValue Storage::seek(SeekSettings settings) {
     SequentialMemory memory{ memory_ };
     auto g = memory_->geometry();
+    auto timestamp = (uint32_t)0;
+
+    verify_opened();
 
     logtrace("[%d] seeking #%" PRIu32, settings.file, settings.record);
 
@@ -273,6 +283,10 @@ SeekValue Storage::seek(SeekSettings settings) {
         if (block_header.valid()) {
             auto &bfh = block_header.files[settings.file];
             logtrace("[%d] found valid block (0x%06x) (%d)", block_header.file, address, bfh.size);
+
+            if (block_header.timestamp > timestamp) {
+                timestamp = block_header.timestamp;
+            }
 
             if (settings.record != InvalidRecord) {
                 if (bfh.record > settings.record) {
@@ -359,15 +373,19 @@ SeekValue Storage::seek(SeekSettings settings) {
              settings.file, address, settings.record,
              record, position, position - fh.size);
 
-    return SeekValue{ address, record, position, block };
+    return SeekValue{ address, record, position, block, timestamp };
 }
 
 File Storage::file(uint8_t file) {
+    verify_opened();
+
     return File{ this, file, files_[file] };
 }
 
 uint32_t Storage::fsck() {
     constexpr static size_t BufferSize = 1024;
+
+    verify_opened();
 
     auto started = fk_uptime();
 
@@ -400,6 +418,10 @@ uint32_t Storage::fsck() {
     loginfo("fsck done (%dms)", fk_uptime() - started);
 
     return 0;
+}
+
+void Storage::verify_opened() {
+    FK_ASSERT(free_block_ != InvalidBlock);
 }
 
 }
