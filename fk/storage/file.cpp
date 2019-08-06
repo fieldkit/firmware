@@ -266,6 +266,7 @@ size_t File::read(uint8_t *record, size_t size) {
 
             if (record_remaining_ == 0) {
                 if (read_record_tail() == 0) {
+                    logwarn("[%d] 0x%06x error reading tail", file_, tail_);
                     return bytes_read;
                 }
 

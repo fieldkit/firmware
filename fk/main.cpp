@@ -148,7 +148,9 @@ void setup() {
     Storage storage{ MemoryFactory::get_data_memory() };
     FactoryWipe fw{ get_buttons(), &storage };
     FK_ASSERT(fw.wipe_if_necessary());
-    storage.fsck();
+    if (storage.begin()) {
+        storage.fsck();
+    }
 
     if (fk_config().slow_startup) {
         fk_delay(1000);

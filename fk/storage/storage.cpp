@@ -88,6 +88,8 @@ bool Storage::begin() {
             version_ = block_header.version;
             range = range.second_half();
             had_valid_blocks = true;
+
+            loginfo("0x%06x found version %d", address, version_);
         }
         else {
             logtrace("[?] invalid block (0x%06x)", address);
@@ -202,6 +204,8 @@ uint32_t Storage::allocate(uint8_t file, uint32_t overflow, uint32_t previous_ta
         block_header.files[i] = files_[i];
     }
     block_header.fill_hash();
+
+    FK_ASSERT(version_ > 0 && version_ != InvalidVersion);
 
     if (memory_->write(address, (uint8_t *)&block_header, sizeof(BlockHeader)) != sizeof(BlockHeader)) {
         logerror("allocate: write header failed");
