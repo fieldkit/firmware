@@ -53,18 +53,21 @@ void task_handler_readings(void *params) {
 
     Readings readings{ gs.get() };
     if (!readings.take_readings(modules, file.record(), pool)) {
-        logerror("error takign readings");
+        logerror("error taking readings");
         return;
     }
 
-    auto bytes_wrote = file.write(&readings.record(), fk_data_DataRecord_fields);
-    if (bytes_wrote == 0) {
-        logerror("error saving readings");
-        return;
-    }
+    for (auto i = 0; i < FK_INFLATE_WRITES_READINGS; ++i) {
+        auto bytes_wrote = file.write(&readings.record(), fk_data_DataRecord_fields);
+        if (bytes_wrote == 0) {
+            logerror("error saving readings");
+            return;
+        }
 
-    loginfo("wrote %d bytes (%d bytes) (0x%06x) (%dms)",
-            bytes_wrote, file.size(), file.tail(), fk_uptime() - started);
+        loginfo("wrote %d bytes (#%d) (%d bytes) (0x%06x) (%dms)",
+                bytes_wrote, file.record() - 1, file.size(), file.tail(),
+                fk_uptime() - started);
+    }
 
     memory.log_statistics();
 

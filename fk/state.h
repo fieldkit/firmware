@@ -6,8 +6,20 @@
 
 namespace fk {
 
+struct SensorDetails {
+    const char *name;
+    const char *uom;
+};
+
+struct ModuleDetails {
+    const char *name;
+    SensorDetails *sensors;
+    size_t nsensors;
+};
+
 struct ModuleState {
 public:
+    uint16_t position;
     uint16_t manufacturer;
     uint16_t kind;
     uint16_t version;

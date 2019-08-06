@@ -11,6 +11,11 @@ namespace fk {
 #define FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS (2)
 
 /**
+ *
+ */
+#define FK_INFLATE_WRITES_READINGS        (10)
+
+/**
  * Maximum number of memory banks we're capable of supporting.
  */
 constexpr size_t MaximumNumberOfMemoryBanks = FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS;
