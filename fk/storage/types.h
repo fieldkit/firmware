@@ -33,7 +33,7 @@ struct Hash {
     uint8_t hash[Length];
 };
 
-uint32_t hash_block(void *ptr, size_t size, Hash &hash);
+uint32_t hash_block(void const *ptr, size_t size, Hash &hash);
 
 struct BlockMagic {
     static constexpr char MagicKey[] = "phylum0";
@@ -52,7 +52,7 @@ struct BlockMagic {
         return { MagicKey };
     }
 
-    bool valid() {
+    bool valid() const {
         return memcmp(data, MagicKey, sizeof(MagicKey)) == 0;
     }
 
@@ -84,15 +84,11 @@ struct BlockHeader {
     FileHeader files[NumberOfFiles];
     Hash hash;
 
-    void fill_hash() {
-        hash_block(this, sizeof(BlockHeader) - sizeof(Hash), hash);
-    }
+    void fill_hash();
 
-    bool verify_hash() {
-        Hash expected;
-        hash_block(this, sizeof(BlockHeader) - sizeof(Hash), expected);
-        return memcmp(expected.hash, hash.hash, sizeof(Hash)) == 0;
-    }
+    bool verify_hash() const;
+
+    bool valid() const;
 };
 
 struct BlockTail {
@@ -100,15 +96,9 @@ struct BlockTail {
     uint32_t reserved[3] = { 0xdeadbeef, 0xdeadbeef, 0xdeadbeef };
     Hash hash;
 
-    void fill_hash() {
-        hash_block(this, sizeof(BlockTail) - sizeof(Hash), hash);
-    }
+    void fill_hash();
 
-    bool verify_hash() {
-        Hash expected;
-        hash_block(this, sizeof(BlockTail) - sizeof(Hash), expected);
-        return memcmp(expected.hash, hash.hash, sizeof(Hash)) == 0;
-    }
+    bool verify_hash();
 };
 
 struct RecordHeader {

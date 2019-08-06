@@ -8,7 +8,7 @@ FK_DECLARE_LOGGER("storage");
 
 constexpr char BlockMagic::MagicKey[];
 
-uint32_t hash_block(void *ptr, size_t size, Hash &hash) {
+uint32_t hash_block(void const *ptr, size_t size, Hash &hash) {
     BLAKE2b b2b;
     b2b.reset(Hash::Length);
     b2b.update(ptr, size);
@@ -37,8 +37,28 @@ struct BlockRange {
     }
 };
 
-SeekSettings SeekSettings::end_of(uint8_t file) {
-    return SeekSettings{ file, LastRecord };
+void BlockHeader::fill_hash() {
+    hash_block(this, sizeof(BlockHeader) - sizeof(Hash), hash);
+}
+
+bool BlockHeader::verify_hash() const {
+    Hash expected;
+    hash_block(this, sizeof(BlockHeader) - sizeof(Hash), expected);
+    return memcmp(expected.hash, hash.hash, sizeof(Hash)) == 0;
+}
+
+bool BlockHeader::valid() const {
+    return version != InvalidVersion && magic.valid() && verify_hash();
+}
+
+void BlockTail::fill_hash() {
+    hash_block(this, sizeof(BlockTail) - sizeof(Hash), hash);
+}
+
+bool BlockTail::verify_hash() {
+    Hash expected;
+    hash_block(this, sizeof(BlockTail) - sizeof(Hash), expected);
+    return memcmp(expected.hash, hash.hash, sizeof(Hash)) == 0;
 }
 
 uint32_t RecordHeader::sign() {
@@ -47,6 +67,10 @@ uint32_t RecordHeader::sign() {
 
 bool RecordHeader::valid() {
     return sign() == crc;
+}
+
+SeekSettings SeekSettings::end_of(uint8_t file) {
+    return SeekSettings{ file, LastRecord };
 }
 
 Storage::Storage(DataMemory *memory) : memory_(memory) {
@@ -76,7 +100,7 @@ bool Storage::begin() {
             return false;
         }
 
-        if (block_header.magic.valid()) {
+        if (block_header.valid()) {
             logtrace("[%d] found valid block (0x%06x)", block_header.file, address);
 
             FK_ASSERT(block_header.verify_hash());
@@ -246,7 +270,7 @@ SeekValue Storage::seek(SeekSettings settings) {
             return { };
         }
 
-        if (block_header.magic.valid()) {
+        if (block_header.valid()) {
             auto &bfh = block_header.files[settings.file];
             logtrace("[%d] found valid block (0x%06x) (%d)", block_header.file, address, bfh.size);
 
@@ -366,7 +390,7 @@ uint32_t Storage::fsck() {
         auto to_read = std::min<size_t>(BufferSize, size - bytes_read);
         auto nread = file.read(buffer, to_read);
         if (nread != to_read) {
-            logwarn("fsck: (%d != %d)", nread, to_read);
+            logwarn("fsck: (%d != %d) (%d bytes total)", nread, to_read, bytes_read);
         }
         bytes_read += to_read;
     }
