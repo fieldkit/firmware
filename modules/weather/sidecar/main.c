@@ -83,26 +83,33 @@ __int32_t main() {
     while (true) {
         adc081c_reading_t wind_direction;
         if (adc081c_reading_get(&I2C_1, &wind_direction) != FK_SUCCESS) {
-            logerror("adc081c reading");
+            logerror("reading adc081c");
         }
 
         mpl3115a2_reading_t mpl3115a2_reading;
         if (mpl3115a2_reading_get(&I2C_1, &mpl3115a2_reading) != FK_SUCCESS) {
-            logerror("mpl3115a2 reading");
+            logerror("reading mpl3115a2");
         }
-
-        loginfof("pressure: %d", mpl3115a2_reading.pressure);
-        loginfof("temp: %d", mpl3115a2_reading.temperature);
 
         sht31_reading_t sht31_reading;
         if (sht31_reading_get(&I2C_1, &sht31_reading) != FK_SUCCESS) {
-            logerror("sht31 reading");
+            logerror("reading sht31");
         }
 
+        counters_reading_t counters_reading;
+        if (counters_reading_get(&I2C_1, &counters_reading) != FK_SUCCESS) {
+            logerror("reading counters");
+        }
+
+        SEGGER_RTT_WriteString(0, "\n");
+
+        loginfof("adc081c: %d", wind_direction.value);
+        loginfof("wind: %d", counters_reading.wind);
+        loginfof("rain: %d", counters_reading.rain);
+        loginfof("pressure: %d", mpl3115a2_reading.pressure);
+        loginfof("temp: %d", mpl3115a2_reading.temperature);
         loginfof("humidity: %d", sht31_reading.humidity);
         loginfof("temp: %d", sht31_reading.temperature);
-
-        loginfo("tick");
 
         delay_ms(1000);
     }
