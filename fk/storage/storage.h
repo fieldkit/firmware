@@ -12,6 +12,7 @@ private:
     FileHeader files_[NumberOfFiles];
     uint32_t timestamp_{ InvalidTimestamp };
     uint32_t free_block_{ 0 };
+    uint32_t version_{ 0 };
 
 public:
     Storage(DataMemory *memory);

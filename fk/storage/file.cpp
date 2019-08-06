@@ -25,7 +25,7 @@ static void log_hashed_data(const char *op, uint8_t file, uint32_t record, uint3
 }
 
 File::File(Storage *storage, uint8_t file, FileHeader fh)
-    : storage_(storage), file_(file), tail_(fh.tail), record_(fh.record), position_(0), size_(fh.size) {
+    : storage_(storage), file_(file), tail_(fh.tail), record_(fh.record), version_{ storage->version_ }, position_(0), size_(fh.size) {
     FK_ASSERT(file_ < NumberOfFiles);
 }
 
@@ -183,6 +183,8 @@ size_t File::read_record_header() {
             if (memory.read(tail_, (uint8_t *)&block_header, sizeof(block_header)) != sizeof(block_header)) {
                 return 0;
             }
+
+            FK_ASSERT(block_header.version == version_);
 
             FK_ASSERT(block_header.verify_hash());
 

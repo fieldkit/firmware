@@ -85,6 +85,7 @@ bool Storage::begin() {
                 files_[i] = block_header.files[i];
             }
 
+            version_ = block_header.version;
             range = range.second_half();
             had_valid_blocks = true;
         }
@@ -142,6 +143,7 @@ bool Storage::clear() {
     }
 
     free_block_ = 0;
+    version_ = fk_random_i32(0, INT32_MAX);
 
     return true;
 }
@@ -194,6 +196,7 @@ uint32_t Storage::allocate(uint8_t file, uint32_t overflow, uint32_t previous_ta
     block_header.magic.fill();
     block_header.file = file;
     block_header.timestamp = timestamp_;
+    block_header.version = version_;
     block_header.overflow = overflow;
     for (auto i = 0; i < NumberOfFiles; ++i) {
         block_header.files[i] = files_[i];
