@@ -614,6 +614,42 @@ TEST_F(StorageSuite, WritingThroughABlockClosingAndWritingAnother) {
     ASSERT_EQ(file_read.position(), (size_t)0);
 }
 
+TEST_F(StorageSuite, LotsOfIndividualWrites) {
+    uint32_t total_wrote = 0;
+
+    {
+        Storage storage{ memory_ };
+        ASSERT_TRUE(storage.clear());
+        auto file_write = storage.file(0);
+        auto wrote = write_reading(file_write);
+        FK_ASSERT(wrote > 0);
+        total_wrote += wrote;
+    }
+
+    for (auto i = 0; i < 1024; ++i) {
+        Storage storage{ memory_ };
+        ASSERT_TRUE(storage.begin());
+        auto file_write = storage.file(0);
+        auto wrote = write_reading(file_write);
+        FK_ASSERT(wrote > 0);
+        total_wrote += wrote;
+    }
+
+    {
+        Storage storage{ memory_ };
+        ASSERT_TRUE(storage.begin());
+        auto file_read = storage.file(0);
+
+        ASSERT_TRUE(file_read.seek(LastRecord));
+        ASSERT_EQ(file_read.position(), total_wrote);
+
+        ASSERT_TRUE(file_read.seek(0));
+        ASSERT_EQ(file_read.position(), (size_t)0);
+
+        storage.fsck();
+    }
+}
+
 static size_t write_reading(File &file) {
     fk_data_SensorAndValue readings[] = {
         { 0, (float)random() },
