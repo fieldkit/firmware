@@ -80,6 +80,8 @@ __int32_t main() {
 
     loginfo("ready!");
 
+    fk_weather_t weather;
+
     while (true) {
         adc081c_reading_t wind_direction;
         if (adc081c_reading_get(&I2C_1, &wind_direction) != FK_SUCCESS) {
@@ -102,6 +104,13 @@ __int32_t main() {
         }
 
         SEGGER_RTT_WriteString(0, "\n");
+
+        weather.seconds++;
+        weather.humidity = sht31_reading.humidity;
+        weather.temperature_1 = sht31_reading.temperature;
+        weather.pressure = mpl3115a2_reading.pressure;
+        weather.temperature_2 = mpl3115a2_reading.temperature;
+        weather.wind.direction = wind_direction.value;
 
         loginfof("adc081c: %d", wind_direction.value);
         loginfof("wind: %d", counters_reading.wind);

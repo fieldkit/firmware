@@ -29,7 +29,6 @@ typedef struct fk_weather_t {
     uint32_t temperature_1;
 
     uint32_t pressure;
-    uint32_t altitude;
     uint32_t temperature_2;
 
     fk_wind_t wind;
