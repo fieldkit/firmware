@@ -212,6 +212,12 @@ typedef struct configuration_t {
      * Configuration related to collecting readings.
      */
     readings_t readings;
+
+    typedef struct display_t {
+        uint32_t inactivity{ FiveMinutesMs };
+    } display_t;
+
+    display_t display;
 } configuration_t;
 
 /**

@@ -11,8 +11,8 @@ void task_handler_scheduler(void *params) {
 
     while (true) {
         // This throttles this loop, so we take a pass when we dequeue or timeout.
-        void *message = nullptr;
-        if (get_ipc()->dequeue(&message, FiveSecondsMs)) {
+        Button *button = nullptr;
+        if (get_ipc()->dequeue((void **)&button, FiveSecondsMs)) {
             auto status = os_task_get_status(&network_task);
             if (status == OS_TASK_STATUS_SUSPENDED || status == OS_TASK_STATUS_FINISHED) {
                 loginfo("starting task '%s'", network_task.name);

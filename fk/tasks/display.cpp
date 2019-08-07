@@ -18,11 +18,15 @@ static void refresh() {
 }
 
 void task_handler_display(void *params) {
-    while (true) {
+    auto started = fk_uptime();
+
+    while (fk_uptime() - started < fk_config().display.inactivity) {
         refresh();
 
         fk_delay(1000);
     }
+
+    get_display()->off();
 }
 
 }
