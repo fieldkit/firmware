@@ -155,7 +155,7 @@ void CALENDAR_0_init(void)
  *
  * Enables Timer peripheral, clocks and initializes Timer driver
  */
-static void TIMER_0_init(void)
+void TIMER_0_init(void)
 {
 	_pm_enable_bus_clock(PM_BUS_APBC, TC1);
 	_gclk_enable_channel(TC1_GCLK_ID, CONF_GCLK_TC1_SRC);

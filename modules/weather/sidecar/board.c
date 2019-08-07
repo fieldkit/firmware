@@ -10,6 +10,7 @@ int32_t board_initialize() {
     loginfo("initializing...");
 
     delay_driver_init();
+    TIMER_0_init();
     I2C_0_init();
     I2C_1_init();
 
