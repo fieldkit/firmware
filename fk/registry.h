@@ -14,7 +14,7 @@ private:
 
 private:
     ModuleMetadata const *metas_[MaximumNumberOfModules];
-    int32_t size_;
+    int32_t size_{ 0 };
 
 public:
     ResolvedModules();
