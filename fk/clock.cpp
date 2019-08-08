@@ -103,7 +103,7 @@ bool CoreClock::sync() {
     }
 
     FormattedTime formatted{ trusted.unix_time() };
-    loginfo("%s (%d)", formatted.cstr(), trusted.unix_time());
+    loginfo("%s (%" PRIu32 ")", formatted.cstr(), trusted.unix_time());
 
     // Set the internal time from our trusted, external source.
     struct calendar_time time;

@@ -19,7 +19,7 @@ void Button::changed(bool down) {
         auto elapsed = fk_uptime() - time_;
         down_ = false;
         time_ = 0;
-        loginfo("%s (%dms)", name_, elapsed);
+        loginfo("%s (%" PRIu32 "ms)", name_, elapsed);
         if (get_ipc()->available()) {
             if (!get_ipc()->enqueue(this, 0)) {
                 logerror("ipc error");

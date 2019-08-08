@@ -312,7 +312,7 @@ void SpiFlash::ecc_check() {
 
     auto ecc = (((status) & STATUS_FLAG_ECC_STATUS_MASK) >> STATUS_FLAG_ECC_STATUS_Pos);
     if (ecc > 0) {
-        logwarn("ecc status flags: 0b%b (0b%b) (0b%b)", ecc, status, STATUS_FLAG_ECC_STATUS_MASK);
+        logwarn("ecc status flags: 0x%x (0x%x) (0x%x)", ecc, status, STATUS_FLAG_ECC_STATUS_MASK);
     }
 }
 
@@ -356,7 +356,7 @@ void SpiFlash::read_ecc_information() {
     uint8_t ecc[2] = { 0x00, 0x00 };
     get_feature(CMD_ECC_STATUS_0, &ecc[0]);
     get_feature(CMD_ECC_STATUS_1, &ecc[1]);
-    loginfo("ecc(bfr): 0b%b 0b%b", ecc[0], ecc[0]);
+    loginfo("ecc(bfr): 0x%x 0x%x", ecc[0], ecc[0]);
 }
 
 bool SpiFlash::is_ready(bool ecc_check) {
@@ -396,7 +396,7 @@ bool SpiFlash::is_ready(bool ecc_check) {
     if (ecc_check) {
         auto ecc = (((status) & STATUS_FLAG_ECC_STATUS_MASK) >> STATUS_FLAG_ECC_STATUS_Pos);
         if (ecc > 0) {
-            logwarn("ecc status: 0b%b (0b%b) (0b%b)", ecc, status, STATUS_FLAG_ECC_STATUS_MASK);
+            logwarn("ecc status: 0x%x (0x%x) (0x%x)", ecc, status, STATUS_FLAG_ECC_STATUS_MASK);
             read_ecc_information();
         }
     }

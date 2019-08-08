@@ -151,7 +151,7 @@ bool Connection::service(HttpRouter &router) {
         auto size = pool_.size();
         auto used = pool_.used();
         auto elapsed = fk_uptime() - started_;
-        loginfo("closing (%d bytes) (%d/%d pooled) (%" PRIu32 "ms)", wrote_, used, size, elapsed);
+        loginfo("closing (%" PRIu32 " bytes) (%d/%d pooled) (%" PRIu32 "ms)", wrote_, used, size, elapsed);
         return false;
     }
 

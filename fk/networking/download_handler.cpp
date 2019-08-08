@@ -71,7 +71,7 @@ void DownloadWorker::run(WorkerContext &wc) {
 
         auto elapsed = fk_uptime() - started;
         auto speed = ((bytes_copied / 1024.0f) / (elapsed / 1000.0f));
-        loginfo("done (%d) (%dms) %.2fkbps", bytes_copied, elapsed, speed);
+        loginfo("done (%d) (%" PRIu32 "ms) %.2fkbps", bytes_copied, elapsed, speed);
     }
 
     req_->connection()->close();

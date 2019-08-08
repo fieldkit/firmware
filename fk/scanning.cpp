@@ -55,7 +55,7 @@ bool ModuleScanning::scan(ModuleScan &scan) {
             continue;
         }
 
-        loginfo("[%d] mk=%02x%02x v%d", i, header.manufacturer, header.kind, header.version);
+        loginfo("[%d] mk=%02" PRIx32 "%02" PRIx32 " v%" PRIu32, i, header.manufacturer, header.kind, header.version);
 
         nmodules++;
     }
@@ -71,7 +71,7 @@ bool ModuleScanning::scan(ModuleScan &scan) {
             header.version = 0x1;
             fk_module_header_sign(&header);
 
-            loginfo("[%d] mk=%02x%02x v%d", 7, header.manufacturer, header.kind, header.version);
+            loginfo("[%d] mk=%02" PRIx32 "%02" PRIx32 " v%" PRIu32 "", 7, header.manufacturer, header.kind, header.version);
 
             nmodules++;
         }

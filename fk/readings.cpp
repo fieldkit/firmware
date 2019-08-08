@@ -39,7 +39,7 @@ bool Readings::take_readings(ResolvedModules const &modules, uint32_t reading_nu
             continue;
         }
 
-        loginfo("'%s' mk=%02x%02x version=%d", meta->name, meta->manufacturer, meta->kind, meta->version);
+        loginfo("'%s' mk=%02" PRIx32 "%02" PRIx32 " version=%" PRIu32, meta->name, meta->manufacturer, meta->kind, meta->version);
 
         auto module = meta->ctor(pool);
         auto readings = module->take_readings(mc.module(i), pool);

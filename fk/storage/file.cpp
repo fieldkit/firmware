@@ -19,7 +19,7 @@ FK_DECLARE_LOGGER("storage");
 static void log_hashed_data(const char *op, uint8_t file, uint32_t record, uint32_t address, void *data, size_t size) {
     #if defined(FK_STORAGE_LOGGING_HASHING)
     char prefix[32];
-    tiny_snprintf(prefix, sizeof(prefix), "%s hash %5d 0x%06x ", op, record, address);
+    tiny_snprintf(prefix, sizeof(prefix), "%s hash %5d " PRADDRESS " ", op, record, address);
     fk_dump_memory(prefix, (const uint8_t *)data, size);
     #endif
 }
@@ -51,7 +51,7 @@ size_t File::write_record_header(size_t size) {
     record_header.record = record_++;
     record_header.crc = record_header.sign();
 
-    logverbose("[%d] 0x%06x write header (lib = %d) (%d bytes)", file_, tail_, left_in_block, size);
+    logverbose("[%d] " PRADDRESS " write header (lib = %" PRIu32 ") (%d bytes)", file_, tail_, left_in_block, size);
 
     if (memory.write(tail_, (uint8_t *)&record_header, sizeof(record_header)) != sizeof(record_header)) {
         return 0;
@@ -74,7 +74,7 @@ size_t File::write_partial(uint8_t *record, size_t size) {
     auto left_in_block = (g.remaining_in_block(tail_) - sizeof(BlockTail));
     FK_ASSERT(left_in_block >= size);
 
-    logverbose("[%d] 0x%06x write data (%d bytes) (%d lib)", file_, tail_, size, left_in_block);
+    logverbose("[%d] " PRADDRESS " write data (%d bytes) (%" PRIu32 " lib)", file_, tail_, size, left_in_block);
 
     if (memory.write(tail_, (uint8_t *)record, size) != size) {
         return 0;
@@ -99,12 +99,12 @@ size_t File::write_record_tail(size_t size) {
         return 0;
     }
 
-    logverbose("[%d] 0x%06x write footer", file_, tail_);
+    logverbose("[%d] " PRADDRESS " write footer", file_, tail_);
 
     #if defined(FK_STORAGE_LOGGING_HASHING)
     char buffer[Hash::Length * 2];
     bytes_to_hex_string(buffer, sizeof(buffer), record_tail.hash.hash, Hash::Length);
-    logdebug("[%d] 0x%06x hash(#%d) %s", file_, record_address_, record_ - 1, buffer);
+    logdebug("[%d] 0x%06x hash(#%" PRIu32 ") %s", file_, record_address_, record_ - 1, buffer);
     #endif
 
     tail_ += sizeof(record_tail);
@@ -117,7 +117,7 @@ size_t File::write_record_tail(size_t size) {
 size_t File::write(uint8_t *record, size_t size) {
     SequentialMemory memory{ storage_->memory_ };
 
-    logtrace("[%d] 0x%06x BEGIN write (%d bytes) #%d (%d w/ overhead)", file_, tail_, size, record_,
+    logtrace("[%d] " PRADDRESS " BEGIN write (%d bytes) #%" PRIu32 " (%d w/ overhead)", file_, tail_, size, record_,
              sizeof(RecordHeader) + sizeof(RecordTail) + size);
 
     if (write_record_header(size) == 0) {
@@ -169,7 +169,7 @@ size_t File::read_record_header() {
                 return 0;
             }
 
-            logverbose("[%d] 0x%06x btail (0x%06x)", file_, tail_, block_tail.linked);
+            logverbose("[%d] " PRADDRESS " btail (" PRADDRESS ")", file_, tail_, block_tail.linked);
 
             tail_ += sizeof(BlockTail);
 
@@ -194,7 +194,7 @@ size_t File::read_record_header() {
             left_in_block = g.remaining_in_block(tail_) - sizeof(BlockTail);
         }
         else {
-            logverbose("[%d] 0x%06x trying header", file_, tail_);
+            logverbose("[%d] " PRADDRESS " trying header", file_, tail_);
 
             RecordHeader record_header;
             if (memory.read(tail_, (uint8_t *)&record_header, sizeof(record_header)) != sizeof(record_header)) {
@@ -202,7 +202,7 @@ size_t File::read_record_header() {
             }
 
             if (!record_header.valid()) {
-                logtrace("[%d] 0x%06x invalid header", file_, tail_);
+                logtrace("[%d] " PRADDRESS " invalid header", file_, tail_);
                 tail_ += left_in_block;
                 left_in_block = (uint32_t)(g.remaining_in_block(tail_) - sizeof(BlockTail));
                 continue;
@@ -217,7 +217,7 @@ size_t File::read_record_header() {
 
             log_hashed_data(FK_OP_STR_READ, file_, record_, tail_, &record_header, sizeof(RecordHeader));
 
-            logverbose("[%d] 0x%06x record header (%d bytes) #%d", file_, tail_, record_remaining_, record_header.record);
+            logverbose("[%d] " PRADDRESS " record header (%" PRIu32 " bytes) #%" PRIu32, file_, tail_, record_remaining_, record_header.record);
 
             tail_ += sizeof(record_header);
 
@@ -234,7 +234,7 @@ size_t File::read(uint8_t *record, size_t size) {
     auto left_in_block = (uint32_t)(g.remaining_in_block(tail_) - sizeof(BlockTail));
     auto bytes_read = (size_t)0;
 
-    logtrace("[%d] 0x%06x BEGIN read (%d bytes) (rr = %d) (lib = %d)", file_, tail_, size, record_remaining_, left_in_block);
+    logtrace("[%d] " PRADDRESS " BEGIN read (%d bytes) (rr = %" PRIu32 ") (lib = %" PRIu32 ")", file_, tail_, size, record_remaining_, left_in_block);
 
     while (bytes_read < size) {
         if (record_remaining_ == 0) {
@@ -256,7 +256,7 @@ size_t File::read(uint8_t *record, size_t size) {
 
             log_hashed_data(FK_OP_STR_READ, file_, record_, tail_, record + bytes_read, reading);
 
-            logverbose("[%d] 0x%06x data (%d bytes)", file_, tail_, reading);
+            logverbose("[%d] " PRADDRESS " data (%d bytes)", file_, tail_, reading);
 
             tail_ += reading;
             bytes_read += reading;
@@ -266,7 +266,7 @@ size_t File::read(uint8_t *record, size_t size) {
 
             if (record_remaining_ == 0) {
                 if (read_record_tail() == 0) {
-                    logwarn("[%d] 0x%06x error reading tail", file_, tail_);
+                    logwarn("[%d] " PRADDRESS " error reading tail", file_, tail_);
                     return bytes_read;
                 }
 
@@ -284,7 +284,7 @@ size_t File::read(uint8_t *record, size_t size) {
 size_t File::read_record_tail() {
     SequentialMemory memory{ storage_->memory_ };
 
-    logverbose("[%d] 0x%06x end of record", file_, tail_);
+    logverbose("[%d] " PRADDRESS " end of record", file_, tail_);
 
     RecordTail record_tail;
     if (memory.read(tail_, (uint8_t *)&record_tail, sizeof(RecordTail)) != sizeof(RecordTail)) {
@@ -295,7 +295,7 @@ size_t File::read_record_tail() {
     Hash hash;
     hash_.finalize(&hash.hash, Hash::Length);
     if (memcmp(hash.hash, record_tail.hash.hash, Hash::Length) != 0) {
-        logerror("[%d] 0x%06x hash mismatch: (#%d) (record address = 0x%06x)", file_, tail_, record_, record_address_);
+        logerror("[%d] " PRADDRESS " hash mismatch: (#%" PRIu32 ") (record address = " PRADDRESS ")", file_, tail_, record_, record_address_);
         if (false) {
             fk_dump_memory("GOOD ", record_tail.hash.hash, Hash::Length);
             fk_dump_memory("BAD  ", hash.hash, Hash::Length);

@@ -19,7 +19,7 @@ void ProgressTracker::update(int32_t bytes) {
     if (now >= status_ || done()) {
         auto speed = ((bytes_ / 1024.0f) / (elapsed() / 1000.0f));
         auto progress = (bytes_ / (float)total_) * 100.0f;
-        alogf(LogLevels::INFO, facility_, "%s %" PRIu32 "/%" PRIu32 " bytes (%.2f kbps) %.2f%%", prefix_, bytes_, total_, speed, progress);
+        alogf(LogLevels::INFO, facility_, "%s%" PRIu32 "/%" PRIu32 " bytes (%.2f kbps) %.2f%%", prefix_, bytes_, total_, speed, progress);
         status_ = now + ProgressIntervalMs;
     }
 }

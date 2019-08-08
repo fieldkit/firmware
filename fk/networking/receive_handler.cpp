@@ -9,7 +9,7 @@ ReceiveWorker::ReceiveWorker(HttpRequest *req) : req_(req) {
     auto expected = req_->length();
     auto bytes_copied = (uint32_t)0;
 
-    loginfo("receiving %d bytes...", expected);
+    loginfo("receiving %" PRIu32 " bytes...", expected);
 
     while (bytes_copied < expected) {
         uint8_t buffer[1024];
@@ -22,7 +22,7 @@ ReceiveWorker::ReceiveWorker(HttpRequest *req) : req_(req) {
         bytes_copied += bytes;
     }
 
-    logwarn("done (%d bytes)", bytes_copied);
+    logwarn("done (%" PRIu32 " bytes)", bytes_copied);
 
     req_->connection()->close();
 }

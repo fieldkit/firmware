@@ -64,7 +64,7 @@ void task_handler_readings(void *params) {
             return;
         }
 
-        loginfo("wrote %d bytes (#%d) (%d bytes) (0x%06x) (%dms)",
+        loginfo("wrote %d bytes (#%" PRIu32 ") (%" PRIu32 " bytes) (" PRADDRESS ") (%" PRIu32 "ms)",
                 bytes_wrote, file.record() - 1, file.size(), file.tail(),
                 fk_uptime() - started);
     }

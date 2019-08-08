@@ -178,7 +178,7 @@ memory_statistics_t &StatisticsMemory::statistics() {
 }
 
 void StatisticsMemory::log_statistics() const {
-    loginfo("%d reads (%d bytes) %d writes (%d bytes) %d erases",
+    loginfo("%" PRIu32 " reads (%" PRIu32 " bytes) %" PRIu32 " writes (%" PRIu32 " bytes) %" PRIu32 " erases",
             statistics_.nreads, statistics_.bytes_read,
             statistics_.nwrites, statistics_.bytes_wrote,
             statistics_.nerases);

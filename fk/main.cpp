@@ -108,7 +108,7 @@ static void log_diagnostics() {
 
     fk_serial_number_t sn;
     fk_serial_number_get(&sn);
-    loginfo("serial = %08x-%08x-%08x-%08x", sn.dwords[0], sn.dwords[1], sn.dwords[2], sn.dwords[3]);
+    loginfo("serial = %08" PRIx32 "-%08" PRIx32 "-%08" PRIx32 "-%08" PRIx32, sn.dwords[0], sn.dwords[1], sn.dwords[2], sn.dwords[3]);
 
     loginfo("fw = %s", fkb_header.firmware.name);
     char hash_string[128];

@@ -8,7 +8,7 @@ FK_DECLARE_LOGGER("idle");
 static void log_task_info() {
     __disable_irq();
     for (auto iter = osg.tasks; iter != nullptr; iter = iter->np) {
-        logverbose("task: %10s %-30s %dus", iter->name, os_task_status_str(iter->status), iter->runtime);
+        logverbose("task: %10s %-30s %" PRIu32 "us", iter->name, os_task_status_str(iter->status), iter->runtime);
     }
     __enable_irq();
 }

@@ -138,7 +138,7 @@ int32_t HttpRequest::on_header_value(const char *at, size_t length) {
 
     if (strncasecmp(header_name_, HTTP_CONTENT_LENGTH, header_name_len_) == 0) {
         length_ = atoi(at);
-        logdebug("content-length: %d", length_);
+        logdebug("content-length: %" PRIu32, length_);
     }
 
     if (strncasecmp(header_name_, HTTP_CONTENT_TYPE, header_name_len_) == 0) {
@@ -164,7 +164,7 @@ int32_t HttpRequest::on_headers_complete() {
 }
 
 int32_t HttpRequest::on_data(const char *at, size_t length) {
-    logtrace("%s(0x%p, %d)", __PRETTY_FUNCTION__, at, (int32_t)length);
+    logtrace("%s(0x%p, %" PRIu32 ")", __PRETTY_FUNCTION__, at, (int32_t)length);
 
     /// TODO: This should maybe eventually be handled in the handler.
     if (content_type_ == WellKnownContentType::ApplicationFkHttp) {
@@ -179,7 +179,7 @@ int32_t HttpRequest::on_data(const char *at, size_t length) {
             }
         }
         else {
-            logerror("incomplete body (%d vs %d)", length_, length);
+            logerror("incomplete body (%" PRIu32 " vs %d)", length_, length);
         }
     }
 

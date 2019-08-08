@@ -97,12 +97,12 @@ bool Storage::begin() {
         BlockHeader block_header;
         auto address = range.middle_block() * g.block_size;
         if (!memory_->read(address, (uint8_t *)&block_header, sizeof(block_header))) {
-            logerror("[?] read failed 0x%06x", address);
+            logerror("[?] read failed " PRADDRESS, address);
             return false;
         }
 
         if (block_header.valid()) {
-            logtrace("[%d] found valid block (0x%06x)", block_header.file, address);
+            logtrace("[%" PRIu32 "] found valid block (" PRADDRESS ")", block_header.file, address);
 
             FK_ASSERT(block_header.verify_hash());
 
@@ -115,10 +115,10 @@ bool Storage::begin() {
             range = range.second_half();
             had_valid_blocks = true;
 
-            loginfo("0x%06x found version %d", address, version_);
+            loginfo(PRADDRESS " found version %" PRIu32, address, version_);
         }
         else {
-            logtrace("[?] invalid block (0x%06x)", address);
+            logtrace("[?] invalid block (" PRADDRESS ")", address);
 
             range = range.first_half();
         }
@@ -153,7 +153,7 @@ bool Storage::begin() {
         }
     }
 
-    logtrace("opened (block = %d)", free_block_);
+    logtrace("opened (block = %" PRIu32 ")", free_block_);
 
     return true;
 }
@@ -165,7 +165,7 @@ bool Storage::clear() {
     while (!range.empty()) {
         auto address = range.middle_block() * g.block_size;
         if (!memory_->erase_block(address)) {
-            logerror("erase block 0x%06x failed", address);
+            logerror("erase block " PRADDRESS " failed", address);
             return false;
         }
         range = range.first_half();
@@ -201,7 +201,7 @@ uint32_t Storage::allocate(uint8_t file, uint32_t overflow, uint32_t previous_ta
             break;
         }
 
-        logwarn("[%d] allocating ignoring bad block: %d", file, free_block_);
+        logwarn("[%d] allocating ignoring bad block: %" PRIu32, file, free_block_);
 
         free_block_++;
         address = InvalidAddress;
@@ -215,7 +215,7 @@ uint32_t Storage::allocate(uint8_t file, uint32_t overflow, uint32_t previous_ta
         return InvalidAddress;
     }
 
-    logdebug("[%d] allocating block #%d (0x%06x) (%d) (#%d) (%d bytes)",
+    logdebug("[%d] allocating block #%" PRIu32 " (" PRADDRESS ") (%" PRIu32 ") (#%" PRIu32 ") (%" PRIu32 " bytes)",
              file, free_block_, address, overflow, files_[file].record, files_[file].size);
 
     timestamp_++;
@@ -254,7 +254,7 @@ uint32_t Storage::allocate(uint8_t file, uint32_t overflow, uint32_t previous_ta
             return 0;
         }
 
-        logtrace("[%d] 0x%06x btail", file, previous_tail_address);
+        logtrace("[%d] " PRADDRESS " btail", file, previous_tail_address);
     }
 
     return after_header;
@@ -277,13 +277,13 @@ SeekValue Storage::seek(SeekSettings settings) {
         BlockHeader block_header;
         auto address = range.middle_block() * g.block_size;
         if (!memory_->read(address, (uint8_t *)&block_header, sizeof(block_header))) {
-            logerror("[%d] read failed 0x%06x", settings.file, address);
+            logerror("[%d] read failed " PRADDRESS, settings.file, address);
             return { };
         }
 
         if (block_header.valid()) {
             auto &bfh = block_header.files[settings.file];
-            logtrace("[%d] found valid block (0x%06x) (%d)", block_header.file, address, bfh.size);
+            logtrace("[%" PRIu32 "] found valid block (" PRADDRESS ") (%" PRIu32 ")", block_header.file, address, bfh.size);
 
             if (block_header.timestamp > timestamp) {
                 timestamp = block_header.timestamp;
@@ -304,7 +304,7 @@ SeekValue Storage::seek(SeekSettings settings) {
             memcpy(&file_block_header, &block_header, sizeof(BlockHeader));
         }
         else {
-            logverbose("[?] invalid block (0x%06x)", address);
+            logverbose("[?] invalid block (" PRADDRESS ")", address);
 
             // Search earlier in the range for a valid block.
             range = range.first_half();
@@ -323,7 +323,7 @@ SeekValue Storage::seek(SeekSettings settings) {
         return SeekValue{ };
     }
 
-    logtrace("[%d] 0x%06x seeking #% " PRIu32 " (%d) from blk #%" PRIu32 " (bsz = %d bytes)", settings.file, address, settings.record, position, fh.tail / g.block_size, fh.size);
+    logtrace("[%d] " PRADDRESS " seeking #%" PRIu32 " (%" PRIu32 ") from blk #%" PRIu32 " (bsz = %" PRIu32 " bytes)", settings.file, address, settings.record, position, fh.tail / g.block_size, fh.size);
 
     while (true) {
         auto record_head = RecordHeader{};
@@ -339,17 +339,17 @@ SeekValue Storage::seek(SeekSettings settings) {
 
         // Is there a valid record here?
         if (record_head.size == 0 || record_head.size == InvalidSize || !record_head.valid()) {
-            logtrace("[%d] 0x%06x invalid head", settings.file, address);
+            logtrace("[%d] " PRADDRESS " invalid head", settings.file, address);
             break;
         }
 
         // Is this the record they're looking for?
         if (settings.record != InvalidRecord && record_head.record == settings.record) {
-            logverbose("[%d] 0x%06x found record #%" PRIu32, settings.file, address, settings.record);
+            logverbose("[%d] " PRADDRESS " found record #%" PRIu32, settings.file, address, settings.record);
             break;
         }
         if (settings.record < record_head.record) {
-            logverbose("[%d] 0x%06x found nearby record #%" PRIu32, settings.file, address, settings.record);
+            logverbose("[%d] " PRADDRESS " found nearby record #%" PRIu32, settings.file, address, settings.record);
             break;
         }
 
@@ -360,7 +360,7 @@ SeekValue Storage::seek(SeekSettings settings) {
 
         auto record_length = sizeof(RecordHeader) + record_head.size + sizeof(RecordTail);
 
-        logverbose("[%d] 0x%06x seeking %4d/%4d (#%" PRIu32 ")", settings.file, address, record_length, record_head.size, record_head.record);
+        logverbose("[%d] " PRADDRESS " seeking %4" PRIu32 "/%4" PRIu32 " (#%" PRIu32 ")", settings.file, address, record_length, record_head.size, record_head.record);
 
         // Skip over the record head, the actual record, and the tail (hash)
         FK_ASSERT(!g.spans_block(address, record_length));
@@ -370,7 +370,7 @@ SeekValue Storage::seek(SeekSettings settings) {
         position += record_head.size;
     }
 
-    logdebug("[%d] 0x%06x seeking #%" PRIu32 " done (#% " PRIu32 ") (%d bytes) (%d in block)",
+    logdebug("[%d] " PRADDRESS " seeking #%" PRIu32 " done (#%" PRIu32 ") (%" PRIu32 " bytes) (%" PRIu32 " in block)",
              settings.file, address, settings.record,
              record, position, position - fh.size);
 
@@ -413,7 +413,7 @@ uint32_t Storage::fsck() {
 
     free(buffer);
 
-    loginfo("fsck: done (%dms)", tracker.elapsed());
+    loginfo("fsck: done (%" PRIu32 "ms)", tracker.elapsed());
 
     return 0;
 }

@@ -6,6 +6,11 @@
 
 namespace fk {
 
+/**
+ * Format specifier for addresses.
+ */
+#define PRADDRESS "0x%06" PRIx32
+
 class Storage {
 private:
     DataMemory *memory_;

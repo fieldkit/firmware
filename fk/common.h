@@ -79,12 +79,12 @@ size_t bytes_to_hex_string(char *buffer, size_t buffer_size, const uint8_t *data
  */
 #define FK_DECLARE_LOGGER(name)                                         \
     constexpr const char *LOG_FACILITY = name;                          \
-    static void loginfo(const char *f, ...) __attribute__((unused));    \
-    static void logerror(const char *f, ...) __attribute__((unused));   \
-    static void logwarn(const char *f, ...) __attribute__((unused));    \
-    static void logtrace(const char *f, ...) __attribute__((unused));   \
-    static void logdebug(const char *f, ...) __attribute__((unused));   \
-    static void logverbose(const char *f, ...) __attribute__((unused)); \
+    static void loginfo(const char *f, ...) __attribute__((unused)) __attribute__((format(printf, 1, 2)));    \
+    static void logerror(const char *f, ...) __attribute__((unused)) __attribute__((format(printf, 1, 2)));   \
+    static void logwarn(const char *f, ...) __attribute__((unused)) __attribute__((format(printf, 1, 2)));    \
+    static void logtrace(const char *f, ...) __attribute__((unused)) __attribute__((format(printf, 1, 2)));   \
+    static void logdebug(const char *f, ...) __attribute__((unused)) __attribute__((format(printf, 1, 2)));   \
+    static void logverbose(const char *f, ...) __attribute__((unused)) __attribute__((format(printf, 1, 2))); \
     static void loginfo(const char *f, ...) {      \
         va_list args;                              \
         va_start(args, f);                         \
