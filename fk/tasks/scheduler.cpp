@@ -6,6 +6,21 @@ namespace fk {
 
 FK_DECLARE_LOGGER("schededule");
 
+static bool can_start_task(os_task_t *task) {
+    auto status = os_task_get_status(task);
+    return status == OS_TASK_STATUS_SUSPENDED || status == OS_TASK_STATUS_FINISHED;
+}
+
+static bool start_task_if_necessary(os_task_t *task) {
+    if (!can_start_task(task)) {
+        return false;
+    }
+
+    loginfo("starting task '%s'", task->name);
+    os_task_start(task);
+    return true;
+}
+
 void task_handler_scheduler(void *params) {
     auto last_readings = fk_uptime();
 
@@ -13,22 +28,12 @@ void task_handler_scheduler(void *params) {
         // This throttles this loop, so we take a pass when we dequeue or timeout.
         Button *button = nullptr;
         if (get_ipc()->dequeue((void **)&button, FiveSecondsMs)) {
-            auto status = os_task_get_status(&network_task);
-            if (status == OS_TASK_STATUS_SUSPENDED || status == OS_TASK_STATUS_FINISHED) {
-                loginfo("starting task '%s'", network_task.name);
-                os_task_start(&network_task);
-            }
+            start_task_if_necessary(&network_task);
+            start_task_if_necessary(&display_task);
         }
 
         if (fk_uptime() - last_readings > ThirtySecondsMs) {
-            auto status = os_task_get_status(&readings_task);
-            if (status == OS_TASK_STATUS_SUSPENDED || status == OS_TASK_STATUS_FINISHED) {
-                loginfo("starting task '%s'", readings_task.name);
-                os_task_start(&readings_task);
-            }
-            else {
-                loginfo("task is still busy %s", readings_task.name);
-            }
+            start_task_if_necessary(&readings_task);
             last_readings = fk_uptime();
         }
     }
