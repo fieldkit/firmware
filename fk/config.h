@@ -118,6 +118,11 @@ constexpr size_t HttpMaximumHeaderSize = 1024;
 constexpr int32_t StorageAvailableBlockLookAhead = 10;
 
 /**
+ * How often to display progress information.
+ */
+constexpr uint32_t ProgressIntervalMs = 1000;
+
+/**
  * Runtime configuration informationthat is unavailable in the mobile
  * application. This can be updated after compilation to build binaries for
  * various situations.

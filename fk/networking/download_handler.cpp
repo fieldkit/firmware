@@ -1,5 +1,6 @@
 #include "networking/download_handler.h"
 #include "storage/storage.h"
+#include "storage/progress.h"
 #include "writer.h"
 
 namespace fk {
@@ -49,6 +50,7 @@ void DownloadWorker::run(WorkerContext &wc) {
         size_t buffer_size = 1024;
         uint8_t *buffer = (uint8_t *)malloc(buffer_size);
 
+        auto tracker = ProgressTracker{ "download", "", size };
         auto bytes_copied = (size_t)0;
         while (bytes_copied < size) {
             auto to_read = std::min<size_t>(buffer_size, size - bytes_copied);
@@ -59,6 +61,8 @@ void DownloadWorker::run(WorkerContext &wc) {
                 logwarn("write error");
                 break;
             }
+
+            tracker.update(bytes_read);
 
             bytes_copied += bytes_read;
         }

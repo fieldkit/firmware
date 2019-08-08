@@ -1,4 +1,5 @@
 #include "storage/storage.h"
+#include "storage/progress.h"
 
 #include <phylum/crc.h>
 
@@ -387,9 +388,7 @@ uint32_t Storage::fsck() {
 
     verify_opened();
 
-    auto started = fk_uptime();
-
-    loginfo("fsck...");
+    loginfo("fsck: begin");
 
     auto file = this->file(0);
 
@@ -398,24 +397,23 @@ uint32_t Storage::fsck() {
         return 0;
     }
 
-    auto size = file.size();
-    auto bytes_read = (size_t)0;
     auto buffer = (uint8_t *)malloc(BufferSize);
+    auto tracker = ProgressTracker{ "fsck", "", file.size() };
 
     FK_ASSERT(file.seek(0));
 
-    while (bytes_read < size) {
-        auto to_read = std::min<size_t>(BufferSize, size - bytes_read);
+    while (tracker.busy()) {
+        auto to_read = std::min<size_t>(BufferSize, tracker.remaining_bytes());
         auto nread = file.read(buffer, to_read);
         if (nread != to_read) {
-            logwarn("fsck: (%d != %d) (%d bytes total)", nread, to_read, bytes_read);
+            logwarn("fsck: (%d != %d)", nread, to_read);
         }
-        bytes_read += to_read;
+        tracker.update(nread);
     }
 
     free(buffer);
 
-    loginfo("fsck done (%dms)", fk_uptime() - started);
+    loginfo("fsck: done (%dms)", tracker.elapsed());
 
     return 0;
 }
