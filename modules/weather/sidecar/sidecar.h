@@ -8,4 +8,6 @@
 
 #define FK_ERROR_GENERAL    (-1)
 
+#define FK_ASSERT(expr)
+
 #include "logging.h"

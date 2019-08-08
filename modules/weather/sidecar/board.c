@@ -19,3 +19,11 @@ int32_t board_initialize() {
 
     return FK_SUCCESS;
 }
+
+int32_t board_timer_setup(struct timer_task *const timer_task, uint32_t interval, timer_cb_t cb) {
+    timer_task->interval = interval;
+    timer_task->cb = cb;
+    timer_task->mode = TIMER_TASK_REPEAT;
+    timer_add_task(&TIMER_0, timer_task);
+    timer_start(&TIMER_0);
+}

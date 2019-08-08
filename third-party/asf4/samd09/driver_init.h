@@ -72,6 +72,8 @@ void CALENDAR_0_init(void);
 void WDT_0_CLOCK_init(void);
 void WDT_0_init(void);
 
+void TIMER_0_init(void);
+
 /**
  * \brief Perform system initialization, initialize pins and clocks for
  * peripherals
