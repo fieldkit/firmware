@@ -202,7 +202,7 @@ size_t File::read_record_header() {
             }
 
             if (!record_header.valid()) {
-                loginfo("[%d] 0x%06x invalid header", file_, tail_);
+                logtrace("[%d] 0x%06x invalid header", file_, tail_);
                 tail_ += left_in_block;
                 left_in_block = (uint32_t)(g.remaining_in_block(tail_) - sizeof(BlockTail));
                 continue;
