@@ -115,7 +115,7 @@ bool Storage::begin() {
             range = range.second_half();
             had_valid_blocks = true;
 
-            loginfo(PRADDRESS " found version %" PRIu32, address, version_);
+            logtrace(PRADDRESS " found version %" PRIu32, address, version_);
         }
         else {
             logtrace("[?] invalid block (" PRADDRESS ")", address);

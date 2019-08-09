@@ -20,14 +20,20 @@ static void refresh() {
 }
 
 void task_handler_display(void *params) {
-    auto started = fk_uptime();
+    auto stop_time = fk_uptime() + fk_config().display.inactivity;
 
-    while (fk_uptime() - started < fk_config().display.inactivity) {
+    while (stop_time < fk_uptime()) {
         refresh();
 
         Button *button = nullptr;
         if (get_ipc()->dequeue_button(&button)) {
+            stop_time = fk_uptime() + fk_config().display.inactivity;
+
             loginfo("button!");
+
+            get_ipc()->enqueue_data([](GlobalState *gs) {
+                gs->runtime.activity = fk_uptime();
+            });
         }
     }
 
