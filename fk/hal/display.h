@@ -10,12 +10,20 @@ typedef struct xbm_data_t {
     const uint8_t *data;
 } xbm_data_t;
 
-typedef struct home_screen_t {
+struct HomeScreen {
     uint32_t time;
     bool wifi;
     bool gps;
     float battery;
-} home_screen_t;
+    const char *message;
+};
+
+struct MenuOption {
+    const char *label;
+};
+
+struct MenuScreen {
+};
 
 class Display {
 public:
@@ -24,7 +32,8 @@ public:
     virtual void centered(const xbm_data_t &xbm) = 0;
     virtual void company_logo() = 0;
     virtual void fk_logo() = 0;
-    virtual void home(home_screen_t data) = 0;
+    virtual void home(HomeScreen const &data) = 0;
+    virtual void menu(MenuScreen const &data) = 0;
 
 };
 
@@ -35,7 +44,8 @@ public:
     void centered(const xbm_data_t &xbm) override { }
     void company_logo() override { }
     void fk_logo() override { }
-    void home(home_screen_t data) override { }
+    void home(HomeScreen const &data) override { }
+    void menu(MenuScreen const &data) override { }
 
     bool begin() {
         return true;
