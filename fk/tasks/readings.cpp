@@ -6,7 +6,6 @@
 #include "protobuf.h"
 #include "storage/storage.h"
 #include "state.h"
-
 #include "scanning.h"
 #include "registry.h"
 #include "readings.h"
@@ -70,8 +69,6 @@ void task_handler_readings(void *params) {
     }
 
     memory.log_statistics();
-
-    storage.fsck();
 
     loginfo("done (pool = %d/%d bytes)", pool.used(), pool.size());
 }

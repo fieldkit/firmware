@@ -15,6 +15,7 @@ void task_handler_gps(void *params);
 void task_handler_readings(void *params);
 void task_handler_data(void *params);
 void task_handler_worker(void *params);
+void task_handler_misc(void *params);
 
 extern os_task_t idle_task;
 extern os_task_t scheduler_task;
@@ -24,5 +25,6 @@ extern os_task_t gps_task;
 extern os_task_t readings_task;
 extern os_task_t data_task;
 extern os_task_t worker_task;
+extern os_task_t misc_task;
 
 }
