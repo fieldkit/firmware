@@ -142,12 +142,15 @@ void U8g2Display::menu(MenuScreen const &data) {
     draw_.setPowerSave(0);
     draw_.clearBuffer();
 
-    draw_.setFontMode(0);
-    draw_.setFont(u8g2_font_courR08_tf);
-    for (auto i = 0; i < 5; ++i) {
-        draw_.drawUTF8(2 + 10, (i + 1) * 12, "Option 1");
-        if (i == 1) {
-            draw_.drawBox(2, i * 12 + 4, 10, 10);
+    if (data.options != nullptr) {
+        draw_.setFontMode(0);
+        draw_.setFont(u8g2_font_courR08_tf);
+        for (auto i = 0; data.options[i] != nullptr; ++i) {
+            auto option = data.options[i];
+            draw_.drawUTF8(2 + 10, (i + 1) * 12, option->label);
+            if (option->selected) {
+                draw_.drawBox(2, i * 12 + 4, 10, 10);
+            }
         }
     }
 

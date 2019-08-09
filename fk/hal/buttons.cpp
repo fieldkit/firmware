@@ -6,14 +6,14 @@ namespace fk {
 
 FK_DECLARE_LOGGER("buttons");
 
-Button::Button(const char *name) : name_(name) {
+Button::Button(const char *name, uint8_t index) : name_(name), index_(index) {
 }
 
 void Button::changed(bool down) {
     if (down) {
         down_ = true;
         time_ = fk_uptime();
-        loginfo("%s (DOWN)", name_);
+        loginfo("%s (PRESS)", name_);
     }
     else if (down_) {
         auto now = fk_uptime();
@@ -31,6 +31,18 @@ void Button::changed(bool down) {
             }
         }
     }
+}
+
+bool Button::is_up() const {
+    return index_ == Buttons::Left;
+}
+
+bool Button::is_enter() const {
+    return index_ == Buttons::Middle;
+}
+
+bool Button::is_down() const {
+    return index_ == Buttons::Right;
 }
 
 #if defined(FK_HARDWARE_FULL)

@@ -20,9 +20,42 @@ struct HomeScreen {
 
 struct MenuOption {
     const char *label;
+    bool selected;
+
+    MenuOption(const char *label) : label(label), selected(false) {
+    }
+
+    virtual void on_selected() = 0;
 };
 
+template<typename T>
+struct LambdaOption : public MenuOption {
+    T fn;
+
+    LambdaOption(const char *label, T fn) : MenuOption(label), fn(fn) {
+    }
+
+    void on_selected() override {
+        fn();
+    }
+};
+
+template<typename T>
+LambdaOption<T> to_lambda_option(const char *label, T fn) {
+    return LambdaOption<T>(label, fn);
+}
+
 struct MenuScreen {
+    /**
+     * A NULL value indicates the end of this array.
+     */
+    MenuOption **options{ nullptr };
+
+    MenuScreen() : options(nullptr) {
+    }
+
+    MenuScreen(MenuOption **options) : options(options) {
+    }
 };
 
 class Display {
