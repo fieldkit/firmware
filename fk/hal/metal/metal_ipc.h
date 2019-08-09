@@ -59,6 +59,8 @@ public:
 
 };
 
+extern Mutex storage_mutex;
+
 }
 
 #endif

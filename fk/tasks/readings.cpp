@@ -2,6 +2,7 @@
 
 #include "tasks/tasks.h"
 #include "hal/hal.h"
+#include "hal/metal/metal.h"
 #include "clock.h"
 #include "protobuf.h"
 #include "storage/storage.h"
@@ -15,6 +16,7 @@ namespace fk {
 FK_DECLARE_LOGGER("readings");
 
 void task_handler_readings(void *params) {
+    auto lock = storage_mutex.acquire(UINT32_MAX);
     auto pool = MallocPool{ "readings", 2048 };
     auto memory_bus = get_board()->spi_flash();
     auto module_bus = get_board()->i2c_module();

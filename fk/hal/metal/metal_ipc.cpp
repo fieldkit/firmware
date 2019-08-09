@@ -11,6 +11,8 @@ namespace fk {
 
 FK_DECLARE_LOGGER("ipc");
 
+Mutex storage_mutex;
+
 os_queue_define(data_queue, 10, OS_QUEUE_FLAGS_QUEUE_ONLY);
 os_queue_define(activity_queue, 10, OS_QUEUE_FLAGS_NONE);
 os_queue_define(button_queue, 10, OS_QUEUE_FLAGS_NONE);
@@ -90,12 +92,14 @@ bool Mutex::create() {
 
 Mutex::Lock Mutex::acquire(uint32_t to) {
     if (os_mutex_acquire(&mutex_, to) == OSS_SUCCESS) {
+        loginfo("acquired");
         return { this };
     }
     return { nullptr };
 }
 
 bool Mutex::release() {
+    loginfo("release");
     os_mutex_release(&mutex_);
     return false;
 }

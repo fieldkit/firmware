@@ -30,7 +30,7 @@ static void run_tasks() {
     uint32_t readings_stack[4096 / sizeof(uint32_t)];
     uint32_t data_stack[768 / sizeof(uint32_t)];
     uint32_t worker_stack[2048 / sizeof(uint32_t)];
-    uint32_t misc_stack[1024 / sizeof(uint32_t)];
+    uint32_t misc_stack[2048 / sizeof(uint32_t)];
 
     OS_CHECK(os_initialize());
 
@@ -80,6 +80,8 @@ static void run_tasks() {
     loginfo("starting os!");
 
     FK_ASSERT(get_ipc()->begin());
+
+    FK_ASSERT(storage_mutex.create());
 
     OS_CHECK(os_start());
 }
