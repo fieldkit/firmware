@@ -358,9 +358,10 @@ SeekValue Storage::seek(SeekSettings settings) {
             record = record_head.record + 1;
         }
 
-        auto record_length = sizeof(RecordHeader) + record_head.size + sizeof(RecordTail);
+        auto record_length = (uint32_t)(sizeof(RecordHeader) + record_head.size + sizeof(RecordTail));
 
-        logverbose("[%d] " PRADDRESS " seeking %4" PRIu32 "/%4" PRIu32 " (#%" PRIu32 ")", settings.file, address, record_length, record_head.size, record_head.record);
+        logverbose("[%d] " PRADDRESS " seeking %4" PRIu32 "/%4" PRIu32 " (#%" PRIu32 ")",
+                   settings.file, address, record_length, record_head.size, record_head.record);
 
         // Skip over the record head, the actual record, and the tail (hash)
         FK_ASSERT(!g.spans_block(address, record_length));
@@ -406,7 +407,7 @@ uint32_t Storage::fsck() {
         auto to_read = std::min<size_t>(BufferSize, tracker.remaining_bytes());
         auto nread = file.read(buffer, to_read);
         if (nread != to_read) {
-            logwarn("fsck: (%d != %d)", nread, to_read);
+            logwarn("fsck: (%zd != %zd)", nread, to_read);
         }
         tracker.update(nread);
     }

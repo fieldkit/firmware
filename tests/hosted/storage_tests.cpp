@@ -79,10 +79,10 @@ protected:
 };
 
 TEST_F(StorageSuite, DisplayStructSizes) {
-    loginfo("sizeof(BlockHeader) = %d (0x%x)", sizeof(BlockHeader), sizeof(BlockHeader));
-    loginfo("sizeof(BlockTail) = %d (0x%x)", sizeof(BlockTail), sizeof(BlockTail));
-    loginfo("sizeof(RecordHeader) = %d (0x%x)", sizeof(RecordHeader), sizeof(RecordHeader));
-    loginfo("sizeof(RecordTail) = %d (0x%x)", sizeof(RecordTail), sizeof(RecordTail));
+    loginfo("sizeof(BlockHeader) = %zd (0x%zx)", sizeof(BlockHeader), sizeof(BlockHeader));
+    loginfo("sizeof(BlockTail) = %zd (0x%zx)", sizeof(BlockTail), sizeof(BlockTail));
+    loginfo("sizeof(RecordHeader) = %zd (0x%zx)", sizeof(RecordHeader), sizeof(RecordHeader));
+    loginfo("sizeof(RecordTail) = %zd (0x%zx)", sizeof(RecordTail), sizeof(RecordTail));
 }
 
 TEST_F(StorageSuite, WhenMountingUnformatted) {

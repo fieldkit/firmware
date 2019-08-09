@@ -51,7 +51,7 @@ size_t File::write_record_header(size_t size) {
     record_header.record = record_++;
     record_header.crc = record_header.sign();
 
-    logverbose("[%d] " PRADDRESS " write header (lib = %" PRIu32 ") (%d bytes)", file_, tail_, left_in_block, size);
+    logverbose("[%d] " PRADDRESS " write header (lib = %" PRId32 ") (%zd bytes)", file_, tail_, (int32_t)left_in_block, size);
 
     if (memory.write(tail_, (uint8_t *)&record_header, sizeof(record_header)) != sizeof(record_header)) {
         return 0;
@@ -74,7 +74,7 @@ size_t File::write_partial(uint8_t *record, size_t size) {
     auto left_in_block = (g.remaining_in_block(tail_) - sizeof(BlockTail));
     FK_ASSERT(left_in_block >= size);
 
-    logverbose("[%d] " PRADDRESS " write data (%d bytes) (%" PRIu32 " lib)", file_, tail_, size, left_in_block);
+    logverbose("[%d] " PRADDRESS " write data (%zd bytes) (%" PRIu32 " lib)", file_, tail_, size, (int32_t)left_in_block);
 
     if (memory.write(tail_, (uint8_t *)record, size) != size) {
         return 0;
@@ -117,8 +117,8 @@ size_t File::write_record_tail(size_t size) {
 size_t File::write(uint8_t *record, size_t size) {
     SequentialMemory memory{ storage_->memory_ };
 
-    logtrace("[%d] " PRADDRESS " BEGIN write (%d bytes) #%" PRIu32 " (%d w/ overhead)", file_, tail_, size, record_,
-             sizeof(RecordHeader) + sizeof(RecordTail) + size);
+    logtrace("[%d] " PRADDRESS " BEGIN write (%zd bytes) #%" PRIu32 " (%" PRIu32 " w/ overhead)", file_, tail_, size, record_,
+             (uint32_t)(sizeof(RecordHeader) + sizeof(RecordTail) + size));
 
     if (write_record_header(size) == 0) {
         return 0;
@@ -234,7 +234,7 @@ size_t File::read(uint8_t *record, size_t size) {
     auto left_in_block = (uint32_t)(g.remaining_in_block(tail_) - sizeof(BlockTail));
     auto bytes_read = (size_t)0;
 
-    logtrace("[%d] " PRADDRESS " BEGIN read (%d bytes) (rr = %" PRIu32 ") (lib = %" PRIu32 ")", file_, tail_, size, record_remaining_, left_in_block);
+    logtrace("[%d] " PRADDRESS " BEGIN read (%zd bytes) (rr = %" PRIu32 ") (lib = %" PRIu32 ")", file_, tail_, size, record_remaining_, left_in_block);
 
     while (bytes_read < size) {
         if (record_remaining_ == 0) {
@@ -256,7 +256,7 @@ size_t File::read(uint8_t *record, size_t size) {
 
             log_hashed_data(FK_OP_STR_READ, file_, record_, tail_, record + bytes_read, reading);
 
-            logverbose("[%d] " PRADDRESS " data (%d bytes)", file_, tail_, reading);
+            logverbose("[%d] " PRADDRESS " data (%zd bytes)", file_, tail_, reading);
 
             tail_ += reading;
             bytes_read += reading;

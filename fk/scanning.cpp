@@ -51,11 +51,11 @@ bool ModuleScanning::scan(ModuleScan &scan) {
         }
 
         if (!fk_module_header_valid(&header)) {
-            logerror("[%d] invalid header", i);
+            logerror("[%zd] invalid header", i);
             continue;
         }
 
-        loginfo("[%d] mk=%02" PRIx32 "%02" PRIx32 " v%" PRIu32, i, header.manufacturer, header.kind, header.version);
+        loginfo("[%zd] mk=%02" PRIx32 "%02" PRIx32 " v%" PRIu32, i, header.manufacturer, header.kind, header.version);
 
         nmodules++;
     }

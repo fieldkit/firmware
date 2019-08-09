@@ -68,7 +68,7 @@ bool Readings::take_readings(ResolvedModules const &modules, uint32_t reading_nu
         group.readings.arg = readings_array;
         group_number++;
 
-        loginfo("'%s' %d readings", meta->name, readings->size());
+        loginfo("'%s' %zd readings", meta->name, readings->size());
     }
 
     auto sensor_groups_array = pool.malloc<pb_array_t>();
