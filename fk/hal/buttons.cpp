@@ -16,12 +16,17 @@ void Button::changed(bool down) {
         loginfo("%s (DOWN)", name_);
     }
     else if (down_) {
-        auto elapsed = fk_uptime() - time_;
+        auto now = fk_uptime();
+        auto elapsed = now - time_;
         down_ = false;
         time_ = 0;
+        pressed_ = now;
         loginfo("%s (%" PRIu32 "ms)", name_, elapsed);
         if (get_ipc()->available()) {
-            if (!get_ipc()->enqueue(this, 0)) {
+            if (!get_ipc()->enqueue_button(this)) {
+                logerror("ipc error");
+            }
+            if (!get_ipc()->enqueue_activity(this)) {
                 logerror("ipc error");
             }
         }

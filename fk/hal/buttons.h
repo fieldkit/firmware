@@ -11,6 +11,7 @@ class Button : public Activity {
 private:
     const char *name_;
     uint32_t time_{ 0 };
+    uint32_t pressed_{ 0 };
     bool down_{ false };
 
 public:
@@ -18,6 +19,10 @@ public:
 
 public:
     void changed(bool down);
+
+    uint32_t pressed() const {
+        return pressed_;
+    }
 
     bool down() const {
         return down_;
