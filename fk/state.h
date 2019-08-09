@@ -1,5 +1,7 @@
 #pragma once
 
+#include <os.h>
+
 #include "common.h"
 #include "config.h"
 #include "modules/modules.h"
@@ -98,27 +100,35 @@ public:
 
 public:
     virtual void apply(GlobalState *gs) = 0;
+    virtual const char *source() const = 0;
 
 };
 
 template<typename T>
 class SimpleStateChange : public StateChange {
 private:
+    const char *source_;
     T fn_;
 
 public:
-    SimpleStateChange(T fn) : fn_(fn) { }
+    SimpleStateChange(const char *source, T fn) : source_(source), fn_(fn) {
+    }
 
 public:
     void apply(GlobalState *gs) override {
         fn_(gs);
     }
 
+    const char *source() const override {
+        return source_;
+    }
+
 };
 
 template<typename T>
 SimpleStateChange<T> *change_state(T fn) {
-    return new SimpleStateChange<T>(fn);
+    auto task = os_task_name();
+    return new SimpleStateChange<T>(task, fn);
 }
 
 }

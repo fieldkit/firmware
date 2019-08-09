@@ -1,7 +1,9 @@
 #pragma once
 
 #include "common.h"
-#include "hal/hal.h"
+#include "config.h"
+#include "hal/modmux.h"
+#include "modules/modules.h"
 
 namespace fk {
 

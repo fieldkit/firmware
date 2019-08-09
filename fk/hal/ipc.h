@@ -25,7 +25,7 @@ public:
 
     template<typename T>
     bool enqueue_data(T fn) {
-        StateChange *sc = new SimpleStateChange<T>(fn);
+        StateChange *sc = new SimpleStateChange<T>(os_task_name(), fn);
         return enqueue_data(sc);
     }
 

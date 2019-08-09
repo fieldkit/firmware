@@ -31,7 +31,7 @@ void task_handler_data(void *params) {
         if (get_ipc()->dequeue_data(&state_change)) {
             verify_tasks_priority();
 
-            loginfo("updating 0x%p", state_change);
+            loginfo("from %s", state_change->source());
 
             auto gs = get_global_state_rw();
             state_change->apply(gs.get());
