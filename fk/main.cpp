@@ -46,7 +46,7 @@ static void run_tasks() {
         NULL,
         readings_stack,
         sizeof(readings_stack),
-        OS_PRIORITY_NORMAL + 2
+        OS_PRIORITY_NORMAL
     };
     OS_CHECK(os_task_initialize_options(&readings_task, &readings_task_options));
 
