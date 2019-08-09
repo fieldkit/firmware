@@ -26,8 +26,8 @@ void task_handler_scheduler(void *params) {
 
     while (true) {
         // This throttles this loop, so we take a pass when we dequeue or timeout.
-        Button *button = nullptr;
-        if (get_ipc()->dequeue((void **)&button, FiveSecondsMs)) {
+        Activity *activity = nullptr;
+        if (get_ipc()->dequeue_activity(&activity)) {
             start_task_if_necessary(&network_task);
             start_task_if_necessary(&display_task);
         }

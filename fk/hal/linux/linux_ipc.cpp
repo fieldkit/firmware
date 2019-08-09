@@ -16,19 +16,27 @@ bool LinuxIPC::begin() {
     return false;
 }
 
-bool LinuxIPC::enqueue(void *ptr, uint32_t to) {
+bool LinuxIPC::enqueue_activity(Activity *ptr) {
     return false;
 }
 
-bool LinuxIPC::dequeue(void **ptr, uint32_t to) {
+bool LinuxIPC::dequeue_activity(Activity **ptr) {
     return false;
 }
 
-bool LinuxIPC::enqueue_data(StateChange *ptr, uint32_t to) {
+bool LinuxIPC::enqueue_button(Button *ptr) {
     return false;
 }
 
-bool LinuxIPC::dequeue_data(StateChange **ptr, uint32_t to) {
+bool LinuxIPC::dequeue_button(Button **ptr) {
+    return false;
+}
+
+bool LinuxIPC::enqueue_data(StateChange *ptr) {
+    return false;
+}
+
+bool LinuxIPC::dequeue_data(StateChange **ptr) {
     return false;
 }
 

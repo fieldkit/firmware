@@ -3,6 +3,8 @@
 
 namespace fk {
 
+FK_DECLARE_LOGGER("display");
+
 static void refresh() {
     auto bus = get_board()->i2c_core();
     auto display = get_display();
@@ -23,7 +25,10 @@ void task_handler_display(void *params) {
     while (fk_uptime() - started < fk_config().display.inactivity) {
         refresh();
 
-        fk_delay(1000);
+        Button *button = nullptr;
+        if (get_ipc()->dequeue_button(&button)) {
+            loginfo("button!");
+        }
     }
 
     get_display()->off();

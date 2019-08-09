@@ -4,7 +4,10 @@
 
 namespace fk {
 
-class Button {
+class Activity {
+};
+
+class Button : public Activity {
 private:
     const char *name_;
     uint32_t time_{ 0 };
