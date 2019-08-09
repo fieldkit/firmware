@@ -22,7 +22,8 @@ static bool start_task_if_necessary(os_task_t *task) {
 }
 
 void task_handler_scheduler(void *params) {
-    auto last_readings = fk_uptime();
+    auto readings_time = fk_uptime() + ThirtySecondsMs;
+    auto misc_time = fk_uptime() + FiveMinutesMs;
 
     while (true) {
         // This throttles this loop, so we take a pass when we dequeue or timeout.
@@ -32,9 +33,14 @@ void task_handler_scheduler(void *params) {
             start_task_if_necessary(&display_task);
         }
 
-        if (fk_uptime() - last_readings > ThirtySecondsMs) {
+        if (readings_time < fk_uptime()) {
             start_task_if_necessary(&readings_task);
-            last_readings = fk_uptime();
+            readings_time = fk_uptime() + ThirtySecondsMs;
+        }
+
+        if (misc_time < fk_uptime()) {
+            start_task_if_necessary(&misc_task);
+            misc_time = fk_uptime() + FiveMinutesMs;
         }
     }
 }
