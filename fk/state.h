@@ -31,6 +31,7 @@ public:
 };
 
 struct RuntimeState {
+    uint32_t activity{ 0 };
 };
 
 struct PowerState {

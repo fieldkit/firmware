@@ -144,7 +144,7 @@ int32_t HttpRequest::on_header_value(const char *at, size_t length) {
     if (strncasecmp(header_name_, HTTP_CONTENT_TYPE, header_name_len_) == 0) {
         auto value = trim(pool_->strndup(at, length));
         content_type_ = get_content_type(value);
-        logdebug("content-type: %s (%d)", value, content_type_);
+        logdebug("content-type: %s (%" PRId32 ")", value, (int32_t)content_type_);
     }
 
     if (strncasecmp(header_name_, HTTP_USER_AGENT, header_name_len_) == 0) {
@@ -179,7 +179,7 @@ int32_t HttpRequest::on_data(const char *at, size_t length) {
             }
         }
         else {
-            logerror("incomplete body (%" PRIu32 " vs %d)", length_, length);
+            logerror("incomplete body (%" PRIu32 " vs %zd)", length_, length);
         }
     }
 

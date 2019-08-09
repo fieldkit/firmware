@@ -151,7 +151,7 @@ bool Connection::service(HttpRouter &router) {
         auto size = pool_.size();
         auto used = pool_.used();
         auto elapsed = fk_uptime() - started_;
-        loginfo("closing (%" PRIu32 " bytes) (%d/%d pooled) (%" PRIu32 "ms)", wrote_, used, size, elapsed);
+        loginfo("closing (%" PRIu32 " bytes) (%zd/%zd pooled) (%" PRIu32 "ms)", wrote_, used, size, elapsed);
         return false;
     }
 
@@ -237,7 +237,7 @@ int32_t Connection::write(fk_app_HttpReply *reply) {
 
     size += pb_varint_size(size);
 
-    logdebug("replying (%d bytes)", size);
+    logdebug("replying (%zd bytes)", size);
 
     wrote_ += conn_->write("HTTP/1.1 200 OK\n");
     wrote_ += conn_->writef("Content-Length: %zu\n", size);
@@ -330,7 +330,7 @@ int32_t Connection::error(const char *message) {
     reply.type = fk_app_ReplyType_REPLY_ERROR;
     reply.errors.arg = (void *)pool_.copy(&errors_array, sizeof(errors_array));
 
-    logwarn(message);
+    logwarn("%s", message);
 
     return write(&reply);
 }

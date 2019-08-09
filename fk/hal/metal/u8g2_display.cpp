@@ -101,7 +101,7 @@ static int32_t lerp(int32_t start, int32_t end, uint32_t interval, uint32_t time
     return start + (int32_t)((float)(end - start) * scale);
 }
 
-void U8g2Display::home(home_screen_t data) {
+void U8g2Display::home(HomeScreen const &data) {
     draw_.setPowerSave(0);
     draw_.clearBuffer();
 
@@ -128,12 +128,31 @@ void U8g2Display::home(home_screen_t data) {
     }
 
     char buffer[128];
-    tiny_snprintf(buffer, sizeof(buffer), "Temp: 22.4°C pH: 6.97");
+    tiny_snprintf(buffer, sizeof(buffer), data.message);
     draw_.setFontMode(0);
     draw_.setFont(u8g2_font_courB18_tf);
     auto width = draw_.getUTF8Width(buffer);
     auto x = lerp(-width, OLED_WIDTH, 10000, data.time);
     draw_.drawUTF8(x, OLED_HEIGHT, buffer);
+
+    draw_.sendBuffer();
+}
+
+void U8g2Display::menu(MenuScreen const &data) {
+    draw_.setPowerSave(0);
+    draw_.clearBuffer();
+
+    if (data.options != nullptr) {
+        draw_.setFontMode(0);
+        draw_.setFont(u8g2_font_courR08_tf);
+        for (auto i = 0; data.options[i] != nullptr; ++i) {
+            auto option = data.options[i];
+            draw_.drawUTF8(2 + 10, (i + 1) * 12, option->label);
+            if (option->selected) {
+                draw_.drawBox(2, i * 12 + 4, 10, 10);
+            }
+        }
+    }
 
     draw_.sendBuffer();
 }

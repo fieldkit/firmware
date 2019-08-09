@@ -28,7 +28,7 @@ static void verify_tasks_priority() {
 void task_handler_data(void *params) {
     while (true) {
         StateChange *state_change = nullptr;
-        if (get_ipc()->dequeue_data(&state_change, FiveSecondsMs)) {
+        if (get_ipc()->dequeue_data(&state_change)) {
             verify_tasks_priority();
 
             loginfo("updating 0x%p", state_change);

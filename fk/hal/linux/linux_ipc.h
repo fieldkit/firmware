@@ -13,10 +13,12 @@ public:
 public:
     bool available() override;
     bool begin() override;
-    bool enqueue(void *ptr, uint32_t to) override;
-    bool dequeue(void **ptr, uint32_t to) override;
-    bool enqueue_data(StateChange *ptr, uint32_t to) override;
-    bool dequeue_data(StateChange **ptr, uint32_t to) override;
+    bool enqueue_activity(Activity *ptr) override;
+    bool dequeue_activity(Activity **ptr) override;
+    bool enqueue_button(Button *ptr) override;
+    bool dequeue_button(Button **ptr) override;
+    bool enqueue_data(StateChange *ptr) override;
+    bool dequeue_data(StateChange **ptr) override;
 
 public:
     bool launch_worker(Worker *worker) override;

@@ -11,8 +11,9 @@ namespace fk {
 
 FK_DECLARE_LOGGER("ipc");
 
-os_queue_define(other_queue, 10, OS_QUEUE_FLAGS_NONE);
 os_queue_define(data_queue, 10, OS_QUEUE_FLAGS_QUEUE_ONLY);
+os_queue_define(activity_queue, 10, OS_QUEUE_FLAGS_NONE);
+os_queue_define(button_queue, 10, OS_QUEUE_FLAGS_NONE);
 
 MetalIPC::MetalIPC() {
 }
@@ -22,33 +23,48 @@ bool MetalIPC::available() {
 }
 
 bool MetalIPC::begin() {
-    OS_CHECK(os_queue_create(os_queue(other_queue), os_queue_def(other_queue)));
     OS_CHECK(os_queue_create(os_queue(data_queue), os_queue_def(data_queue)));
+    OS_CHECK(os_queue_create(os_queue(activity_queue), os_queue_def(activity_queue)));
+    OS_CHECK(os_queue_create(os_queue(button_queue), os_queue_def(button_queue)));
 
     return true;
 }
 
-bool MetalIPC::enqueue(void *ptr, uint32_t to) {
-    auto tuple = os_queue_enqueue(os_queue(other_queue), ptr, to);
+bool MetalIPC::enqueue_activity(Activity *ptr) {
+    auto tuple = os_queue_enqueue(os_queue(activity_queue), ptr, 0);
     return tuple.status == OSS_SUCCESS;
 }
 
-bool MetalIPC::dequeue(void **ptr, uint32_t to) {
-    auto tuple = os_queue_dequeue(os_queue(other_queue), to);
+bool MetalIPC::dequeue_activity(Activity **ptr) {
+    auto tuple = os_queue_dequeue(os_queue(activity_queue), 250);
     if (tuple.status != OSS_SUCCESS) {
         return false;
     }
-    *ptr = tuple.value.ptr;
+    *ptr = reinterpret_cast<Activity*>(tuple.value.ptr);
     return true;
 }
 
-bool MetalIPC::enqueue_data(StateChange *ptr, uint32_t to) {
-    auto tuple = os_queue_enqueue(os_queue(data_queue), ptr, to);
+bool MetalIPC::enqueue_button(Button *ptr) {
+    auto tuple = os_queue_enqueue(os_queue(button_queue), ptr, 0);
     return tuple.status == OSS_SUCCESS;
 }
 
-bool MetalIPC::dequeue_data(StateChange **ptr, uint32_t to) {
-    auto tuple = os_queue_dequeue(os_queue(data_queue), to);
+bool MetalIPC::dequeue_button(Button **ptr) {
+    auto tuple = os_queue_dequeue(os_queue(button_queue), OneSecondMs);
+    if (tuple.status != OSS_SUCCESS) {
+        return false;
+    }
+    *ptr = reinterpret_cast<Button*>(tuple.value.ptr);
+    return true;
+}
+
+bool MetalIPC::enqueue_data(StateChange *ptr) {
+    auto tuple = os_queue_enqueue(os_queue(data_queue), ptr, FiveSecondsMs);
+    return tuple.status == OSS_SUCCESS;
+}
+
+bool MetalIPC::dequeue_data(StateChange **ptr) {
+    auto tuple = os_queue_dequeue(os_queue(data_queue), FiveSecondsMs);
     if (tuple.status != OSS_SUCCESS) {
         return false;
     }
