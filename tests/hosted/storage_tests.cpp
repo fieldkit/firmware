@@ -650,6 +650,53 @@ TEST_F(StorageSuite, LotsOfIndividualWrites) {
     }
 }
 
+TEST_F(StorageSuite, ErasingAndStartingOver) {
+    uint32_t version1;
+    uint32_t version2;
+
+    // Write a ton of data, spanning multiple blocks.
+    {
+        Storage storage{ memory_ };
+        ASSERT_TRUE(storage.clear());
+        auto file_write = storage.file(0);
+        auto bytes_to_write = memory_->geometry().block_size * 50;
+        auto total_wrote = (size_t)0;
+        while (total_wrote < bytes_to_write) {
+            auto wrote = write_reading(file_write);
+            FK_ASSERT(wrote > 0);
+            total_wrote += wrote;
+        }
+        version1 = storage.version();
+    }
+
+    loginfo("version #1 = %" PRIu32, version1);
+
+    // Now start over and write a little data.
+    {
+        Storage storage{ memory_ };
+        ASSERT_TRUE(storage.clear());
+        auto file_write = storage.file(0);
+        auto bytes_to_write = memory_->geometry().block_size * 5;
+        auto total_wrote = (size_t)0;
+        while (total_wrote < bytes_to_write) {
+            auto wrote = write_reading(file_write);
+            FK_ASSERT(wrote > 0);
+            total_wrote += wrote;
+        }
+        version2 = storage.version();
+        FK_ASSERT(version2 != version1);
+    }
+
+    loginfo("version #2 = %" PRIu32, version2);
+
+    // Now we open.
+    {
+        Storage storage{ memory_ };
+        ASSERT_TRUE(storage.begin());
+        FK_ASSERT(storage.version() == version2);
+    }
+}
+
 static size_t write_reading(File &file) {
     fk_data_SensorAndValue readings[] = {
         { 0, (float)random() },

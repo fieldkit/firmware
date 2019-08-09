@@ -31,6 +31,9 @@ public:
     bool clear();
     File file(uint8_t file);
     uint32_t fsck();
+    uint32_t version() const {
+        return version_;
+    }
 
 private:
     uint32_t allocate(uint8_t file, uint32_t first, uint32_t tail_address);

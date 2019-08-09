@@ -102,7 +102,7 @@ bool Storage::begin() {
         }
 
         if (block_header.valid()) {
-            logtrace("[%" PRIu32 "] found valid block (" PRADDRESS ")", block_header.file, address);
+            logtrace("[%" PRIu32 "] valid block (" PRADDRESS ") (v = %" PRIu32 ") (ts = %" PRIu32 ")", block_header.file, address, block_header.version, block_header.timestamp);
 
             FK_ASSERT(block_header.verify_hash());
 
@@ -114,8 +114,6 @@ bool Storage::begin() {
             version_ = block_header.version;
             range = range.second_half();
             had_valid_blocks = true;
-
-            logtrace(PRADDRESS " found version %" PRIu32, address, version_);
         }
         else {
             logtrace("[?] invalid block (" PRADDRESS ")", address);
@@ -283,7 +281,7 @@ SeekValue Storage::seek(SeekSettings settings) {
 
         if (block_header.valid()) {
             auto &bfh = block_header.files[settings.file];
-            logtrace("[%" PRIu32 "] found valid block (" PRADDRESS ") (%" PRIu32 ")", block_header.file, address, bfh.size);
+            logtrace("[%" PRIu32 "] valid block (" PRADDRESS ") (v = %" PRIu32 ") (ts = %" PRIu32 ") (%" PRIu32 ")", block_header.file, address, block_header.version, block_header.timestamp, bfh.size);
 
             if (block_header.timestamp > timestamp) {
                 timestamp = block_header.timestamp;
