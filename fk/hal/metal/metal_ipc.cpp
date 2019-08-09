@@ -13,7 +13,7 @@ FK_DECLARE_LOGGER("ipc");
 
 os_queue_define(data_queue, 10, OS_QUEUE_FLAGS_QUEUE_ONLY);
 os_queue_define(activity_queue, 10, OS_QUEUE_FLAGS_NONE);
-os_queue_define(button_queue, 10, OS_QUEUE_FLAGS_QUEUE_ONLY);
+os_queue_define(button_queue, 10, OS_QUEUE_FLAGS_NONE);
 
 MetalIPC::MetalIPC() {
 }
