@@ -87,18 +87,23 @@ static void run_tasks() {
 }
 
 static size_t write_log(const LogMessage *m, const char *fstring, va_list args) {
+    const char *task = os_task_name();
+    if (task == nullptr) {
+        task = "startup";
+    }
+
     const char *f;
     if ((LogLevels)m->level == LogLevels::ERROR) {
-        f = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_RED " %-6s %s: ";
+        f = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_CYAN " %-10s " RTT_CTRL_TEXT_RED "%-6s %s: ";
     }
     else {
-        f = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_YELLOW " %-6s %s" RTT_CTRL_RESET ": ";
+        f = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_CYAN " %-10s " RTT_CTRL_TEXT_YELLOW "%-6s %s" RTT_CTRL_RESET ": ";
     }
 
     SEGGER_RTT_LOCK();
 
     auto level = alog_get_log_level((LogLevels)m->level);
-    SEGGER_RTT_printf(0, f, m->uptime, level, m->facility);
+    SEGGER_RTT_printf(0, f, m->uptime, task, level, m->facility);
     SEGGER_RTT_vprintf(0, fstring, &args);
     SEGGER_RTT_WriteString(0, RTT_CTRL_RESET "\n");
 
