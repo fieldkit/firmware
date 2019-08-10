@@ -70,7 +70,7 @@ void task_handler_readings(void *params) {
     auto file = storage.file(0);
     auto gs = get_global_state_ro();
 
-    Readings readings{ gs.get() };
+    Readings readings{ get_modmux(), gs.get() };
     if (!readings.take_readings(modules, file.record(), pool)) {
         logerror("error taking readings");
         return;

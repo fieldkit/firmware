@@ -6,7 +6,7 @@ namespace fk {
 
 FK_DECLARE_LOGGER("readings");
 
-Readings::Readings(GlobalState const *gs) : gs_(gs) {
+Readings::Readings(ModMux *mm, GlobalState const *gs) : mm_(mm), gs_(gs) {
 }
 
 bool Readings::take_readings(ResolvedModules const &modules, uint32_t reading_number, Pool &pool) {
@@ -36,6 +36,11 @@ bool Readings::take_readings(ResolvedModules const &modules, uint32_t reading_nu
     for (size_t i = 0; i < MaximumNumberOfModules; ++i) {
         auto meta = modules.get(i);
         if (meta == nullptr) {
+            continue;
+        }
+
+        if (!mm_->choose(i)) {
+            logerror("error choosing module");
             continue;
         }
 

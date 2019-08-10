@@ -9,11 +9,12 @@ namespace fk {
 
 class Readings {
 private:
+    ModMux *mm_;
     GlobalState const *gs_;
     fk_data_DataRecord record_;
 
 public:
-    Readings(GlobalState const *gs);
+    Readings(ModMux *mm, GlobalState const *gs);
 
 public:
     bool take_readings(ResolvedModules const &modules, uint32_t reading_number, Pool &pool);

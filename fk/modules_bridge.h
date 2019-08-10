@@ -45,6 +45,13 @@ private:
     ModuleReading readings_[N];
 
 public:
+    NModuleReadings() : nreadings_(N) {
+    }
+
+    NModuleReadings(size_t size) : nreadings_(size) {
+    }
+
+public:
     size_t size() const override {
         return nreadings_;
     }
