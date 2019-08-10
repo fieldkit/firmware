@@ -38,7 +38,8 @@ public:
 private:
     uint32_t allocate(uint8_t file, uint32_t first, uint32_t tail_address);
     SeekValue seek(SeekSettings settings);
-    void verify_opened();
+    void verify_opened() const;
+    bool valid_block_header(BlockHeader &header) const;
 
 };
 

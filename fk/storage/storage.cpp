@@ -83,6 +83,10 @@ Storage::~Storage() {
     }
 }
 
+bool Storage::valid_block_header(BlockHeader &header) const {
+    return header.valid() && (version_ == InvalidVersion || header.version == version_);
+}
+
 bool Storage::begin() {
     auto g = memory_->geometry();
 
@@ -101,7 +105,7 @@ bool Storage::begin() {
             return false;
         }
 
-        if (block_header.valid()) {
+        if (valid_block_header(block_header)) {
             logtrace("[%" PRIu32 "] valid block (" PRADDRESS ") (v = %" PRIu32 ") (ts = %" PRIu32 ")", block_header.file, address, block_header.version, block_header.timestamp);
 
             FK_ASSERT(block_header.verify_hash());
@@ -117,7 +121,6 @@ bool Storage::begin() {
         }
         else {
             logtrace("[?] invalid block (" PRADDRESS ")", address);
-
             range = range.first_half();
         }
     }
@@ -281,7 +284,7 @@ SeekValue Storage::seek(SeekSettings settings) {
             return { };
         }
 
-        if (block_header.valid()) {
+        if (valid_block_header(block_header)) {
             auto &bfh = block_header.files[settings.file];
             logtrace("[%" PRIu32 "] valid block (" PRADDRESS ") (v = %" PRIu32 ") (ts = %" PRIu32 ") (%" PRIu32 ")", block_header.file, address, block_header.version, block_header.timestamp, bfh.size);
 
@@ -419,7 +422,7 @@ uint32_t Storage::fsck() {
     return 0;
 }
 
-void Storage::verify_opened() {
+void Storage::verify_opened() const {
     FK_ASSERT(free_block_ != InvalidBlock);
 }
 
