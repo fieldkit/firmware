@@ -1,4 +1,5 @@
 #include "water_module.h"
+#include "platform.h"
 
 using namespace fk;
 
@@ -98,13 +99,22 @@ ModuleReadings *WaterModule::take_readings(ModuleContext mc, fk::Pool &pool) {
     }
 
     uint8_t has_reading = 0xff;
-    if (bus.read_register_u8(address, cfg.reading_register, has_reading) != 0) {
-        logerror("error reading register");
-        return nullptr;
+    auto started = fk_uptime();
+    while (fk_uptime() - started < 1000) {
+        if (bus.read_register_u8(address, cfg.reading_register, has_reading) != 0) {
+            logerror("error reading register");
+            return nullptr;
+        }
+
+        if (has_reading) {
+            break;
+        }
+
+        fk_delay(10);
     }
 
     if (!has_reading) {
-        logerror("no readings");
+        logerror("reading took too long");
         return nullptr;
     }
 
@@ -124,7 +134,7 @@ ModuleReadings *WaterModule::take_readings(ModuleContext mc, fk::Pool &pool) {
         return nullptr;
     }
 
-    auto mr = new(pool) NModuleReadings<3>(1);
+    auto mr = new(pool) NModuleReadings<3>(cfg.number_of_values);
     for (auto i = 0; i < cfg.number_of_values; ++i) {
         float value = values[i].u32;
         value /= cfg.divisor;

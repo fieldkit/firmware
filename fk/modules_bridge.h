@@ -49,6 +49,7 @@ public:
     }
 
     NModuleReadings(size_t size) : nreadings_(size) {
+        FK_ASSERT(size <= N);
     }
 
 public:
