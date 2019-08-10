@@ -99,9 +99,10 @@ target_link_libraries(fk-bundled TinyGPS)
 find_package(Phylum)
 target_link_libraries(fk-bundled phylum)
 
+fk_add_builtin_module(random)
+fk_add_builtin_module(diagnostics)
 fk_add_builtin_module(weather)
 fk_add_builtin_module(water)
-fk_add_builtin_module(random)
 
 configure_firmware_linker_script(fk-bundled ${CMAKE_SOURCE_DIR}/boards/samd51/main.ld)
 
