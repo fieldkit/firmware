@@ -18,9 +18,9 @@ typedef struct ModuleHeader {
     uint32_t crc;
 } ModuleHeader;
 
-uint32_t fk_module_header_sign(ModuleHeader *header);
+uint32_t fk_module_header_sign(ModuleHeader const *header);
 
-uint32_t fk_module_header_valid(ModuleHeader *header);
+uint32_t fk_module_header_valid(ModuleHeader const *header);
 
 #define FK_MODULES_MANUFACTURER                    (0x01)
 #define FK_MODULES_KIND_WEATHER                    (0x01)

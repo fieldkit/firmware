@@ -74,7 +74,7 @@ ModuleMetadata const *ModuleRegistry::resolve(ModuleHeader const &header) {
 bool ModuleRegistry::resolve(ModuleScan const &scan, ResolvedModules &resolved) {
     for (size_t i = 0; i < MaximumNumberOfModules; ++i) {
         auto &header = scan.get(i);
-        if (header.manufacturer > 0) {
+        if (fk_module_header_valid(&header)) {
             auto meta = resolve(header);
             FK_ASSERT(meta != nullptr);
 

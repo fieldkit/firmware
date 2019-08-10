@@ -128,6 +128,8 @@ bool Storage::begin() {
 
     free_block_ = range.start;
 
+    logtrace("found end (block = %" PRIu32 ") seeking...", free_block_);
+
     // Make sure our header records are fully up to date by seeking to the end
     // of each file.
     for (auto file = (uint8_t)0; file < NumberOfFiles; ++file) {
@@ -151,7 +153,7 @@ bool Storage::begin() {
         }
     }
 
-    logtrace("opened (block = %" PRIu32 ")", free_block_);
+    logtrace("opened (block = %" PRIu32 ") (v = %" PRIu32 ")", free_block_, version_);
 
     return true;
 }
