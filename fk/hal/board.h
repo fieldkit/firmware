@@ -47,6 +47,16 @@ public:
 
 };
 
+union TwoWire16 {
+    uint8_t bytes[2];
+    uint16_t u16;
+};
+
+union TwoWire32 {
+    uint8_t bytes[4];
+    uint32_t u32;
+};
+
 class TwoWireWrapper {
 private:
     const char *name_;

@@ -62,7 +62,7 @@ protected:
 TEST_F(ReadingsSuite, TakingReadingsNoModules) {
     StaticPool<1024> pool{ "readings" };
     GlobalState gs;
-    Readings readings{ &gs };
+    Readings readings{ get_modmux(), &gs };
     ResolvedModules resolved;
 
     ASSERT_TRUE(readings.take_readings(resolved, 0, pool));
@@ -76,7 +76,7 @@ TEST_F(ReadingsSuite, TakingReadingsNoModules) {
 TEST_F(ReadingsSuite, TakingReadingsModuleWithNoReadings) {
     StaticPool<1024> pool{ "readings" };
     GlobalState gs;
-    Readings readings{ &gs };
+    Readings readings{ get_modmux(), &gs };
     ResolvedModules resolved;
     resolved.set(0, &fk_test_module_fake_empty);
 
@@ -94,7 +94,7 @@ TEST_F(ReadingsSuite, TakingReadingsOneModule) {
     ResolvedModules resolved;
     resolved.set(0, &fk_test_module_fake_1);
 
-    Readings readings{ &gs };
+    Readings readings{ get_modmux(), &gs };
     ASSERT_TRUE(readings.take_readings(resolved, 0, pool));
 
     size_t size = 0;
@@ -110,7 +110,7 @@ TEST_F(ReadingsSuite, TakingReadingsTwoModules) {
     resolved.set(0, &fk_test_module_fake_1);
     resolved.set(1, &fk_test_module_fake_2);
 
-    Readings readings{ &gs };
+    Readings readings{ get_modmux(), &gs };
     ASSERT_TRUE(readings.take_readings(resolved, 0, pool));
 
     size_t size = 0;
