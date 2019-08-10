@@ -73,7 +73,7 @@ bool ModuleScanning::scan(ModuleScan &scan) {
             header.manufacturer = FK_MODULES_MANUFACTURER;
             header.kind = FK_MODULES_KIND_RANDOM;
             header.version = 0x1;
-            fk_module_header_sign(&header);
+            header.crc = fk_module_header_sign(&header);
 
             loginfo("[%d] mk=%02" PRIx32 "%02" PRIx32 " v%" PRIu32 "", 7, header.manufacturer, header.kind, header.version);
 
