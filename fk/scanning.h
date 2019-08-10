@@ -35,6 +35,10 @@ public:
 
 public:
     bool scan(ModuleScan &scan);
+    bool configure(uint8_t position, ModuleHeader &header);
+
+private:
+    bool available();
 
 };
 

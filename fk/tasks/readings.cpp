@@ -30,6 +30,24 @@ void task_handler_readings(void *params) {
         return;
     }
 
+    // Quick code to write a module EEPROM header for development purposes.
+    // Eventually we should have a secret menu or something for doing this kind
+    // of thing.
+    if (false) {
+        auto position = 6;
+        ModuleHeader header = {
+            .manufacturer = FK_MODULES_MANUFACTURER,
+            .kind = FK_MODULES_KIND_WATER,
+            .version = 0x01,
+            .reserved = { 0x00, 0x00, 0x00, 0x00 },
+            .crc = 0x00,
+        };
+        if (!scanning.configure(position, header)) {
+            logerror("[%d] unable to configure module", position);
+            return;
+        }
+    }
+
     ModuleRegistry registry;
     ResolvedModules modules;
 

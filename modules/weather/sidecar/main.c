@@ -14,8 +14,8 @@
 
 int32_t ensure_module_header() {
     ModuleHeader expected = {
-        .manufacturer = 0x01,
-        .kind = 0x01,
+        .manufacturer = FK_MODULES_MANUFACTURER,
+        .kind = FK_MODULES_KIND_WEATHER,
         .version = 0x01,
         .reserved = { 0x00, 0x00, 0x00, 0x00 },
         .crc = 0x00,
