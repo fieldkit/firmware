@@ -32,7 +32,7 @@ bool Readings::take_readings(ResolvedModules const &modules, uint32_t reading_nu
     bzero(groups, sizeof(fk_data_SensorGroup) * modules.size());
 
     auto module_bus = get_board()->i2c_module();
-    ModuleContext mc{ module_bus };
+    ModuleContext mc{ gs_, module_bus };
     for (size_t i = 0; i < MaximumNumberOfModules; ++i) {
         auto meta = modules.get(i);
         if (meta == nullptr) {

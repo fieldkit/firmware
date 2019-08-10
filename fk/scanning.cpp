@@ -31,7 +31,7 @@ bool ModuleScanning::available() {
 }
 
 static bool add_virtual_module(ModuleHeader *headers, uint16_t kind) {
-    for (auto i = MaximumNumberOfModules - 1; i >= 0; --i) {
+    for (int8_t i = MaximumNumberOfModules - 1; i >= 0; --i) {
         auto &header = headers[i];
         if (!fk_module_header_valid(&header)) {
             header.manufacturer = FK_MODULES_MANUFACTURER;

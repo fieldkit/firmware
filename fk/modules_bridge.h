@@ -6,14 +6,17 @@
 
 namespace fk {
 
+class GlobalState;
+
 class ModuleContext {
 private:
+    GlobalState const *gs_;
     TwoWireWrapper *module_bus_{ nullptr };
     int32_t module_{ -1 };
 
 public:
     ModuleContext();
-    ModuleContext(TwoWireWrapper &module_bus);
+    ModuleContext(GlobalState const *gs, TwoWireWrapper &module_bus);
     ModuleContext(ModuleContext &from, int32_t module);
     virtual ~ModuleContext();
 
@@ -21,6 +24,10 @@ public:
     ModuleContext module(int32_t module);
 
 public:
+    GlobalState const *gs() {
+        return gs_;
+    }
+
     TwoWireWrapper &module_bus() {
         return *module_bus_;
     }
