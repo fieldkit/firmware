@@ -30,6 +30,24 @@ bool ModuleScanning::available() {
     return mm_->available();
 }
 
+static bool add_virtual_module(ModuleHeader *headers, uint16_t kind) {
+    for (auto i = MaximumNumberOfModules - 1; i >= 0; --i) {
+        auto &header = headers[i];
+        if (!fk_module_header_valid(&header)) {
+            header.manufacturer = FK_MODULES_MANUFACTURER;
+            header.kind = kind;
+            header.version = 0x1;
+            header.crc = fk_module_header_sign(&header);
+
+            loginfo("[%d] mk=%02" PRIx32 "%02" PRIx32 " v%" PRIu32 "", i, header.manufacturer, header.kind, header.version);
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
 bool ModuleScanning::scan(ModuleScan &scan) {
     if (!available()) {
         return true;
@@ -64,19 +82,16 @@ bool ModuleScanning::scan(ModuleScan &scan) {
         nmodules++;
     }
 
-    // If the random module is enabled, sneak the module into the final
+    // If any virtual modules are enabled, sneak the modules into the final
     // position. Right now we don't have a backplane that will support this many
     // modules anyway, still make sure we're safe.
+    if (fk_config().readings.enable_diagnostics_module) {
+        if (add_virtual_module(scan.headers_, FK_MODULES_KIND_DIAGNOSTICS)) {
+            nmodules++;
+        }
+    }
     if (fk_config().readings.enable_random_module) {
-        auto &header = scan.headers_[MaximumNumberOfModules - 1];
-        if (!fk_module_header_valid(&header)) {
-            header.manufacturer = FK_MODULES_MANUFACTURER;
-            header.kind = FK_MODULES_KIND_RANDOM;
-            header.version = 0x1;
-            header.crc = fk_module_header_sign(&header);
-
-            loginfo("[%d] mk=%02" PRIx32 "%02" PRIx32 " v%" PRIu32 "", 7, header.manufacturer, header.kind, header.version);
-
+        if (add_virtual_module(scan.headers_, FK_MODULES_KIND_RANDOM)) {
             nmodules++;
         }
     }

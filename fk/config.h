@@ -206,6 +206,12 @@ typedef struct configuration_t {
      */
     typedef struct readings_t {
         /**
+         * If true then the diagnostics module is enabled and will be consulted
+         * for readings like battery and memory information.
+         */
+        bool enable_diagnostics_module{ true };
+
+        /**
          * If true then the random module is enabled and will be consulted for
          * readings, this can inflate the data being written, which is handy for
          * debugging.
