@@ -8,7 +8,6 @@ FK_DECLARE_LOGGER("water");
 struct AtlasRegisters {
     static constexpr uint8_t DEVICE_TYPE = 0x00;
     static constexpr uint8_t LED = 0x05;
-    static constexpr uint8_t IRQ = 0x04;
 
     static constexpr uint8_t EC_PROBE_TYPE = 0x08;
 
@@ -126,6 +125,10 @@ ModuleReadings *WaterModule::take_readings(ModuleContext mc, fk::Pool &pool) {
 
     if (bus.write_register_u8(address, cfg.reading_register, AtlasLow) != 0) {
         logerror("error clearing reading");
+        return nullptr;
+    }
+
+    if (bus.write_register_u8(address, AtlasRegisters::LED, AtlasLow) != 0) {
         return nullptr;
     }
 
