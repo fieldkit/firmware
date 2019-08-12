@@ -106,7 +106,7 @@ bool OemAtlas::read(float *values, size_t &number_of_values) {
         return false;
     }
 
-    TwoWire32 raw[ATLAS_MAXIMUM_VALUES];
+    TwoWire32 raw[ATLAS_MAXIMUM_VALUES] = { { 0 }, { 0 }, { 0 } };
     if (bus_->read_register_buffer(address_, cfg.value_register, (uint8_t *)raw, cfg.number_of_values * sizeof(TwoWire32)) != 0) {
         logerror("error reading values");
         return false;
@@ -118,7 +118,7 @@ bool OemAtlas::read(float *values, size_t &number_of_values) {
     }
 
     for (auto i = 0; i < cfg.number_of_values; ++i) {
-        float value = raw[i].u32;
+        float value = __builtin_bswap32(raw[i].u32);
         value /= cfg.divisor;
         values[i] = value;
     }
