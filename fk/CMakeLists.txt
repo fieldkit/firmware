@@ -99,6 +99,9 @@ target_link_libraries(fk-bundled TinyGPS)
 find_package(Phylum)
 target_link_libraries(fk-bundled phylum)
 
+find_package(QrCode)
+target_link_libraries(fk-bundled QrCode)
+
 fk_add_builtin_module(random)
 fk_add_builtin_module(diagnostics)
 fk_add_builtin_module(weather)

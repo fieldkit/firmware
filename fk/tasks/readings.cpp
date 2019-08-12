@@ -83,14 +83,13 @@ void task_handler_readings(void *params) {
             return;
         }
 
-        loginfo("wrote %d bytes (#%" PRIu32 ") (%" PRIu32 " bytes) (" PRADDRESS ") (%" PRIu32 "ms)",
-                bytes_wrote, file.record() - 1, file.size(), file.tail(),
-                fk_uptime() - started);
+        loginfo("wrote %d bytes (#%" PRIu32 ") (%" PRIu32 " bytes) (" PRADDRESS ")",
+                bytes_wrote, file.record() - 1, file.size(), file.tail());
     }
 
     memory.log_statistics();
 
-    loginfo("done (pool = %d/%d bytes)", pool.used(), pool.size());
+    loginfo("done (pool = %d/%d bytes) (%" PRIu32 "ms)", pool.used(), pool.size(), fk_uptime() - started);
 }
 
 }
