@@ -2,6 +2,8 @@
 #include "hal/metal/metal.h"
 #include "pool.h"
 
+#include <qrcode.h>
+
 namespace fk {
 
 FK_DECLARE_LOGGER("display");
@@ -26,6 +28,21 @@ static void show_menu(MenuScreen const &screen) {
     auto display = get_display();
 
     display->menu(screen);
+}
+
+static void show_qr() {
+    auto bus = get_board()->i2c_core();
+    auto display = get_display();
+
+    QRCode qr;
+    uint8_t version = 3;
+    uint8_t data[qrcode_getBufferSize(version)];
+    qrcode_initText(&qr, data, version, ECC_LOW, "HELLO WORLD");
+
+    QrCodeScreen screen;
+    screen.size = qr.size;
+    screen.data = data;
+    display->qr(screen);
 }
 
 static void selection_up(MenuScreen &screen) {
@@ -112,7 +129,12 @@ void task_handler_display(void *params) {
             }
         }
         else {
-            show_home();
+            if (false) {
+                show_home();
+            }
+            else {
+                show_qr();
+            }
         }
 
         Button *button = nullptr;

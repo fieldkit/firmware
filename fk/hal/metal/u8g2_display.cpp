@@ -157,6 +157,29 @@ void U8g2Display::menu(MenuScreen const &data) {
     draw_.sendBuffer();
 }
 
+static bool xbm_get(uint8_t x, uint8_t y, size_t size, uint8_t *data) {
+    if (x < 0 || x >= size || y < 0 || y >= size) {
+        return false;
+    }
+    uint32_t offset = y * size + x;
+    return (data[offset >> 3] & (1 << (7 - (offset & 0x07)))) != 0;
+}
+
+void U8g2Display::qr(QrCodeScreen const &screen) {
+    auto x0 = (OLED_WIDTH - (screen.size * 2)) / 2;
+    auto y0 = (OLED_HEIGHT - (screen.size * 2)) / 2 + 4 /* HACK */;
+    draw_.setPowerSave(0);
+    draw_.clearBuffer();
+    for (size_t x = 0; x < screen.size; ++x) {
+        for (size_t y = 0; y < screen.size; ++y) {
+            if (xbm_get(x, y, screen.size, screen.data)) {
+                draw_.drawBox(x0 + x * 2, y0 + y * 2, 2, 2);
+            }
+        }
+    }
+    draw_.sendBuffer();
+}
+
 void U8g2Display::off() {
     draw_.setPowerSave(1);
 }

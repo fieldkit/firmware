@@ -23,8 +23,9 @@ public:
     void centered(const xbm_data_t &xbm) override;
     void company_logo() override;
     void fk_logo() override;
-    void home(HomeScreen const &data) override;
-    void menu(MenuScreen const &data) override;
+    void home(HomeScreen const &screen) override;
+    void menu(MenuScreen const &screen) override;
+    void qr(QrCodeScreen const &screen) override;
 
 };
 

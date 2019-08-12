@@ -58,6 +58,11 @@ struct MenuScreen {
     }
 };
 
+struct QrCodeScreen {
+    size_t size;
+    uint8_t *data;
+};
+
 class Display {
 public:
     virtual void on() = 0;
@@ -65,8 +70,9 @@ public:
     virtual void centered(const xbm_data_t &xbm) = 0;
     virtual void company_logo() = 0;
     virtual void fk_logo() = 0;
-    virtual void home(HomeScreen const &data) = 0;
-    virtual void menu(MenuScreen const &data) = 0;
+    virtual void home(HomeScreen const &screen) = 0;
+    virtual void menu(MenuScreen const &screen) = 0;
+    virtual void qr(QrCodeScreen const &screen) = 0;
 
 };
 
@@ -77,8 +83,9 @@ public:
     void centered(const xbm_data_t &xbm) override { }
     void company_logo() override { }
     void fk_logo() override { }
-    void home(HomeScreen const &data) override { }
-    void menu(MenuScreen const &data) override { }
+    void home(HomeScreen const &screen) override { }
+    void menu(MenuScreen const &screen) override { }
+    void qr(QrCodeScreen const &screen) override { }
 
     bool begin() {
         return true;
