@@ -18,9 +18,6 @@ bool send_status(HttpRequest &req) {
 
     auto memory_bus = get_board()->spi_flash();
 
-    StatisticsMemory memory{ MemoryFactory::get_data_memory() };
-    Storage storage{ &memory };
-
     fk_serial_number_t sn;
     fk_serial_number_get(&sn);
 
@@ -37,15 +34,15 @@ bool send_status(HttpRequest &req) {
     reply.status.identity.stream.arg = (void *)"stream";
     reply.status.identity.build.arg = (void *)fkb_header.firmware.name;
     reply.status.identity.deviceId.arg = &device_id;
-    // reply.status.hardware
     reply.status.power.battery.voltage = 4000;
     reply.status.power.battery.percentage = 45;
 
     reply.status.memory.sramAvailable = fk_free_memory();
-    reply.status.memory.programAvailable = 1024 * 1024 - BootloaderSize - fkb_header.firmware.binary_size;
+    reply.status.memory.programFlashAvailable = 1024 * 1024 - BootloaderSize - fkb_header.firmware.binary_size;
     reply.status.memory.extendedMemoryAvailable = 8 * 1024 * 1024;
-    reply.status.memory.dataMemoryAvailable = 0;
+    reply.status.memory.dataMemoryInstalled = 0;
     reply.status.memory.dataMemoryUsed = 0;
+    reply.status.memory.dataMemoryConsumption = 0;
 
     reply.status.gps.fix = true;
     reply.status.gps.time = 0;
@@ -54,19 +51,13 @@ bool send_status(HttpRequest &req) {
     reply.status.gps.latitude = 0.0f;
     reply.status.gps.altitude = 0.0f;
 
-    auto data = storage.file(0);
-    auto meta = storage.file(1);
-
-    FK_ASSERT(data.seek(LastRecord));
-    FK_ASSERT(meta.seek(LastRecord));
-
     fk_app_DataStream streams[] = {
         {
             .id = 0,
             .time = 0,
-            .size = data.size(),
+            .size = 0,
             .version = 0,
-            .block = data.record(),
+            .block = 0,
             .hash = {
                 .funcs = {},
                 .arg = nullptr,
@@ -87,9 +78,9 @@ bool send_status(HttpRequest &req) {
         {
             .id = 1,
             .time = 0,
-            .size = meta.size(),
+            .size = 0,
             .version = 0,
-            .block = meta.record(),
+            .block = 0,
             .hash = {
                 .funcs = {},
                 .arg = nullptr,
@@ -108,6 +99,19 @@ bool send_status(HttpRequest &req) {
             },
         },
     };
+
+    StatisticsMemory memory{ MemoryFactory::get_data_memory() };
+    Storage storage{ &memory };
+    if (storage.begin()) {
+        for (auto file_number = 0; file_number < 2; ++file_number) {
+            auto file = storage.file(file_number);
+            if (file.seek(LastRecord)) {
+                auto &stream = streams[file_number];
+                stream.size = file.size();
+                stream.block = file.record();
+            }
+        }
+    }
 
     pb_array_t streams_array = {
         .length = (size_t)1,
