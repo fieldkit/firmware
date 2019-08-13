@@ -45,8 +45,10 @@ struct NetworkState {
 };
 
 struct GpsState {
-    uint32_t enabled{ 0 };
-    uint32_t fix{ 0 };
+    uint8_t enabled{ 0 };
+    uint8_t fix{ 0 };
+    uint8_t satellites{ 0 };
+    uint64_t time{ 0 };
     float longitude { 0.0f };
     float latitude { 0.0f };
     float altitude { 0.0f };
@@ -87,7 +89,7 @@ public:
 
 };
 
-GlobalStateRef<const GlobalState*> get_global_state_ro();
+GlobalStateRef<GlobalState const*> get_global_state_ro();
 
 GlobalStateRef<GlobalState*> get_global_state_rw();
 

@@ -1,9 +1,9 @@
 #include <loading.h>
+#include <tiny_printf.h>
 
 #include "networking/api_handler.h"
 #include "storage/storage.h"
 #include "protobuf.h"
-#include "printf.h"
 
 extern const struct fkb_header_t fkb_header;
 
@@ -18,6 +18,7 @@ bool send_status(HttpRequest &req) {
 
     auto lock = storage_mutex.acquire(UINT32_MAX);
     auto memory_bus = get_board()->spi_flash();
+    auto gs = get_global_state_ro();
 
     fk_serial_number_t sn;
     fk_serial_number_get(&sn);
@@ -41,16 +42,18 @@ bool send_status(HttpRequest &req) {
     reply.status.memory.sramAvailable = fk_free_memory();
     reply.status.memory.programFlashAvailable = 1024 * 1024 - BootloaderSize - fkb_header.firmware.binary_size;
     reply.status.memory.extendedMemoryAvailable = 8 * 1024 * 1024;
-    reply.status.memory.dataMemoryInstalled = 0;
+    reply.status.memory.dataMemoryInstalled = 512 * 1024 * 1024;
     reply.status.memory.dataMemoryUsed = 0;
     reply.status.memory.dataMemoryConsumption = 0;
 
-    reply.status.gps.fix = true;
-    reply.status.gps.time = 0;
-    reply.status.gps.satellites = 3;
-    reply.status.gps.longitude = 0.0f;
-    reply.status.gps.latitude = 0.0f;
-    reply.status.gps.altitude = 0.0f;
+    auto &gps = gs.get()->gps;
+    reply.status.gps.enabled = gps.enabled;
+    reply.status.gps.fix = gps.fix;
+    reply.status.gps.time = gps.time;
+    reply.status.gps.satellites = gps.satellites;
+    reply.status.gps.longitude = gps.longitude;
+    reply.status.gps.latitude = gps.latitude;
+    reply.status.gps.altitude = gps.altitude;
 
     fk_app_DataStream streams[] = {
         {
@@ -110,9 +113,12 @@ bool send_status(HttpRequest &req) {
                 auto &stream = streams[file_number];
                 stream.size = file.size();
                 stream.block = file.record();
+                reply.status.memory.dataMemoryUsed += stream.size;
             }
         }
     }
+
+    reply.status.memory.dataMemoryConsumption = reply.status.memory.dataMemoryUsed / reply.status.memory.dataMemoryInstalled * 100.0f;
 
     pb_array_t streams_array = {
         .length = (size_t)1,
