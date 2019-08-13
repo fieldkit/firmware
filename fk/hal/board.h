@@ -5,7 +5,7 @@
 namespace fk {
 
 constexpr uint8_t WINC1500_CS = 95u;         // PC25
-constexpr uint8_t WINC1500_POWER = 56u;      // PB7
+constexpr uint8_t WINC1500_POWER = 56u;      // PB07
 constexpr uint8_t WINC1500_IRQ = 97u;        // PC27
 constexpr uint8_t WINC1500_RESET = 96u;      // PC26
 
@@ -23,6 +23,8 @@ constexpr uint8_t SPI_FLASH_CS_BANK_4 = 43u; // PC14
 constexpr uint8_t BUTTON_RIGHT = 32u;        // PA21
 constexpr uint8_t BUTTON_MIDDLE = 31u;       // PA22
 constexpr uint8_t BUTTON_LEFT = 30u;         // PA23
+
+constexpr uint8_t LORA_ENABLE = 76u;         // PC30
 
 class SpiWrapper {
 private:
