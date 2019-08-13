@@ -7,6 +7,7 @@ namespace fk {
 FK_DECLARE_LOGGER("readings");
 
 Readings::Readings(ModMux *mm, GlobalState const *gs) : mm_(mm), gs_(gs) {
+    record_ = fk_data_DataRecord_init_default;
 }
 
 bool Readings::take_readings(ResolvedModules const &modules, uint32_t reading_number, Pool &pool) {
