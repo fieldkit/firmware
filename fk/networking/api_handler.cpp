@@ -16,6 +16,7 @@ constexpr static uint32_t BootloaderSize = 0x4000;
 bool send_status(HttpRequest &req) {
     loginfo("handling %s", "QUERY_STATUS");
 
+    auto lock = storage_mutex.acquire(UINT32_MAX);
     auto memory_bus = get_board()->spi_flash();
 
     fk_serial_number_t sn;

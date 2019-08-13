@@ -1,10 +1,12 @@
-#include "storage/file.h"
-#include "storage/storage.h"
-
+#include <algorithm>
+#include <tiny_printf.h>
+#include <phylum/crc.h>
 #include <fk-data-protocol.h>
 
-#include <phylum/crc.h>
-#include <tiny_printf.h>
+#include "platform.h"
+#include "hal/random.h"
+#include "storage/file.h"
+#include "storage/storage.h"
 
 namespace fk {
 

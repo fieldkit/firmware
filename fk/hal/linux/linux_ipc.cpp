@@ -5,6 +5,10 @@
 
 namespace fk {
 
+FK_DECLARE_LOGGER("ipc");
+
+Mutex storage_mutex;
+
 LinuxIPC::LinuxIPC() {
 }
 
@@ -48,6 +52,20 @@ bool LinuxIPC::launch_worker(Worker *worker) {
     delete worker;
 
     return true;
+}
+
+bool Mutex::create() {
+    return true;
+}
+
+Mutex::Lock Mutex::acquire(uint32_t to) {
+    loginfo("acquired");
+    return { this };
+}
+
+bool Mutex::release() {
+    loginfo("release");
+    return false;
 }
 
 }

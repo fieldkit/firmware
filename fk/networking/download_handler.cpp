@@ -2,6 +2,7 @@
 #include "storage/storage.h"
 #include "storage/progress.h"
 #include "writer.h"
+#include "hal/hal.h"
 
 namespace fk {
 
@@ -13,6 +14,7 @@ DownloadWorker::DownloadWorker(HttpRequest *req) : req_(req) {
 void DownloadWorker::run(WorkerContext &wc) {
     loginfo("downloading");
 
+    auto lock = storage_mutex.acquire(UINT32_MAX);
     auto memory_bus = get_board()->spi_flash();
 
     uint32_t file_number = 0;

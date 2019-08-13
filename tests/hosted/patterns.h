@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.h"
+#include "platform.h"
 #include "storage/storage.h"
 
 using namespace fk;
