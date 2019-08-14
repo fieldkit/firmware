@@ -60,6 +60,7 @@ public:
 };
 
 extern Mutex storage_mutex;
+extern Mutex peripheral_i2c_core_mutex;
 
 }
 

@@ -12,6 +12,7 @@ namespace fk {
 FK_DECLARE_LOGGER("ipc");
 
 Mutex storage_mutex;
+Mutex peripheral_i2c_core_mutex;
 
 os_queue_define(data_queue, 10, OS_QUEUE_FLAGS_QUEUE_ONLY);
 os_queue_define(activity_queue, 10, OS_QUEUE_FLAGS_NONE);

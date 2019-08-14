@@ -8,6 +8,7 @@ namespace fk {
 FK_DECLARE_LOGGER("ipc");
 
 Mutex storage_mutex;
+Mutex peripheral_i2c_core_mutex;
 
 LinuxIPC::LinuxIPC() {
 }
