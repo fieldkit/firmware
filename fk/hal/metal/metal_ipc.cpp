@@ -67,7 +67,7 @@ bool MetalIPC::enqueue_data(StateChange *ptr) {
 }
 
 bool MetalIPC::dequeue_data(StateChange **ptr) {
-    auto tuple = os_queue_dequeue(os_queue(data_queue), FiveSecondsMs);
+    auto tuple = os_queue_dequeue(os_queue(data_queue), OneSecondMs);
     if (tuple.status != OSS_SUCCESS) {
         return false;
     }
