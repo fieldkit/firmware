@@ -15,53 +15,13 @@
 #include "registry.h"
 #include "meta.h"
 
+#include "storage_suite.h"
+
 using namespace fk;
 
 FK_DECLARE_LOGGER("tests");
 
-class MetaLogSuite : public ::testing::Test {
-protected:
-    MallocPool pool_{ "storage", 1024 * 100 };
-    LinuxDataMemory *banks_[MemoryFactory::NumberOfDataMemoryBanks] = { nullptr };
-    DataMemory *data_memory_{ nullptr };
-    StatisticsMemory statistics_memory_{ data_memory_ };
-    DataMemory *memory_{ &statistics_memory_ };
-    flash_geometry_t g_;
-
-protected:
-    void SetUp() override {
-        auto opaque = MemoryFactory::get_data_memory_banks();
-        for (size_t i = 0; i < MemoryFactory::NumberOfDataMemoryBanks; ++i) {
-            banks_[i] = reinterpret_cast<LinuxDataMemory*>(opaque[i]);
-        }
-
-        data_memory_ = MemoryFactory::get_data_memory();
-        statistics_memory_ = StatisticsMemory{ data_memory_ };
-
-        g_ = memory_->geometry();
-        pool_.clear();
-
-        memory_->begin();
-
-        log_configure_level(LogLevels::INFO);
-    }
-
-    void TearDown() override {
-    }
-
-protected:
-    void enable_debug() {
-        log_configure_level(LogLevels::DEBUG);
-    }
-
-    void enable_trace() {
-        log_configure_level(LogLevels::TRACE);
-    }
-
-    void enable_verbose() {
-        log_configure_level(LogLevels::VERBOSE);
-    }
-
+class MetaLogSuite : public StorageSuite {
 };
 
 TEST_F(MetaLogSuite, OpeningEmptyFile) {
@@ -111,6 +71,7 @@ static void append_other_always(SignedRecordLog &srl, const char *build, const c
     ASSERT_TRUE(srl.append_always(SignedRecordKind::Other, &record, fk_data_DataRecord_fields, pool));
 }
 
+/*
 static void append_other(SignedRecordLog &srl, const char *build, const char *git, Pool &pool) {
     fk_data_DataRecord record = fk_data_DataRecord_init_default;
     record.metadata.time = 1;
@@ -120,6 +81,7 @@ static void append_other(SignedRecordLog &srl, const char *build, const char *gi
     record.metadata.build.arg = (void *)build;
     ASSERT_TRUE(srl.append_immutable(SignedRecordKind::Other, &record, fk_data_DataRecord_fields, pool));
 }
+*/
 
 TEST_F(MetaLogSuite, AppendingAnEntry) {
     StaticPool<1024> pool{ "meta-log" };
