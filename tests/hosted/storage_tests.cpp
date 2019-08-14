@@ -57,7 +57,7 @@ TEST_F(StorageSuite, WritingFirstFile) {
     ASSERT_TRUE(storage.clear());
     ASSERT_GT(statistics_memory_.statistics().nerases, (uint32_t)0);
 
-    statistics_memory_.statistics() = { };
+    clear_statistics();
 
     auto file = storage.file(1);
     ASSERT_GT(write_reading(file), (uint32_t)0);
@@ -525,7 +525,7 @@ TEST_F(StorageSuite, SeekingToEndOfFileBeforeWriting) {
     ASSERT_TRUE(storage.clear());
     ASSERT_GT(statistics_memory_.statistics().nerases, (uint32_t)0);
 
-    statistics_memory_.statistics() = { };
+    clear_statistics();
 
     auto file = storage.file(0);
     ASSERT_FALSE(file.seek(LastRecord));

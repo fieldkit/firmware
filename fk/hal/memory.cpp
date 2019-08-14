@@ -148,6 +148,19 @@ size_t SequentialMemory::flush() {
     return memory_->flush();
 }
 
+void MemoryStatistics::add(MemoryStatistics s) {
+    nreads += s.nreads;
+    nwrites += s.nwrites;
+    nerases += s.nerases;
+    bytes_read += s.bytes_read;
+    bytes_wrote += s.bytes_wrote;
+}
+
+void MemoryStatistics::log() const {
+    loginfo("%" PRIu32 " reads (%" PRIu32 " bytes) %" PRIu32 " writes (%" PRIu32 " bytes) %" PRIu32 " erases",
+            nreads, bytes_read, nwrites, bytes_wrote, nerases);
+}
+
 bool StatisticsMemory::begin() {
     return target_->begin();
 }
@@ -173,15 +186,8 @@ size_t StatisticsMemory::erase_block(uint32_t address) {
     return target_->erase_block(address);
 }
 
-memory_statistics_t &StatisticsMemory::statistics() {
+MemoryStatistics &StatisticsMemory::statistics() {
     return statistics_;
-}
-
-void StatisticsMemory::log_statistics() const {
-    loginfo("%" PRIu32 " reads (%" PRIu32 " bytes) %" PRIu32 " writes (%" PRIu32 " bytes) %" PRIu32 " erases",
-            statistics_.nreads, statistics_.bytes_read,
-            statistics_.nwrites, statistics_.bytes_wrote,
-            statistics_.nerases);
 }
 
 size_t StatisticsMemory::flush() {

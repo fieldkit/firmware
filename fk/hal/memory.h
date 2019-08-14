@@ -5,7 +5,7 @@
 
 namespace fk {
 
-typedef struct memory_statistics_t {
+typedef struct MemoryStatistics {
     uint32_t nreads{ 0 };
     uint32_t nwrites{ 0 };
     uint32_t nerases{ 0 };
@@ -21,7 +21,11 @@ typedef struct memory_statistics_t {
         nwrites++;
         bytes_wrote += bytes;
     }
-} memory_statistics_t;
+
+    void add(MemoryStatistics s);
+
+    void log() const;
+} MemoryStatistics;
 
 typedef struct flash_geometry_t {
     uint32_t page_size;
@@ -78,7 +82,7 @@ public:
 class StatisticsMemory : public DataMemory {
 private:
     DataMemory *target_;
-    memory_statistics_t statistics_;
+    MemoryStatistics statistics_;
 
 public:
     StatisticsMemory(DataMemory *target) : target_(target) {
@@ -97,9 +101,11 @@ public:
 
     size_t flush() override;
 
-    memory_statistics_t &statistics();
+    MemoryStatistics &statistics();
 
-    void log_statistics() const;
+    void log_statistics() {
+        statistics_.log();
+    }
 
 };
 

@@ -15,6 +15,7 @@ protected:
     LinuxDataMemory *banks_[MemoryFactory::NumberOfDataMemoryBanks] = { nullptr };
     DataMemory *data_memory_{ nullptr };
     StatisticsMemory statistics_memory_{ data_memory_ };
+    MemoryStatistics statistics_;
     DataMemory *memory_{ &statistics_memory_ };
     flash_geometry_t g_;
 
@@ -49,7 +50,9 @@ protected:
             writes += log.number_of(OperationType::Write);
         }
 
-        statistics_memory_.log_statistics();
+        clear_statistics();
+
+        statistics_.log();
     }
 
 protected:
@@ -70,6 +73,11 @@ protected:
             auto &log = banks_[i]->log();
             log.clear();
         }
+    }
+
+    void clear_statistics() {
+        statistics_.add(statistics_memory_.statistics());
+        statistics_memory_.statistics() = { };
     }
 
 };
