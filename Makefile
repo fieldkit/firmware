@@ -52,6 +52,9 @@ fw: samd51 samd09
 test: amd64
 	cd $(BUILD)/amd64 && env GTEST_COLOR=1 $(MAKE) test ARGS=-VV
 
+testf: amd64
+	cd $(BUILD)/amd64 && env GTEST_COLOR=1 GTEST_FILTER="-Slow*" $(MAKE) test ARGS=-VV
+
 fake: amd64
 
 run-fake: fake
