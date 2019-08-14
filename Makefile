@@ -94,6 +94,12 @@ veryclean: clean
 		echo rm -rf $$l; rm -rf $$l;                                                             \
 	done
 
+info:
+	+@for m in build/samd51/fk/*.map; do                                                       \
+    echo $$m.cpp;                                                                            \
+    cat $$m | c++filt > $$m.cpp;                                                             \
+	done
+
 clean:
 	rm -rf $(BUILD)
 

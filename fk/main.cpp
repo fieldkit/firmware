@@ -121,8 +121,26 @@ static size_t write_log(const LogMessage *m, const char *fstring, va_list args) 
     return true;
 }
 
+extern uint32_t __cm_ram_origin__;
+extern uint32_t __cm_ram_end__;
+extern uint32_t __heap_start__;
+extern uint32_t __heap_end__;
+extern uint32_t __data_start__;
+extern uint32_t __data_end__;
+extern uint32_t __bss_start__;
+extern uint32_t __bss_end__;
+
 static void log_diagnostics() {
-    loginfo("hello (memory = %lu)", fk_free_memory());
+    uint8_t stack_dummy = 0;
+    auto in_stack = (uint8_t *)&__cm_ram_end__ - &stack_dummy;
+    auto available = fk_free_memory();
+    auto data = (&__data_end__ - &__data_start__) * sizeof(uint32_t);
+    auto bss = (&__bss_end__ - &__bss_start__) * sizeof(uint32_t);
+    auto heap = (&__heap_end__ - &__heap_start__) * sizeof(uint32_t);
+    auto used = (&__heap_end__ - &__cm_ram_origin__) * sizeof(uint32_t);
+
+    loginfo("hello (memory = %lu) (data + bss + heap = %zd + %zd + %zd = %zd) (used = %zd) (stack ~ %zd)",
+            available, data, bss, heap, data + bss + heap, used, in_stack);
 
     fk_serial_number_t sn;
     fk_serial_number_get(&sn);

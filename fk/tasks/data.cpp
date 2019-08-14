@@ -1,3 +1,5 @@
+#include <malloc.h>
+
 #include "tasks/tasks.h"
 #include "hal/hal.h"
 #include "state.h"
@@ -29,9 +31,11 @@ static void verify_tasks_priority() {
 static void log_status() {
     auto gs = get_global_state_ro();
     auto now = get_clock_now();
+    auto mi = mallinfo();
 
     FormattedTime formatted{ now };
-    loginfo("%s (%" PRIu32 " free)", formatted.cstr(), fk_free_memory());
+    loginfo("%s (free = %" PRIu32 ", arena = %zd, used = %zd)",
+            formatted.cstr(), fk_free_memory(), mi.arena, mi.uordblks);
 }
 
 void task_handler_data(void *params) {

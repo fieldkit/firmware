@@ -144,9 +144,10 @@ SECTIONS
   .heap (COPY):
   {
     __end__ = .;
+    __heap_start__ = .;
     PROVIDE(end = .);
     *(.heap*)
-    __HeapLimit = .;
+    __heap_end__ = .;
   } > RAM
 
   /* .stack_dummy section doesn't contains any symbols. It is only
@@ -164,9 +165,12 @@ SECTIONS
 
   PROVIDE(__stack = __StackTop);
 
+  __cm_ram_origin__ = ORIGIN(RAM);
+  __cm_ram_end__ = ORIGIN(RAM) + LENGTH(RAM) - 1;
+
   __ram_end__ = ORIGIN(RAM) + LENGTH(RAM) - 1;
   _estack = ORIGIN(RAM) + LENGTH(RAM) - 1;
 
   /* Check if data + heap + stack exceeds RAM limit */
-  ASSERT(__StackLimit >= __HeapLimit, "Region RAM overflowed with stack")
+  ASSERT(__StackLimit >= __heap_end__, "Region RAM overflowed with stack")
 }
