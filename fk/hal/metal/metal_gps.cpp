@@ -54,6 +54,7 @@ bool MetalGps::service(GpsFix &fix) {
         fix.satellites = gps_.satellites();
         fix.altitude = gps_.f_altitude();
         fix.hdop = gps_.hdop();
+
         gps_.f_get_position(&fix.latitude, &fix.longitude, &position_fix_age);
         gps_.crack_datetime((int *)&time.year, &time.month, &time.day, &time.hour, &time.minute, &time.second, &time.hundredths, &time.time_fix_age);
         gps_.get_datetime(&time.date, &time.time, &time.time_fix_age);
@@ -78,15 +79,15 @@ bool MetalGps::service(GpsFix &fix) {
         fix.valid = ok;
 
         if (fk_config().logging.gps_raw) {
-            if (i == sizeof(buffer) - 1 || c == '\n') {
-                if (i > 0) {
-                    logtrace("%s", buffer);
+            if (position_ == sizeof(buffer_) - 1 || c == '\n') {
+                if (position_ > 0) {
+                    loginfo("%s", buffer_);
                 }
-                i = 0;
+                position_ = 0;
             }
             else {
-                buffer[i++] = c;
-                buffer[i] = 0;
+                buffer_[position_++] = c;
+                buffer_[position_] = 0;
             }
         }
     }

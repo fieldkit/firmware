@@ -11,8 +11,8 @@ namespace fk {
 
 class MetalGps : public Gps {
 private:
-    char buffer[GpsDebuggingBuffer];
-    size_t i = 0;
+    char buffer_[GpsDebuggingBuffer];
+    size_t position_ = 0;
     TinyGPS gps_;
 
 public:
