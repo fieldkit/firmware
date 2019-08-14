@@ -1,6 +1,7 @@
 #include "tasks/tasks.h"
 #include "hal/hal.h"
 #include "state.h"
+#include "clock.h"
 
 namespace fk {
 
@@ -25,17 +26,32 @@ static void verify_tasks_priority() {
     __enable_irq();
 }
 
+static void log_status() {
+    auto gs = get_global_state_ro();
+    auto now = get_clock_now();
+
+    FormattedTime formatted{ now };
+    loginfo("%s (%" PRIu32 " free)", formatted.cstr(), fk_free_memory());
+}
+
 void task_handler_data(void *params) {
+    auto status = fk_uptime() + FiveSecondsMs;
+
     while (true) {
         StateChange *state_change = nullptr;
         if (get_ipc()->dequeue_data(&state_change)) {
             verify_tasks_priority();
 
-            loginfo("from %s", state_change->source());
+            logtrace("from %s", state_change->source());
 
             auto gs = get_global_state_rw();
             state_change->apply(gs.get());
             delete state_change;
+        }
+
+        if (fk_uptime() > status) {
+            log_status();
+            status = fk_uptime() + FiveSecondsMs;
         }
     }
 }

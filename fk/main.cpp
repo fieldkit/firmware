@@ -23,23 +23,24 @@ static void run_tasks() {
      * .data section, which is below the heap in memory.
      */
     uint32_t idle_stack[768 / sizeof(uint32_t)];
+    uint32_t data_stack[768 / sizeof(uint32_t)];
     uint32_t scheduler_stack[1024 / sizeof(uint32_t)];
     uint32_t display_stack[2048 / sizeof(uint32_t)];
-    uint32_t network_stack[(4096 + 1024) / sizeof(uint32_t)];
     uint32_t gps_stack[2048 / sizeof(uint32_t)];
-    uint32_t readings_stack[4096 / sizeof(uint32_t)];
-    uint32_t data_stack[768 / sizeof(uint32_t)];
     uint32_t worker_stack[2048 / sizeof(uint32_t)];
     uint32_t misc_stack[2048 / sizeof(uint32_t)];
+    uint32_t readings_stack[4096 / sizeof(uint32_t)];
+    uint32_t network_stack[(4096 + 1024) / sizeof(uint32_t)];
 
-    OS_CHECK(os_initialize());
-
-    OS_CHECK(os_task_initialize(&idle_task, "idle", OS_TASK_START_RUNNING, &task_handler_idle, nullptr, idle_stack, sizeof(idle_stack)));
-    OS_CHECK(os_task_initialize(&scheduler_task, "scheduler", OS_TASK_START_RUNNING, &task_handler_scheduler, nullptr, scheduler_stack, sizeof(scheduler_stack)));
-    OS_CHECK(os_task_initialize(&display_task, "display", OS_TASK_START_RUNNING, &task_handler_display, nullptr, display_stack, sizeof(display_stack)));
-    OS_CHECK(os_task_initialize(&network_task, "network", OS_TASK_START_RUNNING, &task_handler_network, nullptr, network_stack, sizeof(network_stack)));
-    OS_CHECK(os_task_initialize(&gps_task, "gps", OS_TASK_START_RUNNING, &task_handler_gps, nullptr, gps_stack, sizeof(gps_stack)));
-    OS_CHECK(os_task_initialize(&misc_task, "misc", OS_TASK_START_RUNNING, &task_handler_misc, nullptr, misc_stack, sizeof(misc_stack)));
+    auto total_stacks = sizeof(idle_stack) +
+        sizeof(data_stack) +
+        sizeof(scheduler_stack) +
+        sizeof(display_stack) +
+        sizeof(gps_stack) +
+        sizeof(worker_stack) +
+        sizeof(misc_stack) +
+        sizeof(readings_stack) +
+        sizeof(network_stack);
 
     os_task_options_t readings_task_options = {
         "readings",
@@ -50,7 +51,6 @@ static void run_tasks() {
         sizeof(readings_stack),
         OS_PRIORITY_NORMAL
     };
-    OS_CHECK(os_task_initialize_options(&readings_task, &readings_task_options));
 
     os_task_options_t worker_task_options = {
         "worker",
@@ -61,7 +61,6 @@ static void run_tasks() {
         sizeof(worker_stack),
         OS_PRIORITY_NORMAL + 4
     };
-    OS_CHECK(os_task_initialize_options(&worker_task, &worker_task_options));
 
     os_task_options_t data_task_options = {
         "data",
@@ -72,9 +71,19 @@ static void run_tasks() {
         sizeof(data_stack),
         OS_PRIORITY_NORMAL - 4
     };
+
+    OS_CHECK(os_initialize());
+
+    OS_CHECK(os_task_initialize(&idle_task, "idle", OS_TASK_START_RUNNING, &task_handler_idle, nullptr, idle_stack, sizeof(idle_stack)));
+    OS_CHECK(os_task_initialize(&scheduler_task, "scheduler", OS_TASK_START_RUNNING, &task_handler_scheduler, nullptr, scheduler_stack, sizeof(scheduler_stack)));
+    OS_CHECK(os_task_initialize(&display_task, "display", OS_TASK_START_RUNNING, &task_handler_display, nullptr, display_stack, sizeof(display_stack)));
+    OS_CHECK(os_task_initialize(&network_task, "network", OS_TASK_START_RUNNING, &task_handler_network, nullptr, network_stack, sizeof(network_stack)));
+    OS_CHECK(os_task_initialize(&gps_task, "gps", OS_TASK_START_RUNNING, &task_handler_gps, nullptr, gps_stack, sizeof(gps_stack)));
+    OS_CHECK(os_task_initialize(&misc_task, "misc", OS_TASK_START_RUNNING, &task_handler_misc, nullptr, misc_stack, sizeof(misc_stack)));
+    OS_CHECK(os_task_initialize_options(&readings_task, &readings_task_options));
+    OS_CHECK(os_task_initialize_options(&worker_task, &worker_task_options));
     OS_CHECK(os_task_initialize_options(&data_task, &data_task_options));
 
-    auto total_stacks = sizeof(idle_stack) + sizeof(display_stack) + sizeof(network_stack) + sizeof(gps_stack) + sizeof(readings_stack) + sizeof(scheduler_stack) + sizeof(worker_stack);
     loginfo("stacks = %d", total_stacks);
     loginfo("free = %lu", fk_free_memory());
     loginfo("starting os!");

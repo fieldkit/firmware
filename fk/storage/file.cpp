@@ -65,6 +65,7 @@ size_t File::write_record_header(size_t size) {
     log_hashed_data(FK_OP_STR_WRITE, file_, record_ - 1, tail_, &record_header, sizeof(record_header));
 
     record_address_ = tail_;
+    record_remaining_ = 0;
     record_size_ = 0;
     tail_ += sizeof(record_header);
 
@@ -167,6 +168,7 @@ bool File::seek(uint32_t record) {
     record_ = sv.record;
     position_ = sv.position;
     record_remaining_ = 0;
+    record_size_ = 0;
     if (record == LastRecord) {
         size_ = position_;
     }
@@ -205,9 +207,7 @@ size_t File::read_record_header() {
             }
 
             FK_ASSERT(block_header.version == version_);
-
             FK_ASSERT(block_header.verify_hash());
-
             FK_ASSERT(block_header.file == file_);
 
             tail_ += sizeof(BlockHeader);
