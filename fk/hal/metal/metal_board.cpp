@@ -54,6 +54,9 @@ void Board::initialize() {
 
     pinMode(GPS_POWER, OUTPUT);
 
+    pinMode(LORA_ENABLE, OUTPUT);
+    digitalWrite(LORA_ENABLE, LOW);
+
     for (auto pin : radio_spi_cs_pins) {
         pinMode(pin, OUTPUT);
         digitalWrite(pin, HIGH);
