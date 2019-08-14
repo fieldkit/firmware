@@ -23,7 +23,7 @@ static void run_tasks() {
      * .data section, which is below the heap in memory.
      */
     uint32_t idle_stack[768 / sizeof(uint32_t)];
-    uint32_t data_stack[768 / sizeof(uint32_t)];
+    uint32_t data_stack[1024 / sizeof(uint32_t)];
     uint32_t scheduler_stack[1024 / sizeof(uint32_t)];
     uint32_t display_stack[2048 / sizeof(uint32_t)];
     uint32_t gps_stack[2048 / sizeof(uint32_t)];

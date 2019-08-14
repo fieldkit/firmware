@@ -49,7 +49,8 @@ bool SimpleNTP::service() {
 
         FormattedTime new_formatted{ new_epoch };
         FormattedTime old_formatted{ old_epoch };
-        loginfo("utc: '%s' -> '%s' (%" PRId64 "s)", old_formatted.cstr(), new_formatted.cstr(), (int64_t)new_epoch - old_epoch);
+        loginfo("utc: '%s' -> '%s' (%" PRIu32 " - %" PRIu32 " = %" PRId64 ")", old_formatted.cstr(), new_formatted.cstr(),
+                old_epoch, new_epoch, (int64_t)new_epoch - old_epoch);
 
         synced_ = fk_uptime();
 

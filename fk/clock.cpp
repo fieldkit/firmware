@@ -71,7 +71,11 @@ bool CoreClock::begin() {
         return false;
     }
 
-    return sync();
+    if (!sync()) {
+        return false;
+    }
+
+    return true;
 }
 
 bool CoreClock::configure() {
@@ -97,48 +101,43 @@ bool CoreClock::configure() {
 }
 
 bool CoreClock::sync() {
-    DateTime trusted;
-    if (!external(trusted)) {
+    DateTime internal_time;
+    if (!internal(internal_time)) {
         return false;
     }
 
-    FormattedTime formatted{ trusted.unix_time() };
-    loginfo("%s (%" PRIu32 ")", formatted.cstr(), trusted.unix_time());
+    DateTime external_time;
+    if (!external(external_time)) {
+        return false;
+    }
 
     // Set the internal time from our trusted, external source.
     struct calendar_time time;
-    time.hour = trusted.hour();
-    time.min = trusted.minute();
-    time.sec = trusted.second();
-
+    time.hour = external_time.hour();
+    time.min = external_time.minute();
+    time.sec = external_time.second();
     calendar_set_time(&CALENDAR_0, &time);
 
     struct calendar_date date;
-    date.year = trusted.year();
-    date.month = trusted.month();
-    date.day = trusted.day();
-
+    date.year = external_time.year();
+    date.month = external_time.month();
+    date.day = external_time.day();
     calendar_set_date(&CALENDAR_0, &date);
+
+    FormattedTime external_formatted{ external_time.unix_time() };
+    loginfo("external %s (%" PRIu32 ")", external_formatted.cstr(), external_time.unix_time());
+
+    if (!internal(internal_time)) {
+        return false;
+    }
+
+    FormattedTime internal_formatted{ internal_time.unix_time() };
+    loginfo("internal %s (%" PRIu32 ")", internal_formatted.cstr(), internal_time.unix_time());
 
     return true;
 }
 
 bool CoreClock::adjust(DateTime now) {
-    struct calendar_date date;
-    struct calendar_time time;
-
-    time.hour = now.hour();
-    time.min = now.minute();
-    time.sec = now.second();
-
-    calendar_set_time(&CALENDAR_0, &time);
-
-    date.year = now.year();
-    date.month = now.month();
-    date.day = now.day();
-
-    calendar_set_date(&CALENDAR_0, &date);
-
     uint8_t adjust_command[] = {
         CTRL_STOP_EN,
         STOP_EN_STOP,
@@ -163,6 +162,18 @@ bool CoreClock::adjust(DateTime now) {
     if (!I2C_CHECK(wire_.write(Address, &resume_command, sizeof(resume_command)))) {
         return false;
     }
+
+    struct calendar_time time;
+    time.hour = now.hour();
+    time.min = now.minute();
+    time.sec = now.second();
+    calendar_set_time(&CALENDAR_0, &time);
+
+    struct calendar_date date;
+    date.year = now.year();
+    date.month = now.month();
+    date.day = now.day();
+    calendar_set_date(&CALENDAR_0, &date);
 
     return true;
 }
@@ -209,7 +220,7 @@ bool CoreClock::external(DateTime &time) {
 DateTime CoreClock::now() {
     DateTime time;
     if (!internal(time)) {
-        logwarn("error getting internal time");
+        logerror("error getting internal time");
     }
     return time;
 }
@@ -217,7 +228,7 @@ DateTime CoreClock::now() {
 DateTime CoreClock::get_external() {
     DateTime time;
     if (!external(time)) {
-        logwarn("error getting external time");
+        logerror("error getting external time");
     }
     return time;
 }
