@@ -10,10 +10,6 @@ MetaLog::~MetaLog() {
 }
 
 bool MetaLog::open() {
-    auto file = storage_->file(0);
-    if (file.size() > 0) {
-    }
-
     return true;
 }
 

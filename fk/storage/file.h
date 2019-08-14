@@ -11,6 +11,22 @@ namespace fk {
 
 class Storage;
 
+struct RecordReference {
+    uint32_t address{ InvalidAddress };
+    uint32_t position{ 0 };
+    uint32_t record{ InvalidRecord };
+
+    RecordReference() {
+    }
+
+    RecordReference(uint32_t address, uint32_t position, uint32_t record) : address(address), position(position), record(record) {
+    }
+
+    bool valid() const {
+        return address != InvalidAddress;
+    }
+};
+
 class File {
 private:
     Storage *storage_;
@@ -20,6 +36,7 @@ private:
     uint32_t record_{ InvalidRecord };
     uint32_t version_{ InvalidVersion };
     uint32_t record_remaining_{ 0 };
+    uint32_t record_size_{ 0 };
     uint32_t position_{ 0 };
     uint32_t size_{ 0 };
     uint32_t number_hash_errors_{ 0 };
@@ -30,14 +47,24 @@ public:
     virtual ~File();
 
 public:
-    size_t seek(uint32_t record);
+    bool seek(uint32_t record);
+    bool seek(RecordReference reference);
     size_t write(uint8_t *record, size_t size);
     size_t read(uint8_t *record, size_t size);
     size_t write(void *record, const pb_msgdesc_t *fields);
     size_t read(void *record, const pb_msgdesc_t *fields);
     size_t write_partial(uint8_t *record, size_t size);
+    bool beginning_of_record();
 
 public:
+    RecordReference reference() const {
+        return {
+            .address = record_address_,
+            .position = position_ - record_size_,
+            .record = record_,
+        };
+    }
+
     uint32_t tail() const {
         return tail_;
     }

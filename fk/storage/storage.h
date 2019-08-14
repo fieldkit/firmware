@@ -9,7 +9,7 @@ namespace fk {
 /**
  * Format specifier for addresses.
  */
-#define PRADDRESS "0x%06" PRIx32
+#define PRADDRESS                                 "0x%06" PRIx32
 
 class Storage {
 private:
@@ -24,12 +24,16 @@ public:
     virtual ~Storage();
 
 public:
+    using FileNumber = uint8_t;
+    constexpr static FileNumber Data = 0;
+    constexpr static FileNumber Meta = 1;
+
     friend class File;
 
 public:
     bool begin();
     bool clear();
-    File file(uint8_t file);
+    File file(FileNumber file);
     uint32_t fsck();
     uint32_t version() const {
         return version_;

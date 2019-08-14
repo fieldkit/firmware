@@ -107,7 +107,7 @@ bool send_status(HttpRequest &req) {
     StatisticsMemory memory{ MemoryFactory::get_data_memory() };
     Storage storage{ &memory };
     if (storage.begin()) {
-        for (auto file_number = 0; file_number < 2; ++file_number) {
+        for (auto file_number : { Storage::Data, Storage::Meta }) {
             auto file = storage.file(file_number);
             if (file.seek(LastRecord)) {
                 auto &stream = streams[file_number];
@@ -139,6 +139,8 @@ bool send_status(HttpRequest &req) {
 
     req.connection()->write(&reply);
     req.connection()->close();
+
+    memory.log_statistics();
 
     return true;
 }

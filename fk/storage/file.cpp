@@ -65,9 +65,18 @@ size_t File::write_record_header(size_t size) {
     log_hashed_data(FK_OP_STR_WRITE, file_, record_ - 1, tail_, &record_header, sizeof(record_header));
 
     record_address_ = tail_;
+    record_size_ = 0;
     tail_ += sizeof(record_header);
 
     return sizeof(record_header);
+}
+
+bool File::beginning_of_record() {
+    FK_ASSERT(record_address_ != InvalidAddress);
+
+    tail_ = record_address_;
+
+    return true;
 }
 
 size_t File::write_partial(uint8_t *record, size_t size) {
@@ -87,6 +96,9 @@ size_t File::write_partial(uint8_t *record, size_t size) {
     log_hashed_data(FK_OP_STR_WRITE, file_, record_ - 1, tail_, record, size);
 
     tail_ += size;
+    record_size_ += size;
+    size_ += size;
+    position_ += size;
 
     return size;
 }
@@ -110,8 +122,6 @@ size_t File::write_record_tail(size_t size) {
     #endif
 
     tail_ += sizeof(record_tail);
-    size_ += size;
-    position_ += size;
 
     return sizeof(record_tail);
 }
@@ -139,7 +149,15 @@ size_t File::write(uint8_t *record, size_t size) {
     return size;
 }
 
-size_t File::seek(uint32_t record) {
+bool File::seek(RecordReference reference) {
+    tail_ = reference.address;
+    position_ = reference.position;
+    record_ = reference.record;
+    record_remaining_ = 0;
+    return true;
+}
+
+bool File::seek(uint32_t record) {
     auto sv = storage_->seek(SeekSettings{ file_, record });
     if (!sv.valid()) {
         return false;

@@ -106,7 +106,7 @@ char *Pool::sprintf(const char *str, ...) {
     return ptr;
 }
 
-uint8_t *Pool::encode(const pb_msgdesc_t *fields, void *src, size_t *size) {
+uint8_t *Pool::encode(pb_msgdesc_t const *fields, void const *src, size_t *size) {
     size_t required = 0;
     if (!pb_get_encoded_size(&required, fields, src)) {
         return nullptr;
@@ -129,7 +129,7 @@ uint8_t *Pool::encode(const pb_msgdesc_t *fields, void *src, size_t *size) {
     return buffer;
 }
 
-void *Pool::decode(const pb_msgdesc_t *fields, uint8_t *src, size_t size, size_t message_size) {
+void *Pool::decode(pb_msgdesc_t const *fields, uint8_t *src, size_t size, size_t message_size) {
     auto ptr = malloc(message_size);
     auto stream = pb_istream_from_buffer(src, size);
     if (!pb_decode_delimited(&stream, fields, ptr)) {

@@ -64,8 +64,8 @@ public:
     char *strndup(const char *str, size_t len);
     char *sprintf(const char *str, ...);
     Pool freeze(const char *name);
-    uint8_t *encode(const pb_msgdesc_t *fields, void *src, size_t *size);
-    void *decode(const pb_msgdesc_t *fields, uint8_t *src, size_t size, size_t message_size);
+    uint8_t *encode(pb_msgdesc_t const *fields, void const *src, size_t *size);
+    void *decode(pb_msgdesc_t const *fields, uint8_t *src, size_t size, size_t message_size);
 
     template<typename T>
     T *malloc() {

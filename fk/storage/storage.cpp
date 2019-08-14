@@ -70,7 +70,7 @@ uint32_t RecordHeader::sign() {
 }
 
 bool RecordHeader::valid() {
-    return sign() == crc;
+    return size > 0 && size != InvalidSize && sign() == crc;
 }
 
 SeekSettings SeekSettings::end_of(uint8_t file) {
@@ -284,7 +284,7 @@ SeekValue Storage::seek(SeekSettings settings) {
         auto address = range.middle_block() * g.block_size;
         if (!memory_->read(address, (uint8_t *)&block_header, sizeof(block_header))) {
             logerror("[%d] read failed " PRADDRESS, settings.file, address);
-            return { };
+            return SeekValue{ };
         }
 
         if (valid_block_header(block_header)) {
@@ -323,9 +323,11 @@ SeekValue Storage::seek(SeekSettings settings) {
     auto block = address / g.block_size;
     auto position = fh.size;
     auto record = (uint32_t)0;
+    auto record_address = (uint32_t)0;
 
+    // If the address is invalid then this file is empty, nothing to be found,
+    // this is success if they were looking for the last record of the file.
     if (!is_address_valid(address)) {
-        logwarn("[%d] no valid files", settings.file);
         return SeekValue{ };
     }
 
@@ -344,19 +346,25 @@ SeekValue Storage::seek(SeekSettings settings) {
         }
 
         // Is there a valid record here?
-        if (record_head.size == 0 || record_head.size == InvalidSize || !record_head.valid()) {
+        if (!record_head.valid()) {
             logtrace("[%d] " PRADDRESS " invalid head", settings.file, address);
             break;
         }
 
-        // Is this the record they're looking for?
-        if (settings.record != InvalidRecord && record_head.record == settings.record) {
-            logverbose("[%d] " PRADDRESS " found record #%" PRIu32, settings.file, address, settings.record);
-            break;
-        }
-        if (settings.record < record_head.record) {
-            logverbose("[%d] " PRADDRESS " found nearby record #%" PRIu32, settings.file, address, settings.record);
-            break;
+        // We've got a valid record header so let's remember this position.
+        record_address = address;
+
+        // Is this the record they're looking for, or is this after the record
+        // they're looking for?
+        if (settings.record != InvalidRecord) {
+            if (record_head.record == settings.record) {
+                logverbose("[%d] " PRADDRESS " found record #%" PRIu32, settings.file, address, settings.record);
+                break;
+            }
+            if (settings.record < record_head.record) {
+                logverbose("[%d] " PRADDRESS " found nearby record #%" PRIu32, settings.file, address, settings.record);
+                break;
+            }
         }
 
         // Keep track of maximum record for the file.
@@ -381,7 +389,7 @@ SeekValue Storage::seek(SeekSettings settings) {
              settings.file, address, settings.record,
              record, position, position - fh.size);
 
-    return SeekValue{ address, record, position, block, timestamp };
+    return SeekValue{ address, record, position, block, timestamp, record_address };
 }
 
 File Storage::file(uint8_t file) {

@@ -69,6 +69,10 @@ protected:
         log_configure_level(LogLevels::TRACE);
     }
 
+    void enable_verbose() {
+        log_configure_level(LogLevels::VERBOSE);
+    }
+
     void clear_logs() {
         for (size_t i = 0; i < MemoryFactory::NumberOfDataMemoryBanks; ++i) {
             auto &log = banks_[i]->log();
@@ -122,6 +126,18 @@ TEST_F(StorageSuite, AppendingARecord) {
     auto file_read = storage.file(0);
 
     ASSERT_EQ(file_read.tail(), expected);
+}
+
+TEST_F(StorageSuite, WritingFirstFile) {
+    Storage storage{ memory_ };
+    ASSERT_TRUE(storage.clear());
+    ASSERT_GT(statistics_memory_.statistics().nerases, (uint32_t)0);
+
+    statistics_memory_.statistics() = { };
+
+    auto file = storage.file(1);
+    ASSERT_GT(write_reading(file), (uint32_t)0);
+    ASSERT_GT(statistics_memory_.statistics().nerases, (uint32_t)0);
 }
 
 TEST_F(StorageSuite, AppendingRecordsAcrossAPage) {
@@ -695,6 +711,192 @@ TEST_F(StorageSuite, ErasingAndStartingOver) {
         ASSERT_TRUE(storage.begin());
         FK_ASSERT(storage.version() == version2);
     }
+}
+
+TEST_F(StorageSuite, SeekingWithinOneBlock) {
+    {
+        Storage storage{ memory_ };
+        ASSERT_TRUE(storage.clear());
+        auto file0 = storage.file(0);
+        auto wrote = write_reading(file0);
+        ASSERT_GT(wrote, (uint32_t)0);
+    }
+
+    {
+        Storage storage{ memory_ };
+        ASSERT_TRUE(storage.begin());
+        auto file0 = storage.file(0);
+        ASSERT_TRUE(file0.seek(0));
+    }
+
+    {
+        Storage storage{ memory_ };
+        ASSERT_TRUE(storage.begin());
+        auto file0 = storage.file(0);
+        ASSERT_TRUE(file0.seek(LastRecord));
+    }
+}
+
+TEST_F(StorageSuite, SeekingBeginningUnwrittenSecondFile) {
+    {
+        Storage storage{ memory_ };
+        ASSERT_TRUE(storage.clear());
+        auto file0 = storage.file(0);
+        auto wrote = write_reading(file0);
+        ASSERT_GT(wrote, (uint32_t)0);
+    }
+
+    {
+        Storage storage{ memory_ };
+        ASSERT_TRUE(storage.begin());
+        auto file0 = storage.file(0);
+        ASSERT_TRUE(file0.seek(0));
+        auto file1 = storage.file(1);
+        ASSERT_FALSE(file1.seek(0));
+    }
+}
+
+TEST_F(StorageSuite, SeekingBeginningUnwrittenSecondFileWhenWritingSecond) {
+    {
+        Storage storage{ memory_ };
+        ASSERT_TRUE(storage.clear());
+        auto file1 = storage.file(1);
+        auto wrote = write_reading(file1);
+        ASSERT_GT(wrote, (uint32_t)0);
+    }
+
+    {
+        Storage storage{ memory_ };
+        ASSERT_TRUE(storage.begin());
+        auto file0 = storage.file(0);
+        ASSERT_FALSE(file0.seek(0));
+        auto file1 = storage.file(1);
+        ASSERT_TRUE(file1.seek(0));
+    }
+}
+
+TEST_F(StorageSuite, SeekingEndUnwrittenSecondFile) {
+    {
+        Storage storage{ memory_ };
+        ASSERT_TRUE(storage.clear());
+        auto file0 = storage.file(0);
+        auto wrote = write_reading(file0);
+        ASSERT_GT(wrote, (uint32_t)0);
+    }
+
+    {
+        Storage storage{ memory_ };
+        ASSERT_TRUE(storage.begin());
+        auto file0 = storage.file(0);
+        ASSERT_TRUE(file0.seek(LastRecord));
+        auto file1 = storage.file(1);
+        ASSERT_FALSE(file1.seek(LastRecord));
+    }
+}
+
+TEST_F(StorageSuite, SeekingSmallSecondFile) {
+    {
+        Storage storage{ memory_ };
+        ASSERT_TRUE(storage.clear());
+        auto file1 = storage.file(1);
+        auto wrote = write_reading(file1);
+        ASSERT_GT(wrote, (uint32_t)0);
+    }
+
+    {
+        Storage storage{ memory_ };
+        ASSERT_TRUE(storage.begin());
+        auto file1 = storage.file(1);
+        ASSERT_TRUE(file1.seek(0));
+    }
+}
+
+TEST_F(StorageSuite, SeekingToEndOfFileBeforeWriting) {
+    Storage storage{ memory_ };
+    ASSERT_TRUE(storage.clear());
+    ASSERT_GT(statistics_memory_.statistics().nerases, (uint32_t)0);
+
+    statistics_memory_.statistics() = { };
+
+    auto file = storage.file(0);
+    ASSERT_FALSE(file.seek(LastRecord));
+    ASSERT_GT(write_reading(file), (uint32_t)0);
+
+    ASSERT_GT(statistics_memory_.statistics().nerases, (uint32_t)0);
+}
+
+TEST_F(StorageSuite, SeekingSmallSecondFileBeforeWriting) {
+    Storage storage{ memory_ };
+    ASSERT_TRUE(storage.clear());
+
+    auto file1n1 = storage.file(1);
+    ASSERT_FALSE(file1n1.seek(0));
+    ASSERT_FALSE(file1n1.seek(LastRecord));
+
+    {
+        auto file1n2 = storage.file(1);
+        ASSERT_FALSE(file1n2.seek(0));
+        ASSERT_FALSE(file1n2.seek(LastRecord));
+        ASSERT_GT(write_reading(file1n2), (uint32_t)0);
+    }
+    {
+        auto file1n2 = storage.file(1);
+        (file1n2.seek(0));
+        (file1n2.seek(LastRecord));
+        ASSERT_GT(write_reading(file1n2), (uint32_t)0);
+    }
+}
+
+TEST_F(StorageSuite, SeekingSetsPositionCorrectly) {
+    Storage storage{ memory_ };
+    ASSERT_TRUE(storage.clear());
+
+    auto file = storage.file(1);
+    ASSERT_FALSE(file.seek(0));
+    ASSERT_FALSE(file.seek(LastRecord));
+    ASSERT_GT(write_reading(file), (uint32_t)0);
+
+    auto position1 = file.position();
+
+    ASSERT_TRUE(file.seek(0));
+    ASSERT_TRUE(file.seek(LastRecord));
+
+    auto position2 = file.position();
+    ASSERT_EQ(position2, position1);
+}
+
+TEST_F(StorageSuite, SeekingAndReadingAndSeekingSetsPositionCorrectly) {
+    Storage storage{ memory_ };
+    ASSERT_TRUE(storage.clear());
+
+    auto file = storage.file(1);
+    ASSERT_FALSE(file.seek(0));
+    ASSERT_FALSE(file.seek(LastRecord));
+    ASSERT_GT(write_reading(file), (uint32_t)0);
+
+    auto position1 = file.position();
+
+    // This is the start of the current record, which is still record 0.
+    auto found = file.reference();
+    uint8_t buffer[256];
+    ASSERT_TRUE(file.seek(0));
+    ASSERT_GT(file.read(buffer, sizeof(buffer)), (uint32_t)0);
+    file.seek(found);
+    ASSERT_GT(file.read(buffer, sizeof(buffer)), (uint32_t)0);
+
+    auto position2 = file.position();
+    ASSERT_EQ(position2, position1);
+}
+
+TEST_F(StorageSuite, SeekingToEndOfFileWithNoRecordsInLastBlock) {
+    // NOTE: This will mean that our record_address in the SeekValue is wrong.
+    // This should technically be pretty hard to cause because when we are
+    // writing a record we would immediately start a new block and write the new
+    // record to the new block. I think the only way for this to happen would be
+    // some kind of failure when writing. Otherwise, all allocated blocks should
+    // get a first record.
+    Storage storage{ memory_ };
+    ASSERT_TRUE(storage.clear());
 }
 
 static size_t write_reading(File &file) {
