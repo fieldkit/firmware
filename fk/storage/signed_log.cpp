@@ -45,7 +45,7 @@ bool SignedRecordLog::seek_record(SignedRecordKind kind) {
     return true;
 }
 
-bool SignedRecordLog::append(SignedRecordKind kind, void const *record, pb_msgdesc_t const *fields, Pool &pool) {
+bool SignedRecordLog::append_always(SignedRecordKind kind, void const *record, pb_msgdesc_t const *fields, Pool &pool) {
     size_t size = 0;
     auto buffer = pool.encode(fields, record, &size);
 
@@ -71,6 +71,8 @@ bool SignedRecordLog::append(SignedRecordKind kind, void const *record, pb_msgde
     sr.data.arg = (void *)&data_ref;
     sr.hash.funcs.encode = pb_encode_data;
     sr.hash.arg = (void *)&hash_ref;
+
+    loginfo("writing");
 
     if (!file_.write(&sr, fk_data_SignedRecord_fields)) {
         return false;
@@ -107,7 +109,7 @@ bool SignedRecordLog::append_immutable(SignedRecordKind kind, void const *record
         FK_ASSERT(hash_ref->length == Hash::Length);
         if (memcmp(new_hash, hash_ref->buffer, Hash::Length) == 0) {
             loginfo("identical record");
-            return true;
+            return file_.seek(LastRecord);
         }
     }
 
@@ -118,7 +120,7 @@ bool SignedRecordLog::append_immutable(SignedRecordKind kind, void const *record
             logwarn("creating new file");
         }
 
-        if (!append(kind, record, fields, pool)) {
+        if (!append_always(kind, record, fields, pool)) {
             return false;
         }
     }

@@ -10,15 +10,14 @@ FK_DECLARE_LOGGER("memory");
 
 uint8_t LinuxDataMemory::EraseByte = 0xff;
 
-LinuxDataMemory::LinuxDataMemory() {
+LinuxDataMemory::LinuxDataMemory() : memory_(nullptr) {
 }
 
 bool LinuxDataMemory::begin() {
-    if (memory_ != nullptr) {
-        free(memory_);
-    }
     size_ = BlockSize * NumberOfBlocks;
-    memory_ = (uint8_t *)malloc(size_);
+    if (memory_ == nullptr) {
+        memory_ = (uint8_t *)malloc(size_);
+    }
     memset(memory_, 0xff, size_);
 
     log_.logging(false);

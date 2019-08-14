@@ -81,6 +81,46 @@ TEST_F(MetaLogSuite, OpeningEmptyFile) {
     ASSERT_FALSE(srl.seek_record(SignedRecordKind::Modules));
 }
 
+static void append_metadata_always(SignedRecordLog &srl, uint32_t time, const char *build, const char *git, Pool &pool) {
+    fk_data_DataRecord record = fk_data_DataRecord_init_default;
+    record.metadata.time = time;
+    record.metadata.git.funcs.encode = pb_encode_string;
+    record.metadata.git.arg = (void *)git;
+    record.metadata.build.funcs.encode = pb_encode_string;
+    record.metadata.build.arg = (void *)build;
+    ASSERT_TRUE(srl.append_always(SignedRecordKind::Modules, &record, fk_data_DataRecord_fields, pool));
+}
+
+static void append_metadata(SignedRecordLog &srl, const char *build, const char *git, Pool &pool) {
+    fk_data_DataRecord record = fk_data_DataRecord_init_default;
+    record.metadata.time = 1;
+    record.metadata.git.funcs.encode = pb_encode_string;
+    record.metadata.git.arg = (void *)git;
+    record.metadata.build.funcs.encode = pb_encode_string;
+    record.metadata.build.arg = (void *)build;
+    ASSERT_TRUE(srl.append_immutable(SignedRecordKind::Modules, &record, fk_data_DataRecord_fields, pool));
+}
+
+static void append_other_always(SignedRecordLog &srl, const char *build, const char *git, Pool &pool) {
+    fk_data_DataRecord record = fk_data_DataRecord_init_default;
+    record.metadata.time = 1;
+    record.metadata.git.funcs.encode = pb_encode_string;
+    record.metadata.git.arg = (void *)git;
+    record.metadata.build.funcs.encode = pb_encode_string;
+    record.metadata.build.arg = (void *)build;
+    ASSERT_TRUE(srl.append_always(SignedRecordKind::Other, &record, fk_data_DataRecord_fields, pool));
+}
+
+static void append_other(SignedRecordLog &srl, const char *build, const char *git, Pool &pool) {
+    fk_data_DataRecord record = fk_data_DataRecord_init_default;
+    record.metadata.time = 1;
+    record.metadata.git.funcs.encode = pb_encode_string;
+    record.metadata.git.arg = (void *)git;
+    record.metadata.build.funcs.encode = pb_encode_string;
+    record.metadata.build.arg = (void *)build;
+    ASSERT_TRUE(srl.append_immutable(SignedRecordKind::Other, &record, fk_data_DataRecord_fields, pool));
+}
+
 TEST_F(MetaLogSuite, AppendingAnEntry) {
     StaticPool<1024> pool{ "meta-log" };
     GlobalState gs;
@@ -97,14 +137,7 @@ TEST_F(MetaLogSuite, AppendingAnEntry) {
     // No entry for this yet, so this will fail.
     ASSERT_FALSE(srl.seek_record(SignedRecordKind::Modules));
 
-    fk_data_DataRecord record1 = fk_data_DataRecord_init_default;
-    record1.metadata.time = 1;
-    record1.metadata.git.funcs.encode = pb_encode_string;
-    record1.metadata.git.arg = (void *)"our-git-1";
-    record1.metadata.build.funcs.encode = pb_encode_string;
-    record1.metadata.build.arg = (void *)"our-build-1";
-
-    ASSERT_TRUE(srl.append(SignedRecordKind::Modules, &record1, fk_data_DataRecord_fields, pool));
+    append_metadata_always(srl, 1, "our-build-1", "our-git-1", pool);
 }
 
 TEST_F(MetaLogSuite, AppendingTwoLogs) {
@@ -123,14 +156,7 @@ TEST_F(MetaLogSuite, AppendingTwoLogs) {
     // No entry for this yet, so this will fail.
     ASSERT_FALSE(srl.seek_record(SignedRecordKind::Modules));
 
-    fk_data_DataRecord record1 = fk_data_DataRecord_init_default;
-    record1.metadata.time = 1;
-    record1.metadata.git.funcs.encode = pb_encode_string;
-    record1.metadata.git.arg = (void *)"our-git-1";
-    record1.metadata.build.funcs.encode = pb_encode_string;
-    record1.metadata.build.arg = (void *)"our-build-1";
-
-    ASSERT_TRUE(srl.append(SignedRecordKind::Modules, &record1, fk_data_DataRecord_fields, pool));
+    append_metadata_always(srl, 1, "our-build-1", "our-git-1", pool);
 
     ASSERT_TRUE(srl.seek_record(SignedRecordKind::Modules));
 
@@ -138,14 +164,8 @@ TEST_F(MetaLogSuite, AppendingTwoLogs) {
     ASSERT_TRUE(srl.decode(&record, fk_data_DataRecord_fields, pool));
     ASSERT_EQ(record.metadata.time, (uint32_t)1);
 
-    fk_data_DataRecord record2 = fk_data_DataRecord_init_default;
-    record2.metadata.time = 2;
-    record2.metadata.git.funcs.encode = pb_encode_string;
-    record2.metadata.git.arg = (void *)"our-git-2";
-    record2.metadata.build.funcs.encode = pb_encode_string;
-    record2.metadata.build.arg = (void *)"our-build-2";
     ASSERT_TRUE(srl.seek_end());
-    ASSERT_TRUE(srl.append(SignedRecordKind::Modules, &record2, fk_data_DataRecord_fields, pool));
+    append_metadata_always(srl, 2, "our-build-2", "our-git-2", pool);
 
     ASSERT_TRUE(srl.seek_record(SignedRecordKind::Modules));
 
@@ -167,36 +187,57 @@ TEST_F(MetaLogSuite, AppendingImmutable) {
     auto file = storage.file(Storage::Meta);
     auto srl = SignedRecordLog{ file };
 
-    fk_data_DataRecord record1 = fk_data_DataRecord_init_default;
-    record1.metadata.time = 1;
-    record1.metadata.git.funcs.encode = pb_encode_string;
-    record1.metadata.git.arg = (void *)"our-git-1";
-    record1.metadata.build.funcs.encode = pb_encode_string;
-    record1.metadata.build.arg = (void *)"our-build-1";
-    ASSERT_TRUE(srl.append_immutable(SignedRecordKind::Modules, &record1, fk_data_DataRecord_fields, pool));
+    append_metadata(srl, "our-build-1", "our-git-1", pool);
 
     auto position1 = file.position();
     ASSERT_GT(position1, (uint32_t)0);
 
-    fk_data_DataRecord record2 = fk_data_DataRecord_init_default;
-    record2.metadata.time = 1;
-    record2.metadata.git.funcs.encode = pb_encode_string;
-    record2.metadata.git.arg = (void *)"our-git-1";
-    record2.metadata.build.funcs.encode = pb_encode_string;
-    record2.metadata.build.arg = (void *)"our-build-1";
-    ASSERT_TRUE(srl.append_immutable(SignedRecordKind::Modules, &record2, fk_data_DataRecord_fields, pool));
+    append_metadata(srl, "our-build-1", "our-git-1", pool);
 
     auto position2 = file.position();
     ASSERT_EQ(position1, position2);
 
-    fk_data_DataRecord record3 = fk_data_DataRecord_init_default;
-    record3.metadata.time = 1;
-    record3.metadata.git.funcs.encode = pb_encode_string;
-    record3.metadata.git.arg = (void *)"our-git-1";
-    record3.metadata.build.funcs.encode = pb_encode_string;
-    record3.metadata.build.arg = (void *)"our-build-2";
-    ASSERT_TRUE(srl.append_immutable(SignedRecordKind::Modules, &record3, fk_data_DataRecord_fields, pool));
+    append_metadata(srl, "our-build-2", "our-git-2", pool);
 
     auto position3 = file.position();
     ASSERT_GT(position3, position2);
+}
+
+TEST_F(MetaLogSuite, AppendingImmutableWithOtherKindsBetween) {
+    StaticPool<1024> pool{ "meta-log" };
+    GlobalState gs;
+    Storage storage{ data_memory_ };
+    MetaLog meta_log{ &storage, &gs };
+    ResolvedModules resolved;
+
+    ASSERT_TRUE(storage.clear());
+    ASSERT_TRUE(meta_log.open());
+
+    auto file = storage.file(Storage::Meta);
+    auto srl = SignedRecordLog{ file };
+
+    append_metadata(srl, "our-build-1", "our-git-1", pool);
+
+    append_other_always(srl, "ignored", "ignored", pool);
+    append_other_always(srl, "ignored", "ignored", pool);
+
+    auto position1 = file.position();
+    ASSERT_GT(position1, (uint32_t)0);
+
+    append_metadata(srl, "our-build-1", "our-git-1", pool);
+
+    auto position2 = file.position();
+    ASSERT_EQ(position1, position2);
+
+    append_other_always(srl, "ignored", "ignored", pool);
+    append_other_always(srl, "ignored", "ignored", pool);
+    append_other_always(srl, "ignored", "ignored", pool);
+
+    append_metadata(srl, "our-build-2", "our-git-2", pool);
+
+    auto position3 = file.position();
+    ASSERT_GT(position3, position2);
+
+    append_other_always(srl, "ignored", "ignored", pool);
+    append_other_always(srl, "ignored", "ignored", pool);
 }
