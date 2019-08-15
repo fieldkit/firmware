@@ -175,7 +175,7 @@ static bool append_configuration(ModuleContext &mc, ResolvedModules &modules, Fi
 
     auto srl = SignedRecordLog{ file };
 
-    if (!srl.append_always(SignedRecordKind::Modules, &record, fk_data_DataRecord_fields, pool)) {
+    if (!srl.append_immutable(SignedRecordKind::Modules, &record, fk_data_DataRecord_fields, pool)) {
         return false;
     }
 
