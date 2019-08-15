@@ -89,6 +89,7 @@ bool SignedRecordLog::append_immutable(SignedRecordKind kind, void const *record
         // ostream that calculates the hash.
         size_t size = 0;
         auto buffer = pool.encode(fields, record, &size);
+        FK_ASSERT(buffer != nullptr);
 
         uint8_t new_hash[Hash::Length];
         BLAKE2b b2b;

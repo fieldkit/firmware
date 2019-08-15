@@ -173,7 +173,7 @@ static bool append_configuration(ModuleContext &mc, ResolvedModules &modules, Fi
     record.modules.funcs.encode = pb_encode_array;
     record.modules.arg = (void *)modules_array;
 
-    auto srl = SignedRecordLog{ file };
+    SignedRecordLog srl{ file };
 
     if (!srl.append_immutable(SignedRecordKind::Modules, &record, fk_data_DataRecord_fields, pool)) {
         return false;
