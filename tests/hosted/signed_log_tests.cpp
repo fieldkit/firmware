@@ -13,7 +13,6 @@
 #include "scanning.h"
 #include "modules_bridge.h"
 #include "registry.h"
-#include "meta.h"
 
 #include "storage_suite.h"
 
@@ -21,7 +20,7 @@ using namespace fk;
 
 FK_DECLARE_LOGGER("tests");
 
-class MetaLogSuite : public StorageSuite {
+class SignedLogSuite : public StorageSuite {
 };
 
 static void append_metadata_always(SignedRecordLog &srl, uint32_t time, const char *build, const char *git, Pool &pool);
@@ -31,15 +30,13 @@ static void append_other_always(SignedRecordLog &srl, const char *build, const c
 static void append_other(SignedRecordLog &srl, const char *build, const char *git, Pool &pool);
 */
 
-TEST_F(MetaLogSuite, OpeningEmptyFile) {
-    StaticPool<1024> pool{ "meta-log" };
+TEST_F(SignedLogSuite, OpeningEmptyFile) {
+    StaticPool<1024> pool{ "signed-log" };
     GlobalState gs;
     Storage storage{ data_memory_ };
-    MetaLog meta_log{ &storage, &gs };
     ResolvedModules resolved;
 
     ASSERT_TRUE(storage.clear());
-    ASSERT_TRUE(meta_log.open());
 
     auto file = storage.file(Storage::Meta);
     auto srl = SignedRecordLog{ file };
@@ -48,15 +45,13 @@ TEST_F(MetaLogSuite, OpeningEmptyFile) {
     ASSERT_FALSE(srl.seek_record(SignedRecordKind::Modules));
 }
 
-TEST_F(MetaLogSuite, AppendingAnEntry) {
-    StaticPool<1024> pool{ "meta-log" };
+TEST_F(SignedLogSuite, AppendingAnEntry) {
+    StaticPool<1024> pool{ "signed-log" };
     GlobalState gs;
     Storage storage{ data_memory_ };
-    MetaLog meta_log{ &storage, &gs };
     ResolvedModules resolved;
 
     ASSERT_TRUE(storage.clear());
-    ASSERT_TRUE(meta_log.open());
 
     auto file = storage.file(Storage::Meta);
     auto srl = SignedRecordLog{ file };
@@ -67,15 +62,13 @@ TEST_F(MetaLogSuite, AppendingAnEntry) {
     append_metadata_always(srl, 1, "our-build-1", "our-git-1", pool);
 }
 
-TEST_F(MetaLogSuite, AppendingTwoLogs) {
-    StaticPool<1024> pool{ "meta-log" };
+TEST_F(SignedLogSuite, AppendingTwoLogs) {
+    StaticPool<1024> pool{ "signed-log" };
     GlobalState gs;
     Storage storage{ data_memory_ };
-    MetaLog meta_log{ &storage, &gs };
     ResolvedModules resolved;
 
     ASSERT_TRUE(storage.clear());
-    ASSERT_TRUE(meta_log.open());
 
     auto file = storage.file(Storage::Meta);
     auto srl = SignedRecordLog{ file };
@@ -101,15 +94,13 @@ TEST_F(MetaLogSuite, AppendingTwoLogs) {
     ASSERT_EQ(record.metadata.time, (uint32_t)2);
 }
 
-TEST_F(MetaLogSuite, AppendingImmutable) {
-    StaticPool<1024> pool{ "meta-log" };
+TEST_F(SignedLogSuite, AppendingImmutable) {
+    StaticPool<1024> pool{ "signed-log" };
     GlobalState gs;
     Storage storage{ data_memory_ };
-    MetaLog meta_log{ &storage, &gs };
     ResolvedModules resolved;
 
     ASSERT_TRUE(storage.clear());
-    ASSERT_TRUE(meta_log.open());
 
     auto file = storage.file(Storage::Meta);
     auto srl = SignedRecordLog{ file };
@@ -130,15 +121,13 @@ TEST_F(MetaLogSuite, AppendingImmutable) {
     ASSERT_GT(position3, position2);
 }
 
-TEST_F(MetaLogSuite, AppendingImmutableWithOtherKindsBetween) {
-    StaticPool<1024> pool{ "meta-log" };
+TEST_F(SignedLogSuite, AppendingImmutableWithOtherKindsBetween) {
+    StaticPool<1024> pool{ "signed-log" };
     GlobalState gs;
     Storage storage{ data_memory_ };
-    MetaLog meta_log{ &storage, &gs };
     ResolvedModules resolved;
 
     ASSERT_TRUE(storage.clear());
-    ASSERT_TRUE(meta_log.open());
 
     auto file = storage.file(Storage::Meta);
     auto srl = SignedRecordLog{ file };
