@@ -10,14 +10,13 @@ namespace fk {
 class Readings {
 private:
     ModMux *mm_;
-    GlobalState const *gs_;
     fk_data_DataRecord record_;
 
 public:
-    Readings(ModMux *mm, GlobalState const *gs);
+    Readings(ModMux *mm);
 
 public:
-    bool take_readings(ResolvedModules const &modules, uint32_t reading_number, Pool &pool);
+    bool take_readings(ModuleContext &mc, ResolvedModules const &modules, uint32_t reading_number, Pool &pool);
 
 public:
     fk_data_DataRecord &record();

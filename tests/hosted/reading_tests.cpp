@@ -62,10 +62,12 @@ protected:
 TEST_F(ReadingsSuite, TakingReadingsNoModules) {
     StaticPool<1024> pool{ "readings" };
     GlobalState gs;
-    Readings readings{ get_modmux(), &gs };
-    ResolvedModules resolved;
+    TwoWireWrapper module_bus{ "modules", nullptr };
+    ModuleContext mc{ &gs, module_bus };
+    ResolvedModules resolved{ pool };
 
-    ASSERT_TRUE(readings.take_readings(resolved, 0, pool));
+    Readings readings{ get_modmux() };
+    ASSERT_TRUE(readings.take_readings(mc, resolved, 0, pool));
 
     size_t size = 0;
     auto buffer = pool.encode(fk_data_DataRecord_fields, &readings.record(), &size);
@@ -76,11 +78,14 @@ TEST_F(ReadingsSuite, TakingReadingsNoModules) {
 TEST_F(ReadingsSuite, TakingReadingsModuleWithNoReadings) {
     StaticPool<1024> pool{ "readings" };
     GlobalState gs;
-    Readings readings{ get_modmux(), &gs };
-    ResolvedModules resolved;
+    TwoWireWrapper module_bus{ "modules", nullptr };
+    ModuleContext mc{ &gs, module_bus };
+    ResolvedModules resolved{ pool };
+
+    Readings readings{ get_modmux() };
     resolved.set(0, &fk_test_module_fake_empty);
 
-    ASSERT_TRUE(readings.take_readings(resolved, 0, pool));
+    ASSERT_TRUE(readings.take_readings(mc, resolved, 0, pool));
 
     size_t size = 0;
     auto buffer = pool.encode(fk_data_DataRecord_fields, &readings.record(), &size);
@@ -91,11 +96,13 @@ TEST_F(ReadingsSuite, TakingReadingsModuleWithNoReadings) {
 TEST_F(ReadingsSuite, TakingReadingsOneModule) {
     StaticPool<1024> pool{ "readings" };
     GlobalState gs;
-    ResolvedModules resolved;
+    TwoWireWrapper module_bus{ "modules", nullptr };
+    ModuleContext mc{ &gs, module_bus };
+    ResolvedModules resolved{ pool };
     resolved.set(0, &fk_test_module_fake_1);
 
-    Readings readings{ get_modmux(), &gs };
-    ASSERT_TRUE(readings.take_readings(resolved, 0, pool));
+    Readings readings{ get_modmux() };
+    ASSERT_TRUE(readings.take_readings(mc, resolved, 0, pool));
 
     size_t size = 0;
     auto buffer = pool.encode(fk_data_DataRecord_fields, &readings.record(), &size);
@@ -106,12 +113,14 @@ TEST_F(ReadingsSuite, TakingReadingsOneModule) {
 TEST_F(ReadingsSuite, TakingReadingsTwoModules) {
     StaticPool<1024> pool{ "readings" };
     GlobalState gs;
-    ResolvedModules resolved;
+    TwoWireWrapper module_bus{ "modules", nullptr };
+    ModuleContext mc{ &gs, module_bus };
+    ResolvedModules resolved{ pool };
     resolved.set(0, &fk_test_module_fake_1);
     resolved.set(1, &fk_test_module_fake_2);
 
-    Readings readings{ get_modmux(), &gs };
-    ASSERT_TRUE(readings.take_readings(resolved, 0, pool));
+    Readings readings{ get_modmux() };
+    ASSERT_TRUE(readings.take_readings(mc, resolved, 0, pool));
 
     size_t size = 0;
     auto buffer = pool.encode(fk_data_DataRecord_fields, &readings.record(), &size);

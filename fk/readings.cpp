@@ -6,22 +6,23 @@ namespace fk {
 
 FK_DECLARE_LOGGER("readings");
 
-Readings::Readings(ModMux *mm, GlobalState const *gs) : mm_(mm), gs_(gs) {
+Readings::Readings(ModMux *mm) : mm_(mm) {
     record_ = fk_data_DataRecord_init_default;
 }
 
-bool Readings::take_readings(ResolvedModules const &modules, uint32_t reading_number, Pool &pool) {
+bool Readings::take_readings(ModuleContext &mc, ResolvedModules const &modules, uint32_t reading_number, Pool &pool) {
     auto now = get_clock_now();
+    auto gs = mc.gs();
 
     record_ = fk_data_DataRecord_init_default;
     record_.readings.time = now;
     record_.readings.reading = reading_number;
-    record_.readings.flags = 0;
-    record_.readings.location.time = now;
-    record_.readings.location.fix = gs_->gps.fix;
-    record_.readings.location.longitude = gs_->gps.longitude;
-    record_.readings.location.latitude = gs_->gps.latitude;
-    record_.readings.location.altitude = gs_->gps.altitude;
+    record_.readings.flags = fk_data_DownloadFlags_READING_FLAGS_NONE;
+    record_.readings.location.time = gs->gps.time;
+    record_.readings.location.fix = gs->gps.fix;
+    record_.readings.location.longitude = gs->gps.longitude;
+    record_.readings.location.latitude = gs->gps.latitude;
+    record_.readings.location.altitude = gs->gps.altitude;
 
     if (modules.size() == 0) {
         return true;
@@ -32,13 +33,14 @@ bool Readings::take_readings(ResolvedModules const &modules, uint32_t reading_nu
 
     bzero(groups, sizeof(fk_data_SensorGroup) * modules.size());
 
-    auto module_bus = get_board()->i2c_module();
-    ModuleContext mc{ gs_, module_bus };
     for (size_t i = 0; i < MaximumNumberOfModules; ++i) {
-        auto meta = modules.get(i);
+        auto meta = modules.meta(i);
         if (meta == nullptr) {
             continue;
         }
+
+        auto module = modules.instance(i);
+        FK_ASSERT(module != nullptr);
 
         if (!mm_->choose(i)) {
             logerror("error choosing module");
@@ -47,7 +49,6 @@ bool Readings::take_readings(ResolvedModules const &modules, uint32_t reading_nu
 
         loginfo("'%s' mk=%02" PRIx32 "%02" PRIx32 " version=%" PRIu32, meta->name, meta->manufacturer, meta->kind, meta->version);
 
-        auto module = meta->ctor(pool);
         auto readings = module->take_readings(mc.module(i), pool);
         if (readings == nullptr) {
             logwarn("'%s' no readings", meta->name);

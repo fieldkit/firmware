@@ -34,7 +34,7 @@ TEST_F(SignedLogSuite, OpeningEmptyFile) {
     StaticPool<1024> pool{ "signed-log" };
     GlobalState gs;
     Storage storage{ data_memory_ };
-    ResolvedModules resolved;
+    ResolvedModules resolved{ pool };
 
     ASSERT_TRUE(storage.clear());
 
@@ -49,7 +49,7 @@ TEST_F(SignedLogSuite, AppendingAnEntry) {
     StaticPool<1024> pool{ "signed-log" };
     GlobalState gs;
     Storage storage{ data_memory_ };
-    ResolvedModules resolved;
+    ResolvedModules resolved{ pool };
 
     ASSERT_TRUE(storage.clear());
 
@@ -66,7 +66,7 @@ TEST_F(SignedLogSuite, AppendingTwoLogs) {
     StaticPool<1024> pool{ "signed-log" };
     GlobalState gs;
     Storage storage{ data_memory_ };
-    ResolvedModules resolved;
+    ResolvedModules resolved{ pool };
 
     ASSERT_TRUE(storage.clear());
 
@@ -98,7 +98,7 @@ TEST_F(SignedLogSuite, AppendingImmutable) {
     StaticPool<1024> pool{ "signed-log" };
     GlobalState gs;
     Storage storage{ data_memory_ };
-    ResolvedModules resolved;
+    ResolvedModules resolved{ pool };
 
     ASSERT_TRUE(storage.clear());
 
@@ -125,7 +125,7 @@ TEST_F(SignedLogSuite, AppendingImmutableWithOtherKindsBetween) {
     StaticPool<1024> pool{ "signed-log" };
     GlobalState gs;
     Storage storage{ data_memory_ };
-    ResolvedModules resolved;
+    ResolvedModules resolved{ pool };
 
     ASSERT_TRUE(storage.clear());
 

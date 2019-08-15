@@ -18,9 +18,10 @@ static uint32_t fk_modules_builtin_get(ModuleNode **iter);
 
 FK_DECLARE_LOGGER("modreg");
 
-ResolvedModules::ResolvedModules() {
+ResolvedModules::ResolvedModules(Pool &pool) : pool_(pool) {
     for (size_t i = 0; i < MaximumNumberOfModules; ++i) {
         metas_[i] = nullptr;
+        instances_[i] = nullptr;
     }
 }
 
@@ -31,12 +32,17 @@ int32_t ResolvedModules::size() const {
     return size_;
 }
 
-ModuleMetadata const *ResolvedModules::get(int32_t i) const {
+ModuleMetadata const *ResolvedModules::meta(int32_t i) const {
     return metas_[i];
+}
+
+Module *ResolvedModules::instance(int32_t i) const {
+    return instances_[i];
 }
 
 void ResolvedModules::set(int32_t i, ModuleMetadata const *meta) {
     metas_[i] = meta;
+    instances_[i] = meta->ctor(pool_);
     size_ = 0;
     for (size_t i = 0; i < MaximumNumberOfModules; ++i) {
         if (metas_[i] != nullptr) {
@@ -77,15 +83,9 @@ bool ModuleRegistry::resolve(ModuleScan const &scan, ResolvedModules &resolved) 
         if (fk_module_header_valid(&header)) {
             auto meta = resolve(header);
             FK_ASSERT(meta != nullptr);
-
-            resolved.metas_[i] = meta;
-        }
-        else {
-            resolved.metas_[i] = nullptr;
+            resolved.set(i, meta);
         }
     }
-
-    resolved.size_ = scan.size();
 
     return true;
 }

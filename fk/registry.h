@@ -13,16 +13,19 @@ private:
     friend class ModuleRegistry;
 
 private:
+    Pool &pool_;
     ModuleMetadata const *metas_[MaximumNumberOfModules];
+    Module *instances_[MaximumNumberOfModules];
     int32_t size_{ 0 };
 
 public:
-    ResolvedModules();
+    ResolvedModules(Pool &pool);
     virtual ~ResolvedModules();
 
 public:
     int32_t size() const;
-    ModuleMetadata const *get(int32_t i) const;
+    ModuleMetadata const *meta(int32_t i) const;
+    Module *instance(int32_t i) const;
     void set(int32_t i, ModuleMetadata const *meta);
 
 };
