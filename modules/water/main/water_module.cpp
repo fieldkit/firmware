@@ -11,6 +11,21 @@ bool WaterModule::initialize(ModuleContext mc, fk::Pool &pool) {
     return true;
 }
 
+ModuleSensors const *WaterModule::get_sensors(ModuleContext mc, Pool &pool) {
+    auto meta = pool.malloc<SensorMetadata>();
+    meta->name = "pH";
+    meta->unitOfMeasure = "";
+
+    auto sensors = pool.malloc<ModuleSensors>();
+
+    *sensors = {
+        .nsensors = 1,
+        .sensors = meta,
+    };
+
+    return sensors;
+}
+
 ModuleReadings *WaterModule::take_readings(ModuleContext mc, fk::Pool &pool) {
     auto atlas = OemAtlas{ mc.module_bus() };
 

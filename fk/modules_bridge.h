@@ -74,6 +74,25 @@ public:
 
 };
 
+/**
+ * Metadata for a particular sensor.
+ */
+typedef struct SensorMetadata {
+    const char *name;
+    const char *unitOfMeasure;
+} SensorMetadata;
+
+/**
+ * Information on all the sensors attached to a module.
+ */
+typedef struct ModuleSensors {
+    size_t nsensors;
+    SensorMetadata const *sensors;
+} ModuleSensors;
+
+/**
+ * Primary module interface.
+ */
 class Module {
 private:
 public:
@@ -82,11 +101,12 @@ public:
 public:
     virtual bool initialize(ModuleContext mc, Pool &pool) = 0;
     virtual ModuleReadings *take_readings(ModuleContext mc, Pool &pool) = 0;
+    virtual ModuleSensors const *get_sensors(ModuleContext mc, Pool &pool) = 0;
 
 };
 
 /**
- *
+ * Callback function that creates an instance of a Module.
  */
 typedef Module*(*fk_module_create_fn_t)(Pool &pool);
 

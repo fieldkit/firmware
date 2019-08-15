@@ -4,10 +4,19 @@
 
 namespace fk {
 
+static ModuleSensors fk_module_fake_empty_sensors = {
+    .nsensors = 0,
+    .sensors = nullptr,
+};
+
 class FakeModuleEmpty : public Module {
 public:
     bool initialize(ModuleContext mc, Pool &pool) override {
         return true;
+    }
+
+    ModuleSensors const *get_sensors(ModuleContext mc, Pool &pool) override {
+        return &fk_module_fake_empty_sensors;
     }
 
     ModuleReadings *take_readings(ModuleContext mc, Pool &pool) override {
@@ -27,10 +36,32 @@ ModuleMetadata const fk_test_module_fake_empty = {
     .ctor = fk_test_module_create_empty,
 };
 
+static SensorMetadata const fk_module_fake_1_sensor_metas[] = {
+    { .name = "sensor-0", .unitOfMeasure = "" },
+    { .name = "sensor-1", .unitOfMeasure = "" },
+    { .name = "sensor-2", .unitOfMeasure = "" },
+    { .name = "sensor-3", .unitOfMeasure = "" },
+    { .name = "sensor-4", .unitOfMeasure = "" },
+    { .name = "sensor-5", .unitOfMeasure = "" },
+    { .name = "sensor-6", .unitOfMeasure = "" },
+    { .name = "sensor-7", .unitOfMeasure = "" },
+    { .name = "sensor-8", .unitOfMeasure = "" },
+    { .name = "sensor-9", .unitOfMeasure = "" },
+};
+
+static ModuleSensors fk_module_fake_1_sensors = {
+    .nsensors = sizeof(fk_module_fake_1_sensor_metas) / sizeof(SensorMetadata),
+    .sensors = fk_module_fake_1_sensor_metas,
+};
+
 class FakeModule1 : public Module {
 public:
     bool initialize(ModuleContext mc, Pool &pool) override {
         return true;
+    }
+
+    ModuleSensors const *get_sensors(ModuleContext mc, Pool &pool) override {
+        return &fk_module_fake_1_sensors;
     }
 
     ModuleReadings *take_readings(ModuleContext mc, Pool &pool) override {
@@ -52,10 +83,32 @@ ModuleMetadata const fk_test_module_fake_1 = {
     .ctor = fk_test_module_create_1,
 };
 
+static SensorMetadata const fk_module_fake_2_sensor_metas[] = {
+    { .name = "sensor-0", .unitOfMeasure = "" },
+    { .name = "sensor-1", .unitOfMeasure = "" },
+    { .name = "sensor-2", .unitOfMeasure = "" },
+    { .name = "sensor-3", .unitOfMeasure = "" },
+    { .name = "sensor-4", .unitOfMeasure = "" },
+    { .name = "sensor-5", .unitOfMeasure = "" },
+    { .name = "sensor-6", .unitOfMeasure = "" },
+    { .name = "sensor-7", .unitOfMeasure = "" },
+    { .name = "sensor-8", .unitOfMeasure = "" },
+    { .name = "sensor-9", .unitOfMeasure = "" },
+};
+
+static ModuleSensors fk_module_fake_2_sensors = {
+    .nsensors = sizeof(fk_module_fake_2_sensor_metas) / sizeof(SensorMetadata),
+    .sensors = fk_module_fake_2_sensor_metas,
+};
+
 class FakeModule2 : public Module {
 public:
     bool initialize(ModuleContext mc, Pool &pool) override {
         return true;
+    }
+
+    ModuleSensors const *get_sensors(ModuleContext mc, Pool &pool) override {
+        return &fk_module_fake_2_sensors;
     }
 
     ModuleReadings *take_readings(ModuleContext mc, Pool &pool) override {
