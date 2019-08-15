@@ -73,6 +73,13 @@ public:
     }
 
     template<typename T>
+    T *malloc_with(T &&value) {
+        auto ptr = (T *)malloc(sizeof(T));
+        *ptr = value;
+        return ptr;
+    }
+
+    template<typename T>
     T *malloc(size_t n) {
         return (T *)malloc(sizeof(T) * n);
     }

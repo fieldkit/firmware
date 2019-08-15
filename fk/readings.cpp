@@ -61,13 +61,12 @@ bool Readings::take_readings(ModuleContext &mc, ResolvedModules const &modules, 
             sensor_values[i] = { i, readings->get(i) };
         }
 
-        auto readings_array = pool.malloc<pb_array_t>();
-        *readings_array = {
+        auto readings_array = pool.malloc_with<pb_array_t>({
             .length = (size_t)readings->size(),
             .itemSize = sizeof(fk_data_SensorAndValue),
             .buffer = sensor_values,
             .fields = fk_data_SensorAndValue_fields,
-        };
+        });
 
         auto &group = groups[group_number];
         group.module = i;
@@ -78,14 +77,12 @@ bool Readings::take_readings(ModuleContext &mc, ResolvedModules const &modules, 
         loginfo("'%s' %zd readings", meta->name, readings->size());
     }
 
-    auto sensor_groups_array = pool.malloc<pb_array_t>();
-
-    *sensor_groups_array = {
+    auto sensor_groups_array = pool.malloc_with<pb_array_t>({
         .length = (size_t)modules.size(),
         .itemSize = sizeof(fk_data_SensorGroup),
         .buffer = groups,
         .fields = fk_data_SensorGroup_fields,
-    };
+    });
 
     record_.readings.sensorGroups.funcs.encode = pb_encode_array;
     record_.readings.sensorGroups.arg = sensor_groups_array;

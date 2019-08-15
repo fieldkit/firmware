@@ -128,14 +128,12 @@ static bool append_configuration(ModuleContext &mc, ResolvedModules &modules, Fi
             sensor_infos[i].unitOfMeasure.arg = (void *)sensor_metas->sensors[i].unitOfMeasure;
         }
 
-        auto sensors_array = pool.malloc<pb_array_t>();
-
-        *sensors_array = {
+        auto sensors_array = pool.malloc_with<pb_array_t>({
             .length = sensor_metas->nsensors,
             .itemSize = sizeof(fk_data_SensorInfo),
             .buffer = sensor_infos,
             .fields = fk_data_SensorInfo_fields,
-        };
+        });
 
         m.sensors.funcs.encode = pb_encode_array;
         m.sensors.arg = (void *)sensors_array;
@@ -143,14 +141,12 @@ static bool append_configuration(ModuleContext &mc, ResolvedModules &modules, Fi
         index++;
     }
 
-    auto modules_array = pool.malloc<pb_array_t>();
-
-    *modules_array = {
+    auto modules_array = pool.malloc_with<pb_array_t>({
         .length = (size_t)modules.size(),
         .itemSize = sizeof(fk_data_ModuleInfo),
         .buffer = module_infos,
         .fields = fk_data_ModuleInfo_fields,
-    };
+    });
 
     fk_serial_number_t sn;
     fk_serial_number_get(&sn);
