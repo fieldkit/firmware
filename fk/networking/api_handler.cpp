@@ -1,5 +1,5 @@
-#include <loading.h>
 #include <tiny_printf.h>
+#include <loading.h>
 
 #include "networking/api_handler.h"
 #include "storage/storage.h"
