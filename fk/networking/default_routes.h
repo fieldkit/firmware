@@ -5,6 +5,8 @@
 #include "networking/download_handler.h"
 #include "networking/receive_handler.h"
 
+#include "storage/storage.h"
+
 namespace fk {
 
 class DefaultRoutes {
@@ -15,10 +17,11 @@ private:
     ReceiveHandler receive_handler;
     HttpRoute receive{ "/fk/v1/upload", &receive_handler };
 
-    DownloadHandler download_handler;
+    DownloadHandler download_handler_data{ Storage::Data };
+    DownloadHandler download_handler_meta{ Storage::Meta };
     HttpRoute downloads[2]{
-        { "/fk/v1/download/0", &download_handler },
-        { "/fk/v1/download/1", &download_handler },
+        { "/fk/v1/download/0", &download_handler_data },
+        { "/fk/v1/download/1", &download_handler_meta },
     };
 
     ModuleHandler module_handler;

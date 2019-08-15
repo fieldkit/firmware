@@ -6,6 +6,12 @@
 namespace fk {
 
 class DownloadHandler : public HttpHandler {
+private:
+    uint8_t file_number_;
+
+public:
+    DownloadHandler(uint8_t file_number);
+
 public:
     bool handle(HttpRequest &req) override;
 
@@ -14,9 +20,10 @@ public:
 class DownloadWorker : public Worker {
 private:
     HttpRequest *req_;
+    uint8_t file_number_;
 
 public:
-    DownloadWorker(HttpRequest *req);
+    DownloadWorker(HttpRequest *req, uint8_t file_number);
 
 public:
     void run(WorkerContext &wc) override;

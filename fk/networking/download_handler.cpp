@@ -8,7 +8,7 @@ namespace fk {
 
 FK_DECLARE_LOGGER("download");
 
-DownloadWorker::DownloadWorker(HttpRequest *req) : req_(req) {
+DownloadWorker::DownloadWorker(HttpRequest *req, uint8_t file_number) : req_(req), file_number_(file_number) {
 }
 
 void DownloadWorker::run(WorkerContext &wc) {
@@ -17,7 +17,6 @@ void DownloadWorker::run(WorkerContext &wc) {
     auto lock = storage_mutex.acquire(UINT32_MAX);
     auto memory_bus = get_board()->spi_flash();
 
-    uint32_t file_number = Storage::Data;
     uint32_t first_block = 0;
     uint32_t last_block = LastRecord;
 
@@ -27,7 +26,7 @@ void DownloadWorker::run(WorkerContext &wc) {
 
     FK_ASSERT(storage.begin());
 
-    auto file = storage.file(file_number);
+    auto file = storage.file(file_number_);
 
     FK_ASSERT(file.seek(last_block));
     auto final_position = file.position();
@@ -94,9 +93,12 @@ bool DownloadWorker::write_headers(HeaderInfo header_info) {
     return true;
 }
 
+DownloadHandler::DownloadHandler(uint8_t file_number) : file_number_(file_number) {
+}
+
 bool DownloadHandler::handle(HttpRequest &req) {
     // TODO: MALLOC
-    if (!get_ipc()->launch_worker(new DownloadWorker(&req))) {
+    if (!get_ipc()->launch_worker(new DownloadWorker(&req, file_number_))) {
         return false;
     }
 
