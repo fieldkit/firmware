@@ -123,6 +123,12 @@ constexpr int32_t StorageAvailableBlockLookAhead = 10;
 constexpr uint32_t ProgressIntervalMs = 1000;
 
 /**
+ * Amount of pooled memory to allocate for taking readings and doing module
+ * related work.
+ */
+constexpr size_t ModuleMemoryAreaSize = 8192;
+
+/**
  * Runtime configuration informationthat is unavailable in the mobile
  * application. This can be updated after compilation to build binaries for
  * various situations.

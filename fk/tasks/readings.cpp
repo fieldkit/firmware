@@ -33,7 +33,7 @@ static bool append_readings(Readings &readings, File &file, Pool &pool);
 void task_handler_readings(void *params) {
     auto lock = storage_mutex.acquire(UINT32_MAX);
     auto started = fk_uptime();
-    auto pool = MallocPool{ "readings", 2048 };
+    auto pool = MallocPool{ "readings", ModuleMemoryAreaSize };
     auto memory_bus = get_board()->spi_flash();
     auto module_bus = get_board()->i2c_module();
     auto gs = get_global_state_ro();
