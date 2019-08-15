@@ -122,7 +122,7 @@ bool send_status(HttpRequest &req) {
     reply.status.memory.dataMemoryConsumption = reply.status.memory.dataMemoryUsed / reply.status.memory.dataMemoryInstalled * 100.0f;
 
     pb_array_t streams_array = {
-        .length = (size_t)1,
+        .length = (size_t)2,
         .itemSize = sizeof(fk_app_DataStream),
         .buffer = &streams,
         .fields = fk_app_DataStream_fields,
