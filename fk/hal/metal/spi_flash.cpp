@@ -1,5 +1,6 @@
 #include "spi_flash.h"
 #include "platform.h"
+#include "utilities.h"
 
 #if defined(ARDUINO)
 

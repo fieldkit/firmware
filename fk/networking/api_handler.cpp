@@ -4,6 +4,7 @@
 #include "networking/api_handler.h"
 #include "storage/storage.h"
 #include "protobuf.h"
+#include "utilities.h"
 
 extern const struct fkb_header_t fkb_header;
 

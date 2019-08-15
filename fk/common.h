@@ -63,11 +63,6 @@ namespace fk {
 #define FK_ASSERT_GT(a, b)                            FK_ASSERT_INTERNAL((a) > (b), "%d > %d", a, b)
 
 /**
- * Write hex representation of bytes to a separate buffer.
- */
-size_t bytes_to_hex_string(char *buffer, size_t buffer_size, const uint8_t *data, size_t data_size);
-
-/**
  * Check the return value of an I2C operation and return true if the operation
  * succeeded and false otherwise.
  */

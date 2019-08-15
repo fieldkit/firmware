@@ -1,6 +1,6 @@
 #include <tiny_printf.h>
 
-#include "common.h"
+#include "utilities.h"
 
 namespace fk {
 
@@ -14,6 +14,12 @@ size_t bytes_to_hex_string(char *buffer, size_t buffer_size, const uint8_t *data
     }
 
     return data_size * 2;
+}
+
+const char *bytes_to_hex_string_pool(const uint8_t *data, size_t data_size, Pool &pool) {
+    auto str = (char *)pool.malloc(data_size * 2);
+    bytes_to_hex_string(str, data_size * 2, data, data_size);
+    return str;
 }
 
 }

@@ -2,6 +2,7 @@
 #include <os.h>
 
 #include "platform.h"
+#include "utilities.h"
 #include "hal/metal/metal.h"
 #include "self_check.h"
 #include "factory_wipe.h"
