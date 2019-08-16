@@ -120,6 +120,52 @@ public:
 #define __POOL_LINE(x) __POOL_LINE_STR(x)
 #define PoolHere(var, size) var(__FILE__ ":" __POOL_LINE(__LINE__), size)
 
+template <class T>
+struct pool_allocator {
+    Pool *pool_;
+    typedef T value_type;
+    typedef T* pointer;
+    typedef T& reference;
+    typedef T const* const_pointer;
+    typedef T const& const_reference;
+
+    // NOTE: This was added when trying to get nonstd::optional returns working.
+    template<class U> struct rebind {
+        typedef pool_allocator<U> other;
+    };
+
+    pool_allocator() : pool_(nullptr) {
+    }
+
+    pool_allocator(Pool *pool) : pool_(pool) {
+    }
+
+    template<class U>
+    pool_allocator(pool_allocator<U> const &pa) : pool_(pa.pool) {
+    }
+
+    T *allocate(size_t n) {
+        return pool_->malloc<T>(n);
+    }
+
+    void deallocate(T *p, size_t n) {
+    }
+
+    template<class U>
+    void destroy(U* p) {
+    }
+};
+
+template<class T, class U>
+constexpr bool operator==(pool_allocator<T> const &, pool_allocator<U> const &) {
+    return true;
+}
+
+template<class T, class U>
+constexpr bool operator!=(pool_allocator<T> const &, pool_allocator<U> const &) {
+    return false;
+}
+
 }
 
 /**

@@ -2,9 +2,9 @@
 
 #if defined(FK_HARDWARE_FULL)
 
-#include <U8g2lib.h>
-
 #include "hal/display.h"
+
+#include <U8g2lib.h>
 
 namespace fk {
 
