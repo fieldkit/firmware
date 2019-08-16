@@ -103,6 +103,10 @@ bool ModuleScanning::scan(ModuleScan &scan) {
     return true;
 }
 
+nonstd::optional<ModuleHeaderCollection> ModuleScanning::scan() {
+    return nonstd::nullopt;
+}
+
 bool ModuleScanning::configure(uint8_t position, ModuleHeader &header) {
     if (!available()) {
         return false;

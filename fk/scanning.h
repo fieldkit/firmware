@@ -4,8 +4,11 @@
 #include "config.h"
 #include "hal/modmux.h"
 #include "modules/modules.h"
+#include "pool.h"
 
 namespace fk {
+
+using ModuleHeaderCollection = std::list<ModuleHeader, pool_allocator<ModuleHeader>>;
 
 class ModuleScan {
 private:
@@ -36,6 +39,8 @@ public:
 public:
     bool scan(ModuleScan &scan);
     bool configure(uint8_t position, ModuleHeader &header);
+
+    nonstd::optional<ModuleHeaderCollection> scan();
 
 private:
     bool available();
