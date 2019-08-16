@@ -73,8 +73,7 @@ uint32_t fk_delay(uint32_t ms) {
 extern "C" char *sbrk(int32_t i);
 
 uint32_t fk_free_memory() {
-    char stack_dummy = 0;
-    return &stack_dummy - sbrk(0);
+    return os_free_memory();
 }
 
 uint32_t fk_serial_number_get(fk_serial_number_t *sn) {
