@@ -90,6 +90,14 @@ bool ModuleRegistry::resolve(ModuleScan const &scan, ResolvedModules &resolved) 
     return true;
 }
 
+nonstd::optional<ModuleAndMetadataCollection> ModuleRegistry::resolve(ModuleHeaderCollection &headers, Pool &pool) {
+    /*
+    for (auto &header : headers) {
+    }
+    */
+    return nonstd::nullopt;
+}
+
 static uint32_t fk_modules_builtin_get(ModuleNode **iter) {
     if (nodes[0].meta == NULL) {
         *iter = NULL;

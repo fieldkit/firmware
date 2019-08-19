@@ -8,6 +8,9 @@
 
 namespace fk {
 
+using ModuleAndMetadata = std::pair<ModuleMetadata const*, Module*>;
+using ModuleAndMetadataCollection = std::list<ModuleAndMetadata, pool_allocator<ModuleAndMetadata>>;
+
 class ResolvedModules {
 private:
     friend class ModuleRegistry;
@@ -38,6 +41,7 @@ public:
 public:
     ModuleMetadata const *resolve(ModuleHeader const &header);
     bool resolve(ModuleScan const &scan, ResolvedModules &resolved);
+    nonstd::optional<ModuleAndMetadataCollection> resolve(ModuleHeaderCollection &headers, Pool &pool);
 
 };
 

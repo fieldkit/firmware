@@ -124,10 +124,10 @@ template <class T>
 struct pool_allocator {
     Pool *pool_;
     typedef T value_type;
-    typedef T* pointer;
-    typedef T& reference;
-    typedef T const* const_pointer;
-    typedef T const& const_reference;
+    typedef T *pointer;
+    typedef T &reference;
+    typedef T const *const_pointer;
+    typedef T const &const_reference;
 
     // NOTE: This was added when trying to get nonstd::optional returns working.
     template<class U> struct rebind {
@@ -137,11 +137,14 @@ struct pool_allocator {
     pool_allocator() : pool_(nullptr) {
     }
 
+    pool_allocator(Pool &pool) : pool_(&pool) {
+    }
+
     pool_allocator(Pool *pool) : pool_(pool) {
     }
 
     template<class U>
-    pool_allocator(pool_allocator<U> const &pa) : pool_(pa.pool) {
+    pool_allocator(pool_allocator<U> const &pa) : pool_(pa.pool_) {
     }
 
     T *allocate(size_t n) {
@@ -151,9 +154,23 @@ struct pool_allocator {
     void deallocate(T *p, size_t n) {
     }
 
+    void construct(pointer p, T const &val) {
+        new ((T *)p) T(val);
+    }
+
+    void destroy(pointer p) {
+        p->~T();
+    }
+
+    /*
+    template<class U, class... Args>
+    void construct(U *p, Args &&... args) {
+    }
+
     template<class U>
     void destroy(U* p) {
     }
+    */
 };
 
 template<class T, class U>

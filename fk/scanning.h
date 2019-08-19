@@ -39,8 +39,7 @@ public:
 public:
     bool scan(ModuleScan &scan);
     bool configure(uint8_t position, ModuleHeader &header);
-
-    nonstd::optional<ModuleHeaderCollection> scan();
+    nonstd::optional<ModuleHeaderCollection> scan(Pool &pool);
 
 private:
     bool available();
