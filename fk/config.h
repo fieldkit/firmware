@@ -13,7 +13,7 @@ namespace fk {
 /**
  *
  */
-#define FK_INFLATE_WRITES_READINGS        (10)
+#define FK_INFLATE_WRITES_READINGS        (100)
 
 /**
  * Maximum number of memory banks we're capable of supporting.

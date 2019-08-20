@@ -36,7 +36,7 @@ public:
 };
 
 void task_handler_scheduler(void *params) {
-    lwcron::CronSpec readings_cron_spec{ lwcron::CronSpec::interval(30) };
+    lwcron::CronSpec readings_cron_spec{ lwcron::CronSpec::interval(10) };
     lwcron::CronSpec misc_cron_spec{ lwcron::CronSpec::everyFiveMinutes() };
 
     CronTask readings_job{ readings_cron_spec, &readings_task };
