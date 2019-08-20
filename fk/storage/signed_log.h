@@ -1,15 +1,17 @@
 #pragma once
 
+#include <fk-data-protocol.h>
+
 #include "file.h"
 #include "protobuf.h"
 
 namespace fk {
 
 enum class SignedRecordKind : uint8_t {
-    None = 0,
-    Modules = 1,
-    Schedule = 2,
-    Other = 255,
+    None = fk_data_SignedRecordKind_SIGNED_RECORD_KIND_NONE,
+    Modules = fk_data_SignedRecordKind_SIGNED_RECORD_KIND_MODULES,
+    Schedule = fk_data_SignedRecordKind_SIGNED_RECORD_KIND_SCHEDULE,
+    Other = fk_data_SignedRecordKind_SIGNED_RECORD_KIND_OTHER,
 };
 
 class SignedRecordLog {

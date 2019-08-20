@@ -66,7 +66,7 @@ bool SignedRecordLog::append_always(SignedRecordKind kind, void const *record, p
     };
 
     fk_data_SignedRecord sr = fk_data_SignedRecord_init_default;
-    sr.kind = (uint32_t)kind;
+    sr.kind = (fk_data_SignedRecordKind)kind;
     sr.data.funcs.encode = pb_encode_data;
     sr.data.arg = (void *)&data_ref;
     sr.hash.funcs.encode = pb_encode_data;
