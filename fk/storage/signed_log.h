@@ -5,10 +5,11 @@
 
 namespace fk {
 
-enum class SignedRecordKind {
-    None,
-    Modules,
-    Other,
+enum class SignedRecordKind : uint8_t {
+    None = 0,
+    Modules = 1,
+    Schedule = 2,
+    Other = 255,
 };
 
 class SignedRecordLog {

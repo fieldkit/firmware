@@ -152,7 +152,7 @@ struct pool_allocator {
         return pool_->malloc<T>(n);
     }
 
-    void deallocate(pointer, size_t n) {
+    void deallocate(pointer p, size_t n) {
     }
 
     void construct(pointer p, T const &val) {
