@@ -10,7 +10,7 @@ Readings::Readings(ModMux *mm) : mm_(mm) {
     record_ = fk_data_DataRecord_init_default;
 }
 
-bool Readings::take_readings(ModuleContext &mc, ResolvedModules const &modules, uint32_t reading_number, Pool &pool) {
+bool Readings::take_readings(ModuleContext &mc, ConstructedModulesCollection const &modules, uint32_t reading_number, Pool &pool) {
     auto now = get_clock_now();
     auto gs = mc.gs();
 
@@ -33,18 +33,16 @@ bool Readings::take_readings(ModuleContext &mc, ResolvedModules const &modules, 
 
     bzero(groups, sizeof(fk_data_SensorGroup) * modules.size());
 
-    for (size_t i = 0; i < MaximumNumberOfModules; ++i) {
-        auto meta = modules.meta(i);
-        if (meta == nullptr) {
-            continue;
-        }
+    for (auto pair : modules) {
+        auto meta = pair.meta;
+        auto module = pair.module;
+        auto i = pair.found.position;
 
-        auto module = modules.instance(i);
-        FK_ASSERT(module != nullptr);
-
-        if (!mm_->choose(i)) {
-            logerror("error choosing module");
-            continue;
+        if (i != 0xff) {
+            if (!mm_->choose(i)) {
+                logerror("error choosing module");
+                continue;
+            }
         }
 
         loginfo("'%s' mk=%02" PRIx32 "%02" PRIx32 " version=%" PRIu32, meta->name, meta->manufacturer, meta->kind, meta->version);

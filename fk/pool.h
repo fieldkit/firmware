@@ -3,6 +3,7 @@
 #include <cinttypes>
 #include <cstdlib>
 #include <type_traits>
+#include <utility>
 
 #include <pb_encode.h>
 #include <pb_decode.h>
@@ -147,30 +148,25 @@ struct pool_allocator {
     pool_allocator(pool_allocator<U> const &pa) : pool_(pa.pool_) {
     }
 
-    T *allocate(size_t n) {
+    pointer allocate(size_t n) {
         return pool_->malloc<T>(n);
     }
 
-    void deallocate(T *p, size_t n) {
+    void deallocate(pointer, size_t n) {
     }
 
     void construct(pointer p, T const &val) {
-        new ((T *)p) T(val);
+        new ((pointer)p) T(val);
     }
 
     void destroy(pointer p) {
         p->~T();
     }
 
-    /*
-    template<class U, class... Args>
-    void construct(U *p, Args &&... args) {
+    template<class... Args>
+    void construct(pointer p, Args &&... args) {
+        new ((pointer)p) T(std::forward<Args...>(args...));
     }
-
-    template<class U>
-    void destroy(U* p) {
-    }
-    */
 };
 
 template<class T, class U>

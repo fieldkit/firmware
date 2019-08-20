@@ -18,39 +18,6 @@ static uint32_t fk_modules_builtin_get(ModuleNode **iter);
 
 FK_DECLARE_LOGGER("modreg");
 
-ResolvedModules::ResolvedModules(Pool &pool) : pool_(pool) {
-    for (size_t i = 0; i < MaximumNumberOfModules; ++i) {
-        metas_[i] = nullptr;
-        instances_[i] = nullptr;
-    }
-}
-
-ResolvedModules::~ResolvedModules() {
-}
-
-int32_t ResolvedModules::size() const {
-    return size_;
-}
-
-ModuleMetadata const *ResolvedModules::meta(int32_t i) const {
-    return metas_[i];
-}
-
-Module *ResolvedModules::instance(int32_t i) const {
-    return instances_[i];
-}
-
-void ResolvedModules::set(int32_t i, ModuleMetadata const *meta) {
-    metas_[i] = meta;
-    instances_[i] = meta->ctor(pool_);
-    size_ = 0;
-    for (size_t i = 0; i < MaximumNumberOfModules; ++i) {
-        if (metas_[i] != nullptr) {
-            size_++;
-        }
-    }
-}
-
 ModuleRegistry::ModuleRegistry() {
 }
 
@@ -77,25 +44,23 @@ ModuleMetadata const *ModuleRegistry::resolve(ModuleHeader const &header) {
     return nullptr;
 }
 
-bool ModuleRegistry::resolve(ModuleScan const &scan, ResolvedModules &resolved) {
-    for (size_t i = 0; i < MaximumNumberOfModules; ++i) {
-        auto &header = scan.get(i);
-        if (fk_module_header_valid(&header)) {
-            auto meta = resolve(header);
-            FK_ASSERT(meta != nullptr);
-            resolved.set(i, meta);
+nonstd::optional<ConstructedModulesCollection> ModuleRegistry::resolve(FoundModuleCollection &found, Pool &pool) {
+    ConstructedModulesCollection constructed(pool);
+    for (auto &f : found) {
+        auto meta = resolve(f.header);
+        if (meta != nullptr) {
+            auto module = meta->ctor(pool);
+            constructed.emplace_back(ConstructedModule{
+                .found = f,
+                .meta = meta,
+                .module = module,
+            });
+        }
+        else {
+            logwarn("no such module!");
         }
     }
-
-    return true;
-}
-
-nonstd::optional<ModuleAndMetadataCollection> ModuleRegistry::resolve(ModuleHeaderCollection &headers, Pool &pool) {
-    /*
-    for (auto &header : headers) {
-    }
-    */
-    return nonstd::nullopt;
+    return constructed;
 }
 
 static uint32_t fk_modules_builtin_get(ModuleNode **iter) {

@@ -64,7 +64,7 @@ TEST_F(ReadingsSuite, TakingReadingsNoModules) {
     GlobalState gs;
     TwoWireWrapper module_bus{ "modules", nullptr };
     ModuleContext mc{ &gs, module_bus };
-    ResolvedModules resolved{ pool };
+    ConstructedModulesCollection resolved(pool);
 
     Readings readings{ get_modmux() };
     ASSERT_TRUE(readings.take_readings(mc, resolved, 0, pool));
@@ -80,11 +80,14 @@ TEST_F(ReadingsSuite, TakingReadingsModuleWithNoReadings) {
     GlobalState gs;
     TwoWireWrapper module_bus{ "modules", nullptr };
     ModuleContext mc{ &gs, module_bus };
-    ResolvedModules resolved{ pool };
+    ConstructedModulesCollection resolved(pool);
+    resolved.emplace_back(ConstructedModule{
+        .found = { },
+	.meta = &fk_test_module_fake_empty, 
+	.module = fk_test_module_fake_empty.ctor(pool),
+    });
 
     Readings readings{ get_modmux() };
-    resolved.set(0, &fk_test_module_fake_empty);
-
     ASSERT_TRUE(readings.take_readings(mc, resolved, 0, pool));
 
     size_t size = 0;
@@ -98,8 +101,12 @@ TEST_F(ReadingsSuite, TakingReadingsOneModule) {
     GlobalState gs;
     TwoWireWrapper module_bus{ "modules", nullptr };
     ModuleContext mc{ &gs, module_bus };
-    ResolvedModules resolved{ pool };
-    resolved.set(0, &fk_test_module_fake_1);
+    ConstructedModulesCollection resolved(pool);
+    resolved.emplace_back(ConstructedModule{
+        .found = { },
+	.meta = &fk_test_module_fake_1, 
+	.module = fk_test_module_fake_1.ctor(pool),
+    });
 
     Readings readings{ get_modmux() };
     ASSERT_TRUE(readings.take_readings(mc, resolved, 0, pool));
@@ -115,9 +122,17 @@ TEST_F(ReadingsSuite, TakingReadingsTwoModules) {
     GlobalState gs;
     TwoWireWrapper module_bus{ "modules", nullptr };
     ModuleContext mc{ &gs, module_bus };
-    ResolvedModules resolved{ pool };
-    resolved.set(0, &fk_test_module_fake_1);
-    resolved.set(1, &fk_test_module_fake_2);
+    ConstructedModulesCollection resolved(pool);
+    resolved.emplace_back(ConstructedModule{
+        .found = { },
+	.meta = &fk_test_module_fake_1, 
+	.module = fk_test_module_fake_1.ctor(pool),
+    });
+    resolved.emplace_back(ConstructedModule{
+        .found = { },
+	.meta = &fk_test_module_fake_2, 
+	.module = fk_test_module_fake_2.ctor(pool),
+    });
 
     Readings readings{ get_modmux() };
     ASSERT_TRUE(readings.take_readings(mc, resolved, 0, pool));

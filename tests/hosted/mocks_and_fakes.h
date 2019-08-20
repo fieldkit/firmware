@@ -5,8 +5,19 @@
 #include <gmock/gmock.h>
 
 #include "hal/network.h"
+#include "scanning.h"
 
 namespace fk {
+
+class MockModuleScanning : public ModuleScanning {
+public:
+    MockModuleScanning() : ModuleScanning(nullptr) {
+    }
+
+public:
+    MOCK_METHOD1(scan, nonstd::optional<FoundModuleCollection>(Pool &pool));
+
+};
 
 class MockNetwork : public Network {
 public:

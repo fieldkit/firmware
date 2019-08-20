@@ -109,6 +109,8 @@ fk_add_builtin_module(water)
 
 configure_firmware_linker_script(fk-bundled ${CMAKE_SOURCE_DIR}/boards/samd51/main.ld)
 
+#target_link_libraries(fk-bundled PRIVATE -lstdc++)
+
 add_arduino_firmware(fk-bundled)
 
 enable_fkb_firmware(fk-bundled)

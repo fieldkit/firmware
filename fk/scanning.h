@@ -8,26 +8,12 @@
 
 namespace fk {
 
-using ModuleHeaderCollection = std::list<ModuleHeader, pool_allocator<ModuleHeader>>;
-
-class ModuleScan {
-private:
-    friend class ModuleScanning;
-
-private:
-    ModuleHeader headers_[MaximumNumberOfModules];
-    int32_t size_{ 0 };
-
-public:
-    ModuleScan();
-    virtual ~ModuleScan();
-
-public:
-    int32_t size() const;
-
-    ModuleHeader const &get(int32_t i) const;
-
+struct FoundModule {
+    uint8_t position;
+    ModuleHeader header;
 };
+
+using FoundModuleCollection = std::list<FoundModule, pool_allocator<FoundModule>>;
 
 class ModuleScanning {
 private:
@@ -37,9 +23,8 @@ public:
     ModuleScanning(ModMux *mm);
 
 public:
-    bool scan(ModuleScan &scan);
-    bool configure(uint8_t position, ModuleHeader &header);
-    nonstd::optional<ModuleHeaderCollection> scan(Pool &pool);
+    virtual nonstd::optional<FoundModuleCollection> scan(Pool &pool);
+    virtual bool configure(uint8_t position, ModuleHeader &header);
 
 private:
     bool available();
