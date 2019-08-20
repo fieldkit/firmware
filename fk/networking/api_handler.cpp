@@ -77,7 +77,7 @@ bool send_status(HttpRequest &req) {
                 .funcs = {
                     .encode = pb_encode_string,
                 },
-                .arg = (void *)"/fk/v1/download/0",
+                .arg = (void *)"/fk/v1/download/data",
             },
         },
         {
@@ -100,7 +100,7 @@ bool send_status(HttpRequest &req) {
                 .funcs = {
                     .encode = pb_encode_string,
                 },
-                .arg = (void *)"/fk/v1/download/1",
+                .arg = (void *)"/fk/v1/download/meta",
             },
         },
     };
