@@ -83,8 +83,8 @@ TEST_F(ReadingsSuite, TakingReadingsModuleWithNoReadings) {
     ConstructedModulesCollection resolved(pool);
     resolved.emplace_back(ConstructedModule{
         .found = { },
-	.meta = &fk_test_module_fake_empty, 
-	.module = fk_test_module_fake_empty.ctor(pool),
+        .meta = &fk_test_module_fake_empty,
+        .module = fk_test_module_fake_empty.ctor(pool),
     });
 
     Readings readings{ get_modmux() };
@@ -104,8 +104,8 @@ TEST_F(ReadingsSuite, TakingReadingsOneModule) {
     ConstructedModulesCollection resolved(pool);
     resolved.emplace_back(ConstructedModule{
         .found = { },
-	.meta = &fk_test_module_fake_1, 
-	.module = fk_test_module_fake_1.ctor(pool),
+        .meta = &fk_test_module_fake_1,
+        .module = fk_test_module_fake_1.ctor(pool),
     });
 
     Readings readings{ get_modmux() };
@@ -125,13 +125,13 @@ TEST_F(ReadingsSuite, TakingReadingsTwoModules) {
     ConstructedModulesCollection resolved(pool);
     resolved.emplace_back(ConstructedModule{
         .found = { },
-	.meta = &fk_test_module_fake_1, 
-	.module = fk_test_module_fake_1.ctor(pool),
+        .meta = &fk_test_module_fake_1,
+        .module = fk_test_module_fake_1.ctor(pool),
     });
     resolved.emplace_back(ConstructedModule{
         .found = { },
-	.meta = &fk_test_module_fake_2, 
-	.module = fk_test_module_fake_2.ctor(pool),
+        .meta = &fk_test_module_fake_2,
+        .module = fk_test_module_fake_2.ctor(pool),
     });
 
     Readings readings{ get_modmux() };

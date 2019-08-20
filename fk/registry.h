@@ -31,6 +31,7 @@ public:
 extern "C" {
 #endif
 
+uint32_t fk_modules_builtin_clear();
 uint32_t fk_modules_builtin_register(ModuleMetadata const *modmeta);
 
 #ifdef __cplusplus

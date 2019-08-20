@@ -8,8 +8,8 @@ namespace fk {
 #define FK_MODULES_BUILTIN_MAXIMUM (10)
 
 typedef struct ModuleNode {
-    ModuleMetadata const *meta;
-    struct ModuleNode *link;
+    ModuleMetadata const *meta{ nullptr };
+    struct ModuleNode *link{ nullptr };
 } ModuleNode;
 
 static ModuleNode nodes[FK_MODULES_BUILTIN_MAXIMUM];
@@ -75,6 +75,13 @@ static uint32_t fk_modules_builtin_get(ModuleNode **iter) {
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+uint32_t fk_modules_builtin_clear() {
+    for (auto i = 0; i < FK_MODULES_BUILTIN_MAXIMUM; ++i) {
+        nodes[i] = { };
+    }
+    return 0;
+}
 
 uint32_t fk_modules_builtin_register(ModuleMetadata const *modmeta) {
     ModuleNode *prev = NULL;

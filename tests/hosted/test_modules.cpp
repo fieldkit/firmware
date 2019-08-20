@@ -37,16 +37,7 @@ ModuleMetadata const fk_test_module_fake_empty = {
 };
 
 static SensorMetadata const fk_module_fake_1_sensor_metas[] = {
-    { .name = "sensor-0", .unitOfMeasure = "" },
-    { .name = "sensor-1", .unitOfMeasure = "" },
-    { .name = "sensor-2", .unitOfMeasure = "" },
-    { .name = "sensor-3", .unitOfMeasure = "" },
-    { .name = "sensor-4", .unitOfMeasure = "" },
-    { .name = "sensor-5", .unitOfMeasure = "" },
-    { .name = "sensor-6", .unitOfMeasure = "" },
-    { .name = "sensor-7", .unitOfMeasure = "" },
-    { .name = "sensor-8", .unitOfMeasure = "" },
-    { .name = "sensor-9", .unitOfMeasure = "" },
+    { .name = "sensor", .unitOfMeasure = "" },
 };
 
 static ModuleSensors fk_module_fake_1_sensors = {
@@ -78,7 +69,7 @@ static Module *fk_test_module_create_1(Pool &pool) {
 ModuleMetadata const fk_test_module_fake_1 = {
     .manufacturer = FK_MODULES_MANUFACTURER,
     .kind = FK_MODULES_KIND_RANDOM,
-    .version = 0x01,
+    .version = 0x02,
     .name = "fake-1",
     .ctor = fk_test_module_create_1,
 };
@@ -127,7 +118,7 @@ static Module *fk_test_module_create_2(Pool &pool) {
 ModuleMetadata const fk_test_module_fake_2 = {
     .manufacturer = FK_MODULES_MANUFACTURER,
     .kind = FK_MODULES_KIND_RANDOM,
-    .version = 0x01,
+    .version = 0x03,
     .name = "fake-2",
     .ctor = fk_test_module_create_2,
 };

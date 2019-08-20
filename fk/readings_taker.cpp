@@ -36,7 +36,7 @@ bool ReadingsTaker::take(ModuleContext &mc, Pool &pool) {
 
     if ((*modules).size() == 0) {
         loginfo("no modules");
-        return false;
+        return true;
     }
 
     append_configuration(mc, *modules, meta, pool);
