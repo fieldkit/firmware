@@ -37,7 +37,7 @@ nonstd::optional<FoundModuleCollection> ModuleScanning::scan(Pool &pool) {
     FoundModuleCollection found(pool);
 
     if (!available()) {
-        return nonstd::optional<FoundModuleCollection>(found);
+        return found;
     }
 
     loginfo("scanning modules...");
@@ -83,7 +83,7 @@ nonstd::optional<FoundModuleCollection> ModuleScanning::scan(Pool &pool) {
 
     loginfo("done (%zd modules)", found.size());
 
-    return nonstd::optional<FoundModuleCollection>(found);
+    return found;
 }
 
 bool ModuleScanning::configure(uint8_t position, ModuleHeader &header) {
