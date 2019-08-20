@@ -156,15 +156,24 @@ struct pool_allocator {
     }
 
     void construct(pointer p, T const &val) {
+        #if defined(FK_LOGGING_POOL_ALLOCATOR_VERBOSE)
+        loginfo("(pa) new<val>(0x%p)", p);
+        #endif
         new ((pointer)p) T(val);
     }
 
     void destroy(pointer p) {
+        #if defined(FK_LOGGING_POOL_ALLOCATOR_VERBOSE)
+        loginfo("(pa) delete(0x%p)", p);
+        #endif
         p->~T();
     }
 
     template<class... Args>
     void construct(pointer p, Args &&... args) {
+        #if defined(FK_LOGGING_POOL_ALLOCATOR_VERBOSE)
+        loginfo("(pa) new<args>(0x%p)", p);
+        #endif
         new ((pointer)p) T(std::forward<Args...>(args...));
     }
 };
