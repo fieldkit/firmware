@@ -39,7 +39,10 @@ bool ReadingsTaker::take(ModuleContext &mc, Pool &pool) {
         return true;
     }
 
-    append_configuration(mc, *modules, meta, pool);
+    if (!append_configuration(mc, *modules, meta, pool)) {
+        logerror("error appending configuration");
+        return false;
+    }
 
     Readings readings{ get_modmux() };
     if (!readings.take_readings(mc, *modules, data.record(), pool)) {
@@ -47,7 +50,10 @@ bool ReadingsTaker::take(ModuleContext &mc, Pool &pool) {
         return false;
     }
 
-    append_readings(readings, data, pool);
+    if (!append_readings(readings, data, pool)) {
+        logerror("error appending readings");
+        return false;
+    }
 
     return true;
 }
