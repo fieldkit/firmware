@@ -121,7 +121,7 @@ public:
 #define __POOL_LINE(x) __POOL_LINE_STR(x)
 #define PoolHere(var, size) var(__FILE__ ":" __POOL_LINE(__LINE__), size)
 
-#define FK_LOGGING_POOL_ALLOCATOR_VERBOSE
+// #define FK_LOGGING_POOL_ALLOCATOR_VERBOSE
 
 template <class T>
 struct pool_allocator {

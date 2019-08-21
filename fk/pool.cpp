@@ -15,7 +15,7 @@ namespace fk {
 
 FK_DECLARE_LOGGER("pool");
 
-#define FK_LOGGING_POOL_VERBOSE
+// #define FK_LOGGING_POOL_VERBOSE
 
 Pool::Pool(const char *name, size_t size, void *block) {
     name_ = name;
