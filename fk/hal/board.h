@@ -11,7 +11,7 @@ constexpr uint8_t WINC1500_RESET = 96u;      // PC26
 
 constexpr uint8_t GPS_POWER = 55u;
 
-constexpr uint8_t QSPI_FLASH_CS = 90u;       // PB11
+constexpr uint8_t QSPI_FLASH_CS = 90u;       // PB11 (PIN_QSPI_CS)
 
 constexpr uint8_t PIN_SD_CS = 8u;            // PB18
 

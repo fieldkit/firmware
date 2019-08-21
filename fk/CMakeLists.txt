@@ -86,8 +86,8 @@ target_link_libraries(fk-bundled ArduinoMDNS)
 find_package(arduino-logging)
 target_link_libraries(fk-bundled arduino-logging)
 
-find_package(Adafruit_QSPI)
-target_link_libraries(fk-bundled Adafruit_QSPI)
+find_package(Adafruit_SPIFlash)
+target_link_libraries(fk-bundled Adafruit_SPIFlash)
 
 find_package(Protocols)
 target_link_libraries(fk-bundled app-protocol)

@@ -2,6 +2,8 @@
 
 #if defined(linux)
 
+using namespace alogging;
+
 namespace fk {
 
 void LogEntry::backup() {

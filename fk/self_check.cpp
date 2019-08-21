@@ -4,11 +4,10 @@
 #include "temperature.h"
 #include "hal/metal/metal.h"
 
-#include <Adafruit_QSPI.h>
-#include <Adafruit_QSPI_Flash.h>
+#include <Adafruit_SPIFlash.h>
 
-#include <phylum/backend.h>
-#include <backends/arduino_sd/arduino_sd.h>
+// #include <phylum/backend.h>
+// #include <backends/arduino_sd/arduino_sd.h>
 
 namespace fk {
 
@@ -86,14 +85,18 @@ bool SelfCheck::battery_gauge() {
 
 bool SelfCheck::qspi_memory() {
     return single_check("qspi memory", []() {
-        Adafruit_QSPI_Flash qspi_flash;
+        Adafruit_FlashTransport_QSPI flash_transport(PIN_QSPI_SCK, QSPI_FLASH_CS, PIN_QSPI_IO0, PIN_QSPI_IO1, PIN_QSPI_IO2, PIN_QSPI_IO3);
+        Adafruit_SPIFlash flash(&flash_transport);
 
         pinMode(QSPI_FLASH_CS, OUTPUT);
         digitalWrite(QSPI_FLASH_CS, LOW);
 
-        if (!qspi_flash.begin()){
+        if (!flash.begin()){
             return false;
         }
+
+        auto size = flash.size();
+        loginfo("qspi = %" PRIu32, size);
 
         return true;
     });
@@ -177,6 +180,7 @@ bool SelfCheck::sd_card() {
     return single_check("sd card", []() {
         SPI2.begin();
 
+        /*
         phylum::Geometry g;
         phylum::ArduinoSdBackend storage;
         if (!storage.initialize(g, PIN_SD_CS)) {
@@ -188,7 +192,10 @@ bool SelfCheck::sd_card() {
             logwarn("open failed");
             return false;
         }
+
         return true;
+        */
+        return false;
     });
 }
 
