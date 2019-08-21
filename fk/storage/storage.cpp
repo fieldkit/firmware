@@ -420,9 +420,7 @@ uint32_t Storage::fsck() {
     while (tracker.busy()) {
         auto to_read = std::min<size_t>(BufferSize, tracker.remaining_bytes());
         auto nread = file.read(buffer, to_read);
-        if (nread != to_read) {
-            logwarn("fsck: (%zd != %zd)", nread, to_read);
-        }
+        FK_ASSERT(nread == to_read);
         tracker.update(nread);
     }
 
