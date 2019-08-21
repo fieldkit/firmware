@@ -12,6 +12,10 @@
 #include "networking/networking.h"
 #include "protobuf.h"
 
+#include "registry.h"
+#include "readings_taker.h"
+#include "test_modules.h"
+
 FK_DECLARE_LOGGER("main");
 
 using namespace fk;
@@ -47,87 +51,56 @@ static void signal_handler(int32_t s){
     fake.stop();
 }
 
-static size_t write_reading(File &file) {
-    fk_data_SensorAndValue readings[] = {
-        { 0, (float)random() },
-        { 1, (float)random() },
-        { 2, (float)random() },
-        { 3, (float)random() },
-        { 4, (float)random() },
-        { 5, (float)random() },
-        { 6, (float)random() },
-        { 7, (float)random() },
-        { 8, (float)random() },
-        { 9, (float)random() },
-    };
+class StaticModuleScanning : public ModuleScanning {
+private:
+    FoundModuleCollection &found_;
 
-    pb_array_t readings_array = {
-        .length = (size_t)10,
-        .itemSize = sizeof(fk_data_SensorAndValue),
-        .buffer = &readings,
-        .fields = fk_data_SensorAndValue_fields,
-    };
-
-    fk_data_SensorGroup groups[] = {
-        {
-            .module = 0,
-            .readings = {
-                .funcs = {
-                    .encode = pb_encode_array,
-                },
-                .arg = &readings_array,
-            },
-        }
-    };
-
-    pb_array_t sensor_groups_array = {
-        .length = (size_t)1,
-        .itemSize = sizeof(fk_data_SensorGroup),
-        .buffer = &groups,
-        .fields = fk_data_SensorGroup_fields,
-    };
-
-    fk_data_DataRecord record = fk_data_DataRecord_init_default;
-    record.readings.time = fk_uptime();
-    record.readings.reading = file.record();
-    record.readings.flags = 0;
-    record.readings.location.fix = 0;
-    record.readings.location.time = fk_uptime();
-    record.readings.location.longitude = -118.2709223;
-    record.readings.location.latitude = 34.0318047;
-    record.readings.location.altitude = 100.0f;
-    record.readings.sensorGroups.funcs.encode = pb_encode_array;
-    record.readings.sensorGroups.arg = &sensor_groups_array;
-
-    auto wrote = file.write(&record, fk_data_DataRecord_fields);
-    if (wrote == 0) {
-        logerror("error saving readings");
-        return 0;
+public:
+    StaticModuleScanning(FoundModuleCollection &found) : ModuleScanning(nullptr), found_(found) {
     }
 
-    return wrote;
-}
+public:
+    nonstd::optional<FoundModuleCollection> scan(Pool &pool) override {
+        return found_;
+    }
+};
 
 static void setup_fake_data() {
     auto memory = MemoryFactory::get_data_memory();
+
+    fk_modules_builtin_register(&fk_test_module_fake_empty);
+    fk_modules_builtin_register(&fk_test_module_fake_1);
+    fk_modules_builtin_register(&fk_test_module_fake_2);
 
     FK_ASSERT(memory->begin());
 
     Storage storage{ memory };
     FK_ASSERT(storage.clear());
 
-    loginfo("writing fake data");
+    TwoWireWrapper module_bus{ "modules", nullptr };
+    ModuleContext mc{ get_global_state_rw().get(), module_bus };
 
-    auto file = storage.file(0);
-    auto size = 0;
+    for (auto i = 0; i < 10; ++i) {
+        MallocPool pool{ "readings", 1024 };
+        FoundModuleCollection found(pool);
+        found.emplace_back(FoundModule{
+                .position = 0xff,
+                .header = {
+                    .manufacturer = FK_MODULES_MANUFACTURER,
+                    .kind = FK_MODULES_KIND_RANDOM,
+                    .version = 0x02,
+                }
+            });
 
-    for (auto i = 0; i < 10000; ++i) {
-        auto wrote = write_reading(file);
-        FK_ASSERT(wrote > 0);
-        size += wrote;
+        StaticModuleScanning scanning(found);
+        ReadingsTaker readings_taker{ scanning, storage };
+
+        loginfo("writing fake data");
+
+        FK_ASSERT(readings_taker.take(mc, pool));
     }
 
-    loginfo("done (%d)", size);
+    loginfo("done");
 }
 
 static void server(Fake *fake) {

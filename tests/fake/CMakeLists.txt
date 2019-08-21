@@ -16,7 +16,7 @@ find_package(Threads REQUIRED)
 
 include(ExternalProject)
 
-file(GLOB_RECURSE fk_sources ../../fk/*.cpp ../../fk/*.c)
+file(GLOB_RECURSE fk_sources ../../fk/*.cpp ../../fk/*.c ../hosted/test_modules.cpp)
 list(FILTER fk_sources EXCLUDE REGEX ".*main.cpp$")
 list(FILTER fk_sources EXCLUDE REGEX ".*external.cpp$")
 # TODO: Remove
@@ -55,6 +55,6 @@ target_link_libraries(fake ConservifyOS)
 find_package(Phylum)
 target_link_libraries(fake phylum)
 
-target_include_directories(fake PRIVATE ../../fk ${CMAKE_SOURCE_DIR}/third-party/nonstd)
+target_include_directories(fake PRIVATE ../../fk ${CMAKE_SOURCE_DIR}/third-party/nonstd ../hosted)
 target_compile_options(fake PUBLIC -Wall -Werror -Wno-variadic-macros)
 target_link_libraries(fake ${CMAKE_THREAD_LIBS_INIT})
