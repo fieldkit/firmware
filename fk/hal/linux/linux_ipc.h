@@ -50,6 +50,7 @@ public:
     bool create();
     Lock acquire(uint32_t to);
     bool release();
+    bool is_owner();
 
 };
 

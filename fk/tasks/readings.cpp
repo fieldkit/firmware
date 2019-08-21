@@ -23,6 +23,8 @@ void task_handler_readings(void *params) {
 
     ModuleContext mc{ gs.get(), module_bus };
 
+    FK_ASSERT(lock);
+
     StatisticsMemory memory{ MemoryFactory::get_data_memory() };
     Storage storage{ &memory };
     if (!storage.begin()) {

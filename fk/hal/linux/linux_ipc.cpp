@@ -69,6 +69,10 @@ bool Mutex::release() {
     return false;
 }
 
+bool Mutex::is_owner() {
+    return false;
+}
+
 }
 
 #endif

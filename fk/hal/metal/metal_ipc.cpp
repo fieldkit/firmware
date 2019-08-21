@@ -96,6 +96,7 @@ Mutex::Lock Mutex::acquire(uint32_t to) {
         loginfo("acquired");
         return { this };
     }
+    logwarn("unacquired!");
     return { nullptr };
 }
 
@@ -103,6 +104,10 @@ bool Mutex::release() {
     loginfo("release");
     os_mutex_release(&mutex_);
     return false;
+}
+
+bool Mutex::is_owner() {
+    return os_mutex_is_owner(&mutex_) == OSS_SUCCESS;
 }
 
 }
