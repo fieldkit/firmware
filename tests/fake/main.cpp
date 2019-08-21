@@ -114,13 +114,14 @@ static void setup_fake_data() {
     FK_ASSERT(memory->begin());
 
     Storage storage{ memory };
+    FK_ASSERT(storage.clear());
 
     loginfo("writing fake data");
 
     auto file = storage.file(0);
     auto size = 0;
 
-    for (auto i = 0; i < 1000; ++i) {
+    for (auto i = 0; i < 10000; ++i) {
         auto wrote = write_reading(file);
         FK_ASSERT(wrote > 0);
         size += wrote;
