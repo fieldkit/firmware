@@ -11,9 +11,9 @@ namespace fk {
 #define FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS (2)
 
 /**
- *
+ * Writes this many more readings per round to more rigorously test the storage system.
  */
-#define FK_INFLATE_WRITES_READINGS        (10)
+#define FK_READINGS_AMPLIFY_WRITES        (100)
 
 /**
  * Maximum number of memory banks we're capable of supporting.

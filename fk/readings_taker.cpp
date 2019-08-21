@@ -53,7 +53,7 @@ bool ReadingsTaker::take(ModuleContext &mc, Pool &pool) {
 }
 
 static bool append_readings(Readings &readings, File &file, Pool &pool) {
-    for (auto i = 0; i < FK_INFLATE_WRITES_READINGS; ++i) {
+    for (auto i = 0; i < FK_READINGS_AMPLIFY_WRITES; ++i) {
         auto bytes_wrote = file.write(&readings.record(), fk_data_DataRecord_fields);
         if (bytes_wrote == 0) {
             logerror("error saving readings");
