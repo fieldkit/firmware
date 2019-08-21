@@ -101,7 +101,7 @@ bool Connection::service(HttpRouter &router) {
 
     // FK_ASSERT(fk_uptime() - started_ < 1000);
 
-    if (conn_->available()) {
+    if (!req_.have_headers() && conn_->available()) {
         if (buffer_ == nullptr) {
             size_ = HttpdConnectionBufferSize;
             buffer_ = (uint8_t *)pool_.malloc(HttpdConnectionBufferSize);
@@ -109,29 +109,31 @@ bool Connection::service(HttpRouter &router) {
         }
 
         auto available = (size_ - 1) - position_;
-        auto nread = conn_->read(buffer_ + position_, available);
-        if (nread < 0) {
-            loginfo("error reading - eos");
-            return false;
-        }
+        if (available > 0) {
+            auto nread = conn_->read(buffer_ + position_, available);
+            if (nread < 0) {
+                loginfo("error reading - eos");
+                return false;
+            }
 
-        if (nread == 0) {
-            loginfo("error reading - empty");
-            return false;
-        }
+            if (nread == 0) {
+                loginfo("error reading - empty");
+                return false;
+            }
 
-        auto ptr = (char *)(buffer_ + position_);
-        ptr[nread] = 0;
-        if (req_.parse(ptr, nread) != 0) {
-            loginfo("error parsing");
-            return false;
-        }
+            auto ptr = (char *)(buffer_ + position_);
+            ptr[nread] = 0;
+            if (req_.parse(ptr, nread) != 0) {
+                loginfo("error parsing");
+                return false;
+            }
 
-        position_ += nread;
+            position_ += nread;
+        }
     }
 
-    if (!routed_) {
-        if (req_.have_headers()) {
+    if (req_.have_headers()) {
+        if (!routed_) {
             loginfo("routing '%s' (%" PRIu32 " bytes)", req_.url(), req_.length());
 
             auto handler = router.route(req_.url());
@@ -220,7 +222,7 @@ int32_t Connection::read(uint8_t *buffer, size_t size) {
     return bytes;
 }
 
-int32_t Connection::write(uint8_t *buffer, size_t size) {
+int32_t Connection::write(uint8_t const *buffer, size_t size) {
     auto bytes = conn_->write(buffer, size);
     wrote_ += bytes;
     return bytes;

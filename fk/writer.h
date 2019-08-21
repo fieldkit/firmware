@@ -6,7 +6,7 @@ namespace fk {
 
 class Writable {
 public:
-    virtual int32_t write(uint8_t *buffer, size_t size) = 0;
+    virtual int32_t write(uint8_t const *buffer, size_t size) = 0;
 };
 
 class BufferedWriter {
@@ -25,6 +25,28 @@ public:
     int32_t write(const char *s, ...);
     int32_t write(char c);
     int32_t flush();
+
+};
+
+class Readable {
+public:
+    virtual int32_t read(uint8_t *buffer, size_t size) = 0;
+};
+
+class BufferedReader : public Readable {
+private:
+    uint8_t buffer_[128];
+    size_t buffer_size_{ 128 };
+    size_t position_{ 0 };
+    int32_t return_value_{ 0 };
+    Readable *reader_;
+
+public:
+    BufferedReader(Readable *reader);
+    virtual ~BufferedReader();
+
+public:
+    int32_t read(uint8_t *buffer, size_t size) override;
 
 };
 

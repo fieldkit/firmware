@@ -12,7 +12,7 @@ namespace fk {
 constexpr static size_t HttpdConnectionBufferSize = 1024;
 constexpr static size_t HttpdConnectionWorkSize = 2048;
 
-class Connection : public Writable {
+class Connection : public Writable, public Readable {
 private:
     NetworkConnection *conn_{ nullptr };
     MallocPool pool_;
@@ -31,13 +31,14 @@ public:
 public:
     bool service(HttpRouter &router);
 
+
     int32_t write(const char *s, ...) __attribute__((format(printf, 2, 3)));
 
     int32_t write(fk_app_HttpReply *reply);
 
-    int32_t write(uint8_t *buffer, size_t size) override;
+    int32_t write(uint8_t const *buffer, size_t size) override;
 
-    int32_t read(uint8_t *buffer, size_t size);
+    int32_t read(uint8_t *buffer, size_t size) override;
 
     int32_t plain(int32_t status, const char *status_description, const char *text);
 

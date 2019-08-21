@@ -7,6 +7,7 @@
 
 #include "common.h"
 #include "pool.h"
+#include "writer.h"
 #include "config.h"
 
 namespace fk {
@@ -30,7 +31,7 @@ enum class WellKnownContentType {
     ApplicationFkHttp
 };
 
-class HttpRequest {
+class HttpRequest : Readable {
 private:
     http_parser parser_;
     http_parser_settings settings_{ 0 };
@@ -79,6 +80,9 @@ private:
      */
     WellKnownContentType content_type_{ WellKnownContentType::Unknown };
 
+    uint8_t const *buffered_body_{ nullptr };
+    size_t buffered_body_length_{ 0 };
+
 public:
     HttpRequest(Connection *conn, Pool *pool);
 
@@ -116,6 +120,13 @@ public:
      */
     bool done() const {
         return state_ == HttpRequestState::Error || state_ == HttpRequestState::Done;
+    }
+
+    /**
+     * Returns the Readable to use to get the request body.
+     */
+    Readable *reader() {
+        return this;
     }
 
     /**
@@ -169,6 +180,9 @@ public:
     WellKnownContentType content_type() {
         return content_type_;
     }
+
+public:
+    int32_t read(uint8_t *buffer, size_t size) override;
 
 public:
     int32_t on_message_begin();

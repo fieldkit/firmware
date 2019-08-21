@@ -166,6 +166,11 @@ int32_t HttpRequest::on_headers_complete() {
 int32_t HttpRequest::on_data(const char *at, size_t length) {
     logtrace("%s(0x%p, %" PRIu32 ")", __PRETTY_FUNCTION__, at, (int32_t)length);
 
+    FK_ASSERT(buffered_body_ == nullptr && buffered_body_length_ == 0);
+
+    buffered_body_ = (uint8_t const *)at;
+    buffered_body_length_ = length;
+
     /// TODO: This should maybe eventually be handled in the handler.
     if (content_type_ == WellKnownContentType::ApplicationFkHttp) {
         if (length_ == length) {
@@ -192,6 +197,27 @@ int32_t HttpRequest::on_message_complete() {
     state_ = HttpRequestState::Consumed;
 
     return 0;
+}
+
+int32_t HttpRequest::read(uint8_t *buffer, size_t size) {
+    FK_ASSERT(state_ == HttpRequestState::Body);
+
+    if (buffered_body_ != nullptr) {
+        auto returning = std::min(buffered_body_length_, size);
+        memcpy(buffer, buffered_body_, returning);
+
+        buffered_body_length_ -= returning;
+        if (buffered_body_length_ == 0) {
+            buffered_body_ = nullptr;
+        }
+        else {
+            buffered_body_ += returning;
+        }
+
+        return returning;
+    }
+
+    return conn_->read(buffer, size);
 }
 
 }
