@@ -232,6 +232,10 @@ size_t File::read_record_header() {
             record_remaining_ = record_header.size;
             record_address_ = tail_;
 
+            if (record_ == 20363) {
+                log_configure_level(LogLevels::VERBOSE);
+            }
+
             hash_.reset(Hash::Length);
             hash_.update(&record_header, sizeof(RecordHeader));
 
@@ -315,12 +319,14 @@ size_t File::read_record_tail() {
     Hash hash;
     hash_.finalize(&hash.hash, Hash::Length);
     if (memcmp(hash.hash, record_tail.hash.hash, Hash::Length) != 0) {
-        logerror("[%d] " PRADDRESS " hash mismatch: (#%" PRIu32 ") (record address = " PRADDRESS ")", file_, tail_, record_, record_address_);
-        if (false) {
-            fk_dump_memory("GOOD ", record_tail.hash.hash, Hash::Length);
-            fk_dump_memory("BAD  ", hash.hash, Hash::Length);
-        }
+        logerror("[%d] " PRADDRESS " hash mismatch: (#%" PRIu32 ") (record address = " PRADDRESS ") (record_size = %" PRIu32 ")", file_, tail_, record_, record_address_, record_tail.size);
+        fk_dump_memory("ACT ", record_tail.hash.hash, Hash::Length);
+        fk_dump_memory("EXP ", hash.hash, Hash::Length);
         number_hash_errors_++;
+    }
+
+    if (record_ == 20363) {
+        log_configure_level(LogLevels::DEBUG);
     }
 
     tail_ += sizeof(RecordTail);
