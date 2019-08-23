@@ -7,6 +7,7 @@
 #include "hal/random.h"
 #include "storage/file.h"
 #include "storage/storage.h"
+#include "utilities.h"
 
 namespace fk {
 
