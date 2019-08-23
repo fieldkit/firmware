@@ -102,7 +102,6 @@ size_t SequentialMemory::read(uint32_t address, uint8_t *data, size_t length) {
     while (nbytes != length) {
         auto left = g.remaining_in_page(address);
         auto reading = std::min<size_t>(remaining, left);
-        logtrace("::read(0x%08" PRIx32 ", %zd (%zd) -> 0x%08" PRIx32 ")", address, reading, length, (uint32_t)(address + length));
         if (!memory_->read(address, p, reading)) {
             return nbytes;
         }

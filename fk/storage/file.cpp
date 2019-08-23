@@ -233,10 +233,6 @@ size_t File::read_record_header() {
             record_remaining_ = record_header.size;
             record_address_ = tail_;
 
-            if (record_ == 20363) {
-                log_configure_level(LogLevels::VERBOSE);
-            }
-
             hash_.reset(Hash::Length);
             hash_.update(&record_header, sizeof(RecordHeader));
 
@@ -324,10 +320,6 @@ size_t File::read_record_tail() {
         fk_dump_memory("ACT ", record_tail.hash.hash, Hash::Length);
         fk_dump_memory("EXP ", hash.hash, Hash::Length);
         number_hash_errors_++;
-    }
-
-    if (record_ == 20363) {
-        log_configure_level(LogLevels::DEBUG);
     }
 
     tail_ += sizeof(RecordTail);
