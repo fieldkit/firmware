@@ -11,7 +11,7 @@ FK_DECLARE_LOGGER("readings");
 // Quick code to write a module EEPROM header for development purposes.
 // Eventually we should have a secret menu or something for doing this kind
 // of thing.
-static void configure_module() __attribute__((unused));
+static void configure_module(uint8_t position) __attribute__((unused));
 
 void task_handler_readings(void *params) {
     auto lock = storage_mutex.acquire(UINT32_MAX);
@@ -44,8 +44,7 @@ void task_handler_readings(void *params) {
     loginfo("done (pool = %d/%d bytes) (%" PRIu32 "ms)", pool.used(), pool.size(), fk_uptime() - started);
 }
 
-static void configure_module() {
-    auto position = 6;
+static void configure_module(uint8_t position) {
     ModuleHeader header = {
         .manufacturer = FK_MODULES_MANUFACTURER,
         .kind = FK_MODULES_KIND_WATER,
