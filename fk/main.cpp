@@ -7,6 +7,7 @@
 #include "self_check.h"
 #include "factory_wipe.h"
 #include "tasks/tasks.h"
+#include "debugging.h"
 
 extern const struct fkb_header_t fkb_header;
 
@@ -157,11 +158,8 @@ static void log_diagnostics() {
 }
 
 static void configure_logging() {
-    SEGGER_RTT_SetFlagsUpBuffer(0, SEGGER_RTT_MODE_BLOCK_IF_FIFO_FULL);
-
     log_configure_writer(write_log);
     log_configure_level(LogLevels::DEBUG);
-    log_diagnostics();
 }
 
 static void initialize_hardware() {
@@ -172,10 +170,26 @@ static void initialize_hardware() {
     FK_ASSERT(get_buttons()->begin());
 }
 
+static void check_for_debugger() {
+    auto waiting_until = fk_uptime() + 5000;
+
+    while (fk_uptime() < waiting_until) {
+        if (SEGGER_RTT_HasData(0) || !SEGGER_RTT_HasDataUp(0)) {
+            fk_debug_set_console_attached();
+            loginfo("debugger detected");
+            return;
+        }
+    }
+}
+
 void setup() {
     fk_config_initialize();
 
     configure_logging();
+
+    check_for_debugger();
+
+    log_diagnostics();
 
     initialize_hardware();
 
