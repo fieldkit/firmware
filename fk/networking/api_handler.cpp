@@ -12,9 +12,45 @@ namespace fk {
 
 FK_DECLARE_LOGGER("api");
 
-constexpr static uint32_t BootloaderSize = 0x4000;
+static bool send_status(HttpRequest &req);
 
-bool send_status(HttpRequest &req) {
+static bool configure(HttpRequest &req);
+
+bool ApiHandler::handle(HttpRequest &req) {
+    if (req.content_type() != WellKnownContentType::ApplicationFkHttp) {
+        req.connection()->error("unexpected content-type");
+        return true;
+    }
+
+    auto query = req.query();
+    if (query == nullptr) {
+        req.connection()->error("missing query");
+        return true;
+    }
+
+    switch (query->type) {
+    case fk_app_QueryType_QUERY_STATUS: {
+        return send_status(req);
+    }
+    case fk_app_QueryType_QUERY_CONFIGURE: {
+        return configure(req);
+    }
+    default: {
+        break;
+    }
+    }
+
+    req.connection()->error("unknown query type");
+    return true;
+}
+
+static bool configure(HttpRequest &req) {
+    return true;
+}
+
+static bool send_status(HttpRequest &req) {
+    constexpr static uint32_t BootloaderSize = 0x4000;
+
     loginfo("handling %s", "QUERY_STATUS");
 
     auto lock = storage_mutex.acquire(UINT32_MAX);
@@ -143,31 +179,6 @@ bool send_status(HttpRequest &req) {
 
     memory.log_statistics();
 
-    return true;
-}
-
-bool ApiHandler::handle(HttpRequest &req) {
-    if (req.content_type() != WellKnownContentType::ApplicationFkHttp) {
-        req.connection()->error("unexpected content-type");
-        return true;
-    }
-
-    auto query = req.query();
-    if (query == nullptr) {
-        req.connection()->error("missing query");
-        return true;
-    }
-
-    switch (query->type) {
-    case fk_app_QueryType_QUERY_STATUS: {
-        return send_status(req);
-    }
-    default: {
-        break;
-    }
-    }
-
-    req.connection()->error("unknown query type");
     return true;
 }
 
