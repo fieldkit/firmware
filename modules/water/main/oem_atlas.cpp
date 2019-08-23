@@ -44,6 +44,8 @@ Config config(AtlasSensorType type) {
 OemAtlas::OemAtlas(TwoWireWrapper &bus) : bus_(&bus) {
 }
 
+OemAtlas::OemAtlas(TwoWireWrapper &bus, uint8_t address, AtlasSensorType type) : bus_(&bus), address_(address), type_(type) {
+}
 
 bool OemAtlas::find() {
     for (auto address : { EC_DEFAULT_ADDRESS, TEMP_DEFAULT_ADDRESS, PH_DEFAULT_ADDRESS, DO_DEFAULT_ADDRESS, ORP_DEFAULT_ADDRESS }) {
@@ -84,6 +86,10 @@ const char *OemAtlas::name() const {
 
 AtlasSensorType OemAtlas::type() const {
     return type_;
+}
+
+uint8_t OemAtlas::address() const {
+    return address_;
 }
 
 bool OemAtlas::wake() {

@@ -41,6 +41,8 @@ bool ReadingsTaker::take(ModuleContext &mc, Pool &pool) {
 
     auto mm = get_modmux();
 
+    loginfo("initializing modules");
+
     for (auto pair : *modules) {
         auto module = pair.module;
         auto i = pair.found.position;

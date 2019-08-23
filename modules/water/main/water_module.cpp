@@ -12,6 +12,7 @@ bool WaterModule::initialize(ModuleContext mc, fk::Pool &pool) {
     }
 
     type_ = atlas.type();
+    address_ = atlas.address();
 
     return true;
 }
@@ -90,11 +91,7 @@ ModuleSensors const *WaterModule::get_sensors(ModuleContext mc, Pool &pool) {
 ModuleReadings *WaterModule::take_readings(ModuleContext mc, fk::Pool &pool) {
     FK_ASSERT(type_ != AtlasSensorType::Unknown);
 
-    auto atlas = OemAtlas{ mc.module_bus() };
-    if (!atlas.find()) {
-        return nullptr;
-    }
-
+    auto atlas = OemAtlas{ mc.module_bus(), address_, type_ };
     if (!atlas.wake()) {
         return nullptr;
     }
@@ -115,7 +112,7 @@ ModuleReadings *WaterModule::take_readings(ModuleContext mc, fk::Pool &pool) {
 
     auto mr = new(pool) NModuleReadings<ATLAS_MAXIMUM_VALUES>(number_of_values);
     for (auto i = 0; i < mr->size(); ++i) {
-        loginfo("atlas(%s) -> (value = %f)", atlas.name(), values[i]);
+        loginfo("atlas('%s') -> (value = %f)", atlas.name(), values[i]);
         mr->set(i, values[i]);
     }
 

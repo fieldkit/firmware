@@ -24,6 +24,7 @@ private:
 
 public:
     OemAtlas(TwoWireWrapper &bus);
+    OemAtlas(TwoWireWrapper &bus, uint8_t address, AtlasSensorType type);
 
 public:
     bool find();
@@ -37,6 +38,7 @@ public:
     bool read(float *values, size_t &number_of_values);
     const char *name() const;
     AtlasSensorType type() const;
+    uint8_t address() const;
 
 };
 
