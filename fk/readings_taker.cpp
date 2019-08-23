@@ -39,12 +39,31 @@ bool ReadingsTaker::take(ModuleContext &mc, Pool &pool) {
         return true;
     }
 
+    auto mm = get_modmux();
+
+    for (auto pair : *modules) {
+        auto module = pair.module;
+        auto i = pair.found.position;
+
+        if (i != 0xff) {
+            if (!mm->choose(i)) {
+                logerror("error choosing module");
+                return false;
+            }
+        }
+
+        if (!module->initialize(mc, pool)) {
+            logerror("error initializing module");
+            return false;
+        }
+    }
+
     if (!append_configuration(mc, *modules, meta, pool)) {
         logerror("error appending configuration");
         return false;
     }
 
-    Readings readings{ get_modmux() };
+    Readings readings{ mm };
     if (!readings.take_readings(mc, *modules, data.record(), pool)) {
         logerror("error taking readings");
         return false;
