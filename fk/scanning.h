@@ -31,4 +31,18 @@ private:
 
 };
 
+class StaticModuleScanning : public ModuleScanning {
+private:
+    FoundModuleCollection &found_;
+
+public:
+    StaticModuleScanning(FoundModuleCollection &found) : ModuleScanning(nullptr), found_(found) {
+    }
+
+public:
+    nonstd::optional<FoundModuleCollection> scan(Pool &pool) override {
+        return found_;
+    }
+};
+
 }

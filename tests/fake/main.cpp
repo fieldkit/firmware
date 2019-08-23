@@ -51,20 +51,6 @@ static void signal_handler(int32_t s){
     fake.stop();
 }
 
-class StaticModuleScanning : public ModuleScanning {
-private:
-    FoundModuleCollection &found_;
-
-public:
-    StaticModuleScanning(FoundModuleCollection &found) : ModuleScanning(nullptr), found_(found) {
-    }
-
-public:
-    nonstd::optional<FoundModuleCollection> scan(Pool &pool) override {
-        return found_;
-    }
-};
-
 static void setup_fake_data() {
     auto memory = MemoryFactory::get_data_memory();
 
@@ -93,7 +79,7 @@ static void setup_fake_data() {
             });
 
         StaticModuleScanning scanning(found);
-        ReadingsTaker readings_taker{ scanning, storage };
+        ReadingsTaker readings_taker{ scanning, storage, get_modmux() };
 
         loginfo("writing fake data");
 

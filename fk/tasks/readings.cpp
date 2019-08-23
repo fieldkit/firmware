@@ -1,6 +1,7 @@
 #include <fk-data-protocol.h>
 
 #include "tasks/tasks.h"
+
 #include "hal/hal.h"
 #include "readings_taker.h"
 
@@ -15,16 +16,15 @@ static void configure_module(uint8_t position) __attribute__((unused));
 
 void task_handler_readings(void *params) {
     auto lock = storage_mutex.acquire(UINT32_MAX);
+
+    FK_ASSERT(lock);
+
     auto started = fk_uptime();
     auto pool = MallocPool{ "readings", ModuleMemoryAreaSize };
     auto memory_bus = get_board()->spi_flash();
     auto module_bus = get_board()->i2c_module();
     auto gs = get_global_state_ro();
-
     ModuleContext mc{ gs.get(), module_bus };
-
-    FK_ASSERT(lock);
-
     StatisticsMemory memory{ MemoryFactory::get_data_memory() };
     Storage storage{ &memory };
     if (!storage.begin()) {
@@ -36,7 +36,7 @@ void task_handler_readings(void *params) {
     }
 
     ModuleScanning scanning{ get_modmux() };
-    ReadingsTaker readings_taker{ scanning, storage };
+    ReadingsTaker readings_taker{ scanning, storage, get_modmux() };
     readings_taker.take(mc, pool);
 
     memory.log_statistics();

@@ -17,17 +17,12 @@ namespace fk {
 
 FK_DECLARE_LOGGER("readings");
 
-static bool append_readings(Readings &readings, File &file, Pool &pool);
-
 static bool append_configuration(ModuleContext &mc, ConstructedModulesCollection &modules, File &file, Pool &pool);
 
-ReadingsTaker::ReadingsTaker(ModuleScanning &scanning, Storage &storage) : scanning_(scanning), storage_(storage) {
+ReadingsTaker::ReadingsTaker(ModuleScanning &scanning, Storage &storage, ModMux *mm) : scanning_(scanning), storage_(storage), readings_{ mm } {
 }
 
 bool ReadingsTaker::take(ModuleContext &mc, Pool &pool) {
-    auto data = storage_.file(Storage::Data);
-    auto meta = storage_.file(Storage::Meta);
-
     ModuleFactory module_factory(scanning_, &pool);
     auto modules = module_factory.create();
     if (!modules) {
@@ -57,18 +52,21 @@ bool ReadingsTaker::take(ModuleContext &mc, Pool &pool) {
         }
     }
 
+    auto meta = storage_.file(Storage::Meta);
+
     if (!append_configuration(mc, *modules, meta, pool)) {
         logerror("error appending configuration");
         return false;
     }
 
-    Readings readings{ mm };
-    if (!readings.take_readings(mc, *modules, data.record(), pool)) {
+    auto data = storage_.file(Storage::Data);
+
+    if (!readings_.take_readings(mc, *modules, data.record(), pool)) {
         logerror("error taking readings");
         return false;
     }
 
-    if (!append_readings(readings, data, pool)) {
+    if (!append_readings(data, pool)) {
         logerror("error appending readings");
         return false;
     }
@@ -76,17 +74,15 @@ bool ReadingsTaker::take(ModuleContext &mc, Pool &pool) {
     return true;
 }
 
-static bool append_readings(Readings &readings, File &file, Pool &pool) {
-    for (auto i = 0; i < FK_READINGS_AMPLIFY_WRITES; ++i) {
-        auto bytes_wrote = file.write(&readings.record(), fk_data_DataRecord_fields);
-        if (bytes_wrote == 0) {
-            logerror("error saving readings");
-            return false;
-        }
-
-        loginfo("wrote %zd bytes (#%" PRIu32 ") (%" PRIu32 " bytes) (" PRADDRESS ")",
-                bytes_wrote, file.record() - 1, file.size(), file.tail());
+bool ReadingsTaker::append_readings(File &file, Pool &pool) {
+    auto bytes_wrote = file.write(&readings_.record(), fk_data_DataRecord_fields);
+    if (bytes_wrote == 0) {
+        logerror("error saving readings");
+        return false;
     }
+
+    loginfo("wrote %zd bytes (#%" PRIu32 ") (%" PRIu32 " bytes) (" PRADDRESS ")",
+            bytes_wrote, file.record() - 1, file.size(), file.tail());
 
     return true;
 }
