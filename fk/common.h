@@ -9,6 +9,8 @@
 
 #include <alogging/alogging.h>
 
+#include "debugging.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
