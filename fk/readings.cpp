@@ -38,11 +38,9 @@ bool Readings::take_readings(ModuleContext &mc, ConstructedModulesCollection con
         auto module = pair.module;
         auto i = pair.found.position;
 
-        if (i != 0xff) {
-            if (!mm_->choose(i)) {
-                logerror("error choosing module");
-                continue;
-            }
+        if (!mm_->choose(i)) {
+            logerror("error choosing module");
+            continue;
         }
 
         loginfo("'%s' mk=%02" PRIx32 "%02" PRIx32 " version=%" PRIu32, meta->name, meta->manufacturer, meta->kind, meta->version);

@@ -45,13 +45,10 @@ bool ReadingsTaker::take(ModuleContext &mc, Pool &pool) {
 
     for (auto pair : *modules) {
         auto module = pair.module;
-        auto i = pair.found.position;
 
-        if (i != 0xff) {
-            if (!mm->choose(i)) {
-                logerror("error choosing module");
-                return false;
-            }
+        if (!mm->choose(pair.found.position)) {
+            logerror("error choosing module");
+            return false;
         }
 
         if (!module->initialize(mc, pool)) {

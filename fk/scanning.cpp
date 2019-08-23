@@ -24,7 +24,7 @@ static bool add_virtual_module(FoundModuleCollection &headers, uint16_t kind) {
     header.crc = fk_module_header_sign(&header);
 
     headers.emplace_back(FoundModule{
-        .position = 0xff,
+        .position = ModMuxVirtualPosition,
         .header = header,
     });
 

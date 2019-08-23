@@ -2,6 +2,8 @@
 
 namespace fk {
 
+constexpr uint8_t ModMuxVirtualPosition = 0xff;
+
 class ModMux {
 protected:
     bool available_;

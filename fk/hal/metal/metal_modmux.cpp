@@ -84,6 +84,10 @@ bool MetalModMux::disable_all_modules() {
 }
 
 bool MetalModMux::choose(uint8_t position) {
+    if (position == ModMuxVirtualPosition) {
+        return true;
+    }
+
     if (!available_) {
         return false;
     }
