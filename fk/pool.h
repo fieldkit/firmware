@@ -80,6 +80,13 @@ public:
         return ptr;
     }
 
+    template<typename T, size_t N>
+    T *malloc_with(T (&&value)[N]) {
+        auto ptr = (T *)malloc(sizeof(T) * N);
+        memcpy(ptr, &value, sizeof(T) * N);
+        return ptr;
+    }
+
     template<typename T>
     T *malloc(size_t n) {
         return (T *)malloc(sizeof(T) * n);

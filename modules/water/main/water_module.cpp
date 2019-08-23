@@ -1,35 +1,97 @@
 #include "water_module.h"
 #include "platform.h"
-#include "oem_atlas.h"
 
 using namespace fk;
 
 FK_DECLARE_LOGGER("water");
 
 bool WaterModule::initialize(ModuleContext mc, fk::Pool &pool) {
-    loginfo("initialize");
+    auto atlas = OemAtlas{ mc.module_bus() };
+    if (!atlas.find()) {
+        return false;
+    }
+
+    type_ = atlas.type();
+
     return true;
 }
 
 ModuleSensors const *WaterModule::get_sensors(ModuleContext mc, Pool &pool) {
-    auto meta = pool.malloc<SensorMetadata>();
-    meta->name = "pH";
-    meta->unitOfMeasure = "";
+    switch (type_) {
+    case AtlasSensorType::Ec: {
+        auto meta = pool.malloc_with<SensorMetadata, 3>({
+            {
+                .name = "ec",
+                .unitOfMeasure = "µS/cm",
+            },
+            {
+                .name = "tds",
+                .unitOfMeasure = "ppm",
+            },
+            {
+                .name = "salinity",
+                .unitOfMeasure = "",
+            }
+        });
+        return pool.malloc_with<ModuleSensors>({
+            .nsensors = 3,
+            .sensors = meta,
+        });
+    }
+    case AtlasSensorType::Ph: {
+        auto meta = pool.malloc_with<SensorMetadata>({
+            .name = "ph",
+            .unitOfMeasure = "",
+        });
+        return pool.malloc_with<ModuleSensors>({
+            .nsensors = 1,
+            .sensors = meta,
+        });
+    }
+    case AtlasSensorType::Do: {
+        auto meta = pool.malloc_with<SensorMetadata>({
+            .name = "do",
+            .unitOfMeasure = "mg/L",
+        });
+        return pool.malloc_with<ModuleSensors>({
+            .nsensors = 1,
+            .sensors = meta,
+        });
+    }
+    case AtlasSensorType::Temp: {
+        auto meta = pool.malloc_with<SensorMetadata>({
+            .name = "temp",
+            .unitOfMeasure = "C",
+        });
+        return pool.malloc_with<ModuleSensors>({
+            .nsensors = 1,
+            .sensors = meta,
+        });
+    }
+    case AtlasSensorType::Orp: {
+        auto meta = pool.malloc_with<SensorMetadata>({
+            .name = "orp",
+            .unitOfMeasure = "mV",
+        });
+        return pool.malloc_with<ModuleSensors>({
+            .nsensors = 1,
+            .sensors = meta,
+        });
+    }
+    }
 
-    auto sensors = pool.malloc<ModuleSensors>();
+    logerror("unknown atlas module!");
 
-    *sensors = {
-        .nsensors = 1,
-        .sensors = meta,
-    };
+    FK_ASSERT(false);
 
-    return sensors;
+    return nullptr;
 }
 
 ModuleReadings *WaterModule::take_readings(ModuleContext mc, fk::Pool &pool) {
-    auto atlas = OemAtlas{ mc.module_bus() };
+    FK_ASSERT(type_ != AtlasSensorType::Unknown);
 
-    if (!atlas.find(PH_DEFAULT_ADDRESS)) {
+    auto atlas = OemAtlas{ mc.module_bus() };
+    if (!atlas.find()) {
         return nullptr;
     }
 

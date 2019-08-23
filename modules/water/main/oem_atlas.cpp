@@ -5,10 +5,15 @@ namespace fk {
 
 FK_DECLARE_LOGGER("atlas");
 
+static constexpr uint8_t EC_DEFAULT_ADDRESS = 0x64;
+static constexpr uint8_t TEMP_DEFAULT_ADDRESS = 0x68;
+static constexpr uint8_t PH_DEFAULT_ADDRESS = 0x65;
+static constexpr uint8_t DO_DEFAULT_ADDRESS = 0x67;
+static constexpr uint8_t ORP_DEFAULT_ADDRESS = 0x66;
+
 struct AtlasRegisters {
     static constexpr uint8_t DEVICE_TYPE = 0x00;
     static constexpr uint8_t LED = 0x05;
-
     static constexpr uint8_t EC_PROBE_TYPE = 0x08;
 };
 
@@ -39,10 +44,22 @@ Config config(AtlasSensorType type) {
 OemAtlas::OemAtlas(TwoWireWrapper &bus) : bus_(&bus) {
 }
 
+
+bool OemAtlas::find() {
+    for (auto address : { EC_DEFAULT_ADDRESS, TEMP_DEFAULT_ADDRESS, PH_DEFAULT_ADDRESS, DO_DEFAULT_ADDRESS, ORP_DEFAULT_ADDRESS }) {
+        if (find(address)) {
+            return true;
+        }
+    }
+
+    logerror("error reading device type");
+
+    return false;
+}
+
 bool OemAtlas::find(uint8_t address) {
     TwoWire16 d16;
     if (bus_->read_register_buffer(address, AtlasRegisters::DEVICE_TYPE, (uint8_t *)&d16, sizeof(d16)) != 0) {
-        logerror("error reading device type");
         return false;
     }
 
@@ -61,8 +78,12 @@ bool OemAtlas::find(uint8_t address) {
     return true;
 }
 
-const char *OemAtlas::name() {
+const char *OemAtlas::name() const {
     return config(type_).name;
+}
+
+AtlasSensorType OemAtlas::type() const {
+    return type_;
 }
 
 bool OemAtlas::wake() {
