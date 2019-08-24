@@ -17,14 +17,18 @@ bool LinuxDataMemory::begin() {
     size_ = BlockSize * NumberOfBlocks;
     if (memory_ == nullptr) {
         memory_ = (uint8_t *)malloc(size_);
+        memset(memory_, 0xff, size_);
     }
-    memset(memory_, 0xff, size_);
 
     log_.logging(false);
     log_.clear();
     log_.append(LogEntry{ OperationType::Opened, 0x0, memory_ });
 
     return true;
+}
+
+void LinuxDataMemory::erase_all() {
+    memset(memory_, 0xff, size_);
 }
 
 flash_geometry_t LinuxDataMemory::geometry() const {

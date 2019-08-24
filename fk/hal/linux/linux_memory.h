@@ -38,6 +38,9 @@ public:
     size_t erase_block(uint32_t address) override;
 
     size_t flush() override;
+
+    void erase_all();
+
 public:
     StorageLog &log() {
         return log_;

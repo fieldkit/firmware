@@ -32,6 +32,10 @@ protected:
         g_ = memory_->geometry();
         pool_.clear();
 
+        for (size_t i = 0; i < MemoryFactory::NumberOfDataMemoryBanks; ++i) {
+            banks_[i]->erase_all();
+        }
+
         memory_->begin();
 
         log_configure_level(LogLevels::INFO);
@@ -56,6 +60,10 @@ protected:
     }
 
 protected:
+    void enable_info() {
+        log_configure_level(LogLevels::INFO);
+    }
+
     void enable_debug() {
         log_configure_level(LogLevels::DEBUG);
     }

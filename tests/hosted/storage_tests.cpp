@@ -34,6 +34,42 @@ TEST_F(StorageSuite, WhenMounting) {
     ASSERT_TRUE(storage.clear());
 }
 
+TEST_F(StorageSuite, ErasingAndStartingOver) {
+    uint32_t version1;
+    uint32_t version2;
+
+    {
+        Storage storage{ memory_ };
+        ASSERT_TRUE(storage.clear());
+        auto file_write = storage.file(0);
+        ASSERT_TRUE(file_write.create());
+        write_reading(file_write);
+        version1 = storage.version();
+    }
+
+    loginfo("version #1 = %" PRIu32, version1);
+
+    // Now start over and write a little data.
+    {
+        Storage storage{ memory_ };
+        ASSERT_TRUE(storage.clear());
+        auto file_write = storage.file(0);
+        ASSERT_TRUE(file_write.create());
+        write_reading(file_write);
+        version2 = storage.version();
+        FK_ASSERT(version2 != version1);
+    }
+
+    loginfo("version #2 = %" PRIu32, version2);
+
+    // Now we open.
+    {
+        Storage storage{ memory_ };
+        ASSERT_TRUE(storage.begin());
+        FK_ASSERT(storage.version() == version2);
+    }
+}
+
 TEST_F(StorageSuite, AppendingARecord) {
     Storage storage{ memory_ };
 
@@ -47,6 +83,8 @@ TEST_F(StorageSuite, AppendingARecord) {
 
     auto expected = sizeof(BlockHeader) + sizeof(RecordHeader) + sizeof(data) + sizeof(RecordTail);
     ASSERT_EQ(file_write.tail(), expected);
+
+    ASSERT_TRUE(memory_->flush());
 
     ASSERT_TRUE(storage.begin());
 
@@ -84,6 +122,8 @@ TEST_F(StorageSuite, AppendingRecordsAcrossAPage) {
     auto expected = sizeof(BlockHeader) + sizeof(RecordHeader) + length + sizeof(RecordTail);
     ASSERT_EQ(file.tail(), expected);
 
+    ASSERT_TRUE(memory_->flush());
+
     ASSERT_TRUE(storage.begin());
 
     auto file_read = storage.file(0);
@@ -107,6 +147,8 @@ TEST_F(StorageSuite, AppendingMultipleRecords) {
     ASSERT_EQ(file_write.record(), (uint32_t)100);
 
     auto actual_tail = file_write.tail();
+
+    ASSERT_TRUE(memory_->flush());
 
     ASSERT_TRUE(storage.begin());
 
@@ -172,6 +214,8 @@ TEST_F(StorageSuite, ReadingARecord) {
     ASSERT_EQ(file.write(pattern.data, sizeof(pattern.data)), sizeof(pattern.data));
 
     ASSERT_EQ(file.size(), sizeof(pattern.data));
+
+    ASSERT_TRUE(memory_->flush());
 
     ASSERT_TRUE(storage.begin());
 
@@ -241,6 +285,8 @@ TEST_F(StorageSuite, SeekingToARecordWithSmallerFile) {
     SequentialPattern pattern;
     pattern.write(file_write, size);
 
+    ASSERT_TRUE(memory_->flush());
+
     {
         ASSERT_TRUE(storage.begin());
 
@@ -265,6 +311,8 @@ TEST_F(StorageSuite, ReadingAtEoF) {
 
     SequentialPattern pattern;
     pattern.write(file_write, 1024);
+
+    ASSERT_TRUE(memory_->flush());
 
     ASSERT_TRUE(storage.begin());
 
@@ -346,6 +394,10 @@ TEST_F(StorageSuite, WritingSequentiallyHasCorrectRecordNumbers) {
     ASSERT_EQ(file_write.size(), size);
     ASSERT_EQ(file_write.position(), size);
 
+    ASSERT_TRUE(memory_->flush());
+
+    ASSERT_TRUE(memory_->flush());
+
     ASSERT_TRUE(storage.begin());
 
     auto file_read = storage.file(0);
@@ -363,12 +415,15 @@ TEST_F(StorageSuite, WritingOncePerOpenHasCorrectRecordNumbers) {
         ASSERT_EQ(file_write.record(), (uint32_t)1);
     }
 
+    ASSERT_TRUE(memory_->flush());
+
     for (auto i = 0; i < 9; ++i) {
         ASSERT_TRUE(storage.begin());
         auto file_write = storage.file(0);
         ASSERT_TRUE(file_write.seek_end());
         pattern.write(file_write, 256);
         ASSERT_EQ(file_write.record(), (uint32_t)2 + i);
+        ASSERT_TRUE(memory_->flush());
     }
 }
 
@@ -410,6 +465,8 @@ TEST_F(StorageSuite, SeekingToAReading) {
         size += wrote;
     }
 
+    ASSERT_TRUE(memory_->flush());
+
     ASSERT_TRUE(storage.begin());
 
     auto file_read = storage.file(0);
@@ -436,6 +493,8 @@ TEST_F(StorageSuite, WritingThroughABlockClosingAndWritingAnother) {
         FK_ASSERT(wrote > 0);
         size += wrote;
     }
+
+    ASSERT_TRUE(memory_->flush());
 
     ASSERT_TRUE(storage.begin());
 

@@ -96,8 +96,15 @@ bool Storage::begin() {
     auto g = memory_->geometry();
     auto started = fk_uptime();
 
+    free_block_ = 0;
+    timestamp_ = 0;
+
     for (auto i = 0; i < NumberOfFiles; ++i) {
         files_[i] = { };
+    }
+
+    if (!memory_->begin()) {
+        return false;
     }
 
     // Look for the first available free block.
@@ -175,23 +182,28 @@ bool Storage::begin() {
 bool Storage::clear() {
     auto g = memory_->geometry();
 
+    free_block_ = 0;
+    timestamp_ = 0;
+    version_ = fk_random_i32(0, INT32_MAX);
+
+    for (auto i = 0; i < NumberOfFiles; ++i) {
+        files_[i] = { };
+    }
+
+    if (!memory_->begin()) {
+        return false;
+    }
+
     auto range = BlockRange{ 0, g.nblocks };
     while (!range.empty()) {
-        auto address = range.middle_block() * g.block_size;
+        uint32_t address = range.middle_block() * g.block_size;
+        logdebug("[" PRADDRESS "] erasing block", address);
         if (!memory_->erase_block(address)) {
             logerror("erase block " PRADDRESS " failed", address);
             return false;
         }
         range = range.first_half();
     }
-
-    for (auto i = 0; i < NumberOfFiles; ++i) {
-        files_[i] = { };
-    }
-
-    free_block_ = 0;
-    timestamp_ = 0;
-    version_ = fk_random_i32(0, INT32_MAX);
 
     return true;
 }
@@ -224,6 +236,7 @@ uint32_t Storage::allocate(uint8_t file, uint32_t overflow, uint32_t previous_ta
     FK_ASSERT(g.is_address_valid(address));
 
     // Erase new block and write header.
+    logdebug("[" PRADDRESS "] erasing block", address);
     if (!memory_->erase_block(address)) {
         logerror("allocate: erase failed");
         return InvalidAddress;

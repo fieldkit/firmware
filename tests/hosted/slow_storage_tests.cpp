@@ -25,6 +25,8 @@ TEST_F(SlowStorageSuite, LargeFiles) {
     ASSERT_EQ(file_write.size(), size);
     ASSERT_EQ(file_write.position(), size);
 
+    ASSERT_TRUE(memory_->flush());
+
     ASSERT_TRUE(storage.begin());
 
     auto file_read = storage.file(0);
@@ -76,6 +78,8 @@ TEST_F(SlowStorageSuite, LargeFilesMultiple) {
     ASSERT_EQ(file0_write.size(), (size_t)size);
     ASSERT_EQ(file1_write.position(), (size_t)size);
     ASSERT_EQ(file1_write.size(), (size_t)size);
+
+    ASSERT_TRUE(memory_->flush());
 
     ASSERT_TRUE(storage.begin());
 
@@ -132,6 +136,8 @@ TEST_F(SlowStorageSuite, LargeFilesMultipleOneMuchSmaller) {
     ASSERT_EQ(file0_write.size(), (size_t)size);
     ASSERT_EQ(file1_write.position(), smaller_size);
     ASSERT_EQ(file1_write.size(), smaller_size);
+
+    ASSERT_TRUE(memory_->flush());
 
     ASSERT_TRUE(storage.begin());
 
@@ -193,7 +199,7 @@ TEST_F(SlowStorageSuite, LotsOfIndividualWrites) {
     }
 }
 
-TEST_F(SlowStorageSuite, ErasingAndStartingOver) {
+TEST_F(SlowStorageSuite, ErasingLargeFsAndStartingOver) {
     uint32_t version1;
     uint32_t version2;
 
