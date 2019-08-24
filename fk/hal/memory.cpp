@@ -355,14 +355,14 @@ DataMemory *bank_pointers[]{ &banks[0] };
 
 #endif
 
-template<size_t PageSize, size_t N>
+template<typename PageStoreType, size_t PageSize, size_t N>
 class BasicPageCache : public PageCache {
 private:
-    PageStore *store_;
+    PageStoreType store_;
     CachedPage pages_[N];
 
 public:
-    BasicPageCache(PageStore *store) : store_(store) {
+    BasicPageCache(PageStoreType store) : store_(store) {
         for (size_t i = 0; i < N; ++i) {
             pages_[i] = { };
         }
@@ -414,7 +414,7 @@ public:
 
         logdebug("load page #%" PRIu32 " (%" PRIu32 ")", available->page, available->ts);
 
-        if (!store_->load_page(page * PageSize, available->ptr, PageSize)) {
+        if (!store_.load_page(page * PageSize, available->ptr, PageSize)) {
             return nullptr;
         }
 
@@ -467,7 +467,7 @@ public:
 
         logdebug("flush #%" PRIu32 "", page->page);
 
-        if (!store_->save_page(page->page * PageSize, page->ptr, PageSize)) {
+        if (!store_.save_page(page->page * PageSize, page->ptr, PageSize)) {
             return false;
         }
 
@@ -490,8 +490,7 @@ public:
 };
 
 BankedDataMemory memory{ bank_pointers, MemoryFactory::NumberOfDataMemoryBanks };
-MemoryPageStore page_store{ &memory };
-BasicPageCache<2048, 4> cache{ &page_store };
+BasicPageCache<MemoryPageStore, 2048, 4> cache{ { &memory } };
 CachingMemory caching_memory{ &memory, &cache };
 
 DataMemory **MemoryFactory::get_data_memory_banks() {

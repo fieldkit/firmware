@@ -351,7 +351,7 @@ TEST_F(StorageSuite, WritingProtobuf) {
     ASSERT_TRUE(storage.clear());
 
     fk_data_DataRecord record = fk_data_DataRecord_init_default;
-    record.log.uptime = 9359854936;
+    record.log.uptime = 935985493;
     record.log.time = 0;
     record.log.level = (uint32_t)LogLevels::INFO;
     record.log.facility.arg = (void *)"facility";

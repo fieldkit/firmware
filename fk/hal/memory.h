@@ -80,14 +80,7 @@ public:
 
 };
 
-class PageStore {
-public:
-    virtual bool load_page(uint32_t address, uint8_t *ptr, size_t size) = 0;
-    virtual bool save_page(uint32_t address, uint8_t const *ptr, size_t size) = 0;
-
-};
-
-class MemoryPageStore : public PageStore {
+class MemoryPageStore {
 private:
     DataMemory *target_;
 
@@ -95,8 +88,8 @@ public:
     MemoryPageStore(DataMemory *target);
 
 public:
-    bool load_page(uint32_t address, uint8_t *ptr, size_t size) override;
-    bool save_page(uint32_t address, uint8_t const *ptr, size_t size) override;
+    bool load_page(uint32_t address, uint8_t *ptr, size_t size);
+    bool save_page(uint32_t address, uint8_t const *ptr, size_t size);
 
 };
 
