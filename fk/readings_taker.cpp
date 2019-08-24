@@ -19,7 +19,9 @@ FK_DECLARE_LOGGER("readings");
 
 static bool append_configuration(ModuleContext &mc, ConstructedModulesCollection &modules, File &file, Pool &pool);
 
-ReadingsTaker::ReadingsTaker(ModuleScanning &scanning, Storage &storage, ModMux *mm) : scanning_(scanning), storage_(storage), readings_{ mm } {
+static bool initialize_modules(ModuleContext &mc, ConstructedModulesCollection &modules, ModMux *mm, Pool &pool);
+
+ReadingsTaker::ReadingsTaker(ModuleScanning &scanning, Storage &storage, ModMux *mm) : scanning_(scanning), storage_(storage), readings_{ mm }, mm_(mm) {
 }
 
 bool ReadingsTaker::take(ModuleContext &mc, Pool &pool) {
@@ -34,22 +36,8 @@ bool ReadingsTaker::take(ModuleContext &mc, Pool &pool) {
         return true;
     }
 
-    auto mm = get_modmux();
-
-    loginfo("initializing modules");
-
-    for (auto pair : *modules) {
-        auto module = pair.module;
-
-        if (!mm->choose(pair.found.position)) {
-            logerror("error choosing module");
-            return false;
-        }
-
-        if (!module->initialize(mc, pool)) {
-            logerror("error initializing module");
-            return false;
-        }
+    if (!initialize_modules(mc, *modules, mm_, pool)) {
+        return false;
     }
 
     auto meta = storage_.file(Storage::Meta);
@@ -83,6 +71,26 @@ bool ReadingsTaker::append_readings(File &file, Pool &pool) {
 
     loginfo("wrote %zd bytes (#%" PRIu32 ") (%" PRIu32 " bytes) (" PRADDRESS ")",
             bytes_wrote, file.record() - 1, file.size(), file.tail());
+
+    return true;
+}
+
+static bool initialize_modules(ModuleContext &mc, ConstructedModulesCollection &modules, ModMux *mm, Pool &pool) {
+    loginfo("initializing modules");
+
+    for (auto pair : modules) {
+        auto module = pair.module;
+
+        if (!mm->choose(pair.found.position)) {
+            logerror("error choosing module");
+            return false;
+        }
+
+        if (!module->initialize(mc, pool)) {
+            logerror("error initializing module");
+            return false;
+        }
+    }
 
     return true;
 }

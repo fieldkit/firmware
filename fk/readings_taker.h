@@ -14,6 +14,7 @@ private:
     ModuleScanning &scanning_;
     Storage &storage_;
     Readings readings_;
+    ModMux *mm_;
 
 public:
     ReadingsTaker(ModuleScanning &scanning, Storage &storage, ModMux *mm);
