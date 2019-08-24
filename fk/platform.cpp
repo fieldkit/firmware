@@ -50,6 +50,7 @@ uint32_t fkb_external_vprintf(const char *str, va_list args) {
 
 void __fk_assert(const char *assertion, const char *file, int32_t line, const char *f, ...) {
     fprintf(stderr, "\n\nassertion \"%s\" failed: file \"%s\", line %" PRIu32 "\n", assertion, file, line);
+    exit(2);
 }
 
 #endif // __SAMD51__
