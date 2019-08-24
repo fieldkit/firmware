@@ -50,6 +50,7 @@ size_t File::write_record_header(size_t size) {
         if (record_ == InvalidRecord) {
             record_ = 0;
         }
+        left_in_block = g.remaining_in_block(tail_) - sizeof(BlockTail);
     }
 
     RecordHeader record_header;
