@@ -1,6 +1,7 @@
 #include "spi_flash.h"
 #include "platform.h"
 #include "utilities.h"
+#include "hal/metal/metal_ipc.h"
 
 #if defined(ARDUINO)
 
@@ -399,6 +400,11 @@ bool SpiFlash::transfer_command(uint8_t command, const uint8_t *data_w, uint8_t 
 }
 
 bool SpiFlash::transfer(uint8_t *command, uint32_t command_length, const uint8_t *data_w, uint8_t *data_r, uint32_t data_length) {
+    if (os_is_running()) {
+        auto lock = spi_flash_mutex.acquire(UINT32_MAX);
+        FK_ASSERT(lock);
+    }
+
     enable();
     SPI.beginTransaction(SpiSettings);
     for (uint32_t i = 0; i < command_length; ++i) {
