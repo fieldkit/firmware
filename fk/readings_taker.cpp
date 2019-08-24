@@ -37,6 +37,9 @@ bool ReadingsTaker::take(ModuleContext &mc, Pool &pool) {
     }
 
     auto meta = storage_.file(Storage::Meta);
+    if (!meta.seek_end()) {
+        FK_ASSERT(meta.create());
+    }
 
     if (!append_configuration(mc, *modules, meta, pool)) {
         logerror("error appending configuration");
@@ -44,6 +47,9 @@ bool ReadingsTaker::take(ModuleContext &mc, Pool &pool) {
     }
 
     auto data = storage_.file(Storage::Data);
+    if (!data.seek_end()) {
+        FK_ASSERT(data.create());
+    }
 
     if (!readings_.take_readings(mc, *modules, data.record(), pool)) {
         logerror("error taking readings");
@@ -95,15 +101,16 @@ bool ReadingsTaker::append_readings(File &file, Pool &pool) {
             return false;
         }
 
-        loginfo("wrote %zd bytes (#%" PRIu32 ") (%" PRIu32 " bytes) (" PRADDRESS ")",
-                bytes_wrote, file.previous_record(), file.size(), file.tail());
+        auto record = readings_.record().readings.reading;
+        loginfo("wrote %zd bytes (#%" PRIu32 ") (%" PRIu32 " bytes) #(%" PRIu32 ") (" PRADDRESS ")",
+                bytes_wrote, file.previous_record(), file.size(), record, file.tail());
     }
 
     return true;
 }
 
 bool ReadingsTaker::verify_reading_record(File &file, Pool &pool) {
-    if (!file.seek(LastRecord)) {
+    if (!file.seek_end()) {
         return false;
     }
 

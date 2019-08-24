@@ -27,8 +27,8 @@ static void log_hashed_data(const char *op, uint8_t file, uint32_t record, uint3
     #endif
 }
 
-File::File(Storage *storage, uint8_t file, FileHeader fh)
-    : storage_(storage), file_(file), tail_(fh.tail), record_(fh.record), version_{ storage->version_ }, position_(0), size_(fh.size) {
+File::File(Storage *storage, uint8_t file)
+    : storage_(storage), file_(file), version_{ storage->version_ }, position_(0) {
     FK_ASSERT(file_ < NumberOfFiles);
 }
 
@@ -47,6 +47,9 @@ size_t File::write_record_header(size_t size) {
             tail_ += left_in_block;
         }
         tail_ = storage_->allocate(file_, 0, tail_);
+        if (record_ == InvalidRecord) {
+            record_ = 0;
+        }
     }
 
     RecordHeader record_header;
@@ -151,11 +154,25 @@ size_t File::write(uint8_t *record, size_t size) {
     return size;
 }
 
+bool File::seek_end() {
+    return seek(LastRecord);
+}
+
 bool File::seek(RecordReference reference) {
     tail_ = reference.address;
     position_ = reference.position;
     record_ = reference.record;
     record_remaining_ = 0;
+    return true;
+}
+
+bool File::create() {
+    record_ = 0;
+    position_ = 0;
+    size_ = 0;
+    record_remaining_ = 0;
+    record_size_ = 0;
+    tail_ = InvalidAddress;
     return true;
 }
 

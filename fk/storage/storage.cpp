@@ -395,7 +395,7 @@ SeekValue Storage::seek(SeekSettings settings) {
 File Storage::file(uint8_t file) {
     verify_opened();
 
-    return File{ this, file, files_[file] };
+    return File{ this, file };
 }
 
 uint32_t Storage::fsck() {

@@ -17,6 +17,8 @@ TEST_F(SlowStorageSuite, LargeFiles) {
     auto file_write = storage.file(0);
     size_t size = 10 * 1024 * 1024;
 
+    ASSERT_TRUE(file_write.create());
+
     StaticPattern pattern;
     pattern.write(file_write, size);
 
@@ -27,8 +29,9 @@ TEST_F(SlowStorageSuite, LargeFiles) {
 
     auto file_read = storage.file(0);
 
+    ASSERT_TRUE(file_read.seek_end());
     ASSERT_EQ(file_read.size(), size);
-    ASSERT_EQ(file_read.position(), (size_t)0);
+    ASSERT_EQ(file_read.position(), (size_t)size);
 
     pattern.verify(file_read, size);
 
@@ -44,6 +47,9 @@ TEST_F(SlowStorageSuite, LargeFilesMultiple) {
     auto file0_write = storage.file(0);
     auto file1_write = storage.file(1);
     auto size = 10 * 1024 * 1024;
+
+    ASSERT_TRUE(file0_write.create());
+    ASSERT_TRUE(file1_write.create());
 
     ASSERT_EQ(file0_write.position(), (size_t)0);
     ASSERT_EQ(file0_write.size(), (size_t)0);
@@ -75,7 +81,8 @@ TEST_F(SlowStorageSuite, LargeFilesMultiple) {
 
     auto file0_read = storage.file(0);
 
-    ASSERT_EQ(file0_read.position(), (size_t)0);
+    ASSERT_TRUE(file0_read.seek_end());
+    ASSERT_EQ(file0_read.position(), (size_t)size);
     ASSERT_EQ(file0_read.size(), (size_t)size);
 
     pattern.verify(file0_read, size);
@@ -85,7 +92,8 @@ TEST_F(SlowStorageSuite, LargeFilesMultiple) {
 
     auto file1_read = storage.file(1);
 
-    ASSERT_EQ(file1_read.position(), (size_t)0);
+    ASSERT_TRUE(file1_read.seek_end());
+    ASSERT_EQ(file1_read.position(), (size_t)size);
     ASSERT_EQ(file1_read.size(), (size_t)size);
 
     pattern.verify(file1_read, size);
@@ -101,6 +109,9 @@ TEST_F(SlowStorageSuite, LargeFilesMultipleOneMuchSmaller) {
     auto file0_write = storage.file(0);
     auto file1_write = storage.file(1);
     auto size = 10 * 1024 * 1024;
+
+    ASSERT_TRUE(file0_write.create());
+    ASSERT_TRUE(file1_write.create());
 
     StaticPattern pattern;
 
@@ -126,14 +137,16 @@ TEST_F(SlowStorageSuite, LargeFilesMultipleOneMuchSmaller) {
 
     auto file0_read = storage.file(0);
 
-    ASSERT_EQ(file0_read.position(), (size_t)0);
+    ASSERT_TRUE(file0_read.seek_end());
+    ASSERT_EQ(file0_read.position(), (size_t)size);
     ASSERT_EQ(file0_read.size(), (size_t)size);
 
     pattern.verify(file0_read, size);
 
     auto file1_read = storage.file(1);
 
-    ASSERT_EQ(file1_read.position(), (size_t)0);
+    ASSERT_TRUE(file1_read.seek_end());
+    ASSERT_EQ(file1_read.position(), (size_t)smaller_size);
     ASSERT_EQ(file1_read.size(), smaller_size);
 
     pattern.verify(file1_read, smaller_size);
@@ -148,6 +161,7 @@ TEST_F(SlowStorageSuite, LotsOfIndividualWrites) {
         Storage storage{ memory_ };
         ASSERT_TRUE(storage.clear());
         auto file_write = storage.file(0);
+        ASSERT_TRUE(file_write.create());
         auto wrote = write_reading(file_write);
         FK_ASSERT(wrote > 0);
         total_wrote += wrote;
@@ -157,6 +171,7 @@ TEST_F(SlowStorageSuite, LotsOfIndividualWrites) {
         Storage storage{ memory_ };
         ASSERT_TRUE(storage.begin());
         auto file_write = storage.file(0);
+        ASSERT_TRUE(file_write.seek_end());
         auto wrote = write_reading(file_write);
         FK_ASSERT(wrote > 0);
         total_wrote += wrote;
@@ -167,7 +182,7 @@ TEST_F(SlowStorageSuite, LotsOfIndividualWrites) {
         ASSERT_TRUE(storage.begin());
         auto file_read = storage.file(0);
 
-        ASSERT_TRUE(file_read.seek(LastRecord));
+        ASSERT_TRUE(file_read.seek_end());
         ASSERT_EQ(file_read.position(), total_wrote);
 
         ASSERT_TRUE(file_read.seek(0));
@@ -186,6 +201,7 @@ TEST_F(SlowStorageSuite, ErasingAndStartingOver) {
         Storage storage{ memory_ };
         ASSERT_TRUE(storage.clear());
         auto file_write = storage.file(0);
+        ASSERT_TRUE(file_write.create());
         auto bytes_to_write = memory_->geometry().block_size * 50;
         auto total_wrote = (size_t)0;
         while (total_wrote < bytes_to_write) {
@@ -203,6 +219,7 @@ TEST_F(SlowStorageSuite, ErasingAndStartingOver) {
         Storage storage{ memory_ };
         ASSERT_TRUE(storage.clear());
         auto file_write = storage.file(0);
+        ASSERT_TRUE(file_write.create());
         auto bytes_to_write = memory_->geometry().block_size * 5;
         auto total_wrote = (size_t)0;
         while (total_wrote < bytes_to_write) {

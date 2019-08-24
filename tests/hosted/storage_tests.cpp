@@ -38,6 +38,7 @@ TEST_F(StorageSuite, AppendingARecord) {
     ASSERT_TRUE(storage.clear());
 
     auto file_write = storage.file(0);
+    ASSERT_TRUE(file_write.create());
 
     uint8_t data[256] = { 0xcc };
     ASSERT_EQ(file_write.write(data, sizeof(data)), sizeof(data));
@@ -48,6 +49,8 @@ TEST_F(StorageSuite, AppendingARecord) {
     ASSERT_TRUE(storage.begin());
 
     auto file_read = storage.file(0);
+
+    ASSERT_TRUE(file_read.seek_end());
 
     ASSERT_EQ(file_read.tail(), expected);
 }
@@ -70,6 +73,7 @@ TEST_F(StorageSuite, AppendingRecordsAcrossAPage) {
     ASSERT_TRUE(storage.clear());
 
     auto file = storage.file(0);
+    ASSERT_TRUE(file.create());
 
     auto length = g_.page_size + 128;
     auto data = (uint8_t *)pool_.malloc(length);
@@ -81,6 +85,7 @@ TEST_F(StorageSuite, AppendingRecordsAcrossAPage) {
     ASSERT_TRUE(storage.begin());
 
     auto file_read = storage.file(0);
+    ASSERT_TRUE(file_read.seek_end());
     ASSERT_EQ(file_read.tail(), expected);
 }
 
@@ -90,6 +95,7 @@ TEST_F(StorageSuite, AppendingMultipleRecords) {
     ASSERT_TRUE(storage.clear());
 
     auto file_write = storage.file(0);
+    ASSERT_TRUE(file_write.create());
 
     for (auto i = 0; i < 100; ++i) {
         uint8_t data[256] = { (uint8_t)i };
@@ -103,7 +109,7 @@ TEST_F(StorageSuite, AppendingMultipleRecords) {
     ASSERT_TRUE(storage.begin());
 
     auto file_read = storage.file(0);
-
+    ASSERT_TRUE(file_read.seek_end());
     ASSERT_EQ(file_read.tail(), actual_tail);
     ASSERT_EQ(file_read.record(), (uint32_t)100);
     ASSERT_EQ(file_read.size(), (uint32_t)25600);
@@ -115,7 +121,9 @@ TEST_F(StorageSuite, AppendingToMultipleFiles) {
     ASSERT_TRUE(storage.clear());
 
     auto file0 = storage.file(0);
+    ASSERT_TRUE(file0.create());
     auto file1 = storage.file(1);
+    ASSERT_TRUE(file1.create());
 
     uint8_t data0[256];
     memset(data0, 0x00, sizeof(data0));
@@ -138,6 +146,7 @@ TEST_F(StorageSuite, FillingABlock) {
     ASSERT_TRUE(storage.clear());
 
     auto file = storage.file(0);
+    ASSERT_TRUE(file.create());
 
     auto length = 1024;
     auto data = (uint8_t *)pool_.malloc(length);
@@ -154,6 +163,7 @@ TEST_F(StorageSuite, ReadingARecord) {
     ASSERT_TRUE(storage.clear());
 
     auto file = storage.file(0);
+    ASSERT_TRUE(file.create());
 
     StaticPattern pattern;
 
@@ -178,6 +188,8 @@ TEST_F(StorageSuite, SeekingToARecord) {
 
     auto file_write = storage.file(0);
     auto size = 10 * 1024 * 1024;
+
+    ASSERT_TRUE(file_write.create());
 
     SequentialPattern pattern;
     pattern.write(file_write, size);
@@ -219,6 +231,8 @@ TEST_F(StorageSuite, SeekingToARecordWithSmallerFile) {
     auto file_write = storage.file(0);
     auto size = (size_t)256 * 1000;
 
+    ASSERT_TRUE(file_write.create());
+
     SequentialPattern pattern;
     pattern.write(file_write, size);
 
@@ -227,7 +241,7 @@ TEST_F(StorageSuite, SeekingToARecordWithSmallerFile) {
 
         auto file_read = storage.file(0);
 
-        ASSERT_TRUE(file_read.seek(LastRecord));
+        ASSERT_TRUE(file_read.seek_end());
         ASSERT_EQ(file_read.position(), size);
 
         ASSERT_TRUE(file_read.seek(0));
@@ -242,6 +256,8 @@ TEST_F(StorageSuite, ReadingAtEoF) {
 
     auto file_write = storage.file(0);
 
+    ASSERT_TRUE(file_write.create());
+
     SequentialPattern pattern;
     pattern.write(file_write, 1024);
 
@@ -252,7 +268,7 @@ TEST_F(StorageSuite, ReadingAtEoF) {
 
     auto file_read = storage.file(0);
 
-    ASSERT_TRUE(file_read.seek(LastRecord));
+    ASSERT_TRUE(file_read.seek_end());
 
     ASSERT_EQ(file_read.read(data, sizeof(data)), (size_t)0);
 }
@@ -263,6 +279,8 @@ TEST_F(StorageSuite, ReadingBackSingleRecord) {
     ASSERT_TRUE(storage.clear());
 
     auto file_write = storage.file(0);
+
+    ASSERT_TRUE(file_write.create());
 
     SequentialPattern pattern;
     pattern.write(file_write, 256);
@@ -289,6 +307,7 @@ TEST_F(StorageSuite, WritingProtobuf) {
     record.log.message.funcs.encode = pb_encode_string;
 
     auto file_write = storage.file(0);
+    ASSERT_TRUE(file_write.create());
 
     ASSERT_EQ(file_write.write(&record, fk_data_DataRecord_fields), (size_t)29);
 
@@ -312,6 +331,7 @@ TEST_F(StorageSuite, WritingSequentiallyHasCorrectRecordNumbers) {
     ASSERT_TRUE(storage.clear());
 
     auto file_write = storage.file(0);
+    ASSERT_TRUE(file_write.create());
 
     for (auto i = 0; i < 10; ++i) {
         pattern.write(file_write, 256);
@@ -333,6 +353,7 @@ TEST_F(StorageSuite, WritingOncePerOpenHasCorrectRecordNumbers) {
     {
         ASSERT_TRUE(storage.clear());
         auto file_write = storage.file(0);
+        ASSERT_TRUE(file_write.create());
         pattern.write(file_write, 256);
         ASSERT_EQ(file_write.record(), (uint32_t)1);
     }
@@ -340,6 +361,7 @@ TEST_F(StorageSuite, WritingOncePerOpenHasCorrectRecordNumbers) {
     for (auto i = 0; i < 9; ++i) {
         ASSERT_TRUE(storage.begin());
         auto file_write = storage.file(0);
+        ASSERT_TRUE(file_write.seek_end());
         pattern.write(file_write, 256);
         ASSERT_EQ(file_write.record(), (uint32_t)2 + i);
     }
@@ -353,6 +375,7 @@ TEST_F(StorageSuite, ClearingAfterWritingToFiles) {
 
     auto file_write = storage.file(0);
     size_t size = 256 * 10;
+    ASSERT_TRUE(file_write.create());
     pattern.write(file_write, size);
     ASSERT_EQ(file_write.size(), size);
     ASSERT_EQ(file_write.position(), size);
@@ -372,6 +395,8 @@ TEST_F(StorageSuite, SeekingToAReading) {
     auto file_write = storage.file(0);
     auto size = file_write.size();
 
+    ASSERT_TRUE(file_write.create());
+
     for (auto i = 0; i < 1000; ++i) {
         auto wrote = write_reading(file_write);
         FK_ASSERT(wrote > 0);
@@ -382,7 +407,7 @@ TEST_F(StorageSuite, SeekingToAReading) {
 
     auto file_read = storage.file(0);
 
-    ASSERT_TRUE(file_read.seek(LastRecord));
+    ASSERT_TRUE(file_read.seek_end());
     ASSERT_EQ(file_read.position(), size);
 
     ASSERT_TRUE(file_read.seek(0));
@@ -397,6 +422,8 @@ TEST_F(StorageSuite, WritingThroughABlockClosingAndWritingAnother) {
     auto file_write1 = storage.file(0);
     auto size = file_write1.size();
 
+    ASSERT_TRUE(file_write1.create());
+
     for (auto i = 0; i < 600; ++i) {
         auto wrote = write_reading(file_write1);
         FK_ASSERT(wrote > 0);
@@ -406,6 +433,7 @@ TEST_F(StorageSuite, WritingThroughABlockClosingAndWritingAnother) {
     ASSERT_TRUE(storage.begin());
 
     auto file_write2 = storage.file(0);
+    ASSERT_TRUE(file_write2.seek_end());
 
     for (auto i = 0; i < 1500; ++i) {
         auto wrote = write_reading(file_write2);
@@ -415,7 +443,7 @@ TEST_F(StorageSuite, WritingThroughABlockClosingAndWritingAnother) {
 
     auto file_read = storage.file(0);
 
-    ASSERT_TRUE(file_read.seek(LastRecord));
+    ASSERT_TRUE(file_read.seek_end());
     ASSERT_EQ(file_read.position(), size);
 
     ASSERT_TRUE(file_read.seek(0));
@@ -427,6 +455,7 @@ TEST_F(StorageSuite, SeekingWithinOneBlock) {
         Storage storage{ memory_ };
         ASSERT_TRUE(storage.clear());
         auto file0 = storage.file(0);
+        ASSERT_TRUE(file0.create());
         auto wrote = write_reading(file0);
         ASSERT_GT(wrote, (uint32_t)0);
     }
@@ -442,7 +471,7 @@ TEST_F(StorageSuite, SeekingWithinOneBlock) {
         Storage storage{ memory_ };
         ASSERT_TRUE(storage.begin());
         auto file0 = storage.file(0);
-        ASSERT_TRUE(file0.seek(LastRecord));
+        ASSERT_TRUE(file0.seek_end());
     }
 }
 
@@ -451,6 +480,7 @@ TEST_F(StorageSuite, SeekingBeginningUnwrittenSecondFile) {
         Storage storage{ memory_ };
         ASSERT_TRUE(storage.clear());
         auto file0 = storage.file(0);
+        ASSERT_TRUE(file0.create());
         auto wrote = write_reading(file0);
         ASSERT_GT(wrote, (uint32_t)0);
     }
@@ -470,6 +500,7 @@ TEST_F(StorageSuite, SeekingBeginningUnwrittenSecondFileWhenWritingSecond) {
         Storage storage{ memory_ };
         ASSERT_TRUE(storage.clear());
         auto file1 = storage.file(1);
+        ASSERT_TRUE(file1.create());
         auto wrote = write_reading(file1);
         ASSERT_GT(wrote, (uint32_t)0);
     }
@@ -489,6 +520,7 @@ TEST_F(StorageSuite, SeekingEndUnwrittenSecondFile) {
         Storage storage{ memory_ };
         ASSERT_TRUE(storage.clear());
         auto file0 = storage.file(0);
+        ASSERT_TRUE(file0.create());
         auto wrote = write_reading(file0);
         ASSERT_GT(wrote, (uint32_t)0);
     }
@@ -497,9 +529,9 @@ TEST_F(StorageSuite, SeekingEndUnwrittenSecondFile) {
         Storage storage{ memory_ };
         ASSERT_TRUE(storage.begin());
         auto file0 = storage.file(0);
-        ASSERT_TRUE(file0.seek(LastRecord));
+        ASSERT_TRUE(file0.seek_end());
         auto file1 = storage.file(1);
-        ASSERT_FALSE(file1.seek(LastRecord));
+        ASSERT_FALSE(file1.seek_end());
     }
 }
 
@@ -508,6 +540,7 @@ TEST_F(StorageSuite, SeekingSmallSecondFile) {
         Storage storage{ memory_ };
         ASSERT_TRUE(storage.clear());
         auto file1 = storage.file(1);
+        ASSERT_TRUE(file1.create());
         auto wrote = write_reading(file1);
         ASSERT_GT(wrote, (uint32_t)0);
     }
@@ -528,7 +561,8 @@ TEST_F(StorageSuite, SeekingToEndOfFileBeforeWriting) {
     clear_statistics();
 
     auto file = storage.file(0);
-    ASSERT_FALSE(file.seek(LastRecord));
+    ASSERT_FALSE(file.seek_end());
+    ASSERT_TRUE(file.create());
     ASSERT_GT(write_reading(file), (uint32_t)0);
 
     ASSERT_GT(statistics_memory_.statistics().nerases, (uint32_t)0);
@@ -540,18 +574,19 @@ TEST_F(StorageSuite, SeekingSmallSecondFileBeforeWriting) {
 
     auto file1n1 = storage.file(1);
     ASSERT_FALSE(file1n1.seek(0));
-    ASSERT_FALSE(file1n1.seek(LastRecord));
+    ASSERT_FALSE(file1n1.seek_end());
 
     {
         auto file1n2 = storage.file(1);
         ASSERT_FALSE(file1n2.seek(0));
-        ASSERT_FALSE(file1n2.seek(LastRecord));
+        ASSERT_FALSE(file1n2.seek_end());
+        ASSERT_TRUE(file1n2.create());
         ASSERT_GT(write_reading(file1n2), (uint32_t)0);
     }
     {
         auto file1n2 = storage.file(1);
-        (file1n2.seek(0));
-        (file1n2.seek(LastRecord));
+        ASSERT_TRUE(file1n2.seek(0));
+        ASSERT_TRUE(file1n2.seek_end());
         ASSERT_GT(write_reading(file1n2), (uint32_t)0);
     }
 }
@@ -562,13 +597,13 @@ TEST_F(StorageSuite, SeekingSetsPositionCorrectly) {
 
     auto file = storage.file(1);
     ASSERT_FALSE(file.seek(0));
-    ASSERT_FALSE(file.seek(LastRecord));
+    ASSERT_FALSE(file.seek_end());
     ASSERT_GT(write_reading(file), (uint32_t)0);
 
     auto position1 = file.position();
 
     ASSERT_TRUE(file.seek(0));
-    ASSERT_TRUE(file.seek(LastRecord));
+    ASSERT_TRUE(file.seek_end());
 
     auto position2 = file.position();
     ASSERT_EQ(position2, position1);
@@ -580,7 +615,8 @@ TEST_F(StorageSuite, SeekingAndReadingAndSeekingSetsPositionCorrectly) {
 
     auto file = storage.file(1);
     ASSERT_FALSE(file.seek(0));
-    ASSERT_FALSE(file.seek(LastRecord));
+    ASSERT_FALSE(file.seek_end());
+    ASSERT_TRUE(file.create());
     ASSERT_GT(write_reading(file), (uint32_t)0);
 
     auto position1 = file.position();
@@ -606,4 +642,31 @@ TEST_F(StorageSuite, SeekingToEndOfFileWithNoRecordsInLastBlock) {
     // get a first record.
     Storage storage{ memory_ };
     ASSERT_TRUE(storage.clear());
+}
+
+TEST_F(StorageSuite, SeekingToBeginningWhenBeginningSecondFileAFewBlocksAfterFirstFile) {
+    Storage storage{ memory_ };
+    ASSERT_TRUE(storage.clear());
+
+    auto file_write0 = storage.file(0);
+    ASSERT_TRUE(file_write0.create());
+    auto size = (uint32_t)0;
+    while (size < g_.block_size * 2) {
+        auto wrote = write_reading(file_write0);
+        size += wrote;
+    }
+    ASSERT_EQ(file_write0.position() / g_.block_size, (uint32_t)2);
+
+    auto file_write1 = storage.file(1);
+    ASSERT_TRUE(file_write1.create());
+    auto wrote1 = write_reading(file_write1);
+
+    auto file_read0 = storage.file(0);
+    ASSERT_TRUE(file_read0.seek_end());
+    ASSERT_EQ(file_read0.size(), size);
+
+    auto file_read1 = storage.file(1);
+    ASSERT_TRUE(file_read1.seek_end());
+    ASSERT_EQ(file_read1.record(), (uint32_t)1);
+    ASSERT_EQ(file_read1.size(), wrote1);
 }

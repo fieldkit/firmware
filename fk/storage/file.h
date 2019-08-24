@@ -43,10 +43,12 @@ private:
     BLAKE2b hash_;
 
 public:
-    File(Storage *storage, uint8_t file, FileHeader fh);
+    File(Storage *storage, uint8_t file);
     virtual ~File();
 
 public:
+    bool create();
+    bool seek_end();
     bool seek(uint32_t record);
     bool seek(RecordReference reference);
     size_t write(uint8_t *record, size_t size);
