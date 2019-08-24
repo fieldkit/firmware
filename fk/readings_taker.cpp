@@ -70,7 +70,7 @@ bool ReadingsTaker::append_readings(File &file, Pool &pool) {
     }
 
     loginfo("wrote %zd bytes (#%" PRIu32 ") (%" PRIu32 " bytes) (" PRADDRESS ")",
-            bytes_wrote, file.record() - 1, file.size(), file.tail());
+            bytes_wrote, file.previous_record(), file.size(), file.tail());
 
     return true;
 }

@@ -77,6 +77,10 @@ public:
         return record_;
     }
 
+    uint32_t previous_record() const {
+        return record_ - 1;
+    }
+
     uint32_t position() const {
         return position_;
     }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.h"
+#include "containers.h"
 #include "config.h"
 #include "hal/modmux.h"
 #include "modules/modules.h"

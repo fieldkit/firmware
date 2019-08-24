@@ -3,10 +3,6 @@
 #include <inttypes.h>
 #include <string.h>
 
-#include <algorithm>
-#include <nonstd/optional.hpp>
-#include <list>
-
 #include <alogging/alogging.h>
 
 #include "debugging.h"

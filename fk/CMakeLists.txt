@@ -22,7 +22,7 @@ function(fk_add_builtin_module name)
 
   add_arduino_library(${target_name} "${sources}")
   set_target_properties(${target_name} PROPERTIES LINK_WHOLE_LIBRARY YES)
-  target_include_directories(${target_name} PUBLIC ${CMAKE_SOURCE_DIR}/fk ${CMAKE_SOURCE_DIR}/third-party/nonstd)
+  target_include_directories(${target_name} PUBLIC ${CMAKE_SOURCE_DIR}/fk ${CMAKE_SOURCE_DIR}/third-party/nonstd ${CMAKE_SOURCE_DIR}/third-party/tl)
   target_link_libraries(fk-bundled ${target_name})
 
   find_package(arduino-logging)
@@ -49,7 +49,7 @@ file(GLOB_RECURSE sources *.cpp *.c *.h)
 
 add_arduino_library(fk-bundled "${sources}")
 
-target_include_directories(fk-bundled PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/third-party/nonstd)
+target_include_directories(fk-bundled PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/third-party/nonstd ${CMAKE_SOURCE_DIR}/third-party/tl)
 
 target_compile_options(fk-bundled PRIVATE -Wall -Werror -DFK_HARDWARE_FULL)
 

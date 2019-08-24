@@ -55,6 +55,6 @@ target_link_libraries(fake ConservifyOS)
 find_package(Phylum)
 target_link_libraries(fake phylum)
 
-target_include_directories(fake PRIVATE ../../fk ${CMAKE_SOURCE_DIR}/third-party/nonstd ../hosted)
+target_include_directories(fake PRIVATE ../../fk ../hosted ${CMAKE_SOURCE_DIR}/third-party/nonstd ${CMAKE_SOURCE_DIR}/third-party/tl)
 target_compile_options(fake PUBLIC -Wall -Werror -Wno-variadic-macros)
 target_link_libraries(fake ${CMAKE_THREAD_LIBS_INIT})
