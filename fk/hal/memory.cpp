@@ -339,14 +339,17 @@ private:
 
 public:
     BasicPageCache(PageStore *store) : store_(store) {
+        for (size_t i = 0; i < N; ++i) {
+            pages_[i] = { };
+        }
     }
 
 public:
     CachedPage *get_page(uint32_t address) override {
-        auto page = address / PageSize;
         CachedPage *available = nullptr;
         CachedPage *old = nullptr;
 
+        auto page = address / PageSize;
         for (size_t i = 0; i < N; ++i) {
             auto p = &pages_[i];
             if (p->ts == 0) {
@@ -355,9 +358,10 @@ public:
             }
             else {
                 if (p->page == page) {
+                    logdebug("existing page #%" PRIu32 " (%" PRIu32 ")", p->page, p->ts);
                     return p;
                 }
-                if (old == nullptr || old->ts < p->ts) {
+                if (old == nullptr || old->ts > p->ts) {
                     old = p;
                 }
             }
@@ -380,6 +384,8 @@ public:
         available->ts = fk_uptime();
         available->page = page;
         available->dirty = false;
+
+        logdebug("load page #%" PRIu32, available->page);
 
         if (!store_->load_page(page * PageSize, available->ptr, PageSize)) {
             return nullptr;
@@ -413,11 +419,11 @@ public:
         for (size_t i = 0; i < N; ++i) {
             auto p = &pages_[i];
             if (p->dirty) {
-                logerror("invalidate ALL DIRTY (%" PRIu32 ")", p->page);
+                logerror("invalidate(all) DIRTY (%" PRIu32 ")", p->page);
                 FK_ASSERT(!p->dirty);
             }
             else if (p->ts > 0) {
-                logdebug("invalidate ALL (%" PRIu32 ")", p->page);
+                logdebug("invalidate(all) (%" PRIu32 ")", p->page);
             }
             p->dirty = false;
             p->ts = 0;
@@ -432,7 +438,7 @@ public:
             return true;
         }
 
-        logdebug("flush (%" PRIu32 ")", page->page);
+        logdebug("flush #%" PRIu32 "", page->page);
 
         if (!store_->save_page(page->page * PageSize, page->ptr, PageSize)) {
             return false;

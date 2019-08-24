@@ -101,10 +101,10 @@ public:
 };
 
 struct CachedPage {
-    uint32_t ts;
-    uint32_t page;
-    uint8_t *ptr;
-    bool dirty;
+    uint32_t ts{ 0 };
+    uint32_t page{ 0 };
+    uint8_t *ptr{ nullptr };
+    bool dirty{ false };
 
     void mark_dirty() {
         dirty = true;
