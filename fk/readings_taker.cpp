@@ -55,6 +55,11 @@ bool ReadingsTaker::take(ModuleContext &mc, Pool &pool) {
         return false;
     }
 
+    if (!verify_reading_record(data, pool)) {
+        logerror("error verifying readings");
+        return false;
+    }
+
     return true;
 }
 
@@ -67,6 +72,20 @@ bool ReadingsTaker::append_readings(File &file, Pool &pool) {
 
     loginfo("wrote %zd bytes (#%" PRIu32 ") (%" PRIu32 " bytes) (" PRADDRESS ")",
             bytes_wrote, file.previous_record(), file.size(), file.tail());
+
+    return true;
+}
+
+bool ReadingsTaker::verify_reading_record(File &file, Pool &pool) {
+    if (!file.seek(LastRecord)) {
+        return false;
+    }
+
+    auto &record = readings_.record();
+
+    if (file.previous_record() != record.readings.reading) {
+        return false;
+    }
 
     return true;
 }
