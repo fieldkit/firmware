@@ -98,13 +98,19 @@ uint32_t fk_fake_uptime(std::vector<uint32_t> more) {
     return uptimes.size();
 }
 
+static uint32_t started = 0;
+
 uint32_t fk_uptime() {
     if (uptimes.size() > 0) {
         auto time = uptimes.front();
         uptimes.pop();
         return time;
     }
-    return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+    auto machine_uptime = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+    if (started == 0) {
+        started = machine_uptime;
+    }
+    return machine_uptime - started;
 }
 
 uint32_t fk_delay(uint32_t ms) {
