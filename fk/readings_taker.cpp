@@ -17,10 +17,6 @@ namespace fk {
 
 FK_DECLARE_LOGGER("readings");
 
-static bool append_configuration(ModuleContext &mc, ConstructedModulesCollection &modules, File &file, Pool &pool);
-
-static bool initialize_modules(ModuleContext &mc, ConstructedModulesCollection &modules, ModMux *mm, Pool &pool);
-
 ReadingsTaker::ReadingsTaker(ModuleScanning &scanning, Storage &storage, ModMux *mm) : scanning_(scanning), storage_(storage), readings_{ mm }, mm_(mm) {
 }
 
@@ -75,7 +71,7 @@ bool ReadingsTaker::append_readings(File &file, Pool &pool) {
     return true;
 }
 
-static bool initialize_modules(ModuleContext &mc, ConstructedModulesCollection &modules, ModMux *mm, Pool &pool) {
+bool ReadingsTaker::initialize_modules(ModuleContext &mc, ConstructedModulesCollection &modules, ModMux *mm, Pool &pool) {
     loginfo("initializing modules");
 
     for (auto pair : modules) {
@@ -95,7 +91,7 @@ static bool initialize_modules(ModuleContext &mc, ConstructedModulesCollection &
     return true;
 }
 
-static bool append_configuration(ModuleContext &mc, ConstructedModulesCollection &modules, File &file, Pool &pool) {
+bool ReadingsTaker::append_configuration(ModuleContext &mc, ConstructedModulesCollection &modules, File &file, Pool &pool) {
     auto module_infos = pool.malloc<fk_data_ModuleInfo>(modules.size());
 
     auto index = 0;
