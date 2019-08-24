@@ -7,12 +7,14 @@ namespace fk {
 
 class SpiFlash {
 private:
-    constexpr static uint32_t PageSize = 2048;
-    constexpr static uint32_t BlockSize = 2048 * 64;
-    constexpr static uint32_t NumberOfBlocks = 2048;
     constexpr static uint32_t SpiFlashReadyMs = 10;
     constexpr static uint32_t SpiFlashTimeoutMs = 500;
     constexpr static uint32_t IdSize = 16;
+
+public:
+    constexpr static uint32_t PageSize = 2048;
+    constexpr static uint32_t BlockSize = 2048 * 64;
+    constexpr static uint32_t NumberOfBlocks = 2048;
 
     enum class Status {
         Unknown,
@@ -24,9 +26,6 @@ private:
     Status status_{ Status::Unknown };
     uint8_t cs_;
     uint8_t id_[IdSize];
-    bool cached_dirty_{ false };
-    uint32_t cached_page_{ ((uint32_t)-1) };
-    uint8_t cache_[PageSize];
 
 public:
     SpiFlash(uint8_t cs);
@@ -41,8 +40,6 @@ public:
     int32_t write(uint32_t address, const uint8_t *data, size_t length);
 
     int32_t erase_block(uint32_t address);
-
-    bool flush();
 
     const uint8_t *id() const {
         return id_;

@@ -115,62 +115,49 @@ bool SpiFlash::begin() {
 int32_t SpiFlash::read(uint32_t address, uint8_t *data, size_t length) {
     FK_ASSERT_LE((address % PageSize) + length, PageSize);
 
-    if ((cached_page_ / PageSize) != (address / PageSize)) {
-        uint8_t read_cell_command[] = { CMD_READ_CELL_ARRAY, 0x00, 0x00, 0x00 }; // 7dummy/17 (Row)
-        uint8_t read_buffer_command[] = { CMD_READ_BUFFER, 0x00, 0x00, 0x00 };   // 4dummy/12/8dummy // (Col)
+    uint8_t read_cell_command[] = { CMD_READ_CELL_ARRAY, 0x00, 0x00, 0x00 }; // 7dummy/17 (Row)
+    uint8_t read_buffer_command[] = { CMD_READ_BUFFER, 0x00, 0x00, 0x00 };   // 4dummy/12/8dummy // (Col)
 
-        if (cached_dirty_) {
-            if (!flush()) {
-                logerror("read: flush failed");
-                return 0;
-            }
-        }
+    row_address_to_bytes(address, read_cell_command + 1);
+    column_address_to_bytes(address, read_buffer_command + 1);
 
-        row_address_to_bytes(address, read_cell_command + 1);
-        // column_address_to_bytes(address, read_buffer_command + 1);
-
-        if (!is_ready()) {
-            logerror("read: !ready");
-            return 0;
-        }
-
-        /* Disable high speed read mode. */
-        // set_feature(CMD_REGISTER_2, 0x14);
-
-        /* Load page into buffer. */
-        if (!complex_command(read_cell_command, sizeof(read_cell_command))) {
-            logerror("read: read cell failed");
-            return 0;
-        }
-
-        /* Wait for buffer to fill with data from cell array. */
-        if (!is_ready(false)) {
-            logerror("read: read cell !ready");
-            return 0;
-        }
-
-        /* Read the buffer in. */
-        if (!transfer(read_buffer_command, sizeof(read_buffer_command), nullptr, cache_, PageSize)) {
-            logerror("read: read buffer failed");
-            return 0;
-        }
-
-        cached_page_ = address;
+    if (!is_ready()) {
+        logerror("read: !ready");
+        return 0;
     }
 
-    if (data != nullptr) {
-        memcpy(data, cache_ + (address % PageSize), length);
+    /* Disable high speed read mode. */
+    // set_feature(CMD_REGISTER_2, 0x14);
+
+    /* Load page into buffer. */
+    if (!complex_command(read_cell_command, sizeof(read_cell_command))) {
+        logerror("read: read cell failed");
+        return 0;
+    }
+
+    /* Wait for buffer to fill with data from cell array. */
+    if (!is_ready(false)) {
+        logerror("read: read cell !ready");
+        return 0;
+    }
+
+    /* Read the buffer in. */
+    if (!transfer(read_buffer_command, sizeof(read_buffer_command), nullptr, data, length)) {
+        logerror("read: read buffer failed");
+        return 0;
     }
 
     return length;
 }
 
-bool SpiFlash::flush() {
+int32_t SpiFlash::write(uint32_t address, const uint8_t *data, size_t length) {
+    FK_ASSERT_LE((address % PageSize) + length, PageSize);
+
     uint8_t program_load_command[] = { CMD_PROGRAM_LOAD, 0x00, 0x00 }; // 4dummy/12
     uint8_t program_execute_command[] = { CMD_PROGRAM_EXECUTE, 0x00, 0x00, 0x00 }; // 7dummy/17
 
-    row_address_to_bytes(cached_page_, program_execute_command + 1);
-    // column_address_to_bytes(cached_page_, program_load_command + 1);
+    row_address_to_bytes(address, program_execute_command + 1);
+    column_address_to_bytes(address, program_load_command + 1);
 
     if (!is_ready()) {
         logerror("flush: !ready");
@@ -182,7 +169,7 @@ bool SpiFlash::flush() {
         return 0;
     }
 
-    if (!transfer(program_load_command, sizeof(program_load_command), cache_, nullptr, PageSize)) {
+    if (!transfer(program_load_command, sizeof(program_load_command), data, nullptr, length)) {
         logerror("flush: program load failed");
         return 0;
     }
@@ -203,39 +190,12 @@ bool SpiFlash::flush() {
         return 0;
     }
 
-    cached_dirty_ = false;
-
-    return true;
-}
-
-int32_t SpiFlash::write(uint32_t address, const uint8_t *data, size_t length) {
-    if ((cached_page_ / PageSize) != (address / PageSize)) {
-        // NOTE: PageSize is weird here, I know... we return the length on
-        // success though so this is easier than changing things completely just
-        // for this scenario.
-        auto page_address = ((size_t)(address / PageSize)) * PageSize;
-        if (!read(page_address, NULL, PageSize)) {
-            logerror("write: read failed");
-            return 0;
-        }
-    }
-
-    FK_ASSERT_LE((address % PageSize) + length, PageSize);
-
-    memcpy(cache_ + (address % PageSize), data, length);
-
-    cached_dirty_ = true;
-
     return length;
 }
 
 int32_t SpiFlash::erase_block(uint32_t address) {
     uint8_t command[] = { CMD_ERASE_BLOCK, 0x00, 0x00, 0x00 }; // 7dummy/17 (Row)
     row_address_to_bytes(address, command + 1);
-
-    if ((cached_page_ / PageSize) == (address / PageSize)) {
-        cached_page_ = ((uint32_t)-1);
-    }
 
     if (!is_ready()) {
         logerror("erase: !ready");

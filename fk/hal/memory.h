@@ -2,6 +2,7 @@
 
 #include "common.h"
 #include "config.h"
+#include "platform.h"
 
 namespace fk {
 
@@ -76,6 +77,70 @@ public:
     bool available() {
         return geometry().total_size > 0;
     }
+
+};
+
+class PageStore {
+public:
+    virtual bool load_page(uint32_t address, uint8_t *ptr, size_t size) = 0;
+    virtual bool save_page(uint32_t address, uint8_t const *ptr, size_t size) = 0;
+
+};
+
+class MemoryPageStore : public PageStore {
+private:
+    DataMemory *target_;
+
+public:
+    MemoryPageStore(DataMemory *target);
+
+public:
+    bool load_page(uint32_t address, uint8_t *ptr, size_t size) override;
+    bool save_page(uint32_t address, uint8_t const *ptr, size_t size) override;
+
+};
+
+struct CachedPage {
+    uint32_t ts;
+    uint32_t page;
+    uint8_t *ptr;
+    bool dirty;
+
+    void mark_dirty() {
+        dirty = true;
+        ts = fk_uptime();
+    }
+};
+
+class PageCache {
+public:
+    virtual CachedPage *get_page(uint32_t address) = 0;
+    virtual size_t invalidate(uint32_t address) = 0;
+    virtual size_t invalidate() = 0;
+    virtual bool flush(CachedPage *page) = 0;
+    virtual bool flush() = 0;
+};
+
+class CachingMemory : public DataMemory {
+private:
+    DataMemory *target_;
+    PageCache *cache_;
+
+public:
+    CachingMemory(DataMemory *target, PageCache *cache);
+
+public:
+    bool begin() override;
+
+    flash_geometry_t geometry() const override;
+
+    size_t read(uint32_t address, uint8_t *data, size_t length) override;
+
+    size_t write(uint32_t address, const uint8_t *data, size_t length) override;
+
+    size_t erase_block(uint32_t address) override;
+
+    size_t flush() override;
 
 };
 

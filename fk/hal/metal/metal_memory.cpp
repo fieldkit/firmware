@@ -29,7 +29,7 @@ size_t MetalDataMemory::erase_block(uint32_t address) {
 }
 
 size_t MetalDataMemory::flush() {
-    return flash_.flush();
+    return true;
 }
 
 }

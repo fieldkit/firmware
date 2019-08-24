@@ -23,6 +23,8 @@ TEST_F(StorageSuite, WhenMountingUnformatted) {
     uint8_t data[256] = { 0xcc };
     ASSERT_EQ(file_write.write(data, sizeof(data)), sizeof(data));
 
+    ASSERT_TRUE(memory_->flush());
+
     ASSERT_TRUE(storage.begin());
 }
 
@@ -181,6 +183,7 @@ TEST_F(StorageSuite, ReadingARecord) {
     pattern.verify_record(file);
 }
 
+// NOTE: Why is this fast?
 TEST_F(StorageSuite, SeekingToARecord) {
     Storage storage{ memory_ };
 
@@ -193,6 +196,8 @@ TEST_F(StorageSuite, SeekingToARecord) {
 
     SequentialPattern pattern;
     pattern.write(file_write, size);
+
+    ASSERT_TRUE(memory_->flush());
 
     {
         ASSERT_TRUE(storage.begin());
@@ -379,6 +384,8 @@ TEST_F(StorageSuite, ClearingAfterWritingToFiles) {
     pattern.write(file_write, size);
     ASSERT_EQ(file_write.size(), size);
     ASSERT_EQ(file_write.position(), size);
+
+    ASSERT_TRUE(memory_->flush());
 
     ASSERT_TRUE(storage.clear());
     file_write = storage.file(0);

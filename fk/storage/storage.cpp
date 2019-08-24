@@ -82,7 +82,9 @@ Storage::Storage(DataMemory *memory) : memory_(memory) {
 
 Storage::~Storage() {
     if (memory_ != nullptr) {
-        memory_->flush();
+        if (!memory_->flush()) {
+            logerror("flush failed");
+        }
     }
 }
 

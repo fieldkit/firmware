@@ -75,12 +75,14 @@ size_t BankedDataMemory::erase_block(uint32_t address) {
 }
 
 size_t BankedDataMemory::flush() {
-    size_t flushed = 0;
+    auto failed = false;
     for (size_t i = 0; i < size_; ++i) {
         auto bank = memories_[i];
-        flushed += bank->flush();
+        if (!bank->flush()) {
+            failed = true;
+        }
     }
-    return flushed;
+    return !failed;
 }
 
 SequentialMemory::SequentialMemory(DataMemory *memory) : memory_(memory) {
@@ -186,12 +188,97 @@ size_t StatisticsMemory::erase_block(uint32_t address) {
     return target_->erase_block(address);
 }
 
+size_t StatisticsMemory::flush() {
+    return target_->flush();
+}
+
 MemoryStatistics &StatisticsMemory::statistics() {
     return statistics_;
 }
 
-size_t StatisticsMemory::flush() {
-    return target_->flush();
+MemoryPageStore::MemoryPageStore(DataMemory *target) : target_(target) {
+}
+
+bool MemoryPageStore::load_page(uint32_t address, uint8_t *ptr, size_t size) {
+    auto page_size = target_->geometry().page_size;
+    auto page_address = ((uint32_t)(address / page_size)) * page_size;
+    FK_ASSERT(page_size == size);
+    return target_->read(page_address, ptr, size) == size;
+}
+
+bool MemoryPageStore::save_page(uint32_t address, uint8_t const *ptr, size_t size) {
+    auto page_size = target_->geometry().page_size;
+    auto page_address = ((uint32_t)(address / page_size)) * page_size;
+    FK_ASSERT(page_size == size);
+    return target_->write(page_address, ptr, size) == size;
+}
+
+CachingMemory::CachingMemory(DataMemory *target, PageCache *cache) : target_(target), cache_(cache) {
+}
+
+bool CachingMemory::begin() {
+    if (!target_->begin()) {
+        return false;
+    }
+
+    if (!cache_->invalidate()) {
+        return false;
+    }
+
+    return true;
+}
+
+flash_geometry_t CachingMemory::geometry() const {
+    return target_->geometry();
+}
+
+size_t CachingMemory::read(uint32_t address, uint8_t *data, size_t length) {
+    auto page_size = target_->geometry().page_size;
+    auto page = cache_->get_page(address);
+    if (page == nullptr) {
+        logerror("page lookup failed");
+        return 0;
+    }
+    FK_ASSERT(page->ptr != nullptr);
+    memcpy(data, page->ptr + (address % page_size), length);
+    return length;
+}
+
+size_t CachingMemory::write(uint32_t address, const uint8_t *data, size_t length) {
+    auto page_size = target_->geometry().page_size;
+    auto page = cache_->get_page(address);
+    if (page == nullptr) {
+        logerror("page lookup failed");
+        return 0;
+    }
+    FK_ASSERT(page->ptr != nullptr);
+    memcpy(page->ptr + (address % page_size), data, length);
+    page->mark_dirty();
+    return length;
+}
+
+size_t CachingMemory::erase_block(uint32_t address) {
+    if (!target_->erase_block(address)) {
+        return false;
+    }
+
+    FK_ASSERT(cache_->invalidate(address));
+
+    return true;
+}
+
+size_t CachingMemory::flush() {
+    if (!target_->flush()) {
+        logerror("memory flush failed");
+        return false;
+    }
+
+    if (!cache_->flush()) {
+        logerror("cache flush failed");
+        return false;
+    }
+
+    return true;
 }
 
 #if defined(FK_HARDWARE_FULL)
@@ -244,14 +331,142 @@ DataMemory *bank_pointers[]{ &banks[0] };
 
 #endif
 
+template<size_t PageSize, size_t N>
+class BasicPageCache : public PageCache {
+private:
+    PageStore *store_;
+    CachedPage pages_[N];
+
+public:
+    BasicPageCache(PageStore *store) : store_(store) {
+    }
+
+public:
+    CachedPage *get_page(uint32_t address) override {
+        auto page = address / PageSize;
+        CachedPage *available = nullptr;
+        CachedPage *old = nullptr;
+
+        for (size_t i = 0; i < N; ++i) {
+            auto p = &pages_[i];
+            if (p->ts == 0) {
+                available = p;
+                old = p;
+            }
+            else {
+                if (p->page == page) {
+                    return p;
+                }
+                if (old == nullptr || old->ts < p->ts) {
+                    old = p;
+                }
+            }
+        }
+
+        FK_ASSERT(old != nullptr);
+
+        if (available == nullptr) {
+            if (!flush(old)) {
+                return nullptr;
+            }
+            available = old;
+        }
+
+        FK_ASSERT(available != nullptr);
+
+        if (available->ptr == nullptr) {
+            available->ptr = (uint8_t *)malloc(PageSize);
+        }
+        available->ts = fk_uptime();
+        available->page = page;
+        available->dirty = false;
+
+        if (!store_->load_page(page * PageSize, available->ptr, PageSize)) {
+            return nullptr;
+        }
+
+        return available;
+    }
+
+    size_t invalidate(uint32_t address) override {
+        uint32_t page = address / PageSize;
+        for (size_t i = 0; i < N; ++i) {
+            auto p = &pages_[i];
+            if (p->page == page) {
+                if (p->dirty) {
+                    logerror("invalidate DIRTY (%" PRIu32 ")", page);
+                    FK_ASSERT(!p->dirty);
+                }
+                else if (p->ts > 0) {
+                    logdebug("invalidate (%" PRIu32 ")", page);
+                }
+                p->dirty = false;
+                p->ts = 0;
+                p->page = 0;
+            }
+        }
+
+        return true;
+    }
+
+    size_t invalidate() override {
+        for (size_t i = 0; i < N; ++i) {
+            auto p = &pages_[i];
+            if (p->dirty) {
+                logerror("invalidate ALL DIRTY (%" PRIu32 ")", p->page);
+                FK_ASSERT(!p->dirty);
+            }
+            else if (p->ts > 0) {
+                logdebug("invalidate ALL (%" PRIu32 ")", p->page);
+            }
+            p->dirty = false;
+            p->ts = 0;
+            p->page = 0;
+        }
+
+        return true;
+    }
+
+    bool flush(CachedPage *page) override {
+        if (!page->dirty) {
+            return true;
+        }
+
+        logdebug("flush (%" PRIu32 ")", page->page);
+
+        if (!store_->save_page(page->page * PageSize, page->ptr, PageSize)) {
+            return false;
+        }
+
+        page->dirty = false;
+
+        return true;
+    }
+
+    bool flush() override {
+        for (size_t i = 0; i < N; ++i) {
+            if (!flush(&pages_[i])) {
+                logerror("flush page failed");
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+};
+
 BankedDataMemory memory{ bank_pointers, MemoryFactory::NumberOfDataMemoryBanks };
+MemoryPageStore page_store{ &memory };
+BasicPageCache<2048, 4> cache{ &page_store };
+CachingMemory caching_memory{ &memory, &cache };
 
 DataMemory **MemoryFactory::get_data_memory_banks() {
     return bank_pointers;
 }
 
 DataMemory *MemoryFactory::get_data_memory() {
-    return &memory;
+    return &caching_memory;
 }
 
 }

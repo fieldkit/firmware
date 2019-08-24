@@ -74,7 +74,9 @@ size_t LinuxDataMemory::write(uint32_t address, const uint8_t *data, size_t leng
     assert(address >= start_of_block && address + length <= start_of_block + BlockSize);
 
     auto p = memory_ + address;
-    verify_erased(address, p, length);
+    if (false) {
+        verify_erased(address, p, length);
+    }
     memcpy(p, data, length);
 
     log_.append(LogEntry{ OperationType::Write, address, p, length });
@@ -95,7 +97,7 @@ size_t LinuxDataMemory::erase_block(uint32_t address) {
 }
 
 size_t LinuxDataMemory::flush() {
-    return 0;
+    return true;
 }
 
 }
