@@ -50,40 +50,13 @@ bool ReadingsTaker::take(ModuleContext &mc, Pool &pool) {
         return false;
     }
 
+
     if (!append_readings(data, pool)) {
         logerror("error appending readings");
         return false;
     }
 
     if (!verify_reading_record(data, pool)) {
-        logerror("error verifying readings");
-        return false;
-    }
-
-    return true;
-}
-
-bool ReadingsTaker::append_readings(File &file, Pool &pool) {
-    auto bytes_wrote = file.write(&readings_.record(), fk_data_DataRecord_fields);
-    if (bytes_wrote == 0) {
-        logerror("error saving readings");
-        return false;
-    }
-
-    loginfo("wrote %zd bytes (#%" PRIu32 ") (%" PRIu32 " bytes) (" PRADDRESS ")",
-            bytes_wrote, file.previous_record(), file.size(), file.tail());
-
-    return true;
-}
-
-bool ReadingsTaker::verify_reading_record(File &file, Pool &pool) {
-    if (!file.seek(LastRecord)) {
-        return false;
-    }
-
-    auto &record = readings_.record();
-
-    if (file.previous_record() != record.readings.reading) {
         return false;
     }
 
@@ -105,6 +78,40 @@ bool ReadingsTaker::initialize_modules(ModuleContext &mc, ConstructedModulesColl
             logerror("error initializing module");
             return false;
         }
+    }
+
+    return true;
+}
+
+bool ReadingsTaker::append_readings(File &file, Pool &pool) {
+    for (auto i = 0; i < FK_READINGS_AMPLIFY_WRITES; ++i) {
+        if (i > 0) {
+            // NOTE: This is necessary when we're amplifying.
+            readings_.record().readings.reading++;
+        }
+        auto bytes_wrote = file.write(&readings_.record(), fk_data_DataRecord_fields);
+        if (bytes_wrote == 0) {
+            logerror("error saving readings");
+            return false;
+        }
+
+        loginfo("wrote %zd bytes (#%" PRIu32 ") (%" PRIu32 " bytes) (" PRADDRESS ")",
+                bytes_wrote, file.previous_record(), file.size(), file.tail());
+    }
+
+    return true;
+}
+
+bool ReadingsTaker::verify_reading_record(File &file, Pool &pool) {
+    if (!file.seek(LastRecord)) {
+        return false;
+    }
+
+    auto &record = readings_.record();
+
+    if (file.previous_record() != record.readings.reading) {
+        logerror("unexpected record (%" PRIu32 " != %" PRIu32 ")", file.previous_record(), record.readings.reading);
+        return false;
     }
 
     return true;

@@ -13,7 +13,7 @@ namespace fk {
 /**
  * Writes this many more readings per round to more rigorously test the storage system.
  */
-#define FK_READINGS_AMPLIFY_WRITES        (1)
+#define FK_READINGS_AMPLIFY_WRITES        (100)
 
 /**
  * Maximum number of memory banks we're capable of supporting.
