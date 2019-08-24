@@ -92,6 +92,7 @@ bool Storage::valid_block_header(BlockHeader &header) const {
 
 bool Storage::begin() {
     auto g = memory_->geometry();
+    auto started = fk_uptime();
 
     for (auto i = 0; i < NumberOfFiles; ++i) {
         files_[i] = { };
@@ -103,7 +104,7 @@ bool Storage::begin() {
     while (!range.empty()) {
         BlockHeader block_header;
         auto address = range.middle_block() * g.block_size;
-        if (!memory_->read(address, (uint8_t *)&block_header, sizeof(block_header))) {
+        if (memory_->read(address, (uint8_t *)&block_header, sizeof(block_header)) != sizeof(block_header)) {
             logerror("[?] read failed " PRADDRESS, address);
             return false;
         }
@@ -132,34 +133,39 @@ bool Storage::begin() {
         return false;
     }
 
-    free_block_ = range.start;
+    auto block = range.start;
 
-    logtrace("found end (block = %" PRIu32 ") seeking...", free_block_);
+    while (true) {
+        auto head_address = (uint32_t)(g.block_size * block);
+        auto tail_address = head_address + g.block_size - sizeof(BlockTail);
 
-    // Make sure our header records are fully up to date by seeking to the end
-    // of each file.
-    for (auto file = (uint8_t)0; file < NumberOfFiles; ++file) {
-        if (is_address_valid(files_[file].tail)) {
-            auto sv = seek(SeekSettings::end_of(file));
-            if (!sv.valid()) {
-                return false;
-            }
-
-            files_[file].tail = sv.address;
-            files_[file].size = sv.position;
-            files_[file].record = sv.record;
-
-            if (sv.block >= free_block_) {
-                free_block_ = sv.block + 1;
-            }
-
-            if (sv.timestamp > timestamp_) {
-                timestamp_ = sv.timestamp;
-            }
+        BlockHeader block_header;
+        if (memory_->read(head_address, (uint8_t *)&block_header, sizeof(block_header)) != sizeof(block_header)) {
+            return 0;
         }
+
+        if (!valid_block_header(block_header)) {
+            break;
+        }
+
+        BlockTail block_tail;
+        if (memory_->read(tail_address, (uint8_t *)&block_tail, sizeof(block_tail)) != sizeof(block_tail)) {
+            return false;
+        }
+
+        if (!is_address_valid(block_tail.linked)) {
+            block++;
+            break;
+        }
+
+        FK_ASSERT(block != block_tail.linked);
+
+        block = block_tail.linked;
     }
 
-    logtrace("opened (block = %" PRIu32 ") (v = %" PRIu32 ")", free_block_, version_);
+    free_block_ = block;
+
+    logdebug("found end (block = %" PRIu32 ") (%" PRIu32 "ms)", free_block_, fk_uptime() - started);
 
     return true;
 }
@@ -255,6 +261,10 @@ uint32_t Storage::allocate(uint8_t file, uint32_t overflow, uint32_t previous_ta
         BlockTail block_tail;
         block_tail.linked = address;
         block_tail.fill_hash();
+
+        auto start_of_previous_block = previous_tail_address - (g.block_size - sizeof(BlockTail));
+        FK_ASSERT(address != start_of_previous_block);
+
         if (memory_->write(previous_tail_address, (uint8_t *)&block_tail, sizeof(BlockTail)) != sizeof(BlockTail)) {
             logerror("allocate: write tail failed");
             return 0;

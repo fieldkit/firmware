@@ -189,6 +189,7 @@ bool File::seek(uint32_t record) {
     record_size_ = 0;
     if (record == LastRecord) {
         size_ = position_;
+        update();
     }
 
     return true;

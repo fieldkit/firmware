@@ -184,6 +184,7 @@ TEST_F(SlowStorageSuite, LotsOfIndividualWrites) {
 
         ASSERT_TRUE(file_read.seek_end());
         ASSERT_EQ(file_read.position(), total_wrote);
+        ASSERT_EQ(file_read.size(), total_wrote);
 
         ASSERT_TRUE(file_read.seek(0));
         ASSERT_EQ(file_read.position(), (size_t)0);
