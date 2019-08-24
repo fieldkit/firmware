@@ -5,6 +5,7 @@
 #include "hal/linux/linux_memory.h"
 #include "board.h"
 #include "config.h"
+#include "utilities.h"
 
 namespace fk {
 
@@ -203,13 +204,16 @@ bool MemoryPageStore::load_page(uint32_t address, uint8_t *ptr, size_t size) {
     auto page_size = target_->geometry().page_size;
     auto page_address = ((uint32_t)(address / page_size)) * page_size;
     FK_ASSERT(page_size == size);
-    return target_->read(page_address, ptr, size) == size;
+    auto rv = target_->read(page_address, ptr, size) == size;
+    // fk_dump_memory("RD-PAGE ", ptr, page_size);
+    return rv;
 }
 
 bool MemoryPageStore::save_page(uint32_t address, uint8_t const *ptr, size_t size) {
     auto page_size = target_->geometry().page_size;
     auto page_address = ((uint32_t)(address / page_size)) * page_size;
     FK_ASSERT(page_size == size);
+    // fk_dump_memory("WR-PAGE ", ptr, page_size);
     return target_->write(page_address, ptr, size) == size;
 }
 
@@ -241,8 +245,21 @@ size_t CachingMemory::read(uint32_t address, uint8_t *data, size_t length) {
     }
     FK_ASSERT(page->ptr != nullptr);
     memcpy(data, page->ptr + (address % page_size), length);
+    // fk_dump_memory("RD-DATA ", data, length);
     return length;
 }
+
+#if defined(linux)
+static void verify_erased(uint32_t address, uint8_t *p, size_t length) {
+    for (size_t i = 0; i < length; ++i) {
+        if (*p != 0xff) {
+            logerror("corruption: 0x%x", address);
+            assert(*p == 0xff);
+        }
+        p++;
+    }
+}
+#endif
 
 size_t CachingMemory::write(uint32_t address, const uint8_t *data, size_t length) {
     auto page_size = target_->geometry().page_size;
@@ -252,8 +269,15 @@ size_t CachingMemory::write(uint32_t address, const uint8_t *data, size_t length
         return 0;
     }
     FK_ASSERT(page->ptr != nullptr);
-    memcpy(page->ptr + (address % page_size), data, length);
+
+    auto p = page->ptr + (address % page_size);
+    #if defined(linux)
+    verify_erased(address, p, length);
+    #endif
+
+    memcpy(p, data, length);
     page->mark_dirty();
+    // fk_dump_memory("CM-PAGE ", page->ptr, page_size);
     return length;
 }
 
@@ -349,9 +373,12 @@ public:
         CachedPage *available = nullptr;
         CachedPage *old = nullptr;
 
-        auto page = address / PageSize;
+        uint32_t page = address / PageSize;
+        logverbose("get page #%" PRIu32, page);
+
         for (size_t i = 0; i < N; ++i) {
             auto p = &pages_[i];
+            logverbose("page[%zd] page=#%" PRIu32 " ts=%" PRIu32 " %s", i, p->page, p->ts, p->dirty ? "dirty": "");
             if (p->ts == 0) {
                 available = p;
                 old = p;
@@ -381,11 +408,11 @@ public:
         if (available->ptr == nullptr) {
             available->ptr = (uint8_t *)malloc(PageSize);
         }
-        available->ts = fk_uptime();
+        available->ts = fk_uptime() + 1;
         available->page = page;
         available->dirty = false;
 
-        logdebug("load page #%" PRIu32, available->page);
+        logdebug("load page #%" PRIu32 " (%" PRIu32 ")", available->page, available->ts);
 
         if (!store_->load_page(page * PageSize, available->ptr, PageSize)) {
             return nullptr;

@@ -108,7 +108,7 @@ struct CachedPage {
 
     void mark_dirty() {
         dirty = true;
-        ts = fk_uptime();
+        ts = fk_uptime() + 1;
     }
 };
 
