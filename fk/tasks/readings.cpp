@@ -37,7 +37,7 @@ void task_handler_readings(void *params) {
 
     ModuleScanning scanning{ get_modmux() };
     ReadingsTaker readings_taker{ scanning, storage, get_modmux() };
-    readings_taker.take(mc, pool);
+    FK_ASSERT(readings_taker.take(mc, pool));
 
     memory.log_statistics();
 
