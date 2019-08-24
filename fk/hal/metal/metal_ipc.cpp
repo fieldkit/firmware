@@ -93,6 +93,9 @@ bool Mutex::create() {
 }
 
 Mutex::Lock Mutex::acquire(uint32_t to) {
+    if (!os_is_running()) {
+        return { this };
+    }
     if (os_mutex_acquire(&mutex_, to) == OSS_SUCCESS) {
         return { this };
     }
@@ -100,8 +103,11 @@ Mutex::Lock Mutex::acquire(uint32_t to) {
 }
 
 bool Mutex::release() {
+    if (!os_is_running()) {
+        return true;
+    }
     os_mutex_release(&mutex_);
-    return false;
+    return true;
 }
 
 bool Mutex::is_owner() {

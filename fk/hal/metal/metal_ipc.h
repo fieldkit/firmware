@@ -27,6 +27,39 @@ public:
 
 };
 
+class NoopMutex {
+public:
+    class Lock {
+    public:
+        Lock() {
+        }
+        virtual ~Lock() {
+        }
+
+    public:
+        operator bool() {
+            return true;
+        }
+    };
+
+public:
+    bool create() {
+        return true;
+    }
+
+    Lock acquire(uint32_t to) {
+        return Lock{ };
+    }
+
+    bool release() {
+        return true;
+    }
+
+    bool is_owner() {
+        return true;
+    }
+};
+
 class Mutex {
 private:
     os_mutex_definition_t def_;
