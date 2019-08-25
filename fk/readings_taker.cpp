@@ -5,7 +5,7 @@
 #include "hal/hal.h"
 #include "module_factory.h"
 #include "clock.h"
-#include "protobuf.h"
+#include "records.h"
 #include "storage/signed_log.h"
 #include "state.h"
 #include "utilities.h"
@@ -182,18 +182,13 @@ bool ReadingsTaker::append_configuration(ModuleContext &mc, ConstructedModulesCo
     auto hash_size = fkb_header.firmware.hash_size;
     auto hash_hex = bytes_to_hex_string_pool(fkb_header.firmware.hash, hash_size, pool);
 
-    fk_data_DataRecord record = fk_data_DataRecord_init_default;
-    record.metadata.firmware.git.funcs.encode = pb_encode_string;
+    auto record = fk_data_record_encoding_new();
     record.metadata.firmware.git.arg = (void *)hash_hex;
-    record.metadata.firmware.build.funcs.encode = pb_encode_string;
     record.metadata.firmware.build.arg = (void *)fkb_header.firmware.name;
-    record.metadata.deviceId.funcs.encode = pb_encode_data;
     record.metadata.deviceId.arg = (void *)&device_id;
-    record.modules.funcs.encode = pb_encode_array;
     record.modules.arg = (void *)modules_array;
 
-    SignedRecordLog srl{ file };
-
+    auto srl = SignedRecordLog { file };
     if (!srl.append_immutable(SignedRecordKind::Modules, &record, fk_data_DataRecord_fields, pool)) {
         return false;
     }

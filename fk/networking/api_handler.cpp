@@ -6,6 +6,7 @@
 #include "protobuf.h"
 #include "utilities.h"
 #include "storage/signed_log.h"
+#include "records.h"
 
 extern const struct fkb_header_t fkb_header;
 
@@ -73,18 +74,13 @@ static bool configure(HttpRequest &req, Pool &pool) {
         auto hash_size = fkb_header.firmware.hash_size;
         auto hash_hex = bytes_to_hex_string_pool(fkb_header.firmware.hash, hash_size, pool);
 
-        auto srl = SignedRecordLog{ meta };
-
-        fk_data_DataRecord record = fk_data_DataRecord_init_default;
-        record.metadata.firmware.git.funcs.encode = pb_encode_string;
+        auto record = fk_data_record_encoding_new();
         record.metadata.firmware.git.arg = (void *)hash_hex;
-        record.metadata.firmware.build.funcs.encode = pb_encode_string;
         record.metadata.firmware.build.arg = (void *)fkb_header.firmware.name;
-        record.metadata.deviceId.funcs.encode = pb_encode_data;
         record.metadata.deviceId.arg = (void *)&device_id;
-        record.identity.name.funcs.encode = pb_encode_string;
         record.identity.name.arg = name;
 
+        auto srl = SignedRecordLog{ meta };
         if (!srl.append_immutable(SignedRecordKind::State, &record, fk_data_DataRecord_fields, pool)) {
             return false;
         }
@@ -189,8 +185,7 @@ static bool send_status(HttpRequest &req, Pool &pool) {
         auto meta = storage.file(Storage::Meta);
         auto srl = SignedRecordLog{ meta };
         if (srl.seek_record(SignedRecordKind::State)) {
-            fk_data_DataRecord record = fk_data_DataRecord_init_default;
-            record.identity.name.funcs.decode = pb_decode_string;
+            auto record = fk_data_record_decoding_new(pool);
             record.identity.name.arg = (void *)&pool;
             if (srl.decode(&record, fk_data_DataRecord_fields, pool)) {
                 reply.status.identity.device.arg = record.identity.name.arg;

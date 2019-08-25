@@ -1,20 +1,19 @@
 #include "readings.h"
 #include "clock.h"
-#include "protobuf.h"
+#include "records.h"
 
 namespace fk {
 
 FK_DECLARE_LOGGER("readings");
 
 Readings::Readings(ModMux *mm) : mm_(mm) {
-    record_ = fk_data_DataRecord_init_default;
 }
 
 bool Readings::take_readings(ModuleContext &mc, ConstructedModulesCollection const &modules, uint32_t reading_number, Pool &pool) {
     auto now = get_clock_now();
     auto gs = mc.gs();
 
-    record_ = fk_data_DataRecord_init_default;
+    record_ = fk_data_record_encoding_new();
     record_.readings.time = now;
     record_.readings.reading = reading_number;
     record_.readings.flags = fk_data_DownloadFlags_READING_FLAGS_NONE;
@@ -80,7 +79,6 @@ bool Readings::take_readings(ModuleContext &mc, ConstructedModulesCollection con
         .fields = fk_data_SensorGroup_fields,
     });
 
-    record_.readings.sensorGroups.funcs.encode = pb_encode_array;
     record_.readings.sensorGroups.arg = sensor_groups_array;
 
     return true;
