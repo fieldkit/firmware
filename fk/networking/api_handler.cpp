@@ -7,6 +7,7 @@
 #include "utilities.h"
 #include "storage/signed_log.h"
 #include "records.h"
+#include "readings_worker.h"
 
 extern const struct fkb_header_t fkb_header;
 
@@ -38,6 +39,18 @@ bool ApiHandler::handle(HttpRequest &req, Pool &pool) {
     case fk_app_QueryType_QUERY_CONFIGURE: {
         loginfo("handling %s", "QUERY_CONFIGURE");
         return configure(req, pool);
+    }
+    case fk_app_QueryType_QUERY_TAKE_READINGS: {
+        loginfo("handling %s", "QUERY_TAKE_READINGS");
+        // TODO: MALLOC
+        if (!get_ipc()->launch_worker(new ReadingsWorker())) {
+            return false;
+        }
+        return send_status(req, pool);
+    }
+    case fk_app_QueryType_QUERY_GET_READINGS: {
+        loginfo("handling %s", "QUERY_GET_READINGS");
+        return send_status(req, pool);
     }
     default: {
         break;
@@ -104,7 +117,7 @@ static bool send_status(HttpRequest &req, Pool &pool) {
         .buffer = &sn,
     };
 
-    fk_app_HttpReply reply = fk_app_HttpReply_init_default;
+    auto reply = fk_http_reply_encoding();
     reply.type = fk_app_ReplyType_REPLY_STATUS;
     reply.status.version = 1;
     reply.status.uptime = fk_uptime();

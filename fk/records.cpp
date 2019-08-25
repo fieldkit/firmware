@@ -28,4 +28,8 @@ fk_data_DataRecord fk_data_record_encoding_new() {
     return record;
 }
 
+fk_app_HttpReply fk_http_reply_encoding() {
+    return { };
+}
+
 }

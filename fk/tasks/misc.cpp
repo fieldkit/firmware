@@ -36,7 +36,7 @@ void task_handler_misc(void *params) {
         TwoWireWrapper module_bus{ "modules", nullptr };
         ModuleContext mc{ get_global_state_rw().get(), module_bus };
         StaticModuleScanning scanning(found);
-        ReadingsTaker readings_taker{ scanning, storage, get_modmux() };
+        ReadingsTaker readings_taker{ scanning, storage, get_modmux(), false };
         FK_ASSERT(readings_taker.take(mc, pool));
 
         auto data = storage.file(Storage::Data);

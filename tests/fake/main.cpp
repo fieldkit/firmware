@@ -67,19 +67,19 @@ static void setup_fake_data() {
     ModuleContext mc{ get_global_state_rw().get(), module_bus };
 
     for (auto i = 0; i < 10000 / FK_READINGS_AMPLIFY_WRITES; ++i) {
-        MallocPool pool{ "readings", 1024 };
+        MallocPool pool{ "readings", 2048 };
         FoundModuleCollection found(pool);
         found.emplace_back(FoundModule{
                 .position = 0xff,
                 .header = {
                     .manufacturer = FK_MODULES_MANUFACTURER,
                     .kind = FK_MODULES_KIND_RANDOM,
-                    .version = 0x02,
+                    .version = 0x01,
                 }
             });
 
         StaticModuleScanning scanning(found);
-        ReadingsTaker readings_taker{ scanning, storage, get_modmux() };
+        ReadingsTaker readings_taker{ scanning, storage, get_modmux(), false };
 
         loginfo("writing fake data");
 

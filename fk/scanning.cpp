@@ -36,6 +36,16 @@ static bool add_virtual_module(FoundModuleCollection &headers, uint16_t kind) {
 nonstd::optional<FoundModuleCollection> ModuleScanning::scan(Pool &pool) {
     FoundModuleCollection found(pool);
 
+    // If any virtual modules are enabled, sneak the modules into the final
+    // position. Right now we don't have a backplane that will support this many
+    // modules anyway, still make sure we're safe.
+    if (fk_config().readings.enable_diagnostics_module) {
+        FK_ASSERT(add_virtual_module(found, FK_MODULES_KIND_DIAGNOSTICS));
+    }
+    if (fk_config().readings.enable_random_module) {
+        FK_ASSERT(add_virtual_module(found, FK_MODULES_KIND_RANDOM));
+    }
+
     if (!available()) {
         return found;
     }
@@ -69,16 +79,6 @@ nonstd::optional<FoundModuleCollection> ModuleScanning::scan(Pool &pool) {
         else {
             logwarn("[%d] mk=%02" PRIx32 "%02" PRIx32 " v%" PRIu32, i, header.manufacturer, header.kind, header.version);
         }
-    }
-
-    // If any virtual modules are enabled, sneak the modules into the final
-    // position. Right now we don't have a backplane that will support this many
-    // modules anyway, still make sure we're safe.
-    if (fk_config().readings.enable_diagnostics_module) {
-        FK_ASSERT(add_virtual_module(found, FK_MODULES_KIND_DIAGNOSTICS));
-    }
-    if (fk_config().readings.enable_random_module) {
-        FK_ASSERT(add_virtual_module(found, FK_MODULES_KIND_RANDOM));
     }
 
     loginfo("done (%zd modules)", found.size());

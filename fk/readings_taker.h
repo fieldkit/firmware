@@ -15,9 +15,10 @@ private:
     Storage &storage_;
     Readings readings_;
     ModMux *mm_;
+    bool read_only_;
 
 public:
-    ReadingsTaker(ModuleScanning &scanning, Storage &storage, ModMux *mm);
+    ReadingsTaker(ModuleScanning &scanning, Storage &storage, ModMux *mm, bool read_only);
 
 public:
     bool take(ModuleContext &mc, Pool &pool);

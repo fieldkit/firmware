@@ -17,7 +17,7 @@ namespace fk {
 
 FK_DECLARE_LOGGER("readings");
 
-ReadingsTaker::ReadingsTaker(ModuleScanning &scanning, Storage &storage, ModMux *mm) : scanning_(scanning), storage_(storage), readings_{ mm }, mm_(mm) {
+ReadingsTaker::ReadingsTaker(ModuleScanning &scanning, Storage &storage, ModMux *mm, bool read_only) : scanning_(scanning), storage_(storage), readings_{ mm }, mm_(mm), read_only_(read_only) {
 }
 
 bool ReadingsTaker::take(ModuleContext &mc, Pool &pool) {
@@ -36,34 +36,42 @@ bool ReadingsTaker::take(ModuleContext &mc, Pool &pool) {
         return false;
     }
 
-    auto meta = storage_.file(Storage::Meta);
-    if (!meta.seek_end()) {
-        FK_ASSERT(meta.create());
+    if (!read_only_) {
+        auto meta = storage_.file(Storage::Meta);
+        if (!meta.seek_end()) {
+            FK_ASSERT(meta.create());
+        }
+
+        if (!append_configuration(mc, *modules, meta, pool)) {
+            logerror("error appending configuration");
+            return false;
+        }
+
+        auto data = storage_.file(Storage::Data);
+        if (!data.seek_end()) {
+            FK_ASSERT(data.create());
+        }
+
+        if (!readings_.take_readings(mc, *modules, data.record(), pool)) {
+            logerror("error taking readings");
+            return false;
+        }
+
+        if (!append_readings(data, pool)) {
+            logerror("error appending readings");
+            return false;
+        }
+
+        if (!verify_reading_record(data, pool)) {
+            return false;
+        }
     }
+    else {
 
-    if (!append_configuration(mc, *modules, meta, pool)) {
-        logerror("error appending configuration");
-        return false;
-    }
-
-    auto data = storage_.file(Storage::Data);
-    if (!data.seek_end()) {
-        FK_ASSERT(data.create());
-    }
-
-    if (!readings_.take_readings(mc, *modules, data.record(), pool)) {
-        logerror("error taking readings");
-        return false;
-    }
-
-
-    if (!append_readings(data, pool)) {
-        logerror("error appending readings");
-        return false;
-    }
-
-    if (!verify_reading_record(data, pool)) {
-        return false;
+        if (!readings_.take_readings(mc, *modules, 0, pool)) {
+            logerror("error taking readings");
+            return false;
+        }
     }
 
     return true;

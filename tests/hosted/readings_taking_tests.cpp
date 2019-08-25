@@ -41,7 +41,7 @@ TEST_F(ReadingsTakingSuite, WithNoModules) {
     MockModuleScanning scanning;
     EXPECT_CALL(scanning, scan(_)).WillOnce(Return(nonstd::optional<FoundModuleCollection>(found)));
 
-    ReadingsTaker readings_taker{ scanning, storage, get_modmux() };
+    ReadingsTaker readings_taker{ scanning, storage, get_modmux(), false };
     ASSERT_TRUE(readings_taker.take(mc, pool_));
 }
 
@@ -65,7 +65,7 @@ TEST_F(ReadingsTakingSuite, BasicSingleModule) {
     MockModuleScanning scanning;
     EXPECT_CALL(scanning, scan(_)).WillOnce(Return(nonstd::optional<FoundModuleCollection>(found)));
 
-    ReadingsTaker readings_taker{ scanning, storage, get_modmux() };
+    ReadingsTaker readings_taker{ scanning, storage, get_modmux(), false };
     ASSERT_TRUE(readings_taker.take(mc, pool_));
 }
 
@@ -97,6 +97,6 @@ TEST_F(ReadingsTakingSuite, BasicTwoModules) {
     MockModuleScanning scanning;
     EXPECT_CALL(scanning, scan(_)).WillOnce(Return(nonstd::optional<FoundModuleCollection>(found)));
 
-    ReadingsTaker readings_taker{ scanning, storage, get_modmux() };
+    ReadingsTaker readings_taker{ scanning, storage, get_modmux(), false };
     ASSERT_TRUE(readings_taker.take(mc, pool_));
 }
