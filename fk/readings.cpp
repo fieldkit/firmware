@@ -9,7 +9,9 @@ FK_DECLARE_LOGGER("readings");
 Readings::Readings(ModMux *mm) : mm_(mm) {
 }
 
-bool Readings::take_readings(ModuleContext &mc, ConstructedModulesCollection const &modules, uint32_t reading_number, Pool &pool) {
+nonstd::optional<ModuleReadingsCollection> Readings::take_readings(ModuleContext &mc, ConstructedModulesCollection const &modules, uint32_t reading_number, Pool &pool) {
+    ModuleReadingsCollection all_readings{ pool };
+
     auto now = get_clock_now();
     auto gs = mc.gs();
 
@@ -24,7 +26,7 @@ bool Readings::take_readings(ModuleContext &mc, ConstructedModulesCollection con
     record_.readings.location.altitude = gs->gps.altitude;
 
     if (modules.size() == 0) {
-        return true;
+        return all_readings;
     }
 
     auto groups = pool.malloc<fk_data_SensorGroup>(modules.size());
@@ -69,6 +71,8 @@ bool Readings::take_readings(ModuleContext &mc, ConstructedModulesCollection con
         group.readings.arg = readings_array;
         group_number++;
 
+        all_readings.push_back(readings);
+
         loginfo("'%s' %zd readings", meta->name, readings->size());
     }
 
@@ -81,7 +85,7 @@ bool Readings::take_readings(ModuleContext &mc, ConstructedModulesCollection con
 
     record_.readings.sensorGroups.arg = sensor_groups_array;
 
-    return true;
+    return all_readings;
 }
 
 fk_data_DataRecord &Readings::record() {

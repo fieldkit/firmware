@@ -4,8 +4,11 @@
 
 #include "registry.h"
 #include "state.h"
+#include "containers.h"
 
 namespace fk {
+
+using ModuleReadingsCollection = std::list<ModuleReadings*, pool_allocator<ModuleReadings*>>;
 
 class Readings {
 private:
@@ -16,7 +19,7 @@ public:
     Readings(ModMux *mm);
 
 public:
-    bool take_readings(ModuleContext &mc, ConstructedModulesCollection const &modules, uint32_t reading_number, Pool &pool);
+    nonstd::optional<ModuleReadingsCollection> take_readings(ModuleContext &mc, ConstructedModulesCollection const &modules, uint32_t reading_number, Pool &pool);
 
 public:
     fk_data_DataRecord &record();

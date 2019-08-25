@@ -20,20 +20,20 @@ FK_DECLARE_LOGGER("readings");
 ReadingsTaker::ReadingsTaker(ModuleScanning &scanning, Storage &storage, ModMux *mm, bool read_only) : scanning_(scanning), storage_(storage), readings_{ mm }, mm_(mm), read_only_(read_only) {
 }
 
-bool ReadingsTaker::take(ModuleContext &mc, Pool &pool) {
+nonstd::optional<ModuleReadingsCollection> ReadingsTaker::take(ModuleContext &mc, Pool &pool) {
     ModuleFactory module_factory(scanning_, &pool);
     auto modules = module_factory.create();
     if (!modules) {
-        return false;
+        return nonstd::nullopt;
     }
 
     if ((*modules).size() == 0) {
         loginfo("no modules");
-        return true;
+        return ModuleReadingsCollection{ };
     }
 
     if (!initialize_modules(mc, *modules, mm_, pool)) {
-        return false;
+        return nonstd::nullopt;
     }
 
     if (!read_only_) {
@@ -44,7 +44,7 @@ bool ReadingsTaker::take(ModuleContext &mc, Pool &pool) {
 
         if (!append_configuration(mc, *modules, meta, pool)) {
             logerror("error appending configuration");
-            return false;
+            return nonstd::nullopt;
         }
 
         auto data = storage_.file(Storage::Data);
@@ -52,29 +52,32 @@ bool ReadingsTaker::take(ModuleContext &mc, Pool &pool) {
             FK_ASSERT(data.create());
         }
 
-        if (!readings_.take_readings(mc, *modules, data.record(), pool)) {
+        auto all_readings = readings_.take_readings(mc, *modules, data.record(), pool);
+        if (!all_readings) {
             logerror("error taking readings");
-            return false;
+            return nonstd::nullopt;
         }
 
         if (!append_readings(data, pool)) {
             logerror("error appending readings");
-            return false;
+            return nonstd::nullopt;
         }
 
         if (!verify_reading_record(data, pool)) {
-            return false;
+            logerror("error verifying readings");
+            return nonstd::nullopt;
         }
-    }
-    else {
 
-        if (!readings_.take_readings(mc, *modules, 0, pool)) {
-            logerror("error taking readings");
-            return false;
-        }
+        return all_readings;
     }
 
-    return true;
+    auto all_readings = readings_.take_readings(mc, *modules, 0, pool);
+    if (!all_readings) {
+        logerror("error taking readings");
+        return nonstd::nullopt;
+    }
+
+    return all_readings;
 }
 
 bool ReadingsTaker::initialize_modules(ModuleContext &mc, ConstructedModulesCollection &modules, ModMux *mm, Pool &pool) {
