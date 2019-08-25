@@ -1,5 +1,6 @@
 #include <fk-data-protocol.h>
 
+#include "tests.h"
 #include "utilities.h"
 #include "protobuf.h"
 #include "platform.h"
@@ -39,7 +40,7 @@ size_t write_reading(File &file) {
                 .arg = &readings_array,
             },
         }
-    };
+    }; 
 
     pb_array_t sensor_groups_array = {
         .length = (size_t)1,
@@ -67,4 +68,16 @@ size_t write_reading(File &file) {
     }
 
     return wrote;
+}
+
+extern "C" {
+
+void osi_assert(const char *assertion, const char *file, int line) {
+    FAIL() << "Assertion \"" << assertion << "\" failed. File: " << file << " Line: " << line;
+}
+
+void fk_assert(const char *assertion, const char *file, int32_t line, const char *f, ...) {
+    FAIL() << "Assertion \"" << assertion << "\" failed. File: " << file << " Line: " << line;
+}
+
 }

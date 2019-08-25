@@ -20,7 +20,7 @@ extern "C" {
 
 #if defined(__SAMD51__)
 
-void __fk_assert(const char *assertion, const char *file, int32_t line, const char *f, ...) {
+void fk_assert(const char *assertion, const char *file, int32_t line, const char *f, ...) {
     logerrorf("assertion", "\"%s\" failed: file \"%s\", line %" PRIu32, assertion, file, line);
     os_panic(OS_PANIC_ASSERTION);
 }
@@ -46,11 +46,6 @@ uint32_t fkb_external_println(const char *str, ...) {
 
 uint32_t fkb_external_vprintf(const char *str, va_list args) {
     return vfprintf(stderr, str, args);
-}
-
-void __fk_assert(const char *assertion, const char *file, int32_t line, const char *f, ...) {
-    fprintf(stderr, "\n\nassertion \"%s\" failed: file \"%s\", line %" PRIu32 "\n", assertion, file, line);
-    exit(2);
 }
 
 #endif // __SAMD51__

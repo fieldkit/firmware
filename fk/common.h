@@ -15,7 +15,7 @@ extern "C" {
  * Invoked to handle assertion failures. This is variadic so we can create more
  * useful messages, with interpolated values, etc...
  */
-void __fk_assert(const char *assertion, const char *file, int32_t line, const char *f, ...);
+void fk_assert(const char *assertion, const char *file, int32_t line, const char *f, ...);
 
 #ifdef __cplusplus
 }
@@ -27,7 +27,7 @@ namespace fk {
  * Halts execution if the given expression evaluates to false. See the fk_assert
  * function for more information.
  */
-#define FK_ASSERT_INTERNAL(expression, f, ...)        (void)((expression) || (__fk_assert(#expression, __FILE__, __LINE__, f, ##__VA_ARGS__), 0))
+#define FK_ASSERT_INTERNAL(expression, f, ...)        (void)((expression) || (fk_assert(#expression, __FILE__, __LINE__, f, ##__VA_ARGS__), 0))
 
 /**
  * Halts execution if the given expression evaluates to false. See the fk_assert

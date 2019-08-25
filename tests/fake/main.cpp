@@ -135,3 +135,17 @@ __int32_t main(__int32_t argc, const char **argv) {
 
     return 0;
 }
+
+extern "C" {
+
+void osi_assert(const char *assertion, const char *file, int line) {
+    fprintf(stderr, "\n\nassertion \"%s\" failed: file \"%s\", line %d\n", assertion, file, line);
+    exit(2);
+}
+
+void fk_assert(const char *assertion, const char *file, int32_t line, const char *f, ...) {
+    fprintf(stderr, "\n\nassertion \"%s\" failed: file \"%s\", line %d\n", assertion, file, line);
+    exit(2);
+}
+
+}
