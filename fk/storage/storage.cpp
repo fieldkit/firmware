@@ -430,9 +430,9 @@ uint32_t Storage::fsck() {
 
     auto file = this->file(0);
 
-    if (!file.seek(LastRecord)) {
+    if (!file.seek_end()) {
         logwarn("seek eof failed");
-        return 0;
+        return false;
     }
 
     auto buffer = (uint8_t *)malloc(BufferSize);
@@ -451,7 +451,7 @@ uint32_t Storage::fsck() {
 
     loginfo("fsck: done (%" PRIu32 "ms)", tracker.elapsed());
 
-    return 0;
+    return true;
 }
 
 void Storage::verify_opened() const {

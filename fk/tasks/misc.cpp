@@ -41,7 +41,9 @@ void task_handler_misc(void *params) {
 
         auto data = storage.file(Storage::Data);
 
-        for (auto i = 0; i < 30000 / FK_READINGS_AMPLIFY_WRITES; ++i) {
+        FK_ASSERT(data.seek_end());
+
+        for (auto i = 0; i < 1000 / FK_READINGS_AMPLIFY_WRITES; ++i) {
             FK_ASSERT(readings_taker.append_readings(data, pool));
         }
     }
