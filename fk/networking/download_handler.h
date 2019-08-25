@@ -13,7 +13,7 @@ public:
     DownloadHandler(uint8_t file_number);
 
 public:
-    bool handle(HttpRequest &req) override;
+    bool handle(HttpRequest &req, Pool &pool) override;
 
 };
 

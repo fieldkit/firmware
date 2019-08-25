@@ -12,11 +12,11 @@ namespace fk {
 
 FK_DECLARE_LOGGER("api");
 
-static bool send_status(HttpRequest &req);
+static bool send_status(HttpRequest &req, Pool &pool);
 
-static bool configure(HttpRequest &req);
+static bool configure(HttpRequest &req, Pool &pool);
 
-bool ApiHandler::handle(HttpRequest &req) {
+bool ApiHandler::handle(HttpRequest &req, Pool &pool) {
     if (req.content_type() != WellKnownContentType::ApplicationFkHttp) {
         req.connection()->error("unexpected content-type");
         return true;
@@ -31,11 +31,11 @@ bool ApiHandler::handle(HttpRequest &req) {
     switch (query->type) {
     case fk_app_QueryType_QUERY_STATUS: {
         loginfo("handling %s", "QUERY_STATUS");
-        return send_status(req);
+        return send_status(req, pool);
     }
     case fk_app_QueryType_QUERY_CONFIGURE: {
         loginfo("handling %s", "QUERY_CONFIGURE");
-        return configure(req);
+        return configure(req, pool);
     }
     default: {
         break;
@@ -46,11 +46,10 @@ bool ApiHandler::handle(HttpRequest &req) {
     return true;
 }
 
-static bool configure(HttpRequest &req) {
-    return send_status(req);
+static bool configure(HttpRequest &req, Pool &pool) {
 }
 
-static bool send_status(HttpRequest &req) {
+static bool send_status(HttpRequest &req, Pool &pool) {
     constexpr static uint32_t BootloaderSize = 0x4000;
 
     auto lock = storage_mutex.acquire(UINT32_MAX);
@@ -146,7 +145,7 @@ static bool send_status(HttpRequest &req) {
     if (storage.begin()) {
         for (auto file_number : { Storage::Data, Storage::Meta }) {
             auto file = storage.file(file_number);
-            if (file.seek(LastRecord)) {
+            if (file.seek_end()) {
                 auto &stream = streams[file_number];
                 stream.size = file.size();
                 stream.block = file.record();

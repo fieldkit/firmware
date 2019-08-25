@@ -6,7 +6,7 @@ namespace fk {
 
 class ModuleHandler : public HttpHandler {
 public:
-    bool handle(HttpRequest &req) override;
+    bool handle(HttpRequest &req, Pool &pool) override;
 
 };
 

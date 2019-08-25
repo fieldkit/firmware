@@ -63,7 +63,7 @@ protected:
 
 class DummyHandler : public HttpHandler {
 public:
-    bool handle(HttpRequest &req) override {
+    bool handle(HttpRequest &req, Pool &pool) override {
         return true;
     }
 

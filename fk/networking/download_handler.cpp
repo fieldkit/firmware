@@ -96,7 +96,7 @@ bool DownloadWorker::write_headers(HeaderInfo header_info) {
 DownloadHandler::DownloadHandler(uint8_t file_number) : file_number_(file_number) {
 }
 
-bool DownloadHandler::handle(HttpRequest &req) {
+bool DownloadHandler::handle(HttpRequest &req, Pool &pool) {
     // TODO: MALLOC
     if (!get_ipc()->launch_worker(new DownloadWorker(&req, file_number_))) {
         return false;

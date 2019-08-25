@@ -17,7 +17,7 @@ public:
     /**
      * Handle an incoming HTTP request.
      */
-    virtual bool handle(HttpRequest &req) = 0;
+    virtual bool handle(HttpRequest &req, Pool &pool) = 0;
 
 };
 

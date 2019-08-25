@@ -141,7 +141,7 @@ bool Connection::service(HttpRouter &router) {
                 plain(404, "not found", "");
             }
             else {
-                if (!handler->handle(req_)) {
+                if (!handler->handle(req_, pool_)) {
                     plain(500, "internal error", "");
                 }
             }
