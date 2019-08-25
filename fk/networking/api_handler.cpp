@@ -30,9 +30,11 @@ bool ApiHandler::handle(HttpRequest &req) {
 
     switch (query->type) {
     case fk_app_QueryType_QUERY_STATUS: {
+        loginfo("handling %s", "QUERY_STATUS");
         return send_status(req);
     }
     case fk_app_QueryType_QUERY_CONFIGURE: {
+        loginfo("handling %s", "QUERY_CONFIGURE");
         return configure(req);
     }
     default: {
@@ -45,13 +47,11 @@ bool ApiHandler::handle(HttpRequest &req) {
 }
 
 static bool configure(HttpRequest &req) {
-    return true;
+    return send_status(req);
 }
 
 static bool send_status(HttpRequest &req) {
     constexpr static uint32_t BootloaderSize = 0x4000;
-
-    loginfo("handling %s", "QUERY_STATUS");
 
     auto lock = storage_mutex.acquire(UINT32_MAX);
     auto memory_bus = get_board()->spi_flash();

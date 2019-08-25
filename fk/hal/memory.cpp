@@ -374,18 +374,17 @@ public:
         CachedPage *old = nullptr;
 
         uint32_t page = address / PageSize;
-        logverbose("get page #%" PRIu32, page);
 
         for (size_t i = 0; i < N; ++i) {
             auto p = &pages_[i];
-            logverbose("page[%zd] page=#%" PRIu32 " ts=%" PRIu32 " %s", i, p->page, p->ts, p->dirty ? "dirty": "");
+            // logverbose("page[%zd] page=#%" PRIu32 " ts=%" PRIu32 " %s", i, p->page, p->ts, p->dirty ? "dirty": "");
             if (p->ts == 0) {
                 available = p;
                 old = p;
             }
             else {
                 if (p->page == page) {
-                    logdebug("existing page #%" PRIu32 " (%" PRIu32 ")", p->page, p->ts);
+                    // logverbose("existing page #%" PRIu32 " (%" PRIu32 ")", p->page, p->ts);
                     return p;
                 }
                 if (old == nullptr || old->ts > p->ts) {
@@ -412,7 +411,7 @@ public:
         available->page = page;
         available->dirty = false;
 
-        logdebug("load page #%" PRIu32 " (%" PRIu32 ")", available->page, available->ts);
+        // logdebug("load page #%" PRIu32 " (%" PRIu32 ")", available->page, available->ts);
 
         if (!store_.load_page(page * PageSize, available->ptr, PageSize)) {
             return nullptr;
