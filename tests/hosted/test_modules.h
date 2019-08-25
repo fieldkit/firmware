@@ -4,8 +4,10 @@
 
 namespace fk {
 
-extern ModuleMetadata const fk_test_module_fake_empty;
+extern ModuleMetadata const fk_test_module_fake_random;
+extern ModuleMetadata const fk_test_module_fake_diagnostics;
 extern ModuleMetadata const fk_test_module_fake_1;
 extern ModuleMetadata const fk_test_module_fake_2;
+extern ModuleMetadata const fk_test_module_fake_empty;
 
 }

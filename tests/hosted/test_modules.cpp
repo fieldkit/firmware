@@ -31,7 +31,7 @@ static Module *fk_test_module_create_empty(Pool &pool) {
 ModuleMetadata const fk_test_module_fake_empty = {
     .manufacturer = FK_MODULES_MANUFACTURER,
     .kind = FK_MODULES_KIND_RANDOM,
-    .version = 0x01,
+    .version = 0x03,
     .name = "fake-empty",
     .ctor = fk_test_module_create_empty,
 };
@@ -120,6 +120,22 @@ ModuleMetadata const fk_test_module_fake_2 = {
     .kind = FK_MODULES_KIND_RANDOM,
     .version = 0x03,
     .name = "fake-2",
+    .ctor = fk_test_module_create_2,
+};
+
+ModuleMetadata const fk_test_module_fake_random = {
+    .manufacturer = FK_MODULES_MANUFACTURER,
+    .kind = FK_MODULES_KIND_RANDOM,
+    .version = 0x01,
+    .name = "fake-random",
+    .ctor = fk_test_module_create_2,
+};
+
+ModuleMetadata const fk_test_module_fake_diagnostics = {
+    .manufacturer = FK_MODULES_MANUFACTURER,
+    .kind = FK_MODULES_KIND_DIAGNOSTICS,
+    .version = 0x01,
+    .name = "fake-random",
     .ctor = fk_test_module_create_2,
 };
 

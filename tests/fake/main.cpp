@@ -54,9 +54,8 @@ static void signal_handler(int32_t s){
 static void setup_fake_data() {
     auto memory = MemoryFactory::get_data_memory();
 
-    fk_modules_builtin_register(&fk_test_module_fake_empty);
-    fk_modules_builtin_register(&fk_test_module_fake_1);
-    fk_modules_builtin_register(&fk_test_module_fake_2);
+    fk_modules_builtin_register(&fk_test_module_fake_random);
+    fk_modules_builtin_register(&fk_test_module_fake_diagnostics);
 
     FK_ASSERT(memory->begin());
 
