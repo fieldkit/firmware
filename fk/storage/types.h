@@ -79,7 +79,6 @@ struct BlockHeader {
     BlockMagic magic;
     uint32_t timestamp;
     uint32_t file;
-    uint32_t overflow;
     uint32_t version;
     FileHeader files[NumberOfFiles];
     Hash hash;
@@ -92,6 +91,8 @@ struct BlockHeader {
 };
 
 struct BlockTail {
+    uint32_t bytes_in_block{ 0 };
+    uint32_t records_in_block{ 0 };
     uint32_t linked{ 0 };
     uint32_t reserved[3] = { 0xdeadbeef, 0xdeadbeef, 0xdeadbeef };
     Hash hash;

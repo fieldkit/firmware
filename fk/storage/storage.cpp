@@ -208,7 +208,7 @@ bool Storage::clear() {
     return true;
 }
 
-uint32_t Storage::allocate(uint8_t file, uint32_t overflow, uint32_t previous_tail_address) {
+uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address, BlockTail &block_tail) {
     auto g = memory_->geometry();
     auto address = InvalidAddress;
 
@@ -242,8 +242,8 @@ uint32_t Storage::allocate(uint8_t file, uint32_t overflow, uint32_t previous_ta
         return InvalidAddress;
     }
 
-    logdebug("[%d] allocating block #%" PRIu32 " (" PRADDRESS ") (%" PRIu32 ") (#%" PRIu32 ") (%" PRIu32 " bytes)",
-             file, free_block_, address, overflow, files_[file].record, files_[file].size);
+    logdebug("[%d] allocating block #%" PRIu32 " (" PRADDRESS ") (#%" PRIu32 ") (%" PRIu32 " bytes)",
+             file, free_block_, address, files_[file].record, files_[file].size);
 
     timestamp_++;
     free_block_++;
@@ -258,7 +258,6 @@ uint32_t Storage::allocate(uint8_t file, uint32_t overflow, uint32_t previous_ta
     block_header.file = file;
     block_header.timestamp = timestamp_;
     block_header.version = version_;
-    block_header.overflow = overflow;
     for (auto i = 0; i < NumberOfFiles; ++i) {
         block_header.files[i] = files_[i];
     }
@@ -273,7 +272,6 @@ uint32_t Storage::allocate(uint8_t file, uint32_t overflow, uint32_t previous_ta
 
     // We have a good new block, so link the previous block to the new one.
     if (is_address_valid(previous_tail_address)) {
-        BlockTail block_tail;
         block_tail.linked = address;
         block_tail.fill_hash();
 
@@ -285,7 +283,7 @@ uint32_t Storage::allocate(uint8_t file, uint32_t overflow, uint32_t previous_ta
             return 0;
         }
 
-        logtrace("[%d] " PRADDRESS " btail", file, previous_tail_address);
+        logtrace("[%d] " PRADDRESS " write btail", file, previous_tail_address);
     }
 
     return after_header;
@@ -359,13 +357,13 @@ SeekValue Storage::seek(SeekSettings settings) {
     logtrace("[%d] " PRADDRESS " seeking #%" PRIu32 " (%" PRIu32 ") from blk #%" PRIu32 " (bsz = %" PRIu32 " bytes)", settings.file, address, settings.record, position, fh.tail / g.block_size, fh.size);
 
     while (true) {
-        auto record_head = RecordHeader{};
 
         // If at the start of the block, bump.
         if (g.start_of_block(address)) {
             address += sizeof(BlockHeader);
         }
 
+        RecordHeader record_head;
         if (memory.read(address, (uint8_t *)&record_head, sizeof(record_head)) != sizeof(record_head)) {
             return SeekValue{ };
         }

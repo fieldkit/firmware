@@ -40,6 +40,8 @@ private:
     uint32_t position_{ 0 };
     uint32_t size_{ 0 };
     uint32_t number_hash_errors_{ 0 };
+    uint32_t bytes_in_block_{ 0 };
+    uint32_t records_in_block_{ 0 };
     BLAKE2b hash_;
 
 public:

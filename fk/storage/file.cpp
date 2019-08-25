@@ -46,11 +46,16 @@ size_t File::write_record_header(size_t size) {
         if (is_address_valid(tail_)) {
             tail_ += left_in_block;
         }
-        tail_ = storage_->allocate(file_, 0, tail_);
+        BlockTail block_tail;
+        block_tail.bytes_in_block = bytes_in_block_;
+        block_tail.records_in_block = records_in_block_;
+        tail_ = storage_->allocate(file_, tail_, block_tail);
         if (record_ == InvalidRecord) {
             record_ = 0;
         }
         left_in_block = g.remaining_in_block(tail_) - sizeof(BlockTail);
+        bytes_in_block_ = 0;
+        records_in_block_ = 0;
     }
 
     RecordHeader record_header;
@@ -128,6 +133,8 @@ size_t File::write_record_tail(size_t size) {
     #endif
 
     tail_ += sizeof(record_tail);
+    bytes_in_block_ += size;
+    records_in_block_++;
 
     return sizeof(record_tail);
 }
@@ -164,6 +171,9 @@ bool File::seek(RecordReference reference) {
     position_ = reference.position;
     record_ = reference.record;
     record_remaining_ = 0;
+    record_size_ = 0;
+    bytes_in_block_ = 0;
+    records_in_block_ = 0;
     return true;
 }
 

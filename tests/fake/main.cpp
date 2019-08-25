@@ -66,7 +66,7 @@ static void setup_fake_data() {
     TwoWireWrapper module_bus{ "modules", nullptr };
     ModuleContext mc{ get_global_state_rw().get(), module_bus };
 
-    for (auto i = 0; i < 10; ++i) {
+    for (auto i = 0; i < 10000 / FK_READINGS_AMPLIFY_WRITES; ++i) {
         MallocPool pool{ "readings", 1024 };
         FoundModuleCollection found(pool);
         found.emplace_back(FoundModule{
@@ -121,6 +121,8 @@ __int32_t main(__int32_t argc, const char **argv) {
     sigemptyset(&si_handler.sa_mask);
     si_handler.sa_flags = 0;
     sigaction(SIGINT, &si_handler, NULL);
+
+    log_configure_level(LogLevels::DEBUG);
 
     loginfo("starting thread...");
 

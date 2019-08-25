@@ -29,14 +29,14 @@ protected:
         data_memory_ = MemoryFactory::get_data_memory();
         statistics_memory_ = StatisticsMemory{ data_memory_ };
 
+        memory_->begin();
+
         g_ = memory_->geometry();
         pool_.clear();
 
         for (size_t i = 0; i < MemoryFactory::NumberOfDataMemoryBanks; ++i) {
             banks_[i]->erase_all();
         }
-
-        memory_->begin();
 
         log_configure_level(LogLevels::INFO);
     }
