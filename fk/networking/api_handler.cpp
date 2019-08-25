@@ -5,6 +5,7 @@
 #include "storage/storage.h"
 #include "protobuf.h"
 #include "utilities.h"
+#include "storage/signed_log.h"
 
 extern const struct fkb_header_t fkb_header;
 
@@ -47,6 +48,49 @@ bool ApiHandler::handle(HttpRequest &req, Pool &pool) {
 }
 
 static bool configure(HttpRequest &req, Pool &pool) {
+    if (req.query()->identity.name.arg != nullptr) {
+        auto name = (char *)req.query()->identity.name.arg;
+
+        StatisticsMemory memory{ MemoryFactory::get_data_memory() };
+        Storage storage{ &memory };
+        if (!storage.begin()) {
+            return false;
+        }
+
+        auto meta = storage.file(Storage::Meta);
+        if (!meta.seek_end()) {
+            FK_ASSERT(meta.create());
+        }
+
+        fk_serial_number_t sn;
+        fk_serial_number_get(&sn);
+
+        pb_data_t device_id = {
+            .length = sizeof(sn),
+            .buffer = &sn,
+        };
+
+        auto hash_size = fkb_header.firmware.hash_size;
+        auto hash_hex = bytes_to_hex_string_pool(fkb_header.firmware.hash, hash_size, pool);
+
+        auto srl = SignedRecordLog{ meta };
+
+        fk_data_DataRecord record = fk_data_DataRecord_init_default;
+        record.metadata.firmware.git.funcs.encode = pb_encode_string;
+        record.metadata.firmware.git.arg = (void *)hash_hex;
+        record.metadata.firmware.build.funcs.encode = pb_encode_string;
+        record.metadata.firmware.build.arg = (void *)fkb_header.firmware.name;
+        record.metadata.deviceId.funcs.encode = pb_encode_data;
+        record.metadata.deviceId.arg = (void *)&device_id;
+        record.identity.name.funcs.encode = pb_encode_string;
+        record.identity.name.arg = name;
+
+        if (!srl.append_immutable(SignedRecordKind::State, &record, fk_data_DataRecord_fields, pool)) {
+            return false;
+        }
+    }
+
+    return send_status(req, pool);
 }
 
 static bool send_status(HttpRequest &req, Pool &pool) {
@@ -69,7 +113,6 @@ static bool send_status(HttpRequest &req, Pool &pool) {
     reply.status.version = 1;
     reply.status.uptime = fk_uptime();
     reply.status.identity.device.arg = (void *)"device";
-    reply.status.identity.stream.arg = (void *)"stream";
     reply.status.identity.build.arg = (void *)fkb_header.firmware.name;
     reply.status.identity.deviceId.arg = &device_id;
     reply.status.power.battery.voltage = 4000;
@@ -143,14 +186,25 @@ static bool send_status(HttpRequest &req, Pool &pool) {
     StatisticsMemory memory{ MemoryFactory::get_data_memory() };
     Storage storage{ &memory };
     if (storage.begin()) {
-        for (auto file_number : { Storage::Data, Storage::Meta }) {
-            auto file = storage.file(file_number);
-            if (file.seek_end()) {
-                auto &stream = streams[file_number];
-                stream.size = file.size();
-                stream.block = file.record();
-                reply.status.memory.dataMemoryUsed += stream.size;
+        auto meta = storage.file(Storage::Meta);
+        auto srl = SignedRecordLog{ meta };
+        if (srl.seek_record(SignedRecordKind::State)) {
+            fk_data_DataRecord record = fk_data_DataRecord_init_default;
+            record.identity.name.funcs.decode = pb_decode_string;
+            record.identity.name.arg = (void *)&pool;
+            if (srl.decode(&record, fk_data_DataRecord_fields, pool)) {
+                reply.status.identity.device.arg = record.identity.name.arg;
             }
+        }
+    }
+
+    for (auto file_number : { Storage::Data, Storage::Meta }) {
+        auto file = storage.file(file_number);
+        if (file.seek_end()) {
+            auto &stream = streams[file_number];
+            stream.size = file.size();
+            stream.block = file.record();
+            reply.status.memory.dataMemoryUsed += stream.size;
         }
     }
 

@@ -69,6 +69,10 @@ public:
         };
     }
 
+    uint8_t file_number() const {
+        return file_;
+    }
+
     uint32_t tail() const {
         return tail_;
     }

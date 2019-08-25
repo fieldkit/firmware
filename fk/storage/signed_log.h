@@ -11,6 +11,7 @@ enum class SignedRecordKind : uint8_t {
     None = fk_data_SignedRecordKind_SIGNED_RECORD_KIND_NONE,
     Modules = fk_data_SignedRecordKind_SIGNED_RECORD_KIND_MODULES,
     Schedule = fk_data_SignedRecordKind_SIGNED_RECORD_KIND_SCHEDULE,
+    State = fk_data_SignedRecordKind_SIGNED_RECORD_KIND_STATE,
     Other = fk_data_SignedRecordKind_SIGNED_RECORD_KIND_OTHER,
 };
 
