@@ -39,6 +39,8 @@ void task_handler_readings(void *params) {
     ReadingsTaker readings_taker{ scanning, storage, get_modmux(), false };
     FK_ASSERT(readings_taker.take(mc, pool));
 
+    // FK_ASSERT(storage.fsck());
+
     memory.log_statistics();
 
     loginfo("done (pool = %d/%d bytes) (%" PRIu32 "ms)", pool.used(), pool.size(), fk_uptime() - started);

@@ -10,16 +10,19 @@ namespace fk {
 
 FK_DECLARE_LOGGER("misc");
 
+static bool fake_data_enabled = false;
+static bool fake_data_inserted = true;
+
 void task_handler_misc(void *params) {
     auto lock = storage_mutex.acquire(UINT32_MAX);
 
     FK_ASSERT(lock);
 
     Storage storage{ MemoryFactory::get_data_memory() };
-    if (storage.begin()) {
+    if ((!fake_data_enabled || fake_data_inserted) && storage.begin()) {
         storage.fsck();
     }
-    else {
+    else if (fake_data_enabled) {
         FK_ASSERT(storage.clear());
 
         auto pool = MallocPool{ "readings", ModuleMemoryAreaSize };
@@ -46,6 +49,8 @@ void task_handler_misc(void *params) {
         for (auto i = 0; i < 1000 / FK_READINGS_AMPLIFY_WRITES; ++i) {
             FK_ASSERT(readings_taker.append_readings(data, pool));
         }
+
+        fake_data_inserted = true;
     }
 }
 
