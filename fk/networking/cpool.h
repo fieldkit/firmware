@@ -23,14 +23,18 @@ private:
     uint32_t started_{ 0 };
     uint32_t wrote_{ 0 };
     bool routed_{ false };
+    bool hex_encoding_{ false };
 
 public:
     Connection(NetworkConnection *conn, size_t size);
     virtual ~Connection();
 
 public:
-    bool service(HttpRouter &router);
+    void hex_encoding(bool hex_encoding) {
+        hex_encoding_ = hex_encoding;
+    }
 
+    bool service(HttpRouter &router);
 
     int32_t write(const char *s, ...) __attribute__((format(printf, 2, 3)));
 

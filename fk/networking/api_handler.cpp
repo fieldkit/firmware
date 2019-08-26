@@ -20,8 +20,14 @@ static bool send_status(HttpRequest &req, fk_app_HttpQuery *query, Pool &pool);
 static bool configure(HttpRequest &req, fk_app_HttpQuery *query, Pool &pool);
 
 bool ApiHandler::handle(HttpRequest &req, Pool &pool) {
+    auto reader = req.reader();
+    if (req.content_type() == WellKnownContentType::TextPlain) {
+        reader = new (pool) Base64Reader(req.reader());
+        req.connection()->hex_encoding(true);
+    }
+
     auto query = fk_http_query_prepare_decoding(pool.malloc<fk_app_HttpQuery>(), &pool);
-    auto stream = pb_istream_from_readable(req.reader());
+    auto stream = pb_istream_from_readable(reader);
     if (!pb_decode_delimited(&stream, fk_app_HttpQuery_fields, query)) {
         req.connection()->error("error parsing query");
         return true;

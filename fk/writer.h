@@ -53,6 +53,28 @@ public:
 
 };
 
+class Base64Reader : public Readable {
+private:
+    Readable *target_;
+
+public:
+    Base64Reader(Readable *target);
+
+public:
+    int32_t read(uint8_t *buffer, size_t size) override;
+};
+
+class Base64Writer : public Writable {
+private:
+    Writable *target_;
+
+public:
+    Base64Writer(Writable *target);
+
+public:
+    int32_t write(uint8_t const *buffer, size_t size) override;
+};
+
 pb_ostream_t pb_ostream_from_writable(Writable *s);
 
 pb_istream_t pb_istream_from_readable(Readable *s);

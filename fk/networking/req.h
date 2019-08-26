@@ -162,6 +162,13 @@ public:
     }
 
     /**
+     * Returns the connection handling this request.
+     */
+    Writable *writer() {
+        return reinterpret_cast<Writable*>(conn_);
+    }
+
+    /**
      * Returns the Content-Type of this request.
      */
     WellKnownContentType content_type() {

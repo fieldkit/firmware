@@ -7,30 +7,6 @@ namespace fk {
 
 FK_DECLARE_LOGGER("httpd");
 
-static bool write_callback(pb_ostream_t *stream, const uint8_t *buf, size_t c) {
-    auto nc = reinterpret_cast<NetworkConnection*>(stream->state);
-    return nc->write(buf, c) == (int32_t)c;
-}
-
-static bool read_callback(pb_istream_t *stream, uint8_t *buf, size_t c) {
-    auto nc = reinterpret_cast<NetworkConnection*>(stream->state);
-    auto nread = nc->read(buf, c);
-    if (nread <= 0) {
-        stream->bytes_left = 0; /* EOF */
-    }
-    return nread == (int32_t)c;
-}
-
-pb_ostream_t pb_ostream_from_connection(NetworkConnection *nc) {
-    pb_ostream_t stream = { &write_callback, (void *)nc, SIZE_MAX, 0 };
-    return stream;
-}
-
-pb_istream_t pb_istream_from_connection(NetworkConnection *nc) {
-    pb_istream_t stream = { &read_callback, (void *)nc, SIZE_MAX };
-    return stream;
-}
-
 ConnectionPool::ConnectionPool() : memory_("httpd", 0 * HttpdConnectionWorkSize * MaximumConnections) {
     activity_ = fk_uptime();
 }
@@ -239,24 +215,33 @@ int32_t Connection::write(fk_app_HttpReply *reply) {
 
     size += pb_varint_size(size);
 
-    logdebug("replying (%zd bytes)", size);
+    auto content_size = hex_encoding_ ? size * 2 : size;
+
+    logdebug("replying (%zd bytes)", content_size);
 
     wrote_ += conn_->write("HTTP/1.1 200 OK\n");
-    wrote_ += conn_->writef("Content-Length: %zu\n", size);
+    wrote_ += conn_->writef("Content-Length: %zu\n", content_size);
     wrote_ += conn_->writef("Content-Type: %s\n", "application/octet-stream");
     wrote_ += conn_->write("Connection: close\n");
     wrote_ += conn_->write("\n");
 
-    auto ostream = pb_ostream_from_connection(conn_);
-    if (!pb_encode_delimited(&ostream, fields, reply)) {
-        return size;
+    Base64Writer b64_writer{ this };
+    Writable *writer = this;
+
+    if (hex_encoding_) {
+        writer = &b64_writer;
     }
 
-    wrote_ += size;
+    auto ostream = pb_ostream_from_writable(writer);
+    if (!pb_encode_delimited(&ostream, fields, reply)) {
+        return content_size;
+    }
+
+    wrote_ += content_size;
 
     req_.finished();
 
-    return size;
+    return content_size;
 }
 
 int32_t Connection::write(const char *s, ...) {
