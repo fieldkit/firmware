@@ -102,6 +102,9 @@ target_link_libraries(fk-bundled phylum)
 find_package(QrCode)
 target_link_libraries(fk-bundled QrCode)
 
+find_package(ArduinoBase64)
+target_link_libraries(fk-bundled arduino-base64)
+
 fk_add_builtin_module(random)
 fk_add_builtin_module(diagnostics)
 fk_add_builtin_module(weather)

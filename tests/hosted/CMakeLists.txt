@@ -89,6 +89,9 @@ target_link_libraries(testall ConservifyOS)
 find_package(Phylum)
 target_link_libraries(testall phylum)
 
+find_package(ArduinoBase64)
+target_link_libraries(testall arduino-base64)
+
 target_include_directories(testall PRIVATE ../../fk ${CMAKE_SOURCE_DIR}/third-party/nonstd ${CMAKE_SOURCE_DIR}/third-party/tl)
 target_compile_options(testall PUBLIC -Wall -Wno-variadic-macros)
 target_link_libraries(testall libgtest libgmock)
