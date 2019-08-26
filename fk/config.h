@@ -6,16 +6,6 @@
 namespace fk {
 
 /**
- * Maximum number of memory banks we're capable of supporting.
- */
-#define FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS (2)
-
-/**
- * Maximum number of memory banks we're capable of supporting.
- */
-constexpr size_t MaximumNumberOfMemoryBanks = FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS;
-
-/**
  * One second in milliseconds.
  */
 constexpr uint32_t OneSecondMs = 1000;
@@ -51,15 +41,15 @@ constexpr uint32_t OneMinuteMs = 60 * 1000;
 constexpr uint32_t FiveMinutesMs = 5 * 60 * 1000;
 
 /**
+ * Precisely 1024 * 1024.
+ */
+constexpr uint32_t OneMegabyte = 1024 * 1024;
+
+/**
  * Maximum number of WiFi networks.
  * \todo: Eventually this should be relaxed.
  */
 constexpr uint32_t MaximumNumberOfWifiNetworks = 2;
-
-/**
- * Precisely 1024 * 1024.
- */
-constexpr uint32_t OneMegabyte = 1024 * 1024;
 
 /**
  * How long the user should hold the button to initiate a factory wipe.
@@ -122,6 +112,16 @@ constexpr uint32_t ProgressIntervalMs = 1000;
  * related work.
  */
 constexpr size_t ModuleMemoryAreaSize = 8192;
+
+/**
+ * Maximum number of memory banks we're capable of supporting.
+ */
+#define FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS (2)
+
+/**
+ * Maximum number of memory banks we're capable of supporting.
+ */
+constexpr size_t MaximumNumberOfMemoryBanks = FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS;
 
 /**
  * Runtime configuration informationthat is unavailable in the mobile
@@ -235,6 +235,12 @@ typedef struct configuration_t {
     } display_t;
 
     display_t display;
+
+    typedef struct debug_t {
+        bool periodic_fsck{ false };
+    } debug_t;
+
+    debug_t debug;
 } configuration_t;
 
 /**

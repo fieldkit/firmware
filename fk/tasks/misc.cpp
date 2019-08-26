@@ -13,7 +13,7 @@ FK_DECLARE_LOGGER("misc");
 static bool fake_data_enabled = false;
 static bool fake_data_inserted = true;
 
-void task_handler_misc(void *params) {
+static void periodic_fsck() {
     auto lock = storage_mutex.acquire(UINT32_MAX);
 
     FK_ASSERT(lock);
@@ -51,6 +51,12 @@ void task_handler_misc(void *params) {
         }
 
         fake_data_inserted = true;
+    }
+}
+
+void task_handler_misc(void *params) {
+    if (fk_config().debug.periodic_fsck) {
+        periodic_fsck();
     }
 }
 
