@@ -160,7 +160,7 @@ static void log_diagnostics() {
 
 static void configure_logging() {
     log_configure_writer(write_log);
-    log_configure_level(LogLevels::VERBOSE);
+    log_configure_level(LogLevels::DEBUG);
 }
 
 static void initialize_hardware() {
