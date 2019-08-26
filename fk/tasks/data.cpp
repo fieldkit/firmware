@@ -32,10 +32,13 @@ static void log_status() {
     auto gs = get_global_state_ro();
     auto now = get_clock_now();
     auto mi = mallinfo();
+    ip4_address ip{ gs.get()->network.ip };
 
     FormattedTime formatted{ now };
-    loginfo("%s (free = %" PRIu32 ", arena = %zd, used = %zd)",
-            formatted.cstr(), fk_free_memory(), mi.arena, mi.uordblks);
+    loginfo("%s (%d.%d.%d.%d) (free = %" PRIu32 ", arena = %zd, used = %zd)",
+            formatted.cstr(),
+            ip.u.bytes[0], ip.u.bytes[1], ip.u.bytes[2], ip.u.bytes[3],
+            fk_free_memory(), mi.arena, mi.uordblks);
 }
 
 void task_handler_data(void *params) {

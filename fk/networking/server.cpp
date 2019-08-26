@@ -46,13 +46,11 @@ void HttpServer::tick() {
     if (pool_.available() > 0) {
         auto connection = network_->accept();
         if (connection != nullptr) {
+            ip4_address ip{ connection->remote_address() };
             auto mi = mallinfo();
-            auto ip = connection->remote_address();
-            ip4_address address;
-            address.u.dword = ip;
 
             loginfo("connection (%d.%d.%d.%d) (free = %" PRIu32 ") (arena = %d) (uordblks = %d)",
-                    address.u.bytes[0], address.u.bytes[1], address.u.bytes[2], address.u.bytes[3],
+                    ip.u.bytes[0], ip.u.bytes[1], ip.u.bytes[2], ip.u.bytes[3],
                     fk_free_memory(), mi.arena, mi.uordblks);
             pool_.queue(connection);
         }
