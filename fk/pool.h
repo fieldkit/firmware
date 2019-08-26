@@ -132,7 +132,7 @@ public:
 
 template <class T>
 struct pool_allocator {
-    Pool *pool_;
+    Pool *pool_{ nullptr };
     typedef T value_type;
     typedef T *pointer;
     typedef T &reference;
@@ -158,13 +158,16 @@ struct pool_allocator {
     }
 
     pointer allocate(size_t n) {
+        FK_ASSERT(pool_ != nullptr);
         return pool_->malloc<T>(n);
     }
 
     void deallocate(pointer p, size_t n) {
+        FK_ASSERT(pool_ != nullptr);
     }
 
     void construct(pointer p, T const &val) {
+        FK_ASSERT(pool_ != nullptr);
         #if defined(FK_LOGGING_POOL_ALLOCATOR_VERBOSE)
         loginfo("(pa) new<val>(0x%p)", p);
         #endif
@@ -172,6 +175,7 @@ struct pool_allocator {
     }
 
     void destroy(pointer p) {
+        FK_ASSERT(pool_ != nullptr);
         #if defined(FK_LOGGING_POOL_ALLOCATOR_VERBOSE)
         loginfo("(pa) delete(0x%p)", p);
         #endif
@@ -180,6 +184,7 @@ struct pool_allocator {
 
     template<class... Args>
     void construct(pointer p, Args &&... args) {
+        FK_ASSERT(pool_ != nullptr);
         #if defined(FK_LOGGING_POOL_ALLOCATOR_VERBOSE)
         loginfo("(pa) new<args>(0x%p)", p);
         #endif

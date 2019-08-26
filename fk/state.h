@@ -3,12 +3,16 @@
 #include "common.h"
 #include "config.h"
 #include "modules/modules.h"
+#include "pool.h"
+#include "containers.h"
 
 namespace fk {
 
 struct SensorDetails {
     const char *name;
     const char *uom;
+    bool has_live_vaue;
+    float live_value;
 };
 
 struct ModuleDetails {
@@ -17,16 +21,20 @@ struct ModuleDetails {
     size_t nsensors;
 };
 
+using SensorStateCollection = std::list<SensorDetails, pool_allocator<SensorDetails>>;
+
 struct ModuleState {
 public:
     uint16_t position;
     uint16_t manufacturer;
     uint16_t kind;
     uint16_t version;
+    const char *name;
+    SensorStateCollection sensors;
 
 public:
-    ModuleState();
-    ModuleState(ModuleHeader header);
+    ModuleState(Pool &pool);
+    ModuleState(Pool &pool, ModuleHeader header);
 
 };
 
@@ -57,14 +65,19 @@ struct GpsState {
 struct PeripheralState {
 };
 
+using ModuleStateCollection = std::list<ModuleState, pool_allocator<ModuleState>>;
+
 struct GlobalState {
+private:
+    MallocPool pool_{ "gs:mods", 1024 };
+
 public:
     RuntimeState runtime;
     PowerState power;
     PeripheralState peripheral;
     GpsState gps;
     NetworkState network;
-    ModuleState modules[MaximumNumberOfModules];
+    ModuleStateCollection modules;
 
 public:
     GlobalState();

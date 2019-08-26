@@ -1,3 +1,5 @@
+#include <scoped_allocator>
+
 #include "readings_worker.h"
 
 #include "hal/hal.h"
@@ -15,14 +17,16 @@ void ReadingsWorker::run(WorkerContext &wc) {
     auto memory_bus = get_board()->spi_flash();
     auto module_bus = get_board()->i2c_module();
     auto gs = get_global_state_ro();
+
     ModuleContext mc{ gs.get(), module_bus };
-    StatisticsMemory memory{ MemoryFactory::get_data_memory() };
-    Storage storage{ &memory }; // Not opened!
+    Storage storage{ MemoryFactory::get_data_memory() }; // NOTE: Not opened!
     ModuleScanning scanning{ get_modmux() };
     ReadingsTaker readings_taker{ scanning, storage, get_modmux(), true };
-    FK_ASSERT(readings_taker.take(mc, pool));
+    auto all_readings = readings_taker.take(mc, pool);
+    FK_ASSERT(all_readings);
 
-    memory.log_statistics();
+    get_ipc()->enqueue_data([](GlobalState *gs) {
+    });
 
     loginfo("done (pool = %zd/%zd bytes) (%" PRIu32 "ms)", pool.used(), pool.size(), fk_uptime() - started);
 }

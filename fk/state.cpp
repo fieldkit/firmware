@@ -12,16 +12,16 @@ GlobalStateRef<GlobalState*> get_global_state_rw() {
     return { &gs };
 }
 
-ModuleState::ModuleState() {
+ModuleState::ModuleState(Pool &pool) : sensors(pool) {
 }
 
-ModuleState::ModuleState(ModuleHeader header) {
+ModuleState::ModuleState(Pool &pool, ModuleHeader header) : sensors(pool) {
     manufacturer = header.manufacturer;
     kind = header.kind;
     version = header.version;
 }
 
-GlobalState::GlobalState() {
+GlobalState::GlobalState() : modules(pool_) {
 }
 
 }
