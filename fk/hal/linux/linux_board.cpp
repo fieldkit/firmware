@@ -6,8 +6,10 @@ namespace fk {
 
 FK_DECLARE_LOGGER("board");
 
-void Board::initialize() {
+bool Board::initialize() {
     disable_everything();
+
+    return true;
 }
 
 void Board::disable_everything() {

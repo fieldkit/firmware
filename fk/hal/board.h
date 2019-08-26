@@ -100,7 +100,7 @@ public:
 
 class Board {
 public:
-    void initialize();
+    bool initialize();
     void disable_everything();
     void enable_everything();
     void disable_gps();

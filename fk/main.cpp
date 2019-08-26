@@ -164,9 +164,9 @@ static void configure_logging() {
 }
 
 static void initialize_hardware() {
-    get_board()->initialize();
+    FK_ASSERT(get_board()->initialize());
     // NOTE: We do this ASAP because the GPIO on the modmux can be in any state.
-    get_modmux()->begin();
+    FK_ASSERT(get_modmux()->begin());
     FK_ASSERT(fk_random_initialize() == 0);
     FK_ASSERT(get_buttons()->begin());
 }

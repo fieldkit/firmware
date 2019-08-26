@@ -46,7 +46,7 @@ const uint8_t power_pins[] = {
     GPS_POWER,
 };
 
-void Board::initialize() {
+bool Board::initialize() {
     pinMode(WINC1500_POWER, OUTPUT);
     pinMode(WINC1500_CS, OUTPUT);
     pinMode(WINC1500_IRQ, INPUT);
@@ -68,6 +68,8 @@ void Board::initialize() {
     }
 
     disable_everything();
+
+    return true;
 }
 
 void Board::disable_everything() {
