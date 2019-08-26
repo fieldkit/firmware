@@ -65,7 +65,7 @@ static void setup_fake_data() {
     TwoWireWrapper module_bus{ "modules", nullptr };
     ModuleContext mc{ get_global_state_rw().get(), module_bus };
 
-    for (auto i = 0; i < 10000 / FK_READINGS_AMPLIFY_WRITES; ++i) {
+    for (size_t i = 0; i < 10000 / fk_config().readings.amplification; ++i) {
         MallocPool pool{ "readings", 2048 };
         FoundModuleCollection found(pool);
         found.emplace_back(FoundModule{

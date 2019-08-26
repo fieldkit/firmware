@@ -46,7 +46,7 @@ void task_handler_misc(void *params) {
 
         FK_ASSERT(data.seek_end());
 
-        for (auto i = 0; i < 1000 / FK_READINGS_AMPLIFY_WRITES; ++i) {
+        for (size_t i = 0; i < 1000 / fk_config().readings.amplification; ++i) {
             FK_ASSERT(readings_taker.append_readings(data, pool));
         }
 

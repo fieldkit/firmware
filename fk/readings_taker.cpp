@@ -101,7 +101,7 @@ bool ReadingsTaker::initialize_modules(ModuleContext &mc, ConstructedModulesColl
 }
 
 bool ReadingsTaker::append_readings(File &file, Pool &pool) {
-    for (auto i = 0; i < FK_READINGS_AMPLIFY_WRITES; ++i) {
+    for (size_t i = 0; i < fk_config().readings.amplification; ++i) {
         if (i > 0) {
             // NOTE: This is necessary when we're amplifying.
             readings_.record().readings.reading++;
