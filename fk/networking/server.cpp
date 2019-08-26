@@ -6,6 +6,7 @@
 #include "networking/server.h"
 #include "networking/default_routes.h"
 #include "hal/hal.h"
+#include "device_name.h"
 
 namespace fk {
 
@@ -25,9 +26,12 @@ HttpServer::~HttpServer() {
 }
 
 bool HttpServer::begin() {
+    StaticPool<128> pool{ "http:begin "};
+
     loginfo("checking network...");
 
-    if (!try_configurations()) {
+    auto name = fk_device_name_generate(pool);
+    if (!try_configurations(name)) {
         return false;
     }
 
@@ -63,9 +67,9 @@ void HttpServer::stop() {
     network_->stop();
 }
 
-bool HttpServer::try_configurations() {
+bool HttpServer::try_configurations(const char *name) {
     for (auto &config : fkc_->network.networks) {
-        auto settings = get_settings(config);
+        auto settings = get_settings(config, name);
 
         loginfo("trying '%s'", settings.ssid);
 
@@ -98,13 +102,13 @@ bool HttpServer::try_configurations() {
     return false;
 }
 
-NetworkSettings HttpServer::get_settings(configuration_t::wifi_network_t const &network) {
+NetworkSettings HttpServer::get_settings(configuration_t::wifi_network_t const &network, const char *name) {
     if (network.ssid == nullptr) {
         return {
             .create = true,
-            .ssid = "FkDevice",
+            .ssid = name,
             .password = nullptr,
-            .name = "FkDevice",
+            .name = name,
             .port = 80,
         };
     }
@@ -112,7 +116,7 @@ NetworkSettings HttpServer::get_settings(configuration_t::wifi_network_t const &
         .create = false,
         .ssid = network.ssid,
         .password = network.password,
-        .name = "FK-DEVICE",
+        .name = name,
         .port = 80,
     };
 }

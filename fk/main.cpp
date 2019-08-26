@@ -7,6 +7,7 @@
 #include "self_check.h"
 #include "factory_wipe.h"
 #include "tasks/tasks.h"
+#include "device_name.h"
 #include "debugging.h"
 
 extern const struct fkb_header_t fkb_header;
@@ -135,6 +136,7 @@ extern uint32_t __bss_start__;
 extern uint32_t __bss_end__;
 
 static void log_diagnostics() {
+    StaticPool<128> pool{ "diagnostics" };
     uint8_t stack_dummy = 0;
     auto in_stack = (uint8_t *)&__cm_ram_end__ - &stack_dummy;
     auto available = fk_free_memory();
@@ -149,6 +151,9 @@ static void log_diagnostics() {
     fk_serial_number_t sn;
     fk_serial_number_get(&sn);
     loginfo("serial = %08" PRIx32 "-%08" PRIx32 "-%08" PRIx32 "-%08" PRIx32, sn.dwords[0], sn.dwords[1], sn.dwords[2], sn.dwords[3]);
+
+    auto name = fk_device_name_generate(pool);
+    loginfo("name = '%s'", name);
 
     loginfo("fw = %s", fkb_header.firmware.name);
     char hash_string[128];

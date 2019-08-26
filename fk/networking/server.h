@@ -41,9 +41,9 @@ public:
     }
 
 private:
-    bool try_configurations();
+    bool try_configurations(const char *name);
 
-    NetworkSettings get_settings(configuration_t::wifi_network_t const &network);
+    NetworkSettings get_settings(configuration_t::wifi_network_t const &network, const char *name);
 
 };
 

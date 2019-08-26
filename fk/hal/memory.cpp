@@ -412,7 +412,7 @@ public:
         available->page = page;
         available->dirty = false;
 
-        // logdebug("load page #%" PRIu32 " (%" PRIu32 ")", available->page, available->ts);
+        // logtrace("load page #%" PRIu32 " (%" PRIu32 ")", available->page, available->ts);
 
         if (!store_.load_page(page * PageSize, available->ptr, PageSize)) {
             return nullptr;
@@ -431,7 +431,7 @@ public:
                     FK_ASSERT(!p->dirty);
                 }
                 else if (p->ts > 0) {
-                    logdebug("invalidate (%" PRIu32 ")", page);
+                    logtrace("invalidate (%" PRIu32 ")", page);
                 }
                 p->dirty = false;
                 p->ts = 0;
@@ -450,7 +450,7 @@ public:
                 FK_ASSERT(!p->dirty);
             }
             else if (p->ts > 0) {
-                logdebug("invalidate(all) (%" PRIu32 ")", p->page);
+                logtrace("invalidate(all) (%" PRIu32 ")", p->page);
             }
             p->dirty = false;
             p->ts = 0;
@@ -465,7 +465,7 @@ public:
             return true;
         }
 
-        logdebug("flush #%" PRIu32 "", page->page);
+        logtrace("flush #%" PRIu32 "", page->page);
 
         if (!store_.save_page(page->page * PageSize, page->ptr, PageSize)) {
             return false;
