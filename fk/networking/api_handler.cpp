@@ -8,6 +8,7 @@
 #include "storage/signed_log.h"
 #include "records.h"
 #include "readings_worker.h"
+#include "device_name.h"
 
 extern const struct fkb_header_t fkb_header;
 
@@ -119,11 +120,13 @@ static bool send_status(HttpRequest &req, fk_app_HttpQuery *query, Pool &pool) {
         .buffer = &sn,
     };
 
+    auto name = fk_device_name_generate(pool);
+
     auto reply = fk_http_reply_encoding();
     reply.type = fk_app_ReplyType_REPLY_STATUS;
     reply.status.version = 1;
     reply.status.uptime = fk_uptime();
-    reply.status.identity.device.arg = (void *)"device";
+    reply.status.identity.device.arg = (void *)name;
     reply.status.identity.build.arg = (void *)fkb_header.firmware.name;
     reply.status.identity.deviceId.arg = &device_id;
     reply.status.power.battery.voltage = 4000;
