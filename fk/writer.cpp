@@ -43,4 +43,28 @@ int32_t BufferedWriter::flush() {
     return position_;
 }
 
+static bool write_callback(pb_ostream_t *stream, const uint8_t *buf, size_t c) {
+    auto s = reinterpret_cast<Writable*>(stream->state);
+    return s->write(buf, c) == (int32_t)c;
+}
+
+static bool read_callback(pb_istream_t *stream, uint8_t *buf, size_t c) {
+    auto s = reinterpret_cast<Readable*>(stream->state);
+    auto nread = s->read(buf, c);
+    if (nread <= 0) {
+        stream->bytes_left = 0; /* EOF */
+    }
+    return nread == (int32_t)c;
+}
+
+pb_ostream_t pb_ostream_from_writable(Writable *s) {
+    pb_ostream_t stream = { &write_callback, (void *)s, SIZE_MAX, 0 };
+    return stream;
+}
+
+pb_istream_t pb_istream_from_readable(Readable *s) {
+    pb_istream_t stream = { &read_callback, (void *)s, SIZE_MAX };
+    return stream;
+}
+
 }

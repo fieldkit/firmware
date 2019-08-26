@@ -15,30 +15,26 @@ namespace fk {
 
 FK_DECLARE_LOGGER("api");
 
-static bool send_status(HttpRequest &req, Pool &pool);
+static bool send_status(HttpRequest &req, fk_app_HttpQuery *query, Pool &pool);
 
-static bool configure(HttpRequest &req, Pool &pool);
+static bool configure(HttpRequest &req, fk_app_HttpQuery *query, Pool &pool);
 
 bool ApiHandler::handle(HttpRequest &req, Pool &pool) {
-    if (req.content_type() != WellKnownContentType::ApplicationFkHttp) {
-        req.connection()->error("unexpected content-type");
-        return true;
-    }
-
-    auto query = req.query();
-    if (query == nullptr) {
-        req.connection()->error("missing query");
+    auto query = fk_http_query_prepare_decoding(pool.malloc<fk_app_HttpQuery>(), &pool);
+    auto stream = pb_istream_from_readable(req.reader());
+    if (!pb_decode_delimited(&stream, fk_app_HttpQuery_fields, query)) {
+        req.connection()->error("error parsing query");
         return true;
     }
 
     switch (query->type) {
     case fk_app_QueryType_QUERY_STATUS: {
         loginfo("handling %s", "QUERY_STATUS");
-        return send_status(req, pool);
+        return send_status(req, query, pool);
     }
     case fk_app_QueryType_QUERY_CONFIGURE: {
         loginfo("handling %s", "QUERY_CONFIGURE");
-        return configure(req, pool);
+        return configure(req, query, pool);
     }
     case fk_app_QueryType_QUERY_TAKE_READINGS: {
         loginfo("handling %s", "QUERY_TAKE_READINGS");
@@ -46,11 +42,11 @@ bool ApiHandler::handle(HttpRequest &req, Pool &pool) {
         if (!get_ipc()->launch_worker(new ReadingsWorker())) {
             return false;
         }
-        return send_status(req, pool);
+        return send_status(req, query, pool);
     }
     case fk_app_QueryType_QUERY_GET_READINGS: {
         loginfo("handling %s", "QUERY_GET_READINGS");
-        return send_status(req, pool);
+        return send_status(req, query, pool);
     }
     default: {
         break;
@@ -61,9 +57,9 @@ bool ApiHandler::handle(HttpRequest &req, Pool &pool) {
     return true;
 }
 
-static bool configure(HttpRequest &req, Pool &pool) {
-    if (req.query()->identity.name.arg != nullptr) {
-        auto name = (char *)req.query()->identity.name.arg;
+static bool configure(HttpRequest &req, fk_app_HttpQuery *query, Pool &pool) {
+    if (query->identity.name.arg != nullptr) {
+        auto name = (char *)query->identity.name.arg;
 
         StatisticsMemory memory{ MemoryFactory::get_data_memory() };
         Storage storage{ &memory };
@@ -99,10 +95,10 @@ static bool configure(HttpRequest &req, Pool &pool) {
         }
     }
 
-    return send_status(req, pool);
+    return send_status(req, query, pool);
 }
 
-static bool send_status(HttpRequest &req, Pool &pool) {
+static bool send_status(HttpRequest &req, fk_app_HttpQuery *query, Pool &pool) {
     constexpr static uint32_t BootloaderSize = 0x4000;
 
     auto lock = storage_mutex.acquire(UINT32_MAX);

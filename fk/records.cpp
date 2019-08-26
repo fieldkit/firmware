@@ -32,4 +32,16 @@ fk_app_HttpReply fk_http_reply_encoding() {
     return { };
 }
 
+fk_app_HttpQuery *fk_http_query_prepare_decoding(fk_app_HttpQuery *query, Pool *pool) {
+    *query = fk_app_HttpQuery_init_default;
+
+    query->identity.name.funcs.decode = pb_decode_string;
+    query->identity.name.arg = (void *)pool;
+
+    query->schedules.readings.cron.funcs.decode = pb_decode_data;
+    query->schedules.readings.cron.arg = (void *)pool;
+
+    return query;
+}
+
 }

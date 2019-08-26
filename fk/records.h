@@ -14,4 +14,6 @@ fk_data_DataRecord fk_data_record_encoding_new();
 
 fk_app_HttpReply fk_http_reply_encoding();
 
+fk_app_HttpQuery *fk_http_query_prepare_decoding(fk_app_HttpQuery *query, Pool *pool);
+
 }

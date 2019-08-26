@@ -66,11 +66,6 @@ private:
     Pool *pool_;
 
     /**
-     * Any wire message query provided.
-     */
-    fk_app_HttpQuery *query_{ nullptr };
-
-    /**
      * Network connection handling this request.
      */
     Connection *conn_;
@@ -99,14 +94,6 @@ public:
     int32_t parse(const char *data, size_t length);
 
 public:
-    /**
-     * Returns the most recently parsed fk_app_HttpQuery that has come in
-     * over this channel.
-     */
-    fk_app_HttpQuery *query() {
-        return query_;
-    }
-
     /**
      * Returns the current state machine state of the request.
      */

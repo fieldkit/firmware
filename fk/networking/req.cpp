@@ -6,7 +6,7 @@
 #include "platform.h"
 #include "config.h"
 #include "networking/networking.h"
-#include "protobuf.h"
+#include "utilities.h"
 
 namespace fk {
 
@@ -164,16 +164,6 @@ int32_t HttpRequest::on_headers_complete() {
     return 0;
 }
 
-static fk_app_HttpQuery *prepare(fk_app_HttpQuery *query, Pool *pool) {
-    query->identity.name.funcs.decode = pb_decode_string;
-    query->identity.name.arg = (void *)pool;
-
-    query->schedules.readings.cron.funcs.decode = pb_decode_data;
-    query->schedules.readings.cron.arg = (void *)pool;
-
-    return query;
-}
-
 int32_t HttpRequest::on_data(const char *at, size_t length) {
     logtrace("%s(0x%p, %" PRIu32 ")", __PRETTY_FUNCTION__, at, (int32_t)length);
 
@@ -181,24 +171,6 @@ int32_t HttpRequest::on_data(const char *at, size_t length) {
 
     buffered_body_ = (uint8_t const *)at;
     buffered_body_length_ = length;
-
-    /// TODO: This should maybe eventually be handled in the handler.
-    if (content_type_ == WellKnownContentType::ApplicationFkHttp) {
-        if (length_ == length) {
-            auto query = prepare(pool_->malloc<fk_app_HttpQuery>(), pool_);
-            auto fields = fk_app_HttpQuery_fields;
-            auto stream = pb_istream_from_buffer((uint8_t *)at, length);
-            if (!pb_decode_delimited(&stream, fields, query)) {
-                logerror("unable to parse body");
-            }
-            else {
-                query_ = query;
-            }
-        }
-        else {
-            logerror("incomplete body (%" PRIu32 " vs %zd)", length_, length);
-        }
-    }
 
     return 0;
 }
@@ -212,7 +184,7 @@ int32_t HttpRequest::on_message_complete() {
 }
 
 int32_t HttpRequest::read(uint8_t *buffer, size_t size) {
-    FK_ASSERT(state_ == HttpRequestState::Body);
+    FK_ASSERT(state_ == HttpRequestState::Body || state_ == HttpRequestState::Consumed);
 
     if (buffered_body_ != nullptr) {
         auto returning = std::min(buffered_body_length_, size);
