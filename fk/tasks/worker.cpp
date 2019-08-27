@@ -13,7 +13,7 @@ void task_handler_worker(void *params) {
 
     auto started = fk_uptime();
     auto worker = reinterpret_cast<Worker*>(params);
-    auto pool = worker->pool();
+    auto pool = MallocPool{ "worker", 4096 };
     WorkerContext wc;
     worker->run(wc, pool);
     delete worker;

@@ -6,6 +6,9 @@ namespace fk {
 
 class ReadingsWorker : public Worker {
 public:
+    ReadingsWorker() : Worker() {
+    }
+
     ReadingsWorker(Pool *pool) : Worker(pool) {
     }
 

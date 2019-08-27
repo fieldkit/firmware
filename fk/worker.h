@@ -14,15 +14,20 @@ private:
     Pool *pool_;
 
 public:
+    Worker() : pool_(nullptr) {
+    }
+
     Worker(Pool *pool) : pool_(pool) {
     }
 
     virtual ~Worker() {
+        if (pool_ != nullptr) {
+            delete pool_;
+        }
     }
 
 public:
     virtual void run(WorkerContext &wc, Pool &pool) = 0;
-
 
 public:
     Pool &pool() {
