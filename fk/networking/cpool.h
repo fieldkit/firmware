@@ -9,9 +9,6 @@
 
 namespace fk {
 
-constexpr static size_t HttpdConnectionBufferSize = 1024;
-constexpr static size_t HttpdConnectionWorkSize = 2048;
-
 class Connection : public Writable, public Readable {
 private:
     NetworkConnection *conn_{ nullptr };

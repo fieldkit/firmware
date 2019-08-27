@@ -107,6 +107,16 @@ constexpr size_t GpsDebuggingBuffer = 64;
 constexpr size_t HttpMaximumHeaderSize = 1024;
 
 /**
+ *
+ */
+constexpr size_t HttpdConnectionBufferSize = 1024;
+
+/**
+ *
+ */
+constexpr size_t HttpdConnectionWorkSize = 4096;
+
+/**
  * Maximum number of blocks to look ahead for an available block. This means we
  * can't deal with this many bad blocks sequentially.
  */
