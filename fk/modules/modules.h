@@ -28,6 +28,9 @@ uint32_t fk_module_header_valid(ModuleHeader const *header);
 #define FK_MODULES_KIND_RANDOM                     (0xa0)
 #define FK_MODULES_KIND_DIAGNOSTICS                (0xa1)
 
+#define FK_MODULES_FLAG_NONE                       (0)
+#define FK_MODULES_FLAG_INTERNAL                   (1)
+
 #ifdef __cplusplus
 }
 #endif

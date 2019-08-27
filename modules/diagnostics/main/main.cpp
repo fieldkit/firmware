@@ -16,6 +16,7 @@ ModuleMetadata const fk_module_meta_diagnostics = {
     .kind = FK_MODULES_KIND_DIAGNOSTICS,
     .version = 0x01,
     .name = "diagnostics",
+    .flags = FK_MODULES_FLAG_INTERNAL,
     .ctor = fk_module_create_diagnostics,
 };
 

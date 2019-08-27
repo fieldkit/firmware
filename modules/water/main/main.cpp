@@ -16,6 +16,7 @@ ModuleMetadata const fk_module_meta_water = {
     .kind = FK_MODULES_KIND_WATER,
     .version = 0x01,
     .name = "water",
+    .flags = FK_MODULES_FLAG_NONE,
     .ctor = fk_module_create_water,
 };
 

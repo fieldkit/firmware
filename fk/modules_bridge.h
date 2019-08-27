@@ -80,6 +80,7 @@ public:
 typedef struct SensorMetadata {
     const char *name;
     const char *unitOfMeasure;
+    uint32_t flags;
 } SensorMetadata;
 
 /**
@@ -118,6 +119,7 @@ typedef struct ModuleMetadata {
     uint32_t kind;
     uint32_t version;
     const char *name;
+    uint32_t flags;
     fk_module_create_fn_t ctor;
 } ModuleMetadata;
 

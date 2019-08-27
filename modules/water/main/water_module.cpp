@@ -24,14 +24,17 @@ ModuleSensors const *WaterModule::get_sensors(ModuleContext mc, Pool &pool) {
             {
                 .name = "ec",
                 .unitOfMeasure = "µS/cm",
+                .flags = 0,
             },
             {
                 .name = "tds",
                 .unitOfMeasure = "ppm",
+                .flags = 0,
             },
             {
                 .name = "salinity",
                 .unitOfMeasure = "",
+                .flags = 0,
             }
         });
         return pool.malloc_with<ModuleSensors>({
@@ -43,6 +46,7 @@ ModuleSensors const *WaterModule::get_sensors(ModuleContext mc, Pool &pool) {
         auto meta = pool.malloc_with<SensorMetadata>({
             .name = "ph",
             .unitOfMeasure = "",
+            .flags = 0,
         });
         return pool.malloc_with<ModuleSensors>({
             .nsensors = 1,
@@ -53,6 +57,7 @@ ModuleSensors const *WaterModule::get_sensors(ModuleContext mc, Pool &pool) {
         auto meta = pool.malloc_with<SensorMetadata>({
             .name = "do",
             .unitOfMeasure = "mg/L",
+            .flags = 0,
         });
         return pool.malloc_with<ModuleSensors>({
             .nsensors = 1,
@@ -63,6 +68,7 @@ ModuleSensors const *WaterModule::get_sensors(ModuleContext mc, Pool &pool) {
         auto meta = pool.malloc_with<SensorMetadata>({
             .name = "temp",
             .unitOfMeasure = "C",
+            .flags = 0,
         });
         return pool.malloc_with<ModuleSensors>({
             .nsensors = 1,
@@ -73,6 +79,7 @@ ModuleSensors const *WaterModule::get_sensors(ModuleContext mc, Pool &pool) {
         auto meta = pool.malloc_with<SensorMetadata>({
             .name = "orp",
             .unitOfMeasure = "mV",
+            .flags = 0,
         });
         return pool.malloc_with<ModuleSensors>({
             .nsensors = 1,

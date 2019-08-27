@@ -33,11 +33,12 @@ ModuleMetadata const fk_test_module_fake_empty = {
     .kind = FK_MODULES_KIND_RANDOM,
     .version = 0x03,
     .name = "fake-empty",
+    .flags = 0,
     .ctor = fk_test_module_create_empty,
 };
 
 static SensorMetadata const fk_module_fake_1_sensor_metas[] = {
-    { .name = "sensor", .unitOfMeasure = "" },
+    { .name = "sensor", .unitOfMeasure = "", .flags = 0 },
 };
 
 static ModuleSensors fk_module_fake_1_sensors = {
@@ -71,20 +72,21 @@ ModuleMetadata const fk_test_module_fake_1 = {
     .kind = FK_MODULES_KIND_RANDOM,
     .version = 0x02,
     .name = "fake-1",
+    .flags = 0,
     .ctor = fk_test_module_create_1,
 };
 
 static SensorMetadata const fk_module_fake_2_sensor_metas[] = {
-    { .name = "sensor-0", .unitOfMeasure = "" },
-    { .name = "sensor-1", .unitOfMeasure = "" },
-    { .name = "sensor-2", .unitOfMeasure = "" },
-    { .name = "sensor-3", .unitOfMeasure = "" },
-    { .name = "sensor-4", .unitOfMeasure = "" },
-    { .name = "sensor-5", .unitOfMeasure = "" },
-    { .name = "sensor-6", .unitOfMeasure = "" },
-    { .name = "sensor-7", .unitOfMeasure = "" },
-    { .name = "sensor-8", .unitOfMeasure = "" },
-    { .name = "sensor-9", .unitOfMeasure = "" },
+    { .name = "sensor-0", .unitOfMeasure = "", .flags = 0 },
+    { .name = "sensor-1", .unitOfMeasure = "", .flags = 0 },
+    { .name = "sensor-2", .unitOfMeasure = "", .flags = 0 },
+    { .name = "sensor-3", .unitOfMeasure = "", .flags = 0 },
+    { .name = "sensor-4", .unitOfMeasure = "", .flags = 0 },
+    { .name = "sensor-5", .unitOfMeasure = "", .flags = 0 },
+    { .name = "sensor-6", .unitOfMeasure = "", .flags = 0 },
+    { .name = "sensor-7", .unitOfMeasure = "", .flags = 0 },
+    { .name = "sensor-8", .unitOfMeasure = "", .flags = 0 },
+    { .name = "sensor-9", .unitOfMeasure = "", .flags = 0 },
 };
 
 static ModuleSensors fk_module_fake_2_sensors = {
@@ -120,6 +122,7 @@ ModuleMetadata const fk_test_module_fake_2 = {
     .kind = FK_MODULES_KIND_RANDOM,
     .version = 0x03,
     .name = "fake-2",
+    .flags = FK_MODULES_FLAG_NONE,
     .ctor = fk_test_module_create_2,
 };
 
@@ -128,6 +131,7 @@ ModuleMetadata const fk_test_module_fake_random = {
     .kind = FK_MODULES_KIND_RANDOM,
     .version = 0x01,
     .name = "fake-random",
+    .flags = FK_MODULES_FLAG_NONE,
     .ctor = fk_test_module_create_2,
 };
 
@@ -136,6 +140,7 @@ ModuleMetadata const fk_test_module_fake_diagnostics = {
     .kind = FK_MODULES_KIND_DIAGNOSTICS,
     .version = 0x01,
     .name = "fake-random",
+    .flags = FK_MODULES_FLAG_NONE,
     .ctor = fk_test_module_create_2,
 };
 

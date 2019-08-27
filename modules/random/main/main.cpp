@@ -16,6 +16,7 @@ ModuleMetadata const fk_module_meta_random = {
     .kind = FK_MODULES_KIND_RANDOM,
     .version = 0x01,
     .name = "random",
+    .flags = FK_MODULES_FLAG_INTERNAL,
     .ctor = fk_module_create_random,
 };
 

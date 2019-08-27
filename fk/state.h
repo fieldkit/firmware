@@ -11,6 +11,7 @@ namespace fk {
 struct SensorState {
     const char *name;
     const char *unitOfMeasure;
+    uint32_t flags;
     bool has_live_vaue;
     float live_value;
 };
@@ -22,6 +23,7 @@ public:
     uint32_t kind;
     uint32_t version;
     const char *name;
+    uint32_t flags;
     SensorState *sensors;
     size_t nsensors;
 };

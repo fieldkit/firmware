@@ -16,6 +16,7 @@ ModuleMetadata const fk_module_meta_weather = {
     .kind = FK_MODULES_KIND_WEATHER,
     .version = 0x01,
     .name = "weather",
+    .flags = FK_MODULES_FLAG_NONE,
     .ctor = fk_module_create_weather,
 };
 

@@ -312,6 +312,7 @@ bool send_readings(HttpRequest &req, fk_app_HttpQuery *query, Pool &pool) {
             readings[s].sensor.id = s;
             readings[s].sensor.name.arg = (void *)sensor.name;
             readings[s].sensor.unitOfMeasure.arg = (void *)sensor.unitOfMeasure;
+            readings[s].sensor.flags = sensor.flags;
             if (sensor.has_live_vaue) {
                 readings[s].value = sensor.live_value;
             }
@@ -328,6 +329,7 @@ bool send_readings(HttpRequest &req, fk_app_HttpQuery *query, Pool &pool) {
         lmr[m].module = fk_app_ModuleCapabilities_init_default;
         lmr[m].module.id = m;
         lmr[m].module.name.arg = (void *)module.name;
+        lmr[m].module.flags = module.flags;
         lmr[m].readings.arg = (void *)readings_array;
     }
 
