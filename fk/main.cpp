@@ -150,8 +150,9 @@ static void log_diagnostics() {
             available, data, bss, heap, data + bss + heap, used, in_stack);
 
     fk_serial_number_t sn;
-    fk_serial_number_get(&sn);
-    loginfo("serial = %08" PRIx32 "-%08" PRIx32 "-%08" PRIx32 "-%08" PRIx32, sn.dwords[0], sn.dwords[1], sn.dwords[2], sn.dwords[3]);
+    loginfo("serial = %08" PRIx32 "-%08" PRIx32 "-%08" PRIx32 "-%08" PRIx32,
+            (uint32_t)__builtin_bswap32(sn.dwords[0]), (uint32_t)__builtin_bswap32(sn.dwords[1]),
+            (uint32_t)__builtin_bswap32(sn.dwords[2]), (uint32_t)__builtin_bswap32(sn.dwords[3]));
 
     loginfo("fw = %s", fkb_header.firmware.name);
     char hash_string[128];

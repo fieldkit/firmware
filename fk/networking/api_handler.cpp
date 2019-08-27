@@ -82,7 +82,6 @@ static bool configure(HttpRequest &req, fk_app_HttpQuery *query, Pool &pool) {
         }
 
         fk_serial_number_t sn;
-        fk_serial_number_get(&sn);
 
         pb_data_t device_id = {
             .length = sizeof(sn),
@@ -115,7 +114,6 @@ static bool send_status(HttpRequest &req, fk_app_HttpQuery *query, Pool &pool) {
     auto gs = get_global_state_ro();
 
     fk_serial_number_t sn;
-    fk_serial_number_get(&sn);
 
     pb_data_t device_id = {
         .length = sizeof(sn),

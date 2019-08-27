@@ -2,15 +2,17 @@
 
 #include "common.h"
 
-typedef struct fk_serial_number_t {
-    uint32_t dwords[4];
-} fk_serial_number_t;
-
 #if !defined(__SAMD51__)
 #include <vector>
 #endif
 
 namespace fk {
+
+typedef struct fk_serial_number_t {
+    uint32_t dwords[4];
+
+    fk_serial_number_t();
+} fk_serial_number_t;
 
 /**
  * Return the number of milliseconds since the hardware was started.

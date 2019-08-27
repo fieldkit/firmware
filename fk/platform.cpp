@@ -73,10 +73,10 @@ uint32_t fk_free_memory() {
 }
 
 uint32_t fk_serial_number_get(fk_serial_number_t *sn) {
-    sn->dwords[0] = *(uint32_t *)0x008061FC;
-    sn->dwords[1] = *(uint32_t *)0x00806010;
-    sn->dwords[2] = *(uint32_t *)0x00806014;
-    sn->dwords[3] = *(uint32_t *)0x00806018;
+    sn->dwords[0] = __builtin_bswap32(*(uint32_t *)0x008061FC);
+    sn->dwords[1] = __builtin_bswap32(*(uint32_t *)0x00806010);
+    sn->dwords[2] = __builtin_bswap32(*(uint32_t *)0x00806014);
+    sn->dwords[3] = __builtin_bswap32(*(uint32_t *)0x00806018);
     return 128;
 }
 
@@ -125,5 +125,9 @@ uint32_t fk_serial_number_get(fk_serial_number_t *sn) {
 }
 
 #endif // __SAMD51__
+
+fk_serial_number_t::fk_serial_number_t() {
+    fk_serial_number_get(this);
+}
 
 } // namespace fk
