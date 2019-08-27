@@ -135,6 +135,7 @@ public:
 #define __POOL_LINE_STR(x) #x
 #define __POOL_LINE(x) __POOL_LINE_STR(x)
 #define PoolHere(var, size) var(__FILE__ ":" __POOL_LINE(__LINE__), size)
+#define StaticPoolHere(size)  StaticPool<size>(__FILE__ ":" __POOL_LINE(__LINE__))
 
 // #define FK_LOGGING_POOL_ALLOCATOR_VERBOSE
 

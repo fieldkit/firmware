@@ -111,11 +111,4 @@ GlobalStateRef<GlobalState const*> get_global_state_ro();
 
 GlobalStateRef<GlobalState*> get_global_state_rw();
 
-class GlobalStateManager {
-public:
-    bool initialize();
-    bool rebuild();
-
-};
-
 }

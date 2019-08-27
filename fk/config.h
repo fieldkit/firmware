@@ -51,6 +51,11 @@ constexpr uint32_t OneMegabyte = 1024 * 1024;
 constexpr size_t MaximumNameLength = 64;
 
 /**
+ * Size of the memory pool to use during the single threaded startup.
+ */
+constexpr size_t SingleThreadedStartupPoolSize = 1024;
+
+/**
  * Maximum number of WiFi networks.
  * \todo: Eventually this should be relaxed.
  */

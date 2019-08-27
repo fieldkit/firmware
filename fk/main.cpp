@@ -9,6 +9,7 @@
 #include "tasks/tasks.h"
 #include "device_name.h"
 #include "debugging.h"
+#include "state_manager.h"
 
 extern const struct fkb_header_t fkb_header;
 
@@ -186,6 +187,8 @@ static void check_for_debugger() {
 }
 
 static void single_threaded_setup() {
+    auto pool = StaticPoolHere(SingleThreadedStartupPoolSize);
+
     fk_config_initialize();
 
     configure_logging();
@@ -214,7 +217,7 @@ static void single_threaded_setup() {
     }
 
     GlobalStateManager gsm;
-    FK_ASSERT(gsm.initialize());
+    FK_ASSERT(gsm.initialize(pool));
 
     // Call this here because things go horribly if we call from within a task.
     // Something goes south with a malloc.
