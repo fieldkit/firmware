@@ -159,14 +159,14 @@ static void initialize_callbacks(fk_app_HttpReply *reply) {
             auto module = &((fk_app_ModuleCapabilities *)array->buffer)[i];
             module->name.funcs.encode = pb_encode_string;
             module->path.funcs.encode = pb_encode_string;
-            module->sensors.funcs.encode = pb_encode_array;
             if (module->sensors.arg != nullptr) {
+                module->sensors.funcs.encode = pb_encode_array;
                 auto array = (pb_array_t *)module->sensors.arg;
                 for (size_t i = 0; i < array->length; ++i) {
-                    auto module = &((fk_app_SensorCapabilities *)array->buffer)[i];
-                    module->name.funcs.encode = pb_encode_string;
-                    module->path.funcs.encode = pb_encode_string;
-                    module->unitOfMeasure.funcs.encode = pb_encode_string;
+                    auto sensor = &((fk_app_SensorCapabilities *)array->buffer)[i];
+                    sensor->name.funcs.encode = pb_encode_string;
+                    sensor->path.funcs.encode = pb_encode_string;
+                    sensor->unitOfMeasure.funcs.encode = pb_encode_string;
                 }
             }
         }

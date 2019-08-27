@@ -141,6 +141,43 @@ static bool send_status(HttpRequest &req, fk_app_HttpQuery *query, Pool &pool) {
     reply.status.memory.dataMemoryUsed = 0;
     reply.status.memory.dataMemoryConsumption = 0;
 
+    if (gs.get()->modules != nullptr) {
+        auto nmodules = gs.get()->modules->nmodules;
+        auto modules = pool.malloc<fk_app_ModuleCapabilities>(nmodules);
+        for (size_t m = 0; m < nmodules; ++m) {
+            auto &module = gs.get()->modules->modules[m];
+            auto sensors = pool.malloc<fk_app_SensorCapabilities>(module.nsensors);
+            for (size_t s = 0; s < module.nsensors; ++s) {
+                auto &sensor = module.sensors[s];
+                sensors[s] = fk_app_SensorCapabilities_init_default;
+                sensors[s].name.arg = (void *)sensor.name;
+                sensors[s].unitOfMeasure.arg = (void *)sensor.unitOfMeasure;
+            }
+
+            auto sensors_array = pool.malloc_with<pb_array_t>({
+               .length = module.nsensors,
+               .itemSize = sizeof(fk_app_SensorCapabilities),
+               .buffer = sensors,
+               .fields = fk_app_SensorCapabilities_fields,
+            });
+
+            modules[m] = fk_app_ModuleCapabilities_init_default;
+            modules[m].id = m;
+            modules[m].name.arg = (void *)module.name;
+            modules[m].path.arg = (void *)"";
+            modules[m].sensors.arg = (void *)sensors_array;
+        }
+
+        auto modules_array = pool.malloc_with<pb_array_t>({
+            .length = nmodules,
+            .itemSize = sizeof(fk_app_ModuleCapabilities),
+            .buffer = modules,
+            .fields = fk_app_ModuleCapabilities_fields,
+        });
+
+        reply.modules.arg = (void *)modules_array;
+    }
+
     auto &gps = gs.get()->gps;
     reply.status.gps.enabled = gps.enabled;
     reply.status.gps.fix = gps.fix;
