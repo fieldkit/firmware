@@ -71,7 +71,12 @@ nonstd::optional<ModuleReadingsCollection> Readings::take_readings(ModuleContext
         group.readings.arg = readings_array;
         group_number++;
 
-        all_readings.push_back(readings);
+        all_readings.emplace_back(ModuleMetaAndReadings{
+            .position = pair.found.position,
+            .meta = meta,
+            .sensors = module->get_sensors(mc, pool),
+            .readings = readings,
+        });
 
         loginfo("'%s' %zd readings", meta->name, readings->size());
     }

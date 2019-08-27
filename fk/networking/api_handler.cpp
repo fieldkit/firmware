@@ -18,6 +18,8 @@ FK_DECLARE_LOGGER("api");
 
 static bool send_status(HttpRequest &req, fk_app_HttpQuery *query, Pool &pool);
 
+static bool send_readings(HttpRequest &req, fk_app_HttpQuery *query, Pool &pool);
+
 static bool configure(HttpRequest &req, fk_app_HttpQuery *query, Pool &pool);
 
 bool ApiHandler::handle(HttpRequest &req, Pool &pool) {
@@ -49,11 +51,11 @@ bool ApiHandler::handle(HttpRequest &req, Pool &pool) {
         if (!get_ipc()->launch_worker(new ReadingsWorker())) {
             return false;
         }
-        return send_status(req, query, pool);
+        return send_readings(req, query, pool);
     }
     case fk_app_QueryType_QUERY_GET_READINGS: {
         loginfo("handling %s", "QUERY_GET_READINGS");
-        return send_status(req, query, pool);
+        return send_readings(req, query, pool);
     }
     default: {
         break;
@@ -244,6 +246,74 @@ static bool send_status(HttpRequest &req, fk_app_HttpQuery *query, Pool &pool) {
     req.connection()->close();
 
     memory.log_statistics();
+
+    return true;
+}
+
+bool send_readings(HttpRequest &req, fk_app_HttpQuery *query, Pool &pool) {
+    auto gs = get_global_state_ro();
+
+    if (gs.get()->modules == nullptr) {
+        loginfo("no live readings");
+        return false;
+    }
+
+    auto nmodules = gs.get()->modules->nmodules;
+    auto lmr = pool.malloc<fk_app_LiveModuleReadings>(nmodules);
+
+    for (size_t i = 0; i < nmodules; ++i) {
+        auto &module = gs.get()->modules->modules[i];
+        auto nreadings = module.nsensors;
+        auto readings = pool.malloc<fk_app_LiveSensorReading>(nreadings);
+
+        for (size_t j = 0; j < nreadings; ++j) {
+            auto &sensor = module.sensors[j];
+            readings[j] = fk_app_LiveSensorReading_init_default;
+            readings[j].sensor = fk_app_SensorCapabilities_init_default;
+            readings[j].sensor.name.arg = (void *)sensor.name;
+            readings[j].sensor.unitOfMeasure.arg = (void *)sensor.unitOfMeasure;
+            if (sensor.has_live_vaue) {
+                readings[j].value = sensor.live_value;
+            }
+        }
+
+        auto readings_array = pool.malloc_with<pb_array_t>({
+            .length = nreadings,
+            .itemSize = sizeof(fk_app_LiveSensorReading),
+            .buffer = readings,
+            .fields = fk_app_LiveSensorReading_fields,
+        });
+
+        lmr[i] = fk_app_LiveModuleReadings_init_default;
+        lmr[i].module = fk_app_ModuleCapabilities_init_default;
+        lmr[i].readings.arg = (void *)readings_array;
+    }
+
+    pb_array_t lmr_array = {
+        .length = (size_t)nmodules,
+        .itemSize = sizeof(fk_app_LiveModuleReadings),
+        .buffer = lmr,
+        .fields = fk_app_LiveModuleReadings_fields,
+    };
+
+    auto live_readings = pool.malloc<fk_app_LiveReadings>();
+    live_readings[0] = fk_app_LiveReadings_init_default;
+    live_readings[0].time = 0;
+    live_readings[0].modules.arg = (void *)&lmr_array;
+
+    pb_array_t live_readings_array = {
+        .length = (size_t)1,
+        .itemSize = sizeof(fk_app_LiveReadings),
+        .buffer = live_readings,
+        .fields = fk_app_LiveReadings_fields,
+    };
+
+    auto reply = fk_http_reply_encoding();
+    reply.type = fk_app_ReplyType_REPLY_READINGS;
+    reply.liveReadings.arg = (void *)&live_readings_array;
+
+    req.connection()->write(&reply);
+    req.connection()->close();
 
     return true;
 }

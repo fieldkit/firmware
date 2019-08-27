@@ -147,11 +147,4 @@ Pool Pool::freeze(const char *name) {
     return Pool{ name, remaining_, ptr_ };
 }
 
-MallocPool *MallocPool::create(const char *name, size_t size) {
-    auto memory = (uint8_t *)::malloc(size + sizeof(MallocPool));
-    auto pooled = memory + sizeof(MallocPool);
-    auto pool = new (memory) MallocPool(name, pooled, size);
-    return pool;
-}
-
 }

@@ -137,32 +137,33 @@ bool Connection::service(HttpRouter &router) {
 }
 
 static void initialize_callbacks(fk_app_HttpReply *reply) {
-    reply->errors.funcs.encode = pb_encode_array;
     if (reply->errors.arg != nullptr) {
+        reply->errors.funcs.encode = pb_encode_array;
         auto array = (pb_array_t *)reply->errors.arg;
         for (size_t i = 0; i < array->length; ++i) {
-            fk_app_Error *error = &((fk_app_Error *)array->buffer)[i];
+            auto error = &((fk_app_Error *)array->buffer)[i];
             error->message.funcs.encode = pb_encode_string;
         }
     }
 
-    reply->status.identity.device.funcs.encode = pb_encode_string;
-    reply->status.identity.stream.funcs.encode = pb_encode_string;
-    reply->status.identity.deviceId.funcs.encode = pb_encode_data;
-    reply->status.identity.firmware.funcs.encode = pb_encode_string;
-    reply->status.identity.build.funcs.encode = pb_encode_string;
-    reply->modules.funcs.encode = pb_encode_array;
+    if (reply->status.identity.device.arg != nullptr) reply->status.identity.device.funcs.encode = pb_encode_string;
+    if (reply->status.identity.stream.arg != nullptr) reply->status.identity.stream.funcs.encode = pb_encode_string;
+    if (reply->status.identity.deviceId.arg != nullptr) reply->status.identity.deviceId.funcs.encode = pb_encode_data;
+    if (reply->status.identity.firmware.arg != nullptr) reply->status.identity.firmware.funcs.encode = pb_encode_string;
+    if (reply->status.identity.build.arg != nullptr) reply->status.identity.build.funcs.encode = pb_encode_string;
+
     if (reply->modules.arg != nullptr) {
+        reply->modules.funcs.encode = pb_encode_array;
         auto array = (pb_array_t *)reply->modules.arg;
         for (size_t i = 0; i < array->length; ++i) {
-            fk_app_ModuleCapabilities *module = &((fk_app_ModuleCapabilities *)array->buffer)[i];
+            auto module = &((fk_app_ModuleCapabilities *)array->buffer)[i];
             module->name.funcs.encode = pb_encode_string;
             module->path.funcs.encode = pb_encode_string;
             module->sensors.funcs.encode = pb_encode_array;
             if (module->sensors.arg != nullptr) {
                 auto array = (pb_array_t *)module->sensors.arg;
                 for (size_t i = 0; i < array->length; ++i) {
-                    fk_app_SensorCapabilities *module = &((fk_app_SensorCapabilities *)array->buffer)[i];
+                    auto module = &((fk_app_SensorCapabilities *)array->buffer)[i];
                     module->name.funcs.encode = pb_encode_string;
                     module->path.funcs.encode = pb_encode_string;
                     module->unitOfMeasure.funcs.encode = pb_encode_string;
@@ -171,24 +172,48 @@ static void initialize_callbacks(fk_app_HttpReply *reply) {
         }
     }
 
-    reply->streams.funcs.encode = pb_encode_array;
     if (reply->streams.arg != nullptr) {
+        reply->streams.funcs.encode = pb_encode_array;
         auto array = (pb_array_t *)reply->streams.arg;
         for (size_t i = 0; i < array->length; ++i) {
-            fk_app_DataStream *stream = &((fk_app_DataStream *)array->buffer)[i];
+            auto stream = &((fk_app_DataStream *)array->buffer)[i];
             stream->name.funcs.encode = pb_encode_string;
             stream->path.funcs.encode = pb_encode_string;
             stream->hash.funcs.encode = pb_encode_data;
         }
     }
 
-    reply->networkSettings.networks.funcs.encode = pb_encode_array;
     if (reply->networkSettings.networks.arg != nullptr) {
+        reply->networkSettings.networks.funcs.encode = pb_encode_array;
         auto array = (pb_array_t *)reply->networkSettings.networks.arg;
         for (size_t i = 0; i < array->length; ++i) {
-            fk_app_NetworkInfo *network = &((fk_app_NetworkInfo *)array->buffer)[i];
+            auto network = &((fk_app_NetworkInfo *)array->buffer)[i];
             network->ssid.funcs.encode = pb_encode_string;
             network->password.funcs.encode = pb_encode_string;
+        }
+    }
+
+    if (reply->liveReadings.arg != nullptr) {
+        reply->liveReadings.funcs.encode = pb_encode_array;
+        auto live_readings_array = (pb_array_t *)reply->liveReadings.arg;
+        for (size_t i = 0; i < live_readings_array->length; ++i) {
+            auto live_readings = &((fk_app_LiveReadings *)live_readings_array->buffer)[i];
+            if (live_readings->modules.arg != nullptr) {
+                live_readings->modules.funcs.encode = pb_encode_array;
+                auto modules_array = (pb_array_t *)live_readings->modules.arg;
+                for (size_t j = 0; j < modules_array->length; ++j) {
+                    auto lmr = &((fk_app_LiveModuleReadings *)modules_array->buffer)[j];
+                    if (lmr->readings.arg != nullptr) {
+                        lmr->readings.funcs.encode = pb_encode_array;
+                        auto readings_array = (pb_array_t *)lmr->readings.arg;
+                        for (size_t k = 0; k < readings_array->length; ++k) {
+                            auto lsr = &((fk_app_LiveSensorReading *)readings_array->buffer)[k];
+                            lsr->sensor.name.funcs.encode = pb_encode_string;
+                            lsr->sensor.unitOfMeasure.funcs.encode = pb_encode_string;
+                        }
+                    }
+                }
+            }
         }
     }
 }

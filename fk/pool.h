@@ -120,9 +120,6 @@ public:
         block(nullptr, 0);
     }
 
-public:
-    static MallocPool *create(const char *name, size_t size);
-
 };
 
 class EmptyPool : public Pool {

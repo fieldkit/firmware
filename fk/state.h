@@ -8,34 +8,31 @@
 
 namespace fk {
 
-struct SensorDetails {
+struct SensorState {
     const char *name;
-    const char *uom;
+    const char *unitOfMeasure;
     bool has_live_vaue;
     float live_value;
 };
 
-struct ModuleDetails {
+struct ModuleState {
+public:
+    uint32_t position;
+    uint32_t manufacturer;
+    uint32_t kind;
+    uint32_t version;
     const char *name;
-    SensorDetails *sensors;
+    SensorState *sensors;
     size_t nsensors;
 };
 
-using SensorStateCollection = std::list<SensorDetails, pool_allocator<SensorDetails>>;
+struct ModulesState {
+    Pool *pool;
+    ModuleState *modules;
+    size_t nmodules;
 
-struct ModuleState {
-public:
-    uint16_t position;
-    uint16_t manufacturer;
-    uint16_t kind;
-    uint16_t version;
-    char name[MaximumNameLength];
-    SensorStateCollection sensors;
-
-public:
-    ModuleState(Pool &pool);
-    ModuleState(Pool &pool, ModuleHeader header);
-
+    ModulesState(Pool *pool) : pool(pool) {
+    }
 };
 
 struct RuntimeState {
@@ -69,12 +66,7 @@ struct GeneralState {
     char name[MaximumNameLength];
 };
 
-using ModuleStateCollection = std::list<ModuleState, pool_allocator<ModuleState>>;
-
 struct GlobalState {
-private:
-    MallocPool pool_{ "gs:mods", 1024 };
-
 public:
     GeneralState general;
     RuntimeState runtime;
@@ -82,7 +74,7 @@ public:
     PeripheralState peripheral;
     GpsState gps;
     NetworkState network;
-    ModuleStateCollection modules;
+    ModulesState *modules;
 
 public:
     GlobalState();

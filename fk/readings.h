@@ -8,7 +8,14 @@
 
 namespace fk {
 
-using ModuleReadingsCollection = std::list<ModuleReadings*, pool_allocator<ModuleReadings*>>;
+struct ModuleMetaAndReadings {
+    uint16_t position;
+    ModuleMetadata const *meta;
+    ModuleSensors const *sensors;
+    ModuleReadings const *readings;
+};
+
+using ModuleReadingsCollection = std::list<ModuleMetaAndReadings , pool_allocator<ModuleMetaAndReadings>>;
 
 class Readings {
 private:

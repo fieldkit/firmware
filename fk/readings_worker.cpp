@@ -23,7 +23,43 @@ void ReadingsWorker::run(WorkerContext &wc, Pool &pool) {
     auto all_readings = readings_taker.take(mc, pool);
     FK_ASSERT(all_readings);
 
-    get_ipc()->enqueue_data([](GlobalState *gs) {
+    auto data_pool = new StaticPool<2048>("readings");
+    auto modules = data_pool->malloc_with<ModulesState>(data_pool);
+
+    modules->nmodules = all_readings->size();
+    modules->modules = data_pool->malloc<ModuleState>(all_readings->size());
+
+    auto module_num = 0;
+
+    for (auto m : *all_readings) {
+        auto sensors = data_pool->malloc<SensorState>(m.sensors->nsensors);
+
+        modules->modules[module_num] = ModuleState{
+            .position = m.position,
+            .manufacturer = m.meta->manufacturer,
+            .kind = m.meta->kind,
+            .version = m.meta->version,
+            .name = m.meta->name,
+            .sensors = sensors,
+            .nsensors = m.sensors->nsensors,
+        };
+
+        for (size_t i = 0; i < m.sensors->nsensors; ++i) {
+            sensors[i].name = m.sensors->sensors[i].name;
+            sensors[i].unitOfMeasure = m.sensors->sensors[i].unitOfMeasure;
+            sensors[i].has_live_vaue = true;
+            sensors[i].live_value = m.readings->get(i);
+        }
+
+        module_num++;
+    }
+
+    get_ipc()->enqueue_data([=](GlobalState *gs) {
+        loginfo("updating");
+        if (gs->modules != nullptr) {
+            delete gs->modules->pool;
+        }
+        gs->modules = modules;
     });
 }
 
