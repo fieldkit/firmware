@@ -29,6 +29,8 @@ private:
 
 public:
     Pool(const char *name, size_t size, void *block);
+    virtual ~Pool() {
+    }
 
 public:
     void *block() {
@@ -110,10 +112,16 @@ public:
     MallocPool(const char *name, size_t size) : Pool(name, size, (void *)::malloc(size)) {
     }
 
-    ~MallocPool() {
+    MallocPool(const char *name, void *ptr, size_t size) : Pool(name, size, ptr) {
+    }
+
+    virtual ~MallocPool() {
         free(block());
         block(nullptr, 0);
     }
+
+public:
+    static MallocPool *create(const char *name, size_t size);
 
 };
 

@@ -16,10 +16,10 @@ private:
     HttpRequest *req_;
 
 public:
-    ReceiveWorker(HttpRequest *req);
+    ReceiveWorker(HttpRequest *req, Pool *pool);
 
 public:
-    void run(WorkerContext &wc) override;
+    void run(WorkerContext &wc, Pool &pool) override;
 
 };
 

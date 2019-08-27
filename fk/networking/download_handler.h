@@ -23,10 +23,10 @@ private:
     uint8_t file_number_;
 
 public:
-    DownloadWorker(HttpRequest *req, uint8_t file_number);
+    DownloadWorker(HttpRequest *req, uint8_t file_number, Pool *pool);
 
 public:
-    void run(WorkerContext &wc) override;
+    void run(WorkerContext &wc, Pool &pool) override;
 
 private:
     struct HeaderInfo {

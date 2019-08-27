@@ -49,7 +49,7 @@ bool LinuxIPC::launch_worker(Worker *worker) {
     FK_ASSERT(worker != nullptr);
 
     WorkerContext wc;
-    worker->run(wc);
+    worker->run(wc, worker->pool());
     delete worker;
 
     return true;

@@ -2,6 +2,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <new>
 
 #include "pool.h"
 #include "platform.h"
@@ -144,6 +145,13 @@ Pool Pool::freeze(const char *name) {
     // allocations on them when we unfreeze.
     frozen_ = true;
     return Pool{ name, remaining_, ptr_ };
+}
+
+MallocPool *MallocPool::create(const char *name, size_t size) {
+    auto memory = (uint8_t *)::malloc(size + sizeof(MallocPool));
+    auto pooled = memory + sizeof(MallocPool);
+    auto pool = new (memory) MallocPool(name, pooled, size);
+    return pool;
 }
 
 }

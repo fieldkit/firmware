@@ -5,7 +5,7 @@ namespace fk {
 
 FK_DECLARE_LOGGER("receive");
 
-ReceiveWorker::ReceiveWorker(HttpRequest *req) : req_(req) {
+ReceiveWorker::ReceiveWorker(HttpRequest *req, Pool *pool) : Worker(pool), req_(req) {
     auto expected = req_->length();
     auto bytes_copied = (uint32_t)0;
     auto reader = req->reader();
@@ -28,12 +28,12 @@ ReceiveWorker::ReceiveWorker(HttpRequest *req) : req_(req) {
     req_->connection()->close();
 }
 
-void ReceiveWorker::run(WorkerContext &wc) {
+void ReceiveWorker::run(WorkerContext &wc, Pool &pool) {
 }
 
 bool ReceiveHandler::handle(HttpRequest &req, Pool &pool) {
     // TODO: MALLOC
-    if (!get_ipc()->launch_worker(new ReceiveWorker(&req))) {
+    if (!get_ipc()->launch_worker(new ReceiveWorker(&req, nullptr))) {
         return false;
     }
 

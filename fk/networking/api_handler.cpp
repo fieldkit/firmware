@@ -46,7 +46,7 @@ bool ApiHandler::handle(HttpRequest &req, Pool &pool) {
     case fk_app_QueryType_QUERY_TAKE_READINGS: {
         loginfo("handling %s", "QUERY_TAKE_READINGS");
         // TODO: MALLOC
-        if (!get_ipc()->launch_worker(new ReadingsWorker())) {
+        if (!get_ipc()->launch_worker(new ReadingsWorker(nullptr))) {
             return false;
         }
         return send_status(req, query, pool);

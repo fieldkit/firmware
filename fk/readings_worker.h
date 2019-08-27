@@ -6,7 +6,11 @@ namespace fk {
 
 class ReadingsWorker : public Worker {
 public:
-    void run(WorkerContext &wc) override;
+    ReadingsWorker(Pool *pool) : Worker(pool) {
+    }
+
+public:
+    void run(WorkerContext &wc, Pool &pool) override;
 
 };
 

@@ -8,10 +8,10 @@ namespace fk {
 
 FK_DECLARE_LOGGER("download");
 
-DownloadWorker::DownloadWorker(HttpRequest *req, uint8_t file_number) : req_(req), file_number_(file_number) {
+DownloadWorker::DownloadWorker(HttpRequest *req, uint8_t file_number, Pool *pool) : Worker(pool), req_(req), file_number_(file_number) {
 }
 
-void DownloadWorker::run(WorkerContext &wc) {
+void DownloadWorker::run(WorkerContext &wc, Pool &pool) {
     loginfo("downloading");
 
     auto lock = storage_mutex.acquire(UINT32_MAX);
@@ -98,7 +98,7 @@ DownloadHandler::DownloadHandler(uint8_t file_number) : file_number_(file_number
 
 bool DownloadHandler::handle(HttpRequest &req, Pool &pool) {
     // TODO: MALLOC
-    if (!get_ipc()->launch_worker(new DownloadWorker(&req, file_number_))) {
+    if (!get_ipc()->launch_worker(new DownloadWorker(&req, file_number_, nullptr))) {
         return false;
     }
 

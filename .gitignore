@@ -4,3 +4,4 @@ dependencies.cmake
 .python-setup
 build
 fk/secrets.h
+core.*
