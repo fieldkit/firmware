@@ -11,6 +11,7 @@ class Button : public Activity {
 private:
     const char *name_;
     uint8_t index_;
+    uint32_t debounce_{ 0 };
     uint32_t time_{ 0 };
     uint32_t pressed_{ 0 };
     bool down_{ false };
@@ -53,6 +54,8 @@ public:
     virtual bool begin() = 0;
 
     virtual uint8_t number_pressed() const = 0;
+
+    virtual bool get(uint8_t which) const = 0;
 
 };
 

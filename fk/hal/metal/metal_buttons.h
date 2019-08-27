@@ -11,9 +11,10 @@ public:
 public:
     bool begin() override;
     uint8_t number_pressed() const override;
+    bool get(uint8_t which) const override;
 
 public:
-    void irq(uint8_t pin, uint8_t index);
+    void irq(uint8_t index, bool down);
 
 };
 

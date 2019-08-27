@@ -13,4 +13,8 @@ uint8_t LinuxButtons::number_pressed() const {
     return 0;
 }
 
+bool LinuxButtons::get(uint8_t which) const {
+    return false;
+}
+
 }

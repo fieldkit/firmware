@@ -6,20 +6,28 @@ namespace fk {
 
 FK_DECLARE_LOGGER("buttons");
 
+constexpr uint32_t ButtonDebounceDelay = 50;
+
 Button::Button(const char *name, uint8_t index) : name_(name), index_(index) {
 }
 
 void Button::changed(bool down) {
+    auto now = fk_uptime();
+    if (debounce_ > 0 && now < debounce_) {
+        return;
+    }
     if (down) {
-        down_ = true;
-        time_ = fk_uptime();
-        loginfo("%s (PRESS)", name_);
+        if (!down_) {
+            down_ = true;
+            time_ = now;
+            debounce_ = now + ButtonDebounceDelay;
+        }
     }
     else if (down_) {
-        auto now = fk_uptime();
         auto elapsed = now - time_;
         down_ = false;
         time_ = 0;
+        debounce_ = now + ButtonDebounceDelay;
         pressed_ = now;
         loginfo("%s (%" PRIu32 "ms)", name_, elapsed);
         if (get_ipc()->available()) {
