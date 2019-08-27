@@ -103,17 +103,17 @@ void task_handler_display(void *params) {
     auto stop_time = fk_uptime() + fk_config().display.inactivity;
     auto menu_time = (uint32_t)0;
 
-    auto data = to_lambda_option("Data", []() {
-        loginfo("data");
+    auto data = to_lambda_option("Readings", []() {
+        loginfo("readings");
     });
-    auto configure = to_lambda_option("Configure", []() {
-        loginfo("configure");
+    auto configure = to_lambda_option("Memory", []() {
+        loginfo("memory");
     });
-    auto qr_code = to_lambda_option("QR", []() {
-        loginfo("qr");
+    auto qr_code = to_lambda_option("Network", []() {
+        loginfo("network");
     });
-    auto info = to_lambda_option("Info", []() {
-        loginfo("info");
+    auto info = to_lambda_option("Tools", []() {
+        loginfo("tools");
     });
 
     MenuOption *options[] = {

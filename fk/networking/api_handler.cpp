@@ -154,6 +154,7 @@ static bool send_status(HttpRequest &req, fk_app_HttpQuery *query, Pool &pool) {
                 sensors[s].module = m;
                 sensors[s].name.arg = (void *)sensor.name;
                 sensors[s].unitOfMeasure.arg = (void *)sensor.unitOfMeasure;
+                sensors[s].flags = sensor.flags;
             }
 
             auto sensors_array = pool.malloc_with<pb_array_t>({
@@ -167,6 +168,7 @@ static bool send_status(HttpRequest &req, fk_app_HttpQuery *query, Pool &pool) {
             modules[m].id = m;
             modules[m].name.arg = (void *)module.name;
             modules[m].path.arg = (void *)"";
+            modules[m].flags = module.flags;
             modules[m].sensors.arg = (void *)sensors_array;
         }
 

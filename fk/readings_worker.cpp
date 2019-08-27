@@ -57,7 +57,6 @@ void ReadingsWorker::run(WorkerContext &wc, Pool &pool) {
     }
 
     get_ipc()->enqueue_data([=](GlobalState *gs) {
-        loginfo("updating");
         if (gs->modules != nullptr) {
             delete gs->modules->pool;
         }
