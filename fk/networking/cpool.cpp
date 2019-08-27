@@ -203,6 +203,9 @@ static void initialize_callbacks(fk_app_HttpReply *reply) {
                 auto modules_array = (pb_array_t *)live_readings->modules.arg;
                 for (size_t j = 0; j < modules_array->length; ++j) {
                     auto lmr = &((fk_app_LiveModuleReadings *)modules_array->buffer)[j];
+                    if (lmr->module.name.arg != nullptr) {
+                        lmr->module.name.funcs.encode = pb_encode_string;
+                    }
                     if (lmr->readings.arg != nullptr) {
                         lmr->readings.funcs.encode = pb_encode_array;
                         auto readings_array = (pb_array_t *)lmr->readings.arg;
