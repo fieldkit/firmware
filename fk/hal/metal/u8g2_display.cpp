@@ -36,7 +36,7 @@ constexpr uint8_t OLED_WIDTH = 128;
 /**
  * Height of the OLED display in pixels. Adjusted for the display's physical alignment.
  */
-constexpr uint8_t OLED_HEIGHT = 56;
+constexpr uint8_t OLED_HEIGHT = 64;
 
 /**
  * Offset on the Y axis.
@@ -46,7 +46,7 @@ constexpr uint8_t OLED_X_OFFSET = 0;
 /**
  * Offset on the Y axis.
  */
-constexpr uint8_t OLED_Y_OFFSET = 8;
+constexpr uint8_t OLED_Y_OFFSET = 0;
 
 U8g2Display::U8g2Display() : draw_(U8G2_R0, U8X8_PIN_NONE, PIN_WIRE_SCL, PIN_WIRE_SDA) {
     draw_.setI2CAddress(OLED_ADDRESS);
@@ -167,7 +167,7 @@ static bool xbm_get(uint8_t x, uint8_t y, size_t size, uint8_t *data) {
 
 void U8g2Display::qr(QrCodeScreen const &screen) {
     auto x0 = (OLED_WIDTH - (screen.size * 2)) / 2;
-    auto y0 = (OLED_HEIGHT - (screen.size * 2)) / 2 + 4 /* HACK */;
+    auto y0 = 0; // (OLED_HEIGHT - (screen.size * 2)) / 2;
     draw_.setPowerSave(0);
     draw_.clearBuffer();
     for (size_t x = 0; x < screen.size; ++x) {
