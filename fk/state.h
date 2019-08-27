@@ -29,7 +29,7 @@ public:
     uint16_t manufacturer;
     uint16_t kind;
     uint16_t version;
-    const char *name;
+    char name[MaximumNameLength];
     SensorStateCollection sensors;
 
 public:
@@ -65,6 +65,10 @@ struct GpsState {
 struct PeripheralState {
 };
 
+struct GeneralState {
+    char name[MaximumNameLength];
+};
+
 using ModuleStateCollection = std::list<ModuleState, pool_allocator<ModuleState>>;
 
 struct GlobalState {
@@ -72,6 +76,7 @@ private:
     MallocPool pool_{ "gs:mods", 1024 };
 
 public:
+    GeneralState general;
     RuntimeState runtime;
     PowerState power;
     PeripheralState peripheral;
@@ -105,5 +110,12 @@ public:
 GlobalStateRef<GlobalState const*> get_global_state_ro();
 
 GlobalStateRef<GlobalState*> get_global_state_rw();
+
+class GlobalStateManager {
+public:
+    bool initialize();
+    bool rebuild();
+
+};
 
 }

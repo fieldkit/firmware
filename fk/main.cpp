@@ -152,9 +152,6 @@ static void log_diagnostics() {
     fk_serial_number_get(&sn);
     loginfo("serial = %08" PRIx32 "-%08" PRIx32 "-%08" PRIx32 "-%08" PRIx32, sn.dwords[0], sn.dwords[1], sn.dwords[2], sn.dwords[3]);
 
-    auto name = fk_device_name_generate(pool);
-    loginfo("name = '%s'", name);
-
     loginfo("fw = %s", fkb_header.firmware.name);
     char hash_string[128];
     bytes_to_hex_string(hash_string, sizeof(hash_string), fkb_header.firmware.hash, fkb_header.firmware.hash_size);
@@ -188,7 +185,7 @@ static void check_for_debugger() {
     }
 }
 
-void setup() {
+static void single_threaded_setup() {
     fk_config_initialize();
 
     configure_logging();
@@ -216,10 +213,16 @@ void setup() {
         fk_delay(1000);
     }
 
+    GlobalStateManager gsm;
+    FK_ASSERT(gsm.initialize());
+
     // Call this here because things go horribly if we call from within a task.
     // Something goes south with a malloc.
     random(100, 1000);
+}
 
+void setup() {
+    single_threaded_setup();
     run_tasks();
 }
 

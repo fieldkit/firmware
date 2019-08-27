@@ -46,6 +46,11 @@ constexpr uint32_t FiveMinutesMs = 5 * 60 * 1000;
 constexpr uint32_t OneMegabyte = 1024 * 1024;
 
 /**
+ * Maximum length of a device's name.
+ */
+constexpr size_t MaximumNameLength = 64;
+
+/**
  * Maximum number of WiFi networks.
  * \todo: Eventually this should be relaxed.
  */

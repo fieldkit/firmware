@@ -44,12 +44,16 @@ static void log_status() {
 void task_handler_data(void *params) {
     auto status = fk_uptime() + FiveSecondsMs;
 
+    GlobalStateManager gsm;
+
     while (true) {
         StateChange *state_change = nullptr;
         if (get_ipc()->dequeue_data(&state_change)) {
             verify_tasks_priority();
 
             logtrace("from %s", state_change->source());
+
+            FK_ASSERT(gsm.rebuild());
 
             auto gs = get_global_state_rw();
             state_change->apply(gs.get());
