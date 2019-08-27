@@ -29,8 +29,13 @@ ModuleSensors const *RandomModule::get_sensors(ModuleContext mc, Pool &pool) {
 }
 
 ModuleReadings *RandomModule::take_readings(ModuleContext mc, fk::Pool &pool) {
-    auto mr = new(pool) NModuleReadings<10>();
-    for (auto i = 0; i < mr->size(); i++) {
+    #if defined(FK_MODULE_RANDOM_FIXED)
+    auto nreadings = 10;
+    #else
+    auto nreadings = fk_random_i32(0, 10);
+    #endif
+    auto mr = new(pool) NModuleReadings<10>(nreadings);
+    for (auto i = 0; i < nreadings; i++) {
         mr->set(i, (float)fk_random_i32(20, 100));
     }
     return mr;
