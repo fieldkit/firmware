@@ -12,7 +12,6 @@ FK_DECLARE_LOGGER("rw");
 void ReadingsWorker::run(WorkerContext &wc, Pool &pool) {
     auto lock = storage_mutex.acquire(UINT32_MAX);
 
-    auto started = fk_uptime();
     auto memory_bus = get_board()->spi_flash();
     auto module_bus = get_board()->i2c_module();
     auto gs = get_global_state_ro();
@@ -26,8 +25,6 @@ void ReadingsWorker::run(WorkerContext &wc, Pool &pool) {
 
     get_ipc()->enqueue_data([](GlobalState *gs) {
     });
-
-    loginfo("done (pool = %zd/%zd bytes) (%" PRIu32 "ms)", pool.used(), pool.size(), fk_uptime() - started);
 }
 
 }

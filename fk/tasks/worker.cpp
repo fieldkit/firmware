@@ -11,10 +11,14 @@ FK_DECLARE_LOGGER("worker");
 void task_handler_worker(void *params) {
     FK_ASSERT(params != nullptr);
 
+    auto started = fk_uptime();
     auto worker = reinterpret_cast<Worker*>(params);
+    auto pool = worker->pool();
     WorkerContext wc;
-    worker->run(wc, worker->pool());
+    worker->run(wc, pool);
     delete worker;
+
+    loginfo("done (pool = %zd/%zd bytes) (%" PRIu32 "ms)", pool.used(), pool.size(), fk_uptime() - started);
 }
 
 }
