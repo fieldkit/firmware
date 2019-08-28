@@ -126,16 +126,23 @@ void task_handler_display(void *params) {
     MenuScreen *previous_menu{ nullptr };
 
     auto back = to_lambda_option("Back", [&]() {
-        // Fancy way of deselecting ourselves.
+        // NOTE Fancy way of deselecting ourselves.
+        // Could be selected from another back operation.
         for (auto i = 0; active_menu->options[i] != nullptr; ++i) {
             active_menu->options[i]->selected = false;
         }
         active_menu = goto_menu(previous_menu);
         previous_menu = nullptr;
-        // TODO: Could be selected from another back operation.
     });
 
-    auto fsck = to_lambda_option("Run fsck", [&]() {
+    auto self_check = to_lambda_option("Self Check", [&]() {
+        // TODO: MALLOC
+        if (!get_ipc()->launch_worker(new SelfCheckWorker())) {
+            return;
+        }
+        back.on_selected();
+    });
+    auto fsck = to_lambda_option("Run Fsck", [&]() {
         // TODO: MALLOC
         if (!get_ipc()->launch_worker(new FsckWorker())) {
             return;
@@ -144,6 +151,7 @@ void task_handler_display(void *params) {
     });
     MenuOption *tools_options[] = {
         &back,
+        &self_check,
         &fsck,
         nullptr,
     };

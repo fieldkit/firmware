@@ -5,6 +5,17 @@
 
 namespace fk {
 
+struct SelfCheckSettings {
+    bool check_gps{ false };
+    bool check_sd_card{ false };
+
+    SelfCheckSettings() {
+    }
+
+    SelfCheckSettings(bool gps, bool sd_card) : check_gps(gps), check_sd_card(sd_card) {
+    }
+};
+
 class SelfCheck {
 private:
     Display *display_;
@@ -14,7 +25,7 @@ public:
     SelfCheck(Display *display, Network *network);
 
 public:
-    void check();
+    void check(SelfCheckSettings settings);
 
 private:
     bool rtc();

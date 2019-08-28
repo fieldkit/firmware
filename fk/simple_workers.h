@@ -30,4 +30,17 @@ public:
 
 };
 
+class SelfCheckWorker : public Worker {
+public:
+    SelfCheckWorker() : Worker() {
+    }
+
+    SelfCheckWorker(Pool *pool) : Worker(pool) {
+    }
+
+public:
+    void run(WorkerContext &wc, Pool &pool) override;
+
+};
+
 }

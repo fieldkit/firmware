@@ -4,11 +4,6 @@
 #include "temperature.h"
 #include "hal/metal/metal.h"
 
-#include <Adafruit_SPIFlash.h>
-
-// #include <phylum/backend.h>
-// #include <backends/arduino_sd/arduino_sd.h>
-
 namespace fk {
 
 FK_DECLARE_LOGGER("check");
@@ -16,7 +11,7 @@ FK_DECLARE_LOGGER("check");
 SelfCheck::SelfCheck(Display *display, Network *network) : display_(display), network_(network) {
 }
 
-void SelfCheck::check() {
+void SelfCheck::check(SelfCheckSettings settings) {
     loginfo("starting");
 
     // TODO: Check this failure scenario.
@@ -28,8 +23,12 @@ void SelfCheck::check() {
     qspi_memory();
     spi_memory();
     wifi();
-    if (fk_config().full_self_check) {
+
+    if (settings.check_gps) {
         gps();
+    }
+
+    if (settings.check_sd_card) {
         sd_card();
     }
 
@@ -85,18 +84,11 @@ bool SelfCheck::battery_gauge() {
 
 bool SelfCheck::qspi_memory() {
     return single_check("qspi memory", []() {
-        Adafruit_FlashTransport_QSPI flash_transport(PIN_QSPI_SCK, QSPI_FLASH_CS, PIN_QSPI_IO0, PIN_QSPI_IO1, PIN_QSPI_IO2, PIN_QSPI_IO3);
-        Adafruit_SPIFlash flash(&flash_transport);
+        auto memory = MemoryFactory::get_qspi_memory();
 
-        pinMode(QSPI_FLASH_CS, OUTPUT);
-        digitalWrite(QSPI_FLASH_CS, LOW);
-
-        if (!flash.begin()){
+        if (!memory->begin()) {
             return false;
         }
-
-        auto size = flash.size();
-        loginfo("qspi = %" PRIu32, size);
 
         return true;
     });
@@ -126,7 +118,7 @@ bool SelfCheck::spi_memory() {
 
     auto g = memory->geometry();
 
-    loginfo("bank memory ready (%luMB) (%lu blocks)", g.total_size / OneMegabyte, g.nblocks);
+    loginfo("bank memory ready (%" PRIu32 "MB) (%" PRIu32 " blocks)", g.total_size / OneMegabyte, g.nblocks);
 
     return nbanks > 0;
 }
@@ -135,31 +127,32 @@ bool SelfCheck::gps() {
     return single_check("gps", []() {
         get_board()->enable_gps();
 
-        Serial1.begin(9600);
+        auto gps = get_gps();
 
-        auto received = 0;
-        auto started = fk_uptime();
-        while ((fk_uptime() - started) < 5000) {
-            if (Serial1.available()) {
-                Serial1.read();
-                received++;
-                if (received == 10) {
-                    break;
-                }
-            }
-        }
-
-        if (received < 10) {
+        if (!gps->begin()) {
             return false;
         }
 
-        return true;
+        auto started = fk_uptime();
+        while ((fk_uptime() - started) < FiveSecondsMs) {
+            GpsFix fix;
+            if (!gps->service(fix)) {
+                return false;
+            }
+
+            if (fix.chars > 10) {
+                return true;
+            }
+        }
+
+        return false;
     });
 }
 
 bool SelfCheck::wifi() {
     return single_check("wifi", []() {
-        MetalNetwork network;
+        auto network = get_network();
+
         auto settings = NetworkSettings{
             .create = false,
             .ssid = nullptr,
@@ -167,9 +160,9 @@ bool SelfCheck::wifi() {
             .name = nullptr,
             .port = 0,
         };
-        auto ok = network.begin(settings);
+        auto ok = network->begin(settings);
         if (ok) {
-            network.stop();
+            network->stop();
         }
 
         return ok;
@@ -178,24 +171,13 @@ bool SelfCheck::wifi() {
 
 bool SelfCheck::sd_card() {
     return single_check("sd card", []() {
-        SPI2.begin();
+        auto sd_card = get_sd_card();
 
-        /*
-        phylum::Geometry g;
-        phylum::ArduinoSdBackend storage;
-        if (!storage.initialize(g, PIN_SD_CS)) {
-            logwarn("initialize failed");
-            return false;
-        }
-
-        if (!storage.open()) {
-            logwarn("open failed");
+        if (!sd_card->begin()) {
             return false;
         }
 
         return true;
-        */
-        return false;
     });
 }
 

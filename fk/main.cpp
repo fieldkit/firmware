@@ -193,10 +193,10 @@ static void single_threaded_setup() {
 
     initialize_hardware();
 
+    // TODO Move this into a task.
     auto display = get_display();
     SelfCheck self_check(display, get_network());
-    self_check.check();
-
+    self_check.check(SelfCheckSettings{ });
     Storage storage{ MemoryFactory::get_data_memory() };
     FactoryWipe fw{ get_buttons(), &storage };
     FK_ASSERT(fw.wipe_if_necessary());
@@ -204,9 +204,7 @@ static void single_threaded_setup() {
     // TODO Move this into a task.
     if (fk_config().slow_startup) {
         fk_delay(1000);
-
         display->fk_logo();
-
         fk_delay(1000);
     }
 
