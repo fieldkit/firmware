@@ -50,7 +50,9 @@ set_target_properties(libgmock PROPERTIES
 include_directories("${source_dir}/googletest/include"
                     "${source_dir}/googlemock/include")
 
-file(GLOB_RECURSE fk_sources ../../fk/*.cpp ../../fk/*.c)
+file(GLOB_RECURSE fk_sources ../../fk/*.cpp ../../fk/*.c ../hosted/test_modules.cpp)
+file(GLOB         fk_tasks ../../fk/tasks/tasks.cpp)
+
 list(FILTER fk_sources EXCLUDE REGEX ".*main.cpp$")
 list(FILTER fk_sources EXCLUDE REGEX ".*external.cpp$")
 # TODO: Remove
@@ -60,7 +62,7 @@ list(FILTER fk_sources EXCLUDE REGEX ".*temperature.cpp$")
 list(FILTER fk_sources EXCLUDE REGEX ".*battery_gauge.cpp$")
 list(FILTER fk_sources EXCLUDE REGEX ".*tasks/.*.cpp$")
 
-file(GLOB sources *.cpp ${fk_sources})
+file(GLOB sources *.cpp ${fk_sources} ${fk_tasks})
 
 add_executable(testall ${sources})
 

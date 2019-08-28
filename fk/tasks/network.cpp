@@ -1,3 +1,5 @@
+#include <os.h>
+
 #include "tasks/tasks.h"
 #include "hal/hal.h"
 #include "networking/server.h"
@@ -25,6 +27,13 @@ void task_handler_network(void *params) {
     while (http_server.active_connections() || fk_uptime() - http_server.activity() < fkc.network.uptime) {
         http_server.tick();
         fk_delay(10);
+
+        uint32_t signal = 0;
+        if (os_signal_check(&signal) == OSS_SUCCESS) {
+            if (signal > 0) {
+                break;
+            }
+        }
     }
 
     http_server.stop();

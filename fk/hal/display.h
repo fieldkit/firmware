@@ -51,11 +51,8 @@ struct MenuScreen {
      */
     MenuOption **options{ nullptr };
 
-    MenuScreen() : options(nullptr) {
-    }
-
-    MenuScreen(MenuOption **options) : options(options) {
-    }
+    MenuScreen();
+    MenuScreen(MenuOption **options);
 };
 
 struct QrCodeScreen {
