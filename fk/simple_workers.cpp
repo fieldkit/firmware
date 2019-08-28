@@ -34,7 +34,12 @@ WifiToggleWorker::WifiToggleWorker(Pool *pool) : Worker(pool) {
 }
 
 void WifiToggleWorker::run(WorkerContext &wc, Pool &pool) {
-    os_signal(&network_task, 9);
+    if (os_task_is_running(&network_task)) {
+        os_signal(&network_task, 9);
+    }
+    else {
+        os_task_start(&network_task);
+    }
 }
 
 SelfCheckWorker::SelfCheckWorker(SelfCheckCallbacks *callbacks) : Worker(), callbacks_(callbacks) {

@@ -53,7 +53,6 @@ void task_handler_scheduler(void *params) {
         // This throttles this loop, so we take a pass when we dequeue or timeout.
         Activity *activity = nullptr;
         if (get_ipc()->dequeue_activity(&activity)) {
-            start_task_if_necessary(&network_task);
             start_task_if_necessary(&display_task);
         }
 
