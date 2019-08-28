@@ -150,12 +150,6 @@ constexpr size_t MaximumNumberOfMemoryBanks = FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS;
  */
 typedef struct configuration_t {
     /**
-     * Enables showing the logos during startup, this induces a longer delay and
-     * so can be turned off to speed up testing/development.
-     */
-    bool slow_startup{ false };
-
-    /**
      * Run a full self check, even for things that don't necessarily need to be
      * working. This affects checking GPS and SD Card.
      */

@@ -201,13 +201,6 @@ static void single_threaded_setup() {
     FactoryWipe fw{ get_buttons(), &storage };
     FK_ASSERT(fw.wipe_if_necessary());
 
-    // TODO Move this into a task.
-    if (fk_config().slow_startup) {
-        fk_delay(1000);
-        display->fk_logo();
-        fk_delay(1000);
-    }
-
     GlobalStateManager gsm;
     FK_ASSERT(gsm.initialize(pool));
 
