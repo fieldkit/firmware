@@ -37,6 +37,9 @@ Config config(AtlasSensorType type) {
     case AtlasSensorType::Do:   return { true, 0x22, 0x07, 0x06, 1, 100.0f, "do" };
     case AtlasSensorType::Temp: return { true, 0x0E, 0x07, 0x06, 1, 1000.0f, "temp" };
     case AtlasSensorType::Orp:  return { true, 0x0E, 0x07, 0x06, 1, 10.0f, "orp" };
+    default: {
+        break;
+    }
     }
     return { false, 0, 0, 0, 0, 1.0f, "<unknown>" };
 }

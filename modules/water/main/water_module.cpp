@@ -86,6 +86,9 @@ ModuleSensors const *WaterModule::get_sensors(ModuleContext mc, Pool &pool) {
             .sensors = meta,
         });
     }
+    default: {
+        break;
+    }
     }
 
     logerror("unknown atlas module!");
@@ -118,7 +121,7 @@ ModuleReadings *WaterModule::take_readings(ModuleContext mc, fk::Pool &pool) {
     }
 
     auto mr = new(pool) NModuleReadings<ATLAS_MAXIMUM_VALUES>(number_of_values);
-    for (auto i = 0; i < mr->size(); ++i) {
+    for (size_t i = 0; i < mr->size(); ++i) {
         loginfo("atlas('%s') -> (value = %f)", atlas.name(), values[i]);
         mr->set(i, values[i]);
     }

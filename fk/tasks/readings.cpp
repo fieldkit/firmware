@@ -1,9 +1,10 @@
 #include <fk-data-protocol.h>
 
 #include "tasks/tasks.h"
-
 #include "hal/hal.h"
+
 #include "readings_taker.h"
+#include "state_ref.h"
 
 namespace fk {
 

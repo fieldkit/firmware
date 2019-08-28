@@ -4,7 +4,7 @@
 
 #include <os.h>
 
-#include "hal/hal.h"
+#include "hal/ipc.h"
 
 namespace fk {
 
@@ -72,11 +72,23 @@ public:
 
     public:
         Lock(Mutex *mutex) : mutex_(mutex) { }
+        Lock(Lock &&rhs) : mutex_(std::move(rhs.mutex_)) {
+            rhs.mutex_ = nullptr;
+        }
         ~Lock() {
             if (mutex_ != nullptr) {
                 mutex_->release();
                 mutex_ = nullptr;
             }
+        }
+
+    public:
+        Lock& operator =(Lock&& rhs) {
+            if (this != &rhs) {
+                mutex_ = rhs.mutex_;
+                rhs.mutex_ = nullptr;
+            }
+            return *this;
         }
 
     public:
@@ -105,11 +117,23 @@ public:
 
     public:
         Lock(RwLock *rwlock) : rwlock_(rwlock) { }
+        Lock(Lock &&rhs) : rwlock_(std::move(rhs.rwlock_)) {
+            rhs.rwlock_ = nullptr;
+        }
         ~Lock() {
             if (rwlock_ != nullptr) {
                 rwlock_->release();
                 rwlock_ = nullptr;
             }
+        }
+
+    public:
+        Lock& operator =(Lock&& rhs) {
+            if (this != &rhs) {
+                rwlock_ = rhs.rwlock_;
+                rhs.rwlock_ = nullptr;
+            }
+            return *this;
         }
 
     public:

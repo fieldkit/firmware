@@ -24,6 +24,7 @@ function(fk_add_builtin_module name)
   set_target_properties(${target_name} PROPERTIES LINK_WHOLE_LIBRARY YES)
   target_include_directories(${target_name} PUBLIC ${CMAKE_SOURCE_DIR}/fk ${CMAKE_SOURCE_DIR}/third-party/nonstd ${CMAKE_SOURCE_DIR}/third-party/tl)
   target_link_libraries(fk-bundled ${target_name})
+  target_compile_options(${target_name} PRIVATE -Wall -Werror -DFK_HARDWARE_FULL)
 
   find_package(arduino-logging)
   target_link_libraries(${target_name} arduino-logging)

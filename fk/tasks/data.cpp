@@ -4,6 +4,7 @@
 #include "hal/hal.h"
 #include "clock.h"
 #include "state_manager.h"
+#include "state_ref.h"
 
 namespace fk {
 

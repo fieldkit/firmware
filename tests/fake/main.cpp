@@ -15,6 +15,7 @@
 #include "registry.h"
 #include "readings_taker.h"
 #include "test_modules.h"
+#include "state_ref.h"
 
 FK_DECLARE_LOGGER("main");
 

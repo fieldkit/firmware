@@ -9,6 +9,7 @@
 #include "records.h"
 #include "readings_worker.h"
 #include "device_name.h"
+#include "state_ref.h"
 
 extern const struct fkb_header_t fkb_header;
 

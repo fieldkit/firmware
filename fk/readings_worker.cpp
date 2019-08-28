@@ -4,6 +4,7 @@
 
 #include "hal/hal.h"
 #include "readings_taker.h"
+#include "state_ref.h"
 
 namespace fk {
 

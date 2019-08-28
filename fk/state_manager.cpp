@@ -1,6 +1,7 @@
 #include "state_manager.h"
 #include "state.h"
 #include "device_name.h"
+#include "state_ref.h"
 
 namespace fk {
 

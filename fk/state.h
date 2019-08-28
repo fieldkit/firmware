@@ -83,26 +83,4 @@ public:
 
 };
 
-template<typename T>
-class GlobalStateRef {
-private:
-    T value_;
-
-public:
-    GlobalStateRef(T value) : value_(value) {
-    }
-    virtual ~GlobalStateRef() {
-    }
-
-public:
-    T get() {
-        return value_;
-    }
-
-};
-
-GlobalStateRef<GlobalState const*> get_global_state_ro();
-
-GlobalStateRef<GlobalState*> get_global_state_rw();
-
 }

@@ -106,7 +106,8 @@ static void run_tasks() {
 
     FK_ASSERT(storage_mutex.create());
     FK_ASSERT(peripheral_i2c_core_mutex.create());
-    FK_ASSERT(spi_flash_mutex.create());
+    // FK_ASSERT(spi_flash_mutex.create());
+    FK_ASSERT(data_lock.create());
 
     OS_CHECK(os_start());
 }

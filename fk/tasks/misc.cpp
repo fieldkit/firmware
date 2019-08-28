@@ -1,10 +1,11 @@
 #include "tasks/tasks.h"
-#include "config.h"
-#include "storage/storage.h"
-#include "hal/metal/metal.h"
-
 #include "hal/hal.h"
+
+#include "storage/storage.h"
 #include "readings_taker.h"
+#include "state_ref.h"
+
+#include "config.h"
 
 namespace fk {
 
