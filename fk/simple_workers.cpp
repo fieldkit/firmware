@@ -5,7 +5,6 @@
 #include "hal/hal.h"
 #include "storage/storage.h"
 #include "tasks/tasks.h"
-#include "self_check.h"
 
 namespace fk {
 
@@ -28,8 +27,8 @@ void WifiToggleWorker::run(WorkerContext &wc, Pool &pool) {
 
 void SelfCheckWorker::run(WorkerContext &wc, Pool &pool) {
     NullDisplay noop_display;
-    SelfCheck self_check(&noop_display, get_network());
-    self_check.check(SelfCheckSettings{ true, true });
+    SelfCheck self_check(&noop_display, get_network(), get_modmux());
+    self_check.check(SelfCheckSettings{ true, true, true }, *callbacks_);
 }
 
 }

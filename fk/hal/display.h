@@ -10,7 +10,10 @@ typedef struct xbm_data_t {
     const uint8_t *data;
 } xbm_data_t;
 
-struct HomeScreen {
+struct DisplayScreen {
+};
+
+struct HomeScreen : public DisplayScreen {
     uint32_t time;
     bool wifi;
     bool gps;
@@ -45,7 +48,7 @@ LambdaOption<T> to_lambda_option(const char *label, T fn) {
     return LambdaOption<T>(label, fn);
 }
 
-struct MenuScreen {
+struct MenuScreen : public DisplayScreen {
     /**
      * A NULL value indicates the end of this array.
      */
@@ -55,9 +58,18 @@ struct MenuScreen {
     MenuScreen(MenuOption **options);
 };
 
-struct QrCodeScreen {
+struct QrCodeScreen : public DisplayScreen {
     size_t size;
     uint8_t *data;
+};
+
+struct Check {
+    const char *name;
+    bool pass;
+};
+
+struct SelfCheckScreen : public DisplayScreen {
+    Check **checks;
 };
 
 class Display {
@@ -70,6 +82,7 @@ public:
     virtual void home(HomeScreen const &screen) = 0;
     virtual void menu(MenuScreen const &screen) = 0;
     virtual void qr(QrCodeScreen const &screen) = 0;
+    virtual void self_check(SelfCheckScreen const &screen) = 0;
 
 };
 
@@ -83,6 +96,7 @@ public:
     void home(HomeScreen const &screen) override { }
     void menu(MenuScreen const &screen) override { }
     void qr(QrCodeScreen const &screen) override { }
+    void self_check(SelfCheckScreen const &screen) override { }
 
     bool begin() {
         return true;

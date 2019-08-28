@@ -1,6 +1,7 @@
 #pragma once
 
 #include "worker.h"
+#include "self_check.h"
 
 namespace fk {
 
@@ -31,11 +32,14 @@ public:
 };
 
 class SelfCheckWorker : public Worker {
+private:
+    SelfCheckCallbacks *callbacks_;
+
 public:
-    SelfCheckWorker() : Worker() {
+    SelfCheckWorker(SelfCheckCallbacks *callbacks) : Worker(), callbacks_(callbacks) {
     }
 
-    SelfCheckWorker(Pool *pool) : Worker(pool) {
+    SelfCheckWorker(SelfCheckCallbacks *callbacks, Pool *pool) : Worker(pool), callbacks_(callbacks) {
     }
 
 public:

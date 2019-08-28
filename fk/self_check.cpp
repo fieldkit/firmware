@@ -8,29 +8,69 @@ namespace fk {
 
 FK_DECLARE_LOGGER("check");
 
-SelfCheck::SelfCheck(Display *display, Network *network) : display_(display), network_(network) {
+SelfCheck::SelfCheck(Display *display, Network *network, ModMux *mm) : display_(display), network_(network), mm_(mm) {
 }
 
-void SelfCheck::check(SelfCheckSettings settings) {
+static CheckStatus to_status(bool ok) {
+    return ok ? CheckStatus::Pass : CheckStatus::Fail;
+}
+
+void SelfCheck::check(SelfCheckSettings settings, SelfCheckCallbacks &callbacks) {
     loginfo("starting");
 
     // TODO: Check this failure scenario.
     display_->company_logo();
 
-    rtc();
-    battery_gauge();
-    temperature();
-    qspi_memory();
-    spi_memory();
-    wifi();
+    SelfCheckStatus status;
+
+    callbacks.update(status);
+
+    status.rtc = to_status(rtc());
+    callbacks.update(status);
+
+    status.battery_gauge = to_status(battery_gauge());
+    callbacks.update(status);
+
+    status.temperature = to_status(temperature());
+    callbacks.update(status);
+
+    status.qspi_memory = to_status(qspi_memory());
+    callbacks.update(status);
+
+    status.spi_memory = to_status(spi_memory());
+    callbacks.update(status);
+
+    status.wifi = to_status(wifi());
+    callbacks.update(status);
 
     if (settings.check_gps) {
-        gps();
+        status.gps = to_status(gps());
     }
+    else {
+        status.gps = CheckStatus::Unknown;
+    }
+    callbacks.update(status);
 
     if (settings.check_sd_card) {
-        sd_card();
+        status.sd_card = to_status(sd_card());
     }
+    else {
+        status.sd_card = CheckStatus::Unknown;
+    }
+    callbacks.update(status);
+
+    if (settings.check_backplane) {
+        status.bp_shift = to_status(backplane_shift());
+        callbacks.update(status);
+
+        status.bp_mux = to_status(backplane_mux());
+        callbacks.update(status);
+    }
+    else {
+        status.bp_mux = CheckStatus::Unknown;
+        status.bp_shift = CheckStatus::Unknown;
+    }
+    callbacks.update(status);
 
     loginfo("done");
 }
@@ -150,9 +190,7 @@ bool SelfCheck::gps() {
 }
 
 bool SelfCheck::wifi() {
-    return single_check("wifi", []() {
-        auto network = get_network();
-
+    return single_check("wifi", [=]() {
         auto settings = NetworkSettings{
             .create = false,
             .ssid = nullptr,
@@ -160,9 +198,9 @@ bool SelfCheck::wifi() {
             .name = nullptr,
             .port = 0,
         };
-        auto ok = network->begin(settings);
+        auto ok = network_->begin(settings);
         if (ok) {
-            network->stop();
+            network_->stop();
         }
 
         return ok;
@@ -177,6 +215,24 @@ bool SelfCheck::sd_card() {
             return false;
         }
 
+        return true;
+    });
+}
+
+bool SelfCheck::backplane_shift() {
+    return single_check("bp shift", [=]() {
+        if (!mm_->begin()) {
+            return false;
+        }
+        return true;
+    });
+}
+
+bool SelfCheck::backplane_mux() {
+    return single_check("bp mux", [=]() {
+        if (!mm_->choose(0)) {
+            return false;
+        }
         return true;
     });
 }

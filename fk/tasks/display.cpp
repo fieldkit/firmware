@@ -14,13 +14,12 @@ static void show_home() {
     auto bus = get_board()->i2c_core();
     auto display = get_display();
 
-    HomeScreen screen = {
-        .time = fk_uptime(),
-        .wifi = true,
-        .gps = true,
-        .battery = 1.0f,
-        .message = "Hello",
-    };
+    HomeScreen screen;
+    screen.time = fk_uptime();
+    screen.wifi = true;
+    screen.gps = true;
+    screen.battery = 1.0f;
+    screen.message = "Hello";
 
     display->home(screen);
 }
@@ -30,6 +29,13 @@ static void show_menu(MenuScreen const &screen) {
     auto display = get_display();
 
     display->menu(screen);
+}
+
+static void show_self_check_screen(SelfCheckScreen &screen) {
+    auto bus = get_board()->i2c_core();
+    auto display = get_display();
+
+    display->self_check(screen);
 }
 
 static void show_qr() {
@@ -119,11 +125,62 @@ static MenuScreen *goto_menu(MenuScreen *screen) {
     return screen;
 }
 
+class DisplaySelfCheckCallbacks : public SelfCheckCallbacks {
+private:
+    SelfCheckScreen screen_;
+    Check checks_[10];
+    Check *queued_[10 + 1] = { nullptr };
+    size_t number_{ 0 };
+
+public:
+    DisplaySelfCheckCallbacks() {
+        screen_.checks = queued_;
+    }
+
+public:
+    void update(SelfCheckStatus status) override {
+        number_ = 0;
+        append("rtc", status.rtc);
+        append("temp", status.temperature);
+        append("bg", status.battery_gauge);
+        append("qspi", status.qspi_memory);
+        append("spi", status.spi_memory);
+        append("wifi", status.wifi);
+        append("sd", status.sd_card);
+        append("bpm", status.bp_mux);
+        append("bps", status.bp_shift);
+        append("mod", status.module);
+    }
+
+    void append(const char *name, CheckStatus status) {
+        if (status == CheckStatus::Pass) {
+            checks_[number_] = { name, true };
+            queued_[number_] = &checks_[number_];
+            number_++;
+            queued_[number_] = nullptr;
+        }
+        else if (status == CheckStatus::Fail) {
+            checks_[number_] = { name, false };
+            queued_[number_] = &checks_[number_];
+            number_++;
+            queued_[number_] = nullptr;
+        }
+    }
+
+public:
+    SelfCheckScreen &screen() {
+        return screen_;
+    }
+
+};
+
 void task_handler_display(void *params) {
     auto stop_time = fk_uptime() + fk_config().display.inactivity;
     auto menu_time = (uint32_t)0;
     MenuScreen *active_menu{ nullptr };
     MenuScreen *previous_menu{ nullptr };
+    DisplayScreen *active_screen{ nullptr };
+    DisplaySelfCheckCallbacks self_check_callbacks;
 
     auto back = to_lambda_option("Back", [&]() {
         // NOTE Fancy way of deselecting ourselves.
@@ -137,10 +194,11 @@ void task_handler_display(void *params) {
 
     auto self_check = to_lambda_option("Self Check", [&]() {
         // TODO: MALLOC
-        if (!get_ipc()->launch_worker(new SelfCheckWorker())) {
+        if (!get_ipc()->launch_worker(new SelfCheckWorker(&self_check_callbacks))) {
             return;
         }
-        back.on_selected();
+        self_check_callbacks = {};
+        active_screen = &self_check_callbacks.screen();
     });
     auto fsck = to_lambda_option("Run Fsck", [&]() {
         // TODO: MALLOC
@@ -204,6 +262,11 @@ void task_handler_display(void *params) {
             stop_time = fk_uptime() + fk_config().display.inactivity;
             menu_time = fk_uptime() + 5000;
 
+            if (active_screen != nullptr) {
+                loginfo("clearing active screen");
+                active_screen = nullptr;
+            }
+
             switch (button->index()) {
             case Buttons::Left: {
                 loginfo("down");
@@ -226,7 +289,13 @@ void task_handler_display(void *params) {
             }
             }
         }
-        if (menu_time > 0) {
+
+        if (active_screen != nullptr) {
+            if (active_screen == &self_check_callbacks.screen()) {
+                show_self_check_screen(self_check_callbacks.screen());
+            }
+        }
+        else if (menu_time > 0) {
             show_menu(*active_menu);
 
             if (fk_uptime() > menu_time) {

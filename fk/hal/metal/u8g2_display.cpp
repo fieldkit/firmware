@@ -180,6 +180,39 @@ void U8g2Display::qr(QrCodeScreen const &screen) {
     draw_.sendBuffer();
 }
 
+void U8g2Display::self_check(SelfCheckScreen const &screen) {
+    draw_.setPowerSave(0);
+    draw_.clearBuffer();
+    draw_.setFontMode(1);
+    draw_.setFont(u8g2_font_courR08_tf);
+
+    auto x = 0;
+    auto y = 12;
+    for (size_t i = 0; screen.checks[i] != nullptr; ++i) {
+        auto c = screen.checks[i];
+        auto width = draw_.getUTF8Width(c->name);
+        if (x + width > OLED_WIDTH) {
+            y += 16;
+            x = 0;
+        }
+
+        if (c->pass) {
+            draw_.setDrawColor(1);
+            draw_.drawUTF8(x, y, c->name);
+        }
+        else {
+            draw_.setDrawColor(1);
+            draw_.drawBox(x - 2, y - 10, width + 4, 14);
+            draw_.setDrawColor(0);
+            draw_.drawUTF8(x, y, c->name);
+        }
+
+        x += width + 10;
+    }
+
+    draw_.sendBuffer();
+}
+
 void U8g2Display::off() {
     draw_.setPowerSave(1);
 }

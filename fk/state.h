@@ -68,6 +68,16 @@ struct GeneralState {
     char name[MaximumNameLength];
 };
 
+struct ProgressState {
+    const char *message;
+    float progress;
+};
+
+struct DisplayState {
+    ProgressState progress;
+    const char *message;
+};
+
 struct GlobalState {
 public:
     GeneralState general;
@@ -76,6 +86,7 @@ public:
     PeripheralState peripheral;
     GpsState gps;
     NetworkState network;
+    DisplayState display;
     ModulesState *modules;
 
 public:

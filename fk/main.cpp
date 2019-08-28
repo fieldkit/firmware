@@ -194,9 +194,9 @@ static void single_threaded_setup() {
     initialize_hardware();
 
     // TODO Move this into a task.
-    auto display = get_display();
-    SelfCheck self_check(display, get_network());
-    self_check.check(SelfCheckSettings{ });
+    NoopSelfCheckCallbacks noop_callbacks;
+    SelfCheck self_check(get_display(), get_network(), get_modmux());
+    self_check.check(SelfCheckSettings{ }, noop_callbacks);
     Storage storage{ MemoryFactory::get_data_memory() };
     FactoryWipe fw{ get_buttons(), &storage };
     FK_ASSERT(fw.wipe_if_necessary());
