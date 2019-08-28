@@ -217,10 +217,6 @@ void task_handler_display(void *params) {
                 break;
             }
             }
-
-            get_ipc()->enqueue_data([](GlobalState *gs) {
-                gs->runtime.activity = fk_uptime();
-            });
         }
         if (menu_time > 0) {
             show_menu(*active_menu);

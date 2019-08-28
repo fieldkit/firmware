@@ -16,7 +16,7 @@ Mutex peripheral_i2c_core_mutex;
 Mutex spi_flash_mutex;
 
 os_queue_define(data_queue, 10, OS_QUEUE_FLAGS_QUEUE_ONLY);
-os_queue_define(activity_queue, 10, OS_QUEUE_FLAGS_NONE);
+os_queue_define(activity_queue, 10, OS_QUEUE_FLAGS_QUEUE_ONLY);
 os_queue_define(button_queue, 10, OS_QUEUE_FLAGS_NONE);
 
 MetalIPC::MetalIPC() {

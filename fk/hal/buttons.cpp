@@ -32,11 +32,18 @@ void Button::changed(bool down) {
         loginfo("%s (%" PRIu32 "ms)", name_, elapsed);
         if (get_ipc()->available()) {
             if (!get_ipc()->enqueue_button(this)) {
-                logerror("ipc error");
+                logerror("ipc error (button)");
             }
             if (!get_ipc()->enqueue_activity(this)) {
-                logerror("ipc error");
+                logerror("ipc error (activity)");
             }
+            /*
+            if (!get_ipc()->enqueue_data([](GlobalState *gs) {
+                gs->runtime.activity = fk_uptime();
+            })) {
+                logerror("ipc error (data)");
+            }
+            */
         }
     }
 }

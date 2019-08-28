@@ -46,6 +46,16 @@ static void run_tasks() {
         sizeof(readings_stack) +
         sizeof(network_stack);
 
+    os_task_options_t display_task_options = {
+        "display",
+        OS_TASK_START_RUNNING,
+        task_handler_display,
+        nullptr,
+        display_stack,
+        sizeof(display_stack),
+        OS_PRIORITY_NORMAL + 6
+    };
+
     os_task_options_t readings_task_options = {
         "readings",
         OS_TASK_START_RUNNING,
@@ -80,10 +90,10 @@ static void run_tasks() {
 
     OS_CHECK(os_task_initialize(&idle_task, "idle", OS_TASK_START_RUNNING, &task_handler_idle, nullptr, idle_stack, sizeof(idle_stack)));
     OS_CHECK(os_task_initialize(&scheduler_task, "scheduler", OS_TASK_START_RUNNING, &task_handler_scheduler, nullptr, scheduler_stack, sizeof(scheduler_stack)));
-    OS_CHECK(os_task_initialize(&display_task, "display", OS_TASK_START_RUNNING, &task_handler_display, nullptr, display_stack, sizeof(display_stack)));
     OS_CHECK(os_task_initialize(&network_task, "network", OS_TASK_START_RUNNING, &task_handler_network, nullptr, network_stack, sizeof(network_stack)));
     OS_CHECK(os_task_initialize(&gps_task, "gps", OS_TASK_START_RUNNING, &task_handler_gps, nullptr, gps_stack, sizeof(gps_stack)));
     OS_CHECK(os_task_initialize(&misc_task, "misc", OS_TASK_START_RUNNING, &task_handler_misc, nullptr, misc_stack, sizeof(misc_stack)));
+    OS_CHECK(os_task_initialize_options(&display_task, &display_task_options));
     OS_CHECK(os_task_initialize_options(&readings_task, &readings_task_options));
     OS_CHECK(os_task_initialize_options(&worker_task, &worker_task_options));
     OS_CHECK(os_task_initialize_options(&data_task, &data_task_options));
