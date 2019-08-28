@@ -1,0 +1,45 @@
+#!/bin/bash
+
+# Requires https://stedolan.github.io/jq/download/
+
+set -xe
+
+echo Looking for new firmware...
+echo
+
+curl https://code.conservify.org/distribution/archive/fk/firmware/builds/ > builds.json
+
+BUILD=`jq -r '.[-1].name' builds.json`
+NAME_APP=fk-bundled-fkb-${BUILD}.bin
+NAME_BL=fkbl-${BUILD}.bin
+
+if [ ! -f $NAME_APP ]; then
+    BIN_URL=https://code.conservify.org/distribution/archive/fk/firmware/builds/$BUILD/artifacts/fk-bundled-fkb.bin
+    echo
+    echo Downloading $NAME_APP...
+    curl $BIN_URL -o $NAME_APP
+fi
+
+if [ ! -f $NAME_BL ]; then
+    BIN_URL=https://code.conservify.org/distribution/archive/fk/firmware/builds/$BUILD/artifacts/fkbl.bin
+    echo
+    echo Downloading $NAME_BL...
+    curl $BIN_URL -o $NAME_BL
+fi
+
+echo
+echo Flashing...
+echo
+
+JLinkExe -if SWD -device ATSAMD51P20 -speed 4000 <<EOF
+exitonerror 1
+connect
+sleep 100
+r
+sleep 100
+loadfile $NAME_BL,0x0000
+sleep 100
+loadfile $NAME_APP,0x4000
+r
+q
+EOF
