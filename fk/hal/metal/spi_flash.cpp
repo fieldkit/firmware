@@ -56,8 +56,8 @@ bool SpiFlash::begin() {
         return status_ == Status::Available;
     }
 
-    auto lock = spi_flash_mutex.acquire(UINT32_MAX);
-    FK_ASSERT(lock);
+    // auto lock = spi_flash_mutex.acquire(UINT32_MAX);
+    // FK_ASSERT(lock);
 
     status_ = Status::Unavailable;
 
@@ -125,8 +125,8 @@ int32_t SpiFlash::read(uint32_t address, uint8_t *data, size_t length) {
     row_address_to_bytes(address, read_cell_command + 1);
     column_address_to_bytes(address, read_buffer_command + 1);
 
-    auto lock = spi_flash_mutex.acquire(UINT32_MAX);
-    FK_ASSERT(lock);
+    // auto lock = spi_flash_mutex.acquire(UINT32_MAX);
+    // FK_ASSERT(lock);
 
     if (!is_ready()) {
         logerror("read: !ready");
@@ -166,8 +166,8 @@ int32_t SpiFlash::write(uint32_t address, const uint8_t *data, size_t length) {
     row_address_to_bytes(address, program_execute_command + 1);
     column_address_to_bytes(address, program_load_command + 1);
 
-    auto lock = spi_flash_mutex.acquire(UINT32_MAX);
-    FK_ASSERT(lock);
+    // auto lock = spi_flash_mutex.acquire(UINT32_MAX);
+    // FK_ASSERT(lock);
 
     if (!is_ready()) {
         logerror("flush: !ready");
@@ -207,8 +207,8 @@ int32_t SpiFlash::erase_block(uint32_t address) {
     uint8_t command[] = { CMD_ERASE_BLOCK, 0x00, 0x00, 0x00 }; // 7dummy/17 (Row)
     row_address_to_bytes(address, command + 1);
 
-    auto lock = spi_flash_mutex.acquire(UINT32_MAX);
-    FK_ASSERT(lock);
+    // auto lock = spi_flash_mutex.acquire(UINT32_MAX);
+    // FK_ASSERT(lock);
 
     if (!is_ready()) {
         logerror("erase: !ready");

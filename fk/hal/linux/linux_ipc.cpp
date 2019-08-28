@@ -9,6 +9,7 @@ FK_DECLARE_LOGGER("ipc");
 
 Mutex storage_mutex;
 Mutex peripheral_i2c_core_mutex;
+RwLock data_lock;
 
 LinuxIPC::LinuxIPC() {
 }
@@ -60,17 +61,31 @@ bool Mutex::create() {
 }
 
 Mutex::Lock Mutex::acquire(uint32_t to) {
-    loginfo("acquired");
     return { this };
 }
 
 bool Mutex::release() {
-    loginfo("release");
-    return false;
+    return true;
 }
 
 bool Mutex::is_owner() {
     return false;
+}
+
+bool RwLock::create() {
+    return true;
+}
+
+RwLock::Lock RwLock::acquire_read(uint32_t to) {
+    return { this };
+}
+
+RwLock::Lock RwLock::acquire_write(uint32_t to) {
+    return { this };
+}
+
+bool RwLock::release() {
+    return true;
 }
 
 }

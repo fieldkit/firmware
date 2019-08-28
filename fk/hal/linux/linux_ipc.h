@@ -54,8 +54,38 @@ public:
 
 };
 
+class RwLock {
+public:
+    class Lock {
+    private:
+        RwLock *rwlock_;
+
+    public:
+        Lock(RwLock *rwlock) : rwlock_(rwlock) { }
+        ~Lock() {
+            if (rwlock_ != nullptr) {
+                rwlock_->release();
+                rwlock_ = nullptr;
+            }
+        }
+
+    public:
+        operator bool() {
+            return rwlock_ != nullptr;
+        }
+    };
+
+public:
+    bool create();
+    Lock acquire_read(uint32_t to);
+    Lock acquire_write(uint32_t to);
+    bool release();
+
+};
+
 extern Mutex storage_mutex;
 extern Mutex peripheral_i2c_core_mutex;
+extern RwLock data_lock;
 
 }
 

@@ -13,7 +13,7 @@ FK_DECLARE_LOGGER("ipc");
 
 Mutex storage_mutex;
 Mutex peripheral_i2c_core_mutex;
-Mutex spi_flash_mutex;
+RwLock data_lock;
 
 os_queue_define(data_queue, 10, OS_QUEUE_FLAGS_QUEUE_ONLY);
 os_queue_define(activity_queue, 10, OS_QUEUE_FLAGS_QUEUE_ONLY);
@@ -88,8 +88,7 @@ bool MetalIPC::launch_worker(Worker *worker) {
 }
 
 bool Mutex::create() {
-    os_mutex_create(&mutex_, &def_);
-    return true;
+    return os_mutex_create(&mutex_, &def_) == OSS_SUCCESS;
 }
 
 Mutex::Lock Mutex::acquire(uint32_t to) {
@@ -112,6 +111,38 @@ bool Mutex::release() {
 
 bool Mutex::is_owner() {
     return os_mutex_is_owner(&mutex_) == OSS_SUCCESS;
+}
+
+bool RwLock::create() {
+    return os_rwlock_create(&rwlock_, &def_) == OSS_SUCCESS;
+}
+
+RwLock::Lock RwLock::acquire_read(uint32_t to) {
+    if (!os_is_running()) {
+        return { this };
+    }
+    if (os_rwlock_acquire_read(&rwlock_, to) == OSS_SUCCESS) {
+        return { this };
+    }
+    return { nullptr };
+}
+
+RwLock::Lock RwLock::acquire_write(uint32_t to) {
+    if (!os_is_running()) {
+        return { this };
+    }
+    if (os_rwlock_acquire_write(&rwlock_, to) == OSS_SUCCESS) {
+        return { this };
+    }
+    return { nullptr };
+}
+
+bool RwLock::release() {
+    if (!os_is_running()) {
+        return true;
+    }
+    os_rwlock_release(&rwlock_);
+    return true;
 }
 
 }
