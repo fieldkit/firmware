@@ -279,6 +279,19 @@ uint32_t get_clock_now() {
 
 #else
 
+static CoreClock clock;
+
+CoreClock::CoreClock() : wire_{ "fake", nullptr } {
+}
+
+bool CoreClock::begin() {
+    return false;
+}
+
+CoreClock *get_clock() {
+    return &clock;
+}
+
 uint32_t get_clock_now() {
     return std::time(0);
 }

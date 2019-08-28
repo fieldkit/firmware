@@ -21,11 +21,8 @@ file(GLOB         fk_tasks ../../fk/tasks/tasks.cpp)
 
 list(FILTER fk_sources EXCLUDE REGEX ".*main.cpp$")
 list(FILTER fk_sources EXCLUDE REGEX ".*external.cpp$")
-# TODO: Remove
-list(FILTER fk_sources EXCLUDE REGEX ".*self_check.cpp$")
+list(FILTER fk_sources EXCLUDE REGEX ".*hal/metal/.*.cpp$")
 # TODO: Remove (Wire.h dependency)
-list(FILTER fk_sources EXCLUDE REGEX ".*temperature.cpp$")
-list(FILTER fk_sources EXCLUDE REGEX ".*battery_gauge.cpp$")
 list(FILTER fk_sources EXCLUDE REGEX ".*tasks/.*.cpp$")
 
 file(GLOB sources *.cpp ${fk_sources} ${fk_tasks})

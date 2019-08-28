@@ -2,6 +2,21 @@
 
 namespace fk {
 
+#if defined(linux)
+
+CoreTemperature::CoreTemperature(TwoWireWrapper wire) : wire_(wire) {
+}
+
+bool CoreTemperature::begin() {
+    return false;
+}
+
+bool CoreTemperature::read(float *temperature) {
+    return false;
+}
+
+#else
+
 CoreTemperature::CoreTemperature(TwoWireWrapper wire) : wire_(wire) {
 }
 
@@ -35,5 +50,7 @@ bool CoreTemperature::read(float *temperature) {
     }
     return true;
 }
+
+#endif
 
 }
