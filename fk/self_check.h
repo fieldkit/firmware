@@ -17,7 +17,7 @@ struct SelfCheckSettings {
     }
 };
 
-enum class CheckStatus {
+enum class CheckStatus : uint8_t {
     Pending,
     Unknown,
     Pass,
@@ -35,7 +35,6 @@ struct SelfCheckStatus {
     CheckStatus sd_card{ CheckStatus::Pending };
     CheckStatus bp_mux{ CheckStatus::Pending };
     CheckStatus bp_shift{ CheckStatus::Pending };
-    CheckStatus module{ CheckStatus::Pending };
 };
 
 class SelfCheckCallbacks {

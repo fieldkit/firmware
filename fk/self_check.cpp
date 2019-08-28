@@ -70,6 +70,7 @@ void SelfCheck::check(SelfCheckSettings settings, SelfCheckCallbacks &callbacks)
         status.bp_mux = CheckStatus::Unknown;
         status.bp_shift = CheckStatus::Unknown;
     }
+
     callbacks.update(status);
 
     loginfo("done");

@@ -126,10 +126,13 @@ static MenuScreen *goto_menu(MenuScreen *screen) {
 }
 
 class DisplaySelfCheckCallbacks : public SelfCheckCallbacks {
+public:
+    constexpr static size_t NumberOfChecks = 10;
+
 private:
     SelfCheckScreen screen_;
-    Check checks_[10];
-    Check *queued_[10 + 1] = { nullptr };
+    Check checks_[NumberOfChecks];
+    Check *queued_[NumberOfChecks + 1] = { nullptr };
     size_t number_{ 0 };
 
 public:
@@ -149,10 +152,10 @@ public:
         append("sd", status.sd_card);
         append("bpm", status.bp_mux);
         append("bps", status.bp_shift);
-        append("mod", status.module);
     }
 
     void append(const char *name, CheckStatus status) {
+        FK_ASSERT(number_ < NumberOfChecks);
         if (status == CheckStatus::Pass) {
             checks_[number_] = { name, true };
             queued_[number_] = &checks_[number_];
@@ -165,6 +168,11 @@ public:
             number_++;
             queued_[number_] = nullptr;
         }
+    }
+
+    void clear() {
+        queued_[0] = nullptr;
+        number_ = 0;
     }
 
 public:
@@ -193,12 +201,12 @@ void task_handler_display(void *params) {
     });
 
     auto self_check = to_lambda_option("Self Check", [&]() {
+        self_check_callbacks.clear();
+        active_screen = &self_check_callbacks.screen();
         // TODO: MALLOC
         if (!get_ipc()->launch_worker(new SelfCheckWorker(&self_check_callbacks))) {
             return;
         }
-        self_check_callbacks = {};
-        active_screen = &self_check_callbacks.screen();
     });
     auto fsck = to_lambda_option("Run Fsck", [&]() {
         // TODO: MALLOC

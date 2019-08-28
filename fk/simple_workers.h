@@ -7,11 +7,8 @@ namespace fk {
 
 class FsckWorker : public Worker {
 public:
-    FsckWorker() : Worker() {
-    }
-
-    FsckWorker(Pool *pool) : Worker(pool) {
-    }
+    FsckWorker();
+    FsckWorker(Pool *pool);
 
 public:
     void run(WorkerContext &wc, Pool &pool) override;
@@ -20,11 +17,8 @@ public:
 
 class WifiToggleWorker : public Worker {
 public:
-    WifiToggleWorker() : Worker() {
-    }
-
-    WifiToggleWorker(Pool *pool) : Worker(pool) {
-    }
+    WifiToggleWorker();
+    WifiToggleWorker(Pool *pool);
 
 public:
     void run(WorkerContext &wc, Pool &pool) override;
@@ -36,14 +30,16 @@ private:
     SelfCheckCallbacks *callbacks_;
 
 public:
-    SelfCheckWorker(SelfCheckCallbacks *callbacks) : Worker(), callbacks_(callbacks) {
-    }
-
-    SelfCheckWorker(SelfCheckCallbacks *callbacks, Pool *pool) : Worker(pool), callbacks_(callbacks) {
-    }
+    SelfCheckWorker(SelfCheckCallbacks *callbacks);
+    SelfCheckWorker(SelfCheckCallbacks *callbacks, Pool *pool);
 
 public:
     void run(WorkerContext &wc, Pool &pool) override;
+
+private:
+    bool stop_network();
+    void check();
+
 
 };
 
