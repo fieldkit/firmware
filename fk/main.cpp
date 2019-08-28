@@ -26,7 +26,7 @@ static void run_tasks() {
      * Declaring these static, for example, will cause them to be placed in the
      * .data section, which is below the heap in memory.
      */
-    uint32_t idle_stack[768 / sizeof(uint32_t)];
+    uint32_t idle_stack[1024 / sizeof(uint32_t)];
     uint32_t scheduler_stack[1024 / sizeof(uint32_t)];
     uint32_t display_stack[2048 / sizeof(uint32_t)];
     uint32_t gps_stack[2048 / sizeof(uint32_t)];
@@ -130,7 +130,6 @@ extern uint32_t __bss_start__;
 extern uint32_t __bss_end__;
 
 static void log_diagnostics() {
-    StaticPool<128> pool{ "diagnostics" };
     uint8_t stack_dummy = 0;
     auto in_stack = (uint8_t *)&__cm_ram_end__ - &stack_dummy;
     auto available = fk_free_memory();
@@ -152,7 +151,8 @@ static void log_diagnostics() {
     bytes_to_hex_string(hash_string, sizeof(hash_string), fkb_header.firmware.hash, fkb_header.firmware.hash_size);
     loginfo("hash = %s", hash_string);
 
-    loginfo("storage rec-ovhd = %d + %d", sizeof(RecordHeader), sizeof(RecordTail));
+    loginfo("sizeof(RecordHeader + RecordTail) = %zd + %zd", sizeof(RecordHeader), sizeof(RecordTail));
+    loginfo("sizeof(GlobalState) = %zd", sizeof(GlobalState ));
 }
 
 static void configure_logging() {
@@ -169,7 +169,7 @@ static void initialize_hardware() {
 }
 
 static void check_for_debugger() {
-    auto waiting_until = fk_uptime() + 5000;
+    auto waiting_until = fk_uptime() + FiveSecondsMs;
 
     while (fk_uptime() < waiting_until) {
         if (SEGGER_RTT_HasData(0) || !SEGGER_RTT_HasDataUp(0)) {
