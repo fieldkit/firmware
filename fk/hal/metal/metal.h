@@ -8,4 +8,5 @@
 #include "hal/metal/metal_buttons.h"
 #include "hal/metal/metal_modmux.h"
 #include "hal/metal/metal_ipc.h"
+#include "hal/metal/metal_sd_card.h"
 #include "hal/metal/spi_flash.h"
