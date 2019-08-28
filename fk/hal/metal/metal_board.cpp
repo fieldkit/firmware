@@ -18,6 +18,7 @@ const uint8_t spi_pins[] = {
 const uint8_t i2c_pins[] = {
     PIN_WIRE_SDA,  PIN_WIRE_SCL,
     PIN_WIRE1_SDA, PIN_WIRE1_SCL,
+    PIN_WIRE2_SDA, PIN_WIRE2_SCL,
 };
 
 const uint8_t qspi_pins[] = {
