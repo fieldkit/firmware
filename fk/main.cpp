@@ -27,7 +27,6 @@ static void run_tasks() {
      * .data section, which is below the heap in memory.
      */
     uint32_t idle_stack[768 / sizeof(uint32_t)];
-    uint32_t data_stack[1024 / sizeof(uint32_t)];
     uint32_t scheduler_stack[1024 / sizeof(uint32_t)];
     uint32_t display_stack[2048 / sizeof(uint32_t)];
     uint32_t gps_stack[2048 / sizeof(uint32_t)];
@@ -37,7 +36,6 @@ static void run_tasks() {
     uint32_t network_stack[8192 / sizeof(uint32_t)];
 
     auto total_stacks = sizeof(idle_stack) +
-        sizeof(data_stack) +
         sizeof(scheduler_stack) +
         sizeof(display_stack) +
         sizeof(gps_stack) +
@@ -53,7 +51,7 @@ static void run_tasks() {
         nullptr,
         display_stack,
         sizeof(display_stack),
-        OS_PRIORITY_NORMAL + 6
+        OS_PRIORITY_NORMAL + 2
     };
 
     os_task_options_t readings_task_options = {
@@ -73,17 +71,7 @@ static void run_tasks() {
         nullptr,
         worker_stack,
         sizeof(worker_stack),
-        OS_PRIORITY_NORMAL + 4
-    };
-
-    os_task_options_t data_task_options = {
-        "data",
-        OS_TASK_START_RUNNING,
-        task_handler_data,
-        nullptr,
-        data_stack,
-        sizeof(data_stack),
-        OS_PRIORITY_NORMAL - 4
+        OS_PRIORITY_NORMAL
     };
 
     OS_CHECK(os_initialize());
@@ -96,18 +84,12 @@ static void run_tasks() {
     OS_CHECK(os_task_initialize_options(&display_task, &display_task_options));
     OS_CHECK(os_task_initialize_options(&readings_task, &readings_task_options));
     OS_CHECK(os_task_initialize_options(&worker_task, &worker_task_options));
-    OS_CHECK(os_task_initialize_options(&data_task, &data_task_options));
 
     loginfo("stacks = %d", total_stacks);
     loginfo("free = %lu", fk_free_memory());
     loginfo("starting os!");
 
     FK_ASSERT(get_ipc()->begin());
-
-    FK_ASSERT(storage_mutex.create());
-    FK_ASSERT(peripheral_i2c_core_mutex.create());
-    // FK_ASSERT(spi_flash_mutex.create());
-    FK_ASSERT(data_lock.create());
 
     OS_CHECK(os_start());
 }

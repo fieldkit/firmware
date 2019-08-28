@@ -1,5 +1,6 @@
 #include <hal/hal.h>
 
+#include "modules/modules.h"
 #include "test_modules.h"
 
 namespace fk {

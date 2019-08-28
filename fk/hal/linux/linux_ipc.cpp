@@ -38,14 +38,6 @@ bool LinuxIPC::dequeue_button(Button **ptr) {
     return false;
 }
 
-bool LinuxIPC::enqueue_data(StateChange *ptr) {
-    return false;
-}
-
-bool LinuxIPC::dequeue_data(StateChange **ptr) {
-    return false;
-}
-
 bool LinuxIPC::launch_worker(Worker *worker) {
     FK_ASSERT(worker != nullptr);
 

@@ -3,7 +3,7 @@
 #include "tasks/tasks.h"
 #include "hal/hal.h"
 #include "networking/server.h"
-#include "state.h"
+#include "state_manager.h"
 
 namespace fk {
 
@@ -19,7 +19,8 @@ void task_handler_network(void *params) {
         return;
     }
 
-    get_ipc()->enqueue_data([](GlobalState *gs) {
+    GlobalStateManager gsm;
+    gsm.apply([=](GlobalState *gs) {
         gs->network.enabled = fk_uptime();
         gs->network.ip = get_network()->ip_address();
     });
@@ -38,7 +39,7 @@ void task_handler_network(void *params) {
 
     http_server.stop();
 
-    get_ipc()->enqueue_data([](GlobalState *gs) {
+    gsm.apply([=](GlobalState *gs) {
         gs->network = { };
     });
 

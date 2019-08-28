@@ -15,7 +15,6 @@ Mutex storage_mutex;
 Mutex peripheral_i2c_core_mutex;
 RwLock data_lock;
 
-os_queue_define(data_queue, 10, OS_QUEUE_FLAGS_QUEUE_ONLY);
 os_queue_define(activity_queue, 10, OS_QUEUE_FLAGS_QUEUE_ONLY);
 os_queue_define(button_queue, 10, OS_QUEUE_FLAGS_NONE);
 
@@ -27,9 +26,13 @@ bool MetalIPC::available() {
 }
 
 bool MetalIPC::begin() {
-    OS_CHECK(os_queue_create(os_queue(data_queue), os_queue_def(data_queue)));
     OS_CHECK(os_queue_create(os_queue(activity_queue), os_queue_def(activity_queue)));
     OS_CHECK(os_queue_create(os_queue(button_queue), os_queue_def(button_queue)));
+
+    FK_ASSERT(storage_mutex.create());
+    FK_ASSERT(peripheral_i2c_core_mutex.create());
+    // FK_ASSERT(spi_flash_mutex.create());
+    FK_ASSERT(data_lock.create());
 
     return true;
 }
@@ -59,20 +62,6 @@ bool MetalIPC::dequeue_button(Button **ptr) {
         return false;
     }
     *ptr = reinterpret_cast<Button*>(tuple.value.ptr);
-    return true;
-}
-
-bool MetalIPC::enqueue_data(StateChange *ptr) {
-    auto tuple = os_queue_enqueue(os_queue(data_queue), ptr, FiveSecondsMs);
-    return tuple.status == OSS_SUCCESS;
-}
-
-bool MetalIPC::dequeue_data(StateChange **ptr) {
-    auto tuple = os_queue_dequeue(os_queue(data_queue), OneSecondMs);
-    if (tuple.status != OSS_SUCCESS) {
-        return false;
-    }
-    *ptr = reinterpret_cast<StateChange*>(tuple.value.ptr);
     return true;
 }
 
@@ -122,6 +111,7 @@ RwLock::Lock RwLock::acquire_read(uint32_t to) {
         return { this };
     }
     if (os_rwlock_acquire_read(&rwlock_, to) == OSS_SUCCESS) {
+        logtrace("read!");
         return { this };
     }
     return { nullptr };
@@ -132,6 +122,7 @@ RwLock::Lock RwLock::acquire_write(uint32_t to) {
         return { this };
     }
     if (os_rwlock_acquire_write(&rwlock_, to) == OSS_SUCCESS) {
+        logtrace("write!");
         return { this };
     }
     return { nullptr };
@@ -141,8 +132,8 @@ bool RwLock::release() {
     if (!os_is_running()) {
         return true;
     }
-    os_rwlock_release(&rwlock_);
-    return true;
+    logtrace("release!");
+    return os_rwlock_release(&rwlock_) == OSS_SUCCESS;
 }
 
 }

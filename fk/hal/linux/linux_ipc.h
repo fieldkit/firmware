@@ -17,8 +17,6 @@ public:
     bool dequeue_activity(Activity **ptr) override;
     bool enqueue_button(Button *ptr) override;
     bool dequeue_button(Button **ptr) override;
-    bool enqueue_data(StateChange *ptr) override;
-    bool dequeue_data(StateChange **ptr) override;
 
 public:
     bool launch_worker(Worker *worker) override;

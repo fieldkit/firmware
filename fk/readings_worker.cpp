@@ -4,13 +4,13 @@
 
 #include "hal/hal.h"
 #include "readings_taker.h"
-#include "state_ref.h"
+#include "state_manager.h"
 
 namespace fk {
 
 FK_DECLARE_LOGGER("rw");
 
-void ReadingsWorker::run(WorkerContext &wc, Pool &pool) {
+static nonstd::optional<ModuleReadingsCollection> take_readings(Pool &pool) {
     auto lock = storage_mutex.acquire(UINT32_MAX);
 
     auto memory_bus = get_board()->spi_flash();
@@ -23,6 +23,12 @@ void ReadingsWorker::run(WorkerContext &wc, Pool &pool) {
     ReadingsTaker readings_taker{ scanning, storage, get_modmux(), true };
     auto all_readings = readings_taker.take(mc, pool);
     FK_ASSERT(all_readings);
+
+    return all_readings;
+}
+
+void ReadingsWorker::run(WorkerContext &wc, Pool &pool) {
+    auto all_readings = take_readings(pool);
 
     auto data_pool = new StaticPool<2048>("readings");
     auto modules = data_pool->malloc_with<ModulesState>(data_pool);
@@ -57,7 +63,8 @@ void ReadingsWorker::run(WorkerContext &wc, Pool &pool) {
         module_num++;
     }
 
-    get_ipc()->enqueue_data([=](GlobalState *gs) {
+    GlobalStateManager gsm;
+    gsm.apply([=](GlobalState *gs) {
         if (gs->modules != nullptr) {
             delete gs->modules->pool;
         }

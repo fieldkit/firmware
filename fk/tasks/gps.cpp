@@ -1,6 +1,6 @@
 #include "tasks/tasks.h"
 #include "hal/hal.h"
-#include "state.h"
+#include "state_manager.h"
 
 namespace fk {
 
@@ -15,7 +15,8 @@ void task_handler_gps(void *params) {
     auto status = fk_uptime() + OneMinuteMs;
     auto update_gs = fk_uptime() + FiveSecondsMs;
 
-    get_ipc()->enqueue_data([](GlobalState *gs) {
+    GlobalStateManager gsm;
+    gsm.apply([=](GlobalState *gs) {
         gs->gps = { };
         gs->gps.enabled = true;
     });
@@ -35,21 +36,18 @@ void task_handler_gps(void *params) {
         }
 
         if (fk_uptime() > update_gs) {
-            auto queued = get_ipc()->enqueue_data([=](GlobalState *gs) {
+            gsm.apply([=](GlobalState *gs) {
                 gs->gps.enabled = true;
                 gs->gps.fix = fix.good;
                 gs->gps.longitude = fix.longitude;
                 gs->gps.latitude = fix.latitude;
                 gs->gps.altitude = fix.altitude;
             });
-            if (!queued) {
-                logwarn("gps update failed");
-            }
             update_gs = fk_uptime() + FiveSecondsMs;
         }
     }
 
-    get_ipc()->enqueue_data([](GlobalState *gs) {
+    gsm.apply([=](GlobalState *gs) {
         gs->gps.enabled = false;
         gs->gps.fix = false;
     });

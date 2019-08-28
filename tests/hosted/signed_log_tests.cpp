@@ -13,7 +13,7 @@
 #include "scanning.h"
 #include "modules_bridge.h"
 #include "registry.h"
-
+#include "state.h"
 #include "storage_suite.h"
 
 using namespace fk;
