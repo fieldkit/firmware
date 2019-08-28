@@ -2,6 +2,7 @@
 
 #include "hal/memory.h"
 #include "hal/metal/metal_memory.h"
+#include "hal/metal/metal_qspi.h"
 #include "hal/linux/linux_memory.h"
 #include "board.h"
 #include "config.h"
@@ -334,6 +335,8 @@ DataMemory *bank_pointers[]{ &banks[0] };
 
 #endif
 
+MetalQspiMemory qspi_memory;
+
 #else
 
 #if FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS == 4
@@ -352,6 +355,8 @@ LinuxDataMemory banks[MemoryFactory::NumberOfDataMemoryBanks];
 DataMemory *bank_pointers[]{ &banks[0] };
 
 #endif
+
+LinuxDataMemory qspi_memory;
 
 #endif
 
@@ -489,16 +494,20 @@ public:
 
 };
 
-BankedDataMemory memory{ bank_pointers, MemoryFactory::NumberOfDataMemoryBanks };
-BasicPageCache<MemoryPageStore, 2048, 4> cache{ { &memory } };
-CachingMemory caching_memory{ &memory, &cache };
+BankedDataMemory banked_flash_memory{ bank_pointers, MemoryFactory::NumberOfDataMemoryBanks };
+BasicPageCache<MemoryPageStore, 2048, 4> flash_cache{ { &banked_flash_memory } };
+CachingMemory flash_caching_memory{ &banked_flash_memory, &flash_cache };
 
 DataMemory **MemoryFactory::get_data_memory_banks() {
     return bank_pointers;
 }
 
 DataMemory *MemoryFactory::get_data_memory() {
-    return &caching_memory;
+    return &flash_caching_memory;
+}
+
+DataMemory *MemoryFactory::get_qspi_memory() {
+    return &qspi_memory;
 }
 
 }

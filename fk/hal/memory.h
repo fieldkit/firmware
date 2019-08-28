@@ -212,6 +212,7 @@ public:
 public:
     static DataMemory **get_data_memory_banks();
     static DataMemory *get_data_memory();
+    static DataMemory *get_qspi_memory();
 };
 
 }
