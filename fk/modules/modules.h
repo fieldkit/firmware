@@ -13,29 +13,12 @@ typedef struct ModuleHeader {
     uint32_t kind;
     uint32_t version;
     fk_uuid_t id;
+    uint32_t crc;
 } ModuleHeader;
 
-typedef struct ModuleKind {
-    uint32_t manufacturer;
-    uint32_t kind;
-    uint32_t version;
-    uint32_t reserved[4]; // Pad to EEPROM Size
-    uint32_t crc;
-} ModuleKind;
+uint32_t fk_module_header_sign(ModuleHeader const *header);
 
-typedef struct ModuleIdentity {
-    fk_uuid_t id;
-    uint32_t reserved[3]; // Pad to EEPROM Size
-    uint32_t crc;
-} ModuleIdentity;
-
-uint32_t fk_module_kind_sign(ModuleKind const *kind);
-
-uint32_t fk_module_kind_valid(ModuleKind const *kind);
-
-uint32_t fk_module_identity_sign(ModuleIdentity const *identity);
-
-uint32_t fk_module_identity_valid(ModuleIdentity const *identity);
+uint32_t fk_module_header_valid(ModuleHeader const *header);
 
 #define FK_MODULES_MANUFACTURER                    (0x01)
 #define FK_MODULES_KIND_WEATHER                    (0x01)
@@ -73,6 +56,11 @@ uint32_t fk_module_identity_valid(ModuleIdentity const *identity);
  * modules use the same chip with 64k.
  */
 #define EEPROM_ADDRESS_END                         (64 * 1024)
+
+/**
+ * Seeds the CRC of module information to avoid false positives and 0 checksums.
+ */
+#define FK_MODULES_CRC_SEED                        (0x838efd4)
 
 #ifdef __cplusplus
 }
