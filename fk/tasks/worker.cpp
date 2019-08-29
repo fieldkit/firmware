@@ -14,8 +14,7 @@ void task_handler_worker(void *params) {
     auto started = fk_uptime();
     auto worker = reinterpret_cast<Worker*>(params);
     auto pool = MallocPool{ "worker", 4096 };
-    WorkerContext wc;
-    worker->run(wc, pool);
+    worker->run(pool);
     delete worker;
 
     loginfo("done (pool = %zd/%zd bytes) (%" PRIu32 "ms)", pool.used(), pool.size(), fk_uptime() - started);

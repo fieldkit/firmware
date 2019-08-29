@@ -11,7 +11,11 @@ public:
     FsckWorker(Pool *pool);
 
 public:
-    void run(WorkerContext &wc, Pool &pool) override;
+    void run(Pool &pool) override;
+
+    const char *name() override {
+        return "fsck";
+    }
 
 };
 
@@ -21,7 +25,11 @@ public:
     WifiToggleWorker(Pool *pool);
 
 public:
-    void run(WorkerContext &wc, Pool &pool) override;
+    void run(Pool &pool) override;
+
+    const char *name() override {
+        return "wifi";
+    }
 
 };
 
@@ -34,7 +42,11 @@ public:
     SelfCheckWorker(SelfCheckCallbacks *callbacks, Pool *pool);
 
 public:
-    void run(WorkerContext &wc, Pool &pool) override;
+    void run(Pool &pool) override;
+
+    const char *name() override {
+        return "self-check";
+    }
 
 private:
     bool stop_network();

@@ -26,7 +26,7 @@ public:
     DownloadWorker(HttpRequest *req, uint8_t file_number, Pool *pool);
 
 public:
-    void run(WorkerContext &wc, Pool &pool) override;
+    void run(Pool &pool) override;
 
 private:
     struct HeaderInfo {

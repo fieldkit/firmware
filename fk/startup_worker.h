@@ -10,7 +10,11 @@ public:
     StartupWorker(Pool *pool);
 
 public:
-    void run(WorkerContext &wc, Pool &pool) override;
+    void run(Pool &pool) override;
+
+    const char *name() override {
+        return "startup";
+    }
 
 };
 

@@ -19,7 +19,7 @@ public:
     ReceiveWorker(HttpRequest *req, Pool *pool);
 
 public:
-    void run(WorkerContext &wc, Pool &pool) override;
+    void run(Pool &pool) override;
 
 };
 

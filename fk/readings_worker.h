@@ -6,14 +6,11 @@ namespace fk {
 
 class ReadingsWorker : public Worker {
 public:
-    ReadingsWorker() : Worker() {
-    }
-
-    ReadingsWorker(Pool *pool) : Worker(pool) {
-    }
+    ReadingsWorker();
+    ReadingsWorker(Pool *pool);
 
 public:
-    void run(WorkerContext &wc, Pool &pool) override;
+    void run(Pool &pool) override;
 
 };
 

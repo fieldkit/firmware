@@ -12,7 +12,7 @@ StartupWorker::StartupWorker() {
 StartupWorker::StartupWorker(Pool *pool) {
 }
 
-void StartupWorker::run(WorkerContext &wc, Pool &pool) {
+void StartupWorker::run(Pool &pool) {
     NoopSelfCheckCallbacks noop_callbacks;
     SelfCheck self_check(get_display(), get_network(), get_modmux());
     self_check.check(SelfCheckSettings{ }, noop_callbacks);

@@ -28,7 +28,7 @@ ReceiveWorker::ReceiveWorker(HttpRequest *req, Pool *pool) : Worker(pool), req_(
     req_->connection()->close();
 }
 
-void ReceiveWorker::run(WorkerContext &wc, Pool &pool) {
+void ReceiveWorker::run(Pool &pool) {
 }
 
 bool ReceiveHandler::handle(HttpRequest &req, Pool &pool) {

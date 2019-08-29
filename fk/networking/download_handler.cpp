@@ -11,7 +11,7 @@ FK_DECLARE_LOGGER("download");
 DownloadWorker::DownloadWorker(HttpRequest *req, uint8_t file_number, Pool *pool) : Worker(pool), req_(req), file_number_(file_number) {
 }
 
-void DownloadWorker::run(WorkerContext &wc, Pool &pool) {
+void DownloadWorker::run(Pool &pool) {
     loginfo("downloading");
 
     auto lock = storage_mutex.acquire(UINT32_MAX);

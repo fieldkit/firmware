@@ -17,7 +17,7 @@ FsckWorker::FsckWorker() : Worker() {
 FsckWorker::FsckWorker(Pool *pool) : Worker(pool) {
 }
 
-void FsckWorker::run(WorkerContext &wc, Pool &pool) {
+void FsckWorker::run(Pool &pool) {
     auto lock = storage_mutex.acquire(UINT32_MAX);
 
     FK_ASSERT(lock);
@@ -35,7 +35,7 @@ WifiToggleWorker::WifiToggleWorker() : Worker() {
 WifiToggleWorker::WifiToggleWorker(Pool *pool) : Worker(pool) {
 }
 
-void WifiToggleWorker::run(WorkerContext &wc, Pool &pool) {
+void WifiToggleWorker::run(Pool &pool) {
     if (os_task_is_running(&network_task)) {
         os_signal(&network_task, 9);
     }
@@ -50,7 +50,7 @@ SelfCheckWorker::SelfCheckWorker(SelfCheckCallbacks *callbacks) : Worker(), call
 SelfCheckWorker::SelfCheckWorker(SelfCheckCallbacks *callbacks, Pool *pool) : Worker(pool), callbacks_(callbacks) {
 }
 
-void SelfCheckWorker::run(WorkerContext &wc, Pool &pool) {
+void SelfCheckWorker::run(Pool &pool) {
     if (stop_network()) {
         check();
     }

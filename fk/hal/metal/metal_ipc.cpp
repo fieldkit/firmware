@@ -71,6 +71,8 @@ bool MetalIPC::launch_worker(Worker *worker) {
         return false;
     }
 
+    worker_task.name = worker->name();
+
     OS_CHECK(os_task_start_options(&worker_task, worker));
 
     return true;

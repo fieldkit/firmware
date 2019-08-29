@@ -5,9 +5,6 @@
 
 namespace fk {
 
-struct WorkerContext {
-};
-
 class Worker {
 private:
     EmptyPool empty_;
@@ -27,7 +24,11 @@ public:
     }
 
 public:
-    virtual void run(WorkerContext &wc, Pool &pool) = 0;
+    virtual void run(Pool &pool) = 0;
+
+    virtual const char *name() {
+        return "worker";
+    }
 
 public:
     Pool &pool() {
