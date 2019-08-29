@@ -436,7 +436,7 @@ uint32_t Storage::fsck(ProgressCallbacks *progress) {
     }
 
     auto buffer = (uint8_t *)malloc(BufferSize);
-    auto tracker = ProgressTracker{ progress, "fsck", "", file.size() };
+    auto tracker = ProgressTracker{ progress, Operation::Fsck, "fsck", "", file.size() };
 
     FK_ASSERT(file.seek(0));
 
@@ -446,6 +446,8 @@ uint32_t Storage::fsck(ProgressCallbacks *progress) {
         FK_ASSERT(nread == to_read);
         tracker.update(nread);
     }
+
+    tracker.finished();
 
     free(buffer);
 

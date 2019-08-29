@@ -69,13 +69,8 @@ struct GeneralState {
 };
 
 struct ProgressState {
-    const char *message;
+    const char *operation;
     float progress;
-};
-
-struct DisplayState {
-    ProgressState progress;
-    const char *message;
 };
 
 struct GlobalState {
@@ -86,7 +81,7 @@ public:
     PeripheralState peripheral;
     GpsState gps;
     NetworkState network;
-    DisplayState display;
+    ProgressState progress;
     ModulesState *modules;
 
 public:

@@ -8,6 +8,7 @@ namespace fk {
 class ProgressTracker {
 private:
     ProgressCallbacks *callbacks_;
+    Operation op_;
     const char *facility_;
     const char *prefix_;
     uint32_t total_;
@@ -16,7 +17,7 @@ private:
     uint32_t status_{ 0 };
 
 public:
-    ProgressTracker(ProgressCallbacks *callbacks, const char *facility, const char *prefix, uint32_t total);
+    ProgressTracker(ProgressCallbacks *callbacks, Operation op, const char *facility, const char *prefix, uint32_t total);
 
 public:
     void update(int32_t bytes);
@@ -30,6 +31,9 @@ public:
     uint32_t bytes() const;
 
     uint32_t remaining_bytes() const;
+
+    void finished();
+
 };
 
 }

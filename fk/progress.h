@@ -4,15 +4,22 @@
 
 namespace fk {
 
+enum class Operation {
+    None,
+    Download,
+    Upload,
+    Fsck,
+};
+
 class ProgressCallbacks {
 public:
-    virtual void progress(float progress) = 0;
+    virtual void progress(Operation op, float progress) = 0;
 
 };
 
 class NoopProgressCallbacks : public ProgressCallbacks {
 public:
-    void progress(float progress) override {
+    void progress(Operation op, float progress) override {
     }
 
 };

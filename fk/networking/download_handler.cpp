@@ -52,7 +52,7 @@ void DownloadWorker::run(WorkerContext &wc, Pool &pool) {
         uint8_t *buffer = (uint8_t *)malloc(buffer_size);
 
         NoopProgressCallbacks noop_progress;
-        auto tracker = ProgressTracker{ &noop_progress, "download", "", size };
+        auto tracker = ProgressTracker{ &noop_progress, Operation::Download, "download", "", size };
         auto bytes_copied = (size_t)0;
         while (bytes_copied < size) {
             auto to_read = std::min<size_t>(buffer_size, size - bytes_copied);
@@ -68,6 +68,8 @@ void DownloadWorker::run(WorkerContext &wc, Pool &pool) {
 
             bytes_copied += bytes_read;
         }
+
+        tracker.finished();
 
         free(buffer);
 

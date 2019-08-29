@@ -4,7 +4,8 @@
 
 namespace fk {
 
-ProgressTracker::ProgressTracker(ProgressCallbacks *callbacks, const char *facility, const char *prefix, uint32_t total) : callbacks_(callbacks), facility_(facility), prefix_(prefix), total_(total) {
+ProgressTracker::ProgressTracker(ProgressCallbacks *callbacks, Operation op, const char *facility, const char *prefix, uint32_t total)
+    : callbacks_(callbacks), op_(op), facility_(facility), prefix_(prefix), total_(total) {
 }
 
 void ProgressTracker::update(int32_t bytes) {
@@ -21,7 +22,7 @@ void ProgressTracker::update(int32_t bytes) {
         auto progress = (bytes_ / (float)total_) * 100.0f;
         alogf(LogLevels::INFO, facility_, "%s%" PRIu32 "/%" PRIu32 " bytes (%.2f kbps) %.2f%%", prefix_, bytes_, total_, speed, progress);
         status_ = now + ProgressIntervalMs;
-        callbacks_->progress(progress);
+        callbacks_->progress(op_, progress);
     }
 }
 
@@ -43,6 +44,10 @@ uint32_t ProgressTracker::bytes() const {
 
 uint32_t ProgressTracker::remaining_bytes() const {
     return total_ - bytes_;
+}
+
+void ProgressTracker::finished() {
+    callbacks_->progress(Operation::None, 0.0f);
 }
 
 }
