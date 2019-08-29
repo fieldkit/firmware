@@ -150,6 +150,7 @@ static void log_diagnostics() {
 
     loginfo("sizeof(RecordHeader + RecordTail) = %zd + %zd", sizeof(RecordHeader), sizeof(RecordTail));
     loginfo("sizeof(GlobalState) = %zd", sizeof(GlobalState ));
+    loginfo("sizeof(ModuleHeader) = %zd", sizeof(ModuleHeader));
 }
 
 static bool initialize_logging() {
