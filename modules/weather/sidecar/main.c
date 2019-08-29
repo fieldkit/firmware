@@ -12,38 +12,6 @@
 #include "eeprom.h"
 #include "sensors.h"
 
-int32_t ensure_module_header() {
-    ModuleKind expected = {
-        .manufacturer = FK_MODULES_MANUFACTURER,
-        .kind = FK_MODULES_KIND_WEATHER,
-        .version = 0x01,
-        .reserved = { 0x00, 0x00, 0x00, 0x00 },
-        .crc = 0x00,
-    };
-    ModuleKind actual;
-    int32_t rv;
-
-    rv = eeprom_read(&I2C_0, 0x00, (uint8_t *)&actual, sizeof(actual));
-    if (rv != 0) {
-        return FK_ERROR_GENERAL;
-    }
-
-    // Calculate hash of expected header, which is the entire block minus the 4
-    // bytes at the end for the CRC itself.
-    expected.crc = fk_module_kind_sign(&expected);
-
-    if (memcmp(&actual, &expected, sizeof(ModuleKind)) == 0) {
-        return FK_SUCCESS;
-    }
-
-    rv = eeprom_write(&I2C_0, 0x00, (uint8_t *)&expected, sizeof(expected));
-    if (rv != ERR_NONE) {
-        return FK_ERROR_GENERAL;
-    }
-
-    return FK_SUCCESS;
-}
-
 fk_weather_config_t fk_weather_config_default = { 60, 60, 60, 0 };
 
 int32_t read_configuration(fk_weather_config_t *config) {
@@ -104,12 +72,6 @@ __int32_t main() {
 
     // Always leave EEPROM ready for writes.
     eeprom_write_enable_always();
-
-    // Check the module header is there and if so, use that. Not sure what to do
-    // if this fails, usually will indicate an error with the EEPROM.
-    if (ensure_module_header() != FK_SUCCESS) {
-        // NOTE: This is bad!
-    }
 
     loginfo("configuration...");
 
