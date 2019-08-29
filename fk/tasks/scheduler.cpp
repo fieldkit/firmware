@@ -37,12 +37,10 @@ public:
 
 void task_handler_scheduler(void *params) {
     lwcron::CronSpec readings_cron_spec{ lwcron::CronSpec::interval(10) };
-    lwcron::CronSpec misc_cron_spec{ lwcron::CronSpec::everyFiveMinutes() };
 
     CronTask readings_job{ readings_cron_spec, &readings_task };
-    CronTask misc_job{ misc_cron_spec, &misc_task };
 
-    lwcron::Task *tasks[2] { &readings_job, &misc_job };
+    lwcron::Task *tasks[1] { &readings_job };
     lwcron::Scheduler scheduler{ tasks };
 
     scheduler.begin( get_clock_now() );

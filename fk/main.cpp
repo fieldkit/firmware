@@ -31,7 +31,6 @@ static void run_tasks() {
     uint32_t display_stack[2048 / sizeof(uint32_t)];
     uint32_t gps_stack[2048 / sizeof(uint32_t)];
     uint32_t worker_stack[4096 / sizeof(uint32_t)];
-    uint32_t misc_stack[8192 / sizeof(uint32_t)];
     uint32_t readings_stack[8192 / sizeof(uint32_t)];
     uint32_t network_stack[8192 / sizeof(uint32_t)];
 
@@ -40,7 +39,6 @@ static void run_tasks() {
         sizeof(display_stack) +
         sizeof(gps_stack) +
         sizeof(worker_stack) +
-        sizeof(misc_stack) +
         sizeof(readings_stack) +
         sizeof(network_stack);
 
@@ -80,7 +78,6 @@ static void run_tasks() {
     OS_CHECK(os_task_initialize(&scheduler_task, "scheduler", OS_TASK_START_RUNNING, &task_handler_scheduler, nullptr, scheduler_stack, sizeof(scheduler_stack)));
     OS_CHECK(os_task_initialize(&network_task, "network", OS_TASK_START_RUNNING, &task_handler_network, nullptr, network_stack, sizeof(network_stack)));
     OS_CHECK(os_task_initialize(&gps_task, "gps", OS_TASK_START_RUNNING, &task_handler_gps, nullptr, gps_stack, sizeof(gps_stack)));
-    OS_CHECK(os_task_initialize(&misc_task, "misc", OS_TASK_START_RUNNING, &task_handler_misc, nullptr, misc_stack, sizeof(misc_stack)));
     OS_CHECK(os_task_initialize_options(&display_task, &display_task_options));
     OS_CHECK(os_task_initialize_options(&readings_task, &readings_task_options));
     OS_CHECK(os_task_initialize_options(&worker_task, &worker_task_options));
