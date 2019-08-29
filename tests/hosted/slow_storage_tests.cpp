@@ -195,7 +195,8 @@ TEST_F(SlowStorageSuite, LotsOfIndividualWrites) {
         ASSERT_TRUE(file_read.seek(0));
         ASSERT_EQ(file_read.position(), (size_t)0);
 
-        storage.fsck();
+        NoopProgressCallbacks progress;
+        storage.fsck(&progress);
     }
 }
 

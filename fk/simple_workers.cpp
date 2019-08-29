@@ -23,7 +23,8 @@ void FsckWorker::run(WorkerContext &wc, Pool &pool) {
 
     Storage storage{ MemoryFactory::get_data_memory() };
     if (storage.begin()) {
-        storage.fsck();
+        NoopProgressCallbacks noop_progress;
+        storage.fsck(&noop_progress);
     }
 }
 

@@ -21,7 +21,8 @@ static void periodic_fsck() {
 
     Storage storage{ MemoryFactory::get_data_memory() };
     if ((!fake_data_enabled || fake_data_inserted) && storage.begin()) {
-        storage.fsck();
+        NoopProgressCallbacks progress;
+        storage.fsck(&progress);
     }
     else if (fake_data_enabled) {
         FK_ASSERT(storage.clear());

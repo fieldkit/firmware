@@ -2,6 +2,7 @@
 
 #include "common.h"
 #include "hal/memory.h"
+#include "progress.h"
 #include "storage/file.h"
 
 namespace fk {
@@ -34,7 +35,7 @@ public:
     bool begin();
     bool clear();
     File file(FileNumber file);
-    uint32_t fsck();
+    uint32_t fsck(ProgressCallbacks *progress);
     uint32_t version() const {
         return version_;
     }

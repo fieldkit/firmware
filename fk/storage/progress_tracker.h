@@ -1,11 +1,13 @@
 #pragma once
 
 #include "common.h"
+#include "progress.h"
 
 namespace fk {
 
 class ProgressTracker {
 private:
+    ProgressCallbacks *callbacks_;
     const char *facility_;
     const char *prefix_;
     uint32_t total_;
@@ -14,7 +16,7 @@ private:
     uint32_t status_{ 0 };
 
 public:
-    ProgressTracker(const char *facility, const char *prefix, uint32_t total);
+    ProgressTracker(ProgressCallbacks *callbacks, const char *facility, const char *prefix, uint32_t total);
 
 public:
     void update(int32_t bytes);

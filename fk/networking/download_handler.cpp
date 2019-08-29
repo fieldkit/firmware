@@ -1,6 +1,6 @@
 #include "networking/download_handler.h"
 #include "storage/storage.h"
-#include "storage/progress.h"
+#include "storage/progress_tracker.h"
 #include "writer.h"
 #include "hal/hal.h"
 
@@ -51,7 +51,8 @@ void DownloadWorker::run(WorkerContext &wc, Pool &pool) {
         size_t buffer_size = 1024;
         uint8_t *buffer = (uint8_t *)malloc(buffer_size);
 
-        auto tracker = ProgressTracker{ "download", "", size };
+        NoopProgressCallbacks noop_progress;
+        auto tracker = ProgressTracker{ &noop_progress, "download", "", size };
         auto bytes_copied = (size_t)0;
         while (bytes_copied < size) {
             auto to_read = std::min<size_t>(buffer_size, size - bytes_copied);

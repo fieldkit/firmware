@@ -4,7 +4,7 @@
 #include "platform.h"
 #include "hal/random.h"
 #include "storage/storage.h"
-#include "storage/progress.h"
+#include "storage/progress_tracker.h"
 
 namespace fk {
 
@@ -421,7 +421,7 @@ File Storage::file(uint8_t file) {
     return File{ this, file };
 }
 
-uint32_t Storage::fsck() {
+uint32_t Storage::fsck(ProgressCallbacks *progress) {
     constexpr static size_t BufferSize = 1024;
 
     verify_opened();
@@ -436,7 +436,7 @@ uint32_t Storage::fsck() {
     }
 
     auto buffer = (uint8_t *)malloc(BufferSize);
-    auto tracker = ProgressTracker{ "fsck", "", file.size() };
+    auto tracker = ProgressTracker{ progress, "fsck", "", file.size() };
 
     FK_ASSERT(file.seek(0));
 
