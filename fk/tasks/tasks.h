@@ -7,6 +7,11 @@
 
 namespace fk {
 
+/**
+ * Number of worker tasks to allow.
+ */
+constexpr size_t NumberOfWorkerTasks = 2;
+
 void task_handler_idle(void *params);
 void task_handler_scheduler(void *params);
 void task_handler_display(void *params);
@@ -21,6 +26,6 @@ extern os_task_t display_task;
 extern os_task_t network_task;
 extern os_task_t gps_task;
 extern os_task_t readings_task;
-extern os_task_t worker_task;
+extern os_task_t worker_tasks[NumberOfWorkerTasks];
 
 }

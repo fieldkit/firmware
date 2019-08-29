@@ -66,16 +66,18 @@ bool MetalIPC::dequeue_button(Button **ptr) {
 }
 
 bool MetalIPC::launch_worker(Worker *worker) {
-    if (os_task_is_running(&worker_task)) {
-        logwarn("all workers are busy");
-        return false;
+    for (size_t i = 0; i < NumberOfWorkerTasks; ++i) {
+        if (!os_task_is_running(&worker_tasks[i])) {
+            worker_tasks[i].name = worker->name();
+
+            OS_CHECK(os_task_start_options(&worker_tasks[i], worker));
+
+            return true;
+        }
     }
 
-    worker_task.name = worker->name();
-
-    OS_CHECK(os_task_start_options(&worker_task, worker));
-
-    return true;
+    logwarn("all workers are busy");
+    return false;
 }
 
 bool Mutex::create() {

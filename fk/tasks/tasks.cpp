@@ -8,8 +8,6 @@ os_task_t display_task;
 os_task_t network_task;
 os_task_t gps_task;
 os_task_t readings_task;
-os_task_t data_task;
-os_task_t worker_task;
-os_task_t misc_task;
+os_task_t worker_tasks[NumberOfWorkerTasks];
 
 }
