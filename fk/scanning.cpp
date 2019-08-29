@@ -2,6 +2,7 @@
 #include "eeprom.h"
 #include "state.h"
 #include "config.h"
+#include "platform.h"
 
 namespace fk {
 
@@ -21,7 +22,6 @@ static bool add_virtual_module(FoundModuleCollection &headers, uint16_t kind) {
     header.manufacturer = FK_MODULES_MANUFACTURER;
     header.kind = kind;
     header.version = 0x1;
-    header.crc = fk_module_header_sign(&header);
 
     headers.emplace_back(FoundModule{
         .position = ModMuxVirtualPosition,
@@ -54,6 +54,8 @@ nonstd::optional<FoundModuleCollection> ModuleScanning::scan(Pool &pool) {
 
     // Take ownership over the module bus.
     auto module_bus = get_board()->i2c_module();
+    ModuleEeprom eeprom{ module_bus };
+
     mm_->enable_all_modules();
 
     for (uint8_t i = 0; i < MaximumNumberOfModules; ++i) {
@@ -62,23 +64,17 @@ nonstd::optional<FoundModuleCollection> ModuleScanning::scan(Pool &pool) {
         }
 
         ModuleHeader header;
-        ModuleEeprom eeprom{ module_bus };
         bzero(&header, sizeof(ModuleHeader));
         if (!eeprom.read_header(header)) {
             continue;
         }
 
-        if (fk_module_header_valid(&header)) {
-            loginfo("[%d] mk=%02" PRIx32 "%02" PRIx32 " v%" PRIu32, i, header.manufacturer, header.kind, header.version);
+        loginfo("[%d] mk=%02" PRIx32 "%02" PRIx32 " v%" PRIu32, i, header.manufacturer, header.kind, header.version);
 
-            found.emplace_back(FoundModule{
-                .position = (uint8_t)i,
-                .header = header,
-            });
-        }
-        else {
-            logwarn("[%d] mk=%02" PRIx32 "%02" PRIx32 " v%" PRIu32, i, header.manufacturer, header.kind, header.version);
-        }
+        found.emplace_back(FoundModule{
+            .position = (uint8_t)i,
+            .header = header,
+        });
     }
 
     loginfo("done (%zd modules)", found.size());
@@ -92,17 +88,20 @@ bool ModuleScanning::configure(uint8_t position, ModuleHeader &header) {
     }
 
     if (!mm_->choose(position)) {
+        logerror("error choosing module");
         return false;
     }
 
     // Take ownership over the module bus.
     auto module_bus = get_board()->i2c_module();
-    mm_->enable_all_modules();
-
     ModuleEeprom eeprom{ module_bus };
 
-    header.crc = fk_module_header_sign(&header);
+    mm_->enable_all_modules();
+
+    fk_delay(100);
+
     if (!eeprom.write_header(header)) {
+        logerror("error writing header");
         return false;
     }
 

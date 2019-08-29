@@ -2,33 +2,9 @@
 
 #include <hal_i2c_m_sync.h>
 
+#include <modules/modules.h>
+
 #include "sidecar.h"
-
-/**
- *
- */
-#define EEPROM_I2C_ADDRESS                (0x50)
-
-/**
- *
- */
-#define EEPROM_TIMEOUT_WRITE              (10)
-
-/**
- * Size in bytes of an individual page of EEPROM. This is typically the
- * maximum granularity of writes.
- */
-#define EEPROM_PAGE_SIZE                  (0x20)
-
-#define EEPROM_ADDRESS_HEADER             (0x00)
-#define EEPROM_ADDRESS_CONFIG             (EEPROM_PAGE_SIZE * 1)
-#define EEPROM_ADDRESS_READINGS           (EEPROM_PAGE_SIZE * 2)
-
-/**
- * Last address in our EEPROM, effectively the size of the EEPROM. All our
- * modules use the same chip with 64k.
- */
-#define EEPROM_ADDRESS_END                (64 * 1024)
 
 /**
  *

@@ -13,14 +13,14 @@
 #include "sensors.h"
 
 int32_t ensure_module_header() {
-    ModuleHeader expected = {
+    ModuleKind expected = {
         .manufacturer = FK_MODULES_MANUFACTURER,
         .kind = FK_MODULES_KIND_WEATHER,
         .version = 0x01,
         .reserved = { 0x00, 0x00, 0x00, 0x00 },
         .crc = 0x00,
     };
-    ModuleHeader actual;
+    ModuleKind actual;
     int32_t rv;
 
     rv = eeprom_read(&I2C_0, 0x00, (uint8_t *)&actual, sizeof(actual));
@@ -30,9 +30,9 @@ int32_t ensure_module_header() {
 
     // Calculate hash of expected header, which is the entire block minus the 4
     // bytes at the end for the CRC itself.
-    expected.crc = fk_module_header_sign(&expected);
+    expected.crc = fk_module_kind_sign(&expected);
 
-    if (memcmp(&actual, &expected, sizeof(ModuleHeader)) == 0) {
+    if (memcmp(&actual, &expected, sizeof(ModuleKind)) == 0) {
         return FK_SUCCESS;
     }
 
