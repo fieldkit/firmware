@@ -5,6 +5,8 @@
 #include "platform.h"
 #include "uuid.h"
 
+#include <phylum/blake2b.h>
+
 namespace fk {
 
 FK_DECLARE_LOGGER("scan");
@@ -18,12 +20,24 @@ bool ModuleScanning::available() {
     return mm_->available();
 }
 
+static bool generate_unique_virtual_module_id(ModuleHeader &header) {
+    BLAKE2b hash;
+    hash.reset(16);
+    fk_serial_number_t sn;
+    hash.update(&sn, sizeof(sn));
+    hash.update(&header, sizeof(ModuleHeader));
+    hash.finalize(&header.id, 16);
+    return true;
+}
+
 static bool add_virtual_module(FoundModuleCollection &headers, uint16_t kind) {
     ModuleHeader header;
     bzero(&header, sizeof(ModuleHeader));
     header.manufacturer = FK_MODULES_MANUFACTURER;
     header.kind = kind;
     header.version = 0x1;
+
+    generate_unique_virtual_module_id(header);
 
     headers.emplace_back(FoundModule{
         .position = ModMuxVirtualPosition,
