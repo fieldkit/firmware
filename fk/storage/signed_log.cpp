@@ -113,6 +113,9 @@ bool SignedRecordLog::append_immutable(SignedRecordKind kind, void const *record
             return file_.seek(LastRecord);
         }
     }
+    else {
+        loginfo("no record");
+    }
 
     if (append_new) {
         loginfo("appending");

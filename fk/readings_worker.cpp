@@ -18,7 +18,7 @@ static nonstd::optional<ModuleReadingsCollection> take_readings(Pool &pool) {
     auto gs = get_global_state_ro();
 
     ModuleContext mc{ gs.get(), module_bus };
-    Storage storage{ MemoryFactory::get_data_memory() }; // NOTE: Not opened!
+    Storage storage{ nullptr }; // NOTE: Not opened!
     ModuleScanning scanning{ get_modmux() };
     ReadingsTaker readings_taker{ scanning, storage, get_modmux(), true };
     auto all_readings = readings_taker.take(mc, pool);
