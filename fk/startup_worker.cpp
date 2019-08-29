@@ -3,6 +3,7 @@
 #include "self_check.h"
 #include "factory_wipe.h"
 #include "tasks/tasks.h"
+#include "readings_worker.h"
 
 namespace fk {
 
@@ -20,6 +21,9 @@ void StartupWorker::run(Pool &pool) {
     Storage storage{ MemoryFactory::get_data_memory() };
     FactoryWipe fw{ get_buttons(), &storage };
     FK_ASSERT(fw.wipe_if_necessary());
+
+    ReadingsWorker readings_worker;
+    readings_worker.run(pool);
 
     FK_ASSERT(os_task_start(&scheduler_task) == OSS_SUCCESS);
 }
