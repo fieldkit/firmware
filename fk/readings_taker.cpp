@@ -146,7 +146,7 @@ bool ReadingsTaker::append_configuration(ModuleContext &mc, ConstructedModulesCo
 
         auto &m = module_infos[index];
         m = fk_data_ModuleInfo_init_default;
-        m.id = index;
+        m.position = index;
         m.name.funcs.encode = pb_encode_string;
         m.name.arg = (void *)meta->name;
         m.header.manufacturer = meta->manufacturer;

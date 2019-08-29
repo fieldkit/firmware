@@ -149,7 +149,7 @@ static bool send_status(HttpRequest &req, fk_app_HttpQuery *query, Pool &pool) {
             for (size_t s = 0; s < module.nsensors; ++s) {
                 auto &sensor = module.sensors[s];
                 sensors[s] = fk_app_SensorCapabilities_init_default;
-                sensors[s].id = s;
+                sensors[s].number = s;
                 sensors[s].module = m;
                 sensors[s].name.arg = (void *)sensor.name;
                 sensors[s].unitOfMeasure.arg = (void *)sensor.unitOfMeasure;
@@ -164,7 +164,7 @@ static bool send_status(HttpRequest &req, fk_app_HttpQuery *query, Pool &pool) {
             });
 
             modules[m] = fk_app_ModuleCapabilities_init_default;
-            modules[m].id = m;
+            modules[m].position = m;
             modules[m].name.arg = (void *)module.name;
             modules[m].path.arg = (void *)"";
             modules[m].flags = module.flags;
@@ -310,7 +310,7 @@ bool send_readings(HttpRequest &req, fk_app_HttpQuery *query, Pool &pool) {
             auto &sensor = module.sensors[s];
             readings[s] = fk_app_LiveSensorReading_init_default;
             readings[s].sensor = fk_app_SensorCapabilities_init_default;
-            readings[s].sensor.id = s;
+            readings[s].sensor.number = s;
             readings[s].sensor.name.arg = (void *)sensor.name;
             readings[s].sensor.unitOfMeasure.arg = (void *)sensor.unitOfMeasure;
             readings[s].sensor.flags = sensor.flags;
@@ -328,7 +328,7 @@ bool send_readings(HttpRequest &req, fk_app_HttpQuery *query, Pool &pool) {
 
         lmr[m] = fk_app_LiveModuleReadings_init_default;
         lmr[m].module = fk_app_ModuleCapabilities_init_default;
-        lmr[m].module.id = m;
+        lmr[m].module.position = m;
         lmr[m].module.name.arg = (void *)module.name;
         lmr[m].module.flags = module.flags;
         lmr[m].readings.arg = (void *)readings_array;
