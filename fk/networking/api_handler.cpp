@@ -163,12 +163,18 @@ static bool send_status(HttpRequest &req, fk_app_HttpQuery *query, Pool &pool) {
                .fields = fk_app_SensorCapabilities_fields,
             });
 
+            auto id_data = pool.malloc_with<pb_data_t>({
+                .length = sizeof(fk_uuid_t),
+                .buffer = module.id,
+            });
+
             modules[m] = fk_app_ModuleCapabilities_init_default;
             modules[m].position = m;
             modules[m].name.arg = (void *)module.name;
             modules[m].path.arg = (void *)"";
             modules[m].flags = module.flags;
             modules[m].sensors.arg = (void *)sensors_array;
+            modules[m].id.arg = (void *)id_data;
         }
 
         auto modules_array = pool.malloc_with<pb_array_t>({

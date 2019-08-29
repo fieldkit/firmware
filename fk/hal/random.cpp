@@ -8,7 +8,7 @@
 
 #include "hal/hal.h"
 
-namespace fk {
+extern "C" {
 
 #if defined(__SAMD51__)
 
@@ -61,26 +61,5 @@ int32_t fk_random_i32(int32_t start, int32_t end) {
 }
 
 #endif
-
-int32_t fk_uuid_generate(fk_uuid_t *uuid) {
-    FK_ASSERT(fk_random_fill_u8(uuid->data, sizeof(uuid->data)) == 0);
-    uuid->data[6] = 0x40 | (0x0F & uuid->data[6]);
-    uuid->data[8] = 0x80 | (0x3F & uuid->data[8]);
-    return true;
-}
-
-int32_t fk_uuid_sprintf(fk_uuid_t *uuid, fk_uuid_formatted_t *f) {
-    auto p = f->str;
-    size_t k = 0;
-    for (size_t i = 0; i < sizeof(uuid->data); ++i) {
-        if (i ==  4) p[k++] = '-';
-        if (i ==  6) p[k++] = '-';
-        if (i ==  8) p[k++] = '-';
-        if (i == 10) p[k++] = '-';
-        tiny_snprintf(p + k, 3, "%02x", uuid->data[i]);
-        k += 2;
-    }
-    return true;
-}
 
 }

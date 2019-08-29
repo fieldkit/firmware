@@ -53,6 +53,7 @@ void ReadingsWorker::run(Pool &pool) {
             .kind = m.meta->kind,
             .version = m.meta->version,
             .name = m.meta->name,
+            .id = (fk_uuid_t *)data_pool->copy(m.id, sizeof(fk_uuid_t)),
             .flags = m.meta->flags,
             .sensors = sensors,
             .nsensors = m.sensors->nsensors,

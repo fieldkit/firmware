@@ -144,9 +144,17 @@ bool ReadingsTaker::append_configuration(ModuleContext &mc, ConstructedModulesCo
         auto module = pair.module;
         auto sensor_metas = module->get_sensors(mc, pool);
 
+        auto id_data = pool.malloc_with<pb_data_t>({
+            .length = sizeof(fk_uuid_t),
+            .buffer = &pair.found.header.id,
+        });
+
+
         auto &m = module_infos[index];
         m = fk_data_ModuleInfo_init_default;
         m.position = index;
+        m.id.funcs.encode = pb_encode_data;
+        m.id.arg = (void *)id_data;
         m.name.funcs.encode = pb_encode_string;
         m.name.arg = (void *)meta->name;
         m.header.manufacturer = meta->manufacturer;

@@ -10,6 +10,7 @@ namespace fk {
 
 struct ModuleMetaAndReadings {
     uint16_t position;
+    fk_uuid_t *id;
     ModuleMetadata const *meta;
     ModuleSensors const *sensors;
     ModuleReadings const *readings;

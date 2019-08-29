@@ -3,6 +3,7 @@
 #include "state.h"
 #include "config.h"
 #include "platform.h"
+#include "uuid.h"
 
 namespace fk {
 
@@ -19,6 +20,7 @@ bool ModuleScanning::available() {
 
 static bool add_virtual_module(FoundModuleCollection &headers, uint16_t kind) {
     ModuleHeader header;
+    bzero(&header, sizeof(ModuleHeader));
     header.manufacturer = FK_MODULES_MANUFACTURER;
     header.kind = kind;
     header.version = 0x1;
@@ -28,7 +30,10 @@ static bool add_virtual_module(FoundModuleCollection &headers, uint16_t kind) {
         .header = header,
     });
 
-    loginfo("[-] mk=%02" PRIx32 "%02" PRIx32 " v%" PRIu32 "", header.manufacturer, header.kind, header.version);
+    fk_uuid_formatted_t pretty_id;
+    fk_uuid_sprintf(&header.id, &pretty_id);
+
+    loginfo("[-] mk=%02" PRIx32 "%02" PRIx32 " v%" PRIu32 " %s", header.manufacturer, header.kind, header.version, pretty_id.str);
 
     return true;
 }
@@ -69,7 +74,10 @@ nonstd::optional<FoundModuleCollection> ModuleScanning::scan(Pool &pool) {
             continue;
         }
 
-        loginfo("[%d] mk=%02" PRIx32 "%02" PRIx32 " v%" PRIu32, i, header.manufacturer, header.kind, header.version);
+        fk_uuid_formatted_t pretty_id;
+        fk_uuid_sprintf(&header.id, &pretty_id);
+
+        loginfo("[%d] mk=%02" PRIx32 "%02" PRIx32 " v%" PRIu32 " %s", i, header.manufacturer, header.kind, header.version, pretty_id.str);
 
         found.emplace_back(FoundModule{
             .position = (uint8_t)i,

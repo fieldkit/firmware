@@ -23,6 +23,7 @@ public:
     uint32_t kind;
     uint32_t version;
     const char *name;
+    fk_uuid_t *id;
     uint32_t flags;
     SensorState *sensors;
     size_t nsensors;

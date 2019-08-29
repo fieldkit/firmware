@@ -73,6 +73,7 @@ nonstd::optional<ModuleReadingsCollection> Readings::take_readings(ModuleContext
 
         all_readings.emplace_back(ModuleMetaAndReadings{
             .position = pair.found.position,
+            .id = (fk_uuid_t *)pool.copy(&pair.found.header.id, sizeof(pair.found.header.id)),
             .meta = meta,
             .sensors = module->get_sensors(mc, pool),
             .readings = readings,
