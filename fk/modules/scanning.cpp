@@ -1,9 +1,9 @@
-#include "scanning.h"
-#include "eeprom.h"
-#include "state.h"
 #include "config.h"
 #include "platform.h"
-#include "uuid.h"
+#include "modules/eeprom.h"
+#include "modules/scanning.h"
+#include "modules/shared/uuid.h"
+#include "state.h"
 
 #include <phylum/blake2b.h>
 

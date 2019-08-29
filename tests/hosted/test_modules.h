@@ -1,6 +1,6 @@
 #pragma once
 
-#include "modules_bridge.h"
+#include "modules/bridge/modules_bridge.h"
 
 namespace fk {
 

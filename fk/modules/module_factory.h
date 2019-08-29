@@ -2,9 +2,10 @@
 
 #include "pool.h"
 #include "hal/modmux.h"
-#include "modules_bridge.h"
-#include "scanning.h"
-#include "registry.h"
+
+#include "modules/registry.h"
+#include "modules/scanning.h"
+#include "modules/bridge/modules_bridge.h"
 
 namespace fk {
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common.h"
-#include "modules/modules.h"
+#include "modules/shared/modules.h"
 #include "hal/board.h"
 
 namespace fk {

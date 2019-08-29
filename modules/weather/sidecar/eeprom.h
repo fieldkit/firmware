@@ -2,7 +2,7 @@
 
 #include <hal_i2c_m_sync.h>
 
-#include <modules/modules.h>
+#include <modules.h>
 
 #include "sidecar.h"
 

@@ -36,7 +36,7 @@ file(GLOB fk_sources ${CMAKE_SOURCE_DIR}/fk/modules/*.c)
 file(GLOB sources *.s *.c)
 add_library(fk-weather-sidecar STATIC ${sources} ${fk_sources})
 target_compile_options(fk-weather-sidecar PRIVATE ${target_c_flags})
-target_include_directories(fk-weather-sidecar PUBLIC ${CMAKE_SOURCE_DIR}/fk)
+target_include_directories(fk-weather-sidecar PUBLIC ${CMAKE_SOURCE_DIR}/fk/modules/shared)
 target_include_directories(fk-weather-sidecar PUBLIC ${CMAKE_SOURCE_DIR}/modules/weather/main)
 
 

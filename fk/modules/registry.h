@@ -1,10 +1,9 @@
 #pragma once
 
 #include "common.h"
-#include "config.h"
-#include "modules/modules.h"
-#include "modules_bridge.h"
-#include "scanning.h"
+// #include "config.h"
+#include "modules/scanning.h"
+#include "modules/bridge/modules.h"
 
 namespace fk {
 
@@ -32,7 +31,6 @@ extern "C" {
 #endif
 
 uint32_t fk_modules_builtin_clear();
-uint32_t fk_modules_builtin_register(ModuleMetadata const *modmeta);
 
 #ifdef __cplusplus
 }

@@ -1,6 +1,3 @@
-#include <common.h>
-#include <modules.h>
-
 #include "weather_module.h"
 
 using namespace fk;

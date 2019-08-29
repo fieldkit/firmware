@@ -2,14 +2,14 @@
 
 #include "readings_taker.h"
 
+#include "utilities.h"
 #include "hal/hal.h"
-#include "module_factory.h"
 #include "clock.h"
 #include "records.h"
-#include "storage/signed_log.h"
 #include "state.h"
-#include "utilities.h"
 #include "readings.h"
+#include "storage/signed_log.h"
+#include "modules/module_factory.h"
 
 extern const struct fkb_header_t fkb_header;
 

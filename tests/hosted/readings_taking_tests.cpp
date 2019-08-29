@@ -1,12 +1,11 @@
 #include "tests.h"
 
-#include "module_factory.h"
 #include "mocks_and_fakes.h"
 #include "readings_taker.h"
 #include "state.h"
-
 #include "storage_suite.h"
 #include "test_modules.h"
+#include "modules/module_factory.h"
 
 using testing::Return;
 using testing::Invoke;

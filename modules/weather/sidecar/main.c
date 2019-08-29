@@ -4,7 +4,7 @@
 
 #include <SEGGER_RTT.h>
 
-#include <modules/modules.h>
+#include <modules.h>
 #include <weather.h>
 
 #include "sidecar.h"

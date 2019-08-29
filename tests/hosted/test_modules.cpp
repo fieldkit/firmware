@@ -1,7 +1,7 @@
 #include <hal/hal.h>
 
-#include "modules/modules.h"
 #include "test_modules.h"
+#include "modules/shared/modules.h"
 
 namespace fk {
 

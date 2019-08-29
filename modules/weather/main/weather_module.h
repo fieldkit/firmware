@@ -1,6 +1,6 @@
 #pragma once
 
-#include <modules.h>
+#include <modules/bridge/modules.h>
 
 class WeatherModule : public fk::Module {
 public:

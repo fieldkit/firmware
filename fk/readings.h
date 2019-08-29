@@ -2,9 +2,10 @@
 
 #include <fk-data-protocol.h>
 
-#include "registry.h"
-#include "state.h"
 #include "containers.h"
+
+#include "state.h"
+#include "modules/registry.h"
 
 namespace fk {
 

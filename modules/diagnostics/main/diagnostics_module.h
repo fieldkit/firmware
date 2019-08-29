@@ -1,6 +1,6 @@
 #pragma once
 
-#include <modules.h>
+#include <modules/bridge/modules.h>
 
 class DiagnosticsModule : public fk::Module {
 public:

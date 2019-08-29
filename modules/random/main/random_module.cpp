@@ -1,4 +1,5 @@
 #include "random_module.h"
+#include "hal/random.h"
 
 using namespace fk;
 

@@ -10,9 +10,9 @@
 #include "storage/signed_log.h"
 #include "clock.h"
 #include "protobuf.h"
-#include "scanning.h"
-#include "modules_bridge.h"
-#include "registry.h"
+#include "modules/scanning.h"
+#include "modules/registry.h"
+#include "modules/bridge/modules_bridge.h"
 #include "state.h"
 #include "storage_suite.h"
 

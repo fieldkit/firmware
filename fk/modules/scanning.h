@@ -4,8 +4,8 @@
 #include "containers.h"
 #include "config.h"
 #include "hal/modmux.h"
-#include "modules/modules.h"
 #include "pool.h"
+#include "modules/shared/modules.h"
 
 namespace fk {
 

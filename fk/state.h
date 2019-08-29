@@ -2,9 +2,9 @@
 
 #include "common.h"
 #include "config.h"
-#include "modules/modules.h"
 #include "pool.h"
 #include "containers.h"
+#include "modules/shared/uuid.h"
 
 namespace fk {
 

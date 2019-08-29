@@ -5,7 +5,7 @@
 #include <gmock/gmock.h>
 
 #include "hal/network.h"
-#include "scanning.h"
+#include "modules/scanning.h"
 
 namespace fk {
 

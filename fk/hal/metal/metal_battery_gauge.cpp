@@ -275,14 +275,17 @@ bool MetalBatteryGauge::begin() {
     }
 
     if (version != MAX17055_DEVNAME) {
+        logerror("invalid version (%x)", version);
         return false;
     }
 
     if (!check_por()) {
+        logerror("no por");
         return false;
     }
 
     if (!poll_until_cleared(Max17055Registers::FSTAT_REG, MAX17055_FSTAT_DNR, 800)) {
+        logerror("dnr never cleared");
         return false;
     }
 

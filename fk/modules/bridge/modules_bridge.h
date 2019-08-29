@@ -123,4 +123,14 @@ typedef struct ModuleMetadata {
     fk_module_create_fn_t ctor;
 } ModuleMetadata;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+uint32_t fk_modules_builtin_register(ModuleMetadata const *modmeta);
+
+#ifdef __cplusplus
+}
+#endif
+
 }

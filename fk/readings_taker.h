@@ -1,8 +1,7 @@
 #pragma once
 
-#include "scanning.h"
 #include "storage/storage.h"
-#include "modules_bridge.h"
+#include "modules/bridge/modules.h"
 #include "readings.h"
 
 namespace fk {

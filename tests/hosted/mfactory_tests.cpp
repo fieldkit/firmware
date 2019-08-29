@@ -1,6 +1,6 @@
 #include "tests.h"
 
-#include "module_factory.h"
+#include "modules/module_factory.h"
 #include "mocks_and_fakes.h"
 
 using testing::Return;

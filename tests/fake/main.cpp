@@ -12,7 +12,7 @@
 #include "networking/networking.h"
 #include "protobuf.h"
 
-#include "registry.h"
+#include "modules/registry.h"
 #include "readings_taker.h"
 #include "test_modules.h"
 #include "state_ref.h"

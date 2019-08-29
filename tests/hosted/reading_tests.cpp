@@ -3,16 +3,15 @@
 #include "tests.h"
 #include "patterns.h"
 #include "test_modules.h"
-
 #include "pool.h"
+#include "protobuf.h"
 #include "hal/linux/linux.h"
 #include "storage/storage.h"
 #include "clock.h"
-#include "protobuf.h"
-#include "scanning.h"
-#include "modules_bridge.h"
-#include "registry.h"
 #include "readings.h"
+#include "modules/scanning.h"
+#include "modules/registry.h"
+#include "modules/bridge/modules_bridge.h"
 
 using namespace fk;
 
