@@ -3,13 +3,13 @@
 
 #include "networking/api_handler.h"
 #include "storage/storage.h"
+#include "storage/signed_log.h"
 #include "protobuf.h"
 #include "utilities.h"
-#include "storage/signed_log.h"
 #include "records.h"
 #include "readings_worker.h"
 #include "device_name.h"
-#include "state_ref.h"
+#include "state_manager.h"
 
 extern const struct fkb_header_t fkb_header;
 
@@ -102,6 +102,11 @@ static bool configure(HttpRequest &req, fk_app_HttpQuery *query, Pool &pool) {
         if (!srl.append_immutable(SignedRecordKind::State, &record, fk_data_DataRecord_fields, pool)) {
             return false;
         }
+
+        GlobalStateManager gsm;
+        gsm.apply([=](GlobalState *gs) {
+            strncpy(gs->general.name, name, sizeof(gs->general.name));
+        });
     }
 
     return send_status(req, query, pool);
@@ -121,13 +126,11 @@ static bool send_status(HttpRequest &req, fk_app_HttpQuery *query, Pool &pool) {
         .buffer = &sn,
     };
 
-    auto name = fk_device_name_generate(pool);
-
     auto reply = fk_http_reply_encoding();
     reply.type = fk_app_ReplyType_REPLY_STATUS;
     reply.status.version = 1;
     reply.status.uptime = fk_uptime();
-    reply.status.identity.device.arg = (void *)name;
+    reply.status.identity.device.arg = (void *)gs.get()->general.name;
     reply.status.identity.build.arg = (void *)fkb_header.firmware.name;
     reply.status.identity.deviceId.arg = &device_id;
     reply.status.power.battery.voltage = 4000;
@@ -245,30 +248,13 @@ static bool send_status(HttpRequest &req, fk_app_HttpQuery *query, Pool &pool) {
         },
     };
 
-    StatisticsMemory memory{ MemoryFactory::get_data_memory() };
-    Storage storage{ &memory };
-    if (storage.begin()) {
-        auto meta = storage.file(Storage::Meta);
-        auto srl = SignedRecordLog{ meta };
-        if (srl.seek_record(SignedRecordKind::State)) {
-            auto record = fk_data_record_decoding_new(pool);
-            record.identity.name.arg = (void *)&pool;
-            if (srl.decode(&record, fk_data_DataRecord_fields, pool)) {
-                reply.status.identity.device.arg = record.identity.name.arg;
-            }
-        }
-    }
+    streams[Storage::Meta].size = gs.get()->storage.meta.size;
+    streams[Storage::Meta].block = gs.get()->storage.meta.block;
 
-    for (auto file_number : { Storage::Data, Storage::Meta }) {
-        auto file = storage.file(file_number);
-        if (file.seek_end()) {
-            auto &stream = streams[file_number];
-            stream.size = file.size();
-            stream.block = file.record();
-            reply.status.memory.dataMemoryUsed += stream.size;
-        }
-    }
+    streams[Storage::Data].size = gs.get()->storage.data.size;
+    streams[Storage::Data].block = gs.get()->storage.data.block;
 
+    reply.status.memory.dataMemoryUsed = streams[Storage::Data].size + streams[Storage::Meta].size;
     reply.status.memory.dataMemoryConsumption = reply.status.memory.dataMemoryUsed / reply.status.memory.dataMemoryInstalled * 100.0f;
 
     pb_array_t streams_array = {
@@ -290,8 +276,6 @@ static bool send_status(HttpRequest &req, fk_app_HttpQuery *query, Pool &pool) {
 
     req.connection()->write(&reply);
     req.connection()->close();
-
-    memory.log_statistics();
 
     return true;
 }

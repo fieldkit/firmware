@@ -1,11 +1,16 @@
 #include "startup_worker.h"
-#include "storage/storage.h"
+#include "tasks/tasks.h"
 #include "self_check.h"
 #include "factory_wipe.h"
-#include "tasks/tasks.h"
+#include "storage/storage.h"
+#include "storage/signed_log.h"
 #include "readings_worker.h"
+#include "records.h"
+#include "state_ref.h"
 
 namespace fk {
+
+FK_DECLARE_LOGGER("sw");
 
 StartupWorker::StartupWorker() {
 }
@@ -19,6 +24,21 @@ void StartupWorker::run(Pool &pool) {
     self_check.check(SelfCheckSettings{ }, noop_callbacks);
 
     Storage storage{ MemoryFactory::get_data_memory() };
+    if (storage.begin()) {
+        auto meta = storage.file(Storage::Meta);
+        auto srl = SignedRecordLog{ meta };
+        if (srl.seek_record(SignedRecordKind::State)) {
+            auto record = fk_data_record_decoding_new(pool);
+            record.identity.name.arg = (void *)&pool;
+            if (srl.decode(&record, fk_data_DataRecord_fields, pool)) {
+                auto gs = get_global_state_rw();
+                auto name = (const char *)record.identity.name.arg;
+                loginfo("found custom name '%s'", name);
+                strncpy(gs.get()->general.name, name, sizeof(gs.get()->general.name));
+            }
+        }
+    }
+
     FactoryWipe fw{ get_buttons(), &storage };
     FK_ASSERT(fw.wipe_if_necessary());
 

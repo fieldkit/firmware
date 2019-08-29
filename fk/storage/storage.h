@@ -40,6 +40,9 @@ public:
     uint32_t version() const {
         return version_;
     }
+    FileHeader const &file_header(FileNumber file) const {
+        return files_[file];
+    }
 
 private:
     uint32_t allocate(uint8_t file, uint32_t previous_tail_address, BlockTail &block_tail);

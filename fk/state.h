@@ -74,6 +74,17 @@ struct ProgressState {
     float progress;
 };
 
+struct StreamState {
+    uint32_t size;
+    uint32_t block;
+    uint32_t modified;
+};
+
+struct StorageState {
+    StreamState data;
+    StreamState meta;
+};
+
 struct GlobalState {
 public:
     GeneralState general;
@@ -83,6 +94,7 @@ public:
     GpsState gps;
     NetworkState network;
     ProgressState progress;
+    StorageState storage;
     ModulesState *modules;
 
 public:
