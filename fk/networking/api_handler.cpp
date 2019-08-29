@@ -325,6 +325,11 @@ bool send_readings(HttpRequest &req, fk_app_HttpQuery *query, Pool &pool) {
             }
         }
 
+        auto id_data = pool.malloc_with<pb_data_t>({
+            .length = sizeof(fk_uuid_t),
+            .buffer = module.id,
+        });
+
         auto readings_array = pool.malloc_with<pb_array_t>({
             .length = nreadings,
             .itemSize = sizeof(fk_app_LiveSensorReading),
@@ -335,6 +340,7 @@ bool send_readings(HttpRequest &req, fk_app_HttpQuery *query, Pool &pool) {
         lmr[m] = fk_app_LiveModuleReadings_init_default;
         lmr[m].module = fk_app_ModuleCapabilities_init_default;
         lmr[m].module.position = m;
+        lmr[m].module.id.arg = (void *)id_data;
         lmr[m].module.name.arg = (void *)module.name;
         lmr[m].module.flags = module.flags;
         lmr[m].readings.arg = (void *)readings_array;
