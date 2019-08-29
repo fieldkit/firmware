@@ -4,12 +4,11 @@
 #include "platform.h"
 #include "utilities.h"
 #include "hal/metal/metal.h"
-#include "self_check.h"
-#include "factory_wipe.h"
-#include "tasks/tasks.h"
-#include "device_name.h"
 #include "debugging.h"
 #include "state_manager.h"
+#include "startup_worker.h"
+#include "storage/storage.h"
+#include "tasks/tasks.h"
 
 extern const struct fkb_header_t fkb_header;
 
@@ -54,7 +53,7 @@ static void run_tasks() {
 
     os_task_options_t readings_task_options = {
         "readings",
-        OS_TASK_START_RUNNING,
+        OS_TASK_START_SUSPENDED,
         task_handler_readings,
         nullptr,
         readings_stack,
@@ -75,18 +74,19 @@ static void run_tasks() {
     OS_CHECK(os_initialize());
 
     OS_CHECK(os_task_initialize(&idle_task, "idle", OS_TASK_START_RUNNING, &task_handler_idle, nullptr, idle_stack, sizeof(idle_stack)));
-    OS_CHECK(os_task_initialize(&scheduler_task, "scheduler", OS_TASK_START_RUNNING, &task_handler_scheduler, nullptr, scheduler_stack, sizeof(scheduler_stack)));
-    OS_CHECK(os_task_initialize(&network_task, "network", OS_TASK_START_RUNNING, &task_handler_network, nullptr, network_stack, sizeof(network_stack)));
-    OS_CHECK(os_task_initialize(&gps_task, "gps", OS_TASK_START_RUNNING, &task_handler_gps, nullptr, gps_stack, sizeof(gps_stack)));
+    OS_CHECK(os_task_initialize(&scheduler_task, "scheduler", OS_TASK_START_SUSPENDED, &task_handler_scheduler, nullptr, scheduler_stack, sizeof(scheduler_stack)));
+    OS_CHECK(os_task_initialize(&network_task, "network", OS_TASK_START_SUSPENDED, &task_handler_network, nullptr, network_stack, sizeof(network_stack)));
+    OS_CHECK(os_task_initialize(&gps_task, "gps", OS_TASK_START_SUSPENDED, &task_handler_gps, nullptr, gps_stack, sizeof(gps_stack)));
     OS_CHECK(os_task_initialize_options(&display_task, &display_task_options));
     OS_CHECK(os_task_initialize_options(&readings_task, &readings_task_options));
     OS_CHECK(os_task_initialize_options(&worker_task, &worker_task_options));
 
+    FK_ASSERT(get_ipc()->begin());
+    FK_ASSERT(get_ipc()->launch_worker(new StartupWorker()));
+
     loginfo("stacks = %d", total_stacks);
     loginfo("free = %lu", fk_free_memory());
     loginfo("starting os!");
-
-    FK_ASSERT(get_ipc()->begin());
 
     OS_CHECK(os_start());
 }
@@ -152,29 +152,32 @@ static void log_diagnostics() {
     loginfo("sizeof(GlobalState) = %zd", sizeof(GlobalState ));
 }
 
-static void configure_logging() {
+static bool initialize_logging() {
     log_configure_writer(write_log);
     log_configure_level(LogLevels::DEBUG);
+    return true;
 }
 
-static void initialize_hardware() {
+static bool initialize_hardware() {
     FK_ASSERT(get_board()->initialize());
     // NOTE: We do this ASAP because the GPIO on the modmux can be in any state.
     FK_ASSERT(get_modmux()->begin());
     FK_ASSERT(get_buttons()->begin());
     FK_ASSERT(fk_random_initialize() == 0);
+    return true;
 }
 
-static void check_for_debugger() {
+static bool initialize_debugging() {
     auto waiting_until = fk_uptime() + FiveSecondsMs;
 
     while (fk_uptime() < waiting_until) {
         if (SEGGER_RTT_HasData(0) || !SEGGER_RTT_HasDataUp(0)) {
             fk_debug_set_console_attached();
             loginfo("debugger detected");
-            return;
+            return true;
         }
     }
+    return true;
 }
 
 static void single_threaded_setup() {
@@ -182,21 +185,11 @@ static void single_threaded_setup() {
 
     fk_config_initialize();
 
-    configure_logging();
-
-    check_for_debugger();
+    FK_ASSERT(initialize_logging());
+    FK_ASSERT(initialize_debugging());
+    FK_ASSERT(initialize_hardware());
 
     log_diagnostics();
-
-    initialize_hardware();
-
-    // TODO Move this into a task.
-    NoopSelfCheckCallbacks noop_callbacks;
-    SelfCheck self_check(get_display(), get_network(), get_modmux());
-    self_check.check(SelfCheckSettings{ }, noop_callbacks);
-    Storage storage{ MemoryFactory::get_data_memory() };
-    FactoryWipe fw{ get_buttons(), &storage };
-    FK_ASSERT(fw.wipe_if_necessary());
 
     GlobalStateManager gsm;
     FK_ASSERT(gsm.initialize(pool));

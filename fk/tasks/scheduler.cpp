@@ -45,6 +45,10 @@ void task_handler_scheduler(void *params) {
 
     scheduler.begin( get_clock_now() );
 
+    FK_ASSERT(os_task_start(&network_task) == OSS_SUCCESS);
+    FK_ASSERT(os_task_start(&readings_task) == OSS_SUCCESS);
+    FK_ASSERT(os_task_start(&gps_task) == OSS_SUCCESS);
+
     auto check_time = fk_uptime() + OneSecondMs;
 
     while (true) {
