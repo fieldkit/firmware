@@ -298,6 +298,13 @@ void task_handler_display(void *params) {
             }
         }
 
+        if (get_network()->enabled()) {
+            wifi_toggle.label = "Stop WiFi";
+        }
+        else {
+            wifi_toggle.label = "Start WiFi";
+        }
+
         if (active_screen != nullptr) {
             if (active_screen == &self_check_callbacks.screen()) {
                 show_self_check_screen(self_check_callbacks.screen());
