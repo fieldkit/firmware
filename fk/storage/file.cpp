@@ -91,6 +91,8 @@ bool File::beginning_of_record() {
 }
 
 size_t File::write_partial(uint8_t *record, size_t size) {
+    storage_->verify_mutable();
+
     SequentialMemory memory{ storage_->memory_ };
     auto g = storage_->memory_->geometry();
     auto left_in_block = (g.remaining_in_block(tail_) - sizeof(BlockTail));
@@ -140,6 +142,8 @@ size_t File::write_record_tail(size_t size) {
 }
 
 size_t File::write(uint8_t *record, size_t size) {
+    storage_->verify_mutable();
+
     SequentialMemory memory{ storage_->memory_ };
 
     logtrace("[%d] " PRADDRESS " BEGIN write (%zd bytes) #%" PRIu32 " (%" PRIu32 " w/ overhead)", file_, tail_, size, record_,
@@ -431,6 +435,8 @@ pb_istream_t pb_istream_from_file(pb_file_t *pbf, size_t size) {
 }
 
 size_t File::write(void *record, const pb_msgdesc_t *fields) {
+    storage_->verify_mutable();
+
     pb_file_t pbf;
     pbf.buffer_size = sizeof(pbf.buffer);
     pbf.record_size = 0;

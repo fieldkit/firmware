@@ -27,12 +27,12 @@ TEST_F(ModuleFactorySuite, WithNoModules) {
 TEST_F(ModuleFactorySuite, BasicSingleModule) {
     FoundModuleCollection found(pool_);
     found.emplace_back(FoundModule{
-	.position = 0xff,
-	.header = {
-		.manufacturer = FK_MODULES_MANUFACTURER,
-		.kind = FK_MODULES_KIND_RANDOM,
-		.version = 0x01,
-	}
+        .position = 0xff,
+        .header = {
+            .manufacturer = FK_MODULES_MANUFACTURER,
+            .kind = FK_MODULES_KIND_RANDOM,
+            .version = 0x01,
+        }
     });
 
     MockModuleScanning scanning;

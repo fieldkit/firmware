@@ -77,7 +77,7 @@ SeekSettings SeekSettings::end_of(uint8_t file) {
     return SeekSettings{ file, LastRecord };
 }
 
-Storage::Storage(DataMemory *memory) : memory_(memory) {
+Storage::Storage(DataMemory *memory, bool read_only) : memory_(memory), read_only_(read_only) {
 }
 
 Storage::~Storage() {
@@ -211,6 +211,8 @@ bool Storage::clear() {
 uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address, BlockTail &block_tail) {
     auto g = memory_->geometry();
     auto address = InvalidAddress;
+
+    verify_mutable();
 
     // Find a good block.
     for (auto i = 0; i < StorageAvailableBlockLookAhead; ++i) {
@@ -458,6 +460,10 @@ uint32_t Storage::fsck(ProgressCallbacks *progress) {
 
 void Storage::verify_opened() const {
     FK_ASSERT(free_block_ != InvalidBlock);
+}
+
+void Storage::verify_mutable() const {
+    FK_ASSERT(!read_only_);
 }
 
 }

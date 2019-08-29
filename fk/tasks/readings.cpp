@@ -29,7 +29,7 @@ void task_handler_readings(void *params) {
     auto gs = get_global_state_ro();
     ModuleContext mc{ gs.get(), module_bus };
     StatisticsMemory memory{ MemoryFactory::get_data_memory() };
-    Storage storage{ &memory };
+    Storage storage{ &memory, false };
     if (!storage.begin()) {
         logerror("error opening storage, wiping...");
         if (!storage.clear()) {

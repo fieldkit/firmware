@@ -72,7 +72,7 @@ static bool configure(HttpRequest &req, fk_app_HttpQuery *query, Pool &pool) {
         auto name = (char *)query->identity.name.arg;
 
         StatisticsMemory memory{ MemoryFactory::get_data_memory() };
-        Storage storage{ &memory };
+        Storage storage{ &memory, false };
         if (!storage.begin()) {
             return false;
         }
