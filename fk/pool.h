@@ -194,7 +194,7 @@ struct pool_allocator {
         #if defined(FK_LOGGING_POOL_ALLOCATOR_VERBOSE)
         loginfo("(pa) new<args>(0x%p)", p);
         #endif
-        new ((pointer)p) T(std::forward<Args...>(args...));
+        new ((pointer)p) T(std::forward<Args>(args)...);
     }
 };
 

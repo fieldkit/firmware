@@ -17,16 +17,20 @@ public:
 
 };
 
-class DownloadWorker : public Worker {
+class DownloadWorker {
 private:
     HttpRequest *req_;
     uint8_t file_number_;
 
 public:
-    DownloadWorker(HttpRequest *req, uint8_t file_number, Pool *pool);
+    DownloadWorker(HttpRequest &req, uint8_t file_number);
 
 public:
-    void run(Pool &pool) override;
+    void run(Pool &pool);
+
+    const char *name() {
+        return "download";
+    }
 
 private:
     struct HeaderInfo {

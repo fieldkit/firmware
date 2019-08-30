@@ -11,15 +11,19 @@ public:
 
 };
 
-class ReceiveWorker : public Worker {
+class ReceiveWorker {
 private:
     HttpRequest *req_;
 
 public:
-    ReceiveWorker(HttpRequest *req, Pool *pool);
+    ReceiveWorker(HttpRequest &req, uint32_t a);
 
 public:
-    void run(Pool &pool) override;
+    void run(Pool &pool);
+
+    const char *name() {
+        return "receive";
+    }
 
 };
 

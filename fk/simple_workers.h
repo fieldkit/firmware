@@ -5,46 +5,37 @@
 
 namespace fk {
 
-class FsckWorker : public Worker {
+class FsckWorker {
 public:
-    FsckWorker();
-    FsckWorker(Pool *pool);
+    void run(Pool &pool);
 
-public:
-    void run(Pool &pool) override;
-
-    const char *name() override {
+    const char *name() {
         return "fsck";
     }
 
 };
 
-class WifiToggleWorker : public Worker {
+class WifiToggleWorker {
 public:
-    WifiToggleWorker();
-    WifiToggleWorker(Pool *pool);
+    void run(Pool &pool);
 
-public:
-    void run(Pool &pool) override;
-
-    const char *name() override {
+    const char *name() {
         return "wifi";
     }
 
 };
 
-class SelfCheckWorker : public Worker {
+class SelfCheckWorker {
 private:
     SelfCheckCallbacks *callbacks_;
 
 public:
     SelfCheckWorker(SelfCheckCallbacks *callbacks);
-    SelfCheckWorker(SelfCheckCallbacks *callbacks, Pool *pool);
 
 public:
-    void run(Pool &pool) override;
+    void run(Pool &pool);
 
-    const char *name() override {
+    const char *name() {
         return "self-check";
     }
 

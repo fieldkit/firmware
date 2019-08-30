@@ -4,15 +4,11 @@
 
 namespace fk {
 
-class StartupWorker : public Worker {
+class StartupWorker {
 public:
-    StartupWorker();
-    StartupWorker(Pool *pool);
+    void run(Pool &pool);
 
-public:
-    void run(Pool &pool) override;
-
-    const char *name() override {
+    const char *name() {
         return "startup";
     }
 

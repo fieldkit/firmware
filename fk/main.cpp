@@ -66,7 +66,8 @@ static void run_tasks() {
     }
 
     FK_ASSERT(get_ipc()->begin());
-    FK_ASSERT(get_ipc()->launch_worker(new StartupWorker()));
+
+    FK_ASSERT(get_ipc()->launch_worker(create_pool_worker<StartupWorker>(DefaultWorkerPoolSize)));
 
     loginfo("stacks = %d", total_stacks);
     loginfo("free = %lu", fk_free_memory());

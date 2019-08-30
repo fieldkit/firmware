@@ -48,8 +48,8 @@ bool ApiHandler::handle(HttpRequest &req, Pool &pool) {
     }
     case fk_app_QueryType_QUERY_TAKE_READINGS: {
         loginfo("handling %s", "QUERY_TAKE_READINGS");
-        // TODO: MALLOC
-        if (!get_ipc()->launch_worker(new ReadingsWorker())) {
+        auto worker = create_pool_worker<ReadingsWorker>(DefaultWorkerPoolSize);
+        if (!get_ipc()->launch_worker(worker)) {
             return false;
         }
         return send_readings(req, query, pool);

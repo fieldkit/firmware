@@ -3,7 +3,6 @@
 #include "common.h"
 #include "config.h"
 #include "pool.h"
-#include "containers.h"
 #include "modules/shared/uuid.h"
 
 namespace fk {

@@ -56,6 +56,11 @@ constexpr size_t MaximumNameLength = 64;
 constexpr size_t SingleThreadedStartupPoolSize = 1024;
 
 /**
+ * Size of the memory pool to use for Workers.
+ */
+constexpr size_t DefaultWorkerPoolSize = 2048;
+
+/**
  * Maximum number of WiFi networks.
  * \todo: Eventually this should be relaxed.
  */

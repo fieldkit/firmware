@@ -4,13 +4,13 @@
 
 namespace fk {
 
-class ReadingsWorker : public Worker {
+class ReadingsWorker {
 public:
-    ReadingsWorker();
-    ReadingsWorker(Pool *pool);
+    void run(Pool &pool);
 
-public:
-    void run(Pool &pool) override;
+    const char *name() {
+        return "livedata";
+    }
 
 };
 

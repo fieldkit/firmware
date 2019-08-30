@@ -11,12 +11,6 @@ namespace fk {
 
 FK_DECLARE_LOGGER("fsck");
 
-FsckWorker::FsckWorker() : Worker() {
-}
-
-FsckWorker::FsckWorker(Pool *pool) : Worker(pool) {
-}
-
 void FsckWorker::run(Pool &pool) {
     auto lock = storage_mutex.acquire(UINT32_MAX);
 
@@ -29,12 +23,6 @@ void FsckWorker::run(Pool &pool) {
     }
 }
 
-WifiToggleWorker::WifiToggleWorker() : Worker() {
-}
-
-WifiToggleWorker::WifiToggleWorker(Pool *pool) : Worker(pool) {
-}
-
 void WifiToggleWorker::run(Pool &pool) {
     if (os_task_is_running(&network_task)) {
         os_signal(&network_task, 9);
@@ -44,10 +32,7 @@ void WifiToggleWorker::run(Pool &pool) {
     }
 }
 
-SelfCheckWorker::SelfCheckWorker(SelfCheckCallbacks *callbacks) : Worker(), callbacks_(callbacks) {
-}
-
-SelfCheckWorker::SelfCheckWorker(SelfCheckCallbacks *callbacks, Pool *pool) : Worker(pool), callbacks_(callbacks) {
+SelfCheckWorker::SelfCheckWorker(SelfCheckCallbacks *callbacks) : callbacks_(callbacks) {
 }
 
 void SelfCheckWorker::run(Pool &pool) {

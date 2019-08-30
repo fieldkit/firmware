@@ -27,16 +27,10 @@ static nonstd::optional<ModuleReadingsCollection> take_readings(Pool &pool) {
     return all_readings;
 }
 
-ReadingsWorker::ReadingsWorker() : Worker() {
-}
-
-ReadingsWorker::ReadingsWorker(Pool *pool) : Worker(pool) {
-}
-
 void ReadingsWorker::run(Pool &pool) {
     auto all_readings = take_readings(pool);
 
-    auto data_pool = new StaticPool<2048>("readings");
+    auto data_pool = new StaticPool<DefaultWorkerPoolSize>("readings");
     auto modules = data_pool->malloc_with<ModulesState>(data_pool);
 
     modules->nmodules = all_readings->size();

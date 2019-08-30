@@ -203,14 +203,14 @@ void task_handler_display(void *params) {
     auto self_check = to_lambda_option("Self Check", [&]() {
         self_check_callbacks.clear();
         active_screen = &self_check_callbacks.screen();
-        // TODO: MALLOC
-        if (!get_ipc()->launch_worker(new SelfCheckWorker(&self_check_callbacks))) {
+        auto worker = create_pool_worker<SelfCheckWorker>(DefaultWorkerPoolSize, &self_check_callbacks);
+        if (!get_ipc()->launch_worker(worker)) {
             return;
         }
     });
     auto fsck = to_lambda_option("Run Fsck", [&]() {
-        // TODO: MALLOC
-        if (!get_ipc()->launch_worker(new FsckWorker())) {
+        auto worker = create_pool_worker<FsckWorker>(DefaultWorkerPoolSize);
+        if (!get_ipc()->launch_worker(worker)) {
             return;
         }
         back.on_selected();
@@ -225,8 +225,8 @@ void task_handler_display(void *params) {
 
     auto wifi_toggle = to_lambda_option("Toggle Wifi", [&]() {
         // TODO: Remember this and skip restarting network.
-        // TODO: MALLOC
-        if (!get_ipc()->launch_worker(new WifiToggleWorker())) {
+        auto worker = create_pool_worker<WifiToggleWorker>(DefaultWorkerPoolSize);
+        if (!get_ipc()->launch_worker(worker)) {
             return;
         }
         back.on_selected();

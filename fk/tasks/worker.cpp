@@ -13,11 +13,11 @@ void task_handler_worker(void *params) {
 
     auto started = fk_uptime();
     auto worker = reinterpret_cast<Worker*>(params);
-    auto pool = MallocPool{ "worker", 4096 };
-    worker->run(pool);
+    worker->run();
     delete worker;
 
-    loginfo("done (pool = %zd/%zd bytes) (%" PRIu32 "ms)", pool.used(), pool.size(), fk_uptime() - started);
+    // loginfo("done (pool = %zd/%zd bytes) (%" PRIu32 "ms)", pool.used(), pool.size(), fk_uptime() - started);
+    loginfo("done (%" PRIu32 "ms)", fk_uptime() - started);
 }
 
 }

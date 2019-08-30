@@ -12,12 +12,6 @@ namespace fk {
 
 FK_DECLARE_LOGGER("sw");
 
-StartupWorker::StartupWorker() {
-}
-
-StartupWorker::StartupWorker(Pool *pool) {
-}
-
 void StartupWorker::run(Pool &pool) {
     NoopSelfCheckCallbacks noop_callbacks;
     SelfCheck self_check(get_display(), get_network(), get_modmux());
