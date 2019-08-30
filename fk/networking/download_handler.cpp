@@ -15,7 +15,6 @@ void DownloadWorker::run(Pool &pool) {
     loginfo("downloading");
 
     auto lock = storage_mutex.acquire(UINT32_MAX);
-    auto memory_bus = get_board()->spi_flash();
 
     uint32_t first_block = 0;
     uint32_t last_block = LastRecord;
