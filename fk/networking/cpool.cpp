@@ -31,12 +31,25 @@ size_t ConnectionPool::available() {
 }
 
 void ConnectionPool::service(HttpRouter &router) {
+    auto now = fk_uptime();
+    auto log_status = false;
+    if (now > status_) {
+        status_ = now + OneSecondMs;
+        log_status = true;
+    }
+
     for (auto i = (size_t)0; i < MaximumConnections; ++i) {
         if (pool_[i] != nullptr) {
-            if (!pool_[i]->get()->service(router)) {
+            auto c = pool_[i]->get();
+
+            if (log_status) {
+                loginfo("[%zd] active (%" PRIu32 "ms) (%" PRIu32 " bytes)", i, now - c->started_, c->read_);
+            }
+
+            if (!c->service(router)) {
                 // Do this before freeing to avoid a race empty pool after a
                 // long connection, for example.
-                activity_ = fk_uptime();
+                activity_ = now;
                 delete pool_[i];
                 pool_[i] = nullptr;
             }
@@ -83,7 +96,7 @@ bool Connection::service(HttpRouter &router) {
 
         auto available = (size_ - 1) - position_;
         if (available > 0) {
-            auto nread = conn_->read(buffer_ + position_, available);
+            auto nread = read(buffer_ + position_, available);
             if (nread < 0) {
                 loginfo("error reading - eos");
                 return false;
@@ -126,7 +139,7 @@ bool Connection::service(HttpRouter &router) {
         auto size = pool_->size();
         auto used = pool_->used();
         auto elapsed = fk_uptime() - started_;
-        loginfo("closing (%" PRIu32 " bytes) (%zd/%zd pooled) (%" PRIu32 "ms)", wrote_, used, size, elapsed);
+        loginfo("closing (%" PRIu32 " up) (%" PRIu32 " down) (%zd/%zd pooled) (%" PRIu32 "ms)", wrote_, read_, used, size, elapsed);
         return false;
     }
 
@@ -135,12 +148,17 @@ bool Connection::service(HttpRouter &router) {
 
 int32_t Connection::read(uint8_t *buffer, size_t size) {
     auto bytes = conn_->read(buffer, size);
+    if (bytes > 0) {
+        read_ += bytes;
+    }
     return bytes;
 }
 
 int32_t Connection::write(uint8_t const *buffer, size_t size) {
     auto bytes = conn_->write(buffer, size);
-    wrote_ += bytes;
+    if (wrote_ > 0) {
+        wrote_ += bytes;
+    }
     return bytes;
 }
 
@@ -189,7 +207,7 @@ int32_t Connection::write(fk_app_HttpReply const *reply) {
     return content_size;
 }
 
-int32_t Connection::write(const char *s, ...) {
+int32_t Connection::printf(const char *s, ...) {
     va_list args;
     va_start(args, s);
     auto r = conn_->vwritef(s, args);

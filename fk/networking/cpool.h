@@ -19,12 +19,15 @@ private:
     size_t position_;
     uint32_t started_{ 0 };
     uint32_t wrote_{ 0 };
+    uint32_t read_{ 0 };
     bool routed_{ false };
     bool hex_encoding_{ false };
 
 public:
     Connection(Pool &pool, NetworkConnection *conn);
     virtual ~Connection();
+
+    friend class ConnectionPool;
 
 public:
     void hex_encoding(bool hex_encoding) {
@@ -33,7 +36,7 @@ public:
 
     bool service(HttpRouter &router);
 
-    int32_t write(const char *s, ...) __attribute__((format(printf, 2, 3)));
+    int32_t printf(const char *s, ...) __attribute__((format(printf, 2, 3)));
 
     int32_t write(fk_app_HttpReply const *reply);
 
@@ -60,6 +63,7 @@ private:
 private:
     PoolWrapper<Connection> *pool_[MaximumConnections] = { nullptr };
     uint32_t activity_{ 0 };
+    uint32_t status_{ 0 };
 
 public:
     ConnectionPool();

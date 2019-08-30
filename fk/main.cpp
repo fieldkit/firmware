@@ -179,10 +179,6 @@ static void single_threaded_setup() {
 
     GlobalStateManager gsm;
     FK_ASSERT(gsm.initialize(pool));
-
-    // Call this here because things go horribly if we call from within a task.
-    // Something goes south with a malloc.
-    random(100, 1000);
 }
 
 void setup() {
