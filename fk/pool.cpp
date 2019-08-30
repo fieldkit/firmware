@@ -148,7 +148,7 @@ Pool Pool::freeze(const char *name) {
     return Pool{ name, remaining_, ptr_ };
 }
 
-MallocPool::MallocPool(const char *name, size_t size) : Pool(name, size, (void *)::malloc(size)) {
+MallocPool::MallocPool(const char *name, size_t size) : Pool(name, size, (void *)fk_malloc(size)) {
     #if defined(FK_LOGGING_POOL_MALLOC_FREE)
     loginfo("malloc: 0x%p %s size=%zu ptr=0x%p (free=%" PRIu32 ")",
             this, name, size, block(), fk_free_memory());
@@ -167,7 +167,7 @@ MallocPool::~MallocPool() {
     loginfo("free: 0x%p %s size=%zu ptr=0x%p (free=%" PRIu32 ")",
             this, name(), size(), block(), fk_free_memory());
     #endif
-    free(block());
+    fk_free(block());
     block(nullptr, 0);
 }
 

@@ -76,10 +76,10 @@ int32_t LinuxNetworkConnection::vwritef(const char *str, va_list args) {
     va_list copy;
     va_copy(copy, args);
     auto needed = tiny_vsnprintf(nullptr, 0, str, copy);
-    auto buffer = (char *)malloc(needed + 1);
+    auto buffer = (char *)fk_malloc(needed + 1);
     tiny_vsnprintf(buffer, needed + 1, str, args);
     write(buffer);
-    free(buffer);
+    fk_free(buffer);
     return needed;
 }
 

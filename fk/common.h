@@ -17,6 +17,14 @@ extern "C" {
  */
 void fk_assert(const char *assertion, const char *file, int32_t line, const char *f, ...);
 
+void *fk_malloc_internal(size_t size, const char *file, int32_t line);
+
+#define fk_malloc(size)    fk_malloc_internal(size, __FILE__, __LINE__)
+
+void fk_free_internal(void *ptr, const char *file, int32_t line);
+
+#define fk_free(ptr)       fk_free_internal(ptr, __FILE__, __LINE__)
+
 #ifdef __cplusplus
 }
 #endif

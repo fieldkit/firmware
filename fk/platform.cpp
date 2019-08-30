@@ -131,3 +131,18 @@ fk_serial_number_t::fk_serial_number_t() {
 }
 
 } // namespace fk
+
+extern "C" {
+
+void *fk_malloc_internal(size_t size, const char *file, int32_t line) {
+    auto ptr = ::malloc(size);
+    alogf(LogLevels::DEBUG, "mem", "[0x%p] malloc(%zd) %s:%" PRId32 "", ptr, size, file, line);
+    return ptr;
+}
+
+void fk_free_internal(void *ptr, const char *file, int32_t line) {
+    alogf(LogLevels::DEBUG, "mem", "[0x%p] free %s:%" PRId32 "", ptr, file, line);
+    return ::free(ptr);
+}
+
+}

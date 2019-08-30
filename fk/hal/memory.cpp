@@ -410,8 +410,7 @@ public:
         FK_ASSERT(available != nullptr);
 
         if (available->ptr == nullptr) {
-            // TODO: MALLOC
-            available->ptr = (uint8_t *)malloc(PageSize);
+            available->ptr = (uint8_t *)fk_malloc(PageSize);
         }
         available->ts = fk_uptime() + 1;
         available->page = page;

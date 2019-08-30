@@ -424,8 +424,6 @@ File Storage::file(uint8_t file) {
 }
 
 uint32_t Storage::fsck(ProgressCallbacks *progress) {
-    constexpr static size_t BufferSize = 1024;
-
     verify_opened();
 
     loginfo("fsck: begin");
@@ -437,13 +435,14 @@ uint32_t Storage::fsck(ProgressCallbacks *progress) {
         return false;
     }
 
-    auto buffer = (uint8_t *)malloc(BufferSize);
+    auto buffer_size = DefaultWorkerPoolSize;
+    auto buffer = (uint8_t *)fk_malloc(buffer_size);
     auto tracker = ProgressTracker{ progress, Operation::Fsck, "fsck", "", file.size() };
 
     FK_ASSERT(file.seek(0));
 
     while (tracker.busy()) {
-        auto to_read = std::min<size_t>(BufferSize, tracker.remaining_bytes());
+        auto to_read = std::min<size_t>(buffer_size, tracker.remaining_bytes());
         auto nread = file.read(buffer, to_read);
         FK_ASSERT(nread == to_read);
         tracker.update(nread);
@@ -451,7 +450,7 @@ uint32_t Storage::fsck(ProgressCallbacks *progress) {
 
     tracker.finished();
 
-    free(buffer);
+    fk_free(buffer);
 
     loginfo("fsck: done (%" PRIu32 "ms)", tracker.elapsed());
 

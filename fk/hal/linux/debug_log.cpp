@@ -11,7 +11,7 @@ void LogEntry::backup() {
 
     if (can_undo()) {
         if (ptr_ != nullptr) {
-            copy_ = (uint8_t *)malloc(size_);
+            copy_ = (uint8_t *)fk_malloc(size_);
             memcpy(copy_, ptr_, size_);
         }
     }
@@ -27,7 +27,7 @@ void LogEntry::undo() {
 
 void LogEntry::free_backup() {
     if (copy_ != nullptr) {
-        free(copy_);
+        fk_free(copy_);
         copy_ = nullptr;
     }
 }

@@ -16,7 +16,7 @@ LinuxDataMemory::LinuxDataMemory() : memory_(nullptr) {
 bool LinuxDataMemory::begin() {
     size_ = BlockSize * NumberOfBlocks;
     if (memory_ == nullptr) {
-        memory_ = (uint8_t *)malloc(size_);
+        memory_ = (uint8_t *)fk_malloc(size_);
         memset(memory_, 0xff, size_);
     }
 

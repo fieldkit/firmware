@@ -47,7 +47,7 @@ public:
 
 template<typename T>
 inline PoolWorker<T> *create_pool_worker(size_t size) {
-    auto block = (uint8_t *)malloc(size);
+    auto block = (uint8_t *)fk_malloc(size);
 
     auto worker_size = aligned_size(sizeof(T));
     auto worker = (T *)block;
@@ -65,7 +65,7 @@ inline PoolWorker<T> *create_pool_worker(size_t size) {
 
 template<typename T, class... Args>
 inline PoolWorker<T> *create_pool_worker(size_t size, Args &&... args) {
-    auto block = (uint8_t *)malloc(size);
+    auto block = (uint8_t *)fk_malloc(size);
 
     auto worker_size = aligned_size(sizeof(T));
     auto worker = (T *)block;
