@@ -11,8 +11,8 @@ namespace fk {
 
 class Connection : public Writable, public Readable {
 private:
-    NetworkConnection *conn_{ nullptr };
-    MallocPool pool_;
+    Pool *pool_;
+    NetworkConnection *conn_;
     HttpRequest req_;
     uint8_t *buffer_;
     size_t size_;
@@ -23,7 +23,7 @@ private:
     bool hex_encoding_{ false };
 
 public:
-    Connection(NetworkConnection *conn, size_t size);
+    Connection(Pool &pool, NetworkConnection *conn);
     virtual ~Connection();
 
 public:
@@ -58,7 +58,7 @@ private:
     constexpr static size_t MaximumConnections = 4;
 
 private:
-    Connection *pool_[MaximumConnections] = { nullptr };
+    PoolWrapper<Connection> *pool_[MaximumConnections] = { nullptr };
     uint32_t activity_{ 0 };
 
 public:

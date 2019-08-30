@@ -125,6 +125,58 @@ public:
 
 };
 
+template<typename T>
+class PoolWrapper {
+private:
+    MallocPool pool_;
+    T *wrapped_;
+
+public:
+    PoolWrapper(uint8_t *p, size_t size, size_t taken) :
+        pool_(__PRETTY_FUNCTION__, p, size, taken) {
+    }
+
+    template<class... Args>
+    T *create(Args &&... args) {
+        wrapped_ = new (pool_) T(pool_, std::forward<Args>(args)...);
+        return wrapped_;
+    }
+
+    virtual ~PoolWrapper() {
+        pool_.block(nullptr, 0);
+    }
+
+public:
+    void operator delete(void *p) {
+        fk_free(p);
+    }
+
+public:
+    MallocPool &pool() {
+        return pool_;
+    }
+
+    T *get() {
+        return wrapped_;
+    }
+
+};
+
+template<typename T, size_t Size, typename W = PoolWrapper<T>, class... Args>
+inline W *create_pool_wrapper(Args &&... args) {
+    auto block = (uint8_t *)fk_malloc(Size);
+
+    auto wrapper_size = aligned_size(sizeof(W));
+    auto overhead = wrapper_size;
+    auto pool_memory = block + overhead;
+
+    auto wrapper = new ((W *)(block)) PoolWrapper<T>(pool_memory, Size - overhead, 0);
+
+    wrapper->create(std::forward<Args>(args)...);
+
+    return wrapper;
+}
+
 #define __POOL_LINE_STR(x) #x
 #define __POOL_LINE(x) __POOL_LINE_STR(x)
 #define PoolHere(var, size) var(__FILE__ ":" __POOL_LINE(__LINE__), size)

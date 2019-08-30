@@ -33,7 +33,7 @@ size_t ConnectionPool::available() {
 void ConnectionPool::service(HttpRouter &router) {
     for (auto i = (size_t)0; i < MaximumConnections; ++i) {
         if (pool_[i] != nullptr) {
-            if (!pool_[i]->service(router)) {
+            if (!pool_[i]->get()->service(router)) {
                 // Do this before freeing to avoid a race empty pool after a
                 // long connection, for example.
                 activity_ = fk_uptime();
@@ -48,15 +48,14 @@ void ConnectionPool::queue(NetworkConnection *c) {
     for (auto i = (size_t)0; i < MaximumConnections; ++i) {
         if (pool_[i] == nullptr) {
             activity_ = fk_uptime();
-            // TODO: MALLOC
-            pool_[i] = new Connection(c, HttpdConnectionWorkSize);
+            pool_[i] = create_pool_wrapper<Connection, HttpdConnectionWorkSize>(c);
             return;
         }
     }
     FK_ASSERT(false);
 }
 
-Connection::Connection(NetworkConnection *conn, size_t size) : conn_(conn), pool_{ "conn", size }, req_{ this, &pool_ }, buffer_{ nullptr }, size_{ 0 }, position_{ 0 } {
+Connection::Connection(Pool &pool, NetworkConnection *conn) : pool_{ &pool }, conn_(conn), req_{ this, pool_ }, buffer_{ nullptr }, size_{ 0 }, position_{ 0 } {
     started_ = fk_uptime();
 }
 
@@ -78,7 +77,7 @@ bool Connection::service(HttpRouter &router) {
     if (!req_.have_headers() && conn_->available()) {
         if (buffer_ == nullptr) {
             size_ = HttpdConnectionBufferSize;
-            buffer_ = (uint8_t *)pool_.malloc(HttpdConnectionBufferSize);
+            buffer_ = (uint8_t *)pool_->malloc(HttpdConnectionBufferSize);
             position_ = 0;
         }
 
@@ -115,7 +114,7 @@ bool Connection::service(HttpRouter &router) {
                 plain(404, "not found", "");
             }
             else {
-                if (!handler->handle(req_, pool_)) {
+                if (!handler->handle(req_, *pool_)) {
                     plain(500, "internal error", "");
                 }
             }
@@ -124,8 +123,8 @@ bool Connection::service(HttpRouter &router) {
     }
 
     if (req_.done()) {
-        auto size = pool_.size();
-        auto used = pool_.used();
+        auto size = pool_->size();
+        auto used = pool_->used();
         auto elapsed = fk_uptime() - started_;
         loginfo("closing (%" PRIu32 " bytes) (%zd/%zd pooled) (%" PRIu32 "ms)", wrote_, used, size, elapsed);
         return false;
@@ -231,13 +230,13 @@ int32_t Connection::busy(const char *message) {
     pb_array_t errors_array = {
         .length = sizeof(errors) / sizeof(fk_app_Error),
         .itemSize = sizeof(fk_app_Error),
-        .buffer = pool_.copy(errors, sizeof(errors)),
+        .buffer = pool_->copy(errors, sizeof(errors)),
         .fields = fk_app_Error_fields,
     };
 
     fk_app_HttpReply reply = fk_app_HttpReply_init_default;
     reply.type = fk_app_ReplyType_REPLY_BUSY;
-    reply.errors.arg = (void *)pool_.copy(&errors_array, sizeof(errors_array));
+    reply.errors.arg = (void *)pool_->copy(&errors_array, sizeof(errors_array));
 
     return write(&reply);
 }
@@ -255,13 +254,13 @@ int32_t Connection::error(const char *message) {
     pb_array_t errors_array = {
         .length = sizeof(errors) / sizeof(fk_app_Error),
         .itemSize = sizeof(fk_app_Error),
-        .buffer = pool_.copy(errors, sizeof(errors)),
+        .buffer = pool_->copy(errors, sizeof(errors)),
         .fields = fk_app_Error_fields,
     };
 
     fk_app_HttpReply reply = fk_app_HttpReply_init_default;
     reply.type = fk_app_ReplyType_REPLY_ERROR;
-    reply.errors.arg = (void *)pool_.copy(&errors_array, sizeof(errors_array));
+    reply.errors.arg = (void *)pool_->copy(&errors_array, sizeof(errors_array));
 
     logwarn("%s", message);
 

@@ -73,7 +73,7 @@ inline PoolWorker<T> *create_pool_worker(size_t size) {
 
     new (worker) T();
 
-    new (pool_worker) PoolWorker<T>(worker, pool_memory, size, 0);
+    new (pool_worker) PoolWorker<T>(worker, pool_memory, size - overhead, 0);
 
     return pool_worker;
 }
@@ -92,7 +92,7 @@ inline PoolWorker<T> *create_pool_worker(size_t size, Args &&... args) {
 
     new (worker) T(std::forward<Args>(args)...);
 
-    new (pool_worker) PoolWorker<T>(worker, pool_memory, size, 0);
+    new (pool_worker) PoolWorker<T>(worker, pool_memory, size - overhead, 0);
 
     return pool_worker;
 }
