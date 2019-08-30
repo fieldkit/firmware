@@ -33,7 +33,11 @@ public:
     }
 
 public:
-    void *block() {
+    const char *name() const {
+        return name_;
+    }
+
+    void *block() const {
         return block_;
     }
 
@@ -109,16 +113,9 @@ public:
 
 class MallocPool : public Pool {
 public:
-    MallocPool(const char *name, size_t size) : Pool(name, size, (void *)::malloc(size)) {
-    }
-
-    MallocPool(const char *name, void *ptr, size_t size) : Pool(name, size, ptr) {
-    }
-
-    virtual ~MallocPool() {
-        free(block());
-        block(nullptr, 0);
-    }
+    MallocPool(const char *name, size_t size);
+    MallocPool(const char *name, void *ptr, size_t size);
+    virtual ~MallocPool();
 
 };
 

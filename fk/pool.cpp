@@ -17,6 +17,7 @@ namespace fk {
 FK_DECLARE_LOGGER("pool");
 
 // #define FK_LOGGING_POOL_VERBOSE
+// #define FK_LOGGING_POOL_MALLOC_FREE
 
 Pool::Pool(const char *name, size_t size, void *block) {
     name_ = name;
@@ -145,6 +146,29 @@ Pool Pool::freeze(const char *name) {
     // allocations on them when we unfreeze.
     frozen_ = true;
     return Pool{ name, remaining_, ptr_ };
+}
+
+MallocPool::MallocPool(const char *name, size_t size) : Pool(name, size, (void *)::malloc(size)) {
+    #if defined(FK_LOGGING_POOL_MALLOC_FREE)
+    loginfo("malloc: 0x%p %s size=%zu ptr=0x%p (free=%" PRIu32 ")",
+            this, name, size, block(), fk_free_memory());
+    #endif
+}
+
+MallocPool::MallocPool(const char *name, void *ptr, size_t size) : Pool(name, size, ptr) {
+    #if defined(FK_LOGGING_POOL_MALLOC_FREE)
+    loginfo("create: 0x%p %s size=%zu ptr=0x%p (free=%" PRIu32 ")",
+            this, name, size, block(), fk_free_memory());
+    #endif
+}
+
+MallocPool::~MallocPool() {
+    #if defined(FK_LOGGING_POOL_MALLOC_FREE)
+    loginfo("free: 0x%p %s size=%zu ptr=0x%p (free=%" PRIu32 ")",
+            this, name(), size(), block(), fk_free_memory());
+    #endif
+    free(block());
+    block(nullptr, 0);
 }
 
 }
