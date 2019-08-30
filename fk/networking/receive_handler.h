@@ -16,7 +16,7 @@ private:
     HttpRequest *req_;
 
 public:
-    ReceiveWorker(HttpRequest &req, uint32_t a);
+    ReceiveWorker(HttpRequest &req);
 
 public:
     void run(Pool &pool);

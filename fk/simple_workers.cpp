@@ -32,7 +32,7 @@ void WifiToggleWorker::run(Pool &pool) {
     }
 }
 
-SelfCheckWorker::SelfCheckWorker(SelfCheckCallbacks *callbacks) : callbacks_(callbacks) {
+SelfCheckWorker::SelfCheckWorker(SelfCheckCallbacks &callbacks) : callbacks_(&callbacks) {
 }
 
 void SelfCheckWorker::run(Pool &pool) {

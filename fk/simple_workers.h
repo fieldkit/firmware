@@ -38,7 +38,7 @@ private:
     SelfCheckCallbacks *callbacks_;
 
 public:
-    SelfCheckWorker(SelfCheckCallbacks *callbacks);
+    SelfCheckWorker(SelfCheckCallbacks &callbacks);
 
 public:
     void run(Pool &pool);

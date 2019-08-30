@@ -170,7 +170,7 @@ inline W *create_pool_wrapper(Args &&... args) {
     auto overhead = wrapper_size;
     auto pool_memory = block + overhead;
 
-    auto wrapper = new ((W *)(block)) PoolWrapper<T>(pool_memory, Size - overhead, 0);
+    auto wrapper = new ((W *)(block)) W(pool_memory, Size - overhead, 0);
 
     wrapper->create(std::forward<Args>(args)...);
 

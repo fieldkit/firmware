@@ -97,7 +97,7 @@ DownloadHandler::DownloadHandler(uint8_t file_number) : file_number_(file_number
 }
 
 bool DownloadHandler::handle(HttpRequest &req, Pool &pool) {
-    auto worker = create_pool_worker<DownloadWorker>(DefaultWorkerPoolSize, req, file_number_);
+    auto worker = create_pool_wrapper<DownloadWorker, DefaultWorkerPoolSize, PoolWorker<DownloadWorker>>(req, file_number_);
     if (!get_ipc()->launch_worker(worker)) {
         return false;
     }

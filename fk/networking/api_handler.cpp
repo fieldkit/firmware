@@ -50,7 +50,7 @@ bool ApiHandler::handle(HttpRequest &req, Pool &pool) {
     }
     case fk_app_QueryType_QUERY_TAKE_READINGS: {
         loginfo("handling %s", "QUERY_TAKE_READINGS");
-        auto worker = create_pool_worker<ReadingsWorker>(DefaultWorkerPoolSize);
+        auto worker = create_pool_wrapper<ReadingsWorker, DefaultWorkerPoolSize, PoolWorker<ReadingsWorker>>();
         if (!get_ipc()->launch_worker(worker)) {
             return false;
         }

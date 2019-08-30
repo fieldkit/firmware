@@ -66,6 +66,6 @@ public:
 };
 
 TEST_F(PoolSuite, Workers) {
-    auto worker = create_pool_worker<SimpleWorker>(1024);
+    auto worker = create_pool_wrapper<SimpleWorker, 1024, PoolWorker<SimpleWorker>>();
     delete worker;
 }

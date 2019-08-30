@@ -29,11 +29,18 @@ public:
 template<typename T>
 class PoolWorker : public Worker {
 private:
-    T *wrapped_;
     MallocPool pool_;
+    T *wrapped_;
 
 public:
-    PoolWorker(T *wrapped, uint8_t *p, size_t size, size_t taken) : wrapped_(wrapped), pool_(__PRETTY_FUNCTION__, p, size, taken) {
+    PoolWorker(uint8_t *p, size_t size, size_t taken) :
+        pool_(__PRETTY_FUNCTION__, p, size, taken) {
+    }
+
+    template<class... Args>
+    T *create(Args &&... args) {
+        wrapped_ = new (pool_) T(std::forward<Args>(args)...);
+        return wrapped_;
     }
 
     virtual ~PoolWorker() {
@@ -58,43 +65,5 @@ public:
         return wrapped_->name();
     }
 };
-
-template<typename T>
-inline PoolWorker<T> *create_pool_worker(size_t size) {
-    auto block = (uint8_t *)fk_malloc(size);
-
-    auto worker_size = aligned_size(sizeof(T));
-    auto pool_worker_size = aligned_size(sizeof(PoolWorker<T>));
-    auto overhead = pool_worker_size + worker_size;
-    auto pool_memory = block + overhead;
-
-    auto pool_worker = (PoolWorker<T> *)(block);
-    auto worker = (T *)(block + pool_worker_size);
-
-    new (worker) T();
-
-    new (pool_worker) PoolWorker<T>(worker, pool_memory, size - overhead, 0);
-
-    return pool_worker;
-}
-
-template<typename T, class... Args>
-inline PoolWorker<T> *create_pool_worker(size_t size, Args &&... args) {
-    auto block = (uint8_t *)fk_malloc(size);
-
-    auto worker_size = aligned_size(sizeof(T));
-    auto pool_worker_size = aligned_size(sizeof(PoolWorker<T>));
-    auto overhead = pool_worker_size + worker_size;
-    auto pool_memory = block + overhead;
-
-    auto pool_worker = (PoolWorker<T> *)(block);
-    auto worker = (T *)(block + pool_worker_size);
-
-    new (worker) T(std::forward<Args>(args)...);
-
-    new (pool_worker) PoolWorker<T>(worker, pool_memory, size - overhead, 0);
-
-    return pool_worker;
-}
 
 }

@@ -5,7 +5,7 @@ namespace fk {
 
 FK_DECLARE_LOGGER("receive");
 
-ReceiveWorker::ReceiveWorker(HttpRequest &req, uint32_t a) : req_(&req) {
+ReceiveWorker::ReceiveWorker(HttpRequest &req) : req_(&req) {
 }
 
 void ReceiveWorker::run(Pool &pool) {
@@ -32,7 +32,7 @@ void ReceiveWorker::run(Pool &pool) {
 }
 
 bool ReceiveHandler::handle(HttpRequest &req, Pool &pool) {
-    auto worker = create_pool_worker<ReceiveWorker>(DefaultWorkerPoolSize, req, 0);
+    auto worker = create_pool_wrapper<ReceiveWorker, DefaultWorkerPoolSize, PoolWorker<ReceiveWorker>>(req);
     if (!get_ipc()->launch_worker(worker)) {
         return false;
     }
