@@ -172,8 +172,10 @@ MallocPool::~MallocPool() {
             this, name(), size(), block(), fk_free_memory());
     #endif
     auto ptr = block();
-    block(nullptr, 0);
-    fk_free(ptr);
+    if (ptr != nullptr) {
+        block(nullptr, 0);
+        fk_free(ptr);
+    }
 }
 
 }

@@ -60,13 +60,13 @@ static void setup_fake_data() {
 
     FK_ASSERT(memory->begin());
 
-    Storage storage{ memory };
+    Storage storage{ memory, false };
     FK_ASSERT(storage.clear());
 
     TwoWireWrapper module_bus{ "modules", nullptr };
     ModuleContext mc{ get_global_state_rw().get(), module_bus };
 
-    for (size_t i = 0; i < 10000 / fk_config().readings.amplification; ++i) {
+    for (size_t i = 0; i < 1000 / fk_config().readings.amplification; ++i) {
         MallocPool pool{ "readings", 2048 };
         FoundModuleCollection found(pool);
         found.emplace_back(FoundModule{
@@ -110,7 +110,7 @@ static void server(Fake *fake) {
 }
 
 __int32_t main(__int32_t argc, const char **argv) {
-    log_configure_level(LogLevels::DEBUG);
+    log_configure_level(LogLevels::INFO);
 
     loginfo("hello");
 

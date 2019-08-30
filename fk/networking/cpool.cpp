@@ -2,7 +2,6 @@
 
 #include "networking/cpool.h"
 #include "protobuf.h"
-#include "records.h"
 
 namespace fk {
 
@@ -148,9 +147,7 @@ int32_t Connection::write(uint8_t const *buffer, size_t size) {
     return bytes;
 }
 
-int32_t Connection::write(fk_app_HttpReply *reply) {
-    reply = fk_http_reply_encoding_initialize(reply);
-
+int32_t Connection::write(fk_app_HttpReply const *reply) {
     size_t size = 0;
     auto fields = fk_app_HttpReply_fields;
     if (!pb_get_encoded_size(&size, fields, reply)) {

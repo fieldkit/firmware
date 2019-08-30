@@ -149,6 +149,11 @@ constexpr size_t ModuleMemoryAreaSize = 8192;
 constexpr size_t MaximumNumberOfMemoryBanks = FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS;
 
 /**
+ * Size of the bootloader.
+ */
+constexpr size_t BootloaderSize = 0x4000;
+
+/**
  * Runtime configuration informationthat is unavailable in the mobile
  * application. This can be updated after compilation to build binaries for
  * various situations.

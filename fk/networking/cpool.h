@@ -35,7 +35,7 @@ public:
 
     int32_t write(const char *s, ...) __attribute__((format(printf, 2, 3)));
 
-    int32_t write(fk_app_HttpReply *reply);
+    int32_t write(fk_app_HttpReply const *reply);
 
     int32_t write(uint8_t const *buffer, size_t size) override;
 
