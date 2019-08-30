@@ -75,8 +75,6 @@ bool Connection::service(HttpRouter &router) {
         return false;
     }
 
-    // FK_ASSERT(fk_uptime() - started_ < 1000);
-
     if (!req_.have_headers() && conn_->available()) {
         if (buffer_ == nullptr) {
             size_ = HttpdConnectionBufferSize;
@@ -148,6 +146,8 @@ int32_t Connection::write(uint8_t const *buffer, size_t size) {
 }
 
 int32_t Connection::write(fk_app_HttpReply const *reply) {
+    auto started = fk_uptime();
+
     size_t size = 0;
     auto fields = fk_app_HttpReply_fields;
     if (!pb_get_encoded_size(&size, fields, reply)) {
@@ -166,8 +166,11 @@ int32_t Connection::write(fk_app_HttpReply const *reply) {
     wrote_ += conn_->write("Connection: close\n");
     wrote_ += conn_->write("\n");
 
-    Base64Writer b64_writer{ this };
-    Writable *writer = this;
+    loginfo("headers done (%" PRIu32 "ms)", fk_uptime() - started);
+
+    BufferedWriter buffered{ this };
+    Base64Writer b64_writer{ &buffered };
+    Writable *writer = &buffered;
 
     if (hex_encoding_) {
         writer = &b64_writer;
@@ -181,6 +184,8 @@ int32_t Connection::write(fk_app_HttpReply const *reply) {
     wrote_ += content_size;
 
     req_.finished();
+
+    loginfo("done writing (%" PRIu32 "ms)", fk_uptime() - started);
 
     return content_size;
 }

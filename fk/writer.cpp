@@ -1,4 +1,5 @@
 #include <tiny_printf.h>
+#include <algorithm>
 
 #include "writer.h"
 
@@ -13,6 +14,25 @@ BufferedWriter::BufferedWriter(Writable *writer) : writer_(writer) {
 
 BufferedWriter::~BufferedWriter() {
     flush();
+}
+
+int32_t BufferedWriter::write(uint8_t const *buffer, size_t size) {
+    FK_ASSERT(buffer_size_ > 0);
+
+    size_t wrote = 0;
+
+    while (wrote < size) {
+        auto available = buffer_size_ - position_;
+        auto writing = std::min<size_t>(available, size - wrote);
+        memcpy(buffer_ + position_, buffer + wrote, writing);
+        wrote += writing;
+        position_ += writing;
+        if (position_ == buffer_size_) {
+            flush();
+        }
+    }
+
+    return wrote;
 }
 
 int32_t BufferedWriter::write(const char *s, ...) {
@@ -35,7 +55,6 @@ int32_t BufferedWriter::write(char c) {
 
 int32_t BufferedWriter::flush() {
     if (position_ > 0) {
-        buffer_[position_] = 0;
         auto rv = writer_->write(buffer_, position_);
         position_ = 0;
         return rv;

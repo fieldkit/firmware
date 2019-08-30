@@ -12,7 +12,7 @@ public:
     virtual int32_t write(uint8_t const *buffer, size_t size) = 0;
 };
 
-class BufferedWriter {
+class BufferedWriter : public Writable {
 private:
     uint8_t buffer_[128];
     size_t buffer_size_{ 128 };
@@ -25,6 +25,7 @@ public:
     virtual ~BufferedWriter();
 
 public:
+    int32_t write(uint8_t const *buffer, size_t size) override;
     int32_t write(const char *s, ...);
     int32_t write(char c);
     int32_t flush();
