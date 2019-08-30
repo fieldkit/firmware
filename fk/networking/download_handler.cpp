@@ -47,9 +47,8 @@ void DownloadWorker::run(Pool &pool) {
         .last_block = actual_last_block,
     };
     if (write_headers(info)) {
-        // TOOO: MALLOC
         size_t buffer_size = 1024;
-        uint8_t *buffer = (uint8_t *)malloc(buffer_size);
+        uint8_t *buffer = (uint8_t *)pool.malloc(buffer_size);
 
         NoopProgressCallbacks noop_progress;
         auto tracker = ProgressTracker{ &noop_progress, Operation::Download, "download", "", size };
@@ -70,8 +69,6 @@ void DownloadWorker::run(Pool &pool) {
         }
 
         tracker.finished();
-
-        free(buffer);
 
         auto elapsed = fk_uptime() - started;
         auto speed = ((bytes_copied / 1024.0f) / (elapsed / 1000.0f));
