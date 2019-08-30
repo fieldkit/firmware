@@ -4,7 +4,27 @@
 
 #if defined(ARDUINO)
 
+#include <WiFiSocket.h>
+
 namespace fk {
+
+class StaticWiFiCallbacks : public WiFiCallbacks {
+public:
+    void *malloc(size_t size) override {
+        return fk_malloc(size);
+    }
+
+    void free(void *ptr) override {
+        fk_free(ptr);
+    }
+
+    bool busy(uint32_t elapsed) override {
+        return true;
+    }
+
+};
+
+static StaticWiFiCallbacks staticWiFiCallbacks;
 
 FK_DECLARE_LOGGER("network");
 
@@ -100,6 +120,8 @@ bool MetalNetwork::begin(NetworkSettings settings) {
     get_board()->enable_wifi();
 
     WiFi.setPins(WINC1500_CS, WINC1500_IRQ, WINC1500_RESET);
+
+    WiFiSocketClass::callbacks = &staticWiFiCallbacks;
 
     if (WiFi.status() == WL_NO_SHIELD) {
         return false;
