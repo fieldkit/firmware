@@ -12,7 +12,21 @@ namespace fk {
  */
 #define PRADDRESS                                 "0x%06" PRIx32
 
+struct SavedState {
+    FileHeader files[NumberOfFiles];
+    uint32_t timestamp;
+    uint32_t free_block;
+    uint32_t version;
+};
+
 class Storage {
+public:
+    using FileNumber = uint8_t;
+    constexpr static FileNumber Data = 0;
+    constexpr static FileNumber Meta = 1;
+
+    friend class File;
+
 private:
     DataMemory *memory_;
     FileHeader files_[NumberOfFiles];
@@ -26,30 +40,37 @@ public:
     virtual ~Storage();
 
 public:
-    using FileNumber = uint8_t;
-    constexpr static FileNumber Data = 0;
-    constexpr static FileNumber Meta = 1;
-
-    friend class File;
-
-public:
     bool begin();
     bool clear();
     File file(FileNumber file);
+
+public:
     uint32_t fsck(ProgressCallbacks *progress);
+
+public:
+    SavedState save() const;
+    void restore(SavedState const &state);
+
+public:
+    uint32_t timestamp() const {
+        return timestamp_;
+    }
     uint32_t version() const {
         return version_;
+    }
+    uint32_t free_block() const {
+        return free_block_;
     }
     FileHeader const &file_header(FileNumber file) const {
         return files_[file];
     }
 
 private:
-    uint32_t allocate(uint8_t file, uint32_t previous_tail_address, BlockTail &block_tail);
     SeekValue seek(SeekSettings settings);
+    uint32_t allocate(uint8_t file, uint32_t previous_tail_address, BlockTail &block_tail);
+    bool valid_block_header(BlockHeader &header) const;
     void verify_opened() const;
     void verify_mutable() const;
-    bool valid_block_header(BlockHeader &header) const;
 
 };
 

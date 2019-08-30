@@ -466,4 +466,22 @@ void Storage::verify_mutable() const {
     FK_ASSERT(!read_only_);
 }
 
+SavedState Storage::save() const {
+    SavedState state;
+    state.timestamp = timestamp_;
+    state.free_block = free_block_;
+    state.version = version_;
+    static_assert(sizeof(files_) == sizeof(state.files), "sizeof(files_) == sizeof(state.files)");
+    memcpy(state.files, files_, sizeof(files_));
+    return state;
+}
+
+void Storage::restore(SavedState const &state) {
+    static_assert(sizeof(files_) == sizeof(state.files), "sizeof(files_) == sizeof(state.files)");
+    memcpy(files_, state.files, sizeof(files_));
+    timestamp_ = state.timestamp;
+    free_block_ = state.free_block;
+    version_ = state.version;
+}
+
 }
