@@ -70,7 +70,8 @@ bool MetalIPC::launch_worker(Worker *worker) {
         if (!os_task_is_running(&worker_tasks[i])) {
             worker_tasks[i].name = worker->name();
 
-            OS_CHECK(os_task_start_options(&worker_tasks[i], worker));
+            auto priority = worker->priority();
+            OS_CHECK(os_task_start_options(&worker_tasks[i], priority, worker));
 
             return true;
         }

@@ -9,6 +9,10 @@ class FsckWorker {
 public:
     void run(Pool &pool);
 
+    uint8_t priority() const {
+        return OS_PRIORITY_NORMAL;
+    }
+
     const char *name() {
         return "fsck";
     }
@@ -18,6 +22,10 @@ public:
 class WifiToggleWorker {
 public:
     void run(Pool &pool);
+
+    uint8_t priority() const {
+        return OS_PRIORITY_NORMAL;
+    }
 
     const char *name() {
         return "wifi";
@@ -34,6 +42,10 @@ public:
 
 public:
     void run(Pool &pool);
+
+    uint8_t priority() const {
+        return OS_PRIORITY_NORMAL;
+    }
 
     const char *name() {
         return "self-check";

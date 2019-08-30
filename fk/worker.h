@@ -1,5 +1,6 @@
 #pragma once
 
+#include <os.h>
 #include <utility>
 
 #include "common.h"
@@ -14,6 +15,10 @@ public:
 
 public:
     virtual void run() = 0;
+
+    virtual uint8_t priority() const {
+        return OS_PRIORITY_NORMAL;
+    }
 
     virtual const char *name() {
         return "worker";
@@ -43,6 +48,10 @@ public:
 public:
     void run() override {
         wrapped_->run(pool_);
+    }
+
+    uint8_t priority() const override {
+        return wrapped_->priority();
     }
 
     const char *name() override {

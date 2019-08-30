@@ -139,18 +139,18 @@ int32_t HttpRequest::on_header_value(const char *at, size_t length) {
 
     if (strncasecmp(header_name_, HTTP_CONTENT_LENGTH, header_name_len_) == 0) {
         length_ = atoi(at);
-        logtrace("content-length: %" PRIu32, length_);
+        logdebug("content-length: %" PRIu32, length_);
     }
 
     if (strncasecmp(header_name_, HTTP_CONTENT_TYPE, header_name_len_) == 0) {
         auto value = trim(pool_->strndup(at, length));
         content_type_ = get_content_type(value);
-        logtrace("content-type: %s (%" PRId32 ")", value, (int32_t)content_type_);
+        logdebug("content-type: %s (%" PRId32 ")", value, (int32_t)content_type_);
     }
 
     if (strncasecmp(header_name_, HTTP_USER_AGENT, header_name_len_) == 0) {
         auto value = trim(pool_->strndup(at, length));
-        logtrace("user-agent: %s", value);
+        logdebug("user-agent: %s", value);
     }
 
     return 0;
