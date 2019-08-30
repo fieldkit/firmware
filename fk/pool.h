@@ -28,9 +28,8 @@ private:
     bool frozen_{ false };
 
 public:
-    Pool(const char *name, size_t size, void *block);
-    virtual ~Pool() {
-    }
+    Pool(const char *name, size_t size, void *block, size_t taken);
+    virtual ~Pool();
 
 public:
     const char *name() const {
@@ -106,7 +105,7 @@ private:
     alignas(sizeof(uint32_t)) typename std::aligned_storage<sizeof(uint8_t), alignof(uint8_t)>::type data[aligned_size(N)];
 
 public:
-    StaticPool(const char *name) : Pool(name, aligned_size(N), (void *)data) {
+    StaticPool(const char *name) : Pool(name, aligned_size(N), (void *)data, 0) {
     }
 
 };
@@ -114,14 +113,14 @@ public:
 class MallocPool : public Pool {
 public:
     MallocPool(const char *name, size_t size);
-    MallocPool(const char *name, void *ptr, size_t size);
+    MallocPool(const char *name, void *ptr, size_t size, size_t taken);
     virtual ~MallocPool();
 
 };
 
 class EmptyPool : public Pool {
 public:
-    EmptyPool() : Pool("empty", 0, nullptr) {
+    EmptyPool() : Pool("empty", 0, nullptr, 0) {
     }
 
 };

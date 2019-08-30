@@ -58,7 +58,6 @@ private:
     constexpr static size_t MaximumConnections = 4;
 
 private:
-    MallocPool memory_;
     Connection *pool_[MaximumConnections] = { nullptr };
     uint32_t activity_{ 0 };
 

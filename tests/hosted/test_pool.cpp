@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "pool.h"
+#include "worker.h"
 
 using namespace fk;
 
@@ -48,4 +49,19 @@ TEST_F(PoolSuite, Subpool) {
 
     pool.clear();
     ASSERT_FALSE(pool.frozen());
+}
+
+class SimpleWorker {
+public:
+    void run(Pool &pool)  {
+    }
+
+    const char *name() {
+        return "simple";
+    }
+};
+
+TEST_F(PoolSuite, Workers) {
+    auto worker = create_pool_worker<SimpleWorker>(1024);
+    delete worker;
 }

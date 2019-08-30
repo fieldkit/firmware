@@ -19,12 +19,12 @@ FK_DECLARE_LOGGER("pool");
 // #define FK_LOGGING_POOL_VERBOSE
 // #define FK_LOGGING_POOL_MALLOC_FREE
 
-Pool::Pool(const char *name, size_t size, void *block) {
+Pool::Pool(const char *name, size_t size, void *block, size_t taken) {
     name_ = name;
     block_ = block;
-    ptr_ = block;
+    ptr_ = ((uint8_t *)block) + taken;
     size_ = size;
-    remaining_ = size;
+    remaining_ = size - taken;
 
     #if defined(FK_LOGGING_POOL_VERBOSE)
     if (size_ > 0) {
@@ -32,6 +32,9 @@ Pool::Pool(const char *name, size_t size, void *block) {
                 this, name_, size_, ptr_, fk_free_memory());
     }
     #endif
+}
+
+Pool::~Pool() {
 }
 
 void Pool::clear() {
@@ -145,17 +148,18 @@ Pool Pool::freeze(const char *name) {
     // TODO: Ideally this would keep track of children and warn about
     // allocations on them when we unfreeze.
     frozen_ = true;
-    return Pool{ name, remaining_, ptr_ };
+    return Pool{ name, remaining_, ptr_, 0 };
 }
 
-MallocPool::MallocPool(const char *name, size_t size) : Pool(name, size, (void *)fk_malloc(size)) {
+MallocPool::MallocPool(const char *name, size_t size) : Pool(name, size, (void *)fk_malloc(size), 0) {
+    FK_ASSERT(size > 0);
     #if defined(FK_LOGGING_POOL_MALLOC_FREE)
     loginfo("malloc: 0x%p %s size=%zu ptr=0x%p (free=%" PRIu32 ")",
             this, name, size, block(), fk_free_memory());
     #endif
 }
 
-MallocPool::MallocPool(const char *name, void *ptr, size_t size) : Pool(name, size, ptr) {
+MallocPool::MallocPool(const char *name, void *ptr, size_t size, size_t taken) : Pool(name, size, ptr, taken) {
     #if defined(FK_LOGGING_POOL_MALLOC_FREE)
     loginfo("create: 0x%p %s size=%zu ptr=0x%p (free=%" PRIu32 ")",
             this, name, size, block(), fk_free_memory());
@@ -167,8 +171,9 @@ MallocPool::~MallocPool() {
     loginfo("free: 0x%p %s size=%zu ptr=0x%p (free=%" PRIu32 ")",
             this, name(), size(), block(), fk_free_memory());
     #endif
-    fk_free(block());
+    auto ptr = block();
     block(nullptr, 0);
+    fk_free(ptr);
 }
 
 }

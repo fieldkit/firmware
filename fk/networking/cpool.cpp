@@ -8,7 +8,7 @@ namespace fk {
 
 FK_DECLARE_LOGGER("httpd");
 
-ConnectionPool::ConnectionPool() : memory_("httpd", 0 * HttpdConnectionWorkSize * MaximumConnections) {
+ConnectionPool::ConnectionPool() {
     activity_ = fk_uptime();
 }
 
