@@ -117,6 +117,16 @@ bool SC16IS740::write_fifo(uint8_t const *buffer, size_t size) {
     return true;
 }
 
+bool SC16IS740::write(const char *line) {
+    auto nwrite = available_for_write();
+    if (nwrite < 0) {
+        return false;
+    }
+    auto len = (int32_t)strlen(line);
+    FK_ASSERT(len <= nwrite);
+    return write_fifo((uint8_t *)line, len);
+}
+
 bool SC16IS740::write_register(uint8_t reg, uint8_t value) {
     uint8_t buffer[2] = {
         (uint8_t)(reg << 3),

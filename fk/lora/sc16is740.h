@@ -20,6 +20,7 @@ public:
     int32_t available_for_write();
     bool read_fifo(uint8_t *buffer, size_t size);
     bool write_fifo(uint8_t const *buffer, size_t size);
+    bool write(const char *line);
 
 private:
     bool write_register(uint8_t reg, uint8_t value);
