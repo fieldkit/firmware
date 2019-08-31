@@ -56,6 +56,20 @@ class FkRestart(gdb.Command):
       gdb.execute("monitor reset")
       gdb.execute("c")
 
+class FkReloadAllAndRun(gdb.Command):
+  "Reload all."
+  def __init__ (self):
+    super(FkReloadAllAndRun, self).__init__("jrar", gdb.COMMAND_SUPPORT, gdb.COMPLETE_NONE, True)
+
+  def invoke(self, arg, from_tty):
+    made = subprocess.run(["make", "fw", "-j4"])
+    if made.returncode != 0:
+      return False
+    gdb.execute("load build/samd51/bootloader/fkbl.elf")
+    gdb.execute("load build/samd51/fk/fk-bundled-fkb.elf")
+    gdb.execute("monitor reset")
+    gdb.execute("c")
+
 class FkReloadAll(gdb.Command):
   "Reload all."
   def __init__ (self):
@@ -72,6 +86,7 @@ class FkReloadAll(gdb.Command):
 end
 
 python FkReloadAll()
+python FkReloadAllAndRun()
 python FkSegger()
 python FkRunHosted()
 python FkRestart()
