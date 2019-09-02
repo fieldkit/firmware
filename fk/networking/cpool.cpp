@@ -2,6 +2,7 @@
 
 #include "networking/cpool.h"
 #include "protobuf.h"
+#include "base64.h"
 
 namespace fk {
 

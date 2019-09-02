@@ -10,8 +10,8 @@
 #include "readings_worker.h"
 #include "device_name.h"
 #include "state_manager.h"
-
 #include "networking/http_reply.h"
+#include "base64.h"
 
 extern const struct fkb_header_t fkb_header;
 
