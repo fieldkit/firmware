@@ -7,21 +7,21 @@
 
 namespace fk {
 
-class Writable {
+class Writer {
 public:
     virtual int32_t write(uint8_t const *buffer, size_t size) = 0;
 };
 
-class BufferedWriter : public Writable {
+class BufferedWriter : public Writer {
 private:
     uint8_t buffer_[128];
     size_t buffer_size_{ 128 };
     size_t position_{ 0 };
     int32_t return_value_{ 0 };
-    Writable *writer_;
+    Writer *writer_;
 
 public:
-    BufferedWriter(Writable *writer);
+    BufferedWriter(Writer *writer);
     virtual ~BufferedWriter();
 
 public:
@@ -32,21 +32,21 @@ public:
 
 };
 
-class Readable {
+class Reader {
 public:
     virtual int32_t read(uint8_t *buffer, size_t size) = 0;
 };
 
-class BufferedReader : public Readable {
+class BufferedReader : public Reader {
 private:
     uint8_t buffer_[128];
     size_t buffer_size_{ 128 };
     size_t position_{ 0 };
     int32_t return_value_{ 0 };
-    Readable *reader_;
+    Reader *reader_;
 
 public:
-    BufferedReader(Readable *reader);
+    BufferedReader(Reader *reader);
     virtual ~BufferedReader();
 
 public:
@@ -54,30 +54,30 @@ public:
 
 };
 
-class Base64Reader : public Readable {
+class Base64Reader : public Reader {
 private:
-    Readable *target_;
+    Reader *target_;
 
 public:
-    Base64Reader(Readable *target);
+    Base64Reader(Reader *target);
 
 public:
     int32_t read(uint8_t *buffer, size_t size) override;
 };
 
-class Base64Writer : public Writable {
+class Base64Writer : public Writer {
 private:
-    Writable *target_;
+    Writer *target_;
 
 public:
-    Base64Writer(Writable *target);
+    Base64Writer(Writer *target);
 
 public:
     int32_t write(uint8_t const *buffer, size_t size) override;
 };
 
-pb_ostream_t pb_ostream_from_writable(Writable *s);
+pb_ostream_t pb_ostream_from_writable(Writer *s);
 
-pb_istream_t pb_istream_from_readable(Readable *s);
+pb_istream_t pb_istream_from_readable(Reader *s);
 
 }

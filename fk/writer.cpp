@@ -9,7 +9,7 @@ static void write_buffered_writer(char c, void *arg) {
     reinterpret_cast<BufferedWriter*>(arg)->write(c);
 }
 
-BufferedWriter::BufferedWriter(Writable *writer) : writer_(writer) {
+BufferedWriter::BufferedWriter(Writer *writer) : writer_(writer) {
 }
 
 BufferedWriter::~BufferedWriter() {
@@ -62,7 +62,7 @@ int32_t BufferedWriter::flush() {
     return position_;
 }
 
-Base64Reader::Base64Reader(Readable *target) : target_(target) {
+Base64Reader::Base64Reader(Reader *target) : target_(target) {
 }
 
 static size_t hexchr2bin(uint8_t const hex, uint8_t *p) {
@@ -96,7 +96,7 @@ int32_t Base64Reader::read(uint8_t *buffer, size_t size) {
     return size;
 }
 
-Base64Writer::Base64Writer(Writable *target) : target_(target) {
+Base64Writer::Base64Writer(Writer *target) : target_(target) {
 }
 
 constexpr char Hex[] = "0123456789ABCDEF";
@@ -114,12 +114,12 @@ int32_t Base64Writer::write(uint8_t const *buffer, size_t size) {
 }
 
 static bool write_callback(pb_ostream_t *stream, const uint8_t *buf, size_t c) {
-    auto s = reinterpret_cast<Writable*>(stream->state);
+    auto s = reinterpret_cast<Writer*>(stream->state);
     return s->write(buf, c) == (int32_t)c;
 }
 
 static bool read_callback(pb_istream_t *stream, uint8_t *buf, size_t c) {
-    auto s = reinterpret_cast<Readable*>(stream->state);
+    auto s = reinterpret_cast<Reader*>(stream->state);
     auto nread = s->read(buf, c);
     if (nread <= 0) {
         stream->bytes_left = 0; /* EOF */
@@ -127,12 +127,12 @@ static bool read_callback(pb_istream_t *stream, uint8_t *buf, size_t c) {
     return nread == (int32_t)c;
 }
 
-pb_ostream_t pb_ostream_from_writable(Writable *s) {
+pb_ostream_t pb_ostream_from_writable(Writer *s) {
     pb_ostream_t stream = { &write_callback, (void *)s, SIZE_MAX, 0 };
     return stream;
 }
 
-pb_istream_t pb_istream_from_readable(Readable *s) {
+pb_istream_t pb_istream_from_readable(Reader *s) {
     pb_istream_t stream = { &read_callback, (void *)s, SIZE_MAX };
     return stream;
 }

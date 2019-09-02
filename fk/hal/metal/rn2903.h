@@ -10,7 +10,7 @@ namespace fk {
 
 class Rn2903 {
 private:
-    SC16IS740 bridge_;
+    Sc16is740 bridge_;
     LineReader<256> line_reader_{ &bridge_ };
 
 public:

@@ -8,7 +8,7 @@ namespace fk {
 template<size_t N>
 class LineReader {
 private:
-    Readable *reader_;
+    Reader *reader_;
     char buffer_[N];
     size_t buffer_size_{ N };
     size_t position_{ 0 };
@@ -16,7 +16,7 @@ private:
     size_t line_{ 0 };
 
 public:
-    LineReader(Readable *reader) : reader_(reader) {
+    LineReader(Reader *reader) : reader_(reader) {
     }
 
 public:

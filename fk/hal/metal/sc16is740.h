@@ -8,12 +8,12 @@
 
 namespace fk {
 
-class SC16IS740 : public Readable {
+class Sc16is740 : public Reader {
 private:
     TwoWireWrapper *bus_;
 
 public:
-    SC16IS740(TwoWireWrapper &bus);
+    Sc16is740(TwoWireWrapper &bus);
 
 public:
     bool begin();

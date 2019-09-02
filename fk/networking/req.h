@@ -31,7 +31,7 @@ enum class WellKnownContentType {
     ApplicationFkHttp
 };
 
-class HttpRequest : Readable {
+class HttpRequest : Reader {
 private:
     http_parser parser_;
     http_parser_settings settings_{ 0 };
@@ -110,9 +110,9 @@ public:
     }
 
     /**
-     * Returns the Readable to use to get the request body.
+     * Returns the Reader to use to get the request body.
      */
-    Readable *reader() {
+    Reader *reader() {
         return this;
     }
 
@@ -164,8 +164,8 @@ public:
     /**
      * Returns the connection handling this request.
      */
-    Writable *writer() {
-        return reinterpret_cast<Writable*>(conn_);
+    Writer *writer() {
+        return reinterpret_cast<Writer*>(conn_);
     }
 
     /**

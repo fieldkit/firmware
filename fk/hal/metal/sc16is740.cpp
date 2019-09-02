@@ -55,10 +55,10 @@ static const uint8_t XON2_REG = 0x05;
 static const uint8_t XOFF1_REG = 0x06;
 static const uint8_t XOFF2_REG = 0x07;
 
-SC16IS740::SC16IS740(TwoWireWrapper &bus) : bus_(&bus) {
+Sc16is740::Sc16is740(TwoWireWrapper &bus) : bus_(&bus) {
 }
 
-bool SC16IS740::begin() {
+bool Sc16is740::begin() {
     bus_->begin();
 
     auto oscillator_hz  = 3686400;
@@ -75,7 +75,7 @@ bool SC16IS740::begin() {
     return true;
 }
 
-int32_t SC16IS740::available_for_read() {
+int32_t Sc16is740::available_for_read() {
     uint8_t available = 0;
     if (!read_register(RXLVL_REG, available)) {
         return -1;
@@ -83,7 +83,7 @@ int32_t SC16IS740::available_for_read() {
     return available;
 }
 
-int32_t SC16IS740::available_for_write() {
+int32_t Sc16is740::available_for_write() {
     uint8_t available = 0;
     if (!read_register(TXLVL_REG, available)) {
         return -1;
@@ -91,7 +91,7 @@ int32_t SC16IS740::available_for_write() {
     return available;
 }
 
-bool SC16IS740::read_fifo(uint8_t *buffer, size_t size) {
+bool Sc16is740::read_fifo(uint8_t *buffer, size_t size) {
     uint8_t setup[1] = {
         (uint8_t)(RHR_THR_REG << 3)
     };
@@ -107,7 +107,7 @@ bool SC16IS740::read_fifo(uint8_t *buffer, size_t size) {
     return true;
 }
 
-bool SC16IS740::write_fifo(uint8_t const *buffer, size_t size) {
+bool Sc16is740::write_fifo(uint8_t const *buffer, size_t size) {
     uint8_t data[1 + size];
     data[0] = RHR_THR_REG << 3;
     memcpy(data + 1, buffer, size);
@@ -119,7 +119,7 @@ bool SC16IS740::write_fifo(uint8_t const *buffer, size_t size) {
     return true;
 }
 
-bool SC16IS740::write(const char *line) {
+bool Sc16is740::write(const char *line) {
     auto nwrite = available_for_write();
     if (nwrite < 0) {
         return false;
@@ -129,7 +129,7 @@ bool SC16IS740::write(const char *line) {
     return write_fifo((uint8_t *)line, len);
 }
 
-bool SC16IS740::write_register(uint8_t reg, uint8_t value) {
+bool Sc16is740::write_register(uint8_t reg, uint8_t value) {
     uint8_t buffer[2] = {
         (uint8_t)(reg << 3),
         value,
@@ -142,7 +142,7 @@ bool SC16IS740::write_register(uint8_t reg, uint8_t value) {
     return true;
 }
 
-bool SC16IS740::read_register(uint8_t reg, uint8_t &value) {
+bool Sc16is740::read_register(uint8_t reg, uint8_t &value) {
     uint8_t buffer[1] = {
         (uint8_t)(reg << 3)
     };
@@ -162,7 +162,7 @@ bool SC16IS740::read_register(uint8_t reg, uint8_t &value) {
     return true;
 }
 
-int32_t SC16IS740::read(uint8_t *buffer, size_t size) {
+int32_t Sc16is740::read(uint8_t *buffer, size_t size) {
     auto nread = available_for_read();
     if (nread > 0) {
         auto can_read = std::min<size_t>(size, nread);

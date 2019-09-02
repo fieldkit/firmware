@@ -187,7 +187,7 @@ int32_t Connection::write(fk_app_HttpReply const *reply) {
 
     BufferedWriter buffered{ this };
     Base64Writer b64_writer{ &buffered };
-    Writable *writer = &buffered;
+    Writer *writer = &buffered;
 
     if (hex_encoding_) {
         writer = &b64_writer;

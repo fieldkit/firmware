@@ -9,7 +9,7 @@
 
 namespace fk {
 
-class Connection : public Writable, public Readable {
+class Connection : public Writer, public Reader {
 private:
     Pool *pool_;
     NetworkConnection *conn_;
