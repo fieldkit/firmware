@@ -1,7 +1,7 @@
 #include "networking/download_handler.h"
 #include "storage/storage.h"
 #include "storage/progress_tracker.h"
-#include "writer.h"
+#include "io.h"
 #include "hal/hal.h"
 
 namespace fk {

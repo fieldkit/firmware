@@ -12,6 +12,11 @@ public:
     virtual int32_t write(uint8_t const *buffer, size_t size) = 0;
 };
 
+class Reader {
+public:
+    virtual int32_t read(uint8_t *buffer, size_t size) = 0;
+};
+
 class BufferedWriter : public Writer {
 private:
     uint8_t buffer_[128];
@@ -30,11 +35,6 @@ public:
     int32_t write(char c);
     int32_t flush();
 
-};
-
-class Reader {
-public:
-    virtual int32_t read(uint8_t *buffer, size_t size) = 0;
 };
 
 class BufferedReader : public Reader {

@@ -7,7 +7,7 @@
 
 #include "common.h"
 #include "pool.h"
-#include "writer.h"
+#include "io.h"
 #include "config.h"
 
 namespace fk {
