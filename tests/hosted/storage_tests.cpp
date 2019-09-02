@@ -21,7 +21,7 @@ TEST_F(StorageSuite, WhenMountingUnformatted) {
 
     auto file_write = storage.file(0);
     uint8_t data[256] = { 0xcc };
-    ASSERT_EQ(file_write.write(data, sizeof(data)), sizeof(data));
+    ASSERT_EQ(file_write.write(data, sizeof(data)), (int32_t)sizeof(data));
 
     ASSERT_TRUE(memory_->flush());
 
@@ -79,10 +79,10 @@ TEST_F(StorageSuite, AppendingARecord) {
     ASSERT_TRUE(file_write.create());
 
     uint8_t data[256] = { 0xcc };
-    ASSERT_EQ(file_write.write(data, sizeof(data)), sizeof(data));
+    ASSERT_EQ(file_write.write(data, sizeof(data)), (int32_t)sizeof(data));
 
     auto expected = sizeof(BlockHeader) + sizeof(RecordHeader) + sizeof(data) + sizeof(RecordTail);
-    ASSERT_EQ(file_write.tail(), expected);
+    ASSERT_EQ(file_write.tail(), (uint32_t)expected);
 
     ASSERT_TRUE(memory_->flush());
 
@@ -117,7 +117,7 @@ TEST_F(StorageSuite, AppendingRecordsAcrossAPage) {
 
     auto length = g_.page_size + 128;
     auto data = (uint8_t *)pool_.malloc(length);
-    ASSERT_EQ(file.write(data, length), length);
+    ASSERT_EQ(file.write(data, length), (int32_t)length);
 
     auto expected = sizeof(BlockHeader) + sizeof(RecordHeader) + length + sizeof(RecordTail);
     ASSERT_EQ(file.tail(), expected);
@@ -141,7 +141,7 @@ TEST_F(StorageSuite, AppendingMultipleRecords) {
 
     for (auto i = 0; i < 100; ++i) {
         uint8_t data[256] = { (uint8_t)i };
-        ASSERT_EQ(file_write.write(data, sizeof(data)), sizeof(data));
+        ASSERT_EQ(file_write.write(data, sizeof(data)), (int32_t)sizeof(data));
     }
 
     ASSERT_EQ(file_write.record(), (uint32_t)100);
@@ -171,11 +171,11 @@ TEST_F(StorageSuite, AppendingToMultipleFiles) {
 
     uint8_t data0[256];
     memset(data0, 0x00, sizeof(data0));
-    ASSERT_EQ(file0.write(data0, sizeof(data0)), sizeof(data0));
+    ASSERT_EQ(file0.write(data0, sizeof(data0)), (int32_t)sizeof(data0));
 
     uint8_t data1[256];
     memset(data1, 0x01, sizeof(data1));
-    ASSERT_EQ(file1.write(data1, sizeof(data1)), sizeof(data0));
+    ASSERT_EQ(file1.write(data1, sizeof(data1)), (int32_t)sizeof(data0));
 
     ASSERT_EQ(file0.record(), (uint32_t)1);
     ASSERT_EQ(file0.size(), (uint32_t)256);
@@ -197,7 +197,7 @@ TEST_F(StorageSuite, FillingABlock) {
     memset(data, 0xcd, length);
 
     for (uint32_t i = 0; i < (g_.block_size / length) + 10; ++i) {
-        ASSERT_EQ(file.write(data, length), (size_t)length);
+        ASSERT_EQ(file.write(data, length), length);
     }
 }
 
@@ -211,7 +211,7 @@ TEST_F(StorageSuite, ReadingARecord) {
 
     StaticPattern pattern;
 
-    ASSERT_EQ(file.write(pattern.data, sizeof(pattern.data)), sizeof(pattern.data));
+    ASSERT_EQ(file.write(pattern.data, sizeof(pattern.data)), (int32_t)sizeof(pattern.data));
 
     ASSERT_EQ(file.size(), sizeof(pattern.data));
 
@@ -317,13 +317,13 @@ TEST_F(StorageSuite, ReadingAtEoF) {
     ASSERT_TRUE(storage.begin());
 
     uint8_t data[128];
-    ASSERT_EQ(file_write.read(data, sizeof(data)), (size_t)0);
+    ASSERT_EQ(file_write.read(data, sizeof(data)), 0);
 
     auto file_read = storage.file(0);
 
     ASSERT_TRUE(file_read.seek_end());
 
-    ASSERT_EQ(file_read.read(data, sizeof(data)), (size_t)0);
+    ASSERT_EQ(file_read.read(data, sizeof(data)), 0);
 }
 
 TEST_F(StorageSuite, ReadingBackSingleRecord) {
@@ -362,7 +362,7 @@ TEST_F(StorageSuite, WritingProtobuf) {
     auto file_write = storage.file(0);
     ASSERT_TRUE(file_write.create());
 
-    ASSERT_EQ(file_write.write(&record, fk_data_DataRecord_fields), (size_t)29);
+    ASSERT_EQ(file_write.write(&record, fk_data_DataRecord_fields), 29);
 
     auto file_read = storage.file(0);
 
@@ -374,7 +374,7 @@ TEST_F(StorageSuite, WritingProtobuf) {
     record.log.message.arg = (void *)&pool_;
     record.log.message.funcs.decode = pb_decode_string;
 
-    ASSERT_EQ(file_read.read(&record, fk_data_DataRecord_fields), (size_t)29);
+    ASSERT_EQ(file_read.read(&record, fk_data_DataRecord_fields), 29);
 }
 
 TEST_F(StorageSuite, WritingSequentiallyHasCorrectRecordNumbers) {
@@ -691,9 +691,9 @@ TEST_F(StorageSuite, SeekingAndReadingAndSeekingSetsPositionCorrectly) {
     auto found = file.reference();
     uint8_t buffer[256];
     ASSERT_TRUE(file.seek(0));
-    ASSERT_GT(file.read(buffer, sizeof(buffer)), (uint32_t)0);
+    ASSERT_GT(file.read(buffer, sizeof(buffer)), 0);
     file.seek(found);
-    ASSERT_GT(file.read(buffer, sizeof(buffer)), (uint32_t)0);
+    ASSERT_GT(file.read(buffer, sizeof(buffer)), 0);
 
     auto position2 = file.position();
     ASSERT_EQ(position2, position1);
@@ -721,7 +721,7 @@ TEST_F(StorageSuite, SeekingToBeginningWhenBeginningSecondFileAFewBlocksAfterFir
         auto wrote = write_reading(file_write0);
         size += wrote;
     }
-    ASSERT_EQ(file_write0.position() / g_.block_size, (uint32_t)2);
+    ASSERT_EQ(file_write0.position() / g_.block_size, (size_t)2);
 
     auto file_write1 = storage.file(1);
     ASSERT_TRUE(file_write1.create());

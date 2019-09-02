@@ -442,7 +442,7 @@ uint32_t Storage::fsck(ProgressCallbacks *progress) {
     FK_ASSERT(file.seek(0));
 
     while (tracker.busy()) {
-        auto to_read = std::min<size_t>(buffer_size, tracker.remaining_bytes());
+        auto to_read = std::min<int32_t>(buffer_size, tracker.remaining_bytes());
         auto nread = file.read(buffer, to_read);
         FK_ASSERT(nread == to_read);
         tracker.update(nread);

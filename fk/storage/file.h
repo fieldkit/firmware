@@ -7,6 +7,8 @@
 #include <pb_encode.h>
 #include <pb_decode.h>
 
+#include "writer.h"
+
 namespace fk {
 
 class Storage;
@@ -27,7 +29,7 @@ struct RecordReference {
     }
 };
 
-class File {
+class File : public Writer, public Reader {
 private:
     Storage *storage_;
     uint8_t file_;
@@ -53,12 +55,14 @@ public:
     bool seek_end();
     bool seek(uint32_t record);
     bool seek(RecordReference reference);
-    size_t write(uint8_t *record, size_t size);
-    size_t read(uint8_t *record, size_t size);
-    size_t write(void *record, const pb_msgdesc_t *fields);
-    size_t read(void *record, const pb_msgdesc_t *fields);
-    size_t write_partial(uint8_t *record, size_t size);
     bool beginning_of_record();
+    int32_t write(uint8_t const *record, size_t size) override;
+    int32_t read(uint8_t *record, size_t size) override;
+    int32_t write(void const *record, pb_msgdesc_t const *fields);
+    int32_t read(void *record, pb_msgdesc_t const *fields);
+
+public:
+    int32_t write_partial(uint8_t const *record, size_t size);
 
 public:
     RecordReference reference() const {
@@ -106,10 +110,10 @@ public:
     }
 
 private:
-    size_t write_record_header(size_t size);
-    size_t write_record_tail(size_t size);
-    size_t read_record_header();
-    size_t read_record_tail();
+    int32_t write_record_header(size_t size);
+    int32_t write_record_tail(size_t size);
+    int32_t read_record_header();
+    int32_t read_record_tail();
     void update();
 
 };

@@ -19,7 +19,7 @@ FK_DECLARE_LOGGER("storage");
 #define FK_OP_STR_READ     "rd"
 #define FK_OP_STR_WRITE    "wr"
 
-static void log_hashed_data(const char *op, uint8_t file, uint32_t record, uint32_t address, void *data, size_t size) {
+static void log_hashed_data(const char *op, uint8_t file, uint32_t record, uint32_t address, void const *data, size_t size) {
     #if defined(FK_STORAGE_LOGGING_HASHING)
     char prefix[32];
     tiny_snprintf(prefix, sizeof(prefix), "%s hash %5d " PRADDRESS " ", op, record, address);
@@ -35,7 +35,15 @@ File::File(Storage *storage, uint8_t file)
 File::~File() {
 }
 
-size_t File::write_record_header(size_t size) {
+bool File::beginning_of_record() {
+    FK_ASSERT(record_address_ != InvalidAddress);
+
+    tail_ = record_address_;
+
+    return true;
+}
+
+int32_t File::write_record_header(size_t size) {
     SequentialMemory memory{ storage_->memory_ };
     auto g = storage_->memory_->geometry();
 
@@ -82,15 +90,7 @@ size_t File::write_record_header(size_t size) {
     return sizeof(record_header);
 }
 
-bool File::beginning_of_record() {
-    FK_ASSERT(record_address_ != InvalidAddress);
-
-    tail_ = record_address_;
-
-    return true;
-}
-
-size_t File::write_partial(uint8_t *record, size_t size) {
+int32_t File::write_partial(uint8_t const *record, size_t size) {
     storage_->verify_mutable();
 
     SequentialMemory memory{ storage_->memory_ };
@@ -116,7 +116,7 @@ size_t File::write_partial(uint8_t *record, size_t size) {
     return size;
 }
 
-size_t File::write_record_tail(size_t size) {
+int32_t File::write_record_tail(size_t size) {
     SequentialMemory memory{ storage_->memory_ };
 
     RecordTail record_tail;
@@ -141,7 +141,7 @@ size_t File::write_record_tail(size_t size) {
     return sizeof(record_tail);
 }
 
-size_t File::write(uint8_t *record, size_t size) {
+int32_t File::write(uint8_t const *record, size_t size) {
     storage_->verify_mutable();
 
     SequentialMemory memory{ storage_->memory_ };
@@ -153,7 +153,8 @@ size_t File::write(uint8_t *record, size_t size) {
         return 0;
     }
 
-    if (write_partial(record, size) != size) {
+    auto wrote = write_partial(record, size);
+    if (wrote != (int32_t)size) {
         return 0;
     }
 
@@ -210,7 +211,7 @@ bool File::seek(uint32_t record) {
     return true;
 }
 
-size_t File::read_record_header() {
+int32_t File::read_record_header() {
     SequentialMemory memory{ storage_->memory_ };
     auto g = storage_->memory_->geometry();
     auto left_in_block = (uint32_t)(g.remaining_in_block(tail_) - sizeof(BlockTail));
@@ -282,7 +283,7 @@ size_t File::read_record_header() {
     return 0;
 }
 
-size_t File::read(uint8_t *record, size_t size) {
+int32_t File::read(uint8_t *record, size_t size) {
     SequentialMemory memory{ storage_->memory_ };
     auto g = storage_->memory_->geometry();
     auto left_in_block = (uint32_t)(g.remaining_in_block(tail_) - sizeof(BlockTail));
@@ -335,7 +336,7 @@ size_t File::read(uint8_t *record, size_t size) {
     return bytes_read;
 }
 
-size_t File::read_record_tail() {
+int32_t File::read_record_tail() {
     SequentialMemory memory{ storage_->memory_ };
 
     logverbose("[%d] " PRADDRESS " end of record", file_, tail_);
@@ -381,7 +382,7 @@ typedef struct pb_file_t {
             return true;
         }
 
-        if (file->write_partial(buffer, position) != position) {
+        if (file->write_partial(buffer, position) != (int32_t)position) {
             return false;
         }
 
@@ -410,7 +411,7 @@ static bool read_callback(pb_istream_t *stream, uint8_t *buf, size_t c) {
     auto pbf = reinterpret_cast<pb_file_t*>(stream->state);
     if (pbf->bytes_read == 0) {
         auto reading = std::min<size_t>(pbf->buffer_size, pbf->record_size);
-        if (pbf->file->read(pbf->buffer, reading) != reading) {
+        if (pbf->file->read(pbf->buffer, reading) != (int32_t)reading) {
             return false;
         }
 
@@ -434,7 +435,7 @@ pb_istream_t pb_istream_from_file(pb_file_t *pbf, size_t size) {
     return { &read_callback, (void *)pbf, size };
 }
 
-size_t File::write(void *record, const pb_msgdesc_t *fields) {
+int32_t File::write(void const *record, pb_msgdesc_t const *fields) {
     storage_->verify_mutable();
 
     pb_file_t pbf;
@@ -470,7 +471,7 @@ size_t File::write(void *record, const pb_msgdesc_t *fields) {
     return pbf.record_size;
 }
 
-size_t File::read(void *record, const pb_msgdesc_t *fields) {
+int32_t File::read(void *record, pb_msgdesc_t const *fields) {
     pb_file_t pbf;
     pbf.buffer_size = sizeof(pbf.buffer);
     pbf.record_size = 0;

@@ -63,8 +63,8 @@ TEST_F(SlowStorageSuite, LargeFilesMultiple) {
     auto counter = 0;
     auto bytes_wrote = 0;
     while (bytes_wrote < size) {
-        ASSERT_EQ(file0_write.write(pattern.data, sizeof(pattern.data)), sizeof(pattern.data));
-        ASSERT_EQ(file1_write.write(pattern.data, sizeof(pattern.data)), sizeof(pattern.data));
+        ASSERT_EQ(file0_write.write(pattern.data, sizeof(pattern.data)), (int32_t)sizeof(pattern.data));
+        ASSERT_EQ(file1_write.write(pattern.data, sizeof(pattern.data)), (int32_t)sizeof(pattern.data));
 
         bytes_wrote += sizeof(pattern.data);
 
@@ -121,10 +121,10 @@ TEST_F(SlowStorageSuite, LargeFilesMultipleOneMuchSmaller) {
 
     auto bytes_wrote = 0;
     while (bytes_wrote < size) {
-        ASSERT_EQ(file0_write.write(pattern.data, sizeof(pattern.data)), sizeof(pattern.data));
+        ASSERT_EQ(file0_write.write(pattern.data, sizeof(pattern.data)), (int32_t)sizeof(pattern.data));
 
         if (bytes_wrote % 4096 == 0) {
-            ASSERT_EQ(file1_write.write(pattern.data, sizeof(pattern.data)), sizeof(pattern.data));
+            ASSERT_EQ(file1_write.write(pattern.data, sizeof(pattern.data)), (int32_t)sizeof(pattern.data));
         }
 
         bytes_wrote += sizeof(pattern.data);

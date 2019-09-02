@@ -53,7 +53,7 @@ void DownloadWorker::run(Pool &pool) {
         auto tracker = ProgressTracker{ &noop_progress, Operation::Download, "download", "", size };
         auto bytes_copied = (size_t)0;
         while (bytes_copied < size) {
-            auto to_read = std::min<size_t>(buffer_size, size - bytes_copied);
+            auto to_read = std::min<int32_t>(buffer_size, size - bytes_copied);
             auto bytes_read = file.read(buffer, to_read);
             FK_ASSERT(bytes_read == to_read);
 

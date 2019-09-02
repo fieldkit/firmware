@@ -114,7 +114,7 @@ bool ReadingsTaker::append_readings(File &file, Pool &pool) {
 
         auto record = readings_.record().readings.reading;
         loginfo("wrote %zd bytes file=(#%" PRIu32 ") rec=(#%" PRIu32 ") (%" PRIu32 " bytes) (" PRADDRESS ")",
-                bytes_wrote, file.previous_record(), record, file.size(), file.tail());
+                (size_t)bytes_wrote, file.previous_record(), record, file.size(), file.tail());
     }
 
     return true;

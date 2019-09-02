@@ -18,7 +18,7 @@ struct StaticPattern {
         size_t counter = 0;
         size_t bytes_wrote = 0;
         while (bytes_wrote < size) {
-            ASSERT_EQ(file.write((uint8_t *)data, sizeof(data)), sizeof(data));
+            ASSERT_EQ(file.write((uint8_t *)data, sizeof(data)), (int32_t)sizeof(data));
 
             bytes_wrote += sizeof(data);
             counter++;
@@ -41,7 +41,7 @@ struct StaticPattern {
 
     void verify_record(File &file) {
         memset(data, 0x00, sizeof(data));
-        ASSERT_EQ(file.read(data, sizeof(data)), sizeof(data));
+        ASSERT_EQ(file.read(data, sizeof(data)), (int32_t)sizeof(data));
 
         uint8_t expected[256];
         memset(expected, 0xcc, sizeof(expected));
@@ -57,7 +57,7 @@ struct SequentialPattern {
         size_t bytes_wrote = 0;
         while (bytes_wrote < size) {
             memset(data, counter, sizeof(data));
-            ASSERT_EQ(file.write(data, sizeof(data)), sizeof(data));
+            ASSERT_EQ(file.write(data, sizeof(data)), (int32_t)sizeof(data));
 
             bytes_wrote += sizeof(data);
             counter++;
@@ -65,7 +65,7 @@ struct SequentialPattern {
     }
 
     void verify_record(File &file, uint8_t value) {
-        ASSERT_EQ(file.read(data, sizeof(data)), sizeof(data));
+        ASSERT_EQ(file.read(data, sizeof(data)), (int32_t)sizeof(data));
 
         uint8_t expected[256];
         memset(expected, value, sizeof(expected));
