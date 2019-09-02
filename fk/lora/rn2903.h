@@ -19,12 +19,16 @@ public:
 public:
     bool begin();
     bool read_line_sync(const char **line, uint32_t to);
+    bool simple_query(const char *cmd, uint32_t to, ...);
     bool simple_query(const char *cmd, const char **line, uint32_t to, ...);
-    bool save_state();
+    bool join(const char *app_eui, const char *app_key, int32_t retries = 3, uint32_t retry_delay = 10000);
+
+private:
+    bool send_command(const char *cmd, uint32_t to, va_list args);
     bool provision(const char *app_eui, const char *app_key);
     bool configure_us915(uint8_t fsb);
     bool configure_sf(uint8_t sf);
-    bool join(const char *app_eui, const char *app_key);
+    bool save_state();
 
 };
 

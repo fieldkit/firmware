@@ -42,10 +42,9 @@ bool LoraModule::begin() {
     }
 
     const char *dev_eui = "008C1F21E6162E58";
-    if (!rn2903.simple_query("mac set deveui %s", &line, 1000, dev_eui)) {
+    if (!rn2903.simple_query("mac set deveui %s", 1000, dev_eui)) {
         return false;
     }
-
     if (!rn2903.simple_query("sys get hweui", &line, 1000)) {
         return false;
     }
