@@ -2,12 +2,13 @@
 
 #include "common.h"
 #include "hal/board.h"
+#include "writer.h"
 
 #if defined(ARDUINO)
 
 namespace fk {
 
-class SC16IS740 {
+class SC16IS740 : public Readable {
 private:
     TwoWireWrapper *bus_;
 
@@ -25,6 +26,9 @@ public:
 private:
     bool write_register(uint8_t reg, uint8_t value);
     bool read_register(uint8_t reg, uint8_t &value);
+
+public:
+    int32_t read(uint8_t *buffer, size_t size) override;
 
 };
 

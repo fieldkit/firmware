@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "sc16is740.h"
 
 #if defined(ARDUINO)
@@ -158,6 +160,19 @@ bool SC16IS740::read_register(uint8_t reg, uint8_t &value) {
     value = data[0];
 
     return true;
+}
+
+int32_t SC16IS740::read(uint8_t *buffer, size_t size) {
+    auto nread = available_for_read();
+    if (nread > 0) {
+        auto can_read = std::min<size_t>(size, nread);
+        if (!read_fifo(buffer, can_read)) {
+            return -1;
+        }
+        return can_read;
+    }
+
+    return 0;
 }
 
 }
