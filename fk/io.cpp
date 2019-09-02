@@ -21,6 +21,8 @@ int32_t BufferedWriter::write(uint8_t const *buffer, size_t size) {
 
     size_t wrote = 0;
 
+    // NOTE We could avoid copying in here if the data being written is larger.
+
     while (wrote < size) {
         auto available = buffer_size_ - position_;
         auto writing = std::min<size_t>(available, size - wrote);
@@ -69,7 +71,22 @@ BufferedReader::~BufferedReader() {
 }
 
 int32_t BufferedReader::read(uint8_t *buffer, size_t size) {
-    FK_ASSERT(false);
+    if (bytes_read_ == 0) {
+        auto reading = buffer_size_;
+        auto nread = reader_->read(buffer_, reading);
+        if (nread <= 0) {
+            return false;
+        }
+
+        position_ = 0;
+        bytes_read_ = nread;
+    }
+
+    FK_ASSERT(position_ + size <= bytes_read_);
+
+    memcpy(buffer, buffer_ + position_, size);
+    position_ += size;
+
     return 0;
 }
 
