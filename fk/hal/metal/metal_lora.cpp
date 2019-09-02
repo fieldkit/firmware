@@ -1,12 +1,7 @@
-#include <tiny_printf.h>
-#include <algorithm>
+#include "hal/metal/metal_lora.h"
 
-#include "lora/lora.h"
 #include "hal/board.h"
-#include "sc16is740.h"
-#include "rn2903.h"
-
-#if defined(ARDUINO)
+#include "hal/metal/sc16is740.h"
 
 #include <Arduino.h>
 
@@ -14,15 +9,10 @@ namespace fk {
 
 FK_DECLARE_LOGGER("lora");
 
-enum class LoraState {
-    Initializing,
-    Waiting,
-};
-
-LoraModule::LoraModule() {
+Rn2903LoraNetwork::Rn2903LoraNetwork() {
 }
 
-bool LoraModule::begin() {
+bool Rn2903LoraNetwork::begin() {
     pinMode(LORA_ENABLE, OUTPUT);
     digitalWrite(LORA_ENABLE, LOW);
     fk_delay(500);
@@ -82,5 +72,3 @@ bool LoraModule::begin() {
 }
 
 }
-
-#endif

@@ -10,8 +10,6 @@
 #include "storage/storage.h"
 #include "tasks/tasks.h"
 
-#include "lora/lora.h"
-
 extern const struct fkb_header_t fkb_header;
 
 using namespace fk;
@@ -152,14 +150,6 @@ static bool initialize_hardware() {
     FK_ASSERT(get_modmux()->begin());
     FK_ASSERT(get_buttons()->begin());
     FK_ASSERT(fk_random_initialize() == 0);
-
-    LoraModule lora;
-    lora.begin();
-
-    while (true) {
-        fk_delay(1000);
-    }
-
     return true;
 }
 
