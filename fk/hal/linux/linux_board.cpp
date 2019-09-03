@@ -40,6 +40,12 @@ void Board::disable_wifi() {
 void Board::enable_wifi() {
 }
 
+void Board::disable_lora() {
+}
+
+void Board::enable_lora() {
+}
+
 SpiWrapper Board::spi_flash() {
     return { "spi-flash", nullptr };
 }

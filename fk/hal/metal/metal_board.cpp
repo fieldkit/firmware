@@ -55,8 +55,8 @@ bool Board::initialize() {
 
     pinMode(GPS_POWER, OUTPUT);
 
-    pinMode(LORA_ENABLE, OUTPUT);
-    digitalWrite(LORA_ENABLE, LOW);
+    pinMode(LORA_POWER, OUTPUT);
+    digitalWrite(LORA_POWER, LOW);
 
     for (auto pin : radio_spi_cs_pins) {
         pinMode(pin, OUTPUT);
@@ -95,6 +95,14 @@ void Board::disable_gps() {
 
 void Board::enable_gps() {
     digitalWrite(GPS_POWER, HIGH);
+}
+
+void Board::disable_lora() {
+    digitalWrite(LORA_POWER, LOW);
+}
+
+void Board::enable_lora() {
+    digitalWrite(LORA_POWER, HIGH);
 }
 
 void Board::disable_wifi() {

@@ -24,7 +24,7 @@ constexpr uint8_t BUTTON_RIGHT = 32u;        // PA21
 constexpr uint8_t BUTTON_MIDDLE = 31u;       // PA22
 constexpr uint8_t BUTTON_LEFT = 30u;         // PA23
 
-constexpr uint8_t LORA_ENABLE = 76u;         // PC30
+constexpr uint8_t LORA_POWER = 76u;          // PC30
 
 class SpiWrapper {
 private:
@@ -107,6 +107,8 @@ public:
     void enable_gps();
     void disable_wifi();
     void enable_wifi();
+    void disable_lora();
+    void enable_lora();
 
 public:
     SpiWrapper spi_flash();

@@ -40,8 +40,12 @@ bool Rn2903LoraNetwork::show_status() {
 }
 
 bool Rn2903LoraNetwork::power(bool on) {
-    pinMode(LORA_ENABLE, OUTPUT);
-    digitalWrite(LORA_ENABLE, on ? HIGH : LOW);
+    if (on) {
+        get_board()->enable_lora();
+    }
+    else {
+        get_board()->disable_lora();
+    }
 
     return true;
 }
