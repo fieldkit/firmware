@@ -18,6 +18,7 @@ public:
     bool begin() override;
     bool power(bool on) override;
     bool sleep(uint32_t ms) override;
+    bool wake() override;
     bool send_bytes(uint8_t const *data, size_t size) override;
 
 public:

@@ -1,7 +1,6 @@
 #include "hal/metal/metal_lora.h"
 #include "hal/board.h"
 #include "hal/metal/sc16is740.h"
-#include "utilities.h"
 
 #include <Arduino.h>
 
@@ -51,11 +50,11 @@ bool Rn2903LoraNetwork::power(bool on) {
 }
 
 bool Rn2903LoraNetwork::sleep(uint32_t ms) {
-    if (!rn2903_.simple_query("sys sleep %d", 1000)) {
-        return false;
-    }
+    return rn2903_.sleep(ms);
+}
 
-    return true;
+bool Rn2903LoraNetwork::wake() {
+    return rn2903_.wake();
 }
 
 bool Rn2903LoraNetwork::begin() {
@@ -95,35 +94,11 @@ bool Rn2903LoraNetwork::begin() {
 }
 
 bool Rn2903LoraNetwork::send_bytes(uint8_t const *data, size_t size) {
-    uint8_t port = 10;
-    char hex[size * 2 + 1];
-    bytes_to_hex_string(hex, sizeof(hex), data, size);
-
-    const char *mode = "cnf";
-    if (!rn2903_.simple_query("mac tx %s %d %s", 1000, mode, port, hex)) {
+    if (!rn2903_.send_bytes(data, size, 10)) {
         return false;
     }
 
-    auto started = fk_uptime();
-
-    const char *line = nullptr;
-    if (!rn2903_.read_line_sync(&line, 60000)) {
-        return false;
-    }
-
-    loginfo("rn2903 > '%s' (%" PRIu32 "ms)", line, fk_uptime() - started);
-
-    const char *mac_tx_ok = "mac_tx_ok";
-    if (strncmp(line, mac_tx_ok, strlen(mac_tx_ok)) == 0) {
-        return true;
-    }
-
-    const char *mac_rx = "mac_rx";
-    if (strncmp(line, mac_rx, strlen(mac_rx)) == 0) {
-        return true;
-    }
-
-    return false;
+    return true;
 }
 
 }

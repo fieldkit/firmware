@@ -1,6 +1,7 @@
 #include <tiny_printf.h>
 
 #include "rn2903.h"
+#include "utilities.h"
 
 #if defined(ARDUINO)
 
@@ -18,6 +19,39 @@ bool Rn2903::begin() {
     return bridge_.begin();
 }
 
+bool Rn2903::sleep(uint32_t ms) {
+    if (!send_command("sys sleep %d", ms)) {
+        return false;
+    }
+
+    return true;
+}
+
+bool Rn2903::wake() {
+    uint8_t buffer[] = {
+        0x00,
+        0x55,
+        '\r',
+        '\n',
+    };
+
+    for (auto i = 0; i < 10; ++i) {
+        fk_delay(100);
+
+        if (bridge_.write_fifo(buffer, sizeof(buffer))) {
+            const char *line = nullptr;
+            if (simple_query("sys get ver", &line, 2000)) {
+                const char *busy = "busy";
+                if (strncmp(line, busy, strlen(busy)) != 0) {
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
 bool Rn2903::read_line_sync(const char **line, uint32_t to) {
     if (!line_reader_.read_line_sync(line, to)) {
         logerror("error reading line");
@@ -27,7 +61,16 @@ bool Rn2903::read_line_sync(const char **line, uint32_t to) {
     return true;
 }
 
-bool Rn2903::send_command(const char *cmd, uint32_t to, va_list args) {
+bool Rn2903::send_command(const char *cmd, ...) {
+    va_list args;
+    va_start(args, cmd);
+    auto rv = send_command(cmd, args);
+    va_end(args);
+
+    return rv;
+}
+
+bool Rn2903::send_command(const char *cmd, va_list args) {
     char buffer[256];
     auto needed = tiny_vsnprintf(buffer, sizeof(buffer) - 3, cmd, args);
     FK_ASSERT(needed + 3 < (int32_t)sizeof(buffer));
@@ -49,7 +92,7 @@ bool Rn2903::send_command(const char *cmd, uint32_t to, va_list args) {
 bool Rn2903::simple_query(const char *cmd, uint32_t to, ...) {
     va_list args;
     va_start(args, to);
-    auto rv = send_command(cmd, to, args);
+    auto rv = send_command(cmd, args);
     va_end(args);
 
     if (!rv) {
@@ -71,7 +114,7 @@ bool Rn2903::simple_query(const char *cmd, uint32_t to, ...) {
 bool Rn2903::simple_query(const char *cmd, const char **line, uint32_t to, ...) {
     va_list args;
     va_start(args, to);
-    auto rv = send_command(cmd, to, args);
+    auto rv = send_command(cmd, args);
     va_end(args);
 
     if (!rv) {
@@ -219,6 +262,37 @@ bool Rn2903::join(const char *app_eui, const char *app_key, int32_t retries, uin
             return false;
         }
 
+        return true;
+    }
+
+    return false;
+}
+
+bool Rn2903::send_bytes(uint8_t const *data, size_t size, uint8_t port) {
+    char hex[size * 2 + 1];
+    bytes_to_hex_string(hex, sizeof(hex), data, size);
+
+    const char *mode = "cnf";
+    if (!simple_query("mac tx %s %d %s", 1000, mode, port, hex)) {
+        return false;
+    }
+
+    auto started = fk_uptime();
+
+    const char *line = nullptr;
+    if (!read_line_sync(&line, 60000)) {
+        return false;
+    }
+
+    loginfo("rn2903 > '%s' (%" PRIu32 "ms)", line, fk_uptime() - started);
+
+    const char *mac_tx_ok = "mac_tx_ok";
+    if (strncmp(line, mac_tx_ok, strlen(mac_tx_ok)) == 0) {
+        return true;
+    }
+
+    const char *mac_rx = "mac_rx";
+    if (strncmp(line, mac_rx, strlen(mac_rx)) == 0) {
         return true;
     }
 

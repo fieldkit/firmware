@@ -36,6 +36,11 @@ constexpr uint32_t ThirtySecondsMs = 30 * 1000;
 constexpr uint32_t OneMinuteMs = 60 * 1000;
 
 /**
+ * One hour in milliseconds.
+ */
+constexpr uint32_t OneHourMs = OneMinuteMs * 60;
+
+/**
  * Five minutes in milliseconds.
  */
 constexpr uint32_t FiveMinutesMs = 5 * 60 * 1000;

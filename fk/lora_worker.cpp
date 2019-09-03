@@ -1,6 +1,7 @@
 #include "lora_worker.h"
 
 #include "hal/metal/metal_lora.h"
+#include "config.h"
 
 namespace fk {
 
@@ -18,6 +19,12 @@ void LoraWorker::run(Pool &pool) {
 
         joined = true;
     }
+    else {
+        if (!lora->wake()) {
+            logerror("error waking");
+            return;
+        }
+    }
 
     for (uint8_t i = 0; i < 10; ++i) {
         uint8_t data[] = { 0xaa, i };
@@ -26,6 +33,11 @@ void LoraWorker::run(Pool &pool) {
         }
 
         fk_delay(1000);
+    }
+
+    if (!lora->sleep(OneHourMs)) {
+        logerror("error sleeping");
+        return;
     }
 
     loginfo("done");
