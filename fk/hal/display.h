@@ -15,8 +15,10 @@ struct DisplayScreen {
 
 struct HomeScreen : public DisplayScreen {
     uint32_t time;
-    bool wifi;
+    bool network;
     bool gps;
+    bool recording;
+    bool logo;
     float battery;
     const char *message;
 };

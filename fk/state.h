@@ -66,6 +66,7 @@ struct PeripheralState {
 
 struct GeneralState {
     char name[MaximumNameLength];
+    bool recording;
 };
 
 struct ProgressState {

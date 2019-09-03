@@ -105,35 +105,43 @@ void U8g2Display::home(HomeScreen const &data) {
     draw_.setPowerSave(0);
     draw_.clearBuffer();
 
-    auto &logo = fk_logo_bw_80x17;
-    draw_.drawXBM(2, logo.h - 4, logo.w, logo.h, logo.data);
+    if (data.logo) {
+        auto &logo = fk_logo_bw_80x17;
+        draw_.drawXBM(2, logo.h - 16, logo.w, logo.h, logo.data);
+    }
 
     draw_.setFont(u8g2_font_battery19_tn);
-    draw_.drawGlyph(OLED_WIDTH - 8, 30, glyph_battery19[sizeof(glyph_battery19) - 1]);
+    draw_.drawGlyph(OLED_WIDTH - 12, 20, glyph_battery19[sizeof(glyph_battery19) - 1]);
 
-    draw_.setFont(u8g2_font_open_iconic_all_2x_t);
-    if (toggle_every(data.time, 1000)) {
-        draw_.drawGlyph(OLED_WIDTH - 44, 30, glyph_open_iconic_all_wifi_1);
-    }
-    else {
-        draw_.drawGlyph(OLED_WIDTH - 44, 30, glyph_open_iconic_all_wifi_2);
-    }
-
-    draw_.setFont(u8g2_font_open_iconic_all_2x_t);
-    if (toggle_every(data.time, 1000)) {
-        draw_.drawGlyph(OLED_WIDTH - 28, 30, glyph_open_iconic_all_gps);
-    }
-    else {
-        draw_.drawGlyph(OLED_WIDTH - 28, 30, glyph_open_iconic_all_gps);
+    if (data.network) {
+        draw_.setFont(u8g2_font_open_iconic_all_2x_t);
+        if (toggle_every(data.time, 1000)) {
+            draw_.drawGlyph(OLED_WIDTH - 44, 18, glyph_open_iconic_all_wifi_1);
+        }
+        else {
+            draw_.drawGlyph(OLED_WIDTH - 44, 18, glyph_open_iconic_all_wifi_2);
+        }
     }
 
-    char buffer[128];
-    tiny_snprintf(buffer, sizeof(buffer), data.message);
-    draw_.setFontMode(0);
-    draw_.setFont(u8g2_font_courB18_tf);
-    auto width = draw_.getUTF8Width(buffer);
-    auto x = lerp(-width, OLED_WIDTH, 10000, data.time);
-    draw_.drawUTF8(x, OLED_HEIGHT, buffer);
+    if (data.gps) {
+        draw_.setFont(u8g2_font_open_iconic_all_2x_t);
+        if (toggle_every(data.time, 1000)) {
+            draw_.drawGlyph(OLED_WIDTH - 28, 18, glyph_open_iconic_all_gps);
+        }
+        else {
+            draw_.drawGlyph(OLED_WIDTH - 28, 18, glyph_open_iconic_all_gps);
+        }
+    }
+
+    if (data.message != nullptr) {
+        char buffer[128];
+        tiny_snprintf(buffer, sizeof(buffer), data.message);
+        draw_.setFontMode(0);
+        draw_.setFont(u8g2_font_courB18_tf);
+        auto width = draw_.getUTF8Width(buffer);
+        auto x = lerp(-width, OLED_WIDTH, 10000, data.time);
+        draw_.drawUTF8(x, 18 + 20, buffer);
+    }
 
     draw_.sendBuffer();
 }

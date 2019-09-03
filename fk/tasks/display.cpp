@@ -1,7 +1,7 @@
 #include "tasks/tasks.h"
 #include "hal/metal/metal.h"
 #include "pool.h"
-
+#include "state_manager.h"
 #include "simple_workers.h"
 
 #include <qrcode.h>
@@ -14,12 +14,16 @@ static void show_home() {
     auto bus = get_board()->i2c_core();
     auto display = get_display();
 
+    auto gs = get_global_state_ro();
+
     HomeScreen screen;
     screen.time = fk_uptime();
-    screen.wifi = true;
-    screen.gps = true;
-    screen.battery = 1.0f;
-    screen.message = "Hello";
+    screen.recording = gs.get()->general.recording;
+    screen.network = gs.get()->network.enabled;
+    screen.gps = gs.get()->gps.fix;
+    screen.battery = gs.get()->power.charge;
+    screen.logo = true;
+    screen.message = nullptr;
 
     display->home(screen);
 }
@@ -318,7 +322,7 @@ void task_handler_display(void *params) {
             }
         }
         else {
-            if (false) {
+            if (true) {
                 show_home();
             }
             else {
