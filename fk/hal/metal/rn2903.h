@@ -14,7 +14,7 @@ private:
     LineReader<256> line_reader_{ &bridge_ };
 
 public:
-    Rn2903(TwoWireWrapper &bud);
+    Rn2903(TwoWireWrapper &bus);
 
 public:
     bool begin();

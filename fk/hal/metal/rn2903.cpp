@@ -121,6 +121,15 @@ bool Rn2903::provision(const char *app_eui, const char *app_key) {
         return false;
     }
 
+    // NOTE: This is required anytime you save parameters. Per the RN2903
+    // manual, If this parameter was previously saved to user EEPROM by issuing
+    // the mac save command, after modifying its value, the mac save command
+    // should be called again.
+    // https://www.loraserver.io/lora-app-server/use/devices/#to-set-the-appeui-and-appkey
+    if (!simple_query("mac set devaddr %s", &line, 1000, "00000000")) {
+        return false;
+    }
+
     if (!save_state()) {
         return false;
     }
@@ -204,10 +213,6 @@ bool Rn2903::join(const char *app_eui, const char *app_key, int32_t retries, uin
 
         if (strstr(line, "accepted") == nullptr) {
             continue;
-        }
-
-        if (!simple_query("mac get ch status", &line, 1000)) {
-            return false;
         }
 
         if (!simple_query("mac get devaddr", &line, 1000)) {

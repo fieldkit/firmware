@@ -1,7 +1,7 @@
 #include "hal/metal/metal_lora.h"
-
 #include "hal/board.h"
 #include "hal/metal/sc16is740.h"
+#include "utilities.h"
 
 #include <Arduino.h>
 
@@ -12,63 +12,131 @@ FK_DECLARE_LOGGER("lora");
 Rn2903LoraNetwork::Rn2903LoraNetwork() {
 }
 
-bool Rn2903LoraNetwork::begin() {
+bool Rn2903LoraNetwork::show_status() {
+    auto bus = get_board()->i2c_radio();
+    Rn2903 rn2903_{ bus };
+
+    const char *line = nullptr;
+    if (!rn2903_.simple_query("sys get hweui", &line, 1000)) {
+        return false;
+    }
+    if (!rn2903_.simple_query("sys get vdd", &line, 1000)) {
+        return false;
+    }
+    if (!rn2903_.simple_query("mac get appeui", &line, 1000)) {
+        return false;
+    }
+    if (!rn2903_.simple_query("mac get deveui", &line, 1000)) {
+        return false;
+    }
+    if (!rn2903_.simple_query("mac get dr", &line, 1000)) {
+        return false;
+    }
+    if (!rn2903_.simple_query("mac get rxdelay1", &line, 1000)) {
+        return false;
+    }
+    if (!rn2903_.simple_query("mac get rxdelay2", &line, 1000)) {
+        return false;
+    }
+
+    return true;
+}
+
+bool Rn2903LoraNetwork::power(bool on) {
     pinMode(LORA_ENABLE, OUTPUT);
-    digitalWrite(LORA_ENABLE, LOW);
+    digitalWrite(LORA_ENABLE, on ? HIGH : LOW);
+
+    return true;
+}
+
+bool Rn2903LoraNetwork::sleep(uint32_t ms) {
+    auto bus = get_board()->i2c_radio();
+    Rn2903 rn2903_{ bus };
+
+    if (!rn2903_.simple_query("sys sleep %d", 1000)) {
+        return false;
+    }
+
+    return true;
+}
+
+bool Rn2903LoraNetwork::begin() {
+    if (!power(false)) {
+        return false;
+    }
+
     fk_delay(500);
-    digitalWrite(LORA_ENABLE, HIGH);
+
+    if (!power(true)) {
+        return false;
+    }
+
     fk_delay(100);
 
-    auto bus = get_board()->i2c_radio();
+    // pinMode(LORA_ENABLE, OUTPUT);
+    // digitalWrite(LORA_ENABLE, LOW);
+    // fk_delay(500);
+    // digitalWrite(LORA_ENABLE, HIGH);
+    // fk_delay(100);
 
-    Rn2903 rn2903{ bus };
-    if (!rn2903.begin()) {
+    auto bus = get_board()->i2c_radio();
+    Rn2903 rn2903_{ bus };
+    if (!rn2903_.begin()) {
         return false;
     }
 
     const char *line = nullptr;
-    if (!rn2903.read_line_sync(&line, 5000)) {
+    if (!rn2903_.read_line_sync(&line, 5000)) {
         return false;
     }
 
-    const char *dev_eui = "008C1F21E6162E58";
-    if (!rn2903.simple_query("mac set deveui %s", 1000, dev_eui)) {
-        return false;
-    }
-    if (!rn2903.simple_query("sys get hweui", &line, 1000)) {
-        return false;
-    }
-    if (!rn2903.simple_query("sys get vdd", &line, 1000)) {
-        return false;
-    }
-    if (!rn2903.simple_query("mac get appeui", &line, 1000)) {
-        return false;
-    }
-    if (!rn2903.simple_query("mac get deveui", &line, 1000)) {
-        return false;
-    }
-    if (!rn2903.simple_query("mac get dr", &line, 1000)) {
-        return false;
-    }
-    if (!rn2903.simple_query("mac get rxdelay1", &line, 1000)) {
-        return false;
-    }
-    if (!rn2903.simple_query("mac get rxdelay2", &line, 1000)) {
+    if (!show_status()) {
         return false;
     }
 
-    const char *app_eui = "70B3D57ED001F439";
-    const char *app_key = "900AA739F7AA08D083CDE23E96FA0820";
+    const char *app_eui = "0000000000000000";
+    const char *app_key = "39e98dbaa08feed53d5f68d43d0ef981";
 
-    while (true) {
-        if (rn2903.join(app_eui, app_key)) {
-            break;
-        }
-
-        fk_delay(5000);
+    if (!rn2903_.join(app_eui, app_key)) {
+        return false;
     }
 
     return true;
+}
+
+bool Rn2903LoraNetwork::send_bytes(uint8_t const *data, size_t size) {
+    auto bus = get_board()->i2c_radio();
+    Rn2903 rn2903_{ bus };
+
+    uint8_t port = 10;
+    char hex[size * 2 + 1];
+    bytes_to_hex_string(hex, sizeof(hex), data, size);
+
+    const char *mode = "cnf";
+    if (!rn2903_.simple_query("mac tx %s %d %s", 1000, mode, port, hex)) {
+        return false;
+    }
+
+    auto started = fk_uptime();
+
+    const char *line = nullptr;
+    if (!rn2903_.read_line_sync(&line, 60000)) {
+        return false;
+    }
+
+    loginfo("rn2903 > '%s' (%" PRIu32 "ms)", line, fk_uptime() - started);
+
+    const char *mac_tx_ok = "mac_tx_ok";
+    if (strncmp(line, mac_tx_ok, strlen(mac_tx_ok)) == 0) {
+        return true;
+    }
+
+    const char *mac_rx = "mac_rx";
+    if (strncmp(line, mac_rx, strlen(mac_rx)) == 0) {
+        return true;
+    }
+
+    return false;
 }
 
 }
