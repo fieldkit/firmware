@@ -44,6 +44,7 @@ bool ApiHandler::handle(HttpRequest &req, Pool &pool) {
         loginfo("handling %s", "QUERY_STATUS");
         return send_status(req, query, pool);
     }
+    case fk_app_QueryType_QUERY_RECORDING_CONTROL:
     case fk_app_QueryType_QUERY_CONFIGURE: {
         loginfo("handling %s", "QUERY_CONFIGURE");
         return configure(req, query, pool);
@@ -69,46 +70,68 @@ bool ApiHandler::handle(HttpRequest &req, Pool &pool) {
     return true;
 }
 
+static bool flush_configuration(Pool &pool) {
+    auto gs = get_global_state_ro();
+
+    StatisticsMemory memory{ MemoryFactory::get_data_memory() };
+    Storage storage{ &memory, false };
+    if (!storage.begin()) {
+        return false;
+    }
+
+    auto meta = storage.file(Storage::Meta);
+    if (!meta.seek_end()) {
+        FK_ASSERT(meta.create());
+    }
+
+    fk_serial_number_t sn;
+
+    pb_data_t device_id = {
+        .length = sizeof(sn),
+        .buffer = &sn,
+    };
+
+    auto hash_size = fkb_header.firmware.hash_size;
+    auto hash_hex = bytes_to_hex_string_pool(fkb_header.firmware.hash, hash_size, pool);
+
+    auto record = fk_data_record_encoding_new();
+    record.metadata.firmware.git.arg = (void *)hash_hex;
+    record.metadata.firmware.build.arg = (void *)fkb_header.firmware.name;
+    record.metadata.deviceId.arg = (void *)&device_id;
+    record.identity.name.arg = (void *)gs.get()->general.name;
+    record.condition.flags = fk_data_ConditionFlags_CONDITION_FLAGS_NONE;
+    if (gs.get()->general.recording) {
+        record.condition.flags |= fk_data_ConditionFlags_CONDITION_FLAGS_RECORDING;
+    }
+
+    auto srl = SignedRecordLog{ meta };
+    if (!srl.append_immutable(SignedRecordKind::State, &record, fk_data_DataRecord_fields, pool)) {
+        return false;
+    }
+
+    return true;
+}
+
 static bool configure(HttpRequest &req, fk_app_HttpQuery *query, Pool &pool) {
-    if (query->identity.name.arg != nullptr) {
+    // HACK HACK HACK
+    if (query->identity.name.arg != &pool) {
         auto name = (char *)query->identity.name.arg;
-
-        StatisticsMemory memory{ MemoryFactory::get_data_memory() };
-        Storage storage{ &memory, false };
-        if (!storage.begin()) {
-            return false;
-        }
-
-        auto meta = storage.file(Storage::Meta);
-        if (!meta.seek_end()) {
-            FK_ASSERT(meta.create());
-        }
-
-        fk_serial_number_t sn;
-
-        pb_data_t device_id = {
-            .length = sizeof(sn),
-            .buffer = &sn,
-        };
-
-        auto hash_size = fkb_header.firmware.hash_size;
-        auto hash_hex = bytes_to_hex_string_pool(fkb_header.firmware.hash, hash_size, pool);
-
-        auto record = fk_data_record_encoding_new();
-        record.metadata.firmware.git.arg = (void *)hash_hex;
-        record.metadata.firmware.build.arg = (void *)fkb_header.firmware.name;
-        record.metadata.deviceId.arg = (void *)&device_id;
-        record.identity.name.arg = name;
-
-        auto srl = SignedRecordLog{ meta };
-        if (!srl.append_immutable(SignedRecordKind::State, &record, fk_data_DataRecord_fields, pool)) {
-            return false;
-        }
 
         GlobalStateManager gsm;
         gsm.apply([=](GlobalState *gs) {
             strncpy(gs->general.name, name, sizeof(gs->general.name));
         });
+    }
+
+    if (query->recording.modifying) {
+        GlobalStateManager gsm;
+        gsm.apply([=](GlobalState *gs) {
+            gs->general.recording = query->recording.enabled;
+        });
+    }
+
+    if (!flush_configuration(pool)) {
+        return false;
     }
 
     return send_status(req, query, pool);
