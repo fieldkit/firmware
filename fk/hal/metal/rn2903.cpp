@@ -263,6 +263,10 @@ bool Rn2903::join(const char *app_eui, const char *app_key, int32_t retries, uin
             continue;
         }
 
+        if (!simple_query("mac get status", &line, 1000)) {
+            return false;
+        }
+
         if (!simple_query("mac get devaddr", &line, 1000)) {
             return false;
         }
