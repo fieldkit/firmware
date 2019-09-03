@@ -11,7 +11,7 @@ FK_DECLARE_LOGGER("lora");
 #define TTN_DEFAULT_SF  7
 #define TTN_DEFAULT_FSB 2
 
-Rn2903::Rn2903(TwoWireWrapper &bus) : bridge_{ bus } {
+Rn2903::Rn2903() {
 }
 
 bool Rn2903::begin() {

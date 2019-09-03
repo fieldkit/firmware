@@ -13,9 +13,6 @@ Rn2903LoraNetwork::Rn2903LoraNetwork() {
 }
 
 bool Rn2903LoraNetwork::show_status() {
-    auto bus = get_board()->i2c_radio();
-    Rn2903 rn2903_{ bus };
-
     const char *line = nullptr;
     if (!rn2903_.simple_query("sys get hweui", &line, 1000)) {
         return false;
@@ -50,9 +47,6 @@ bool Rn2903LoraNetwork::power(bool on) {
 }
 
 bool Rn2903LoraNetwork::sleep(uint32_t ms) {
-    auto bus = get_board()->i2c_radio();
-    Rn2903 rn2903_{ bus };
-
     if (!rn2903_.simple_query("sys sleep %d", 1000)) {
         return false;
     }
@@ -73,14 +67,6 @@ bool Rn2903LoraNetwork::begin() {
 
     fk_delay(100);
 
-    // pinMode(LORA_ENABLE, OUTPUT);
-    // digitalWrite(LORA_ENABLE, LOW);
-    // fk_delay(500);
-    // digitalWrite(LORA_ENABLE, HIGH);
-    // fk_delay(100);
-
-    auto bus = get_board()->i2c_radio();
-    Rn2903 rn2903_{ bus };
     if (!rn2903_.begin()) {
         return false;
     }
@@ -105,9 +91,6 @@ bool Rn2903LoraNetwork::begin() {
 }
 
 bool Rn2903LoraNetwork::send_bytes(uint8_t const *data, size_t size) {
-    auto bus = get_board()->i2c_radio();
-    Rn2903 rn2903_{ bus };
-
     uint8_t port = 10;
     char hex[size * 2 + 1];
     bytes_to_hex_string(hex, sizeof(hex), data, size);

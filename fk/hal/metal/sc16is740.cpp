@@ -55,11 +55,12 @@ static const uint8_t XON2_REG = 0x05;
 static const uint8_t XOFF1_REG = 0x06;
 static const uint8_t XOFF2_REG = 0x07;
 
-Sc16is740::Sc16is740(TwoWireWrapper &bus) : bus_(&bus) {
+Sc16is740::Sc16is740() {
 }
 
 bool Sc16is740::begin() {
-    bus_->begin();
+    auto bus = get_board()->i2c_radio();
+    bus.begin();
 
     auto oscillator_hz  = 3686400;
     auto baud_rate = 57600;
@@ -96,11 +97,13 @@ bool Sc16is740::read_fifo(uint8_t *buffer, size_t size) {
         (uint8_t)(RHR_THR_REG << 3)
     };
 
-    if (!I2C_CHECK(bus_->write(Sc16iS740Address, setup, sizeof(setup)))) {
+    auto bus = get_board()->i2c_radio();
+
+    if (!I2C_CHECK(bus.write(Sc16iS740Address, setup, sizeof(setup)))) {
         return false;
     }
 
-    if (!I2C_CHECK(bus_->read(Sc16iS740Address, buffer, size))) {
+    if (!I2C_CHECK(bus.read(Sc16iS740Address, buffer, size))) {
         return false;
     }
 
@@ -112,7 +115,9 @@ bool Sc16is740::write_fifo(uint8_t const *buffer, size_t size) {
     data[0] = RHR_THR_REG << 3;
     memcpy(data + 1, buffer, size);
 
-    if (!I2C_CHECK(bus_->write(Sc16iS740Address, data, sizeof(data)))) {
+    auto bus = get_board()->i2c_radio();
+
+    if (!I2C_CHECK(bus.write(Sc16iS740Address, data, sizeof(data)))) {
         return false;
     }
 
@@ -135,7 +140,9 @@ bool Sc16is740::write_register(uint8_t reg, uint8_t value) {
         value,
     };
 
-    if (!I2C_CHECK(bus_->write(Sc16iS740Address, buffer, sizeof(buffer)))) {
+    auto bus = get_board()->i2c_radio();
+
+    if (!I2C_CHECK(bus.write(Sc16iS740Address, buffer, sizeof(buffer)))) {
         return false;
     }
 
@@ -147,13 +154,15 @@ bool Sc16is740::read_register(uint8_t reg, uint8_t &value) {
         (uint8_t)(reg << 3)
     };
 
-    if (!I2C_CHECK(bus_->write(Sc16iS740Address, buffer, sizeof(buffer)))) {
+    auto bus = get_board()->i2c_radio();
+
+    if (!I2C_CHECK(bus.write(Sc16iS740Address, buffer, sizeof(buffer)))) {
         return false;
     }
 
     uint8_t data[1];
 
-    if (!I2C_CHECK(bus_->read(Sc16iS740Address, data, sizeof(data)))) {
+    if (!I2C_CHECK(bus.read(Sc16iS740Address, data, sizeof(data)))) {
         return false;
     }
 

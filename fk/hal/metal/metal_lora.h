@@ -8,6 +8,9 @@
 namespace fk {
 
 class Rn2903LoraNetwork : public LoraNetwork {
+private:
+    Rn2903 rn2903_;
+
 public:
     Rn2903LoraNetwork();
 
