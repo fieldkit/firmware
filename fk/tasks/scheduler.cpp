@@ -3,6 +3,7 @@
 #include "tasks/tasks.h"
 #include "hal/hal.h"
 #include "clock.h"
+#include "lora_worker.h"
 
 namespace fk {
 
@@ -15,12 +16,12 @@ static bool start_task_if_necessary(os_task_t *task);
 class SchedulerTask {
 };
 
-class CronTask : public lwcron::CronTask, public SchedulerTask {
+class StartTaskFromCron : public lwcron::CronTask, public SchedulerTask {
 private:
     os_task_t *task_;
 
 public:
-    CronTask(lwcron::CronSpec spec, os_task_t *task) : lwcron::CronTask(spec), task_(task) {
+    StartTaskFromCron(lwcron::CronSpec spec, os_task_t *task) : lwcron::CronTask(spec), task_(task) {
     }
 
 public:
@@ -35,12 +36,35 @@ public:
 
 };
 
+template<typename T>
+class StartWorkerFromCron : public lwcron::CronTask, public SchedulerTask {
+public:
+    StartWorkerFromCron(lwcron::CronSpec spec) : lwcron::CronTask(spec) {
+    }
+
+public:
+    void run() override {
+        auto worker = create_pool_wrapper<T, DefaultWorkerPoolSize, PoolWorker<T>>();
+        if (!get_ipc()->launch_worker(worker)) {
+            return;
+        }
+    }
+
+public:
+    const char *toString() const override {
+        return "worker";
+    }
+
+};
+
 void task_handler_scheduler(void *params) {
     lwcron::CronSpec readings_cron_spec{ lwcron::CronSpec::interval(10) };
+    lwcron::CronSpec lora_cron_spec{ lwcron::CronSpec::interval(300) };
 
-    CronTask readings_job{ readings_cron_spec, &readings_task };
+    StartTaskFromCron readings_job{ readings_cron_spec, &readings_task };
+    StartWorkerFromCron<LoraWorker> lora_job{ lora_cron_spec };
 
-    lwcron::Task *tasks[1] { &readings_job };
+    lwcron::Task *tasks[2] { &readings_job, &lora_job };
     lwcron::Scheduler scheduler{ tasks };
 
     scheduler.begin( get_clock_now() );
