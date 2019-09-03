@@ -59,7 +59,7 @@ public:
 
 void task_handler_scheduler(void *params) {
     lwcron::CronSpec readings_cron_spec{ lwcron::CronSpec::interval(10) };
-    lwcron::CronSpec lora_cron_spec{ lwcron::CronSpec::interval(300) };
+    lwcron::CronSpec lora_cron_spec{ lwcron::CronSpec::interval(180) };
 
     StartTaskFromCron readings_job{ readings_cron_spec, &readings_task };
     StartWorkerFromCron<LoraWorker> lora_job{ lora_cron_spec };

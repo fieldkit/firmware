@@ -69,6 +69,13 @@ public:
         return false;
     }
 
+    bool clear() {
+        cursor_ = 0;
+        position_ = 0;
+        line_ = 0;
+        return true;
+    }
+
 };
 
 }

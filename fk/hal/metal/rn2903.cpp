@@ -40,11 +40,15 @@ bool Rn2903::wake() {
 
         if (bridge_.write_fifo(buffer, sizeof(buffer))) {
             const char *line = nullptr;
-            if (simple_query("sys get ver", &line, 2000)) {
-                const char *busy = "busy";
-                if (strncmp(line, busy, strlen(busy)) != 0) {
-                    return true;
-                }
+
+            // This should be 'ok', which is the ack from the actual sleep.
+            if (read_line_sync(&line, 1000)) {
+                loginfo("rn2903 > '%s'", line);
+
+                line_reader_.read_line_sync(&line, 1000);
+                line_reader_.clear();
+
+                return true;
             }
         }
     }
@@ -105,6 +109,7 @@ bool Rn2903::simple_query(const char *cmd, uint32_t to, ...) {
     }
 
     if (strncmp(line, "ok", 2) != 0) {
+        loginfo("rn2903 > '%s'", line);
         return false;
     }
 

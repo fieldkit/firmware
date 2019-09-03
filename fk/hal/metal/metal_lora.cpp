@@ -38,6 +38,10 @@ bool Rn2903LoraNetwork::show_status() {
     return true;
 }
 
+bool Rn2903LoraNetwork::join(const char *app_eui, const char *app_key, int32_t retries, uint32_t retry_delay) {
+    return rn2903_.join(app_eui, app_key, retries, retry_delay);
+}
+
 bool Rn2903LoraNetwork::power(bool on) {
     if (on) {
         get_board()->enable_lora();
@@ -80,13 +84,6 @@ bool Rn2903LoraNetwork::begin() {
     }
 
     if (!show_status()) {
-        return false;
-    }
-
-    const char *app_eui = "0000000000000000";
-    const char *app_key = "39e98dbaa08feed53d5f68d43d0ef981";
-
-    if (!rn2903_.join(app_eui, app_key)) {
         return false;
     }
 
