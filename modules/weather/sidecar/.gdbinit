@@ -24,6 +24,19 @@ class FkRestart(gdb.Command):
       gdb.execute("monitor reset")
       gdb.execute("c")
 
+class FkReloadAllAndRun(gdb.Command):
+  "Reload all and run."
+  def __init__ (self):
+    super(FkReloadAllAndRun, self).__init__("jrar", gdb.COMMAND_SUPPORT, gdb.COMPLETE_NONE, True)
+
+  def invoke(self, arg, from_tty):
+    made = subprocess.run(["make", "samd09", "-j4"], cwd="../../../")
+    if made.returncode != 0:
+      return False
+    gdb.execute("load")
+    gdb.execute("monitor reset")
+    gdb.execute("c")
+
 class FkReloadAll(gdb.Command):
   "Reload all."
   def __init__ (self):
@@ -41,3 +54,4 @@ end
 python FkReloadAll()
 python FkSegger()
 python FkRestart()
+python FkReloadAllAndRun()
