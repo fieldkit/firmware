@@ -3,6 +3,7 @@
 #include "pool.h"
 #include "state_manager.h"
 #include "simple_workers.h"
+#include "display_self_check_callbacks.h"
 
 #include <qrcode.h>
 
@@ -128,63 +129,6 @@ static MenuScreen *goto_menu(MenuScreen *screen) {
 
     return screen;
 }
-
-class DisplaySelfCheckCallbacks : public SelfCheckCallbacks {
-public:
-    constexpr static size_t NumberOfChecks = 10;
-
-private:
-    SelfCheckScreen screen_;
-    Check checks_[NumberOfChecks];
-    Check *queued_[NumberOfChecks + 1] = { nullptr };
-    size_t number_{ 0 };
-
-public:
-    DisplaySelfCheckCallbacks() {
-        screen_.checks = queued_;
-    }
-
-public:
-    void update(SelfCheckStatus status) override {
-        number_ = 0;
-        append("rtc", status.rtc);
-        append("temp", status.temperature);
-        append("bg", status.battery_gauge);
-        append("qspi", status.qspi_memory);
-        append("spi", status.spi_memory);
-        append("wifi", status.wifi);
-        append("sd", status.sd_card);
-        append("bpm", status.bp_mux);
-        append("bps", status.bp_shift);
-    }
-
-    void append(const char *name, CheckStatus status) {
-        FK_ASSERT(number_ < NumberOfChecks);
-        if (status == CheckStatus::Pass) {
-            checks_[number_] = { name, true };
-            queued_[number_] = &checks_[number_];
-            number_++;
-            queued_[number_] = nullptr;
-        }
-        else if (status == CheckStatus::Fail) {
-            checks_[number_] = { name, false };
-            queued_[number_] = &checks_[number_];
-            number_++;
-            queued_[number_] = nullptr;
-        }
-    }
-
-    void clear() {
-        queued_[0] = nullptr;
-        number_ = 0;
-    }
-
-public:
-    SelfCheckScreen &screen() {
-        return screen_;
-    }
-
-};
 
 void task_handler_display(void *params) {
     auto stop_time = fk_uptime() + fk_config().display.inactivity;
