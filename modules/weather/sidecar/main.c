@@ -54,13 +54,13 @@ int32_t take_readings(fk_weather_t *weather) {
     weather->temperature_2 = mpl3115a2_reading.temperature;
     weather->wind.direction = wind_direction.value;
 
-    loginfof("adc081c: %d", wind_direction.value);
+    loginfof("adc081c wind dir: %d", wind_direction.value);
     loginfof("wind: %d", counters_reading.wind);
     loginfof("rain: %d", counters_reading.rain);
-    loginfof("pressure: %d", mpl3115a2_reading.pressure);
-    loginfof("temp: %d", mpl3115a2_reading.temperature);
-    loginfof("humidity: %d", sht31_reading.humidity);
-    loginfof("temp: %d", sht31_reading.temperature);
+    loginfof("mpl pressure: %d", mpl3115a2_reading.pressure);
+    loginfof("mpl temp: %d", mpl3115a2_reading.temperature);
+    loginfof("sht humidity: %d", sht31_reading.humidity);
+    loginfof("sht temp: %d", sht31_reading.temperature);
 
     return FK_SUCCESS;
 }
@@ -97,7 +97,7 @@ __int32_t main() {
 
     eeprom_region_t readings_region;
 
-    eeprom_region_create(&readings_region, &I2C_1, EEPROM_ADDRESS_READINGS, EEPROM_ADDRESS_END, sizeof(fk_weather_t));
+    eeprom_region_create(&readings_region, &I2C_0, EEPROM_ADDRESS_READINGS, EEPROM_ADDRESS_END, sizeof(fk_weather_t));
 
     while (true) {
         if (take_readings_triggered) {
