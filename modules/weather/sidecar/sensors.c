@@ -8,7 +8,7 @@
 #define MCP2803_RAIN_I2C_ADDRESS        (0x20 + 0x1)
 #define MCP2803_RAIN_IODIR              (0b11111111)
 
-#define MCP2803_WIND_I2C_ADDRESS        (0x20 + 0x3)
+#define MCP2803_WIND_I2C_ADDRESS        (0x20 + 0x4)
 #define MCP2803_WIND_IODIR              (0b11111111)
 
 #define MCP2803_CONTROL_I2C_ADDRESS     (0x20 + 0x2)
@@ -46,16 +46,10 @@ int32_t sensors_initialize(struct i2c_m_sync_desc *i2c) {
         return rv;
     }
 
-    // TODO: Disabled until we get new hardware.
-    if (false) {
-        rv = configure_io_expander(i2c, MCP2803_WIND_I2C_ADDRESS, MCP2803_WIND_IODIR, 0);
-        if (rv != FK_SUCCESS) {
-            logerror("wind-mcp: error initializing");
-            return rv;
-        }
-    }
-    else {
-        loginfo("wind-mcp: skipping");
+    rv = configure_io_expander(i2c, MCP2803_WIND_I2C_ADDRESS, MCP2803_WIND_IODIR, 0);
+    if (rv != FK_SUCCESS) {
+        logerror("wind-mcp: error initializing");
+        return rv;
     }
 
     rv = configure_io_expander(i2c, MCP2803_CONTROL_I2C_ADDRESS, MCP2803_CONTROL_IODIR, MCP2803_CONTROL_GPIO_DEFAULT);
@@ -99,11 +93,9 @@ int32_t counters_reading_get(struct i2c_m_sync_desc *i2c, counters_reading_t *re
         return rv;
     }
 
-    if (false) {
-        rv = i2c_command_read_buffer(i2c, MCP2803_WIND_I2C_ADDRESS, MCP23008_GPIO, &reading->wind, sizeof(uint8_t));
-        if (rv != FK_SUCCESS) {
-            return rv;
-        }
+    rv = i2c_command_read_buffer(i2c, MCP2803_WIND_I2C_ADDRESS, MCP23008_GPIO, &reading->wind, sizeof(uint8_t));
+    if (rv != FK_SUCCESS) {
+        return rv;
     }
 
     return FK_SUCCESS;
