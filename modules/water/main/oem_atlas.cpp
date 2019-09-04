@@ -84,7 +84,7 @@ bool OemAtlas::find(uint8_t address) {
     address_ = address;
     type_ = type;
 
-    loginfo("[0x%x] detected '%s' type = %d version = %d", address, cfg.name, d16.bytes[0], d16.bytes[1]);
+    loginfo("[0x%x] detected type = %d version = %d '%s'", address, d16.bytes[0], d16.bytes[1], cfg.name);
 
     return true;
 }
@@ -134,7 +134,7 @@ bool OemAtlas::read(float *values, size_t &number_of_values) {
             break;
         }
 
-        fk_delay(10);
+        fk_delay(50);
     }
 
     if (!has_reading) {

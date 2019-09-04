@@ -41,10 +41,8 @@ void task_handler_readings(void *params) {
 
         ModuleScanning scanning{ get_modmux() };
 
-        if (false) {
-            FK_ASSERT(configure_water(6));
-            FK_ASSERT(configure_weather(4));
-        }
+        // FK_ASSERT(configure_water(2));
+        // FK_ASSERT(configure_weather(4));
 
         ReadingsTaker readings_taker{ scanning, storage, get_modmux(), false };
         FK_ASSERT(readings_taker.take(mc, pool));

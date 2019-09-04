@@ -109,6 +109,8 @@ ModuleReadings *WaterModule::take_readings(ModuleContext mc, fk::Pool &pool) {
     size_t number_of_values = 0;
     float values[ATLAS_MAXIMUM_VALUES];
     if (!atlas.read(values, number_of_values)) {
+        atlas.leds(false);
+        atlas.hibernate();
         return nullptr;
     }
 

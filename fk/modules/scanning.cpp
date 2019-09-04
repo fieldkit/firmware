@@ -75,8 +75,6 @@ nonstd::optional<FoundModuleCollection> ModuleScanning::scan(Pool &pool) {
     auto module_bus = get_board()->i2c_module();
     ModuleEeprom eeprom{ module_bus };
 
-    mm_->enable_all_modules();
-
     for (uint8_t i = 0; i < MaximumNumberOfModules; ++i) {
         if (!mm_->choose(i)) {
             return nonstd::nullopt;

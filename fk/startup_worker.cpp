@@ -16,9 +16,21 @@ void StartupWorker::run(Pool &pool) {
     auto display = get_display();
     display->company_logo();
 
+    auto mm = get_modmux();
+
+    // NOTE Power cycle modules, this gives us a fresh start. Some times behave
+    // funny, specifically temperature. Without this the first attempt down
+    // below during the scan fails fails.
+    // I tried moving the enable all to after the storage read and ran into the
+    // same issue. After the self check seems ok, though?
+
+    mm->disable_all_modules();
+
     NoopSelfCheckCallbacks noop_callbacks;
-    SelfCheck self_check(display, get_network(), get_modmux());
+    SelfCheck self_check(display, get_network(), mm);
     self_check.check(SelfCheckSettings{ }, noop_callbacks);
+
+    mm->enable_all_modules();
 
     Storage storage{ MemoryFactory::get_data_memory() };
     if (storage.begin()) {
