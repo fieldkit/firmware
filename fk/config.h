@@ -63,7 +63,7 @@ constexpr size_t SingleThreadedStartupPoolSize = 1024;
 /**
  * Size of the memory pool to use for Workers.
  */
-constexpr size_t DefaultWorkerPoolSize = 4096;
+constexpr size_t DefaultWorkerPoolSize = 8192;
 
 /**
  * Maximum number of WiFi networks.
@@ -124,7 +124,7 @@ constexpr size_t HttpdConnectionBufferSize = 1024;
 /**
  *
  */
-constexpr size_t HttpdConnectionWorkSize = 4096;
+constexpr size_t HttpdConnectionWorkSize = DefaultWorkerPoolSize;
 
 /**
  * Maximum number of blocks to look ahead for an available block. This means we
