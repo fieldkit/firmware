@@ -20,6 +20,8 @@ constexpr char glyph_open_iconic_all_wifi_2 = '\xF8';
 constexpr char glyph_open_iconic_all_bug = '\x68';
 constexpr char glyph_open_iconic_all_glass = '\xCF';
 
+constexpr char glyph_open_cursor_all_recording = '\x47';
+
 constexpr char glyph_battery19[] = { '1', '2', '3', '4', '5' };
 
 /**
@@ -119,8 +121,20 @@ void U8g2Display::home(HomeScreen const &data) {
         draw_.drawUTF8(((OLED_WIDTH - 44) / 2) - (width / 2), 12, buffer);
     }
 
-    draw_.setFont(u8g2_font_battery19_tn);
-    draw_.drawGlyph(OLED_WIDTH - 12, 20, glyph_battery19[sizeof(glyph_battery19) - 1]);
+    if (data.recording) {
+        if (toggle_every(data.time, 1000)) {
+            draw_.setFont(u8g2_font_cursor_tf);
+            draw_.drawGlyph(OLED_WIDTH - 12, 10, glyph_open_cursor_all_recording);
+        }
+        else {
+            draw_.setFont(u8g2_font_battery19_tn);
+            draw_.drawGlyph(OLED_WIDTH - 12, 20, glyph_battery19[sizeof(glyph_battery19) - 1]);
+        }
+    }
+    else {
+        draw_.setFont(u8g2_font_battery19_tn);
+        draw_.drawGlyph(OLED_WIDTH - 12, 20, glyph_battery19[sizeof(glyph_battery19) - 1]);
+    }
 
     if (data.network) {
         draw_.setFont(u8g2_font_open_iconic_all_2x_t);
