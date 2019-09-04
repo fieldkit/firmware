@@ -57,6 +57,12 @@ bool OemAtlas::find() {
         }
     }
 
+    for (uint8_t address = 1; address < 128; ++address) {
+        if (find(address)) {
+            return true;
+        }
+    }
+
     logerror("error reading device type");
 
     return false;
@@ -71,14 +77,14 @@ bool OemAtlas::find(uint8_t address) {
     auto type = (AtlasSensorType)d16.bytes[0];
     auto cfg = config(type);
     if (!cfg.valid) {
-        logerror("unknown device type");
+        logerror("[0x%x] unknown device type (0x%x)", address, type);
         return false;
     }
 
     address_ = address;
     type_ = type;
 
-    loginfo("detected '%s' type = %d version = %d", cfg.name, d16.bytes[0], d16.bytes[1]);
+    loginfo("[0x%x] detected '%s' type = %d version = %d", address, cfg.name, d16.bytes[0], d16.bytes[1]);
 
     return true;
 }
