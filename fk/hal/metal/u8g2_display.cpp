@@ -221,6 +221,19 @@ void U8g2Display::self_check(SelfCheckScreen const &screen) {
     draw_.sendBuffer();
 }
 
+void U8g2Display::simple(SimpleScreen &screen) {
+    draw_.clearBuffer();
+
+    if (screen.message != nullptr) {
+        draw_.setFontMode(1);
+        draw_.setFont(u8g2_font_courR08_tf);
+        auto width = draw_.getUTF8Width(screen.message);
+        draw_.drawUTF8((OLED_WIDTH / 2) - (width / 2), 32, screen.message);
+    }
+
+    draw_.sendBuffer();
+}
+
 void U8g2Display::off() {
     draw_.setPowerSave(1);
 }

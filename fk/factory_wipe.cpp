@@ -6,13 +6,17 @@ namespace fk {
 
 FK_DECLARE_LOGGER("factory");
 
-FactoryWipe::FactoryWipe(Buttons *buttons, Storage *storage) : buttons_(buttons), storage_(storage) {
+FactoryWipe::FactoryWipe(Display *display, Buttons *buttons, Storage *storage) : display_(display), buttons_(buttons), storage_(storage) {
 }
 
 bool FactoryWipe::wipe_if_necessary() {
     if (buttons_->number_pressed() == 0) {
         return true;
     }
+
+    SimpleScreen screen = { "Hold for Reset" };
+
+    display_->simple(screen);
 
     loginfo("possible factory wipe...");
 
@@ -22,9 +26,13 @@ bool FactoryWipe::wipe_if_necessary() {
         fk_delay(100);
         if (!wipe && fk_uptime() - started > FactoryWipeButtonDuration) {
             loginfo("will wipe on release!");
+            screen = { "Release for Reset" };
+            display_->simple(screen);
             wipe = true;
         }
     }
+
+    display_->off();
 
     if (!wipe) {
         return true;
@@ -32,7 +40,11 @@ bool FactoryWipe::wipe_if_necessary() {
 
     loginfo("factory wipe!");
 
-    return storage_->clear();
+    if (!storage_->clear()) {
+        return false;
+    }
+
+    return true;
 }
 
 }

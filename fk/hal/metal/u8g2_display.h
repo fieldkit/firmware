@@ -27,6 +27,7 @@ public:
     void menu(MenuScreen const &screen) override;
     void qr(QrCodeScreen const &screen) override;
     void self_check(SelfCheckScreen const &screen) override;
+    void simple(SimpleScreen &screen) override;
 
 };
 

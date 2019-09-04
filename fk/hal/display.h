@@ -33,6 +33,16 @@ struct MenuOption {
     virtual void on_selected() = 0;
 };
 
+struct SimpleScreen : public DisplayScreen {
+    const char *message;
+
+    SimpleScreen() {
+    }
+
+    SimpleScreen(const char *message) : message(message) {
+    }
+};
+
 template<typename T>
 struct LambdaOption : public MenuOption {
     T fn;
@@ -85,6 +95,7 @@ public:
     virtual void menu(MenuScreen const &screen) = 0;
     virtual void qr(QrCodeScreen const &screen) = 0;
     virtual void self_check(SelfCheckScreen const &screen) = 0;
+    virtual void simple(SimpleScreen &screen) = 0;
 
 };
 
@@ -99,6 +110,7 @@ public:
     void menu(MenuScreen const &screen) override { }
     void qr(QrCodeScreen const &screen) override { }
     void self_check(SelfCheckScreen const &screen) override { }
+    void simple(SimpleScreen &screen) override { }
 
     bool begin() {
         return true;

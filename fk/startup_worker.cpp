@@ -13,8 +13,11 @@ namespace fk {
 FK_DECLARE_LOGGER("sw");
 
 void StartupWorker::run(Pool &pool) {
+    auto display = get_display();
+    display->company_logo();
+
     NoopSelfCheckCallbacks noop_callbacks;
-    SelfCheck self_check(get_display(), get_network(), get_modmux());
+    SelfCheck self_check(display, get_network(), get_modmux());
     self_check.check(SelfCheckSettings{ }, noop_callbacks);
 
     Storage storage{ MemoryFactory::get_data_memory() };
@@ -34,7 +37,7 @@ void StartupWorker::run(Pool &pool) {
         }
     }
 
-    FactoryWipe fw{ get_buttons(), &storage };
+    FactoryWipe fw{ display, get_buttons(), &storage };
     FK_ASSERT(fw.wipe_if_necessary());
 
     ReadingsWorker readings_worker;
