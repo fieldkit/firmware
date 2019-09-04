@@ -27,8 +27,9 @@ void StartupWorker::run(Pool &pool) {
             if (srl.decode(&record, fk_data_DataRecord_fields, pool)) {
                 auto gs = get_global_state_rw();
                 auto name = (const char *)record.identity.name.arg;
-                loginfo("found custom name '%s'", name);
                 strncpy(gs.get()->general.name, name, sizeof(gs.get()->general.name));
+                gs.get()->general.recording = (record.condition.flags & fk_data_ConditionFlags_CONDITION_FLAGS_RECORDING) > 0;
+                loginfo("found custom name '%s'", name);
             }
         }
     }
