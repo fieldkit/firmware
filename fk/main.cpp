@@ -43,7 +43,7 @@ static void run_tasks() {
 
     os_task_options_t display_task_options = {
         "display",
-        OS_TASK_START_RUNNING,
+        OS_TASK_START_SUSPENDED,
         task_handler_display,
         nullptr,
         display_stack,
