@@ -23,8 +23,8 @@ static void show_home() {
     screen.network = gs.get()->network.enabled;
     screen.gps = gs.get()->gps.fix;
     screen.battery = gs.get()->power.charge;
+    screen.message = gs.get()->general.name;
     screen.logo = true;
-    screen.message = nullptr;
     screen.progress = {
         gs.get()->progress.operation,
         gs.get()->progress.progress,
