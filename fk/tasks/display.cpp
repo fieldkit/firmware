@@ -25,6 +25,10 @@ static void show_home() {
     screen.battery = gs.get()->power.charge;
     screen.logo = true;
     screen.message = nullptr;
+    screen.progress = {
+        gs.get()->progress.operation,
+        gs.get()->progress.progress,
+    };
 
     display->home(screen);
 }
@@ -130,6 +134,8 @@ static MenuScreen *goto_menu(MenuScreen *screen) {
     return screen;
 }
 
+// TODO Move this into a class with state, like previous_menu.
+// TODO Collapse options and their menu into a single templatized class?
 void task_handler_display(void *params) {
     auto stop_time = fk_uptime() + fk_config().display.inactivity;
     auto menu_time = (uint32_t)0;
@@ -137,6 +143,7 @@ void task_handler_display(void *params) {
     MenuScreen *previous_menu{ nullptr };
     DisplayScreen *active_screen{ nullptr };
     DisplaySelfCheckCallbacks self_check_callbacks;
+    SimpleScreen simple{ "" };
 
     auto back = to_lambda_option("Back", [&]() {
         // NOTE Fancy way of deselecting ourselves.
@@ -151,17 +158,19 @@ void task_handler_display(void *params) {
     auto self_check = to_lambda_option("Self Check", [&]() {
         self_check_callbacks.clear();
         active_screen = &self_check_callbacks.screen();
+        menu_time = 0;
         auto worker = create_pool_wrapper<SelfCheckWorker, DefaultWorkerPoolSize, PoolWorker<SelfCheckWorker>>(self_check_callbacks);
         if (!get_ipc()->launch_worker(worker)) {
             return;
         }
     });
     auto fsck = to_lambda_option("Run Fsck", [&]() {
+        back.on_selected();
+        menu_time = 0;
         auto worker = create_pool_wrapper<FsckWorker, DefaultWorkerPoolSize, PoolWorker<FsckWorker>>();
         if (!get_ipc()->launch_worker(worker)) {
             return;
         }
-        back.on_selected();
     });
     MenuOption *tools_options[] = {
         &back,
@@ -172,12 +181,13 @@ void task_handler_display(void *params) {
     MenuScreen tools_menu{ (MenuOption **)&tools_options };
 
     auto wifi_toggle = to_lambda_option("Toggle Wifi", [&]() {
+        back.on_selected();
+        menu_time = 0;
         // TODO: Remember this and skip restarting network.
         auto worker = create_pool_wrapper<WifiToggleWorker, DefaultWorkerPoolSize, PoolWorker<WifiToggleWorker>>();
         if (!get_ipc()->launch_worker(worker)) {
             return;
         }
-        back.on_selected();
     });
     MenuOption *network_options[] = {
         &back,
@@ -186,11 +196,23 @@ void task_handler_display(void *params) {
     };
     MenuScreen network_menu{ (MenuOption **)&network_options };
 
+    auto memory_info = to_lambda_option("Info", [&]() {
+        active_screen = &simple;
+        back.on_selected();
+    });
+    MenuOption *memory_options[] = {
+        &back,
+        &memory_info,
+        nullptr,
+    };
+    MenuScreen memory_menu{ (MenuOption **)&memory_options };
+
     auto readings = to_lambda_option("Readings", []() {
         loginfo("readings");
     });
-    auto memory = to_lambda_option("Memory", []() {
-        loginfo("memory");
+    auto memory = to_lambda_option("Memory", [&]() {
+        previous_menu = active_menu;
+        active_menu = goto_menu(&memory_menu);
     });
     auto network = to_lambda_option("Network", [&]() {
         previous_menu = active_menu;
@@ -256,6 +278,11 @@ void task_handler_display(void *params) {
         if (active_screen != nullptr) {
             if (active_screen == &self_check_callbacks.screen()) {
                 show_self_check_screen(self_check_callbacks.screen());
+            }
+            if (active_screen == &simple) {
+                auto bus = get_board()->i2c_core();
+                auto display = get_display();
+                display->simple(simple);
             }
         }
         else if (menu_time > 0) {

@@ -105,9 +105,18 @@ void U8g2Display::home(HomeScreen const &data) {
     draw_.setPowerSave(0);
     draw_.clearBuffer();
 
-    if (data.logo) {
+    if (data.progress.operation == nullptr) {
         auto &logo = fk_logo_bw_80x17;
         draw_.drawXBM(2, logo.h - 16, logo.w, logo.h, logo.data);
+    }
+    else {
+        // TODO Modify this so that the percentage is full size and the label varies.
+        char buffer[128];
+        tiny_snprintf(buffer, sizeof(buffer), "%s %.1f", data.progress.operation, data.progress.progress);
+        draw_.setFontMode(0);
+        draw_.setFont(u8g2_font_courB08_tf);
+        auto width = draw_.getUTF8Width(buffer);
+        draw_.drawUTF8(((OLED_WIDTH - 44) / 2) - (width / 2), 12, buffer);
     }
 
     draw_.setFont(u8g2_font_battery19_tn);

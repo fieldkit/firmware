@@ -13,6 +13,11 @@ typedef struct xbm_data_t {
 struct DisplayScreen {
 };
 
+struct TaskProgress {
+    const char *operation;
+    float progress;
+};
+
 struct HomeScreen : public DisplayScreen {
     uint32_t time;
     bool network;
@@ -21,6 +26,7 @@ struct HomeScreen : public DisplayScreen {
     bool logo;
     float battery;
     const char *message;
+    TaskProgress progress;
 };
 
 struct MenuOption {

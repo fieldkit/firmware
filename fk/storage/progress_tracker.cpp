@@ -14,6 +14,7 @@ void ProgressTracker::update(int32_t bytes) {
     if (started_ == 0) {
         started_ = now;
         status_ = now + ProgressIntervalMs;
+        callbacks_->progress(op_, 0.0f);
     }
     bytes_ += bytes;
 
