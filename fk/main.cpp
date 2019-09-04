@@ -30,8 +30,8 @@ static void run_tasks() {
     uint32_t display_stack[2048 / sizeof(uint32_t)];
     uint32_t gps_stack[2048 / sizeof(uint32_t)];
     uint32_t worker_stacks[NumberOfWorkerTasks][4096 / sizeof(uint32_t)];
-    uint32_t readings_stack[8192 / sizeof(uint32_t)];
-    uint32_t network_stack[8192 / sizeof(uint32_t)];
+    uint32_t readings_stack[4096 / sizeof(uint32_t)];
+    uint32_t network_stack[4096 / sizeof(uint32_t)];
 
     auto total_stacks = sizeof(idle_stack) +
         sizeof(scheduler_stack) +
