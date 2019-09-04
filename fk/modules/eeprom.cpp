@@ -81,11 +81,6 @@ bool ModuleEeprom::read_header(ModuleHeader &header) {
         return false;
     }
 
-    if (!fk_module_header_valid(&header)) {
-        logerror("invalid header");
-        return false;
-    }
-
     return true;
 }
 

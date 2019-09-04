@@ -88,6 +88,11 @@ nonstd::optional<FoundModuleCollection> ModuleScanning::scan(Pool &pool) {
             continue;
         }
 
+        if (!fk_module_header_valid(&header)) {
+            logerror("[%d] invalid header", i);
+            continue;
+        }
+
         fk_uuid_formatted_t pretty_id;
         fk_uuid_sprintf(&header.id, &pretty_id);
 
