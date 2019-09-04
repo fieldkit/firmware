@@ -93,6 +93,8 @@ __int32_t main() {
 
     loginfo("ready!");
 
+    uint32_t previous_rain = 0;
+
     fk_weather_t weather;
 
     eeprom_region_t readings_region;
@@ -110,12 +112,46 @@ __int32_t main() {
                 logerror("readings: error taking");
             }
 
-            rv = eeprom_region_append(&readings_region, &weather);
-            if (rv != FK_SUCCESS) {
-                logerror("readings: error appending");
+            if (false) {
+                rv = eeprom_region_append(&readings_region, &weather);
+                if (rv != FK_SUCCESS) {
+                    logerror("readings: error appending");
+                }
             }
         }
+
         delay_ms(1000);
+
+        sht31_reading_t sht31_reading;
+        if (sht31_reading_get(&I2C_1, &sht31_reading) != FK_SUCCESS) {
+            logerror("reading sht31");
+        }
+
+        counters_reading_t counters_reading;
+        if (counters_reading_get(&I2C_1, &counters_reading) != FK_SUCCESS) {
+            logerror("reading counters");
+            previous_rain = 0;
+        }
+
+        // SEGGER_RTT_WriteString(0, "\n");
+
+        // weather.seconds++;
+        // weather.humidity = sht31_reading.humidity;
+        // weather.temperature_1 = sht31_reading.temperature;
+        // weather.pressure = mpl3115a2_reading.pressure;
+        // weather.temperature_2 = mpl3115a2_reading.temperature;
+        // weather.wind.direction = wind_direction.value;
+
+        // loginfof("adc081c: %d", wind_direction.value);
+        // loginfof("wind: %d", counters_reading.wind);
+        if (counters_reading.rain - previous_rain > 0) {
+            loginfof("rain: %d %b %d", counters_reading.rain, counters_reading.rain, counters_reading.rain - previous_rain);
+            previous_rain = counters_reading.rain;
+        }
+        // loginfof("pressure: %d", mpl3115a2_reading.pressure);
+        // loginfof("temp: %d", mpl3115a2_reading.temperature);
+        // loginfof("humidity: %d", sht31_reading.humidity);
+        // loginfof("temp: %d", sht31_reading.temperature);
     }
 
     return 0;
