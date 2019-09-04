@@ -112,7 +112,17 @@ static bool flush_configuration(Pool &pool) {
     return true;
 }
 
+static bool send_retry(HttpRequest &req) {
+    req.connection()->busy("storage busy");
+    return true;
+}
+
 static bool configure(HttpRequest &req, fk_app_HttpQuery *query, Pool &pool) {
+    auto lock = storage_mutex.acquire(500);
+    if (!lock) {
+        return send_retry(req);
+    }
+
     // HACK HACK HACK
     if (query->identity.name.arg != &pool) {
         auto name = (char *)query->identity.name.arg;
