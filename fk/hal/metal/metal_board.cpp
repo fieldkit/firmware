@@ -184,7 +184,9 @@ bool SpiWrapper::transfer_command(uint8_t command, const uint8_t *data_w, uint8_
 bool SpiWrapper::transfer(uint8_t *command, uint32_t command_length, const uint8_t *data_w, uint8_t *data_r, uint32_t data_length) {
     SPISettings spi_settings{ 50000000, MSBFIRST, SPI_MODE0 };
     auto bus = reinterpret_cast<SPIClass*>(ptr_);
-    // enable();
+
+    __disable_irq();
+
     bus->beginTransaction(spi_settings);
     for (uint32_t i = 0; i < command_length; ++i) {
         bus->transfer(command[i]);
@@ -205,7 +207,9 @@ bool SpiWrapper::transfer(uint8_t *command, uint32_t command_length, const uint8
         }
     }
     bus->endTransaction();
-    // disable();
+
+    __enable_irq();
+
     return true;
 }
 
@@ -246,23 +250,35 @@ void TwoWireWrapper::begin() {
 }
 
 int32_t TwoWireWrapper::read(uint8_t address, void *data, int32_t size) {
+    __disable_irq();
+
     auto bus = reinterpret_cast<TwoWire*>(ptr_);
     bus->requestFrom(address, size);
     auto ptr = (uint8_t *)data;
     for (auto i = 0; i < size; ++i) {
         *ptr++ = bus->read();
     }
-    return bus->endTransmission();
+    auto rv = bus->endTransmission();
+
+    __enable_irq();
+
+    return rv;
 }
 
 int32_t TwoWireWrapper::write(uint8_t address, const void *data, int32_t size) {
+    __disable_irq();
+
     auto bus = reinterpret_cast<TwoWire*>(ptr_);
     bus->beginTransmission(address);
     auto ptr = (uint8_t *)data;
     for (auto i = 0; i < size; ++i) {
         bus->write((uint8_t)*ptr++);
     }
-    return bus->endTransmission();
+    auto rv = bus->endTransmission();
+
+    __enable_irq();
+
+    return rv;
 }
 
 void TwoWireWrapper::end() {
@@ -303,11 +319,23 @@ bool SerialWrapper::end() {
 }
 
 int32_t SerialWrapper::available() {
-    return reinterpret_cast<Uart*>(ptr_)->available();
+    __disable_irq();
+
+    auto rv = reinterpret_cast<Uart*>(ptr_)->available();
+
+    __enable_irq();
+
+    return rv;
 }
 
 int8_t SerialWrapper::read() {
-    return reinterpret_cast<Uart*>(ptr_)->read();
+    __disable_irq();
+
+    auto rv = reinterpret_cast<Uart*>(ptr_)->read();
+
+    __enable_irq();
+
+    return rv;
 }
 
 }

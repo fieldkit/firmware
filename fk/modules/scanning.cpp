@@ -1,5 +1,6 @@
 #include "config.h"
 #include "platform.h"
+#include "utilities.h"
 #include "modules/eeprom.h"
 #include "modules/scanning.h"
 #include "modules/shared/uuid.h"
@@ -87,7 +88,9 @@ nonstd::optional<FoundModuleCollection> ModuleScanning::scan(Pool &pool) {
         }
 
         if (!fk_module_header_valid(&header)) {
-            logerror("[%d] invalid header", i);
+            auto expected = fk_module_header_sign(&header);
+            logerror("[%d] invalid header (%" PRIx32 " != %" PRIx32 ")", i, expected, header.crc);
+            fk_dump_memory("HDR ", (uint8_t *)&header, sizeof(header));
             continue;
         }
 
