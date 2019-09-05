@@ -218,6 +218,8 @@ int32_t Connection::printf(const char *s, ...) {
 }
 
 int32_t Connection::plain(int32_t status, const char *status_description, const char *text) {
+    loginfo("sending %" PRId32 " '%s'", status, text);
+
     auto length = strlen(text);
 
     wrote_ += conn_->writef("HTTP/1.1 %" PRId32 " %s\n", status, status_description);
@@ -257,6 +259,8 @@ int32_t Connection::busy(const char *message) {
     reply.type = fk_app_ReplyType_REPLY_BUSY;
     reply.errors.arg = (void *)pool_->copy(&errors_array, sizeof(errors_array));
 
+    logwarn("busy reply '%s'", message);
+
     return write(&reply);
 }
 
@@ -281,7 +285,7 @@ int32_t Connection::error(const char *message) {
     reply.type = fk_app_ReplyType_REPLY_ERROR;
     reply.errors.arg = (void *)pool_->copy(&errors_array, sizeof(errors_array));
 
-    logwarn("%s", message);
+    logwarn("error reply '%s'", message);
 
     return write(&reply);
 }
