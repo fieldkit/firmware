@@ -44,7 +44,17 @@ void ConnectionPool::service(HttpRouter &router) {
             auto c = pool_[i]->get();
 
             if (log_status) {
-                loginfo("[%zd] active (%" PRIu32 "ms) (%" PRIu32 " bytes)", i, now - c->started_, c->read_);
+                auto elapsed = now - c->started_;
+                if (elapsed < FiveSecondsMs) {
+                    loginfo("[%zd] active (%" PRIu32 "ms) (%" PRIu32 " bytes)", i, elapsed, c->read_);
+                }
+                else {
+                    loginfo("[%zd] KILLING (%" PRIu32 "ms) (%" PRIu32 " bytes)", i, elapsed, c->read_);
+                    c->close();
+                    delete pool_[i];
+                    pool_[i] = nullptr;
+                    continue;
+                }
             }
 
             if (!c->service(router)) {
