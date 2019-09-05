@@ -144,12 +144,29 @@ static bool initialize_logging() {
     return true;
 }
 
+/*
+static bool recover_i2c() {
+    get_board()->disable_everything();
+
+    fk_delay(100);
+
+    get_board()->enable_everything();
+
+    fk_delay(100);
+
+    return true;
+}
+*/
+
 static bool initialize_hardware() {
     FK_ASSERT(get_board()->initialize());
-    // NOTE: We do this ASAP because the GPIO on the modmux can be in any state.
-    FK_ASSERT(get_modmux()->begin());
     FK_ASSERT(get_buttons()->begin());
     FK_ASSERT(fk_random_initialize() == 0);
+
+    if (!get_modmux()->begin()) {
+        logerror("no backplane!");
+    }
+
     return true;
 }
 
