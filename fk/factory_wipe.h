@@ -12,10 +12,12 @@ private:
     Storage *storage_;
 
 public:
+    FactoryWipe(Storage &storage);
     FactoryWipe(Display *display, Buttons *buttons, Storage *storage);
 
 public:
     bool wipe_if_necessary();
+    bool wipe();
 
 };
 

@@ -4,6 +4,8 @@
 #include "state_manager.h"
 #include "simple_workers.h"
 #include "display_self_check_callbacks.h"
+#include "storage/storage.h"
+#include "factory_wipe.h"
 
 #include <qrcode.h>
 
@@ -134,6 +136,15 @@ static MenuScreen *goto_menu(MenuScreen *screen) {
     return screen;
 }
 
+static void perform_factory_reset() {
+    Storage storage{ MemoryFactory::get_data_memory() };
+    FactoryWipe factory_wipe{ storage };
+    if (factory_wipe.wipe()) {
+        fk_delay(500);
+        NVIC_SystemReset();
+    }
+}
+
 // TODO Move this into a class with state, like previous_menu.
 // TODO Collapse options and their menu into a single templatized class?
 void task_handler_display(void *params) {
@@ -161,6 +172,7 @@ void task_handler_display(void *params) {
         menu_time = 0;
         auto worker = create_pool_wrapper<SelfCheckWorker, DefaultWorkerPoolSize, PoolWorker<SelfCheckWorker>>(self_check_callbacks);
         if (!get_ipc()->launch_worker(worker)) {
+            delete worker;
             return;
         }
     });
@@ -169,13 +181,20 @@ void task_handler_display(void *params) {
         menu_time = 0;
         auto worker = create_pool_wrapper<FsckWorker, DefaultWorkerPoolSize, PoolWorker<FsckWorker>>();
         if (!get_ipc()->launch_worker(worker)) {
+            delete worker;
             return;
         }
+    });
+    auto factory_reset = to_lambda_option("Factory Reset", [&]() {
+        perform_factory_reset();
+        back.on_selected();
+        menu_time = 0;
     });
     MenuOption *tools_options[] = {
         &back,
         &self_check,
         &fsck,
+        &factory_reset,
         nullptr,
     };
     MenuScreen tools_menu{ (MenuOption **)&tools_options };
@@ -186,6 +205,7 @@ void task_handler_display(void *params) {
         // TODO: Remember this and skip restarting network.
         auto worker = create_pool_wrapper<WifiToggleWorker, DefaultWorkerPoolSize, PoolWorker<WifiToggleWorker>>();
         if (!get_ipc()->launch_worker(worker)) {
+            delete worker;
             return;
         }
     });
