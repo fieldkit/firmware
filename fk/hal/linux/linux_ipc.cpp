@@ -38,7 +38,7 @@ bool LinuxIPC::dequeue_button(Button **ptr) {
     return false;
 }
 
-bool LinuxIPC::launch_worker(Worker *worker) {
+bool LinuxIPC::launch_worker(WorkerCategory category, Worker *worker) {
     FK_ASSERT(worker != nullptr);
 
     worker->run();

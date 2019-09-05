@@ -159,6 +159,11 @@ constexpr size_t MaximumNumberOfMemoryBanks = FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS;
 constexpr size_t BootloaderSize = 0x4000;
 
 /**
+ * Number of worker tasks to allow.
+ */
+constexpr size_t NumberOfWorkerTasks = 2;
+
+/**
  * Runtime configuration informationthat is unavailable in the mobile
  * application. This can be updated after compilation to build binaries for
  * various situations.

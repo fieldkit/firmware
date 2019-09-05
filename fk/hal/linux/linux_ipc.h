@@ -19,7 +19,7 @@ public:
     bool dequeue_button(Button **ptr) override;
 
 public:
-    bool launch_worker(Worker *worker) override;
+    bool launch_worker(WorkerCategory category, Worker *worker) override;
 
 };
 

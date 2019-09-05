@@ -5,10 +5,14 @@
 #include <os.h>
 
 #include "hal/ipc.h"
+#include "config.h"
 
 namespace fk {
 
 class MetalIPC : public IPC {
+private:
+    WorkerCategory running_[NumberOfWorkerTasks];
+
 public:
     MetalIPC();
 
@@ -21,7 +25,10 @@ public:
     bool dequeue_button(Button **ptr) override;
 
 public:
-    bool launch_worker(Worker *worker) override;
+    bool launch_worker(WorkerCategory category, Worker *worker) override;
+
+private:
+    bool can_launch(WorkerCategory category);
 
 };
 

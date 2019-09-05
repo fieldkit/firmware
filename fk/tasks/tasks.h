@@ -4,13 +4,9 @@
 
 #include "common.h"
 #include "platform.h"
+#include "config.h"
 
 namespace fk {
-
-/**
- * Number of worker tasks to allow.
- */
-constexpr size_t NumberOfWorkerTasks = 2;
 
 void task_handler_idle(void *params);
 void task_handler_scheduler(void *params);

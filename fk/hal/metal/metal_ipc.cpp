@@ -19,6 +19,9 @@ os_queue_define(activity_queue, 10, OS_QUEUE_FLAGS_QUEUE_ONLY);
 os_queue_define(button_queue, 10, OS_QUEUE_FLAGS_NONE);
 
 MetalIPC::MetalIPC() {
+    for (size_t i = 0; i < NumberOfWorkerTasks; ++i) {
+        running_[i] = WorkerCategory::None;
+    }
 }
 
 bool MetalIPC::available() {
@@ -65,10 +68,32 @@ bool MetalIPC::dequeue_button(Button **ptr) {
     return true;
 }
 
-bool MetalIPC::launch_worker(Worker *worker) {
+bool MetalIPC::can_launch(WorkerCategory category) {
+    if (category == WorkerCategory::None) {
+        return true;
+    }
+
+    for (size_t i = 0; i < NumberOfWorkerTasks; ++i) {
+        if (os_task_is_running(&worker_tasks[i])) {
+            if (running_[i] == category) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+bool MetalIPC::launch_worker(WorkerCategory category, Worker *worker) {
+    if (!can_launch(category)) {
+        logwarn("unable to launch");
+        return false;
+    }
+
     for (size_t i = 0; i < NumberOfWorkerTasks; ++i) {
         if (!os_task_is_running(&worker_tasks[i])) {
             worker_tasks[i].name = worker->name();
+            running_[i] = category;
 
             auto priority = worker->priority();
             OS_CHECK(os_task_start_options(&worker_tasks[i], priority, worker));

@@ -8,6 +8,12 @@ namespace fk {
 class Button;
 class Activity;
 
+enum class WorkerCategory  {
+    None,
+    Readings,
+    Storage,
+};
+
 class IPC {
 public:
     virtual bool available() = 0;
@@ -20,7 +26,11 @@ public:
     virtual bool dequeue_button(Button **ptr) = 0;
 
 public:
-    virtual bool launch_worker(Worker *worker) = 0;
+    virtual bool launch_worker(WorkerCategory category, Worker *worker) = 0;
+
+    virtual bool launch_worker(Worker *worker) {
+        return launch_worker(WorkerCategory::None, worker);
+    }
 
 };
 
