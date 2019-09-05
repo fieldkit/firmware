@@ -103,6 +103,7 @@ ModuleReadings *WaterModule::take_readings(ModuleContext mc, fk::Pool &pool) {
 
     auto atlas = OemAtlas{ mc.module_bus(), address_, type_ };
     if (!atlas.wake()) {
+        logerror("wake failed");
         return nullptr;
     }
 
@@ -111,14 +112,17 @@ ModuleReadings *WaterModule::take_readings(ModuleContext mc, fk::Pool &pool) {
     if (!atlas.read(values, number_of_values)) {
         atlas.leds(false);
         atlas.hibernate();
+        logerror("readings failed");
         return nullptr;
     }
 
     if (!atlas.leds(false)) {
+        logerror("leds failed");
         return nullptr;
     }
 
     if (!atlas.hibernate()) {
+        logerror("hibernate failed");
         return nullptr;
     }
 
