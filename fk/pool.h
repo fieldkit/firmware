@@ -165,6 +165,7 @@ public:
 template<typename T, size_t Size, typename W = PoolWrapper<T>, class... Args>
 inline W *create_pool_wrapper(Args &&... args) {
     auto block = (uint8_t *)fk_malloc(Size);
+    FK_ASSERT(block != nullptr);
 
     auto wrapper_size = aligned_size(sizeof(W));
     auto overhead = wrapper_size;

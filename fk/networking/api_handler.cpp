@@ -53,7 +53,9 @@ bool ApiHandler::handle(HttpRequest &req, Pool &pool) {
         loginfo("handling %s", "QUERY_TAKE_READINGS");
         auto worker = create_pool_wrapper<ReadingsWorker, DefaultWorkerPoolSize, PoolWorker<ReadingsWorker>>();
         if (!get_ipc()->launch_worker(WorkerCategory::Readings, worker)) {
-            return false;
+            delete worker;
+            req.connection()->busy("unable to launch");
+            return true;
         }
         return send_readings(req, query, pool);
     }
