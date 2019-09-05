@@ -32,6 +32,7 @@ struct HomeScreen : public DisplayScreen {
 struct MenuOption {
     const char *label;
     bool selected;
+    bool visible;
 
     MenuOption(const char *label) : label(label), selected(false) {
     }

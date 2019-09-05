@@ -166,7 +166,8 @@ void task_handler_display(void *params) {
         previous_menu = nullptr;
     });
 
-    auto self_check = to_lambda_option("Self Check", [&]() {
+
+    auto tools_self_check = to_lambda_option("Self Check", [&]() {
         self_check_callbacks.clear();
         active_screen = &self_check_callbacks.screen();
         menu_time = 0;
@@ -176,7 +177,7 @@ void task_handler_display(void *params) {
             return;
         }
     });
-    auto fsck = to_lambda_option("Run Fsck", [&]() {
+    auto tools_fsck = to_lambda_option("Run Fsck", [&]() {
         back.on_selected();
         menu_time = 0;
         auto worker = create_pool_wrapper<FsckWorker, DefaultWorkerPoolSize, PoolWorker<FsckWorker>>();
@@ -185,24 +186,24 @@ void task_handler_display(void *params) {
             return;
         }
     });
-    auto factory_reset = to_lambda_option("Factory Reset", [&]() {
+    auto tools_factory_reset = to_lambda_option("Factory Reset", [&]() {
         perform_factory_reset();
         back.on_selected();
         menu_time = 0;
     });
     MenuOption *tools_options[] = {
         &back,
-        &self_check,
-        &fsck,
-        &factory_reset,
+        &tools_self_check,
+        &tools_fsck,
+        &tools_factory_reset,
         nullptr,
     };
     MenuScreen tools_menu{ (MenuOption **)&tools_options };
 
-    auto wifi_toggle = to_lambda_option("Toggle Wifi", [&]() {
+
+    auto network_toggle = to_lambda_option("Toggle Wifi", [&]() {
         back.on_selected();
         menu_time = 0;
-        // TODO: Remember this and skip restarting network.
         auto worker = create_pool_wrapper<WifiToggleWorker, DefaultWorkerPoolSize, PoolWorker<WifiToggleWorker>>();
         if (!get_ipc()->launch_worker(worker)) {
             delete worker;
@@ -211,43 +212,51 @@ void task_handler_display(void *params) {
     });
     MenuOption *network_options[] = {
         &back,
-        &wifi_toggle,
+        &network_toggle,
         nullptr,
     };
     MenuScreen network_menu{ (MenuOption **)&network_options };
 
-    auto memory_info = to_lambda_option("Info", [&]() {
+    auto info_name = to_lambda_option("Name", [&]() {
+        simple = { "Name" };
         active_screen = &simple;
         back.on_selected();
     });
-    MenuOption *memory_options[] = {
+    auto info_memory = to_lambda_option("Memory", [&]() {
+        simple = { "Memory" };
+        active_screen = &simple;
+        back.on_selected();
+    });
+    MenuOption *info_options[] = {
         &back,
-        &memory_info,
+        &info_name,
+        &info_memory,
         nullptr,
     };
-    MenuScreen memory_menu{ (MenuOption **)&memory_options };
+    MenuScreen info_menu{ (MenuOption **)&info_options };
 
-    auto readings = to_lambda_option("Readings", []() {
+
+    auto main_readings = to_lambda_option("Readings", []() {
         loginfo("readings");
     });
-    auto memory = to_lambda_option("Memory", [&]() {
+    auto main_info = to_lambda_option("Info", [&]() {
         previous_menu = active_menu;
-        active_menu = goto_menu(&memory_menu);
+        active_menu = goto_menu(&info_menu);
     });
-    auto network = to_lambda_option("Network", [&]() {
+    auto main_network = to_lambda_option("Network", [&]() {
         previous_menu = active_menu;
         active_menu = goto_menu(&network_menu);
     });
-    auto tools = to_lambda_option("Tools", [&]() {
+    auto main_tools = to_lambda_option("Tools", [&]() {
         previous_menu = active_menu;
         active_menu = goto_menu(&tools_menu);
     });
 
     MenuOption *main_options[] = {
-        &readings,
-        &memory,
-        &network,
-        &tools,
+        &main_readings,
+        &main_info,
+        &main_network,
+        &main_tools,
         nullptr,
     };
     MenuScreen main_menu{ (MenuOption **)&main_options };
@@ -289,10 +298,10 @@ void task_handler_display(void *params) {
         }
 
         if (get_network()->enabled()) {
-            wifi_toggle.label = "Stop WiFi";
+            network_toggle.label = "Stop WiFi";
         }
         else {
-            wifi_toggle.label = "Start WiFi";
+            network_toggle.label = "Start WiFi";
         }
 
         if (active_screen != nullptr) {
