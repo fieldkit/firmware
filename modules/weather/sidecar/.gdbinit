@@ -9,11 +9,24 @@ class FkSegger(gdb.Command):
     super(FkSegger, self).__init__("js", gdb.COMMAND_SUPPORT, gdb.COMPLETE_NONE, True)
 
   def invoke(self, arg, from_tty):
-    gdb.execute("target extended-remote :4331")
+    if arg is None or len(arg) == 0:
+      print("Pass JLink port: js 2331")
+      return
+    gdb.execute("target extended-remote :" + arg)
+    gdb.execute("monitor exec SetRTTSearchRanges 0x20000000 64")
     gdb.execute("load")
+    gdb.execute("b Dummy_Handler")
+    gdb.execute("b osi_panic")
+    gdb.execute("b osi_hard_fault_report")
+    gdb.execute("b fk_assert")
+    gdb.execute("b __cxa_pure_virtual")
     gdb.execute("b HardFault_Handler")
     gdb.execute("b NonMaskableInt_Handler")
+    if False:
+      for h in irq_handlers:
+        gdb.execute("b " + h)
     gdb.execute("monitor reset")
+    gdb.execute("continue")
 
 class FkRestart(gdb.Command):
     "Restart."

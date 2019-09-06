@@ -48,6 +48,12 @@ target_include_directories(SeggerRTT PUBLIC ${segger_PATH})
 target_link_libraries(fk-weather-sidecar SeggerRTT)
 
 
+file(GLOB fk_shared_sources ${CMAKE_SOURCE_DIR}/fk/modules/shared/crc.c)
+add_library(fk-shared STATIC ${fk_shared_sources})
+target_compile_options(fk-shared PRIVATE ${target_c_flags})
+target_link_libraries(fk-shared SeggerRTT)
+target_link_libraries(fk-weather-sidecar fk-shared)
+
 
 file(GLOB asf_sources
   ${asf4_PATH}/samd09/hal/src/*.c
@@ -82,10 +88,11 @@ add_custom_command(
   OUTPUT ${elf_file}
   DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/libfk-weather-sidecar.a
   COMMAND ${CMAKE_C_COMPILER} -Os -Wl,--gc-sections -save-temps -T${linker_script} -mcpu=${target_mcu} -mthumb
-  --specs=nano.specs --specs=nosys.specs -Wl,--check-sections ${target_board_libraries}
+  --specs=nano.specs --specs=nosys.specs -Wl,--cref -Wl,--check-sections ${target_board_libraries}
   -Wl,--unresolved-symbols=report-all -Wl,--warn-common -Wl,--warn-section-align
   -Wl,-Map,${map_file} -o ${elf_file} -L${CMAKE_SOURCE_DIR}/boards/samd09
   ${CMAKE_CURRENT_BINARY_DIR}/libfk-weather-sidecar.a
+  ${CMAKE_CURRENT_BINARY_DIR}/libfk-shared.a
   ${CMAKE_CURRENT_BINARY_DIR}/libAsf4.a
   ${CMAKE_CURRENT_BINARY_DIR}/libSeggerRTT.a
 )
