@@ -8,9 +8,26 @@
 #include "records.h"
 #include "state_ref.h"
 
+#include "modules/bridge/modules.h"
+#include "modules/scanning.h"
+#include "modules/configure.h"
+
 namespace fk {
 
 FK_DECLARE_LOGGER("sw");
+
+static void developer_configuration() {
+    auto module_bus = get_board()->i2c_module();
+    auto gs = get_global_state_ro();
+
+    ModuleContext mc{ gs.get(), module_bus };
+    Storage storage{ nullptr }; // NOTE: Not opened!
+    ModuleScanning scanning{ get_modmux() };
+    ModuleConfigurer configurer{ scanning };
+
+    // FK_ASSERT(configurer.weather(4));
+    // FK_ASSERT(configurer.water(6));
+}
 
 void StartupWorker::run(Pool &pool) {
     auto display = get_display();
@@ -29,6 +46,8 @@ void StartupWorker::run(Pool &pool) {
     NoopSelfCheckCallbacks noop_callbacks;
     SelfCheck self_check(display, get_network(), mm);
     self_check.check(SelfCheckSettings{ }, noop_callbacks);
+
+    developer_configuration();
 
     mm->enable_all_modules();
 
