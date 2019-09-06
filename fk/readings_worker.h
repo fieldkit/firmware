@@ -1,10 +1,20 @@
 #pragma once
 
 #include "worker.h"
+#include "readings.h"
+#include "storage/storage.h"
 
 namespace fk {
 
 class ReadingsWorker {
+private:
+    bool read_only_;
+    FileHeader meta_fh_;
+    FileHeader data_fh_;
+
+public:
+    ReadingsWorker(bool read_only);
+
 public:
     void run(Pool &pool);
 
@@ -13,8 +23,14 @@ public:
     }
 
     const char *name() {
-        return "livedata";
+        if (read_only_) {
+            return "livedata";
+        }
+        return "readings";
     }
+
+private:
+    nonstd::optional<ModuleReadingsCollection> take_readings(Pool &pool);
 
 };
 

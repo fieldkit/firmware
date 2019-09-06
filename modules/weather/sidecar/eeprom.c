@@ -155,7 +155,6 @@ static void verify_write(eeprom_region_t *region, void *item)  {
     }
 
     if (memcmp(actual, item, region->item_size) == 0) {
-        loginfo("write is good");
         return;
     }
 

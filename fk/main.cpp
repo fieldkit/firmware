@@ -26,11 +26,10 @@ static void run_tasks() {
      * .data section, which is below the heap in memory.
      */
     uint32_t idle_stack[1024 / sizeof(uint32_t)];
-    uint32_t scheduler_stack[1024 / sizeof(uint32_t)];
+    uint32_t scheduler_stack[2048 / sizeof(uint32_t)];
     uint32_t display_stack[2048 / sizeof(uint32_t)];
     uint32_t gps_stack[2048 / sizeof(uint32_t)];
     uint32_t worker_stacks[NumberOfWorkerTasks][4096 / sizeof(uint32_t)];
-    uint32_t readings_stack[4096 / sizeof(uint32_t)];
     uint32_t network_stack[4096 / sizeof(uint32_t)];
 
     auto total_stacks = sizeof(idle_stack) +
@@ -38,7 +37,6 @@ static void run_tasks() {
         sizeof(display_stack) +
         sizeof(gps_stack) +
         sizeof(worker_stacks) +
-        sizeof(readings_stack) +
         sizeof(network_stack);
 
     os_task_options_t display_task_options = {
@@ -57,7 +55,6 @@ static void run_tasks() {
     OS_CHECK(os_task_initialize(&scheduler_task, "scheduler", OS_TASK_START_SUSPENDED, &task_handler_scheduler, nullptr, scheduler_stack, sizeof(scheduler_stack)));
     OS_CHECK(os_task_initialize(&network_task, "network", OS_TASK_START_SUSPENDED, &task_handler_network, nullptr, network_stack, sizeof(network_stack)));
     OS_CHECK(os_task_initialize(&gps_task, "gps", OS_TASK_START_SUSPENDED, &task_handler_gps, nullptr, gps_stack, sizeof(gps_stack)));
-    OS_CHECK(os_task_initialize(&readings_task, "readings", OS_TASK_START_SUSPENDED, &task_handler_readings, nullptr, readings_stack, sizeof(readings_stack)));
 
     OS_CHECK(os_task_initialize_options(&display_task, &display_task_options));
 

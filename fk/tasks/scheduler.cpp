@@ -1,9 +1,10 @@
 #include <lwcron/lwcron.h>
 
-#include "tasks/tasks.h"
 #include "hal/hal.h"
 #include "clock.h"
+#include "readings_worker.h"
 #include "lora_worker.h"
+#include "tasks/tasks.h"
 
 namespace fk {
 
@@ -16,53 +17,50 @@ static bool start_task_if_necessary(os_task_t *task);
 class SchedulerTask {
 };
 
-class StartTaskFromCron : public lwcron::CronTask, public SchedulerTask {
+template<typename T>
+class LambdaSchedulerTask : public lwcron::CronTask, public SchedulerTask {
 private:
-    os_task_t *task_;
+    const char *label_;
+    T fn_;
 
 public:
-    StartTaskFromCron(lwcron::CronSpec spec, os_task_t *task) : lwcron::CronTask(spec), task_(task) {
+    LambdaSchedulerTask(lwcron::CronSpec spec, const char *label, T fn) : lwcron::CronTask(spec), label_(label), fn_(fn) {
     }
 
 public:
     void run() override {
-        start_task_if_necessary(task_);
+        fn_();
     }
 
-public:
     const char *toString() const override {
-        return task_->name;
+        return label_;
     }
 
 };
 
 template<typename T>
-class StartWorkerFromCron : public lwcron::CronTask, public SchedulerTask {
-public:
-    StartWorkerFromCron(lwcron::CronSpec spec) : lwcron::CronTask(spec) {
-    }
-
-public:
-    void run() override {
-        auto worker = create_pool_wrapper<T, DefaultWorkerPoolSize, PoolWorker<T>>();
-        if (!get_ipc()->launch_worker(worker)) {
-            return;
-        }
-    }
-
-public:
-    const char *toString() const override {
-        return "worker";
-    }
-
-};
+LambdaSchedulerTask<T> to_lambda_task(lwcron::CronSpec spec, const char *label, T fn) {
+    return LambdaSchedulerTask<T>(spec, label, fn);
+}
 
 void task_handler_scheduler(void *params) {
     lwcron::CronSpec readings_cron_spec{ lwcron::CronSpec::interval(10) };
     lwcron::CronSpec lora_cron_spec{ lwcron::CronSpec::interval(180) };
 
-    StartTaskFromCron readings_job{ readings_cron_spec, &readings_task };
-    StartWorkerFromCron<LoraWorker> lora_job{ lora_cron_spec };
+    auto readings_job = to_lambda_task(readings_cron_spec, "readings", []() {
+        auto worker = create_pool_wrapper<ReadingsWorker, DefaultWorkerPoolSize, PoolWorker<ReadingsWorker>>(false);
+        if (!get_ipc()->launch_worker(worker)) {
+            delete worker;
+            return;
+        }
+    });
+    auto lora_job = to_lambda_task(lora_cron_spec, "lora", []() {
+        auto worker = create_pool_wrapper<LoraWorker, DefaultWorkerPoolSize, PoolWorker<LoraWorker>>();
+        if (!get_ipc()->launch_worker(worker)) {
+            delete worker;
+            return;
+        }
+    });
 
     lwcron::Task *tasks[2] { &readings_job, &lora_job };
     lwcron::Scheduler scheduler{ tasks };

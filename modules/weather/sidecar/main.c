@@ -60,6 +60,7 @@ int32_t take_readings(fk_weather_t *weather) {
     weather->wind.direction = wind_direction.value;
     weather->crc = fk_weather_sign(weather);
 
+    loginfof("crc: %" PRIu32 " 0x%" PRIx32, weather->seconds, weather->crc);
     loginfof("adc081c wind dir: %d", wind_direction.value);
     loginfof("wind: %d", counters_reading.wind);
     loginfof("rain: %d", counters_reading.rain);
@@ -67,8 +68,6 @@ int32_t take_readings(fk_weather_t *weather) {
     loginfof("mpl temp: %d", mpl3115a2_reading.temperature);
     loginfof("sht humidity: %d", sht31_reading.humidity);
     loginfof("sht temp: %d", sht31_reading.temperature);
-    loginfof("sizeof(fk_weather_t) = %d", sizeof(fk_weather_t));
-    loginfof("crc: %" PRIx32, weather->crc);
 
     return FK_SUCCESS;
 }
@@ -96,9 +95,10 @@ __int32_t main() {
 
     // TODO Find the end of the region.
 
-    while (true) {
-        fk_weather_t weather;
+    fk_weather_t weather;
+    memset(&weather, 0, sizeof(fk_weather_t));
 
+    while (true) {
         if (take_readings_triggered) {
             int32_t rv;
 

@@ -1,7 +1,4 @@
-#include <scoped_allocator>
-
 #include "readings_worker.h"
-
 #include "hal/hal.h"
 #include "readings_taker.h"
 #include "state_manager.h"
@@ -10,22 +7,7 @@ namespace fk {
 
 FK_DECLARE_LOGGER("rw");
 
-static nonstd::optional<ModuleReadingsCollection> take_readings(Pool &pool) {
-    auto lock = storage_mutex.acquire(UINT32_MAX);
-    auto eeprom = get_board()->lock_eeprom();
-
-    auto memory_bus = get_board()->spi_flash();
-    auto module_bus = get_board()->i2c_module();
-    auto gs = get_global_state_ro();
-
-    ModuleContext mc{ gs.get(), module_bus };
-    Storage storage{ nullptr }; // NOTE: Not opened!
-    ModuleScanning scanning{ get_modmux() };
-    ReadingsTaker readings_taker{ scanning, storage, get_modmux(), true };
-    auto all_readings = readings_taker.take(mc, pool);
-    FK_ASSERT(all_readings);
-
-    return all_readings;
+ReadingsWorker::ReadingsWorker(bool read_only) : read_only_(read_only) {
 }
 
 void ReadingsWorker::run(Pool &pool) {
@@ -67,11 +49,48 @@ void ReadingsWorker::run(Pool &pool) {
 
     GlobalStateManager gsm;
     gsm.apply([=](GlobalState *gs) {
+        if (!read_only_) {
+            gs->storage.meta.size = meta_fh_.size;
+            gs->storage.meta.block = meta_fh_.record;
+            gs->storage.data.size = data_fh_.size;
+            gs->storage.data.block = data_fh_.record;
+        }
+
         if (gs->modules != nullptr) {
             delete gs->modules->pool;
         }
         gs->modules = modules;
     });
+}
+
+nonstd::optional<ModuleReadingsCollection> ReadingsWorker::take_readings(Pool &pool) {
+    auto lock = storage_mutex.acquire(UINT32_MAX);
+    auto eeprom = get_board()->lock_eeprom();
+
+    auto memory_bus = get_board()->spi_flash();
+    auto module_bus = get_board()->i2c_module();
+    auto gs = get_global_state_ro();
+
+    ModuleContext mc{ gs.get(), module_bus };
+    StatisticsMemory memory{ MemoryFactory::get_data_memory() };
+    Storage storage{ &memory, read_only_ };
+    if (!read_only_ && !storage.begin()) {
+        logerror("error opening storage, wiping...");
+        if (!storage.clear()) {
+            logerror("wiping storage failed!");
+            return nonstd::nullopt;
+        }
+    }
+
+    ModuleScanning scanning{ get_modmux() };
+    ReadingsTaker readings_taker{ scanning, storage, get_modmux(), read_only_ };
+    auto all_readings = readings_taker.take(mc, pool);
+    FK_ASSERT(all_readings);
+
+    meta_fh_ = storage.file_header(Storage::Meta);
+    data_fh_ = storage.file_header(Storage::Data);
+
+    return all_readings;
 }
 
 }

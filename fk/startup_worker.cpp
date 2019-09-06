@@ -71,7 +71,7 @@ void StartupWorker::run(Pool &pool) {
     FactoryWipe fw{ display, get_buttons(), &storage };
     FK_ASSERT(fw.wipe_if_necessary());
 
-    ReadingsWorker readings_worker;
+    ReadingsWorker readings_worker{ true };
     readings_worker.run(pool);
 
     FK_ASSERT(os_task_start(&scheduler_task) == OSS_SUCCESS);
