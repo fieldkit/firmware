@@ -68,7 +68,7 @@ int32_t take_readings(fk_weather_t *weather) {
     loginfof("sht humidity: %d", sht31_reading.humidity);
     loginfof("sht temp: %d", sht31_reading.temperature);
     loginfof("sizeof(fk_weather_t) = %d", sizeof(fk_weather_t));
-    loginfof("crc: %" PRIu32, weather->crc);
+    loginfof("crc: %" PRIx32, weather->crc);
 
     return FK_SUCCESS;
 }
