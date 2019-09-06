@@ -15,7 +15,12 @@ ModuleEeprom::ModuleEeprom(TwoWireWrapper &wire) : wire_(&wire) {
 static bool read_page(TwoWireWrapper *wire, uint16_t address, uint8_t *data, size_t size) {
     FK_ASSERT(size <= ModuleEeprom::EepromPageSize);
 
-    if (!I2C_CHECK(wire->write(ModuleEeprom::EepromAddress, &address, sizeof(uint16_t)))) {
+    // TODO This could be done better.
+    uint8_t buffer[sizeof(uint16_t)];
+    buffer[0] = (address >> 8) & 0xff;
+    buffer[1] = (address) & 0xff;
+
+    if (!I2C_CHECK(wire->write(ModuleEeprom::EepromAddress, buffer, sizeof(buffer)))) {
         return false;
     }
 
@@ -32,7 +37,7 @@ static bool write_page(TwoWireWrapper *wire, uint16_t address, uint8_t *data, si
     // TODO This could be done better.
     uint8_t buffer[sizeof(uint16_t) + size];
     buffer[0] = (address >> 8) & 0xff;
-    buffer[1] = (address);
+    buffer[1] = (address) & 0xff;
     memcpy(buffer + sizeof(uint16_t), data, size);
 
     if (!I2C_CHECK(wire->write(ModuleEeprom::EepromAddress, buffer, sizeof(buffer)))) {
@@ -54,6 +59,7 @@ static bool write(TwoWireWrapper *wire, uint16_t address, uint8_t *data, size_t 
 
         ptr += to_write;
         remaining -= to_write;
+        address += to_write;
     }
 
     return true;
@@ -71,6 +77,7 @@ static bool read(TwoWireWrapper *wire, uint16_t address, uint8_t *data, size_t s
 
         ptr += to_read;
         remaining -= to_read;
+        address += to_read;
     }
 
     return true;
@@ -89,6 +96,14 @@ bool ModuleEeprom::write_header(ModuleHeader &header) {
 
     if (!write(wire_, HeaderAddress, (uint8_t *)&header, sizeof(ModuleHeader))) {
         logerror("error writing kind");
+        return false;
+    }
+
+    return true;
+}
+
+bool ModuleEeprom::read_data(uint32_t address, void *data, size_t size) {
+    if (!read(wire_, address, (uint8_t *)data, size)) {
         return false;
     }
 

@@ -21,6 +21,7 @@ public:
 public:
     bool read_header(ModuleHeader &header);
     bool write_header(ModuleHeader &header);
+    bool read_data(uint32_t address, void *data, size_t size);
 
 };
 

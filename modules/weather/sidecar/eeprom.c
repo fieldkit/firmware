@@ -16,7 +16,7 @@ int32_t eeprom_write_page(struct i2c_m_sync_desc *i2c, uint16_t address, uint8_t
 
     uint8_t buffer[size + sizeof(address)];
     buffer[0] = (address >> 8) & 0xff;
-    buffer[1] = (address);
+    buffer[1] = (address) & 0xff;
     memcpy(buffer + sizeof(address), data, size);
 
     i2c_m_sync_enable(i2c);
@@ -48,14 +48,18 @@ int32_t eeprom_read_page(struct i2c_m_sync_desc *i2c, uint16_t address, uint8_t 
     struct _i2c_m_msg msg;
     int32_t           rv;
 
+    uint8_t buffer[sizeof(address)];
+    buffer[0] = (address >> 8) & 0xff;
+    buffer[1] = (address) & 0xff;
+
     FK_ASSERT(size <= EEPROM_PAGE_SIZE);
 
     i2c_m_sync_enable(i2c);
 
     msg.addr   = EEPROM_I2C_ADDRESS;
-    msg.len    = sizeof(uint16_t);
+    msg.len    = sizeof(buffer);
     msg.flags  = 0;
-    msg.buffer = (void *)&address;
+    msg.buffer = (void *)buffer;
     rv = _i2c_m_sync_transfer(&i2c->device, &msg);
     if (rv != 0) {
         return rv;
@@ -85,6 +89,7 @@ int32_t eeprom_write(struct i2c_m_sync_desc *i2c, uint16_t address, uint8_t *dat
 
         ptr += to_write;
         remaining -= to_write;
+        address += to_write;
     }
 
     return FK_SUCCESS;
@@ -103,6 +108,7 @@ int32_t eeprom_read(struct i2c_m_sync_desc *i2c, uint16_t address, uint8_t *data
 
         ptr += to_read;
         remaining -= to_read;
+        address += to_read;
     }
 
     return FK_SUCCESS;
