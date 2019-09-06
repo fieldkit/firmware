@@ -14,6 +14,7 @@ ModuleEeprom::ModuleEeprom(TwoWireWrapper &wire) : wire_(&wire) {
 
 static bool read_page(TwoWireWrapper *wire, uint16_t address, uint8_t *data, size_t size) {
     FK_ASSERT(size <= ModuleEeprom::EepromPageSize);
+    FK_ASSERT(address + size <= ModuleEeprom::EepromSize);
 
     // TODO This could be done better.
     uint8_t buffer[sizeof(uint16_t)];
@@ -33,6 +34,7 @@ static bool read_page(TwoWireWrapper *wire, uint16_t address, uint8_t *data, siz
 
 static bool write_page(TwoWireWrapper *wire, uint16_t address, uint8_t *data, size_t size) {
     FK_ASSERT(size <= ModuleEeprom::EepromPageSize);
+    FK_ASSERT(address + size <= ModuleEeprom::EepromSize);
 
     // TODO This could be done better.
     uint8_t buffer[sizeof(uint16_t) + size];

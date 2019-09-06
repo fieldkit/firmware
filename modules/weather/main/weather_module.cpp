@@ -41,7 +41,7 @@ ModuleReadings *WeatherModule::take_readings(ModuleContext mc, fk::Pool &pool) {
     uint32_t found_address = 0;
     bzero(&reading, sizeof(fk_weather_t));
 
-    for (uint32_t address = EEPROM_ADDRESS_READINGS; address < EEPROM_ADDRESS_READINGS_END; address += sizeof(fk_weather_t)) {
+    for (uint32_t address = EEPROM_ADDRESS_READINGS; address + sizeof(fk_weather_t) < EEPROM_ADDRESS_READINGS_END; address += sizeof(fk_weather_t)) {
         fk_weather_t temp;
 
         if (!eeprom.read_data(address, &temp, sizeof(fk_weather_t))) {

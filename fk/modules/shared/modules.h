@@ -47,9 +47,9 @@ uint32_t fk_module_header_valid(ModuleHeader const *header);
 
 /**
  * Last address in our EEPROM, effectively the size of the EEPROM. All our
- * modules use the same chip with 64k.
+ * modules use the same chip with 8k.
  */
-#define EEPROM_ADDRESS_END                         (64 * 1024)
+#define EEPROM_ADDRESS_END                         (8 * 1024)
 
 #define EEPROM_ADDRESS_HEADER                      (0x00)
 #define EEPROM_ADDRESS_HEADER_SIZE                 (EEPROM_PAGE_SIZE * 2)

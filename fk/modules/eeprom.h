@@ -10,6 +10,7 @@ class ModuleEeprom {
 public:
     constexpr static uint8_t EepromAddress = EEPROM_I2C_ADDRESS;
     constexpr static size_t EepromPageSize = EEPROM_PAGE_SIZE;
+    constexpr static size_t EepromSize = EEPROM_ADDRESS_END;
     constexpr static uint16_t HeaderAddress = EEPROM_ADDRESS_HEADER;
 
 private:
