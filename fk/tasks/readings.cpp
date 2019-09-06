@@ -19,6 +19,8 @@ void task_handler_readings(void *params) {
     auto lock = storage_mutex.acquire(UINT32_MAX);
     auto eeprom = get_board()->lock_eeprom();
 
+    fk_delay(10); // NOTE Allow any concurrent write to finish. Yikes.
+
     auto started = fk_uptime();
     auto pool = MallocPool{ "readings", ModuleMemoryAreaSize };
 

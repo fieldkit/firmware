@@ -14,6 +14,8 @@ static nonstd::optional<ModuleReadingsCollection> take_readings(Pool &pool) {
     auto lock = storage_mutex.acquire(UINT32_MAX);
     auto eeprom = get_board()->lock_eeprom();
 
+    fk_delay(10); // NOTE Allow any concurrent write to finish. Yikes.
+
     auto memory_bus = get_board()->spi_flash();
     auto module_bus = get_board()->i2c_module();
     auto gs = get_global_state_ro();
