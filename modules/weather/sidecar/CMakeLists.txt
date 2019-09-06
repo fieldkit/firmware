@@ -48,7 +48,7 @@ target_include_directories(SeggerRTT PUBLIC ${segger_PATH})
 target_link_libraries(fk-weather-sidecar SeggerRTT)
 
 
-file(GLOB fk_shared_sources ${CMAKE_SOURCE_DIR}/fk/modules/shared/crc.c)
+file(GLOB fk_shared_sources ${CMAKE_SOURCE_DIR}/fk/modules/shared/crc.c ${CMAKE_SOURCE_DIR}/fk/modules/shared/modules.c)
 add_library(fk-shared STATIC ${fk_shared_sources})
 target_compile_options(fk-shared PRIVATE ${target_c_flags})
 target_link_libraries(fk-shared SeggerRTT)

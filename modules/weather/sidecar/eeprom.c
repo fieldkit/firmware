@@ -11,6 +11,19 @@
  */
 #define MIN(a, b)   ((a > b) ? (b) : (a))
 
+void fk_dump_memory(const uint8_t *p, size_t size) {
+    SEGGER_RTT_WriteString(0, RTT_CTRL_RESET);
+    for (size_t i = (size_t)0; i < size; ++i) {
+        SEGGER_RTT_printf(0, "%02x ", p[i]);
+        if ((i + 1) % 32 == 0) {
+            if (i + 1 < size) {
+                SEGGER_RTT_printf(0, "\n");
+            }
+        }
+    }
+    SEGGER_RTT_WriteString(0, "\n");
+}
+
 int32_t eeprom_write_page(struct i2c_m_sync_desc *i2c, uint16_t address, uint8_t *data, size_t size) {
     FK_ASSERT(size <= EEPROM_PAGE_SIZE);
     FK_ASSERT(address + size <= EEPROM_ADDRESS_END);
@@ -169,6 +182,20 @@ static void verify_write(eeprom_region_t *region, void *item)  {
     FK_ASSERT(0);
 }
 
+static void verify_header(eeprom_region_t *region) {
+    int32_t rv;
+
+    ModuleHeader header;
+    rv = eeprom_read(region->i2c, 0, (uint8_t *)&header, sizeof(header));
+    if (rv != FK_SUCCESS) {
+        return;
+    }
+
+    if (!fk_module_header_valid(&header)) {
+        fk_dump_memory((uint8_t *)&header, sizeof(header));
+    }
+}
+
 int32_t eeprom_region_append(eeprom_region_t *region, void *item) {
     int32_t rv;
 
@@ -176,18 +203,20 @@ int32_t eeprom_region_append(eeprom_region_t *region, void *item) {
         return FK_ERROR_BUSY;
     }
 
-    eeprom_write_enable();
+    // verify_header(region);
+
+    // eeprom_write_enable();
 
     // Write this item into memory, we've been given the size already.
     rv = eeprom_write(region->i2c, region->tail, item, region->item_size);
     if (rv != FK_SUCCESS) {
-        eeprom_write_disable();
-        return rv;
+        // eeprom_write_disable();
+        return FK_ERROR_GENERAL;
     }
 
-    verify_write(region, item);
+    // eeprom_write_disable();
 
-    eeprom_write_disable();
+    // verify_header(region);
 
     loginfof("append 0x%04" PRIx32, region->tail);
 
