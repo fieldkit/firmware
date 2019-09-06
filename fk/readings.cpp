@@ -52,10 +52,13 @@ nonstd::optional<ModuleReadingsCollection> Readings::take_readings(ModuleContext
             continue;
         }
 
-        auto sensor_values = pool.malloc<fk_data_SensorAndValue>(readings->size());
+        loginfo("'%s' %zd readings", meta->name, readings->size());
 
+        auto sensor_values = pool.malloc<fk_data_SensorAndValue>(readings->size());
         for (uint32_t i = 0; i < readings->size(); ++i) {
-            sensor_values[i] = { i, readings->get(i) };
+            auto value = readings->get(i);
+            loginfo("'%s' %" PRIu32 " = %f", meta->name, i, value);
+            sensor_values[i] = { i, value };
         }
 
         auto readings_array = pool.malloc_with<pb_array_t>({
@@ -78,8 +81,6 @@ nonstd::optional<ModuleReadingsCollection> Readings::take_readings(ModuleContext
             .sensors = module->get_sensors(mc, pool),
             .readings = readings,
         });
-
-        loginfo("'%s' %zd readings", meta->name, readings->size());
     }
 
     auto sensor_groups_array = pool.malloc_with<pb_array_t>({

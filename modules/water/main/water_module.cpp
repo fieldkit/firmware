@@ -128,7 +128,6 @@ ModuleReadings *WaterModule::take_readings(ModuleContext mc, fk::Pool &pool) {
 
     auto mr = new(pool) NModuleReadings<ATLAS_MAXIMUM_VALUES>(number_of_values);
     for (size_t i = 0; i < mr->size(); ++i) {
-        loginfo("atlas('%s') -> (value = %f)", atlas.name(), values[i]);
         mr->set(i, values[i]);
     }
 

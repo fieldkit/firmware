@@ -58,7 +58,6 @@ ModuleReadings *WeatherModule::take_readings(ModuleContext mc, fk::Pool &pool) {
         }
         else {
             loginfo("[0x%04" PRIx32 "] bad crc (%" PRIx32 " != %" PRIx32 ")", address, expected, temp.crc);
-            fk_dump_memory("WTR ", (uint8_t *)&temp, sizeof(temp));
             break;
         }
     }
@@ -69,16 +68,12 @@ ModuleReadings *WeatherModule::take_readings(ModuleContext mc, fk::Pool &pool) {
     }
 
     loginfo("found reading: %" PRIu32 " 0x04%" PRIx32, reading.seconds, found_address);
-    loginfo("humidity: %" PRIu32, reading.humidity);
-    loginfo("temperature-1: %" PRIu32, reading.temperature_1);
-    loginfo("pressure: %" PRIu32, reading.pressure);
-    loginfo("temperature-2: %" PRIu32, reading.temperature_2);
 
     auto i = 0;
     auto mr = new(pool) NModuleReadings<4>();
-    mr->set(i++, reading.humidity);
-    mr->set(i++, reading.temperature_1);
-    mr->set(i++, reading.pressure);
-    mr->set(i++, reading.temperature_2);
+    mr->set(i++, 100.0f * ((float)reading.humidity / (0xffff)));
+    mr->set(i++, -45.0f + 175.0f * ((float)reading.temperature_1 / (0xffff)));
+    mr->set(i++, reading.pressure / 64.0f);
+    mr->set(i++, reading.temperature_2 / 16.0f);
     return mr;
 }
