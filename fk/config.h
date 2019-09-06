@@ -270,6 +270,13 @@ typedef struct configuration_t {
 
     display_t display;
 
+    typedef struct scheduler_t {
+        uint32_t readings_interval{ 30 };
+        uint32_t lora_interval{ 300 };
+    } scheduler_t;
+
+    scheduler_t scheduler;
+
     typedef struct debug_t {
         bool periodic_fsck{ false };
     } debug_t;
