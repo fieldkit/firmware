@@ -63,6 +63,13 @@ uint32_t fk_module_header_valid(ModuleHeader const *header);
  */
 #define FK_MODULES_CRC_SEED                        (0x838efd4)
 
+/**
+ * Maximum number of ms we allow for EEPROM writes on the module side. We wait
+ * this long after acquiring the eeprom protect line to ensure any writes that
+ * were in flight complete before we use the bus.
+ */
+#define FK_MODULES_EEPROM_WRITE_TIME               (10)
+
 #ifdef __cplusplus
 }
 #endif
