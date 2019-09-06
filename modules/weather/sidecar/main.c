@@ -72,6 +72,38 @@ int32_t take_readings(fk_weather_t *weather) {
     return FK_SUCCESS;
 }
 
+int32_t eeprom_region_seek_end(eeprom_region_t *region, uint32_t *seconds) {
+    uint16_t address = region->start;
+    while (address + sizeof(fk_weather_t) <= region->end) {
+        fk_weather_t reading;
+
+        int32_t rv = eeprom_read(region->i2c, address, (uint8_t *)&reading, sizeof(fk_weather_t));
+        if (rv != FK_SUCCESS) {
+            return rv;
+        }
+
+        uint32_t expected = crc32_checksum(FK_MODULES_CRC_SEED, (uint8_t *)&reading, sizeof(fk_weather_t) - sizeof(uint32_t));
+        if (expected != reading.crc) {
+            loginfof("found end 0x%04 (bad crc)" PRIx32, address);
+            region->tail = address;
+            break;
+        }
+
+        if (reading.seconds < *seconds) {
+            loginfof("found end 0x%04 (wrap)" PRIx32, address);
+            region->tail = address;
+            break;
+        }
+
+        address += sizeof(fk_weather_t);
+        *seconds = reading.seconds;
+    }
+
+    loginfof("found end 0x%04" PRIx32, address);
+
+    return FK_SUCCESS;
+}
+
 __int32_t main() {
     SEGGER_RTT_SetFlagsUpBuffer(0, SEGGER_RTT_MODE_NO_BLOCK_SKIP);
 
@@ -85,16 +117,19 @@ __int32_t main() {
 
     sensors_initialize(&I2C_1);
 
+    fk_weather_t weather;
+    memset(&weather, 0, sizeof(fk_weather_t));
+
     eeprom_region_t readings_region;
     eeprom_region_create(&readings_region, &I2C_0, EEPROM_ADDRESS_READINGS, EEPROM_ADDRESS_READINGS_END, sizeof(fk_weather_t));
+    if (eeprom_region_seek_end(&readings_region, &weather.seconds) != FK_SUCCESS) {
+        logerror("error finding eeprom end");
+    }
 
     struct timer_task timer_task;
     board_timer_setup(&timer_task, 1000, timer_task_cb);
 
     loginfo("ready!");
-
-    fk_weather_t weather;
-    memset(&weather, 0, sizeof(fk_weather_t));
 
     while (true) {
         if (take_readings_triggered) {
