@@ -12,6 +12,7 @@ FK_DECLARE_LOGGER("rw");
 
 static nonstd::optional<ModuleReadingsCollection> take_readings(Pool &pool) {
     auto lock = storage_mutex.acquire(UINT32_MAX);
+    auto eeprom = get_board()->lock_eeprom();
 
     auto memory_bus = get_board()->spi_flash();
     auto module_bus = get_board()->i2c_module();

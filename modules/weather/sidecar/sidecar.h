@@ -7,6 +7,7 @@
 #define FK_SUCCESS           (0)
 
 #define FK_ERROR_GENERAL    (-1)
+#define FK_ERROR_BUSY       (-2)
 
 #define FK_ASSERT(expr)
 

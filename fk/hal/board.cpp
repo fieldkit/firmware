@@ -48,4 +48,8 @@ int32_t TwoWireWrapper::read_register_buffer(uint8_t address, uint8_t reg, uint8
     return 0;
 }
 
+EepromLock::~EepromLock() {
+    get_board()->release_eeprom();
+}
+
 }

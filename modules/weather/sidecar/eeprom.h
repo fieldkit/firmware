@@ -41,6 +41,9 @@ int32_t eeprom_write_enable();
  */
 int32_t eeprom_write_disable();
 
+int32_t eeprom_lock_acquire();
+int32_t eeprom_lock_release();
+
 typedef struct eeprom_region_t {
     struct i2c_m_sync_desc *i2c;
     uint32_t start;

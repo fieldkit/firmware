@@ -68,6 +68,9 @@ bool Board::initialize() {
         digitalWrite(pin, HIGH);
     }
 
+    pinMode(MODULE_EEPROM_LOCK, OUTPUT);
+    digitalWrite(MODULE_EEPROM_LOCK, LOW);
+
     disable_everything();
 
     return true;
@@ -112,6 +115,15 @@ void Board::disable_wifi() {
 void Board::enable_wifi() {
     digitalWrite(WINC1500_POWER, HIGH);
     SPI1.begin();
+}
+
+EepromLock Board::lock_eeprom() {
+    digitalWrite(MODULE_EEPROM_LOCK, HIGH);
+    return { };
+}
+
+void Board::release_eeprom() {
+    digitalWrite(MODULE_EEPROM_LOCK, LOW);
 }
 
 SpiWrapper Board::spi_flash() {

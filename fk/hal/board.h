@@ -26,6 +26,8 @@ constexpr uint8_t BUTTON_LEFT = 30u;         // PA23
 
 constexpr uint8_t LORA_POWER = 76u;          // PC30
 
+constexpr uint8_t MODULE_EEPROM_LOCK = 13u;  // PB01
+
 class SpiWrapper {
 private:
     const char *name_;
@@ -98,6 +100,11 @@ public:
 
 };
 
+class EepromLock {
+public:
+    ~EepromLock();
+};
+
 class Board {
 public:
     bool initialize();
@@ -109,6 +116,8 @@ public:
     void enable_wifi();
     void disable_lora();
     void enable_lora();
+    EepromLock lock_eeprom();
+    void release_eeprom();
 
 public:
     SpiWrapper spi_flash();

@@ -17,6 +17,7 @@ static bool configure_water(uint8_t position) __attribute__((unused));
 
 void task_handler_readings(void *params) {
     auto lock = storage_mutex.acquire(UINT32_MAX);
+    auto eeprom = get_board()->lock_eeprom();
 
     auto started = fk_uptime();
     auto pool = MallocPool{ "readings", ModuleMemoryAreaSize };
@@ -41,8 +42,10 @@ void task_handler_readings(void *params) {
 
         ModuleScanning scanning{ get_modmux() };
 
+        // FK_ASSERT(configure_water(0));
         // FK_ASSERT(configure_water(2));
-        // FK_ASSERT(configure_weather(4));
+        // FK_ASSERT(configure_water(4));
+        // FK_ASSERT(configure_water(6));
 
         ReadingsTaker readings_taker{ scanning, storage, get_modmux(), false };
         FK_ASSERT(readings_taker.take(mc, pool));

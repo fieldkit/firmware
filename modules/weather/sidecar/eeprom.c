@@ -130,17 +130,27 @@ int32_t eeprom_write_disable() {
     return FK_SUCCESS;
 }
 
+int32_t eeprom_lock_test() {
+    gpio_set_pin_direction(PA25, GPIO_DIRECTION_IN);
+    return gpio_get_pin_level(PA25);
+}
+
 int32_t eeprom_region_create(eeprom_region_t *region, struct i2c_m_sync_desc *i2c, uint32_t start, uint32_t end, uint16_t item_size) {
     region->i2c = i2c;
     region->start = start;
     region->end = end;
     region->item_size = item_size;
     region->tail = start;
+
     return FK_SUCCESS;
 }
 
 int32_t eeprom_region_append(eeprom_region_t *region, void *item) {
     int32_t rv;
+
+    if (eeprom_lock_test()) {
+        return FK_ERROR_BUSY;
+    }
 
     loginfof("append 0x%04" PRIx32, region->tail);
 

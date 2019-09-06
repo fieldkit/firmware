@@ -75,20 +75,10 @@ int32_t take_readings(fk_weather_t *weather) {
 __int32_t main() {
     board_initialize();
 
-    loginfo("checking eeprom...");
-
     // Always leave EEPROM ready for writes.
     eeprom_write_enable_always();
 
-    loginfo("configuration...");
-
-    // Read configuration, if that fails use the default.
-    fk_weather_config_t config;
-    if (read_configuration(&config) != FK_SUCCESS) {
-        config = fk_weather_config_default;
-    }
-
-    loginfo("sensors...");
+    loginfo("initialize sensors...");
 
     if (sensors_initialize(&I2C_1) != FK_SUCCESS) {
         logerror("sensors: error initializing");

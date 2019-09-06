@@ -46,6 +46,13 @@ void Board::disable_lora() {
 void Board::enable_lora() {
 }
 
+EepromLock Board::lock_eeprom() {
+    return { };
+}
+
+void Board::release_eeprom() {
+}
+
 SpiWrapper Board::spi_flash() {
     return { "spi-flash", nullptr };
 }
