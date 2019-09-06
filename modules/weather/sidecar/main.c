@@ -73,27 +73,25 @@ int32_t take_readings(fk_weather_t *weather) {
 }
 
 __int32_t main() {
+    SEGGER_RTT_SetFlagsUpBuffer(0, SEGGER_RTT_MODE_NO_BLOCK_SKIP);
+
     board_initialize();
 
-    eeprom_write_disable();
+    // eeprom_write_disable();
+
+    eeprom_write_enable_always();
 
     loginfo("initialize sensors...");
 
-    if (sensors_initialize(&I2C_1) != FK_SUCCESS) {
-        logerror("sensors: error initializing");
-    }
+    sensors_initialize(&I2C_1);
+
+    eeprom_region_t readings_region;
+    eeprom_region_create(&readings_region, &I2C_0, EEPROM_ADDRESS_READINGS, EEPROM_ADDRESS_READINGS_END, sizeof(fk_weather_t));
 
     struct timer_task timer_task;
-
     board_timer_setup(&timer_task, 1000, timer_task_cb);
 
     loginfo("ready!");
-
-    eeprom_region_t readings_region;
-
-    eeprom_region_create(&readings_region, &I2C_0, EEPROM_ADDRESS_READINGS, EEPROM_ADDRESS_READINGS_END, sizeof(fk_weather_t));
-
-    // TODO Find the end of the region.
 
     fk_weather_t weather;
     memset(&weather, 0, sizeof(fk_weather_t));

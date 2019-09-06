@@ -28,14 +28,20 @@ int32_t eeprom_write_page(struct i2c_m_sync_desc *i2c, uint16_t address, uint8_t
     msg.buffer = buffer;
     msg.len    = size + sizeof(address);
     int32_t rv = _i2c_m_sync_transfer(&i2c->device, &msg);
+    if (rv != ERR_NONE) {
+        return rv;
+    }
 
     msg.buffer = NULL;
     msg.len = 0;
+
+    rv = FK_ERROR_TIMEOUT;
 
     int32_t to = EEPROM_TIMEOUT_WRITE;
     while (to > 0) {
         rv = _i2c_m_sync_transfer(&i2c->device, &msg);
         if (rv == ERR_NONE) {
+            rv = FK_SUCCESS;
             break;
         }
         delay_ms(1);
@@ -63,7 +69,7 @@ int32_t eeprom_read_page(struct i2c_m_sync_desc *i2c, uint16_t address, uint8_t 
     msg.flags  = 0;
     msg.buffer = (void *)buffer;
     rv = _i2c_m_sync_transfer(&i2c->device, &msg);
-    if (rv != 0) {
+    if (rv != ERR_NONE) {
         return rv;
     }
 
@@ -71,7 +77,7 @@ int32_t eeprom_read_page(struct i2c_m_sync_desc *i2c, uint16_t address, uint8_t 
     msg.buffer = data;
     msg.len    = size;
     rv = _i2c_m_sync_transfer(&i2c->device, &msg);
-    if (rv != 0) {
+    if (rv != ERR_NONE) {
         return rv;
     }
 
