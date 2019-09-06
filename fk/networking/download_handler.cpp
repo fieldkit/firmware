@@ -57,8 +57,9 @@ void DownloadWorker::run(Pool &pool) {
             auto bytes_read = file.read(buffer, to_read);
             FK_ASSERT(bytes_read == to_read);
 
-            if (req_->connection()->write(buffer, to_read) != (int32_t)to_read) {
-                logwarn("write error");
+            auto wrote = req_->connection()->write(buffer, to_read);
+            if (wrote != (int32_t)to_read) {
+                logwarn("write error (%" PRId32 " != %" PRId32 ")", wrote, to_read);
                 break;
             }
 
@@ -98,9 +99,9 @@ DownloadHandler::DownloadHandler(uint8_t file_number) : file_number_(file_number
 bool DownloadHandler::handle(HttpRequest &req, Pool &pool) {
     auto worker = create_pool_wrapper<DownloadWorker, DefaultWorkerPoolSize, PoolWorker<DownloadWorker>>(req, file_number_);
     if (!get_ipc()->launch_worker(worker)) {
+        delete worker;
         return false;
     }
-
     return true;
 }
 

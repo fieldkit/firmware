@@ -19,10 +19,8 @@ private:
 
     DownloadHandler download_handler_data{ Storage::Data };
     DownloadHandler download_handler_meta{ Storage::Meta };
-    HttpRoute downloads[4]{
-        { "/fk/v1/download/0",    &download_handler_data },
+    HttpRoute downloads[2]{
         { "/fk/v1/download/data", &download_handler_data },
-        { "/fk/v1/download/1",    &download_handler_meta },
         { "/fk/v1/download/meta", &download_handler_meta },
     };
 
