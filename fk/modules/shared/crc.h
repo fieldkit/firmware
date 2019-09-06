@@ -9,7 +9,7 @@ extern "C" {
 
 uint32_t crc32_update(uint32_t crc, uint8_t data);
 
-uint32_t crc32_checksum(uint32_t previous, uint8_t *data, size_t size);
+uint32_t crc32_checksum(uint32_t previous, uint8_t const *data, size_t size);
 
 #ifdef __cplusplus
 }
