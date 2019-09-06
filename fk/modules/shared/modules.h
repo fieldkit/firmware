@@ -45,17 +45,18 @@ uint32_t fk_module_header_valid(ModuleHeader const *header);
  */
 #define EEPROM_PAGE_SIZE                           (0x20)
 
-#define EEPROM_ADDRESS_HEADER                      (0x00)
-#define EEPROM_ADDRESS_HEADER_SIZE                 (EEPROM_PAGE_SIZE * 2)
-#define EEPROM_ADDRESS_CONFIG                      (EEPROM_ADDRESS_HEADER + EEPROM_ADDRESS_HEADER_SIZE)
-#define EEPROM_ADDRESS_CONFIG_SIZE                 (EEPROM_PAGE_SIZE)
-#define EEPROM_ADDRESS_READINGS                    (EEPROM_ADDRESS_HEADER + EEPROM_ADDRESS_HEADER_SIZE) + (EEPROM_ADDRESS_CONFIG_SIZE)
-
 /**
  * Last address in our EEPROM, effectively the size of the EEPROM. All our
  * modules use the same chip with 64k.
  */
 #define EEPROM_ADDRESS_END                         (64 * 1024)
+
+#define EEPROM_ADDRESS_HEADER                      (0x00)
+#define EEPROM_ADDRESS_HEADER_SIZE                 (EEPROM_PAGE_SIZE * 2)
+#define EEPROM_ADDRESS_CONFIG                      (EEPROM_ADDRESS_HEADER + EEPROM_ADDRESS_HEADER_SIZE)
+#define EEPROM_ADDRESS_CONFIG_SIZE                 (EEPROM_PAGE_SIZE)
+#define EEPROM_ADDRESS_READINGS                    (EEPROM_ADDRESS_HEADER + EEPROM_ADDRESS_HEADER_SIZE) + (EEPROM_ADDRESS_CONFIG_SIZE)
+#define EEPROM_ADDRESS_READINGS_END                (EEPROM_ADDRESS_END)
 
 /**
  * Seeds the CRC of module information to avoid false positives and 0 checksums.
