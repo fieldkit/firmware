@@ -145,6 +145,23 @@ int32_t eeprom_region_create(eeprom_region_t *region, struct i2c_m_sync_desc *i2
     return FK_SUCCESS;
 }
 
+static void verify_write(eeprom_region_t *region, void *item)  {
+    int32_t rv;
+
+    uint8_t actual[region->item_size];
+    rv = eeprom_read(region->i2c, region->tail, actual, region->item_size);
+    if (rv != FK_SUCCESS) {
+        return;
+    }
+
+    if (memcmp(actual, item, region->item_size) == 0) {
+        loginfo("write is good");
+        return;
+    }
+
+    FK_ASSERT(0);
+}
+
 int32_t eeprom_region_append(eeprom_region_t *region, void *item) {
     int32_t rv;
 
@@ -152,13 +169,20 @@ int32_t eeprom_region_append(eeprom_region_t *region, void *item) {
         return FK_ERROR_BUSY;
     }
 
-    loginfof("append 0x%04" PRIx32, region->tail);
+    eeprom_write_enable();
 
     // Write this item into memory, we've been given the size already.
     rv = eeprom_write(region->i2c, region->tail, item, region->item_size);
     if (rv != FK_SUCCESS) {
+        eeprom_write_disable();
         return rv;
     }
+
+    verify_write(region, item);
+
+    eeprom_write_disable();
+
+    loginfof("append 0x%04" PRIx32, region->tail);
 
     // Move to the next item slot and if we've reached the end of the region
     // wrap around to the beginning. Notice we check to see if there's room for

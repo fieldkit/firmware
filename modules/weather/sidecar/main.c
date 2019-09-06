@@ -67,6 +67,7 @@ int32_t take_readings(fk_weather_t *weather) {
     loginfof("mpl temp: %d", mpl3115a2_reading.temperature);
     loginfof("sht humidity: %d", sht31_reading.humidity);
     loginfof("sht temp: %d", sht31_reading.temperature);
+    loginfof("sizeof(fk_weather_t) = %d", sizeof(fk_weather_t));
     loginfof("crc: %" PRIu32, weather->crc);
 
     return FK_SUCCESS;
@@ -75,8 +76,7 @@ int32_t take_readings(fk_weather_t *weather) {
 __int32_t main() {
     board_initialize();
 
-    // Always leave EEPROM ready for writes.
-    eeprom_write_enable_always();
+    eeprom_write_disable();
 
     loginfo("initialize sensors...");
 

@@ -1,4 +1,5 @@
 #include "hal/board.h"
+#include "platform.h"
 
 #if defined(ARDUINO)
 
@@ -119,6 +120,9 @@ void Board::enable_wifi() {
 
 EepromLock Board::lock_eeprom() {
     digitalWrite(MODULE_EEPROM_LOCK, HIGH);
+
+    fk_delay(100); // NOTE Allow any concurrent write to finish. Yikes.
+
     return { };
 }
 

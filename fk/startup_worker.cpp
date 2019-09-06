@@ -25,8 +25,8 @@ static void developer_configuration() {
     ModuleScanning scanning{ get_modmux() };
     ModuleConfigurer configurer{ scanning };
 
-    // FK_ASSERT(configurer.weather(4));
-    // FK_ASSERT(configurer.water(6));
+    FK_ASSERT(configurer.weather(4));
+    FK_ASSERT(configurer.water(6));
 }
 
 void StartupWorker::run(Pool &pool) {
