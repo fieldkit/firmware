@@ -73,7 +73,7 @@ ModuleReadings *WeatherModule::take_readings(ModuleContext mc, fk::Pool &pool) {
     auto mr = new(pool) NModuleReadings<4>();
     mr->set(i++, 100.0f * ((float)reading.humidity / (0xffff)));
     mr->set(i++, -45.0f + 175.0f * ((float)reading.temperature_1 / (0xffff)));
-    mr->set(i++, reading.pressure / 64.0f);
+    mr->set(i++, reading.pressure / 64.0f / 1000.0f);
     mr->set(i++, reading.temperature_2 / 16.0f);
     return mr;
 }
