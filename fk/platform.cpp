@@ -80,6 +80,10 @@ uint32_t fk_serial_number_get(fk_serial_number_t *sn) {
     return 128;
 }
 
+void fk_restart() {
+    NVIC_SystemReset();
+}
+
 #else // __SAMD51__
 
 using namespace std::chrono;
@@ -122,6 +126,9 @@ uint32_t fk_serial_number_get(fk_serial_number_t *sn) {
     sn->dwords[2] = 0;
     sn->dwords[3] = 0;
     return 0;
+}
+
+void fk_restart() {
 }
 
 #endif // __SAMD51__

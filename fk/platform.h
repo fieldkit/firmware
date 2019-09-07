@@ -29,4 +29,6 @@ uint32_t fk_fake_uptime(std::vector<uint32_t> more);
 
 uint32_t fk_serial_number_get(fk_serial_number_t *sn);
 
+void fk_restart();
+
 }
