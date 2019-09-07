@@ -51,6 +51,18 @@ struct SimpleScreen : public DisplayScreen {
     }
 };
 
+struct ReadingScreen : public DisplayScreen {
+    const char *module;
+    const char *sensor;
+    float value;
+
+    ReadingScreen() {
+    }
+
+    ReadingScreen(const char *module, const char *sensor, float value) : module(module), sensor(sensor), value(value) {
+    }
+};
+
 template<typename T>
 struct LambdaOption : public MenuOption {
     T fn;
@@ -99,6 +111,7 @@ public:
     virtual void qr(QrCodeScreen const &screen) = 0;
     virtual void self_check(SelfCheckScreen const &screen) = 0;
     virtual void simple(SimpleScreen &screen) = 0;
+    virtual void reading(ReadingScreen &screen) = 0;
 
 };
 
@@ -114,6 +127,7 @@ public:
     void qr(QrCodeScreen const &screen) override { }
     void self_check(SelfCheckScreen const &screen) override { }
     void simple(SimpleScreen &screen) override { }
+    void reading(ReadingScreen &screen) override { }
 
     bool begin() {
         return true;

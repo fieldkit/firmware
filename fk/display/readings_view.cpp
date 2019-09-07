@@ -2,15 +2,64 @@
 #include "state_ref.h"
 #include "hal/board.h"
 #include "hal/display.h"
+#include "platform.h"
 
 namespace fk {
 
-void ReadingsView::tick(ViewController *views) {
-    SimpleScreen simple = { "Readings" };
+FK_DECLARE_LOGGER("readings");
 
-    auto bus = get_board()->i2c_core();
-    auto display = get_display();
-    display->simple(simple);
+void ReadingsView::tick(ViewController *views) {
+    if (fk_uptime() < dirty_) {
+        return;
+    }
+
+    dirty_ = fk_uptime() + 1000;
+
+    auto gs = get_global_state_ro();
+
+    auto modules = gs.get()->modules;
+
+    if (modules == nullptr) {
+        return;
+    }
+
+    size_t number_sensors = 0;
+    for (size_t m = 0; m < modules->nmodules; ++m) {
+        auto &module = modules->modules[m];
+        number_sensors += module.nsensors;
+    }
+
+    auto index = position_ % number_sensors;
+
+    for (size_t m = 0; m < modules->nmodules; ++m) {
+        auto &module = modules->modules[m];
+        for (size_t s = 0; s < module.nsensors; ++s) {
+            auto &sensor = module.sensors[s];
+            if (index-- == 0) {
+                if (sensor.has_live_vaue) {
+                    ReadingScreen reading{ module.name, sensor.name, sensor.live_value };
+                    auto bus = get_board()->i2c_core();
+                    auto display = get_display();
+                    display->reading(reading);
+                    return;
+                }
+            }
+        }
+    }
+}
+
+void ReadingsView::up(ViewController *views) {
+    position_--;
+    dirty_ = 0;
+}
+
+void ReadingsView::down(ViewController *views) {
+    position_++;
+    dirty_ = 0;
+}
+
+void ReadingsView::enter(ViewController *views) {
+    views->show_home();
 }
 
 }
