@@ -30,8 +30,8 @@ bool HttpReply::include_status() {
     reply_.status.identity.device.arg = (void *)gs_->general.name;
     reply_.status.identity.build.arg = (void *)fkb_header.firmware.name;
     reply_.status.identity.deviceId.arg = device_id;
-    reply_.status.power.battery.voltage = 4000;
-    reply_.status.power.battery.percentage = 45;
+    reply_.status.power.battery.voltage = gs_->power.voltage;
+    reply_.status.power.battery.percentage = gs_->power.charge;
 
     reply_.status.memory.sramAvailable = fk_free_memory();
     reply_.status.memory.programFlashAvailable = 1024 * 1024 - BootloaderSize - fkb_header.firmware.binary_size;
