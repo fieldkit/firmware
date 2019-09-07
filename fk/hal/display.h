@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.h"
+#include "pool.h"
 
 namespace fk {
 
@@ -65,6 +66,11 @@ struct LambdaOption : public MenuOption {
 template<typename T>
 LambdaOption<T> to_lambda_option(const char *label, T fn) {
     return LambdaOption<T>(label, fn);
+}
+
+template<typename T>
+LambdaOption<T> *to_lambda_option(Pool &pool, const char *label, T fn) {
+    return new (pool) LambdaOption<T>(label, fn);
 }
 
 struct MenuScreen : public DisplayScreen {
