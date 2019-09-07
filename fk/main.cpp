@@ -141,7 +141,6 @@ static bool initialize_logging() {
     return true;
 }
 
-/*
 static bool recover_i2c() {
     get_board()->disable_everything();
 
@@ -153,12 +152,13 @@ static bool recover_i2c() {
 
     return true;
 }
-*/
 
 static bool initialize_hardware() {
     FK_ASSERT(get_board()->initialize());
     FK_ASSERT(get_buttons()->begin());
     FK_ASSERT(fk_random_initialize() == 0);
+
+    recover_i2c();
 
     if (!get_modmux()->begin()) {
         logerror("no backplane!");
