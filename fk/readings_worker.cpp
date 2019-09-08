@@ -12,6 +12,9 @@ ReadingsWorker::ReadingsWorker(bool read_only) : read_only_(read_only) {
 
 void ReadingsWorker::run(Pool &pool) {
     auto all_readings = take_readings(pool);
+    if (!all_readings) {
+        return;
+    }
 
     auto data_pool = new StaticPool<DefaultWorkerPoolSize>("readings");
     auto modules = data_pool->malloc_with<ModulesState>(data_pool);
@@ -85,7 +88,9 @@ nonstd::optional<ModuleReadingsCollection> ReadingsWorker::take_readings(Pool &p
     ModuleScanning scanning{ get_modmux() };
     ReadingsTaker readings_taker{ scanning, storage, get_modmux(), read_only_ };
     auto all_readings = readings_taker.take(mc, pool);
-    FK_ASSERT(all_readings);
+    if (!all_readings) {
+        return nonstd::nullopt;
+    }
 
     meta_fh_ = storage.file_header(Storage::Meta);
     data_fh_ = storage.file_header(Storage::Data);
