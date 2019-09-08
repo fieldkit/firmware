@@ -16,7 +16,7 @@ int32_t TwoWireWrapper::read_register_u8(uint8_t address, uint8_t reg, uint8_t &
         return rv;
     }
 
-    rv = read(address, &value, sizeof(reg));
+    rv = read(address, &value, sizeof(value));
     if (!I2C_CHECK(rv)) {
         return rv;
     }
@@ -48,6 +48,29 @@ int32_t TwoWireWrapper::read_register_buffer(uint8_t address, uint8_t reg, uint8
     }
 
     rv = read(address, buffer, size);
+    if (!I2C_CHECK(rv)) {
+        return rv;
+    }
+
+    return 0;
+}
+
+int32_t TwoWireWrapper::write_register_u16(uint8_t address, uint8_t reg, uint16_t value) {
+    uint8_t command[] = {
+        reg,
+        (uint8_t)((value     ) & 0xff),
+        (uint8_t)((value >> 8) & 0xff),
+    };
+    return write(address, &command, sizeof(command));
+}
+
+int32_t TwoWireWrapper::read_register_u16(uint8_t address, uint8_t reg, uint16_t &value) {
+    auto rv = write(address, &reg, sizeof(reg));
+    if (!I2C_CHECK(rv)) {
+        return rv;
+    }
+
+    rv = read(address, &value, sizeof(value));
     if (!I2C_CHECK(rv)) {
         return rv;
     }
