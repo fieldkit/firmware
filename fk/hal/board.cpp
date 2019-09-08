@@ -32,6 +32,13 @@ int32_t TwoWireWrapper::write_register_u8(uint8_t address, uint8_t reg, uint8_t 
     return write(address, &command, sizeof(command));
 }
 
+int32_t TwoWireWrapper::write_u8(uint8_t address, uint8_t value) {
+    uint8_t command[] = {
+        value
+    };
+    return write(address, &command, sizeof(command));
+}
+
 int32_t TwoWireWrapper::read_register_buffer(uint8_t address, uint8_t reg, uint8_t *buffer, int32_t size) {
     int32_t rv;
 

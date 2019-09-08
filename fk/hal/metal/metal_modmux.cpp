@@ -28,22 +28,27 @@ MetalModMux::MetalModMux() {
 }
 
 bool MetalModMux::begin() {
-    Wire2.begin();
+    auto bus = get_board()->i2c_module();
 
-    // Configure IO directions and disable everything.
-    Wire2.beginTransmission(MCP23008_ADDRESS);
-    Wire2.write((byte)MCP23008_IODIR);
-    Wire2.write((byte)0b10101010); // IODIR
-    Wire2.write((byte)0x00);       // IPOL
-    Wire2.write((byte)0x00);       // GPINTEN
-    Wire2.write((byte)0x00);       // DEFVAL
-    Wire2.write((byte)0x00);       // INTCON
-    Wire2.write((byte)0x00);       // IOCON
-    Wire2.write((byte)0x00);       // GPPU
-    Wire2.write((byte)0x00);       // INTF
-    Wire2.write((byte)0x00);       // INTCAP
-    Wire2.write((byte)0x00);       // GPIO
-    if (!I2C_CHECK(Wire2.endTransmission())) {
+    uint8_t buffer[] = {
+        (uint8_t)MCP23008_IODIR,
+        (uint8_t)0b10101010, // IODIR
+        (uint8_t)0x00,       // IPOL
+        (uint8_t)0x00,       // GPINTEN
+        (uint8_t)0x00,       // DEFVAL
+        (uint8_t)0x00,       // INTCON
+        (uint8_t)0x00,       // IOCON
+        (uint8_t)0x00,       // GPPU
+        (uint8_t)0x00,       // INTF
+        (uint8_t)0x00,       // INTCAP
+        (uint8_t)0x00,       // GPIO
+    };
+
+    bus.end();
+    bus.begin();
+
+    auto rv = bus.write(MCP23008_ADDRESS, buffer, sizeof(buffer));
+    if (!I2C_CHECK(rv)) {
         return false;
     }
 
@@ -57,10 +62,13 @@ bool MetalModMux::enable_all_modules() {
         return false;
     }
 
-    Wire2.beginTransmission(MCP23008_ADDRESS);
-    Wire2.write((byte)MCP23008_GPIO);
-    Wire2.write((byte)0xff);
-    if (!I2C_CHECK(Wire2.endTransmission())) {
+    auto bus = get_board()->i2c_module();
+
+    bus.end();
+    bus.begin();
+
+    auto rv = bus.write_register_u8(MCP23008_ADDRESS, MCP23008_GPIO, 0xff);
+    if (!I2C_CHECK(rv)) {
         return false;
     }
 
@@ -72,10 +80,13 @@ bool MetalModMux::disable_all_modules() {
         return false;
     }
 
-    Wire2.beginTransmission(MCP23008_ADDRESS);
-    Wire2.write((byte)MCP23008_GPIO);
-    Wire2.write((byte)0x00);
-    if (!I2C_CHECK(Wire2.endTransmission())) {
+    auto bus = get_board()->i2c_module();
+
+    bus.end();
+    bus.begin();
+
+    auto rv = bus.write_register_u8(MCP23008_ADDRESS, MCP23008_GPIO, 0x00);
+    if (!I2C_CHECK(rv)) {
         return false;
     }
 
@@ -91,9 +102,13 @@ bool MetalModMux::choose(uint8_t position) {
         return false;
     }
 
-    Wire2.beginTransmission(TCA9548A_ADDRESS);
-    Wire2.write(1 << position);
-    if (!I2C_CHECK(Wire2.endTransmission())) {
+    auto bus = get_board()->i2c_module();
+
+    bus.end();
+    bus.begin();
+
+    auto rv = bus.write_u8(TCA9548A_ADDRESS, 1 << position);
+    if (!I2C_CHECK(rv)) {
         return false;
     }
 
