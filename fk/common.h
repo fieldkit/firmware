@@ -6,6 +6,7 @@
 #include <alogging/alogging.h>
 
 #include "debugging.h"
+#include "errors.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -19,7 +19,7 @@ public:
     virtual ~ModuleFactory();
 
 public:
-    nonstd::optional<ConstructedModulesCollection> create();
+    tl::expected<ConstructedModulesCollection, Error> create();
 
 private:
     Pool &pool() {

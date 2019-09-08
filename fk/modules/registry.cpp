@@ -44,7 +44,7 @@ ModuleMetadata const *ModuleRegistry::resolve(ModuleHeader const &header) {
     return nullptr;
 }
 
-nonstd::optional<ConstructedModulesCollection> ModuleRegistry::resolve(FoundModuleCollection &found, Pool &pool) {
+tl::expected<ConstructedModulesCollection, Error> ModuleRegistry::resolve(FoundModuleCollection &found, Pool &pool) {
     ConstructedModulesCollection constructed(pool);
     for (auto &f : found) {
         auto meta = resolve(f.header);

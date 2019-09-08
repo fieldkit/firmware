@@ -18,7 +18,7 @@ TEST_F(ModuleFactorySuite, WithNoModules) {
     FoundModuleCollection found(pool_);
 
     MockModuleScanning scanning;
-    EXPECT_CALL(scanning, scan(_)).WillOnce(Return(nonstd::optional<FoundModuleCollection>(found)));
+    EXPECT_CALL(scanning, scan(_)).WillOnce(Return(found));
 
     ModuleFactory module_factory(scanning, &pool_);
     ASSERT_TRUE(module_factory.create());
@@ -36,7 +36,7 @@ TEST_F(ModuleFactorySuite, BasicSingleModule) {
     });
 
     MockModuleScanning scanning;
-    EXPECT_CALL(scanning, scan(_)).WillOnce(Return(nonstd::optional<FoundModuleCollection>(found)));
+    EXPECT_CALL(scanning, scan(_)).WillOnce(Return(found));
 
     ModuleFactory module_factory(scanning, &pool_);
     ASSERT_TRUE(module_factory.create());

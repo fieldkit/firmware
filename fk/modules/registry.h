@@ -22,7 +22,7 @@ public:
 
 public:
     ModuleMetadata const *resolve(ModuleHeader const &header);
-    nonstd::optional<ConstructedModulesCollection> resolve(FoundModuleCollection &headers, Pool &pool);
+    tl::expected<ConstructedModulesCollection, Error> resolve(FoundModuleCollection &headers, Pool &pool);
 
 };
 

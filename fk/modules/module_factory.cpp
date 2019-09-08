@@ -13,18 +13,18 @@ ModuleFactory::ModuleFactory(ModuleScanning &scanning, Pool *pool) : scanning_(&
 ModuleFactory::~ModuleFactory() {
 }
 
-nonstd::optional<ConstructedModulesCollection> ModuleFactory::create() {
+tl::expected<ConstructedModulesCollection, Error> ModuleFactory::create() {
     auto module_headers = scanning_->scan(pool());
     if (!module_headers) {
         logerror("error scanning modules");
-        return nonstd::nullopt;
+        return tl::unexpected<Error>(module_headers.error());
     }
 
     ModuleRegistry registry;
     auto resolved = registry.resolve(*module_headers, pool());
     if (!resolved) {
         logerror("error resolving modules");
-        return nonstd::nullopt;
+        return tl::unexpected<Error>(resolved.error());
     }
 
     return resolved;

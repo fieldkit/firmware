@@ -53,7 +53,7 @@ static bool add_virtual_module(FoundModuleCollection &headers, uint16_t kind) {
     return true;
 }
 
-nonstd::optional<FoundModuleCollection> ModuleScanning::scan(Pool &pool) {
+tl::expected<FoundModuleCollection, Error> ModuleScanning::scan(Pool &pool) {
     FoundModuleCollection found(pool);
 
     // If any virtual modules are enabled, sneak the modules into the final
@@ -78,7 +78,8 @@ nonstd::optional<FoundModuleCollection> ModuleScanning::scan(Pool &pool) {
 
     for (uint8_t i = 0; i < MaximumNumberOfModules; ++i) {
         if (!mm_->choose(i)) {
-            return nonstd::nullopt;
+            logerror("[%d] error choosing", i);
+            return tl::unexpected<Error>(Error::Bus);
         }
 
         ModuleHeader header;

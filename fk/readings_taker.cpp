@@ -20,11 +20,11 @@ FK_DECLARE_LOGGER("readings");
 ReadingsTaker::ReadingsTaker(ModuleScanning &scanning, Storage &storage, ModMux *mm, bool read_only) : scanning_(scanning), storage_(storage), readings_{ mm }, mm_(mm), read_only_(read_only) {
 }
 
-nonstd::optional<ModuleReadingsCollection> ReadingsTaker::take(ModuleContext &mc, Pool &pool) {
+tl::expected<ModuleReadingsCollection, Error> ReadingsTaker::take(ModuleContext &mc, Pool &pool) {
     ModuleFactory module_factory(scanning_, &pool);
     auto modules = module_factory.create();
     if (!modules) {
-        return nonstd::nullopt;
+        return tl::unexpected<Error>(modules.error());
     }
 
     if ((*modules).size() == 0) {
@@ -33,7 +33,7 @@ nonstd::optional<ModuleReadingsCollection> ReadingsTaker::take(ModuleContext &mc
     }
 
     if (!initialize_modules(mc, *modules, mm_, pool)) {
-        return nonstd::nullopt;
+        return tl::unexpected<Error>(Error::General);
     }
 
     if (!read_only_) {
@@ -44,7 +44,7 @@ nonstd::optional<ModuleReadingsCollection> ReadingsTaker::take(ModuleContext &mc
 
         if (!append_configuration(mc, *modules, meta, pool)) {
             logerror("error appending configuration");
-            return nonstd::nullopt;
+            return tl::unexpected<Error>(Error::General);
         }
 
         auto data = storage_.file(Storage::Data);
@@ -55,17 +55,17 @@ nonstd::optional<ModuleReadingsCollection> ReadingsTaker::take(ModuleContext &mc
         auto all_readings = readings_.take_readings(mc, *modules, data.record(), pool);
         if (!all_readings) {
             logerror("error taking readings");
-            return nonstd::nullopt;
+            return tl::unexpected<Error>(Error::General);
         }
 
         if (!append_readings(data, pool)) {
             logerror("error appending readings");
-            return nonstd::nullopt;
+            return tl::unexpected<Error>(Error::General);
         }
 
         if (!verify_reading_record(data, pool)) {
             logerror("error verifying readings");
-            return nonstd::nullopt;
+            return tl::unexpected<Error>(Error::General);
         }
 
         return all_readings;
@@ -74,7 +74,7 @@ nonstd::optional<ModuleReadingsCollection> ReadingsTaker::take(ModuleContext &mc
     auto all_readings = readings_.take_readings(mc, *modules, 0, pool);
     if (!all_readings) {
         logerror("error taking readings");
-        return nonstd::nullopt;
+        return tl::unexpected<Error>(Error::General);
     }
 
     return all_readings;

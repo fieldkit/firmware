@@ -9,7 +9,7 @@ FK_DECLARE_LOGGER("readings");
 Readings::Readings(ModMux *mm) : mm_(mm) {
 }
 
-nonstd::optional<ModuleReadingsCollection> Readings::take_readings(ModuleContext &mc, ConstructedModulesCollection const &modules, uint32_t reading_number, Pool &pool) {
+tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ModuleContext &mc, ConstructedModulesCollection const &modules, uint32_t reading_number, Pool &pool) {
     ModuleReadingsCollection all_readings{ pool };
 
     auto now = get_clock_now();

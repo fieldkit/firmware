@@ -66,7 +66,7 @@ void ReadingsWorker::run(Pool &pool) {
     });
 }
 
-nonstd::optional<ModuleReadingsCollection> ReadingsWorker::take_readings(Pool &pool) {
+tl::expected<ModuleReadingsCollection, Error> ReadingsWorker::take_readings(Pool &pool) {
     auto lock = storage_mutex.acquire(UINT32_MAX);
     auto eeprom = get_board()->lock_eeprom();
 
@@ -81,7 +81,7 @@ nonstd::optional<ModuleReadingsCollection> ReadingsWorker::take_readings(Pool &p
         logerror("error opening storage, wiping...");
         if (!storage.clear()) {
             logerror("wiping storage failed!");
-            return nonstd::nullopt;
+            return tl::unexpected<Error>(Error::General);
         }
     }
 
@@ -89,7 +89,7 @@ nonstd::optional<ModuleReadingsCollection> ReadingsWorker::take_readings(Pool &p
     ReadingsTaker readings_taker{ scanning, storage, get_modmux(), read_only_ };
     auto all_readings = readings_taker.take(mc, pool);
     if (!all_readings) {
-        return nonstd::nullopt;
+        return tl::unexpected<Error>(all_readings.error());
     }
 
     meta_fh_ = storage.file_header(Storage::Meta);

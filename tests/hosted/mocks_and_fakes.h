@@ -15,7 +15,7 @@ public:
     }
 
 public:
-    MOCK_METHOD1(scan, nonstd::optional<FoundModuleCollection>(Pool &pool));
+    MOCK_METHOD1(scan, tl::expected<FoundModuleCollection, Error>(Pool &pool));
 
 };
 

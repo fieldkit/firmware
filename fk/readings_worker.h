@@ -30,7 +30,7 @@ public:
     }
 
 private:
-    nonstd::optional<ModuleReadingsCollection> take_readings(Pool &pool);
+    tl::expected<ModuleReadingsCollection, Error> take_readings(Pool &pool);
 
 };
 

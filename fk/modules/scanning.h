@@ -24,7 +24,7 @@ public:
     ModuleScanning(ModMux *mm);
 
 public:
-    virtual nonstd::optional<FoundModuleCollection> scan(Pool &pool);
+    virtual tl::expected<FoundModuleCollection, Error> scan(Pool &pool);
     virtual bool configure(uint8_t position, ModuleHeader &header);
 
 private:
@@ -41,7 +41,7 @@ public:
     }
 
 public:
-    nonstd::optional<FoundModuleCollection> scan(Pool &pool) override {
+    tl::expected<FoundModuleCollection, Error> scan(Pool &pool) override {
         return found_;
     }
 };

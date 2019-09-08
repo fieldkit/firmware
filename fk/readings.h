@@ -28,7 +28,7 @@ public:
     Readings(ModMux *mm);
 
 public:
-    nonstd::optional<ModuleReadingsCollection> take_readings(ModuleContext &mc, ConstructedModulesCollection const &modules, uint32_t reading_number, Pool &pool);
+    tl::expected<ModuleReadingsCollection, Error> take_readings(ModuleContext &mc, ConstructedModulesCollection const &modules, uint32_t reading_number, Pool &pool);
 
 public:
     fk_data_DataRecord &record();

@@ -20,7 +20,7 @@ public:
     ReadingsTaker(ModuleScanning &scanning, Storage &storage, ModMux *mm, bool read_only);
 
 public:
-    nonstd::optional<ModuleReadingsCollection> take(ModuleContext &mc, Pool &pool);
+    tl::expected<ModuleReadingsCollection, Error> take(ModuleContext &mc, Pool &pool);
     bool append_readings(File &file, Pool &pool);
     bool append_configuration(ModuleContext &mc, ConstructedModulesCollection &modules, File &file, Pool &pool);
     bool initialize_modules(ModuleContext &mc, ConstructedModulesCollection &modules, ModMux *mm, Pool &pool);
