@@ -15,12 +15,12 @@ public:
                 break;
             }
             case Operation::Download: {
-                gs->progress.operation = "Download";
+                gs->progress.operation = "Copying";
                 gs->progress.progress = progress;
                 break;
             }
             case Operation::Upload: {
-                gs->progress.operation = "Upload";
+                gs->progress.operation = "Copying";
                 gs->progress.progress = progress;
                 break;
             }

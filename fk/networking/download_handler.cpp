@@ -1,8 +1,9 @@
 #include "networking/download_handler.h"
+#include "hal/hal.h"
 #include "storage/storage.h"
 #include "storage/progress_tracker.h"
+#include "state_progress.h"
 #include "io.h"
-#include "hal/hal.h"
 
 namespace fk {
 
@@ -49,8 +50,8 @@ void DownloadWorker::run(Pool &pool) {
         size_t buffer_size = 1024;
         uint8_t *buffer = (uint8_t *)pool.malloc(buffer_size);
 
-        NoopProgressCallbacks noop_progress;
-        auto tracker = ProgressTracker{ &noop_progress, Operation::Download, "download", "", size };
+        GlobalStateProgressCallbacks gs_progress;
+        auto tracker = ProgressTracker{ &gs_progress, Operation::Download, "download", "", size };
         auto bytes_copied = (size_t)0;
         while (bytes_copied < size) {
             auto to_read = std::min<int32_t>(buffer_size, size - bytes_copied);
