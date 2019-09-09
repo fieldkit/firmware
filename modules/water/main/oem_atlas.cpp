@@ -70,7 +70,7 @@ bool OemAtlas::find() {
 
 bool OemAtlas::find(uint8_t address) {
     TwoWire16 d16;
-    if (bus_->read_register_buffer(address, AtlasRegisters::DEVICE_TYPE, (uint8_t *)&d16, sizeof(d16)) != 0) {
+    if (!I2C_CHECK(bus_->read_register_buffer(address, AtlasRegisters::DEVICE_TYPE, (uint8_t *)&d16, sizeof(d16)))) {
         return false;
     }
 
@@ -103,21 +103,21 @@ uint8_t OemAtlas::address() const {
 
 bool OemAtlas::wake() {
     auto cfg = config(type_);
-    return bus_->write_register_u8(address_, cfg.active_register, AtlasHigh) == 0;
+    return I2C_CHECK(bus_->write_register_u8(address_, cfg.active_register, AtlasHigh));
 }
 
 bool OemAtlas::hibernate() {
     auto cfg = config(type_);
-    return bus_->write_register_u8(address_, cfg.active_register, AtlasLow) == 0;
+    return I2C_CHECK(bus_->write_register_u8(address_, cfg.active_register, AtlasLow));
 }
 
 bool OemAtlas::has_reading(uint8_t &has_reading) {
     auto cfg = config(type_);
-    return bus_->read_register_u8(address_, cfg.reading_register, has_reading) == 0;
+    return I2C_CHECK(bus_->read_register_u8(address_, cfg.reading_register, has_reading));
 }
 
 bool OemAtlas::leds(bool on) {
-    return bus_->write_register_u8(address_, AtlasRegisters::LED, on ? AtlasHigh : AtlasLow) == 0;
+    return I2C_CHECK(bus_->write_register_u8(address_, AtlasRegisters::LED, on ? AtlasHigh : AtlasLow));
 }
 
 bool OemAtlas::read(float *values, size_t &number_of_values) {
@@ -125,7 +125,7 @@ bool OemAtlas::read(float *values, size_t &number_of_values) {
     auto cfg = config(type_);
     auto started = fk_uptime();
     while (fk_uptime() - started < ATLAS_READINGS_TIMEOUT) {
-        if (bus_->read_register_u8(address_, cfg.reading_register, has_reading) != 0) {
+        if (!I2C_CHECK(bus_->read_register_u8(address_, cfg.reading_register, has_reading))) {
             logerror("error reading register");
             return false;
         }
@@ -143,12 +143,12 @@ bool OemAtlas::read(float *values, size_t &number_of_values) {
     }
 
     TwoWire32 raw[ATLAS_MAXIMUM_VALUES] = { { 0 }, { 0 }, { 0 } };
-    if (bus_->read_register_buffer(address_, cfg.value_register, (uint8_t *)raw, cfg.number_of_values * sizeof(TwoWire32)) != 0) {
+    if (!I2C_CHECK(bus_->read_register_buffer(address_, cfg.value_register, (uint8_t *)raw, cfg.number_of_values * sizeof(TwoWire32)))) {
         logerror("error reading values");
         return false;
     }
 
-    if (bus_->write_register_u8(address_, cfg.reading_register, AtlasLow) != 0) {
+    if (!I2C_CHECK(bus_->write_register_u8(address_, cfg.reading_register, AtlasLow))) {
         logerror("error clearing reading");
         return false;
     }
