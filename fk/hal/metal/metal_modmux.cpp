@@ -141,10 +141,19 @@ bool MetalModMux::choose(uint8_t position) {
     bus.end();
     bus.begin();
 
-    auto rv = bus.write_u8(TCA9548A_ADDRESS, 1 << position);
-    if (!I2C_CHECK(rv)) {
+    if (!I2C_CHECK(bus.write_u8(TCA9548A_ADDRESS, 0))) {
+        logerror("choose nothing fail");
         return false;
     }
+
+    fk_delay(10);
+
+    if (!I2C_CHECK(bus.write_u8(TCA9548A_ADDRESS, 1 << position))) {
+        logerror("choose %d fail", position);
+        return false;
+    }
+
+    fk_delay(10);
 
     active_module_ = position;
 
