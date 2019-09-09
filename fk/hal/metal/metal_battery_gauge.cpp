@@ -90,13 +90,13 @@ static bool write_u16_and_verify(TwoWireWrapper &bus, uint8_t address, uint8_t r
     uint16_t data = 0;
 
     do {
-        if (!bus.write_register_u16(address, reg, value)) {
+        if (!I2C_CHECK(bus.write_register_u16(address, reg, value))) {
             // status = false;
         }
 
         fk_delay(3);
 
-        if (!bus.read_register_u16(address, reg, data)) {
+        if (!I2C_CHECK(bus.read_register_u16(address, reg, data))) {
             // status = false;
         }
 
@@ -109,7 +109,7 @@ static bool write_u16_and_verify(TwoWireWrapper &bus, uint8_t address, uint8_t r
 
 bool check_por(TwoWireWrapper &bus) {
     uint16_t status;
-    if (!bus.read_register_u16(Address, Max17055Registers::STATUS_REG, status)) {
+    if (!I2C_CHECK(bus.read_register_u16(Address, Max17055Registers::STATUS_REG, status))) {
         return false;
     }
     return status & MAX17055_STATUS_POR;
@@ -117,7 +117,7 @@ bool check_por(TwoWireWrapper &bus) {
 
 bool clear_por(TwoWireWrapper &bus) {
     uint16_t status;
-    if (!bus.read_register_u16(Address, Max17055Registers::STATUS_REG, status)) {
+    if (!I2C_CHECK(bus.read_register_u16(Address, Max17055Registers::STATUS_REG, status))) {
         return false;
     }
 
@@ -133,7 +133,7 @@ bool poll_until_cleared(TwoWireWrapper &bus, Max17055Registers reg, uint16_t mas
         fk_delay(1);
 
         uint16_t value;
-        if (!bus.read_register_u16(Address, reg, value)) {
+        if (!I2C_CHECK(bus.read_register_u16(Address, reg, value))) {
             return false;
         }
 
@@ -151,7 +151,7 @@ bool poll_until_cleared(TwoWireWrapper &bus, Max17055Registers reg, uint16_t mas
 int32_t get_temperature(TwoWireWrapper &bus) {
     uint16_t temp;
 
-    if (!bus.read_register_u16(Address, Max17055Registers::TEMP_REG, temp)) {
+    if (!I2C_CHECK(bus.read_register_u16(Address, Max17055Registers::TEMP_REG, temp))) {
         return false;
     }
 
@@ -169,7 +169,7 @@ int32_t get_temperature(TwoWireWrapper &bus) {
 int32_t get_state_of_charge(TwoWireWrapper &bus) {
     uint16_t value;
 
-    if (!bus.read_register_u16(Address, Max17055Registers::REPSOC_REG, value)) {
+    if (!I2C_CHECK(bus.read_register_u16(Address, Max17055Registers::REPSOC_REG, value))) {
         return false;
     }
 
@@ -182,7 +182,7 @@ int32_t get_state_of_charge(TwoWireWrapper &bus) {
 float get_time_to_empty(TwoWireWrapper &bus) {
     uint16_t value;
 
-    if (!bus.read_register_u16(Address, Max17055Registers::TTE_REG, value)) {
+    if (!I2C_CHECK(bus.read_register_u16(Address, Max17055Registers::TTE_REG, value))) {
         return false;
     }
 
@@ -210,7 +210,7 @@ static int32_t lsb_to_uvolts(uint16_t lsb) {
 int32_t get_cell_voltage(TwoWireWrapper &bus) {
     uint16_t value;
 
-    if (!bus.read_register_u16(Address, Max17055Registers::VCELL_REG, value)) {
+    if (!I2C_CHECK(bus.read_register_u16(Address, Max17055Registers::VCELL_REG, value))) {
         return false;
     }
 
@@ -232,7 +232,7 @@ static int32_t raw_current_to_uamps(uint32_t curr, int32_t rsense_value) {
 int32_t get_current(TwoWireWrapper &bus) {
     uint16_t value;
 
-    if (!bus.read_register_u16(Address, Max17055Registers::CURRENT_REG, value)) {
+    if (!I2C_CHECK(bus.read_register_u16(Address, Max17055Registers::CURRENT_REG, value))) {
         return false;
     }
 
@@ -245,11 +245,14 @@ MetalBatteryGauge::MetalBatteryGauge() {
 constexpr uint16_t MAX17055_DEVNAME = 0x4010;
 
 bool MetalBatteryGauge::begin() {
-    uint16_t version;
+    uint16_t version = 0;
 
-    auto bus = get_board()->i2c_core();
+    auto bus = get_board()->i2c_radio();
 
-    if (!bus.read_register_u16(Address, Max17055Registers::VERSION_REG, version)) {
+    bus.end();
+    bus.begin();
+
+    if (!I2C_CHECK(bus.read_register_u16(Address, Max17055Registers::VERSION_REG, version))) {
         return false;
     }
 
@@ -263,7 +266,7 @@ bool MetalBatteryGauge::begin() {
         return false;
     }
 
-    if (!poll_until_cleared(bus, Max17055Registers::FSTAT_REG, MAX17055_FSTAT_DNR, 800)) {
+    if (!I2C_CHECK(poll_until_cleared(bus, Max17055Registers::FSTAT_REG, MAX17055_FSTAT_DNR, 800))) {
         logerror("dnr never cleared");
         return false;
     }
@@ -272,7 +275,7 @@ bool MetalBatteryGauge::begin() {
 
     // Initialize Model
 
-    if (!bus.write_register_u16(Address, Max17055Registers::HIBCFG_REG, hibernate_config)) {
+    if (!I2C_CHECK(bus.write_register_u16(Address, Max17055Registers::HIBCFG_REG, hibernate_config))) {
         return false;
     }
 
@@ -297,7 +300,7 @@ BatteryReading MetalBatteryGauge::get() {
         };
     }
 
-    auto bus = get_board()->i2c_core();
+    auto bus = get_board()->i2c_radio();
 
     auto cellv = get_cell_voltage(bus);
     auto soc = get_state_of_charge(bus);

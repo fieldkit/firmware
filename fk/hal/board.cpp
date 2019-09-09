@@ -70,10 +70,13 @@ int32_t TwoWireWrapper::read_register_u16(uint8_t address, uint8_t reg, uint16_t
         return rv;
     }
 
-    rv = read(address, &value, sizeof(value));
+    uint8_t bytes[2];
+    rv = read(address, &bytes, sizeof(bytes));
     if (!I2C_CHECK(rv)) {
         return rv;
     }
+
+    value = ((bytes[1] & 0xff) << 8) + bytes[0];
 
     return 0;
 }
