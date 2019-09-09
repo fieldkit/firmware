@@ -35,7 +35,7 @@ struct MenuOption {
     bool selected;
     bool visible;
 
-    MenuOption(const char *label) : label(label), selected(false) {
+    MenuOption(const char *label) : label(label), selected(false), visible(true) {
     }
 
     virtual void on_selected() = 0;
