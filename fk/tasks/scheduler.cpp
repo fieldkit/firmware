@@ -46,7 +46,7 @@ LambdaSchedulerTask<T> to_lambda_task(lwcron::CronSpec spec, const char *label, 
 
 void task_handler_scheduler(void *params) {
     lwcron::CronSpec readings_cron_spec{ lwcron::CronSpec::interval(fk_config().scheduler.readings_interval) };
-    lwcron::CronSpec lora_cron_spec{ lwcron::CronSpec::interval(fk_config().scheduler.readings_interval) };
+    lwcron::CronSpec lora_cron_spec{ lwcron::CronSpec::interval(fk_config().scheduler.lora_interval) };
 
     auto readings_job = to_lambda_task(readings_cron_spec, "readings", []() {
         auto worker = create_pool_wrapper<ReadingsWorker, DefaultWorkerPoolSize, PoolWorker<ReadingsWorker>>(false);

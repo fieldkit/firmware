@@ -272,7 +272,7 @@ typedef struct configuration_t {
 
     typedef struct scheduler_t {
         uint32_t readings_interval{ 30 };
-        uint32_t lora_interval{ 300 };
+        uint32_t lora_interval{ 300 * 4 };
     } scheduler_t;
 
     scheduler_t scheduler;
