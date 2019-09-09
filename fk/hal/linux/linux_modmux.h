@@ -17,6 +17,7 @@ public:
     bool enable_module(uint8_t position) override;
     bool disable_module(uint8_t position) override;
     bool choose(uint8_t position) override;
+    bool choose_nothing() override;
 
 };
 

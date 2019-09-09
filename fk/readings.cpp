@@ -1,6 +1,7 @@
 #include "readings.h"
 #include "clock.h"
 #include "records.h"
+#include "platform.h"
 
 namespace fk {
 
@@ -91,6 +92,11 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ModuleCont
     });
 
     record_.readings.sensorGroups.arg = sensor_groups_array;
+
+    if (!mm_->choose_nothing()) {
+        logerror("[-] error deselecting");
+        return all_readings;
+    }
 
     return all_readings;
 }

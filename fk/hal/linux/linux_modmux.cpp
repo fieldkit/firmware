@@ -32,6 +32,10 @@ bool LinuxModMux::choose(uint8_t position) {
     return true;
 }
 
+bool LinuxModMux::choose_nothing() {
+    return true;
+}
+
 }
 
 #endif

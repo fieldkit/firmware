@@ -2,9 +2,12 @@
 
 namespace fk {
 
-constexpr uint8_t ModMuxVirtualPosition = 0xff;
-
 class ModMux {
+public:
+    constexpr static uint8_t VirtualPosition = 0xff;
+    constexpr static uint8_t NoModuleSelected = 0xff;
+
+
 protected:
     bool available_;
 
@@ -15,6 +18,7 @@ public:
     virtual bool enable_module(uint8_t position) = 0;
     virtual bool disable_module(uint8_t position) = 0;
     virtual bool choose(uint8_t position) = 0;
+    virtual bool choose_nothing() = 0;
 
 public:
     bool available() const {

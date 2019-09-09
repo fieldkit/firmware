@@ -41,7 +41,7 @@ static bool add_virtual_module(FoundModuleCollection &headers, uint16_t kind) {
     generate_unique_virtual_module_id(header);
 
     headers.emplace_back(FoundModule{
-        .position = ModMuxVirtualPosition,
+        .position = ModMux::VirtualPosition,
         .header = header,
     });
 
@@ -104,6 +104,11 @@ tl::expected<FoundModuleCollection, Error> ModuleScanning::scan(Pool &pool) {
             .position = (uint8_t)i,
             .header = header,
         });
+    }
+
+    if (!mm_->choose_nothing()) {
+        logerror("[-] error deselecting");
+        return found;
     }
 
     loginfo("done (%zd modules)", found.size());
