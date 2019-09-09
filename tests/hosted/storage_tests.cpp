@@ -362,7 +362,7 @@ TEST_F(StorageSuite, WritingProtobuf) {
     auto file_write = storage.file(0);
     ASSERT_TRUE(file_write.create());
 
-    ASSERT_EQ(file_write.write(&record, fk_data_DataRecord_fields), 29);
+    ASSERT_EQ(file_write.write(&record, fk_data_DataRecord_fields), 30);
 
     auto file_read = storage.file(0);
 
@@ -374,7 +374,7 @@ TEST_F(StorageSuite, WritingProtobuf) {
     record.log.message.arg = (void *)&pool_;
     record.log.message.funcs.decode = pb_decode_string;
 
-    ASSERT_EQ(file_read.read(&record, fk_data_DataRecord_fields), 29);
+    ASSERT_EQ(file_read.read(&record, fk_data_DataRecord_fields), 30);
 }
 
 TEST_F(StorageSuite, WritingSequentiallyHasCorrectRecordNumbers) {

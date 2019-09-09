@@ -8,6 +8,7 @@
 #include "storage/file.h"
 #include "storage/storage.h"
 #include "utilities.h"
+#include "protobuf.h"
 
 namespace fk {
 
@@ -402,12 +403,14 @@ int32_t File::write(void const *record, pb_msgdesc_t const *fields) {
         return 0;
     }
 
+    record_size += pb_varint_size(record_size);
+
     if (write_record_header(record_size) == 0) {
         return 0;
     }
 
     pb_ostream_t ostream = pb_ostream_from_file(this);
-    if (!pb_encode(&ostream, fields, record)) {
+    if (!pb_encode_delimited(&ostream, fields, record)) {
         return 0;
     }
 
@@ -427,7 +430,7 @@ int32_t File::read(void *record, pb_msgdesc_t const *fields) {
     }
 
     pb_istream_t istream = pb_istream_from_file(this, record_size);
-    if (!pb_decode(&istream, fields, record)) {
+    if (!pb_decode_delimited(&istream, fields, record)) {
         return 0;
     }
 
