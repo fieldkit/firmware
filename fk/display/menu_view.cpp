@@ -44,6 +44,7 @@ MenuView::MenuView(Pool &pool, ViewController *views) {
         }
     });
     auto tools_factory_reset = to_lambda_option(pool, "Factory Reset", [=]() {
+        get_display()->off();
         perform_factory_reset();
         back->on_selected();
         views->show_home();
