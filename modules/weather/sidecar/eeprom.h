@@ -61,3 +61,5 @@ int32_t eeprom_region_create(eeprom_region_t *region, struct i2c_m_sync_desc *i2
  *
  */
 int32_t eeprom_region_append(eeprom_region_t *region, void *item);
+
+int32_t eeprom_lock_test();

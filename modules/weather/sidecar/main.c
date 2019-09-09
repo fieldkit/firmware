@@ -109,9 +109,16 @@ __int32_t main() {
 
     board_initialize();
 
-    // eeprom_write_disable();
+    // Floating allows writes, just leave the thing alone.
+    // eeprom_write_enable_always();
 
-    eeprom_write_enable_always();
+    loginfo("waiting for eeprom...");
+
+    // When we startup, sometimes the parent will hold this high so that it can
+    // talk to the bus. Give the parent a chance to do that.
+    while (eeprom_lock_test()) {
+        delay_ms(100);
+    }
 
     loginfo("initialize sensors...");
 
