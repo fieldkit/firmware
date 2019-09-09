@@ -21,6 +21,7 @@ void ReadingsWorker::run(Pool &pool) {
 
     modules->nmodules = all_readings->size();
     modules->modules = data_pool->malloc<ModuleState>(all_readings->size());
+    modules->readings_time = fk_uptime();
 
     auto module_num = 0;
 
@@ -67,12 +68,20 @@ void ReadingsWorker::run(Pool &pool) {
 }
 
 tl::expected<ModuleReadingsCollection, Error> ReadingsWorker::take_readings(Pool &pool) {
+    auto gs = get_global_state_ro();
+    if (gs.get()->modules != nullptr) {
+        auto elapsed = fk_uptime() - gs.get()->modules->readings_time;
+        if (elapsed < TenSecondsMs) {
+            logwarn("readings throttled");
+            return tl::unexpected<Error>(Error::TooSoon);
+        }
+    }
+
     auto lock = storage_mutex.acquire(UINT32_MAX);
     auto eeprom = get_board()->lock_eeprom();
 
     auto memory_bus = get_board()->spi_flash();
     auto module_bus = get_board()->i2c_module();
-    auto gs = get_global_state_ro();
 
     ModuleContext mc{ gs.get(), module_bus };
     StatisticsMemory memory{ MemoryFactory::get_data_memory() };

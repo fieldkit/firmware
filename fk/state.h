@@ -32,6 +32,7 @@ struct ModulesState {
     Pool *pool;
     ModuleState *modules;
     size_t nmodules;
+    uint32_t readings_time;
 
     ModulesState(Pool *pool) : pool(pool) {
     }

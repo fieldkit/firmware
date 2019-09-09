@@ -6,6 +6,7 @@ enum class Error {
     None,
     General,
     Bus,
+    TooSoon,
 };
 
 }
