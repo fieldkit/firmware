@@ -46,6 +46,9 @@ void StartupWorker::run(Pool &pool) {
 
     FK_ASSERT(mm->disable_all_modules());
 
+    // Lock, just during startup.
+    auto lock = get_board()->lock_eeprom();
+
     NoopSelfCheckCallbacks noop_callbacks;
     SelfCheck self_check(display, get_network(), mm);
     self_check.check(SelfCheckSettings{ }, noop_callbacks);

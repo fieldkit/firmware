@@ -7,17 +7,6 @@ FK_DECLARE_LOGGER("configure");
 ModuleConfigurer::ModuleConfigurer(ModuleScanning &scanning) : scanning_(&scanning) {
 }
 
-bool ModuleConfigurer::configure(uint8_t position, ModuleHeader &header) {
-    fk_uuid_generate(&header.id);
-
-    if (!scanning_->configure(position, header)) {
-        logerror("[%d] unable to configure module", position);
-        return false;
-    }
-
-    return true;
-}
-
 bool ModuleConfigurer::weather(uint8_t position) {
     ModuleHeader header = {
         .manufacturer = FK_MODULES_MANUFACTURER,
@@ -48,6 +37,17 @@ bool ModuleConfigurer::water(uint8_t position) {
     }
 
     loginfo("[%d] configured water", position);
+
+    return true;
+}
+
+bool ModuleConfigurer::configure(uint8_t position, ModuleHeader &header) {
+    fk_uuid_generate(&header.id);
+
+    if (!scanning_->configure(position, header)) {
+        logerror("[%d] unable to configure module", position);
+        return false;
+    }
 
     return true;
 }

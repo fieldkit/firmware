@@ -128,11 +128,23 @@ bool ModuleScanning::configure(uint8_t position, ModuleHeader &header) {
 
     fk_delay(50);
 
-    logtrace("[%d] writing header", position);
-
-    if (!eeprom.write_header(header)) {
-        logerror("[%d] error writing header", position);
+    ModuleHeader existing_header;
+    bzero(&existing_header, sizeof(ModuleHeader));
+    if (!eeprom.read_header(existing_header)) {
+        logerror("[%d] error reading header", position);
         return false;
+    }
+
+    if (!fk_module_header_valid(&existing_header)) {
+        logtrace("[%d] overwriting invalid header", position);
+
+        if (!eeprom.write_header(header)) {
+            logerror("[%d] error writing header", position);
+            return false;
+        }
+    }
+    else {
+        loginfo("[%d] keeping existing header", position);
     }
 
     return true;
