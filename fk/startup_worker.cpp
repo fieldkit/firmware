@@ -44,7 +44,7 @@ void StartupWorker::run(Pool &pool) {
     // I tried moving the enable all to after the storage read and ran into the
     // same issue. After the self check seems ok, though?
 
-    mm->disable_all_modules();
+    FK_ASSERT(mm->disable_all_modules());
 
     NoopSelfCheckCallbacks noop_callbacks;
     SelfCheck self_check(display, get_network(), mm);
@@ -52,7 +52,7 @@ void StartupWorker::run(Pool &pool) {
 
     developer_configuration();
 
-    mm->enable_all_modules();
+    FK_ASSERT(mm->enable_all_modules());
 
     Storage storage{ MemoryFactory::get_data_memory() };
     if (storage.begin()) {

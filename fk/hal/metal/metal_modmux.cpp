@@ -30,6 +30,9 @@ MetalModMux::MetalModMux() {
 bool MetalModMux::begin() {
     auto bus = get_board()->i2c_module();
 
+    // All modules off.
+    gpio_ = 0;
+
     uint8_t buffer[] = {
         (uint8_t)MCP23008_IODIR,
         (uint8_t)0b10101010, // IODIR
@@ -41,7 +44,7 @@ bool MetalModMux::begin() {
         (uint8_t)0x00,       // GPPU
         (uint8_t)0x00,       // INTF
         (uint8_t)0x00,       // INTCAP
-        (uint8_t)0x00,       // GPIO
+        (uint8_t)gpio_,      // GPIO
     };
 
     bus.end();
@@ -52,12 +55,14 @@ bool MetalModMux::begin() {
         return false;
     }
 
+    loginfo("started, all modules off...");
+
     available_ = true;
 
     return true;
 }
 
-bool MetalModMux::enable_all_modules() {
+bool MetalModMux::update_gpio() {
     if (!available_) {
         return false;
     }
@@ -67,7 +72,7 @@ bool MetalModMux::enable_all_modules() {
     bus.end();
     bus.begin();
 
-    auto rv = bus.write_register_u8(MCP23008_ADDRESS, MCP23008_GPIO, 0xff);
+    auto rv = bus.write_register_u8(MCP23008_ADDRESS, MCP23008_GPIO, gpio_);
     if (!I2C_CHECK(rv)) {
         return false;
     }
@@ -75,22 +80,36 @@ bool MetalModMux::enable_all_modules() {
     return true;
 }
 
+bool MetalModMux::enable_all_modules() {
+    gpio_ = 0xff;
+
+    loginfo("all modules on (0x%x)", gpio_);
+
+    return update_gpio();
+}
+
 bool MetalModMux::disable_all_modules() {
-    if (!available_) {
-        return false;
-    }
+    gpio_ = 0x00;
 
-    auto bus = get_board()->i2c_module();
+    loginfo("all modules off (0x%x)", gpio_);
 
-    bus.end();
-    bus.begin();
+    return update_gpio();
+}
 
-    auto rv = bus.write_register_u8(MCP23008_ADDRESS, MCP23008_GPIO, 0x00);
-    if (!I2C_CHECK(rv)) {
-        return false;
-    }
+bool MetalModMux::enable_module(uint8_t position) {
+    gpio_ |= (1 << position);
 
-    return true;
+    loginfo("[%d] module on (0x%x)", position, gpio_);
+
+    return update_gpio();
+}
+
+bool MetalModMux::disable_module(uint8_t position) {
+    gpio_ &= ~(1 << position);
+
+    loginfo("[%d] module off (0x%x)", position, gpio_);
+
+    return update_gpio();
 }
 
 bool MetalModMux::choose(uint8_t position) {

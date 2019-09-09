@@ -40,7 +40,7 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ModuleCont
         auto i = pair.found.position;
 
         if (!mm_->choose(i)) {
-            logerror("error choosing module");
+            logerror("[%d] error choosing module", i);
             continue;
         }
 

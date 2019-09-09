@@ -82,16 +82,20 @@ void Board::disable_everything() {
     spi_flash().end();
     spi_radio().end();
     spi_module().end();
+
     i2c_core().end();
     i2c_radio().end();
     i2c_module().end();
+
     disable_gps();
     disable_wifi();
+    disable_lora();
 }
 
 void Board::enable_everything() {
     enable_gps();
     enable_wifi();
+    enable_lora();
 }
 
 void Board::disable_gps() {

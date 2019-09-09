@@ -117,20 +117,21 @@ bool ModuleScanning::configure(uint8_t position, ModuleHeader &header) {
     }
 
     if (!mm_->choose(position)) {
-        logerror("error choosing module");
+        logerror("[%d] error choosing module", position);
         return false;
     }
 
-    // Take ownership over the module bus.
+    auto lock = get_board()->lock_eeprom();
+    auto disabler = DisableModuleOnReturn{ position };
     auto module_bus = get_board()->i2c_module();
     ModuleEeprom eeprom{ module_bus };
 
-    mm_->enable_all_modules();
+    fk_delay(50);
 
-    fk_delay(100);
+    logtrace("[%d] writing header", position);
 
     if (!eeprom.write_header(header)) {
-        logerror("error writing header");
+        logerror("[%d] error writing header", position);
         return false;
     }
 

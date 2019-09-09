@@ -254,7 +254,7 @@ bool MetalBatteryGauge::begin() {
     }
 
     if (version != MAX17055_DEVNAME) {
-        logerror("invalid version (%x)", version);
+        logerror("invalid version (0x%x)", version);
         return false;
     }
 
