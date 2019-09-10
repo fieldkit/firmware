@@ -63,13 +63,13 @@ TEST_F(SignedLogSuite, AppendingAnEntry) {
 
     auto file_read = storage.file(Storage::Meta);
     ASSERT_TRUE(file_read.seek_end());
-    ASSERT_EQ(file_read.record(), 1);
+    ASSERT_EQ(file_read.record(), (uint32_t)1);
 
     Storage storage_2{ data_memory_, false };
     ASSERT_TRUE(storage_2.begin());
     auto file_read_2 = storage_2.file(Storage::Meta);
     ASSERT_TRUE(file_read_2.seek_end());
-    ASSERT_EQ(file_read_2.record(), 1);
+    ASSERT_EQ(file_read_2.record(), (uint32_t)1);
 }
 
 TEST_F(SignedLogSuite, AppendingTwoLogs) {

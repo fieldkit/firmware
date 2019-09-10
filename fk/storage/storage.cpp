@@ -314,7 +314,8 @@ SeekValue Storage::seek(SeekSettings settings) {
 
         if (valid_block_header(block_header)) {
             auto &bfh = block_header.files[settings.file];
-            logtrace("[%" PRIu32 "] valid block (" PRADDRESS ") (v = %" PRIu32 ") (ts = %" PRIu32 ") (%" PRIu32 ")", block_header.file, address, block_header.version, block_header.timestamp, bfh.size);
+            logtrace("[%" PRIu32 "] valid block (%d) (" PRADDRESS ") (v = %" PRIu32 ") (ts = %" PRIu32 ") (%" PRIu32 " bytes bob) (" PRADDRESS ")",
+                     block_header.file, settings.file, address, block_header.version, block_header.timestamp, bfh.size, bfh.tail);
 
             if (block_header.timestamp > timestamp) {
                 timestamp = block_header.timestamp;
@@ -347,7 +348,7 @@ SeekValue Storage::seek(SeekSettings settings) {
     auto address = fh.tail;
     auto block = address / g.block_size;
     auto position = fh.size;
-    auto record = (uint32_t)0;
+    auto record = (uint32_t)fh.record;
     auto record_address = (uint32_t)0;
 
     // If the address is invalid then this file is empty, nothing to be found,
