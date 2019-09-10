@@ -46,10 +46,10 @@ void ConnectionPool::service(HttpRouter &router) {
             if (log_status) {
                 auto elapsed = now - c->started_;
                 if (elapsed < FiveSecondsMs) {
-                    loginfo("[%zd] active (%" PRIu32 "ms) (%" PRIu32 " bytes)", i, elapsed, c->read_);
+                    loginfo("[%" PRIu32 "] [%zd] active (%" PRIu32 "ms) (%" PRIu32 " bytes)", c->number_, i, elapsed, c->read_);
                 }
                 else {
-                    loginfo("[%zd] KILLING (%" PRIu32 "ms) (%" PRIu32 " bytes)", i, elapsed, c->read_);
+                    loginfo("[%" PRIu32 "] [%zd] KILLING (%" PRIu32 "ms) (%" PRIu32 " bytes)", c->number_, i, elapsed, c->read_);
                     c->close();
                     delete pool_[i];
                     pool_[i] = nullptr;
@@ -71,20 +71,26 @@ void ConnectionPool::service(HttpRouter &router) {
 void ConnectionPool::queue(NetworkConnection *c) {
     for (auto i = (size_t)0; i < MaximumConnections; ++i) {
         if (pool_[i] == nullptr) {
+            ip4_address ip{ c->remote_address() };
+
+            auto number = counter_++;
+
+            loginfo("[%" PRIu32 "] connection (%d.%d.%d.%d)", number, ip.u.bytes[0], ip.u.bytes[1], ip.u.bytes[2], ip.u.bytes[3]);
+
             activity_ = fk_uptime();
-            pool_[i] = create_pool_wrapper<Connection, HttpdConnectionWorkSize>(c);
+            pool_[i] = create_pool_wrapper<Connection, HttpdConnectionWorkSize>(c, number);
             return;
         }
     }
     FK_ASSERT(false);
 }
 
-Connection::Connection(Pool &pool, NetworkConnection *conn) : pool_{ &pool }, conn_(conn), req_{ this, pool_ }, buffer_{ nullptr }, size_{ 0 }, position_{ 0 } {
+Connection::Connection(Pool &pool, NetworkConnection *conn, uint32_t number) : pool_{ &pool }, conn_(conn), number_(number), req_{ this, pool_ }, buffer_{ nullptr }, size_{ 0 }, position_{ 0 } {
     started_ = fk_uptime();
 }
 
 Connection::~Connection() {
-    conn_->stop();
+    close();
 }
 
 bool Connection::service(HttpRouter &router) {
@@ -94,7 +100,7 @@ bool Connection::service(HttpRouter &router) {
     // TODO: 500 Service Unavailable
     // TODO: 503 Service Unavailable
     if (conn_->status() != NetworkConnectionStatus::Connected) {
-        loginfo("disconnected");
+        loginfo("[%" PRIu32 "] disconnected", number_);
         return false;
     }
 
@@ -109,19 +115,19 @@ bool Connection::service(HttpRouter &router) {
         if (available > 0) {
             auto nread = read(buffer_ + position_, available);
             if (nread < 0) {
-                loginfo("error reading - eos");
+                loginfo("[%" PRIu32 "] error reading - eos", number_);
                 return false;
             }
 
             if (nread == 0) {
-                loginfo("error reading - empty");
+                loginfo("[%" PRIu32 "] error reading - empty", number_);
                 return false;
             }
 
             auto ptr = (char *)(buffer_ + position_);
             ptr[nread] = 0;
             if (req_.parse(ptr, nread) != 0) {
-                loginfo("error parsing");
+                loginfo("[%" PRIu32 "] error parsing", number_);
                 return false;
             }
 
@@ -131,7 +137,7 @@ bool Connection::service(HttpRouter &router) {
 
     if (req_.have_headers()) {
         if (!routed_) {
-            loginfo("routing '%s' (%" PRIu32 " bytes)", req_.url(), req_.length());
+            loginfo("[%" PRIu32 "] routing '%s' (%" PRIu32 " bytes)", number_, req_.url(), req_.length());
 
             auto handler = router.route(req_.url());
             if (handler == nullptr) {
@@ -150,7 +156,7 @@ bool Connection::service(HttpRouter &router) {
         auto size = pool_->size();
         auto used = pool_->used();
         auto elapsed = fk_uptime() - started_;
-        loginfo("closing (%" PRIu32 " up) (%" PRIu32 " down) (%zd/%zd pooled) (%" PRIu32 "ms)", wrote_, read_, used, size, elapsed);
+        loginfo("[%" PRIu32 "] closing (%" PRIu32 " up) (%" PRIu32 " down) (%zd/%zd pooled) (%" PRIu32 "ms)", number_, wrote_, read_, used, size, elapsed);
         return false;
     }
 
@@ -186,7 +192,7 @@ int32_t Connection::write(fk_app_HttpReply const *reply) {
 
     auto content_size = hex_encoding_ ? size * 2 : size;
 
-    logdebug("replying (%zd bytes)", content_size);
+    logdebug("[%" PRIu32 "] replying (%zd bytes)", number_, content_size);
 
     wrote_ += conn_->write("HTTP/1.1 200 OK\n");
     wrote_ += conn_->writef("Content-Length: %zu\n", content_size);
@@ -194,7 +200,7 @@ int32_t Connection::write(fk_app_HttpReply const *reply) {
     wrote_ += conn_->write("Connection: close\n");
     wrote_ += conn_->write("\n");
 
-    loginfo("headers done (%" PRIu32 "ms)", fk_uptime() - started);
+    loginfo("[%" PRIu32 "] headers done (%" PRIu32 "ms)", number_, fk_uptime() - started);
 
     BufferedWriter buffered{ this };
     Base64Writer b64_writer{ &buffered };
@@ -213,7 +219,7 @@ int32_t Connection::write(fk_app_HttpReply const *reply) {
 
     req_.finished();
 
-    loginfo("done writing (%" PRIu32 "ms)", fk_uptime() - started);
+    loginfo("[%" PRIu32 "] done writing (%" PRIu32 "ms)", number_, fk_uptime() - started);
 
     return content_size;
 }
@@ -228,7 +234,7 @@ int32_t Connection::printf(const char *s, ...) {
 }
 
 int32_t Connection::plain(int32_t status, const char *status_description, const char *text) {
-    loginfo("sending %" PRId32 " '%s'", status, text);
+    loginfo("[%" PRIu32 "] sending %" PRId32 " '%s'", number_, status, text);
 
     auto length = strlen(text);
 
@@ -269,7 +275,7 @@ int32_t Connection::busy(const char *message) {
     reply.type = fk_app_ReplyType_REPLY_BUSY;
     reply.errors.arg = (void *)pool_->copy(&errors_array, sizeof(errors_array));
 
-    logwarn("busy reply '%s'", message);
+    logwarn("[%" PRIu32 "] busy reply '%s'", number_, message);
 
     return write(&reply);
 }
@@ -295,12 +301,13 @@ int32_t Connection::error(const char *message) {
     reply.type = fk_app_ReplyType_REPLY_ERROR;
     reply.errors.arg = (void *)pool_->copy(&errors_array, sizeof(errors_array));
 
-    logwarn("error reply '%s'", message);
+    logwarn("[%" PRIu32 "] error reply '%s'", number_, message);
 
     return write(&reply);
 }
 
 int32_t Connection::close() {
+    loginfo("[%" PRIu32 "] close", number_);
     conn_->stop();
     return 0;
 }

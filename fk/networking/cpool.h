@@ -13,6 +13,7 @@ class Connection : public Writer, public Reader {
 private:
     Pool *pool_;
     NetworkConnection *conn_;
+    uint32_t number_{ 0 };
     HttpRequest req_;
     uint8_t *buffer_;
     size_t size_;
@@ -24,7 +25,7 @@ private:
     bool hex_encoding_{ false };
 
 public:
-    Connection(Pool &pool, NetworkConnection *conn);
+    Connection(Pool &pool, NetworkConnection *conn, uint32_t number);
     virtual ~Connection();
 
     friend class ConnectionPool;
@@ -64,6 +65,7 @@ private:
     PoolWrapper<Connection> *pool_[MaximumConnections] = { nullptr };
     uint32_t activity_{ 0 };
     uint32_t status_{ 0 };
+    uint32_t counter_{ 0 };
 
 public:
     ConnectionPool();

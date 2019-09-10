@@ -69,6 +69,7 @@ bool ApiHandler::handle(HttpRequest &req, Pool &pool) {
     }
 
     req.connection()->error("unknown query type");
+
     return true;
 }
 
