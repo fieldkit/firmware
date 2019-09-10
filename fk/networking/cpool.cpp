@@ -49,7 +49,7 @@ void ConnectionPool::service(HttpRouter &router) {
                     loginfo("[%" PRIu32 "] [%zd] active (%" PRIu32 "ms) (%" PRIu32 " bytes)", c->number_, i, elapsed, c->read_);
                 }
                 else {
-                    loginfo("[%" PRIu32 "] [%zd] KILLING (%" PRIu32 "ms) (%" PRIu32 " bytes)", c->number_, i, elapsed, c->read_);
+                    logwarn("[%" PRIu32 "] [%zd] killing (%" PRIu32 "ms) (%" PRIu32 " bytes)", c->number_, i, elapsed, c->read_);
                     c->close();
                     delete pool_[i];
                     pool_[i] = nullptr;
@@ -200,7 +200,7 @@ int32_t Connection::write(fk_app_HttpReply const *reply) {
     wrote_ += conn_->write("Connection: close\n");
     wrote_ += conn_->write("\n");
 
-    loginfo("[%" PRIu32 "] headers done (%" PRIu32 "ms)", number_, fk_uptime() - started);
+    logdebug("[%" PRIu32 "] headers done (%" PRIu32 "ms)", number_, fk_uptime() - started);
 
     BufferedWriter buffered{ this };
     Base64Writer b64_writer{ &buffered };
@@ -219,7 +219,7 @@ int32_t Connection::write(fk_app_HttpReply const *reply) {
 
     req_.finished();
 
-    loginfo("[%" PRIu32 "] done writing (%" PRIu32 "ms)", number_, fk_uptime() - started);
+    logdebug("[%" PRIu32 "] done writing (%" PRIu32 "ms)", number_, fk_uptime() - started);
 
     return content_size;
 }
