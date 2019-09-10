@@ -58,6 +58,18 @@ TEST_F(SignedLogSuite, AppendingAnEntry) {
     ASSERT_FALSE(srl.seek_record(SignedRecordKind::Modules));
 
     append_metadata_always(srl, 1, "our-build-1", "our-git-1", pool);
+
+    ASSERT_TRUE(srl.seek_record(SignedRecordKind::Modules));
+
+    auto file_read = storage.file(Storage::Meta);
+    ASSERT_TRUE(file_read.seek_end());
+    ASSERT_EQ(file_read.record(), 1);
+
+    Storage storage_2{ data_memory_, false };
+    ASSERT_TRUE(storage_2.begin());
+    auto file_read_2 = storage_2.file(Storage::Meta);
+    ASSERT_TRUE(file_read_2.seek_end());
+    ASSERT_EQ(file_read_2.record(), 1);
 }
 
 TEST_F(SignedLogSuite, AppendingTwoLogs) {
