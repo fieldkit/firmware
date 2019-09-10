@@ -204,6 +204,7 @@ bool File::seek(uint32_t record) {
     position_ = sv.position;
     record_remaining_ = 0;
     record_size_ = 0;
+    record_address_ = sv.record_address;
     if (record == LastRecord) {
         size_ = position_;
         update();

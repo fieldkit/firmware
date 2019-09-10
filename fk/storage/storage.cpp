@@ -357,10 +357,10 @@ SeekValue Storage::seek(SeekSettings settings) {
         return SeekValue{ };
     }
 
-    logtrace("[%d] " PRADDRESS " seeking #%" PRIu32 " (%" PRIu32 ") from blk #%" PRIu32 " (bsz = %" PRIu32 " bytes)", settings.file, address, settings.record, position, fh.tail / g.block_size, fh.size);
+    logtrace("[%d] " PRADDRESS " seeking #%" PRIu32 " (%" PRIu32 ") from blk #%" PRIu32 " (bsz = %" PRIu32 " bytes)",
+             settings.file, address, settings.record, position, fh.tail / g.block_size, fh.size);
 
     while (true) {
-
         // If at the start of the block, bump.
         if (g.start_of_block(address)) {
             address += sizeof(BlockHeader);
@@ -374,6 +374,15 @@ SeekValue Storage::seek(SeekSettings settings) {
         // Is there a valid record here?
         if (!record_head.valid()) {
             logtrace("[%d] " PRADDRESS " invalid head", settings.file, address);
+            // This is here so that we can get the correct record_address. This
+            // will typically happen when the file block header pointed directly
+            // to the tail of the file, so we have the record number but
+            // record_address is unset because we haven't scanned the block yet.
+            // This isn't the most elegant.
+            if (record_address == 0 && record > 0) {
+                address = g.start_of_block(address);
+                continue;
+            }
             break;
         }
 
@@ -408,12 +417,13 @@ SeekValue Storage::seek(SeekSettings settings) {
         address += record_length;
 
         // Update size of the data we've scanned through.
-        position += record_head.size;
+        if (address > fh.tail) {
+            position += record_head.size;
+        }
     }
 
-    logdebug("[%d] " PRADDRESS " seeking #%" PRIu32 " done (#%" PRIu32 ") (%" PRIu32 " bytes) (%" PRIu32 " in block)",
-             settings.file, address, settings.record,
-             record, position, position - fh.size);
+    logdebug("[%d] " PRADDRESS " seeking #%" PRIu32 " done (#%" PRIu32 ") (%" PRIu32 " bytes) (%" PRIu32 " pos-bh)",
+             settings.file, address, settings.record, record, position, position - fh.size);
 
     return SeekValue{ address, record, position, block, timestamp, record_address };
 }

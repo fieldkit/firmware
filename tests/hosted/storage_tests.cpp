@@ -737,7 +737,7 @@ TEST_F(StorageSuite, SeekingToBeginningWhenBeginningSecondFileAFewBlocksAfterFir
     ASSERT_EQ(file_read1.size(), wrote1);
 }
 
-TEST_F(StorageSuite, ReproduceBadSeekToEndOfMetaFile) {
+TEST_F(StorageSuite, ReproduceBadRecordNumberOnSeekToEndOfMetaFile) {
     {
         Storage storage{ memory_, false };
         ASSERT_TRUE(storage.clear());
@@ -766,11 +766,87 @@ TEST_F(StorageSuite, ReproduceBadSeekToEndOfMetaFile) {
         Storage storage{ memory_, false };
         ASSERT_TRUE(storage.begin());
 
-        enable_debug();
+        auto file_read1 = storage.file(1);
+        ASSERT_TRUE(file_read1.seek_end());
+        ASSERT_EQ(file_read1.record(), (uint32_t)2);
+        ASSERT_EQ(file_read1.position(), (uint32_t)1024);
+    }
+}
+
+TEST_F(StorageSuite, ReproduceBadRecordAddressOnSeekToEndOfMetaFile) {
+    uint32_t record_address = 0;
+
+    {
+        Storage storage{ memory_, false };
+        ASSERT_TRUE(storage.clear());
+
+        uint8_t data[512];
+        memset(data, 0x00, sizeof(data));
+
+        // Write a little data to the meta file first.
+        auto file_write1 = storage.file(1);
+        ASSERT_TRUE(file_write1.create());
+        ASSERT_EQ(file_write1.write(data, sizeof(data)), (int32_t)sizeof(data));
+
+        record_address = file_write1.tail();
+
+        ASSERT_EQ(file_write1.write(data, sizeof(data)), (int32_t)sizeof(data));
+        ASSERT_EQ(file_write1.record(), (uint32_t)2);
+
+        // Now write to the other file and force that file to take up a few blocks.
+        auto file_write0 = storage.file(0);
+        ASSERT_TRUE(file_write0.create());
+        auto size = (uint32_t)0;
+        while (size < g_.block_size * 3) {
+            auto wrote = write_reading(file_write0);
+            size += wrote;
+        }
+    }
+
+    {
+        Storage storage{ memory_, false };
+        ASSERT_TRUE(storage.begin());
 
         auto file_read1 = storage.file(1);
         ASSERT_TRUE(file_read1.seek_end());
         ASSERT_EQ(file_read1.record(), (uint32_t)2);
         ASSERT_EQ(file_read1.position(), (uint32_t)1024);
+        ASSERT_EQ(file_read1.record_address(), record_address);
+    }
+}
+
+TEST_F(StorageSuite, ReproduceBadPositionOnSeekToBeginning) {
+    {
+        Storage storage{ memory_, false };
+        ASSERT_TRUE(storage.clear());
+
+        uint8_t data[512];
+        memset(data, 0x00, sizeof(data));
+
+        // Write a little data to the meta file first.
+        auto file_write1 = storage.file(1);
+        ASSERT_TRUE(file_write1.create());
+        ASSERT_EQ(file_write1.write(data, sizeof(data)), (int32_t)sizeof(data));
+        ASSERT_EQ(file_write1.record(), (uint32_t)1);
+
+        // Now write to the other file and force that file to take up a few blocks.
+        auto file_write0 = storage.file(0);
+        ASSERT_TRUE(file_write0.create());
+        auto size = (uint32_t)0;
+        while (size < g_.block_size * 8) {
+            auto wrote = write_reading(file_write0);
+            size += wrote;
+        }
+    }
+
+    {
+        Storage storage{ memory_, false };
+        ASSERT_TRUE(storage.begin());
+
+        auto file_read1 = storage.file(1);
+        ASSERT_TRUE(file_read1.seek(0));
+        ASSERT_EQ(file_read1.record(), (uint32_t)0);
+        ASSERT_EQ(file_read1.position(), (uint32_t)0);
+        ASSERT_EQ(file_read1.record_address(), sizeof(BlockHeader));
     }
 }
