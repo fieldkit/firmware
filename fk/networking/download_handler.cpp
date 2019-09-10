@@ -101,6 +101,7 @@ bool DownloadHandler::handle(HttpRequest &req, Pool &pool) {
     auto worker = create_pool_wrapper<DownloadWorker, DefaultWorkerPoolSize, PoolWorker<DownloadWorker>>(req, file_number_);
     if (!get_ipc()->launch_worker(worker)) {
         delete worker;
+        req.connection()->busy("unable to launch");
         return false;
     }
     return true;
