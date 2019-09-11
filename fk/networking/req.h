@@ -31,7 +31,7 @@ enum class WellKnownContentType {
     ApplicationFkHttp
 };
 
-class HttpRequest : Reader {
+class HttpRequest {
 private:
     http_parser parser_;
     http_parser_settings settings_{ 0 };
@@ -66,11 +66,6 @@ private:
     Pool *pool_;
 
     /**
-     * Network connection handling this request.
-     */
-    Connection *conn_;
-
-    /**
      * A well-known content type.
      */
     WellKnownContentType content_type_{ WellKnownContentType::Unknown };
@@ -79,7 +74,7 @@ private:
     size_t buffered_body_length_{ 0 };
 
 public:
-    HttpRequest(Connection *conn, Pool *pool);
+    HttpRequest(Pool *pool);
 
 public:
     /**
@@ -107,13 +102,6 @@ public:
      */
     bool done() const {
         return state_ == HttpRequestState::Error || state_ == HttpRequestState::Done;
-    }
-
-    /**
-     * Returns the Reader to use to get the request body.
-     */
-    Reader *reader() {
-        return this;
     }
 
     /**
@@ -155,28 +143,17 @@ public:
     }
 
     /**
-     * Returns the connection handling this request.
-     */
-    Connection *connection() {
-        return conn_;
-    }
-
-    /**
-     * Returns the connection handling this request.
-     */
-    Writer *writer() {
-        return reinterpret_cast<Writer*>(conn_);
-    }
-
-    /**
      * Returns the Content-Type of this request.
      */
-    WellKnownContentType content_type() {
+    WellKnownContentType content_type() const {
         return content_type_;
     }
 
 public:
-    int32_t read(uint8_t *buffer, size_t size) override;
+    /**
+     * This is a long story.
+     */
+    int32_t read_buffered_body(uint8_t *buffer, size_t size);
 
 public:
     int32_t on_message_begin();

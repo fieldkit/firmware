@@ -19,56 +19,56 @@ namespace fk {
 
 FK_DECLARE_LOGGER("api");
 
-static bool send_status(HttpRequest &req, fk_app_HttpQuery *query, Pool &pool);
+static bool send_status(Connection *connection, fk_app_HttpQuery *query, Pool &pool);
 
-static bool send_readings(HttpRequest &req, fk_app_HttpQuery *query, Pool &pool);
+static bool send_readings(Connection *connection, fk_app_HttpQuery *query, Pool &pool);
 
-static bool configure(HttpRequest &req, fk_app_HttpQuery *query, Pool &pool);
+static bool configure(Connection *connection, fk_app_HttpQuery *query, Pool &pool);
 
-bool ApiHandler::handle(HttpRequest &req, Pool &pool) {
-    auto reader = req.reader();
-    if (req.content_type() == WellKnownContentType::TextPlain) {
-        reader = new (pool) Base64Reader(req.reader());
-        req.connection()->hex_encoding(true);
+bool ApiHandler::handle(Connection *connection, Pool &pool) {
+    Reader *reader = connection;
+    if (connection->content_type() == WellKnownContentType::TextPlain) {
+        reader = new (pool) Base64Reader(reader);
+        connection->hex_encoding(true);
     }
 
     auto query = fk_http_query_prepare_decoding(pool.malloc<fk_app_HttpQuery>(), &pool);
     auto stream = pb_istream_from_readable(reader);
     if (!pb_decode_delimited(&stream, fk_app_HttpQuery_fields, query)) {
-        req.connection()->error("error parsing query");
+        connection->error("error parsing query");
         return true;
     }
 
     switch (query->type) {
     case fk_app_QueryType_QUERY_STATUS: {
         loginfo("handling %s", "QUERY_STATUS");
-        return send_status(req, query, pool);
+        return send_status(connection, query, pool);
     }
     case fk_app_QueryType_QUERY_RECORDING_CONTROL:
     case fk_app_QueryType_QUERY_CONFIGURE: {
         loginfo("handling %s", "QUERY_CONFIGURE");
-        return configure(req, query, pool);
+        return configure(connection, query, pool);
     }
     case fk_app_QueryType_QUERY_TAKE_READINGS: {
         loginfo("handling %s", "QUERY_TAKE_READINGS");
         auto worker = create_pool_wrapper<ReadingsWorker, DefaultWorkerPoolSize, PoolWorker<ReadingsWorker>>(true);
         if (!get_ipc()->launch_worker(WorkerCategory::Readings, worker)) {
             delete worker;
-            req.connection()->busy("unable to launch");
+            connection->busy("unable to launch");
             return true;
         }
-        return send_readings(req, query, pool);
+        return send_readings(connection, query, pool);
     }
     case fk_app_QueryType_QUERY_GET_READINGS: {
         loginfo("handling %s", "QUERY_GET_READINGS");
-        return send_readings(req, query, pool);
+        return send_readings(connection, query, pool);
     }
     default: {
         break;
     }
     }
 
-    req.connection()->error("unknown query type");
+    connection->error("unknown query type");
 
     return true;
 }
@@ -115,15 +115,15 @@ static bool flush_configuration(Pool &pool) {
     return true;
 }
 
-static bool send_retry(HttpRequest &req) {
-    req.connection()->busy("storage busy");
+static bool send_retry(Connection *connection) {
+    connection->busy("storage busy");
     return true;
 }
 
-static bool configure(HttpRequest &req, fk_app_HttpQuery *query, Pool &pool) {
+static bool configure(Connection *connection, fk_app_HttpQuery *query, Pool &pool) {
     auto lock = storage_mutex.acquire(500);
     if (!lock) {
-        return send_retry(req);
+        return send_retry(connection);
     }
 
     // HACK HACK HACK
@@ -147,23 +147,23 @@ static bool configure(HttpRequest &req, fk_app_HttpQuery *query, Pool &pool) {
         return false;
     }
 
-    return send_status(req, query, pool);
+    return send_status(connection, query, pool);
 }
 
-static bool send_status(HttpRequest &req, fk_app_HttpQuery *query, Pool &pool) {
+static bool send_status(Connection *connection, fk_app_HttpQuery *query, Pool &pool) {
     auto gs = get_global_state_ro();
 
     HttpReply http_reply{ pool, gs.get() };
 
     FK_ASSERT(http_reply.include_status());
 
-    req.connection()->write(http_reply.reply());
-    req.connection()->close();
+    connection->write(http_reply.reply());
+    connection->close();
 
     return true;
 }
 
-static bool send_readings(HttpRequest &req, fk_app_HttpQuery *query, Pool &pool) {
+static bool send_readings(Connection *connection, fk_app_HttpQuery *query, Pool &pool) {
     auto gs = get_global_state_ro();
 
     HttpReply http_reply{ pool, gs.get() };
@@ -171,8 +171,8 @@ static bool send_readings(HttpRequest &req, fk_app_HttpQuery *query, Pool &pool)
     FK_ASSERT(http_reply.include_status());
     FK_ASSERT(http_reply.include_readings());
 
-    req.connection()->write(http_reply.reply());
-    req.connection()->close();
+    connection->write(http_reply.reply());
+    connection->close();
 
     return true;
 }

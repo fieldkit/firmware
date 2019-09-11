@@ -85,7 +85,7 @@ void ConnectionPool::queue(NetworkConnection *c) {
     FK_ASSERT(false);
 }
 
-Connection::Connection(Pool &pool, NetworkConnection *conn, uint32_t number) : pool_{ &pool }, conn_(conn), number_(number), req_{ this, pool_ }, buffer_{ nullptr }, size_{ 0 }, position_{ 0 } {
+Connection::Connection(Pool &pool, NetworkConnection *conn, uint32_t number) : pool_{ &pool }, conn_(conn), number_(number), req_{ pool_ }, buffer_{ nullptr }, size_{ 0 }, position_{ 0 } {
     started_ = fk_uptime();
 }
 
@@ -144,7 +144,7 @@ bool Connection::service(HttpRouter &router) {
                 plain(404, "not found", "");
             }
             else {
-                if (!handler->handle(req_, *pool_)) {
+                if (!handler->handle(this, *pool_)) {
                     plain(500, "internal error", "");
                 }
             }
@@ -164,10 +164,17 @@ bool Connection::service(HttpRouter &router) {
 }
 
 int32_t Connection::read(uint8_t *buffer, size_t size) {
+    auto buffered_bytes = req_.read_buffered_body(buffer, size);
+    if (buffered_bytes > 0) {
+        read_ += buffered_bytes;
+        return buffered_bytes;
+    }
+
     auto bytes = conn_->read(buffer, size);
     if (bytes > 0) {
         read_ += bytes;
     }
+
     return bytes;
 }
 

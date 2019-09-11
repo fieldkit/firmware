@@ -23,7 +23,7 @@ TEST_F(HttpBasicParsingSuite, SimpleGet1) {
         "Content-Length: 0\n"
         "\n";
 
-    HttpRequest req{ nullptr, &pool_ };
+    HttpRequest req{ &pool_ };
 
     ASSERT_EQ(req.parse(req_header, strlen(req_header)), 0);
 
@@ -45,7 +45,7 @@ TEST_F(HttpBasicParsingSuite, SimpleGet2) {
         "Accept: */*\n"
         "\n";
 
-    HttpRequest req{ nullptr, &pool_ };
+    HttpRequest req{ &pool_ };
 
     ASSERT_EQ(req.parse(req_header, strlen(req_header)), 0);
 
@@ -63,7 +63,7 @@ protected:
 
 class DummyHandler : public HttpHandler {
 public:
-    bool handle(HttpRequest &req, Pool &pool) override {
+    bool handle(Connection *connection, Pool &pool) override {
         return true;
     }
 
@@ -127,7 +127,7 @@ TEST_F(HttpParsingQuerySuite, SimpleGet1) {
         "Content-Length: %d\n"
         "\n", size);
 
-    HttpRequest req{ nullptr, &pool_ };
+    HttpRequest req{ &pool_ };
 
     ASSERT_EQ(req.parse(req_header, strlen(req_header)), 0);
     ASSERT_EQ(req.parse((const char *)buffer, size), 0);

@@ -55,6 +55,15 @@ public:
 
     int32_t close();
 
+public:
+    WellKnownContentType content_type() const {
+        return req_.content_type();
+    }
+
+    uint32_t length() const {
+        return req_.length();
+    }
+
 };
 
 class ConnectionPool {

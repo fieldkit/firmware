@@ -7,16 +7,16 @@ namespace fk {
 
 class ReceiveHandler : public HttpHandler {
 public:
-    bool handle(HttpRequest &req, Pool &pool) override;
+    bool handle(Connection *connection, Pool &pool) override;
 
 };
 
 class ReceiveWorker {
 private:
-    HttpRequest *req_;
+    Connection *connection_;
 
 public:
-    ReceiveWorker(HttpRequest &req);
+    ReceiveWorker(Connection *connection);
 
 public:
     void run(Pool &pool);

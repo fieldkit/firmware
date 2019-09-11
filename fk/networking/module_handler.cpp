@@ -2,8 +2,8 @@
 
 namespace fk {
 
-bool ModuleHandler::handle(HttpRequest &req, Pool &pool) {
-    req.connection()->busy("Busy");
+bool ModuleHandler::handle(Connection *connection, Pool &pool) {
+    connection->busy("Busy");
     return true;
 }
 

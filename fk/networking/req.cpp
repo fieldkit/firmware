@@ -48,7 +48,7 @@ static int http_message_complete_callback(http_parser* parser) {
     return get_object(parser)->on_message_complete();
 }
 
-HttpRequest::HttpRequest(Connection *conn, Pool *pool) : pool_(pool), conn_(conn) {
+HttpRequest::HttpRequest(Pool *pool) : pool_(pool) {
     begin();
 }
 
@@ -183,25 +183,23 @@ int32_t HttpRequest::on_message_complete() {
     return 0;
 }
 
-int32_t HttpRequest::read(uint8_t *buffer, size_t size) {
-    FK_ASSERT(state_ == HttpRequestState::Body || state_ == HttpRequestState::Consumed);
-
-    if (buffered_body_ != nullptr) {
-        auto returning = std::min(buffered_body_length_, size);
-        memcpy(buffer, buffered_body_, returning);
-
-        buffered_body_length_ -= returning;
-        if (buffered_body_length_ == 0) {
-            buffered_body_ = nullptr;
-        }
-        else {
-            buffered_body_ += returning;
-        }
-
-        return returning;
+int32_t HttpRequest::read_buffered_body(uint8_t *buffer, size_t size) {
+    if (buffered_body_ == nullptr) {
+        return 0;
     }
 
-    return conn_->read(buffer, size);
+    auto returning = std::min(buffered_body_length_, size);
+    memcpy(buffer, buffered_body_, returning);
+
+    buffered_body_length_ -= returning;
+    if (buffered_body_length_ == 0) {
+        buffered_body_ = nullptr;
+    }
+    else {
+        buffered_body_ += returning;
+    }
+
+    return returning;
 }
 
 }

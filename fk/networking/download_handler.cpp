@@ -9,7 +9,7 @@ namespace fk {
 
 FK_DECLARE_LOGGER("download");
 
-DownloadWorker::DownloadWorker(HttpRequest &req, uint8_t file_number) : req_(&req), file_number_(file_number) {
+DownloadWorker::DownloadWorker(Connection *connection, uint8_t file_number) : connection_(connection), file_number_(file_number) {
 }
 
 void DownloadWorker::run(Pool &pool) {
@@ -58,7 +58,7 @@ void DownloadWorker::run(Pool &pool) {
             auto bytes_read = file.read(buffer, to_read);
             FK_ASSERT(bytes_read == to_read);
 
-            auto wrote = req_->connection()->write(buffer, to_read);
+            auto wrote = connection_->write(buffer, to_read);
             if (wrote != (int32_t)to_read) {
                 logwarn("write error (%" PRId32 " != %" PRId32 ")", wrote, to_read);
                 break;
@@ -76,13 +76,13 @@ void DownloadWorker::run(Pool &pool) {
         loginfo("done (%zd) (%" PRIu32 "ms) %.2fkbps", bytes_copied, elapsed, speed);
     }
 
-    req_->connection()->close();
+    connection_->close();
 
     memory.log_statistics();
 }
 
 bool DownloadWorker::write_headers(HeaderInfo header_info) {
-    BufferedWriter buffered{ req_->connection() };
+    BufferedWriter buffered{ connection_ };
 
     #define CHECK(expr)  if ((expr) == 0) { return false; }
     CHECK(buffered.write("HTTP/1.1 200 OK\n"));
@@ -97,11 +97,11 @@ bool DownloadWorker::write_headers(HeaderInfo header_info) {
 DownloadHandler::DownloadHandler(uint8_t file_number) : file_number_(file_number) {
 }
 
-bool DownloadHandler::handle(HttpRequest &req, Pool &pool) {
-    auto worker = create_pool_wrapper<DownloadWorker, DefaultWorkerPoolSize, PoolWorker<DownloadWorker>>(req, file_number_);
+bool DownloadHandler::handle(Connection *connection, Pool &pool) {
+    auto worker = create_pool_wrapper<DownloadWorker, DefaultWorkerPoolSize, PoolWorker<DownloadWorker>>(connection, file_number_);
     if (!get_ipc()->launch_worker(worker)) {
         delete worker;
-        req.connection()->busy("unable to launch");
+        connection->busy("unable to launch");
         return false;
     }
     return true;
