@@ -26,6 +26,29 @@ public:
 
 static StaticWiFiCallbacks staticWiFiCallbacks;
 
+const char *get_wifi_status(uint8_t status) {
+    switch (status) {
+    case WL_NO_SHIELD: return "WL_NO_SHIELD";
+    case WL_IDLE_STATUS: return "WL_IDLE_STATUS";
+    case WL_NO_SSID_AVAIL: return "WL_NO_SSID_AVAIL";
+    case WL_SCAN_COMPLETED: return "WL_SCAN_COMPLETED";
+    case WL_CONNECTED: return "WL_CONNECTED";
+    case WL_CONNECT_FAILED: return "WL_CONNECT_FAILED";
+    case WL_CONNECTION_LOST: return "WL_CONNECTION_LOST";
+    case WL_DISCONNECTED: return "WL_DISCONNECTED";
+    case WL_AP_LISTENING: return "WL_AP_LISTENING";
+    case WL_AP_CONNECTED: return "WL_AP_CONNECTED";
+    case WL_AP_FAILED: return "WL_AP_FAILED";
+    case WL_PROVISIONING: return "WL_PROVISIONING";
+    case WL_PROVISIONING_FAILED: return "WL_PROVISIONING_FAILED";
+    default: return "Unknown";
+    }
+}
+
+const char *get_wifi_status() {
+    return get_wifi_status(WiFi.status());
+}
+
 FK_DECLARE_LOGGER("network");
 
 MetalNetworkConnection::MetalNetworkConnection() {
@@ -129,12 +152,14 @@ bool MetalNetwork::begin(NetworkSettings settings) {
 
     if (settings.ssid != nullptr) {
         if (settings.create) {
-            loginfo("creating '%s'", settings.ssid);
             if (settings.password != nullptr) {
+                loginfo("creating '%s' '%s'", settings.ssid, settings.password);
                 WiFi.beginAP(settings.ssid, settings.password);
             }
             else {
-                WiFi.beginAP(settings.ssid);
+                loginfo("creating '%s'", settings.ssid);
+                IPAddress ip{ 192, 168, 2, 1 };
+                WiFi.beginAP(settings.ssid, 2, ip);
             }
         }
         else {
@@ -166,8 +191,8 @@ bool MetalNetwork::serve() {
 
     mdns_.addServiceRecord(service_name_, 80, MDNSServiceTCP);
 
-    loginfo("ready (ip = %d.%d.%d.%d) (service = %s)",
-           ip[0], ip[1], ip[2], ip[3], service_name_);
+    loginfo("ready (ip = %d.%d.%d.%d) (service = %s) (status = %s)",
+            ip[0], ip[1], ip[2], ip[3], service_name_, get_wifi_status());
 
     if (!settings_.create) {
         ntp_.start();
@@ -181,6 +206,7 @@ NetworkStatus MetalNetwork::status() {
     case WL_NO_SHIELD: return NetworkStatus::Error;
     case WL_CONNECTED: return NetworkStatus::Connected;
     case WL_AP_LISTENING: return NetworkStatus::Listening;
+    case WL_AP_CONNECTED: return NetworkStatus::Connected;
     }
     return NetworkStatus::Ready;
 }
