@@ -12,13 +12,13 @@ using namespace fk;
 class HttpServerSuite : public ::testing::Test {
 };
 
-TEST_F(HttpServerSuite, DISABLED_WhenThingsAllWork) {
+TEST_F(HttpServerSuite, WhenThingsAllWork) {
     configuration_t fkc;
     MockNetwork network;
     HttpServer server{ &network, &fkc };
 
     EXPECT_CALL(network, begin(_)).WillOnce(Return(true));
-    EXPECT_CALL(network, status()).WillOnce(Return(NetworkStatus::Connected));
+    EXPECT_CALL(network, status()).WillRepeatedly(Return(NetworkStatus::Connected));
     EXPECT_CALL(network, serve()).WillOnce(Return(true));
 
     ASSERT_TRUE(server.begin());
@@ -45,13 +45,13 @@ TEST_F(HttpServerSuite, WhenBeginTakesTooLong) {
     EXPECT_CALL(network, stop()).WillOnce(Return(true));
 }
 
-TEST_F(HttpServerSuite, DISABLED_WhenServeFails) {
+TEST_F(HttpServerSuite, WhenServeFails) {
     configuration_t fkc;
     MockNetwork network;
     HttpServer server{ &network, &fkc };
 
     EXPECT_CALL(network, begin(_)).WillOnce(Return(true));
-    EXPECT_CALL(network, status()).WillOnce(Return(NetworkStatus::Connected));
+    EXPECT_CALL(network, status()).WillRepeatedly(Return(NetworkStatus::Connected));
     EXPECT_CALL(network, serve()).WillOnce(Return(false));
 
     ASSERT_FALSE(server.begin());
