@@ -103,6 +103,43 @@ static int32_t lerp(int32_t start, int32_t end, uint32_t interval, uint32_t time
     return start + (int32_t)((float)(end - start) * scale);
 }
 
+template<typename T>
+static bool draw_string_auto_sized(T draw, bool bold, uint16_t x, uint16_t y, uint16_t w, uint16_t h, const char *str) {
+    constexpr size_t NumberFaces = 5;
+
+    uint8_t const *bold_faces[NumberFaces] = {
+        u8g2_font_courB18_tf,
+        u8g2_font_courB14_tf,
+        u8g2_font_courB12_tf,
+        u8g2_font_courB10_tf,
+        u8g2_font_courB08_tf,
+    };
+
+    uint8_t const *normal_faces[NumberFaces] = {
+        u8g2_font_courR18_tf,
+        u8g2_font_courR14_tf,
+        u8g2_font_courR12_tf,
+        u8g2_font_courR10_tf,
+        u8g2_font_courR08_tf,
+    };
+
+    auto faces = bold ? bold_faces : normal_faces;
+
+    for (size_t i = 0; i < NumberFaces; ++i) {
+        draw.setFontMode(0);
+        draw.setFont(faces[i]);
+        auto width = draw.getUTF8Width(str);
+        if (width <= w) {
+            auto fx = x + ((w / 2) - (width / 2));
+            auto fy = y + h;
+            draw.drawUTF8(fx, fy, str);
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void U8g2Display::home(HomeScreen const &data) {
     draw_.setPowerSave(0);
     draw_.clearBuffer();
@@ -157,13 +194,13 @@ void U8g2Display::home(HomeScreen const &data) {
     }
 
     if (data.message != nullptr) {
-        char buffer[128];
-        tiny_snprintf(buffer, sizeof(buffer), data.message);
-        draw_.setFontMode(0);
-        draw_.setFont(u8g2_font_courB18_tf);
-        auto width = draw_.getUTF8Width(buffer);
-        auto x = lerp(-width, OLED_WIDTH, 10000, data.time);
-        draw_.drawUTF8(x, 18 + 20, buffer);
+        if (!draw_string_auto_sized(draw_, false, 0, 18, OLED_WIDTH, 20, data.message)) {
+            draw_.setFontMode(0);
+            draw_.setFont(u8g2_font_courB18_tf);
+            auto width = draw_.getUTF8Width(data.message);
+            auto x = lerp(-width, OLED_WIDTH, 10000, data.time);
+            draw_.drawUTF8(x, 18 + 20, data.message);
+        }
     }
 
     draw_.sendBuffer();
