@@ -44,12 +44,13 @@ void ConnectionPool::service(HttpRouter &router) {
             auto c = pool_[i]->get();
 
             if (log_status) {
-                auto elapsed = now - c->started_;
-                if (elapsed < FiveSecondsMs) {
-                    loginfo("[%" PRIu32 "] [%zd] active (%" PRIu32 "ms) (%" PRIu32 " bytes)", c->number_, i, elapsed, c->read_);
+                auto activity_elapsed = now - c->activity_;
+                auto started_elapsed = now - c->started_;
+                if (activity_elapsed < FiveSecondsMs) {
+                    loginfo("[%" PRIu32 "] [%zd] active (%" PRIu32 "ms) (%" PRIu32 "ms) (%" PRIu32 " bytes)", c->number_, i, activity_elapsed, started_elapsed, c->read_);
                 }
                 else {
-                    logwarn("[%" PRIu32 "] [%zd] killing (%" PRIu32 "ms) (%" PRIu32 " bytes)", c->number_, i, elapsed, c->read_);
+                    logwarn("[%" PRIu32 "] [%zd] killing (%" PRIu32 "ms) (%" PRIu32 "ms) (%" PRIu32 " bytes)", c->number_, i, activity_elapsed, started_elapsed, c->read_);
                     c->close();
                     delete pool_[i];
                     pool_[i] = nullptr;
@@ -86,7 +87,7 @@ void ConnectionPool::queue(NetworkConnection *c) {
 }
 
 Connection::Connection(Pool &pool, NetworkConnection *conn, uint32_t number) : pool_{ &pool }, conn_(conn), number_(number), req_{ pool_ }, buffer_{ nullptr }, size_{ 0 }, position_{ 0 } {
-    started_ = fk_uptime();
+    started_ = activity_ = fk_uptime();
 }
 
 Connection::~Connection() {
@@ -110,6 +111,8 @@ bool Connection::service(HttpRouter &router) {
             buffer_ = (uint8_t *)pool_->malloc(HttpdConnectionBufferSize);
             position_ = 0;
         }
+
+        activity_ = fk_uptime();
 
         auto available = (size_ - 1) - position_;
         if (available > 0) {
@@ -149,6 +152,7 @@ bool Connection::service(HttpRouter &router) {
                 }
             }
             routed_ = true;
+            activity_ = fk_uptime();
         }
     }
 
@@ -173,6 +177,7 @@ int32_t Connection::read(uint8_t *buffer, size_t size) {
     auto bytes = conn_->read(buffer, size);
     if (bytes > 0) {
         read_ += bytes;
+        activity_ = fk_uptime();
     }
 
     return bytes;
@@ -182,6 +187,7 @@ int32_t Connection::write(uint8_t const *buffer, size_t size) {
     auto bytes = conn_->write(buffer, size);
     if (wrote_ > 0) {
         wrote_ += bytes;
+        activity_ = fk_uptime();
     }
     return bytes;
 }
@@ -223,6 +229,7 @@ int32_t Connection::write(fk_app_HttpReply const *reply) {
     }
 
     wrote_ += content_size;
+    activity_ = fk_uptime();
 
     req_.finished();
 

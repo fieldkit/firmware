@@ -18,6 +18,10 @@ static bool network_ready(NetworkStatus status) {
     return status == NetworkStatus::Connected || status == NetworkStatus::Listening;
 }
 
+static bool network_ready_to_serve(NetworkStatus status) {
+    return status == NetworkStatus::Connected;
+}
+
 HttpServer::HttpServer(Network *network, configuration_t const *fkc) : network_(network), fkc_(fkc) {
 }
 
@@ -34,6 +38,14 @@ bool HttpServer::begin() {
     if (!try_configurations(name)) {
         return false;
     }
+
+    while (!network_ready_to_serve(network_->status())) {
+        fk_delay(10);
+    }
+
+    fk_delay(1000);
+
+    loginfo("ready to serve...");
 
     default_routes.add_routes(router_);
 
