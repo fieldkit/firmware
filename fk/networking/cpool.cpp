@@ -193,6 +193,10 @@ int32_t Connection::write(uint8_t const *buffer, size_t size) {
 }
 
 int32_t Connection::write(fk_app_HttpReply const *reply) {
+    return write(200, "OK", reply);
+}
+
+int32_t Connection::write(int32_t statusCode, const char *message, fk_app_HttpReply const *reply) {
     auto started = fk_uptime();
 
     size_t size = 0;
@@ -207,7 +211,7 @@ int32_t Connection::write(fk_app_HttpReply const *reply) {
 
     logdebug("[%" PRIu32 "] replying (%zd bytes)", number_, content_size);
 
-    wrote_ += conn_->write("HTTP/1.1 200 OK\n");
+    wrote_ += conn_->writef("HTTP/1.1 %" PRId32 " %s\n", statusCode, message);
     wrote_ += conn_->writef("Content-Length: %zu\n", content_size);
     wrote_ += conn_->writef("Content-Type: %s\n", "application/octet-stream");
     wrote_ += conn_->write("Connection: close\n");
@@ -291,7 +295,7 @@ int32_t Connection::busy(const char *message) {
 
     logwarn("[%" PRIu32 "] busy reply '%s'", number_, message);
 
-    return write(&reply);
+    return write(503, message, &reply);
 }
 
 int32_t Connection::error(const char *message) {
@@ -317,7 +321,7 @@ int32_t Connection::error(const char *message) {
 
     logwarn("[%" PRIu32 "] error reply '%s'", number_, message);
 
-    return write(&reply);
+    return write(500, message, &reply);
 }
 
 int32_t Connection::close() {
