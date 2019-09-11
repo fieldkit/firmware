@@ -19,6 +19,7 @@ private:
     size_t size_;
     size_t position_;
     uint32_t started_{ 0 };
+    uint32_t activity_{ 0 };
     uint32_t wrote_{ 0 };
     uint32_t read_{ 0 };
     bool routed_{ false };
