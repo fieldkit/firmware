@@ -54,7 +54,7 @@ bool ApiHandler::handle(Connection *connection, Pool &pool) {
         auto worker = create_pool_wrapper<ReadingsWorker, DefaultWorkerPoolSize, PoolWorker<ReadingsWorker>>(true);
         if (!get_ipc()->launch_worker(WorkerCategory::Readings, worker)) {
             delete worker;
-            connection->busy("unable to launch");
+            connection->busy(TenSecondsMs, "unable to launch");
             return true;
         }
         return send_readings(connection, query, pool);
@@ -115,15 +115,10 @@ static bool flush_configuration(Pool &pool) {
     return true;
 }
 
-static bool send_retry(Connection *connection) {
-    connection->busy("storage busy");
-    return true;
-}
-
 static bool configure(Connection *connection, fk_app_HttpQuery *query, Pool &pool) {
     auto lock = storage_mutex.acquire(500);
     if (!lock) {
-        return send_retry(connection);
+        return connection->busy(OneSecondMs, "storage busy");
     }
 
     // HACK HACK HACK

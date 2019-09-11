@@ -101,7 +101,7 @@ bool DownloadHandler::handle(Connection *connection, Pool &pool) {
     auto worker = create_pool_wrapper<DownloadWorker, DefaultWorkerPoolSize, PoolWorker<DownloadWorker>>(connection, file_number_);
     if (!get_ipc()->launch_worker(WorkerCategory::Transfer, worker)) {
         delete worker;
-        connection->busy("unable to launch");
+        connection->busy(0, "unable to launch");
         return false;
     }
     return true;

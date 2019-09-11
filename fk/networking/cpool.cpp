@@ -272,13 +272,14 @@ int32_t Connection::fault() {
     return plain(500, "internal error", "");
 }
 
-int32_t Connection::busy(const char *message) {
+int32_t Connection::busy(uint32_t delay, const char *message) {
     fk_app_Error errors[] = {
         {
             .message = {
                 .funcs = {},
                 .arg = (void *)message,
             },
+            .delay = delay,
         }
     };
 

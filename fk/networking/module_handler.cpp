@@ -3,7 +3,7 @@
 namespace fk {
 
 bool ModuleHandler::handle(Connection *connection, Pool &pool) {
-    connection->busy("Busy");
+    connection->busy(0, "busy");
     return true;
 }
 

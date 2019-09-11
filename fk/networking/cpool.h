@@ -50,7 +50,7 @@ public:
 
     int32_t plain(int32_t status, const char *status_description, const char *text);
 
-    int32_t busy(const char *message);
+    int32_t busy(uint32_t retry, const char *message);
 
     int32_t error(const char *message);
 
