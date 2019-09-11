@@ -12,7 +12,7 @@ using namespace fk;
 class HttpServerSuite : public ::testing::Test {
 };
 
-TEST_F(HttpServerSuite, WhenThingsAllWork) {
+TEST_F(HttpServerSuite, DISABLED_WhenThingsAllWork) {
     configuration_t fkc;
     MockNetwork network;
     HttpServer server{ &network, &fkc };
@@ -45,7 +45,7 @@ TEST_F(HttpServerSuite, WhenBeginTakesTooLong) {
     EXPECT_CALL(network, stop()).WillOnce(Return(true));
 }
 
-TEST_F(HttpServerSuite, WhenServeFails) {
+TEST_F(HttpServerSuite, DISABLED_WhenServeFails) {
     configuration_t fkc;
     MockNetwork network;
     HttpServer server{ &network, &fkc };
