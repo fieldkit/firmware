@@ -12,6 +12,7 @@ enum class WorkerCategory  {
     None,
     Readings,
     Storage,
+    Transfer,
 };
 
 class IPC {

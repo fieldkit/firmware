@@ -32,7 +32,7 @@ void ReceiveWorker::run(Pool &pool) {
 
 bool ReceiveHandler::handle(Connection *connection, Pool &pool) {
     auto worker = create_pool_wrapper<ReceiveWorker, DefaultWorkerPoolSize, PoolWorker<ReceiveWorker>>(connection);
-    if (!get_ipc()->launch_worker(worker)) {
+    if (!get_ipc()->launch_worker(WorkerCategory::Transfer, worker)) {
         delete worker;
         return false;
     }
