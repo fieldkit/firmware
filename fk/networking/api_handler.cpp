@@ -132,6 +132,7 @@ static bool configure(Connection *connection, fk_app_HttpQuery *query, Pool &poo
 
         GlobalStateManager gsm;
         gsm.apply([=](GlobalState *gs) {
+            loginfo("rename: '%s'", name);
             strncpy(gs->general.name, name, sizeof(gs->general.name));
         });
     }
@@ -139,6 +140,7 @@ static bool configure(Connection *connection, fk_app_HttpQuery *query, Pool &poo
     if (query->recording.modifying) {
         GlobalStateManager gsm;
         gsm.apply([=](GlobalState *gs) {
+            loginfo("recording: %d", query->recording.enabled);
             gs->general.recording = query->recording.enabled;
         });
     }
