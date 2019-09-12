@@ -14,12 +14,17 @@ void task_handler_network(void *params) {
     auto network = get_network();
     auto http_server = HttpServer{ network, &fkc };
 
+    GlobalStateManager gsm;
+    gsm.apply([=](GlobalState *gs) {
+        gs->network.enabled = fk_uptime();
+        gs->network.ip = get_network()->ip_address();
+    });
+
     if (!http_server.begin()) {
         logerror("error starting server");
         return;
     }
 
-    GlobalStateManager gsm;
     gsm.apply([=](GlobalState *gs) {
         gs->network.enabled = fk_uptime();
         gs->network.ip = get_network()->ip_address();
