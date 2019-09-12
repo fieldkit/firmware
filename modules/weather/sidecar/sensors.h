@@ -14,5 +14,3 @@ typedef struct counters_reading_t {
 } counters_reading_t;
 
 int32_t counters_reading_get(struct i2c_m_sync_desc *i2c, counters_reading_t *reading);
-
-int32_t counters_test(struct i2c_m_sync_desc *i2c);

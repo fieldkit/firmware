@@ -58,6 +58,8 @@ int32_t take_readings(fk_weather_t *weather) {
     weather->pressure = mpl3115a2_reading.pressure;
     weather->temperature_2 = mpl3115a2_reading.temperature;
     weather->wind.direction = wind_direction.value;
+    weather->wind.ticks = counters_reading.wind;
+    weather->rain.ticks = counters_reading.rain;
     weather->crc = fk_weather_sign(weather);
 
     loginfof("crc: %" PRIu32 " 0x%" PRIx32, weather->seconds, weather->crc);
@@ -108,6 +110,8 @@ __int32_t main() {
     SEGGER_RTT_SetFlagsUpBuffer(0, SEGGER_RTT_MODE_NO_BLOCK_SKIP);
 
     board_initialize();
+
+    loginfof("sizeof(fk_weather_t) = %zd (%zd readings)", sizeof(fk_weather_t), EEPROM_AVAILABLE_DATA / sizeof(fk_weather_t));
 
     // Floating allows writes, just leave the thing alone.
     // eeprom_write_enable_always();
