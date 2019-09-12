@@ -12,7 +12,7 @@
 #define MCP2803_WIND_IODIR              (0b11111111)
 
 #define MCP2803_CONTROL_I2C_ADDRESS     (0x20 + 0x2)
-#define MCP2803_CONTROL_IODIR           (0b10101010)
+#define MCP2803_CONTROL_IODIR           (0b00000000)
 
 /**
  *
@@ -50,43 +50,43 @@ int32_t sensors_initialize(struct i2c_m_sync_desc *i2c) {
     rv = configure_io_expander(i2c, MCP2803_RAIN_I2C_ADDRESS, MCP2803_RAIN_IODIR, 0);
     if (rv != FK_SUCCESS) {
         logerror("rain-mcp: error initializing");
-        return rv;
+        // return rv;
     }
 
     rv = configure_io_expander(i2c, MCP2803_WIND_I2C_ADDRESS, MCP2803_WIND_IODIR, 0);
     if (rv != FK_SUCCESS) {
         logerror("wind-mcp: error initializing");
-        return rv;
+        // return rv;
     }
 
     rv = configure_io_expander(i2c, MCP2803_CONTROL_I2C_ADDRESS, MCP2803_CONTROL_IODIR, MCP2803_CONTROL_GPIO_INITIAL);
     if (rv != FK_SUCCESS) {
         logerror("control-mcp: error initializing");
-        return rv;
+        // return rv;
     }
 
     rv = sht31_initialize(i2c);
     if (rv != FK_SUCCESS) {
         logerror("sht31: error initializing");
-        return rv;
+        // return rv;
     }
 
     rv = sht31_status_get(i2c, &status);
     if (rv != FK_SUCCESS) {
         logerror("sht31: error getting status");
-        return rv;
+        // return rv;
     }
 
     rv = mpl3115a2_initialize(i2c);
     if (rv != FK_SUCCESS) {
         logerror("mpl3115a2: error initializing");
-        return rv;
+        // return rv;
     }
 
     rv = adc081c_initialize(i2c);
     if (rv != FK_SUCCESS) {
         logerror("adc081c: error initializing");
-        return FK_ERROR_GENERAL;
+        // return FK_ERROR_GENERAL;
     }
 
     return FK_SUCCESS;
@@ -184,12 +184,14 @@ static int32_t configure_io_expander(struct i2c_m_sync_desc *i2c, uint8_t addres
  *
  *                                           RC  RC
  *                                           CC  CC
- *                                          OLL ELL
- *                                          EKR OKR
+ *                                          OLL OLL
+ *                                          EKR EKR
  *                                         _RRR_WWW
  */
 #define MCP2803_CONTROL_GPIO_A          (0b00010001)
 #define MCP2803_CONTROL_GPIO_B          (0b00110011)
+#define MCP2803_CONTROL_GPIO_C          (0b00000000)
+#define MCP2803_CONTROL_GPIO_D          (0b00110011)
 
 int32_t counters_test(struct i2c_m_sync_desc *i2c) {
     int32_t rv;
@@ -204,6 +206,33 @@ int32_t counters_test(struct i2c_m_sync_desc *i2c) {
         if (rv != FK_SUCCESS) {
             return rv;
         }
+
+        uint8_t rain_gpio = 10;
+        rv = i2c_read_u8(i2c, MCP2803_RAIN_I2C_ADDRESS, MCP23008_GPIO, &rain_gpio);
+        if (rv != FK_SUCCESS) {
+            return rv;
+        }
+        uint8_t wind_gpio = 10;
+        rv = i2c_read_u8(i2c, MCP2803_WIND_I2C_ADDRESS, MCP23008_GPIO, &wind_gpio);
+        if (rv != FK_SUCCESS) {
+            return rv;
+        }
+
+        if (wind_gpio > 0 || rain_gpio > 0) {
+            loginfof("counters: %" PRIx32 " %" PRIx32, reverse(rain_gpio), reverse(wind_gpio));
+        }
+
+        rv = i2c_write_u8(i2c, MCP2803_CONTROL_I2C_ADDRESS, MCP23008_GPIO, MCP2803_CONTROL_GPIO_C);
+        if (rv != FK_SUCCESS) {
+            return rv;
+        }
+
+        rv = i2c_write_u8(i2c, MCP2803_CONTROL_I2C_ADDRESS, MCP23008_GPIO, MCP2803_CONTROL_GPIO_D);
+        if (rv != FK_SUCCESS) {
+            return rv;
+        }
+
+        delay_ms(1000);
     }
 
     return FK_SUCCESS;
