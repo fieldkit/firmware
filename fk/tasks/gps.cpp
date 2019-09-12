@@ -29,7 +29,7 @@ void task_handler_gps(void *params) {
         fk_delay(10);
 
         if (fk_uptime() > status) {
-            loginfo("satellites(%d) time(%" PRIu32 "d) location(%f, %f) statistics(%" PRIu32 "chrs, %d/%d)",
+            loginfo("satellites(%d) time(%" PRIu32 ") location(%f, %f) statistics(%" PRIu32 "chrs, %d/%d)",
                     fix.satellites, fix.time, fix.longitude, fix.latitude,
                     fix.chars, fix.good, fix.failed);
             status = fk_uptime() + OneMinuteMs;
