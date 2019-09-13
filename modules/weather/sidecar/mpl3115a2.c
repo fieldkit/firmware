@@ -142,18 +142,13 @@ int32_t mpl3115a2_reading_get(struct i2c_m_sync_desc *i2c, mpl3115a2_reading_t *
         return rv;
     }
 
-    rv = mpl3115a2_status_poll(i2c, MPL3115A2_REGISTER_STATUS_PDR);
+    rv = mpl3115a2_status_poll(i2c, MPL3115A2_REGISTER_STATUS_PTDR);
     if (rv != FK_SUCCESS) {
         return rv;
     }
 
     uint8_t praw[3];
     rv = i2c_command_read_buffer(i2c, MPL3115A2_I2C_ADDRESS, MPL3115A2_REGISTER_PRESSURE_MSB, praw, sizeof(praw));
-    if (rv != FK_SUCCESS) {
-        return rv;
-    }
-
-    rv = mpl3115a2_status_poll(i2c, MPL3115A2_REGISTER_STATUS_TDR);
     if (rv != FK_SUCCESS) {
         return rv;
     }
