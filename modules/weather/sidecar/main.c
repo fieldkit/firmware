@@ -165,6 +165,7 @@ __int32_t main() {
                 }
             }
 
+            #if defined(FK_LOGGING)
             SEGGER_RTT_WriteString(0, "\n");
 
             loginfof("crc: %" PRIu32 " 0x%" PRIx32 " %" PRIu32 " 0x%04" PRIx32, weather.seconds, weather.crc, free_memory(), readings_region.tail);
@@ -175,6 +176,7 @@ __int32_t main() {
             loginfof("mpl temp: %d", weather.temperature_2);
             loginfof("sht humidity: %d", weather.humidity);
             loginfof("sht temp: %d", weather.temperature_1);
+            #endif
         }
 
         delay_ms(250);
