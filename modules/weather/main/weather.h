@@ -27,16 +27,16 @@ typedef struct fk_weather_t {
     fk_wind_t wind;
     fk_rain_t rain;
 
+    uint32_t reserved[7];
+
     uint32_t crc;
 } fk_weather_t;
 
 typedef struct fk_weather_config_t {
     uint16_t interval;
-    uint16_t reserved[2];
+    uint16_t reserved[3];
     uint32_t crc;
 } fk_weather_config_t;
-
-fk_weather_config_t fk_weather_config_default;
 
 #ifdef __cplusplus
 }

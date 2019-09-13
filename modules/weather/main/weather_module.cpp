@@ -57,7 +57,7 @@ ModuleReadings *WeatherModule::take_readings(ModuleContext mc, fk::Pool &pool) {
             found_address = address;
         }
         else {
-            loginfo("[0x%04" PRIx32 "] bad crc (%" PRIx32 " != %" PRIx32 ")", address, expected, temp.crc);
+            loginfo("[0x%04" PRIx32 "] bad crc (0x%" PRIx32 " != 0x%" PRIx32 ")", address, expected, temp.crc);
             break;
         }
     }

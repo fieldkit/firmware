@@ -197,29 +197,18 @@ static void verify_header(eeprom_region_t *region) {
     }
 }
 
-int32_t eeprom_region_append(eeprom_region_t *region, void *item) {
+int32_t eeprom_region_append(eeprom_region_t *region, fk_weather_t *item) {
     int32_t rv;
 
     if (eeprom_lock_test()) {
         return FK_ERROR_BUSY;
     }
 
-    // verify_header(region);
-
-    // eeprom_write_enable();
-
     // Write this item into memory, we've been given the size already.
-    rv = eeprom_write(region->i2c, region->tail, item, region->item_size);
+    rv = eeprom_write(region->i2c, region->tail, (uint8_t *)item, region->item_size);
     if (rv != FK_SUCCESS) {
-        // eeprom_write_disable();
         return FK_ERROR_GENERAL;
     }
-
-    // eeprom_write_disable();
-
-    // verify_header(region);
-
-    loginfof("append 0x%04" PRIx32, region->tail);
 
     // Move to the next item slot and if we've reached the end of the region
     // wrap around to the beginning. Notice we check to see if there's room for
@@ -231,3 +220,22 @@ int32_t eeprom_region_append(eeprom_region_t *region, void *item) {
 
     return FK_SUCCESS;
 }
+
+int32_t eeprom_region_append_unwritten(eeprom_region_t *region, unwritten_readings_t *ur) {
+    fk_weather_t *weather = NULL;
+    while (unwritten_readings_peek(ur, &weather)) {
+        #if defined(FK_LOGGING_VERBOSE)
+        loginfof("writing 0x%04" PRIx32 " 0x%" PRIx32 " %d %d", region->tail, weather->crc, ur->tail, ur->head);
+        #endif
+
+        int32_t rv = eeprom_region_append(region, weather);
+        if (rv != FK_SUCCESS) {
+            return rv;
+        }
+
+        unwritten_readings_pop(ur, NULL);
+    }
+
+    return FK_SUCCESS;
+}
+

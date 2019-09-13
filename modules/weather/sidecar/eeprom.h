@@ -5,6 +5,7 @@
 #include <modules.h>
 
 #include "sidecar.h"
+#include "unwritten.h"
 
 /**
  *
@@ -60,6 +61,8 @@ int32_t eeprom_region_create(eeprom_region_t *region, struct i2c_m_sync_desc *i2
 /**
  *
  */
-int32_t eeprom_region_append(eeprom_region_t *region, void *item);
+int32_t eeprom_region_append(eeprom_region_t *region, fk_weather_t *item);
+
+int32_t eeprom_region_append_unwritten(eeprom_region_t *region, unwritten_readings_t *ur);
 
 int32_t eeprom_lock_test();

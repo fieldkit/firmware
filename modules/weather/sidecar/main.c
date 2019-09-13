@@ -29,6 +29,13 @@ uint32_t fk_weather_sign(fk_weather_t const *weather) {
     return crc32_checksum(FK_MODULES_CRC_SEED, (uint8_t const *)weather, sizeof(fk_weather_t) - sizeof(uint32_t));
 }
 
+extern char *sbrk(int32_t i);
+
+static uint32_t free_memory() {
+    char stack = 0;
+    return (uint32_t)&stack - (uint32_t)sbrk(0);
+}
+
 int32_t take_readings(fk_weather_t *weather) {
     adc081c_reading_t wind_direction;
     if (adc081c_reading_get(&I2C_1, &wind_direction) != FK_SUCCESS) {
@@ -50,8 +57,6 @@ int32_t take_readings(fk_weather_t *weather) {
         logerror("reading counters");
     }
 
-    SEGGER_RTT_WriteString(0, "\n");
-
     weather->seconds++;
     weather->humidity = sht31_reading.humidity;
     weather->temperature_1 = sht31_reading.temperature;
@@ -61,15 +66,6 @@ int32_t take_readings(fk_weather_t *weather) {
     weather->wind.ticks = counters_reading.wind;
     weather->rain.ticks = counters_reading.rain;
     weather->crc = fk_weather_sign(weather);
-
-    loginfof("crc: %" PRIu32 " 0x%" PRIx32, weather->seconds, weather->crc);
-    loginfof("adc081c wind dir: %d", wind_direction.value);
-    loginfof("wind: %d", counters_reading.wind);
-    loginfof("rain: %d", counters_reading.rain);
-    loginfof("mpl pressure: %d", mpl3115a2_reading.pressure);
-    loginfof("mpl temp: %d", mpl3115a2_reading.temperature);
-    loginfof("sht humidity: %d", sht31_reading.humidity);
-    loginfof("sht temp: %d", sht31_reading.temperature);
 
     return FK_SUCCESS;
 }
@@ -86,13 +82,13 @@ int32_t eeprom_region_seek_end(eeprom_region_t *region, uint32_t *seconds) {
 
         uint32_t expected = crc32_checksum(FK_MODULES_CRC_SEED, (uint8_t *)&reading, sizeof(fk_weather_t) - sizeof(uint32_t));
         if (expected != reading.crc) {
-            loginfof("found end 0x%04 (bad crc)" PRIx32, address);
+            loginfof("found end 0x%04" PRIx32 " (0x%" PRIx32 " != 0x%" PRIx32 ")", address, expected, reading.crc);
             region->tail = address;
             break;
         }
 
         if (reading.seconds < *seconds) {
-            loginfof("found end 0x%04 (wrap)" PRIx32, address);
+            loginfof("found end 0x%04" PRIx32 " (wrap)", address);
             region->tail = address;
             break;
         }
@@ -140,6 +136,9 @@ __int32_t main() {
     struct timer_task timer_task;
     board_timer_setup(&timer_task, 1000, timer_task_cb);
 
+    unwritten_readings_t ur;
+    unwritten_readings_initialize(&ur);
+
     loginfo("ready!");
 
     while (true) {
@@ -152,8 +151,11 @@ __int32_t main() {
             if (rv != FK_SUCCESS) {
                 logerror("readings: error taking");
             }
+            else {
+                unwritten_readings_push(&ur, &weather);
+            }
 
-            rv = eeprom_region_append(&readings_region, &weather);
+            rv = eeprom_region_append_unwritten(&readings_region, &ur);
             if (rv != FK_SUCCESS) {
                 if (rv == FK_ERROR_BUSY) {
                     loginfo("readings: eeprom busy");
@@ -162,6 +164,17 @@ __int32_t main() {
                     logerror("readings: error appending");
                 }
             }
+
+            SEGGER_RTT_WriteString(0, "\n");
+
+            loginfof("crc: %" PRIu32 " 0x%" PRIx32 " %" PRIu32 " 0x%04" PRIx32, weather.seconds, weather.crc, free_memory(), readings_region.tail);
+            loginfof("adc081c wind dir: %d", weather.wind.direction);
+            loginfof("wind: %d", weather.wind.ticks);
+            loginfof("rain: %d", weather.rain.ticks);
+            loginfof("mpl pressure: %d", weather.pressure);
+            loginfof("mpl temp: %d", weather.temperature_2);
+            loginfof("sht humidity: %d", weather.humidity);
+            loginfof("sht temp: %d", weather.temperature_1);
         }
 
         delay_ms(250);
