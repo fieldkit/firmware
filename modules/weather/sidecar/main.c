@@ -13,6 +13,13 @@
 #include "sensors.h"
 #include "crc.h"
 
+enum system_sleepmode {
+    SYSTEM_SLEEPMODE_IDLE_0,
+    SYSTEM_SLEEPMODE_IDLE_1,
+    SYSTEM_SLEEPMODE_IDLE_2,
+    SYSTEM_SLEEPMODE_STANDBY,
+};
+
 fk_weather_config_t fk_weather_config_default = { 60, 60, 60, 0 };
 
 int32_t read_configuration(fk_weather_config_t *config) {
@@ -179,7 +186,7 @@ __int32_t main() {
             #endif
         }
 
-        delay_ms(250);
+        sleep(SYSTEM_SLEEPMODE_IDLE_2);
     }
 
     return 0;
