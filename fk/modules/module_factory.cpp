@@ -26,13 +26,21 @@ tl::expected<ConstructedModulesCollection, Error> ModuleFactory::create(ModuleSc
         return tl::unexpected<Error>(module_headers.error());
     }
 
+    if ((*module_headers).size() == modules_.size()) {
+        return modules_;
+    }
+
+    loginfo("constructing modules");
+
+    modules_.clear();
+    pool_.clear();
+
     ModuleRegistry registry;
-    ConstructedModulesCollection modules(pool);
     for (auto &f : *module_headers) {
         auto meta = registry.resolve(f.header);
         if (meta != nullptr) {
             auto module = meta->ctor(pool);
-            modules.emplace_back(ConstructedModule{
+            modules_.emplace_back(ConstructedModule{
                     .found = f,
                     .meta = meta,
                     .module = module,
@@ -43,14 +51,12 @@ tl::expected<ConstructedModulesCollection, Error> ModuleFactory::create(ModuleSc
         }
     }
 
-    loginfo("initializing modules");
-
-    for (auto pair : modules) {
+    for (auto pair : modules_) {
         auto module = pair.module;
         auto mc = ctx.module(pair.found.position);
 
         if (!mc.open()) {
-            logerror("error choosing module");
+            logerror("error opening module");
             return tl::unexpected<Error>(Error::General);
         }
 
@@ -60,7 +66,9 @@ tl::expected<ConstructedModulesCollection, Error> ModuleFactory::create(ModuleSc
         }
     }
 
-    return modules;
+    loginfo("done (pool = %zd/%zd bytes)", pool.used(), pool.size());
+
+    return modules_;
 }
 
 }

@@ -20,6 +20,7 @@ using ConstructedModulesCollection = std::list<ConstructedModule, pool_allocator
 class ModuleFactory {
 private:
     MallocPool pool_{ "modules", 8192 };
+    ConstructedModulesCollection modules_{ pool_ };
 
 public:
     ModuleFactory();
