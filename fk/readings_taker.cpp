@@ -17,12 +17,12 @@ namespace fk {
 
 FK_DECLARE_LOGGER("readings");
 
-ReadingsTaker::ReadingsTaker(ModuleScanning &scanning, Storage &storage, ModMux *mm, bool read_only) : scanning_(scanning), storage_(storage), readings_{ mm }, mm_(mm), read_only_(read_only) {
+ReadingsTaker::ReadingsTaker(ModuleScanning &scanning, Storage &storage, ModMux *mm, bool read_only)
+    : scanning_(scanning), storage_(storage), readings_{ mm }, mm_(mm), read_only_(read_only) {
 }
 
 tl::expected<ModuleReadingsCollection, Error> ReadingsTaker::take(ModuleContext &mc, Pool &pool) {
-    ModuleFactory module_factory(scanning_, &pool);
-    auto modules = module_factory.create();
+    auto modules = get_module_factory().create(scanning_, mc, pool);
     if (!modules) {
         return tl::unexpected<Error>(modules.error());
     }
@@ -30,10 +30,6 @@ tl::expected<ModuleReadingsCollection, Error> ReadingsTaker::take(ModuleContext 
     if ((*modules).size() == 0) {
         loginfo("no modules");
         return ModuleReadingsCollection{ };
-    }
-
-    if (!initialize_modules(mc, *modules, mm_, pool)) {
-        return tl::unexpected<Error>(Error::General);
     }
 
     if (!read_only_) {
@@ -78,26 +74,6 @@ tl::expected<ModuleReadingsCollection, Error> ReadingsTaker::take(ModuleContext 
     }
 
     return all_readings;
-}
-
-bool ReadingsTaker::initialize_modules(ModuleContext &mc, ConstructedModulesCollection &modules, ModMux *mm, Pool &pool) {
-    loginfo("initializing modules");
-
-    for (auto pair : modules) {
-        auto module = pair.module;
-
-        if (!mm->choose(pair.found.position)) {
-            logerror("error choosing module");
-            return false;
-        }
-
-        if (!module->initialize(mc, pool)) {
-            logerror("error initializing module");
-            return false;
-        }
-    }
-
-    return true;
 }
 
 bool ReadingsTaker::append_readings(File &file, Pool &pool) {

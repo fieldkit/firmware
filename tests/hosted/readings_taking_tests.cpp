@@ -31,7 +31,7 @@ protected:
 TEST_F(ReadingsTakingSuite, WithNoModules) {
     GlobalState gs;
     TwoWireWrapper module_bus{ "modules", nullptr };
-    ModuleContext mc{ &gs, module_bus };
+    ModuleContext mc{ get_modmux(), &gs, module_bus };
     Storage storage{ memory_, false };
     FK_ASSERT(storage.clear());
 
@@ -47,7 +47,7 @@ TEST_F(ReadingsTakingSuite, WithNoModules) {
 TEST_F(ReadingsTakingSuite, BasicSingleModule) {
     GlobalState gs;
     TwoWireWrapper module_bus{ "modules", nullptr };
-    ModuleContext mc{ &gs, module_bus };
+    ModuleContext mc{ get_modmux(), &gs, module_bus };
     Storage storage{ memory_, false };
     FK_ASSERT(storage.clear());
 
@@ -71,7 +71,7 @@ TEST_F(ReadingsTakingSuite, BasicSingleModule) {
 TEST_F(ReadingsTakingSuite, BasicTwoModules) {
     GlobalState gs;
     TwoWireWrapper module_bus{ "modules", nullptr };
-    ModuleContext mc{ &gs, module_bus };
+    ModuleContext mc{ get_modmux(), &gs, module_bus };
     Storage storage{ memory_, false };
     FK_ASSERT(storage.clear());
 

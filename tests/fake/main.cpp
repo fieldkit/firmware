@@ -64,7 +64,7 @@ static void setup_fake_data() {
     FK_ASSERT(storage.clear());
 
     TwoWireWrapper module_bus{ "modules", nullptr };
-    ModuleContext mc{ get_global_state_rw().get(), module_bus };
+    ModuleContext mc{ get_modmux(), get_global_state_rw().get(), module_bus };
 
     for (size_t i = 0; i < 1000 / fk_config().readings.amplification; ++i) {
         MallocPool pool{ "readings", 2048 };

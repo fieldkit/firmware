@@ -9,23 +9,27 @@
 
 namespace fk {
 
+struct ConstructedModule {
+    FoundModule found;
+    ModuleMetadata const *meta;
+    Module *module;
+};
+
+using ConstructedModulesCollection = std::list<ConstructedModule, pool_allocator<ConstructedModule>>;
+
 class ModuleFactory {
 private:
-    ModuleScanning *scanning_;
-    Pool *pool_;
+    MallocPool pool_{ "modules", 8192 };
 
 public:
-    ModuleFactory(ModuleScanning &scanning, Pool *pool);
+    ModuleFactory();
     virtual ~ModuleFactory();
 
 public:
-    tl::expected<ConstructedModulesCollection, Error> create();
-
-private:
-    Pool &pool() {
-        return *pool_;
-    }
+    tl::expected<ConstructedModulesCollection, Error> create(ModuleScanning &scanning, ModuleContext &mc, Pool &pool);
 
 };
+
+ModuleFactory &get_module_factory();
 
 }

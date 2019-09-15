@@ -39,7 +39,7 @@ static void periodic_fsck() {
         });
 
         TwoWireWrapper module_bus{ "modules", nullptr };
-        ModuleContext mc{ get_global_state_rw().get(), module_bus };
+        ModuleContext mc{ get_modmux(), get_global_state_rw().get(), module_bus };
         StaticModuleScanning scanning(found);
         ReadingsTaker readings_taker{ scanning, storage, get_modmux(), false };
         FK_ASSERT(readings_taker.take(mc, pool));

@@ -7,27 +7,60 @@ namespace fk {
 
 FK_DECLARE_LOGGER("modules");
 
-ModuleFactory::ModuleFactory(ModuleScanning &scanning, Pool *pool) : scanning_(&scanning), pool_(pool) {
+static ModuleFactory module_factory;
+
+ModuleFactory &get_module_factory() {
+    return module_factory;
+}
+
+ModuleFactory::ModuleFactory() {
 }
 
 ModuleFactory::~ModuleFactory() {
 }
 
-tl::expected<ConstructedModulesCollection, Error> ModuleFactory::create() {
-    auto module_headers = scanning_->scan(pool());
+tl::expected<ConstructedModulesCollection, Error> ModuleFactory::create(ModuleScanning &scanning, ModuleContext &mc, Pool &pool) {
+    auto module_headers = scanning.scan(pool);
     if (!module_headers) {
         logerror("error scanning modules");
         return tl::unexpected<Error>(module_headers.error());
     }
 
     ModuleRegistry registry;
-    auto resolved = registry.resolve(*module_headers, pool());
-    if (!resolved) {
-        logerror("error resolving modules");
-        return tl::unexpected<Error>(resolved.error());
+    ConstructedModulesCollection modules(pool);
+    for (auto &f : *module_headers) {
+        auto meta = registry.resolve(f.header);
+        if (meta != nullptr) {
+            auto module = meta->ctor(pool);
+            modules.emplace_back(ConstructedModule{
+                    .found = f,
+                    .meta = meta,
+                    .module = module,
+                });
+        }
+        else {
+            logwarn("no such module!");
+        }
     }
 
-    return resolved;
+    loginfo("initializing modules");
+
+    for (auto pair : modules) {
+        auto module = pair.module;
+        auto inner = mc.module(pair.found.position);
+
+        if (!inner.open()) {
+            logerror("error choosing module");
+            return tl::unexpected<Error>(Error::General);
+        }
+
+        if (!module->initialize(mc, pool_)) {
+            logerror("error initializing module");
+            return tl::unexpected<Error>(Error::General);
+        }
+    }
+
+    return modules;
 }
 
 }

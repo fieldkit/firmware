@@ -1,19 +1,10 @@
 #pragma once
 
 #include "common.h"
-// #include "config.h"
 #include "modules/scanning.h"
 #include "modules/bridge/modules.h"
 
 namespace fk {
-
-struct ConstructedModule {
-    FoundModule found;
-    ModuleMetadata const *meta;
-    Module *module;
-};
-
-using ConstructedModulesCollection = std::list<ConstructedModule, pool_allocator<ConstructedModule>>;
 
 class ModuleRegistry {
 public:
@@ -22,7 +13,6 @@ public:
 
 public:
     ModuleMetadata const *resolve(ModuleHeader const &header);
-    tl::expected<ConstructedModulesCollection, Error> resolve(FoundModuleCollection &headers, Pool &pool);
 
 };
 

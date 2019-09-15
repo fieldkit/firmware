@@ -3,6 +3,7 @@
 #include "common.h"
 #include "pool.h"
 #include "hal/board.h"
+#include "hal/modmux.h"
 
 namespace fk {
 
@@ -10,20 +11,25 @@ class GlobalState;
 
 class ModuleContext {
 private:
+    ModMux *mm_;
     GlobalState const *gs_;
     TwoWireWrapper *module_bus_{ nullptr };
-    int32_t module_{ -1 };
+    int32_t position_{ -1 };
 
 public:
     ModuleContext();
-    ModuleContext(GlobalState const *gs, TwoWireWrapper &module_bus);
-    ModuleContext(ModuleContext &from, int32_t module);
+    ModuleContext(ModMux *mm, GlobalState const *gs, TwoWireWrapper &module_bus);
     virtual ~ModuleContext();
 
-public:
-    ModuleContext module(int32_t module);
+private:
+    ModuleContext(ModuleContext &from, int32_t position);
 
 public:
+    ModuleContext module(int32_t position);
+
+public:
+    bool open();
+
     GlobalState const *gs() {
         return gs_;
     }

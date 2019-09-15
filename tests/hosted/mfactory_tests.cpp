@@ -2,6 +2,7 @@
 
 #include "modules/module_factory.h"
 #include "mocks_and_fakes.h"
+#include "state.h"
 
 using testing::Return;
 using testing::Invoke;
@@ -20,8 +21,11 @@ TEST_F(ModuleFactorySuite, WithNoModules) {
     MockModuleScanning scanning;
     EXPECT_CALL(scanning, scan(_)).WillOnce(Return(found));
 
-    ModuleFactory module_factory(scanning, &pool_);
-    ASSERT_TRUE(module_factory.create());
+    ModuleFactory module_factory;
+    GlobalState gs;
+    TwoWireWrapper module_bus{ "modules", nullptr };
+    ModuleContext mc{ get_modmux(), &gs, module_bus };
+    ASSERT_TRUE(module_factory.create(scanning, mc, pool_));
 }
 
 TEST_F(ModuleFactorySuite, BasicSingleModule) {
@@ -38,6 +42,9 @@ TEST_F(ModuleFactorySuite, BasicSingleModule) {
     MockModuleScanning scanning;
     EXPECT_CALL(scanning, scan(_)).WillOnce(Return(found));
 
-    ModuleFactory module_factory(scanning, &pool_);
-    ASSERT_TRUE(module_factory.create());
+    ModuleFactory module_factory;
+    GlobalState gs;
+    TwoWireWrapper module_bus{ "modules", nullptr };
+    ModuleContext mc{ get_modmux(), &gs, module_bus };
+    ASSERT_TRUE(module_factory.create(scanning, mc, pool_));
 }

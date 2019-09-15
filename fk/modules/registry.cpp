@@ -44,25 +44,6 @@ ModuleMetadata const *ModuleRegistry::resolve(ModuleHeader const &header) {
     return nullptr;
 }
 
-tl::expected<ConstructedModulesCollection, Error> ModuleRegistry::resolve(FoundModuleCollection &found, Pool &pool) {
-    ConstructedModulesCollection constructed(pool);
-    for (auto &f : found) {
-        auto meta = resolve(f.header);
-        if (meta != nullptr) {
-            auto module = meta->ctor(pool);
-            constructed.emplace_back(ConstructedModule{
-                .found = f,
-                .meta = meta,
-                .module = module,
-            });
-        }
-        else {
-            logwarn("no such module!");
-        }
-    }
-    return constructed;
-}
-
 static uint32_t fk_modules_builtin_get(ModuleNode **iter) {
     if (nodes[0].meta == NULL) {
         *iter = NULL;

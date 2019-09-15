@@ -20,7 +20,7 @@ static void developer_configuration() {
     auto module_bus = get_board()->i2c_module();
     auto gs = get_global_state_ro();
 
-    ModuleContext mc{ gs.get(), module_bus };
+    ModuleContext mc{ get_modmux(), gs.get(), module_bus };
     Storage storage{ nullptr }; // NOTE: Not opened!
     ModuleScanning scanning{ get_modmux() };
     ModuleConfigurer configurer{ scanning };

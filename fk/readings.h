@@ -5,7 +5,7 @@
 #include "containers.h"
 
 #include "state.h"
-#include "modules/registry.h"
+#include "modules/module_factory.h"
 
 namespace fk {
 

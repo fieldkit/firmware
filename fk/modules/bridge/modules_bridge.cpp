@@ -5,17 +5,21 @@ namespace fk {
 ModuleContext::ModuleContext() {
 }
 
-ModuleContext::ModuleContext(GlobalState const *gs, TwoWireWrapper &module_bus) : gs_(gs), module_bus_(&module_bus) {
+ModuleContext::ModuleContext(ModMux *mm, GlobalState const *gs, TwoWireWrapper &module_bus) : mm_(mm), gs_(gs), module_bus_(&module_bus) {
 }
 
-ModuleContext::ModuleContext(ModuleContext &from, int32_t module) : gs_(from.gs_), module_bus_(from.module_bus_), module_(module) {
+ModuleContext::ModuleContext(ModuleContext &from, int32_t position) : mm_(from.mm_), gs_(from.gs_), module_bus_(from.module_bus_), position_(position) {
 }
 
 ModuleContext::~ModuleContext() {
 }
 
-ModuleContext ModuleContext::module(int32_t module) {
-    return { *this, module };
+bool ModuleContext::open() {
+    return mm_->choose(position_);
+}
+
+ModuleContext ModuleContext::module(int32_t position) {
+    return { *this, position };
 }
 
 }
