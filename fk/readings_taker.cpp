@@ -21,8 +21,8 @@ ReadingsTaker::ReadingsTaker(ModuleScanning &scanning, Storage &storage, ModMux 
     : scanning_(scanning), storage_(storage), readings_{ mm }, mm_(mm), read_only_(read_only) {
 }
 
-tl::expected<ModuleReadingsCollection, Error> ReadingsTaker::take(ModuleContext &mc, Pool &pool) {
-    auto modules = get_module_factory().create(scanning_, mc, pool);
+tl::expected<ModuleReadingsCollection, Error> ReadingsTaker::take(ScanningContext &ctx, Pool &pool) {
+    auto modules = get_module_factory().create(scanning_, ctx, pool);
     if (!modules) {
         return tl::unexpected<Error>(modules.error());
     }
@@ -38,7 +38,7 @@ tl::expected<ModuleReadingsCollection, Error> ReadingsTaker::take(ModuleContext 
             FK_ASSERT(meta.create());
         }
 
-        if (!append_configuration(mc, *modules, meta, pool)) {
+        if (!append_configuration(ctx, *modules, meta, pool)) {
             logerror("error appending configuration");
             return tl::unexpected<Error>(Error::General);
         }
@@ -48,7 +48,7 @@ tl::expected<ModuleReadingsCollection, Error> ReadingsTaker::take(ModuleContext 
             FK_ASSERT(data.create());
         }
 
-        auto all_readings = readings_.take_readings(mc, *modules, data.record(), pool);
+        auto all_readings = readings_.take_readings(ctx, *modules, data.record(), pool);
         if (!all_readings) {
             logerror("error taking readings");
             return tl::unexpected<Error>(Error::General);
@@ -67,7 +67,7 @@ tl::expected<ModuleReadingsCollection, Error> ReadingsTaker::take(ModuleContext 
         return all_readings;
     }
 
-    auto all_readings = readings_.take_readings(mc, *modules, 0, pool);
+    auto all_readings = readings_.take_readings(ctx, *modules, 0, pool);
     if (!all_readings) {
         logerror("error taking readings");
         return tl::unexpected<Error>(Error::General);
@@ -111,14 +111,14 @@ bool ReadingsTaker::verify_reading_record(File &file, Pool &pool) {
     return true;
 }
 
-bool ReadingsTaker::append_configuration(ModuleContext &mc, ConstructedModulesCollection &modules, File &file, Pool &pool) {
+bool ReadingsTaker::append_configuration(ScanningContext &ctx, ConstructedModulesCollection &modules, File &file, Pool &pool) {
     auto module_infos = pool.malloc<fk_data_ModuleInfo>(modules.size());
 
     auto index = 0;
     for (auto pair : modules) {
         auto meta = pair.meta;
         auto module = pair.module;
-        auto sensor_metas = module->get_sensors(mc, pool);
+        auto sensor_metas = module->get_sensors(ctx.module(0), pool);
 
         auto id_data = pool.malloc_with<pb_data_t>({
             .length = sizeof(fk_uuid_t),

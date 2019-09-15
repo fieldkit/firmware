@@ -10,11 +10,11 @@ FK_DECLARE_LOGGER("readings");
 Readings::Readings(ModMux *mm) : mm_(mm) {
 }
 
-tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ModuleContext &mc, ConstructedModulesCollection const &modules, uint32_t reading_number, Pool &pool) {
+tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningContext &ctx, ConstructedModulesCollection const &modules, uint32_t reading_number, Pool &pool) {
     ModuleReadingsCollection all_readings{ pool };
 
     auto now = get_clock_now();
-    auto gs = mc.gs();
+    auto gs = ctx.gs();
 
     record_ = fk_data_record_encoding_new();
     record_.readings.time = now;
@@ -39,15 +39,16 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ModuleCont
         auto meta = pair.meta;
         auto module = pair.module;
         auto i = pair.found.position;
+        auto mc = ctx.module(i);
 
-        if (!mm_->choose(i)) {
+        if (!mc.open()) {
             logerror("[%d] error choosing module", i);
             continue;
         }
 
         loginfo("'%s' mk=%02" PRIx32 "%02" PRIx32 " version=%" PRIu32, meta->name, meta->manufacturer, meta->kind, meta->version);
 
-        auto readings = module->take_readings(mc.module(i), pool);
+        auto readings = module->take_readings(mc, pool);
         if (readings == nullptr) {
             logwarn("'%s' no readings", meta->name);
             continue;

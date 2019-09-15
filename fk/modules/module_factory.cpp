@@ -19,7 +19,7 @@ ModuleFactory::ModuleFactory() {
 ModuleFactory::~ModuleFactory() {
 }
 
-tl::expected<ConstructedModulesCollection, Error> ModuleFactory::create(ModuleScanning &scanning, ModuleContext &mc, Pool &pool) {
+tl::expected<ConstructedModulesCollection, Error> ModuleFactory::create(ModuleScanning &scanning, ScanningContext &ctx, Pool &pool) {
     auto module_headers = scanning.scan(pool);
     if (!module_headers) {
         logerror("error scanning modules");
@@ -47,9 +47,9 @@ tl::expected<ConstructedModulesCollection, Error> ModuleFactory::create(ModuleSc
 
     for (auto pair : modules) {
         auto module = pair.module;
-        auto inner = mc.module(pair.found.position);
+        auto mc = ctx.module(pair.found.position);
 
-        if (!inner.open()) {
+        if (!mc.open()) {
             logerror("error choosing module");
             return tl::unexpected<Error>(Error::General);
         }

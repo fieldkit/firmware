@@ -83,7 +83,7 @@ tl::expected<ModuleReadingsCollection, Error> ReadingsWorker::take_readings(Pool
     auto memory_bus = get_board()->spi_flash();
     auto module_bus = get_board()->i2c_module();
 
-    ModuleContext mc{ get_modmux(), gs.get(), module_bus };
+    ScanningContext ctx{ get_modmux(), gs.get(), module_bus };
     StatisticsMemory memory{ MemoryFactory::get_data_memory() };
     Storage storage{ &memory, read_only_ };
     if (!read_only_ && !storage.begin()) {
@@ -96,7 +96,7 @@ tl::expected<ModuleReadingsCollection, Error> ReadingsWorker::take_readings(Pool
 
     ModuleScanning scanning{ get_modmux() };
     ReadingsTaker readings_taker{ scanning, storage, get_modmux(), read_only_ };
-    auto all_readings = readings_taker.take(mc, pool);
+    auto all_readings = readings_taker.take(ctx, pool);
     if (!all_readings) {
         return tl::unexpected<Error>(all_readings.error());
     }

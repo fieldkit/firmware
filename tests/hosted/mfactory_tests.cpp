@@ -24,8 +24,8 @@ TEST_F(ModuleFactorySuite, WithNoModules) {
     ModuleFactory module_factory;
     GlobalState gs;
     TwoWireWrapper module_bus{ "modules", nullptr };
-    ModuleContext mc{ get_modmux(), &gs, module_bus };
-    ASSERT_TRUE(module_factory.create(scanning, mc, pool_));
+    ScanningContext ctx{ get_modmux(), &gs, module_bus };
+    ASSERT_TRUE(module_factory.create(scanning, ctx, pool_));
 }
 
 TEST_F(ModuleFactorySuite, BasicSingleModule) {
@@ -45,6 +45,6 @@ TEST_F(ModuleFactorySuite, BasicSingleModule) {
     ModuleFactory module_factory;
     GlobalState gs;
     TwoWireWrapper module_bus{ "modules", nullptr };
-    ModuleContext mc{ get_modmux(), &gs, module_bus };
-    ASSERT_TRUE(module_factory.create(scanning, mc, pool_));
+    ScanningContext ctx{ get_modmux(), &gs, module_bus };
+    ASSERT_TRUE(module_factory.create(scanning, ctx, pool_));
 }

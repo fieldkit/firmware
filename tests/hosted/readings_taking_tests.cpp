@@ -31,7 +31,7 @@ protected:
 TEST_F(ReadingsTakingSuite, WithNoModules) {
     GlobalState gs;
     TwoWireWrapper module_bus{ "modules", nullptr };
-    ModuleContext mc{ get_modmux(), &gs, module_bus };
+    ScanningContext ctx{ get_modmux(), &gs, module_bus };
     Storage storage{ memory_, false };
     FK_ASSERT(storage.clear());
 
@@ -41,13 +41,13 @@ TEST_F(ReadingsTakingSuite, WithNoModules) {
     EXPECT_CALL(scanning, scan(_)).WillOnce(Return(found));
 
     ReadingsTaker readings_taker{ scanning, storage, get_modmux(), false };
-    ASSERT_TRUE(readings_taker.take(mc, pool_));
+    ASSERT_TRUE(readings_taker.take(ctx, pool_));
 }
 
 TEST_F(ReadingsTakingSuite, BasicSingleModule) {
     GlobalState gs;
     TwoWireWrapper module_bus{ "modules", nullptr };
-    ModuleContext mc{ get_modmux(), &gs, module_bus };
+    ScanningContext ctx{ get_modmux(), &gs, module_bus };
     Storage storage{ memory_, false };
     FK_ASSERT(storage.clear());
 
@@ -65,13 +65,13 @@ TEST_F(ReadingsTakingSuite, BasicSingleModule) {
     EXPECT_CALL(scanning, scan(_)).WillOnce(Return(found));
 
     ReadingsTaker readings_taker{ scanning, storage, get_modmux(), false };
-    ASSERT_TRUE(readings_taker.take(mc, pool_));
+    ASSERT_TRUE(readings_taker.take(ctx, pool_));
 }
 
 TEST_F(ReadingsTakingSuite, BasicTwoModules) {
     GlobalState gs;
     TwoWireWrapper module_bus{ "modules", nullptr };
-    ModuleContext mc{ get_modmux(), &gs, module_bus };
+    ScanningContext ctx{ get_modmux(), &gs, module_bus };
     Storage storage{ memory_, false };
     FK_ASSERT(storage.clear());
 
@@ -97,5 +97,5 @@ TEST_F(ReadingsTakingSuite, BasicTwoModules) {
     EXPECT_CALL(scanning, scan(_)).WillOnce(Return(found));
 
     ReadingsTaker readings_taker{ scanning, storage, get_modmux(), false };
-    ASSERT_TRUE(readings_taker.take(mc, pool_));
+    ASSERT_TRUE(readings_taker.take(ctx, pool_));
 }

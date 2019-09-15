@@ -20,9 +20,11 @@ public:
     ReadingsTaker(ModuleScanning &scanning, Storage &storage, ModMux *mm, bool read_only);
 
 public:
-    tl::expected<ModuleReadingsCollection, Error> take(ModuleContext &mc, Pool &pool);
+    tl::expected<ModuleReadingsCollection, Error> take(ScanningContext &mc, Pool &pool);
+    bool append_configuration(ScanningContext &ctx, ConstructedModulesCollection &modules, File &file, Pool &pool);
     bool append_readings(File &file, Pool &pool);
-    bool append_configuration(ModuleContext &mc, ConstructedModulesCollection &modules, File &file, Pool &pool);
+
+private:
     bool verify_reading_record(File &file, Pool &pool);
 
 };

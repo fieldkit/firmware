@@ -8,6 +8,28 @@
 namespace fk {
 
 class GlobalState;
+class ModuleContext;
+
+class ScanningContext {
+private:
+    ModMux *mm_;
+    GlobalState const *gs_;
+    TwoWireWrapper *module_bus_{ nullptr };
+
+public:
+    ScanningContext(ModMux *mm, GlobalState const *gs, TwoWireWrapper &module_bus);
+    virtual ~ScanningContext();
+    friend class ModuleContext;
+
+public:
+    ModuleContext module(int32_t position);
+
+public:
+    GlobalState const *gs() {
+        return gs_;
+    }
+
+};
 
 class ModuleContext {
 private:
@@ -17,15 +39,8 @@ private:
     int32_t position_{ -1 };
 
 public:
-    ModuleContext();
-    ModuleContext(ModMux *mm, GlobalState const *gs, TwoWireWrapper &module_bus);
+    ModuleContext(ScanningContext &from, int32_t position);
     virtual ~ModuleContext();
-
-private:
-    ModuleContext(ModuleContext &from, int32_t position);
-
-public:
-    ModuleContext module(int32_t position);
 
 public:
     bool open();

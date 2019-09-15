@@ -26,7 +26,7 @@ public:
     virtual ~ModuleFactory();
 
 public:
-    tl::expected<ConstructedModulesCollection, Error> create(ModuleScanning &scanning, ModuleContext &mc, Pool &pool);
+    tl::expected<ConstructedModulesCollection, Error> create(ModuleScanning &scanning, ScanningContext &ctx, Pool &pool);
 
 };
 
