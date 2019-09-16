@@ -29,6 +29,9 @@ public:
 public:
     tl::expected<ConstructedModulesCollection, Error> create(ModuleScanning &scanning, ScanningContext &ctx, Pool &pool);
 
+private:
+    bool recreate(ScanningContext &ctx, FoundModuleCollection module_headers);
+
 };
 
 ModuleFactory &get_module_factory();

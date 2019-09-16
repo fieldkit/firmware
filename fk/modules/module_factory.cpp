@@ -19,27 +19,17 @@ ModuleFactory::ModuleFactory() {
 ModuleFactory::~ModuleFactory() {
 }
 
-tl::expected<ConstructedModulesCollection, Error> ModuleFactory::create(ModuleScanning &scanning, ScanningContext &ctx, Pool &pool) {
-    auto module_headers = scanning.scan(pool);
-    if (!module_headers) {
-        logerror("error scanning modules");
-        return tl::unexpected<Error>(module_headers.error());
-    }
-
-    if ((*module_headers).size() == modules_.size()) {
-        return modules_;
-    }
-
+bool ModuleFactory::recreate(ScanningContext &ctx, FoundModuleCollection module_headers) {
     loginfo("constructing modules");
 
     modules_.clear();
     pool_.clear();
 
     ModuleRegistry registry;
-    for (auto &f : *module_headers) {
+    for (auto &f : module_headers) {
         auto meta = registry.resolve(f.header);
         if (meta != nullptr) {
-            auto module = meta->ctor(pool);
+            auto module = meta->ctor(pool_);
             modules_.emplace_back(ConstructedModule{
                     .found = f,
                     .meta = meta,
@@ -57,18 +47,39 @@ tl::expected<ConstructedModulesCollection, Error> ModuleFactory::create(ModuleSc
 
         if (!mc.open()) {
             logerror("error opening module");
-            return tl::unexpected<Error>(Error::General);
+            return false;
         }
 
         if (!module->initialize(mc, pool_)) {
             logerror("error initializing module");
-            return tl::unexpected<Error>(Error::General);
+            return false;
         }
     }
 
-    loginfo("done (pool = %zd/%zd bytes)", pool.used(), pool.size());
+    loginfo("done (pool = %zd/%zd bytes)", pool_.used(), pool_.size());
 
-    return modules_;
+    return true;
+}
+
+tl::expected<ConstructedModulesCollection, Error> ModuleFactory::create(ModuleScanning &scanning, ScanningContext &ctx, Pool &pool) {
+    auto module_headers = scanning.scan(pool);
+    if (!module_headers) {
+        logerror("error scanning modules");
+        return tl::unexpected<Error>(module_headers.error());
+    }
+
+    if ((*module_headers).size() != modules_.size()) {
+        if (!recreate(ctx, *module_headers)) {
+            return tl::unexpected<Error>(Error::General);
+        }
+    }
+    else {
+        logdebug("keep modules");
+    }
+
+    ConstructedModulesCollection constructed{ pool };
+    constructed = modules_;
+    return constructed;
 }
 
 }
