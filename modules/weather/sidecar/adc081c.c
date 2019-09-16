@@ -15,6 +15,14 @@ int32_t adc081c_initialize(struct i2c_m_sync_desc *i2c) {
         return rv;
     }
 
+    uint8_t default_configuration = 0x00;
+    if (configuration != default_configuration) {
+        rv = i2c_write_u8(i2c, ADC081C_I2C_ADDRESS, ADC081C_REGISTER_CONFIGURATION, default_configuration);
+        if (rv != FK_SUCCESS) {
+            return rv;
+        }
+    }
+
     return FK_SUCCESS;
 }
 

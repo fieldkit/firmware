@@ -15,6 +15,8 @@ static SensorMetadata const fk_module_weather_sensor_metas[] = {
     { .name = "temperature 2", .unitOfMeasure = "C",      .flags = 0 },
     { .name = "wind",          .unitOfMeasure = "kmh",    .flags = 0 },
     { .name = "rain",          .unitOfMeasure = "inches", .flags = 0 },
+    { .name = "wind dir",      .unitOfMeasure = "deg",    .flags = 0 },
+    { .name = "wind mv",       .unitOfMeasure = "mv",     .flags = 0 },
 };
 
 static ModuleSensors fk_module_weather_sensors = {
@@ -79,6 +81,26 @@ bool WeatherModule::initialize(ModuleContext mc, fk::Pool &pool) {
     return true;
 }
 
+static int16_t get_wind_direction(uint8_t raw_adc) {
+    if (raw_adc < 13) return 112;
+    if (raw_adc < 16) return 67;
+    if (raw_adc < 18) return 90;
+    if (raw_adc < 25) return 157;
+    if (raw_adc < 37) return 135;
+    if (raw_adc < 50) return 202;
+    if (raw_adc < 59) return 180;
+    if (raw_adc < 86) return 22;
+    if (raw_adc < 99) return 45;
+    if (raw_adc < 133) return 247;
+    if (raw_adc < 141) return 225;
+    if (raw_adc < 161) return 337;
+    if (raw_adc < 184) return 0;
+    if (raw_adc < 196) return 292;
+    if (raw_adc < 213) return 315;
+    if (raw_adc < 231) return 270;
+    return -1;
+}
+
 ModuleReadings *WeatherModule::take_readings(ModuleContext mc, fk::Pool &pool) {
     static constexpr float RainPerTick = 0.2794; // mm
     static constexpr float WindPerTick = 2.4; // km/hr
@@ -140,13 +162,19 @@ ModuleReadings *WeatherModule::take_readings(ModuleContext mc, fk::Pool &pool) {
         return nullptr;
     }
 
+    auto adc_raw = (__builtin_bswap16(reading.wind.direction) >> 4) & 0xff;
+    auto adc_mv = adc_raw * (3.3f / 256.0f) * 1000.0f;
+    auto wind_angle = get_wind_direction(adc_raw);
+
     auto i = 0;
-    auto mr = new(pool) NModuleReadings<6>();
+    auto mr = new(pool) NModuleReadings<8>();
     mr->set(i++, 100.0f * ((float)reading.humidity / (0xffff)));
     mr->set(i++, -45.0f + 175.0f * ((float)reading.temperature_1 / (0xffff)));
     mr->set(i++, reading.pressure / 64.0f / 1000.0f);
     mr->set(i++, reading.temperature_2 / 16.0f);
     mr->set(i++, rain_ticks * RainPerTick);
     mr->set(i++, wind_ticks * WindPerTick);
+    mr->set(i++, wind_angle);
+    mr->set(i++, adc_mv);
     return mr;
 }
