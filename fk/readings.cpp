@@ -10,7 +10,7 @@ FK_DECLARE_LOGGER("readings");
 Readings::Readings(ModMux *mm) : mm_(mm) {
 }
 
-tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningContext &ctx, ConstructedModulesCollection const &modules, uint32_t reading_number, Pool &pool) {
+tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningContext &ctx, ConstructedModulesCollection const &modules, uint32_t meta_record, uint32_t reading_number, Pool &pool) {
     ModuleReadingsCollection all_readings{ pool };
 
     auto now = get_clock_now();
@@ -19,6 +19,7 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
     record_ = fk_data_record_encoding_new();
     record_.readings.time = now;
     record_.readings.reading = reading_number;
+    record_.readings.meta = meta_record;
     record_.readings.flags = fk_data_DownloadFlags_READING_FLAGS_NONE;
     record_.readings.location.time = gs->gps.time;
     record_.readings.location.fix = gs->gps.fix;

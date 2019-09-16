@@ -21,10 +21,10 @@ public:
 
 public:
     tl::expected<ModuleReadingsCollection, Error> take(ScanningContext &mc, Pool &pool);
-    bool append_configuration(ScanningContext &ctx, ConstructedModulesCollection &modules, File &file, Pool &pool);
     bool append_readings(File &file, Pool &pool);
 
 private:
+    tl::expected<uint32_t, Error> append_configuration(ScanningContext &ctx, ConstructedModulesCollection &modules, File &file, Pool &pool);
     bool verify_reading_record(File &file, Pool &pool);
 
 };

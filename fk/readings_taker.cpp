@@ -38,7 +38,8 @@ tl::expected<ModuleReadingsCollection, Error> ReadingsTaker::take(ScanningContex
             FK_ASSERT(meta.create());
         }
 
-        if (!append_configuration(ctx, *modules, meta, pool)) {
+        auto meta_record = append_configuration(ctx, *modules, meta, pool);
+        if (!meta_record) {
             logerror("error appending configuration");
             return tl::unexpected<Error>(Error::General);
         }
@@ -48,7 +49,7 @@ tl::expected<ModuleReadingsCollection, Error> ReadingsTaker::take(ScanningContex
             FK_ASSERT(data.create());
         }
 
-        auto all_readings = readings_.take_readings(ctx, *modules, data.record(), pool);
+        auto all_readings = readings_.take_readings(ctx, *modules, *meta_record, data.record(), pool);
         if (!all_readings) {
             logerror("error taking readings");
             return tl::unexpected<Error>(Error::General);
@@ -67,7 +68,7 @@ tl::expected<ModuleReadingsCollection, Error> ReadingsTaker::take(ScanningContex
         return all_readings;
     }
 
-    auto all_readings = readings_.take_readings(ctx, *modules, 0, pool);
+    auto all_readings = readings_.take_readings(ctx, *modules, 0, 0, pool);
     if (!all_readings) {
         logerror("error taking readings");
         return tl::unexpected<Error>(Error::General);
@@ -111,7 +112,7 @@ bool ReadingsTaker::verify_reading_record(File &file, Pool &pool) {
     return true;
 }
 
-bool ReadingsTaker::append_configuration(ScanningContext &ctx, ConstructedModulesCollection &modules, File &file, Pool &pool) {
+tl::expected<uint32_t, Error> ReadingsTaker::append_configuration(ScanningContext &ctx, ConstructedModulesCollection &modules, File &file, Pool &pool) {
     auto module_infos = pool.malloc<fk_data_ModuleInfo>(modules.size());
 
     auto index = 0;
@@ -184,11 +185,7 @@ bool ReadingsTaker::append_configuration(ScanningContext &ctx, ConstructedModule
     record.modules.arg = (void *)modules_array;
 
     auto srl = SignedRecordLog { file };
-    if (!srl.append_immutable(SignedRecordKind::Modules, &record, fk_data_DataRecord_fields, pool)) {
-        return false;
-    }
-
-    return true;
+    return srl.append_immutable(SignedRecordKind::Modules, &record, fk_data_DataRecord_fields, pool);
 }
 
 }

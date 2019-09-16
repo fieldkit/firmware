@@ -4,6 +4,7 @@
 
 #include "file.h"
 #include "protobuf.h"
+#include "containers.h"
 
 namespace fk {
 
@@ -23,11 +24,11 @@ public:
     SignedRecordLog(File &file);
 
 public:
-    bool seek_end();
-    bool seek_record(SignedRecordKind kind);
-    bool append_always(SignedRecordKind kind, void const *record, pb_msgdesc_t const *fields, Pool &pool);
-    bool append_immutable(SignedRecordKind kind, void const *record, pb_msgdesc_t const *fields, Pool &pool);
+    tl::expected<uint32_t, Error> seek_record(SignedRecordKind kind);
+    tl::expected<uint32_t, Error> append_always(SignedRecordKind kind, void const *record, pb_msgdesc_t const *fields, Pool &pool);
+    tl::expected<uint32_t, Error> append_immutable(SignedRecordKind kind, void const *record, pb_msgdesc_t const *fields, Pool &pool);
     bool decode(void *record, pb_msgdesc_t const *fields, Pool &pool);
+    bool seek_end();
 
 };
 

@@ -14,11 +14,11 @@ bool SignedRecordLog::seek_end() {
     return file_.seek(LastRecord);
 }
 
-bool SignedRecordLog::seek_record(SignedRecordKind kind) {
+tl::expected<uint32_t, Error> SignedRecordLog::seek_record(SignedRecordKind kind) {
     // NOTE: We don't have an easy way of seeking in reverse, yet. So we're
     // gonna start at the beginning, for now.
     if (!file_.seek(0)) {
-        return false;
+        return tl::unexpected<Error>(Error::IO);
     }
 
     // TODO: Timeout of some kind?
@@ -35,17 +35,17 @@ bool SignedRecordLog::seek_record(SignedRecordKind kind) {
     }
 
     if (!found.valid()) {
-        return false;
+        return tl::unexpected<Error>(Error::IO);
     }
 
     if (!file_.seek(found)) {
-        return false;
+        return tl::unexpected<Error>(Error::IO);
     }
 
-    return true;
+    return file_.record();
 }
 
-bool SignedRecordLog::append_always(SignedRecordKind kind, void const *record, pb_msgdesc_t const *fields, Pool &pool) {
+tl::expected<uint32_t, Error> SignedRecordLog::append_always(SignedRecordKind kind, void const *record, pb_msgdesc_t const *fields, Pool &pool) {
     size_t size = 0;
     auto buffer = pool.encode(fields, record, &size);
 
@@ -71,19 +71,18 @@ bool SignedRecordLog::append_always(SignedRecordKind kind, void const *record, p
     sr.data.arg = (void *)&data_ref;
     sr.hash.funcs.encode = pb_encode_data;
     sr.hash.arg = (void *)&hash_ref;
+    sr.record = file_.record();
 
     loginfo("writing");
 
     if (!file_.write(&sr, fk_data_SignedRecord_fields)) {
-        return false;
+        return tl::unexpected<Error>(Error::IO);
     }
 
-    return true;
+    return sr.record;
 }
 
-bool SignedRecordLog::append_immutable(SignedRecordKind kind, void const *record, pb_msgdesc_t const *fields, Pool &pool) {
-    auto append_new = true;
-
+tl::expected<uint32_t, Error> SignedRecordLog::append_immutable(SignedRecordKind kind, void const *record, pb_msgdesc_t const *fields, Pool &pool) {
     if (seek_record(kind)) {
         // TODO This could be better, for example we could have a custom nanopb
         // ostream that calculates the hash.
@@ -102,7 +101,7 @@ bool SignedRecordLog::append_immutable(SignedRecordKind kind, void const *record
         sr.hash.arg = (void *)&pool;
         auto nread = file_.read(&sr, fk_data_SignedRecord_fields);
         if (nread == 0) {
-            return false;
+            return tl::unexpected<Error>(Error::IO);
         }
 
         // Compare the hashes here, ensuring they're the same length.
@@ -110,26 +109,21 @@ bool SignedRecordLog::append_immutable(SignedRecordKind kind, void const *record
         FK_ASSERT(hash_ref->length == Hash::Length);
         if (memcmp(new_hash, hash_ref->buffer, Hash::Length) == 0) {
             loginfo("identical record");
-            return file_.seek(LastRecord);
+            if (!file_.seek(LastRecord)) {
+                return tl::unexpected<Error>(Error::IO);
+            }
+            return sr.record;
         }
     }
     else {
-        loginfo("no record");
+        loginfo("no record, appending");
     }
 
-    if (append_new) {
-        loginfo("appending");
-
-        if (!seek_end()) {
-            logwarn("creating new file");
-        }
-
-        if (!append_always(kind, record, fields, pool)) {
-            return false;
-        }
+    if (!seek_end()) {
+        logwarn("creating new file");
     }
 
-    return true;
+    return append_always(kind, record, fields, pool);
 }
 
 bool SignedRecordLog::decode(void *record, pb_msgdesc_t const *fields, Pool &pool) {
