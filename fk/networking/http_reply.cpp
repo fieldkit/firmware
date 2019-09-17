@@ -19,9 +19,14 @@ HttpReply::HttpReply(Pool &pool, GlobalState const *gs) : pool_(&pool), gs_(gs) 
 bool HttpReply::include_status() {
     fk_serial_number_t sn;
 
-    auto device_id = pool_->malloc_with<pb_data_t>({
+    auto device_id_data = pool_->malloc_with<pb_data_t>({
         .length = sizeof(sn),
         .buffer = pool_->copy(&sn, sizeof(sn)),
+    });
+
+    auto generation_data = pool_->malloc_with<pb_data_t>({
+        .length = sizeof(gs_->general.generation),
+        .buffer = &gs_->general.generation,
     });
 
     reply_.type = fk_app_ReplyType_REPLY_STATUS;
@@ -29,7 +34,8 @@ bool HttpReply::include_status() {
     reply_.status.uptime = fk_uptime();
     reply_.status.identity.device.arg = (void *)gs_->general.name;
     reply_.status.identity.build.arg = (void *)fkb_header.firmware.name;
-    reply_.status.identity.deviceId.arg = device_id;
+    reply_.status.identity.deviceId.arg = device_id_data;
+    reply_.status.identity.generation.arg = generation_data;
     reply_.status.power.battery.voltage = gs_->power.voltage;
     reply_.status.power.battery.percentage = gs_->power.charge;
 

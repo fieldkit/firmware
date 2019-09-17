@@ -110,7 +110,7 @@ tl::expected<uint32_t, Error> SignedRecordLog::append_immutable(SignedRecordKind
         auto hash_ref = (pb_data_t *)sr.hash.arg;
         FK_ASSERT(hash_ref->length == Hash::Length);
         if (memcmp(new_hash, hash_ref->buffer, Hash::Length) == 0) {
-            loginfo("identical record");
+            logdebug("identical record");
             if (!file_.seek(LastRecord)) {
                 return tl::unexpected<Error>(Error::IO);
             }

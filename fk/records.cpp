@@ -62,6 +62,7 @@ fk_app_HttpReply *fk_http_reply_encoding_initialize(fk_app_HttpReply *reply) {
     if (reply->status.identity.deviceId.arg != nullptr) reply->status.identity.deviceId.funcs.encode = pb_encode_data;
     if (reply->status.identity.firmware.arg != nullptr) reply->status.identity.firmware.funcs.encode = pb_encode_string;
     if (reply->status.identity.build.arg != nullptr) reply->status.identity.build.funcs.encode = pb_encode_string;
+    if (reply->status.identity.generation.arg != nullptr) reply->status.identity.generation.funcs.encode = pb_encode_data;
 
     if (reply->modules.arg != nullptr) {
         reply->modules.funcs.encode = pb_encode_array;
