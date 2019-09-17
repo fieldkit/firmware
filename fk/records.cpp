@@ -10,6 +10,8 @@ fk_data_DataRecord fk_data_record_decoding_new(Pool &pool) {
     record.metadata.firmware.build.arg = (void *)&pool;
     record.metadata.deviceId.funcs.decode = pb_decode_data;
     record.metadata.deviceId.arg = (void *)&pool;
+    record.metadata.generation.funcs.decode = pb_decode_data;
+    record.metadata.generation.arg = (void *)&pool;
     record.identity.name.funcs.decode = pb_decode_string;
     record.identity.name.arg = (void *)&pool;
     record.readings.sensorGroups.funcs.decode = pb_decode_array;
@@ -22,6 +24,7 @@ fk_data_DataRecord fk_data_record_encoding_new() {
     record.metadata.firmware.git.funcs.encode = pb_encode_string;
     record.metadata.firmware.build.funcs.encode = pb_encode_string;
     record.metadata.deviceId.funcs.encode = pb_encode_data;
+    record.metadata.generation.funcs.encode = pb_encode_data;
     record.identity.name.funcs.encode = pb_encode_string;
     record.readings.sensorGroups.funcs.encode = pb_encode_array;
     record.modules.funcs.encode = pb_encode_array;

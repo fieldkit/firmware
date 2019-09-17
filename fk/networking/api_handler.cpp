@@ -4,6 +4,7 @@
 #include "networking/api_handler.h"
 #include "storage/storage.h"
 #include "storage/signed_log.h"
+#include "storage/meta_ops.h"
 #include "protobuf.h"
 #include "utilities.h"
 #include "records.h"
@@ -82,33 +83,8 @@ static bool flush_configuration(Pool &pool) {
         return false;
     }
 
-    auto meta = storage.file(Storage::Meta);
-    if (!meta.seek_end()) {
-        FK_ASSERT(meta.create());
-    }
-
-    fk_serial_number_t sn;
-
-    pb_data_t device_id = {
-        .length = sizeof(sn),
-        .buffer = &sn,
-    };
-
-    auto hash_size = fkb_header.firmware.hash_size;
-    auto hash_hex = bytes_to_hex_string_pool(fkb_header.firmware.hash, hash_size, pool);
-
-    auto record = fk_data_record_encoding_new();
-    record.metadata.firmware.git.arg = (void *)hash_hex;
-    record.metadata.firmware.build.arg = (void *)fkb_header.firmware.name;
-    record.metadata.deviceId.arg = (void *)&device_id;
-    record.identity.name.arg = (void *)gs.get()->general.name;
-    record.condition.flags = fk_data_ConditionFlags_CONDITION_FLAGS_NONE;
-    if (gs.get()->general.recording) {
-        record.condition.flags |= fk_data_ConditionFlags_CONDITION_FLAGS_RECORDING;
-    }
-
-    auto srl = SignedRecordLog{ meta };
-    if (!srl.append_immutable(SignedRecordKind::State, &record, fk_data_DataRecord_fields, pool)) {
+    MetaOps ops{ storage };
+    if (!ops.write_state(gs.get(), pool)) {
         return false;
     }
 

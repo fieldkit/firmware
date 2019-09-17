@@ -5,10 +5,10 @@
 #include "utilities.h"
 #include "hal/metal/metal.h"
 #include "debugging.h"
-#include "state_manager.h"
 #include "startup_worker.h"
 #include "storage/storage.h"
 #include "tasks/tasks.h"
+#include "state.h"
 
 extern const struct fkb_header_t fkb_header;
 
@@ -193,9 +193,6 @@ static void single_threaded_setup() {
     FK_ASSERT(initialize_hardware());
 
     log_diagnostics();
-
-    GlobalStateManager gsm;
-    FK_ASSERT(gsm.initialize(pool));
 }
 
 void setup() {
