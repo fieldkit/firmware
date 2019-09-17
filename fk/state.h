@@ -67,6 +67,7 @@ struct PeripheralState {
 
 struct GeneralState {
     char name[MaximumNameLength];
+    uint8_t generation[GenerationLength];
     bool recording;
 };
 
