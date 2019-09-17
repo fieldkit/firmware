@@ -118,15 +118,15 @@ tl::expected<uint32_t, Error> MetaOps::write_modules(GlobalState const *gs, Cons
     fk_serial_number_t sn;
     fk_serial_number_get(&sn);
 
-    pb_data_t device_id = {
+    auto device_id_data = pool.malloc_with<pb_data_t>({
         .length = sizeof(sn),
         .buffer = &sn,
-    };
+    });
 
-    pb_data_t generation = {
+    auto generation_data = pool.malloc_with<pb_data_t>({
         .length = sizeof(gs->general.generation),
         .buffer = &gs->general.generation,
-    };
+    });
 
     auto hash_size = fkb_header.firmware.hash_size;
     auto hash_hex = bytes_to_hex_string_pool(fkb_header.firmware.hash, hash_size, pool);
@@ -134,16 +134,14 @@ tl::expected<uint32_t, Error> MetaOps::write_modules(GlobalState const *gs, Cons
     auto record = fk_data_record_encoding_new();
     record.metadata.firmware.git.arg = (void *)hash_hex;
     record.metadata.firmware.build.arg = (void *)fkb_header.firmware.name;
-    record.metadata.deviceId.arg = (void *)&device_id;
-    record.metadata.generation.arg = (void *)&generation;
+    record.metadata.deviceId.arg = (void *)device_id_data;
+    record.metadata.generation.arg = (void *)generation_data;
     record.modules.arg = (void *)modules_array;
 
     auto meta = storage_.file(Storage::Meta);
-
     if (!meta.seek_end()) {
         FK_ASSERT(meta.create());
     }
-
     auto srl = SignedRecordLog { meta };
     auto meta_record = srl.append_immutable(SignedRecordKind::Modules, &record, fk_data_DataRecord_fields, pool);
 

@@ -79,6 +79,8 @@ tl::expected<uint32_t, Error> SignedRecordLog::append_always(SignedRecordKind ki
         return tl::unexpected<Error>(Error::IO);
     }
 
+    loginfo("appended");
+
     return sr.record;
 }
 
