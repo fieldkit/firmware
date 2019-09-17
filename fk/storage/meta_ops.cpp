@@ -54,9 +54,8 @@ tl::expected<uint32_t, Error> MetaOps::write_state(GlobalState const *gs, Pool &
 
     char gen_string[GenerationLength * 2 + 1];
     bytes_to_hex_string(gen_string, sizeof(gen_string), gs->general.generation, sizeof(gs->general.generation));
-
-    loginfo("name: '%s'", gs->general.name);
-    loginfo("gen: %s", gen_string);
+    loginfo("(saved) name: '%s'", gs->general.name);
+    loginfo("(saved) gen: %s", gen_string);
 
     return meta_record;
 }
