@@ -81,7 +81,7 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
             .position = pair.found.position,
             .id = (fk_uuid_t *)pool.copy(&pair.found.header.id, sizeof(pair.found.header.id)),
             .meta = meta,
-            .sensors = module->get_sensors(mc, pool),
+            .sensors = module->get_sensors(pool),
             .readings = readings,
         });
     }

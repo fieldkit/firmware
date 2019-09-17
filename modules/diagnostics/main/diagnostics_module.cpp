@@ -20,7 +20,7 @@ bool DiagnosticsModule::initialize(ModuleContext mc, fk::Pool &pool) {
     return true;
 }
 
-ModuleSensors const *DiagnosticsModule::get_sensors(ModuleContext mc, Pool &pool) {
+ModuleSensors const *DiagnosticsModule::get_sensors(Pool &pool) {
     return &fk_module_sensors;
 }
 

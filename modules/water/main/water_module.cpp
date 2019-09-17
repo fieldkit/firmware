@@ -17,7 +17,7 @@ bool WaterModule::initialize(ModuleContext mc, fk::Pool &pool) {
     return true;
 }
 
-ModuleSensors const *WaterModule::get_sensors(ModuleContext mc, Pool &pool) {
+ModuleSensors const *WaterModule::get_sensors(Pool &pool) {
     switch (type_) {
     case AtlasSensorType::Ec: {
         auto meta = pool.malloc_with<SensorMetadata, 3>({

@@ -119,7 +119,7 @@ tl::expected<uint32_t, Error> ReadingsTaker::append_configuration(ScanningContex
     for (auto pair : modules) {
         auto meta = pair.meta;
         auto module = pair.module;
-        auto sensor_metas = module->get_sensors(ctx.module(0), pool);
+        auto sensor_metas = module->get_sensors(pool);
 
         auto id_data = pool.malloc_with<pb_data_t>({
             .length = sizeof(fk_uuid_t),

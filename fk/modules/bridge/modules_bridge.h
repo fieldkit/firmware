@@ -123,7 +123,7 @@ public:
 public:
     virtual bool initialize(ModuleContext mc, Pool &pool) = 0;
     virtual ModuleReadings *take_readings(ModuleContext mc, Pool &pool) = 0;
-    virtual ModuleSensors const *get_sensors(ModuleContext mc, Pool &pool) = 0;
+    virtual ModuleSensors const *get_sensors(Pool &pool) = 0;
 
 };
 

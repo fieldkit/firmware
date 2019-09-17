@@ -24,7 +24,7 @@ static ModuleSensors fk_module_weather_sensors = {
     .sensors = fk_module_weather_sensor_metas,
 };
 
-ModuleSensors const *WeatherModule::get_sensors(ModuleContext mc, Pool &pool) {
+ModuleSensors const *WeatherModule::get_sensors(Pool &pool) {
     return &fk_module_weather_sensors;
 }
 
@@ -59,7 +59,7 @@ bool WeatherModule::initialize(ModuleContext mc, fk::Pool &pool) {
 
         auto expected = calculate_crc(FK_MODULES_CRC_SEED, temp);
         if (expected == temp.crc) {
-            logdebug("[0x%04" PRIx32 "] reading (%" PRIu32 ")", iter, temp.seconds);
+            logdebug("[0x%04" PRIx32 "] reading (%" PRIu32 ") (%.2f)", iter, temp.seconds, temp.temperature_2 / 16.0f);
             if (address_ == 0 || temp.seconds > reading.seconds) {
                 reading = temp;
                 seconds_ = reading.seconds;
@@ -143,7 +143,7 @@ ModuleReadings *WeatherModule::take_readings(ModuleContext mc, fk::Pool &pool) {
             if (temp.seconds < seconds_) {
                 break;
             }
-            logdebug("[0x%04" PRIx32 "] reading (%" PRIu32 ")", address_, seconds_);
+            logdebug("[0x%04" PRIx32 "] reading (%" PRIu32 ") (%.2f)", address_, seconds_, temp.temperature_2 / 16.0f);
             reading = temp;
             seconds_ = temp.seconds;
             rain_ticks += reading.rain.ticks;

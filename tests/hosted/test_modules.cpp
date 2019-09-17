@@ -16,7 +16,7 @@ public:
         return true;
     }
 
-    ModuleSensors const *get_sensors(ModuleContext mc, Pool &pool) override {
+    ModuleSensors const *get_sensors(Pool &pool) override {
         return &fk_module_fake_empty_sensors;
     }
 
@@ -53,7 +53,7 @@ public:
         return true;
     }
 
-    ModuleSensors const *get_sensors(ModuleContext mc, Pool &pool) override {
+    ModuleSensors const *get_sensors(Pool &pool) override {
         return &fk_module_fake_1_sensors;
     }
 
@@ -101,7 +101,7 @@ public:
         return true;
     }
 
-    ModuleSensors const *get_sensors(ModuleContext mc, Pool &pool) override {
+    ModuleSensors const *get_sensors(Pool &pool) override {
         return &fk_module_fake_2_sensors;
     }
 

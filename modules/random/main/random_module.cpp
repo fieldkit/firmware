@@ -25,7 +25,7 @@ static ModuleSensors fk_module_random_sensors = {
     .sensors = fk_module_random_sensor_metas,
 };
 
-ModuleSensors const *RandomModule::get_sensors(ModuleContext mc, Pool &pool) {
+ModuleSensors const *RandomModule::get_sensors(Pool &pool) {
     return &fk_module_random_sensors;
 }
 
