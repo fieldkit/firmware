@@ -2,6 +2,7 @@
 
 #include "worker.h"
 #include "networking/networking.h"
+#include "storage/storage.h"
 
 namespace fk {
 
@@ -41,9 +42,13 @@ private:
         uint32_t size;
         uint32_t first_block;
         uint32_t last_block;
+        const char *device_id;
+        const char *generation;
     };
 
     bool write_headers(HeaderInfo header_info);
+
+    HeaderInfo get_headers(File &file, Pool &pool);
 
 };
 

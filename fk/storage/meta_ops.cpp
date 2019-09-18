@@ -115,7 +115,6 @@ tl::expected<uint32_t, Error> MetaOps::write_modules(GlobalState const *gs, Cons
     });
 
     fk_serial_number_t sn;
-    fk_serial_number_get(&sn);
 
     auto device_id_data = pool.malloc_with<pb_data_t>({
         .length = sizeof(sn),
