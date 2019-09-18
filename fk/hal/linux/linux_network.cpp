@@ -137,7 +137,7 @@ bool LinuxNetwork::serve() {
 }
 
 NetworkStatus LinuxNetwork::status() {
-    return NetworkStatus::Listening;
+    return NetworkStatus::Connected;
 }
 
 uint32_t LinuxNetwork::ip_address() {
