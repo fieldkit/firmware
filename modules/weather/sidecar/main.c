@@ -114,6 +114,8 @@ __int32_t main() {
 
     board_initialize();
 
+    loginfof("board ready!");
+
     loginfof("sizeof(fk_weather_t) = %zd (%zd readings)", sizeof(fk_weather_t), EEPROM_AVAILABLE_DATA / sizeof(fk_weather_t));
 
     // Floating allows writes, just leave the thing alone.
@@ -190,4 +192,40 @@ __int32_t main() {
     }
 
     return 0;
+}
+
+void NMI_Handler(void) {
+    logerror("isr: nmi fault");
+
+    volatile int32_t i = 0;
+    while (1) {
+        i++;
+    }
+}
+
+void HardFault_Handler(void) {
+    logerror("isr: hard fault");
+
+    volatile int32_t i = 0;
+    while (1) {
+        i++;
+    }
+}
+
+void MemManage_Handler(void) {
+    logerror("isr: memmanage fault");
+
+    volatile int32_t i = 0;
+    while (1) {
+        i++;
+    }
+}
+
+void BusFault_Handler(void) {
+    logerror("isr: bus fault");
+
+    volatile int32_t i = 0;
+    while (1) {
+        i++;
+    }
 }
