@@ -25,3 +25,12 @@ int32_t board_timer_setup(struct timer_task *const timer_task, uint32_t interval
     timer_add_task(&TIMER_0, timer_task);
     timer_start(&TIMER_0);
 }
+
+int32_t fk_assert(const char *message, const char *file, int32_t line) {
+    volatile int32_t i = 0;
+    while (1) {
+        i++;
+    }
+
+    return 0;
+}

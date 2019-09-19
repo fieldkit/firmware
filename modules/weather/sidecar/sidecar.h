@@ -11,6 +11,8 @@
 #define FK_ERROR_TIMEOUT    (-3)
 #define FK_ERROR_IO         (-4)
 
-#define FK_ASSERT(expr)
+int32_t fk_assert(const char *message, const char *file, int32_t line);
+
+#define FK_ASSERT(expression)  (void)((expression) || (fk_assert("ASSERTION", __FILE__, __LINE__), 0))
 
 #include "logging.h"

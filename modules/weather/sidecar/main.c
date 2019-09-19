@@ -47,21 +47,25 @@ int32_t take_readings(fk_weather_t *weather) {
     adc081c_reading_t wind_direction;
     if (adc081c_reading_get(&I2C_1, &wind_direction) != FK_SUCCESS) {
         logerror("reading adc081c");
+        return FK_ERROR_GENERAL;
     }
 
     mpl3115a2_reading_t mpl3115a2_reading;
     if (mpl3115a2_reading_get(&I2C_1, &mpl3115a2_reading) != FK_SUCCESS) {
         logerror("reading mpl3115a2");
+        return FK_ERROR_GENERAL;
     }
 
     sht31_reading_t sht31_reading;
     if (sht31_reading_get(&I2C_1, &sht31_reading) != FK_SUCCESS) {
         logerror("reading sht31");
+        return FK_ERROR_GENERAL;
     }
 
     counters_reading_t counters_reading;
     if (counters_reading_get(&I2C_1, &counters_reading) != FK_SUCCESS) {
         logerror("reading counters");
+        return FK_ERROR_GENERAL;
     }
 
     weather->seconds++;
