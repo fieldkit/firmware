@@ -67,6 +67,10 @@ public:
         return req_.length();
     }
 
+    const char *find_query_param(const char *key, Pool &pool) {
+        return req_.url_parser().find_query_param(key, pool);
+    }
+
 };
 
 class ConnectionPool {

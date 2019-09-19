@@ -9,6 +9,7 @@
 #include "pool.h"
 #include "io.h"
 #include "config.h"
+#include "networking/url_parser.h"
 
 namespace fk {
 
@@ -47,6 +48,11 @@ private:
      * size wise. This should handle most cases initially, though.
      */
     char url_[HttpdMaximumUrlLength];
+
+    /**
+     * The parsed URL.
+     */
+    UrlParser url_parser_;
 
     /**
      * Previous header field parsed. This will be valid because we always
@@ -133,6 +139,13 @@ public:
     const char *url() const {
         return url_;
     }
+
+    /**
+     * Returns the URL parser with the parsed URL, assuming the URL has been received.
+     */
+    UrlParser &url_parser() {
+        return url_parser_;
+    };
 
     /**
      * Returns the length, in bytes, of the body of this request. This is only

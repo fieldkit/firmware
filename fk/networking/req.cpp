@@ -93,6 +93,7 @@ int32_t HttpRequest::on_url(const char *at, size_t length) {
     auto n = std::min(length, sizeof(url_));
     strncpy(url_, at, n);
     url_[length] = 0;
+    url_parser_ = { url_ };
 
     state_ = HttpRequestState::Headers;
 

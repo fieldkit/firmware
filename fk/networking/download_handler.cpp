@@ -21,6 +21,16 @@ DownloadWorker::HeaderInfo DownloadWorker::get_headers(File &file, Pool &pool) {
     uint32_t first_block = 0;
     uint32_t last_block = LastRecord;
 
+    auto first_qs = connection_->find_query_param("first", pool);
+    if (first_qs != nullptr) {
+        first_block = strtol(first_qs, nullptr, 10);
+    }
+
+    auto last_qs = connection_->find_query_param("last", pool);
+    if (last_qs != nullptr) {
+        last_block = strtol(last_qs, nullptr, 10);
+    }
+
     FK_ASSERT(file.seek(last_block));
     auto final_position = file.position();
 
@@ -56,6 +66,8 @@ void DownloadWorker::run(Pool &pool) {
     auto file = storage.file(file_number_);
 
     auto info = get_headers(file, pool);
+
+    loginfo("range #%" PRIu32 " - #%" PRIu32 " size = %" PRIu32, info.first_block, info.last_block, info.size);
 
     memory.log_statistics();
 
