@@ -22,7 +22,7 @@
 // <i> These bits define the watchdog time-out period
 // <id> wdt_arch_per
 #ifndef CONF_WDT_PER
-#define CONF_WDT_PER 0x0
+#define CONF_WDT_PER 0x9
 #endif
 
 // </h>

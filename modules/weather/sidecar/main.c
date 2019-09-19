@@ -1,6 +1,7 @@
 #include <atmel_start.h>
 #include <atmel_start_pins.h>
 #include <hal_delay.h>
+#include <hpl_reset.h>
 
 #include <SEGGER_RTT.h>
 
@@ -133,17 +134,41 @@ __int32_t main() {
         delay_ms(100);
     }
 
-    loginfo("initialize sensors...");
+    loginfo("initializing watchdog...");
 
-    sensors_initialize(&I2C_1);
+    uint32_t clk_rate = 1000;
+    uint16_t to_period = 4096;
+    wdt_set_timeout_period(&WDT_0, clk_rate, to_period);
+    wdt_enable(&WDT_0);
 
     fk_weather_t weather;
     memset(&weather, 0, sizeof(fk_weather_t));
 
+    loginfo("initializing eeprom...");
+
     eeprom_region_t readings_region;
-    eeprom_region_create(&readings_region, &I2C_0, EEPROM_ADDRESS_READINGS, EEPROM_ADDRESS_READINGS_END, sizeof(fk_weather_t));
+    FK_ASSERT(eeprom_region_create(&readings_region, &I2C_0, EEPROM_ADDRESS_READINGS, EEPROM_ADDRESS_READINGS_END, sizeof(fk_weather_t)) == FK_SUCCESS);
+
+    loginfo("seek end...");
+
+    if (eeprom_verify_header(&readings_region) != FK_SUCCESS) {
+        logerror("error verifying header");
+        delay_ms(1000);
+        NVIC_SystemReset();
+    }
+
     if (eeprom_region_seek_end(&readings_region, &weather.seconds) != FK_SUCCESS) {
         logerror("error finding eeprom end");
+        delay_ms(1000);
+        NVIC_SystemReset();
+    }
+
+    loginfo("sensors...");
+
+    if (sensors_initialize(&I2C_1) != FK_SUCCESS) {
+        logerror("error initializing sensors");
+        delay_ms(1000);
+        NVIC_SystemReset();
     }
 
     struct timer_task timer_task;
@@ -192,6 +217,8 @@ __int32_t main() {
             #endif
         }
 
+        wdt_feed(&WDT_0);
+
         sleep(SYSTEM_SLEEPMODE_IDLE_2);
     }
 
@@ -232,4 +259,8 @@ void BusFault_Handler(void) {
     while (1) {
         i++;
     }
+}
+
+void WDT_Handler(void) {
+    logerror("isr: watchdog");
 }

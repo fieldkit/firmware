@@ -399,15 +399,15 @@
 
 // <i> Select the clock source for WDT.
 #ifndef CONF_GCLK_WDT_SRC
-#define CONF_GCLK_WDT_SRC GCLK_CLKCTRL_GEN_GCLK0_Val
+#define CONF_GCLK_WDT_SRC GCLK_CLKCTRL_GEN_GCLK5_Val
 #endif
 /**
  * \def CONF_GCLK_WDT_FREQUENCY
  * \brief WDT's Clock frequency
  */
-#ifndef CONF_GCLK_WDT_FREQUENCY
-#define CONF_GCLK_WDT_FREQUENCY 8000000
-#endif
+// #ifndef CONF_GCLK_WDT_FREQUENCY
+// #define CONF_GCLK_WDT_FREQUENCY 8000000
+// #endif
 
 // <<< end of configuration section >>>
 

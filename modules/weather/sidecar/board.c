@@ -11,6 +11,7 @@ int32_t board_initialize() {
     TIMER_0_init();
     I2C_0_init();
     I2C_1_init();
+    WDT_0_init();
 
     i2c_m_sync_enable(&I2C_0);
     i2c_m_sync_enable(&I2C_1);
