@@ -7,8 +7,6 @@ int32_t board_initialize() {
     SEGGER_RTT_Init();
     SEGGER_RTT_WriteString(0, "\n\n");
 
-    loginfo("initializing...");
-
     delay_driver_init();
     TIMER_0_init();
     I2C_0_init();
@@ -16,8 +14,6 @@ int32_t board_initialize() {
 
     i2c_m_sync_enable(&I2C_0);
     i2c_m_sync_enable(&I2C_1);
-
-    loginfo("done");
 
     return FK_SUCCESS;
 }

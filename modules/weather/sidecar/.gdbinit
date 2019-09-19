@@ -3,6 +3,8 @@
 
 python
 
+import subprocess
+
 class FkSegger(gdb.Command):
   "Segger mode."
   def __init__ (self):
@@ -22,6 +24,10 @@ class FkSegger(gdb.Command):
     gdb.execute("b __cxa_pure_virtual")
     gdb.execute("b HardFault_Handler")
     gdb.execute("b NonMaskableInt_Handler")
+    gdb.execute("b NMI_Handler()")
+    gdb.execute("b HardFault_Handler()")
+    gdb.execute("b MemManage_Handler()")
+    gdb.execute("b BusFault_Handler()")
     if False:
       for h in irq_handlers:
         gdb.execute("b " + h)

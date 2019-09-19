@@ -183,18 +183,21 @@ static void verify_write(eeprom_region_t *region, void *item)  {
     FK_ASSERT(0);
 }
 
-static void verify_header(eeprom_region_t *region) {
+int32_t eeprom_verify_header(eeprom_region_t *region) {
     int32_t rv;
 
     ModuleHeader header;
     rv = eeprom_read(region->i2c, 0, (uint8_t *)&header, sizeof(header));
     if (rv != FK_SUCCESS) {
-        return;
+        return FK_ERROR_IO;
     }
 
     if (!fk_module_header_valid(&header)) {
         fk_dump_memory((uint8_t *)&header, sizeof(header));
+        return FK_ERROR_GENERAL;
     }
+
+    return FK_SUCCESS;
 }
 
 int32_t eeprom_region_append(eeprom_region_t *region, fk_weather_t *item) {

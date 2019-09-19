@@ -9,6 +9,7 @@
 #define FK_ERROR_GENERAL    (-1)
 #define FK_ERROR_BUSY       (-2)
 #define FK_ERROR_TIMEOUT    (-3)
+#define FK_ERROR_IO         (-4)
 
 #define FK_ASSERT(expr)
 

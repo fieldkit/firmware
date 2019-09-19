@@ -65,4 +65,6 @@ int32_t eeprom_region_append(eeprom_region_t *region, fk_weather_t *item);
 
 int32_t eeprom_region_append_unwritten(eeprom_region_t *region, unwritten_readings_t *ur);
 
+int32_t eeprom_verify_header(eeprom_region_t *region);
+
 int32_t eeprom_lock_test();

@@ -27,7 +27,8 @@ typedef struct fk_weather_t {
     fk_wind_t wind;
     fk_rain_t rain;
 
-    uint32_t reserved[7];
+    uint32_t reserved[6];
+    uint32_t errors;
 
     uint32_t crc;
 } fk_weather_t;
