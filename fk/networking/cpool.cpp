@@ -47,10 +47,10 @@ void ConnectionPool::service(HttpRouter &router) {
                 auto activity_elapsed = now - c->activity_;
                 auto started_elapsed = now - c->started_;
                 if (activity_elapsed < FiveSecondsMs) {
-                    loginfo("[%" PRIu32 "] [%zd] active (%" PRIu32 "ms) (%" PRIu32 "ms) (%" PRIu32 " bytes)", c->number_, i, activity_elapsed, started_elapsed, c->read_);
+                    loginfo("[%" PRIu32 "] [%zd] active (%" PRIu32 "ms) (%" PRIu32 "ms) (%" PRIu32 " down) (%" PRIu32 " up)", c->number_, i, activity_elapsed, started_elapsed, c->read_, c->wrote_);
                 }
                 else {
-                    logwarn("[%" PRIu32 "] [%zd] killing (%" PRIu32 "ms) (%" PRIu32 "ms) (%" PRIu32 " bytes)", c->number_, i, activity_elapsed, started_elapsed, c->read_);
+                    logwarn("[%" PRIu32 "] [%zd] killing (%" PRIu32 "ms) (%" PRIu32 "ms) (%" PRIu32 " down) (%" PRIu32 " up)", c->number_, i, activity_elapsed, started_elapsed, c->read_, c->wrote_);
                     c->close();
                     delete pool_[i];
                     pool_[i] = nullptr;
@@ -187,7 +187,7 @@ int32_t Connection::read(uint8_t *buffer, size_t size) {
 
 int32_t Connection::write(uint8_t const *buffer, size_t size) {
     auto bytes = conn_->write(buffer, size);
-    if (wrote_ > 0) {
+    if (bytes > 0) {
         wrote_ += bytes;
         activity_ = fk_uptime();
     }
