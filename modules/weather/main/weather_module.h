@@ -5,6 +5,7 @@
 class WeatherModule : public fk::Module {
 private:
     uint32_t seconds_{ 0 };
+    uint32_t session_{ 0 };
     uint32_t address_{ 0 };
 
 public:

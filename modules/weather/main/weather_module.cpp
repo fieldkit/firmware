@@ -62,7 +62,8 @@ bool WeatherModule::initialize(ModuleContext mc, fk::Pool &pool) {
             logdebug("[0x%04" PRIx32 "] reading (%" PRIu32 ") (%.2f)", iter, temp.seconds, temp.temperature_2 / 16.0f);
             if (address_ == 0 || temp.seconds > reading.seconds) {
                 reading = temp;
-                seconds_ = reading.seconds;
+                seconds_ = temp.seconds;
+                session_ = temp.session;
                 address_ = iter;
             }
         }
@@ -140,12 +141,24 @@ ModuleReadings *WeatherModule::take_readings(ModuleContext mc, fk::Pool &pool) {
 
         auto expected = calculate_crc(FK_MODULES_CRC_SEED, temp);
         if (expected == temp.crc) {
+            float temperature = temp.temperature_2 / 16.0f;
+
+            if (temp.error != 0) {
+                logerror("[0x%04" PRIx32 "] error detected", address_);
+            }
+
             if (temp.seconds < seconds_) {
                 break;
             }
-            logdebug("[0x%04" PRIx32 "] reading (%" PRIu32 ") (%.2f)", address_, seconds_, temp.temperature_2 / 16.0f);
+
+            if (temp.session < session_) {
+                logwarn("[0x%04" PRIx32 "] module restarted (%" PRIu32 " < %" PRIu32 ")", address_, temp.session, session_);
+            }
+
+            logdebug("[0x%04" PRIx32 "] reading (%" PRIu32 ") (%.2f)", address_, seconds_, temperature);
             reading = temp;
             seconds_ = temp.seconds;
+            session_ = temp.session;
             rain_ticks += reading.rain.ticks;
             wind_ticks += reading.wind.ticks;
         }
