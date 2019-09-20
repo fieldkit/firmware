@@ -27,8 +27,9 @@ typedef struct fk_weather_t {
     fk_wind_t wind;
     fk_rain_t rain;
 
-    uint32_t reserved[6];
-    uint32_t errors;
+    uint32_t reserved[5];
+    uint32_t session;
+    uint32_t error;
 
     uint32_t crc;
 } fk_weather_t;
@@ -38,6 +39,8 @@ typedef struct fk_weather_config_t {
     uint16_t reserved[3];
     uint32_t crc;
 } fk_weather_config_t;
+
+#define FK_WEATHER_ERROR_SENSORS               (0xff)
 
 #ifdef __cplusplus
 }

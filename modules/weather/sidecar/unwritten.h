@@ -1,5 +1,6 @@
 #pragma once
 
+#include <modules.h>
 #include <weather.h>
 
 #define UNWRITTEN_QUEUE_SIZE                     (22)
@@ -17,3 +18,5 @@ int32_t unwritten_readings_push(unwritten_readings_t *ur, fk_weather_t *w);
 int32_t unwritten_readings_pop(unwritten_readings_t *ur, fk_weather_t **w);
 
 int32_t unwritten_readings_peek(unwritten_readings_t *ur, fk_weather_t **w);
+
+int32_t unwritten_readings_push_error(unwritten_readings_t *ur, uint32_t error);

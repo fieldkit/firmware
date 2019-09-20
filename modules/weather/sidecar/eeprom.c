@@ -167,22 +167,6 @@ int32_t eeprom_region_create(eeprom_region_t *region, struct i2c_m_sync_desc *i2
     return FK_SUCCESS;
 }
 
-static void verify_write(eeprom_region_t *region, void *item)  {
-    int32_t rv;
-
-    uint8_t actual[region->item_size];
-    rv = eeprom_read(region->i2c, region->tail, actual, region->item_size);
-    if (rv != FK_SUCCESS) {
-        return;
-    }
-
-    if (memcmp(actual, item, region->item_size) == 0) {
-        return;
-    }
-
-    FK_ASSERT(0);
-}
-
 int32_t eeprom_verify_header(eeprom_region_t *region) {
     int32_t rv;
 
@@ -226,17 +210,22 @@ int32_t eeprom_region_append(eeprom_region_t *region, fk_weather_t *item) {
 
 int32_t eeprom_region_append_unwritten(eeprom_region_t *region, unwritten_readings_t *ur) {
     fk_weather_t *weather = NULL;
-    while (unwritten_readings_peek(ur, &weather)) {
+    while (unwritten_readings_peek(ur, &weather) == FK_SUCCESS) {
+        int32_t rv;
+
         #if defined(FK_LOGGING_VERBOSE)
         loginfof("writing 0x%04" PRIx32 " 0x%" PRIx32 " %d %d", region->tail, weather->crc, ur->tail, ur->head);
         #endif
 
-        int32_t rv = eeprom_region_append(region, weather);
+        rv = eeprom_region_append(region, weather);
         if (rv != FK_SUCCESS) {
             return rv;
         }
 
-        unwritten_readings_pop(ur, NULL);
+        rv = unwritten_readings_pop(ur, NULL);
+        if (rv != FK_SUCCESS) {
+            return rv;
+        }
     }
 
     return FK_SUCCESS;
