@@ -3,6 +3,8 @@
 
 python
 
+import subprocess
+
 irq_handlers = [
   "EIC_0_Handler", "EIC_1_Handler", "EIC_2_Handler", "EIC_3_Handler", "EIC_4_Handler",
   # Buttons
@@ -22,6 +24,7 @@ class FkSegger(gdb.Command):
     if arg is None or len(arg) == 0:
       print("Pass JLink port: js 2331")
       return
+    gdb.execute("add-symbol-file build/samd51/bootloader/fkbl.elf 0x0000")
     gdb.execute("target extended-remote :" + arg)
     gdb.execute("monitor exec SetRTTSearchRanges 0x20000000 64")
     gdb.execute("load")
@@ -29,6 +32,7 @@ class FkSegger(gdb.Command):
     gdb.execute("b osi_panic")
     gdb.execute("b osi_hard_fault_report")
     gdb.execute("b fk_assert")
+    gdb.execute("b cm_hard_fault")
     gdb.execute("b __cxa_pure_virtual")
     if False:
       for h in irq_handlers:

@@ -1,0 +1,14 @@
+#!/bin/bash
+
+PROGRAM=fk-weather-sidecar.bin
+
+JLinkExe -if SWD -device ATSAMD09D14A -speed 4000 <<EOF
+exitonerror 1
+connect
+sleep 100
+r
+sleep 100
+loadfile $PROGRAM,0x0000
+r
+q
+EOF

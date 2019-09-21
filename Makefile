@@ -16,7 +16,7 @@ default: setup all
 
 all: samd51 samd09 test
 
-ci: all doc
+ci: setup all doc package
 
 setup: .python-setup fk/secrets.h libraries/done
 
@@ -65,6 +65,20 @@ doc:
 
 fk/secrets.h: fk/secrets.h.template
 	cp $^ $@
+
+package:
+	mkdir -p $(BUILD)/fk-firmware
+	cp tools/flash-core $(BUILD)/fk-firmware
+	cp tools/flash-weather $(BUILD)/fk-firmware
+	cp $(BUILD)/samd51/bootloader/fkbl.elf  $(BUILD)/fk-firmware
+	cp $(BUILD)/samd51/bootloader/fkbl.bin  $(BUILD)/fk-firmware
+	cp $(BUILD)/samd51/fk/fk-bundled-fkb.elf  $(BUILD)/fk-firmware
+	cp $(BUILD)/samd51/fk/fk-bundled-fkb.bin  $(BUILD)/fk-firmware
+	cp $(BUILD)/samd09/modules/weather/sidecar/fk-weather-sidecar.elf  $(BUILD)/fk-firmware
+	cp $(BUILD)/samd09/modules/weather/sidecar/fk-weather-sidecar.bin  $(BUILD)/fk-firmware
+	chmod 644 $(BUILD)/fk-firmware/*
+	chmod 755 $(BUILD)/fk-firmware/flash-*
+	cd $(BUILD) && zip -r fk-firmware.zip fk-firmware
 
 dependencies: libraries/done
 

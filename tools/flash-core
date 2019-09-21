@@ -1,0 +1,17 @@
+#!/bin/bash
+
+BOOTLOADER=fkbl.bin
+PROGRAM=fk-bundled-fkb.bin
+
+JLinkExe -if SWD -device ATSAMD51P20 -speed 4000 <<EOF
+exitonerror 1
+connect
+sleep 100
+r
+sleep 100
+loadfile $BOOTLOADER,0x0000
+sleep 100
+loadfile $PROGRAM,0x4000
+r
+q
+EOF
