@@ -27,7 +27,7 @@ public:
     ~HttpServer();
 
 public:
-    bool begin(NetworkRunningCallback *callback);
+    bool begin(uint32_t listening_to, NetworkRunningCallback *callback);
 
     void tick();
 

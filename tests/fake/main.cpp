@@ -106,7 +106,7 @@ static void server(Fake *fake) {
     HttpServer http_server{ &network, &fkc };
     NoopNetworkRunningCallback callback;
 
-    if (!http_server.begin(&callback)) {
+    if (!http_server.begin(fkc.network.uptime, &callback)) {
         return;
     }
 

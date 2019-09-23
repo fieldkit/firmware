@@ -41,8 +41,7 @@ void task_handler_network(void *params) {
     });
 
     SignalCheckCallback signal_check;
-
-    if (!http_server.begin(&signal_check)) {
+    if (!http_server.begin(fkc.network.uptime, &signal_check)) {
         if (signal_check.signaled()) {
             return;
         }
