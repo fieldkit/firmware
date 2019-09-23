@@ -1,5 +1,6 @@
 #include "menu_view.h"
 #include "simple_workers.h"
+#include "configure_module_worker.h"
 #include "factory_wipe.h"
 #include "hal/board.h"
 
@@ -56,6 +57,7 @@ MenuView::MenuView(Pool &pool, ViewController *views) {
         tools_factory_reset,
     });
 
+
     auto network_toggle = to_lambda_option(pool, "Toggle Wifi", [=]() {
         back->on_selected();
         views->show_home();
@@ -70,6 +72,42 @@ MenuView::MenuView(Pool &pool, ViewController *views) {
         network_toggle,
     });
 
+
+    auto modules_water = to_lambda_option(pool, "Water", [=]() {
+        back->on_selected();
+        views->show_home();
+        auto worker = create_pool_wrapper<ConfigureModuleWorker, DefaultWorkerPoolSize, PoolWorker<ConfigureModuleWorker>>(ConfigureModuleKind::Water);
+        if (!get_ipc()->launch_worker(worker)) {
+            delete worker;
+            return;
+        }
+    });
+    auto modules_weather = to_lambda_option(pool, "Weather", [=]() {
+        back->on_selected();
+        views->show_home();
+        auto worker = create_pool_wrapper<ConfigureModuleWorker, DefaultWorkerPoolSize, PoolWorker<ConfigureModuleWorker>>(ConfigureModuleKind::Weather);
+        if (!get_ipc()->launch_worker(worker)) {
+            delete worker;
+            return;
+        }
+    });
+    auto modules_ultrasonic = to_lambda_option(pool, "Ultrasonic", [=]() {
+        back->on_selected();
+        views->show_home();
+        auto worker = create_pool_wrapper<ConfigureModuleWorker, DefaultWorkerPoolSize, PoolWorker<ConfigureModuleWorker>>(ConfigureModuleKind::Ultrasonic);
+        if (!get_ipc()->launch_worker(worker)) {
+            delete worker;
+            return;
+        }
+    });
+    modules_menu_ = new_menu_screen<4>(pool, {
+        back,
+        modules_water,
+        modules_weather,
+        modules_ultrasonic,
+    });
+
+
     auto info_name = to_lambda_option(pool, "Name", [=]() {
         views->show_name();
         back->on_selected();
@@ -77,11 +115,17 @@ MenuView::MenuView(Pool &pool, ViewController *views) {
     auto info_memory = to_lambda_option(pool, "Memory", [=]() {
         back->on_selected();
     });
-    info_menu_ = new_menu_screen<3>(pool, {
+    auto info_modules = to_lambda_option(pool, "Modules", [=]() {
+        previous_menu_ = active_menu_;
+        active_menu_ = goto_menu(modules_menu_);
+    });
+    info_menu_ = new_menu_screen<4>(pool, {
         back,
         info_name,
         info_memory,
+        info_modules,
     });
+
 
     auto main_readings = to_lambda_option(pool, "Readings", [=]() {
         views->show_readings();

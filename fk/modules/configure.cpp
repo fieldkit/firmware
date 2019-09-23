@@ -41,6 +41,23 @@ bool ModuleConfigurer::water(uint8_t position) {
     return true;
 }
 
+bool ModuleConfigurer::ultrasonic(uint8_t position) {
+    ModuleHeader header = {
+        .manufacturer = FK_MODULES_MANUFACTURER,
+        .kind = FK_MODULES_KIND_ULTRASONIC,
+        .version = 0x01,
+        .id = { 0 },
+    };
+
+    if (!configure(position, header)) {
+        return false;
+    }
+
+    loginfo("[%d] configured ultrasonic", position);
+
+    return true;
+}
+
 bool ModuleConfigurer::configure(uint8_t position, ModuleHeader &header) {
     fk_uuid_generate(&header.id);
 

@@ -14,6 +14,7 @@ private:
     MenuScreen *network_menu_;
     MenuScreen *tools_menu_;
     MenuScreen *main_menu_;
+    MenuScreen *modules_menu_;
     uint32_t menu_time_{ 0 };
 
 public:
