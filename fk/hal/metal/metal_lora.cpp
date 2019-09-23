@@ -1,6 +1,7 @@
 #include "hal/metal/metal_lora.h"
 #include "hal/board.h"
 #include "hal/metal/sc16is740.h"
+#include "utilities.h"
 
 #include <Arduino.h>
 
@@ -11,7 +12,7 @@ FK_DECLARE_LOGGER("lora");
 Rn2903LoraNetwork::Rn2903LoraNetwork() {
 }
 
-bool Rn2903LoraNetwork::show_status() {
+bool Rn2903LoraNetwork::query_status() {
     const char *line = nullptr;
     if (!rn2903_.simple_query("sys get hweui", &line, 1000)) {
         return false;
@@ -25,6 +26,9 @@ bool Rn2903LoraNetwork::show_status() {
     if (!rn2903_.simple_query("mac get deveui", &line, 1000)) {
         return false;
     }
+
+    FK_ASSERT(hex_string_to_bytes(device_eui_, sizeof(device_eui_), line) == sizeof(device_eui_));
+
     if (!rn2903_.simple_query("mac get dr", &line, 1000)) {
         return false;
     }
@@ -83,7 +87,7 @@ bool Rn2903LoraNetwork::begin() {
         return false;
     }
 
-    if (!show_status()) {
+    if (!query_status()) {
         return false;
     }
 

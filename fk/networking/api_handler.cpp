@@ -97,11 +97,10 @@ static bool configure(Connection *connection, fk_app_HttpQuery *query, Pool &poo
         return connection->busy(OneSecondMs, "storage busy");
     }
 
-    // HACK HACK HACK
-    if (query->identity.name.arg != &pool) {
-        auto name = (char *)query->identity.name.arg;
+    GlobalStateManager gsm;
 
-        GlobalStateManager gsm;
+    auto name = pb_get_string_if_provided(query->identity.name.arg, pool);
+    if (name != nullptr) {
         gsm.apply([=](GlobalState *gs) {
             loginfo("rename: '%s'", name);
             strncpy(gs->general.name, name, sizeof(gs->general.name));
@@ -109,10 +108,25 @@ static bool configure(Connection *connection, fk_app_HttpQuery *query, Pool &poo
     }
 
     if (query->recording.modifying) {
-        GlobalStateManager gsm;
         gsm.apply([=](GlobalState *gs) {
             loginfo("recording: %d", query->recording.enabled);
             gs->general.recording = query->recording.enabled;
+        });
+    }
+
+    if (query->loraSettings.modifying) {
+        auto app_key = (pb_data_t *)query->loraSettings.appKey.arg;
+        auto app_eui = (pb_data_t *)query->loraSettings.appEui.arg;
+
+        loginfo("lora app key: %s (%zd)", pb_data_to_hex_string(app_key, pool), app_key->length);
+        loginfo("lora app eui: %s (%zd)", pb_data_to_hex_string(app_eui, pool), app_eui->length);
+
+        gsm.apply([=](GlobalState *gs) {
+            FK_ASSERT(app_key->length == LoraAppKeyLength);
+            FK_ASSERT(app_eui->length == LoraAppEuiLength);
+
+            memcpy(gs->lora.app_key, app_key->buffer, LoraAppKeyLength);
+            memcpy(gs->lora.app_eui, app_eui->buffer, LoraAppEuiLength);
         });
     }
 

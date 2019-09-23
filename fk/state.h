@@ -87,6 +87,13 @@ struct StorageState {
     StreamState meta;
 };
 
+struct LoraState {
+    bool configured;
+    uint8_t device_eui[LoraDeviceEuiLength];
+    uint8_t app_key[LoraAppKeyLength];
+    uint8_t app_eui[LoraAppEuiLength];
+};
+
 struct GlobalState {
 public:
     GeneralState general;
@@ -97,6 +104,7 @@ public:
     NetworkState network;
     ProgressState progress;
     StorageState storage;
+    LoraState lora;
     ModulesState *modules;
 
 public:

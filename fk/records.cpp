@@ -16,6 +16,13 @@ fk_data_DataRecord fk_data_record_decoding_new(Pool &pool) {
     record.identity.name.arg = (void *)&pool;
     record.readings.sensorGroups.funcs.decode = pb_decode_array;
     record.readings.sensorGroups.arg = (void *)&pool;
+    record.lora.appEui.funcs.decode = pb_decode_data;
+    record.lora.appEui.arg = (void *)&pool;
+    record.lora.appKey.funcs.decode = pb_decode_data;
+    record.lora.appKey.arg = (void *)&pool;
+    record.lora.deviceEui.funcs.decode = pb_decode_data;
+    record.lora.deviceEui.arg = (void *)&pool;
+
     return record;
 }
 
@@ -28,6 +35,10 @@ fk_data_DataRecord fk_data_record_encoding_new() {
     record.identity.name.funcs.encode = pb_encode_string;
     record.readings.sensorGroups.funcs.encode = pb_encode_array;
     record.modules.funcs.encode = pb_encode_array;
+    record.lora.appEui.funcs.encode = pb_encode_data;
+    record.lora.appKey.funcs.encode = pb_encode_data;
+    record.lora.deviceEui.funcs.encode = pb_encode_data;
+
     return record;
 }
 
@@ -43,6 +54,15 @@ fk_app_HttpQuery *fk_http_query_prepare_decoding(fk_app_HttpQuery *query, Pool *
 
     query->schedules.readings.cron.funcs.decode = pb_decode_data;
     query->schedules.readings.cron.arg = (void *)pool;
+
+    query->loraSettings.deviceEui.funcs.decode = pb_decode_data;
+    query->loraSettings.deviceEui.arg = (void *)pool;
+
+    query->loraSettings.appEui.funcs.decode = pb_decode_data;
+    query->loraSettings.appEui.arg = (void *)pool;
+
+    query->loraSettings.appKey.funcs.decode = pb_decode_data;
+    query->loraSettings.appKey.arg = (void *)pool;
 
     return query;
 }

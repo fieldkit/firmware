@@ -51,6 +51,21 @@ constexpr uint32_t FiveMinutesMs = 5 * 60 * 1000;
 constexpr uint32_t OneMegabyte = 1024 * 1024;
 
 /**
+ *
+ */
+constexpr size_t LoraAppEuiLength = 8;
+
+/**
+ *
+ */
+constexpr size_t LoraDeviceEuiLength = 8;
+
+/**
+ *
+ */
+constexpr size_t LoraAppKeyLength = 16;
+
+/**
  * Maximum length of a device's name.
  */
 constexpr size_t MaximumNameLength = 64;
@@ -288,6 +303,14 @@ typedef struct configuration_t {
     } debug_t;
 
     debug_t debug;
+
+    typedef struct lora_settings_t {
+        bool configured;
+        uint8_t app_key[LoraAppKeyLength];
+        uint8_t app_eui[LoraAppEuiLength];
+    } lora_settings_t;
+
+    lora_settings_t lora;
 } configuration_t;
 
 /**

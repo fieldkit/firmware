@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.h"
+#include "config.h"
 
 namespace fk {
 
@@ -13,9 +14,15 @@ public:
     virtual bool send_bytes(uint8_t const *data, size_t size) = 0;
     virtual bool join(const char *app_eui, const char *app_key, int32_t retries = 3, uint32_t retry_delay = 10000) = 0;
 
+public:
+    virtual uint8_t const *device_eui() const = 0;
+
 };
 
 class NoopLoraNetwork : public LoraNetwork {
+private:
+    uint8_t device_eui_[LoraDeviceEuiLength];
+
 public:
     bool begin() override {
         return false;
@@ -39,6 +46,10 @@ public:
 
     bool join(const char *app_eui, const char *app_key, int32_t retries, uint32_t retry_delay) override {
         return false;
+    }
+
+    uint8_t const *device_eui() const override {
+        return device_eui_;
     }
 
 };

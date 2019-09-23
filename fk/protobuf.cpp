@@ -173,4 +173,22 @@ size_t pb_varint_size(uint32_t value) {
     }
 }
 
+pb_data_t *pb_get_data_if_provided(void *arg, Pool &pool) {
+    if (arg == &pool) {
+        return nullptr;
+    }
+    return (pb_data_t *)arg;
+}
+
+const char *pb_get_string_if_provided(void *arg, Pool &pool) {
+    if (arg == &pool) {
+        return nullptr;
+    }
+    return (const char *)arg;
+}
+
+const char *pb_data_to_hex_string(pb_data_t const *data, Pool &pool) {
+    return bytes_to_hex_string_pool((uint8_t *)data->buffer, data->length, pool);
+}
+
 }

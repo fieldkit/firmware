@@ -1,7 +1,8 @@
 #include "lora_worker.h"
 
 #include "hal/metal/metal_lora.h"
-#include "config.h"
+#include "state_ref.h"
+#include "utilities.h"
 
 namespace fk {
 
@@ -15,12 +16,17 @@ void LoraWorker::run(Pool &pool) {
     auto lora = get_lora_network();
 
     if (!joined) {
+        auto gs = get_global_state_ro();
+        if (!gs.get()->lora.configured) {
+            return;
+        }
+
         if (!lora->begin()) {
             return;
         }
 
-        const char *app_eui = "0000000000000000";
-        const char *app_key = "39e98dbaa08feed53d5f68d43d0ef981";
+        auto app_key = bytes_to_hex_string_pool(gs.get()->lora.app_key, LoraAppKeyLength, pool);
+        auto app_eui = bytes_to_hex_string_pool(gs.get()->lora.app_eui, LoraAppEuiLength, pool);
 
         if (!lora->join(app_eui, app_key)) {
             return;

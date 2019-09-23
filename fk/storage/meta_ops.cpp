@@ -40,8 +40,29 @@ tl::expected<uint32_t, Error> MetaOps::write_state(GlobalState const *gs, Pool &
         record.condition.flags |= fk_data_ConditionFlags_CONDITION_FLAGS_RECORDING;
     }
 
-    auto meta = storage_.file(Storage::Meta);
+    if (gs->lora.configured) {
+        auto device_eui_data = pool.malloc_with<pb_data_t>({
+            .length = sizeof(gs->lora.device_eui),
+            .buffer = gs->lora.device_eui,
+        });
+        auto app_eui_data = pool.malloc_with<pb_data_t>({
+            .length = sizeof(gs->lora.app_eui),
+            .buffer = gs->lora.app_eui,
+        });
+        auto app_key_data = pool.malloc_with<pb_data_t>({
+            .length = sizeof(gs->lora.app_key),
+            .buffer = gs->lora.app_key,
+        });
 
+        record.lora.deviceEui.funcs.encode = pb_encode_data;
+        record.lora.deviceEui.arg = (void *)device_eui_data;
+        record.lora.appEui.funcs.encode = pb_encode_data;
+        record.lora.appEui.arg = (void *)app_eui_data;
+        record.lora.appKey.funcs.encode = pb_encode_data;
+        record.lora.appKey.arg = (void *)app_key_data;
+    }
+
+    auto meta = storage_.file(Storage::Meta);
     if (!meta.seek_end()) {
         FK_ASSERT(meta.create());
     }

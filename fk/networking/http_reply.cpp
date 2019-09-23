@@ -162,6 +162,27 @@ bool HttpReply::include_status() {
     reply_.streams.funcs.encode = pb_encode_array;
     reply_.streams.arg = (void *)streams_array;
 
+
+    auto device_eui_data = pool_->malloc_with<pb_data_t>({
+        .length = sizeof(gs_->lora.device_eui),
+        .buffer = gs_->lora.device_eui,
+    });
+    auto app_eui_data = pool_->malloc_with<pb_data_t>({
+        .length = sizeof(gs_->lora.app_eui),
+        .buffer = gs_->lora.app_eui,
+    });
+    auto app_key_data = pool_->malloc_with<pb_data_t>({
+        .length = sizeof(gs_->lora.app_key),
+        .buffer = gs_->lora.app_key,
+    });
+
+    reply_.loraSettings.deviceEui.funcs.encode = pb_encode_data;
+    reply_.loraSettings.deviceEui.arg = (void *)device_eui_data;
+    reply_.loraSettings.appEui.funcs.encode = pb_encode_data;
+    reply_.loraSettings.appEui.arg = (void *)app_eui_data;
+    reply_.loraSettings.appKey.funcs.encode = pb_encode_data;
+    reply_.loraSettings.appKey.arg = (void *)app_key_data;
+
     if (fkb_header.firmware.hash_size > 0) {
         auto firmware_hash_string = bytes_to_hex_string_pool(fkb_header.firmware.hash, fkb_header.firmware.hash_size, *pool_);
         reply_.status.identity.firmware.arg = (void *)firmware_hash_string;

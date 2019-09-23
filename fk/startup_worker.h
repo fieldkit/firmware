@@ -22,6 +22,7 @@ private:
     bool load_or_create_state(Storage &storage, Pool &pool);
     bool load_state(Storage &storage, Pool &pool);
     bool create_new_state(Storage &storage, Pool &pool);
+    bool check_for_lora(Pool &pool);
 
 };
 

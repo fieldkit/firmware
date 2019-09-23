@@ -4,6 +4,7 @@
 #include <pb_encode.h>
 
 #include "pool.h"
+#include "utilities.h"
 
 namespace fk {
 
@@ -42,5 +43,11 @@ bool pb_encode_data(pb_ostream_t *stream, const pb_field_t *field, void * const 
 bool pb_decode_data(pb_istream_t *stream, const pb_field_t *field, void **arg);
 
 size_t pb_varint_size(uint32_t value);
+
+const char *pb_get_string_if_provided(void *arg, Pool &pool);
+
+pb_data_t *pb_get_data_if_provided(void *arg, Pool &pool);
+
+const char *pb_data_to_hex_string(pb_data_t const *data, Pool &pool);
 
 }

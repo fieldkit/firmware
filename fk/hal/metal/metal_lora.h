@@ -2,6 +2,7 @@
 
 #include "hal/lora.h"
 #include "hal/metal/rn2903.h"
+#include "config.h"
 
 #if defined(ARDUINO)
 
@@ -9,6 +10,7 @@ namespace fk {
 
 class Rn2903LoraNetwork : public LoraNetwork {
 private:
+    uint8_t device_eui_[LoraDeviceEuiLength];
     Rn2903 rn2903_;
 
 public:
@@ -23,7 +25,12 @@ public:
     bool join(const char *app_eui, const char *app_key, int32_t retries = 3, uint32_t retry_delay = 10000);
 
 public:
-    bool show_status();
+    uint8_t const *device_eui() const override {
+        return device_eui_;
+    }
+
+public:
+    bool query_status();
 
 };
 

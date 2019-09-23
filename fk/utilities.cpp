@@ -32,6 +32,27 @@ const char *bytes_to_hex_string_pool(const uint8_t *data, size_t data_size, Pool
     return str;
 }
 
+size_t hex_string_to_bytes(uint8_t *data, size_t data_size, const char *buffer) {
+    auto length = strlen(buffer);
+    auto p = buffer;
+
+    FK_ASSERT((length % 2) == 0);
+    FK_ASSERT(length / 2 <= data_size);
+
+    for (size_t i = 0; i < length / 2; i++) {
+        char *end_ptr;
+        char buf[5] = { '0', 'x', p[0], p[1], 0 };
+        data[i] = strtol(buf, &end_ptr, 0);
+        p += 2;
+
+        if (end_ptr[0] != '\0') {
+            return 0;
+        }
+    }
+
+    return length / 2;
+}
+
 void fk_dump_memory(const char *prefix, const uint8_t *p, size_t size) {
     #if defined(__SAMD51__)
     SEGGER_RTT_LOCK();

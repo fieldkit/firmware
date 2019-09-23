@@ -15,25 +15,11 @@
 #include "modules/scanning.h"
 #include "modules/configure.h"
 
+#include "hal/metal/metal_lora.h"
+
 namespace fk {
 
 FK_DECLARE_LOGGER("startup");
-
-static void developer_configuration() {
-    auto module_bus = get_board()->i2c_module();
-    auto gs = get_global_state_ro();
-
-    ScanningContext ctx{ get_modmux(), gs.get(), module_bus };
-    Storage storage{ nullptr }; // NOTE: Not opened!
-    ModuleScanning scanning{ get_modmux() };
-    ModuleConfigurer configurer{ scanning };
-
-    // FK_ASSERT(configurer.weather(4));
-    // FK_ASSERT(configurer.water(0));
-    // FK_ASSERT(configurer.water(2));
-    // FK_ASSERT(configurer.water(4));
-    // FK_ASSERT(configurer.water(6));
-}
 
 void StartupWorker::run(Pool &pool) {
     auto display = get_display();
@@ -59,8 +45,6 @@ void StartupWorker::run(Pool &pool) {
     SelfCheck self_check(display, get_network(), mm);
     self_check.check(SelfCheckSettings{ }, noop_callbacks);
 
-    developer_configuration();
-
     Storage storage{ MemoryFactory::get_data_memory(), false };
     FactoryWipe fw{ display, get_buttons(), &storage };
     FK_ASSERT(fw.wipe_if_necessary());
@@ -71,6 +55,8 @@ void StartupWorker::run(Pool &pool) {
 
     ReadingsWorker readings_worker{ true };
     readings_worker.run(pool);
+
+    FK_ASSERT(check_for_lora(pool));
 
     FK_ASSERT(os_task_start(&scheduler_task) == OSS_SUCCESS);
 }
@@ -101,14 +87,30 @@ bool StartupWorker::load_state(Storage &storage, Pool &pool) {
                 strncpy(gs.get()->general.name, name, sizeof(gs.get()->general.name));
                 memcpy(gs.get()->general.generation, generation, GenerationLength);
 
-                gs.get()->general.recording = (record.condition.flags & fk_data_ConditionFlags_CONDITION_FLAGS_RECORDING) > 0;
-
                 char gen_string[GenerationLength * 2 + 1];
                 bytes_to_hex_string(gen_string, sizeof(gen_string), gs.get()->general.generation, GenerationLength);
 
-                loginfo("loaded state");
-                loginfo("name: '%s'", gs.get()->general.name);
-                loginfo("generation: %s", gen_string);
+                loginfo("(loaded) name: '%s'", gs.get()->general.name);
+                loginfo("(loaded) generation: %s", gen_string);
+
+                auto app_key = pb_get_data_if_provided(record.lora.appKey.arg, pool);
+                if (app_key != nullptr) {
+                    FK_ASSERT(app_key->length == LoraAppKeyLength);
+                    FK_ASSERT(app_key->length == sizeof(gs.get()->lora.app_key));
+                    memcpy(gs.get()->lora.app_key, app_key->buffer, app_key->length);
+                    loginfo("(loaded) lora app key: %s", pb_data_to_hex_string(app_key, pool));
+                }
+
+                auto app_eui = pb_get_data_if_provided(record.lora.appEui.arg, pool);
+                if (app_eui != nullptr) {
+                    FK_ASSERT(app_eui->length == LoraAppEuiLength);
+                    FK_ASSERT(app_eui->length == sizeof(gs.get()->lora.app_eui));
+                    memcpy(gs.get()->lora.app_eui, app_eui->buffer, app_eui->length);
+                    loginfo("(loaded) lora app eui: %s", pb_data_to_hex_string(app_eui, pool));
+                }
+
+                gs.get()->lora.configured = app_eui != nullptr && app_key != nullptr;
+                gs.get()->general.recording = (record.condition.flags & fk_data_ConditionFlags_CONDITION_FLAGS_RECORDING) > 0;
 
                 return true;
             }
@@ -126,6 +128,23 @@ bool StartupWorker::create_new_state(Storage &storage, Pool &pool) {
     MetaOps ops{ storage };
 
     FK_ASSERT(ops.write_state(gs.get(), pool));
+
+    return true;
+}
+
+bool StartupWorker::check_for_lora(Pool &pool) {
+    auto gs = get_global_state_rw();
+    auto lora = get_lora_network();
+
+    if (!lora->begin()) {
+        return true;
+    }
+
+    auto device_eui = lora->device_eui();
+
+    memcpy(gs.get()->lora.device_eui, device_eui, LoraDeviceEuiLength);
+
+    loginfo("(loaded) lora device eui: %s", bytes_to_hex_string_pool(device_eui, LoraDeviceEuiLength, pool));
 
     return true;
 }
