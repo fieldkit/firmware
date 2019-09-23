@@ -11,7 +11,7 @@ SECTIONS
 {
   .data.fkb.header : {
     KEEP(*(.fkb.header))
-    . = ALIGN(0x1000);
+    . = ALIGN(0x4000);
   } > FLASH
 
   .text :
@@ -25,7 +25,6 @@ SECTIONS
      * 49-112   128-word
      * 113-240	256-word
      */
-    . = ALIGN(0x1000);
     _sfixed = .;
     KEEP(*(.isr_vector))
     KEEP(*(.vectors))
