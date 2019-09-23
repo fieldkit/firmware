@@ -29,7 +29,7 @@ HttpServer::~HttpServer() {
     stop();
 }
 
-bool HttpServer::begin() {
+bool HttpServer::begin(NetworkRunningCallback *callback) {
     StaticPool<128> pool{ "http:begin "};
 
     loginfo("checking network...");
@@ -40,6 +40,10 @@ bool HttpServer::begin() {
     }
 
     while (!network_ready_to_serve(network_->status())) {
+        if (!callback->running()) {
+            return false;
+        }
+
         fk_delay(10);
     }
 

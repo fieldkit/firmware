@@ -44,6 +44,17 @@ public:
 
 };
 
+class NoopNetworkRunningCallback : public NetworkRunningCallback  {
+public:
+    bool signaled() {
+        return false;
+    }
+
+    bool running() override {
+        return true;
+    }
+};
+
 Fake fake;
 
 static void signal_handler(int32_t s){
@@ -93,8 +104,9 @@ static void server(Fake *fake) {
     configuration_t fkc;
     LinuxNetwork network;
     HttpServer http_server{ &network, &fkc };
+    NoopNetworkRunningCallback callback;
 
-    if (!http_server.begin()) {
+    if (!http_server.begin(&callback)) {
         return;
     }
 

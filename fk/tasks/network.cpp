@@ -9,6 +9,26 @@ namespace fk {
 
 FK_DECLARE_LOGGER("network");
 
+class SignalCheckCallback : public NetworkRunningCallback  {
+private:
+    bool signaled_{ false };
+
+public:
+    bool signaled() {
+        return signaled_;
+    }
+
+    bool running() override {
+        uint32_t signal = 0;
+        if (os_signal_check(&signal) == OSS_SUCCESS) {
+            if (signal > 0) {
+                signaled_ = true;
+            }
+        }
+        return !signaled_;
+    }
+};
+
 void task_handler_network(void *params) {
     auto &fkc = fk_config();
     auto network = get_network();
@@ -20,7 +40,12 @@ void task_handler_network(void *params) {
         gs->network.ip = get_network()->ip_address();
     });
 
-    if (!http_server.begin()) {
+    SignalCheckCallback signal_check;
+
+    if (!http_server.begin(&signal_check)) {
+        if (signal_check.signaled()) {
+            return;
+        }
         logerror("error starting server");
         return;
     }

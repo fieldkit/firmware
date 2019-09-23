@@ -9,6 +9,12 @@
 
 namespace fk {
 
+class NetworkRunningCallback {
+public:
+    virtual bool running() = 0;
+
+};
+
 class HttpServer {
 private:
     ConnectionPool pool_;
@@ -21,7 +27,7 @@ public:
     ~HttpServer();
 
 public:
-    bool begin();
+    bool begin(NetworkRunningCallback *callback);
 
     void tick();
 
