@@ -234,11 +234,12 @@ NetworkConnection *MetalNetwork::accept() {
 bool MetalNetwork::stop() {
     if (enabled_) {
         mdns_.removeServiceRecord(80, MDNSServiceTCP);
-        // Ensure the previous removal gets loose.
-        fk_delay(100);
-        udp_.stop();
         ntp_.stop();
+        // Ensure the previous removal gets loose?
+        fk_delay(500);
+        udp_.stop();
         WiFi.end();
+        fk_delay(500);
         enabled_ = false;
         get_board()->disable_wifi();
     }

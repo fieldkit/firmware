@@ -112,6 +112,10 @@ bool StartupWorker::load_state(Storage &storage, Pool &pool) {
                 gs.get()->lora.configured = app_eui != nullptr && app_key != nullptr;
                 gs.get()->general.recording = (record.condition.flags & fk_data_ConditionFlags_CONDITION_FLAGS_RECORDING) > 0;
 
+                if (gs.get()->general.recording) {
+                    loginfo("(loaded) recording");
+                }
+
                 return true;
             }
         }

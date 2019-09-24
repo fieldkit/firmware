@@ -78,6 +78,10 @@ tl::expected<uint32_t, Error> MetaOps::write_state(GlobalState const *gs, Pool &
     loginfo("(saved) name: '%s'", gs->general.name);
     loginfo("(saved) gen: %s", gen_string);
 
+    if (gs->general.recording) {
+        loginfo("(saved) recording");
+    }
+
     return meta_record;
 }
 
