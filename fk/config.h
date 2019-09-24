@@ -304,7 +304,7 @@ typedef struct configuration_t {
         /**
          * Number of ms to try for a fix.
          */
-        uint32_t fix_waiting{ ThirtyMinutesMs };
+        uint32_t fix_waiting{ FiveMinutesMs };
 
         /**
          * Number of ms to wait with the fix.
