@@ -14,58 +14,53 @@ FK_DECLARE_LOGGER("httpd");
 
 static DefaultRoutes default_routes;
 
-static bool network_ready(NetworkStatus status) {
+static bool network_began(NetworkStatus status) {
     return status == NetworkStatus::Connected || status == NetworkStatus::Listening;
-}
-
-static bool network_ready_to_serve(NetworkStatus status) {
-    return status == NetworkStatus::Connected;
 }
 
 HttpServer::HttpServer(Network *network, configuration_t const *fkc) : network_(network), fkc_(fkc) {
 }
 
 HttpServer::~HttpServer() {
+    loginfo("stopping");
     stop();
 }
 
-bool HttpServer::begin(uint32_t listening_to, NetworkRunningCallback *callback) {
-    StaticPool<128> pool{ "http:begin "};
+bool HttpServer::enabled() const {
+    return network_->enabled();
+}
 
-    loginfo("checking network...");
+uint32_t HttpServer::activity() const {
+    return pool_.activity();
+}
+
+bool HttpServer::active_connections() const {
+    return pool_.active_connections();
+}
+
+bool HttpServer::ready_to_serve() const {
+    return network_->status() == NetworkStatus::Connected;
+}
+
+bool HttpServer::begin(uint32_t to, Pool &pool) {
+    loginfo("starting network...");
 
     auto name = fk_device_name_generate(pool);
-    if (!try_configurations(name)) {
+    if (!try_configurations(name, to)) {
         return false;
     }
 
-    auto started = fk_uptime();
-    while (!network_ready_to_serve(network_->status())) {
-        if (!callback->running()) {
-            network_->stop();
-            return false;
-        }
-
-        if (fk_uptime() - started > listening_to) {
-            network_->stop();
-            return false;
-        }
-
-        fk_delay(10);
-    }
-
-    fk_delay(1000);
-
-    loginfo("ready to serve...");
-
     default_routes.add_routes(router_);
 
+    return true;
+}
+
+bool HttpServer::serve() {
     if (!network_->serve()) {
         return false;
     }
 
     loginfo("serving");
-
     return true;
 }
 
@@ -84,7 +79,7 @@ void HttpServer::stop() {
     network_->stop();
 }
 
-bool HttpServer::try_configurations(const char *name) {
+bool HttpServer::try_configurations(const char *name, uint32_t to) {
     for (auto &config : fkc_->network.networks) {
         auto settings = get_settings(config, name);
 
@@ -98,14 +93,14 @@ bool HttpServer::try_configurations(const char *name) {
         auto started = fk_uptime();
         auto ready = false;
         while (!ready) {
-            if (network_ready(network_->status())) {
+            if (network_began(network_->status())) {
                 ready = true;
                 break;
             }
 
             fk_delay(100);
 
-            if (fk_uptime() - started > WifiConnectionTimeoutMs) {
+            if (fk_uptime() - started > to) {
                 logerror("networking took too long");
                 break;
             }

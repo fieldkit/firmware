@@ -9,12 +9,6 @@
 
 namespace fk {
 
-class NetworkRunningCallback {
-public:
-    virtual bool running() = 0;
-
-};
-
 class HttpServer {
 private:
     ConnectionPool pool_;
@@ -27,27 +21,25 @@ public:
     ~HttpServer();
 
 public:
-    bool begin(uint32_t listening_to, NetworkRunningCallback *callback);
+    bool begin(uint32_t to, Pool &pool);
+
+    bool serve();
 
     void tick();
 
     void stop();
 
 public:
-    bool enabled() const {
-        return network_->enabled();
-    }
+    bool enabled() const;
 
-    uint32_t activity() const {
-        return pool_.activity();
-    }
+    uint32_t activity() const;
 
-    bool active_connections() const {
-        return pool_.active_connections();
-    }
+    bool active_connections() const;
+
+    bool ready_to_serve() const;
 
 private:
-    bool try_configurations(const char *name);
+    bool try_configurations(const char *name, uint32_t to);
 
     NetworkSettings get_settings(configuration_t::wifi_network_t const &network, const char *name);
 

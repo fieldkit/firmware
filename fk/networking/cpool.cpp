@@ -142,7 +142,7 @@ bool Connection::service(HttpRouter &router) {
         if (!routed_) {
             auto path = req_.url_parser().path();
 
-            loginfo("[%" PRIu32 "] routing '%s' (%" PRIu32 " bytes)", number_, path, req_.length());
+            loginfo("[%" PRIu32 "] routing '%s' path = '%s' (%" PRIu32 " bytes)", number_, req_.url(), path, req_.length());
 
             auto handler = router.route(path);
             if (handler == nullptr) {

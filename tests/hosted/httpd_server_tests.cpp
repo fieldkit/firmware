@@ -9,31 +9,21 @@ using testing::InvokeWithoutArgs;
 using testing::_;
 using namespace fk;
 
-class NoopNetworkRunningCallback : public NetworkRunningCallback  {
-public:
-    bool signaled() {
-        return false;
-    }
-
-    bool running() override {
-        return true;
-    }
-};
-
 class HttpServerSuite : public ::testing::Test {
 };
 
 TEST_F(HttpServerSuite, WhenThingsAllWork) {
     configuration_t fkc;
     MockNetwork network;
+    MallocPool pool{ "pool", 256 };
     HttpServer server{ &network, &fkc };
-    NoopNetworkRunningCallback callback;
 
     EXPECT_CALL(network, begin(_)).WillOnce(Return(true));
     EXPECT_CALL(network, status()).WillRepeatedly(Return(NetworkStatus::Connected));
     EXPECT_CALL(network, serve()).WillOnce(Return(true));
 
-    ASSERT_TRUE(server.begin(0, &callback));
+    ASSERT_TRUE(server.begin(0, pool));
+    ASSERT_TRUE(server.serve());
 
     // Called in the dtor.
     EXPECT_CALL(network, stop()).WillOnce(Return(true));
@@ -42,8 +32,8 @@ TEST_F(HttpServerSuite, WhenThingsAllWork) {
 TEST_F(HttpServerSuite, WhenBeginTakesTooLong) {
     configuration_t fkc;
     MockNetwork network;
+    MallocPool pool{ "pool", 256 };
     HttpServer server{ &network, &fkc };
-    NoopNetworkRunningCallback callback;
 
     fk_fake_uptime({ 0, 1000, 5000, 31000, 36000, 61000 });
 
@@ -52,7 +42,7 @@ TEST_F(HttpServerSuite, WhenBeginTakesTooLong) {
         .WillOnce(Return(true));
     EXPECT_CALL(network, status()).WillRepeatedly(Return(NetworkStatus::Ready));
 
-    ASSERT_FALSE(server.begin(0, &callback));
+    ASSERT_FALSE(server.begin(0, pool));
 
     // Called in the dtor.
     EXPECT_CALL(network, stop()).WillOnce(Return(true));
@@ -61,14 +51,15 @@ TEST_F(HttpServerSuite, WhenBeginTakesTooLong) {
 TEST_F(HttpServerSuite, WhenServeFails) {
     configuration_t fkc;
     MockNetwork network;
+    MallocPool pool{ "pool", 256 };
     HttpServer server{ &network, &fkc };
-    NoopNetworkRunningCallback callback;
 
     EXPECT_CALL(network, begin(_)).WillOnce(Return(true));
     EXPECT_CALL(network, status()).WillRepeatedly(Return(NetworkStatus::Connected));
     EXPECT_CALL(network, serve()).WillOnce(Return(false));
 
-    ASSERT_FALSE(server.begin(0, &callback));
+    ASSERT_TRUE(server.begin(0, pool));
+    ASSERT_FALSE(server.serve());
 
     // Called in the dtor.
     EXPECT_CALL(network, stop()).WillOnce(Return(true));

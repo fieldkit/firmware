@@ -44,17 +44,6 @@ public:
 
 };
 
-class NoopNetworkRunningCallback : public NetworkRunningCallback  {
-public:
-    bool signaled() {
-        return false;
-    }
-
-    bool running() override {
-        return true;
-    }
-};
-
 Fake fake;
 
 static void signal_handler(int32_t s){
@@ -101,16 +90,20 @@ static void setup_fake_data() {
 }
 
 static void server(Fake *fake) {
+    MallocPool pool{ "pool", 1024 };
     configuration_t fkc;
     LinuxNetwork network;
     HttpServer http_server{ &network, &fkc };
-    NoopNetworkRunningCallback callback;
 
-    if (!http_server.begin(fkc.network.uptime, &callback)) {
+    if (!http_server.begin(fkc.network.uptime, pool)) {
         return;
     }
 
     loginfo("serving...");
+
+    if (!http_server.serve()) {
+        return;
+    }
 
     while (fake->running()) {
         http_server.tick();

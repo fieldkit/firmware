@@ -9,72 +9,112 @@ namespace fk {
 
 FK_DECLARE_LOGGER("network");
 
-class SignalCheckCallback : public NetworkRunningCallback  {
+class NetworkTask {
 private:
-    bool signaled_{ false };
+    Network *network_;
+    HttpServer *http_server_;
 
 public:
-    bool signaled() {
-        return signaled_;
-    }
+    NetworkTask(Network *network, HttpServer &http_server);
+    virtual ~NetworkTask();
 
-    bool running() override {
-        uint32_t signal = 0;
-        if (os_signal_check(&signal) == OSS_SUCCESS) {
-            if (signal > 0) {
-                signaled_ = true;
-            }
-        }
-        return !signaled_;
-    }
 };
 
-void task_handler_network(void *params) {
-    auto &fkc = fk_config();
-    auto network = get_network();
-    auto http_server = HttpServer{ network, &fkc };
+NetworkTask::NetworkTask(Network *network, HttpServer &http_server) : network_(network), http_server_(&http_server) {
+}
+
+NetworkTask::~NetworkTask() {
+    loginfo("network stopping...");
+
+    network_->stop();
 
     GlobalStateManager gsm;
-    gsm.apply([=](GlobalState *gs) {
-        gs->network.enabled = fk_uptime();
-        gs->network.connected = 0;
-        gs->network.ip = get_network()->ip_address();
-    });
-
-    SignalCheckCallback signal_check;
-    if (!http_server.begin(fkc.network.uptime, &signal_check)) {
-        if (signal_check.signaled()) {
-            return;
-        }
-        logerror("error starting server");
-        return;
-    }
-
-    gsm.apply([=](GlobalState *gs) {
-        gs->network.enabled = fk_uptime();
-        gs->network.connected = fk_uptime();
-        gs->network.ip = get_network()->ip_address();
-    });
-
-    while (http_server.active_connections() || fk_uptime() - http_server.activity() < fkc.network.uptime) {
-        http_server.tick();
-        fk_delay(10);
-
-        uint32_t signal = 0;
-        if (os_signal_check(&signal) == OSS_SUCCESS) {
-            if (signal > 0) {
-                break;
-            }
-        }
-    }
-
-    http_server.stop();
-
     gsm.apply([=](GlobalState *gs) {
         gs->network = { };
     });
 
     loginfo("network stopped");
+}
+
+void task_handler_network(void *params) {
+    while (true) {
+        auto &fkc = fk_config();
+        auto network = get_network();
+
+        GlobalStateManager gsm;
+        MallocPool pool{ "task:network", 256 };
+        HttpServer http_server{ network, &fkc };
+        NetworkTask task{ network, http_server };
+
+        gsm.apply([=](GlobalState *gs) {
+            gs->network = { };
+        });
+
+        // Either create a new AP or try and join an existing one.
+        if (!http_server.begin(WifiConnectionTimeoutMs, pool)) {
+            logerror("error starting server");
+            return;
+        }
+
+        gsm.apply([=](GlobalState *gs) {
+            gs->network.ip = get_network()->ip_address();
+            gs->network.enabled = fk_uptime();
+            gs->network.connected = 0;
+        });
+
+        // In self AP mode we're waiting for connections now, and hold off doing
+        // anything useful until something joins.
+        auto started = fk_uptime();
+        while (!http_server.ready_to_serve()) {
+            if (fk_uptime() - started > fkc.network.uptime) {
+                return;
+            }
+            fk_delay(10);
+        }
+
+        fk_delay(500);
+
+        // Start the network services now that we've got things to talk to.
+        if (!http_server.serve()) {
+            logerror("error serving");
+            continue;
+        }
+
+        gsm.apply([=](GlobalState *gs) {
+            gs->network.enabled = fk_uptime();
+            gs->network.connected = fk_uptime();
+            gs->network.ip = get_network()->ip_address();
+        });
+
+        loginfo("awaiting connections...");
+
+        while (true) {
+            http_server.tick();
+
+            // Some other task has requested that we stop serving. Menu option
+            // or a self check for example.
+            uint32_t signal = 0;
+            if (os_signal_check(&signal) == OSS_SUCCESS) {
+                if (signal > 0) {
+                    return;
+                }
+            }
+
+            // Check to see if we've been inactive for too long.
+            if (fk_uptime() - http_server.activity() > fkc.network.uptime) {
+                return;
+            }
+
+            // This will happen when a foreign device disconnects from our WiFi AP.
+            if (!http_server.ready_to_serve()) {
+                break;
+            }
+
+            fk_delay(10);
+        }
+
+        // NetworkTask dtor will fixup our state.
+    }
 }
 
 }
