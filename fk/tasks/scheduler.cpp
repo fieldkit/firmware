@@ -47,6 +47,7 @@ LambdaSchedulerTask<T> to_lambda_task(lwcron::CronSpec spec, const char *label, 
 void task_handler_scheduler(void *params) {
     lwcron::CronSpec readings_cron_spec{ lwcron::CronSpec::interval(fk_config().scheduler.readings_interval) };
     lwcron::CronSpec lora_cron_spec{ lwcron::CronSpec::interval(fk_config().scheduler.lora_interval) };
+    lwcron::CronSpec gps_cron_spec{ lwcron::CronSpec::interval(fk_config().scheduler.gps_interval) };
 
     auto readings_job = to_lambda_task(readings_cron_spec, "readings", []() {
         auto worker = create_pool_wrapper<ReadingsWorker, DefaultWorkerPoolSize, PoolWorker<ReadingsWorker>>(false);
@@ -62,15 +63,18 @@ void task_handler_scheduler(void *params) {
             return;
         }
     });
+    auto gps_job = to_lambda_task(lora_cron_spec, "gps", []() {
+        start_task_if_necessary(&gps_task);
+    });
 
-    lwcron::Task *tasks[2] { &readings_job, &lora_job };
+    lwcron::Task *tasks[3] { &readings_job, &lora_job, &gps_job };
     lwcron::Scheduler scheduler{ tasks };
 
     scheduler.begin( get_clock_now() );
 
-    FK_ASSERT(os_task_start(&network_task) == OSS_SUCCESS);
-    FK_ASSERT(os_task_start(&gps_task) == OSS_SUCCESS);
-    FK_ASSERT(os_task_start(&display_task) == OSS_SUCCESS);
+    FK_ASSERT(start_task_if_necessary(&display_task));
+    FK_ASSERT(start_task_if_necessary(&network_task));
+    FK_ASSERT(start_task_if_necessary(&gps_task));
 
     auto check_time = fk_uptime() + OneSecondMs;
 

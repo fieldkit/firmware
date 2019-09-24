@@ -22,6 +22,7 @@ public:
     virtual bool begin() = 0;
     virtual bool check() = 0;
     virtual bool service(GpsFix &fix) = 0;
+    virtual bool stop() = 0;
 
 };
 

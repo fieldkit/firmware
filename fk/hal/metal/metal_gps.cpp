@@ -95,6 +95,14 @@ bool MetalGps::service(GpsFix &fix) {
     return true;
 }
 
+bool MetalGps::stop() {
+    Serial1.end();
+
+    get_board()->disable_gps();
+
+    return true;
+}
+
 }
 
 #endif

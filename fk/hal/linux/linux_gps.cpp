@@ -14,4 +14,8 @@ bool LinuxGps::service(GpsFix &fix) {
     return true;
 }
 
+bool LinuxGps::stop() {
+    return true;
+}
+
 }

@@ -36,14 +36,34 @@ constexpr uint32_t ThirtySecondsMs = 30 * 1000;
 constexpr uint32_t OneMinuteMs = 60 * 1000;
 
 /**
+ * Five minutes in milliseconds.
+ */
+constexpr uint32_t FiveMinutesMs = 5 * 60 * 1000;
+
+/**
+ *
+ */
+constexpr uint32_t FiveMinutesSeconds = 5 * 60;
+
+/**
+ * Thirty minutes in milliseconds.
+ */
+constexpr uint32_t ThirtyMinutesMs  = OneMinuteMs * 30;
+
+/**
  * One hour in milliseconds.
  */
 constexpr uint32_t OneHourMs = OneMinuteMs * 60;
 
 /**
- * Five minutes in milliseconds.
+ * One day in milliseconds.
  */
-constexpr uint32_t FiveMinutesMs = 5 * 60 * 1000;
+constexpr uint32_t OneDayMs = OneHourMs * 24;
+
+/**
+ * One day in seconds.
+ */
+constexpr uint32_t OneDaySeconds  = 86400;
 
 /**
  * Precisely 1024 * 1024.
@@ -279,6 +299,17 @@ typedef struct configuration_t {
     typedef struct scheduler_t {
         uint32_t readings_interval{ 30 };
         uint32_t lora_interval{ 300 * 4 };
+        uint32_t gps_interval{ OneDaySeconds };
+
+        /**
+         * Number of ms to try for a fix.
+         */
+        uint32_t fix_waiting{ ThirtyMinutesMs };
+
+        /**
+         * Number of ms to wait with the fix.
+         */
+        uint32_t fix_hold{ OneMinuteMs };
     } scheduler_t;
 
     scheduler_t scheduler;

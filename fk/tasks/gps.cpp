@@ -7,13 +7,15 @@ namespace fk {
 FK_DECLARE_LOGGER("gps");
 
 void task_handler_gps(void *params) {
-    auto gps_serial = get_board()->gps_serial();
     auto gps = get_gps();
 
     FK_ASSERT(gps->begin());
 
+    auto &fkc = fk_config();
+    auto started_at = fk_uptime();
     auto status = fk_uptime() + OneMinuteMs;
     auto update_gs = fk_uptime() + FiveSecondsMs;
+    auto fixed_at = 0;
 
     GlobalStateManager gsm;
     gsm.apply([=](GlobalState *gs) {
@@ -26,6 +28,7 @@ void task_handler_gps(void *params) {
     while (true) {
         GpsFix fix;
         FK_ASSERT(gps->service(fix));
+
         fk_delay(10);
 
         if (fk_uptime() > status) {
@@ -43,14 +46,39 @@ void task_handler_gps(void *params) {
                 gs->gps.latitude = fix.latitude;
                 gs->gps.altitude = fix.altitude;
             });
+
             update_gs = fk_uptime() + FiveSecondsMs;
+
+            if (fix.good) {
+                if (fixed_at == 0) {
+                    fixed_at = fk_uptime();
+                }
+                else if (fk_uptime() - fixed_at > fkc.scheduler.fix_hold) {
+                    loginfo("gps fix hold reached: %" PRIu32, fkc.scheduler.fix_hold);
+                    break;
+                }
+            }
+            else {
+                if (fixed_at > 0) {
+                    fixed_at = 0;
+                }
+            }
+        }
+
+        if (fk_uptime() - started_at > fkc.scheduler.fix_waiting) {
+            loginfo("gps fix waiting reached: %" PRIu32, fkc.scheduler.fix_waiting);
+            break;
         }
     }
+
+    FK_ASSERT(gps->stop());
 
     gsm.apply([=](GlobalState *gs) {
         gs->gps.enabled = false;
         gs->gps.fix = false;
     });
+
+    loginfo("gps stopped");
 }
 
 }
