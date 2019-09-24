@@ -63,7 +63,7 @@ void task_handler_scheduler(void *params) {
             return;
         }
     });
-    auto gps_job = to_lambda_task(lora_cron_spec, "gps", []() {
+    auto gps_job = to_lambda_task(gps_cron_spec, "gps", []() {
         start_task_if_necessary(&gps_task);
     });
 
