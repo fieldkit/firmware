@@ -37,6 +37,7 @@ void task_handler_network(void *params) {
     GlobalStateManager gsm;
     gsm.apply([=](GlobalState *gs) {
         gs->network.enabled = fk_uptime();
+        gs->network.connected = 0;
         gs->network.ip = get_network()->ip_address();
     });
 
@@ -51,6 +52,7 @@ void task_handler_network(void *params) {
 
     gsm.apply([=](GlobalState *gs) {
         gs->network.enabled = fk_uptime();
+        gs->network.connected = fk_uptime();
         gs->network.ip = get_network()->ip_address();
     });
 

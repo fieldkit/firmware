@@ -49,6 +49,7 @@ struct PowerState {
 
 struct NetworkState {
     uint32_t enabled{ 0 };
+    uint32_t connected{ 0 };
     uint32_t ip{ 0 };
 };
 

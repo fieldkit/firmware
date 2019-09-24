@@ -20,9 +20,19 @@ struct TaskProgress {
 };
 
 struct HomeScreen : public DisplayScreen {
+    struct Gps {
+        bool enabled;
+        bool fix;
+    };
+
+    struct Network {
+        bool enabled;
+        bool connected;
+    };
+
     uint32_t time;
-    bool network;
-    bool gps;
+    Network network;
+    Gps gps;
     bool recording;
     bool logo;
     float battery;

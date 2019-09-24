@@ -41,7 +41,7 @@ constexpr uint32_t OneMinuteMs = 60 * 1000;
 constexpr uint32_t FiveMinutesMs = 5 * 60 * 1000;
 
 /**
- *
+ * Five minutes in seconds.
  */
 constexpr uint32_t FiveMinutesSeconds = 5 * 60;
 
@@ -71,17 +71,17 @@ constexpr uint32_t OneDaySeconds  = 86400;
 constexpr uint32_t OneMegabyte = 1024 * 1024;
 
 /**
- *
+ * Length of a LoRa App EUI.
  */
 constexpr size_t LoraAppEuiLength = 8;
 
 /**
- *
+ * Length of a LoRa Device EUI.
  */
 constexpr size_t LoraDeviceEuiLength = 8;
 
 /**
- *
+ * Length of a LoRa App Key.
  */
 constexpr size_t LoraAppKeyLength = 16;
 

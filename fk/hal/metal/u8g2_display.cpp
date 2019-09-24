@@ -173,9 +173,10 @@ void U8g2Display::home(HomeScreen const &data) {
         draw_.drawGlyph(OLED_WIDTH - 12, 20, glyph_battery19[sizeof(glyph_battery19) - 1]);
     }
 
-    if (data.network) {
+    if (data.network.enabled) {
         draw_.setFont(u8g2_font_open_iconic_all_2x_t);
-        if (toggle_every(data.time, 1000)) {
+        auto interval = data.network.connected ? 10000 : 1000;
+        if (toggle_every(data.time, interval)) {
             draw_.drawGlyph(OLED_WIDTH - 44, 18, glyph_open_iconic_all_wifi_1);
         }
         else {
@@ -183,12 +184,10 @@ void U8g2Display::home(HomeScreen const &data) {
         }
     }
 
-    if (data.gps) {
+    if (data.gps.enabled) {
         draw_.setFont(u8g2_font_open_iconic_all_2x_t);
-        if (toggle_every(data.time, 1000)) {
-            draw_.drawGlyph(OLED_WIDTH - 28, 18, glyph_open_iconic_all_gps);
-        }
-        else {
+        auto interval = data.gps.fix ? 10000 : 1000;
+        if (toggle_every(data.time, interval)) {
             draw_.drawGlyph(OLED_WIDTH - 28, 18, glyph_open_iconic_all_gps);
         }
     }
