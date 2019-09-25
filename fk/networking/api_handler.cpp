@@ -45,7 +45,10 @@ bool ApiHandler::handle(Connection *connection, Pool &pool) {
         loginfo("handling %s", "QUERY_STATUS");
         return send_status(connection, query, pool);
     }
-    case fk_app_QueryType_QUERY_RECORDING_CONTROL:
+    case fk_app_QueryType_QUERY_RECORDING_CONTROL: {
+        loginfo("handling %s", "QUERY_RECORDING_CONTROL");
+        return configure(connection, query, pool);
+    }
     case fk_app_QueryType_QUERY_CONFIGURE: {
         loginfo("handling %s", "QUERY_CONFIGURE");
         return configure(connection, query, pool);
