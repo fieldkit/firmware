@@ -23,7 +23,12 @@ FK_DECLARE_LOGGER("startup");
 
 void StartupWorker::run(Pool &pool) {
     auto display = get_display();
+
     display->company_logo();
+
+    DebuggerOfLastResort::get()->enable();
+
+    DebuggerOfLastResort::get()->message("begin");
 
     GlobalStateManager gsm;
     FK_ASSERT(gsm.initialize(pool));
@@ -36,7 +41,9 @@ void StartupWorker::run(Pool &pool) {
     // I tried moving the enable all to after the storage read and ran into the
     // same issue. After the self check seems ok, though?
 
-    FK_ASSERT(mm->disable_all_modules());
+    if (!mm->disable_all_modules()) {
+        DebuggerOfLastResort::get()->message("no bp 1");
+    }
 
     // Lock, just during startup.
     auto lock = get_board()->lock_eeprom();
@@ -51,12 +58,20 @@ void StartupWorker::run(Pool &pool) {
 
     FK_ASSERT(load_or_create_state(storage, pool));
 
-    FK_ASSERT(mm->enable_all_modules());
+    if (!mm->enable_all_modules()) {
+        DebuggerOfLastResort::get()->message("no bp 2");
+    }
+
+    DebuggerOfLastResort::get()->message("pass 1");
 
     ReadingsWorker readings_worker{ true };
     readings_worker.run(pool);
 
+    DebuggerOfLastResort::get()->message("pass 2");
+
     FK_ASSERT(check_for_lora(pool));
+
+    DebuggerOfLastResort::disable();
 
     FK_ASSERT(os_task_start(&scheduler_task) == OSS_SUCCESS);
 }

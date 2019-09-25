@@ -18,9 +18,6 @@ static CheckStatus to_status(bool ok) {
 void SelfCheck::check(SelfCheckSettings settings, SelfCheckCallbacks &callbacks) {
     loginfo("starting");
 
-    // TODO: Check this failure scenario.
-    display_->company_logo();
-
     SelfCheckStatus status;
 
     callbacks.update(status);

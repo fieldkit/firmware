@@ -1,6 +1,13 @@
 #include "common.h"
 #include "debugging.h"
+#include "platform.h"
 #include "config.h"
+
+#if defined(__SAMD51__)
+#include <Arduino.h>
+#endif
+
+#include "hal/display.h"
 
 #include <SEGGER_RTT.h>
 
@@ -22,6 +29,36 @@ void fk_debug_set_console_attached() {
         SEGGER_RTT_ConfigUpBuffer(0, "default", buffer, DefaultWorkerPoolSize, SEGGER_RTT_MODE_BLOCK_IF_FIFO_FULL);
         console_attached = true;
     }
+}
+
+class NoopDebuggerOfLastResort : public DebuggerOfLastResort {
+public:
+    void message(const char *message) override { }
+
+};
+
+static NoopDebuggerOfLastResort noop;
+
+void DebuggerOfLastResort::message(const char *message) {
+    SimpleScreen ss{ message };
+    auto display = get_display();
+    display->simple(ss);
+    fk_delay(500);
+}
+
+DebuggerOfLastResort DebuggerOfLastResort::instance_;
+DebuggerOfLastResort *DebuggerOfLastResort::selected_;
+
+DebuggerOfLastResort *DebuggerOfLastResort::get() {
+    return selected_;
+}
+
+void DebuggerOfLastResort::enable() {
+    selected_ = &instance_;
+}
+
+void DebuggerOfLastResort::disable() {
+    selected_ = &noop;
 }
 
 }

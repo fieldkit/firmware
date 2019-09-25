@@ -70,6 +70,8 @@ tl::expected<FoundModuleCollection, Error> ModuleScanning::scan(Pool &pool) {
         return found;
     }
 
+    DebuggerOfLastResort::get()->message("scanning");
+
     loginfo("scanning modules...");
 
     // Take ownership over the module bus.

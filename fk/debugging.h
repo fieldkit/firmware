@@ -18,4 +18,19 @@ void fk_debug_set_console_attached();
         SEGGER_RTT_UNLOCK();                         \
     }
 
+class DebuggerOfLastResort {
+private:
+    static DebuggerOfLastResort instance_;
+    static DebuggerOfLastResort *selected_;
+
+public:
+    virtual void message(const char *message);
+
+public:
+    static DebuggerOfLastResort *get();
+    static void enable();
+    static void disable();
+};
+
 }
+
