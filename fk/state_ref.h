@@ -17,21 +17,26 @@ private:
     T value_;
 
 public:
-    GlobalStateRef(RwLock::Lock lock, T value) : lock_(std::move(lock)), value_(value) {
-    }
-    GlobalStateRef(GlobalStateRef &&ref) : lock_(std::move(ref.lock_)), value_(std::move(ref.value_)) {
-    }
-    virtual ~GlobalStateRef() {
-    }
+    GlobalStateRef(RwLock::Lock lock, T value) : lock_(std::move(lock)), value_(value) { }
+
+    GlobalStateRef(GlobalStateRef &&ref) : lock_(std::move(ref.lock_)), value_(std::move(ref.value_)) { }
+
+    virtual ~GlobalStateRef() { }
 
 public:
     T get() {
         return value_;
     }
 
+    operator bool() {
+        return value_ != nullptr;
+    }
+
 };
 
 GlobalStateRef<GlobalState const*> get_global_state_ro();
+
+GlobalStateRef<GlobalState const*> try_get_global_state_ro();
 
 GlobalStateRef<GlobalState*> get_global_state_rw();
 

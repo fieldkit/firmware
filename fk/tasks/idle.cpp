@@ -9,7 +9,7 @@ namespace fk {
 void task_handler_idle(void *params) {
     while (true) {
         fk_delay(FiveSecondsMs);
-        // fk_status_log();
+        fk_status_log();
     }
 }
 

@@ -41,7 +41,11 @@ static void log_task_info() {
 }
 
 static void log_status() {
-    auto gs = get_global_state_ro();
+    auto gs = try_get_global_state_ro();
+    if (!gs) {
+        return;
+    }
+
     auto now = get_clock_now();
     auto mi = mallinfo();
     auto name = gs.get()->general.name;

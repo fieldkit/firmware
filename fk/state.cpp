@@ -17,6 +17,14 @@ GlobalStateRef<GlobalState*> get_global_state_rw() {
     return { std::move(lock), &gs };
 }
 
+GlobalStateRef<GlobalState const*> try_get_global_state_ro() {
+    auto lock = data_lock.acquire_read(0);
+    if (!lock) {
+        return { std::move(lock), nullptr };
+    }
+    return { std::move(lock), &gs };
+}
+
 GlobalState::GlobalState() {
 }
 
