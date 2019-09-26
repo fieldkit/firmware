@@ -6,6 +6,7 @@
 
 #include "eeprom.h"
 #include "crc.h"
+#include "board.h"
 
 /**
  * Return the smaller of two values.
@@ -191,6 +192,8 @@ int32_t eeprom_region_append(eeprom_region_t *region, fk_weather_t *item) {
         return FK_ERROR_BUSY;
     }
 
+    board_eeprom_i2c_enable();
+
     // Write this item into memory, we've been given the size already.
     rv = eeprom_write(region->i2c, region->tail, (uint8_t *)item, region->item_size);
     if (rv != FK_SUCCESS) {
@@ -204,7 +207,6 @@ int32_t eeprom_region_append(eeprom_region_t *region, fk_weather_t *item) {
     if (region->tail + region->item_size >= region->end) {
         region->tail = region->start;
     }
-
     return FK_SUCCESS;
 }
 
@@ -219,15 +221,18 @@ int32_t eeprom_region_append_unwritten(eeprom_region_t *region, unwritten_readin
 
         rv = eeprom_region_append(region, weather);
         if (rv != FK_SUCCESS) {
+            board_eeprom_i2c_disable();
             return rv;
         }
 
         rv = unwritten_readings_pop(ur, NULL);
         if (rv != FK_SUCCESS) {
+            board_eeprom_i2c_disable();
             return rv;
         }
     }
 
+    board_eeprom_i2c_disable();
     return FK_SUCCESS;
 }
 

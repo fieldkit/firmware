@@ -9,11 +9,9 @@ int32_t board_initialize() {
 
     delay_driver_init();
     TIMER_0_init();
-    I2C_0_init();
     I2C_1_init();
     WDT_0_init();
 
-    i2c_m_sync_enable(&I2C_0);
     i2c_m_sync_enable(&I2C_1);
 
     return FK_SUCCESS;
@@ -26,5 +24,25 @@ int32_t board_timer_setup(struct timer_task *const timer_task, uint32_t interval
     timer_add_task(&TIMER_0, timer_task);
     timer_start(&TIMER_0);
 
+    return FK_SUCCESS;
+}
+
+static int32_t eeprom_i2c_enabled = false;
+
+int32_t board_eeprom_i2c_enable() {
+    if (!eeprom_i2c_enabled) {
+        I2C_0_init();
+        i2c_m_sync_enable(&I2C_0);
+        eeprom_i2c_enabled = true;
+    }
+
+    return FK_SUCCESS;
+}
+
+int32_t board_eeprom_i2c_disable() {
+    if (eeprom_i2c_enabled) {
+        i2c_m_sync_disable(&I2C_0);
+        eeprom_i2c_enabled = false;
+    }
     return FK_SUCCESS;
 }

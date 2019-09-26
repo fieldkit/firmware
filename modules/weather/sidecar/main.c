@@ -144,6 +144,8 @@ __int32_t main() {
 
     loginfo("eeprom...");
 
+    board_eeprom_i2c_enable();
+
     if (eeprom_verify_header(&readings_region) != FK_SUCCESS) {
         logerror("error verifying header");
         delay_ms(1000);
@@ -155,6 +157,8 @@ __int32_t main() {
         delay_ms(1000);
         NVIC_SystemReset();
     }
+
+    board_eeprom_i2c_disable();
 
     loginfo("sensors...");
 
