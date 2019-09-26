@@ -4,5 +4,6 @@ set -xe
 
 FK_LORA_APP_EUI=0000000000000000
 FK_LORA_APP_KEY=39e98dbaa08feed53d5f68d43d0ef981
+PORT=80
 
-fkdevice-cli --address $1 --lora-app-eui $FK_LORA_APP_EUI --lora-app-key $FK_LORA_APP_KEY
+fkdevice-cli --address $1 --port $PORT --lora-app-eui $FK_LORA_APP_EUI --lora-app-key $FK_LORA_APP_KEY

@@ -78,7 +78,11 @@ package:
 	cp $(BUILD)/samd09/modules/weather/sidecar/fk-weather-sidecar.bin  $(BUILD)/fk-firmware
 	chmod 644 $(BUILD)/fk-firmware/*
 	chmod 755 $(BUILD)/fk-firmware/flash-*
-	cd $(BUILD) && zip -r fk-firmware.zip fk-firmware
+	if [ -z $(BUILD_NUMBER) ]; then                                    \
+	cd $(BUILD) && zip -r fk-firmware.zip fk-firmware;                 \
+	else                                                               \
+	cd $(BUILD) && zip -r fk-firmware-$(BUILD_NUMBER).zip fk-firmware; \
+	fi
 
 dependencies: libraries/done
 
