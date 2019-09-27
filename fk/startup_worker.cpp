@@ -26,7 +26,7 @@ void StartupWorker::run(Pool &pool) {
 
     display->company_logo();
 
-    DebuggerOfLastResort::get()->enable();
+    DebuggerOfLastResort::get()->disable();
 
     DebuggerOfLastResort::get()->message("begin");
 

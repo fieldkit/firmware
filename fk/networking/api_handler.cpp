@@ -68,6 +68,7 @@ bool ApiHandler::handle(Connection *connection, Pool &pool) {
         return send_readings(connection, query, pool);
     }
     default: {
+        loginfo("unknown %d", query->type);
         break;
     }
     }
