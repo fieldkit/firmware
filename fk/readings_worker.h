@@ -30,6 +30,8 @@ public:
     }
 
 private:
+    bool should_throttle();
+
     tl::expected<ModuleReadingsCollection, Error> take_readings(Pool &pool);
 
 };

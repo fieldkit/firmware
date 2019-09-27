@@ -11,6 +11,11 @@ ReadingsWorker::ReadingsWorker(bool read_only) : read_only_(read_only) {
 }
 
 void ReadingsWorker::run(Pool &pool) {
+    if (should_throttle()) {
+        logwarn("readings throttled");
+        return;
+    }
+
     auto all_readings = take_readings(pool);
     if (!all_readings) {
         return;
@@ -67,16 +72,22 @@ void ReadingsWorker::run(Pool &pool) {
     });
 }
 
-tl::expected<ModuleReadingsCollection, Error> ReadingsWorker::take_readings(Pool &pool) {
-    auto gs = get_global_state_ro();
-    if (gs.get()->modules != nullptr) {
-        auto elapsed = fk_uptime() - gs.get()->modules->readings_time;
-        if (elapsed < TenSecondsMs) {
-            logwarn("readings throttled");
-            return tl::unexpected<Error>(Error::TooSoon);
-        }
+bool ReadingsWorker::should_throttle() {
+    auto gs = get_global_state_rw();
+    auto elapsed = fk_uptime() - gs.get()->runtime.readings;
+    if (gs.get()->runtime.readings == 0) {
+        return false;
+    }
+    if (elapsed < TenSecondsMs) {
+        return true;
     }
 
+    gs.get()->runtime.readings = fk_uptime();
+    return false;
+}
+
+tl::expected<ModuleReadingsCollection, Error> ReadingsWorker::take_readings(Pool &pool) {
+    auto gs = get_global_state_ro();
     auto lock = storage_mutex.acquire(UINT32_MAX);
     auto eeprom = get_board()->lock_eeprom();
 
