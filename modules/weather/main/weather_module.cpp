@@ -145,7 +145,7 @@ ModuleReadings *WeatherModule::take_readings(ModuleContext mc, fk::Pool &pool) {
             float temperature = temp.temperature_2 / 16.0f;
 
             if (temp.error != 0) {
-                logerror("[0x%04" PRIx32 "] error detected (%" PRIu32 ")", address_, temp.failures);
+                logerror("[0x%04" PRIx32 "] error detected (%" PRIu32 ") (%" PRIu32 ")", address_, temp.memory_failures, temp.reading_failures);
             }
 
             if (temp.seconds < seconds_) {
@@ -153,10 +153,10 @@ ModuleReadings *WeatherModule::take_readings(ModuleContext mc, fk::Pool &pool) {
             }
 
             if (temp.session < session_) {
-                logwarn("[0x%04" PRIx32 "] module restarted (%" PRIu32 " < %" PRIu32 ") (%" PRIu32 ")", address_, temp.session, session_, temp.failures);
+                logwarn("[0x%04" PRIx32 "] module restarted (%" PRIu32 " < %" PRIu32 ") (%" PRIu32 ") (%" PRIu32 ")", address_, temp.session, session_, temp.memory_failures, temp.reading_failures);
             }
 
-            logdebug("[0x%04" PRIx32 "] reading (%" PRIu32 ") (%" PRIu32 ") (%.2f)", address_, seconds_, temp.failures, temperature);
+            logdebug("[0x%04" PRIx32 "] reading (%" PRIu32 ") (%" PRIu32 ") (%" PRIu32 ") (%.2f)", address_, seconds_, temp.memory_failures, temp.reading_failures, temperature);
 
             reading = temp;
             seconds_ = temp.seconds;

@@ -97,12 +97,13 @@ int32_t eeprom_region_seek_end(eeprom_region_t *region, uint32_t *seconds) {
     return FK_SUCCESS;
 }
 
-int32_t eeprom_region_append_error(eeprom_region_t *region, uint32_t error, uint32_t failures) {
+int32_t eeprom_region_append_error(eeprom_region_t *region, uint32_t error, uint32_t memory_failures, uint32_t reading_failures) {
     fk_weather_t weather;
     memset(&weather, 0, sizeof(fk_weather_t));
 
     weather.error = error;
-    weather.failures = failures;
+    weather.memory_failures = memory_failures;
+    weather.reading_failures = reading_failures;
     weather.crc = fk_weather_sign(&weather);
 
     int32_t rv = eeprom_region_append(region, &weather);
@@ -166,7 +167,7 @@ __int32_t main() {
     int32_t rv = sensors_initialize(&I2C_1);
     if (rv != FK_SUCCESS) {
         logerror("error initializing sensors");
-        rv = eeprom_region_append_error(&readings_region, FK_WEATHER_ERROR_SENSORS, 0);
+        rv = eeprom_region_append_error(&readings_region, FK_WEATHER_ERROR_SENSORS, 0, 0);
         if (rv != FK_SUCCESS) {
             logerror("error writing error");
         }
@@ -188,7 +189,8 @@ __int32_t main() {
 
             int32_t rv = take_readings(&weather);
             if (rv != FK_SUCCESS) {
-                unwritten_readings_push_error(&ur, FK_WEATHER_ERROR_SENSORS, weather.failures);
+                weather.reading_failures++;
+                unwritten_readings_push_error(&ur, FK_WEATHER_ERROR_SENSORS, weather.memory_failures, weather.reading_failures);
             }
             else {
                 unwritten_readings_push(&ur, &weather);
@@ -201,7 +203,7 @@ __int32_t main() {
                 }
                 else {
                     logerror("readings: error appending");
-                    weather.failures++;
+                    weather.memory_failures++;
                 }
             }
 
