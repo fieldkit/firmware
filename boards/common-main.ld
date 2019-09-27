@@ -72,7 +72,7 @@ SECTIONS
     *(SORT_BY_INIT_PRIORITY(.rtt.buffers))
   } > RAM
 
-  .data.fkb.launch :
+  .data.fkb.launch (NOLOAD) :
   {
     KEEP(*(.fkb.launch))
   } > RAM

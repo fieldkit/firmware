@@ -44,15 +44,15 @@ SECTIONS
 
   __etext_global = .;
 
-  .data.fkb.launch (NOLOAD): AT(__etext_global)
-  {
-    KEEP(*(.fkb.launch))
-  } > RAM
-
-  .data.rtt :
+  .data.rtt : AT(__etext_global)
   {
     *(SORT_BY_INIT_PRIORITY(.rtt.control))
     *(SORT_BY_INIT_PRIORITY(.rtt.buffers))
+  } > RAM
+
+  .data.fkb.launch (NOLOAD) :
+  {
+    KEEP(*(.fkb.launch))
   } > RAM
 
   __etext = __etext_global + SIZEOF(.data.rtt) + SIZEOF(.data.fkb.launch);
