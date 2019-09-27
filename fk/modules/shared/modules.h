@@ -71,7 +71,7 @@ uint32_t fk_module_header_valid(ModuleHeader const *header);
  * this long after acquiring the eeprom protect line to ensure any writes that
  * were in flight complete before we use the bus.
  */
-#define FK_MODULES_EEPROM_WRITE_TIME               (10)
+#define FK_MODULES_EEPROM_WRITE_TIME               (50)
 
 #ifdef __cplusplus
 }
