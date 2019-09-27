@@ -43,11 +43,12 @@ int32_t unwritten_readings_peek(unwritten_readings_t *ur, fk_weather_t **w) {
     return FK_SUCCESS;
 }
 
-int32_t unwritten_readings_push_error(unwritten_readings_t *ur, uint32_t error) {
+int32_t unwritten_readings_push_error(unwritten_readings_t *ur, uint32_t error, uint32_t failures) {
     int8_t n = (ur->head + 1) % UNWRITTEN_QUEUE_SIZE;
     if (n != ur->tail) {
         memset(&ur->readings[ur->head], 0, sizeof(fk_weather_t));
         ur->readings[ur->head].error = error;
+        ur->readings[ur->head].failures = failures;
         ur->readings[ur->head].crc = fk_weather_sign(&ur->readings[ur->head]);
         ur->head = n;
     }
