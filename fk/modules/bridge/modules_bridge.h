@@ -25,9 +25,7 @@ public:
     ModuleContext module(int32_t position);
 
 public:
-    GlobalState const *gs() {
-        return gs_;
-    }
+    GlobalState const *gs();
 
 };
 
@@ -44,14 +42,9 @@ public:
 
 public:
     bool open();
-
-    GlobalState const *gs() {
-        return gs_;
-    }
-
-    TwoWireWrapper &module_bus() {
-        return *module_bus_;
-    }
+    GlobalState const *gs();
+    TwoWireWrapper &module_bus();
+    bool power_cycle();
 
 };
 

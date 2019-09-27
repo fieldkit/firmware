@@ -216,6 +216,8 @@ __int32_t main() {
             loginfof("mpl temp: %d", weather.temperature_2);
             loginfof("sht humidity: %d", weather.humidity);
             loginfof("sht temp: %d", weather.temperature_1);
+            #else
+            SEGGER_RTT_WriteString(0, ".");
             #endif
         }
 

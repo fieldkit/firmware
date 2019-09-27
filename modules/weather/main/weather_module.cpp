@@ -127,6 +127,7 @@ ModuleReadings *WeatherModule::take_readings(ModuleContext mc, fk::Pool &pool) {
 
     uint32_t rain_ticks = 0;
     uint32_t wind_ticks = 0;
+    uint32_t old_session = session_;
 
     while (true) {
         if (address_ + sizeof(fk_weather_t) >= EEPROM_ADDRESS_READINGS_END) {
@@ -171,8 +172,12 @@ ModuleReadings *WeatherModule::take_readings(ModuleContext mc, fk::Pool &pool) {
         address_ += sizeof(fk_weather_t);
     }
 
-    if (reading.seconds == 0) {
-        logwarn("no readings");
+    // Detect stalled conditions, until we can figure out why this happened.
+    if (old_session == session_ || reading.seconds == 0) {
+        logwarn("no readings, hupping module...");
+        if (!mc.power_cycle()) {
+            logerror("error power cycling");
+        }
         return nullptr;
     }
 

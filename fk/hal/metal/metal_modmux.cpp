@@ -121,6 +121,24 @@ bool MetalModMux::disable_module(uint8_t position) {
     return update_gpio(new_gpio);
 }
 
+bool MetalModMux::power_cycle(uint8_t position) {
+    if (!available_) {
+        return false;
+    }
+
+    if (!disable_module(position)) {
+        return false;
+    }
+
+    fk_delay(1000);
+
+    if (!enable_module(position)) {
+        return false;
+    }
+
+    return true;
+}
+
 bool MetalModMux::choose(uint8_t position) {
     if (!available_) {
         return false;

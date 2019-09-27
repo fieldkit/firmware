@@ -8,6 +8,10 @@ ScanningContext::ScanningContext(ModMux *mm, GlobalState const *gs, TwoWireWrapp
 ScanningContext::~ScanningContext() {
 }
 
+GlobalState const *ScanningContext::gs() {
+    return gs_;
+}
+
 ModuleContext ScanningContext::module(int32_t position) {
     return { *this, position };
 }
@@ -20,6 +24,18 @@ ModuleContext::~ModuleContext() {
 
 bool ModuleContext::open() {
     return mm_->choose(position_);
+}
+
+GlobalState const *ModuleContext::gs() {
+    return gs_;
+}
+
+TwoWireWrapper &ModuleContext::module_bus() {
+    return *module_bus_;
+}
+
+bool ModuleContext::power_cycle() {
+    return mm_->power_cycle(position_);
 }
 
 }

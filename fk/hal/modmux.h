@@ -17,6 +17,7 @@ public:
     virtual bool disable_all_modules() = 0;
     virtual bool enable_module(uint8_t position) = 0;
     virtual bool disable_module(uint8_t position) = 0;
+    virtual bool power_cycle(uint8_t position) = 0;
     virtual bool choose(uint8_t position) = 0;
     virtual bool choose_nothing() = 0;
 

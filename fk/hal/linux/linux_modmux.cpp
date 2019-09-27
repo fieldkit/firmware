@@ -28,6 +28,10 @@ bool LinuxModMux::disable_module(uint8_t position) {
     return true;
 }
 
+bool LinuxModMux::power_cycle(uint8_t position) {
+    return true;
+}
+
 bool LinuxModMux::choose(uint8_t position) {
     return true;
 }
