@@ -41,14 +41,26 @@ struct HomeScreen : public DisplayScreen {
 };
 
 struct MenuOption {
-    const char *label;
-    bool selected;
-    bool visible;
+    const char *label_;
+    bool selected_;
+    bool visible_;
 
-    MenuOption(const char *label) : label(label), selected(false), visible(true) {
+    MenuOption(const char *label) : label_(label), selected_(false), visible_(true) {
     }
 
     virtual void on_selected() = 0;
+    virtual bool visible() {
+        return visible_;
+    }
+    virtual bool selected() {
+        return selected_;
+    }
+    virtual void selected(bool value) {
+        selected_ = value;
+    }
+    virtual const char *label() {
+        return label_;
+    }
 };
 
 struct SimpleScreen : public DisplayScreen {

@@ -9,7 +9,7 @@ MenuScreen::MenuScreen() : options(nullptr) {
 }
 
 MenuScreen::MenuScreen(MenuOption **options) : options(options) {
-    options[0]->selected = true;
+    options[0]->selected_ = true;
 }
 
 static NullDisplay null_display;

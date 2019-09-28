@@ -12,6 +12,7 @@ private:
     MenuScreen *previous_menu_{ nullptr };
     MenuScreen *info_menu_;
     MenuScreen *network_menu_;
+    MenuScreen *network_choose_menu_;
     MenuScreen *tools_menu_;
     MenuScreen *main_menu_;
     MenuScreen *modules_menu_;

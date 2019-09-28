@@ -3,6 +3,7 @@
 #include "configure_module_worker.h"
 #include "factory_wipe.h"
 #include "hal/board.h"
+#include "state_ref.h"
 
 namespace fk {
 
@@ -21,12 +22,43 @@ MenuScreen *new_menu_screen(Pool &pool, MenuOption* (&&options)[N]) {
     return new (pool) MenuScreen(n_options);
 }
 
+template<typename T>
+struct NetworkOption : public MenuOption {
+    WifiNetworkInfo network_;
+    T fn_;
+
+    NetworkOption(WifiNetworkInfo network, T fn) : MenuOption(""), network_(network), fn_(fn) {
+    }
+
+    void on_selected() override {
+        fn_(network_);
+    }
+
+    bool visible() override {
+        return network_.ssid[0] != 0;
+    }
+
+    const char *label() override {
+        return network_.ssid;
+    }
+};
+
+template<typename T>
+NetworkOption<T> *to_network_option(Pool &pool, WifiNetworkInfo network, T fn) {
+    return new (pool) NetworkOption<T>(network, fn);
+}
+
+static void choose_active_network(WifiNetworkInfo network) {
+    auto gs = get_global_state_rw();
+    gs.get()->network.config.selected = network;
+}
+
 MenuView::MenuView(Pool &pool, ViewController *views) {
     auto back = to_lambda_option(pool, "Back", [=]() {
         // NOTE Fancy way of deselecting ourselves.
         // Could be selected from another back operation.
         for (auto i = 0; active_menu_->options[i] != nullptr; ++i) {
-            active_menu_->options[i]->selected = false;
+            active_menu_->options[i]->selected_ = false;
         }
         active_menu_ = goto_menu(previous_menu_);
         previous_menu_ = nullptr;
@@ -58,6 +90,37 @@ MenuView::MenuView(Pool &pool, ViewController *views) {
     });
 
 
+    auto gs = get_global_state_ro();
+
+    MenuOption *networks[] = {
+        to_network_option(pool, gs.get()->network.config.wifi_networks[0], [=](WifiNetworkInfo network) {
+            choose_active_network(network);
+            back->on_selected();
+            views->show_home();
+        }),
+        to_network_option(pool, gs.get()->network.config.wifi_networks[1], [=](WifiNetworkInfo network) {
+            choose_active_network(network);
+            back->on_selected();
+            views->show_home();
+        }),
+    };
+    auto network_choose_self = to_lambda_option(pool, "Create AP", [=]() {
+        choose_active_network({
+            .valid = true,
+            .create = true,
+       });
+        back->on_selected();
+        views->show_home();
+    });
+
+    network_choose_menu_ = new_menu_screen<4>(pool, {
+        back,
+        network_choose_self,
+        networks[0],
+        networks[1],
+    });
+
+
     auto network_toggle = to_lambda_option(pool, "Toggle Wifi", [=]() {
         back->on_selected();
         views->show_home();
@@ -67,9 +130,14 @@ MenuView::MenuView(Pool &pool, ViewController *views) {
             return;
         }
     });
-    network_menu_ = new_menu_screen<2>(pool, {
+    auto network_choose = to_lambda_option(pool, "Choose", [=]() {
+        previous_menu_ = active_menu_;
+        active_menu_ = goto_menu(network_choose_menu_);
+    });
+    network_menu_ = new_menu_screen<3>(pool, {
         back,
         network_toggle,
+        network_choose,
     });
 
 
@@ -194,19 +262,19 @@ void MenuView::perform_factory_reset() {
 void MenuView::selection_up(MenuScreen &screen) {
     bool select_last = false;
     for (auto i = 0; screen.options[i] != nullptr; ++i) {
-        if (screen.options[i]->selected) {
-            screen.options[i]->selected = false;
+        if (screen.options[i]->selected()) {
+            screen.options[i]->selected(false);
             if (i == 0) {
                 select_last = true;
             }
             else {
-                screen.options[i - 1]->selected = true;
+                screen.options[i - 1]->selected(true);
                 break;
             }
         }
         if (select_last) {
             if (screen.options[i + 1] == nullptr) {
-                screen.options[i]->selected = true;
+                screen.options[i]->selected(true);
                 break;
             }
         }
@@ -215,13 +283,13 @@ void MenuView::selection_up(MenuScreen &screen) {
 
 void MenuView::selection_down(MenuScreen &screen) {
     for (auto i = 0; screen.options[i] != nullptr; ++i) {
-        if (screen.options[i]->selected) {
-            screen.options[i]->selected = false;
+        if (screen.options[i]->selected()) {
+            screen.options[i]->selected(false);
             if (screen.options[i + 1] == nullptr) {
-                screen.options[0]->selected = true;
+                screen.options[0]->selected(true);
             }
             else {
-                screen.options[i + 1]->selected = true;
+                screen.options[i + 1]->selected(true);
             }
             break;
         }
@@ -230,7 +298,7 @@ void MenuView::selection_down(MenuScreen &screen) {
 
 MenuOption *MenuView::selected(MenuScreen &screen) {
     for (auto i = 0; screen.options[i] != nullptr; ++i) {
-        if (screen.options[i]->selected) {
+        if (screen.options[i]->selected()) {
             return screen.options[i];
         }
     }
@@ -241,8 +309,7 @@ MenuOption *MenuView::selected(MenuScreen &screen) {
 MenuScreen *MenuView::goto_menu(MenuScreen *screen) {
     MenuOption *selectable = nullptr;
     for (auto i = 0; screen->options[i] != nullptr; ++i) {
-        if (screen->options[i]->selected) {
-            // loginfo("already selected %d '%s'", i, screen->options[i]->label);
+        if (screen->options[i]->selected()) {
             return screen;
         }
         if (selectable == nullptr) {
@@ -250,8 +317,7 @@ MenuScreen *MenuView::goto_menu(MenuScreen *screen) {
         }
     }
 
-    // loginfo("selecting %s", selectable->label);
-    selectable->selected = true;
+    selectable->selected(true);
 
     return screen;
 }
