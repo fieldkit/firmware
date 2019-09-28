@@ -3,11 +3,15 @@
 #include "common.h"
 #include "hal/display.h"
 #include "display_views.h"
+#include "state.h"
 
 namespace fk {
 
 class MenuView : public DisplayView {
 private:
+    Pool *pool_;
+    ViewController *views_;
+    MenuOption *back_;
     MenuScreen *active_menu_{ nullptr };
     MenuScreen *previous_menu_{ nullptr };
     MenuScreen *info_menu_;
@@ -19,7 +23,7 @@ private:
     uint32_t menu_time_{ 0 };
 
 public:
-    MenuView(Pool &pool, ViewController *views);
+    MenuView(ViewController *views, Pool &pool);
 
 public:
     void show() override;
@@ -29,6 +33,14 @@ public:
     void enter(ViewController *views) override;
 
 private:
+    void create_info_menu();
+    void create_modules_menu();
+    void create_tools_menu();
+    void create_network_menu();
+    void create_main_menu();
+
+private:
+    static void choose_active_network(WifiNetworkInfo network);
     static void perform_factory_reset();
     static void selection_up(MenuScreen &screen);
     static void selection_down(MenuScreen &screen);
