@@ -110,7 +110,7 @@ constexpr size_t DefaultWorkerPoolSize = 8192;
  * Maximum number of WiFi networks.
  * \todo: Eventually this should be relaxed.
  */
-constexpr uint32_t MaximumNumberOfWifiNetworks = 2;
+constexpr size_t MaximumNumberOfWifiNetworks = 2;
 
 /**
  * How long the user should hold the button to initiate a factory wipe.

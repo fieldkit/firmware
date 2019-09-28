@@ -124,6 +124,22 @@ bool StartupWorker::load_state(Storage &storage, Pool &pool) {
                     loginfo("(loaded) lora app eui: %s", pb_data_to_hex_string(app_eui, pool));
                 }
 
+                auto networks_array = (pb_array_t *)record.network.networks.arg;
+                if (networks_array->length > 0) {
+                    FK_ASSERT(networks_array->length <= MaximumNumberOfWifiNetworks);
+
+                    auto networks = (fk_app_NetworkInfo *)networks_array->buffer;
+                    for (auto i = 0u; i < MaximumNumberOfWifiNetworks; ++i) {
+                        auto &n = networks[i];
+                        auto ssid = (const char *)n.ssid.arg;
+                        auto password = (const char *)n.password.arg;
+                        loginfo("(loaded) [%d] network: %s", i, ssid);
+                        strncpy(gs.get()->network.config.wifi_networks[i].ssid, ssid, sizeof(gs.get()->network.config.wifi_networks[i].ssid));
+                        strncpy(gs.get()->network.config.wifi_networks[i].password, password, sizeof(gs.get()->network.config.wifi_networks[i].password));
+                        loginfo("(loaded) [%d] network: %s", i, gs.get()->network.config.wifi_networks[i].ssid);
+                    }
+                }
+
                 gs.get()->lora.configured = app_eui != nullptr && app_key != nullptr;
                 gs.get()->general.recording = (record.condition.flags & fk_data_ConditionFlags_CONDITION_FLAGS_RECORDING) > 0;
 

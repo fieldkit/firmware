@@ -185,6 +185,26 @@ bool HttpReply::include_status() {
     reply_.loraSettings.appKey.funcs.encode = pb_encode_data;
     reply_.loraSettings.appKey.arg = (void *)app_key_data;
 
+    auto networks = pool_->malloc<fk_app_NetworkInfo>(MaximumNumberOfWifiNetworks);
+    for (auto i = 0u; i < MaximumNumberOfWifiNetworks; ++i) {
+        networks[i] = fk_app_NetworkInfo_init_default;
+        networks[i].ssid.funcs.encode = pb_encode_string;
+        networks[i].ssid.arg = (void *)gs_->network.config.wifi_networks[i].ssid;
+        networks[i].password.funcs.encode = pb_encode_string;
+        networks[i].password.arg = (void *)gs_->network.config.wifi_networks[i].password;
+        loginfo("(loaded) [%d] network: %s", i, gs_->network.config.wifi_networks[i].ssid);
+    }
+
+    auto networks_array = pool_->malloc_with<pb_array_t>({
+        .length = MaximumNumberOfWifiNetworks,
+        .itemSize = sizeof(fk_app_NetworkInfo),
+        .buffer = networks,
+        .fields = fk_app_NetworkInfo_fields,
+    });
+
+    reply_.networkSettings.networks.funcs.encode = pb_encode_array;
+    reply_.networkSettings.networks.arg = (void *)networks_array;
+
     if (fkb_header.firmware.hash_size > 0) {
         auto firmware_hash_string = bytes_to_hex_string_pool(fkb_header.firmware.hash, fkb_header.firmware.hash_size, *pool_);
         reply_.status.identity.firmware.arg = (void *)firmware_hash_string;

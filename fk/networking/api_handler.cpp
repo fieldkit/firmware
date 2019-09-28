@@ -134,6 +134,22 @@ static bool configure(Connection *connection, fk_app_HttpQuery *query, Pool &poo
         });
     }
 
+    auto networks_array = (pb_array_t *)query->networkSettings.networks.arg;
+    if (networks_array->length > 0) {
+        auto nnetworks = std::min(networks_array->length, MaximumNumberOfWifiNetworks);
+        gsm.apply([=](GlobalState *gs) {
+            auto networks = (fk_app_NetworkInfo *)networks_array->buffer;
+            for (auto i = 0u; i < nnetworks; ++i) {
+                auto &n = networks[i];
+                auto ssid = (const char *)n.ssid.arg;
+                auto password = (const char *)n.password.arg;
+                loginfo("[%d] network: %s", i, ssid);
+                strncpy(gs->network.config.wifi_networks[i].ssid, ssid, sizeof(gs->network.config.wifi_networks[i].ssid));
+                strncpy(gs->network.config.wifi_networks[i].password, password, sizeof(gs->network.config.wifi_networks[i].password));
+            }
+        });
+    }
+
     if (!flush_configuration(pool)) {
         return false;
     }

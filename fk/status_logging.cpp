@@ -49,7 +49,7 @@ static void log_status() {
     auto now = get_clock_now();
     auto mi = mallinfo();
     auto name = gs.get()->general.name;
-    ip4_address ip{ gs.get()->network.ip };
+    ip4_address ip{ gs.get()->network.state.ip };
 
     FormattedTime formatted{ now };
     loginfo("%s '%s' (%d.%d.%d.%d) (free = %" PRIu32 ", arena = %zd, used = %zd)",

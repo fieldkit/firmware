@@ -30,7 +30,7 @@ NetworkTask::~NetworkTask() {
 
     GlobalStateManager gsm;
     gsm.apply([=](GlobalState *gs) {
-        gs->network = { };
+        gs->network.state = { };
     });
 
     loginfo("network stopped");
@@ -47,7 +47,7 @@ void task_handler_network(void *params) {
         NetworkTask task{ network, http_server };
 
         gsm.apply([=](GlobalState *gs) {
-            gs->network = { };
+            gs->network.state = { };
         });
 
         // Either create a new AP or try and join an existing one.
@@ -57,9 +57,9 @@ void task_handler_network(void *params) {
         }
 
         gsm.apply([=](GlobalState *gs) {
-            gs->network.ip = get_network()->ip_address();
-            gs->network.enabled = fk_uptime();
-            gs->network.connected = 0;
+            gs->network.state.ip = get_network()->ip_address();
+            gs->network.state.enabled = fk_uptime();
+            gs->network.state.connected = 0;
         });
 
         // In self AP mode we're waiting for connections now, and hold off doing
@@ -81,9 +81,9 @@ void task_handler_network(void *params) {
         }
 
         gsm.apply([=](GlobalState *gs) {
-            gs->network.enabled = fk_uptime();
-            gs->network.connected = fk_uptime();
-            gs->network.ip = get_network()->ip_address();
+            gs->network.state.enabled = fk_uptime();
+            gs->network.state.connected = fk_uptime();
+            gs->network.state.ip = get_network()->ip_address();
         });
 
         loginfo("awaiting connections...");

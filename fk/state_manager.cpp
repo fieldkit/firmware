@@ -23,6 +23,11 @@ bool GlobalStateManager::initialize(Pool &pool) {
     loginfo("(generated) name: '%s'", gs.get()->general.name);
     loginfo("(generated) gen: %s", gen_string);
 
+    for (auto i = 0u; i < MaximumNumberOfWifiNetworks; ++i) {
+        gs.get()->network.config.wifi_networks[i].ssid[0] = 0;
+        gs.get()->network.config.wifi_networks[i].password[0] = 0;
+    }
+
     return true;
 }
 

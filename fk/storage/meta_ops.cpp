@@ -62,6 +62,25 @@ tl::expected<uint32_t, Error> MetaOps::write_state(GlobalState const *gs, Pool &
         record.lora.appKey.arg = (void *)app_key_data;
     }
 
+    auto networks = pool.malloc<fk_data_NetworkInfo>(MaximumNumberOfWifiNetworks);
+    for (auto i = 0u; i < MaximumNumberOfWifiNetworks; ++i) {
+        networks[i] = fk_app_NetworkInfo_init_default;
+        networks[i].ssid.funcs.encode = pb_encode_string;
+        networks[i].ssid.arg = (void *)gs->network.config.wifi_networks[i].ssid;
+        networks[i].password.funcs.encode = pb_encode_string;
+        networks[i].password.arg = (void *)gs->network.config.wifi_networks[i].password;
+    }
+
+    auto networks_array = pool.malloc_with<pb_array_t>({
+            .length = MaximumNumberOfWifiNetworks,
+            .itemSize = sizeof(fk_data_NetworkInfo),
+            .buffer = networks,
+            .fields = fk_data_NetworkInfo_fields,
+        });
+
+    record.network.networks.funcs.encode = pb_encode_array;
+    record.network.networks.arg = (void *)networks_array;
+
     auto meta = storage_.file(Storage::Meta);
     if (!meta.seek_end()) {
         FK_ASSERT(meta.create());

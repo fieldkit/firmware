@@ -48,10 +48,24 @@ struct PowerState {
     uint32_t voltage{ 0 };
 };
 
+struct WifiNetworkInfo {
+    char ssid[64];
+    char password[64];
+};
+
+struct NetworkConfiguration {
+    WifiNetworkInfo wifi_networks[MaximumNumberOfWifiNetworks];
+};
+
 struct NetworkState {
     uint32_t enabled{ 0 };
     uint32_t connected{ 0 };
     uint32_t ip{ 0 };
+};
+
+struct MainNetworkState {
+    NetworkState state;
+    NetworkConfiguration config;
 };
 
 struct GpsState {
@@ -103,7 +117,7 @@ public:
     PowerState power;
     PeripheralState peripheral;
     GpsState gps;
-    NetworkState network;
+    MainNetworkState network;
     ProgressState progress;
     StorageState storage;
     LoraState lora;

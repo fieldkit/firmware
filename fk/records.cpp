@@ -2,6 +2,54 @@
 
 namespace fk {
 
+static inline bool pb_data_network_info_item_decode(pb_istream_t *stream, pb_array_t *array) {
+    fk_data_NetworkInfo info;
+    info.ssid.funcs.decode = pb_decode_string;
+    info.ssid.arg = array->pool;
+    info.password.funcs.decode = pb_decode_string;
+    info.password.arg = array->pool;
+
+    if (!pb_decode(stream, fk_app_NetworkInfo_fields, &info)) {
+        return false;
+    }
+
+    // TODO: Wasteful.
+    auto previous = (const void *)array->buffer;
+    array->length++;
+    array->buffer = array->pool->malloc(array->itemSize * array->length);
+    void *ptr = ((uint8_t *)array->buffer) + ((array->length - 1) * array->itemSize);
+    if (previous != nullptr) {
+        memcpy(array->buffer, previous, ((array->length - 1) * array->itemSize));
+    }
+    memcpy(ptr, &info, array->itemSize);
+
+    return true;
+}
+
+static inline bool pb_app_network_info_item_decode(pb_istream_t *stream, pb_array_t *array) {
+    fk_app_NetworkInfo info;
+    info.ssid.funcs.decode = pb_decode_string;
+    info.ssid.arg = array->pool;
+    info.password.funcs.decode = pb_decode_string;
+    info.password.arg = array->pool;
+
+    if (!pb_decode(stream, fk_app_NetworkInfo_fields, &info)) {
+        return false;
+    }
+
+    // TODO: Wasteful.
+    auto previous = (const void *)array->buffer;
+    array->length++;
+    array->buffer = array->pool->malloc(array->itemSize * array->length);
+    void *ptr = ((uint8_t *)array->buffer) + ((array->length - 1) * array->itemSize);
+    if (previous != nullptr) {
+        memcpy(array->buffer, previous, ((array->length - 1) * array->itemSize));
+    }
+    memcpy(ptr, &info, array->itemSize);
+
+    return true;
+}
+
 fk_data_DataRecord fk_data_record_decoding_new(Pool &pool) {
     fk_data_DataRecord record = fk_data_DataRecord_init_default;
     record.metadata.firmware.git.funcs.decode = pb_decode_string;
@@ -22,6 +70,15 @@ fk_data_DataRecord fk_data_record_decoding_new(Pool &pool) {
     record.lora.appKey.arg = (void *)&pool;
     record.lora.deviceEui.funcs.decode = pb_decode_data;
     record.lora.deviceEui.arg = (void *)&pool;
+    record.network.networks.funcs.decode = pb_decode_array;
+    record.network.networks.arg = (void *)pool.malloc_with<pb_array_t>({
+        .length = 0,
+        .itemSize = sizeof(fk_data_NetworkInfo),
+        .buffer = nullptr,
+        .fields = fk_data_NetworkInfo_fields,
+        .decode_item_fn = pb_data_network_info_item_decode,
+        .pool = &pool,
+    });
 
     return record;
 }
@@ -38,6 +95,7 @@ fk_data_DataRecord fk_data_record_encoding_new() {
     record.lora.appEui.funcs.encode = pb_encode_data;
     record.lora.appKey.funcs.encode = pb_encode_data;
     record.lora.deviceEui.funcs.encode = pb_encode_data;
+    record.network.networks.funcs.encode = pb_encode_array;
 
     return record;
 }
@@ -63,6 +121,16 @@ fk_app_HttpQuery *fk_http_query_prepare_decoding(fk_app_HttpQuery *query, Pool *
 
     query->loraSettings.appKey.funcs.decode = pb_decode_data;
     query->loraSettings.appKey.arg = (void *)pool;
+
+    query->networkSettings.networks.funcs.decode = pb_decode_array;
+    query->networkSettings.networks.arg = (void *)pool->malloc_with<pb_array_t>({
+        .length = 0,
+        .itemSize = sizeof(fk_app_NetworkInfo),
+        .buffer = nullptr,
+        .fields = fk_app_NetworkInfo_fields,
+        .decode_item_fn = pb_app_network_info_item_decode,
+        .pool = pool,
+    });
 
     return query;
 }
