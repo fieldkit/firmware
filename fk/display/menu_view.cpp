@@ -50,6 +50,31 @@ NetworkOption<T> *to_network_option(Pool *pool, WifiNetworkInfo network, T fn) {
     return new (*pool) NetworkOption<T>(network, fn);
 }
 
+struct ToggleWifiOption : public MenuOption {
+    MenuOption *back_;
+    ViewController *views_;
+
+    ToggleWifiOption(MenuOption *back, ViewController *views) : MenuOption(""), back_(back), views_(views) {
+    }
+
+    void on_selected() override {
+        back_->on_selected();
+        views_->show_home();
+        auto worker = create_default_pool_worker<WifiToggleWorker>();
+        if (!get_ipc()->launch_worker(worker)) {
+            delete worker;
+            return;
+        }
+    }
+
+    const char *label() override {
+        if (get_network()->enabled()) {
+            return "Disable";
+        }
+        return "Enable";
+    }
+};
+
 MenuView::MenuView(ViewController *views, Pool &pool) : pool_(&pool), views_(views) {
     back_ = to_lambda_option(&pool, "Back", [=]() {
         // NOTE Fancy way of deselecting ourselves.
@@ -189,15 +214,7 @@ void MenuView::create_network_menu() {
     });
 
 
-    auto network_toggle = to_lambda_option(pool_, "Toggle Wifi", [=]() {
-        back_->on_selected();
-        views_->show_home();
-        auto worker = create_default_pool_worker<WifiToggleWorker>();
-        if (!get_ipc()->launch_worker(worker)) {
-            delete worker;
-            return;
-        }
-    });
+    auto network_toggle = new (*pool_) ToggleWifiOption(back_, views_);
     auto network_choose = to_lambda_option(pool_, "Choose", [=]() {
         previous_menu_ = active_menu_;
         active_menu_ = goto_menu(network_choose_menu_);
@@ -268,6 +285,14 @@ void MenuView::choose_active_network(WifiNetworkInfo network) {
     auto gs = get_global_state_rw();
     network.modified = fk_uptime();
     gs.get()->network.config.selected = network;
+
+    if (!get_network()->enabled()) {
+        auto worker = create_default_pool_worker<WifiToggleWorker>();
+        if (!get_ipc()->launch_worker(worker)) {
+            delete worker;
+            return;
+        }
+    }
 }
 
 void MenuView::perform_factory_reset() {
