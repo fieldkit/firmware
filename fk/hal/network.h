@@ -25,6 +25,7 @@ enum class NetworkConnectionStatus {
 };
 
 typedef struct NetworkSettings {
+    bool valid;
     bool create;
     const char *ssid;
     const char *password;

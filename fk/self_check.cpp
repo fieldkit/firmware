@@ -190,6 +190,7 @@ bool SelfCheck::gps() {
 bool SelfCheck::wifi() {
     return single_check("wifi", [=]() {
         auto settings = NetworkSettings{
+            .valid = false,
             .create = false,
             .ssid = nullptr,
             .password = nullptr,

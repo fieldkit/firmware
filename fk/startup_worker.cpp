@@ -133,10 +133,14 @@ bool StartupWorker::load_state(Storage &storage, Pool &pool) {
                         auto &n = networks[i];
                         auto ssid = (const char *)n.ssid.arg;
                         auto password = (const char *)n.password.arg;
+
                         loginfo("(loaded) [%d] network: %s", i, ssid);
-                        strncpy(gs.get()->network.config.wifi_networks[i].ssid, ssid, sizeof(gs.get()->network.config.wifi_networks[i].ssid));
-                        strncpy(gs.get()->network.config.wifi_networks[i].password, password, sizeof(gs.get()->network.config.wifi_networks[i].password));
-                        loginfo("(loaded) [%d] network: %s", i, gs.get()->network.config.wifi_networks[i].ssid);
+
+                        auto &nc = gs.get()->network.config.wifi_networks[i];
+                        strncpy(nc.ssid, ssid, sizeof(nc.ssid));
+                        strncpy(nc.password, password, sizeof(nc.password));
+                        nc.valid = nc.ssid[0] != 0;
+                        nc.create = false;
                     }
                 }
 

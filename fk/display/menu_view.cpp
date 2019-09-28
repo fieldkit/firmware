@@ -7,6 +7,8 @@
 
 namespace fk {
 
+FK_DECLARE_LOGGER("menu");
+
 template<typename T>
 LambdaOption<T> *to_lambda_option(Pool &pool, const char *label, T fn) {
     return new (pool) LambdaOption<T>(label, fn);
@@ -60,8 +62,12 @@ MenuView::MenuView(Pool &pool, ViewController *views) {
         for (auto i = 0; active_menu_->options[i] != nullptr; ++i) {
             active_menu_->options[i]->selected_ = false;
         }
-        active_menu_ = goto_menu(previous_menu_);
-        previous_menu_ = nullptr;
+        if (previous_menu_ == nullptr) {
+            active_menu_ = goto_menu(main_menu_);
+        }
+        else {
+            active_menu_ = goto_menu(previous_menu_);
+        }
     });
 
     auto tools_self_check = to_lambda_option(pool, "Self Check", [=]() {
@@ -92,23 +98,21 @@ MenuView::MenuView(Pool &pool, ViewController *views) {
 
     auto gs = get_global_state_ro();
 
-    MenuOption *networks[] = {
-        to_network_option(pool, gs.get()->network.config.wifi_networks[0], [=](WifiNetworkInfo network) {
-            choose_active_network(network);
-            back->on_selected();
-            views->show_home();
-        }),
-        to_network_option(pool, gs.get()->network.config.wifi_networks[1], [=](WifiNetworkInfo network) {
-            choose_active_network(network);
-            back->on_selected();
-            views->show_home();
-        }),
-    };
+    auto n0 = to_network_option(pool, gs.get()->network.config.wifi_networks[0], [=](WifiNetworkInfo network) {
+        choose_active_network(network);
+        back->on_selected();
+        views->show_home();
+    });
+    auto n1 = to_network_option(pool, gs.get()->network.config.wifi_networks[1], [=](WifiNetworkInfo network) {
+        choose_active_network(network);
+        back->on_selected();
+        views->show_home();
+    });
     auto network_choose_self = to_lambda_option(pool, "Create AP", [=]() {
         choose_active_network({
             .valid = true,
             .create = true,
-       });
+        });
         back->on_selected();
         views->show_home();
     });
@@ -116,8 +120,8 @@ MenuView::MenuView(Pool &pool, ViewController *views) {
     network_choose_menu_ = new_menu_screen<4>(pool, {
         back,
         network_choose_self,
-        networks[0],
-        networks[1],
+        n0,
+        n1,
     });
 
 

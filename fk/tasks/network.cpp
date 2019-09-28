@@ -4,6 +4,7 @@
 #include "hal/hal.h"
 #include "networking/server.h"
 #include "state_manager.h"
+#include "device_name.h"
 
 namespace fk {
 
@@ -36,6 +37,25 @@ NetworkTask::~NetworkTask() {
     loginfo("network stopped");
 }
 
+NetworkSettings get_selected_settings(Pool &pool) {
+    auto name = fk_device_name_generate(pool);
+    auto gs = get_global_state_ro();
+    auto n = gs.get()->network.config.selected;
+    if (!n.valid) {
+        return {
+            .valid = false,
+        };
+    }
+    return {
+        .valid = n.valid,
+        .create = n.create,
+        .ssid = n.valid ? n.ssid : nullptr,
+        .password = n.valid ? n.password : nullptr,
+        .name = name,
+        .port = 80,
+    };
+}
+
 void task_handler_network(void *params) {
     while (true) {
         auto &fkc = fk_config();
@@ -46,14 +66,24 @@ void task_handler_network(void *params) {
         HttpServer http_server{ network, &fkc };
         NetworkTask task{ network, http_server };
 
+        auto settings = get_selected_settings(pool);
+
         gsm.apply([=](GlobalState *gs) {
             gs->network.state = { };
         });
 
         // Either create a new AP or try and join an existing one.
-        if (!http_server.begin(WifiConnectionTimeoutMs, pool)) {
-            logerror("error starting server");
-            return;
+        if (settings.valid) {
+            if (!http_server.begin(settings, WifiConnectionTimeoutMs, pool)) {
+                logerror("error starting server");
+                return;
+            }
+        }
+        else {
+            if (!http_server.begin(WifiConnectionTimeoutMs, pool)) {
+                logerror("error starting server");
+                return;
+            }
         }
 
         gsm.apply([=](GlobalState *gs) {
@@ -65,9 +95,13 @@ void task_handler_network(void *params) {
         // In self AP mode we're waiting for connections now, and hold off doing
         // anything useful until something joins.
         auto started = fk_uptime();
+        auto last_checked = fk_uptime();
         while (!http_server.ready_to_serve()) {
             if (fk_uptime() - started > fkc.network.uptime) {
                 return;
+            }
+            if (fk_uptime() - last_checked > 500) {
+                last_checked = fk_uptime();
             }
             fk_delay(10);
         }
@@ -108,6 +142,10 @@ void task_handler_network(void *params) {
             // This will happen when a foreign device disconnects from our WiFi AP.
             if (!http_server.ready_to_serve()) {
                 break;
+            }
+
+            if (fk_uptime() - last_checked > 500) {
+                last_checked = fk_uptime();
             }
 
             fk_delay(10);

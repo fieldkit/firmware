@@ -144,8 +144,12 @@ static bool configure(Connection *connection, fk_app_HttpQuery *query, Pool &poo
                 auto ssid = (const char *)n.ssid.arg;
                 auto password = (const char *)n.password.arg;
                 loginfo("[%d] network: %s", i, ssid);
-                strncpy(gs->network.config.wifi_networks[i].ssid, ssid, sizeof(gs->network.config.wifi_networks[i].ssid));
-                strncpy(gs->network.config.wifi_networks[i].password, password, sizeof(gs->network.config.wifi_networks[i].password));
+
+                auto &nc = gs->network.config.wifi_networks[i];
+                strncpy(nc.ssid, ssid, sizeof(nc.ssid));
+                strncpy(nc.password, password, sizeof(nc.password));
+                nc.valid = nc.ssid[0] != 0;
+                nc.create = false;
             }
         });
     }

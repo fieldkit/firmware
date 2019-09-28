@@ -24,8 +24,11 @@ bool GlobalStateManager::initialize(Pool &pool) {
     loginfo("(generated) gen: %s", gen_string);
 
     for (auto i = 0u; i < MaximumNumberOfWifiNetworks; ++i) {
-        gs.get()->network.config.wifi_networks[i].ssid[0] = 0;
-        gs.get()->network.config.wifi_networks[i].password[0] = 0;
+        auto &nc = gs.get()->network.config.wifi_networks[i];
+        nc.valid = false;
+        nc.create = false;
+        nc.ssid[0] = 0;
+        nc.password[0] = 0;
     }
 
     return true;

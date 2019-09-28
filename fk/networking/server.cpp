@@ -46,16 +46,48 @@ bool HttpServer::begin(uint32_t to, Pool &pool) {
     loginfo("starting network...");
 
     auto name = fk_device_name_generate(pool);
-    if (!try_configurations(name, to)) {
+    if (!try_configurations(name, to, pool)) {
         return false;
     }
-
-    default_routes.add_routes(router_);
 
     return true;
 }
 
+bool HttpServer::begin(NetworkSettings settings, uint32_t to, Pool &pool) {
+    auto name = fk_device_name_generate(pool);
+    settings.name = name;
+
+    if (settings.create) {
+        settings.ssid = name;
+        settings.password = nullptr;
+        loginfo("creating '%s'", settings.ssid);
+    }
+    else {
+        loginfo("trying '%s'", settings.ssid);
+    }
+
+    if (!network_->begin(settings)) {
+        loginfo("unable to configure network");
+        return false;
+    }
+
+    auto started = fk_uptime();
+    do {
+        if (network_began(network_->status())) {
+            return true;
+        }
+
+        fk_delay(100);
+    }
+    while (fk_uptime() - started < to);
+
+    logerror("networking took too long");
+    return false;
+}
+
 bool HttpServer::serve() {
+    default_routes.add_routes(router_);
+
     if (!network_->serve()) {
         return false;
     }
@@ -79,34 +111,11 @@ void HttpServer::stop() {
     network_->stop();
 }
 
-bool HttpServer::try_configurations(const char *name, uint32_t to) {
+bool HttpServer::try_configurations(const char *name, uint32_t to, Pool &pool) {
     for (auto &config : fkc_->network.networks) {
         auto settings = get_settings(config, name);
 
-        loginfo("trying '%s'", settings.ssid);
-
-        if (!network_->begin(settings)) {
-            loginfo("unable to configure network");
-            continue;
-        }
-
-        auto started = fk_uptime();
-        auto ready = false;
-        while (!ready) {
-            if (network_began(network_->status())) {
-                ready = true;
-                break;
-            }
-
-            fk_delay(100);
-
-            if (fk_uptime() - started > to) {
-                logerror("networking took too long");
-                break;
-            }
-        }
-
-        if (ready) {
+        if (begin(settings, to, pool)) {
             return true;
         }
     }
@@ -117,6 +126,7 @@ bool HttpServer::try_configurations(const char *name, uint32_t to) {
 NetworkSettings HttpServer::get_settings(configuration_t::wifi_network_t const &network, const char *name) {
     if (network.ssid == nullptr) {
         return {
+            .valid = true,
             .create = true,
             .ssid = name,
             .password = nullptr,
@@ -125,6 +135,7 @@ NetworkSettings HttpServer::get_settings(configuration_t::wifi_network_t const &
         };
     }
     return {
+        .valid = true,
         .create = false,
         .ssid = network.ssid,
         .password = network.password,

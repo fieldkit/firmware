@@ -23,6 +23,8 @@ public:
 public:
     bool begin(uint32_t to, Pool &pool);
 
+    bool begin(NetworkSettings settings, uint32_t to, Pool &pool);
+
     bool serve();
 
     void tick();
@@ -39,7 +41,7 @@ public:
     bool ready_to_serve() const;
 
 private:
-    bool try_configurations(const char *name, uint32_t to);
+    bool try_configurations(const char *name, uint32_t to, Pool &pool);
 
     NetworkSettings get_settings(configuration_t::wifi_network_t const &network, const char *name);
 
