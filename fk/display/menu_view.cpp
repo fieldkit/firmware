@@ -99,7 +99,7 @@ void MenuView::create_modules_menu() {
     auto modules_water = to_lambda_option(pool_, "Water", [=]() {
         back_->on_selected();
         views_->show_home();
-        auto worker = create_pool_wrapper<ConfigureModuleWorker, DefaultWorkerPoolSize, PoolWorker<ConfigureModuleWorker>>(ConfigureModuleKind::Water);
+        auto worker = create_default_pool_worker<ConfigureModuleWorker>(ConfigureModuleKind::Water);
         if (!get_ipc()->launch_worker(worker)) {
             delete worker;
             return;
@@ -108,7 +108,7 @@ void MenuView::create_modules_menu() {
     auto modules_weather = to_lambda_option(pool_, "Weather", [=]() {
         back_->on_selected();
         views_->show_home();
-        auto worker = create_pool_wrapper<ConfigureModuleWorker, DefaultWorkerPoolSize, PoolWorker<ConfigureModuleWorker>>(ConfigureModuleKind::Weather);
+        auto worker = create_default_pool_worker<ConfigureModuleWorker>(ConfigureModuleKind::Weather);
         if (!get_ipc()->launch_worker(worker)) {
             delete worker;
             return;
@@ -117,7 +117,7 @@ void MenuView::create_modules_menu() {
     auto modules_ultrasonic = to_lambda_option(pool_, "Ultrasonic", [=]() {
         back_->on_selected();
         views_->show_home();
-        auto worker = create_pool_wrapper<ConfigureModuleWorker, DefaultWorkerPoolSize, PoolWorker<ConfigureModuleWorker>>(ConfigureModuleKind::Ultrasonic);
+        auto worker = create_default_pool_worker<ConfigureModuleWorker>(ConfigureModuleKind::Ultrasonic);
         if (!get_ipc()->launch_worker(worker)) {
             delete worker;
             return;
@@ -192,7 +192,7 @@ void MenuView::create_network_menu() {
     auto network_toggle = to_lambda_option(pool_, "Toggle Wifi", [=]() {
         back_->on_selected();
         views_->show_home();
-        auto worker = create_pool_wrapper<WifiToggleWorker, DefaultWorkerPoolSize, PoolWorker<WifiToggleWorker>>();
+        auto worker = create_default_pool_worker<WifiToggleWorker>();
         if (!get_ipc()->launch_worker(worker)) {
             delete worker;
             return;

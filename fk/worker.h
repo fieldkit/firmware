@@ -5,6 +5,7 @@
 
 #include "common.h"
 #include "pool.h"
+#include "config.h"
 
 namespace fk {
 
@@ -65,5 +66,10 @@ public:
         return wrapped_->name();
     }
 };
+
+template<typename T, size_t Size = DefaultWorkerPoolSize, typename W = PoolWorker<T>, class... Args>
+inline W *create_default_pool_worker(Args &&... args) {
+    return create_pool_wrapper<T, Size, W>(std::forward<Args>(args)...);
+}
 
 }
