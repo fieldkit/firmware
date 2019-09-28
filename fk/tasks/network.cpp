@@ -14,10 +14,16 @@ class NetworkTask {
 private:
     Network *network_;
     HttpServer *http_server_;
+    uint32_t last_checked_configuration_{ 0 };
+    uint32_t configuration_modified_{ 0 };
 
 public:
     NetworkTask(Network *network, HttpServer &http_server);
     virtual ~NetworkTask();
+
+public:
+    NetworkSettings get_selected_settings(Pool &pool);
+    bool did_configuration_change();
 
 };
 
@@ -37,20 +43,36 @@ NetworkTask::~NetworkTask() {
     loginfo("network stopped");
 }
 
-NetworkSettings get_selected_settings(Pool &pool) {
-    auto name = fk_device_name_generate(pool);
+bool NetworkTask::did_configuration_change() {
+    if (fk_uptime() - last_checked_configuration_ < 500) {
+        return false;
+    }
+
     auto gs = get_global_state_ro();
     auto n = gs.get()->network.config.selected;
+
+    last_checked_configuration_ = fk_uptime();
+
+    return n.modified != configuration_modified_;
+}
+
+NetworkSettings NetworkTask::get_selected_settings(Pool &pool) {
+    auto name = fk_device_name_generate(pool);
+    auto gs = get_global_state_ro();
+    auto &n = gs.get()->network.config.selected;
     if (!n.valid) {
         return {
             .valid = false,
         };
     }
+
+    configuration_modified_ = n.modified;
+
     return {
-        .valid = n.valid,
+        .valid = true,
         .create = n.create,
-        .ssid = n.valid ? n.ssid : nullptr,
-        .password = n.valid ? n.password : nullptr,
+        .ssid = n.ssid,
+        .password = n.password,
         .name = name,
         .port = 80,
     };
@@ -66,7 +88,7 @@ void task_handler_network(void *params) {
         HttpServer http_server{ network, &fkc };
         NetworkTask task{ network, http_server };
 
-        auto settings = get_selected_settings(pool);
+        auto settings = task.get_selected_settings(pool);
 
         gsm.apply([=](GlobalState *gs) {
             gs->network.state = { };
@@ -95,15 +117,20 @@ void task_handler_network(void *params) {
         // In self AP mode we're waiting for connections now, and hold off doing
         // anything useful until something joins.
         auto started = fk_uptime();
-        auto last_checked = fk_uptime();
+        auto retry = false;
         while (!http_server.ready_to_serve()) {
             if (fk_uptime() - started > fkc.network.uptime) {
                 return;
             }
-            if (fk_uptime() - last_checked > 500) {
-                last_checked = fk_uptime();
+            if (task.did_configuration_change()) {
+                retry = true;
+                break;
             }
             fk_delay(10);
+        }
+
+        if (retry) {
+            continue;
         }
 
         fk_delay(500);
@@ -144,8 +171,9 @@ void task_handler_network(void *params) {
                 break;
             }
 
-            if (fk_uptime() - last_checked > 500) {
-                last_checked = fk_uptime();
+            // Break this loop and go to the beginning to recreate.
+            if (task.did_configuration_change()) {
+                break;
             }
 
             fk_delay(10);

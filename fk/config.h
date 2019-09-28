@@ -113,6 +113,16 @@ constexpr size_t DefaultWorkerPoolSize = 8192;
 constexpr size_t MaximumNumberOfWifiNetworks = 2;
 
 /**
+ * Maximum length of a WiFi SSID.
+ */
+constexpr size_t WifiMaximumSsidLength = 64;
+
+/**
+ * Maximum length of a WiFi password.
+ */
+constexpr size_t WifiMaximumPasswordLength = 64;
+
+/**
  * How long the user should hold the button to initiate a factory wipe.
  */
 constexpr uint32_t FactoryWipeButtonDuration = TwoSecondsMs;

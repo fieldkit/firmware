@@ -51,8 +51,9 @@ struct PowerState {
 struct WifiNetworkInfo {
     bool valid;
     bool create;
-    char ssid[64];
-    char password[64];
+    char ssid[WifiMaximumSsidLength];
+    char password[WifiMaximumPasswordLength];
+    uint32_t modified;
 };
 
 struct NetworkConfiguration {

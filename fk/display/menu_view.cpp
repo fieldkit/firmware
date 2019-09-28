@@ -52,6 +52,7 @@ NetworkOption<T> *to_network_option(Pool &pool, WifiNetworkInfo network, T fn) {
 
 static void choose_active_network(WifiNetworkInfo network) {
     auto gs = get_global_state_rw();
+    network.modified = fk_uptime(),
     gs.get()->network.config.selected = network;
 }
 
@@ -98,16 +99,15 @@ MenuView::MenuView(Pool &pool, ViewController *views) {
 
     auto gs = get_global_state_ro();
 
-    auto n0 = to_network_option(pool, gs.get()->network.config.wifi_networks[0], [=](WifiNetworkInfo network) {
-        choose_active_network(network);
-        back->on_selected();
-        views->show_home();
-    });
-    auto n1 = to_network_option(pool, gs.get()->network.config.wifi_networks[1], [=](WifiNetworkInfo network) {
-        choose_active_network(network);
-        back->on_selected();
-        views->show_home();
-    });
+    MenuOption *network_options[MaximumNumberOfWifiNetworks];
+    for (auto i = 0u; i < MaximumNumberOfWifiNetworks; ++i) {
+        auto &n = gs.get()->network.config.wifi_networks[i];
+        network_options[i] = to_network_option(pool, n, [=](WifiNetworkInfo network) {
+            choose_active_network(network);
+            back->on_selected();
+            views->show_home();
+        });
+    }
     auto network_choose_self = to_lambda_option(pool, "Create AP", [=]() {
         choose_active_network({
             .valid = true,
@@ -120,8 +120,8 @@ MenuView::MenuView(Pool &pool, ViewController *views) {
     network_choose_menu_ = new_menu_screen<4>(pool, {
         back,
         network_choose_self,
-        n0,
-        n1,
+        network_options[0],
+        network_options[1],
     });
 
 
