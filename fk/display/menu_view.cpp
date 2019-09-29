@@ -36,11 +36,11 @@ struct NetworkOption : public MenuOption {
         fn_(network_);
     }
 
-    bool visible() override {
+    bool active() const override {
         return network_.ssid[0] != 0;
     }
 
-    const char *label() override {
+    const char *label() const override {
         return network_.ssid;
     }
 };
@@ -67,7 +67,7 @@ struct ToggleWifiOption : public MenuOption {
         }
     }
 
-    const char *label() override {
+    const char *label() const override {
         if (get_network()->enabled()) {
             return "Disable";
         }
@@ -305,24 +305,33 @@ void MenuView::perform_factory_reset() {
 }
 
 void MenuView::selection_up(MenuScreen &screen) {
-    bool select_last = false;
+    auto select_last = false;
+    auto previous_selectable_index = -1;
+
     for (auto i = 0; screen.options[i] != nullptr; ++i) {
-        if (screen.options[i]->selected()) {
-            screen.options[i]->selected(false);
-            if (i == 0) {
-                select_last = true;
+        if (screen.options[i]->active()) {
+            if (screen.options[i]->selected()) {
+                screen.options[i]->selected(false);
+
+                if (previous_selectable_index == -1) {
+                    select_last = true;
+                }
+                else {
+                    screen.options[previous_selectable_index]->selected(true);
+                    refresh_visible(screen, previous_selectable_index);
+                    break;
+                }
             }
-            else {
-                screen.options[i - 1]->selected(true);
-                break;
-            }
+
+            previous_selectable_index = i;
         }
-        if (select_last) {
-            if (screen.options[i + 1] == nullptr) {
-                screen.options[i]->selected(true);
-                break;
-            }
-        }
+    }
+
+    if (select_last) {
+        FK_ASSERT(previous_selectable_index >= 0);
+        auto &option = screen.options[previous_selectable_index];
+        option->selected(true);
+        refresh_visible(screen, previous_selectable_index);
     }
 }
 
@@ -330,13 +339,37 @@ void MenuView::selection_down(MenuScreen &screen) {
     for (auto i = 0; screen.options[i] != nullptr; ++i) {
         if (screen.options[i]->selected()) {
             screen.options[i]->selected(false);
-            if (screen.options[i + 1] == nullptr) {
-                screen.options[0]->selected(true);
+            for (auto j = i + 1; screen.options[j] != nullptr; ++j) {
+                if (screen.options[j]->active()) {
+                    screen.options[j]->selected(true);
+                    refresh_visible(screen, j);
+                    return;
+                }
             }
-            else {
-                screen.options[i + 1]->selected(true);
+            for (auto j = 0; screen.options[j] != nullptr; ++j) {
+                if (screen.options[j]->active()) {
+                    screen.options[j]->selected(true);
+                    refresh_visible(screen, j);
+                    return;
+                }
             }
-            break;
+        }
+    }
+}
+
+void MenuView::refresh_visible(MenuScreen &screen, int8_t selected_index) {
+    static constexpr int8_t MaxiumVisible = 4;
+
+    auto nvisible = 0u;
+
+    for (int8_t i = 0; screen.options[i] != nullptr; ++i) {
+        auto &o = screen.options[i];
+        if (selected_index - i >= MaxiumVisible || nvisible >= MaxiumVisible) {
+            o->visible(false);
+        }
+        else {
+            o->visible(true);
+            nvisible++;
         }
     }
 }
@@ -352,17 +385,21 @@ MenuOption *MenuView::selected(MenuScreen &screen) {
 }
 
 MenuScreen *MenuView::goto_menu(MenuScreen *screen) {
-    MenuOption *selectable = nullptr;
+    auto selectable = -1;
     for (auto i = 0; screen->options[i] != nullptr; ++i) {
         if (screen->options[i]->selected()) {
+            refresh_visible(*screen, i);
             return screen;
         }
-        if (selectable == nullptr) {
-            selectable = screen->options[i];
+        if (screen->options[i]->active()) {
+            if (selectable < 0) {
+                selectable = i;
+            }
         }
     }
 
-    selectable->selected(true);
+    screen->options[selectable]->selected(true);
+    refresh_visible(*screen, selectable);
 
     return screen;
 }

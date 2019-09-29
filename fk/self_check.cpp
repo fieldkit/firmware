@@ -73,14 +73,15 @@ void SelfCheck::check(SelfCheckSettings settings, SelfCheckCallbacks &callbacks)
     loginfo("done");
 }
 
-void check_message(const char *name, bool ok) {
-    alogf(ok ? LogLevels::INFO : LogLevels::ERROR, LOG_FACILITY, "%s... %s", name, ok ? "OK" : "ERROR");
+void check_message(const char *name, bool ok, uint32_t elapsed) {
+    alogf(ok ? LogLevels::INFO : LogLevels::ERROR, LOG_FACILITY, "%s... %s (%" PRIu32  "ms)", name, ok ? "OK" : "ERROR", elapsed);
 }
 
 template<typename T>
 bool single_check(const char *name, T fn) {
+    auto started = fk_uptime();
     auto ok = fn();
-    check_message(name, ok);
+    check_message(name, ok, fk_uptime() - started);
     return ok;
 }
 
@@ -150,7 +151,7 @@ bool SelfCheck::spi_memory() {
     }
 
     if (!memory->begin()) {
-        check_message("bank memory", false);
+        check_message("bank memory", false, 0);
         return false;
     }
 

@@ -44,21 +44,35 @@ struct MenuOption {
     const char *label_;
     bool selected_;
     bool visible_;
+    bool active_;
 
-    MenuOption(const char *label) : label_(label), selected_(false), visible_(true) {
+    MenuOption(const char *label) : label_(label), selected_(false), visible_(true), active_(true) {
     }
 
     virtual void on_selected() = 0;
-    virtual bool visible() {
+
+    virtual bool active() const {
+        return active_;
+    }
+    virtual void active(bool active) {
+        active_ = active;
+    }
+
+    virtual bool visible() const {
         return visible_;
     }
-    virtual bool selected() {
+    virtual void visible(bool visible) {
+        visible_ = visible;
+    }
+
+    virtual bool selected() const {
         return selected_;
     }
     virtual void selected(bool value) {
         selected_ = value;
     }
-    virtual const char *label() {
+
+    virtual const char *label() const {
         return label_;
     }
 };

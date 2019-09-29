@@ -35,12 +35,14 @@ NetworkTask::~NetworkTask() {
 
     network_->stop();
 
+    loginfo("network stopped");
+
     GlobalStateManager gsm;
     gsm.apply([=](GlobalState *gs) {
         gs->network.state = { };
     });
 
-    loginfo("network stopped");
+    loginfo("done");
 }
 
 bool NetworkTask::did_configuration_change() {
@@ -108,7 +110,7 @@ void task_handler_network(void *params) {
             }
         }
 
-        gsm.apply([=](GlobalState *gs) {
+        gsm.apply([&](GlobalState *gs) {
             gs->network.state.ip = get_network()->ip_address();
             gs->network.state.enabled = fk_uptime();
             gs->network.state.connected = 0;
