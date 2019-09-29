@@ -112,6 +112,7 @@ void task_handler_network(void *params) {
             gs->network.state.ip = get_network()->ip_address();
             gs->network.state.enabled = fk_uptime();
             gs->network.state.connected = 0;
+            strncpy(gs->network.state.ssid, http_server.ssid(), sizeof(gs->network.state.ssid));
         });
 
         // In self AP mode we're waiting for connections now, and hold off doing

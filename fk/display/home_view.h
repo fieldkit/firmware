@@ -7,6 +7,9 @@
 namespace fk {
 
 class HomeView : public DisplayView {
+private:
+    uint8_t visible_{ 0 };
+
 public:
     void tick(ViewController *views) override;
     void up(ViewController *views) override;

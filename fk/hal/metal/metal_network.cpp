@@ -191,12 +191,12 @@ bool MetalNetwork::serve() {
 
     mdns_.addServiceRecord(service_name_, 80, MDNSServiceTCP);
 
-    loginfo("ready (ip = %d.%d.%d.%d) (service = %s) (status = %s)",
-            ip[0], ip[1], ip[2], ip[3], service_name_, get_wifi_status());
-
     if (!settings_.create) {
         ntp_.start();
     }
+
+    loginfo("ready (ip = %d.%d.%d.%d) (service = %s) (status = %s)",
+            ip[0], ip[1], ip[2], ip[3], service_name_, get_wifi_status());
 
     return true;
 }

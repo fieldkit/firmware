@@ -42,6 +42,10 @@ bool HttpServer::ready_to_serve() const {
     return network_->status() == NetworkStatus::Connected;
 }
 
+const char *HttpServer::ssid() const {
+    return settings_.ssid;
+}
+
 bool HttpServer::begin(uint32_t to, Pool &pool) {
     loginfo("starting network...");
 
@@ -74,6 +78,7 @@ bool HttpServer::begin(NetworkSettings settings, uint32_t to, Pool &pool) {
     auto started = fk_uptime();
     do {
         if (network_began(network_->status())) {
+            settings_ = settings;
             return true;
         }
 

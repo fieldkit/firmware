@@ -20,22 +20,33 @@ void HomeView::tick(ViewController *views) {
     screen.gps.enabled = gs.get()->gps.enabled;
     screen.gps.fix = gs.get()->gps.fix;
     screen.battery = gs.get()->power.charge;
-    screen.message = gs.get()->general.name;
     screen.logo = true;
     screen.progress = {
         gs.get()->progress.operation,
         gs.get()->progress.progress,
     };
 
+    if (visible_ == 0) {
+        screen.message = gs.get()->general.name;
+    }
+    else {
+        if (gs.get()->network.state.enabled) {
+            screen.message = gs.get()->network.state.ssid;
+        }
+        else {
+            screen.message = "WiFi Off";
+        }
+    }
+
     display->home(screen);
 }
 
 void HomeView::up(ViewController *views) {
-    views->show_menu();
+    visible_ = (visible_ - 1) % 2;
 }
 
 void HomeView::down(ViewController *views) {
-    views->show_menu();
+    visible_ = (visible_ + 1) % 2;
 }
 
 void HomeView::enter(ViewController *views) {

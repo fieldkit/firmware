@@ -14,6 +14,7 @@ private:
     ConnectionPool pool_;
     HttpRouter router_;
     Network *network_;
+    NetworkSettings settings_;
     configuration_t const *fkc_;
 
 public:
@@ -39,6 +40,8 @@ public:
     bool active_connections() const;
 
     bool ready_to_serve() const;
+
+    const char *ssid() const;
 
 private:
     bool try_configurations(const char *name, uint32_t to, Pool &pool);
