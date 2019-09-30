@@ -198,10 +198,7 @@ void MenuView::create_network_menu() {
         });
     }
     auto network_choose_self = to_lambda_option(pool_, "Create AP", [=]() {
-        choose_active_network({
-            .valid = true,
-            .create = true,
-        });
+        choose_active_network({ true, true });
         back_->on_selected();
         views_->show_home();
     });

@@ -6,6 +6,7 @@
 #include "networking/cpool.h"
 #include "networking/server.h"
 #include "networking/routing.h"
+#include "state.h"
 
 namespace fk {
 
@@ -15,14 +16,13 @@ private:
     HttpRouter router_;
     Network *network_;
     NetworkSettings settings_;
-    configuration_t const *fkc_;
 
 public:
-    HttpServer(Network *network, configuration_t const *fkc);
-    ~HttpServer();
+    HttpServer(Network *network);
+    virtual ~HttpServer();
 
 public:
-    bool begin(uint32_t to, Pool &pool);
+    bool begin(GlobalState const *gs, uint32_t to, Pool &pool);
 
     bool begin(NetworkSettings settings, uint32_t to, Pool &pool);
 
@@ -42,11 +42,6 @@ public:
     bool ready_to_serve() const;
 
     const char *ssid() const;
-
-private:
-    bool try_configurations(const char *name, uint32_t to, Pool &pool);
-
-    NetworkSettings get_settings(configuration_t::wifi_network_t const &network, const char *name);
 
 };
 

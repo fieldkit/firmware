@@ -54,6 +54,17 @@ struct WifiNetworkInfo {
     char ssid[WifiMaximumSsidLength];
     char password[WifiMaximumPasswordLength];
     uint32_t modified;
+
+    WifiNetworkInfo() {
+    }
+
+    WifiNetworkInfo(bool valid, bool create) : valid(valid), create(create) {
+    }
+
+    WifiNetworkInfo(const char *ssid, const char *password) {
+        strncpy(this->ssid, ssid, WifiMaximumSsidLength);
+        strncpy(this->password, password, WifiMaximumPasswordLength);
+    }
 };
 
 struct NetworkConfiguration {

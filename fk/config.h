@@ -264,22 +264,6 @@ typedef struct configuration_t {
          * How long network is kept up and available before turning off due to inactivity.
          */
         uint32_t uptime{ FiveMinutesMs };
-
-        /**
-         * WiFi network configurations.
-         */
-        wifi_network_t networks[MaximumNumberOfWifiNetworks] = {
-            #if defined(FK_WIFI_0_SSID) && defined(FK_WIFI_0_PASSWORD)
-            { FK_WIFI_0_SSID, FK_WIFI_0_PASSWORD },
-            #else
-            { nullptr, nullptr },
-            #endif
-            #if defined(FK_WIFI_1_SSID) && defined(FK_WIFI_1_PASSWORD)
-            { FK_WIFI_1_SSID, FK_WIFI_1_PASSWORD },
-            #else
-            { nullptr, nullptr },
-            #endif
-        };
     } network_t;
 
     /**

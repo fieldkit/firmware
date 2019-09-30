@@ -18,7 +18,7 @@ static bool network_began(NetworkStatus status) {
     return status == NetworkStatus::Connected || status == NetworkStatus::Listening;
 }
 
-HttpServer::HttpServer(Network *network, configuration_t const *fkc) : network_(network), fkc_(fkc) {
+HttpServer::HttpServer(Network *network) : network_(network) {
 }
 
 HttpServer::~HttpServer() {
@@ -46,15 +46,39 @@ const char *HttpServer::ssid() const {
     return settings_.ssid;
 }
 
-bool HttpServer::begin(uint32_t to, Pool &pool) {
-    loginfo("starting network...");
-
+bool HttpServer::begin(GlobalState const *gs, uint32_t to, Pool &pool) {
     auto name = fk_device_name_generate(pool);
-    if (!try_configurations(name, to, pool)) {
-        return false;
+    for (auto &wifi_network : gs->network.config.wifi_networks) {
+        auto settings = NetworkSettings{
+            .valid = wifi_network.ssid[0] != 0,
+            .create = false,
+            .ssid = wifi_network.ssid,
+            .password = wifi_network.password,
+            .name = name,
+            .port = 80,
+        };
+
+        if (settings.valid) {
+            if (begin(settings, to, pool)) {
+                return true;
+            }
+        }
     }
 
-    return true;
+    auto settings = NetworkSettings{
+        .valid = true,
+        .create = true,
+        .ssid = nullptr,
+        .password = nullptr,
+        .name = name,
+        .port = 80,
+    };
+
+    if (begin(settings, to, pool)) {
+        return true;
+    }
+
+    return false;
 }
 
 bool HttpServer::begin(NetworkSettings settings, uint32_t to, Pool &pool) {
@@ -114,39 +138,6 @@ void HttpServer::tick() {
 
 void HttpServer::stop() {
     network_->stop();
-}
-
-bool HttpServer::try_configurations(const char *name, uint32_t to, Pool &pool) {
-    for (auto &config : fkc_->network.networks) {
-        auto settings = get_settings(config, name);
-
-        if (begin(settings, to, pool)) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-NetworkSettings HttpServer::get_settings(configuration_t::wifi_network_t const &network, const char *name) {
-    if (network.ssid == nullptr) {
-        return {
-            .valid = true,
-            .create = true,
-            .ssid = name,
-            .password = nullptr,
-            .name = name,
-            .port = 80,
-        };
-    }
-    return {
-        .valid = true,
-        .create = false,
-        .ssid = network.ssid,
-        .password = network.password,
-        .name = name,
-        .port = 80,
-    };
 }
 
 }

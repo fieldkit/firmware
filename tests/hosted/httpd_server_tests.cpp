@@ -16,13 +16,16 @@ TEST_F(HttpServerSuite, WhenThingsAllWork) {
     configuration_t fkc;
     MockNetwork network;
     MallocPool pool{ "pool", 256 };
-    HttpServer server{ &network, &fkc };
+    HttpServer server{ &network };
+    GlobalState gs;
+    bzero(&gs, sizeof(GlobalState));
+    gs.network.config.wifi_networks[0] = WifiNetworkInfo{ "Conservify", "blahblah" };
 
     EXPECT_CALL(network, begin(_)).WillOnce(Return(true));
     EXPECT_CALL(network, status()).WillRepeatedly(Return(NetworkStatus::Connected));
     EXPECT_CALL(network, serve()).WillOnce(Return(true));
 
-    ASSERT_TRUE(server.begin(0, pool));
+    ASSERT_TRUE(server.begin(&gs, 0, pool));
     ASSERT_TRUE(server.serve());
 
     // Called in the dtor.
@@ -33,7 +36,10 @@ TEST_F(HttpServerSuite, WhenBeginTakesTooLong) {
     configuration_t fkc;
     MockNetwork network;
     MallocPool pool{ "pool", 256 };
-    HttpServer server{ &network, &fkc };
+    HttpServer server{ &network };
+    GlobalState gs;
+    bzero(&gs, sizeof(GlobalState));
+    gs.network.config.wifi_networks[0] = WifiNetworkInfo{ "Conservify", "blahblah" };
 
     fk_fake_uptime({ 0, 1000, 5000, 31000, 36000, 61000 });
 
@@ -42,7 +48,7 @@ TEST_F(HttpServerSuite, WhenBeginTakesTooLong) {
         .WillOnce(Return(true));
     EXPECT_CALL(network, status()).WillRepeatedly(Return(NetworkStatus::Ready));
 
-    ASSERT_FALSE(server.begin(0, pool));
+    ASSERT_FALSE(server.begin(&gs, 0, pool));
 
     // Called in the dtor.
     EXPECT_CALL(network, stop()).WillOnce(Return(true));
@@ -52,13 +58,16 @@ TEST_F(HttpServerSuite, WhenServeFails) {
     configuration_t fkc;
     MockNetwork network;
     MallocPool pool{ "pool", 256 };
-    HttpServer server{ &network, &fkc };
+    HttpServer server{ &network };
+    GlobalState gs;
+    bzero(&gs, sizeof(GlobalState));
+    gs.network.config.wifi_networks[0] = WifiNetworkInfo{ "Conservify", "blahblah" };
 
     EXPECT_CALL(network, begin(_)).WillOnce(Return(true));
     EXPECT_CALL(network, status()).WillRepeatedly(Return(NetworkStatus::Connected));
     EXPECT_CALL(network, serve()).WillOnce(Return(false));
 
-    ASSERT_TRUE(server.begin(0, pool));
+    ASSERT_TRUE(server.begin(&gs, 0, pool));
     ASSERT_FALSE(server.serve());
 
     // Called in the dtor.

@@ -4,10 +4,18 @@
 #include "state_ref.h"
 #include "hal/random.h"
 #include "utilities.h"
+#include "secrets.h"
 
 namespace fk {
 
 FK_DECLARE_LOGGER("gsm");
+
+static void initialize_compile_time_wifi(WifiNetworkInfo &network, const char *ssid, const char *password) {
+    loginfo("(hardcoded) wifi '%s'", ssid);
+    strncpy(network.ssid, ssid, sizeof(network.ssid));
+    strncpy(network.password, password, sizeof(network.password));
+    network.valid = true;
+}
 
 bool GlobalStateManager::initialize(Pool &pool) {
     auto gs = get_global_state_rw();
@@ -30,6 +38,14 @@ bool GlobalStateManager::initialize(Pool &pool) {
         nc.ssid[0] = 0;
         nc.password[0] = 0;
     }
+
+    #if defined(FK_WIFI_0_SSID) && defined(FK_WIFI_0_PASSWORD)
+    initialize_compile_time_wifi(gs.get()->network.config.wifi_networks[0], FK_WIFI_0_SSID, FK_WIFI_0_PASSWORD);
+    #endif
+
+    #if defined(FK_WIFI_1_SSID) && defined(FK_WIFI_1_PASSWORD)
+    initialize_compile_time_wifi(gs.get()->network.config.wifi_networks[1], FK_WIFI_1_SSID, FK_WIFI_1_PASSWORD);
+    #endif
 
     return true;
 }

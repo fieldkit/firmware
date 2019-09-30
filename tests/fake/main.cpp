@@ -93,9 +93,10 @@ static void server(Fake *fake) {
     MallocPool pool{ "pool", 1024 };
     configuration_t fkc;
     LinuxNetwork network;
-    HttpServer http_server{ &network, &fkc };
+    HttpServer http_server{ &network };
+    auto gs = get_global_state_ro();
 
-    if (!http_server.begin(fkc.network.uptime, pool)) {
+    if (!http_server.begin(gs.get(), fkc.network.uptime, pool)) {
         return;
     }
 
