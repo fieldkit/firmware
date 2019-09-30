@@ -2,7 +2,11 @@
 
 PROGRAM=fk-weather-sidecar.bin
 
-JLinkExe -if SWD -device ATSAMD09D14A -speed 4000 <<EOF
+if [ ! -f $PROGRAM ]; then
+    PROGRAM=build/samd09/modules/weather/sidecar/fk-weather-sidecar.bin
+fi
+
+JLinkExe -if SWD -device ATSAMD09D14A -speed 4000 -SelectEmuBySN 801000989 <<EOF
 exitonerror 1
 connect
 sleep 100
