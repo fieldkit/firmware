@@ -41,6 +41,7 @@ bool WeatherModule::initialize(ModuleContext mc, fk::Pool &pool) {
     bzero(&reading, sizeof(fk_weather_t));
     address_ = 0;
     seconds_ = 0;
+    checks_ = 0;
 
     // Scan all of the EEPROM to find the MAX(seconds) reading. This will be the
     // end of them and we'll be resuming from there.
@@ -128,6 +129,7 @@ ModuleReadings *WeatherModule::take_readings(ModuleContext mc, fk::Pool &pool) {
     uint32_t rain_ticks = 0;
     uint32_t wind_ticks = 0;
     uint32_t old_session = session_;
+    uint32_t errors = 0;
 
     while (true) {
         if (address_ + sizeof(fk_weather_t) >= EEPROM_ADDRESS_READINGS_END) {
@@ -145,7 +147,8 @@ ModuleReadings *WeatherModule::take_readings(ModuleContext mc, fk::Pool &pool) {
             float temperature = temp.temperature_2 / 16.0f;
 
             if (temp.error != 0) {
-                logerror("[0x%04" PRIx32 "] error detected (%" PRIu32 ") (%" PRIu32 ")", address_, temp.memory_failures, temp.reading_failures);
+                logerror("[0x%04" PRIx32 "] error detected err(%" PRIu32 ") memf(%" PRIu32 ") readf(%" PRIu32 ")", address_, temp.error, temp.memory_failures, temp.reading_failures);
+                errors++;
             }
 
             if (temp.seconds < seconds_) {
@@ -153,10 +156,10 @@ ModuleReadings *WeatherModule::take_readings(ModuleContext mc, fk::Pool &pool) {
             }
 
             if (temp.session < session_) {
-                logwarn("[0x%04" PRIx32 "] module restarted (%" PRIu32 " < %" PRIu32 ") (%" PRIu32 ") (%" PRIu32 ")", address_, temp.session, session_, temp.memory_failures, temp.reading_failures);
+                logwarn("[0x%04" PRIx32 "] module restarted (%" PRIu32 " < %" PRIu32 ") memf(%" PRIu32 ") readf(%" PRIu32 ")", address_, temp.session, session_, temp.memory_failures, temp.reading_failures);
             }
 
-            logdebug("[0x%04" PRIx32 "] reading (%" PRIu32 ") (%" PRIu32 ") (%" PRIu32 ") (%.2f)", address_, seconds_, temp.memory_failures, temp.reading_failures, temperature);
+            logdebug("[0x%04" PRIx32 "] reading (%" PRIu32 ") memf(%" PRIu32 ") readf(%" PRIu32 ") (%.2f)", address_, seconds_, temp.memory_failures, temp.reading_failures, temperature);
 
             reading = temp;
             seconds_ = temp.seconds;
@@ -174,12 +177,19 @@ ModuleReadings *WeatherModule::take_readings(ModuleContext mc, fk::Pool &pool) {
 
     // Detect stalled conditions, until we can figure out why this happened.
     if (old_session == session_ || reading.seconds == 0) {
-        logwarn("no readings, hupping module...");
-        if (!mc.power_cycle()) {
-            logerror("error power cycling");
+        if (checks_ > 0 && errors > 0) {
+            logwarn("no readings, hupping module...");
+            if (!mc.power_cycle()) {
+                logerror("error power cycling");
+            }
+        }
+        else {
+            logwarn("no readings...");
         }
         return nullptr;
     }
+
+    checks_++;
 
     auto adc_raw = (__builtin_bswap16(reading.wind.direction) >> 4) & 0xff;
     auto adc_mv = adc_raw * (3.3f / 256.0f) * 1000.0f;

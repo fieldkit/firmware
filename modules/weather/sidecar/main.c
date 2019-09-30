@@ -107,11 +107,42 @@ int32_t eeprom_region_append_error(eeprom_region_t *region, uint32_t error, uint
     weather.crc = fk_weather_sign(&weather);
 
     int32_t rv = eeprom_region_append(region, &weather);
-    if (rv != FK_SUCCESS) {
-        return rv;
+
+    board_eeprom_i2c_disable();
+
+    return rv;
+}
+
+static void i2c_eeprom_recover() {
+    i2c_m_sync_disable(&I2C_0);
+}
+
+static void i2c_sensors_recover() {
+    i2c_m_sync_disable(&I2C_1);
+
+    gpio_set_pin_direction(PA22, GPIO_DIRECTION_OUT);
+    gpio_set_pin_direction(PA23, GPIO_DIRECTION_OUT);
+
+    for (int32_t i = 0; i < 9; ++i) {
+        gpio_set_pin_level(PA22, 1);
+        delay_ms(1);
+        gpio_set_pin_level(PA22, 0);
+        delay_ms(1);
+        gpio_set_pin_level(PA22, 1);
+        delay_ms(1);
     }
 
-    return FK_SUCCESS;
+    for (int32_t i = 0; i < 9; ++i) {
+        gpio_set_pin_level(PA23, 1);
+        delay_ms(1);
+        gpio_set_pin_level(PA23, 0);
+        delay_ms(1);
+        gpio_set_pin_level(PA23, 1);
+        delay_ms(1);
+    }
+
+    gpio_set_pin_direction(PA22, GPIO_DIRECTION_OFF);
+    gpio_set_pin_direction(PA23, GPIO_DIRECTION_OFF);
 }
 
 __int32_t main() {
@@ -148,15 +179,11 @@ __int32_t main() {
 
     board_eeprom_i2c_enable();
 
-    if (eeprom_verify_header(&readings_region) != FK_SUCCESS) {
-        logerror("error verifying header");
-        delay_ms(1000);
-        NVIC_SystemReset();
-    }
-
     if (eeprom_region_seek_end(&readings_region, &weather.seconds) != FK_SUCCESS) {
         logerror("error finding eeprom end");
-        delay_ms(1000);
+        board_eeprom_i2c_disable();
+        i2c_eeprom_recover();
+        delay_ms(8000);
         NVIC_SystemReset();
     }
 
@@ -167,11 +194,12 @@ __int32_t main() {
     int32_t rv = sensors_initialize(&I2C_1);
     if (rv != FK_SUCCESS) {
         logerror("error initializing sensors");
-        rv = eeprom_region_append_error(&readings_region, FK_WEATHER_ERROR_SENSORS, 0, 0);
+        rv = eeprom_region_append_error(&readings_region, FK_WEATHER_ERROR_SENSORS_STARTUP, 0, 0);
         if (rv != FK_SUCCESS) {
             logerror("error writing error");
         }
-        delay_ms(1000);
+        i2c_sensors_recover();
+        delay_ms(8000);
         NVIC_SystemReset();
     }
 
@@ -190,7 +218,7 @@ __int32_t main() {
             int32_t rv = take_readings(&weather);
             if (rv != FK_SUCCESS) {
                 weather.reading_failures++;
-                unwritten_readings_push_error(&ur, FK_WEATHER_ERROR_SENSORS, weather.memory_failures, weather.reading_failures);
+                unwritten_readings_push_error(&ur, FK_WEATHER_ERROR_SENSORS_READING, weather.memory_failures, weather.reading_failures);
             }
             else {
                 unwritten_readings_push(&ur, &weather);

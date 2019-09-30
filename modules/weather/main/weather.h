@@ -42,7 +42,9 @@ typedef struct fk_weather_config_t {
     uint32_t crc;
 } fk_weather_config_t;
 
-#define FK_WEATHER_ERROR_SENSORS               (0xff)
+#define FK_WEATHER_ERROR_SENSORS_STARTUP               (0x1)
+#define FK_WEATHER_ERROR_SENSORS_READING               (0x2)
+#define FK_WEATHER_ERROR_SENSORS_MEMORY                (0x3)
 
 #ifdef __cplusplus
 }

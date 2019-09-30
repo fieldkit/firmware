@@ -7,6 +7,7 @@ private:
     uint32_t seconds_{ 0 };
     uint32_t session_{ 0 };
     uint32_t address_{ 0 };
+    uint32_t checks_{ 0 };
 
 public:
     bool initialize(fk::ModuleContext mc, fk::Pool &pool) override;
