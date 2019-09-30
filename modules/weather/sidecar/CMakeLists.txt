@@ -100,6 +100,6 @@ add_custom_command(
 add_custom_target(${elf_target} ALL DEPENDS ${elf_file})
 add_dependencies(${elf_target} ${target_name})
 
-add_custom_command(OUTPUT ${bin_file} COMMAND ${ARDUINO_OBJCOPY} -O binary ${elf_file} ${bin_file})
+add_custom_command(OUTPUT ${bin_file} DEPENDS ${elf_file} COMMAND ${ARDUINO_OBJCOPY} -O binary ${elf_file} ${bin_file})
 add_custom_target(${bin_target} ALL DEPENDS ${bin_file})
 add_dependencies(${bin_target} ${elf_target})
