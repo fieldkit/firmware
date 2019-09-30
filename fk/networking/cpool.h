@@ -20,8 +20,10 @@ private:
     size_t position_;
     uint32_t started_{ 0 };
     uint32_t activity_{ 0 };
-    uint32_t wrote_{ 0 };
-    uint32_t read_{ 0 };
+    uint32_t bytes_rx_{ 0 };
+    uint32_t bytes_tx_{ 0 };
+    uint32_t bytes_rx_previous_{ 0 };
+    uint32_t bytes_tx_previous_{ 0 };
     bool routed_{ false };
     bool hex_encoding_{ false };
 
@@ -82,6 +84,8 @@ private:
     uint32_t activity_{ 0 };
     uint32_t status_{ 0 };
     uint32_t counter_{ 0 };
+    uint32_t bytes_rx_{ 0 };
+    uint32_t bytes_tx_{ 0 };
 
 public:
     ConnectionPool();
@@ -106,6 +110,17 @@ public:
         }
         return false;
     }
+
+    uint32_t bytes_rx() const {
+        return bytes_rx_;
+    };
+
+    uint32_t bytes_tx() const {
+        return bytes_tx_;
+    };
+
+private:
+    void update_statistics(Connection *c);
 
 };
 

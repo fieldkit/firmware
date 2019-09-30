@@ -28,6 +28,8 @@ struct HomeScreen : public DisplayScreen {
     struct Network {
         bool enabled;
         bool connected;
+        uint32_t bytes_rx;
+        uint32_t bytes_tx;
     };
 
     uint32_t time;

@@ -155,6 +155,8 @@ void task_handler_network(void *params) {
 
         loginfo("awaiting connections...");
 
+        auto statistics_update = fk_uptime() + 1000;
+
         while (true) {
             http_server.tick();
 
@@ -180,6 +182,14 @@ void task_handler_network(void *params) {
             // Break this loop and go to the beginning to recreate.
             if (task.did_configuration_change()) {
                 break;
+            }
+
+            if (fk_uptime() > statistics_update) {
+                gsm.apply([&](GlobalState *gs) {
+                    gs->network.state.bytes_rx = http_server.bytes_rx();
+                    gs->network.state.bytes_tx = http_server.bytes_tx();
+                });
+                statistics_update = fk_uptime() + 1000;
             }
 
             fk_delay(10);

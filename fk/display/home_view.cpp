@@ -22,6 +22,8 @@ void HomeView::tick(ViewController *views) {
     screen.recording = gs.get()->general.recording;
     screen.network.enabled = gs.get()->network.state.enabled;
     screen.network.connected = gs.get()->network.state.connected;
+    screen.network.bytes_rx = gs.get()->network.state.bytes_rx;
+    screen.network.bytes_tx = gs.get()->network.state.bytes_tx;
     screen.gps.enabled = gs.get()->gps.enabled;
     screen.gps.fix = gs.get()->gps.fix;
     screen.battery = gs.get()->power.charge;

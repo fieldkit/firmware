@@ -140,13 +140,43 @@ static bool draw_string_auto_sized(T draw, bool bold, uint16_t x, uint16_t y, ui
     return false;
 }
 
+static void pretty_bytes(uint32_t bytes, uint32_t *value, const char **suffix) {
+    if (bytes > 1024 * 1024) {
+        *value = bytes / (1024 * 1024);
+        *suffix = "MB";
+    }
+    else if (bytes > 1024) {
+        *value = bytes / (1024);
+        *suffix = "kB";
+    }
+    else {
+        *value = bytes;
+        *suffix = "B";
+    }
+}
+
 void U8g2Display::home(HomeScreen const &data) {
     draw_.setPowerSave(0);
     draw_.clearBuffer();
 
     if (data.progress.operation == nullptr) {
-        auto &logo = fk_logo_bw_80x17;
-        draw_.drawXBM(2, logo.h - 16, logo.w, logo.h, logo.data);
+        if (data.network.enabled) {
+            const char *rx_suffix = "";
+            uint32_t rx_pretty = 0;
+
+            pretty_bytes(data.network.bytes_tx, &rx_pretty, &rx_suffix);
+
+            char buffer[128];
+            tiny_snprintf(buffer, sizeof(buffer), "%d%s tx", rx_pretty, rx_suffix);
+            draw_.setFontMode(0);
+            draw_.setFont(u8g2_font_courB08_tf);
+            auto width = draw_.getUTF8Width(buffer);
+            draw_.drawUTF8(((OLED_WIDTH - 44) / 2) - (width / 2), 12, buffer);
+        }
+        else {
+            auto &logo = fk_logo_bw_80x17;
+            draw_.drawXBM(2, logo.h - 16, logo.w, logo.h, logo.data);
+        }
     }
     else {
         // TODO Modify this so that the percentage is full size and the label varies.

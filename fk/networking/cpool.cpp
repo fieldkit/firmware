@@ -15,6 +15,7 @@ ConnectionPool::ConnectionPool() {
 ConnectionPool::~ConnectionPool() {
     for (auto i = (size_t)0; i < MaximumConnections; ++i) {
         if (pool_[i] != nullptr) {
+            update_statistics(pool_[i]->get());
             delete pool_[i];
             pool_[i] = nullptr;
         }
@@ -46,11 +47,14 @@ void ConnectionPool::service(HttpRouter &router) {
             if (log_status) {
                 auto activity_elapsed = now - c->activity_;
                 auto started_elapsed = now - c->started_;
+
+                update_statistics(c);
+
                 if (activity_elapsed < FiveSecondsMs) {
-                    loginfo("[%" PRIu32 "] [%zd] active (%" PRIu32 "ms) (%" PRIu32 "ms) (%" PRIu32 " down) (%" PRIu32 " up)", c->number_, i, activity_elapsed, started_elapsed, c->read_, c->wrote_);
+                    loginfo("[%" PRIu32 "] [%zd] active (%" PRIu32 "ms) (%" PRIu32 "ms) (%" PRIu32 " down) (%" PRIu32 " up)", c->number_, i, activity_elapsed, started_elapsed, c->bytes_rx_, c->bytes_tx_);
                 }
                 else {
-                    logwarn("[%" PRIu32 "] [%zd] killing (%" PRIu32 "ms) (%" PRIu32 "ms) (%" PRIu32 " down) (%" PRIu32 " up)", c->number_, i, activity_elapsed, started_elapsed, c->read_, c->wrote_);
+                    logwarn("[%" PRIu32 "] [%zd] killing (%" PRIu32 "ms) (%" PRIu32 "ms) (%" PRIu32 " down) (%" PRIu32 " up)", c->number_, i, activity_elapsed, started_elapsed, c->bytes_rx_, c->bytes_tx_);
                     c->close();
                     delete pool_[i];
                     pool_[i] = nullptr;
@@ -61,6 +65,7 @@ void ConnectionPool::service(HttpRouter &router) {
             if (!c->service(router)) {
                 // Do this before freeing to avoid a race empty pool after a
                 // long connection, for example.
+                update_statistics(c);
                 activity_ = now;
                 delete pool_[i];
                 pool_[i] = nullptr;
@@ -84,6 +89,19 @@ void ConnectionPool::queue(NetworkConnection *c) {
         }
     }
     FK_ASSERT(false);
+}
+
+void ConnectionPool::update_statistics(Connection *c) {
+    // TODO This has races.
+
+    auto rx = c->bytes_rx_ - c->bytes_rx_previous_;
+    auto tx = c->bytes_tx_ - c->bytes_tx_previous_;
+
+    c->bytes_rx_previous_ = c->bytes_rx_;
+    c->bytes_tx_previous_ = c->bytes_tx_;
+
+    bytes_rx_ += rx;
+    bytes_tx_ += tx;
 }
 
 Connection::Connection(Pool &pool, NetworkConnection *conn, uint32_t number) : pool_{ &pool }, conn_(conn), number_(number), req_{ pool_ }, buffer_{ nullptr }, size_{ 0 }, position_{ 0 } {
@@ -162,7 +180,7 @@ bool Connection::service(HttpRouter &router) {
         auto size = pool_->size();
         auto used = pool_->used();
         auto elapsed = fk_uptime() - started_;
-        loginfo("[%" PRIu32 "] closing (%" PRIu32 " up) (%" PRIu32 " down) (%zd/%zd pooled) (%" PRIu32 "ms)", number_, wrote_, read_, used, size, elapsed);
+        loginfo("[%" PRIu32 "] closing (%" PRIu32 " tx) (%" PRIu32 " rx) (%zd/%zd pooled) (%" PRIu32 "ms)", number_, bytes_tx_, bytes_rx_, used, size, elapsed);
         return false;
     }
 
@@ -172,13 +190,13 @@ bool Connection::service(HttpRouter &router) {
 int32_t Connection::read(uint8_t *buffer, size_t size) {
     auto buffered_bytes = req_.read_buffered_body(buffer, size);
     if (buffered_bytes > 0) {
-        read_ += buffered_bytes;
+        bytes_rx_ += buffered_bytes;
         return buffered_bytes;
     }
 
     auto bytes = conn_->read(buffer, size);
     if (bytes > 0) {
-        read_ += bytes;
+        bytes_rx_ += bytes;
         activity_ = fk_uptime();
     }
 
@@ -188,7 +206,7 @@ int32_t Connection::read(uint8_t *buffer, size_t size) {
 int32_t Connection::write(uint8_t const *buffer, size_t size) {
     auto bytes = conn_->write(buffer, size);
     if (bytes > 0) {
-        wrote_ += bytes;
+        bytes_tx_ += bytes;
         activity_ = fk_uptime();
     }
     return bytes;
@@ -213,11 +231,11 @@ int32_t Connection::write(int32_t statusCode, const char *message, fk_app_HttpRe
 
     logdebug("[%" PRIu32 "] replying (%zd bytes)", number_, content_size);
 
-    wrote_ += conn_->writef("HTTP/1.1 %" PRId32 " %s\n", statusCode, message);
-    wrote_ += conn_->writef("Content-Length: %zu\n", content_size);
-    wrote_ += conn_->writef("Content-Type: %s\n", "application/octet-stream");
-    wrote_ += conn_->write("Connection: close\n");
-    wrote_ += conn_->write("\n");
+    bytes_tx_ += conn_->writef("HTTP/1.1 %" PRId32 " %s\n", statusCode, message);
+    bytes_tx_ += conn_->writef("Content-Length: %zu\n", content_size);
+    bytes_tx_ += conn_->writef("Content-Type: %s\n", "application/octet-stream");
+    bytes_tx_ += conn_->write("Connection: close\n");
+    bytes_tx_ += conn_->write("\n");
 
     logdebug("[%" PRIu32 "] headers done (%" PRIu32 "ms)", number_, fk_uptime() - started);
 
@@ -234,7 +252,7 @@ int32_t Connection::write(int32_t statusCode, const char *message, fk_app_HttpRe
         return content_size;
     }
 
-    wrote_ += content_size;
+    bytes_tx_ += content_size;
     activity_ = fk_uptime();
 
     req_.finished();
@@ -249,7 +267,7 @@ int32_t Connection::printf(const char *s, ...) {
     va_start(args, s);
     auto r = conn_->vwritef(s, args);
     va_end(args);
-    wrote_ += r;
+    bytes_tx_ += r;
     return r;
 }
 
@@ -258,12 +276,12 @@ int32_t Connection::plain(int32_t status, const char *status_description, const 
 
     auto length = strlen(text);
 
-    wrote_ += conn_->writef("HTTP/1.1 %" PRId32 " %s\n", status, status_description);
-    wrote_ += conn_->writef("Content-Length: %zu\n", length);
-    wrote_ += conn_->write("Content-Type: text/plain\n");
-    wrote_ += conn_->write("Connection: close\n");
-    wrote_ += conn_->write("\n");
-    wrote_ += conn_->write(text);
+    bytes_tx_ += conn_->writef("HTTP/1.1 %" PRId32 " %s\n", status, status_description);
+    bytes_tx_ += conn_->writef("Content-Length: %zu\n", length);
+    bytes_tx_ += conn_->write("Content-Type: text/plain\n");
+    bytes_tx_ += conn_->write("Connection: close\n");
+    bytes_tx_ += conn_->write("\n");
+    bytes_tx_ += conn_->write(text);
 
     req_.finished();
 

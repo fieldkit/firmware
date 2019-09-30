@@ -43,6 +43,14 @@ public:
 
     const char *ssid() const;
 
+    uint32_t bytes_rx() const {
+        return pool_.bytes_rx();
+    };
+
+    uint32_t bytes_tx() const {
+        return pool_.bytes_tx();
+    };
+
 };
 
 }
