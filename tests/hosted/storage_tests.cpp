@@ -850,3 +850,6 @@ TEST_F(StorageSuite, ReproduceBadPositionOnSeekToBeginning) {
         ASSERT_EQ(file_read1.record_address(), sizeof(BlockHeader));
     }
 }
+
+TEST_F(StorageSuite, ReproduceFindingWrongFileInReadHeader) {
+}

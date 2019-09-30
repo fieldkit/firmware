@@ -285,7 +285,7 @@ uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address, BlockTa
             return 0;
         }
 
-        logtrace("[%d] " PRADDRESS " write btail", file, previous_tail_address);
+        logdebug("[%d] " PRADDRESS " write btail linked = (%" PRIu32 ")", file, previous_tail_address, address);
     }
 
     return after_header;

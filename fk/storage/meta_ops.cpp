@@ -109,8 +109,8 @@ tl::expected<uint32_t, Error> MetaOps::write_modules(GlobalState const *gs, Cons
 
     auto index = 0;
     for (auto &pair : modules) {
-        auto meta = pair.meta;
-        auto module = pair.module;
+        auto &meta = pair.meta;
+        auto &module = pair.module;
         auto sensor_metas = module->get_sensors(pool);
 
         auto id_data = pool.malloc_with<pb_data_t>({
