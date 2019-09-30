@@ -10,6 +10,8 @@ namespace fk {
 
 FK_DECLARE_LOGGER("gsm");
 
+static void initialize_compile_time_wifi(WifiNetworkInfo &network, const char *ssid, const char *password) __attribute__ ((unused));
+
 static void initialize_compile_time_wifi(WifiNetworkInfo &network, const char *ssid, const char *password) {
     loginfo("(hardcoded) wifi '%s'", ssid);
     strncpy(network.ssid, ssid, sizeof(network.ssid));
