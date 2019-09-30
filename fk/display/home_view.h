@@ -3,11 +3,13 @@
 #include "common.h"
 #include "hal/display.h"
 #include "display_views.h"
+#include "config.h"
 
 namespace fk {
 
 class HomeView : public DisplayView {
 private:
+    char message_[MaximumBuildStringLength];
     uint8_t visible_{ 0 };
 
 public:

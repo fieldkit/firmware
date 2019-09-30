@@ -1,8 +1,13 @@
+#include <loading.h>
+#include <tiny_printf.h>
+
 #include "home_view.h"
 #include "hal/board.h"
 #include "hal/display.h"
 #include "state_ref.h"
 #include "platform.h"
+
+extern const struct fkb_header_t fkb_header;
 
 namespace fk {
 
@@ -21,32 +26,42 @@ void HomeView::tick(ViewController *views) {
     screen.gps.fix = gs.get()->gps.fix;
     screen.battery = gs.get()->power.charge;
     screen.logo = true;
+    screen.message = "";
     screen.progress = {
         gs.get()->progress.operation,
         gs.get()->progress.progress,
     };
 
-    if (visible_ == 0) {
+    switch (visible_) {
+    case 0: {
         screen.message = gs.get()->general.name;
+        break;
     }
-    else {
+    case 1: {
         if (gs.get()->network.state.enabled) {
             screen.message = gs.get()->network.state.ssid;
         }
         else {
             screen.message = "WiFi Off";
         }
+        break;
+    }
+    case 2: {
+        tiny_snprintf(message_, sizeof(message_), "Build #%" PRIu32, fkb_header.firmware.number);
+        screen.message = message_;
+        break;
+    }
     }
 
     display->home(screen);
 }
 
 void HomeView::up(ViewController *views) {
-    visible_ = (visible_ - 1) % 2;
+    visible_ = (visible_ - 1) % 3;
 }
 
 void HomeView::down(ViewController *views) {
-    visible_ = (visible_ + 1) % 2;
+    visible_ = (visible_ + 1) % 3;
 }
 
 void HomeView::enter(ViewController *views) {

@@ -7,6 +7,7 @@
 #include "display/display_views.h"
 #include "display/home_view.h"
 #include "display/name_view.h"
+#include "display/build_view.h"
 #include "display/qr_code_view.h"
 #include "display/readings_view.h"
 #include "display/self_check_view.h"
@@ -22,6 +23,7 @@ private:
     ReadingsView readings_view;
     MenuView menu_view;
     NameView name_view;
+    BuildView build_view;
     SelfCheckView self_check_view;
     DisplayView *view = &home_view;
 
@@ -52,6 +54,11 @@ public:
 
     void show_name() override {
         view = &name_view;
+        view->show();
+    }
+
+    void show_build() override {
+        view = &build_view;
         view->show();
     }
 

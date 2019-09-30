@@ -9,6 +9,7 @@ public:
     virtual void show_self_check() = 0;
     virtual void show_readings() = 0;
     virtual void show_name() = 0;
+    virtual void show_build() = 0;
 
 };
 

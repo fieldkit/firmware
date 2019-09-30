@@ -36,6 +36,7 @@ bool HttpReply::include_status() {
     reply_.status.identity.build.arg = (void *)fkb_header.firmware.name;
     reply_.status.identity.deviceId.arg = device_id_data;
     reply_.status.identity.generation.arg = generation_data;
+    reply_.status.identity.number.arg = (void *)pool_->sprintf("%d", fkb_header.firmware.number);
     reply_.status.power.battery.voltage = gs_->power.voltage;
     reply_.status.power.battery.percentage = gs_->power.charge;
 

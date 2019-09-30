@@ -91,6 +91,11 @@ constexpr size_t LoraAppKeyLength = 16;
 constexpr size_t MaximumNameLength = 64;
 
 /**
+ *
+ */
+constexpr size_t MaximumBuildStringLength = 32;
+
+/**
  * Maximum length of a device's generation. This is regeneration whenever the
  * file system is created.
  */

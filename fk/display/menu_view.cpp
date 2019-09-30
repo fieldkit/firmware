@@ -111,9 +111,14 @@ void MenuView::create_info_menu() {
         previous_menu_ = active_menu_;
         active_menu_ = goto_menu(modules_menu_);
     });
+    auto info_build = to_lambda_option(pool_, "Build", [=]() {
+        views_->show_build();
+        back_->on_selected();
+    });
 
-    info_menu_ = new_menu_screen<4>(pool_, {
+    info_menu_ = new_menu_screen<5>(pool_, {
         back_,
+        info_build,
         info_name,
         info_memory,
         info_modules,
