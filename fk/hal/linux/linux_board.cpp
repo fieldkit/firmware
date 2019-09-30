@@ -121,6 +121,10 @@ int32_t TwoWireWrapper::write(uint8_t address, const void *data, int32_t size) {
 void TwoWireWrapper::end() {
 }
 
+int32_t TwoWireWrapper::recover() {
+    return -1;
+}
+
 SerialWrapper::SerialWrapper(const char *name, void *ptr) : name_(name), ptr_(ptr) {
     logverbose("acquire %s", name_);
 }

@@ -144,27 +144,22 @@ static bool initialize_logging() {
     return true;
 }
 
-static bool recover_i2c() {
-    get_board()->disable_everything();
-
-    fk_delay(100);
-
-    get_board()->enable_everything();
-
-    fk_delay(100);
-
-    return true;
-}
-
 static bool initialize_hardware() {
     FK_ASSERT(get_board()->initialize());
     FK_ASSERT(get_buttons()->begin());
     FK_ASSERT(fk_random_initialize() == 0);
 
-    recover_i2c();
+    get_board()->enable_everything();
 
     if (!get_modmux()->begin()) {
         logerror("no backplane!");
+
+        get_board()->i2c_module().recover();
+
+        if (get_modmux()->begin()) {
+            loginfo("i2c recover worked!");
+            FK_ASSERT(0);
+        }
     }
 
     return true;

@@ -268,7 +268,11 @@ TwoWireWrapper::~TwoWireWrapper() {
 void TwoWireWrapper::begin() {
     if (ptr_ == nullptr) return;
 
+    __disable_irq();
+
     reinterpret_cast<TwoWire*>(ptr_)->begin();
+
+    __enable_irq();
 }
 
 int32_t TwoWireWrapper::read(uint8_t address, void *data, int32_t size) {
@@ -303,23 +307,103 @@ int32_t TwoWireWrapper::write(uint8_t address, const void *data, int32_t size) {
     return rv;
 }
 
-void TwoWireWrapper::end() {
-    if (ptr_ == nullptr) return;
+static void i2c_end(TwoWire *ptr) {
+    ptr->end();
 
-    reinterpret_cast<TwoWire*>(ptr_)->end();
-
-    if (ptr_ == &Wire) {
+    if (ptr == &Wire) {
         pinMode(PIN_WIRE_SDA, INPUT);
         pinMode(PIN_WIRE_SCL, INPUT);
     }
-    else if (ptr_ == &Wire1) {
+    else if (ptr == &Wire1) {
         pinMode(PIN_WIRE1_SDA, INPUT);
         pinMode(PIN_WIRE1_SCL, INPUT);
     }
-    else if (ptr_ == &Wire2) {
+    else if (ptr == &Wire2) {
         pinMode(PIN_WIRE2_SDA, INPUT);
         pinMode(PIN_WIRE2_SCL, INPUT);
     }
+}
+
+void TwoWireWrapper::end() {
+    if (ptr_ == nullptr) return;
+
+    __disable_irq();
+
+    i2c_end(reinterpret_cast<TwoWire*>(ptr_));
+
+    __enable_irq();
+}
+
+static bool i2c_recover(uint8_t scl, uint8_t sda) {
+    auto scl_low = digitalRead(scl) == LOW;
+    if (scl_low) {
+        logerror("i2c scl low, this may fail.");
+    }
+
+    auto tries = 10;
+    auto sda_low = digitalRead(sda) == LOW;
+    if (!sda_low) {
+        loginfo("i2c recover sda is good, why are we here?");
+        return true;
+    }
+
+    while (sda_low && tries > 0) {
+        pinMode(sda, OUTPUT);
+        delayMicroseconds(10);
+        digitalWrite(sda, HIGH);
+        delayMicroseconds(10);
+        sda_low = digitalRead(sda) == LOW;
+        if (!sda_low) {
+            loginfo("sda is back");
+            return true;
+        }
+
+        pinMode(sda, INPUT);
+        delayMicroseconds(10);
+
+        pinMode(scl, OUTPUT);
+        digitalWrite(scl, HIGH);
+        delayMicroseconds(10);
+        digitalWrite(scl, LOW);
+        delayMicroseconds(10);
+        digitalWrite(scl, HIGH);
+        delayMicroseconds(10);
+
+        tries--;
+    }
+
+    loginfo("i2c recover failed");
+
+    return false;
+}
+
+int32_t TwoWireWrapper::recover() {
+    __disable_irq();
+
+    logwarn("trying to recover i2c bus");
+
+    auto tw = reinterpret_cast<TwoWire*>(ptr_);
+
+    i2c_end(tw);
+
+    if (ptr_ == &Wire) {
+        i2c_recover(PIN_WIRE_SCL, PIN_WIRE_SDA);
+    }
+    else if (ptr_ == &Wire1) {
+        i2c_recover(PIN_WIRE1_SCL, PIN_WIRE1_SDA);
+    }
+    else if (ptr_ == &Wire2) {
+        i2c_recover(PIN_WIRE2_SCL, PIN_WIRE2_SDA);
+    }
+    else {
+        FK_ASSERT(0);
+    }
+
+    tw->begin();
+
+    __enable_irq();
+
+    return 0;
 }
 
 SerialWrapper::SerialWrapper(const char *name, void *ptr) : name_(name), ptr_(ptr) {
