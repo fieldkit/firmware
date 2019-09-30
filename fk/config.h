@@ -341,6 +341,8 @@ typedef struct configuration_t {
     } lora_settings_t;
 
     lora_settings_t lora;
+
+    bool modules_always_on{ false };
 } configuration_t;
 
 /**

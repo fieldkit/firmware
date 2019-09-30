@@ -71,6 +71,10 @@ bool MetalModMux::update_gpio(uint8_t new_gpio) {
         return false;
     }
 
+    if (fk_config().modules_always_on) {
+        new_gpio = 0xff;
+    }
+
     if (gpio_ == new_gpio) {
         return true;
     }
