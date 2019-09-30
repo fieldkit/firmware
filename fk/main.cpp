@@ -158,7 +158,6 @@ static bool initialize_hardware() {
 
         if (get_modmux()->begin()) {
             loginfo("i2c recover worked!");
-            FK_ASSERT(0);
         }
     }
 
