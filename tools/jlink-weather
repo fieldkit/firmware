@@ -1,0 +1,3 @@
+#!/bin/bash
+
+JLinkExe -if SWD -device ATSAMD09D14A -RTTTelnetPort 9200 -speed 4000 -SelectEmuBySN 801000989 -autoconnect 1
