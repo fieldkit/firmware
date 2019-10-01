@@ -8,16 +8,16 @@ bool RandomModule::initialize(ModuleContext mc, fk::Pool &pool) {
 }
 
 static SensorMetadata const fk_module_random_sensor_metas[] = {
-    { .name = "random-0", .unitOfMeasure = "", .flags = 0 },
-    { .name = "random-1", .unitOfMeasure = "", .flags = 0 },
-    { .name = "random-2", .unitOfMeasure = "", .flags = 0 },
-    { .name = "random-3", .unitOfMeasure = "", .flags = 0 },
-    { .name = "random-4", .unitOfMeasure = "", .flags = 0 },
-    { .name = "random-5", .unitOfMeasure = "", .flags = 0 },
-    { .name = "random-6", .unitOfMeasure = "", .flags = 0 },
-    { .name = "random-7", .unitOfMeasure = "", .flags = 0 },
-    { .name = "random-8", .unitOfMeasure = "", .flags = 0 },
-    { .name = "random-9", .unitOfMeasure = "", .flags = 0 },
+    { .name = "random_0", .unitOfMeasure = "", .flags = 0 },
+    { .name = "random_1", .unitOfMeasure = "", .flags = 0 },
+    { .name = "random_2", .unitOfMeasure = "", .flags = 0 },
+    { .name = "random_3", .unitOfMeasure = "", .flags = 0 },
+    { .name = "random_4", .unitOfMeasure = "", .flags = 0 },
+    { .name = "random_5", .unitOfMeasure = "", .flags = 0 },
+    { .name = "random_6", .unitOfMeasure = "", .flags = 0 },
+    { .name = "random_7", .unitOfMeasure = "", .flags = 0 },
+    { .name = "random_8", .unitOfMeasure = "", .flags = 0 },
+    { .name = "random_9", .unitOfMeasure = "", .flags = 0 },
 };
 
 static ModuleSensors fk_module_random_sensors = {

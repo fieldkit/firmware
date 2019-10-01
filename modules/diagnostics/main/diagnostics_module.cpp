@@ -5,9 +5,9 @@
 using namespace fk;
 
 static SensorMetadata const fk_module_sensor_metas[] = {
-    { .name = "battery charge",  .unitOfMeasure = "%",     .flags = 0 },
-    { .name = "battery voltage", .unitOfMeasure = "v",     .flags = 0 },
-    { .name = "free memory",     .unitOfMeasure = "bytes", .flags = 0 },
+    { .name = "battery_charge",  .unitOfMeasure = "%",     .flags = 0 },
+    { .name = "battery_voltage", .unitOfMeasure = "v",     .flags = 0 },
+    { .name = "free_memory",     .unitOfMeasure = "bytes", .flags = 0 },
     { .name = "uptime",          .unitOfMeasure = "ms",    .flags = 0 },
 };
 
