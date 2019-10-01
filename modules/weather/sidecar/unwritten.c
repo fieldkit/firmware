@@ -55,3 +55,13 @@ int32_t unwritten_readings_push_error(unwritten_readings_t *ur, uint32_t error, 
     }
     return FK_SUCCESS;
 }
+
+int32_t unwritten_readings_get_size(unwritten_readings_t *ur) {
+    int32_t delta = ur->head - ur->tail;
+
+    if (delta < 0) {
+        return UNWRITTEN_QUEUE_SIZE + delta;
+    }
+
+    return delta;
+}

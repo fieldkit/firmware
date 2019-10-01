@@ -20,3 +20,5 @@ int32_t unwritten_readings_pop(unwritten_readings_t *ur, fk_weather_t **w);
 int32_t unwritten_readings_peek(unwritten_readings_t *ur, fk_weather_t **w);
 
 int32_t unwritten_readings_push_error(unwritten_readings_t *ur, uint32_t error, uint32_t memory_failures, uint32_t reading_failures);
+
+int32_t unwritten_readings_get_size(unwritten_readings_t *ur);
