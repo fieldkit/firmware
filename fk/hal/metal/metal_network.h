@@ -23,7 +23,7 @@ private:
 public:
     MetalNetworkConnection();
     MetalNetworkConnection(WiFiClient wcl);
-    ~MetalNetworkConnection() override;
+    virtual ~MetalNetworkConnection() override;
 
 public:
     NetworkConnectionStatus status() override;
@@ -50,9 +50,10 @@ public:
 
 class MetalNetwork : public Network {
 private:
+    NetworkSettings settings_;
     bool enabled_{ false };
     char service_name_[64];
-    NetworkSettings settings_;
+    uint32_t registered_{ 0 };
     WiFiServer server_{ 80 };
     WiFiUDP udp_;
     MDNS mdns_{ udp_ };

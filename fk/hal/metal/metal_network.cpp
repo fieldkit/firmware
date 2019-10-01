@@ -8,6 +8,13 @@
 
 namespace fk {
 
+/**
+ * HACK: Hacks around amplifying service registration traffic.
+ */
+constexpr uint32_t NetworkAddServiceRecordIntervalMs = 5000;
+constexpr uint32_t NetworkRemoveServiceRecordAmplification = 5;
+constexpr uint32_t NetworkRemoveServiceRecordDelayMs = 250;
+
 class StaticWiFiCallbacks : public WiFiCallbacks {
 public:
     void *malloc(size_t size) override {
@@ -191,6 +198,8 @@ bool MetalNetwork::serve() {
 
     mdns_.addServiceRecord(service_name_, 80, MDNSServiceTCP);
 
+    registered_ = fk_uptime();
+
     if (!settings_.create) {
         ntp_.start();
     }
@@ -216,6 +225,11 @@ uint32_t MetalNetwork::ip_address() {
 }
 
 NetworkConnection *MetalNetwork::accept() {
+    if (fk_uptime() - registered_ > NetworkAddServiceRecordIntervalMs) {
+        mdns_.addServiceRecord(service_name_, 80, MDNSServiceTCP);
+        registered_  = fk_uptime();
+    }
+
     mdns_.run();
 
     if (!settings_.create) {
@@ -233,7 +247,7 @@ NetworkConnection *MetalNetwork::accept() {
 
 bool MetalNetwork::stop() {
     if (enabled_) {
-        mdns_.removeServiceRecord(80, MDNSServiceTCP);
+        mdns_.removeServiceRecord(80, MDNSServiceTCP, NetworkRemoveServiceRecordAmplification, NetworkRemoveServiceRecordDelayMs);
         ntp_.stop();
         // Ensure the previous removal gets loose?
         fk_delay(500);
