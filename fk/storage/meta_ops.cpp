@@ -167,7 +167,7 @@ tl::expected<uint32_t, Error> MetaOps::write_modules(GlobalState const *gs, Cons
 
     auto generation_data = pool.malloc_with<pb_data_t>({
         .length = sizeof(gs->general.generation),
-        .buffer = &gs->general.generation,
+        .buffer = gs->general.generation,
     });
 
     auto hash_size = fkb_header.firmware.hash_size;
@@ -178,6 +178,7 @@ tl::expected<uint32_t, Error> MetaOps::write_modules(GlobalState const *gs, Cons
     record.metadata.firmware.build.arg = (void *)fkb_header.firmware.name;
     record.metadata.deviceId.arg = (void *)device_id_data;
     record.metadata.generation.arg = (void *)generation_data;
+    record.identity.name.arg = (void *)gs->general.name;
     record.modules.arg = (void *)modules_array;
 
     auto meta = storage_.file(Storage::Meta);
