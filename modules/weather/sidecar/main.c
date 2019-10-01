@@ -125,20 +125,20 @@ static void i2c_sensors_recover() {
 
     for (int32_t i = 0; i < 9; ++i) {
         gpio_set_pin_level(PA22, 1);
-        delay_ms(1);
+        delay_us(10);
         gpio_set_pin_level(PA22, 0);
-        delay_ms(1);
+        delay_us(10);
         gpio_set_pin_level(PA22, 1);
-        delay_ms(1);
+        delay_us(10);
     }
 
     for (int32_t i = 0; i < 9; ++i) {
         gpio_set_pin_level(PA23, 1);
-        delay_ms(1);
+        delay_us(10);
         gpio_set_pin_level(PA23, 0);
-        delay_ms(1);
+        delay_us(10);
         gpio_set_pin_level(PA23, 1);
-        delay_ms(1);
+        delay_us(10);
     }
 
     gpio_set_pin_direction(PA22, GPIO_DIRECTION_OFF);
@@ -147,6 +147,9 @@ static void i2c_sensors_recover() {
 
 __int32_t main() {
     SEGGER_RTT_SetFlagsUpBuffer(0, SEGGER_RTT_MODE_NO_BLOCK_SKIP);
+
+    // i2c_eeprom_recover();
+    // i2c_sensors_recover();
 
     board_initialize();
 
