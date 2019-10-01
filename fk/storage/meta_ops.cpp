@@ -23,7 +23,7 @@ tl::expected<uint32_t, Error> MetaOps::write_state(GlobalState const *gs, Pool &
 
     pb_data_t generation = {
         .length = sizeof(gs->general.generation),
-        .buffer = &gs->general.generation,
+        .buffer = gs->general.generation,
     };
 
     auto hash_size = fkb_header.firmware.hash_size;
