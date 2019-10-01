@@ -16,3 +16,5 @@ int32_t board_timer_setup(struct timer_task *const timer_task, uint32_t interval
 int32_t board_eeprom_i2c_enable();
 
 int32_t board_eeprom_i2c_disable();
+
+uint32_t board_system_time_get();

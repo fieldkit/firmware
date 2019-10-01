@@ -1,6 +1,18 @@
 #include "board.h"
 #include "logging.h"
 
+static volatile uint32_t timer_system_time_ticks = 0;
+
+static struct timer_task timer_system_time;
+
+static void timer_system_time_cb(struct timer_task const *const timer_task) {
+    timer_system_time_ticks++;
+}
+
+uint32_t board_system_time_get() {
+    return timer_system_time_ticks;
+}
+
 int32_t board_initialize() {
     system_init();
 
@@ -13,6 +25,8 @@ int32_t board_initialize() {
     WDT_0_init();
 
     i2c_m_sync_enable(&I2C_1);
+
+    FK_ASSERT(board_timer_setup(&timer_system_time, 1, timer_system_time_cb) == FK_SUCCESS);
 
     return FK_SUCCESS;
 }

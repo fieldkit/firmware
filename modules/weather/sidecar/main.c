@@ -20,7 +20,7 @@ int32_t read_configuration(fk_weather_config_t *config) {
     return FK_SUCCESS;
 }
 
-static uint8_t take_readings_triggered = 0;
+static volatile uint8_t take_readings_triggered = 0;
 
 static void timer_task_cb(struct timer_task const *const timer_task) {
     take_readings_triggered = 1;
@@ -224,13 +224,14 @@ __int32_t main() {
                 unwritten_readings_push(&ur, &weather);
             }
 
+            int32_t nentries = unwritten_readings_get_size(&ur);
             rv = eeprom_region_append_unwritten(&readings_region, &ur);
             if (rv != FK_SUCCESS) {
                 if (rv == FK_ERROR_BUSY) {
                     loginfo("readings: eeprom busy");
                 }
                 else {
-                    logerror("readings: error appending");
+                    logerrorf("readings: error appending (%" PRIu32 ")", nentries);
                     weather.memory_failures++;
                 }
             }

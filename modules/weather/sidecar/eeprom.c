@@ -233,6 +233,7 @@ int32_t eeprom_region_append_unwritten(eeprom_region_t *region, unwritten_readin
     }
 
     board_eeprom_i2c_disable();
+
     return FK_SUCCESS;
 }
 
