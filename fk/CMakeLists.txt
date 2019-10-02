@@ -35,6 +35,10 @@ function(fk_add_builtin_module name)
   find_package(Asf4)
   target_link_libraries(${target_name} Asf4)
 
+  # NOTE: For DateTime
+  find_package(lwcron)
+  target_link_libraries(${target_name} lwcron)
+
   # TODO: REMOVE
   find_package(nanopb)
   target_link_libraries(${target_name} nanopb)

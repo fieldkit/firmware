@@ -45,6 +45,7 @@ public:
     GlobalState const *gs();
     TwoWireWrapper &module_bus();
     bool power_cycle();
+    uint32_t now() const;
 
 };
 

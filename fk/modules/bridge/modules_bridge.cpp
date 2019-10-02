@@ -1,4 +1,5 @@
-#include "modules_bridge.h"
+#include "modules/bridge/modules_bridge.h"
+#include "clock.h"
 
 namespace fk {
 
@@ -36,6 +37,10 @@ TwoWireWrapper &ModuleContext::module_bus() {
 
 bool ModuleContext::power_cycle() {
     return mm_->power_cycle(position_);
+}
+
+uint32_t ModuleContext::now() const {
+    return get_clock_now();
 }
 
 }

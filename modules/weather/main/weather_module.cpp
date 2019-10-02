@@ -9,14 +9,24 @@ using namespace fk;
 FK_DECLARE_LOGGER("weather");
 
 static SensorMetadata const fk_module_weather_sensor_metas[] = {
-    { .name = "humidity",      .unitOfMeasure = "%",      .flags = 0 },
-    { .name = "temperature_1", .unitOfMeasure = "C",      .flags = 0 },
-    { .name = "pressure",      .unitOfMeasure = "kPa",    .flags = 0 },
-    { .name = "temperature_2", .unitOfMeasure = "C",      .flags = 0 },
-    { .name = "wind",          .unitOfMeasure = "kmh",    .flags = 0 },
-    { .name = "rain",          .unitOfMeasure = "inches", .flags = 0 },
-    { .name = "wind_dir",      .unitOfMeasure = "deg",    .flags = 0 },
-    { .name = "wind_mv",       .unitOfMeasure = "mv",     .flags = 0 },
+    { .name = "humidity",             .unitOfMeasure = "%",      .flags = 0 },
+    { .name = "temperature_1",        .unitOfMeasure = "C",      .flags = 0 },
+    { .name = "pressure",             .unitOfMeasure = "kPa",    .flags = 0 },
+    { .name = "temperature_2",        .unitOfMeasure = "C",      .flags = 0 },
+    { .name = "rain",                 .unitOfMeasure = "inches", .flags = 0 },
+    { .name = "wind_speed",           .unitOfMeasure = "km/hr",  .flags = 0 },
+    { .name = "wind_dir",             .unitOfMeasure = "",       .flags = 0 },
+    { .name = "wind_dir_mv",          .unitOfMeasure = "mv",     .flags = 0 },
+
+    { .name = "wind_hr_max_speed",    .unitOfMeasure = "km/hr",  .flags = 0 },
+    { .name = "wind_hr_max_dir",      .unitOfMeasure = "",       .flags = 0 },
+    { .name = "wind_10m_max_speed",   .unitOfMeasure = "km/hr",  .flags = 0 },
+    { .name = "wind_10m_max_dir",     .unitOfMeasure = "",       .flags = 0 },
+    { .name = "wind_2m_avg_speed",    .unitOfMeasure = "km/hr",  .flags = 0 },
+    { .name = "wind_2m_avg_dir",      .unitOfMeasure = "",       .flags = 0 },
+
+    { .name = "rain_this_hour",       .unitOfMeasure = "inches", .flags = 0 },
+    { .name = "rain_prev_hour",       .unitOfMeasure = "inches", .flags = 0 },
 };
 
 static ModuleSensors fk_module_weather_sensors = {
@@ -80,33 +90,12 @@ bool WeatherModule::initialize(ModuleContext mc, fk::Pool &pool) {
         loginfo("[0x%04" PRIx32 "] end (%" PRIu32 ")", address_, seconds_);
     }
 
+    weather_ = { };
+
     return true;
 }
 
-static int16_t get_wind_direction(uint8_t raw_adc) {
-    if (raw_adc < 13) return 112;
-    if (raw_adc < 16) return 67;
-    if (raw_adc < 18) return 90;
-    if (raw_adc < 25) return 157;
-    if (raw_adc < 37) return 135;
-    if (raw_adc < 50) return 202;
-    if (raw_adc < 59) return 180;
-    if (raw_adc < 86) return 22;
-    if (raw_adc < 99) return 45;
-    if (raw_adc < 133) return 247;
-    if (raw_adc < 141) return 225;
-    if (raw_adc < 161) return 337;
-    if (raw_adc < 184) return 0;
-    if (raw_adc < 196) return 292;
-    if (raw_adc < 213) return 315;
-    if (raw_adc < 231) return 270;
-    return -1;
-}
-
 ModuleReadings *WeatherModule::take_readings(ModuleContext mc, fk::Pool &pool) {
-    static constexpr float RainPerTick = 0.2794; // mm
-    static constexpr float WindPerTick = 2.4; // km/hr
-
     auto module_bus = get_board()->i2c_module();
     auto eeprom = ModuleEeprom{ module_bus };
 
@@ -126,6 +115,7 @@ ModuleReadings *WeatherModule::take_readings(ModuleContext mc, fk::Pool &pool) {
     fk_weather_t reading;
     bzero(&reading, sizeof(fk_weather_t));
 
+    uint32_t now = mc.now();
     uint32_t rain_ticks = 0;
     uint32_t wind_ticks = 0;
     uint32_t old_session = session_;
@@ -161,6 +151,8 @@ ModuleReadings *WeatherModule::take_readings(ModuleContext mc, fk::Pool &pool) {
 
             logdebug("[0x%04" PRIx32 "] reading (%" PRIu32 ") memf(%" PRIu32 ") readf(%" PRIu32 ") (%.2f)", address_, seconds_, temp.memory_failures, temp.reading_failures, temperature);
 
+            include(now, temp);
+
             reading = temp;
             seconds_ = temp.seconds;
             session_ = temp.session;
@@ -191,19 +183,187 @@ ModuleReadings *WeatherModule::take_readings(ModuleContext mc, fk::Pool &pool) {
 
     checks_++;
 
-    auto adc_raw = (__builtin_bswap16(reading.wind.direction) >> 4) & 0xff;
-    auto adc_mv = adc_raw * (3.3f / 256.0f) * 1000.0f;
-    auto wind_angle = get_wind_direction(adc_raw);
+    auto wind_adc_raw = (__builtin_bswap16(reading.wind.direction) >> 4) & 0xff;
+    auto wind_adc_mv = wind_adc_raw * (3.3f / 256.0f) * 1000.0f;
+    auto wind_angle = get_wind_direction(wind_adc_raw);
 
     auto i = 0;
-    auto mr = new(pool) NModuleReadings<8>();
+    auto mr = new(pool) NModuleReadings<16>();
     mr->set(i++, 100.0f * ((float)reading.humidity / (0xffff)));
     mr->set(i++, -45.0f + 175.0f * ((float)reading.temperature_1 / (0xffff)));
     mr->set(i++, reading.pressure / 64.0f / 1000.0f);
     mr->set(i++, reading.temperature_2 / 16.0f);
     mr->set(i++, rain_ticks * RainPerTick);
+
     mr->set(i++, wind_ticks * WindPerTick);
     mr->set(i++, wind_angle);
-    mr->set(i++, adc_mv);
+    mr->set(i++, wind_adc_mv);
+
+    mr->set(i++, weather_.hourly_wind_gust.speed);
+    mr->set(i++, weather_.hourly_wind_gust.direction.angle);
+
+    auto wind_10m_max = weather_.get_10m_wind_max();
+    mr->set(i++, wind_10m_max.speed);
+    mr->set(i++, wind_10m_max.direction.angle);
+
+    auto wind_2m_average = weather_.get_two_minute_wind_average();
+    mr->set(i++, wind_2m_average.speed);
+    mr->set(i++, wind_2m_average.direction.angle);
+
+    mr->set(i++, weather_.get_hourly_rain());
+    mr->set(i++, weather_.previous_hourly_rain);
+
     return mr;
+}
+
+WindDirection WeatherModule::get_wind_direction(fk::fk_weather_t const &raw) {
+    auto adc_raw = (__builtin_bswap16(raw.wind.direction) >> 4) & 0xff;
+    auto wind_angle = get_wind_direction(adc_raw);
+    return { (int16_t)adc_raw, wind_angle };
+}
+
+WindReading WeatherModule::get_wind_reading(fk::fk_weather_t const &raw) {
+    // TODO Assuming 1s between
+    auto speed = raw.wind.ticks / 1.0f * WindPerTick;
+    return { speed, get_wind_direction(raw) };
+}
+
+void WeatherModule::include(uint32_t now, fk_weather_t const &raw) {
+    // Check to see if this is the reading we're expecting.
+    auto seconds_elapsed = raw.seconds - seconds_;
+
+    // We nearly always hope that this is 1. I'm hoping to dial these conditions
+    // in over time.
+    if (seconds_elapsed < 1) {
+        logerror("unexpected elapsed time %" PRIu32, seconds_elapsed);
+        weather_ = { };
+        return;
+    }
+    if (seconds_elapsed > 10) {
+        logerror("unexpected elapsed time %" PRIu32, seconds_elapsed);
+        weather_ = { };
+        return;
+    }
+
+    auto previous_full_time = DateTime{ weather_.time };
+    auto new_time = weather_.time > 0 ? weather_.time + seconds_elapsed : now;
+    auto new_full_time = DateTime{ new_time };
+
+    auto wind = get_wind_reading(raw);
+
+    weather_.hour_of_rain[new_full_time.minute()] += raw.rain.ticks * RainPerTick;
+
+    weather_.two_minutes_of_wind[weather_.two_minute_seconds_counter] = wind;
+    weather_.two_minute_seconds_counter = (weather_.two_minute_seconds_counter + seconds_elapsed) % 120;
+
+    if (wind.stronger_than(weather_.wind_gusts[weather_.ten_minute_minute_counter])) {
+        weather_.wind_gusts[weather_.ten_minute_minute_counter] = wind;
+    }
+
+    if (wind.stronger_than(weather_.hourly_wind_gust)) {
+        weather_.hourly_wind_gust = wind;
+    }
+
+    weather_.time = new_time;
+
+    if (new_full_time.minute() != previous_full_time.minute()) {
+        // TODO: Verify it's the expected minute.
+        loginfo("new minute: %d (%d)", new_full_time.minute(), weather_.ten_minute_minute_counter);
+        weather_.ten_minute_minute_counter = (weather_.ten_minute_minute_counter + 1) % 10;
+        weather_.wind_gusts[weather_.ten_minute_minute_counter] = { };
+        weather_.hour_of_rain[new_full_time.minute()] = 0;
+
+        if (new_full_time.hour() != previous_full_time.hour()) {
+            loginfo("new hour: %d", new_full_time.hour());
+
+            weather_.hourly_wind_gust = { };
+            weather_.previous_hourly_rain = weather_.get_hourly_rain();
+            for (auto i = 0u; i < 60u; ++i) {
+                weather_.hour_of_rain[i] = 0;
+            }
+
+
+            if (new_full_time.hour() < previous_full_time.hour()) {
+                loginfo("new day");
+            }
+        }
+    }
+}
+
+int16_t WeatherModule::get_wind_direction(uint8_t raw_adc) {
+    if (raw_adc < 13) return 112;
+    if (raw_adc < 16) return 67;
+    if (raw_adc < 18) return 90;
+    if (raw_adc < 25) return 157;
+    if (raw_adc < 37) return 135;
+    if (raw_adc < 50) return 202;
+    if (raw_adc < 59) return 180;
+    if (raw_adc < 86) return 22;
+    if (raw_adc < 99) return 45;
+    if (raw_adc < 133) return 247;
+    if (raw_adc < 141) return 225;
+    if (raw_adc < 161) return 337;
+    if (raw_adc < 184) return 0;
+    if (raw_adc < 196) return 292;
+    if (raw_adc < 213) return 315;
+    if (raw_adc < 231) return 270;
+    return -1;
+}
+
+WindReading WeatherState::get_two_minute_wind_average() const {
+    auto speed_sum = 0.0f;
+    auto number_of_samples = 0;
+    auto direction_sum = two_minutes_of_wind[0].direction.angle;
+    auto d = two_minutes_of_wind[0].direction.angle;
+    for (auto i = 1 ; i < 120; i++) {
+        if (two_minutes_of_wind[i].direction.angle != -1) {
+            auto delta = two_minutes_of_wind[i].direction.angle - d;
+
+            if (delta < -180) {
+                d += delta + 360;
+            }
+            else if (delta > 180) {
+                d += delta - 360;
+            }
+            else {
+                d += delta;
+            }
+
+            direction_sum += d;
+
+            speed_sum += two_minutes_of_wind[i].speed;
+
+            number_of_samples++;
+        }
+    }
+
+    auto average_speed =  speed_sum / (float)number_of_samples;
+
+    auto average_direction = (int16_t)(direction_sum / number_of_samples);
+    if (average_direction >= 360) {
+        average_direction -= 360;
+    }
+    if (average_direction < 0) {
+        average_direction += 360;
+    }
+
+    return WindReading{ average_speed, WindDirection{ -1, average_direction } };
+}
+
+WindReading WeatherState::get_10m_wind_max() const {
+    auto max = WindReading{ };
+    for (auto i = 0; i < 10; ++i) {
+        if (wind_gusts[i].stronger_than(max)) {
+            max = wind_gusts[i];
+        }
+    }
+    return max;
+}
+
+float WeatherState::get_hourly_rain() const {
+    auto total = 0.0f;
+    for (auto i = 0; i < 60; ++i) {
+        total += hour_of_rain[i];
+    }
+    return total;
 }
