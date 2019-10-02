@@ -9,11 +9,14 @@
 namespace fk {
 
 class Sc16is740 : public Reader {
-public:
-    Sc16is740();
+private:
+    AcquireTwoWireBus *acquire_bus_;
 
 public:
-    bool begin();
+    Sc16is740(AcquireTwoWireBus *acquire_bus);
+
+public:
+    bool begin(uint32_t baud);
     int32_t available_for_read();
     int32_t available_for_write();
     bool read_fifo(uint8_t *buffer, size_t size);

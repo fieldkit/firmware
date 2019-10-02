@@ -81,6 +81,32 @@ int32_t TwoWireWrapper::read_register_u16(uint8_t address, uint8_t reg, uint16_t
     return 0;
 }
 
+class AcquireBusI2cRadio : public AcquireTwoWireBus {
+public:
+    TwoWireWrapper acquire() override {
+        return get_board()->i2c_radio();
+    }
+};
+
+class AcquireBusI2cModule : public AcquireTwoWireBus {
+public:
+    TwoWireWrapper acquire() override {
+        return get_board()->i2c_module();
+    }
+};
+
+AcquireBusI2cModule acquire_i2c_radio_;
+
+AcquireTwoWireBus *Board::acquire_i2c_radio() {
+    return &acquire_i2c_radio_;
+}
+
+AcquireBusI2cModule acquire_i2c_module_;
+
+AcquireTwoWireBus *Board::acquire_i2c_module() {
+    return &acquire_i2c_module_;
+}
+
 EepromLock::~EepromLock() {
     get_board()->release_eeprom();
 }

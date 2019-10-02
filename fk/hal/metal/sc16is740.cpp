@@ -55,15 +55,14 @@ static const uint8_t XON2_REG = 0x05;
 static const uint8_t XOFF1_REG = 0x06;
 static const uint8_t XOFF2_REG = 0x07;
 
-Sc16is740::Sc16is740() {
+Sc16is740::Sc16is740(AcquireTwoWireBus *acquire_bus) : acquire_bus_(acquire_bus) {
 }
 
-bool Sc16is740::begin() {
-    auto bus = get_board()->i2c_radio();
-    bus.begin();
+bool Sc16is740::begin(uint32_t baud) {
+    auto bus = acquire_bus_->acquire();
 
     auto oscillator_hz  = 3686400;
-    auto baud_rate = 57600;
+    auto baud_rate = baud;
     auto div = oscillator_hz / (baud_rate * 16);
 
     if (!write_register(LCR_REG, LCR_SPECIAL_START)) return false;
@@ -97,7 +96,7 @@ bool Sc16is740::read_fifo(uint8_t *buffer, size_t size) {
         (uint8_t)(RHR_THR_REG << 3)
     };
 
-    auto bus = get_board()->i2c_radio();
+    auto bus = acquire_bus_->acquire();
 
     if (!I2C_CHECK(bus.write(Sc16iS740Address, setup, sizeof(setup)))) {
         return false;
@@ -115,7 +114,7 @@ bool Sc16is740::write_fifo(uint8_t const *buffer, size_t size) {
     data[0] = RHR_THR_REG << 3;
     memcpy(data + 1, buffer, size);
 
-    auto bus = get_board()->i2c_radio();
+    auto bus = acquire_bus_->acquire();
 
     if (!I2C_CHECK(bus.write(Sc16iS740Address, data, sizeof(data)))) {
         return false;
@@ -140,7 +139,7 @@ bool Sc16is740::write_register(uint8_t reg, uint8_t value) {
         value,
     };
 
-    auto bus = get_board()->i2c_radio();
+    auto bus = acquire_bus_->acquire();
 
     if (!I2C_CHECK(bus.write(Sc16iS740Address, buffer, sizeof(buffer)))) {
         return false;
@@ -154,7 +153,7 @@ bool Sc16is740::read_register(uint8_t reg, uint8_t &value) {
         (uint8_t)(reg << 3)
     };
 
-    auto bus = get_board()->i2c_radio();
+    auto bus = acquire_bus_->acquire();
 
     if (!I2C_CHECK(bus.write(Sc16iS740Address, buffer, sizeof(buffer)))) {
         return false;

@@ -12,11 +12,11 @@ FK_DECLARE_LOGGER("lora");
 #define TTN_DEFAULT_SF  7
 #define TTN_DEFAULT_FSB 2
 
-Rn2903::Rn2903() {
+Rn2903::Rn2903() : bridge_(get_board()->acquire_i2c_radio()) {
 }
 
 bool Rn2903::begin() {
-    return bridge_.begin();
+    return bridge_.begin(57600);
 }
 
 bool Rn2903::sleep(uint32_t ms) {

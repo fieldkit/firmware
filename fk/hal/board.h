@@ -89,6 +89,12 @@ public:
 
 };
 
+class AcquireTwoWireBus {
+public:
+    virtual TwoWireWrapper acquire() = 0;
+
+};
+
 class SerialWrapper {
 private:
     const char *name_;
@@ -134,6 +140,10 @@ public:
     TwoWireWrapper i2c_radio();
     TwoWireWrapper i2c_module();
     SerialWrapper gps_serial();
+
+public:
+    AcquireTwoWireBus *acquire_i2c_radio();
+    AcquireTwoWireBus *acquire_i2c_module();
 
 };
 
