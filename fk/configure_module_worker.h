@@ -12,10 +12,11 @@ enum class ConfigureModuleKind {
 
 class ConfigureModuleWorker {
 private:
+    uint8_t bay_;
     ConfigureModuleKind kind_;
 
 public:
-    ConfigureModuleWorker(ConfigureModuleKind kind);
+    ConfigureModuleWorker(uint8_t bay, ConfigureModuleKind kind);
 
 public:
     void run(Pool &pool);

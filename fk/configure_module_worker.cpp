@@ -11,7 +11,7 @@ namespace fk {
 
 FK_DECLARE_LOGGER("cfgworker");
 
-ConfigureModuleWorker::ConfigureModuleWorker(ConfigureModuleKind kind) : kind_(kind) {
+ConfigureModuleWorker::ConfigureModuleWorker(uint8_t bay, ConfigureModuleKind kind) : bay_(bay), kind_(kind) {
 }
 
 void ConfigureModuleWorker::run(Pool &pool) {
@@ -25,15 +25,18 @@ void ConfigureModuleWorker::run(Pool &pool) {
 
     switch (kind_) {
     case ConfigureModuleKind::Weather: {
-        FK_ASSERT(configurer.weather(6));
+        loginfo("configuring weather: %d", bay_);
+        FK_ASSERT(configurer.weather(bay_));
         break;
     }
     case ConfigureModuleKind::Water: {
-        FK_ASSERT(configurer.water(6));
+        loginfo("configuring water: %d", bay_);
+        FK_ASSERT(configurer.water(bay_));
         break;
     }
     case ConfigureModuleKind::Ultrasonic: {
-        FK_ASSERT(configurer.ultrasonic(6));
+        loginfo("configuring ultrasonic: %d", bay_);
+        FK_ASSERT(configurer.ultrasonic(bay_));
         break;
     }
     default: {

@@ -19,8 +19,10 @@ private:
     MenuScreen *network_choose_menu_;
     MenuScreen *tools_menu_;
     MenuScreen *main_menu_;
-    MenuScreen *modules_menu_;
+    MenuScreen *module_bays_menu_;
+    MenuScreen *module_menu_;
     uint32_t menu_time_{ 0 };
+    uint8_t selected_module_bay_{ 0 };
 
 public:
     MenuView(ViewController *views, Pool &pool);

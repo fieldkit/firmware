@@ -50,6 +50,28 @@ NetworkOption<T> *to_network_option(Pool *pool, WifiNetworkInfo network, T fn) {
     return new (*pool) NetworkOption<T>(network, fn);
 }
 
+template<typename T>
+struct ModuleBayOption : public MenuOption {
+    uint8_t index_;
+    T fn_;
+
+    ModuleBayOption(uint8_t index, const char *label, T fn) : MenuOption(label), index_(index), fn_(fn) {
+    }
+
+    void on_selected() override {
+        fn_();
+    }
+
+    bool active() const override {
+        return true;
+    }
+};
+
+template<typename T>
+ModuleBayOption<T> *to_module_bay_option(Pool *pool, uint8_t index, const char *label, T fn) {
+    return new (*pool) ModuleBayOption<T>(index, label, fn);
+}
+
 struct ToggleWifiOption : public MenuOption {
     MenuOption *back_;
     ViewController *views_;
@@ -107,29 +129,37 @@ void MenuView::create_info_menu() {
     auto info_memory = to_lambda_option(pool_, "Memory", [=]() {
         back_->on_selected();
     });
-    auto info_modules = to_lambda_option(pool_, "Modules", [=]() {
-        previous_menu_ = active_menu_;
-        active_menu_ = goto_menu(modules_menu_);
-    });
     auto info_build = to_lambda_option(pool_, "Build", [=]() {
         views_->show_build();
         back_->on_selected();
     });
 
-    info_menu_ = new_menu_screen<5>(pool_, {
+    info_menu_ = new_menu_screen<4>(pool_, {
         back_,
         info_build,
         info_name,
         info_memory,
-        info_modules,
     });
 }
 
 void MenuView::create_modules_menu() {
+    MenuOption *bay_options[4];
+    for (auto i = 0u; i < 4u; ++i) {
+        bay_options[i] = to_module_bay_option(pool_, i * 2, pool_->sprintf("%d", i + 1), [=]() {
+            selected_module_bay_ = i * 2;
+            active_menu_ = goto_menu(module_menu_);
+            loginfo("selected %d", i);
+        });
+    }
+    module_bays_menu_ = new_menu_screen<4>(pool_, {
+        bay_options[0], bay_options[1], bay_options[2], bay_options[3],
+    });
+
+
     auto modules_water = to_lambda_option(pool_, "Water", [=]() {
         back_->on_selected();
         views_->show_home();
-        auto worker = create_default_pool_worker<ConfigureModuleWorker>(ConfigureModuleKind::Water);
+        auto worker = create_default_pool_worker<ConfigureModuleWorker>(selected_module_bay_, ConfigureModuleKind::Water);
         if (!get_ipc()->launch_worker(worker)) {
             delete worker;
             return;
@@ -138,7 +168,7 @@ void MenuView::create_modules_menu() {
     auto modules_weather = to_lambda_option(pool_, "Weather", [=]() {
         back_->on_selected();
         views_->show_home();
-        auto worker = create_default_pool_worker<ConfigureModuleWorker>(ConfigureModuleKind::Weather);
+        auto worker = create_default_pool_worker<ConfigureModuleWorker>(selected_module_bay_, ConfigureModuleKind::Weather);
         if (!get_ipc()->launch_worker(worker)) {
             delete worker;
             return;
@@ -147,14 +177,14 @@ void MenuView::create_modules_menu() {
     auto modules_ultrasonic = to_lambda_option(pool_, "Ultrasonic", [=]() {
         back_->on_selected();
         views_->show_home();
-        auto worker = create_default_pool_worker<ConfigureModuleWorker>(ConfigureModuleKind::Ultrasonic);
+        auto worker = create_default_pool_worker<ConfigureModuleWorker>(selected_module_bay_, ConfigureModuleKind::Ultrasonic);
         if (!get_ipc()->launch_worker(worker)) {
             delete worker;
             return;
         }
     });
 
-    modules_menu_ = new_menu_screen<4>(pool_, {
+    module_menu_ = new_menu_screen<4>(pool_, {
         back_,
         modules_water,
         modules_weather,
@@ -241,15 +271,20 @@ void MenuView::create_main_menu() {
         previous_menu_ = active_menu_;
         active_menu_ = goto_menu(network_menu_);
     });
+    auto main_modules = to_lambda_option(pool_, "Modules", [=]() {
+        previous_menu_ = active_menu_;
+        active_menu_ = goto_menu(module_bays_menu_);
+    });
     auto main_tools = to_lambda_option(pool_, "Tools", [=]() {
         previous_menu_ = active_menu_;
         active_menu_ = goto_menu(tools_menu_);
     });
 
-    main_menu_ = new_menu_screen<4>(pool_, {
+    main_menu_ = new_menu_screen<5>(pool_, {
         main_readings,
         main_info,
         main_network,
+        main_modules,
         main_tools,
     });
 }
