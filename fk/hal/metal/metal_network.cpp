@@ -188,7 +188,7 @@ bool MetalNetwork::serve() {
     IPAddress ip = WiFi.localIP();
 
     fk_serial_number_t sn;
-    const char *suffix = ".fk";
+    const char *suffix = "._fk";
     bytes_to_hex_string(mdns_name_, sizeof(mdns_name_), (uint8_t *)&sn, sizeof(sn));
     auto id_length = bytes_to_hex_string(service_name_, sizeof(service_name_) - strlen(suffix) - 1, (uint8_t *)&sn, sizeof(sn));
     strncpy(service_name_ + id_length, suffix, strlen(suffix));
