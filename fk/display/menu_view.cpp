@@ -211,11 +211,16 @@ void MenuView::create_tools_menu() {
         back_->on_selected();
         views_->show_home();
     });
+    auto tools_restart = to_lambda_option(pool_, "Restart", [=]() {
+        get_display()->off();
+        fk_restart();
+    });
 
-    tools_menu_ = new_menu_screen<4>(pool_, {
+    tools_menu_ = new_menu_screen<5>(pool_, {
         back_,
         tools_self_check,
         tools_fsck,
+        tools_restart,
         tools_factory_reset,
     });
 }
