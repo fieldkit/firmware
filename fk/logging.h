@@ -1,4 +1,4 @@
-#include "common.h"
+#include <alogging/alogging.h>
 
 namespace fk {
 

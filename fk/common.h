@@ -3,10 +3,9 @@
 #include <inttypes.h>
 #include <string.h>
 
-#include <alogging/alogging.h>
-
 #include "debugging.h"
 #include "errors.h"
+#include "logging.h"
 
 #ifdef __cplusplus
 extern "C" {

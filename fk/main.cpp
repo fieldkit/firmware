@@ -50,8 +50,6 @@ static void run_tasks() {
         OS_PRIORITY_NORMAL + 2
     };
 
-    OS_CHECK(os_initialize());
-
     OS_CHECK(os_task_initialize(&idle_task, "idle", OS_TASK_START_RUNNING, &task_handler_idle, nullptr, idle_stack, sizeof(idle_stack)));
     OS_CHECK(os_task_initialize(&scheduler_task, "scheduler", OS_TASK_START_SUSPENDED, &task_handler_scheduler, nullptr, scheduler_stack, sizeof(scheduler_stack)));
     OS_CHECK(os_task_initialize(&network_task, "network", OS_TASK_START_SUSPENDED, &task_handler_network, nullptr, network_stack, sizeof(network_stack)));
@@ -170,6 +168,8 @@ static void scan_i2c_module_bus() {
 
 static void single_threaded_setup() {
     fk_config_initialize();
+
+    OS_CHECK(os_initialize());
 
     FK_ASSERT(fk_logging_initialize());
     FK_ASSERT(initialize_hardware());

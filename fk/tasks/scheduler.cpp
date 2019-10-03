@@ -95,7 +95,7 @@ void task_handler_scheduler(void *params) {
 
 static bool can_start_task(os_task_t *task) {
     auto status = os_task_get_status(task);
-    return status == OS_TASK_STATUS_SUSPENDED || status == OS_TASK_STATUS_FINISHED;
+    return status == OS_TASK_STATUS_SUSPENDED || status == OS_TASK_STATUS_FINISHED || status == OS_TASK_STATUS_PANIC || status == OS_TASK_STATUS_ABORTED;
 }
 
 static bool start_task_if_necessary(os_task_t *task) {
