@@ -9,7 +9,12 @@ fi
 ls -alh $PROGRAM
 sha1sum $PROGRAM
 
-JLinkExe -if SWD -device ATSAMD09D14A -speed 4000 <<EOF
+EXTRA_ARGS=""
+if [ "$(hostname 2> /dev/null)" = "JACOB-WORK" ]; then
+    EXTRA_ARGS="-SelectEmuBySN 801000989 "
+fi
+
+JLinkExe -if SWD -device ATSAMD09D14A -speed 4000 $EXTRA_ARGS <<EOF
 exitonerror 1
 connect
 sleep 100
