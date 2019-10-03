@@ -1,5 +1,6 @@
 #include <tiny_printf.h>
 
+#include "utilities.h"
 #include "hal/metal/metal_network.h"
 
 #if defined(ARDUINO)
@@ -186,12 +187,14 @@ bool MetalNetwork::serve() {
 
     IPAddress ip = WiFi.localIP();
 
-    strncpy(service_name_, settings_.name, sizeof(service_name_) - 5);
-    auto n = std::min(strlen(service_name_), sizeof(service_name_) - 5);
-    strncpy(service_name_ + n, "._fk", 4);
-    service_name_[n + 4] = 0;
+    fk_serial_number_t sn;
+    const char *suffix = ".fk";
+    bytes_to_hex_string(mdns_name_, sizeof(mdns_name_), (uint8_t *)&sn, sizeof(sn));
+    auto id_length = bytes_to_hex_string(service_name_, sizeof(service_name_) - strlen(suffix) - 1, (uint8_t *)&sn, sizeof(sn));
+    strncpy(service_name_ + id_length, suffix, strlen(suffix));
+    service_name_[id_length + 4] = 0;
 
-    if (!mdns_.begin(ip, settings_.name)) {
+    if (!mdns_.begin(ip, mdns_name_)) {
         logerror("unable to start mdns responder!");
         return false;
     }

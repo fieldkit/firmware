@@ -39,11 +39,10 @@ static size_t write_log(LogMessage const *m, const char *fstring, va_list args) 
     SEGGER_RTT_LOCK();
 
     auto level = alog_get_log_level((LogLevels)m->level);
-    auto length = 0;
 
-    length += SEGGER_RTT_printf(0, f, m->uptime, task, level, m->facility);
-    length += SEGGER_RTT_vprintf(0, fstring, &args);
-    length += SEGGER_RTT_WriteString(0, RTT_CTRL_RESET "\n");
+    SEGGER_RTT_printf(0, f, m->uptime, task, level, m->facility);
+    SEGGER_RTT_vprintf(0, fstring, &args);
+    SEGGER_RTT_WriteString(0, RTT_CTRL_RESET "\n");
 
     log_hook(m, fstring, args, nullptr);
 

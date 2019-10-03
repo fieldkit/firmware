@@ -52,6 +52,7 @@ class MetalNetwork : public Network {
 private:
     NetworkSettings settings_;
     bool enabled_{ false };
+    char mdns_name_[64];
     char service_name_[64];
     uint32_t registered_{ 0 };
     WiFiServer server_{ 80 };
