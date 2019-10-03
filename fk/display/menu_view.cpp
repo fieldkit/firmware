@@ -104,7 +104,7 @@ MenuView::MenuView(ViewController *views, Pool &pool) : pool_(&pool), views_(vie
         for (auto i = 0; active_menu_->options[i] != nullptr; ++i) {
             active_menu_->options[i]->selected_ = false;
         }
-        if (previous_menu_ == nullptr) {
+        if (previous_menu_ == nullptr || previous_menu_ == active_menu_) {
             active_menu_ = goto_menu(main_menu_);
         }
         else {
