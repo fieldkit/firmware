@@ -9,6 +9,7 @@
 #include "storage/storage.h"
 #include "tasks/tasks.h"
 #include "state.h"
+#include "logging.h"
 
 extern const struct fkb_header_t fkb_header;
 
@@ -74,35 +75,6 @@ static void run_tasks() {
     OS_CHECK(os_start());
 }
 
-static size_t write_log(const LogMessage *m, const char *fstring, va_list args) {
-    const char *task = os_task_name();
-    if (task == nullptr) {
-        task = "startup";
-    }
-
-    const char *f;
-    if ((LogLevels)m->level == LogLevels::ERROR) {
-        f = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_CYAN " %-10s " RTT_CTRL_TEXT_RED "%-7s %s: ";
-    }
-    else if ((LogLevels)m->level == LogLevels::WARN) {
-        f = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_CYAN " %-10s " RTT_CTRL_TEXT_MAGENTA "%-7s %s: ";
-    }
-    else {
-        f = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_CYAN " %-10s " RTT_CTRL_TEXT_YELLOW "%-7s %s" RTT_CTRL_RESET ": ";
-    }
-
-    SEGGER_RTT_LOCK();
-
-    auto level = alog_get_log_level((LogLevels)m->level);
-    SEGGER_RTT_printf(0, f, m->uptime, task, level, m->facility);
-    SEGGER_RTT_vprintf(0, fstring, &args);
-    SEGGER_RTT_WriteString(0, RTT_CTRL_RESET "\n");
-
-    SEGGER_RTT_UNLOCK();
-
-    return true;
-}
-
 extern uint32_t __cm_ram_origin__;
 extern uint32_t __cm_ram_end__;
 extern uint32_t __heap_start__;
@@ -138,12 +110,6 @@ static void log_diagnostics() {
     loginfo("sizeof(GlobalState) = %zd", sizeof(GlobalState ));
 }
 
-static bool initialize_logging() {
-    log_configure_writer(write_log);
-    log_configure_level(LogLevels::DEBUG);
-    return true;
-}
-
 static bool initialize_hardware() {
     FK_ASSERT(get_board()->initialize());
     FK_ASSERT(get_buttons()->begin());
@@ -161,19 +127,6 @@ static bool initialize_hardware() {
         }
     }
 
-    return true;
-}
-
-static bool initialize_debugging() {
-    auto waiting_until = fk_uptime() + FiveSecondsMs;
-
-    while (fk_uptime() < waiting_until) {
-        if (SEGGER_RTT_HasData(0) || !SEGGER_RTT_HasDataUp(0)) {
-            fk_debug_set_console_attached();
-            loginfo("debugger detected");
-            return true;
-        }
-    }
     return true;
 }
 
@@ -216,12 +169,9 @@ static void scan_i2c_module_bus() {
 }
 
 static void single_threaded_setup() {
-    auto pool = StaticPoolHere(SingleThreadedStartupPoolSize);
-
     fk_config_initialize();
 
-    FK_ASSERT(initialize_logging());
-    FK_ASSERT(initialize_debugging());
+    FK_ASSERT(fk_logging_initialize());
     FK_ASSERT(initialize_hardware());
 
     log_diagnostics();
