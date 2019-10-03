@@ -186,18 +186,22 @@ bool HttpReply::include_status() {
     reply_.loraSettings.appKey.funcs.encode = pb_encode_data;
     reply_.loraSettings.appKey.arg = (void *)app_key_data;
 
+    auto nnetworks = 0u;
     auto networks = pool_->malloc<fk_app_NetworkInfo>(MaximumNumberOfWifiNetworks);
     for (auto i = 0u; i < MaximumNumberOfWifiNetworks; ++i) {
-        networks[i] = fk_app_NetworkInfo_init_default;
-        networks[i].ssid.funcs.encode = pb_encode_string;
-        networks[i].ssid.arg = (void *)gs_->network.config.wifi_networks[i].ssid;
-        networks[i].password.funcs.encode = pb_encode_string;
-        networks[i].password.arg = (void *)gs_->network.config.wifi_networks[i].password;
-        loginfo("(loaded) [%d] network: %s", i, gs_->network.config.wifi_networks[i].ssid);
+        if (strlen(gs_->network.config.wifi_networks[i].ssid) > 0) {
+            networks[nnetworks] = fk_app_NetworkInfo_init_default;
+            networks[nnetworks].ssid.funcs.encode = pb_encode_string;
+            networks[nnetworks].ssid.arg = (void *)gs_->network.config.wifi_networks[i].ssid;
+            networks[nnetworks].password.funcs.encode = pb_encode_string;
+            networks[nnetworks].password.arg = (void *)gs_->network.config.wifi_networks[i].password;
+            loginfo("(loaded) [%d] network: %s", nnetworks, gs_->network.config.wifi_networks[i].ssid);
+            nnetworks++;
+        }
     }
 
     auto networks_array = pool_->malloc_with<pb_array_t>({
-        .length = MaximumNumberOfWifiNetworks,
+        .length = nnetworks,
         .itemSize = sizeof(fk_app_NetworkInfo),
         .buffer = networks,
         .fields = fk_app_NetworkInfo_fields,
