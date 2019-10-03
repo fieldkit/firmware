@@ -119,6 +119,7 @@ MenuView::MenuView(ViewController *views, Pool &pool) : pool_(&pool), views_(vie
     create_main_menu();
 
     active_menu_ = main_menu_;
+    refresh_visible(*active_menu_, 0);
 }
 
 void MenuView::create_info_menu() {
