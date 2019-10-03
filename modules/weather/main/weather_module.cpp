@@ -120,10 +120,16 @@ ModuleReadings *WeatherModule::take_readings(ModuleContext mc, fk::Pool &pool) {
     uint32_t wind_ticks = 0;
     uint32_t old_session = session_;
     uint32_t errors = 0;
+    uint32_t original = address_;
 
     while (true) {
         if (address_ + sizeof(fk_weather_t) >= EEPROM_ADDRESS_READINGS_END) {
             address_ = EEPROM_ADDRESS_READINGS;
+
+            if (address_ == original) {
+                logerror("error finding readings, wrap around");
+                break;
+            }
         }
 
         fk_weather_t temp;
@@ -165,6 +171,11 @@ ModuleReadings *WeatherModule::take_readings(ModuleContext mc, fk::Pool &pool) {
         }
 
         address_ += sizeof(fk_weather_t);
+
+        if (address_ == original) {
+            logerror("error finding readings, wrap around");
+            break;
+        }
     }
 
     // Detect stalled conditions, until we can figure out why this happened.
