@@ -17,4 +17,8 @@ int32_t board_eeprom_i2c_enable();
 
 int32_t board_eeprom_i2c_disable();
 
+int32_t board_sensors_i2c_enable();
+
+int32_t board_sensors_i2c_disable();
+
 uint32_t board_system_time_get();

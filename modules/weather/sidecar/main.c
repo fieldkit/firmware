@@ -113,32 +113,26 @@ int32_t eeprom_region_append_error(eeprom_region_t *region, uint32_t error, uint
     return rv;
 }
 
-static void i2c_eeprom_recover() {
-    i2c_m_sync_disable(&I2C_0);
-}
-
 static void i2c_sensors_recover() {
-    i2c_m_sync_disable(&I2C_1);
-
     gpio_set_pin_direction(PA22, GPIO_DIRECTION_OUT);
     gpio_set_pin_direction(PA23, GPIO_DIRECTION_OUT);
 
     for (int32_t i = 0; i < 9; ++i) {
         gpio_set_pin_level(PA22, 1);
-        delay_us(10);
+        delay_ms(10);
         gpio_set_pin_level(PA22, 0);
-        delay_us(10);
+        delay_ms(10);
         gpio_set_pin_level(PA22, 1);
-        delay_us(10);
+        delay_ms(10);
     }
 
     for (int32_t i = 0; i < 9; ++i) {
         gpio_set_pin_level(PA23, 1);
-        delay_us(10);
+        delay_ms(10);
         gpio_set_pin_level(PA23, 0);
-        delay_us(10);
+        delay_ms(10);
         gpio_set_pin_level(PA23, 1);
-        delay_us(10);
+        delay_ms(10);
     }
 
     gpio_set_pin_direction(PA22, GPIO_DIRECTION_OFF);
@@ -148,14 +142,12 @@ static void i2c_sensors_recover() {
 __int32_t main() {
     SEGGER_RTT_SetFlagsUpBuffer(0, SEGGER_RTT_MODE_NO_BLOCK_SKIP);
 
-    // i2c_eeprom_recover();
-    // i2c_sensors_recover();
-
     board_initialize();
 
     loginfof("board ready!");
-
     loginfof("sizeof(fk_weather_t) = %zd (%zd readings)", sizeof(fk_weather_t), EEPROM_AVAILABLE_DATA / sizeof(fk_weather_t));
+
+    i2c_sensors_recover();
 
     loginfo("waiting for eeprom...");
 
@@ -185,7 +177,6 @@ __int32_t main() {
     if (eeprom_region_seek_end(&readings_region, &weather.seconds) != FK_SUCCESS) {
         logerror("error finding eeprom end");
         board_eeprom_i2c_disable();
-        i2c_eeprom_recover();
         delay_ms(8000);
         NVIC_SystemReset();
     }
@@ -193,6 +184,8 @@ __int32_t main() {
     board_eeprom_i2c_disable();
 
     loginfo("sensors...");
+
+    board_sensors_i2c_enable();
 
     int32_t rv = sensors_initialize(&I2C_1);
     if (rv != FK_SUCCESS) {

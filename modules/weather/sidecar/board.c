@@ -24,8 +24,6 @@ int32_t board_initialize() {
     I2C_1_init();
     WDT_0_init();
 
-    i2c_m_sync_enable(&I2C_1);
-
     FK_ASSERT(board_timer_setup(&timer_system_time, 1, timer_system_time_cb) == FK_SUCCESS);
 
     return FK_SUCCESS;
@@ -57,6 +55,26 @@ int32_t board_eeprom_i2c_disable() {
     if (eeprom_i2c_enabled) {
         i2c_m_sync_disable(&I2C_0);
         eeprom_i2c_enabled = false;
+    }
+    return FK_SUCCESS;
+}
+
+static int32_t sensors_i2c_enabled = false;
+
+int32_t board_sensors_i2c_enable() {
+    if (!sensors_i2c_enabled) {
+        I2C_1_init();
+        i2c_m_sync_enable(&I2C_1);
+        sensors_i2c_enabled = true;
+    }
+
+    return FK_SUCCESS;
+}
+
+int32_t board_sensors_i2c_disable() {
+    if (sensors_i2c_enabled) {
+        i2c_m_sync_disable(&I2C_1);
+        sensors_i2c_enabled = false;
     }
     return FK_SUCCESS;
 }
