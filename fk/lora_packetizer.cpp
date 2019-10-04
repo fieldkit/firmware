@@ -46,7 +46,7 @@ public:
 
 public:
     void begin(uint32_t time, uint32_t reading) {
-        record_.time = get_clock_now();
+        record_.time = time;
         record_.number = reading;
 
         encoded_size_ += pb_varint_size(record_.time) + 1;
