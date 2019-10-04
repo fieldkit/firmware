@@ -26,7 +26,7 @@ static void run_tasks() {
      * Declaring these static, for example, will cause them to be placed in the
      * .data section, which is below the heap in memory.
      */
-    uint32_t idle_stack[1024 / sizeof(uint32_t)];
+    uint32_t idle_stack[2048 / sizeof(uint32_t)];
     uint32_t scheduler_stack[2048 / sizeof(uint32_t)];
     uint32_t display_stack[2048 / sizeof(uint32_t)];
     uint32_t gps_stack[2048 / sizeof(uint32_t)];
