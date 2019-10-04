@@ -80,7 +80,9 @@ public:
     }
 
     void set(int32_t i, float value) override {
-        readings_[i].value = value;
+        if ((size_t)i < N) {
+            readings_[i].value = value;
+        }
     }
 
     float get(int32_t i) const override {
