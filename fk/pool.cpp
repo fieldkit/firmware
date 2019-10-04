@@ -111,48 +111,30 @@ char *Pool::sprintf(const char *str, ...) {
     return ptr;
 }
 
-uint8_t *Pool::encode_undelimited(pb_msgdesc_t const *fields, void const *src, size_t *size) {
+EncodedMessage *Pool::encode(pb_msgdesc_t const *fields, void const *src, bool delimited) {
     size_t required = 0;
     if (!pb_get_encoded_size(&required, fields, src)) {
         return nullptr;
     }
 
+    required += delimited ? pb_varint_size(required) : 0;
+
     auto buffer = (uint8_t *)malloc(required);
     auto stream = pb_ostream_from_buffer(buffer, required);
-    if (!pb_encode(&stream, fields, src)) {
-        return nullptr;
+    if (delimited) {
+        if (!pb_encode_delimited(&stream, fields, src)) {
+            return nullptr;
+        }
+    }
+    else {
+        if (!pb_encode(&stream, fields, src)) {
+            return nullptr;
+        }
     }
 
     FK_ASSERT(stream.bytes_written == required);
 
-    if (size != nullptr) {
-        *size = stream.bytes_written;
-    }
-
-    return buffer;
-}
-
-uint8_t *Pool::encode(pb_msgdesc_t const *fields, void const *src, size_t *size) {
-    size_t required = 0;
-    if (!pb_get_encoded_size(&required, fields, src)) {
-        return nullptr;
-    }
-
-    required += pb_varint_size(required);
-
-    auto buffer = (uint8_t *)malloc(required);
-    auto stream = pb_ostream_from_buffer(buffer, required);
-    if (!pb_encode_delimited(&stream, fields, src)) {
-        return nullptr;
-    }
-
-    FK_ASSERT(stream.bytes_written == required);
-
-    if (size != nullptr) {
-        *size = stream.bytes_written;
-    }
-
-    return buffer;
+    return new (*this) EncodedMessage(stream.bytes_written, buffer);
 }
 
 void *Pool::decode(pb_msgdesc_t const *fields, uint8_t *src, size_t size, size_t message_size) {

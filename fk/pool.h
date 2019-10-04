@@ -9,6 +9,7 @@
 #include <pb_decode.h>
 
 #include "common.h"
+#include "encoded_message.h"
 
 namespace fk {
 
@@ -70,8 +71,7 @@ public:
     char *strndup(const char *str, size_t len);
     char *sprintf(const char *str, ...);
     Pool freeze(const char *name);
-    uint8_t *encode(pb_msgdesc_t const *fields, void const *src, size_t *size);
-    uint8_t *encode_undelimited(pb_msgdesc_t const *fields, void const *src, size_t *size);
+    EncodedMessage *encode(pb_msgdesc_t const *fields, void const *src, bool delimited = true);
     void *decode(pb_msgdesc_t const *fields, uint8_t *src, size_t size, size_t message_size);
 
     template<typename T>

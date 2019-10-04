@@ -118,19 +118,18 @@ TEST_F(HttpParsingQuerySuite, SimpleGet1) {
     fk_app_WireMessageQuery query = fk_app_WireMessageQuery_init_default;
     query.type = fk_app_QueryType_QUERY_STATUS;
 
-    size_t size = 0;
-    auto buffer = pool_.encode(fk_app_WireMessageQuery_fields, &query, &size);
+    auto encoded = pool_.encode(fk_app_WireMessageQuery_fields, &query);
 
     auto req_header = pool_.sprintf(
         "GET / HTTP/1.1\n"
         "Content-Type: text/plain\n"
         "Content-Length: %d\n"
-        "\n", size);
+        "\n", encoded->size);
 
     HttpRequest req{ &pool_ };
 
     ASSERT_EQ(req.parse(req_header, strlen(req_header)), 0);
-    ASSERT_EQ(req.parse((const char *)buffer, size), 0);
+    ASSERT_EQ(req.parse((const char *)encoded->buffer, encoded->size), 0);
 
     ASSERT_STREQ(req.url(), "/");
     ASSERT_EQ(req.length(), (uint32_t)3);

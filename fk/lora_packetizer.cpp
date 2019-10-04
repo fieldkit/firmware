@@ -74,20 +74,34 @@ public:
         encoded_size_ += sizeof(float);
     }
 
-    EncodedMessage encode(Pool &pool) {
-        size_t size{ 0 };
-
-        auto buffer = pool.encode_undelimited(fk_data_LoraRecord_fields, &record_, &size);
-        return {
-            size, buffer
-        };
+    EncodedMessage *encode(Pool &pool) {
+        if (values_array_.length == 0) {
+            return nullptr;
+        }
+        return pool.encode(fk_data_LoraRecord_fields, &record_, false);
     }
 
 };
 
+static void append(EncodedMessage **head, EncodedMessage **tail, EncodedMessage *node) {
+    if (node == nullptr) {
+        return;
+    }
+
+    node->link = nullptr;
+
+    if ((*head) == nullptr) {
+        (*head) = (*tail) = node;
+    }
+    else {
+        (*tail)->link = node;
+        (*tail) = node;
+    }
+}
+
 tl::expected<EncodedMessage*, Error> LoraPacketizer::packetize(ModuleReadingsCollection const &readings, Pool &pool) {
     EncodedMessage *head = nullptr;
-    // EncodedMessage *tail = nullptr;
+    EncodedMessage *tail = nullptr;
 
     LoraRecord record{ pool };
 
@@ -99,19 +113,18 @@ tl::expected<EncodedMessage*, Error> LoraPacketizer::packetize(ModuleReadingsCol
             record.write_reading(module.position, s, value);
 
             if (record.encoded_size() >= maximum_packet_size_) {
-                // TODO Append
-                auto encoded = record.encode(pool);
-                loginfo("size: %zd", encoded.size);
-                fk_dump_memory("lp ", encoded.buffer, encoded.size);
+                append(&head, &tail, record.encode(pool));
 
                 record = { pool };
             }
         }
+
+        append(&head, &tail, record.encode(pool));
+
+        record = { pool };
     }
 
-    auto encoded = record.encode(pool);
-    loginfo("size: %zd", encoded.size);
-    fk_dump_memory("lp ", encoded.buffer, encoded.size);
+    append(&head, &tail, record.encode(pool));
 
     return head;
 }

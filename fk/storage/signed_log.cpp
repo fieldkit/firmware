@@ -46,18 +46,17 @@ tl::expected<uint32_t, Error> SignedRecordLog::seek_record(SignedRecordKind kind
 }
 
 tl::expected<uint32_t, Error> SignedRecordLog::append_always(SignedRecordKind kind, void const *record, pb_msgdesc_t const *fields, Pool &pool) {
-    size_t size = 0;
-    auto buffer = pool.encode(fields, record, &size);
+    auto encoded = pool.encode(fields, record);
 
     uint8_t hash[Hash::Length];
     BLAKE2b b2b;
     b2b.reset(Hash::Length);
-    b2b.update(buffer, size);
+    b2b.update(encoded->buffer, encoded->size);
     b2b.finalize(&hash, Hash::Length);
 
     pb_data_t data_ref = {
-        .length = size,
-        .buffer = buffer,
+        .length = encoded->size,
+        .buffer = encoded->buffer,
     };
 
     pb_data_t hash_ref = {
@@ -84,14 +83,13 @@ tl::expected<uint32_t, Error> SignedRecordLog::append_immutable(SignedRecordKind
     if (seek_record(kind)) {
         // TODO This could be better, for example we could have a custom nanopb
         // ostream that calculates the hash.
-        size_t size = 0;
-        auto buffer = pool.encode(fields, record, &size);
-        FK_ASSERT(buffer != nullptr);
+        auto encoded = pool.encode(fields, record);
+        FK_ASSERT(encoded != nullptr);
 
         uint8_t new_hash[Hash::Length];
         BLAKE2b b2b;
         b2b.reset(Hash::Length);
-        b2b.update(buffer, size);
+        b2b.update(encoded->buffer, encoded->size);
         b2b.finalize(&new_hash, Hash::Length);
 
         fk_data_SignedRecord sr = fk_data_SignedRecord_init_default;
@@ -118,7 +116,7 @@ tl::expected<uint32_t, Error> SignedRecordLog::append_immutable(SignedRecordKind
         else {
             auto record_data = (pb_data_t *)sr.data.arg;
             fk_dump_memory("saved ", (uint8_t *)record_data->buffer, record_data->length);
-            fk_dump_memory("wrote ", (uint8_t *)buffer, size);
+            fk_dump_memory("wrote ", (uint8_t *)encoded->buffer, encoded->size);
         }
     }
     else {
@@ -129,7 +127,13 @@ tl::expected<uint32_t, Error> SignedRecordLog::append_immutable(SignedRecordKind
         logwarn("creating new file");
     }
 
-    return append_always(kind, record, fields, pool);
+    log_configure_level(LogLevels::VERBOSE);
+
+    auto rv = append_always(kind, record, fields, pool);
+
+    log_configure_level(LogLevels::DEBUG);
+
+    return rv;
 }
 
 bool SignedRecordLog::decode(void *record, pb_msgdesc_t const *fields, Pool &pool) {
