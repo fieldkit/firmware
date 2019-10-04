@@ -4,6 +4,7 @@
 #include "home_view.h"
 #include "hal/board.h"
 #include "hal/display.h"
+#include "hal/network.h"
 #include "state_ref.h"
 #include "platform.h"
 
@@ -28,7 +29,8 @@ void HomeView::tick(ViewController *views) {
     screen.gps.fix = gs.get()->gps.fix;
     screen.battery = gs.get()->power.charge;
     screen.logo = true;
-    screen.message = "";
+    screen.primary = nullptr;
+    screen.secondary = nullptr;
     screen.progress = {
         gs.get()->progress.operation,
         gs.get()->progress.progress,
@@ -36,34 +38,40 @@ void HomeView::tick(ViewController *views) {
 
     switch (visible_) {
     case 0: {
-        screen.message = gs.get()->general.name;
+        screen.primary = gs.get()->general.name;
         break;
     }
     case 1: {
         if (gs.get()->network.state.enabled) {
-            screen.message = gs.get()->network.state.ssid;
+            screen.primary = gs.get()->network.state.ssid;
+            ip4_address ip{ gs.get()->network.state.ip };
+            tiny_snprintf(secondary_, sizeof(secondary_), "%d.%d.%d.%d", ip.u.bytes[0], ip.u.bytes[1], ip.u.bytes[2], ip.u.bytes[3]);
+            screen.secondary = secondary_;
         }
         else {
-            screen.message = "WiFi Off";
+            screen.primary = "WiFi Off";
         }
         break;
     }
     case 2: {
-        tiny_snprintf(message_, sizeof(message_), "Build #%" PRIu32, fkb_header.firmware.number);
-        screen.message = message_;
+        tiny_snprintf(primary_, sizeof(primary_), "Build #%" PRIu32, fkb_header.firmware.number);
+        screen.primary = primary_;
         break;
     }
     }
+
 
     display->home(screen);
 }
 
 void HomeView::up(ViewController *views) {
     visible_ = (visible_ - 1) % 3;
+    alogf(LogLevels::INFO, "menu", "screen: %d", visible_);
 }
 
 void HomeView::down(ViewController *views) {
     visible_ = (visible_ + 1) % 3;
+    alogf(LogLevels::INFO, "menu", "screen: %d", visible_);
 }
 
 void HomeView::enter(ViewController *views) {

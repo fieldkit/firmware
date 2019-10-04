@@ -98,10 +98,12 @@ static bool toggle_every(uint32_t time, uint32_t interval) {
     return (time / interval ) % 2 == 0;
 }
 
+/*
 static int32_t lerp(int32_t start, int32_t end, uint32_t interval, uint32_t time) {
     auto scale = ((float)(time % interval) / (float)interval);
     return start + (int32_t)((float)(end - start) * scale);
 }
+*/
 
 template<typename T>
 static bool draw_string_auto_sized(T draw, bool bold, uint16_t x, uint16_t y, uint16_t w, uint16_t h, const char *str) {
@@ -222,14 +224,18 @@ void U8g2Display::home(HomeScreen const &data) {
         }
     }
 
-    if (data.message != nullptr) {
-        if (!draw_string_auto_sized(draw_, false, 0, 18, OLED_WIDTH, 20, data.message)) {
-            draw_.setFontMode(0);
-            draw_.setFont(u8g2_font_courB18_tf);
-            auto width = draw_.getUTF8Width(data.message);
-            auto x = lerp(-width, OLED_WIDTH, 10000, data.time);
-            draw_.drawUTF8(x, 18 + 20, data.message);
-        }
+    auto top = 18;
+    auto max_h = 20;
+    if (data.primary != nullptr && data.secondary != nullptr) {
+        max_h = 16;
+    }
+    if (data.primary != nullptr) {
+        draw_string_auto_sized(draw_, false, 0, top, OLED_WIDTH, max_h, data.primary);
+        top += max_h + 6;
+        max_h -= 2;
+    }
+    if (data.secondary != nullptr) {
+        draw_string_auto_sized(draw_, false, 0, top, OLED_WIDTH, max_h, data.secondary);
     }
 
     draw_.sendBuffer();
@@ -321,7 +327,14 @@ void U8g2Display::simple(SimpleScreen &screen) {
         draw_.setFontMode(1);
         draw_.setFont(u8g2_font_courR08_tf);
         auto width = draw_.getUTF8Width(screen.message);
-        draw_.drawUTF8((OLED_WIDTH / 2) - (width / 2), 32, screen.message);
+        draw_.drawUTF8((OLED_WIDTH / 2) - (width / 2), OLED_HEIGHT / 2, screen.message);
+    }
+
+    if (screen.secondary != nullptr) {
+        draw_.setFontMode(1);
+        draw_.setFont(u8g2_font_courR08_tf);
+        auto width = draw_.getUTF8Width(screen.secondary);
+        draw_.drawUTF8((OLED_WIDTH / 2) - (width / 2), OLED_HEIGHT, screen.secondary);
     }
 
     draw_.sendBuffer();

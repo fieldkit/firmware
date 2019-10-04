@@ -38,7 +38,8 @@ struct HomeScreen : public DisplayScreen {
     bool recording;
     bool logo;
     float battery;
-    const char *message;
+    const char *primary;
+    const char *secondary;
     TaskProgress progress;
 };
 
@@ -81,11 +82,15 @@ struct MenuOption {
 
 struct SimpleScreen : public DisplayScreen {
     const char *message;
+    const char *secondary;
 
     SimpleScreen() {
     }
 
     SimpleScreen(const char *message) : message(message) {
+    }
+
+    SimpleScreen(const char *message, const char *secondary) : message(message), secondary(secondary) {
     }
 };
 
