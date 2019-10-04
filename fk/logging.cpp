@@ -1,9 +1,12 @@
 #include <loading.h>
 #include <os.h>
+#include <tiny_printf.h>
 
 #include "logging.h"
 #include "platform.h"
 #include "config.h"
+#include "circular_buffer.h"
+#include "hal/sd_card.h"
 
 namespace fk {
 
@@ -11,15 +14,26 @@ namespace fk {
 
 static bool logging_enabled = true;
 
-static size_t log_hook(LogMessage const *m, const char *fstring, va_list args, void *arg) {
-    return 0;
+static char buffer[BUFFER_SIZE_UP];
+static circular_buffer<char> logs{ buffer, BUFFER_SIZE_UP };
+static bool flushing{ false };
+
+static void flush_logs() {
+    flushing = true;
+    get_sd_card()->append_logs(logs);
+    flushing = false;
 }
 
-static size_t write_log(LogMessage const *m, const char *fstring, va_list args) {
-    if (!logging_enabled) {
-        return true;
+static void write_circular_buffer(char c, void *arg) {
+    if (logs.full()) {
+        flush_logs();
     }
+    if (c != 0) {
+        logs.append(c);
+    }
+}
 
+size_t write_log(LogMessage const *m, const char *fstring, va_list args) {
     const char *task = os_task_name();
     if (task == nullptr) {
         task = "startup";
@@ -40,18 +54,24 @@ static size_t write_log(LogMessage const *m, const char *fstring, va_list args) 
 
     auto level = alog_get_log_level((LogLevels)m->level);
 
-    SEGGER_RTT_printf(0, f, m->uptime, task, level, m->facility);
-    SEGGER_RTT_vprintf(0, fstring, &args);
-    SEGGER_RTT_WriteString(0, RTT_CTRL_RESET "\n");
+    if (logging_enabled) {
+        SEGGER_RTT_printf(0, f, m->uptime, task, level, m->facility);
+        SEGGER_RTT_vprintf(0, fstring, &args);
+        SEGGER_RTT_WriteString(0, RTT_CTRL_RESET "\n");
+    }
 
-    log_hook(m, fstring, args, nullptr);
+    if (!flushing) {
+        tiny_fctprintf(write_circular_buffer, nullptr, f, m->uptime, task, level, m->facility);
+        tiny_vfctprintf(write_circular_buffer, nullptr, fstring, args);
+        tiny_fctprintf(write_circular_buffer, nullptr, "\n");
+    }
 
     SEGGER_RTT_UNLOCK();
 
     return true;
 }
 
-static void task_logging_hook(os_task_t *task, os_task_status previous_status) {
+void task_logging_hook(os_task_t *task, os_task_status previous_status) {
     auto was_alive = os_task_status_is_alive(previous_status);
     auto is_alive = os_task_status_is_alive(task->status);
 
@@ -76,8 +96,13 @@ bool fk_logging_initialize() {
     while (fk_uptime() < waiting_until) {
         if (SEGGER_RTT_HasData(0) || !SEGGER_RTT_HasDataUp(0)) {
             fk_debug_set_console_attached();
-            alogf(LogLevels::INFO, "debug", "debugger detected"); \
+
+            SEGGER_RTT_ConfigUpBuffer(0, NULL, NULL, 0, SEGGER_RTT_MODE_BLOCK_IF_FIFO_FULL);
+
+            alogf(LogLevels::INFO, "debug", "debugger detected");
+
             has_debugger = true;
+
             break;
         }
     }

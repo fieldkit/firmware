@@ -9,4 +9,8 @@ bool LinuxSdCard::begin() {
     return true;
 }
 
+bool LinuxSdCard::append_logs(circular_buffer<char> &buffer) {
+    return true;
+}
+
 }

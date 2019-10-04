@@ -60,6 +60,7 @@ target_compile_options(fk-bundled PRIVATE -Wall -Werror -DFK_HARDWARE_FULL)
 
 find_package(SeggerRTT)
 target_link_libraries(fk-bundled SeggerRTT)
+target_compile_options(SeggerRTT PUBLIC -DSEGGER_RTT_BUFFER_SIZE_UP=4096)
 
 find_package(CortexLoading)
 target_link_libraries(fk-bundled CortexLoading)

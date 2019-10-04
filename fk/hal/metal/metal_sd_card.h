@@ -16,6 +16,9 @@ public:
 public:
     bool begin() override;
 
+public:
+    bool append_logs(circular_buffer<char> &buffer) override;
+
 };
 
 }
