@@ -73,13 +73,9 @@ tl::expected<uint32_t, Error> SignedRecordLog::append_always(SignedRecordKind ki
     sr.hash.arg = (void *)&hash_ref;
     sr.record = file_.record();
 
-    loginfo("writing");
-
     if (!file_.write(&sr, fk_data_SignedRecord_fields)) {
         return tl::unexpected<Error>(Error::IO);
     }
-
-    loginfo("appended");
 
     return sr.record;
 }

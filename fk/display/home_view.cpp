@@ -66,12 +66,10 @@ void HomeView::tick(ViewController *views) {
 
 void HomeView::up(ViewController *views) {
     visible_ = (visible_ - 1) % 3;
-    alogf(LogLevels::INFO, "menu", "screen: %d", visible_);
 }
 
 void HomeView::down(ViewController *views) {
     visible_ = (visible_ + 1) % 3;
-    alogf(LogLevels::INFO, "menu", "screen: %d", visible_);
 }
 
 void HomeView::enter(ViewController *views) {

@@ -29,6 +29,12 @@ void fk_debug_set_console_attached() {
     }
 }
 
+volatile uint32_t fk_debugger_triggered = 0;
+
+void fk_debugger() {
+    fk_debugger_triggered++;
+}
+
 class NoopDebuggerOfLastResort : public DebuggerOfLastResort {
 public:
     void message(const char *message) override { }

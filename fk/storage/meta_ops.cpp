@@ -36,9 +36,10 @@ tl::expected<uint32_t, Error> MetaOps::write_state(GlobalState const *gs, Pool &
     record.metadata.generation.arg = (void *)&generation;
     record.identity.name.arg = (void *)gs->general.name;
     record.condition.flags = fk_data_ConditionFlags_CONDITION_FLAGS_NONE;
-    if (gs->general.recording) {
+    if (gs->general.recording > 0) {
         record.condition.flags |= fk_data_ConditionFlags_CONDITION_FLAGS_RECORDING;
     }
+    record.condition.recording = gs->general.recording;
 
     if (gs->lora.configured) {
         auto device_eui_data = pool.malloc_with<pb_data_t>({

@@ -13,6 +13,7 @@
 #include "state_manager.h"
 #include "networking/http_reply.h"
 #include "base64.h"
+#include "clock.h"
 
 extern const struct fkb_header_t fkb_header;
 
@@ -113,8 +114,13 @@ static bool configure(Connection *connection, fk_app_HttpQuery *query, Pool &poo
 
     if (query->recording.modifying) {
         gsm.apply([=](GlobalState *gs) {
-            loginfo("recording: %d", query->recording.enabled);
-            gs->general.recording = query->recording.enabled;
+            if (query->recording.enabled) {
+                gs->general.recording = get_clock_now();
+            }
+            else {
+                gs->general.recording = 0;
+            }
+            loginfo("recording: %" PRIu32, gs->general.recording);
         });
     }
 
