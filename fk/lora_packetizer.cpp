@@ -22,7 +22,7 @@ private:
     float values_[MaxReadingsPerPacket];
     pb_array_t values_array_;
     uint8_t previous_sensor_{ 0 };
-    uint32_t encoded_size_{ 0 };
+    size_t encoded_size_{ 0 };
 
 public:
     LoraRecord(Pool &pool) : pool_(&pool) {
@@ -58,9 +58,11 @@ public:
             record_.module = module;
             record_.sensor = sensor;
             record_.values.arg = (void *)&values_array_;
+
             encoded_size_ += pb_varint_size(MaxReadingsPerPacket);
-            encoded_size_ += pb_varint_size(sensor);
-            encoded_size_ += pb_varint_size(module);
+            encoded_size_ += sensor > 0 ? pb_varint_size(sensor) + 1 : 0;
+            encoded_size_ += module > 0 ? pb_varint_size(module) + 1 : 0;
+            encoded_size_ += 1; // Tag for values.
         }
         else {
             FK_ASSERT(previous_sensor_ + 1 == sensor);
@@ -78,7 +80,11 @@ public:
         if (values_array_.length == 0) {
             return nullptr;
         }
-        return pool.encode(fk_data_LoraRecord_fields, &record_, false);
+        auto encoded = pool.encode(fk_data_LoraRecord_fields, &record_, false);
+        if (encoded->size != encoded_size_) {
+            logwarn("encoded size differs from predicted (%zd != %zd)", encoded->size, encoded_size_);
+        }
+        return encoded;
     }
 
 };
