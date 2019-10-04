@@ -111,6 +111,27 @@ char *Pool::sprintf(const char *str, ...) {
     return ptr;
 }
 
+uint8_t *Pool::encode_undelimited(pb_msgdesc_t const *fields, void const *src, size_t *size) {
+    size_t required = 0;
+    if (!pb_get_encoded_size(&required, fields, src)) {
+        return nullptr;
+    }
+
+    auto buffer = (uint8_t *)malloc(required);
+    auto stream = pb_ostream_from_buffer(buffer, required);
+    if (!pb_encode(&stream, fields, src)) {
+        return nullptr;
+    }
+
+    FK_ASSERT(stream.bytes_written == required);
+
+    if (size != nullptr) {
+        *size = stream.bytes_written;
+    }
+
+    return buffer;
+}
+
 uint8_t *Pool::encode(pb_msgdesc_t const *fields, void const *src, size_t *size) {
     size_t required = 0;
     if (!pb_get_encoded_size(&required, fields, src)) {

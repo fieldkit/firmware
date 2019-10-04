@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"encoding/hex"
+	"flag"
 	"fmt"
 	"os"
 	"regexp"
@@ -15,7 +16,23 @@ import (
 	pb "github.com/fieldkit/data-protocol"
 )
 
+type options struct {
+	Lora      bool
+	Data      bool
+	Signed    bool
+	Delimited bool
+}
+
 func main() {
+	o := options{}
+
+	flag.BoolVar(&o.Delimited, "delimited", false, "")
+	flag.BoolVar(&o.Lora, "lora", false, "")
+	flag.BoolVar(&o.Data, "data", false, "")
+	flag.BoolVar(&o.Signed, "signed", false, "")
+
+	flag.Parse()
+
 	bytesRe := regexp.MustCompile("\\(\\d+ bytes\\)")
 
 	blocks := make(map[string]string)
@@ -34,8 +51,9 @@ func main() {
 		}
 	}
 
-	dataRecordsByKey := make(map[string]*pb.DataRecord)
 	dataRecords := make([]*pb.DataRecord, 0)
+	signedRecords := make([]*pb.SignedRecord, 0)
+	loraRecords := make([]*pb.LoraRecord, 0)
 
 	for key, value := range blocks {
 		bytes, err := hex.DecodeString(value)
@@ -43,28 +61,50 @@ func main() {
 			panic(err)
 		}
 
-		var signedRecord pb.SignedRecord
-		var dataRecord pb.DataRecord
-
+		size := uint64(0)
 		buffer := proto.NewBuffer(bytes)
-		size, err := buffer.DecodeVarint()
-		if err != nil {
-			panic(err)
+		if o.Delimited {
+			size, err = buffer.DecodeVarint()
+			if err != nil {
+				panic(err)
+			}
 		}
 
-		err = buffer.Unmarshal(&dataRecord)
-		if err != nil {
-			panic(err)
+		if o.Data {
+			var dataRecord pb.DataRecord
+			err = buffer.Unmarshal(&dataRecord)
+			if err == nil {
+				fmt.Printf("%+v\n", dataRecord)
+				dataRecords = append(dataRecords, &dataRecord)
+			} else if o.Data {
+				fmt.Printf("%v\n", err)
+			}
 		}
 
-		fmt.Printf("%+v\n", dataRecord)
+		if o.Signed {
+			var signedRecord pb.SignedRecord
+			err = buffer.Unmarshal(&signedRecord)
+			if err == nil {
+				fmt.Printf("%+v\n", signedRecord)
+				signedRecords = append(signedRecords, &signedRecord)
+			} else if o.Signed {
+				fmt.Printf("%v\n", err)
+			}
+		}
 
-		dataRecordsByKey[key] = &dataRecord
-		dataRecords = append(dataRecords, &dataRecord)
+		if o.Lora {
+			var loraRecord pb.LoraRecord
+			err = buffer.Unmarshal(&loraRecord)
+			if err == nil {
+				fmt.Printf("%+v\n", loraRecord)
+				loraRecords = append(loraRecords, &loraRecord)
+			} else if o.Lora {
+				fmt.Printf("%v\n", err)
+			}
+		}
 
-		_ = signedRecord
-		_ = dataRecord
 		_ = size
+		_ = key
 	}
 
 	if len(dataRecords) == 2 {
@@ -80,5 +120,6 @@ func main() {
 		}
 	}
 
-	_ = dataRecordsByKey
+	_ = signedRecords
+	_ = loraRecords
 }

@@ -49,16 +49,36 @@ bool pb_encode_array(pb_ostream_t *stream, const pb_field_t *field, void *const 
     }
 
     auto ptr = (uint8_t *)array->buffer;
-    for (size_t i = 0; i < array->length; ++i) {
-        if (!pb_encode_tag_for_field(stream, field)) {
+    if (array->fields != nullptr) {
+        for (size_t i = 0; i < array->length; ++i) {
+            if (!pb_encode_tag_for_field(stream, field)) {
+                return false;
+            }
+
+            if (!pb_encode_submessage(stream, array->fields, ptr)) {
+                return false;
+            }
+
+            ptr += array->itemSize;
+        }
+    }
+    else {
+        auto length = array->itemSize * array->length;
+
+        // Confusing that we're using PB_WT_STRING here, I know. This is wire
+        // type 2. Whic his "length delimited" and used fro string, bytes,
+        // embedded messages and packed repeated fields (us here)
+        if (!pb_encode_tag(stream, PB_WT_STRING, field->tag)) {
             return false;
         }
 
-        if (!pb_encode_submessage(stream, array->fields, ptr)) {
+        if (!pb_encode_varint(stream, length)) {
             return false;
         }
 
-        ptr += array->itemSize;
+        if (!pb_write(stream, ptr, length)) {
+            return false;
+        }
     }
 
     return true;
