@@ -18,6 +18,7 @@ FK_DECLARE_LOGGER("sdcard");
 
 static SdFat sd(&SD_SPI);
 static SdFile log_file;
+static bool sd_card_available;
 static char log_file_name[13] = LOG_FILE_BASE_NAME "00.txt";
 static bool log_initialized{ false };
 static bool log_ready{ false };
@@ -46,11 +47,17 @@ bool MetalSdCard::begin() {
         return false;
     }
 
+    sd_card_available = true;
+
     return true;
 }
 
 bool MetalSdCard::append_logs(circular_buffer<char> &buffer) {
     static constexpr uint8_t BaseNameSize = sizeof(LOG_FILE_BASE_NAME) - 1;
+
+    if (!sd_card_available) {
+        return false;
+    }
 
     if (!log_initialized) {
         log_initialized = true;
