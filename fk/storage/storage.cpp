@@ -443,31 +443,48 @@ uint32_t Storage::fsck(ProgressCallbacks *progress) {
 
     loginfo("fsck: begin");
 
-    auto file = this->file(0);
+    auto file0 = this->file(0);
+    auto file1 = this->file(1);
 
-    if (!file.seek_end()) {
+    if (!file0.seek_end()) {
         logwarn("seek eof failed");
         return false;
     }
 
-    auto buffer_size = DefaultWorkerPoolSize;
-    auto buffer = (uint8_t *)fk_malloc(buffer_size);
-    auto tracker = ProgressTracker{ progress, Operation::Fsck, "fsck", "", file.size() };
-
-    FK_ASSERT(file.seek(0));
-
-    while (tracker.busy()) {
-        auto to_read = std::min<int32_t>(buffer_size, tracker.remaining_bytes());
-        auto nread = file.read(buffer, to_read);
-        FK_ASSERT(nread == to_read);
-        tracker.update(nread);
+    if (!file1.seek_end()) {
+        logwarn("seek eof failed");
+        return false;
     }
+
+    auto total_size = file0.size() + file1.size();
+    auto tracker = ProgressTracker{ progress, Operation::Fsck, "fsck", "", total_size };
+
+    fsck(file0, tracker);
+    fsck(file1, tracker);
 
     tracker.finished();
 
-    fk_free(buffer);
-
     loginfo("fsck: done (%" PRIu32 "ms)", tracker.elapsed());
+
+    return true;
+}
+
+uint32_t Storage::fsck(File &opened_file, ProgressTracker &tracker) {
+    auto buffer_size = DefaultWorkerPoolSize;
+    auto buffer = (uint8_t *)fk_malloc(buffer_size);
+    auto remaining = opened_file.size();
+
+    FK_ASSERT(opened_file.seek(0));
+
+    while (remaining > 0) {
+        auto to_read = std::min<int32_t>(buffer_size, remaining);
+        auto nread = opened_file.read(buffer, to_read);
+        FK_ASSERT(nread == to_read);
+        tracker.update(nread);
+        remaining -= nread;
+    }
+
+    fk_free(buffer);
 
     return true;
 }

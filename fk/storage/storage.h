@@ -4,6 +4,7 @@
 #include "hal/memory.h"
 #include "progress.h"
 #include "storage/file.h"
+#include "storage/progress_tracker.h"
 
 namespace fk {
 
@@ -71,6 +72,7 @@ private:
     bool valid_block_header(BlockHeader &header) const;
     void verify_opened() const;
     void verify_mutable() const;
+    uint32_t fsck(File &opened_file, ProgressTracker &tracker);
 
 };
 
