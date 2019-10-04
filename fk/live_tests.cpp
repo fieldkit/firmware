@@ -77,8 +77,9 @@ static void try_and_reproduce_weird_block_issue() {
     auto gs = get_global_state_rw();
 
     auto counter = 0;
+    auto done = false;
 
-    while (true) {
+    while (!done) {
         Storage storage{ MemoryFactory::get_data_memory(), false };
         if (counter == 0) {
             FK_ASSERT(storage.clear());
@@ -87,7 +88,7 @@ static void try_and_reproduce_weird_block_issue() {
             FK_ASSERT(storage.begin());
         }
 
-        if ((counter % 100) == 0) {
+        if ((counter % 50) == 0) {
             for (auto i = 0; i < 10; ++i) {
                 StaticPool<1024> pool{ "signed-log" };
 
@@ -96,6 +97,8 @@ static void try_and_reproduce_weird_block_issue() {
                     FK_ASSERT(meta_file.create());
                 }
 
+                gs.get()->general.recording++;
+
                 MetaOps meta_ops{ storage };
                 FK_ASSERT(meta_ops.write_state(gs.get(), pool));
 
@@ -103,10 +106,9 @@ static void try_and_reproduce_weird_block_issue() {
 
                 auto g = storage.geometry();
                 if (meta_file.size() > g.block_size + 2048) {
+                    done = true;
                     break;
                 }
-
-                gs.get()->general.recording++;
             }
         }
 
