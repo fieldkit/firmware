@@ -240,6 +240,14 @@ int32_t File::read_record_header() {
                 return 0;
             }
 
+            if (!block_tail.verify_hash()) {
+                logerror("[%d] " PRADDRESS " btail failed hash (" PRADDRESS ")", file_, tail_, block_tail.linked);
+                fk_dump_memory("ACT ", (uint8_t *)&block_tail.hash, sizeof(block_tail.hash));
+                block_tail.fill_hash();
+                fk_dump_memory("EXP ", (uint8_t *)&block_tail.hash, sizeof(block_tail.hash));
+                return 0;
+            }
+
             tail_ = block_tail.linked;
 
             BlockHeader block_header;
@@ -356,7 +364,8 @@ int32_t File::read_record_tail() {
     Hash hash;
     hash_.finalize(&hash.hash, Hash::Length);
     if (memcmp(hash.hash, record_tail.hash.hash, Hash::Length) != 0) {
-        logerror("[%d] " PRADDRESS " hash mismatch: (#%" PRIu32 ") (record address = " PRADDRESS ") (record_size = %" PRIu32 ")", file_, tail_, record_, record_address_, record_tail.size);
+        logerror("[%d] " PRADDRESS " hash mismatch: (#%" PRIu32 ") (record address = " PRADDRESS ") (record_size = %" PRIu32 ")",
+                 file_, tail_, record_, record_address_, record_tail.size);
         fk_dump_memory("ACT ", record_tail.hash.hash, Hash::Length);
         fk_dump_memory("EXP ", hash.hash, Hash::Length);
         number_hash_errors_++;

@@ -244,8 +244,8 @@ uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address, BlockTa
         return InvalidAddress;
     }
 
-    logdebug("[%d] allocating block #%" PRIu32 " (" PRADDRESS ") (#%" PRIu32 ") (%" PRIu32 " bytes)",
-             file, free_block_, address, files_[file].record, files_[file].size);
+    logdebug("[%d] allocating block #%" PRIu32 " ts=%" PRIu32 " (" PRADDRESS ") (#%" PRIu32 ") (%" PRIu32 " bytes)",
+             file, free_block_, timestamp_, address, files_[file].record, files_[file].size);
 
     timestamp_++;
     free_block_++;
@@ -285,7 +285,8 @@ uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address, BlockTa
             return 0;
         }
 
-        logdebug("[%d] " PRADDRESS " write btail linked = (%" PRIu32 ")", file, previous_tail_address, address);
+        logdebug("[%d] " PRADDRESS " write btail linked(0x%" PRIx32 ") (%" PRIu32 " bib)",
+                 file, previous_tail_address, address, block_tail.bytes_in_block);
     }
 
     return after_header;
