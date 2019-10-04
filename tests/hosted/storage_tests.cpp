@@ -1,5 +1,6 @@
 #include <fk-data-protocol.h>
 
+#include "storage/signed_log.h"
 #include "storage_suite.h"
 
 using namespace fk;
@@ -852,4 +853,40 @@ TEST_F(StorageSuite, ReproduceBadPositionOnSeekToBeginning) {
 }
 
 TEST_F(StorageSuite, ReproduceFindingWrongFileInReadHeader) {
+    Storage storage{ memory_, false };
+    ASSERT_TRUE(storage.clear());
+
+    auto counter = 0;
+
+    while (true) {
+        StaticPool<1024> pool{ "signed-log" };
+
+        auto meta_file = storage.file(Storage::Meta);
+        if (!meta_file.seek_end()) {
+            FK_ASSERT(meta_file.create());
+        }
+        auto srl = SignedRecordLog{ meta_file };
+        append_metadata_always(srl, 1, "our-build-1", "our-git-1", pool);
+
+        FK_ASSERT(meta_file.seek_end());
+
+        if (meta_file.size() > g_.block_size) {
+            break;
+        }
+
+        // After starting the meta file in the first block, throw some data in between.
+        if (counter == 0) {
+            auto data_file = storage.file(Storage::Data);
+            FK_ASSERT(data_file.create());
+            auto size = 0u;
+            while (size < g_.block_size * 30) {
+                auto wrote = write_reading(data_file);
+                size += wrote;
+            }
+            counter++;
+        }
+    }
+
+    NoopProgressCallbacks progress;
+    FK_ASSERT(storage.fsck(&progress));
 }

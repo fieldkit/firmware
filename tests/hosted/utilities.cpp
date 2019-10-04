@@ -70,6 +70,46 @@ size_t write_reading(File &file) {
     return wrote;
 }
 
+void append_metadata_always(SignedRecordLog &srl, uint32_t time, const char *build, const char *git, Pool &pool) {
+    fk_data_DataRecord record = fk_data_DataRecord_init_default;
+    record.metadata.time = time;
+    record.metadata.git.funcs.encode = pb_encode_string;
+    record.metadata.git.arg = (void *)git;
+    record.metadata.build.funcs.encode = pb_encode_string;
+    record.metadata.build.arg = (void *)build;
+    ASSERT_TRUE(srl.append_always(SignedRecordKind::Modules, &record, fk_data_DataRecord_fields, pool));
+}
+
+void append_metadata(SignedRecordLog &srl, const char *build, const char *git, Pool &pool) {
+    fk_data_DataRecord record = fk_data_DataRecord_init_default;
+    record.metadata.time = 1;
+    record.metadata.git.funcs.encode = pb_encode_string;
+    record.metadata.git.arg = (void *)git;
+    record.metadata.build.funcs.encode = pb_encode_string;
+    record.metadata.build.arg = (void *)build;
+    ASSERT_TRUE(srl.append_immutable(SignedRecordKind::Modules, &record, fk_data_DataRecord_fields, pool));
+}
+
+void append_other_always(SignedRecordLog &srl, const char *build, const char *git, Pool &pool) {
+    fk_data_DataRecord record = fk_data_DataRecord_init_default;
+    record.metadata.time = 1;
+    record.metadata.git.funcs.encode = pb_encode_string;
+    record.metadata.git.arg = (void *)git;
+    record.metadata.build.funcs.encode = pb_encode_string;
+    record.metadata.build.arg = (void *)build;
+    ASSERT_TRUE(srl.append_always(SignedRecordKind::Other, &record, fk_data_DataRecord_fields, pool));
+}
+
+void append_other(SignedRecordLog &srl, const char *build, const char *git, Pool &pool) {
+    fk_data_DataRecord record = fk_data_DataRecord_init_default;
+    record.metadata.time = 1;
+    record.metadata.git.funcs.encode = pb_encode_string;
+    record.metadata.git.arg = (void *)git;
+    record.metadata.build.funcs.encode = pb_encode_string;
+    record.metadata.build.arg = (void *)build;
+    ASSERT_TRUE(srl.append_immutable(SignedRecordKind::Other, &record, fk_data_DataRecord_fields, pool));
+}
+
 extern "C" {
 
 void osi_assert(const char *assertion, const char *file, int line) {

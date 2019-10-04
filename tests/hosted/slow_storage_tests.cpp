@@ -103,6 +103,9 @@ TEST_F(SlowStorageSuite, LargeFilesMultiple) {
     pattern.verify(file1_read, size);
 
     ASSERT_EQ(file1_read.position(), (size_t)size);
+
+    NoopProgressCallbacks progress;
+    FK_ASSERT(storage.fsck(&progress));
 }
 
 TEST_F(SlowStorageSuite, LargeFilesMultipleOneMuchSmaller) {
@@ -158,6 +161,9 @@ TEST_F(SlowStorageSuite, LargeFilesMultipleOneMuchSmaller) {
     pattern.verify(file1_read, smaller_size);
 
     ASSERT_EQ(file1_read.position(), smaller_size);
+
+    NoopProgressCallbacks progress;
+    FK_ASSERT(storage.fsck(&progress));
 }
 
 TEST_F(SlowStorageSuite, LotsOfIndividualWrites) {
@@ -183,6 +189,15 @@ TEST_F(SlowStorageSuite, LotsOfIndividualWrites) {
         total_wrote += wrote;
     }
 
+    for (auto i = 0; i < 1024; ++i) {
+        Storage storage{ memory_, false };
+        ASSERT_TRUE(storage.begin());
+        auto file_write = storage.file(1);
+        ASSERT_TRUE(file_write.create());
+        auto wrote = write_reading(file_write);
+        FK_ASSERT(wrote > 0);
+    }
+
     {
         Storage storage{ memory_, false };
         ASSERT_TRUE(storage.begin());
@@ -196,7 +211,7 @@ TEST_F(SlowStorageSuite, LotsOfIndividualWrites) {
         ASSERT_EQ(file_read.position(), (size_t)0);
 
         NoopProgressCallbacks progress;
-        storage.fsck(&progress);
+        FK_ASSERT(storage.fsck(&progress));
     }
 }
 

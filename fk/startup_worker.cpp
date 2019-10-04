@@ -10,6 +10,7 @@
 #include "state_ref.h"
 #include "state_manager.h"
 #include "utilities.h"
+#include "live_tests.h"
 
 #include "modules/bridge/modules.h"
 #include "modules/scanning.h"
@@ -55,6 +56,13 @@ void StartupWorker::run(Pool &pool) {
     Storage storage{ MemoryFactory::get_data_memory(), false };
     FactoryWipe fw{ display, get_buttons(), &storage };
     FK_ASSERT(fw.wipe_if_necessary());
+
+    fk_live_tests();
+
+    NoopProgressCallbacks progress;
+    if (storage.begin()) {
+        storage.fsck(&progress);
+    }
 
     FK_ASSERT(load_or_create_state(storage, pool));
 

@@ -241,7 +241,7 @@ size_t CachingMemory::read(uint32_t address, uint8_t *data, size_t length) {
     auto page_size = target_->geometry().page_size;
     auto page = cache_->get_page(address);
     if (page == nullptr) {
-        logerror("page lookup failed");
+        logerror("page lookup failed (0x%" PRIx32 ")", address);
         return 0;
     }
     FK_ASSERT(page->ptr != nullptr);
@@ -266,7 +266,7 @@ size_t CachingMemory::write(uint32_t address, const uint8_t *data, size_t length
     auto page_size = target_->geometry().page_size;
     auto page = cache_->get_page(address);
     if (page == nullptr) {
-        logerror("page lookup failed");
+        logerror("page lookup failed (0x%" PRIx32 ")", address);
         return 0;
     }
     FK_ASSERT(page->ptr != nullptr);

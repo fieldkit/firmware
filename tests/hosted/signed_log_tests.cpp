@@ -23,13 +23,6 @@ FK_DECLARE_LOGGER("tests");
 class SignedLogSuite : public StorageSuite {
 };
 
-static void append_metadata_always(SignedRecordLog &srl, uint32_t time, const char *build, const char *git, Pool &pool);
-static void append_metadata(SignedRecordLog &srl, const char *build, const char *git, Pool &pool);
-static void append_other_always(SignedRecordLog &srl, const char *build, const char *git, Pool &pool);
-/*
-static void append_other(SignedRecordLog &srl, const char *build, const char *git, Pool &pool);
-*/
-
 TEST_F(SignedLogSuite, OpeningEmptyFile) {
     StaticPool<1024> pool{ "signed-log" };
     GlobalState gs;
@@ -164,45 +157,3 @@ TEST_F(SignedLogSuite, AppendingImmutableWithOtherKindsBetween) {
     append_other_always(srl, "ignored", "ignored", pool);
     append_other_always(srl, "ignored", "ignored", pool);
 }
-
-static void append_metadata_always(SignedRecordLog &srl, uint32_t time, const char *build, const char *git, Pool &pool) {
-    fk_data_DataRecord record = fk_data_DataRecord_init_default;
-    record.metadata.time = time;
-    record.metadata.git.funcs.encode = pb_encode_string;
-    record.metadata.git.arg = (void *)git;
-    record.metadata.build.funcs.encode = pb_encode_string;
-    record.metadata.build.arg = (void *)build;
-    ASSERT_TRUE(srl.append_always(SignedRecordKind::Modules, &record, fk_data_DataRecord_fields, pool));
-}
-
-static void append_metadata(SignedRecordLog &srl, const char *build, const char *git, Pool &pool) {
-    fk_data_DataRecord record = fk_data_DataRecord_init_default;
-    record.metadata.time = 1;
-    record.metadata.git.funcs.encode = pb_encode_string;
-    record.metadata.git.arg = (void *)git;
-    record.metadata.build.funcs.encode = pb_encode_string;
-    record.metadata.build.arg = (void *)build;
-    ASSERT_TRUE(srl.append_immutable(SignedRecordKind::Modules, &record, fk_data_DataRecord_fields, pool));
-}
-
-static void append_other_always(SignedRecordLog &srl, const char *build, const char *git, Pool &pool) {
-    fk_data_DataRecord record = fk_data_DataRecord_init_default;
-    record.metadata.time = 1;
-    record.metadata.git.funcs.encode = pb_encode_string;
-    record.metadata.git.arg = (void *)git;
-    record.metadata.build.funcs.encode = pb_encode_string;
-    record.metadata.build.arg = (void *)build;
-    ASSERT_TRUE(srl.append_always(SignedRecordKind::Other, &record, fk_data_DataRecord_fields, pool));
-}
-
-/*
-static void append_other(SignedRecordLog &srl, const char *build, const char *git, Pool &pool) {
-    fk_data_DataRecord record = fk_data_DataRecord_init_default;
-    record.metadata.time = 1;
-    record.metadata.git.funcs.encode = pb_encode_string;
-    record.metadata.git.arg = (void *)git;
-    record.metadata.build.funcs.encode = pb_encode_string;
-    record.metadata.build.arg = (void *)build;
-    ASSERT_TRUE(srl.append_immutable(SignedRecordKind::Other, &record, fk_data_DataRecord_fields, pool));
-}
-*/

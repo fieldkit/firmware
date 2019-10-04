@@ -56,14 +56,21 @@ public:
     uint32_t timestamp() const {
         return timestamp_;
     }
+
     uint32_t version() const {
         return version_;
     }
+
     uint32_t free_block() const {
         return free_block_;
     }
+
     FileHeader const &file_header(FileNumber file) const {
         return files_[file];
+    }
+
+    flash_geometry_t geometry() const {
+        return memory_->geometry();
     }
 
 private:
