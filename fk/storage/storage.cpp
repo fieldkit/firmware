@@ -349,7 +349,9 @@ SeekValue Storage::seek(SeekSettings settings) {
     auto block = address / g.block_size;
     auto position = fh.size;
     auto record = (uint32_t)fh.record;
-    auto record_address = (uint32_t)0;
+    auto record_address = 0u;
+    auto bytes_in_block = 0u;
+    auto records_in_block = 0u;
 
     // If the address is invalid then this file is empty, nothing to be found,
     // this is success if they were looking for the last record of the file.
@@ -419,13 +421,15 @@ SeekValue Storage::seek(SeekSettings settings) {
         // Update size of the data we've scanned through.
         if (address > fh.tail) {
             position += record_head.size;
+            bytes_in_block += record_head.size;
+            records_in_block++;
         }
     }
 
     logdebug("[%d] " PRADDRESS " seeking #%" PRIu32 " done (#%" PRIu32 ") (%" PRIu32 " bytes) (%" PRIu32 " pos-bh)",
              settings.file, address, settings.record, record, position, position - fh.size);
 
-    return SeekValue{ address, record, position, block, timestamp, record_address };
+    return SeekValue{ address, record, position, block, timestamp, record_address, bytes_in_block, records_in_block };
 }
 
 File Storage::file(uint8_t file) {

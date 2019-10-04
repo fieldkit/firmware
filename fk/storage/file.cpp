@@ -54,7 +54,10 @@ int32_t File::write_record_header(size_t size) {
     if (!is_address_valid(tail_) || total_required > left_in_block) {
         if (is_address_valid(tail_)) {
             tail_ += left_in_block;
+            FK_ASSERT(bytes_in_block_ > 0);
+            FK_ASSERT(records_in_block_ > 0);
         }
+
         BlockTail block_tail;
         block_tail.bytes_in_block = bytes_in_block_;
         block_tail.records_in_block = records_in_block_;
@@ -178,6 +181,7 @@ bool File::seek(RecordReference reference) {
     record_ = reference.record;
     record_remaining_ = 0;
     record_size_ = 0;
+    // NOTE We're usually reading when doing this.
     bytes_in_block_ = 0;
     records_in_block_ = 0;
     return true;
@@ -205,6 +209,8 @@ bool File::seek(uint32_t record) {
     record_remaining_ = 0;
     record_size_ = 0;
     record_address_ = sv.record_address;
+    bytes_in_block_ = sv.bytes_in_block;
+    records_in_block_ = sv.records_in_block;
     if (record == LastRecord) {
         size_ = position_;
         update();
@@ -229,8 +235,6 @@ int32_t File::read_record_header() {
             }
 
             logverbose("[%d] " PRADDRESS " btail (" PRADDRESS ")", file_, tail_, block_tail.linked);
-
-            tail_ += sizeof(BlockTail);
 
             if (!is_address_valid(block_tail.linked)) {
                 return 0;

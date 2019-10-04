@@ -139,13 +139,15 @@ struct SeekValue {
     uint32_t block{ InvalidBlock };
     uint32_t timestamp{ InvalidTimestamp };
     uint32_t record_address{ InvalidAddress };
+    uint32_t bytes_in_block{ 0 };
+    uint32_t records_in_block{ 0 };
 
     SeekValue() {
     }
 
-    SeekValue(uint32_t address, uint32_t record, uint32_t position, uint32_t block, uint32_t timestamp, uint32_t record_address)
+    SeekValue(uint32_t address, uint32_t record, uint32_t position, uint32_t block, uint32_t timestamp, uint32_t record_address, uint32_t bytes_in_block, uint32_t records_in_block)
         : address(address), record(record), position(position), block(block),
-          timestamp(timestamp), record_address(record_address) {
+          timestamp(timestamp), record_address(record_address), bytes_in_block(bytes_in_block), records_in_block(records_in_block) {
     }
 
     bool valid() {
