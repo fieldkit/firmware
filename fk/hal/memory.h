@@ -97,12 +97,15 @@ struct CachedPage {
     uint32_t ts{ 0 };
     uint32_t page{ 0 };
     uint8_t *ptr{ nullptr };
-    bool dirty{ false };
+    uint16_t dirty_start{ UINT16_MAX };
+    uint16_t dirty_end{ 0 };
 
-    void mark_dirty() {
-        dirty = true;
-        ts = fk_uptime() + 1;
+    void mark_dirty(uint16_t offset, uint16_t length);
+    void mark_clean() {
+        dirty_start = UINT16_MAX;
+        dirty_end = 0;
     }
+    bool dirty() const;
 };
 
 class PageCache {
