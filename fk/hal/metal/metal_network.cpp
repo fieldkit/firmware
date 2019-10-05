@@ -178,11 +178,14 @@ bool MetalNetwork::begin(NetworkSettings settings) {
 
     settings_ = settings;
     enabled_ = true;
+    serving_ = false;
 
     return true;
 }
 
 bool MetalNetwork::serve() {
+    serving_ = true;
+
     server_.begin();
 
     IPAddress ip = WiFi.localIP();
@@ -250,13 +253,15 @@ NetworkConnection *MetalNetwork::accept() {
 
 bool MetalNetwork::stop() {
     if (enabled_) {
-        mdns_.removeServiceRecord(80, MDNSServiceTCP, NetworkRemoveServiceRecordAmplification, NetworkRemoveServiceRecordDelayMs);
-        ntp_.stop();
-        // Ensure the previous removal gets loose?
-        fk_delay(500);
-        udp_.stop();
+        if (serving_) {
+            mdns_.removeServiceRecord(80, MDNSServiceTCP, NetworkRemoveServiceRecordAmplification, NetworkRemoveServiceRecordDelayMs);
+            ntp_.stop();
+            // Ensure the previous removal gets loose?
+            fk_delay(500);
+            udp_.stop();
+            serving_ = false;
+        }
         WiFi.end();
-        fk_delay(500);
         enabled_ = false;
         get_board()->disable_wifi();
     }
