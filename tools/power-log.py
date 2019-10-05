@@ -10,7 +10,7 @@ class FkListener:
     def __init__(self, args):
         pass
 
-    def started(self, firmware):
+    def started(self):
         self.tasks = []
 
     def firmware(self, firmware):
@@ -70,9 +70,6 @@ async def rtt_listener(loop, args):
                 text = data.decode()
                 parser.handle(text)
                 print(text, end='')
-
-            writer.close()
-            reader.close()
         except Exception as e:
             print(e)
             print(".", end='', flush=True)
