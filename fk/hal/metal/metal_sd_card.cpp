@@ -56,6 +56,7 @@ bool MetalSdCard::append_logs(circular_buffer<char> &buffer) {
     auto started = fk_uptime();
 
     if (!begin()) {
+        buffer.clear();
         return false;
     }
 
@@ -64,6 +65,7 @@ bool MetalSdCard::append_logs(circular_buffer<char> &buffer) {
 
         if (BaseNameSize > 6) {
             logerror("log file base name is too long");
+            buffer.clear();
             return false;
         }
 
@@ -77,12 +79,14 @@ bool MetalSdCard::append_logs(circular_buffer<char> &buffer) {
             }
             else {
                 logerror("error creating file name");
+                buffer.clear();
                 return false;
             }
         }
 
         if (!log_file.open(log_file_name, O_WRONLY | O_CREAT | O_EXCL)) {
             logerror("error opening %s", log_file_name);
+            buffer.clear();
             return false;
         }
 
