@@ -4,6 +4,7 @@
 #include "common.h"
 #include "hal/board.h"
 #include "hal/metal/metal_sd_card.h"
+#include "platform.h"
 
 #if defined(__SAMD51__)
 
@@ -18,7 +19,6 @@ FK_DECLARE_LOGGER("sdcard");
 
 static SdFat sd(&SD_SPI);
 static SdFile log_file;
-static bool sd_card_available;
 static char log_file_name[13] = LOG_FILE_BASE_NAME "00.txt";
 static bool log_initialized{ false };
 static bool log_ready{ false };
@@ -47,15 +47,15 @@ bool MetalSdCard::begin() {
         return false;
     }
 
-    sd_card_available = true;
-
     return true;
 }
 
 bool MetalSdCard::append_logs(circular_buffer<char> &buffer) {
     static constexpr uint8_t BaseNameSize = sizeof(LOG_FILE_BASE_NAME) - 1;
 
-    if (!sd_card_available) {
+    auto started = fk_uptime();
+
+    if (!begin()) {
         return false;
     }
 
@@ -95,10 +95,10 @@ bool MetalSdCard::append_logs(circular_buffer<char> &buffer) {
     if (log_ready) {
         log_file.write(buffer.buffer(), size);
         log_file.flush();
-        loginfo("flushed %d to %s", size, log_file_name);
+        loginfo("flushed %d to %s (%" PRIu32 "ms)", size, log_file_name, fk_uptime() - started);
     }
     else {
-        loginfo("ignored %d to %s", size, log_file_name);
+        loginfo("ignored %d to %s (%" PRIu32 "ms)", size, log_file_name, fk_uptime() - started);
     }
 
     buffer.clear();
