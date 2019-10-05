@@ -12,21 +12,16 @@ namespace fk {
 
 #if defined(__SAMD51__)
 
-static bool logging_enabled = true;
-
-static char buffer[BUFFER_SIZE_UP];
-static circular_buffer<char> logs{ buffer, BUFFER_SIZE_UP };
-static bool flushing{ false };
-
-static void flush_logs() {
-    flushing = true;
-    get_sd_card()->append_logs(logs);
-    flushing = false;
-}
+static bool logs_rtt_enabled = true;
+static char logs_buffer[BUFFER_SIZE_UP];
+static bool logs_flushing{ false };
+static circular_buffer<char> logs{ logs_buffer, BUFFER_SIZE_UP };
 
 static void write_circular_buffer(char c, void *arg) {
     if (logs.full()) {
-        flush_logs();
+        logs_flushing = true;
+        get_sd_card()->append_logs(logs);
+        logs_flushing = false;
     }
     if (c != 0) {
         logs.append(c);
@@ -50,17 +45,17 @@ size_t write_log(LogMessage const *m, const char *fstring, va_list args) {
         f = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_CYAN " %-10s " RTT_CTRL_TEXT_YELLOW "%-7s %s" RTT_CTRL_RESET ": ";
     }
 
-    SEGGER_RTT_LOCK();
-
     auto level = alog_get_log_level((LogLevels)m->level);
 
-    if (logging_enabled) {
+    SEGGER_RTT_LOCK();
+
+    if (logs_rtt_enabled) {
         SEGGER_RTT_printf(0, f, m->uptime, task, level, m->facility);
         SEGGER_RTT_vprintf(0, fstring, &args);
         SEGGER_RTT_WriteString(0, RTT_CTRL_RESET "\n");
     }
 
-    if (!flushing) {
+    if (!logs_flushing) {
         tiny_fctprintf(write_circular_buffer, nullptr, f, m->uptime, task, level, m->facility);
         tiny_vfctprintf(write_circular_buffer, nullptr, fstring, args);
         tiny_fctprintf(write_circular_buffer, nullptr, "\n");
@@ -91,7 +86,7 @@ bool fk_logging_initialize() {
 
     OS_CHECK(os_configure_hook(task_logging_hook));
 
-    auto has_debugger = false;
+    auto has_rtt_reader = false;
     auto waiting_until = fk_uptime() + OneSecondMs;
     while (fk_uptime() < waiting_until) {
         if (SEGGER_RTT_HasData(0) || !SEGGER_RTT_HasDataUp(0)) {
@@ -101,13 +96,13 @@ bool fk_logging_initialize() {
 
             alogf(LogLevels::INFO, "debug", "debugger detected");
 
-            has_debugger = true;
+            has_rtt_reader = true;
 
             break;
         }
     }
 
-    logging_enabled = has_debugger;
+    logs_rtt_enabled = has_rtt_reader;
 
     return true;
 }
