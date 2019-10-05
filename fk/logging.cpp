@@ -21,6 +21,7 @@ static void write_circular_buffer(char c, void *arg) {
     if (logs.full()) {
         logs_flushing = true;
         get_sd_card()->append_logs(logs);
+        logs.clear();
         logs_flushing = false;
     }
     if (c != 0) {
