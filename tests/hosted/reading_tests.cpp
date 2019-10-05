@@ -68,10 +68,10 @@ TEST_F(ReadingsSuite, TakingReadingsNoModules) {
     Readings readings{ get_modmux() };
     ASSERT_TRUE(readings.take_readings(ctx, resolved, 0, 0, pool));
 
-    size_t size = 0;
-    auto buffer = pool.encode(fk_data_DataRecord_fields, &readings.record(), &size);
+    auto buffer = pool.encode(fk_data_DataRecord_fields, &readings.record());
 
     ASSERT_NE(buffer, nullptr);
+    ASSERT_NE(buffer->buffer, nullptr);
 }
 
 TEST_F(ReadingsSuite, TakingReadingsModuleWithNoReadings) {
@@ -89,10 +89,10 @@ TEST_F(ReadingsSuite, TakingReadingsModuleWithNoReadings) {
     Readings readings{ get_modmux() };
     ASSERT_TRUE(readings.take_readings(ctx, resolved, 0, 0, pool));
 
-    size_t size = 0;
-    auto buffer = pool.encode(fk_data_DataRecord_fields, &readings.record(), &size);
+    auto buffer = pool.encode(fk_data_DataRecord_fields, &readings.record());
 
     ASSERT_NE(buffer, nullptr);
+    ASSERT_NE(buffer->buffer, nullptr);
 }
 
 TEST_F(ReadingsSuite, TakingReadingsOneModule) {
@@ -110,10 +110,10 @@ TEST_F(ReadingsSuite, TakingReadingsOneModule) {
     Readings readings{ get_modmux() };
     ASSERT_TRUE(readings.take_readings(ctx, resolved, 0, 0, pool));
 
-    size_t size = 0;
-    auto buffer = pool.encode(fk_data_DataRecord_fields, &readings.record(), &size);
+    auto buffer = pool.encode(fk_data_DataRecord_fields, &readings.record());
 
     ASSERT_NE(buffer, nullptr);
+    ASSERT_NE(buffer->buffer, nullptr);
 }
 
 TEST_F(ReadingsSuite, TakingReadingsTwoModules) {
@@ -136,9 +136,9 @@ TEST_F(ReadingsSuite, TakingReadingsTwoModules) {
     Readings readings{ get_modmux() };
     ASSERT_TRUE(readings.take_readings(ctx, resolved, 0, 0, pool));
 
-    size_t size = 0;
-    auto buffer = pool.encode(fk_data_DataRecord_fields, &readings.record(), &size);
+    auto buffer = pool.encode(fk_data_DataRecord_fields, &readings.record());
 
     ASSERT_NE(buffer, nullptr);
+    ASSERT_NE(buffer->buffer, nullptr);
 }
 
