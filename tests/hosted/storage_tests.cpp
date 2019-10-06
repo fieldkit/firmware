@@ -852,6 +852,85 @@ TEST_F(StorageSuite, ReproduceBadPositionOnSeekToBeginning) {
     }
 }
 
+static void write_meta_records(DataMemory *memory, size_t total) {
+    auto size = 0u;
+    auto counter = 0u;
+    while (size < total) {
+        StaticPool<1024> pool{ "signed-log" };
+        Storage storage{ memory, false };
+        if (!storage.begin()) {
+            ASSERT_TRUE(storage.clear());
+        }
+
+        auto meta_file = storage.file(1);
+        if (!meta_file.seek_end()) {
+            FK_ASSERT(meta_file.create());
+        }
+        auto srl = SignedRecordLog{ meta_file };
+        size_t appended = 0;
+        append_metadata(srl, counter++, "our-build-1", "our-git-1", appended, pool);
+
+        size += appended + sizeof(RecordHeader) + sizeof(RecordTail);
+    }
+}
+
+static void write_readings(DataMemory *memory, size_t total) {
+    Storage storage{ memory, false };
+    if (!storage.begin()) {
+        ASSERT_TRUE(storage.clear());
+    }
+    auto file = storage.file(0);
+    if (!file.seek_end()) {
+        ASSERT_TRUE(file.create());
+    }
+    auto size = 0u;
+    while (size < total) {
+        auto wrote = write_reading(file);
+        size += wrote + sizeof(RecordHeader) + sizeof(RecordTail);
+    }
+}
+
+static void write_alternating(DataMemory *memory, size_t total) {
+    auto size = 0u;
+    auto counter = 0u;
+    while (size < total) {
+        StaticPool<1024> pool{ "signed-log" };
+        Storage storage{ memory, false };
+        if (!storage.begin()) {
+            ASSERT_TRUE(storage.clear());
+        }
+
+        auto meta_file = storage.file(1);
+        if (!meta_file.seek_end()) {
+            FK_ASSERT(meta_file.create());
+        }
+        auto srl = SignedRecordLog{ meta_file };
+        size_t appended = 0;
+        append_metadata(srl, counter++, "our-build-1", "our-git-1", appended, pool);
+
+        auto data_file = storage.file(0);
+        if (!data_file.seek_end()) {
+            ASSERT_TRUE(data_file.create());
+        }
+
+        write_reading(data_file);
+
+        size += appended + sizeof(RecordHeader) + sizeof(RecordTail);
+    }
+}
+
+TEST_F(StorageSuite, ReproduceSeekBytesInBlock0) {
+    // write_meta_records(memory_, g_.block_size / 2);
+
+    // write_readings(memory_, g_.block_size * 4);
+
+    write_alternating(memory_, g_.block_size * 2);
+
+    // enable_debug();
+
+    // write_meta_records(memory_, g_.block_size);
+}
+
 TEST_F(StorageSuite, ReproduceFindingWrongFileInReadHeader) {
     Storage storage{ memory_, false };
     ASSERT_TRUE(storage.clear());

@@ -80,14 +80,42 @@ void append_metadata_always(SignedRecordLog &srl, uint32_t time, const char *bui
     ASSERT_TRUE(srl.append_always(SignedRecordKind::Modules, &record, fk_data_DataRecord_fields, pool));
 }
 
-void append_metadata(SignedRecordLog &srl, const char *build, const char *git, Pool &pool) {
+void append_metadata_always(SignedRecordLog &srl, uint32_t time, const char *build, const char *git, size_t &appended, Pool &pool) {
     fk_data_DataRecord record = fk_data_DataRecord_init_default;
-    record.metadata.time = 1;
+    record.metadata.time = time;
+    record.metadata.git.funcs.encode = pb_encode_string;
+    record.metadata.git.arg = (void *)git;
+    record.metadata.build.funcs.encode = pb_encode_string;
+    record.metadata.build.arg = (void *)build;
+
+    auto ar = srl.append_always(SignedRecordKind::Modules, &record, fk_data_DataRecord_fields, pool);
+    ASSERT_TRUE(ar);
+
+    appended = (*ar).size;
+}
+
+void append_metadata(SignedRecordLog &srl, uint32_t time, const char *build, const char *git, Pool &pool) {
+    fk_data_DataRecord record = fk_data_DataRecord_init_default;
+    record.metadata.time = time;
     record.metadata.git.funcs.encode = pb_encode_string;
     record.metadata.git.arg = (void *)git;
     record.metadata.build.funcs.encode = pb_encode_string;
     record.metadata.build.arg = (void *)build;
     ASSERT_TRUE(srl.append_immutable(SignedRecordKind::Modules, &record, fk_data_DataRecord_fields, pool));
+}
+
+void append_metadata(SignedRecordLog &srl, uint32_t time, const char *build, const char *git, size_t &appended, Pool &pool) {
+    fk_data_DataRecord record = fk_data_DataRecord_init_default;
+    record.metadata.time = time;
+    record.metadata.git.funcs.encode = pb_encode_string;
+    record.metadata.git.arg = (void *)git;
+    record.metadata.build.funcs.encode = pb_encode_string;
+    record.metadata.build.arg = (void *)build;
+
+    auto ar = srl.append_immutable(SignedRecordKind::Modules, &record, fk_data_DataRecord_fields, pool);
+    ASSERT_TRUE(ar);
+
+    appended = (*ar).size;
 }
 
 void append_other_always(SignedRecordLog &srl, const char *build, const char *git, Pool &pool) {

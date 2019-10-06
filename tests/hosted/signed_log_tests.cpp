@@ -106,17 +106,17 @@ TEST_F(SignedLogSuite, AppendingImmutable) {
     auto file = storage.file(Storage::Meta);
     auto srl = SignedRecordLog{ file };
 
-    append_metadata(srl, "our-build-1", "our-git-1", pool);
+    append_metadata(srl, 1, "our-build-1", "our-git-1", pool);
 
     auto position1 = file.position();
     ASSERT_GT(position1, (uint32_t)0);
 
-    append_metadata(srl, "our-build-1", "our-git-1", pool);
+    append_metadata(srl, 1, "our-build-1", "our-git-1", pool);
 
     auto position2 = file.position();
     ASSERT_EQ(position1, position2);
 
-    append_metadata(srl, "our-build-2", "our-git-2", pool);
+    append_metadata(srl, 1, "our-build-2", "our-git-2", pool);
 
     auto position3 = file.position();
     ASSERT_GT(position3, position2);
@@ -132,7 +132,7 @@ TEST_F(SignedLogSuite, AppendingImmutableWithOtherKindsBetween) {
     auto file = storage.file(Storage::Meta);
     auto srl = SignedRecordLog{ file };
 
-    append_metadata(srl, "our-build-1", "our-git-1", pool);
+    append_metadata(srl, 1, "our-build-1", "our-git-1", pool);
 
     append_other_always(srl, "ignored", "ignored", pool);
     append_other_always(srl, "ignored", "ignored", pool);
@@ -140,7 +140,7 @@ TEST_F(SignedLogSuite, AppendingImmutableWithOtherKindsBetween) {
     auto position1 = file.position();
     ASSERT_GT(position1, (uint32_t)0);
 
-    append_metadata(srl, "our-build-1", "our-git-1", pool);
+    append_metadata(srl, 1, "our-build-1", "our-git-1", pool);
 
     auto position2 = file.position();
     ASSERT_EQ(position1, position2);
@@ -149,7 +149,7 @@ TEST_F(SignedLogSuite, AppendingImmutableWithOtherKindsBetween) {
     append_other_always(srl, "ignored", "ignored", pool);
     append_other_always(srl, "ignored", "ignored", pool);
 
-    append_metadata(srl, "our-build-2", "our-git-2", pool);
+    append_metadata(srl, 1, "our-build-2", "our-git-2", pool);
 
     auto position3 = file.position();
     ASSERT_GT(position3, position2);

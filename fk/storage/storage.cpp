@@ -369,7 +369,7 @@ SeekValue Storage::seek(SeekSettings settings) {
 
     while (true) {
         // If at the start of the block, bump.
-        if (g.start_of_block(address)) {
+        if (g.is_start_of_block(address)) {
             address += sizeof(BlockHeader);
         }
 
