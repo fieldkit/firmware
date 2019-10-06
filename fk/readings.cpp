@@ -10,7 +10,9 @@ FK_DECLARE_LOGGER("readings");
 Readings::Readings(ModMux *mm) : mm_(mm) {
 }
 
-tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningContext &ctx, ConstructedModulesCollection const &modules, uint32_t meta_record, uint32_t reading_number, Pool &pool) {
+tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(
+    ScanningContext &ctx, ConstructedModulesCollection const &modules,
+    uint32_t meta_record, uint32_t reading_number, Pool &pool) {
     ModuleReadingsCollection all_readings{ pool };
 
     auto now = get_clock_now();
@@ -57,10 +59,11 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
 
         loginfo("'%s' %zd readings", meta->name, readings->size());
 
+        auto sensor_metas = module->get_sensors(pool);
         auto sensor_values = pool.malloc<fk_data_SensorAndValue>(readings->size());
         for (uint32_t i = 0; i < readings->size(); ++i) {
             auto value = readings->get(i);
-            loginfo("'%s' %" PRIu32 " = %f", meta->name, i, value);
+            loginfo("[%2" PRIu32 "] '%s.%s' = %f", i, meta->name, sensor_metas->sensors[i].name, value);
             sensor_values[i] = { i, value };
         }
 

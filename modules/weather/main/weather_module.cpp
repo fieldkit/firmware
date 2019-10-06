@@ -13,7 +13,9 @@ static SensorMetadata const fk_module_weather_sensor_metas[] = {
     { .name = "temperature_1",        .unitOfMeasure = "C",      .flags = 0 },
     { .name = "pressure",             .unitOfMeasure = "kPa",    .flags = 0 },
     { .name = "temperature_2",        .unitOfMeasure = "C",      .flags = 0 },
+
     { .name = "rain",                 .unitOfMeasure = "inches", .flags = 0 },
+
     { .name = "wind_speed",           .unitOfMeasure = "km/hr",  .flags = 0 },
     { .name = "wind_dir",             .unitOfMeasure = "",       .flags = 0 },
     { .name = "wind_dir_mv",          .unitOfMeasure = "mv",     .flags = 0 },
@@ -204,6 +206,7 @@ ModuleReadings *WeatherModule::take_readings(ModuleContext mc, fk::Pool &pool) {
     mr->set(i++, -45.0f + 175.0f * ((float)reading.temperature_1 / (0xffff)));
     mr->set(i++, reading.pressure / 64.0f / 1000.0f);
     mr->set(i++, reading.temperature_2 / 16.0f);
+
     mr->set(i++, rain_ticks * RainPerTick);
 
     mr->set(i++, wind_ticks * WindPerTick);
