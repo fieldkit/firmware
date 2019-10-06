@@ -174,6 +174,10 @@ bool Storage::begin() {
 
     free_block_ = block;
 
+    for (auto i = 0; i < NumberOfFiles; ++i) {
+        logdebug("[%d] header tail (" PRADDRESS ") (#%" PRIu32 ")", i, files_[i].tail, files_[i].record);
+    }
+
     logdebug("found end (block = %" PRIu32 ") (%" PRIu32 "ms)", free_block_, fk_uptime() - started);
 
     return true;
@@ -244,8 +248,8 @@ uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address, BlockTa
         return InvalidAddress;
     }
 
-    logdebug("[%d] allocating block #%" PRIu32 " ts=%" PRIu32 " (" PRADDRESS ") (#%" PRIu32 ") (%" PRIu32 " bytes)",
-             file, free_block_, timestamp_, address, files_[file].record, files_[file].size);
+    loginfo("[%d] allocating block #%" PRIu32 " ts=%" PRIu32 " (" PRADDRESS ") (#%" PRIu32 ") (%" PRIu32 " bytes)",
+            file, free_block_, timestamp_, address, files_[file].record, files_[file].size);
 
     timestamp_++;
     free_block_++;
@@ -360,7 +364,7 @@ SeekValue Storage::seek(SeekSettings settings) {
         return SeekValue{ };
     }
 
-    logtrace("[%d] " PRADDRESS " seeking #%" PRIu32 " (%" PRIu32 ") from blk #%" PRIu32 " (bsz = %" PRIu32 " bytes)",
+    logdebug("[%d] " PRADDRESS " seeking #%" PRIu32 " (%" PRIu32 ") from blk #%" PRIu32 " (bsz = %" PRIu32 " bytes)",
              settings.file, address, settings.record, position, fh.tail / g.block_size, fh.size);
 
     while (true) {
@@ -376,7 +380,6 @@ SeekValue Storage::seek(SeekSettings settings) {
 
         // Is there a valid record here?
         if (!record_head.valid()) {
-            logtrace("[%d] " PRADDRESS " invalid head", settings.file, address);
             // This is here so that we can get the correct record_address. This
             // will typically happen when the file block header pointed directly
             // to the tail of the file, so we have the record number but
@@ -384,8 +387,11 @@ SeekValue Storage::seek(SeekSettings settings) {
             // This isn't the most elegant.
             if (record_address == 0 && record > 0) {
                 address = g.start_of_block(address);
+                logdebug("[%d] " PRADDRESS " invalid head (resume " PRADDRESS ")", settings.file, address, address);
                 continue;
             }
+
+            logtrace("[%d] " PRADDRESS " invalid head", settings.file, address);
             break;
         }
 

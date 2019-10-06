@@ -234,7 +234,7 @@ int32_t File::read_record_header() {
                 return 0;
             }
 
-            logverbose("[%d] " PRADDRESS " btail (" PRADDRESS ")", file_, tail_, block_tail.linked);
+            logdebug("[%d] " PRADDRESS " btail (" PRADDRESS ")", file_, tail_, block_tail.linked);
 
             if (!is_address_valid(block_tail.linked)) {
                 return 0;

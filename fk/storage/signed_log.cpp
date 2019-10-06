@@ -21,16 +21,23 @@ tl::expected<uint32_t, Error> SignedRecordLog::seek_record(SignedRecordKind kind
         return tl::unexpected<Error>(Error::IO);
     }
 
+    logdebug("[" PRADDRESS "] finding %" PRIu32, file_.position(), (int32_t)kind);
+
     // TODO: Timeout of some kind?
     RecordReference found;
     while (true) {
         fk_data_SignedRecord sr = fk_data_SignedRecord_init_default;
         auto nread = file_.read(&sr, fk_data_SignedRecord_fields);
         if (nread == 0) {
+            logdebug("[" PRADDRESS "] end of file", file_.tail());
             break;
         }
         if (sr.kind == (uint32_t)kind) {
             found = file_.reference();
+        }
+        else {
+            logtrace("[" PRADDRESS "] wrong kind (%" PRId32 " != %" PRId32 ")", file_.tail(),
+                     (int32_t)sr.kind, (int32_t)kind);
         }
     }
 
@@ -41,6 +48,8 @@ tl::expected<uint32_t, Error> SignedRecordLog::seek_record(SignedRecordKind kind
     if (!file_.seek(found)) {
         return tl::unexpected<Error>(Error::IO);
     }
+
+    logdebug("[" PRADDRESS "] found record #%" PRIu32, file_.position(), file_.record());
 
     return file_.record();
 }
@@ -107,16 +116,18 @@ tl::expected<uint32_t, Error> SignedRecordLog::append_immutable(SignedRecordKind
         auto hash_ref = (pb_data_t *)sr.hash.arg;
         FK_ASSERT(hash_ref->length == Hash::Length);
         if (memcmp(new_hash, hash_ref->buffer, Hash::Length) == 0) {
-            logdebug("identical record");
+            logdebug("[" PRADDRESS "] identical record", file_.tail());
             if (!file_.seek(LastRecord)) {
                 return tl::unexpected<Error>(Error::IO);
             }
             return sr.record;
         }
         else {
-            auto record_data = (pb_data_t *)sr.data.arg;
-            fk_dump_memory("saved ", (uint8_t *)record_data->buffer, record_data->length);
-            fk_dump_memory("wrote ", (uint8_t *)encoded->buffer, encoded->size);
+            if (log_is_debug()) {
+                auto record_data = (pb_data_t *)sr.data.arg;
+                fk_dump_memory("saved ", (uint8_t *)record_data->buffer, record_data->length);
+                fk_dump_memory("wrote ", (uint8_t *)encoded->buffer, encoded->size);
+            }
         }
     }
     else {
@@ -127,7 +138,7 @@ tl::expected<uint32_t, Error> SignedRecordLog::append_immutable(SignedRecordKind
         logwarn("creating new file");
     }
 
-    log_configure_level(LogLevels::VERBOSE);
+    log_configure_level(LogLevels::TRACE);
 
     auto rv = append_always(kind, record, fields, pool);
 
