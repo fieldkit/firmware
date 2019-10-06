@@ -16,6 +16,11 @@ enum class SignedRecordKind : uint8_t {
     Other = fk_data_SignedRecordKind_SIGNED_RECORD_KIND_OTHER,
 };
 
+struct AppendedRecord {
+    uint32_t record;
+    uint32_t size;
+};
+
 class SignedRecordLog {
 private:
     File &file_;
@@ -25,8 +30,8 @@ public:
 
 public:
     tl::expected<uint32_t, Error> seek_record(SignedRecordKind kind);
-    tl::expected<uint32_t, Error> append_always(SignedRecordKind kind, void const *record, pb_msgdesc_t const *fields, Pool &pool);
-    tl::expected<uint32_t, Error> append_immutable(SignedRecordKind kind, void const *record, pb_msgdesc_t const *fields, Pool &pool);
+    tl::expected<AppendedRecord, Error> append_always(SignedRecordKind kind, void const *record, pb_msgdesc_t const *fields, Pool &pool);
+    tl::expected<AppendedRecord, Error> append_immutable(SignedRecordKind kind, void const *record, pb_msgdesc_t const *fields, Pool &pool);
     bool decode(void *record, pb_msgdesc_t const *fields, Pool &pool);
     bool seek_end();
 

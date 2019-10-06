@@ -2,6 +2,7 @@
 #include <phylum/blake2b.h>
 
 #include "storage/signed_log.h"
+#include "storage/storage.h"
 
 namespace fk {
 
@@ -54,7 +55,7 @@ tl::expected<uint32_t, Error> SignedRecordLog::seek_record(SignedRecordKind kind
     return file_.record();
 }
 
-tl::expected<uint32_t, Error> SignedRecordLog::append_always(SignedRecordKind kind, void const *record, pb_msgdesc_t const *fields, Pool &pool) {
+tl::expected<AppendedRecord, Error> SignedRecordLog::append_always(SignedRecordKind kind, void const *record, pb_msgdesc_t const *fields, Pool &pool) {
     auto encoded = pool.encode(fields, record);
 
     uint8_t hash[Hash::Length];
@@ -81,15 +82,17 @@ tl::expected<uint32_t, Error> SignedRecordLog::append_always(SignedRecordKind ki
     sr.hash.arg = (void *)&hash_ref;
     sr.record = file_.record();
 
-    if (!file_.write(&sr, fk_data_SignedRecord_fields)) {
+    auto record_size = file_.write(&sr, fk_data_SignedRecord_fields);
+    if (record_size == 0) {
         return tl::unexpected<Error>(Error::IO);
     }
 
-    return sr.record;
+    return AppendedRecord{ (uint32_t)sr.record, (uint32_t)record_size };
 }
 
-tl::expected<uint32_t, Error> SignedRecordLog::append_immutable(SignedRecordKind kind, void const *record, pb_msgdesc_t const *fields, Pool &pool) {
-    if (seek_record(kind)) {
+tl::expected<AppendedRecord, Error> SignedRecordLog::append_immutable(SignedRecordKind kind, void const *record, pb_msgdesc_t const *fields, Pool &pool) {
+    auto sought = seek_record(kind);
+    if (sought) {
         // TODO This could be better, for example we could have a custom nanopb
         // ostream that calculates the hash.
         auto encoded = pool.encode(fields, record);
@@ -120,7 +123,7 @@ tl::expected<uint32_t, Error> SignedRecordLog::append_immutable(SignedRecordKind
             if (!file_.seek(LastRecord)) {
                 return tl::unexpected<Error>(Error::IO);
             }
-            return sr.record;
+            return AppendedRecord{ (uint32_t)sr.record, 0u };
         }
         else {
             if (log_is_debug()) {

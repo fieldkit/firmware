@@ -90,7 +90,7 @@ tl::expected<uint32_t, Error> MetaOps::write_state(GlobalState const *gs, Pool &
     auto srl = SignedRecordLog{ meta };
     auto meta_record = srl.append_immutable(SignedRecordKind::State, &record, fk_data_DataRecord_fields, pool);
     if (!meta_record) {
-        return meta_record;
+        return tl::unexpected<Error>(meta_record.error());
     }
 
     char gen_string[GenerationLength * 2 + 1];
@@ -102,7 +102,7 @@ tl::expected<uint32_t, Error> MetaOps::write_state(GlobalState const *gs, Pool &
         loginfo("(saved) recording");
     }
 
-    return meta_record;
+    return (*meta_record).record;
 }
 
 tl::expected<uint32_t, Error> MetaOps::write_modules(GlobalState const *gs, ConstructedModulesCollection &modules, Pool &pool) {
@@ -187,9 +187,10 @@ tl::expected<uint32_t, Error> MetaOps::write_modules(GlobalState const *gs, Cons
         FK_ASSERT(meta.create());
     }
     auto srl = SignedRecordLog { meta };
+
     auto meta_record = srl.append_immutable(SignedRecordKind::Modules, &record, fk_data_DataRecord_fields, pool);
 
-    return meta_record;
+    return (*meta_record).record;
 }
 
 }
