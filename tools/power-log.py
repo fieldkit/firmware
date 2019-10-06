@@ -13,8 +13,8 @@ class FkListener:
     def started(self):
         self.tasks = []
 
-    def firmware(self, firmware):
-        self.firmware = firmware
+    def firmware(self, firmware_hash):
+        self.firmware_hash = firmware_hash
 
     def task_started(self, name):
         pass
