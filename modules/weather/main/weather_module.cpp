@@ -165,7 +165,7 @@ ModuleReadings *WeatherModule::take_readings(ModuleContext mc, fk::Pool &pool) {
             seconds_ = temp.seconds;
             session_ = temp.session;
             rain_ticks += reading.rain.ticks;
-            wind_ticks += reading.wind.ticks;
+            wind_ticks = reading.wind.ticks;
         }
         else {
             loginfo("[0x%04" PRIx32 "] bad crc (0x%" PRIx32 " != 0x%" PRIx32 ")", address_, expected, temp.crc);
