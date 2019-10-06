@@ -7,6 +7,18 @@
 
 using namespace fk;
 
+extern "C" {
+
+void osi_assert(const char *assertion, const char *file, int line) {
+    FAIL() << "Assertion \"" << assertion << "\" failed. File: " << file << " Line: " << line;
+}
+
+void fk_assert(const char *assertion, const char *file, int32_t line, const char *f, ...) {
+    FAIL() << "Assertion \"" << assertion << "\" failed. File: " << file << " Line: " << line;
+}
+
+}
+
 FK_DECLARE_LOGGER("tests");
 
 size_t write_reading(File &file) {
@@ -138,14 +150,69 @@ void append_other(SignedRecordLog &srl, const char *build, const char *git, Pool
     ASSERT_TRUE(srl.append_immutable(SignedRecordKind::Other, &record, fk_data_DataRecord_fields, pool));
 }
 
-extern "C" {
+void write_meta_records(DataMemory *memory, size_t total) {
+    auto size = 0u;
+    auto counter = 0u;
+    while (size < total) {
+        StaticPool<1024> pool{ "signed-log" };
+        Storage storage{ memory, false };
+        if (!storage.begin()) {
+            ASSERT_TRUE(storage.clear());
+        }
 
-void osi_assert(const char *assertion, const char *file, int line) {
-    FAIL() << "Assertion \"" << assertion << "\" failed. File: " << file << " Line: " << line;
+        auto meta_file = storage.file(1);
+        if (!meta_file.seek_end()) {
+            FK_ASSERT(meta_file.create());
+        }
+        auto srl = SignedRecordLog{ meta_file };
+        size_t appended = 0;
+        append_metadata(srl, counter++, "our-build-1", "our-git-1", appended, pool);
+
+        size += appended + sizeof(RecordHeader) + sizeof(RecordTail);
+    }
 }
 
-void fk_assert(const char *assertion, const char *file, int32_t line, const char *f, ...) {
-    FAIL() << "Assertion \"" << assertion << "\" failed. File: " << file << " Line: " << line;
+void write_readings(DataMemory *memory, size_t total) {
+    Storage storage{ memory, false };
+    if (!storage.begin()) {
+        ASSERT_TRUE(storage.clear());
+    }
+    auto file = storage.file(0);
+    if (!file.seek_end()) {
+        ASSERT_TRUE(file.create());
+    }
+    auto size = 0u;
+    while (size < total) {
+        auto wrote = write_reading(file);
+        size += wrote + sizeof(RecordHeader) + sizeof(RecordTail);
+    }
 }
 
+void write_alternating(DataMemory *memory, size_t total) {
+    auto size = 0u;
+    auto counter = 0u;
+    while (size < total) {
+        StaticPool<1024> pool{ "signed-log" };
+        Storage storage{ memory, false };
+        if (!storage.begin()) {
+            ASSERT_TRUE(storage.clear());
+        }
+
+        auto meta_file = storage.file(1);
+        if (!meta_file.seek_end()) {
+            FK_ASSERT(meta_file.create());
+        }
+        auto srl = SignedRecordLog{ meta_file };
+        size_t appended = 0;
+        append_metadata(srl, counter++, "our-build-1", "our-git-1", appended, pool);
+
+        auto data_file = storage.file(0);
+        if (!data_file.seek_end()) {
+            ASSERT_TRUE(data_file.create());
+        }
+
+        write_reading(data_file);
+
+        size += appended + sizeof(RecordHeader) + sizeof(RecordTail);
+    }
 }

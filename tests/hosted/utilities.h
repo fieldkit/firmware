@@ -17,3 +17,9 @@ void append_metadata(fk::SignedRecordLog &srl, uint32_t time, const char *build,
 void append_other_always(fk::SignedRecordLog &srl, const char *build, const char *git, fk::Pool &pool);
 
 void append_other(fk::SignedRecordLog &srl, const char *build, const char *git, fk::Pool &pool);
+
+void write_meta_records(fk::DataMemory *memory, size_t total);
+
+void write_readings(fk::DataMemory *memory, size_t total);
+
+void write_alternating(fk::DataMemory *memory, size_t total);
