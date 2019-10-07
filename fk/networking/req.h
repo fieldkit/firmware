@@ -162,6 +162,20 @@ public:
         return content_type_;
     }
 
+    /**
+     * Returns true if the HTTP method is GET.
+     */
+    bool is_get_method() const {
+        return parser_.method == HTTP_GET;
+    }
+
+    /**
+     * Returns true if the HTTP method is HEAD.
+     */
+    bool is_head_method() const {
+        return parser_.method == HTTP_HEAD;
+    }
+
 public:
     /**
      * This is a long story.

@@ -73,6 +73,14 @@ public:
         return req_.url_parser().find_query_param(key, pool);
     }
 
+    bool is_get_method() const {
+        return req_.is_get_method();
+    }
+
+    bool is_head_method() const {
+        return req_.is_head_method();
+    }
+
 };
 
 class ConnectionPool {

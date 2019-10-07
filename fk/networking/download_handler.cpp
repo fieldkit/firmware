@@ -71,35 +71,43 @@ void DownloadWorker::run(Pool &pool) {
 
     memory.log_statistics();
 
-    if (write_headers(info)) {
-        size_t buffer_size = 1024;
-        uint8_t *buffer = (uint8_t *)pool.malloc(buffer_size);
+    if (!write_headers(info)) {
+        connection_->close();
+        return;
+    }
 
-        GlobalStateProgressCallbacks gs_progress;
-        auto tracker = ProgressTracker{ &gs_progress, Operation::Download, "download", "", info.size };
-        auto bytes_copied = (size_t)0;
-        while (bytes_copied < info.size) {
-            auto to_read = std::min<int32_t>(buffer_size, info.size - bytes_copied);
-            auto bytes_read = file.read(buffer, to_read);
-            FK_ASSERT(bytes_read == to_read);
+    if (connection_->is_head_method()) {
+        connection_->close();
+        return;
+    }
 
-            auto wrote = connection_->write(buffer, to_read);
-            if (wrote != (int32_t)to_read) {
-                logwarn("write error (%" PRId32 " != %" PRId32 ")", wrote, to_read);
-                break;
-            }
+    size_t buffer_size = 1024;
+    uint8_t *buffer = (uint8_t *)pool.malloc(buffer_size);
 
-            tracker.update(bytes_read);
+    GlobalStateProgressCallbacks gs_progress;
+    auto tracker = ProgressTracker{ &gs_progress, Operation::Download, "download", "", info.size };
+    auto bytes_copied = (size_t)0;
+    while (bytes_copied < info.size) {
+        auto to_read = std::min<int32_t>(buffer_size, info.size - bytes_copied);
+        auto bytes_read = file.read(buffer, to_read);
+        FK_ASSERT(bytes_read == to_read);
 
-            bytes_copied += bytes_read;
+        auto wrote = connection_->write(buffer, to_read);
+        if (wrote != (int32_t)to_read) {
+            logwarn("write error (%" PRId32 " != %" PRId32 ")", wrote, to_read);
+            break;
         }
 
-        tracker.finished();
+        tracker.update(bytes_read);
 
-        auto elapsed = fk_uptime() - started;
-        auto speed = ((bytes_copied / 1024.0f) / (elapsed / 1000.0f));
-        loginfo("done (%zd) (%" PRIu32 "ms) %.2fkbps", bytes_copied, elapsed, speed);
+        bytes_copied += bytes_read;
     }
+
+    tracker.finished();
+
+    auto elapsed = fk_uptime() - started;
+    auto speed = ((bytes_copied / 1024.0f) / (elapsed / 1000.0f));
+    loginfo("done (%zd) (%" PRIu32 "ms) %.2fkbps", bytes_copied, elapsed, speed);
 
     connection_->close();
 
