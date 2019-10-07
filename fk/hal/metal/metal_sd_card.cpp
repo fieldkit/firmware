@@ -56,6 +56,8 @@ bool MetalSdCard::append_logs(circular_buffer<char> &buffer) {
     auto started = fk_uptime();
 
     if (!begin()) {
+        log_initialized = false;
+        log_ready = false;
         return false;
     }
 
