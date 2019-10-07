@@ -155,26 +155,22 @@ TEST_F(ReadingsTakingSuite, AssignsRecordIndices) {
 
     auto meta_file = storage.file(Storage::Meta);
     auto srl = SignedRecordLog{ meta_file };
-    ASSERT_EQ(*srl.seek_record(SignedRecordKind::Modules), (uint32_t)3);
+    ASSERT_EQ(*srl.seek_record(SignedRecordKind::Modules), (uint32_t)4);
 
     fk_data_SignedRecord sr = fk_data_SignedRecord_init_default;
     ASSERT_TRUE(meta_file.read(&sr, fk_data_SignedRecord_fields));
-    ASSERT_EQ(sr.record, (uint32_t)3);
+    ASSERT_EQ(sr.record, (uint32_t)4);
 
     auto data_file = storage.file(Storage::Data);
     ASSERT_TRUE(data_file.seek(0));
     fk_data_DataRecord record = fk_data_DataRecord_init_default;
-    ASSERT_TRUE(data_file.read(&record, fk_data_DataRecord_fields));
-    ASSERT_EQ(record.readings.reading, (uint32_t)0);
-    ASSERT_EQ(record.readings.meta, (uint32_t)0);
-
     ASSERT_TRUE(data_file.read(&record, fk_data_DataRecord_fields));
     ASSERT_EQ(record.readings.reading, (uint32_t)1);
     ASSERT_EQ(record.readings.meta, (uint32_t)1);
 
     ASSERT_TRUE(data_file.read(&record, fk_data_DataRecord_fields));
     ASSERT_EQ(record.readings.reading, (uint32_t)2);
-    ASSERT_EQ(record.readings.meta, (uint32_t)1);
+    ASSERT_EQ(record.readings.meta, (uint32_t)2);
 
     ASSERT_TRUE(data_file.read(&record, fk_data_DataRecord_fields));
     ASSERT_EQ(record.readings.reading, (uint32_t)3);
@@ -182,9 +178,13 @@ TEST_F(ReadingsTakingSuite, AssignsRecordIndices) {
 
     ASSERT_TRUE(data_file.read(&record, fk_data_DataRecord_fields));
     ASSERT_EQ(record.readings.reading, (uint32_t)4);
-    ASSERT_EQ(record.readings.meta, (uint32_t)2);
+    ASSERT_EQ(record.readings.meta, (uint32_t)3);
 
     ASSERT_TRUE(data_file.read(&record, fk_data_DataRecord_fields));
     ASSERT_EQ(record.readings.reading, (uint32_t)5);
     ASSERT_EQ(record.readings.meta, (uint32_t)3);
+
+    ASSERT_TRUE(data_file.read(&record, fk_data_DataRecord_fields));
+    ASSERT_EQ(record.readings.reading, (uint32_t)6);
+    ASSERT_EQ(record.readings.meta, (uint32_t)4);
 }

@@ -188,7 +188,7 @@ bool File::seek(RecordReference reference) {
 }
 
 bool File::create() {
-    record_ = 0;
+    record_ = 1;
     position_ = 0;
     size_ = 0;
     record_remaining_ = 0;

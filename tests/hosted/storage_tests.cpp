@@ -145,7 +145,7 @@ TEST_F(StorageSuite, AppendingMultipleRecords) {
         ASSERT_EQ(file_write.write(data, sizeof(data)), (int32_t)sizeof(data));
     }
 
-    ASSERT_EQ(file_write.record(), (uint32_t)100);
+    ASSERT_EQ(file_write.record(), (uint32_t)101);
 
     auto actual_tail = file_write.tail();
 
@@ -156,7 +156,7 @@ TEST_F(StorageSuite, AppendingMultipleRecords) {
     auto file_read = storage.file(0);
     ASSERT_TRUE(file_read.seek_end());
     ASSERT_EQ(file_read.tail(), actual_tail);
-    ASSERT_EQ(file_read.record(), (uint32_t)100);
+    ASSERT_EQ(file_read.record(), (uint32_t)101);
     ASSERT_EQ(file_read.size(), (uint32_t)25600);
 }
 
@@ -178,10 +178,10 @@ TEST_F(StorageSuite, AppendingToMultipleFiles) {
     memset(data1, 0x01, sizeof(data1));
     ASSERT_EQ(file1.write(data1, sizeof(data1)), (int32_t)sizeof(data0));
 
-    ASSERT_EQ(file0.record(), (uint32_t)1);
+    ASSERT_EQ(file0.record(), (uint32_t)2);
     ASSERT_EQ(file0.size(), (uint32_t)256);
 
-    ASSERT_EQ(file1.record(), (uint32_t)1);
+    ASSERT_EQ(file1.record(), (uint32_t)2);
     ASSERT_EQ(file1.size(), (uint32_t)256);
 }
 
@@ -249,11 +249,11 @@ TEST_F(StorageSuite, SeekingToARecord) {
 
         auto file_read = storage.file(0);
 
-        ASSERT_TRUE(file_read.seek(size / 256 / 2));
+        ASSERT_TRUE(file_read.seek(size / 256 / 2 + 1));
         ASSERT_EQ(file_read.position(), (size_t)((size / 256) / 2) * 256);
         pattern.verify_record(file_read, (size / 256 / 2) & 0xff);
 
-        ASSERT_TRUE(file_read.seek(100));
+        ASSERT_TRUE(file_read.seek(101));
         ASSERT_EQ(file_read.position(), (size_t)(100 * 256));
         pattern.verify_record(file_read, 100);
     }
@@ -263,11 +263,11 @@ TEST_F(StorageSuite, SeekingToARecord) {
 
         auto file_read = storage.file(0);
 
-        ASSERT_TRUE(file_read.seek(100));
+        ASSERT_TRUE(file_read.seek(101));
         ASSERT_EQ(file_read.position(), (size_t)(100 * 256));
         pattern.verify_record(file_read, 100);
 
-        ASSERT_TRUE(file_read.seek(size / 256 / 2));
+        ASSERT_TRUE(file_read.seek(size / 256 / 2 + 1));
         ASSERT_EQ(file_read.position(), (size_t)((size / 256) / 2) * 256);
         pattern.verify_record(file_read, (size / 256 / 2) & 0xff);
     }
@@ -413,7 +413,7 @@ TEST_F(StorageSuite, WritingOncePerOpenHasCorrectRecordNumbers) {
         auto file_write = storage.file(0);
         ASSERT_TRUE(file_write.create());
         pattern.write(file_write, 256);
-        ASSERT_EQ(file_write.record(), (uint32_t)1);
+        ASSERT_EQ(file_write.record(), (uint32_t)2);
     }
 
     ASSERT_TRUE(memory_->flush());
@@ -423,7 +423,7 @@ TEST_F(StorageSuite, WritingOncePerOpenHasCorrectRecordNumbers) {
         auto file_write = storage.file(0);
         ASSERT_TRUE(file_write.seek_end());
         pattern.write(file_write, 256);
-        ASSERT_EQ(file_write.record(), (uint32_t)2 + i);
+        ASSERT_EQ(file_write.record(), (uint32_t)3 + i);
         ASSERT_TRUE(memory_->flush());
     }
 }
@@ -734,7 +734,7 @@ TEST_F(StorageSuite, SeekingToBeginningWhenBeginningSecondFileAFewBlocksAfterFir
 
     auto file_read1 = storage.file(1);
     ASSERT_TRUE(file_read1.seek_end());
-    ASSERT_EQ(file_read1.record(), (uint32_t)1);
+    ASSERT_EQ(file_read1.record(), (uint32_t)2);
     ASSERT_EQ(file_read1.size(), wrote1);
 }
 
@@ -751,7 +751,7 @@ TEST_F(StorageSuite, ReproduceBadRecordNumberOnSeekToEndOfMetaFile) {
         ASSERT_TRUE(file_write1.create());
         ASSERT_EQ(file_write1.write(data, sizeof(data)), (int32_t)sizeof(data));
         ASSERT_EQ(file_write1.write(data, sizeof(data)), (int32_t)sizeof(data));
-        ASSERT_EQ(file_write1.record(), (uint32_t)2);
+        ASSERT_EQ(file_write1.record(), (uint32_t)3);
 
         // Now write to the other file and force that file to take up a few blocks.
         auto file_write0 = storage.file(0);
@@ -769,7 +769,7 @@ TEST_F(StorageSuite, ReproduceBadRecordNumberOnSeekToEndOfMetaFile) {
 
         auto file_read1 = storage.file(1);
         ASSERT_TRUE(file_read1.seek_end());
-        ASSERT_EQ(file_read1.record(), (uint32_t)2);
+        ASSERT_EQ(file_read1.record(), (uint32_t)3);
         ASSERT_EQ(file_read1.position(), (uint32_t)1024);
     }
 }
@@ -792,7 +792,7 @@ TEST_F(StorageSuite, ReproduceBadRecordAddressOnSeekToEndOfMetaFile) {
         record_address = file_write1.tail();
 
         ASSERT_EQ(file_write1.write(data, sizeof(data)), (int32_t)sizeof(data));
-        ASSERT_EQ(file_write1.record(), (uint32_t)2);
+        ASSERT_EQ(file_write1.record(), (uint32_t)3);
 
         // Now write to the other file and force that file to take up a few blocks.
         auto file_write0 = storage.file(0);
@@ -810,7 +810,7 @@ TEST_F(StorageSuite, ReproduceBadRecordAddressOnSeekToEndOfMetaFile) {
 
         auto file_read1 = storage.file(1);
         ASSERT_TRUE(file_read1.seek_end());
-        ASSERT_EQ(file_read1.record(), (uint32_t)2);
+        ASSERT_EQ(file_read1.record(), (uint32_t)3);
         ASSERT_EQ(file_read1.position(), (uint32_t)1024);
         ASSERT_EQ(file_read1.record_address(), record_address);
     }
@@ -828,7 +828,7 @@ TEST_F(StorageSuite, ReproduceBadPositionOnSeekToBeginning) {
         auto file_write1 = storage.file(1);
         ASSERT_TRUE(file_write1.create());
         ASSERT_EQ(file_write1.write(data, sizeof(data)), (int32_t)sizeof(data));
-        ASSERT_EQ(file_write1.record(), (uint32_t)1);
+        ASSERT_EQ(file_write1.record(), (uint32_t)2);
 
         // Now write to the other file and force that file to take up a few blocks.
         auto file_write0 = storage.file(0);
