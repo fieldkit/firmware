@@ -50,7 +50,8 @@ bool WeatherModule::initialize(ModuleContext mc, fk::Pool &pool) {
     auto eeprom = ModuleEeprom{ module_bus };
 
     fk_weather_t reading;
-    bzero(&reading, sizeof(fk_weather_t));
+    bzero(&reading, sizeof(reading));
+    bzero(&weather_, sizeof(weather_));
     address_ = 0;
     seconds_ = 0;
     checks_ = 0;
@@ -155,6 +156,8 @@ ModuleReadings *WeatherModule::take_readings(ModuleContext mc, fk::Pool &pool) {
 
             if (temp.session < session_) {
                 logwarn("[0x%04" PRIx32 "] module restarted (%" PRIu32 " < %" PRIu32 ") memf(%" PRIu32 ") readf(%" PRIu32 ")", address_, temp.session, session_, temp.memory_failures, temp.reading_failures);
+                // Clear seconds so we can be sure to get a known delta.
+                seconds_ = 0;
             }
 
             logdebug("[0x%04" PRIx32 "] reading (%" PRIu32 ") memf(%" PRIu32 ") readf(%" PRIu32 ") (%.2f)", address_, seconds_, temp.memory_failures, temp.reading_failures, temperature);
@@ -236,9 +239,8 @@ WindDirection WeatherModule::get_wind_direction(fk::fk_weather_t const &raw) {
     return { (int16_t)adc_raw, wind_angle };
 }
 
-WindReading WeatherModule::get_wind_reading(fk::fk_weather_t const &raw) {
-    // TODO Assuming 1s between
-    auto speed = raw.wind.ticks / 1.0f * WindPerTick;
+WindReading WeatherModule::get_wind_reading(fk::fk_weather_t const &raw, int32_t seconds_elapsed) {
+    auto speed = raw.wind.ticks / ((float)seconds_elapsed) * WindPerTick;
     return { speed, get_wind_direction(raw) };
 }
 
@@ -248,13 +250,8 @@ void WeatherModule::include(uint32_t now, fk_weather_t const &raw) {
 
     // We nearly always hope that this is 1. I'm hoping to dial these conditions
     // in over time.
-    if (seconds_elapsed < 1) {
-        logerror("unexpected elapsed time %" PRIu32, seconds_elapsed);
-        weather_ = { };
-        return;
-    }
-    if (seconds_elapsed > 10) {
-        logerror("unexpected elapsed time %" PRIu32, seconds_elapsed);
+    if (seconds_elapsed != 1) {
+        logerror("unexpected elapsed time (%" PRIu32 " - %" PRIu32 ") = %" PRIu32, raw.seconds, seconds_, seconds_elapsed);
         weather_ = { };
         return;
     }
@@ -263,7 +260,7 @@ void WeatherModule::include(uint32_t now, fk_weather_t const &raw) {
     auto new_time = weather_.time > 0 ? weather_.time + seconds_elapsed : now;
     auto new_full_time = DateTime{ new_time };
 
-    auto wind = get_wind_reading(raw);
+    auto wind = get_wind_reading(raw, seconds_elapsed);
 
     weather_.hour_of_rain[new_full_time.minute()] += raw.rain.ticks * RainPerTick;
 
@@ -272,6 +269,7 @@ void WeatherModule::include(uint32_t now, fk_weather_t const &raw) {
 
     if (wind.stronger_than(weather_.wind_gusts[weather_.ten_minute_minute_counter])) {
         weather_.wind_gusts[weather_.ten_minute_minute_counter] = wind;
+        logdebug("[%0d] new 10m max wind: %f", weather_.ten_minute_minute_counter, wind.speed);
     }
 
     if (wind.stronger_than(weather_.hourly_wind_gust)) {

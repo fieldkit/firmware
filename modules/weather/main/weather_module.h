@@ -114,7 +114,7 @@ public:
 private:
     static int16_t get_wind_direction(uint8_t adc);
     static WindDirection get_wind_direction(fk::fk_weather_t const &raw);
-    static WindReading get_wind_reading(fk::fk_weather_t const &raw);
+    static WindReading get_wind_reading(fk::fk_weather_t const &raw, int32_t seconds_elapsed);
     void include(uint32_t now, fk::fk_weather_t const &raw);
 
 };
