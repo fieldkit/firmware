@@ -78,6 +78,7 @@ private:
 
     uint8_t const *buffered_body_{ nullptr };
     size_t buffered_body_length_{ 0 };
+    const char *user_agent_{ nullptr };
 
 public:
     HttpRequest(Pool *pool);
@@ -174,6 +175,13 @@ public:
      */
     bool is_head_method() const {
         return parser_.method == HTTP_HEAD;
+    }
+
+    /**
+     * Returns the User-Agent header.
+     */
+    const char *user_agent() const {
+        return user_agent_;
     }
 
 public:

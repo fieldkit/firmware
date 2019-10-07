@@ -151,6 +151,7 @@ int32_t HttpRequest::on_header_value(const char *at, size_t length) {
 
     if (strncasecmp(header_name_, HTTP_USER_AGENT, header_name_len_) == 0) {
         auto value = trim(pool_->strndup(at, length));
+        user_agent_ = value;
         logtrace("user-agent: %s", value);
     }
 
