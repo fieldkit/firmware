@@ -144,7 +144,7 @@ void MenuView::create_info_menu() {
 }
 
 void MenuView::create_modules_menu() {
-    MenuOption *bay_options[4];
+    MenuOption *bay_options[5];
     for (auto i = 0u; i < 4u; ++i) {
         bay_options[i] = to_module_bay_option(pool_, i * 2, pool_->sprintf("%d", i + 1), [=]() {
             selected_module_bay_ = i * 2;
@@ -152,6 +152,11 @@ void MenuView::create_modules_menu() {
             loginfo("selected %d", i);
         });
     }
+    bay_options[4] = to_module_bay_option(pool_, AllModuleBays, "All", [=]() {
+        selected_module_bay_ = AllModuleBays;
+        active_menu_ = goto_menu(module_menu_);
+        loginfo("selected all");
+    });
     module_bays_menu_ = new_menu_screen<4>(pool_, {
         bay_options[0], bay_options[1], bay_options[2], bay_options[3],
     });

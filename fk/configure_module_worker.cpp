@@ -25,18 +25,42 @@ void ConfigureModuleWorker::run(Pool &pool) {
 
     switch (kind_) {
     case ConfigureModuleKind::Weather: {
-        loginfo("configuring weather: %d", bay_);
-        FK_ASSERT(configurer.weather(bay_));
+        if (bay_ == AllModuleBays) {
+            for (auto bay = 0; bay < 4; ++bay) {
+                loginfo("configuring weather: %d", bay);
+                FK_ASSERT(configurer.weather(bay));
+            }
+        }
+        else {
+            loginfo("configuring weather: %d", bay_);
+            FK_ASSERT(configurer.weather(bay_));
+        }
         break;
     }
     case ConfigureModuleKind::Water: {
-        loginfo("configuring water: %d", bay_);
-        FK_ASSERT(configurer.water(bay_));
+        if (bay_ == AllModuleBays) {
+            for (auto bay = 0u; bay < 4u; ++bay) {
+                loginfo("configuring water: %d", bay);
+                FK_ASSERT(configurer.water(bay));
+            }
+        }
+        else {
+            loginfo("configuring water: %d", bay_);
+            FK_ASSERT(configurer.water(bay_));
+        }
         break;
     }
     case ConfigureModuleKind::Ultrasonic: {
-        loginfo("configuring ultrasonic: %d", bay_);
-        FK_ASSERT(configurer.ultrasonic(bay_));
+        if (bay_ == AllModuleBays) {
+            for (auto bay = 0; bay < 4; ++bay) {
+                loginfo("configuring ultrasonic: %d", bay);
+                FK_ASSERT(configurer.ultrasonic(bay));
+            }
+        }
+        else {
+            loginfo("configuring ultrasonic: %d", bay_);
+            FK_ASSERT(configurer.ultrasonic(bay_));
+        }
         break;
     }
     default: {

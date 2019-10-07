@@ -4,6 +4,8 @@
 
 namespace fk {
 
+constexpr uint8_t AllModuleBays = 0xff;
+
 enum class ConfigureModuleKind {
     Weather,
     Water,
