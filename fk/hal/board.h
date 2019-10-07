@@ -23,6 +23,7 @@ constexpr uint8_t SPI_FLASH_CS_BANK_4 = 43u; // PC14
 constexpr uint8_t BUTTON_RIGHT = 32u;        // PA21
 constexpr uint8_t BUTTON_MIDDLE = 31u;       // PA22
 constexpr uint8_t BUTTON_LEFT = 30u;         // PA23
+constexpr uint8_t BUTTON_EXTERNAL = 74u;     // PB04
 
 constexpr uint8_t LORA_POWER = 76u;          // PC30
 

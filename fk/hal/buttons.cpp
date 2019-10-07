@@ -37,13 +37,6 @@ void Button::changed(bool down) {
             if (!get_ipc()->enqueue_activity(this)) {
                 logerror("ipc error (activity)");
             }
-            /*
-            if (!get_ipc()->enqueue_data([](GlobalState *gs) {
-                gs->runtime.activity = fk_uptime();
-            })) {
-                logerror("ipc error (data)");
-            }
-            */
         }
     }
 }
@@ -58,6 +51,10 @@ bool Button::is_enter() const {
 
 bool Button::is_down() const {
     return index_ == Buttons::Right;
+}
+
+bool Button::is_external() const {
+    return index_ == Buttons::External;
 }
 
 #if defined(FK_HARDWARE_FULL)

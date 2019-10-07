@@ -86,6 +86,11 @@ public:
                     view->up(this);
                     break;
                 }
+                case Buttons::External: {
+                    loginfo("external");
+                    view->enter(this);
+                    break;
+                }
                 default: {
                     break;
                 }

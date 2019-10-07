@@ -21,6 +21,11 @@ static void irq_button_right() {
     reinterpret_cast<MetalButtons*>(get_buttons())->irq(Buttons::Right, down);
 }
 
+static void irq_button_external() {
+    auto down = digitalRead(BUTTON_EXTERNAL) == LOW;
+    reinterpret_cast<MetalButtons*>(get_buttons())->irq(Buttons::External, down);
+}
+
 MetalButtons::MetalButtons() {
 }
 
@@ -35,6 +40,7 @@ bool MetalButtons::begin() {
         { BUTTON_LEFT, Buttons::Left, irq_button_left },
         { BUTTON_MIDDLE, Buttons::Middle, irq_button_middle },
         { BUTTON_RIGHT, Buttons::Right, irq_button_right },
+        { BUTTON_EXTERNAL, Buttons::External, irq_button_external },
     };
 
     for (auto &s : setups) {
@@ -65,6 +71,7 @@ bool MetalButtons::get(uint8_t which) const {
     case Left: return digitalRead(BUTTON_LEFT) == LOW;
     case Middle: return digitalRead(BUTTON_MIDDLE) == LOW;
     case Right: return digitalRead(BUTTON_RIGHT) == LOW;
+    case External: return digitalRead(BUTTON_EXTERNAL) == LOW;
     }
     return false;
 }
