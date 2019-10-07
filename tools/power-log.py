@@ -2,13 +2,17 @@
 
 import asyncio
 import joulescope
+import json
+import sys
 import time
+import traceback
 import argparse
+import threading
 import re
 
 class FkListener:
     def __init__(self, args):
-        pass
+        self.tasks = []
 
     def started(self):
         self.tasks = []
@@ -17,10 +21,15 @@ class FkListener:
         self.firmware_hash = firmware_hash
 
     def task_started(self, name):
-        pass
+        self.tasks.append(name)
+        print("TASKS", self.tasks)
 
     def task_finished(self, name):
-        pass
+        try:
+            self.tasks.remove(name)
+            print("TASKS", self.tasks)
+        except Exception as e:
+            print(e)
 
     def connection_serviced(self, path):
         pass
@@ -56,7 +65,53 @@ class FkLogParser:
         m = self.re_status.search(clean)
         if m: self.listener.status(m.group(1), m.group(2), m.group(3))
 
-async def rtt_listener(loop, args):
+class Joulescope:
+    def __init__(self, args):
+        self.args = args
+
+    def open(self):
+        self.thread = threading.Thread(target=self.run, args=())
+        self.thread.daemon = True
+        self.thread.start()
+
+    def on_event_cbk(self, event=0, message=''):
+        print("on_event")
+
+    def on_stop_cbk(self, event=0, message=''):
+        print("on_stop")
+
+    def on_statistics(self, data):
+        print('on_statistics', len(data), data)
+
+    def run(self):
+        devices = joulescope.scan()
+        devices_length = len(devices)
+        if devices_length == 0:
+            return
+
+        device = devices[0]
+
+        device.open(event_callback_fn=self.on_event_cbk)
+        info = device.info()
+        print('DEVICE_INFO', json.dumps(info))
+
+        device.parameter_set('source', 'raw')
+        device.parameter_set('i_range', 'auto')
+        # device.statistics_callback = self.on_statistics
+        # device.start(stop_fn=self.on_stop_cbk)
+
+        try:
+            while True:
+                try:
+                    data = device.read(contiguous_duration=30)
+                    print(len(data))
+                except:
+                    traceback.print_exc(file=sys.stdout)
+                    time.sleep(1)
+        finally:
+            self.js.close()
+
+async def rtt_listener(loop, js, args):
     listener = FkListener(args)
     parser = FkLogParser(listener, args)
     while True:
@@ -78,19 +133,14 @@ async def rtt_listener(loop, args):
 
 parser = argparse.ArgumentParser(description='fk log monitor tool')
 parser.add_argument('--port', dest="port", type=int, default=9400, help="")
+parser.add_argument('--joulescope', dest="joulescope", action="store_true", help="")
 args, nargs = parser.parse_known_args()
 
+js = Joulescope(args)
+
+if args.joulescope:
+    js.open()
+
 loop = asyncio.get_event_loop()
-loop.run_until_complete(rtt_listener(loop, args))
+loop.run_until_complete(rtt_listener(loop, js, args))
 loop.close()
-
-if False:
-        js = joulescope.scan_require_one()
-        js.open()
-
-        try:
-                js.parameter_set('source', 'on')
-                js.parameter_set('i_range', 'auto')
-                data = js.read(contiguous_duration=0.25)
-        finally:
-                js.close()
