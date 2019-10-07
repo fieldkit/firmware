@@ -10,6 +10,7 @@ public:
     virtual void show_readings() = 0;
     virtual void show_name() = 0;
     virtual void show_build() = 0;
+    virtual void on_external() = 0;
 
 };
 
@@ -19,6 +20,10 @@ public:
 
 public:
     virtual void show() {
+    }
+
+    virtual void external(ViewController *views) {
+        views->on_external();
     }
 
     virtual void up(ViewController *views) {

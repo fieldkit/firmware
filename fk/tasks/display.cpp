@@ -58,8 +58,16 @@ public:
     }
 
     void show_build() override {
-        view = &build_view;
+        view = &home_view;
         view->show();
+    }
+
+    void on_external() override {
+        auto worker = create_default_pool_worker<WifiToggleWorker>(WifiToggleWorker::DesiredState::Enabled);
+        if (!get_ipc()->launch_worker(worker)) {
+            delete worker;
+            return;
+        }
     }
 
     void run() {
@@ -88,7 +96,7 @@ public:
                 }
                 case Buttons::External: {
                     loginfo("external");
-                    view->enter(this);
+                    view->external(this);
                     break;
                 }
                 default: {

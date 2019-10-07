@@ -23,12 +23,31 @@ void FsckWorker::run(Pool &pool) {
     }
 }
 
+WifiToggleWorker::WifiToggleWorker(WifiToggleWorker::DesiredState desired) : desired_(desired) {
+}
+
 void WifiToggleWorker::run(Pool &pool) {
-    if (os_task_is_running(&network_task)) {
-        os_signal(&network_task, 9);
-    }
-    else {
-        os_task_start(&network_task);
+    auto running = os_task_is_running(&network_task);
+
+    switch (desired_) {
+    case DesiredState::Enabled:
+        if (!running) {
+            os_task_start(&network_task);
+        }
+        break;
+    case DesiredState::Disabled:
+        if (running) {
+            os_signal(&network_task, 9);
+        }
+        break;
+    case DesiredState::Toggle:
+        if (running) {
+            os_signal(&network_task, 9);
+        }
+        else {
+            os_task_start(&network_task);
+        }
+        break;
     }
 }
 
