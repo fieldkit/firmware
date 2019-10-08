@@ -313,7 +313,7 @@ bool File::rewind() {
             return true;
         }
 
-        loginfo("[" PRADDRESS "] rewind spans block 0x%x 0x%x", tail_, start, end_of_record);
+        loginfo("[" PRADDRESS "] rewind spans block", tail_);
 
         tail_ = g.start_of_block(end_of_record) - sizeof(BlockTail);
 

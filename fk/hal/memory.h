@@ -67,8 +67,6 @@ typedef struct flash_geometry_t {
     bool is_address_valid(uint32_t address) {
         return address >= 0 && address < total_size;
     }
-
-    bool in_block_header_or_tail(uint32_t address);
 } flash_geometry_t;
 
 class DataMemory {
