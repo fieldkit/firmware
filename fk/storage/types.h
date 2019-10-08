@@ -94,7 +94,8 @@ struct BlockTail {
     uint32_t bytes_in_block{ 0 };
     uint32_t records_in_block{ 0 };
     uint32_t linked{ 0 };
-    uint32_t reserved[3] = { 0xdeadbeef, 0xdeadbeef, 0xdeadbeef };
+    uint32_t block_tail{ 0 };
+    uint32_t reserved[2] = { 0xdeadbeef, 0xdeadbeef };
     Hash hash;
 
     void fill_hash();

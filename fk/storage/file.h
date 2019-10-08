@@ -55,6 +55,8 @@ public:
     bool seek_end();
     bool seek(uint32_t record);
     bool seek(RecordReference reference);
+    bool skip(bool new_block = false);
+    bool rewind();
     bool beginning_of_record();
     int32_t write(uint8_t const *record, size_t size) override;
     int32_t read(uint8_t *record, size_t size) override;

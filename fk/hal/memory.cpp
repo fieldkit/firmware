@@ -523,4 +523,12 @@ DataMemory *MemoryFactory::get_qspi_memory() {
     return &qspi_memory;
 }
 
+bool flash_geometry_t::in_block_header_or_tail(uint32_t address) {
+    auto bs = start_of_block(address);
+    if (address >= bs && address < bs + sizeof(BlockTail)) {
+        return true;
+    }
+    return false;
+}
+
 }

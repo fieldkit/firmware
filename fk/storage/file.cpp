@@ -52,6 +52,8 @@ int32_t File::write_record_header(size_t size) {
     auto total_required = sizeof(RecordHeader) + size + sizeof(RecordTail);
 
     if (!is_address_valid(tail_) || total_required > left_in_block) {
+        auto block_tail_address = tail_;
+
         if (is_address_valid(tail_)) {
             tail_ += left_in_block;
             FK_ASSERT(bytes_in_block_ > 0);
@@ -61,9 +63,10 @@ int32_t File::write_record_header(size_t size) {
         BlockTail block_tail;
         block_tail.bytes_in_block = bytes_in_block_;
         block_tail.records_in_block = records_in_block_;
+        block_tail.block_tail = block_tail_address;
         tail_ = storage_->allocate(file_, tail_, block_tail);
         if (record_ == InvalidRecord) {
-            record_ = 0;
+            record_ = 1;
         }
         left_in_block = g.remaining_in_block(tail_) - sizeof(BlockTail);
         bytes_in_block_ = 0;
@@ -215,6 +218,117 @@ bool File::seek(uint32_t record) {
         size_ = position_;
         update();
     }
+
+    return true;
+}
+
+bool File::skip(bool new_block) {
+    SequentialMemory memory{ storage_->memory_ };
+
+    auto g = storage_->geometry();
+
+    logverbose("[" PRADDRESS "] skip", tail_);
+
+    RecordHeader record_header;
+    if (memory.read(tail_, (uint8_t *)&record_header, sizeof(record_header)) != sizeof(record_header)) {
+        return false;
+    }
+
+    if (!record_header.valid()) {
+        if (new_block) {
+            return false;
+        }
+
+        loginfo("[" PRADDRESS "] skip invalid record header", tail_);
+
+        auto left_in_block = (uint32_t)(g.remaining_in_block(tail_));
+        auto head_address = tail_ + left_in_block;
+
+        BlockHeader block_header;
+        if (memory.read(head_address, (uint8_t *)&block_header, sizeof(block_header)) != sizeof(block_header)) {
+            return 0;
+        }
+
+        tail_ = head_address + sizeof(BlockHeader);
+
+        return skip(true);
+    }
+
+    tail_ += sizeof(RecordHeader);
+
+    tail_ += record_header.size;
+
+    RecordTail record_tail;
+    if (memory.read(tail_, (uint8_t *)&record_tail, sizeof(RecordTail)) != sizeof(RecordTail)) {
+        return false;
+    }
+
+    tail_ += sizeof(RecordTail);
+
+    record_ = record_header.record;
+    record_size_ = record_header.size;
+    record_remaining_ = record_header.size;
+    position_ -= record_tail.size;
+
+    return true;
+}
+
+bool File::rewind() {
+    SequentialMemory memory{ storage_->memory_ };
+
+    auto g = storage_->geometry();
+    auto end_of_record = tail_;
+
+    logverbose("[" PRADDRESS "] rewind", tail_);
+
+    if (tail_ == 0) {
+        return false;
+    }
+
+    tail_ -= sizeof(RecordTail);
+
+    RecordTail record_tail;
+    if (memory.read(tail_, (uint8_t *)&record_tail, sizeof(RecordTail)) != sizeof(RecordTail)) {
+        return false;
+    }
+
+    tail_ -= record_tail.size;
+
+    tail_ -= sizeof(RecordHeader);
+
+    RecordHeader record_header;
+    if (memory.read(tail_, (uint8_t *)&record_header, sizeof(record_header)) != sizeof(record_header)) {
+        return false;
+    }
+
+    if (!record_header.valid()) {
+        logerror("[" PRADDRESS "] rewind invalid record header", tail_);
+        return false;
+    }
+
+    if (g.is_start_of_block_or_header(tail_, sizeof(BlockHeader))) {
+        auto start = g.start_of_block(tail_);
+        if (start == 0) {
+            tail_ = 0;
+            return true;
+        }
+
+        loginfo("[" PRADDRESS "] rewind spans block 0x%x 0x%x", tail_, start, end_of_record);
+
+        tail_ = g.start_of_block(end_of_record) - sizeof(BlockTail);
+
+        BlockTail block_tail;
+        if (memory.read(tail_, (uint8_t *)&block_tail, sizeof(BlockTail)) != sizeof(BlockTail)) {
+            return false;
+        }
+
+        tail_ = block_tail.block_tail;
+    }
+
+    record_ = record_header.record;
+    record_size_ = record_header.size;
+    record_remaining_ = record_header.size;
+    position_ -= record_tail.size;
 
     return true;
 }

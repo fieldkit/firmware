@@ -55,6 +55,11 @@ typedef struct flash_geometry_t {
         return address % block_size == 0;
     }
 
+    bool is_start_of_block_or_header(uint32_t address, size_t block_header_size) {
+        auto sob = start_of_block(address);
+        return sob == address || sob + block_header_size == address;
+    }
+
     bool spans_block(uint32_t address, uint32_t length) {
         return (address / block_size) != ((address + length) / block_size);
     }
@@ -62,6 +67,8 @@ typedef struct flash_geometry_t {
     bool is_address_valid(uint32_t address) {
         return address >= 0 && address < total_size;
     }
+
+    bool in_block_header_or_tail(uint32_t address);
 } flash_geometry_t;
 
 class DataMemory {

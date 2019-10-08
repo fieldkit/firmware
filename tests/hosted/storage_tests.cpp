@@ -894,3 +894,88 @@ TEST_F(StorageSuite, ReproduceFindingWrongFileInReadHeader) {
     NoopProgressCallbacks progress;
     FK_ASSERT(storage.fsck(&progress));
 }
+
+TEST_F(StorageSuite, FileOpsRewind) {
+    write_readings(memory_, 10240);
+
+    Storage storage{ memory_, true };
+    FK_ASSERT(storage.begin());
+    auto file = storage.file(0);
+    ASSERT_TRUE(file.seek_end());
+
+    auto lrecord = file.record();
+
+    ASSERT_EQ(file.record(), lrecord--);
+
+    ASSERT_TRUE(file.rewind());
+    ASSERT_EQ(file.record(), lrecord--);
+
+    ASSERT_TRUE(file.rewind());
+    ASSERT_EQ(file.record(), lrecord--);
+
+    ASSERT_TRUE(file.rewind());
+    ASSERT_EQ(file.record(), lrecord--);
+
+    ASSERT_TRUE(file.rewind());
+    ASSERT_EQ(file.record(), lrecord--);
+}
+
+TEST_F(StorageSuite, FileOpsRewindAcrossBlock) {
+    write_readings(memory_, g_.block_size * 1.5);
+
+    Storage storage{ memory_, true };
+    FK_ASSERT(storage.begin());
+    auto file = storage.file(0);
+    ASSERT_TRUE(file.seek_end());
+
+    loginfo("sizeof(BlockHeader) = %zd", sizeof(BlockHeader));
+    loginfo("sizeof(BlockTail) = %zd", sizeof(BlockTail));
+    loginfo("sizeof(RecordHeader) = %zd", sizeof(RecordHeader));
+    loginfo("sizeof(RecordTail) = %zd", sizeof(RecordTail));
+
+    auto nrecords = file.record();
+    for (auto i = 0u; i < nrecords - 1; ++i) {
+        ASSERT_TRUE(file.rewind());
+    }
+}
+
+TEST_F(StorageSuite, FileOpsSkip) {
+    write_readings(memory_, 10240);
+
+    Storage storage{ memory_, true };
+    FK_ASSERT(storage.begin());
+    auto file = storage.file(0);
+    ASSERT_TRUE(file.seek(0));
+
+    auto nrecord = 0u;
+
+    ASSERT_EQ(file.record(), nrecord++);
+    ASSERT_TRUE(file.skip());
+
+    ASSERT_EQ(file.record(), nrecord++);
+    ASSERT_TRUE(file.skip());
+
+    ASSERT_EQ(file.record(), nrecord++);
+    ASSERT_TRUE(file.skip());
+
+    ASSERT_EQ(file.record(), nrecord++);
+    ASSERT_TRUE(file.skip());
+
+    ASSERT_EQ(file.record(), nrecord++);
+}
+
+TEST_F(StorageSuite, FileOpsSkipAcrossBlock) {
+    write_readings(memory_, g_.block_size * 1.5);
+
+    Storage storage{ memory_, true };
+    FK_ASSERT(storage.begin());
+    auto file = storage.file(0);
+
+    ASSERT_TRUE(file.seek_end());
+    auto nrecords = file.record();
+
+    ASSERT_TRUE(file.seek(0));
+    for (auto i = 0u; i < nrecords - 1; ++i) {
+        ASSERT_TRUE(file.skip());
+    }
+}
