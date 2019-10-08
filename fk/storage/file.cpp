@@ -78,7 +78,8 @@ int32_t File::write_record_header(size_t size) {
     record_header.record = record_++;
     record_header.crc = record_header.sign();
 
-    logverbose("[%d] " PRADDRESS " write header (lib = %" PRId32 ") (%zd bytes)", file_, tail_, (int32_t)left_in_block, size);
+    logtrace("[%d] " PRADDRESS " write header #%" PRIu32 " (lib = %" PRId32 ") (%zd bytes) position = %" PRIu32,
+             file_, tail_, record_header.record, (int32_t)left_in_block, size, position_);
 
     if (memory.write(tail_, (uint8_t *)&record_header, sizeof(record_header)) != sizeof(record_header)) {
         return 0;
@@ -133,7 +134,7 @@ int32_t File::write_record_tail(size_t size) {
         return 0;
     }
 
-    logverbose("[%d] " PRADDRESS " write footer", file_, tail_);
+    logverbose("[%d] " PRADDRESS " write footer 0x%06" PRIx32, file_, tail_, (uint32_t)(tail_ + sizeof(record_tail)));
 
     #if defined(FK_STORAGE_LOGGING_HASHING)
     char buffer[Hash::Length * 2];
@@ -178,15 +179,28 @@ bool File::seek_end() {
     return seek(LastRecord);
 }
 
+RecordReference File::reference() const {
+    return {
+        .address = record_address_,
+        .position = position_ - record_size_,
+        .record = record_,
+        .record_size = record_size_,
+    };
+}
+
 bool File::seek(RecordReference reference) {
     tail_ = reference.address;
     position_ = reference.position;
     record_ = reference.record;
-    record_remaining_ = 0;
-    record_size_ = 0;
+    record_size_ = reference.record_size;
+    record_remaining_ = reference.record_size;
     // NOTE We're usually reading when doing this.
     bytes_in_block_ = 0;
     records_in_block_ = 0;
+
+    logtrace("[" PRADDRESS "] seek reference position = %" PRIu32 " record = #%" PRIu32 " size=%" PRIu32,
+             tail_, position_, record_, record_size_);
+
     return true;
 }
 
@@ -227,7 +241,7 @@ bool File::skip(bool new_block) {
 
     auto g = storage_->geometry();
 
-    logverbose("[" PRADDRESS "] skip", tail_);
+    logtrace("[" PRADDRESS "] skip", tail_);
 
     RecordHeader record_header;
     if (memory.read(tail_, (uint8_t *)&record_header, sizeof(record_header)) != sizeof(record_header)) {
@@ -277,12 +291,35 @@ bool File::rewind() {
     SequentialMemory memory{ storage_->memory_ };
 
     auto g = storage_->geometry();
-    auto end_of_record = tail_;
+    auto start_of_record = tail_;
 
-    logverbose("[" PRADDRESS "] rewind", tail_);
+    logtrace("[" PRADDRESS "] rewind", tail_);
 
-    if (tail_ == 0) {
-        return false;
+    if (g.is_start_of_block_or_header(tail_, sizeof(BlockHeader))) {
+        auto start = g.start_of_block(tail_);
+        if (start == 0) {
+            tail_ = 0;
+            logtrace("[" PRADDRESS "] rewind start of block", tail_);
+            return false;
+        }
+
+        tail_ = g.start_of_block(start_of_record) - sizeof(BlockTail);
+
+        logdebug("[" PRADDRESS "] rewind spans block, reading tail", tail_);
+
+        BlockTail block_tail;
+        if (memory.read(tail_, (uint8_t *)&block_tail, sizeof(BlockTail)) != sizeof(BlockTail)) {
+            return false;
+        }
+
+        if (!block_tail.verify_hash()) {
+            logdebug("[" PRADDRESS "] invalid block tail", tail_);
+            return false;
+        }
+
+        tail_ = block_tail.block_tail;
+
+        FK_ASSERT(g.is_address_valid(tail_));
     }
 
     tail_ -= sizeof(RecordTail);
@@ -306,29 +343,12 @@ bool File::rewind() {
         return false;
     }
 
-    if (g.is_start_of_block_or_header(tail_, sizeof(BlockHeader))) {
-        auto start = g.start_of_block(tail_);
-        if (start == 0) {
-            tail_ = 0;
-            return true;
-        }
-
-        loginfo("[" PRADDRESS "] rewind spans block", tail_);
-
-        tail_ = g.start_of_block(end_of_record) - sizeof(BlockTail);
-
-        BlockTail block_tail;
-        if (memory.read(tail_, (uint8_t *)&block_tail, sizeof(BlockTail)) != sizeof(BlockTail)) {
-            return false;
-        }
-
-        tail_ = block_tail.block_tail;
-    }
-
     record_ = record_header.record;
     record_size_ = record_header.size;
     record_remaining_ = record_header.size;
     position_ -= record_tail.size;
+
+    logtrace("[" PRADDRESS "] rewind DONE position=%" PRIu32 " record-size=%" PRIu32, tail_, position_, record_tail.size);
 
     return true;
 }

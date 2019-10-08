@@ -16,29 +16,41 @@ bool SignedRecordLog::seek_end() {
 }
 
 tl::expected<uint32_t, Error> SignedRecordLog::seek_record(SignedRecordKind kind) {
-    // NOTE: We don't have an easy way of seeking in reverse, yet. So we're
-    // gonna start at the beginning, for now.
-    if (!file_.seek(0)) {
+    if (!file_.seek_end()) {
         return tl::unexpected<Error>(Error::IO);
     }
 
-    logdebug("[" PRADDRESS "] finding %" PRIu32, file_.position(), (int32_t)kind);
+    logdebug("[" PRADDRESS "] seek_record %" PRIu32 " position=%" PRIu32, file_.tail(), (int32_t)kind, file_.position());
 
-    // TODO: Timeout of some kind?
+    if (!file_.rewind()) {
+        logerror("[" PRADDRESS "] rewind failed", file_.tail());
+        return tl::unexpected<Error>(Error::IO);
+    }
+
     RecordReference found;
     while (true) {
+        logtrace("[" PRADDRESS "] finding %" PRIu32 " position=%" PRIu32, file_.tail(), (int32_t)kind, file_.position());
+
         fk_data_SignedRecord sr = fk_data_SignedRecord_init_default;
         auto nread = file_.read(&sr, fk_data_SignedRecord_fields);
         if (nread == 0) {
             logdebug("[" PRADDRESS "] end of file", file_.tail());
             break;
         }
+
+        if (!file_.rewind()) {
+            logerror("[" PRADDRESS "] rewind failed", file_.tail());
+            return tl::unexpected<Error>(Error::IO);
+        }
+
         if (sr.kind == (uint32_t)kind) {
             found = file_.reference();
+            break;
         }
-        else {
-            logtrace("[" PRADDRESS "] wrong kind (%" PRId32 " != %" PRId32 ")", file_.tail(),
-                     (int32_t)sr.kind, (int32_t)kind);
+
+        if (!file_.rewind()) {
+            logerror("[" PRADDRESS "] rewind failed", file_.tail());
+            return tl::unexpected<Error>(Error::IO);
         }
     }
 
@@ -46,11 +58,8 @@ tl::expected<uint32_t, Error> SignedRecordLog::seek_record(SignedRecordKind kind
         return tl::unexpected<Error>(Error::IO);
     }
 
-    if (!file_.seek(found)) {
-        return tl::unexpected<Error>(Error::IO);
-    }
-
-    logdebug("[" PRADDRESS "] found record #%" PRIu32, file_.position(), file_.record());
+    logdebug("[" PRADDRESS "] found record #%" PRIu32 " position = %" PRIu32,
+             file_.tail(), file_.record(), file_.position());
 
     return file_.record();
 }

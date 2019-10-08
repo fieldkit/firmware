@@ -17,11 +17,12 @@ struct RecordReference {
     uint32_t address{ InvalidAddress };
     uint32_t position{ 0 };
     uint32_t record{ InvalidRecord };
+    uint32_t record_size{ 0 };
 
     RecordReference() {
     }
 
-    RecordReference(uint32_t address, uint32_t position, uint32_t record) : address(address), position(position), record(record) {
+    RecordReference(uint32_t address, uint32_t position, uint32_t record, uint32_t record_size) : address(address), position(position), record(record), record_size(record_size) {
     }
 
     bool valid() const {
@@ -67,13 +68,7 @@ public:
     int32_t write_partial(uint8_t const *record, size_t size);
 
 public:
-    RecordReference reference() const {
-        return {
-            .address = record_address_,
-            .position = position_ - record_size_,
-            .record = record_,
-        };
-    }
+    RecordReference reference() const;
 
     uint8_t file_number() const {
         return file_;
