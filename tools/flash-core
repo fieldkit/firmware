@@ -3,15 +3,19 @@
 BOOTLOADER=fkbl.bin
 PROGRAM=fk-bundled-fkb.bin
 
-JLinkExe -if SWD -device ATSAMD51P20 -speed 4000 <<EOF
+JLinkExe -if SWD -device ATSAMD51P20 -speed 4000 -RTTTelnetPort 19021 <<EOF
 exitonerror 1
 connect
+h
+exec SetRTTSearchRanges 0x20000000 64
 sleep 100
 r
 sleep 100
 loadfile $BOOTLOADER,0x0000
 sleep 100
 loadfile $PROGRAM,0x4000
+sleep 100
 r
-q
+sleep 1000
+go
 EOF
