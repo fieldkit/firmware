@@ -59,7 +59,7 @@ ModuleReadings *UltrasonicModule::take_readings(ModuleContext mc, fk::Pool &pool
             if (line[0] == 'R') {
                 auto value = atof(line + 1);
                 mr->set(nreadings++, value);
-                loginfo("[%d] line: %s", nreadings, line);
+                logdebug("[%d] line: %s", nreadings, line);
                 if (nreadings == 3) {
                     break;
                 }
