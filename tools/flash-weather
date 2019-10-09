@@ -22,6 +22,7 @@ sleep 100
 r
 sleep 100
 loadfile $PROGRAM,0x0000
+sleep 100
 r
 q
 EOF
