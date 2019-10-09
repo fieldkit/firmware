@@ -3,6 +3,7 @@
 
 #include "storage/signed_log.h"
 #include "storage/storage.h"
+#include "clock.h"
 
 namespace fk {
 
@@ -90,6 +91,7 @@ tl::expected<AppendedRecord, Error> SignedRecordLog::append_always(SignedRecordK
     sr.hash.funcs.encode = pb_encode_data;
     sr.hash.arg = (void *)&hash_ref;
     sr.record = file_.record();
+    sr.time = get_clock_now();
 
     auto record_size = file_.write(&sr, fk_data_SignedRecord_fields);
     if (record_size == 0) {
