@@ -49,6 +49,11 @@ ModuleReadings *UltrasonicModule::take_readings(ModuleContext mc, fk::Pool &pool
     auto mr = new(pool) NModuleReadings<4>();
     auto nreadings = 0u;
 
+    if (!bridge_.begin(9600)) {
+        logerror("initializing bridge");
+        return nullptr;
+    }
+
     for (auto i = 0; i < 5; ++i) {
         const char *line = nullptr;
         if (!line_reader_.read_line_sync(&line, 1000)) {
