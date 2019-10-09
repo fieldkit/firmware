@@ -681,18 +681,19 @@ TEST_F(StorageSuite, SeekingAndReadingAndSeekingSetsPositionCorrectly) {
     ASSERT_TRUE(storage.clear());
 
     auto file = storage.file(1);
-    ASSERT_FALSE(file.seek(0));
+    ASSERT_FALSE(file.seek_beginning());
     ASSERT_FALSE(file.seek_end());
     ASSERT_TRUE(file.create());
-    ASSERT_GT(write_reading(file), (uint32_t)0);
+
+    auto wrote = write_reading(file);
+    ASSERT_GT(wrote, (uint32_t)0);
 
     auto position1 = file.position();
-
-    // This is the start of the current record, which is still record 0.
     auto found = file.reference();
     uint8_t buffer[256];
-    ASSERT_TRUE(file.seek(0));
+    ASSERT_TRUE(file.seek_beginning());
     ASSERT_GT(file.read(buffer, sizeof(buffer)), 0);
+
     file.seek(found);
     ASSERT_GT(file.read(buffer, sizeof(buffer)), 0);
 

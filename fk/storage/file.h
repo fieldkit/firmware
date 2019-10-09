@@ -54,6 +54,7 @@ public:
 public:
     bool create();
     bool seek_end();
+    bool seek_beginning();
     bool seek(uint32_t record);
     bool seek(RecordReference reference);
     bool skip(bool new_block = false);

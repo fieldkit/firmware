@@ -188,12 +188,19 @@ RecordReference File::reference() const {
     };
 }
 
+bool File::seek_beginning() {
+    return seek(0);
+}
+
 bool File::seek(RecordReference reference) {
     tail_ = reference.address;
     position_ = reference.position;
     record_ = reference.record;
     record_size_ = reference.record_size;
-    record_remaining_ = reference.record_size;
+
+    // This forces us to reread the header of the record, which clears the hash state.
+    record_remaining_ = 0;
+
     // NOTE We're usually reading when doing this.
     bytes_in_block_ = 0;
     records_in_block_ = 0;
