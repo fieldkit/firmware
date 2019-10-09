@@ -1,5 +1,4 @@
-// #include <phylum/backend.h>
-// #include <backends/arduino_sd/arduino_sd.h>
+#include <tiny_printf.h>
 
 #include "common.h"
 #include "hal/board.h"
@@ -13,13 +12,13 @@
 namespace fk {
 
 #define SPI_SPEED SD_SCK_MHZ(50)
-#define LOG_FILE_BASE_NAME "fklogs"
+#define LOG_FILE_BASE_NAME "fkl_"
 
 FK_DECLARE_LOGGER("sdcard");
 
 static SdFat sd(&SD_SPI);
 static SdFile log_file;
-static char log_file_name[13] = LOG_FILE_BASE_NAME "00.txt";
+static char log_file_name[13] = LOG_FILE_BASE_NAME "000.txt";
 static bool log_initialized{ false };
 static bool log_ready{ false };
 
@@ -51,8 +50,6 @@ bool MetalSdCard::begin() {
 }
 
 bool MetalSdCard::append_logs(circular_buffer<char> &buffer) {
-    static constexpr uint8_t BaseNameSize = sizeof(LOG_FILE_BASE_NAME) - 1;
-
     auto started = fk_uptime();
 
     if (!begin()) {
@@ -64,22 +61,10 @@ bool MetalSdCard::append_logs(circular_buffer<char> &buffer) {
     if (!log_initialized) {
         log_initialized = true;
 
-        if (BaseNameSize > 6) {
-            logerror("log file base name is too long");
-            return false;
-        }
-
-        while (sd.exists(log_file_name)) {
-            if (log_file_name[BaseNameSize + 1] != '9') {
-                log_file_name[BaseNameSize + 1]++;
-            }
-            else if (log_file_name[BaseNameSize] != '9') {
-                log_file_name[BaseNameSize + 1] = '0';
-                log_file_name[BaseNameSize]++;
-            }
-            else {
-                logerror("error creating file name");
-                return false;
+        for (auto counter = 0; counter < 1000; ++counter) {
+            tiny_snprintf(log_file_name, sizeof(log_file_name), "%s%03d.txt", LOG_FILE_BASE_NAME, counter);
+            if (!sd.exists(log_file_name)) {
+                break;
             }
         }
 
