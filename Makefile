@@ -21,7 +21,7 @@ ci: setup all doc package
 setup: .python-setup fk/secrets.h libraries/done
 
 .python-setup:
-	pip3 install -U lief sphinx pyelftools
+	pip3 install -U sphinx pyelftools
 	touch .python-setup
 
 cmake: $(BUILD)/samd51 $(BUILD)/samd09 $(BUILD)/amd64
