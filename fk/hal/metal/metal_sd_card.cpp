@@ -29,9 +29,6 @@ bool MetalSdCard::begin() {
     SD_SPI.begin();
 
     if (!sd.begin(PIN_SD_CS, SPI_SPEED)) {
-        if (sd.card()->errorCode()) {
-            logwarn("sd card error: 0x%x", sd.card()->errorCode());
-        }
         return false;
     }
 
@@ -55,6 +52,9 @@ bool MetalSdCard::append_logs(circular_buffer<char> &buffer) {
     if (!begin()) {
         log_initialized = false;
         log_ready = false;
+        if (sd.card()->errorCode()) {
+            loginfo("ignoring logs: no sd card, error = 0x%x", sd.card()->errorCode());
+        }
         return false;
     }
 
