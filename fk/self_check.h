@@ -9,11 +9,12 @@ struct SelfCheckSettings {
     bool check_gps{ false };
     bool check_sd_card{ false };
     bool check_backplane{ false };
+    bool check_lora{ false };
 
     SelfCheckSettings() {
     }
 
-    SelfCheckSettings(bool gps, bool sd_card, bool backplane) : check_gps(gps), check_sd_card(sd_card), check_backplane(backplane) {
+    SelfCheckSettings(bool gps, bool sd_card, bool backplane, bool lora) : check_gps(gps), check_sd_card(sd_card), check_backplane(backplane), check_lora(lora) {
     }
 };
 
@@ -35,6 +36,7 @@ struct SelfCheckStatus {
     CheckStatus sd_card{ CheckStatus::Pending };
     CheckStatus bp_mux{ CheckStatus::Pending };
     CheckStatus bp_shift{ CheckStatus::Pending };
+    CheckStatus lora{ CheckStatus::Pending };
 };
 
 class SelfCheckCallbacks {
@@ -71,6 +73,7 @@ private:
     bool sd_card();
     bool backplane_shift();
     bool backplane_mux();
+    bool lora();
 
 };
 

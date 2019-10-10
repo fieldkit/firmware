@@ -7,7 +7,7 @@ namespace fk {
 
 class DisplaySelfCheckCallbacks : public SelfCheckCallbacks {
 public:
-    constexpr static size_t NumberOfChecks = 10;
+    constexpr static size_t NumberOfChecks = 11;
 
 private:
     SelfCheckScreen screen_;

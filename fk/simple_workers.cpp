@@ -84,7 +84,7 @@ void SelfCheckWorker::check() {
     FK_ASSERT(lock);
     NullDisplay noop_display;
     SelfCheck self_check(&noop_display, get_network(), get_modmux());
-    self_check.check(SelfCheckSettings{ true, true, true }, *callbacks_);
+    self_check.check(SelfCheckSettings{ true, true, true, true }, *callbacks_);
 }
 
 }

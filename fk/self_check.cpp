@@ -68,6 +68,11 @@ void SelfCheck::check(SelfCheckSettings settings, SelfCheckCallbacks &callbacks)
         status.bp_shift = CheckStatus::Unknown;
     }
 
+    if (settings.check_lora) {
+        status.lora = to_status(lora());
+        callbacks.update(status);
+    }
+
     callbacks.update(status);
 
     loginfo("done");
@@ -233,6 +238,18 @@ bool SelfCheck::backplane_mux() {
         if (!mm_->choose(0)) {
             return false;
         }
+        return true;
+    });
+}
+
+bool SelfCheck::lora() {
+    return single_check("lora", [=]() {
+        auto lora = get_lora_network();
+
+        if (!lora->begin()) {
+            return false;
+        }
+
         return true;
     });
 }

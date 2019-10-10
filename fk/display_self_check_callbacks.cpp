@@ -17,6 +17,7 @@ void DisplaySelfCheckCallbacks::update(SelfCheckStatus status) {
     append("sd", status.sd_card);
     append("bpm", status.bp_mux);
     append("bps", status.bp_shift);
+    append("lora", status.lora);
 }
 
 void DisplaySelfCheckCallbacks::append(const char *name, CheckStatus status) {
