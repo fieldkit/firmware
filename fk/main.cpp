@@ -128,6 +128,31 @@ static bool initialize_hardware() {
     return true;
 }
 
+static void scan_i2c_radio_bus() __attribute__((unused)); 
+
+static void scan_i2c_radio_bus() {
+    auto bus = get_board()->i2c_radio();
+
+    bus.begin();
+
+    get_board()->enable_lora();
+
+    delay(1000);
+
+    while (true) {
+        loginfo("scanning");
+
+        for (auto i = 0u; i < 128u; ++i) {
+            auto rv = bus.write(i, nullptr, 0);
+            if (I2C_CHECK(rv)) {
+                loginfo("  found 0x%x", i);
+            }
+        }
+
+        delay(1000);
+    }
+}
+
 static void scan_i2c_module_bus() __attribute__((unused)); 
 
 static void scan_i2c_module_bus() {
