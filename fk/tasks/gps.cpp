@@ -1,6 +1,7 @@
 #include "tasks/tasks.h"
 #include "hal/hal.h"
 #include "state_manager.h"
+#include "clock.h"
 
 namespace fk {
 
