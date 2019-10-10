@@ -82,10 +82,10 @@ bool MetalSdCard::append_logs(circular_buffer<char> &buffer) {
     if (log_ready) {
         log_file.write(buffer.buffer(), size);
         log_file.flush();
-        loginfo("flushed %d to %s (%" PRIu32 "ms)", size, log_file_name, fk_uptime() - started);
+        loginfo("flushed %d to %s (%" PRIu32 "ms) (%" PRIu32 " bytes)", size, log_file_name, fk_uptime() - started, log_file.fileSize());
     }
     else {
-        loginfo("ignored %d to %s (%" PRIu32 "ms)", size, log_file_name, fk_uptime() - started);
+        loginfo("ignored %d to (%" PRIu32 "ms)", size, fk_uptime() - started);
     }
 
     return true;
