@@ -61,6 +61,8 @@ Sc16is740::Sc16is740(AcquireTwoWireBus *acquire_bus) : acquire_bus_(acquire_bus)
 bool Sc16is740::begin(uint32_t baud) {
     auto bus = acquire_bus_->acquire();
 
+    bus.begin();
+
     auto oscillator_hz  = 3686400;
     auto baud_rate = baud;
     auto div = oscillator_hz / (baud_rate * 16);

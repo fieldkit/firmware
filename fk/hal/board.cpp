@@ -95,7 +95,7 @@ public:
     }
 };
 
-AcquireBusI2cModule acquire_i2c_radio_;
+AcquireBusI2cRadio acquire_i2c_radio_;
 
 AcquireTwoWireBus *Board::acquire_i2c_radio() {
     return &acquire_i2c_radio_;
