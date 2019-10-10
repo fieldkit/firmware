@@ -158,6 +158,24 @@ int32_t SpiFlash::read(uint32_t address, uint8_t *data, size_t length) {
 }
 
 int32_t SpiFlash::write(uint32_t address, const uint8_t *data, size_t length) {
+    auto wrote = write_internal(address, data, length);
+    if (wrote > 0) {
+        return wrote;
+    }
+
+    logerror("write failed, trying to recover...");
+
+    status_ = Status::Unknown;
+
+    if (!begin()) {
+        logerror("begin failed!");
+        return 0;
+    }
+
+    return write_internal(address, data, length);
+}
+
+int32_t SpiFlash::write_internal(uint32_t address, const uint8_t *data, size_t length) {
     FK_ASSERT_LE((address % PageSize) + length, PageSize);
 
     uint8_t program_load_command[] = { CMD_PROGRAM_LOAD, 0x00, 0x00 }; // 4dummy/12
@@ -346,19 +364,24 @@ bool SpiFlash::is_ready(bool ecc_check) {
     SPI.transfer(command[0]);
     SPI.transfer(command[1]);
 
+    error_ = SpiFlashError::None;
+
     auto started = fk_uptime();
     auto status = 0x00;
     while (true) {
         status = SPI.transfer(0xff);
 
         if ((status & STATUS_FLAG_PROGRAM_FAIL) == STATUS_FLAG_PROGRAM_FAIL) {
+            error_ = SpiFlashError::Program;
             logwarn("program failed");
             break;
         }
         if ((status & STATUS_FLAG_ERASE_FAIL) == STATUS_FLAG_ERASE_FAIL) {
+            error_ = SpiFlashError::Erase;
             logwarn("erase failed");
             break;
         }
+
         if ((status & STATUS_FLAG_BUSY) != STATUS_FLAG_BUSY) {
             ok = true;
             break;

@@ -5,6 +5,12 @@
 
 namespace fk {
 
+enum class SpiFlashError {
+    None,
+    Program,
+    Erase
+};
+
 class SpiFlash {
 private:
     constexpr static uint32_t SpiFlashReadyMs = 10;
@@ -26,6 +32,7 @@ private:
     Status status_{ Status::Unknown };
     uint8_t cs_;
     uint8_t id_[IdSize];
+    SpiFlashError error_{ SpiFlashError::None };
 
 public:
     SpiFlash(uint8_t cs);
@@ -45,6 +52,10 @@ public:
         return id_;
     }
 
+    const SpiFlashError error() const {
+        return error_;
+    }
+
 private:
     /*
       Row Address: 17 bits
@@ -57,6 +68,8 @@ private:
       Block Page Column
       ROW    ROW
     */
+
+    int32_t write_internal(uint32_t address, const uint8_t *data, size_t length);
 
     void row_address_to_bytes(uint32_t address, uint8_t *bytes);
 
