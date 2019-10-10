@@ -277,6 +277,19 @@ uint32_t get_clock_now() {
     return get_clock()->now().unix_time();
 }
 
+uint32_t clock_adjust(uint32_t new_epoch) {
+    auto clock = get_clock();
+    auto old_epoch = clock->get_external().unix_time();
+    FK_ASSERT(clock->adjust(new_epoch));
+
+    FormattedTime new_formatted{ new_epoch };
+    FormattedTime old_formatted{ old_epoch };
+    loginfo("utc: '%s' -> '%s' (%" PRIu32 " - %" PRIu32 " = %" PRId64 ")", old_formatted.cstr(), new_formatted.cstr(),
+            old_epoch, new_epoch, (int64_t)new_epoch - old_epoch);
+
+    return new_epoch;
+}
+
 #else
 
 static CoreClock clock;
@@ -294,6 +307,10 @@ CoreClock *get_clock() {
 
 uint32_t get_clock_now() {
     return std::time(0);
+}
+
+uint32_t clock_adjust(uint32_t new_epoch) {
+    return new_epoch;
 }
 
 #endif

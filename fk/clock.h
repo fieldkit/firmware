@@ -83,4 +83,6 @@ CoreClock *get_clock();
 
 uint32_t get_clock_now();
 
+uint32_t clock_adjust(uint32_t new_epoch);
+
 }

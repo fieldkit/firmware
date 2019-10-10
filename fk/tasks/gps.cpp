@@ -52,6 +52,7 @@ void task_handler_gps(void *params) {
             if (fix.good) {
                 if (fixed_at == 0) {
                     fixed_at = fk_uptime();
+                    clock_adjust(fix.time);
                 }
                 else if (fk_uptime() - fixed_at > fkc.scheduler.fix_hold) {
                     loginfo("gps fix hold reached: %" PRIu32, fkc.scheduler.fix_hold);

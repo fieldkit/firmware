@@ -43,14 +43,7 @@ bool SimpleNTP::service() {
         auto seconds_since_1900 = high << 16 | low;
         auto new_epoch = (uint32_t)(seconds_since_1900 - SeventyYears);
 
-        auto clock = get_clock();
-        auto old_epoch = clock->get_external().unix_time();
-        FK_ASSERT(clock->adjust(new_epoch));
-
-        FormattedTime new_formatted{ new_epoch };
-        FormattedTime old_formatted{ old_epoch };
-        loginfo("utc: '%s' -> '%s' (%" PRIu32 " - %" PRIu32 " = %" PRId64 ")", old_formatted.cstr(), new_formatted.cstr(),
-                old_epoch, new_epoch, (int64_t)new_epoch - old_epoch);
+        clock_adjust(new_epoch);
 
         synced_ = fk_uptime();
 
