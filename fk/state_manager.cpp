@@ -49,6 +49,19 @@ bool GlobalStateManager::initialize(Pool &pool) {
     initialize_compile_time_wifi(gs.get()->network.config.wifi_networks[1], FK_WIFI_1_SSID, FK_WIFI_1_PASSWORD);
     #endif
 
+    #if defined(FK_LORA_APP_KEY)
+    loginfo("(hardcoded) lora app key '%s'", FK_LORA_APP_KEY);
+    hex_string_to_bytes(gs.get()->lora.app_key, sizeof(gs.get()->lora.app_key), FK_LORA_APP_KEY);
+    gs.get()->lora.configured = true;
+    #endif
+
+    #if defined(FK_LORA_APP_EUI)
+    loginfo("(hardcoded) lora app eui '%s'", FK_LORA_APP_EUI);
+    hex_string_to_bytes(gs.get()->lora.app_eui, sizeof(gs.get()->lora.app_eui), FK_LORA_APP_EUI);
+    #else
+    bzero(gs.get()->lora.app_eui, sizeof(gs.get()->lora.app_eui));
+    #endif
+
     return true;
 }
 

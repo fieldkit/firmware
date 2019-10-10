@@ -18,10 +18,12 @@ void LoraWorker::run(Pool &pool) {
     if (!joined) {
         auto gs = get_global_state_ro();
         if (!gs.get()->lora.configured) {
+            loginfo("no configuration");
             return;
         }
 
         if (!lora->begin()) {
+            logwarn("missing module");
             return;
         }
 

@@ -116,20 +116,21 @@ bool StartupWorker::load_state(Storage &storage, Pool &pool) {
                 loginfo("(loaded) name: '%s'", gs.get()->general.name);
                 loginfo("(loaded) generation: %s", gen_string);
 
-                auto app_key = pb_get_data_if_provided(record.lora.appKey.arg, pool);
-                if (app_key != nullptr) {
-                    FK_ASSERT(app_key->length == LoraAppKeyLength);
-                    FK_ASSERT(app_key->length == sizeof(gs.get()->lora.app_key));
-                    memcpy(gs.get()->lora.app_key, app_key->buffer, app_key->length);
-                    loginfo("(loaded) lora app key: %s", pb_data_to_hex_string(app_key, pool));
-                }
-
                 auto app_eui = pb_get_data_if_provided(record.lora.appEui.arg, pool);
                 if (app_eui != nullptr) {
                     FK_ASSERT(app_eui->length == LoraAppEuiLength);
                     FK_ASSERT(app_eui->length == sizeof(gs.get()->lora.app_eui));
                     memcpy(gs.get()->lora.app_eui, app_eui->buffer, app_eui->length);
                     loginfo("(loaded) lora app eui: %s", pb_data_to_hex_string(app_eui, pool));
+                }
+
+                auto app_key = pb_get_data_if_provided(record.lora.appKey.arg, pool);
+                if (app_key != nullptr) {
+                    FK_ASSERT(app_key->length == LoraAppKeyLength);
+                    FK_ASSERT(app_key->length == sizeof(gs.get()->lora.app_key));
+                    memcpy(gs.get()->lora.app_key, app_key->buffer, app_key->length);
+                    loginfo("(loaded) lora app key: %s", pb_data_to_hex_string(app_key, pool));
+                    gs.get()->lora.configured = true;
                 }
 
                 auto networks_array = (pb_array_t *)record.network.networks.arg;
@@ -152,7 +153,6 @@ bool StartupWorker::load_state(Storage &storage, Pool &pool) {
                     }
                 }
 
-                gs.get()->lora.configured = app_eui != nullptr && app_key != nullptr;
                 gs.get()->general.recording = (record.condition.flags & fk_data_ConditionFlags_CONDITION_FLAGS_RECORDING) > 0;
 
                 if (gs.get()->general.recording) {
