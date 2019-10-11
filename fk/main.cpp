@@ -17,6 +17,9 @@ using namespace fk;
 
 FK_DECLARE_LOGGER("main");
 
+static void scan_i2c_radio_bus() __attribute__((unused)); 
+static void scan_i2c_module_bus() __attribute__((unused)); 
+
 static void run_tasks() {
     /**
      * This is very deliberate. By placing these on the stack this way, we
@@ -82,7 +85,7 @@ extern uint32_t __data_end__;
 extern uint32_t __bss_start__;
 extern uint32_t __bss_end__;
 
-static void log_diagnostics() {
+static bool log_diagnostics() {
     uint8_t stack_dummy = 0;
     auto in_stack = (uint8_t *)&__cm_ram_end__ - &stack_dummy;
     auto available = fk_free_memory();
@@ -106,11 +109,15 @@ static void log_diagnostics() {
 
     loginfo("sizeof(RecordHeader + RecordTail) = %zd + %zd", sizeof(RecordHeader), sizeof(RecordTail));
     loginfo("sizeof(GlobalState) = %zd", sizeof(GlobalState ));
+
+    return true;
 }
 
 static bool initialize_hardware() {
     FK_ASSERT(get_board()->initialize());
+
     FK_ASSERT(get_buttons()->begin());
+
     FK_ASSERT(fk_random_initialize() == 0);
 
     get_board()->enable_everything();
@@ -128,7 +135,25 @@ static bool initialize_hardware() {
     return true;
 }
 
-static void scan_i2c_radio_bus() __attribute__((unused)); 
+static void single_threaded_setup() {
+    fk_config_initialize();
+
+    OS_CHECK(os_initialize());
+
+    FK_ASSERT(fk_logging_initialize());
+
+    FK_ASSERT(initialize_hardware());
+
+    FK_ASSERT(log_diagnostics());
+}
+
+void setup() {
+    single_threaded_setup();
+    run_tasks();
+}
+
+void loop() {
+}
 
 static void scan_i2c_radio_bus() {
     auto bus = get_board()->i2c_radio();
@@ -152,8 +177,6 @@ static void scan_i2c_radio_bus() {
         delay(1000);
     }
 }
-
-static void scan_i2c_module_bus() __attribute__((unused)); 
 
 static void scan_i2c_module_bus() {
     auto mm = get_modmux();
@@ -189,23 +212,4 @@ static void scan_i2c_module_bus() {
 
         delay(1000);
     }
-}
-
-static void single_threaded_setup() {
-    fk_config_initialize();
-
-    OS_CHECK(os_initialize());
-
-    FK_ASSERT(fk_logging_initialize());
-    FK_ASSERT(initialize_hardware());
-
-    log_diagnostics();
-}
-
-void setup() {
-    single_threaded_setup();
-    run_tasks();
-}
-
-void loop() {
 }

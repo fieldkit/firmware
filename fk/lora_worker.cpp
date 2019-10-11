@@ -8,13 +8,13 @@ namespace fk {
 
 FK_DECLARE_LOGGER("lora");
 
-static bool joined = false;
-static bool asleep = false;
+static uint32_t joined = 0;
+static uint32_t asleep = 0;
 
 void LoraWorker::run(Pool &pool) {
     auto lora = get_lora_network();
 
-    if (!joined) {
+    if (joined == 0) {
         auto gs = get_global_state_ro();
         if (!gs.get()->lora.configured) {
             loginfo("no configuration");
@@ -33,16 +33,16 @@ void LoraWorker::run(Pool &pool) {
             return;
         }
 
-        joined = true;
+        joined = fk_uptime();
     }
     else {
-        if (asleep) {
+        if (asleep > 0) {
             if (!lora->wake()) {
                 logerror("error waking");
                 return;
             }
 
-            asleep = false;
+            asleep = 0;
         }
         else {
             if (!lora->begin()) {
@@ -56,7 +56,7 @@ void LoraWorker::run(Pool &pool) {
         return;
     }
 
-    asleep = true;
+    asleep = fk_uptime();
 
     loginfo("done");
 }

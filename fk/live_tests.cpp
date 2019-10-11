@@ -72,7 +72,6 @@ static size_t write_reading(File &file) {
     return wrote;
 }
 
-
 static void try_and_reproduce_weird_block_issue() {
     auto gs = get_global_state_rw();
 
