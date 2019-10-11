@@ -50,43 +50,43 @@ int32_t sensors_initialize(struct i2c_m_sync_desc *i2c) {
 
     rv = configure_io_expander(i2c, MCP2803_RAIN_I2C_ADDRESS, MCP2803_RAIN_IODIR, 0);
     if (rv != FK_SUCCESS) {
-        logerror("rain-mcp: error initializing");
+        logerrorf("rain-mcp: error initializing (%d)", rv);
         failures++;
     }
 
     rv = configure_io_expander(i2c, MCP2803_WIND_I2C_ADDRESS, MCP2803_WIND_IODIR, 0);
     if (rv != FK_SUCCESS) {
-        logerror("wind-mcp: error initializing");
+        logerrorf("wind-mcp: error initializing (%d)", rv);
         failures++;
     }
 
     rv = configure_io_expander(i2c, MCP2803_CONTROL_I2C_ADDRESS, MCP2803_CONTROL_IODIR, MCP2803_CONTROL_GPIO_INITIAL);
     if (rv != FK_SUCCESS) {
-        logerror("control-mcp: error initializing");
+        logerrorf("control-mcp: error initializing (%d)", rv);
         failures++;
     }
 
     rv = sht31_initialize(i2c);
     if (rv != FK_SUCCESS) {
-        logerror("sht31: error initializing");
+        logerrorf("sht31: error initializing (%d)", rv);
         failures++;
     }
 
     rv = sht31_status_get(i2c, &status);
     if (rv != FK_SUCCESS) {
-        logerror("sht31: error getting status");
+        logerrorf("sht31: error getting status (%d)", rv);
         failures++;
     }
 
     rv = mpl3115a2_initialize(i2c);
     if (rv != FK_SUCCESS) {
-        logerror("mpl3115a2: error initializing");
+        logerrorf("mpl3115a2: error initializing (%d)", rv);
         failures++;
     }
 
     rv = adc081c_initialize(i2c);
     if (rv != FK_SUCCESS) {
-        logerror("adc081c: error initializing");
+        logerrorf("adc081c: error initializing (%d)", rv);
         failures++;
     }
 
