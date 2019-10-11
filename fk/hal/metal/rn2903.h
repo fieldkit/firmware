@@ -3,6 +3,7 @@
 #include "common.h"
 #include "sc16is740.h"
 #include "line_reader.h"
+#include "hal/lora.h"
 
 #if defined(ARDUINO)
 
@@ -12,9 +13,15 @@ class Rn2903 {
 private:
     Sc16is740 bridge_;
     LineReader<256> line_reader_{ &bridge_ };
+    LoraErrorCode error_;
 
 public:
     Rn2903();
+
+public:
+    LoraErrorCode error() const {
+        return error_;
+    };
 
 public:
     bool begin();
@@ -27,6 +34,7 @@ public:
     bool send_bytes(uint8_t const *data, size_t size, uint8_t port);
 
 private:
+    static LoraErrorCode translate_error(const char *line);
     bool send_command(const char *cmd, ...);
     bool send_command(const char *cmd, va_list args);
     bool provision(const char *app_eui, const char *app_key);

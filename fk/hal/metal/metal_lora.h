@@ -29,6 +29,10 @@ public:
         return device_eui_;
     }
 
+    LoraErrorCode error() const override {
+        return rn2903_.error();
+    };
+
 public:
     bool query_status();
 

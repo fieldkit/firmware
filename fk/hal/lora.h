@@ -5,6 +5,13 @@
 
 namespace fk {
 
+enum class LoraErrorCode {
+    None,
+    ModuleIO,
+    NotJoined,
+    Mac,
+};
+
 class LoraNetwork {
 public:
     virtual bool begin() = 0;
@@ -16,6 +23,7 @@ public:
 
 public:
     virtual uint8_t const *device_eui() const = 0;
+    virtual LoraErrorCode error() const = 0;
 
 };
 
@@ -50,6 +58,10 @@ public:
 
     uint8_t const *device_eui() const override {
         return device_eui_;
+    }
+
+    LoraErrorCode error() const override {
+        return LoraErrorCode::None;
     }
 
 };

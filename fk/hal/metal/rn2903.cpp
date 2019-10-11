@@ -79,6 +79,8 @@ bool Rn2903::send_command(const char *cmd, va_list args) {
     auto needed = tiny_vsnprintf(buffer, sizeof(buffer) - 3, cmd, args);
     FK_ASSERT(needed + 3 < (int32_t)sizeof(buffer));
 
+    error_ = LoraErrorCode::None;
+
     loginfo("rn2903 < '%s'", buffer);
 
     buffer[needed + 0] = '\r';
@@ -109,7 +111,8 @@ bool Rn2903::simple_query(const char *cmd, uint32_t to, ...) {
     }
 
     if (strncmp(line, "ok", 2) != 0) {
-        loginfo("rn2903 > '%s'", line);
+        error_ = translate_error(line);
+        loginfo("rn2903 > '%s' (%d)", line, error_);
         return false;
     }
 
@@ -306,6 +309,19 @@ bool Rn2903::send_bytes(uint8_t const *data, size_t size, uint8_t port) {
     }
 
     return false;
+}
+
+constexpr const char *NotJoined = "not_joined";
+constexpr const char *MacErr = "mac_err";
+
+LoraErrorCode Rn2903::translate_error(const char *line) {
+    if (strcmp(line, NotJoined) == 0) {
+        return LoraErrorCode::NotJoined;
+    }
+    if (strcmp(line, MacErr) == 0) {
+        return LoraErrorCode::Mac;
+    }
+    return LoraErrorCode::None;
 }
 
 }
