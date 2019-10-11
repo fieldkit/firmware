@@ -1,8 +1,10 @@
 #include "lora_worker.h"
 
-#include "hal/metal/metal_lora.h"
+#include "hal/lora.h"
+#include "hal/random.h"
 #include "state_ref.h"
 #include "utilities.h"
+#include "platform.h"
 
 namespace fk {
 
@@ -14,7 +16,7 @@ static uint32_t asleep = 0;
 void LoraWorker::run(Pool &pool) {
     auto lora = get_lora_network();
 
-    if (joined == 0) {
+    if (joined == 0 || joined > fk_uptime() || fk_uptime() - joined > OneDayMs) {
         auto gs = get_global_state_ro();
         if (!gs.get()->lora.configured) {
             loginfo("no configuration");
@@ -49,6 +51,11 @@ void LoraWorker::run(Pool &pool) {
                 return;
             }
         }
+    }
+
+    uint32_t counter = fk_random_i32(0, UINT32_MAX);
+    if (!lora->send_bytes((uint8_t *)&counter, sizeof(counter))) {
+        logerror("tx failed");
     }
 
     if (!lora->sleep(OneHourMs)) {
