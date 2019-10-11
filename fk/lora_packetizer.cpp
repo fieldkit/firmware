@@ -65,7 +65,10 @@ public:
             encoded_size_ += 1; // Tag for values.
         }
         else {
-            FK_ASSERT(previous_sensor_ + 1 == sensor);
+            if (previous_sensor_ + 1 != sensor) {
+                record_.sensor = sensor;
+                encoded_size_ += sensor > 0 ? pb_varint_size(sensor) + 1 : 0;
+            }
         }
 
         FK_ASSERT(record_.module == module);
@@ -105,29 +108,36 @@ static void append(EncodedMessage **head, EncodedMessage **tail, EncodedMessage 
     }
 }
 
-tl::expected<EncodedMessage*, Error> LoraPacketizer::packetize(ModuleReadingsCollection const &readings, Pool &pool) {
+tl::expected<EncodedMessage*, Error> LoraPacketizer::packetize(TakenReadings const &taken, Pool &pool) {
     EncodedMessage *head = nullptr;
     EncodedMessage *tail = nullptr;
 
     LoraRecord record{ pool };
 
-    record.begin(get_clock_now(), 323432);
+    record.begin(get_clock_now(), taken.number);
 
-    for (auto &module : readings) {
-        for (auto s = 0u; s < module.readings->size(); ++s) {
-            auto value = module.readings->get(s);
-            record.write_reading(module.position, s, value);
+    logdebug("begin");
 
-            if (record.encoded_size() >= maximum_packet_size_) {
-                append(&head, &tail, record.encode(pool));
+    for (auto &module : taken.readings) {
+        if (module.position != ModMux::VirtualPosition) {
+            for (auto s = 0u; s < module.readings->size(); ++s) {
+                auto value = module.readings->get(s);
+                if (value != 0.0f) {
+                    logdebug("reading: %d/%d %f", module.position, s, value);
+                    record.write_reading(module.position, s, value);
 
-                record = { pool };
+                    if (record.encoded_size() >= maximum_packet_size_) {
+                        append(&head, &tail, record.encode(pool));
+
+                        record = { pool };
+                    }
+                }
             }
+
+            append(&head, &tail, record.encode(pool));
+
+            record = { pool };
         }
-
-        append(&head, &tail, record.encode(pool));
-
-        record = { pool };
     }
 
     append(&head, &tail, record.encode(pool));

@@ -54,6 +54,7 @@ public:
     virtual size_t size() const = 0;
     virtual void set(int32_t i, float value) = 0;
     virtual float get(int32_t i) const = 0;
+    virtual ModuleReadings *clone(Pool &pool) const = 0;
 };
 
 template<size_t N>
@@ -89,6 +90,12 @@ public:
         return readings_[i].value;
     }
 
+    ModuleReadings *clone(Pool &pool) const override {
+        auto clone = new NModuleReadings<N>();
+        clone->nreadings_ = nreadings_;
+        memcpy(&clone->readings_, &readings_, sizeof(readings_));
+        return clone;
+    }
 };
 
 /**

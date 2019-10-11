@@ -30,7 +30,8 @@ TEST_F(LoraPacketizerSuite, SingleReading) {
     });
 
     LoraPacketizer packetizer;
-    auto packets = packetizer.packetize(all_readings, pool);
+    auto taken = TakenReadings{ 323432, all_readings };
+    auto packets = packetizer.packetize(taken, pool);
     ASSERT_TRUE(packets);
 
     for (auto p = *packets; p != nullptr; p = p->link) {
@@ -58,7 +59,8 @@ TEST_F(LoraPacketizerSuite, OneModuleMultipleReadings) {
     });
 
     LoraPacketizer packetizer;
-    auto packets = packetizer.packetize(all_readings, pool);
+    auto taken = TakenReadings{ 323432, all_readings };
+    auto packets = packetizer.packetize(taken, pool);
     ASSERT_TRUE(packets);
 
     for (auto p = *packets; p != nullptr; p = p->link) {
@@ -99,7 +101,8 @@ TEST_F(LoraPacketizerSuite, TwoModulesMultipleReadings) {
     });
 
     LoraPacketizer packetizer;
-    auto packets = packetizer.packetize(all_readings, pool);
+    auto taken = TakenReadings{ 323432, all_readings };
+    auto packets = packetizer.packetize(taken, pool);
     ASSERT_TRUE(packets);
 
     for (auto p = *packets; p != nullptr; p = p->link) {

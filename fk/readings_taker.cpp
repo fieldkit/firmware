@@ -21,7 +21,7 @@ ReadingsTaker::ReadingsTaker(ModuleScanning &scanning, Storage &storage, ModMux 
     : scanning_(scanning), storage_(storage), readings_{ mm }, mm_(mm), read_only_(read_only) {
 }
 
-tl::expected<ModuleReadingsCollection, Error> ReadingsTaker::take(ScanningContext &ctx, Pool &pool) {
+tl::expected<TakenReadings, Error> ReadingsTaker::take(ScanningContext &ctx, Pool &pool) {
     auto modules = get_module_factory().create(scanning_, ctx, pool);
     if (!modules) {
         return tl::unexpected<Error>(modules.error());
@@ -29,7 +29,7 @@ tl::expected<ModuleReadingsCollection, Error> ReadingsTaker::take(ScanningContex
 
     if ((*modules).size() == 0) {
         loginfo("no modules");
-        return ModuleReadingsCollection{ };
+        return TakenReadings{ 0, { } };
     }
 
     if (!read_only_) {
@@ -44,7 +44,8 @@ tl::expected<ModuleReadingsCollection, Error> ReadingsTaker::take(ScanningContex
             FK_ASSERT(data.create());
         }
 
-        auto all_readings = readings_.take_readings(ctx, *modules, *meta_record, data.record(), pool);
+        auto number = data.record();
+        auto all_readings = readings_.take_readings(ctx, *modules, *meta_record, number, pool);
         if (!all_readings) {
             logerror("error taking readings");
             return tl::unexpected<Error>(Error::General);
@@ -60,7 +61,7 @@ tl::expected<ModuleReadingsCollection, Error> ReadingsTaker::take(ScanningContex
             return tl::unexpected<Error>(Error::General);
         }
 
-        return all_readings;
+        return TakenReadings{ number, *all_readings };
     }
 
     auto all_readings = readings_.take_readings(ctx, *modules, 0, 0, pool);
@@ -69,7 +70,7 @@ tl::expected<ModuleReadingsCollection, Error> ReadingsTaker::take(ScanningContex
         return tl::unexpected<Error>(Error::General);
     }
 
-    return all_readings;
+    return TakenReadings{ 0, *all_readings };
 }
 
 bool ReadingsTaker::append_readings(File &file, Pool &pool) {

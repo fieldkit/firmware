@@ -16,22 +16,33 @@ void ReadingsWorker::run(Pool &pool) {
         return;
     }
 
-    auto all_readings = take_readings(pool);
-    if (!all_readings) {
+    auto taken_readings = take_readings(pool);
+    if (!taken_readings) {
         return;
     }
 
-    auto data_pool = new StaticPool<DefaultWorkerPoolSize>("readings");
-    auto modules = data_pool->malloc_with<ModulesState>(data_pool);
+    auto &all_readings = taken_readings->readings;
 
-    modules->nmodules = all_readings->size();
-    modules->modules = data_pool->malloc<ModuleState>(all_readings->size());
+    auto data_pool = new StaticPool<DefaultWorkerPoolSize>("readings");
+    auto modules = new (*data_pool) ModulesState(data_pool);
+
+    modules->nmodules = all_readings.size();
+    modules->modules = data_pool->malloc<ModuleState>(all_readings.size());
     modules->readings_time = fk_uptime();
+    modules->readings_number = taken_readings->number;
 
     auto module_num = 0;
 
-    for (auto m : *all_readings) {
+    for (auto &m : all_readings) {
         auto sensors = data_pool->malloc<SensorState>(m.sensors->nsensors);
+
+        modules->readings.emplace_back(ModuleMetaAndReadings{
+                .position = m.position,
+                .id = nullptr,
+                .meta = m.meta,
+                .sensors = nullptr,
+                .readings = m.readings->clone(*data_pool),
+        });
 
         modules->modules[module_num] = ModuleState{
             .position = m.position,
@@ -86,7 +97,7 @@ bool ReadingsWorker::should_throttle() {
     return false;
 }
 
-tl::expected<ModuleReadingsCollection, Error> ReadingsWorker::take_readings(Pool &pool) {
+tl::expected<TakenReadings, Error> ReadingsWorker::take_readings(Pool &pool) {
     auto gs = get_global_state_ro();
     auto lock = storage_mutex.acquire(UINT32_MAX);
     auto eeprom = get_board()->lock_eeprom();
@@ -107,15 +118,15 @@ tl::expected<ModuleReadingsCollection, Error> ReadingsWorker::take_readings(Pool
 
     ModuleScanning scanning{ get_modmux() };
     ReadingsTaker readings_taker{ scanning, storage, get_modmux(), read_only_ };
-    auto all_readings = readings_taker.take(ctx, pool);
-    if (!all_readings) {
-        return tl::unexpected<Error>(all_readings.error());
+    auto taken_readings = readings_taker.take(ctx, pool);
+    if (!taken_readings) {
+        return tl::unexpected<Error>(taken_readings.error());
     }
 
     meta_fh_ = storage.file_header(Storage::Meta);
     data_fh_ = storage.file_header(Storage::Data);
 
-    return all_readings;
+    return taken_readings;
 }
 
 }

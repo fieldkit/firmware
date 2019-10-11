@@ -3,6 +3,8 @@
 #include "common.h"
 #include "config.h"
 #include "pool.h"
+#include "containers.h"
+#include "modules/module_factory.h"
 #include "modules/shared/uuid.h"
 
 namespace fk {
@@ -28,13 +30,40 @@ public:
     size_t nsensors;
 };
 
+struct ModuleMetaAndReadings {
+    uint16_t position;
+    fk_uuid_t *id;
+    ModuleMetadata const *meta;
+    ModuleSensors const *sensors;
+    ModuleReadings const *readings;
+};
+
+using ModuleReadingsCollection = std::list<ModuleMetaAndReadings , pool_allocator<ModuleMetaAndReadings>>;
+
+struct TakenReadings {
+    uint32_t number;
+    ModuleReadingsCollection readings;
+
+    TakenReadings() {
+    }
+
+    TakenReadings(uint32_t number, ModuleReadingsCollection readings) : number(number), readings(readings) {
+    }
+};
+
 struct ModulesState {
     Pool *pool;
     ModuleState *modules;
     size_t nmodules;
     uint32_t readings_time;
+    uint32_t readings_number;
+    ModuleReadingsCollection readings;
 
-    ModulesState(Pool *pool) : pool(pool) {
+    ModulesState(Pool *pool) : pool(pool), readings{ pool } {
+    }
+
+    TakenReadings taken() {
+        return { readings_number, readings };
     }
 };
 

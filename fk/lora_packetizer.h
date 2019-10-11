@@ -18,7 +18,7 @@ public:
     virtual ~LoraPacketizer();
 
 public:
-    tl::expected<EncodedMessage*, Error> packetize(ModuleReadingsCollection const &readings, Pool &pool);
+    tl::expected<EncodedMessage*, Error> packetize(TakenReadings const &taken, Pool &pool);
 
 };
 
