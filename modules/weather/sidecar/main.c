@@ -14,6 +14,8 @@
 #include "sensors.h"
 #include "crc.h"
 
+#define FK_WEATHER_MAXIMUM_FAILURES_BEFORE_RESTART  (10)
+
 fk_weather_config_t fk_weather_config_default = { 60, 60, 60, 0 };
 
 int32_t read_configuration(fk_weather_config_t *config) {
@@ -215,8 +217,15 @@ __int32_t main() {
             if (rv != FK_SUCCESS) {
                 weather.reading_failures++;
                 unwritten_readings_push_error(&ur, FK_WEATHER_ERROR_SENSORS_READING, weather.memory_failures, weather.reading_failures);
+
+                // Restart after 10 consecutive failures.
+                if (weather.reading_failures == FK_WEATHER_MAXIMUM_FAILURES_BEFORE_RESTART) {
+                    delay_ms(8000);
+                    NVIC_SystemReset();
+                }
             }
             else {
+                weather.reading_failures = 0;
                 unwritten_readings_push(&ur, &weather);
             }
 
