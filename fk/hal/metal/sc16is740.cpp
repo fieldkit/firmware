@@ -1,10 +1,13 @@
 #include <algorithm>
 
 #include "sc16is740.h"
+#include "platform.h"
 
 #if defined(ARDUINO)
 
 namespace fk {
+
+FK_DECLARE_LOGGER("sc16is740");
 
 #include <Arduino.h>
 
@@ -126,13 +129,28 @@ bool Sc16is740::write_fifo(uint8_t const *buffer, size_t size) {
 }
 
 bool Sc16is740::write(const char *line) {
-    auto nwrite = available_for_write();
-    if (nwrite < 0) {
-        return false;
+    auto remaining = strlen(line);
+    auto ptr = line;
+    while (remaining > 0) {
+        auto nwrite = available_for_write();
+        if (nwrite < 0) {
+            return false;
+        }
+
+        auto writing = std::min<int32_t>(nwrite, remaining);
+        if (!write_fifo((uint8_t *)ptr, writing)) {
+            return false;
+        }
+
+        remaining -= writing;
+        ptr += writing;
+
+        // NOTE I have no idea how long this delay should be.
+        if (remaining > 0) {
+            fk_delay(10);
+        }
     }
-    auto len = (int32_t)strlen(line);
-    FK_ASSERT(len <= nwrite);
-    return write_fifo((uint8_t *)line, len);
+    return true;
 }
 
 bool Sc16is740::write_register(uint8_t reg, uint8_t value) {

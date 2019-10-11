@@ -91,7 +91,7 @@ constexpr size_t LoraAppKeyLength = 16;
 constexpr size_t MaximumNameLength = 64;
 
 /**
- *
+ * Maximum length of the build string.
  */
 constexpr size_t MaximumBuildStringLength = 32;
 
