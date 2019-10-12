@@ -7,6 +7,7 @@
 #include "modules/shared/crc.h"
 #include "modules/eeprom.h"
 #include "hal/random.h"
+#include "hal/display.h"
 #include "state_ref.h"
 #include "../modules/weather/main/weather.h"
 
@@ -240,6 +241,10 @@ static void try_and_break_module_bus() {
 static void try_and_break_weather_sensor_bus() {
     loginfo(__PRETTY_FUNCTION__);
 
+    auto display = get_display();
+
+    display->off();
+
     get_board()->enable_everything();
 
     auto mm = get_modmux();
@@ -279,6 +284,7 @@ static void try_and_break_weather_sensor_bus() {
                 if (record.startups > last_record.startups) {
                     if (record.reading_failures == 6) {
                         loginfo("bingo!");
+                        display->company_logo();
                         while (true) {
                             fk_delay(1000);
                         }
