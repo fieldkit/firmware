@@ -321,6 +321,7 @@ void U8g2Display::self_check(SelfCheckScreen const &screen) {
 }
 
 void U8g2Display::simple(SimpleScreen &screen) {
+    draw_.setPowerSave(0);
     draw_.clearBuffer();
 
     if (screen.message != nullptr) {

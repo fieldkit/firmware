@@ -1,5 +1,6 @@
-#include "live_tests.h"
+#include <tiny_printf.h>
 
+#include "live_tests.h"
 #include "common.h"
 #include "storage/storage.h"
 #include "storage/signed_log.h"
@@ -142,7 +143,6 @@ static uint32_t calculate_crc(uint32_t seed, T &object) {
 static bool read_weather_eeprom(uint32_t &last_address, fk_weather_t &last_record) {
     auto module_bus = get_board()->i2c_module();
     auto eeprom = ModuleEeprom{ module_bus };
-    auto startups = 0u;
 
     get_modmux()->choose(6);
 
@@ -160,13 +160,12 @@ static bool read_weather_eeprom(uint32_t &last_address, fk_weather_t &last_recor
 
         auto expected = calculate_crc(FK_MODULES_CRC_SEED, temp);
         if (expected == temp.crc) {
-            if (temp.seconds == 0 && temp.startups > startups) {
-                loginfo("found 0x%04" PRIx32 " startups=%" PRIu32 " seconds=%" PRIu32, iter, temp.startups, temp.seconds);
-                startups = temp.startups;
-                last_address = iter;
-                last_record = temp;
-            }
+            loginfo("record 0x%04" PRIx32 " startups=%" PRIu32 " seconds=%" PRIu32, iter, temp.startups, temp.seconds);
+            last_address = iter;
+            last_record = temp;
         }
+
+        break;
 
         iter += sizeof(fk_weather_t);
     }
@@ -257,6 +256,10 @@ static void try_and_break_weather_sensor_bus() {
     fk_weather_t last_record;
     bzero(&last_record, sizeof(fk_weather_t));
 
+    char message[64] = { 0 };
+    SimpleScreen simple = { message };
+    display->simple(simple);
+
     while (true) {
         bool reproduced = false;
 
@@ -283,13 +286,16 @@ static void try_and_break_weather_sensor_bus() {
 
             if (read_weather_eeprom(address, record)) {
                 loginfo("found 0x%04" PRIx32 " 0x%04" PRIx32 " startups=%" PRIu32 " reading-failures=%" PRIu32, last_address, address, record.startups, record.reading_failures);
-                if (record.startups > last_record.startups) {
-                    if (record.reading_failures == 6) {
-                        reproduced = true;
-                    }
-                    last_record = record;
-                    last_address = address;
+
+                if (record.reading_failures == 6) {
+                    reproduced = true;
                 }
+                last_record = record;
+                last_address = address;
+
+                tiny_snprintf(message, sizeof(message), "%" PRIu32, record.startups);
+                SimpleScreen simple = { message };
+                display->simple(simple);
             }
 
             loginfo("done");
