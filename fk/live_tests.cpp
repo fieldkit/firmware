@@ -258,6 +258,8 @@ static void try_and_break_weather_sensor_bus() {
     bzero(&last_record, sizeof(fk_weather_t));
 
     while (true) {
+        bool reproduced = false;
+
         if (true) {
             auto lock = get_board()->lock_eeprom();
 
@@ -282,12 +284,8 @@ static void try_and_break_weather_sensor_bus() {
             if (read_weather_eeprom(address, record)) {
                 loginfo("found 0x%04" PRIx32 " 0x%04" PRIx32 " startups=%" PRIu32 " reading-failures=%" PRIu32, last_address, address, record.startups, record.reading_failures);
                 if (record.startups > last_record.startups) {
-                    if (record.reading_failures > 0) {
-                        loginfo("bingo!");
-                        display->company_logo();
-                        while (true) {
-                            fk_delay(1000);
-                        }
+                    if (record.reading_failures == 6) {
+                        reproduced = true;
                     }
                     last_record = record;
                     last_address = address;
@@ -297,6 +295,14 @@ static void try_and_break_weather_sensor_bus() {
             loginfo("done");
 
             fk_delay(100);
+        }
+
+        if (reproduced) {
+            loginfo("bingo!");
+            display->company_logo();
+            while (true) {
+                fk_delay(1000);
+            }
         }
 
         auto delay = fk_random_i32(1000, 6000);
