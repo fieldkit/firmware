@@ -4,8 +4,11 @@
 #include "storage/storage.h"
 #include "storage/signed_log.h"
 #include "storage/meta_ops.h"
+#include "modules/shared/crc.h"
+#include "modules/eeprom.h"
 #include "hal/random.h"
 #include "state_ref.h"
+#include "../modules/weather/main/weather.h"
 
 namespace fk {
 
@@ -73,6 +76,8 @@ static size_t write_reading(File &file) {
 }
 
 static void try_and_reproduce_weird_block_issue() {
+    loginfo(__PRETTY_FUNCTION__);
+
     auto gs = get_global_state_rw();
 
     auto counter = 0;
@@ -128,9 +133,114 @@ static void try_and_reproduce_weird_block_issue() {
     }
 }
 
+template<typename T>
+static uint32_t calculate_crc(uint32_t seed, T &object) {
+    return crc32_checksum(seed, (uint8_t *)&object, sizeof(T) - sizeof(uint32_t));
+}
+
+static bool read_weather_eeprom(uint32_t &last_address, fk_weather_t &last_record) {
+    auto module_bus = get_board()->i2c_module();
+    auto eeprom = ModuleEeprom{ module_bus };
+    auto startups = 0u;
+
+    get_modmux()->choose(6);
+
+    uint32_t iter = EEPROM_ADDRESS_READINGS;
+    while (true) {
+        if (iter + sizeof(fk_weather_t) >= EEPROM_ADDRESS_READINGS_END) {
+            break;
+        }
+
+        fk_weather_t temp;
+        if (!eeprom.read_data(iter, &temp, sizeof(fk_weather_t))) {
+            logerror("error reading eeprom");
+            return false;
+        }
+
+        auto expected = calculate_crc(FK_MODULES_CRC_SEED, temp);
+        if (expected == temp.crc) {
+            if (temp.startups > startups) {
+                startups = temp.startups;
+                last_record = temp;
+            }
+        }
+
+        iter += sizeof(fk_weather_t);
+    }
+
+    return true;
+}
+
+/**
+ * This may be a red herring because of the disable everything calls screwing
+ * with the state of things. Saved anyway for some future analysis.
+ */
+static void try_and_break_module_bus() {
+    loginfo(__PRETTY_FUNCTION__);
+
+    get_board()->disable_everything();
+
+    fk_delay(500);
+
+    uint32_t last_address = 0;
+    fk_weather_t last_record;
+    bzero(&last_record, sizeof(fk_weather_t));
+
+    while (true) {
+        if (true) {
+            auto lock = get_board()->lock_eeprom();
+
+            get_board()->enable_everything();
+
+            fk_delay(100);
+
+            loginfo("choosing 6");
+            get_modmux()->choose(6);
+
+            fk_delay(100);
+
+            loginfo("reading eeprom");
+
+            uint32_t address = 0;
+            fk_weather_t record;
+            bzero(&record, sizeof(fk_weather_t));
+
+            if (read_weather_eeprom(address, record)) {
+                loginfo("found %" PRIx32 " %" PRIx32 " startups=%" PRIu32, last_address, address, record.startups);
+                if (record.startups > last_record.startups) {
+                    last_record = record;
+                    last_address = address;
+                }
+            }
+
+            loginfo("done");
+
+            fk_delay(100);
+        }
+
+        auto delay = fk_random_i32(1000, 6000);
+        loginfo("waiting %" PRIu32 "ms", delay);
+        fk_delay(delay);
+
+        {
+            auto lock = get_board()->lock_eeprom();
+            fk_delay(100);
+
+            loginfo("disabling");
+            get_board()->disable_everything();
+
+            loginfo("waiting 1s");
+            fk_delay(1000);
+        }
+    }
+}
+
 void fk_live_tests() {
     if (false) {
         try_and_reproduce_weird_block_issue();
+    }
+    if (true) {
+        try_and_break_module_bus();
     }
 }
 

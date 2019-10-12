@@ -10,6 +10,7 @@
 #include "tasks/tasks.h"
 #include "state.h"
 #include "logging.h"
+#include "live_tests.h"
 
 extern const struct fkb_header_t fkb_header;
 
@@ -122,6 +123,8 @@ static bool initialize_hardware() {
 
     get_board()->enable_everything();
 
+    fk_delay(100);
+
     if (!get_modmux()->begin()) {
         logerror("no backplane!");
 
@@ -149,6 +152,7 @@ static void single_threaded_setup() {
 
 void setup() {
     single_threaded_setup();
+    fk_live_tests();
     run_tasks();
 }
 
