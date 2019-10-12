@@ -73,7 +73,7 @@ int32_t take_readings(fk_weather_t *weather) {
     return FK_SUCCESS;
 }
 
-int32_t eeprom_region_seek_end(eeprom_region_t *region, uint32_t *seconds) {
+int32_t eeprom_region_seek_end(eeprom_region_t *region, uint32_t *seconds, uint32_t *startup_counter) {
     uint16_t address = region->start;
     while (address + sizeof(fk_weather_t) <= region->end) {
         fk_weather_t reading;
@@ -88,6 +88,10 @@ int32_t eeprom_region_seek_end(eeprom_region_t *region, uint32_t *seconds) {
             loginfof("found end 0x%04" PRIx32 " (0x%" PRIx32 " != 0x%" PRIx32 ")", address, expected, reading.crc);
             region->tail = address;
             break;
+        }
+
+        if (reading.startups > *startup_counter) {
+            *startup_counter = reading.startups;
         }
 
         if (reading.seconds < *seconds) {
@@ -182,12 +186,15 @@ __int32_t main() {
 
     board_eeprom_i2c_enable();
 
-    if (eeprom_region_seek_end(&readings_region, &weather.seconds) != FK_SUCCESS) {
+    if (eeprom_region_seek_end(&readings_region, &weather.seconds, &weather.startups) != FK_SUCCESS) {
         logerror("error finding eeprom end");
         board_eeprom_i2c_disable();
         delay_ms(8000);
         NVIC_SystemReset();
     }
+
+    // We increment this every time we startup.
+    weather.startups++;
 
     board_eeprom_i2c_disable();
 
