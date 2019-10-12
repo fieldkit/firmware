@@ -282,7 +282,7 @@ static void try_and_break_weather_sensor_bus() {
             if (read_weather_eeprom(address, record)) {
                 loginfo("found 0x%04" PRIx32 " 0x%04" PRIx32 " startups=%" PRIu32 " reading-failures=%" PRIu32, last_address, address, record.startups, record.reading_failures);
                 if (record.startups > last_record.startups) {
-                    if (record.reading_failures == 6) {
+                    if (record.reading_failures > 0) {
                         loginfo("bingo!");
                         display->company_logo();
                         while (true) {
