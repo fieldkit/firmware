@@ -195,10 +195,11 @@ __int32_t main() {
 
     board_sensors_i2c_enable();
 
-    int32_t rv = sensors_initialize(&I2C_1);
+    sensors_t sensors = { 0 };
+    int32_t rv = sensors_initialize(&I2C_1, &sensors);
     if (rv != FK_SUCCESS) {
         logerror("error initializing sensors");
-        rv = eeprom_region_append_error(&readings_region, FK_WEATHER_ERROR_SENSORS_STARTUP, 0, 0);
+        rv = eeprom_region_append_error(&readings_region, FK_WEATHER_ERROR_SENSORS_STARTUP, 0, sensors.failures);
         if (rv != FK_SUCCESS) {
             logerror("error writing error");
         }

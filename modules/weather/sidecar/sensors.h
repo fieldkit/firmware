@@ -6,7 +6,11 @@
 #include "mpl3115a2.h"
 #include "adc081c.h"
 
-int32_t sensors_initialize(struct i2c_m_sync_desc *i2c);
+typedef struct sensors_t {
+    int32_t failures;
+} sensors_t;
+
+int32_t sensors_initialize(struct i2c_m_sync_desc *i2c, sensors_t *sensors);
 
 typedef struct counters_reading_t {
     uint8_t wind;
