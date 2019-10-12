@@ -4,5 +4,8 @@ EXTRA_ARGS=""
 if [ "$(hostname 2> /dev/null)" = "JACOB-WORK" ]; then
     EXTRA_ARGS="-SelectEmuBySN 801000989 "
 fi
+if [ "$(hostname 2> /dev/null)" = "JACOB-HOME" ]; then
+    EXTRA_ARGS="-SelectEmuBySN 801000989 "
+fi
 
-JLinkExe -if SWD -device ATSAMD09D14A -RTTTelnetPort 9200 -speed 4000 $EXTRA_ARGS -autoconnect 1
+JLinkExe -if SWD -device ATSAMD09D14A -RTTTelnetPort 19022 -speed 4000 $EXTRA_ARGS -autoconnect 1

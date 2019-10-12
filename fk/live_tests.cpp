@@ -159,8 +159,10 @@ static bool read_weather_eeprom(uint32_t &last_address, fk_weather_t &last_recor
 
         auto expected = calculate_crc(FK_MODULES_CRC_SEED, temp);
         if (expected == temp.crc) {
-            if (temp.startups > startups) {
+            if (temp.seconds == 0 && temp.startups > startups) {
+                loginfo("found 0x%04" PRIx32 " startups=%" PRIu32 " seconds=%" PRIu32, iter, temp.startups, temp.seconds);
                 startups = temp.startups;
+                last_address = iter;
                 last_record = temp;
             }
         }
@@ -206,7 +208,7 @@ static void try_and_break_module_bus() {
             bzero(&record, sizeof(fk_weather_t));
 
             if (read_weather_eeprom(address, record)) {
-                loginfo("found %" PRIx32 " %" PRIx32 " startups=%" PRIu32, last_address, address, record.startups);
+                loginfo("found 0x%04" PRIx32 " 0x%04" PRIx32 " startups=%" PRIu32, last_address, address, record.startups);
                 if (record.startups > last_record.startups) {
                     last_record = record;
                     last_address = address;
@@ -235,12 +237,91 @@ static void try_and_break_module_bus() {
     }
 }
 
+static void try_and_break_weather_sensor_bus() {
+    loginfo(__PRETTY_FUNCTION__);
+
+    get_board()->enable_everything();
+
+    auto mm = get_modmux();
+
+    mm->disable_all_modules();
+
+    fk_delay(500);
+
+    uint32_t last_address = 0;
+    fk_weather_t last_record;
+    bzero(&last_record, sizeof(fk_weather_t));
+
+    while (true) {
+        if (true) {
+            auto lock = get_board()->lock_eeprom();
+
+            if (!mm->enable_all_modules()) {
+                logerror("error enabling modules");
+            }
+
+            fk_delay(100);
+
+            if (!get_modmux()->choose(6)) {
+                logerror("error choosing module bay");
+            }
+
+            fk_delay(100);
+
+            loginfo("reading eeprom");
+
+            uint32_t address = 0;
+            fk_weather_t record;
+            bzero(&record, sizeof(fk_weather_t));
+
+            if (read_weather_eeprom(address, record)) {
+                loginfo("found 0x%04" PRIx32 " 0x%04" PRIx32 " startups=%" PRIu32 " reading-failures=%" PRIu32, last_address, address, record.startups, record.reading_failures);
+                if (record.startups > last_record.startups) {
+                    if (record.reading_failures == 6) {
+                        loginfo("bingo!");
+                        while (true) {
+                            fk_delay(1000);
+                        }
+                    }
+                    last_record = record;
+                    last_address = address;
+                }
+            }
+
+            loginfo("done");
+
+            fk_delay(100);
+        }
+
+        auto delay = fk_random_i32(1000, 6000);
+        loginfo("waiting %" PRIu32 "ms", delay);
+        fk_delay(delay);
+
+        // NOTE Right now this is the only way to reliably get the modules to restart.
+        fk_restart();
+
+        {
+            auto lock = get_board()->lock_eeprom();
+            fk_delay(100);
+
+            loginfo("disabling and waiting 10s");
+            if (!mm->disable_all_modules()) {
+                logerror("error disabling modules");
+            }
+            fk_delay(10000);
+        }
+    }
+}
+
 void fk_live_tests() {
     if (false) {
         try_and_reproduce_weird_block_issue();
     }
-    if (true) {
+    if (false) {
         try_and_break_module_bus();
+    }
+    if (false) {
+        try_and_break_weather_sensor_bus();
     }
 }
 
