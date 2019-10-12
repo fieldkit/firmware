@@ -30,33 +30,34 @@ static void timer_task_cb(struct timer_task const *const timer_task) {
 
 int32_t take_readings(fk_weather_t *weather) {
     int32_t rv;
+    int32_t failures = 0;
 
     adc081c_reading_t wind_direction;
     rv = adc081c_reading_get(&I2C_1, &wind_direction);
     if (rv != FK_SUCCESS) {
         logerrorf("reading adc081c (%d)", rv);
-        return FK_ERROR_GENERAL;
+        failures++;
     }
 
     mpl3115a2_reading_t mpl3115a2_reading;
     rv = mpl3115a2_reading_get(&I2C_1, &mpl3115a2_reading);
     if (rv != FK_SUCCESS) {
         logerrorf("reading mpl3115a2 (%d)", rv);
-        return FK_ERROR_GENERAL;
+        failures++;
     }
 
     sht31_reading_t sht31_reading;
     rv = sht31_reading_get(&I2C_1, &sht31_reading);
     if (rv != FK_SUCCESS) {
         logerrorf("reading sht31 (%d)", rv);
-        return FK_ERROR_GENERAL;
+        failures++;
     }
 
     counters_reading_t counters_reading;
     rv = counters_reading_get(&I2C_1, &counters_reading);
     if (rv != FK_SUCCESS) {
         logerrorf("reading counters (%d)", rv);
-        return FK_ERROR_GENERAL;
+        failures++;
     }
 
     weather->seconds++;
@@ -69,6 +70,10 @@ int32_t take_readings(fk_weather_t *weather) {
     weather->wind.ticks = counters_reading.wind;
     weather->rain.ticks = counters_reading.rain;
     weather->crc = fk_weather_sign(weather);
+
+    if (failures > 0) {
+        return FK_ERROR_GENERAL;
+    }
 
     return FK_SUCCESS;
 }
@@ -198,7 +203,7 @@ __int32_t main() {
 
     board_eeprom_i2c_disable();
 
-    loginfo("sensors...");
+    loginfof("done, startup=%d sensors...", weather.startups);
 
     board_sensors_i2c_enable();
 
@@ -234,8 +239,8 @@ __int32_t main() {
 
             int32_t rv = take_readings(&weather);
             if (rv != FK_SUCCESS) {
+                weather.error = FK_WEATHER_ERROR_SENSORS_READING;
                 weather.reading_failures++;
-                unwritten_readings_push_error(&ur, FK_WEATHER_ERROR_SENSORS_READING, weather.memory_failures, weather.reading_failures);
 
                 // Restart after 10 consecutive failures.
                 if (weather.reading_failures == FK_WEATHER_MAXIMUM_FAILURES_BEFORE_RESTART) {
@@ -244,9 +249,11 @@ __int32_t main() {
                 }
             }
             else {
+                weather.error = 0;
                 weather.reading_failures = 0;
-                unwritten_readings_push(&ur, &weather);
             }
+
+            unwritten_readings_push(&ur, &weather);
 
             int32_t nentries = unwritten_readings_get_size(&ur);
             rv = eeprom_region_append_unwritten(&readings_region, &ur);
@@ -258,6 +265,9 @@ __int32_t main() {
                     logerrorf("readings: error appending (%" PRIu32 ")", nentries);
                     weather.memory_failures++;
                 }
+            }
+            else {
+                weather.memory_failures = 0;
             }
 
             #if defined(FK_LOGGING)
