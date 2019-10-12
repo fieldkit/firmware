@@ -9,6 +9,7 @@ enum class LoraErrorCode {
     None,
     ModuleIO,
     NotJoined,
+    DataLength,
     Mac,
 };
 

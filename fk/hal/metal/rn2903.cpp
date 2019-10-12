@@ -313,6 +313,7 @@ bool Rn2903::send_bytes(uint8_t const *data, size_t size, uint8_t port) {
 
 constexpr const char *NotJoined = "not_joined";
 constexpr const char *MacErr = "mac_err";
+constexpr const char *InvalidDataLen = "invalid_data_len";
 
 LoraErrorCode Rn2903::translate_error(const char *line) {
     if (strcmp(line, NotJoined) == 0) {
@@ -320,6 +321,9 @@ LoraErrorCode Rn2903::translate_error(const char *line) {
     }
     if (strcmp(line, MacErr) == 0) {
         return LoraErrorCode::Mac;
+    }
+    if (strcmp(line, InvalidDataLen) == 0) {
+        return LoraErrorCode::DataLength;
     }
     return LoraErrorCode::None;
 }

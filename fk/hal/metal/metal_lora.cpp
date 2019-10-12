@@ -32,6 +32,9 @@ bool Rn2903LoraNetwork::query_status() {
     if (!rn2903_.simple_query("mac get dr", &line, 1000)) {
         return false;
     }
+    if (!rn2903_.simple_query("mac get adr", &line, 1000)) {
+        return false;
+    }
     if (!rn2903_.simple_query("mac get rxdelay1", &line, 1000)) {
         return false;
     }
@@ -95,6 +98,11 @@ bool Rn2903LoraNetwork::begin() {
 }
 
 bool Rn2903LoraNetwork::send_bytes(uint8_t const *data, size_t size) {
+    const char *line = nullptr;
+    if (!rn2903_.simple_query("mac get dr", &line, 1000)) {
+        return false;
+    }
+
     if (!rn2903_.send_bytes(data, size, 10)) {
         return false;
     }
