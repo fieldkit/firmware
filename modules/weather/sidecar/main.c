@@ -202,7 +202,7 @@ __int32_t main() {
 
     board_sensors_i2c_enable();
 
-    sensors_t sensors = { 0 };
+    sensors_t sensors = { 0, 0 };
     int32_t rv = sensors_initialize(&I2C_1, &sensors);
     if (rv != FK_SUCCESS) {
         logerror("error initializing sensors");
@@ -210,9 +210,14 @@ __int32_t main() {
         if (rv != FK_SUCCESS) {
             logerror("error writing error");
         }
-        i2c_sensors_recover();
-        delay_ms(8000);
-        NVIC_SystemReset();
+
+        /*
+        if (sensors.working == 0) {
+            i2c_sensors_recover();
+            delay_ms(8000);
+            NVIC_SystemReset();
+        }
+        */
     }
 
     struct timer_task timer_task;
@@ -234,8 +239,8 @@ __int32_t main() {
 
                 // Restart after 10 consecutive failures.
                 if (weather.reading_failures == FK_WEATHER_MAXIMUM_FAILURES_BEFORE_RESTART) {
-                    delay_ms(8000);
-                    NVIC_SystemReset();
+                    // delay_ms(8000);
+                    // NVIC_SystemReset();
                 }
             }
             else {
