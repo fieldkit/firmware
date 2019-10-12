@@ -40,8 +40,6 @@ protected:
         pool_.clear();
 
         memory_->begin();
-
-        log_configure_level(LogLevels::INFO);
     }
 
     void TearDown() override {

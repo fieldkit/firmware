@@ -37,8 +37,6 @@ protected:
         for (size_t i = 0; i < MemoryFactory::NumberOfDataMemoryBanks; ++i) {
             banks_[i]->erase_all();
         }
-
-        log_configure_level(LogLevels::INFO);
     }
 
     void TearDown() override {

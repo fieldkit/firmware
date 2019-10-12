@@ -152,11 +152,13 @@ tl::expected<AppendedRecord, Error> SignedRecordLog::append_immutable(SignedReco
         logwarn("creating new file");
     }
 
+    auto previous_level = log_get_level();
+
     log_configure_level(LogLevels::TRACE);
 
     auto rv = append_always(kind, record, fields, pool);
 
-    log_configure_level(LogLevels::DEBUG);
+    log_configure_level((LogLevels)previous_level);
 
     return rv;
 }
