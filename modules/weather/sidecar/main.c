@@ -202,6 +202,8 @@ __int32_t main() {
     // We increment this every time we startup.
     weather.startups++;
 
+    eeprom_region_seek_beginning(&readings_region);
+
     board_eeprom_i2c_disable();
 
     loginfof("done, startup=%d sensors...", weather.startups);

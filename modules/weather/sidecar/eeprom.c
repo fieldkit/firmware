@@ -237,3 +237,8 @@ int32_t eeprom_region_append_unwritten(eeprom_region_t *region, unwritten_readin
     return FK_SUCCESS;
 }
 
+int32_t eeprom_region_seek_beginning(eeprom_region_t *region) {
+    region->tail = region->start;
+
+    return FK_SUCCESS;
+}

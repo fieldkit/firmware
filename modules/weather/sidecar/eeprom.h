@@ -58,6 +58,8 @@ typedef struct eeprom_region_t {
  */
 int32_t eeprom_region_create(eeprom_region_t *region, struct i2c_m_sync_desc *i2c, uint16_t start, uint16_t end, uint16_t item_size);
 
+int32_t eeprom_region_seek_beginning(eeprom_region_t *region);
+
 /**
  *
  */
