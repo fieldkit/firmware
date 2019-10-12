@@ -8,6 +8,7 @@
 
 typedef struct sensors_t {
     int32_t failures;
+    int32_t working;
 } sensors_t;
 
 int32_t sensors_initialize(struct i2c_m_sync_desc *i2c, sensors_t *sensors);
