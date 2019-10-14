@@ -40,7 +40,7 @@ public:
     }
 
 public:
-    uint32_t encoded_size() const {
+    size_t encoded_size() const {
         return encoded_size_;
     }
 
@@ -53,21 +53,35 @@ public:
         encoded_size_ += pb_varint_size(record_.number) + 1;
     }
 
+    size_t size_of_encoding(uint8_t module, uint8_t sensor, float value) const {
+        auto size = 0u;
+
+        if (values_array_.length == 0) {
+            size += pb_varint_size(MaxReadingsPerPacket);
+            size += sensor > 0 ? pb_varint_size(sensor) + 1 : 0;
+            size += module > 0 ? pb_varint_size(module) + 1 : 0;
+            size += 1; // Tag for values.
+        }
+        else {
+            if (previous_sensor_ + 1 != sensor) {
+                size += sensor > 0 ? pb_varint_size(sensor) + 1 : 0;
+            }
+        }
+
+        size += sizeof(float);
+
+        return size;
+    }
+
     void write_reading(uint8_t module, uint8_t sensor, float value) {
         if (values_array_.length == 0) {
             record_.module = module;
             record_.sensor = sensor;
             record_.values.arg = (void *)&values_array_;
-
-            encoded_size_ += pb_varint_size(MaxReadingsPerPacket);
-            encoded_size_ += sensor > 0 ? pb_varint_size(sensor) + 1 : 0;
-            encoded_size_ += module > 0 ? pb_varint_size(module) + 1 : 0;
-            encoded_size_ += 1; // Tag for values.
         }
         else {
             if (previous_sensor_ + 1 != sensor) {
                 record_.sensor = sensor;
-                encoded_size_ += sensor > 0 ? pb_varint_size(sensor) + 1 : 0;
             }
         }
 
@@ -76,7 +90,8 @@ public:
         values_[values_array_.length++] = value;
 
         previous_sensor_ = sensor;
-        encoded_size_ += sizeof(float);
+
+        encoded_size_ += size_of_encoding(module, sensor, value);
     }
 
     EncodedMessage *encode(Pool &pool) {
@@ -123,14 +138,14 @@ tl::expected<EncodedMessage*, Error> LoraPacketizer::packetize(TakenReadings con
             for (auto s = 0u; s < module.readings->size(); ++s) {
                 auto value = module.readings->get(s);
                 if (value != 0.0f) {
-                    logdebug("reading: %d/%d %f", module.position, s, value);
-                    record.write_reading(module.position, s, value);
-
-                    if (record.encoded_size() >= maximum_packet_size_) {
+                    if (record.encoded_size() + record.size_of_encoding(module.position, s, value) >= maximum_packet_size_) {
                         append(&head, &tail, record.encode(pool));
 
                         record = { pool };
                     }
+
+                    logdebug("reading: %d/%d %f", module.position, s, value);
+                    record.write_reading(module.position, s, value);
                 }
             }
 
