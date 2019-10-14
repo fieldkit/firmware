@@ -20,8 +20,13 @@ tl::expected<EncodedMessage*, Error> packetize(Pool &pool) {
         return nullptr;
     }
 
+    auto taken = gs.get()->modules->taken();
+    if (taken.time == 0) {
+        return nullptr;
+    }
+
     LoraPacketizer packetizer;
-    return packetizer.packetize(gs.get()->modules->taken(), pool);
+    return packetizer.packetize(taken, pool);
 }
 
 void LoraWorker::run(Pool &pool) {
