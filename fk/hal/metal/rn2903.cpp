@@ -56,9 +56,11 @@ bool Rn2903::wake() {
     return false;
 }
 
-bool Rn2903::read_line_sync(const char **line, uint32_t to) {
+bool Rn2903::read_line_sync(const char **line, uint32_t to, bool quiet) {
     if (!line_reader_.read_line_sync(line, to)) {
-        logerror("error reading line");
+        if (!quiet) {
+            logerror("error reading line");
+        }
         return false;
     }
 
@@ -255,8 +257,12 @@ bool Rn2903::join(const char *app_eui, const char *app_key, int32_t retries, uin
         }
 
         const char *line = nullptr;
-
-        if (!read_line_sync(&line, 10000)) {
+        for (auto i = 0u; i < 60; ++i) {
+            if (read_line_sync(&line, 1000, true)) {
+                break;
+            }
+        }
+        if (line == nullptr) {
             return false;
         }
 

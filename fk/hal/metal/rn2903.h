@@ -25,7 +25,7 @@ public:
 
 public:
     bool begin();
-    bool read_line_sync(const char **line, uint32_t to);
+    bool read_line_sync(const char **line, uint32_t to, bool quiet = false);
     bool simple_query(const char *cmd, uint32_t to, ...);
     bool simple_query(const char *cmd, const char **line, uint32_t to, ...);
     bool join(const char *app_eui, const char *app_key, int32_t retries = 3, uint32_t retry_delay = 10000);
