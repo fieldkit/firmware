@@ -230,3 +230,51 @@ LORA 20 06 28 05 32 0c 9a 99 19 41 00 80 a8 43 00 cf e4 44  (18 bytes)
 LORA 20 06 28 08 32 0c 9a 99 19 41 00 00 4a 43 9a 99 19 41  (18 bytes)
 LORA 20 06 28 0b 32 0c 00 00 4a 43 33 33 f3 40 00 00 9c 43  (18 bytes)
 */
+
+TEST_F(LoraPacketizerSuite, MultipleModulesVerifyLength3) {
+    StaticPool<1024> pool("Pool");
+
+    auto module_readings0 = new (pool) NModuleReadings<3>();
+    module_readings0->set(0, 1221.000000);
+    module_readings0->set(1, 1221.000000);
+    module_readings0->set(2, 1224.000000);
+
+    auto i = 0u;
+    auto module_readings1 = new (pool) NModuleReadings<14>();
+    module_readings1->set(i++, 44.954605);
+    module_readings1->set(i++, 24.110779);
+    module_readings1->set(i++, 100.027252);
+    module_readings1->set(i++, 22.812500);
+    module_readings1->set(i++, 0.0);
+    module_readings1->set(i++, 9.600000);
+    module_readings1->set(i++, 0.0);
+    module_readings1->set(i++, 2307.421875);
+    module_readings1->set(i++, 9.600000);
+    module_readings1->set(i++, 0.000000);
+    module_readings1->set(i++, 0.000000);
+
+    ModuleReadingsCollection all_readings{ pool };
+    all_readings.emplace_back(ModuleMetaAndReadings{
+        .position = 2,
+        .id = nullptr,
+        .meta = &fk_test_module_fake_empty,
+        .sensors = nullptr,
+        .readings = module_readings0,
+    });
+    all_readings.emplace_back(ModuleMetaAndReadings{
+        .position = 6,
+        .id = nullptr,
+        .meta = &fk_test_module_fake_empty,
+        .sensors = nullptr,
+        .readings = module_readings1,
+    });
+
+    LoraPacketizer packetizer;
+    auto taken = TakenReadings{ 1571088572 , 7499, all_readings };
+    auto packets = packetizer.packetize(taken, pool);
+    ASSERT_TRUE(packets);
+
+    for (auto p = *packets; p != nullptr; p = p->link) {
+        fk_dump_memory("packet ", p->buffer, p->size);
+    }
+}

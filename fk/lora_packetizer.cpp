@@ -74,7 +74,7 @@ public:
         }
         else {
             if (previous_sensor_ + 1 != sensor) {
-                size += sensor > 0 ? pb_varint_size(sensor) + TagSize : 0;
+                size += pb_varint_size(sensor) + TagSize;
             }
         }
 
@@ -113,6 +113,7 @@ public:
         }
         auto encoded = pool.encode(fk_data_LoraRecord_fields, &record_, false);
         if (encoded->size != encoded_size_) {
+            logerror("packet size mismatch: %zd != %zd", encoded->size, encoded_size_);
             FK_ASSERT(encoded->size == encoded_size_);
         }
         return encoded;
@@ -150,16 +151,14 @@ tl::expected<EncodedMessage*, Error> LoraPacketizer::packetize(TakenReadings con
         if (module.position != ModMux::VirtualPosition) {
             for (auto s = 0u; s < module.readings->size(); ++s) {
                 auto value = module.readings->get(s);
-                if (value != 0.0f) {
-                    auto adding = record.size_of_encoding(module.position, s, value);
-                    if (record.encoded_size() + adding >= maximum_packet_size_) {
-                        append(&head, &tail, record.encode(pool));
-                        record.clear();
-                    }
-
-                    record.write_reading(module.position, s, value);
-                    logdebug("reading: %d/%d %f (%zd)", module.position, s, value, record.encoded_size());
+                auto adding = record.size_of_encoding(module.position, s, value);
+                if (record.encoded_size() + adding >= maximum_packet_size_) {
+                    append(&head, &tail, record.encode(pool));
+                    record.clear();
                 }
+
+                record.write_reading(module.position, s, value);
+                logdebug("reading: %d/%d %f (%zd)", module.position, s, value, record.encoded_size());
             }
 
             append(&head, &tail, record.encode(pool));
