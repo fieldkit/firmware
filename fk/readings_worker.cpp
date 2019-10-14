@@ -28,7 +28,7 @@ void ReadingsWorker::run(Pool &pool) {
 
     modules->nmodules = all_readings.size();
     modules->modules = data_pool->malloc<ModuleState>(all_readings.size());
-    modules->readings_time = fk_uptime();
+    modules->readings_time = taken_readings->time;
     modules->readings_number = taken_readings->number;
 
     auto module_num = 0;
