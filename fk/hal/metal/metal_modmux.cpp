@@ -96,7 +96,7 @@ bool MetalModMux::update_gpio(uint8_t new_gpio) {
 bool MetalModMux::enable_all_modules() {
     auto new_gpio = 0xff;
 
-    logtrace("all modules on (0x%02x)", new_gpio);
+    loginfo("all modules on (0x%02x)", new_gpio);
 
     return update_gpio(new_gpio);
 }
@@ -104,7 +104,7 @@ bool MetalModMux::enable_all_modules() {
 bool MetalModMux::disable_all_modules() {
     auto new_gpio = 0x00;
 
-    logtrace("all modules off (0x%02x)", new_gpio);
+    loginfo("all modules off (0x%02x)", new_gpio);
 
     return update_gpio(new_gpio);
 }
@@ -112,7 +112,7 @@ bool MetalModMux::disable_all_modules() {
 bool MetalModMux::enable_module(uint8_t position) {
     auto new_gpio = gpio_ | (1 << position);
 
-    logtrace("[%d] module on (0x%02x)", position, new_gpio);
+    loginfo("[%d] module on (0x%02x)", position, new_gpio);
 
     return update_gpio(new_gpio);
 }
@@ -120,7 +120,7 @@ bool MetalModMux::enable_module(uint8_t position) {
 bool MetalModMux::disable_module(uint8_t position) {
     auto new_gpio = gpio_ & ~(1 << position);
 
-    logtrace("[%d] module off (0x%02x)", position, new_gpio);
+    loginfo("[%d] module off (0x%02x)", position, new_gpio);
 
     return update_gpio(new_gpio);
 }
