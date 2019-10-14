@@ -45,21 +45,21 @@ SpiFlash::SpiFlash(uint8_t cs) : cs_(cs) {
 }
 
 flash_geometry_t SpiFlash::geometry() const {
-    if (status_ != Status::Available) {
+    if (status_ != Availability::Available) {
         return { 0, 0, 0, 0 };
     }
     return { PageSize, BlockSize, NumberOfBlocks, NumberOfBlocks * BlockSize };
 }
 
 bool SpiFlash::begin() {
-    if (status_ != Status::Unknown) {
-        return status_ == Status::Available;
+    if (status_ != Availability::Unknown) {
+        return status_ == Availability::Available;
     }
 
     // auto lock = spi_flash_mutex.acquire(UINT32_MAX);
     // FK_ASSERT(lock);
 
-    status_ = Status::Unavailable;
+    status_ = Availability::Unavailable;
 
     SPI.begin();
 
@@ -111,7 +111,7 @@ bool SpiFlash::begin() {
         loginfo("%s", id_string);
     }
 
-    status_ = Status::Available;
+    status_ = Availability::Available;
 
     return true;
 }
@@ -165,7 +165,7 @@ int32_t SpiFlash::write(uint32_t address, const uint8_t *data, size_t length) {
 
     logerror("write failed, trying to recover...");
 
-    status_ = Status::Unknown;
+    status_ = Availability::Unknown;
 
     if (!begin()) {
         logerror("begin failed!");

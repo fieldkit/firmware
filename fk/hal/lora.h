@@ -23,6 +23,7 @@ public:
     virtual bool join(const char *app_eui, const char *app_key, int32_t retries = 3, uint32_t retry_delay = 10000) = 0;
 
 public:
+    virtual bool available() const = 0;
     virtual uint8_t const *device_eui() const = 0;
     virtual LoraErrorCode error() const = 0;
 
@@ -54,6 +55,10 @@ public:
     }
 
     bool join(const char *app_eui, const char *app_key, int32_t retries, uint32_t retry_delay) override {
+        return false;
+    }
+
+    bool available() const override {
         return false;
     }
 

@@ -22,14 +22,8 @@ public:
     constexpr static uint32_t BlockSize = 2048 * 64;
     constexpr static uint32_t NumberOfBlocks = 2048;
 
-    enum class Status {
-        Unknown,
-        Available,
-        Unavailable
-    };
-
 private:
-    Status status_{ Status::Unknown };
+    Availability status_{ Availability::Unknown };
     uint8_t cs_;
     uint8_t id_[IdSize];
     SpiFlashError error_{ SpiFlashError::None };

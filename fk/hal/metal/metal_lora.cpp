@@ -69,6 +69,8 @@ bool Rn2903LoraNetwork::wake() {
 }
 
 bool Rn2903LoraNetwork::begin() {
+    status_ = Availability::Unavailable;
+
     if (!power(false)) {
         return false;
     }
@@ -93,6 +95,8 @@ bool Rn2903LoraNetwork::begin() {
     if (!query_status()) {
         return false;
     }
+
+    status_ = Availability::Available;
 
     return true;
 }

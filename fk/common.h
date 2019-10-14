@@ -133,4 +133,10 @@ namespace fk {
  */
 #define BIT(nr)               (1UL << (nr))
 
+enum class Availability {
+    Unknown,
+    Available,
+    Unavailable
+};
+
 }

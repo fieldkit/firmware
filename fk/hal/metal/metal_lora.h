@@ -10,6 +10,7 @@ namespace fk {
 
 class Rn2903LoraNetwork : public LoraNetwork {
 private:
+    Availability status_{ Availability::Unknown };
     uint8_t device_eui_[LoraDeviceEuiLength];
     Rn2903 rn2903_;
 
@@ -32,6 +33,10 @@ public:
     LoraErrorCode error() const override {
         return rn2903_.error();
     };
+
+    bool available() const override {
+        return status_ == Availability::Available;
+    }
 
 public:
     bool query_status();
