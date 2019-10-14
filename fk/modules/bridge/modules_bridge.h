@@ -91,7 +91,7 @@ public:
     }
 
     ModuleReadings *clone(Pool &pool) const override {
-        auto clone = new NModuleReadings<N>();
+        auto clone = new (pool) NModuleReadings<N>();
         clone->nreadings_ = nreadings_;
         memcpy(clone->readings_, readings_, sizeof(readings_));
         return clone;

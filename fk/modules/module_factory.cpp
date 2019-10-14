@@ -31,10 +31,10 @@ bool ModuleFactory::recreate(ScanningContext &ctx, FoundModuleCollection module_
         if (meta != nullptr) {
             auto module = meta->ctor(pool_);
             modules_.emplace_back(ConstructedModule{
-                    .found = f,
-                    .meta = meta,
-                    .module = module,
-                });
+                .found = f,
+                .meta = meta,
+                .module = module,
+            });
         }
         else {
             logwarn("no such module!");
