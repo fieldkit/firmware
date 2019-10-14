@@ -93,7 +93,7 @@ public:
     ModuleReadings *clone(Pool &pool) const override {
         auto clone = new NModuleReadings<N>();
         clone->nreadings_ = nreadings_;
-        memcpy(&clone->readings_, &readings_, sizeof(readings_));
+        memcpy(clone->readings_, readings_, sizeof(readings_));
         return clone;
     }
 };
