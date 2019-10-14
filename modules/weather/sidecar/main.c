@@ -202,8 +202,6 @@ __int32_t main() {
     // We increment this every time we startup.
     weather.startups++;
 
-    eeprom_region_seek_beginning(&readings_region);
-
     board_eeprom_i2c_disable();
 
     loginfof("done, startup=%d sensors...", weather.startups);
@@ -219,13 +217,11 @@ __int32_t main() {
             logerror("error writing error");
         }
 
-        /*
         if (sensors.working == 0) {
             i2c_sensors_recover();
             delay_ms(8000);
             NVIC_SystemReset();
         }
-        */
     }
 
     struct timer_task timer_task;
@@ -247,8 +243,8 @@ __int32_t main() {
 
                 // Restart after 10 consecutive failures.
                 if (weather.reading_failures == FK_WEATHER_MAXIMUM_FAILURES_BEFORE_RESTART) {
-                    // delay_ms(8000);
-                    // NVIC_SystemReset();
+                    delay_ms(8000);
+                    NVIC_SystemReset();
                 }
             }
             else {
