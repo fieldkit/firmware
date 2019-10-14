@@ -9,9 +9,6 @@ namespace fk {
 
 FK_DECLARE_LOGGER("lora");
 
-#define TTN_DEFAULT_SF  7
-#define TTN_DEFAULT_FSB 2
-
 Rn2903::Rn2903() : bridge_(get_board()->acquire_i2c_radio()) {
 }
 
@@ -286,11 +283,11 @@ bool Rn2903::join(const char *app_eui, const char *app_key, int32_t retries, uin
     return false;
 }
 
-bool Rn2903::send_bytes(uint8_t const *data, size_t size, uint8_t port) {
+bool Rn2903::send_bytes(uint8_t const *data, size_t size, uint8_t port, bool confirmed) {
     char hex[size * 2 + 1];
     bytes_to_hex_string(hex, sizeof(hex), data, size);
 
-    const char *mode = "cnf";
+    const char *mode = confirmed ? "cnf" : "uncnf";
     if (!simple_query("mac tx %s %d %s", 1000, mode, port, hex)) {
         return false;
     }
