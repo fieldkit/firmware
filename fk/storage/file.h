@@ -112,6 +112,7 @@ private:
     int32_t write_record_tail(size_t size);
     int32_t read_record_header();
     int32_t read_record_tail();
+    int32_t search_for_following_block();
     void update();
 
 };

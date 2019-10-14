@@ -360,6 +360,36 @@ bool File::rewind() {
     return true;
 }
 
+int32_t File::search_for_following_block() {
+    SequentialMemory memory{ storage_->memory_ };
+    auto g = storage_->memory_->geometry();
+
+    auto iter = g.truncate_to_block(tail_) + g.block_size;
+
+    loginfo("[%d]" PRADDRESS " searching for following block", file_, iter);
+
+    while (g.is_address_valid(iter)) {
+        BlockHeader block_header;
+        if (memory.read(iter, (uint8_t *)&block_header, sizeof(block_header)) != sizeof(block_header)) {
+            return 0;
+        }
+
+        if (!block_header.verify_hash() || block_header.version != version_) {
+            loginfo("[%d]" PRADDRESS " invalid block header", file_, iter);
+            return 0;
+        }
+        if (block_header.file == file_) {
+            loginfo("[%d]" PRADDRESS " found", file_, iter);
+            tail_ = iter;
+            return tail_;
+        }
+
+        iter += g.block_size;
+    }
+
+    return 0;
+}
+
 int32_t File::read_record_header() {
     SequentialMemory memory{ storage_->memory_ };
     auto g = storage_->memory_->geometry();
@@ -386,10 +416,15 @@ int32_t File::read_record_header() {
                 fk_dump_memory("ACT ", (uint8_t *)&block_tail.hash, sizeof(block_tail.hash));
                 block_tail.fill_hash();
                 fk_dump_memory("EXP ", (uint8_t *)&block_tail.hash, sizeof(block_tail.hash));
-                return 0;
-            }
 
-            tail_ = block_tail.linked;
+                if (search_for_following_block() == 0) {
+                    logerror("[%d]" PRADDRESS " unable to resume", file_, tail_);
+                    return 0;
+                }
+            }
+            else {
+                tail_ = block_tail.linked;
+            }
 
             BlockHeader block_header;
             if (memory.read(tail_, (uint8_t *)&block_header, sizeof(block_header)) != sizeof(block_header)) {

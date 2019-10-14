@@ -113,8 +113,6 @@ TEST_F(LoraPacketizerSuite, TwoModulesMultipleReadings) {
 TEST_F(LoraPacketizerSuite, MultipleModulesVerifyLength) {
     StaticPool<1024> pool("Pool");
 
-    log_configure_level(LogLevels::DEBUG);
-
     // auto module_readings0 = new (pool) NModuleReadings<0>();
     // auto module_readings1 = new (pool) NModuleReadings<0>();
     auto module_readings2 = new (pool) NModuleReadings<3>();
