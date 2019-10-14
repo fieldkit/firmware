@@ -87,7 +87,13 @@ void LoraWorker::run(Pool &pool) {
                 break;
             }
             case LoraErrorCode::Mac: {
-                logerror("retring");
+                logerror("retrying");
+                tries--;
+                break;
+            }
+            case LoraErrorCode::DataLength: {
+                fk_delay(1000);
+                logerror("retrying");
                 tries--;
                 break;
             }
