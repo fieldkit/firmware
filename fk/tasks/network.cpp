@@ -175,22 +175,26 @@ void task_handler_network(void *params) {
             uint32_t signal = 0;
             if (os_signal_check(&signal) == OSS_SUCCESS) {
                 if (signal > 0) {
+                    loginfo("killed");
                     return;
                 }
             }
 
             // Check to see if we've been inactive for too long.
             if (fk_uptime() - http_server.activity() > fkc.network.uptime) {
+                loginfo("inactive");
                 return;
             }
 
             // This will happen when a foreign device disconnects from our WiFi AP.
             if (!http_server.ready_to_serve()) {
+                loginfo("disconnected");
                 break;
             }
 
             // Break this loop and go to the beginning to recreate.
             if (task.did_configuration_change()) {
+                loginfo("configuration change");
                 break;
             }
 
