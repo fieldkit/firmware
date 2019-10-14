@@ -11,7 +11,9 @@ UltrasonicModule::UltrasonicModule() : bridge_(get_board()->acquire_i2c_module()
 bool UltrasonicModule::initialize(ModuleContext mc, fk::Pool &pool) {
     auto bus = get_board()->i2c_module();
 
-    /*
+    bus.end();
+    bus.begin();
+
     // enumerate bus
     for (auto i = 0u; i < 128u; ++i) {
         auto rv = bus.write(i, nullptr, 0);
@@ -19,7 +21,6 @@ bool UltrasonicModule::initialize(ModuleContext mc, fk::Pool &pool) {
             loginfo("found 0x%x", i);
         }
     }
-    */
 
     if (!bridge_.begin(9600)) {
         logerror("initializing bridge");
