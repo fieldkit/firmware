@@ -408,7 +408,10 @@ int32_t File::read_record_header() {
             logdebug("[%d] " PRADDRESS " btail (" PRADDRESS ")", file_, tail_, block_tail.linked);
 
             if (!is_address_valid(block_tail.linked)) {
-                return 0;
+                if (search_for_following_block() == 0) {
+                    logerror("[%d]" PRADDRESS " unable to resume", file_, tail_);
+                    return 0;
+                }
             }
 
             if (!block_tail.verify_hash()) {
