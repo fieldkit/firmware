@@ -18,54 +18,75 @@ static bool start_task_if_necessary(os_task_t *task);
 class SchedulerTask {
 };
 
-template<typename T>
-class LambdaSchedulerTask : public lwcron::CronTask, public SchedulerTask {
-private:
-    const char *label_;
-    T fn_;
-
+class ReadingsTask : public lwcron::CronTask, public SchedulerTask {
 public:
-    LambdaSchedulerTask(lwcron::CronSpec spec, const char *label, T fn) : lwcron::CronTask(spec), label_(label), fn_(fn) {
+    ReadingsTask(lwcron::CronSpec cron_spec) : lwcron::CronTask(cron_spec) {
     }
 
 public:
+public:
     void run() override {
-        fn_();
+        auto worker = create_pool_wrapper<ReadingsWorker, DefaultWorkerPoolSize, PoolWorker<ReadingsWorker>>(false);
+        if (!get_ipc()->launch_worker(worker)) {
+            delete worker;
+            return;
+        }
     }
 
     const char *toString() const override {
-        return label_;
+        return "readings";
     }
 
 };
 
-template<typename T>
-LambdaSchedulerTask<T> to_lambda_task(lwcron::CronSpec spec, const char *label, T fn) {
-    return LambdaSchedulerTask<T>(spec, label, fn);
-}
+class GpsTask : public lwcron::CronTask, public SchedulerTask {
+public:
+    GpsTask(lwcron::CronSpec cron_spec) : lwcron::CronTask(cron_spec) {
+    }
+
+public:
+    void run() override {
+        start_task_if_necessary(&gps_task);
+    }
+
+    const char *toString() const override {
+        return "gps";
+    }
+
+};
+
+class LoraTask : public lwcron::CronTask, public SchedulerTask {
+public:
+    LoraTask(lwcron::CronSpec cron_spec) : lwcron::CronTask(cron_spec) {
+    }
+
+public:
+    void run() override {
+        auto worker = create_pool_wrapper<LoraWorker, DefaultWorkerPoolSize, PoolWorker<LoraWorker>>();
+        if (!get_ipc()->launch_worker(worker)) {
+            delete worker;
+            return;
+        }
+    }
+
+    const char *toString() const override {
+        return "lora";
+    }
+
+    bool enabled() const override {
+        return get_lora_network()->available();
+    }
+
+};
 
 void task_handler_scheduler(void *params) {
     lwcron::CronSpec readings_cron_spec{ lwcron::CronSpec::interval(fk_config().scheduler.readings_interval) };
     lwcron::CronSpec lora_cron_spec{ lwcron::CronSpec::interval(fk_config().scheduler.lora_interval) };
     lwcron::CronSpec gps_cron_spec{ lwcron::CronSpec::interval(fk_config().scheduler.gps_interval) };
 
-    auto readings_job = to_lambda_task(readings_cron_spec, "readings", []() {
-        auto worker = create_pool_wrapper<ReadingsWorker, DefaultWorkerPoolSize, PoolWorker<ReadingsWorker>>(false);
-        if (!get_ipc()->launch_worker(worker)) {
-            delete worker;
-            return;
-        }
-    });
-    auto lora_job = to_lambda_task(lora_cron_spec, "lora", []() {
-        auto worker = create_pool_wrapper<LoraWorker, DefaultWorkerPoolSize, PoolWorker<LoraWorker>>();
-        if (!get_ipc()->launch_worker(worker)) {
-            delete worker;
-            return;
-        }
-    });
-    auto gps_job = to_lambda_task(gps_cron_spec, "gps", []() {
-        start_task_if_necessary(&gps_task);
-    });
+    ReadingsTask readings_job{ readings_cron_spec };
+    LoraTask lora_job{ lora_cron_spec };
+    GpsTask gps_job{ gps_cron_spec };
 
     lwcron::Task *tasks[3] { &readings_job, &lora_job, &gps_job };
     lwcron::Scheduler scheduler{ tasks };
