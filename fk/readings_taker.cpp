@@ -29,7 +29,7 @@ tl::expected<TakenReadings, Error> ReadingsTaker::take(ScanningContext &ctx, Poo
 
     if ((*modules).size() == 0) {
         loginfo("no modules");
-        return TakenReadings{ 0, { } };
+        return TakenReadings{ 0, 0, { } };
     }
 
     if (!read_only_) {
@@ -61,7 +61,7 @@ tl::expected<TakenReadings, Error> ReadingsTaker::take(ScanningContext &ctx, Poo
             return tl::unexpected<Error>(Error::General);
         }
 
-        return TakenReadings{ number, *all_readings };
+        return TakenReadings{ get_clock_now(), number, *all_readings };
     }
 
     auto all_readings = readings_.take_readings(ctx, *modules, 0, 0, pool);
@@ -70,7 +70,7 @@ tl::expected<TakenReadings, Error> ReadingsTaker::take(ScanningContext &ctx, Poo
         return tl::unexpected<Error>(Error::General);
     }
 
-    return TakenReadings{ 0, *all_readings };
+    return TakenReadings{ 0, 0, *all_readings };
 }
 
 bool ReadingsTaker::append_readings(File &file, Pool &pool) {

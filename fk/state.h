@@ -41,13 +41,14 @@ struct ModuleMetaAndReadings {
 using ModuleReadingsCollection = std::list<ModuleMetaAndReadings , pool_allocator<ModuleMetaAndReadings>>;
 
 struct TakenReadings {
+    uint32_t time;
     uint32_t number;
     ModuleReadingsCollection readings;
 
     TakenReadings() {
     }
 
-    TakenReadings(uint32_t number, ModuleReadingsCollection readings) : number(number), readings(readings) {
+    TakenReadings(uint32_t time, uint32_t number, ModuleReadingsCollection readings) : time(time), number(number), readings(readings) {
     }
 };
 
@@ -63,7 +64,7 @@ struct ModulesState {
     }
 
     TakenReadings taken() {
-        return { readings_number, readings };
+        return { readings_time, readings_number, readings };
     }
 };
 

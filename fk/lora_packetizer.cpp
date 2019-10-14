@@ -114,9 +114,9 @@ tl::expected<EncodedMessage*, Error> LoraPacketizer::packetize(TakenReadings con
 
     LoraRecord record{ pool };
 
-    record.begin(get_clock_now(), taken.number);
+    logdebug("begin time=%" PRIu32 " reading=%" PRIu32, taken.time, taken.number);
 
-    logdebug("begin");
+    record.begin(taken.time, taken.number);
 
     for (auto &module : taken.readings) {
         if (module.position != ModMux::VirtualPosition) {
