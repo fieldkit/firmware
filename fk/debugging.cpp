@@ -31,7 +31,7 @@ void fk_debug_set_console_attached() {
 
 volatile uint32_t fk_debugger_triggered = 0;
 
-void fk_debugger() {
+void fk_debugger_break() {
     fk_debugger_triggered++;
 }
 

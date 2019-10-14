@@ -32,5 +32,7 @@ public:
     static void disable();
 };
 
+void fk_debugger_break();
+
 }
 
