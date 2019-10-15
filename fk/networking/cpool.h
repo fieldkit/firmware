@@ -130,6 +130,7 @@ public:
 
 private:
     void update_statistics(Connection *c);
+    void free_connection(uint16_t index);
 
 };
 

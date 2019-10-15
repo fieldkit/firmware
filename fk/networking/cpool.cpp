@@ -16,9 +16,7 @@ ConnectionPool::~ConnectionPool() {
     for (auto i = (size_t)0; i < MaximumConnections; ++i) {
         if (connections_[i] != nullptr) {
             update_statistics(connections_[i]);
-            delete pools_[i];
-            connections_[i] = nullptr;
-            pools_[i] = nullptr;
+            free_connection(i);
         }
     }
 }
@@ -57,9 +55,7 @@ void ConnectionPool::service(HttpRouter &router) {
                 else {
                     logwarn("[%" PRIu32 "] [%zd] killing (%" PRIu32 "ms) (%" PRIu32 "ms) (%" PRIu32 " down) (%" PRIu32 " up)", c->number_, i, activity_elapsed, started_elapsed, c->bytes_rx_, c->bytes_tx_);
                     c->close();
-                    delete connections_[i];
-                    connections_[i] = nullptr;
-                    pools_[i] = nullptr;
+                    free_connection(i);
                     continue;
                 }
             }
@@ -69,9 +65,7 @@ void ConnectionPool::service(HttpRouter &router) {
                 // long connection, for example.
                 update_statistics(c);
                 activity_ = now;
-                delete pools_[i];
-                connections_[i] = nullptr;
-                pools_[i] = nullptr;
+                free_connection(i);
             }
         }
     }
@@ -108,6 +102,12 @@ void ConnectionPool::update_statistics(Connection *c) {
 
     bytes_rx_ += rx;
     bytes_tx_ += tx;
+}
+
+void ConnectionPool::free_connection(uint16_t index) {
+    delete pools_[index];
+    connections_[index] = nullptr;
+    pools_[index] = nullptr;
 }
 
 Connection::Connection(Pool &pool, NetworkConnection *conn, uint32_t number) : pool_{ &pool }, conn_(conn), number_(number), req_{ pool_ }, buffer_{ nullptr }, size_{ 0 }, position_{ 0 } {
