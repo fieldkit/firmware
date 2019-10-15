@@ -103,6 +103,8 @@ private:
 
     bool transfer(uint8_t *command, uint32_t command_length, const uint8_t *data_w, uint8_t *data_r, uint32_t data_length);
 
+    bool reset();
+
 };
 
 }

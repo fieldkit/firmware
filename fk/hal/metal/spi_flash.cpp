@@ -63,11 +63,7 @@ bool SpiFlash::begin() {
 
     SPI.begin();
 
-    enable();
-    auto ok = simple_command(CMD_RESET);
-    disable();
-
-    if (!ok) {
+    if (!reset()) {
         return false;
     }
 
@@ -114,6 +110,14 @@ bool SpiFlash::begin() {
     status_ = Availability::Available;
 
     return true;
+}
+
+bool SpiFlash::reset() {
+    enable();
+    auto ok = simple_command(CMD_RESET);
+    disable();
+
+    return ok;
 }
 
 int32_t SpiFlash::read(uint32_t address, uint8_t *data, size_t length) {
@@ -234,6 +238,9 @@ int32_t SpiFlash::erase_block(uint32_t address) {
 
     if (!is_ready()) {
         logerror("erase: !ready");
+        if (reset()) {
+            logerror("erase: rexet failed");
+        }
         return 0;
     }
 
