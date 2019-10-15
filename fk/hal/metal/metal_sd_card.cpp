@@ -105,7 +105,10 @@ bool MetalSdCard::is_directory(const char *path) {
 }
 
 bool MetalSdCard::mkdir(const char *path) {
-    return sd_.mkdir(path);
+    if (!sd_.mkdir(path)) {
+        return false;
+    }
+    return true;
 }
 
 bool MetalSdCard::format() {

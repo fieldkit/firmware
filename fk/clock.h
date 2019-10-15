@@ -56,26 +56,30 @@ constexpr size_t length(char const (&)[N]) {
     return N - 1;
 }
 
+constexpr const char *TimeFormatReadable = "%d/%d/%d %02d:%02d:%02d";
+constexpr const char *TimeFormatMachine = "%04d%02d%02d_%02d%02d%02d";
 constexpr size_t MaximumLengthOfTimeString = length("0000/00/00 00:00:00");
 
-inline void timeToString(char *buffer, size_t length, DateTime dt) {
-    tiny_snprintf(buffer, length, "%d/%d/%d %02d:%02d:%02d",
-                  dt.year(), dt.month(), dt.day(),
-                  dt.hour(), dt.minute(), dt.second());
-}
-
 class FormattedTime {
+public:
+
 private:
     char buffer_[MaximumLengthOfTimeString + 1];
 
 public:
-    FormattedTime(DateTime dt) {
-        timeToString(buffer_, sizeof(buffer_), dt);
+    FormattedTime(DateTime dt, const char *f = TimeFormatReadable) {
+        time_to_string(f, buffer_, sizeof(buffer_), dt);
     }
 
     const char *cstr() const {
         return buffer_;
     }
+
+private:
+    static void time_to_string(const char *f, char *buffer, size_t length, DateTime dt) {
+        tiny_snprintf(buffer, length, f, dt.year(), dt.month(), dt.day(), dt.hour(), dt.minute(), dt.second());
+    }
+
 
 };
 

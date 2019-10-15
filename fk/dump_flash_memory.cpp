@@ -6,6 +6,7 @@
 #include "hal/memory.h"
 #include "hal/sd_card.h"
 #include "utilities.h"
+#include "clock.h"
 
 namespace fk {
 
@@ -21,17 +22,23 @@ void DumpFlashMemory::run(Pool &pool) {
     auto sd = get_sd_card();
     auto buffer = (uint8_t *)pool.malloc(g.page_size);
 
-    char file_name[13];
-    tiny_snprintf(file_name, sizeof(file_name), "%08x.bin", 0);
+    auto now = get_clock_now();
+    FormattedTime formatted{ now, TimeFormatMachine };
+    auto path = pool.sprintf("/%s/%08x.bin", formatted.cstr(), 0);
 
     if (!sd->begin()) {
         logerror("error opening sd card");
         return;
     }
 
-    auto file = sd->open(file_name, pool);
+    if (!sd->mkdir(formatted.cstr())) {
+        logerror("error making directory '%s'", formatted.cstr());
+        return;
+    }
+
+    auto file = sd->open(path, pool);
     if (file == nullptr || !file) {
-        logerror("unable to open %s", file_name);
+        logerror("unable to open '%s'", path);
         return;
     }
 
