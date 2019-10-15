@@ -8,6 +8,7 @@
 #endif
 
 #include "hal/display.h"
+#include "tasks/tasks.h"
 
 #include <SEGGER_RTT.h>
 
@@ -17,6 +18,10 @@ static bool console_attached = false;
 
 bool fk_debug_is_attached() {
     return false;
+}
+
+bool fk_debug_mode() {
+    return !os_task_is_running(&scheduler_task);
 }
 
 bool fk_debug_get_console_attached() {
@@ -51,9 +56,12 @@ void DebuggerOfLastResort::message(const char *message) {
 }
 
 DebuggerOfLastResort DebuggerOfLastResort::instance_;
-DebuggerOfLastResort *DebuggerOfLastResort::selected_;
+DebuggerOfLastResort *DebuggerOfLastResort::selected_{ nullptr };
 
 DebuggerOfLastResort *DebuggerOfLastResort::get() {
+    if (selected_ == nullptr) {
+        return &noop;
+    }
     return selected_;
 }
 

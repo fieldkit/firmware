@@ -131,6 +131,7 @@ constexpr size_t WifiMaximumPasswordLength = 64;
  * How long the user should hold the button to initiate a factory wipe.
  */
 constexpr uint32_t FactoryWipeButtonDuration = TwoSecondsMs;
+constexpr uint32_t InteractiveStartupButtonDuration = TwoSecondsMs;
 
 /**
  * This is the theorhetical maximum number of modules that can be physically

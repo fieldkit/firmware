@@ -17,6 +17,7 @@ void HomeView::tick(ViewController *views) {
     auto display = get_display();
 
     auto gs = get_global_state_ro();
+    auto debug_mode = fk_debug_mode();
 
     HomeScreen screen;
     screen.time = fk_uptime();
@@ -28,6 +29,7 @@ void HomeView::tick(ViewController *views) {
     screen.gps.enabled = gs.get()->gps.enabled;
     screen.gps.fix = gs.get()->gps.fix;
     screen.battery = gs.get()->power.charge;
+    screen.debug_mode = debug_mode;
     screen.logo = true;
     screen.primary = nullptr;
     screen.secondary = nullptr;

@@ -1,6 +1,7 @@
 #include "hal/buttons.h"
 #include "hal/metal/metal_buttons.h"
 #include "hal/linux/linux_buttons.h"
+#include "tasks/tasks.h"
 
 namespace fk {
 
@@ -34,8 +35,10 @@ void Button::changed(bool down) {
             if (!get_ipc()->enqueue_button(this)) {
                 logerror("ipc error (button)");
             }
-            if (!get_ipc()->enqueue_activity(this)) {
-                logerror("ipc error (activity)");
+            if (!fk_debug_mode()) {
+                if (!get_ipc()->enqueue_activity(this)) {
+                    logerror("ipc error (activity)");
+                }
             }
         }
     }

@@ -176,8 +176,17 @@ void U8g2Display::home(HomeScreen const &data) {
             draw_.drawUTF8(((OLED_WIDTH - 44) / 2) - (width / 2), 12, buffer);
         }
         else {
-            auto &logo = fk_logo_bw_80x17;
-            draw_.drawXBM(2, logo.h - 16, logo.w, logo.h, logo.data);
+            if (data.debug_mode) {
+                const char *text = "Debug Mode";
+                auto width = draw_.getUTF8Width(text);
+                draw_.setFontMode(0);
+                draw_.setFont(u8g2_font_courB08_tf);
+                draw_.drawUTF8(((OLED_WIDTH - 44) / 2) - (width / 2), 12, text);
+            }
+            else {
+                auto &logo = fk_logo_bw_80x17;
+                draw_.drawXBM(2, logo.h - 16, logo.w, logo.h, logo.data);
+            }
         }
     }
     else {
@@ -317,6 +326,7 @@ void U8g2Display::self_check(SelfCheckScreen const &screen) {
         x += width + 10;
     }
 
+    draw_.setDrawColor(1);
     draw_.sendBuffer();
 }
 

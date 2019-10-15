@@ -26,12 +26,15 @@ void StartupWorker::run(Pool &pool) {
 
     display->company_logo();
 
-    DebuggerOfLastResort::get()->disable();
-
-    DebuggerOfLastResort::get()->message("begin");
-
     GlobalStateManager gsm;
     FK_ASSERT(gsm.initialize(pool));
+
+    if (check_for_interactive_startup()) {
+        FK_ASSERT(os_task_start(&display_task) == OSS_SUCCESS);
+        return;
+    }
+
+    FK_ASSERT(check_for_lora(pool));
 
     auto mm = get_modmux();
 
@@ -40,10 +43,7 @@ void StartupWorker::run(Pool &pool) {
     // below during the scan fails fails.
     // I tried moving the enable all to after the storage read and ran into the
     // same issue. After the self check seems ok, though?
-
-    if (!mm->disable_all_modules()) {
-        DebuggerOfLastResort::get()->message("no bp 1");
-    }
+    mm->disable_all_modules();
 
     // Lock, just during startup.
     auto lock = get_board()->lock_eeprom();
@@ -63,22 +63,30 @@ void StartupWorker::run(Pool &pool) {
 
     FK_ASSERT(load_or_create_state(storage, pool));
 
-    if (!mm->enable_all_modules()) {
-        DebuggerOfLastResort::get()->message("no bp 2");
-    }
-
-    DebuggerOfLastResort::get()->message("pass 1");
+    mm->enable_all_modules();
 
     ReadingsWorker readings_worker{ true };
     readings_worker.run(pool);
 
-    DebuggerOfLastResort::get()->message("pass 2");
-
-    FK_ASSERT(check_for_lora(pool));
-
-    DebuggerOfLastResort::disable();
-
     FK_ASSERT(os_task_start(&scheduler_task) == OSS_SUCCESS);
+}
+
+bool StartupWorker::check_for_interactive_startup() {
+    auto buttons = get_buttons();
+
+    if (buttons->number_pressed() == 0) {
+        return false;
+    }
+
+    auto started = fk_uptime();
+    while (buttons->number_pressed() > 0) {
+        fk_delay(100);
+        if (fk_uptime() - started > InteractiveStartupButtonDuration) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 bool StartupWorker::load_or_create_state(Storage &storage, Pool &pool) {

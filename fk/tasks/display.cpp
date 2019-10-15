@@ -72,8 +72,9 @@ public:
 
     void run() {
         auto stop_time = fk_uptime() + fk_config().display.inactivity;
+        auto can_stop = os_task_is_running(&scheduler_task);
 
-        while (fk_uptime() < stop_time) {
+        while (!can_stop || fk_uptime() < stop_time) {
             Button *button = nullptr;
             if (get_ipc()->dequeue_button(&button)) {
                 stop_time = fk_uptime() + fk_config().display.inactivity;
