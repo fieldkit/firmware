@@ -43,10 +43,6 @@ bool MetalSdCard::begin() {
 bool MetalSdCard::append_logs(circular_buffer<char> &buffer) {
     auto started = fk_uptime();
 
-    if (true) {
-        return false;
-    }
-
     if (!begin()) {
         if (sd_.card()->errorCode()) {
             loginfo("ignoring logs: no sd card, error = 0x%x", sd_.card()->errorCode());
@@ -70,12 +66,11 @@ bool MetalSdCard::append_logs(circular_buffer<char> &buffer) {
     if (log_initialized_) {
         SdFile file;
 
-        if (!file.open(log_file_name_, O_WRONLY | O_CREAT | O_EXCL)) {
+        if (!file.open(log_file_name_, O_WRONLY | O_CREAT | O_APPEND)) {
             logerror("error opening %s", log_file_name_);
             return false;
         }
 
-        file.seekEnd();
         file.write(buffer.buffer(), size);
         file.flush();
         file.close();
