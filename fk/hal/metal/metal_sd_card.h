@@ -10,6 +10,11 @@
 namespace fk {
 
 class MetalSdCard : public SdCard {
+private:
+    SdFat sd_;
+    char log_file_name_[13];
+    bool log_initialized_{ false };
+
 public:
     MetalSdCard();
 
@@ -29,15 +34,17 @@ private:
     SdFile file_;
 
 public:
-    MetalSdCardFile();
-    MetalSdCardFile(SdFile file);
+    MetalSdCardFile(const char *path, oflag_t oflag);
 
 public:
     int32_t write(uint8_t const *buffer, size_t size) override;
     size_t file_size() override;
+    bool is_open() const;
     bool close() override;
+
+public:
     operator bool() const override {
-        return file_.isFile();
+        return is_open();
     }
 
 };

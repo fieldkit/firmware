@@ -24,8 +24,13 @@ void DumpFlashMemory::run(Pool &pool) {
     char file_name[13];
     tiny_snprintf(file_name, sizeof(file_name), "%08x.bin", 0);
 
+    if (!sd->begin()) {
+        logerror("error opening sd card");
+        return;
+    }
+
     auto file = sd->open(file_name, pool);
-    if (!file) {
+    if (file == nullptr || !file) {
         logerror("unable to open %s", file_name);
         return;
     }
@@ -64,7 +69,7 @@ void DumpFlashMemory::run(Pool &pool) {
                 bad_blocks++;
             }
 
-            fk_dump_memory("HDR", (uint8_t *)&block_header, sizeof(block_header));
+            fk_dump_memory("HDR ", (uint8_t *)&block_header, sizeof(block_header));
 
             if (bad_blocks == MaximumBadBlockRun) {
                 break;
@@ -77,7 +82,10 @@ void DumpFlashMemory::run(Pool &pool) {
         }
     }
 
-    file->close();
+    if (!file->close()) {
+        logerror("error closing");
+        return;
+    }
 }
 
 }

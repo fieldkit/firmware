@@ -8,20 +8,11 @@
 
 #if defined(__SAMD51__)
 
-#include <SPI.h>
-
 namespace fk {
 
 FK_DECLARE_LOGGER("sdcard");
 
-#define LOG_FILE_BASE_NAME "fkl_"
-
-static SdFat sd(&SD_SPI);
-static SdFile log_file;
-static char log_file_name[13] = LOG_FILE_BASE_NAME "000.txt";
-static bool log_initialized{ false };
-
-MetalSdCard::MetalSdCard() {
+MetalSdCard::MetalSdCard() : sd_(&SD_SPI) {
 }
 
 bool MetalSdCard::begin() {
@@ -29,16 +20,16 @@ bool MetalSdCard::begin() {
 
     SD_SPI.begin();
 
-    if (!sd.begin(PIN_SD_CS, SD_SCK_MHZ(50))) {
+    if (!sd_.begin(PIN_SD_CS, SD_SCK_MHZ(50))) {
         return false;
     }
 
-    if (sd.vol()->fatType() == 0) {
+    if (sd_.vol()->fatType() == 0) {
         logwarn("invalid FAT system");
         return false;
     }
 
-    auto size = sd.card()->cardSize();
+    auto size = sd_.card()->cardSize();
     if (size == 0) {
         logwarn("invalid size");
         return false;
@@ -52,19 +43,23 @@ bool MetalSdCard::begin() {
 bool MetalSdCard::append_logs(circular_buffer<char> &buffer) {
     auto started = fk_uptime();
 
+    if (true) {
+        return false;
+    }
+
     if (!begin()) {
-        if (sd.card()->errorCode()) {
-            loginfo("ignoring logs: no sd card, error = 0x%x", sd.card()->errorCode());
+        if (sd_.card()->errorCode()) {
+            loginfo("ignoring logs: no sd card, error = 0x%x", sd_.card()->errorCode());
         }
         return false;
     }
     else {
-        if (!log_initialized) {
+        if (!log_initialized_) {
             for (auto counter = 0; counter < 1000; ++counter) {
-                tiny_snprintf(log_file_name, sizeof(log_file_name), "%s%03d.txt", LOG_FILE_BASE_NAME, counter);
-                if (!sd.exists(log_file_name)) {
-                    loginfo("picked file name %s", log_file_name);
-                    log_initialized = true;
+                tiny_snprintf(log_file_name_, sizeof(log_file_name_), "fkl_%03d.txt", counter);
+                if (!sd_.exists(log_file_name_)) {
+                    loginfo("picked file name %s", log_file_name_);
+                    log_initialized_ = true;
                     break;
                 }
             }
@@ -72,40 +67,45 @@ bool MetalSdCard::append_logs(circular_buffer<char> &buffer) {
     }
 
     auto size = buffer.size();
-    if (log_initialized) {
-        if (!log_file.open(log_file_name, O_WRONLY | O_CREAT | O_EXCL)) {
-            logerror("error opening %s", log_file_name);
+    if (log_initialized_) {
+        SdFile file;
+
+        if (!file.open(log_file_name_, O_WRONLY | O_CREAT | O_EXCL)) {
+            logerror("error opening %s", log_file_name_);
             return false;
         }
 
-        log_file.write(buffer.buffer(), size);
-        log_file.flush();
-        loginfo("flushed %d to %s (%" PRIu32 "ms) (%" PRIu32 " bytes)", size, log_file_name, fk_uptime() - started, log_file.fileSize());
+        file.seekEnd();
+        file.write(buffer.buffer(), size);
+        file.flush();
+        file.close();
+
+        loginfo("flushed %d to %s (%" PRIu32 "ms) (%" PRIu32 " bytes)", size, log_file_name_, fk_uptime() - started, file.fileSize());
     }
     else {
         loginfo("ignored %d (%" PRIu32 "ms)", size, fk_uptime() - started);
-        log_initialized = false;
+        log_initialized_ = false;
     }
 
     return true;
 }
 
 bool MetalSdCard::is_file(const char *path) {
-    if (!sd.exists(path)) {
+    if (!sd_.exists(path)) {
         return false;
     }
     return false; // sd.isFile(name);
 }
 
 bool MetalSdCard::is_directory(const char *path) {
-    if (!sd.exists(path)) {
+    if (!sd_.exists(path)) {
         return false;
     }
     return false; // sd.isDirectory(name);
 }
 
 bool MetalSdCard::mkdir(const char *path) {
-    return sd.mkdir(path);
+    return sd_.mkdir(path);
 }
 
 bool MetalSdCard::format() {
@@ -132,26 +132,22 @@ bool MetalSdCard::format() {
     return true;
 }
 
-SdCardFile *MetalSdCard::open(const char *name, Pool &pool) {
-    static SdFile file;
+SdCardFile *MetalSdCard::open(const char *path, Pool &pool) {
+    if (sd_.exists(path)) {
+        loginfo("file '%s' exists, removing", path);
 
-    if (sd.exists(name)) {
-        if (!sd.remove(name)) {
-            return new (pool) MetalSdCardFile();
+        if (!sd_.remove(path)) {
+            logerror("unable to remove '%s'", path);
+            return nullptr;
         }
     }
 
-    if (!file.open(name, O_WRONLY | O_CREAT | O_EXCL)) {
-        return new (pool) MetalSdCardFile();
-    }
+    loginfo("opening '%s'", path);
 
-    return new (pool) MetalSdCardFile(file);
+    return new (pool) MetalSdCardFile(path, O_WRONLY | O_CREAT | O_EXCL);
 }
 
-MetalSdCardFile::MetalSdCardFile() {
-}
-
-MetalSdCardFile::MetalSdCardFile(SdFile file) : file_(file) {
+MetalSdCardFile::MetalSdCardFile(const char *path, oflag_t oflag) : file_(path, oflag) {
 }
 
 int32_t MetalSdCardFile::write(uint8_t const *buffer, size_t size) {
@@ -163,7 +159,13 @@ size_t MetalSdCardFile::file_size() {
 }
 
 bool MetalSdCardFile::close() {
+    file_.flush();
+
     return file_.close();
+}
+
+bool MetalSdCardFile::is_open() const {
+    return file_.isFile() && file_.isOpen();
 }
 
 }
