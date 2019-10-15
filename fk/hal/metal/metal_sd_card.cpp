@@ -90,6 +90,24 @@ bool MetalSdCard::append_logs(circular_buffer<char> &buffer) {
     return true;
 }
 
+bool MetalSdCard::is_file(const char *path) {
+    if (!sd.exists(path)) {
+        return false;
+    }
+    return false; // sd.isFile(name);
+}
+
+bool MetalSdCard::is_directory(const char *path) {
+    if (!sd.exists(path)) {
+        return false;
+    }
+    return false; // sd.isDirectory(name);
+}
+
+bool MetalSdCard::mkdir(const char *path) {
+    return sd.mkdir(path);
+}
+
 bool MetalSdCard::format() {
     loginfo("formatting...");
 

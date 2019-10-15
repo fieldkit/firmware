@@ -13,7 +13,19 @@ bool LinuxSdCard::append_logs(circular_buffer<char> &buffer) {
     return true;
 }
 
-SdCardFile *LinuxSdCard::open(const char *name, Pool &pool) {
+bool LinuxSdCard::is_file(const char *path) {
+    return false;
+}
+
+bool LinuxSdCard::is_directory(const char *path) {
+    return false;
+}
+
+bool LinuxSdCard::mkdir(const char *path) {
+    return false;
+}
+
+SdCardFile *LinuxSdCard::open(const char *path, Pool &pool) {
     return new (pool) LinuxSdCardFile();
 }
 

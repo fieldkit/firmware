@@ -11,7 +11,10 @@ public:
 public:
     bool begin() override;
     bool append_logs(circular_buffer<char> &buffer) override;
-    SdCardFile *open(const char *name, Pool &pool) override;
+    bool is_file(const char *path) override;
+    bool is_directory(const char *path) override;
+    bool mkdir(const char *path) override;
+    SdCardFile *open(const char *path, Pool &pool) override;
     bool format() override;
 
 };

@@ -20,7 +20,10 @@ public:
 
 public:
     virtual bool append_logs(circular_buffer<char> &buffer) = 0;
-    virtual SdCardFile *open(const char *name, Pool &pool) = 0;
+    virtual bool is_file(const char *path) = 0;
+    virtual bool is_directory(const char *path) = 0;
+    virtual bool mkdir(const char *path) = 0;
+    virtual SdCardFile *open(const char *path, Pool &pool) = 0;
     virtual bool format() = 0;
 
 };
