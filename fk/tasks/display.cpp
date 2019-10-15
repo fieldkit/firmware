@@ -12,6 +12,7 @@
 #include "display/readings_view.h"
 #include "display/self_check_view.h"
 #include "display/menu_view.h"
+#include "display/message_view.h"
 
 namespace fk {
 
@@ -24,6 +25,7 @@ private:
     MenuView menu_view;
     NameView name_view;
     BuildView build_view;
+    MessageView message_view;
     SelfCheckView self_check_view;
     DisplayView *view = &home_view;
 
@@ -60,6 +62,13 @@ public:
     void show_build() override {
         view = &home_view;
         view->show();
+    }
+
+    void show_message(const char *message) override {
+        message_view.message(message);
+        view = &message_view;
+        view->show();
+        view->tick(this);
     }
 
     void on_external() override {

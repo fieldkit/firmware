@@ -204,11 +204,12 @@ void MenuView::create_tools_menu() {
     });
     auto tools_format_sd = to_lambda_option(pool_, "Format SD", [=]() {
         back_->on_selected();
-        views_->show_home();
+        views_->show_message("Formatting SD");
         if (!get_sd_card()->format()) {
-            logerror("error formatting sd");
+            views_->show_message("Card Error!");
             return;
         }
+        views_->show_message("Success!");
     });
     auto tools_dump_flash = to_lambda_option(pool_, "Flash -> SD", [=]() {
         back_->on_selected();
