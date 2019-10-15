@@ -91,6 +91,40 @@ bool MetalSdCard::append_logs(circular_buffer<char> &buffer) {
     return true;
 }
 
+SdCardFile *MetalSdCard::open(const char *name, Pool &pool) {
+    static SdFile file;
+
+    if (sd.exists(name)) {
+        if (!sd.remove(name)) {
+            return new (pool) MetalSdCardFile();
+        }
+    }
+
+    if (!file.open(name, O_WRONLY | O_CREAT | O_EXCL)) {
+        return new (pool) MetalSdCardFile();
+    }
+
+    return new (pool) MetalSdCardFile(file);
+}
+
+MetalSdCardFile::MetalSdCardFile() {
+}
+
+MetalSdCardFile::MetalSdCardFile(SdFile file) : file_(file) {
+}
+
+int32_t MetalSdCardFile::write(uint8_t const *buffer, size_t size) {
+    return file_.write(buffer, size);
+}
+
+size_t MetalSdCardFile::file_size() {
+    return file_.fileSize();
+}
+
+bool MetalSdCardFile::close() {
+    return file_.close();
+}
+
 }
 
 #endif

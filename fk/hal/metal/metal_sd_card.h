@@ -15,9 +15,26 @@ public:
 
 public:
     bool begin() override;
+    bool append_logs(circular_buffer<char> &buffer) override;
+    SdCardFile *open(const char *name, Pool &pool) override;
+
+};
+
+class MetalSdCardFile : public SdCardFile {
+private:
+    SdFile file_;
 
 public:
-    bool append_logs(circular_buffer<char> &buffer) override;
+    MetalSdCardFile();
+    MetalSdCardFile(SdFile file);
+
+public:
+    int32_t write(uint8_t const *buffer, size_t size) override;
+    size_t file_size() override;
+    bool close() override;
+    operator bool() const override {
+        return file_.isFile();
+    }
 
 };
 

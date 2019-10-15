@@ -1,8 +1,18 @@
 #pragma once
 
+#include "pool.h"
+#include "io.h"
 #include "circular_buffer.h"
 
 namespace fk {
+
+class SdCardFile : public Writer {
+public:
+    virtual bool close() = 0;
+    virtual size_t file_size() = 0;
+    virtual operator bool() const = 0;
+
+};
 
 class SdCard {
 public:
@@ -10,6 +20,7 @@ public:
 
 public:
     virtual bool append_logs(circular_buffer<char> &buffer) = 0;
+    virtual SdCardFile *open(const char *name, Pool &pool) = 0;
 
 };
 
