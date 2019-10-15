@@ -59,8 +59,6 @@ bool MetalSdCard::append_logs(circular_buffer<char> &buffer) {
     }
 
     if (!log_initialized) {
-        log_initialized = true;
-
         for (auto counter = 0; counter < 1000; ++counter) {
             tiny_snprintf(log_file_name, sizeof(log_file_name), "%s%03d.txt", LOG_FILE_BASE_NAME, counter);
             if (!sd.exists(log_file_name)) {
@@ -74,6 +72,7 @@ bool MetalSdCard::append_logs(circular_buffer<char> &buffer) {
         }
 
         loginfo("opened %s", log_file_name);
+        log_initialized = true;
         log_ready = true;
     }
 
@@ -85,7 +84,7 @@ bool MetalSdCard::append_logs(circular_buffer<char> &buffer) {
         loginfo("flushed %d to %s (%" PRIu32 "ms) (%" PRIu32 " bytes)", size, log_file_name, fk_uptime() - started, log_file.fileSize());
     }
     else {
-        loginfo("ignored %d to (%" PRIu32 "ms)", size, fk_uptime() - started);
+        loginfo("ignored %d (%" PRIu32 "ms)", size, fk_uptime() - started);
     }
 
     return true;
