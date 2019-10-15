@@ -17,6 +17,10 @@ SdCardFile *LinuxSdCard::open(const char *name, Pool &pool) {
     return new (pool) LinuxSdCardFile();
 }
 
+bool LinuxSdCard::format() {
+    return false;
+}
+
 int32_t LinuxSdCardFile::write(uint8_t const *buffer, size_t size) {
     return 0;
 }

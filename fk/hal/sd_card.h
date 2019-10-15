@@ -21,6 +21,7 @@ public:
 public:
     virtual bool append_logs(circular_buffer<char> &buffer) = 0;
     virtual SdCardFile *open(const char *name, Pool &pool) = 0;
+    virtual bool format() = 0;
 
 };
 

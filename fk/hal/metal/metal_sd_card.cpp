@@ -4,6 +4,7 @@
 #include "hal/board.h"
 #include "hal/metal/metal_sd_card.h"
 #include "platform.h"
+#include "format_sd_card.h"
 
 #if defined(__SAMD51__)
 
@@ -11,10 +12,9 @@
 
 namespace fk {
 
-#define SPI_SPEED SD_SCK_MHZ(50)
-#define LOG_FILE_BASE_NAME "fkl_"
-
 FK_DECLARE_LOGGER("sdcard");
+
+#define LOG_FILE_BASE_NAME "fkl_"
 
 static SdFat sd(&SD_SPI);
 static SdFile log_file;
@@ -25,9 +25,11 @@ MetalSdCard::MetalSdCard() {
 }
 
 bool MetalSdCard::begin() {
+    SD_SPI.end();
+
     SD_SPI.begin();
 
-    if (!sd.begin(PIN_SD_CS, SPI_SPEED)) {
+    if (!sd.begin(PIN_SD_CS, SD_SCK_MHZ(50))) {
         return false;
     }
 
@@ -41,6 +43,8 @@ bool MetalSdCard::begin() {
         logwarn("invalid size");
         return false;
     }
+
+    loginfo("card size: %" PRIu32, size);
 
     return true;
 }
@@ -59,6 +63,7 @@ bool MetalSdCard::append_logs(circular_buffer<char> &buffer) {
             for (auto counter = 0; counter < 1000; ++counter) {
                 tiny_snprintf(log_file_name, sizeof(log_file_name), "%s%03d.txt", LOG_FILE_BASE_NAME, counter);
                 if (!sd.exists(log_file_name)) {
+                    loginfo("picked file name %s", log_file_name);
                     log_initialized = true;
                     break;
                 }
@@ -81,6 +86,30 @@ bool MetalSdCard::append_logs(circular_buffer<char> &buffer) {
         loginfo("ignored %d (%" PRIu32 "ms)", size, fk_uptime() - started);
         log_initialized = false;
     }
+
+    return true;
+}
+
+bool MetalSdCard::format() {
+    loginfo("formatting...");
+
+    FormatSdCard formatter;
+    if (!formatter.begin()) {
+        logerror("error opening");
+        return false;
+    }
+
+    if (!formatter.erase()) {
+        logerror("error erasing");
+        return false;
+    }
+
+    if (!formatter.format()) {
+        logerror("error formatting");
+        return false;
+    }
+
+    loginfo("done");
 
     return true;
 }

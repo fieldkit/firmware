@@ -202,6 +202,14 @@ void MenuView::create_tools_menu() {
     auto tools_self_check = to_lambda_option(pool_, "Self Check", [=]() {
         views_->show_self_check();
     });
+    auto tools_format_sd = to_lambda_option(pool_, "Format SD", [=]() {
+        back_->on_selected();
+        views_->show_home();
+        if (!get_sd_card()->format()) {
+            logerror("error formatting sd");
+            return;
+        }
+    });
     auto tools_dump_flash = to_lambda_option(pool_, "Flash -> SD", [=]() {
         back_->on_selected();
         views_->show_home();
@@ -234,12 +242,13 @@ void MenuView::create_tools_menu() {
         fk_restart();
     });
 
-    tools_menu_ = new_menu_screen<6>(pool_, {
+    tools_menu_ = new_menu_screen<7>(pool_, {
         back_,
         tools_self_check,
         tools_dump_flash,
         tools_fsck,
         tools_restart,
+        tools_format_sd,
         tools_factory_reset,
     });
 }
