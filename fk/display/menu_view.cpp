@@ -2,6 +2,7 @@
 #include "simple_workers.h"
 #include "configure_module_worker.h"
 #include "factory_wipe.h"
+#include "dump_flash_memory.h"
 #include "hal/board.h"
 #include "state_ref.h"
 
@@ -202,6 +203,15 @@ void MenuView::create_tools_menu() {
     auto tools_self_check = to_lambda_option(pool_, "Self Check", [=]() {
         views_->show_self_check();
     });
+    auto tools_dump_flash = to_lambda_option(pool_, "Flash -> SD", [=]() {
+        back_->on_selected();
+        views_->show_home();
+        auto worker = create_pool_wrapper<DumpFlashMemory, DefaultWorkerPoolSize, PoolWorker<DumpFlashMemory>>();
+        if (!get_ipc()->launch_worker(worker)) {
+            delete worker;
+            return;
+        }
+    });
     auto tools_fsck = to_lambda_option(pool_, "Run Fsck", [=]() {
         back_->on_selected();
         views_->show_home();
@@ -222,9 +232,10 @@ void MenuView::create_tools_menu() {
         fk_restart();
     });
 
-    tools_menu_ = new_menu_screen<5>(pool_, {
+    tools_menu_ = new_menu_screen<6>(pool_, {
         back_,
         tools_self_check,
+        tools_dump_flash,
         tools_fsck,
         tools_restart,
         tools_factory_reset,

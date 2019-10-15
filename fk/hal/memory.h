@@ -34,6 +34,14 @@ typedef struct flash_geometry_t {
     uint32_t nblocks;
     uint32_t total_size;
 
+    uint32_t beginning() const {
+        return 0;
+    }
+
+    uint32_t end() const {
+        return total_size;
+    }
+
     uint32_t remaining_in_page(uint32_t address) {
         return page_size - (address % page_size);
     }
