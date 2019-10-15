@@ -83,4 +83,21 @@ private:
 
 };
 
+inline bool is_memory_completely(uint8_t const *data, size_t size, uint8_t byte) {
+    for (auto i = 0u; i < size; ++i) {
+        if (data[i] != byte) {
+            return false;
+        }
+    }
+    return true;
+}
+
+inline bool is_memory_erased(uint8_t const *data, size_t size) {
+    return is_memory_completely(data, size, 0xff);
+}
+
+inline bool is_memory_zeros(uint8_t const *data, size_t size) {
+    return is_memory_completely(data, size, 0x00);
+}
+
 }

@@ -44,8 +44,12 @@ void DumpFlashMemory::run(Pool &pool) {
     auto version = (uint32_t)0u;
     auto bad_blocks = 0u;
 
-    for (auto address = g.beginning(); address < g.end(); address += g.page_size) {
+    for (auto address = g.beginning(); address < g.end(); ) {
         auto file_size = file->file_size();
+
+        if (bad_blocks == MaximumBadBlockRun) {
+            break;
+        }
 
         if (memory.read(address, buffer, g.page_size) != g.page_size) {
             logerror("error reading memory");
@@ -71,14 +75,16 @@ void DumpFlashMemory::run(Pool &pool) {
                 }
             }
             else {
-                loginfo("" PRADDRESS " invalid block header", address);
+                if (is_memory_erased(buffer, g.page_size)) {
+                    loginfo("" PRADDRESS " erased block", address);
+                }
+                else if (is_memory_zeros(buffer, g.page_size)) {
+                    loginfo("" PRADDRESS " bad block", address);
+                }
+                else {
+                    loginfo("" PRADDRESS " invalid block header", address);
+                }
                 bad_blocks++;
-            }
-
-            fk_dump_memory("HDR ", (uint8_t *)&block_header, sizeof(block_header));
-
-            if (bad_blocks == MaximumBadBlockRun) {
-                break;
             }
         }
 
@@ -86,6 +92,8 @@ void DumpFlashMemory::run(Pool &pool) {
             logerror("error writing to file");
             return;
         }
+
+        address += g.page_size;
     }
 
     if (!file->close()) {
