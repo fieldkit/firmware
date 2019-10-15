@@ -121,12 +121,14 @@ bool FormatSdCard::format() {
     }
 
     uint32_t nc;
+    uint32_t data_start;
+    uint32_t fat_size;
     relative_sector_ = BU32;
-    for (data_start_ = 2 * BU32;; data_start_ += BU32) {
-        nc = (card_size_blocks_ - data_start_) / sectors_per_cluster_;
-        fat_size_ = (nc + 2 + 127) / 128;
-        uint32_t r = relative_sector_ + 9 + 2 * fat_size_;
-        if (data_start_ >= r) {
+    for (data_start = 2 * BU32; ; data_start += BU32) {
+        nc = (card_size_blocks_ - data_start) / sectors_per_cluster_;
+        fat_size = (nc + 2 + 127) / 128;
+        uint32_t r = relative_sector_ + 9 + 2 * fat_size;
+        if (data_start >= r) {
             break;
         }
     }
@@ -137,9 +139,9 @@ bool FormatSdCard::format() {
         return false;
     }
 
-    reserved_sectors_ = data_start_ - relative_sector_ - 2 * fat_size_;
-    fat_start_ = relative_sector_ + reserved_sectors_;
-    partition_size_ = nc * sectors_per_cluster_ + data_start_ - relative_sector_;
+    auto reserved_sectors = data_start - relative_sector_ - 2 * fat_size;
+    auto fat_start = relative_sector_ + reserved_sectors;
+    partition_size_ = nc * sectors_per_cluster_ + data_start - relative_sector_;
 
     // type depends on address of end sector
     // max CHS has lbn = 16450560 = 1024*255*63
@@ -164,14 +166,14 @@ bool FormatSdCard::format() {
 
     pb->bytesPerSector = 512;
     pb->sectorsPerCluster = sectors_per_cluster_;
-    pb->reservedSectorCount = reserved_sectors_;
+    pb->reservedSectorCount = reserved_sectors;
     pb->fatCount = 2;
     pb->mediaType = 0XF8;
     pb->sectorsPerTrack = sectors_per_track_;
     pb->headCount = number_of_heads_;
     pb->hidddenSectors = relative_sector_;
     pb->totalSectors32 = partition_size_;
-    pb->sectorsPerFat32 = fat_size_;
+    pb->sectorsPerFat32 = fat_size;
     pb->fat32RootCluster = 2;
     pb->fat32FSInfo = 1;
     pb->fat32BackBootBlock = 6;
@@ -205,14 +207,14 @@ bool FormatSdCard::format() {
         logerror("fat32 fsinfo failed");
         return false;
     }
-    clear_fat_directory(fat_start_, 2 * fat_size_ + sectors_per_cluster_);
+    clear_fat_directory(fat_start, 2 * fat_size + sectors_per_cluster_);
     clear_cache(false);
     cache_.fat32[0] = 0x0FFFFFF8;
     cache_.fat32[1] = 0x0FFFFFFF;
     cache_.fat32[2] = 0x0FFFFFFF;
 
     // write first block of FAT and backup for reserved clusters
-    if (!write_cache(fat_start_) || !write_cache(fat_start_ + fat_size_)) {
+    if (!write_cache(fat_start) || !write_cache(fat_start + fat_size)) {
         logerror("fat32 reserve failed");
         return false;
     }

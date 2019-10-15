@@ -23,10 +23,6 @@ private:
     uint8_t partition_type_;
     uint32_t relative_sector_;
     uint32_t partition_size_;
-    uint16_t reserved_sectors_;
-    uint32_t fat_start_;
-    uint32_t fat_size_;
-    uint32_t data_start_;
 
     uint16_t const BU16 = 128;
     uint16_t const BU32 = 8192;
