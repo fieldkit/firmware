@@ -50,6 +50,9 @@ EepromLock Board::lock_eeprom() {
     return { };
 }
 
+void Board::signal_eeprom(uint8_t times) {
+}
+
 void Board::release_eeprom() {
 }
 

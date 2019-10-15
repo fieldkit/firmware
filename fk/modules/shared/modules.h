@@ -73,6 +73,10 @@ uint32_t fk_module_header_valid(ModuleHeader const *header);
  */
 #define FK_MODULES_EEPROM_WRITE_TIME               (300)
 
+#define FK_MODULES_EEPROM_WARNING_WINDOW           (20)
+#define FK_MODULES_EEPROM_WARNING_TICKS            (2)
+#define FK_MODULES_EEPROM_WARNING_SLEEP_PER_TICK   (500)
+
 #ifdef __cplusplus
 }
 #endif

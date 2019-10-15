@@ -131,6 +131,7 @@ public:
     void enable_lora();
     EepromLock lock_eeprom();
     void release_eeprom();
+    void signal_eeprom(uint8_t times);
 
 public:
     SpiWrapper spi_flash();

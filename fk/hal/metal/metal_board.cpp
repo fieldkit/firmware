@@ -136,6 +136,15 @@ void Board::release_eeprom() {
     digitalWrite(MODULE_EEPROM_LOCK, LOW);
 }
 
+void Board::signal_eeprom(uint8_t times) {
+    for (auto i = 0; i < times; ++i) {
+        digitalWrite(MODULE_EEPROM_LOCK, HIGH);
+        fk_delay(5);
+        digitalWrite(MODULE_EEPROM_LOCK, LOW);
+        fk_delay(5);
+    }
+}
+
 SpiWrapper Board::spi_flash() {
     return { "spi-flash", &SPI };
 }

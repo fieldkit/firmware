@@ -134,15 +134,16 @@ int32_t eeprom_region_append_error(eeprom_region_t *region, uint32_t startups, u
 }
 
 static volatile uint32_t eeprom_signaled = 0;
+static volatile uint32_t eeprom_signals = 0;
 
 static void eeprom_signal() {
+    uint32_t now = board_system_time_get();
     if (eeprom_lock_test()) {
-        eeprom_signaled = board_system_time_get();
-        SEGGER_RTT_WriteString(0, "H");
-    }
-    else {
-        eeprom_signaled = 0;
-        SEGGER_RTT_WriteString(0, "L");
+        if (eeprom_signaled == 0 || now - eeprom_signaled > FK_MODULES_EEPROM_WARNING_WINDOW) {
+            eeprom_signaled = now;
+            eeprom_signals = 0;
+        }
+        eeprom_signals++;
     }
 }
 
@@ -187,8 +188,6 @@ __int32_t main() {
     if (ext_irq_enable(PA25) != 0) {
         logerror("error enabling irq");
     }
-
-    i2c_sensors_recover();
 
     loginfo("waiting for eeprom...");
 
@@ -256,7 +255,9 @@ __int32_t main() {
     loginfo("ready!");
 
     while (true) {
-        if (take_readings_triggered) {
+        uint32_t now = board_system_time_get();
+
+        if (take_readings_triggered && (eeprom_signaled == 0 || now - eeprom_signaled > FK_MODULES_EEPROM_WARNING_WINDOW)) {
             take_readings_triggered = 0;
 
             uint8_t failures = 0;
@@ -312,6 +313,12 @@ __int32_t main() {
         wdt_feed(&WDT_0);
 
         sleep(SYSTEM_SLEEPMODE_IDLE_2);
+
+        if (eeprom_signals >= FK_MODULES_EEPROM_WARNING_TICKS) {
+            loginfof("warning signal: %" PRIu32, eeprom_signals);
+            delay_ms((eeprom_signals - 1) * FK_MODULES_EEPROM_WARNING_SLEEP_PER_TICK);
+            eeprom_signals = 0;
+        }
     }
 
     return 0;
