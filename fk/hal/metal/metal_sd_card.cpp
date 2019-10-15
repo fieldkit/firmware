@@ -89,6 +89,7 @@ bool MetalSdCard::is_file(const char *path) {
     if (!sd_.exists(path)) {
         return false;
     }
+
     return false; // sd.isFile(name);
 }
 
@@ -96,6 +97,7 @@ bool MetalSdCard::is_directory(const char *path) {
     if (!sd_.exists(path)) {
         return false;
     }
+
     return false; // sd.isDirectory(name);
 }
 

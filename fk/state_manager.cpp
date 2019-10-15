@@ -5,6 +5,7 @@
 #include "hal/random.h"
 #include "utilities.h"
 #include "secrets.h"
+#include "clock.h"
 
 namespace fk {
 
@@ -21,6 +22,8 @@ static void initialize_compile_time_wifi(WifiNetworkInfo &network, const char *s
 
 bool GlobalStateManager::initialize(Pool &pool) {
     auto gs = get_global_state_rw();
+
+    gs.get()->runtime.startup_time = get_clock_now();
 
     auto name = fk_device_name_generate(pool);
 

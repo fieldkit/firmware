@@ -52,6 +52,7 @@ void StartupWorker::run(Pool &pool) {
     SelfCheck self_check(display, get_network(), mm);
     self_check.check(SelfCheckSettings{ }, noop_callbacks);
 
+    // TODO Only do this if the last fsck was a while ago?
     Storage storage{ MemoryFactory::get_data_memory(), false };
     if (storage.begin()) {
         NoopProgressCallbacks progress;

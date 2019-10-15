@@ -22,8 +22,7 @@ void DumpFlashMemory::run(Pool &pool) {
     auto sd = get_sd_card();
     auto buffer = (uint8_t *)pool.malloc(g.page_size);
 
-    auto now = get_clock_now();
-    FormattedTime formatted{ now, TimeFormatMachine };
+    FormattedTime formatted{ get_clock_now(), TimeFormatMachine };
     auto path = pool.sprintf("/%s/%08x.bin", formatted.cstr(), 0);
 
     if (!sd->begin()) {
