@@ -17,7 +17,6 @@ public:
     FactoryWipe(Display *display, Buttons *buttons, Storage *storage);
 
 public:
-    bool wipe_if_necessary();
     bool wipe(ProgressCallbacks *progress);
 
 };

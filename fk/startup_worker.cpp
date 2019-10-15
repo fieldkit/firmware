@@ -53,11 +53,8 @@ void StartupWorker::run(Pool &pool) {
     self_check.check(SelfCheckSettings{ }, noop_callbacks);
 
     Storage storage{ MemoryFactory::get_data_memory(), false };
-    FactoryWipe fw{ display, get_buttons(), &storage };
-    FK_ASSERT(fw.wipe_if_necessary());
-
-    NoopProgressCallbacks progress;
     if (storage.begin()) {
+        NoopProgressCallbacks progress;
         storage.fsck(&progress);
     }
 
@@ -78,15 +75,22 @@ bool StartupWorker::check_for_interactive_startup() {
         return false;
     }
 
+    auto display = get_display();
+
+    display->simple({ "Hold for Debug" });
+
     auto started = fk_uptime();
+    auto enable_debug_mode = false;
     while (buttons->number_pressed() > 0) {
         fk_delay(100);
+
         if (fk_uptime() - started > InteractiveStartupButtonDuration) {
-            return true;
+            display->simple({ "Release for Debug" });
+            enable_debug_mode = true;
         }
     }
 
-    return false;
+    return enable_debug_mode;
 }
 
 bool StartupWorker::load_or_create_state(Storage &storage, Pool &pool) {
