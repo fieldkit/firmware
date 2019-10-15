@@ -330,7 +330,7 @@ void U8g2Display::self_check(SelfCheckScreen const &screen) {
     draw_.sendBuffer();
 }
 
-void U8g2Display::simple(SimpleScreen &screen) {
+void U8g2Display::simple(SimpleScreen &&screen) {
     draw_.setPowerSave(0);
     draw_.clearBuffer();
 

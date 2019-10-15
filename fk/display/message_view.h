@@ -12,11 +12,9 @@ private:
 
 public:
     void tick(ViewController *views) override {
-        SimpleScreen simple = { message_ };
-
         auto bus = get_board()->i2c_core();
         auto display = get_display();
-        display->simple(simple);
+        display->simple({ message_ });
     }
 
 public:

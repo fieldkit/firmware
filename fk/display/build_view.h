@@ -19,10 +19,9 @@ private:
 public:
     void tick(ViewController *views) override {
         tiny_snprintf(message_, sizeof(message_), "Build #%" PRIu32, fkb_header.firmware.number);
-        SimpleScreen simple = { message_ };
         auto bus = get_board()->i2c_core();
         auto display = get_display();
-        display->simple(simple);
+        display->simple({ message_ });
     }
 
 };

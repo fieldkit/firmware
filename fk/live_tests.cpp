@@ -257,8 +257,7 @@ static void try_and_break_weather_sensor_bus() {
     bzero(&last_record, sizeof(fk_weather_t));
 
     char message[64] = { 0 };
-    SimpleScreen simple = { message };
-    display->simple(simple);
+    display->simple({ message });
 
     while (true) {
         bool reproduced = false;
@@ -294,8 +293,7 @@ static void try_and_break_weather_sensor_bus() {
                 last_address = address;
 
                 tiny_snprintf(message, sizeof(message), "%" PRIu32, record.startups);
-                SimpleScreen simple = { message };
-                display->simple(simple);
+                display->simple({ message });
             }
 
             loginfo("done");

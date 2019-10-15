@@ -49,9 +49,8 @@ public:
 static NoopDebuggerOfLastResort noop;
 
 void DebuggerOfLastResort::message(const char *message) {
-    SimpleScreen ss{ message };
     auto display = get_display();
-    display->simple(ss);
+    display->simple({ message });
     fk_delay(500);
 }
 

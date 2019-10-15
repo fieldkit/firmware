@@ -154,7 +154,7 @@ public:
     virtual void menu(MenuScreen const &screen) = 0;
     virtual void qr(QrCodeScreen const &screen) = 0;
     virtual void self_check(SelfCheckScreen const &screen) = 0;
-    virtual void simple(SimpleScreen &screen) = 0;
+    virtual void simple(SimpleScreen &&screen) = 0;
     virtual void reading(ReadingScreen &screen) = 0;
 
 };
@@ -170,7 +170,7 @@ public:
     void menu(MenuScreen const &screen) override { }
     void qr(QrCodeScreen const &screen) override { }
     void self_check(SelfCheckScreen const &screen) override { }
-    void simple(SimpleScreen &screen) override { }
+    void simple(SimpleScreen &&screen) override { }
     void reading(ReadingScreen &screen) override { }
 
     bool begin() {
