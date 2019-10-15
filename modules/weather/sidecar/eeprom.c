@@ -154,7 +154,6 @@ int32_t eeprom_write_disable() {
 }
 
 int32_t eeprom_lock_test() {
-    gpio_set_pin_direction(PA25, GPIO_DIRECTION_IN);
     return gpio_get_pin_level(PA25);
 }
 

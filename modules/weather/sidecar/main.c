@@ -133,6 +133,19 @@ int32_t eeprom_region_append_error(eeprom_region_t *region, uint32_t startups, u
     return rv;
 }
 
+static volatile uint32_t eeprom_signaled = 0;
+
+static void eeprom_signal() {
+    if (eeprom_lock_test()) {
+        eeprom_signaled = board_system_time_get();
+        SEGGER_RTT_WriteString(0, "H");
+    }
+    else {
+        eeprom_signaled = 0;
+        SEGGER_RTT_WriteString(0, "L");
+    }
+}
+
 static void i2c_sensors_recover() {
     gpio_set_pin_direction(PA22, GPIO_DIRECTION_OUT);
     gpio_set_pin_direction(PA23, GPIO_DIRECTION_OUT);
@@ -166,6 +179,14 @@ __int32_t main() {
 
     loginfof("board ready!");
     loginfof("sizeof(fk_weather_t) = %zd (%zd readings)", sizeof(fk_weather_t), EEPROM_AVAILABLE_DATA / sizeof(fk_weather_t));
+
+    if (ext_irq_register(PA25, eeprom_signal) != 0) {
+        logerror("error registering irq");
+    }
+
+    if (ext_irq_enable(PA25) != 0) {
+        logerror("error enabling irq");
+    }
 
     i2c_sensors_recover();
 

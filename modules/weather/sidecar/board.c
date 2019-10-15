@@ -20,6 +20,7 @@ int32_t board_initialize() {
     SEGGER_RTT_WriteString(0, "\n\n");
 
     delay_driver_init();
+    EXTERNAL_IRQ_0_init();
     TIMER_0_init();
     I2C_1_init();
     WDT_0_init();
