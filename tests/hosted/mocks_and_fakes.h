@@ -25,7 +25,7 @@ public:
     MOCK_METHOD0(serve, bool());
     MOCK_METHOD0(status, NetworkStatus());
     MOCK_METHOD0(ip_address, uint32_t());
-    MOCK_METHOD0(accept, NetworkConnection*());
+    MOCK_METHOD0(accept, PoolWrapper<NetworkConnection>*());
     MOCK_METHOD0(stop, bool());
     MOCK_METHOD0(enabled, bool());
 
@@ -80,7 +80,7 @@ public:
         return 0;
     }
 
-    NetworkConnection *accept() override {
+    PoolWrapper<NetworkConnection> *accept() override {
         return nullptr;
     }
 

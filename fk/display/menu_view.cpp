@@ -82,7 +82,7 @@ struct ToggleWifiOption : public MenuOption {
     void on_selected() override {
         back_->on_selected();
         views_->show_home();
-        auto worker = create_default_pool_worker<WifiToggleWorker>();
+        auto worker = create_pool_worker<WifiToggleWorker>();
         if (!get_ipc()->launch_worker(worker)) {
             delete worker;
             return;
@@ -165,7 +165,7 @@ void MenuView::create_modules_menu() {
     auto modules_water = to_lambda_option(pool_, "Water", [=]() {
         back_->on_selected();
         views_->show_home();
-        auto worker = create_default_pool_worker<ConfigureModuleWorker>(selected_module_bay_, ConfigureModuleKind::Water);
+        auto worker = create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, ConfigureModuleKind::Water);
         if (!get_ipc()->launch_worker(worker)) {
             delete worker;
             return;
@@ -174,7 +174,7 @@ void MenuView::create_modules_menu() {
     auto modules_weather = to_lambda_option(pool_, "Weather", [=]() {
         back_->on_selected();
         views_->show_home();
-        auto worker = create_default_pool_worker<ConfigureModuleWorker>(selected_module_bay_, ConfigureModuleKind::Weather);
+        auto worker = create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, ConfigureModuleKind::Weather);
         if (!get_ipc()->launch_worker(worker)) {
             delete worker;
             return;
@@ -183,7 +183,7 @@ void MenuView::create_modules_menu() {
     auto modules_ultrasonic = to_lambda_option(pool_, "Ultrasonic", [=]() {
         back_->on_selected();
         views_->show_home();
-        auto worker = create_default_pool_worker<ConfigureModuleWorker>(selected_module_bay_, ConfigureModuleKind::Ultrasonic);
+        auto worker = create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, ConfigureModuleKind::Ultrasonic);
         if (!get_ipc()->launch_worker(worker)) {
             delete worker;
             return;
@@ -214,7 +214,7 @@ void MenuView::create_tools_menu() {
     auto tools_dump_flash = to_lambda_option(pool_, "Flash -> SD", [=]() {
         back_->on_selected();
         views_->show_home();
-        auto worker = create_pool_wrapper<DumpFlashMemory, DefaultWorkerPoolSize, PoolWorker<DumpFlashMemory>>();
+        auto worker = create_pool_worker<DumpFlashMemory>();
         if (!get_ipc()->launch_worker(worker)) {
             delete worker;
             return;
@@ -223,7 +223,7 @@ void MenuView::create_tools_menu() {
     auto tools_fsck = to_lambda_option(pool_, "Run Fsck", [=]() {
         back_->on_selected();
         views_->show_home();
-        auto worker = create_pool_wrapper<FsckWorker, DefaultWorkerPoolSize, PoolWorker<FsckWorker>>();
+        auto worker = create_pool_worker<FsckWorker>();
         if (!get_ipc()->launch_worker(worker)) {
             delete worker;
             return;
@@ -232,7 +232,7 @@ void MenuView::create_tools_menu() {
     auto tools_factory_reset = to_lambda_option(pool_, "Factory Reset", [=]() {
         back_->on_selected();
         views_->show_home();
-        auto worker = create_pool_wrapper<FactoryWipeWorker, DefaultWorkerPoolSize, PoolWorker<FactoryWipeWorker>>();
+        auto worker = create_pool_worker<FactoryWipeWorker>();
         if (!get_ipc()->launch_worker(worker)) {
             delete worker;
             return;
@@ -358,7 +358,7 @@ void MenuView::choose_active_network(WifiNetworkInfo network) {
     gs.get()->network.config.selected = network;
 
     if (!get_network()->enabled()) {
-        auto worker = create_default_pool_worker<WifiToggleWorker>();
+        auto worker = create_pool_worker<WifiToggleWorker>();
         if (!get_ipc()->launch_worker(worker)) {
             delete worker;
             return;

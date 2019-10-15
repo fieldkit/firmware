@@ -26,7 +26,7 @@ public:
 public:
 public:
     void run() override {
-        auto worker = create_pool_wrapper<ReadingsWorker, DefaultWorkerPoolSize, PoolWorker<ReadingsWorker>>(false);
+        auto worker = create_pool_worker<ReadingsWorker>(false);
         if (!get_ipc()->launch_worker(worker)) {
             delete worker;
             return;
@@ -62,7 +62,7 @@ public:
 
 public:
     void run() override {
-        auto worker = create_pool_wrapper<LoraWorker, DefaultWorkerPoolSize, PoolWorker<LoraWorker>>();
+        auto worker = create_pool_worker<LoraWorker>();
         if (!get_ipc()->launch_worker(worker)) {
             delete worker;
             return;

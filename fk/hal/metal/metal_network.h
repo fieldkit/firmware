@@ -70,7 +70,7 @@ public:
 
     uint32_t ip_address() override;
 
-    NetworkConnection *accept() override;
+    PoolWrapper<NetworkConnection> *accept() override;
 
     bool stop() override;
 

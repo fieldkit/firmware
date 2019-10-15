@@ -31,7 +31,7 @@ void ReceiveWorker::run(Pool &pool) {
 }
 
 bool ReceiveHandler::handle(Connection *connection, Pool &pool) {
-    auto worker = create_pool_wrapper<ReceiveWorker, DefaultWorkerPoolSize, PoolWorker<ReceiveWorker>>(connection);
+    auto worker = create_pool_worker<ReceiveWorker>(connection);
     if (!get_ipc()->launch_worker(WorkerCategory::Transfer, worker)) {
         delete worker;
         connection->busy(0, "unable to launch");

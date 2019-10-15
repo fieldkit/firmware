@@ -67,7 +67,7 @@ static void setup_fake_data() {
     ScanningContext ctx{ get_modmux(), get_global_state_rw().get(), module_bus };
 
     for (size_t i = 0; i < 1000 / fk_config().readings.amplification; ++i) {
-        MallocPool pool{ "readings", 2048 };
+        MallocPool pool{ "readings", 4096 };
         FoundModuleCollection found(pool);
         found.emplace_back(FoundModule{
                 .position = 0xff,

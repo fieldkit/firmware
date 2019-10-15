@@ -230,7 +230,7 @@ uint32_t MetalNetwork::ip_address() {
     return WiFi.localIP();
 }
 
-NetworkConnection *MetalNetwork::accept() {
+PoolWrapper<NetworkConnection> *MetalNetwork::accept() {
     if (fk_uptime() - registered_ > NetworkAddServiceRecordIntervalMs) {
         mdns_.addServiceRecord(service_name_, 80, MDNSServiceTCP);
         registered_  = fk_uptime();
@@ -247,8 +247,7 @@ NetworkConnection *MetalNetwork::accept() {
         return nullptr;
     }
 
-    // TODO: MALLOC
-    return new MetalNetworkConnection(wcl);
+    return create_pool_wrapper<NetworkConnection, MetalNetworkConnection>(wcl);
 }
 
 bool MetalNetwork::stop() {

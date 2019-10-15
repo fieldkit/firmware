@@ -15,7 +15,7 @@ private:
 public:
     void show() override {
         self_check_callbacks_.clear();
-        auto worker = create_pool_wrapper<SelfCheckWorker, DefaultWorkerPoolSize, PoolWorker<SelfCheckWorker>>(self_check_callbacks_);
+        auto worker = create_pool_worker<SelfCheckWorker>(self_check_callbacks_);
         if (!get_ipc()->launch_worker(worker)) {
             delete worker;
             return;

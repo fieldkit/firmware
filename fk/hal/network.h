@@ -1,6 +1,7 @@
 #pragma once
 
 #include "fk.h"
+#include "pool_pointer.h"
 
 namespace fk {
 
@@ -71,7 +72,7 @@ public:
 
     virtual uint32_t ip_address() = 0;
 
-    virtual NetworkConnection *accept() = 0;
+    virtual PoolWrapper<NetworkConnection> *accept() = 0;
 
     virtual bool stop() = 0;
 

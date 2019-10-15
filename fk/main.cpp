@@ -67,7 +67,7 @@ static void run_tasks() {
 
     FK_ASSERT(get_ipc()->begin());
 
-    auto worker = create_pool_wrapper<StartupWorker, DefaultWorkerPoolSize, PoolWorker<StartupWorker>>();
+    auto worker = create_pool_worker<StartupWorker>();
     FK_ASSERT(get_ipc()->launch_worker(worker));
 
     loginfo("stacks = %d", total_stacks);

@@ -28,8 +28,7 @@ Pool::Pool(const char *name, size_t size, void *block, size_t taken) {
 
     #if defined(FK_LOGGING_POOL_VERBOSE)
     if (size_ > 0) {
-        loginfo("create: 0x%p %s size=%zu ptr=0x%p (free=%" PRIu32 ")",
-                this, name_, size_, ptr_, fk_free_memory());
+        loginfo("create: 0x%p %s size=%zu ptr=0x%p", this, name_, size_, ptr_);
     }
     #endif
 }
@@ -47,16 +46,19 @@ void Pool::clear() {
     #endif
 }
 
-void *Pool::malloc(size_t size) {
+void *Pool::malloc(size_t allocating) {
     FK_ASSERT(!frozen_);
 
-    auto aligned = aligned_size(size);
+    auto aligned = aligned_size(allocating);
 
     #if defined(FK_LOGGING_POOL_VERBOSE)
-    loginfo("malloc 0x%p %s size=%zu aligned=%zu (free=%zu)",
-            this, name_, size, aligned, remaining_ - aligned);
+    loginfo("malloc 0x%p %s size=%zu allocating=%zu/%zu remaining=%zu remaining-aligned=%zu",
+            this, name_, size_, allocating, aligned, remaining_, remaining_ - aligned);
     #endif
 
+    FK_ASSERT(block_ != nullptr);
+    FK_ASSERT(size_ > 0);
+    FK_ASSERT(remaining_ > 0);
     FK_ASSERT(size_ >= aligned);
     FK_ASSERT(remaining_ >= aligned);
 

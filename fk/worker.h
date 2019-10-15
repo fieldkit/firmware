@@ -3,9 +3,9 @@
 #include <os.h>
 #include <utility>
 
-#include "common.h"
-#include "pool.h"
 #include "config.h"
+#include "common.h"
+#include "pool_pointer.h"
 
 namespace fk {
 
@@ -38,12 +38,6 @@ public:
         pool_(__PRETTY_FUNCTION__, p, size, taken) {
     }
 
-    template<class... Args>
-    T *create(Args &&... args) {
-        wrapped_ = new (pool_) T(std::forward<Args>(args)...);
-        return wrapped_;
-    }
-
     virtual ~PoolWorker() {
         pool_.block(nullptr, 0);
     }
@@ -51,6 +45,15 @@ public:
 public:
     void operator delete(void *p) {
         fk_free(p);
+    }
+
+public:
+    void wrapped(T *wrapped) {
+        wrapped_ = wrapped;
+    }
+
+    MallocPool &pool() {
+        return pool_;
     }
 
 public:
@@ -67,9 +70,9 @@ public:
     }
 };
 
-template<typename T, size_t Size = DefaultWorkerPoolSize, typename W = PoolWorker<T>, class... Args>
-inline W *create_default_pool_worker(Args &&... args) {
-    return create_pool_wrapper<T, Size, W>(std::forward<Args>(args)...);
+template<typename T, typename W = PoolWorker<T>, size_t Size = DefaultWorkerPoolSize, class... Args>
+inline W *create_pool_worker(Args &&... args) {
+    return create_pool_wrapper<T, T, W, Size>(std::forward<Args>(args)...);
 }
 
 }

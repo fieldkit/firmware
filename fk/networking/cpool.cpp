@@ -14,10 +14,11 @@ ConnectionPool::ConnectionPool() {
 
 ConnectionPool::~ConnectionPool() {
     for (auto i = (size_t)0; i < MaximumConnections; ++i) {
-        if (pool_[i] != nullptr) {
-            update_statistics(pool_[i]->get());
-            delete pool_[i];
-            pool_[i] = nullptr;
+        if (connections_[i] != nullptr) {
+            update_statistics(connections_[i]);
+            delete pools_[i];
+            connections_[i] = nullptr;
+            pools_[i] = nullptr;
         }
     }
 }
@@ -25,7 +26,7 @@ ConnectionPool::~ConnectionPool() {
 size_t ConnectionPool::available() {
     size_t used = 0;
     for (auto i = (size_t)0; i < MaximumConnections; ++i) {
-        if (pool_[i] != nullptr) {
+        if (connections_[i] != nullptr) {
             used++;
         }
     }
@@ -41,8 +42,8 @@ void ConnectionPool::service(HttpRouter &router) {
     }
 
     for (auto i = (size_t)0; i < MaximumConnections; ++i) {
-        if (pool_[i] != nullptr) {
-            auto c = pool_[i]->get();
+        if (connections_[i] != nullptr) {
+            auto c = connections_[i];
 
             if (log_status) {
                 auto activity_elapsed = now - c->activity_;
@@ -56,8 +57,9 @@ void ConnectionPool::service(HttpRouter &router) {
                 else {
                     logwarn("[%" PRIu32 "] [%zd] killing (%" PRIu32 "ms) (%" PRIu32 "ms) (%" PRIu32 " down) (%" PRIu32 " up)", c->number_, i, activity_elapsed, started_elapsed, c->bytes_rx_, c->bytes_tx_);
                     c->close();
-                    delete pool_[i];
-                    pool_[i] = nullptr;
+                    delete connections_[i];
+                    connections_[i] = nullptr;
+                    pools_[i] = nullptr;
                     continue;
                 }
             }
@@ -67,24 +69,28 @@ void ConnectionPool::service(HttpRouter &router) {
                 // long connection, for example.
                 update_statistics(c);
                 activity_ = now;
-                delete pool_[i];
-                pool_[i] = nullptr;
+                delete pools_[i];
+                connections_[i] = nullptr;
+                pools_[i] = nullptr;
             }
         }
     }
 }
 
-void ConnectionPool::queue(NetworkConnection *c) {
+void ConnectionPool::queue(PoolWrapper<NetworkConnection> *c) {
     for (auto i = (size_t)0; i < MaximumConnections; ++i) {
-        if (pool_[i] == nullptr) {
-            ip4_address ip{ c->remote_address() };
+        if (connections_[i] == nullptr) {
+            ip4_address ip{ c->get()->remote_address() };
 
             auto number = counter_++;
 
             loginfo("[%" PRIu32 "] connection (%d.%d.%d.%d)", number, ip.u.bytes[0], ip.u.bytes[1], ip.u.bytes[2], ip.u.bytes[3]);
 
             activity_ = fk_uptime();
-            pool_[i] = create_pool_wrapper<Connection, HttpdConnectionWorkSize>(c, number);
+
+            // NOTE This is.... weird.
+            pools_[i] = c;
+            connections_[i] = new (c->pool()) Connection(c->pool(), c->get(), number);
             return;
         }
     }
