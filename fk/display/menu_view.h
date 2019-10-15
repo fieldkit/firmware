@@ -43,7 +43,6 @@ private:
 
 private:
     static void choose_active_network(WifiNetworkInfo network);
-    static void perform_factory_reset();
     static void selection_up(MenuScreen &screen);
     static void selection_down(MenuScreen &screen);
     static void refresh_visible(MenuScreen &screen, int8_t selected_index);

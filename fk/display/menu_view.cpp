@@ -1,7 +1,6 @@
 #include "menu_view.h"
 #include "simple_workers.h"
 #include "configure_module_worker.h"
-#include "factory_wipe.h"
 #include "dump_flash_memory.h"
 #include "hal/board.h"
 #include "state_ref.h"
@@ -222,10 +221,13 @@ void MenuView::create_tools_menu() {
         }
     });
     auto tools_factory_reset = to_lambda_option(pool_, "Factory Reset", [=]() {
-        get_display()->off();
-        perform_factory_reset();
         back_->on_selected();
         views_->show_home();
+        auto worker = create_pool_wrapper<FactoryWipeWorker, DefaultWorkerPoolSize, PoolWorker<FactoryWipeWorker>>();
+        if (!get_ipc()->launch_worker(worker)) {
+            delete worker;
+            return;
+        }
     });
     auto tools_restart = to_lambda_option(pool_, "Restart", [=]() {
         get_display()->off();
@@ -351,15 +353,6 @@ void MenuView::choose_active_network(WifiNetworkInfo network) {
             delete worker;
             return;
         }
-    }
-}
-
-void MenuView::perform_factory_reset() {
-    Storage storage{ MemoryFactory::get_data_memory() };
-    FactoryWipe factory_wipe{ storage };
-    if (factory_wipe.wipe()) {
-        fk_delay(500);
-        fk_restart();
     }
 }
 

@@ -9,6 +9,7 @@ enum class Operation {
     Download,
     Upload,
     Fsck,
+    Wipe,
 };
 
 class ProgressCallbacks {

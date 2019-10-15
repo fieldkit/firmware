@@ -2,6 +2,7 @@
 
 #include "hal/hal.h"
 #include "storage/storage.h"
+#include "progress.h"
 
 namespace fk {
 
@@ -17,7 +18,7 @@ public:
 
 public:
     bool wipe_if_necessary();
-    bool wipe();
+    bool wipe(ProgressCallbacks *progress);
 
 };
 

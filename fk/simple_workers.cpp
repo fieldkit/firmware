@@ -6,6 +6,7 @@
 #include "storage/storage.h"
 #include "tasks/tasks.h"
 #include "state_progress.h"
+#include "factory_wipe.h"
 
 namespace fk {
 
@@ -20,6 +21,16 @@ void FsckWorker::run(Pool &pool) {
     if (storage.begin()) {
         GlobalStateProgressCallbacks progress;
         storage.fsck(&progress);
+    }
+}
+
+void FactoryWipeWorker::run(Pool &pool) {
+    GlobalStateProgressCallbacks progress;
+    Storage storage{ MemoryFactory::get_data_memory() };
+    FactoryWipe factory_wipe{ storage };
+    if (factory_wipe.wipe(&progress)) {
+        fk_delay(500);
+        fk_restart();
     }
 }
 
