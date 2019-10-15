@@ -51,8 +51,15 @@ bool MetalSdCard::append_logs(circular_buffer<char> &buffer) {
     }
     else {
         if (!log_initialized_) {
+            FormattedTime formatted{ get_clock_now(), TimeFormatMachine };
+
+            if (!sd_.mkdir(formatted.cstr())) {
+                logerror("error making directory '%s'", formatted.cstr());
+                return false;
+            }
+
             for (auto counter = 0; counter < 1000; ++counter) {
-                tiny_snprintf(log_file_name_, sizeof(log_file_name_), "fkl_%03d.txt", counter);
+                tiny_snprintf(log_file_name_, sizeof(log_file_name_), "/%s/fkl_%03d.txt", formatted.cstr(), counter);
                 if (!sd_.exists(log_file_name_)) {
                     loginfo("picked file name %s", log_file_name_);
                     log_initialized_ = true;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "hal/sd_card.h"
+#include "clock.h"
 
 #if defined(__SAMD51__)
 
@@ -12,7 +13,7 @@ namespace fk {
 class MetalSdCard : public SdCard {
 private:
     SdFat sd_;
-    char log_file_name_[13];
+    char log_file_name_[1 + MaximumLengthOfTimeString + 1 + 13];
     bool log_initialized_{ false };
 
 public:
