@@ -10,6 +10,7 @@ public:
         Enabled,
         Disabled,
         Toggle,
+        Restart,
     };
 
 private:
