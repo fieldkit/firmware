@@ -2,7 +2,7 @@
 #include "hal/hal.h"
 #include "storage/storage.h"
 #include "storage/progress_tracker.h"
-#include "state_progress.h"
+#include "gs_progress_callbacks.h"
 #include "utilities.h"
 #include "io.h"
 

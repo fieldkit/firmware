@@ -5,7 +5,7 @@
 #include "hal/hal.h"
 #include "storage/storage.h"
 #include "tasks/tasks.h"
-#include "state_progress.h"
+#include "gs_progress_callbacks.h"
 #include "factory_wipe.h"
 
 namespace fk {
