@@ -3,6 +3,7 @@
 #include "wifi_toggle_worker.h"
 #include "hal/hal.h"
 #include "tasks/tasks.h"
+#include "timer.h"
 
 namespace fk {
 
@@ -37,11 +38,11 @@ void WifiToggleWorker::run(Pool &pool) {
         if (running) {
             os_signal(&network_task, 9);
 
-            auto started = fk_uptime();
+            Timer timer{ TenSecondsMs };
             while (os_task_is_running(&network_task))  {
                 fk_delay(500);
 
-                if (fk_uptime() - started > TenSecondsMs) {
+                if (timer.done()) {
                     // NOTE Display error?
                     return;
                 }
