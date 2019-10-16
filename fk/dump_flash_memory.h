@@ -11,7 +11,7 @@ public:
 
 public:
     uint8_t priority() const {
-        return OS_PRIORITY_NORMAL;
+        return OS_PRIORITY_NORMAL + 1;
     }
 
     const char *name() {
