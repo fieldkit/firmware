@@ -130,24 +130,26 @@ tl::expected<uint32_t, Error> MetaOps::write_modules(GlobalState const *gs, Cons
         m.header.kind = meta->kind;
         m.header.version = meta->version;
 
-        auto sensor_infos = pool.malloc<fk_data_SensorInfo>(sensor_metas->nsensors);
-        for (size_t i = 0; i < sensor_metas->nsensors; ++i) {
-            sensor_infos[i] = fk_data_SensorInfo_init_default;
-            sensor_infos[i].name.funcs.encode = pb_encode_string;
-            sensor_infos[i].name.arg = (void *)sensor_metas->sensors[i].name;
-            sensor_infos[i].unitOfMeasure.funcs.encode = pb_encode_string;
-            sensor_infos[i].unitOfMeasure.arg = (void *)sensor_metas->sensors[i].unitOfMeasure;
+        if (sensor_metas != nullptr) {
+            auto sensor_infos = pool.malloc<fk_data_SensorInfo>(sensor_metas->nsensors);
+            for (size_t i = 0; i < sensor_metas->nsensors; ++i) {
+                sensor_infos[i] = fk_data_SensorInfo_init_default;
+                sensor_infos[i].name.funcs.encode = pb_encode_string;
+                sensor_infos[i].name.arg = (void *)sensor_metas->sensors[i].name;
+                sensor_infos[i].unitOfMeasure.funcs.encode = pb_encode_string;
+                sensor_infos[i].unitOfMeasure.arg = (void *)sensor_metas->sensors[i].unitOfMeasure;
+            }
+
+            auto sensors_array = pool.malloc_with<pb_array_t>({
+                .length = sensor_metas->nsensors,
+                .itemSize = sizeof(fk_data_SensorInfo),
+                .buffer = sensor_infos,
+                .fields = fk_data_SensorInfo_fields,
+            });
+
+            m.sensors.funcs.encode = pb_encode_array;
+            m.sensors.arg = (void *)sensors_array;
         }
-
-        auto sensors_array = pool.malloc_with<pb_array_t>({
-            .length = sensor_metas->nsensors,
-            .itemSize = sizeof(fk_data_SensorInfo),
-            .buffer = sensor_infos,
-            .fields = fk_data_SensorInfo_fields,
-        });
-
-        m.sensors.funcs.encode = pb_encode_array;
-        m.sensors.arg = (void *)sensors_array;
 
         index++;
     }
