@@ -144,7 +144,7 @@ constexpr size_t MaximumNumberOfPhysicalModules = 4;
  * The number of fixed HTTP routes that the firmware registers. These are routes
  * that are always there and never change with configuration.
  */
-constexpr size_t HttpFixedRoutes = 2;
+constexpr size_t HttpFixedRoutes = 4;
 
 /**
  * The maximum number of HTTP routes that can be registered. Trying to register

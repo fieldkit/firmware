@@ -4,11 +4,20 @@ namespace fk {
 
 FK_DECLARE_LOGGER("httpd");
 
+bool HttpRoute::matches(const char *url) const {
+    auto route_len = strlen(url_);
+    if (route_len != strlen(url)) {
+        return false;
+    }
+    return strncmp(url_, url, route_len) == 0;
+}
+
 HttpHandler *HttpRouter::route(const char *url) {
     for (auto i = (size_t)0; i < maximum_number_of_routes(); ++i) {
         if (routes_[i] == nullptr) {
             return nullptr;
         }
+        loginfo("check route");
         if (routes_[i]->matches(url)) {
             return routes_[i]->handler();
         }
@@ -23,6 +32,9 @@ bool HttpRouter::add_route(HttpRoute *route) {
             return true;
         }
     }
+
+    FK_ASSERT(false);
+
     return false;
 }
 
