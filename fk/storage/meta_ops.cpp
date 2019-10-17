@@ -112,6 +112,10 @@ tl::expected<uint32_t, Error> MetaOps::write_modules(GlobalState const *gs, Cons
     for (auto &pair : modules) {
         auto &meta = pair.meta;
         auto &module = pair.module;
+        if (meta == nullptr || module == nullptr) {
+            continue;
+        }
+
         auto sensor_metas = module->get_sensors(pool);
 
         auto id_data = pool.malloc_with<pb_data_t>({
@@ -155,7 +159,7 @@ tl::expected<uint32_t, Error> MetaOps::write_modules(GlobalState const *gs, Cons
     }
 
     auto modules_array = pool.malloc_with<pb_array_t>({
-        .length = (size_t)modules.size(),
+        .length = (size_t)index,
         .itemSize = sizeof(fk_data_ModuleInfo),
         .buffer = module_infos,
         .fields = fk_data_ModuleInfo_fields,
