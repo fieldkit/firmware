@@ -37,7 +37,7 @@ bool MetalSdCard::begin() {
 
     auto capacity_mb = (number_of_blocks + 2047) / 2048;
 
-    loginfo("card capacity: %" PRIu32 "MB blocks: %" PRIu32, capacity_mb, capacity_mb);
+    loginfo("card capacity: %" PRIu32 "MB blocks: %" PRIu32, capacity_mb, number_of_blocks);
 
     return true;
 }
