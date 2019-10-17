@@ -145,12 +145,13 @@ struct SelfCheckScreen : public DisplayScreen {
 
 struct ModuleStatusScreen : public DisplayScreen {
     uint8_t bay;
+    const char *name;
     const char *message;
 
     ModuleStatusScreen() {
     }
 
-    ModuleStatusScreen(uint8_t bay, const char *message) : bay(bay), message(message) {
+    ModuleStatusScreen(uint8_t bay, const char *name, const char *message) : bay(bay), name(name), message(message) {
     }
 };
 

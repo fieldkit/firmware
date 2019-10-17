@@ -106,6 +106,12 @@ static int32_t lerp(int32_t start, int32_t end, uint32_t interval, uint32_t time
 */
 
 template<typename T>
+static void draw_centered(T draw, uint16_t y, const char *str) {
+    auto width = draw.getUTF8Width(str);
+    draw.drawUTF8((OLED_WIDTH / 2) - (width / 2), y, str);
+}
+
+template<typename T>
 static bool draw_string_auto_sized(T draw, bool bold, uint16_t x, uint16_t y, uint16_t w, uint16_t h, const char *str) {
     constexpr size_t NumberFaces = 5;
 
@@ -339,15 +345,13 @@ void U8g2Display::simple(SimpleScreen &&screen) {
     if (screen.message != nullptr) {
         draw_.setFontMode(1);
         draw_.setFont(u8g2_font_courR08_tf);
-        auto width = draw_.getUTF8Width(screen.message);
-        draw_.drawUTF8((OLED_WIDTH / 2) - (width / 2), y, screen.message);
+        draw_centered(draw_, y, screen.message);
     }
 
     if (screen.secondary != nullptr) {
         draw_.setFontMode(1);
         draw_.setFont(u8g2_font_courR08_tf);
-        auto width = draw_.getUTF8Width(screen.secondary);
-        draw_.drawUTF8((OLED_WIDTH / 2) - (width / 2), y * 2, screen.secondary);
+        draw_centered(draw_, y * 2, screen.secondary);
     }
 
     draw_.sendBuffer();
@@ -366,16 +370,28 @@ void U8g2Display::reading(ReadingScreen &screen) {
 
     char value[16];
     tiny_snprintf(value, sizeof(value), "%.3f", screen.value);
-    auto value_width = draw_.getUTF8Width(value);
-    draw_.drawUTF8((OLED_WIDTH / 2) - (value_width / 2), 40, value);
+    draw_centered(draw_, 40, value);
 
     draw_.sendBuffer();
 }
 
 void U8g2Display::module_status(ModuleStatusScreen &screen) {
-    char secondary[16];
-    tiny_snprintf(secondary, sizeof(secondary), "Bay #%d", screen.bay + 1);
-    simple({ screen.message, secondary });
+    char bay_info[16];
+    tiny_snprintf(bay_info, sizeof(bay_info), "Bay #%d", screen.bay + 1);
+
+    draw_.setPowerSave(0);
+    draw_.clearBuffer();
+
+    auto y = OLED_HEIGHT / 4;
+
+    draw_.setFontMode(1);
+    draw_.setFont(u8g2_font_courR08_tf);
+
+    draw_centered(draw_, y    , bay_info);
+    draw_centered(draw_, y * 2, screen.name);
+    draw_centered(draw_, y * 3, screen.message);
+
+    draw_.sendBuffer();
 }
 
 void U8g2Display::off() {

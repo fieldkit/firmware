@@ -15,24 +15,33 @@ void ModuleStatusView::tick(ViewController *views) {
     auto gs = get_global_state_ro();
     auto &s = gs.get()->physical_modules[bay_];
 
-    auto message = "no module";
+    auto name = "<empty>";
+    auto message = "";
 
     if (s.available) {
         if (s.initialized) {
-            message = s.meta->name;
+            message = "working";
         }
         else {
             message = "uninitialized";
         }
+        if (s.meta != nullptr) {
+            name = s.meta->name;
+        }
+        else {
+            name = "<unknown>";
+        }
     }
     else {
         if (s.attempted) {
+            name = "<unknown>";
             message = "eeprom error";
         }
     }
 
     ModuleStatusScreen screen{
         .bay = bay_,
+        .name = name,
         .message = message,
     };
     display->module_status(screen);
