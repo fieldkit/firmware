@@ -143,6 +143,17 @@ struct SelfCheckScreen : public DisplayScreen {
     Check **checks;
 };
 
+struct ModuleStatusScreen : public DisplayScreen {
+    uint8_t bay;
+    const char *message;
+
+    ModuleStatusScreen() {
+    }
+
+    ModuleStatusScreen(uint8_t bay, const char *message) : bay(bay), message(message) {
+    }
+};
+
 class Display {
 public:
     virtual void on() = 0;
@@ -156,6 +167,7 @@ public:
     virtual void self_check(SelfCheckScreen const &screen) = 0;
     virtual void simple(SimpleScreen &&screen) = 0;
     virtual void reading(ReadingScreen &screen) = 0;
+    virtual void module_status(ModuleStatusScreen &screen) = 0;
 
 };
 
@@ -172,6 +184,7 @@ public:
     void self_check(SelfCheckScreen const &screen) override { }
     void simple(SimpleScreen &&screen) override { }
     void reading(ReadingScreen &screen) override { }
+    void module_status(ModuleStatusScreen &screen) override { }
 
     bool begin() {
         return true;

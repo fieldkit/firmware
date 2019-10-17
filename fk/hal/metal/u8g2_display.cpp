@@ -362,12 +362,18 @@ void U8g2Display::reading(ReadingScreen &screen) {
 
     draw_.setFont(u8g2_font_courR10_tf);
 
-    char value[32];
+    char value[16];
     tiny_snprintf(value, sizeof(value), "%.3f", screen.value);
     auto value_width = draw_.getUTF8Width(value);
     draw_.drawUTF8((OLED_WIDTH / 2) - (value_width / 2), 40, value);
 
     draw_.sendBuffer();
+}
+
+void U8g2Display::module_status(ModuleStatusScreen &screen) {
+    char secondary[16];
+    tiny_snprintf(secondary, sizeof(secondary), "Bay #%d", screen.bay);
+    simple({ screen.message, secondary });
 }
 
 void U8g2Display::off() {

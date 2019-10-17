@@ -164,7 +164,7 @@ void MenuView::create_modules_menu() {
 
     auto modules_water = to_lambda_option(pool_, "Water", [=]() {
         back_->on_selected();
-        views_->show_home();
+        views_->show_module_status();
         auto worker = create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, ConfigureModuleKind::Water);
         if (!get_ipc()->launch_worker(worker)) {
             delete worker;
@@ -173,7 +173,7 @@ void MenuView::create_modules_menu() {
     });
     auto modules_weather = to_lambda_option(pool_, "Weather", [=]() {
         back_->on_selected();
-        views_->show_home();
+        views_->show_module_status();
         auto worker = create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, ConfigureModuleKind::Weather);
         if (!get_ipc()->launch_worker(worker)) {
             delete worker;
@@ -182,7 +182,7 @@ void MenuView::create_modules_menu() {
     });
     auto modules_ultrasonic = to_lambda_option(pool_, "Ultrasonic", [=]() {
         back_->on_selected();
-        views_->show_home();
+        views_->show_module_status();
         auto worker = create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, ConfigureModuleKind::Ultrasonic);
         if (!get_ipc()->launch_worker(worker)) {
             delete worker;

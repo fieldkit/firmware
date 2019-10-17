@@ -29,6 +29,7 @@ public:
     void self_check(SelfCheckScreen const &screen) override;
     void simple(SimpleScreen &&screen) override;
     void reading(ReadingScreen &screen) override;
+    void module_status(ModuleStatusScreen &screen) override;
 
 };
 

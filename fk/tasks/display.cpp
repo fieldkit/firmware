@@ -13,6 +13,7 @@
 #include "display/self_check_view.h"
 #include "display/menu_view.h"
 #include "display/message_view.h"
+#include "display/module_status_view.h"
 
 namespace fk {
 
@@ -61,6 +62,11 @@ public:
 
     void show_build() override {
         view = &home_view;
+        view->show();
+    }
+
+    void show_module_status() override {
+        view = &message_view;
         view->show();
     }
 
