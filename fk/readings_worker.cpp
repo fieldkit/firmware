@@ -68,7 +68,7 @@ void ReadingsWorker::run(Pool &pool) {
     }
 
     GlobalStateManager gsm;
-    gsm.apply([=](GlobalState *gs) {
+    gsm.apply([&](GlobalState *gs) {
         if (!read_only_) {
             gs->storage.meta.size = meta_fh_.size;
             gs->storage.meta.block = meta_fh_.record;
@@ -80,6 +80,8 @@ void ReadingsWorker::run(Pool &pool) {
             delete gs->modules->pool;
         }
         gs->modules = modules;
+
+        gs->update_physical_modules(taken_readings->constructed_modules);
     });
 }
 

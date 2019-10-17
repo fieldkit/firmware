@@ -81,24 +81,12 @@ bool ConfigureModuleWorker::scan(Pool &pool) {
 
     factory.clear();
 
-    auto modules = factory.create(scanning, ctx, pool);
-    if (!modules) {
+    auto constructed_modules = factory.create(scanning, ctx, pool);
+    if (!constructed_modules) {
         return false;
     }
 
-    for (auto &m : *modules) {
-        if (m.found.physical()) {
-            auto bay = m.found.position;
-
-            FK_ASSERT(bay < MaximumNumberOfPhysicalModules);
-            auto &status = gs.get()->physical_modules[bay];
-            status.available = true;
-            status.configured = m.meta != nullptr;
-            status.initialized = m.initialized;
-            status.header = m.found.header;
-            status.meta = m.meta;
-        }
-    }
+    gs.get()->update_physical_modules(*constructed_modules);
 
     return true;
 }

@@ -22,18 +22,18 @@ ReadingsTaker::ReadingsTaker(ModuleScanning &scanning, Storage &storage, ModMux 
 }
 
 tl::expected<TakenReadings, Error> ReadingsTaker::take(ScanningContext &ctx, Pool &pool) {
-    auto modules = get_module_factory().create(scanning_, ctx, pool);
-    if (!modules) {
-        return tl::unexpected<Error>(modules.error());
+    auto constructed_modules = get_module_factory().create(scanning_, ctx, pool);
+    if (!constructed_modules) {
+        return tl::unexpected<Error>(constructed_modules.error());
     }
 
-    if ((*modules).size() == 0) {
+    if ((*constructed_modules).size() == 0) {
         loginfo("no modules");
-        return TakenReadings{ 0, 0, { } };
+        return TakenReadings{ 0, 0, { }, { } };
     }
 
     if (!read_only_) {
-        auto meta_record = append_configuration(*modules, pool);
+        auto meta_record = append_configuration(*constructed_modules, pool);
         if (!meta_record) {
             logerror("error appending configuration");
             return tl::unexpected<Error>(Error::General);
@@ -45,7 +45,7 @@ tl::expected<TakenReadings, Error> ReadingsTaker::take(ScanningContext &ctx, Poo
         }
 
         auto number = data.record();
-        auto all_readings = readings_.take_readings(ctx, *modules, *meta_record, number, pool);
+        auto all_readings = readings_.take_readings(ctx, *constructed_modules, *meta_record, number, pool);
         if (!all_readings) {
             logerror("error taking readings");
             return tl::unexpected<Error>(Error::General);
@@ -61,16 +61,16 @@ tl::expected<TakenReadings, Error> ReadingsTaker::take(ScanningContext &ctx, Poo
             return tl::unexpected<Error>(Error::General);
         }
 
-        return TakenReadings{ get_clock_now(), number, *all_readings };
+        return TakenReadings{ get_clock_now(), number, *constructed_modules, *all_readings };
     }
 
-    auto all_readings = readings_.take_readings(ctx, *modules, 0, 0, pool);
+    auto all_readings = readings_.take_readings(ctx, *constructed_modules, 0, 0, pool);
     if (!all_readings) {
         logerror("error taking readings");
         return tl::unexpected<Error>(Error::General);
     }
 
-    return TakenReadings{ 0, 0, *all_readings };
+    return TakenReadings{ 0, 0, *constructed_modules, *all_readings };
 }
 
 bool ReadingsTaker::append_readings(File &file, Pool &pool) {

@@ -43,12 +43,18 @@ using ModuleReadingsCollection = std::list<ModuleMetaAndReadings , pool_allocato
 struct TakenReadings {
     uint32_t time;
     uint32_t number;
+    ConstructedModulesCollection constructed_modules;
     ModuleReadingsCollection readings;
 
     TakenReadings() {
     }
 
-    TakenReadings(uint32_t time, uint32_t number, ModuleReadingsCollection readings) : time(time), number(number), readings(readings) {
+    TakenReadings(uint32_t time, uint32_t number, ModuleReadingsCollection readings) :
+        time(time), number(number), readings(readings) {
+    }
+
+    TakenReadings(uint32_t time, uint32_t number, ConstructedModulesCollection constructed_modules, ModuleReadingsCollection readings) :
+        time(time), number(number), constructed_modules(constructed_modules), readings(readings) {
     }
 };
 
@@ -185,6 +191,9 @@ public:
 
 public:
     GlobalState();
+
+public:
+    void update_physical_modules(ConstructedModulesCollection const &modules);
 
 };
 

@@ -144,21 +144,25 @@ void MenuView::create_info_menu() {
 }
 
 void MenuView::create_modules_menu() {
-    MenuOption *bay_options[5];
+    MenuOption *bay_options[6];
     for (auto i = 0u; i < MaximumNumberOfPhysicalModules; ++i) {
-        bay_options[i] = to_module_bay_option(pool_, i, pool_->sprintf("%d", i + 1), [=]() {
+        bay_options[i + 1] = to_module_bay_option(pool_, i, pool_->sprintf("%d", i + 1), [=]() {
             selected_module_bay_ = i;
             active_menu_ = goto_menu(module_menu_);
             loginfo("selected %d", i);
         });
     }
-    bay_options[4] = to_module_bay_option(pool_, AllModuleBays, "All", [=]() {
+    bay_options[0] = to_module_bay_option(pool_, AllModuleBays, "Status", [=]() {
+        back_->on_selected();
+        views_->show_module_status();
+    });
+    bay_options[5] = to_module_bay_option(pool_, AllModuleBays, "All", [=]() {
         selected_module_bay_ = AllModuleBays;
         active_menu_ = goto_menu(module_menu_);
         loginfo("selected all");
     });
-    module_bays_menu_ = new_menu_screen<4>(pool_, {
-        bay_options[0], bay_options[1], bay_options[2], bay_options[3],
+    module_bays_menu_ = new_menu_screen<6>(pool_, {
+        bay_options[0], bay_options[1], bay_options[2], bay_options[3], bay_options[4], bay_options[5]
     });
 
 

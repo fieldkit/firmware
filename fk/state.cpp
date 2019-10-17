@@ -28,4 +28,21 @@ GlobalStateRef<GlobalState const*> try_get_global_state_ro() {
 GlobalState::GlobalState() {
 }
 
+void GlobalState::update_physical_modules(ConstructedModulesCollection const &modules) {
+    for (auto &m : modules) {
+        if (m.found.physical()) {
+            auto bay = m.found.position;
+
+            FK_ASSERT(bay < MaximumNumberOfPhysicalModules);
+
+            auto &status = physical_modules[bay];
+            status.available = true;
+            status.configured = m.meta != nullptr;
+            status.initialized = m.initialized;
+            status.header = m.found.header;
+            status.meta = m.meta;
+        }
+    }
+}
+
 }
