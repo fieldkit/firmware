@@ -334,18 +334,20 @@ void U8g2Display::simple(SimpleScreen &&screen) {
     draw_.setPowerSave(0);
     draw_.clearBuffer();
 
+    auto y = OLED_HEIGHT / 3;
+
     if (screen.message != nullptr) {
         draw_.setFontMode(1);
         draw_.setFont(u8g2_font_courR08_tf);
         auto width = draw_.getUTF8Width(screen.message);
-        draw_.drawUTF8((OLED_WIDTH / 2) - (width / 2), OLED_HEIGHT / 2, screen.message);
+        draw_.drawUTF8((OLED_WIDTH / 2) - (width / 2), y, screen.message);
     }
 
     if (screen.secondary != nullptr) {
         draw_.setFontMode(1);
         draw_.setFont(u8g2_font_courR08_tf);
         auto width = draw_.getUTF8Width(screen.secondary);
-        draw_.drawUTF8((OLED_WIDTH / 2) - (width / 2), OLED_HEIGHT, screen.secondary);
+        draw_.drawUTF8((OLED_WIDTH / 2) - (width / 2), y * 2, screen.secondary);
     }
 
     draw_.sendBuffer();
