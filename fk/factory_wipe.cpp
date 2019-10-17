@@ -19,31 +19,33 @@ bool FactoryWipe::wipe(ProgressCallbacks *progress) {
         return false;
     }
 
-    auto g = storage_->geometry();
-    auto data_memory = MemoryFactory::get_data_memory();
+    if (false) {
+        auto g = storage_->geometry();
+        auto data_memory = MemoryFactory::get_data_memory();
 
-    if (!data_memory->begin()) {
-        return false;
-    }
+        if (!data_memory->begin()) {
+            return false;
+        }
 
-    auto consecutive_failures = 10;
+        auto consecutive_failures = 10;
 
-    for (auto address = g.beginning(); address < g.end(); address += g.block_size) {
-        if (!data_memory->erase_block(address)) {
-            // These are usually bad blocks.
-            logwarn("error erasing #%" PRIu32, address / g.block_size);
+        for (auto address = g.beginning(); address < g.end(); address += g.block_size) {
+            if (!data_memory->erase_block(address)) {
+                // These are usually bad blocks.
+                logwarn("error erasing #%" PRIu32, address / g.block_size);
 
-            consecutive_failures--;
-            if (consecutive_failures == 0) {
-                return false;
+                consecutive_failures--;
+                if (consecutive_failures == 0) {
+                    return false;
+                }
             }
-        }
-        else {
-            logverbose("erased #%" PRIu32, address / g.block_size);
-            consecutive_failures = 0;
-        }
+            else {
+                logverbose("erased #%" PRIu32, address / g.block_size);
+                consecutive_failures = 0;
+            }
 
-        progress->progress(Operation::Wipe, (address / (float)g.end()) * 100.0f);
+            progress->progress(Operation::Wipe, (address / (float)g.end()) * 100.0f);
+        }
     }
 
     loginfo("done");
