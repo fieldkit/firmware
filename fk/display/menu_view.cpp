@@ -145,9 +145,9 @@ void MenuView::create_info_menu() {
 
 void MenuView::create_modules_menu() {
     MenuOption *bay_options[5];
-    for (auto i = 0u; i < 4u; ++i) {
-        bay_options[i] = to_module_bay_option(pool_, i * 2, pool_->sprintf("%d", i + 1), [=]() {
-            selected_module_bay_ = i * 2;
+    for (auto i = 0u; i < MaximumNumberOfPhysicalModules; ++i) {
+        bay_options[i] = to_module_bay_option(pool_, i, pool_->sprintf("%d", i + 1), [=]() {
+            selected_module_bay_ = i;
             active_menu_ = goto_menu(module_menu_);
             loginfo("selected %d", i);
         });

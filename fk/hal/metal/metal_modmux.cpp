@@ -24,6 +24,10 @@ constexpr uint8_t MCP23008_INTCAP = 0x08;
 constexpr uint8_t MCP23008_GPIO = 0x09;
 constexpr uint8_t MCP23008_OLAT = 0x0A;
 
+constexpr uint8_t to_mux_position(uint8_t p) {
+    return p * 2;
+}
+
 MetalModMux::MetalModMux() {
 }
 
@@ -110,17 +114,19 @@ bool MetalModMux::disable_all_modules() {
 }
 
 bool MetalModMux::enable_module(uint8_t position) {
-    auto new_gpio = gpio_ | (1 << position);
+    auto mux_position = to_mux_position(position);
+    auto new_gpio = gpio_ | (1 << mux_position);
 
-    loginfo("[%d] module on (0x%02x)", position, new_gpio);
+    loginfo("[%d] module on (0x%02x)", mux_position, new_gpio);
 
     return update_gpio(new_gpio);
 }
 
 bool MetalModMux::disable_module(uint8_t position) {
-    auto new_gpio = gpio_ & ~(1 << position);
+    auto mux_position = to_mux_position(position);
+    auto new_gpio = gpio_ & ~(1 << mux_position);
 
-    loginfo("[%d] module off (0x%02x)", position, new_gpio);
+    loginfo("[%d] module off (0x%02x)", mux_position, new_gpio);
 
     return update_gpio(new_gpio);
 }
@@ -156,7 +162,9 @@ bool MetalModMux::choose(uint8_t position) {
         return true;
     }
 
-    logtrace("[%d] selecting", position);
+    auto mux_position = to_mux_position(position);
+
+    logtrace("[%d] selecting", mux_position);
 
     auto bus = get_board()->i2c_module();
 
@@ -168,8 +176,8 @@ bool MetalModMux::choose(uint8_t position) {
             logwarn("choose nothing fail");
         }
 
-        if (!I2C_CHECK(bus.write_u8(TCA9548A_ADDRESS, 1 << position))) {
-            logwarn("choose %d fail", position);
+        if (!I2C_CHECK(bus.write_u8(TCA9548A_ADDRESS, 1 << mux_position))) {
+            logwarn("choose %d fail", mux_position);
             continue;
         }
         else {
