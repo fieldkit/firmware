@@ -22,14 +22,14 @@ void ModuleStatusView::tick(ViewController *views) {
         if (s.initialized) {
             message = "working";
         }
-        else {
-            message = "uninitialized";
-        }
+
         if (s.meta != nullptr) {
             name = s.meta->name;
+            message = "uninitialized";
         }
         else {
             name = "<unknown>";
+            message = "unconfigured";
         }
     }
     else {

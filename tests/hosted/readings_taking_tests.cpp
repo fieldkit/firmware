@@ -55,6 +55,7 @@ TEST_F(ReadingsTakingSuite, BasicSingleModule) {
     FoundModuleCollection found(pool_);
     found.emplace_back(FoundModule{
         .position = 0xff,
+        .valid = true,
         .header = {
             .manufacturer = FK_MODULES_MANUFACTURER,
             .kind = FK_MODULES_KIND_RANDOM,
@@ -79,6 +80,7 @@ TEST_F(ReadingsTakingSuite, BasicTwoModules) {
     FoundModuleCollection found(pool_);
     found.emplace_back(FoundModule{
         .position = 0xff,
+        .valid = true,
         .header = {
             .manufacturer = FK_MODULES_MANUFACTURER,
             .kind = FK_MODULES_KIND_RANDOM,
@@ -87,6 +89,7 @@ TEST_F(ReadingsTakingSuite, BasicTwoModules) {
     });
     found.emplace_back(FoundModule{
         .position = 0xff,
+        .valid = true,
         .header = {
             .manufacturer = FK_MODULES_MANUFACTURER,
             .kind = FK_MODULES_KIND_RANDOM,
@@ -111,6 +114,7 @@ TEST_F(ReadingsTakingSuite, AssignsRecordIndices) {
     FoundModuleCollection one_module(pool_);
     one_module.emplace_back(FoundModule{
         .position = 0xff,
+        .valid = true,
         .header = {
             .manufacturer = FK_MODULES_MANUFACTURER,
             .kind = FK_MODULES_KIND_RANDOM,
@@ -121,6 +125,7 @@ TEST_F(ReadingsTakingSuite, AssignsRecordIndices) {
     FoundModuleCollection two_modules(pool_);
     two_modules.emplace_back(FoundModule{
         .position = 0xff,
+        .valid = true,
         .header = {
             .manufacturer = FK_MODULES_MANUFACTURER,
             .kind = FK_MODULES_KIND_RANDOM,
@@ -129,6 +134,7 @@ TEST_F(ReadingsTakingSuite, AssignsRecordIndices) {
     });
     two_modules.emplace_back(FoundModule{
         .position = 0xff,
+        .valid = true,
         .header = {
             .manufacturer = FK_MODULES_MANUFACTURER,
             .kind = FK_MODULES_KIND_RANDOM,

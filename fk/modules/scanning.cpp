@@ -42,6 +42,7 @@ static bool add_virtual_module(FoundModuleCollection &headers, uint16_t kind) {
 
     headers.emplace_back(FoundModule{
         .position = ModMux::VirtualPosition,
+        .valid = true,
         .header = header,
     });
 
@@ -94,6 +95,11 @@ tl::expected<FoundModuleCollection, Error> ModuleScanning::scan(Pool &pool) {
             auto expected = fk_module_header_sign(&header);
             logerror("[%d] invalid header (%" PRIx32 " != %" PRIx32 ")", i, expected, header.crc);
             fk_dump_memory("HDR ", (uint8_t *)&header, sizeof(header));
+            found.emplace_back(FoundModule{
+                .position = (uint8_t)i,
+                .valid = false,
+                .header = header,
+            });
             continue;
         }
 
@@ -104,6 +110,7 @@ tl::expected<FoundModuleCollection, Error> ModuleScanning::scan(Pool &pool) {
 
         found.emplace_back(FoundModule{
             .position = (uint8_t)i,
+            .valid = true,
             .header = header,
         });
     }
