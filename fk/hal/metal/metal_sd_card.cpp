@@ -29,13 +29,15 @@ bool MetalSdCard::begin() {
         return false;
     }
 
-    auto size = sd_.card()->cardSize();
-    if (size == 0) {
+    auto number_of_blocks = sd_.card()->cardSize();
+    if (number_of_blocks == 0) {
         logwarn("invalid size");
         return false;
     }
 
-    loginfo("card size: %" PRIu32, size);
+    auto capacity_mb = (number_of_blocks + 2047) / 2048;
+
+    loginfo("card capacity: %" PRIu32 "MB blocks: %" PRIu32, capacity_mb, capacity_mb);
 
     return true;
 }

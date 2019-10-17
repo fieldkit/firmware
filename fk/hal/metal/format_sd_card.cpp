@@ -32,7 +32,7 @@ bool FormatSdCard::begin() {
 
     card_capacity_mb_ = (card_size_blocks_ + 2047) / 2048;
 
-    loginfo("card capacity: %" PRIu32, card_capacity_mb_);
+    loginfo("card capacity: %" PRIu32 "MB blocks: %" PRIu32, card_capacity_mb_, card_size_blocks_);
 
     return true;
 }
@@ -119,6 +119,10 @@ bool FormatSdCard::format() {
     else {
         number_of_heads_ = 255;
     }
+
+    loginfo("number of heads: %" PRIu32, number_of_heads_);
+    loginfo("sectors per cluster: %" PRIu32, sectors_per_cluster_);
+    loginfo("sectors per track: %" PRIu32, sectors_per_track_);
 
     uint32_t nc;
     uint32_t data_start;
