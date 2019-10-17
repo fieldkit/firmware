@@ -28,6 +28,7 @@ private:
     BuildView build_view;
     MessageView message_view;
     SelfCheckView self_check_view;
+    ModuleStatusView module_status_view;
     DisplayView *view = &home_view;
 
 public:
@@ -66,7 +67,7 @@ public:
     }
 
     void show_module_status() override {
-        view = &message_view;
+        view = &module_status_view;
         view->show();
     }
 

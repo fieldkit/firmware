@@ -82,8 +82,8 @@ struct MenuOption {
 };
 
 struct SimpleScreen : public DisplayScreen {
-    const char *message;
-    const char *secondary;
+    const char *message{ nullptr };
+    const char *secondary{ nullptr };
 
     SimpleScreen() {
     }

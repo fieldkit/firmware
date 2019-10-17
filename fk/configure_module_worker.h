@@ -28,8 +28,12 @@ public:
     }
 
     const char *name() {
-        return "cfgworker";
+        return "modcfg";
     }
+
+private:
+    bool configure(Pool &pool);
+    bool scan(Pool &pool);
 
 };
 
