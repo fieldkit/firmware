@@ -95,6 +95,8 @@ bool ConfigureModuleWorker::scan(Pool &pool) {
             status.available = true;
             status.configured = m.meta != nullptr;
             status.initialized = m.initialized;
+            status.header = m.found.header;
+            status.meta = m.meta;
         }
     }
 

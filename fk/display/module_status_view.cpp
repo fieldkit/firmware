@@ -19,7 +19,7 @@ void ModuleStatusView::tick(ViewController *views) {
 
     if (s.available) {
         if (s.initialized) {
-            message = "good!";
+            message = s.meta->name;
         }
         else {
             message = "uninitialized";

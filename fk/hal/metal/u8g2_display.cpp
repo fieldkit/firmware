@@ -374,7 +374,7 @@ void U8g2Display::reading(ReadingScreen &screen) {
 
 void U8g2Display::module_status(ModuleStatusScreen &screen) {
     char secondary[16];
-    tiny_snprintf(secondary, sizeof(secondary), "Bay #%d", screen.bay);
+    tiny_snprintf(secondary, sizeof(secondary), "Bay #%d", screen.bay + 1);
     simple({ screen.message, secondary });
 }
 

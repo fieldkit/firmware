@@ -164,6 +164,8 @@ struct PhysicalModuleState {
     bool available{ false };
     bool configured{ false };
     bool initialized{ false };
+    ModuleHeader header;
+    ModuleMetadata const *meta;
 };
 
 struct GlobalState {
