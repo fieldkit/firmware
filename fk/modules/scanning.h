@@ -12,6 +12,10 @@ namespace fk {
 struct FoundModule {
     uint8_t position;
     ModuleHeader header;
+
+    bool physical() const {
+        return position != ModMux::VirtualPosition;
+    }
 };
 
 using FoundModuleCollection = std::list<FoundModule, pool_allocator<FoundModule>>;

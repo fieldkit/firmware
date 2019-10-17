@@ -13,13 +13,14 @@ struct ConstructedModule {
     FoundModule found;
     ModuleMetadata const *meta;
     Module *module;
+    bool initialized;
 };
 
 using ConstructedModulesCollection = std::list<ConstructedModule, pool_allocator<ConstructedModule>>;
 
 class ModuleFactory {
 private:
-    MallocPool pool_{ "modules", 8192 };
+    MallocPool pool_{ "modules", DefaultWorkerPoolSize };
     ConstructedModulesCollection modules_{ pool_ };
 
 public:
@@ -27,6 +28,8 @@ public:
     virtual ~ModuleFactory();
 
 public:
+    void clear();
+
     tl::expected<ConstructedModulesCollection, Error> create(ModuleScanning &scanning, ScanningContext &ctx, Pool &pool);
 
 private:

@@ -19,48 +19,6 @@ ModuleFactory::ModuleFactory() {
 ModuleFactory::~ModuleFactory() {
 }
 
-bool ModuleFactory::recreate(ScanningContext &ctx, FoundModuleCollection module_headers) {
-    loginfo("constructing modules");
-
-    modules_.clear();
-    pool_.clear();
-
-    ModuleRegistry registry;
-    for (auto &f : module_headers) {
-        auto meta = registry.resolve(f.header);
-        if (meta != nullptr) {
-            auto module = meta->ctor(pool_);
-            modules_.emplace_back(ConstructedModule{
-                .found = f,
-                .meta = meta,
-                .module = module,
-            });
-        }
-        else {
-            logwarn("no such module!");
-        }
-    }
-
-    for (auto pair : modules_) {
-        auto module = pair.module;
-        auto mc = ctx.module(pair.found.position);
-
-        if (!mc.open()) {
-            logerror("error opening module");
-            return false;
-        }
-
-        if (!module->initialize(mc, pool_)) {
-            logerror("error initializing module");
-            return false;
-        }
-    }
-
-    loginfo("done (pool = %zd/%zd bytes)", pool_.used(), pool_.size());
-
-    return true;
-}
-
 tl::expected<ConstructedModulesCollection, Error> ModuleFactory::create(ModuleScanning &scanning, ScanningContext &ctx, Pool &pool) {
     auto module_headers = scanning.scan(pool);
     if (!module_headers) {
@@ -80,6 +38,67 @@ tl::expected<ConstructedModulesCollection, Error> ModuleFactory::create(ModuleSc
     ConstructedModulesCollection constructed{ pool };
     constructed = modules_;
     return constructed;
+}
+
+bool ModuleFactory::recreate(ScanningContext &ctx, FoundModuleCollection module_headers) {
+    loginfo("constructing modules");
+
+    clear();
+
+    ModuleRegistry registry;
+    for (auto &f : module_headers) {
+        auto meta = registry.resolve(f.header);
+        if (meta != nullptr) {
+            auto module = meta->ctor(pool_);
+            modules_.emplace_back(ConstructedModule{
+                .found = f,
+                .meta = meta,
+                .module = module,
+                .initialized = false,
+            });
+        }
+        else {
+            logwarn("no such module!");
+
+            modules_.emplace_back(ConstructedModule{
+                .found = f,
+                .meta = nullptr,
+                .module = nullptr,
+                .initialized = false,
+            });
+        }
+    }
+
+    for (auto &pair : modules_) {
+        auto module = pair.module;
+        if (module == nullptr) {
+            continue;
+        }
+
+        auto mc = ctx.module(pair.found.position);
+
+        if (!mc.open()) {
+            logerror("error opening module");
+            return false;
+        }
+
+        if (!module->initialize(mc, pool_)) {
+            logerror("error initializing module");
+            pair.initialized = false;
+        }
+        else {
+            pair.initialized = true;
+        }
+    }
+
+    loginfo("done (pool = %zd/%zd bytes)", pool_.used(), pool_.size());
+
+    return true;
+}
+
+void ModuleFactory::clear() {
+    modules_.clear();
+    pool_.clear();
 }
 
 }

@@ -42,6 +42,11 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(
         auto meta = pair.meta;
         auto module = pair.module;
         auto i = pair.found.position;
+
+        if (module == nullptr) {
+            continue;
+        }
+
         auto mc = ctx.module(i);
 
         if (!mc.open()) {
