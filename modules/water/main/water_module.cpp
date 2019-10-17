@@ -93,13 +93,13 @@ ModuleSensors const *WaterModule::get_sensors(Pool &pool) {
 
     logerror("unknown atlas module!");
 
-    FK_ASSERT(false);
-
     return nullptr;
 }
 
 ModuleReadings *WaterModule::take_readings(ModuleContext mc, fk::Pool &pool) {
-    FK_ASSERT(type_ != AtlasSensorType::Unknown);
+    if (type_ == AtlasSensorType::Unknown) {
+        return nullptr;
+    }
 
     auto atlas = OemAtlas{ mc.module_bus(), address_, type_ };
     if (!atlas.wake()) {

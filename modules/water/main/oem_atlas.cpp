@@ -58,8 +58,10 @@ bool OemAtlas::find() {
     }
 
     for (uint8_t address = 1; address < 128; ++address) {
-        if (find(address)) {
-            return true;
+        if (fk_module_is_available_i2c_address(address)) {
+            if (find(address)) {
+                return true;
+            }
         }
     }
 
