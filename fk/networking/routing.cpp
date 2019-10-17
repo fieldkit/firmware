@@ -17,7 +17,6 @@ HttpHandler *HttpRouter::route(const char *url) {
         if (routes_[i] == nullptr) {
             return nullptr;
         }
-        loginfo("check route");
         if (routes_[i]->matches(url)) {
             return routes_[i]->handler();
         }
