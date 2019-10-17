@@ -74,6 +74,8 @@ void WDT_0_init(void);
 
 void TIMER_0_init(void);
 
+void EXTERNAL_IRQ_0_init(void);
+
 /**
  * \brief Perform system initialization, initialize pins and clocks for
  * peripherals
