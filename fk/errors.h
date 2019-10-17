@@ -8,6 +8,7 @@ enum class Error {
     Bus,
     TooSoon,
     IO,
+    EoF,
 };
 
 }
