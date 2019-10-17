@@ -138,7 +138,7 @@ constexpr uint32_t InteractiveStartupButtonDuration = TwoSecondsMs;
  * connected to a single station. This is governed by the largest backplanes and
  * their possible combinations.
  */
-constexpr size_t MaximumNumberOfModules = 8;
+constexpr size_t MaximumNumberOfPhysicalModules = 4;
 
 /**
  * The number of fixed HTTP routes that the firmware registers. These are routes
@@ -151,7 +151,7 @@ constexpr size_t HttpFixedRoutes = 2;
  * more than this will fail. This is a function of the maximum number of modules
  * and the number of fixed routes.
  */
-constexpr size_t HttpMaximumRoutes = MaximumNumberOfModules + HttpFixedRoutes;
+constexpr size_t HttpMaximumRoutes = MaximumNumberOfPhysicalModules + HttpFixedRoutes;
 
 /**
  * The maximum length of an incoming URL.

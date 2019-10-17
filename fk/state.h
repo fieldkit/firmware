@@ -159,6 +159,13 @@ struct LoraState {
     uint8_t app_eui[LoraAppEuiLength];
 };
 
+struct PhysicalModuleState {
+    bool attempted{ false };
+    bool available{ false };
+    bool configured{ false };
+    bool initialized{ false };
+};
+
 struct GlobalState {
 public:
     GeneralState general;
@@ -170,6 +177,8 @@ public:
     ProgressState progress;
     StorageState storage;
     LoraState lora;
+    PhysicalModuleState physical_modules[MaximumNumberOfPhysicalModules];
+    // TODO Make this ''readings'?
     ModulesState *modules;
 
 public:
