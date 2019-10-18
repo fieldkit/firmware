@@ -1,3 +1,4 @@
+#include <samd51_common.h>
 #include "menu_view.h"
 #include "simple_workers.h"
 #include "hal/board.h"

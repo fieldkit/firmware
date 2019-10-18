@@ -1,3 +1,5 @@
+#include <samd51_common.h>
+
 #include "configure_module_worker.h"
 #include "state_ref.h"
 #include "storage/storage.h"

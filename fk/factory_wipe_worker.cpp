@@ -1,3 +1,5 @@
+#include <samd51_common.h>
+
 #include "factory_wipe_worker.h"
 #include "hal/hal.h"
 #include "storage/storage.h"

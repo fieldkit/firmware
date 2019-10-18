@@ -35,6 +35,9 @@ function(fk_add_builtin_module name)
   find_package(Asf4)
   target_link_libraries(${target_name} Asf4)
 
+  find_package(Samd51Common)
+  target_link_libraries(${target_name} Samd51Common)
+
   # NOTE: For DateTime
   find_package(lwcron)
   target_link_libraries(${target_name} lwcron)
@@ -74,6 +77,9 @@ target_link_libraries(fk-bundled ConservifyOS)
 
 find_package(Asf4)
 target_link_libraries(fk-bundled Asf4)
+
+find_package(Samd51Common)
+target_link_libraries(fk-bundled Samd51Common)
 
 find_package(WiFi101)
 target_link_libraries(fk-bundled WiFi101)

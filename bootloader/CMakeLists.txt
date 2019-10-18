@@ -25,6 +25,9 @@ find_package(CortexLoading)
 target_compile_options(CortexLoading PUBLIC -DFKB_EXTERNAL_NEED_PRINTF)
 target_link_libraries(fkbl CortexLoading)
 
+find_package(Samd51Common)
+target_link_libraries(fkbl Samd51Common)
+
 find_package(Asf4)
 target_link_libraries(fkbl Asf4)
 

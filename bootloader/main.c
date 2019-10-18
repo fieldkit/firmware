@@ -2,10 +2,13 @@
  *
  *
  */
+#include <samd51_common.h>
 #include <string.h>
 #include <cortex.h>
 #include <loading.h>
 #include <SEGGER_RTT.h>
+
+enum reset_reason _get_reset_reason(void);
 
 extern void memory_initialize(void);
 extern void board_minimal_initialize(void);
@@ -41,7 +44,7 @@ int32_t main() {
 
     SysTick_Config(F_CPU / 1000);
 
-    fkb_external_println("bl: board ready");
+    fkb_external_println("bl: board ready (%s)", fk_get_reset_reason_string());
 
     launch();
 

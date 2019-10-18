@@ -82,6 +82,9 @@ target_link_libraries(testall data-protocol)
 find_package(CortexLoading)
 target_link_libraries(testall CortexLoading)
 
+find_package(Samd51Common)
+target_link_libraries(testall Samd51Common)
+
 find_package(ConservifyOS)
 target_link_libraries(testall ConservifyOS)
 

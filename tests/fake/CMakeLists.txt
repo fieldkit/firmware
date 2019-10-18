@@ -51,6 +51,9 @@ target_link_libraries(fake CortexLoading)
 find_package(ConservifyOS)
 target_link_libraries(fake ConservifyOS)
 
+find_package(Samd51Common)
+target_link_libraries(fake Samd51Common)
+
 find_package(Phylum)
 target_link_libraries(fake phylum)
 

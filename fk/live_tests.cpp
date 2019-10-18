@@ -1,4 +1,5 @@
 #include <tiny_printf.h>
+#include <samd51_common.h>
 
 #include "live_tests.h"
 #include "common.h"
