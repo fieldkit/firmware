@@ -13,7 +13,7 @@ r
 sleep 100
 loadfile $BOOTLOADER,0x0000
 sleep 100
-loadfile $PROGRAM,0x4000
+loadfile $PROGRAM,0x8000
 sleep 100
 r
 sleep 1000

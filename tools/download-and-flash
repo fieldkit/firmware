@@ -39,7 +39,7 @@ r
 sleep 100
 loadfile $NAME_BL,0x0000
 sleep 100
-loadfile $NAME_APP,0x4000
+loadfile $NAME_APP,0x8000
 r
 q
 EOF

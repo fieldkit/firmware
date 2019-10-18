@@ -213,7 +213,7 @@ constexpr size_t MaximumNumberOfMemoryBanks = FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS;
 /**
  * Size of the bootloader.
  */
-constexpr size_t BootloaderSize = 0x4000;
+constexpr size_t BootloaderSize = 0x8000;
 
 /**
  * Number of worker tasks to allow.
