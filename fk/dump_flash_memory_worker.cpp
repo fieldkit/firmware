@@ -1,6 +1,6 @@
 #include <tiny_printf.h>
 
-#include "dump_flash_memory.h"
+#include "dump_flash_memory_worker.h"
 
 #include "hal/hal.h"
 #include "hal/memory.h"
