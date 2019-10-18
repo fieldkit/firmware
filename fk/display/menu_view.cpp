@@ -1,10 +1,12 @@
 #include "menu_view.h"
 #include "simple_workers.h"
-#include "configure_module_worker.h"
 #include "hal/board.h"
 #include "state_ref.h"
 
+#include "configure_module_worker.h"
+#include "upgrade_from_sd_worker.h"
 #include "dump_flash_memory_worker.h"
+
 namespace fk {
 
 FK_DECLARE_LOGGER("menu");
@@ -224,6 +226,15 @@ void MenuView::create_tools_menu() {
             return;
         }
     });
+    auto tools_sd_upgrade = to_lambda_option(pool_, "SD Upgrade", [=]() {
+        back_->on_selected();
+        views_->show_home();
+        auto worker = create_pool_worker<UpgradeFirmwareFromSdWorker>();
+        if (!get_ipc()->launch_worker(worker)) {
+            delete worker;
+            return;
+        }
+    });
     auto tools_fsck = to_lambda_option(pool_, "Run Fsck", [=]() {
         back_->on_selected();
         views_->show_home();
@@ -247,10 +258,11 @@ void MenuView::create_tools_menu() {
         fk_restart();
     });
 
-    tools_menu_ = new_menu_screen<7>(pool_, {
+    tools_menu_ = new_menu_screen<8>(pool_, {
         back_,
         tools_self_check,
         tools_dump_flash,
+        tools_sd_upgrade,
         tools_fsck,
         tools_restart,
         tools_format_sd,
