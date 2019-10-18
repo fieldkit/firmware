@@ -25,7 +25,8 @@ public:
     virtual bool is_file(const char *path) = 0;
     virtual bool is_directory(const char *path) = 0;
     virtual bool mkdir(const char *path) = 0;
-    virtual SdCardFile *open(const char *path, Pool &pool) = 0;
+    virtual bool unlink(const char *path) = 0;
+    virtual SdCardFile *open(const char *path, bool writing, Pool &pool) = 0;
     virtual bool format() = 0;
 
 };

@@ -25,7 +25,11 @@ bool LinuxSdCard::mkdir(const char *path) {
     return false;
 }
 
-SdCardFile *LinuxSdCard::open(const char *path, Pool &pool) {
+bool LinuxSdCard::unlink(const char *path) {
+    return false;
+}
+
+SdCardFile *LinuxSdCard::open(const char *path, bool writing, Pool &pool) {
     return new (pool) LinuxSdCardFile();
 }
 

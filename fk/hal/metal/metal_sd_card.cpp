@@ -125,6 +125,10 @@ bool MetalSdCard::mkdir(const char *path) {
     return true;
 }
 
+bool MetalSdCard::unlink(const char *path) {
+    return sd_.remove(path);
+}
+
 bool MetalSdCard::format() {
     loginfo("formatting...");
 
@@ -149,19 +153,12 @@ bool MetalSdCard::format() {
     return true;
 }
 
-SdCardFile *MetalSdCard::open(const char *path, Pool &pool) {
-    if (sd_.exists(path)) {
-        loginfo("file '%s' exists, removing", path);
-
-        if (!sd_.remove(path)) {
-            logerror("unable to remove '%s'", path);
-            return nullptr;
-        }
-    }
-
+SdCardFile *MetalSdCard::open(const char *path, bool writing, Pool &pool) {
     loginfo("opening '%s'", path);
 
-    return new (pool) MetalSdCardFile(path, O_WRONLY | O_CREAT | O_EXCL);
+    auto flags = writing ? O_WRONLY | O_CREAT | O_EXCL : O_RDONLY;
+
+    return new (pool) MetalSdCardFile(path, flags);
 }
 
 MetalSdCardFile::MetalSdCardFile(const char *path, oflag_t oflag) : file_(path, oflag) {
