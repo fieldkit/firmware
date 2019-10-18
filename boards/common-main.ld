@@ -2,8 +2,6 @@
  *
  *
  *
- *
- *
  */
 ENTRY(Reset_Handler)
 
