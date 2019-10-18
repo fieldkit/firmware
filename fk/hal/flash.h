@@ -20,6 +20,10 @@ public:
         return page_size_;
     }
 
+    uint32_t total_pages() const {
+        return total_pages_;
+    }
+
 };
 
 Flash *get_flash();

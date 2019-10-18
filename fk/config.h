@@ -130,8 +130,17 @@ constexpr size_t WifiMaximumPasswordLength = 64;
 /**
  * How long the user should hold the button to initiate a factory wipe.
  */
-constexpr uint32_t FactoryWipeButtonDuration = TwoSecondsMs;
 constexpr uint32_t InteractiveStartupButtonDuration = TwoSecondsMs;
+
+/**
+ * Size of a page in EEPROM memory.
+ */
+constexpr size_t CodeMemoryPageSize = 512;
+
+/**
+ * Size of a block in EEPROM memory.
+ */
+constexpr size_t CodeMemoryBlockSize = 8192;
 
 /**
  * This is the theorhetical maximum number of modules that can be physically
