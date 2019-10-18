@@ -74,6 +74,8 @@ public:
 
     virtual PoolWrapper<NetworkConnection> *accept() = 0;
 
+    virtual PoolWrapper<NetworkConnection> *open_connection(const char *hostname, uint16_t port) = 0;
+
     virtual bool stop() = 0;
 
     virtual bool enabled() = 0;

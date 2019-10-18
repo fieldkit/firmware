@@ -168,6 +168,10 @@ PoolWrapper<NetworkConnection> *LinuxNetwork::accept() {
     return create_pool_wrapper<NetworkConnection, LinuxNetworkConnection>(s, claddr.sin_addr.s_addr);
 }
 
+PoolWrapper<NetworkConnection> *LinuxNetwork::open_connection(const char *hostname, uint16_t port) {
+    return nullptr;
+}
+
 bool LinuxNetwork::stop() {
     if (enabled_) {
         enabled_ = false;

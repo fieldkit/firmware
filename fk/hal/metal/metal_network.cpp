@@ -250,6 +250,15 @@ PoolWrapper<NetworkConnection> *MetalNetwork::accept() {
     return create_pool_wrapper<NetworkConnection, MetalNetworkConnection>(wcl);
 }
 
+PoolWrapper<NetworkConnection> *MetalNetwork::open_connection(const char *hostname, uint16_t port) {
+    WiFiClient wcl;
+    if (!wcl.connect(hostname, port)) {
+        return nullptr;
+    }
+
+    return create_pool_wrapper<NetworkConnection, MetalNetworkConnection>(wcl);
+}
+
 bool MetalNetwork::stop() {
     if (enabled_) {
         if (serving_) {

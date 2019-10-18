@@ -26,6 +26,7 @@ public:
     MOCK_METHOD0(status, NetworkStatus());
     MOCK_METHOD0(ip_address, uint32_t());
     MOCK_METHOD0(accept, PoolWrapper<NetworkConnection>*());
+    MOCK_METHOD2(open_connection, PoolWrapper<NetworkConnection>*(const char *hostname, uint16_t port));
     MOCK_METHOD0(stop, bool());
     MOCK_METHOD0(enabled, bool());
 
@@ -81,6 +82,10 @@ public:
     }
 
     PoolWrapper<NetworkConnection> *accept() override {
+        return nullptr;
+    }
+
+    PoolWrapper<NetworkConnection> *open_connection(const char *hostname, uint16_t port) override {
         return nullptr;
     }
 

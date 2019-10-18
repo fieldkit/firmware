@@ -72,6 +72,8 @@ public:
 
     PoolWrapper<NetworkConnection> *accept() override;
 
+    PoolWrapper<NetworkConnection> *open_connection(const char *hostname, uint16_t port) override;
+
     bool stop() override;
 
     bool enabled() override;
