@@ -28,6 +28,7 @@ if(${TARGET_ARCH} MATCHES "samd51")
     add_subdirectory(fk)
   else()
     add_subdirectory(bootloader)
+    add_subdirectory(fk)
   endif()
 endif()
 
