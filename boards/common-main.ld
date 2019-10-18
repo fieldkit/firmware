@@ -78,7 +78,7 @@ SECTIONS
   __etext = __etext_global + SIZEOF(.data.rtt) + SIZEOF(.data.fkb.launch);
   _etext = __etext;
 
-  .data : AT(__etext)
+  .data ALIGN(4) : AT(__etext)
   {
     __data_start__ = .;
     _srelocate = .;
