@@ -15,6 +15,14 @@ irq_handlers = [
   "EIC_12_Handler", "EIC_13_Handler", "EIC_14_Handler", "EIC_15_Handler"
 ]
 
+class FkFixLogs(gdb.Command):
+  "Fix logs."
+  def __init__ (self):
+    super(FkFixLogs, self).__init__("jfl", gdb.COMMAND_SUPPORT, gdb.COMPLETE_NONE, True)
+
+  def invoke(self, arg, from_tty):
+    gdb.execute("monitor exec SetRTTSearchRanges 0x20000000 64")
+
 class FkSegger(gdb.Command):
   "Segger mode."
   def __init__ (self):
@@ -96,3 +104,4 @@ python FkReloadAllAndRun()
 python FkSegger()
 python FkRunHosted()
 python FkRestart()
+python FkFixLogs()
