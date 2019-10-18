@@ -4,6 +4,7 @@
 #include "platform.h"
 #include "utilities.h"
 #include "hal/metal/metal.h"
+#include "hal/flash.h"
 #include "debugging.h"
 #include "startup_worker.h"
 #include "storage/storage.h"
@@ -120,6 +121,8 @@ static bool initialize_hardware() {
     FK_ASSERT(get_buttons()->begin());
 
     FK_ASSERT(fk_random_initialize() == 0);
+
+    FK_ASSERT(get_flash()->initialize());
 
     get_board()->enable_everything();
 

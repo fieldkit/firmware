@@ -174,6 +174,14 @@ struct PhysicalModuleState {
     ModuleMetadata const *meta;
 };
 
+struct SdCardState {
+    bool found{ false };
+    bool working{ false };
+    uint32_t size{ 0 };
+    uint32_t remaining{ 0 };
+    uint32_t written{ 0 };
+};
+
 struct GlobalState {
 public:
     GeneralState general;
@@ -186,6 +194,7 @@ public:
     StorageState storage;
     LoraState lora;
     PhysicalModuleState physical_modules[MaximumNumberOfPhysicalModules];
+    SdCardState sd_card;
     // TODO Make this ''readings'?
     ModulesState *modules;
 
