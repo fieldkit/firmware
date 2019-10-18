@@ -11,7 +11,7 @@ SECTIONS
 {
   .data.fkb.header : {
     KEEP(*(.fkb.header))
-    . = ALIGN(0x4000);
+    . = ALIGN(0x22000);
   } > FLASH
 
   .text :
