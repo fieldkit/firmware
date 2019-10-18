@@ -77,8 +77,8 @@ package:
 	cp tools/flash-weather $(BUILD)/fk-firmware
 	cp $(BUILD)/samd51/bootloader/fkbl.elf  $(BUILD)/fk-firmware
 	cp $(BUILD)/samd51/bootloader/fkbl.bin  $(BUILD)/fk-firmware
-	cp $(BUILD)/samd51/fk/fk-bundled-fkb.elf  $(BUILD)/fk-firmware
-	cp $(BUILD)/samd51/fk/fk-bundled-fkb.bin  $(BUILD)/fk-firmware
+	cp $(BUILD)/samd51-pic/fk/fk-bundled-fkb.elf  $(BUILD)/fk-firmware
+	cp $(BUILD)/samd51-pic/fk/fk-bundled-fkb.bin  $(BUILD)/fk-firmware
 	cp $(BUILD)/samd09/modules/weather/sidecar/fk-weather-sidecar.elf  $(BUILD)/fk-firmware
 	cp $(BUILD)/samd09/modules/weather/sidecar/fk-weather-sidecar.bin  $(BUILD)/fk-firmware
 	chmod 644 $(BUILD)/fk-firmware/*
