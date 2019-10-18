@@ -14,12 +14,14 @@ namespace fk {
 FK_DECLARE_LOGGER("sdupgrade");
 
 void UpgradeFirmwareFromSdWorker::run(Pool &pool) {
-    auto path = "fk-bundled-fkb.bin";
+    auto bl_path = "fkbl.bin";
+    auto main_path = "fk-bundled-fkb.bin";
 
-    save_firmware(path, 0x8000, fkb_header.firmware.binary_size, pool);
+    save_firmware(bl_path, 0x0, 0x8000, pool);
+    save_firmware(main_path, 0x8000, fkb_header.firmware.binary_size, pool);
 
-    load_firmware(path, 0x80000, pool);
-
+    load_firmware(bl_path, 0x0, pool);
+    load_firmware(main_path, 0x80000, pool);
 }
 
 bool UpgradeFirmwareFromSdWorker::save_firmware(const char *path, uint32_t address, size_t bytes, Pool &pool) {
