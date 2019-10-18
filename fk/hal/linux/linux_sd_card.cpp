@@ -37,6 +37,18 @@ int32_t LinuxSdCardFile::write(uint8_t const *buffer, size_t size) {
     return 0;
 }
 
+int32_t LinuxSdCardFile::read(uint8_t *buffer, size_t size) {
+    return 0;
+}
+
+int32_t LinuxSdCardFile::seek_beginning() {
+    return 0;
+}
+
+int32_t LinuxSdCardFile::seek_end() {
+    return 0;
+}
+
 size_t LinuxSdCardFile::file_size() {
     return 0;
 }

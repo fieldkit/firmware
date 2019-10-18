@@ -39,6 +39,9 @@ public:
 
 public:
     int32_t write(uint8_t const *buffer, size_t size) override;
+    int32_t read(uint8_t *buffer, size_t size) override;
+    int32_t seek_beginning() override;
+    int32_t seek_end() override;
     size_t file_size() override;
     bool is_open() const;
     bool close() override;

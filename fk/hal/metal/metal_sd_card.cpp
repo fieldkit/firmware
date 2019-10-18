@@ -171,6 +171,20 @@ int32_t MetalSdCardFile::write(uint8_t const *buffer, size_t size) {
     return file_.write(buffer, size);
 }
 
+int32_t MetalSdCardFile::read(uint8_t *buffer, size_t size) {
+    return file_.read(buffer, size);
+}
+
+int32_t MetalSdCardFile::seek_beginning() {
+    file_.seekSet(0);
+    return 0;
+}
+
+int32_t MetalSdCardFile::seek_end() {
+    file_.seekEnd(0);
+    return 0;
+}
+
 size_t MetalSdCardFile::file_size() {
     return file_.fileSize();
 }

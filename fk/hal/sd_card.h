@@ -6,11 +6,13 @@
 
 namespace fk {
 
-class SdCardFile : public Writer {
+class SdCardFile : public Writer, public Reader {
 public:
     virtual bool close() = 0;
     virtual size_t file_size() = 0;
     virtual operator bool() const = 0;
+    virtual int32_t seek_beginning() = 0;
+    virtual int32_t seek_end() = 0;
 
 };
 
