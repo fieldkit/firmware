@@ -14,7 +14,7 @@ LOCAL_LIBRARY_PATHS := $(patsubst %, libraries/%, $(LIBRARY_REPOSITORIES))
 
 default: setup all
 
-all: samd51 samd51-pic samd09 test
+all: samd51 samd09 test
 
 ci: setup all doc package
 
@@ -42,10 +42,8 @@ $(BUILD)/samd09: setup
 	mkdir -p $(BUILD)/samd09
 	cd $(BUILD)/samd09 && cmake -DTARGET_ARCH=samd09 ../../
 
-samd51: $(BUILD)/samd51
+samd51: $(BUILD)/samd51 $(BUILD)/samd51-pic
 	cd $(BUILD)/samd51 && $(MAKE)
-
-samd51-pic: $(BUILD)/samd51-pic
 	cd $(BUILD)/samd51-pic && $(MAKE)
 
 samd09: $(BUILD)/samd09
@@ -54,7 +52,7 @@ samd09: $(BUILD)/samd09
 amd64: $(BUILD)/amd64
 	cd $(BUILD)/amd64 && $(MAKE)
 
-fw: samd51 samd51-pic samd09
+fw: samd51 samd09
 
 test: amd64
 	cd $(BUILD)/amd64 && env GTEST_COLOR=1 $(MAKE) test ARGS=-VV
