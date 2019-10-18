@@ -1,7 +1,6 @@
 #include <loading.h>
 
 #include "hal/flash.h"
-
 #include "upgrade_from_sd_worker.h"
 #include "storage/progress_tracker.h"
 #include "gs_progress_callbacks.h"
