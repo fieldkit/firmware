@@ -8,6 +8,9 @@ namespace fk {
 
 class UpgradeFirmwareFromSdWorker {
 public:
+    UpgradeFirmwareFromSdWorker();
+
+public:
     void run(Pool &pool);
 
 public:

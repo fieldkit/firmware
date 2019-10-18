@@ -182,6 +182,18 @@ struct SdCardState {
     uint32_t written{ 0 };
 };
 
+struct NotificationState {
+    uint32_t created{ 0 };
+    const char *message{ nullptr };
+    uint32_t delay{ 0 };
+
+    NotificationState() {
+    }
+
+    NotificationState(const char *message) : message(message), delay(0) {
+    }
+};
+
 struct GlobalState {
 public:
     GeneralState general;
@@ -190,6 +202,7 @@ public:
     PeripheralState peripheral;
     GpsState gps;
     MainNetworkState network;
+    NotificationState notification;
     ProgressState progress;
     StorageState storage;
     LoraState lora;

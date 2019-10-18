@@ -5,6 +5,7 @@
 #include "storage/progress_tracker.h"
 #include "gs_progress_callbacks.h"
 #include "utilities.h"
+#include "state_manager.h"
 #include "config.h"
 
 extern const struct fkb_header_t fkb_header;
@@ -13,15 +14,26 @@ namespace fk {
 
 FK_DECLARE_LOGGER("sdupgrade");
 
+UpgradeFirmwareFromSdWorker::UpgradeFirmwareFromSdWorker() {
+}
+
 void UpgradeFirmwareFromSdWorker::run(Pool &pool) {
     auto bl_path = "fkbl.bin";
     auto main_path = "fk-bundled-fkb.bin";
 
-    save_firmware(bl_path, 0x0, 0x8000, pool);
-    save_firmware(main_path, 0x8000, fkb_header.firmware.binary_size, pool);
+    GlobalStateManager gsm;
 
-    load_firmware(bl_path, 0x0, pool);
-    load_firmware(main_path, 0x80000, pool);
+    if (!load_firmware(bl_path, 0x0, pool)) {
+        gsm.notify({ "error saving bl" });
+        return;
+    }
+
+    if (!load_firmware(main_path, 0x80000, pool)) {
+        gsm.notify({ "error saving fk" });
+        return;
+    }
+
+    gsm.notify({ "success, swap" });
 }
 
 bool UpgradeFirmwareFromSdWorker::save_firmware(const char *path, uint32_t address, size_t bytes, Pool &pool) {
