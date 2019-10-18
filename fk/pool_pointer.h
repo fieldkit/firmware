@@ -35,7 +35,6 @@ public:
 
 public:
     void operator delete(void *p) {
-        alogf(LogLevels::INFO, "blah", "pool wrapper free 0x%p", p);
         fk_free(p);
     }
 

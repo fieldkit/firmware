@@ -9,6 +9,7 @@
 #include "configure_module_worker.h"
 #include "upgrade_from_sd_worker.h"
 #include "dump_flash_memory_worker.h"
+#include "download_firmware_worker.h"
 
 namespace fk {
 
@@ -311,10 +312,21 @@ void MenuView::create_network_menu() {
         active_menu_ = goto_menu(network_choose_menu_);
     });
 
-    network_menu_ = new_menu_screen<3>(pool_, {
+    auto network_download_fw = to_lambda_option(pool_, "Upgrade", [=]() {
+        back_->on_selected();
+        views_->show_home();
+        auto worker = create_pool_worker<DownloadFirmwareWorker>();
+        if (!get_ipc()->launch_worker(worker)) {
+            delete worker;
+            return;
+        }
+    });
+
+    network_menu_ = new_menu_screen<4>(pool_, {
         back_,
         network_toggle,
         network_choose,
+        network_download_fw,
     });
 }
 
