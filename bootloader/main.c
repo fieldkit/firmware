@@ -137,3 +137,8 @@ const struct cm_vector_table_t vector_table = {
     .pendsv_handler      = (void *)cm_pendsv,
     .systick_handler     = (void *)cm_systick,
 };
+
+__attribute__((section(".fkb.launch")))
+fkb_launch_info_t fkb_launch_info = {
+    .upgrading = 0,
+};
