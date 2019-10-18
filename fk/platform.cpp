@@ -1,4 +1,5 @@
 #include <cstdarg>
+#include <hpl_flash.h>
 
 #include "fk.h"
 #include "platform.h"
@@ -84,6 +85,14 @@ void fk_restart() {
     NVIC_SystemReset();
 }
 
+void fk_nvm_swap_banks() {
+    while (!hri_nvmctrl_get_STATUS_READY_bit(NVMCTRL)) {
+        /* Wait until this module isn't busy */
+    }
+
+    hri_nvmctrl_write_CTRLB_reg(NVMCTRL, NVMCTRL_CTRLB_CMD_BKSWRST | NVMCTRL_CTRLB_CMDEX_KEY);
+}
+
 #else // __SAMD51__
 
 using namespace std::chrono;
@@ -129,6 +138,9 @@ uint32_t fk_serial_number_get(fk_serial_number_t *sn) {
 }
 
 void fk_restart() {
+}
+
+void fk_nvm_swap_banks() {
 }
 
 #endif // __SAMD51__
