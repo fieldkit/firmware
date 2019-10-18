@@ -44,6 +44,10 @@ function(fk_add_builtin_module name)
   target_link_libraries(${target_name} nanopb)
 endfunction()
 
+if(${TARGET_PIC})
+  set(ARDUINO_PROJECT_FLAGS "-fpic -fno-inline -msingle-pic-base -mno-pic-data-is-text-relative")
+endif()
+
 enable_arduino_toolchain()
 
 enable_language(ASM)

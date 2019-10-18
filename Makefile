@@ -14,7 +14,7 @@ LOCAL_LIBRARY_PATHS := $(patsubst %, libraries/%, $(LIBRARY_REPOSITORIES))
 
 default: setup all
 
-all: samd51 samd09 test
+all: samd51 samd51-pic samd09 test
 
 ci: setup all doc package
 
@@ -24,11 +24,15 @@ setup: .python-setup fk/secrets.h libraries/done
 	pip3 install -U sphinx pyelftools
 	touch .python-setup
 
-cmake: $(BUILD)/samd51 $(BUILD)/samd09 $(BUILD)/amd64
+cmake: $(BUILD)/samd51 $(BUILD)/samd51-pic $(BUILD)/samd09 $(BUILD)/amd64
 
 $(BUILD)/samd51: setup
 	mkdir -p $(BUILD)/samd51
 	cd $(BUILD)/samd51 && cmake -DTARGET_ARCH=samd51 ../../
+
+$(BUILD)/samd51-pic: setup
+	mkdir -p $(BUILD)/samd51-pic
+	cd $(BUILD)/samd51-pic && cmake -DTARGET_ARCH=samd51 -DTARGET_PIC=ON ../../
 
 $(BUILD)/amd64: setup
 	mkdir -p $(BUILD)/amd64
@@ -41,13 +45,16 @@ $(BUILD)/samd09: setup
 samd51: $(BUILD)/samd51
 	cd $(BUILD)/samd51 && $(MAKE)
 
+samd51-pic: $(BUILD)/samd51-pic
+	cd $(BUILD)/samd51-pic && $(MAKE)
+
 samd09: $(BUILD)/samd09
 	cd $(BUILD)/samd09 && $(MAKE)
 
 amd64: $(BUILD)/amd64
 	cd $(BUILD)/amd64 && $(MAKE)
 
-fw: samd51 samd09
+fw: samd51 samd51-pic samd09
 
 test: amd64
 	cd $(BUILD)/amd64 && env GTEST_COLOR=1 $(MAKE) test ARGS=-VV
@@ -114,6 +121,10 @@ veryclean: clean
 
 info:
 	+@for m in build/samd51/fk/*.map; do                                                       \
+    echo $$m.cpp;                                                                            \
+    cat $$m | c++filt > $$m.cpp;                                                             \
+	done
+	+@for m in build/samd51-pic/fk/*.map; do                                                   \
     echo $$m.cpp;                                                                            \
     cat $$m | c++filt > $$m.cpp;                                                             \
 	done

@@ -70,7 +70,7 @@ class FkReloadAllAndRun(gdb.Command):
     if made.returncode != 0:
       return False
     gdb.execute("load build/samd51/bootloader/fkbl.elf")
-    gdb.execute("load build/samd51/fk/fk-bundled-fkb.elf")
+    gdb.execute("load build/samd51-pic/fk/fk-bundled-fkb.elf")
     gdb.execute("monitor reset")
     gdb.execute("c")
 
@@ -84,7 +84,7 @@ class FkReloadAll(gdb.Command):
     if made.returncode != 0:
       return False
     gdb.execute("load build/samd51/bootloader/fkbl.elf")
-    gdb.execute("load build/samd51/fk/fk-bundled-fkb.elf")
+    gdb.execute("load build/samd51-pic/fk/fk-bundled-fkb.elf")
     gdb.execute("monitor reset")
 
 end
