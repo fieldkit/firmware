@@ -44,7 +44,7 @@ int32_t main() {
 
     SysTick_Config(F_CPU / 1000);
 
-    fkb_external_println("bl: board ready (%s)", fk_get_reset_reason_string());
+    fkb_external_println("bl: board ready (%s) (bank = %d)", fk_get_reset_reason_string(), fk_nvm_get_active_bank());
 
     launch();
 

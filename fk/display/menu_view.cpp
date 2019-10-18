@@ -1,8 +1,10 @@
 #include <samd51_common.h>
+
 #include "menu_view.h"
 #include "simple_workers.h"
 #include "hal/board.h"
 #include "state_ref.h"
+#include "platform.h"
 
 #include "configure_module_worker.h"
 #include "upgrade_from_sd_worker.h"
@@ -245,6 +247,11 @@ void MenuView::create_tools_menu() {
             return;
         }
     });
+    auto tools_swap_banks = to_lambda_option(pool_, "Swap Banks", [=]() {
+        back_->on_selected();
+        views_->show_home();
+        fk_nvm_swap_banks();
+    });
     auto tools_factory_reset = to_lambda_option(pool_, "Factory Reset", [=]() {
         back_->on_selected();
         views_->show_home();
@@ -259,13 +266,14 @@ void MenuView::create_tools_menu() {
         fk_restart();
     });
 
-    tools_menu_ = new_menu_screen<8>(pool_, {
+    tools_menu_ = new_menu_screen<9>(pool_, {
         back_,
         tools_self_check,
         tools_dump_flash,
         tools_sd_upgrade,
         tools_fsck,
         tools_restart,
+        tools_swap_banks,
         tools_format_sd,
         tools_factory_reset,
     });
