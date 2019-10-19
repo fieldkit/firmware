@@ -80,10 +80,7 @@ public:
 
     void on_external() override {
         auto worker = create_pool_worker<WifiToggleWorker>(WifiToggleWorker::DesiredState::Enabled);
-        if (!get_ipc()->launch_worker(worker)) {
-            delete worker;
-            return;
-        }
+        get_ipc()->launch_worker(worker);
     }
 
     void run() {

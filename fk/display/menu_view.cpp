@@ -88,11 +88,7 @@ struct ToggleWifiOption : public MenuOption {
     void on_selected() override {
         back_->on_selected();
         views_->show_home();
-        auto worker = create_pool_worker<WifiToggleWorker>();
-        if (!get_ipc()->launch_worker(worker)) {
-            delete worker;
-            return;
-        }
+        get_ipc()->launch_worker(create_pool_worker<WifiToggleWorker>());
     }
 
     const char *label() const override {
@@ -176,28 +172,19 @@ void MenuView::create_modules_menu() {
         back_->on_selected();
         views_->show_module_status();
         auto worker = create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, ConfigureModuleKind::Water);
-        if (!get_ipc()->launch_worker(worker)) {
-            delete worker;
-            return;
-        }
+        get_ipc()->launch_worker(worker);
     });
     auto modules_weather = to_lambda_option(pool_, "Weather", [=]() {
         back_->on_selected();
         views_->show_module_status();
         auto worker = create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, ConfigureModuleKind::Weather);
-        if (!get_ipc()->launch_worker(worker)) {
-            delete worker;
-            return;
-        }
+        get_ipc()->launch_worker(worker);
     });
     auto modules_ultrasonic = to_lambda_option(pool_, "Ultrasonic", [=]() {
         back_->on_selected();
         views_->show_module_status();
         auto worker = create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, ConfigureModuleKind::Ultrasonic);
-        if (!get_ipc()->launch_worker(worker)) {
-            delete worker;
-            return;
-        }
+        get_ipc()->launch_worker(worker);
     });
 
     module_menu_ = new_menu_screen<4>(pool_, {
@@ -225,37 +212,25 @@ void MenuView::create_tools_menu() {
         back_->on_selected();
         views_->show_home();
         auto worker = create_pool_worker<DumpFlashMemory>();
-        if (!get_ipc()->launch_worker(worker)) {
-            delete worker;
-            return;
-        }
+        get_ipc()->launch_worker(worker);
     });
     auto tools_save_firmware_sd = to_lambda_option(pool_, "Firmware -> SD", [=]() {
         back_->on_selected();
         views_->show_home();
         auto worker = create_pool_worker<UpgradeFirmwareFromSdWorker>(SdCardFirmwareOperation::Save);
-        if (!get_ipc()->launch_worker(worker)) {
-            delete worker;
-            return;
-        }
+        get_ipc()->launch_worker(worker);
     });
     auto tools_load_firmware_sd = to_lambda_option(pool_, "SD -> Firmware", [=]() {
         back_->on_selected();
         views_->show_home();
         auto worker = create_pool_worker<UpgradeFirmwareFromSdWorker>(SdCardFirmwareOperation::Load);
-        if (!get_ipc()->launch_worker(worker)) {
-            delete worker;
-            return;
-        }
+        get_ipc()->launch_worker(worker);
     });
     auto tools_fsck = to_lambda_option(pool_, "Run Fsck", [=]() {
         back_->on_selected();
         views_->show_home();
         auto worker = create_pool_worker<FsckWorker>();
-        if (!get_ipc()->launch_worker(worker)) {
-            delete worker;
-            return;
-        }
+        get_ipc()->launch_worker(worker);
     });
     auto tools_swap_banks = to_lambda_option(pool_, "Swap Banks", [=]() {
         back_->on_selected();
@@ -266,10 +241,7 @@ void MenuView::create_tools_menu() {
         back_->on_selected();
         views_->show_home();
         auto worker = create_pool_worker<FactoryWipeWorker>();
-        if (!get_ipc()->launch_worker(worker)) {
-            delete worker;
-            return;
-        }
+        get_ipc()->launch_worker(worker);
     });
     auto tools_restart = to_lambda_option(pool_, "Restart", [=]() {
         get_display()->off();
@@ -326,10 +298,7 @@ void MenuView::create_network_menu() {
         back_->on_selected();
         views_->show_home();
         auto worker = create_pool_worker<DownloadFirmwareWorker>();
-        if (!get_ipc()->launch_worker(worker)) {
-            delete worker;
-            return;
-        }
+        get_ipc()->launch_worker(worker);
     });
 
     network_menu_ = new_menu_screen<4>(pool_, {
@@ -406,10 +375,7 @@ void MenuView::choose_active_network(WifiNetworkInfo network) {
 
     if (!get_network()->enabled()) {
         auto worker = create_pool_worker<WifiToggleWorker>();
-        if (!get_ipc()->launch_worker(worker)) {
-            delete worker;
-            return;
-        }
+        get_ipc()->launch_worker(worker);
     }
 }
 
