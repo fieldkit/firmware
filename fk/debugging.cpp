@@ -14,6 +14,21 @@
 
 extern "C" {
 
+#if defined(__SAMD51__)
+
+extern void *__real_malloc(size_t size);
+extern void __real_free(void *ptr);
+
+void *__wrap_malloc(size_t size) {
+    return __real_malloc(size);
+}
+
+void __wrap_free(void *ptr) {
+    __real_free(ptr);
+}
+
+#endif
+
 #if defined(__SAMD21__) || defined(__SAMD51__)
 
 static void fk_r9_verify() __attribute__((no_instrument_function));

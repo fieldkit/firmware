@@ -51,6 +51,8 @@ if(${TARGET_PIC})
   set(ARDUINO_PROJECT_FLAGS "-fpic -fno-inline -msingle-pic-base -mno-pic-data-is-text-relative -finstrument-functions")
 endif()
 
+set(ARDUINO_PROJECT_LD_FLAGS "-Wl,-wrap,malloc -Wl,-wrap,free")
+
 enable_arduino_toolchain()
 
 enable_language(ASM)
