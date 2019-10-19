@@ -39,12 +39,12 @@ void UpgradeFirmwareFromSdWorker::run(Pool &pool) {
         break;
     }
     case SdCardFirmwareOperation::Load: {
-        if (!load_firmware(bl_path, 0x0, pool)) {
+        if (!load_firmware(bl_path, OtherBankAddress, pool)) {
             gsm.notify({ "error saving bl" });
             return;
         }
 
-        if (!load_firmware(main_path, 0x80000, pool)) {
+        if (!load_firmware(main_path, OtherBankAddress + BootloaderSize, pool)) {
             gsm.notify({ "error saving fk" });
             return;
         }

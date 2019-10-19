@@ -225,6 +225,11 @@ constexpr size_t MaximumNumberOfMemoryBanks = FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS;
 constexpr size_t BootloaderSize = 0x8000;
 
 /**
+ * Address of the secondary bank of flash memory.
+ */
+constexpr size_t OtherBankAddress = 0x80000;
+
+/**
  * Number of worker tasks to allow.
  */
 constexpr size_t NumberOfWorkerTasks = 2;
