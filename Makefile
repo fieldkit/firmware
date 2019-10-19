@@ -32,7 +32,13 @@ $(BUILD)/samd51: setup
 
 $(BUILD)/samd51-pic: setup
 	mkdir -p $(BUILD)/samd51-pic
-	cd $(BUILD)/samd51-pic && cmake -DTARGET_ARCH=samd51 -DTARGET_PIC=ON ../../
+	cd $(BUILD)/samd51-pic && cmake -DTARGET_ARCH=samd51 -DFK_TARGET_PIC=ON ../../
+
+oversized:
+	mkdir -p $(BUILD)/samd51
+	cd $(BUILD)/samd51 && cmake -DTARGET_ARCH=samd51 -DFK_OVERSIZED=ON ../../
+	mkdir -p $(BUILD)/samd51-pic
+	cd $(BUILD)/samd51-pic && cmake -DTARGET_ARCH=samd51 -DFK_OVERSIZED=ON -DFK_TARGET_PIC=ON ../../
 
 $(BUILD)/amd64: setup
 	mkdir -p $(BUILD)/amd64

@@ -47,8 +47,12 @@ function(fk_add_builtin_module name)
   target_link_libraries(${target_name} nanopb)
 endfunction()
 
-if(${TARGET_PIC})
-  set(ARDUINO_PROJECT_FLAGS "-fpic -fno-inline -msingle-pic-base -mno-pic-data-is-text-relative -finstrument-functions")
+if(${FK_TARGET_PIC})
+  set(ARDUINO_PROJECT_FLAGS "-fpic -fno-inline -msingle-pic-base -mno-pic-data-is-text-relative")
+endif()
+
+if(${FK_OVERSIZED})
+  set(ARDUINO_PROJECT_FLAGS "${ARDUINO_PROJECT_FLAGS} -finstrument-functions")
 endif()
 
 set(ARDUINO_PROJECT_LD_FLAGS "-Wl,-wrap,malloc -Wl,-wrap,free")

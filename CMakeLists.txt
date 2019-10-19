@@ -13,7 +13,7 @@ set(VERSION_PATCH 1 CACHE STRING "Project patch version number.")
 mark_as_advanced(VERSION_MAJOR VERSION_MINOR VERSION_PATCH)
 
 message("Target Architecture: ${TARGET_ARCH}")
-if(${TARGET_PIC})
+if(${FK_TARGET_PIC})
   message("Target PIC: ${TARGET_PIC}")
 endif()
 
@@ -24,7 +24,7 @@ add_subdirectory(libraries)
 add_subdirectory(boards)
 
 if(${TARGET_ARCH} MATCHES "samd51")
-  if(${TARGET_PIC})
+  if(${FK_TARGET_PIC})
     add_subdirectory(fk)
   else()
     add_subdirectory(bootloader)
