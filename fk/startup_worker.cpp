@@ -168,10 +168,9 @@ bool StartupWorker::load_state(Storage &storage, Pool &pool) {
                     }
                 }
 
-                gs.get()->general.recording = (record.condition.flags & fk_data_ConditionFlags_CONDITION_FLAGS_RECORDING) > 0;
-
-                if (gs.get()->general.recording) {
-                    loginfo("(loaded) recording");
+                if (record.condition.recording > 0) {
+                    gs.get()->general.recording = record.condition.recording;
+                    loginfo("(loaded) recording (%" PRIu32 ")", record.condition.recording);
                 }
 
                 return true;
