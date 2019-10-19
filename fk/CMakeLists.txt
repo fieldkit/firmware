@@ -48,7 +48,7 @@ function(fk_add_builtin_module name)
 endfunction()
 
 if(${TARGET_PIC})
-  set(ARDUINO_PROJECT_FLAGS "-fpic -fno-inline -msingle-pic-base -mno-pic-data-is-text-relative")
+  set(ARDUINO_PROJECT_FLAGS "-fpic -fno-inline -msingle-pic-base -mno-pic-data-is-text-relative -finstrument-functions")
 endif()
 
 enable_arduino_toolchain()

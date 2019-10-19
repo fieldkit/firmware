@@ -12,9 +12,50 @@
 
 #include <SEGGER_RTT.h>
 
+extern "C" {
+
+#if defined(__SAMD21__) || defined(__SAMD51__)
+
+static void fk_r9_verify() __attribute__((no_instrument_function));
+
+#define FK_EXPECTED_R9        (*(uint32_t *)0x2003fffc)
+
+static void fk_r9_verify() {
+    register uint32_t reg_r9 asm("r9");
+
+    if (FK_EXPECTED_R9 != reg_r9) {
+        __BKPT(3);
+    }
+}
+
+#else
+
+static void fk_r9_verify() {
+}
+
+#endif
+
+void __cyg_profile_func_enter(void *this_fn, void *call_site) __attribute__((no_instrument_function));
+
+void __cyg_profile_func_exit(void *this_fn, void *call_site) __attribute__((no_instrument_function));
+
+void __cyg_profile_func_enter(void *this_fn, void *call_site) {
+    fk_r9_verify();
+}
+
+void __cyg_profile_func_exit(void *this_fn, void *call_site) {
+    fk_r9_verify();
+}
+
+}
+
 namespace fk {
 
-static bool console_attached = false;
+static bool fk_console_attached = false;
+
+bool fk_debugging_initialize() {
+    return true;
+}
 
 bool fk_debug_is_attached() {
     return false;
@@ -25,16 +66,16 @@ bool fk_debug_mode() {
 }
 
 bool fk_debug_get_console_attached() {
-    return console_attached;
+    return fk_console_attached;
 }
 
 void fk_debug_set_console_attached() {
-    if (!console_attached) {
-        console_attached = true;
+    if (!fk_console_attached) {
+        fk_console_attached = true;
     }
 }
 
-volatile uint32_t fk_debugger_triggered = 0;
+static volatile uint32_t fk_debugger_triggered = 0;
 
 void fk_debugger_break() {
     fk_debugger_triggered++;

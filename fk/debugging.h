@@ -2,6 +2,8 @@
 
 namespace fk {
 
+bool fk_debugging_initialize() ;
+
 bool fk_debug_mode();
 
 bool fk_debug_is_attached();

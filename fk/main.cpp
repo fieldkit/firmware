@@ -150,6 +150,8 @@ static void single_threaded_setup() {
 
     FK_ASSERT(initialize_hardware());
 
+    FK_ASSERT(fk_debugging_initialize());
+
     FK_ASSERT(log_diagnostics());
 }
 
