@@ -6,9 +6,17 @@
 
 namespace fk {
 
+enum class SdCardFirmwareOperation {
+    Save,
+    Load,
+};
+
 class UpgradeFirmwareFromSdWorker {
+private:
+    SdCardFirmwareOperation op_;
+
 public:
-    UpgradeFirmwareFromSdWorker();
+    UpgradeFirmwareFromSdWorker(SdCardFirmwareOperation op);
 
 public:
     void run(Pool &pool);

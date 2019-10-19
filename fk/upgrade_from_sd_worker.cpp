@@ -14,7 +14,7 @@ namespace fk {
 
 FK_DECLARE_LOGGER("sdupgrade");
 
-UpgradeFirmwareFromSdWorker::UpgradeFirmwareFromSdWorker() {
+UpgradeFirmwareFromSdWorker::UpgradeFirmwareFromSdWorker(SdCardFirmwareOperation op) : op_(op) {
 }
 
 void UpgradeFirmwareFromSdWorker::run(Pool &pool) {
@@ -23,17 +23,36 @@ void UpgradeFirmwareFromSdWorker::run(Pool &pool) {
 
     GlobalStateManager gsm;
 
-    if (!load_firmware(bl_path, 0x0, pool)) {
-        gsm.notify({ "error saving bl" });
-        return;
-    }
+    switch (op_) {
+    case SdCardFirmwareOperation::Save: {
+        if (!save_firmware(bl_path, 0x0, BootloaderSize, pool)) {
+            gsm.notify({ "error saving bl" });
+            return;
+        }
 
-    if (!load_firmware(main_path, 0x80000, pool)) {
-        gsm.notify({ "error saving fk" });
-        return;
-    }
+        if (!save_firmware(main_path, BootloaderSize, fkb_header.firmware.binary_size, pool)) {
+            gsm.notify({ "error saving fk" });
+            return;
+        }
 
-    gsm.notify({ "success, swap" });
+        gsm.notify({ "saved" });
+        break;
+    }
+    case SdCardFirmwareOperation::Load: {
+        if (!load_firmware(bl_path, 0x0, pool)) {
+            gsm.notify({ "error saving bl" });
+            return;
+        }
+
+        if (!load_firmware(main_path, 0x80000, pool)) {
+            gsm.notify({ "error saving fk" });
+            return;
+        }
+
+        gsm.notify({ "success, swap" });
+        break;
+    }
+    }
 }
 
 bool UpgradeFirmwareFromSdWorker::save_firmware(const char *path, uint32_t address, size_t bytes, Pool &pool) {
@@ -97,6 +116,11 @@ bool UpgradeFirmwareFromSdWorker::load_firmware(const char *path, uint32_t addre
 
     if (!sd->begin()) {
         logerror("error opening sd card");
+        return false;
+    }
+
+    if (!sd->is_file(path)) {
+        loginfo("no such file %s", path);
         return false;
     }
 

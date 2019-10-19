@@ -230,10 +230,19 @@ void MenuView::create_tools_menu() {
             return;
         }
     });
-    auto tools_sd_upgrade = to_lambda_option(pool_, "SD Upgrade", [=]() {
+    auto tools_save_firmware_sd = to_lambda_option(pool_, "Firmware -> SD", [=]() {
         back_->on_selected();
         views_->show_home();
-        auto worker = create_pool_worker<UpgradeFirmwareFromSdWorker>();
+        auto worker = create_pool_worker<UpgradeFirmwareFromSdWorker>(SdCardFirmwareOperation::Save);
+        if (!get_ipc()->launch_worker(worker)) {
+            delete worker;
+            return;
+        }
+    });
+    auto tools_load_firmware_sd = to_lambda_option(pool_, "SD -> Firmware", [=]() {
+        back_->on_selected();
+        views_->show_home();
+        auto worker = create_pool_worker<UpgradeFirmwareFromSdWorker>(SdCardFirmwareOperation::Load);
         if (!get_ipc()->launch_worker(worker)) {
             delete worker;
             return;
@@ -267,11 +276,12 @@ void MenuView::create_tools_menu() {
         fk_restart();
     });
 
-    tools_menu_ = new_menu_screen<9>(pool_, {
+    tools_menu_ = new_menu_screen<10>(pool_, {
         back_,
         tools_self_check,
         tools_dump_flash,
-        tools_sd_upgrade,
+        tools_save_firmware_sd,
+        tools_load_firmware_sd,
         tools_fsck,
         tools_restart,
         tools_swap_banks,
