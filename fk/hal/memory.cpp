@@ -377,13 +377,16 @@ LinuxDataMemory qspi_memory;
 template<typename PageStoreType, size_t PageSize, size_t N>
 class BasicPageCache : public PageCache {
 private:
+    void *memory_;
     PageStoreType store_;
     CachedPage pages_[N];
 
 public:
     BasicPageCache(PageStoreType store) : store_(store) {
+        memory_ = fk_malloc(N * PageSize);
         for (size_t i = 0; i < N; ++i) {
             pages_[i] = { };
+            pages_[i].ptr = ((uint8_t *)memory_) + i * PageSize;
         }
     }
 
@@ -423,9 +426,6 @@ public:
 
         FK_ASSERT(available != nullptr);
 
-        if (available->ptr == nullptr) {
-            available->ptr = (uint8_t *)fk_malloc(PageSize);
-        }
         available->ts = fk_uptime() + 1;
         available->page = page;
         available->mark_clean();
