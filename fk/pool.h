@@ -126,6 +126,8 @@ public:
 
 };
 
+Pool *create_pool_inside(const char *name, size_t size);
+
 #define __POOL_LINE_STR(x) #x
 #define __POOL_LINE(x) __POOL_LINE_STR(x)
 #define PoolHere(var, size) var(__FILE__ ":" __POOL_LINE(__LINE__), size)

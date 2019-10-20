@@ -19,6 +19,12 @@ FK_DECLARE_LOGGER("pool");
 // #define FK_LOGGING_POOL_VERBOSE
 // #define FK_LOGGING_POOL_MALLOC_FREE
 
+Pool *create_pool_inside(const char *name, size_t size) {
+    auto ptr = malloc(size);
+    auto overhead = sizeof(MallocPool);
+    return new (ptr) MallocPool(name, ptr, size, overhead);
+}
+
 Pool::Pool(const char *name, size_t size, void *block, size_t taken) {
     name_ = name;
     block_ = block;
