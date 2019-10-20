@@ -20,10 +20,13 @@ extern void *__real_malloc(size_t size);
 extern void __real_free(void *ptr);
 
 void *__wrap_malloc(size_t size) {
-    return __real_malloc(size);
+    auto ptr = __real_malloc(size);
+    alogf(LogLevels::DEBUG, "memory", "[0x%" PRIxPTR "] malloc(%zd)", (uintptr_t)ptr, size);
+    return ptr;
 }
 
 void __wrap_free(void *ptr) {
+    alogf(LogLevels::DEBUG, "memory", "[0x%" PRIxPTR "] free()", (uintptr_t)ptr);
     __real_free(ptr);
 }
 

@@ -146,12 +146,12 @@ extern "C" {
 
 void *fk_malloc_internal(size_t size, const char *file, int32_t line) {
     auto ptr = ::malloc(size);
-    alogf(LogLevels::DEBUG, "memory", "[0x%" PRIxPTR "] malloc(%zd) %s:%" PRId32 "", (uintptr_t)ptr, size, file, line);
+    // alogf(LogLevels::DEBUG, "memory", "[0x%" PRIxPTR "] malloc(%zd) %s:%" PRId32 "", (uintptr_t)ptr, size, file, line);
     return ptr;
 }
 
 void fk_free_internal(void *ptr, const char *file, int32_t line) {
-    alogf(LogLevels::DEBUG, "memory", "[0x%" PRIxPTR "] free %s:%" PRId32 "", (uintptr_t)ptr, file, line);
+    // alogf(LogLevels::DEBUG, "memory", "[0x%" PRIxPTR "] free %s:%" PRId32 "", (uintptr_t)ptr, file, line);
     return ::free(ptr);
 }
 
