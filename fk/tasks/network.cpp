@@ -86,11 +86,12 @@ void task_handler_network(void *params) {
         auto network = get_network();
 
         GlobalStateManager gsm;
-        MallocPool pool{ "task:network", 256 };
         HttpServer http_server{ network };
         NetworkTask task{ network, http_server };
 
-        auto settings = task.get_selected_settings(pool);
+        // NOTE Can we just stack allocate this?
+        auto pool = create_pool_inside("network", DefaultWorkerPoolSize);
+        auto settings = task.get_selected_settings(*pool);
 
         gsm.apply([=](GlobalState *gs) {
             gs->network.state = { };
@@ -100,14 +101,14 @@ void task_handler_network(void *params) {
 
         // Either create a new AP or try and join an existing one.
         if (settings.valid) {
-            if (!http_server.begin(settings, WifiConnectionTimeoutMs, pool)) {
+            if (!http_server.begin(settings, WifiConnectionTimeoutMs, *pool)) {
                 logerror("error starting server");
                 return;
             }
         }
         else {
             auto gs = get_global_state_ro();
-            if (!http_server.begin(gs.get(), WifiConnectionTimeoutMs, pool)) {
+            if (!http_server.begin(gs.get(), WifiConnectionTimeoutMs, *pool)) {
                 logerror("error starting server");
                 return;
             }
