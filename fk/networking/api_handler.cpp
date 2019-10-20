@@ -37,6 +37,7 @@ bool ApiHandler::handle(Connection *connection, Pool &pool) {
     auto query = fk_http_query_prepare_decoding(pool.malloc<fk_app_HttpQuery>(), &pool);
     auto stream = pb_istream_from_readable(reader);
     if (!pb_decode_delimited(&stream, fk_app_HttpQuery_fields, query)) {
+        logwarn("error parsing query (%" PRIu32 ")", connection->length());
         connection->error("error parsing query");
         return true;
     }

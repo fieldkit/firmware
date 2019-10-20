@@ -17,13 +17,55 @@ constexpr uint32_t NetworkRemoveServiceRecordAmplification = 5;
 constexpr uint32_t NetworkRemoveServiceRecordDelayMs = 250;
 
 class StaticWiFiCallbacks : public WiFiCallbacks {
+private:
+    constexpr static size_t ExpectedWiFiBufferSize = 1472;
+
+    struct Buffer {
+        bool taken;
+        uint8_t *ptr;
+    };
+    uint8_t *memory_{ nullptr };
+    Buffer buffers_[5];
+
+private:
+    void initialize() {
+        if (memory_ != nullptr) {
+            return;
+        }
+
+        memory_ = (uint8_t *)::malloc(DefaultWorkerPoolSize);
+
+        for (auto i = 0u; i < 5u; ++i) {
+            buffers_[i].ptr = memory_ + ExpectedWiFiBufferSize * i;
+            buffers_[i].taken = false;
+        }
+    }
+
 public:
     void *malloc(size_t size) override {
-        return fk_malloc(size);
+        FK_ASSERT(size == ExpectedWiFiBufferSize);
+
+        initialize();
+
+        for (auto i = 0u; i < 5u; ++i) {
+            if (!buffers_[i].taken) {
+                buffers_[i].taken = true;
+                return buffers_[i].ptr;
+            }
+        }
+
+        return nullptr;
     }
 
     void free(void *ptr) override {
-        fk_free(ptr);
+        for (auto i = 0u; i < 5u; ++i) {
+            if (buffers_[i].ptr == ptr) {
+                buffers_[i].taken = false;
+                return;
+            }
+        }
+
+        FK_ASSERT(false);
     }
 
     bool busy(uint32_t elapsed) override {
