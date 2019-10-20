@@ -1,3 +1,4 @@
+#include <malloc.h>
 #include <loading.h>
 #include <os.h>
 
@@ -71,8 +72,10 @@ static void run_tasks() {
     auto worker = create_pool_worker<StartupWorker>();
     FK_ASSERT(get_ipc()->launch_worker(worker));
 
+    auto mi = mallinfo();
+    loginfo("memory arena = %zd used = %zd", (size_t)mi.arena, (size_t)mi.uordblks);
     loginfo("stacks = %d", total_stacks);
-    loginfo("free = %lu", fk_free_memory());
+    loginfo("free = %" PRIu32, fk_free_memory());
     loginfo("starting os!");
 
     OS_CHECK(os_start());
@@ -147,6 +150,9 @@ static void single_threaded_setup() {
     OS_CHECK(os_initialize());
 
     FK_ASSERT(fk_logging_initialize());
+
+    auto mi = mallinfo();
+    loginfo("memory arena = %zd used = %zd", (size_t)mi.arena, (size_t)mi.uordblks);
 
     FK_ASSERT(initialize_hardware());
 

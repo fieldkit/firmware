@@ -21,7 +21,7 @@ tl::expected<uint32_t, Error> SignedRecordLog::seek_record(SignedRecordKind kind
         return tl::unexpected<Error>(Error::IO);
     }
 
-    logdebug("[" PRADDRESS "] seek_record %" PRIu32 " position=%" PRIu32, file_.tail(), (int32_t)kind, file_.position());
+    logdebug("[" PRADDRESS "] seek_record %" PRIu32 " position = %" PRIu32, file_.tail(), (int32_t)kind, file_.position());
 
     if (file_.position() == 0) {
         return tl::unexpected<Error>(Error::EoF);
@@ -34,7 +34,7 @@ tl::expected<uint32_t, Error> SignedRecordLog::seek_record(SignedRecordKind kind
 
     RecordReference found;
     while (true) {
-        logtrace("[" PRADDRESS "] finding %" PRIu32 " position=%" PRIu32, file_.tail(), (int32_t)kind, file_.position());
+        logtrace("[" PRADDRESS "] finding %" PRIu32 " position = %" PRIu32, file_.tail(), (int32_t)kind, file_.position());
 
         fk_data_SignedRecord sr = fk_data_SignedRecord_init_default;
         auto nread = file_.read(&sr, fk_data_SignedRecord_fields);

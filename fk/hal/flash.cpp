@@ -22,7 +22,7 @@ bool Flash::initialize() {
     page_size_ = flash_get_page_size(&FLASH_0);
     total_pages_ = flash_get_total_pages(&FLASH_0);
 
-    loginfo("initialized: page-size = %" PRIu32 " bytes total-pages = %" PRIu32 "" PRIx32, page_size_, total_pages_);
+    loginfo("initialized: page-size = %" PRIu32 " bytes total-pages = %" PRIu32 "", page_size_, total_pages_);
 
     FK_ASSERT(page_size_ == CodeMemoryPageSize);
 
