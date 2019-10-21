@@ -58,6 +58,7 @@ void task_handler_network(void *params) {
             }
 
             if (task.did_configuration_change()) {
+                loginfo("configuration change");
                 retry = true;
                 break;
             }

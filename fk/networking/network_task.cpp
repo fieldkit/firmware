@@ -39,7 +39,7 @@ bool NetworkTask::begin(NetworkSettings settings, uint32_t to, Pool &pool) {
     auto s = NetworkSettings{
         .valid = true,
         .create = true,
-        .ssid = nullptr,
+        .ssid = pool.strdup(gs.get()->general.name),
         .password = nullptr,
         .name = name,
         .port = 80,
@@ -79,6 +79,16 @@ bool NetworkTask::did_configuration_change() {
     last_checked_configuration_ = fk_uptime();
 
     if (n.modified != configuration_modified_) {
+        loginfo("modified");
+        return true;
+    }
+
+    if (!active_settings_.create) {
+        return false;
+    }
+
+    if (strncmp(gs.get()->general.name, active_settings_.ssid, sizeof(gs.get()->general.name)) != 0) {
+        loginfo("name changed '%s' vs '%s'", gs.get()->general.name, active_settings_.ssid);
         return true;
     }
 
