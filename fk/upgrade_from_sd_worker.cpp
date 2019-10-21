@@ -150,15 +150,13 @@ bool UpgradeFirmwareFromSdWorker::load_firmware(const char *path, uint32_t addre
     auto total_bytes = (uint32_t)0u;
     auto buffer = (uint8_t *)pool.malloc(CodeMemoryPageSize);
     auto eeprom_address = address;
-    while (true) {
+    while (total_bytes < file_size) {
         auto nread = file->read(buffer, CodeMemoryPageSize);
         if (nread <= 0) {
             break;
         }
 
-        FK_ASSERT(nread == CodeMemoryPageSize);
-
-        get_flash()->write(eeprom_address, buffer, CodeMemoryPageSize);
+        get_flash()->write(eeprom_address, buffer, nread);
 
         total_bytes += nread;
         eeprom_address += nread;
