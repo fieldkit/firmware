@@ -80,7 +80,7 @@ struct CurrentSchedules {
     lwcron::CronSpec lora;
 };
 
-static CurrentSchedules get_current_schedules() {
+static CurrentSchedules get_config_schedules() {
     auto gs = get_global_state_ro();
 
     return {
@@ -90,36 +90,47 @@ static CurrentSchedules get_current_schedules() {
     };
 }
 
+static bool configuration_changed(CurrentSchedules &running) {
+    auto config = get_config_schedules();
+    return config.readings != running.readings ||
+           config.gps != running.gps ||
+           config.lora != running.lora;
+}
+
 void task_handler_scheduler(void *params) {
-    auto schedules = get_current_schedules();
-
-    ReadingsTask readings_job{ schedules.readings };
-    LoraTask lora_job{ schedules.lora };
-    GpsTask gps_job{ schedules.gps };
-
-    lwcron::Task *tasks[3] { &readings_job, &lora_job, &gps_job };
-    lwcron::Scheduler scheduler{ tasks };
-
-    scheduler.begin( get_clock_now() );
-
     FK_ASSERT(start_task_if_necessary(&display_task));
     FK_ASSERT(start_task_if_necessary(&network_task));
     FK_ASSERT(start_task_if_necessary(&gps_task));
 
-    auto check_time = fk_uptime() + OneSecondMs;
-
     while (true) {
-        // This throttles this loop, so we take a pass when we dequeue or timeout.
-        Activity *activity = nullptr;
-        if (get_ipc()->dequeue_activity(&activity)) {
-            start_task_if_necessary(&display_task);
+        auto schedules = get_config_schedules();
+
+        ReadingsTask readings_job{ schedules.readings };
+        LoraTask lora_job{ schedules.lora };
+        GpsTask gps_job{ schedules.gps };
+
+        lwcron::Task *tasks[3] { &readings_job, &lora_job, &gps_job };
+        lwcron::Scheduler scheduler{ tasks };
+
+        scheduler.begin( get_clock_now() );
+
+        auto check_time = fk_uptime() + OneSecondMs;
+
+        while (!configuration_changed(schedules)) {
+            // This throttles this loop, so we take a pass when we dequeue or timeout.
+            Activity *activity = nullptr;
+            if (get_ipc()->dequeue_activity(&activity)) {
+                start_task_if_necessary(&display_task);
+            }
+
+            if (check_time < fk_uptime()) {
+                auto time = lwcron::DateTime{ get_clock_now() };
+                scheduler.check(time);
+                check_time = fk_uptime() + OneSecondMs;
+            }
         }
 
-        if (check_time < fk_uptime()) {
-            auto time = lwcron::DateTime{ get_clock_now() };
-            scheduler.check(time);
-            check_time = fk_uptime() + OneSecondMs;
-        }
+        loginfo("configuration changed");
     }
 }
 

@@ -162,6 +162,9 @@ static bool configure(Connection *connection, fk_app_HttpQuery *query, Pool &poo
             gs->scheduler.readings.interval = query->schedules.readings.interval;
             gs->scheduler.gps.interval = query->schedules.gps.interval;
             gs->scheduler.lora.interval = query->schedules.lora.interval;
+            gs->scheduler.readings.cron = lwcron::CronSpec::interval(gs->scheduler.readings.interval);
+            gs->scheduler.gps.cron = lwcron::CronSpec::interval(gs->scheduler.gps.interval);
+            gs->scheduler.lora.cron = lwcron::CronSpec::interval(gs->scheduler.lora.interval);
         });
     }
 
