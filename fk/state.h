@@ -8,6 +8,7 @@
 #include "containers.h"
 #include "modules/module_factory.h"
 #include "modules/shared/uuid.h"
+#include "platform.h"
 
 namespace fk {
 
@@ -192,7 +193,7 @@ struct NotificationState {
     NotificationState() {
     }
 
-    NotificationState(const char *message) : message(message), delay(0) {
+    NotificationState(const char *message) : created(fk_uptime()), message(message), delay(0) {
     }
 };
 
