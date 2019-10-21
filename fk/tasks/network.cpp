@@ -2,83 +2,11 @@
 
 #include "tasks/tasks.h"
 #include "hal/hal.h"
-#include "networking/server.h"
-#include "state_manager.h"
-#include "device_name.h"
+#include "networking/network_task.h"
 
 namespace fk {
 
 FK_DECLARE_LOGGER("network");
-
-class NetworkTask {
-private:
-    Network *network_;
-    HttpServer *http_server_;
-    uint32_t last_checked_configuration_{ 0 };
-    uint32_t configuration_modified_{ 0 };
-
-public:
-    NetworkTask(Network *network, HttpServer &http_server);
-    virtual ~NetworkTask();
-
-public:
-    NetworkSettings get_selected_settings(Pool &pool);
-    bool did_configuration_change();
-
-};
-
-NetworkTask::NetworkTask(Network *network, HttpServer &http_server) : network_(network), http_server_(&http_server) {
-}
-
-NetworkTask::~NetworkTask() {
-    loginfo("network stopping...");
-
-    network_->stop();
-
-    loginfo("network stopped");
-
-    GlobalStateManager gsm;
-    gsm.apply([=](GlobalState *gs) {
-        gs->network.state = { };
-    });
-
-    loginfo("done");
-}
-
-bool NetworkTask::did_configuration_change() {
-    if (fk_uptime() - last_checked_configuration_ < 500) {
-        return false;
-    }
-
-    auto gs = get_global_state_ro();
-    auto n = gs.get()->network.config.selected;
-
-    last_checked_configuration_ = fk_uptime();
-
-    return n.modified != configuration_modified_;
-}
-
-NetworkSettings NetworkTask::get_selected_settings(Pool &pool) {
-    auto name = fk_device_name_generate(pool);
-    auto gs = get_global_state_ro();
-    auto &n = gs.get()->network.config.selected;
-    if (!n.valid) {
-        return {
-            .valid = false,
-        };
-    }
-
-    configuration_modified_ = n.modified;
-
-    return {
-        .valid = true,
-        .create = n.create,
-        .ssid = n.ssid,
-        .password = n.password,
-        .name = name,
-        .port = 80,
-    };
-}
 
 void task_handler_network(void *params) {
     while (true) {
@@ -99,19 +27,9 @@ void task_handler_network(void *params) {
 
         loginfo("starting network...");
 
-        // Either create a new AP or try and join an existing one.
-        if (settings.valid) {
-            if (!http_server.begin(settings, WifiConnectionTimeoutMs, *pool)) {
-                logerror("error starting server");
-                return;
-            }
-        }
-        else {
-            auto gs = get_global_state_ro();
-            if (!http_server.begin(gs.get(), WifiConnectionTimeoutMs, *pool)) {
-                logerror("error starting server");
-                return;
-            }
+        if (!task.begin(settings, WifiConnectionTimeoutMs, *pool)) {
+            logerror("error starting server");
+            return;
         }
 
         gsm.apply([&](GlobalState *gs) {

@@ -22,8 +22,6 @@ public:
     virtual ~HttpServer();
 
 public:
-    bool begin(GlobalState const *gs, uint32_t to, Pool &pool);
-
     bool begin(NetworkSettings settings, uint32_t to, Pool &pool);
 
     bool serve();

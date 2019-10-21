@@ -46,41 +46,6 @@ const char *HttpServer::ssid() const {
     return settings_.ssid;
 }
 
-bool HttpServer::begin(GlobalState const *gs, uint32_t to, Pool &pool) {
-    auto name = fk_device_name_generate(pool);
-    for (auto &wifi_network : gs->network.config.wifi_networks) {
-        auto settings = NetworkSettings{
-            .valid = wifi_network.ssid[0] != 0,
-            .create = false,
-            .ssid = wifi_network.ssid,
-            .password = wifi_network.password,
-            .name = name,
-            .port = 80,
-        };
-
-        if (settings.valid) {
-            if (begin(settings, to, pool)) {
-                return true;
-            }
-        }
-    }
-
-    auto settings = NetworkSettings{
-        .valid = true,
-        .create = true,
-        .ssid = nullptr,
-        .password = nullptr,
-        .name = name,
-        .port = 80,
-    };
-
-    if (begin(settings, to, pool)) {
-        return true;
-    }
-
-    return false;
-}
-
 bool HttpServer::begin(NetworkSettings settings, uint32_t to, Pool &pool) {
     auto name = fk_device_name_generate(pool);
     settings.name = name;

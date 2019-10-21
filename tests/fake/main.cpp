@@ -97,7 +97,10 @@ static void server(Fake *fake) {
     HttpServer http_server{ &network };
     auto gs = get_global_state_ro();
 
-    if (!http_server.begin(gs.get(), fkc.network.uptime, pool)) {
+    auto settings = NetworkSettings{
+        .valid = true,
+    };
+    if (!http_server.begin(settings, fkc.network.uptime, pool)) {
         return;
     }
 
