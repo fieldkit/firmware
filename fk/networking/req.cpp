@@ -68,15 +68,15 @@ void HttpRequest::begin() {
 }
 
 int32_t HttpRequest::parse(const char *data, size_t length) {
-    http_parser_execute(&parser_, &settings_, data, length);
+    auto nparsed = http_parser_execute(&parser_, &settings_, data, length);
 
     if (parser_.http_errno > 0) {
         auto err = (enum http_errno)parser_.http_errno;
         logerror("parser: %s: %s", http_errno_name(err), http_errno_description(err));
-        return parser_.http_errno;
+        return 0;
     }
 
-    return 0;
+    return nparsed;
 }
 
 int32_t HttpRequest::on_message_begin() {

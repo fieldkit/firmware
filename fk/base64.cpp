@@ -25,11 +25,11 @@ int32_t Base64Reader::read(uint8_t *buffer, size_t size) {
     for (size_t i = 0; i < size; ++i) {
         uint8_t encoded[2];
         if (target_->read(encoded, sizeof(encoded)) != 2) {
-            return 0;
+            return i;
         }
         uint8_t decoded[2];
         if (!hexchr2bin(encoded[0], &decoded[0]) || !hexchr2bin(encoded[1], &decoded[1])) {
-            return 0;
+            return i;
         }
         buffer[i] = (decoded[0] << 4) | decoded[1];
     }

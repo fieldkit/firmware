@@ -153,7 +153,8 @@ bool Connection::service(HttpRouter &router) {
 
             auto ptr = (char *)(buffer_ + position_);
             ptr[nread] = 0;
-            if (req_.parse(ptr, nread) != 0) {
+            auto parsed = req_.parse(ptr, nread);
+            if (parsed == 0) {
                 loginfo("[%" PRIu32 "] error parsing", number_);
                 return false;
             }

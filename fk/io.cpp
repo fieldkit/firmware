@@ -75,19 +75,18 @@ int32_t BufferedReader::read(uint8_t *buffer, size_t size) {
         auto reading = buffer_size_;
         auto nread = reader_->read(buffer_, reading);
         if (nread <= 0) {
-            return false;
+            return 0;
         }
 
         position_ = 0;
         bytes_read_ = nread;
     }
 
-    FK_ASSERT(position_ + size <= bytes_read_);
+    auto reading = std::min<size_t>(bytes_read_ - position_, size);
+    memcpy(buffer, buffer_ + position_, reading);
+    position_ += reading;
 
-    memcpy(buffer, buffer_ + position_, size);
-    position_ += size;
-
-    return 0;
+    return reading;
 }
 
 static bool write_callback(pb_ostream_t *stream, const uint8_t *buf, size_t c) {
