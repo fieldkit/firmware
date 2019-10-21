@@ -25,7 +25,7 @@ TEST_F(HttpBasicParsingSuite, SimpleGet1) {
 
     HttpRequest req{ &pool_ };
 
-    ASSERT_EQ(req.parse(req_header, strlen(req_header)), 0);
+    ASSERT_EQ(req.parse(req_header, strlen(req_header)), 59);
 
     ASSERT_STREQ(req.url(), "/");
     ASSERT_EQ(req.length(), (uint32_t)0);
@@ -47,12 +47,12 @@ TEST_F(HttpBasicParsingSuite, SimpleGet2) {
 
     HttpRequest req{ &pool_ };
 
-    ASSERT_EQ(req.parse(req_header, strlen(req_header)), 0);
+    ASSERT_EQ(req.parse(req_header, strlen(req_header)), 485);
 
     ASSERT_STREQ(req.url(), "/fk/1/status");
     ASSERT_EQ(req.length(), (uint32_t)32);
 
-    ASSERT_EQ(req.parse(body, sizeof(body)), 0);
+    ASSERT_EQ(req.parse(body, sizeof(body)), 32);
 }
 
 class HttpRoutingSuite : public ::testing::Test {
@@ -128,8 +128,8 @@ TEST_F(HttpParsingQuerySuite, SimpleGet1) {
 
     HttpRequest req{ &pool_ };
 
-    ASSERT_EQ(req.parse(req_header, strlen(req_header)), 0);
-    ASSERT_EQ(req.parse((const char *)encoded->buffer, encoded->size), 0);
+    ASSERT_EQ(req.parse(req_header, strlen(req_header)), 59);
+    ASSERT_EQ(req.parse((const char *)encoded->buffer, encoded->size), 3);
 
     ASSERT_STREQ(req.url(), "/");
     ASSERT_EQ(req.length(), (uint32_t)3);
