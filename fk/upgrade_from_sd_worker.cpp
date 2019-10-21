@@ -40,16 +40,16 @@ void UpgradeFirmwareFromSdWorker::run(Pool &pool) {
     }
     case SdCardFirmwareOperation::Load: {
         if (!load_firmware(bl_path, OtherBankAddress, pool)) {
-            gsm.notify({ "error saving bl" });
+            gsm.notify({ "error loading bl" });
             return;
         }
 
         if (!load_firmware(main_path, OtherBankAddress + BootloaderSize, pool)) {
-            gsm.notify({ "error saving fk" });
+            gsm.notify({ "error loading fk" });
             return;
         }
 
-        gsm.notify({ "success, swap" });
+        gsm.notify({ "loaded, swap" });
         break;
     }
     }

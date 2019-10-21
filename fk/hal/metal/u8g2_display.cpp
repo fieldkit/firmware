@@ -116,7 +116,7 @@ static bool draw_string_auto_sized(T draw, bool bold, uint16_t x, uint16_t y, ui
     constexpr size_t NumberFaces = 5;
 
     uint8_t const *bold_faces[NumberFaces] = {
-        u8g2_font_courB18_tf,
+        u8g2_font_courB14_tf,
         u8g2_font_courB14_tf,
         u8g2_font_courB12_tf,
         u8g2_font_courB10_tf,
@@ -124,7 +124,7 @@ static bool draw_string_auto_sized(T draw, bool bold, uint16_t x, uint16_t y, ui
     };
 
     uint8_t const *normal_faces[NumberFaces] = {
-        u8g2_font_courR18_tf,
+        u8g2_font_courR14_tf,
         u8g2_font_courR14_tf,
         u8g2_font_courR12_tf,
         u8g2_font_courR10_tf,

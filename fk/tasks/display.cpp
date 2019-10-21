@@ -57,11 +57,13 @@ public:
     }
 
     void show_name() override {
+        home_view.show_name();
         view = &name_view;
         view->show();
     }
 
     void show_build() override {
+        home_view.show_build();
         view = &home_view;
         view->show();
     }

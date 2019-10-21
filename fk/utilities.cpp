@@ -6,6 +6,7 @@
 
 #include <loading.h>
 
+#include "config.h"
 #include "utilities.h"
 
 namespace fk {
@@ -70,6 +71,34 @@ void fk_dump_memory(const char *prefix, const uint8_t *p, size_t size) {
     #if defined(__SAMD51__)
     SEGGER_RTT_UNLOCK();
     #endif
+}
+
+size_t make_pretty_time_string(uint32_t ms, char *buffer, size_t buffer_size) {
+    int32_t days = 0u, hours = 0u, minutes = 0u, seconds = 0u;
+
+    if (ms > OneDayMs) {
+        days = ms / OneDayMs;
+        ms -= days * OneDayMs;
+    }
+
+    if (ms > OneHourMs) {
+        hours = ms / OneHourMs;
+        ms -= hours * OneHourMs;
+    }
+
+    if (ms > OneMinuteMs) {
+        minutes = ms / OneMinuteMs;
+        ms -= minutes * OneMinuteMs;
+    }
+
+    if (ms > OneSecondMs) {
+        seconds = ms / OneSecondMs;
+        ms -= seconds * OneSecondMs;
+    }
+
+    tiny_snprintf(buffer, buffer_size, "%d:%d:%d:%d", days, hours, minutes, seconds);
+
+    return 0;
 }
 
 }

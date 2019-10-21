@@ -7,6 +7,7 @@
 #include "hal/network.h"
 #include "state_ref.h"
 #include "platform.h"
+#include "utilities.h"
 
 extern const struct fkb_header_t fkb_header;
 
@@ -38,12 +39,12 @@ void HomeView::tick(ViewController *views) {
         gs.get()->progress.progress,
     };
 
-    switch (visible_) {
-    case 0: {
+    switch ((Visible)visible_) {
+    case Visible::Name: {
         screen.primary = gs.get()->general.name;
         break;
     }
-    case 1: {
+    case Visible::IP: {
         if (gs.get()->network.state.enabled) {
             screen.primary = gs.get()->network.state.ssid;
             ip4_address ip{ gs.get()->network.state.ip };
@@ -55,8 +56,13 @@ void HomeView::tick(ViewController *views) {
         }
         break;
     }
-    case 2: {
+    case Visible::Build: {
         tiny_snprintf(primary_, sizeof(primary_), "Build #%" PRIu32, fkb_header.firmware.number);
+        screen.primary = primary_;
+        break;
+    }
+    case Visible::Uptime: {
+        make_pretty_time_string(fk_uptime(), primary_, sizeof(primary_));
         screen.primary = primary_;
         break;
     }
@@ -67,15 +73,27 @@ void HomeView::tick(ViewController *views) {
 }
 
 void HomeView::up(ViewController *views) {
-    visible_ = (visible_ - 1) % 3;
+    visible_ = (visible_ - 1) % 4;
 }
 
 void HomeView::down(ViewController *views) {
-    visible_ = (visible_ + 1) % 3;
+    visible_ = (visible_ + 1) % 4;
 }
 
 void HomeView::enter(ViewController *views) {
     views->show_menu();
+}
+
+void HomeView::show_name() {
+    visible_ = 0;
+}
+
+void HomeView::show_build() {
+    visible_ = 2;
+}
+
+void HomeView::show_uptime() {
+    visible_ = 3;
 }
 
 }

@@ -129,19 +129,15 @@ void MenuView::create_info_menu() {
         views_->show_name();
         back_->on_selected();
     });
-    auto info_memory = to_lambda_option(pool_, "Memory", [=]() {
-        back_->on_selected();
-    });
     auto info_build = to_lambda_option(pool_, "Build", [=]() {
         views_->show_build();
         back_->on_selected();
     });
 
-    info_menu_ = new_menu_screen<4>(pool_, {
+    info_menu_ = new_menu_screen<3>(pool_, {
         back_,
         info_build,
         info_name,
-        info_memory,
     });
 }
 
