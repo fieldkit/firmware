@@ -78,6 +78,14 @@ tl::expected<uint32_t, Error> MetaOps::write_state(GlobalState const *gs, Pool &
 
     record.network.networks.arg = (void *)networks_array;
 
+    record.schedule.readings.cron.arg = pb_data_create(gs->scheduler.readings.cron, pool);
+    record.schedule.gps.cron.arg = pb_data_create(gs->scheduler.gps.cron, pool);
+    record.schedule.lora.cron.arg = pb_data_create(gs->scheduler.lora.cron, pool);
+
+    record.schedule.readings.interval = gs->scheduler.readings.interval;
+    record.schedule.gps.interval = gs->scheduler.gps.interval;
+    record.schedule.lora.interval = gs->scheduler.lora.interval;
+
     auto meta = storage_.file(Storage::Meta);
     if (!meta.seek_end()) {
         FK_ASSERT(meta.create());
@@ -97,14 +105,6 @@ tl::expected<uint32_t, Error> MetaOps::write_state(GlobalState const *gs, Pool &
     if (gs->general.recording) {
         loginfo("(saved) recording");
     }
-
-    record.schedule.readings.cron.arg = pb_data_create(gs->scheduler.readings.cron, pool);
-    record.schedule.gps.cron.arg = pb_data_create(gs->scheduler.gps.cron, pool);
-    record.schedule.lora.cron.arg = pb_data_create(gs->scheduler.lora.cron, pool);
-
-    record.schedule.readings.interval = gs->scheduler.readings.interval;
-    record.schedule.gps.interval = gs->scheduler.gps.interval;
-    record.schedule.lora.interval = gs->scheduler.lora.interval;
 
     return (*meta_record).record;
 }
