@@ -55,11 +55,8 @@ tl::expected<uint32_t, Error> MetaOps::write_state(GlobalState const *gs, Pool &
             .buffer = gs->lora.app_key,
         });
 
-        record.lora.deviceEui.funcs.encode = pb_encode_data;
         record.lora.deviceEui.arg = (void *)device_eui_data;
-        record.lora.appEui.funcs.encode = pb_encode_data;
         record.lora.appEui.arg = (void *)app_eui_data;
-        record.lora.appKey.funcs.encode = pb_encode_data;
         record.lora.appKey.arg = (void *)app_key_data;
     }
 
@@ -79,7 +76,6 @@ tl::expected<uint32_t, Error> MetaOps::write_state(GlobalState const *gs, Pool &
             .fields = fk_data_NetworkInfo_fields,
         });
 
-    record.network.networks.funcs.encode = pb_encode_array;
     record.network.networks.arg = (void *)networks_array;
 
     auto meta = storage_.file(Storage::Meta);
@@ -101,6 +97,14 @@ tl::expected<uint32_t, Error> MetaOps::write_state(GlobalState const *gs, Pool &
     if (gs->general.recording) {
         loginfo("(saved) recording");
     }
+
+    record.schedule.readings.cron.arg = pb_data_create(gs->scheduler.readings.cron, pool);
+    record.schedule.gps.cron.arg = pb_data_create(gs->scheduler.gps.cron, pool);
+    record.schedule.lora.cron.arg = pb_data_create(gs->scheduler.lora.cron, pool);
+
+    record.schedule.readings.interval = gs->scheduler.readings.interval;
+    record.schedule.gps.interval = gs->scheduler.gps.interval;
+    record.schedule.lora.interval = gs->scheduler.lora.interval;
 
     return (*meta_record).record;
 }

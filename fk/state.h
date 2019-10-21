@@ -1,5 +1,7 @@
 #pragma once
 
+#include <lwcron/lwcron.h>
+
 #include "common.h"
 #include "config.h"
 #include "pool.h"
@@ -194,6 +196,17 @@ struct NotificationState {
     }
 };
 
+struct Schedule {
+    lwcron::CronSpec cron;
+    uint32_t interval;
+};
+
+struct SchedulerState {
+    Schedule readings;
+    Schedule gps;
+    Schedule lora;
+};
+
 struct GlobalState {
 public:
     GeneralState general;
@@ -206,6 +219,7 @@ public:
     ProgressState progress;
     StorageState storage;
     LoraState lora;
+    SchedulerState scheduler;
     PhysicalModuleState physical_modules[MaximumNumberOfPhysicalModules];
     SdCardState sd_card;
     // TODO Make this ''readings'?

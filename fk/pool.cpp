@@ -73,7 +73,7 @@ void *Pool::malloc(size_t allocating) {
     return (void *)p;
 }
 
-void *Pool::copy(void *ptr, size_t size) {
+void *Pool::copy(void const *ptr, size_t size) {
     void *newPtr = malloc(size);
     memcpy(newPtr, ptr, size);
     return newPtr;

@@ -1,3 +1,5 @@
+#include <lwcron/lwcron.h>
+
 #include "startup_worker.h"
 #include "tasks/tasks.h"
 #include "self_check.h"
@@ -104,6 +106,15 @@ bool StartupWorker::load_or_create_state(Storage &storage, Pool &pool) {
     return true;
 }
 
+static void copy_cron_spec_from_pb(Schedule &cs, fk_data_JobSchedule &pb, Pool &pool) {
+    auto pbd = pb_get_data_if_provided(pb.cron.arg, pool);
+    if (pbd != nullptr) {
+        FK_ASSERT(pbd->length == sizeof(lwcron::CronSpec));
+        memcpy(&cs.cron, pbd->buffer, pbd->length);
+    }
+    cs.interval = pb.interval;
+}
+
 bool StartupWorker::load_state(Storage &storage, Pool &pool) {
     if (storage.begin()) {
         auto meta = storage.file(Storage::Meta);
@@ -172,6 +183,10 @@ bool StartupWorker::load_state(Storage &storage, Pool &pool) {
                     gs.get()->general.recording = record.condition.recording;
                     loginfo("(loaded) recording (%" PRIu32 ")", record.condition.recording);
                 }
+
+                copy_cron_spec_from_pb(gs.get()->scheduler.readings, record.schedule.readings, pool);
+                copy_cron_spec_from_pb(gs.get()->scheduler.gps, record.schedule.gps, pool);
+                copy_cron_spec_from_pb(gs.get()->scheduler.lora, record.schedule.lora, pool);
 
                 return true;
             }

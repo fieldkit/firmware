@@ -66,7 +66,7 @@ public:
 
     void clear();
     void *malloc(size_t size);
-    void *copy(void *ptr, size_t size);
+    void *copy(void const *ptr, size_t size);
     char *strdup(const char *str);
     char *strndup(const char *str, size_t len);
     char *sprintf(const char *str, ...);

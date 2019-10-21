@@ -6,6 +6,7 @@
 #include "lora_worker.h"
 #include "tasks/tasks.h"
 #include "config.h"
+#include "state_ref.h"
 
 namespace fk {
 
@@ -73,14 +74,28 @@ public:
 
 };
 
-void task_handler_scheduler(void *params) {
-    lwcron::CronSpec readings_cron_spec{ lwcron::CronSpec::interval(fk_config().scheduler.readings_interval) };
-    lwcron::CronSpec lora_cron_spec{ lwcron::CronSpec::interval(fk_config().scheduler.lora_interval) };
-    lwcron::CronSpec gps_cron_spec{ lwcron::CronSpec::interval(fk_config().scheduler.gps_interval) };
+struct CurrentSchedules {
+    lwcron::CronSpec readings;
+    lwcron::CronSpec gps;
+    lwcron::CronSpec lora;
+};
 
-    ReadingsTask readings_job{ readings_cron_spec };
-    LoraTask lora_job{ lora_cron_spec };
-    GpsTask gps_job{ gps_cron_spec };
+static CurrentSchedules get_current_schedules() {
+    auto gs = get_global_state_ro();
+
+    return {
+        gs.get()->scheduler.readings.cron,
+        gs.get()->scheduler.gps.cron,
+        gs.get()->scheduler.lora.cron,
+    };
+}
+
+void task_handler_scheduler(void *params) {
+    auto schedules = get_current_schedules();
+
+    ReadingsTask readings_job{ schedules.readings };
+    LoraTask lora_job{ schedules.lora };
+    GpsTask gps_job{ schedules.gps };
 
     lwcron::Task *tasks[3] { &readings_job, &lora_job, &gps_job };
     lwcron::Scheduler scheduler{ tasks };

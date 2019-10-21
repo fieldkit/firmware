@@ -211,4 +211,12 @@ const char *pb_data_to_hex_string(pb_data_t const *data, Pool &pool) {
     return bytes_to_hex_string_pool((uint8_t *)data->buffer, data->length, pool);
 }
 
+pb_data_t *pb_data_create(void const *data, size_t size, Pool &pool) {
+    auto copy = pool.copy(data, size);
+    return pool.malloc_with<pb_data_t>({
+        .length = size,
+        .buffer = copy,
+    });
+}
+
 }

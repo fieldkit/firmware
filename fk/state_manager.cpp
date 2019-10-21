@@ -63,7 +63,16 @@ bool GlobalStateManager::initialize(Pool &pool) {
     hex_string_to_bytes(gs.get()->lora.app_eui, sizeof(gs.get()->lora.app_eui), FK_LORA_APP_EUI);
     #else
     bzero(gs.get()->lora.app_eui, sizeof(gs.get()->lora.app_eui));
-    #endif
+#endif
+
+    gs.get()->scheduler.readings.interval = fk_config().scheduler.readings_interval;
+    gs.get()->scheduler.readings.cron = lwcron::CronSpec::interval(fk_config().scheduler.readings_interval);
+
+    gs.get()->scheduler.gps.interval = fk_config().scheduler.gps_interval;
+    gs.get()->scheduler.gps.cron = lwcron::CronSpec::interval(fk_config().scheduler.gps_interval);
+
+    gs.get()->scheduler.lora.interval = fk_config().scheduler.lora_interval;
+    gs.get()->scheduler.lora.cron = lwcron::CronSpec::interval(fk_config().scheduler.lora_interval);
 
     return true;
 }

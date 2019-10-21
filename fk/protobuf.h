@@ -50,4 +50,11 @@ pb_data_t *pb_get_data_if_provided(void *arg, Pool &pool);
 
 const char *pb_data_to_hex_string(pb_data_t const *data, Pool &pool);
 
+template<typename T>
+pb_data_t *pb_data_create(T const &data, Pool &pool) {
+    return pb_data_create(&data, sizeof(T), pool);
+}
+
+pb_data_t *pb_data_create(void const *data, size_t size, Pool &pool);
+
 }

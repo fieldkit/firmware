@@ -157,6 +157,14 @@ static bool configure(Connection *connection, fk_app_HttpQuery *query, Pool &poo
         });
     }
 
+    if (query->schedules.modifying) {
+        gsm.apply([=](GlobalState *gs) {
+            gs->scheduler.readings.interval = query->schedules.readings.interval;
+            gs->scheduler.gps.interval = query->schedules.gps.interval;
+            gs->scheduler.lora.interval = query->schedules.lora.interval;
+        });
+    }
+
     if (!flush_configuration(pool)) {
         return false;
     }
