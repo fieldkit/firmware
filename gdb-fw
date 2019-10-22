@@ -2,4 +2,5 @@
 
 set -xe
 
-gdb-multiarch build/samd51-pic/fk/fk-bundled-fkb.elf
+# gdb-multiarch build/samd51-pic/fk/fk-bundled-fkb.elf
+gdb-multiarch build/samd51/fk/fk-bundled-fkb.elf

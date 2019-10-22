@@ -35,6 +35,7 @@ public:
 
     bool load_firmware(const char *path, uint32_t address, Pool &pool);
 
+    void log_other_firmware();
 
 };
 

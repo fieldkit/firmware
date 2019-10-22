@@ -61,7 +61,7 @@ void HttpRequest::begin() {
     settings_.on_body = http_body_callback;
     settings_.on_message_complete = http_message_complete_callback;
 
-    http_parser_init(&parser_, HTTP_REQUEST);
+    http_parser_init(&parser_, HTTP_BOTH);
     http_parser_set_max_header_size(HttpMaximumHeaderSize);
 
     parser_.data = this;

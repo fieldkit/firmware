@@ -38,6 +38,8 @@ public:
         hex_encoding_ = hex_encoding;
     }
 
+    bool service();
+
     bool service(HttpRouter &router);
 
     int32_t printf(const char *s, ...) __attribute__((format(printf, 2, 3)));
@@ -79,6 +81,14 @@ public:
 
     bool is_head_method() const {
         return req_.is_head_method();
+    }
+
+    bool have_headers() const {
+        return req_.have_headers();
+    }
+
+    uint32_t activity() const {
+        return activity_;
     }
 
 };

@@ -170,7 +170,9 @@ constexpr size_t HttpdMaximumUrlLength = 64;
 /**
  * How long to wait for a WiFi connection to establish.
  */
-constexpr uint32_t WifiConnectionTimeoutMs = 30 * 1000;
+constexpr uint32_t NetworkConnectionTimeoutMs = 30 * 1000;
+
+constexpr uint32_t NetworkConnectionMaximumDuration = FiveSecondsMs;
 
 /**
  * Buffer size for storing GPS sentences for debugging purposes.
@@ -185,12 +187,12 @@ constexpr size_t HttpMaximumHeaderSize = 1024;
 /**
  *
  */
-constexpr size_t HttpdConnectionBufferSize = 1024;
+constexpr size_t HttpConnectionBufferSize = 1024;
 
 /**
  *
  */
-constexpr size_t HttpdConnectionWorkSize = DefaultWorkerPoolSize;
+constexpr size_t HttpConnectionWorkSize = DefaultWorkerPoolSize;
 
 /**
  * Maximum number of blocks to look ahead for an available block. This means we
@@ -222,12 +224,12 @@ constexpr size_t MaximumNumberOfMemoryBanks = FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS;
 /**
  * Size of the bootloader.
  */
-constexpr size_t BootloaderSize = 0x8000;
+constexpr uint32_t BootloaderSize = 0x8000;
 
 /**
  * Address of the secondary bank of flash memory.
  */
-constexpr size_t OtherBankAddress = 0x80000;
+constexpr uint32_t OtherBankAddress = 0x80000;
 
 /**
  * Number of worker tasks to allow.
@@ -327,6 +329,7 @@ typedef struct configuration_t {
 
     typedef struct scheduler_t {
         uint32_t readings_interval{ 30 };
+        uint32_t network_interval{ 300 * 4 };
         uint32_t lora_interval{ 300 };
         uint32_t gps_interval{ OneDaySeconds };
 

@@ -49,7 +49,7 @@ void ConnectionPool::service(HttpRouter &router) {
 
                 update_statistics(c);
 
-                if (activity_elapsed < FiveSecondsMs) {
+                if (activity_elapsed < NetworkConnectionMaximumDuration) {
                     loginfo("[%" PRIu32 "] [%zd] active (%" PRIu32 "ms) (%" PRIu32 "ms) (%" PRIu32 " down) (%" PRIu32 " up)", c->number_, i, activity_elapsed, started_elapsed, c->bytes_rx_, c->bytes_tx_);
                 }
                 else {
@@ -118,7 +118,7 @@ Connection::~Connection() {
     close();
 }
 
-bool Connection::service(HttpRouter &router) {
+bool Connection::service() {
     // TODO: 414 Request-URI Too Long
     // TODO: 431 Request Header Fields Too Large.
     // TODO: 413 Payload Too Large
@@ -131,8 +131,8 @@ bool Connection::service(HttpRouter &router) {
 
     if (!req_.have_headers() && conn_->available()) {
         if (buffer_ == nullptr) {
-            size_ = HttpdConnectionBufferSize;
-            buffer_ = (uint8_t *)pool_->malloc(HttpdConnectionBufferSize);
+            size_ = HttpConnectionBufferSize;
+            buffer_ = (uint8_t *)pool_->malloc(HttpConnectionBufferSize);
             position_ = 0;
         }
 
@@ -163,6 +163,22 @@ bool Connection::service(HttpRouter &router) {
         }
     }
 
+    if (req_.done()) {
+        auto size = pool_->size();
+        auto used = pool_->used();
+        auto elapsed = fk_uptime() - started_;
+        loginfo("[%" PRIu32 "] closing (%" PRIu32 " tx) (%" PRIu32 " rx) (%zd/%zd pooled) (%" PRIu32 "ms)", number_, bytes_tx_, bytes_rx_, used, size, elapsed);
+        return false;
+    }
+
+    return true;
+}
+
+bool Connection::service(HttpRouter &router) {
+    if (!service()) {
+        return false;
+    }
+
     if (req_.have_headers()) {
         if (!routed_) {
             auto path = req_.url_parser().path();
@@ -182,14 +198,6 @@ bool Connection::service(HttpRouter &router) {
             routed_ = true;
             activity_ = fk_uptime();
         }
-    }
-
-    if (req_.done()) {
-        auto size = pool_->size();
-        auto used = pool_->used();
-        auto elapsed = fk_uptime() - started_;
-        loginfo("[%" PRIu32 "] closing (%" PRIu32 " tx) (%" PRIu32 " rx) (%zd/%zd pooled) (%" PRIu32 "ms)", number_, bytes_tx_, bytes_rx_, used, size, elapsed);
-        return false;
     }
 
     return true;

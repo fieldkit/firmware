@@ -68,6 +68,9 @@ bool GlobalStateManager::initialize(Pool &pool) {
     gs.get()->scheduler.readings.interval = fk_config().scheduler.readings_interval;
     gs.get()->scheduler.readings.cron = lwcron::CronSpec::interval(fk_config().scheduler.readings_interval);
 
+    gs.get()->scheduler.network.interval = fk_config().scheduler.network_interval;
+    gs.get()->scheduler.network.cron = lwcron::CronSpec::interval(fk_config().scheduler.network_interval);
+
     gs.get()->scheduler.gps.interval = fk_config().scheduler.gps_interval;
     gs.get()->scheduler.gps.cron = lwcron::CronSpec::interval(fk_config().scheduler.gps_interval);
 

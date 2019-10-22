@@ -82,6 +82,8 @@ fk_data_DataRecord fk_data_record_decoding_new(Pool &pool) {
 
     record.schedule.readings.cron.funcs.decode = pb_decode_data;
     record.schedule.readings.cron.arg = (void *)&pool;
+    record.schedule.network.cron.funcs.decode = pb_decode_data;
+    record.schedule.network.cron.arg = (void *)&pool;
     record.schedule.gps.cron.funcs.decode = pb_decode_data;
     record.schedule.gps.cron.arg = (void *)&pool;
     record.schedule.lora.cron.funcs.decode = pb_decode_data;
@@ -104,6 +106,7 @@ fk_data_DataRecord fk_data_record_encoding_new() {
     record.lora.deviceEui.funcs.encode = pb_encode_data;
     record.network.networks.funcs.encode = pb_encode_array;
     record.schedule.readings.cron.funcs.encode = pb_encode_data;
+    record.schedule.network.cron.funcs.encode = pb_encode_data;
     record.schedule.gps.cron.funcs.encode = pb_encode_data;
     record.schedule.lora.cron.funcs.encode = pb_encode_data;
 

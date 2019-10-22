@@ -122,7 +122,11 @@ bool MetalNetworkConnection::available() {
 }
 
 int32_t MetalNetworkConnection::read(uint8_t *buffer, size_t size) {
-    return wcl_.read(buffer, size);
+    auto nread = wcl_.read(buffer, size);
+    if (nread < 0) {
+        return 0;
+    }
+    return nread;
 }
 
 int32_t MetalNetworkConnection::write(const char *str) {
@@ -160,10 +164,12 @@ typedef struct buffered_write_t {
 } buffered_write_t;
 
 static void write_connection(char c, void *arg) {
-    auto buffers = reinterpret_cast<buffered_write_t*>(arg);
-    buffers->buffer[buffers->position++] = c;
-    if (buffers->position == buffers->buffer_size) {
-        buffers->flush();
+    if (c > 0) {
+        auto buffers = reinterpret_cast<buffered_write_t*>(arg);
+        buffers->buffer[buffers->position++] = c;
+        if (buffers->position == buffers->buffer_size) {
+            buffers->flush();
+        }
     }
 }
 

@@ -37,8 +37,9 @@ class FkSegger(gdb.Command):
     gdb.execute("monitor exec SetRTTSearchRanges 0x20000000 64")
     gdb.execute("load")
     gdb.execute("b Dummy_Handler")
-    # gdb.execute("b HardFault_Handler")
-    # gdb.execute("b osi_hard_fault_handler")
+    if False:
+      gdb.execute("b HardFault_Handler")
+      gdb.execute("b osi_hard_fault_handler")
     gdb.execute("b osi_hard_fault_report")
     gdb.execute("b cm_hard_fault")
     gdb.execute("b osi_panic")
@@ -79,8 +80,9 @@ class FkReloadAllAndRun(gdb.Command):
     made = subprocess.run(["make", "fw", "-j4"])
     if made.returncode != 0:
       return False
+      # gdb.execute("load build/samd51-pic/fk/fk-bundled-fkb.elf")
     gdb.execute("load build/samd51/bootloader/fkbl.elf")
-    gdb.execute("load build/samd51-pic/fk/fk-bundled-fkb.elf")
+    gdb.execute("load build/samd51/fk/fk-bundled-fkb.elf")
     gdb.execute("monitor reset")
     gdb.execute("c")
 
@@ -93,8 +95,9 @@ class FkReloadAll(gdb.Command):
     made = subprocess.run(["make", "fw", "-j4"])
     if made.returncode != 0:
       return False
+      # gdb.execute("load build/samd51-pic/fk/fk-bundled-fkb.elf")
     gdb.execute("load build/samd51/bootloader/fkbl.elf")
-    gdb.execute("load build/samd51-pic/fk/fk-bundled-fkb.elf")
+    gdb.execute("load build/samd51/fk/fk-bundled-fkb.elf")
     gdb.execute("monitor reset")
 
 end

@@ -9,7 +9,13 @@ ProgressTracker::ProgressTracker(ProgressCallbacks *callbacks, Operation op, con
 }
 
 void ProgressTracker::update(int32_t bytes) {
+    update(bytes, total_);
+}
+
+void ProgressTracker::update(int32_t bytes, uint32_t total) {
     auto now = fk_uptime();
+
+    total_ = total;
 
     if (started_ == 0) {
         started_ = now;

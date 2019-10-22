@@ -27,7 +27,7 @@ void task_handler_network(void *params) {
 
         loginfo("starting network...");
 
-        if (!task.begin(settings, WifiConnectionTimeoutMs, *pool)) {
+        if (!task.begin(settings, NetworkConnectionTimeoutMs, *pool)) {
             logerror("error starting server");
             return;
         }
