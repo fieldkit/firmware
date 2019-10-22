@@ -35,15 +35,19 @@ size_t write_log(LogMessage const *m, const char *fstring, va_list args) {
         task = "startup";
     }
 
-    const char *f;
+    const char *plain_fs;
+    const char *color_fs;
     if ((LogLevels)m->level == LogLevels::ERROR) {
-        f = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_CYAN " %-10s " RTT_CTRL_TEXT_RED "%-7s %s: ";
+        color_fs = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_CYAN " %-10s " RTT_CTRL_TEXT_RED "%-7s %s: ";
+        plain_fs = "%08" PRIu32 " %-10s %-7s %s: ";
     }
     else if ((LogLevels)m->level == LogLevels::WARN) {
-        f = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_CYAN " %-10s " RTT_CTRL_TEXT_MAGENTA "%-7s %s: ";
+        color_fs = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_CYAN " %-10s " RTT_CTRL_TEXT_MAGENTA "%-7s %s: ";
+        plain_fs = "%08 %-10s %-7s %s: ";
     }
     else {
-        f = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_CYAN " %-10s " RTT_CTRL_TEXT_YELLOW "%-7s %s" RTT_CTRL_RESET ": ";
+        color_fs = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_CYAN " %-10s " RTT_CTRL_TEXT_YELLOW "%-7s %s" RTT_CTRL_RESET ": ";
+        plain_fs = "%08" PRIu32 " %-10s %-7s %s: ";
     }
 
     auto level = alog_get_log_level((LogLevels)m->level);
@@ -51,13 +55,13 @@ size_t write_log(LogMessage const *m, const char *fstring, va_list args) {
     SEGGER_RTT_LOCK();
 
     if (logs_rtt_enabled) {
-        SEGGER_RTT_printf(0, f, m->uptime, task, level, m->facility);
+        SEGGER_RTT_printf(0, color_fs, m->uptime, task, level, m->facility);
         SEGGER_RTT_vprintf(0, fstring, &args);
         SEGGER_RTT_WriteString(0, RTT_CTRL_RESET "\n");
     }
 
     if (!logs_flushing) {
-        tiny_fctprintf(write_circular_buffer, nullptr, f, m->uptime, task, level, m->facility);
+        tiny_fctprintf(write_circular_buffer, nullptr, plain_fs, m->uptime, task, level, m->facility);
         tiny_vfctprintf(write_circular_buffer, nullptr, fstring, args);
         tiny_fctprintf(write_circular_buffer, nullptr, "\n");
     }
