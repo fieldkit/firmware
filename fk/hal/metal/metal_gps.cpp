@@ -25,15 +25,12 @@ bool MetalGps::begin() {
     Serial1.println(PMTK_SET_NMEA_UPDATE_1HZ);
     Serial1.println(PMTK_API_SET_FIX_CTL_1HZ);
 
-    return true;
-}
+    gps_ = { };
 
-bool MetalGps::check() {
     return true;
 }
 
 bool MetalGps::service(GpsFix &fix) {
-    uint32_t position_fix_age;
     struct time_args_t {
         uint32_t year;
         uint8_t month;
@@ -55,28 +52,35 @@ bool MetalGps::service(GpsFix &fix) {
         fix.altitude = gps_.f_altitude();
         fix.hdop = gps_.hdop();
 
-        gps_.f_get_position(&fix.latitude, &fix.longitude, &position_fix_age);
+        gps_.f_get_position(&fix.latitude, &fix.longitude, &fix.position_fix_age);
         gps_.crack_datetime((int *)&time.year, &time.month, &time.day, &time.hour, &time.minute, &time.second, &time.hundredths, &time.time_fix_age);
         gps_.get_datetime(&time.date, &time.time, &time.time_fix_age);
         gps_.stats(&fix.chars, &fix.good, &fix.failed);
 
-        auto ok = true;
+        auto valid = true;
 
-        if (fix.longitude != TinyGPS::GPS_INVALID_ANGLE && fix.latitude != TinyGPS::GPS_INVALID_ANGLE) {
+        if (fix.satellites == TinyGPS::GPS_INVALID_SATELLITES) {
+            valid = false;
         }
-        else {
-            ok = false;
+
+        if (fix.hdop == TinyGPS::GPS_INVALID_HDOP) {
+            valid = false;
+        }
+
+        if (fix.longitude == TinyGPS::GPS_INVALID_ANGLE || fix.latitude == TinyGPS::GPS_INVALID_ANGLE) {
+            valid = false;
         }
 
         if (time.date != TinyGPS::GPS_INVALID_DATE && time.time != TinyGPS::GPS_INVALID_TIME) {
             auto now = DateTime(time.year, time.month, time.day, time.hour, time.minute, time.second);
             fix.time = now.unix_time();
+            fix.time_fix_age = time.time_fix_age;
         }
         else {
-            ok = false;
+            valid = false;
         }
 
-        fix.valid = ok;
+        fix.valid = valid;
 
         if (fk_config().logging.gps_raw) {
             if (position_ == sizeof(buffer_) - 1 || c == '\n') {
@@ -99,6 +103,8 @@ bool MetalGps::stop() {
     Serial1.end();
 
     get_board()->disable_gps();
+
+    gps_ = { };
 
     return true;
 }

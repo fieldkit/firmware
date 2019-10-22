@@ -10,7 +10,10 @@ FK_DECLARE_LOGGER("gps");
 void task_handler_gps(void *params) {
     auto gps = get_gps();
 
-    FK_ASSERT(gps->begin());
+    if (!gps->begin()) {
+        logerror("error initializing gps");
+        return;
+    }
 
     auto &fkc = fk_config();
     auto started_at = fk_uptime();
