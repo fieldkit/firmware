@@ -4,6 +4,7 @@
 #include "upgrade_from_sd_worker.h"
 
 #include "hal/flash.h"
+#include "storage/types.h"
 #include "storage/progress_tracker.h"
 #include "gs_progress_callbacks.h"
 #include "utilities.h"
@@ -79,7 +80,7 @@ void UpgradeFirmwareFromSdWorker::run(Pool &pool) {
 
         log_other_firmware();
 
-        gsm.notify({ "loaded, swap" });
+        gsm.notify({ "success, swap!" });
         break;
     }
     }
@@ -168,6 +169,9 @@ bool UpgradeFirmwareFromSdWorker::load_firmware(const char *path, uint32_t addre
 
     file->seek_beginning();
 
+    BLAKE2b b2b;
+    b2b.reset(Hash::Length);
+
     GlobalStateProgressCallbacks gs_progress;
     auto tracker = ProgressTracker{ &gs_progress, Operation::Download, "SD", "", (uint32_t)file_size };
 
@@ -192,13 +196,38 @@ bool UpgradeFirmwareFromSdWorker::load_firmware(const char *path, uint32_t addre
         eeprom_address += nread;
 
         tracker.update(nread);
+
+        if (tracker.done()) {
+            b2b.update(buffer, nread - Hash::Length);
+        }
+        else {
+            b2b.update(buffer, nread);
+        }
     }
 
     tracker.finished();
 
+    Hash hash;
+    b2b.finalize(&hash.hash, Hash::Length);
+
+    // Compare the hash we calculated with the one that was
+    // just written to memory.
+    auto success = false;
+    auto eeprom_hash_ptr = reinterpret_cast<uint8_t*>(eeprom_address - Hash::Length);
+    if (memcmp(eeprom_hash_ptr, hash.hash, Hash::Length) != 0) {
+        logerror("hash mismatch!");
+        fk_dump_memory("EXP ", eeprom_hash_ptr, Hash::Length);
+        fk_dump_memory("ACT ", hash.hash, Hash::Length);
+    }
+    else {
+        auto hex_str = bytes_to_hex_string_pool(hash.hash, Hash::Length, pool);
+        loginfo("hash is good: %s", hex_str);
+        success = true;
+    }
+
     loginfo("done reading %" PRIu32, total_bytes);
 
-    return true;
+    return success;
 }
 
 }

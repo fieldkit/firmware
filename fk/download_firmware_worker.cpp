@@ -11,6 +11,7 @@
 #include "hal/flash.h"
 #include "progress.h"
 #include "utilities.h"
+#include "state_manager.h"
 #include "platform.h"
 
 namespace fk {
@@ -144,7 +145,7 @@ public:
 
         connection_->close();
 
-        return true;
+        return success;
     }
 
 public:
@@ -199,14 +200,20 @@ void DownloadFirmwareWorker::run(Pool &pool) {
         loginfo("size: %" PRIu32, http_head.length());
     }
 
+    GlobalStateManager gsm;
+
     HttpConnection http_get{ nc };
     if (!http_get.get(path, server, port)) {
+        gsm.notify({ "error!" });
         return;
     }
 
     if (!http_get.copy(pool)) {
+        gsm.notify({ "error!" });
         return;
     }
+
+    gsm.notify({ "success, swap!" });
 }
 
 }
