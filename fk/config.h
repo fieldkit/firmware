@@ -3,6 +3,8 @@
 #include <inttypes.h>
 #include <string.h>
 
+#include "secrets.h"
+
 namespace fk {
 
 /**
@@ -293,7 +295,13 @@ typedef struct configuration_t {
          * readings, this can inflate the data being written, which is handy for
          * debugging.
          */
-        bool enable_random_module{ true };
+        bool enable_random_module{
+            #if defined(FK_ENABLE_RANDOM)
+            true
+            #else
+            false
+            #endif
+        };
 
         /**
          * Amplification factor.
