@@ -18,7 +18,7 @@ all: samd51 samd09 test
 
 ci: setup all doc package
 
-setup: .python-setup fk/secrets.h libraries/done
+setup: .python-setup fk/secrets.h fk/data/animals.h fk/data/adjectives.h libraries/done
 
 .python-setup:
 	pip3 install -U sphinx pyelftools pyblake2
@@ -76,6 +76,12 @@ doc:
 
 fk/secrets.h: fk/secrets.h.template
 	cp $^ $@
+
+fk/data/adjectives.h: fk/data/adjectives.txt
+	cd fk/data && ./generate.py
+
+fk/data/animals.h: fk/data/animals.txt
+	cd fk/data && ./generate.py
 
 package:
 	mkdir -p $(BUILD)/fk-firmware
