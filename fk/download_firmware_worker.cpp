@@ -171,6 +171,11 @@ void DownloadFirmwareWorker::run(Pool &pool) {
     auto server = "192.168.0.100";
     auto port = 8080;
 
+    loginfo("backup bootloader...");
+
+    FirmwareManager firmware;
+    firmware.backup_bootloader(pool);
+
     loginfo("connecting to '%s:%d'", server, port);
 
     auto nc = get_network()->open_connection(server, port);
