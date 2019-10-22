@@ -88,10 +88,10 @@ public:
                     if (position == CodeMemoryPageSize || tracker.done()) {
                         if (eeprom_address % CodeMemoryBlockSize == 0) {
                             loginfo("[0x%06" PRIx32 "] erasing", eeprom_address);
-                            get_flash()->erase(eeprom_address, CodeMemoryBlockSize / CodeMemoryPageSize);
+                            // get_flash()->erase(eeprom_address, CodeMemoryBlockSize / CodeMemoryPageSize);
                         }
                         b2b.update(buffer, position);
-                        get_flash()->write(eeprom_address, buffer, position);
+                        // get_flash()->write(eeprom_address, buffer, position);
                         eeprom_address += position;
                         position = 0;
                     }
