@@ -32,8 +32,10 @@ void Button::changed(bool down) {
         pressed_ = now;
         loginfo("%s (%" PRIu32 "ms)", name_, elapsed);
         if (get_ipc()->available()) {
-            if (!get_ipc()->enqueue_button(this)) {
-                logerror("ipc error (button)");
+            if (os_task_is_running(&display_task)) {
+                if (!get_ipc()->enqueue_button(this)) {
+                    logerror("ipc error (button)");
+                }
             }
             if (!fk_debug_mode()) {
                 if (!get_ipc()->enqueue_activity(this)) {
