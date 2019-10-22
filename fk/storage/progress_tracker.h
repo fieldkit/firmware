@@ -22,6 +22,8 @@ public:
 public:
     void update(int32_t bytes);
 
+    void update(int32_t bytes, uint32_t total);
+
     bool busy() const;
 
     bool done() const;
