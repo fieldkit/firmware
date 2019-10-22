@@ -160,10 +160,12 @@ typedef struct buffered_write_t {
 } buffered_write_t;
 
 static void write_connection(char c, void *arg) {
-    auto buffers = reinterpret_cast<buffered_write_t*>(arg);
-    buffers->buffer[buffers->position++] = c;
-    if (buffers->position == buffers->buffer_size) {
-        buffers->flush();
+    if (c > 0) {
+        auto buffers = reinterpret_cast<buffered_write_t*>(arg);
+        buffers->buffer[buffers->position++] = c;
+        if (buffers->position == buffers->buffer_size) {
+            buffers->flush();
+        }
     }
 }
 
