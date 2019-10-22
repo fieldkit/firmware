@@ -118,7 +118,7 @@ Connection::~Connection() {
     close();
 }
 
-bool Connection::service(HttpRouter &router) {
+bool Connection::service() {
     // TODO: 414 Request-URI Too Long
     // TODO: 431 Request Header Fields Too Large.
     // TODO: 413 Payload Too Large
@@ -163,6 +163,22 @@ bool Connection::service(HttpRouter &router) {
         }
     }
 
+    if (req_.done()) {
+        auto size = pool_->size();
+        auto used = pool_->used();
+        auto elapsed = fk_uptime() - started_;
+        loginfo("[%" PRIu32 "] closing (%" PRIu32 " tx) (%" PRIu32 " rx) (%zd/%zd pooled) (%" PRIu32 "ms)", number_, bytes_tx_, bytes_rx_, used, size, elapsed);
+        return false;
+    }
+
+    return true;
+}
+
+bool Connection::service(HttpRouter &router) {
+    if (!service()) {
+        return false;
+    }
+
     if (req_.have_headers()) {
         if (!routed_) {
             auto path = req_.url_parser().path();
@@ -182,14 +198,6 @@ bool Connection::service(HttpRouter &router) {
             routed_ = true;
             activity_ = fk_uptime();
         }
-    }
-
-    if (req_.done()) {
-        auto size = pool_->size();
-        auto used = pool_->used();
-        auto elapsed = fk_uptime() - started_;
-        loginfo("[%" PRIu32 "] closing (%" PRIu32 " tx) (%" PRIu32 " rx) (%zd/%zd pooled) (%" PRIu32 "ms)", number_, bytes_tx_, bytes_rx_, used, size, elapsed);
-        return false;
     }
 
     return true;

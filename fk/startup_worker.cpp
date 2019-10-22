@@ -57,8 +57,7 @@ void StartupWorker::run(Pool &pool) {
     // TODO Only do this if the last fsck was a while ago?
     Storage storage{ MemoryFactory::get_data_memory(), false };
     if (storage.begin()) {
-        NoopProgressCallbacks progress;
-        storage.fsck(&progress);
+        // storage.fsck(&noop_callbacks);
     }
 
     FK_ASSERT(load_or_create_state(storage, pool));
