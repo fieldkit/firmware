@@ -28,6 +28,8 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(
     record_.readings.location.longitude = gs->gps.longitude;
     record_.readings.location.latitude = gs->gps.latitude;
     record_.readings.location.altitude = gs->gps.altitude;
+    record_.readings.location.satellites = gs->gps.satellites;
+    record_.readings.location.hdop = gs->gps.hdop;
 
     if (modules.size() == 0) {
         return all_readings;

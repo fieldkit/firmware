@@ -46,6 +46,8 @@ void task_handler_gps(void *params) {
                 gs->gps.longitude = fix.longitude;
                 gs->gps.latitude = fix.latitude;
                 gs->gps.altitude = fix.altitude;
+                gs->gps.satellites = fix.satellites;
+                gs->gps.hdop = fix.hdop;
             });
 
             update_gs = fk_uptime() + FiveSecondsMs;
