@@ -3,6 +3,7 @@
 
 #include "download_firmware_worker.h"
 
+#include "firmware_manager.h"
 #include "networking/cpool.h"
 #include "storage/types.h"
 #include "storage/progress_tracker.h"
@@ -88,20 +89,42 @@ public:
                     if (position == CodeMemoryPageSize || tracker.done()) {
                         if (eeprom_address % CodeMemoryBlockSize == 0) {
                             loginfo("[0x%06" PRIx32 "] erasing", eeprom_address);
-                            // get_flash()->erase(eeprom_address, CodeMemoryBlockSize / CodeMemoryPageSize);
+                            get_flash()->erase(eeprom_address, CodeMemoryBlockSize / CodeMemoryPageSize);
                         }
-                        b2b.update(buffer, position);
-                        // get_flash()->write(eeprom_address, buffer, position);
+
+                        // Don't include the hash in the actual hash, it's at
+                        // the tail end of the file. So, if we're done we've got
+                        // everything so hash up to the beginning of the hash.
+                        if (tracker.done()) {
+                            b2b.update(buffer, position - Hash::Length);
+                        }
+                        else {
+                            b2b.update(buffer, position);
+                        }
+
+                        get_flash()->write(eeprom_address, buffer, position);
                         eeprom_address += position;
                         position = 0;
                     }
 
                     if (tracker.done()) {
-                        success = true;
                         Hash hash;
                         b2b.finalize(&hash.hash, Hash::Length);
-                        auto hex_str = bytes_to_hex_string_pool(hash.hash, Hash::Length, pool);
-                        loginfo("hash: %s", hex_str);
+
+                        // Compare the hash we calculated with the one that was
+                        // just written to memory.
+                        auto eeprom_hash_ptr = reinterpret_cast<uint8_t*>(eeprom_address - Hash::Length);
+                        if (memcmp(eeprom_hash_ptr, hash.hash, Hash::Length) != 0) {
+                            logerror("hash mismatch!");
+                            fk_dump_memory("EXP ", eeprom_hash_ptr, Hash::Length);
+                            fk_dump_memory("ACT ", hash.hash, Hash::Length);
+                        }
+                        else {
+                            auto hex_str = bytes_to_hex_string_pool(hash.hash, Hash::Length, pool);
+                            loginfo("hash is good: %s", hex_str);
+                            success = true;
+                        }
+
                         break;
                     }
                 }
