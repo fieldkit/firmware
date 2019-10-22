@@ -145,8 +145,6 @@ static bool initialize_hardware() {
 }
 
 static void single_threaded_setup() {
-    fk_config_initialize();
-
     OS_CHECK(os_initialize());
 
     FK_ASSERT(fk_logging_initialize());

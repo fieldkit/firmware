@@ -264,21 +264,6 @@ typedef struct configuration_t {
     logging_t logging;
 
     /**
-     * Configuration for an individual WiFi network.
-     */
-    typedef struct wifi_network_t {
-        /**
-         * SSID for the network.
-         */
-        const char *ssid;
-
-        /**
-         * Password for the network.
-         */
-        const char *password;
-    } wifi_network_t;
-
-    /**
      * Network related configuration.
      */
     typedef struct network_t {
@@ -346,31 +331,9 @@ typedef struct configuration_t {
 
     scheduler_t scheduler;
 
-    typedef struct debug_t {
-        bool periodic_fsck{ false };
-    } debug_t;
-
-    debug_t debug;
-
-    typedef struct lora_settings_t {
-        bool configured;
-        uint8_t app_key[LoraAppKeyLength];
-        uint8_t app_eui[LoraAppEuiLength];
-    } lora_settings_t;
-
-    lora_settings_t lora;
-
     bool modules_always_on{ false };
 } configuration_t;
 
-/**
- *
- */
-configuration_t const &fk_config_initialize();
-
-/**
- *
- */
 configuration_t const &fk_config();
 
 }
