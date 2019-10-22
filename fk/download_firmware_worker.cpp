@@ -170,7 +170,7 @@ DownloadFirmwareWorker::DownloadFirmwareWorker() {
 void DownloadFirmwareWorker::run(Pool &pool) {
     auto path = "/fk-bundled-fkb.bin";
     auto server = "192.168.0.100";
-    auto port = 8080;
+    auto port = 6060;
 
     loginfo("backup bootloader...");
 
