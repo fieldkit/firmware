@@ -1,12 +1,15 @@
 #include <loading.h>
+#include <phylum/blake2b.h>
 
 #include "download_firmware_worker.h"
 
 #include "networking/cpool.h"
+#include "storage/types.h"
 #include "storage/progress_tracker.h"
 #include "hal/network.h"
 #include "hal/flash.h"
 #include "progress.h"
+#include "utilities.h"
 #include "platform.h"
 
 namespace fk {
@@ -54,10 +57,13 @@ public:
         return true;
     }
 
-    bool copy() {
+    bool copy(Pool &pool) {
         auto buffer = (uint8_t *)nc_->pool().malloc(CodeMemoryPageSize);
         auto total_read = 0u;
         auto success = false;
+
+        BLAKE2b b2b;
+        b2b.reset(Hash::Length);
 
         NoopProgressCallbacks noop;
         auto tracker = ProgressTracker{ &noop, Operation::Fsck, "download", "", connection_->length() };
@@ -82,6 +88,7 @@ public:
                             loginfo("[0x%06" PRIx32 "] erasing", eeprom_address);
                             get_flash()->erase(eeprom_address, CodeMemoryBlockSize / CodeMemoryPageSize);
                         }
+                        b2b.update(buffer, position);
                         get_flash()->write(eeprom_address, buffer, position);
                         eeprom_address += position;
                         position = 0;
@@ -89,6 +96,10 @@ public:
 
                     if (tracker.done()) {
                         success = true;
+                        Hash hash;
+                        b2b.finalize(&hash.hash, Hash::Length);
+                        auto hex_str = bytes_to_hex_string_pool(hash.hash, Hash::Length, pool);
+                        loginfo("hash: %s", hex_str);
                         break;
                     }
                 }
@@ -154,7 +165,7 @@ void DownloadFirmwareWorker::run(Pool &pool) {
         return;
     }
 
-    if (!http_get.copy()) {
+    if (!http_get.copy(pool)) {
         return;
     }
 }
