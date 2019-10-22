@@ -1,6 +1,33 @@
 #
 #
 #
+function(enable_signed_bin_firmware target)
+  get_target_property(binary_dir ${target} BINARY_DIR)
+
+  set(elf_target ${target}.elf)
+  set(fkb_bin_target ${target}-fkb.bin)
+
+  set(elf_file ${binary_dir}/${target}.elf)
+  set(fkb_bin_file ${binary_dir}/${target}-fkb.bin)
+
+  add_custom_command(
+    OUTPUT ${fkb_bin_file}
+    DEPENDS ${elf_file}
+    COMMAND ${loading_PATH}/tools/mkfirmware.py --elf ${elf_file} --bin ${fkb_bin_file}
+    WORKING_DIRECTORY ${binary_dir}
+    )
+
+  add_custom_target(${fkb_bin_target} ALL DEPENDS ${fkb_bin_file})
+  add_dependencies(${fkb_bin_target} ${elf_target})
+
+  set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/${target}.syms"
+    "${CMAKE_CURRENT_BINARY_DIR}/${target}.s"
+    "${CMAKE_CURRENT_BINARY_DIR}/${target}.elf"
+    "${CMAKE_CURRENT_BINARY_DIR}/${target}.bin"
+    "${CMAKE_CURRENT_BINARY_DIR}/${target}.map")
+endfunction()
+
 function(enable_fkb_firmware target)
   get_target_property(binary_dir ${target} BINARY_DIR)
 

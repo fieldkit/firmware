@@ -3,6 +3,8 @@
 #
 include(Arduino)
 
+include(ArduinoTools)
+
 include(${CMAKE_CURRENT_SOURCE_DIR}/dependencies.cmake)
 
 enable_arduino_toolchain()
@@ -37,3 +39,5 @@ target_link_libraries(fkbl arduino-logging)
 configure_firmware_linker_script(fkbl ${CMAKE_SOURCE_DIR}/boards/samd51/bootloader.ld)
 
 add_arduino_bootloader(fkbl)
+
+enable_signed_bin_firmware(fkbl)

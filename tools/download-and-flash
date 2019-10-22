@@ -21,7 +21,7 @@ if [ ! -f $NAME_APP ]; then
 fi
 
 if [ ! -f $NAME_BL ]; then
-    BIN_URL=https://code.conservify.org/distribution/archive/fk/firmware/builds/$BUILD/artifacts/fkbl.bin
+    BIN_URL=https://code.conservify.org/distribution/archive/fk/firmware/builds/$BUILD/artifacts/fkbl-fkb.bin
     echo
     echo Downloading $NAME_BL...
     curl $BIN_URL -o $NAME_BL

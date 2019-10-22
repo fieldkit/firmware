@@ -46,7 +46,7 @@ void UpgradeFirmwareFromSdWorker::log_other_firmware() {
 }
 
 void UpgradeFirmwareFromSdWorker::run(Pool &pool) {
-    auto bl_path = "fkbl.bin";
+    auto bl_path = "fkbl-fkb.bin";
     auto main_path = "fk-bundled-fkb.bin";
 
     GlobalStateManager gsm;

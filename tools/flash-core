@@ -1,6 +1,6 @@
 #!/bin/bash
 
-BOOTLOADER=fkbl.bin
+BOOTLOADER=fkbl-fkb.bin
 PROGRAM=fk-bundled-fkb.bin
 
 JLinkExe -if SWD -device ATSAMD51P20 -speed 4000 -RTTTelnetPort 19021 <<EOF

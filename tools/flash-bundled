@@ -1,6 +1,6 @@
 #!/bin/bash
 
-BOOTLOADER=build/samd51/bootloader/fkbl.bin
+BOOTLOADER=build/samd51/bootloader/fkbl-fkb.bin
 PROGRAM=build/samd51/fk/fk-bundled-fkb.bin
 
 JLinkExe -if SWD -device ATSAMD51P20 -speed 4000 <<EOF
