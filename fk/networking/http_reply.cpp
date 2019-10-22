@@ -216,6 +216,10 @@ bool HttpReply::include_status() {
         reply_.status.identity.firmware.arg = (void *)firmware_hash_string;
     }
 
+    reply_.schedules.readings.interval = gs_->scheduler.readings.interval;
+    reply_.schedules.gps.interval = gs_->scheduler.gps.interval;
+    reply_.schedules.lora.interval = gs_->scheduler.lora.interval;
+
     return true;
 }
 
