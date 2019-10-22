@@ -114,6 +114,7 @@ static bool log_diagnostics() {
 
     loginfo("sizeof(RecordHeader + RecordTail) = %zd + %zd", sizeof(RecordHeader), sizeof(RecordTail));
     loginfo("sizeof(GlobalState) = %zd", sizeof(GlobalState ));
+    loginfo("sizeof(configuration_t) = %zd", sizeof(configuration_t ));
 
     return true;
 }
