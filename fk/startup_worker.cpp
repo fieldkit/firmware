@@ -185,6 +185,7 @@ bool StartupWorker::load_state(Storage &storage, Pool &pool) {
                 }
 
                 copy_cron_spec_from_pb(gs.get()->scheduler.readings, record.schedule.readings, pool);
+                copy_cron_spec_from_pb(gs.get()->scheduler.network, record.schedule.network, pool);
                 copy_cron_spec_from_pb(gs.get()->scheduler.gps, record.schedule.gps, pool);
                 copy_cron_spec_from_pb(gs.get()->scheduler.lora, record.schedule.lora, pool);
 

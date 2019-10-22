@@ -204,6 +204,7 @@ struct Schedule {
 
 struct SchedulerState {
     Schedule readings;
+    Schedule network;
     Schedule gps;
     Schedule lora;
 };
