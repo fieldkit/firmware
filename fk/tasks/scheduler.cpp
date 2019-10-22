@@ -3,6 +3,7 @@
 #include "hal/hal.h"
 #include "clock.h"
 #include "readings_worker.h"
+#include "upload_data_worker.h"
 #include "lora_worker.h"
 #include "tasks/tasks.h"
 #include "config.h"
@@ -27,12 +28,28 @@ public:
 public:
 public:
     void run() override {
-        auto worker = create_pool_worker<ReadingsWorker>(false);
-        get_ipc()->launch_worker(worker);
+        get_ipc()->launch_worker(create_pool_worker<ReadingsWorker>(false));
     }
 
     const char *toString() const override {
         return "readings";
+    }
+
+};
+
+class UploadDataTask : public lwcron::CronTask, public SchedulerTask {
+public:
+    UploadDataTask(lwcron::CronSpec cron_spec) : lwcron::CronTask(cron_spec) {
+    }
+
+public:
+public:
+    void run() override {
+        get_ipc()->launch_worker(create_pool_worker<UploadDataWorker>());
+    }
+
+    const char *toString() const override {
+        return "upldata";
     }
 
 };
@@ -76,6 +93,7 @@ public:
 
 struct CurrentSchedules {
     lwcron::CronSpec readings;
+    lwcron::CronSpec network;
     lwcron::CronSpec gps;
     lwcron::CronSpec lora;
 };
@@ -85,6 +103,7 @@ static CurrentSchedules get_config_schedules() {
 
     return {
         gs.get()->scheduler.readings.cron,
+        gs.get()->scheduler.network.cron,
         gs.get()->scheduler.gps.cron,
         gs.get()->scheduler.lora.cron,
     };
@@ -93,6 +112,7 @@ static CurrentSchedules get_config_schedules() {
 static bool configuration_changed(CurrentSchedules &running) {
     auto config = get_config_schedules();
     return config.readings != running.readings ||
+           config.network != running.network ||
            config.gps != running.gps ||
            config.lora != running.lora;
 }
@@ -106,10 +126,11 @@ void task_handler_scheduler(void *params) {
         auto schedules = get_config_schedules();
 
         ReadingsTask readings_job{ schedules.readings };
+        UploadDataTask upload_data_job{ schedules.network };
         LoraTask lora_job{ schedules.lora };
         GpsTask gps_job{ schedules.gps };
 
-        lwcron::Task *tasks[3] { &readings_job, &lora_job, &gps_job };
+        lwcron::Task *tasks[4] { &readings_job, &upload_data_job, &lora_job, &gps_job };
         lwcron::Scheduler scheduler{ tasks };
 
         scheduler.begin( get_clock_now() );
