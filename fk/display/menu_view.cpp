@@ -105,7 +105,7 @@ MenuView::MenuView(ViewController *views, Pool &pool) : pool_(&pool), views_(vie
         // NOTE Fancy way of deselecting ourselves.
         // Could be selected from another back operation.
         for (auto i = 0; active_menu_->options[i] != nullptr; ++i) {
-            active_menu_->options[i]->selected_ = false;
+            // active_menu_->options[i]->selected_ = false;
         }
         if (previous_menu_ == nullptr || previous_menu_ == active_menu_) {
             active_menu_ = goto_menu(main_menu_);

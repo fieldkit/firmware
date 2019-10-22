@@ -27,6 +27,7 @@ public:
     }
 
     virtual ~HttpConnection() {
+        nc_->get()->stop();
         delete nc_;
     }
 
