@@ -50,7 +50,7 @@ $(BUILD)/samd09: setup
 
 samd51: $(BUILD)/samd51 $(BUILD)/samd51-pic
 	cd $(BUILD)/samd51 && $(MAKE)
-	cd $(BUILD)/samd51-pic && $(MAKE)
+	# cd $(BUILD)/samd51-pic && $(MAKE)
 
 samd09: $(BUILD)/samd09
 	cd $(BUILD)/samd09 && $(MAKE)
