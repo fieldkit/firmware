@@ -49,7 +49,7 @@ void ConnectionPool::service(HttpRouter &router) {
 
                 update_statistics(c);
 
-                if (activity_elapsed < FiveSecondsMs) {
+                if (activity_elapsed < NetworkConnectionMaximumDuration) {
                     loginfo("[%" PRIu32 "] [%zd] active (%" PRIu32 "ms) (%" PRIu32 "ms) (%" PRIu32 " down) (%" PRIu32 " up)", c->number_, i, activity_elapsed, started_elapsed, c->bytes_rx_, c->bytes_tx_);
                 }
                 else {
@@ -131,8 +131,8 @@ bool Connection::service(HttpRouter &router) {
 
     if (!req_.have_headers() && conn_->available()) {
         if (buffer_ == nullptr) {
-            size_ = HttpdConnectionBufferSize;
-            buffer_ = (uint8_t *)pool_->malloc(HttpdConnectionBufferSize);
+            size_ = HttpConnectionBufferSize;
+            buffer_ = (uint8_t *)pool_->malloc(HttpConnectionBufferSize);
             position_ = 0;
         }
 
