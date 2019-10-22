@@ -14,6 +14,12 @@ namespace fk {
 
 FK_DECLARE_LOGGER("sdupgrade");
 
+#if defined(linux)
+fkb_header_t *fkb_try_header(void *ptr) {
+    return nullptr;
+}
+#endif
+
 UpgradeFirmwareFromSdWorker::UpgradeFirmwareFromSdWorker(SdCardFirmwareOperation op) : op_(op) {
 }
 

@@ -37,7 +37,6 @@ public:
 
     void log_other_firmware();
 
-
 };
 
 }
