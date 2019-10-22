@@ -10,6 +10,7 @@
 #include "upgrade_from_sd_worker.h"
 #include "dump_flash_memory_worker.h"
 #include "download_firmware_worker.h"
+#include "compare_banks_worker.h"
 
 namespace fk {
 
@@ -167,20 +168,17 @@ void MenuView::create_modules_menu() {
     auto modules_water = to_lambda_option(pool_, "Water", [=]() {
         back_->on_selected();
         views_->show_module_status();
-        auto worker = create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, ConfigureModuleKind::Water);
-        get_ipc()->launch_worker(worker);
+        get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, ConfigureModuleKind::Water));
     });
     auto modules_weather = to_lambda_option(pool_, "Weather", [=]() {
         back_->on_selected();
         views_->show_module_status();
-        auto worker = create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, ConfigureModuleKind::Weather);
-        get_ipc()->launch_worker(worker);
+        get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, ConfigureModuleKind::Weather));
     });
     auto modules_ultrasonic = to_lambda_option(pool_, "Ultrasonic", [=]() {
         back_->on_selected();
         views_->show_module_status();
-        auto worker = create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, ConfigureModuleKind::Ultrasonic);
-        get_ipc()->launch_worker(worker);
+        get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, ConfigureModuleKind::Ultrasonic));
     });
 
     module_menu_ = new_menu_screen<4>(pool_, {
@@ -207,26 +205,27 @@ void MenuView::create_tools_menu() {
     auto tools_dump_flash = to_lambda_option(pool_, "Flash -> SD", [=]() {
         back_->on_selected();
         views_->show_home();
-        auto worker = create_pool_worker<DumpFlashMemory>();
-        get_ipc()->launch_worker(worker);
+        get_ipc()->launch_worker(create_pool_worker<DumpFlashMemory>());
     });
     auto tools_save_firmware_sd = to_lambda_option(pool_, "Firmware -> SD", [=]() {
         back_->on_selected();
         views_->show_home();
-        auto worker = create_pool_worker<UpgradeFirmwareFromSdWorker>(SdCardFirmwareOperation::Save);
-        get_ipc()->launch_worker(worker);
+        get_ipc()->launch_worker(create_pool_worker<UpgradeFirmwareFromSdWorker>(SdCardFirmwareOperation::Save));
     });
     auto tools_load_firmware_sd = to_lambda_option(pool_, "SD -> Firmware", [=]() {
         back_->on_selected();
         views_->show_home();
-        auto worker = create_pool_worker<UpgradeFirmwareFromSdWorker>(SdCardFirmwareOperation::Load);
-        get_ipc()->launch_worker(worker);
+        get_ipc()->launch_worker(create_pool_worker<UpgradeFirmwareFromSdWorker>(SdCardFirmwareOperation::Load));
     });
     auto tools_fsck = to_lambda_option(pool_, "Run Fsck", [=]() {
         back_->on_selected();
         views_->show_home();
-        auto worker = create_pool_worker<FsckWorker>();
-        get_ipc()->launch_worker(worker);
+        get_ipc()->launch_worker(create_pool_worker<FsckWorker>());
+    });
+    auto tools_compare_banks = to_lambda_option(pool_, "Compare Banks", [=]() {
+        back_->on_selected();
+        views_->show_home();
+        get_ipc()->launch_worker(create_pool_worker<CompareBanksWorker>());
     });
     auto tools_swap_banks = to_lambda_option(pool_, "Swap Banks", [=]() {
         back_->on_selected();
@@ -236,15 +235,14 @@ void MenuView::create_tools_menu() {
     auto tools_factory_reset = to_lambda_option(pool_, "Factory Reset", [=]() {
         back_->on_selected();
         views_->show_home();
-        auto worker = create_pool_worker<FactoryWipeWorker>();
-        get_ipc()->launch_worker(worker);
+        get_ipc()->launch_worker(create_pool_worker<FactoryWipeWorker>());
     });
     auto tools_restart = to_lambda_option(pool_, "Restart", [=]() {
         get_display()->off();
         fk_restart();
     });
 
-    tools_menu_ = new_menu_screen<10>(pool_, {
+    tools_menu_ = new_menu_screen<11>(pool_, {
         back_,
         tools_self_check,
         tools_dump_flash,
@@ -252,6 +250,7 @@ void MenuView::create_tools_menu() {
         tools_load_firmware_sd,
         tools_fsck,
         tools_restart,
+        tools_compare_banks,
         tools_swap_banks,
         tools_format_sd,
         tools_factory_reset,
@@ -293,8 +292,7 @@ void MenuView::create_network_menu() {
     auto network_download_fw = to_lambda_option(pool_, "Upgrade", [=]() {
         back_->on_selected();
         views_->show_home();
-        auto worker = create_pool_worker<DownloadFirmwareWorker>();
-        get_ipc()->launch_worker(worker);
+        get_ipc()->launch_worker(create_pool_worker<DownloadFirmwareWorker>());
     });
 
     network_menu_ = new_menu_screen<4>(pool_, {
