@@ -70,8 +70,9 @@ public:
         auto eeprom_address = OtherBankAddress + BootloaderSize;
         auto position = 0u;
 
-        while (fk_uptime() - connection_->activity() < NetworkConnectionMaximumDuration) {
+        while (true) {
             if (!connection_->service()) {
+                logwarn("disconnected");
                 break;
             }
 
@@ -103,6 +104,11 @@ public:
                         break;
                     }
                 }
+            }
+
+            if (fk_uptime() - connection_->activity() > NetworkConnectionMaximumDuration) {
+                logwarn("inactive");
+                break;
             }
 
             fk_delay(1);
@@ -141,11 +147,15 @@ void DownloadFirmwareWorker::run(Pool &pool) {
     auto server = "192.168.0.100";
     auto port = 8080;
 
+    loginfo("connecting to '%s:%d'", server, port);
+
     auto nc = get_network()->open_connection(server, port);
     if (nc == nullptr) {
         logerror("connection error");
         return;
     }
+
+    loginfo("connected!");
 
     if (false) {
         HttpConnection http_head{ nc };
