@@ -119,19 +119,14 @@ public:
 
 };
 
-class EmptyPool : public Pool {
-public:
-    EmptyPool() : Pool("empty", 0, nullptr, 0) {
-    }
-
-};
-
 Pool *create_pool_inside(const char *name, size_t size);
 
+/*
 #define __POOL_LINE_STR(x) #x
 #define __POOL_LINE(x) __POOL_LINE_STR(x)
 #define PoolHere(var, size) var(__FILE__ ":" __POOL_LINE(__LINE__), size)
 #define StaticPoolHere(size)  StaticPool<size>(__FILE__ ":" __POOL_LINE(__LINE__))
+*/
 
 }
 
