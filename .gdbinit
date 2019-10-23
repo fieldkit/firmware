@@ -37,8 +37,8 @@ class FkSegger(gdb.Command):
     gdb.execute("monitor exec SetRTTSearchRanges 0x20000000 64")
     if False: gdb.execute("load")
     gdb.execute("b Dummy_Handler")
+    gdb.execute("b HardFault_Handler")
     if False:
-      gdb.execute("b HardFault_Handler")
       gdb.execute("b osi_hard_fault_handler")
     gdb.execute("b osi_hard_fault_report")
     gdb.execute("b cm_hard_fault")
