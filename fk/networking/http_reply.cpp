@@ -217,6 +217,7 @@ bool HttpReply::include_status() {
     }
 
     reply_.schedules.readings.interval = gs_->scheduler.readings.interval;
+    reply_.schedules.network.interval = gs_->scheduler.network.interval;
     reply_.schedules.gps.interval = gs_->scheduler.gps.interval;
     reply_.schedules.lora.interval = gs_->scheduler.lora.interval;
 
