@@ -112,7 +112,7 @@ static void copy_cron_spec_from_pb(const char *name, Schedule &cs, fk_data_JobSc
         memcpy(&cs.cron, pbd->buffer, pbd->length);
     }
     cs.interval = pb.interval;
-    loginfo("(loaded) %s interval = %lu", name, cs.interval);
+    loginfo("(loaded) %s interval = %" PRIu32, name, cs.interval);
 }
 
 bool StartupWorker::load_state(Storage &storage, Pool &pool) {
