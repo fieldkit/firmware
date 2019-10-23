@@ -86,7 +86,8 @@ bool MetalIPC::can_launch(WorkerCategory category) {
 
 bool MetalIPC::launch_worker(WorkerCategory category, Worker *worker) {
     if (!can_launch(category)) {
-        logwarn("unable to launch");
+        logwarn("unable to launch, already running");
+        logwarn("deleting 0x%p", worker);
         delete worker;
         return false;
     }
@@ -104,6 +105,7 @@ bool MetalIPC::launch_worker(WorkerCategory category, Worker *worker) {
     }
 
     logwarn("all workers are busy");
+    logwarn("deleting 0x%p", worker);
     delete worker;
     return false;
 }

@@ -39,12 +39,16 @@ public:
     }
 
     virtual ~PoolWorker() {
+        alogf(LogLevels::DEBUG, "debug", "0x%p ~PoolWorker.1", this);
         pool_.block(nullptr, 0);
+        alogf(LogLevels::DEBUG, "debug", "0x%p ~PoolWorker.2", this);
     }
 
 public:
     void operator delete(void *p) {
+        alogf(LogLevels::DEBUG, "debug", "~PoolWorker.delete(0x%p)", p);
         fk_free(p);
+        alogf(LogLevels::DEBUG, "debug", "~PoolWorker.delete(0x%p)", p);
     }
 
 public:
