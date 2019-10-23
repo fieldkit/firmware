@@ -32,8 +32,6 @@ private:
     item_t *head_{ nullptr };
 
 public:
-    void operator=(const collection&) = delete;
-
     explicit collection() {
     }
 
@@ -47,6 +45,15 @@ public:
     }
 
     explicit collection(collection const &o) : pool_(o.pool_), head_(o.head_) {
+    }
+
+public:
+    void operator=(const collection&) = delete;
+
+    collection &operator=(collection &&other) {
+        pool_ = exchange(other.pool_, nullptr);
+        head_ = exchange(other.head_, nullptr);
+        return *this;
     }
 
 public:
@@ -69,13 +76,15 @@ public:
         item_t *iter_;
     };
 
-    collection &operator=(collection &&other) {
-        pool_ = exchange(other.pool_, nullptr);
-        head_ = exchange(other.head_, nullptr);
-        return *this;
+public:
+    iterator begin() const {
+        return iterator(head_);
     }
 
-public:
+    iterator end() const {
+        return iterator(nullptr);
+    }
+
     void add(T value) {
         auto node = pool_->malloc_with<item_t>(std::move(value));
         append(node);
@@ -85,14 +94,6 @@ public:
     void emplace(Args&&... args) {
         auto node = pool_->malloc_with<item_t>(T(std::forward<Args>(args)...));
         append(node);
-    }
-
-    iterator begin() const {
-        return iterator(head_);
-    }
-
-    iterator end() const {
-        return iterator(nullptr);
     }
 
     bool valid() const {
