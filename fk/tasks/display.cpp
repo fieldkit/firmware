@@ -87,6 +87,8 @@ public:
     }
 
     void on_external() override {
+        show_qr_code();
+
         auto worker = create_pool_worker<WifiToggleWorker>(WifiToggleWorker::DesiredState::Enabled);
         get_ipc()->launch_worker(worker);
     }
