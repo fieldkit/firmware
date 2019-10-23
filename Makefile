@@ -4,6 +4,8 @@
 BUILD ?= $(abspath build)
 SHELL := /bin/bash
 OFFLINE := /bin/false
+BUILD_NUMBER ?= none
+PACKAGE = fk-firmware-$(BUILD_NUMBER)
 
 LIBRARY_REPOSITORIES := jlewallen/arduino-osh jlewallen/loading conservify/segger \
 	conservify/phylum conservify/lwstreams conservify/lwcron conservify/arduino-logging \
@@ -83,23 +85,19 @@ fk/data/adjectives.h: fk/data/adjectives.txt
 fk/data/animals.h: fk/data/animals.txt
 	cd fk/data && ./generate.py
 
-package:
-	mkdir -p $(BUILD)/fk-firmware
-	cp tools/flash-core $(BUILD)/fk-firmware
-	cp tools/flash-weather $(BUILD)/fk-firmware
-	cp $(BUILD)/samd51/bootloader/fkbl.elf  $(BUILD)/fk-firmware
-	cp $(BUILD)/samd51/bootloader/fkbl-fkb.bin  $(BUILD)/fk-firmware
-	cp $(BUILD)/samd51/fk/fk-bundled-fkb.elf $(BUILD)/fk-firmware
-	cp $(BUILD)/samd51/fk/fk-bundled-fkb.bin $(BUILD)/fk-firmware
-	cp $(BUILD)/samd09/modules/weather/sidecar/fk-weather-sidecar.elf $(BUILD)/fk-firmware
-	cp $(BUILD)/samd09/modules/weather/sidecar/fk-weather-sidecar.bin $(BUILD)/fk-firmware
-	chmod 644 $(BUILD)/fk-firmware/*
-	chmod 755 $(BUILD)/fk-firmware/flash-*
-	if [ -z $(BUILD_NUMBER) ]; then                                    \
-	cd $(BUILD) && zip -r fk-firmware.zip fk-firmware;                 \
-	else                                                               \
-	cd $(BUILD) && zip -r fk-firmware-$(BUILD_NUMBER).zip fk-firmware; \
-	fi
+package: fw
+	mkdir -p $(BUILD)/$(PACKAGE)
+	cp tools/flash-core $(BUILD)/$(PACKAGE)
+	cp tools/flash-weather $(BUILD)/$(PACKAGE)
+	cp $(BUILD)/samd51/bootloader/fkbl.elf $(BUILD)/$(PACKAGE)
+	cp $(BUILD)/samd51/bootloader/fkbl-fkb.bin $(BUILD)/$(PACKAGE)
+	cp $(BUILD)/samd51/fk/fk-bundled-fkb.elf $(BUILD)/$(PACKAGE)
+	cp $(BUILD)/samd51/fk/fk-bundled-fkb.bin $(BUILD)/$(PACKAGE)
+	cp $(BUILD)/samd09/modules/weather/sidecar/fk-weather-sidecar.elf $(BUILD)/$(PACKAGE)
+	cp $(BUILD)/samd09/modules/weather/sidecar/fk-weather-sidecar.bin $(BUILD)/$(PACKAGE)
+	chmod 644 $(BUILD)/$(PACKAGE)/*
+	chmod 755 $(BUILD)/$(PACKAGE)/flash-*
+	cd $(BUILD) && zip -r $(PACKAGE).zip $(PACKAGE)
 
 dependencies: libraries/done
 
