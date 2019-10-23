@@ -150,12 +150,15 @@ bool MetalModMux::power_cycle(uint8_t position) {
 }
 
 bool MetalModMux::choose(uint8_t position) {
-    if (!available_) {
-        return false;
+    if (position == VirtualPosition) {
+        if (!available_) {
+            return true;
+        }
+        return choose_nothing();
     }
 
-    if (position == VirtualPosition) {
-        return choose_nothing();
+    if (!available_) {
+        return false;
     }
 
     if (active_module_ == position) {
@@ -195,7 +198,7 @@ bool MetalModMux::choose(uint8_t position) {
 
 bool MetalModMux::choose_nothing() {
     if (!available_) {
-        return false;
+        return true;
     }
 
     if (active_module_ == NoModuleSelected) {
