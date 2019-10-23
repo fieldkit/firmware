@@ -82,7 +82,7 @@ public:
     template<typename T>
     T *malloc_with(T &&value) {
         auto ptr = (T *)malloc(sizeof(T));
-        *ptr = value;
+        *ptr = std::move(value);
         return ptr;
     }
 
@@ -134,8 +134,6 @@ Pool *create_pool_inside(const char *name, size_t size);
 #define StaticPoolHere(size)  StaticPool<size>(__FILE__ ":" __POOL_LINE(__LINE__))
 
 }
-
-#include "pool_allocator.h"
 
 /**
  * New operator that allocates from a memory pool. Note that this is global

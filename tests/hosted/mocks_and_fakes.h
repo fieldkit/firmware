@@ -98,4 +98,9 @@ public:
     }
 };
 
+template<typename T>
+tl::expected<T, Error> as_expected(T e) {
+    return tl::expected<T, Error>(e);
+}
+
 }

@@ -40,7 +40,7 @@ static bool add_virtual_module(FoundModuleCollection &headers, uint16_t kind) {
 
     generate_unique_virtual_module_id(header);
 
-    headers.emplace_back(FoundModule{
+    headers.emplace(FoundModule{
         .position = ModMux::VirtualPosition,
         .valid = true,
         .header = header,
@@ -68,7 +68,7 @@ tl::expected<FoundModuleCollection, Error> ModuleScanning::scan(Pool &pool) {
     }
 
     if (!available()) {
-        return found;
+        return std::move(found);
     }
 
     DebuggerOfLastResort::get()->message("scanning");
@@ -95,7 +95,7 @@ tl::expected<FoundModuleCollection, Error> ModuleScanning::scan(Pool &pool) {
             auto expected = fk_module_header_sign(&header);
             logerror("[%d] invalid header (%" PRIx32 " != %" PRIx32 ")", i, expected, header.crc);
             fk_dump_memory("HDR ", (uint8_t *)&header, sizeof(header));
-            found.emplace_back(FoundModule{
+            found.emplace(FoundModule{
                 .position = (uint8_t)i,
                 .valid = false,
                 .header = header,
@@ -108,7 +108,7 @@ tl::expected<FoundModuleCollection, Error> ModuleScanning::scan(Pool &pool) {
 
         loginfo("[%d] mk=%02" PRIx32 "%02" PRIx32 " v%" PRIu32 " %s", i, header.manufacturer, header.kind, header.version, pretty_id.str);
 
-        found.emplace_back(FoundModule{
+        found.emplace(FoundModule{
             .position = (uint8_t)i,
             .valid = true,
             .header = header,
@@ -117,12 +117,12 @@ tl::expected<FoundModuleCollection, Error> ModuleScanning::scan(Pool &pool) {
 
     if (!mm_->choose_nothing()) {
         logerror("[-] error deselecting");
-        return found;
+        return std::move(found);
     }
 
     loginfo("done (%zd modules)", found.size());
 
-    return found;
+    return std::move(found);
 }
 
 bool ModuleScanning::configure(uint8_t position, ModuleHeader &header) {

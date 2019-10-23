@@ -32,7 +32,7 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(
     record_.readings.location.hdop = gs->gps.hdop;
 
     if (modules.size() == 0) {
-        return all_readings;
+        return std::move(all_readings);
     }
 
     auto groups = pool.malloc<fk_data_SensorGroup>(modules.size());
@@ -87,7 +87,7 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(
         group.readings.arg = readings_array;
         group_number++;
 
-        all_readings.emplace_back(ModuleMetaAndReadings{
+        all_readings.emplace(ModuleMetaAndReadings{
             .position = pair.found.position,
             .id = (fk_uuid_t *)pool.copy(&pair.found.header.id, sizeof(pair.found.header.id)),
             .meta = meta,
@@ -107,10 +107,10 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(
 
     if (!mm_->choose_nothing()) {
         logerror("[-] error deselecting");
-        return all_readings;
+        return std::move(all_readings);
     }
 
-    return all_readings;
+    return std::move(all_readings);
 }
 
 fk_data_DataRecord &Readings::record() {

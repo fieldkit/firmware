@@ -69,7 +69,7 @@ static void setup_fake_data() {
     for (size_t i = 0; i < 1000 / fk_config().readings.amplification; ++i) {
         MallocPool pool{ "readings", 4096 };
         FoundModuleCollection found(pool);
-        found.emplace_back(FoundModule{
+        found.emplace(FoundModule{
                 .position = 0xff,
                 .valid = true,
                 .header = {

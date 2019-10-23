@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common.h"
-#include "containers.h"
+#include "collections.h"
 #include "config.h"
 #include "hal/modmux.h"
 #include "pool.h"
@@ -19,7 +19,7 @@ struct FoundModule {
     }
 };
 
-using FoundModuleCollection = std::list<FoundModule, pool_allocator<FoundModule>>;
+using FoundModuleCollection = collection<FoundModule>;
 
 class ModuleScanning {
 private:
@@ -47,7 +47,7 @@ public:
 
 public:
     tl::expected<FoundModuleCollection, Error> scan(Pool &pool) override {
-        return found_;
+        return FoundModuleCollection(found_);
     }
 };
 

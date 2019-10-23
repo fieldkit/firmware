@@ -5,7 +5,7 @@
 #include "common.h"
 #include "config.h"
 #include "pool.h"
-#include "containers.h"
+#include "collections.h"
 #include "modules/module_factory.h"
 #include "modules/shared/uuid.h"
 #include "platform.h"
@@ -41,7 +41,7 @@ struct ModuleMetaAndReadings {
     ModuleReadings const *readings;
 };
 
-using ModuleReadingsCollection = std::list<ModuleMetaAndReadings , pool_allocator<ModuleMetaAndReadings>>;
+using ModuleReadingsCollection = collection<ModuleMetaAndReadings>;
 
 struct TakenReadings {
     uint32_t time;
@@ -53,11 +53,11 @@ struct TakenReadings {
     }
 
     TakenReadings(uint32_t time, uint32_t number, ModuleReadingsCollection readings) :
-        time(time), number(number), readings(readings) {
+        time(time), number(number), readings(std::move(readings)) {
     }
 
     TakenReadings(uint32_t time, uint32_t number, ConstructedModulesCollection constructed_modules, ModuleReadingsCollection readings) :
-        time(time), number(number), constructed_modules(constructed_modules), readings(readings) {
+        time(time), number(number), constructed_modules(std::move(constructed_modules)), readings(std::move(readings)) {
     }
 };
 
@@ -73,7 +73,7 @@ struct ModulesState {
     }
 
     TakenReadings taken() {
-        return { readings_time, readings_number, readings };
+        return { readings_time, readings_number, ModuleReadingsCollection(readings) };
     }
 };
 

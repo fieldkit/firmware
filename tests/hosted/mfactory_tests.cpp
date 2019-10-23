@@ -19,7 +19,7 @@ TEST_F(ModuleFactorySuite, WithNoModules) {
     FoundModuleCollection found(pool_);
 
     MockModuleScanning scanning;
-    EXPECT_CALL(scanning, scan(_)).WillOnce(Return(found));
+    EXPECT_CALL(scanning, scan(_)).WillOnce(Return(as_expected(FoundModuleCollection(found))));
 
     ModuleFactory module_factory;
     GlobalState gs;
@@ -30,7 +30,7 @@ TEST_F(ModuleFactorySuite, WithNoModules) {
 
 TEST_F(ModuleFactorySuite, BasicSingleModule) {
     FoundModuleCollection found(pool_);
-    found.emplace_back(FoundModule{
+    found.emplace(FoundModule{
         .position = 0xff,
         .valid = true,
         .header = {
@@ -41,7 +41,7 @@ TEST_F(ModuleFactorySuite, BasicSingleModule) {
     });
 
     MockModuleScanning scanning;
-    EXPECT_CALL(scanning, scan(_)).WillOnce(Return(found));
+    EXPECT_CALL(scanning, scan(_)).WillOnce(Return(as_expected(FoundModuleCollection(found))));
 
     ModuleFactory module_factory;
     GlobalState gs;

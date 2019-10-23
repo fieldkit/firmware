@@ -39,7 +39,7 @@ TEST_F(ReadingsTakingSuite, WithNoModules) {
     FoundModuleCollection found(pool_);
 
     MockModuleScanning scanning;
-    EXPECT_CALL(scanning, scan(_)).WillOnce(Return(found));
+    EXPECT_CALL(scanning, scan(_)).WillOnce(Return(as_expected(FoundModuleCollection(found))));
 
     ReadingsTaker readings_taker{ scanning, storage, get_modmux(), false };
     ASSERT_TRUE(readings_taker.take(ctx, pool_));
@@ -53,7 +53,7 @@ TEST_F(ReadingsTakingSuite, BasicSingleModule) {
     FK_ASSERT(storage.clear());
 
     FoundModuleCollection found(pool_);
-    found.emplace_back(FoundModule{
+    found.emplace(FoundModule{
         .position = 0xff,
         .valid = true,
         .header = {
@@ -64,7 +64,7 @@ TEST_F(ReadingsTakingSuite, BasicSingleModule) {
     });
 
     MockModuleScanning scanning;
-    EXPECT_CALL(scanning, scan(_)).WillOnce(Return(found));
+    EXPECT_CALL(scanning, scan(_)).WillOnce(Return(as_expected(FoundModuleCollection(found))));
 
     ReadingsTaker readings_taker{ scanning, storage, get_modmux(), false };
     ASSERT_TRUE(readings_taker.take(ctx, pool_));
@@ -78,7 +78,7 @@ TEST_F(ReadingsTakingSuite, BasicTwoModules) {
     FK_ASSERT(storage.clear());
 
     FoundModuleCollection found(pool_);
-    found.emplace_back(FoundModule{
+    found.emplace(FoundModule{
         .position = 0xff,
         .valid = true,
         .header = {
@@ -87,7 +87,7 @@ TEST_F(ReadingsTakingSuite, BasicTwoModules) {
             .version = 0x02,
         }
     });
-    found.emplace_back(FoundModule{
+    found.emplace(FoundModule{
         .position = 0xff,
         .valid = true,
         .header = {
@@ -98,7 +98,7 @@ TEST_F(ReadingsTakingSuite, BasicTwoModules) {
     });
 
     MockModuleScanning scanning;
-    EXPECT_CALL(scanning, scan(_)).WillOnce(Return(found));
+    EXPECT_CALL(scanning, scan(_)).WillOnce(Return(as_expected(FoundModuleCollection(found))));
 
     ReadingsTaker readings_taker{ scanning, storage, get_modmux(), false };
     ASSERT_TRUE(readings_taker.take(ctx, pool_));
@@ -112,7 +112,7 @@ TEST_F(ReadingsTakingSuite, AssignsRecordIndices) {
     FK_ASSERT(storage.clear());
 
     FoundModuleCollection one_module(pool_);
-    one_module.emplace_back(FoundModule{
+    one_module.emplace(FoundModule{
         .position = 0xff,
         .valid = true,
         .header = {
@@ -123,7 +123,7 @@ TEST_F(ReadingsTakingSuite, AssignsRecordIndices) {
     });
 
     FoundModuleCollection two_modules(pool_);
-    two_modules.emplace_back(FoundModule{
+    two_modules.emplace(FoundModule{
         .position = 0xff,
         .valid = true,
         .header = {
@@ -132,7 +132,7 @@ TEST_F(ReadingsTakingSuite, AssignsRecordIndices) {
             .version = 0x02,
         }
     });
-    two_modules.emplace_back(FoundModule{
+    two_modules.emplace(FoundModule{
         .position = 0xff,
         .valid = true,
         .header = {
@@ -144,13 +144,12 @@ TEST_F(ReadingsTakingSuite, AssignsRecordIndices) {
 
     MockModuleScanning scanning;
     EXPECT_CALL(scanning, scan(_))
-        .WillOnce(Return(one_module))
-        .WillOnce(Return(two_modules))
-        .WillOnce(Return(two_modules))
-        .WillOnce(Return(one_module))
-        .WillOnce(Return(one_module))
-        .WillOnce(Return(two_modules));
-
+        .WillOnce(Return(as_expected(FoundModuleCollection(one_module))))
+        .WillOnce(Return(as_expected(FoundModuleCollection(two_modules))))
+        .WillOnce(Return(as_expected(FoundModuleCollection(two_modules))))
+        .WillOnce(Return(as_expected(FoundModuleCollection(one_module))))
+        .WillOnce(Return(as_expected(FoundModuleCollection(one_module))))
+        .WillOnce(Return(as_expected(FoundModuleCollection(two_modules))));
     ReadingsTaker readings_taker{ scanning, storage, get_modmux(), false };
     ASSERT_TRUE(readings_taker.take(ctx, pool_));
     ASSERT_TRUE(readings_taker.take(ctx, pool_));

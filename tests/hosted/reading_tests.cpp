@@ -78,7 +78,7 @@ TEST_F(ReadingsSuite, TakingReadingsModuleWithNoReadings) {
     TwoWireWrapper module_bus{ "modules", nullptr };
     ScanningContext ctx{ get_modmux(), &gs, module_bus };
     ConstructedModulesCollection resolved(pool);
-    resolved.emplace_back(ConstructedModule{
+    resolved.emplace(ConstructedModule{
         .found = { },
         .meta = &fk_test_module_fake_empty,
         .module = fk_test_module_fake_empty.ctor(pool),
@@ -99,7 +99,7 @@ TEST_F(ReadingsSuite, TakingReadingsOneModule) {
     TwoWireWrapper module_bus{ "modules", nullptr };
     ScanningContext ctx{ get_modmux(), &gs, module_bus };
     ConstructedModulesCollection resolved(pool);
-    resolved.emplace_back(ConstructedModule{
+    resolved.emplace(ConstructedModule{
         .found = { },
         .meta = &fk_test_module_fake_1,
         .module = fk_test_module_fake_1.ctor(pool),
@@ -120,12 +120,12 @@ TEST_F(ReadingsSuite, TakingReadingsTwoModules) {
     TwoWireWrapper module_bus{ "modules", nullptr };
     ScanningContext ctx{ get_modmux(), &gs, module_bus };
     ConstructedModulesCollection resolved(pool);
-    resolved.emplace_back(ConstructedModule{
+    resolved.emplace(ConstructedModule{
         .found = { },
         .meta = &fk_test_module_fake_1,
         .module = fk_test_module_fake_1.ctor(pool),
     });
-    resolved.emplace_back(ConstructedModule{
+    resolved.emplace(ConstructedModule{
         .found = { },
         .meta = &fk_test_module_fake_2,
         .module = fk_test_module_fake_2.ctor(pool),

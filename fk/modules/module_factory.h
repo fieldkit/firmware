@@ -16,7 +16,7 @@ struct ConstructedModule {
     bool initialized;
 };
 
-using ConstructedModulesCollection = std::list<ConstructedModule, pool_allocator<ConstructedModule>>;
+using ConstructedModulesCollection = collection<ConstructedModule>;
 
 class ModuleFactory {
 private:
@@ -33,7 +33,7 @@ public:
     tl::expected<ConstructedModulesCollection, Error> create(ModuleScanning &scanning, ScanningContext &ctx, Pool &pool);
 
 private:
-    bool recreate(ScanningContext &ctx, FoundModuleCollection module_headers);
+    bool recreate(ScanningContext &ctx, FoundModuleCollection &module_headers);
 
 };
 

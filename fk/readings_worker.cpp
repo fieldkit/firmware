@@ -36,7 +36,7 @@ void ReadingsWorker::run(Pool &pool) {
     for (auto &m : all_readings) {
         auto sensors = data_pool->malloc<SensorState>(m.sensors->nsensors);
 
-        modules->readings.emplace_back(ModuleMetaAndReadings{
+        modules->readings.emplace(ModuleMetaAndReadings{
                 .position = m.position,
                 .id = nullptr,
                 .meta = m.meta,

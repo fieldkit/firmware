@@ -2,6 +2,7 @@
 
 #include "pool.h"
 #include "worker.h"
+#include "collections.h"
 
 using namespace fk;
 
@@ -68,4 +69,63 @@ public:
 TEST_F(PoolSuite, Workers) {
     auto worker = create_pool_wrapper<SimpleWorker>();
     delete worker;
+}
+
+struct complex_object_t {
+    int32_t value1;
+    int32_t value2;
+};
+
+struct nested_collection_t {
+    int32_t value1;
+    collection<uint32_t> numbers;
+
+    nested_collection_t(int32_t v, collection<uint32_t> &&n) : value1(v), numbers(std::move(n)) {
+    }
+};
+
+TEST_F(PoolSuite, Collections) {
+    StaticPool<2048> pool("Pool");
+    collection<uint32_t> integers{ pool };
+    integers.add(100);
+    integers.add(200);
+    integers.add(300);
+
+    for (auto i : integers) {
+        printf("%d\n", i);
+    }
+
+    printf("%zd / %zd\n", pool.used(), pool.size());
+
+    collection<complex_object_t> objects{ pool };
+    objects.add({
+        .value1 = 100,
+        .value2 = 200,
+    });
+    objects.add({
+        .value1 = 300,
+        .value2 = 400,
+    });
+    for (auto &o : objects) {
+        printf("%d, %d\n", o.value1, o.value2);
+    }
+
+    collection<complex_object_t> ctor_moved{ std::move(objects) };
+
+    for (auto &o : ctor_moved) {
+        printf("%d, %d\n", o.value1, o.value2);
+    }
+
+    collection<complex_object_t> assigned_moved{ pool };
+
+    assigned_moved = std::move(ctor_moved);
+
+    for (auto &o : assigned_moved) {
+        printf("%d, %d\n", o.value1, o.value2);
+    }
+
+    collection<nested_collection_t> nested{ pool };
+
+    // nested.add({ 0, std::move(integers) });
+    nested.emplace(0, std::move(integers));
 }

@@ -35,12 +35,10 @@ tl::expected<ConstructedModulesCollection, Error> ModuleFactory::create(ModuleSc
         logdebug("keep modules");
     }
 
-    ConstructedModulesCollection constructed{ pool };
-    constructed = modules_;
-    return constructed;
+    return ConstructedModulesCollection(modules_);
 }
 
-bool ModuleFactory::recreate(ScanningContext &ctx, FoundModuleCollection module_headers) {
+bool ModuleFactory::recreate(ScanningContext &ctx, FoundModuleCollection &module_headers) {
     loginfo("constructing modules");
 
     clear();
@@ -50,7 +48,7 @@ bool ModuleFactory::recreate(ScanningContext &ctx, FoundModuleCollection module_
         auto meta = registry.resolve(f.header);
         if (meta != nullptr) {
             auto module = meta->ctor(pool_);
-            modules_.emplace_back(ConstructedModule{
+            modules_.emplace(ConstructedModule{
                 .found = f,
                 .meta = meta,
                 .module = module,
@@ -60,7 +58,7 @@ bool ModuleFactory::recreate(ScanningContext &ctx, FoundModuleCollection module_
         else {
             logwarn("no such module!");
 
-            modules_.emplace_back(ConstructedModule{
+            modules_.emplace(ConstructedModule{
                 .found = f,
                 .meta = nullptr,
                 .module = nullptr,
@@ -97,8 +95,8 @@ bool ModuleFactory::recreate(ScanningContext &ctx, FoundModuleCollection module_
 }
 
 void ModuleFactory::clear() {
-    modules_.clear();
     pool_.clear();
+    modules_ = { pool_ };
 }
 
 }
