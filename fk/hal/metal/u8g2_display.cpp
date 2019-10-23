@@ -288,10 +288,13 @@ static bool xbm_get(uint8_t x, uint8_t y, size_t size, uint8_t *data) {
 }
 
 void U8g2Display::qr(QrCodeScreen const &screen) {
-    auto x0 = (OLED_WIDTH - (screen.size * 2)) / 2;
-    auto y0 = 0; // (OLED_HEIGHT - (screen.size * 2)) / 2;
     draw_.setPowerSave(0);
+    // draw_.setDrawColor(1);
     draw_.clearBuffer();
+    // draw_.drawBox(0, 0, OLED_WIDTH, OLED_HEIGHT);
+    // draw_.setDrawColor(0);
+    auto x0 = (OLED_WIDTH - (screen.size * 2)) / 2;
+    auto y0 = (OLED_HEIGHT - (screen.size * 2)) / 2;
     for (size_t x = 0; x < screen.size; ++x) {
         for (size_t y = 0; y < screen.size; ++y) {
             if (xbm_get(x, y, screen.size, screen.data)) {
@@ -300,6 +303,7 @@ void U8g2Display::qr(QrCodeScreen const &screen) {
         }
     }
     draw_.sendBuffer();
+    // draw_.setDrawColor(0);
 }
 
 void U8g2Display::self_check(SelfCheckScreen const &screen) {

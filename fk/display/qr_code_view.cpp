@@ -11,6 +11,8 @@
 
 namespace fk {
 
+FK_DECLARE_LOGGER("qrcode");
+
 QrCodeView::QrCodeView(WhichQrCode which) : which_(which) {
 }
 
@@ -39,12 +41,14 @@ void QrCodeView::tick(ViewController *views) {
     case WhichQrCode::DeviceId: {
         fk_serial_number_t sn;
         fk_serial_number_get(&sn);
-        qrcode_initBytes(&qr, data, version, ECC_LOW, (uint8_t *)&sn, sizeof(sn));
+        qrcode_initBytes(&qr, data, version, ECC_MEDIUM, (uint8_t *)&sn, sizeof(sn));
+        loginfo("generating qr: <device id>");
         break;
     }
     case WhichQrCode::Name: {
         if (fk_device_name_printf(text_, sizeof(text_)) != nullptr) {
-            qrcode_initText(&qr, data, 2, ECC_LOW, text_);
+            qrcode_initText(&qr, data, version, ECC_MEDIUM, text_);
+            loginfo("generating qr: %s", text_);
         }
         break;
     }
