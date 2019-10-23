@@ -65,7 +65,6 @@ public:
     }
 
     void clear();
-    void *malloc(size_t size);
     void *copy(void const *ptr, size_t size);
     char *strdup(const char *str);
     char *strndup(const char *str, size_t len);
@@ -73,6 +72,8 @@ public:
     Pool freeze(const char *name);
     EncodedMessage *encode(pb_msgdesc_t const *fields, void const *src, bool delimited = true);
     void *decode(pb_msgdesc_t const *fields, uint8_t *src, size_t size, size_t message_size);
+
+    virtual void *malloc(size_t size);
 
     template<typename T>
     T *malloc() {
@@ -120,6 +121,8 @@ public:
 };
 
 Pool *create_pool_inside(const char *name, size_t size);
+
+Pool *create_chained_pool_inside(const char *name, size_t size);
 
 /*
 #define __POOL_LINE_STR(x) #x

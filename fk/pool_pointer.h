@@ -72,4 +72,46 @@ inline W *create_pool_wrapper(Args &&... args) {
     return wrapper;
 }
 
+template<typename Wrapped, typename ConcreteWraped = Wrapped, class... Args>
+class ChainedPoolWrapper : public PoolPointer<Wrapped> {
+private:
+    Pool *pool_;
+    ConcreteWraped wrapped_;
+
+public:
+    ChainedPoolWrapper(Pool *pool, Args&&... args) : pool_(pool), wrapped_(std::forward<Args>(args)...) {
+    }
+
+    virtual ~ChainedPoolWrapper() {
+        delete pool_;
+    }
+
+public:
+    void operator delete(void *p) {
+        // We are freed automatically when the pool is deleted in our
+        // destructor. So we don't need to do anything in here.
+    }
+
+public:
+    Pool *pool() override {
+        return pool_;
+    }
+
+    Wrapped *get() override {
+        return &wrapped_;
+    }
+
+};
+
+template<typename Wrapped, typename Wrapee = PoolPointer<Wrapped>, typename ConcreteWrapped = Wrapped, typename ConcreteWrapee = ChainedPoolWrapper<Wrapped, ConcreteWrapped>, size_t Size = DefaultWorkerPoolSize, class... Args>
+inline PoolPointer<Wrapped> *create_chained_pool_wrapper(Args &&... args) {
+    auto block = (uint8_t *)fk_malloc(Size);
+    FK_ASSERT(block != nullptr);
+
+    auto pool = create_chained_pool_inside("pool", DefaultWorkerPoolSize);
+    auto wrapper = new (pool) ConcreteWrapee(pool, std::forward<Args>(args)...);
+    return wrapper;
+}
+
+
 }

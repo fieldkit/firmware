@@ -52,9 +52,16 @@ TEST_F(PoolSuite, Subpool) {
     ASSERT_FALSE(pool.frozen());
 }
 
-class SimpleWorker {
+class SimpleWorker : public Worker {
 public:
-    void run(Pool &pool)  {
+    SimpleWorker() {
+    }
+
+    SimpleWorker(Pool *pool) {
+    }
+
+public:
+    void run() override {
     }
 
     uint8_t priority() const {
@@ -128,4 +135,27 @@ TEST_F(PoolSuite, Collections) {
 
     // nested.add({ 0, std::move(integers) });
     nested.emplace(0, std::move(integers));
+}
+
+TEST_F(PoolSuite, ChainedPool) {
+    auto pool = create_chained_pool_inside("chained", 1024);
+
+    pool->malloc(256);
+    pool->malloc(256);
+    pool->malloc(512);
+    pool->malloc(128);
+    pool->malloc(512);
+    pool->malloc(786);
+
+    delete pool;
+}
+
+TEST_F(PoolSuite, ChainedPoolWrapper) {
+    PoolPointer<SimpleWorker> *wrapped_concrete = create_chained_pool_wrapper<SimpleWorker>();
+
+    PoolPointer<Worker> *wrapped = create_chained_pool_wrapper<Worker, PoolPointer<Worker>, SimpleWorker>();
+
+    delete wrapped;
+
+    delete wrapped_concrete;
 }

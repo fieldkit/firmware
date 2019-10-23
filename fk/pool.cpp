@@ -203,4 +203,54 @@ Pool *create_pool_inside(const char *name, size_t size) {
     return new (ptr) UnownedPool(name, ptr, size, overhead);
 }
 
+class ChainedPool : public Pool {
+private:
+    ChainedPool *sibling_{ nullptr };
+
+public:
+    ChainedPool(const char *name, void *ptr, size_t size, size_t taken);
+    virtual ~ChainedPool();
+
+public:
+    void *malloc(size_t bytes) override;
+
+    bool can_malloc(size_t bytes) const {
+        return (size() - used()) >= aligned_size(bytes);
+    }
+
+};
+
+ChainedPool::ChainedPool(const char *name, void *ptr, size_t size, size_t taken) : Pool(name, size, ptr, taken) {
+}
+
+ChainedPool::~ChainedPool() {
+    if (sibling_ != nullptr) {
+        delete sibling_;
+        sibling_ = nullptr;
+    }
+    printf("[0x%p] ~ChainedPool()\n", this);
+}
+
+void *ChainedPool::malloc(size_t bytes) {
+    if (can_malloc(bytes)) {
+        printf("[0x%p] malloc(%zd)\n", this, bytes);
+        return Pool::malloc(bytes);
+    }
+
+    if (sibling_ == nullptr) {
+        auto ptr = ::malloc(size());
+        auto overhead = sizeof(ChainedPool);
+        sibling_ = new (ptr) ChainedPool(name(), ptr, size(), overhead);
+        printf("[0x%p] create sibling (%zd) = [0x%p]\n", this, bytes, sibling_);
+    }
+
+    return sibling_->malloc(bytes);
+}
+
+Pool *create_chained_pool_inside(const char *name, size_t size) {
+    auto ptr = malloc(size);
+    auto overhead = sizeof(ChainedPool);
+    return new (ptr) ChainedPool(name, ptr, size, overhead);
+}
+
 }
