@@ -29,6 +29,7 @@ private:
     MessageView message_view;
     SelfCheckView self_check_view;
     ModuleStatusView module_status_view;
+    QrCodeView qr_code_view;
     DisplayView *view = &home_view;
 
 public:
@@ -80,6 +81,11 @@ public:
         view->tick(this);
     }
 
+    void show_qr_code() override {
+        view = &qr_code_view;
+        view->show();
+    }
+
     void on_external() override {
         auto worker = create_pool_worker<WifiToggleWorker>(WifiToggleWorker::DesiredState::Enabled);
         get_ipc()->launch_worker(worker);
@@ -90,6 +96,8 @@ public:
         auto can_stop = os_task_is_running(&scheduler_task);
 
         while (!can_stop || fk_uptime() < stop_time) {
+            view->tick(this);
+
             Button *button = nullptr;
             if (get_ipc()->dequeue_button(&button)) {
                 stop_time = fk_uptime() + fk_config().display.inactivity;
@@ -120,8 +128,6 @@ public:
                 }
                 }
             }
-
-            view->tick(this);
         }
     }
 

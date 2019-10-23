@@ -33,7 +33,8 @@ struct SelfCheckStatus {
     CheckStatus spi_memory{ CheckStatus::Pending };
     CheckStatus gps{ CheckStatus::Pending };
     CheckStatus wifi{ CheckStatus::Pending };
-    CheckStatus sd_card{ CheckStatus::Pending };
+    CheckStatus sd_card_open{ CheckStatus::Pending };
+    CheckStatus sd_card_write{ CheckStatus::Pending };
     CheckStatus bp_mux{ CheckStatus::Pending };
     CheckStatus bp_shift{ CheckStatus::Pending };
     CheckStatus lora{ CheckStatus::Pending };
@@ -70,7 +71,8 @@ private:
     bool spi_memory();
     bool gps();
     bool wifi();
-    bool sd_card();
+    bool sd_card_open();
+    bool sd_card_write();
     bool backplane_shift();
     bool backplane_mux();
     bool lora();

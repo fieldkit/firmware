@@ -49,10 +49,12 @@ void SelfCheck::check(SelfCheckSettings settings, SelfCheckCallbacks &callbacks)
     callbacks.update(status);
 
     if (settings.check_sd_card) {
-        status.sd_card = to_status(sd_card());
+        status.sd_card_open = to_status(sd_card_open());
+        status.sd_card_write = to_status(sd_card_write());
     }
     else {
-        status.sd_card = CheckStatus::Unknown;
+        status.sd_card_open = CheckStatus::Unknown;
+        status.sd_card_write = CheckStatus::Unknown;
     }
     callbacks.update(status);
 
@@ -212,13 +214,42 @@ bool SelfCheck::wifi() {
     });
 }
 
-bool SelfCheck::sd_card() {
-    return single_check("sd card", []() {
+bool SelfCheck::sd_card_open() {
+    return single_check("sd card open", []() {
         auto sd_card = get_sd_card();
 
         if (!sd_card->begin()) {
             return false;
         }
+
+        return true;
+    });
+}
+
+bool SelfCheck::sd_card_write() {
+    return single_check("sd card write", []() {
+        MallocPool pool{ "sdw", DefaultWorkerPoolSize };
+
+        auto sd_card = get_sd_card();
+
+        if (!sd_card->begin()) {
+            return false;
+        }
+
+        FormattedTime formatted{ get_clock_now(), TimeFormatMachine };
+        char file_name[strlen(formatted.cstr()) + 4 + 1];
+        tiny_snprintf(file_name, sizeof(file_name), "%s.chk", formatted.cstr());
+
+        auto file = sd_card->open(file_name, true, pool);
+        if (file == nullptr || !file) {
+            logerror("error opening %s", file_name);
+            return false;
+        }
+
+        auto buffer = "Self Check";
+
+        file->write((uint8_t *)buffer, strlen(buffer));
+        file->close();
 
         return true;
     });
