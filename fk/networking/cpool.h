@@ -28,7 +28,7 @@ private:
     bool hex_encoding_{ false };
 
 public:
-    Connection(Pool &pool, NetworkConnection *conn, uint32_t number);
+    Connection(Pool *pool, NetworkConnection *conn, uint32_t number);
     virtual ~Connection();
 
     friend class ConnectionPool;

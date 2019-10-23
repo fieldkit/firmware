@@ -13,7 +13,7 @@ public:
     }
 
 public:
-    virtual MallocPool &pool() = 0;
+    virtual Pool *pool() = 0;
     virtual T *get() = 0;
 
 };
@@ -44,8 +44,8 @@ public:
     }
 
 public:
-    MallocPool &pool() override {
-        return pool_;
+    Pool *pool() override {
+        return &pool_;
     }
 
     T *get() override {

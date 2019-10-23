@@ -110,7 +110,7 @@ void ConnectionPool::free_connection(uint16_t index) {
     pools_[index] = nullptr;
 }
 
-Connection::Connection(Pool &pool, NetworkConnection *conn, uint32_t number) : pool_{ &pool }, conn_(conn), number_(number), req_{ pool_ }, buffer_{ nullptr }, size_{ 0 }, position_{ 0 } {
+Connection::Connection(Pool *pool, NetworkConnection *conn, uint32_t number) : pool_{ pool }, conn_(conn), number_(number), req_{ pool_ }, buffer_{ nullptr }, size_{ 0 }, position_{ 0 } {
     started_ = activity_ = fk_uptime();
 }
 

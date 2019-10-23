@@ -61,7 +61,7 @@ public:
     }
 
     bool copy(Pool &pool) {
-        auto buffer = (uint8_t *)nc_->pool().malloc(CodeMemoryPageSize);
+        auto buffer = (uint8_t *)nc_->pool()->malloc(CodeMemoryPageSize);
         auto total_read = 0u;
         auto success = false;
 
