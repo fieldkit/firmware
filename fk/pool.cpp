@@ -199,7 +199,7 @@ public:
 
 Pool *create_pool_inside(const char *name, size_t size) {
     auto ptr = malloc(size);
-    auto overhead = sizeof(MallocPool);
+    auto overhead = sizeof(UnownedPool);
     return new (ptr) UnownedPool(name, ptr, size, overhead);
 }
 
