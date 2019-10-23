@@ -43,7 +43,7 @@ size_t write_log(LogMessage const *m, const char *fstring, va_list args) {
     }
     else if ((LogLevels)m->level == LogLevels::WARN) {
         color_fs = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_CYAN " %-10s " RTT_CTRL_TEXT_MAGENTA "%-7s %s: ";
-        plain_fs = "%08 %-10s %-7s %s: ";
+        plain_fs = "%08" PRIu32 " %-10s %-7s %s: ";
     }
     else {
         color_fs = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_CYAN " %-10s " RTT_CTRL_TEXT_YELLOW "%-7s %s" RTT_CTRL_RESET ": ";
