@@ -29,6 +29,7 @@ private:
     MessageView message_view;
     SelfCheckView self_check_view;
     ModuleStatusView module_status_view;
+    QrCodeView qr_code_view;
     DisplayView *view = &home_view;
 
 public:
@@ -78,6 +79,11 @@ public:
         view = &message_view;
         view->show();
         view->tick(this);
+    }
+
+    void show_qr_code() override {
+        view = &qr_code_view;
+        view->show();
     }
 
     void on_external() override {

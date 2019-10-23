@@ -134,11 +134,16 @@ void MenuView::create_info_menu() {
         views_->show_build();
         back_->on_selected();
     });
+    auto info_qr_code = to_lambda_option(pool_, "QR Code", [=]() {
+        views_->show_qr_code();
+        back_->on_selected();
+    });
 
-    info_menu_ = new_menu_screen<3>(pool_, {
+    info_menu_ = new_menu_screen<4>(pool_, {
         back_,
         info_build,
         info_name,
+        info_qr_code,
     });
 }
 
