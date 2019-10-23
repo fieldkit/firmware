@@ -8,6 +8,7 @@
 #include "state_ref.h"
 #include "platform.h"
 #include "utilities.h"
+#include "clock.h"
 
 extern const struct fkb_header_t fkb_header;
 
@@ -57,8 +58,11 @@ void HomeView::tick(ViewController *views) {
         break;
     }
     case Visible::Build: {
+        DateTime ts{ fkb_header.firmware.timestamp };
         tiny_snprintf(primary_, sizeof(primary_), "Build #%" PRIu32, fkb_header.firmware.number);
+        tiny_snprintf(secondary_, sizeof(secondary_), "%02d%02d-%02d%02d", ts.month(), ts.day(), ts.hour(), ts.minute());
         screen.primary = primary_;
+        screen.secondary = secondary_;
         break;
     }
     case Visible::Uptime: {
