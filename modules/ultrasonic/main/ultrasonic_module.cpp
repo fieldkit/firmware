@@ -62,16 +62,16 @@ ModuleReadings *UltrasonicModule::take_readings(ModuleContext mc, fk::Pool &pool
         }
 
         if (line != nullptr) {
-            if (line[0] == 'R') {
-                auto value = atof(line + 1);
-                mr->set(nreadings++, value);
-                logdebug("[%d] line: %s", nreadings, line);
+            if (line[0] == 'R' && line[1] != 0) {
+                auto value = atoi(line + 1);
+                mr->set(nreadings++, (float)value);
+                logdebug("[%d] line: %d", nreadings, value);
                 if (nreadings == 3) {
                     break;
                 }
             }
             else {
-                logwarn("[%d] line: %s", nreadings, line);
+                logwarn("[%d] line: '%s'", nreadings, line);
             }
         }
     }
