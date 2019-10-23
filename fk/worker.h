@@ -63,6 +63,7 @@ public:
 public:
     void run() override {
         wrapped_->run(pool_);
+        alogf(LogLevels::INFO, name(), "pool used = %zd/%zd", pool().used(), pool().size());
     }
 
     uint8_t priority() const override {

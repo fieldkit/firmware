@@ -49,7 +49,7 @@ public:
     }
 
     size_t allocated() const {
-        return size_ - remaining_;
+        return used();
     }
 
     size_t size() const {
