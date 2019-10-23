@@ -19,7 +19,7 @@ public:
 private:
     char primary_[64];
     char secondary_[64];
-    uint8_t visible_{ 0 };
+    int8_t visible_{ 0 };
 
 public:
     void tick(ViewController *views) override;

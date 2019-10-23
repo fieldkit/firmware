@@ -76,7 +76,7 @@ void HomeView::tick(ViewController *views) {
 }
 
 void HomeView::up(ViewController *views) {
-    visible_ = (visible_ - 1) % 4;
+    visible_ = (visible_ + 4 - 1) % 4;
 }
 
 void HomeView::down(ViewController *views) {
