@@ -187,12 +187,18 @@ void MenuView::create_modules_menu() {
         views_->show_module_status();
         get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, ConfigureModuleKind::Ultrasonic));
     });
+    auto modules_erase = to_lambda_option(pool_, "Erase", [=]() {
+        back_->on_selected();
+        views_->show_module_status();
+        get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, ConfigureModuleKind::Erase));
+    });
 
-    module_menu_ = new_menu_screen<4>(pool_, {
+    module_menu_ = new_menu_screen<5>(pool_, {
         back_,
         modules_water,
         modules_weather,
         modules_ultrasonic,
+        modules_erase,
     });
 }
 

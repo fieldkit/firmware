@@ -60,6 +60,13 @@ bool ConfigureModuleWorker::configure(Pool &pool) {
             return configurer.ultrasonic(b);
         });
         break;
+    case ConfigureModuleKind::Erase: {
+        configure_bay_and_update_state(bay_, gs.get(), [&](uint8_t b) {
+            loginfo("erasing: %d", b);
+            return configurer.erase(b);
+        });
+        break;
+    }
     } default: {
         break;
     }

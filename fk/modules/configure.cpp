@@ -58,6 +58,17 @@ bool ModuleConfigurer::ultrasonic(uint8_t position) {
     return true;
 }
 
+bool ModuleConfigurer::erase(uint8_t position) {
+    if (!scanning_->erase(position)) {
+        logerror("[%d] unable to configure module", position);
+        return false;
+    }
+
+    loginfo("[%d] erased", position);
+
+    return true;
+}
+
 bool ModuleConfigurer::configure(uint8_t position, ModuleHeader &header) {
     fk_uuid_generate(&header.id);
 

@@ -31,6 +31,7 @@ public:
 public:
     virtual tl::expected<FoundModuleCollection, Error> scan(Pool &pool);
     virtual bool configure(uint8_t position, ModuleHeader &header);
+    virtual bool erase(uint8_t position);
 
 private:
     bool available();

@@ -164,4 +164,26 @@ bool ModuleScanning::configure(uint8_t position, ModuleHeader &header) {
     return true;
 }
 
+bool ModuleScanning::erase(uint8_t position) {
+    if (!available()) {
+        return false;
+    }
+
+    if (!mm_->choose(position)) {
+        logerror("[%d] error choosing module", position);
+        return false;
+    }
+
+    // auto lock = get_board()->lock_eeprom();
+    // auto disabler = DisableModuleOnReturn{ position };
+    auto module_bus = get_board()->i2c_module();
+    ModuleEeprom eeprom{ module_bus };
+
+    fk_delay(50);
+
+    eeprom.erase();
+
+    return true;
+}
+
 }

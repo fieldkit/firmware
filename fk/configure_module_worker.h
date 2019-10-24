@@ -10,6 +10,7 @@ enum class ConfigureModuleKind {
     Weather,
     Water,
     Ultrasonic,
+    Erase,
 };
 
 class ConfigureModuleWorker : public Worker {

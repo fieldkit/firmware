@@ -112,4 +112,19 @@ bool ModuleEeprom::read_data(uint32_t address, void *data, size_t size) {
     return true;
 }
 
+bool ModuleEeprom::erase() {
+    uint8_t page[EepromPageSize];
+
+    memset(page, 0xff, sizeof(page));
+
+    for (auto address = 0u; address < EepromSize; address += EepromPageSize) {
+        if (!write(wire_, address, (uint8_t *)page, sizeof(page))) {
+            logerror("error writing kind");
+            return false;
+        }
+    }
+
+    return true;
+}
+
 }
