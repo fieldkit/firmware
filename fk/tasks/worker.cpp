@@ -13,7 +13,9 @@ void task_handler_worker(void *params) {
 
     auto worker = reinterpret_cast<Worker*>(params);
     auto started = fk_uptime();
-    worker->run();
+    auto pool = create_chained_pool_inside("never-used", DefaultWorkerPoolSize);
+    worker->run(*pool);
+    delete pool;
     delete worker;
 
     loginfo("done (%" PRIu32 "ms)", fk_uptime() - started);

@@ -72,9 +72,9 @@ public:
     }
 };
 
-template<typename Wrapped, typename Wrapee = PoolWorker<Wrapped>, size_t Size = DefaultWorkerPoolSize, class... Args>
+template<typename Wrapped, size_t Size = DefaultWorkerPoolSize, class... Args>
 inline Worker *create_pool_worker(Args &&... args) {
-    return create_chained_pool_wrapper<Wrapped, Worker, Wrapee, Wrapee>(std::forward<Args>(args)...);
+    return create_chained_pool_wrapper<Wrapped, Worker, PoolWorker<Wrapped, Wrapped, Args...>, PoolWorker<Wrapped, Wrapped, Args...>, Size, Args...>(std::forward<Args>(args)...);
 }
 
 }

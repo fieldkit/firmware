@@ -61,7 +61,7 @@ public:
     }
 
 public:
-    void run() override {
+    void run(Pool &pool) override {
     }
 
     uint8_t priority() const {
