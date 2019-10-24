@@ -1,4 +1,5 @@
 #include <loading.h>
+#include <samd51_common.h>
 #include <phylum/blake2b.h>
 
 #include "download_firmware_worker.h"
@@ -185,6 +186,10 @@ void DownloadFirmwareWorker::run(Pool &pool) {
         return;
     }
 
+    GlobalStateManager gsm;
+
+    gsm.notify({ "downloading" });
+
     loginfo("connected!");
 
     if (false) {
@@ -200,8 +205,6 @@ void DownloadFirmwareWorker::run(Pool &pool) {
         loginfo("size: %" PRIu32, http_head.length());
     }
 
-    GlobalStateManager gsm;
-
     HttpConnection http_get{ nc };
     if (!http_get.get(path, server, port)) {
         gsm.notify({ "error!" });
@@ -214,6 +217,8 @@ void DownloadFirmwareWorker::run(Pool &pool) {
     }
 
     gsm.notify({ "success, swap!" });
+
+    fk_nvm_swap_banks();
 }
 
 }
