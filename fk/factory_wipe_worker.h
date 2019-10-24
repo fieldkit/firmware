@@ -4,15 +4,16 @@
 
 namespace fk {
 
-class FactoryWipeWorker {
+class FactoryWipeWorker : public Worker {
 public:
-    void run(Pool &pool);
+    void run(Pool &pool) override;
 
-    uint8_t priority() const {
+public:
+    uint8_t priority() const override {
         return OS_PRIORITY_NORMAL + 1;
     }
 
-    const char *name() {
+    const char *name() override {
         return "wipe";
     }
 

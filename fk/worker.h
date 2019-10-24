@@ -15,7 +15,7 @@ public:
     }
 
 public:
-    virtual void run() = 0;
+    virtual void run(Pool &pool) = 0;
 
     virtual uint8_t priority() const {
         return OS_PRIORITY_NORMAL;
@@ -27,57 +27,54 @@ public:
 
 };
 
-template<typename T>
-class PoolWorker : public Worker {
+template<typename Wrapped, typename ConcreteWrapped = Wrapped, class... Args>
+class PoolWorker : public Worker, public PoolPointer<Wrapped>  {
 private:
-    MallocPool pool_;
-    T *wrapped_;
+    Pool *pool_;
+    ConcreteWrapped wrapped_;
 
 public:
-    PoolWorker(uint8_t *p, size_t size, size_t taken) :
-        pool_(__PRETTY_FUNCTION__, p, size, taken) {
+    PoolWorker(Pool *pool, Args&&... args) : pool_(pool), wrapped_(std::forward<Args>(args)...) {
     }
 
     virtual ~PoolWorker() {
-        alogf(LogLevels::DEBUG, "debug", "0x%p ~PoolWorker.1", this);
-        pool_.block(nullptr, 0);
-        alogf(LogLevels::DEBUG, "debug", "0x%p ~PoolWorker.2", this);
+        delete pool_;
     }
 
 public:
     void operator delete(void *p) {
-        alogf(LogLevels::DEBUG, "debug", "~PoolWorker.delete(0x%p)", p);
-        fk_free(p);
-        alogf(LogLevels::DEBUG, "debug", "~PoolWorker.delete(0x%p)", p);
+        // We are freed automatically when the pool is deleted in our
+        // destructor. So we don't need to do anything in here.
     }
 
 public:
-    void wrapped(T *wrapped) {
-        wrapped_ = wrapped;
-    }
-
-    MallocPool &pool() {
+    Pool *pool() override {
         return pool_;
     }
 
+    Wrapped *get() override {
+        return &wrapped_;
+    }
+
+
 public:
-    void run() override {
-        wrapped_->run(pool_);
-        alogf(LogLevels::INFO, name(), "pool used = %zd/%zd", pool().used(), pool().size());
+    void run(Pool &pool) override {
+        wrapped_.run(*pool_);
+        alogf(LogLevels::INFO, name(), "pool used = %zd/%zd", pool_->used(), pool_->size());
     }
 
     uint8_t priority() const override {
-        return wrapped_->priority();
+        return wrapped_.priority();
     }
 
     const char *name() override {
-        return wrapped_->name();
+        return wrapped_.name();
     }
 };
 
-template<typename T, typename W = PoolWorker<T>, size_t Size = DefaultWorkerPoolSize, class... Args>
-inline W *create_pool_worker(Args &&... args) {
-    return create_pool_wrapper<T, T, W, Size>(std::forward<Args>(args)...);
+template<typename Wrapped, typename Wrapee = PoolWorker<Wrapped>, size_t Size = DefaultWorkerPoolSize, class... Args>
+inline Worker *create_pool_worker(Args &&... args) {
+    return create_chained_pool_wrapper<Wrapped, Worker, Wrapee, Wrapee>(std::forward<Args>(args)...);
 }
 
 }

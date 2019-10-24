@@ -72,11 +72,11 @@ inline W *create_pool_wrapper(Args &&... args) {
     return wrapper;
 }
 
-template<typename Wrapped, typename ConcreteWraped = Wrapped, class... Args>
+template<typename Wrapped, typename ConcreteWrapped = Wrapped, class... Args>
 class ChainedPoolWrapper : public PoolPointer<Wrapped> {
 private:
     Pool *pool_;
-    ConcreteWraped wrapped_;
+    ConcreteWrapped wrapped_;
 
 public:
     ChainedPoolWrapper(Pool *pool, Args&&... args) : pool_(pool), wrapped_(std::forward<Args>(args)...) {
@@ -104,7 +104,7 @@ public:
 };
 
 template<typename Wrapped, typename Wrapee = PoolPointer<Wrapped>, typename ConcreteWrapped = Wrapped, typename ConcreteWrapee = ChainedPoolWrapper<Wrapped, ConcreteWrapped>, size_t Size = DefaultWorkerPoolSize, class... Args>
-inline PoolPointer<Wrapped> *create_chained_pool_wrapper(Args &&... args) {
+inline Wrapee *create_chained_pool_wrapper(Args &&... args) {
     auto block = (uint8_t *)fk_malloc(Size);
     FK_ASSERT(block != nullptr);
 

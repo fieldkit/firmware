@@ -12,7 +12,7 @@ enum class ConfigureModuleKind {
     Ultrasonic,
 };
 
-class ConfigureModuleWorker {
+class ConfigureModuleWorker : public Worker {
 private:
     uint8_t bay_;
     ConfigureModuleKind kind_;
@@ -21,13 +21,14 @@ public:
     ConfigureModuleWorker(uint8_t bay, ConfigureModuleKind kind);
 
 public:
-    void run(Pool &pool);
+    void run(Pool &pool) override;
 
-    uint8_t priority() const {
+public:
+    uint8_t priority() const override {
         return OS_PRIORITY_NORMAL + 1;
     }
 
-    const char *name() {
+    const char *name() override {
         return "modcfg";
     }
 
