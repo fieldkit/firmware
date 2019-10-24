@@ -87,8 +87,8 @@ fk/data/animals.h: fk/data/animals.txt
 
 package: fw
 	mkdir -p $(BUILD)/$(PACKAGE)
-	cp tools/flash-core $(BUILD)/$(PACKAGE)
-	cp tools/flash-weather $(BUILD)/$(PACKAGE)
+	cp tools/flash-* $(BUILD)/$(PACKAGE)
+	cp tools/jlink-* $(BUILD)/$(PACKAGE)
 	cp $(BUILD)/samd51/bootloader/fkbl.elf $(BUILD)/$(PACKAGE)
 	cp $(BUILD)/samd51/bootloader/fkbl-fkb.bin $(BUILD)/$(PACKAGE)
 	cp $(BUILD)/samd51/fk/fk-bundled-fkb.elf $(BUILD)/$(PACKAGE)
@@ -97,6 +97,7 @@ package: fw
 	cp $(BUILD)/samd09/modules/weather/sidecar/fk-weather-sidecar.bin $(BUILD)/$(PACKAGE)
 	chmod 644 $(BUILD)/$(PACKAGE)/*
 	chmod 755 $(BUILD)/$(PACKAGE)/flash-*
+	chmod 755 $(BUILD)/$(PACKAGE)/jlink-*
 	cd $(BUILD) && zip -r $(PACKAGE).zip $(PACKAGE)
 
 dependencies: libraries/done
