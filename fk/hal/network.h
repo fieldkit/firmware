@@ -72,9 +72,9 @@ public:
 
     virtual uint32_t ip_address() = 0;
 
-    virtual PoolWrapper<NetworkConnection> *accept() = 0;
+    virtual PoolPointer<NetworkConnection> *accept() = 0;
 
-    virtual PoolWrapper<NetworkConnection> *open_connection(const char *hostname, uint16_t port) = 0;
+    virtual PoolPointer<NetworkConnection> *open_connection(const char *hostname, uint16_t port) = 0;
 
     virtual bool stop() = 0;
 

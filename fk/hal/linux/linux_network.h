@@ -55,9 +55,9 @@ public:
 
     uint32_t ip_address() override;
 
-    PoolWrapper<NetworkConnection> *accept() override;
+    PoolPointer<NetworkConnection> *accept() override;
 
-    PoolWrapper<NetworkConnection> *open_connection(const char *hostname, uint16_t port) override;
+    PoolPointer<NetworkConnection> *open_connection(const char *hostname, uint16_t port) override;
 
     bool stop() override;
 

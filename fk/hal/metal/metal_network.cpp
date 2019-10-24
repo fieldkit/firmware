@@ -278,7 +278,7 @@ uint32_t MetalNetwork::ip_address() {
     return WiFi.localIP();
 }
 
-PoolWrapper<NetworkConnection> *MetalNetwork::accept() {
+PoolPointer<NetworkConnection> *MetalNetwork::accept() {
     if (fk_uptime() - registered_ > NetworkAddServiceRecordIntervalMs) {
         mdns_.addServiceRecord(service_name_, 80, MDNSServiceTCP);
         registered_  = fk_uptime();
@@ -298,7 +298,7 @@ PoolWrapper<NetworkConnection> *MetalNetwork::accept() {
     return create_pool_wrapper<NetworkConnection, MetalNetworkConnection>(wcl);
 }
 
-PoolWrapper<NetworkConnection> *MetalNetwork::open_connection(const char *hostname, uint16_t port) {
+PoolPointer<NetworkConnection> *MetalNetwork::open_connection(const char *hostname, uint16_t port) {
     WiFiClient wcl;
     if (!wcl.connect(hostname, port)) {
         return nullptr;

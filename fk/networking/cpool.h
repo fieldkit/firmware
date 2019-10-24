@@ -98,7 +98,7 @@ private:
     constexpr static size_t MaximumConnections = 4;
 
 private:
-    PoolWrapper<NetworkConnection> *pools_[MaximumConnections] = { nullptr };
+    PoolPointer<NetworkConnection> *pools_[MaximumConnections] = { nullptr };
     Connection *connections_[MaximumConnections] = { nullptr };
     uint32_t activity_{ 0 };
     uint32_t status_{ 0 };
@@ -115,7 +115,7 @@ public:
 
     void service(HttpRouter &router);
 
-    void queue(PoolWrapper<NetworkConnection> *c);
+    void queue(PoolPointer<NetworkConnection> *c);
 
     uint32_t activity() const {
         return activity_;

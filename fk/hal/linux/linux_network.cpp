@@ -144,7 +144,7 @@ uint32_t LinuxNetwork::ip_address() {
     return 0;
 }
 
-PoolWrapper<NetworkConnection> *LinuxNetwork::accept() {
+PoolPointer<NetworkConnection> *LinuxNetwork::accept() {
     fd_set rfd;
     FD_ZERO(&rfd);
     FD_SET(listening_, &rfd);
@@ -168,7 +168,7 @@ PoolWrapper<NetworkConnection> *LinuxNetwork::accept() {
     return create_pool_wrapper<NetworkConnection, LinuxNetworkConnection>(s, claddr.sin_addr.s_addr);
 }
 
-PoolWrapper<NetworkConnection> *LinuxNetwork::open_connection(const char *hostname, uint16_t port) {
+PoolPointer<NetworkConnection> *LinuxNetwork::open_connection(const char *hostname, uint16_t port) {
     return nullptr;
 }
 

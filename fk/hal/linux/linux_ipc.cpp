@@ -41,7 +41,9 @@ bool LinuxIPC::dequeue_button(Button **ptr) {
 bool LinuxIPC::launch_worker(WorkerCategory category, Worker *worker) {
     FK_ASSERT(worker != nullptr);
 
-    worker->run();
+    auto pool = create_chained_pool_inside("worker-pool", DefaultWorkerPoolSize);
+    worker->run(*pool);
+    delete pool;
     delete worker;
 
     return true;

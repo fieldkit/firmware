@@ -71,7 +71,7 @@ void ConnectionPool::service(HttpRouter &router) {
     }
 }
 
-void ConnectionPool::queue(PoolWrapper<NetworkConnection> *c) {
+void ConnectionPool::queue(PoolPointer<NetworkConnection> *c) {
     for (auto i = (size_t)0; i < MaximumConnections; ++i) {
         if (connections_[i] == nullptr) {
             ip4_address ip{ c->get()->remote_address() };
