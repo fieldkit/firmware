@@ -165,7 +165,7 @@ PoolPointer<NetworkConnection> *LinuxNetwork::accept() {
         return nullptr;
     }
 
-    return create_pool_wrapper<NetworkConnection, LinuxNetworkConnection>(s, claddr.sin_addr.s_addr);
+    return create_network_connection_wrapper<LinuxNetworkConnection>(s, claddr.sin_addr.s_addr);
 }
 
 PoolPointer<NetworkConnection> *LinuxNetwork::open_connection(const char *hostname, uint16_t port) {

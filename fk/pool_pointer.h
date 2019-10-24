@@ -18,60 +18,6 @@ public:
 
 };
 
-template<typename T>
-class PoolWrapper : public PoolPointer<T> {
-private:
-    MallocPool pool_;
-    T *wrapped_;
-
-public:
-    PoolWrapper(uint8_t *p, size_t size, size_t taken) :
-        pool_(__PRETTY_FUNCTION__, p, size, taken) {
-    }
-
-    virtual ~PoolWrapper() {
-        pool_.block(nullptr, 0);
-    }
-
-public:
-    void operator delete(void *p) {
-        fk_free(p);
-    }
-
-public:
-    void wrapped(T *wrapped) {
-        wrapped_ = wrapped;
-    }
-
-public:
-    Pool *pool() override {
-        return &pool_;
-    }
-
-    T *get() override {
-        return wrapped_;
-    }
-
-};
-
-template<typename T, typename C = T, typename W = PoolWrapper<T>, size_t Size = DefaultWorkerPoolSize, class... Args>
-inline W *create_pool_wrapper(Args &&... args) {
-    auto block = (uint8_t *)fk_malloc(Size);
-    FK_ASSERT(block != nullptr);
-
-    auto wrapper_size = aligned_size(sizeof(W));
-    auto overhead = wrapper_size;
-    auto pool_memory = block + overhead;
-
-    auto wrapper = new ((W *)(block)) W(pool_memory, Size, overhead);
-
-    auto wrapped = new (wrapper->pool()) C(std::forward<Args>(args)...);
-
-    wrapper->wrapped(wrapped);
-
-    return wrapper;
-}
-
 template<typename Wrapped, typename ConcreteWrapped = Wrapped, class... Args>
 class ChainedPoolWrapper : public PoolPointer<Wrapped> {
 private:
@@ -103,12 +49,11 @@ public:
 
 };
 
-template<typename Wrapped, typename Wrapee = PoolPointer<Wrapped>, typename ConcreteWrapped = Wrapped, typename ConcreteWrapee = ChainedPoolWrapper<Wrapped, ConcreteWrapped>, size_t Size = DefaultWorkerPoolSize, class... Args>
+template<typename Wrapped, typename Wrapee = PoolPointer<Wrapped>, typename ConcreteWrapped = Wrapped, typename ConcreteWrapee = ChainedPoolWrapper<Wrapped, ConcreteWrapped>, class... Args>
 inline Wrapee *create_chained_pool_wrapper(Args &&... args) {
     auto pool = create_chained_pool_inside("pool", DefaultWorkerPoolSize);
     auto wrapper = new (pool) ConcreteWrapee(pool, std::forward<Args>(args)...);
     return wrapper;
 }
-
 
 }

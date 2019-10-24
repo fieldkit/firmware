@@ -84,4 +84,10 @@ public:
 
 Network *get_network();
 
+template<typename ConcreteWrapped, class... Args, typename ConcreteWrapee = ChainedPoolWrapper<NetworkConnection, ConcreteWrapped, Args...>>
+inline PoolPointer<NetworkConnection> *create_network_connection_wrapper(Args &&... args) {
+    auto pool = create_chained_pool_inside("connection", DefaultWorkerPoolSize);
+    return new (pool) ConcreteWrapee(pool, std::forward<Args>(args)...);
+}
+
 }

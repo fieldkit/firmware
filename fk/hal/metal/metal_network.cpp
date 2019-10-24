@@ -295,7 +295,7 @@ PoolPointer<NetworkConnection> *MetalNetwork::accept() {
         return nullptr;
     }
 
-    return create_pool_wrapper<NetworkConnection, MetalNetworkConnection>(wcl);
+    return create_network_connection_wrapper<MetalNetworkConnection>(wcl);
 }
 
 PoolPointer<NetworkConnection> *MetalNetwork::open_connection(const char *hostname, uint16_t port) {
@@ -304,7 +304,7 @@ PoolPointer<NetworkConnection> *MetalNetwork::open_connection(const char *hostna
         return nullptr;
     }
 
-    return create_pool_wrapper<NetworkConnection, MetalNetworkConnection>(wcl);
+    return create_network_connection_wrapper<MetalNetworkConnection>(wcl);
 }
 
 bool MetalNetwork::stop() {

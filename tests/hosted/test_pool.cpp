@@ -73,11 +73,6 @@ public:
     }
 };
 
-TEST_F(PoolSuite, Workers) {
-    auto worker = create_pool_wrapper<SimpleWorker>();
-    delete worker;
-}
-
 struct complex_object_t {
     int32_t value1;
     int32_t value2;
