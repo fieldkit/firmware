@@ -1,5 +1,11 @@
 #!/bin/bash
 
-PATH=~/tools/jlink:$PATH
+EXTRA_ARGS=""
+if [ "$(hostname 2> /dev/null)" = "JACOB-WORK" ]; then
+    EXTRA_ARGS="-select usb=801000989 "
+fi
+if [ "$(hostname 2> /dev/null)" = "JACOB-HOME" ]; then
+    EXTRA_ARGS="-select usb=801000989 "
+fi
 
-JLinkGDBServer -if SWD -device ATSAMD09D14A -port 4331 -RTTTelnetPort 5331
+JLinkGDBServer -if SWD -device ATSAMD09D14A -port 5331 -RTTTelnetPort 9500 $EXTRA_ARGS
