@@ -212,11 +212,6 @@ void MenuView::create_tools_menu() {
         views_->show_home();
         get_ipc()->launch_worker(create_pool_worker<DumpFlashMemory>());
     });
-    auto tools_save_firmware_sd = to_lambda_option(pool_, "Firmware -> SD", [=]() {
-        back_->on_selected();
-        views_->show_home();
-        get_ipc()->launch_worker(create_pool_worker<UpgradeFirmwareFromSdWorker>(SdCardFirmwareOperation::Save));
-    });
     auto tools_load_firmware_sd = to_lambda_option(pool_, "SD -> Firmware", [=]() {
         back_->on_selected();
         views_->show_home();
@@ -226,11 +221,6 @@ void MenuView::create_tools_menu() {
         back_->on_selected();
         views_->show_home();
         get_ipc()->launch_worker(create_pool_worker<FsckWorker>());
-    });
-    auto tools_compare_banks = to_lambda_option(pool_, "Compare Banks", [=]() {
-        back_->on_selected();
-        views_->show_home();
-        get_ipc()->launch_worker(create_pool_worker<CompareBanksWorker>());
     });
     auto tools_swap_banks = to_lambda_option(pool_, "Swap Banks", [=]() {
         back_->on_selected();
@@ -247,18 +237,31 @@ void MenuView::create_tools_menu() {
         fk_restart();
     });
 
-    tools_menu_ = new_menu_screen<11>(pool_, {
+    /*
+    auto tools_save_firmware_sd = to_lambda_option(pool_, "Firmware -> SD", [=]() {
+        back_->on_selected();
+        views_->show_home();
+        get_ipc()->launch_worker(create_pool_worker<UpgradeFirmwareFromSdWorker>(SdCardFirmwareOperation::Save));
+    });
+    auto tools_compare_banks = to_lambda_option(pool_, "Compare Banks", [=]() {
+        back_->on_selected();
+        views_->show_home();
+        get_ipc()->launch_worker(create_pool_worker<CompareBanksWorker>());
+    });
+    */
+
+    tools_menu_ = new_menu_screen<9>(pool_, {
         back_,
         tools_self_check,
         tools_dump_flash,
-        tools_save_firmware_sd,
         tools_load_firmware_sd,
         tools_fsck,
         tools_restart,
-        tools_compare_banks,
         tools_swap_banks,
         tools_format_sd,
         tools_factory_reset,
+        // tools_save_firmware_sd,
+        // tools_compare_banks,
     });
 }
 
