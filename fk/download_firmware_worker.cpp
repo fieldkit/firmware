@@ -7,10 +7,11 @@
 #include "firmware_manager.h"
 #include "networking/cpool.h"
 #include "storage/types.h"
-#include "storage/progress_tracker.h"
+#include "progress.h"
+#include "progress_tracker.h"
+#include "gs_progress_callbacks.h"
 #include "hal/network.h"
 #include "hal/flash.h"
-#include "progress.h"
 #include "utilities.h"
 #include "state_manager.h"
 #include "platform.h"
@@ -45,7 +46,7 @@ public:
 
 public:
     bool ignore_body() {
-        while (fk_uptime() - connection_->activity() < NetworkConnectionMaximumDuration) {
+        while (connection_->active()) {
             if (!connection_->service()) {
                 break;
             }
@@ -69,12 +70,12 @@ public:
         BLAKE2b b2b;
         b2b.reset(Hash::Length);
 
-        NoopProgressCallbacks noop;
-        auto tracker = ProgressTracker{ &noop, Operation::Fsck, "download", "", connection_->length() };
+        GlobalStateProgressCallbacks progress;
+        auto tracker = ProgressTracker{ &progress, Operation::Fsck, "download", "", connection_->length() };
         auto eeprom_address = OtherBankAddress + BootloaderSize;
         auto position = 0u;
 
-        while (true) {
+        while (connection_->active()) {
             if (!connection_->service()) {
                 logwarn("disconnected");
                 break;

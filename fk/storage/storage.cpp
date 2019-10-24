@@ -1,10 +1,11 @@
 #include <algorithm>
 #include <phylum/crc.h>
 
+#include "storage/storage.h"
+
 #include "platform.h"
 #include "hal/random.h"
-#include "storage/storage.h"
-#include "storage/progress_tracker.h"
+#include "progress_tracker.h"
 
 namespace fk {
 

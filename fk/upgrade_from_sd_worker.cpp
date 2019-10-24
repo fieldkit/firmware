@@ -5,7 +5,7 @@
 
 #include "hal/flash.h"
 #include "storage/types.h"
-#include "storage/progress_tracker.h"
+#include "progress_tracker.h"
 #include "gs_progress_callbacks.h"
 #include "utilities.h"
 #include "state_manager.h"

@@ -3,8 +3,8 @@
 #include "common.h"
 #include "hal/memory.h"
 #include "progress.h"
+#include "progress_tracker.h"
 #include "storage/file.h"
-#include "storage/progress_tracker.h"
 
 namespace fk {
 

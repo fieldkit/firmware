@@ -1,10 +1,10 @@
 #include "networking/download_handler.h"
-#include "hal/hal.h"
-#include "storage/storage.h"
-#include "storage/progress_tracker.h"
-#include "gs_progress_callbacks.h"
 #include "utilities.h"
 #include "io.h"
+#include "hal/hal.h"
+#include "progress_tracker.h"
+#include "gs_progress_callbacks.h"
+#include "storage/storage.h"
 
 namespace fk {
 

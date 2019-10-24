@@ -1,4 +1,4 @@
-#include "storage/progress_tracker.h"
+#include "progress_tracker.h"
 #include "platform.h"
 #include "config.h"
 
