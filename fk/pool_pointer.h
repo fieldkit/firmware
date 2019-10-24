@@ -105,9 +105,6 @@ public:
 
 template<typename Wrapped, typename Wrapee = PoolPointer<Wrapped>, typename ConcreteWrapped = Wrapped, typename ConcreteWrapee = ChainedPoolWrapper<Wrapped, ConcreteWrapped>, size_t Size = DefaultWorkerPoolSize, class... Args>
 inline Wrapee *create_chained_pool_wrapper(Args &&... args) {
-    auto block = (uint8_t *)fk_malloc(Size);
-    FK_ASSERT(block != nullptr);
-
     auto pool = create_chained_pool_inside("pool", DefaultWorkerPoolSize);
     auto wrapper = new (pool) ConcreteWrapee(pool, std::forward<Args>(args)...);
     return wrapper;
