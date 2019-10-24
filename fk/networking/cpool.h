@@ -91,6 +91,10 @@ public:
         return activity_;
     }
 
+    bool active() const {
+        return (fk_uptime() - activity()) < NetworkConnectionMaximumDuration;
+    }
+
 };
 
 class ConnectionPool {

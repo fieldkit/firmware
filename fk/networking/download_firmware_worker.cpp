@@ -2,7 +2,7 @@
 #include <samd51_common.h>
 #include <phylum/blake2b.h>
 
-#include "download_firmware_worker.h"
+#include "networking/download_firmware_worker.h"
 
 #include "firmware_manager.h"
 #include "networking/cpool.h"

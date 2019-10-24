@@ -3,7 +3,7 @@
 #include "networking/api_handler.h"
 #include "networking/module_handler.h"
 #include "networking/download_handler.h"
-#include "networking/receive_handler.h"
+#include "networking/receive_firmware_handler.h"
 
 #include "storage/storage.h"
 
@@ -14,8 +14,8 @@ private:
     ApiHandler api_handler;
     HttpRoute api{ "/fk/v1", &api_handler };
 
-    ReceiveHandler receive_handler;
-    HttpRoute receive{ "/fk/v1/upload", &receive_handler };
+    ReceiveFirmwareHandler receive_firmware_handler;
+    HttpRoute receive_firmware{ "/fk/v1/upload/firmware", &receive_firmware_handler };
 
     DownloadHandler download_handler_data{ Storage::Data };
     DownloadHandler download_handler_meta{ Storage::Meta };
@@ -41,7 +41,7 @@ public:
         router.add_route(&modules[3]);
         router.add_route(&downloads[0]);
         router.add_route(&downloads[1]);
-        router.add_route(&receive);
+        router.add_route(&receive_firmware);
         router.add_route(&api);
     }
 

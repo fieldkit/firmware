@@ -9,9 +9,10 @@
 #include "configure_module_worker.h"
 #include "upgrade_from_sd_worker.h"
 #include "dump_flash_memory_worker.h"
-#include "download_firmware_worker.h"
 #include "compare_banks_worker.h"
 #include "refresh_modules_worker.h"
+
+#include "networking/download_firmware_worker.h"
 
 namespace fk {
 

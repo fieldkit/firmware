@@ -1,6 +1,7 @@
 #include <os.h>
 
-#include "wifi_toggle_worker.h"
+#include "networking/wifi_toggle_worker.h"
+
 #include "hal/hal.h"
 #include "tasks/tasks.h"
 #include "timer.h"

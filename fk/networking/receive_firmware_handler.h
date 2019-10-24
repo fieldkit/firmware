@@ -5,18 +5,18 @@
 
 namespace fk {
 
-class ReceiveHandler : public HttpHandler {
+class ReceiveFirmwareHandler : public HttpHandler {
 public:
     bool handle(Connection *connection, Pool &pool) override;
 
 };
 
-class ReceiveWorker {
+class ReceiveFirmwareWorker {
 private:
     Connection *connection_;
 
 public:
-    ReceiveWorker(Connection *connection);
+    ReceiveFirmwareWorker(Connection *connection);
 
 public:
     void run(Pool &pool);
@@ -26,7 +26,7 @@ public:
     }
 
     const char *name() {
-        return "receive";
+        return "uplfirmware";
     }
 
 };
