@@ -11,6 +11,7 @@
 #include "dump_flash_memory_worker.h"
 #include "download_firmware_worker.h"
 #include "compare_banks_worker.h"
+#include "refresh_modules_worker.h"
 
 namespace fk {
 
@@ -158,6 +159,7 @@ void MenuView::create_modules_menu() {
     }
     bay_options[0] = to_module_bay_option(pool_, AllModuleBays, "Status", [=]() {
         back_->on_selected();
+        get_ipc()->launch_worker(create_pool_worker<RefreshModulesWorker>());
         views_->show_module_status();
     });
     bay_options[5] = to_module_bay_option(pool_, AllModuleBays, "All", [=]() {
