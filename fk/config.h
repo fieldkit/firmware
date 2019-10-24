@@ -104,11 +104,6 @@ constexpr size_t MaximumBuildStringLength = 32;
 constexpr size_t GenerationLength = 32;
 
 /**
- * Size of the memory pool to use during the single threaded startup.
- */
-constexpr size_t SingleThreadedStartupPoolSize = 1024;
-
-/**
  * Size of the memory pool to use for Workers.
  */
 constexpr size_t DefaultWorkerPoolSize = 8192;

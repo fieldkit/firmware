@@ -9,6 +9,24 @@
 
 namespace fk {
 
+class TaskWorker {
+public:
+    virtual ~TaskWorker() {
+    }
+
+public:
+    virtual void run() = 0;
+
+    virtual uint8_t priority() const {
+        return OS_PRIORITY_NORMAL;
+    }
+
+    virtual const char *name() {
+        return "worker";
+    }
+
+};
+
 class Worker {
 public:
     virtual ~Worker() {
@@ -28,7 +46,7 @@ public:
 };
 
 template<typename Wrapped, typename ConcreteWrapped = Wrapped, class... Args>
-class PoolWorker : public Worker, public PoolPointer<Wrapped>  {
+class PoolWorker : public TaskWorker, public PoolPointer<Wrapped>  {
 private:
     Pool *pool_;
     ConcreteWrapped wrapped_;
@@ -58,7 +76,7 @@ public:
 
 
 public:
-    void run(Pool &pool) override {
+    void run() override {
         wrapped_.run(*pool_);
         alogf(LogLevels::INFO, name(), "pool used = %zd/%zd", pool_->used(), pool_->size());
     }
@@ -73,8 +91,8 @@ public:
 };
 
 template<typename Wrapped, class... Args>
-inline Worker *create_pool_worker(Args &&... args) {
-    return create_chained_pool_wrapper<Wrapped, Worker, PoolWorker<Wrapped, Wrapped, Args...>, PoolWorker<Wrapped, Wrapped, Args...>>(std::forward<Args>(args)...);
+inline TaskWorker *create_pool_worker(Args &&... args) {
+    return create_chained_pool_wrapper<Wrapped, TaskWorker, PoolWorker<Wrapped, Wrapped, Args...>, PoolWorker<Wrapped, Wrapped, Args...>>(std::forward<Args>(args)...);
 }
 
 }

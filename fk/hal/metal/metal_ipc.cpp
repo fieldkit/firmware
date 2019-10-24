@@ -84,7 +84,7 @@ bool MetalIPC::can_launch(WorkerCategory category) {
     return true;
 }
 
-bool MetalIPC::launch_worker(WorkerCategory category, Worker *worker) {
+bool MetalIPC::launch_worker(WorkerCategory category, TaskWorker *worker) {
     if (!can_launch(category)) {
         logwarn("unable to launch, already running");
         logwarn("deleting 0x%p", worker);

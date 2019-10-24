@@ -27,9 +27,9 @@ public:
     virtual bool dequeue_button(Button **ptr) = 0;
 
 public:
-    virtual bool launch_worker(WorkerCategory category, Worker *worker) = 0;
+    virtual bool launch_worker(WorkerCategory category, TaskWorker *worker) = 0;
 
-    virtual bool launch_worker(Worker *worker) {
+    virtual bool launch_worker(TaskWorker *worker) {
         return launch_worker(WorkerCategory::None, worker);
     }
 

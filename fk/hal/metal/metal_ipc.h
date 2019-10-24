@@ -25,7 +25,7 @@ public:
     bool dequeue_button(Button **ptr) override;
 
 public:
-    bool launch_worker(WorkerCategory category, Worker *worker) override;
+    bool launch_worker(WorkerCategory category, TaskWorker *worker) override;
 
 private:
     bool can_launch(WorkerCategory category);
