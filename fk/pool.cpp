@@ -228,12 +228,10 @@ ChainedPool::~ChainedPool() {
         delete sibling_;
         sibling_ = nullptr;
     }
-    printf("[0x%p] ~ChainedPool()\n", this);
 }
 
 void *ChainedPool::malloc(size_t bytes) {
     if (can_malloc(bytes)) {
-        printf("[0x%p] malloc(%zd)\n", this, bytes);
         return Pool::malloc(bytes);
     }
 
@@ -241,7 +239,6 @@ void *ChainedPool::malloc(size_t bytes) {
         auto ptr = ::malloc(size());
         auto overhead = sizeof(ChainedPool);
         sibling_ = new (ptr) ChainedPool(name(), ptr, size(), overhead);
-        printf("[0x%p] create sibling (%zd) = [0x%p]\n", this, bytes, sibling_);
     }
 
     return sibling_->malloc(bytes);
