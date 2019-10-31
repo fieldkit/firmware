@@ -118,7 +118,7 @@ public:
 
         logdebug("[0x%06" PRIx32 "]: flush #%" PRIu32 " dirty (0x%x - 0x%x)", (uint32_t)(page->page * PageSize), (uint32_t)page->page, page->dirty_start, page->dirty_end);
 
-        if (!store_.save_page(page->page * PageSize, page->ptr, PageSize)) {
+        if (!store_.save_page(page->page * PageSize, page->ptr, PageSize, page->dirty_start, page->dirty_end)) {
             return false;
         }
 
