@@ -21,6 +21,7 @@ constexpr uint8_t CMD_READ_CELL_ARRAY = 0x13;
 constexpr uint8_t CMD_READ_BUFFER = 0x03;
 constexpr uint8_t CMD_ERASE_BLOCK = 0xd8;
 constexpr uint8_t CMD_PROGRAM_LOAD = 0x02;
+constexpr uint8_t CMD_PROGRAM_LOAD_RANDOM = 0x84;
 constexpr uint8_t CMD_PROGRAM_EXECUTE = 0x10;
 
 constexpr uint8_t FLASH_JEDEC_MANUFACTURE = 0x98;
@@ -98,6 +99,10 @@ bool SpiFlash::begin() {
     }
 
     if (!read_unique_id()) {
+        return false;
+    }
+
+    if (!read_parameters_page()) {
         return false;
     }
 
@@ -266,6 +271,80 @@ int32_t SpiFlash::erase_block(uint32_t address) {
     return 1;
 }
 
+struct __attribute__ ((packed)) parameters_page_t {
+    uint8_t signature[4]; // 4e 41 4e 44
+    uint8_t reserved_1[31 - 4 + 1];
+    uint8_t manufacturer[12];
+    uint8_t model[20];
+    uint8_t manufacturer_id;
+    uint8_t reserved_2[79 - 65 + 1];
+    uint32_t bytes_per_page;
+    uint16_t spare_bytes_per_page;
+    uint32_t bytes_per_partial_page;
+    uint16_t spare_bytes_per_partial_page;
+    uint32_t pages_per_block;
+    uint32_t blocks_per_device;
+    uint8_t number_of_devices;
+    uint8_t reserved_3[1];
+    uint8_t bits_per_cell;
+    uint16_t max_bad_blocks_per_device;
+    uint16_t block_endurance;
+    uint8_t guaranteed_valid_at_beginning;
+    uint8_t reserved_4[2];
+    uint8_t number_of_programs_per_page;
+    uint8_t reserved_5[1];
+    uint8_t number_of_ecc_bits;
+    uint8_t reserved_6[127 - 113 + 1];
+    uint8_t io_pin_capacitance;
+    uint8_t reserved_7[132 - 129 + 1];
+    uint16_t max_program_page_time;
+    uint16_t max_block_erase_time;
+    uint16_t max_page_read_time;
+    uint8_t reserved_8[253 - 139 + 1];
+    uint16_t crc;
+};
+
+bool SpiFlash::read_parameters_page() {
+    constexpr static uint8_t ENABLE_READ_PARAMETERS_PAGE = 0b1010110;
+    constexpr static uint8_t DISABLE_READ_PARAMETERS_PAGE = 0b10110;
+
+    static_assert(sizeof(parameters_page_t) == 256, "unexpected parameters page size");
+
+    uint8_t read_cell_command[] = { CMD_READ_CELL_ARRAY, 0x00, 0x00, 0x00 }; // 7dummy/17 (Row)
+    uint8_t read_buffer_command[] = { CMD_READ_BUFFER, 0x00, 0x00, 0x00 };   // 4dummy/12/8dummy (Col)
+
+    row_address_to_bytes(PageSize, read_cell_command + 1);
+
+    // 1. Set Feature (1Fh) with address B0h and set bit [6]. : To set the IDR_E bit in the feature table.
+    // 2. Read Cell Array (13h) with address 01h. : To read the parameter page.
+    // 3. Get Feature (0Fh) : To read the status (OIP bit) of the device.
+    // 4. Read Buffer (03h or 0Bh) with address 00h.
+    // 5. Set Feature (1Fh) with address B0h and clear bit [6]. : To clear the IDR_E bit in the feature table.
+
+    set_feature(CMD_REGISTER_2, ENABLE_READ_PARAMETERS_PAGE);
+
+    /* Load page into buffer. */
+    if (!complex_command(read_cell_command, sizeof(read_cell_command))) {
+        return 0;
+    }
+
+    /* Wait for buffer to fill with data from cell array. */
+    if (!is_ready(false)) {
+        return 0;
+    }
+
+    parameters_page_t page;
+
+    /* Read the buffer in. */
+    if (!transfer(read_buffer_command, sizeof(read_buffer_command), nullptr, (uint8_t *)&page, sizeof(page))) {
+        return 0;
+    }
+
+    set_feature(CMD_REGISTER_2, DISABLE_READ_PARAMETERS_PAGE);
+
+    return true;
+}
+
 bool SpiFlash::read_unique_id() {
     constexpr static uint8_t ENABLE_READ_ID_PAGE = 0b1010110;
     constexpr static uint8_t DISABLE_READ_ID_PAGE = 0b10110;
@@ -297,6 +376,11 @@ bool SpiFlash::read_unique_id() {
     }
 
     set_feature(CMD_REGISTER_2, DISABLE_READ_ID_PAGE);
+
+    if (false) {
+        fk_dump_memory("id ", &id_[              0], sizeof(id_) / 2);
+        fk_dump_memory("id ", &id_[sizeof(id_) / 2], sizeof(id_) / 2);
+    }
 
     return true;
 }

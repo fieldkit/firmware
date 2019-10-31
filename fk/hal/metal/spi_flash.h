@@ -15,7 +15,7 @@ class SpiFlash {
 private:
     constexpr static uint32_t SpiFlashReadyMs = 10;
     constexpr static uint32_t SpiFlashTimeoutMs = 500;
-    constexpr static uint32_t IdSize = 16;
+    constexpr static uint32_t IdSize = 32;
 
 public:
     constexpr static uint32_t PageSize = 2048;
@@ -76,6 +76,8 @@ private:
     bool get_feature(uint8_t address, uint8_t *reg);
 
     bool set_feature(uint8_t address, uint8_t value);
+
+    bool read_parameters_page();
 
     bool read_unique_id();
 
