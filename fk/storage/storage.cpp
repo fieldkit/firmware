@@ -239,6 +239,8 @@ uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address, BlockTa
 
         logwarn("[%d] allocating ignoring bad block: %" PRIu32, file, free_block_);
 
+        bad_blocks_.mark_address_as_bad(address);
+
         free_block_++;
         address = InvalidAddress;
     }
