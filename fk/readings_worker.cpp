@@ -86,6 +86,9 @@ void ReadingsWorker::run(Pool &pool) {
 }
 
 bool ReadingsWorker::should_throttle() {
+    if (!read_only_) {
+        return false;
+    }
     auto gs = get_global_state_rw();
     if (gs.get()->runtime.readings > 0) {
         auto elapsed = fk_uptime() - gs.get()->runtime.readings;
