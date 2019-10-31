@@ -167,6 +167,10 @@ int32_t SpiFlash::write(uint32_t address, const uint8_t *data, size_t length) {
         return wrote;
     }
 
+    if (error_ == SpiFlashError::Program) {
+        return 0;
+    }
+
     logerror("write failed, trying to recover...");
 
     status_ = Availability::Unknown;

@@ -78,7 +78,7 @@ SeekSettings SeekSettings::end_of(uint8_t file) {
     return SeekSettings{ file, LastRecord };
 }
 
-Storage::Storage(DataMemory *memory, bool read_only) : memory_(memory), read_only_(read_only) {
+Storage::Storage(DataMemory *memory, bool read_only) : memory_(memory), bad_blocks_(memory), read_only_(read_only) {
 }
 
 Storage::~Storage() {
@@ -205,6 +205,7 @@ bool Storage::clear() {
         logdebug("[" PRADDRESS "] erasing block", address);
         if (!memory_->erase_block(address)) {
             logerror("erase block " PRADDRESS " failed", address);
+            bad_blocks_.mark_address_as_bad(address);
             return false;
         }
         range = range.first_half();
@@ -218,6 +219,8 @@ uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address, BlockTa
     auto address = InvalidAddress;
 
     verify_mutable();
+
+    logdebug("allocating");
 
     // Find a good block.
     for (auto i = 0; i < StorageAvailableBlockLookAhead; ++i) {
@@ -246,6 +249,7 @@ uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address, BlockTa
     logdebug("[" PRADDRESS "] erasing block", address);
     if (!memory_->erase_block(address)) {
         logerror("allocate: erase failed");
+        bad_blocks_.mark_address_as_bad(address);
         return InvalidAddress;
     }
 

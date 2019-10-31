@@ -46,11 +46,11 @@ public:
         return id_;
     }
 
+private:
     const SpiFlashError error() const {
         return error_;
     }
 
-private:
     /*
       Row Address: 17 bits
       Block Address (2048 blocks/device): 11 bits

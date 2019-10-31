@@ -83,14 +83,7 @@ namespace fk {
  * Declare loginfo, logerror, logwarn functions and any other necessary helpers
  * for a specific logger. Typically used at the top of a file.
  */
-#define FK_DECLARE_LOGGER(name)                                         \
-    constexpr const char *LOG_FACILITY = name;                          \
-    static void loginfo(const char *f, ...) __attribute__((unused)) __attribute__((format(printf, 1, 2)));    \
-    static void logerror(const char *f, ...) __attribute__((unused)) __attribute__((format(printf, 1, 2)));   \
-    static void logwarn(const char *f, ...) __attribute__((unused)) __attribute__((format(printf, 1, 2)));    \
-    static void logtrace(const char *f, ...) __attribute__((unused)) __attribute__((format(printf, 1, 2)));   \
-    static void logdebug(const char *f, ...) __attribute__((unused)) __attribute__((format(printf, 1, 2)));   \
-    static void logverbose(const char *f, ...) __attribute__((unused)) __attribute__((format(printf, 1, 2))); \
+#define FK_DECLARE_LOGGER_MEMBERS(name)                                         \
     static void loginfo(const char *f, ...) {      \
         va_list args;                              \
         va_start(args, f);                         \
@@ -127,6 +120,20 @@ namespace fk {
         valogf(LogLevels::WARN, name, f, args);    \
         va_end(args);                              \
     }
+
+/**
+ * Declare loginfo, logerror, logwarn functions and any other necessary helpers
+ * for a specific logger. Typically used at the top of a file.
+ */
+#define FK_DECLARE_LOGGER(name)                                         \
+    constexpr const char *LOG_FACILITY = name;                          \
+    static void loginfo(const char *f, ...) __attribute__((unused)) __attribute__((format(printf, 1, 2)));    \
+    static void logerror(const char *f, ...) __attribute__((unused)) __attribute__((format(printf, 1, 2)));   \
+    static void logwarn(const char *f, ...) __attribute__((unused)) __attribute__((format(printf, 1, 2)));    \
+    static void logtrace(const char *f, ...) __attribute__((unused)) __attribute__((format(printf, 1, 2)));   \
+    static void logdebug(const char *f, ...) __attribute__((unused)) __attribute__((format(printf, 1, 2)));   \
+    static void logverbose(const char *f, ...) __attribute__((unused)) __attribute__((format(printf, 1, 2))); \
+    FK_DECLARE_LOGGER_MEMBERS(name)
 
 /**
  * Evaluates to 1 shifted by the given position.

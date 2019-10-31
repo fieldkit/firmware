@@ -5,6 +5,10 @@
 #include "progress.h"
 #include "progress_tracker.h"
 #include "storage/file.h"
+#include "storage/storage.h"
+#include "storage/bad_blocks.h"
+#include "storage/sequential_memory.h"
+#include "storage/statistics_memory.h"
 
 namespace fk {
 
@@ -30,6 +34,7 @@ public:
 
 private:
     DataMemory *memory_;
+    BadBlocks bad_blocks_;
     FileHeader files_[NumberOfFiles];
     uint32_t timestamp_{ InvalidTimestamp };
     uint32_t free_block_{ InvalidBlock };
