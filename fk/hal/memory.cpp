@@ -225,6 +225,7 @@ void CachedPage::mark_dirty(uint16_t offset, uint16_t length) {
     dirty_start = std::min<uint16_t>(offset, dirty_start);
     dirty_end = std::max<uint16_t>(offset + length, dirty_end);
     ts = fk_uptime() + 1;
+    logdebug("[0x%06" PRIx32 "]: marked #%" PRIu32 " dirty (0x%x - 0x%x)", page * 2048, page, offset, offset + length);
 }
 
 bool CachedPage::dirty() const {
@@ -254,7 +255,7 @@ size_t CachingMemory::read(uint32_t address, uint8_t *data, size_t length) {
     auto page_size = target_->geometry().page_size;
     auto page = cache_->get_page(address);
     if (page == nullptr) {
-        logerror("page lookup failed (0x%" PRIx32 ")", address);
+        logerror("page lookup failed (0x%" PRIx32 ") (for read)", address);
         return 0;
     }
     FK_ASSERT(page->ptr != nullptr);
@@ -279,7 +280,7 @@ size_t CachingMemory::write(uint32_t address, const uint8_t *data, size_t length
     auto page_size = target_->geometry().page_size;
     auto page = cache_->get_page(address);
     if (page == nullptr) {
-        logerror("page lookup failed (0x%" PRIx32 ")", address);
+        logerror("page lookup failed (0x%" PRIx32 ") (for write)", address);
         return 0;
     }
     FK_ASSERT(page->ptr != nullptr);
@@ -419,6 +420,7 @@ public:
 
         if (available == nullptr) {
             if (!flush(old)) {
+                logerror("page #%" PRIu32 " flush failed", old->page);
                 return nullptr;
             }
             available = old;
@@ -433,6 +435,7 @@ public:
         // logtrace("load page #%" PRIu32 " (%" PRIu32 ")", available->page, available->ts);
 
         if (!store_.load_page(page * PageSize, available->ptr, PageSize)) {
+            logerror("page #%" PRIu32 " load failed", page);
             return nullptr;
         }
 
@@ -483,7 +486,7 @@ public:
             return true;
         }
 
-        logdebug("flush #%" PRIu32 " dirty(%d - %d)", page->page, page->dirty_start, page->dirty_end);
+        logdebug("[0x%06" PRIx32 "]: flush #%" PRIu32 " dirty (0x%x - 0x%x)", (uint32_t)(page->page * PageSize), (uint32_t)page->page, page->dirty_start, page->dirty_end);
 
         if (!store_.save_page(page->page * PageSize, page->ptr, PageSize)) {
             return false;

@@ -239,7 +239,7 @@ int32_t SpiFlash::erase_block(uint32_t address) {
     if (!is_ready()) {
         logerror("erase: !ready");
         if (reset()) {
-            logerror("erase: rexet failed");
+            logerror("erase: reset failed");
         }
         return 0;
     }
