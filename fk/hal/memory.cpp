@@ -133,7 +133,7 @@ DataMemory *bank_pointers[]{ &banks[0], &banks[1], &banks[2], &banks[3] };
 #elif FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS == 2
 
 LinuxDataMemory banks[MemoryFactory::NumberOfDataMemoryBanks];
-DataMemory *bank_pointers[]{ &banks[1], &banks[0] };
+DataMemory *bank_pointers[]{ &banks[0], &banks[1] };
 
 #elif FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS == 1
 

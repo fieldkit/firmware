@@ -98,6 +98,7 @@ bool SpiFlash::begin() {
         return false;
     }
 
+    /*
     if (!read_unique_id()) {
         return false;
     }
@@ -105,6 +106,7 @@ bool SpiFlash::begin() {
     if (!read_parameters_page()) {
         return false;
     }
+    */
 
     if (false) {
         char id_string[sizeof(id_) * 2];
@@ -341,6 +343,16 @@ bool SpiFlash::read_parameters_page() {
     }
 
     set_feature(CMD_REGISTER_2, DISABLE_READ_PARAMETERS_PAGE);
+
+    if (true) {
+        loginfo("bytes_per_page: %" PRIu32, page.bytes_per_page);
+        loginfo("spare_bytes_per_page: %d", page.spare_bytes_per_page);
+        loginfo("bytes_per_partial_page: %" PRIu32, page.bytes_per_partial_page);
+        loginfo("spare_bytes_per_partial_page: %d", page.spare_bytes_per_partial_page);
+        loginfo("pages_per_block: %" PRIu32, page.pages_per_block);
+        loginfo("blocks_per_device: %" PRIu32, page.blocks_per_device);
+        loginfo("number_of_programs_per_page: %d", page.number_of_programs_per_page);
+    }
 
     return true;
 }

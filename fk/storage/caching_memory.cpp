@@ -10,7 +10,7 @@ void CachedPage::mark_dirty(uint16_t offset, uint16_t length) {
     dirty_start = std::min<uint16_t>(offset, dirty_start);
     dirty_end = std::max<uint16_t>(offset + length, dirty_end);
     ts = fk_uptime() + 1;
-    logdebug("[0x%06" PRIx32 "]: marked #%" PRIu32 " dirty (0x%x - 0x%x)", page * 2048, page, offset, offset + length);
+    logtrace("[0x%06" PRIx32 "]: marked #%" PRIu32 " dirty (0x%x - 0x%x)", page * 2048, page, offset, offset + length);
 }
 
 bool CachedPage::dirty() const {
