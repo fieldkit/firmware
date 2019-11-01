@@ -62,6 +62,7 @@ int32_t File::write_record_header(size_t size) {
     // write align this record?
     if (is_address_valid(tail_)) {
         if (partial_write_align_necessary()) {
+            auto previous_tail = tail_;
             tail_ = g.partial_write_boundary_after(tail_);
 
             if (g.is_start_of_block(tail_))  {
@@ -70,6 +71,7 @@ int32_t File::write_record_header(size_t size) {
             }
             else {
                 left_in_block = g.remaining_in_block(tail_) - sizeof(BlockTail);
+                wasted_ += tail_ - previous_tail;
             }
         }
     }
@@ -213,6 +215,7 @@ bool File::seek_beginning() {
 }
 
 bool File::seek(RecordReference reference) {
+    wasted_ = 0;
     tail_ = reference.address;
     position_ = reference.position;
     record_ = reference.record;
@@ -247,6 +250,7 @@ bool File::seek(uint32_t record) {
         return false;
     }
 
+    wasted_ = 0;
     tail_ = sv.address;
     record_ = sv.record;
     position_ = sv.position;
@@ -299,6 +303,7 @@ bool File::skip(bool new_block) {
             return skip(true);
         }
 
+        wasted_ += partial_aligned - tail_;
         tail_ = partial_aligned;
     }
 
@@ -525,6 +530,7 @@ int32_t File::read_record_header() {
                     continue;
                 }
 
+                wasted_ += partial_aligned - tail_;
                 tail_ = partial_aligned;
             }
 

@@ -105,6 +105,10 @@ public:
         return size_;
     }
 
+    uint32_t wasted() const {
+        return wasted_;
+    }
+
     bool valid() const {
         return is_address_valid(tail_);
     }
