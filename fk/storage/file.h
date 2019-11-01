@@ -2,6 +2,7 @@
 
 #include "common.h"
 #include "storage/types.h"
+#include "storage/sequential_memory.h"
 
 #include <phylum/blake2b.h>
 #include <pb_encode.h>
@@ -33,6 +34,7 @@ struct RecordReference {
 class File : public Writer, public Reader {
 private:
     Storage *storage_;
+    SequentialMemory memory_;
     uint8_t file_;
     uint32_t record_address_{ InvalidAddress };
     uint32_t tail_{ InvalidAddress };
@@ -45,6 +47,8 @@ private:
     uint32_t number_hash_errors_{ 0 };
     uint32_t bytes_in_block_{ 0 };
     uint32_t records_in_block_{ 0 };
+    uint32_t wasted_{ 0 };
+    bool partial_allowed_{ false };
     BLAKE2b hash_;
 
 public:
@@ -70,6 +74,8 @@ public:
 
 public:
     RecordReference reference() const;
+
+    flash_geometry_t geometry() const;
 
     uint8_t file_number() const {
         return file_;
@@ -108,12 +114,17 @@ public:
     }
 
 private:
+    int32_t find_following_block();
     int32_t write_record_header(size_t size);
     int32_t write_record_tail(size_t size);
     int32_t read_record_header();
     int32_t read_record_tail();
     int32_t search_for_following_block();
     void update();
+    bool partial_write_align_necessary() const;
+
+private:
+    int32_t try_read_record_header(uint32_t tail, RecordHeader &record_header) const;
 
 };
 

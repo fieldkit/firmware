@@ -255,8 +255,8 @@ uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address, BlockTa
         return InvalidAddress;
     }
 
-    loginfo("[%d] allocating block #%" PRIu32 " ts=%" PRIu32 " (" PRADDRESS ") (#%" PRIu32 ") (%" PRIu32 " bytes)",
-            file, free_block_, timestamp_, address, files_[file].record, files_[file].size);
+    loginfo("[%d] allocating block #%" PRIu32 " ts=%" PRIu32 " (" PRADDRESS ") (#%" PRIu32 ") (%" PRIu32 " bytes) (pta=" PRADDRESS ")",
+            file, free_block_, timestamp_, address, files_[file].record, files_[file].size, previous_tail_address);
 
     timestamp_++;
     free_block_++;
@@ -387,19 +387,28 @@ SeekValue Storage::seek(SeekSettings settings) {
 
         // Is there a valid record here?
         if (!record_head.valid()) {
-            // This is here so that we can get the correct record_address. This
-            // will typically happen when the file block header pointed directly
-            // to the tail of the file, so we have the record number but
-            // record_address is unset because we haven't scanned the block yet.
-            // This isn't the most elegant.
-            if (record_address == 0 && record > 0) {
-                address = g.start_of_block(address);
-                logdebug("[%d] " PRADDRESS " invalid head (resume " PRADDRESS ")", settings.file, address, address);
-                continue;
+            auto partial_aligned = g.partial_write_boundary_after(address);
+            if (memory.read(partial_aligned, (uint8_t *)&record_head, sizeof(record_head)) != sizeof(record_head)) {
+                return SeekValue{ };
             }
 
-            logtrace("[%d] " PRADDRESS " invalid head", settings.file, address);
-            break;
+            if (!record_head.valid()) {
+                // This is here so that we can get the correct record_address. This
+                // will typically happen when the file block header pointed directly
+                // to the tail of the file, so we have the record number but
+                // record_address is unset because we haven't scanned the block yet.
+                // This isn't the most elegant.
+                if (record_address == 0 && record > 0) {
+                    address = g.start_of_block(address);
+                    logdebug("[%d] " PRADDRESS " invalid head (resume " PRADDRESS ")", settings.file, address, address);
+                    continue;
+                }
+
+                logtrace("[%d] " PRADDRESS " invalid head", settings.file, address);
+                break;
+            }
+
+            address = partial_aligned;
         }
 
         // We've got a valid record header so let's remember this position.

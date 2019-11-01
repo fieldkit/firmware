@@ -790,10 +790,10 @@ TEST_F(StorageSuite, ReproduceBadRecordAddressOnSeekToEndOfMetaFile) {
         ASSERT_TRUE(file_write1.create());
         ASSERT_EQ(file_write1.write(data, sizeof(data)), (int32_t)sizeof(data));
 
-        record_address = file_write1.tail();
-
         ASSERT_EQ(file_write1.write(data, sizeof(data)), (int32_t)sizeof(data));
         ASSERT_EQ(file_write1.record(), (uint32_t)3);
+
+        record_address = file_write1.record_address();
 
         // Now write to the other file and force that file to take up a few blocks.
         auto file_write0 = storage.file(0);

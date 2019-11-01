@@ -57,6 +57,19 @@ typedef struct flash_geometry_t {
     bool is_address_valid(uint32_t address) {
         return address >= 0 && address < total_size;
     }
+
+    uint32_t partial_write_boundary_before(uint32_t address) {
+        if (address < 512) {
+            return 0;
+        }
+        auto padding = address % 512;
+        return padding == 0 ? address : address - padding;
+    }
+
+    uint32_t partial_write_boundary_after(uint32_t address) {
+        auto padding = address % 512;
+        return padding == 0 ? address : address + (512 - padding);
+    }
 } flash_geometry_t;
 
 class DataMemory {

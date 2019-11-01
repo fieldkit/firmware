@@ -7,7 +7,7 @@ namespace fk {
 SequentialMemory::SequentialMemory(DataMemory *memory) : memory_(memory) {
 }
 
-size_t SequentialMemory::read(uint32_t address, uint8_t *data, size_t length) {
+size_t SequentialMemory::read(uint32_t address, uint8_t *data, size_t length) const {
     size_t nbytes = 0;
 
     auto g = memory_->geometry();
