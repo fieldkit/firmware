@@ -5,3 +5,6 @@ dependencies.cmake
 build
 fk/secrets.h
 core.*
+.ccls-cache
+.clangd
+compile_commands.json
