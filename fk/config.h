@@ -271,7 +271,7 @@ typedef struct configuration_t {
     } network_t;
 
     /**
-     * Network related configuration.
+     * Network configuration.
      */
     network_t network;
 
@@ -305,7 +305,7 @@ typedef struct configuration_t {
     } readings_t;
 
     /**
-     * Configuration related to collecting readings.
+     * Readings collection configuration.
      */
     readings_t readings;
 
@@ -313,6 +313,9 @@ typedef struct configuration_t {
         uint32_t inactivity{ FiveMinutesMs };
     } display_t;
 
+    /**
+     * Display configuration.
+     */
     display_t display;
 
     typedef struct scheduler_t {
@@ -332,7 +335,22 @@ typedef struct configuration_t {
         uint32_t fix_hold{ OneMinuteMs };
     } scheduler_t;
 
+    /**
+     * Scheduler configuration.
+     */
     scheduler_t scheduler;
+
+    typedef struct lora_t {
+        /**
+         * Transmit virtual readings over LoRa.
+         */
+        bool transmit_virtual{ false };
+    } lora_t;
+
+    /**
+     * LoRa configuration.
+     */
+    lora_t lora;
 
     bool modules_always_on{ false };
 } configuration_t;

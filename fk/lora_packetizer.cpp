@@ -148,7 +148,7 @@ tl::expected<EncodedMessage*, Error> LoraPacketizer::packetize(TakenReadings con
     record.begin(taken.time, taken.number);
 
     for (auto &module : taken.readings) {
-        if (module.position != ModMux::VirtualPosition) {
+        if (fk_config().lora.transmit_virtual || module.position != ModMux::VirtualPosition) {
             for (auto s = 0u; s < module.readings->size(); ++s) {
                 auto value = module.readings->get(s);
                 auto adding = record.size_of_encoding(module.position, s, value);
