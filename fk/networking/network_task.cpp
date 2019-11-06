@@ -17,7 +17,7 @@ bool NetworkTask::begin(NetworkSettings settings, uint32_t to, Pool &pool) {
     }
 
     auto gs = get_global_state_ro();
-    auto name = fk_device_name_generate(pool);
+    auto name = gs.get()->general.name;
     for (auto &wifi_network : gs.get()->network.config.wifi_networks) {
         auto s = NetworkSettings{
             .valid = wifi_network.ssid[0] != 0,
@@ -38,7 +38,7 @@ bool NetworkTask::begin(NetworkSettings settings, uint32_t to, Pool &pool) {
     auto s = NetworkSettings{
         .valid = true,
         .create = true,
-        .ssid = pool.strdup(gs.get()->general.name),
+        .ssid = name,
         .password = nullptr,
         .port = 80,
     };
