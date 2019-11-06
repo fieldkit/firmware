@@ -202,7 +202,6 @@ bool SelfCheck::wifi() {
             .create = false,
             .ssid = nullptr,
             .password = nullptr,
-            .name = nullptr,
             .port = 0,
         };
         auto ok = network_->begin(settings);

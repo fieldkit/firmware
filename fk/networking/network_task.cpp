@@ -24,7 +24,6 @@ bool NetworkTask::begin(NetworkSettings settings, uint32_t to, Pool &pool) {
             .create = false,
             .ssid = wifi_network.ssid,
             .password = wifi_network.password,
-            .name = name,
             .port = 80,
         };
 
@@ -41,7 +40,6 @@ bool NetworkTask::begin(NetworkSettings settings, uint32_t to, Pool &pool) {
         .create = true,
         .ssid = pool.strdup(gs.get()->general.name),
         .password = nullptr,
-        .name = name,
         .port = 80,
     };
 
@@ -96,7 +94,6 @@ bool NetworkTask::did_configuration_change() {
 }
 
 NetworkSettings NetworkTask::get_selected_settings(Pool &pool) {
-    auto name = fk_device_name_generate(pool);
     auto gs = get_global_state_ro();
     auto &n = gs.get()->network.config.selected;
     if (!n.valid) {
@@ -112,7 +109,6 @@ NetworkSettings NetworkTask::get_selected_settings(Pool &pool) {
         .create = n.create,
         .ssid = n.ssid,
         .password = n.password,
-        .name = name,
         .port = 80,
     };
 }

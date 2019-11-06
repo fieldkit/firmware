@@ -107,11 +107,6 @@ bool LinuxNetwork::begin(NetworkSettings settings) {
 }
 
 bool LinuxNetwork::serve() {
-    strncpy(service_name_, settings_.name, sizeof(service_name_) - 5);
-    auto n = std::min(strlen(service_name_), sizeof(service_name_) - 5);
-    strncpy(service_name_ + n, "._fk", 4);
-    service_name_[n + 4] = 0;
-
     listening_ = socket(AF_INET, SOCK_STREAM, 0);
     if (listening_ == -1) {
         logerror("linux: unable to listen");

@@ -42,7 +42,6 @@ public:
 class LinuxNetwork : public Network {
 private:
     bool enabled_{ false };
-    char service_name_[64];
     NetworkSettings settings_;
     int32_t listening_;
 
