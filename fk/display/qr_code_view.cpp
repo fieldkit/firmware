@@ -7,7 +7,7 @@
 #include "hal/board.h"
 #include "hal/display.h"
 #include "platform.h"
-#include "device_name.h"
+#include "state_ref.h"
 
 namespace fk {
 
@@ -46,10 +46,9 @@ void QrCodeView::tick(ViewController *views) {
         break;
     }
     case WhichQrCode::Name: {
-        if (fk_device_name_printf(text_, sizeof(text_)) != nullptr) {
-            qrcode_initText(&qr, data, version, ECC_MEDIUM, text_);
-            loginfo("generating qr: %s", text_);
-        }
+        auto gs = get_global_state_ro();
+        qrcode_initText(&qr, data, version, ECC_MEDIUM, gs.get()->general.name);
+        loginfo("generating qr: %s", gs.get()->general.name);
         break;
     }
     }

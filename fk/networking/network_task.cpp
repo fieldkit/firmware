@@ -1,5 +1,4 @@
 #include "networking/network_task.h"
-#include "device_name.h"
 
 namespace fk {
 
@@ -72,11 +71,11 @@ bool NetworkTask::did_configuration_change() {
     }
 
     auto gs = get_global_state_ro();
-    auto n = gs.get()->network.config.selected;
+    auto modified = gs.get()->network.config.modified;
 
     last_checked_configuration_ = fk_uptime();
 
-    if (n.modified != configuration_modified_) {
+    if (modified != configuration_modified_) {
         loginfo("modified");
         return true;
     }
@@ -102,7 +101,8 @@ NetworkSettings NetworkTask::get_selected_settings(Pool &pool) {
         };
     }
 
-    configuration_modified_ = n.modified;
+    auto modified = gs.get()->network.config.modified;
+    configuration_modified_ = modified;
 
     return {
         .valid = true,

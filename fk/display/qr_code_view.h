@@ -18,8 +18,6 @@ enum class WhichQrCode {
 class QrCodeView : public DisplayView {
 private:
     WhichQrCode which_;
-    // NOTE See the table in the QRCode documentation about maximum sizes.
-    char text_[QrCodeMaximumTextLength];
     bool visible_{ false };
 
 public:

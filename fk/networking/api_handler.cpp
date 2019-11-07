@@ -9,7 +9,6 @@
 #include "utilities.h"
 #include "records.h"
 #include "readings_worker.h"
-#include "device_name.h"
 #include "state_manager.h"
 #include "networking/http_reply.h"
 #include "base64.h"

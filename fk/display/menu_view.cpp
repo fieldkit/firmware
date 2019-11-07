@@ -274,23 +274,30 @@ void MenuView::create_tools_menu() {
     });
 }
 
-void MenuView::create_network_menu() {
-    auto gs = get_global_state_ro();
+static WifiNetworkInfo get_self_ap_network() {
+  auto gs = get_global_state_ro();
+  return WifiNetworkInfo{gs.get()->general.name};
+}
 
-    MenuOption *network_options[MaximumNumberOfWifiNetworks];
-    for (auto i = 0u; i < MaximumNumberOfWifiNetworks; ++i) {
-        auto &n = gs.get()->network.config.wifi_networks[i];
-        network_options[i] = to_network_option(pool_, n, [=](WifiNetworkInfo network) {
-            choose_active_network(network);
-            back_->on_selected();
-            views_->show_home();
-        });
-    }
+void MenuView::create_network_menu() {
     auto network_choose_self = to_lambda_option(pool_, "Create AP", [=]() {
-        choose_active_network({ true, true });
+        choose_active_network(get_self_ap_network());
         back_->on_selected();
         views_->show_home();
     });
+
+    MenuOption *network_options[MaximumNumberOfWifiNetworks];
+    {
+        auto gs = get_global_state_ro();
+        for (auto i = 0u; i < MaximumNumberOfWifiNetworks; ++i) {
+            auto &n = gs.get()->network.config.wifi_networks[i];
+            network_options[i] = to_network_option(pool_, n, [=](WifiNetworkInfo network) {
+                choose_active_network(network);
+                back_->on_selected();
+                views_->show_home();
+            });
+        }
+    }
 
     network_choose_menu_ = new_menu_screen<4>(pool_, {
         back_,
@@ -381,8 +388,11 @@ void MenuView::enter(ViewController *views) {
 
 void MenuView::choose_active_network(WifiNetworkInfo network) {
     auto gs = get_global_state_rw();
-    network.modified = fk_uptime();
+
+    loginfo("hello '%s'", network.ssid);
+
     gs.get()->network.config.selected = network;
+    gs.get()->network.config.modified = fk_uptime();
 
     if (!get_network()->enabled()) {
         auto worker = create_pool_worker<WifiToggleWorker>();

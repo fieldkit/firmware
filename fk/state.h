@@ -93,12 +93,23 @@ struct WifiNetworkInfo {
     bool create;
     char ssid[WifiMaximumSsidLength];
     char password[WifiMaximumPasswordLength];
-    uint32_t modified;
 
     WifiNetworkInfo() {
     }
 
+    WifiNetworkInfo(WifiNetworkInfo const &other) {
+        valid = other.valid;
+        create = other.create;
+        strncpy(this->ssid, other.ssid, WifiMaximumSsidLength);
+        strncpy(this->password, other.password, WifiMaximumPasswordLength);
+    }
+
     WifiNetworkInfo(bool valid, bool create) : valid(valid), create(create) {
+    }
+
+    WifiNetworkInfo(const char *ssid) : valid(true), create(true) {
+        strncpy(this->ssid, ssid, WifiMaximumSsidLength);
+        this->password[0] = 0;
     }
 
     WifiNetworkInfo(const char *ssid, const char *password) {
@@ -110,6 +121,7 @@ struct WifiNetworkInfo {
 struct NetworkConfiguration {
     WifiNetworkInfo wifi_networks[MaximumNumberOfWifiNetworks];
     WifiNetworkInfo selected;
+    uint32_t modified;
 };
 
 struct NetworkState {

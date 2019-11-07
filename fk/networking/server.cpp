@@ -47,11 +47,7 @@ const char *HttpServer::ssid() const {
 }
 
 bool HttpServer::begin(NetworkSettings settings, uint32_t to, Pool &pool) {
-    auto name = fk_device_name_generate(pool);
-
     if (settings.create) {
-        settings.ssid = name;
-        settings.password = nullptr;
         loginfo("creating '%s'", settings.ssid);
     }
     else {
