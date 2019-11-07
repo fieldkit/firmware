@@ -80,7 +80,7 @@ public:
 
     virtual size_t read(uint32_t address, uint8_t *data, size_t length) = 0;
 
-    virtual size_t write(uint32_t address, const uint8_t *data, size_t length) = 0;
+    virtual size_t write(uint32_t address, uint8_t const *data, size_t length) = 0;
 
     virtual size_t erase_block(uint32_t address) = 0;
 
@@ -108,7 +108,7 @@ public:
 
     size_t read(uint32_t address, uint8_t *data, size_t length) override;
 
-    size_t write(uint32_t address, const uint8_t *data, size_t length) override;
+    size_t write(uint32_t address, uint8_t const *data, size_t length) override;
 
     size_t erase_block(uint32_t address) override;
 

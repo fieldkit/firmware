@@ -156,13 +156,11 @@ tl::expected<AppendedRecord, Error> SignedRecordLog::append_immutable(SignedReco
         logwarn("creating new file");
     }
 
-    auto previous_level = log_get_level();
-
-    log_configure_level(LogLevels::TRACE);
+    #if defined(FK_VERBOSE_SIGNED_LOG_WRITES)
+    ScopedLogLevelChange enable_trace{ LogLevels::TRACE };
+    #endif
 
     auto rv = append_always(kind, record, fields, pool);
-
-    log_configure_level((LogLevels)previous_level);
 
     return rv;
 }

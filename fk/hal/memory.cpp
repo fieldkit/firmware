@@ -70,7 +70,7 @@ size_t BankedDataMemory::read(uint32_t address, uint8_t *data, size_t length) {
     });
 }
 
-size_t BankedDataMemory::write(uint32_t address, const uint8_t *data, size_t length) {
+size_t BankedDataMemory::write(uint32_t address, uint8_t const *data, size_t length) {
     return with_bank(memories_, size_, address, [&](DataMemory &bank, uint32_t bank_address) {
         return bank.write(bank_address, data, length);
     });

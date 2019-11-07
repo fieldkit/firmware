@@ -146,4 +146,23 @@ enum class Availability {
     Unavailable
 };
 
+/**
+ * RIAA-esque class for temporarily changing log level.
+ */
+class ScopedLogLevelChange {
+private:
+    uint8_t previous_;
+
+public:
+    ScopedLogLevelChange(LogLevels level) {
+        previous_ = log_get_level();
+        log_configure_level(level);
+    }
+
+    virtual ~ScopedLogLevelChange() {
+    log_configure_level((LogLevels)previous_);
+    }
+
+};
+
 }
