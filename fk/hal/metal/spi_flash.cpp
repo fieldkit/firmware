@@ -45,7 +45,7 @@ static SPISettings SpiSettings{ 50000000, MSBFIRST, SPI_MODE0 };
 SpiFlash::SpiFlash(uint8_t cs) : cs_(cs) {
 }
 
-flash_geometry_t SpiFlash::geometry() const {
+FlashGeometry SpiFlash::geometry() const {
     if (status_ != Availability::Available) {
         return { 0, 0, 0, 0 };
     }

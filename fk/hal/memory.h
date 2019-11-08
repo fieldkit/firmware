@@ -6,7 +6,7 @@
 
 namespace fk {
 
-typedef struct flash_geometry_t {
+struct FlashGeometry {
     uint32_t page_size;
     uint32_t block_size;
     uint32_t nblocks;
@@ -70,13 +70,13 @@ typedef struct flash_geometry_t {
         auto padding = address % 512;
         return padding == 0 ? address : address + (512 - padding);
     }
-} flash_geometry_t;
+};
 
 class DataMemory {
 public:
     virtual bool begin() = 0;
 
-    virtual flash_geometry_t geometry() const = 0;
+    virtual FlashGeometry geometry() const = 0;
 
     virtual int32_t read(uint32_t address, uint8_t *data, size_t length) = 0;
 
@@ -96,7 +96,7 @@ class BankedDataMemory : public DataMemory {
 private:
     DataMemory **memories_;
     size_t size_;
-    flash_geometry_t geometry_;
+    FlashGeometry geometry_;
 
 public:
     BankedDataMemory(DataMemory **memories, size_t size);
@@ -104,7 +104,7 @@ public:
 public:
     bool begin() override;
 
-    flash_geometry_t geometry() const override;
+    FlashGeometry geometry() const override;
 
     int32_t read(uint32_t address, uint8_t *data, size_t length) override;
 

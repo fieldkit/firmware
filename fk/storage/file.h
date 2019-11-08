@@ -75,7 +75,7 @@ public:
 public:
     RecordReference reference() const;
 
-    flash_geometry_t geometry() const;
+    FlashGeometry geometry() const;
 
     uint8_t file_number() const {
         return file_;

@@ -17,7 +17,7 @@ protected:
     StatisticsMemory statistics_memory_{ data_memory_ };
     MemoryStatistics statistics_;
     DataMemory *memory_{ &statistics_memory_ };
-    flash_geometry_t g_;
+    FlashGeometry g_;
 
 protected:
     void SetUp() override {

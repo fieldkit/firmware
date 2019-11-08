@@ -36,7 +36,7 @@ File::File(Storage *storage, uint8_t file)
 File::~File() {
 }
 
-flash_geometry_t File::geometry() const {
+FlashGeometry File::geometry() const {
     return storage_->memory_->geometry();
 }
 

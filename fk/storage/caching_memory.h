@@ -40,7 +40,7 @@ public:
 public:
     bool begin() override;
 
-    flash_geometry_t geometry() const override;
+    FlashGeometry geometry() const override;
 
     int32_t read(uint32_t address, uint8_t *data, size_t length) override;
 

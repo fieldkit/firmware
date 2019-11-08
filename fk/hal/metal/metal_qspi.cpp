@@ -19,7 +19,7 @@ bool MetalQspiMemory::begin() {
     return true;
 }
 
-flash_geometry_t MetalQspiMemory::geometry() const {
+FlashGeometry MetalQspiMemory::geometry() const {
     return  { };
 }
 

@@ -12,7 +12,7 @@ bool MetalDataMemory::begin() {
     return flash_.begin();
 }
 
-flash_geometry_t MetalDataMemory::geometry() const {
+FlashGeometry MetalDataMemory::geometry() const {
     return flash_.geometry();
 }
 

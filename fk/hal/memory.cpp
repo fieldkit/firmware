@@ -60,7 +60,7 @@ bool BankedDataMemory::begin() {
     return nbanks > 0;
 }
 
-flash_geometry_t BankedDataMemory::geometry() const {
+FlashGeometry BankedDataMemory::geometry() const {
     return geometry_;
 }
 

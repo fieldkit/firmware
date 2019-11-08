@@ -75,7 +75,7 @@ public:
         return files_[file];
     }
 
-    flash_geometry_t geometry() const {
+    FlashGeometry geometry() const {
         return memory_->geometry();
     }
 

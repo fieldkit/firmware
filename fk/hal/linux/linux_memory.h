@@ -18,7 +18,7 @@ private:
 
 private:
     StorageLog log_;
-    flash_geometry_t geometry_;
+    FlashGeometry geometry_;
     uint8_t *memory_{ nullptr };
     size_t size_{ 0 };
 
@@ -31,7 +31,7 @@ public:
 public:
     bool begin() override;
 
-    flash_geometry_t geometry() const override;
+    FlashGeometry geometry() const override;
 
     int32_t read(uint32_t address, uint8_t *data, size_t length) override;
 

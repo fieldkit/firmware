@@ -31,7 +31,7 @@ void LinuxDataMemory::erase_all() {
     memset(memory_, 0xff, size_);
 }
 
-flash_geometry_t LinuxDataMemory::geometry() const {
+FlashGeometry LinuxDataMemory::geometry() const {
     return { PageSize, BlockSize, NumberOfBlocks, NumberOfBlocks * BlockSize };
 }
 

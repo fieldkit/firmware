@@ -24,7 +24,7 @@ protected:
     DataMemory *data_memory_{ nullptr };
     StatisticsMemory statistics_memory_{ data_memory_ };
     DataMemory *memory_{ &statistics_memory_ };
-    flash_geometry_t g_;
+    FlashGeometry g_;
 
 protected:
     void SetUp() override {
@@ -139,4 +139,3 @@ TEST_F(ReadingsSuite, TakingReadingsTwoModules) {
     ASSERT_NE(buffer, nullptr);
     ASSERT_NE(buffer->buffer, nullptr);
 }
-

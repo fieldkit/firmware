@@ -32,7 +32,7 @@ bool CachingMemory::begin() {
     return true;
 }
 
-flash_geometry_t CachingMemory::geometry() const {
+FlashGeometry CachingMemory::geometry() const {
     return target_->geometry();
 }
 

@@ -8,7 +8,7 @@ namespace fk {
 class BadBlocks {
 private:
     DataMemory *memory_;
-    flash_geometry_t geometry_;
+    FlashGeometry geometry_;
     Pool *pool_;
     uint8_t *table_;
 

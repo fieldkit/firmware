@@ -96,6 +96,8 @@ TEST_F(BadBlocksSuite, EraseFailsOnBadBlockFromWearAfterCleared) {
 }
 
 TEST_F(BadBlocksSuite, DISABLED_WritingToBadRegion) {
+    ScopedLogLevelChange change{ LogLevels::DEBUG };
+
     bank(0).mark_region_bad(g_.block_size * 1, 2048);
 
     Storage storage{ memory_, false };

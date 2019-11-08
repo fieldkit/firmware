@@ -21,7 +21,7 @@ bool StatisticsMemory::begin() {
     return target_->begin();
 }
 
-flash_geometry_t StatisticsMemory::geometry() const {
+FlashGeometry StatisticsMemory::geometry() const {
     return target_->geometry();
 }
 
