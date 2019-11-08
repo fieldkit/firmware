@@ -6,6 +6,8 @@
 
 using namespace fk;
 
+FK_DECLARE_LOGGER("tests");
+
 class PoolSuite : public ::testing::Test {
 protected:
 
@@ -94,10 +96,10 @@ TEST_F(PoolSuite, Collections) {
     integers.add(300);
 
     for (auto i : integers) {
-        printf("%d\n", i);
+        loginfo("%d", i);
     }
 
-    printf("%zd / %zd\n", pool.used(), pool.size());
+    loginfo("%zd / %zd", pool.used(), pool.size());
 
     collection<complex_object_t> objects{ pool };
     objects.add({
@@ -109,13 +111,13 @@ TEST_F(PoolSuite, Collections) {
         .value2 = 400,
     });
     for (auto &o : objects) {
-        printf("%d, %d\n", o.value1, o.value2);
+        loginfo("%d, %d", o.value1, o.value2);
     }
 
     collection<complex_object_t> ctor_moved{ std::move(objects) };
 
     for (auto &o : ctor_moved) {
-        printf("%d, %d\n", o.value1, o.value2);
+        loginfo("%d, %d", o.value1, o.value2);
     }
 
     collection<complex_object_t> assigned_moved{ pool };
@@ -123,7 +125,7 @@ TEST_F(PoolSuite, Collections) {
     assigned_moved = std::move(ctor_moved);
 
     for (auto &o : assigned_moved) {
-        printf("%d, %d\n", o.value1, o.value2);
+        loginfo("%d, %d", o.value1, o.value2);
     }
 
     collection<nested_collection_t> nested{ pool };

@@ -35,7 +35,7 @@ FlashGeometry LinuxDataMemory::geometry() const {
     return { PageSize, BlockSize, NumberOfBlocks, NumberOfBlocks * BlockSize };
 }
 
-int32_t LinuxDataMemory::read(uint32_t address, uint8_t *data, size_t length) {
+int32_t LinuxDataMemory::read(uint32_t address, uint8_t *data, size_t length, MemoryReadFlags flags) {
     assert(address >= 0 && address < size_);
     assert(address + length <= size_);
     assert(length <= PageSize);
@@ -60,7 +60,7 @@ int32_t LinuxDataMemory::read(uint32_t address, uint8_t *data, size_t length) {
     return length;
 }
 
-int32_t LinuxDataMemory::write(uint32_t address, const uint8_t *data, size_t length) {
+int32_t LinuxDataMemory::write(uint32_t address, const uint8_t *data, size_t length, MemoryWriteFlags flags) {
     assert(address >= 0 && address < size_);
     assert(address + length <= size_);
     assert(length <= PageSize);

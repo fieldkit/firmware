@@ -25,14 +25,14 @@ FlashGeometry StatisticsMemory::geometry() const {
     return target_->geometry();
 }
 
-int32_t StatisticsMemory::read(uint32_t address, uint8_t *data, size_t length) {
+int32_t StatisticsMemory::read(uint32_t address, uint8_t *data, size_t length, MemoryReadFlags flags) {
     statistics_.add_read(length);
-    return target_->read(address, data, length);
+    return target_->read(address, data, length, flags);
 }
 
-int32_t StatisticsMemory::write(uint32_t address, const uint8_t *data, size_t length) {
+int32_t StatisticsMemory::write(uint32_t address, const uint8_t *data, size_t length, MemoryWriteFlags flags) {
     statistics_.add_write(length);
-    return target_->write(address, data, length);
+    return target_->write(address, data, length, flags);
 }
 
 int32_t StatisticsMemory::erase_block(uint32_t address) {

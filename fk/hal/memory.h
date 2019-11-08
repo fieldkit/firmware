@@ -78,19 +78,35 @@ struct FlashGeometry {
     }
 };
 
+enum class MemoryReadFlags {
+    None,
+};
+
+enum class MemoryWriteFlags {
+    None,
+};
+
 class DataMemory {
 public:
     virtual bool begin() = 0;
 
     virtual FlashGeometry geometry() const = 0;
 
-    virtual int32_t read(uint32_t address, uint8_t *data, size_t length) = 0;
+    virtual int32_t read(uint32_t address, uint8_t *data, size_t length, MemoryReadFlags flags) = 0;
 
-    virtual int32_t write(uint32_t address, uint8_t const *data, size_t length) = 0;
+    virtual int32_t write(uint32_t address, uint8_t const *data, size_t length, MemoryWriteFlags flags) = 0;
 
     virtual int32_t erase_block(uint32_t address) = 0;
 
     virtual int32_t flush() = 0;
+
+    int32_t read(uint32_t address, uint8_t *data, size_t length) {
+        return read(address, data, length, MemoryReadFlags::None);
+    }
+
+    int32_t write(uint32_t address, uint8_t const *data, size_t length) {
+        return write(address, data, length, MemoryWriteFlags::None);
+    }
 
     bool available() {
         return geometry().total_size > 0;
@@ -112,9 +128,9 @@ public:
 
     FlashGeometry geometry() const override;
 
-    int32_t read(uint32_t address, uint8_t *data, size_t length) override;
+    int32_t read(uint32_t address, uint8_t *data, size_t length, MemoryReadFlags flags) override;
 
-    int32_t write(uint32_t address, uint8_t const *data, size_t length) override;
+    int32_t write(uint32_t address, uint8_t const *data, size_t length, MemoryWriteFlags flags) override;
 
     int32_t erase_block(uint32_t address) override;
 

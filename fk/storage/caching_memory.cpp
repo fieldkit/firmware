@@ -36,7 +36,7 @@ FlashGeometry CachingMemory::geometry() const {
     return target_->geometry();
 }
 
-int32_t CachingMemory::read(uint32_t address, uint8_t *data, size_t length) {
+int32_t CachingMemory::read(uint32_t address, uint8_t *data, size_t length, MemoryReadFlags flags) {
     auto page_size = target_->geometry().page_size;
     auto page = cache_->get_page(address, false);
     if (page == nullptr) {
@@ -60,7 +60,7 @@ static void verify_erased(uint32_t address, uint8_t *p, size_t length) {
 }
 #endif
 
-int32_t CachingMemory::write(uint32_t address, const uint8_t *data, size_t length) {
+int32_t CachingMemory::write(uint32_t address, const uint8_t *data, size_t length, MemoryWriteFlags flags) {
     auto page_size = target_->geometry().page_size;
     auto page = cache_->get_page(address, true);
     if (page == nullptr) {

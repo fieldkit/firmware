@@ -16,11 +16,11 @@ FlashGeometry MetalDataMemory::geometry() const {
     return flash_.geometry();
 }
 
-int32_t MetalDataMemory::read(uint32_t address, uint8_t *data, size_t length) {
+int32_t MetalDataMemory::read(uint32_t address, uint8_t *data, size_t length, MemoryReadFlags flags) {
     return flash_.read(address, data, length);
 }
 
-int32_t MetalDataMemory::write(uint32_t address, const uint8_t *data, size_t length) {
+int32_t MetalDataMemory::write(uint32_t address, const uint8_t *data, size_t length, MemoryWriteFlags flags) {
     return flash_.write(address, data, length);
 }
 

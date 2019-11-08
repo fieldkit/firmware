@@ -64,15 +64,15 @@ FlashGeometry BankedDataMemory::geometry() const {
     return geometry_;
 }
 
-int32_t BankedDataMemory::read(uint32_t address, uint8_t *data, size_t length) {
+int32_t BankedDataMemory::read(uint32_t address, uint8_t *data, size_t length, MemoryReadFlags flags) {
     return with_bank(memories_, size_, address, [&](DataMemory &bank, uint32_t bank_address) {
-        return bank.read(bank_address, data, length);
+        return bank.read(bank_address, data, length, flags);
     });
 }
 
-int32_t BankedDataMemory::write(uint32_t address, uint8_t const *data, size_t length) {
+int32_t BankedDataMemory::write(uint32_t address, uint8_t const *data, size_t length, MemoryWriteFlags flags) {
     return with_bank(memories_, size_, address, [&](DataMemory &bank, uint32_t bank_address) {
-        return bank.write(bank_address, data, length);
+        return bank.write(bank_address, data, length, flags);
     });
 }
 

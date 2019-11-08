@@ -23,11 +23,11 @@ FlashGeometry MetalQspiMemory::geometry() const {
     return  { };
 }
 
-int32_t MetalQspiMemory::read(uint32_t address, uint8_t *data, size_t length) {
+int32_t MetalQspiMemory::read(uint32_t address, uint8_t *data, size_t length, MemoryReadFlags flags) {
     return false;
 }
 
-int32_t MetalQspiMemory::write(uint32_t address, const uint8_t *data, size_t length) {
+int32_t MetalQspiMemory::write(uint32_t address, const uint8_t *data, size_t length, MemoryWriteFlags flags) {
     return false;
 }
 
