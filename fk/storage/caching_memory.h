@@ -18,6 +18,9 @@ struct CachedPage {
         dirty_end = 0;
     }
     bool dirty() const;
+    int32_t block() const {
+        return page / 64;
+    }
 };
 
 class PageCache {

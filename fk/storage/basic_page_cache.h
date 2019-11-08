@@ -117,10 +117,18 @@ public:
             return true;
         }
 
-        logdebug("[0x%06" PRIx32 "]: flush #%" PRIu32 " dirty (0x%x - 0x%x)", (uint32_t)(page->page * PageSize), (uint32_t)page->page, page->dirty_start, page->dirty_end);
+        auto page_address = (uint32_t)page->page * PageSize;
 
-        if (!store_.save_page(page->page * PageSize, page->ptr, PageSize, page->dirty_start, page->dirty_end)) {
-            logerror("[0x%06" PRIx32 "]: flush #%" PRIu32 " dirty (0x%x - 0x%x) failed!", (uint32_t)(page->page * PageSize), (uint32_t)page->page, page->dirty_start, page->dirty_end);
+        logdebug("[0x%06" PRIx32 "]: flush #%" PRIu32 " dirty (0x%3x - 0x%3x) (0x%06" PRIx32 " - 0x%06" PRIx32 ") %" PRIu32 " bytes",
+                 page_address, (uint32_t)page->page, page->dirty_start, page->dirty_end,
+                 page_address + page->dirty_start, page_address + page->dirty_end,
+                 page->dirty_end - page->dirty_start);
+
+        if (!store_.save_page(page_address, page->ptr, PageSize, page->dirty_start, page->dirty_end)) {
+            logerror("[0x%06" PRIx32 "]: flush #%" PRIu32 " dirty (0x%3x - 0x%3x) (0x%06" PRIx32 " - 0x%06" PRIx32 ") %" PRIu32 " bytes failed!",
+                     page_address, (uint32_t)page->page, page->dirty_start, page->dirty_end,
+                     page_address + page->dirty_start, page_address + page->dirty_end,
+                     page->dirty_end - page->dirty_start);
             return false;
         }
 
@@ -139,10 +147,43 @@ public:
         return n;
     }
 
+    int32_t number_of_dirty_blocks() const {
+        int32_t blocks[N];
+        for (auto i = 0u; i < N; ++i) {
+            blocks[i] = -1;
+        }
+        for (auto i = 0u; i < N; ++i) {
+            if (pages_[i].dirty()) {
+                auto block = pages_[i].block();
+                for (auto j = 0u; j < N; ++j) {
+                    if (blocks[j] == block) {
+                        break;
+                    }
+                    if (blocks[j] == -1) {
+                        blocks[j] = block;
+                        break;
+                    }
+                }
+            }
+        }
+        for (auto i = 0u; i < N; ++i) {
+            if (blocks[i] == -1) {
+                return i;
+            }
+        }
+        return N;
+    }
+
     bool flush() override {
+        auto nblocks = number_of_dirty_blocks();
         auto ndirty = number_of_dirty_pages();
-        if (ndirty > 0) {
-            logdebug("flushing %d dirty pages", ndirty);
+        if (ndirty > 1) {
+            logdebug("flushing %d dirty pages (%d blocks)", ndirty, nblocks);
+        }
+
+        FK_ASSERT(nblocks <= 2);
+
+        if (nblocks == 2) {
         }
 
         auto success = true;
@@ -151,6 +192,10 @@ public:
             if (!flush(&pages_[i])) {
                 success = false;
             }
+        }
+
+        if (!success) {
+            invalidate();
         }
 
         return success;

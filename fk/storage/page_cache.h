@@ -75,7 +75,7 @@ public:
             if (p->page == page) {
                 if (p->dirty()) {
                     logerror("invalidate DIRTY (%" PRIu32 ")", page);
-                    FK_ASSERT(!p->dirty());
+                    // FK_ASSERT(!p->dirty());
                 }
                 else if (p->ts > 0) {
                     logtrace("invalidate (%" PRIu32 ")", page);
@@ -94,7 +94,7 @@ public:
             auto p = &pages_[i];
             if (p->dirty()) {
                 logerror("invalidate(all) DIRTY (%" PRIu32 ")", p->page);
-                FK_ASSERT(!p->dirty());
+                // FK_ASSERT(!p->dirty());
             }
             else if (p->ts > 0) {
                 logtrace("invalidate(all) (%" PRIu32 ")", p->page);
