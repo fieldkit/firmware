@@ -15,6 +15,120 @@ FK_DECLARE_LOGGER("tests");
 class BadBlocksSuite : public StorageSuite {
 };
 
-TEST_F(BadBlocksSuite, AttemptingToAllocateABadBlocks) {
-    bank(0).mark_block_bad(g_.block_size * 3);
+TEST_F(BadBlocksSuite, FindingBadBlockFromFactoryDuringClear) {
+    Storage storage{ memory_, false };
+
+    bank(0).mark_block_bad_from_factory(g_.block_size * 2);
+
+    ASSERT_TRUE(storage.clear());
+}
+
+TEST_F(BadBlocksSuite, FindingBadBlockFromWearDuringClear) {
+    Storage storage{ memory_, false };
+
+    bank(0).mark_block_bad_from_wear(g_.block_size * 2);
+
+    ASSERT_TRUE(storage.clear());
+}
+
+TEST_F(BadBlocksSuite, FindingFactoryBadBlockAfterCleared) {
+    Storage storage{ memory_, false };
+
+    ASSERT_TRUE(storage.clear());
+
+    bank(0).mark_block_bad_from_factory(g_.block_size * 2);
+
+    auto file_write = storage.file(0);
+    auto size = g_.block_size * 5u;
+
+    ASSERT_TRUE(file_write.create());
+
+    StaticPattern pattern;
+    pattern.write(file_write, size);
+
+    ASSERT_EQ(file_write.size(), size);
+    ASSERT_EQ(file_write.position(), size);
+
+    ASSERT_TRUE(memory_->flush());
+
+    ASSERT_TRUE(storage.begin());
+
+    auto file_read = storage.file(0);
+
+    ASSERT_TRUE(file_read.seek_end());
+    ASSERT_EQ(file_read.size(), size);
+    ASSERT_EQ(file_read.position(), (size_t)size);
+
+    pattern.verify(file_read, size);
+
+    ASSERT_EQ(file_read.size(), size);
+    ASSERT_EQ(file_read.position(), size);
+}
+
+TEST_F(BadBlocksSuite, EraseFailsOnBadBlockFromWearAfterCleared) {
+    Storage storage{ memory_, false };
+
+    ASSERT_TRUE(storage.clear());
+
+    bank(0).mark_block_bad_from_wear(g_.block_size * 2);
+
+    auto file_write = storage.file(0);
+    auto size = g_.block_size * 5u;
+
+    ASSERT_TRUE(file_write.create());
+
+    StaticPattern pattern;
+    pattern.write(file_write, size);
+
+    ASSERT_EQ(file_write.size(), size);
+    ASSERT_EQ(file_write.position(), size);
+
+    ASSERT_TRUE(memory_->flush());
+
+    ASSERT_TRUE(storage.begin());
+
+    auto file_read = storage.file(0);
+
+    ASSERT_TRUE(file_read.seek_end());
+    ASSERT_EQ(file_read.size(), size);
+    ASSERT_EQ(file_read.position(), (size_t)size);
+
+    pattern.verify(file_read, size);
+
+    ASSERT_EQ(file_read.size(), size);
+    ASSERT_EQ(file_read.position(), size);
+}
+
+TEST_F(BadBlocksSuite, DISABLED_WritingToBadRegion) {
+    bank(0).mark_region_bad(g_.block_size * 1, 2048);
+
+    Storage storage{ memory_, false };
+
+    ASSERT_TRUE(storage.clear());
+
+    auto file_write = storage.file(0);
+    auto size = g_.block_size * 5u;
+
+    ASSERT_TRUE(file_write.create());
+
+    StaticPattern pattern;
+    pattern.write(file_write, size);
+
+    ASSERT_EQ(file_write.size(), size);
+    ASSERT_EQ(file_write.position(), size);
+
+    ASSERT_TRUE(memory_->flush());
+
+    ASSERT_TRUE(storage.begin());
+
+    auto file_read = storage.file(0);
+
+    ASSERT_TRUE(file_read.seek_end());
+    ASSERT_EQ(file_read.size(), size);
+    ASSERT_EQ(file_read.position(), (size_t)size);
+
+    pattern.verify(file_read, size);
+
+    ASSERT_EQ(file_read.size(), size);
+    ASSERT_EQ(file_read.position(), size);
 }

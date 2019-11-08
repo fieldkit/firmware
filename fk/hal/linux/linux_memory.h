@@ -61,12 +61,25 @@ private:
         }
 
         bool overlaps(Region const &r) const {
-            return start <= r.end() && r.start <= end();
+            return start < r.end() && r.start < end();
+        }
+    };
+
+    struct BadBlock {
+        uint32_t address;
+        bool factory{ false };
+
+        BadBlock(uint32_t address, bool factory) : address(address), factory(factory) {
+        }
+
+        bool overlaps(uint32_t test) const {
+            // TODO Magic number
+            return test >= address && test < address + (2048 * 64);
         }
     };
 
     std::list<Region> bad_regions_;
-    std::list<uint32_t> bad_blocks_;
+    std::list<BadBlock> bad_blocks_;
 
 public:
     void mark_region_bad(uint32_t start, uint32_t length) {
@@ -88,12 +101,30 @@ public:
         return false;
     }
 
-    void mark_block_bad(uint32_t address) {
-        bad_blocks_.emplace_back(address);
+    void mark_block_bad_from_wear(uint32_t address) {
+        bad_blocks_.emplace_back(BadBlock{ address, false });
     }
 
-    bool affects_bad_block(uint32_t address) {
-        return std::find(bad_blocks_.begin(), bad_blocks_.end(), address) != bad_blocks_.end();
+    void mark_block_bad_from_factory(uint32_t address) {
+        bad_blocks_.emplace_back(BadBlock{ address, true });
+    }
+
+    bool affects_bad_block_from_wear(uint32_t address) {
+        for (auto &b : bad_blocks_) {
+            if (b.overlaps(address)) {
+                return !b.factory;
+            }
+        }
+        return false;
+    }
+
+    bool affects_bad_block_from_factory(uint32_t address) {
+        for (auto &b : bad_blocks_) {
+            if (b.overlaps(address)) {
+                return b.factory;
+            }
+        }
+        return false;
     }
 
 };

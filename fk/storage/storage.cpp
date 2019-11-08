@@ -204,15 +204,32 @@ bool Storage::clear() {
         uint32_t address = range.middle_block() * g.block_size;
         logdebug("[" PRADDRESS "] erasing block", address);
         if (!memory_->erase_block(address)) {
+            // We just keep going, clearing earlier blocks. We'll
+            // handle this block being bad during reads/seeks. Still
+            // mark the block as bad though so that we can remember.
             logerror("erase block " PRADDRESS " failed", address);
             bad_blocks_.mark_address_as_bad(address);
-            return false;
         }
         range = range.first_half();
     }
 
     return true;
 }
+
+struct BadBlockFactoryCheck {
+    static constexpr size_t BadBlockFactoryCheckSize = 32;
+    uint8_t data[BadBlockFactoryCheckSize];
+
+    bool is_bad() const {
+        for (auto i = 0u; i < BadBlockFactoryCheckSize; ++i) {
+            if (data[i] != 0) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+};
 
 uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address, BlockTail &block_tail) {
     auto g = memory_->geometry();
@@ -224,35 +241,35 @@ uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address, BlockTa
 
     // Find a good block.
     for (auto i = 0; i < StorageAvailableBlockLookAhead; ++i) {
-        address = free_block_ * g.block_size;
+        auto test_address = free_block_ * g.block_size;
 
-        uint8_t buffer[32];
-        if (memory_->read(address, buffer, sizeof(buffer)) != sizeof(buffer)) {
-            logwarn("allocate: read failed");
+        // Basically checking an arbitrary amount of data here.
+        BadBlockFactoryCheck check;
+        if (memory_->read(test_address, check.data, sizeof(check.data)) != sizeof(check.data)) {
+            logerror("allocate: read failed");
+            free_block_++;
             continue;
         }
 
         // This is the bad block indicator, creative.
-        if (buffer[0] != 0x00) {
-            break;
+        if (check.is_bad()) {
+            logerror("[%d] allocating ignoring bad block: %" PRIu32 " (factory bad)", file, free_block_);
+            bad_blocks_.mark_address_as_bad(test_address);
+            free_block_++;
+            continue;
         }
 
-        logwarn("[%d] allocating ignoring bad block: %" PRIu32, file, free_block_);
+        // Erase new block and write header.
+        if (!memory_->erase_block(test_address)) {
+            logerror("[%d] allocating ignoring bad block: %" PRIu32 " (erase failed)", file, free_block_);
+            bad_blocks_.mark_address_as_bad(test_address);
+            free_block_++;
+            continue;
+        }
 
-        bad_blocks_.mark_address_as_bad(address);
+        address = test_address;
 
-        free_block_++;
-        address = InvalidAddress;
-    }
-
-    FK_ASSERT(g.is_address_valid(address));
-
-    // Erase new block and write header.
-    logdebug("[" PRADDRESS "] erasing block", address);
-    if (!memory_->erase_block(address)) {
-        logerror("allocate: erase failed");
-        bad_blocks_.mark_address_as_bad(address);
-        return InvalidAddress;
+        break;
     }
 
     loginfo("[%d] allocating block #%" PRIu32 " ts=%" PRIu32 " (" PRADDRESS ") (#%" PRIu32 ") (%" PRIu32 " bytes) (pta=" PRADDRESS ")",

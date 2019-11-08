@@ -50,7 +50,7 @@ public:
         if (available == nullptr) {
             // FK_ASSERT(!old->dirty());
             if (!flush(old)) {
-                logerror("page #%" PRIu32 " flush failed", old->page);
+                logerror("page #%" PRIu32 " flush failed (0x%06" PRIx32 ")", old->page, old->page * PageSize);
                 return nullptr;
             }
             available = old;

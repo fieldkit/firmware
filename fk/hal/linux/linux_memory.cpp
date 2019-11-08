@@ -40,6 +40,11 @@ size_t LinuxDataMemory::read(uint32_t address, uint8_t *data, size_t length) {
     assert(address + length <= size_);
     assert(length <= PageSize);
 
+    if (affects_bad_block_from_factory(address)) {
+        bzero(data, length);
+        return length;
+    }
+
     size_t page = address / PageSize;
     assert((address + length - 1) / PageSize == page);
 
@@ -83,7 +88,7 @@ size_t LinuxDataMemory::erase_block(uint32_t address) {
     assert(address >= 0 && address < size_);
     assert(address % BlockSize == 0);
 
-    if (affects_bad_block(address)) {
+    if (affects_bad_block_from_wear(address)) {
         return 0;
     }
 

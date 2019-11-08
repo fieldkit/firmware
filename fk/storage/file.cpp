@@ -149,7 +149,6 @@ int32_t File::write_partial(uint8_t const *record, size_t size) {
 }
 
 int32_t File::write_record_tail(size_t size) {
-
     RecordTail record_tail;
     record_tail.size = size;
     hash_.finalize(record_tail.hash.hash, sizeof(record_tail.hash.hash));
@@ -174,7 +173,6 @@ int32_t File::write_record_tail(size_t size) {
 
 int32_t File::write(uint8_t const *record, size_t size) {
     storage_->verify_mutable();
-
 
     logtrace("[%d] " PRADDRESS " BEGIN write (%zd bytes) #%" PRIu32 " (%" PRIu32 " w/ overhead)", file_, tail_, size, record_,
              (uint32_t)(sizeof(RecordHeader) + sizeof(RecordTail) + size));
