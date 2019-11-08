@@ -1,7 +1,7 @@
 #include "hal/hal.h"
 #include "hal/metal/metal.h"
 
-#if defined(ARDUINO)
+#if defined(__SAMD51__)
 
 namespace fk {
 
@@ -20,25 +20,22 @@ bool MetalQspiMemory::begin() {
 }
 
 flash_geometry_t MetalQspiMemory::geometry() const {
-    // auto size = flash_.size();
-    // loginfo("qspi = %" PRIu32, size);
-
     return  { };
 }
 
-size_t MetalQspiMemory::read(uint32_t address, uint8_t *data, size_t length) {
+int32_t MetalQspiMemory::read(uint32_t address, uint8_t *data, size_t length) {
     return false;
 }
 
-size_t MetalQspiMemory::write(uint32_t address, const uint8_t *data, size_t length) {
+int32_t MetalQspiMemory::write(uint32_t address, const uint8_t *data, size_t length) {
     return false;
 }
 
-size_t MetalQspiMemory::erase_block(uint32_t address) {
+int32_t MetalQspiMemory::erase_block(uint32_t address) {
     return false;
 }
 
-size_t MetalQspiMemory::flush() {
+int32_t MetalQspiMemory::flush() {
     return true;
 }
 

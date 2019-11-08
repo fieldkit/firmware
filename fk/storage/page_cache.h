@@ -68,7 +68,7 @@ public:
         return available;
     }
 
-    size_t invalidate(uint32_t address) override {
+    bool invalidate(uint32_t address) override {
         uint32_t page = address / PageSize;
         for (size_t i = 0; i < N; ++i) {
             auto p = &pages_[i];
@@ -89,7 +89,7 @@ public:
         return true;
     }
 
-    size_t invalidate() override {
+    bool invalidate() override {
         for (size_t i = 0; i < N; ++i) {
             auto p = &pages_[i];
             if (p->dirty()) {

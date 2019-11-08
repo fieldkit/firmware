@@ -25,24 +25,24 @@ flash_geometry_t StatisticsMemory::geometry() const {
     return target_->geometry();
 }
 
-size_t StatisticsMemory::read(uint32_t address, uint8_t *data, size_t length) {
+int32_t StatisticsMemory::read(uint32_t address, uint8_t *data, size_t length) {
     statistics_.add_read(length);
     return target_->read(address, data, length);
 }
 
-size_t StatisticsMemory::write(uint32_t address, const uint8_t *data, size_t length) {
+int32_t StatisticsMemory::write(uint32_t address, const uint8_t *data, size_t length) {
     statistics_.add_write(length);
     return target_->write(address, data, length);
 }
 
-size_t StatisticsMemory::erase_block(uint32_t address) {
+int32_t StatisticsMemory::erase_block(uint32_t address) {
     FK_ASSERT(geometry().is_address_valid(address));
 
     statistics_.nerases++;
     return target_->erase_block(address);
 }
 
-size_t StatisticsMemory::flush() {
+int32_t StatisticsMemory::flush() {
     return target_->flush();
 }
 

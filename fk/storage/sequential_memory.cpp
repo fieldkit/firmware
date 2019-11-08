@@ -7,7 +7,7 @@ namespace fk {
 SequentialMemory::SequentialMemory(DataMemory *memory) : memory_(memory) {
 }
 
-size_t SequentialMemory::read(uint32_t address, uint8_t *data, size_t length) const {
+int32_t SequentialMemory::read(uint32_t address, uint8_t *data, size_t length) const {
     size_t nbytes = 0;
 
     auto g = memory_->geometry();
@@ -36,7 +36,7 @@ size_t SequentialMemory::read(uint32_t address, uint8_t *data, size_t length) co
     return nbytes;
 }
 
-size_t SequentialMemory::write(uint32_t address, uint8_t *data, size_t length) {
+int32_t SequentialMemory::write(uint32_t address, uint8_t *data, size_t length) {
     size_t nbytes = 0;
 
     auto g = memory_->geometry();
@@ -65,7 +65,7 @@ size_t SequentialMemory::write(uint32_t address, uint8_t *data, size_t length) {
     return nbytes;
 }
 
-size_t SequentialMemory::flush() {
+int32_t SequentialMemory::flush() {
     return memory_->flush();
 }
 

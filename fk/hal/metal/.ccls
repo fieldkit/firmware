@@ -1,0 +1,2 @@
+%compile_commands.json
+-D__SAMD51__

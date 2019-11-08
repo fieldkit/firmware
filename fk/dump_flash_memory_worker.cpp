@@ -51,7 +51,7 @@ void DumpFlashMemory::run(Pool &pool) {
             break;
         }
 
-        if (memory.read(address, buffer, g.page_size) != g.page_size) {
+        if (memory.read(address, buffer, g.page_size) != (int32_t)g.page_size) {
             logerror("error reading memory");
             return;
         }

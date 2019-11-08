@@ -36,7 +36,7 @@ flash_geometry_t CachingMemory::geometry() const {
     return target_->geometry();
 }
 
-size_t CachingMemory::read(uint32_t address, uint8_t *data, size_t length) {
+int32_t CachingMemory::read(uint32_t address, uint8_t *data, size_t length) {
     auto page_size = target_->geometry().page_size;
     auto page = cache_->get_page(address, false);
     if (page == nullptr) {
@@ -61,7 +61,7 @@ static void verify_erased(uint32_t address, uint8_t *p, size_t length) {
 }
 #endif
 
-size_t CachingMemory::write(uint32_t address, const uint8_t *data, size_t length) {
+int32_t CachingMemory::write(uint32_t address, const uint8_t *data, size_t length) {
     auto page_size = target_->geometry().page_size;
     auto page = cache_->get_page(address, true);
     if (page == nullptr) {
@@ -82,7 +82,7 @@ size_t CachingMemory::write(uint32_t address, const uint8_t *data, size_t length
     return length;
 }
 
-size_t CachingMemory::erase_block(uint32_t address) {
+int32_t CachingMemory::erase_block(uint32_t address) {
     if (!target_->erase_block(address)) {
         return false;
     }
@@ -92,7 +92,7 @@ size_t CachingMemory::erase_block(uint32_t address) {
     return true;
 }
 
-size_t CachingMemory::flush() {
+int32_t CachingMemory::flush() {
     if (!target_->flush()) {
         logerror("memory flush failed");
         return false;

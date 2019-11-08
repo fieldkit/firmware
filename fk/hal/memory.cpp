@@ -64,25 +64,25 @@ flash_geometry_t BankedDataMemory::geometry() const {
     return geometry_;
 }
 
-size_t BankedDataMemory::read(uint32_t address, uint8_t *data, size_t length) {
+int32_t BankedDataMemory::read(uint32_t address, uint8_t *data, size_t length) {
     return with_bank(memories_, size_, address, [&](DataMemory &bank, uint32_t bank_address) {
         return bank.read(bank_address, data, length);
     });
 }
 
-size_t BankedDataMemory::write(uint32_t address, uint8_t const *data, size_t length) {
+int32_t BankedDataMemory::write(uint32_t address, uint8_t const *data, size_t length) {
     return with_bank(memories_, size_, address, [&](DataMemory &bank, uint32_t bank_address) {
         return bank.write(bank_address, data, length);
     });
 }
 
-size_t BankedDataMemory::erase_block(uint32_t address) {
+int32_t BankedDataMemory::erase_block(uint32_t address) {
     return with_bank(memories_, size_, address, [&](DataMemory &bank, uint32_t bank_address) {
         return bank.erase_block(bank_address);
     });
 }
 
-size_t BankedDataMemory::flush() {
+int32_t BankedDataMemory::flush() {
     auto failed = false;
     for (size_t i = 0; i < size_; ++i) {
         auto bank = memories_[i];

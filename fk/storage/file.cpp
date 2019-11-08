@@ -132,7 +132,7 @@ int32_t File::write_partial(uint8_t const *record, size_t size) {
 
     logverbose("[%d] " PRADDRESS " write data (%zd bytes) (%" PRIu32 " lib)", file_, tail_, size, (int32_t)left_in_block);
 
-    if (memory_.write(tail_, (uint8_t *)record, size) != size) {
+    if (memory_.write(tail_, (uint8_t *)record, size) <= 0) {
         return 0;
     }
 
@@ -569,7 +569,7 @@ int32_t File::read(uint8_t *record, size_t size) {
             auto buffer_remaining = size - bytes_read;
             auto reading = std::min<size_t>(left_in_block, std::min<size_t>(buffer_remaining, record_remaining_));
             FK_ASSERT(reading > 0);
-            if (memory_.read(tail_, (uint8_t *)record + bytes_read, reading) != reading) {
+            if (memory_.read(tail_, (uint8_t *)record + bytes_read, reading) <= 0) {
                 return bytes_read;
             }
 

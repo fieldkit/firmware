@@ -35,7 +35,7 @@ flash_geometry_t LinuxDataMemory::geometry() const {
     return { PageSize, BlockSize, NumberOfBlocks, NumberOfBlocks * BlockSize };
 }
 
-size_t LinuxDataMemory::read(uint32_t address, uint8_t *data, size_t length) {
+int32_t LinuxDataMemory::read(uint32_t address, uint8_t *data, size_t length) {
     assert(address >= 0 && address < size_);
     assert(address + length <= size_);
     assert(length <= PageSize);
@@ -60,7 +60,7 @@ size_t LinuxDataMemory::read(uint32_t address, uint8_t *data, size_t length) {
     return length;
 }
 
-size_t LinuxDataMemory::write(uint32_t address, const uint8_t *data, size_t length) {
+int32_t LinuxDataMemory::write(uint32_t address, const uint8_t *data, size_t length) {
     assert(address >= 0 && address < size_);
     assert(address + length <= size_);
     assert(length <= PageSize);
@@ -84,7 +84,7 @@ size_t LinuxDataMemory::write(uint32_t address, const uint8_t *data, size_t leng
     return length;
 }
 
-size_t LinuxDataMemory::erase_block(uint32_t address) {
+int32_t LinuxDataMemory::erase_block(uint32_t address) {
     assert(address >= 0 && address < size_);
     assert(address % BlockSize == 0);
 
@@ -100,7 +100,7 @@ size_t LinuxDataMemory::erase_block(uint32_t address) {
     return true;
 }
 
-size_t LinuxDataMemory::flush() {
+int32_t LinuxDataMemory::flush() {
     return true;
 }
 
