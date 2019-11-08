@@ -88,6 +88,10 @@ protected:
         statistics_memory_.statistics() = { };
     }
 
+    LinuxDataMemory &bank(int32_t i) {
+        return *banks_[i];
+    }
+
 };
 
 }
