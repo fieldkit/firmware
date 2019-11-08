@@ -50,6 +50,8 @@ protected:
             erases += log.number_of(OperationType::EraseBlock);
             reads += log.number_of(OperationType::Read);
             writes += log.number_of(OperationType::Write);
+
+            banks_[i]->clear_bad_regions();
         }
 
         clear_statistics();

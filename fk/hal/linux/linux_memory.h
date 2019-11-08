@@ -2,6 +2,8 @@
 
 #if defined(linux)
 
+#include <algorithm>
+
 #include "hal/memory.h"
 #include "hal/linux/debug_log.h"
 
@@ -44,6 +46,54 @@ public:
 public:
     StorageLog &log() {
         return log_;
+    }
+
+private:
+    struct Region {
+        uint32_t start;
+        uint32_t length;
+
+        uint32_t end() const {
+            return start + length;
+        }
+
+        Region(uint32_t start, uint32_t length) : start(start), length(length) {
+        }
+
+        bool overlaps(Region const &r) const {
+            return start <= r.end() && r.start <= end();
+        }
+    };
+
+    std::list<Region> bad_regions_;
+    std::list<uint32_t> bad_blocks_;
+
+public:
+    void mark_region_bad(uint32_t start, uint32_t length) {
+        bad_regions_.emplace_back(Region{ start, length });
+    }
+
+    void clear_bad_regions() {
+        bad_regions_.clear();
+        bad_blocks_.clear();
+    }
+
+    bool affects_bad_region(uint32_t start, uint32_t length) {
+        auto test = Region{start, length};
+        for (auto &r : bad_regions_) {
+            if (r.overlaps(test)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void mark_block_bad(uint32_t address) {
+        bad_blocks_.emplace_back(address);
+    }
+
+    bool affects_bad_block(uint32_t address) {
+        return std::find(bad_blocks_.begin(), bad_blocks_.end(), address) != bad_blocks_.end();
     }
 
 };
