@@ -20,6 +20,21 @@ public:
         }
     }
 
+private:
+    CachedPage *get_tail_dirty_page() {
+        CachedPage *selected = nullptr;
+
+        for (auto &p : pages_) {
+            if (p.dirty()) {
+                if (selected == nullptr || p.page > selected->page) {
+                    selected = &p;
+                }
+            }
+        }
+
+        return selected;
+    }
+
 public:
     CachedPage *get_page(uint32_t address, bool writing) override {
         CachedPage *available = nullptr;
@@ -73,6 +88,12 @@ public:
         return available;
     }
 
+    void invalidate(CachedPage *page) {
+        page->mark_clean();
+        page->ts = 0;
+        page->page = 0;
+    }
+
     size_t invalidate(uint32_t address) override {
         uint32_t page = address / PageSize;
         for (size_t i = 0; i < N; ++i) {
@@ -85,9 +106,7 @@ public:
                 else if (p->ts > 0) {
                     if (false) logtrace("invalidate (%" PRIu32 ")", page);
                 }
-                p->mark_clean();
-                p->ts = 0;
-                p->page = 0;
+                invalidate(p);
             }
         }
 
@@ -104,9 +123,7 @@ public:
             else if (p->ts > 0) {
                 if (false) logtrace("invalidate(all) (%" PRIu32 ")", p->page);
             }
-            p->mark_clean();
-            p->ts = 0;
-            p->page = 0;
+            invalidate(p);
         }
 
         return true;
@@ -187,15 +204,15 @@ public:
         }
 
         auto success = true;
-
         for (auto i = 0u; i < N; ++i) {
-            if (!flush(&pages_[i])) {
-                success = false;
+            auto flushing = get_tail_dirty_page();
+            if (flushing == nullptr) {
+                break;
             }
-        }
-
-        if (!success) {
-            invalidate();
+            if (!flush(flushing)) {
+                success = false;
+                invalidate(flushing);
+            }
         }
 
         return success;

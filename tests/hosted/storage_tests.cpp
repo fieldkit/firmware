@@ -8,10 +8,14 @@ using namespace fk;
 FK_DECLARE_LOGGER("tests");
 
 TEST_F(StorageSuite, DisplayStructSizes) {
+    ScopedLogLevelChange change{ LogLevels::INFO };
+
     loginfo("sizeof(BlockHeader) = %zd (0x%zx)", sizeof(BlockHeader), sizeof(BlockHeader));
     loginfo("sizeof(BlockTail) = %zd (0x%zx)", sizeof(BlockTail), sizeof(BlockTail));
     loginfo("sizeof(RecordHeader) = %zd (0x%zx)", sizeof(RecordHeader), sizeof(RecordHeader));
     loginfo("sizeof(RecordTail) = %zd (0x%zx)", sizeof(RecordTail), sizeof(RecordTail));
+    loginfo("sizeof(File) = %zd (0x%zx)", sizeof(File), sizeof(File));
+    loginfo("sizeof(Storage) = %zd (0x%zx)", sizeof(Storage), sizeof(Storage));
 }
 
 TEST_F(StorageSuite, WhenMountingUnformatted) {
