@@ -49,6 +49,7 @@ public:
     bool begin();
     bool clear();
     File file(FileNumber file);
+    bool flush();
 
 public:
     uint32_t fsck(ProgressCallbacks *progress);

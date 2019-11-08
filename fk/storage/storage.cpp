@@ -555,4 +555,12 @@ void Storage::restore(SavedState const &state) {
     version_ = state.version;
 }
 
+bool Storage::flush() {
+    if (!memory_->flush()) {
+        // Yikes
+    }
+
+    return true;
+}
+
 }

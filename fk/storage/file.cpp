@@ -192,7 +192,7 @@ int32_t File::write(uint8_t const *record, size_t size) {
 
     update();
 
-    memory_.flush();
+    storage_->flush();
 
     return size;
 }
@@ -686,7 +686,7 @@ int32_t File::write(void const *record, pb_msgdesc_t const *fields) {
 
     update();
 
-    memory_.flush();
+    storage_->flush();
 
     return record_size;
 }

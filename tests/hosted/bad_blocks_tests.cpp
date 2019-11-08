@@ -39,7 +39,7 @@ TEST_F(BadBlocksSuite, FindingFactoryBadBlockAfterCleared) {
     bank(0).mark_block_bad_from_factory(g_.block_size * 2);
 
     auto file_write = storage.file(0);
-    auto size = g_.block_size * 5u;
+    auto size = g_.block_size * 3u;
 
     ASSERT_TRUE(file_write.create());
 
@@ -48,8 +48,6 @@ TEST_F(BadBlocksSuite, FindingFactoryBadBlockAfterCleared) {
 
     ASSERT_EQ(file_write.size(), size);
     ASSERT_EQ(file_write.position(), size);
-
-    ASSERT_TRUE(memory_->flush());
 
     ASSERT_TRUE(storage.begin());
 
@@ -73,7 +71,7 @@ TEST_F(BadBlocksSuite, EraseFailsOnBadBlockFromWearAfterCleared) {
     bank(0).mark_block_bad_from_wear(g_.block_size * 2);
 
     auto file_write = storage.file(0);
-    auto size = g_.block_size * 5u;
+    auto size = g_.block_size * 3u;
 
     ASSERT_TRUE(file_write.create());
 
@@ -82,8 +80,6 @@ TEST_F(BadBlocksSuite, EraseFailsOnBadBlockFromWearAfterCleared) {
 
     ASSERT_EQ(file_write.size(), size);
     ASSERT_EQ(file_write.position(), size);
-
-    ASSERT_TRUE(memory_->flush());
 
     ASSERT_TRUE(storage.begin());
 
@@ -107,7 +103,7 @@ TEST_F(BadBlocksSuite, DISABLED_WritingToBadRegion) {
     ASSERT_TRUE(storage.clear());
 
     auto file_write = storage.file(0);
-    auto size = g_.block_size * 5u;
+    auto size = g_.block_size * 3u;
 
     ASSERT_TRUE(file_write.create());
 
@@ -116,8 +112,6 @@ TEST_F(BadBlocksSuite, DISABLED_WritingToBadRegion) {
 
     ASSERT_EQ(file_write.size(), size);
     ASSERT_EQ(file_write.position(), size);
-
-    ASSERT_TRUE(memory_->flush());
 
     ASSERT_TRUE(storage.begin());
 

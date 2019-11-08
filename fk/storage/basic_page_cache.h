@@ -129,14 +129,31 @@ public:
         return true;
     }
 
+    int32_t number_of_dirty_pages() const {
+        auto n = 0u;
+        for (auto i = 0u; i < N; ++i) {
+            if (pages_[i].dirty()) {
+                n++;
+            }
+        }
+        return n;
+    }
+
     bool flush() override {
+        auto ndirty = number_of_dirty_pages();
+        if (ndirty > 0) {
+            logdebug("flushing %d dirty pages", ndirty);
+        }
+
+        auto success = true;
+
         for (auto i = 0u; i < N; ++i) {
             if (!flush(&pages_[i])) {
-                return false;
+                success = false;
             }
         }
 
-        return true;
+        return success;
     }
 
 private:
