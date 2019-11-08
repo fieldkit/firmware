@@ -45,7 +45,6 @@ int32_t CachingMemory::read(uint32_t address, uint8_t *data, size_t length) {
     }
     FK_ASSERT(page->ptr != nullptr);
     memcpy(data, page->ptr + (address % page_size), length);
-    // fk_dump_memory("RD-DATA ", data, length);
     return length;
 }
 
@@ -78,7 +77,6 @@ int32_t CachingMemory::write(uint32_t address, const uint8_t *data, size_t lengt
 
     memcpy(p, data, length);
     page->mark_dirty(offset, length);
-    // fk_dump_memory("CM-PAGE ", page->ptr, page_size);
     return length;
 }
 

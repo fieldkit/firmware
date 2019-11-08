@@ -29,18 +29,19 @@ public:
 
         for (size_t i = 0; i < N; ++i) {
             auto p = &pages_[i];
-            // logverbose("page[%zd] page=#%" PRIu32 " ts=%" PRIu32 " %s", i, p->page, p->ts, p->dirty() ? "dirty": "");
+            if (false) logverbose("page[%zd] page=#%" PRIu32 " ts=%" PRIu32 " %s", i, p->page, p->ts, p->dirty() ? "dirty": "");
             if (p->ts == 0) {
                 available = p;
                 old = p;
-            }
-            else {
+            } else {
                 if (p->page == page) {
-                    // logverbose("existing page #%" PRIu32 " (%" PRIu32 ")", p->page, p->ts);
+                    if (false) logverbose("existing page #%" PRIu32 " (%" PRIu32 ")", p->page, p->ts);
                     return p;
                 }
                 if (old == nullptr || old->ts > p->ts) {
-                    old = p;
+                    if (!p->dirty()) {
+                        old = p;
+                    }
                 }
             }
         }
@@ -48,7 +49,7 @@ public:
         FK_ASSERT(old != nullptr);
 
         if (available == nullptr) {
-            // FK_ASSERT(!old->dirty());
+            FK_ASSERT(!old->dirty());
             if (!flush(old)) {
                 logerror("page #%" PRIu32 " flush failed (0x%06" PRIx32 ")", old->page, old->page * PageSize);
                 return nullptr;
@@ -62,7 +63,7 @@ public:
         available->page = page;
         available->mark_clean();
 
-        // logtrace("load page #%" PRIu32 " (%" PRIu32 ")", available->page, available->ts);
+        if (false) logtrace("load page #%" PRIu32 " (%" PRIu32 ")", available->page, available->ts);
 
         if (!store_.load_page(page * PageSize, available->ptr, PageSize)) {
             logerror("page #%" PRIu32 " load failed", page);
@@ -82,7 +83,7 @@ public:
                     FK_ASSERT(!p->dirty());
                 }
                 else if (p->ts > 0) {
-                    // logtrace("invalidate (%" PRIu32 ")", page);
+                    if (false) logtrace("invalidate (%" PRIu32 ")", page);
                 }
                 p->mark_clean();
                 p->ts = 0;
@@ -101,7 +102,7 @@ public:
                 FK_ASSERT(!p->dirty());
             }
             else if (p->ts > 0) {
-                // logtrace("invalidate(all) (%" PRIu32 ")", p->page);
+                if (false) logtrace("invalidate(all) (%" PRIu32 ")", p->page);
             }
             p->mark_clean();
             p->ts = 0;
@@ -119,6 +120,7 @@ public:
         logdebug("[0x%06" PRIx32 "]: flush #%" PRIu32 " dirty (0x%x - 0x%x)", (uint32_t)(page->page * PageSize), (uint32_t)page->page, page->dirty_start, page->dirty_end);
 
         if (!store_.save_page(page->page * PageSize, page->ptr, PageSize, page->dirty_start, page->dirty_end)) {
+            logerror("[0x%06" PRIx32 "]: flush #%" PRIu32 " dirty (0x%x - 0x%x) failed!", (uint32_t)(page->page * PageSize), (uint32_t)page->page, page->dirty_start, page->dirty_end);
             return false;
         }
 
@@ -128,9 +130,8 @@ public:
     }
 
     bool flush() override {
-        for (size_t i = 0; i < N; ++i) {
+        for (auto i = 0u; i < N; ++i) {
             if (!flush(&pages_[i])) {
-                logerror("flush page failed");
                 return false;
             }
         }
