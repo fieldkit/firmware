@@ -86,7 +86,7 @@ TEST_F(StorageSuite, AppendingARecord) {
     uint8_t data[256] = { 0xcc };
     ASSERT_EQ(file_write.write(data, sizeof(data)), (int32_t)sizeof(data));
 
-    auto expected = sizeof(BlockHeader) + sizeof(RecordHeader) + sizeof(data) + sizeof(RecordTail);
+    auto expected = g_.partial_write_boundary_after(sizeof(BlockHeader)) + sizeof(RecordHeader) + sizeof(data) + sizeof(RecordTail);
     ASSERT_EQ(file_write.tail(), (uint32_t)expected);
 
     ASSERT_TRUE(memory_->flush());
@@ -124,7 +124,7 @@ TEST_F(StorageSuite, AppendingRecordsAcrossAPage) {
     auto data = (uint8_t *)pool_.malloc(length);
     ASSERT_EQ(file.write(data, length), (int32_t)length);
 
-    auto expected = sizeof(BlockHeader) + sizeof(RecordHeader) + length + sizeof(RecordTail);
+    auto expected = g_.partial_write_boundary_after(sizeof(BlockHeader)) + sizeof(RecordHeader) + length + sizeof(RecordTail);
     ASSERT_EQ(file.tail(), expected);
 
     ASSERT_TRUE(memory_->flush());
@@ -853,7 +853,7 @@ TEST_F(StorageSuite, ReproduceBadPositionOnSeekToBeginning) {
         ASSERT_TRUE(file_read1.seek(0));
         ASSERT_EQ(file_read1.record(), (uint32_t)0);
         ASSERT_EQ(file_read1.position(), (uint32_t)0);
-        ASSERT_EQ(file_read1.record_address(), sizeof(BlockHeader));
+        ASSERT_EQ(file_read1.record_address(), g_.partial_write_boundary_after(sizeof(BlockHeader)));
     }
 }
 

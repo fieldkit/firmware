@@ -7,6 +7,8 @@
 namespace fk {
 
 struct FlashGeometry {
+    static constexpr uint32_t SectorSize = 512;
+
     uint32_t page_size;
     uint32_t block_size;
     uint32_t nblocks;
@@ -24,51 +26,55 @@ struct FlashGeometry {
         return total_size / block_size;
     }
 
-    uint32_t remaining_in_page(uint32_t address) {
+    uint32_t remaining_in_page(uint32_t address) const {
         return page_size - (address % page_size);
     }
 
-    uint32_t remaining_in_block(uint32_t address) {
+    uint32_t remaining_in_block(uint32_t address) const {
         return block_size - (address % block_size);
     }
 
-    uint32_t truncate_to_block(uint32_t address) {
+    uint32_t truncate_to_block(uint32_t address) const {
         uint32_t block = (address / block_size);
         return block * block_size;
     }
 
-    uint32_t start_of_block(uint32_t address) {
+    uint32_t start_of_block(uint32_t address) const {
         return (address / block_size) * block_size;
     }
 
-    bool is_start_of_block(uint32_t address) {
+    bool is_start_of_block(uint32_t address) const {
         return address % block_size == 0;
     }
 
-    bool is_start_of_block_or_header(uint32_t address, size_t block_header_size) {
+    bool is_start_of_block_or_header(uint32_t address, size_t block_header_size) const {
         auto sob = start_of_block(address);
         return sob == address || sob + block_header_size == address;
     }
 
-    bool spans_block(uint32_t address, uint32_t length) {
+    bool spans_block(uint32_t address, uint32_t length) const {
         return (address / block_size) != ((address + length) / block_size);
     }
 
-    bool is_address_valid(uint32_t address) {
+    bool is_address_valid(uint32_t address) const {
         return address >= 0 && address < total_size;
     }
 
-    uint32_t partial_write_boundary_before(uint32_t address) {
-        if (address < 512) {
+    uint32_t partial_write_boundary_before(uint32_t address) const {
+        if (address < SectorSize) {
             return 0;
         }
-        auto padding = address % 512;
+        auto padding = address % SectorSize;
         return padding == 0 ? address : address - padding;
     }
 
-    uint32_t partial_write_boundary_after(uint32_t address) {
-        auto padding = address % 512;
-        return padding == 0 ? address : address + (512 - padding);
+    uint32_t partial_write_boundary_after(uint32_t address) const {
+        auto padding = address % SectorSize;
+        return padding == 0 ? address : address + (SectorSize - padding);
+    }
+
+    uint32_t sector_size() const {
+        return SectorSize;
     }
 };
 

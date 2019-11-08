@@ -147,7 +147,7 @@ bool Storage::begin() {
 
     while (true) {
         auto head_address = (uint32_t)(g.block_size * block);
-        auto tail_address = head_address + g.block_size - sizeof(BlockTail);
+        auto tail_address = head_address + g.block_size - SizeofBlockTail;
 
         BlockHeader block_header;
         if (memory_->read(head_address, (uint8_t *)&block_header, sizeof(block_header)) != sizeof(block_header)) {
@@ -233,7 +233,6 @@ struct BadBlockFactoryCheck {
 
 uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address, BlockTail &block_tail) {
     auto g = memory_->geometry();
-    auto address = InvalidAddress;
 
     verify_mutable();
 
@@ -241,83 +240,80 @@ uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address, BlockTa
 
     // Find a good block.
     for (auto i = 0; i < StorageAvailableBlockLookAhead; ++i) {
-        auto test_address = free_block_ * g.block_size;
+        auto address = free_block_ * g.block_size;
+
+        free_block_++;
 
         // Basically checking an arbitrary amount of data here.
         BadBlockFactoryCheck check;
-        if (memory_->read(test_address, check.data, sizeof(check.data)) != sizeof(check.data)) {
+        if (memory_->read(address, check.data, sizeof(check.data)) != sizeof(check.data)) {
             logerror("allocate: read failed");
-            free_block_++;
             continue;
         }
 
         // This is the bad block indicator, creative.
         if (check.is_bad()) {
             logerror("[%d] allocating ignoring bad block: %" PRIu32 " (factory bad)", file, free_block_);
-            bad_blocks_.mark_address_as_bad(test_address);
-            free_block_++;
+            bad_blocks_.mark_address_as_bad(address);
             continue;
         }
 
         // Erase new block and write header.
-        if (!memory_->erase_block(test_address)) {
+        if (!memory_->erase_block(address)) {
             logerror("[%d] allocating ignoring bad block: %" PRIu32 " (erase failed)", file, free_block_);
-            bad_blocks_.mark_address_as_bad(test_address);
-            free_block_++;
+            bad_blocks_.mark_address_as_bad(address);
             continue;
         }
 
-        address = test_address;
+        loginfo("[%d] allocating block #%" PRIu32 " ts=%" PRIu32 " (" PRADDRESS ") (#%" PRIu32 ") (%" PRIu32 " bytes) (pta=" PRADDRESS ")",
+                file, free_block_, timestamp_, address, files_[file].record, files_[file].size, previous_tail_address);
 
-        break;
-    }
+        // First sector is the block header. We force write this to
+        // ensure the block is good.
+        auto first_record_address = address + g.sector_size();
 
-    loginfo("[%d] allocating block #%" PRIu32 " ts=%" PRIu32 " (" PRADDRESS ") (#%" PRIu32 ") (%" PRIu32 " bytes) (pta=" PRADDRESS ")",
-            file, free_block_, timestamp_, address, files_[file].record, files_[file].size, previous_tail_address);
+        // Do this before writing header so the new value gets written.
+        files_[file].tail = first_record_address;
 
-    timestamp_++;
-    free_block_++;
+        BlockHeader block_header;
+        block_header.magic.fill();
+        block_header.file = file;
+        block_header.timestamp = timestamp_++;
+        block_header.version = version_;
+        for (auto i = 0; i < NumberOfFiles; ++i) {
+            block_header.files[i] = files_[i];
+        }
+        block_header.fill_hash();
 
-    auto after_header = address + sizeof(BlockHeader);
+        FK_ASSERT(version_ > 0 && version_ != InvalidVersion);
 
-    // Do this before writing header so the new value gets written.
-    files_[file].tail = after_header;
-
-    BlockHeader block_header;
-    block_header.magic.fill();
-    block_header.file = file;
-    block_header.timestamp = timestamp_;
-    block_header.version = version_;
-    for (auto i = 0; i < NumberOfFiles; ++i) {
-        block_header.files[i] = files_[i];
-    }
-    block_header.fill_hash();
-
-    FK_ASSERT(version_ > 0 && version_ != InvalidVersion);
-
-    if (memory_->write(address, (uint8_t *)&block_header, sizeof(BlockHeader)) != sizeof(BlockHeader)) {
-        logerror("allocate: write header failed");
-        return InvalidAddress;
-    }
-
-    // We have a good new block, so link the previous block to the new one.
-    if (is_address_valid(previous_tail_address)) {
-        block_tail.linked = address;
-        block_tail.fill_hash();
-
-        auto start_of_previous_block = previous_tail_address - (g.block_size - sizeof(BlockTail));
-        FK_ASSERT(address != start_of_previous_block);
-
-        if (memory_->write(previous_tail_address, (uint8_t *)&block_tail, sizeof(BlockTail)) != sizeof(BlockTail)) {
-            logerror("allocate: write tail failed");
-            return 0;
+        if (memory_->write(address, (uint8_t *)&block_header, sizeof(BlockHeader)) != sizeof(BlockHeader)) {
+            logerror("allocate: write header failed");
+            bad_blocks_.mark_address_as_bad(address);
+            continue;
         }
 
-        logdebug("[%d] " PRADDRESS " write btail linked(0x%" PRIx32 ") (%" PRIu32 " bib)",
-                 file, previous_tail_address, address, block_tail.bytes_in_block);
+        // We have a good new block, so link the previous block to the new one.
+        if (is_address_valid(previous_tail_address)) {
+            block_tail.linked = address;
+            block_tail.fill_hash();
+
+            auto start_of_previous_block = previous_tail_address - (g.block_size - SizeofBlockTail);
+            FK_ASSERT(address != start_of_previous_block);
+
+            if (memory_->write(previous_tail_address, (uint8_t *)&block_tail, sizeof(BlockTail)) != sizeof(BlockTail)) {
+                logerror("allocate: write tail failed");
+                return 0;
+            }
+
+            logdebug("[%d] " PRADDRESS " write btail linked(0x%" PRIx32 ") (%" PRIu32 " bib)",
+                    file, previous_tail_address, address, block_tail.bytes_in_block);
+        }
+
+        return first_record_address;
     }
 
-    return after_header;
+    return 0;
 }
 
 SeekValue Storage::seek(SeekSettings settings) {

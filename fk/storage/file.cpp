@@ -56,7 +56,7 @@ int32_t File::write_record_header(size_t size) {
     auto g = geometry();
 
     auto total_required = sizeof(RecordHeader) + size + sizeof(RecordTail);
-    auto left_in_block = g.remaining_in_block(tail_) - sizeof(BlockTail);
+    auto left_in_block = g.remaining_in_block(tail_) - SizeofBlockTail;
 
     // Can we write to the end of the previous header or do we need to partial
     // write align this record?
@@ -66,11 +66,11 @@ int32_t File::write_record_header(size_t size) {
             tail_ = g.partial_write_boundary_after(tail_);
 
             if (g.is_start_of_block(tail_))  {
-                tail_ -= sizeof(BlockTail);
+                tail_ -= SizeofBlockTail;
                 left_in_block = 0;
             }
             else {
-                left_in_block = g.remaining_in_block(tail_) - sizeof(BlockTail);
+                left_in_block = g.remaining_in_block(tail_) - SizeofBlockTail;
                 wasted_ += tail_ - previous_tail;
             }
         }
@@ -93,7 +93,7 @@ int32_t File::write_record_header(size_t size) {
         if (record_ == InvalidRecord) {
             record_ = 1;
         }
-        left_in_block = g.remaining_in_block(tail_) - sizeof(BlockTail);
+        left_in_block = g.remaining_in_block(tail_) - SizeofBlockTail;
         bytes_in_block_ = 0;
         records_in_block_ = 0;
     }
@@ -127,7 +127,7 @@ int32_t File::write_partial(uint8_t const *record, size_t size) {
     storage_->verify_mutable();
 
     auto g = geometry();
-    auto left_in_block = (g.remaining_in_block(tail_) - sizeof(BlockTail));
+    auto left_in_block = g.remaining_in_block(tail_) - SizeofBlockTail;
     FK_ASSERT(left_in_block >= size);
 
     logverbose("[%d] " PRADDRESS " write data (%zd bytes) (%" PRIu32 " lib)", file_, tail_, size, (int32_t)left_in_block);
@@ -298,7 +298,7 @@ bool File::skip(bool new_block) {
                 return 0;
             }
 
-            tail_ = head_address + sizeof(BlockHeader);
+            tail_ = head_address + SizeofBlockHeader;
 
             return skip(true);
         }
@@ -332,7 +332,7 @@ bool File::rewind() {
 
     logtrace("[" PRADDRESS "] rewind", tail_);
 
-    if (g.is_start_of_block_or_header(tail_, sizeof(BlockHeader))) {
+    if (g.is_start_of_block_or_header(tail_, SizeofBlockHeader)) {
         auto start = g.start_of_block(tail_);
         if (start == 0) {
             tail_ = 0;
@@ -340,12 +340,12 @@ bool File::rewind() {
             return false;
         }
 
-        tail_ = g.start_of_block(start_of_record) - sizeof(BlockTail);
+        tail_ = g.start_of_block(start_of_record) - SizeofBlockTail;
 
         logdebug("[" PRADDRESS "] rewind spans block, reading tail", tail_);
 
         BlockTail block_tail;
-        if (memory_.read(tail_, (uint8_t *)&block_tail, sizeof(BlockTail)) != sizeof(BlockTail)) {
+        if (memory_.read(tail_, (uint8_t *)&block_tail, sizeof(block_tail)) != sizeof(block_tail)) {
             return false;
         }
 
@@ -362,7 +362,7 @@ bool File::rewind() {
     tail_ -= sizeof(RecordTail);
 
     RecordTail record_tail;
-    if (memory_.read(tail_, (uint8_t *)&record_tail, sizeof(RecordTail)) != sizeof(RecordTail)) {
+    if (memory_.read(tail_, (uint8_t *)&record_tail, sizeof(record_tail)) != sizeof(record_tail)) {
         return false;
     }
 
@@ -377,9 +377,6 @@ bool File::rewind() {
 
     if (!record_header.valid()) {
         auto partial_aligned = g.partial_write_boundary_before(tail_);
-        if (g.is_start_of_block_or_header(partial_aligned, sizeof(BlockHeader))) {
-            partial_aligned += sizeof(BlockHeader);
-        }
 
         if (memory_.read(partial_aligned, (uint8_t *)&record_header, sizeof(record_header)) != sizeof(record_header)) {
             return false;
@@ -434,7 +431,7 @@ int32_t File::search_for_following_block() {
 
 int32_t File::find_following_block() {
     auto g = geometry();
-    auto left_in_block = (uint32_t)(g.remaining_in_block(tail_) - sizeof(BlockTail));
+    auto left_in_block = g.remaining_in_block(tail_) - SizeofBlockTail;
 
     auto started = tail_;
 
@@ -478,7 +475,7 @@ int32_t File::find_following_block() {
     FK_ASSERT(block_header.verify_hash());
     FK_ASSERT(block_header.file == file_);
 
-    tail_ += sizeof(BlockHeader);
+    tail_ += SizeofBlockHeader;
 
     return tail_ - started;
 }
@@ -502,7 +499,7 @@ int32_t File::try_read_record_header(uint32_t tail, RecordHeader &record_header)
 
 int32_t File::read_record_header() {
     auto g = geometry();
-    auto left_in_block = (uint32_t)(g.remaining_in_block(tail_) - sizeof(BlockTail));
+    auto left_in_block = g.remaining_in_block(tail_) - SizeofBlockTail;
     auto minimum_record_size = sizeof(RecordHeader) + sizeof(RecordTail);
 
     /**
@@ -518,7 +515,7 @@ int32_t File::read_record_header() {
                 return 0;
             }
 
-            left_in_block = g.remaining_in_block(tail_) - sizeof(BlockTail);
+            left_in_block = g.remaining_in_block(tail_) - SizeofBlockTail;
         }
         else {
             RecordHeader record_header;
@@ -526,7 +523,7 @@ int32_t File::read_record_header() {
                 auto partial_aligned = g.partial_write_boundary_after(tail_);
                 if (!try_read_record_header(partial_aligned, record_header)) {
                     tail_ += left_in_block;
-                    left_in_block = (uint32_t)(g.remaining_in_block(tail_) - sizeof(BlockTail));
+                    left_in_block = g.remaining_in_block(tail_) - SizeofBlockTail;
                     continue;
                 }
 
@@ -543,7 +540,7 @@ int32_t File::read_record_header() {
 
             log_hashed_data(FK_OP_STR_READ, file_, record_, tail_, &record_header, sizeof(RecordHeader));
 
-            tail_ += sizeof(record_header);
+            tail_ += sizeof(RecordHeader);
 
             return record_remaining_;
         }
@@ -554,7 +551,7 @@ int32_t File::read_record_header() {
 
 int32_t File::read(uint8_t *record, size_t size) {
     auto g = geometry();
-    auto left_in_block = (uint32_t)(g.remaining_in_block(tail_) - sizeof(BlockTail));
+    auto left_in_block = g.remaining_in_block(tail_) - SizeofBlockTail;
     auto bytes_read = (size_t)0;
 
     logtrace("[%d] " PRADDRESS " BEGIN read (%zd bytes) (rr = %" PRIu32 ") (lib = %" PRIu32 ")", file_, tail_, size, record_remaining_, left_in_block);
@@ -565,7 +562,7 @@ int32_t File::read(uint8_t *record, size_t size) {
                 return bytes_read;
             }
 
-            left_in_block = (uint32_t)(g.remaining_in_block(tail_) - sizeof(BlockTail));
+            left_in_block = g.remaining_in_block(tail_) - SizeofBlockTail;
         }
         else if (bytes_read < size) {
             auto buffer_remaining = size - bytes_read;

@@ -19,6 +19,9 @@ constexpr uint32_t LastRecord = (uint32_t)(-1);
 
 constexpr int32_t NumberOfFiles = 4;
 
+constexpr uint32_t SizeofBlockTail = 512;
+constexpr uint32_t SizeofBlockHeader = 512;
+
 static inline bool is_block_valid(uint32_t block) {
     return block != InvalidAddress;
 }
