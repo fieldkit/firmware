@@ -245,7 +245,8 @@ uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address, BlockTa
 
         // Basically checking an arbitrary amount of data here.
         BadBlockFactoryCheck check;
-        if (memory_.read(address, check.data, sizeof(check.data)) <= 0) {
+        rv = memory_.read(address, check.data, sizeof(check.data));
+        if (rv <= 0) {
             logerror("allocate: read failed");
             continue;
         }
@@ -258,7 +259,8 @@ uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address, BlockTa
         }
 
         // Erase new block and write header.
-        if (memory_.erase_block(address) <= 0) {
+        rv = memory_.erase_block(address);
+        if (rv <= 0) {
             logerror("[%d] allocating ignoring bad block: %" PRIu32 " (erase failed)", file, free_block_);
             bad_blocks_.mark_address_as_bad(address);
             continue;
@@ -286,7 +288,8 @@ uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address, BlockTa
 
         FK_ASSERT(version_ > 0 && version_ != InvalidVersion);
 
-        if (memory_.write(address, (uint8_t *)&block_header, sizeof(BlockHeader)) <= 0) {
+        rv = memory_.write(address, (uint8_t *)&block_header, sizeof(BlockHeader));
+        if (rv <= 0) {
             logerror("allocate: write header failed");
             bad_blocks_.mark_address_as_bad(address);
             continue;
@@ -336,7 +339,8 @@ SeekValue Storage::seek(SeekSettings settings) {
     while (!range.empty()) {
         BlockHeader block_header;
         auto address = range.middle_block() * g.block_size;
-        if (!memory_.read(address, (uint8_t *)&block_header, sizeof(block_header))) {
+        auto rv = memory_.read(address, (uint8_t *)&block_header, sizeof(block_header));
+        if (rv <= 0) {
             logerror("[%d] read failed " PRADDRESS, settings.file, address);
             return SeekValue{ };
         }
@@ -398,14 +402,16 @@ SeekValue Storage::seek(SeekSettings settings) {
         }
 
         RecordHeader record_head;
-        if (memory_.read(address, (uint8_t *)&record_head, sizeof(record_head)) != sizeof(record_head)) {
+        auto rv = memory_.read(address, (uint8_t *)&record_head, sizeof(record_head));
+        if (rv <= 0) {
             return SeekValue{ };
         }
 
         // Is there a valid record here?
         if (!record_head.valid()) {
             auto partial_aligned = g.partial_write_boundary_after(address);
-            if (memory_.read(partial_aligned, (uint8_t *)&record_head, sizeof(record_head)) != sizeof(record_head)) {
+            rv = memory_.read(partial_aligned, (uint8_t *)&record_head, sizeof(record_head));
+            if (rv <= 0) {
                 return SeekValue{ };
             }
 
