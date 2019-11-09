@@ -98,7 +98,7 @@ public:
 template <class T>
 using unique_ptr_freed = std::unique_ptr<T, decltype(&free)>;
 
-class CacheSinglePageMemory : public DataMemory {
+class BufferedPageMemory : public DataMemory {
 private:
     DataMemory *target_;
     unique_ptr_freed<uint8_t> buffer_;
@@ -106,14 +106,14 @@ private:
     bool dirty_{ false };
 
 public:
-    CacheSinglePageMemory(DataMemory *target);
-    CacheSinglePageMemory(CacheSinglePageMemory &&o);
-    CacheSinglePageMemory(CacheSinglePageMemory const &o) = delete;
-    virtual ~CacheSinglePageMemory();
+    BufferedPageMemory(DataMemory *target);
+    BufferedPageMemory(BufferedPageMemory &&o);
+    BufferedPageMemory(BufferedPageMemory const &o) = delete;
+    virtual ~BufferedPageMemory();
 
 public:
-    CacheSinglePageMemory &operator=(CacheSinglePageMemory const &o) = delete;
-    CacheSinglePageMemory &operator=(CacheSinglePageMemory &&o);
+    BufferedPageMemory &operator=(BufferedPageMemory const &o) = delete;
+    BufferedPageMemory &operator=(BufferedPageMemory &&o);
 
 public:
     bool begin() override;

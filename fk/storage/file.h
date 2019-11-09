@@ -34,7 +34,7 @@ struct RecordReference {
 class File : public Writer, public Reader {
 private:
     Storage *storage_;
-    SequentialWrapper<CacheSinglePageMemory> memory_;
+    SequentialWrapper<BufferedPageMemory> memory_;
     uint8_t file_;
     uint32_t record_address_{ InvalidAddress };
     uint32_t tail_{ InvalidAddress };

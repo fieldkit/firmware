@@ -76,17 +76,17 @@ int32_t SequentialMemory::flush() {
     return target_->flush();
 }
 
-CacheSinglePageMemory::CacheSinglePageMemory(DataMemory *target)
+BufferedPageMemory::BufferedPageMemory(DataMemory *target)
     : target_(target), buffer_{ freed_unique_ptr<uint8_t>(DefaultWorkerPoolSize) } {
 }
 
-CacheSinglePageMemory::CacheSinglePageMemory(CacheSinglePageMemory &&o) : target_(o.target_), buffer_{ std::move(o.buffer_) } {
+BufferedPageMemory::BufferedPageMemory(BufferedPageMemory &&o) : target_(o.target_), buffer_{ std::move(o.buffer_) } {
 }
 
-CacheSinglePageMemory::~CacheSinglePageMemory() {
+BufferedPageMemory::~BufferedPageMemory() {
 }
 
-CacheSinglePageMemory &CacheSinglePageMemory::operator=(CacheSinglePageMemory &&o) {
+BufferedPageMemory &BufferedPageMemory::operator=(BufferedPageMemory &&o) {
     target_ = o.target_;
     buffer_ = std::move(o.buffer_);
     cached_ = o.cached_;
@@ -94,15 +94,15 @@ CacheSinglePageMemory &CacheSinglePageMemory::operator=(CacheSinglePageMemory &&
     return *this;
 }
 
-bool CacheSinglePageMemory::begin() {
+bool BufferedPageMemory::begin() {
     return target_->begin();
 }
 
-FlashGeometry CacheSinglePageMemory::geometry() const {
+FlashGeometry BufferedPageMemory::geometry() const {
     return target_->geometry();
 }
 
-int32_t CacheSinglePageMemory::read(uint32_t address, uint8_t *data, size_t length, MemoryReadFlags flags) {
+int32_t BufferedPageMemory::read(uint32_t address, uint8_t *data, size_t length, MemoryReadFlags flags) {
     auto g = target_->geometry();
     auto page = address / g.page_size;
     if (cached_ == UINT32_MAX || page != cached_) {
@@ -116,15 +116,15 @@ int32_t CacheSinglePageMemory::read(uint32_t address, uint8_t *data, size_t leng
     return length;
 }
 
-int32_t CacheSinglePageMemory::write(uint32_t address, uint8_t const *data, size_t length, MemoryWriteFlags flags) {
+int32_t BufferedPageMemory::write(uint32_t address, uint8_t const *data, size_t length, MemoryWriteFlags flags) {
     return target_->write(address, data, length, flags);
 }
 
-int32_t CacheSinglePageMemory::erase_block(uint32_t address) {
+int32_t BufferedPageMemory::erase_block(uint32_t address) {
     return target_->erase_block(address);
 }
 
-int32_t CacheSinglePageMemory::flush() {
+int32_t BufferedPageMemory::flush() {
     logdebug("flush");
     return target_->flush();
 }
