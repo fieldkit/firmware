@@ -153,7 +153,6 @@ int32_t BufferedPageMemory::erase_block(uint32_t address) {
 int32_t BufferedPageMemory::flush() {
     if (cached_ != UINT32_MAX && dirty_) {
         auto g = target_->geometry();
-        logdebug("flush");
         auto rv = target_->write(cached_ * g.page_size, buffer_.get(), g.page_size);
         if (rv <= 0) {
             return rv;

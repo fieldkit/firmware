@@ -266,8 +266,8 @@ uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address, BlockTa
             continue;
         }
 
-        loginfo("[%d] allocating block #%" PRIu32 " ts=%" PRIu32 " (" PRADDRESS ") (#%" PRIu32 ") (%" PRIu32 " bytes) (pta=" PRADDRESS ")",
-                file, free_block_, timestamp_, address, files_[file].record, files_[file].size, previous_tail_address);
+        loginfo("[%d] allocating block #%" PRIu32 " ts=%" PRIu32 " (" PRADDRESS ") (pta=" PRADDRESS ") (try #%d) (#%" PRIu32 ") (%" PRIu32 " bytes)",
+                file, free_block_, timestamp_, address, previous_tail_address, i, files_[file].record, files_[file].size);
 
         // First sector is the block header. We force write this to
         // ensure the block is good.
@@ -279,7 +279,7 @@ uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address, BlockTa
         BlockHeader block_header;
         block_header.magic.fill();
         block_header.file = file;
-        block_header.timestamp = timestamp_++;
+        block_header.timestamp = timestamp_;
         block_header.version = version_;
         for (auto i = 0; i < NumberOfFiles; ++i) {
             block_header.files[i] = files_[i];
@@ -288,7 +288,7 @@ uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address, BlockTa
 
         FK_ASSERT(version_ > 0 && version_ != InvalidVersion);
 
-        rv = memory_.write(address, (uint8_t *)&block_header, sizeof(BlockHeader));
+        rv = data_memory_->write(address, (uint8_t *)&block_header, sizeof(BlockHeader));
         if (rv <= 0) {
             logerror("allocate: write header failed");
             bad_blocks_.mark_address_as_bad(address);
@@ -303,7 +303,7 @@ uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address, BlockTa
             auto start_of_previous_block = previous_tail_address - (g.block_size - SizeofBlockTail);
             FK_ASSERT(address != start_of_previous_block);
 
-            rv = memory_.write(previous_tail_address, (uint8_t *)&block_tail, sizeof(BlockTail));
+            rv = data_memory_->write(previous_tail_address, (uint8_t *)&block_tail, sizeof(BlockTail));
             if (rv <= 0) {
                 logerror("allocate: write tail failed");
                 return rv;
@@ -313,10 +313,7 @@ uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address, BlockTa
                     file, previous_tail_address, address, block_tail.bytes_in_block);
         }
 
-        rv = memory_.flush();
-        if (rv <= 0) {
-            return rv;
-        }
+        timestamp_++;
 
         return first_record_address;
     }
