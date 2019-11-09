@@ -4,6 +4,13 @@
 
 namespace fk {
 
+FK_DECLARE_LOGGER("memory");
+
+template<class T>
+static unique_ptr_freed<T> freed_unique_ptr(size_t size) {
+	return unique_ptr_freed<T>(static_cast<T*>(malloc(size)), &free);
+}
+
 SequentialMemory::SequentialMemory(DataMemory *target) : target_(target) {
 }
 
@@ -23,7 +30,7 @@ int32_t SequentialMemory::read(uint32_t address, uint8_t *data, size_t length) {
     while (nbytes != length) {
         auto left = g.remaining_in_page(address);
         auto reading = std::min<size_t>(remaining, left);
-        if (!target_->read(address, p, reading)) {
+        if (!target_->read(address, p, reading, MemoryReadFlags::None)) {
             return nbytes;
         }
 
@@ -52,7 +59,7 @@ int32_t SequentialMemory::write(uint32_t address, uint8_t const *data, size_t le
     while (nbytes != length) {
         auto left = g.remaining_in_page(address);
         auto writing = std::min<size_t>(remaining, left);
-        if (!target_->write(address, p, writing)) {
+        if (!target_->write(address, p, writing, MemoryWriteFlags::None)) {
             return nbytes;
         }
 
@@ -69,16 +76,22 @@ int32_t SequentialMemory::flush() {
     return target_->flush();
 }
 
-CacheSinglePageMemory::CacheSinglePageMemory(DataMemory *target) : target_(target) {
-    buffer_ = (uint8_t *)fk_malloc(DefaultWorkerPoolSize);
+CacheSinglePageMemory::CacheSinglePageMemory(DataMemory *target)
+    : target_(target), buffer_{ freed_unique_ptr<uint8_t>(DefaultWorkerPoolSize) } {
+}
+
+CacheSinglePageMemory::CacheSinglePageMemory(CacheSinglePageMemory &&o) : target_(o.target_), buffer_{ std::move(o.buffer_) } {
 }
 
 CacheSinglePageMemory::~CacheSinglePageMemory() {
-    if (buffer_ != nullptr) {
-        printf("%x FREE\n", buffer_);
-        fk_free(buffer_);
-        buffer_ = nullptr;
-    }
+}
+
+CacheSinglePageMemory &CacheSinglePageMemory::operator=(CacheSinglePageMemory &&o) {
+    target_ = o.target_;
+    buffer_ = std::move(o.buffer_);
+    cached_ = o.cached_;
+    dirty_ = o.dirty_;
+    return *this;
 }
 
 bool CacheSinglePageMemory::begin() {
@@ -93,13 +106,13 @@ int32_t CacheSinglePageMemory::read(uint32_t address, uint8_t *data, size_t leng
     auto g = target_->geometry();
     auto page = address / g.page_size;
     if (cached_ == UINT32_MAX || page != cached_) {
-        auto rv = target_->read(page * g.page_size, buffer_, g.page_size, flags);
+        auto rv = target_->read(page * g.page_size, buffer_.get(), g.page_size, flags);
         if (rv <= 0) {
             return rv;
         }
     }
     auto page_offset = address % g.page_size;
-    memcpy(data, buffer_ + page_offset, length);
+    memcpy(data, buffer_.get() + page_offset, length);
     return length;
 }
 
@@ -112,6 +125,7 @@ int32_t CacheSinglePageMemory::erase_block(uint32_t address) {
 }
 
 int32_t CacheSinglePageMemory::flush() {
+    logdebug("flush");
     return target_->flush();
 }
 

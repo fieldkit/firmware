@@ -34,8 +34,7 @@ struct RecordReference {
 class File : public Writer, public Reader {
 private:
     Storage *storage_;
-    SequentialMemory sequential_;
-    CacheSinglePageMemory memory_;
+    SequentialWrapper<CacheSinglePageMemory> memory_;
     uint8_t file_;
     uint32_t record_address_{ InvalidAddress };
     uint32_t tail_{ InvalidAddress };
@@ -54,7 +53,13 @@ private:
 
 public:
     File(Storage *storage, uint8_t file);
+    File(File &&o);
+    File(File const &o) = delete;
     virtual ~File();
+
+public:
+    File &operator=(File const &o) = delete;
+    File &operator=(File &&o);
 
 public:
     bool create();

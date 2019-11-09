@@ -29,11 +29,41 @@ static void log_hashed_data(const char *op, uint8_t file, uint32_t record, uint3
 }
 
 File::File(Storage *storage, uint8_t file)
-    : storage_(storage), cache_(storage->memory_), memory_(&cache_), file_(file), version_{ storage->version_ }, position_(0) {
+    : storage_(storage), memory_(storage->memory_), file_(file), version_{ storage->version_ }, position_(0) {
     FK_ASSERT(file_ < NumberOfFiles);
 }
 
+File::File(File &&o)
+    : storage_{ o.storage_ }, memory_{ std::move(o.memory_) }, file_{ o.file_ },
+      record_address_{ o.record_address_ }, tail_{ o.tail_ }, record_{ o.record_ }, version_{ o.version_ },
+      record_remaining_{ o.record_remaining_ }, record_size_{ o.record_size_ }, position_{ o.position_ },
+      size_{ o.size_ }, number_hash_errors_{ o.number_hash_errors_ }, bytes_in_block_{ o.bytes_in_block_ },
+      records_in_block_{ o.records_in_block_ }, wasted_{ o.wasted_ }, partial_allowed_{ o.partial_allowed_ },
+      hash_{ o.hash_ } {
+} // namespace fk
+
 File::~File() {
+}
+
+File &File::operator=(File &&o) {
+    storage_ = o.storage_;
+    memory_ = std::move(o.memory_);
+    file_ = o.file_;
+    record_address_ = o.record_address_;
+    tail_ = o.tail_;
+    record_ = o.record_;
+    version_ = o.version_;
+    record_remaining_ = o.record_remaining_;
+    record_size_ = o.record_size_;
+    position_ = o.position_;
+    size_ = o.size_;
+    number_hash_errors_ = o.number_hash_errors_;
+    bytes_in_block_ = o.bytes_in_block_;
+    records_in_block_ = o.records_in_block_;
+    wasted_ = o.wasted_;
+    partial_allowed_ = o.partial_allowed_;
+    hash_ = o.hash_;
+    return *this;
 }
 
 FlashGeometry File::geometry() const {
@@ -192,7 +222,7 @@ int32_t File::write(uint8_t const *record, size_t size) {
 
     update();
 
-    storage_->flush();
+    memory_.flush();
 
     return size;
 }
@@ -683,7 +713,7 @@ int32_t File::write(void const *record, pb_msgdesc_t const *fields) {
 
     update();
 
-    storage_->flush();
+    memory_.flush();
 
     return record_size;
 }

@@ -9,7 +9,7 @@
 
 namespace fk {
 
-FK_DECLARE_LOGGER("memory");
+FK_DECLARE_LOGGER("spiflash");
 
 constexpr uint8_t CMD_RESET = 0xff;
 constexpr uint8_t CMD_READ_JEDEC_ID = 0x9f;
