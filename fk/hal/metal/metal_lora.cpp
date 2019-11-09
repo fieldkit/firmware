@@ -113,9 +113,11 @@ bool Rn2903LoraNetwork::begin() {
 }
 
 bool Rn2903LoraNetwork::send_bytes(uint8_t const *data, size_t size) {
-    const char *line = nullptr;
-    if (!rn2903_.simple_query("mac get dr", &line, 1000)) {
-        return false;
+    if (false) {
+        const char *line = nullptr;
+        if (!rn2903_.simple_query("mac get dr", &line, 1000)) {
+            return false;
+        }
     }
 
     if (!rn2903_.send_bytes(data, size, 10)) {
@@ -125,4 +127,4 @@ bool Rn2903LoraNetwork::send_bytes(uint8_t const *data, size_t size) {
     return true;
 }
 
-}
+} // namespace fk
