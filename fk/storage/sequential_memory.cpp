@@ -110,6 +110,7 @@ int32_t BufferedPageMemory::read(uint32_t address, uint8_t *data, size_t length,
         if (rv <= 0) {
             return rv;
         }
+        cached_ = page;
     }
     auto page_offset = address % g.page_size;
     memcpy(data, buffer_.get() + page_offset, length);
@@ -117,7 +118,26 @@ int32_t BufferedPageMemory::read(uint32_t address, uint8_t *data, size_t length,
 }
 
 int32_t BufferedPageMemory::write(uint32_t address, uint8_t const *data, size_t length, MemoryWriteFlags flags) {
-    return target_->write(address, data, length, flags);
+    auto g = target_->geometry();
+    auto page = address / g.page_size;
+    if (cached_ == UINT32_MAX || page != cached_) {
+        if (dirty_) {
+            auto rv = flush();
+            if (rv <= 0) {
+                return rv;
+            }
+        }
+
+        auto rv = target_->read(page * g.page_size, buffer_.get(), g.page_size, MemoryReadFlags::None);
+        if (rv <= 0) {
+            return rv;
+        }
+        cached_ = page;
+    }
+    auto page_offset = address % g.page_size;
+    memcpy(buffer_.get() + page_offset, data, length);
+    dirty_ = true;
+    return length;
 }
 
 int32_t BufferedPageMemory::erase_block(uint32_t address) {
@@ -125,7 +145,16 @@ int32_t BufferedPageMemory::erase_block(uint32_t address) {
 }
 
 int32_t BufferedPageMemory::flush() {
-    logdebug("flush");
+    if (cached_ != UINT32_MAX && dirty_) {
+        auto g = target_->geometry();
+        logdebug("flush");
+        auto rv = target_->write(cached_ * g.page_size, buffer_.get(), g.page_size);
+        if (rv <= 0) {
+            return rv;
+        }
+        cached_ = UINT32_MAX;
+        dirty_ = false;
+    }
     return target_->flush();
 }
 
