@@ -29,7 +29,7 @@ static void log_hashed_data(const char *op, uint8_t file, uint32_t record, uint3
 }
 
 File::File(Storage *storage, uint8_t file)
-    : storage_(storage), memory_(storage->memory_), file_(file), version_{ storage->version_ }, position_(0) {
+    : storage_(storage), cache_(storage->memory_), memory_(&cache_), file_(file), version_{ storage->version_ }, position_(0) {
     FK_ASSERT(file_ < NumberOfFiles);
 }
 
@@ -480,7 +480,7 @@ int32_t File::find_following_block() {
     return tail_ - started;
 }
 
-int32_t File::try_read_record_header(uint32_t tail, RecordHeader &record_header) const {
+int32_t File::try_read_record_header(uint32_t tail, RecordHeader &record_header) {
     logverbose("[%d] " PRADDRESS " trying header", file_, tail);
 
     if (memory_.read(tail, (uint8_t *)&record_header, sizeof(record_header)) != sizeof(record_header)) {

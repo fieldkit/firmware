@@ -40,6 +40,8 @@ int32_t LinuxDataMemory::read(uint32_t address, uint8_t *data, size_t length, Me
     assert(address + length <= size_);
     assert(length <= PageSize);
 
+    logverbose("[" PRADDRESS "] read %zd bytes", address, length);
+
     if (affects_bad_block_from_factory(address)) {
         bzero(data, length);
         return length;
@@ -64,6 +66,8 @@ int32_t LinuxDataMemory::write(uint32_t address, const uint8_t *data, size_t len
     assert(address >= 0 && address < size_);
     assert(address + length <= size_);
     assert(length <= PageSize);
+
+    logverbose("[" PRADDRESS "] write %zd bytes", address, length);
 
     if (affects_bad_region(address, length)) {
         return 0;

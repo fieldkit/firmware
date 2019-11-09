@@ -15,7 +15,7 @@ namespace fk {
 /**
  * Format specifier for addresses.
  */
-#define PRADDRESS                                 "0x%06" PRIx32
+#define PRADDRESS                                 "0x%07" PRIx32
 
 struct SavedState {
     FileHeader files[NumberOfFiles];

@@ -76,6 +76,8 @@ TEST_F(StorageSuite, ErasingAndStartingOver) {
 }
 
 TEST_F(StorageSuite, AppendingARecord) {
+    ScopedLogLevelChange change{ LogLevels::VERBOSE };
+
     Storage storage{ memory_, false };
 
     ASSERT_TRUE(storage.clear());

@@ -147,15 +147,22 @@ LinuxDataMemory qspi_memory;
 #endif
 
 BankedDataMemory banked_flash_memory{ bank_pointers, MemoryFactory::NumberOfDataMemoryBanks };
+
+#if defined(FK_ENABLE_PAGE_CACHE)
 BasicPageCache<MemoryPageStore, 2048, 4> flash_cache{ { &banked_flash_memory } };
 CachingMemory flash_caching_memory{ &banked_flash_memory, &flash_cache };
+#endif
 
 DataMemory **MemoryFactory::get_data_memory_banks() {
     return bank_pointers;
 }
 
 DataMemory *MemoryFactory::get_data_memory() {
+    #if defined(FK_ENABLE_PAGE_CACHE)
     return &flash_caching_memory;
+    #else
+    return &banked_flash_memory;
+    #endif
 }
 
 DataMemory *MemoryFactory::get_qspi_memory() {

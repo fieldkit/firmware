@@ -34,7 +34,8 @@ struct RecordReference {
 class File : public Writer, public Reader {
 private:
     Storage *storage_;
-    SequentialMemory memory_;
+    SequentialMemory sequential_;
+    CacheSinglePageMemory memory_;
     uint8_t file_;
     uint32_t record_address_{ InvalidAddress };
     uint32_t tail_{ InvalidAddress };
@@ -128,7 +129,7 @@ private:
     bool partial_write_align_necessary() const;
 
 private:
-    int32_t try_read_record_header(uint32_t tail, RecordHeader &record_header) const;
+    int32_t try_read_record_header(uint32_t tail, RecordHeader &record_header);
 
 };
 
