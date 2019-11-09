@@ -32,6 +32,10 @@ public:
     }
 
 public:
+    FlashGeometry geometry() const {
+        return target_.geometry();
+    }
+
     int32_t read(uint32_t address, uint8_t *data, size_t length) {
         size_t nbytes = 0;
 
@@ -88,6 +92,10 @@ public:
         }
 
         return nbytes;
+    }
+
+    int32_t erase_block(uint32_t address) {
+        return target_.erase_block(address);
     }
 
     int32_t flush() {

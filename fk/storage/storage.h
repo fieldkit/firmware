@@ -33,7 +33,8 @@ public:
     friend class File;
 
 private:
-    DataMemory *memory_;
+    DataMemory *data_memory_;
+    SequentialWrapper<BufferedPageMemory> memory_;
     BadBlocks bad_blocks_;
     FileHeader files_[NumberOfFiles];
     uint32_t timestamp_{ InvalidTimestamp };
@@ -76,7 +77,7 @@ public:
     }
 
     FlashGeometry geometry() const {
-        return memory_->geometry();
+        return memory_.geometry();
     }
 
 private:

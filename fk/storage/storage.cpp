@@ -78,14 +78,12 @@ SeekSettings SeekSettings::end_of(uint8_t file) {
     return SeekSettings{ file, LastRecord };
 }
 
-Storage::Storage(DataMemory *memory, bool read_only) : memory_(memory), bad_blocks_(memory), read_only_(read_only) {
+Storage::Storage(DataMemory *memory, bool read_only) : data_memory_(memory), memory_(memory), bad_blocks_(memory), read_only_(read_only) {
 }
 
 Storage::~Storage() {
-    if (memory_ != nullptr) {
-        if (!memory_->flush()) {
-            logerror("flush failed");
-        }
+    if (!memory_.flush()) {
+        logerror("flush failed");
     }
 }
 
@@ -94,7 +92,7 @@ bool Storage::valid_block_header(BlockHeader &header) const {
 }
 
 bool Storage::begin() {
-    auto g = memory_->geometry();
+    auto g = memory_.geometry();
     auto started = fk_uptime();
 
     free_block_ = 0;
@@ -104,7 +102,7 @@ bool Storage::begin() {
         files_[i] = { };
     }
 
-    if (!memory_->begin()) {
+    if (!data_memory_->begin()) {
         return false;
     }
 
@@ -114,7 +112,7 @@ bool Storage::begin() {
     while (!range.empty()) {
         BlockHeader block_header;
         auto address = range.middle_block() * g.block_size;
-        if (memory_->read(address, (uint8_t *)&block_header, sizeof(block_header)) != sizeof(block_header)) {
+        if (memory_.read(address, (uint8_t *)&block_header, sizeof(block_header)) != sizeof(block_header)) {
             logerror("[?] read failed " PRADDRESS, address);
             return false;
         }
@@ -150,7 +148,7 @@ bool Storage::begin() {
         auto tail_address = head_address + g.block_size - SizeofBlockTail;
 
         BlockHeader block_header;
-        if (memory_->read(head_address, (uint8_t *)&block_header, sizeof(block_header)) != sizeof(block_header)) {
+        if (memory_.read(head_address, (uint8_t *)&block_header, sizeof(block_header)) != sizeof(block_header)) {
             return 0;
         }
 
@@ -159,7 +157,7 @@ bool Storage::begin() {
         }
 
         BlockTail block_tail;
-        if (memory_->read(tail_address, (uint8_t *)&block_tail, sizeof(block_tail)) != sizeof(block_tail)) {
+        if (memory_.read(tail_address, (uint8_t *)&block_tail, sizeof(block_tail)) != sizeof(block_tail)) {
             return false;
         }
 
@@ -185,7 +183,7 @@ bool Storage::begin() {
 }
 
 bool Storage::clear() {
-    auto g = memory_->geometry();
+    auto g = memory_.geometry();
 
     free_block_ = 0;
     timestamp_ = 0;
@@ -195,7 +193,7 @@ bool Storage::clear() {
         files_[i] = { };
     }
 
-    if (!memory_->begin()) {
+    if (!data_memory_->begin()) {
         return false;
     }
 
@@ -203,7 +201,7 @@ bool Storage::clear() {
     while (!range.empty()) {
         uint32_t address = range.middle_block() * g.block_size;
         logdebug("[" PRADDRESS "] erasing block", address);
-        if (!memory_->erase_block(address)) {
+        if (!memory_.erase_block(address)) {
             // We just keep going, clearing earlier blocks. We'll
             // handle this block being bad during reads/seeks. Still
             // mark the block as bad though so that we can remember.
@@ -232,7 +230,8 @@ struct BadBlockFactoryCheck {
 };
 
 uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address, BlockTail &block_tail) {
-    auto g = memory_->geometry();
+    auto g = memory_.geometry();
+    int32_t rv;
 
     verify_mutable();
 
@@ -246,7 +245,7 @@ uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address, BlockTa
 
         // Basically checking an arbitrary amount of data here.
         BadBlockFactoryCheck check;
-        if (memory_->read(address, check.data, sizeof(check.data)) != sizeof(check.data)) {
+        if (memory_.read(address, check.data, sizeof(check.data)) <= 0) {
             logerror("allocate: read failed");
             continue;
         }
@@ -259,7 +258,7 @@ uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address, BlockTa
         }
 
         // Erase new block and write header.
-        if (!memory_->erase_block(address)) {
+        if (memory_.erase_block(address) <= 0) {
             logerror("[%d] allocating ignoring bad block: %" PRIu32 " (erase failed)", file, free_block_);
             bad_blocks_.mark_address_as_bad(address);
             continue;
@@ -287,7 +286,7 @@ uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address, BlockTa
 
         FK_ASSERT(version_ > 0 && version_ != InvalidVersion);
 
-        if (memory_->write(address, (uint8_t *)&block_header, sizeof(BlockHeader)) != sizeof(BlockHeader)) {
+        if (memory_.write(address, (uint8_t *)&block_header, sizeof(BlockHeader)) <= 0) {
             logerror("allocate: write header failed");
             bad_blocks_.mark_address_as_bad(address);
             continue;
@@ -301,13 +300,19 @@ uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address, BlockTa
             auto start_of_previous_block = previous_tail_address - (g.block_size - SizeofBlockTail);
             FK_ASSERT(address != start_of_previous_block);
 
-            if (memory_->write(previous_tail_address, (uint8_t *)&block_tail, sizeof(BlockTail)) != sizeof(BlockTail)) {
+            rv = memory_.write(previous_tail_address, (uint8_t *)&block_tail, sizeof(BlockTail));
+            if (rv <= 0) {
                 logerror("allocate: write tail failed");
-                return 0;
+                return rv;
             }
 
             logdebug("[%d] " PRADDRESS " write btail linked(0x%" PRIx32 ") (%" PRIu32 " bib)",
                     file, previous_tail_address, address, block_tail.bytes_in_block);
+        }
+
+        rv = memory_.flush();
+        if (rv <= 0) {
+            return rv;
         }
 
         return first_record_address;
@@ -317,8 +322,7 @@ uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address, BlockTa
 }
 
 SeekValue Storage::seek(SeekSettings settings) {
-    SequentialWrapper<BufferedPageMemory> memory{ memory_ };
-    auto g = memory_->geometry();
+    auto g = memory_.geometry();
     auto timestamp = (uint32_t)0;
 
     verify_opened();
@@ -332,7 +336,7 @@ SeekValue Storage::seek(SeekSettings settings) {
     while (!range.empty()) {
         BlockHeader block_header;
         auto address = range.middle_block() * g.block_size;
-        if (!memory_->read(address, (uint8_t *)&block_header, sizeof(block_header))) {
+        if (!memory_.read(address, (uint8_t *)&block_header, sizeof(block_header))) {
             logerror("[%d] read failed " PRADDRESS, settings.file, address);
             return SeekValue{ };
         }
@@ -394,14 +398,14 @@ SeekValue Storage::seek(SeekSettings settings) {
         }
 
         RecordHeader record_head;
-        if (memory.read(address, (uint8_t *)&record_head, sizeof(record_head)) != sizeof(record_head)) {
+        if (memory_.read(address, (uint8_t *)&record_head, sizeof(record_head)) != sizeof(record_head)) {
             return SeekValue{ };
         }
 
         // Is there a valid record here?
         if (!record_head.valid()) {
             auto partial_aligned = g.partial_write_boundary_after(address);
-            if (memory.read(partial_aligned, (uint8_t *)&record_head, sizeof(record_head)) != sizeof(record_head)) {
+            if (memory_.read(partial_aligned, (uint8_t *)&record_head, sizeof(record_head)) != sizeof(record_head)) {
                 return SeekValue{ };
             }
 
@@ -552,8 +556,8 @@ void Storage::restore(SavedState const &state) {
 }
 
 bool Storage::flush() {
-    if (!memory_->flush()) {
-        // Yikes
+    if (memory_.flush() <= 0) {
+        return false;
     }
 
     return true;

@@ -29,7 +29,7 @@ static void log_hashed_data(const char *op, uint8_t file, uint32_t record, uint3
 }
 
 File::File(Storage *storage, uint8_t file)
-    : storage_(storage), memory_(storage->memory_), file_(file), version_{ storage->version_ }, position_(0) {
+    : storage_(storage), memory_(storage->data_memory_), file_(file), version_{ storage->version_ }, position_(0) {
     FK_ASSERT(file_ < NumberOfFiles);
 }
 
@@ -67,7 +67,7 @@ File &File::operator=(File &&o) {
 }
 
 FlashGeometry File::geometry() const {
-    return storage_->memory_->geometry();
+    return storage_->memory_.geometry();
 }
 
 bool File::beginning_of_record() {
