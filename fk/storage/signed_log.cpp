@@ -54,6 +54,10 @@ tl::expected<uint32_t, Error> SignedRecordLog::seek_record(SignedRecordKind kind
             break;
         }
 
+        if (file_.position() == 0) {
+            return tl::unexpected<Error>(Error::EoF);
+        }
+
         if (!file_.rewind()) {
             logerror("[" PRADDRESS "] rewind failed", file_.tail());
             return tl::unexpected<Error>(Error::IO);
