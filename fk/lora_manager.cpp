@@ -52,6 +52,8 @@ bool LoraManager::join_if_necessary(Pool &pool) {
             gs->lora.asleep = 0;
         });
 
+        awake_ = true;
+
         return joined;
     }
 
@@ -64,6 +66,8 @@ bool LoraManager::join_if_necessary(Pool &pool) {
         gsm.apply([=](GlobalState *gs) {
             gs->lora.asleep = fk_uptime();
         });
+
+        awake_ = true;
     }
 
     return true;
@@ -89,14 +93,18 @@ bool LoraManager::send_bytes(uint8_t port, uint8_t const *data, size_t size) {
 }
 
 void LoraManager::stop() {
-    if (!network_->sleep(OneHourMs)) {
-        logerror("error sleeping");
-    }
+    if (awake_) {
+        if (!network_->sleep(OneHourMs)) {
+            logerror("error sleeping");
+        }
 
-    GlobalStateManager gsm;
-    gsm.apply([=](GlobalState *gs) {
-        gs->lora.asleep = fk_uptime();
-    });
+        GlobalStateManager gsm;
+        gsm.apply([=](GlobalState *gs) {
+            gs->lora.asleep = fk_uptime();
+        });
+
+        awake_ = false;
+    }
 }
 
 } // namespace fk
