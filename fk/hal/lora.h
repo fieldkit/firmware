@@ -19,7 +19,7 @@ public:
     virtual bool power(bool on) = 0;
     virtual bool sleep(uint32_t seconds) = 0;
     virtual bool wake() = 0;
-    virtual bool send_bytes(uint8_t const *data, size_t size) = 0;
+    virtual bool send_bytes(uint8_t port, uint8_t const *data, size_t size) = 0;
     virtual bool join(const char *app_eui, const char *app_key, int32_t retries = 3, uint32_t retry_delay = 10000) = 0;
 
 public:
@@ -50,7 +50,7 @@ public:
         return false;
     }
 
-    bool send_bytes(uint8_t const *data, size_t size) override {
+    bool send_bytes(uint8_t port, uint8_t const *data, size_t size) override {
         return false;
     }
 
@@ -75,4 +75,3 @@ public:
 LoraNetwork *get_lora_network();
 
 }
-

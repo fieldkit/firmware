@@ -11,6 +11,7 @@
 #include "dump_flash_memory_worker.h"
 #include "compare_banks_worker.h"
 #include "refresh_modules_worker.h"
+#include "lora_ranging_worker.h"
 
 #include "networking/download_firmware_worker.h"
 
@@ -236,6 +237,11 @@ void MenuView::create_tools_menu() {
         views_->show_home();
         fk_nvm_swap_banks();
     });
+    auto tools_lora_ranging = to_lambda_option(pool_, "LoRa Ranging", [=]() {
+        back_->on_selected();
+        views_->show_home();
+        get_ipc()->launch_worker(create_pool_worker<LoraRangingWorker>());
+    });
     auto tools_factory_reset = to_lambda_option(pool_, "Factory Reset", [=]() {
         back_->on_selected();
         views_->show_home();
@@ -259,10 +265,11 @@ void MenuView::create_tools_menu() {
     });
     */
 
-    tools_menu_ = new_menu_screen<9>(pool_, {
+    tools_menu_ = new_menu_screen<10>(pool_, {
         back_,
         tools_self_check,
         tools_dump_flash,
+        tools_lora_ranging,
         tools_load_firmware_sd,
         tools_fsck,
         tools_restart,

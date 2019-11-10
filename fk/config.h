@@ -88,6 +88,16 @@ constexpr size_t LoraDeviceEuiLength = 8;
 constexpr size_t LoraAppKeyLength = 16;
 
 /**
+ * LoRaWAN port for status messages.
+ */
+constexpr uint8_t LoraStatusPort = 11;
+
+/**
+ * LoRaWAN port for data messages.
+ */
+constexpr uint8_t LoraDataPort = 10;
+
+/**
  * Maximum length of a device's name.
  */
 constexpr size_t MaximumNameLength = 64;

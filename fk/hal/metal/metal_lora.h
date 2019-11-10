@@ -22,7 +22,7 @@ public:
     bool power(bool on) override;
     bool sleep(uint32_t ms) override;
     bool wake() override;
-    bool send_bytes(uint8_t const *data, size_t size) override;
+    bool send_bytes(uint8_t port, uint8_t const *data, size_t size) override;
     bool join(const char *app_eui, const char *app_key, int32_t retries = 3, uint32_t retry_delay = 10000);
 
 public:
