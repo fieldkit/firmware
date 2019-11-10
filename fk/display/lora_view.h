@@ -12,6 +12,7 @@ private:
 
 public:
     void tick(ViewController *views) override;
+    void hide() override;
 
 };
 

@@ -13,6 +13,7 @@ enum class WorkerCategory  {
     Readings,
     Storage,
     Transfer,
+    Lora,
 };
 
 class IPC {
@@ -31,6 +32,10 @@ public:
 
     virtual bool launch_worker(TaskWorker *worker) {
         return launch_worker(WorkerCategory::None, worker);
+    }
+
+    virtual bool signal_workers(WorkerCategory category, uint32_t signal) {
+        return true;
     }
 
 };

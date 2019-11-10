@@ -26,6 +26,7 @@ public:
 
 public:
     bool launch_worker(WorkerCategory category, TaskWorker *worker) override;
+    bool signal_workers(WorkerCategory category, uint32_t signal);
 
 private:
     bool can_launch(WorkerCategory category);

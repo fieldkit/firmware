@@ -240,7 +240,7 @@ void MenuView::create_tools_menu() {
     auto tools_lora_ranging = to_lambda_option(pool_, "LoRa Ranging", [=]() {
         back_->on_selected();
         views_->show_lora();
-        get_ipc()->launch_worker(create_pool_worker<LoraRangingWorker>());
+        get_ipc()->launch_worker(WorkerCategory::Lora, create_pool_worker<LoraRangingWorker>());
     });
     auto tools_factory_reset = to_lambda_option(pool_, "Factory Reset", [=]() {
         back_->on_selected();

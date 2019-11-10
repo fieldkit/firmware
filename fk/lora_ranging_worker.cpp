@@ -1,3 +1,5 @@
+#include <os.h>
+
 #include "lora_ranging_worker.h"
 
 #include "hal/lora.h"
@@ -27,6 +29,13 @@ void LoraRangingWorker::run(Pool &pool) {
         }
 
         fk_delay(5000);
+
+        uint32_t signal = 0;
+        if (os_signal_check(&signal) == OSS_SUCCESS) {
+            if (signal > 0) {
+                break;
+            }
+        }
     }
 
     lora.stop();

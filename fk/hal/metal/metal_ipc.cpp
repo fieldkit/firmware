@@ -110,6 +110,21 @@ bool MetalIPC::launch_worker(WorkerCategory category, TaskWorker *worker) {
     return false;
 }
 
+bool MetalIPC::signal_workers(WorkerCategory category, uint32_t signal) {
+    logdebug("signaling workers (%" PRIu32 ")", signal);
+
+    for (size_t i = 0; i < NumberOfWorkerTasks; ++i) {
+        if (os_task_is_running(&worker_tasks[i])) {
+            if (running_[i] == category) {
+                loginfo("signaling worker %zd (%" PRIu32 ")", i, signal);
+                os_signal(&worker_tasks[i], 9);
+            }
+        }
+    }
+
+    return true;
+}
+
 bool Mutex::create() {
     return os_mutex_create(&mutex_, &def_) == OSS_SUCCESS;
 }

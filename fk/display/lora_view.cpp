@@ -31,4 +31,8 @@ void LoraView::tick(ViewController *views) {
     }
 }
 
+void LoraView::hide() {
+    get_ipc()->signal_workers(WorkerCategory::Lora, 9);
+}
+
 }
