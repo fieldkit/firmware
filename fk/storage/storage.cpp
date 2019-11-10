@@ -427,8 +427,12 @@ SeekValue Storage::seek(SeekSettings settings) {
                 // record_address is unset because we haven't scanned the block yet.
                 // This isn't the most elegant.
                 if (record_address == 0 && record > 0) {
-                    address = g.start_of_block(address);
-                    logdebug("[%d] " PRADDRESS " invalid head (resume " PRADDRESS ")", settings.file, address, address);
+                    auto previous_address = address;
+                    address = g.start_of_block(previous_address);
+                    logdebug("[%d] " PRADDRESS " invalid head (resume " PRADDRESS ")", settings.file, previous_address, address);
+                    if (previous_address == address) {
+                        return SeekValue{ };
+                    }
                     continue;
                 }
 
