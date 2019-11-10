@@ -114,11 +114,8 @@ tl::expected<TakenReadings, Error> ReadingsWorker::take_readings(Pool &pool) {
     StatisticsMemory memory{ MemoryFactory::get_data_memory() };
     Storage storage{ &memory, read_only_ };
     if (!read_only_ && !storage.begin()) {
-        logerror("error opening storage, wiping...");
-        if (!storage.clear()) {
-            logerror("wiping storage failed!");
-            return tl::unexpected<Error>(Error::General);
-        }
+        logerror("error opening storage...");
+        return tl::unexpected<Error>(Error::IO);
     }
 
     ModuleScanning scanning{ get_modmux() };
