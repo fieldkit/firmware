@@ -116,85 +116,89 @@ static void copy_cron_spec_from_pb(const char *name, Schedule &cs, fk_data_JobSc
 }
 
 bool StartupWorker::load_state(Storage &storage, Pool &pool) {
-    if (storage.begin()) {
-        auto meta = storage.file(Storage::Meta);
-        auto srl = SignedRecordLog{ meta };
-        if (srl.seek_record(SignedRecordKind::State)) {
-            auto record = fk_data_record_decoding_new(pool);
-            record.identity.name.arg = (void *)&pool;
-            record.metadata.generation.arg = (void *)&pool;
-            if (srl.decode(&record, fk_data_DataRecord_fields, pool)) {
-                auto gs = get_global_state_rw();
-                auto name = (const char *)record.identity.name.arg;
-                auto generation = (pb_data_t *)record.metadata.generation.arg;
+    if (!storage.begin()) {
+        return false;
+    }
 
-                strncpy(gs.get()->general.name, name, sizeof(gs.get()->general.name));
+    auto meta = storage.file(Storage::Meta);
+    auto srl = SignedRecordLog{ meta };
+    if (!srl.seek_record(SignedRecordKind::State)) {
+        return true;
+    }
 
-                if (generation->length == GenerationLength) {
-                    memcpy(gs.get()->general.generation, generation->buffer, GenerationLength);
-                }
+    auto record = fk_data_record_decoding_new(pool);
+    record.identity.name.arg = (void *)&pool;
+    record.metadata.generation.arg = (void *)&pool;
+    if (!srl.decode(&record, fk_data_DataRecord_fields, pool)) {
+        return true;
+    }
 
-                char gen_string[GenerationLength * 2 + 1];
-                bytes_to_hex_string(gen_string, sizeof(gen_string), gs.get()->general.generation, GenerationLength);
+    auto gs = get_global_state_rw();
+    auto name = (const char *)record.identity.name.arg;
+    auto generation = (pb_data_t *)record.metadata.generation.arg;
 
-                loginfo("(loaded) name: '%s'", gs.get()->general.name);
-                loginfo("(loaded) generation: %s", gen_string);
+    strncpy(gs.get()->general.name, name, sizeof(gs.get()->general.name));
 
-                auto app_eui = pb_get_data_if_provided(record.lora.appEui.arg, pool);
-                if (app_eui != nullptr) {
-                    FK_ASSERT(app_eui->length == LoraAppEuiLength);
-                    FK_ASSERT(app_eui->length == sizeof(gs.get()->lora.app_eui));
-                    memcpy(gs.get()->lora.app_eui, app_eui->buffer, app_eui->length);
-                    loginfo("(loaded) lora app eui: %s", pb_data_to_hex_string(app_eui, pool));
-                }
+    if (generation->length == GenerationLength) {
+        memcpy(gs.get()->general.generation, generation->buffer, GenerationLength);
+    }
 
-                auto app_key = pb_get_data_if_provided(record.lora.appKey.arg, pool);
-                if (app_key != nullptr) {
-                    FK_ASSERT(app_key->length == LoraAppKeyLength);
-                    FK_ASSERT(app_key->length == sizeof(gs.get()->lora.app_key));
-                    memcpy(gs.get()->lora.app_key, app_key->buffer, app_key->length);
-                    loginfo("(loaded) lora app key: %s", pb_data_to_hex_string(app_key, pool));
-                    gs.get()->lora.configured = true;
-                }
+    char gen_string[GenerationLength * 2 + 1];
+    bytes_to_hex_string(gen_string, sizeof(gen_string), gs.get()->general.generation, GenerationLength);
 
-                auto networks_array = (pb_array_t *)record.network.networks.arg;
-                if (networks_array->length > 0) {
-                    FK_ASSERT(networks_array->length <= MaximumNumberOfWifiNetworks);
+    loginfo("(loaded) name: '%s'", gs.get()->general.name);
+    loginfo("(loaded) generation: %s", gen_string);
 
-                    auto networks = (fk_app_NetworkInfo *)networks_array->buffer;
-                    for (auto i = 0u; i < MaximumNumberOfWifiNetworks; ++i) {
-                        auto &n = networks[i];
-                        auto ssid = (const char *)n.ssid.arg;
-                        auto password = (const char *)n.password.arg;
+    auto app_eui = pb_get_data_if_provided(record.lora.appEui.arg, pool);
+    if (app_eui != nullptr) {
+        FK_ASSERT(app_eui->length == LoraAppEuiLength);
+        FK_ASSERT(app_eui->length == sizeof(gs.get()->lora.app_eui));
+        memcpy(gs.get()->lora.app_eui, app_eui->buffer, app_eui->length);
+        loginfo("(loaded) lora app eui: %s", pb_data_to_hex_string(app_eui, pool));
+    }
 
-                        if (strlen(ssid) > 0) {
-                            loginfo("(loaded) [%d] network: %s", i, ssid);
+    auto app_key = pb_get_data_if_provided(record.lora.appKey.arg, pool);
+    if (app_key != nullptr) {
+        FK_ASSERT(app_key->length == LoraAppKeyLength);
+        FK_ASSERT(app_key->length == sizeof(gs.get()->lora.app_key));
+        memcpy(gs.get()->lora.app_key, app_key->buffer, app_key->length);
+        loginfo("(loaded) lora app key: %s", pb_data_to_hex_string(app_key, pool));
+        gs.get()->lora.configured = true;
+    }
 
-                            auto &nc = gs.get()->network.config.wifi_networks[i];
-                            strncpy(nc.ssid, ssid, sizeof(nc.ssid));
-                            strncpy(nc.password, password, sizeof(nc.password));
-                            nc.valid = nc.ssid[0] != 0;
-                            nc.create = false;
-                        }
-                    }
-                }
+    auto networks_array = (pb_array_t *)record.network.networks.arg;
+    if (networks_array->length > 0) {
+        FK_ASSERT(networks_array->length <= MaximumNumberOfWifiNetworks);
 
-                if (record.condition.recording > 0) {
-                    gs.get()->general.recording = record.condition.recording;
-                    loginfo("(loaded) recording (%" PRIu32 ")", record.condition.recording);
-                }
+        auto networks = (fk_app_NetworkInfo *)networks_array->buffer;
+        for (auto i = 0u; i < MaximumNumberOfWifiNetworks; ++i) {
+            auto &n = networks[i];
+            auto ssid = (const char *)n.ssid.arg;
+            auto password = (const char *)n.password.arg;
 
-                copy_cron_spec_from_pb("readings", gs.get()->scheduler.readings, record.schedule.readings, pool);
-                copy_cron_spec_from_pb("network", gs.get()->scheduler.network, record.schedule.network, pool);
-                copy_cron_spec_from_pb("gps", gs.get()->scheduler.gps, record.schedule.gps, pool);
-                copy_cron_spec_from_pb("lora", gs.get()->scheduler.lora, record.schedule.lora, pool);
+            if (strlen(ssid) > 0) {
+                loginfo("(loaded) [%d] network: %s", i, ssid);
 
-                return true;
+                auto &nc = gs.get()->network.config.wifi_networks[i];
+                strncpy(nc.ssid, ssid, sizeof(nc.ssid));
+                strncpy(nc.password, password, sizeof(nc.password));
+                nc.valid = nc.ssid[0] != 0;
+                nc.create = false;
             }
         }
     }
 
-    return false;
+    if (record.condition.recording > 0) {
+        gs.get()->general.recording = record.condition.recording;
+        loginfo("(loaded) recording (%" PRIu32 ")", record.condition.recording);
+    }
+
+    copy_cron_spec_from_pb("readings", gs.get()->scheduler.readings, record.schedule.readings, pool);
+    copy_cron_spec_from_pb("network", gs.get()->scheduler.network, record.schedule.network, pool);
+    copy_cron_spec_from_pb("gps", gs.get()->scheduler.gps, record.schedule.gps, pool);
+    copy_cron_spec_from_pb("lora", gs.get()->scheduler.lora, record.schedule.lora, pool);
+
+    return true;
 }
 
 bool StartupWorker::create_new_state(Storage &storage, Pool &pool) {

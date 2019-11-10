@@ -413,7 +413,7 @@ bool File::rewind() {
         }
 
         if (!record_header.valid()) {
-            logerror("[" PRADDRESS "] rewind invalid record header) (" PRADDRESS ")", partial_aligned, tail_);
+            logerror("[" PRADDRESS "] rewind invalid record header (" PRADDRESS ")", partial_aligned, tail_);
             return false;
         }
 
