@@ -175,6 +175,10 @@ int32_t SpiFlash::write(uint32_t address, const uint8_t *data, size_t length) {
     }
 
     if (error_ == SpiFlashError::Program) {
+        loginfo("resetting");
+        if (!reset()) {
+            logerror("resetting failed");
+        }
         return 0;
     }
 
