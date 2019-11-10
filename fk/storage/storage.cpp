@@ -239,9 +239,16 @@ uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address, BlockTa
 
     // Find a good block.
     for (auto i = 0; i < StorageAvailableBlockLookAhead; ++i) {
-        auto address = free_block_ * g.block_size;
+        auto block = free_block_;
+        auto address = block * g.block_size;
 
         free_block_++;
+
+        auto bad = bad_blocks_.is_address_bad(address);
+        if (bad) {
+            logerror("[%d] allocating ignoring bad block: %" PRIu32 " (markd bad)", file, block);
+            continue;
+        }
 
         // Basically checking an arbitrary amount of data here.
         BadBlockFactoryCheck check;
@@ -253,7 +260,7 @@ uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address, BlockTa
 
         // This is the bad block indicator, creative.
         if (check.is_bad()) {
-            logerror("[%d] allocating ignoring bad block: %" PRIu32 " (factory bad)", file, free_block_);
+            logerror("[%d] allocating ignoring bad block: %" PRIu32 " (factory bad)", file, block);
             bad_blocks_.mark_address_as_bad(address);
             continue;
         }
@@ -261,13 +268,13 @@ uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address, BlockTa
         // Erase new block and write header.
         rv = memory_.erase_block(address);
         if (rv <= 0) {
-            logerror("[%d] allocating ignoring bad block: %" PRIu32 " (erase failed)", file, free_block_);
+            logerror("[%d] allocating ignoring bad block: %" PRIu32 " (erase failed)", file, block);
             bad_blocks_.mark_address_as_bad(address);
             continue;
         }
 
         loginfo("[%d] allocating block #%" PRIu32 " ts=%" PRIu32 " (" PRADDRESS ") (pta=" PRADDRESS ") (try #%d) (#%" PRIu32 ") (%" PRIu32 " bytes)",
-                file, free_block_, timestamp_, address, previous_tail_address, i, files_[file].record, files_[file].size);
+                file, block, timestamp_, address, previous_tail_address, i, files_[file].record, files_[file].size);
 
         // First sector is the block header. We force write this to
         // ensure the block is good.
@@ -296,8 +303,7 @@ uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address, BlockTa
         }
 
         // We have a good new block, so link the previous block.
-
-        auto bad = bad_blocks_.is_address_bad(previous_tail_address);
+        bad = bad_blocks_.is_address_bad(previous_tail_address);
         if (!bad && is_address_valid(previous_tail_address)) {
             block_tail.linked = address;
             block_tail.fill_hash();
