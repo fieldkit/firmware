@@ -485,7 +485,7 @@ int32_t File::find_following_block() {
 
     if (!is_address_valid(block_tail.linked)) {
         if (search_for_following_block() == 0) {
-            logerror("[%d]" PRADDRESS " unable to resume", file_, tail_);
+            logerror("[%d] " PRADDRESS " unable to resume", file_, tail_);
             return 0;
         }
     }
@@ -497,7 +497,7 @@ int32_t File::find_following_block() {
         fk_dump_memory("EXP ", (uint8_t *)&block_tail.hash, sizeof(block_tail.hash));
 
         if (search_for_following_block() == 0) {
-            logerror("[%d]" PRADDRESS " unable to resume", file_, tail_);
+            logerror("[%d] " PRADDRESS " unable to resume", file_, tail_);
             return 0;
         }
     }
