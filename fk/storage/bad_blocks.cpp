@@ -1,5 +1,6 @@
 #include "bad_blocks.h"
 #include "config.h"
+#include "storage/storage.h"
 
 namespace fk {
 
@@ -25,7 +26,7 @@ void BadBlocks::mark_address_as_bad(uint32_t address) {
 }
 
 void BadBlocks::mark_block_as_bad(uint32_t block) {
-    loginfo("marking block #%" PRIu32 " bad", block);
+    loginfo("[" PRADDRESS "] marking block #%" PRIu32 " bad", block * geometry_.block_size, block);
     table_[block / 8] |= (1 << block % 8);
 }
 

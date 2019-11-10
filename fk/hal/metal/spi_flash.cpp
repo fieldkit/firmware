@@ -243,6 +243,19 @@ int32_t SpiFlash::write_internal(uint32_t address, const uint8_t *data, size_t l
 }
 
 int32_t SpiFlash::erase_block(uint32_t address) {
+    auto rv = erase_block_internal(address);
+    if (rv <= 0) {
+        if (error_ == SpiFlashError::Erase) {
+            loginfo("resetting");
+            if (!reset()) {
+                logerror("resetting failed");
+            }
+        }
+    }
+    return rv;
+}
+
+int32_t SpiFlash::erase_block_internal(uint32_t address) {
     uint8_t command[] = { CMD_ERASE_BLOCK, 0x00, 0x00, 0x00 }; // 7dummy/17 (Row)
     row_address_to_bytes(address, command + 1);
 

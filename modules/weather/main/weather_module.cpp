@@ -251,7 +251,7 @@ void WeatherModule::include(uint32_t now, fk_weather_t const &raw) {
     // We nearly always hope that this is 1. I'm hoping to dial these conditions
     // in over time.
     if (seconds_elapsed != 1) {
-        logerror("unexpected elapsed time (%" PRIu32 " - %" PRIu32 ") = %" PRIu32, raw.seconds, seconds_, seconds_elapsed);
+        logwarn("unexpected elapsed time (%" PRIu32 " - %" PRIu32 ") = %" PRIu32, raw.seconds, seconds_, seconds_elapsed);
         weather_ = { };
         return;
     }

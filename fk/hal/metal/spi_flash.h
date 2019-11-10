@@ -65,6 +65,8 @@ private:
 
     int32_t write_internal(uint32_t address, const uint8_t *data, size_t length);
 
+    int32_t erase_block_internal(uint32_t address);
+
     void row_address_to_bytes(uint32_t address, uint8_t *bytes);
 
     void column_address_to_bytes(uint32_t address, uint8_t *bytes);
