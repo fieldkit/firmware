@@ -85,7 +85,10 @@ bool SpiFlash::begin() {
     set_feature(CMD_REGISTER_1, 0xB8);
     set_feature(CMD_REGISTER_1, 0x00 | (0x1 << 7));
 
-    if (false) {
+    /* Disable ECC. */
+    // set_feature(CMD_REGISTER_2, 0b00000110);
+
+    if (true) {
         uint8_t features[] = { 0xA0, 0xB0, 0xC0 };
         for (auto a : features) {
             uint8_t value = 0x00;
