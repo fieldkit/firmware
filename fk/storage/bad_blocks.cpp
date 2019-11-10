@@ -12,6 +12,7 @@ BadBlocks::BadBlocks(DataMemory *memory) : memory_(memory), geometry_(memory->ge
 
     loginfo("allocating bad blocks table (%" PRIu32 " bytes)", size);
     table_ = (uint8_t *)pool_->malloc(size);
+    bzero(table_, size);
 }
 
 BadBlocks::~BadBlocks() {
