@@ -1,0 +1,34 @@
+#include <tiny_printf.h>
+
+#include "display/lora_view.h"
+#include "state_ref.h"
+#include "hal/board.h"
+#include "hal/display.h"
+#include "platform.h"
+
+namespace fk {
+
+void LoraView::tick(ViewController *views) {
+    auto bus = get_board()->i2c_core();
+    auto display = get_display();
+
+    auto gs = get_global_state_ro();
+    auto &lora = gs.get()->lora;
+
+    tiny_snprintf(status_, sizeof(status_), "%" PRIu32 " %" PRIu32 " %" PRIu32,
+                  lora.join_failures, lora.tx_successes, lora.tx_failures);
+
+    if (!lora.has_module) {
+        display->simple({ "No Module", status_ });
+        return;
+    }
+
+    if (lora.joined > 0) {
+        display->simple({ "Joining...", status_ });
+    }
+    else {
+        display->simple({ "Joined!", status_ });
+    }
+}
+
+}

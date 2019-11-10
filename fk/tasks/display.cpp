@@ -14,6 +14,7 @@
 #include "display/menu_view.h"
 #include "display/message_view.h"
 #include "display/module_status_view.h"
+#include "display/lora_view.h"
 
 namespace fk {
 
@@ -30,6 +31,7 @@ private:
     SelfCheckView self_check_view;
     ModuleStatusView module_status_view;
     QrCodeView qr_code_view;
+    LoraView lora_view;
     DisplayView *view = &home_view;
 
 public:
@@ -83,6 +85,11 @@ public:
 
     void show_qr_code() override {
         view = &qr_code_view;
+        view->show();
+    }
+
+    void show_lora() override {
+        view = &lora_view;
         view->show();
     }
 

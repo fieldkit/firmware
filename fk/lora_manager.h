@@ -8,9 +8,6 @@ namespace fk {
 class LoraManager {
 private:
     LoraNetwork *network_;
-    // These statics are temporary.
-    static uint32_t joined_;
-    static uint32_t asleep_;
 
 public:
     LoraManager(LoraNetwork *network);

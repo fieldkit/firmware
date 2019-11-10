@@ -179,6 +179,12 @@ struct LoraState {
     uint8_t device_eui[LoraDeviceEuiLength];
     uint8_t app_key[LoraAppKeyLength];
     uint8_t app_eui[LoraAppEuiLength];
+    bool has_module;
+    uint32_t joined;
+    uint32_t asleep;
+    uint32_t join_failures;
+    uint32_t tx_successes;
+    uint32_t tx_failures;
 };
 
 struct PhysicalModuleState {

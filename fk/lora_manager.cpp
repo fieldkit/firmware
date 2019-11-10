@@ -1,13 +1,11 @@
 #include "lora_manager.h"
 #include "state_ref.h"
+#include "state_manager.h"
 #include "utilities.h"
 
 namespace fk {
 
 FK_DECLARE_LOGGER("lora");
-
-uint32_t LoraManager::joined_ = 0;
-uint32_t LoraManager::asleep_ = 0;
 
 LoraManager::LoraManager(LoraNetwork *network) : network_(network) {
 }
@@ -17,68 +15,88 @@ bool LoraManager::available() {
     return gs.get()->lora.configured;
 }
 
+static LoraState get_lora_state() {
+    auto gs = get_global_state_ro();
+    return gs.get()->lora;
+}
+
 bool LoraManager::join_if_necessary(Pool &pool) {
-    if (joined_ == 0 || joined_ > fk_uptime() || fk_uptime() - joined_ > OneDayMs) {
-        auto gs = get_global_state_ro();
-        if (!gs.get()->lora.configured) {
+    GlobalStateManager gsm;
+
+    auto state = get_lora_state();
+
+    if (state.joined == 0 || state.joined > fk_uptime() || fk_uptime() - state.joined > OneDayMs) {
+        if (!state.configured) {
             loginfo("no configuration");
             return false;
         }
 
         if (!network_->begin()) {
             logwarn("missing module");
+            gsm.apply([=](GlobalState *gs) {
+                gs->lora.has_module = false;
+                gs->lora.joined = 0;
+                gs->lora.asleep = 0;
+            });
             return false;
         }
 
-        auto app_key = bytes_to_hex_string_pool(gs.get()->lora.app_key, LoraAppKeyLength, pool);
-        auto app_eui = bytes_to_hex_string_pool(gs.get()->lora.app_eui, LoraAppEuiLength, pool);
+        auto app_key = bytes_to_hex_string_pool(state.app_key, LoraAppKeyLength, pool);
+        auto app_eui = bytes_to_hex_string_pool(state.app_eui, LoraAppEuiLength, pool);
 
-        if (!network_->join(app_eui, app_key)) {
-            return false;
-        }
+        auto joined = network_->join(app_eui, app_key);
 
-        joined_ = fk_uptime();
-        asleep_ = 0;
+        gsm.apply([=](GlobalState *gs) {
+            gs->lora.has_module = true;
+            gs->lora.joined = joined ? fk_uptime() : 0;
+            gs->lora.asleep = 0;
+        });
 
-        return true;
+        return joined;
     }
 
-    if (asleep_ > 0) {
+    if (state.asleep > 0) {
         if (!network_->wake()) {
             logerror("error waking");
             return false;
         }
 
-        asleep_ = 0;
+        gsm.apply([=](GlobalState *gs) {
+            gs->lora.asleep = fk_uptime();
+        });
     }
 
     return true;
 }
 
 bool LoraManager::send_bytes(uint8_t port, uint8_t const *data, size_t size) {
-    if (network_->send_bytes(port, data, size)) {
-        return true;
-    }
+    auto success = network_->send_bytes(port, data, size);
 
-    switch (network_->error()) {
-    case LoraErrorCode::NotJoined: {
-        loginfo("rejoining");
-        joined_ = 0;
-        break;
-    }
-    default: {
-        logerror("tx failed");
-        break;
-    }
-    }
+    GlobalStateManager gsm;
+    gsm.apply([=](GlobalState *gs) {
+        if (network_->error() == LoraErrorCode::NotJoined) {
+            gs->lora.joined = 0;
+        }
+        if (success) {
+            gs->lora.tx_successes++;
+        }
+        else {
+            gs->lora.tx_failures++;
+        }
+    });
 
-    return false;
+    return success;
 }
 
 void LoraManager::stop() {
     if (!network_->sleep(OneHourMs)) {
         logerror("error sleeping");
     }
+
+    GlobalStateManager gsm;
+    gsm.apply([=](GlobalState *gs) {
+        gs->lora.asleep = fk_uptime();
+    });
 }
 
 } // namespace fk
