@@ -96,8 +96,6 @@ TEST_F(BadBlocksSuite, EraseFailsOnBadBlockFromWearAfterCleared) {
 }
 
 TEST_F(BadBlocksSuite, WritingToBadRegion) {
-    ScopedLogLevelChange change{ LogLevels::DEBUG };
-
     bank(0).mark_region_bad(g_.block_size * 1, 2048);
 
     Storage storage{ memory_, false };
@@ -116,17 +114,27 @@ TEST_F(BadBlocksSuite, WritingToBadRegion) {
     ASSERT_EQ(file_write.position(), size);
 
     ASSERT_TRUE(storage.begin());
+}
 
-    if (false) {
-        auto file_read = storage.file(0);
+TEST_F(BadBlocksSuite, WritingToBadRegionDuringFileWrite) {
+    ScopedLogLevelChange change{ LogLevels::DEBUG };
 
-        ASSERT_TRUE(file_read.seek_end());
-        ASSERT_EQ(file_read.size(), size);
-        ASSERT_EQ(file_read.position(), (size_t)size);
+    bank(0).mark_region_bad(g_.block_size * 1 + 512, 2048 - 512);
 
-        pattern.verify(file_read, size);
+    Storage storage{ memory_, false };
 
-        ASSERT_EQ(file_read.size(), size);
-        ASSERT_EQ(file_read.position(), size);
-    }
+    ASSERT_TRUE(storage.clear());
+
+    auto file_write = storage.file(0);
+    auto size = g_.block_size * 2u;
+
+    ASSERT_TRUE(file_write.create());
+
+    StaticPattern pattern;
+    pattern.write(file_write, size);
+
+    ASSERT_EQ(file_write.size(), size);
+    ASSERT_EQ(file_write.position(), size);
+
+    ASSERT_TRUE(storage.begin());
 }

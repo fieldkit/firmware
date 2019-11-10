@@ -133,6 +133,10 @@ private:
     void update();
     bool partial_write_align_necessary() const;
 
+public:
+    int32_t try_write(uint8_t const *record, size_t size);
+    int32_t try_write(void const *record, pb_msgdesc_t const *fields);
+
 private:
     int32_t try_read_record_header(uint32_t tail, RecordHeader &record_header);
 

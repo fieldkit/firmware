@@ -295,8 +295,10 @@ uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address, BlockTa
             continue;
         }
 
-        // We have a good new block, so link the previous block to the new one.
-        if (is_address_valid(previous_tail_address)) {
+        // We have a good new block, so link the previous block.
+
+        auto bad = bad_blocks_.is_address_bad(previous_tail_address);
+        if (!bad && is_address_valid(previous_tail_address)) {
             block_tail.linked = address;
             block_tail.fill_hash();
 

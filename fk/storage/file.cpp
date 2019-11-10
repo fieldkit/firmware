@@ -111,8 +111,8 @@ int32_t File::write_record_header(size_t size) {
 
         if (is_address_valid(tail_)) {
             tail_ += left_in_block;
-            FK_ASSERT(bytes_in_block_ > 0);
-            FK_ASSERT(records_in_block_ > 0);
+            // FK_ASSERT(bytes_in_block_ > 0);
+            // FK_ASSERT(records_in_block_ > 0);
         }
 
         BlockTail block_tail;
@@ -120,6 +120,7 @@ int32_t File::write_record_header(size_t size) {
         block_tail.records_in_block = records_in_block_;
         block_tail.block_tail = block_tail_address;
         tail_ = storage_->allocate(file_, tail_, block_tail);
+        FK_ASSERT(tail_ != InvalidAddress);
         if (record_ == InvalidRecord) {
             record_ = 1;
         }
@@ -201,7 +202,7 @@ int32_t File::write_record_tail(size_t size) {
     return sizeof(record_tail);
 }
 
-int32_t File::write(uint8_t const *record, size_t size) {
+int32_t File::try_write(uint8_t const *record, size_t size) {
     storage_->verify_mutable();
 
     logtrace("[%d] " PRADDRESS " BEGIN write (%zd bytes) #%" PRIu32 " (%" PRIu32 " w/ overhead)", file_, tail_, size, record_,
@@ -220,9 +221,14 @@ int32_t File::write(uint8_t const *record, size_t size) {
         return 0;
     }
 
-    update();
+    if (memory_.flush() <= 0) {
+        // NOTE: This works because we only ever write a record to a
+        // single block. So where the file pointer is, that's the bad one.
+        storage_->bad_blocks_.mark_address_as_bad(tail_);
+        return 0;
+    }
 
-    memory_.flush();
+    update();
 
     return size;
 }
@@ -688,7 +694,7 @@ pb_istream_t pb_istream_from_file(File *file, size_t size) {
     return { &read_callback, (void *)file, size, 0 };
 }
 
-int32_t File::write(void const *record, pb_msgdesc_t const *fields) {
+int32_t File::try_write(void const *record, pb_msgdesc_t const *fields) {
     storage_->verify_mutable();
 
     size_t record_size = 0;
@@ -711,9 +717,14 @@ int32_t File::write(void const *record, pb_msgdesc_t const *fields) {
         return 0;
     }
 
-    update();
+    if (memory_.flush() <= 0) {
+        // NOTE: This works because we only ever write a record to a
+        // single block. So where the file pointer is, that's the bad one.
+        storage_->bad_blocks_.mark_address_as_bad(tail_);
+        return 0;
+    }
 
-    memory_.flush();
+    update();
 
     return record_size;
 }
@@ -730,6 +741,36 @@ int32_t File::read(void *record, pb_msgdesc_t const *fields) {
     }
 
     return record_size;
+}
+
+int32_t File::write(uint8_t const *record, size_t size) {
+    auto rv = try_write(record, size);
+    if (rv <= 0) {
+        position_ -= size;
+        bytes_in_block_ -= size;
+        size_ -= size;
+        records_in_block_--;
+        record_--;
+
+        // Well this sucks..
+        auto block_tail_address = tail_;
+        BlockTail block_tail;
+        block_tail.bytes_in_block = bytes_in_block_;
+        block_tail.records_in_block = records_in_block_;
+        block_tail.block_tail = block_tail_address;
+        tail_ = storage_->allocate(file_, tail_, block_tail);
+        FK_ASSERT(tail_ != InvalidAddress);
+        bytes_in_block_ = 0;
+        records_in_block_ = 0;
+
+        rv = try_write(record, size);
+    }
+    return rv;
+}
+
+int32_t File::write(void const *record, pb_msgdesc_t const *fields) {
+    auto rv = try_write(record, fields);
+    return rv;
 }
 
 }
