@@ -81,13 +81,6 @@ bool SpiFlash::begin() {
         return false;
     }
 
-    /* Unlock all blocks. */
-    set_feature(CMD_REGISTER_1, 0xB8);
-    set_feature(CMD_REGISTER_1, 0x00 | (0x1 << 7));
-
-    /* Disable ECC. */
-    // set_feature(CMD_REGISTER_2, 0b00000110);
-
     dump_feature_registers();
 
     if (false) {
@@ -130,7 +123,12 @@ bool SpiFlash::reset() {
         return false;
     }
 
-    dump_feature_registers();
+    /* Unlock all blocks. */
+    set_feature(CMD_REGISTER_1, 0xB8);
+    set_feature(CMD_REGISTER_1, 0x00 | (0x1 << 7));
+
+    /* Disable ECC. */
+    // set_feature(CMD_REGISTER_2, 0b00000110);
 
     return ok;
 }
