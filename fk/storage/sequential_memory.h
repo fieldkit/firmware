@@ -112,6 +112,8 @@ private:
     unique_ptr_freed<uint8_t> buffer_;
     uint32_t cached_{ UINT32_MAX };
     bool dirty_{ false };
+    int16_t dirty_start_{ -1 };
+    int16_t dirty_end_{ -1 };
 
 public:
     BufferedPageMemory(DataMemory *target);

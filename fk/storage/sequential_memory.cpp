@@ -1,6 +1,7 @@
 #include <algorithm>
 
 #include "storage/sequential_memory.h"
+#include "storage/storage.h"
 
 namespace fk {
 
@@ -111,6 +112,8 @@ int32_t BufferedPageMemory::read(uint32_t address, uint8_t *data, size_t length,
             return rv;
         }
         cached_ = page;
+        dirty_start_ = -1;
+        dirty_end_ = -1;
     }
     auto page_offset = address % g.page_size;
     memcpy(data, buffer_.get() + page_offset, length);
@@ -132,11 +135,22 @@ int32_t BufferedPageMemory::write(uint32_t address, uint8_t const *data, size_t 
         if (rv <= 0) {
             return rv;
         }
+
         cached_ = page;
     }
+
     auto page_offset = address % g.page_size;
     memcpy(buffer_.get() + page_offset, data, length);
     dirty_ = true;
+
+    if (dirty_start_ == -1) {
+        dirty_start_ = page_offset;
+    }
+    else {
+        FK_ASSERT((int16_t)page_offset >= dirty_end_);
+    }
+    dirty_end_ = page_offset + length;
+
     return length;
 }
 
@@ -145,6 +159,8 @@ int32_t BufferedPageMemory::erase_block(uint32_t address) {
     auto page = address / g.page_size;
     if (page == cached_) {
         cached_ = UINT32_MAX;
+        dirty_start_ = -1;
+        dirty_end_ = -1;
         dirty_ = false;
     }
     return target_->erase_block(address);
@@ -153,8 +169,14 @@ int32_t BufferedPageMemory::erase_block(uint32_t address) {
 int32_t BufferedPageMemory::flush() {
     if (cached_ != UINT32_MAX && dirty_) {
         auto g = target_->geometry();
-        auto rv = target_->write(cached_ * g.page_size, buffer_.get(), g.page_size);
+        auto address = cached_ * g.page_size;
+
+        logdebug("[" PRADDRESS "] flush dirty page (0x%4x - 0x%4x)", address, dirty_start_, dirty_end_);
+
+        auto rv = target_->write(address, buffer_.get(), g.page_size);
         cached_ = UINT32_MAX;
+        dirty_start_ = -1;
+        dirty_end_ = -1;
         dirty_ = false;
         if (rv <= 0) {
             return rv;
