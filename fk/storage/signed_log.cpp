@@ -21,7 +21,8 @@ tl::expected<uint32_t, Error> SignedRecordLog::seek_record(SignedRecordKind kind
         return tl::unexpected<Error>(Error::IO);
     }
 
-    logdebug("[" PRADDRESS "] seek_record %" PRIu32 " position=%" PRIu32 " record=#%" PRIu32, file_.tail(), (int32_t)kind, file_.position(), file_.record());
+    logdebug("[" PRADDRESS "] seek record %" PRIu32 " position=%" PRIu32 " record=#%" PRIu32,
+             file_.tail(), (int32_t)kind, file_.position(), file_.record());
 
     if (file_.record() == 1 || file_.position() == 0) {
         return tl::unexpected<Error>(Error::EoF);

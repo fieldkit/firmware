@@ -399,6 +399,7 @@ bool File::rewind() {
 
     RecordTail record_tail;
     if (memory_.read(tail_, (uint8_t *)&record_tail, sizeof(record_tail)) != sizeof(record_tail)) {
+        logerror("[" PRADDRESS "] error reading", tail_);
         return false;
     }
 
@@ -408,6 +409,7 @@ bool File::rewind() {
 
     RecordHeader record_header;
     if (memory_.read(tail_, (uint8_t *)&record_header, sizeof(record_header)) != sizeof(record_header)) {
+        logerror("[" PRADDRESS "] error reading", tail_);
         return false;
     }
 
@@ -415,6 +417,7 @@ bool File::rewind() {
         auto partial_aligned = g.partial_write_boundary_before(tail_);
 
         if (memory_.read(partial_aligned, (uint8_t *)&record_header, sizeof(record_header)) != sizeof(record_header)) {
+            logerror("[" PRADDRESS "] error reading", partial_aligned);
             return false;
         }
 

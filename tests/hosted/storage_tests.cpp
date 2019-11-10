@@ -900,6 +900,23 @@ TEST_F(StorageSuite, ReproduceFindingWrongFileInReadHeader) {
     FK_ASSERT(storage.fsck(&progress));
 }
 
+TEST_F(StorageSuite, FileOpsRewindOnce) {
+    write_number_of_readings(memory_, 1);
+
+    Storage storage{ memory_, true };
+    FK_ASSERT(storage.begin());
+    auto file = storage.file(0);
+    ASSERT_TRUE(file.seek_end());
+
+    ASSERT_EQ(file.record(), 2u);
+
+    ASSERT_TRUE(file.rewind());
+
+    ASSERT_EQ(file.record(), 1u);
+
+    ASSERT_FALSE(file.rewind());
+}
+
 TEST_F(StorageSuite, FileOpsRewind) {
     write_readings(memory_, 10240);
 

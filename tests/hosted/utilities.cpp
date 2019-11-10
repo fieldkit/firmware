@@ -52,7 +52,7 @@ size_t write_reading(File &file) {
                 .arg = &readings_array,
             },
         }
-    }; 
+    };
 
     pb_array_t sensor_groups_array = {
         .length = (size_t)1,
@@ -169,6 +169,20 @@ void write_meta_records(DataMemory *memory, size_t total) {
         append_metadata(srl, counter++, "our-build-1", "our-git-1", appended, pool);
 
         size += appended + sizeof(RecordHeader) + sizeof(RecordTail);
+    }
+}
+
+void write_number_of_readings(DataMemory *memory, size_t n) {
+    Storage storage{ memory, false };
+    if (!storage.begin()) {
+        ASSERT_TRUE(storage.clear());
+    }
+    auto file = storage.file(0);
+    if (!file.seek_end()) {
+        ASSERT_TRUE(file.create());
+    }
+    for (size_t i = 0; i < n; ++i) {
+        write_reading(file);
     }
 }
 
