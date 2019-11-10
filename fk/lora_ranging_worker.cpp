@@ -6,6 +6,7 @@
 #include "lora_manager.h"
 #include "platform.h"
 #include "utilities.h"
+#include "records.h"
 
 namespace fk {
 
@@ -20,11 +21,21 @@ void LoraRangingWorker::run(Pool &pool) {
         if (lora.join_if_necessary(work_pool)) {
             loginfo("joined");
 
-            if (lora.send_bytes(LoraStatusPort, nullptr, 0)) {
-                //
+            fk_serial_number_t sn;
+            pb_data_t device_id = {
+                .length = sizeof(sn),
+                .buffer = &sn,
+            };
+
+            fk_data_LoraRecord record = fk_lora_record_encoding_new();
+            record.deviceId.arg = (void *)&device_id;
+
+            auto encoded = work_pool.encode(fk_data_LoraRecord_fields, &record);
+            if (encoded == nullptr) {
+                logerror("encode failed");
             }
             else {
-                //
+                lora.send_bytes(LoraStatusPort, encoded->buffer, encoded->size);
             }
         }
 

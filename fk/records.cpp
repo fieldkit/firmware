@@ -239,4 +239,13 @@ fk_app_HttpReply *fk_http_reply_encoding_initialize(fk_app_HttpReply *reply) {
     return reply;
 }
 
+fk_data_LoraRecord fk_lora_record_encoding_new() {
+    fk_data_LoraRecord record = fk_data_LoraRecord_init_default;
+
+    record.values.funcs.encode = pb_encode_array;
+    record.deviceId.funcs.encode = pb_encode_data;
+
+    return record;
+}
+
 }

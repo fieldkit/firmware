@@ -1,6 +1,7 @@
 #include "records.h"
 #include "lora_packetizer.h"
 #include "clock.h"
+#include "records.h"
 
 namespace fk {
 
@@ -48,8 +49,7 @@ public:
     }
 
     void clear() {
-        record_ = fk_data_LoraRecord_init_default;
-        record_.values.funcs.encode = pb_encode_array;
+        record_ = fk_lora_record_encoding_new();
         record_.time = 0;
         record_.number = 0;
         record_.module = 0;

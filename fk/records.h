@@ -18,4 +18,6 @@ fk_app_HttpQuery *fk_http_query_prepare_decoding(fk_app_HttpQuery *query, Pool *
 
 fk_app_HttpReply *fk_http_reply_encoding_initialize(fk_app_HttpReply *reply);
 
+fk_data_LoraRecord fk_lora_record_encoding_new();
+
 }
