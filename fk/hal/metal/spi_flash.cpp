@@ -124,6 +124,11 @@ bool SpiFlash::reset() {
     auto ok = simple_command(CMD_RESET);
     disable();
 
+    if (!is_ready()) {
+        logerror("read: !ready");
+        return false;
+    }
+
     return ok;
 }
 
