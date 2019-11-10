@@ -769,7 +769,29 @@ int32_t File::write(uint8_t const *record, size_t size) {
 }
 
 int32_t File::write(void const *record, pb_msgdesc_t const *fields) {
+    auto size_before = size_;
     auto rv = try_write(record, fields);
+    if (rv <= 0) {
+        auto size = size_ - size_before;
+        position_ -= size;
+        bytes_in_block_ -= size;
+        size_ -= size;
+        records_in_block_--;
+        record_--;
+
+        // Well this sucks..
+        auto block_tail_address = tail_;
+        BlockTail block_tail;
+        block_tail.bytes_in_block = bytes_in_block_;
+        block_tail.records_in_block = records_in_block_;
+        block_tail.block_tail = block_tail_address;
+        tail_ = storage_->allocate(file_, tail_, block_tail);
+        FK_ASSERT(tail_ != InvalidAddress);
+        bytes_in_block_ = 0;
+        records_in_block_ = 0;
+
+        rv = try_write(record, fields);
+    }
     return rv;
 }
 
