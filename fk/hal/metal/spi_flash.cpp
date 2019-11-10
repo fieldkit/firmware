@@ -88,28 +88,17 @@ bool SpiFlash::begin() {
     /* Disable ECC. */
     // set_feature(CMD_REGISTER_2, 0b00000110);
 
-    if (true) {
-        uint8_t features[] = { 0xA0, 0xB0, 0xC0 };
-        for (auto a : features) {
-            uint8_t value = 0x00;
-            get_feature(a, &value);
-            loginfo("feature-reg 0x%x = 0x%x", a, value);
+    dump_feature_registers();
+
+    if (false) {
+        if (!read_unique_id()) {
+            return false;
+        }
+
+        if (!read_parameters_page()) {
+            return false;
         }
     }
-
-    if (!is_ready()) {
-        return false;
-    }
-
-    /*
-    if (!read_unique_id()) {
-        return false;
-    }
-
-    if (!read_parameters_page()) {
-        return false;
-    }
-    */
 
     if (false) {
         char id_string[sizeof(id_) * 2];
@@ -122,6 +111,15 @@ bool SpiFlash::begin() {
     return true;
 }
 
+void SpiFlash::dump_feature_registers() {
+    uint8_t features[] = { 0xA0, 0xB0, 0xC0 };
+    for (auto a : features) {
+        uint8_t value = 0x00;
+        get_feature(a, &value);
+        loginfo("feature-reg 0x%x = 0x%x", a, value);
+    }
+}
+
 bool SpiFlash::reset() {
     enable();
     auto ok = simple_command(CMD_RESET);
@@ -131,6 +129,8 @@ bool SpiFlash::reset() {
         logerror("read: !ready");
         return false;
     }
+
+    dump_feature_registers();
 
     return ok;
 }

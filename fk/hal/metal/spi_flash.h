@@ -109,6 +109,8 @@ private:
 
     bool reset();
 
+    void dump_feature_registers();
+
 };
 
 }
