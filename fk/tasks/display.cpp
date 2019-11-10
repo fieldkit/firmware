@@ -38,59 +38,56 @@ public:
     MainViewController(Pool &pool) : menu_view{ this, pool } {
     }
 
+private:
+    void show_view(DisplayView &new_view) {
+        view->hide();
+        view = &new_view;
+        view->show();
+    }
+
 public:
     void show_menu() override {
-        view = &menu_view;
-        view->show();
+        show_view(menu_view);
     }
 
     void show_home() override {
-        view = &home_view;
-        view->show();
+        show_view(home_view);
     }
 
     void show_self_check() override {
-        view = &self_check_view;
-        view->show();
+        show_view(self_check_view);
     }
 
     void show_readings() override {
-        view = &readings_view;
-        view->show();
+        show_view(readings_view);
     }
 
     void show_name() override {
         home_view.show_name();
-        view = &name_view;
-        view->show();
+        show_view(name_view);
     }
 
     void show_build() override {
         home_view.show_build();
-        view = &home_view;
-        view->show();
+        show_view(home_view);
     }
 
     void show_module_status() override {
-        view = &module_status_view;
-        view->show();
+        show_view(module_status_view);
     }
 
     void show_message(const char *message) override {
         message_view.message(message);
-        view = &message_view;
-        view->show();
+        show_view(message_view);
         view->tick(this);
     }
 
     void show_qr_code() override {
-        view = &qr_code_view;
-        view->show();
+        show_view(qr_code_view);
     }
 
     void show_lora() override {
-        view = &lora_view;
-        view->show();
+        show_view(lora_view);
     }
 
     void on_external() override {
@@ -138,6 +135,8 @@ public:
                 }
             }
         }
+
+        view->hide();
     }
 
 };

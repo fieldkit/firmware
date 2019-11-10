@@ -23,6 +23,9 @@ public:
     virtual void tick(ViewController *views) = 0;
 
 public:
+    virtual void hide() {
+    }
+
     virtual void show() {
     }
 
