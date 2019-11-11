@@ -71,7 +71,7 @@ bool LoraManager::join_if_necessary(Pool &pool) {
         }
 
         gsm.apply([=](GlobalState *gs) {
-            gs->lora.asleep = fk_uptime();
+            gs->lora.asleep = 0;
         });
 
         awake_ = true;
