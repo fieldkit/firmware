@@ -120,6 +120,8 @@ struct RecordTail {
     uint32_t size{ 0 };
     uint32_t reserved[3] = { 0xdeadbeef, 0xdeadbeef, 0xdeadbeef };
     Hash hash;
+
+    bool valid();
 };
 
 struct SeekSettings {

@@ -362,6 +362,28 @@ bool File::skip(bool new_block) {
     return true;
 }
 
+uint32_t File::find_previous_sector_aligned_record(uint32_t address) {
+    auto g = storage_->geometry();
+
+    while (!g.is_start_of_block_or_header(address, SizeofBlockHeader)) {
+        address = g.partial_write_boundary_before(address);
+
+        RecordHeader record_header;
+        if (memory_.read(address, (uint8_t *)&record_header, sizeof(record_header)) != sizeof(record_header)) {
+            logerror("[" PRADDRESS "] error reading", tail_);
+            return InvalidAddress;
+        }
+
+        if (record_header.valid()) {
+            return address;
+        }
+
+        address -= g.sector_size();
+    }
+
+    return InvalidAddress;
+}
+
 bool File::rewind() {
     auto g = storage_->geometry();
     auto start_of_record = tail_;
@@ -403,9 +425,20 @@ bool File::rewind() {
         return false;
     }
 
-    tail_ -= record_tail.size;
+    if (record_tail.valid()) {
+        tail_ -= record_tail.size;
 
-    tail_ -= sizeof(RecordHeader);
+        tail_ -= sizeof(RecordHeader);
+    }
+    else {
+        uint32_t previous_record = find_previous_sector_aligned_record(tail_);
+        if (previous_record == InvalidAddress) {
+            logerror("[" PRADDRESS "] rewind invalid record tail, unable to find previous record in block", tail_);
+            return false;
+        }
+
+        tail_ = previous_record;
+    }
 
     RecordHeader record_header;
     if (memory_.read(tail_, (uint8_t *)&record_header, sizeof(record_header)) != sizeof(record_header)) {
@@ -414,19 +447,8 @@ bool File::rewind() {
     }
 
     if (!record_header.valid()) {
-        auto partial_aligned = g.partial_write_boundary_before(tail_);
-
-        if (memory_.read(partial_aligned, (uint8_t *)&record_header, sizeof(record_header)) != sizeof(record_header)) {
-            logerror("[" PRADDRESS "] error reading", partial_aligned);
-            return false;
-        }
-
-        if (!record_header.valid()) {
-            logerror("[" PRADDRESS "] rewind invalid record header (" PRADDRESS ")", partial_aligned, tail_);
-            return false;
-        }
-
-        tail_ = partial_aligned;
+        logerror("[" PRADDRESS "] rewind invalid record header", tail_);
+        return false;
     }
 
     record_ = record_header.record;
@@ -434,7 +456,8 @@ bool File::rewind() {
     record_remaining_ = record_header.size;
     position_ -= record_tail.size;
 
-    logtrace("[" PRADDRESS "] rewind DONE position=%" PRIu32 " record-size=%" PRIu32, tail_, position_, record_tail.size);
+    logtrace("[" PRADDRESS "] rewind DONE position=%" PRIu32 " record-size=%" PRIu32, tail_, position_,
+             record_tail.size);
 
     return true;
 }
@@ -641,7 +664,7 @@ int32_t File::read(uint8_t *record, size_t size) {
 }
 
 int32_t File::read_record_tail() {
-    logverbose("[%d] " PRADDRESS " end of record", file_, tail_);
+    logverbose("[%d] " PRADDRESS " record tail (eor = " PRADDRESS ")", file_, tail_, (uint32_t)(tail_ + sizeof(RecordTail)));
 
     RecordTail record_tail;
     if (memory_.read(tail_, (uint8_t *)&record_tail, sizeof(RecordTail)) != sizeof(RecordTail)) {

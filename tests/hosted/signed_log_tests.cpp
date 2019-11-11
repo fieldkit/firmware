@@ -196,15 +196,13 @@ static const char *get_long_string(Pool &pool, char fill, size_t size) {
     return string;
 }
 
-TEST_F(SignedLogSuite, DISABLED_AppendingLargerRecords) {
+TEST_F(SignedLogSuite, AppendingLargerRecords) {
     StaticPool<10 * 1024> pool{ "signed-log" };
     GlobalState gs;
     Storage storage{ data_memory_, false };
 
     auto long_string1 = get_long_string(pool, '1', 684);
     auto long_string2 = get_long_string(pool, '2', 684);
-
-    ScopedLogLevelChange change{ LogLevels::DEBUG };
 
     {
         ASSERT_TRUE(storage.clear());

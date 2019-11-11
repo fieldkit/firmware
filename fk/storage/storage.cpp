@@ -74,6 +74,10 @@ bool RecordHeader::valid() {
     return size > 0 && size != InvalidSize && sign() == crc;
 }
 
+bool RecordTail::valid() {
+    return size > 0 && size != InvalidSize;
+}
+
 SeekSettings SeekSettings::end_of(uint8_t file) {
     return SeekSettings{ file, LastRecord };
 }

@@ -125,6 +125,7 @@ public:
 
 private:
     int32_t find_following_block();
+    uint32_t find_previous_sector_aligned_record(uint32_t address);
     int32_t write_record_header(size_t size);
     int32_t write_record_tail(size_t size);
     int32_t read_record_header();
