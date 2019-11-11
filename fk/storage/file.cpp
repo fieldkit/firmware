@@ -132,10 +132,11 @@ int32_t File::write_record_header(size_t size) {
     RecordHeader record_header;
     record_header.size = size;
     record_header.record = record_++;
+    record_header.previous = record_address_;
     record_header.crc = record_header.sign();
 
-    logdebug("[%d] " PRADDRESS " write header #%" PRIu32 " (lib = %" PRId32 ") (%zd bytes) position = %" PRIu32,
-             file_, tail_, record_header.record, (int32_t)left_in_block, size, position_);
+    logdebug("[%d] " PRADDRESS " write header #%" PRIu32 " (lib=%" PRId32 ") (%zd bytes) position=%" PRIu32 " sopr=" PRADDRESS,
+             file_, tail_, record_header.record, (int32_t)left_in_block, size, position_, record_address_);
 
     if (memory_.write(tail_, (uint8_t *)&record_header, sizeof(record_header)) != sizeof(record_header)) {
         return 0;
