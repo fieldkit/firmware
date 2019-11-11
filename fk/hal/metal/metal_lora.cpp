@@ -62,9 +62,11 @@ bool Rn2903LoraNetwork::join(const char *app_eui, const char *app_key, int32_t r
 
 bool Rn2903LoraNetwork::power(bool on) {
     if (on) {
+        logdebug("power on");
         get_board()->enable_lora();
     }
     else {
+        logdebug("power off");
         get_board()->disable_lora();
     }
 

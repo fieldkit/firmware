@@ -18,8 +18,10 @@ void LoraRangingWorker::run(Pool &pool) {
     while (true) {
         MallocPool work_pool{ "lora-range", DefaultWorkerPoolSize };
 
+        logdebug("joining if necessary...");
+
         if (lora.join_if_necessary(work_pool)) {
-            loginfo("joined");
+            loginfo("joined!");
 
             fk_serial_number_t sn;
             pb_data_t device_id = {
@@ -38,6 +40,8 @@ void LoraRangingWorker::run(Pool &pool) {
                 lora.send_bytes(LoraStatusPort, encoded->buffer, encoded->size);
             }
         }
+
+        loginfo("sleeping");
 
         fk_delay(5000);
 

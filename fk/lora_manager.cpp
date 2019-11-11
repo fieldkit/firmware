@@ -40,6 +40,13 @@ bool LoraManager::join_if_necessary(Pool &pool) {
             });
             return false;
         }
+        else {
+            gsm.apply([=](GlobalState *gs) {
+                gs->lora.has_module = true;
+                gs->lora.joined = 0;
+                gs->lora.asleep = 0;
+            });
+        }
 
         auto app_key = bytes_to_hex_string_pool(state.app_key, LoraAppKeyLength, pool);
         auto app_eui = bytes_to_hex_string_pool(state.app_eui, LoraAppEuiLength, pool);
@@ -53,11 +60,11 @@ bool LoraManager::join_if_necessary(Pool &pool) {
         });
 
         awake_ = true;
-
-        return joined;
     }
 
     if (state.asleep > 0) {
+        loginfo("waking");
+
         if (!network_->wake()) {
             logerror("error waking");
             return false;
