@@ -101,25 +101,40 @@ TEST_F(SignedLogSuite, AppendingImmutable) {
     GlobalState gs;
     Storage storage{ data_memory_, false };
 
-    ASSERT_TRUE(storage.clear());
+    {
+        ASSERT_TRUE(storage.clear());
 
-    auto file = storage.file(Storage::Meta);
-    auto srl = SignedRecordLog{ file };
+        auto file = storage.file(Storage::Meta);
+        auto srl = SignedRecordLog{ file };
 
-    append_metadata(srl, 1, "our-build-1", "our-git-1", pool);
+        append_metadata(srl, 1, "our-build-1", "our-git-1", pool);
 
-    auto position1 = file.position();
-    ASSERT_GT(position1, (uint32_t)0);
+        auto position1 = file.position();
+        ASSERT_GT(position1, (uint32_t)0);
 
-    append_metadata(srl, 1, "our-build-1", "our-git-1", pool);
+        append_metadata(srl, 1, "our-build-1", "our-git-1", pool);
 
-    auto position2 = file.position();
-    ASSERT_EQ(position1, position2);
+        auto position2 = file.position();
+        ASSERT_EQ(position1, position2);
 
-    append_metadata(srl, 1, "our-build-2", "our-git-2", pool);
+        append_metadata(srl, 1, "our-build-2", "our-git-2", pool);
 
-    auto position3 = file.position();
-    ASSERT_GT(position3, position2);
+        auto position3 = file.position();
+        ASSERT_GT(position3, position2);
+    }
+
+    {
+        ASSERT_TRUE(storage.begin());
+
+        auto file = storage.file(Storage::Meta);
+        auto srl = SignedRecordLog{ file };
+
+        ASSERT_TRUE(srl.seek_record(SignedRecordKind::Modules));
+
+        ASSERT_FALSE(srl.seek_record(SignedRecordKind::Other));
+
+        ASSERT_TRUE(srl.seek_record(SignedRecordKind::Modules));
+    }
 }
 
 TEST_F(SignedLogSuite, AppendingImmutableWithOtherKindsBetween) {
@@ -127,33 +142,104 @@ TEST_F(SignedLogSuite, AppendingImmutableWithOtherKindsBetween) {
     GlobalState gs;
     Storage storage{ data_memory_, false };
 
-    ASSERT_TRUE(storage.clear());
+    {
+        ASSERT_TRUE(storage.clear());
 
-    auto file = storage.file(Storage::Meta);
-    auto srl = SignedRecordLog{ file };
+        auto file = storage.file(Storage::Meta);
+        auto srl = SignedRecordLog{ file };
+        append_metadata(srl, 1, "our-build-1", "our-git-1", pool);
 
-    append_metadata(srl, 1, "our-build-1", "our-git-1", pool);
+        append_other_always(srl, "ignored", "ignored", pool);
+        append_other_always(srl, "ignored", "ignored", pool);
 
-    append_other_always(srl, "ignored", "ignored", pool);
-    append_other_always(srl, "ignored", "ignored", pool);
+        auto position1 = file.position();
+        ASSERT_GT(position1, (uint32_t)0);
 
-    auto position1 = file.position();
-    ASSERT_GT(position1, (uint32_t)0);
+        append_metadata(srl, 1, "our-build-1", "our-git-1", pool);
 
-    append_metadata(srl, 1, "our-build-1", "our-git-1", pool);
+        auto position2 = file.position();
+        ASSERT_EQ(position1, position2);
 
-    auto position2 = file.position();
-    ASSERT_EQ(position1, position2);
+        append_other_always(srl, "ignored", "ignored", pool);
+        append_other_always(srl, "ignored", "ignored", pool);
+        append_other_always(srl, "ignored", "ignored", pool);
 
-    append_other_always(srl, "ignored", "ignored", pool);
-    append_other_always(srl, "ignored", "ignored", pool);
-    append_other_always(srl, "ignored", "ignored", pool);
+        append_metadata(srl, 1, "our-build-2", "our-git-2", pool);
 
-    append_metadata(srl, 1, "our-build-2", "our-git-2", pool);
+        auto position3 = file.position();
+        ASSERT_GT(position3, position2);
 
-    auto position3 = file.position();
-    ASSERT_GT(position3, position2);
+        append_other_always(srl, "ignored", "ignored", pool);
+        append_other_always(srl, "ignored", "ignored", pool);
+    }
 
-    append_other_always(srl, "ignored", "ignored", pool);
-    append_other_always(srl, "ignored", "ignored", pool);
+    {
+        ASSERT_TRUE(storage.begin());
+
+        auto file = storage.file(Storage::Meta);
+        auto srl = SignedRecordLog{ file };
+
+        ASSERT_TRUE(srl.seek_record(SignedRecordKind::Modules));
+
+        ASSERT_TRUE(srl.seek_record(SignedRecordKind::Other));
+
+        ASSERT_TRUE(srl.seek_record(SignedRecordKind::Modules));
+    }
+}
+
+static const char *get_long_string(Pool &pool, char fill, size_t size) {
+    auto string = (char *)pool.malloc(size);
+    for (size_t i = 0; i < size; ++i) {
+        string[i] = fill;
+    }
+    string[size - 1] = 0;
+    return string;
+}
+
+TEST_F(SignedLogSuite, DISABLED_AppendingLargerRecords) {
+    StaticPool<10 * 1024> pool{ "signed-log" };
+    GlobalState gs;
+    Storage storage{ data_memory_, false };
+
+    auto long_string1 = get_long_string(pool, '1', 684);
+    auto long_string2 = get_long_string(pool, '2', 684);
+
+    ScopedLogLevelChange change{ LogLevels::DEBUG };
+
+    {
+        ASSERT_TRUE(storage.clear());
+
+        auto file = storage.file(Storage::Meta);
+        auto srl = SignedRecordLog{ file };
+
+        append_other_always(srl, "ignored", "ignored", pool);
+
+        append_metadata(srl, 1, long_string1, "our-git-1", pool);
+
+        auto position1 = file.position();
+        ASSERT_GT(position1, (uint32_t)0);
+
+        append_metadata(srl, 1, long_string1, "our-git-1", pool);
+
+        auto position2 = file.position();
+        ASSERT_EQ(position1, position2);
+
+        append_metadata(srl, 1, long_string2, "our-git-1", pool);
+
+        auto position3 = file.position();
+        ASSERT_GT(position3, position2);
+    }
+
+    {
+        ASSERT_TRUE(storage.begin());
+
+        auto file = storage.file(Storage::Meta);
+        auto srl = SignedRecordLog{ file };
+
+        ASSERT_TRUE(srl.seek_record(SignedRecordKind::Modules));
+
+        ASSERT_TRUE(srl.seek_record(SignedRecordKind::Other));
+
+        ASSERT_TRUE(srl.seek_record(SignedRecordKind::Modules));
+    }
 }

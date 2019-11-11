@@ -134,7 +134,7 @@ int32_t File::write_record_header(size_t size) {
     record_header.record = record_++;
     record_header.crc = record_header.sign();
 
-    logtrace("[%d] " PRADDRESS " write header #%" PRIu32 " (lib = %" PRId32 ") (%zd bytes) position = %" PRIu32,
+    logdebug("[%d] " PRADDRESS " write header #%" PRIu32 " (lib = %" PRId32 ") (%zd bytes) position = %" PRIu32,
              file_, tail_, record_header.record, (int32_t)left_in_block, size, position_);
 
     if (memory_.write(tail_, (uint8_t *)&record_header, sizeof(record_header)) != sizeof(record_header)) {
