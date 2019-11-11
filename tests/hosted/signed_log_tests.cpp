@@ -196,7 +196,7 @@ static const char *get_long_string(Pool &pool, char fill, size_t size) {
     return string;
 }
 
-TEST_F(SignedLogSuite, AppendingLargerRecords) {
+TEST_F(SignedLogSuite, AppendingLargerRecordsAndFindingPreviousThatExists) {
     StaticPool<10 * 1024> pool{ "signed-log" };
     GlobalState gs;
     Storage storage{ data_memory_, false };
@@ -237,6 +237,50 @@ TEST_F(SignedLogSuite, AppendingLargerRecords) {
         ASSERT_TRUE(srl.seek_record(SignedRecordKind::Modules));
 
         ASSERT_TRUE(srl.seek_record(SignedRecordKind::Other));
+
+        ASSERT_TRUE(srl.seek_record(SignedRecordKind::Modules));
+    }
+}
+
+TEST_F(SignedLogSuite, AppendingLargerRecordsAndFindingPreviousThatDoesNotExist) {
+    StaticPool<10 * 1024> pool{ "signed-log" };
+    GlobalState gs;
+    Storage storage{ data_memory_, false };
+
+    auto long_string1 = get_long_string(pool, '1', 684);
+    auto long_string2 = get_long_string(pool, '2', 684);
+
+    {
+        ASSERT_TRUE(storage.clear());
+
+        auto file = storage.file(Storage::Meta);
+        auto srl = SignedRecordLog{ file };
+
+        append_metadata(srl, 1, long_string1, "our-git-1", pool);
+
+        auto position1 = file.position();
+        ASSERT_GT(position1, (uint32_t)0);
+
+        append_metadata(srl, 1, long_string1, "our-git-1", pool);
+
+        auto position2 = file.position();
+        ASSERT_EQ(position1, position2);
+
+        append_metadata(srl, 1, long_string2, "our-git-1", pool);
+
+        auto position3 = file.position();
+        ASSERT_GT(position3, position2);
+    }
+
+    {
+        ASSERT_TRUE(storage.begin());
+
+        auto file = storage.file(Storage::Meta);
+        auto srl = SignedRecordLog{ file };
+
+        ASSERT_TRUE(srl.seek_record(SignedRecordKind::Modules));
+
+        ASSERT_FALSE(srl.seek_record(SignedRecordKind::Other));
 
         ASSERT_TRUE(srl.seek_record(SignedRecordKind::Modules));
     }

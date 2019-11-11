@@ -54,7 +54,7 @@ tl::expected<uint32_t, Error> SignedRecordLog::seek_record(SignedRecordKind kind
             break;
         }
 
-        if (file_.position() == 0) {
+        if (file_.at_start_of_file()) {
             return tl::unexpected<Error>(Error::EoF);
         }
 

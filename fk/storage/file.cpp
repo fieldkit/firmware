@@ -304,7 +304,7 @@ bool File::seek(uint32_t record) {
     return true;
 }
 
-bool File::skip(bool new_block) {
+int32_t File::skip(bool new_block) {
     auto g = storage_->geometry();
 
     logtrace("[" PRADDRESS "] skip", tail_);
@@ -366,8 +366,10 @@ bool File::skip(bool new_block) {
 uint32_t File::find_previous_sector_aligned_record(uint32_t address) {
     auto g = storage_->geometry();
 
-    while (!g.is_start_of_block_or_header(address, SizeofBlockHeader)) {
+    while (!g.is_start_of_block(address)) {
         address = g.partial_write_boundary_before(address);
+
+        logdebug("[" PRADDRESS "] checking", address);
 
         RecordHeader record_header;
         if (memory_.read(address, (uint8_t *)&record_header, sizeof(record_header)) != sizeof(record_header)) {
@@ -385,7 +387,12 @@ uint32_t File::find_previous_sector_aligned_record(uint32_t address) {
     return InvalidAddress;
 }
 
-bool File::rewind() {
+bool File::at_start_of_file() const {
+    auto g = storage_->geometry();
+    return g.is_start_of_block_or_header(tail_, SizeofBlockHeader);
+}
+
+int32_t File::rewind() {
     auto g = storage_->geometry();
     auto start_of_record = tail_;
 

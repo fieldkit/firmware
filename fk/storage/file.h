@@ -67,9 +67,9 @@ public:
     bool seek_beginning();
     bool seek(uint32_t record);
     bool seek(RecordReference reference);
-    bool skip(bool new_block = false);
-    bool rewind();
     bool beginning_of_record();
+    int32_t skip(bool new_block = false);
+    int32_t rewind();
     int32_t write(uint8_t const *record, size_t size) override;
     int32_t read(uint8_t *record, size_t size) override;
     int32_t write(void const *record, pb_msgdesc_t const *fields);
@@ -122,6 +122,8 @@ public:
     uint32_t number_of_hash_errors() const {
         return number_hash_errors_;
     }
+
+    bool at_start_of_file() const;
 
 private:
     int32_t find_following_block();
