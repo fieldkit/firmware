@@ -1,3 +1,5 @@
+#include <samd51_common.h>
+
 #include <loading.h>
 #include <phylum/blake2b.h>
 
@@ -23,7 +25,7 @@ fkb_header_t *fkb_try_header(void *ptr) {
 }
 #endif
 
-UpgradeFirmwareFromSdWorker::UpgradeFirmwareFromSdWorker(SdCardFirmwareOperation op) : op_(op) {
+UpgradeFirmwareFromSdWorker::UpgradeFirmwareFromSdWorker(SdCardFirmwareOperation op, bool swap) : op_(op), swap_(swap) {
 }
 
 void UpgradeFirmwareFromSdWorker::log_other_firmware() {
@@ -81,6 +83,12 @@ void UpgradeFirmwareFromSdWorker::run(Pool &pool) {
         log_other_firmware();
 
         gsm.notify({ "success, swap!" });
+
+        if (swap_) {
+            fk_delay(1000);
+
+            fk_nvm_swap_banks();
+        }
         break;
     }
     }

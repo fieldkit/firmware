@@ -14,9 +14,10 @@ enum class SdCardFirmwareOperation {
 class UpgradeFirmwareFromSdWorker : public Worker {
 private:
     SdCardFirmwareOperation op_;
+    bool swap_;
 
 public:
-    UpgradeFirmwareFromSdWorker(SdCardFirmwareOperation op);
+    UpgradeFirmwareFromSdWorker(SdCardFirmwareOperation op, bool swap);
 
 public:
     void run(Pool &pool) override;
