@@ -475,25 +475,28 @@ int32_t File::search_for_following_block() {
 
     auto iter = g.truncate_to_block(tail_) + g.block_size;
 
-    loginfo("[%d]" PRADDRESS " searching for following block", file_, iter);
+    loginfo("[%d] " PRADDRESS " searching for following block", file_, iter);
 
-    while (g.is_address_valid(iter)) {
+    auto maximum_look_ahead = StorageAvailableBlockLookAhead;
+
+    while (maximum_look_ahead > 0 && g.is_address_valid(iter)) {
         BlockHeader block_header;
         if (memory_.read(iter, (uint8_t *)&block_header, sizeof(block_header)) != sizeof(block_header)) {
             return 0;
         }
 
         if (!block_header.verify_hash() || block_header.version != version_) {
-            loginfo("[%d]" PRADDRESS " invalid block header", file_, iter);
-            return 0;
-        }
-        if (block_header.file == file_) {
-            loginfo("[%d]" PRADDRESS " found", file_, iter);
-            tail_ = iter;
-            return tail_;
+            loginfo("[%d] " PRADDRESS " invalid block header", file_, iter);
+        } else {
+            if (block_header.file == file_) {
+                loginfo("[%d] " PRADDRESS " found", file_, iter);
+                tail_ = iter;
+                return tail_;
+            }
         }
 
         iter += g.block_size;
+        maximum_look_ahead--;
     }
 
     return 0;
@@ -513,13 +516,6 @@ int32_t File::find_following_block() {
     }
 
     logdebug("[%d] " PRADDRESS " btail (" PRADDRESS ")", file_, tail_, block_tail.linked);
-
-    if (!is_address_valid(block_tail.linked)) {
-        if (search_for_following_block() == 0) {
-            logerror("[%d] " PRADDRESS " unable to resume", file_, tail_);
-            return 0;
-        }
-    }
 
     if (!block_tail.verify_hash()) {
         logerror("[%d] " PRADDRESS " btail failed hash (" PRADDRESS ")", file_, tail_, block_tail.linked);
