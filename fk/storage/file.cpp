@@ -369,7 +369,7 @@ uint32_t File::find_previous_sector_aligned_record(uint32_t address) {
     while (!g.is_start_of_block(address)) {
         address = g.partial_write_boundary_before(address);
 
-        logdebug("[" PRADDRESS "] checking", address);
+        logtrace("[" PRADDRESS "] checking", address);
 
         RecordHeader record_header;
         if (memory_.read(address, (uint8_t *)&record_header, sizeof(record_header)) != sizeof(record_header)) {
@@ -519,10 +519,11 @@ int32_t File::find_following_block() {
 
     if (!block_tail.verify_hash()) {
         logerror("[%d] " PRADDRESS " btail failed hash (" PRADDRESS ")", file_, tail_, block_tail.linked);
-        fk_dump_memory("ACT ", (uint8_t *)&block_tail.hash, sizeof(block_tail.hash));
-        block_tail.fill_hash();
-        fk_dump_memory("EXP ", (uint8_t *)&block_tail.hash, sizeof(block_tail.hash));
-
+        if (EnableMemoryDumps) {
+            fk_dump_memory("ACT ", (uint8_t *)&block_tail.hash, sizeof(block_tail.hash));
+            block_tail.fill_hash();
+            fk_dump_memory("EXP ", (uint8_t *)&block_tail.hash, sizeof(block_tail.hash));
+        }
         if (search_for_following_block() == 0) {
             logerror("[%d] " PRADDRESS " unable to resume", file_, tail_);
             return 0;

@@ -127,8 +127,10 @@ tl::expected<AppendedRecord, Error> SignedRecordLog::append_immutable(SignedReco
         fk_data_SignedRecord sr = fk_data_SignedRecord_init_default;
         sr.hash.funcs.decode = pb_decode_data;
         sr.hash.arg = (void *)&pool;
-        sr.data.funcs.decode = pb_decode_data;
-        sr.data.arg = (void *)&pool;
+        if (EnableMemoryDumps) {
+            sr.data.funcs.decode = pb_decode_data;
+            sr.data.arg = (void *)&pool;
+        }
 
         auto nread = file_.read(&sr, fk_data_SignedRecord_fields);
         if (nread == 0) {
@@ -146,10 +148,12 @@ tl::expected<AppendedRecord, Error> SignedRecordLog::append_immutable(SignedReco
             return AppendedRecord{ (uint32_t)sr.record, 0u };
         }
         else {
-            if (log_is_debug()) {
-                auto record_data = (pb_data_t *)sr.data.arg;
-                fk_dump_memory("saved ", (uint8_t *)record_data->buffer, record_data->length);
-                fk_dump_memory("wrote ", (uint8_t *)encoded->buffer, encoded->size);
+            if (EnableMemoryDumps) {
+                if (log_is_debug()) {
+                    auto record_data = (pb_data_t *)sr.data.arg;
+                    fk_dump_memory("saved ", (uint8_t *)record_data->buffer, record_data->length);
+                    fk_dump_memory("wrote ", (uint8_t *)encoded->buffer, encoded->size);
+                }
             }
         }
     }

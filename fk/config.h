@@ -244,6 +244,11 @@ constexpr uint32_t OtherBankAddress = 0x80000;
 constexpr size_t NumberOfWorkerTasks = 2;
 
 /**
+ * True to enable dumping memory, hash comparisons, etc...
+ */
+constexpr bool EnableMemoryDumps = false;
+
+/**
  * Runtime configuration informationthat is unavailable in the mobile
  * application. This can be updated after compilation to build binaries for
  * various situations.
