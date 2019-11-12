@@ -35,7 +35,7 @@ bool ConfigureModuleWorker::configure(Pool &pool) {
     auto gs = get_global_state_rw();
 
     ScanningContext ctx{ get_modmux(), gs.get(), module_bus };
-    Storage storage{ nullptr }; // NOTE: Not opened!
+    NoopStorage storage;
     ModuleScanning scanning{ get_modmux() };
     ModuleConfigurer configurer{ scanning };
 
@@ -83,7 +83,6 @@ bool ConfigureModuleWorker::scan(Pool &pool) {
     mm->enable_all_modules();
 
     ScanningContext ctx{ mm, gs.get(), module_bus };
-    Storage storage{ nullptr }; // NOTE: Not opened!
     ModuleScanning scanning{ get_modmux() };
 
     auto &factory = get_module_factory();

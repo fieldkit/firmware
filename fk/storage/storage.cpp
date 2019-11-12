@@ -83,6 +83,7 @@ SeekSettings SeekSettings::end_of(uint8_t file) {
 }
 
 Storage::Storage(DataMemory *memory, bool read_only) : data_memory_(memory), memory_(memory), bad_blocks_(memory), read_only_(read_only) {
+    FK_ASSERT(memory != nullptr);
 }
 
 Storage::~Storage() {

@@ -90,6 +90,16 @@ private:
 
 };
 
+class NoopStorage : public Storage {
+private:
+    EmptyMemory empty_memory_;
+
+public:
+    NoopStorage() : Storage(&empty_memory_) {
+    }
+
+};
+
 inline bool is_memory_completely(uint8_t const *data, size_t size, uint8_t byte) {
     for (auto i = 0u; i < size; ++i) {
         if (data[i] != byte) {
