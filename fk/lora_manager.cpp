@@ -80,8 +80,8 @@ bool LoraManager::join_if_necessary(Pool &pool) {
     return true;
 }
 
-bool LoraManager::send_bytes(uint8_t port, uint8_t const *data, size_t size) {
-    auto success = network_->send_bytes(port, data, size);
+bool LoraManager::send_bytes(uint8_t port, uint8_t const *data, size_t size, bool confirmed) {
+    auto success = network_->send_bytes(port, data, size, confirmed);
 
     GlobalStateManager gsm;
     gsm.apply([=](GlobalState *gs) {

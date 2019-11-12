@@ -240,7 +240,12 @@ void MenuView::create_tools_menu() {
     auto tools_lora_ranging = to_lambda_option(pool_, "LoRa Ranging", [=]() {
         back_->on_selected();
         views_->show_lora();
-        get_ipc()->launch_worker(WorkerCategory::Lora, create_pool_worker<LoraRangingWorker>());
+        get_ipc()->launch_worker(WorkerCategory::Lora, create_pool_worker<LoraRangingWorker>(false));
+    });
+    auto tools_lora_ranging_confirmed = to_lambda_option(pool_, "LoRa Ranging (Cnf)", [=]() {
+        back_->on_selected();
+        views_->show_lora();
+        get_ipc()->launch_worker(WorkerCategory::Lora, create_pool_worker<LoraRangingWorker>(true));
     });
     auto tools_factory_reset = to_lambda_option(pool_, "Factory Reset", [=]() {
         back_->on_selected();
@@ -265,10 +270,11 @@ void MenuView::create_tools_menu() {
     });
     */
 
-    tools_menu_ = new_menu_screen<10>(pool_, {
+    tools_menu_ = new_menu_screen<11>(pool_, {
         back_,
         tools_self_check,
         tools_lora_ranging,
+        tools_lora_ranging_confirmed,
         tools_load_firmware_sd_and_swap,
         tools_load_firmware_sd,
         tools_dump_flash,

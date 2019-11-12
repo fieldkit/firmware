@@ -114,7 +114,7 @@ bool Rn2903LoraNetwork::begin() {
     return true;
 }
 
-bool Rn2903LoraNetwork::send_bytes(uint8_t port, uint8_t const *data, size_t size) {
+bool Rn2903LoraNetwork::send_bytes(uint8_t port, uint8_t const *data, size_t size, bool confirmed) {
     if (false) {
         const char *line = nullptr;
         if (!rn2903_.simple_query("mac get dr", &line, 1000)) {
@@ -122,7 +122,7 @@ bool Rn2903LoraNetwork::send_bytes(uint8_t port, uint8_t const *data, size_t siz
         }
     }
 
-    if (!rn2903_.send_bytes(data, size, port)) {
+    if (!rn2903_.send_bytes(data, size, port, confirmed)) {
         return false;
     }
 

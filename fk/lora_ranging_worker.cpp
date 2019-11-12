@@ -12,6 +12,9 @@ namespace fk {
 
 FK_DECLARE_LOGGER("lora");
 
+LoraRangingWorker::LoraRangingWorker(bool confirmed) : confirmed_(confirmed) {
+}
+
 void LoraRangingWorker::run(Pool &pool) {
     LoraManager lora{ get_lora_network() };
 
@@ -37,7 +40,7 @@ void LoraRangingWorker::run(Pool &pool) {
                 logerror("encode failed");
             }
             else {
-                lora.send_bytes(LoraStatusPort, encoded->buffer, encoded->size);
+                lora.send_bytes(LoraStatusPort, encoded->buffer, encoded->size, confirmed_);
             }
         }
 

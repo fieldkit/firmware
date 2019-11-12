@@ -5,6 +5,12 @@
 namespace fk {
 
 class LoraRangingWorker {
+private:
+    bool confirmed_;
+
+public:
+    LoraRangingWorker(bool confirmed);
+
 public:
     void run(Pool &pool);
 

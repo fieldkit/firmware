@@ -34,7 +34,7 @@ public:
     bool join(const char *app_eui, const char *app_key, int32_t retries = 3, uint32_t retry_delay = 10000);
     bool sleep(uint32_t ms);
     bool wake();
-    bool send_bytes(uint8_t const *data, size_t size, uint8_t port, bool confirmed = false);
+    bool send_bytes(uint8_t const *data, size_t size, uint8_t port, bool confirmed);
 
 public:
     bool configure_sf(uint8_t sf);
