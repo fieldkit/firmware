@@ -20,6 +20,20 @@ static LoraState get_lora_state() {
     return gs.get()->lora;
 }
 
+bool LoraManager::begin() {
+    GlobalStateManager gsm;
+
+    auto success = network_->begin();
+
+    gsm.apply([=](GlobalState *gs) {
+        gs->lora.has_module = success;
+        gs->lora.joined = 0;
+        gs->lora.asleep = 0;
+    });
+
+    return success;
+}
+
 bool LoraManager::join_if_necessary(Pool &pool) {
     GlobalStateManager gsm;
 
@@ -28,38 +42,36 @@ bool LoraManager::join_if_necessary(Pool &pool) {
     if (state.joined == 0 || state.joined > fk_uptime() || fk_uptime() - state.joined > OneDayMs) {
         if (!state.configured) {
             loginfo("no configuration");
-            return false;
-        }
-
-        if (!network_->begin()) {
-            logwarn("missing module");
             gsm.apply([=](GlobalState *gs) {
-                gs->lora.has_module = false;
+                gs->lora.configured = false;
                 gs->lora.joined = 0;
                 gs->lora.asleep = 0;
             });
             return false;
+        }
+
+        auto joined = false;
+
+        if (!network_->resume_previous_session()) {
+            auto app_key = bytes_to_hex_string_pool(state.app_key, LoraAppKeyLength, pool);
+            auto app_eui = bytes_to_hex_string_pool(state.app_eui, LoraAppEuiLength, pool);
+
+            joined = network_->join(app_eui, app_key);
         }
         else {
-            gsm.apply([=](GlobalState *gs) {
-                gs->lora.has_module = true;
-                gs->lora.joined = 0;
-                gs->lora.asleep = 0;
-            });
+            joined = true;
         }
 
-        auto app_key = bytes_to_hex_string_pool(state.app_key, LoraAppKeyLength, pool);
-        auto app_eui = bytes_to_hex_string_pool(state.app_eui, LoraAppEuiLength, pool);
-
-        auto joined = network_->join(app_eui, app_key);
-
         gsm.apply([=](GlobalState *gs) {
+            gs->lora.configured = true;
             gs->lora.has_module = true;
             gs->lora.joined = joined ? fk_uptime() : 0;
             gs->lora.asleep = 0;
         });
 
         awake_ = true;
+
+        return joined;
     }
 
     if (state.asleep > 0) {
@@ -80,15 +92,19 @@ bool LoraManager::join_if_necessary(Pool &pool) {
     return true;
 }
 
-bool LoraManager::send_bytes(uint8_t port, uint8_t const *data, size_t size, bool confirmed) {
+LoraErrorCode LoraManager::send_bytes(uint8_t port, uint8_t const *data, size_t size, bool confirmed) {
     auto success = network_->send_bytes(port, data, size, confirmed);
+    auto code = network_->error();
 
     GlobalStateManager gsm;
     gsm.apply([=](GlobalState *gs) {
-        if (network_->error() == LoraErrorCode::NotJoined) {
+        if (code == LoraErrorCode::NotJoined) {
             gs->lora.joined = 0;
         }
         if (success) {
+            if (!network_->save_state()) {
+                logerror("error saving state");
+            }
             gs->lora.tx_successes++;
         }
         else {
@@ -96,12 +112,12 @@ bool LoraManager::send_bytes(uint8_t port, uint8_t const *data, size_t size, boo
         }
     });
 
-    return success;
+    return code;
 }
 
 void LoraManager::stop() {
     if (awake_) {
-        if (!network_->sleep(OneHourMs)) {
+        if (!network_->sleep(OneDayMs)) {
             logerror("error sleeping");
         }
 

@@ -146,8 +146,21 @@ bool Rn2903::save_state() {
 }
 
 bool Rn2903::provision(const char *app_eui, const char *app_key) {
-    if (strlen(app_eui) != 16 || strlen(app_key) != 32) {
-        logerror("malformed app_eui and/or app_key");
+    if (strlen(app_eui) != 16) {
+        logerror("malformed app_eui");
+        return false;
+    }
+
+    if (strlen(app_key) != 32) {
+        logerror("malformed app_key");
+        return false;
+    }
+
+    if (!simple_query("mac set appeui %s", 1000, app_eui)) {
+        return false;
+    }
+
+    if (!simple_query("mac set appkey %s", 1000, app_key)) {
         return false;
     }
 
@@ -163,20 +176,18 @@ bool Rn2903::provision(const char *app_eui, const char *app_key) {
         return false;
     }
 
-    if (!simple_query("mac set appeui %s", 1000, app_eui)) {
-        return false;
-    }
-
-    if (!simple_query("mac set appkey %s", 1000, app_key)) {
-        return false;
-    }
-
     // NOTE: This is required anytime you save parameters. Per the RN2903
     // manual, If this parameter was previously saved to user EEPROM by issuing
     // the mac save command, after modifying its value, the mac save command
     // should be called again.
     // https://www.loraserver.io/lora-app-server/use/devices/#to-set-the-appeui-and-appkey
-    if (!simple_query("mac set devaddr %s", &line, 1000, "00000000")) {
+    if (!simple_query("mac set devaddr %s", 1000, "00000000")) {
+        return false;
+    }
+    if (!simple_query("mac set nwkskey %s", 1000, "00000000000000000000000000000000")) {
+        return false;
+    }
+    if (!simple_query("mac set appskey %s", 1000, "00000000000000000000000000000000")) {
         return false;
     }
 
@@ -249,38 +260,44 @@ bool Rn2903::join(const char *app_eui, const char *app_key, int32_t retries, uin
 
         tries++;
 
-        if (!simple_query("mac join otaa", 1000)) {
-            continue;
+        if (join("otaa")) {
+            return true;
         }
-
-        const char *line = nullptr;
-        for (auto i = 0u; i < 60; ++i) {
-            if (read_line_sync(&line, 1000, true)) {
-                break;
-            }
-        }
-        if (line == nullptr) {
-            return false;
-        }
-
-        loginfo("rn2903 > '%s'", line);
-
-        if (strstr(line, "accepted") == nullptr) {
-            continue;
-        }
-
-        if (!simple_query("mac get status", &line, 1000)) {
-            return false;
-        }
-
-        if (!simple_query("mac get devaddr", &line, 1000)) {
-            return false;
-        }
-
-        return true;
     }
 
     return false;
+}
+
+bool Rn2903::join(const char *mode) {
+    if (!simple_query("mac join %s", 1000, mode)) {
+        return false;
+    }
+
+    const char *line = nullptr;
+    for (auto i = 0u; i < 60; ++i) {
+        if (read_line_sync(&line, 1000, true)) {
+            break;
+        }
+    }
+    if (line == nullptr) {
+        return false;
+    }
+
+    loginfo("rn2903 > '%s'", line);
+
+    if (strstr(line, "accepted") == nullptr) {
+        return false;
+    }
+
+    if (!simple_query("mac get status", &line, 1000)) {
+        return false;
+    }
+
+    if (!simple_query("mac get devaddr", &line, 1000)) {
+        return false;
+    }
+
+    return true;
 }
 
 bool Rn2903::send_bytes(uint8_t const *data, size_t size, uint8_t port, bool confirmed) {
@@ -317,6 +334,7 @@ bool Rn2903::send_bytes(uint8_t const *data, size_t size, uint8_t port, bool con
 constexpr const char *NotJoined = "not_joined";
 constexpr const char *MacErr = "mac_err";
 constexpr const char *InvalidDataLen = "invalid_data_len";
+constexpr const char *KeysNotInit = "keys_not_init";
 
 LoraErrorCode Rn2903::translate_error(const char *line) {
     if (strcmp(line, NotJoined) == 0) {
@@ -327,6 +345,9 @@ LoraErrorCode Rn2903::translate_error(const char *line) {
     }
     if (strcmp(line, InvalidDataLen) == 0) {
         return LoraErrorCode::DataLength;
+    }
+    if (strcmp(line, KeysNotInit) == 0) {
+        return LoraErrorCode::KeysNotInitialized;
     }
     return LoraErrorCode::None;
 }

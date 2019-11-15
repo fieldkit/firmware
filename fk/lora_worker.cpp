@@ -37,17 +37,34 @@ void LoraWorker::run(Pool &pool) {
     }
 
     auto packets = *expected_packets;
+    auto tries = 0;
 
-    while (packets != nullptr) {
-        if (!lora.join_if_necessary(pool)) {
-            break;
-        }
+    if (!lora.begin()) {
+        return;
+    }
 
-        if (!lora.send_bytes(LoraDataPort, packets->buffer, packets->size)) {
-            break;
-        }
-        else {
+    while (packets != nullptr && tries < 3) {
+        switch (lora.send_bytes(LoraDataPort, packets->buffer, packets->size)) {
+        case LoraErrorCode::None: {
+            // Next packet!
             packets = packets->link;
+            tries = 0;
+            break;
+        }
+        case LoraErrorCode::NotJoined: {
+            tries++;
+            // Try joining and then we'll transmit again.
+            if (!lora.join_if_necessary(pool)) {
+                // Force the loop to end.
+                packets = nullptr;
+            }
+            break;
+        }
+        default: {
+            // Force the loop to end.
+            packets = nullptr;
+            break;
+        }
         }
     }
 

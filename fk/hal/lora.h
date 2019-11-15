@@ -10,6 +10,7 @@ enum class LoraErrorCode {
     ModuleIO,
     NotJoined,
     DataLength,
+    KeysNotInitialized,
     Mac,
 };
 
@@ -21,6 +22,8 @@ public:
     virtual bool wake() = 0;
     virtual bool send_bytes(uint8_t port, uint8_t const *data, size_t size, bool confirmed) = 0;
     virtual bool join(const char *app_eui, const char *app_key, int32_t retries = 3, uint32_t retry_delay = 10000) = 0;
+    virtual bool resume_previous_session() = 0;
+    virtual bool save_state() = 0;
 
 public:
     virtual bool available() const = 0;
@@ -55,6 +58,14 @@ public:
     }
 
     bool join(const char *app_eui, const char *app_key, int32_t retries, uint32_t retry_delay) override {
+        return false;
+    }
+
+    bool resume_previous_session() override {
+        return false;
+    }
+
+    bool save_state() override {
         return false;
     }
 

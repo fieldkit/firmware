@@ -21,6 +21,10 @@ bool Rn2903LoraNetwork::query_status() {
     if (!rn2903_.simple_query("sys get vdd", &line, 1000)) {
         return false;
     }
+
+    if (!rn2903_.simple_query("mac get status", &line, 1000)) {
+        return false;
+    }
     if (!rn2903_.simple_query("mac get appeui", &line, 1000)) {
         return false;
     }
@@ -58,6 +62,18 @@ bool Rn2903LoraNetwork::join(const char *app_eui, const char *app_key, int32_t r
     }
 
     return true;
+}
+
+bool Rn2903LoraNetwork::resume_previous_session() {
+    if (!rn2903_.join("abp")) {
+        return false;
+    }
+
+    return true;
+}
+
+bool Rn2903LoraNetwork::save_state() {
+    return rn2903_.save_state();
 }
 
 bool Rn2903LoraNetwork::power(bool on) {
@@ -115,16 +131,16 @@ bool Rn2903LoraNetwork::begin() {
 }
 
 bool Rn2903LoraNetwork::send_bytes(uint8_t port, uint8_t const *data, size_t size, bool confirmed) {
-    if (false) {
-        const char *line = nullptr;
-        if (!rn2903_.simple_query("mac get dr", &line, 1000)) {
-            return false;
-        }
-    }
-
     if (!rn2903_.send_bytes(data, size, port, confirmed)) {
         return false;
     }
+
+    /*
+    const char *line = nullptr;
+    if (!rn2903_.simple_query("radio get rssi", &line, 1000)) {
+        return false;
+    }
+    */
 
     return true;
 }
