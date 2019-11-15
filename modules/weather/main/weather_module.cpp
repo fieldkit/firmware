@@ -3,6 +3,7 @@
 #include "modules/shared/crc.h"
 #include "modules/eeprom.h"
 #include "weather.h"
+#include "platform.h"
 
 using namespace fk;
 
@@ -103,12 +104,13 @@ bool WeatherModule::initialize(ModuleContext mc, Pool &pool) {
 }
 
 bool WeatherModule::service(ModuleContext mc, Pool &pool) {
+    if (fk_uptime() - serviced_ < 1000) {
+        loginfo("servicing skipped");
+        return true;
+    }
+
     loginfo("servicing");
 
-    return true;
-}
-
-ModuleReadings *WeatherModule::take_readings(ModuleContext mc, Pool &pool) {
     auto module_bus = get_board()->i2c_module();
     auto eeprom = ModuleEeprom{ module_bus };
 
@@ -125,12 +127,9 @@ ModuleReadings *WeatherModule::take_readings(ModuleContext mc, Pool &pool) {
         }
     }
 
-    fk_weather_t reading;
-    bzero(&reading, sizeof(fk_weather_t));
+    bzero(&weather_.reading, sizeof(fk_weather_t));
 
     uint32_t now = mc.now();
-    uint32_t rain_ticks = 0;
-    uint32_t wind_ticks = 0;
     uint32_t old_session = session_;
     uint32_t errors = 0;
     uint32_t original = address_;
@@ -148,7 +147,7 @@ ModuleReadings *WeatherModule::take_readings(ModuleContext mc, Pool &pool) {
         fk_weather_t temp;
         if (!eeprom.read_data(address_, &temp, sizeof(fk_weather_t))) {
             logerror("error reading eeprom");
-            return nullptr;
+            return false;
         }
 
         auto expected = calculate_crc(FK_MODULES_CRC_SEED, temp);
@@ -174,11 +173,12 @@ ModuleReadings *WeatherModule::take_readings(ModuleContext mc, Pool &pool) {
 
             include(now, temp);
 
-            reading = temp;
             seconds_ = temp.seconds;
             session_ = temp.session;
-            rain_ticks += reading.rain.ticks;
-            wind_ticks = reading.wind.ticks;
+
+            weather_.reading = temp;
+            weather_.rain_ticks += temp.rain.ticks;
+            weather_.wind_ticks  = temp.wind.ticks;
         }
         else {
             loginfo("[0x%04" PRIx32 "] bad crc (0x%" PRIx32 " != 0x%" PRIx32 ")", address_, expected, temp.crc);
@@ -194,7 +194,7 @@ ModuleReadings *WeatherModule::take_readings(ModuleContext mc, Pool &pool) {
     }
 
     // Detect stalled conditions, until we can figure out why this happened.
-    if (old_session == session_ || reading.seconds == 0) {
+    if (old_session == session_ || weather_.reading.seconds == 0) {
         if (checks_ > 0 && errors > 0) {
             logwarn("no readings, hupping module...");
             if (!mc.power_cycle()) {
@@ -204,10 +204,21 @@ ModuleReadings *WeatherModule::take_readings(ModuleContext mc, Pool &pool) {
         else {
             logwarn("no readings...");
         }
-        return nullptr;
     }
 
+    serviced_ = fk_uptime();
+
     checks_++;
+
+    return true;
+}
+
+ModuleReadings *WeatherModule::take_readings(ModuleContext mc, Pool &pool) {
+    if (!service(mc, pool)) {
+        return false;
+    }
+
+    auto &reading = weather_.reading;
 
     auto wind_adc_raw = (__builtin_bswap16(reading.wind.direction) >> 4) & 0xff;
     auto wind_adc_mv = wind_adc_raw * (3.3f / 256.0f) * 1000.0f;
@@ -220,9 +231,9 @@ ModuleReadings *WeatherModule::take_readings(ModuleContext mc, Pool &pool) {
     mr->set(i++, reading.pressure / 64.0f / 1000.0f);
     mr->set(i++, reading.temperature_2 / 16.0f);
 
-    mr->set(i++, rain_ticks * RainPerTick);
+    mr->set(i++, weather_.rain_ticks * RainPerTick);
 
-    mr->set(i++, wind_ticks * WindPerTick);
+    mr->set(i++, weather_.wind_ticks * WindPerTick);
     mr->set(i++, wind_angle);
     mr->set(i++, wind_adc_mv);
 
@@ -239,6 +250,9 @@ ModuleReadings *WeatherModule::take_readings(ModuleContext mc, Pool &pool) {
 
     mr->set(i++, weather_.get_hourly_rain());
     mr->set(i++, weather_.previous_hourly_rain);
+
+    weather_.rain_ticks = 0;
+    weather_.wind_ticks = 0;
 
     return mr;
 }

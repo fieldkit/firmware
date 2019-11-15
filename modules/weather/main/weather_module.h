@@ -37,6 +37,9 @@ struct WeatherState {
     uint32_t time{ 0 };
     uint8_t two_minute_seconds_counter{ 0 };
     uint8_t ten_minute_minute_counter{ 0 };
+    uint32_t rain_ticks{ 0 };
+    uint32_t wind_ticks{ 0 };
+    fk::fk_weather_t reading;
 
     /**
      * Last 120 wind readings. Used to calculate an average.
@@ -102,6 +105,7 @@ private:
     uint32_t session_{ 0 };
     uint32_t address_{ 0 };
     uint32_t checks_{ 0 };
+    uint32_t serviced_{ 0 };
     WeatherState weather_;
 
 public:
