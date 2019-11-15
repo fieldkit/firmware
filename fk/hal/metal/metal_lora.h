@@ -31,7 +31,7 @@ public:
     bool save_state() override;
 
 public:
-    bool uplink_counter() override {
+    uint32_t uplink_counter() override {
         return uplink_counter_;
     }
 

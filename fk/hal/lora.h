@@ -25,7 +25,7 @@ public:
     virtual bool join(const char *app_eui, const char *app_key, int32_t retries = 3, uint32_t retry_delay = 10000) = 0;
     virtual bool resume_previous_session() = 0;
     virtual bool save_state() = 0;
-    virtual bool uplink_counter() = 0;
+    virtual uint32_t uplink_counter() = 0;
 
 public:
     virtual bool available() const = 0;
@@ -79,7 +79,7 @@ public:
         return false;
     }
 
-    bool uplink_counter() override {
+    uint32_t uplink_counter() override {
         return 0;
     }
 
