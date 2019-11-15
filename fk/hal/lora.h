@@ -17,6 +17,7 @@ enum class LoraErrorCode {
 class LoraNetwork {
 public:
     virtual bool begin() = 0;
+    virtual bool stop() = 0;
     virtual bool power(bool on) = 0;
     virtual bool sleep(uint32_t seconds) = 0;
     virtual bool wake() = 0;
@@ -24,6 +25,7 @@ public:
     virtual bool join(const char *app_eui, const char *app_key, int32_t retries = 3, uint32_t retry_delay = 10000) = 0;
     virtual bool resume_previous_session() = 0;
     virtual bool save_state() = 0;
+    virtual bool uplink_counter() = 0;
 
 public:
     virtual bool available() const = 0;
@@ -38,6 +40,10 @@ private:
 
 public:
     bool begin() override {
+        return false;
+    }
+
+    bool stop() override {
         return false;
     }
 
@@ -71,6 +77,10 @@ public:
 
     bool available() const override {
         return false;
+    }
+
+    bool uplink_counter() override {
+        return 0;
     }
 
     uint8_t const *device_eui() const override {

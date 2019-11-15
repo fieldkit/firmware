@@ -37,9 +37,6 @@ bool Rn2903LoraNetwork::query_status() {
     if (!rn2903_.simple_query("mac get devaddr", &line, 1000)) {
         return false;
     }
-    if (!rn2903_.simple_query("mac get upctr", &line, 1000)) {
-        return false;
-    }
     if (!rn2903_.simple_query("mac get dr", &line, 1000)) {
         return false;
     }
@@ -52,6 +49,8 @@ bool Rn2903LoraNetwork::query_status() {
     if (!rn2903_.simple_query("mac get rxdelay2", &line, 1000)) {
         return false;
     }
+
+    update_uplink_counter();
 
     return true;
 }
@@ -80,10 +79,12 @@ bool Rn2903LoraNetwork::power(bool on) {
     if (on) {
         logdebug("power on");
         get_board()->enable_lora();
+        powered_ = true;
     }
     else {
         logdebug("power off");
         get_board()->disable_lora();
+        powered_ = false;
     }
 
     return true;
@@ -98,6 +99,10 @@ bool Rn2903LoraNetwork::wake() {
 }
 
 bool Rn2903LoraNetwork::begin() {
+    if (status_ == Availability::Available && powered_) {
+        return true;
+    }
+
     status_ = Availability::Unavailable;
 
     if (!power(false)) {
@@ -130,17 +135,29 @@ bool Rn2903LoraNetwork::begin() {
     return true;
 }
 
+bool Rn2903LoraNetwork::stop() {
+    power(false);
+
+    return true;
+}
+
 bool Rn2903LoraNetwork::send_bytes(uint8_t port, uint8_t const *data, size_t size, bool confirmed) {
     if (!rn2903_.send_bytes(data, size, port, confirmed)) {
         return false;
     }
 
-    /*
+    update_uplink_counter();
+
+    return true;
+}
+
+bool Rn2903LoraNetwork::update_uplink_counter() {
     const char *line = nullptr;
-    if (!rn2903_.simple_query("radio get rssi", &line, 1000)) {
+    if (!rn2903_.simple_query("mac get upctr", &line, 1000)) {
         return false;
     }
-    */
+
+    uplink_counter_ = atoi(line);
 
     return true;
 }

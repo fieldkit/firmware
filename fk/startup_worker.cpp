@@ -227,6 +227,10 @@ bool StartupWorker::check_for_lora(Pool &pool) {
 
     loginfo("(loaded) lora device eui: %s", bytes_to_hex_string_pool(device_eui, LoraDeviceEuiLength, pool));
 
+    // Turn the radio off for now, will stay powered when we start
+    // using the thing to send data.
+    lora->stop();
+
     return true;
 }
 

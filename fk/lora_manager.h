@@ -8,7 +8,7 @@ namespace fk {
 class LoraManager {
 private:
     LoraNetwork *network_;
-    bool initialized_{ false };
+    uint32_t last_save_{ 0 };
     bool awake_{ false };
 
 public:

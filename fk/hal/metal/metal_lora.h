@@ -12,6 +12,8 @@ class Rn2903LoraNetwork : public LoraNetwork {
 private:
     Availability status_{ Availability::Unknown };
     uint8_t device_eui_[LoraDeviceEuiLength];
+    uint32_t uplink_counter_{ 0 };
+    bool powered_{ false };
     Rn2903 rn2903_;
 
 public:
@@ -19,6 +21,7 @@ public:
 
 public:
     bool begin() override;
+    bool stop() override;
     bool power(bool on) override;
     bool sleep(uint32_t ms) override;
     bool wake() override;
@@ -28,6 +31,10 @@ public:
     bool save_state() override;
 
 public:
+    bool uplink_counter() override {
+        return uplink_counter_;
+    }
+
     uint8_t const *device_eui() const override {
         return device_eui_;
     }
@@ -42,6 +49,9 @@ public:
 
 public:
     bool query_status();
+
+private:
+    bool update_uplink_counter();
 
 };
 

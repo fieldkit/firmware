@@ -73,6 +73,11 @@ constexpr uint32_t OneDaySeconds  = 86400;
 constexpr uint32_t OneMegabyte = 1024 * 1024;
 
 /**
+ * How often to save LoRa radio state.
+ */
+constexpr uint32_t LoraUplinksSaveFrequency = 10;
+
+/**
  * Length of a LoRa App EUI.
  */
 constexpr size_t LoraAppEuiLength = 8;

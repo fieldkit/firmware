@@ -21,22 +21,31 @@ static LoraState get_lora_state() {
 }
 
 bool LoraManager::begin() {
-    if (initialized_) {
-        return true;
-    }
+    GlobalStateManager gsm;
 
     auto success = network_->begin();
 
-    GlobalStateManager gsm;
+    auto state = get_lora_state();
+    if (state.asleep > 0) {
+        loginfo("waking");
+
+        if (!network_->wake()) {
+            logerror("error waking");
+            return false;
+        }
+
+        gsm.apply([=](GlobalState *gs) {
+            gs->lora.asleep = 0;
+        });
+
+        awake_ = true;
+    }
+
     gsm.apply([=](GlobalState *gs) {
         gs->lora.has_module = success;
         gs->lora.joined = 0;
         gs->lora.asleep = 0;
     });
-
-    if (success) {
-        initialized_ = true;
-    }
 
     return success;
 }
@@ -81,21 +90,6 @@ bool LoraManager::join_if_necessary(Pool &pool) {
         return joined;
     }
 
-    if (state.asleep > 0) {
-        loginfo("waking");
-
-        if (!network_->wake()) {
-            logerror("error waking");
-            return false;
-        }
-
-        gsm.apply([=](GlobalState *gs) {
-            gs->lora.asleep = 0;
-        });
-
-        awake_ = true;
-    }
-
     return true;
 }
 
@@ -109,12 +103,15 @@ LoraErrorCode LoraManager::send_bytes(uint8_t port, uint8_t const *data, size_t 
             gs->lora.joined = 0;
         }
         if (success) {
-            if (!network_->save_state()) {
-                logerror("error saving state");
+            auto uplink_counter = network_->uplink_counter();
+            if (uplink_counter - last_save_ > LoraUplinksSaveFrequency) {
+                if (!network_->save_state()) {
+                    logerror("error saving state");
+                }
+                last_save_ = uplink_counter;
             }
             gs->lora.tx_successes++;
-        }
-        else {
+        } else {
             gs->lora.tx_failures++;
         }
     });
