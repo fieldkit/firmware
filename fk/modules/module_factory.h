@@ -22,6 +22,7 @@ class ModuleFactory {
 private:
     MallocPool pool_{ "modules", DefaultWorkerPoolSize };
     ConstructedModulesCollection modules_{ pool_ };
+    uint32_t service_interval_{ 0 };
 
 public:
     ModuleFactory();
@@ -31,6 +32,12 @@ public:
     void clear();
 
     tl::expected<ConstructedModulesCollection, Error> create(ModuleScanning &scanning, ScanningContext &ctx, Pool &pool);
+
+    uint32_t service_interval() const {
+        return service_interval_;
+    }
+
+    bool service(ScanningContext &ctx, Pool &pool);
 
 private:
     bool recreate(ScanningContext &ctx, FoundModuleCollection &module_headers);

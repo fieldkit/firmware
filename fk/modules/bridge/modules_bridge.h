@@ -116,9 +116,43 @@ typedef struct ModuleSensors {
 } ModuleSensors;
 
 /**
+ * Describes the power needs for a Module.
+ */
+enum class ModulePower {
+    ReadingsOnly,
+    Always,
+};
+
+/**
  * Configuration information a module can provide to the OS.
  */
 typedef struct ModuleConfiguration {
+    /**
+     * Power needs for the module.
+     */
+    ModulePower power{ ModulePower::ReadingsOnly };
+
+    /**
+     * How often the module needs to be serviced.
+     */
+    uint32_t service_interval{ 0 };
+
+    /**
+     * Shortest interval between readings.
+     */
+    uint32_t minimum_readings_interval{ 0 };
+
+    /**
+     * Constructor
+     */
+    ModuleConfiguration() {
+    }
+
+    /**
+     * Constructor
+     */
+    ModuleConfiguration(ModulePower power, uint32_t service_interval) : power(power), service_interval(service_interval) {
+    }
 } ModuleConfiguration;
 
 /**

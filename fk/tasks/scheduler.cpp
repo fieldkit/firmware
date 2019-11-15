@@ -2,12 +2,15 @@
 
 #include "hal/hal.h"
 #include "clock.h"
+#include "tasks/tasks.h"
+#include "state_ref.h"
+
 #include "readings_worker.h"
 #include "upload_data_worker.h"
 #include "lora_worker.h"
-#include "tasks/tasks.h"
+#include "service_modules_worker.h"
+
 #include "config.h"
-#include "state_ref.h"
 
 namespace fk {
 
@@ -91,11 +94,33 @@ public:
 
 };
 
+class ServiceModulesTask : public lwcron::PeriodicTask, public SchedulerTask {
+public:
+    ServiceModulesTask(uint32_t interval) : lwcron::PeriodicTask(interval) {
+    }
+
+public:
+    void run() override {
+        auto worker = create_pool_worker<ServiceModulesWorker>();
+        get_ipc()->launch_worker(worker);
+    }
+
+    const char *toString() const override {
+        return "modsvc";
+    }
+
+    bool enabled() const override {
+        return get_module_factory().service_interval() > 0;
+    }
+
+};
+
 struct CurrentSchedules {
     lwcron::CronSpec readings;
     lwcron::CronSpec network;
     lwcron::CronSpec gps;
     lwcron::CronSpec lora;
+    uint32_t service_interval;
 };
 
 static CurrentSchedules get_config_schedules() {
@@ -106,6 +131,7 @@ static CurrentSchedules get_config_schedules() {
         gs.get()->scheduler.network.cron,
         gs.get()->scheduler.gps.cron,
         gs.get()->scheduler.lora.cron,
+        get_module_factory().service_interval(),
     };
 }
 
@@ -114,7 +140,8 @@ static bool configuration_changed(CurrentSchedules &running) {
     return config.readings != running.readings ||
            config.network != running.network ||
            config.gps != running.gps ||
-           config.lora != running.lora;
+           config.lora != running.lora ||
+           config.service_interval != running.service_interval;
 }
 
 void task_handler_scheduler(void *params) {
@@ -129,9 +156,12 @@ void task_handler_scheduler(void *params) {
         UploadDataTask upload_data_job{ schedules.network };
         LoraTask lora_job{ schedules.lora };
         GpsTask gps_job{ schedules.gps };
+        ServiceModulesTask service_modules_job{ schedules.service_interval };
 
-        lwcron::Task *tasks[4] { &readings_job, &upload_data_job, &lora_job, &gps_job };
+        lwcron::Task *tasks[5] { &readings_job, &upload_data_job, &lora_job, &gps_job, &service_modules_job };
         lwcron::Scheduler scheduler{ tasks };
+
+        loginfo("module service interval: %" PRIu32 "s", schedules.service_interval);
 
         scheduler.begin( get_clock_now() );
 

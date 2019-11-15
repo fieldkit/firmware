@@ -41,7 +41,7 @@ ModuleSensors const *WeatherModule::get_sensors(Pool &pool) {
 }
 
 ModuleConfiguration WeatherModule::get_configuration(Pool &pool) {
-    return { };
+    return { ModulePower::Always, 60 };
 }
 
 template<typename T>
@@ -103,6 +103,8 @@ bool WeatherModule::initialize(ModuleContext mc, Pool &pool) {
 }
 
 bool WeatherModule::service(ModuleContext mc, Pool &pool) {
+    loginfo("servicing");
+
     return true;
 }
 

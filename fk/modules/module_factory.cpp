@@ -80,6 +80,16 @@ bool ModuleFactory::recreate(ScanningContext &ctx, FoundModuleCollection &module
             return false;
         }
 
+        auto config = module->get_configuration(pool_);
+        if (config.service_interval > 0) {
+            if (service_interval_ > 0) {
+                service_interval_ = std::min(config.service_interval, service_interval_);
+            }
+            else {
+                service_interval_ = config.service_interval;
+            }
+        }
+
         if (!module->initialize(mc, pool_)) {
             logerror("error initializing module");
             pair.initialized = false;
@@ -89,9 +99,32 @@ bool ModuleFactory::recreate(ScanningContext &ctx, FoundModuleCollection &module
         }
     }
 
-    loginfo("done (pool = %zd/%zd bytes)", pool_.used(), pool_.size());
-
     return true;
+}
+
+bool ModuleFactory::service(ScanningContext &ctx, Pool &pool) {
+    auto success = true;
+
+    for (auto &pair : modules_) {
+        auto module = pair.module;
+        if (module != nullptr) {
+            auto config = module->get_configuration(pool);
+            if (config.service_interval > 0) {
+                auto mc = ctx.module(pair.found.position);
+
+                if (!mc.open()) {
+                    logerror("error opening module");
+                    return false;
+                }
+
+                if (!module->service(mc, pool)) {
+                    success = false;
+                }
+            }
+        }
+    }
+
+    return success;
 }
 
 void ModuleFactory::clear() {
