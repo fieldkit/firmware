@@ -21,15 +21,22 @@ static LoraState get_lora_state() {
 }
 
 bool LoraManager::begin() {
-    GlobalStateManager gsm;
+    if (initialized_) {
+        return true;
+    }
 
     auto success = network_->begin();
 
+    GlobalStateManager gsm;
     gsm.apply([=](GlobalState *gs) {
         gs->lora.has_module = success;
         gs->lora.joined = 0;
         gs->lora.asleep = 0;
     });
+
+    if (success) {
+        initialized_ = true;
+    }
 
     return success;
 }
