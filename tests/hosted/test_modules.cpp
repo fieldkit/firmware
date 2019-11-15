@@ -16,8 +16,16 @@ public:
         return true;
     }
 
+    bool service(ModuleContext mc, Pool &pool) {
+        return true;
+    }
+
     ModuleSensors const *get_sensors(Pool &pool) override {
         return &fk_module_fake_empty_sensors;
+    }
+
+    ModuleConfiguration get_configuration(Pool &pool) override {
+        return { };
     }
 
     ModuleReadings *take_readings(ModuleContext mc, Pool &pool) override {
@@ -53,8 +61,16 @@ public:
         return true;
     }
 
+    bool service(ModuleContext mc, Pool &pool) {
+        return true;
+    }
+
     ModuleSensors const *get_sensors(Pool &pool) override {
         return &fk_module_fake_1_sensors;
+    }
+
+    ModuleConfiguration get_configuration(Pool &pool) override {
+        return { };
     }
 
     ModuleReadings *take_readings(ModuleContext mc, Pool &pool) override {
@@ -101,8 +117,16 @@ public:
         return true;
     }
 
+    bool service(ModuleContext mc, Pool &pool) {
+        return true;
+    }
+
     ModuleSensors const *get_sensors(Pool &pool) override {
         return &fk_module_fake_2_sensors;
+    }
+
+    ModuleConfiguration get_configuration(Pool &pool) override {
+        return { };
     }
 
     ModuleReadings *take_readings(ModuleContext mc, Pool &pool) override {

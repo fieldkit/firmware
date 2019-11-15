@@ -5,7 +5,7 @@ using namespace fk;
 
 FK_DECLARE_LOGGER("water");
 
-bool WaterModule::initialize(ModuleContext mc, fk::Pool &pool) {
+bool WaterModule::initialize(ModuleContext mc, Pool &pool) {
     auto atlas = OemAtlas{ mc.module_bus() };
     if (!atlas.find()) {
         return false;
@@ -14,6 +14,10 @@ bool WaterModule::initialize(ModuleContext mc, fk::Pool &pool) {
     type_ = atlas.type();
     address_ = atlas.address();
 
+    return true;
+}
+
+bool WaterModule::service(ModuleContext mc, Pool &pool) {
     return true;
 }
 
@@ -96,7 +100,11 @@ ModuleSensors const *WaterModule::get_sensors(Pool &pool) {
     return nullptr;
 }
 
-ModuleReadings *WaterModule::take_readings(ModuleContext mc, fk::Pool &pool) {
+ModuleConfiguration WaterModule::get_configuration(Pool &pool) {
+    return { };
+}
+
+ModuleReadings *WaterModule::take_readings(ModuleContext mc, Pool &pool) {
     if (type_ == AtlasSensorType::Unknown) {
         return nullptr;
     }

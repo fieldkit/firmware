@@ -8,7 +8,7 @@ FK_DECLARE_LOGGER("ultrasonic");
 UltrasonicModule::UltrasonicModule() : bridge_(get_board()->acquire_i2c_module()) {
 }
 
-bool UltrasonicModule::initialize(ModuleContext mc, fk::Pool &pool) {
+bool UltrasonicModule::initialize(ModuleContext mc, Pool &pool) {
     auto bus = get_board()->i2c_module();
 
     bus.end();
@@ -30,6 +30,10 @@ bool UltrasonicModule::initialize(ModuleContext mc, fk::Pool &pool) {
     return true;
 }
 
+bool UltrasonicModule::service(ModuleContext mc, Pool &pool) {
+    return true;
+}
+
 static SensorMetadata const fk_module_ultrasonic_sensor_metas[] = {
     { .name = "distance_0",  .unitOfMeasure = "mm", .flags = 0 },
     { .name = "distance_1",  .unitOfMeasure = "mm", .flags = 0 },
@@ -46,7 +50,11 @@ ModuleSensors const *UltrasonicModule::get_sensors(Pool &pool) {
     return &fk_module_ultrasonic_sensors;
 }
 
-ModuleReadings *UltrasonicModule::take_readings(ModuleContext mc, fk::Pool &pool) {
+ModuleConfiguration UltrasonicModule::get_configuration(Pool &pool) {
+    return { };
+}
+
+ModuleReadings *UltrasonicModule::take_readings(ModuleContext mc, Pool &pool) {
     auto mr = new(pool) NModuleReadings<4>();
     auto nreadings = 0u;
 

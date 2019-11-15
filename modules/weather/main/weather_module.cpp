@@ -40,12 +40,16 @@ ModuleSensors const *WeatherModule::get_sensors(Pool &pool) {
     return &fk_module_weather_sensors;
 }
 
+ModuleConfiguration WeatherModule::get_configuration(Pool &pool) {
+    return { };
+}
+
 template<typename T>
 static uint32_t calculate_crc(uint32_t seed, T &object) {
     return crc32_checksum(seed, (uint8_t *)&object, sizeof(T) - sizeof(uint32_t));
 }
 
-bool WeatherModule::initialize(ModuleContext mc, fk::Pool &pool) {
+bool WeatherModule::initialize(ModuleContext mc, Pool &pool) {
     auto module_bus = get_board()->i2c_module();
     auto eeprom = ModuleEeprom{ module_bus };
 
@@ -98,7 +102,11 @@ bool WeatherModule::initialize(ModuleContext mc, fk::Pool &pool) {
     return true;
 }
 
-ModuleReadings *WeatherModule::take_readings(ModuleContext mc, fk::Pool &pool) {
+bool WeatherModule::service(ModuleContext mc, Pool &pool) {
+    return true;
+}
+
+ModuleReadings *WeatherModule::take_readings(ModuleContext mc, Pool &pool) {
     auto module_bus = get_board()->i2c_module();
     auto eeprom = ModuleEeprom{ module_bus };
 
@@ -233,13 +241,13 @@ ModuleReadings *WeatherModule::take_readings(ModuleContext mc, fk::Pool &pool) {
     return mr;
 }
 
-WindDirection WeatherModule::get_wind_direction(fk::fk_weather_t const &raw) {
+WindDirection WeatherModule::get_wind_direction(fk_weather_t const &raw) {
     auto adc_raw = (__builtin_bswap16(raw.wind.direction) >> 4) & 0xff;
     auto wind_angle = get_wind_direction(adc_raw);
     return { (int16_t)adc_raw, wind_angle };
 }
 
-WindReading WeatherModule::get_wind_reading(fk::fk_weather_t const &raw, int32_t seconds_elapsed) {
+WindReading WeatherModule::get_wind_reading(fk_weather_t const &raw, int32_t seconds_elapsed) {
     auto speed = raw.wind.ticks / ((float)seconds_elapsed) * WindPerTick;
     return { speed, get_wind_direction(raw) };
 }

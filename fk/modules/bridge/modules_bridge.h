@@ -116,6 +116,12 @@ typedef struct ModuleSensors {
 } ModuleSensors;
 
 /**
+ * Configuration information a module can provide to the OS.
+ */
+typedef struct ModuleConfiguration {
+} ModuleConfiguration;
+
+/**
  * Primary module interface.
  */
 class Module {
@@ -127,6 +133,8 @@ public:
     virtual bool initialize(ModuleContext mc, Pool &pool) = 0;
     virtual ModuleReadings *take_readings(ModuleContext mc, Pool &pool) = 0;
     virtual ModuleSensors const *get_sensors(Pool &pool) = 0;
+    virtual ModuleConfiguration get_configuration(Pool &pool) = 0;
+    virtual bool service(ModuleContext mc, Pool &pool) = 0;
 
 };
 

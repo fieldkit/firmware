@@ -18,7 +18,11 @@ static ModuleSensors const fk_module_sensors = {
     .sensors = fk_module_sensor_metas,
 };
 
-bool DiagnosticsModule::initialize(ModuleContext mc, fk::Pool &pool) {
+bool DiagnosticsModule::initialize(ModuleContext mc, Pool &pool) {
+    return true;
+}
+
+bool DiagnosticsModule::service(ModuleContext mc, Pool &pool) {
     return true;
 }
 
@@ -26,7 +30,11 @@ ModuleSensors const *DiagnosticsModule::get_sensors(Pool &pool) {
     return &fk_module_sensors;
 }
 
-ModuleReadings *DiagnosticsModule::take_readings(ModuleContext mc, fk::Pool &pool) {
+ModuleConfiguration DiagnosticsModule::get_configuration(Pool &pool) {
+    return { };
+}
+
+ModuleReadings *DiagnosticsModule::take_readings(ModuleContext mc, Pool &pool) {
     CoreTemperature core_temperature_sensor{ get_board()->i2c_core() };
 
     auto mr = new(pool) NModuleReadings<5>();

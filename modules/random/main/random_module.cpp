@@ -3,7 +3,11 @@
 
 using namespace fk;
 
-bool RandomModule::initialize(ModuleContext mc, fk::Pool &pool) {
+bool RandomModule::initialize(ModuleContext mc, Pool &pool) {
+    return true;
+}
+
+bool RandomModule::service(ModuleContext mc, Pool &pool) {
     return true;
 }
 
@@ -29,7 +33,11 @@ ModuleSensors const *RandomModule::get_sensors(Pool &pool) {
     return &fk_module_random_sensors;
 }
 
-ModuleReadings *RandomModule::take_readings(ModuleContext mc, fk::Pool &pool) {
+ModuleConfiguration RandomModule::get_configuration(Pool &pool) {
+    return { };
+}
+
+ModuleReadings *RandomModule::take_readings(ModuleContext mc, Pool &pool) {
     #if defined(FK_MODULE_RANDOM_FIXED)
     auto nreadings = 10;
     #else
