@@ -2,7 +2,6 @@
 
 #include "configure_module_worker.h"
 #include "state_ref.h"
-#include "storage/storage.h"
 #include "hal/board.h"
 
 #include "modules/bridge/modules.h"
@@ -35,7 +34,6 @@ bool ConfigureModuleWorker::configure(Pool &pool) {
     auto gs = get_global_state_rw();
 
     ScanningContext ctx{ get_modmux(), gs.get(), module_bus };
-    NoopStorage storage;
     ModuleScanning scanning{ get_modmux() };
     ModuleConfigurer configurer{ scanning };
 
