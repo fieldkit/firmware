@@ -97,7 +97,7 @@ class Processor:
         while True:
             while not self.queue.empty():
                 device_time, data = self.queue.get()
-                logging.info("processing: %d" % (device_time,))
+                logging.info("queue: processing: %d" % (device_time,))
 
 class Joulescope:
     def __init__(self, args, get_device_time):
@@ -113,25 +113,28 @@ class Joulescope:
         self.processor.start()
 
     def on_event_cbk(self, event=0, message=''):
-        print("on_event")
+        logging.info("js: on_event")
 
     def on_stop_cbk(self, event=0, message=''):
-        print("on_stop")
+        logging.info("js: on_stop")
 
     def on_statistics(self, data):
-        print('on_statistics', len(data), data)
+        logging.info("js: on_statistics")
 
     def run(self):
         devices = joulescope.scan()
         devices_length = len(devices)
         if devices_length == 0:
+            logging.info("js: no devices!")
             return
 
         device = devices[0]
 
         device.open(event_callback_fn=self.on_event_cbk)
+
         info = device.info()
-        logging.info("device_info: %s" % (json.dumps(info),))
+
+        logging.info("js: device_info: %s" % (json.dumps(info),))
 
         device.parameter_set('source', 'raw')
         device.parameter_set('i_range', 'auto')
@@ -139,11 +142,12 @@ class Joulescope:
         try:
             while True:
                 try:
+                    logging.info("js: waiting for device time...")
                     device_time = self.get_device_time()
-                    logging.info("starting: %d" % (device_time,))
-                    data = device.read(contiguous_duration=30)
+                    logging.info("js: starting: %d" % (device_time,))
+                    data = device.read(contiguous_duration=60)
                     self.queue.put([device_time, data])
-                    logging.info("queueing: %d / %d", (device_time, len(data)))
+                    logging.info("js: queueing: %d / %d" % (device_time, len(data)))
                 except:
                     traceback.print_exc(file=sys.stdout)
                     time.sleep(1)
@@ -171,17 +175,20 @@ async def rtt_listener(loop, listener, js, args):
 
         time.sleep(1)
 
-parser = argparse.ArgumentParser(description='fk log monitor tool')
-parser.add_argument('--port', dest="port", type=int, default=9400, help="")
-parser.add_argument('--joulescope', dest="joulescope", action="store_true", help="")
-args, nargs = parser.parse_known_args()
+if __name__ == "__main__":
+    logging.basicConfig(format='%(asctime)-15s %(message)s', level=logging.INFO)
 
-listener = FkListener(args)
-js = Joulescope(args, listener.get_device_time)
+    parser = argparse.ArgumentParser(description='fk log monitor tool')
+    parser.add_argument('--port', dest="port", type=int, default=None, help="")
+    parser.add_argument('--joulescope', dest="joulescope", action="store_true", help="")
+    args, nargs = parser.parse_known_args()
 
-if args.joulescope:
-    js.start()
+    listener = FkListener(args)
+    js = Joulescope(args, listener.get_device_time)
 
-loop = asyncio.get_event_loop()
-loop.run_until_complete(rtt_listener(loop, listener, js, args))
-loop.close()
+    if args.joulescope:
+        js.start()
+
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(rtt_listener(loop, listener, js, args))
+    loop.close()
