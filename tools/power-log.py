@@ -9,10 +9,23 @@ import traceback
 import argparse
 import threading
 import re
+import logging
+import queue
 
 class FkListener:
     def __init__(self, args):
         self.tasks = []
+        self.device_time_queue = queue.Queue()
+        self.device_time = None
+
+    def get_device_time(self):
+        while not self.device_time_queue.empty():
+            ignored = self.device_time_queue.get()
+        return self.device_time_queue.get()
+
+    def update_device_time(self, time):
+        self.device_time = time
+        self.device_time_queue.put(time)
 
     def started(self):
         self.tasks = []
@@ -22,14 +35,14 @@ class FkListener:
 
     def task_started(self, name):
         self.tasks.append(name)
-        print("TASKS", self.tasks)
+        logging.info("TASKS: %s" % (self.tasks,))
 
     def task_finished(self, name):
         try:
             self.tasks.remove(name)
-            print("TASKS", self.tasks)
+            logging.info("TASKS: %s" % (self.tasks,))
         except Exception as e:
-            print(e)
+            logging.error(e)
 
     def connection_serviced(self, path):
         pass
@@ -47,11 +60,16 @@ class FkLogParser:
         self.re_alive = re.compile(r'(\w+):\s+alive')
         self.re_dead = re.compile(r'(\w+):\s+dead')
         self.re_routing = re.compile(r'routing \'(.+)\'')
-        # 2019/10/4 23:44:38 'Ancient Goose 81' (0.0.0.0) (free = 139556, arena = 58072, used = 25796)
         self.re_status = re.compile(r'\'(.+)\' \((.+)\) \(free = (\d+), arena = (\d+), used = (\d+)\)')
 
     def handle(self, line):
         clean = self.re_ansi_escape.sub('', line)
+        try:
+            parts = clean.split(" ")
+            self.listener.update_device_time(int(parts[0]))
+        except:
+            pass
+
         m = self.re_starting.search(clean)
         if m: self.listener.started()
         m = self.re_hash.search(clean)
@@ -65,14 +83,34 @@ class FkLogParser:
         m = self.re_status.search(clean)
         if m: self.listener.status(m.group(1), m.group(2), m.group(3))
 
-class Joulescope:
-    def __init__(self, args):
+class Processor:
+    def __init__(self, args, queue):
         self.args = args
+        self.queue = queue
 
-    def open(self):
+    def start(self):
         self.thread = threading.Thread(target=self.run, args=())
         self.thread.daemon = True
         self.thread.start()
+
+    def run(self):
+        while True:
+            while not self.queue.empty():
+                device_time, data = self.queue.get()
+                logging.info("processing: %d" % (device_time,))
+
+class Joulescope:
+    def __init__(self, args, get_device_time):
+        self.args = args
+        self.get_device_time = get_device_time
+        self.queue = queue.Queue()
+        self.processor = Processor(self.args, self.queue)
+
+    def start(self):
+        self.thread = threading.Thread(target=self.run, args=())
+        self.thread.daemon = True
+        self.thread.start()
+        self.processor.start()
 
     def on_event_cbk(self, event=0, message=''):
         print("on_event")
@@ -93,38 +131,40 @@ class Joulescope:
 
         device.open(event_callback_fn=self.on_event_cbk)
         info = device.info()
-        print('DEVICE_INFO', json.dumps(info))
+        logging.info("device_info: %s" % (json.dumps(info),))
 
         device.parameter_set('source', 'raw')
         device.parameter_set('i_range', 'auto')
-        # device.statistics_callback = self.on_statistics
-        # device.start(stop_fn=self.on_stop_cbk)
 
         try:
             while True:
                 try:
+                    device_time = self.get_device_time()
+                    logging.info("starting: %d" % (device_time,))
                     data = device.read(contiguous_duration=30)
-                    print(len(data))
+                    self.queue.put([device_time, data])
+                    logging.info("queueing: %d / %d", (device_time, len(data)))
                 except:
                     traceback.print_exc(file=sys.stdout)
                     time.sleep(1)
         finally:
             self.js.close()
 
-async def rtt_listener(loop, js, args):
-    listener = FkListener(args)
+async def rtt_listener(loop, listener, js, args):
     parser = FkLogParser(listener, args)
     while True:
         try:
-            print(args.port)
             reader, writer = await asyncio.open_connection('127.0.0.1', args.port)
             while True:
                 data = await reader.readline()
                 if not data:
                     break
-                text = data.decode()
-                parser.handle(text)
-                print(text, end='')
+                try:
+                    text = data.decode()
+                    parser.handle(text)
+                    print(text, end='')
+                except Exception as e:
+                    print(e)
         except Exception as e:
             print(e)
             print(".", end='', flush=True)
@@ -136,11 +176,12 @@ parser.add_argument('--port', dest="port", type=int, default=9400, help="")
 parser.add_argument('--joulescope', dest="joulescope", action="store_true", help="")
 args, nargs = parser.parse_known_args()
 
-js = Joulescope(args)
+listener = FkListener(args)
+js = Joulescope(args, listener.get_device_time)
 
 if args.joulescope:
-    js.open()
+    js.start()
 
 loop = asyncio.get_event_loop()
-loop.run_until_complete(rtt_listener(loop, js, args))
+loop.run_until_complete(rtt_listener(loop, listener, js, args))
 loop.close()

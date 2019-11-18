@@ -55,19 +55,24 @@ bool MetalModMux::begin() {
     bus.end();
     bus.begin();
 
+    auto success = true;
+
     if (!I2C_CHECK(bus.write(MCP23008_ADDRESS, buffer, sizeof(buffer)))) {
-        return false;
+        logerror("mcp23008 unresponsive");
+        success = false;
     }
 
-    loginfo("started, all modules off...");
-
-    available_ = true;
-
-    if (!choose_nothing()) {
-        return false;
+    if (!I2C_CHECK(bus.write_u8(TCA9548A_ADDRESS, 0))) {
+        logerror("tca9548a unresponsive");
+        success = false;
     }
 
-    return true;
+    if (success) {
+        loginfo("started, all modules off...");
+        available_ = true;
+    }
+
+    return success;
 }
 
 bool MetalModMux::update_gpio(uint8_t new_gpio) {
