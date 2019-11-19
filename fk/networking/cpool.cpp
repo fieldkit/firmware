@@ -182,6 +182,10 @@ bool Connection::service(HttpRouter &router) {
     if (req_.have_headers()) {
         if (!routed_) {
             auto path = req_.url_parser().path();
+            if (path == nullptr) {
+                plain(404, "not found", "");
+                return true;
+            }
 
             loginfo("[%" PRIu32 "] routing '%s' path = '%s' (%" PRIu32 " bytes) ('%s')",
                     number_, req_.url(), path, req_.length(), req_.user_agent());

@@ -13,6 +13,9 @@ bool HttpRoute::matches(const char *url) const {
 }
 
 HttpHandler *HttpRouter::route(const char *url) {
+    if (url == nullptr) {
+        return nullptr;
+    }
     for (auto i = (size_t)0; i < maximum_number_of_routes(); ++i) {
         if (routes_[i] == nullptr) {
             return nullptr;
