@@ -71,7 +71,7 @@ public:
 
     PoolPointer<NetworkListener> *listen(uint16_t port) override;
 
-    PoolPointer<NetworkConnection> *accept() override;
+    void service() override;
 
     PoolPointer<NetworkConnection> *open_connection(const char *hostname, uint16_t port) override;
 

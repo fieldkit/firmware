@@ -81,17 +81,25 @@ bool HttpServer::serve() {
         return false;
     }
 
+    http_listener_ = network_->listen(80);
+    if (http_listener_ == nullptr) {
+        return false;
+    }
+
     loginfo("serving");
+
     return true;
 }
 
 void HttpServer::tick() {
     if (pool_.available() > 0) {
-        auto connection = network_->accept();
+        auto connection = http_listener_->get()->accept();
         if (connection != nullptr) {
             pool_.queue(connection);
         }
     }
+
+    network_->service();
 
     pool_.service(router_);
 }

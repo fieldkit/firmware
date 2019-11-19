@@ -26,7 +26,7 @@ public:
     MOCK_METHOD0(status, NetworkStatus());
     MOCK_METHOD0(ip_address, uint32_t());
     MOCK_METHOD1(listen, PoolPointer<NetworkListener>*(uint16_t port));
-    MOCK_METHOD0(accept, PoolPointer<NetworkConnection>*());
+    MOCK_METHOD0(service, void());
     MOCK_METHOD2(open_connection, PoolPointer<NetworkConnection>*(const char *hostname, uint16_t port));
     MOCK_METHOD0(stop, bool());
     MOCK_METHOD0(enabled, bool());
@@ -89,8 +89,7 @@ public:
         return 0;
     }
 
-    PoolPointer<NetworkConnection> *accept() override {
-        return nullptr;
+    void service() override {
     }
 
     PoolPointer<NetworkConnection> *open_connection(const char *hostname, uint16_t port) override {

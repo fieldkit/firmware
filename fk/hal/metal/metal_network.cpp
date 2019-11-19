@@ -234,8 +234,6 @@ bool MetalNetwork::begin(NetworkSettings settings) {
 bool MetalNetwork::serve() {
     serving_ = true;
 
-    server_.begin();
-
     IPAddress ip = WiFi.localIP();
 
     fk_serial_number_t sn;
@@ -281,7 +279,7 @@ uint32_t MetalNetwork::ip_address() {
 PoolPointer<NetworkListener> *MetalNetwork::listen(uint16_t port) {
     auto listener = create_network_listener_wrapper<MetalNetworkListener>(port);
 
-    if (!listener.get<MetalNetworkListener>()->begin()) {
+    if (!listener->get<MetalNetworkListener>()->begin()) {
         delete listener;
         return nullptr;
     }
@@ -289,7 +287,7 @@ PoolPointer<NetworkListener> *MetalNetwork::listen(uint16_t port) {
     return listener;
 }
 
-PoolPointer<NetworkConnection> *MetalNetwork::accept() {
+void MetalNetwork::service() {
     if (fk_uptime() - registered_ > NetworkAddServiceRecordIntervalMs) {
         mdns_.addServiceRecord(service_name_, 80, MDNSServiceTCP);
         registered_  = fk_uptime();
@@ -300,13 +298,6 @@ PoolPointer<NetworkConnection> *MetalNetwork::accept() {
     if (!settings_.create) {
         ntp_.service();
     }
-
-    auto wcl = server_.available(nullptr, true);
-    if (!wcl) {
-        return nullptr;
-    }
-
-    return create_network_connection_wrapper<MetalNetworkConnection>(wcl);
 }
 
 PoolPointer<NetworkConnection> *MetalNetwork::open_connection(const char *hostname, uint16_t port) {

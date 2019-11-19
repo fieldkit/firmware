@@ -107,27 +107,6 @@ bool LinuxNetwork::begin(NetworkSettings settings) {
 }
 
 bool LinuxNetwork::serve() {
-    listening_ = socket(AF_INET, SOCK_STREAM, 0);
-    if (listening_ == -1) {
-        logerror("linux: unable to listen");
-        return false;
-    }
-
-    struct sockaddr_in server;
-    server.sin_family = AF_INET;
-    server.sin_addr.s_addr = INADDR_ANY;
-    server.sin_port = htons(2380);
-
-    int32_t option = 1;
-    setsockopt(listening_, SOL_SOCKET, SO_REUSEADDR, (char *)&option, sizeof(option));
-
-    if (bind(listening_, (struct sockaddr *)&server, sizeof(server)) < 0) {
-        logerror("linux: unable to bind to address");
-        return false;
-    }
-
-    ::listen(listening_, 10);
-
     return true;
 }
 
@@ -140,6 +119,8 @@ uint32_t LinuxNetwork::ip_address() {
 }
 
 PoolPointer<NetworkListener> *LinuxNetwork::listen(uint16_t port) {
+    auto linux_port = port + 2300;
+
     auto listening = ::socket(AF_INET, SOCK_STREAM, 0);
     if (listening == -1) {
         logerror("linux: unable to listen");
@@ -149,43 +130,24 @@ PoolPointer<NetworkListener> *LinuxNetwork::listen(uint16_t port) {
     struct sockaddr_in server;
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = INADDR_ANY;
-    server.sin_port = htons(port);
+    server.sin_port = htons(linux_port);
 
     int32_t option = 1;
     ::setsockopt(listening, SOL_SOCKET, SO_REUSEADDR, (char *)&option, sizeof(option));
 
     if (::bind(listening, (struct sockaddr *)&server, sizeof(server)) < 0) {
-        logerror("linux: unable to bind to address");
+        logerror("linux: unable to bind to address (%d)", linux_port);
         return nullptr;
     }
 
     ::listen(listening, 10);
 
+    loginfo("linux: listening on %d", linux_port);
+
     return create_network_listener_wrapper<LinuxNetworkListener>(port, listening);
 }
 
-PoolPointer<NetworkConnection> *LinuxNetwork::accept() {
-    fd_set rfd;
-    FD_ZERO(&rfd);
-    FD_SET(listening_, &rfd);
-
-    struct timeval tov;
-    tov.tv_sec = 0;
-    tov.tv_usec = 10000;
-
-    auto tv = select(listening_ + 1, &rfd, NULL, NULL, &tov);
-    if (tv <= 0) {
-        return nullptr;
-    }
-
-    struct sockaddr_in claddr;
-    socklen_t c = sizeof(struct sockaddr_in);
-    auto s = ::accept(listening_, (struct sockaddr *)&claddr, (socklen_t *)&c);
-    if (s < 0) {
-        return nullptr;
-    }
-
-    return create_network_connection_wrapper<LinuxNetworkConnection>(s, claddr.sin_addr.s_addr);
+void LinuxNetwork::service() {
 }
 
 PoolPointer<NetworkConnection> *LinuxNetwork::open_connection(const char *hostname, uint16_t port) {

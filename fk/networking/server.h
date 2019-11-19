@@ -14,7 +14,8 @@ class HttpServer {
 private:
     ConnectionPool pool_;
     HttpRouter router_;
-    Network *network_;
+    Network *network_{ nullptr };
+    PoolPointer<NetworkListener> *http_listener_{ nullptr };
     NetworkSettings settings_;
 
 public:
