@@ -86,7 +86,7 @@ bool HttpServer::serve() {
         return false;
     }
 
-    debug_listener_ = network_->listen(22);
+    debug_listener_ = network_->listen(23);
     if (debug_listener_ == nullptr) {
         return false;
     }
