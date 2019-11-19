@@ -3,7 +3,7 @@
 
 #include "common.h"
 #include "platform.h"
-#include "networking/server.h"
+#include "networking/network_services.h"
 #include "networking/default_routes.h"
 #include "hal/hal.h"
 #include "device_name.h"
@@ -18,35 +18,35 @@ static bool network_began(NetworkStatus status) {
     return status == NetworkStatus::Connected || status == NetworkStatus::Listening;
 }
 
-HttpServer::HttpServer(Network *network) : network_(network) {
+NetworkServices::NetworkServices(Network *network) : network_(network) {
 }
 
-HttpServer::~HttpServer() {
+NetworkServices::~NetworkServices() {
     loginfo("stopping");
     stop();
 }
 
-bool HttpServer::enabled() const {
+bool NetworkServices::enabled() const {
     return network_->enabled();
 }
 
-uint32_t HttpServer::activity() const {
+uint32_t NetworkServices::activity() const {
     return pool_.activity();
 }
 
-bool HttpServer::active_connections() const {
+bool NetworkServices::active_connections() const {
     return pool_.active_connections();
 }
 
-bool HttpServer::ready_to_serve() const {
+bool NetworkServices::ready_to_serve() const {
     return network_->status() == NetworkStatus::Connected;
 }
 
-const char *HttpServer::ssid() const {
+const char *NetworkServices::ssid() const {
     return settings_.ssid;
 }
 
-bool HttpServer::begin(NetworkSettings settings, uint32_t to, Pool &pool) {
+bool NetworkServices::begin(NetworkSettings settings, uint32_t to, Pool &pool) {
     if (settings.create) {
         loginfo("creating '%s'", settings.ssid);
     }
@@ -74,7 +74,7 @@ bool HttpServer::begin(NetworkSettings settings, uint32_t to, Pool &pool) {
     return false;
 }
 
-bool HttpServer::serve() {
+bool NetworkServices::serve() {
     default_routes.add_routes(router_);
 
     if (!network_->serve()) {
@@ -96,7 +96,7 @@ bool HttpServer::serve() {
     return true;
 }
 
-void HttpServer::tick() {
+void NetworkServices::tick() {
     if (pool_.available() > 0) {
         auto http_connection = http_listener_->get()->accept();
         if (http_connection != nullptr) {
@@ -114,7 +114,7 @@ void HttpServer::tick() {
     pool_.service();
 }
 
-void HttpServer::stop() {
+void NetworkServices::stop() {
     network_->stop();
 }
 

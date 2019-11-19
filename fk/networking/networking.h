@@ -3,5 +3,5 @@
 #include "hal/hal.h"
 #include "networking/req.h"
 #include "networking/cpool.h"
-#include "networking/server.h"
+#include "networking/network_services.h"
 #include "networking/routing.h"

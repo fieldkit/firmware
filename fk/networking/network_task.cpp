@@ -4,12 +4,12 @@ namespace fk {
 
 FK_DECLARE_LOGGER("network");
 
-NetworkTask::NetworkTask(Network *network, HttpServer &http_server) : network_(network), http_server_(&http_server) {
+NetworkTask::NetworkTask(Network *network, NetworkServices &network_services) : network_(network), network_services_(&network_services) {
 }
 
 bool NetworkTask::begin(NetworkSettings settings, uint32_t to, Pool &pool) {
     if (settings.valid) {
-        if (http_server_->begin(settings, to, pool)) {
+        if (network_services_->begin(settings, to, pool)) {
             active_settings_ = settings;
             return true;
         }
@@ -27,7 +27,7 @@ bool NetworkTask::begin(NetworkSettings settings, uint32_t to, Pool &pool) {
         };
 
         if (s.valid) {
-            if (http_server_->begin(s, to, pool)) {
+            if (network_services_->begin(s, to, pool)) {
                 active_settings_ = s;
                 return true;
             }
@@ -42,7 +42,7 @@ bool NetworkTask::begin(NetworkSettings settings, uint32_t to, Pool &pool) {
         .port = 80,
     };
 
-    if (http_server_->begin(s, to, pool)) {
+    if (network_services_->begin(s, to, pool)) {
         active_settings_ = s;
         return true;
     }

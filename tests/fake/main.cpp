@@ -94,29 +94,29 @@ static void server(Fake *fake) {
     MallocPool pool{ "pool", 1024 };
     configuration_t fkc;
     LinuxNetwork network;
-    HttpServer http_server{ &network };
+    NetworkServices network_services{ &network };
     auto gs = get_global_state_ro();
 
     auto settings = NetworkSettings{
         .valid = true,
     };
-    if (!http_server.begin(settings, fkc.network.uptime, pool)) {
+    if (!network_services.begin(settings, fkc.network.uptime, pool)) {
         return;
     }
 
     loginfo("serving...");
 
-    if (!http_server.serve()) {
+    if (!network_services.serve()) {
         return;
     }
 
     while (fake->running()) {
-        http_server.tick();
+        network_services.tick();
     }
 
     loginfo("stopping...");
 
-    http_server.stop();
+    network_services.stop();
 }
 
 __int32_t main(__int32_t argc, const char **argv) {

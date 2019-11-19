@@ -1,21 +1,21 @@
 #pragma once
 
 #include "hal/hal.h"
-#include "networking/server.h"
 #include "state_manager.h"
+#include "networking/network_services.h"
 
 namespace fk {
 
 class NetworkTask {
 private:
     Network *network_;
-    HttpServer *http_server_;
+    NetworkServices *network_services_;
     NetworkSettings active_settings_;
     uint32_t last_checked_configuration_{ 0 };
     uint32_t configuration_modified_{ 0 };
 
 public:
-    NetworkTask(Network *network, HttpServer &http_server);
+    NetworkTask(Network *network, NetworkServices &network_services);
     virtual ~NetworkTask();
 
 public:

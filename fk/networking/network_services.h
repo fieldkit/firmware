@@ -4,13 +4,12 @@
 #include "hal/hal.h"
 #include "networking/req.h"
 #include "networking/cpool.h"
-#include "networking/server.h"
 #include "networking/routing.h"
 #include "state.h"
 
 namespace fk {
 
-class HttpServer {
+class NetworkServices {
 private:
     HttpRouter router_;
     ConnectionPool pool_{ router_ };
@@ -20,8 +19,8 @@ private:
     NetworkSettings settings_;
 
 public:
-    HttpServer(Network *network);
-    virtual ~HttpServer();
+    NetworkServices(Network *network);
+    virtual ~NetworkServices();
 
 public:
     bool begin(NetworkSettings settings, uint32_t to, Pool &pool);
