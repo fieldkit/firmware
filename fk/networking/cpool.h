@@ -39,6 +39,10 @@ public:
     int32_t close();
 
 public:
+    uint32_t number() const {
+        return number_;
+    }
+
     uint32_t activity() const {
         return activity_;
     }
@@ -113,6 +117,15 @@ public:
 
 };
 
+class DebugServerConnection : public Connection {
+private:
+
+public:
+    DebugServerConnection(Pool *pool, NetworkConnection *conn, uint32_t number);
+    virtual ~DebugServerConnection();
+
+};
+
 class ConnectionPool {
 private:
     constexpr static size_t MaximumConnections = 4;
@@ -136,7 +149,11 @@ public:
 
     void service();
 
-    void queue(PoolPointer<NetworkConnection> *c);
+    void queue_debug(PoolPointer<NetworkConnection> *c);
+
+    void queue_http(PoolPointer<NetworkConnection> *c);
+
+    void queue(PoolPointer<NetworkConnection> *c, Connection *connection);
 
     uint32_t activity() const {
         return activity_;

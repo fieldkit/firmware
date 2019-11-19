@@ -100,12 +100,12 @@ void HttpServer::tick() {
     if (pool_.available() > 0) {
         auto http_connection = http_listener_->get()->accept();
         if (http_connection != nullptr) {
-            pool_.queue(http_connection);
+            pool_.queue_http(http_connection);
         }
 
         auto debug_connection = debug_listener_->get()->accept();
         if (debug_connection != nullptr) {
-            pool_.queue(debug_connection);
+            pool_.queue_debug(debug_connection);
         }
     }
 

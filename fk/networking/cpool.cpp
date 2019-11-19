@@ -71,24 +71,34 @@ void ConnectionPool::service() {
     }
 }
 
-void ConnectionPool::queue(PoolPointer<NetworkConnection> *c) {
+void ConnectionPool::queue(PoolPointer<NetworkConnection> *c, Connection *connection) {
     for (auto i = (size_t)0; i < MaximumConnections; ++i) {
         if (connections_[i] == nullptr) {
             ip4_address ip{ c->get()->remote_address() };
 
-            auto number = counter_++;
-
-            loginfo("[%" PRIu32 "] connection (%d.%d.%d.%d)", number, ip.u.bytes[0], ip.u.bytes[1], ip.u.bytes[2], ip.u.bytes[3]);
+            loginfo("[%" PRIu32 "] connection (%d.%d.%d.%d)", connection->number(), ip.u.bytes[0], ip.u.bytes[1], ip.u.bytes[2], ip.u.bytes[3]);
 
             activity_ = fk_uptime();
 
-            // NOTE This is.... weird.
             pools_[i] = c;
-            connections_[i] = new (c->pool()) HttpServerConnection(c->pool(), c->get(), number, router_);
+            connections_[i] = connection;
             return;
         }
     }
-    FK_ASSERT(false);
+
+    logerror("unable to queue connection!");
+
+    delete c;
+}
+
+void ConnectionPool::queue_debug(PoolPointer<NetworkConnection> *c) {
+    auto connection = new (c->pool()) DebugServerConnection(c->pool(), c->get(), counter_++);
+    queue(c, connection);
+}
+
+void ConnectionPool::queue_http(PoolPointer<NetworkConnection> *c) {
+    auto connection = new (c->pool()) HttpServerConnection(c->pool(), c->get(), counter_++, router_);
+    queue(c, connection);
 }
 
 void ConnectionPool::update_statistics(Connection *c) {
@@ -374,6 +384,12 @@ bool HttpServerConnection::service() {
     }
 
     return true;
+}
+
+DebugServerConnection::DebugServerConnection(Pool *pool, NetworkConnection *conn, uint32_t number) : Connection(pool, conn, number) {
+}
+
+DebugServerConnection::~DebugServerConnection() {
 }
 
 }
