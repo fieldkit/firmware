@@ -39,6 +39,21 @@ public:
 
 };
 
+class LinuxNetworkListener : public NetworkListener {
+private:
+    uint16_t port_;
+    int32_t listening_;
+
+public:
+    LinuxNetworkListener(uint16_t port, int32_t listening);
+
+public:
+    PoolPointer<NetworkConnection> *accept() override;
+
+    bool stop() override;
+
+};
+
 class LinuxNetwork : public Network {
 private:
     bool enabled_{ false };
@@ -53,6 +68,8 @@ public:
     bool serve() override;
 
     uint32_t ip_address() override;
+
+    PoolPointer<NetworkListener> *listen(uint16_t port) override;
 
     PoolPointer<NetworkConnection> *accept() override;
 

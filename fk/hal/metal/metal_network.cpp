@@ -278,6 +278,17 @@ uint32_t MetalNetwork::ip_address() {
     return WiFi.localIP();
 }
 
+PoolPointer<NetworkListener> *MetalNetwork::listen(uint16_t port) {
+    auto listener = create_network_listener_wrapper<MetalNetworkListener>(port);
+
+    if (!listener.get<MetalNetworkListener>()->begin()) {
+        delete listener;
+        return nullptr;
+    }
+
+    return listener;
+}
+
 PoolPointer<NetworkConnection> *MetalNetwork::accept() {
     if (fk_uptime() - registered_ > NetworkAddServiceRecordIntervalMs) {
         mdns_.addServiceRecord(service_name_, 80, MDNSServiceTCP);
@@ -326,6 +337,28 @@ bool MetalNetwork::stop() {
 
 bool MetalNetwork::enabled() {
     return enabled_;
+}
+
+MetalNetworkListener::MetalNetworkListener(uint16_t port) : port_(port) {
+}
+
+bool MetalNetworkListener::begin() {
+    server_.begin();
+
+    return true;
+}
+
+PoolPointer<NetworkConnection> *MetalNetworkListener::accept() {
+    auto wcl = server_.available(nullptr, true);
+    if (!wcl) {
+        return nullptr;
+    }
+
+    return create_network_connection_wrapper<MetalNetworkConnection>(wcl);
+}
+
+bool MetalNetworkListener::stop() {
+    return true;
 }
 
 }

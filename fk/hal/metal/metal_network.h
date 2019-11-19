@@ -48,6 +48,23 @@ public:
 
 };
 
+class MetalNetworkListener : public NetworkListener {
+private:
+    uint16_t port_;
+    WiFiServer server_{ port_ };
+
+public:
+    MetalNetworkListener(uint16_t port);
+
+public:
+    bool begin();
+
+    PoolPointer<NetworkConnection> *accept() override;
+
+    bool stop() override;
+
+};
+
 class MetalNetwork : public Network {
 private:
     NetworkSettings settings_;
@@ -69,6 +86,8 @@ public:
     bool serve() override;
 
     uint32_t ip_address() override;
+
+    PoolPointer<NetworkListener> *listen(uint16_t port) override;
 
     PoolPointer<NetworkConnection> *accept() override;
 

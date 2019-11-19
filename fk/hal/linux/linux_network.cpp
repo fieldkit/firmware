@@ -126,7 +126,7 @@ bool LinuxNetwork::serve() {
         return false;
     }
 
-    listen(listening_, 10);
+    ::listen(listening_, 10);
 
     return true;
 }
@@ -137,6 +137,31 @@ NetworkStatus LinuxNetwork::status() {
 
 uint32_t LinuxNetwork::ip_address() {
     return 0;
+}
+
+PoolPointer<NetworkListener> *LinuxNetwork::listen(uint16_t port) {
+    auto listening = ::socket(AF_INET, SOCK_STREAM, 0);
+    if (listening == -1) {
+        logerror("linux: unable to listen");
+        return nullptr;
+    }
+
+    struct sockaddr_in server;
+    server.sin_family = AF_INET;
+    server.sin_addr.s_addr = INADDR_ANY;
+    server.sin_port = htons(port);
+
+    int32_t option = 1;
+    ::setsockopt(listening, SOL_SOCKET, SO_REUSEADDR, (char *)&option, sizeof(option));
+
+    if (::bind(listening, (struct sockaddr *)&server, sizeof(server)) < 0) {
+        logerror("linux: unable to bind to address");
+        return nullptr;
+    }
+
+    ::listen(listening, 10);
+
+    return create_network_listener_wrapper<LinuxNetworkListener>(port, listening);
 }
 
 PoolPointer<NetworkConnection> *LinuxNetwork::accept() {
@@ -178,6 +203,42 @@ bool LinuxNetwork::stop() {
 
 bool LinuxNetwork::enabled() {
     return enabled_;
+}
+
+LinuxNetworkListener::LinuxNetworkListener(uint16_t port, int32_t listening) : port_(port), listening_(listening) {
+}
+
+PoolPointer<NetworkConnection> *LinuxNetworkListener::accept() {
+    fd_set rfd;
+    FD_ZERO(&rfd);
+    FD_SET(listening_, &rfd);
+
+    struct timeval tov;
+    tov.tv_sec = 0;
+    tov.tv_usec = 10000;
+
+    auto tv = ::select(listening_ + 1, &rfd, NULL, NULL, &tov);
+    if (tv <= 0) {
+        return nullptr;
+    }
+
+    struct sockaddr_in claddr;
+    socklen_t c = sizeof(struct sockaddr_in);
+    auto s = ::accept(listening_, (struct sockaddr *)&claddr, (socklen_t *)&c);
+    if (s < 0) {
+        return nullptr;
+    }
+
+    return create_network_connection_wrapper<LinuxNetworkConnection>(s, claddr.sin_addr.s_addr);
+}
+
+bool LinuxNetworkListener::stop() {
+    if (listening_ > 0) {
+        ::close(listening_);
+        listening_ = -1;
+    }
+
+    return true;
 }
 
 }

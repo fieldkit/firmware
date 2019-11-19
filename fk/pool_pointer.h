@@ -16,6 +16,11 @@ public:
     virtual Pool *pool() = 0;
     virtual T *get() = 0;
 
+    template<typename K>
+    K *get() {
+        return reinterpret_cast<K*>(get());
+    }
+
 };
 
 template<typename Wrapped, typename ConcreteWrapped = Wrapped, class... Args>

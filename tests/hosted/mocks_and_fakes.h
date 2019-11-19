@@ -25,10 +25,18 @@ public:
     MOCK_METHOD0(serve, bool());
     MOCK_METHOD0(status, NetworkStatus());
     MOCK_METHOD0(ip_address, uint32_t());
+    MOCK_METHOD1(listen, PoolPointer<NetworkListener>*(uint16_t port));
     MOCK_METHOD0(accept, PoolPointer<NetworkConnection>*());
     MOCK_METHOD2(open_connection, PoolPointer<NetworkConnection>*(const char *hostname, uint16_t port));
     MOCK_METHOD0(stop, bool());
     MOCK_METHOD0(enabled, bool());
+
+};
+
+class MockListener : public NetworkListener {
+public:
+    MOCK_METHOD0(accept, PoolPointer<NetworkConnection>*());
+    MOCK_METHOD0(stop, bool());
 
 };
 

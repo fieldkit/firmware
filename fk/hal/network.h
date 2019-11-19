@@ -61,6 +61,14 @@ public:
 
 };
 
+class NetworkListener {
+public:
+    virtual PoolPointer<NetworkConnection> *accept() = 0;
+
+    virtual bool stop() = 0;
+
+};
+
 class Network {
 public:
     virtual bool begin(NetworkSettings settings) = 0;
@@ -75,6 +83,8 @@ public:
 
     virtual PoolPointer<NetworkConnection> *open_connection(const char *hostname, uint16_t port) = 0;
 
+    virtual PoolPointer<NetworkListener> *listen(uint16_t port) = 0;
+
     virtual bool stop() = 0;
 
     virtual bool enabled() = 0;
@@ -86,6 +96,12 @@ Network *get_network();
 template<typename ConcreteWrapped, class... Args, typename ConcreteWrapee = ChainedPoolWrapper<NetworkConnection, ConcreteWrapped, Args...>>
 inline PoolPointer<NetworkConnection> *create_network_connection_wrapper(Args &&... args) {
     auto pool = create_chained_pool_inside("connection", DefaultWorkerPoolSize);
+    return new (pool) ConcreteWrapee(pool, std::forward<Args>(args)...);
+}
+
+template<typename ConcreteWrapped, class... Args, typename ConcreteWrapee = ChainedPoolWrapper<NetworkListener, ConcreteWrapped, Args...>>
+inline PoolPointer<NetworkListener> *create_network_listener_wrapper(Args &&... args) {
+    auto pool = create_chained_pool_inside("listener", DefaultWorkerPoolSize);
     return new (pool) ConcreteWrapee(pool, std::forward<Args>(args)...);
 }
 
