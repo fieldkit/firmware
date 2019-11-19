@@ -3,6 +3,7 @@
 #include <phylum/blake2b.h>
 
 #include "networking/download_firmware_worker.h"
+#include "networking/http_connection.h"
 
 #include "firmware_manager.h"
 #include "networking/cpool.h"
@@ -15,8 +16,6 @@
 #include "utilities.h"
 #include "state_manager.h"
 #include "platform.h"
-
-#include "io.h"
 
 namespace fk {
 
