@@ -12,10 +12,11 @@ namespace fk {
 
 class HttpServer {
 private:
-    ConnectionPool pool_;
     HttpRouter router_;
+    ConnectionPool pool_{ router_ };
     Network *network_{ nullptr };
     PoolPointer<NetworkListener> *http_listener_{ nullptr };
+    PoolPointer<NetworkListener> *debug_listener_{ nullptr };
     NetworkSettings settings_;
 
 public:

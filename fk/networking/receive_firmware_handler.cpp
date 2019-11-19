@@ -6,7 +6,7 @@ namespace fk {
 
 FK_DECLARE_LOGGER("receive");
 
-ReceiveFirmwareWorker::ReceiveFirmwareWorker(Connection *connection) : connection_(connection) {
+ReceiveFirmwareWorker::ReceiveFirmwareWorker(HttpServerConnection *connection) : connection_(connection) {
 }
 
 void ReceiveFirmwareWorker::run(Pool &pool) {
@@ -41,7 +41,7 @@ void ReceiveFirmwareWorker::run(Pool &pool) {
     connection_->close();
 }
 
-bool ReceiveFirmwareHandler::handle(Connection *connection, Pool &pool) {
+bool ReceiveFirmwareHandler::handle(HttpServerConnection *connection, Pool &pool) {
     auto worker = create_pool_worker<ReceiveFirmwareWorker>(connection);
     get_ipc()->launch_worker(WorkerCategory::Transfer, worker);
     return true;

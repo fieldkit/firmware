@@ -14,17 +14,17 @@ public:
     DownloadHandler(uint8_t file_number);
 
 public:
-    bool handle(Connection *connection, Pool &pool) override;
+    bool handle(HttpServerConnection *connection, Pool &pool) override;
 
 };
 
 class DownloadWorker {
 private:
-    Connection *connection_;
+    HttpServerConnection *connection_;
     uint8_t file_number_;
 
 public:
-    DownloadWorker(Connection *connection, uint8_t file_number);
+    DownloadWorker(HttpServerConnection *connection, uint8_t file_number);
 
 public:
     void run(Pool &pool);

@@ -25,11 +25,11 @@ FK_DECLARE_LOGGER("fwdownload");
 class HttpConnection : public Reader, public Writer {
 private:
     PoolPointer<NetworkConnection> *nc_;
-    Connection *connection_;
+    HttpServerConnection *connection_;
 
 public:
     HttpConnection(PoolPointer<NetworkConnection> *nc) : nc_(nc) {
-        connection_ = new (nc_->pool()) Connection(nc_->pool(), nc_->get(), 0);
+        connection_ = new (nc_->pool()) HttpServerConnection(nc_->pool(), nc_->get(), 0, nullptr);
     }
 
     virtual ~HttpConnection() {

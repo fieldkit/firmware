@@ -20,13 +20,13 @@ namespace fk {
 
 FK_DECLARE_LOGGER("api");
 
-static bool send_status(Connection *connection, fk_app_HttpQuery *query, Pool &pool);
+static bool send_status(HttpServerConnection *connection, fk_app_HttpQuery *query, Pool &pool);
 
-static bool send_readings(Connection *connection, fk_app_HttpQuery *query, Pool &pool);
+static bool send_readings(HttpServerConnection *connection, fk_app_HttpQuery *query, Pool &pool);
 
-static bool configure(Connection *connection, fk_app_HttpQuery *query, Pool &pool);
+static bool configure(HttpServerConnection *connection, fk_app_HttpQuery *query, Pool &pool);
 
-bool ApiHandler::handle(Connection *connection, Pool &pool) {
+bool ApiHandler::handle(HttpServerConnection *connection, Pool &pool) {
     Reader *reader = connection;
     if (connection->content_type() == WellKnownContentType::TextPlain) {
         reader = new (pool) Base64Reader(reader);
@@ -92,7 +92,7 @@ static bool flush_configuration(Pool &pool) {
     return true;
 }
 
-static bool configure(Connection *connection, fk_app_HttpQuery *query, Pool &pool) {
+static bool configure(HttpServerConnection *connection, fk_app_HttpQuery *query, Pool &pool) {
     auto lock = storage_mutex.acquire(500);
     if (!lock) {
         return connection->busy(OneSecondMs, "storage busy");
@@ -176,7 +176,7 @@ static bool configure(Connection *connection, fk_app_HttpQuery *query, Pool &poo
     return send_status(connection, query, pool);
 }
 
-static bool send_status(Connection *connection, fk_app_HttpQuery *query, Pool &pool) {
+static bool send_status(HttpServerConnection *connection, fk_app_HttpQuery *query, Pool &pool) {
     auto gs = get_global_state_ro();
 
     HttpReply http_reply{ pool, gs.get() };
@@ -189,7 +189,7 @@ static bool send_status(Connection *connection, fk_app_HttpQuery *query, Pool &p
     return true;
 }
 
-static bool send_readings(Connection *connection, fk_app_HttpQuery *query, Pool &pool) {
+static bool send_readings(HttpServerConnection *connection, fk_app_HttpQuery *query, Pool &pool) {
     auto gs = get_global_state_ro();
 
     HttpReply http_reply{ pool, gs.get() };

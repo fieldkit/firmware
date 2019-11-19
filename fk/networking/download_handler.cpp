@@ -10,7 +10,7 @@ namespace fk {
 
 FK_DECLARE_LOGGER("download");
 
-DownloadWorker::DownloadWorker(Connection *connection, uint8_t file_number) : connection_(connection), file_number_(file_number) {
+DownloadWorker::DownloadWorker(HttpServerConnection *connection, uint8_t file_number) : connection_(connection), file_number_(file_number) {
 }
 
 DownloadWorker::HeaderInfo DownloadWorker::get_headers(File &file, Pool &pool) {
@@ -132,7 +132,7 @@ bool DownloadWorker::write_headers(HeaderInfo header_info) {
 DownloadHandler::DownloadHandler(uint8_t file_number) : file_number_(file_number) {
 }
 
-bool DownloadHandler::handle(Connection *connection, Pool &pool) {
+bool DownloadHandler::handle(HttpServerConnection *connection, Pool &pool) {
     auto worker = create_pool_worker<DownloadWorker>(connection, file_number_);
     get_ipc()->launch_worker(WorkerCategory::Transfer, worker);
     return true;

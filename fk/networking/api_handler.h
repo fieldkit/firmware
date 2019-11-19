@@ -6,7 +6,7 @@ namespace fk {
 
 class ApiHandler : public HttpHandler {
 public:
-    bool handle(Connection *connection, Pool &pool) override;
+    bool handle(HttpServerConnection *connection, Pool &pool) override;
 
 };
 

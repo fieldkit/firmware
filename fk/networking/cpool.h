@@ -10,22 +10,16 @@
 namespace fk {
 
 class Connection : public Writer, public Reader {
-private:
+protected:
     Pool *pool_;
     NetworkConnection *conn_;
     uint32_t number_{ 0 };
-    HttpRequest req_;
-    uint8_t *buffer_;
-    size_t size_;
-    size_t position_;
     uint32_t started_{ 0 };
     uint32_t activity_{ 0 };
     uint32_t bytes_rx_{ 0 };
     uint32_t bytes_tx_{ 0 };
     uint32_t bytes_rx_previous_{ 0 };
     uint32_t bytes_tx_previous_{ 0 };
-    bool routed_{ false };
-    bool hex_encoding_{ false };
 
 public:
     Connection(Pool *pool, NetworkConnection *conn, uint32_t number);
@@ -34,23 +28,53 @@ public:
     friend class ConnectionPool;
 
 public:
-    void hex_encoding(bool hex_encoding) {
-        hex_encoding_ = hex_encoding;
-    }
-
-    bool service();
-
-    bool service(HttpRouter &router);
+    virtual bool service();
 
     int32_t printf(const char *s, ...) __attribute__((format(printf, 2, 3)));
-
-    int32_t write(int32_t statusCode, const char *message, fk_app_HttpReply const *reply);
-
-    int32_t write(fk_app_HttpReply const *reply);
 
     int32_t write(uint8_t const *buffer, size_t size) override;
 
     int32_t read(uint8_t *buffer, size_t size) override;
+
+    int32_t close();
+
+public:
+    uint32_t activity() const {
+        return activity_;
+    }
+
+    bool active() const {
+        return (fk_uptime() - activity()) < NetworkConnectionMaximumDuration;
+    }
+
+};
+
+class HttpServerConnection : public Connection {
+private:
+    HttpRouter *router_;
+    HttpRequest req_;
+    uint8_t *buffer_;
+    size_t size_;
+    size_t position_;
+    bool routed_{ false };
+    bool hex_encoding_{ false };
+
+public:
+    HttpServerConnection(Pool *pool, NetworkConnection *conn, uint32_t number, HttpRouter *router);
+    virtual ~HttpServerConnection();
+
+public:
+    void hex_encoding(bool hex_encoding) {
+        hex_encoding_ = hex_encoding;
+    }
+
+    bool service() override;
+
+    int32_t read(uint8_t *buffer, size_t size) override;
+
+    int32_t write(int32_t statusCode, const char *message, fk_app_HttpReply const *reply);
+
+    int32_t write(fk_app_HttpReply const *reply);
 
     int32_t plain(int32_t status, const char *status_description, const char *text);
 
@@ -60,7 +84,7 @@ public:
 
     int32_t fault();
 
-    int32_t close();
+    using Connection::write;
 
 public:
     WellKnownContentType content_type() const {
@@ -87,14 +111,6 @@ public:
         return req_.have_headers();
     }
 
-    uint32_t activity() const {
-        return activity_;
-    }
-
-    bool active() const {
-        return (fk_uptime() - activity()) < NetworkConnectionMaximumDuration;
-    }
-
 };
 
 class ConnectionPool {
@@ -102,6 +118,7 @@ private:
     constexpr static size_t MaximumConnections = 4;
 
 private:
+    HttpRouter *router_;
     PoolPointer<NetworkConnection> *pools_[MaximumConnections] = { nullptr };
     Connection *connections_[MaximumConnections] = { nullptr };
     uint32_t activity_{ 0 };
@@ -111,13 +128,13 @@ private:
     uint32_t bytes_tx_{ 0 };
 
 public:
-    ConnectionPool();
+    ConnectionPool(HttpRouter &router);
     virtual ~ConnectionPool();
 
 public:
     size_t available();
 
-    void service(HttpRouter &router);
+    void service();
 
     void queue(PoolPointer<NetworkConnection> *c);
 

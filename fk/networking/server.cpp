@@ -86,6 +86,11 @@ bool HttpServer::serve() {
         return false;
     }
 
+    debug_listener_ = network_->listen(22);
+    if (debug_listener_ == nullptr) {
+        return false;
+    }
+
     loginfo("serving");
 
     return true;
@@ -93,15 +98,20 @@ bool HttpServer::serve() {
 
 void HttpServer::tick() {
     if (pool_.available() > 0) {
-        auto connection = http_listener_->get()->accept();
-        if (connection != nullptr) {
-            pool_.queue(connection);
+        auto http_connection = http_listener_->get()->accept();
+        if (http_connection != nullptr) {
+            pool_.queue(http_connection);
+        }
+
+        auto debug_connection = debug_listener_->get()->accept();
+        if (debug_connection != nullptr) {
+            pool_.queue(debug_connection);
         }
     }
 
     network_->service();
 
-    pool_.service(router_);
+    pool_.service();
 }
 
 void HttpServer::stop() {

@@ -8,6 +8,8 @@
 
 namespace fk {
 
+class HttpServerConnection;
+
 /**
  * Interface to be overriden for custom HTTP route handlers. These are then
  * registered with an HttpRoute in the HttpRouter.
@@ -17,7 +19,7 @@ public:
     /**
      * Handle an incoming HTTP request.
      */
-    virtual bool handle(Connection *connection, Pool &pool) = 0;
+    virtual bool handle(HttpServerConnection *connection, Pool &pool) = 0;
 
 };
 

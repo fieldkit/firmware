@@ -7,16 +7,16 @@ namespace fk {
 
 class ReceiveFirmwareHandler : public HttpHandler {
 public:
-    bool handle(Connection *connection, Pool &pool) override;
+    bool handle(HttpServerConnection *connection, Pool &pool) override;
 
 };
 
 class ReceiveFirmwareWorker {
 private:
-    Connection *connection_;
+    HttpServerConnection *connection_;
 
 public:
-    ReceiveFirmwareWorker(Connection *connection);
+    ReceiveFirmwareWorker(HttpServerConnection *connection);
 
 public:
     void run(Pool &pool);
