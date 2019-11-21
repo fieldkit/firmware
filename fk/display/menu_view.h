@@ -22,6 +22,7 @@ private:
     MenuScreen *module_bays_menu_;
     MenuScreen *module_menu_;
     uint32_t menu_time_{ 0 };
+    uint32_t refresh_time_{ 0 };
     uint8_t selected_module_bay_{ 0 };
 
 public:
@@ -40,6 +41,7 @@ private:
     void create_tools_menu();
     void create_network_menu();
     void create_main_menu();
+    void refresh();
 
 private:
     static void choose_active_network(WifiNetworkInfo network);

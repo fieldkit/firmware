@@ -25,21 +25,22 @@ LambdaOption<T> *to_lambda_option(Pool *pool, const char *label, T fn) {
 }
 
 template<size_t N>
-MenuScreen *new_menu_screen(Pool *pool, MenuOption* (&&options)[N]) {
+MenuScreen *new_menu_screen(Pool *pool, const char *title, MenuOption* (&&options)[N]) {
     auto n_options = (MenuOption **)pool->malloc(sizeof(MenuOption*) * (N + 1));
     for (size_t i = 0; i < N; ++i) {
         n_options[i] = options[i];
     }
     n_options[N] = nullptr;
-    return new (*pool) MenuScreen(n_options);
+    return new (*pool) MenuScreen(title, n_options);
 }
 
 template<typename T>
 struct NetworkOption : public MenuOption {
+    int32_t index_;
     WifiNetworkInfo network_;
     T fn_;
 
-    NetworkOption(WifiNetworkInfo network, T fn) : MenuOption(""), network_(network), fn_(fn) {
+    NetworkOption(int32_t index, T fn) : MenuOption(""), index_(index), fn_(fn) {
     }
 
     void on_selected() override {
@@ -53,11 +54,15 @@ struct NetworkOption : public MenuOption {
     const char *label() const override {
         return network_.ssid;
     }
+
+    void refresh(GlobalState const *gs) override {
+        network_ = gs->network.config.wifi_networks[index_];
+    }
 };
 
 template<typename T>
-NetworkOption<T> *to_network_option(Pool *pool, WifiNetworkInfo network, T fn) {
-    return new (*pool) NetworkOption<T>(network, fn);
+NetworkOption<T> *to_network_option(Pool *pool, int32_t index, T fn) {
+    return new (*pool) NetworkOption<T>(index, fn);
 }
 
 template<typename T>
@@ -105,15 +110,14 @@ struct ToggleWifiOption : public MenuOption {
 
 MenuView::MenuView(ViewController *views, Pool &pool) : pool_(&pool), views_(views) {
     back_ = to_lambda_option(&pool, "Back", [=]() {
-        // NOTE Fancy way of deselecting ourselves.
-        // Could be selected from another back operation.
-        for (auto i = 0; active_menu_->options[i] != nullptr; ++i) {
-            // active_menu_->options[i]->selected_ = false;
-        }
+        back_->selected(false);
+
         if (previous_menu_ == nullptr || previous_menu_ == active_menu_) {
+            loginfo("selected main-menu '%s'", active_menu_->title);
             active_menu_ = goto_menu(main_menu_);
         }
         else {
+            loginfo("selected previous-menu '%s'", active_menu_->title);
             active_menu_ = goto_menu(previous_menu_);
         }
     });
@@ -142,7 +146,7 @@ void MenuView::create_info_menu() {
         back_->on_selected();
     });
 
-    info_menu_ = new_menu_screen<4>(pool_, {
+    info_menu_ = new_menu_screen<4>(pool_, "info", {
         back_,
         info_build,
         info_name,
@@ -169,7 +173,7 @@ void MenuView::create_modules_menu() {
         active_menu_ = goto_menu(module_menu_);
         loginfo("selected all");
     });
-    module_bays_menu_ = new_menu_screen<6>(pool_, {
+    module_bays_menu_ = new_menu_screen<6>(pool_, "modules", {
         bay_options[0], bay_options[1], bay_options[2], bay_options[3], bay_options[4], bay_options[5]
     });
 
@@ -195,7 +199,7 @@ void MenuView::create_modules_menu() {
         get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, ConfigureModuleKind::Erase));
     });
 
-    module_menu_ = new_menu_screen<5>(pool_, {
+    module_menu_ = new_menu_screen<5>(pool_, "module", {
         back_,
         modules_water,
         modules_weather,
@@ -270,7 +274,7 @@ void MenuView::create_tools_menu() {
     });
     */
 
-    tools_menu_ = new_menu_screen<11>(pool_, {
+    tools_menu_ = new_menu_screen<11>(pool_, "tools", {
         back_,
         tools_self_check,
         tools_lora_ranging,
@@ -302,17 +306,18 @@ void MenuView::create_network_menu() {
     MenuOption *network_options[MaximumNumberOfWifiNetworks];
     {
         auto gs = get_global_state_ro();
-        for (auto i = 0u; i < MaximumNumberOfWifiNetworks; ++i) {
-            auto &n = gs.get()->network.config.wifi_networks[i];
-            network_options[i] = to_network_option(pool_, n, [=](WifiNetworkInfo network) {
+        for (auto index = 0u; index < MaximumNumberOfWifiNetworks; ++index) {
+            auto no = to_network_option(pool_, index, [=](WifiNetworkInfo network) {
                 choose_active_network(network);
                 back_->on_selected();
                 views_->show_home();
             });
+
+            network_options[index] = no;
         }
     }
 
-    network_choose_menu_ = new_menu_screen<4>(pool_, {
+    network_choose_menu_ = new_menu_screen<4>(pool_, "networks", {
         back_,
         network_choose_self,
         network_options[0],
@@ -332,7 +337,7 @@ void MenuView::create_network_menu() {
         get_ipc()->launch_worker(create_pool_worker<DownloadFirmwareWorker>());
     });
 
-    network_menu_ = new_menu_screen<4>(pool_, {
+    network_menu_ = new_menu_screen<4>(pool_, "network", {
         back_,
         network_toggle,
         network_choose,
@@ -361,7 +366,7 @@ void MenuView::create_main_menu() {
         active_menu_ = goto_menu(tools_menu_);
     });
 
-    main_menu_ = new_menu_screen<5>(pool_, {
+    main_menu_ = new_menu_screen<5>(pool_, "main", {
         main_readings,
         main_info,
         main_network,
@@ -382,6 +387,16 @@ void MenuView::tick(ViewController *views) {
     if (fk_uptime() > menu_time_) {
         views->show_home();
     }
+
+    if (fk_uptime() > refresh_time_) {
+        refresh();
+        refresh_time_ = fk_uptime() + OneSecondMs;
+    }
+}
+
+void MenuView::refresh() {
+    auto gs = get_global_state_ro();
+    network_choose_menu_->refresh(gs.get());
 }
 
 void MenuView::up(ViewController *views) {
@@ -467,13 +482,13 @@ void MenuView::selection_down(MenuScreen &screen) {
 }
 
 void MenuView::refresh_visible(MenuScreen &screen, int8_t selected_index) {
-    static constexpr int8_t MaxiumVisible = 4;
+    static constexpr int8_t MaximumVisible = 4;
 
     auto nvisible = 0u;
 
     for (int8_t i = 0; screen.options[i] != nullptr; ++i) {
         auto &o = screen.options[i];
-        if (selected_index - i >= MaxiumVisible || nvisible >= MaxiumVisible) {
+        if (selected_index - i >= MaximumVisible || nvisible >= MaximumVisible) {
             o->visible(false);
         }
         else {
@@ -489,6 +504,7 @@ MenuOption *MenuView::selected(MenuScreen &screen) {
             return screen.options[i];
         }
     }
+
     FK_ASSERT(0);
     return nullptr;
 }

@@ -8,7 +8,7 @@ namespace fk {
 MenuScreen::MenuScreen() : options(nullptr) {
 }
 
-MenuScreen::MenuScreen(MenuOption **options) : options(options) {
+MenuScreen::MenuScreen(const char *title, MenuOption **options) : title(title), options(options) {
     options[0]->selected_ = true;
 }
 

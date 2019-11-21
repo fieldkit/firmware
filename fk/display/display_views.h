@@ -44,7 +44,6 @@ public:
     virtual void enter(ViewController *views) {
         views->show_home();
     }
-
 };
 
 }

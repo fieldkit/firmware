@@ -5,6 +5,8 @@
 
 namespace fk {
 
+class GlobalState;
+
 typedef struct xbm_data_t {
     uint8_t w;
     uint8_t h;
@@ -58,6 +60,7 @@ struct MenuOption {
     virtual bool active() const {
         return active_;
     }
+
     virtual void active(bool active) {
         active_ = active;
     }
@@ -65,6 +68,7 @@ struct MenuOption {
     virtual bool visible() const {
         return visible_;
     }
+
     virtual void visible(bool visible) {
         visible_ = visible;
     }
@@ -72,12 +76,16 @@ struct MenuOption {
     virtual bool selected() const {
         return selected_;
     }
+
     virtual void selected(bool value) {
         selected_ = value;
     }
 
     virtual const char *label() const {
         return label_;
+    }
+
+    virtual void refresh(GlobalState const *gs) {
     }
 };
 
@@ -120,13 +128,21 @@ struct LambdaOption : public MenuOption {
 };
 
 struct MenuScreen : public DisplayScreen {
+    const char *title{ nullptr };
+
     /**
      * A NULL value indicates the end of this array.
      */
     MenuOption **options{ nullptr };
 
     MenuScreen();
-    MenuScreen(MenuOption **options);
+    MenuScreen(const char *title, MenuOption **options);
+
+    void refresh(GlobalState const *gs) {
+        for (auto i = 0u; options[i] != nullptr; ++i) {
+            options[i]->refresh(gs);
+        }
+    }
 };
 
 struct QrCodeScreen : public DisplayScreen {
