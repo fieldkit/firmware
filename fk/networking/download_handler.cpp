@@ -125,8 +125,10 @@ void DownloadWorker::run(Pool &pool) {
 bool DownloadWorker::write_headers(HeaderInfo header_info) {
     BufferedWriter buffered{ connection_ };
 
+    auto status = connection_->is_head_method() ? 204 : 200;
+
     #define CHECK(expr)  if ((expr) == 0) { return false; }
-    CHECK(buffered.write("HTTP/1.1 200 OK\n"));
+    CHECK(buffered.write("HTTP/1.1 %d OK\n", status));
     CHECK(buffered.write("Content-Length: %" PRIu32 "\n", header_info.size));
     CHECK(buffered.write("Content-Type: %s\n", "application/octet-stream"));
     CHECK(buffered.write("Connection: close\n"));
