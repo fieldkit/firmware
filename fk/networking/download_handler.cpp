@@ -61,11 +61,19 @@ void DownloadWorker::run(Pool &pool) {
     StatisticsMemory memory{ MemoryFactory::get_data_memory() };
     Storage storage{ &memory };
 
-    FK_ASSERT(storage.begin());
+    if (!storage.begin()) {
+        connection_->error("error opening storage");
+        return;
+    }
 
     auto file = storage.file(file_number_);
 
     auto info = get_headers(file, pool);
+
+    if (info.first_block > info.last_block) {
+        connection_->error("invalid range");
+        return;
+    }
 
     loginfo("range #%" PRIu32 " - #%" PRIu32 " size = %" PRIu32, info.first_block, info.last_block, info.size);
 
