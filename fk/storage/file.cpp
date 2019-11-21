@@ -184,6 +184,7 @@ int32_t File::write_record_tail(size_t size) {
     RecordTail record_tail;
     record_tail.size = size;
     hash_.finalize(record_tail.hash.hash, sizeof(record_tail.hash.hash));
+    record_tail.crc = record_tail.sign();
     if (memory_.write(tail_, (uint8_t *)&record_tail, sizeof(RecordTail)) != sizeof(RecordTail)) {
         return 0;
     }
@@ -398,6 +399,11 @@ int32_t File::rewind() {
 
     logtrace("[" PRADDRESS "] rewind", tail_);
 
+    if (!g.is_address_valid(tail_)) {
+        logerror("[" PRADDRESS "] invalid tail (%d)", tail_, __LINE__);
+        return false;
+    }
+
     if (g.is_start_of_block_or_header(tail_, SizeofBlockHeader)) {
         auto start = g.start_of_block(tail_);
         if (start == 0) {
@@ -434,6 +440,15 @@ int32_t File::rewind() {
     }
 
     if (record_tail.valid()) {
+        logdebug("[" PRADDRESS "] tail (%d) (%" PRIu32 ") (%" PRIx32 ")", tail_, __LINE__,
+                 record_tail.size, record_tail.size);
+
+        if (record_tail.size > g.block_size) {
+            fk_dump_memory("TAIL ", (uint8_t *)&record_tail, sizeof(record_tail));
+        }
+
+        FK_ASSERT(record_tail.size < g.block_size);
+
         tail_ -= record_tail.size;
 
         tail_ -= sizeof(RecordHeader);
@@ -445,7 +460,16 @@ int32_t File::rewind() {
             return false;
         }
 
+        if (!g.is_address_valid(previous_record)) {
+            logerror("[" PRADDRESS "] invalid tail (from " PRADDRESS ")", tail_, previous_record);
+        }
+
         tail_ = previous_record;
+    }
+
+    if (!g.is_address_valid(tail_)) {
+        logerror("[" PRADDRESS "] invalid tail (%d)", tail_, __LINE__);
+        return false;
     }
 
     RecordHeader record_header;

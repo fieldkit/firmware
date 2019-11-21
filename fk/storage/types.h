@@ -22,6 +22,8 @@ constexpr int32_t NumberOfFiles = 4;
 constexpr uint32_t SizeofBlockTail = 512;
 constexpr uint32_t SizeofBlockHeader = 512;
 
+constexpr uint32_t ReservedValue = 0xdeadbeef;
+
 static inline bool is_block_valid(uint32_t block) {
     return block != InvalidAddress;
 }
@@ -98,7 +100,7 @@ struct BlockTail {
     uint32_t records_in_block{ 0 };
     uint32_t linked{ 0 };
     uint32_t block_tail{ 0 };
-    uint32_t reserved[2] = { 0xdeadbeef, 0xdeadbeef };
+    uint32_t reserved[2] = { ReservedValue, ReservedValue };
     Hash hash;
 
     void fill_hash();
@@ -110,7 +112,7 @@ struct RecordHeader {
     uint32_t size{ 0 };
     uint32_t record{ 0 };
     uint32_t previous{ InvalidAddress };
-    uint32_t reserved[2] = { 0xdeadbeef, 0xdeadbeef };
+    uint32_t reserved[2] = { ReservedValue, ReservedValue };
     uint32_t crc{ 0 };
 
     uint32_t sign();
@@ -119,9 +121,11 @@ struct RecordHeader {
 
 struct RecordTail {
     uint32_t size{ 0 };
-    uint32_t reserved[3] = { 0xdeadbeef, 0xdeadbeef, 0xdeadbeef };
+    uint32_t reserved[2] = { ReservedValue, ReservedValue };
     Hash hash;
+    uint32_t crc{ 0 };
 
+    uint32_t sign();
     bool valid();
 };
 

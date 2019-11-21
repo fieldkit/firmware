@@ -74,8 +74,12 @@ bool RecordHeader::valid() {
     return size > 0 && size != InvalidSize && sign() == crc;
 }
 
+uint32_t RecordTail::sign() {
+    return phylum::crc32_checksum((uint8_t *)this, sizeof(RecordTail) - sizeof(uint32_t));
+}
+
 bool RecordTail::valid() {
-    return size > 0 && size != InvalidSize;
+    return size > 0 && size != InvalidSize && sign() == crc;
 }
 
 SeekSettings SeekSettings::end_of(uint8_t file) {
