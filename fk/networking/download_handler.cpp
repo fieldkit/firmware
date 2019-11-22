@@ -13,6 +13,26 @@ FK_DECLARE_LOGGER("download");
 DownloadWorker::DownloadWorker(HttpServerConnection *connection, uint8_t file_number) : connection_(connection), file_number_(file_number) {
 }
 
+uint32_t DownloadWorker::get_size(File &file, uint32_t first_block, uint32_t last_block, Pool &pool) {
+    if (first_block >= last_block) {
+        return 0;
+    }
+
+    if (!file.seek(last_block)) {
+        return 0;
+    }
+
+    auto final_position = file.position();
+
+    if (!file.seek(first_block)) {
+        return 0;
+    }
+
+    auto start_position = file.position();
+
+    return final_position - start_position;
+}
+
 DownloadWorker::HeaderInfo DownloadWorker::get_headers(File &file, Pool &pool) {
     fk_serial_number_t sn;
 
@@ -31,17 +51,12 @@ DownloadWorker::HeaderInfo DownloadWorker::get_headers(File &file, Pool &pool) {
         last_block = strtol(last_qs, nullptr, 10);
     }
 
-    FK_ASSERT(file.seek(last_block));
-    auto final_position = file.position();
+    // Calculate the size.
+    auto size = get_size(file, first_block, last_block, pool);
 
     // When we seek to LastRecord this is the record that will be written,
     // otherwise it's the record we're on.
     auto actual_last_block = last_block == LastRecord ? file.record() - 1 : file.record();
-
-    FK_ASSERT(file.seek(first_block));
-    auto start_position = file.position();
-
-    auto size = final_position - start_position;
 
     return HeaderInfo{
         .size = size,
@@ -66,19 +81,16 @@ void DownloadWorker::run(Pool &pool) {
         return;
     }
 
+    auto is_head = connection_->is_head_method();
     auto file = storage.file(file_number_);
-
     auto info = get_headers(file, pool);
 
     if (info.first_block > info.last_block) {
-        auto message = pool.sprintf("invalid range (%" PRIu32 " - %" PRIu32 ")", info.first_block, info.last_block);
-        connection_->error(message);
-        return;
+        logwarn("range #%" PRIu32 " - #%" PRIu32 " size = %" PRIu32 " %s", info.first_block, info.last_block, info.size, is_head ? "HEAD": "GET");
     }
-
-    auto is_head = connection_->is_head_method();
-
-    loginfo("range #%" PRIu32 " - #%" PRIu32 " size = %" PRIu32 " %s", info.first_block, info.last_block, info.size, is_head ? "HEAD": "GET");
+    else {
+        loginfo("range #%" PRIu32 " - #%" PRIu32 " size = %" PRIu32 " %s", info.first_block, info.last_block, info.size, is_head ? "HEAD": "GET");
+    }
 
     memory.log_statistics();
 
@@ -87,7 +99,7 @@ void DownloadWorker::run(Pool &pool) {
         return;
     }
 
-    if (is_head) {
+    if (is_head || info.size == 0) {
         connection_->close();
         return;
     }
