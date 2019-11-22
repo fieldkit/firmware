@@ -76,7 +76,9 @@ void DownloadWorker::run(Pool &pool) {
         return;
     }
 
-    loginfo("range #%" PRIu32 " - #%" PRIu32 " size = %" PRIu32, info.first_block, info.last_block, info.size);
+    auto is_head = connection_->is_head_method();
+
+    loginfo("range #%" PRIu32 " - #%" PRIu32 " size = %" PRIu32 " %s", info.first_block, info.last_block, info.size, is_head ? "HEAD": "GET");
 
     memory.log_statistics();
 
@@ -85,7 +87,7 @@ void DownloadWorker::run(Pool &pool) {
         return;
     }
 
-    if (connection_->is_head_method()) {
+    if (is_head) {
         connection_->close();
         return;
     }
