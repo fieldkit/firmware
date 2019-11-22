@@ -71,7 +71,8 @@ void DownloadWorker::run(Pool &pool) {
     auto info = get_headers(file, pool);
 
     if (info.first_block > info.last_block) {
-        connection_->error("invalid range");
+        auto message = pool.sprintf("invalid range (%" PRIu32 " - %" PRIu32 ")", info.first_block, info.last_block);
+        connection_->error(message);
         return;
     }
 
