@@ -208,7 +208,7 @@ bool MetalNetwork::begin(NetworkSettings settings) {
 
     if (settings.ssid != nullptr) {
         if (settings.create) {
-            if (settings.password != nullptr) {
+            if (settings.password != nullptr && settings.password[0] != 0) {
                 loginfo("creating '%s' '%s'", settings.ssid, settings.password);
                 WiFi.beginAP(settings.ssid, settings.password);
             }
