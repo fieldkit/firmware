@@ -50,10 +50,12 @@ void ConnectionPool::service() {
                 update_statistics(c);
 
                 if (activity_elapsed < NetworkConnectionMaximumDuration) {
-                    loginfo("[%" PRIu32 "] [%zd] active (%" PRIu32 "ms) (%" PRIu32 "ms) (%" PRIu32 " down) (%" PRIu32 " up)", c->number_, i, activity_elapsed, started_elapsed, c->bytes_rx_, c->bytes_tx_);
+                    loginfo("[%" PRIu32 "] [%zd] active (%" PRIu32 "ms) (%" PRIu32 "ms) (%" PRIu32 " down) (%" PRIu32 " up)",
+                            c->number_, i, activity_elapsed, started_elapsed, c->bytes_rx_, c->bytes_tx_);
                 }
                 else {
-                    logwarn("[%" PRIu32 "] [%zd] killing (%" PRIu32 "ms) (%" PRIu32 "ms) (%" PRIu32 " down) (%" PRIu32 " up)", c->number_, i, activity_elapsed, started_elapsed, c->bytes_rx_, c->bytes_tx_);
+                    logwarn("[%" PRIu32 "] [%zd] killing (%" PRIu32 "ms) (%" PRIu32 "ms) (%" PRIu32 " down) (%" PRIu32 " up)",
+                            c->number_, i, activity_elapsed, started_elapsed, c->bytes_rx_, c->bytes_tx_);
                     c->close();
                     free_connection(i);
                     continue;
@@ -76,7 +78,9 @@ void ConnectionPool::queue(PoolPointer<NetworkConnection> *c, Connection *connec
         if (connections_[i] == nullptr) {
             ip4_address ip{ c->get()->remote_address() };
 
-            loginfo("[%" PRIu32 "] connection (%d.%d.%d.%d)", connection->number(), ip.u.bytes[0], ip.u.bytes[1], ip.u.bytes[2], ip.u.bytes[3]);
+            loginfo("[%" PRIu32 "] connection (socket = %" PRId32 ") (%d.%d.%d.%d)",
+                    connection->number(), c->get()->socket(),
+                    ip.u.bytes[0], ip.u.bytes[1], ip.u.bytes[2], ip.u.bytes[3]);
 
             activity_ = fk_uptime();
 
