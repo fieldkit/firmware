@@ -339,7 +339,7 @@ typedef struct configuration_t {
     display_t display;
 
     typedef struct scheduler_t {
-        uint32_t readings_interval{ 30 };
+        uint32_t readings_interval{ 60 };
         uint32_t network_interval{ 300 * 4 };
         uint32_t lora_interval{ 300 };
         uint32_t gps_interval{ OneDaySeconds };
