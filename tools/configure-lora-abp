@@ -1,0 +1,10 @@
+#!/bin/bash
+
+set -xe
+
+fkdevice-cli --address 192.168.0.122 \
+	--lora-app-key 00000000000000000000000000000000 \
+	--lora-app-eui 0000000000000000 \
+	--lora-device-address 014619b9 \
+	--lora-network-session-key 775be59b9160a02a6cbb2f822d668779 \
+	--lora-app-session-key cfc18ffde19450c0344e9f59e55432e7

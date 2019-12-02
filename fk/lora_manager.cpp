@@ -50,6 +50,15 @@ bool LoraManager::begin() {
     return success;
 }
 
+static bool is_null_byte_array(uint8_t const *ptr, size_t length) {
+    for (auto i = 0u; i < length; ++i) {
+        if (ptr[i] != 0) {
+            return false;
+        }
+    }
+    return true;
+}
+
 bool LoraManager::join_if_necessary(Pool &pool) {
     GlobalStateManager gsm;
 
@@ -69,10 +78,23 @@ bool LoraManager::join_if_necessary(Pool &pool) {
         auto joined = false;
 
         if (!network_->resume_previous_session()) {
-            auto app_key = bytes_to_hex_string_pool(state.app_key, LoraAppKeyLength, pool);
-            auto app_eui = bytes_to_hex_string_pool(state.app_eui, LoraAppEuiLength, pool);
+            if (!is_null_byte_array(state.app_key, LoraAppKeyLength)) {
+                auto app_key = bytes_to_hex_string_pool(state.app_key, LoraAppKeyLength, pool);
+                auto app_eui = bytes_to_hex_string_pool(state.app_eui, LoraAppEuiLength, pool);
 
-            joined = network_->join(app_eui, app_key);
+                joined = network_->join(app_eui, app_key);
+            }
+            if (!is_null_byte_array(state.app_session_key, LoraAppSessionKeyLength) &&
+                !is_null_byte_array(state.network_session_key, LoraNetworkSessionKeyLength) &&
+                !is_null_byte_array(state.device_address, LoraDeviceAddressLength)) {
+                auto app_session_key = bytes_to_hex_string_pool(state.app_session_key, LoraAppSessionKeyLength, pool);
+                auto network_session_key = bytes_to_hex_string_pool(state.network_session_key, LoraNetworkSessionKeyLength, pool);
+                auto device_address = bytes_to_hex_string_pool(state.device_address, LoraDeviceAddressLength, pool);
+                auto uplink_counter = state.uplink_counter;
+                auto downlink_counter = state.downlink_counter;
+
+                joined = network_->join(app_session_key, network_session_key, device_address, uplink_counter, downlink_counter);
+            }
         }
         else {
             joined = true;

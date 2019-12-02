@@ -198,6 +198,42 @@ bool Rn2903::provision(const char *app_eui, const char *app_key) {
     return true;
 }
 
+bool Rn2903::provision(const char *app_session_key, const char *network_session_key, const char *device_address, uint32_t uplink_counter, uint32_t downlink_counter) {
+    const char *line = nullptr;
+    if (!simple_query("sys get hweui", &line, 1000)) {
+        return false;
+    }
+
+    char hweui[64];
+    strncpy(hweui, line, sizeof(hweui));
+
+    if (!simple_query("mac set deveui %s", 1000, hweui)) {
+        return false;
+    }
+
+    if (!simple_query("mac set devaddr %s", 1000, device_address)) {
+        return false;
+    }
+    if (!simple_query("mac set nwkskey %s", 1000, network_session_key)) {
+        return false;
+    }
+    if (!simple_query("mac set appskey %s", 1000, app_session_key)) {
+        return false;
+    }
+    if (!simple_query("mac set upctr %d", 1000, uplink_counter)) {
+        return false;
+    }
+    if (!simple_query("mac set dnctr %d", 1000, downlink_counter)) {
+        return false;
+    }
+
+    if (!save_state()) {
+        return false;
+    }
+
+    return true;
+}
+
 bool Rn2903::configure_us915(uint8_t fsb) {
     uint8_t ch_low = fsb > 0 ? (fsb - 1) * 8 : 0;
     uint8_t ch_high = fsb > 0 ? ch_low + 7 : 71;
@@ -266,6 +302,22 @@ bool Rn2903::join(const char *app_eui, const char *app_key, int32_t retries, uin
     }
 
     return false;
+}
+
+bool Rn2903::join(const char *app_session_key, const char *network_session_key, const char *device_address, uint32_t uplink_counter, uint32_t downlink_counter) {
+    if (!provision(app_session_key, network_session_key, device_address, uplink_counter, downlink_counter)) {
+        return false;
+    }
+
+    // NOTE This needs to work with other frequencies.
+    if (!configure_us915(TTN_DEFAULT_FSB)) {
+        return false;
+    }
+    if (!configure_sf(TTN_DEFAULT_SF)) {
+        return false;
+    }
+
+    return join("abp");
 }
 
 bool Rn2903::join(const char *mode) {

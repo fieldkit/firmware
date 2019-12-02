@@ -32,6 +32,7 @@ public:
     bool simple_query(const char *cmd, uint32_t to, ...);
     bool simple_query(const char *cmd, const char **line, uint32_t to, ...);
     bool join(const char *app_eui, const char *app_key, int32_t retries = 3, uint32_t retry_delay = 10000);
+    bool join(const char *app_session_key, const char *network_session_key, const char *device_address, uint32_t uplink_counter, uint32_t downlink_counter);
     bool join(const char *mode);
     bool sleep(uint32_t ms);
     bool wake();
@@ -46,6 +47,7 @@ private:
     bool send_command(const char *cmd, ...);
     bool send_command(const char *cmd, va_list args);
     bool provision(const char *app_eui, const char *app_key);
+    bool provision(const char *app_session_key, const char *network_session_key, const char *device_address, uint32_t uplink_counter, uint32_t downlink_counter);
     bool configure_us915(uint8_t fsb);
 
 };

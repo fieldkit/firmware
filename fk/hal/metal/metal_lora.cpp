@@ -63,6 +63,14 @@ bool Rn2903LoraNetwork::join(const char *app_eui, const char *app_key, int32_t r
     return true;
 }
 
+bool Rn2903LoraNetwork::join(const char *app_session_key, const char *network_session_key, const char *device_address, uint32_t uplink_counter, uint32_t downlink_counter) {
+    if (!rn2903_.join(app_session_key, network_session_key, device_address, uplink_counter, downlink_counter)) {
+        return false;
+    }
+
+    return true;
+}
+
 bool Rn2903LoraNetwork::resume_previous_session() {
     if (!rn2903_.join("abp")) {
         return false;
