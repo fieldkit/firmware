@@ -93,6 +93,21 @@ constexpr size_t LoraDeviceEuiLength = 8;
 constexpr size_t LoraAppKeyLength = 16;
 
 /**
+ * Length of a LoRa Device Address.
+ */
+constexpr size_t LoraDeviceAddressLength = 4;
+
+/**
+ * Length of a LoRa network session key.
+ */
+constexpr size_t LoraNetworkSessionKeyLength = 16;
+
+/**
+ * Length of a LoRa app session key.
+ */
+constexpr size_t LoraAppSessionKeyLength = 16;
+
+/**
  * LoRaWAN port for status messages.
  */
 constexpr uint8_t LoraStatusPort = 11;

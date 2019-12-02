@@ -166,6 +166,33 @@ bool StartupWorker::load_state(Storage &storage, Pool &pool) {
         gs.get()->lora.configured = true;
     }
 
+    auto app_session_key = pb_get_data_if_provided(record.lora.appSessionKey.arg, pool);
+    if (app_session_key != nullptr) {
+        FK_ASSERT(app_session_key->length == LoraAppSessionKeyLength);
+        FK_ASSERT(app_session_key->length == sizeof(gs.get()->lora.app_session_key));
+        memcpy(gs.get()->lora.app_session_key, app_session_key->buffer, app_session_key->length);
+        loginfo("(loaded) lora app session key: %s", pb_data_to_hex_string(app_session_key, pool));
+    }
+
+    auto network_session_key = pb_get_data_if_provided(record.lora.networkSessionKey.arg, pool);
+    if (network_session_key != nullptr) {
+        FK_ASSERT(network_session_key->length == LoraNetworkSessionKeyLength);
+        FK_ASSERT(network_session_key->length == sizeof(gs.get()->lora.network_session_key));
+        memcpy(gs.get()->lora.network_session_key, network_session_key->buffer, network_session_key->length);
+        loginfo("(loaded) lora network session key: %s", pb_data_to_hex_string(network_session_key, pool));
+    }
+
+    auto device_address = pb_get_data_if_provided(record.lora.deviceAddress.arg, pool);
+    if (device_address != nullptr) {
+        FK_ASSERT(device_address->length == LoraDeviceAddressLength);
+        FK_ASSERT(device_address->length == sizeof(gs.get()->lora.device_address));
+        memcpy(gs.get()->lora.device_address, device_address->buffer, device_address->length);
+        loginfo("(loaded) lora device address: %s", pb_data_to_hex_string(device_address, pool));
+    }
+
+    gs.get()->lora.uplink_counter = record.lora.uplinkCounter;
+    gs.get()->lora.downlink_counter = record.lora.downlinkCounter;
+
     auto networks_array = (pb_array_t *)record.network.networks.arg;
     if (networks_array->length > 0) {
         FK_ASSERT(networks_array->length <= MaximumNumberOfWifiNetworks);

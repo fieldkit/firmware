@@ -121,18 +121,42 @@ static bool configure(HttpServerConnection *connection, fk_app_HttpQuery *query,
     }
 
     if (query->loraSettings.modifying) {
-        auto app_key = (pb_data_t *)query->loraSettings.appKey.arg;
-        auto app_eui = (pb_data_t *)query->loraSettings.appEui.arg;
+        gsm.apply([&](GlobalState *gs) {
+            auto app_key = pb_get_data_if_provided(query->loraSettings.appKey.arg, pool);
+            auto app_eui = pb_get_data_if_provided(query->loraSettings.appEui.arg, pool);
+            auto app_session_key = pb_get_data_if_provided(query->loraSettings.appSessionKey.arg, pool);
+            auto network_session_key = pb_get_data_if_provided(query->loraSettings.networkSessionKey.arg, pool);
+            auto device_address = pb_get_data_if_provided(query->loraSettings.deviceAddress.arg, pool);
 
-        loginfo("lora app key: %s (%zd)", pb_data_to_hex_string(app_key, pool), app_key->length);
-        loginfo("lora app eui: %s (%zd)", pb_data_to_hex_string(app_eui, pool), app_eui->length);
+            if (app_eui != nullptr) {
+                loginfo("lora app eui: %s (%zd)", pb_data_to_hex_string(app_eui, pool), app_eui->length);
+                FK_ASSERT(app_eui->length == LoraAppEuiLength);
+                memcpy(gs->lora.app_eui, app_eui->buffer, LoraAppEuiLength);
+            }
 
-        gsm.apply([=](GlobalState *gs) {
-            FK_ASSERT(app_key->length == LoraAppKeyLength);
-            FK_ASSERT(app_eui->length == LoraAppEuiLength);
+            if (app_key != nullptr) {
+                loginfo("lora app key: %s (%zd)", pb_data_to_hex_string(app_key, pool), app_key->length);
+                FK_ASSERT(app_key->length == LoraAppKeyLength);
+                memcpy(gs->lora.app_key, app_key->buffer, LoraAppKeyLength);
+            }
 
-            memcpy(gs->lora.app_key, app_key->buffer, LoraAppKeyLength);
-            memcpy(gs->lora.app_eui, app_eui->buffer, LoraAppEuiLength);
+            if (app_session_key != nullptr) {
+                loginfo("lora app session key: %s (%zd)", pb_data_to_hex_string(app_session_key, pool), app_session_key->length);
+                FK_ASSERT(app_session_key->length == LoraAppSessionKeyLength);
+                memcpy(gs->lora.app_session_key, app_session_key->buffer, LoraAppSessionKeyLength);
+            }
+
+            if (network_session_key != nullptr) {
+                loginfo("lora network session key: %s (%zd)", pb_data_to_hex_string(network_session_key, pool), network_session_key->length);
+                FK_ASSERT(network_session_key->length == LoraNetworkSessionKeyLength);
+                memcpy(gs->lora.network_session_key, network_session_key->buffer, LoraNetworkSessionKeyLength);
+            }
+
+            if (device_address != nullptr) {
+                loginfo("lora device address: %s (%zd)", pb_data_to_hex_string(device_address, pool), device_address->length);
+                FK_ASSERT(device_address->length == LoraDeviceAddressLength);
+                memcpy(gs->lora.device_address, device_address->buffer, LoraDeviceAddressLength);
+            }
         });
     }
 
