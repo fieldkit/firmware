@@ -320,6 +320,15 @@ bool Rn2903::join(const char *app_session_key, const char *network_session_key, 
     return join("abp");
 }
 
+static bool is_string_all_zeros(const char *str) {
+    for (auto p = str; *p != 0; ++p) {
+        if (*p != '0') {
+            return false;
+        }
+    }
+    return true;
+}
+
 bool Rn2903::join(const char *mode) {
     if (!simple_query("mac join %s", 1000, mode)) {
         return false;
@@ -346,6 +355,10 @@ bool Rn2903::join(const char *mode) {
     }
 
     if (!simple_query("mac get devaddr", &line, 1000)) {
+        return false;
+    }
+
+    if (is_string_all_zeros(line)) {
         return false;
     }
 

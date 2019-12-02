@@ -82,9 +82,11 @@ bool LoraManager::join_if_necessary(Pool &pool) {
                 auto app_key = bytes_to_hex_string_pool(state.app_key, LoraAppKeyLength, pool);
                 auto app_eui = bytes_to_hex_string_pool(state.app_eui, LoraAppEuiLength, pool);
 
+                loginfo("joining via otaa");
+
                 joined = network_->join(app_eui, app_key);
             }
-            if (!is_null_byte_array(state.app_session_key, LoraAppSessionKeyLength) &&
+            else if (!is_null_byte_array(state.app_session_key, LoraAppSessionKeyLength) &&
                 !is_null_byte_array(state.network_session_key, LoraNetworkSessionKeyLength) &&
                 !is_null_byte_array(state.device_address, LoraDeviceAddressLength)) {
                 auto app_session_key = bytes_to_hex_string_pool(state.app_session_key, LoraAppSessionKeyLength, pool);
@@ -93,10 +95,17 @@ bool LoraManager::join_if_necessary(Pool &pool) {
                 auto uplink_counter = state.uplink_counter;
                 auto downlink_counter = state.downlink_counter;
 
+                loginfo("joining via abp");
+
                 joined = network_->join(app_session_key, network_session_key, device_address, uplink_counter, downlink_counter);
+            }
+            else {
+                logwarn("no configuration");
             }
         }
         else {
+            loginfo("resumed");
+
             joined = true;
         }
 
