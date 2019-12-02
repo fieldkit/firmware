@@ -163,7 +163,6 @@ bool StartupWorker::load_state(Storage &storage, Pool &pool) {
         FK_ASSERT(app_key->length == sizeof(gs.get()->lora.app_key));
         memcpy(gs.get()->lora.app_key, app_key->buffer, app_key->length);
         loginfo("(loaded) lora app key: %s", pb_data_to_hex_string(app_key, pool));
-        gs.get()->lora.configured = true;
     }
 
     auto app_session_key = pb_get_data_if_provided(record.lora.appSessionKey.arg, pool);
@@ -192,6 +191,14 @@ bool StartupWorker::load_state(Storage &storage, Pool &pool) {
 
     gs.get()->lora.uplink_counter = record.lora.uplinkCounter;
     gs.get()->lora.downlink_counter = record.lora.downlinkCounter;
+
+    if (app_key != nullptr) {
+        gs.get()->lora.configured = true;
+    }
+
+    if (app_session_key != nullptr && network_session_key != nullptr && device_address != nullptr) {
+        gs.get()->lora.configured = true;
+    }
 
     auto networks_array = (pb_array_t *)record.network.networks.arg;
     if (networks_array->length > 0) {
