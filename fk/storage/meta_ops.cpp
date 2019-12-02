@@ -54,10 +54,27 @@ tl::expected<uint32_t, Error> MetaOps::write_state(GlobalState const *gs, Pool &
             .length = sizeof(gs->lora.app_key),
             .buffer = gs->lora.app_key,
         });
+        auto app_session_key_data = pool.malloc_with<pb_data_t>({
+            .length = sizeof(gs->lora.app_session_key),
+            .buffer = gs->lora.app_session_key,
+        });
+        auto network_session_key_data = pool.malloc_with<pb_data_t>({
+            .length = sizeof(gs->lora.network_session_key),
+            .buffer = gs->lora.network_session_key,
+        });
+        auto device_address_data = pool.malloc_with<pb_data_t>({
+            .length = sizeof(gs->lora.device_address),
+            .buffer = gs->lora.device_address,
+        });
 
         record.lora.deviceEui.arg = (void *)device_eui_data;
         record.lora.appEui.arg = (void *)app_eui_data;
         record.lora.appKey.arg = (void *)app_key_data;
+        record.lora.appSessionKey.arg = (void *)app_session_key_data;
+        record.lora.networkSessionKey.arg = (void *)network_session_key_data;
+        record.lora.deviceAddress.arg = (void *)device_address_data;
+        record.lora.uplinkCounter= gs->lora.uplink_counter;
+        record.lora.downlinkCounter= gs->lora.downlink_counter;
     }
 
     auto networks = pool.malloc<fk_data_NetworkInfo>(MaximumNumberOfWifiNetworks);

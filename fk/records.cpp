@@ -70,6 +70,12 @@ fk_data_DataRecord fk_data_record_decoding_new(Pool &pool) {
     record.lora.appKey.arg = (void *)&pool;
     record.lora.deviceEui.funcs.decode = pb_decode_data;
     record.lora.deviceEui.arg = (void *)&pool;
+    record.lora.appSessionKey.funcs.decode = pb_decode_data;
+    record.lora.appSessionKey.arg = (void *)&pool;
+    record.lora.networkSessionKey.funcs.decode = pb_decode_data;
+    record.lora.networkSessionKey.arg = (void *)&pool;
+    record.lora.deviceAddress.funcs.decode = pb_decode_data;
+    record.lora.deviceAddress.arg = (void *)&pool;
     record.network.networks.funcs.decode = pb_decode_array;
     record.network.networks.arg = (void *)pool.malloc_with<pb_array_t>({
         .length = 0,
@@ -103,6 +109,9 @@ fk_data_DataRecord fk_data_record_encoding_new() {
     record.modules.funcs.encode = pb_encode_array;
     record.lora.appEui.funcs.encode = pb_encode_data;
     record.lora.appKey.funcs.encode = pb_encode_data;
+    record.lora.appSessionKey.funcs.encode = pb_encode_data;
+    record.lora.networkSessionKey.funcs.encode = pb_encode_data;
+    record.lora.deviceAddress.funcs.encode = pb_encode_data;
     record.lora.deviceEui.funcs.encode = pb_encode_data;
     record.network.networks.funcs.encode = pb_encode_array;
     record.schedule.readings.cron.funcs.encode = pb_encode_data;
@@ -134,6 +143,15 @@ fk_app_HttpQuery *fk_http_query_prepare_decoding(fk_app_HttpQuery *query, Pool *
 
     query->loraSettings.appKey.funcs.decode = pb_decode_data;
     query->loraSettings.appKey.arg = (void *)pool;
+
+    query->loraSettings.appSessionKey.funcs.decode = pb_decode_data;
+    query->loraSettings.appSessionKey.arg = (void *)pool;
+
+    query->loraSettings.networkSessionKey.funcs.decode = pb_decode_data;
+    query->loraSettings.networkSessionKey.arg = (void *)pool;
+
+    query->loraSettings.deviceAddress.funcs.decode = pb_decode_data;
+    query->loraSettings.deviceAddress.arg = (void *)pool;
 
     query->networkSettings.networks.funcs.decode = pb_decode_array;
     query->networkSettings.networks.arg = (void *)pool->malloc_with<pb_array_t>({
