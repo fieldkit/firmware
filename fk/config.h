@@ -372,6 +372,8 @@ typedef struct configuration_t {
         uint32_t lora_interval_debug{ 60 * 3 };
         uint32_t gps_interval_debug{ OneDaySeconds };
 
+        uint32_t lora_packet_delay{ TenSecondsMs };
+
         /**
          * Number of ms to try for a fix.
          */

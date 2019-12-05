@@ -51,6 +51,12 @@ void LoraWorker::run(Pool &pool) {
             // Next packet!
             packets = packets->link;
             tries = 0;
+
+            if (packets != nullptr) {
+                loginfo("lora packet delay (%" PRIu32 ")", fk_config().scheduler.lora_packet_delay);
+                fk_delay(fk_config().scheduler.lora_packet_delay);
+            }
+
             break;
         }
         case LoraErrorCode::NotJoined: {
