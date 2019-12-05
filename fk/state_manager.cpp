@@ -65,17 +65,27 @@ bool GlobalStateManager::initialize(Pool &pool) {
     bzero(gs.get()->lora.app_eui, sizeof(gs.get()->lora.app_eui));
     #endif
 
-    gs.get()->scheduler.readings.interval = fk_config().scheduler.readings_interval;
-    gs.get()->scheduler.readings.cron = lwcron::CronSpec::interval(fk_config().scheduler.readings_interval);
+    if (fk_debug_get_console_attached()) {
+        gs.get()->scheduler.readings.interval = fk_config().scheduler.readings_interval_debug;
+        gs.get()->scheduler.network.interval = fk_config().scheduler.network_interval_debug;
+        gs.get()->scheduler.gps.interval = fk_config().scheduler.gps_interval_debug;
+        gs.get()->scheduler.lora.interval = fk_config().scheduler.lora_interval_debug;
+        loginfo("using debug schedule");
+    }
+    else {
+        gs.get()->scheduler.readings.interval = fk_config().scheduler.readings_interval;
+        gs.get()->scheduler.network.interval = fk_config().scheduler.network_interval;
+        gs.get()->scheduler.gps.interval = fk_config().scheduler.gps_interval;
+        gs.get()->scheduler.lora.interval = fk_config().scheduler.lora_interval;
+        loginfo("using default schedule");
+    }
 
-    gs.get()->scheduler.network.interval = fk_config().scheduler.network_interval;
-    gs.get()->scheduler.network.cron = lwcron::CronSpec::interval(fk_config().scheduler.network_interval);
+    gs.get()->scheduler.readings.cron = lwcron::CronSpec::interval(gs.get()->scheduler.readings.interval);
+    gs.get()->scheduler.network.cron = lwcron::CronSpec::interval(gs.get()->scheduler.network.interval);
+    gs.get()->scheduler.gps.cron = lwcron::CronSpec::interval(gs.get()->scheduler.gps.interval);
+    gs.get()->scheduler.lora.cron = lwcron::CronSpec::interval(gs.get()->scheduler.lora.interval);
 
-    gs.get()->scheduler.gps.interval = fk_config().scheduler.gps_interval;
-    gs.get()->scheduler.gps.cron = lwcron::CronSpec::interval(fk_config().scheduler.gps_interval);
-
-    gs.get()->scheduler.lora.interval = fk_config().scheduler.lora_interval;
-    gs.get()->scheduler.lora.cron = lwcron::CronSpec::interval(fk_config().scheduler.lora_interval);
+    fk_dump_memory("LORA ", (uint8_t *)&gs.get()->scheduler.lora.cron, sizeof(gs.get()->scheduler.lora.cron));
 
     return true;
 }
