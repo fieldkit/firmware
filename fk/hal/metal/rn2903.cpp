@@ -366,6 +366,10 @@ bool Rn2903::join(const char *mode) {
 }
 
 bool Rn2903::send_bytes(uint8_t const *data, size_t size, uint8_t port, bool confirmed) {
+    if (!configure_sf(TTN_DEFAULT_SF)) {
+        return false;
+    }
+
     char hex[size * 2 + 1];
     bytes_to_hex_string(hex, sizeof(hex), data, size);
 
