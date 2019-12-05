@@ -3,8 +3,6 @@
 #include <inttypes.h>
 #include <string.h>
 
-#include "secrets.h"
-
 namespace fk {
 
 /**
@@ -267,6 +265,16 @@ constexpr size_t NumberOfWorkerTasks = 2;
  * True to enable dumping memory, hash comparisons, etc...
  */
 constexpr bool EnableMemoryDumps = false;
+
+/**
+ *
+ */
+struct LoraAbpSettings {
+    uint8_t device_eui[LoraDeviceEuiLength];
+    uint8_t device_address[LoraDeviceAddressLength];
+    uint8_t network_session_key[LoraNetworkSessionKeyLength];
+    uint8_t app_session_key[LoraAppSessionKeyLength];
+};
 
 /**
  * Runtime configuration informationthat is unavailable in the mobile

@@ -4,6 +4,7 @@ dependencies.cmake
 .python-setup
 build
 fk/secrets.h
+fk/secrets.cpp
 core.*
 .ccls-cache
 .clangd
