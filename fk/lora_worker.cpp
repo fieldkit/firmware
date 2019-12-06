@@ -39,13 +39,13 @@ void LoraWorker::run(Pool &pool) {
     }
 
     auto packets = *expected_packets;
-    auto tries = 0;
+    auto tries = 0u;
 
     if (!lora.begin()) {
         return;
     }
 
-    while (packets != nullptr && tries < 3) {
+    while (packets != nullptr && tries < LoraSendTries) {
         switch (lora.send_bytes(LoraDataPort, packets->buffer, packets->size)) {
         case LoraErrorCode::None: {
             // Next packet!

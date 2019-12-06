@@ -116,6 +116,11 @@ constexpr uint8_t LoraStatusPort = 11;
 constexpr uint8_t LoraDataPort = 10;
 
 /**
+ * Number of times to try a LoRa transmission.
+ */
+constexpr size_t LoraSendTries = 3;
+
+/**
  * Maximum length of a device's name.
  */
 constexpr size_t MaximumNameLength = 64;
