@@ -1,9 +1,13 @@
+#include <samd51_common.h>
+
 #include "readings_worker.h"
 #include "hal/hal.h"
 #include "readings_taker.h"
 #include "state_manager.h"
 
 namespace fk {
+
+static size_t failures = 0;
 
 FK_DECLARE_LOGGER("rw");
 
@@ -32,9 +36,14 @@ void ReadingsWorker::run(Pool &pool) {
     modules->readings_number = taken_readings->number;
 
     auto module_num = 0;
+    auto has_readings = false;
 
     for (auto &m : all_readings) {
         auto sensors = data_pool->malloc<SensorState>(m.sensors->nsensors);
+
+        if (m.meta->flags != FK_MODULES_FLAG_INTERNAL) {
+            has_readings = true;
+        }
 
         modules->readings.emplace(ModuleMetaAndReadings{
                 .position = m.position,
@@ -65,6 +74,18 @@ void ReadingsWorker::run(Pool &pool) {
         }
 
         module_num++;
+    }
+
+    if (!has_readings) {
+        failures++;
+    }
+    else {
+        failures = 0;
+    }
+
+    if (failures == 60) {
+        loginfo("too many empty readings, restarting");
+        fk_restart();
     }
 
     GlobalStateManager gsm;
