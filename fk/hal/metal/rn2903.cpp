@@ -366,24 +366,12 @@ bool Rn2903::join(const char *mode) {
 }
 
 bool Rn2903::send_bytes(uint8_t const *data, size_t size, uint8_t port, bool confirmed) {
-    if (!configure_sf(TTN_DEFAULT_SF)) {
-        return false;
-    }
-
     char hex[size * 2 + 1];
     bytes_to_hex_string(hex, sizeof(hex), data, size);
 
     const char *line = nullptr;
     const char *mode = confirmed ? "cnf" : "uncnf";
     if (!simple_query("mac tx %s %d %s", 1000, mode, port, hex)) {
-        if (error() == LoraErrorCode::DataLength) {
-            if (!simple_query("mac get dr", &line, 1000)) {
-                return false;
-            }
-            if (!configure_sf(TTN_DEFAULT_SF)) {
-                return false;
-            }
-        }
         return false;
     }
 

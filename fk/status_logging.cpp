@@ -14,6 +14,7 @@ FK_DECLARE_LOGGER("status");
 static void log_status() {
     auto gs = try_get_global_state_ro();
     if (!gs) {
+        loginfo("failed to get gs");
         return;
     }
 

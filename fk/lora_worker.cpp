@@ -59,6 +59,14 @@ void LoraWorker::run(Pool &pool) {
 
             break;
         }
+        case LoraErrorCode::DataLength: {
+            tries++;
+
+            loginfo("lora packet delay (%" PRIu32 ")", fk_config().scheduler.lora_packet_delay);
+            fk_delay(fk_config().scheduler.lora_packet_delay);
+
+            break;
+        }
         case LoraErrorCode::NotJoined: {
             tries++;
             // Try joining and then we'll transmit again.
@@ -66,11 +74,13 @@ void LoraWorker::run(Pool &pool) {
                 // Force the loop to end.
                 packets = nullptr;
             }
+
             break;
         }
         default: {
             // Force the loop to end.
             packets = nullptr;
+
             break;
         }
         }
