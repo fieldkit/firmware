@@ -439,7 +439,7 @@ SeekValue Storage::seek(SeekSettings settings) {
                     auto previous_address = address;
                     address = g.start_of_block(previous_address);
                     logdebug("[%d] " PRADDRESS " invalid head (resume " PRADDRESS ")", settings.file, previous_address, address);
-                    if (g.is_start_of_block_or_header(previous_address, SizeofBlockHeader)) {
+                    if (g.is_start_of_block_or_header(previous_address, SizeofBlockHeader) || g.is_start_of_block_or_header(address, SizeofBlockHeader)) {
                         return SeekValue{ };
                     }
                     continue;
