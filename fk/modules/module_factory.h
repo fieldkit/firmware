@@ -31,6 +31,8 @@ public:
 public:
     void clear();
 
+    tl::expected<ConstructedModule, Error> get(uint8_t bay);
+
     tl::expected<ConstructedModulesCollection, Error> create(ModuleScanning &scanning, ScanningContext &ctx, Pool &pool);
 
     uint32_t service_interval() const {

@@ -24,12 +24,17 @@ private:
         { "/fk/v1/download/meta", &download_handler_meta },
     };
 
-    ModuleHandler module_handler;
+    ModuleHandler module_handlers[4]{
+        { 0 },
+        { 1 },
+        { 2 },
+        { 3 },
+    };
     HttpRoute modules[4]{
-        { "/fk/v1/module/0", &module_handler },
-        { "/fk/v1/module/1", &module_handler },
-        { "/fk/v1/module/2", &module_handler },
-        { "/fk/v1/module/4", &module_handler },
+        { "/fk/v1/module/0", &module_handlers[0] },
+        { "/fk/v1/module/1", &module_handlers[1] },
+        { "/fk/v1/module/2", &module_handlers[2] },
+        { "/fk/v1/module/3", &module_handlers[3] },
     };
 
 public:

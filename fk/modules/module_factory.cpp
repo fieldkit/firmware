@@ -19,6 +19,16 @@ ModuleFactory::ModuleFactory() {
 ModuleFactory::~ModuleFactory() {
 }
 
+tl::expected<ConstructedModule, Error> ModuleFactory::get(uint8_t bay) {
+    for (auto &m : modules_) {
+        if (m.found.position == bay) {
+            return m;
+        }
+    }
+
+    return tl::unexpected<Error>(Error::General);
+}
+
 tl::expected<ConstructedModulesCollection, Error> ModuleFactory::create(ModuleScanning &scanning, ScanningContext &ctx, Pool &pool) {
     auto module_headers = scanning.scan(pool);
     if (!module_headers) {
