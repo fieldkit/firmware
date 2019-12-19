@@ -30,6 +30,12 @@ bool UltrasonicModule::initialize(ModuleContext mc, Pool &pool) {
     return true;
 }
 
+bool UltrasonicModule::api(HttpServerConnection *connection, Pool &pool) {
+    connection->busy(0, "unsupported");
+
+    return true;
+}
+
 bool UltrasonicModule::service(ModuleContext mc, Pool &pool) {
     return true;
 }

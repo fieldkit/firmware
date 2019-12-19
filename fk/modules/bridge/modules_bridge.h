@@ -5,10 +5,13 @@
 #include "hal/board.h"
 #include "hal/modmux.h"
 
+#include "networking/http_connection.h"
+
 namespace fk {
 
 class GlobalState;
 class ModuleContext;
+class HttpServerConnection;
 
 class ScanningContext {
 private:
@@ -169,6 +172,7 @@ public:
     virtual ModuleSensors const *get_sensors(Pool &pool) = 0;
     virtual ModuleConfiguration get_configuration(Pool &pool) = 0;
     virtual bool service(ModuleContext mc, Pool &pool) = 0;
+    virtual bool api(HttpServerConnection *connection, Pool &pool) = 0;
 
 };
 

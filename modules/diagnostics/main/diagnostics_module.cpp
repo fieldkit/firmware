@@ -22,6 +22,12 @@ bool DiagnosticsModule::initialize(ModuleContext mc, Pool &pool) {
     return true;
 }
 
+bool DiagnosticsModule::api(HttpServerConnection *connection, Pool &pool) {
+    connection->busy(0, "unsupported");
+
+    return true;
+}
+
 bool DiagnosticsModule::service(ModuleContext mc, Pool &pool) {
     return true;
 }

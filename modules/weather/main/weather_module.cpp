@@ -103,6 +103,12 @@ bool WeatherModule::initialize(ModuleContext mc, Pool &pool) {
     return true;
 }
 
+bool WeatherModule::api(HttpServerConnection *connection, Pool &pool) {
+    connection->busy(0, "unsupported");
+
+    return true;
+}
+
 bool WeatherModule::service(ModuleContext mc, Pool &pool) {
     if (fk_uptime() - serviced_ < 1000) {
         loginfo("servicing skipped");

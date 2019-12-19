@@ -7,6 +7,12 @@ bool RandomModule::initialize(ModuleContext mc, Pool &pool) {
     return true;
 }
 
+bool RandomModule::api(HttpServerConnection *connection, Pool &pool) {
+    connection->busy(0, "unsupported");
+
+    return true;
+}
+
 bool RandomModule::service(ModuleContext mc, Pool &pool) {
     return true;
 }

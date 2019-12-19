@@ -45,6 +45,15 @@ function(fk_add_builtin_module name)
   # TODO: REMOVE
   find_package(nanopb)
   target_link_libraries(${target_name} nanopb)
+
+  # TODO: REMOVE
+  find_package(HttpParser)
+  target_link_libraries(${target_name} HttpParser)
+
+  # TODO: REMOVE
+  find_package(Protocols)
+  target_link_libraries(${target_name} app-protocol)
+  target_link_libraries(${target_name} data-protocol)
 endfunction()
 
 if(${FK_TARGET_PIC})

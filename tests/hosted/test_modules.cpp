@@ -16,6 +16,10 @@ public:
         return true;
     }
 
+    bool api(HttpServerConnection *connection, Pool &pool) {
+        return true;
+    }
+
     bool service(ModuleContext mc, Pool &pool) {
         return true;
     }
@@ -58,6 +62,10 @@ static ModuleSensors fk_module_fake_1_sensors = {
 class FakeModule1 : public Module {
 public:
     bool initialize(ModuleContext mc, Pool &pool) override {
+        return true;
+    }
+
+    bool api(HttpServerConnection *connection, Pool &pool) {
         return true;
     }
 
@@ -114,6 +122,10 @@ static ModuleSensors fk_module_fake_2_sensors = {
 class FakeModule2 : public Module {
 public:
     bool initialize(ModuleContext mc, Pool &pool) override {
+        return true;
+    }
+
+    bool api(HttpServerConnection *connection, Pool &pool) {
         return true;
     }
 

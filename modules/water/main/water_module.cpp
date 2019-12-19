@@ -17,6 +17,12 @@ bool WaterModule::initialize(ModuleContext mc, Pool &pool) {
     return true;
 }
 
+bool WaterModule::api(HttpServerConnection *connection, Pool &pool) {
+    connection->busy(0, "unsupported");
+
+    return true;
+}
+
 bool WaterModule::service(ModuleContext mc, Pool &pool) {
     return true;
 }

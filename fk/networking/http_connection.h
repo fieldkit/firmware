@@ -2,6 +2,7 @@
 
 #include "networking/connection.h"
 #include "networking/routing.h"
+#include "networking/req.h"
 
 namespace fk {
 
