@@ -142,6 +142,11 @@ constexpr size_t GenerationLength = 32;
 constexpr size_t DefaultWorkerPoolSize = 8192;
 
 /**
+ * Size of the circular buffer that stores logs.
+ */
+constexpr size_t InMemoryLogBufferSize = 32768;
+
+/**
  * Maximum number of WiFi networks.
  * \todo: Eventually this should be relaxed.
  */

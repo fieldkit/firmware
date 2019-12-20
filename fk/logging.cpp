@@ -18,8 +18,8 @@ static char logs_buffer[BUFFER_SIZE_UP];
 static bool logs_flushing{ false };
 static circular_buffer<char> logs{ logs_buffer, BUFFER_SIZE_UP };
 
-static char lb_buffer[BUFFER_SIZE_UP];
-static log_buffer lb{ lb_buffer, BUFFER_SIZE_UP };
+static char lb_buffer[InMemoryLogBufferSize];
+static log_buffer lb{ lb_buffer, InMemoryLogBufferSize };
 
 static void write_logs_buffer(char c, void *arg) {
     if (logs.full()) {
@@ -128,6 +128,24 @@ bool fk_logging_initialize() {
     }
 
     logs_rtt_enabled = has_rtt_reader;
+
+    return true;
+}
+
+bool fk_logging_dump_buffer() {
+    SEGGER_RTT_LOCK();
+
+    SEGGER_RTT_WriteString(0, RTT_CTRL_RESET "\n");
+
+    for (auto c : lb) {
+        if (c != 0) {
+            SEGGER_RTT_PutChar(0, c);
+        }
+    }
+
+    SEGGER_RTT_WriteString(0, RTT_CTRL_RESET "\n");
+
+    SEGGER_RTT_UNLOCK();
 
     return true;
 }
