@@ -178,6 +178,11 @@ constexpr size_t CodeMemoryPageSize = 512;
 constexpr size_t CodeMemoryBlockSize = 8192;
 
 /**
+ *
+ */
+constexpr size_t StackBufferSize = 128;
+
+/**
  * This is the theorhetical maximum number of modules that can be physically
  * connected to a single station. This is governed by the largest backplanes and
  * their possible combinations.

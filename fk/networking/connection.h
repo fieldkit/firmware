@@ -49,6 +49,10 @@ public:
         return (fk_uptime() - activity()) < NetworkConnectionMaximumDuration;
     }
 
+    Pool *pool() {
+        return pool_;
+    }
+
 };
 
 }

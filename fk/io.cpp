@@ -9,7 +9,7 @@ static void write_buffered_writer(char c, void *arg) {
     reinterpret_cast<BufferedWriter*>(arg)->write(c);
 }
 
-BufferedWriter::BufferedWriter(Writer *writer) : writer_(writer) {
+BufferedWriter::BufferedWriter(Writer *writer, uint8_t *buffer, size_t size) : writer_(writer), buffer_(buffer), buffer_size_(size) {
 }
 
 BufferedWriter::~BufferedWriter() {
@@ -64,7 +64,7 @@ int32_t BufferedWriter::flush() {
     return position_;
 }
 
-BufferedReader::BufferedReader(Reader *reader) : reader_(reader) {
+BufferedReader::BufferedReader(Reader *reader, uint8_t *buffer, size_t size) : reader_(reader), buffer_(buffer), buffer_size_(size) {
 }
 
 BufferedReader::~BufferedReader() {

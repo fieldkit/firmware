@@ -138,7 +138,7 @@ void DownloadWorker::run(Pool &pool) {
 }
 
 bool DownloadWorker::write_headers(HeaderInfo header_info) {
-    BufferedWriter buffered{ connection_ };
+    StackBufferedWriter<StackBufferSize> buffered{ connection_ };
 
     auto status = connection_->is_head_method() ? 204 : 200;
 

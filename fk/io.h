@@ -20,13 +20,13 @@ public:
 class BufferedWriter : public Writer {
 private:
     Writer *writer_;
-    uint8_t buffer_[128];
-    size_t buffer_size_{ 128 };
+    uint8_t *buffer_;
+    size_t buffer_size_;
     size_t position_{ 0 };
     int32_t return_value_{ 0 };
 
 public:
-    BufferedWriter(Writer *writer);
+    BufferedWriter(Writer *writer, uint8_t *buffer, size_t size);
     virtual ~BufferedWriter();
 
 public:
@@ -40,17 +40,28 @@ public:
 class BufferedReader : public Reader {
 private:
     Reader *reader_;
-    uint8_t buffer_[128];
-    size_t buffer_size_{ 128 };
+    uint8_t *buffer_;
+    size_t buffer_size_;
     size_t position_{ 0 };
     size_t bytes_read_{ 0 };
 
 public:
-    BufferedReader(Reader *reader);
+    BufferedReader(Reader *reader, uint8_t *buffer, size_t size);
     virtual ~BufferedReader();
 
 public:
     int32_t read(uint8_t *buffer, size_t size) override;
+
+};
+
+template<size_t Size>
+class StackBufferedWriter : public BufferedWriter {
+private:
+    uint8_t buffer_[Size];
+
+public:
+    StackBufferedWriter(Writer *writer) : BufferedWriter(writer, buffer_, Size) {
+    }
 
 };
 

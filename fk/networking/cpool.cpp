@@ -124,11 +124,4 @@ void ConnectionPool::free_connection(uint16_t index) {
     pools_[index] = nullptr;
 }
 
-
-DebugServerConnection::DebugServerConnection(Pool *pool, NetworkConnection *conn, uint32_t number) : Connection(pool, conn, number) {
-}
-
-DebugServerConnection::~DebugServerConnection() {
-}
-
 }

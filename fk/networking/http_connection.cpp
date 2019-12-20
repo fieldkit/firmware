@@ -124,7 +124,7 @@ int32_t HttpServerConnection::write(int32_t statusCode, const char *message, fk_
 
     logdebug("[%" PRIu32 "] headers done (%" PRIu32 "ms)", number_, fk_uptime() - started);
 
-    BufferedWriter buffered{ this };
+    StackBufferedWriter<StackBufferSize> buffered{ this };
     Base64Writer b64_writer{ &buffered };
     Writer *writer = &buffered;
 

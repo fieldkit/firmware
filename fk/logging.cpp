@@ -6,10 +6,12 @@
 #include "platform.h"
 #include "config.h"
 #include "circular_buffer.h"
-#include "log_buffer.h"
 #include "hal/sd_card.h"
 
 namespace fk {
+
+static char lb_buffer[InMemoryLogBufferSize];
+static log_buffer lb{ lb_buffer, InMemoryLogBufferSize };
 
 #if defined(__SAMD51__)
 
@@ -17,9 +19,6 @@ static bool logs_rtt_enabled = true;
 static char logs_buffer[BUFFER_SIZE_UP];
 static bool logs_flushing{ false };
 static circular_buffer<char> logs{ logs_buffer, BUFFER_SIZE_UP };
-
-static char lb_buffer[InMemoryLogBufferSize];
-static log_buffer lb{ lb_buffer, InMemoryLogBufferSize };
 
 static void write_logs_buffer(char c, void *arg) {
     if (logs.full()) {
@@ -151,5 +150,9 @@ bool fk_logging_dump_buffer() {
 }
 
 #endif
+
+log_buffer &fk_log_buffer() {
+    return lb;
+}
 
 }
