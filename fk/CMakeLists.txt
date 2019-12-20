@@ -54,6 +54,7 @@ function(fk_add_builtin_module name)
   find_package(Protocols)
   target_link_libraries(${target_name} app-protocol)
   target_link_libraries(${target_name} data-protocol)
+  target_link_libraries(${target_name} atlas-protocol)
 endfunction()
 
 if(${FK_TARGET_PIC})

@@ -68,7 +68,7 @@ int32_t HttpServerConnection::busy(uint32_t delay, const char *message) {
 
     logwarn("[%" PRIu32 "] busy reply '%s'", number_, message);
 
-    return write(503, message, &reply);
+    return write(503, message, &reply, fk_app_HttpReply_fields);
 }
 
 int32_t HttpServerConnection::error(const char *message) {
@@ -94,19 +94,18 @@ int32_t HttpServerConnection::error(const char *message) {
 
     logwarn("[%" PRIu32 "] error reply '%s'", number_, message);
 
-    return write(500, message, &reply);
+    return write(500, message, &reply, fk_app_HttpReply_fields);
 }
 
 int32_t HttpServerConnection::write(fk_app_HttpReply const *reply) {
-    return write(200, "OK", reply);
+    return write(200, "OK", reply, fk_app_HttpReply_fields);
 }
 
-int32_t HttpServerConnection::write(int32_t statusCode, const char *message, fk_app_HttpReply const *reply) {
+int32_t HttpServerConnection::write(int32_t status_code, const char *status_message, void const *record, pb_msgdesc_t const *fields) {
     auto started = fk_uptime();
 
     size_t size = 0;
-    auto fields = fk_app_HttpReply_fields;
-    if (!pb_get_encoded_size(&size, fields, reply)) {
+    if (!pb_get_encoded_size(&size, fields, record)) {
         return fault();
     }
 
@@ -116,7 +115,7 @@ int32_t HttpServerConnection::write(int32_t statusCode, const char *message, fk_
 
     logdebug("[%" PRIu32 "] replying (%zd bytes)", number_, content_size);
 
-    bytes_tx_ += conn_->writef("HTTP/1.1 %" PRId32 " %s\n", statusCode, message);
+    bytes_tx_ += conn_->writef("HTTP/1.1 %" PRId32 " %s\n", status_code, status_message);
     bytes_tx_ += conn_->writef("Content-Length: %zu\n", content_size);
     bytes_tx_ += conn_->writef("Content-Type: %s\n", "application/octet-stream");
     bytes_tx_ += conn_->write("Connection: close\n");
@@ -133,7 +132,7 @@ int32_t HttpServerConnection::write(int32_t statusCode, const char *message, fk_
     }
 
     auto ostream = pb_ostream_from_writable(writer);
-    if (!pb_encode_delimited(&ostream, fields, reply)) {
+    if (!pb_encode_delimited(&ostream, fields, record)) {
         return content_size;
     }
 
