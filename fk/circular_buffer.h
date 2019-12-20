@@ -21,17 +21,13 @@ public:
     struct iterator {
         size_t size;
         T *buf;
-        size_t head;
         size_t index;
 
-        iterator(size_t size, T *buf, size_t head, size_t index) : size(size), buf(buf), head(head), index(index) {
+        iterator(size_t size, T *buf, size_t index) : size(size), buf(buf), index(index) {
         }
 
         iterator operator++() {
             index = (index + 1) % size;
-            if (index == head) {
-                index = size;
-            }
             return *this;
         }
 
@@ -57,19 +53,19 @@ public:
         if (empty()) {
             return end();
         }
-        return iterator{ max_size_, buf_, head_, tail_ };
+        return iterator{ max_size_, buf_, tail_ };
     }
 
     iterator end() {
-        return iterator{ 0, 0, head_, max_size_ };
+        return iterator{ max_size_, buf_, head_ };
     }
 
     iterator head() {
-        return iterator{ 0, 0, max_size_, head_ };
+        return iterator{ max_size_, buf_, head_ };
     }
 
     iterator tail() {
-        return iterator{ 0, 0, max_size_, tail_ };
+        return iterator{ max_size_, buf_, tail_ };
     }
 
     void zero() {

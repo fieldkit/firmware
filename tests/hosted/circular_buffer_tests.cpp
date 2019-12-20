@@ -87,6 +87,45 @@ TEST_F(CircularBufferSuite, AppendingReadWrappingRead) {
     ASSERT_STREQ(message, "");
 }
 
+template<typename T>
+static void read_until_end(T &iter, T end, char *buffer, size_t sz) {
+    auto index = 0u;
+    for (; iter != end; ++iter) {
+        if (index < sz - 1) {
+            if (*iter != 0) {
+                buffer[index++] = *iter;
+            }
+        }
+    }
+    buffer[index++] = 0;
+}
+
+TEST_F(CircularBufferSuite, ResumingIterators) {
+    char message[128];
+    char buffer[128];
+    log_buffer logs{ buffer, sizeof(buffer) };
+
+    auto iter1 = logs.tail();
+    auto iter2 = logs.tail();
+
+    logs.append("Jacob1");
+    logs.append("Jacob2");
+
+    read_until_end(iter1, logs.end(), message, sizeof(message));
+
+    ASSERT_STREQ(message, "Jacob1Jacob2");
+
+    logs.append("Jacob3");
+
+    read_until_end(iter1, logs.end(), message, sizeof(message));
+
+    ASSERT_STREQ(message, "Jacob3");
+
+    read_until_end(iter2, logs.end(), message, sizeof(message));
+
+    ASSERT_STREQ(message, "Jacob1Jacob2Jacob3");
+}
+
 static void dump_buffer(const char *buffer, size_t size) {
     printf("'");
     for (auto i = 0u; i < size; ++i) {
