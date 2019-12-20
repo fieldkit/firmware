@@ -116,6 +116,12 @@ void ConnectionPool::update_statistics(Connection *c) {
 
     bytes_rx_ += rx;
     bytes_tx_ += tx;
+
+    // Use connection's activity time, this makes us stay running if
+    // we've got a debug connection.
+    if (c->activity_ > activity_) {
+        activity_ = c->activity_;
+    }
 }
 
 void ConnectionPool::free_connection(uint16_t index) {
