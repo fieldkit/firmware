@@ -10,30 +10,23 @@
 
 namespace fk {
 
-static char lb_buffer[InMemoryLogBufferSize];
-static log_buffer lb{ lb_buffer, InMemoryLogBufferSize };
+static char logs_buffer[InMemoryLogBufferSize];
+static log_buffer logs{ logs_buffer, InMemoryLogBufferSize };
 
 #if defined(__SAMD51__)
 
 static bool logs_rtt_enabled = true;
-static char logs_buffer[BUFFER_SIZE_UP];
 static bool logs_flushing{ false };
-static circular_buffer<char> logs{ logs_buffer, BUFFER_SIZE_UP };
 
 static void write_logs_buffer(char c, void *arg) {
+    auto app = reinterpret_cast<log_buffer::appender *>(arg);
+
     if (logs.full()) {
         logs_flushing = true;
         get_sd_card()->append_logs(logs);
         logs.clear();
         logs_flushing = false;
     }
-    if (c != 0) {
-        logs.append(c);
-    }
-}
-
-static void write_lb_buffer(char c, void *arg) {
-    auto app = reinterpret_cast<log_buffer::appender *>(arg);
 
     if (c != 0) {
         app->append(c);
@@ -72,15 +65,11 @@ size_t write_log(LogMessage const *m, const char *fstring, va_list args) {
     }
 
     if (!logs_flushing) {
-        tiny_fctprintf(write_logs_buffer, nullptr, plain_fs, m->uptime, task, level, m->facility);
-        tiny_vfctprintf(write_logs_buffer, nullptr, fstring, args);
-        tiny_fctprintf(write_logs_buffer, nullptr, "\n");
+        auto app = logs.start();
 
-        auto app = lb.start();
-
-        tiny_fctprintf(write_lb_buffer, &app, plain_fs, m->uptime, task, level, m->facility);
-        tiny_vfctprintf(write_lb_buffer, &app, fstring, args);
-        tiny_fctprintf(write_lb_buffer, &app, "\n");
+        tiny_fctprintf(write_logs_buffer, &app, plain_fs, m->uptime, task, level, m->facility);
+        tiny_vfctprintf(write_logs_buffer, &app, fstring, args);
+        tiny_fctprintf(write_logs_buffer, &app, "\n");
 
         app.append((char)0);
     }
@@ -136,11 +125,13 @@ bool fk_logging_dump_buffer() {
 
     SEGGER_RTT_WriteString(0, RTT_CTRL_RESET "\n");
 
-    for (auto c : lb) {
+    for (auto c : logs) {
         if (c != 0) {
             SEGGER_RTT_PutChar(0, c);
         }
     }
+
+    logs.zero();
 
     SEGGER_RTT_WriteString(0, RTT_CTRL_RESET "\n");
 
@@ -152,7 +143,7 @@ bool fk_logging_dump_buffer() {
 #endif
 
 log_buffer &fk_log_buffer() {
-    return lb;
+    return logs;
 }
 
 }
