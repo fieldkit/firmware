@@ -6,6 +6,7 @@
 #include "platform.h"
 #include "config.h"
 #include "circular_buffer.h"
+#include "log_buffer.h"
 #include "hal/sd_card.h"
 
 namespace fk {
@@ -17,7 +18,10 @@ static char logs_buffer[BUFFER_SIZE_UP];
 static bool logs_flushing{ false };
 static circular_buffer<char> logs{ logs_buffer, BUFFER_SIZE_UP };
 
-static void write_circular_buffer(char c, void *arg) {
+static char lb_buffer[BUFFER_SIZE_UP];
+static log_buffer lb{ lb_buffer, BUFFER_SIZE_UP };
+
+static void write_logs_buffer(char c, void *arg) {
     if (logs.full()) {
         logs_flushing = true;
         get_sd_card()->append_logs(logs);
@@ -26,6 +30,14 @@ static void write_circular_buffer(char c, void *arg) {
     }
     if (c != 0) {
         logs.append(c);
+    }
+}
+
+static void write_lb_buffer(char c, void *arg) {
+    auto app = reinterpret_cast<log_buffer::appender *>(arg);
+
+    if (c != 0) {
+        app->append(c);
     }
 }
 
@@ -61,9 +73,17 @@ size_t write_log(LogMessage const *m, const char *fstring, va_list args) {
     }
 
     if (!logs_flushing) {
-        tiny_fctprintf(write_circular_buffer, nullptr, plain_fs, m->uptime, task, level, m->facility);
-        tiny_vfctprintf(write_circular_buffer, nullptr, fstring, args);
-        tiny_fctprintf(write_circular_buffer, nullptr, "\n");
+        tiny_fctprintf(write_logs_buffer, nullptr, plain_fs, m->uptime, task, level, m->facility);
+        tiny_vfctprintf(write_logs_buffer, nullptr, fstring, args);
+        tiny_fctprintf(write_logs_buffer, nullptr, "\n");
+
+        auto app = lb.start();
+
+        tiny_fctprintf(write_lb_buffer, &app, plain_fs, m->uptime, task, level, m->facility);
+        tiny_vfctprintf(write_lb_buffer, &app, fstring, args);
+        tiny_fctprintf(write_lb_buffer, &app, "\n");
+
+        app.append((char)0);
     }
 
     SEGGER_RTT_UNLOCK();

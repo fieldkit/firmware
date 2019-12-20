@@ -12,29 +12,54 @@ public:
     using circular_buffer<char>::append;
     using circular_buffer<char>::get;
 
-    void append(const char *str) {
-        auto overwrote = false;
+    struct appender {
+    private:
+        log_buffer *lb;
+        bool overwrote{ false };
 
-        for (auto p = str; *p; ++p) {
-            if (!overwrote && peek_head() != 0) {
+    public:
+        appender(log_buffer *lb) : lb(lb) {
+        }
+
+    public:
+        void append(char c) {
+            if (!overwrote && lb->peek_head() != 0) {
                 overwrote = true;
             }
-            append(*p);
-        }
 
-        append((char)0);
+            lb->append(c);
 
-        // Consume any message we overwrote;
-        if (overwrote) {
-            auto skipped = 0u;
-            while (peek_tail() != 0) {
-                get();
-                skipped++;
-            }
-            if (skipped > 0) {
-                get();
+            if (c == 0) {
+                done();
             }
         }
+
+        void done() {
+            if (overwrote) {
+                auto skipped = 0u;
+                while (lb->peek_tail() != 0) {
+                    lb->get();
+                    skipped++;
+                }
+                if (skipped > 0) {
+                    lb->get();
+                }
+            }
+        }
+    };
+
+    appender start() {
+        return { this };
+    }
+
+    void append(const char *str) {
+        auto app = start();
+
+        for (auto p = str; *p; ++p) {
+            app.append(*p);
+        }
+
+        app.append((char)0);
     }
 
     size_t get(char *str, size_t size) {
