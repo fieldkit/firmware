@@ -23,13 +23,17 @@ bool DebugServerConnection::service() {
         return true;
     }
 
+    SEGGER_RTT_LOCK();
+
     for (auto c : lb) {
         writer_.write(c);
     }
 
-    writer_.flush();
-
     lb.zero();
+
+    SEGGER_RTT_UNLOCK();
+
+    writer_.flush();
 
     return true;
 }
