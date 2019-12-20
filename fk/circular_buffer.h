@@ -74,6 +74,9 @@ public:
 
     void zero() {
         bzero(buf_, max_size_);
+        head_ = 0;
+        tail_ = 0;
+        full_ = false;
     }
 
     void skip(iterator i) {
