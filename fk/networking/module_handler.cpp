@@ -9,8 +9,8 @@ ModuleHandler::ModuleHandler(uint8_t bay) : bay_(bay) {
 bool ModuleHandler::handle(HttpServerConnection *connection, Pool &pool) {
     auto &factory = get_module_factory();
 
-    auto module = factory.get(bay_);
-    if (!module) {
+    auto constructed = factory.get(bay_);
+    if (!constructed) {
         connection->error("invalid module");
         return true;
     }
@@ -27,7 +27,9 @@ bool ModuleHandler::handle(HttpServerConnection *connection, Pool &pool) {
         return true;
     }
 
-    connection->busy(0, "busy");
+    if (!constructed->module->api(connection, pool)) {
+        return false;
+    }
 
     return true;
 }
