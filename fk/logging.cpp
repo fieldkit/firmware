@@ -24,7 +24,7 @@ static void write_logs_buffer(char c, void *arg) {
     if (logs.full()) {
         logs_flushing = true;
         get_sd_card()->append_logs(logs);
-        logs.clear();
+        logs.zero();
         logs_flushing = false;
     }
 
