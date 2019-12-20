@@ -20,10 +20,13 @@ using namespace fk;
 
 FK_DECLARE_LOGGER("main");
 
-static void scan_i2c_radio_bus() __attribute__((unused)); 
-static void scan_i2c_module_bus() __attribute__((unused)); 
+static void scan_i2c_radio_bus() __attribute__((unused));
+static void scan_i2c_module_bus() __attribute__((unused));
 
 static void run_tasks() {
+    uint32_t stack_size = (4096 + 2048) / sizeof(uint32_t);
+
+
     /**
      * This is very deliberate. By placing these on the stack this way, we
      * ensure that the stack pointer relative to the heap location is as
@@ -32,12 +35,12 @@ static void run_tasks() {
      * Declaring these static, for example, will cause them to be placed in the
      * .data section, which is below the heap in memory.
      */
-    uint32_t idle_stack[5120 / sizeof(uint32_t)];
-    uint32_t scheduler_stack[5120 / sizeof(uint32_t)];
-    uint32_t display_stack[5120 / sizeof(uint32_t)];
-    uint32_t gps_stack[5120 / sizeof(uint32_t)];
-    uint32_t worker_stacks[NumberOfWorkerTasks][5120 / sizeof(uint32_t)];
-    uint32_t network_stack[5120 / sizeof(uint32_t)];
+    uint32_t idle_stack[stack_size];
+    uint32_t scheduler_stack[stack_size];
+    uint32_t display_stack[stack_size];
+    uint32_t gps_stack[stack_size];
+    uint32_t worker_stacks[NumberOfWorkerTasks][stack_size];
+    uint32_t network_stack[stack_size];
 
     auto total_stacks = sizeof(idle_stack) +
         sizeof(scheduler_stack) +
