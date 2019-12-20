@@ -1,29 +1,10 @@
 #include "water_module.h"
 #include "platform.h"
-#include "atlas_protocol.h"
+#include "atlas_api.h"
 
 using namespace fk;
 
 FK_DECLARE_LOGGER("water");
-
-class AtlasApiReply {
-private:
-    Pool *pool_;
-    fk_atlas_WireAtlasReply reply_;
-
-public:
-    AtlasApiReply(Pool &pool);
-
-public:
-    fk_atlas_WireAtlasReply const *reply() {
-        return fk_atlas_reply_prepare_encoding(&reply_, pool_);
-    }
-
-};
-
-AtlasApiReply::AtlasApiReply(Pool &pool) : pool_(&pool) {
-    reply_ = fk_atlas_WireAtlasReply_init_default;
-}
 
 bool WaterModule::initialize(ModuleContext mc, Pool &pool) {
     auto atlas = OemAtlas{ mc.module_bus() };
@@ -38,23 +19,8 @@ bool WaterModule::initialize(ModuleContext mc, Pool &pool) {
 }
 
 bool WaterModule::api(HttpServerConnection *connection, Pool &pool) {
-    Reader *reader = connection;
-
-    auto query = fk_atlas_query_prepare_decoding(pool.malloc<fk_atlas_WireAtlasQuery>(), &pool);
-    auto stream = pb_istream_from_readable(reader);
-    if (!pb_decode_delimited(&stream, fk_app_HttpQuery_fields, query)) {
-        logwarn("error parsing query (%" PRIu32 ")", connection->length());
-        connection->error("error parsing query");
-        return true;
-    }
-
-    AtlasApiReply reply{ pool };
-
-    connection->write(200, "ok", reply.reply(), fk_atlas_WireAtlasReply_fields);
-
-    connection->close();
-
-    return true;
+    AtlasApi api;
+    return api.handle(connection, pool);
 }
 
 bool WaterModule::service(ModuleContext mc, Pool &pool) {
