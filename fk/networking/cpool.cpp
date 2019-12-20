@@ -50,8 +50,8 @@ void ConnectionPool::service() {
                 update_statistics(c);
 
                 if (activity_elapsed < NetworkConnectionMaximumDuration) {
-                    loginfo("[%" PRIu32 "] [%zd] active (%" PRIu32 "ms) (%" PRIu32 "ms) (%" PRIu32 " down) (%" PRIu32 " up)",
-                            c->number_, i, activity_elapsed, started_elapsed, c->bytes_rx_, c->bytes_tx_);
+                    logtrace("[%" PRIu32 "] [%zd] active (%" PRIu32 "ms) (%" PRIu32 "ms) (%" PRIu32 " down) (%" PRIu32 " up)",
+                             c->number_, i, activity_elapsed, started_elapsed, c->bytes_rx_, c->bytes_tx_);
                 }
                 else {
                     logwarn("[%" PRIu32 "] [%zd] killing (%" PRIu32 "ms) (%" PRIu32 "ms) (%" PRIu32 " down) (%" PRIu32 " up)",

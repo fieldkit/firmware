@@ -212,7 +212,12 @@ constexpr size_t HttpdMaximumUrlLength = 64;
  */
 constexpr uint32_t NetworkConnectionTimeoutMs = 30 * 1000;
 
-constexpr uint32_t NetworkConnectionMaximumDuration = FiveSecondsMs;
+/**
+ * Maximum duration to allow an inactive connection open. This is
+ * adjusted to be higher than the status message frequency so that
+ * debug connections aren't killed prematurely.
+ */
+constexpr uint32_t NetworkConnectionMaximumDuration = TenSecondsMs;
 
 /**
  * Buffer size for storing GPS sentences for debugging purposes.
