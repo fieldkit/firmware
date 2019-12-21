@@ -4,7 +4,7 @@ namespace fk {
 
 FK_DECLARE_LOGGER("water");
 
-AtlasApi::AtlasApi() {
+AtlasApi::AtlasApi(AtlasSensorType type) : type_(type) {
 }
 
 bool AtlasApi::handle(HttpServerConnection *connection, Pool &pool) {
@@ -16,6 +16,21 @@ bool AtlasApi::handle(HttpServerConnection *connection, Pool &pool) {
         logwarn("error parsing query (%" PRIu32 ")", connection->length());
         connection->error("error parsing query");
         return true;
+    }
+
+    switch (query->calibration.operation) {
+    case fk_atlas_CalibrationOperation_CALIBRATION_STATUS: {
+        break;
+    }
+    case fk_atlas_CalibrationOperation_CALIBRATION_CLEAR: {
+        break;
+    }
+    case fk_atlas_CalibrationOperation_CALIBRATION_SET: {
+        break;
+    }
+    default: {
+        break;
+    }
     }
 
     AtlasApiReply reply{ pool };
