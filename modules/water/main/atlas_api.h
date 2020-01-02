@@ -17,6 +17,12 @@ public:
 public:
     bool handle(HttpServerConnection *connection, Pool &pool);
 
+private:
+    bool handle(HttpServerConnection *connection, Pool &pool, AtlasApiReply &reply);
+    bool status(AtlasApiReply &reply);
+    bool clear(AtlasApiReply &reply);
+    bool set(AtlasApiReply &reply);
+
 };
 
 }

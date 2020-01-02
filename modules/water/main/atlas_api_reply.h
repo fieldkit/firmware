@@ -17,6 +17,10 @@ public:
         return fk_atlas_reply_prepare_encoding(&reply_, pool_);
     }
 
+public:
+    void error(const char *message);
+    bool has_errors() const;
+
 };
 
 }
