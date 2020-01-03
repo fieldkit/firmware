@@ -101,4 +101,15 @@ public:
     }
 };
 
+template<size_t Size>
+class static_log_buffer : public log_buffer {
+private:
+    char buffer_[Size];
+
+public:
+    static_log_buffer() : log_buffer(buffer_, Size) {
+    }
+
+};
+
 }

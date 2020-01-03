@@ -10,8 +10,7 @@
 
 namespace fk {
 
-static char logs_buffer[InMemoryLogBufferSize];
-static log_buffer logs{ logs_buffer, InMemoryLogBufferSize };
+static static_log_buffer<InMemoryLogBufferSize> logs;
 
 #if defined(__SAMD51__)
 
