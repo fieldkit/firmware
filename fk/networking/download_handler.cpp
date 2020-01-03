@@ -13,24 +13,38 @@ FK_DECLARE_LOGGER("download");
 DownloadWorker::DownloadWorker(HttpServerConnection *connection, uint8_t file_number) : connection_(connection), file_number_(file_number) {
 }
 
-uint32_t DownloadWorker::get_size(File &file, uint32_t first_block, uint32_t last_block, Pool &pool) {
+DownloadWorker::SizeInfo DownloadWorker::get_size(File &file, uint32_t first_block, uint32_t last_block, Pool &pool) {
     if (first_block >= last_block) {
-        return 0;
+        return {
+            .size = 0,
+            .last_block = LastRecord,
+        };
     }
 
     if (!file.seek(last_block)) {
-        return 0;
+        return {
+            .size = 0,
+            .last_block = LastRecord,
+        };
     }
 
     auto final_position = file.position();
+    auto actual_last_block = file.record();
 
     if (!file.seek(first_block)) {
-        return 0;
+        return {
+            .size = 0,
+            .last_block = LastRecord,
+        };
     }
 
     auto start_position = file.position();
+    auto size = final_position - start_position;
 
-    return final_position - start_position;
+    return {
+        .size = size,
+        .last_block = actual_last_block,
+    };
 }
 
 DownloadWorker::HeaderInfo DownloadWorker::get_headers(File &file, Pool &pool) {
@@ -52,16 +66,14 @@ DownloadWorker::HeaderInfo DownloadWorker::get_headers(File &file, Pool &pool) {
     }
 
     // Calculate the size.
-    auto size = get_size(file, first_block, last_block, pool);
+    auto size_info = get_size(file, first_block, last_block, pool);
 
-    // When we seek to LastRecord this is the record that will be written,
-    // otherwise it's the record we're on.
-    auto actual_last_block = last_block == LastRecord ? file.record() - 1 : file.record();
+    loginfo("last_block = #%" PRIu32 " actual_lb = #%" PRIu32 " record = #%" PRIu32, last_block, size_info.last_block, file.record());
 
     return HeaderInfo{
-        .size = size,
+        .size = size_info.size,
         .first_block = first_block,
-        .last_block = actual_last_block,
+        .last_block = size_info.last_block,
         .device_id = bytes_to_hex_string_pool((uint8_t *)&sn, sizeof(sn), pool),
         .generation = bytes_to_hex_string_pool(gs.get()->general.generation, GenerationLength, pool),
     };

@@ -48,7 +48,12 @@ private:
 
     bool write_headers(HeaderInfo header_info);
 
-    uint32_t get_size(File &file, uint32_t first_block, uint32_t last_block, Pool &pool);
+    struct SizeInfo {
+        uint32_t size;
+        uint32_t last_block;
+    };
+
+    SizeInfo get_size(File &file, uint32_t first_block, uint32_t last_block, Pool &pool);
 
     HeaderInfo get_headers(File &file, Pool &pool);
 
