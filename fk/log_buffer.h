@@ -7,7 +7,6 @@ namespace fk {
 class log_buffer : public circular_buffer<char> {
 public:
     log_buffer(char *buf, size_t size) : circular_buffer<char>{ buf, size } {
-        bzero(buf, size);
     }
 
 public:

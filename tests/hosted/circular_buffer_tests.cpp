@@ -14,6 +14,8 @@ TEST_F(CircularBufferSuite, Empty) {
     char buffer[16];
     log_buffer logs{ buffer, sizeof(buffer) };
 
+    logs.zero();
+
     char message[16];
     ASSERT_EQ(logs.get(message, sizeof(message)), 0u);
 }
@@ -21,6 +23,8 @@ TEST_F(CircularBufferSuite, Empty) {
 TEST_F(CircularBufferSuite, Basic) {
     char buffer[16];
     log_buffer logs{ buffer, sizeof(buffer) };
+
+    logs.zero();
 
     logs.append("Jacob1");
     logs.append("Jacob2");
@@ -43,6 +47,8 @@ TEST_F(CircularBufferSuite, Basic) {
 TEST_F(CircularBufferSuite, AppendingWrappingRead) {
     char buffer[16];
     log_buffer logs{ buffer, sizeof(buffer) };
+
+    logs.zero();
 
     logs.append("Jacob1");
     logs.append("Jacob2");
@@ -67,6 +73,8 @@ TEST_F(CircularBufferSuite, AppendingReadWrappingRead) {
     char message[64];
     char buffer[16];
     log_buffer logs{ buffer, sizeof(buffer) };
+
+    logs.zero();
 
     logs.append("Jacob1");
 
@@ -104,6 +112,8 @@ TEST_F(CircularBufferSuite, ResumingIterators) {
     char message[128];
     char buffer[128];
     log_buffer logs{ buffer, sizeof(buffer) };
+
+    logs.zero();
 
     auto iter1 = logs.tail();
     auto iter2 = logs.tail();

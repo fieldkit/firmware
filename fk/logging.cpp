@@ -10,7 +10,7 @@
 
 namespace fk {
 
-static static_log_buffer<InMemoryLogBufferSize> logs;
+static static_log_buffer<InMemoryLogBufferSize> logs __attribute__((section (".noinit")));
 
 #if defined(__SAMD51__)
 
@@ -110,11 +110,15 @@ bool fk_logging_initialize() {
 
             has_rtt_reader = true;
 
+            fk_logging_dump_buffer();
+
             break;
         }
     }
 
     logs_rtt_enabled = has_rtt_reader;
+
+    logs.zero();
 
     return true;
 }

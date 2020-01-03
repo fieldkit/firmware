@@ -9,9 +9,9 @@ class circular_buffer {
 private:
     T *buf_;
     const size_t max_size_;
-    size_t head_ = 0;
-    size_t tail_ = 0;
-    bool full_ = 0;
+    size_t head_;
+    size_t tail_;
+    bool full_;
 
 public:
     circular_buffer(T *buf, size_t size) : buf_(buf), max_size_(size) {
