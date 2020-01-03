@@ -20,6 +20,7 @@ public:
 public:
     bool include_status();
     bool include_readings();
+    bool include_success();
 
 public:
     fk_app_HttpReply const *reply() {

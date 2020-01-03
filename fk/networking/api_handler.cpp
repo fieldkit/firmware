@@ -2,23 +2,27 @@
 #include <loading.h>
 
 #include "networking/api_handler.h"
+#include "networking/http_reply.h"
+
 #include "storage/storage.h"
 #include "storage/signed_log.h"
 #include "storage/meta_ops.h"
-#include "protobuf.h"
+#include "state_manager.h"
 #include "utilities.h"
 #include "records.h"
-#include "readings_worker.h"
-#include "state_manager.h"
-#include "networking/http_reply.h"
 #include "base64.h"
 #include "clock.h"
+
+#include "readings_worker.h"
+#include "simple_workers.h"
 
 extern const struct fkb_header_t fkb_header;
 
 namespace fk {
 
 FK_DECLARE_LOGGER("api");
+
+static bool send_simple_success(HttpServerConnection *connection, fk_app_HttpQuery *query, Pool &pool);
 
 static bool send_status(HttpServerConnection *connection, fk_app_HttpQuery *query, Pool &pool);
 
@@ -63,6 +67,11 @@ bool ApiHandler::handle(HttpServerConnection *connection, Pool &pool) {
     case fk_app_QueryType_QUERY_GET_READINGS: {
         loginfo("handling %s", "QUERY_GET_READINGS");
         return send_readings(connection, query, pool);
+    }
+    case fk_app_QueryType_QUERY_RESET: {
+        loginfo("handling %s", "QUERY_RESET");
+        get_ipc()->launch_worker(create_pool_worker<FactoryWipeWorker>());
+        return send_simple_success(connection, query, pool);
     }
     default: {
         loginfo("unknown %d", query->type);
@@ -198,6 +207,19 @@ static bool configure(HttpServerConnection *connection, fk_app_HttpQuery *query,
     }
 
     return send_status(connection, query, pool);
+}
+
+static bool send_simple_success(HttpServerConnection *connection, fk_app_HttpQuery *query, Pool &pool) {
+    auto gs = get_global_state_ro();
+
+    HttpReply http_reply{ pool, gs.get() };
+
+    FK_ASSERT(http_reply.include_success());
+
+    connection->write(http_reply.reply());
+    connection->close();
+
+    return true;
 }
 
 static bool send_status(HttpServerConnection *connection, fk_app_HttpQuery *query, Pool &pool) {

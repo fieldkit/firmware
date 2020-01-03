@@ -1,11 +1,11 @@
 #include <samd51_common.h>
 
 #include "menu_view.h"
-#include "simple_workers.h"
 #include "hal/board.h"
 #include "state_ref.h"
 #include "platform.h"
 
+#include "simple_workers.h"
 #include "configure_module_worker.h"
 #include "upgrade_from_sd_worker.h"
 #include "dump_flash_memory_worker.h"

@@ -16,6 +16,14 @@ HttpReply::HttpReply(Pool &pool, GlobalState const *gs) : pool_(&pool), gs_(gs) 
     reply_ = fk_http_reply_encoding();
 }
 
+bool HttpReply::include_success() {
+    reply_.type = fk_app_ReplyType_REPLY_SUCCESS;
+    reply_.status.version = 1;
+    reply_.status.uptime = fk_uptime();
+
+    return true;
+}
+
 bool HttpReply::include_status() {
     fk_serial_number_t sn;
 
