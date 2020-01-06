@@ -14,7 +14,7 @@ bool AtlasApi::handle(HttpServerConnection *connection, Pool &pool) {
 
     auto query = fk_atlas_query_prepare_decoding(pool.malloc<fk_atlas_WireAtlasQuery>(), &pool);
     auto stream = pb_istream_from_readable(reader);
-    if (!pb_decode_delimited(&stream, fk_app_HttpQuery_fields, query)) {
+    if (!pb_decode_delimited(&stream, fk_atlas_WireAtlasQuery_fields, query)) {
         logwarn("error parsing query (%" PRIu32 ")", connection->length());
         reply.error("error parsing query");
         return true;
@@ -34,7 +34,7 @@ bool AtlasApi::handle(HttpServerConnection *connection, Pool &pool) {
         break;
     }
     default: {
-        logwarn("unknown operation");
+        logwarn("unknown operation (%d)", query->calibration.operation);
         reply.error("unknown operation");
         break;
     }
