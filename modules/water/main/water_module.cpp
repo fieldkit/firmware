@@ -19,7 +19,13 @@ bool WaterModule::initialize(ModuleContext mc, Pool &pool) {
 }
 
 bool WaterModule::api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
-    OemAtlas atlas{ mc.module_bus() };
+    if (type_ == AtlasSensorType::Unknown) {
+        if (!initialize(mc, pool)) {
+            return nullptr;
+        }
+    }
+
+    OemAtlas atlas{ mc.module_bus(), address_, type_  };
     AtlasApi api{ type_, atlas };
     return api.handle(connection, pool);
 }

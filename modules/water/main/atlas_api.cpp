@@ -57,19 +57,68 @@ bool AtlasApi::handle(HttpServerConnection *connection, Pool &pool, AtlasApiRepl
 }
 
 bool AtlasApi::status(AtlasApiReply &reply) {
-    loginfo("calibration status");
+    if (!atlas_->wake()) {
+        reply.error("error waking");
+        return false;
+    }
+
+    auto status = atlas_->calibration();
+    if (!status.success) {
+        return false;
+    }
+
+    switch (atlas_->type()) {
+    case AtlasSensorType::Ec: {
+        reply.status((fk_atlas_EcCalibrations)status.value);
+        break;
+    }
+    case AtlasSensorType::Ph: {
+        reply.status((fk_atlas_PhCalibrations)status.value);
+        break;
+    }
+    case AtlasSensorType::Do: {
+        reply.status((fk_atlas_DoCalibrations)status.value);
+        break;
+    }
+    case AtlasSensorType::Temp: {
+        reply.status((fk_atlas_TempCalibrations)status.value);
+        break;
+    }
+    case AtlasSensorType::Orp: {
+        reply.status((fk_atlas_OrpCalibrations)status.value);
+        break;
+    }
+    default: {
+        break;
+    }
+    }
 
     return true;
 }
 
 bool AtlasApi::clear(AtlasApiReply &reply) {
-    loginfo("calibration clear");
+    if (!atlas_->wake()) {
+        reply.error("error waking");
+        return false;
+    }
+
+    if (!atlas_->clear_calibration()) {
+        reply.error("error clearing");
+        return false;
+    }
+
+    loginfo("cleared calibration");
 
     return true;
 }
 
 bool AtlasApi::set(AtlasApiReply &reply) {
     loginfo("calibration set");
+
+    if (!atlas_->wake()) {
+        reply.error("error waking");
+        return false;
+    }
 
     return true;
 }

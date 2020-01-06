@@ -17,12 +17,19 @@ struct AtlasRegisters {
     static constexpr uint8_t EC_PROBE_TYPE = 0x08;
 };
 
+struct CalibrationConfig {
+    uint8_t reg;
+    uint8_t value;
+};
+
 struct Config {
     uint8_t valid;
     uint8_t value_register;
     uint8_t reading_register;
     uint8_t active_register;
     uint8_t number_of_values;
+    CalibrationConfig clear_calibration;
+    CalibrationConfig calibration_status;
     float divisor;
     const char *name;
 };
@@ -32,16 +39,16 @@ constexpr uint8_t AtlasLow = 0;
 
 Config config(AtlasSensorType type) {
     switch (type) {
-    case AtlasSensorType::Ec:   return { true, 0x18, 0x07, 0x06, 3, 100.0f, "ec" };
-    case AtlasSensorType::Ph:   return { true, 0x16, 0x07, 0x06, 1, 1000.0f, "ph" };
-    case AtlasSensorType::Do:   return { true, 0x22, 0x07, 0x06, 1, 100.0f, "do" };
-    case AtlasSensorType::Temp: return { true, 0x0E, 0x07, 0x06, 1, 1000.0f, "temp" };
-    case AtlasSensorType::Orp:  return { true, 0x0E, 0x07, 0x06, 1, 10.0f, "orp" };
+    case AtlasSensorType::Ec:   return { true, 0x18, 0x07, 0x06, 3, { 0x0E, 0x01 }, { 0x0F }, 100.0f, "ec" };
+    case AtlasSensorType::Ph:   return { true, 0x16, 0x07, 0x06, 1, { 0x0C, 0x01 }, { 0x0D }, 1000.0f, "ph" };
+    case AtlasSensorType::Do:   return { true, 0x22, 0x07, 0x06, 1, { 0x08, 0x01 }, { 0x09 }, 100.0f, "do" };
+    case AtlasSensorType::Temp: return { true, 0x0E, 0x07, 0x06, 1, { 0x0C, 0x01 }, { 0x0D }, 1000.0f, "temp" };
+    case AtlasSensorType::Orp:  return { true, 0x0E, 0x07, 0x06, 1, { 0x0C, 0x01 }, { 0x0D }, 10.0f, "orp" };
     default: {
         break;
     }
     }
-    return { false, 0, 0, 0, 0, 1.0f, "<unknown>" };
+    return { false, 0, 0, 0, 0, { 0, 0 }, { 0 }, 1.0f, "<unknown>" };
 }
 
 OemAtlas::OemAtlas(TwoWireWrapper &bus) : bus_(&bus) {
@@ -123,10 +130,10 @@ bool OemAtlas::leds(bool on) {
 }
 
 bool OemAtlas::read(float *values, size_t &number_of_values) {
-    uint8_t has_reading = 0xff;
+    auto has_reading = (uint8_t)0xff;
     auto cfg = config(type_);
-    auto started = fk_uptime();
-    while (fk_uptime() - started < ATLAS_READINGS_TIMEOUT) {
+    auto deadline = fk_uptime() + ATLAS_READINGS_TIMEOUT;
+    while (fk_uptime() < deadline) {
         if (!I2C_CHECK(bus_->read_register_u8(address_, cfg.reading_register, has_reading))) {
             logerror("error reading register");
             return false;
@@ -164,6 +171,52 @@ bool OemAtlas::read(float *values, size_t &number_of_values) {
     number_of_values = cfg.number_of_values;
 
     return true;
+}
+
+CalibrationStatus OemAtlas::calibration() {
+    uint8_t value = 0xff;
+
+    auto cfg = config(type_);
+
+    if (!I2C_CHECK(bus_->read_register_u8(address_, cfg.calibration_status.reg, value))) {
+        return { false, 0 };
+    }
+
+    logdebug("calibration[0x%x]: %d", cfg.calibration_status.reg, value);
+
+    return { true, value };
+}
+
+CalibrationStatus OemAtlas::calibrate(uint8_t which, float reference) {
+    return calibration();
+}
+
+bool OemAtlas::clear_calibration() {
+    auto cfg = config(type_);
+
+    if (!I2C_CHECK(bus_->write_register_u8(address_, cfg.clear_calibration.reg, cfg.clear_calibration.value))) {
+        logerror("error writing calibration register");
+        return false;
+    }
+
+    auto deadline = fk_uptime() + ATLAS_READINGS_TIMEOUT;
+    while (fk_uptime() < deadline) {
+        uint8_t value = 0xff;
+
+        if (!I2C_CHECK(bus_->read_register_u8(address_, cfg.clear_calibration.reg, value))) {
+            return false;
+        }
+
+        logdebug("calibration[0x%x]: %d", cfg.clear_calibration.reg, value);
+
+        if (value == 0) {
+            return true;
+        }
+
+        fk_delay(50);
+    }
+
+    return false;
 }
 
 }

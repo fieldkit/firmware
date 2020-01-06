@@ -16,6 +16,11 @@ enum class AtlasSensorType : uint8_t {
     Temp = 5
 };
 
+struct CalibrationStatus {
+    uint8_t success;
+    uint8_t value;
+};
+
 class OemAtlas {
 private:
     TwoWireWrapper *bus_;
@@ -39,6 +44,11 @@ public:
     const char *name() const;
     AtlasSensorType type() const;
     uint8_t address() const;
+
+public:
+    CalibrationStatus calibration();
+    CalibrationStatus calibrate(uint8_t which, float reference);
+    bool clear_calibration();
 
 };
 
