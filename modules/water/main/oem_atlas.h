@@ -49,6 +49,7 @@ public:
     CalibrationStatus calibration();
     CalibrationStatus calibrate(uint8_t which, float reference);
     bool clear_calibration();
+    bool finish_calibration();
 
 };
 

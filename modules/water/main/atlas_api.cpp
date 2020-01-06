@@ -30,7 +30,7 @@ bool AtlasApi::handle(HttpServerConnection *connection, Pool &pool) {
         break;
     }
     case fk_atlas_CalibrationOperation_CALIBRATION_SET: {
-        set(reply);
+        calibrate(reply, query->calibration);
         break;
     }
     default: {
@@ -67,6 +67,10 @@ bool AtlasApi::status(AtlasApiReply &reply) {
         return false;
     }
 
+    return status_reply(reply, status);
+}
+
+bool AtlasApi::status_reply(AtlasApiReply &reply, CalibrationStatus status) {
     switch (atlas_->type()) {
     case AtlasSensorType::Ec: {
         reply.status((fk_atlas_EcCalibrations)status.value);
@@ -93,6 +97,8 @@ bool AtlasApi::status(AtlasApiReply &reply) {
     }
     }
 
+    reply.status(status.value);
+
     return true;
 }
 
@@ -112,15 +118,51 @@ bool AtlasApi::clear(AtlasApiReply &reply) {
     return true;
 }
 
-bool AtlasApi::set(AtlasApiReply &reply) {
-    loginfo("calibration set");
-
+bool AtlasApi::calibrate(AtlasApiReply &reply, fk_atlas_AtlasCalibrationCommand command) {
     if (!atlas_->wake()) {
         reply.error("error waking");
         return false;
     }
 
-    return true;
+    uint8_t which = command.which;
+
+    if (false) {
+        switch (atlas_->type()) {
+        case AtlasSensorType::Ec: {
+            which = (uint8_t)command.ec;
+            break;
+        }
+        case AtlasSensorType::Ph: {
+            which = (uint8_t)command.ph;
+            break;
+        }
+        case AtlasSensorType::Do: {
+            which = (uint8_t)command.dissolvedOxygen;
+            break;
+        }
+        case AtlasSensorType::Temp: {
+            which = (uint8_t)command.temp;
+            break;
+        }
+        case AtlasSensorType::Orp: {
+            which = (uint8_t)command.orp;
+            break;
+        }
+        default: {
+            break;
+        }
+        }
+    }
+
+    loginfo("calibrating (0x%x @ %f) ...", which, command.value);
+
+    auto status = atlas_->calibrate(which, command.value);
+    if (!status.success) {
+        reply.error("error calibrating");
+        return false;
+    }
+
+    return status_reply(reply, status);
 }
 
 } // namespace fk
