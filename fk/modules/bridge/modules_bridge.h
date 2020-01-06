@@ -172,7 +172,7 @@ public:
     virtual ModuleSensors const *get_sensors(Pool &pool) = 0;
     virtual ModuleConfiguration get_configuration(Pool &pool) = 0;
     virtual bool service(ModuleContext mc, Pool &pool) = 0;
-    virtual bool api(HttpServerConnection *connection, Pool &pool) = 0;
+    virtual bool api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) = 0;
 
 };
 

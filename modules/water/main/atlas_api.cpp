@@ -4,7 +4,7 @@ namespace fk {
 
 FK_DECLARE_LOGGER("water");
 
-AtlasApi::AtlasApi(AtlasSensorType type) : type_(type) {
+AtlasApi::AtlasApi(AtlasSensorType type, OemAtlas &atlas) : type_(type), atlas_(&atlas) {
 }
 
 bool AtlasApi::handle(HttpServerConnection *connection, Pool &pool) {

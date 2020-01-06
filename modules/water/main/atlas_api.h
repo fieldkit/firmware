@@ -9,10 +9,11 @@ namespace fk {
 class AtlasApi {
 private:
     AtlasSensorType type_{ AtlasSensorType::Unknown };
+    OemAtlas *atlas_;
     Pool *pool_;
 
 public:
-    AtlasApi(AtlasSensorType type);
+    AtlasApi(AtlasSensorType type, OemAtlas &atlas);
 
 public:
     bool handle(HttpServerConnection *connection, Pool &pool);

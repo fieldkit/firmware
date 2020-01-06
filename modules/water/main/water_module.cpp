@@ -18,8 +18,9 @@ bool WaterModule::initialize(ModuleContext mc, Pool &pool) {
     return true;
 }
 
-bool WaterModule::api(HttpServerConnection *connection, Pool &pool) {
-    AtlasApi api{ type_ };
+bool WaterModule::api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
+    OemAtlas atlas{ mc.module_bus() };
+    AtlasApi api{ type_, atlas };
     return api.handle(connection, pool);
 }
 

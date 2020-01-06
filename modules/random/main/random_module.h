@@ -6,7 +6,7 @@ class RandomModule : public fk::Module {
 public:
     bool initialize(fk::ModuleContext mc, fk::Pool &pool) override;
     bool service(fk::ModuleContext mc, fk::Pool &pool) override;
-    bool api(fk::HttpServerConnection *connection, fk::Pool &pool) override;
+    bool api(fk::ModuleContext mc, fk::HttpServerConnection *connection, fk::Pool &pool) override;
     fk::ModuleReadings *take_readings(fk::ModuleContext mc, fk::Pool &pool) override;
 
 public:

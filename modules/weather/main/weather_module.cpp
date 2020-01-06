@@ -103,7 +103,7 @@ bool WeatherModule::initialize(ModuleContext mc, Pool &pool) {
     return true;
 }
 
-bool WeatherModule::api(HttpServerConnection *connection, Pool &pool) {
+bool WeatherModule::api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
     connection->busy(0, "unsupported");
 
     return true;

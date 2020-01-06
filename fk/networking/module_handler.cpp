@@ -22,16 +22,19 @@ bool ModuleHandler::handle(HttpServerConnection *connection, Pool &pool) {
 
     ScanningContext ctx{ mm, gs.get(), module_bus };
 
-    if (!mm->choose(bay_)) {
-        connection->error("bus");
+    auto mc = ctx.module(bay_);
+
+    if (!mc.open()) {
+        connection->error("error choosing module");
         return true;
     }
 
-    if (!constructed->module->api(connection, pool)) {
-        return false;
+    if (!constructed->module->api(mc, connection, pool)) {
+        connection->error("error servicing module api");
+        return true;
     }
 
     return true;
 }
 
-}
+} // namespace fk

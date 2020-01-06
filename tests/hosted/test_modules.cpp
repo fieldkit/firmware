@@ -16,7 +16,7 @@ public:
         return true;
     }
 
-    bool api(HttpServerConnection *connection, Pool &pool) {
+    bool api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
         return true;
     }
 
@@ -65,7 +65,7 @@ public:
         return true;
     }
 
-    bool api(HttpServerConnection *connection, Pool &pool) {
+    bool api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
         return true;
     }
 
@@ -125,7 +125,7 @@ public:
         return true;
     }
 
-    bool api(HttpServerConnection *connection, Pool &pool) {
+    bool api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
         return true;
     }
 
