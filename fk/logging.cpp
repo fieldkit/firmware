@@ -138,8 +138,6 @@ bool fk_logging_initialize() {
 
             SEGGER_RTT_ConfigUpBuffer(0, NULL, NULL, 0, SEGGER_RTT_MODE_BLOCK_IF_FIFO_FULL);
 
-            alogf(LogLevels::INFO, "debug", "debugger detected");
-
             has_rtt_reader = true;
 
             fk_logging_dump_buffer();
