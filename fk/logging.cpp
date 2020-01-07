@@ -1,6 +1,7 @@
 #include <loading.h>
 #include <os.h>
 #include <tiny_printf.h>
+#include <ctype.h>
 
 #include "logging.h"
 #include "platform.h"
@@ -100,9 +101,27 @@ void task_logging_hook(os_task_t *task, os_task_status previous_status) {
     }
 }
 
+static bool logs_buffer_has_garbage() {
+    for (auto c : logs) {
+        if (c == 0) continue;
+        if (isspace(c)) continue;
+        if (isprint(c)) continue;
+
+        return false;
+    }
+    return false;
+}
+
 bool fk_logging_initialize() {
-    // This is very experimental.
+    // This is very experimental... first check for weird  circular
+    // log values, this sanity checks the head and tail pointers, for example.
     if (!logs.sane_state()) {
+        logs.zero();
+    }
+
+    // This looks for a buffer that has unexpected characters, which
+    // is another good sign things aren't ready for us.
+    if (logs_buffer_has_garbage()) {
         logs.zero();
     }
 
