@@ -6,7 +6,9 @@
 namespace fk {
 
 static void write_buffered_writer(char c, void *arg) {
-    reinterpret_cast<BufferedWriter*>(arg)->write(c);
+    if (c != 0) {
+        reinterpret_cast<BufferedWriter*>(arg)->write(c);
+    }
 }
 
 BufferedWriter::BufferedWriter(Writer *writer, uint8_t *buffer, size_t size) : writer_(writer), buffer_(buffer), buffer_size_(size) {
@@ -46,11 +48,9 @@ int32_t BufferedWriter::write(const char *s, ...) {
 }
 
 int32_t BufferedWriter::write(char c) {
-    if (c != 0) {
-        buffer_[position_++] = c;
-        if (position_ == buffer_size_ - 1) {
-            return flush();
-        }
+    buffer_[position_++] = c;
+    if (position_ == buffer_size_ - 1) {
+        return flush();
     }
     return 1;
 }

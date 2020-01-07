@@ -55,25 +55,22 @@ void DownloadLogsWorker::run(Pool &pool) {
 
     GlobalStateProgressCallbacks gs_progress;
     ProgressTracker tracker{ &gs_progress, Operation::Download, "sendlogs", "", info.size };
+    BufferedWriter writer{ connection_, (uint8_t *)pool.malloc(NetworkBufferSize), NetworkBufferSize };
     auto bytes_copied = 0u;
 
-    {
-        BufferedWriter writer{ connection_, (uint8_t *)pool.malloc(NetworkBufferSize), NetworkBufferSize };
-
-        auto &lb = fk_log_buffer();
-        for (auto c : lb) {
-            if (bytes_copied > info.size) {
-                break;
-            }
-
-            if (c != 0) {
-                writer.write(c);
-                bytes_copied++;
-            }
+    auto &lb = fk_log_buffer();
+    for (auto c : lb) {
+        if (bytes_copied > info.size) {
+            break;
         }
 
-        writer.flush();
+        if (c != 0) {
+            writer.write(c);
+            bytes_copied++;
+        }
     }
+
+    writer.flush();
 
     tracker.finished();
 
