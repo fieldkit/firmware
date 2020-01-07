@@ -121,7 +121,7 @@ void DownloadWorker::run(Pool &pool) {
 
     GlobalStateProgressCallbacks gs_progress;
     auto tracker = ProgressTracker{ &gs_progress, Operation::Download, "download", "", info.size };
-    auto bytes_copied = (size_t)0;
+    auto bytes_copied = 0u;
     while (bytes_copied < info.size) {
         auto to_read = std::min<int32_t>(buffer_size, info.size - bytes_copied);
         auto bytes_read = file.read(buffer, to_read);
@@ -142,7 +142,7 @@ void DownloadWorker::run(Pool &pool) {
 
     auto elapsed = fk_uptime() - started;
     auto speed = ((bytes_copied / 1024.0f) / (elapsed / 1000.0f));
-    loginfo("done (%zd) (%" PRIu32 "ms) %.2fkbps", bytes_copied, elapsed, speed);
+    loginfo("done (%d) (%" PRIu32 "ms) %.2fkbps", bytes_copied, elapsed, speed);
 
     connection_->close();
 

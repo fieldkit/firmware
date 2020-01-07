@@ -134,8 +134,6 @@ bool fk_logging_dump_buffer() {
         }
     }
 
-    logs.zero();
-
     SEGGER_RTT_WriteString(0, RTT_CTRL_RESET "\n");
 
     SEGGER_RTT_UNLOCK();

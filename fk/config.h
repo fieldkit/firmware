@@ -147,6 +147,11 @@ constexpr size_t DefaultWorkerPoolSize = 8192;
 constexpr size_t InMemoryLogBufferSize = 32768;
 
 /**
+ * Size of the network buffers.
+ */
+constexpr size_t NetworkBufferSize = 1024;
+
+/**
  * Maximum number of WiFi networks.
  * \todo: Eventually this should be relaxed.
  */
@@ -193,7 +198,7 @@ constexpr size_t MaximumNumberOfPhysicalModules = 4;
  * The number of fixed HTTP routes that the firmware registers. These are routes
  * that are always there and never change with configuration.
  */
-constexpr size_t HttpFixedRoutes = 4;
+constexpr size_t HttpFixedRoutes = 5;
 
 /**
  * The maximum number of HTTP routes that can be registered. Trying to register
