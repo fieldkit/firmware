@@ -15,21 +15,17 @@ bool DebugServerConnection::service() {
         return false;
     }
 
-    RttLock lock;
-
     auto &lb = fk_log_buffer();
 
     if (lb.empty()) {
         return true;
     }
 
-    SEGGER_RTT_LOCK();
+    LogBufferLock lock;
 
     for (auto c : lb) {
         writer_.write(c);
     }
-
-    SEGGER_RTT_UNLOCK();
 
     writer_.flush();
 

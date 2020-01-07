@@ -14,14 +14,25 @@ bool fk_logging_dump_buffer();
 
 log_buffer &fk_log_buffer();
 
-class RttLock {
+bool fk_log_buffer_try_lock();
+
+void fk_log_buffer_unlock();
+
+class LogBufferLock {
 private:
+    bool success_{ false };
 
 public:
-    RttLock() {
+    LogBufferLock() {
+        success_ = fk_log_buffer_try_lock();
     }
 
-    virtual ~RttLock() {
+    virtual ~LogBufferLock() {
+        fk_log_buffer_unlock();
+    }
+
+    operator bool() {
+        return success_;
     }
 };
 

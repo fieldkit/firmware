@@ -15,10 +15,7 @@ DownloadLogsWorker::DownloadLogsWorker(HttpServerConnection *connection) : conne
 
 DownloadLogsWorker::HeaderInfo DownloadLogsWorker::get_headers(Pool &pool) {
     fk_serial_number_t sn;
-    RttLock lock;
     auto size = 0u;
-
-    SEGGER_RTT_LOCK();
 
     auto &lb = fk_log_buffer();
     for (auto c : lb) {
@@ -26,8 +23,6 @@ DownloadLogsWorker::HeaderInfo DownloadLogsWorker::get_headers(Pool &pool) {
             size++;
         }
     }
-
-    SEGGER_RTT_UNLOCK();
 
     auto gs = get_global_state_ro();
     return HeaderInfo{
@@ -39,6 +34,10 @@ DownloadLogsWorker::HeaderInfo DownloadLogsWorker::get_headers(Pool &pool) {
 
 void DownloadLogsWorker::run(Pool &pool) {
     loginfo("downloading logs");
+
+    LogBufferLock lock;
+
+    FK_ASSERT(lock);
 
     auto started = fk_uptime();
     auto is_head = connection_->is_head_method();
@@ -60,8 +59,6 @@ void DownloadLogsWorker::run(Pool &pool) {
 
     {
         BufferedWriter writer{ connection_, (uint8_t *)pool.malloc(NetworkBufferSize), NetworkBufferSize };
-        RttLock lock;
-        SEGGER_RTT_LOCK();
 
         auto &lb = fk_log_buffer();
         for (auto c : lb) {
@@ -74,8 +71,6 @@ void DownloadLogsWorker::run(Pool &pool) {
                 bytes_copied++;
             }
         }
-
-        SEGGER_RTT_UNLOCK();
 
         writer.flush();
     }
