@@ -101,7 +101,10 @@ void task_logging_hook(os_task_t *task, os_task_status previous_status) {
 }
 
 bool fk_logging_initialize() {
-    logs.zero();
+    // This is very experimental.
+    if (!logs.sane_state()) {
+        logs.zero();
+    }
 
     log_configure_writer(write_log);
     log_configure_level(LogLevels::DEBUG);

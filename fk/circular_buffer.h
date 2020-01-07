@@ -49,6 +49,10 @@ public:
     };
 
 public:
+    bool sane_state() const {
+        return head_ < max_size_ && tail_ < max_size_;
+    }
+
     iterator begin() {
         if (empty()) {
             return end();
@@ -138,7 +142,7 @@ public:
     }
 
     size_t size() const {
-        size_t size = max_size_;
+        auto size = max_size_;
 
         if (!full_) {
             if (head_ >= tail_) {
