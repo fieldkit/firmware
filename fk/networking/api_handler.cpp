@@ -30,6 +30,15 @@ static bool send_readings(HttpServerConnection *connection, fk_app_HttpQuery *qu
 
 static bool configure(HttpServerConnection *connection, fk_app_HttpQuery *query, Pool &pool);
 
+void ApiHandler::adjust_time_if_necessary(fk_app_HttpQuery const *query) {
+    if (query->time > 0) {
+        int32_t difference = std::abs((long)(get_clock_now() - query->time));
+        if (difference > 5) {
+            clock_adjust(query->time);
+        }
+    }
+}
+
 bool ApiHandler::handle(HttpServerConnection *connection, Pool &pool) {
     Reader *reader = connection;
     if (connection->content_type() == WellKnownContentType::TextPlain) {
@@ -44,6 +53,8 @@ bool ApiHandler::handle(HttpServerConnection *connection, Pool &pool) {
         connection->error("error parsing query");
         return true;
     }
+
+    adjust_time_if_necessary(query);
 
     switch (query->type) {
     case fk_app_QueryType_QUERY_STATUS: {

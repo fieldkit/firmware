@@ -5,6 +5,7 @@
 #include "storage/storage.h"
 #include "state.h"
 #include "utilities.h"
+#include "clock.h"
 
 extern const struct fkb_header_t fkb_header;
 
@@ -20,6 +21,7 @@ bool HttpReply::include_success() {
     reply_.type = fk_app_ReplyType_REPLY_SUCCESS;
     reply_.status.version = 1;
     reply_.status.uptime = fk_uptime();
+    reply_.status.time = get_clock_now();
 
     return true;
 }
@@ -38,6 +40,7 @@ bool HttpReply::include_status() {
     });
 
     reply_.type = fk_app_ReplyType_REPLY_STATUS;
+    reply_.status.time = get_clock_now();
     reply_.status.version = 1;
     reply_.status.uptime = fk_uptime();
     reply_.status.identity.device.arg = (void *)gs_->general.name;
@@ -300,6 +303,7 @@ bool HttpReply::include_readings() {
     });
 
     reply_.type = fk_app_ReplyType_REPLY_READINGS;
+    reply_.status.time = get_clock_now();
     reply_.liveReadings.arg = (void *)live_readings_array;
 
     return true;
