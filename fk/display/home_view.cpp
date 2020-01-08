@@ -42,7 +42,26 @@ void HomeView::tick(ViewController *views) {
 
     switch ((Visible)visible_) {
     case Visible::Name: {
-        screen.primary = gs.get()->general.name;
+        auto name = gs.get()->general.name;
+        auto first_space = strchr(name, ' ');
+        if (first_space != nullptr) {
+            auto pl = (size_t)(first_space - name);
+            if (pl < sizeof(primary_)) {
+                memcpy(primary_, name, pl);
+                primary_[pl] = 0;
+                screen.primary = primary_;
+            }
+
+            auto sl = strlen(first_space + 1);
+            if (sl < sizeof(secondary_)) {
+                memcpy(secondary_, first_space + 1, sl);
+                secondary_[sl] = 0;
+                screen.secondary = secondary_;
+            }
+        }
+        else {
+            screen.primary = name;
+        }
         break;
     }
     case Visible::IP: {

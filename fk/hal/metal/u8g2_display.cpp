@@ -133,7 +133,7 @@ static bool draw_string_auto_sized(T draw, bool bold, uint16_t x, uint16_t y, ui
 
     auto faces = bold ? bold_faces : normal_faces;
 
-    for (size_t i = 0; i < NumberFaces; ++i) {
+    for (auto i = 0u; i < NumberFaces; ++i) {
         draw.setFontMode(0);
         draw.setFont(faces[i]);
         auto width = draw.getUTF8Width(str);

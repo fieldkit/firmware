@@ -236,7 +236,7 @@ void *ChainedPool::malloc(size_t bytes) {
     }
 
     if (sibling_ == nullptr) {
-        auto ptr = ::malloc(size());
+        auto ptr = fk_malloc(size());
         auto overhead = sizeof(ChainedPool);
         sibling_ = new (ptr) ChainedPool(name(), ptr, size(), overhead);
     }
@@ -245,7 +245,7 @@ void *ChainedPool::malloc(size_t bytes) {
 }
 
 Pool *create_chained_pool_inside(const char *name, size_t size) {
-    auto ptr = malloc(size);
+    auto ptr = fk_malloc(size);
     auto overhead = sizeof(ChainedPool);
     return new (ptr) ChainedPool(name, ptr, size, overhead);
 }
