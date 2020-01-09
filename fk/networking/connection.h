@@ -49,6 +49,10 @@ public:
         return (fk_uptime() - activity()) < NetworkConnectionMaximumDuration;
     }
 
+    bool closed() const {
+        return conn_ == nullptr;
+    }
+
     Pool *pool() {
         return pool_;
     }

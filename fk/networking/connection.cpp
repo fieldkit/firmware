@@ -13,6 +13,8 @@ Connection::~Connection() {
 }
 
 bool Connection::service() {
+    FK_ASSERT(conn_ != nullptr);
+
     if (conn_->status() != NetworkConnectionStatus::Connected) {
         loginfo("[%" PRIu32 "] disconnected", number_);
         return false;
@@ -22,6 +24,8 @@ bool Connection::service() {
 }
 
 int32_t Connection::read(uint8_t *buffer, size_t size) {
+    FK_ASSERT(conn_ != nullptr);
+
     auto bytes = conn_->read(buffer, size);
     if (bytes > 0) {
         bytes_rx_ += bytes;
@@ -32,6 +36,8 @@ int32_t Connection::read(uint8_t *buffer, size_t size) {
 }
 
 int32_t Connection::write(uint8_t const *buffer, size_t size) {
+    FK_ASSERT(conn_ != nullptr);
+
     auto bytes = conn_->write(buffer, size);
     if (bytes > 0) {
         bytes_tx_ += bytes;
@@ -41,6 +47,8 @@ int32_t Connection::write(uint8_t const *buffer, size_t size) {
 }
 
 int32_t Connection::printf(const char *s, ...) {
+    FK_ASSERT(conn_ != nullptr);
+
     va_list args;
     va_start(args, s);
     auto r = conn_->vwritef(s, args);
@@ -50,8 +58,11 @@ int32_t Connection::printf(const char *s, ...) {
 }
 
 int32_t Connection::close() {
-    loginfo("[%" PRIu32 "] close", number_);
-    conn_->stop();
+    if (conn_ != nullptr) {
+        loginfo("[%" PRIu32 "] close", number_);
+        conn_->stop();
+        conn_ = nullptr;
+    }
     return 0;
 }
 

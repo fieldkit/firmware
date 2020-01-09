@@ -62,7 +62,7 @@ void ConnectionPool::service() {
                 }
             }
 
-            if (!c->service()) {
+            if (c->closed() || !c->service()) {
                 // Do this before freeing to avoid a race empty pool after a
                 // long connection, for example.
                 update_statistics(c);
@@ -125,6 +125,7 @@ void ConnectionPool::update_statistics(Connection *c) {
 }
 
 void ConnectionPool::free_connection(uint16_t index) {
+    connections_[index]->close();
     delete pools_[index];
     connections_[index] = nullptr;
     pools_[index] = nullptr;
