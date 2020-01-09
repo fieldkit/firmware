@@ -19,6 +19,7 @@ namespace fk {
 class MetalNetworkConnection : public NetworkConnection {
 private:
     WiFiClient wcl_;
+    bool debugging_{ false };
     uint8_t *buffer_{ nullptr };
     size_t size_{ 0 };
     size_t position_{ 0 };

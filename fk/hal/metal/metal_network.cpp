@@ -105,10 +105,11 @@ MetalNetworkConnection::MetalNetworkConnection() {
 }
 
 MetalNetworkConnection::MetalNetworkConnection(WiFiClient wcl) : wcl_(wcl) {
-    position_ = 0;
-    size_ = DefaultWorkerPoolSize;
-    buffer_ = reinterpret_cast<uint8_t *>(fk_malloc(size_));
-    bzero(buffer_, size_);
+    if (debugging_) {
+        size_ = DefaultWorkerPoolSize;
+        buffer_ = reinterpret_cast<uint8_t *>(fk_malloc(size_));
+        bzero(buffer_, size_);
+    }
 }
 
 MetalNetworkConnection::~MetalNetworkConnection() {
@@ -131,7 +132,6 @@ bool MetalNetworkConnection::available() {
 int32_t MetalNetworkConnection::read(uint8_t *buffer, size_t size) {
     auto nread = wcl_.read(buffer, size);
     if (nread < 0) {
-        logdebug("[%d] failed read (%d)", wcl_.socket(), nread);
         return 0;
     }
 
