@@ -1,16 +1,15 @@
+#include <SEGGER_RTT.h>
+
 #include "common.h"
 #include "debugging.h"
 #include "platform.h"
 #include "config.h"
+#include "hal/display.h"
+#include "tasks/tasks.h"
 
 #if defined(__SAMD51__)
 #include <Arduino.h>
 #endif
-
-#include "hal/display.h"
-#include "tasks/tasks.h"
-
-#include <SEGGER_RTT.h>
 
 extern "C" {
 

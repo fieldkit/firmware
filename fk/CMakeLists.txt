@@ -89,6 +89,7 @@ find_package(CortexLoading)
 target_link_libraries(fk-bundled CortexLoading)
 
 find_package(ConservifyOS)
+target_compile_options(ConservifyOS PUBLIC -DOS_CONFIG_HOOKS_CUSTOM)
 target_link_libraries(fk-bundled ConservifyOS)
 
 find_package(Asf4)

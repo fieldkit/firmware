@@ -86,6 +86,7 @@ find_package(Samd51Common)
 target_link_libraries(testall Samd51Common)
 
 find_package(ConservifyOS)
+target_compile_options(ConservifyOS PUBLIC -DOS_CONFIG_HOOKS_CUSTOM)
 target_link_libraries(testall ConservifyOS)
 
 find_package(Phylum)

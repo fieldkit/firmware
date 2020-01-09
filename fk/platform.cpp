@@ -1,12 +1,13 @@
 #include <cstdarg>
 
+#include <os.h>
+
 #include "fk.h"
 #include "platform.h"
 
 #if defined(__SAMD51__)
 #include <Arduino.h>
 #include <SEGGER_RTT.h>
-#include <os.h>
 #include <loading.h>
 #else // __SAMD51__
 #include <chrono>
@@ -146,13 +147,50 @@ extern "C" {
 
 void *fk_malloc_internal(size_t size, const char *file, int32_t line) {
     auto ptr = ::malloc(size);
-    // alogf(LogLevels::DEBUG, "memory", "[0x%" PRIxPTR "] malloc(%zd) %s:%" PRId32 "", (uintptr_t)ptr, size, file, line);
+    if (false) {
+        alogf(LogLevels::DEBUG, "memory", "[0x%" PRIxPTR "] malloc(%zd) %s:%" PRId32 "", (uintptr_t)ptr, size, file, line);
+    }
     return ptr;
 }
 
 void fk_free_internal(void *ptr, const char *file, int32_t line) {
-    // alogf(LogLevels::DEBUG, "memory", "[0x%" PRIxPTR "] free %s:%" PRId32 "", (uintptr_t)ptr, file, line);
+    if (false) {
+        alogf(LogLevels::DEBUG, "memory", "[0x%" PRIxPTR "] free %s:%" PRId32 "", (uintptr_t)ptr, file, line);
+    }
     return ::free(ptr);
 }
+
+void osi_panic(os_panic_kind_t code) {
+    alogf(LogLevels::ERROR, "error", "panic! (%s)", os_panic_kind_str(code));
+
+    for (os_task_t *iter = osg.runqueue; iter != NULL; iter = iter->nrp) {
+        alogf(LogLevels::ERROR, "error", "rq '%s' status(%s) (0x%" PRIx32 ")", iter->name, os_task_status_str(iter->status), iter->priority);
+    }
+
+    for (os_task_t *iter = osg.waitqueue; iter != NULL; iter = iter->nrp) {
+        alogf(LogLevels::ERROR, "error", "wq '%s' status(%s) (0x%" PRIx32 ")", iter->name, os_task_status_str(iter->status), iter->priority);
+    }
+
+    #if defined(__SAMD21__) || defined(__SAMD51__)
+    NVIC_SystemReset();
+    #endif // defined(__SAMD21__) || defined(__SAMD51__)
+}
+
+void osi_hard_fault_report(uintptr_t *stack, uint32_t lr, cortex_hard_fault_t *hfr) {
+    alogf(LogLevels::ERROR, "error", "hard fault!");
+
+    #if defined(__SAMD21__) || defined(__SAMD51__)
+    NVIC_SystemReset();
+    #endif // defined(__SAMD21__) || defined(__SAMD51__)
+}
+
+#if defined(__SAMD21__) || defined(__SAMD51__)
+
+void osi_assert(const char *assertion, const char *file, int line) {
+    alogf(LogLevels::ERROR, "error", "assertion \"%s\" failed: file \"%s\", line %d", assertion, file, line);
+    osi_panic(OS_PANIC_ASSERTION);
+}
+
+#endif // defined(__SAMD21__) || defined(__SAMD51__)
 
 }
