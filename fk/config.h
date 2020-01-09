@@ -152,6 +152,11 @@ constexpr size_t InMemoryLogBufferSize = 32768;
 constexpr size_t NetworkBufferSize = 1024;
 
 /**
+ * Maximum allowed time drift, in seconds.
+ */
+constexpr uint32_t AcceptableTimeDriftSeconds = 5;
+
+/**
  * Maximum number of WiFi networks.
  * \todo: Eventually this should be relaxed.
  */
