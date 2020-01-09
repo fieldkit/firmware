@@ -46,9 +46,15 @@ bool ApiHandler::handle(HttpServerConnection *connection, Pool &pool) {
         connection->hex_encoding(true);
     }
 
+    size_t buffer_size = 256u;
+    auto ptr = reinterpret_cast<uint8_t *>(pool.malloc(buffer_size));
+    bzero(ptr, buffer_size);
+    BufferedReader buffered{ reader, ptr, buffer_size };
+
     auto query = fk_http_query_prepare_decoding(pool.malloc<fk_app_HttpQuery>(), &pool);
-    auto stream = pb_istream_from_readable(reader);
+    auto stream = pb_istream_from_readable(&buffered);
     if (!pb_decode_delimited(&stream, fk_app_HttpQuery_fields, query)) {
+        fk_dump_memory("NOPARSE ", ptr, 256);
         logwarn("error parsing query (%" PRIu32 ")", connection->length());
         connection->error("error parsing query");
         return true;

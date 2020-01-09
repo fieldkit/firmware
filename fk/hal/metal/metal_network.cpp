@@ -105,9 +105,16 @@ MetalNetworkConnection::MetalNetworkConnection() {
 }
 
 MetalNetworkConnection::MetalNetworkConnection(WiFiClient wcl) : wcl_(wcl) {
+    position_ = 0;
+    size_ = DefaultWorkerPoolSize;
+    buffer_ = reinterpret_cast<uint8_t *>(fk_malloc(size_));
+    bzero(buffer_, size_);
 }
 
 MetalNetworkConnection::~MetalNetworkConnection() {
+    if (buffer_ != nullptr) {
+        fk_free(buffer_);
+    }
 }
 
 NetworkConnectionStatus MetalNetworkConnection::status() {
@@ -124,8 +131,19 @@ bool MetalNetworkConnection::available() {
 int32_t MetalNetworkConnection::read(uint8_t *buffer, size_t size) {
     auto nread = wcl_.read(buffer, size);
     if (nread < 0) {
+        logdebug("[%d] failed read (%d)", wcl_.socket(), nread);
         return 0;
     }
+
+    if (buffer_ != nullptr) {
+        auto copying = std::min<size_t>(size_ - position_, nread);
+        if (copying > 0) {
+            logdebug("[%d] copying %zd + %zd", wcl_.socket(), position_, copying);
+            memcpy(buffer_ + position_, buffer, copying);
+            position_ += copying;
+        }
+    }
+
     return nread;
 }
 
@@ -190,8 +208,17 @@ uint32_t MetalNetworkConnection::remote_address() {
 }
 
 bool MetalNetworkConnection::stop() {
+    auto s = wcl_.socket();
+
     wcl_.flush();
     wcl_.stop();
+
+    if (buffer_ != nullptr && position_ > 0) {
+        char temp[32];
+        tiny_snprintf(temp, sizeof(temp), "CDGB-%d ", s);
+        fk_dump_memory(temp, buffer_, position_);
+    }
+
     return true;
 }
 
