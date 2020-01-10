@@ -1001,3 +1001,57 @@ TEST_F(StorageSuite, FileOpsSkipAcrossBlock) {
         ASSERT_TRUE(file.skip());
     }
 }
+
+TEST_F(StorageSuite, RecordNumbers) {
+    Storage storage{ memory_, false };
+
+    ASSERT_TRUE(storage.clear());
+
+    enable_debug();
+
+    auto file_write = storage.file(0);
+
+    ASSERT_EQ(file_write.record(), UINT32_MAX);
+
+    uint8_t data[256] = { 0xcc };
+    ASSERT_EQ(file_write.write(data, sizeof(data)), (int32_t)sizeof(data));
+
+    ASSERT_EQ(file_write.record(), 2u);
+
+    ASSERT_TRUE(memory_->flush());
+
+    ASSERT_TRUE(storage.begin());
+
+    {
+        auto file_read = storage.file(0);
+
+        ASSERT_EQ(file_read.record(), UINT32_MAX);
+
+        ASSERT_TRUE(file_read.seek_end());
+        ASSERT_EQ(file_read.record(), 2u);
+        ASSERT_EQ(file_read.position(), 256u);
+
+        ASSERT_TRUE(file_read.seek_beginning());
+        ASSERT_EQ(file_read.record(), 0u);
+        ASSERT_EQ(file_read.position(), 0u);
+
+        // NOTE This is weird.
+        ASSERT_EQ(file_read.record(), 0u);
+    }
+
+    {
+        auto file_read = storage.file(0);
+
+        ASSERT_EQ(file_read.record(), UINT32_MAX);
+
+        ASSERT_TRUE(file_read.seek(1));
+        ASSERT_EQ(file_read.position(), 0u);
+
+        ASSERT_TRUE(file_read.seek(0));
+        ASSERT_EQ(file_read.position(), 0u);
+
+        ASSERT_TRUE(file_read.seek(2));
+        ASSERT_EQ(file_read.position(), 256u);
+
+    }
+}
