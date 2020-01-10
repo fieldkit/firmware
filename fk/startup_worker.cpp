@@ -60,6 +60,16 @@ void StartupWorker::run(Pool &pool) {
     if (storage.begin()) {
         // TODO Only do this if the last fsck was a while ago?
         // storage.fsck(&noop_callbacks);
+
+        GlobalStateManager gsm;
+        gsm.apply([&](GlobalState *gs) {
+            auto meta_fh = storage.file_header(Storage::Meta);
+            auto data_fh = storage.file_header(Storage::Data);
+            gs->storage.meta.size = meta_fh.size;
+            gs->storage.meta.block = meta_fh.record;
+            gs->storage.data.size = data_fh.size;
+            gs->storage.data.block = data_fh.record;
+        });
     }
 
     FK_ASSERT(load_or_create_state(storage, pool));
