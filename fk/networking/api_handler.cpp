@@ -36,6 +36,12 @@ void ApiHandler::adjust_time_if_necessary(fk_app_HttpQuery const *query) {
         if (difference > AcceptableTimeDriftSeconds) {
             clock_adjust(query->time);
         }
+        else {
+            logdebug("query time is close enough");
+        }
+    }
+    else {
+        logdebug("query time is missing");
     }
 }
 
