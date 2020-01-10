@@ -27,7 +27,7 @@ void ReadingsWorker::run(Pool &pool) {
 
     auto &all_readings = taken_readings->readings;
 
-    auto data_pool = create_pool_inside("readings", DefaultWorkerPoolSize);
+    auto data_pool = create_pool_inside("readings");
     auto modules = new (data_pool) ModulesState(data_pool);
 
     modules->nmodules = all_readings.size();

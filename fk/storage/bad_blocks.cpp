@@ -9,7 +9,7 @@ FK_DECLARE_LOGGER("badblocks");
 BadBlocks::BadBlocks(DataMemory *memory) : memory_(memory) {
     FK_ASSERT(memory_ != nullptr);
 
-    pool_ = create_pool_inside("bad-blocks", DefaultWorkerPoolSize);
+    pool_ = create_pool_inside("bad-blocks");
 
     geometry_ = memory->geometry();
 

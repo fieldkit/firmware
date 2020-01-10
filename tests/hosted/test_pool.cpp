@@ -135,7 +135,7 @@ TEST_F(PoolSuite, Collections) {
 }
 
 TEST_F(PoolSuite, ChainedPool) {
-    auto pool = create_chained_pool_inside("chained", 1024);
+    auto pool = create_chained_pool_inside("chained");
 
     pool->malloc(256);
     pool->malloc(256);

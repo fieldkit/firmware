@@ -534,7 +534,7 @@ uint32_t Storage::fsck(ProgressCallbacks *progress) {
 }
 
 uint32_t Storage::fsck(File &opened_file, ProgressTracker &tracker) {
-    auto buffer_size = DefaultWorkerPoolSize;
+    auto buffer_size = StandardPageSize;
     auto buffer = (uint8_t *)fk_malloc(buffer_size);
     auto remaining = opened_file.size();
 

@@ -10,6 +10,7 @@
 
 #include "common.h"
 #include "encoded_message.h"
+#include "memory.h"
 
 namespace fk {
 
@@ -120,9 +121,14 @@ public:
 
 };
 
-Pool *create_pool_inside(const char *name, size_t size);
+class StandardPool : public MallocPool {
+public:
+    StandardPool(const char *name);
+};
 
-Pool *create_chained_pool_inside(const char *name, size_t size);
+Pool *create_pool_inside(const char *name);
+
+Pool *create_chained_pool_inside(const char *name);
 
 /*
 #define __POOL_LINE_STR(x) #x

@@ -23,7 +23,7 @@ void LoraRangingWorker::run(Pool &pool) {
     }
 
     while (true) {
-        MallocPool work_pool{ "lora-range", DefaultWorkerPoolSize };
+        StandardPool work_pool{ "lora-range" };
 
         logdebug("joining if necessary...");
 

@@ -78,7 +78,7 @@ int32_t SequentialMemory::flush() {
 }
 
 BufferedPageMemory::BufferedPageMemory(DataMemory *target)
-    : target_(target), buffer_{ freed_unique_ptr<uint8_t>(DefaultWorkerPoolSize) } {
+    : target_(target), buffer_{ freed_unique_ptr<uint8_t>(StandardPageSize) } {
 }
 
 BufferedPageMemory::BufferedPageMemory(BufferedPageMemory &&o) : target_(o.target_), buffer_{ std::move(o.buffer_) } {

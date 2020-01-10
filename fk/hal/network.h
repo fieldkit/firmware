@@ -95,13 +95,13 @@ Network *get_network();
 
 template<typename ConcreteWrapped, class... Args, typename ConcreteWrapee = ChainedPoolWrapper<NetworkConnection, ConcreteWrapped, Args...>>
 inline PoolPointer<NetworkConnection> *create_network_connection_wrapper(Args &&... args) {
-    auto pool = create_chained_pool_inside("connection", DefaultWorkerPoolSize);
+    auto pool = create_chained_pool_inside("connection");
     return new (pool) ConcreteWrapee(pool, std::forward<Args>(args)...);
 }
 
 template<typename ConcreteWrapped, class... Args, typename ConcreteWrapee = ChainedPoolWrapper<NetworkListener, ConcreteWrapped, Args...>>
 inline PoolPointer<NetworkListener> *create_network_listener_wrapper(Args &&... args) {
-    auto pool = create_chained_pool_inside("listener", DefaultWorkerPoolSize);
+    auto pool = create_chained_pool_inside("listener");
     return new (pool) ConcreteWrapee(pool, std::forward<Args>(args)...);
 }
 

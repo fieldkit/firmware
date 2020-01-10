@@ -18,7 +18,7 @@ void task_handler_network(void *params) {
         NetworkTask task{ network, network_services };
 
         // NOTE Can we just stack allocate this?
-        auto pool = create_pool_inside("network", DefaultWorkerPoolSize);
+        auto pool = create_pool_inside("network");
         auto settings = task.get_selected_settings(*pool);
 
         gsm.apply([=](GlobalState *gs) {

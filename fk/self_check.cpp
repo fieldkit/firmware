@@ -227,7 +227,7 @@ bool SelfCheck::sd_card_open() {
 
 bool SelfCheck::sd_card_write() {
     return single_check("sd card write", []() {
-        MallocPool pool{ "sdw", DefaultWorkerPoolSize };
+        StandardPool pool{ "sdw" };
 
         auto sd_card = get_sd_card();
 

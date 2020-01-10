@@ -20,7 +20,7 @@ using ConstructedModulesCollection = collection<ConstructedModule>;
 
 class ModuleFactory {
 private:
-    MallocPool pool_{ "modules", DefaultWorkerPoolSize };
+    StandardPool pool_{ "modules" };
     ConstructedModulesCollection modules_{ pool_ };
     uint32_t service_interval_{ 0 };
 

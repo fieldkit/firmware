@@ -142,7 +142,7 @@ public:
 };
 
 void task_handler_display(void *params) {
-    MallocPool pool{ "display", DefaultWorkerPoolSize };
+    StandardPool pool{ "display" };
     MainViewController views{ pool };
     views.run();
     get_display()->off();

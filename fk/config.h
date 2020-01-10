@@ -137,9 +137,9 @@ constexpr size_t MaximumBuildStringLength = 32;
 constexpr size_t GenerationLength = 32;
 
 /**
- * Size of the memory pool to use for Workers.
+ * Standard page size to allocate for operations.
  */
-constexpr size_t DefaultWorkerPoolSize = 8192;
+constexpr size_t StandardPageSize = 8192;
 
 /**
  * Size of the circular buffer that stores logs.
@@ -245,11 +245,6 @@ constexpr size_t HttpMaximumHeaderSize = 1024;
 constexpr size_t HttpConnectionBufferSize = 1024;
 
 /**
- *
- */
-constexpr size_t HttpConnectionWorkSize = DefaultWorkerPoolSize;
-
-/**
  * Maximum number of blocks to look ahead for an available block. This means we
  * can't deal with this many bad blocks sequentially.
  */
@@ -259,12 +254,6 @@ constexpr int32_t StorageAvailableBlockLookAhead = 10;
  * How often to display progress information.
  */
 constexpr uint32_t ProgressIntervalMs = 1000;
-
-/**
- * Amount of pooled memory to allocate for taking readings and doing module
- * related work.
- */
-constexpr size_t ModuleMemoryAreaSize = 8192;
 
 /**
  * Maximum number of memory banks we're capable of supporting.

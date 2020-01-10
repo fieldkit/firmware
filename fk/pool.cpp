@@ -7,6 +7,7 @@
 #include "pool.h"
 #include "platform.h"
 #include "protobuf.h"
+#include "config.h"
 
 void *operator new(size_t size, fk::Pool &pool) {
     return pool.malloc(size);
@@ -187,6 +188,9 @@ MallocPool::~MallocPool() {
     }
 }
 
+StandardPool::StandardPool(const char *name) : MallocPool(name, StandardPageSize) {
+}
+
 class UnownedPool : public Pool {
 public:
     UnownedPool(const char *name, void *ptr, size_t size, size_t taken) : Pool(name, size, ptr, taken) {
@@ -197,7 +201,8 @@ public:
 
 };
 
-Pool *create_pool_inside(const char *name, size_t size) {
+Pool *create_pool_inside(const char *name) {
+    auto size = StandardPageSize;
     auto ptr = malloc(size);
     auto overhead = sizeof(UnownedPool);
     return new (ptr) UnownedPool(name, ptr, size, overhead);
@@ -244,7 +249,8 @@ void *ChainedPool::malloc(size_t bytes) {
     return sibling_->malloc(bytes);
 }
 
-Pool *create_chained_pool_inside(const char *name, size_t size) {
+Pool *create_chained_pool_inside(const char *name) {
+    auto size = StandardPageSize;
     auto ptr = fk_malloc(size);
     auto overhead = sizeof(ChainedPool);
     return new (ptr) ChainedPool(name, ptr, size, overhead);

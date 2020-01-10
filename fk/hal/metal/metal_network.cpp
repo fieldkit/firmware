@@ -33,9 +33,9 @@ private:
             return;
         }
 
-        memory_ = (uint8_t *)::malloc(DefaultWorkerPoolSize);
+        memory_ = (uint8_t *)::malloc(StandardPageSize);
 
-        for (auto i = 0u; i < 5u; ++i) {
+        for (auto i = 0u; i < StandardPageSize / ExpectedWiFiBufferSize; ++i) {
             buffers_[i].ptr = memory_ + ExpectedWiFiBufferSize * i;
             buffers_[i].taken = false;
         }
@@ -106,7 +106,7 @@ MetalNetworkConnection::MetalNetworkConnection() {
 
 MetalNetworkConnection::MetalNetworkConnection(WiFiClient wcl) : wcl_(wcl) {
     if (debugging_) {
-        size_ = DefaultWorkerPoolSize;
+        size_ = StandardPageSize;
         buffer_ = reinterpret_cast<uint8_t *>(fk_malloc(size_));
         bzero(buffer_, size_);
     }
