@@ -214,14 +214,10 @@ static bool configure(HttpServerConnection *connection, fk_app_HttpQuery *query,
 
     if (query->schedules.modifying) {
         gsm.apply([=](GlobalState *gs) {
-            gs->scheduler.readings.interval = query->schedules.readings.interval;
-            gs->scheduler.network.interval = query->schedules.network.interval;
-            gs->scheduler.gps.interval = query->schedules.gps.interval;
-            gs->scheduler.lora.interval = query->schedules.lora.interval;
-            gs->scheduler.readings.cron = lwcron::CronSpec::interval(gs->scheduler.readings.interval);
-            gs->scheduler.network.cron = lwcron::CronSpec::interval(gs->scheduler.network.interval);
-            gs->scheduler.gps.cron = lwcron::CronSpec::interval(gs->scheduler.gps.interval);
-            gs->scheduler.lora.cron = lwcron::CronSpec::interval(gs->scheduler.lora.interval);
+            gs->scheduler.readings = query->schedules.readings;
+            gs->scheduler.network = query->schedules.network;
+            gs->scheduler.gps = query->schedules.gps;
+            gs->scheduler.lora = query->schedules.lora;
         });
     }
 
