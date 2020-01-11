@@ -9,6 +9,11 @@ constexpr uint8_t LP50_REGISTER_BRIGHTNESS = 0x07;
 constexpr uint8_t LP50_ENABLE_ON = 0x40;
 
 MetalLeds::MetalLeds() {
+    bzero(pixels_, sizeof(pixels_));
+    pixels_[0] = LP50_REGISTER_BRIGHTNESS;
+    for (auto i = 0u; i < NumberOfPixels; ++i) {
+        pixels_[1 + i] = 0xff;
+    }
 }
 
 bool MetalLeds::begin() {
@@ -27,46 +32,49 @@ bool MetalLeds::begin() {
 }
 
 void MetalLeds::brightness(uint8_t value) {
-    uint8_t pixels[5] = {
-        LP50_REGISTER_BRIGHTNESS,
-        value, value, value, value
-    };
-
-    auto bus = get_board()->i2c_module();
-
-    if (!I2C_CHECK(bus.write(LP50_ADDRESS, pixels, sizeof(pixels)))) {
+    for (auto i = 0u; i < NumberOfPixels; ++i) {
+        pixels_[1 + i] = value;
     }
+
+    refresh();
 }
 
 void MetalLeds::off() {
-    uint8_t pixels[13] = {
-        LP50_REGISTER_RGB,
-        0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00,
-    };
-
-    auto bus = get_board()->i2c_module();
-
-    if (!I2C_CHECK(bus.write(LP50_ADDRESS, pixels, sizeof(pixels)))) {
-    }
+    brightness(0x00);
 }
 
 void MetalLeds::on() {
-    uint8_t pixels[13] = {
-        LP50_REGISTER_RGB,
-        0xff, 0xff, 0xff,
-        0xff, 0xff, 0xff,
-        0xff, 0xff, 0xff,
-        0xff, 0xff, 0xff,
-    };
+    brightness(0xff);
+}
 
+void MetalLeds::color(uint8_t position, Color color) {
+    pixels_[1 + NumberOfPixels + (position * 3) + 0] = color.r;
+    pixels_[1 + NumberOfPixels + (position * 3) + 1] = color.g;
+    pixels_[1 + NumberOfPixels + (position * 3) + 2] = color.g;
+
+    refresh();
+}
+
+void MetalLeds::off(uint8_t position) {
+    pixels_[1 + position] = 0x00;
+
+    refresh();
+}
+
+void MetalLeds::on(uint8_t position) {
+    pixels_[1 + position] = 0xff;
+
+    refresh();
+}
+
+bool MetalLeds::refresh() {
     auto bus = get_board()->i2c_module();
 
-    if (!I2C_CHECK(bus.write(LP50_ADDRESS, pixels, sizeof(pixels)))) {
-
+    if (!I2C_CHECK(bus.write(LP50_ADDRESS, pixels_, sizeof(pixels_)))) {
+        return false;
     }
+
+    return true;
 }
 
 } // namespace fk
