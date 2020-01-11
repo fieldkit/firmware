@@ -14,6 +14,7 @@
 #include "hal/buttons.h"
 #include "hal/ipc.h"
 #include "hal/modmux.h"
+#include "hal/leds.h"
 
 #if defined(__SAMD51__)
 #include "hal/metal/metal.h"
