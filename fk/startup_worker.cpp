@@ -55,7 +55,7 @@ void StartupWorker::run(Pool &pool) {
     auto lock = get_board()->lock_eeprom();
 
     NoopSelfCheckCallbacks noop_callbacks;
-    SelfCheck self_check(display, get_network(), mm);
+    SelfCheck self_check(display, get_network(), mm, get_module_leds());
     self_check.check(SelfCheckSettings{ }, noop_callbacks);
 
     Storage storage{ MemoryFactory::get_data_memory(), false };

@@ -40,7 +40,7 @@ void SelfCheckWorker::check() {
     auto lock = storage_mutex.acquire(UINT32_MAX);
     FK_ASSERT(lock);
     NullDisplay noop_display;
-    SelfCheck self_check(&noop_display, get_network(), get_modmux());
+    SelfCheck self_check(&noop_display, get_network(), get_modmux(), get_module_leds());
     self_check.check(SelfCheckSettings{ true, true, true, true }, *callbacks_);
 }
 

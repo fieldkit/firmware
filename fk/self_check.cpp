@@ -8,7 +8,7 @@ namespace fk {
 
 FK_DECLARE_LOGGER("check");
 
-SelfCheck::SelfCheck(Display *display, Network *network, ModMux *mm) : display_(display), network_(network), mm_(mm) {
+SelfCheck::SelfCheck(Display *display, Network *network, ModMux *mm, ModuleLeds *leds) : display_(display), network_(network), mm_(mm), leds_(leds) {
 }
 
 static CheckStatus to_status(bool ok) {
@@ -64,10 +64,14 @@ void SelfCheck::check(SelfCheckSettings settings, SelfCheckCallbacks &callbacks)
 
         status.bp_mux = to_status(backplane_mux());
         callbacks.update(status);
+
+        status.bp_leds = to_status(backplane_leds());
+        callbacks.update(status);
     }
     else {
         status.bp_mux = CheckStatus::Unknown;
         status.bp_shift = CheckStatus::Unknown;
+        status.bp_leds = CheckStatus::Unknown;
     }
 
     if (settings.check_lora) {
@@ -266,6 +270,15 @@ bool SelfCheck::backplane_shift() {
 bool SelfCheck::backplane_mux() {
     return single_check("bp mux", [=]() {
         if (!mm_->choose(0)) {
+            return false;
+        }
+        return true;
+    });
+}
+
+bool SelfCheck::backplane_leds() {
+    return single_check("bp leds", [=]() {
+        if (!leds_->begin()) {
             return false;
         }
         return true;

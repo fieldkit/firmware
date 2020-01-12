@@ -37,6 +37,7 @@ struct SelfCheckStatus {
     CheckStatus sd_card_write{ CheckStatus::Pending };
     CheckStatus bp_mux{ CheckStatus::Pending };
     CheckStatus bp_shift{ CheckStatus::Pending };
+    CheckStatus bp_leds{ CheckStatus::Pending };
     CheckStatus lora{ CheckStatus::Pending };
 };
 
@@ -56,9 +57,10 @@ private:
     Display *display_;
     Network *network_;
     ModMux *mm_;
+    ModuleLeds *leds_;
 
 public:
-    SelfCheck(Display *display, Network *network, ModMux *mm);
+    SelfCheck(Display *display, Network *network, ModMux *mm, ModuleLeds *leds);
 
 public:
     void check(SelfCheckSettings settings, SelfCheckCallbacks &callback);
@@ -75,6 +77,7 @@ private:
     bool sd_card_write();
     bool backplane_shift();
     bool backplane_mux();
+    bool backplane_leds();
     bool lora();
 
 };

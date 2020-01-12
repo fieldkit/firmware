@@ -18,6 +18,7 @@ void DisplaySelfCheckCallbacks::update(SelfCheckStatus status) {
     append("sdw", status.sd_card_write);
     append("bpm", status.bp_mux);
     append("bps", status.bp_shift);
+    append("led", status.bp_leds);
     append("lora", status.lora);
 }
 
