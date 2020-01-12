@@ -8,24 +8,24 @@ static GlobalState gs;
 GlobalStateRef<const GlobalState*> get_global_state_ro() {
     auto lock = data_lock.acquire_read(UINT32_MAX);
     FK_ASSERT(lock);
-    return { std::move(lock), &gs };
+    return { std::move(lock), true, &gs };
 }
 
 GlobalStateRef<GlobalState*> get_global_state_rw() {
     auto lock = data_lock.acquire_write(UINT32_MAX);
     FK_ASSERT(lock);
-    return { std::move(lock), &gs };
+    return { std::move(lock), false, &gs };
 }
 
 GlobalStateRef<GlobalState const*> try_get_global_state_ro() {
     auto lock = data_lock.acquire_read(0);
     if (!lock) {
-        return { std::move(lock), nullptr };
+        return { std::move(lock), false, nullptr };
     }
-    return { std::move(lock), &gs };
+    return { std::move(lock), true, &gs };
 }
 
-GlobalState::GlobalState() {
+GlobalState::GlobalState() : version(0) {
 }
 
 void GlobalState::update_physical_modules(ConstructedModulesCollection const &modules) {
@@ -43,6 +43,13 @@ void GlobalState::update_physical_modules(ConstructedModulesCollection const &mo
             status.meta = m.meta;
         }
     }
+}
+
+void GlobalState::released() const {
+}
+
+void GlobalState::released() {
+    version++;
 }
 
 }

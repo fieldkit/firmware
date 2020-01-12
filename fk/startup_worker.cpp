@@ -26,6 +26,8 @@ namespace fk {
 FK_DECLARE_LOGGER("startup");
 
 void StartupWorker::run(Pool &pool) {
+    loginfo("startup-worker");
+
     auto display = get_display();
 
     display->company_logo();

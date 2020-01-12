@@ -243,6 +243,7 @@ struct SchedulerState {
 
 struct GlobalState {
 public:
+    uint32_t version;
     GeneralState general;
     RuntimeState runtime;
     PowerState power;
@@ -264,6 +265,8 @@ public:
 
 public:
     void update_physical_modules(ConstructedModulesCollection const &modules);
+    void released() const;
+    void released();
 
 };
 

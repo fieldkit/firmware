@@ -14,14 +14,21 @@ template<typename T>
 class GlobalStateRef {
 private:
     RwLock::Lock lock_;
+    bool readonly_;
     T value_;
 
 public:
-    GlobalStateRef(RwLock::Lock lock, T value) : lock_(std::move(lock)), value_(value) { }
+    GlobalStateRef(RwLock::Lock lock, bool readonly, T value) : lock_(std::move(lock)), readonly_(readonly), value_(value) {
+    }
 
-    GlobalStateRef(GlobalStateRef &&ref) : lock_(std::move(ref.lock_)), value_(std::move(ref.value_)) { }
+    GlobalStateRef(GlobalStateRef &&ref) : lock_(std::move(ref.lock_)), readonly_(ref.readonly_), value_(std::move(ref.value_)) {
+    }
 
-    virtual ~GlobalStateRef() { }
+    virtual ~GlobalStateRef() {
+        if (!readonly_) {
+            value_->released();
+        }
+    }
 
 public:
     T get() {
