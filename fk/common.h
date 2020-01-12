@@ -146,6 +146,18 @@ enum class Availability {
     Unavailable
 };
 
+template<typename T>
+struct TypeName {
+};
+
+#define FK_ENABLE_TYPE_NAME(Type)    \
+    template<>                       \
+    struct TypeName<Type> {          \
+        static const char *get() {   \
+            return #Type;            \
+        }                            \
+    };
+
 /**
  * RIAA-esque class for temporarily changing log level.
  */

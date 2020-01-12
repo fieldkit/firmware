@@ -103,6 +103,9 @@ public:
 
 };
 
+FK_ENABLE_TYPE_NAME(MetalNetworkConnection);
+FK_ENABLE_TYPE_NAME(MetalNetworkListener);
+
 }
 
 #endif

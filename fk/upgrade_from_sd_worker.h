@@ -40,4 +40,6 @@ public:
 
 };
 
+FK_ENABLE_TYPE_NAME(UpgradeFirmwareFromSdWorker);
+
 }

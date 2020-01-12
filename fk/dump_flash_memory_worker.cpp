@@ -14,7 +14,7 @@ FK_DECLARE_LOGGER("dumpmem");
 
 constexpr size_t MaximumBadBlockRun = 10;
 
-void DumpFlashMemory::run(Pool &pool) {
+void DumpFlashMemoryWorker::run(Pool &pool) {
     auto lock = storage_mutex.acquire(UINT32_MAX);
     auto memory = SequentialMemory{ MemoryFactory::get_data_memory() };
     auto g = MemoryFactory::get_data_memory()->geometry();

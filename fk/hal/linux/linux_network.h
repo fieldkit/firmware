@@ -81,6 +81,9 @@ public:
 
 };
 
+FK_ENABLE_TYPE_NAME(LinuxNetworkConnection);
+FK_ENABLE_TYPE_NAME(LinuxNetworkListener);
+
 }
 
 #endif

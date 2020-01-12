@@ -95,4 +95,6 @@ inline TaskWorker *create_pool_worker(Args &&... args) {
     return create_chained_pool_wrapper<Wrapped, TaskWorker, PoolWorker<Wrapped, Wrapped, Args...>, PoolWorker<Wrapped, Wrapped, Args...>>(std::forward<Args>(args)...);
 }
 
+FK_ENABLE_TYPE_NAME(Worker);
+
 }

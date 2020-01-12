@@ -33,4 +33,6 @@ public:
 
 };
 
+FK_ENABLE_TYPE_NAME(WifiToggleWorker);
+
 }

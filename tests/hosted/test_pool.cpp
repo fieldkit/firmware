@@ -75,6 +75,12 @@ public:
     }
 };
 
+namespace fk {
+
+FK_ENABLE_TYPE_NAME(SimpleWorker);
+
+}
+
 struct complex_object_t {
     int32_t value1;
     int32_t value2;

@@ -56,7 +56,7 @@ public:
 
 template<typename Wrapped, typename Wrapee = PoolPointer<Wrapped>, typename ConcreteWrapped = Wrapped, typename ConcreteWrapee = ChainedPoolWrapper<Wrapped, ConcreteWrapped>, class... Args>
 inline Wrapee *create_chained_pool_wrapper(Args &&... args) {
-    auto pool = create_chained_pool_inside("pool");
+    auto pool = create_chained_pool_inside(TypeName<Wrapped>::get());
     auto wrapper = new (pool) ConcreteWrapee(pool, std::forward<Args>(args)...);
     return wrapper;
 }

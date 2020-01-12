@@ -224,7 +224,7 @@ void MenuView::create_tools_menu() {
     auto tools_dump_flash = to_lambda_option(pool_, "Flash -> SD", [=]() {
         back_->on_selected();
         views_->show_home();
-        get_ipc()->launch_worker(create_pool_worker<DumpFlashMemory>());
+        get_ipc()->launch_worker(create_pool_worker<DumpFlashMemoryWorker>());
     });
     auto tools_load_firmware_sd_and_swap = to_lambda_option(pool_, "SD Upgrade (Swap)", [=]() {
         back_->on_selected();
