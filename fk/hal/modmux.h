@@ -28,15 +28,6 @@ public:
 
 };
 
-class DisableModuleOnReturn {
-private:
-    uint8_t position_;
-
-public:
-    DisableModuleOnReturn(uint8_t position); 
-    virtual ~DisableModuleOnReturn();
-};
-
 ModMux *get_modmux();
 
 }

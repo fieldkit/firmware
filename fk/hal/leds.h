@@ -19,4 +19,6 @@ public:
 
 };
 
+ModuleLeds *get_module_leds();
+
 } // namespace fk
