@@ -16,6 +16,10 @@ struct SelfCheckSettings {
 
     SelfCheckSettings(bool gps, bool sd_card, bool backplane, bool lora) : check_gps(gps), check_sd_card(sd_card), check_backplane(backplane), check_lora(lora) {
     }
+
+    static SelfCheckSettings defaults() {
+        return { true, true, true, true };
+    }
 };
 
 enum class CheckStatus : uint8_t {

@@ -109,7 +109,7 @@ void SpiFlash::dump_feature_registers() {
     for (auto a : features) {
         uint8_t value = 0x00;
         get_feature(a, &value);
-        loginfo("feature-reg 0x%x = 0x%x", a, value);
+        logverbose("feature-reg 0x%x = 0x%x", a, value);
     }
 }
 

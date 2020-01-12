@@ -1007,8 +1007,6 @@ TEST_F(StorageSuite, RecordNumbers) {
 
     ASSERT_TRUE(storage.clear());
 
-    enable_debug();
-
     auto file_write = storage.file(0);
 
     ASSERT_EQ(file_write.record(), UINT32_MAX);

@@ -8,6 +8,26 @@ namespace fk {
 
 FK_DECLARE_LOGGER("check");
 
+void check_message(const char *name, bool ok, uint32_t elapsed, bool critical) {
+    alogf(ok ? LogLevels::INFO : (critical ? LogLevels::ERROR : LogLevels::INFO), LOG_FACILITY, "%s... %s (%" PRIu32  "ms)", name, ok ? "OK" : "ERROR", elapsed);
+}
+
+template<typename T>
+bool single_check(const char *name, T fn) {
+    auto started = fk_uptime();
+    auto ok = fn();
+    check_message(name, ok, fk_uptime() - started, true);
+    return ok;
+}
+
+template<typename T>
+bool single_noncritical_check(const char *name, T fn) {
+    auto started = fk_uptime();
+    auto ok = fn();
+    check_message(name, ok, fk_uptime() - started, false);
+    return ok;
+}
+
 SelfCheck::SelfCheck(Display *display, Network *network, ModMux *mm, ModuleLeds *leds) : display_(display), network_(network), mm_(mm), leds_(leds) {
 }
 
@@ -84,18 +104,6 @@ void SelfCheck::check(SelfCheckSettings settings, SelfCheckCallbacks &callbacks)
     loginfo("done");
 }
 
-void check_message(const char *name, bool ok, uint32_t elapsed) {
-    alogf(ok ? LogLevels::INFO : LogLevels::ERROR, LOG_FACILITY, "%s... %s (%" PRIu32  "ms)", name, ok ? "OK" : "ERROR", elapsed);
-}
-
-template<typename T>
-bool single_check(const char *name, T fn) {
-    auto started = fk_uptime();
-    auto ok = fn();
-    check_message(name, ok, fk_uptime() - started);
-    return ok;
-}
-
 bool SelfCheck::rtc() {
     return single_check("rtc", []() {
         auto clock = get_clock();
@@ -162,7 +170,7 @@ bool SelfCheck::spi_memory() {
     }
 
     if (!memory->begin()) {
-        check_message("bank memory", false, 0);
+        check_message("bank memory", false, 0, true);
         return false;
     }
 
@@ -218,7 +226,7 @@ bool SelfCheck::wifi() {
 }
 
 bool SelfCheck::sd_card_open() {
-    return single_check("sd card open", []() {
+    return single_noncritical_check("sd card open", []() {
         auto sd_card = get_sd_card();
 
         if (!sd_card->begin()) {
@@ -230,7 +238,7 @@ bool SelfCheck::sd_card_open() {
 }
 
 bool SelfCheck::sd_card_write() {
-    return single_check("sd card write", []() {
+    return single_noncritical_check("sd card write", []() {
         StandardPool pool{ "sdw" };
 
         auto sd_card = get_sd_card();
@@ -286,7 +294,7 @@ bool SelfCheck::backplane_leds() {
 }
 
 bool SelfCheck::lora() {
-    return single_check("lora", [=]() {
+    return single_noncritical_check("lora", [=]() {
         auto lora = get_lora_network();
 
         if (!lora->begin()) {

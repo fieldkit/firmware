@@ -56,7 +56,7 @@ void StartupWorker::run(Pool &pool) {
 
     NoopSelfCheckCallbacks noop_callbacks;
     SelfCheck self_check(display, get_network(), mm, get_module_leds());
-    self_check.check(SelfCheckSettings{ }, noop_callbacks);
+    self_check.check(SelfCheckSettings::defaults(), noop_callbacks);
 
     Storage storage{ MemoryFactory::get_data_memory(), false };
     if (storage.begin()) {
