@@ -13,6 +13,11 @@ public:
     }
 
 public:
+    static void operator delete(void *p) {
+        FK_ASSERT(!!"PoolPointer::delete should never be called");
+    }
+
+public:
     virtual Pool *pool() = 0;
     virtual T *get() = 0;
 
@@ -20,7 +25,6 @@ public:
     K *get() {
         return reinterpret_cast<K*>(get());
     }
-
 };
 
 template<typename Wrapped, typename ConcreteWrapped = Wrapped, class... Args>
@@ -41,6 +45,7 @@ public:
     void operator delete(void *p) {
         // We are freed automatically when the pool is deleted in our
         // destructor. So we don't need to do anything in here.
+        printf("ChainedPoolWrapper::delete 0x%p\n", p);
     }
 
 public:
@@ -57,8 +62,7 @@ public:
 template<typename Wrapped, typename Wrapee = PoolPointer<Wrapped>, typename ConcreteWrapped = Wrapped, typename ConcreteWrapee = ChainedPoolWrapper<Wrapped, ConcreteWrapped>, class... Args>
 inline Wrapee *create_chained_pool_wrapper(Args &&... args) {
     auto pool = create_chained_pool_inside(TypeName<Wrapped>::get());
-    auto wrapper = new (pool) ConcreteWrapee(pool, std::forward<Args>(args)...);
-    return wrapper;
+    return new (pool) ConcreteWrapee(pool, std::forward<Args>(args)...);
 }
 
 }

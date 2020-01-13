@@ -114,7 +114,7 @@ public:
 };
 
 class MallocPool : public Pool {
-public:
+protected:
     MallocPool(const char *name, size_t size);
     MallocPool(const char *name, void *ptr, size_t size, size_t taken);
     virtual ~MallocPool();
@@ -129,13 +129,6 @@ public:
 Pool *create_pool_inside(const char *name);
 
 Pool *create_chained_pool_inside(const char *name);
-
-/*
-#define __POOL_LINE_STR(x) #x
-#define __POOL_LINE(x) __POOL_LINE_STR(x)
-#define PoolHere(var, size) var(__FILE__ ":" __POOL_LINE(__LINE__), size)
-#define StaticPoolHere(size)  StaticPool<size>(__FILE__ ":" __POOL_LINE(__LINE__))
-*/
 
 }
 

@@ -11,7 +11,7 @@ namespace fk {
 
 class StorageSuite : public ::testing::Test {
 protected:
-    MallocPool pool_{ "storage", 1024 * 100 };
+    StandardPool pool_{ "storage" };
     LinuxDataMemory *banks_[MemoryFactory::NumberOfDataMemoryBanks] = { nullptr };
     DataMemory *data_memory_{ nullptr };
     StatisticsMemory statistics_memory_{ data_memory_ };

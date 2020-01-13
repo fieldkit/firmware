@@ -13,7 +13,7 @@ using namespace fk;
 
 class HttpBasicParsingSuite : public ::testing::Test {
 protected:
-    MallocPool pool_{ "tests", 1024 * 100 };
+    StandardPool pool_{ "tests" };
 };
 
 TEST_F(HttpBasicParsingSuite, SimpleGet1) {
@@ -111,7 +111,7 @@ TEST_F(HttpRoutingSuite, WithMultipleBasicRoutes) {
 
 class HttpParsingQuerySuite : public ::testing::Test {
 protected:
-    MallocPool pool_{ "tests", 1024 * 100 };
+    StandardPool pool_{ "tests" };
 };
 
 TEST_F(HttpParsingQuerySuite, SimpleGet1) {

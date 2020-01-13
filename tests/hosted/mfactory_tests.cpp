@@ -12,7 +12,7 @@ using namespace fk;
 
 class ModuleFactorySuite : public ::testing::Test {
 protected:
-    MallocPool pool_{ "tests", 1024 * 100 };
+    StandardPool pool_{ "tests" };
 };
 
 TEST_F(ModuleFactorySuite, WithNoModules) {

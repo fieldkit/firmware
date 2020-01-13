@@ -191,30 +191,35 @@ MallocPool::~MallocPool() {
 StandardPool::StandardPool(const char *name) : MallocPool(name, StandardPageSize) {
 }
 
-class UnownedPool : public Pool {
+class InsidePool : public Pool {
 public:
-    UnownedPool(const char *name, void *ptr, size_t size, size_t taken) : Pool(name, size, ptr, taken) {
+    InsidePool(const char *name, void *ptr, size_t size, size_t taken) : Pool(name, size, ptr, taken) {
     }
 
-    virtual ~UnownedPool() {
+    virtual ~InsidePool() {
     }
 
 };
 
 Pool *create_pool_inside(const char *name) {
     auto size = StandardPageSize;
-    auto ptr = malloc(size);
-    auto overhead = sizeof(UnownedPool);
-    return new (ptr) UnownedPool(name, ptr, size, overhead);
+    auto ptr = fk_malloc(size);
+    auto overhead = sizeof(InsidePool);
+    return new (ptr) InsidePool(name, ptr, size, overhead);
 }
 
-class ChainedPool : public Pool {
+class StandardPagePool : public Pool {
 private:
-    ChainedPool *sibling_{ nullptr };
+    StandardPagePool *sibling_{ nullptr };
 
 public:
-    ChainedPool(const char *name, void *ptr, size_t size, size_t taken);
-    virtual ~ChainedPool();
+    StandardPagePool(const char *name, void *ptr, size_t size, size_t taken);
+    virtual ~StandardPagePool();
+
+public:
+    static void operator delete(void *p) {
+        printf("StandardPagePool::delete(0x%p)\n", p);
+    }
 
 public:
     void *malloc(size_t bytes) override;
@@ -225,25 +230,25 @@ public:
 
 };
 
-ChainedPool::ChainedPool(const char *name, void *ptr, size_t size, size_t taken) : Pool(name, size, ptr, taken) {
+StandardPagePool::StandardPagePool(const char *name, void *ptr, size_t size, size_t taken) : Pool(name, size, ptr, taken) {
 }
 
-ChainedPool::~ChainedPool() {
+StandardPagePool::~StandardPagePool() {
     if (sibling_ != nullptr) {
         delete sibling_;
         sibling_ = nullptr;
     }
 }
 
-void *ChainedPool::malloc(size_t bytes) {
+void *StandardPagePool::malloc(size_t bytes) {
     if (can_malloc(bytes)) {
         return Pool::malloc(bytes);
     }
 
     if (sibling_ == nullptr) {
         auto ptr = fk_malloc(size());
-        auto overhead = sizeof(ChainedPool);
-        sibling_ = new (ptr) ChainedPool(name(), ptr, size(), overhead);
+        auto overhead = sizeof(StandardPagePool);
+        sibling_ = new (ptr) StandardPagePool(name(), ptr, size(), overhead);
     }
 
     return sibling_->malloc(bytes);
@@ -252,8 +257,8 @@ void *ChainedPool::malloc(size_t bytes) {
 Pool *create_chained_pool_inside(const char *name) {
     auto size = StandardPageSize;
     auto ptr = fk_malloc(size);
-    auto overhead = sizeof(ChainedPool);
-    return new (ptr) ChainedPool(name, ptr, size, overhead);
+    auto overhead = sizeof(StandardPagePool);
+    return new (ptr) StandardPagePool(name, ptr, size, overhead);
 }
 
 }

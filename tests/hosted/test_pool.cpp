@@ -136,7 +136,6 @@ TEST_F(PoolSuite, Collections) {
 
     collection<nested_collection_t> nested{ pool };
 
-    // nested.add({ 0, std::move(integers) });
     nested.emplace(0, std::move(integers));
 }
 
