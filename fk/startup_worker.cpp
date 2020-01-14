@@ -26,21 +26,17 @@ namespace fk {
 FK_DECLARE_LOGGER("startup");
 
 void StartupWorker::run(Pool &pool) {
-    loginfo("startup-worker");
-
-    auto display = get_display();
-
-    display->company_logo();
-
-    GlobalStateManager gsm;
-    FK_ASSERT(gsm.initialize(pool));
-
     if (check_for_interactive_startup()) {
         FK_ASSERT(os_task_start(&display_task) == OSS_SUCCESS);
         return;
     }
 
-    FK_ASSERT(check_for_lora(pool));
+    loginfo("ready display");
+
+    auto display = get_display();
+    display->company_logo();
+
+    loginfo("ready hardware");
 
     auto mm = get_modmux();
 
@@ -57,6 +53,13 @@ void StartupWorker::run(Pool &pool) {
     NoopSelfCheckCallbacks noop_callbacks;
     SelfCheck self_check(display, get_network(), mm, get_module_leds());
     self_check.check(SelfCheckSettings::defaults(), noop_callbacks);
+
+    loginfo("prime global state");
+
+    GlobalStateManager gsm;
+    FK_ASSERT(gsm.initialize(pool));
+
+    FK_ASSERT(check_for_lora(pool));
 
     Storage storage{ MemoryFactory::get_data_memory(), false };
     if (storage.begin()) {
