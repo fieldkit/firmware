@@ -122,18 +122,10 @@ static bool log_diagnostics() {
     return true;
 }
 
-static bool initialize_hardware() {
-    FK_ASSERT(get_board()->initialize());
-
-    FK_ASSERT(get_buttons()->begin());
-
-    FK_ASSERT(fk_random_initialize() == 0);
-
-    FK_ASSERT(get_flash()->initialize());
-
-    get_board()->enable_everything();
-
-    fk_delay(100);
+static bool initialize_backplane() {
+    if (get_module_leds()->begin()) {
+        get_module_leds()->off();
+    }
 
     if (!get_modmux()->begin()) {
         logerror("no backplane!");
@@ -148,13 +140,28 @@ static bool initialize_hardware() {
     return true;
 }
 
+static bool initialize_hardware() {
+    FK_ASSERT(get_board()->initialize());
+
+    FK_ASSERT(get_buttons()->begin());
+
+    FK_ASSERT(fk_random_initialize() == 0);
+
+    FK_ASSERT(get_flash()->initialize());
+
+    get_board()->enable_everything();
+
+    fk_delay(10);
+
+    initialize_backplane();
+
+    return true;
+}
+
 static void single_threaded_setup() {
     OS_CHECK(os_initialize());
 
     FK_ASSERT(fk_logging_initialize());
-
-    auto mi = mallinfo();
-    loginfo("memory arena = %zd used = %zd", (size_t)mi.arena, (size_t)mi.uordblks);
 
     FK_ASSERT(initialize_hardware());
 
