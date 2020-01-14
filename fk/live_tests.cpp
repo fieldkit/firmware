@@ -48,7 +48,7 @@ static size_t write_reading(File &file) {
                 .arg = &readings_array,
             },
         }
-    }; 
+    };
 
     pb_array_t sensor_groups_array = {
         .length = (size_t)1,
@@ -97,7 +97,7 @@ static void try_and_reproduce_weird_block_issue() {
 
         if ((counter % 50) == 0) {
             for (auto i = 0; i < 10; ++i) {
-                StaticPool<1024> pool{ "signed-log" };
+                StandardPool pool{ "signed-log" };
 
                 auto meta_file = storage.file(Storage::Meta);
                 if (!meta_file.seek_end()) {

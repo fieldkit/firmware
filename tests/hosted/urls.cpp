@@ -1,6 +1,4 @@
-#include <gtest/gtest.h>
-
-#include "pool.h"
+#include "tests.h"
 #include "worker.h"
 #include "networking/url_parser.h"
 
