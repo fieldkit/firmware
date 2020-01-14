@@ -3,6 +3,8 @@
 
 namespace fk {
 
+FK_DECLARE_LOGGER("gs");
+
 static GlobalState gs;
 
 GlobalStateRef<const GlobalState*> get_global_state_ro() {
@@ -45,10 +47,12 @@ void GlobalState::update_physical_modules(ConstructedModulesCollection const &mo
     }
 }
 
-void GlobalState::released() const {
+void GlobalState::released(uint32_t locked) const {
+    loginfo("read (%" PRIu32 "ms)", fk_uptime() - locked);
 }
 
-void GlobalState::released() {
+void GlobalState::released(uint32_t locked) {
+    loginfo("modified (%" PRIu32 "ms)", fk_uptime() - locked);
     version++;
 }
 

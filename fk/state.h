@@ -265,8 +265,8 @@ public:
 
 public:
     void update_physical_modules(ConstructedModulesCollection const &modules);
-    void released() const;
-    void released();
+    void released(uint32_t locked) const;
+    void released(uint32_t locked);
 
 };
 
