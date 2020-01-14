@@ -3,18 +3,18 @@
 
 using namespace fk;
 
-bool RandomModule::initialize(ModuleContext mc, Pool &pool) {
-    return true;
+ModuleReturn RandomModule::initialize(ModuleContext mc, Pool &pool) {
+    return { ModuleStatus::Ok };
 }
 
-bool RandomModule::api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
+ModuleReturn RandomModule::api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
     connection->busy(0, "unsupported");
 
-    return true;
+    return { ModuleStatus::Fatal };
 }
 
-bool RandomModule::service(ModuleContext mc, Pool &pool) {
-    return true;
+ModuleReturn RandomModule::service(ModuleContext mc, Pool &pool) {
+    return { ModuleStatus::Ok };
 }
 
 static SensorMetadata const fk_module_random_sensor_metas[] = {

@@ -13,6 +13,15 @@ class GlobalState;
 class ModuleContext;
 class HttpServerConnection;
 
+enum class ModuleStatus {
+    Unknown = 0,
+    Empty,
+    Ok,
+    Populated,
+    Warning,
+    Fatal
+};
+
 class ScanningContext {
 private:
     ModMux *mm_;
@@ -158,6 +167,17 @@ typedef struct ModuleConfiguration {
     }
 } ModuleConfiguration;
 
+struct ModuleReturn {
+    ModuleStatus status;
+
+    ModuleReturn(ModuleStatus status) : status(status) {
+    }
+
+    operator bool() const {
+        return status == ModuleStatus::Ok;
+    }
+};
+
 /**
  * Primary module interface.
  */
@@ -167,12 +187,12 @@ public:
     virtual ~Module() { }
 
 public:
-    virtual bool initialize(ModuleContext mc, Pool &pool) = 0;
+    virtual ModuleReturn initialize(ModuleContext mc, Pool &pool) = 0;
     virtual ModuleReadings *take_readings(ModuleContext mc, Pool &pool) = 0;
     virtual ModuleSensors const *get_sensors(Pool &pool) = 0;
     virtual ModuleConfiguration get_configuration(Pool &pool) = 0;
-    virtual bool service(ModuleContext mc, Pool &pool) = 0;
-    virtual bool api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) = 0;
+    virtual ModuleReturn service(ModuleContext mc, Pool &pool) = 0;
+    virtual ModuleReturn api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) = 0;
 
 };
 

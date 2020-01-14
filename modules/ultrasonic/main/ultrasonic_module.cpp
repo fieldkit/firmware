@@ -8,7 +8,7 @@ FK_DECLARE_LOGGER("ultrasonic");
 UltrasonicModule::UltrasonicModule() : bridge_(get_board()->acquire_i2c_module()) {
 }
 
-bool UltrasonicModule::initialize(ModuleContext mc, Pool &pool) {
+ModuleReturn UltrasonicModule::initialize(ModuleContext mc, Pool &pool) {
     auto bus = get_board()->i2c_module();
 
     bus.end();
@@ -24,20 +24,20 @@ bool UltrasonicModule::initialize(ModuleContext mc, Pool &pool) {
 
     if (!bridge_.begin(9600)) {
         logerror("initializing bridge");
-        return false;
+        return { ModuleStatus::Fatal };
     }
 
-    return true;
+    return { ModuleStatus::Ok };
 }
 
-bool UltrasonicModule::api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
+ModuleReturn UltrasonicModule::api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
     connection->busy(0, "unsupported");
 
-    return true;
+    return { ModuleStatus::Fatal };
 }
 
-bool UltrasonicModule::service(ModuleContext mc, Pool &pool) {
-    return true;
+ModuleReturn UltrasonicModule::service(ModuleContext mc, Pool &pool) {
+    return { ModuleStatus::Ok };
 }
 
 static SensorMetadata const fk_module_ultrasonic_sensor_metas[] = {

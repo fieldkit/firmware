@@ -12,16 +12,16 @@ static ModuleSensors fk_module_fake_empty_sensors = {
 
 class FakeModuleEmpty : public Module {
 public:
-    bool initialize(ModuleContext mc, Pool &pool) override {
-        return true;
+    ModuleReturn initialize(ModuleContext mc, Pool &pool) override {
+        return { ModuleStatus::Ok };
     }
 
-    bool api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
-        return true;
+    ModuleReturn api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
+        return { ModuleStatus::Ok };
     }
 
-    bool service(ModuleContext mc, Pool &pool) {
-        return true;
+    ModuleReturn service(ModuleContext mc, Pool &pool) {
+        return { ModuleStatus::Ok };
     }
 
     ModuleSensors const *get_sensors(Pool &pool) override {
@@ -61,16 +61,16 @@ static ModuleSensors fk_module_fake_1_sensors = {
 
 class FakeModule1 : public Module {
 public:
-    bool initialize(ModuleContext mc, Pool &pool) override {
-        return true;
+    ModuleReturn initialize(ModuleContext mc, Pool &pool) override {
+        return { ModuleStatus::Ok };
     }
 
-    bool api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
-        return true;
+    ModuleReturn api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
+        return { ModuleStatus::Ok };
     }
 
-    bool service(ModuleContext mc, Pool &pool) {
-        return true;
+    ModuleReturn service(ModuleContext mc, Pool &pool) {
+        return { ModuleStatus::Ok };
     }
 
     ModuleSensors const *get_sensors(Pool &pool) override {
@@ -121,16 +121,16 @@ static ModuleSensors fk_module_fake_2_sensors = {
 
 class FakeModule2 : public Module {
 public:
-    bool initialize(ModuleContext mc, Pool &pool) override {
-        return true;
+    ModuleReturn initialize(ModuleContext mc, Pool &pool) override {
+        return { ModuleStatus::Ok };
     }
 
-    bool api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
-        return true;
+    ModuleReturn api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
+        return { ModuleStatus::Ok };
     }
 
-    bool service(ModuleContext mc, Pool &pool) {
-        return true;
+    ModuleReturn service(ModuleContext mc, Pool &pool) {
+        return { ModuleStatus::Ok };
     }
 
     ModuleSensors const *get_sensors(Pool &pool) override {

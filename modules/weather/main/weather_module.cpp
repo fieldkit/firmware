@@ -50,7 +50,7 @@ static uint32_t calculate_crc(uint32_t seed, T &object) {
     return crc32_checksum(seed, (uint8_t *)&object, sizeof(T) - sizeof(uint32_t));
 }
 
-bool WeatherModule::initialize(ModuleContext mc, Pool &pool) {
+ModuleReturn WeatherModule::initialize(ModuleContext mc, Pool &pool) {
     auto module_bus = get_board()->i2c_module();
     auto eeprom = ModuleEeprom{ module_bus };
 
@@ -73,7 +73,7 @@ bool WeatherModule::initialize(ModuleContext mc, Pool &pool) {
         fk_weather_t temp;
         if (!eeprom.read_data(iter, &temp, sizeof(fk_weather_t))) {
             logerror("error reading eeprom");
-            return nullptr;
+            return { ModuleStatus::Fatal };
         }
 
         auto expected = calculate_crc(FK_MODULES_CRC_SEED, temp);
@@ -100,19 +100,19 @@ bool WeatherModule::initialize(ModuleContext mc, Pool &pool) {
 
     weather_ = { };
 
-    return true;
+    return { ModuleStatus::Ok };
 }
 
-bool WeatherModule::api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
+ModuleReturn WeatherModule::api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
     connection->busy(0, "unsupported");
 
-    return true;
+    return { ModuleStatus::Fatal };
 }
 
-bool WeatherModule::service(ModuleContext mc, Pool &pool) {
+ModuleReturn WeatherModule::service(ModuleContext mc, Pool &pool) {
     if (fk_uptime() - serviced_ < 1000) {
         loginfo("servicing skipped");
-        return true;
+        return { ModuleStatus::Ok };
     }
 
     loginfo("servicing");
@@ -122,14 +122,14 @@ bool WeatherModule::service(ModuleContext mc, Pool &pool) {
 
     // Keep trying to find the end if we weren't able to.
     if (address_ == 0) {
-        if (!initialize(mc, pool)) {
+        if (initialize(mc, pool).status != ModuleStatus::Ok) {
             logerror("initialize failed");
-            return nullptr;
+            return { ModuleStatus::Fatal };
         }
 
         if (address_ == 0) {
             logerror("no readings");
-            return nullptr;
+            return { ModuleStatus::Fatal };
         }
     }
 
@@ -153,7 +153,7 @@ bool WeatherModule::service(ModuleContext mc, Pool &pool) {
         fk_weather_t temp;
         if (!eeprom.read_data(address_, &temp, sizeof(fk_weather_t))) {
             logerror("error reading eeprom");
-            return false;
+            return { ModuleStatus::Fatal };
         }
 
         auto expected = calculate_crc(FK_MODULES_CRC_SEED, temp);
@@ -216,11 +216,11 @@ bool WeatherModule::service(ModuleContext mc, Pool &pool) {
 
     checks_++;
 
-    return true;
+    return { ModuleStatus::Ok };
 }
 
 ModuleReadings *WeatherModule::take_readings(ModuleContext mc, Pool &pool) {
-    if (!service(mc, pool)) {
+    if (service(mc, pool).status != ModuleStatus::Ok) {
         return false;
     }
 
