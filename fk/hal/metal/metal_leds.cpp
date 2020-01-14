@@ -31,12 +31,14 @@ bool MetalLeds::begin() {
     return true;
 }
 
-void MetalLeds::brightness(uint8_t value) {
+void MetalLeds::brightness(uint8_t value, bool refresh_after) {
     for (auto i = 0u; i < NumberOfPixels; ++i) {
         pixels_[1 + i] = value;
     }
 
-    refresh();
+    if (refresh_after) {
+        refresh();
+    }
 }
 
 void MetalLeds::off() {
@@ -47,12 +49,14 @@ void MetalLeds::on() {
     brightness(0xff);
 }
 
-void MetalLeds::color(uint8_t position, Color color) {
+void MetalLeds::color(uint8_t position, Color color, bool refresh_after) {
     pixels_[1 + NumberOfPixels + (position * 3) + 0] = color.r;
     pixels_[1 + NumberOfPixels + (position * 3) + 1] = color.g;
     pixels_[1 + NumberOfPixels + (position * 3) + 2] = color.g;
 
-    refresh();
+    if (refresh_after) {
+        refresh();
+    }
 }
 
 void MetalLeds::off(uint8_t position) {

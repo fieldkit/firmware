@@ -4,18 +4,26 @@
 
 namespace fk {
 
-class ModuleLeds {
-private:
+struct Color {
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+};
 
+class ModuleLeds {
 public:
     ModuleLeds();
     virtual ~ModuleLeds();
 
 public:
     virtual bool begin() = 0;
-    virtual void brightness(uint8_t value) = 0;
+    virtual void brightness(uint8_t value, bool refresh = true) = 0;
     virtual void off() = 0;
     virtual void on() = 0;
+    virtual void color(uint8_t position, Color color, bool refresh = true) = 0;
+    virtual void off(uint8_t position) = 0;
+    virtual void on(uint8_t position) = 0;
+    virtual bool refresh() = 0;
 
 };
 

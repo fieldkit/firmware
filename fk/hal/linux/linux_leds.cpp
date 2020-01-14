@@ -9,13 +9,26 @@ bool LinuxLeds::begin() {
     return true;
 }
 
-void LinuxLeds::brightness(uint8_t value) {
+void LinuxLeds::brightness(uint8_t value, bool refresh) {
 }
 
 void LinuxLeds::off() {
 }
 
 void LinuxLeds::on() {
+}
+
+void LinuxLeds::color(uint8_t position, Color color, bool refresh) {
+}
+
+void LinuxLeds::off(uint8_t position) {
+}
+
+void LinuxLeds::on(uint8_t position) {
+}
+
+bool LinuxLeds::refresh() {
+    return true;
 }
 
 } // namespace fk

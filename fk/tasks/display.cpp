@@ -15,6 +15,7 @@
 #include "display/message_view.h"
 #include "display/module_status_view.h"
 #include "display/lora_view.h"
+#include "display/leds.h"
 
 namespace fk {
 
@@ -32,6 +33,7 @@ private:
     ModuleStatusView module_status_view;
     QrCodeView qr_code_view;
     LoraView lora_view;
+    LedsController leds;
     DisplayView *view = &home_view;
 
 public:
@@ -101,7 +103,12 @@ public:
         auto stop_time = fk_uptime() + fk_config().display.inactivity;
         auto can_stop = os_task_is_running(&scheduler_task);
 
+        if (!leds.begin()) {
+            logwarn("leds unavailable");
+        }
+
         while (!can_stop || fk_uptime() < stop_time) {
+            leds.tick();
             view->tick(this);
 
             Button *button = nullptr;
@@ -145,6 +152,7 @@ void task_handler_display(void *params) {
     StandardPool pool{ "display" };
     MainViewController views{ pool };
     views.run();
+    get_module_leds()->off();
     get_display()->off();
 }
 
