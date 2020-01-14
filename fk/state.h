@@ -197,6 +197,7 @@ struct PhysicalModuleState {
     bool available{ false };
     bool configured{ false };
     bool initialized{ false };
+    ModuleStatus status{ ModuleStatus::Unknown };
     ModuleHeader header;
     ModuleMetadata const *meta;
 };

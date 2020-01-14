@@ -62,7 +62,7 @@ bool ModuleFactory::recreate(ScanningContext &ctx, FoundModuleCollection &module
                 .found = f,
                 .meta = meta,
                 .module = module,
-                .initialized = false,
+                .status = ModuleStatus::Warning,
             });
         }
         else {
@@ -72,7 +72,7 @@ bool ModuleFactory::recreate(ScanningContext &ctx, FoundModuleCollection &module
                 .found = f,
                 .meta = nullptr,
                 .module = nullptr,
-                .initialized = false,
+                .status = ModuleStatus::Fatal,
             });
         }
     }
@@ -84,7 +84,6 @@ bool ModuleFactory::recreate(ScanningContext &ctx, FoundModuleCollection &module
         }
 
         auto mc = ctx.module(pair.found.position);
-
         if (!mc.open()) {
             logerror("error opening module");
             return false;
@@ -100,13 +99,8 @@ bool ModuleFactory::recreate(ScanningContext &ctx, FoundModuleCollection &module
             }
         }
 
-        if (!module->initialize(mc, pool_)) {
-            logerror("error initializing module");
-            pair.initialized = false;
-        }
-        else {
-            pair.initialized = true;
-        }
+        auto mr = module->initialize(mc, pool_);
+        pair.status = mr.status;
     }
 
     return true;

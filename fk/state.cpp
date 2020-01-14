@@ -31,6 +31,14 @@ GlobalState::GlobalState() : version(0) {
 }
 
 void GlobalState::update_physical_modules(ConstructedModulesCollection const &modules) {
+    for (auto &status : physical_modules) {
+        status.available = false;
+        status.configured = false;
+        status.meta = nullptr;
+        status.header = { };
+        status.status = ModuleStatus::Empty;
+    }
+
     for (auto &m : modules) {
         if (m.found.physical()) {
             auto bay = m.found.position;
@@ -40,9 +48,9 @@ void GlobalState::update_physical_modules(ConstructedModulesCollection const &mo
             auto &status = physical_modules[bay];
             status.available = true;
             status.configured = m.meta != nullptr;
-            status.initialized = m.initialized;
             status.header = m.found.header;
             status.meta = m.meta;
+            status.status = m.status;
         }
     }
 }

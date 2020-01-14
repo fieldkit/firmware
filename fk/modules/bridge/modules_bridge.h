@@ -17,7 +17,6 @@ enum class ModuleStatus {
     Unknown = 0,
     Empty,
     Ok,
-    Populated,
     Warning,
     Fatal
 };

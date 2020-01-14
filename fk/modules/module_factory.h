@@ -13,7 +13,7 @@ struct ConstructedModule {
     FoundModule found;
     ModuleMetadata const *meta;
     Module *module;
-    bool initialized;
+    ModuleStatus status;
 };
 
 using ConstructedModulesCollection = collection<ConstructedModule>;

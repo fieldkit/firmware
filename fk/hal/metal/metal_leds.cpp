@@ -50,9 +50,9 @@ void MetalLeds::on() {
 }
 
 void MetalLeds::color(uint8_t position, Color color, bool refresh_after) {
-    pixels_[1 + NumberOfPixels + (position * 3) + 0] = color.r;
+    pixels_[1 + NumberOfPixels + (position * 3) + 0] = color.b;
     pixels_[1 + NumberOfPixels + (position * 3) + 1] = color.g;
-    pixels_[1 + NumberOfPixels + (position * 3) + 2] = color.g;
+    pixels_[1 + NumberOfPixels + (position * 3) + 2] = color.r;
 
     if (refresh_after) {
         refresh();

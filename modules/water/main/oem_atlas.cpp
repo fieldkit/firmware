@@ -92,7 +92,7 @@ bool OemAtlas::find(uint8_t address) {
     auto type = (AtlasSensorType)d16.bytes[0];
     auto cfg = config(type);
     if (!cfg.valid) {
-        logerror("[0x%x] unknown device type (0x%x)", address, type);
+        logerror("[0x%2x] unknown device type (0x%2x)", address, type);
         return false;
     }
 
