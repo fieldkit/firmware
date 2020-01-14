@@ -113,11 +113,14 @@ bool Rn2903LoraNetwork::begin() {
 
     status_ = Availability::Unavailable;
 
-    if (!power(false)) {
-        return false;
-    }
+    // Generally, the power is off when we're here.
+    if (false) {
+        if (!power(false)) {
+            return false;
+        }
 
-    fk_delay(500);
+        fk_delay(500);
+    }
 
     if (!power(true)) {
         return false;
