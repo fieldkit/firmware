@@ -117,8 +117,6 @@ TEST_F(BadBlocksSuite, WritingToBadRegion) {
 }
 
 TEST_F(BadBlocksSuite, WritingToBadRegionDuringFileWrite) {
-    ScopedLogLevelChange change{ LogLevels::DEBUG };
-
     bank(0).mark_region_bad(g_.block_size * 1 + 512, 2048 - 512);
 
     Storage storage{ memory_, false };
