@@ -19,13 +19,14 @@ constexpr uint32_t NetworkRemoveServiceRecordDelayMs = 250;
 class StaticWiFiCallbacks : public WiFiCallbacks {
 private:
     constexpr static size_t ExpectedWiFiBufferSize = 1472;
+    constexpr static size_t NumberOfBuffers = StandardPageSize / ExpectedWiFiBufferSize;
 
     struct Buffer {
         bool taken;
         uint8_t *ptr;
     };
     uint8_t *memory_{ nullptr };
-    Buffer buffers_[5];
+    Buffer buffers_[NumberOfBuffers];
 
 private:
     void initialize() {
@@ -33,9 +34,9 @@ private:
             return;
         }
 
-        memory_ = (uint8_t *)::malloc(StandardPageSize);
+        memory_ = (uint8_t *)fk_standard_page_malloc(StandardPageSize);
 
-        for (auto i = 0u; i < StandardPageSize / ExpectedWiFiBufferSize; ++i) {
+        for (auto i = 0u; i < NumberOfBuffers; ++i) {
             buffers_[i].ptr = memory_ + ExpectedWiFiBufferSize * i;
             buffers_[i].taken = false;
         }
@@ -47,7 +48,7 @@ public:
 
         initialize();
 
-        for (auto i = 0u; i < 5u; ++i) {
+        for (auto i = 0u; i < NumberOfBuffers; ++i) {
             if (!buffers_[i].taken) {
                 buffers_[i].taken = true;
                 return buffers_[i].ptr;
@@ -58,7 +59,7 @@ public:
     }
 
     void free(void *ptr) override {
-        for (auto i = 0u; i < 5u; ++i) {
+        for (auto i = 0u; i < NumberOfBuffers; ++i) {
             if (buffers_[i].ptr == ptr) {
                 buffers_[i].taken = false;
                 return;
@@ -107,14 +108,14 @@ MetalNetworkConnection::MetalNetworkConnection() {
 MetalNetworkConnection::MetalNetworkConnection(WiFiClient wcl) : wcl_(wcl) {
     if (debugging_) {
         size_ = StandardPageSize;
-        buffer_ = reinterpret_cast<uint8_t *>(fk_malloc(size_));
+        buffer_ = reinterpret_cast<uint8_t *>(fk_standard_page_malloc(size_));
         bzero(buffer_, size_);
     }
 }
 
 MetalNetworkConnection::~MetalNetworkConnection() {
     if (buffer_ != nullptr) {
-        fk_free(buffer_);
+        fk_standard_page_free(buffer_);
     }
 }
 

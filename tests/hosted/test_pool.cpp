@@ -150,6 +150,10 @@ TEST_F(PoolSuite, ChainedPool) {
     delete pool;
 }
 
+void free_pool(Pool *pool) {
+    delete pool;
+}
+
 TEST_F(PoolSuite, ChainedPoolWrapper) {
     PoolPointer<SimpleWorker> *wrapped_concrete = create_chained_pool_wrapper<SimpleWorker>();
 
@@ -158,4 +162,18 @@ TEST_F(PoolSuite, ChainedPoolWrapper) {
     delete wrapped;
 
     delete wrapped_concrete;
+
+    auto pool = create_pool_inside("ok");
+    free_pool(pool);
+}
+
+template<class T>
+static unique_ptr_freed<T> freed_unique_ptr(size_t size) {
+	return unique_ptr_freed<T>(static_cast<T*>(fk_standard_page_malloc(size)), &fk_standard_page_free);
+}
+
+TEST_F(PoolSuite, FreedUniquePtr) {
+    for (auto i = 0u; i < 30; ++i) {
+        auto ptr = freed_unique_ptr<uint8_t>(StandardPageSize);
+    }
 }

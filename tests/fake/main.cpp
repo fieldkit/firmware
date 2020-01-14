@@ -16,6 +16,7 @@
 #include "readings_taker.h"
 #include "test_modules.h"
 #include "state_ref.h"
+#include "memory.h"
 
 FK_DECLARE_LOGGER("main");
 
@@ -121,6 +122,7 @@ static void server(Fake *fake) {
 
 __int32_t main(__int32_t argc, const char **argv) {
     log_configure_level(LogLevels::INFO);
+    fk_standard_page_initialize();
 
     loginfo("hello");
 

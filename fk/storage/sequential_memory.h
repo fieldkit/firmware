@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "common.h"
+#include "memory.h"
 #include "hal/memory.h"
 
 namespace fk {
@@ -103,8 +104,8 @@ public:
     }
 };
 
-template <class T>
-using unique_ptr_freed = std::unique_ptr<T, decltype(&free)>;
+template<class T>
+using unique_ptr_freed = std::unique_ptr<T, decltype(&fk_standard_page_free)>;
 
 class BufferedPageMemory : public DataMemory {
 private:

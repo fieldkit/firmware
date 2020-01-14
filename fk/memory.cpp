@@ -3,7 +3,9 @@
 
 namespace fk {
 
-constexpr size_t SizeOfStandardPagePool = 6;
+FK_DECLARE_LOGGER("memory");
+
+constexpr size_t SizeOfStandardPagePool = 14;
 
 struct StandardPages {
     void *base{ nullptr };
@@ -11,16 +13,27 @@ struct StandardPages {
 };
 
 static StandardPages pages[SizeOfStandardPagePool];
+static bool initialized = false;
 
 void fk_standard_page_initialize() {
-    for (auto i = 0u; i < SizeOfStandardPagePool; ++i) {
-        pages[i].base = fk_malloc(StandardPageSize);
-        pages[i].available = true;
+    if (!initialized) {
+        for (auto i = 0u; i < SizeOfStandardPagePool; ++i) {
+            pages[i].base = fk_malloc(StandardPageSize);
+            pages[i].available = true;
+        }
     }
+
+    initialized = true;
 }
 
-void *fk_standard_page_malloc() {
+void *fk_standard_page_malloc(size_t size) {
     void *allocated = nullptr;
+
+    if (!initialized) {
+        fk_standard_page_initialize();
+    }
+
+    FK_ASSERT(size == StandardPageSize);
 
     for (auto i = 0u; i < SizeOfStandardPagePool; ++i) {
         if (pages[i].available) {

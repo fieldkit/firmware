@@ -8,6 +8,7 @@
 #include "platform.h"
 #include "protobuf.h"
 #include "config.h"
+#include "memory.h"
 
 void *operator new(size_t size, fk::Pool &pool) {
     return pool.malloc(size);
@@ -169,13 +170,6 @@ MallocPool::MallocPool(const char *name, size_t size) : Pool(name, size, (void *
     #endif
 }
 
-MallocPool::MallocPool(const char *name, void *ptr, size_t size, size_t taken) : Pool(name, size, ptr, taken) {
-    #if defined(FK_LOGGING_POOL_MALLOC_FREE)
-    loginfo("create: 0x%p %s size=%zu ptr=0x%p (free=%" PRIu32 ")",
-            this, name, size, block(), fk_free_memory());
-    #endif
-}
-
 MallocPool::~MallocPool() {
     #if defined(FK_LOGGING_POOL_MALLOC_FREE)
     loginfo("free: 0x%p %s size=%zu ptr=0x%p (free=%" PRIu32 ")",
@@ -188,7 +182,19 @@ MallocPool::~MallocPool() {
     }
 }
 
-StandardPool::StandardPool(const char *name) : MallocPool(name, StandardPageSize) {
+StandardPool::StandardPool(const char *name) : Pool(name, StandardPageSize, (void *)fk_standard_page_malloc(StandardPageSize), 0) {
+}
+
+StandardPool::~StandardPool() {
+    #if defined(FK_LOGGING_POOL_MALLOC_FREE)
+    loginfo("free: 0x%p %s size=%zu ptr=0x%p (free=%" PRIu32 ")",
+            this, name(), size(), block(), fk_free_memory());
+    #endif
+    auto ptr = block();
+    if (ptr != nullptr) {
+        block(nullptr, 0);
+        fk_standard_page_free(ptr);
+    }
 }
 
 class InsidePool : public Pool {
@@ -199,11 +205,18 @@ public:
     virtual ~InsidePool() {
     }
 
+public:
+    static void operator delete(void *p) {
+        // printf("InsidePool::delete(0x%p)\n", p);
+        // SEGGER_RTT_printf(0, "InsidePool::delete(0x%p)\n", p);
+        fk_standard_page_free(p);
+    }
+
 };
 
 Pool *create_pool_inside(const char *name) {
     auto size = StandardPageSize;
-    auto ptr = fk_malloc(size);
+    auto ptr = fk_standard_page_malloc(size);
     auto overhead = sizeof(InsidePool);
     return new (ptr) InsidePool(name, ptr, size, overhead);
 }
@@ -218,7 +231,9 @@ public:
 
 public:
     static void operator delete(void *p) {
-        printf("StandardPagePool::delete(0x%p)\n", p);
+        // printf("StandardPagePool::delete(0x%p)\n", p);
+        // SEGGER_RTT_printf(0, "StandardPagePool::delete(0x%p)\n", p);
+        fk_standard_page_free(p);
     }
 
 public:
@@ -246,7 +261,7 @@ void *StandardPagePool::malloc(size_t bytes) {
     }
 
     if (sibling_ == nullptr) {
-        auto ptr = fk_malloc(size());
+        auto ptr = fk_standard_page_malloc(size());
         auto overhead = sizeof(StandardPagePool);
         sibling_ = new (ptr) StandardPagePool(name(), ptr, size(), overhead);
     }
@@ -256,7 +271,7 @@ void *StandardPagePool::malloc(size_t bytes) {
 
 Pool *create_chained_pool_inside(const char *name) {
     auto size = StandardPageSize;
-    auto ptr = fk_malloc(size);
+    auto ptr = fk_standard_page_malloc(size);
     auto overhead = sizeof(StandardPagePool);
     return new (ptr) StandardPagePool(name, ptr, size, overhead);
 }

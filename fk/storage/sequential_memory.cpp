@@ -9,7 +9,7 @@ FK_DECLARE_LOGGER("memory");
 
 template<class T>
 static unique_ptr_freed<T> freed_unique_ptr(size_t size) {
-	return unique_ptr_freed<T>(static_cast<T*>(malloc(size)), &free);
+	return unique_ptr_freed<T>(static_cast<T*>(fk_standard_page_malloc(size)), &fk_standard_page_free);
 }
 
 SequentialMemory::SequentialMemory(DataMemory *target) : target_(target) {

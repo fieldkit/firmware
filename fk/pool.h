@@ -105,14 +105,14 @@ public:
 class MallocPool : public Pool {
 protected:
     MallocPool(const char *name, size_t size);
-    MallocPool(const char *name, void *ptr, size_t size, size_t taken);
     virtual ~MallocPool();
 
 };
 
-class StandardPool : public MallocPool {
+class StandardPool : public Pool {
 public:
     StandardPool(const char *name);
+    virtual ~StandardPool();
 };
 
 Pool *create_pool_inside(const char *name);

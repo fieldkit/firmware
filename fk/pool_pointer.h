@@ -45,7 +45,6 @@ public:
     void operator delete(void *p) {
         // We are freed automatically when the pool is deleted in our
         // destructor. So we don't need to do anything in here.
-        printf("ChainedPoolWrapper::delete 0x%p\n", p);
     }
 
 public:
