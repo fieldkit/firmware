@@ -28,6 +28,33 @@ constexpr uint8_t to_mux_position(uint8_t p) {
     return p * 2;
 }
 
+static void topology_irq() {
+    auto bus = get_board()->i2c_module();
+
+    uint8_t value = digitalRead(MODULE_SWAP);
+    uint8_t intcap = 0;
+    uint8_t intf = 0;
+    uint8_t gpio = 0;
+
+    auto failed = true;
+
+    if (I2C_CHECK(bus.read_register_u8(MCP23008_ADDRESS, MCP23008_GPIO, gpio))) {
+        failed = false;
+    }
+
+    /*
+    if (I2C_CHECK(bus.read_register_u8(MCP23008_ADDRESS, MCP23008_INTCAP, intcap))) {
+        if (I2C_CHECK(bus.read_register_u8(MCP23008_ADDRESS, MCP23008_INTF, intf))) {
+        }
+    }
+    */
+    if (failed) {
+        logwarn("topology changed: %d 0x%x 0x%x 0x%x", value, intcap, intf, gpio);
+    } else {
+        loginfo("topology changed: %d 0x%x 0x%x 0x%x", value, intcap, intf, gpio);
+    }
+}
+
 MetalModMux::MetalModMux() {
 }
 
@@ -41,14 +68,14 @@ bool MetalModMux::begin() {
     uint8_t buffer[] = {
         (uint8_t)MCP23008_IODIR,
         (uint8_t)0b10101010, // IODIR
-        (uint8_t)0x00,       // IPOL
-        (uint8_t)0x00,       // GPINTEN
-        (uint8_t)0x00,       // DEFVAL
-        (uint8_t)0x00,       // INTCON
-        (uint8_t)0x00,       // IOCON
-        (uint8_t)0x00,       // GPPU
-        (uint8_t)0x00,       // INTF
-        (uint8_t)0x00,       // INTCAP
+        (uint8_t)0b00000000, // IPOL
+        (uint8_t)0b00000000, // GPINTEN
+        (uint8_t)0b00000000, // DEFVAL
+        (uint8_t)0b00000000, // INTCON
+        (uint8_t)0b00000000, // IOCON
+        (uint8_t)0b00000000, // GPPU
+        (uint8_t)0b00000000, // INTF
+        (uint8_t)0b00000000, // INTCAP
         (uint8_t)gpio_,      // GPIO
     };
 
@@ -70,9 +97,44 @@ bool MetalModMux::begin() {
     if (success) {
         loginfo("started, all modules off...");
         available_ = true;
+
+        // Setup IRQ handler for getting notified about module topology changes.
+        pinMode(MODULE_SWAP, INPUT);
+        auto irq = digitalPinToInterrupt(MODULE_SWAP);
+        attachInterrupt(irq, topology_irq, CHANGE);
     }
 
     return success;
+}
+
+bool MetalModMux::enable_topology_irq() {
+    auto bus = get_board()->i2c_module();
+
+    uint8_t gpio = 0;
+    if (!I2C_CHECK(bus.read_register_u8(MCP23008_ADDRESS, MCP23008_GPIO, gpio))) {
+        return false;
+    }
+
+    if (!I2C_CHECK(bus.write_register_u8(MCP23008_ADDRESS, MCP23008_GPINTEN, 0b10101010))) {
+        return false;
+    }
+
+    return true;
+}
+
+bool MetalModMux::disable_topology_irq() {
+    auto bus = get_board()->i2c_module();
+
+    if (!I2C_CHECK(bus.write_register_u8(MCP23008_ADDRESS, MCP23008_GPINTEN, 0b00000000))) {
+        return false;
+    }
+
+    uint8_t gpio = 0;
+    if (!I2C_CHECK(bus.read_register_u8(MCP23008_ADDRESS, MCP23008_GPIO, gpio))) {
+        return false;
+    }
+
+    return true;
 }
 
 bool MetalModMux::update_gpio(uint8_t new_gpio) {
@@ -81,7 +143,7 @@ bool MetalModMux::update_gpio(uint8_t new_gpio) {
     }
 
     if (fk_config().modules_always_on) {
-        new_gpio = 0xff;
+        new_gpio = 0b01010101;
     }
 
     if (gpio_ == new_gpio) {
@@ -103,7 +165,7 @@ bool MetalModMux::update_gpio(uint8_t new_gpio) {
 }
 
 bool MetalModMux::enable_all_modules() {
-    auto new_gpio = 0xff;
+    auto new_gpio = 0b01010101;
 
     loginfo("all modules on (0x%02x)", new_gpio);
 
@@ -166,6 +228,8 @@ bool MetalModMux::choose(uint8_t position) {
         return false;
     }
 
+    auto bus = get_board()->i2c_module();
+
     if (active_module_ == position) {
         return true;
     }
@@ -173,8 +237,6 @@ bool MetalModMux::choose(uint8_t position) {
     auto mux_position = to_mux_position(position);
 
     logtrace("[%d] selecting", mux_position);
-
-    auto bus = get_board()->i2c_module();
 
     bus.end();
     bus.begin();

@@ -40,6 +40,14 @@ bool LinuxModMux::choose_nothing() {
     return true;
 }
 
+bool LinuxModMux::enable_topology_irq() {
+    return true;
+}
+
+bool LinuxModMux::disable_topology_irq() {
+    return true;
+}
+
 }
 
 #endif

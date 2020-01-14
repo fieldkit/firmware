@@ -21,6 +21,8 @@ public:
     bool power_cycle(uint8_t position) override;
     bool choose(uint8_t position) override;
     bool choose_nothing() override;
+    bool enable_topology_irq() override;
+    bool disable_topology_irq() override;
 
 private:
     bool update_gpio(uint8_t new_gpio);

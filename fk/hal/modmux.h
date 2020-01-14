@@ -20,6 +20,8 @@ public:
     virtual bool power_cycle(uint8_t position) = 0;
     virtual bool choose(uint8_t position) = 0;
     virtual bool choose_nothing() = 0;
+    virtual bool enable_topology_irq() = 0;
+    virtual bool disable_topology_irq() = 0;
 
 public:
     bool available() const {

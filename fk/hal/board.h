@@ -28,6 +28,7 @@ constexpr uint8_t BUTTON_EXTERNAL = 74u;     // PB04
 constexpr uint8_t LORA_POWER = 76u;          // PC30
 
 constexpr uint8_t MODULE_EEPROM_LOCK = 13u;  // PB01
+constexpr uint8_t MODULE_SWAP = 69u;         // PB03
 
 class SpiWrapper {
 private:
