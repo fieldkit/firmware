@@ -1,4 +1,5 @@
 #include "hal/board.h"
+#include "platform.h"
 
 #if defined(linux)
 
@@ -47,7 +48,7 @@ void Board::enable_lora() {
 }
 
 EepromLock Board::lock_eeprom() {
-    return { };
+    return { fk_uptime() };
 }
 
 void Board::signal_eeprom(uint8_t times) {

@@ -191,7 +191,7 @@ static void try_and_break_module_bus() {
 
     while (true) {
         if (true) {
-            auto lock = get_board()->lock_eeprom();
+            auto lock = get_modmux()->lock();
 
             get_board()->enable_everything();
 
@@ -226,7 +226,7 @@ static void try_and_break_module_bus() {
         fk_delay(delay);
 
         {
-            auto lock = get_board()->lock_eeprom();
+            auto lock = get_modmux()->lock();
             fk_delay(100);
 
             loginfo("disabling");
@@ -264,7 +264,7 @@ static void try_and_break_weather_sensor_bus() {
         bool reproduced = false;
 
         if (true) {
-            auto lock = get_board()->lock_eeprom();
+            auto lock = get_modmux()->lock();
 
             if (!mm->enable_all_modules()) {
                 logerror("error enabling modules");
@@ -318,7 +318,7 @@ static void try_and_break_weather_sensor_bus() {
         fk_restart();
 
         {
-            auto lock = get_board()->lock_eeprom();
+            auto lock = get_modmux()->lock();
             fk_delay(100);
 
             loginfo("disabling and waiting 10s");

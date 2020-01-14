@@ -115,8 +115,18 @@ public:
 };
 
 class EepromLock {
+private:
+    uint32_t locked_;
+
 public:
-    ~EepromLock();
+    explicit EepromLock();
+    explicit EepromLock(EepromLock const &o);
+    EepromLock(uint32_t locked);
+    EepromLock(EepromLock &&o);
+
+public:
+    virtual ~EepromLock();
+
 };
 
 class Board {

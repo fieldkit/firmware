@@ -288,6 +288,10 @@ bool MetalModMux::choose_nothing() {
     return true;
 }
 
+ModulesLock MetalModMux::lock() {
+    return { get_board()->lock_eeprom(), fk_uptime() };
+}
+
 }
 
 #endif

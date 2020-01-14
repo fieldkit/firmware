@@ -15,10 +15,10 @@ bool ModuleHandler::handle(HttpServerConnection *connection, Pool &pool) {
         return true;
     }
 
-    auto lock = get_board()->lock_eeprom();
+    auto mm = get_modmux();
+    auto lock = mm->lock();
     auto module_bus = get_board()->i2c_module();
     auto gs = get_global_state_ro();
-    auto mm = get_modmux();
 
     ScanningContext ctx{ mm, gs.get(), module_bus };
 

@@ -125,13 +125,14 @@ bool ReadingsWorker::should_throttle() {
 
 tl::expected<TakenReadings, Error> ReadingsWorker::take_readings(Pool &pool) {
     auto gs = get_global_state_ro();
+    auto mm = get_modmux();
     auto lock = storage_mutex.acquire(UINT32_MAX);
-    auto eeprom = get_board()->lock_eeprom();
+    auto modules_lock = mm->lock();
 
     auto memory_bus = get_board()->spi_flash();
     auto module_bus = get_board()->i2c_module();
 
-    ScanningContext ctx{ get_modmux(), gs.get(), module_bus };
+    ScanningContext ctx{ mm, gs.get(), module_bus };
     StatisticsMemory memory{ MemoryFactory::get_data_memory() };
     Storage storage{ &memory, read_only_ };
     if (!read_only_ && !storage.begin()) {

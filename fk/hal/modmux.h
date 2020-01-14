@@ -1,6 +1,24 @@
 #pragma once
 
+#include "hal/board.h"
+
 namespace fk {
+
+class ModulesLock {
+private:
+    EepromLock eeprom_;
+    uint32_t locked_;
+
+public:
+    explicit ModulesLock();
+    explicit ModulesLock(ModulesLock const &o);
+    ModulesLock(EepromLock eeprom, uint32_t locked);
+    ModulesLock(ModulesLock &&o);
+
+public:
+    virtual ~ModulesLock();
+
+};
 
 class ModMux {
 public:
@@ -22,6 +40,7 @@ public:
     virtual bool choose_nothing() = 0;
     virtual bool enable_topology_irq() = 0;
     virtual bool disable_topology_irq() = 0;
+    virtual ModulesLock lock() = 0;
 
 public:
     bool available() const {

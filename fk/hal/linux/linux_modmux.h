@@ -5,8 +5,6 @@
 namespace fk {
 
 class LinuxModMux : public ModMux {
-private:
-
 public:
     LinuxModMux();
 
@@ -21,6 +19,7 @@ public:
     bool choose_nothing() override;
     bool enable_topology_irq() override;
     bool disable_topology_irq() override;
+    ModulesLock lock() override;
 
 };
 

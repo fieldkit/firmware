@@ -98,7 +98,7 @@ bool ConfigureModuleWorker::scan(Pool &pool) {
 }
 
 void ConfigureModuleWorker::run(Pool &pool) {
-    auto lock = get_board()->lock_eeprom();
+    auto lock = get_modmux()->lock();
 
     configure(pool);
 
