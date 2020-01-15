@@ -1,6 +1,7 @@
 #pragma once
 
 #include "hal/board.h"
+#include "activity.h"
 
 namespace fk {
 
@@ -20,12 +21,21 @@ public:
 
 };
 
-struct TopologyChange {
+struct TopologyChange : public Activity {
     uint32_t time;
+
+    TopologyChange() {
+    }
+
+    TopologyChange(uint32_t time) : time(time) {
+    }
 
     bool valid() const {
         return time > 0;
     }
+
+    void consumed() override;
+
 };
 
 class ModMux {
@@ -48,6 +58,7 @@ public:
     virtual bool choose_nothing() = 0;
     virtual bool enable_topology_irq() = 0;
     virtual bool disable_topology_irq() = 0;
+    virtual bool refresh_topology() = 0;
     virtual ModulesLock lock() = 0;
 
 public:

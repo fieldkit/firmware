@@ -48,6 +48,10 @@ bool LinuxModMux::disable_topology_irq() {
     return true;
 }
 
+bool LinuxModMux::refresh_topology() {
+    return true;
+}
+
 ModulesLock LinuxModMux::lock() {
     return { get_board()->lock_eeprom(), fk_uptime() };
 }

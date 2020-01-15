@@ -6,6 +6,8 @@
 
 namespace fk {
 
+FK_DECLARE_LOGGER("modmux");
+
 ModulesLock::ModulesLock() {
 }
 
@@ -23,6 +25,12 @@ ModulesLock::~ModulesLock() {
         get_modmux()->enable_topology_irq();
         get_board()->release_eeprom();
     }
+}
+
+void TopologyChange::consumed() {
+    loginfo("topology changed");
+    get_modmux()->refresh_topology();
+    time = 0;
 }
 
 #if defined(FK_HARDWARE_FULL)

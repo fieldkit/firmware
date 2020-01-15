@@ -1,11 +1,9 @@
 #pragma once
 
 #include "common.h"
+#include "activity.h"
 
 namespace fk {
-
-class Activity {
-};
 
 class Button : public Activity {
 private:

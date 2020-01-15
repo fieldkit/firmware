@@ -85,12 +85,9 @@ bool MetalModMux::begin() {
 }
 
 bool MetalModMux::enable_topology_irq() {
-    auto bus = get_board()->i2c_module();
+    refresh_topology();
 
-    uint8_t gpio = 0;
-    if (!I2C_CHECK(bus.read_register_u8(MCP23008_ADDRESS, MCP23008_GPIO, gpio))) {
-        return false;
-    }
+    auto bus = get_board()->i2c_module();
 
     if (!I2C_CHECK(bus.write_register_u8(MCP23008_ADDRESS, MCP23008_GPINTEN, 0b10101010))) {
         return false;
@@ -105,6 +102,12 @@ bool MetalModMux::disable_topology_irq() {
     if (!I2C_CHECK(bus.write_register_u8(MCP23008_ADDRESS, MCP23008_GPINTEN, 0b00000000))) {
         return false;
     }
+
+    return refresh_topology();
+}
+
+bool MetalModMux::refresh_topology() {
+    auto bus = get_board()->i2c_module();
 
     uint8_t gpio = 0;
     if (!I2C_CHECK(bus.read_register_u8(MCP23008_ADDRESS, MCP23008_GPIO, gpio))) {
@@ -226,7 +229,8 @@ bool MetalModMux::choose(uint8_t position) {
         if (!I2C_CHECK(bus.write_u8(TCA9548A_ADDRESS, 1 << mux_position))) {
             logwarn("choose %d fail", mux_position);
             continue;
-        } else {
+        }
+        else {
             if (i > 0) {
                 logwarn("choose took %d tries", i);
             }
@@ -267,6 +271,10 @@ bool MetalModMux::choose_nothing() {
 void MetalModMux::irq() {
     if (!change_.valid()) {
         change_ = { fk_uptime() };
+
+        if (!get_ipc()->enqueue_activity(&change_)) {
+            logerror("ipc error (activity)");
+        }
     }
 }
 
