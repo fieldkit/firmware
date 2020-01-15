@@ -21,30 +21,34 @@ public:
 
 };
 
-struct TopologyChange : public Activity {
-    uint32_t time;
+class TopologyChange : public Activity {
+public:
+    TopologyChange();
+    TopologyChange(uint32_t created);
 
-    TopologyChange() {
-    }
-
-    TopologyChange(uint32_t time) : time(time) {
-    }
-
-    bool valid() const {
-        return time > 0;
-    }
-
+public:
     void consumed() override;
 
 };
 
-struct Topology {
-    bool success;
-    uint8_t value;
+class Topology {
+private:
+    uint8_t value_;
 
-    operator bool() const {
-        return success;
+public:
+    Topology() {
     }
+
+    Topology(uint8_t value) : value_(value) {
+    }
+
+public:
+    uint8_t value() const {
+        return value_;
+    }
+
+    const char *string(char *buffer, size_t size) const;
+
 };
 
 class ModMux {
@@ -67,7 +71,7 @@ public:
     virtual bool choose_nothing() = 0;
     virtual bool enable_topology_irq() = 0;
     virtual bool disable_topology_irq() = 0;
-    virtual Topology refresh_topology() = 0;
+    virtual optional<Topology> refresh_topology() = 0;
     virtual ModulesLock lock() = 0;
 
 public:

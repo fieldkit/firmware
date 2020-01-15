@@ -27,15 +27,47 @@ ModulesLock::~ModulesLock() {
     }
 }
 
+TopologyChange::TopologyChange() {
+}
+
+TopologyChange::TopologyChange(uint32_t created) : Activity(created) {
+}
+
 void TopologyChange::consumed() {
-    time = 0;
-    auto topo = get_modmux()->refresh_topology();
-    if (!topo) {
+    Activity::consumed();
+
+    auto topology = get_modmux()->refresh_topology();
+    if (!topology) {
         logerror("error refreshing topo");
         return;
     }
 
-    loginfo("topology: %d", topo.value);
+    if (false) {
+        #pragma GCC diagnostic ignored "-Wformat"
+        #pragma GCC diagnostic ignored "-Wformat-extra-args"
+        loginfo("topology: %b", topology->value());
+        #pragma GCC diagnostic pop
+        #pragma GCC diagnostic pop
+    }
+    else {
+        char buffer[32];
+        loginfo("topology: [%s]", topology->string(buffer, sizeof(buffer)));
+    }
+}
+
+const char *Topology::string(char *buffer, size_t size) const {
+    auto ptr = buffer;
+    for (auto i = 0u; i < 4u; ++i) {
+        if (value_ & (1 << ((i * 2) + 1))) {
+            *ptr = '#';
+        }
+        else {
+            *ptr = ' ';
+        }
+        ptr++;
+    }
+    *ptr = 0;
+    return buffer;
 }
 
 #if defined(FK_HARDWARE_FULL)

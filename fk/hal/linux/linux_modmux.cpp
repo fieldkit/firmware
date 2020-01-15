@@ -48,7 +48,7 @@ bool LinuxModMux::disable_topology_irq() {
     return true;
 }
 
-Topology LinuxModMux::refresh_topology() {
+optional<Topology> LinuxModMux::refresh_topology() {
     return { 0 };
 }
 

@@ -3,6 +3,9 @@
 #include <inttypes.h>
 #include <string.h>
 
+#define  optional_CONFIG_NO_EXCEPTIONS 1
+#include <nonstd/optional.hpp>
+
 #include "debugging.h"
 #include "errors.h"
 #include "logging.h"
@@ -30,6 +33,9 @@ void fk_free_internal(void *ptr, const char *file, int32_t line);
 #endif
 
 namespace fk {
+
+using nonstd::optional;
+using nonstd::nullopt;
 
 /**
  * Halts execution if the given expression evaluates to false. See the fk_assert

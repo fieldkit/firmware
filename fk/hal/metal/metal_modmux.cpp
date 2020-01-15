@@ -76,9 +76,11 @@ bool MetalModMux::begin() {
         available_ = true;
 
         // Setup IRQ handler for getting notified about module topology changes.
+        #if defined(FK_TOPOLOGY_CHANGES)
         pinMode(MODULE_SWAP, INPUT);
         auto irq = digitalPinToInterrupt(MODULE_SWAP);
         attachInterrupt(irq, topology_irq, CHANGE);
+        #endif
     }
 
     return success;
@@ -103,20 +105,20 @@ bool MetalModMux::disable_topology_irq() {
         return false;
     }
 
-    auto topo = refresh_topology();
+    auto topology = refresh_topology();
 
-    return topo;
+    return topology.has_value();
 }
 
-Topology MetalModMux::refresh_topology() {
+optional<Topology> MetalModMux::refresh_topology() {
     auto bus = get_board()->i2c_module();
 
     uint8_t gpio = 0;
     if (!I2C_CHECK(bus.read_register_u8(MCP23008_ADDRESS, MCP23008_GPIO, gpio))) {
-        return { false, 0 };
+        return nullopt;
     }
 
-    return { true, gpio };
+    return { gpio };
 }
 
 bool MetalModMux::update_gpio(uint8_t new_gpio) {
