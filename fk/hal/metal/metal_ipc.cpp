@@ -74,8 +74,8 @@ bool MetalIPC::enqueue_topology(Activity *ptr) {
     return tuple.status == OSS_SUCCESS;
 }
 
-bool MetalIPC::dequeue_topology(Activity **ptr) {
-    auto tuple = os_queue_dequeue(os_queue(topology_queue), FiveSecondsMs);
+bool MetalIPC::dequeue_topology(Activity **ptr, uint32_t to) {
+    auto tuple = os_queue_dequeue(os_queue(topology_queue), to);
     if (tuple.status != OSS_SUCCESS) {
         return false;
     }

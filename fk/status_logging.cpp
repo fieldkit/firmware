@@ -14,7 +14,7 @@ FK_DECLARE_LOGGER("status");
 static void log_status() {
     auto gs = try_get_global_state_ro();
     if (!gs) {
-        loginfo("failed to get gs");
+        logwarn("failed to get gs");
         return;
     }
 
@@ -24,7 +24,7 @@ static void log_status() {
     ip4_address ip{ gs.get()->network.state.ip };
 
     FormattedTime formatted{ now };
-    loginfo("%s '%s' (%d.%d.%d.%d) (free = %" PRIu32 ", arena = %zd, used = %zd)",
+    loginfo("%s '%s' (%d.%d.%d.%d) memory(%" PRIu32 ", %zd, %zd)",
             formatted.cstr(), name, ip.u.bytes[0], ip.u.bytes[1], ip.u.bytes[2], ip.u.bytes[3],
             fk_free_memory(), (size_t)mi.arena, (size_t)mi.uordblks);
 }

@@ -28,9 +28,14 @@ ModulesLock::~ModulesLock() {
 }
 
 void TopologyChange::consumed() {
-    loginfo("topology changed");
-    get_modmux()->refresh_topology();
     time = 0;
+    auto topo = get_modmux()->refresh_topology();
+    if (!topo) {
+        logerror("error refreshing topo");
+        return;
+    }
+
+    loginfo("topology: %d", topo.value);
 }
 
 #if defined(FK_HARDWARE_FULL)

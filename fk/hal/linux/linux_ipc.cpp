@@ -42,7 +42,7 @@ bool LinuxIPC::enqueue_topology(Activity *ptr) {
     return false;
 }
 
-bool LinuxIPC::dequeue_topology(Activity **ptr) {
+bool LinuxIPC::dequeue_topology(Activity **ptr, uint32_t to) {
     return false;
 }
 

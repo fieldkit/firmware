@@ -103,18 +103,20 @@ bool MetalModMux::disable_topology_irq() {
         return false;
     }
 
-    return refresh_topology();
+    auto topo = refresh_topology();
+
+    return topo;
 }
 
-bool MetalModMux::refresh_topology() {
+Topology MetalModMux::refresh_topology() {
     auto bus = get_board()->i2c_module();
 
     uint8_t gpio = 0;
     if (!I2C_CHECK(bus.read_register_u8(MCP23008_ADDRESS, MCP23008_GPIO, gpio))) {
-        return false;
+        return { false, 0 };
     }
 
-    return true;
+    return { true, gpio };
 }
 
 bool MetalModMux::update_gpio(uint8_t new_gpio) {
@@ -129,6 +131,8 @@ bool MetalModMux::update_gpio(uint8_t new_gpio) {
     if (gpio_ == new_gpio) {
         return true;
     }
+
+    logdebug("modmux.gpio = %d", new_gpio);
 
     auto bus = get_board()->i2c_module();
 

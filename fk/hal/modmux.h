@@ -38,6 +38,15 @@ struct TopologyChange : public Activity {
 
 };
 
+struct Topology {
+    bool success;
+    uint8_t value;
+
+    operator bool() const {
+        return success;
+    }
+};
+
 class ModMux {
 public:
     constexpr static uint8_t VirtualPosition = 0xff;
@@ -58,7 +67,7 @@ public:
     virtual bool choose_nothing() = 0;
     virtual bool enable_topology_irq() = 0;
     virtual bool disable_topology_irq() = 0;
-    virtual bool refresh_topology() = 0;
+    virtual Topology refresh_topology() = 0;
     virtual ModulesLock lock() = 0;
 
 public:

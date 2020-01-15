@@ -48,8 +48,8 @@ bool LinuxModMux::disable_topology_irq() {
     return true;
 }
 
-bool LinuxModMux::refresh_topology() {
-    return true;
+Topology LinuxModMux::refresh_topology() {
+    return { 0 };
 }
 
 ModulesLock LinuxModMux::lock() {

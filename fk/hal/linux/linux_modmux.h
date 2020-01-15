@@ -19,7 +19,7 @@ public:
     bool choose_nothing() override;
     bool enable_topology_irq() override;
     bool disable_topology_irq() override;
-    bool refresh_topology() override;
+    Topology refresh_topology() override;
     ModulesLock lock() override;
 
 };
