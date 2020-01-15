@@ -25,6 +25,9 @@ public:
     bool disable_topology_irq() override;
     ModulesLock lock() override;
 
+public:
+    void irq();
+
 private:
     bool update_gpio(uint8_t new_gpio);
 

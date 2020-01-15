@@ -23,6 +23,8 @@ public:
     bool dequeue_activity(Activity **ptr) override;
     bool enqueue_button(Button *ptr) override;
     bool dequeue_button(Button **ptr) override;
+    bool enqueue_topology(Activity *ptr) override;
+    bool dequeue_topology(Activity **ptr) override;
 
 public:
     bool launch_worker(WorkerCategory category, TaskWorker *worker) override;

@@ -38,6 +38,14 @@ bool LinuxIPC::dequeue_button(Button **ptr) {
     return false;
 }
 
+bool LinuxIPC::enqueue_topology(Activity *ptr) {
+    return false;
+}
+
+bool LinuxIPC::dequeue_topology(Activity **ptr) {
+    return false;
+}
+
 bool LinuxIPC::launch_worker(WorkerCategory category, TaskWorker *worker) {
     FK_ASSERT(worker != nullptr);
 

@@ -20,14 +20,22 @@ public:
 
 };
 
+struct TopologyChange {
+    uint32_t time;
+
+    bool valid() const {
+        return time > 0;
+    }
+};
+
 class ModMux {
 public:
     constexpr static uint8_t VirtualPosition = 0xff;
     constexpr static uint8_t NoModuleSelected = 0xff;
 
-
 protected:
     bool available_;
+    TopologyChange change_;
 
 public:
     virtual bool begin() = 0;

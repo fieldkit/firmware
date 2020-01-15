@@ -20,6 +20,7 @@ ModulesLock::ModulesLock(ModulesLock &&o) : eeprom_(std::move(o.eeprom_)), locke
 
 ModulesLock::~ModulesLock() {
     if (locked_ > 0) {
+        get_modmux()->enable_topology_irq();
         get_board()->release_eeprom();
     }
 }

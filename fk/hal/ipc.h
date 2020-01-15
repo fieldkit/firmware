@@ -27,6 +27,9 @@ public:
     virtual bool enqueue_button(Button *ptr) = 0;
     virtual bool dequeue_button(Button **ptr) = 0;
 
+    virtual bool enqueue_topology(Activity *ptr) = 0;
+    virtual bool dequeue_topology(Activity **ptr) = 0;
+
 public:
     virtual bool launch_worker(WorkerCategory category, TaskWorker *worker) = 0;
 

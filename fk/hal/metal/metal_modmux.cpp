@@ -29,30 +29,7 @@ constexpr uint8_t to_mux_position(uint8_t p) {
 }
 
 static void topology_irq() {
-    auto bus = get_board()->i2c_module();
-
-    uint8_t value = digitalRead(MODULE_SWAP);
-    uint8_t intcap = 0;
-    uint8_t intf = 0;
-    uint8_t gpio = 0;
-
-    auto failed = true;
-
-    if (I2C_CHECK(bus.read_register_u8(MCP23008_ADDRESS, MCP23008_GPIO, gpio))) {
-        failed = false;
-    }
-
-    /*
-    if (I2C_CHECK(bus.read_register_u8(MCP23008_ADDRESS, MCP23008_INTCAP, intcap))) {
-        if (I2C_CHECK(bus.read_register_u8(MCP23008_ADDRESS, MCP23008_INTF, intf))) {
-        }
-    }
-    */
-    if (failed) {
-        logwarn("topology changed: %d 0x%x 0x%x 0x%x", value, intcap, intf, gpio);
-    } else {
-        loginfo("topology changed: %d 0x%x 0x%x 0x%x", value, intcap, intf, gpio);
-    }
+    reinterpret_cast<MetalModMux *>(get_modmux())->irq();
 }
 
 MetalModMux::MetalModMux() {
@@ -249,8 +226,7 @@ bool MetalModMux::choose(uint8_t position) {
         if (!I2C_CHECK(bus.write_u8(TCA9548A_ADDRESS, 1 << mux_position))) {
             logwarn("choose %d fail", mux_position);
             continue;
-        }
-        else {
+        } else {
             if (i > 0) {
                 logwarn("choose took %d tries", i);
             }
@@ -288,10 +264,18 @@ bool MetalModMux::choose_nothing() {
     return true;
 }
 
+void MetalModMux::irq() {
+    if (!change_.valid()) {
+        change_ = { fk_uptime() };
+    }
+}
+
 ModulesLock MetalModMux::lock() {
+    disable_topology_irq();
+
     return { get_board()->lock_eeprom(), fk_uptime() };
 }
 
-}
+} // namespace fk
 
 #endif
