@@ -22,4 +22,8 @@ extern os_task_t network_task;
 extern os_task_t gps_task;
 extern os_task_t worker_tasks[NumberOfWorkerTasks];
 
+bool fk_can_start_task(os_task_t *task);
+
+bool fk_start_task_if_necessary(os_task_t *task);
+
 }

@@ -28,9 +28,11 @@ constexpr uint8_t to_mux_position(uint8_t p) {
     return p * 2;
 }
 
+#if defined(FK_TOPOLOGY_CHANGES)
 static void topology_irq() {
     reinterpret_cast<MetalModMux *>(get_modmux())->irq();
 }
+#endif
 
 MetalModMux::MetalModMux() {
 }
