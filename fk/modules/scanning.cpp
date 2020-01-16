@@ -135,8 +135,6 @@ bool ModuleScanning::configure(uint8_t position, ModuleHeader &header) {
         return false;
     }
 
-    // auto lock = get_board()->lock_eeprom();
-    // auto disabler = DisableModuleOnReturn{ position };
     auto module_bus = get_board()->i2c_module();
     ModuleEeprom eeprom{ module_bus };
 
@@ -174,8 +172,6 @@ bool ModuleScanning::erase(uint8_t position) {
         return false;
     }
 
-    // auto lock = get_board()->lock_eeprom();
-    // auto disabler = DisableModuleOnReturn{ position };
     auto module_bus = get_board()->i2c_module();
     ModuleEeprom eeprom{ module_bus };
 

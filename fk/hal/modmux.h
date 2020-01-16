@@ -15,7 +15,7 @@ private:
 public:
     explicit ModulesLock();
     explicit ModulesLock(ModulesLock const &o);
-    ModulesLock(EepromLock eeprom, uint32_t locked);
+    ModulesLock(Lock lock, EepromLock eeprom, uint32_t locked);
     ModulesLock(ModulesLock &&o);
 
 public:

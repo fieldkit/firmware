@@ -287,9 +287,14 @@ void MetalModMux::irq() {
 }
 
 ModulesLock MetalModMux::lock() {
+    auto modules_lock = modules_mutex.acquire(UINT32_MAX);
+    auto eeprom_lock = get_board()->lock_eeprom();
+
+    FK_ASSERT(modules_lock);
+
     disable_topology_irq();
 
-    return { get_board()->lock_eeprom(), fk_uptime() };
+    return { std::move(modules_lock), std::move(eeprom_lock), fk_uptime() };
 }
 
 } // namespace fk
