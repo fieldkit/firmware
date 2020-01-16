@@ -89,27 +89,27 @@ bool MetalModMux::begin() {
 }
 
 bool MetalModMux::enable_topology_irq() {
-    read_topology_register();
-
+    #if defined(FK_TOPOLOGY_CHANGES)
     auto bus = get_board()->i2c_module();
 
     if (!I2C_CHECK(bus.write_register_u8(MCP23008_ADDRESS, MCP23008_GPINTEN, 0b10101010))) {
         return false;
     }
+    #endif
 
     return true;
 }
 
 bool MetalModMux::disable_topology_irq() {
+    #if defined(FK_TOPOLOGY_CHANGES)
     auto bus = get_board()->i2c_module();
 
     if (!I2C_CHECK(bus.write_register_u8(MCP23008_ADDRESS, MCP23008_GPINTEN, 0b00000000))) {
         return false;
     }
+    #endif
 
-    auto topology = read_topology_register();
-
-    return topology.has_value();
+    return true;
 }
 
 optional<Topology> MetalModMux::read_topology_register() {
