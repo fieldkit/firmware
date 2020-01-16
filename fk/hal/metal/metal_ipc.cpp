@@ -12,7 +12,7 @@ namespace fk {
 FK_DECLARE_LOGGER("ipc");
 
 Mutex storage_mutex;
-Mutex peripheral_i2c_core_mutex;
+Mutex modules_mutex;
 RwLock data_lock;
 
 os_queue_define(activity_queue, 10, OS_QUEUE_FLAGS_QUEUE_ONLY);
@@ -35,7 +35,7 @@ bool MetalIPC::begin() {
     OS_CHECK(os_queue_create(os_queue(topology_queue), os_queue_def(topology_queue)));
 
     FK_ASSERT(storage_mutex.create());
-    FK_ASSERT(peripheral_i2c_core_mutex.create());
+    FK_ASSERT(modules_mutex.create());
     FK_ASSERT(data_lock.create());
 
     return true;
@@ -146,12 +146,12 @@ bool Mutex::create() {
 
 Mutex::Lock Mutex::acquire(uint32_t to) {
     if (!os_is_running()) {
-        return { this };
+        return Lock{ this };
     }
     if (os_mutex_acquire(&mutex_, to) == OSS_SUCCESS) {
-        return { this };
+        return Lock{ this };
     }
-    return { nullptr };
+    return Lock{ nullptr };
 }
 
 bool Mutex::release() {

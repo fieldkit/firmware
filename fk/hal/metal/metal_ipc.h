@@ -2,6 +2,8 @@
 
 #if defined(FK_HARDWARE_FULL)
 
+#include "exchange.h"
+
 #include <os.h>
 
 #include "hal/ipc.h"
@@ -79,11 +81,14 @@ public:
         Mutex *mutex_;
 
     public:
-        Lock(Mutex *mutex) : mutex_(mutex) { }
-        Lock(Lock &&rhs) : mutex_(std::move(rhs.mutex_)) {
+        explicit Lock(Mutex *mutex) : mutex_(mutex) {
+        }
+
+        Lock(Lock &&rhs) : mutex_(exchange(rhs.mutex_, nullptr)) {
             rhs.mutex_ = nullptr;
         }
-        ~Lock() {
+
+        virtual ~Lock() {
             if (mutex_ != nullptr) {
                 mutex_->release();
                 mutex_ = nullptr;
@@ -159,7 +164,7 @@ public:
 };
 
 extern Mutex storage_mutex;
-extern Mutex peripheral_i2c_core_mutex;
+extern Mutex modules_mutex;
 extern RwLock data_lock;
 
 }

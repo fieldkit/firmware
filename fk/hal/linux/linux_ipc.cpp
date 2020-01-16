@@ -8,7 +8,7 @@ namespace fk {
 FK_DECLARE_LOGGER("ipc");
 
 Mutex storage_mutex;
-Mutex peripheral_i2c_core_mutex;
+Mutex modules_mutex;
 RwLock data_lock;
 
 LinuxIPC::LinuxIPC() {

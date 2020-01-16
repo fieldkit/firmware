@@ -2,6 +2,7 @@
 
 #if defined(ARDUINO)
 
+#include "exchange.h"
 #include "hal/hal.h"
 #include "hal/metal/simple_ntp.h"
 

@@ -5,6 +5,10 @@
 #include <WiFi101.h>
 #include <WiFiUdp.h>
 
+#undef min
+#undef max
+#undef abs
+
 #include "common.h"
 
 namespace fk {
