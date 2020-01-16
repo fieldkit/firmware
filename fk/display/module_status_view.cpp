@@ -8,43 +8,56 @@ namespace fk {
 
 FK_DECLARE_LOGGER("modstatus");
 
+static ModuleStatusScreen get_module_status_screen(uint8_t bay, PhysicalModuleState const &pm) {
+    auto name = pm.meta == nullptr ? "<unknown>" : pm.meta->name;
+
+    switch (pm.status) {
+    case ModuleStatus::Unknown:
+        return{
+            .bay = bay,
+            .name = name,
+            .message = "<unknown>",
+        };
+    case ModuleStatus::Empty:
+        return{
+            .bay = bay,
+            .name = "<empty>",
+            .message = "",
+        };
+    case ModuleStatus::Ok:
+        return{
+            .bay = bay,
+            .name = name,
+            .message = "ok",
+        };
+    case ModuleStatus::Warning:
+        return{
+            .bay = bay,
+            .name = name,
+            .message = "warning",
+        };
+    case ModuleStatus::Fatal:
+        return{
+            .bay = bay,
+            .name = name,
+            .message = "fatal",
+        };
+    }
+
+    return {
+        .bay = bay,
+        .name = "<error>",
+        .message = "<error>",
+    };
+}
+
 void ModuleStatusView::tick(ViewController *views) {
+    auto gs = get_global_state_ro();
+    auto &physical = gs.get()->physical_modules[bay_];
+
     auto bus = get_board()->i2c_core();
     auto display = get_display();
-
-    auto gs = get_global_state_ro();
-    auto &s = gs.get()->physical_modules[bay_];
-
-    auto name = "<empty>";
-    auto message = "";
-
-    if (s.meta != nullptr) {
-        name = s.meta->name;
-        message = "uninitialized";
-    }
-
-    switch (s.status) {
-    case ModuleStatus::Unknown:
-        name = "<unknown>";
-        break;
-    case ModuleStatus::Empty:
-        break;
-    case ModuleStatus::Ok:
-        message = "ok";
-        break;
-    case ModuleStatus::Warning:
-        message = "warning";
-        break;
-    case ModuleStatus::Fatal:
-        message = "fatal";
-        break;
-    }
-
-    ModuleStatusScreen screen{
-        .bay = bay_,
-        .name = name,
-        .message = message,
-    };
+    auto screen = get_module_status_screen(bay_, physical);
     display->module_status(screen);
 }
 
