@@ -18,25 +18,26 @@ void ModuleStatusView::tick(ViewController *views) {
     auto name = "<empty>";
     auto message = "";
 
-    if (s.available) {
-        if (s.initialized) {
-            message = "working";
-        }
-
-        if (s.meta != nullptr) {
-            name = s.meta->name;
-            message = "uninitialized";
-        }
-        else {
-            name = "<unknown>";
-            message = "unconfigured";
-        }
+    if (s.meta != nullptr) {
+        name = s.meta->name;
+        message = "uninitialized";
     }
-    else {
-        if (s.attempted) {
-            name = "<unknown>";
-            message = "eeprom error";
-        }
+
+    switch (s.status) {
+    case ModuleStatus::Unknown:
+        name = "<unknown>";
+        break;
+    case ModuleStatus::Empty:
+        break;
+    case ModuleStatus::Ok:
+        message = "ok";
+        break;
+    case ModuleStatus::Warning:
+        message = "warning";
+        break;
+    case ModuleStatus::Fatal:
+        message = "fatal";
+        break;
     }
 
     ModuleStatusScreen screen{
