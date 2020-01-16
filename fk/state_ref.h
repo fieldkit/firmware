@@ -14,12 +14,12 @@ template<typename T>
 class GlobalStateRef {
 private:
     uint32_t created_;
-    RwLock::Lock lock_;
+    Lock lock_;
     bool readonly_;
     T value_;
 
 public:
-    GlobalStateRef(RwLock::Lock lock, bool readonly, T value) : created_(fk_uptime()), lock_(std::move(lock)), readonly_(readonly), value_(value) {
+    GlobalStateRef(Lock lock, bool readonly, T value) : created_(fk_uptime()), lock_(std::move(lock)), readonly_(readonly), value_(value) {
     }
 
     GlobalStateRef(GlobalStateRef &&ref) : created_(ref.created_), lock_(std::move(ref.lock_)), readonly_(ref.readonly_), value_(std::move(ref.value_)) {

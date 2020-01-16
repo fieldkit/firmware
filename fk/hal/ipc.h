@@ -45,4 +45,4 @@ public:
 
 IPC *get_ipc();
 
-}
+} // namespace fk

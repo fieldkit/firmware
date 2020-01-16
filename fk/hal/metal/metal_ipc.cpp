@@ -11,9 +11,9 @@ namespace fk {
 
 FK_DECLARE_LOGGER("ipc");
 
-Mutex storage_mutex;
-Mutex modules_mutex;
-RwLock data_lock;
+MetalMutex storage_mutex;
+MetalMutex modules_mutex;
+MetalRwLock data_lock;
 
 os_queue_define(activity_queue, 10, OS_QUEUE_FLAGS_QUEUE_ONLY);
 os_queue_define(button_queue, 10, OS_QUEUE_FLAGS_NONE);
@@ -140,11 +140,11 @@ bool MetalIPC::signal_workers(WorkerCategory category, uint32_t signal) {
     return true;
 }
 
-bool Mutex::create() {
+bool MetalMutex::create() {
     return os_mutex_create(&mutex_, &def_) == OSS_SUCCESS;
 }
 
-Mutex::Lock Mutex::acquire(uint32_t to) {
+Lock MetalMutex::acquire(uint32_t to) {
     if (!os_is_running()) {
         return Lock{ this };
     }
@@ -154,7 +154,7 @@ Mutex::Lock Mutex::acquire(uint32_t to) {
     return Lock{ nullptr };
 }
 
-bool Mutex::release() {
+bool MetalMutex::release() {
     if (!os_is_running()) {
         return true;
     }
@@ -162,37 +162,37 @@ bool Mutex::release() {
     return true;
 }
 
-bool Mutex::is_owner() {
+bool MetalMutex::is_owner() {
     return os_mutex_is_owner(&mutex_) == OSS_SUCCESS;
 }
 
-bool RwLock::create() {
+bool MetalRwLock::create() {
     return os_rwlock_create(&rwlock_, &def_) == OSS_SUCCESS;
 }
 
-RwLock::Lock RwLock::acquire_read(uint32_t to) {
+Lock MetalRwLock::acquire_read(uint32_t to) {
     if (!os_is_running()) {
-        return { this };
+        return Lock{ this };
     }
     if (os_rwlock_acquire_read(&rwlock_, to) == OSS_SUCCESS) {
         logtrace("read!");
-        return { this };
+        return Lock{ this };
     }
-    return { nullptr };
+    return Lock{ nullptr };
 }
 
-RwLock::Lock RwLock::acquire_write(uint32_t to) {
+Lock MetalRwLock::acquire_write(uint32_t to) {
     if (!os_is_running()) {
-        return { this };
+        return Lock{ this };
     }
     if (os_rwlock_acquire_write(&rwlock_, to) == OSS_SUCCESS) {
         logtrace("write!");
-        return { this };
+        return Lock{ this };
     }
-    return { nullptr };
+    return Lock{ nullptr };
 }
 
-bool RwLock::release() {
+bool MetalRwLock::release() {
     if (!os_is_running()) {
         return true;
     }

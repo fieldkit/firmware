@@ -1,12 +1,14 @@
 #pragma once
 
 #include "hal/board.h"
+#include "hal/mutex.h"
 #include "activity.h"
 
 namespace fk {
 
 class ModulesLock {
 private:
+    Lock lock_;
     EepromLock eeprom_;
     uint32_t locked_;
 

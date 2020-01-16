@@ -7,9 +7,9 @@ namespace fk {
 
 FK_DECLARE_LOGGER("ipc");
 
-Mutex storage_mutex;
-Mutex modules_mutex;
-RwLock data_lock;
+LinuxMutex storage_mutex;
+LinuxMutex modules_mutex;
+LinuxRwLock data_lock;
 
 LinuxIPC::LinuxIPC() {
 }
@@ -56,35 +56,35 @@ bool LinuxIPC::launch_worker(WorkerCategory category, TaskWorker *worker) {
     return true;
 }
 
-bool Mutex::create() {
+bool LinuxMutex::create() {
     return true;
 }
 
-Mutex::Lock Mutex::acquire(uint32_t to) {
-    return { this };
+Lock LinuxMutex::acquire(uint32_t to) {
+    return Lock{ this };
 }
 
-bool Mutex::release() {
+bool LinuxMutex::release() {
     return true;
 }
 
-bool Mutex::is_owner() {
+bool LinuxMutex::is_owner() {
     return false;
 }
 
-bool RwLock::create() {
+bool LinuxRwLock::create() {
     return true;
 }
 
-RwLock::Lock RwLock::acquire_read(uint32_t to) {
-    return { this };
+Lock LinuxRwLock::acquire_read(uint32_t to) {
+    return Lock{ this };
 }
 
-RwLock::Lock RwLock::acquire_write(uint32_t to) {
-    return { this };
+Lock LinuxRwLock::acquire_write(uint32_t to) {
+    return Lock{ this };
 }
 
-bool RwLock::release() {
+bool LinuxRwLock::release() {
     return true;
 }
 

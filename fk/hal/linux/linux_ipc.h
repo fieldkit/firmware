@@ -25,91 +25,27 @@ public:
 
 };
 
-class Mutex {
+class LinuxMutex : public Mutex {
 public:
-    class Lock {
-    private:
-        Mutex *mutex_;
-
-    public:
-        Lock(Mutex *mutex) : mutex_(mutex) { }
-        Lock(Lock &&rhs) : mutex_(std::move(rhs.mutex_)) {
-            rhs.mutex_ = nullptr;
-        }
-        ~Lock() {
-            if (mutex_ != nullptr) {
-                mutex_->release();
-                mutex_ = nullptr;
-            }
-        }
-
-    public:
-        Lock& operator =(Lock&& rhs) {
-            if (this != &rhs) {
-                mutex_ = rhs.mutex_;
-                rhs.mutex_ = nullptr;
-            }
-            return *this;
-        }
-
-    public:
-        operator bool() {
-            return mutex_ != nullptr;
-        }
-    };
-
-public:
-    bool create();
-    Lock acquire(uint32_t to);
-    bool release();
-    bool is_owner();
+    bool create() override;
+    Lock acquire(uint32_t to) override;
+    bool release() override;
+    bool is_owner() override;
 
 };
 
-class RwLock {
+class LinuxRwLock : public RwLock {
 public:
-    class Lock {
-    private:
-        RwLock *rwlock_;
-
-    public:
-        Lock(RwLock *rwlock) : rwlock_(rwlock) { }
-        Lock(Lock &&rhs) : rwlock_(std::move(rhs.rwlock_)) {
-            rhs.rwlock_ = nullptr;
-        }
-        ~Lock() {
-            if (rwlock_ != nullptr) {
-                rwlock_->release();
-                rwlock_ = nullptr;
-            }
-        }
-
-    public:
-        Lock& operator =(Lock&& rhs) {
-            if (this != &rhs) {
-                rwlock_ = rhs.rwlock_;
-                rhs.rwlock_ = nullptr;
-            }
-            return *this;
-        }
-
-    public:
-        operator bool() {
-            return rwlock_ != nullptr;
-        }
-    };
-
-public:
-    bool create();
-    Lock acquire_read(uint32_t to);
-    Lock acquire_write(uint32_t to);
-    bool release();
+    bool create() override;
+    Lock acquire_read(uint32_t to) override;
+    Lock acquire_write(uint32_t to) override;
+    bool release() override;
 
 };
 
-extern Mutex storage_mutex;
-extern Mutex modules_mutex;
-extern RwLock data_lock;
+extern LinuxMutex storage_mutex;
+extern LinuxMutex modules_mutex;
+extern LinuxRwLock data_lock;
 
 }
 
