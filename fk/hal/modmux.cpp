@@ -42,17 +42,8 @@ void TopologyChange::consumed() {
         return;
     }
 
-    if (false) {
-        #pragma GCC diagnostic ignored "-Wformat"
-        #pragma GCC diagnostic ignored "-Wformat-extra-args"
-        loginfo("topology: %b", topology->value());
-        #pragma GCC diagnostic pop
-        #pragma GCC diagnostic pop
-    }
-    else {
-        char buffer[32];
-        loginfo("topology: [%s]", topology->string(buffer, sizeof(buffer)));
-    }
+    char buffer[MaximumNumberOfPhysicalModules * 2 + 1];
+    loginfo("topology: [%s]", topology->string(buffer, sizeof(buffer)));
 }
 
 const char *Topology::string(char *buffer, size_t size) const {
