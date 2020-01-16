@@ -9,6 +9,7 @@
 #include "upload_data_worker.h"
 #include "lora_worker.h"
 #include "service_modules_worker.h"
+#include "scan_modules_worker.h"
 
 #include "tasks/tasks.h"
 

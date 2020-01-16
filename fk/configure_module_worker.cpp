@@ -87,7 +87,8 @@ bool ConfigureModuleWorker::scan(Pool &pool) {
 
     factory.clear();
 
-    auto constructed_modules = factory.create(scanning, ctx, pool);
+    // TODO get uncached
+    auto constructed_modules = factory.get_modules(scanning, ctx, pool);
     if (!constructed_modules) {
         return false;
     }

@@ -22,7 +22,7 @@ ReadingsTaker::ReadingsTaker(ModuleScanning &scanning, Storage &storage, ModMux 
 }
 
 tl::expected<TakenReadings, Error> ReadingsTaker::take(ScanningContext &ctx, Pool &pool) {
-    auto constructed_modules = get_module_factory().create(scanning_, ctx, pool);
+    auto constructed_modules = get_module_factory().get_modules(scanning_, ctx, pool);
     if (!constructed_modules) {
         return tl::unexpected<Error>(constructed_modules.error());
     }

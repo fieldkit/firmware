@@ -3,7 +3,6 @@
 #include "clock.h"
 #include "tasks/tasks.h"
 #include "state_ref.h"
-
 #include "scheduling.h"
 
 namespace fk {
@@ -58,6 +57,7 @@ void task_handler_scheduler(void *params) {
             if (check_for_modules_time < fk_uptime()) {
                 if (has_module_topology_changed(topology)) {
                     loginfo("topology changed: %s", topology.string());
+                    get_ipc()->launch_worker(create_pool_worker<ScanModulesWorker>());
                 }
                 check_for_modules_time = fk_uptime() + OneSecondMs;
             }

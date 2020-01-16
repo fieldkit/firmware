@@ -33,16 +33,20 @@ public:
 
     tl::expected<ConstructedModule, Error> get(uint8_t bay);
 
-    tl::expected<ConstructedModulesCollection, Error> create(ModuleScanning &scanning, ScanningContext &ctx, Pool &pool);
+    tl::expected<ConstructedModulesCollection, Error> get_modules(ModuleScanning &scanning, ScanningContext &ctx, Pool &pool);
+
+    bool service(ScanningContext &ctx, Pool &pool);
 
     uint32_t service_interval() const {
         return service_interval_;
     }
 
-    bool service(ScanningContext &ctx, Pool &pool);
+    tl::expected<ConstructedModulesCollection, Error> rescan(ModuleScanning &scanning, Pool &pool);
 
 private:
     bool recreate(ScanningContext &ctx, FoundModuleCollection &module_headers);
+
+    tl::expected<ConstructedModulesCollection, Error> resolve(FoundModuleCollection &module_headers, Pool &pool);
 
 };
 

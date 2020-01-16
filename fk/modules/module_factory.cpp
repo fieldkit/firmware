@@ -1,7 +1,7 @@
-#include "module_factory.h"
+#include "modules/module_factory.h"
 
-#include "scanning.h"
-#include "registry.h"
+#include "modules/scanning.h"
+#include "modules/registry.h"
 
 namespace fk {
 
@@ -29,7 +29,7 @@ tl::expected<ConstructedModule, Error> ModuleFactory::get(uint8_t bay) {
     return tl::unexpected<Error>(Error::General);
 }
 
-tl::expected<ConstructedModulesCollection, Error> ModuleFactory::create(ModuleScanning &scanning, ScanningContext &ctx, Pool &pool) {
+tl::expected<ConstructedModulesCollection, Error> ModuleFactory::get_modules(ModuleScanning &scanning, ScanningContext &ctx, Pool &pool) {
     auto module_headers = scanning.scan(pool);
     if (!module_headers) {
         logerror("error scanning modules");
@@ -129,6 +129,45 @@ bool ModuleFactory::service(ScanningContext &ctx, Pool &pool) {
     }
 
     return success;
+}
+
+tl::expected<ConstructedModulesCollection, Error> ModuleFactory::resolve(FoundModuleCollection &module_headers, Pool &pool) {
+    ConstructedModulesCollection modules{ pool };
+    ModuleRegistry registry;
+    for (auto &f : module_headers) {
+        auto meta = registry.resolve(f.header);
+        if (meta == nullptr) {
+            modules.emplace(ConstructedModule{
+                .found = f,
+                .meta = nullptr,
+                .module = nullptr,
+                .status = ModuleStatus::Fatal,
+            });
+
+            logwarn("no such module!");
+        }
+        else {
+            auto module = meta->ctor(pool_);
+            modules.emplace(ConstructedModule{
+                .found = f,
+                .meta = meta,
+                .module = module,
+                .status = ModuleStatus::Warning,
+            });
+        }
+    }
+
+    return ConstructedModulesCollection(modules);
+}
+
+tl::expected<ConstructedModulesCollection, Error> ModuleFactory::rescan(ModuleScanning &scanning, Pool &pool) {
+    auto module_headers = scanning.scan(pool);
+    if (!module_headers) {
+        logerror("error scanning modules");
+        return tl::unexpected<Error>(module_headers.error());
+    }
+
+    return resolve(*module_headers, pool);
 }
 
 void ModuleFactory::clear() {
