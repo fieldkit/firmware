@@ -66,7 +66,7 @@ Topology::Topology(uint8_t value) : value_(value) {
     auto ptr = string_;
     for (auto i = 0u; i < 4u; ++i) {
         if (value_ & (1 << ((i * 2) + 1))) {
-            *ptr = '#';
+            *ptr = '1' + i;
         }
         else {
             *ptr = ' ';
