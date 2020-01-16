@@ -26,6 +26,7 @@ private:
     bool create_new_state(Storage &storage, GlobalState *gs, Pool &pool);
     bool check_for_lora(Pool &pool);
     bool check_for_interactive_startup();
+    bool save_startup_diagnostics();
 
 };
 

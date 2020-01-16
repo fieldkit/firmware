@@ -54,6 +54,8 @@ void StartupWorker::run(Pool &pool) {
     SelfCheck self_check(display, get_network(), mm, get_module_leds());
     self_check.check(SelfCheckSettings::defaults(), noop_callbacks);
 
+    save_startup_diagnostics();
+
     loginfo("prime global state");
 
     GlobalStateManager gsm;
@@ -63,9 +65,6 @@ void StartupWorker::run(Pool &pool) {
 
     Storage storage{ MemoryFactory::get_data_memory(), false };
     if (storage.begin()) {
-        // TODO Only do this if the last fsck was a while ago?
-        // storage.fsck(&noop_callbacks);
-
         GlobalStateManager gsm;
         gsm.apply([&](GlobalState *gs) {
             auto meta_fh = storage.file_header(Storage::Meta);
@@ -85,6 +84,15 @@ void StartupWorker::run(Pool &pool) {
     readings_worker.run(pool);
 
     FK_ASSERT(os_task_start(&scheduler_task) == OSS_SUCCESS);
+}
+
+bool StartupWorker::save_startup_diagnostics() {
+    loginfo("saving startup diagnostics (%s) (bank = %d)", fk_get_reset_reason_string(), fk_nvm_get_active_bank());
+
+    auto &logs = fk_log_buffer();
+    get_sd_card()->append_logs(logs);
+
+    return true;
 }
 
 bool StartupWorker::check_for_interactive_startup() {
