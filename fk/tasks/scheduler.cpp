@@ -6,8 +6,6 @@
 
 #include "scheduling.h"
 
-#include "config.h"
-
 namespace fk {
 
 FK_DECLARE_LOGGER("schedule");
@@ -16,7 +14,7 @@ static CurrentSchedules get_config_schedules();
 
 static bool has_schedule_changed(CurrentSchedules &running);
 
-static bool has_module_topology_changed();
+static bool has_module_topology_changed(Topology &existing);
 
 void task_handler_scheduler(void *params) {
     FK_ASSERT(fk_start_task_if_necessary(&display_task));
@@ -34,6 +32,7 @@ void task_handler_scheduler(void *params) {
 
         lwcron::Task *tasks[5] { &readings_job, &upload_data_job, &lora_job, &gps_job, &service_modules_job };
         lwcron::Scheduler scheduler{ tasks };
+        Topology topology;
 
         loginfo("module service interval: %" PRIu32 "s", schedules.service_interval);
 
@@ -57,7 +56,9 @@ void task_handler_scheduler(void *params) {
             }
 
             if (check_for_modules_time < fk_uptime()) {
-                has_module_topology_changed();
+                if (has_module_topology_changed(topology)) {
+                    loginfo("topology changed: %s", topology.string());
+                }
                 check_for_modules_time = fk_uptime() + OneSecondMs;
             }
         }
@@ -76,8 +77,19 @@ static bool has_schedule_changed(CurrentSchedules &running) {
     return !config.equals(running);
 }
 
-static bool has_module_topology_changed() {
-    return false;
+static bool has_module_topology_changed(Topology &existing) {
+    auto topology = get_modmux()->get_topology();
+    if (!topology) {
+        return false;
+    }
+
+    if (existing == topology) {
+        return false;
+    }
+
+    existing = topology.value();
+
+    return true;
 }
 
 }

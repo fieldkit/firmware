@@ -8,6 +8,18 @@ namespace fk {
 
 FK_DECLARE_LOGGER("modmux");
 
+optional<Topology> ModMux::get_topology() {
+    auto modules_lock = modules_mutex.acquire(UINT32_MAX);
+
+    FK_ASSERT(modules_lock);
+
+    if (!choose_nothing()) {
+        return nullopt;
+    }
+
+    return read_topology_register();
+}
+
 ModulesLock::ModulesLock() {
 }
 
@@ -35,18 +47,23 @@ TopologyChange::TopologyChange(uint32_t created) : Activity(created) {
 void TopologyChange::consumed() {
     Activity::consumed();
 
-    auto topology = get_modmux()->refresh_topology();
+    auto topology = get_modmux()->read_topology_register();
     if (!topology) {
         logerror("error refreshing topo");
         return;
     }
 
-    char buffer[MaximumNumberOfPhysicalModules * 2 + 1];
-    loginfo("topology: [%s]", topology->string(buffer, sizeof(buffer)));
+    loginfo("topology: [%s]", topology->string());
 }
 
-const char *Topology::string(char *buffer, size_t size) const {
-    auto ptr = buffer;
+Topology::Topology() : value_(0) {
+    string_[0] = 0;
+}
+
+Topology::Topology(uint8_t value) : value_(value) {
+    FK_ASSERT(sizeof(string_) >= (MaximumNumberOfPhysicalModules + 1));
+
+    auto ptr = string_;
     for (auto i = 0u; i < 4u; ++i) {
         if (value_ & (1 << ((i * 2) + 1))) {
             *ptr = '#';
@@ -57,7 +74,6 @@ const char *Topology::string(char *buffer, size_t size) const {
         ptr++;
     }
     *ptr = 0;
-    return buffer;
 }
 
 #if defined(FK_HARDWARE_FULL)

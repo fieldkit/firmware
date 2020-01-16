@@ -3,6 +3,7 @@
 #include "hal/board.h"
 #include "hal/mutex.h"
 #include "activity.h"
+#include "config.h"
 
 namespace fk {
 
@@ -36,12 +37,19 @@ public:
 class Topology {
 private:
     uint8_t value_;
+    char string_[MaximumNumberOfPhysicalModules + 1];
 
 public:
-    Topology() {
+    Topology();
+    Topology(uint8_t value);
+
+public:
+    bool operator ==(const Topology &b) const {
+        return value_ == b.value_;
     }
 
-    Topology(uint8_t value) : value_(value) {
+    bool operator !=(const Topology &b) const {
+        return value_ != b.value_;
     }
 
 public:
@@ -49,7 +57,9 @@ public:
         return value_;
     }
 
-    const char *string(char *buffer, size_t size) const;
+    const char *string() const {
+        return string_;
+    }
 
 };
 
@@ -73,10 +83,12 @@ public:
     virtual bool choose_nothing() = 0;
     virtual bool enable_topology_irq() = 0;
     virtual bool disable_topology_irq() = 0;
-    virtual optional<Topology> refresh_topology() = 0;
+    virtual optional<Topology> read_topology_register() = 0;
     virtual ModulesLock lock() = 0;
 
 public:
+    optional<Topology> get_topology();
+
     bool available() const {
         return available_;
     }

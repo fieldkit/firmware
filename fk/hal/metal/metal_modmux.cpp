@@ -89,7 +89,7 @@ bool MetalModMux::begin() {
 }
 
 bool MetalModMux::enable_topology_irq() {
-    refresh_topology();
+    read_topology_register();
 
     auto bus = get_board()->i2c_module();
 
@@ -107,12 +107,12 @@ bool MetalModMux::disable_topology_irq() {
         return false;
     }
 
-    auto topology = refresh_topology();
+    auto topology = read_topology_register();
 
     return topology.has_value();
 }
 
-optional<Topology> MetalModMux::refresh_topology() {
+optional<Topology> MetalModMux::read_topology_register() {
     auto bus = get_board()->i2c_module();
 
     uint8_t gpio = 0;
