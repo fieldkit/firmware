@@ -110,7 +110,7 @@ static void check_battery() {
         return;
     }
 
-    loginfo("battery: voltage = %fV/%fV %fma %fW", battery.bus_voltage, battery.shunted_voltage, battery.ma, battery.power);
+    loginfo("battery: v_bus = %fV v_s = %fmV %fmA %fmW", battery.bus_voltage, battery.shunted_voltage, battery.ma, battery.power);
 }
 
 }
