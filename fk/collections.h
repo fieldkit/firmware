@@ -55,6 +55,8 @@ public:
     public:
         iterator(item_t *iter): iter_(iter) {
         }
+
+    public:
         iterator operator++() {
             iter_ = iter_->np;
             return *this;
@@ -66,6 +68,11 @@ public:
         T &operator*() const {
             return iter_->item;
         }
+
+        T *operator->() const {
+            return &iter_->item;
+        }
+
     private:
         item_t *iter_;
     };

@@ -48,6 +48,8 @@ private:
 
     tl::expected<ConstructedModulesCollection, Error> resolve(FoundModuleCollection &module_headers, Pool &pool);
 
+    bool changes(FoundModuleCollection &a, ConstructedModulesCollection &b);
+
 };
 
 ModuleFactory &get_module_factory();

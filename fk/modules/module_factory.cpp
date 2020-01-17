@@ -36,16 +36,35 @@ tl::expected<ConstructedModulesCollection, Error> ModuleFactory::get_modules(Mod
         return tl::unexpected<Error>(module_headers.error());
     }
 
-    if ((*module_headers).size() != modules_.size()) {
-        if (!recreate(ctx, *module_headers)) {
-            return tl::unexpected<Error>(Error::General);
-        }
+    if (!changes(*module_headers, modules_)) {
+        return ConstructedModulesCollection(modules_);
     }
-    else {
-        logdebug("keep modules");
+
+    if (!recreate(ctx, *module_headers)) {
+        return tl::unexpected<Error>(Error::General);
     }
 
     return ConstructedModulesCollection(modules_);
+}
+
+bool ModuleFactory::changes(FoundModuleCollection &a, ConstructedModulesCollection &b) {
+    if (a.size() != b.size()) {
+        return true;
+    }
+
+    auto a_iter = a.begin();
+    auto b_iter = b.begin();
+
+    for (auto i = 0u; i < a.size(); ++i) {
+        if (memcmp(&a_iter->header.id, &b_iter->found.header.id, sizeof(a_iter->header.id)) != 0) {
+            return true;
+        }
+
+        ++a_iter;
+        ++b_iter;
+    }
+
+    return false;
 }
 
 bool ModuleFactory::recreate(ScanningContext &ctx, FoundModuleCollection &module_headers) {
