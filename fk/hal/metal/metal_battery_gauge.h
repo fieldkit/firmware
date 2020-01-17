@@ -6,7 +6,11 @@ namespace fk {
 
 class MetalBatteryGauge : public BatteryGauge {
 private:
-    bool available_;
+    Availability status_{ Availability::Unknown };
+    uint16_t config_;
+    uint32_t calibration_value_;
+    float ma_divider_;
+    float power_multiplier_;
 
 public:
     MetalBatteryGauge();

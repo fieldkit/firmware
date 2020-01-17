@@ -10,7 +10,9 @@
 #include "modules/eeprom.h"
 #include "hal/random.h"
 #include "hal/display.h"
+#include "hal/battery_gauge.h"
 #include "state_ref.h"
+
 #include "../modules/weather/main/weather.h"
 
 namespace fk {
@@ -330,6 +332,23 @@ static void try_and_break_weather_sensor_bus() {
     }
 }
 
+static void watch_battery() {
+    get_board()->enable_everything();
+
+    while (true) {
+        auto gauge = get_battery_gauge();
+
+        if (!gauge->begin()) {
+            logerror("battery gauge failed");
+        }
+        else {
+            gauge->get();
+        }
+
+        fk_delay(1000);
+    }
+}
+
 void fk_live_tests() {
     if (false) {
         try_and_reproduce_weird_block_issue();
@@ -339,6 +358,9 @@ void fk_live_tests() {
     }
     if (false) {
         try_and_break_weather_sensor_bus();
+    }
+    if (false) {
+        watch_battery();
     }
 }
 
