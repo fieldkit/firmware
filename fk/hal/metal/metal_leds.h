@@ -6,6 +6,7 @@ namespace fk {
 
 class MetalLeds : public ModuleLeds {
 private:
+    Availability status_{ Availability::Unknown };
     static constexpr size_t NumberOfPixels = 4;
     uint8_t pixels_[1 + NumberOfPixels + NumberOfPixels * 3];
 

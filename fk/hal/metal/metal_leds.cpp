@@ -22,11 +22,15 @@ bool MetalLeds::begin() {
     bus.end();
     bus.begin();
 
+    status_ = Availability::Unavailable;
+
     if (!I2C_CHECK(bus.write_register_u8(LP50_ADDRESS, LP50_REGISTER_ENABLE, LP50_ENABLE_ON))) {
         return false;
     }
 
     off();
+
+    status_ = Availability::Available;
 
     return true;
 }
@@ -72,6 +76,10 @@ void MetalLeds::on(uint8_t position) {
 }
 
 bool MetalLeds::refresh() {
+    if (status_ == Availability::Unavailable) {
+        return false;
+    }
+
     auto bus = get_board()->i2c_module();
 
     if (!I2C_CHECK(bus.write(LP50_ADDRESS, pixels_, sizeof(pixels_)))) {
