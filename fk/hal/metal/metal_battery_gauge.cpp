@@ -106,11 +106,13 @@ bool MetalBatteryGauge::begin() {
 
     auto bus = get_board()->i2c_module();
 
+    // 16V 400ma
     calibration_value_ = 8192;
     ma_divider_ = 20.0f;
     power_multiplier_ = 1.0f;
     config_ = INA219_CONFIG_BVOLTAGERANGE_16V | INA219_CONFIG_GAIN_1_40MV | INA219_CONFIG_BADCRES_12BIT | INA219_CONFIG_SADCRES_12BIT_1S_532US | INA219_CONFIG_MODE_SANDBVOLT_CONTINUOUS;
 
+    // 32V 1A
     calibration_value_ = 10240;
     ma_divider_ = 25.0f;
     power_multiplier_ = 0.8f;
@@ -129,6 +131,10 @@ bool MetalBatteryGauge::begin() {
 }
 
 BatteryReading MetalBatteryGauge::get() {
+    if (status_ != Availability::Available) {
+        return { .available = false };
+    }
+
     uint16_t value;
 
     auto bus = get_board()->i2c_module();
@@ -138,47 +144,43 @@ BatteryReading MetalBatteryGauge::get() {
     // not be available ... avoid this by always setting a cal
     // value even if it's an unfortunate extra step
     if (!ina219_write(bus, INA219_REGISTER_CALIBRATION, calibration_value_)) {
-        return { };
+        return { .available = false };
     }
 
     if (!ina219_read(bus, INA219_REGISTER_VOLTAGE_BUS, value)) {
-        return { };
+        return { .available = false };
     }
     // Shift to the right 3 to drop CNVR and OVF and multiply by LSB
-    auto bus_voltage_raw = (int16_t)((value >> 3) * 4);
+    // auto overflow = (value & 0x1);
+    // auto ready = (value & 0x2);
+    int32_t bus_voltage_raw = (int32_t)(int16_t)((value >> 3) * 4);
 
     if (!ina219_read(bus, INA219_REGISTER_VOLTAGE_SHUNT, value)) {
-        return { };
+        return { .available = false };
     }
-    auto shunted_voltage_raw = (int16_t)value;
+    int32_t shunted_voltage_raw = (int32_t)(int16_t)value;
 
     if (!ina219_read(bus, INA219_REGISTER_CURRENT, value)) {
-        return { };
+        return { .available = false };
     }
-    auto ma_raw = (int16_t)value;
+    int32_t ma_raw = (int32_t)(int16_t)value;
 
     if (!ina219_read(bus, INA219_REGISTER_POWER, value)) {
-        return { };
+        return { .available = false };
     }
-    auto power_raw = (int16_t)value;
+    int32_t power_raw = (int32_t)(int16_t)value;
 
-    auto bus_voltage = (float)bus_voltage_raw * 0.001f;
-    auto shunted_voltage = (float)shunted_voltage_raw * 0.01f;
-    auto ma = (float)ma_raw / ma_divider_;
-    auto power = (float)power_raw * power_multiplier_;
-
-    loginfo("battery: %d %d %d %d", bus_voltage_raw, shunted_voltage_raw, ma_raw, power_raw);
-    loginfo("battery: %f %f %f %f", bus_voltage, shunted_voltage, ma, power);
-
-    SEGGER_RTT_printf(0, "%f\n", bus_voltage);
+    float bus_voltage = (float)bus_voltage_raw * 0.001f;
+    float shunted_voltage = (float)shunted_voltage_raw * 0.01f;
+    float ma = (float)ma_raw / (float)ma_divider_;
+    float power = (float)power_raw * (float)power_multiplier_;
 
     return {
-        .available = false,
-        .cellv = 0,
-        .soc = 0,
-        .temp = 0,
-        .tte = 0.0f,
-        .ttf = 0.0f,
+        .available = true,
+        .bus_voltage = bus_voltage,
+        .shunted_voltage = shunted_voltage,
+        .ma = ma,
+        .power = power,
     };
 }
 

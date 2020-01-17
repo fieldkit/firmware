@@ -4,6 +4,7 @@
 #include "tasks/tasks.h"
 #include "state_ref.h"
 #include "scheduling.h"
+#include "hal/battery_gauge.h"
 
 namespace fk {
 
@@ -14,6 +15,8 @@ static CurrentSchedules get_config_schedules();
 static bool has_schedule_changed(CurrentSchedules &running);
 
 static bool has_module_topology_changed(Topology &existing);
+
+static void check_battery();
 
 void task_handler_scheduler(void *params) {
     FK_ASSERT(fk_start_task_if_necessary(&display_task));
@@ -39,6 +42,7 @@ void task_handler_scheduler(void *params) {
 
         auto check_for_tasks_time = fk_uptime() + OneSecondMs;
         auto check_for_modules_time = fk_uptime() + OneSecondMs;
+        auto check_battery_time = fk_uptime() + ThirtySecondsMs;
 
         while (!has_schedule_changed(schedules)) {
             // This throttles this loop, so we take a pass when we dequeue or timeout.
@@ -60,6 +64,11 @@ void task_handler_scheduler(void *params) {
                     get_ipc()->launch_worker(create_pool_worker<ScanModulesWorker>());
                 }
                 check_for_modules_time = fk_uptime() + OneSecondMs;
+            }
+
+            if (check_battery_time < fk_uptime()) {
+                check_battery();
+                check_battery_time = fk_uptime() + ThirtySecondsMs;
             }
         }
 
@@ -90,6 +99,18 @@ static bool has_module_topology_changed(Topology &existing) {
     existing = topology.value();
 
     return true;
+}
+
+static void check_battery() {
+    auto lock = get_modmux()->lock();
+
+    auto battery = get_battery_gauge()->get();
+    if (!battery.available) {
+        logwarn("battery status unavilable");
+        return;
+    }
+
+    loginfo("battery: voltage = %fV/%fV %fma %fW", battery.bus_voltage, battery.shunted_voltage, battery.ma, battery.power);
 }
 
 }

@@ -6,11 +6,10 @@ namespace fk {
 
 struct BatteryReading {
     bool available;
-    int32_t cellv;
-    int32_t soc;
-    int32_t temp;
-    float tte;
-    float ttf;
+    float bus_voltage;
+    float shunted_voltage;
+    float ma;
+    float power;
 };
 
 class BatteryGauge {
