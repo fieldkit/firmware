@@ -29,6 +29,9 @@ public:
         if (!readonly_) {
             value_->released(created_);
         }
+        else {
+            value_->released(created_);
+        }
     }
 
 public:

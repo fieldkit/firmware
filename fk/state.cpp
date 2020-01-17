@@ -52,7 +52,10 @@ void GlobalState::update_physical_modules(ConstructedModulesCollection const &mo
 }
 
 void GlobalState::released(uint32_t locked) const {
-    loginfo("read (%" PRIu32 "ms)", fk_uptime() - locked);
+    auto elapsed = fk_uptime() - locked;
+    if (elapsed > 100) {
+        logwarn("read (%" PRIu32 "ms)", elapsed);
+    }
 }
 
 void GlobalState::released(uint32_t locked) {
