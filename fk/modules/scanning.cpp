@@ -73,8 +73,6 @@ tl::expected<FoundModuleCollection, Error> ModuleScanning::scan(Pool &pool) {
 
     DebuggerOfLastResort::get()->message("scanning");
 
-    loginfo("scanning modules...");
-
     // Take ownership over the module bus.
     auto module_bus = get_board()->i2c_module();
     ModuleEeprom eeprom{ module_bus };

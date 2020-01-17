@@ -224,7 +224,7 @@ bool MetalModMux::choose(uint8_t position) {
 
     auto mux_position = to_mux_position(position);
 
-    logtrace("[%d] selecting", mux_position);
+    logdebug("[%d] selecting (%d)", position, mux_position);
 
     bus.end();
     bus.begin();
@@ -242,13 +242,12 @@ bool MetalModMux::choose(uint8_t position) {
             if (i > 0) {
                 logwarn("choose took %d tries", i);
             }
-            break;
+            active_module_ = position;
+            return true;
         }
     }
 
-    active_module_ = position;
-
-    return true;
+    return false;
 }
 
 bool MetalModMux::choose_nothing() {
@@ -267,13 +266,14 @@ bool MetalModMux::choose_nothing() {
     bus.end();
     bus.begin();
 
-    if (!I2C_CHECK(bus.write_u8(TCA9548A_ADDRESS, 0))) {
-        return false;
+    for (auto i = 0; i < 3; ++i) {
+        if (I2C_CHECK(bus.write_u8(TCA9548A_ADDRESS, 0))) {
+            active_module_ = NoModuleSelected;
+            return true;
+        }
     }
 
-    active_module_ = NoModuleSelected;
-
-    return true;
+    return false;
 }
 
 void MetalModMux::irq() {
