@@ -53,31 +53,12 @@ bool ModuleFactory::recreate(ScanningContext &ctx, FoundModuleCollection &module
 
     clear();
 
-    ModuleRegistry registry;
-    for (auto &f : module_headers) {
-        auto meta = registry.resolve(f.header);
-        if (meta == nullptr) {
-            modules_.emplace(ConstructedModule{
-                .found = f,
-                .meta = nullptr,
-                .module = nullptr,
-                .status = ModuleStatus::Fatal,
-            });
-
-            logwarn("no such module!");
-        }
-        else {
-            auto module = meta->ctor(pool_);
-            modules_.emplace(ConstructedModule{
-                .found = f,
-                .meta = meta,
-                .module = module,
-                .status = ModuleStatus::Found,
-            });
-        }
+    auto modules_maybe = resolve(module_headers, pool_);
+    if (!modules_maybe) {
+        return false;
     }
 
-    for (auto &pair : modules_) {
+    for (auto &pair : *modules_maybe) {
         auto module = pair.module;
         if (module == nullptr) {
             continue;
@@ -85,7 +66,6 @@ bool ModuleFactory::recreate(ScanningContext &ctx, FoundModuleCollection &module
 
         auto mc = ctx.module(pair.found.position);
         if (!mc.open()) {
-            logerror("error opening module");
             return false;
         }
 
@@ -102,6 +82,8 @@ bool ModuleFactory::recreate(ScanningContext &ctx, FoundModuleCollection &module
         auto mr = module->initialize(mc, pool_);
         pair.status = mr.status;
     }
+
+    modules_.add(*modules_maybe);
 
     return true;
 }

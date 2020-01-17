@@ -84,6 +84,12 @@ public:
         append(node);
     }
 
+    void add(collection<T> &other) {
+        for (T &i : other) {
+            add(i);
+        }
+    }
+
     template<class... Args>
     void emplace(Args&&... args) {
         auto node = pool_->malloc_with<item_t>(T(std::forward<Args>(args)...));
