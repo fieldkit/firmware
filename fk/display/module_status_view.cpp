@@ -24,6 +24,12 @@ static ModuleStatusScreen get_module_status_screen(uint8_t bay, PhysicalModuleSt
             .name = "<empty>",
             .message = "",
         };
+    case ModuleStatus::Found:
+        return{
+            .bay = bay,
+            .name = name,
+            .message = "found",
+        };
     case ModuleStatus::Ok:
         return{
             .bay = bay,

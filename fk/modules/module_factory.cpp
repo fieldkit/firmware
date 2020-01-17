@@ -56,23 +56,23 @@ bool ModuleFactory::recreate(ScanningContext &ctx, FoundModuleCollection &module
     ModuleRegistry registry;
     for (auto &f : module_headers) {
         auto meta = registry.resolve(f.header);
-        if (meta != nullptr) {
-            auto module = meta->ctor(pool_);
-            modules_.emplace(ConstructedModule{
-                .found = f,
-                .meta = meta,
-                .module = module,
-                .status = ModuleStatus::Warning,
-            });
-        }
-        else {
-            logwarn("no such module!");
-
+        if (meta == nullptr) {
             modules_.emplace(ConstructedModule{
                 .found = f,
                 .meta = nullptr,
                 .module = nullptr,
                 .status = ModuleStatus::Fatal,
+            });
+
+            logwarn("no such module!");
+        }
+        else {
+            auto module = meta->ctor(pool_);
+            modules_.emplace(ConstructedModule{
+                .found = f,
+                .meta = meta,
+                .module = module,
+                .status = ModuleStatus::Found,
             });
         }
     }
@@ -147,12 +147,12 @@ tl::expected<ConstructedModulesCollection, Error> ModuleFactory::resolve(FoundMo
             logwarn("no such module!");
         }
         else {
-            auto module = meta->ctor(pool_);
+            auto module = meta->ctor(pool);
             modules.emplace(ConstructedModule{
                 .found = f,
                 .meta = meta,
                 .module = module,
-                .status = ModuleStatus::Warning,
+                .status = ModuleStatus::Found,
             });
         }
     }

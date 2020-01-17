@@ -16,6 +16,7 @@ class HttpServerConnection;
 enum class ModuleStatus {
     Unknown = 0,
     Empty,
+    Found,
     Ok,
     Warning,
     Fatal

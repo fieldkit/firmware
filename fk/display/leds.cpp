@@ -17,6 +17,7 @@ static Color get_color(ModuleStatus status) {
     switch (status) {
     case ModuleStatus::Unknown: return { 0, 0, 0 };
     case ModuleStatus::Empty: return { 0, 0, 0 };
+    case ModuleStatus::Found: return { 0x28, 0x28, 0x28 };
     case ModuleStatus::Ok: return { 0xff, 0xff, 0xff };
     case ModuleStatus::Warning: return { 0xcc, 0xcc, 0 };
     case ModuleStatus::Fatal: return { 0xff, 0, 0 };
