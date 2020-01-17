@@ -10,27 +10,35 @@ FK_DECLARE_LOGGER("modscan");
 ScanModulesWorker::ScanModulesWorker() {
 }
 
-static void scan_modules(Pool &pool) {
+static bool scan_modules(Pool &pool) {
     ModuleScanning scanning{ get_modmux() };
-    auto maybe_modules = get_module_factory().rescan(scanning, pool);
-    if (!maybe_modules) {
+    auto modules_maybe = get_module_factory().rescan(scanning, pool);
+    if (!modules_maybe) {
         logerror("error resolving modules");
-        return;
+        return false;
     }
 
-    GlobalStateManager gsm;
-    gsm.apply([&](GlobalState *gs) {
-        gs->update_physical_modules(*maybe_modules);
-    });
+    return true;
 }
 
-static void initialize_modules(Pool &pool) {
+static bool initialize_modules(Pool &pool) {
     auto gs = get_global_state_ro();
     auto module_bus = get_board()->i2c_module();
     ScanningContext ctx{ get_modmux(), gs.get(), module_bus };
     if (!get_module_factory().initialize(ctx, pool)) {
         logerror("error initializing");
+        return false;
     }
+
+    return true;
+}
+
+static void update_modules(Pool &pool) {
+    GlobalStateManager gsm;
+    gsm.apply([&](GlobalState *gs) {
+        auto modules = get_module_factory().modules();
+        gs->update_physical_modules(modules);
+    });
 }
 
 void ScanModulesWorker::run(Pool &pool) {
@@ -38,13 +46,11 @@ void ScanModulesWorker::run(Pool &pool) {
 
     scan_modules(pool);
 
+    update_modules(pool);
+
     initialize_modules(pool);
 
-    GlobalStateManager gsm;
-    gsm.apply([&](GlobalState *gs) {
-        auto modules = get_module_factory().modules();
-        gs->update_physical_modules(modules);
-    });
+    update_modules(pool);
 }
 
 } // namespace fk

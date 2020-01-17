@@ -7,6 +7,34 @@ FK_DECLARE_LOGGER("network");
 NetworkTask::NetworkTask(Network *network, NetworkServices &network_services) : network_(network), network_services_(&network_services) {
 }
 
+static collection<NetworkSettings> copy_settings(Pool &pool) {
+    collection<NetworkSettings> settings{ pool };
+
+    auto gs = get_global_state_ro();
+    for (auto &wifi_network : gs.get()->network.config.wifi_networks) {
+        if (wifi_network.ssid[0] != 0) {
+            settings.add({
+                .valid = wifi_network.ssid[0] != 0,
+                .create = false,
+                .ssid = wifi_network.ssid,
+                .password = wifi_network.password,
+                .port = 80,
+            });
+        }
+    }
+
+    auto name = gs.get()->general.name;
+    settings.add({
+        .valid = true,
+        .create = true,
+        .ssid = name,
+        .password = nullptr,
+        .port = 80,
+    });
+
+    return std::move(settings);
+}
+
 bool NetworkTask::begin(NetworkSettings settings, uint32_t to, Pool &pool) {
     if (settings.valid) {
         if (network_services_->begin(settings, to, pool)) {
@@ -15,36 +43,12 @@ bool NetworkTask::begin(NetworkSettings settings, uint32_t to, Pool &pool) {
         }
     }
 
-    auto gs = get_global_state_ro();
-    auto name = gs.get()->general.name;
-    for (auto &wifi_network : gs.get()->network.config.wifi_networks) {
-        auto s = NetworkSettings{
-            .valid = wifi_network.ssid[0] != 0,
-            .create = false,
-            .ssid = wifi_network.ssid,
-            .password = wifi_network.password,
-            .port = 80,
-        };
-
-        if (s.valid) {
-            if (network_services_->begin(s, to, pool)) {
-                active_settings_ = s;
-                return true;
-            }
+    auto network_settings = copy_settings(pool);
+    for (NetworkSettings &s : network_settings) {
+        if (network_services_->begin(s, to, pool)) {
+            active_settings_ = s;
+            return true;
         }
-    }
-
-    auto s = NetworkSettings{
-        .valid = true,
-        .create = true,
-        .ssid = name,
-        .password = nullptr,
-        .port = 80,
-    };
-
-    if (network_services_->begin(s, to, pool)) {
-        active_settings_ = s;
-        return true;
     }
 
     return false;
