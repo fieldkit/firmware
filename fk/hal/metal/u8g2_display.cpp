@@ -179,7 +179,7 @@ void U8g2Display::home(HomeScreen const &data) {
             draw_.setFontMode(0);
             draw_.setFont(u8g2_font_courB08_tf);
             auto width = draw_.getUTF8Width(buffer);
-            draw_.drawUTF8(((OLED_WIDTH - 44) / 2) - (width / 2), 12, buffer);
+            draw_.drawUTF8(((OLED_WIDTH - 48) / 2) - (width / 2), 12, buffer);
         }
         else {
             if (data.debug_mode) {
@@ -187,11 +187,7 @@ void U8g2Display::home(HomeScreen const &data) {
                 auto width = draw_.getUTF8Width(text);
                 draw_.setFontMode(0);
                 draw_.setFont(u8g2_font_courB08_tf);
-                draw_.drawUTF8(((OLED_WIDTH - 44) / 2) - (width / 2), 12, text);
-            }
-            else {
-                auto &logo = fk_logo_bw_80x17;
-                draw_.drawXBM(2, logo.h - 16, logo.w, logo.h, logo.data);
+                draw_.drawUTF8(((OLED_WIDTH - 48) / 2) - (width / 2), 12, text);
             }
         }
     }
@@ -224,10 +220,10 @@ void U8g2Display::home(HomeScreen const &data) {
         draw_.setFont(u8g2_font_open_iconic_all_2x_t);
         auto interval = data.network.connected ? 10000 : 1000;
         if (toggle_every(data.time, interval)) {
-            draw_.drawGlyph(OLED_WIDTH - 44, 18, glyph_open_iconic_all_wifi_1);
+            draw_.drawGlyph(OLED_WIDTH - 48, 18, glyph_open_iconic_all_wifi_1);
         }
         else {
-            draw_.drawGlyph(OLED_WIDTH - 44, 18, glyph_open_iconic_all_wifi_2);
+            draw_.drawGlyph(OLED_WIDTH - 48, 18, glyph_open_iconic_all_wifi_2);
         }
     }
 
@@ -235,7 +231,7 @@ void U8g2Display::home(HomeScreen const &data) {
         draw_.setFont(u8g2_font_open_iconic_all_2x_t);
         auto interval = data.gps.fix ? 10000 : 1000;
         if (toggle_every(data.time, interval)) {
-            draw_.drawGlyph(OLED_WIDTH - 28, 18, glyph_open_iconic_all_gps);
+            draw_.drawGlyph(OLED_WIDTH - 34, 18, glyph_open_iconic_all_gps);
         }
     }
 
