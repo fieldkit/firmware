@@ -40,9 +40,11 @@ TEST_F(ReadingsTakingSuite, WithNoModules) {
 
     MockModuleScanning scanning;
     EXPECT_CALL(scanning, scan(_)).WillOnce(Return(as_expected(FoundModuleCollection(found))));
+    ModuleFactory module_factory;
+    auto constructed_maybe = module_factory.rescan_and_initialize(ctx, scanning, pool_);
 
-    ReadingsTaker readings_taker{ scanning, storage, get_modmux(), false };
-    ASSERT_TRUE(readings_taker.take(ctx, pool_));
+    ReadingsTaker readings_taker{ storage, get_modmux(), false };
+    ASSERT_TRUE(readings_taker.take(*constructed_maybe, ctx, pool_));
 }
 
 TEST_F(ReadingsTakingSuite, BasicSingleModule) {
@@ -65,9 +67,11 @@ TEST_F(ReadingsTakingSuite, BasicSingleModule) {
 
     MockModuleScanning scanning;
     EXPECT_CALL(scanning, scan(_)).WillOnce(Return(as_expected(FoundModuleCollection(found))));
+    ModuleFactory module_factory;
+    auto constructed_maybe = module_factory.rescan_and_initialize(ctx, scanning, pool_);
 
-    ReadingsTaker readings_taker{ scanning, storage, get_modmux(), false };
-    ASSERT_TRUE(readings_taker.take(ctx, pool_));
+    ReadingsTaker readings_taker{ storage, get_modmux(), false };
+    ASSERT_TRUE(readings_taker.take(*constructed_maybe, ctx, pool_));
 }
 
 TEST_F(ReadingsTakingSuite, BasicTwoModules) {
@@ -99,9 +103,11 @@ TEST_F(ReadingsTakingSuite, BasicTwoModules) {
 
     MockModuleScanning scanning;
     EXPECT_CALL(scanning, scan(_)).WillOnce(Return(as_expected(FoundModuleCollection(found))));
+    ModuleFactory module_factory;
+    auto constructed_maybe = module_factory.rescan_and_initialize(ctx, scanning, pool_);
 
-    ReadingsTaker readings_taker{ scanning, storage, get_modmux(), false };
-    ASSERT_TRUE(readings_taker.take(ctx, pool_));
+    ReadingsTaker readings_taker{ storage, get_modmux(), false };
+    ASSERT_TRUE(readings_taker.take(*constructed_maybe, ctx, pool_));
 }
 
 TEST_F(ReadingsTakingSuite, AssignsRecordIndices) {
@@ -150,13 +156,27 @@ TEST_F(ReadingsTakingSuite, AssignsRecordIndices) {
         .WillOnce(Return(as_expected(FoundModuleCollection(one_module))))
         .WillOnce(Return(as_expected(FoundModuleCollection(one_module))))
         .WillOnce(Return(as_expected(FoundModuleCollection(two_modules))));
-    ReadingsTaker readings_taker{ scanning, storage, get_modmux(), false };
-    ASSERT_TRUE(readings_taker.take(ctx, pool_));
-    ASSERT_TRUE(readings_taker.take(ctx, pool_));
-    ASSERT_TRUE(readings_taker.take(ctx, pool_));
-    ASSERT_TRUE(readings_taker.take(ctx, pool_));
-    ASSERT_TRUE(readings_taker.take(ctx, pool_));
-    ASSERT_TRUE(readings_taker.take(ctx, pool_));
+    ReadingsTaker readings_taker{ storage, get_modmux(), false };
+
+    ModuleFactory module_factory;
+    auto constructed_maybe1 = module_factory.rescan_and_initialize(ctx, scanning, pool_);
+    printf("FOUND %zd\n", constructed_maybe1->size());
+    ASSERT_TRUE(readings_taker.take(*constructed_maybe1, ctx, pool_));
+
+    auto constructed_maybe2 = module_factory.rescan_and_initialize(ctx, scanning, pool_);
+    ASSERT_TRUE(readings_taker.take(*constructed_maybe2, ctx, pool_));
+
+    auto constructed_maybe3 = module_factory.rescan_and_initialize(ctx, scanning, pool_);
+    ASSERT_TRUE(readings_taker.take(*constructed_maybe3, ctx, pool_));
+
+    auto constructed_maybe4 = module_factory.rescan_and_initialize(ctx, scanning, pool_);
+    ASSERT_TRUE(readings_taker.take(*constructed_maybe4, ctx, pool_));
+
+    auto constructed_maybe5 = module_factory.rescan_and_initialize(ctx, scanning, pool_);
+    ASSERT_TRUE(readings_taker.take(*constructed_maybe5, ctx, pool_));
+
+    auto constructed_maybe6 = module_factory.rescan_and_initialize(ctx, scanning, pool_);
+    ASSERT_TRUE(readings_taker.take(*constructed_maybe6, ctx, pool_));
 
     auto meta_file = storage.file(Storage::Meta);
     auto srl = SignedRecordLog{ meta_file };

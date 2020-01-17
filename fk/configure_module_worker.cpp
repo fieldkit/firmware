@@ -86,13 +86,8 @@ bool ConfigureModuleWorker::scan(Pool &pool) {
 
     factory.clear();
 
-    // TODO get uncached
-    auto constructed_modules = factory.get_modules(scanning, ctx, pool);
-    if (!constructed_modules) {
-        return false;
-    }
-
-    gs.get()->update_physical_modules(*constructed_modules);
+    auto constructed_modules = factory.modules();
+    gs.get()->update_physical_modules(constructed_modules);
 
     return true;
 }

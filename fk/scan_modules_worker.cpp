@@ -18,13 +18,23 @@ void ScanModulesWorker::run(Pool &pool) {
         return;
     }
 
-    for (auto &module : *maybe_modules) {
-        loginfo("module: %s", module.meta->name);
-    }
-
     GlobalStateManager gsm;
     gsm.apply([&](GlobalState *gs) {
         gs->update_physical_modules(*maybe_modules);
+    });
+
+    {
+        auto gs = get_global_state_ro();
+        auto module_bus = get_board()->i2c_module();
+        ScanningContext ctx{ get_modmux(), gs.get(), module_bus };
+        if (!get_module_factory().initialize(ctx, pool)) {
+            logerror("error initializing");
+        }
+    }
+
+    gsm.apply([&](GlobalState *gs) {
+        auto modules = get_module_factory().modules();
+        gs->update_physical_modules(modules);
     });
 }
 

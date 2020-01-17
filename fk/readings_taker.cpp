@@ -17,23 +17,18 @@ namespace fk {
 
 FK_DECLARE_LOGGER("readings");
 
-ReadingsTaker::ReadingsTaker(ModuleScanning &scanning, Storage &storage, ModMux *mm, bool read_only)
-    : scanning_(scanning), storage_(storage), readings_{ mm }, mm_(mm), read_only_(read_only) {
+ReadingsTaker::ReadingsTaker(Storage &storage, ModMux *mm, bool read_only)
+    : storage_(storage), readings_{ mm }, mm_(mm), read_only_(read_only) {
 }
 
-tl::expected<TakenReadings, Error> ReadingsTaker::take(ScanningContext &ctx, Pool &pool) {
-    auto constructed_modules = get_module_factory().get_modules(scanning_, ctx, pool);
-    if (!constructed_modules) {
-        return tl::unexpected<Error>(constructed_modules.error());
-    }
-
-    if ((*constructed_modules).size() == 0) {
+tl::expected<TakenReadings, Error> ReadingsTaker::take(ConstructedModulesCollection &constructed_modules, ScanningContext &ctx, Pool &pool) {
+    if (constructed_modules.size() == 0) {
         loginfo("no modules");
         return TakenReadings{ 0, 0, { pool }, { pool } };
     }
 
     if (!read_only_) {
-        auto meta_record = append_configuration(*constructed_modules, pool);
+        auto meta_record = append_configuration(constructed_modules, pool);
         if (!meta_record) {
             logerror("error appending configuration");
             return tl::unexpected<Error>(Error::General);
@@ -45,7 +40,7 @@ tl::expected<TakenReadings, Error> ReadingsTaker::take(ScanningContext &ctx, Poo
         }
 
         auto number = data.record();
-        auto all_readings = readings_.take_readings(ctx, *constructed_modules, *meta_record, number, pool);
+        auto all_readings = readings_.take_readings(ctx, constructed_modules, *meta_record, number, pool);
         if (!all_readings) {
             logerror("error taking readings");
             return tl::unexpected<Error>(Error::General);
@@ -61,16 +56,16 @@ tl::expected<TakenReadings, Error> ReadingsTaker::take(ScanningContext &ctx, Poo
             return tl::unexpected<Error>(Error::General);
         }
 
-        return TakenReadings{ get_clock_now(), number, std::move(*constructed_modules), std::move(*all_readings) };
+        return TakenReadings{ get_clock_now(), number, std::move(constructed_modules), std::move(*all_readings) };
     }
 
-    auto all_readings = readings_.take_readings(ctx, *constructed_modules, 0, 0, pool);
+    auto all_readings = readings_.take_readings(ctx, constructed_modules, 0, 0, pool);
     if (!all_readings) {
         logerror("error taking readings");
         return tl::unexpected<Error>(Error::General);
     }
 
-    return TakenReadings{ 0, 0, std::move(*constructed_modules), std::move(*all_readings) };
+    return TakenReadings{ 0, 0, std::move(constructed_modules), std::move(*all_readings) };
 }
 
 bool ReadingsTaker::append_readings(File &file, Pool &pool) {

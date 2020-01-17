@@ -10,17 +10,16 @@ class ModMux;
 
 class ReadingsTaker {
 private:
-    ModuleScanning &scanning_;
     Storage &storage_;
     Readings readings_;
     ModMux *mm_;
     bool read_only_;
 
 public:
-    ReadingsTaker(ModuleScanning &scanning, Storage &storage, ModMux *mm, bool read_only);
+    ReadingsTaker(Storage &storage, ModMux *mm, bool read_only);
 
 public:
-    tl::expected<TakenReadings, Error> take(ScanningContext &mc, Pool &pool);
+    tl::expected<TakenReadings, Error> take(ConstructedModulesCollection &constructed_modules, ScanningContext &mc, Pool &pool);
 
     bool append_readings(File &file, Pool &pool);
 

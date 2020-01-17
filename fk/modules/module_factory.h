@@ -31,24 +31,34 @@ public:
 public:
     void clear();
 
-    tl::expected<ConstructedModule, Error> get(uint8_t bay);
+    optional<ConstructedModule> get(uint8_t bay);
 
-    tl::expected<ConstructedModulesCollection, Error> get_modules(ModuleScanning &scanning, ScanningContext &ctx, Pool &pool);
+    void modules(ConstructedModulesCollection modules) {
+        clear();
+        modules_.add(modules);
+    }
 
-    bool service(ScanningContext &ctx, Pool &pool);
+    ConstructedModulesCollection modules() {
+        return ConstructedModulesCollection(modules_);
+    }
 
     uint32_t service_interval() const {
         return service_interval_;
     }
 
+public:
     tl::expected<ConstructedModulesCollection, Error> rescan(ModuleScanning &scanning, Pool &pool);
 
+    bool initialize(ScanningContext &ctx, Pool &pool);
+
+    bool service(ScanningContext &ctx, Pool &pool);
+
+    tl::expected<ConstructedModulesCollection, Error> rescan_and_initialize(ScanningContext ctx, ModuleScanning &scanning, Pool &pool);
+
 private:
-    bool recreate(ScanningContext &ctx, FoundModuleCollection &module_headers);
+    bool changes(FoundModuleCollection &a, ConstructedModulesCollection &b);
 
     tl::expected<ConstructedModulesCollection, Error> resolve(FoundModuleCollection &module_headers, Pool &pool);
-
-    bool changes(FoundModuleCollection &a, ConstructedModulesCollection &b);
 
 };
 

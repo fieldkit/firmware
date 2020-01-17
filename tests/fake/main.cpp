@@ -81,11 +81,14 @@ static void setup_fake_data() {
             });
 
         StaticModuleScanning scanning(found);
-        ReadingsTaker readings_taker{ scanning, storage, get_modmux(), false };
+        ModuleFactory module_factory;
+        auto constructed_maybe = module_factory.rescan_and_initialize(ctx, scanning, pool);
+
+        ReadingsTaker readings_taker{ storage, get_modmux(), false };
 
         loginfo("writing fake data");
 
-        FK_ASSERT(readings_taker.take(ctx, pool));
+        FK_ASSERT(readings_taker.take(*constructed_maybe, ctx, pool));
     }
 
     loginfo("done");
