@@ -254,7 +254,7 @@ public:
     SchedulerState scheduler;
     PhysicalModuleState physical_modules[MaximumNumberOfPhysicalModules];
     SdCardState sd_card;
-    // TODO Make this ''readings'?
+    // TODO Make this 'readings'?
     ModulesState *modules;
 
 public:
