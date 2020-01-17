@@ -1,5 +1,5 @@
-constexpr size_t adjectives_size = (326);
-const char *adjectives[327] = {
+constexpr size_t adjectives_size = (327);
+const char *adjectives[328] = {
   "Acclaimed",
   "Accomplished",
   "Acrobatic",
@@ -238,6 +238,7 @@ const char *adjectives[327] = {
   "Peaceful",
   "Perfect",
   "Perky",
+  "Persnickety",
   "Pink",
   "Playful",
   "Pleasant",
