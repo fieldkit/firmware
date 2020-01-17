@@ -193,9 +193,6 @@ struct LoraState {
 };
 
 struct PhysicalModuleState {
-    bool attempted{ false };
-    bool available{ false };
-    bool configured{ false };
     ModuleStatus status{ ModuleStatus::Unknown };
     ModuleHeader header;
     ModuleMetadata const *meta;

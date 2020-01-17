@@ -21,7 +21,6 @@ void configure_bay_and_update_state(uint8_t which, GlobalState *gs, T fn) {
         gs->physical_modules[bay] = { };
 
         if (which == AllModuleBays || which == bay) {
-            gs->physical_modules[bay].attempted = true;
             if (!fn(bay)) {
                 return;
             }
