@@ -113,4 +113,20 @@ pb_istream_t pb_istream_from_readable(Reader *s) {
     return stream;
 }
 
+Buffer::Buffer(uint8_t *ptr, size_t size) : ptr_(ptr), size_(size), position_(0) {
+}
+
+void Buffer::write(char c) {
+    FK_ASSERT(position_ < size_);
+    ptr_[position_++] = c;
+}
+
+bool Buffer::full() const {
+    return position_ == size_;
+}
+
+void Buffer::clear() {
+    position_ = 0;
+}
+
 }

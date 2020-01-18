@@ -65,6 +65,31 @@ public:
 
 };
 
+class Buffer {
+private:
+    uint8_t *ptr_;
+    size_t size_;
+    size_t position_;
+
+public:
+    Buffer(uint8_t *ptr, size_t size);
+
+public:
+    const uint8_t *ptr() const {
+        return ptr_;
+    }
+
+    size_t position() const {
+        return position_;
+    }
+
+public:
+    void write(char c);
+    bool full() const;
+    void clear();
+
+};
+
 pb_ostream_t pb_ostream_from_writable(Writer *s);
 
 pb_istream_t pb_istream_from_readable(Reader *s);
