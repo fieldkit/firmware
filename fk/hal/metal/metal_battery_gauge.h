@@ -20,6 +20,10 @@ public:
 
     BatteryReading get() override;
 
+    bool available() override {
+        return status_ == Availability::Available;
+    }
+
 };
 
 }

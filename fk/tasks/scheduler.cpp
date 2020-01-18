@@ -102,11 +102,15 @@ static bool has_module_topology_changed(Topology &existing) {
 }
 
 static void check_battery() {
+    if (!get_battery_gauge()->available()) {
+        return;
+    }
+
     auto lock = get_modmux()->lock();
 
     auto battery = get_battery_gauge()->get();
     if (!battery.available) {
-        logwarn("battery status unavilable");
+        logerror("battery status unavilable");
         return;
     }
 

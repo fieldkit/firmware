@@ -13,6 +13,10 @@ public:
 
     BatteryReading get() override;
 
+    bool available() override {
+        return true;
+    }
+
 };
 
 }

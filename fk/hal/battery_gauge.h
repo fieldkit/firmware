@@ -18,6 +18,8 @@ public:
 
     virtual BatteryReading get() = 0;
 
+    virtual bool available() = 0;
+
 };
 
 extern BatteryGauge *get_battery_gauge();
