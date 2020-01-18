@@ -156,6 +156,10 @@ tl::expected<ConstructedModulesCollection, Error> ModuleFactory::rescan(ModuleSc
         return tl::unexpected<Error>(module_headers.error());
     }
 
+    if (!changes(*module_headers, modules_)) {
+        return ConstructedModulesCollection(modules_);
+    }
+
     clear();
 
     auto resolved_maybe = resolve(*module_headers, pool_);
