@@ -43,7 +43,7 @@ public:
 public:
 public:
     void run() override {
-        get_ipc()->launch_worker(create_pool_worker<ReadingsWorker>(false));
+        get_ipc()->launch_worker(create_pool_worker<ReadingsWorker>(false, false));
     }
 
     const char *toString() const override {

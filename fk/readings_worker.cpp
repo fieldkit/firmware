@@ -1,9 +1,11 @@
 #include <samd51_common.h>
 
 #include "readings_worker.h"
-#include "hal/hal.h"
 #include "readings_taker.h"
 #include "state_manager.h"
+#include "hal/hal.h"
+
+#include "scan_modules_worker.h"
 
 namespace fk {
 
@@ -11,13 +13,18 @@ static size_t failures = 0;
 
 FK_DECLARE_LOGGER("rw");
 
-ReadingsWorker::ReadingsWorker(bool read_only) : read_only_(read_only) {
+ReadingsWorker::ReadingsWorker(bool scan, bool read_only) : scan_(scan), read_only_(read_only) {
 }
 
 void ReadingsWorker::run(Pool &pool) {
     if (should_throttle()) {
         logwarn("readings throttled");
         return;
+    }
+
+    if (scan_) {
+        ScanModulesWorker scan_worker;
+        scan_worker.run(pool);
     }
 
     auto taken_readings = take_readings(pool);

@@ -8,12 +8,13 @@ namespace fk {
 
 class ReadingsWorker {
 private:
+    bool scan_;
     bool read_only_;
     FileHeader meta_fh_;
     FileHeader data_fh_;
 
 public:
-    ReadingsWorker(bool read_only);
+    ReadingsWorker(bool scan, bool read_only);
 
 public:
     void run(Pool &pool);

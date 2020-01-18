@@ -83,7 +83,7 @@ bool ApiHandler::handle(HttpServerConnection *connection, Pool &pool) {
     }
     case fk_app_QueryType_QUERY_TAKE_READINGS: {
         loginfo("handling %s", "QUERY_TAKE_READINGS");
-        auto worker = create_pool_worker<ReadingsWorker>(true);
+        auto worker = create_pool_worker<ReadingsWorker>(false, true);
         get_ipc()->launch_worker(WorkerCategory::Readings, worker);
         return send_readings(connection, query, pool);
     }
