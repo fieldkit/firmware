@@ -23,6 +23,9 @@ public:
         T *buf;
         size_t index;
 
+        iterator() : size(0), buf(nullptr), index(0) {
+        }
+
         iterator(size_t size, T *buf, size_t index) : size(size), buf(buf), index(index) {
         }
 
