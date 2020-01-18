@@ -86,6 +86,10 @@ struct RuntimeState {
 struct PowerState {
     uint32_t charge{ 0 };
     uint32_t voltage{ 0 };
+    float vbus{ 0 };
+    float vs{ 0 };
+    float ma{ 0 };
+    float mw{ 0 };
 };
 
 struct WifiNetworkInfo {

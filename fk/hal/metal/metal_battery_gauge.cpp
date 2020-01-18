@@ -180,7 +180,7 @@ BatteryReading MetalBatteryGauge::get() {
         .bus_voltage = bus_voltage,
         .shunted_voltage = shunted_voltage,
         .ma = ma,
-        .power = power,
+        .mw = power,
     };
 }
 

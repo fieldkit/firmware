@@ -9,7 +9,7 @@ struct BatteryReading {
     float bus_voltage;
     float shunted_voltage;
     float ma;
-    float power;
+    float mw;
 };
 
 class BatteryGauge {

@@ -110,7 +110,13 @@ static void check_battery() {
         return;
     }
 
-    loginfo("battery: v_bus = %fV v_s = %fmV %fmA %fmW", battery.bus_voltage, battery.shunted_voltage, battery.ma, battery.power);
+    auto gs = get_global_state_rw();
+    gs.get()->power.vbus = battery.bus_voltage;
+    gs.get()->power.vs = battery.shunted_voltage;
+    gs.get()->power.ma = battery.ma;
+    gs.get()->power.mw = battery.mw;
+
+    loginfo("battery: v_bus = %fV v_s = %fmV %fmA %fmW", battery.bus_voltage, battery.shunted_voltage, battery.ma, battery.mw);
 }
 
 }

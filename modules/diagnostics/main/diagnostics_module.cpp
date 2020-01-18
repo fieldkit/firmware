@@ -8,6 +8,10 @@ using namespace fk;
 static SensorMetadata const fk_module_sensor_metas[] = {
     { .name = "battery_charge",  .unitOfMeasure = "%",     .flags = 0 },
     { .name = "battery_voltage", .unitOfMeasure = "v",     .flags = 0 },
+    { .name = "battery_vbus",    .unitOfMeasure = "v",     .flags = 0 },
+    { .name = "battery_vs",      .unitOfMeasure = "mv",    .flags = 0 },
+    { .name = "battery_ma",      .unitOfMeasure = "ma",    .flags = 0 },
+    { .name = "battery_power",   .unitOfMeasure = "mw",    .flags = 0 },
     { .name = "free_memory",     .unitOfMeasure = "bytes", .flags = 0 },
     { .name = "uptime",          .unitOfMeasure = "ms",    .flags = 0 },
     { .name = "temperature",     .unitOfMeasure = "C",     .flags = 0 },
@@ -43,15 +47,20 @@ ModuleConfiguration DiagnosticsModule::get_configuration(Pool &pool) {
 ModuleReadings *DiagnosticsModule::take_readings(ModuleContext mc, Pool &pool) {
     CoreTemperature core_temperature_sensor{ get_board()->i2c_core() };
 
-    auto mr = new(pool) NModuleReadings<5>();
-    mr->set(0, mc.gs()->power.charge);
-    mr->set(1, mc.gs()->power.voltage);
-    mr->set(2, fk_free_memory());
-    mr->set(3, fk_uptime());
+    auto i = 0u;
+    auto mr = new(pool) NModuleReadings<9>();
+    mr->set(i++, mc.gs()->power.charge);
+    mr->set(i++, mc.gs()->power.voltage);
+    mr->set(i++, mc.gs()->power.vbus);
+    mr->set(i++, mc.gs()->power.vs);
+    mr->set(i++, mc.gs()->power.ma);
+    mr->set(i++, mc.gs()->power.mw);
+    mr->set(i++, fk_free_memory());
+    mr->set(i++, fk_uptime());
 
     float core_temperature = 0.0f;
     if (core_temperature_sensor.read(&core_temperature)) {
-        mr->set(4, core_temperature);
+        mr->set(i++, core_temperature);
     }
 
     return mr;
