@@ -22,6 +22,7 @@ public:
 public:
     bool begin() override;
     bool append_logs(circular_buffer<char> &buffer) override;
+    bool append_logs(circular_buffer<char> &buffer, circular_buffer<char>::iterator iter) override;
     bool is_file(const char *path) override;
     bool is_directory(const char *path) override;
     bool mkdir(const char *path) override;

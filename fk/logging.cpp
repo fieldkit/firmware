@@ -12,6 +12,7 @@
 namespace fk {
 
 static static_log_buffer<InMemoryLogBufferSize> logs __attribute__((section (".noinit")));
+static log_buffer::iterator sd_card_iterator;
 static bool logs_buffer_free = true;
 
 #if defined(__SAMD51__)
@@ -23,13 +24,11 @@ static void write_logs_buffer(char c, void *arg) {
 
     // This causes some weird issues. Need a way to do this w/o
     // clearing the buffer.
-    if (false) {
-        if (logs.full()) {
-            logs_buffer_free = false;
-            get_sd_card()->append_logs(logs);
-            logs.zero();
-            logs_buffer_free = true;
-        }
+    if (logs.size(sd_card_iterator) >= StandardPageSize) {
+        logs_buffer_free = false;
+        get_sd_card()->append_logs(logs, sd_card_iterator);
+        sd_card_iterator = logs.end();
+        logs_buffer_free = true;
     }
 
     if (c != 0) {
@@ -124,6 +123,8 @@ bool fk_logging_initialize() {
     if (logs_buffer_has_garbage()) {
         logs.zero();
     }
+
+    sd_card_iterator = logs.end();
 
     log_configure_writer(write_log);
     log_configure_level(LogLevels::DEBUG);

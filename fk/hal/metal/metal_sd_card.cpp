@@ -5,6 +5,7 @@
 #include "hal/metal/metal_sd_card.h"
 #include "platform.h"
 #include "format_sd_card.h"
+#include "standard_page.h"
 
 #if defined(__SAMD51__)
 
@@ -43,6 +44,10 @@ bool MetalSdCard::begin() {
 }
 
 bool MetalSdCard::append_logs(circular_buffer<char> &buffer) {
+    return append_logs(buffer, buffer.begin());
+}
+
+bool MetalSdCard::append_logs(circular_buffer<char> &buffer, circular_buffer<char>::iterator iter) {
     auto started = fk_uptime();
 
     if (!begin()) {
@@ -71,7 +76,6 @@ bool MetalSdCard::append_logs(circular_buffer<char> &buffer) {
         }
     }
 
-    auto size = buffer.size();
     if (log_initialized_) {
         SdFile file;
 
@@ -80,14 +84,28 @@ bool MetalSdCard::append_logs(circular_buffer<char> &buffer) {
             return false;
         }
 
-        file.write(buffer.buffer(), size);
+        auto size = 0u;
+        StandardPage page;
+        Buffer writing{ (uint8_t *)page.ptr(), page.size() };
+        for ( ; iter != buffer.end(); ++iter) {
+            writing.write(*iter);
+            if (writing.full()) {
+                file.write(writing.ptr(), writing.position());
+                writing.clear();
+            }
+            size++;
+        }
+
+        if (writing.position() > 0) {
+            file.write(writing.ptr(), writing.position());
+        }
         file.flush();
         file.close();
 
         loginfo("flushed %d to %s (%" PRIu32 "ms) (%" PRIu32 " bytes)", size, log_file_name_, fk_uptime() - started, file.fileSize());
     }
     else {
-        loginfo("ignored %d (%" PRIu32 "ms)", size, fk_uptime() - started);
+        loginfo("ignored (%" PRIu32 "ms)", fk_uptime() - started);
         log_initialized_ = false;
     }
 

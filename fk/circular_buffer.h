@@ -19,35 +19,39 @@ public:
 
 public:
     struct iterator {
-        size_t size;
-        T *buf;
-        size_t index;
+        size_t size_;
+        T *buf_;
+        size_t index_;
 
-        iterator() : size(0), buf(nullptr), index(0) {
+        iterator() : size_(0), buf_(nullptr), index_(0) {
         }
 
-        iterator(size_t size, T *buf, size_t index) : size(size), buf(buf), index(index) {
+        iterator(size_t size, T *buf, size_t index) : size_(size), buf_(buf), index_(index) {
+        }
+
+        size_t index() const {
+            return index_;
         }
 
         iterator operator++() {
-            index = (index + 1) % size;
+            index_ = (index_ + 1) % size_;
             return *this;
         }
 
         bool operator!=(const iterator &other) const {
-            return index != other.index;
+            return index_ != other.index_;
         }
 
         bool operator==(const iterator &other) const {
-            return index == other.index;
+            return index_ == other.index_;
         }
 
         T &operator*() {
-            return buf[index];
+            return buf_[index_];
         }
 
         T &operator*() const {
-            return buf[index];
+            return buf_[index_];
         }
     };
 
@@ -56,22 +60,22 @@ public:
         return head_ < max_size_ && tail_ < max_size_;
     }
 
-    iterator begin() {
+    iterator begin() const {
         if (empty()) {
             return end();
         }
         return iterator{ max_size_, buf_, tail_ };
     }
 
-    iterator end() {
+    iterator end() const {
         return iterator{ max_size_, buf_, head_ };
     }
 
-    iterator head() {
+    iterator head() const {
         return iterator{ max_size_, buf_, head_ };
     }
 
-    iterator tail() {
+    iterator tail() const {
         return iterator{ max_size_, buf_, tail_ };
     }
 
@@ -87,7 +91,7 @@ public:
             head_ = tail_ = 0;
         }
         else {
-            tail_ = i.index;
+            tail_ = i.index_;
         }
         full_ = false;
     }
@@ -144,9 +148,20 @@ public:
         return max_size_;
     }
 
+    size_t size(iterator iter) const {
+        if (iter == end()) {
+            return 0;
+        }
+        if (head_ >= iter.index()) {
+            return head_ - iter.index();
+        }
+        else {
+            return max_size_ + head_ - iter.index();
+        }
+    }
+
     size_t size() const {
         auto size = max_size_;
-
         if (!full_) {
             if (head_ >= tail_) {
                 size = head_ - tail_;

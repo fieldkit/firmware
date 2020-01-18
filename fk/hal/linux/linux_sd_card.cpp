@@ -13,6 +13,10 @@ bool LinuxSdCard::append_logs(circular_buffer<char> &buffer) {
     return true;
 }
 
+bool LinuxSdCard::append_logs(circular_buffer<char> &buffer, circular_buffer<char>::iterator iter) {
+    return true;
+}
+
 bool LinuxSdCard::is_file(const char *path) {
     return false;
 }
