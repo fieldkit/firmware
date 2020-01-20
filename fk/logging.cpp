@@ -43,7 +43,7 @@ size_t write_log(LogMessage const *m, const char *fstring, va_list args) {
     }
 
     auto level = alog_get_log_level((LogLevels)m->level);
-    auto plain_fs = "";
+    auto plain_fs = "%08" PRIu32 " %-10s %-7s %s: ";
     auto color_fs = "";
     auto task = os_task_name();
     if (task == nullptr) {
@@ -52,15 +52,12 @@ size_t write_log(LogMessage const *m, const char *fstring, va_list args) {
 
     if ((LogLevels)m->level == LogLevels::ERROR) {
         color_fs = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_CYAN " %-10s " RTT_CTRL_TEXT_RED "%-7s %s: ";
-        plain_fs = "%08" PRIu32 " %-10s %-7s %s: ";
     }
     else if ((LogLevels)m->level == LogLevels::WARN) {
         color_fs = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_CYAN " %-10s " RTT_CTRL_TEXT_MAGENTA "%-7s %s: ";
-        plain_fs = "%08" PRIu32 " %-10s %-7s %s: ";
     }
     else {
         color_fs = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_CYAN " %-10s " RTT_CTRL_TEXT_YELLOW "%-7s %s" RTT_CTRL_RESET ": ";
-        plain_fs = "%08" PRIu32 " %-10s %-7s %s: ";
     }
 
     SEGGER_RTT_LOCK();

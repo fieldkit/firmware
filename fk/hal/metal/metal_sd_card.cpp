@@ -88,12 +88,14 @@ bool MetalSdCard::append_logs(circular_buffer<char> &buffer, circular_buffer<cha
         StandardPage page;
         Buffer writing{ (uint8_t *)page.ptr(), page.size() };
         for ( ; iter != buffer.end(); ++iter) {
-            writing.write(*iter);
-            if (writing.full()) {
-                file.write(writing.ptr(), writing.position());
-                writing.clear();
+            if (*iter != 0) {
+                writing.write(*iter);
+                if (writing.full()) {
+                    file.write(writing.ptr(), writing.position());
+                    writing.clear();
+                }
+                size++;
             }
-            size++;
         }
 
         if (writing.position() > 0) {
