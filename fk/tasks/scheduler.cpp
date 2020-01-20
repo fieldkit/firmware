@@ -92,7 +92,7 @@ static bool has_module_topology_changed(Topology &existing) {
         return false;
     }
 
-    if (existing == topology) {
+    if (existing == topology.value()) {
         return false;
     }
 

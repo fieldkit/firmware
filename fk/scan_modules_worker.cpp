@@ -11,6 +11,14 @@ ScanModulesWorker::ScanModulesWorker() {
 }
 
 static bool scan_modules(Pool &pool) {
+    auto topology = get_modmux()->read_topology_register();
+    if (!topology) {
+        logwarn("unable to read topology");
+    }
+    else {
+        loginfo("topology: [%s]", topology->string());
+    }
+
     ModuleScanning scanning{ get_modmux() };
     auto modules_maybe = get_module_factory().rescan(scanning, pool);
     if (!modules_maybe) {
