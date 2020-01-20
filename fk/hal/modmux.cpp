@@ -20,8 +20,7 @@ optional<Topology> ModMux::get_topology() {
     return read_topology_register();
 }
 
-ModulesLock::ModulesLock() {
-}
+ModulesLock::ModulesLock() {}
 
 ModulesLock::ModulesLock(ModulesLock const &o) : eeprom_(o.eeprom_), locked_(o.locked_) {
 }
@@ -66,7 +65,7 @@ Topology::Topology(uint8_t value) : value_(value) {
     auto ptr = string_;
     for (auto i = 0u; i < 4u; ++i) {
         if (value_ & (1 << ((i * 2) + 1))) {
-            *ptr = '1' + i;
+            *ptr = '0' + i;
         }
         else {
             *ptr = ' ';
