@@ -37,7 +37,7 @@ public:
 class Topology {
 private:
     uint8_t value_;
-    char string_[MaximumNumberOfPhysicalModules + 1];
+    char string_[(sizeof(uint8_t) * 8) + 1];
 
 public:
     Topology();

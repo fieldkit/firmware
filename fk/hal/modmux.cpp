@@ -72,6 +72,15 @@ Topology::Topology(uint8_t value) : value_(value) {
         }
         ptr++;
     }
+    for (auto i = 0u; i < 4u; ++i) {
+        if (value_ & (1 << ((i * 2) + 0))) {
+            *ptr = '0' + i;
+        }
+        else {
+            *ptr = ' ';
+        }
+        ptr++;
+    }
     *ptr = 0;
 }
 
