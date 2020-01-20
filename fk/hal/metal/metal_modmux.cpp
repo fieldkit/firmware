@@ -133,10 +133,11 @@ bool MetalModMux::update_gpio(uint8_t new_gpio) {
     }
 
     if (gpio_ == new_gpio) {
-        return true;
+        logdebug("gpio = %d (noop)", new_gpio);
     }
-
-    logdebug("modmux.gpio = %d", new_gpio);
+    else {
+        loginfo("gpio = %d", new_gpio);
+    }
 
     auto bus = get_board()->i2c_module();
 
