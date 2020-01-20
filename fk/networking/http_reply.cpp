@@ -49,7 +49,7 @@ bool HttpReply::include_status() {
     reply_.status.identity.generation.arg = generation_data;
     reply_.status.identity.number.arg = (void *)pool_->sprintf("%d", fkb_header.firmware.number);
     reply_.status.power.battery.voltage = gs_->power.voltage;
-    reply_.status.power.battery.percentage = gs_->power.charge;
+    reply_.status.power.battery.percentage = 100; // gs_->power.charge;
 
     reply_.status.recording.enabled = gs_->general.recording > 0;
     reply_.status.recording.started_time = gs_->general.recording;
