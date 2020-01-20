@@ -64,6 +64,7 @@ void task_handler_scheduler(void *params) {
                     get_ipc()->launch_worker(create_pool_worker<ScanModulesWorker>());
                 }
                 check_for_modules_time = fk_uptime() + OneSecondMs;
+                fk_start_task_if_necessary(&display_task);
             }
 
             if (check_battery_time < fk_uptime()) {
