@@ -99,6 +99,11 @@ static bool has_module_topology_changed(Topology &existing) {
 
     existing = topology.value();
 
+    {
+        auto modules_lock = modules_mutex.acquire(UINT32_MAX);
+        get_modmux()->check_modules();
+    }
+
     return true;
 }
 

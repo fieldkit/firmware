@@ -137,6 +137,8 @@ tl::expected<TakenReadings, Error> ReadingsWorker::take_readings(Pool &pool) {
     auto gs = get_global_state_ro();
     auto module_bus = get_board()->i2c_module();
 
+    get_modmux()->check_modules();
+
     ScanningContext ctx{ mm, gs.get(), module_bus };
     StatisticsMemory memory{ MemoryFactory::get_data_memory() };
     Storage storage{ &memory, read_only_ };
@@ -155,14 +157,6 @@ tl::expected<TakenReadings, Error> ReadingsWorker::take_readings(Pool &pool) {
 
     meta_fh_ = storage.file_header(Storage::Meta);
     data_fh_ = storage.file_header(Storage::Data);
-
-    auto topology = get_modmux()->read_topology_register();
-    if (!topology) {
-        logwarn("unable to read topology");
-    }
-    else {
-        loginfo("topology: [%s]", topology->string());
-    }
 
     return taken_readings;
 }

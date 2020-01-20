@@ -61,6 +61,8 @@ public:
         return string_;
     }
 
+    bool all_modules_on() const;
+
 };
 
 class ModMux {
@@ -88,6 +90,8 @@ public:
 
 public:
     optional<Topology> get_topology();
+
+    bool check_modules();
 
     bool available() const {
         return available_;
