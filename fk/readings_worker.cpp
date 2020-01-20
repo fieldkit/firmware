@@ -156,6 +156,14 @@ tl::expected<TakenReadings, Error> ReadingsWorker::take_readings(Pool &pool) {
     meta_fh_ = storage.file_header(Storage::Meta);
     data_fh_ = storage.file_header(Storage::Data);
 
+    auto topology = get_modmux()->read_topology_register();
+    if (!topology) {
+        logwarn("unable to read topology");
+    }
+    else {
+        loginfo("topology: [%s]", topology->string());
+    }
+
     return taken_readings;
 }
 
