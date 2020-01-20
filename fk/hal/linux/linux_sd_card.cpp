@@ -17,6 +17,10 @@ bool LinuxSdCard::append_logs(circular_buffer<char> &buffer, circular_buffer<cha
     return true;
 }
 
+bool LinuxSdCard::close_logs() {
+    return true;
+}
+
 bool LinuxSdCard::is_file(const char *path) {
     return false;
 }
