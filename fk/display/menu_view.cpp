@@ -278,8 +278,8 @@ void MenuView::create_tools_menu() {
         tools_dump_flash,
         tools_format_sd,
         tools_fsck,
-        tools_restart,
         tools_factory_reset,
+        tools_restart,
         // tools_save_firmware_sd,
         // tools_compare_banks,
     });
