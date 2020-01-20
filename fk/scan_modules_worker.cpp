@@ -34,7 +34,6 @@ static bool initialize_modules(Pool &pool) {
     auto module_bus = get_board()->i2c_module();
     ScanningContext ctx{ get_modmux(), gs.get(), module_bus };
     if (!get_module_factory().initialize(ctx, pool)) {
-        logerror("error initializing");
         return false;
     }
 

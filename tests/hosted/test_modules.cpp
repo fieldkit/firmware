@@ -10,7 +10,7 @@ static ModuleSensors fk_module_fake_empty_sensors = {
     .sensors = nullptr,
 };
 
-class FakeModuleEmpty : public Module {
+class FakeModuleEmpty : public FakeModule {
 public:
     ModuleReturn initialize(ModuleContext mc, Pool &pool) override {
         return { ModuleStatus::Ok };
@@ -59,7 +59,9 @@ static ModuleSensors fk_module_fake_1_sensors = {
     .sensors = fk_module_fake_1_sensor_metas,
 };
 
-class FakeModule1 : public Module {
+class FakeModule1 : public FakeModule {
+private:
+
 public:
     ModuleReturn initialize(ModuleContext mc, Pool &pool) override {
         return { ModuleStatus::Ok };
@@ -119,7 +121,7 @@ static ModuleSensors fk_module_fake_2_sensors = {
     .sensors = fk_module_fake_2_sensor_metas,
 };
 
-class FakeModule2 : public Module {
+class FakeModule2 : public FakeModule {
 public:
     ModuleReturn initialize(ModuleContext mc, Pool &pool) override {
         return { ModuleStatus::Ok };
