@@ -79,4 +79,17 @@ void fk_standard_page_free(void *ptr) {
     FK_ASSERT(success);
 }
 
+StandardPageMemInfo fk_standard_page_meminfo() {
+    StandardPageMemInfo info = { 0, 0 };
+
+    for (auto i = 0u; i < SizeOfStandardPagePool; ++i) {
+        info.total += StandardPageSize;
+        if (pages[i].available) {
+            info.free += StandardPageSize;
+        }
+    }
+
+    return info;
+}
+
 } // namespace fk
