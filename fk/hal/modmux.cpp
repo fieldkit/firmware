@@ -20,8 +20,37 @@ optional<Topology> ModMux::get_topology() {
     return read_topology_register();
 }
 
-ModulesLock::ModulesLock() {
+bool ModMux::check_modules() {
+    auto topology = read_topology_register();
+    if (!topology) {
+        logwarn("unable to read topology");
+        return false;
+    }
+
+    loginfo("topology: [%s]", topology->string());
+
+    if (topology->all_modules_on()) {
+        return true;
+    }
+
+    logerror("weird modules power off issue!");
+
+    if (!enable_all_modules()) {
+        logwarn("unable to enable modules");
+    }
+
+    auto topology_after = read_topology_register();
+    if (!topology_after) {
+        logwarn("unable to read topology");
+        return false;
+    }
+
+    loginfo("topology: [%s]", topology_after->string());
+
+    return false;
 }
+
+ModulesLock::ModulesLock() {}
 
 ModulesLock::ModulesLock(ModulesLock const &o) : eeprom_(o.eeprom_), locked_(o.locked_) {
 }
@@ -66,7 +95,16 @@ Topology::Topology(uint8_t value) : value_(value) {
     auto ptr = string_;
     for (auto i = 0u; i < 4u; ++i) {
         if (value_ & (1 << ((i * 2) + 1))) {
-            *ptr = '1' + i;
+            *ptr = '0' + i;
+        }
+        else {
+            *ptr = ' ';
+        }
+        ptr++;
+    }
+    for (auto i = 0u; i < 4u; ++i) {
+        if (value_ & (1 << ((i * 2) + 0))) {
+            *ptr = '0' + i;
         }
         else {
             *ptr = ' ';
@@ -74,6 +112,11 @@ Topology::Topology(uint8_t value) : value_(value) {
         ptr++;
     }
     *ptr = 0;
+}
+
+bool Topology::all_modules_on() const {
+    auto mask = 0b01010101;
+    return (value_ & mask) == mask;
 }
 
 #if defined(FK_HARDWARE_FULL)

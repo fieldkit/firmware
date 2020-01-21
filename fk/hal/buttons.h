@@ -32,6 +32,7 @@ public:
         return index_;
     }
 
+private:
     bool is_up() const;
     bool is_enter() const;
     bool is_down() const;

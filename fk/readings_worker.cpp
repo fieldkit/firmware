@@ -133,9 +133,11 @@ bool ReadingsWorker::should_throttle() {
 tl::expected<TakenReadings, Error> ReadingsWorker::take_readings(Pool &pool) {
     auto mm = get_modmux();
     auto modules_lock = mm->lock();
-    auto gs = get_global_state_ro();
     auto lock = storage_mutex.acquire(UINT32_MAX);
+    auto gs = get_global_state_ro();
     auto module_bus = get_board()->i2c_module();
+
+    get_modmux()->check_modules();
 
     ScanningContext ctx{ mm, gs.get(), module_bus };
     StatisticsMemory memory{ MemoryFactory::get_data_memory() };

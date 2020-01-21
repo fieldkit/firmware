@@ -11,6 +11,14 @@ ScanModulesWorker::ScanModulesWorker() {
 }
 
 static bool scan_modules(Pool &pool) {
+    auto topology = get_modmux()->read_topology_register();
+    if (!topology) {
+        logwarn("unable to read topology");
+    }
+    else {
+        loginfo("topology: [%s]", topology->string());
+    }
+
     ModuleScanning scanning{ get_modmux() };
     auto modules_maybe = get_module_factory().rescan(scanning, pool);
     if (!modules_maybe) {
@@ -26,7 +34,6 @@ static bool initialize_modules(Pool &pool) {
     auto module_bus = get_board()->i2c_module();
     ScanningContext ctx{ get_modmux(), gs.get(), module_bus };
     if (!get_module_factory().initialize(ctx, pool)) {
-        logerror("error initializing");
         return false;
     }
 

@@ -37,7 +37,7 @@ public:
 class Topology {
 private:
     uint8_t value_;
-    char string_[MaximumNumberOfPhysicalModules + 1];
+    char string_[(sizeof(uint8_t) * 8) + 1];
 
 public:
     Topology();
@@ -60,6 +60,8 @@ public:
     const char *string() const {
         return string_;
     }
+
+    bool all_modules_on() const;
 
 };
 
@@ -88,6 +90,8 @@ public:
 
 public:
     optional<Topology> get_topology();
+
+    bool check_modules();
 
     bool available() const {
         return available_;

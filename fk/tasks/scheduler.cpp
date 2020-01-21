@@ -62,6 +62,7 @@ void task_handler_scheduler(void *params) {
                 if (has_module_topology_changed(topology)) {
                     loginfo("topology changed: [%s]", topology.string());
                     get_ipc()->launch_worker(create_pool_worker<ScanModulesWorker>());
+                    fk_start_task_if_necessary(&display_task);
                 }
                 check_for_modules_time = fk_uptime() + OneSecondMs;
             }
@@ -92,11 +93,16 @@ static bool has_module_topology_changed(Topology &existing) {
         return false;
     }
 
-    if (existing == topology) {
+    if (existing == topology.value()) {
         return false;
     }
 
     existing = topology.value();
+
+    {
+        auto modules_lock = modules_mutex.acquire(UINT32_MAX);
+        get_modmux()->check_modules();
+    }
 
     return true;
 }

@@ -23,6 +23,7 @@ public:
 public:
     virtual bool append_logs(circular_buffer<char> &buffer) = 0;
     virtual bool append_logs(circular_buffer<char> &buffer, circular_buffer<char>::iterator iter) = 0;
+    virtual bool close_logs() = 0;
     virtual bool is_file(const char *path) = 0;
     virtual bool is_directory(const char *path) = 0;
     virtual bool mkdir(const char *path) = 0;

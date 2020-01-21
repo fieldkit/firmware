@@ -12,8 +12,8 @@ ServiceModulesWorker::ServiceModulesWorker() {
 
 void ServiceModulesWorker::run(Pool &pool) {
     auto mm = get_modmux();
-    auto lock = storage_mutex.acquire(UINT32_MAX);
     auto modules_lock = mm->lock();
+    auto lock = storage_mutex.acquire(UINT32_MAX);
     auto gs = get_global_state_ro();
     auto modules_bus = get_board()->i2c_module();
 

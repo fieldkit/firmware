@@ -139,3 +139,85 @@ TEST_F(ReadingsSuite, TakingReadingsTwoModules) {
     ASSERT_NE(buffer, nullptr);
     ASSERT_NE(buffer->buffer, nullptr);
 }
+
+TEST_F(ReadingsSuite, TakingReadingsFourModulesEverythingWorks) {
+    StandardPool pool{ "readings" };
+    GlobalState gs;
+    TwoWireWrapper module_bus{ "modules", nullptr };
+    ScanningContext ctx{ get_modmux(), &gs, module_bus };
+    ConstructedModulesCollection resolved(pool);
+    resolved.emplace(ConstructedModule{
+        .found = { },
+        .meta = &fk_test_module_fake_1,
+        .module = fk_test_module_fake_1.ctor(pool),
+    });
+    resolved.emplace(ConstructedModule{
+        .found = { },
+        .meta = &fk_test_module_fake_1,
+        .module = fk_test_module_fake_1.ctor(pool),
+    });
+    resolved.emplace(ConstructedModule{
+        .found = { },
+        .meta = &fk_test_module_fake_2,
+        .module = fk_test_module_fake_2.ctor(pool),
+    });
+    resolved.emplace(ConstructedModule{
+        .found = { },
+        .meta = &fk_test_module_fake_2,
+        .module = fk_test_module_fake_2.ctor(pool),
+    });
+
+    Readings readings{ get_modmux() };
+    auto taken = readings.take_readings(ctx, resolved, 0, 0, pool);
+    ASSERT_TRUE(taken);
+
+    auto buffer = pool.encode(fk_data_DataRecord_fields, &readings.record());
+    ASSERT_NE(buffer, nullptr);
+    ASSERT_NE(buffer->buffer, nullptr);
+
+    ASSERT_EQ(taken->size(), 4u);
+}
+
+TEST_F(ReadingsSuite, TakingReadingsFourModulesAndOneFailsToGetReadings) {
+    StandardPool pool{ "readings" };
+    GlobalState gs;
+    TwoWireWrapper module_bus{ "modules", nullptr };
+    ScanningContext ctx{ get_modmux(), &gs, module_bus };
+    ConstructedModulesCollection resolved(pool);
+    FakeModule *modules[] = {
+        reinterpret_cast<FakeModule*>(fk_test_module_fake_1.ctor(pool)),
+        reinterpret_cast<FakeModule*>(fk_test_module_fake_empty.ctor(pool)),
+        reinterpret_cast<FakeModule*>(fk_test_module_fake_2.ctor(pool)),
+        reinterpret_cast<FakeModule*>(fk_test_module_fake_2.ctor(pool)),
+    };
+    resolved.emplace(ConstructedModule{
+        .found = { },
+        .meta = &fk_test_module_fake_1,
+        .module = modules[0],
+    });
+    resolved.emplace(ConstructedModule{
+        .found = { },
+        .meta = &fk_test_module_fake_empty,
+        .module = modules[1],
+    });
+    resolved.emplace(ConstructedModule{
+        .found = { },
+        .meta = &fk_test_module_fake_2,
+        .module = modules[2],
+    });
+    resolved.emplace(ConstructedModule{
+        .found = { },
+        .meta = &fk_test_module_fake_2,
+        .module = modules[3],
+    });
+
+    Readings readings{ get_modmux() };
+    auto taken = readings.take_readings(ctx, resolved, 0, 0, pool);
+    ASSERT_TRUE(taken);
+
+    auto buffer = pool.encode(fk_data_DataRecord_fields, &readings.record());
+    ASSERT_NE(buffer, nullptr);
+    ASSERT_NE(buffer->buffer, nullptr);
+
+    ASSERT_EQ(taken->size(), 3u);
+}

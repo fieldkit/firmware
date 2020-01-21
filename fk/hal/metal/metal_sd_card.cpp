@@ -1,3 +1,5 @@
+#include <cmath>
+
 #include <tiny_printf.h>
 
 #include "common.h"
@@ -6,6 +8,9 @@
 #include "platform.h"
 #include "format_sd_card.h"
 #include "standard_page.h"
+
+// NOTE This is so embarassing.
+#undef abs
 
 #if defined(__SAMD51__)
 
@@ -57,12 +62,19 @@ bool MetalSdCard::append_logs(circular_buffer<char> &buffer, circular_buffer<cha
         return false;
     }
     else {
+        auto now = get_clock_now();
+        if (log_time_ == 0 || std::abs(now - log_time_) > OneDayMs) {
+            log_time_ = get_clock_now();
+            log_initialized_ = false;
+        }
         if (!log_initialized_) {
-            FormattedTime formatted{ get_clock_now(), TimeFormatMachine };
+            FormattedTime formatted{ log_time_, TimeFormatMachine };
 
-            if (!sd_.mkdir(formatted.cstr())) {
-                logerror("error making directory '%s'", formatted.cstr());
-                return false;
+            if (!sd_.exists(formatted.cstr())) {
+                if (!sd_.mkdir(formatted.cstr())) {
+                    logerror("error making directory '%s'", formatted.cstr());
+                    return false;
+                }
             }
 
             for (auto counter = 0; counter < 1000; ++counter) {
@@ -88,12 +100,14 @@ bool MetalSdCard::append_logs(circular_buffer<char> &buffer, circular_buffer<cha
         StandardPage page;
         Buffer writing{ (uint8_t *)page.ptr(), page.size() };
         for ( ; iter != buffer.end(); ++iter) {
-            writing.write(*iter);
-            if (writing.full()) {
-                file.write(writing.ptr(), writing.position());
-                writing.clear();
+            if (*iter != 0) {
+                writing.write(*iter);
+                if (writing.full()) {
+                    file.write(writing.ptr(), writing.position());
+                    writing.clear();
+                }
+                size++;
             }
-            size++;
         }
 
         if (writing.position() > 0) {
@@ -109,6 +123,11 @@ bool MetalSdCard::append_logs(circular_buffer<char> &buffer, circular_buffer<cha
         log_initialized_ = false;
     }
 
+    return true;
+}
+
+bool MetalSdCard::close_logs() {
+    log_initialized_ = false;
     return true;
 }
 

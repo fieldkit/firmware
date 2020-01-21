@@ -92,6 +92,9 @@ bool StartupWorker::save_startup_diagnostics() {
     auto &logs = fk_log_buffer();
     get_sd_card()->append_logs(logs);
 
+    // Close logs so that we open a new file.
+    get_sd_card()->close_logs();
+
     return true;
 }
 

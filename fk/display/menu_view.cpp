@@ -226,15 +226,10 @@ void MenuView::create_tools_menu() {
         views_->show_home();
         get_ipc()->launch_worker(create_pool_worker<DumpFlashMemoryWorker>());
     });
-    auto tools_load_firmware_sd_and_swap = to_lambda_option(pool_, "SD Upgrade (Swap)", [=]() {
-        back_->on_selected();
-        views_->show_home();
-        get_ipc()->launch_worker(create_pool_worker<UpgradeFirmwareFromSdWorker>(SdCardFirmwareOperation::Load, true));
-    });
     auto tools_load_firmware_sd = to_lambda_option(pool_, "SD Upgrade", [=]() {
         back_->on_selected();
         views_->show_home();
-        get_ipc()->launch_worker(create_pool_worker<UpgradeFirmwareFromSdWorker>(SdCardFirmwareOperation::Load, false));
+        get_ipc()->launch_worker(create_pool_worker<UpgradeFirmwareFromSdWorker>(SdCardFirmwareOperation::Load, true));
     });
     auto tools_fsck = to_lambda_option(pool_, "Run Fsck", [=]() {
         back_->on_selected();
@@ -274,18 +269,17 @@ void MenuView::create_tools_menu() {
     });
     */
 
-    tools_menu_ = new_menu_screen<11>(pool_, "tools", {
+    tools_menu_ = new_menu_screen<10>(pool_, "tools", {
         back_,
         tools_self_check,
         tools_lora_ranging,
         tools_lora_ranging_confirmed,
-        tools_load_firmware_sd_and_swap,
         tools_load_firmware_sd,
         tools_dump_flash,
         tools_format_sd,
         tools_fsck,
-        tools_restart,
         tools_factory_reset,
+        tools_restart,
         // tools_save_firmware_sd,
         // tools_compare_banks,
     });

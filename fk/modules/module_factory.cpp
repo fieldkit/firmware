@@ -76,20 +76,18 @@ bool ModuleFactory::initialize(ScanningContext &ctx, Pool &pool) {
                 }
 
                 auto mr = module->initialize(mc, pool);
-                if (!mr) {
-                    success = false;
+                if (mr) {
+                    auto config = module->get_configuration(pool_);
+                    if (config.service_interval > 0) {
+                        if (service_interval_ > 0) {
+                            service_interval_ = std::min(config.service_interval, service_interval_);
+                        } else {
+                            service_interval_ = config.service_interval;
+                        }
+                    }
                 }
 
                 pair.status = mr.status;
-
-                auto config = module->get_configuration(pool_);
-                if (config.service_interval > 0) {
-                    if (service_interval_ > 0) {
-                        service_interval_ = std::min(config.service_interval, service_interval_);
-                    } else {
-                        service_interval_ = config.service_interval;
-                    }
-                }
             }
         }
     }

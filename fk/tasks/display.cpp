@@ -116,7 +116,7 @@ public:
                 stop_time = fk_uptime() + fk_config().display.inactivity;
 
                 switch (button->index()) {
-                case Buttons::Left: {
+                case Buttons::Right: {
                     loginfo("down");
                     view->down(this);
                     break;
@@ -126,7 +126,7 @@ public:
                     view->enter(this);
                     break;
                 }
-                case Buttons::Right: {
+                case Buttons::Left: {
                     loginfo("up");
                     view->up(this);
                     break;

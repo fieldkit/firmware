@@ -13,6 +13,7 @@ namespace fk {
 class MetalSdCard : public SdCard {
 private:
     SdFat sd_;
+    uint32_t log_time_{ 0 };
     char log_file_name_[1 + MaximumLengthOfTimeString + 1 + 13];
     bool log_initialized_{ false };
 
@@ -23,6 +24,7 @@ public:
     bool begin() override;
     bool append_logs(circular_buffer<char> &buffer) override;
     bool append_logs(circular_buffer<char> &buffer, circular_buffer<char>::iterator iter) override;
+    bool close_logs() override;
     bool is_file(const char *path) override;
     bool is_directory(const char *path) override;
     bool mkdir(const char *path) override;
