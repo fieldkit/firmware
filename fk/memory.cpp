@@ -5,11 +5,12 @@ namespace fk {
 
 FK_DECLARE_LOGGER("memory");
 
-constexpr size_t SizeOfStandardPagePool = 14;
+constexpr size_t SizeOfStandardPagePool = 18;
 
 struct StandardPages {
     void *base{ nullptr };
     uint8_t available;
+    const char *owner;
 };
 
 static StandardPages pages[SizeOfStandardPagePool];
@@ -20,13 +21,14 @@ void fk_standard_page_initialize() {
         for (auto i = 0u; i < SizeOfStandardPagePool; ++i) {
             pages[i].base = fk_malloc(StandardPageSize);
             pages[i].available = true;
+            pages[i].owner = nullptr;
         }
     }
 
     initialized = true;
 }
 
-void *fk_standard_page_malloc(size_t size) {
+void *fk_standard_page_malloc(size_t size, const char *name) {
     void *allocated = nullptr;
 
     if (!initialized) {
@@ -39,7 +41,19 @@ void *fk_standard_page_malloc(size_t size) {
         if (pages[i].available) {
             allocated = pages[i].base;
             pages[i].available = false;
+            pages[i].owner = name;
+            logdebug("[%2d] malloc '%s'", i, name);
             break;
+        }
+    }
+
+    if (allocated == nullptr) {
+        logerror("oom!");
+
+        for (auto i = 0u; i < SizeOfStandardPagePool; ++i) {
+            if (!pages[i].available) {
+                logerror("[%2d] owner = %s", i, pages[i].owner);
+            }
         }
     }
 
@@ -53,8 +67,10 @@ void fk_standard_page_free(void *ptr) {
 
     for (auto i = 0u; i < SizeOfStandardPagePool; ++i) {
         if (pages[i].base == ptr) {
+            logdebug("[%2d] free '%s'", i, pages[i].owner);
             bzero(pages[i].base, StandardPageSize);
             pages[i].available = true;
+            pages[i].owner = nullptr;
             success = true;
             break;
         }

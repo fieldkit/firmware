@@ -182,7 +182,7 @@ MallocPool::~MallocPool() {
     }
 }
 
-StandardPool::StandardPool(const char *name) : Pool(name, StandardPageSize, (void *)fk_standard_page_malloc(StandardPageSize), 0) {
+StandardPool::StandardPool(const char *name) : Pool(name, StandardPageSize, (void *)fk_standard_page_malloc(StandardPageSize, name), 0) {
 }
 
 StandardPool::~StandardPool() {
@@ -216,7 +216,7 @@ public:
 
 Pool *create_pool_inside(const char *name) {
     auto size = StandardPageSize;
-    auto ptr = fk_standard_page_malloc(size);
+    auto ptr = fk_standard_page_malloc(size, name);
     auto overhead = sizeof(InsidePool);
     return new (ptr) InsidePool(name, ptr, size, overhead);
 }
@@ -261,7 +261,7 @@ void *StandardPagePool::malloc(size_t bytes) {
     }
 
     if (sibling_ == nullptr) {
-        auto ptr = fk_standard_page_malloc(size());
+        auto ptr = fk_standard_page_malloc(size(), name());
         auto overhead = sizeof(StandardPagePool);
         sibling_ = new (ptr) StandardPagePool(name(), ptr, size(), overhead);
     }
@@ -271,7 +271,7 @@ void *StandardPagePool::malloc(size_t bytes) {
 
 Pool *create_chained_pool_inside(const char *name) {
     auto size = StandardPageSize;
-    auto ptr = fk_standard_page_malloc(size);
+    auto ptr = fk_standard_page_malloc(size, name);
     auto overhead = sizeof(StandardPagePool);
     return new (ptr) StandardPagePool(name, ptr, size, overhead);
 }

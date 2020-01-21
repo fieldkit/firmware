@@ -8,8 +8,8 @@ namespace fk {
 FK_DECLARE_LOGGER("memory");
 
 template<class T>
-static unique_ptr_freed<T> freed_unique_ptr(size_t size) {
-	return unique_ptr_freed<T>(static_cast<T*>(fk_standard_page_malloc(size)), &fk_standard_page_free);
+static unique_ptr_freed<T> freed_unique_ptr(size_t size, const char *name) {
+	return unique_ptr_freed<T>(static_cast<T*>(fk_standard_page_malloc(size, name)), &fk_standard_page_free);
 }
 
 SequentialMemory::SequentialMemory(DataMemory *target) : target_(target) {
@@ -78,7 +78,7 @@ int32_t SequentialMemory::flush() {
 }
 
 BufferedPageMemory::BufferedPageMemory(DataMemory *target)
-    : target_(target), buffer_{ freed_unique_ptr<uint8_t>(StandardPageSize) } {
+    : target_(target), buffer_{ freed_unique_ptr<uint8_t>(StandardPageSize, "storage-pages") } {
 }
 
 BufferedPageMemory::BufferedPageMemory(BufferedPageMemory &&o) : target_(o.target_), buffer_{ std::move(o.buffer_) } {

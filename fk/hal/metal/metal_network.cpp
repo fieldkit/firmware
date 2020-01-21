@@ -34,7 +34,7 @@ private:
             return;
         }
 
-        memory_ = (uint8_t *)fk_standard_page_malloc(StandardPageSize);
+        memory_ = (uint8_t *)fk_standard_page_malloc(StandardPageSize, __func__);
 
         for (auto i = 0u; i < NumberOfBuffers; ++i) {
             buffers_[i].ptr = memory_ + ExpectedWiFiBufferSize * i;
@@ -108,7 +108,7 @@ MetalNetworkConnection::MetalNetworkConnection() {
 MetalNetworkConnection::MetalNetworkConnection(WiFiClient wcl) : wcl_(wcl) {
     if (debugging_) {
         size_ = StandardPageSize;
-        buffer_ = reinterpret_cast<uint8_t *>(fk_standard_page_malloc(size_));
+        buffer_ = reinterpret_cast<uint8_t *>(fk_standard_page_malloc(size_, __func__));
         bzero(buffer_, size_);
     }
 }
