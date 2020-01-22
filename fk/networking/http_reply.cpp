@@ -73,7 +73,7 @@ bool HttpReply::include_status() {
                 sensors[s].number = s;
                 sensors[s].module = m;
                 sensors[s].name.arg = (void *)sensor.name;
-                sensors[s].unitOfMeasure.arg = (void *)sensor.unitOfMeasure;
+                sensors[s].unitOfMeasure.arg = (void *)sensor.unit_of_measure;
                 sensors[s].flags = sensor.flags;
             }
 
@@ -255,7 +255,7 @@ bool HttpReply::include_readings() {
             readings[s].sensor = fk_app_SensorCapabilities_init_default;
             readings[s].sensor.number = s;
             readings[s].sensor.name.arg = (void *)sensor.name;
-            readings[s].sensor.unitOfMeasure.arg = (void *)sensor.unitOfMeasure;
+            readings[s].sensor.unitOfMeasure.arg = (void *)sensor.unit_of_measure;
             readings[s].sensor.flags = sensor.flags;
             if (sensor.has_live_vaue) {
                 readings[s].value = sensor.live_value;

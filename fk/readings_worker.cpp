@@ -74,7 +74,7 @@ void ReadingsWorker::run(Pool &pool) {
 
         for (size_t i = 0; i < m.sensors->nsensors; ++i) {
             sensors[i].name = m.sensors->sensors[i].name;
-            sensors[i].unitOfMeasure = m.sensors->sensors[i].unitOfMeasure;
+            sensors[i].unit_of_measure = m.sensors->sensors[i].unitOfMeasure;
             sensors[i].flags = m.sensors->sensors[i].flags;
             sensors[i].has_live_vaue = true;
             sensors[i].live_value = m.readings->get(i);
