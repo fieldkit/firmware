@@ -34,24 +34,6 @@ TEST_F(PoolSuite, Alignment) {
     ASSERT_EQ(pool.allocated(), (size_t)16);
 }
 
-TEST_F(PoolSuite, Subpool) {
-    StaticPool<2048> pool("Pool");
-
-    void *p1 = pool.malloc(256);
-    ASSERT_NE(p1, nullptr);
-    ASSERT_EQ(pool.allocated(), (size_t)256);
-    ASSERT_FALSE(pool.frozen());
-
-    Pool child = pool.freeze("Child");
-    ASSERT_EQ(child.size(), (size_t)(2048 - 256));
-    ASSERT_EQ(child.allocated(), (size_t)0);
-
-    ASSERT_TRUE(pool.frozen());
-
-    pool.clear();
-    ASSERT_FALSE(pool.frozen());
-}
-
 class SimpleWorker : public Worker {
 public:
     SimpleWorker() {

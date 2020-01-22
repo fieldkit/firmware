@@ -155,13 +155,6 @@ void *Pool::decode(pb_msgdesc_t const *fields, uint8_t *src, size_t size, size_t
     return ptr;
 }
 
-Pool Pool::freeze(const char *name) {
-    // TODO: Ideally this would keep track of children and warn about
-    // allocations on them when we unfreeze.
-    frozen_ = true;
-    return Pool{ name, remaining_, ptr_, 0 };
-}
-
 MallocPool::MallocPool(const char *name, size_t size) : Pool(name, size, (void *)fk_malloc(size), 0) {
     FK_ASSERT(size > 0);
     #if defined(FK_LOGGING_POOL_MALLOC_FREE)
@@ -182,21 +175,6 @@ MallocPool::~MallocPool() {
     }
 }
 
-StandardPool::StandardPool(const char *name) : Pool(name, StandardPageSize, (void *)fk_standard_page_malloc(StandardPageSize, name), 0) {
-}
-
-StandardPool::~StandardPool() {
-    #if defined(FK_LOGGING_POOL_MALLOC_FREE)
-    loginfo("free: 0x%p %s size=%zu ptr=0x%p (free=%" PRIu32 ")",
-            this, name(), size(), block(), fk_free_memory());
-    #endif
-    auto ptr = block();
-    if (ptr != nullptr) {
-        block(nullptr, 0);
-        fk_standard_page_free(ptr);
-    }
-}
-
 class InsidePool : public Pool {
 public:
     InsidePool(const char *name, void *ptr, size_t size, size_t taken) : Pool(name, size, ptr, taken) {
@@ -207,8 +185,6 @@ public:
 
 public:
     static void operator delete(void *p) {
-        // printf("InsidePool::delete(0x%p)\n", p);
-        // SEGGER_RTT_printf(0, "InsidePool::delete(0x%p)\n", p);
         fk_standard_page_free(p);
     }
 
@@ -221,49 +197,37 @@ Pool *create_pool_inside(const char *name) {
     return new (ptr) InsidePool(name, ptr, size, overhead);
 }
 
-class StandardPagePool : public Pool {
-private:
-    StandardPagePool *sibling_{ nullptr };
-
-public:
-    StandardPagePool(const char *name, void *ptr, size_t size, size_t taken);
-    virtual ~StandardPagePool();
-
-public:
-    static void operator delete(void *p) {
-        // printf("StandardPagePool::delete(0x%p)\n", p);
-        // SEGGER_RTT_printf(0, "StandardPagePool::delete(0x%p)\n", p);
-        fk_standard_page_free(p);
-    }
-
-public:
-    void *malloc(size_t bytes) override;
-
-    bool can_malloc(size_t bytes) const {
-        return (size() - used()) >= aligned_size(bytes);
-    }
-
-};
-
-StandardPagePool::StandardPagePool(const char *name, void *ptr, size_t size, size_t taken) : Pool(name, size, ptr, taken) {
+StandardPool::StandardPool(const char *name) : Pool(name, StandardPageSize, (void *)fk_standard_page_malloc(StandardPageSize, name), 0) {
 }
 
-StandardPagePool::~StandardPagePool() {
+StandardPool::StandardPool(const char *name, void *ptr, size_t size, size_t taken) : Pool(name, size, ptr, taken) {
+}
+
+StandardPool::~StandardPool() {
+    #if defined(FK_LOGGING_POOL_MALLOC_FREE)
+    loginfo("free: 0x%p %s size=%zu ptr=0x%p (free=%" PRIu32 ")",
+            this, name(), size(), block(), fk_free_memory());
+    #endif
     if (sibling_ != nullptr) {
         delete sibling_;
         sibling_ = nullptr;
     }
+    auto ptr = block();
+    if (ptr != nullptr) {
+        block(nullptr, 0);
+        fk_standard_page_free(ptr);
+    }
 }
 
-void *StandardPagePool::malloc(size_t bytes) {
+void *StandardPool::malloc(size_t bytes) {
     if (can_malloc(bytes)) {
         return Pool::malloc(bytes);
     }
 
     if (sibling_ == nullptr) {
         auto ptr = fk_standard_page_malloc(size(), name());
-        auto overhead = sizeof(StandardPagePool);
-        sibling_ = new (ptr) StandardPagePool(name(), ptr, size(), overhead);
+        auto overhead = sizeof(StandardPool);
+        sibling_ = new (ptr) StandardPool(name(), ptr, size(), overhead);
     }
 
     return sibling_->malloc(bytes);
@@ -272,8 +236,8 @@ void *StandardPagePool::malloc(size_t bytes) {
 Pool *create_chained_pool_inside(const char *name) {
     auto size = StandardPageSize;
     auto ptr = fk_standard_page_malloc(size, name);
-    auto overhead = sizeof(StandardPagePool);
-    return new (ptr) StandardPagePool(name, ptr, size, overhead);
+    auto overhead = sizeof(StandardPool);
+    return new (ptr) StandardPool(name, ptr, size, overhead);
 }
 
 }
