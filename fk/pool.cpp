@@ -45,7 +45,6 @@ Pool::~Pool() {
 void Pool::clear() {
     ptr_ = block_;
     remaining_ = size_;
-    frozen_ = false;
 
     #if defined( FK_LOGGING_POOL_VERBOSE)
     loginfo("clear: 0x%p %s", this, name_);
@@ -54,7 +53,6 @@ void Pool::clear() {
 
 void *Pool::malloc(size_t allocating) {
     FK_ASSERT(allocating > 0);
-    FK_ASSERT(!frozen_);
 
     auto aligned = aligned_size(allocating);
 

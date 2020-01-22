@@ -27,7 +27,6 @@ private:
     void *ptr_;
     size_t remaining_;
     size_t size_;
-    bool frozen_{ false };
 
 public:
     Pool(const char *name, size_t size, void *block, size_t taken);
@@ -49,22 +48,6 @@ public:
         remaining_ = size;
     }
 
-    size_t allocated() const {
-        return used();
-    }
-
-    size_t size() const {
-        return size_;
-    }
-
-    size_t used() const {
-        return size_ - remaining_;
-    }
-
-    bool frozen() const {
-        return frozen_;
-    }
-
     void clear();
     void *copy(void const *ptr, size_t size);
     char *strdup(const char *str);
@@ -72,6 +55,19 @@ public:
     char *sprintf(const char *str, ...);
     EncodedMessage *encode(pb_msgdesc_t const *fields, void const *src, bool delimited = true);
     void *decode(pb_msgdesc_t const *fields, uint8_t *src, size_t size, size_t message_size);
+
+public:
+    virtual size_t allocated() const {
+        return used();
+    }
+
+    virtual size_t size() const {
+        return size_;
+    }
+
+    virtual size_t used() const {
+        return size_ - remaining_;
+    }
 
     virtual void *malloc(size_t size);
 
@@ -117,10 +113,22 @@ public:
     }
 
 public:
+    size_t allocated() const override {
+        return Pool::allocated() + (sibling_ == nullptr ? 0u : sibling_->allocated());
+    }
+
+    size_t size() const override {
+        return Pool::size() + (sibling_ == nullptr ? 0u : sibling_->size());
+    }
+
+    size_t used() const override {
+        return Pool::used() + (sibling_ == nullptr ? 0u : sibling_->used());
+    }
+
     void *malloc(size_t bytes) override;
 
     bool can_malloc(size_t bytes) const {
-        return (size() - used()) >= aligned_size(bytes);
+        return (Pool::size() - Pool::used()) >= aligned_size(bytes);
     }
 
 };
