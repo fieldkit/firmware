@@ -28,6 +28,10 @@ void ReceiveFirmwareWorker::run(Pool &pool) {
 
     auto file = sd->open(file_name, true, pool);
     auto buffer = reinterpret_cast<uint8_t*>(pool.malloc(1024));
+    auto started = (uint32_t)0u;
+
+    GlobalStateProgressCallbacks gs_progress;
+    ProgressTracker tracker{ &gs_progress, Operation::Download, "receiving", "", expected };
 
     while (connection_->active() && bytes_copied < expected) {
         auto bytes = connection_->read(buffer, 1024);
@@ -35,12 +39,18 @@ void ReceiveFirmwareWorker::run(Pool &pool) {
             if (file->write(buffer, bytes) == bytes) {
                 bytes_copied += bytes;
             }
+
+            tracker.update(bytes);
         }
     }
 
     file->close();
 
-    logwarn("done (%" PRIu32 " bytes)", bytes_copied);
+    tracker.finished();
+
+    auto elapsed = fk_uptime() - started;
+    auto speed = ((bytes_copied / 1024.0f) / (elapsed / 1000.0f));
+    loginfo("done (%" PRIu32 ") (%" PRIu32 "ms) %.2fkbps", bytes_copied, elapsed, speed);
 
     if (bytes_copied != expected) {
         connection_->plain(500, "error", "{}");
