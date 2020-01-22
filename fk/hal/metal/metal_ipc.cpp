@@ -13,6 +13,7 @@ FK_DECLARE_LOGGER("ipc");
 
 MetalMutex storage_mutex;
 MetalMutex modules_mutex;
+MetalMutex sd_mutex;
 MetalRwLock data_lock;
 
 os_queue_define(activity_queue, 10, OS_QUEUE_FLAGS_QUEUE_ONLY);
@@ -36,6 +37,7 @@ bool MetalIPC::begin() {
 
     FK_ASSERT(storage_mutex.create());
     FK_ASSERT(modules_mutex.create());
+    FK_ASSERT(sd_mutex.create());
     FK_ASSERT(data_lock.create());
 
     return true;

@@ -51,6 +51,7 @@ void UpgradeFirmwareFromSdWorker::log_other_firmware() {
 void UpgradeFirmwareFromSdWorker::run(Pool &pool) {
     auto bl_path = "fkbl-fkb.bin";
     auto main_path = "fk-bundled-fkb.bin";
+    // auto lock = sd_mutex.acquire(UINT32_MAX);
 
     GlobalStateManager gsm;
 

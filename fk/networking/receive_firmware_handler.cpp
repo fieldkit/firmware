@@ -10,6 +10,7 @@ ReceiveFirmwareWorker::ReceiveFirmwareWorker(HttpServerConnection *connection) :
 }
 
 void ReceiveFirmwareWorker::run(Pool &pool) {
+    auto lock = sd_mutex.acquire(UINT32_MAX);
     auto expected = connection_->length();
     auto bytes_copied = (uint32_t)0;
 

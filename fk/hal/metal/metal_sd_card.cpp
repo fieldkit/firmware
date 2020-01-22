@@ -53,6 +53,8 @@ bool MetalSdCard::append_logs(circular_buffer<char> &buffer) {
 }
 
 bool MetalSdCard::append_logs(circular_buffer<char> &buffer, circular_buffer<char>::iterator iter) {
+    // auto lock = sd_mutex.acquire(UINT32_MAX);
+
     auto started = fk_uptime();
 
     if (!begin()) {
