@@ -19,7 +19,7 @@ public:
     }
 
 public:
-    StandardPage() : ptr_(fk_standard_page_malloc(StandardPageSize)) {
+    StandardPage(const char *name) : ptr_(fk_standard_page_malloc(StandardPageSize, name)) {
     }
 
     virtual ~StandardPage() {

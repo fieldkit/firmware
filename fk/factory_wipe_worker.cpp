@@ -12,7 +12,7 @@ FK_DECLARE_LOGGER("factory-wipe");
 
 void FactoryWipeWorker::run(Pool &pool) {
     GlobalStateProgressCallbacks progress;
-    Storage storage{ MemoryFactory::get_data_memory() };
+    Storage storage{ MemoryFactory::get_data_memory(), pool };
     FactoryWipe factory_wipe{ storage };
 
     if (!storage.begin()) {

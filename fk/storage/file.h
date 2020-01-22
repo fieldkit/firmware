@@ -52,7 +52,7 @@ private:
     BLAKE2b hash_;
 
 public:
-    File(Storage *storage, uint8_t file);
+    File(Storage *storage, uint8_t file, Pool &pool);
     File(File &&o);
     File(File const &o) = delete;
     virtual ~File();

@@ -28,8 +28,8 @@ static void log_hashed_data(const char *op, uint8_t file, uint32_t record, uint3
     #endif
 }
 
-File::File(Storage *storage, uint8_t file)
-    : storage_(storage), memory_(storage->data_memory_), file_(file), version_{ storage->version_ }, position_(0) {
+File::File(Storage *storage, uint8_t file, Pool &pool)
+    : storage_(storage), memory_(storage->data_memory_, pool), file_(file), version_{ storage->version_ }, position_(0) {
     FK_ASSERT(file_ < NumberOfFiles);
 }
 

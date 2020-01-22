@@ -12,7 +12,7 @@ void FsckWorker::run(Pool &pool) {
 
     FK_ASSERT(lock);
 
-    Storage storage{ MemoryFactory::get_data_memory() };
+    Storage storage{ MemoryFactory::get_data_memory(), pool };
     if (storage.begin()) {
         GlobalStateProgressCallbacks progress;
         storage.fsck(&progress);

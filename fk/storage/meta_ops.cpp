@@ -157,7 +157,7 @@ tl::expected<uint32_t, Error> MetaOps::write_modules(GlobalState const *gs, Cons
         m.header.kind = meta->kind;
         m.header.version = meta->version;
 
-        if (sensor_metas != nullptr) {
+        if (sensor_metas != nullptr && sensor_metas->nsensors > 0) {
             auto sensor_infos = pool.malloc<fk_data_SensorInfo>(sensor_metas->nsensors);
             for (size_t i = 0; i < sensor_metas->nsensors; ++i) {
                 sensor_infos[i] = fk_data_SensorInfo_init_default;

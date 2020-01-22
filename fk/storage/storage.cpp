@@ -86,7 +86,7 @@ SeekSettings SeekSettings::end_of(uint8_t file) {
     return SeekSettings{ file, LastRecord };
 }
 
-Storage::Storage(DataMemory *memory, bool read_only) : data_memory_(memory), memory_(memory), bad_blocks_(memory), read_only_(read_only) {
+Storage::Storage(DataMemory *memory, Pool &pool, bool read_only) : data_memory_(memory), pool_(&pool), memory_(memory, pool), bad_blocks_(memory, pool), read_only_(read_only) {
     FK_ASSERT(memory != nullptr);
 }
 
@@ -496,10 +496,14 @@ SeekValue Storage::seek(SeekSettings settings) {
     return SeekValue{ address, record, position, block, timestamp, record_address, bytes_in_block, records_in_block };
 }
 
-File Storage::file(uint8_t file) {
+File Storage::file(uint8_t file_number) {
+    return file(file_number, *pool_);
+}
+
+File Storage::file(uint8_t file_number, Pool &pool) {
     verify_opened();
 
-    return File{ this, file };
+    return File{ this, file_number, pool };
 }
 
 uint32_t Storage::fsck(ProgressCallbacks *progress) {

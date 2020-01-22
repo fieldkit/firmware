@@ -18,8 +18,8 @@ void task_handler_network(void *params) {
         NetworkTask task{ network, network_services };
 
         // NOTE Can we just stack allocate this?
-        auto pool = create_pool_inside("network");
-        auto settings = task.get_selected_settings(*pool);
+        StandardPool pool{ "network" };
+        auto settings = task.get_selected_settings(pool);
 
         gsm.apply([=](GlobalState *gs) {
             gs->network.state = { };
@@ -27,7 +27,7 @@ void task_handler_network(void *params) {
 
         loginfo("starting network...");
 
-        if (!task.begin(settings, NetworkConnectionTimeoutMs, *pool)) {
+        if (!task.begin(settings, NetworkConnectionTimeoutMs, pool)) {
             logerror("error starting server");
             return;
         }
@@ -128,8 +128,6 @@ void task_handler_network(void *params) {
 
             fk_delay(10);
         }
-
-        // NetworkTask dtor will fixup our state.
     }
 }
 

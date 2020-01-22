@@ -34,24 +34,6 @@ TEST_F(PoolSuite, Alignment) {
     ASSERT_EQ(pool.allocated(), (size_t)16);
 }
 
-TEST_F(PoolSuite, Subpool) {
-    StaticPool<2048> pool("Pool");
-
-    void *p1 = pool.malloc(256);
-    ASSERT_NE(p1, nullptr);
-    ASSERT_EQ(pool.allocated(), (size_t)256);
-    ASSERT_FALSE(pool.frozen());
-
-    Pool child = pool.freeze("Child");
-    ASSERT_EQ(child.size(), (size_t)(2048 - 256));
-    ASSERT_EQ(child.allocated(), (size_t)0);
-
-    ASSERT_TRUE(pool.frozen());
-
-    pool.clear();
-    ASSERT_FALSE(pool.frozen());
-}
-
 class SimpleWorker : public Worker {
 public:
     SimpleWorker() {
@@ -165,15 +147,4 @@ TEST_F(PoolSuite, ChainedPoolWrapper) {
 
     auto pool = create_pool_inside("ok");
     free_pool(pool);
-}
-
-template<class T>
-static unique_ptr_freed<T> freed_unique_ptr(size_t size) {
-	return unique_ptr_freed<T>(static_cast<T*>(fk_standard_page_malloc(size)), &fk_standard_page_free);
-}
-
-TEST_F(PoolSuite, FreedUniquePtr) {
-    for (auto i = 0u; i < 30; ++i) {
-        auto ptr = freed_unique_ptr<uint8_t>(StandardPageSize);
-    }
 }

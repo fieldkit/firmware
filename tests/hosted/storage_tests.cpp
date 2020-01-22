@@ -19,7 +19,7 @@ TEST_F(StorageSuite, DisplayStructSizes) {
 }
 
 TEST_F(StorageSuite, WhenMountingUnformatted) {
-    Storage storage{ memory_, false };
+    Storage storage{ memory_, pool_, false };
 
     ASSERT_FALSE(storage.begin());
     ASSERT_TRUE(storage.clear());
@@ -34,7 +34,7 @@ TEST_F(StorageSuite, WhenMountingUnformatted) {
 }
 
 TEST_F(StorageSuite, WhenMounting) {
-    Storage storage{ memory_, false };
+    Storage storage{ memory_, pool_, false };
 
     ASSERT_TRUE(storage.clear());
 }
@@ -44,7 +44,7 @@ TEST_F(StorageSuite, ErasingAndStartingOver) {
     uint32_t version2;
 
     {
-        Storage storage{ memory_, false };
+        Storage storage{ memory_, pool_, false };
         ASSERT_TRUE(storage.clear());
         auto file_write = storage.file(0);
         ASSERT_TRUE(file_write.create());
@@ -56,7 +56,7 @@ TEST_F(StorageSuite, ErasingAndStartingOver) {
 
     // Now start over and write a little data.
     {
-        Storage storage{ memory_, false };
+        Storage storage{ memory_, pool_, false };
         ASSERT_TRUE(storage.clear());
         auto file_write = storage.file(0);
         ASSERT_TRUE(file_write.create());
@@ -69,14 +69,14 @@ TEST_F(StorageSuite, ErasingAndStartingOver) {
 
     // Now we open.
     {
-        Storage storage{ memory_, false };
+        Storage storage{ memory_, pool_, false };
         ASSERT_TRUE(storage.begin());
         FK_ASSERT(storage.version() == version2);
     }
 }
 
 TEST_F(StorageSuite, AppendingARecord) {
-    Storage storage{ memory_, false };
+    Storage storage{ memory_, pool_, false };
 
     ASSERT_TRUE(storage.clear());
 
@@ -101,7 +101,7 @@ TEST_F(StorageSuite, AppendingARecord) {
 }
 
 TEST_F(StorageSuite, WritingFirstFile) {
-    Storage storage{ memory_, false };
+    Storage storage{ memory_, pool_, false };
     ASSERT_TRUE(storage.clear());
     ASSERT_GT(statistics_memory_.statistics().nerases, (uint32_t)0);
 
@@ -113,7 +113,7 @@ TEST_F(StorageSuite, WritingFirstFile) {
 }
 
 TEST_F(StorageSuite, AppendingRecordsAcrossAPage) {
-    Storage storage{ memory_, false };
+    Storage storage{ memory_, pool_, false };
 
     ASSERT_TRUE(storage.clear());
 
@@ -137,7 +137,7 @@ TEST_F(StorageSuite, AppendingRecordsAcrossAPage) {
 }
 
 TEST_F(StorageSuite, AppendingMultipleRecords) {
-    Storage storage{ memory_, false };
+    Storage storage{ memory_, pool_, false };
 
     ASSERT_TRUE(storage.clear());
 
@@ -165,7 +165,7 @@ TEST_F(StorageSuite, AppendingMultipleRecords) {
 }
 
 TEST_F(StorageSuite, AppendingToMultipleFiles) {
-    Storage storage{ memory_, false };
+    Storage storage{ memory_, pool_, false };
 
     ASSERT_TRUE(storage.clear());
 
@@ -190,7 +190,7 @@ TEST_F(StorageSuite, AppendingToMultipleFiles) {
 }
 
 TEST_F(StorageSuite, FillingABlock) {
-    Storage storage{ memory_, false };
+    Storage storage{ memory_, pool_, false };
 
     ASSERT_TRUE(storage.clear());
 
@@ -207,7 +207,7 @@ TEST_F(StorageSuite, FillingABlock) {
 }
 
 TEST_F(StorageSuite, ReadingARecord) {
-    Storage storage{ memory_, false };
+    Storage storage{ memory_, pool_, false };
 
     ASSERT_TRUE(storage.clear());
 
@@ -234,7 +234,7 @@ TEST_F(StorageSuite, ReadingARecord) {
 
 // NOTE: Why is this fast?
 TEST_F(StorageSuite, SeekingToARecord) {
-    Storage storage{ memory_, false };
+    Storage storage{ memory_, pool_, false };
 
     ASSERT_TRUE(storage.clear());
 
@@ -278,7 +278,7 @@ TEST_F(StorageSuite, SeekingToARecord) {
 }
 
 TEST_F(StorageSuite, SeekingToARecordWithSmallerFile) {
-    Storage storage{ memory_, false };
+    Storage storage{ memory_, pool_, false };
 
     ASSERT_TRUE(storage.clear());
 
@@ -306,7 +306,7 @@ TEST_F(StorageSuite, SeekingToARecordWithSmallerFile) {
 }
 
 TEST_F(StorageSuite, ReadingAtEoF) {
-    Storage storage{ memory_, false };
+    Storage storage{ memory_, pool_, false };
 
     ASSERT_TRUE(storage.clear());
 
@@ -332,7 +332,7 @@ TEST_F(StorageSuite, ReadingAtEoF) {
 }
 
 TEST_F(StorageSuite, ReadingBackSingleRecord) {
-    Storage storage{ memory_, false };
+    Storage storage{ memory_, pool_, false };
 
     ASSERT_TRUE(storage.clear());
 
@@ -351,7 +351,7 @@ TEST_F(StorageSuite, ReadingBackSingleRecord) {
 }
 
 TEST_F(StorageSuite, WritingProtobuf) {
-    Storage storage{ memory_, false };
+    Storage storage{ memory_, pool_, false };
 
     ASSERT_TRUE(storage.clear());
 
@@ -383,7 +383,7 @@ TEST_F(StorageSuite, WritingProtobuf) {
 }
 
 TEST_F(StorageSuite, WritingSequentiallyHasCorrectRecordNumbers) {
-    Storage storage{ memory_, false };
+    Storage storage{ memory_, pool_, false };
     StaticPattern pattern;
 
     ASSERT_TRUE(storage.clear());
@@ -409,7 +409,7 @@ TEST_F(StorageSuite, WritingSequentiallyHasCorrectRecordNumbers) {
 }
 
 TEST_F(StorageSuite, WritingOncePerOpenHasCorrectRecordNumbers) {
-    Storage storage{ memory_, false };
+    Storage storage{ memory_, pool_, false };
     StaticPattern pattern;
 
     {
@@ -433,7 +433,7 @@ TEST_F(StorageSuite, WritingOncePerOpenHasCorrectRecordNumbers) {
 }
 
 TEST_F(StorageSuite, ClearingAfterWritingToFiles) {
-    Storage storage{ memory_, false };
+    Storage storage{ memory_, pool_, false };
     StaticPattern pattern;
 
     ASSERT_TRUE(storage.clear());
@@ -455,7 +455,7 @@ TEST_F(StorageSuite, ClearingAfterWritingToFiles) {
 }
 
 TEST_F(StorageSuite, SeekingToAReading) {
-    Storage storage{ memory_, false };
+    Storage storage{ memory_, pool_, false };
 
     ASSERT_TRUE(storage.clear());
 
@@ -484,7 +484,7 @@ TEST_F(StorageSuite, SeekingToAReading) {
 }
 
 TEST_F(StorageSuite, WritingThroughABlockClosingAndWritingAnother) {
-    Storage storage{ memory_, false };
+    Storage storage{ memory_, pool_, false };
 
     ASSERT_TRUE(storage.clear());
 
@@ -523,7 +523,7 @@ TEST_F(StorageSuite, WritingThroughABlockClosingAndWritingAnother) {
 
 TEST_F(StorageSuite, SeekingWithinOneBlock) {
     {
-        Storage storage{ memory_, false };
+        Storage storage{ memory_, pool_, false };
         ASSERT_TRUE(storage.clear());
         auto file0 = storage.file(0);
         ASSERT_TRUE(file0.create());
@@ -532,14 +532,14 @@ TEST_F(StorageSuite, SeekingWithinOneBlock) {
     }
 
     {
-        Storage storage{ memory_, false };
+        Storage storage{ memory_, pool_, false };
         ASSERT_TRUE(storage.begin());
         auto file0 = storage.file(0);
         ASSERT_TRUE(file0.seek(0));
     }
 
     {
-        Storage storage{ memory_, false };
+        Storage storage{ memory_, pool_, false };
         ASSERT_TRUE(storage.begin());
         auto file0 = storage.file(0);
         ASSERT_TRUE(file0.seek_end());
@@ -548,7 +548,7 @@ TEST_F(StorageSuite, SeekingWithinOneBlock) {
 
 TEST_F(StorageSuite, SeekingBeginningUnwrittenSecondFile) {
     {
-        Storage storage{ memory_, false };
+        Storage storage{ memory_, pool_, false };
         ASSERT_TRUE(storage.clear());
         auto file0 = storage.file(0);
         ASSERT_TRUE(file0.create());
@@ -557,7 +557,7 @@ TEST_F(StorageSuite, SeekingBeginningUnwrittenSecondFile) {
     }
 
     {
-        Storage storage{ memory_, false };
+        Storage storage{ memory_, pool_, false };
         ASSERT_TRUE(storage.begin());
         auto file0 = storage.file(0);
         ASSERT_TRUE(file0.seek(0));
@@ -568,7 +568,7 @@ TEST_F(StorageSuite, SeekingBeginningUnwrittenSecondFile) {
 
 TEST_F(StorageSuite, SeekingBeginningUnwrittenSecondFileWhenWritingSecond) {
     {
-        Storage storage{ memory_, false };
+        Storage storage{ memory_, pool_, false };
         ASSERT_TRUE(storage.clear());
         auto file1 = storage.file(1);
         ASSERT_TRUE(file1.create());
@@ -577,7 +577,7 @@ TEST_F(StorageSuite, SeekingBeginningUnwrittenSecondFileWhenWritingSecond) {
     }
 
     {
-        Storage storage{ memory_, false };
+        Storage storage{ memory_, pool_, false };
         ASSERT_TRUE(storage.begin());
         auto file0 = storage.file(0);
         ASSERT_FALSE(file0.seek(0));
@@ -588,7 +588,7 @@ TEST_F(StorageSuite, SeekingBeginningUnwrittenSecondFileWhenWritingSecond) {
 
 TEST_F(StorageSuite, SeekingEndUnwrittenSecondFile) {
     {
-        Storage storage{ memory_, false };
+        Storage storage{ memory_, pool_, false };
         ASSERT_TRUE(storage.clear());
         auto file0 = storage.file(0);
         ASSERT_TRUE(file0.create());
@@ -597,7 +597,7 @@ TEST_F(StorageSuite, SeekingEndUnwrittenSecondFile) {
     }
 
     {
-        Storage storage{ memory_, false };
+        Storage storage{ memory_, pool_, false };
         ASSERT_TRUE(storage.begin());
         auto file0 = storage.file(0);
         ASSERT_TRUE(file0.seek_end());
@@ -608,7 +608,7 @@ TEST_F(StorageSuite, SeekingEndUnwrittenSecondFile) {
 
 TEST_F(StorageSuite, SeekingSmallSecondFile) {
     {
-        Storage storage{ memory_, false };
+        Storage storage{ memory_, pool_, false };
         ASSERT_TRUE(storage.clear());
         auto file1 = storage.file(1);
         ASSERT_TRUE(file1.create());
@@ -617,7 +617,7 @@ TEST_F(StorageSuite, SeekingSmallSecondFile) {
     }
 
     {
-        Storage storage{ memory_, false };
+        Storage storage{ memory_, pool_, false };
         ASSERT_TRUE(storage.begin());
         auto file1 = storage.file(1);
         ASSERT_TRUE(file1.seek(0));
@@ -625,7 +625,7 @@ TEST_F(StorageSuite, SeekingSmallSecondFile) {
 }
 
 TEST_F(StorageSuite, SeekingToEndOfFileBeforeWriting) {
-    Storage storage{ memory_, false };
+    Storage storage{ memory_, pool_, false };
     ASSERT_TRUE(storage.clear());
     ASSERT_GT(statistics_memory_.statistics().nerases, (uint32_t)0);
 
@@ -640,7 +640,7 @@ TEST_F(StorageSuite, SeekingToEndOfFileBeforeWriting) {
 }
 
 TEST_F(StorageSuite, SeekingSmallSecondFileBeforeWriting) {
-    Storage storage{ memory_, false };
+    Storage storage{ memory_, pool_, false };
     ASSERT_TRUE(storage.clear());
 
     auto file1n1 = storage.file(1);
@@ -663,7 +663,7 @@ TEST_F(StorageSuite, SeekingSmallSecondFileBeforeWriting) {
 }
 
 TEST_F(StorageSuite, SeekingSetsPositionCorrectly) {
-    Storage storage{ memory_, false };
+    Storage storage{ memory_, pool_, false };
     ASSERT_TRUE(storage.clear());
 
     auto file = storage.file(1);
@@ -681,7 +681,7 @@ TEST_F(StorageSuite, SeekingSetsPositionCorrectly) {
 }
 
 TEST_F(StorageSuite, SeekingAndReadingAndSeekingSetsPositionCorrectly) {
-    Storage storage{ memory_, false };
+    Storage storage{ memory_, pool_, false };
     ASSERT_TRUE(storage.clear());
 
     auto file = storage.file(1);
@@ -712,12 +712,12 @@ TEST_F(StorageSuite, SeekingToEndOfFileWithNoRecordsInLastBlock) {
     // record to the new block. I think the only way for this to happen would be
     // some kind of failure when writing. Otherwise, all allocated blocks should
     // get a first record.
-    Storage storage{ memory_, false };
+    Storage storage{ memory_, pool_, false };
     ASSERT_TRUE(storage.clear());
 }
 
 TEST_F(StorageSuite, SeekingToBeginningWhenBeginningSecondFileAFewBlocksAfterFirstFile) {
-    Storage storage{ memory_, false };
+    Storage storage{ memory_, pool_, false };
     ASSERT_TRUE(storage.clear());
 
     auto file_write0 = storage.file(0);
@@ -745,7 +745,7 @@ TEST_F(StorageSuite, SeekingToBeginningWhenBeginningSecondFileAFewBlocksAfterFir
 
 TEST_F(StorageSuite, ReproduceBadRecordNumberOnSeekToEndOfMetaFile) {
     {
-        Storage storage{ memory_, false };
+        Storage storage{ memory_, pool_, false };
         ASSERT_TRUE(storage.clear());
 
         uint8_t data[512];
@@ -769,7 +769,7 @@ TEST_F(StorageSuite, ReproduceBadRecordNumberOnSeekToEndOfMetaFile) {
     }
 
     {
-        Storage storage{ memory_, false };
+        Storage storage{ memory_, pool_, false };
         ASSERT_TRUE(storage.begin());
 
         auto file_read1 = storage.file(1);
@@ -783,7 +783,7 @@ TEST_F(StorageSuite, ReproduceBadRecordAddressOnSeekToEndOfMetaFile) {
     uint32_t record_address = 0;
 
     {
-        Storage storage{ memory_, false };
+        Storage storage{ memory_, pool_, false };
         ASSERT_TRUE(storage.clear());
 
         uint8_t data[512];
@@ -810,7 +810,7 @@ TEST_F(StorageSuite, ReproduceBadRecordAddressOnSeekToEndOfMetaFile) {
     }
 
     {
-        Storage storage{ memory_, false };
+        Storage storage{ memory_, pool_, false };
         ASSERT_TRUE(storage.begin());
 
         auto file_read1 = storage.file(1);
@@ -823,7 +823,7 @@ TEST_F(StorageSuite, ReproduceBadRecordAddressOnSeekToEndOfMetaFile) {
 
 TEST_F(StorageSuite, ReproduceBadPositionOnSeekToBeginning) {
     {
-        Storage storage{ memory_, false };
+        Storage storage{ memory_, pool_, false };
         ASSERT_TRUE(storage.clear());
 
         uint8_t data[512];
@@ -846,7 +846,7 @@ TEST_F(StorageSuite, ReproduceBadPositionOnSeekToBeginning) {
     }
 
     {
-        Storage storage{ memory_, false };
+        Storage storage{ memory_, pool_, false };
         ASSERT_TRUE(storage.begin());
 
         auto file_read1 = storage.file(1);
@@ -862,15 +862,15 @@ TEST_F(StorageSuite, ReproduceSeekBytesInBlock0) {
 }
 
 TEST_F(StorageSuite, ReproduceFindingWrongFileInReadHeader) {
-    Storage storage{ memory_, false };
+    Storage storage{ memory_, pool_, false };
     ASSERT_TRUE(storage.clear());
 
     auto counter = 0;
 
     while (true) {
-        StaticPool<1024> pool{ "signed-log" };
+        StandardPool pool{ "signed-log" };
 
-        auto meta_file = storage.file(Storage::Meta);
+        auto meta_file = storage.file(Storage::Meta, pool);
         if (!meta_file.seek_end()) {
             FK_ASSERT(meta_file.create());
         }
@@ -903,7 +903,7 @@ TEST_F(StorageSuite, ReproduceFindingWrongFileInReadHeader) {
 TEST_F(StorageSuite, FileOpsRewindOnce) {
     write_number_of_readings(memory_, 1);
 
-    Storage storage{ memory_, true };
+    Storage storage{ memory_, pool_, true };
     FK_ASSERT(storage.begin());
     auto file = storage.file(0);
     ASSERT_TRUE(file.seek_end());
@@ -920,7 +920,7 @@ TEST_F(StorageSuite, FileOpsRewindOnce) {
 TEST_F(StorageSuite, FileOpsRewind) {
     write_readings(memory_, 10240);
 
-    Storage storage{ memory_, true };
+    Storage storage{ memory_, pool_, true };
     FK_ASSERT(storage.begin());
     auto file = storage.file(0);
     ASSERT_TRUE(file.seek_end());
@@ -945,7 +945,7 @@ TEST_F(StorageSuite, FileOpsRewind) {
 TEST_F(StorageSuite, FileOpsRewindAcrossBlock) {
     write_readings(memory_, g_.block_size * 1.5);
 
-    Storage storage{ memory_, true };
+    Storage storage{ memory_, pool_, true };
     FK_ASSERT(storage.begin());
     auto file = storage.file(0);
     ASSERT_TRUE(file.seek_end());
@@ -964,7 +964,7 @@ TEST_F(StorageSuite, FileOpsRewindAcrossBlock) {
 TEST_F(StorageSuite, FileOpsSkip) {
     write_readings(memory_, 10240);
 
-    Storage storage{ memory_, true };
+    Storage storage{ memory_, pool_, true };
     FK_ASSERT(storage.begin());
     auto file = storage.file(0);
     ASSERT_TRUE(file.seek(0));
@@ -989,7 +989,7 @@ TEST_F(StorageSuite, FileOpsSkip) {
 TEST_F(StorageSuite, FileOpsSkipAcrossBlock) {
     write_readings(memory_, g_.block_size * 1.5);
 
-    Storage storage{ memory_, true };
+    Storage storage{ memory_, pool_, true };
     FK_ASSERT(storage.begin());
     auto file = storage.file(0);
 
@@ -1003,7 +1003,7 @@ TEST_F(StorageSuite, FileOpsSkipAcrossBlock) {
 }
 
 TEST_F(StorageSuite, RecordNumbers) {
-    Storage storage{ memory_, false };
+    Storage storage{ memory_, pool_, false };
 
     ASSERT_TRUE(storage.clear());
 

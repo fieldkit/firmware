@@ -5,11 +5,12 @@ namespace fk {
 
 FK_DECLARE_LOGGER("memory");
 
-constexpr size_t SizeOfStandardPagePool = 14;
+constexpr size_t SizeOfStandardPagePool = 18;
 
 struct StandardPages {
     void *base{ nullptr };
     uint8_t available;
+    const char *owner;
 };
 
 static StandardPages pages[SizeOfStandardPagePool];
@@ -17,16 +18,23 @@ static bool initialized = false;
 
 void fk_standard_page_initialize() {
     if (!initialized) {
+        auto memory = reinterpret_cast<uint8_t*>(fk_malloc(StandardPageSize * SizeOfStandardPagePool));
+
         for (auto i = 0u; i < SizeOfStandardPagePool; ++i) {
-            pages[i].base = fk_malloc(StandardPageSize);
+            pages[i].base = memory;
             pages[i].available = true;
+            pages[i].owner = nullptr;
+
+            memory += StandardPageSize;
         }
     }
+
+    loginfo("allocated %zd bytes", StandardPageSize * SizeOfStandardPagePool);
 
     initialized = true;
 }
 
-void *fk_standard_page_malloc(size_t size) {
+void *fk_standard_page_malloc(size_t size, const char *name) {
     void *allocated = nullptr;
 
     if (!initialized) {
@@ -39,7 +47,19 @@ void *fk_standard_page_malloc(size_t size) {
         if (pages[i].available) {
             allocated = pages[i].base;
             pages[i].available = false;
+            pages[i].owner = name;
+            logdebug("[%2d] malloc '%s'", i, name);
             break;
+        }
+    }
+
+    if (allocated == nullptr) {
+        logerror("oom!");
+
+        for (auto i = 0u; i < SizeOfStandardPagePool; ++i) {
+            if (!pages[i].available) {
+                logerror("[%2d] owner = %s", i, pages[i].owner);
+            }
         }
     }
 
@@ -53,14 +73,29 @@ void fk_standard_page_free(void *ptr) {
 
     for (auto i = 0u; i < SizeOfStandardPagePool; ++i) {
         if (pages[i].base == ptr) {
+            logdebug("[%2d] free '%s'", i, pages[i].owner);
             bzero(pages[i].base, StandardPageSize);
             pages[i].available = true;
+            pages[i].owner = nullptr;
             success = true;
             break;
         }
     }
 
     FK_ASSERT(success);
+}
+
+StandardPageMemInfo fk_standard_page_meminfo() {
+    StandardPageMemInfo info = { 0, 0 };
+
+    for (auto i = 0u; i < SizeOfStandardPagePool; ++i) {
+        info.total += StandardPageSize;
+        if (pages[i].available) {
+            info.free += StandardPageSize;
+        }
+    }
+
+    return info;
 }
 
 } // namespace fk

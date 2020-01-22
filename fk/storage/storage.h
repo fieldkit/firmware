@@ -34,6 +34,7 @@ public:
 
 private:
     DataMemory *data_memory_;
+    Pool *pool_;
     SequentialWrapper<BufferedPageMemory> memory_;
     BadBlocks bad_blocks_;
     FileHeader files_[NumberOfFiles];
@@ -43,13 +44,14 @@ private:
     bool read_only_;
 
 public:
-    Storage(DataMemory *memory, bool read_only = true);
+    Storage(DataMemory *memory, Pool &pool, bool read_only = true);
     virtual ~Storage();
 
 public:
     bool begin();
     bool clear();
-    File file(FileNumber file);
+    File file(FileNumber file_number);
+    File file(FileNumber file_number, Pool &pool);
     bool flush();
 
 public:

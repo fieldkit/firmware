@@ -22,6 +22,12 @@ NetworkServices::NetworkServices(Network *network) : network_(network) {
 }
 
 NetworkServices::~NetworkServices() {
+    if (debug_listener_ != nullptr) {
+        delete debug_listener_;
+    }
+    if (http_listener_ != nullptr) {
+        delete http_listener_;
+    }
     loginfo("stopping");
     stop();
 }

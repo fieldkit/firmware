@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "common.h"
+#include "pool.h"
 #include "memory.h"
 #include "hal/memory.h"
 
@@ -29,7 +30,7 @@ private:
     T target_;
 
 public:
-    SequentialWrapper(DataMemory *target) : target_(target) {
+    SequentialWrapper(DataMemory *target, Pool &pool) : target_(target, pool) {
     }
 
 public:
@@ -104,20 +105,17 @@ public:
     }
 };
 
-template<class T>
-using unique_ptr_freed = std::unique_ptr<T, decltype(&fk_standard_page_free)>;
-
 class BufferedPageMemory : public DataMemory {
 private:
     DataMemory *target_;
-    unique_ptr_freed<uint8_t> buffer_;
+    uint8_t *buffer_;
     uint32_t cached_{ UINT32_MAX };
     bool dirty_{ false };
     int16_t dirty_start_{ -1 };
     int16_t dirty_end_{ -1 };
 
 public:
-    BufferedPageMemory(DataMemory *target);
+    BufferedPageMemory(DataMemory *target, Pool &pool);
     BufferedPageMemory(BufferedPageMemory &&o);
     BufferedPageMemory(BufferedPageMemory const &o) = delete;
     virtual ~BufferedPageMemory();

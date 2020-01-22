@@ -111,7 +111,7 @@ static bool flush_configuration(Pool &pool) {
     auto gs = get_global_state_ro();
 
     StatisticsMemory memory{ MemoryFactory::get_data_memory() };
-    Storage storage{ &memory, false };
+    Storage storage{ &memory, pool, false };
     if (!storage.begin()) {
         return false;
     }

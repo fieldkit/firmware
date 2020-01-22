@@ -10,7 +10,7 @@ class SlowStorageSuite : public StorageSuite {
 };
 
 TEST_F(SlowStorageSuite, LargeFiles) {
-    Storage storage{ memory_, false };
+    Storage storage{ memory_, pool_, false };
 
     ASSERT_TRUE(storage.clear());
 
@@ -42,7 +42,7 @@ TEST_F(SlowStorageSuite, LargeFiles) {
 }
 
 TEST_F(SlowStorageSuite, LargeFilesMultiple) {
-    Storage storage{ memory_, false };
+    Storage storage{ memory_, pool_, false };
 
     ASSERT_TRUE(storage.clear());
 
@@ -109,7 +109,7 @@ TEST_F(SlowStorageSuite, LargeFilesMultiple) {
 }
 
 TEST_F(SlowStorageSuite, LargeFilesMultipleOneMuchSmaller) {
-    Storage storage{ memory_, false };
+    Storage storage{ memory_, pool_, false };
 
     ASSERT_TRUE(storage.clear());
 
@@ -170,7 +170,8 @@ TEST_F(SlowStorageSuite, LotsOfIndividualWrites) {
     uint32_t total_wrote = 0;
 
     {
-        Storage storage{ memory_, false };
+        StandardPool pool{ "tests "};
+        Storage storage{ memory_, pool, false };
         ASSERT_TRUE(storage.clear());
         auto file_write = storage.file(0);
         ASSERT_TRUE(file_write.create());
@@ -180,7 +181,8 @@ TEST_F(SlowStorageSuite, LotsOfIndividualWrites) {
     }
 
     for (auto i = 0; i < 1024; ++i) {
-        Storage storage{ memory_, false };
+        StandardPool pool{ "tests "};
+        Storage storage{ memory_, pool, false };
         ASSERT_TRUE(storage.begin());
         auto file_write = storage.file(0);
         ASSERT_TRUE(file_write.seek_end());
@@ -190,7 +192,8 @@ TEST_F(SlowStorageSuite, LotsOfIndividualWrites) {
     }
 
     for (auto i = 0; i < 1024; ++i) {
-        Storage storage{ memory_, false };
+        StandardPool pool{ "tests "};
+        Storage storage{ memory_, pool, false };
         ASSERT_TRUE(storage.begin());
         auto file_write = storage.file(1);
         ASSERT_TRUE(file_write.create());
@@ -199,7 +202,8 @@ TEST_F(SlowStorageSuite, LotsOfIndividualWrites) {
     }
 
     {
-        Storage storage{ memory_, false };
+        StandardPool pool{ "tests "};
+        Storage storage{ memory_, pool, false };
         ASSERT_TRUE(storage.begin());
         auto file_read = storage.file(0);
 
@@ -221,7 +225,8 @@ TEST_F(SlowStorageSuite, ErasingLargeFsAndStartingOver) {
 
     // Write a ton of data, spanning multiple blocks.
     {
-        Storage storage{ memory_, false };
+        StandardPool pool{ "tests "};
+        Storage storage{ memory_, pool, false };
         ASSERT_TRUE(storage.clear());
         auto file_write = storage.file(0);
         ASSERT_TRUE(file_write.create());
@@ -239,7 +244,8 @@ TEST_F(SlowStorageSuite, ErasingLargeFsAndStartingOver) {
 
     // Now start over and write a little data.
     {
-        Storage storage{ memory_, false };
+        StandardPool pool{ "tests "};
+        Storage storage{ memory_, pool, false };
         ASSERT_TRUE(storage.clear());
         auto file_write = storage.file(0);
         ASSERT_TRUE(file_write.create());
@@ -258,7 +264,7 @@ TEST_F(SlowStorageSuite, ErasingLargeFsAndStartingOver) {
 
     // Now we open.
     {
-        Storage storage{ memory_, false };
+        Storage storage{ memory_, pool_, false };
         ASSERT_TRUE(storage.begin());
         FK_ASSERT(storage.version() == version2);
     }

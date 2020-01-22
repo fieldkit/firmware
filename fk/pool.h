@@ -70,7 +70,6 @@ public:
     char *strdup(const char *str);
     char *strndup(const char *str, size_t len);
     char *sprintf(const char *str, ...);
-    Pool freeze(const char *name);
     EncodedMessage *encode(pb_msgdesc_t const *fields, void const *src, bool delimited = true);
     void *decode(pb_msgdesc_t const *fields, uint8_t *src, size_t size, size_t message_size);
 
@@ -102,17 +101,28 @@ public:
 
 };
 
-class MallocPool : public Pool {
-protected:
-    MallocPool(const char *name, size_t size);
-    virtual ~MallocPool();
-
-};
-
 class StandardPool : public Pool {
+private:
+    bool free_self_{ false };
+    StandardPool *sibling_{ nullptr };
+
 public:
     StandardPool(const char *name);
+    StandardPool(const char *name, void *ptr, size_t size, size_t taken);
     virtual ~StandardPool();
+
+public:
+    static void operator delete(void *p) {
+        fk_standard_page_free(p);
+    }
+
+public:
+    void *malloc(size_t bytes) override;
+
+    bool can_malloc(size_t bytes) const {
+        return (size() - used()) >= aligned_size(bytes);
+    }
+
 };
 
 Pool *create_pool_inside(const char *name);
