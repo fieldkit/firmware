@@ -71,6 +71,12 @@ public:
 
     virtual void *malloc(size_t size);
 
+    void *calloc(size_t size) {
+        auto ptr = malloc(size);
+        bzero(ptr, size);
+        return ptr;
+    }
+
     template<typename T>
     T *malloc() {
         return (T *)malloc(sizeof(T));

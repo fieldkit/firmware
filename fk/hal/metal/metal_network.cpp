@@ -16,6 +16,24 @@ constexpr uint32_t NetworkAddServiceRecordIntervalMs = 5000;
 constexpr uint32_t NetworkRemoveServiceRecordAmplification = 5;
 constexpr uint32_t NetworkRemoveServiceRecordDelayMs = 250;
 
+class MDNSPoolAllocator : public MDNSAllocator {
+private:
+    Pool *pool_;
+
+public:
+    MDNSPoolAllocator(Pool *pool) : pool_(pool) {
+    }
+
+public:
+    void *malloc(size_t size) override {
+        return pool_->calloc(size);
+    }
+
+    void free(void *ptr) override {
+    }
+
+};
+
 class StaticWiFiCallbacks : public WiFiCallbacks {
 private:
     constexpr static size_t ExpectedWiFiBufferSize = 1472;
@@ -220,6 +238,8 @@ bool MetalNetwork::begin(NetworkSettings settings) {
     else {
         pool_->clear();
     }
+
+    mdns_.allocator(new (pool_) MDNSPoolAllocator(pool_));
 
     staticWiFiCallbacks.initialize(*pool_);
 
