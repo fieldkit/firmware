@@ -11,13 +11,19 @@ enum class SdCardFirmwareOperation {
     Load,
 };
 
+struct SdCardFirmware {
+    SdCardFirmwareOperation operation;
+    const char *bootloader;
+    const char *main;
+    bool swap;
+};
+
 class UpgradeFirmwareFromSdWorker : public Worker {
 private:
-    SdCardFirmwareOperation op_;
-    bool swap_;
+    SdCardFirmware params_;
 
 public:
-    UpgradeFirmwareFromSdWorker(SdCardFirmwareOperation op, bool swap);
+    UpgradeFirmwareFromSdWorker(SdCardFirmware params);
 
 public:
     void run(Pool &pool) override;
@@ -37,6 +43,8 @@ public:
     bool load_firmware(const char *path, uint32_t address, Pool &pool);
 
     void log_other_firmware();
+
+    bool has_file(const char *path);
 
 };
 

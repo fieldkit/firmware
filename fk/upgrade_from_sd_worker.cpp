@@ -25,7 +25,7 @@ fkb_header_t *fkb_try_header(void *ptr) {
 }
 #endif
 
-UpgradeFirmwareFromSdWorker::UpgradeFirmwareFromSdWorker(SdCardFirmwareOperation op, bool swap) : op_(op), swap_(swap) {
+UpgradeFirmwareFromSdWorker::UpgradeFirmwareFromSdWorker(SdCardFirmware params) : params_(params) {
 }
 
 void UpgradeFirmwareFromSdWorker::log_other_firmware() {
@@ -49,43 +49,51 @@ void UpgradeFirmwareFromSdWorker::log_other_firmware() {
 }
 
 void UpgradeFirmwareFromSdWorker::run(Pool &pool) {
-    auto bl_path = "fkbl-fkb.bin";
-    auto main_path = "fk-bundled-fkb.bin";
+    auto bl_path = params_.bootloader;
+    auto main_path = params_.main;
     // auto lock = sd_mutex.acquire(UINT32_MAX);
 
     GlobalStateManager gsm;
 
-    switch (op_) {
+    switch (params_.operation) {
     case SdCardFirmwareOperation::Save: {
-        if (!save_firmware(bl_path, 0x0, BootloaderSize, pool)) {
-            gsm.notify({ "error saving bl" });
-            return;
+        if (bl_path != nullptr) {
+            if (!save_firmware(bl_path, 0x0, BootloaderSize, pool)) {
+                gsm.notify({ "error saving bl" });
+                return;
+            }
         }
 
-        if (!save_firmware(main_path, BootloaderSize, fkb_header.firmware.binary_size, pool)) {
-            gsm.notify({ "error saving fk" });
-            return;
+        if (main_path != nullptr) {
+            if (!save_firmware(main_path, BootloaderSize, fkb_header.firmware.binary_size, pool)) {
+                gsm.notify({ "error saving fk" });
+                return;
+            }
         }
 
         gsm.notify({ "saved" });
         break;
     }
     case SdCardFirmwareOperation::Load: {
-        if (!load_firmware(bl_path, OtherBankAddress, pool)) {
-            gsm.notify({ "error loading bl" });
-            return;
+        if (bl_path != nullptr && has_file(bl_path)) {
+            if (!load_firmware(bl_path, OtherBankAddress, pool)) {
+                gsm.notify({ "error loading bl" });
+                return;
+            }
         }
 
-        if (!load_firmware(main_path, OtherBankAddress + BootloaderSize, pool)) {
-            gsm.notify({ "error loading fk" });
-            return;
+        if (main_path != nullptr) {
+            if (!load_firmware(main_path, OtherBankAddress + BootloaderSize, pool)) {
+                gsm.notify({ "error loading fk" });
+                return;
+            }
         }
 
         log_other_firmware();
 
         gsm.notify({ "success, swap!" });
 
-        if (swap_) {
+        if (params_.swap) {
             fk_delay(1000);
 
             fk_nvm_swap_banks();
@@ -149,6 +157,11 @@ bool UpgradeFirmwareFromSdWorker::save_firmware(const char *path, uint32_t addre
     loginfo("done saving %" PRIu32 " (%zd)", total_bytes, file_size);
 
     return true;
+}
+
+bool UpgradeFirmwareFromSdWorker::has_file(const char *path) {
+    auto sd = get_sd_card();
+    return sd->is_file(path);
 }
 
 bool UpgradeFirmwareFromSdWorker::load_firmware(const char *path, uint32_t address, Pool &pool) {

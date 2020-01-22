@@ -229,7 +229,8 @@ void MenuView::create_tools_menu() {
     auto tools_load_firmware_sd = to_lambda_option(pool_, "SD Upgrade", [=]() {
         back_->on_selected();
         views_->show_home();
-        get_ipc()->launch_worker(create_pool_worker<UpgradeFirmwareFromSdWorker>(SdCardFirmwareOperation::Load, true));
+        auto params = SdCardFirmware{ SdCardFirmwareOperation::Load, "fkbl-fkb.bin", "fk-bundled-fkb.bin", true };
+        get_ipc()->launch_worker(create_pool_worker<UpgradeFirmwareFromSdWorker>(params));
     });
     auto tools_fsck = to_lambda_option(pool_, "Run Fsck", [=]() {
         back_->on_selected();
