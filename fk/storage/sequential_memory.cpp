@@ -2,15 +2,11 @@
 
 #include "storage/sequential_memory.h"
 #include "storage/storage.h"
+#include "exchange.h"
 
 namespace fk {
 
 FK_DECLARE_LOGGER("memory");
-
-template<class T>
-static unique_ptr_freed<T> freed_unique_ptr(size_t size, const char *name) {
-	return unique_ptr_freed<T>(static_cast<T*>(fk_standard_page_malloc(size, name)), &fk_standard_page_free);
-}
 
 SequentialMemory::SequentialMemory(DataMemory *target) : target_(target) {
 }
@@ -77,11 +73,11 @@ int32_t SequentialMemory::flush() {
     return target_->flush();
 }
 
-BufferedPageMemory::BufferedPageMemory(DataMemory *target)
-    : target_(target), buffer_{ freed_unique_ptr<uint8_t>(StandardPageSize, "storage-pages") } {
+BufferedPageMemory::BufferedPageMemory(DataMemory *target, Pool &pool)
+    : target_(target), buffer_{ reinterpret_cast<uint8_t*>(pool.malloc(target_->geometry().page_size)) } {
 }
 
-BufferedPageMemory::BufferedPageMemory(BufferedPageMemory &&o) : target_(o.target_), buffer_{ std::move(o.buffer_) } {
+BufferedPageMemory::BufferedPageMemory(BufferedPageMemory &&o) : target_(o.target_), buffer_{ exchange(o.buffer_, nullptr) } {
 }
 
 BufferedPageMemory::~BufferedPageMemory() {
@@ -89,7 +85,7 @@ BufferedPageMemory::~BufferedPageMemory() {
 
 BufferedPageMemory &BufferedPageMemory::operator=(BufferedPageMemory &&o) {
     target_ = o.target_;
-    buffer_ = std::move(o.buffer_);
+    buffer_ = exchange(o.buffer_, nullptr);
     cached_ = o.cached_;
     dirty_ = o.dirty_;
     return *this;
@@ -107,7 +103,7 @@ int32_t BufferedPageMemory::read(uint32_t address, uint8_t *data, size_t length,
     auto g = target_->geometry();
     auto page = address / g.page_size;
     if (cached_ == UINT32_MAX || page != cached_) {
-        auto rv = target_->read(page * g.page_size, buffer_.get(), g.page_size, flags);
+        auto rv = target_->read(page * g.page_size, buffer_, g.page_size, flags);
         if (rv <= 0) {
             return rv;
         }
@@ -116,7 +112,7 @@ int32_t BufferedPageMemory::read(uint32_t address, uint8_t *data, size_t length,
         dirty_end_ = -1;
     }
     auto page_offset = address % g.page_size;
-    memcpy(data, buffer_.get() + page_offset, length);
+    memcpy(data, buffer_ + page_offset, length);
     return length;
 }
 
@@ -131,7 +127,7 @@ int32_t BufferedPageMemory::write(uint32_t address, uint8_t const *data, size_t 
             }
         }
 
-        auto rv = target_->read(page * g.page_size, buffer_.get(), g.page_size, MemoryReadFlags::None);
+        auto rv = target_->read(page * g.page_size, buffer_, g.page_size, MemoryReadFlags::None);
         if (rv <= 0) {
             return rv;
         }
@@ -140,7 +136,7 @@ int32_t BufferedPageMemory::write(uint32_t address, uint8_t const *data, size_t 
     }
 
     auto page_offset = address % g.page_size;
-    memcpy(buffer_.get() + page_offset, data, length);
+    memcpy(buffer_ + page_offset, data, length);
     dirty_ = true;
 
     if (dirty_start_ == -1) {
@@ -173,7 +169,7 @@ int32_t BufferedPageMemory::flush() {
 
         logdebug("[" PRADDRESS "] flush dirty page (0x%4x - 0x%4x)", address, dirty_start_, dirty_end_);
 
-        auto rv = target_->write(address, buffer_.get(), g.page_size);
+        auto rv = target_->write(address, buffer_, g.page_size);
         cached_ = UINT32_MAX;
         dirty_start_ = -1;
         dirty_end_ = -1;

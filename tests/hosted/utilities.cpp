@@ -196,7 +196,7 @@ void write_alternating(DataMemory *memory, size_t total) {
     auto size = 0u;
     auto counter = 0u;
     while (size < total) {
-        StaticPool<1024> pool{ __func__ };
+        StandardPool pool{ __func__ };
         Storage storage{ memory, pool, false };
         if (!storage.begin()) {
             ASSERT_TRUE(storage.clear());

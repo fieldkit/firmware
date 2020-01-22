@@ -148,14 +148,3 @@ TEST_F(PoolSuite, ChainedPoolWrapper) {
     auto pool = create_pool_inside("ok");
     free_pool(pool);
 }
-
-template<class T>
-static unique_ptr_freed<T> freed_unique_ptr(size_t size) {
-	return unique_ptr_freed<T>(static_cast<T*>(fk_standard_page_malloc(size, "tests")), &fk_standard_page_free);
-}
-
-TEST_F(PoolSuite, FreedUniquePtr) {
-    for (auto i = 0u; i < 30; ++i) {
-        auto ptr = freed_unique_ptr<uint8_t>(StandardPageSize);
-    }
-}

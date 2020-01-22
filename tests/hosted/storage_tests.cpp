@@ -868,9 +868,9 @@ TEST_F(StorageSuite, ReproduceFindingWrongFileInReadHeader) {
     auto counter = 0;
 
     while (true) {
-        StaticPool<1024> pool{ "signed-log" };
+        StandardPool pool{ "signed-log" };
 
-        auto meta_file = storage.file(Storage::Meta);
+        auto meta_file = storage.file(Storage::Meta, pool);
         if (!meta_file.seek_end()) {
             FK_ASSERT(meta_file.create());
         }
