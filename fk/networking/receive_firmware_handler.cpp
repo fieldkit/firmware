@@ -54,7 +54,8 @@ void ReceiveFirmwareWorker::run(Pool &pool) {
     fk_delay(1000);
 
     auto params = SdCardFirmware{ SdCardFirmwareOperation::Load, nullptr, file_name, true };
-    get_ipc()->launch_worker(create_pool_worker<UpgradeFirmwareFromSdWorker>(params));
+    UpgradeFirmwareFromSdWorker upgrade_worker{ params };
+    upgrade_worker.run(pool);
 }
 
 bool ReceiveFirmwareHandler::handle(HttpServerConnection *connection, Pool &pool) {
