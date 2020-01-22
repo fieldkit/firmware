@@ -63,7 +63,7 @@ void StartupWorker::run(Pool &pool) {
 
     FK_ASSERT(check_for_lora(pool));
 
-    Storage storage{ MemoryFactory::get_data_memory(), false };
+    Storage storage{ MemoryFactory::get_data_memory(), pool, false };
     if (storage.begin()) {
         GlobalStateManager gsm;
         gsm.apply([&](GlobalState *gs) {

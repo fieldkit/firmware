@@ -86,7 +86,7 @@ void DownloadWorker::run(Pool &pool) {
 
     auto started = fk_uptime();
     StatisticsMemory memory{ MemoryFactory::get_data_memory() };
-    Storage storage{ &memory };
+    Storage storage{ &memory, pool };
 
     if (!storage.begin()) {
         connection_->error("error opening storage");

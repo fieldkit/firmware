@@ -33,7 +33,7 @@ TEST_F(ReadingsTakingSuite, WithNoModules) {
     GlobalState gs;
     TwoWireWrapper module_bus{ "modules", nullptr };
     ScanningContext ctx{ get_modmux(), &gs, module_bus };
-    Storage storage{ memory_, false };
+    Storage storage{ memory_, pool_, false };
     FK_ASSERT(storage.clear());
 
     FoundModuleCollection found(pool_);
@@ -51,7 +51,7 @@ TEST_F(ReadingsTakingSuite, BasicSingleModule) {
     GlobalState gs;
     TwoWireWrapper module_bus{ "modules", nullptr };
     ScanningContext ctx{ get_modmux(), &gs, module_bus };
-    Storage storage{ memory_, false };
+    Storage storage{ memory_, pool_, false };
     FK_ASSERT(storage.clear());
 
     FoundModuleCollection found(pool_);
@@ -78,7 +78,7 @@ TEST_F(ReadingsTakingSuite, BasicTwoModules) {
     GlobalState gs;
     TwoWireWrapper module_bus{ "modules", nullptr };
     ScanningContext ctx{ get_modmux(), &gs, module_bus };
-    Storage storage{ memory_, false };
+    Storage storage{ memory_, pool_, false };
     FK_ASSERT(storage.clear());
 
     FoundModuleCollection found(pool_);
@@ -114,7 +114,7 @@ TEST_F(ReadingsTakingSuite, AssignsRecordIndices) {
     GlobalState gs;
     TwoWireWrapper module_bus{ "modules", nullptr };
     ScanningContext ctx{ get_modmux(), &gs, module_bus };
-    Storage storage{ memory_, false };
+    Storage storage{ memory_, pool_, false };
     FK_ASSERT(storage.clear());
 
     FoundModuleCollection one_module(pool_);
@@ -160,7 +160,6 @@ TEST_F(ReadingsTakingSuite, AssignsRecordIndices) {
 
     ModuleFactory module_factory;
     auto constructed_maybe1 = module_factory.rescan_and_initialize(ctx, scanning, pool_);
-    printf("FOUND %zd\n", constructed_maybe1->size());
     ASSERT_TRUE(readings_taker.take(*constructed_maybe1, ctx, pool_));
 
     auto constructed_maybe2 = module_factory.rescan_and_initialize(ctx, scanning, pool_);

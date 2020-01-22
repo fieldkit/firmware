@@ -61,7 +61,8 @@ static void setup_fake_data() {
 
     FK_ASSERT(memory->begin());
 
-    Storage storage{ memory, false };
+    StandardPool pool{ "fake" };
+    Storage storage{ memory, pool, false };
     FK_ASSERT(storage.clear());
 
     TwoWireWrapper module_bus{ "modules", nullptr };

@@ -142,8 +142,8 @@ void write_meta_records(DataMemory *memory, size_t total) {
     auto size = 0u;
     auto counter = 0u;
     while (size < total) {
-        StaticPool<1024> pool{ "signed-log" };
-        Storage storage{ memory, false };
+        StandardPool pool{ __func__ };
+        Storage storage{ memory, pool, false };
         if (!storage.begin()) {
             ASSERT_TRUE(storage.clear());
         }
@@ -161,7 +161,8 @@ void write_meta_records(DataMemory *memory, size_t total) {
 }
 
 void write_number_of_readings(DataMemory *memory, size_t n) {
-    Storage storage{ memory, false };
+    StandardPool pool{ __func__ };
+    Storage storage{ memory, pool, false };
     if (!storage.begin()) {
         ASSERT_TRUE(storage.clear());
     }
@@ -175,7 +176,8 @@ void write_number_of_readings(DataMemory *memory, size_t n) {
 }
 
 void write_readings(DataMemory *memory, size_t total) {
-    Storage storage{ memory, false };
+    StandardPool pool{ __func__ };
+    Storage storage{ memory, pool, false };
     if (!storage.begin()) {
         ASSERT_TRUE(storage.clear());
     }
@@ -194,8 +196,8 @@ void write_alternating(DataMemory *memory, size_t total) {
     auto size = 0u;
     auto counter = 0u;
     while (size < total) {
-        StaticPool<1024> pool{ "signed-log" };
-        Storage storage{ memory, false };
+        StaticPool<1024> pool{ __func__ };
+        Storage storage{ memory, pool, false };
         if (!storage.begin()) {
             ASSERT_TRUE(storage.clear());
         }

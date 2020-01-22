@@ -16,7 +16,7 @@ class BadBlocksSuite : public StorageSuite {
 };
 
 TEST_F(BadBlocksSuite, FindingBadBlockFromFactoryDuringClear) {
-    Storage storage{ memory_, false };
+    Storage storage{ memory_, pool_, false };
 
     bank(0).mark_block_bad_from_factory(g_.block_size * 2);
 
@@ -24,7 +24,7 @@ TEST_F(BadBlocksSuite, FindingBadBlockFromFactoryDuringClear) {
 }
 
 TEST_F(BadBlocksSuite, FindingBadBlockFromWearDuringClear) {
-    Storage storage{ memory_, false };
+    Storage storage{ memory_, pool_, false };
 
     bank(0).mark_block_bad_from_wear(g_.block_size * 2);
 
@@ -32,7 +32,7 @@ TEST_F(BadBlocksSuite, FindingBadBlockFromWearDuringClear) {
 }
 
 TEST_F(BadBlocksSuite, FindingFactoryBadBlockAfterCleared) {
-    Storage storage{ memory_, false };
+    Storage storage{ memory_, pool_, false };
 
     ASSERT_TRUE(storage.clear());
 
@@ -64,7 +64,7 @@ TEST_F(BadBlocksSuite, FindingFactoryBadBlockAfterCleared) {
 }
 
 TEST_F(BadBlocksSuite, EraseFailsOnBadBlockFromWearAfterCleared) {
-    Storage storage{ memory_, false };
+    Storage storage{ memory_, pool_, false };
 
     ASSERT_TRUE(storage.clear());
 
@@ -98,7 +98,7 @@ TEST_F(BadBlocksSuite, EraseFailsOnBadBlockFromWearAfterCleared) {
 TEST_F(BadBlocksSuite, WritingToBadRegion) {
     bank(0).mark_region_bad(g_.block_size * 1, 2048);
 
-    Storage storage{ memory_, false };
+    Storage storage{ memory_, pool_, false };
 
     ASSERT_TRUE(storage.clear());
 
@@ -119,7 +119,7 @@ TEST_F(BadBlocksSuite, WritingToBadRegion) {
 TEST_F(BadBlocksSuite, WritingToBadRegionDuringFileWrite) {
     bank(0).mark_region_bad(g_.block_size * 1 + 512, 2048 - 512);
 
-    Storage storage{ memory_, false };
+    Storage storage{ memory_, pool_, false };
 
     ASSERT_TRUE(storage.clear());
 

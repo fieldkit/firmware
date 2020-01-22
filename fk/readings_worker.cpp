@@ -141,7 +141,7 @@ tl::expected<TakenReadings, Error> ReadingsWorker::take_readings(Pool &pool) {
 
     ScanningContext ctx{ mm, gs.get(), module_bus };
     StatisticsMemory memory{ MemoryFactory::get_data_memory() };
-    Storage storage{ &memory, read_only_ };
+    Storage storage{ &memory, pool, read_only_ };
     if (!read_only_ && !storage.begin()) {
         logerror("error opening storage...");
         return tl::unexpected<Error>(Error::IO);

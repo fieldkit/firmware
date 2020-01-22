@@ -83,13 +83,14 @@ static size_t write_reading(File &file) {
 static void try_and_reproduce_weird_block_issue() {
     loginfo(__PRETTY_FUNCTION__);
 
-    auto gs = get_global_state_rw();
+    StandardPool pool{ "live-tests" };
 
+    auto gs = get_global_state_rw();
     auto counter = 0;
     auto done = false;
 
     while (!done) {
-        Storage storage{ MemoryFactory::get_data_memory(), false };
+        Storage storage{ MemoryFactory::get_data_memory(), pool, false };
         if (counter == 0) {
             FK_ASSERT(storage.clear());
         }
@@ -132,7 +133,7 @@ static void try_and_reproduce_weird_block_issue() {
 
     {
         NoopProgressCallbacks progress;
-        Storage storage{ MemoryFactory::get_data_memory(), false };
+        Storage storage{ MemoryFactory::get_data_memory(), pool, false };
         FK_ASSERT(storage.begin());
         FK_ASSERT(storage.fsck(&progress));
     }
