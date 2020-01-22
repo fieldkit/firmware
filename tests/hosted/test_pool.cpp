@@ -119,8 +119,8 @@ TEST_F(PoolSuite, Collections) {
     nested.emplace(0, std::move(integers));
 }
 
-TEST_F(PoolSuite, ChainedPool) {
-    auto pool = create_chained_pool_inside("chained");
+TEST_F(PoolSuite, StandardPool) {
+    auto pool = create_standard_pool_inside("standard");
 
     pool->malloc(256);
     pool->malloc(256);

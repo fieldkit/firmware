@@ -93,15 +93,15 @@ public:
 
 Network *get_network();
 
-template<typename ConcreteWrapped, class... Args, typename ConcreteWrapee = ChainedPoolWrapper<NetworkConnection, ConcreteWrapped, Args...>>
+template<typename ConcreteWrapped, class... Args, typename ConcreteWrapee = StandardPoolWrapper<NetworkConnection, ConcreteWrapped, Args...>>
 inline PoolPointer<NetworkConnection> *create_network_connection_wrapper(Args &&... args) {
-    auto pool = create_chained_pool_inside(TypeName<ConcreteWrapped>::get());
+    auto pool = create_standard_pool_inside(TypeName<ConcreteWrapped>::get());
     return new (pool) ConcreteWrapee(pool, std::forward<Args>(args)...);
 }
 
-template<typename ConcreteWrapped, class... Args, typename ConcreteWrapee = ChainedPoolWrapper<NetworkListener, ConcreteWrapped, Args...>>
+template<typename ConcreteWrapped, class... Args, typename ConcreteWrapee = StandardPoolWrapper<NetworkListener, ConcreteWrapped, Args...>>
 inline PoolPointer<NetworkListener> *create_network_listener_wrapper(Args &&... args) {
-    auto pool = create_chained_pool_inside(TypeName<ConcreteWrapped>::get());
+    auto pool = create_standard_pool_inside(TypeName<ConcreteWrapped>::get());
     return new (pool) ConcreteWrapee(pool, std::forward<Args>(args)...);
 }
 

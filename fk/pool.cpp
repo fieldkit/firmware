@@ -216,7 +216,7 @@ void *StandardPool::malloc(size_t bytes) {
     return sibling_->malloc(bytes);
 }
 
-Pool *create_chained_pool_inside(const char *name) {
+Pool *create_standard_pool_inside(const char *name) {
     auto size = StandardPageSize;
     auto ptr = fk_standard_page_malloc(size, name);
     auto overhead = sizeof(StandardPool);
