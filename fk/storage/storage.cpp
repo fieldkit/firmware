@@ -86,7 +86,7 @@ SeekSettings SeekSettings::end_of(uint8_t file) {
     return SeekSettings{ file, LastRecord };
 }
 
-Storage::Storage(DataMemory *memory, Pool &pool, bool read_only) : data_memory_(memory), pool_(&pool), memory_(memory), bad_blocks_(memory), read_only_(read_only) {
+Storage::Storage(DataMemory *memory, Pool &pool, bool read_only) : data_memory_(memory), pool_(&pool), memory_(memory), bad_blocks_(memory, pool), read_only_(read_only) {
     FK_ASSERT(memory != nullptr);
 }
 

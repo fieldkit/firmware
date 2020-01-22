@@ -6,10 +6,8 @@ namespace fk {
 
 FK_DECLARE_LOGGER("badblocks");
 
-BadBlocks::BadBlocks(DataMemory *memory) : memory_(memory) {
+BadBlocks::BadBlocks(DataMemory *memory, Pool &pool) : memory_(memory), pool_(&pool) {
     FK_ASSERT(memory_ != nullptr);
-
-    pool_ = create_pool_inside("bad-blocks");
 
     geometry_ = memory->geometry();
 
@@ -21,7 +19,6 @@ BadBlocks::BadBlocks(DataMemory *memory) : memory_(memory) {
 }
 
 BadBlocks::~BadBlocks() {
-    delete pool_;
 }
 
 void BadBlocks::mark_address_as_bad(uint32_t address) {

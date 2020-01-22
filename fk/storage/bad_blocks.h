@@ -8,12 +8,12 @@ namespace fk {
 class BadBlocks {
 private:
     DataMemory *memory_;
-    FlashGeometry geometry_;
     Pool *pool_;
+    FlashGeometry geometry_;
     uint8_t *table_;
 
 public:
-    BadBlocks(DataMemory *memory);
+    BadBlocks(DataMemory *memory, Pool &pool);
     virtual ~BadBlocks();
 
 public:
