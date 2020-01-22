@@ -155,26 +155,6 @@ void *Pool::decode(pb_msgdesc_t const *fields, uint8_t *src, size_t size, size_t
     return ptr;
 }
 
-MallocPool::MallocPool(const char *name, size_t size) : Pool(name, size, (void *)fk_malloc(size), 0) {
-    FK_ASSERT(size > 0);
-    #if defined(FK_LOGGING_POOL_MALLOC_FREE)
-    loginfo("malloc: 0x%p %s size=%zu ptr=0x%p (free=%" PRIu32 ")",
-            this, name, size, block(), fk_free_memory());
-    #endif
-}
-
-MallocPool::~MallocPool() {
-    #if defined(FK_LOGGING_POOL_MALLOC_FREE)
-    loginfo("free: 0x%p %s size=%zu ptr=0x%p (free=%" PRIu32 ")",
-            this, name(), size(), block(), fk_free_memory());
-    #endif
-    auto ptr = block();
-    if (ptr != nullptr) {
-        block(nullptr, 0);
-        fk_free(ptr);
-    }
-}
-
 class InsidePool : public Pool {
 public:
     InsidePool(const char *name, void *ptr, size_t size, size_t taken) : Pool(name, size, ptr, taken) {

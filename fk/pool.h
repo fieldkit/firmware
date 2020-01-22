@@ -101,13 +101,6 @@ public:
 
 };
 
-class MallocPool : public Pool {
-protected:
-    MallocPool(const char *name, size_t size);
-    virtual ~MallocPool();
-
-};
-
 class StandardPool : public Pool {
 private:
     StandardPool *sibling_{ nullptr };
