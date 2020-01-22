@@ -15,6 +15,7 @@ struct StandardPages {
 
 static StandardPages pages[SizeOfStandardPagePool];
 static bool initialized = false;
+static size_t highwater = 0u;
 
 void fk_standard_page_initialize() {
     if (!initialized) {
@@ -49,6 +50,10 @@ void *fk_standard_page_malloc(size_t size, const char *name) {
             pages[i].available = false;
             pages[i].owner = name;
             logdebug("[%2d] malloc '%s'", i, name);
+
+            if (i > highwater) {
+                highwater = i;
+            }
             break;
         }
     }
@@ -86,13 +91,13 @@ void fk_standard_page_free(void *ptr) {
 }
 
 StandardPageMemInfo fk_standard_page_meminfo() {
-    StandardPageMemInfo info = { 0, 0 };
+    StandardPageMemInfo info = { 0, 0, highwater };
 
     for (auto i = 0u; i < SizeOfStandardPagePool; ++i) {
-        info.total += StandardPageSize;
         if (pages[i].available) {
-            info.free += StandardPageSize;
+            info.free += 1;
         }
+        info.total += 1;
     }
 
     return info;
