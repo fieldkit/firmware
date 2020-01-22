@@ -103,6 +103,7 @@ public:
 
 class StandardPool : public Pool {
 private:
+    bool free_self_{ false };
     StandardPool *sibling_{ nullptr };
 
 public:

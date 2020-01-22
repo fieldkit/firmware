@@ -53,6 +53,7 @@ void Pool::clear() {
 }
 
 void *Pool::malloc(size_t allocating) {
+    FK_ASSERT(allocating > 0);
     FK_ASSERT(!frozen_);
 
     auto aligned = aligned_size(allocating);
@@ -177,10 +178,10 @@ Pool *create_pool_inside(const char *name) {
     return new (ptr) InsidePool(name, ptr, size, overhead);
 }
 
-StandardPool::StandardPool(const char *name) : Pool(name, StandardPageSize, (void *)fk_standard_page_malloc(StandardPageSize, name), 0) {
+StandardPool::StandardPool(const char *name) : Pool(name, StandardPageSize, (void *)fk_standard_page_malloc(StandardPageSize, name), 0), free_self_{ true } {
 }
 
-StandardPool::StandardPool(const char *name, void *ptr, size_t size, size_t taken) : Pool(name, size, ptr, taken) {
+StandardPool::StandardPool(const char *name, void *ptr, size_t size, size_t taken) : Pool(name, size, ptr, taken), free_self_{ false } {
 }
 
 StandardPool::~StandardPool() {
@@ -192,14 +193,18 @@ StandardPool::~StandardPool() {
         delete sibling_;
         sibling_ = nullptr;
     }
-    auto ptr = block();
-    if (ptr != nullptr) {
-        block(nullptr, 0);
-        fk_standard_page_free(ptr);
+    if (free_self_) {
+        auto ptr = block();
+        if (ptr != nullptr) {
+            block(nullptr, 0);
+            fk_standard_page_free(ptr);
+        }
     }
 }
 
 void *StandardPool::malloc(size_t bytes) {
+    FK_ASSERT(bytes > 0);
+
     if (can_malloc(bytes)) {
         return Pool::malloc(bytes);
     }
