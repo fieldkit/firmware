@@ -17,7 +17,16 @@ void ReceiveFirmwareWorker::run(Pool &pool) {
 
     loginfo("receiving %" PRIu32 " bytes...", expected);
 
-    auto file = get_sd_card()->open(file_name, true, pool);
+    auto sd = get_sd_card();
+    if (sd->is_file(file_name)) {
+        if (!sd->unlink(file_name)) {
+            connection_->plain(500, "error", "{}");
+            connection_->close();
+            return;
+        }
+    }
+
+    auto file = sd->open(file_name, true, pool);
     auto buffer = reinterpret_cast<uint8_t*>(pool.malloc(1024));
 
     while (connection_->active() && bytes_copied < expected) {
