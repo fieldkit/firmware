@@ -25,6 +25,8 @@ void fk_standard_page_initialize() {
         }
     }
 
+    loginfo("allocated %zd bytes", StandardPageSize * SizeOfStandardPagePool);
+
     initialized = true;
 }
 
