@@ -18,10 +18,14 @@ static bool initialized = false;
 
 void fk_standard_page_initialize() {
     if (!initialized) {
+        auto memory = reinterpret_cast<uint8_t*>(fk_malloc(StandardPageSize * SizeOfStandardPagePool));
+
         for (auto i = 0u; i < SizeOfStandardPagePool; ++i) {
-            pages[i].base = fk_malloc(StandardPageSize);
+            pages[i].base = memory;
             pages[i].available = true;
             pages[i].owner = nullptr;
+
+            memory += StandardPageSize;
         }
     }
 
