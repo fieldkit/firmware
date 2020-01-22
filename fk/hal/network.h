@@ -105,6 +105,11 @@ inline PoolPointer<NetworkListener> *create_network_listener_wrapper(Args &&... 
     return new (pool) ConcreteWrapee(pool, std::forward<Args>(args)...);
 }
 
+template<typename ConcreteWrapped, class... Args, typename ConcreteWrapee = WeakPoolWrapper<NetworkListener, ConcreteWrapped, Args...>>
+inline PoolPointer<NetworkListener> *create_weak_network_listener_wrapper(Pool &pool, Args &&... args) {
+    return new (pool) ConcreteWrapee(pool, std::forward<Args>(args)...);
+}
+
 FK_ENABLE_TYPE_NAME(NetworkConnection);
 FK_ENABLE_TYPE_NAME(NetworkListener);
 

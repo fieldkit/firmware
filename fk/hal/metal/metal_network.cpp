@@ -224,6 +224,13 @@ bool MetalNetworkConnection::stop() {
 }
 
 bool MetalNetwork::begin(NetworkSettings settings) {
+    if (pool_ == nullptr) {
+        pool_ = create_standard_pool_inside("network");
+    }
+    else {
+        pool_->clear();
+    }
+
     get_board()->enable_wifi();
 
     WiFi.setPins(WINC1500_CS, WINC1500_IRQ, WINC1500_RESET);
@@ -305,10 +312,9 @@ uint32_t MetalNetwork::ip_address() {
 }
 
 PoolPointer<NetworkListener> *MetalNetwork::listen(uint16_t port) {
-    auto listener = create_network_listener_wrapper<MetalNetworkListener>(port);
+    auto listener = create_weak_network_listener_wrapper<MetalNetworkListener>(*pool_, port);
 
     if (!listener->get<MetalNetworkListener>()->begin()) {
-        delete listener;
         return nullptr;
     }
 
@@ -350,6 +356,10 @@ bool MetalNetwork::stop() {
         WiFi.end();
         enabled_ = false;
         get_board()->disable_wifi();
+    }
+    if (pool_ != nullptr) {
+        delete pool_;
+        pool_ = nullptr;
     }
     return true;
 }

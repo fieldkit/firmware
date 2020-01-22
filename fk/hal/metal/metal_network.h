@@ -72,6 +72,7 @@ public:
 
 class MetalNetwork : public Network {
 private:
+    Pool *pool_{ nullptr };
     NetworkSettings settings_;
     bool enabled_{ false };
     bool serving_{ false };
