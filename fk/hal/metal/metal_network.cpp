@@ -19,34 +19,24 @@ constexpr uint32_t NetworkRemoveServiceRecordDelayMs = 250;
 class StaticWiFiCallbacks : public WiFiCallbacks {
 private:
     constexpr static size_t ExpectedWiFiBufferSize = 1472;
-    constexpr static size_t NumberOfBuffers = StandardPageSize / ExpectedWiFiBufferSize;
+    constexpr static size_t NumberOfBuffers = 3;
 
     struct Buffer {
-        bool taken;
-        uint8_t *ptr;
+        bool taken{ false };
+        void *ptr{ nullptr };
     };
-    uint8_t *memory_{ nullptr };
     Buffer buffers_[NumberOfBuffers];
 
-private:
-    void initialize() {
-        if (memory_ != nullptr) {
-            return;
-        }
-
-        memory_ = (uint8_t *)fk_standard_page_malloc(StandardPageSize, "network-buffers");
-
+public:
+    void initialize(Pool &pool) {
         for (auto i = 0u; i < NumberOfBuffers; ++i) {
-            buffers_[i].ptr = memory_ + ExpectedWiFiBufferSize * i;
+            buffers_[i].ptr = pool.malloc(ExpectedWiFiBufferSize);
             buffers_[i].taken = false;
         }
     }
 
-public:
     void *malloc(size_t size) override {
         FK_ASSERT(size == ExpectedWiFiBufferSize);
-
-        initialize();
 
         for (auto i = 0u; i < NumberOfBuffers; ++i) {
             if (!buffers_[i].taken) {
@@ -230,6 +220,8 @@ bool MetalNetwork::begin(NetworkSettings settings) {
     else {
         pool_->clear();
     }
+
+    staticWiFiCallbacks.initialize(*pool_);
 
     get_board()->enable_wifi();
 
