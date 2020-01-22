@@ -103,4 +103,12 @@ StandardPageMemInfo fk_standard_page_meminfo() {
     return info;
 }
 
+void fk_standard_page_log() {
+    for (auto i = 0u; i < SizeOfStandardPagePool; ++i) {
+        if (!pages[i].available) {
+            logdebug("[%2d] owner = %s", i, pages[i].owner);
+        }
+    }
+}
+
 } // namespace fk

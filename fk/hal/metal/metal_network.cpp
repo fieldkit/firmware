@@ -34,7 +34,7 @@ private:
             return;
         }
 
-        memory_ = (uint8_t *)fk_standard_page_malloc(StandardPageSize, __func__);
+        memory_ = (uint8_t *)fk_standard_page_malloc(StandardPageSize, "network-buffers");
 
         for (auto i = 0u; i < NumberOfBuffers; ++i) {
             buffers_[i].ptr = memory_ + ExpectedWiFiBufferSize * i;

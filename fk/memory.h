@@ -18,4 +18,6 @@ struct StandardPageMemInfo {
 
 StandardPageMemInfo fk_standard_page_meminfo();
 
+void fk_standard_page_log();
+
 } // namespace fk

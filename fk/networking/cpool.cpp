@@ -74,7 +74,7 @@ void ConnectionPool::service() {
 }
 
 void ConnectionPool::queue(PoolPointer<NetworkConnection> *c, Connection *connection) {
-    for (auto i = (size_t)0; i < MaximumConnections; ++i) {
+    for (auto i = 0u; i < MaximumConnections; ++i) {
         if (connections_[i] == nullptr) {
             ip4_address ip{ c->get()->remote_address() };
 

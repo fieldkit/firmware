@@ -20,7 +20,7 @@ using ConstructedModulesCollection = collection<ConstructedModule>;
 
 class ModuleFactory {
 private:
-    StandardPool pool_{ "modules" };
+    StandardPool pool_{ "module-factory" };
     ConstructedModulesCollection modules_{ pool_ };
     uint32_t service_interval_{ 0 };
 
