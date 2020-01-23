@@ -30,8 +30,11 @@ tl::expected<uint32_t, Error> MetaOps::write_state(GlobalState const *gs, Pool &
     auto hash_hex = bytes_to_hex_string_pool(fkb_header.firmware.hash, hash_size, pool);
 
     auto record = fk_data_record_encoding_new();
-    record.metadata.firmware.git.arg = (void *)hash_hex;
+    record.metadata.firmware.version.arg = (void *)fkb_header.firmware.version;
     record.metadata.firmware.build.arg = (void *)fkb_header.firmware.name;
+    record.metadata.firmware.hash.arg = (void *)hash_hex;
+    record.metadata.firmware.number.arg = (void *)pool.sprintf("%d", fkb_header.firmware.number);
+    record.metadata.firmware.timestamp = fkb_header.firmware.timestamp;
     record.metadata.deviceId.arg = (void *)&device_id;
     record.metadata.generation.arg = (void *)&generation;
     record.identity.name.arg = (void *)gs->general.name;
@@ -204,8 +207,11 @@ tl::expected<uint32_t, Error> MetaOps::write_modules(GlobalState const *gs, Cons
     auto hash_hex = bytes_to_hex_string_pool(fkb_header.firmware.hash, hash_size, pool);
 
     auto record = fk_data_record_encoding_new();
-    record.metadata.firmware.git.arg = (void *)hash_hex;
+    record.metadata.firmware.version.arg = (void *)fkb_header.firmware.version;
     record.metadata.firmware.build.arg = (void *)fkb_header.firmware.name;
+    record.metadata.firmware.hash.arg = (void *)hash_hex;
+    record.metadata.firmware.number.arg = (void *)pool.sprintf("%d", fkb_header.firmware.number);
+    record.metadata.firmware.timestamp = fkb_header.firmware.timestamp;
     record.metadata.deviceId.arg = (void *)device_id_data;
     record.metadata.generation.arg = (void *)generation_data;
     record.identity.name.arg = (void *)gs->general.name;

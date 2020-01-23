@@ -44,10 +44,15 @@ bool HttpReply::include_status() {
     reply_.status.version = 1;
     reply_.status.uptime = fk_uptime();
     reply_.status.identity.device.arg = (void *)gs_->general.name;
-    reply_.status.identity.build.arg = (void *)fkb_header.firmware.name;
     reply_.status.identity.deviceId.arg = device_id_data;
     reply_.status.identity.generation.arg = generation_data;
-    reply_.status.identity.number.arg = (void *)pool_->sprintf("%d", fkb_header.firmware.number);
+
+    reply_.status.firmware.version.arg = (void *)fkb_header.firmware.version;
+    reply_.status.firmware.build.arg = (void *)fkb_header.firmware.name;
+    reply_.status.firmware.number.arg = (void *)pool_->sprintf("%d", fkb_header.firmware.number);
+    reply_.status.firmware.timestamp = fkb_header.firmware.timestamp;
+    reply_.status.firmware.hash.arg = (void *)bytes_to_hex_string_pool(fkb_header.firmware.hash, fkb_header.firmware.hash_size, *pool_);
+
     reply_.status.power.battery.voltage = gs_->power.voltage;
     reply_.status.power.battery.percentage = 100; // gs_->power.charge;
 

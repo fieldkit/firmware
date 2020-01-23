@@ -52,10 +52,14 @@ static inline bool pb_app_network_info_item_decode(pb_istream_t *stream, pb_arra
 
 fk_data_DataRecord fk_data_record_decoding_new(Pool &pool) {
     fk_data_DataRecord record = fk_data_DataRecord_init_default;
-    record.metadata.firmware.git.funcs.decode = pb_decode_string;
-    record.metadata.firmware.git.arg = (void *)&pool;
+    record.metadata.firmware.version.funcs.decode = pb_decode_string;
+    record.metadata.firmware.version.arg = (void *)&pool;
     record.metadata.firmware.build.funcs.decode = pb_decode_string;
     record.metadata.firmware.build.arg = (void *)&pool;
+    record.metadata.firmware.hash.funcs.decode = pb_decode_string;
+    record.metadata.firmware.hash.arg = (void *)&pool;
+    record.metadata.firmware.number.funcs.decode = pb_decode_string;
+    record.metadata.firmware.number.arg = (void *)&pool;
     record.metadata.deviceId.funcs.decode = pb_decode_data;
     record.metadata.deviceId.arg = (void *)&pool;
     record.metadata.generation.funcs.decode = pb_decode_data;
@@ -100,8 +104,10 @@ fk_data_DataRecord fk_data_record_decoding_new(Pool &pool) {
 
 fk_data_DataRecord fk_data_record_encoding_new() {
     fk_data_DataRecord record = fk_data_DataRecord_init_default;
-    record.metadata.firmware.git.funcs.encode = pb_encode_string;
+    record.metadata.firmware.version.funcs.encode = pb_encode_string;
     record.metadata.firmware.build.funcs.encode = pb_encode_string;
+    record.metadata.firmware.number.funcs.encode = pb_encode_string;
+    record.metadata.firmware.hash.funcs.encode = pb_encode_string;
     record.metadata.deviceId.funcs.encode = pb_encode_data;
     record.metadata.generation.funcs.encode = pb_encode_data;
     record.identity.name.funcs.encode = pb_encode_string;
@@ -182,7 +188,13 @@ fk_app_HttpReply *fk_http_reply_encoding_initialize(fk_app_HttpReply *reply) {
     if (reply->status.identity.firmware.arg != nullptr) reply->status.identity.firmware.funcs.encode = pb_encode_string;
     if (reply->status.identity.build.arg != nullptr) reply->status.identity.build.funcs.encode = pb_encode_string;
     if (reply->status.identity.number.arg != nullptr) reply->status.identity.number.funcs.encode = pb_encode_string;
+    if (reply->status.identity.name.arg != nullptr) reply->status.identity.name.funcs.encode = pb_encode_string;
     if (reply->status.identity.generation.arg != nullptr) reply->status.identity.generation.funcs.encode = pb_encode_data;
+
+    if (reply->status.firmware.version.arg != nullptr) reply->status.firmware.version.funcs.encode = pb_encode_string;
+    if (reply->status.firmware.build.arg != nullptr) reply->status.firmware.build.funcs.encode = pb_encode_string;
+    if (reply->status.firmware.number.arg != nullptr) reply->status.firmware.number.funcs.encode = pb_encode_string;
+    if (reply->status.firmware.hash.arg != nullptr) reply->status.firmware.hash.funcs.encode = pb_encode_string;
 
     if (reply->modules.arg != nullptr) {
         reply->modules.funcs.encode = pb_encode_array;
