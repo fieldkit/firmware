@@ -74,7 +74,7 @@ public:
             }
         }
 
-        FK_ASSERT(false);
+        alogf(LogLevels::WARN, "network", "free of old network buffer, ignoring");
     }
 
     bool busy(uint32_t elapsed) override {

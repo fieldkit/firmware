@@ -168,18 +168,27 @@ void U8g2Display::home(HomeScreen const &data) {
     draw_.clearBuffer();
 
     if (data.progress.operation == nullptr) {
+        char buffer[64];
         if (data.network.enabled) {
-            const char *rx_suffix = "";
-            uint32_t rx_pretty = 0;
+            if (toggle_every(data.time, 5000)) {
+                const char *rx_suffix = "";
+                uint32_t rx_pretty = 0;
 
-            pretty_bytes(data.network.bytes_tx, &rx_pretty, &rx_suffix);
+                pretty_bytes(data.network.bytes_tx, &rx_pretty, &rx_suffix);
 
-            char buffer[128];
-            tiny_snprintf(buffer, sizeof(buffer), "%d%s tx", rx_pretty, rx_suffix);
-            draw_.setFontMode(0);
-            draw_.setFont(u8g2_font_courB08_tf);
-            auto width = draw_.getUTF8Width(buffer);
-            draw_.drawUTF8(((OLED_WIDTH - 48) / 2) - (width / 2), 12, buffer);
+                tiny_snprintf(buffer, sizeof(buffer), "%d%s tx", rx_pretty, rx_suffix);
+                draw_.setFontMode(0);
+                draw_.setFont(u8g2_font_courB08_tf);
+                auto width = draw_.getUTF8Width(buffer);
+                draw_.drawUTF8(((OLED_WIDTH - 48) / 2) - (width / 2), 12, buffer);
+            }
+            else {
+                tiny_snprintf(buffer, sizeof(buffer), "%d", data.readings);
+                draw_.setFontMode(0);
+                draw_.setFont(u8g2_font_courB08_tf);
+                auto width = draw_.getUTF8Width(buffer);
+                draw_.drawUTF8(((OLED_WIDTH - 48) / 2) - (width / 2), 12, buffer);
+            }
         }
         else {
             if (data.debug_mode) {
@@ -188,6 +197,13 @@ void U8g2Display::home(HomeScreen const &data) {
                 draw_.setFontMode(0);
                 draw_.setFont(u8g2_font_courB08_tf);
                 draw_.drawUTF8(((OLED_WIDTH - 48) / 2) - (width / 2), 12, text);
+            }
+            else {
+                tiny_snprintf(buffer, sizeof(buffer), "%d", data.readings);
+                draw_.setFontMode(0);
+                draw_.setFont(u8g2_font_courB08_tf);
+                auto width = draw_.getUTF8Width(buffer);
+                draw_.drawUTF8(((OLED_WIDTH - 48) / 2) - (width / 2), 12, buffer);
             }
         }
     }

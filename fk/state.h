@@ -242,6 +242,11 @@ struct SchedulerState {
     Schedule lora;
 };
 
+struct ReadingsState {
+    uint32_t number;
+    uint32_t time;
+};
+
 struct GlobalState {
 public:
     uint32_t version;
@@ -258,8 +263,9 @@ public:
     SchedulerState scheduler;
     PhysicalModuleState physical_modules[MaximumNumberOfPhysicalModules];
     SdCardState sd_card;
-    // TODO Make this 'readings'?
+    // TODO Merge these.
     ModulesState *modules;
+    ReadingsState readings;
 
 public:
     GlobalState();

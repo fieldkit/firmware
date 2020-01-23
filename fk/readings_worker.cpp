@@ -102,6 +102,8 @@ void ReadingsWorker::run(Pool &pool) {
             gs->storage.meta.block = meta_fh_.record;
             gs->storage.data.size = data_fh_.size;
             gs->storage.data.block = data_fh_.record;
+            gs->readings.time = modules->readings_time;
+            gs->readings.number = modules->readings_number;
         }
 
         if (gs->modules != nullptr) {

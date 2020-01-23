@@ -69,7 +69,7 @@ tl::expected<TakenReadings, Error> ReadingsTaker::take(ConstructedModulesCollect
 }
 
 bool ReadingsTaker::append_readings(File &file, Pool &pool) {
-    for (size_t i = 0; i < fk_config().readings.amplification; ++i) {
+    for (auto i = 0u; i < fk_config().readings.amplification; ++i) {
         if (i > 0) {
             // NOTE: This is necessary when we're amplifying.
             readings_.record().readings.reading++;

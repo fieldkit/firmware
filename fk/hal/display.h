@@ -44,6 +44,7 @@ struct HomeScreen : public DisplayScreen {
     const char *primary;
     const char *secondary;
     TaskProgress progress;
+    uint32_t readings;
 };
 
 struct MenuOption {
