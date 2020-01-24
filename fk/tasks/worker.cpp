@@ -16,7 +16,9 @@ void task_handler_worker(void *params) {
     worker->run();
     delete worker;
 
-    loginfo("done (%" PRIu32 "ms)", fk_uptime() - started);
+    auto highwater = os_task_highwater(os_task_self());
+
+    loginfo("done (%" PRIu32 "ms) highwater = (%" PRIu32 ")", fk_uptime() - started, highwater);
 }
 
 }
