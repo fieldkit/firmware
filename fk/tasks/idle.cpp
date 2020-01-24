@@ -22,7 +22,9 @@ void task_handler_idle(void *params) {
                 // Read all incoming data.
             }
 
-            fk_logging_dump_buffer();
+            if (false) {
+                fk_logging_dump_buffer();
+            }
         }
     }
 }
