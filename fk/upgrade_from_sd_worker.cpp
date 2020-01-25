@@ -76,27 +76,39 @@ void UpgradeFirmwareFromSdWorker::run(Pool &pool) {
     }
     case SdCardFirmwareOperation::Load: {
         if (bl_path != nullptr && has_file(bl_path)) {
+            loginfo("loading bootloader");
             if (!load_firmware(bl_path, OtherBankAddress, pool)) {
                 gsm.notify({ "error loading bl" });
                 return;
             }
         }
+        else {
+            loginfo("bootloader skipped");
+        }
 
         if (main_path != nullptr) {
+            loginfo("loading firmware");
+
             if (!load_firmware(main_path, OtherBankAddress + BootloaderSize, pool)) {
                 gsm.notify({ "error loading fk" });
                 return;
             }
         }
+        else {
+            loginfo("main skipped");
+        }
 
         log_other_firmware();
 
-        gsm.notify({ "success, swap!" });
-
         if (params_.swap) {
+            gsm.notify({ "success, swap!" });
+
             fk_delay(1000);
 
             fk_nvm_swap_banks();
+        }
+        else {
+            gsm.notify({ "success!" });
         }
         break;
     }
