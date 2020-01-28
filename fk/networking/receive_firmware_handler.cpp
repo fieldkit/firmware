@@ -17,6 +17,10 @@ void ReceiveFirmwareWorker::run(Pool &pool) {
 
     loginfo("receiving %" PRIu32 " bytes...", expected);
 
+    GlobalStateProgressCallbacks gs_progress;
+    ProgressTracker tracker{ &gs_progress, Operation::Download, "receiving", "", expected };
+
+    auto swap = connection_->find_query_param("swap", pool) != nullptr;
     auto sd = get_sd_card();
     if (sd->is_file(file_name)) {
         loginfo("deleting existing file");
@@ -30,9 +34,6 @@ void ReceiveFirmwareWorker::run(Pool &pool) {
 
     auto file = sd->open(file_name, true, pool);
     auto buffer = reinterpret_cast<uint8_t*>(pool.malloc(NetworkBufferSize));
-
-    GlobalStateProgressCallbacks gs_progress;
-    ProgressTracker tracker{ &gs_progress, Operation::Download, "receiving", "", expected };
 
     while (connection_->active() && bytes_copied < expected) {
         auto bytes = connection_->read(buffer, NetworkBufferSize);
@@ -62,7 +63,7 @@ void ReceiveFirmwareWorker::run(Pool &pool) {
 
     loginfo("launch upgrade");
 
-    auto params = SdCardFirmware{ SdCardFirmwareOperation::Load, nullptr, file_name, false };
+    auto params = SdCardFirmware{ SdCardFirmwareOperation::Load, nullptr, file_name, swap };
     UpgradeFirmwareFromSdWorker upgrade_worker{ params };
     upgrade_worker.run(pool);
 }
