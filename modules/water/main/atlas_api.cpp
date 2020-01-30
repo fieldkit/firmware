@@ -97,8 +97,6 @@ bool AtlasApi::status_reply(AtlasApiReply &reply, CalibrationStatus status) {
     }
     }
 
-    reply.status(status.value);
-
     return true;
 }
 
