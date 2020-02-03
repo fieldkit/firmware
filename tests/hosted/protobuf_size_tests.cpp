@@ -104,16 +104,16 @@ static void fake_global_state(GlobalState &gs, Pool &pool) {
     fake_data(module_id.data);
 
     auto module_sensors = pool.malloc_with<SensorState, 10>({
-        { .name = "sensor-0", .unit_of_measure = "m" },
-        { .name = "sensor-1", .unit_of_measure = "m" },
-        { .name = "sensor-2", .unit_of_measure = "m" },
-        { .name = "sensor-3", .unit_of_measure = "m" },
-        { .name = "sensor-4", .unit_of_measure = "m" },
-        { .name = "sensor-5", .unit_of_measure = "m" },
-        { .name = "sensor-6", .unit_of_measure = "m" },
-        { .name = "sensor-7", .unit_of_measure = "m" },
-        { .name = "sensor-8", .unit_of_measure = "m" },
-        { .name = "sensor-9", .unit_of_measure = "m" },
+        { .name = "sensor-0", .unit_of_measure = "m", .flags = 0, .has_live_vaue = true, .live_value = module_readings->get(0) },
+        { .name = "sensor-1", .unit_of_measure = "m", .flags = 0, .has_live_vaue = true, .live_value = module_readings->get(1) },
+        { .name = "sensor-2", .unit_of_measure = "m", .flags = 0, .has_live_vaue = true, .live_value = module_readings->get(2) },
+        { .name = "sensor-3", .unit_of_measure = "m", .flags = 0, .has_live_vaue = true, .live_value = module_readings->get(3) },
+        { .name = "sensor-4", .unit_of_measure = "m", .flags = 0, .has_live_vaue = true, .live_value = module_readings->get(4) },
+        { .name = "sensor-5", .unit_of_measure = "m", .flags = 0, .has_live_vaue = true, .live_value = module_readings->get(5) },
+        { .name = "sensor-6", .unit_of_measure = "m", .flags = 0, .has_live_vaue = true, .live_value = module_readings->get(6) },
+        { .name = "sensor-7", .unit_of_measure = "m", .flags = 0, .has_live_vaue = true, .live_value = module_readings->get(7) },
+        { .name = "sensor-8", .unit_of_measure = "m", .flags = 0, .has_live_vaue = true, .live_value = module_readings->get(8) },
+        { .name = "sensor-9", .unit_of_measure = "m", .flags = 0, .has_live_vaue = true, .live_value = module_readings->get(9) },
     });
 
     auto module_states = pool.malloc_with<ModuleState, 1>({
@@ -166,13 +166,21 @@ static void fake_modules(ConstructedModulesCollection &modules, Pool &pool) {
     }
 }
 
-class ProtoBufSizeSuite : public StorageSuite {
+class ProtoBufSizeSuite : public ::testing::Test {
+protected:
+    StandardPool pool_{ "storage" };
+
+public:
+    void SetUp() override {
+        pool_.clear();
+    }
+
+    void TearDown() override {
+    }
+
 };
 
 TEST_F(ProtoBufSizeSuite, Readings) {
-    Storage storage{ memory_, pool_, false };
-    ASSERT_TRUE(storage.clear());
-
     GlobalState gs;
     fake_global_state(gs, pool_);
 
@@ -181,12 +189,13 @@ TEST_F(ProtoBufSizeSuite, Readings) {
     ConstructedModulesCollection resolved(pool_);
     fake_modules(resolved, pool_);
 
-    ReadingsTaker readings_taker{ storage, get_modmux(), false };
-    ASSERT_TRUE(readings_taker.take(resolved, ctx, pool_));
+    Readings readings{ get_modmux() };
+    ASSERT_TRUE(readings.take_readings(ctx, resolved, 1, 1, pool_));
 
-    auto meta_file = storage.file(Storage::Data);
-    ASSERT_TRUE(meta_file.seek_end());
-    ASSERT_EQ(meta_file.size(), 243u);
+    auto encoded = pool_.encode(fk_data_DataRecord_fields, &readings.record());
+    ASSERT_EQ(encoded->size, 243u);
+
+    fk_dump_memory("data-readings ", encoded->buffer, encoded->size);
 }
 
 TEST_F(ProtoBufSizeSuite, Configuration) {
@@ -198,6 +207,8 @@ TEST_F(ProtoBufSizeSuite, Configuration) {
 
     auto encoded = pool_.encode(fk_data_DataRecord_fields, &record.record());
     ASSERT_EQ(encoded->size, 684u);
+
+    fk_dump_memory("data-configuration ", encoded->buffer, encoded->size);
 }
 
 TEST_F(ProtoBufSizeSuite, Modules) {
@@ -212,6 +223,8 @@ TEST_F(ProtoBufSizeSuite, Modules) {
 
     auto encoded = pool_.encode(fk_data_DataRecord_fields, &record.record());
     ASSERT_EQ(encoded->size, 686u);
+
+    fk_dump_memory("data-modules ", encoded->buffer, encoded->size);
 }
 
 TEST_F(ProtoBufSizeSuite, HttpReplyStatus) {
@@ -222,7 +235,9 @@ TEST_F(ProtoBufSizeSuite, HttpReplyStatus) {
     reply.include_status(1580763366, 327638);
 
     auto encoded = pool_.encode(fk_app_HttpReply_fields, reply.reply());
-    ASSERT_EQ(encoded->size, 834u);
+    ASSERT_EQ(encoded->size, 803u);
+
+    fk_dump_memory("http-reply-status ", encoded->buffer, encoded->size);
 }
 
 TEST_F(ProtoBufSizeSuite, HttpReplyReadings) {
@@ -233,5 +248,7 @@ TEST_F(ProtoBufSizeSuite, HttpReplyReadings) {
     reply.include_readings();
 
     auto encoded = pool_.encode(fk_app_HttpReply_fields, reply.reply());
-    ASSERT_EQ(encoded->size, 234u);
+    ASSERT_EQ(encoded->size, 284u);
+
+    fk_dump_memory("http-reply-readings ", encoded->buffer, encoded->size);
 }

@@ -168,9 +168,9 @@ struct ProgressState {
 };
 
 struct StreamState {
-    uint32_t size;
-    uint32_t block;
-    uint32_t modified;
+    uint32_t size{ 0 };
+    uint32_t block{ 0 };
+    uint32_t modified{ 0 };
 };
 
 struct StorageState {
