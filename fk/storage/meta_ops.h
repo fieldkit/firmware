@@ -4,6 +4,7 @@
 
 #include "storage/storage.h"
 #include "storage/signed_log.h"
+#include "storage/meta_record.h"
 #include "modules/module_factory.h"
 #include "state.h"
 

@@ -2,9 +2,9 @@
 
 #include "readings_taker.h"
 #include "networking/http_reply.h"
-
 #include "storage/signed_log.h"
-#include "storage/meta_ops.h"
+#include "storage/meta_record.h"
+
 #include "storage_suite.h"
 
 #include "test_modules.h"
@@ -190,64 +190,48 @@ TEST_F(ProtoBufSizeSuite, Readings) {
 }
 
 TEST_F(ProtoBufSizeSuite, Configuration) {
-    Storage storage{ memory_, pool_, false };
-    ASSERT_TRUE(storage.clear());
-
     GlobalState gs;
     fake_global_state(gs, pool_);
 
-    MetaOps meta_ops{ storage };
-    ASSERT_TRUE(meta_ops.write_state(&gs, &fake_header, pool_));
+    MetaRecord record;
+    record.include_state(&gs, &fake_header, pool_);
 
-    auto meta_file = storage.file(Storage::Meta);
-    ASSERT_TRUE(meta_file.seek_end());
-    ASSERT_EQ(meta_file.size(), 733u);
+    auto encoded = pool_.encode(fk_data_DataRecord_fields, &record.record());
+    ASSERT_EQ(encoded->size, 684u);
 }
 
 TEST_F(ProtoBufSizeSuite, Modules) {
-    Storage storage{ memory_, pool_, false };
-    ASSERT_TRUE(storage.clear());
-
     ConstructedModulesCollection resolved(pool_);
     fake_modules(resolved, pool_);
 
     GlobalState gs;
     fake_global_state(gs, pool_);
 
-    MetaOps meta_ops{ storage };
-    ASSERT_TRUE(meta_ops.write_modules(&gs, &fake_header, resolved, pool_));
+    MetaRecord record;
+    record.include_modules(&gs, &fake_header, resolved, pool_);
 
-    auto meta_file = storage.file(Storage::Meta);
-    ASSERT_TRUE(meta_file.seek_end());
-    ASSERT_EQ(meta_file.size(), 735u);
+    auto encoded = pool_.encode(fk_data_DataRecord_fields, &record.record());
+    ASSERT_EQ(encoded->size, 686u);
 }
 
 TEST_F(ProtoBufSizeSuite, HttpReplyStatus) {
-    Storage storage{ memory_, pool_, false };
-    ASSERT_TRUE(storage.clear());
-
     GlobalState gs;
     fake_global_state(gs, pool_);
 
     HttpReply reply(pool_, &gs);
     reply.include_status(1580763366, 327638);
 
-    auto file = storage.file(Storage::Meta);
-    auto wrote = file.write(reply.reply(), fk_app_HttpReply_fields);
-    ASSERT_EQ(wrote, 834);
+    auto encoded = pool_.encode(fk_app_HttpReply_fields, reply.reply());
+    ASSERT_EQ(encoded->size, 834u);
 }
 
 TEST_F(ProtoBufSizeSuite, HttpReplyReadings) {
-    Storage storage{ memory_, pool_, false };
-    ASSERT_TRUE(storage.clear());
-
     GlobalState gs;
     fake_global_state(gs, pool_);
 
     HttpReply reply(pool_, &gs);
     reply.include_readings();
 
-    auto file = storage.file(Storage::Meta);
-    auto wrote = file.write(reply.reply(), fk_app_HttpReply_fields);
-    ASSERT_EQ(wrote, 234);
+    auto encoded = pool_.encode(fk_app_HttpReply_fields, reply.reply());
+    ASSERT_EQ(encoded->size, 234u);
 }
