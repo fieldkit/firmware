@@ -21,6 +21,8 @@
 
 #include "hal/metal/metal_lora.h"
 
+extern const struct fkb_header_t fkb_header;
+
 namespace fk {
 
 FK_DECLARE_LOGGER("startup");
@@ -295,7 +297,7 @@ bool StartupWorker::create_new_state(Storage &storage, GlobalState *gs, Pool &po
 
     MetaOps ops{ storage };
 
-    if (!ops.write_state(gs, pool)) {
+    if (!ops.write_state(gs, &fkb_header, pool)) {
         logerror("error writing state");
         fk_restart();
     }

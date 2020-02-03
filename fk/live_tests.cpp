@@ -15,6 +15,8 @@
 
 #include "../modules/weather/main/weather.h"
 
+extern const struct fkb_header_t fkb_header;
+
 namespace fk {
 
 FK_DECLARE_LOGGER("live-tests");
@@ -110,7 +112,7 @@ static void try_and_reproduce_weird_block_issue() {
                 gs.get()->general.recording++;
 
                 MetaOps meta_ops{ storage };
-                FK_ASSERT(meta_ops.write_state(gs.get(), pool));
+                FK_ASSERT(meta_ops.write_state(gs.get(), &fkb_header, pool));
 
                 FK_ASSERT(meta_file.seek_end());
 

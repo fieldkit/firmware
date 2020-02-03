@@ -113,7 +113,7 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(
     return std::move(all_readings);
 }
 
-fk_data_DataRecord &Readings::record() {
+fk_data_DataRecord const &Readings::record() {
     return record_;
 }
 

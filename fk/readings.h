@@ -19,7 +19,11 @@ public:
                                                                 uint32_t meta_record, uint32_t reading_number, Pool &pool);
 
 public:
-    fk_data_DataRecord &record();
+    fk_data_DataRecord const &record();
+
+    void bump_amplified_reading() {
+        record_.readings.reading++;
+    }
 
 };
 

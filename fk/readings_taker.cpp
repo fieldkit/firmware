@@ -71,8 +71,7 @@ tl::expected<TakenReadings, Error> ReadingsTaker::take(ConstructedModulesCollect
 bool ReadingsTaker::append_readings(File &file, Pool &pool) {
     for (auto i = 0u; i < fk_config().readings.amplification; ++i) {
         if (i > 0) {
-            // NOTE: This is necessary when we're amplifying.
-            readings_.record().readings.reading++;
+            readings_.bump_amplified_reading();
         }
         auto bytes_wrote = file.write(&readings_.record(), fk_data_DataRecord_fields);
         if (bytes_wrote == 0) {
@@ -106,7 +105,7 @@ bool ReadingsTaker::verify_reading_record(File &file, Pool &pool) {
 tl::expected<uint32_t, Error> ReadingsTaker::append_configuration(ConstructedModulesCollection &modules, Pool &pool) {
     MetaOps ops{ storage_ };
     auto gs = get_global_state_ro();
-    auto modules_record = ops.write_modules(gs.get(), modules, pool);
+    auto modules_record = ops.write_modules(gs.get(), &fkb_header, modules, pool);
     return modules_record;
 }
 

@@ -232,8 +232,8 @@ TEST_F(StorageSuite, ReadingARecord) {
     pattern.verify_record(file);
 }
 
-// NOTE: Why is this fast?
 TEST_F(StorageSuite, SeekingToARecord) {
+    // NOTE: Why is this fast?
     Storage storage{ memory_, pool_, false };
 
     ASSERT_TRUE(storage.clear());

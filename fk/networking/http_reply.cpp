@@ -17,16 +17,16 @@ HttpReply::HttpReply(Pool &pool, GlobalState const *gs) : pool_(&pool), gs_(gs) 
     reply_ = fk_http_reply_encoding();
 }
 
-bool HttpReply::include_success() {
+bool HttpReply::include_success(uint32_t clock, uint32_t uptime) {
     reply_.type = fk_app_ReplyType_REPLY_SUCCESS;
     reply_.status.version = 1;
-    reply_.status.uptime = fk_uptime();
-    reply_.status.time = get_clock_now();
+    reply_.status.uptime = uptime;
+    reply_.status.time = clock;
 
     return true;
 }
 
-bool HttpReply::include_status() {
+bool HttpReply::include_status(uint32_t clock, uint32_t uptime) {
     fk_serial_number_t sn;
 
     auto device_id_data = pool_->malloc_with<pb_data_t>({
@@ -40,12 +40,17 @@ bool HttpReply::include_status() {
     });
 
     reply_.type = fk_app_ReplyType_REPLY_STATUS;
-    reply_.status.time = get_clock_now();
+    reply_.status.time = clock;
     reply_.status.version = 1;
-    reply_.status.uptime = fk_uptime();
+    reply_.status.uptime = uptime;
     reply_.status.identity.device.arg = (void *)gs_->general.name;
     reply_.status.identity.deviceId.arg = device_id_data;
     reply_.status.identity.generation.arg = generation_data;
+
+    if (fkb_header.firmware.hash_size > 0) {
+        auto firmware_hash_string = bytes_to_hex_string_pool(fkb_header.firmware.hash, fkb_header.firmware.hash_size, *pool_);
+        reply_.status.identity.firmware.arg = (void *)firmware_hash_string;
+    }
 
     reply_.status.firmware.version.arg = (void *)fkb_header.firmware.version;
     reply_.status.firmware.build.arg = (void *)fkb_header.firmware.name;
@@ -182,7 +187,6 @@ bool HttpReply::include_status() {
     reply_.streams.funcs.encode = pb_encode_array;
     reply_.streams.arg = (void *)streams_array;
 
-
     auto device_eui_data = pool_->malloc_with<pb_data_t>({
         .length = sizeof(gs_->lora.device_eui),
         .buffer = gs_->lora.device_eui,
@@ -226,11 +230,6 @@ bool HttpReply::include_status() {
 
     reply_.networkSettings.networks.funcs.encode = pb_encode_array;
     reply_.networkSettings.networks.arg = (void *)networks_array;
-
-    if (fkb_header.firmware.hash_size > 0) {
-        auto firmware_hash_string = bytes_to_hex_string_pool(fkb_header.firmware.hash, fkb_header.firmware.hash_size, *pool_);
-        reply_.status.identity.firmware.arg = (void *)firmware_hash_string;
-    }
 
     reply_.schedules.readings.interval = gs_->scheduler.readings.interval;
     reply_.schedules.network.interval = gs_->scheduler.network.interval;

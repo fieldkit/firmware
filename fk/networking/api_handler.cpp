@@ -117,7 +117,7 @@ static bool flush_configuration(Pool &pool) {
     }
 
     MetaOps ops{ storage };
-    if (!ops.write_state(gs.get(), pool)) {
+    if (!ops.write_state(gs.get(), &fkb_header, pool)) {
         return false;
     }
 
@@ -233,7 +233,7 @@ static bool send_simple_success(HttpServerConnection *connection, fk_app_HttpQue
 
     HttpReply http_reply{ pool, gs.get() };
 
-    FK_ASSERT(http_reply.include_success());
+    FK_ASSERT(http_reply.include_success(get_clock_now(), fk_uptime()));
 
     connection->write(http_reply.reply());
     connection->close();
@@ -246,7 +246,7 @@ static bool send_status(HttpServerConnection *connection, fk_app_HttpQuery *quer
 
     HttpReply http_reply{ pool, gs.get() };
 
-    FK_ASSERT(http_reply.include_status());
+    FK_ASSERT(http_reply.include_status(get_clock_now(), fk_uptime()));
 
     connection->write(http_reply.reply());
     connection->close();
@@ -259,7 +259,7 @@ static bool send_readings(HttpServerConnection *connection, fk_app_HttpQuery *qu
 
     HttpReply http_reply{ pool, gs.get() };
 
-    FK_ASSERT(http_reply.include_status());
+    FK_ASSERT(http_reply.include_status(get_clock_now(), fk_uptime()));
     FK_ASSERT(http_reply.include_readings());
 
     connection->write(http_reply.reply());

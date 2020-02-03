@@ -18,9 +18,9 @@ public:
     HttpReply(Pool &pool, GlobalState const *gs);
 
 public:
-    bool include_status();
+    bool include_success(uint32_t clock, uint32_t uptime);
+    bool include_status(uint32_t clock, uint32_t uptime);
     bool include_readings();
-    bool include_success();
 
 public:
     fk_app_HttpReply const *reply() {
