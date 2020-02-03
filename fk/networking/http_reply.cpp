@@ -57,7 +57,7 @@ bool HttpReply::include_status() {
     reply_.status.power.battery.percentage = 100; // gs_->power.charge;
 
     reply_.status.recording.enabled = gs_->general.recording > 0;
-    reply_.status.recording.started_time = gs_->general.recording;
+    reply_.status.recording.startedTime = gs_->general.recording;
 
     reply_.status.memory.sramAvailable = fk_free_memory();
     reply_.status.memory.programFlashAvailable = 1024 * 1024 - BootloaderSize - fkb_header.firmware.binary_size;
