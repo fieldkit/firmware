@@ -88,7 +88,6 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, fkb_header_t con
                 auto &sensor = module.sensors[s];
                 sensors[s] = fk_app_SensorCapabilities_init_default;
                 sensors[s].number = s;
-                sensors[s].module = m;
                 sensors[s].name.arg = (void *)sensor.name;
                 sensors[s].unitOfMeasure.arg = (void *)sensor.unit_of_measure;
                 sensors[s].flags = sensor.flags;
@@ -107,7 +106,7 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, fkb_header_t con
             });
 
             modules[m] = fk_app_ModuleCapabilities_init_default;
-            modules[m].position = m;
+            modules[m].position = module.position;
             modules[m].name.arg = (void *)module.name;
             modules[m].path.arg = (void *)"";
             modules[m].flags = module.flags;
@@ -298,7 +297,7 @@ bool HttpReply::include_readings() {
         lmr[m] = fk_app_LiveModuleReadings_init_default;
         lmr[m].has_module = true;
         lmr[m].module = fk_app_ModuleCapabilities_init_default;
-        lmr[m].module.position = m;
+        lmr[m].module.position = module.position;
         lmr[m].module.id.arg = (void *)id_data;
         lmr[m].module.name.arg = (void *)module.name;
         lmr[m].module.flags = module.flags;
