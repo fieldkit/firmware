@@ -11,7 +11,6 @@ namespace fk {
 
 struct FoundModule {
     uint8_t position;
-    bool valid;
     ModuleHeader header;
 
     bool physical() const {

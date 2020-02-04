@@ -32,7 +32,6 @@ TEST_F(ModuleFactorySuite, BasicSingleModule) {
     FoundModuleCollection found(pool_);
     found.emplace(FoundModule{
         .position = 0xff,
-        .valid = true,
         .header = {
             .manufacturer = FK_MODULES_MANUFACTURER,
             .kind = FK_MODULES_KIND_RANDOM,

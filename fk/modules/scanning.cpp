@@ -42,7 +42,6 @@ static bool add_virtual_module(FoundModuleCollection &headers, uint16_t kind) {
 
     headers.emplace(FoundModule{
         .position = ModMux::VirtualPosition,
-        .valid = true,
         .header = header,
     });
 
@@ -77,7 +76,7 @@ tl::expected<FoundModuleCollection, Error> ModuleScanning::scan(Pool &pool) {
     auto module_bus = get_board()->i2c_module();
     ModuleEeprom eeprom{ module_bus };
 
-    for (uint8_t i = 0; i < MaximumNumberOfPhysicalModules; ++i) {
+    for (auto i = 0u; i < MaximumNumberOfPhysicalModules; ++i) {
         if (!mm_->choose(i)) {
             logerror("[%d] error choosing", i);
             return tl::unexpected<Error>(Error::Bus);
@@ -95,7 +94,6 @@ tl::expected<FoundModuleCollection, Error> ModuleScanning::scan(Pool &pool) {
             fk_dump_memory("HDR ", (uint8_t *)&header, sizeof(header));
             found.emplace(FoundModule{
                 .position = (uint8_t)i,
-                .valid = false,
                 .header = header,
             });
             continue;
@@ -108,7 +106,6 @@ tl::expected<FoundModuleCollection, Error> ModuleScanning::scan(Pool &pool) {
 
         found.emplace(FoundModule{
             .position = (uint8_t)i,
-            .valid = true,
             .header = header,
         });
     }

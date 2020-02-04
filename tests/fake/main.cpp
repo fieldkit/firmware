@@ -73,7 +73,6 @@ static void setup_fake_data() {
         FoundModuleCollection found(pool);
         found.emplace(FoundModule{
                 .position = 0xff,
-                .valid = true,
                 .header = {
                     .manufacturer = FK_MODULES_MANUFACTURER,
                     .kind = FK_MODULES_KIND_RANDOM,
