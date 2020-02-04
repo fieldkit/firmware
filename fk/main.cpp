@@ -20,9 +20,6 @@ using namespace fk;
 
 FK_DECLARE_LOGGER("main");
 
-static void scan_i2c_radio_bus() __attribute__((unused));
-static void scan_i2c_module_bus() __attribute__((unused));
-
 static void run_tasks() {
     uint32_t stack_size = (4096 + 2048) / sizeof(uint32_t);
 
@@ -177,63 +174,4 @@ void setup() {
 }
 
 void loop() {
-}
-
-static void scan_i2c_radio_bus() {
-    auto bus = get_board()->i2c_radio();
-
-    bus.begin();
-
-    get_board()->enable_lora();
-
-    delay(1000);
-
-    while (true) {
-        loginfo("scanning");
-
-        for (auto i = 0u; i < 128u; ++i) {
-            auto rv = bus.write(i, nullptr, 0);
-            if (I2C_CHECK(rv)) {
-                loginfo("  found 0x%x", i);
-            }
-        }
-
-        delay(1000);
-    }
-}
-
-static void scan_i2c_module_bus() {
-    auto mm = get_modmux();
-
-    mm->disable_all_modules();
-
-    fk_delay(1000);
-
-    mm->enable_all_modules();
-
-    fk_delay(100);
-
-    auto bus = get_board()->i2c_module();
-
-    while (true) {
-        for (auto i : { 2, 6 }) {
-            if (!mm->choose(i)) {
-                loginfo("unable to choose %d", i);
-                continue;
-            }
-
-            loginfo("position: %d", i);
-
-            fk_delay(100);
-
-            for (auto i = 0u; i < 128u; ++i) {
-                auto rv = bus.write(i, nullptr, 0);
-                if (I2C_CHECK(rv)) {
-                    loginfo("  found 0x%x", i);
-                }
-            }
-        }
-
-        delay(1000);
-    }
 }

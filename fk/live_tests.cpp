@@ -21,6 +21,10 @@ namespace fk {
 
 FK_DECLARE_LOGGER("live-tests");
 
+static void scan_i2c_radio_bus() __attribute__((unused));
+
+static void scan_i2c_module_bus() __attribute__((unused));
+
 static size_t write_reading(File &file) {
     fk_data_SensorAndValue readings[] = {
         { 0, (float)fk_random_i32(0, 1000) },
@@ -352,6 +356,65 @@ static void watch_battery() {
     }
 }
 
+static void scan_i2c_radio_bus() {
+    auto bus = get_board()->i2c_radio();
+
+    bus.begin();
+
+    get_board()->enable_lora();
+
+    fk_delay(1000);
+
+    while (true) {
+        loginfo("scanning");
+
+        for (auto i = 0u; i < 128u; ++i) {
+            auto rv = bus.write(i, nullptr, 0);
+            if (I2C_CHECK(rv)) {
+                loginfo("  found 0x%x", i);
+            }
+        }
+
+        fk_delay(1000);
+    }
+}
+
+static void scan_i2c_module_bus() {
+    auto mm = get_modmux();
+
+    mm->disable_all_modules();
+
+    fk_delay(1000);
+
+    mm->enable_all_modules();
+
+    fk_delay(100);
+
+    auto bus = get_board()->i2c_module();
+
+    while (true) {
+        for (auto i : { 2, 6 }) {
+            if (!mm->choose(i)) {
+                loginfo("unable to choose %d", i);
+                continue;
+            }
+
+            loginfo("position: %d", i);
+
+            fk_delay(100);
+
+            for (auto i = 0u; i < 128u; ++i) {
+                auto rv = bus.write(i, nullptr, 0);
+                if (I2C_CHECK(rv)) {
+                    loginfo("  found 0x%x", i);
+                }
+            }
+        }
+
+        fk_delay(1000);
+    }
+}
+
 void fk_live_tests() {
     if (false) {
         try_and_reproduce_weird_block_issue();
@@ -364,6 +427,12 @@ void fk_live_tests() {
     }
     if (false) {
         watch_battery();
+    }
+    if (false) {
+        scan_i2c_module_bus();
+    }
+    if (false) {
+        scan_i2c_radio_bus();
     }
 }
 
