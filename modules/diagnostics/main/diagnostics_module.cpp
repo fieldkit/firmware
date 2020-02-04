@@ -47,6 +47,8 @@ ModuleConfiguration DiagnosticsModule::get_configuration(Pool &pool) {
 ModuleReadings *DiagnosticsModule::take_readings(ModuleContext mc, Pool &pool) {
     CoreTemperature core_temperature_sensor{ get_board()->i2c_core() };
 
+    auto spmi = fk_standard_page_meminfo();
+
     auto i = 0u;
     auto mr = new(pool) NModuleReadings<9>();
     mr->set(i++, mc.gs()->power.charge);
@@ -55,7 +57,7 @@ ModuleReadings *DiagnosticsModule::take_readings(ModuleContext mc, Pool &pool) {
     mr->set(i++, mc.gs()->power.vs);
     mr->set(i++, mc.gs()->power.ma);
     mr->set(i++, mc.gs()->power.mw);
-    mr->set(i++, fk_free_memory());
+    mr->set(i++, fk_free_memory() + (spmi.free * StandardPageSize));
     mr->set(i++, fk_uptime());
 
     float core_temperature = 0.0f;
