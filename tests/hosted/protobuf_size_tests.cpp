@@ -1,3 +1,5 @@
+#include <fstream>
+
 #include <fk-data-protocol.h>
 
 #include "readings_taker.h"
@@ -166,11 +168,31 @@ static void fake_modules(ConstructedModulesCollection &modules, Pool &pool) {
     }
 }
 
+static void dump_binary(std::ostream &stream, std::string prefix, EncodedMessage *message) {
+    stream << prefix << " ";
+    for (auto i = 0u; i < message->size; ++i) {
+        stream << std::setfill('0') << std::setw(2) << std::hex << (int32_t)message->buffer[i] << " ";
+        if ((i + 1) % 32 == 0) {
+            if (i + 1 < message->size) {
+                stream << std::endl << prefix << " ";
+            }
+        }
+    }
+    stream << std::endl;
+}
+
 class ProtoBufSizeSuite : public ::testing::Test {
 protected:
+    static std::ofstream file_;
     StandardPool pool_{ "storage" };
 
 public:
+    ProtoBufSizeSuite() {
+        if (!file_.is_open()) {
+            file_.open("protobuf.pb");
+        }
+    }
+
     void SetUp() override {
         pool_.clear();
 
@@ -183,6 +205,8 @@ public:
     }
 
 };
+
+std::ofstream ProtoBufSizeSuite::file_;
 
 TEST_F(ProtoBufSizeSuite, Readings) {
     GlobalState gs;
@@ -199,7 +223,7 @@ TEST_F(ProtoBufSizeSuite, Readings) {
     auto encoded = pool_.encode(fk_data_DataRecord_fields, &readings.record());
     ASSERT_EQ(encoded->size, 243u);
 
-    fk_dump_memory("data-readings ", encoded->buffer, encoded->size);
+    dump_binary(file_, "data-readings", encoded);
 }
 
 TEST_F(ProtoBufSizeSuite, Configuration) {
@@ -212,7 +236,7 @@ TEST_F(ProtoBufSizeSuite, Configuration) {
     auto encoded = pool_.encode(fk_data_DataRecord_fields, &record.record());
     ASSERT_EQ(encoded->size, 954u);
 
-    fk_dump_memory("data-configuration ", encoded->buffer, encoded->size);
+    dump_binary(file_, "data-configuration", encoded);
 }
 
 TEST_F(ProtoBufSizeSuite, Modules) {
@@ -228,7 +252,7 @@ TEST_F(ProtoBufSizeSuite, Modules) {
     auto encoded = pool_.encode(fk_data_DataRecord_fields, &record.record());
     ASSERT_EQ(encoded->size, 956u);
 
-    fk_dump_memory("data-modules ", encoded->buffer, encoded->size);
+    dump_binary(file_, "data-modules", encoded);
 }
 
 TEST_F(ProtoBufSizeSuite, HttpReplyStatus) {
@@ -241,7 +265,7 @@ TEST_F(ProtoBufSizeSuite, HttpReplyStatus) {
     auto encoded = pool_.encode(fk_app_HttpReply_fields, reply.reply());
     ASSERT_EQ(encoded->size, 1209u);
 
-    fk_dump_memory("http-reply-status ", encoded->buffer, encoded->size);
+    dump_binary(file_, "http-reply-status", encoded);
 }
 
 TEST_F(ProtoBufSizeSuite, HttpReplyReadings) {
@@ -254,5 +278,5 @@ TEST_F(ProtoBufSizeSuite, HttpReplyReadings) {
     auto encoded = pool_.encode(fk_app_HttpReply_fields, reply.reply());
     ASSERT_EQ(encoded->size, 284u);
 
-    fk_dump_memory("http-reply-readings ", encoded->buffer, encoded->size);
+    dump_binary(file_, "http-reply-readings", encoded);
 }

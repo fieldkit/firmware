@@ -9,3 +9,4 @@ core.*
 .ccls-cache
 .clangd
 compile_commands.json
+protobuf.pb
