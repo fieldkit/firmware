@@ -20,6 +20,8 @@ void MetaRecord::include_state(GlobalState const *gs, fkb_header_t const *fkb_he
     auto hash_hex = bytes_to_hex_string_pool(fkb_header->firmware.hash, hash_size, pool);
 
     record_ = fk_data_record_encoding_new();
+    record_.has_metadata = true;
+    record_.metadata.has_firmware = true;
     record_.metadata.firmware.version.arg = (void *)fkb_header->firmware.version;
     record_.metadata.firmware.build.arg = (void *)fkb_header->firmware.name;
     record_.metadata.firmware.hash.arg = (void *)hash_hex;
@@ -27,7 +29,9 @@ void MetaRecord::include_state(GlobalState const *gs, fkb_header_t const *fkb_he
     record_.metadata.firmware.timestamp = fkb_header->firmware.timestamp;
     record_.metadata.deviceId.arg = (void *)device_id_data;
     record_.metadata.generation.arg = (void *)generation_data;
+    record_.has_identity = true;
     record_.identity.name.arg = (void *)gs->general.name;
+    record_.has_condition = true;
     record_.condition.flags = fk_data_ConditionFlags_CONDITION_FLAGS_NONE;
     if (gs->general.recording > 0) {
         record_.condition.flags |= fk_data_ConditionFlags_CONDITION_FLAGS_RECORDING;
@@ -60,6 +64,7 @@ void MetaRecord::include_state(GlobalState const *gs, fkb_header_t const *fkb_he
             .buffer = gs->lora.device_address,
         });
 
+        record_.has_lora = true;
         record_.lora.deviceEui.arg = (void *)device_eui_data;
         record_.lora.appEui.arg = (void *)app_eui_data;
         record_.lora.appKey.arg = (void *)app_key_data;
@@ -85,7 +90,14 @@ void MetaRecord::include_state(GlobalState const *gs, fkb_header_t const *fkb_he
         .fields = fk_data_NetworkInfo_fields,
     });
 
+    record_.has_network = true;
     record_.network.networks.arg = (void *)networks_array;
+
+    record_.has_schedule = true;
+    record_.schedule.has_readings = true;
+    record_.schedule.has_network = true;
+    record_.schedule.has_gps = true;
+    record_.schedule.has_lora = true;
 
     record_.schedule.readings.cron.arg = pb_data_create(gs->scheduler.readings.cron, pool);
     record_.schedule.network.cron.arg = pb_data_create(gs->scheduler.network.cron, pool);
@@ -123,6 +135,7 @@ void MetaRecord::include_modules(GlobalState const *gs, fkb_header_t const *fkb_
         m.id.arg = (void *)id_data;
         m.name.funcs.encode = pb_encode_string;
         m.name.arg = (void *)meta->name;
+        m.has_header = true;
         m.header.manufacturer = meta->manufacturer;
         m.header.kind = meta->kind;
         m.header.version = meta->version;
@@ -174,6 +187,8 @@ void MetaRecord::include_modules(GlobalState const *gs, fkb_header_t const *fkb_
     auto hash_hex = bytes_to_hex_string_pool(fkb_header->firmware.hash, hash_size, pool);
 
     record_ = fk_data_record_encoding_new();
+    record_.has_metadata = true;
+    record_.metadata.has_firmware = true;
     record_.metadata.firmware.version.arg = (void *)fkb_header->firmware.version;
     record_.metadata.firmware.build.arg = (void *)fkb_header->firmware.name;
     record_.metadata.firmware.hash.arg = (void *)hash_hex;
@@ -181,6 +196,7 @@ void MetaRecord::include_modules(GlobalState const *gs, fkb_header_t const *fkb_
     record_.metadata.firmware.timestamp = fkb_header->firmware.timestamp;
     record_.metadata.deviceId.arg = (void *)device_id_data;
     record_.metadata.generation.arg = (void *)generation_data;
+    record_.has_identity = true;
     record_.identity.name.arg = (void *)gs->general.name;
     record_.modules.arg = (void *)modules_array;
 }

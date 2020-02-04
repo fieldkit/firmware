@@ -40,9 +40,11 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, fkb_header_t con
     });
 
     reply_.type = fk_app_ReplyType_REPLY_STATUS;
+    reply_.has_status = true;
     reply_.status.time = clock;
     reply_.status.version = 1;
     reply_.status.uptime = uptime;
+    reply_.status.has_identity = true;
     reply_.status.identity.device.arg = (void *)gs_->general.name;
     reply_.status.identity.deviceId.arg = device_id_data;
     reply_.status.identity.generation.arg = generation_data;
@@ -52,18 +54,23 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, fkb_header_t con
         reply_.status.identity.firmware.arg = (void *)firmware_hash_string;
     }
 
+    reply_.status.has_firmware = true;
     reply_.status.firmware.version.arg = (void *)fkb->firmware.version;
     reply_.status.firmware.build.arg = (void *)fkb->firmware.name;
     reply_.status.firmware.number.arg = (void *)pool_->sprintf("%d", fkb->firmware.number);
     reply_.status.firmware.timestamp = fkb->firmware.timestamp;
     reply_.status.firmware.hash.arg = (void *)bytes_to_hex_string_pool(fkb->firmware.hash, fkb->firmware.hash_size, *pool_);
 
+    reply_.status.has_power = true;
+    reply_.status.power.has_battery = true;
     reply_.status.power.battery.voltage = gs_->power.voltage;
     reply_.status.power.battery.percentage = gs_->power.charge;
 
+    reply_.status.has_recording = true;
     reply_.status.recording.enabled = gs_->general.recording > 0;
     reply_.status.recording.startedTime = gs_->general.recording;
 
+    reply_.status.has_memory = true;
     reply_.status.memory.sramAvailable = fk_free_memory();
     reply_.status.memory.programFlashAvailable = 1024 * 1024 - BootloaderSize - fkb_header.firmware.binary_size;
     reply_.status.memory.extendedMemoryAvailable = 8 * 1024 * 1024;
@@ -119,6 +126,7 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, fkb_header_t con
     }
 
     auto &gps = gs_->gps;
+    reply_.status.has_gps = true;
     reply_.status.gps.enabled = gps.enabled;
     reply_.status.gps.fix = gps.fix;
     reply_.status.gps.time = gps.time;
@@ -200,6 +208,7 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, fkb_header_t con
         .buffer = gs_->lora.app_key,
     });
 
+    reply_.has_loraSettings = true;
     reply_.loraSettings.deviceEui.funcs.encode = pb_encode_data;
     reply_.loraSettings.deviceEui.arg = (void *)device_eui_data;
     reply_.loraSettings.appEui.funcs.encode = pb_encode_data;
@@ -228,8 +237,15 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, fkb_header_t con
         .fields = fk_app_NetworkInfo_fields,
     });
 
+    reply_.has_networkSettings = true;
     reply_.networkSettings.networks.funcs.encode = pb_encode_array;
     reply_.networkSettings.networks.arg = (void *)networks_array;
+
+    reply_.has_schedules = true;
+    reply_.schedules.has_readings = true;
+    reply_.schedules.has_network = true;
+    reply_.schedules.has_gps = true;
+    reply_.schedules.has_lora = true;
 
     reply_.schedules.readings.interval = gs_->scheduler.readings.interval;
     reply_.schedules.network.interval = gs_->scheduler.network.interval;
@@ -256,6 +272,7 @@ bool HttpReply::include_readings() {
         for (size_t s = 0; s < nreadings; ++s) {
             auto &sensor = module.sensors[s];
             readings[s] = fk_app_LiveSensorReading_init_default;
+            readings[s].has_sensor = true;
             readings[s].sensor = fk_app_SensorCapabilities_init_default;
             readings[s].sensor.number = s;
             readings[s].sensor.name.arg = (void *)sensor.name;
@@ -279,6 +296,7 @@ bool HttpReply::include_readings() {
         });
 
         lmr[m] = fk_app_LiveModuleReadings_init_default;
+        lmr[m].has_module = true;
         lmr[m].module = fk_app_ModuleCapabilities_init_default;
         lmr[m].module.position = m;
         lmr[m].module.id.arg = (void *)id_data;
@@ -307,6 +325,7 @@ bool HttpReply::include_readings() {
     });
 
     reply_.type = fk_app_ReplyType_REPLY_READINGS;
+    reply_.has_status = true;
     reply_.status.time = get_clock_now();
     reply_.liveReadings.arg = (void *)live_readings_array;
 

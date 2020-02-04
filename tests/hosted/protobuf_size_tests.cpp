@@ -221,9 +221,9 @@ TEST_F(ProtoBufSizeSuite, Readings) {
     ASSERT_TRUE(readings.take_readings(ctx, resolved, 1, 1, pool_));
 
     auto encoded = pool_.encode(fk_data_DataRecord_fields, &readings.record());
-    ASSERT_EQ(encoded->size, 243u);
-
     dump_binary(file_, "data-readings", encoded);
+
+    ASSERT_EQ(encoded->size, 215u);
 }
 
 TEST_F(ProtoBufSizeSuite, Configuration) {
@@ -234,9 +234,9 @@ TEST_F(ProtoBufSizeSuite, Configuration) {
     record.include_state(&gs, &fake_header, pool_);
 
     auto encoded = pool_.encode(fk_data_DataRecord_fields, &record.record());
-    ASSERT_EQ(encoded->size, 954u);
-
     dump_binary(file_, "data-configuration", encoded);
+
+    ASSERT_EQ(encoded->size, 952u);
 }
 
 TEST_F(ProtoBufSizeSuite, Modules) {
@@ -250,9 +250,9 @@ TEST_F(ProtoBufSizeSuite, Modules) {
     record.include_modules(&gs, &fake_header, resolved, pool_);
 
     auto encoded = pool_.encode(fk_data_DataRecord_fields, &record.record());
-    ASSERT_EQ(encoded->size, 956u);
-
     dump_binary(file_, "data-modules", encoded);
+
+    ASSERT_EQ(encoded->size, 940u);
 }
 
 TEST_F(ProtoBufSizeSuite, HttpReplyStatus) {
@@ -263,9 +263,9 @@ TEST_F(ProtoBufSizeSuite, HttpReplyStatus) {
     reply.include_status(1580763366, 327638, &fake_header);
 
     auto encoded = pool_.encode(fk_app_HttpReply_fields, reply.reply());
-    ASSERT_EQ(encoded->size, 1209u);
-
     dump_binary(file_, "http-reply-status", encoded);
+
+    ASSERT_EQ(encoded->size, 1215u);
 }
 
 TEST_F(ProtoBufSizeSuite, HttpReplyReadings) {
@@ -276,7 +276,7 @@ TEST_F(ProtoBufSizeSuite, HttpReplyReadings) {
     reply.include_readings();
 
     auto encoded = pool_.encode(fk_app_HttpReply_fields, reply.reply());
-    ASSERT_EQ(encoded->size, 284u);
-
     dump_binary(file_, "http-reply-readings", encoded);
+
+    ASSERT_EQ(encoded->size, 284u);
 }

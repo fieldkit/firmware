@@ -50,9 +50,11 @@ size_t write_reading(File &file) {
     };
 
     fk_data_DataRecord record = fk_data_DataRecord_init_default;
+    record.has_readings = true;
     record.readings.time = fk_uptime();
     record.readings.reading = file.record();
     record.readings.flags = 0;
+    record.readings.has_location = true;
     record.readings.location.fix = 0;
     record.readings.location.time = fk_uptime();
     record.readings.location.longitude = -118.2709223;
@@ -72,6 +74,7 @@ size_t write_reading(File &file) {
 
 void append_metadata_always(SignedRecordLog &srl, uint32_t time, const char *build, const char *git, Pool &pool) {
     fk_data_DataRecord record = fk_data_DataRecord_init_default;
+    record.has_metadata = true;
     record.metadata.time = time;
     record.metadata.git.funcs.encode = pb_encode_string;
     record.metadata.git.arg = (void *)git;
@@ -82,6 +85,7 @@ void append_metadata_always(SignedRecordLog &srl, uint32_t time, const char *bui
 
 void append_metadata_always(SignedRecordLog &srl, uint32_t time, const char *build, const char *git, size_t &appended, Pool &pool) {
     fk_data_DataRecord record = fk_data_DataRecord_init_default;
+    record.has_metadata = true;
     record.metadata.time = time;
     record.metadata.git.funcs.encode = pb_encode_string;
     record.metadata.git.arg = (void *)git;
@@ -96,6 +100,7 @@ void append_metadata_always(SignedRecordLog &srl, uint32_t time, const char *bui
 
 void append_metadata(SignedRecordLog &srl, uint32_t time, const char *build, const char *git, Pool &pool) {
     fk_data_DataRecord record = fk_data_DataRecord_init_default;
+    record.has_metadata = true;
     record.metadata.time = time;
     record.metadata.git.funcs.encode = pb_encode_string;
     record.metadata.git.arg = (void *)git;
@@ -106,6 +111,7 @@ void append_metadata(SignedRecordLog &srl, uint32_t time, const char *build, con
 
 void append_metadata(SignedRecordLog &srl, uint32_t time, const char *build, const char *git, size_t &appended, Pool &pool) {
     fk_data_DataRecord record = fk_data_DataRecord_init_default;
+    record.has_metadata = true;
     record.metadata.time = time;
     record.metadata.git.funcs.encode = pb_encode_string;
     record.metadata.git.arg = (void *)git;
@@ -120,6 +126,7 @@ void append_metadata(SignedRecordLog &srl, uint32_t time, const char *build, con
 
 void append_other_always(SignedRecordLog &srl, const char *build, const char *git, Pool &pool) {
     fk_data_DataRecord record = fk_data_DataRecord_init_default;
+    record.has_metadata = true;
     record.metadata.time = 1;
     record.metadata.git.funcs.encode = pb_encode_string;
     record.metadata.git.arg = (void *)git;
@@ -130,6 +137,7 @@ void append_other_always(SignedRecordLog &srl, const char *build, const char *gi
 
 void append_other(SignedRecordLog &srl, const char *build, const char *git, Pool &pool) {
     fk_data_DataRecord record = fk_data_DataRecord_init_default;
+    record.has_metadata = true;
     record.metadata.time = 1;
     record.metadata.git.funcs.encode = pb_encode_string;
     record.metadata.git.arg = (void *)git;

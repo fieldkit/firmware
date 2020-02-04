@@ -356,6 +356,7 @@ TEST_F(StorageSuite, WritingProtobuf) {
     ASSERT_TRUE(storage.clear());
 
     fk_data_DataRecord record = fk_data_DataRecord_init_default;
+    record.has_log = true;
     record.log.uptime = 935985493;
     record.log.time = 0;
     record.log.level = (uint32_t)LogLevels::INFO;
@@ -374,6 +375,7 @@ TEST_F(StorageSuite, WritingProtobuf) {
     file_read.seek(0);
 
     record = fk_data_DataRecord_init_default;
+    record.has_log = true;
     record.log.facility.arg = (void *)&pool_;
     record.log.facility.funcs.decode = pb_decode_string;
     record.log.message.arg = (void *)&pool_;

@@ -19,10 +19,12 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(
     auto gs = ctx.gs();
 
     record_ = fk_data_record_encoding_new();
+    record_.has_readings = true;
     record_.readings.time = now;
     record_.readings.reading = reading_number;
     record_.readings.meta = meta_record;
     record_.readings.flags = fk_data_DownloadFlags_READING_FLAGS_NONE;
+    record_.readings.has_location = true;
     record_.readings.location.time = gs->gps.time;
     record_.readings.location.fix = gs->gps.fix;
     record_.readings.location.longitude = gs->gps.longitude;
