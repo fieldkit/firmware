@@ -1,5 +1,7 @@
 #pragma once
 
+#include <loading.h>
+
 #include "common.h"
 #include "pool.h"
 #include "records.h"
@@ -19,7 +21,7 @@ public:
 
 public:
     bool include_success(uint32_t clock, uint32_t uptime);
-    bool include_status(uint32_t clock, uint32_t uptime);
+    bool include_status(uint32_t clock, uint32_t uptime, fkb_header_t const *fkb);
     bool include_readings();
 
 public:

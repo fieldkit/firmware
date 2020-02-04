@@ -1,5 +1,4 @@
 #include <tiny_printf.h>
-#include <loading.h>
 
 #include "networking/api_handler.h"
 #include "networking/http_reply.h"
@@ -246,7 +245,7 @@ static bool send_status(HttpServerConnection *connection, fk_app_HttpQuery *quer
 
     HttpReply http_reply{ pool, gs.get() };
 
-    FK_ASSERT(http_reply.include_status(get_clock_now(), fk_uptime()));
+    FK_ASSERT(http_reply.include_status(get_clock_now(), fk_uptime(), &fkb_header));
 
     connection->write(http_reply.reply());
     connection->close();
@@ -259,7 +258,7 @@ static bool send_readings(HttpServerConnection *connection, fk_app_HttpQuery *qu
 
     HttpReply http_reply{ pool, gs.get() };
 
-    FK_ASSERT(http_reply.include_status(get_clock_now(), fk_uptime()));
+    FK_ASSERT(http_reply.include_status(get_clock_now(), fk_uptime(), &fkb_header));
     FK_ASSERT(http_reply.include_readings());
 
     connection->write(http_reply.reply());

@@ -19,7 +19,7 @@ fkb_header_t fake_header = {
         .flags          = 0,
         .timestamp      = 1580763366,
         .number         = 1000,
-        .version        = { 0xDD },
+        .version        = { 0x0 },
         .binary_size    = 65536,
         .tables_offset  = 8192,
         .data_size      = 8192,
@@ -27,7 +27,7 @@ fkb_header_t fake_header = {
         .got_size       = 8192,
         .vtor_offset    = 8192,
         .got_offset     = 32768,
-        .name           = { 0xA1 },
+        .name           = { 0x0 },
         .hash_size      = 32,
         .hash           = { 0xB2 }
     },
@@ -173,6 +173,10 @@ protected:
 public:
     void SetUp() override {
         pool_.clear();
+
+        fake_string(fake_header.firmware.version);
+        fake_string(fake_header.firmware.name);
+        fake_string(fake_header.firmware.hash);
     }
 
     void TearDown() override {
@@ -206,7 +210,7 @@ TEST_F(ProtoBufSizeSuite, Configuration) {
     record.include_state(&gs, &fake_header, pool_);
 
     auto encoded = pool_.encode(fk_data_DataRecord_fields, &record.record());
-    ASSERT_EQ(encoded->size, 684u);
+    ASSERT_EQ(encoded->size, 954u);
 
     fk_dump_memory("data-configuration ", encoded->buffer, encoded->size);
 }
@@ -222,7 +226,7 @@ TEST_F(ProtoBufSizeSuite, Modules) {
     record.include_modules(&gs, &fake_header, resolved, pool_);
 
     auto encoded = pool_.encode(fk_data_DataRecord_fields, &record.record());
-    ASSERT_EQ(encoded->size, 686u);
+    ASSERT_EQ(encoded->size, 956u);
 
     fk_dump_memory("data-modules ", encoded->buffer, encoded->size);
 }
@@ -232,10 +236,10 @@ TEST_F(ProtoBufSizeSuite, HttpReplyStatus) {
     fake_global_state(gs, pool_);
 
     HttpReply reply(pool_, &gs);
-    reply.include_status(1580763366, 327638);
+    reply.include_status(1580763366, 327638, &fake_header);
 
     auto encoded = pool_.encode(fk_app_HttpReply_fields, reply.reply());
-    ASSERT_EQ(encoded->size, 803u);
+    ASSERT_EQ(encoded->size, 1209u);
 
     fk_dump_memory("http-reply-status ", encoded->buffer, encoded->size);
 }

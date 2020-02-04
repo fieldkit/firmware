@@ -26,7 +26,7 @@ bool HttpReply::include_success(uint32_t clock, uint32_t uptime) {
     return true;
 }
 
-bool HttpReply::include_status(uint32_t clock, uint32_t uptime) {
+bool HttpReply::include_status(uint32_t clock, uint32_t uptime, fkb_header_t const *fkb) {
     fk_serial_number_t sn;
 
     auto device_id_data = pool_->malloc_with<pb_data_t>({
@@ -47,19 +47,19 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime) {
     reply_.status.identity.deviceId.arg = device_id_data;
     reply_.status.identity.generation.arg = generation_data;
 
-    if (fkb_header.firmware.hash_size > 0) {
-        auto firmware_hash_string = bytes_to_hex_string_pool(fkb_header.firmware.hash, fkb_header.firmware.hash_size, *pool_);
+    if (fkb->firmware.hash_size > 0) {
+        auto firmware_hash_string = bytes_to_hex_string_pool(fkb->firmware.hash, fkb->firmware.hash_size, *pool_);
         reply_.status.identity.firmware.arg = (void *)firmware_hash_string;
     }
 
-    reply_.status.firmware.version.arg = (void *)fkb_header.firmware.version;
-    reply_.status.firmware.build.arg = (void *)fkb_header.firmware.name;
-    reply_.status.firmware.number.arg = (void *)pool_->sprintf("%d", fkb_header.firmware.number);
-    reply_.status.firmware.timestamp = fkb_header.firmware.timestamp;
-    reply_.status.firmware.hash.arg = (void *)bytes_to_hex_string_pool(fkb_header.firmware.hash, fkb_header.firmware.hash_size, *pool_);
+    reply_.status.firmware.version.arg = (void *)fkb->firmware.version;
+    reply_.status.firmware.build.arg = (void *)fkb->firmware.name;
+    reply_.status.firmware.number.arg = (void *)pool_->sprintf("%d", fkb->firmware.number);
+    reply_.status.firmware.timestamp = fkb->firmware.timestamp;
+    reply_.status.firmware.hash.arg = (void *)bytes_to_hex_string_pool(fkb->firmware.hash, fkb->firmware.hash_size, *pool_);
 
     reply_.status.power.battery.voltage = gs_->power.voltage;
-    reply_.status.power.battery.percentage = 100; // gs_->power.charge;
+    reply_.status.power.battery.percentage = gs_->power.charge;
 
     reply_.status.recording.enabled = gs_->general.recording > 0;
     reply_.status.recording.startedTime = gs_->general.recording;
