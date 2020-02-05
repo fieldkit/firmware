@@ -18,12 +18,6 @@
 #define FK_WEATHER_STAND_ALONE
 #endif
 
-fk_weather_config_t fk_weather_config_default = { 60, 60, 60, 0 };
-
-int32_t read_configuration(fk_weather_config_t *config) {
-    return FK_SUCCESS;
-}
-
 static volatile uint8_t take_readings_triggered = 0;
 
 static void timer_task_cb(struct timer_task const *const timer_task) {
@@ -41,28 +35,28 @@ int32_t take_readings(fk_weather_t *weather, uint8_t *failures) {
     adc081c_reading_t wind_direction;
     rv = adc081c_reading_get(&I2C_1, &wind_direction);
     if (rv != FK_SUCCESS) {
-        logerrorf("reading adc081c (%d)", rv);
+        logerrorf("adc081c (%d)", rv);
         *failures++;
     }
 
     mpl3115a2_reading_t mpl3115a2_reading;
     rv = mpl3115a2_reading_get(&I2C_1, &mpl3115a2_reading);
     if (rv != FK_SUCCESS) {
-        logerrorf("reading mpl3115a2 (%d)", rv);
+        logerrorf("mpl3115a2 (%d)", rv);
         *failures++;
     }
 
     sht31_reading_t sht31_reading;
     rv = sht31_reading_get(&I2C_1, &sht31_reading);
     if (rv != FK_SUCCESS) {
-        logerrorf("reading sht31 (%d)", rv);
+        logerrorf("sht31 (%d)", rv);
         *failures++;
     }
 
     counters_reading_t counters_reading;
     rv = counters_reading_get(&I2C_1, &counters_reading);
     if (rv != FK_SUCCESS) {
-        logerrorf("reading counters (%d)", rv);
+        logerrorf("counters (%d)", rv);
         *failures++;
     }
 
@@ -83,87 +77,6 @@ int32_t take_readings(fk_weather_t *weather, uint8_t *failures) {
 
     return FK_SUCCESS;
 }
-
-#if !defined(FK_WEATHER_STAND_ALONE)
-
-int32_t eeprom_region_seek_end(eeprom_region_t *region, uint32_t *seconds, uint32_t *startup_counter) {
-    uint16_t address = region->start;
-    while (address + sizeof(fk_weather_t) <= region->end) {
-        fk_weather_t reading;
-
-        int32_t rv = eeprom_read(region->i2c, address, (uint8_t *)&reading, sizeof(fk_weather_t));
-        if (rv != FK_SUCCESS) {
-            return rv;
-        }
-
-        uint32_t expected = crc32_checksum(FK_MODULES_CRC_SEED, (uint8_t *)&reading, sizeof(fk_weather_t) - sizeof(uint32_t));
-        if (expected != reading.crc) {
-            loginfof("found end 0x%04" PRIx32 " (0x%" PRIx32 " != 0x%" PRIx32 ")", address, expected, reading.crc);
-            region->tail = address;
-            break;
-        }
-
-        if (reading.startups > *startup_counter) {
-            *startup_counter = reading.startups;
-        }
-
-        if (reading.seconds < *seconds) {
-            loginfof("found end 0x%04" PRIx32 " (wrap)", address);
-            region->tail = address;
-            break;
-        }
-
-        address += sizeof(fk_weather_t);
-        *seconds = reading.seconds;
-    }
-
-    loginfof("found end 0x%04" PRIx32, address);
-
-    return FK_SUCCESS;
-}
-
-int32_t eeprom_region_append_error(eeprom_region_t *region, uint32_t startups, uint32_t error, uint32_t memory_failures, uint32_t reading_failures) {
-    fk_weather_t weather;
-    memzero(&weather, sizeof(fk_weather_t));
-
-    weather.error = error;
-    weather.startups = startups;
-    weather.memory_failures = memory_failures;
-    weather.reading_failures = reading_failures;
-    weather.crc = fk_weather_sign(&weather);
-
-    int32_t rv = eeprom_region_append(region, &weather);
-
-    board_eeprom_i2c_disable();
-
-    return rv;
-}
-
-static volatile uint32_t eeprom_signaled = 0;
-static volatile uint32_t eeprom_signals = 0;
-
-static void eeprom_signal() {
-    uint32_t now = board_system_time_get();
-    if (eeprom_lock_test()) {
-        if (eeprom_signaled == 0 || now - eeprom_signaled > FK_MODULES_EEPROM_WARNING_WINDOW) {
-            eeprom_signaled = now;
-            eeprom_signals = 0;
-        }
-        eeprom_signals++;
-    }
-}
-
-static bool eeprom_clear_or_outside_window(uint32_t now) {
-    return eeprom_signaled == 0 || now - eeprom_signaled > FK_MODULES_EEPROM_WARNING_WINDOW;
-}
-
-#else
-
-static bool eeprom_clear_or_outside_window(uint32_t now) {
-    return true;
-}
-
-#endif
 
 static void i2c_sensors_recover() {
     gpio_set_pin_direction(PA22, GPIO_DIRECTION_OUT);
@@ -190,6 +103,34 @@ static void i2c_sensors_recover() {
     gpio_set_pin_direction(PA22, GPIO_DIRECTION_OFF);
     gpio_set_pin_direction(PA23, GPIO_DIRECTION_OFF);
 }
+
+#if defined(FK_WEATHER_STAND_ALONE)
+
+static bool eeprom_clear_or_outside_window(uint32_t now) {
+    return true;
+}
+
+#else
+
+static volatile uint32_t eeprom_signaled = 0;
+static volatile uint32_t eeprom_signals = 0;
+
+static void eeprom_signal() {
+    uint32_t now = board_system_time_get();
+    if (eeprom_lock_test()) {
+        if (eeprom_signaled == 0 || now - eeprom_signaled > FK_MODULES_EEPROM_WARNING_WINDOW) {
+            eeprom_signaled = now;
+            eeprom_signals = 0;
+        }
+        eeprom_signals++;
+    }
+}
+
+static bool eeprom_clear_or_outside_window(uint32_t now) {
+    return eeprom_signaled == 0 || now - eeprom_signaled > FK_MODULES_EEPROM_WARNING_WINDOW;
+}
+
+#endif
 
 __int32_t main() {
     SEGGER_RTT_SetFlagsUpBuffer(0, SEGGER_RTT_MODE_NO_BLOCK_SKIP);
@@ -226,7 +167,8 @@ __int32_t main() {
 
     #if defined(FK_WEATHER_STAND_ALONE)
     FK_ASSERT(board_subordinate_initialize() == FK_SUCCESS);
-    #else
+    #else // defined(FK_WEATHER_STAND_ALONE)
+
     eeprom_region_t readings_region;
     FK_ASSERT(eeprom_region_create(&readings_region, &I2C_0_m, EEPROM_ADDRESS_READINGS, EEPROM_ADDRESS_READINGS_END, sizeof(fk_weather_t)) == FK_SUCCESS);
 
@@ -241,8 +183,12 @@ __int32_t main() {
         NVIC_SystemReset();
     }
 
+    unwritten_readings_t ur;
+    FK_ASSERT(unwritten_readings_initialize(&ur) == FK_SUCCESS);
+
     board_eeprom_i2c_disable();
-    #endif
+
+    #endif // defined(FK_WEATHER_STAND_ALONE)
 
     weather.startups++;
 
@@ -266,11 +212,6 @@ __int32_t main() {
 
     struct timer_task timer_task;
     FK_ASSERT(board_timer_setup(&timer_task, 1000, timer_task_cb) == FK_SUCCESS);
-
-    #if !defined(FK_WEATHER_STAND_ALONE)
-    unwritten_readings_t ur;
-    FK_ASSERT(unwritten_readings_initialize(&ur) == FK_SUCCESS);
-    #endif
 
     loginfo("ready!");
 
@@ -298,7 +239,8 @@ __int32_t main() {
             }
 
             #if defined(FK_WEATHER_STAND_ALONE)
-            #else
+            #else // defined(FK_WEATHER_STAND_ALONE)
+
             unwritten_readings_push(&ur, &weather);
 
             int32_t nentries = unwritten_readings_get_size(&ur);
@@ -315,7 +257,8 @@ __int32_t main() {
             else {
                 weather.memory_failures = 0;
             }
-            #endif
+
+            #endif // defined(FK_WEATHER_STAND_ALONE)
 
             #if defined(FK_LOGGING)
             SEGGER_RTT_WriteString(0, "\n");
@@ -328,9 +271,9 @@ __int32_t main() {
             loginfof("mpl temp: %d", weather.temperature_2);
             loginfof("sht humidity: %d", weather.humidity);
             loginfof("sht temp: %d", weather.temperature_1);
-            #else
+            #else // defined(FK_LOGGING)
             SEGGER_RTT_WriteString(0, ".");
-            #endif
+            #endif // defined(FK_LOGGING)
         }
 
         wdt_feed(&WDT_0);
@@ -343,7 +286,7 @@ __int32_t main() {
             delay_ms((eeprom_signals - 1) * FK_MODULES_EEPROM_WARNING_SLEEP_PER_TICK);
             eeprom_signals = 0;
         }
-        #endif
+        #endif // !defined(FK_WEATHER_STAND_ALONE)
     }
 
     return 0;

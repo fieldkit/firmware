@@ -241,3 +241,56 @@ int32_t eeprom_region_seek_beginning(eeprom_region_t *region) {
 
     return FK_SUCCESS;
 }
+
+int32_t eeprom_region_seek_end(eeprom_region_t *region, uint32_t *seconds, uint32_t *startup_counter) {
+    uint16_t address = region->start;
+    while (address + sizeof(fk_weather_t) <= region->end) {
+        fk_weather_t reading;
+
+        int32_t rv = eeprom_read(region->i2c, address, (uint8_t *)&reading, sizeof(fk_weather_t));
+        if (rv != FK_SUCCESS) {
+            return rv;
+        }
+
+        uint32_t expected = crc32_checksum(FK_MODULES_CRC_SEED, (uint8_t *)&reading, sizeof(fk_weather_t) - sizeof(uint32_t));
+        if (expected != reading.crc) {
+            loginfof("found end 0x%04" PRIx32 " (0x%" PRIx32 " != 0x%" PRIx32 ")", address, expected, reading.crc);
+            region->tail = address;
+            break;
+        }
+
+        if (reading.startups > *startup_counter) {
+            *startup_counter = reading.startups;
+        }
+
+        if (reading.seconds < *seconds) {
+            loginfof("found end 0x%04" PRIx32 " (wrap)", address);
+            region->tail = address;
+            break;
+        }
+
+        address += sizeof(fk_weather_t);
+        *seconds = reading.seconds;
+    }
+
+    loginfof("found end 0x%04" PRIx32, address);
+
+    return FK_SUCCESS;
+}
+
+int32_t eeprom_region_append_error(eeprom_region_t *region, uint32_t startups, uint32_t error, uint32_t memory_failures, uint32_t reading_failures) {
+    fk_weather_t weather;
+    memzero(&weather, sizeof(fk_weather_t));
+
+    weather.error = error;
+    weather.startups = startups;
+    weather.memory_failures = memory_failures;
+    weather.reading_failures = reading_failures;
+    weather.crc = fk_weather_sign(&weather);
+
+    int32_t rv = eeprom_region_append(region, &weather);
+
+    board_eeprom_i2c_disable();
+
+    return rv;
+}
