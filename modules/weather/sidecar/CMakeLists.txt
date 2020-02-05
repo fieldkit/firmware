@@ -94,9 +94,9 @@ function(add_sidecar_target profile flags)
 		-Wl,--unresolved-symbols=report-all -Wl,--warn-common -Wl,--warn-section-align
 		-Wl,-Map,${map_file} -o ${elf_file} -L${CMAKE_SOURCE_DIR}/boards/samd09
 		${CMAKE_CURRENT_BINARY_DIR}/lib${target_name}.a
-		${CMAKE_CURRENT_BINARY_DIR}/libfk-shared.a
-		${CMAKE_CURRENT_BINARY_DIR}/libAsf4.a
-		${CMAKE_CURRENT_BINARY_DIR}/libSeggerRTT.a
+		${CMAKE_CURRENT_BINARY_DIR}/libfk-shared-${profile}.a
+		${CMAKE_CURRENT_BINARY_DIR}/libAsf4-${profile}.a
+		${CMAKE_CURRENT_BINARY_DIR}/libSeggerRTT-${profile}.a
 	)
 
 	add_custom_target(${elf_target} ALL DEPENDS ${elf_file})
