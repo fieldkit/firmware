@@ -173,6 +173,33 @@ static void i2c_sensors_recover() {
     gpio_set_pin_direction(PA23, GPIO_DIRECTION_OFF);
 }
 
+static struct io_descriptor *io;
+
+static void I2C_0_rx_complete(const struct i2c_s_async_descriptor *const descr) {
+    uint8_t c;
+
+    io_read(io, &c, 1);
+
+    loginfof("data 0x%x", c);
+}
+
+void test() {
+    SEGGER_RTT_WriteString(0, "initialize\n");
+
+    I2C_0_async_subordinate_initialize();
+    i2c_s_async_get_io_descriptor(&I2C_0_s, &io);
+    i2c_s_async_register_callback(&I2C_0_s, I2C_S_RX_COMPLETE, I2C_0_rx_complete);
+    i2c_s_async_set_addr(&I2C_0_s, 0x42);
+    i2c_s_async_enable(&I2C_0_s);
+
+    SEGGER_RTT_WriteString(0, "ready\n");
+
+    while (true) {
+        delay_ms(1000);
+        SEGGER_RTT_WriteString(0, ".");
+    }
+}
+
 __int32_t main() {
     SEGGER_RTT_SetFlagsUpBuffer(0, SEGGER_RTT_MODE_NO_BLOCK_SKIP);
 

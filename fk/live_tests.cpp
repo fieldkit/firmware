@@ -415,6 +415,44 @@ static void scan_i2c_module_bus() {
     }
 }
 
+static void test_i2c_weather_samd09() {
+    auto mm = get_modmux();
+
+    mm->disable_all_modules();
+
+    fk_delay(1000);
+
+    mm->enable_all_modules();
+
+    fk_delay(100);
+
+    auto bus = get_board()->i2c_module();
+
+    auto address = 0x42;
+
+    while (true) {
+        for (auto i : { 3 }) {
+            if (!mm->choose(i)) {
+                loginfo("unable to choose %d", i);
+                continue;
+            }
+
+            loginfo("position: %d", i);
+
+            fk_delay(100);
+
+            uint8_t data[] = { 0xaa, 0x20 };
+
+            auto rv = bus.write(address , data, sizeof(data));
+            if (I2C_CHECK(rv)) {
+                loginfo("done!");
+            }
+        }
+
+        fk_delay(10000);
+    }
+}
+
 void fk_live_tests() {
     if (false) {
         try_and_reproduce_weird_block_issue();
@@ -433,6 +471,9 @@ void fk_live_tests() {
     }
     if (false) {
         scan_i2c_radio_bus();
+    }
+    if (false) {
+        test_i2c_weather_samd09();
     }
 }
 
