@@ -170,7 +170,15 @@ __int32_t main() {
 
     fk_weather_aggregated_t aggregated;
     memzero(&aggregated, sizeof(fk_weather_aggregated_t));
-    FK_ASSERT(board_subordinate_initialize() == FK_SUCCESS);
+
+    board_register_map_t regmap = {
+        (uint8_t *)&aggregated,
+        sizeof(aggregated),
+        0
+    };
+
+    FK_ASSERT(board_subordinate_initialize(&regmap) == FK_SUCCESS);
+
     #else // defined(FK_WEATHER_STAND_ALONE)
 
     eeprom_region_t readings_region;

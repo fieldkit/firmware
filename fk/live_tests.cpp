@@ -441,11 +441,13 @@ static void test_i2c_weather_samd09() {
 
             fk_delay(100);
 
-            uint8_t data[] = { 0xaa, 0x20 };
-
-            auto rv = bus.write(address , data, sizeof(data));
-            if (I2C_CHECK(rv)) {
-                loginfo("done!");
+            fk_weather_aggregated_t aw;
+            bzero(&aw, sizeof(aw));
+            if (!I2C_CHECK(bus.read_register_buffer(address, 0x00, (uint8_t *)&aw, sizeof(aw)))) {
+                logwarn("error reading");
+            }
+            else {
+                loginfo("done: 0x%x 0x%x %d %d", aw.second, aw.minute, aw.second, aw.minute);
             }
         }
 

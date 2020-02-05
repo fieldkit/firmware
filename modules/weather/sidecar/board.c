@@ -80,16 +80,40 @@ int32_t board_sensors_i2c_disable() {
     return FK_SUCCESS;
 }
 
-struct io_descriptor *i2c_subordinate_io;
+static struct io_descriptor *i2c_subordinate_io = NULL;
+static board_register_map_t *i2c_regmap = NULL;
 
 static void I2C_0_rx_complete(const struct i2c_s_async_descriptor *const descr) {
     SEGGER_RTT_WriteString(0, "!");
+
+    // Read the address they'd like to start at and then start reading
+    // there, while also checking for an overflow.
+    uint8_t address;
+    io_read(i2c_subordinate_io, &address, 1);
+
+    i2c_regmap->position = address % i2c_regmap->size;
 }
 
-int32_t board_subordinate_initialize() {
+static void I2C_0_tx_pending(const struct i2c_s_async_descriptor *const descr) {
+	struct _i2c_s_async_device *device = (struct _i2c_s_async_device *)&descr->device;
+
+    _i2c_s_async_write_byte(device, i2c_regmap->registers[i2c_regmap->position]);
+
+    i2c_regmap->position = (i2c_regmap->position + 1) % i2c_regmap->size;
+}
+
+static void I2C_0_tx_complete(const struct i2c_s_async_descriptor *const descr) {
+    SEGGER_RTT_WriteString(0, "X");
+}
+
+int32_t board_subordinate_initialize(board_register_map_t *regmap) {
+    i2c_regmap = regmap;
+
     I2C_0_async_subordinate_initialize();
     i2c_s_async_get_io_descriptor(&I2C_0_s, &i2c_subordinate_io);
     i2c_s_async_register_callback(&I2C_0_s, I2C_S_RX_COMPLETE, I2C_0_rx_complete);
+    i2c_s_async_register_callback(&I2C_0_s, I2C_S_TX_COMPLETE, I2C_0_tx_complete);
+    i2c_s_async_register_callback(&I2C_0_s, I2C_S_TX_PENDING, I2C_0_tx_pending);
     i2c_s_async_set_addr(&I2C_0_s, 0x42);
     i2c_s_async_enable(&I2C_0_s);
 

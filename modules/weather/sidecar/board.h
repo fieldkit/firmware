@@ -2,6 +2,12 @@
 
 #include "sidecar.h"
 
+typedef struct board_register_map_t {
+    uint8_t *registers;
+    size_t size;
+    size_t position;
+} board_register_map_t;
+
 enum system_sleepmode {
     SYSTEM_SLEEPMODE_IDLE_0,
     SYSTEM_SLEEPMODE_IDLE_1,
@@ -23,4 +29,4 @@ int32_t board_sensors_i2c_disable();
 
 uint32_t board_system_time_get();
 
-int32_t board_subordinate_initialize();
+int32_t board_subordinate_initialize(board_register_map_t *regmap);
