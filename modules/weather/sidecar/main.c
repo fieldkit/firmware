@@ -208,7 +208,7 @@ __int32_t main() {
     memset(&weather, 0, sizeof(fk_weather_t));
 
     eeprom_region_t readings_region;
-    FK_ASSERT(eeprom_region_create(&readings_region, &I2C_0, EEPROM_ADDRESS_READINGS, EEPROM_ADDRESS_READINGS_END, sizeof(fk_weather_t)) == FK_SUCCESS);
+    FK_ASSERT(eeprom_region_create(&readings_region, &I2C_0_m, EEPROM_ADDRESS_READINGS, EEPROM_ADDRESS_READINGS_END, sizeof(fk_weather_t)) == FK_SUCCESS);
 
     loginfo("eeprom...");
 

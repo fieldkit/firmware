@@ -156,6 +156,8 @@ static struct usart_configuration _usarts[] = {
 };
 #endif
 
+static struct _i2c_s_async_device *_sercom0_dev = NULL;
+
 static uint8_t _get_sercom_index(const void *const hw);
 static uint8_t _sercom_get_irq_num(const void *const hw);
 static void    _sercom_init_irq_param(const void *const hw, void *dev);
@@ -576,6 +578,10 @@ static uint8_t _get_sercom_index(const void *const hw)
  */
 static void _sercom_init_irq_param(const void *const hw, void *dev)
 {
+
+	if (hw == SERCOM0) {
+		_sercom0_dev = (struct _i2c_s_async_device *)dev;
+	}
 }
 
 /**
@@ -1897,6 +1903,36 @@ int32_t _i2c_s_async_set_irq_state(struct _i2c_s_async_device *const device, con
 }
 
 /**
+ * \internal Sercom i2c slave interrupt handler
+ *
+ * \param[in] p The pointer to i2c slave device
+ */
+static void _sercom_i2c_s_irq_handler(struct _i2c_s_async_device *device)
+{
+	void *   hw    = device->hw;
+	uint32_t flags = hri_sercomi2cm_read_INTFLAG_reg(hw);
+
+	if (flags & SERCOM_I2CS_INTFLAG_ERROR) {
+		ASSERT(device->cb.error);
+		device->cb.error(device);
+	} else if (flags & SERCOM_I2CS_INTFLAG_DRDY) {
+		if (!hri_sercomi2cs_get_STATUS_DIR_bit(hw)) {
+			ASSERT(device->cb.rx_done);
+			device->cb.rx_done(device, hri_sercomi2cs_read_DATA_reg(hw));
+		} else {
+			ASSERT(device->cb.tx);
+			device->cb.tx(device);
+		}
+#if (CONF_MCLK_LPDIV) != (CONF_MCLK_CPUDIV)
+		/* Adding grace time while waiting for SCL line to be released */
+		hri_sercomi2cs_clear_STATUS_reg(hw, 0);
+		hri_sercomi2cs_clear_STATUS_reg(hw, 0);
+		hri_sercomi2cs_clear_STATUS_reg(hw, 0);
+#endif
+	}
+}
+
+/**
  * \internal Initalize i2c slave hardware
  *
  * \param[in] p The pointer to hardware instance
@@ -2323,7 +2359,12 @@ static inline const struct sercomspi_regs_cfg *_spi_get_regs(const uint32_t hw_a
 
 	return NULL;
 }
-
+/*
+void SERCOM0_Handler(void)
+{
+	_sercom_i2c_s_irq_handler(_sercom0_dev);
+}
+*/
 int32_t _spi_m_sync_init(struct _spi_m_sync_dev *dev, void *const hw)
 {
 	const struct sercomspi_regs_cfg *regs = _spi_get_regs((uint32_t)hw);

@@ -14,16 +14,16 @@ uint32_t board_system_time_get() {
 }
 
 int32_t board_initialize() {
-    system_init();
+    system_initialize();
 
     SEGGER_RTT_Init();
     SEGGER_RTT_WriteString(0, "\n\n");
 
-    delay_driver_init();
-    EXTERNAL_IRQ_0_init();
-    TIMER_0_init();
-    I2C_1_init();
-    WDT_0_init();
+    delay_driver_initialize();
+    EXTERNAL_IRQ_0_initialize();
+    TIMER_0_initialize();
+    I2C_1_initialize();
+    WDT_0_initialize();
 
     FK_ASSERT(board_timer_setup(&timer_system_time, 1, timer_system_time_cb) == FK_SUCCESS);
 
@@ -44,8 +44,8 @@ static int32_t eeprom_i2c_enabled = false;
 
 int32_t board_eeprom_i2c_enable() {
     if (!eeprom_i2c_enabled) {
-        I2C_0_init();
-        i2c_m_sync_enable(&I2C_0);
+        I2C_0_master_initialize();
+        i2c_m_sync_enable(&I2C_0_m);
         eeprom_i2c_enabled = true;
     }
 
@@ -54,7 +54,7 @@ int32_t board_eeprom_i2c_enable() {
 
 int32_t board_eeprom_i2c_disable() {
     if (eeprom_i2c_enabled) {
-        i2c_m_sync_disable(&I2C_0);
+        i2c_m_sync_disable(&I2C_0_m);
         eeprom_i2c_enabled = false;
     }
     return FK_SUCCESS;
@@ -64,7 +64,7 @@ static int32_t sensors_i2c_enabled = false;
 
 int32_t board_sensors_i2c_enable() {
     if (!sensors_i2c_enabled) {
-        I2C_1_init();
+        I2C_1_initialize();
         i2c_m_sync_enable(&I2C_1);
         sensors_i2c_enabled = true;
     }

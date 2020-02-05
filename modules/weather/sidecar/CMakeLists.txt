@@ -59,7 +59,6 @@ file(GLOB asf_sources
   ${asf4_PATH}/samd09/hal/src/*.c
   ${asf4_PATH}/samd09/hpl/*/*.c
   ${asf4_PATH}/samd09/hal/utils/src/*.c
-  ${asf4_PATH}/samd09/atmel_start.c
   ${asf4_PATH}/samd09/driver_init.c
   ${asf4_PATH}/samd09/gcc/gcc/startup_samd09.c
 )

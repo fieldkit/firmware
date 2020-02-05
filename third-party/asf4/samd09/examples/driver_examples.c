@@ -90,14 +90,42 @@ void FLASH_0_example(void)
 	flash_read(&FLASH_0, 0x3200, chk_data, page_size);
 }
 
-void I2C_0_example(void)
+static struct io_descriptor *io;
+
+static void I2C_0_rx_complete(const struct i2c_s_async_descriptor *const descr)
+{
+	uint8_t c;
+
+	io_read(io, &c, 1);
+}
+
+void I2C_0_subordinate_async_example(void)
+{
+	i2c_s_async_get_io_descriptor(&I2C_0, &io);
+	i2c_s_async_register_callback(&I2C_0, I2C_S_RX_COMPLETE, I2C_0_rx_complete);
+	i2c_s_async_enable(&I2C_0);
+}
+
+void I2C_0_m_example(void)
 {
 	struct io_descriptor *I2C_0_io;
 
-	i2c_m_sync_get_io_descriptor(&I2C_0, &I2C_0_io);
-	i2c_m_sync_enable(&I2C_0);
-	i2c_m_sync_set_slaveaddr(&I2C_0, 0x12, I2C_M_SEVEN);
+	i2c_m_sync_get_io_descriptor(&I2C_0_m, &I2C_0_io);
+	i2c_m_sync_enable(&I2C_0_m);
+	i2c_m_sync_set_slaveaddr(&I2C__m0, 0x12, I2C_M_SEVEN);
 	io_write(I2C_0_io, (uint8_t *)"Hello World!", 12);
+}
+
+void I2C_0_s_example(void)
+{
+	struct io_descriptor *io;
+	uint8_t               c;
+
+	i2c_s_sync_get_io_descriptor(&I2C_0_s, &io);
+	i2c_s_sync_set_addr(&I2C_0_s, 1);
+	i2c_s_sync_enable(&I2C_0_s);
+
+	io_read(io, &c, 1);
 }
 
 void I2C_1_example(void)

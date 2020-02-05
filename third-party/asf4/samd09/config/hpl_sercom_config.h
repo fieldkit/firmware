@@ -4,6 +4,8 @@
 
 // <<< Use Configuration Wizard in Context Menu >>>
 
+// #include "hpl_sercom_config_i2cs.h"
+
 #include <peripheral_clk_config.h>
 
 #ifndef SERCOM_I2CM_CTRLA_MODE_I2C_MASTER

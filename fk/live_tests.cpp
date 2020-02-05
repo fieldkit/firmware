@@ -393,7 +393,7 @@ static void scan_i2c_module_bus() {
     auto bus = get_board()->i2c_module();
 
     while (true) {
-        for (auto i : { 2, 6 }) {
+        for (auto i : { 0, 1, 2, 3 }) {
             if (!mm->choose(i)) {
                 loginfo("unable to choose %d", i);
                 continue;
@@ -411,7 +411,7 @@ static void scan_i2c_module_bus() {
             }
         }
 
-        fk_delay(1000);
+        fk_delay(10000);
     }
 }
 
