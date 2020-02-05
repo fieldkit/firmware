@@ -96,8 +96,8 @@ package: fw
 	cp $(BUILD)/samd51/bootloader/fkbl-fkb.bin $(BUILD)/$(PACKAGE)
 	cp $(BUILD)/samd51/fk/fk-bundled-fkb.elf $(BUILD)/$(PACKAGE)
 	cp $(BUILD)/samd51/fk/fk-bundled-fkb.bin $(BUILD)/$(PACKAGE)
-	cp $(BUILD)/samd09/modules/weather/sidecar/fk-weather-sidecar.elf $(BUILD)/$(PACKAGE)
-	cp $(BUILD)/samd09/modules/weather/sidecar/fk-weather-sidecar.bin $(BUILD)/$(PACKAGE)
+	cp $(BUILD)/samd09/modules/weather/sidecar/fk-weather-sidecar*.elf $(BUILD)/$(PACKAGE)
+	cp $(BUILD)/samd09/modules/weather/sidecar/fk-weather-sidecar*.bin $(BUILD)/$(PACKAGE)
 	chmod 644 $(BUILD)/$(PACKAGE)/*
 	chmod 755 $(BUILD)/$(PACKAGE)/flash-*
 	chmod 755 $(BUILD)/$(PACKAGE)/jlink-*
@@ -116,29 +116,29 @@ libraries/done:
 
 deps-initialize:
 	+@for l in $(LIBRARY_REPOSITORIES); do                                                     \
-		git subtree add --prefix libraries/$(l) https://github.com/$(l).git master --squash;     \
+		git subtree add --prefix libraries/$(l) https://github.com/$(l).git master --squash;   \
 	done
 
 deps-update:
 	+@for l in $(LIBRARY_REPOSITORIES); do                                                     \
-		git subtree pull --prefix libraries/$(l) https://github.com/$(l).git master --squash;    \
+		git subtree pull --prefix libraries/$(l) https://github.com/$(l).git master --squash;  \
 	done
 
 veryclean: clean
 	rm -rf bootloader/dependencies.cmake libraries/dependencies.cmake libraries/done
 	rm -rf modules/weather/sidecar/dependencies.cmake modules/weather/main/dependencies.cmake
 	@for l in $(LOCAL_LIBRARY_PATHS); do                                                       \
-		echo rm -rf $$l; rm -rf $$l;                                                             \
+		echo rm -rf $$l; rm -rf $$l;                                                           \
 	done
 
 info:
 	+@for m in build/samd51/fk/*.map; do                                                       \
-    echo $$m.cpp;                                                                            \
-    cat $$m | c++filt > $$m.cpp;                                                             \
+    echo $$m.cpp;                                                                              \
+    cat $$m | c++filt > $$m.cpp;                                                               \
 	done
 	+@for m in build/samd51-pic/fk/*.map; do                                                   \
-    echo $$m.cpp;                                                                            \
-    cat $$m | c++filt > $$m.cpp;                                                             \
+    echo $$m.cpp;                                                                              \
+    cat $$m | c++filt > $$m.cpp;                                                               \
 	done
 
 clean:

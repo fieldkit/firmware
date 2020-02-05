@@ -1,9 +1,9 @@
 #!/bin/bash
 
-PROGRAM=fk-weather-sidecar.bin
+PROGRAM=fk-weather-sidecar-simple.bin
 
 if [ ! -f $PROGRAM ]; then
-    PROGRAM=build/samd09/modules/weather/sidecar/fk-weather-sidecar.bin
+    PROGRAM=build/samd09/modules/weather/sidecar/fk-weather-sidecar-simple.bin
 fi
 
 ls -alh $PROGRAM
