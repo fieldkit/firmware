@@ -393,7 +393,7 @@ static void scan_i2c_module_bus() {
     auto bus = get_board()->i2c_module();
 
     while (true) {
-        for (auto i : { 2, 6 }) {
+        for (auto i : { 0, 1, 2, 3 }) {
             if (!mm->choose(i)) {
                 loginfo("unable to choose %d", i);
                 continue;
@@ -411,7 +411,47 @@ static void scan_i2c_module_bus() {
             }
         }
 
-        fk_delay(1000);
+        fk_delay(10000);
+    }
+}
+
+static void test_i2c_weather_samd09() {
+    auto mm = get_modmux();
+
+    mm->disable_all_modules();
+
+    fk_delay(1000);
+
+    mm->enable_all_modules();
+
+    fk_delay(100);
+
+    auto bus = get_board()->i2c_module();
+
+    auto address = 0x42;
+
+    while (true) {
+        for (auto i : { 3 }) {
+            if (!mm->choose(i)) {
+                loginfo("unable to choose %d", i);
+                continue;
+            }
+
+            loginfo("position: %d", i);
+
+            fk_delay(100);
+
+            fk_weather_aggregated_t aw;
+            bzero(&aw, sizeof(aw));
+            if (!I2C_CHECK(bus.read_register_buffer(address, 0x00, (uint8_t *)&aw, sizeof(aw)))) {
+                logwarn("error reading");
+            }
+            else {
+                loginfo("done: 0x%x 0x%x %d %d", aw.second, aw.minute, aw.second, aw.minute);
+            }
+        }
+
+        fk_delay(10000);
     }
 }
 
@@ -433,6 +473,9 @@ void fk_live_tests() {
     }
     if (false) {
         scan_i2c_radio_bus();
+    }
+    if (false) {
+        test_i2c_weather_samd09();
     }
 }
 

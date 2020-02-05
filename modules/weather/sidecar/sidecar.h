@@ -19,4 +19,11 @@ int32_t fk_assert(const char *message, const char *file, int32_t line);
 
 uint32_t fk_weather_sign(fk_weather_t const *weather);
 
+#if !defined(memzero)
+/**
+ * Zero a region of memory.
+ */
+#define memzero(ptr, size)  memset(ptr, 0, size)
+#endif
+
 #include "logging.h"

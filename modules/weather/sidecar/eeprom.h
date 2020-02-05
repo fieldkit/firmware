@@ -70,3 +70,7 @@ int32_t eeprom_region_append_unwritten(eeprom_region_t *region, unwritten_readin
 int32_t eeprom_verify_header(eeprom_region_t *region);
 
 int32_t eeprom_lock_test();
+
+int32_t eeprom_region_seek_end(eeprom_region_t *region, uint32_t *seconds, uint32_t *startup_counter);
+
+int32_t eeprom_region_append_error(eeprom_region_t *region, uint32_t startups, uint32_t error, uint32_t memory_failures, uint32_t reading_failures);

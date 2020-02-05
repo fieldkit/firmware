@@ -43,6 +43,10 @@
 
 static int32_t configure_io_expander(struct i2c_m_sync_desc *i2c, uint8_t address, uint8_t iodir, uint8_t gpio);
 
+static void log_sensor_error(const char *which, int32_t rv) {
+    logerrorf("%s: error initializing (%d)", which, rv);
+}
+
 int32_t sensors_initialize(struct i2c_m_sync_desc *i2c, sensors_t *sensors) {
     uint16_t status;
     int32_t rv;
@@ -53,34 +57,34 @@ int32_t sensors_initialize(struct i2c_m_sync_desc *i2c, sensors_t *sensors) {
     nsensors++;
     rv = configure_io_expander(i2c, MCP2803_RAIN_I2C_ADDRESS, MCP2803_RAIN_IODIR, 0);
     if (rv != FK_SUCCESS) {
-        logerrorf("rain-mcp: error initializing (%d)", rv);
+        log_sensor_error("rain-mcp", rv);
         sensors->failures++;
     }
 
     nsensors++;
     rv = configure_io_expander(i2c, MCP2803_WIND_I2C_ADDRESS, MCP2803_WIND_IODIR, 0);
     if (rv != FK_SUCCESS) {
-        logerrorf("wind-mcp: error initializing (%d)", rv);
+        log_sensor_error("wind-mcp", rv);
         sensors->failures++;
     }
 
     nsensors++;
     rv = configure_io_expander(i2c, MCP2803_CONTROL_I2C_ADDRESS, MCP2803_CONTROL_IODIR, MCP2803_CONTROL_GPIO_INITIAL);
     if (rv != FK_SUCCESS) {
-        logerrorf("control-mcp: error initializing (%d)", rv);
+        log_sensor_error("control-mcp", rv);
         sensors->failures++;
     }
 
     nsensors++;
     rv = sht31_initialize(i2c);
     if (rv != FK_SUCCESS) {
-        logerrorf("sht31: error initializing (%d)", rv);
+        log_sensor_error("sht31", rv);
         sensors->failures++;
     }
     else {
         rv = sht31_status_get(i2c, &status);
         if (rv != FK_SUCCESS) {
-            logerrorf("sht31: error getting status (%d)", rv);
+            log_sensor_error("sht31-status", rv);
             sensors->failures++;
         }
     }
@@ -88,14 +92,14 @@ int32_t sensors_initialize(struct i2c_m_sync_desc *i2c, sensors_t *sensors) {
     nsensors++;
     rv = mpl3115a2_initialize(i2c);
     if (rv != FK_SUCCESS) {
-        logerrorf("mpl3115a2: error initializing (%d)", rv);
+        log_sensor_error("mpl3115a2", rv);
         sensors->failures++;
     }
 
     nsensors++;
     rv = adc081c_initialize(i2c);
     if (rv != FK_SUCCESS) {
-        logerrorf("adc081c: error initializing (%d)", rv);
+        log_sensor_error("adc081c", rv);
         sensors->failures++;
     }
 

@@ -14,16 +14,16 @@ uint32_t board_system_time_get() {
 }
 
 int32_t board_initialize() {
-    system_init();
+    system_initialize();
 
     SEGGER_RTT_Init();
     SEGGER_RTT_WriteString(0, "\n\n");
 
-    delay_driver_init();
-    EXTERNAL_IRQ_0_init();
-    TIMER_0_init();
-    I2C_1_init();
-    WDT_0_init();
+    delay_driver_initialize();
+    EXTERNAL_IRQ_0_initialize();
+    TIMER_0_initialize();
+    I2C_1_initialize();
+    WDT_0_initialize();
 
     FK_ASSERT(board_timer_setup(&timer_system_time, 1, timer_system_time_cb) == FK_SUCCESS);
 
@@ -44,8 +44,8 @@ static int32_t eeprom_i2c_enabled = false;
 
 int32_t board_eeprom_i2c_enable() {
     if (!eeprom_i2c_enabled) {
-        I2C_0_init();
-        i2c_m_sync_enable(&I2C_0);
+        I2C_0_master_initialize();
+        i2c_m_sync_enable(&I2C_0_m);
         eeprom_i2c_enabled = true;
     }
 
@@ -54,7 +54,7 @@ int32_t board_eeprom_i2c_enable() {
 
 int32_t board_eeprom_i2c_disable() {
     if (eeprom_i2c_enabled) {
-        i2c_m_sync_disable(&I2C_0);
+        i2c_m_sync_disable(&I2C_0_m);
         eeprom_i2c_enabled = false;
     }
     return FK_SUCCESS;
@@ -64,7 +64,7 @@ static int32_t sensors_i2c_enabled = false;
 
 int32_t board_sensors_i2c_enable() {
     if (!sensors_i2c_enabled) {
-        I2C_1_init();
+        I2C_1_initialize();
         i2c_m_sync_enable(&I2C_1);
         sensors_i2c_enabled = true;
     }
@@ -77,5 +77,45 @@ int32_t board_sensors_i2c_disable() {
         i2c_m_sync_disable(&I2C_1);
         sensors_i2c_enabled = false;
     }
+    return FK_SUCCESS;
+}
+
+static struct io_descriptor *i2c_subordinate_io = NULL;
+static board_register_map_t *i2c_regmap = NULL;
+
+static void I2C_0_rx_complete(const struct i2c_s_async_descriptor *const descr) {
+    SEGGER_RTT_WriteString(0, "!");
+
+    // Read the address they'd like to start at and then start reading
+    // there, while also checking for an overflow.
+    uint8_t address;
+    io_read(i2c_subordinate_io, &address, 1);
+
+    i2c_regmap->position = address % i2c_regmap->size;
+}
+
+static void I2C_0_tx_pending(const struct i2c_s_async_descriptor *const descr) {
+	struct _i2c_s_async_device *device = (struct _i2c_s_async_device *)&descr->device;
+
+    _i2c_s_async_write_byte(device, i2c_regmap->registers[i2c_regmap->position]);
+
+    i2c_regmap->position = (i2c_regmap->position + 1) % i2c_regmap->size;
+}
+
+static void I2C_0_tx_complete(const struct i2c_s_async_descriptor *const descr) {
+    SEGGER_RTT_WriteString(0, "X");
+}
+
+int32_t board_subordinate_initialize(board_register_map_t *regmap) {
+    i2c_regmap = regmap;
+
+    I2C_0_async_subordinate_initialize();
+    i2c_s_async_get_io_descriptor(&I2C_0_s, &i2c_subordinate_io);
+    i2c_s_async_register_callback(&I2C_0_s, I2C_S_RX_COMPLETE, I2C_0_rx_complete);
+    i2c_s_async_register_callback(&I2C_0_s, I2C_S_TX_COMPLETE, I2C_0_tx_complete);
+    i2c_s_async_register_callback(&I2C_0_s, I2C_S_TX_PENDING, I2C_0_tx_pending);
+    i2c_s_async_set_addr(&I2C_0_s, 0x42);
+    i2c_s_async_enable(&I2C_0_s);
+
     return FK_SUCCESS;
 }
