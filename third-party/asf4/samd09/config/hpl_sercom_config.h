@@ -4,7 +4,9 @@
 
 // <<< Use Configuration Wizard in Context Menu >>>
 
-// #include "hpl_sercom_config_i2cs.h"
+#if defined(FK_WEATHER_SIDECAR_SUBORDINATE)
+#include "hpl_sercom_config_i2cs.h"
+#endif
 
 #include <peripheral_clk_config.h>
 

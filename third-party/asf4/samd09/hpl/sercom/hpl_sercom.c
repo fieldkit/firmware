@@ -2359,12 +2359,14 @@ static inline const struct sercomspi_regs_cfg *_spi_get_regs(const uint32_t hw_a
 
 	return NULL;
 }
-/*
+
+#if defined(FK_WEATHER_SIDECAR_SUBORDINATE)
 void SERCOM0_Handler(void)
 {
 	_sercom_i2c_s_irq_handler(_sercom0_dev);
 }
-*/
+#endif
+
 int32_t _spi_m_sync_init(struct _spi_m_sync_dev *dev, void *const hw)
 {
 	const struct sercomspi_regs_cfg *regs = _spi_get_regs((uint32_t)hw);

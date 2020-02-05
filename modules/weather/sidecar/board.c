@@ -79,3 +79,19 @@ int32_t board_sensors_i2c_disable() {
     }
     return FK_SUCCESS;
 }
+
+struct io_descriptor *i2c_subordinate_io;
+
+static void I2C_0_rx_complete(const struct i2c_s_async_descriptor *const descr) {
+    SEGGER_RTT_WriteString(0, "!");
+}
+
+int32_t board_subordinate_initialize() {
+    I2C_0_async_subordinate_initialize();
+    i2c_s_async_get_io_descriptor(&I2C_0_s, &i2c_subordinate_io);
+    i2c_s_async_register_callback(&I2C_0_s, I2C_S_RX_COMPLETE, I2C_0_rx_complete);
+    i2c_s_async_set_addr(&I2C_0_s, 0x42);
+    i2c_s_async_enable(&I2C_0_s);
+
+    return FK_SUCCESS;
+}

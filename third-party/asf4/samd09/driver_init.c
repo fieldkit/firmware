@@ -202,18 +202,18 @@ void system_initialize(void)
 {
 	init_mcu();
 
-	CRC_0_initialize();
+	// CRC_0_initialize();
 	EXTERNAL_IRQ_0_initialize();
 
-	FLASH_0_initialize();
+	// FLASH_0_initialize();
 
 	delay_driver_initialize();
 
-	CALENDAR_0_initialize();
+	// CALENDAR_0_initialize();
 
 	TIMER_0_initialize();
 
-	EVENT_SYSTEM_0_initialize();
+	// EVENT_SYSTEM_0_initialize();
 
 	WDT_0_initialize();
 }

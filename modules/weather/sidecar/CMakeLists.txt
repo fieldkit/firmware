@@ -19,7 +19,7 @@ set(CMAKE_ASM_COMPILER ${ARM_TOOLS}/arm-none-eabi-gcc)
 enable_language(ASM)
 
 set(target_mcu "cortex-m0plus")
-set(target_board_flags -D__SAMD09__ -D__SAMD09D14A__ -DTINY_PRINTF_FEATURES_SMALL)
+set(target_board_flags -D__SAMD09__ -D__SAMD09D14A__ -DTINY_PRINTF_FEATURES_SMALL -DSEGGER_RTT_BUFFER_SIZE_UP=512 -DFK_WEATHER_SIDECAR_SUBORDINATE=1)
 set(target_c_flags -g -Os -s -fdata-sections -ffunction-sections -nostdlib --param max-inline-insns-single=500 -MMD -mcpu=${target_mcu} -mthumb ${target_board_flags} -fstack-usage -std=c99)
 set(linker_script ${CMAKE_SOURCE_DIR}/boards/samd09/main.ld)
 set(target_board_libraries)
@@ -29,8 +29,10 @@ set(target_name fk-weather-sidecar)
 set(elf_file ${CMAKE_CURRENT_BINARY_DIR}/${target_name}.elf)
 set(bin_file ${CMAKE_CURRENT_BINARY_DIR}/${target_name}.bin)
 set(map_file ${CMAKE_CURRENT_BINARY_DIR}/${target_name}.map)
+set(sym_file ${CMAKE_CURRENT_BINARY_DIR}/${target_name}.sym)
 set(elf_target ${target_name}.elf)
 set(bin_target ${target_name}.bin)
+set(sym_target ${target_name}.sym)
 
 file(GLOB fk_sources ${CMAKE_SOURCE_DIR}/fk/modules/*.c)
 file(GLOB sources *.s *.c)
@@ -102,3 +104,10 @@ add_dependencies(${elf_target} ${target_name})
 add_custom_command(OUTPUT ${bin_file} DEPENDS ${elf_file} COMMAND ${ARDUINO_OBJCOPY} -O binary ${elf_file} ${bin_file})
 add_custom_target(${bin_target} ALL DEPENDS ${bin_file})
 add_dependencies(${bin_target} ${elf_target})
+
+add_custom_command(
+  OUTPUT ${sym_file}
+  DEPENDS ${elf_file}
+  COMMAND ${ARDUINO_NM} -C -l --print-size --size-sort -r --radix=d ${elf_file} > ${sym_file})
+add_custom_target(${sym_target} ALL DEPENDS ${sym_file})
+add_dependencies(${sym_target} ${elf_target})
