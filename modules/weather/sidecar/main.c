@@ -13,6 +13,7 @@
 #include "eeprom.h"
 #include "sensors.h"
 #include "crc.h"
+#include "aggregated.h"
 
 #if defined(FK_WEATHER_SIDECAR_SUBORDINATE)
 #define FK_WEATHER_STAND_ALONE
@@ -137,7 +138,7 @@ __int32_t main() {
 
     board_initialize();
 
-    loginfof("board ready sizes = (%zd, %zd)", sizeof(fk_weather_t), sizeof(fk_weather_minute_t));
+    loginfof("board ready sizes = (%zd, %zd)", sizeof(fk_weather_t), sizeof(fk_weather_aggregated_t));
 
     #if !defined(FK_WEATHER_STAND_ALONE)
     if (ext_irq_register(PA25, eeprom_signal) != 0) {
@@ -166,6 +167,9 @@ __int32_t main() {
     memzero(&weather, sizeof(fk_weather_t));
 
     #if defined(FK_WEATHER_STAND_ALONE)
+
+    fk_weather_aggregated_t aggregated;
+    memzero(&aggregated, sizeof(fk_weather_aggregated_t));
     FK_ASSERT(board_subordinate_initialize() == FK_SUCCESS);
     #else // defined(FK_WEATHER_STAND_ALONE)
 
@@ -239,6 +243,9 @@ __int32_t main() {
             }
 
             #if defined(FK_WEATHER_STAND_ALONE)
+
+            FK_ASSERT(aggregated_weather_include(&aggregated, &weather) == FK_SUCCESS);
+
             #else // defined(FK_WEATHER_STAND_ALONE)
 
             unwritten_readings_push(&ur, &weather);

@@ -47,10 +47,13 @@ typedef struct fk_weather_config_t {
 } fk_weather_config_t;
 
 /**
- * This accumulates one minute of weather information.
+ * This accumulates aggregated weather information.
  */
-typedef struct fk_weather_minute_t {
-    uint32_t minute;
+typedef struct fk_weather_aggregated_t {
+    uint16_t second;
+    uint16_t minute;
+    uint8_t counter_120s;
+    uint8_t counter_10m;
 
     uint32_t humidity;
     uint32_t temperature_1;
@@ -58,19 +61,13 @@ typedef struct fk_weather_minute_t {
     uint32_t pressure;
     uint32_t temperature_2;
 
-    fk_wind_t wind[60];
-    fk_rain_t rain[60];
+    fk_wind_t wind_120s[120];
+    fk_rain_t rain_60m[60];
+
+    fk_wind_t wind_10m[10];
 
     uint32_t crc;
-} fk_weather_minute_t;
-
-typedef struct fk_eeprom_record_t {
-    uint8_t type;
-
-    union {
-        fk_weather_minute_t weather;
-    } r;
-} fk_eeprom_record_t;
+} fk_weather_aggregated_t;
 
 #define FK_WEATHER_ERROR_SENSORS_STARTUP               (0x1)
 #define FK_WEATHER_ERROR_SENSORS_READING               (0x2)
