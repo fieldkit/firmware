@@ -300,10 +300,8 @@ __int32_t main() {
 }
 
 int32_t fk_assert(const char *message, const char *file, int32_t line) {
-    volatile int32_t i = 0;
-    while (1) {
-        i++;
-    }
+    delay_ms(8000);
+    NVIC_SystemReset();
 
     return FK_SUCCESS;
 }
