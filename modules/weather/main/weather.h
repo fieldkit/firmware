@@ -63,8 +63,11 @@ typedef struct fk_weather_aggregated_t {
 
     fk_wind_t wind_120s[120];
     fk_rain_t rain_60m[60];
-
     fk_wind_t wind_10m[10];
+    fk_rain_t rain_previous_hour;
+
+    fk_rain_t rain;
+    fk_wind_t wind;
 
     uint32_t crc;
 } fk_weather_aggregated_t;
@@ -72,6 +75,8 @@ typedef struct fk_weather_aggregated_t {
 #define FK_WEATHER_ERROR_SENSORS_STARTUP               (0x1)
 #define FK_WEATHER_ERROR_SENSORS_READING               (0x2)
 #define FK_WEATHER_ERROR_SENSORS_MEMORY                (0x3)
+
+#define FK_WEATHER_I2C_COMMAND_READ                    (0x00)
 
 #ifdef __cplusplus
 }

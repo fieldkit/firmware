@@ -86,12 +86,17 @@ static board_register_map_t *i2c_regmap = NULL;
 static void I2C_0_rx_complete(const struct i2c_s_async_descriptor *const descr) {
     SEGGER_RTT_WriteString(0, "!");
 
-    // Read the address they'd like to start at and then start reading
-    // there, while also checking for an overflow.
-    uint8_t address;
-    io_read(i2c_subordinate_io, &address, 1);
+    // What do they want us to do?
+    uint8_t command;
+    io_read(i2c_subordinate_io, &command, 1);
 
-    i2c_regmap->position = address % i2c_regmap->size;
+    switch (command) {
+    case FK_WEATHER_I2C_COMMAND_READ:
+        break;
+    }
+
+    // We zero our position every time.
+    i2c_regmap->position = 0;
 }
 
 static void I2C_0_tx_pending(const struct i2c_s_async_descriptor *const descr) {
@@ -108,6 +113,7 @@ static void I2C_0_tx_complete(const struct i2c_s_async_descriptor *const descr) 
 
 int32_t board_subordinate_initialize(board_register_map_t *regmap) {
     i2c_regmap = regmap;
+    i2c_regmap->position = 0;
 
     I2C_0_async_subordinate_initialize();
     i2c_s_async_get_io_descriptor(&I2C_0_s, &i2c_subordinate_io);

@@ -447,7 +447,26 @@ static void test_i2c_weather_samd09() {
                 logwarn("error reading");
             }
             else {
-                loginfo("done: 0x%x 0x%x %d %d", aw.second, aw.minute, aw.second, aw.minute);
+                constexpr float RainPerTick = 0.2794; // mm
+                constexpr float WindPerTick = 2.4; // km/hr
+
+                fk_dump_memory("weather ", (uint8_t *)&aw, sizeof(aw));
+
+                loginfo("weather: %ds %dm (%d, %d)", aw.second, aw.minute, aw.counter_120s, aw.counter_10m);
+                loginfo("weather: humidity = %" PRIu32, aw.humidity);
+                loginfo("weather: temperature_1 = %" PRIu32, aw.temperature_1);
+                loginfo("weather: pressure = %" PRIu32, aw.pressure);
+                loginfo("weather: temperature_2 = %" PRIu32, aw.temperature_2);
+                loginfo("weather: rain = %" PRIu32, aw.rain.ticks);
+                loginfo("weather: wind = %" PRIu32, aw.wind.ticks);
+                loginfo("weather: crc = %" PRIu32, aw.crc);
+
+                loginfo("weather: humidity = %f", 100.0f * ((float)aw.humidity / (0xffff)));
+                loginfo("weather: temperature_1 = %f", -45.0f + 175.0f * ((float)aw.temperature_1 / (0xffff)));
+                loginfo("weather: pressure = %f", aw.pressure / 64.0f / 1000.0f);
+                loginfo("weather: temperature_2 = %f", aw.temperature_2 / 16.0f);
+                loginfo("weather: rain = %f", aw.rain.ticks * RainPerTick);
+                loginfo("weather: wind = %f", aw.wind.ticks * WindPerTick);
             }
         }
 

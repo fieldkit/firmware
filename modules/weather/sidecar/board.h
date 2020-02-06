@@ -4,8 +4,8 @@
 
 typedef struct board_register_map_t {
     uint8_t *registers;
-    size_t size;
-    size_t position;
+    uint16_t size;
+    uint16_t position;
 } board_register_map_t;
 
 enum system_sleepmode {
