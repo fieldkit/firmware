@@ -41,6 +41,10 @@ int32_t aggregated_weather_include(fk_weather_aggregated_t *aw, fk_weather_t *we
                 aw->rain_previous_hour.ticks += aw->rain_60m[i].ticks;
                 aw->rain_60m[i].ticks = 0;
             }
+
+            // Clear the gust.
+            aw->wind_gust.ticks = 0;
+            aw->wind_gust.direction = 0;
         }
     }
 
@@ -56,6 +60,11 @@ int32_t aggregated_weather_include(fk_weather_aggregated_t *aw, fk_weather_t *we
     // Check for a new gust of wind for this minute.
     if (weather->wind.ticks > aw->wind_10m[aw->counter_10m].ticks) {
         aw->wind_10m[aw->counter_10m] = weather->wind;
+    }
+
+    // Look for a new gust.
+    if (weather->wind.ticks > aw->wind_gust.ticks) {
+        aw->wind_gust = weather->wind;
     }
 
     aw->wind.ticks += weather->wind.ticks;

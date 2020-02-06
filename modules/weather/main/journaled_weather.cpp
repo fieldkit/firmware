@@ -289,64 +289,8 @@ void JournaledWeather::include(uint32_t now, fk_weather_t const &raw) {
     }
 }
 
-int16_t JournaledWeather::get_wind_direction(uint8_t raw_adc) {
-    if (raw_adc < 13) return 112;
-    if (raw_adc < 16) return 67;
-    if (raw_adc < 18) return 90;
-    if (raw_adc < 25) return 157;
-    if (raw_adc < 37) return 135;
-    if (raw_adc < 50) return 202;
-    if (raw_adc < 59) return 180;
-    if (raw_adc < 86) return 22;
-    if (raw_adc < 99) return 45;
-    if (raw_adc < 133) return 247;
-    if (raw_adc < 141) return 225;
-    if (raw_adc < 161) return 337;
-    if (raw_adc < 184) return 0;
-    if (raw_adc < 196) return 292;
-    if (raw_adc < 213) return 315;
-    if (raw_adc < 231) return 270;
-    return -1;
-}
-
 WindReading WeatherState::get_two_minute_wind_average() const {
-    auto speed_sum = 0.0f;
-    auto number_of_samples = 0;
-    auto direction_sum = two_minutes_of_wind[0].direction.angle;
-    auto d = two_minutes_of_wind[0].direction.angle;
-    for (auto i = 1 ; i < 120; i++) {
-        if (two_minutes_of_wind[i].direction.angle != -1) {
-            auto delta = two_minutes_of_wind[i].direction.angle - d;
-
-            if (delta < -180) {
-                d += delta + 360;
-            }
-            else if (delta > 180) {
-                d += delta - 360;
-            }
-            else {
-                d += delta;
-            }
-
-            direction_sum += d;
-
-            speed_sum += two_minutes_of_wind[i].speed;
-
-            number_of_samples++;
-        }
-    }
-
-    auto average_speed =  speed_sum / (float)number_of_samples;
-
-    auto average_direction = (int16_t)(direction_sum / number_of_samples);
-    if (average_direction >= 360) {
-        average_direction -= 360;
-    }
-    if (average_direction < 0) {
-        average_direction += 360;
-    }
-
-    return WindReading{ average_speed, WindDirection{ -1, average_direction } };
+    return WindReading::get_average(two_minutes_of_wind);
 }
 
 WindReading WeatherState::get_10m_wind_max() const {

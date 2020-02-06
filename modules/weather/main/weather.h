@@ -62,10 +62,15 @@ typedef struct fk_weather_aggregated_t {
     uint32_t temperature_2;
 
     fk_wind_t wind_120s[120];
-    fk_rain_t rain_60m[60];
     fk_wind_t wind_10m[10];
+    fk_wind_t wind_gust;
+
+    fk_rain_t rain_60m[60];
+
     fk_rain_t rain_previous_hour;
 
+    fk_rain_t previous_rain;
+    fk_wind_t previous_wind;
     fk_rain_t rain;
     fk_wind_t wind;
 

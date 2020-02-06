@@ -83,7 +83,7 @@ int32_t board_sensors_i2c_disable() {
 static struct io_descriptor *i2c_subordinate_io = NULL;
 static board_register_map_t *i2c_regmap = NULL;
 
-static void I2C_0_rx_complete(const struct i2c_s_async_descriptor *const descr) {
+static void i2c_0_rx_complete(const struct i2c_s_async_descriptor *const descr) {
     SEGGER_RTT_WriteString(0, "!");
 
     // What do they want us to do?
@@ -91,15 +91,22 @@ static void I2C_0_rx_complete(const struct i2c_s_async_descriptor *const descr) 
     io_read(i2c_subordinate_io, &command, 1);
 
     switch (command) {
-    case FK_WEATHER_I2C_COMMAND_READ:
+    case FK_WEATHER_I2C_COMMAND_READ: {
+        if (i2c_regmap->before_read != NULL) {
+            i2c_regmap->before_read(i2c_regmap->registers);
+        }
         break;
+    }
+    case FK_WEATHER_I2C_COMMAND_CONFIG: {
+        break;
+    }
     }
 
     // We zero our position every time.
     i2c_regmap->position = 0;
 }
 
-static void I2C_0_tx_pending(const struct i2c_s_async_descriptor *const descr) {
+static void i2c_0_tx_pending(const struct i2c_s_async_descriptor *const descr) {
 	struct _i2c_s_async_device *device = (struct _i2c_s_async_device *)&descr->device;
 
     _i2c_s_async_write_byte(device, i2c_regmap->registers[i2c_regmap->position]);
@@ -107,7 +114,7 @@ static void I2C_0_tx_pending(const struct i2c_s_async_descriptor *const descr) {
     i2c_regmap->position = (i2c_regmap->position + 1) % i2c_regmap->size;
 }
 
-static void I2C_0_tx_complete(const struct i2c_s_async_descriptor *const descr) {
+static void i2c_0_tx_complete(const struct i2c_s_async_descriptor *const descr) {
     SEGGER_RTT_WriteString(0, "X");
 }
 
@@ -117,9 +124,9 @@ int32_t board_subordinate_initialize(board_register_map_t *regmap) {
 
     I2C_0_async_subordinate_initialize();
     i2c_s_async_get_io_descriptor(&I2C_0_s, &i2c_subordinate_io);
-    i2c_s_async_register_callback(&I2C_0_s, I2C_S_RX_COMPLETE, I2C_0_rx_complete);
-    i2c_s_async_register_callback(&I2C_0_s, I2C_S_TX_COMPLETE, I2C_0_tx_complete);
-    i2c_s_async_register_callback(&I2C_0_s, I2C_S_TX_PENDING, I2C_0_tx_pending);
+    i2c_s_async_register_callback(&I2C_0_s, I2C_S_RX_COMPLETE, i2c_0_rx_complete);
+    i2c_s_async_register_callback(&I2C_0_s, I2C_S_TX_COMPLETE, i2c_0_tx_complete);
+    i2c_s_async_register_callback(&I2C_0_s, I2C_S_TX_PENDING, i2c_0_tx_pending);
     i2c_s_async_set_addr(&I2C_0_s, 0x42);
     i2c_s_async_enable(&I2C_0_s);
 

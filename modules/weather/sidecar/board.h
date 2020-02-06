@@ -6,6 +6,7 @@ typedef struct board_register_map_t {
     uint8_t *registers;
     uint16_t size;
     uint16_t position;
+    void (*before_read)(void *ptr);
 } board_register_map_t;
 
 enum system_sleepmode {

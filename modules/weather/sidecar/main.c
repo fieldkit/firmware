@@ -111,6 +111,16 @@ static bool eeprom_clear_or_outside_window(uint32_t now) {
     return true;
 }
 
+static void regmap_before_read(void *ptr) {
+    fk_weather_aggregated_t *aw = (fk_weather_aggregated_t *)ptr;
+
+    aw->previous_wind = aw->wind;
+    aw->previous_rain = aw->rain;
+
+    memzero(&aw->wind, sizeof(aw->wind));
+    memzero(&aw->rain, sizeof(aw->rain));
+}
+
 #else
 
 static volatile uint32_t eeprom_signaled = 0;
@@ -174,7 +184,8 @@ __int32_t main() {
     board_register_map_t regmap = {
         (uint8_t *)&aggregated,
         sizeof(aggregated),
-        0
+        0,
+        regmap_before_read,
     };
 
     FK_ASSERT(board_subordinate_initialize(&regmap) == FK_SUCCESS);

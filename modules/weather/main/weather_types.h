@@ -3,6 +3,7 @@
 #include <lwcron/lwcron.h>
 
 #include "modules/shared/crc.h"
+#include "weather.h"
 
 namespace fk {
 
@@ -20,6 +21,15 @@ struct WindDirection {
 
     WindDirection(int16_t raw, int16_t angle) : raw(raw), angle(angle) {
     }
+
+    WindDirection(uint32_t raw_adc) : raw(get_adc_value_from_raw_adc(raw_adc)), angle(get_angle_from_raw_adc(raw_adc)) {
+    }
+
+    static int16_t get_adc_value_from_raw_adc(uint32_t raw_adc);
+
+    static int16_t get_angle_from_raw_adc(uint32_t raw_adc);
+
+    static float get_mv_from_raw_adc(uint32_t raw_adc);
 };
 
 struct WindReading {
@@ -29,12 +39,57 @@ struct WindReading {
     WindReading() {
     }
 
+    WindReading(fk_wind_t raw) : speed{ raw.ticks * WindPerTick }, direction{ raw.direction } {
+    }
+
     WindReading(float speed, WindDirection direction) : speed(speed), direction(direction) {
     }
 
     bool stronger_than(WindReading const &r) const {
         return speed > r.speed;
     }
+
+    template<typename T, size_t Size>
+    static WindReading get_average(T(&readings)[Size]) {
+        auto speed_sum = 0.0f;
+        auto number_of_samples = 0;
+        auto direction_sum = readings[0].direction.angle;
+        auto d = readings[0].direction.angle;
+        for (auto i = 1 ; i < Size; i++) {
+            if (readings[i].direction.angle != -1) {
+                auto delta = readings[i].direction.angle - d;
+
+                if (delta < -180) {
+                    d += delta + 360;
+                }
+                else if (delta > 180) {
+                    d += delta - 360;
+                }
+                else {
+                    d += delta;
+                }
+
+                direction_sum += d;
+
+                speed_sum += readings[i].speed;
+
+                number_of_samples++;
+            }
+        }
+
+        auto average_speed =  speed_sum / (float)number_of_samples;
+
+        auto average_direction = (int16_t)(direction_sum / number_of_samples);
+        if (average_direction >= 360) {
+            average_direction -= 360;
+        }
+        if (average_direction < 0) {
+            average_direction += 360;
+        }
+
+        return WindReading{ average_speed, WindDirection{ -1, average_direction } };
+    }
+
 };
 
 template<typename T>
