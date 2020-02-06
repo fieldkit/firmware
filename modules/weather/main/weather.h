@@ -72,11 +72,13 @@ typedef struct fk_weather_aggregated_t {
     uint32_t crc;
 } fk_weather_aggregated_t;
 
-#define FK_WEATHER_ERROR_SENSORS_STARTUP               (0x1)
-#define FK_WEATHER_ERROR_SENSORS_READING               (0x2)
-#define FK_WEATHER_ERROR_SENSORS_MEMORY                (0x3)
+#define FK_WEATHER_ERROR_SENSORS_STARTUP               (0x01)
+#define FK_WEATHER_ERROR_SENSORS_READING               (0x02)
+#define FK_WEATHER_ERROR_SENSORS_MEMORY                (0x03)
 
+#define FK_WEATHER_I2C_ADDRESS                         (0x42)
 #define FK_WEATHER_I2C_COMMAND_READ                    (0x00)
+#define FK_WEATHER_I2C_COMMAND_CONFIG                  (0x01)
 
 #ifdef __cplusplus
 }

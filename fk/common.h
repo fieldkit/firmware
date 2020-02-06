@@ -28,6 +28,11 @@ void fk_free_internal(void *ptr, const char *file, int32_t line);
 
 #define fk_free(ptr)       fk_free_internal(ptr, __FILE__, __LINE__)
 
+/**
+ * Zero a region of memory.
+ */
+#define memzero(ptr, size) memset(ptr, 0, size)
+
 #ifdef __cplusplus
 }
 #endif

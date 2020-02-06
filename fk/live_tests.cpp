@@ -12,6 +12,7 @@
 #include "hal/display.h"
 #include "hal/battery_gauge.h"
 #include "state_ref.h"
+#include "clock.h"
 
 #include "../modules/weather/main/weather.h"
 
@@ -428,8 +429,6 @@ static void test_i2c_weather_samd09() {
 
     auto bus = get_board()->i2c_module();
 
-    auto address = 0x42;
-
     while (true) {
         for (auto i : { 3 }) {
             if (!mm->choose(i)) {
@@ -441,16 +440,18 @@ static void test_i2c_weather_samd09() {
 
             fk_delay(100);
 
+            if (!I2C_CHECK(bus.write_register_u32(FK_WEATHER_I2C_ADDRESS, FK_WEATHER_I2C_COMMAND_CONFIG, 0xaabbccdd))) {
+                logwarn("error setting time");
+            }
+
             fk_weather_aggregated_t aw;
             bzero(&aw, sizeof(aw));
-            if (!I2C_CHECK(bus.read_register_buffer(address, 0x00, (uint8_t *)&aw, sizeof(aw)))) {
+            if (!I2C_CHECK(bus.read_register_buffer(FK_WEATHER_I2C_ADDRESS, FK_WEATHER_I2C_COMMAND_READ, (uint8_t *)&aw, sizeof(aw)))) {
                 logwarn("error reading");
             }
             else {
-                constexpr float RainPerTick = 0.2794; // mm
-                constexpr float WindPerTick = 2.4; // km/hr
-
-                fk_dump_memory("weather ", (uint8_t *)&aw, sizeof(aw));
+                // constexpr float RainPerTick = 0.2794; // mm
+                // constexpr float WindPerTick = 2.4; // km/hr
 
                 loginfo("weather: %ds %dm (%d, %d)", aw.second, aw.minute, aw.counter_120s, aw.counter_10m);
                 loginfo("weather: humidity = %" PRIu32, aw.humidity);
@@ -465,8 +466,6 @@ static void test_i2c_weather_samd09() {
                 loginfo("weather: temperature_1 = %f", -45.0f + 175.0f * ((float)aw.temperature_1 / (0xffff)));
                 loginfo("weather: pressure = %f", aw.pressure / 64.0f / 1000.0f);
                 loginfo("weather: temperature_2 = %f", aw.temperature_2 / 16.0f);
-                loginfo("weather: rain = %f", aw.rain.ticks * RainPerTick);
-                loginfo("weather: wind = %f", aw.wind.ticks * WindPerTick);
             }
         }
 
