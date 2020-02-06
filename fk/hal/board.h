@@ -84,6 +84,7 @@ public:
     int32_t write_register_u8(uint8_t address, uint8_t reg, uint8_t value);
     int32_t write_u8(uint8_t address, uint8_t value);
     int32_t write_register_u16(uint8_t address, uint8_t reg, uint16_t value);
+    int32_t write_register_u32(uint8_t address, uint8_t reg, uint32_t value);
     int32_t read_register_u16(uint8_t address, uint8_t reg, uint16_t &value);
 
 public:

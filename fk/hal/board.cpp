@@ -65,6 +65,17 @@ int32_t TwoWireWrapper::write_register_u16(uint8_t address, uint8_t reg, uint16_
     return write(address, &command, sizeof(command));
 }
 
+int32_t TwoWireWrapper::write_register_u32(uint8_t address, uint8_t reg, uint32_t value) {
+    uint8_t command[] = {
+        reg,
+        (uint8_t)((value      ) & 0xff),
+        (uint8_t)((value >>  8) & 0xff),
+        (uint8_t)((value >> 16) & 0xff),
+        (uint8_t)((value >> 24) & 0xff),
+    };
+    return write(address, &command, sizeof(command));
+}
+
 int32_t TwoWireWrapper::read_register_u16(uint8_t address, uint8_t reg, uint16_t &value) {
     auto rv = write(address, &reg, sizeof(reg));
     if (!I2C_CHECK(rv)) {
