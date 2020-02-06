@@ -1,3 +1,5 @@
+#include <time.h>
+
 #include "board.h"
 #include "logging.h"
 
@@ -24,6 +26,9 @@ int32_t board_initialize() {
     TIMER_0_initialize();
     I2C_1_initialize();
     WDT_0_initialize();
+    CALENDAR_0_initialize();
+
+	calendar_enable(&CALENDAR_0);
 
     FK_ASSERT(board_timer_setup(&timer_system_time, 1, timer_system_time_cb) == FK_SUCCESS);
 
@@ -84,9 +89,9 @@ static struct io_descriptor *i2c_subordinate_io = NULL;
 static board_register_map_t *i2c_regmap = NULL;
 
 static void i2c_0_rx_complete(const struct i2c_s_async_descriptor *const descr) {
-    SEGGER_RTT_WriteString(0, "!");
+}
 
-    // What do they want us to do?
+static void i2c_0_rx_stop(const struct i2c_s_async_descriptor *const descr) {
     uint8_t command;
     io_read(i2c_subordinate_io, &command, 1);
 
@@ -98,16 +103,35 @@ static void i2c_0_rx_complete(const struct i2c_s_async_descriptor *const descr) 
         break;
     }
     case FK_WEATHER_I2C_COMMAND_CONFIG: {
+        int32_t bytes = i2c_s_async_get_bytes_received(descr);
+        if (bytes != sizeof(uint32_t)) {
+            break;
+        }
+
+        uint32_t clock = 0;
+        io_read(i2c_subordinate_io, (uint8_t *)&clock, sizeof(clock));
+
+        struct tm *t = gmtime((time_t *)&clock);
+
+        struct calendar_date date;
+        struct calendar_time time;
+
+        date.year  = t->tm_year + 1900;
+        date.month = t->tm_mon + 1;
+        date.day   = t->tm_mday;
+        time.hour  = t->tm_hour;
+        time.min   = t->tm_min;
+        time.sec   = t->tm_sec;
+
+        calendar_set_date(&CALENDAR_0, &date);
+        calendar_set_time(&CALENDAR_0, &time);
+
         break;
     }
     }
 
     // We zero our position every time.
     i2c_regmap->position = 0;
-}
-
-static void i2c_0_rx_stop(const struct i2c_s_async_descriptor *const descr) {
-    SEGGER_RTT_WriteString(0, "!");
 }
 
 static void i2c_0_tx_pending(const struct i2c_s_async_descriptor *const descr) {
@@ -119,7 +143,6 @@ static void i2c_0_tx_pending(const struct i2c_s_async_descriptor *const descr) {
 }
 
 static void i2c_0_tx_complete(const struct i2c_s_async_descriptor *const descr) {
-    SEGGER_RTT_WriteString(0, "X");
 }
 
 int32_t board_subordinate_initialize(board_register_map_t *regmap) {

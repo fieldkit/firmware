@@ -103,6 +103,10 @@ ModuleReadings *AggregatedWeather::take_readings(ModuleContext mc, Pool &pool) {
     mr->set(i++, awh.get_hourly_rain());
     mr->set(i++, aw.rain_previous_hour.ticks * RainPerTick);
 
+    if (!I2C_CHECK(bus.write_register_u32(FK_WEATHER_I2C_ADDRESS, FK_WEATHER_I2C_COMMAND_CONFIG, get_clock_now()))) {
+        logwarn("unable to configure");
+    }
+
     return mr;
 }
 
