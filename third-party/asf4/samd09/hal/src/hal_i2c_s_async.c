@@ -46,6 +46,7 @@ static int32_t i2c_s_async_read(struct io_descriptor *const io_descr, uint8_t *c
 static void i2c_s_async_tx(struct _i2c_s_async_device *const device);
 static void i2c_s_async_byte_received(struct _i2c_s_async_device *const device, const uint8_t data);
 static void i2c_s_async_error(struct _i2c_s_async_device *const device);
+static void i2c_s_async_stop(struct _i2c_s_async_device *const device);
 
 /**
  * \brief Initialize asynchronous i2c slave interface
@@ -72,6 +73,7 @@ int32_t i2c_s_async_init(struct i2c_s_async_descriptor *const descr, void *const
 	descr->device.cb.error   = i2c_s_async_error;
 	descr->device.cb.tx      = i2c_s_async_tx;
 	descr->device.cb.rx_done = i2c_s_async_byte_received;
+	descr->device.cb.stop    = i2c_s_async_stop;
 
 	descr->tx_por           = 0;
 	descr->tx_buffer_length = 0;
@@ -159,6 +161,9 @@ int32_t i2c_s_async_register_callback(struct i2c_s_async_descriptor *const descr
 		break;
 	case I2C_S_RX_COMPLETE:
 		descr->cbs.rx = func;
+		break;
+	case I2C_S_RX_STOP:
+		descr->cbs.stop = func;
 		break;
 	default:
 		return ERR_INVALID_DATA;
@@ -275,6 +280,15 @@ static void i2c_s_async_byte_received(struct _i2c_s_async_device *const device, 
 
 	if (descr->cbs.rx) {
 		descr->cbs.rx(descr);
+	}
+}
+
+static void i2c_s_async_stop(struct _i2c_s_async_device *const device)
+{
+	struct i2c_s_async_descriptor *descr = CONTAINER_OF(device, struct i2c_s_async_descriptor, device);
+
+	if (descr->cbs.stop) {
+		descr->cbs.stop(descr);
 	}
 }
 

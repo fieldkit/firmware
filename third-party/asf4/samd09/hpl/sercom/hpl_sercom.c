@@ -1895,6 +1895,7 @@ int32_t _i2c_s_async_set_irq_state(struct _i2c_s_async_device *const device, con
 
 	if (I2C_S_DEVICE_TX == type || I2C_S_DEVICE_RX_COMPLETE == type) {
 		hri_sercomi2cs_write_INTEN_DRDY_bit(device->hw, state);
+		hri_sercomi2cs_write_INTEN_PREC_bit(device->hw, state);
 	} else if (I2C_S_DEVICE_ERROR == type) {
 		hri_sercomi2cs_write_INTEN_ERROR_bit(device->hw, state);
 	}
@@ -1915,6 +1916,11 @@ static void _sercom_i2c_s_irq_handler(struct _i2c_s_async_device *device)
 	if (flags & SERCOM_I2CS_INTFLAG_ERROR) {
 		ASSERT(device->cb.error);
 		device->cb.error(device);
+    } else if (flags & SERCOM_I2CS_INTFLAG_PREC) {
+		if (!hri_sercomi2cs_get_STATUS_DIR_bit(hw)) {
+			device->cb.stop(device);
+        }
+        hri_sercomi2cs_clear_INTFLAG_PREC_bit(hw);
 	} else if (flags & SERCOM_I2CS_INTFLAG_DRDY) {
 		if (!hri_sercomi2cs_get_STATUS_DIR_bit(hw)) {
 			ASSERT(device->cb.rx_done);
@@ -1929,7 +1935,8 @@ static void _sercom_i2c_s_irq_handler(struct _i2c_s_async_device *device)
 		hri_sercomi2cs_clear_STATUS_reg(hw, 0);
 		hri_sercomi2cs_clear_STATUS_reg(hw, 0);
 #endif
-	}
+    }
+
 }
 
 /**

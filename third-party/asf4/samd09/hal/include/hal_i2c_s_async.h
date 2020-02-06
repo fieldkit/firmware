@@ -61,7 +61,7 @@ typedef void (*i2c_s_async_cb_t)(const struct i2c_s_async_descriptor *const desc
 /**
  * \brief i2c callback types
  */
-enum i2c_s_async_callback_type { I2C_S_ERROR, I2C_S_TX_PENDING, I2C_S_TX_COMPLETE, I2C_S_RX_COMPLETE };
+enum i2c_s_async_callback_type { I2C_S_ERROR, I2C_S_TX_PENDING, I2C_S_TX_COMPLETE, I2C_S_RX_COMPLETE, I2C_S_RX_STOP };
 
 /**
  * \brief i2c callback pointers structure
@@ -71,6 +71,7 @@ struct i2c_s_async_callbacks {
 	i2c_s_async_cb_t tx_pending;
 	i2c_s_async_cb_t tx;
 	i2c_s_async_cb_t rx;
+	i2c_s_async_cb_t stop;
 };
 
 /**

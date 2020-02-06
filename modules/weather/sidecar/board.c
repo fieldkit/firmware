@@ -106,6 +106,10 @@ static void i2c_0_rx_complete(const struct i2c_s_async_descriptor *const descr) 
     i2c_regmap->position = 0;
 }
 
+static void i2c_0_rx_stop(const struct i2c_s_async_descriptor *const descr) {
+    SEGGER_RTT_WriteString(0, "!");
+}
+
 static void i2c_0_tx_pending(const struct i2c_s_async_descriptor *const descr) {
 	struct _i2c_s_async_device *device = (struct _i2c_s_async_device *)&descr->device;
 
@@ -127,6 +131,7 @@ int32_t board_subordinate_initialize(board_register_map_t *regmap) {
     i2c_s_async_register_callback(&I2C_0_s, I2C_S_RX_COMPLETE, i2c_0_rx_complete);
     i2c_s_async_register_callback(&I2C_0_s, I2C_S_TX_COMPLETE, i2c_0_tx_complete);
     i2c_s_async_register_callback(&I2C_0_s, I2C_S_TX_PENDING, i2c_0_tx_pending);
+    i2c_s_async_register_callback(&I2C_0_s, I2C_S_RX_STOP, i2c_0_rx_stop);
     i2c_s_async_set_addr(&I2C_0_s, 0x42);
     i2c_s_async_enable(&I2C_0_s);
 
