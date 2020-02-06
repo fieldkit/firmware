@@ -2,12 +2,17 @@ format_version: '2'
 name: My Project
 versions:
   api: '1.0'
-  backend: 1.6.148
-  commit: 605f106ab95776472e3febf2fac2471441fb1816
-  content: 1.0.1600
-  content_pack_name: acme-packs-all
+  backend: 1.7.279
+  commit: 1e07622763d149970fd8808a8f12ff3b1e84e0d7
+  content: unknown
+  content_pack_name: unknown
   format: '2'
-  frontend: 1.6.1881
+  frontend: 1.7.279
+  packs_version_avr8: 1.0.1401
+  packs_version_qtouch: unknown
+  packs_version_sam: 1.0.1373
+  version_backend: 1.7.279
+  version_frontend: ''
 board:
   identifier: CustomBoard
   device: SAMD09D14A-MU
@@ -36,7 +41,7 @@ drivers:
       eic_arch_enable_irq_setting2: false
       eic_arch_enable_irq_setting3: false
       eic_arch_enable_irq_setting4: false
-      eic_arch_enable_irq_setting5: false
+      eic_arch_enable_irq_setting5: true
       eic_arch_enable_irq_setting6: false
       eic_arch_enable_irq_setting7: false
       eic_arch_extinteo0: false
@@ -62,7 +67,7 @@ drivers:
       eic_arch_sense2: No detection
       eic_arch_sense3: No detection
       eic_arch_sense4: No detection
-      eic_arch_sense5: No detection
+      eic_arch_sense5: Both-edges detection
       eic_arch_sense6: No detection
       eic_arch_sense7: No detection
       eic_arch_wakeupen0: false
@@ -70,10 +75,17 @@ drivers:
       eic_arch_wakeupen2: false
       eic_arch_wakeupen3: false
       eic_arch_wakeupen4: false
-      eic_arch_wakeupen5: false
+      eic_arch_wakeupen5: true
       eic_arch_wakeupen6: false
       eic_arch_wakeupen7: false
-    optional_signals: []
+    optional_signals:
+    - identifier: EXTERNAL_IRQ_0:EXTINT/5
+      pad: PA25
+      mode: Enabled
+      configuration: null
+      definition: Atmel:SAMD09_Drivers:0.0.1::SAMD09D14A-MU::optional_signal_definition::EIC.EXTINT.5
+      name: EIC/EXTINT/5
+      label: EXTINT/5
     variant: null
     clocks:
       domain_group:
@@ -91,11 +103,17 @@ drivers:
     api: HAL:HPL:GCLK
     configuration:
       enable_gclk_gen_0: true
+      enable_gclk_gen_0__externalclock: 1000000
       enable_gclk_gen_1: false
+      enable_gclk_gen_1__externalclock: 1000000
       enable_gclk_gen_2: false
+      enable_gclk_gen_2__externalclock: 1000000
       enable_gclk_gen_3: false
+      enable_gclk_gen_3__externalclock: 1000000
       enable_gclk_gen_4: false
-      enable_gclk_gen_5: false
+      enable_gclk_gen_4__externalclock: 1000000
+      enable_gclk_gen_5: true
+      enable_gclk_gen_5__externalclock: 1000000
       gclk_arch_gen_0_RUNSTDBY: false
       gclk_arch_gen_0_enable: true
       gclk_arch_gen_0_idc: false
@@ -122,7 +140,7 @@ drivers:
       gclk_arch_gen_4_oe: false
       gclk_arch_gen_4_oov: false
       gclk_arch_gen_5_RUNSTDBY: false
-      gclk_arch_gen_5_enable: false
+      gclk_arch_gen_5_enable: true
       gclk_arch_gen_5_idc: false
       gclk_arch_gen_5_oe: false
       gclk_arch_gen_5_oov: false
@@ -141,9 +159,9 @@ drivers:
       gclk_gen_4_div: 1
       gclk_gen_4_div_sel: false
       gclk_gen_4_oscillator: External Crystal Oscillator 0.4-32MHz (XOSC)
-      gclk_gen_5_div: 1
-      gclk_gen_5_div_sel: false
-      gclk_gen_5_oscillator: External Crystal Oscillator 0.4-32MHz (XOSC)
+      gclk_gen_5_div: 4
+      gclk_gen_5_div_sel: true
+      gclk_gen_5_oscillator: 32kHz Ultra Low Power Internal Oscillator (OSCULP32K)
     optional_signals: []
     variant: null
     clocks:
@@ -300,11 +318,11 @@ drivers:
       domain_group:
         nodes:
         - name: RTC
-          input: Generic clock generator 0
+          input: Generic clock generator 5
           external: false
           external_frequency: 0
         configuration:
-          rtc_clk_selection: Generic clock generator 0
+          rtc_clk_selection: Generic clock generator 5
   TIMER_0:
     user_label: TIMER_0
     definition: Atmel:SAMD09_Drivers:0.0.1::SAMD09D14A-MU::TC1::driver_config_definition::Timer::HAL:Driver:Timer
@@ -790,7 +808,7 @@ drivers:
     functionality: WDT
     api: HAL:Driver:WDT
     configuration:
-      wdt_arch_per: 8 clock cycles
+      wdt_arch_per: 4096 clock cycles
       wdt_arch_window: 8 clock cycles
       wdt_arch_window_en: false
     optional_signals: []
@@ -799,11 +817,11 @@ drivers:
       domain_group:
         nodes:
         - name: WDT
-          input: Generic clock generator 0
+          input: Generic clock generator 5
           external: false
           external_frequency: 0
         configuration:
-          wdt_gclk_selection: Generic clock generator 0
+          wdt_gclk_selection: Generic clock generator 5
 pads:
   PA14:
     name: PA14
@@ -828,5 +846,11 @@ pads:
     definition: Atmel:SAMD09_Drivers:0.0.1::SAMD09D14A-MU::pad::PA23
     mode: I2C
     user_label: PA23
+    configuration: null
+  PA25:
+    name: PA25
+    definition: Atmel:SAMD09_Drivers:0.0.1::SAMD09D14A-MU::pad::PA25
+    mode: Digital input
+    user_label: PA25
     configuration: null
 toolchain_options: []

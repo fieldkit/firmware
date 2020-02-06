@@ -44,13 +44,22 @@ void CRC_0_initialize(void)
 
 void EXTERNAL_IRQ_0_initialize(void)
 {
-	_gclk_enable_channel(EIC_GCLK_ID, CONF_GCLK_EIC_SRC);
+    _gclk_enable_channel(EIC_GCLK_ID, CONF_GCLK_EIC_SRC);
 
-  gpio_set_pin_direction(PA25, GPIO_DIRECTION_IN);
-  gpio_set_pin_pull_mode(PA25, GPIO_PULL_OFF);
-  gpio_set_pin_function(PA25, PINMUX_PA25A_EIC_EXTINT5);
+    // Set pin direction to input
+    gpio_set_pin_direction(PA25, GPIO_DIRECTION_IN);
 
-	ext_irq_init();
+    gpio_set_pin_pull_mode(PA25,
+                           // <y> Pull configuration
+                           // <id> pad_pull_config
+                           // <GPIO_PULL_OFF"> Off
+                           // <GPIO_PULL_UP"> Pull-up
+                           // <GPIO_PULL_DOWN"> Pull-down
+                           GPIO_PULL_OFF);
+
+    gpio_set_pin_function(PA25, PINMUX_PA25A_EIC_EXTINT5);
+
+    ext_irq_init();
 }
 
 void FLASH_0_CLOCK_initialize(void)

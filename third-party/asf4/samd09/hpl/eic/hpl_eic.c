@@ -70,7 +70,7 @@ static int ffs(int v)
 	}
 #endif
 
-#define EXT_IRQ_AMOUNT 0
+#define EXT_IRQ_AMOUNT 1
 
 /**
  * \brief EXTINTx and pin number map
