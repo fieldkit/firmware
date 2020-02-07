@@ -75,6 +75,7 @@ typedef struct fk_weather_aggregated_t {
     fk_rain_t rain;
     fk_wind_t wind;
 
+    uint32_t uptime;
     uint32_t crc;
 } fk_weather_aggregated_t;
 

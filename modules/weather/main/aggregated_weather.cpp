@@ -70,7 +70,7 @@ ModuleReadings *AggregatedWeather::take_readings(ModuleContext mc, Pool &pool) {
         return nullptr;
     }
 
-    logdebug("time: %d/%02d/%02d", aw.hour, aw.minute, aw.second);
+    logdebug("time: %d/%02d/%02d (%" PRIu32 ")", aw.hour, aw.minute, aw.second, aw.uptime);
 
     AggregatedWeatherHelpers awh{ aw };
 

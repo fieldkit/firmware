@@ -1,5 +1,6 @@
 #include "aggregated.h"
 #include "eeprom.h"
+#include "board.h"
 #include "crc.h"
 
 uint32_t aggregated_weather_sign(fk_weather_aggregated_t const *aw) {
@@ -71,6 +72,7 @@ int32_t aggregated_weather_include(fk_weather_aggregated_t *aw, struct calendar_
     aw->wind.direction = weather->wind.direction;
     aw->rain.ticks += weather->rain.ticks;
 
+    aw->uptime = board_system_time_get();
     aw->crc = aggregated_weather_sign(aw);
 
     return FK_SUCCESS;
