@@ -10,3 +10,4 @@ core.*
 .clangd
 compile_commands.json
 protobuf.pb
+power.db
