@@ -20,6 +20,14 @@ uint32_t millis();
 
 void delay(uint32_t ms);
 
+uint32_t serial_number_get(uint32_t *sn) {
+    sn[0] = __builtin_bswap32(*(uint32_t *)0x008061FC);
+    sn[1] = __builtin_bswap32(*(uint32_t *)0x00806010);
+    sn[2] = __builtin_bswap32(*(uint32_t *)0x00806014);
+    sn[3] = __builtin_bswap32(*(uint32_t *)0x00806018);
+    return 128;
+}
+
 uint32_t launch() {
     fkb_external_println("bl: looking for executable...");
 
@@ -40,6 +48,12 @@ int32_t main() {
     SysTick_Config(F_CPU / 1000);
 
     fkb_external_println("bl: board ready (%s) (bank = %d)", fk_get_reset_reason_string(), fk_nvm_get_active_bank());
+
+    uint32_t sn[4];
+    serial_number_get(sn);
+    fkb_external_println("bl: serial='%08" PRIx32 "-%08" PRIx32 "-%08" PRIx32 "-%08" PRIx32 "'",
+                         (uint32_t)__builtin_bswap32(sn[0]), (uint32_t)__builtin_bswap32(sn[1]),
+                         (uint32_t)__builtin_bswap32(sn[2]), (uint32_t)__builtin_bswap32(sn[3]));
 
     launch();
 
