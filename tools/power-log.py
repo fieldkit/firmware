@@ -22,6 +22,7 @@ class Database:
         c = self.db.cursor()
         c.execute('CREATE TABLE IF NOT EXISTS samples ('
                   '  id INTEGER PRIMARY KEY AUTOINCREMENT,'
+                  '  run INTEGER NOT NULL,'
                   '  device_id TEXT NOT NULL,'
                   '  firmware_hash TEXT NOT NULL,'
                   '  uptime INTEGER NOT NULL,'
@@ -33,12 +34,21 @@ class Database:
                   '  energy_delta NUMERIC,'
                   '  energy_total NUMERIC NOT NULL'
                   ')')
+
+        self.run = 0
+        run = c.execute("SELECT MAX(run) FROM samples").fetchone()[0]
+        if run: self.run = run
+
         self.db.commit()
+
+    def started(self):
+        self.run += 1
 
     def record(self, sample):
         if sample is None:
             return
         values = [
+            self.run,
             sample.device_id,
             sample.firmware_hash,
             sample.uptime,
@@ -50,7 +60,7 @@ class Database:
             sample.energy_delta,
             sample.energy_total,
         ]
-        self.db.cursor().execute('INSERT INTO samples (device_id, firmware_hash, uptime, tasks, modules, status, task_start, task_name, energy_delta, energy_total) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', values)
+        self.db.cursor().execute('INSERT INTO samples (run, device_id, firmware_hash, uptime, tasks, modules, status, task_start, task_name, energy_delta, energy_total) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', values)
         self.db.commit()
 
 class Sample:
@@ -135,6 +145,7 @@ class FkListener:
     def started(self):
         self.tasks = []
         self.sample.tasks = ''
+        self.db.started()
         logging.info("STARTED")
 
     def serial(self, serial):
@@ -163,7 +174,7 @@ class FkListener:
         self.db.record(self.sample.make_finished(name, delta))
         logging.info("TASKS: %s" % (self.tasks,))
 
-    def status(self, name, ip, free):
+    def status(self, name, ip):
         self.db.record(self.sample.make_status())
 
     def module(self, name, mk, version):
@@ -183,7 +194,7 @@ class FkLogParser:
         self.re_alive = re.compile(r'(\w+):\s+alive')
         self.re_dead = re.compile(r'(\w+):\s+dead')
         self.re_routing = re.compile(r'routing \'(.+)\'')
-        self.re_status = re.compile(r'\'(.+)\' \((.+)\) \(free = (\d+), arena = (\d+), used = (\d+)\)')
+        self.re_status = re.compile(r'\'(.+)\' \((.+)\) memory')
         self.re_module = re.compile(r'\'(.+)\' mk=(....) version=(\d+)')
 
     def handle(self, line):
@@ -207,7 +218,7 @@ class FkLogParser:
         m = self.re_routing.search(clean)
         if m: self.listener.connection_serviced(m.group(1))
         m = self.re_status.search(clean)
-        if m: self.listener.status(m.group(1), m.group(2), m.group(3))
+        if m: self.listener.status(m.group(1), m.group(2))
         m = self.re_module.search(clean)
         if m: self.listener.module(m.group(1), m.group(2), m.group(3))
 
