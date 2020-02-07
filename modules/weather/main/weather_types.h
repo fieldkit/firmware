@@ -97,4 +97,4 @@ static uint32_t calculate_crc(uint32_t seed, T &object) {
     return crc32_checksum(seed, (uint8_t *)&object, sizeof(T) - sizeof(uint32_t));
 }
 
-}
+} // namespace fk

@@ -32,4 +32,4 @@ bool AtlasApiReply::has_errors() const {
     return reply_.errors.arg != nullptr;
 }
 
-}
+} // namespace fk

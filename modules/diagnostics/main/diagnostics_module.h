@@ -2,15 +2,19 @@
 
 #include <modules/bridge/modules.h>
 
-class DiagnosticsModule : public fk::Module {
+namespace fk {
+
+class DiagnosticsModule : public Module {
 public:
-    fk::ModuleReturn initialize(fk::ModuleContext mc, fk::Pool &pool) override;
-    fk::ModuleReturn service(fk::ModuleContext mc, fk::Pool &pool) override;
-    fk::ModuleReturn api(fk::ModuleContext mc, fk::HttpServerConnection *connection, fk::Pool &pool) override;
-    fk::ModuleReadings *take_readings(fk::ModuleContext mc, fk::Pool &pool) override;
+    ModuleReturn initialize(ModuleContext mc, Pool &pool) override;
+    ModuleReturn service(ModuleContext mc, Pool &pool) override;
+    ModuleReturn api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) override;
+    ModuleReadings *take_readings(ModuleContext mc, Pool &pool) override;
 
 public:
-    fk::ModuleSensors const *get_sensors(fk::Pool &pool) override;
-    fk::ModuleConfiguration get_configuration(fk::Pool &pool) override;
+    ModuleSensors const *get_sensors(Pool &pool) override;
+    ModuleConfiguration get_configuration(Pool &pool) override;
 
 };
+
+} // namespace fk

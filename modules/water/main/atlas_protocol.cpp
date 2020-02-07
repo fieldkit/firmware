@@ -22,4 +22,4 @@ fk_atlas_WireAtlasReply *fk_atlas_reply_prepare_encoding(fk_atlas_WireAtlasReply
     return reply;
 }
 
-}
+} // namespace fk

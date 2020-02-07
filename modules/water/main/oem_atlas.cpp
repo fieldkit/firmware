@@ -258,4 +258,4 @@ bool OemAtlas::finish_calibration() {
     return false;
 }
 
-}
+} // namespace fk

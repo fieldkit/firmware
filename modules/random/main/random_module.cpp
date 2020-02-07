@@ -1,7 +1,7 @@
 #include "random_module.h"
 #include "hal/random.h"
 
-using namespace fk;
+namespace fk {
 
 ModuleReturn RandomModule::initialize(ModuleContext mc, Pool &pool) {
     return { ModuleStatus::Ok };
@@ -55,3 +55,5 @@ ModuleReadings *RandomModule::take_readings(ModuleContext mc, Pool &pool) {
     }
     return mr;
 }
+
+} // namespace fk

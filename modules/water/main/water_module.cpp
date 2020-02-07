@@ -2,7 +2,7 @@
 #include "platform.h"
 #include "atlas_api.h"
 
-using namespace fk;
+namespace fk {
 
 FK_DECLARE_LOGGER("water");
 
@@ -158,3 +158,5 @@ ModuleReadings *WaterModule::take_readings(ModuleContext mc, Pool &pool) {
 
     return mr;
 }
+
+} // namespace fk

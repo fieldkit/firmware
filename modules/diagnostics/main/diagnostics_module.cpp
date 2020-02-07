@@ -3,7 +3,7 @@
 #include "state.h"
 #include "temperature.h"
 
-using namespace fk;
+namespace fk {
 
 static SensorMetadata const fk_module_sensor_metas[] = {
     { .name = "battery_charge",  .unitOfMeasure = "%",     .flags = 0 },
@@ -67,3 +67,5 @@ ModuleReadings *DiagnosticsModule::take_readings(ModuleContext mc, Pool &pool) {
 
     return mr;
 }
+
+} // namespace fk

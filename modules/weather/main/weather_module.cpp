@@ -68,4 +68,4 @@ ModuleReadings *WeatherModule::take_readings(ModuleContext mc, Pool &pool) {
     return delegate_.take_readings(mc, pool);
 }
 
-}
+} // namespace fk

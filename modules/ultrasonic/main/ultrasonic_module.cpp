@@ -1,7 +1,7 @@
 #include "ultrasonic_module.h"
 #include "platform.h"
 
-using namespace fk;
+namespace fk {
 
 FK_DECLARE_LOGGER("ultrasonic");
 
@@ -100,3 +100,5 @@ ModuleReadings *UltrasonicModule::take_readings(ModuleContext mc, Pool &pool) {
 
     return mr;
 }
+
+} // namespace fk
