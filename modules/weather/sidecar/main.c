@@ -160,6 +160,7 @@ __int32_t main() {
     }
     #endif
 
+    #if !defined(FK_WEATHER_STAND_ALONE)
     loginfo("eeprom...");
 
     // When we startup, sometimes the parent will hold this high so that it can
@@ -167,6 +168,7 @@ __int32_t main() {
     while (eeprom_lock_test()) {
         delay_ms(100);
     }
+    #endif
 
     uint32_t clk_rate = 1000;
     uint16_t to_period = 4096;
