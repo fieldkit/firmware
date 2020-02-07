@@ -138,8 +138,6 @@ bool fk_logging_initialize() {
 
             has_rtt_reader = true;
 
-            fk_logging_dump_buffer();
-
             break;
         }
     }
