@@ -16,7 +16,7 @@ public:
 public:
     bool weather(uint8_t position);
     bool water(uint8_t position);
-    bool ultrasonic(uint8_t position);
+    bool distance(uint8_t position);
     bool erase(uint8_t position);
 
 private:
@@ -24,4 +24,4 @@ private:
 
 };
 
-}
+} // namespace fk

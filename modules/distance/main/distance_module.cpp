@@ -1,14 +1,14 @@
-#include "ultrasonic_module.h"
+#include "distance_module.h"
 #include "platform.h"
 
 namespace fk {
 
-FK_DECLARE_LOGGER("ultrasonic");
+FK_DECLARE_LOGGER("distance");
 
-UltrasonicModule::UltrasonicModule() : bridge_(get_board()->acquire_i2c_module()) {
+DistanceModule::DistanceModule() : bridge_(get_board()->acquire_i2c_module()) {
 }
 
-ModuleReturn UltrasonicModule::initialize(ModuleContext mc, Pool &pool) {
+ModuleReturn DistanceModule::initialize(ModuleContext mc, Pool &pool) {
     auto bus = get_board()->i2c_module();
 
     bus.end();
@@ -30,37 +30,37 @@ ModuleReturn UltrasonicModule::initialize(ModuleContext mc, Pool &pool) {
     return { ModuleStatus::Ok };
 }
 
-ModuleReturn UltrasonicModule::api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
+ModuleReturn DistanceModule::api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
     connection->busy(0, "unsupported");
 
     return { ModuleStatus::Fatal };
 }
 
-ModuleReturn UltrasonicModule::service(ModuleContext mc, Pool &pool) {
+ModuleReturn DistanceModule::service(ModuleContext mc, Pool &pool) {
     return { ModuleStatus::Ok };
 }
 
-static SensorMetadata const fk_module_ultrasonic_sensor_metas[] = {
+static SensorMetadata const fk_module_distance_sensor_metas[] = {
     { .name = "distance_0",  .unitOfMeasure = "mm", .flags = 0 },
     { .name = "distance_1",  .unitOfMeasure = "mm", .flags = 0 },
     { .name = "distance_2",  .unitOfMeasure = "mm", .flags = 0 },
     { .name = "calibration", .unitOfMeasure = "mm", .flags = 0 },
 };
 
-static ModuleSensors fk_module_ultrasonic_sensors = {
-    .nsensors = sizeof(fk_module_ultrasonic_sensor_metas) / sizeof(SensorMetadata),
-    .sensors = fk_module_ultrasonic_sensor_metas,
+static ModuleSensors fk_module_distance_sensors = {
+    .nsensors = sizeof(fk_module_distance_sensor_metas) / sizeof(SensorMetadata),
+    .sensors = fk_module_distance_sensor_metas,
 };
 
-ModuleSensors const *UltrasonicModule::get_sensors(Pool &pool) {
-    return &fk_module_ultrasonic_sensors;
+ModuleSensors const *DistanceModule::get_sensors(Pool &pool) {
+    return &fk_module_distance_sensors;
 }
 
-ModuleConfiguration UltrasonicModule::get_configuration(Pool &pool) {
+ModuleConfiguration DistanceModule::get_configuration(Pool &pool) {
     return { };
 }
 
-ModuleReadings *UltrasonicModule::take_readings(ModuleContext mc, Pool &pool) {
+ModuleReadings *DistanceModule::take_readings(ModuleContext mc, Pool &pool) {
     auto mr = new(pool) NModuleReadings<4>();
     auto nreadings = 0u;
 

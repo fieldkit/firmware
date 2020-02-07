@@ -188,10 +188,10 @@ void MenuView::create_modules_menu() {
         views_->show_module_status();
         get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, ConfigureModuleKind::Weather));
     });
-    auto modules_ultrasonic = to_lambda_option(pool_, "Ultrasonic", [=]() {
+    auto modules_distance = to_lambda_option(pool_, "Distance", [=]() {
         back_->on_selected();
         views_->show_module_status();
-        get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, ConfigureModuleKind::Ultrasonic));
+        get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, ConfigureModuleKind::Distance));
     });
     auto modules_erase = to_lambda_option(pool_, "Erase", [=]() {
         back_->on_selected();
@@ -203,7 +203,7 @@ void MenuView::create_modules_menu() {
         back_,
         modules_water,
         modules_weather,
-        modules_ultrasonic,
+        modules_distance,
         modules_erase,
     });
 }

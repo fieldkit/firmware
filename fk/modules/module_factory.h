@@ -64,4 +64,4 @@ private:
 
 ModuleFactory &get_module_factory();
 
-}
+} // namespace fk

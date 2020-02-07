@@ -25,7 +25,7 @@ uint8_t fk_module_is_available_i2c_address(uint8_t address);
 #define FK_MODULES_MANUFACTURER                    (0x01)
 #define FK_MODULES_KIND_WEATHER                    (0x01)
 #define FK_MODULES_KIND_WATER                      (0x02)
-#define FK_MODULES_KIND_ULTRASONIC                 (0x03)
+#define FK_MODULES_KIND_DISTANCE                   (0x03)
 
 #define FK_MODULES_KIND_RANDOM                     (0xa0)
 #define FK_MODULES_KIND_DIAGNOSTICS                (0xa1)

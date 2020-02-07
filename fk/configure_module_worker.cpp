@@ -51,10 +51,10 @@ bool ConfigureModuleWorker::configure(Pool &pool) {
         });
         break;
     }
-    case ConfigureModuleKind::Ultrasonic: {
+    case ConfigureModuleKind::Distance: {
         configure_bay_and_update_state(bay_, gs.get(), [&](uint8_t b) {
-            loginfo("configuring ultrasonic: %d", b);
-            return configurer.ultrasonic(b);
+            loginfo("configuring distance: %d", b);
+            return configurer.distance(b);
         });
         break;
     case ConfigureModuleKind::Erase: {

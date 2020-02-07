@@ -23,7 +23,7 @@ extern "C" {
 uint32_t fk_modules_builtin_clear();
 
 #ifdef __cplusplus
-}
+} // extern "C"
 #endif
 
-}
+} // namespace fk

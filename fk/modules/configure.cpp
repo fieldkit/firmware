@@ -41,10 +41,10 @@ bool ModuleConfigurer::water(uint8_t position) {
     return true;
 }
 
-bool ModuleConfigurer::ultrasonic(uint8_t position) {
+bool ModuleConfigurer::distance(uint8_t position) {
     ModuleHeader header = {
         .manufacturer = FK_MODULES_MANUFACTURER,
-        .kind = FK_MODULES_KIND_ULTRASONIC,
+        .kind = FK_MODULES_KIND_DISTANCE,
         .version = 0x01,
         .id = { 0 },
     };
@@ -53,7 +53,7 @@ bool ModuleConfigurer::ultrasonic(uint8_t position) {
         return false;
     }
 
-    loginfo("[%d] configured ultrasonic", position);
+    loginfo("[%d] configured distance", position);
 
     return true;
 }
