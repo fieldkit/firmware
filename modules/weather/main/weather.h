@@ -52,6 +52,7 @@ typedef struct fk_weather_config_t {
 typedef struct fk_weather_aggregated_t {
     uint16_t second;
     uint16_t minute;
+    uint16_t hour;
     uint8_t counter_120s;
     uint8_t counter_10m;
 

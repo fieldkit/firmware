@@ -6,20 +6,19 @@ uint32_t aggregated_weather_sign(fk_weather_aggregated_t const *aw) {
     return crc32_checksum(FK_MODULES_CRC_SEED, (uint8_t const *)aw, sizeof(fk_weather_aggregated_t) - sizeof(uint32_t));
 }
 
-int32_t aggregated_weather_include(fk_weather_aggregated_t *aw, fk_weather_t *weather) {
+int32_t aggregated_weather_include(fk_weather_aggregated_t *aw, struct calendar_date_time *clock, fk_weather_t *weather) {
+    aw->second = clock->time.sec;
+
     aw->humidity = weather->humidity;
     aw->temperature_1 = weather->temperature_1;
 
     aw->pressure = weather->pressure;
     aw->temperature_2 = weather->temperature_2;
 
-    aw->second++;
-
     // Check for a new minute.
-    if (aw->second >= 60) {
+    if (aw->minute != clock->time.min) {
+        aw->minute = clock->time.min;
         aw->second = 0;
-
-        aw->minute++;
 
         // Start this minute's rain over.
         aw->rain_60m[aw->minute].ticks = 0;
@@ -32,7 +31,8 @@ int32_t aggregated_weather_include(fk_weather_aggregated_t *aw, fk_weather_t *we
         aw->wind_10m[aw->counter_10m].direction = 0;
 
         // Check for a new hour.
-        if (aw->minute >= 60) {
+        if (aw->hour != clock->time.hour) {
+            aw->hour = clock->time.hour;
             aw->minute = 0;
 
             // Roll up this hour of rain into the previous hour value.

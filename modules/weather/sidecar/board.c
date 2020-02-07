@@ -113,18 +113,16 @@ static void i2c_0_rx_stop(const struct i2c_s_async_descriptor *const descr) {
 
         struct tm *t = gmtime((time_t *)&clock);
 
-        struct calendar_date date;
-        struct calendar_time time;
+        struct calendar_date_time dt;
+        dt.date.year  = t->tm_year + 1900;
+        dt.date.month = t->tm_mon + 1;
+        dt.date.day   = t->tm_mday;
+        dt.time.hour  = t->tm_hour;
+        dt.time.min   = t->tm_min;
+        dt.time.sec   = t->tm_sec;
 
-        date.year  = t->tm_year + 1900;
-        date.month = t->tm_mon + 1;
-        date.day   = t->tm_mday;
-        time.hour  = t->tm_hour;
-        time.min   = t->tm_min;
-        time.sec   = t->tm_sec;
-
-        calendar_set_date(&CALENDAR_0, &date);
-        calendar_set_time(&CALENDAR_0, &time);
+        calendar_set_date(&CALENDAR_0, &dt.date);
+        calendar_set_time(&CALENDAR_0, &dt.time);
 
         break;
     }

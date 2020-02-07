@@ -70,6 +70,8 @@ ModuleReadings *AggregatedWeather::take_readings(ModuleContext mc, Pool &pool) {
         return nullptr;
     }
 
+    logdebug("time: %d/%02d/%02d", aw.hour, aw.minute, aw.second);
+
     AggregatedWeatherHelpers awh{ aw };
 
     auto wind_adc_mv = WindDirection::get_mv_from_raw_adc(aw.previous_wind.direction);

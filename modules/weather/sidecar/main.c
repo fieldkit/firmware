@@ -148,15 +148,15 @@ __int32_t main() {
 
     board_initialize();
 
-    loginfof("board ready sizes = (%zd, %zd)", sizeof(fk_weather_t), sizeof(fk_weather_aggregated_t));
+    loginfof("board ready (%zd, %zd)", sizeof(fk_weather_t), sizeof(fk_weather_aggregated_t));
 
     #if !defined(FK_WEATHER_STAND_ALONE)
     if (ext_irq_register(PA25, eeprom_signal) != 0) {
-        logerror("error registering irq");
+        logerror("registering irq");
     }
 
     if (ext_irq_enable(PA25) != 0) {
-        logerror("error enabling irq");
+        logerror("enabling irq");
     }
     #endif
 
@@ -200,7 +200,7 @@ __int32_t main() {
     board_eeprom_i2c_enable();
 
     if (eeprom_region_seek_end(&readings_region, &weather.seconds, &weather.startups) != FK_SUCCESS) {
-        logerror("error finding eeprom end");
+        logerror("eeprom end");
         board_eeprom_i2c_disable();
         delay_ms(8000);
         NVIC_SystemReset();
@@ -211,11 +211,11 @@ __int32_t main() {
 
     board_eeprom_i2c_disable();
 
-    #endif // defined(FK_WEATHER_STAND_ALONE)
-
     weather.startups++;
 
     loginfof("startup=%d, done", weather.startups);
+
+    #endif // defined(FK_WEATHER_STAND_ALONE)
 
     board_sensors_i2c_enable();
 
@@ -263,7 +263,10 @@ __int32_t main() {
 
             #if defined(FK_WEATHER_STAND_ALONE)
 
-            FK_ASSERT(aggregated_weather_include(&aggregated, &weather) == FK_SUCCESS);
+            struct calendar_date_time clock;
+            calendar_get_date_time(&CALENDAR_0, &clock);
+
+            FK_ASSERT(aggregated_weather_include(&aggregated, &clock, &weather) == FK_SUCCESS);
 
             #else // defined(FK_WEATHER_STAND_ALONE)
 
