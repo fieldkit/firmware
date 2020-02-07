@@ -10,15 +10,20 @@ struct SelfCheckSettings {
     bool check_sd_card{ false };
     bool check_backplane{ false };
     bool check_lora{ false };
+    bool flash_leds{ false };
 
     SelfCheckSettings() {
     }
 
-    SelfCheckSettings(bool gps, bool sd_card, bool backplane, bool lora) : check_gps(gps), check_sd_card(sd_card), check_backplane(backplane), check_lora(lora) {
+    SelfCheckSettings(bool gps, bool sd_card, bool backplane, bool lora, bool flash_leds) : check_gps(gps), check_sd_card(sd_card), check_backplane(backplane), check_lora(lora), flash_leds(flash_leds) {
+    }
+
+    static SelfCheckSettings detailed() {
+        return { true, true, true, true, true };
     }
 
     static SelfCheckSettings defaults() {
-        return { true, true, true, true };
+        return { true, true, true, true, false };
     }
 };
 
@@ -83,6 +88,7 @@ private:
     bool backplane_mux();
     bool backplane_leds();
     bool lora();
+    void flash_leds();
 
 };
 

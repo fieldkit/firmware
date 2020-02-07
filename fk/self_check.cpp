@@ -99,6 +99,10 @@ void SelfCheck::check(SelfCheckSettings settings, SelfCheckCallbacks &callbacks)
         callbacks.update(status);
     }
 
+    if (settings.flash_leds) {
+        flash_leds();
+    }
+
     callbacks.update(status);
 
     loginfo("done");
@@ -303,6 +307,33 @@ bool SelfCheck::lora() {
 
         return true;
     });
+}
+
+void SelfCheck::flash_leds() {
+    if (!leds_->begin()) {
+        return;
+    }
+
+    leds_->on();
+
+    Color colors[4] = {
+        Color{ 0xff, 0x00, 0x00 },
+        Color{ 0x00, 0xff, 0x00 },
+        Color{ 0x00, 0x00, 0xff },
+        Color{ 0xff, 0xff, 0xff },
+    };
+
+    for (auto &c : colors) {
+        for (auto i = 0u; i < 4u; ++i) {
+            leds_->color(i, c, false);
+        }
+
+        leds_->refresh();
+
+        fk_delay(1000);
+    }
+
+    leds_->off();
 }
 
 }
