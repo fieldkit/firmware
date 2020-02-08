@@ -122,6 +122,7 @@ class FkListener:
     def __init__(self, args):
         self.db = Database()
         self.db.open()
+        self.energy_base = 0.0
         self.tasks = []
         self.modules = []
         self.device_time_queue = queue.Queue()
@@ -130,7 +131,7 @@ class FkListener:
         self.sample = Sample()
 
     def update_energy(self, energy):
-        self.sample.energy_total = energy
+        self.sample.energy_total = energy - self.energy_base
 
     def get_device_time(self):
         while not self.device_time_queue.empty():
@@ -143,6 +144,7 @@ class FkListener:
         self.sample.uptime = time
 
     def started(self):
+        self.energy_base = self.sample.energy_total
         self.tasks = []
         self.sample.tasks = ''
         self.db.started()
