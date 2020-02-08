@@ -9,7 +9,7 @@
 namespace fk {
 
 class SelfCheckView : public DisplayView {
-private: 
+private:
     DisplaySelfCheckCallbacks self_check_callbacks_;
 
 public:
@@ -23,6 +23,10 @@ public:
         auto bus = get_board()->i2c_core();
         auto display = get_display();
         display->self_check(self_check_callbacks_.screen());
+    }
+
+    bool custom_leds() override {
+        return true;
     }
 
 };

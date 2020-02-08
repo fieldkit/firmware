@@ -39,8 +39,6 @@ void LedsController::tick() {
         auto color = get_color(physical_module.status);
 
         module_leds->color(bay, color, false);
-
-        logverbose("[%d] color = (%d, %d, %d)", bay, color.r, color.g, color.b);
     }
 
     module_leds->on();

@@ -108,7 +108,9 @@ public:
         }
 
         while (!can_stop || fk_uptime() < stop_time) {
-            leds.tick();
+            if (!view->custom_leds()) {
+                leds.tick();
+            }
             view->tick(this);
 
             Button *button = nullptr;

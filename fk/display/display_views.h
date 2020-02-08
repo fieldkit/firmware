@@ -44,6 +44,10 @@ public:
     virtual void enter(ViewController *views) {
         views->show_home();
     }
+
+    virtual bool custom_leds() {
+        return false;
+    }
 };
 
 }
