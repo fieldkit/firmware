@@ -41,7 +41,7 @@ ModuleSensors const *DiagnosticsModule::get_sensors(Pool &pool) {
 }
 
 ModuleConfiguration DiagnosticsModule::get_configuration(Pool &pool) {
-    return { };
+    return { "modules.diagnostics" };
 }
 
 ModuleReadings *DiagnosticsModule::take_readings(ModuleContext mc, Pool &pool) {

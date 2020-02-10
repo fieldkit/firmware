@@ -57,7 +57,7 @@ ModuleSensors const *DistanceModule::get_sensors(Pool &pool) {
 }
 
 ModuleConfiguration DistanceModule::get_configuration(Pool &pool) {
-    return { };
+    return { "modules.distance" };
 }
 
 ModuleReadings *DistanceModule::take_readings(ModuleContext mc, Pool &pool) {

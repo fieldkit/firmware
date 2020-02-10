@@ -117,8 +117,19 @@ ModuleSensors const *WaterModule::get_sensors(Pool &pool) {
     return nullptr;
 }
 
+const char *WaterModule::get_display_name_key() {
+    switch (type_) {
+    case AtlasSensorType::Ec: return "modules.water.ec";
+    case AtlasSensorType::Ph: return "modules.water.ph";
+    case AtlasSensorType::Do: return "modules.water.do";
+    case AtlasSensorType::Temp: return "modules.water.temp";
+    case AtlasSensorType::Orp: return "modules.water.orp";
+    default: return "modules.water.unknown";
+    }
+}
+
 ModuleConfiguration WaterModule::get_configuration(Pool &pool) {
-    return { };
+    return { get_display_name_key() };
 }
 
 ModuleReadings *WaterModule::take_readings(ModuleContext mc, Pool &pool) {

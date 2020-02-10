@@ -125,6 +125,7 @@ static void fake_global_state(GlobalState &gs, Pool &pool) {
             .kind = 2,
             .version = 3,
             .name = "module",
+            .display_name_key = "module",
             .id = (fk_uuid_t *)pool.copy(&module_id, sizeof(fk_uuid_t)),
             .flags = 0,
             .sensors = module_sensors,
@@ -265,7 +266,7 @@ TEST_F(ProtoBufSizeSuite, HttpReplyStatus) {
     auto encoded = pool_.encode(fk_app_HttpReply_fields, reply.reply());
     dump_binary(file_, "http-reply-status", encoded);
 
-    ASSERT_EQ(encoded->size, 1215u);
+    ASSERT_EQ(encoded->size, 1231u);
 }
 
 TEST_F(ProtoBufSizeSuite, HttpReplyReadings) {

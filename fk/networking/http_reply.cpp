@@ -107,8 +107,8 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, fkb_header_t con
 
             modules[m] = fk_app_ModuleCapabilities_init_default;
             modules[m].position = module.position;
-            modules[m].name.arg = (void *)module.name;
-            modules[m].path.arg = (void *)"";
+            modules[m].name.arg = (void *)module.display_name_key;
+            modules[m].path.arg = (void *)pool_->sprintf("/fk/v1/modules/%d", module.position);
             modules[m].flags = module.flags;
             modules[m].sensors.arg = (void *)sensors_array;
             modules[m].id.arg = (void *)id_data;
@@ -263,12 +263,12 @@ bool HttpReply::include_readings() {
     auto nmodules = gs_->modules->nmodules;
     auto lmr = pool_->malloc<fk_app_LiveModuleReadings>(nmodules);
 
-    for (size_t m = 0; m < nmodules; ++m) {
+    for (auto m = 0u; m < nmodules; ++m) {
         auto &module = gs_->modules->modules[m];
         auto nreadings = module.nsensors;
         auto readings = pool_->malloc<fk_app_LiveSensorReading>(nreadings);
 
-        for (size_t s = 0; s < nreadings; ++s) {
+        for (auto s = 0u; s < nreadings; ++s) {
             auto &sensor = module.sensors[s];
             readings[s] = fk_app_LiveSensorReading_init_default;
             readings[s].has_sensor = true;
@@ -299,7 +299,8 @@ bool HttpReply::include_readings() {
         lmr[m].module = fk_app_ModuleCapabilities_init_default;
         lmr[m].module.position = module.position;
         lmr[m].module.id.arg = (void *)id_data;
-        lmr[m].module.name.arg = (void *)module.name;
+        lmr[m].module.name.arg = (void *)module.display_name_key;
+        lmr[m].module.path.arg = (void *)pool_->sprintf("/fk/v1/modules/%d", module.position);
         lmr[m].module.flags = module.flags;
         lmr[m].readings.arg = (void *)readings_array;
     }

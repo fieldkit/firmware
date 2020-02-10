@@ -29,7 +29,7 @@ public:
     }
 
     ModuleConfiguration get_configuration(Pool &pool) override {
-        return { };
+        return { "modules.fake.empty" };
     }
 
     ModuleReadings *take_readings(ModuleContext mc, Pool &pool) override {
@@ -80,7 +80,7 @@ public:
     }
 
     ModuleConfiguration get_configuration(Pool &pool) override {
-        return { };
+        return { "modules.fake.1" };
     }
 
     ModuleReadings *take_readings(ModuleContext mc, Pool &pool) override {
@@ -140,7 +140,7 @@ public:
     }
 
     ModuleConfiguration get_configuration(Pool &pool) override {
-        return { };
+        return { "modules.fake.2" };
     }
 
     ModuleReadings *take_readings(ModuleContext mc, Pool &pool) override {

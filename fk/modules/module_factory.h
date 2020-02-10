@@ -14,6 +14,7 @@ struct ConstructedModule {
     ModuleMetadata const *meta;
     Module *module;
     ModuleStatus status;
+    ModuleConfiguration configuration;
 };
 
 using ConstructedModulesCollection = collection<ConstructedModule>;

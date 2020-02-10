@@ -27,6 +27,7 @@ public:
     uint32_t kind;
     uint32_t version;
     const char *name;
+    const char *display_name_key;
     fk_uuid_t *id;
     uint32_t flags;
     SensorState *sensors;
@@ -39,6 +40,7 @@ struct ModuleMetaAndReadings {
     ModuleMetadata const *meta;
     ModuleSensors const *sensors;
     ModuleReadings const *readings;
+    ModuleConfiguration configuration;
 };
 
 using ModuleReadingsCollection = collection<ModuleMetaAndReadings>;

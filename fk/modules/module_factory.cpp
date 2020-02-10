@@ -65,19 +65,20 @@ tl::expected<ConstructedModulesCollection, Error> ModuleFactory::rescan_and_init
 bool ModuleFactory::initialize(ScanningContext &ctx, Pool &pool) {
     auto success = true;
 
-    for (auto &pair : modules_) {
-        auto module = pair.module;
-        if (module != nullptr) {
-            if (pair.status == ModuleStatus::Found) {
-                auto mc = ctx.module(pair.found.position);
+    for (auto &constructed : modules_) {
+        auto mod = constructed.module;
+        if (mod != nullptr) {
+            if (constructed.status == ModuleStatus::Found) {
+                auto mc = ctx.module(constructed.found.position);
                 if (!mc.open()) {
                     logerror("error opening module");
                     return false;
                 }
 
-                auto mr = module->initialize(mc, pool);
+                auto mr = mod->initialize(mc, pool);
                 if (mr) {
-                    auto config = module->get_configuration(pool_);
+                    auto config = mod->get_configuration(pool_);
+                    constructed.configuration = config;
                     if (config.service_interval > 0) {
                         if (service_interval_ > 0) {
                             service_interval_ = std::min(config.service_interval, service_interval_);
@@ -87,7 +88,7 @@ bool ModuleFactory::initialize(ScanningContext &ctx, Pool &pool) {
                     }
                 }
 
-                pair.status = mr.status;
+                constructed.status = mr.status;
             }
         }
     }
@@ -98,18 +99,18 @@ bool ModuleFactory::initialize(ScanningContext &ctx, Pool &pool) {
 bool ModuleFactory::service(ScanningContext &ctx, Pool &pool) {
     auto success = true;
 
-    for (auto &pair : modules_) {
-        auto module = pair.module;
-        if (module != nullptr) {
-            auto config = module->get_configuration(pool);
+    for (auto &constructed : modules_) {
+        auto mod = constructed.module;
+        if (mod != nullptr) {
+            auto config = mod->get_configuration(pool);
             if (config.service_interval > 0) {
-                auto mc = ctx.module(pair.found.position);
+                auto mc = ctx.module(constructed.found.position);
                 if (!mc.open()) {
                     logerror("error opening module");
                     return false;
                 }
 
-                if (!module->service(mc, pool)) {
+                if (!mod->service(mc, pool)) {
                     success = false;
                 }
             }

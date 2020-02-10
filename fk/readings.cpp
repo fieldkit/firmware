@@ -95,6 +95,7 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(
             .meta = meta,
             .sensors = module->get_sensors(pool),
             .readings = readings,
+            .configuration = pair.configuration,
         });
     }
 

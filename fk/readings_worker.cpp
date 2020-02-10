@@ -53,11 +53,12 @@ void ReadingsWorker::run(Pool &pool) {
         }
 
         modules->readings.emplace(ModuleMetaAndReadings{
-                .position = m.position,
-                .id = nullptr,
-                .meta = m.meta,
-                .sensors = nullptr,
-                .readings = m.readings->clone(*data_pool),
+            .position = m.position,
+            .id = nullptr,
+            .meta = m.meta,
+            .sensors = nullptr,
+            .readings = m.readings->clone(*data_pool),
+            .configuration = m.configuration,
         });
 
         modules->modules[module_num] = ModuleState{
@@ -66,6 +67,7 @@ void ReadingsWorker::run(Pool &pool) {
             .kind = m.meta->kind,
             .version = m.meta->version,
             .name = m.meta->name,
+            .display_name_key = m.configuration.display_name_key,
             .id = (fk_uuid_t *)data_pool->copy(m.id, sizeof(fk_uuid_t)),
             .flags = m.meta->flags,
             .sensors = sensors,

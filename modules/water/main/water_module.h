@@ -21,6 +21,9 @@ public:
     ModuleSensors const *get_sensors(Pool &pool) override;
     ModuleConfiguration get_configuration(Pool &pool) override;
 
+private:
+    const char *get_display_name_key();
+
 };
 
 } // namespace fk

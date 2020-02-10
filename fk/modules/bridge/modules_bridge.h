@@ -140,6 +140,11 @@ enum class ModulePower {
  */
 typedef struct ModuleConfiguration {
     /**
+     * Localization key to use to display the module's name.
+     */
+    const char *display_name_key{ "modules.unknown" };
+
+    /**
      * Power needs for the module.
      */
     ModulePower power{ ModulePower::ReadingsOnly };
@@ -163,7 +168,13 @@ typedef struct ModuleConfiguration {
     /**
      * Constructor
      */
-    ModuleConfiguration(ModulePower power, uint32_t service_interval) : power(power), service_interval(service_interval) {
+    ModuleConfiguration(const char *display_name_key) : display_name_key(display_name_key) {
+    }
+
+    /**
+     * Constructor
+     */
+    ModuleConfiguration(const char *display_name_key, ModulePower power, uint32_t service_interval) : display_name_key(display_name_key), power(power), service_interval(service_interval) {
     }
 } ModuleConfiguration;
 
