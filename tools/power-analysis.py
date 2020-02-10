@@ -1,14 +1,10 @@
 #!/usr/bin/python3
 
 import logging
-import sqlite3
-import json
 import time
-import sys
-import argparse
-import re
-
+import sqlite3
 import influxdb
+import re
 
 def dict_factory(cursor, row):
     d = {}
@@ -76,7 +72,11 @@ class PowerAnalysis:
         self.tasks = []
         self.modules = []
         self.active = {}
+        self.firmware_hash = None
+        self.serial = None
         self.status_energy = None
+        self.influx_data = []
+        self.session = 0
 
     def run(self):
         for raw in self.db.query_logs():
@@ -86,13 +86,18 @@ class PowerAnalysis:
         self.tasks = []
         self.modules = []
         self.active = {}
+        self.firmware_hash = None
+        self.serial = None
         self.status_energy = None
+        self.session += 1
         logging.info("STARTED")
 
     def serial(self, raw, serial):
+        self.serial = serial
         logging.info("SERIAL: %s" % (serial,))
 
     def firmware(self, raw, firmware_hash):
+        self.firmware_hash = firmware_hash
         logging.info("FIRMWARE: %s" % (firmware_hash,))
 
     def task_started(self, raw, name):
@@ -100,74 +105,82 @@ class PowerAnalysis:
             self.modules = []
         self.active[name] = EnergyAndTime(raw.energy, raw.time)
         self.tasks.append(name)
+        self.status_energy = None
         logging.info("TASKS.S: %s" % (self.tasks,))
 
     def task_finished(self, raw, name):
+        self.status_energy = None
+
+        if self.firmware_hash is None or self.serial is None:
+            return
+
         start_info = self.active[name]
-        if start_info:
-            delta = raw.energy - start_info.energy
-            duration = raw.time - start_info.time
-            self.active[name] = None
-            self.tasks.remove(name)
+        if start_info is None:
+            logging.warn("TASKS.F: %s" % (self.tasks,))
+            return
+
+        delta = raw.energy - start_info.energy
+        duration = raw.time - start_info.time
+        self.active[name] = None
+        self.tasks.remove(name)
+
+        p = {
+            "time": time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime(raw.time)),
+            "measurement": "task_power",
+            "tags": {
+                "device_id": self.serial,
+                "firmware_hash": self.firmware_hash,
+                "modules": ','.join(self.modules),
+                "tasks": ','.join(self.tasks),
+                "task_name": name,
+                "session": self.session,
+            },
+            "fields": {
+                "energy": delta,
+                "duration": duration,
+            },
+        }
+
+        self.influx_data.append(p)
+
         logging.info("TASKS.F: %s" % (self.tasks,))
 
     def status(self, raw, name, ip):
         if self.status_energy:
             delta = raw.energy - self.status_energy
-        else:
-            pass
+
+            p = {
+                "time": time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime(raw.time)),
+                "measurement": "idle_power",
+                "tags": {
+                    "device_id": self.serial,
+                    "firmware_hash": self.firmware_hash,
+                    "modules": ','.join(self.modules),
+                    "tasks": ','.join(self.tasks),
+                    "session": self.session,
+                },
+                "fields": {
+                    "energy": delta,
+                    "duration": 0.0,
+                },
+            }
+
+            self.influx_data.append(p)
+
         self.status_energy = raw.energy
 
     def module(self, raw, name, mk, version):
         self.modules.append(name)
 
-    def connection_serviced(self, raw, path):
-        pass
-
 if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)-15s %(message)s', level=logging.INFO)
 
     db = Database()
-    if False:
-        for s in db.query_all():
-            if s["task_start"]:
-                continue
-            p = {
-                "measurement": "power",
-                "tags": {
-                    "device_id": s["device_id"],
-                    "firmware_hash": s["firmware_hash"],
-                    "modules": s["modules"],
-                    "tasks": s["tasks"],
-                    "task_name": s["task_name"]
-                },
-                "time": s["time"],
-                "fields": {
-                    "uptime": s["uptime"],
-                    "energy_delta": s["energy_delta"],
-                    "energy_total": s["energy_total"],
-                },
-            }
-            print(p)
-
-        sys.exit(2)
-
-        json_body = [{
-            "measurement": "power",
-            "tags": {
-                "host": "server01",
-                "region": "us-west"
-            },
-            "time": "2009-11-10T23:00:00Z",
-            "fields": {
-                "value": 0.64
-            }
-        }]
-
-        x = influxdb.InfluxDBClient('127.0.0.1', 8086, 'admin', 'supersecretpassword', 'power')
-        x.drop_database('power')
-        x.create_database('power')
-        x.write_points(json_body)
 
     pa = PowerAnalysis(db)
     pa.run()
+
+    x = influxdb.InfluxDBClient('127.0.0.1', 8086, 'admin', 'supersecretpassword', 'power')
+    x.drop_database('power')
+    x.create_database('power')
+    x.write_points(pa.influx_data)
