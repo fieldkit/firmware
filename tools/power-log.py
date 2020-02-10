@@ -15,13 +15,32 @@ import sqlite3
 
 class Database:
     def __init__(self):
-        pass
+        self.queue = queue.Queue()
 
     def open(self):
+        self.run = 0
+        self.thread = threading.Thread(target=self.inserter, args=())
+        self.thread.daemon = True
+        self.thread.start()
+
+    def started(self):
+        self.run += 1
+
+    def inserter(self):
         self.db = sqlite3.connect('power.db')
+
         c = self.db.cursor()
+
+        c.execute('CREATE TABLE IF NOT EXISTS raw ('
+                  '  id INTEGER PRIMARY KEY AUTOINCREMENT,'
+                  '  time TIMESTAMP NOT NULL,'
+                  '  energy NUMERIC NOT NULL,'
+                  '  message TEXT NOT NULL'
+                  ')')
+
         c.execute('CREATE TABLE IF NOT EXISTS samples ('
                   '  id INTEGER PRIMARY KEY AUTOINCREMENT,'
+                  '  time TIMESTAMP NOT NULL,'
                   '  run INTEGER NOT NULL,'
                   '  device_id TEXT NOT NULL,'
                   '  firmware_hash TEXT NOT NULL,'
@@ -31,23 +50,33 @@ class Database:
                   '  tasks TEXT NOT NULL,'
                   '  task_start BOOLEAN,'
                   '  task_name TEXT,'
+                  '  task_duration INTEGER,'
                   '  energy_delta NUMERIC,'
                   '  energy_total NUMERIC NOT NULL'
                   ')')
 
-        self.run = 0
         run = c.execute("SELECT MAX(run) FROM samples").fetchone()[0]
         if run: self.run = run
 
         self.db.commit()
 
-    def started(self):
-        self.run += 1
+        while True:
+            while not self.queue.empty():
+                sql, values = self.queue.get()
+                self.db.cursor().execute(sql, values)
+                self.db.commit()
 
-    def record(self, sample):
+            time.sleep(1)
+
+    def add_raw(self, energy, message):
+        values = [ time.time(), energy, message ]
+        self.queue.put(('INSERT INTO raw (time, energy, message) VALUES (?, ?, ?)', values))
+
+    def add_sample(self, sample):
         if sample is None:
             return
         values = [
+            time.time(),
             self.run,
             sample.device_id,
             sample.firmware_hash,
@@ -57,11 +86,11 @@ class Database:
             sample.status,
             sample.task_start,
             sample.task_name,
+            sample.task_duration,
             sample.energy_delta,
             sample.energy_total,
         ]
-        self.db.cursor().execute('INSERT INTO samples (run, device_id, firmware_hash, uptime, tasks, modules, status, task_start, task_name, energy_delta, energy_total) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', values)
-        self.db.commit()
+        self.queue.put(('INSERT INTO samples (time, run, device_id, firmware_hash, uptime, tasks, modules, status, task_start, task_name, task_duration, energy_delta, energy_total) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', values))
 
 class Sample:
     def __init__(self):
@@ -73,10 +102,11 @@ class Sample:
         self.tasks = ''
         self.task_start = None
         self.task_name = None
+        self.task_duration = None
         self.energy_delta = None
         self.energy_total = 0.0
 
-    def make_status(self):
+    def make_status(self, delta):
         c = Sample()
         c.device_id = self.device_id
         c.firmware_hash = self.firmware_hash
@@ -86,7 +116,8 @@ class Sample:
         c.tasks = self.tasks
         c.task_start = False
         c.task_name = None
-        c.energy_delta = None
+        c.task_duration = None
+        c.energy_delta = delta
         c.energy_total = self.energy_total
         return c
 
@@ -100,11 +131,12 @@ class Sample:
         c.tasks = self.tasks
         c.task_start = True
         c.task_name = name
+        c.task_duration = None
         c.energy_delta = None
         c.energy_total = self.energy_total
         return c
 
-    def make_finished(self, name, delta):
+    def make_finished(self, name, delta, duration):
         c = Sample()
         c.device_id = self.device_id
         c.firmware_hash = self.firmware_hash
@@ -114,9 +146,15 @@ class Sample:
         c.tasks = self.tasks
         c.task_start = False
         c.task_name = name
+        c.task_duration = duration
         c.energy_delta = delta
         c.energy_total = self.energy_total
         return c
+
+class EnergyAndTime:
+    def __init__(self, energy, time):
+        self.energy = energy
+        self.time = time
 
 class FkListener:
     def __init__(self, args):
@@ -129,9 +167,14 @@ class FkListener:
         self.device_time = None
         self.active = {}
         self.sample = Sample()
+        self.status_energy = None
 
     def update_energy(self, energy):
         self.sample.energy_total = energy - self.energy_base
+
+    def message(self, message):
+        if self.sample.energy_total:
+            self.db.add_raw(self.sample.energy_total, message)
 
     def get_device_time(self):
         while not self.device_time_queue.empty():
@@ -161,23 +204,30 @@ class FkListener:
     def task_started(self, name):
         if name == 'readings':
             self.modules = []
-        self.active[name] = self.sample.energy_total
+        self.active[name] = EnergyAndTime(self.sample.energy_total, self.device_time)
         self.tasks.append(name)
         self.sample.tasks = ','.join(self.tasks)
-        self.db.record(self.sample.make_started(name))
+        self.db.add_sample(self.sample.make_started(name))
         logging.info("TASKS: %s" % (self.tasks,))
 
     def task_finished(self, name):
-        delta = self.sample.energy_total - self.active[name]
+        a = self.active[name]
+        delta = self.sample.energy_total - a.energy
+        duration = self.device_time - a.time
         self.active[name] = None
         self.tasks.remove(name)
         self.sample.tasks = ','.join(self.tasks)
         self.sample.modules = ','.join(self.modules)
-        self.db.record(self.sample.make_finished(name, delta))
+        self.db.add_sample(self.sample.make_finished(name, delta, duration))
         logging.info("TASKS: %s" % (self.tasks,))
 
     def status(self, name, ip):
-        self.db.record(self.sample.make_status())
+        if self.status_energy:
+            delta = self.sample.energy_total - self.status_energy
+            self.db.add_sample(self.sample.make_status(delta))
+        else:
+            self.db.add_sample(self.sample.make_status(None))
+        self.status_energy = self.sample.energy_total
 
     def module(self, name, mk, version):
         self.modules.append(name)
@@ -200,7 +250,7 @@ class FkLogParser:
         self.re_module = re.compile(r'\'(.+)\' mk=(....) version=(\d+)')
 
     def handle(self, line):
-        clean = self.re_ansi_escape.sub('', line)
+        clean = self.re_ansi_escape.sub('', line).strip()
         try:
             parts = clean.split(" ")
             self.listener.update_device_time(int(parts[0]))
@@ -223,6 +273,8 @@ class FkLogParser:
         if m: self.listener.status(m.group(1), m.group(2))
         m = self.re_module.search(clean)
         if m: self.listener.module(m.group(1), m.group(2), m.group(3))
+
+        self.listener.message(clean)
 
 class Processor:
     def __init__(self, args, queue):
