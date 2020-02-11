@@ -77,12 +77,20 @@ class PowerAnalysis:
         self.status_energy = None
         self.influx_data = []
         self.session = 0
+        self.uptime = None
 
     def run(self):
         for raw in self.db.query_logs():
-            self.parser.handle(RawRecord(raw))
+            rr = RawRecord(raw)
+            if rr.uptime and self.uptime:
+                if self.uptime > rr.uptime:
+                    logging.info("RESTART")
+                    self.fresh()
+            self.uptime = rr.uptime
+            if False: logging.info(rr.message)
+            self.parser.handle(rr)
 
-    def started(self, raw):
+    def fresh(self):
         self.tasks = []
         self.modules = []
         self.active = {}
@@ -90,6 +98,9 @@ class PowerAnalysis:
         self.serial = None
         self.status_energy = None
         self.session += 1
+
+    def started(self, raw):
+        self.fresh()
         logging.info("STARTED")
 
     def serial(self, raw, serial):
@@ -106,48 +117,48 @@ class PowerAnalysis:
         self.active[name] = EnergyAndTime(raw.energy, raw.time)
         self.tasks.append(name)
         self.status_energy = None
-        logging.info("TASKS.S: %s" % (self.tasks,))
+        logging.info("TASKS.S: %s %s" % (name, self.tasks))
 
     def task_finished(self, raw, name):
+        if name in self.active:
+            start_info = self.active[name]
+            delta = raw.energy - start_info.energy
+            duration = raw.time - start_info.time
+            self.active[name] = None
+
+            p = {
+                "time": time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime(raw.time)),
+                "measurement": "task_power",
+                "tags": {
+                    "device_id": self.serial,
+                    "firmware_hash": self.firmware_hash,
+                    "modules": ','.join(self.modules),
+                    "tasks": ','.join(self.tasks),
+                    "task_name": name,
+                    "session": self.session,
+                },
+                "fields": {
+                    "energy": delta,
+                    "duration": duration,
+                },
+            }
+
+            self.influx_data.append(p)
+
+        if name in self.tasks:
+            self.tasks.remove(name)
+
         self.status_energy = None
 
+        logging.info("TASKS.F: %s %s" % (name, self.tasks))
+
+    def status(self, raw, name, ip):
         if self.firmware_hash is None or self.serial is None:
             return
 
-        start_info = self.active[name]
-        if start_info is None:
-            logging.warn("TASKS.F: %s" % (self.tasks,))
-            return
-
-        delta = raw.energy - start_info.energy
-        duration = raw.time - start_info.time
-        self.active[name] = None
-        self.tasks.remove(name)
-
-        p = {
-            "time": time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime(raw.time)),
-            "measurement": "task_power",
-            "tags": {
-                "device_id": self.serial,
-                "firmware_hash": self.firmware_hash,
-                "modules": ','.join(self.modules),
-                "tasks": ','.join(self.tasks),
-                "task_name": name,
-                "session": self.session,
-            },
-            "fields": {
-                "energy": delta,
-                "duration": duration,
-            },
-        }
-
-        self.influx_data.append(p)
-
-        logging.info("TASKS.F: %s" % (self.tasks,))
-
-    def status(self, raw, name, ip):
         if self.status_energy:
-            delta = raw.energy - self.status_energy
+            delta = raw.energy - self.status_energy.energy
+            duration = raw.time - self.status_energy.time
 
             p = {
                 "time": time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime(raw.time)),
@@ -161,13 +172,13 @@ class PowerAnalysis:
                 },
                 "fields": {
                     "energy": delta,
-                    "duration": 0.0,
+                    "duration": duration,
                 },
             }
 
             self.influx_data.append(p)
 
-        self.status_energy = raw.energy
+        self.status_energy = EnergyAndTime(raw.energy, raw.time)
 
     def module(self, raw, name, mk, version):
         self.modules.append(name)
