@@ -162,7 +162,8 @@ static void copy_cron_spec_from_pb(const char *name, Schedule &cs, fk_data_JobSc
     }
     cs.interval = pb.interval;
     cs.repeated = pb.repeated;
-    loginfo("(loaded) %s interval = %" PRIu32 " repeated = %" PRIu32, name, cs.interval, cs.repeated);
+    cs.duration = pb.duration;
+    loginfo("(loaded) %s interval = %" PRIu32 " repeated = %" PRIu32 " duration = %" PRIu32, name, cs.interval, cs.repeated, cs.duration);
 }
 
 bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {

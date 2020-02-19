@@ -108,6 +108,11 @@ void MetaRecord::include_state(GlobalState const *gs, fkb_header_t const *fkb_he
     record_.schedule.network.interval = gs->scheduler.network.interval;
     record_.schedule.gps.interval = gs->scheduler.gps.interval;
     record_.schedule.lora.interval = gs->scheduler.lora.interval;
+
+    record_.schedule.readings.duration = gs->scheduler.readings.duration;
+    record_.schedule.network.duration = gs->scheduler.network.duration;
+    record_.schedule.gps.duration = gs->scheduler.gps.duration;
+    record_.schedule.lora.duration = gs->scheduler.lora.duration;
 }
 
 void MetaRecord::include_modules(GlobalState const *gs, fkb_header_t const *fkb_header, ConstructedModulesCollection &modules, Pool &pool) {
