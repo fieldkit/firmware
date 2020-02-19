@@ -188,7 +188,7 @@ constexpr size_t CodeMemoryPageSize = 512;
 constexpr size_t CodeMemoryBlockSize = 8192;
 
 /**
- *
+ * Maximum size to use for buffers allocated on the stack.
  */
 constexpr size_t StackBufferSize = 128;
 
@@ -240,7 +240,7 @@ constexpr size_t GpsDebuggingBuffer = 64;
 constexpr size_t HttpMaximumHeaderSize = 1024;
 
 /**
- *
+ * Buffer size to use for HTTP operations.
  */
 constexpr size_t HttpConnectionBufferSize = 1024;
 
@@ -286,7 +286,12 @@ constexpr size_t NumberOfWorkerTasks = 2;
 constexpr bool EnableMemoryDumps = false;
 
 /**
- *
+ * How often to check for configuration changes.
+ */
+constexpr uint32_t ConfigurationCheckIntervalMs = 500;
+
+/**
+ * LoRa activation by personalization settings.
  */
 struct LoraAbpSettings {
     uint8_t device_eui[LoraDeviceEuiLength];
@@ -321,21 +326,6 @@ typedef struct configuration_t {
      * Logging configuration.
      */
     logging_t logging;
-
-    /**
-     * Network related configuration.
-     */
-    typedef struct network_t {
-        /**
-         * How long network is kept up and available before turning off due to inactivity.
-         */
-        uint32_t uptime{ FiveMinutesMs };
-    } network_t;
-
-    /**
-     * Network configuration.
-     */
-    network_t network;
 
     /**
      * Configuration related to collecting readings.

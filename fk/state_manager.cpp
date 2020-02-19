@@ -70,6 +70,7 @@ bool GlobalStateManager::initialize(Pool &pool) {
         gs.get()->scheduler.network.interval = fk_config().scheduler.network_interval_debug;
         gs.get()->scheduler.gps.interval = fk_config().scheduler.gps_interval_debug;
         gs.get()->scheduler.lora.interval = fk_config().scheduler.lora_interval_debug;
+        gs.get()->scheduler.network.duration = FiveMinutesMs;
         loginfo("using debug schedule");
     }
     else {
@@ -77,6 +78,7 @@ bool GlobalStateManager::initialize(Pool &pool) {
         gs.get()->scheduler.network.interval = fk_config().scheduler.network_interval;
         gs.get()->scheduler.gps.interval = fk_config().scheduler.gps_interval;
         gs.get()->scheduler.lora.interval = fk_config().scheduler.lora_interval;
+        gs.get()->scheduler.network.duration = FiveMinutesMs;
         loginfo("using default schedule");
     }
 

@@ -31,6 +31,11 @@ typedef struct NetworkSettings {
     const char *ssid;
     const char *password;
     uint16_t port;
+    uint32_t duration;
+
+    bool always_on() const {
+        return duration == UINT32_MAX;
+    }
 } NetworkSettings;
 
 class NetworkConnection {

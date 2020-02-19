@@ -10,14 +10,11 @@ FK_DECLARE_LOGGER("network");
 
 void task_handler_network(void *params) {
     while (true) {
-        auto &fkc = fk_config();
         auto network = get_network();
 
         GlobalStateManager gsm;
         NetworkServices network_services{ network };
         NetworkTask task{ network, network_services };
-
-        // NOTE Can we just stack allocate this?
         StandardPool pool{ "network" };
         auto settings = task.get_selected_settings(pool);
 
@@ -33,10 +30,10 @@ void task_handler_network(void *params) {
         }
 
         gsm.apply([&](GlobalState *gs) {
+            strncpy(gs->network.state.ssid, network_services.ssid(), sizeof(gs->network.state.ssid));
             gs->network.state.ip = get_network()->ip_address();
             gs->network.state.enabled = fk_uptime();
             gs->network.state.connected = 0;
-            strncpy(gs->network.state.ssid, network_services.ssid(), sizeof(gs->network.state.ssid));
         });
 
         // In self AP mode we're waiting for connections now, and hold off doing
@@ -44,7 +41,7 @@ void task_handler_network(void *params) {
         auto started = fk_uptime();
         auto retry = false;
         while (!network_services.ready_to_serve()) {
-            if (fk_uptime() - started > fkc.network.uptime) {
+            if (!settings.always_on() && fk_uptime() - started > settings.duration) {
                 return;
             }
 
@@ -85,7 +82,7 @@ void task_handler_network(void *params) {
 
         loginfo("awaiting connections...");
 
-        auto statistics_update = fk_uptime() + 1000;
+        auto statistics_update = fk_uptime() + OneSecondMs;
 
         while (true) {
             network_services.tick();
@@ -101,8 +98,9 @@ void task_handler_network(void *params) {
             }
 
             // Check to see if we've been inactive for too long.
-            if (fk_uptime() - network_services.activity() > fkc.network.uptime) {
-                loginfo("inactive");
+            auto inactivity = fk_uptime() - network_services.activity();
+            if (!settings.always_on() && inactivity > settings.duration) {
+                loginfo("inactive (%" PRIu32 " > %" PRIu32 ")", inactivity, settings.duration);
                 return;
             }
 
@@ -123,7 +121,7 @@ void task_handler_network(void *params) {
                     gs->network.state.bytes_rx = network_services.bytes_rx();
                     gs->network.state.bytes_tx = network_services.bytes_tx();
                 });
-                statistics_update = fk_uptime() + 1000;
+                statistics_update = fk_uptime() + OneSecondMs;
             }
 
             fk_delay(10);

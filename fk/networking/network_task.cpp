@@ -70,7 +70,7 @@ NetworkTask::~NetworkTask() {
 }
 
 bool NetworkTask::did_configuration_change() {
-    if (fk_uptime() - last_checked_configuration_ < 500) {
+    if (fk_uptime() - last_checked_configuration_ < ConfigurationCheckIntervalMs) {
         return false;
     }
 
@@ -98,14 +98,21 @@ bool NetworkTask::did_configuration_change() {
 
 NetworkSettings NetworkTask::get_selected_settings(Pool &pool) {
     auto gs = get_global_state_ro();
+    auto &schedule = gs.get()->scheduler.network;
     auto &n = gs.get()->network.config.selected;
     if (!n.valid) {
         return {
             .valid = false,
+            .create = false,
+            .ssid = nullptr,
+            .password = nullptr,
+            .port = 80,
+            .duration = schedule.duration,
         };
     }
 
     auto modified = gs.get()->network.config.modified;
+
     configuration_modified_ = modified;
 
     return {
@@ -114,6 +121,7 @@ NetworkSettings NetworkTask::get_selected_settings(Pool &pool) {
         .ssid = n.ssid,
         .password = n.password,
         .port = 80,
+        .duration = schedule.duration,
     };
 }
 

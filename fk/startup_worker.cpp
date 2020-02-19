@@ -160,9 +160,11 @@ static void copy_cron_spec_from_pb(const char *name, Schedule &cs, fk_data_JobSc
         FK_ASSERT(pbd->length == sizeof(lwcron::CronSpec));
         memcpy(&cs.cron, pbd->buffer, pbd->length);
     }
+
     cs.interval = pb.interval;
     cs.repeated = pb.repeated;
     cs.duration = pb.duration;
+
     loginfo("(loaded) %s interval = %" PRIu32 " repeated = %" PRIu32 " duration = %" PRIu32, name, cs.interval, cs.repeated, cs.duration);
 }
 
@@ -285,6 +287,12 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
     }
     else {
         logwarn("ignored loaded schedules, debugger attached");
+    }
+
+    // Check for a need to fixup the duration.
+    if (gs->scheduler.network.interval > 0 && gs->scheduler.network.duration == 0) {
+        gs->scheduler.network.duration = FiveMinutesMs;
+        logwarn("using five minute network duration");
     }
 
     return true;

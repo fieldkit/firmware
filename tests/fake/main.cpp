@@ -104,7 +104,7 @@ static void server(Fake *fake) {
     auto settings = NetworkSettings{
         .valid = true,
     };
-    if (!network_services.begin(settings, fkc.network.uptime, pool)) {
+    if (!network_services.begin(settings, FiveMinutesMs, pool)) {
         return;
     }
 
