@@ -108,19 +108,7 @@ bool ApiHandler::handle(HttpServerConnection *connection, Pool &pool) {
 
 static bool flush_configuration(Pool &pool) {
     auto gs = get_global_state_ro();
-
-    StatisticsMemory memory{ MemoryFactory::get_data_memory() };
-    Storage storage{ &memory, pool, false };
-    if (!storage.begin()) {
-        return false;
-    }
-
-    MetaOps ops{ storage };
-    if (!ops.write_state(gs.get(), &fkb_header, pool)) {
-        return false;
-    }
-
-    return true;
+    return gs.get()->flush(pool);
 }
 
 static bool configure(HttpServerConnection *connection, fk_app_HttpQuery *query, Pool &pool) {

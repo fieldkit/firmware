@@ -1,5 +1,6 @@
 #include "state.h"
 #include "state_ref.h"
+#include "storage/meta_ops.h"
 
 namespace fk {
 
@@ -61,6 +62,20 @@ void GlobalState::released(uint32_t locked) const {
 void GlobalState::released(uint32_t locked) {
     loginfo("modified (%" PRIu32 "ms)", fk_uptime() - locked);
     version++;
+}
+
+bool GlobalState::flush(Pool &pool) const {
+    Storage storage{ MemoryFactory::get_data_memory(), pool, false };
+    if (!storage.begin()) {
+        return false;
+    }
+
+    MetaOps ops{ storage };
+    if (!ops.write_state(this, pool)) {
+        return false;
+    }
+
+    return true;
 }
 
 }

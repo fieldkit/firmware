@@ -10,6 +10,8 @@ bool fk_debug_is_attached();
 
 bool fk_debug_get_console_attached();
 
+bool fk_debug_override_schedules();
+
 void fk_debug_set_console_attached();
 
 #define FK_DEBUG_PREFIX "~"
@@ -39,4 +41,3 @@ public:
 void fk_debugger_break();
 
 }
-

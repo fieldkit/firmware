@@ -3,11 +3,17 @@
 #include "records.h"
 #include "state.h"
 
+extern const struct fkb_header_t fkb_header;
+
 namespace fk {
 
 FK_DECLARE_LOGGER("meta");
 
 MetaOps::MetaOps(Storage &storage) : storage_(storage) {
+}
+
+tl::expected<uint32_t, Error> MetaOps::write_state(GlobalState const *gs, Pool &pool) {
+    return write_state(gs, &fkb_header, pool);
 }
 
 tl::expected<uint32_t, Error> MetaOps::write_state(GlobalState const *gs, fkb_header_t const *fkb, Pool &pool) {

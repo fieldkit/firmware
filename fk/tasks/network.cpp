@@ -8,6 +8,23 @@ namespace fk {
 
 FK_DECLARE_LOGGER("network");
 
+struct NetworkDuration {
+    uint32_t ms{ FiveMinutesMs };
+
+    bool always_on() const {
+        return ms == UINT32_MAX;
+    }
+
+    bool on(uint32_t activity) const {
+        return always_on() || (fk_uptime() - activity) < ms;
+    }
+
+    NetworkDuration operator=(uint32_t ms) {
+        this->ms = ms;
+        return *this;
+    }
+};
+
 void task_handler_network(void *params) {
     while (true) {
         auto network = get_network();
@@ -16,6 +33,8 @@ void task_handler_network(void *params) {
         NetworkServices network_services{ network };
         NetworkTask task{ network, network_services };
         StandardPool pool{ "network" };
+        NetworkDuration duration;
+
         auto settings = task.get_selected_settings(pool);
 
         gsm.apply([=](GlobalState *gs) {
@@ -34,6 +53,7 @@ void task_handler_network(void *params) {
             gs->network.state.ip = get_network()->ip_address();
             gs->network.state.enabled = fk_uptime();
             gs->network.state.connected = 0;
+            duration = gs->scheduler.network.duration;
         });
 
         // In self AP mode we're waiting for connections now, and hold off doing
@@ -41,7 +61,7 @@ void task_handler_network(void *params) {
         auto started = fk_uptime();
         auto retry = false;
         while (!network_services.ready_to_serve()) {
-            if (!settings.always_on() && fk_uptime() - started > settings.duration) {
+            if (!duration.on(started)) {
                 return;
             }
 
@@ -98,9 +118,8 @@ void task_handler_network(void *params) {
             }
 
             // Check to see if we've been inactive for too long.
-            auto inactivity = fk_uptime() - network_services.activity();
-            if (!settings.always_on() && inactivity > settings.duration) {
-                loginfo("inactive (%" PRIu32 " > %" PRIu32 ")", inactivity, settings.duration);
+            if (!duration.on(network_services.activity())) {
+                loginfo("inactive");
                 return;
             }
 
@@ -120,6 +139,7 @@ void task_handler_network(void *params) {
                 gsm.apply([&](GlobalState *gs) {
                     gs->network.state.bytes_rx = network_services.bytes_rx();
                     gs->network.state.bytes_tx = network_services.bytes_tx();
+                    duration = gs->scheduler.network.duration;
                 });
                 statistics_update = fk_uptime() + OneSecondMs;
             }

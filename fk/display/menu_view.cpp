@@ -108,6 +108,15 @@ struct ToggleWifiOption : public MenuOption {
     }
 };
 
+void configure_wifi_duration(uint32_t duration, Pool &pool) {
+    auto gs = get_global_state_rw();
+    gs.get()->scheduler.network.duration = duration;
+    gs.get()->flush(pool);
+    if (!get_network()->enabled()) {
+        get_ipc()->launch_worker(create_pool_worker<WifiToggleWorker>());
+    }
+}
+
 MenuView::MenuView(ViewController *views, Pool &pool) : pool_(&pool), views_(views) {
     back_ = to_lambda_option(&pool, "Back", [=]() {
         back_->selected(false);
@@ -332,10 +341,24 @@ void MenuView::create_network_menu() {
         get_ipc()->launch_worker(create_pool_worker<DownloadFirmwareWorker>());
     });
 
-    network_menu_ = new_menu_screen<4>(pool_, "network", {
+    auto network_always_on = to_lambda_option(pool_, "Always On", [=]() {
+        back_->on_selected();
+        configure_wifi_duration(UINT32_MAX, *pool_);
+        views_->show_home();
+    });
+
+    auto network_disable_inactivity = to_lambda_option(pool_, "Use Defaults", [=]() {
+        back_->on_selected();
+        configure_wifi_duration(FiveMinutesMs, *pool_);
+        views_->show_home();
+    });
+
+    network_menu_ = new_menu_screen<6>(pool_, "network", {
         back_,
         network_toggle,
         network_choose,
+        network_always_on,
+        network_disable_inactivity,
         network_download_fw,
     });
 }

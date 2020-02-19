@@ -18,6 +18,7 @@ public:
     MetaOps(Storage &storage);
 
 public:
+    tl::expected<uint32_t, Error> write_state(GlobalState const *gs, Pool &pool);
     tl::expected<uint32_t, Error> write_state(GlobalState const *gs, fkb_header_t const *fkb_header, Pool &pool);
     tl::expected<uint32_t, Error> write_modules(GlobalState const *gs, fkb_header_t const *fkb_header, ConstructedModulesCollection &modules, Pool &pool);
 

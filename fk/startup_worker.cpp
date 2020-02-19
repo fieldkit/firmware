@@ -279,7 +279,7 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
         loginfo("(loaded) recording (%" PRIu32 ")", record.condition.recording);
     }
 
-    if (!fk_debug_get_console_attached()) {
+    if (!fk_debug_override_schedules()) {
         copy_cron_spec_from_pb("readings", gs->scheduler.readings, record.schedule.readings, pool);
         copy_cron_spec_from_pb("network", gs->scheduler.network, record.schedule.network, pool);
         copy_cron_spec_from_pb("gps", gs->scheduler.gps, record.schedule.gps, pool);

@@ -278,6 +278,7 @@ public:
     void update_physical_modules(ConstructedModulesCollection const &modules);
     void released(uint32_t locked) const;
     void released(uint32_t locked);
+    bool flush(Pool &pool) const;
 
 };
 

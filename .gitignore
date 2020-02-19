@@ -11,3 +11,4 @@ core.*
 compile_commands.json
 protobuf.pb
 power.db
+*.db-journal
