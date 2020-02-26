@@ -112,6 +112,10 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, fkb_header_t con
             modules[m].flags = module.flags;
             modules[m].sensors.arg = (void *)sensors_array;
             modules[m].id.arg = (void *)id_data;
+            modules[m].has_header = true;
+            modules[m].header.manufacturer = module.manufacturer;
+            modules[m].header.kind = module.kind;
+            modules[m].header.version = module.version;
         }
 
         auto modules_array = pool_->malloc_with<pb_array_t>({
@@ -302,6 +306,10 @@ bool HttpReply::include_readings() {
         lmr[m].module.name.arg = (void *)module.display_name_key;
         lmr[m].module.path.arg = (void *)pool_->sprintf("/fk/v1/modules/%d", module.position);
         lmr[m].module.flags = module.flags;
+        lmr[m].module.has_header = true;
+        lmr[m].module.header.manufacturer = module.manufacturer;
+        lmr[m].module.header.kind = module.kind;
+        lmr[m].module.header.version = module.version;
         lmr[m].readings.arg = (void *)readings_array;
     }
 
