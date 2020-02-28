@@ -1,4 +1,5 @@
 #include "networking/http_connection.h"
+#include "networking/http_server_connection.h"
 
 #include "protobuf.h"
 #include "base64.h"

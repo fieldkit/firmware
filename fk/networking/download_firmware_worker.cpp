@@ -32,7 +32,7 @@ void DownloadFirmwareWorker::run(Pool &pool) {
     FirmwareManager firmware;
     firmware.backup_bootloader(pool);
 
-    auto url = "http://192.168.0.100:6060/fk-bundled-fkb.bin";
+    auto url = "https://code.conservify.org/distribution/archive/fk/firmware/latest/artifacts/fk-bundled-fkb.bin";
     auto http = open_http_connection("GET", url, pool);
     if (http == nullptr) {
         return;
