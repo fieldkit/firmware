@@ -208,6 +208,28 @@ static bool configure(HttpServerConnection *connection, fk_app_HttpQuery *query,
         });
     }
 
+    if (query->transmission.wifi.modifying) {
+        gsm.apply([&](GlobalState *gs) {
+            auto url = pb_get_string_if_provided(query->transmission.wifi.url.arg, pool);
+            if (url != nullptr) {
+                strncpy(gs->transmission.url, url, sizeof(gs->transmission.url));
+                loginfo("transmission url: %s", gs->transmission.url);
+            }
+            else {
+                gs->transmission.url[0] = 0;
+            }
+
+            auto token = pb_get_string_if_provided(query->transmission.wifi.token.arg, pool);
+            if (token != nullptr) {
+                strncpy(gs->transmission.token, token, sizeof(gs->transmission.token));
+                loginfo("transmission token: %s", gs->transmission.token);
+            }
+            else {
+                gs->transmission.token[0] = 0;
+            }
+        });
+    }
+
     if (!flush_configuration(pool)) {
         return false;
     }

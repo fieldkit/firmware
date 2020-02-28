@@ -295,6 +295,17 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
         logwarn("using five minute network duration");
     }
 
+    auto url = pb_get_string_if_provided(record.transmission.wifi.url.arg, pool);
+    auto token = pb_get_string_if_provided(record.transmission.wifi.token.arg, pool);
+    if (url != nullptr) {
+        strncpy(gs->transmission.url, url, sizeof(gs->transmission.url));
+        loginfo("(loaded) transmission url: %s", gs->transmission.url);
+    }
+    if (token != nullptr) {
+        strncpy(gs->transmission.token, token, sizeof(gs->transmission.token));
+        loginfo("(loaded) transmission token: %s", gs->transmission.token);
+    }
+
     return true;
 }
 

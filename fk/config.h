@@ -291,6 +291,16 @@ constexpr bool EnableMemoryDumps = false;
 constexpr uint32_t ConfigurationCheckIntervalMs = 500;
 
 /**
+ * Maximum length of API urls.
+ */
+const size_t MaximumUrlLength = 64;
+
+/**
+ * Maximum length of API authentication tokens.
+ */
+const size_t MaximumTokenLength = 512;
+
+/**
  * LoRa activation by personalization settings.
  */
 struct LoraAbpSettings {

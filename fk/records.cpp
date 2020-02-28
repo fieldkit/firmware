@@ -98,6 +98,10 @@ fk_data_DataRecord fk_data_record_decoding_new(Pool &pool) {
     record.schedule.gps.cron.arg = (void *)&pool;
     record.schedule.lora.cron.funcs.decode = pb_decode_data;
     record.schedule.lora.cron.arg = (void *)&pool;
+    record.transmission.wifi.url.funcs.decode = pb_decode_string;
+    record.transmission.wifi.url.arg = (void *)&pool;
+    record.transmission.wifi.token.funcs.decode = pb_decode_string;
+    record.transmission.wifi.token.arg = (void *)&pool;
 
     return record;
 }
@@ -124,6 +128,8 @@ fk_data_DataRecord fk_data_record_encoding_new() {
     record.schedule.network.cron.funcs.encode = pb_encode_data;
     record.schedule.gps.cron.funcs.encode = pb_encode_data;
     record.schedule.lora.cron.funcs.encode = pb_encode_data;
+    record.transmission.wifi.url.funcs.encode = pb_encode_string;
+    record.transmission.wifi.token.funcs.encode = pb_encode_string;
 
     return record;
 }
@@ -168,6 +174,12 @@ fk_app_HttpQuery *fk_http_query_prepare_decoding(fk_app_HttpQuery *query, Pool *
         .decode_item_fn = pb_app_network_info_item_decode,
         .pool = pool,
     });
+
+    query->transmission.wifi.url.funcs.decode = pb_decode_string;
+    query->transmission.wifi.url.arg = (void *)pool;
+
+    query->transmission.wifi.token.funcs.decode = pb_decode_string;
+    query->transmission.wifi.token.arg = (void *)pool;
 
     return query;
 }
@@ -264,6 +276,14 @@ fk_app_HttpReply *fk_http_reply_encoding_initialize(fk_app_HttpReply *reply) {
                 }
             }
         }
+    }
+
+    if (reply->transmission.wifi.url.arg != nullptr) {
+        reply->transmission.wifi.url.funcs.encode = pb_encode_string;
+    }
+
+    if (reply->transmission.wifi.token.arg != nullptr) {
+        reply->transmission.wifi.token.funcs.encode = pb_encode_string;
     }
 
     return reply;

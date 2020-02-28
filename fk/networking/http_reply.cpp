@@ -255,6 +255,13 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, fkb_header_t con
     reply_.schedules.gps.interval = gs_->scheduler.gps.interval;
     reply_.schedules.lora.interval = gs_->scheduler.lora.interval;
 
+    if (strlen(gs_->transmission.url) > 0 || strlen(gs_->transmission.token) > 0) {
+        reply_.has_transmission = true;
+        reply_.transmission.has_wifi = true;
+        reply_.transmission.wifi.url.arg = (void *)gs_->transmission.url;
+        reply_.transmission.wifi.token.arg = (void *)gs_->transmission.token;
+    }
+
     return true;
 }
 

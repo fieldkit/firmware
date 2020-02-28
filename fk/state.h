@@ -251,6 +251,11 @@ struct ReadingsState {
     uint32_t time;
 };
 
+struct TransmissionState {
+    char url[MaximumUrlLength];
+    char token[MaximumTokenLength];
+};
+
 struct GlobalState {
 public:
     uint32_t version;
@@ -270,6 +275,7 @@ public:
     // TODO Merge these.
     ModulesState *modules;
     ReadingsState readings;
+    TransmissionState transmission;
 
 public:
     GlobalState();

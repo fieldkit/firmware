@@ -113,6 +113,11 @@ void MetaRecord::include_state(GlobalState const *gs, fkb_header_t const *fkb_he
     record_.schedule.network.duration = gs->scheduler.network.duration;
     record_.schedule.gps.duration = gs->scheduler.gps.duration;
     record_.schedule.lora.duration = gs->scheduler.lora.duration;
+
+    record_.has_transmission = true;
+    record_.transmission.has_wifi = true;
+    record_.transmission.wifi.url.arg = (void *)gs->transmission.url;
+    record_.transmission.wifi.token.arg = (void *)gs->transmission.token;
 }
 
 void MetaRecord::include_modules(GlobalState const *gs, fkb_header_t const *fkb_header, ConstructedModulesCollection &modules, Pool &pool) {
