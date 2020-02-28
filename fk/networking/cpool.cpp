@@ -1,7 +1,7 @@
 #include <fk-app-protocol.h>
 
 #include "networking/cpool.h"
-#include "networking/http_connection.h"
+#include "networking/http_server_connection.h"
 #include "networking/debug_connection.h"
 
 namespace fk {
