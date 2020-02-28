@@ -73,7 +73,7 @@ public:
 
     void service() override;
 
-    PoolPointer<NetworkConnection> *open_connection(const char *hostname, uint16_t port) override;
+    PoolPointer<NetworkConnection> *open_connection(const char *scheme, const char *hostname, uint16_t port) override;
 
     bool stop() override;
 

@@ -346,10 +346,19 @@ void MetalNetwork::service() {
     }
 }
 
-PoolPointer<NetworkConnection> *MetalNetwork::open_connection(const char *hostname, uint16_t port) {
+PoolPointer<NetworkConnection> *MetalNetwork::open_connection(const char *scheme, const char *hostname, uint16_t port) {
     WiFiClient wcl;
-    if (!wcl.connect(hostname, port)) {
-        return nullptr;
+
+    auto https = "https";
+    if (strcmp(scheme, https) == 0) {
+        if (!wcl.connectSSL(hostname, port)) {
+            return nullptr;
+        }
+    }
+    else {
+        if (!wcl.connect(hostname, port)) {
+            return nullptr;
+        }
     }
 
     return create_network_connection_wrapper<MetalNetworkConnection>(wcl);

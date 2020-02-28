@@ -150,7 +150,7 @@ PoolPointer<NetworkListener> *LinuxNetwork::listen(uint16_t port) {
 void LinuxNetwork::service() {
 }
 
-PoolPointer<NetworkConnection> *LinuxNetwork::open_connection(const char *hostname, uint16_t port) {
+PoolPointer<NetworkConnection> *LinuxNetwork::open_connection(const char *scheme, const char *hostname, uint16_t port) {
     return nullptr;
 }
 

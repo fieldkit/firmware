@@ -73,9 +73,9 @@ void HttpConnection::close() {
 HttpConnection *open_http_connection(const char *method, const char *url, Pool &pool) {
     UrlParser url_parser{ pool.strdup(url) };
 
-    loginfo("connecting to: %s:%d", url_parser.server(), url_parser.port());
+    loginfo("connecting to: %s://%s:%d", url_parser.scheme(), url_parser.server(), url_parser.port());
 
-    auto nc = get_network()->open_connection(url_parser.server(), url_parser.port());
+    auto nc = get_network()->open_connection(url_parser.scheme(), url_parser.server(), url_parser.port());
     if (nc == nullptr) {
         logerror("connection error");
         return nullptr;
