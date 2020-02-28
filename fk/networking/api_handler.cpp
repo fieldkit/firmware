@@ -51,7 +51,7 @@ bool ApiHandler::handle(HttpServerConnection *connection, Pool &pool) {
         connection->hex_encoding(true);
     }
 
-    size_t buffer_size = 256u;
+    size_t buffer_size = NetworkBufferSize;
     auto ptr = reinterpret_cast<uint8_t *>(pool.malloc(buffer_size));
     bzero(ptr, buffer_size);
     BufferedReader buffered{ reader, ptr, buffer_size };
