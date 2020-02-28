@@ -2,12 +2,14 @@ namespace fk {
 
 struct UrlParser {
 private:
+    char *scheme_{ nullptr };
     char *server_{ nullptr };
     char *path_{ nullptr };
     char *query_string_{ nullptr };
     uint16_t port_{ 80 };
 
 public:
+    const char *scheme() const { return scheme_; }
     const char *server() const { return server_; }
     const char *path() const { return path_; }
     const char *query_string() const { return query_string_; }
@@ -19,7 +21,11 @@ public:
 
     UrlParser(char *buffer) {
         for (auto p = buffer; p[0] != 0 && p[1] != 0; ++p) {
-            if (server_ == nullptr && p[0] == '/' && p[1] == '/') {
+            if (scheme_ == nullptr && server_ == nullptr && p[0] == ':') {
+                scheme_ = buffer;
+                p[0] = 0;
+            }
+            else if (server_ == nullptr && p[0] == '/' && p[1] == '/') {
                 p += 2;
                 server_ = p;
             }
