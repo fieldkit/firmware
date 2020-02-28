@@ -30,6 +30,11 @@ int32_t HttpServerConnection::plain(int32_t status, const char *status_descripti
     return 0;
 }
 
+
+int32_t HttpServerConnection::available() const {
+    return req_.buffered_body_length();
+}
+
 int32_t HttpServerConnection::read(uint8_t *buffer, size_t size) {
     auto buffered_bytes = req_.read_buffered_body(buffer, size);
     if (buffered_bytes > 0) {

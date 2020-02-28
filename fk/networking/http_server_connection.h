@@ -68,6 +68,8 @@ public:
         return req_.have_headers();
     }
 
+    int32_t available() const;
+
 };
 
 }

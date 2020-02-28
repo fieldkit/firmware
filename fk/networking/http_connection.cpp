@@ -29,6 +29,10 @@ int32_t HttpConnection::write(uint8_t const *buffer, size_t size) {
 }
 
 int32_t HttpConnection::read(uint8_t *buffer, size_t size) {
+    if (connection_->available() > 0) {
+        return connection_->read(buffer, size);
+    }
+
     if (!connection_->active()) {
         return -1;
     }

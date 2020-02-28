@@ -190,6 +190,10 @@ public:
      */
     int32_t read_buffered_body(uint8_t *buffer, size_t size);
 
+    int32_t buffered_body_length() const {
+        return buffered_body_length_;
+    }
+
 public:
     int32_t on_message_begin();
     int32_t on_url(const char *at, size_t length);
