@@ -24,6 +24,12 @@ public:
             if (scheme_ == nullptr && server_ == nullptr && p[0] == ':') {
                 scheme_ = buffer;
                 p[0] = 0;
+
+                if (p - buffer == 5) {
+                    if (buffer[0] == 'h' && buffer[1] == 't' && buffer[2] == 't' && buffer[3] == 'p' && buffer[4] == 's') {
+                        port_ = 443;
+                    }
+                }
             }
             else if (server_ == nullptr && p[0] == '/' && p[1] == '/') {
                 p += 2;
@@ -56,7 +62,6 @@ public:
             }
         }
     }
-
 
 public:
     const char *find_query_param(const char *key, Pool &pool) {
