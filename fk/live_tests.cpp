@@ -473,6 +473,39 @@ static void test_i2c_weather_samd09() {
     }
 }
 
+static void https_test() {
+    get_board()->enable_everything();
+
+    auto network = get_network();
+
+    network->begin({
+        .valid = true,
+        .create = false,
+        .ssid = "Conservify",
+        .password = "Okavang0",
+    });
+
+    while (network->status() != NetworkStatus::Connected) {
+        fk_delay(1000);
+        loginfo("connecting...");
+    }
+
+    loginfo("connected");
+
+    while (true) {
+        StandardPool pool{ "test" };
+        auto url = "https://api.fkdev.org/status";
+        auto http = open_http_connection("GET", url, pool);
+        if (http != nullptr) {
+            http->close();
+        }
+
+        fk_delay(1000);
+
+        loginfo("ping");
+    }
+}
+
 void fk_live_tests() {
     if (false) {
         try_and_reproduce_weird_block_issue();
@@ -494,6 +527,9 @@ void fk_live_tests() {
     }
     if (false) {
         test_i2c_weather_samd09();
+    }
+    if (false) {
+        https_test();
     }
 }
 

@@ -198,28 +198,30 @@ bool HttpServerConnection::service() {
         return false;
     }
 
-    if (req_.have_headers()) {
-        if (!routed_) {
-            auto path = req_.url_parser().path();
-            if (path == nullptr) {
-                plain(404, "not found", "");
-                return true;
-            }
-
-            loginfo("[%" PRIu32 "] routing '%s' path = '%s' (%" PRIu32 " bytes) ('%s')",
-                    number_, req_.url(), path, req_.length(), req_.user_agent());
-
-            auto handler = router_->route(path);
-            if (handler == nullptr) {
-                plain(404, "not found", "");
-            }
-            else {
-                if (!handler->handle(this, *pool_)) {
-                    plain(500, "internal error", "");
+    if (router_ != nullptr) {
+        if (req_.have_headers()) {
+            if (!routed_) {
+                auto path = req_.url_parser().path();
+                if (path == nullptr) {
+                    plain(404, "not found", "");
+                    return true;
                 }
+
+                loginfo("[%" PRIu32 "] routing '%s' path = '%s' (%" PRIu32 " bytes) ('%s')",
+                        number_, req_.url(), path, req_.length(), req_.user_agent());
+
+                auto handler = router_->route(path);
+                if (handler == nullptr) {
+                    plain(404, "not found", "");
+                }
+                else {
+                    if (!handler->handle(this, *pool_)) {
+                        plain(500, "internal error", "");
+                    }
+                }
+                routed_ = true;
+                activity_ = fk_uptime();
             }
-            routed_ = true;
-            activity_ = fk_uptime();
         }
     }
 

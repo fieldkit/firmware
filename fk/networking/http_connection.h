@@ -18,7 +18,7 @@ public:
     int32_t read(uint8_t *buffer, size_t size) override;
 
 public:
-    bool begin(const char *method, const char *path, const char *server, uint16_t port);
+    bool begin(const char *scheme, const char *method, const char *path, const char *server, uint16_t port);
     void close();
 
 public:

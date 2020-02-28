@@ -351,11 +351,13 @@ PoolPointer<NetworkConnection> *MetalNetwork::open_connection(const char *scheme
 
     auto https = "https";
     if (strcmp(scheme, https) == 0) {
-        if (!wcl.connectSSL(hostname, port)) {
+        logdebug("connection %s %d (ssl)", hostname, port);
+        if (!wcl.connectSSL(hostname, port, true)) {
             return nullptr;
         }
     }
     else {
+        logdebug("connection %s %d", hostname, port);
         if (!wcl.connect(hostname, port)) {
             return nullptr;
         }

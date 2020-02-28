@@ -44,7 +44,7 @@ int32_t HttpConnection::read(uint8_t *buffer, size_t size) {
     return connection_->read(buffer, size);
 }
 
-bool HttpConnection::begin(const char *method, const char *path, const char *server, uint16_t port) {
+bool HttpConnection::begin(const char *scheme, const char *method, const char *path, const char *server, uint16_t port) {
     connection_->printf("%s /%s HTTP/1.1\r\n"
                         "Host: %s:%d\r\n"
                         "Connection: close\r\n"
@@ -77,7 +77,7 @@ void HttpConnection::close() {
 HttpConnection *open_http_connection(const char *method, const char *url, Pool &pool) {
     UrlParser url_parser{ pool.strdup(url) };
 
-    loginfo("connecting to: %s://%s:%d", url_parser.scheme(), url_parser.server(), url_parser.port());
+    loginfo("connecting scheme=%s server=%s %d", url_parser.scheme(), url_parser.server(), url_parser.port());
 
     auto nc = get_network()->open_connection(url_parser.scheme(), url_parser.server(), url_parser.port());
     if (nc == nullptr) {
@@ -89,7 +89,7 @@ HttpConnection *open_http_connection(const char *method, const char *url, Pool &
 
     loginfo("beginning %s %s", method, url_parser.path());
 
-    if (!http->begin(method, url_parser.path(), url_parser.server(), url_parser.port())) {
+    if (!http->begin(url_parser.scheme(), method, url_parser.path(), url_parser.server(), url_parser.port())) {
         http->close();
         return nullptr;
     }
