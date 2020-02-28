@@ -14,6 +14,7 @@
 #include "lora_ranging_worker.h"
 
 #include "networking/download_firmware_worker.h"
+#include "networking/upload_data_worker.h"
 
 namespace fk {
 
@@ -353,10 +354,17 @@ void MenuView::create_network_menu() {
         views_->show_home();
     });
 
-    network_menu_ = new_menu_screen<6>(pool_, "network", {
+    auto network_upload = to_lambda_option(pool_, "Upload", [=]() {
+        back_->on_selected();
+        views_->show_home();
+        get_ipc()->launch_worker(create_pool_worker<UploadDataWorker>());
+    });
+
+    network_menu_ = new_menu_screen<7>(pool_, "network", {
         back_,
         network_toggle,
         network_choose,
+        network_upload,
         network_always_on,
         network_disable_inactivity,
         network_download_fw,
