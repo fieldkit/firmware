@@ -236,7 +236,7 @@ struct LoraAbpSettings {
 };
 
 // -------------------------------------------------------------------------------------------
-// Field Lengths
+// General Field Lengths
 
 /**
  * Maximum length of a device's name.
@@ -254,6 +254,21 @@ constexpr size_t MaximumBuildStringLength = 32;
  */
 constexpr size_t GenerationLength = 32;
 
+// -------------------------------------------------------------------------------------------
+// Network/Wifi
+
+/**
+ * How long to wait for a WiFi connection to establish.
+ */
+constexpr uint32_t NetworkConnectionTimeoutMs = 30 * 1000;
+
+/**
+ * Maximum duration to allow an inactive connection open. This is
+ * adjusted to be higher than the status message frequency so that
+ * debug connections aren't killed prematurely.
+ */
+constexpr uint32_t NetworkConnectionMaximumDuration = TenSecondsMs;
+
 /**
  * Maximum number of WiFi networks.
  * \todo: Eventually this should be relaxed.
@@ -269,21 +284,6 @@ constexpr size_t WifiMaximumSsidLength = 64;
  * Maximum length of a WiFi password.
  */
 constexpr size_t WifiMaximumPasswordLength = 64;
-
-// -------------------------------------------------------------------------------------------
-// Network/Wifi
-
-/**
- * How long to wait for a WiFi connection to establish.
- */
-constexpr uint32_t NetworkConnectionTimeoutMs = 30 * 1000;
-
-/**
- * Maximum duration to allow an inactive connection open. This is
- * adjusted to be higher than the status message frequency so that
- * debug connections aren't killed prematurely.
- */
-constexpr uint32_t NetworkConnectionMaximumDuration = TenSecondsMs;
 
 /**
  * The number of fixed HTTP routes that the firmware registers. These are routes
