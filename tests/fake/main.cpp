@@ -68,7 +68,7 @@ static void setup_fake_data() {
     TwoWireWrapper module_bus{ "modules", nullptr };
     ScanningContext ctx{ get_modmux(), get_global_state_rw().get(), module_bus };
 
-    for (size_t i = 0; i < 1000 / fk_config().readings.amplification; ++i) {
+    for (size_t i = 0; i < 1000; ++i) {
         StandardPool pool{ "readings" };
         FoundModuleCollection found(pool);
         found.emplace(FoundModule{
@@ -96,7 +96,6 @@ static void setup_fake_data() {
 
 static void server(Fake *fake) {
     StandardPool pool{ "pool" };
-    configuration_t fkc;
     LinuxNetwork network;
     NetworkServices network_services{ &network };
     auto gs = get_global_state_ro();

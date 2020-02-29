@@ -104,20 +104,13 @@ MetalDataMemory banks[MemoryFactory::NumberOfDataMemoryBanks] {
 };
 DataMemory *bank_pointers[]{ &banks[0], &banks[1], &banks[2], &banks[3] };
 
-#elif FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS == 2
+#else
 
 MetalDataMemory banks[MemoryFactory::NumberOfDataMemoryBanks] {
     { SPI_FLASH_CS_BANK_1 },
     { SPI_FLASH_CS_BANK_2 },
 };
 DataMemory *bank_pointers[]{ &banks[0], &banks[1] };
-
-#elif FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS == 1
-
-MetalDataMemory banks[MemoryFactory::NumberOfDataMemoryBanks] {
-    { SPI_FLASH_CS_BANK_1 },
-};
-DataMemory *bank_pointers[]{ &banks[0] };
 
 #endif
 
@@ -130,15 +123,10 @@ MetalQspiMemory qspi_memory;
 LinuxDataMemory banks[MemoryFactory::NumberOfDataMemoryBanks];
 DataMemory *bank_pointers[]{ &banks[0], &banks[1], &banks[2], &banks[3] };
 
-#elif FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS == 2
+#else
 
 LinuxDataMemory banks[MemoryFactory::NumberOfDataMemoryBanks];
 DataMemory *bank_pointers[]{ &banks[0], &banks[1] };
-
-#elif FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS == 1
-
-LinuxDataMemory banks[MemoryFactory::NumberOfDataMemoryBanks];
-DataMemory *bank_pointers[]{ &banks[0] };
 
 #endif
 

@@ -258,10 +258,10 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
 
     auto networks_array = (pb_array_t *)record.network.networks.arg;
     if (networks_array->length > 0) {
-        FK_ASSERT(networks_array->length <= MaximumNumberOfWifiNetworks);
+        FK_ASSERT(networks_array->length <= WifiMaximumNumberOfNetworks);
 
         auto networks = (fk_app_NetworkInfo *)networks_array->buffer;
-        for (auto i = 0u; i < MaximumNumberOfWifiNetworks; ++i) {
+        for (auto i = 0u; i < WifiMaximumNumberOfNetworks; ++i) {
             auto &n = networks[i];
             auto ssid = (const char *)n.ssid.arg;
             auto password = (const char *)n.password.arg;

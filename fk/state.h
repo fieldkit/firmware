@@ -125,7 +125,7 @@ struct WifiNetworkInfo {
 };
 
 struct NetworkConfiguration {
-    WifiNetworkInfo wifi_networks[MaximumNumberOfWifiNetworks];
+    WifiNetworkInfo wifi_networks[WifiMaximumNumberOfNetworks];
     WifiNetworkInfo selected;
     uint32_t modified;
 };
@@ -252,8 +252,8 @@ struct ReadingsState {
 };
 
 struct TransmissionState {
-    char url[MaximumUrlLength];
-    char token[MaximumTokenLength];
+    char url[HttpMaximumUrlLength];
+    char token[HttpMaximumTokenLength];
     uint32_t data_cursor{ 0 };
     uint32_t meta_cursor{ 0 };
 };

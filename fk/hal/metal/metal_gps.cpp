@@ -82,7 +82,7 @@ bool MetalGps::service(GpsFix &fix) {
 
         fix.valid = valid;
 
-        if (fk_config().logging.gps_raw) {
+        if (GpsLoggingRaw) {
             if (position_ == sizeof(buffer_) - 1 || c == '\n') {
                 if (position_ > 0) {
                     loginfo("%s", buffer_);

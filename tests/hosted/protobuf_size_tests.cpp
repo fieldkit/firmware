@@ -71,7 +71,7 @@ static void fake_global_state(GlobalState &gs, Pool &pool) {
     fake_data(gs.lora.network_session_key);
     fake_data(gs.lora.device_address);
 
-    for (auto i = 0u; i < MaximumNumberOfWifiNetworks; ++i) {
+    for (auto i = 0u; i < WifiMaximumNumberOfNetworks; ++i) {
         fake_string(gs.network.config.wifi_networks[i].ssid);
         fake_string(gs.network.config.wifi_networks[i].password);
     }

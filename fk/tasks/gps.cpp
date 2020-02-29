@@ -15,7 +15,6 @@ void task_handler_gps(void *params) {
         return;
     }
 
-    auto &fkc = fk_config();
     auto started_at = fk_uptime();
     auto status = fk_uptime() + OneMinuteMs;
     auto update_gs = fk_uptime() + FiveSecondsMs;
@@ -60,8 +59,8 @@ void task_handler_gps(void *params) {
                     fixed_at = fk_uptime();
                     clock_adjust(fix.time);
                 }
-                else if (fk_uptime() - fixed_at > fkc.scheduler.fix_hold) {
-                    loginfo("gps fix hold reached: %" PRIu32, fkc.scheduler.fix_hold);
+                else if (fk_uptime() - fixed_at > OneMinuteMs) {
+                    loginfo("gps fix hold reached: %" PRIu32, OneMinuteMs);
                     break;
                 }
             }
@@ -72,8 +71,8 @@ void task_handler_gps(void *params) {
             }
         }
 
-        if (fk_uptime() - started_at > fkc.scheduler.fix_waiting) {
-            loginfo("gps fix waiting reached: %" PRIu32, fkc.scheduler.fix_waiting);
+        if (fk_uptime() - started_at > FiveMinutesMs) {
+            loginfo("gps fix waiting reached: %" PRIu32, FiveMinutesMs);
             break;
         }
     }

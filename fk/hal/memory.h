@@ -170,7 +170,7 @@ public:
 
 class MemoryFactory {
 public:
-    constexpr static size_t NumberOfDataMemoryBanks = FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS;
+    constexpr static size_t NumberOfDataMemoryBanks = StorageMaximumNumberOfMemoryBanks;
 
 public:
     static DataMemory **get_data_memory_banks();

@@ -100,7 +100,7 @@ public:
     }
 
     void run() {
-        auto stop_time = fk_uptime() + fk_config().display.inactivity;
+        auto stop_time = fk_uptime() + FiveMinutesMs;
         auto can_stop = os_task_is_running(&scheduler_task);
 
         if (!leds.begin()) {
@@ -115,7 +115,7 @@ public:
 
             Button *button = nullptr;
             if (get_ipc()->dequeue_button(&button)) {
-                stop_time = fk_uptime() + fk_config().display.inactivity;
+                stop_time = fk_uptime() + FiveMinutesMs;
 
                 switch (button->index()) {
                 case Buttons::Right: {

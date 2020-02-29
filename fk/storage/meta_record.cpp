@@ -75,8 +75,8 @@ void MetaRecord::include_state(GlobalState const *gs, fkb_header_t const *fkb_he
         record_.lora.downlinkCounter = gs->lora.downlink_counter;
     }
 
-    auto networks = pool.malloc<fk_data_NetworkInfo>(MaximumNumberOfWifiNetworks);
-    for (auto i = 0u; i < MaximumNumberOfWifiNetworks; ++i) {
+    auto networks = pool.malloc<fk_data_NetworkInfo>(WifiMaximumNumberOfNetworks);
+    for (auto i = 0u; i < WifiMaximumNumberOfNetworks; ++i) {
         networks[i] = fk_app_NetworkInfo_init_default;
         networks[i].ssid.funcs.encode = pb_encode_string;
         networks[i].ssid.arg = (void *)gs->network.config.wifi_networks[i].ssid;
@@ -84,7 +84,7 @@ void MetaRecord::include_state(GlobalState const *gs, fkb_header_t const *fkb_he
         networks[i].password.arg = (void *)gs->network.config.wifi_networks[i].password;
     }
     auto networks_array = pool.malloc_with<pb_array_t>({
-        .length = MaximumNumberOfWifiNetworks,
+        .length = WifiMaximumNumberOfNetworks,
         .itemSize = sizeof(fk_data_NetworkInfo),
         .buffer = networks,
         .fields = fk_data_NetworkInfo_fields,

@@ -69,20 +69,15 @@ tl::expected<TakenReadings, Error> ReadingsTaker::take(ConstructedModulesCollect
 }
 
 bool ReadingsTaker::append_readings(File &file, Pool &pool) {
-    for (auto i = 0u; i < fk_config().readings.amplification; ++i) {
-        if (i > 0) {
-            readings_.bump_amplified_reading();
-        }
-        auto bytes_wrote = file.write(&readings_.record(), fk_data_DataRecord_fields);
-        if (bytes_wrote == 0) {
-            logerror("error saving readings");
-            return false;
-        }
-
-        auto record = readings_.record().readings.reading;
-        loginfo("wrote %zd bytes file=(#%" PRIu32 ") rec=(#%" PRIu32 ") (%" PRIu32 " bytes) (" PRADDRESS ") (%" PRIu32 " wasted)",
-                (size_t)bytes_wrote, file.previous_record(), record, file.size(), file.tail(), file.wasted());
+    auto bytes_wrote = file.write(&readings_.record(), fk_data_DataRecord_fields);
+    if (bytes_wrote == 0) {
+        logerror("error saving readings");
+        return false;
     }
+
+    auto record = readings_.record().readings.reading;
+    loginfo("wrote %zd bytes file=(#%" PRIu32 ") rec=(#%" PRIu32 ") (%" PRIu32 " bytes) (" PRADDRESS ") (%" PRIu32 " wasted)",
+            (size_t)bytes_wrote, file.previous_record(), record, file.size(), file.tail(), file.wasted());
 
     return true;
 }

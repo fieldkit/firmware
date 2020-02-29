@@ -220,8 +220,8 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, fkb_header_t con
     reply_.loraSettings.appKey.arg = (void *)app_key_data;
 
     auto nnetworks = 0u;
-    auto networks = pool_->malloc<fk_app_NetworkInfo>(MaximumNumberOfWifiNetworks);
-    for (auto i = 0u; i < MaximumNumberOfWifiNetworks; ++i) {
+    auto networks = pool_->malloc<fk_app_NetworkInfo>(WifiMaximumNumberOfNetworks);
+    for (auto i = 0u; i < WifiMaximumNumberOfNetworks; ++i) {
         if (strlen(gs_->network.config.wifi_networks[i].ssid) > 0) {
             networks[nnetworks] = fk_app_NetworkInfo_init_default;
             networks[nnetworks].ssid.funcs.encode = pb_encode_string;

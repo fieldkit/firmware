@@ -5,6 +5,9 @@
 
 namespace fk {
 
+// -------------------------------------------------------------------------------------------
+// Time Intervals
+
 /**
  * One second in milliseconds.
  */
@@ -70,10 +73,107 @@ constexpr uint32_t OneDaySeconds  = 86400;
  */
 constexpr uint32_t OneMegabyte = 1024 * 1024;
 
+// Schedules and Time
+
+constexpr uint32_t DefaultReadingsInterval = 60;
+constexpr uint32_t DefaultNetworkInterval = 60 * 60 * 60;
+constexpr uint32_t DefaultLoraInterval = 60 * 60 * 2;
+constexpr uint32_t DefaultGpsInterval = OneDaySeconds;
+constexpr uint32_t DefaultDebugReadingsInterval = 60;
+constexpr uint32_t DefaultDebugNetworkInterval = 60 * 60 * 60;
+constexpr uint32_t DefaultDebugLoraInterval = 60 * 3;
+constexpr uint32_t DefaultDebugGpsInterval = OneDaySeconds;
+
+/**
+ * Maximum allowed time drift, in seconds.
+ */
+constexpr uint32_t AcceptableTimeDriftSeconds = 5;
+
+/**
+ * How long the user should hold the button to initiate a factory wipe.
+ */
+constexpr uint32_t InteractiveStartupButtonDuration = TwoSecondsMs;
+
+/**
+ * How often to display progress information.
+ */
+constexpr uint32_t ProgressIntervalMs = 1000;
+
+/**
+ * How often to check for configuration changes.
+ */
+constexpr uint32_t ConfigurationCheckIntervalMs = 500;
+
+// -------------------------------------------------------------------------------------------
+// Memory
+
+/**
+ * Standard page size to allocate for operations.
+ */
+constexpr size_t StandardPageSize = 8192;
+
+/**
+ * Size of the circular buffer that stores logs.
+ */
+constexpr size_t InMemoryLogBufferSize = 32768;
+
+/**
+ * Size of the network buffers.
+ */
+constexpr size_t NetworkBufferSize = 1024;
+
+/**
+ * Maximum size to use for buffers allocated on the stack.
+ */
+constexpr size_t StackBufferSize = 128;
+
+/**
+ * Size of a page in EEPROM memory.
+ */
+constexpr size_t CodeMemoryPageSize = 512;
+
+/**
+ * Size of a block in EEPROM memory.
+ */
+constexpr size_t CodeMemoryBlockSize = 8192;
+
+// -------------------------------------------------------------------------------------------
+// Modules
+
+/**
+ * If true then modules will never be turned off to optimize power consumption.
+ */
+constexpr bool ModulesAlwaysOn = false;
+
+/**
+ * If enabled the virtual diagnostics module will be scanned.
+ */
+constexpr bool ModulesEnableDiagnostics = true;
+
+/**
+ * If enabled the virtual random module will be scanned.
+ */
+constexpr bool ModulesEnableRandom = false;
+
+/**
+ * This is the theorhetical maximum number of modules that can be physically
+ * connected to a single station. This is governed by the largest backplanes and
+ * their possible combinations.
+ */
+constexpr size_t MaximumNumberOfPhysicalModules = 4;
+
+// -------------------------------------------------------------------------------------------
+// LoRa
+
 /**
  * How often to save LoRa radio state.
  */
 constexpr uint32_t LoraUplinksSaveFrequency = 10;
+
+/**
+ * If enabled then the device will transmit readings from virtual modules.
+ */
+constexpr bool LoraTransmitVirtual = false;
 
 /**
  * Length of a LoRa App EUI.
@@ -121,6 +221,24 @@ constexpr uint8_t LoraDataPort = 10;
 constexpr size_t LoraSendTries = 3;
 
 /**
+ * Delay between LoRa packets.
+ */
+constexpr uint32_t LoraPacketDelay = TenSecondsMs;
+
+/**
+ * LoRa activation by personalization settings.
+ */
+struct LoraAbpSettings {
+    uint8_t device_eui[LoraDeviceEuiLength];
+    uint8_t device_address[LoraDeviceAddressLength];
+    uint8_t network_session_key[LoraNetworkSessionKeyLength];
+    uint8_t app_session_key[LoraAppSessionKeyLength];
+};
+
+// -------------------------------------------------------------------------------------------
+// Field Lengths
+
+/**
  * Maximum length of a device's name.
  */
 constexpr size_t MaximumNameLength = 64;
@@ -137,30 +255,10 @@ constexpr size_t MaximumBuildStringLength = 32;
 constexpr size_t GenerationLength = 32;
 
 /**
- * Standard page size to allocate for operations.
- */
-constexpr size_t StandardPageSize = 8192;
-
-/**
- * Size of the circular buffer that stores logs.
- */
-constexpr size_t InMemoryLogBufferSize = 32768;
-
-/**
- * Size of the network buffers.
- */
-constexpr size_t NetworkBufferSize = 1024;
-
-/**
- * Maximum allowed time drift, in seconds.
- */
-constexpr uint32_t AcceptableTimeDriftSeconds = 5;
-
-/**
  * Maximum number of WiFi networks.
  * \todo: Eventually this should be relaxed.
  */
-constexpr size_t MaximumNumberOfWifiNetworks = 2;
+constexpr size_t WifiMaximumNumberOfNetworks = 2;
 
 /**
  * Maximum length of a WiFi SSID.
@@ -172,32 +270,20 @@ constexpr size_t WifiMaximumSsidLength = 64;
  */
 constexpr size_t WifiMaximumPasswordLength = 64;
 
-/**
- * How long the user should hold the button to initiate a factory wipe.
- */
-constexpr uint32_t InteractiveStartupButtonDuration = TwoSecondsMs;
+// -------------------------------------------------------------------------------------------
+// Network/Wifi
 
 /**
- * Size of a page in EEPROM memory.
+ * How long to wait for a WiFi connection to establish.
  */
-constexpr size_t CodeMemoryPageSize = 512;
+constexpr uint32_t NetworkConnectionTimeoutMs = 30 * 1000;
 
 /**
- * Size of a block in EEPROM memory.
+ * Maximum duration to allow an inactive connection open. This is
+ * adjusted to be higher than the status message frequency so that
+ * debug connections aren't killed prematurely.
  */
-constexpr size_t CodeMemoryBlockSize = 8192;
-
-/**
- * Maximum size to use for buffers allocated on the stack.
- */
-constexpr size_t StackBufferSize = 128;
-
-/**
- * This is the theorhetical maximum number of modules that can be physically
- * connected to a single station. This is governed by the largest backplanes and
- * their possible combinations.
- */
-constexpr size_t MaximumNumberOfPhysicalModules = 4;
+constexpr uint32_t NetworkConnectionMaximumDuration = TenSecondsMs;
 
 /**
  * The number of fixed HTTP routes that the firmware registers. These are routes
@@ -213,28 +299,6 @@ constexpr size_t HttpFixedRoutes = 5;
 constexpr size_t HttpMaximumRoutes = MaximumNumberOfPhysicalModules + HttpFixedRoutes;
 
 /**
- * The maximum length of an incoming URL.
- */
-constexpr size_t HttpdMaximumUrlLength = 64;
-
-/**
- * How long to wait for a WiFi connection to establish.
- */
-constexpr uint32_t NetworkConnectionTimeoutMs = 30 * 1000;
-
-/**
- * Maximum duration to allow an inactive connection open. This is
- * adjusted to be higher than the status message frequency so that
- * debug connections aren't killed prematurely.
- */
-constexpr uint32_t NetworkConnectionMaximumDuration = TenSecondsMs;
-
-/**
- * Buffer size for storing GPS sentences for debugging purposes.
- */
-constexpr size_t GpsDebuggingBuffer = 64;
-
-/**
  * Maximum size of all the headers in an HTTP request.
  */
 constexpr size_t HttpMaximumHeaderSize = 1024;
@@ -245,25 +309,57 @@ constexpr size_t HttpMaximumHeaderSize = 1024;
 constexpr size_t HttpConnectionBufferSize = 1024;
 
 /**
+ * Maximum length of API urls.
+ */
+constexpr size_t HttpMaximumUrlLength = 64;
+
+/**
+ * Maximum length of API authentication tokens.
+ */
+constexpr size_t HttpMaximumTokenLength = 512;
+
+// -------------------------------------------------------------------------------------------
+// GPS
+
+/**
+ * Buffer size for storing GPS sentences for debugging purposes.
+ */
+constexpr size_t GpsDebuggingBuffer = 64;
+
+/**
+ * Flag to enable logging of raw GPS data.
+ */
+constexpr bool GpsLoggingRaw = false;
+
+// -------------------------------------------------------------------------------------------
+// Storage
+
+/**
+ * Maximum number of memory banks we're capable of supporting.
+ */
+// #define FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS (2)
+
+/**
  * Maximum number of blocks to look ahead for an available block. This means we
  * can't deal with this many bad blocks sequentially.
  */
 constexpr int32_t StorageAvailableBlockLookAhead = 10;
 
 /**
- * How often to display progress information.
- */
-constexpr uint32_t ProgressIntervalMs = 1000;
-
-/**
  * Maximum number of memory banks we're capable of supporting.
  */
-#define FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS (2)
+constexpr size_t StorageMaximumNumberOfMemoryBanks = 2;
+
+// -------------------------------------------------------------------------------------------
+// Debug
 
 /**
- * Maximum number of memory banks we're capable of supporting.
+ * True to enable dumping memory, hash comparisons, etc...
  */
-constexpr size_t MaximumNumberOfMemoryBanks = FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS;
+constexpr bool DebugEnableMemoryDumps = false;
+
+// -------------------------------------------------------------------------------------------
+// Basically Fixed
 
 /**
  * Size of the bootloader.
@@ -279,151 +375,5 @@ constexpr uint32_t OtherBankAddress = 0x80000;
  * Number of worker tasks to allow.
  */
 constexpr size_t NumberOfWorkerTasks = 2;
-
-/**
- * True to enable dumping memory, hash comparisons, etc...
- */
-constexpr bool EnableMemoryDumps = false;
-
-/**
- * How often to check for configuration changes.
- */
-constexpr uint32_t ConfigurationCheckIntervalMs = 500;
-
-/**
- * Maximum length of API urls.
- */
-const size_t MaximumUrlLength = 64;
-
-/**
- * Maximum length of API authentication tokens.
- */
-const size_t MaximumTokenLength = 512;
-
-/**
- * LoRa activation by personalization settings.
- */
-struct LoraAbpSettings {
-    uint8_t device_eui[LoraDeviceEuiLength];
-    uint8_t device_address[LoraDeviceAddressLength];
-    uint8_t network_session_key[LoraNetworkSessionKeyLength];
-    uint8_t app_session_key[LoraAppSessionKeyLength];
-};
-
-/**
- * Runtime configuration informationthat is unavailable in the mobile
- * application. This can be updated after compilation to build binaries for
- * various situations.
- */
-typedef struct configuration_t {
-    /**
-     * Run a full self check, even for things that don't necessarily need to be
-     * working. This affects checking GPS and SD Card as well as backplane pieces.
-     */
-    bool full_self_check{ false };
-
-    /**
-     * Logging configuration.
-     */
-    typedef struct logging_t {
-        /**
-         * Log raw GPS information, very verbose.
-         */
-        bool gps_raw{ false };
-    } logging_t;
-
-    /**
-     * Logging configuration.
-     */
-    logging_t logging;
-
-    /**
-     * Configuration related to collecting readings.
-     */
-    typedef struct readings_t {
-        /**
-         * If true then the diagnostics module is enabled and will be consulted
-         * for readings like battery and memory information.
-         */
-        bool enable_diagnostics_module{ true };
-
-        /**
-         * If true then the random module is enabled and will be consulted for
-         * readings, this can inflate the data being written, which is handy for
-         * debugging.
-         */
-        bool enable_random_module{
-            #if defined(FK_ENABLE_RANDOM)
-            true
-            #else
-            false
-            #endif
-        };
-
-        /**
-         * Amplification factor.
-         */
-        size_t amplification{ 1 };
-    } readings_t;
-
-    /**
-     * Readings collection configuration.
-     */
-    readings_t readings;
-
-    typedef struct display_t {
-        uint32_t inactivity{ FiveMinutesMs };
-    } display_t;
-
-    /**
-     * Display configuration.
-     */
-    display_t display;
-
-    typedef struct scheduler_t {
-        uint32_t readings_interval{ 60 };
-        uint32_t network_interval{ 60 * 60 * 60 };
-        uint32_t lora_interval{ 60 * 60 * 2 };
-        uint32_t gps_interval{ OneDaySeconds };
-
-        uint32_t readings_interval_debug{ 60 };
-        uint32_t network_interval_debug{ 300 * 4 };
-        uint32_t lora_interval_debug{ 60 * 3 };
-        uint32_t gps_interval_debug{ OneDaySeconds };
-
-        uint32_t lora_packet_delay{ TenSecondsMs };
-
-        /**
-         * Number of ms to try for a fix.
-         */
-        uint32_t fix_waiting{ FiveMinutesMs };
-
-        /**
-         * Number of ms to wait with the fix.
-         */
-        uint32_t fix_hold{ OneMinuteMs };
-    } scheduler_t;
-
-    /**
-     * Scheduler configuration.
-     */
-    scheduler_t scheduler;
-
-    typedef struct lora_t {
-        /**
-         * Transmit virtual readings over LoRa.
-         */
-        bool transmit_virtual{ false };
-    } lora_t;
-
-    /**
-     * LoRa configuration.
-     */
-    lora_t lora;
-
-    bool modules_always_on{ false };
-} configuration_t;
-
-configuration_t const &fk_config();
 
 }

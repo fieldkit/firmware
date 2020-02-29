@@ -543,7 +543,7 @@ int32_t File::find_following_block() {
 
     if (!block_tail.verify_hash()) {
         logerror("[%d] " PRADDRESS " btail failed hash (" PRADDRESS ")", file_, tail_, block_tail.linked);
-        if (EnableMemoryDumps) {
+        if (DebugEnableMemoryDumps) {
             fk_dump_memory("ACT ", (uint8_t *)&block_tail.hash, sizeof(block_tail.hash));
             block_tail.fill_hash();
             fk_dump_memory("EXP ", (uint8_t *)&block_tail.hash, sizeof(block_tail.hash));

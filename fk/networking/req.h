@@ -47,7 +47,7 @@ private:
      * URL being acted upon. Eventually this should probably be more flexible,
      * size wise. This should handle most cases initially, though.
      */
-    char url_[HttpdMaximumUrlLength];
+    char url_[HttpMaximumUrlLength];
 
     /**
      * The parsed URL.

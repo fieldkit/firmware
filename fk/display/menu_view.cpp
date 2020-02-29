@@ -308,10 +308,10 @@ void MenuView::create_network_menu() {
         views_->show_home();
     });
 
-    MenuOption *network_options[MaximumNumberOfWifiNetworks];
+    MenuOption *network_options[WifiMaximumNumberOfNetworks];
     {
         auto gs = get_global_state_ro();
-        for (auto index = 0u; index < MaximumNumberOfWifiNetworks; ++index) {
+        for (auto index = 0u; index < WifiMaximumNumberOfNetworks; ++index) {
             auto no = to_network_option(pool_, index, [=](WifiNetworkInfo network) {
                 choose_active_network(network);
                 back_->on_selected();

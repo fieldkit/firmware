@@ -36,7 +36,7 @@ bool GlobalStateManager::initialize(Pool &pool) {
     loginfo("(generated) name: '%s'", gs.get()->general.name);
     loginfo("(generated) gen: %s", gen_string);
 
-    for (auto i = 0u; i < MaximumNumberOfWifiNetworks; ++i) {
+    for (auto i = 0u; i < WifiMaximumNumberOfNetworks; ++i) {
         auto &nc = gs.get()->network.config.wifi_networks[i];
         nc.valid = false;
         nc.create = false;
@@ -66,18 +66,18 @@ bool GlobalStateManager::initialize(Pool &pool) {
     #endif
 
     if (fk_debug_get_console_attached()) {
-        gs.get()->scheduler.readings.interval = fk_config().scheduler.readings_interval_debug;
-        gs.get()->scheduler.network.interval = fk_config().scheduler.network_interval_debug;
-        gs.get()->scheduler.gps.interval = fk_config().scheduler.gps_interval_debug;
-        gs.get()->scheduler.lora.interval = fk_config().scheduler.lora_interval_debug;
+        gs.get()->scheduler.readings.interval = DefaultDebugReadingsInterval;
+        gs.get()->scheduler.network.interval = DefaultDebugNetworkInterval;
+        gs.get()->scheduler.gps.interval = DefaultDebugGpsInterval;
+        gs.get()->scheduler.lora.interval = DefaultDebugLoraInterval;
         gs.get()->scheduler.network.duration = FiveMinutesMs;
         loginfo("using debug schedule");
     }
     else {
-        gs.get()->scheduler.readings.interval = fk_config().scheduler.readings_interval;
-        gs.get()->scheduler.network.interval = fk_config().scheduler.network_interval;
-        gs.get()->scheduler.gps.interval = fk_config().scheduler.gps_interval;
-        gs.get()->scheduler.lora.interval = fk_config().scheduler.lora_interval;
+        gs.get()->scheduler.readings.interval = DefaultReadingsInterval;
+        gs.get()->scheduler.network.interval = DefaultNetworkInterval;
+        gs.get()->scheduler.gps.interval = DefaultGpsInterval;
+        gs.get()->scheduler.lora.interval = DefaultLoraInterval;
         gs.get()->scheduler.network.duration = FiveMinutesMs;
         loginfo("using default schedule");
     }

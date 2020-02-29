@@ -59,10 +59,10 @@ tl::expected<FoundModuleCollection, Error> ModuleScanning::scan(Pool &pool) {
     // If any virtual modules are enabled, sneak the modules into the final
     // position. Right now we don't have a backplane that will support this many
     // modules anyway, still make sure we're safe.
-    if (fk_config().readings.enable_diagnostics_module) {
+    if (ModulesEnableDiagnostics) {
         FK_ASSERT(add_virtual_module(found, FK_MODULES_KIND_DIAGNOSTICS));
     }
-    if (fk_config().readings.enable_random_module) {
+    if (ModulesEnableRandom) {
         FK_ASSERT(add_virtual_module(found, FK_MODULES_KIND_RANDOM));
     }
 
