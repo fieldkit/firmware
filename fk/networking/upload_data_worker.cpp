@@ -36,27 +36,21 @@ const char *build_headers(uint32_t first, uint32_t last, uint32_t length, const 
     );
 }
 
-void UploadDataWorker::run(Pool &pool) {
-    auto lock = storage_mutex.acquire(UINT32_MAX);
-
+bool UploadDataWorker::upload_file(Storage &storage, uint8_t file_number, uint32_t first_record, const char *type, Pool &pool) {
     auto started = fk_uptime();
-    StatisticsMemory memory{ MemoryFactory::get_data_memory() };
-    Storage storage{ &memory, pool };
-
-    if (!storage.begin()) {
-        return;
+    auto file = storage.file(file_number);
+    if (false) {
+        if (!file.seek_end()) {
+            return false;
+        }
     }
 
-    auto file = storage.file(Storage::Meta);
-    if (!file.seek_end()) {
-        return;
-    }
+    auto first_block = first_record;
+    auto size_info = file.get_size(first_block, UINT32_MAX, pool);
 
-    auto first_block = file.record() - 1;
-    auto last_block = file.record();
-    auto size_info = file.get_size(first_block, last_block, pool);
     auto upload_length = size_info.size;
-    auto extra_headers = build_headers(first_block, last_block, upload_length, "meta", pool);
+    auto last_block = size_info.last_block;
+    auto extra_headers = build_headers(first_block, last_block, upload_length, type, pool);
 
     loginfo("uploading %" PRIu32 " -> %" PRIu32 " %" PRIu32 " bytes", first_block, last_block, upload_length);
 
@@ -64,7 +58,7 @@ void UploadDataWorker::run(Pool &pool) {
     auto http = open_http_connection("POST", url, extra_headers, false, pool);
     if (http == nullptr) {
         logwarn("unable to open connection");
-        return;
+        return false;
     }
 
     auto buffer = (uint8_t *)pool.malloc(NetworkBufferSize);
@@ -98,6 +92,42 @@ void UploadDataWorker::run(Pool &pool) {
     loginfo("done (%d) (%" PRIu32 "ms) %.2fkbps", bytes_copied, elapsed, speed);
 
     http->close();
+
+    return true;
+}
+
+struct StartRecords {
+    uint32_t meta;
+    uint32_t data;
+};
+
+static StartRecords get_start_records() {
+    auto gs = get_global_state_ro();
+    return {
+        gs.get()->transmission.meta_cursor,
+        gs.get()->transmission.data_cursor,
+    };
+}
+
+void UploadDataWorker::run(Pool &pool) {
+    auto lock = storage_mutex.acquire(UINT32_MAX);
+
+    auto start_records = get_start_records();
+
+    StatisticsMemory memory{ MemoryFactory::get_data_memory() };
+    Storage storage{ &memory, pool };
+
+    if (!storage.begin()) {
+        return;
+    }
+
+    if (!upload_file(storage, Storage::Meta, start_records.meta, "meta", pool)) {
+        return;
+    }
+
+    if (!upload_file(storage, Storage::Data, start_records.data, "data", pool)) {
+        return;
+    }
 }
 
 }

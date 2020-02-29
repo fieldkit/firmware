@@ -254,6 +254,8 @@ struct ReadingsState {
 struct TransmissionState {
     char url[MaximumUrlLength];
     char token[MaximumTokenLength];
+    uint32_t data_cursor{ 0 };
+    uint32_t meta_cursor{ 0 };
 };
 
 struct GlobalState {

@@ -75,6 +75,11 @@ void StartupWorker::run(Pool &pool) {
             gs->storage.meta.block = meta_fh.record;
             gs->storage.data.size = data_fh.size;
             gs->storage.data.block = data_fh.record;
+
+            // Set up the cursors for transmission, always uploaded
+            // the latest Meta record just in case.
+            gs->transmission.data_cursor = data_fh.record;
+            gs->transmission.meta_cursor = meta_fh.record - 1;
         });
     }
 
