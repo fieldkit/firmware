@@ -236,7 +236,7 @@ struct LoraAbpSettings {
 };
 
 // -------------------------------------------------------------------------------------------
-// General Field Lengths
+// Field Lengths
 
 /**
  * Maximum length of a device's name.

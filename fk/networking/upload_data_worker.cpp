@@ -36,12 +36,12 @@ const char *build_headers(uint32_t first, uint32_t last, uint32_t length, const 
     );
 }
 
-bool UploadDataWorker::upload_file(Storage &storage, uint8_t file_number, uint32_t first_record, const char *type, Pool &pool) {
+UploadDataWorker::FileUpload UploadDataWorker::upload_file(Storage &storage, uint8_t file_number, uint32_t first_record, const char *type, Pool &pool) {
     auto started = fk_uptime();
     auto file = storage.file(file_number);
     if (false) {
         if (!file.seek_end()) {
-            return false;
+            return { 0 };
         }
     }
 
@@ -58,7 +58,7 @@ bool UploadDataWorker::upload_file(Storage &storage, uint8_t file_number, uint32
     auto http = open_http_connection("POST", url, extra_headers, false, pool);
     if (http == nullptr) {
         logwarn("unable to open connection");
-        return false;
+        return { 0 };
     }
 
     auto buffer = (uint8_t *)pool.malloc(NetworkBufferSize);
@@ -93,15 +93,15 @@ bool UploadDataWorker::upload_file(Storage &storage, uint8_t file_number, uint32
 
     http->close();
 
-    return true;
+    return { last_block };
 }
 
-struct StartRecords {
+struct FileRecords {
     uint32_t meta;
     uint32_t data;
 };
 
-static StartRecords get_start_records() {
+static FileRecords get_start_records() {
     auto gs = get_global_state_ro();
     return {
         gs.get()->transmission.meta_cursor,
@@ -109,7 +109,7 @@ static StartRecords get_start_records() {
     };
 }
 
-static void update_after_upload(StartRecords start_records) {
+static void update_after_upload(FileRecords start_records) {
     auto gs = get_global_state_rw();
 
     gs.get()->transmission.meta_cursor = start_records.meta;
@@ -132,15 +132,20 @@ void UploadDataWorker::run(Pool &pool) {
         return;
     }
 
-    if (!upload_file(storage, Storage::Meta, start_records.meta, "meta", pool)) {
+    auto meta_upload = upload_file(storage, Storage::Meta, start_records.meta, "meta", pool);
+    if (!meta_upload) {
         return;
     }
 
-    if (!upload_file(storage, Storage::Data, start_records.data, "data", pool)) {
+    auto data_upload = upload_file(storage, Storage::Data, start_records.data, "data", pool);
+    if (!data_upload) {
         return;
     }
 
-    update_after_upload(start_records);
+    update_after_upload({
+        meta_upload.record,
+        data_upload.record,
+    });
 }
 
 }

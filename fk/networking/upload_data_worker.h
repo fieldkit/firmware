@@ -22,7 +22,18 @@ public:
     }
 
 private:
-    bool upload_file(Storage &storage, uint8_t file_number, uint32_t first_record, const char *type, Pool &pool);
+    struct FileUpload {
+        uint32_t record;
+
+        FileUpload(uint32_t record) : record(record) {
+        }
+
+        operator bool() {
+            return record > 0;
+        }
+    };
+
+    FileUpload upload_file(Storage &storage, uint8_t file_number, uint32_t first_record, const char *type, Pool &pool);
 
 };
 
