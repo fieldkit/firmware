@@ -495,7 +495,7 @@ static void https_test() {
     while (true) {
         StandardPool pool{ "test" };
         auto url = "https://api.fkdev.org/status";
-        auto http = open_http_connection("GET", url, "", pool);
+        auto http = open_http_connection("GET", url, "", true, pool);
         if (http != nullptr) {
             http->close();
         }

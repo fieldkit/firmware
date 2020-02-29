@@ -44,25 +44,35 @@ int32_t HttpConnection::read(uint8_t *buffer, size_t size) {
     return connection_->read(buffer, size);
 }
 
-bool HttpConnection::begin(const char *scheme, const char *method, const char *path, const char *server, uint16_t port, const char *extra_headers) {
+bool HttpConnection::begin(const char *scheme, const char *method, const char *path, const char *server, uint16_t port, const char *extra_headers, bool expecting_headers) {
     connection_->printf("%s /%s HTTP/1.1\r\n"
                         "Host: %s:%d\r\n"
                         "Connection: close\r\n"
                         "Accept: */*\r\n%s\r\n", method, path, server, port, extra_headers);
 
-    while (connection_->active()) {
-        if (!connection_->service()) {
-            break;
+    // This was useful when the server would response immediately w/o
+    // waiting for the body of the request. This isn't the case when
+    // uploading data, for example but would be the case when
+    // downloading firmware.
+    if (expecting_headers) {
+        while (connection_->active()) {
+            if (!connection_->service()) {
+                break;
+            }
+
+            if (connection_->have_headers()) {
+                return true;
+            }
         }
 
-        if (connection_->have_headers()) {
-            return true;
-        }
+        close();
+
+        logwarn("no headers");
+
+        return false;
     }
 
-    close();
-
-    return false;
+    return true;
 }
 
 void HttpConnection::close() {
@@ -74,7 +84,7 @@ void HttpConnection::close() {
     }
 }
 
-HttpConnection *open_http_connection(const char *method, const char *url, const char *extra_headers, Pool &pool) {
+HttpConnection *open_http_connection(const char *method, const char *url, const char *extra_headers, bool expecting_headers, Pool &pool) {
     UrlParser url_parser{ pool.strdup(url) };
 
     loginfo("connecting scheme=%s server=%s %d", url_parser.scheme(), url_parser.server(), url_parser.port());
@@ -89,7 +99,7 @@ HttpConnection *open_http_connection(const char *method, const char *url, const 
 
     loginfo("beginning %s %s", method, url_parser.path());
 
-    if (!http->begin(url_parser.scheme(), method, url_parser.path(), url_parser.server(), url_parser.port(), extra_headers)) {
+    if (!http->begin(url_parser.scheme(), method, url_parser.path(), url_parser.server(), url_parser.port(), extra_headers, expecting_headers)) {
         http->close();
         return nullptr;
     }

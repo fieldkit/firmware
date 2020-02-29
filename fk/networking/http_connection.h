@@ -18,7 +18,7 @@ public:
     int32_t read(uint8_t *buffer, size_t size) override;
 
 public:
-    bool begin(const char *scheme, const char *method, const char *path, const char *server, uint16_t port, const char *extra_headers);
+    bool begin(const char *scheme, const char *method, const char *path, const char *server, uint16_t port, const char *extra_headers, bool expecting_headers);
     void close();
 
 public:
@@ -32,6 +32,6 @@ public:
 
 };
 
-HttpConnection *open_http_connection(const char *method, const char *url, const char *extra_headers, Pool &pool);
+HttpConnection *open_http_connection(const char *method, const char *url, const char *extra_headers, bool expecting_headers, Pool &pool);
 
 }

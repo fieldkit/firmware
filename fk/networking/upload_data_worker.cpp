@@ -13,7 +13,7 @@ FK_DECLARE_LOGGER("upload");
 UploadDataWorker::UploadDataWorker() {
 }
 
-const char *build_headers(uint32_t first, uint32_t last, uint32_t length, Pool &pool) {
+const char *build_headers(uint32_t first, uint32_t last, uint32_t length, const char *type, Pool &pool) {
     fk_serial_number_t sn;
     auto gs = get_global_state_ro();
     return pool.sprintf(
@@ -32,7 +32,7 @@ const char *build_headers(uint32_t first, uint32_t last, uint32_t length, Pool &
         gs.get()->general.name,
         first,
         last,
-        "data"
+        type
     );
 }
 
@@ -48,16 +48,22 @@ void UploadDataWorker::run(Pool &pool) {
     }
 
     auto file = storage.file(Storage::Meta);
+    if (!file.seek_end()) {
+        return;
+    }
 
-    auto first_block = 0;
-    auto last_block = 0;
+    auto first_block = file.record() - 1;
+    auto last_block = file.record();
     auto size_info = file.get_size(first_block, last_block, pool);
     auto upload_length = size_info.size;
+    auto extra_headers = build_headers(first_block, last_block, upload_length, "meta", pool);
 
-    auto extra_headers = build_headers(first_block, last_block, upload_length, pool);
+    loginfo("uploading %" PRIu32 " -> %" PRIu32 " %" PRIu32 " bytes", first_block, last_block, upload_length);
+
     auto url = "http://192.168.0.100:8080/ingestion";
-    auto http = open_http_connection("POST", url, extra_headers, pool);
+    auto http = open_http_connection("POST", url, extra_headers, false, pool);
     if (http == nullptr) {
+        logwarn("unable to open connection");
         return;
     }
 
@@ -67,8 +73,8 @@ void UploadDataWorker::run(Pool &pool) {
     loginfo("sending...");
 
     GlobalStateProgressCallbacks gs_progress;
-    auto tracker = ProgressTracker{ &gs_progress, Operation::Download, "download", "", upload_length };
-    while (true) {
+    auto tracker = ProgressTracker{ &gs_progress, Operation::Upload, "upload", "", upload_length };
+    while (bytes_copied != upload_length) {
         auto to_read = std::min<int32_t>(NetworkBufferSize, upload_length - bytes_copied);
         auto bytes_read = file.read(buffer, to_read);
         if (bytes_read != to_read) {
