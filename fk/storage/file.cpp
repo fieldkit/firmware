@@ -850,4 +850,38 @@ int32_t File::write(void const *record, pb_msgdesc_t const *fields) {
     return rv;
 }
 
+File::SizeInfo File::get_size(uint32_t first_block, uint32_t last_block, Pool &pool) {
+    if (first_block >= last_block) {
+        return {
+            .size = 0,
+            .last_block = LastRecord,
+        };
+    }
+
+    if (!seek(last_block)) {
+        return {
+            .size = 0,
+            .last_block = LastRecord,
+        };
+    }
+
+    auto final_position = position();
+    auto actual_last_block = record();
+
+    if (!seek(first_block)) {
+        return {
+            .size = 0,
+            .last_block = LastRecord,
+        };
+    }
+
+    auto start_position = position();
+    auto size = final_position - start_position;
+
+    return {
+        .size = size,
+        .last_block = actual_last_block,
+    };
 }
+
+} // namespace fk

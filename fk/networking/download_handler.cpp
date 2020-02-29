@@ -13,40 +13,6 @@ FK_DECLARE_LOGGER("download");
 DownloadWorker::DownloadWorker(HttpServerConnection *connection, uint8_t file_number) : connection_(connection), file_number_(file_number) {
 }
 
-DownloadWorker::SizeInfo DownloadWorker::get_size(File &file, uint32_t first_block, uint32_t last_block, Pool &pool) {
-    if (first_block >= last_block) {
-        return {
-            .size = 0,
-            .last_block = LastRecord,
-        };
-    }
-
-    if (!file.seek(last_block)) {
-        return {
-            .size = 0,
-            .last_block = LastRecord,
-        };
-    }
-
-    auto final_position = file.position();
-    auto actual_last_block = file.record();
-
-    if (!file.seek(first_block)) {
-        return {
-            .size = 0,
-            .last_block = LastRecord,
-        };
-    }
-
-    auto start_position = file.position();
-    auto size = final_position - start_position;
-
-    return {
-        .size = size,
-        .last_block = actual_last_block,
-    };
-}
-
 DownloadWorker::HeaderInfo DownloadWorker::get_headers(File &file, Pool &pool) {
     fk_serial_number_t sn;
 
@@ -66,7 +32,7 @@ DownloadWorker::HeaderInfo DownloadWorker::get_headers(File &file, Pool &pool) {
     }
 
     // Calculate the size.
-    auto size_info = get_size(file, first_block, last_block, pool);
+    auto size_info = file.get_size(first_block, last_block, pool);
 
     loginfo("last_block = #%" PRIu32 " actual_lb = #%" PRIu32 " record = #%" PRIu32, last_block, size_info.last_block, file.record());
 
@@ -116,7 +82,7 @@ void DownloadWorker::run(Pool &pool) {
         return;
     }
 
-    size_t buffer_size = 1024;
+    size_t buffer_size = NetworkBufferSize;
     uint8_t *buffer = (uint8_t *)pool.malloc(buffer_size);
 
     GlobalStateProgressCallbacks gs_progress;
