@@ -68,9 +68,6 @@ void HttpRequest::begin() {
 }
 
 int32_t HttpRequest::parse(const char *data, size_t length) {
-    SEGGER_RTT_WriteString(0, "PARSE: ");
-    SEGGER_RTT_Write(0, data, length);
-
     auto nparsed = http_parser_execute(&parser_, &settings_, data, length);
 
     if (parser_.http_errno > 0) {

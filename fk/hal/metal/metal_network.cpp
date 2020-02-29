@@ -144,9 +144,6 @@ int32_t MetalNetworkConnection::read(uint8_t *buffer, size_t size) {
         return 0;
     }
 
-    SEGGER_RTT_WriteString(0, "READ: ");
-    SEGGER_RTT_Write(0, buffer, nread);
-
     if (buffer_ != nullptr) {
         auto copying = std::min<size_t>(size_ - position_, nread);
         if (copying > 0) {

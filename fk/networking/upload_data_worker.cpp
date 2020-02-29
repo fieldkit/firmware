@@ -110,6 +110,10 @@ static StartRecords get_start_records() {
 }
 
 void UploadDataWorker::run(Pool &pool) {
+    if (!get_network()->enabled()) {
+        return;
+    }
+
     auto lock = storage_mutex.acquire(UINT32_MAX);
 
     auto start_records = get_start_records();
