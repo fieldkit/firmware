@@ -382,7 +382,7 @@ typedef struct configuration_t {
 
     typedef struct scheduler_t {
         uint32_t readings_interval{ 60 };
-        uint32_t network_interval{ 300 * 4 };
+        uint32_t network_interval{ 60 * 60 * 60 };
         uint32_t lora_interval{ 60 * 60 * 2 };
         uint32_t gps_interval{ OneDaySeconds };
 
