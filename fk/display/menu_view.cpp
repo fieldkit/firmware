@@ -107,6 +107,9 @@ struct ToggleWifiOption : public MenuOption {
         }
         return "Enable";
     }
+
+    void refresh(GlobalState const *gs) override {
+    }
 };
 
 void configure_wifi_duration(uint32_t duration, Pool &pool) {
@@ -117,6 +120,41 @@ void configure_wifi_duration(uint32_t duration, Pool &pool) {
         get_ipc()->launch_worker(create_pool_worker<WifiToggleWorker>());
     }
 }
+
+struct ToggleWifiAlwaysOnOption : public MenuOption {
+    MenuOption *back_;
+    ViewController *views_;
+    bool always_on_{ false };
+
+    ToggleWifiAlwaysOnOption(MenuOption *back, ViewController *views) : MenuOption(""), back_(back), views_(views) {
+    }
+
+    void on_selected() override {
+        back_->on_selected();
+        views_->show_home();
+
+        StandardPool pool{ "toggle-always-on" };
+        if (always_on_) {
+            configure_wifi_duration(FiveMinutesMs, pool);
+        }
+        else {
+            configure_wifi_duration(UINT32_MAX, pool);
+        }
+
+        always_on_ = !always_on_;
+    }
+
+    const char *label() const override {
+        if (always_on_) {
+            return "Idle Off";
+        }
+        return "Always On";
+    }
+
+    void refresh(GlobalState const *gs) override {
+        always_on_ = gs->scheduler.network.duration == UINT32_MAX;
+    }
+};
 
 MenuView::MenuView(ViewController *views, Pool &pool) : pool_(&pool), views_(views) {
     back_ = to_lambda_option(&pool, "Back", [=]() {
@@ -342,17 +380,7 @@ void MenuView::create_network_menu() {
         get_ipc()->launch_worker(create_pool_worker<DownloadFirmwareWorker>());
     });
 
-    auto network_always_on = to_lambda_option(pool_, "Always On", [=]() {
-        back_->on_selected();
-        configure_wifi_duration(UINT32_MAX, *pool_);
-        views_->show_home();
-    });
-
-    auto network_disable_inactivity = to_lambda_option(pool_, "Use Defaults", [=]() {
-        back_->on_selected();
-        configure_wifi_duration(FiveMinutesMs, *pool_);
-        views_->show_home();
-    });
+    auto network_always_on_toggle = new (*pool_) ToggleWifiAlwaysOnOption(back_, views_);
 
     auto network_upload = to_lambda_option(pool_, "Upload", [=]() {
         back_->on_selected();
@@ -365,8 +393,7 @@ void MenuView::create_network_menu() {
         network_toggle,
         network_choose,
         network_upload,
-        network_always_on,
-        network_disable_inactivity,
+        network_always_on_toggle,
         network_download_fw,
     });
 }
