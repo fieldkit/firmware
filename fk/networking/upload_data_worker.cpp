@@ -13,10 +13,16 @@ FK_DECLARE_LOGGER("upload");
 UploadDataWorker::UploadDataWorker() {
 }
 
-const char *build_headers(uint32_t first, uint32_t last, uint32_t length, const char *type, Pool &pool) {
+struct ConnectionInfo {
+    const char *url;
+    const char *token;
+    const char *headers;
+};
+
+ConnectionInfo build_connection_info(uint32_t first, uint32_t last, uint32_t length, const char *type, Pool &pool) {
     fk_serial_number_t sn;
     auto gs = get_global_state_ro();
-    return pool.sprintf(
+    auto headers = pool.sprintf(
         "Authorization: Bearer %s\r\n"
         "Content-Type: application/vnd.fk.data+binary\r\n"
         "Content-Length: %" PRIu32 "\r\n"
@@ -34,6 +40,12 @@ const char *build_headers(uint32_t first, uint32_t last, uint32_t length, const 
         last,
         type
     );
+
+    return {
+        gs.get()->transmission.url,
+        gs.get()->transmission.token,
+        headers,
+    };
 }
 
 UploadDataWorker::FileUpload UploadDataWorker::upload_file(Storage &storage, uint8_t file_number, uint32_t first_record, const char *type, Pool &pool) {
@@ -47,15 +59,17 @@ UploadDataWorker::FileUpload UploadDataWorker::upload_file(Storage &storage, uin
 
     auto first_block = first_record;
     auto size_info = file.get_size(first_block, UINT32_MAX, pool);
-
     auto upload_length = size_info.size;
     auto last_block = size_info.last_block;
-    auto extra_headers = build_headers(first_block, last_block, upload_length, type, pool);
+
+    auto connection_info = build_connection_info(first_block, last_block, upload_length, type, pool);
+    if (strlen(connection_info.url) == 0 || strlen(connection_info.token) == 0) {
+        return { 0 };
+    }
 
     loginfo("uploading %" PRIu32 " -> %" PRIu32 " %" PRIu32 " bytes", first_block, last_block, upload_length);
 
-    auto url = "http://192.168.0.100:8080/ingestion";
-    auto http = open_http_connection("POST", url, extra_headers, false, pool);
+    auto http = open_http_connection("POST", connection_info.url, connection_info.headers, false, pool);
     if (http == nullptr) {
         logwarn("unable to open connection");
         return { 0 };
@@ -64,7 +78,7 @@ UploadDataWorker::FileUpload UploadDataWorker::upload_file(Storage &storage, uin
     auto buffer = (uint8_t *)pool.malloc(NetworkBufferSize);
     auto bytes_copied = 0u;
 
-    loginfo("sending...");
+    loginfo("uploading file...");
 
     GlobalStateProgressCallbacks gs_progress;
     auto tracker = ProgressTracker{ &gs_progress, Operation::Upload, "upload", "", upload_length };
