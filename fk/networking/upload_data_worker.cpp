@@ -109,6 +109,13 @@ static StartRecords get_start_records() {
     };
 }
 
+static void update_after_upload(StartRecords start_records) {
+    auto gs = get_global_state_rw();
+
+    gs.get()->transmission.meta_cursor = start_records.meta;
+    gs.get()->transmission.data_cursor = start_records.data;
+}
+
 void UploadDataWorker::run(Pool &pool) {
     if (!get_network()->enabled()) {
         return;
@@ -132,6 +139,8 @@ void UploadDataWorker::run(Pool &pool) {
     if (!upload_file(storage, Storage::Data, start_records.data, "data", pool)) {
         return;
     }
+
+    update_after_upload(start_records);
 }
 
 }
