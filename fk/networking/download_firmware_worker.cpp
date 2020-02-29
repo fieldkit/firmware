@@ -33,7 +33,7 @@ void DownloadFirmwareWorker::run(Pool &pool) {
     firmware.backup_bootloader(pool);
 
     auto url = "https://code.conservify.org/distribution/archive/fk/firmware/latest/artifacts/fk-bundled-fkb.bin";
-    auto http = open_http_connection("GET", url, pool);
+    auto http = open_http_connection("GET", url, "", pool);
     if (http == nullptr) {
         return;
     }

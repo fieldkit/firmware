@@ -44,11 +44,11 @@ int32_t HttpConnection::read(uint8_t *buffer, size_t size) {
     return connection_->read(buffer, size);
 }
 
-bool HttpConnection::begin(const char *scheme, const char *method, const char *path, const char *server, uint16_t port) {
+bool HttpConnection::begin(const char *scheme, const char *method, const char *path, const char *server, uint16_t port, const char *extra_headers) {
     connection_->printf("%s /%s HTTP/1.1\r\n"
                         "Host: %s:%d\r\n"
                         "Connection: close\r\n"
-                        "Accept: */*\r\n\r\n", method, path, server, port);
+                        "Accept: */*\r\n%s\r\n", method, path, server, port, extra_headers);
 
     while (connection_->active()) {
         if (!connection_->service()) {
@@ -74,7 +74,7 @@ void HttpConnection::close() {
     }
 }
 
-HttpConnection *open_http_connection(const char *method, const char *url, Pool &pool) {
+HttpConnection *open_http_connection(const char *method, const char *url, const char *extra_headers, Pool &pool) {
     UrlParser url_parser{ pool.strdup(url) };
 
     loginfo("connecting scheme=%s server=%s %d", url_parser.scheme(), url_parser.server(), url_parser.port());
@@ -89,7 +89,7 @@ HttpConnection *open_http_connection(const char *method, const char *url, Pool &
 
     loginfo("beginning %s %s", method, url_parser.path());
 
-    if (!http->begin(url_parser.scheme(), method, url_parser.path(), url_parser.server(), url_parser.port())) {
+    if (!http->begin(url_parser.scheme(), method, url_parser.path(), url_parser.server(), url_parser.port(), extra_headers)) {
         http->close();
         return nullptr;
     }
