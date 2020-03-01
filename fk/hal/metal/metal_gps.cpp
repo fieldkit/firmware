@@ -80,7 +80,12 @@ bool MetalGps::service(GpsFix &fix) {
             valid = false;
         }
 
-        fix.valid = valid;
+        if (valid) {
+            fix.valid = true;
+        }
+        else {
+            fix = { };
+        }
 
         if (GpsLoggingRaw) {
             if (position_ == sizeof(buffer_) - 1 || c == '\n') {
