@@ -61,6 +61,9 @@ UploadDataWorker::FileUpload UploadDataWorker::upload_file(Storage &storage, uin
     auto size_info = file.get_size(first_block, UINT32_MAX, pool);
     auto upload_length = size_info.size;
     auto last_block = size_info.last_block;
+    if (upload_length == 0) {
+        return { 0 };
+    }
 
     auto connection_info = build_connection_info(first_block, last_block, upload_length, type, pool);
     if (strlen(connection_info.url) == 0 || strlen(connection_info.token) == 0) {
@@ -146,20 +149,19 @@ void UploadDataWorker::run(Pool &pool) {
         return;
     }
 
+    auto after = start_records;
+
     auto meta_upload = upload_file(storage, Storage::Meta, start_records.meta, "meta", pool);
-    if (!meta_upload) {
-        return;
+    if (meta_upload) {
+        after.meta = meta_upload.record;
     }
 
     auto data_upload = upload_file(storage, Storage::Data, start_records.data, "data", pool);
-    if (!data_upload) {
-        return;
+    if (data_upload) {
+        after.data = data_upload.record;
     }
 
-    update_after_upload({
-        meta_upload.record,
-        data_upload.record,
-    });
+    update_after_upload(after);
 }
 
 }
