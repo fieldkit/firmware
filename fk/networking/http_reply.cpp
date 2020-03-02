@@ -252,6 +252,7 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, fkb_header_t con
 
     reply_.schedules.readings.interval = gs_->scheduler.readings.interval;
     reply_.schedules.network.interval = gs_->scheduler.network.interval;
+    reply_.schedules.network.duration = gs_->scheduler.network.duration;
     reply_.schedules.gps.interval = gs_->scheduler.gps.interval;
     reply_.schedules.lora.interval = gs_->scheduler.lora.interval;
 

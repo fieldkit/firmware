@@ -191,13 +191,11 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
     }
 
     auto name = (const char *)record.identity.name.arg;
-    auto generation = (pb_data_t *)record.metadata.generation.arg;
-
     strncpy(gs->general.name, name, sizeof(gs->general.name));
 
-    if (generation->length == GenerationLength) {
-        memcpy(gs->general.generation, generation->buffer, GenerationLength);
-    }
+    auto generation = (pb_data_t *)record.metadata.generation.arg;
+    FK_ASSERT(generation->length == GenerationLength);
+    memcpy(gs->general.generation, generation->buffer, GenerationLength);
 
     char gen_string[GenerationLength * 2 + 1];
     bytes_to_hex_string(gen_string, sizeof(gen_string), gs->general.generation, GenerationLength);
