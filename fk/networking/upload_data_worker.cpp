@@ -160,12 +160,12 @@ void UploadDataWorker::run(Pool &pool) {
 
     auto meta_upload = upload_file(storage, Storage::Meta, start_records.meta, "meta", pool);
     if (meta_upload) {
-        after.meta = meta_upload.record;
+        after.meta = meta_upload.record + 1;
     }
 
     auto data_upload = upload_file(storage, Storage::Data, start_records.data, "data", pool);
     if (data_upload) {
-        after.data = data_upload.record;
+        after.data = data_upload.record + 1;
     }
 
     update_after_upload(after);
