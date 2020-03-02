@@ -59,6 +59,7 @@ public:
         for (auto i = 0u; i < NumberOfBuffers; ++i) {
             if (!buffers_[i].taken) {
                 buffers_[i].taken = true;
+                alogf(LogLevels::DEBUG, "network", "malloc() = 0x%p", buffers_[i].ptr);
                 return buffers_[i].ptr;
             }
         }
@@ -70,11 +71,12 @@ public:
         for (auto i = 0u; i < NumberOfBuffers; ++i) {
             if (buffers_[i].ptr == ptr) {
                 buffers_[i].taken = false;
+                alogf(LogLevels::DEBUG, "network", "free(0x%p)", buffers_[i].ptr);
                 return;
             }
         }
 
-        alogf(LogLevels::WARN, "network", "free of old network buffer, ignoring");
+        alogf(LogLevels::WARN, "network", "free of old network buffer, ignoring 0x%p", ptr);
     }
 
     bool busy(uint32_t elapsed) override {

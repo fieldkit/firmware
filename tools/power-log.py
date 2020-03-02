@@ -185,19 +185,28 @@ async def rtt_listener(loop, listener, js, args):
     while True:
         try:
             reader, writer = await asyncio.open_connection('127.0.0.1', args.port)
-            while True:
-                data = await reader.readline()
-                if not data:
-                    break
+
+            try:
+                while True:
+                    data = await reader.readline()
+                    if not data:
+                        break
+                    try:
+                        text = data.decode()
+                        parser.handle(text)
+                        print(text, end='')
+                    except Exception as e:
+                        print('error decoding', e)
+            except Exception as e:
+                print('error reading', e)
+            finally:
                 try:
-                    text = data.decode()
-                    parser.handle(text)
-                    print(text, end='')
+                    writer.close()
+                    await writer.wait_closed()
                 except Exception as e:
-                    print(e)
+                    print('error closing', e)
         except Exception as e:
-            print(e)
-            print(".", end='', flush=True)
+            print('error connecting', e)
 
         time.sleep(1)
 
