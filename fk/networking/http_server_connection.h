@@ -68,6 +68,10 @@ public:
         return req_.have_headers();
     }
 
+    int32_t status_code() const {
+        return req_.status_code();
+    }
+
     int32_t available() const;
 
 };

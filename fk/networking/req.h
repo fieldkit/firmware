@@ -184,6 +184,13 @@ public:
         return user_agent_;
     }
 
+    /**
+     * HTTP status parsed from the response.
+     */
+    int32_t status_code() const {
+        return parser_.status_code;
+    }
+
 public:
     /**
      * This is a long story.

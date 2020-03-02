@@ -55,24 +55,36 @@ bool HttpConnection::begin(const char *scheme, const char *method, const char *p
     // uploading data, for example but would be the case when
     // downloading firmware.
     if (expecting_headers) {
-        while (connection_->active()) {
-            if (!connection_->service()) {
-                break;
-            }
-
-            if (connection_->have_headers()) {
-                return true;
-            }
-        }
-
-        close();
-
-        logwarn("no headers");
-
-        return false;
+        return read_headers();
     }
 
     return true;
+}
+
+bool HttpConnection::read_headers() {
+    while (connection_->active()) {
+        if (connection_->have_headers()) {
+            return true;
+        }
+
+        if (!connection_->service()) {
+            break;
+        }
+    }
+
+    return false;
+}
+
+bool HttpConnection::read_response() {
+    auto success = false;
+
+    if (read_headers()) {
+        success = true;
+    } else {
+        logwarn("no headers");
+    }
+
+    return success;
 }
 
 void HttpConnection::close() {

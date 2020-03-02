@@ -19,11 +19,17 @@ public:
 
 public:
     bool begin(const char *scheme, const char *method, const char *path, const char *server, uint16_t port, const char *extra_headers, bool expecting_headers);
+    bool read_headers();
+    bool read_response();
     void close();
 
 public:
     uint32_t length() const {
         return connection_->length();
+    }
+
+    int32_t status_code() const {
+        return connection_->status_code();
     }
 
     bool active() const {

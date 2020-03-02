@@ -106,7 +106,14 @@ UploadDataWorker::FileUpload UploadDataWorker::upload_file(Storage &storage, uin
 
     auto elapsed = fk_uptime() - started;
     auto speed = ((bytes_copied / 1024.0f) / (elapsed / 1000.0f));
-    loginfo("done (%d) (%" PRIu32 "ms) %.2fkbps", bytes_copied, elapsed, speed);
+    loginfo("done (%d) (%" PRIu32 "ms) %.2fkbps, waiting response", bytes_copied, elapsed, speed);
+
+    if (!http->read_response()) {
+        loginfo("unable to read response");
+    }
+    else {
+        loginfo("http status %" PRId32, http->status_code());
+    }
 
     http->close();
 
