@@ -1005,21 +1005,22 @@ TEST_F(StorageSuite, FileOpsSkipAcrossBlock) {
 }
 
 TEST_F(StorageSuite, RecordNumbers) {
+    uint8_t data[256] = { 0xcc };
+
     Storage storage{ memory_, pool_, false };
 
     ASSERT_TRUE(storage.clear());
 
     auto file_write = storage.file(0);
-
     ASSERT_EQ(file_write.record(), UINT32_MAX);
 
-    uint8_t data[256] = { 0xcc };
     ASSERT_EQ(file_write.write(data, sizeof(data)), (int32_t)sizeof(data));
-
     ASSERT_EQ(file_write.record(), 2u);
 
-    ASSERT_TRUE(memory_->flush());
+    ASSERT_EQ(file_write.write(data, sizeof(data)), (int32_t)sizeof(data));
+    ASSERT_EQ(file_write.record(), 3u);
 
+    ASSERT_TRUE(memory_->flush());
     ASSERT_TRUE(storage.begin());
 
     {
@@ -1028,8 +1029,8 @@ TEST_F(StorageSuite, RecordNumbers) {
         ASSERT_EQ(file_read.record(), UINT32_MAX);
 
         ASSERT_TRUE(file_read.seek_end());
-        ASSERT_EQ(file_read.record(), 2u);
-        ASSERT_EQ(file_read.position(), 256u);
+        ASSERT_EQ(file_read.record(), 3u);
+        ASSERT_EQ(file_read.position(), 512u);
 
         ASSERT_TRUE(file_read.seek_beginning());
         ASSERT_EQ(file_read.record(), 0u);
@@ -1045,13 +1046,40 @@ TEST_F(StorageSuite, RecordNumbers) {
         ASSERT_EQ(file_read.record(), UINT32_MAX);
 
         ASSERT_TRUE(file_read.seek(1));
+        ASSERT_EQ(file_read.record(), 1u);
         ASSERT_EQ(file_read.position(), 0u);
 
         ASSERT_TRUE(file_read.seek(0));
+        ASSERT_EQ(file_read.record(), 0u);
         ASSERT_EQ(file_read.position(), 0u);
 
         ASSERT_TRUE(file_read.seek(2));
+        ASSERT_EQ(file_read.record(), 2u);
         ASSERT_EQ(file_read.position(), 256u);
 
+    }
+
+    {
+        auto file_read = storage.file(0);
+
+        ASSERT_EQ(file_read.record(), UINT32_MAX);
+        ASSERT_TRUE(file_read.seek_end());
+        ASSERT_EQ(file_read.record(), 3u);
+    }
+
+    {
+        auto file_write = storage.file(0);
+
+        ASSERT_TRUE(file_write.seek_end());
+        ASSERT_EQ(file_write.write(data, sizeof(data)), (int32_t)sizeof(data));
+        ASSERT_EQ(file_write.record(), 4u);
+    }
+
+    {
+        auto file_write = storage.file(0);
+
+        ASSERT_TRUE(file_write.seek(4));
+        ASSERT_EQ(file_write.write(data, sizeof(data)), (int32_t)sizeof(data));
+        ASSERT_EQ(file_write.record(), 5u);
     }
 }

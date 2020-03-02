@@ -460,6 +460,7 @@ SeekValue Storage::seek(SeekSettings settings) {
         if (settings.record != InvalidRecord) {
             if (record_head.record == settings.record) {
                 logverbose("[%d] " PRADDRESS " found record #%" PRIu32, settings.file, address, settings.record);
+                record = record_head.record;
                 break;
             }
             if (settings.record < record_head.record) {
