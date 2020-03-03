@@ -10,6 +10,7 @@ public:
 
 private:
     void adjust_time_if_necessary(fk_app_HttpQuery const *query);
+    void adjust_location_if_necessary(fk_app_HttpQuery const *query);
 
 };
 

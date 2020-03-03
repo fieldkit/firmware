@@ -44,6 +44,26 @@ void ApiHandler::adjust_time_if_necessary(fk_app_HttpQuery const *query) {
     }
 }
 
+void ApiHandler::adjust_location_if_necessary(fk_app_HttpQuery const *query) {
+    if (query->locate.modifying) {
+        GlobalStateManager gsm;
+        gsm.apply([=](GlobalState *gs) {
+            if (gs->gps.fix) {
+                loginfo("location(%f, %f) ignored, local fix", query->locate.longitude, query->locate.latitude);
+                return;
+            }
+
+            loginfo("location(%f, %f)", query->locate.longitude, query->locate.latitude);
+            gs->gps.longitude = query->locate.longitude;
+            gs->gps.latitude = query->locate.latitude;
+            gs->gps.time = query->locate.time;
+            gs->gps.altitude = 0.0f;
+            gs->gps.satellites = 0;
+            gs->gps.hdop = 0;
+        });
+    }
+}
+
 bool ApiHandler::handle(HttpServerConnection *connection, Pool &pool) {
     Reader *reader = connection;
     if (connection->content_type() == WellKnownContentType::TextPlain) {
@@ -66,6 +86,8 @@ bool ApiHandler::handle(HttpServerConnection *connection, Pool &pool) {
     }
 
     adjust_time_if_necessary(query);
+
+    adjust_location_if_necessary(query);
 
     switch (query->type) {
     case fk_app_QueryType_QUERY_STATUS: {
