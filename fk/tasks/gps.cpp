@@ -42,19 +42,22 @@ void task_handler_gps(void *params) {
         }
 
         if (fk_uptime() > update_gs) {
-            gsm.apply([=](GlobalState *gs) {
-                gs->gps.enabled = true;
-                gs->gps.fix = fix.good;
-                gs->gps.longitude = fix.longitude;
-                gs->gps.latitude = fix.latitude;
-                gs->gps.altitude = fix.altitude;
-                gs->gps.satellites = fix.satellites;
-                gs->gps.hdop = fix.hdop;
-            });
-
             update_gs = fk_uptime() + FiveSecondsMs;
 
             if (fix.good) {
+                // We only update our memorized fix/location if we
+                // have a good fix. This way any previous loaded,
+                // unfixed location can be linked to records.
+                gsm.apply([=](GlobalState *gs) {
+                    gs->gps.enabled = true;
+                    gs->gps.fix = fix.good;
+                    gs->gps.longitude = fix.longitude;
+                    gs->gps.latitude = fix.latitude;
+                    gs->gps.altitude = fix.altitude;
+                    gs->gps.satellites = fix.satellites;
+                    gs->gps.hdop = fix.hdop;
+                });
+
                 if (fixed_at == 0) {
                     fixed_at = fk_uptime();
                     clock_adjust(fix.time);
