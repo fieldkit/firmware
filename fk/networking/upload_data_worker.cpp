@@ -13,6 +13,9 @@ FK_DECLARE_LOGGER("upload");
 UploadDataWorker::UploadDataWorker() {
 }
 
+UploadDataWorker::UploadDataWorker(bool all_meta, bool all_data) : all_meta_(all_meta), all_data_(all_data) {
+}
+
 struct ConnectionInfo {
     const char *url;
     const char *token;
@@ -148,6 +151,12 @@ void UploadDataWorker::run(Pool &pool) {
     auto lock = storage_mutex.acquire(UINT32_MAX);
 
     auto start_records = get_start_records();
+    if (all_meta_) {
+        start_records.meta = 0;
+    }
+    if (all_data_) {
+        start_records.data = 0;
+    }
 
     StatisticsMemory memory{ MemoryFactory::get_data_memory() };
     Storage storage{ &memory, pool };

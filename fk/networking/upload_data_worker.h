@@ -6,8 +6,13 @@
 namespace fk {
 
 class UploadDataWorker {
+private:
+    bool all_meta_{ false };
+    bool all_data_{ false };
+
 public:
     UploadDataWorker();
+    UploadDataWorker(bool all_meta, bool all_data);
 
 public:
     void run(Pool &pool);

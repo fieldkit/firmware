@@ -382,17 +382,31 @@ void MenuView::create_network_menu() {
 
     auto network_always_on_toggle = new (*pool_) ToggleWifiAlwaysOnOption(back_, views_);
 
-    auto network_upload = to_lambda_option(pool_, "Upload", [=]() {
+    auto network_upload_resume = to_lambda_option(pool_, "Upload Rsm", [=]() {
         back_->on_selected();
         views_->show_home();
-        get_ipc()->launch_worker(create_pool_worker<UploadDataWorker>());
+        get_ipc()->launch_worker(create_pool_worker<UploadDataWorker>(false, false));
     });
 
-    network_menu_ = new_menu_screen<7>(pool_, "network", {
+    auto network_upload_meta = to_lambda_option(pool_, "Upl All Meta", [=]() {
+        back_->on_selected();
+        views_->show_home();
+        get_ipc()->launch_worker(create_pool_worker<UploadDataWorker>(true, false));
+    });
+
+    auto network_upload_data = to_lambda_option(pool_, "Upl All Data", [=]() {
+        back_->on_selected();
+        views_->show_home();
+        get_ipc()->launch_worker(create_pool_worker<UploadDataWorker>(false, true));
+    });
+
+    network_menu_ = new_menu_screen<8>(pool_, "network", {
         back_,
         network_toggle,
         network_choose,
-        network_upload,
+        network_upload_resume,
+        network_upload_meta,
+        network_upload_data,
         network_always_on_toggle,
         network_download_fw,
     });
