@@ -8,6 +8,7 @@
 #include "storage/storage.h"
 #include "storage/signed_log.h"
 #include "storage/meta_ops.h"
+#include "storage/data_record.h"
 #include "readings_worker.h"
 #include "records.h"
 #include "state_ref.h"
@@ -26,6 +27,8 @@ extern const struct fkb_header_t fkb_header;
 namespace fk {
 
 FK_DECLARE_LOGGER("startup");
+
+static void copy_cron_spec_from_pb(const char *name, Schedule &cs, fk_data_JobSchedule &pb, Pool &pool);
 
 void StartupWorker::run(Pool &pool) {
     if (check_for_interactive_startup()) {
@@ -71,6 +74,7 @@ void StartupWorker::run(Pool &pool) {
         gsm.apply([&](GlobalState *gs) {
             auto meta_fh = storage.file_header(Storage::Meta);
             auto data_fh = storage.file_header(Storage::Data);
+
             gs->storage.meta.size = meta_fh.size;
             gs->storage.meta.block = meta_fh.record;
             gs->storage.data.size = data_fh.size;
@@ -92,43 +96,6 @@ void StartupWorker::run(Pool &pool) {
     FK_ASSERT(os_task_start(&scheduler_task) == OSS_SUCCESS);
 }
 
-bool StartupWorker::save_startup_diagnostics() {
-    loginfo("saving startup diagnostics (%s) (bank = %d)", fk_get_reset_reason_string(), fk_nvm_get_active_bank());
-
-    auto &logs = fk_log_buffer();
-    get_sd_card()->append_logs(logs);
-
-    // Close logs so that we open a new file.
-    get_sd_card()->close_logs();
-
-    return true;
-}
-
-bool StartupWorker::check_for_interactive_startup() {
-    auto buttons = get_buttons();
-
-    if (buttons->number_pressed() == 0) {
-        return false;
-    }
-
-    auto display = get_display();
-
-    display->simple({ "Hold for Debug" });
-
-    auto started = fk_uptime();
-    auto enable_debug_mode = false;
-    while (buttons->number_pressed() > 0) {
-        fk_delay(100);
-
-        if (fk_uptime() - started > InteractiveStartupButtonDuration) {
-            display->simple({ "Release for Debug" });
-            enable_debug_mode = true;
-        }
-    }
-
-    return enable_debug_mode;
-}
-
 bool StartupWorker::load_or_create_state(Storage &storage, Pool &pool) {
     auto gs = get_global_state_rw();
 
@@ -139,9 +106,13 @@ bool StartupWorker::load_or_create_state(Storage &storage, Pool &pool) {
             logerror("error creating new state");
         }
     }
+    else {
+        if (!load_previous_location(storage, gs.get(), pool)) {
+            logerror("error loading location");
+        }
+    }
 
     // The preconfigured LoRa ABP state always takes precedence.
-
     for (auto &abp : lora_preconfigured_abp) {
         if (memcmp(gs.get()->lora.device_eui, abp.device_eui, LoraDeviceEuiLength) == 0) {
             memcpy(gs.get()->lora.device_address, abp.device_address, LoraDeviceAddressLength);
@@ -156,20 +127,6 @@ bool StartupWorker::load_or_create_state(Storage &storage, Pool &pool) {
     }
 
     return true;
-}
-
-static void copy_cron_spec_from_pb(const char *name, Schedule &cs, fk_data_JobSchedule &pb, Pool &pool) {
-    auto pbd = pb_get_data_if_provided(pb.cron.arg, pool);
-    if (pbd != nullptr) {
-        FK_ASSERT(pbd->length == sizeof(lwcron::CronSpec));
-        memcpy(&cs.cron, pbd->buffer, pbd->length);
-    }
-
-    cs.interval = pb.interval;
-    cs.repeated = pb.repeated;
-    cs.duration = pb.duration;
-
-    loginfo("(loaded) %s interval = %" PRIu32 " repeated = %" PRIu32 " duration = %" PRIu32, name, cs.interval, cs.repeated, cs.duration);
 }
 
 bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
@@ -327,6 +284,36 @@ bool StartupWorker::create_new_state(Storage &storage, GlobalState *gs, Pool &po
     return true;
 }
 
+bool StartupWorker::load_previous_location(Storage &storage, GlobalState *gs, Pool &pool) {
+    auto data = storage.file(Storage::Data);
+    if (!data.seek_end()) {
+        return false;
+    }
+
+    if (!data.rewind()) {
+        return false;
+    }
+
+    DataRecord record;
+    auto nread = data.read(&record.record(), fk_data_DataRecord_fields);
+    if (nread <= 0) {
+        return false;
+    }
+
+    auto &l = record.record().readings.location;
+    gs->gps.latitude = l.latitude;
+    gs->gps.longitude = l.longitude;
+    gs->gps.altitude = l.altitude;
+    gs->gps.time = l.time;
+    gs->gps.satellites = l.satellites;
+    gs->gps.hdop = l.hdop;
+    gs->gps.fix = false;
+
+    loginfo("(loaded) location(%f, %f)", l.longitude, l.latitude);
+
+    return true;
+}
+
 bool StartupWorker::check_for_lora(Pool &pool) {
     auto gs = get_global_state_rw();
     auto lora = get_lora_network();
@@ -346,6 +333,57 @@ bool StartupWorker::check_for_lora(Pool &pool) {
     lora->stop();
 
     return true;
+}
+
+bool StartupWorker::save_startup_diagnostics() {
+    loginfo("saving startup diagnostics (%s) (bank = %d)", fk_get_reset_reason_string(), fk_nvm_get_active_bank());
+
+    auto &logs = fk_log_buffer();
+    get_sd_card()->append_logs(logs);
+
+    // Close logs so that we open a new file.
+    get_sd_card()->close_logs();
+
+    return true;
+}
+
+bool StartupWorker::check_for_interactive_startup() {
+    auto buttons = get_buttons();
+
+    if (buttons->number_pressed() == 0) {
+        return false;
+    }
+
+    auto display = get_display();
+
+    display->simple({ "Hold for Debug" });
+
+    auto started = fk_uptime();
+    auto enable_debug_mode = false;
+    while (buttons->number_pressed() > 0) {
+        fk_delay(100);
+
+        if (fk_uptime() - started > InteractiveStartupButtonDuration) {
+            display->simple({ "Release for Debug" });
+            enable_debug_mode = true;
+        }
+    }
+
+    return enable_debug_mode;
+}
+
+static void copy_cron_spec_from_pb(const char *name, Schedule &cs, fk_data_JobSchedule &pb, Pool &pool) {
+    auto pbd = pb_get_data_if_provided(pb.cron.arg, pool);
+    if (pbd != nullptr) {
+        FK_ASSERT(pbd->length == sizeof(lwcron::CronSpec));
+        memcpy(&cs.cron, pbd->buffer, pbd->length);
+    }
+
+    cs.interval = pb.interval;
+    cs.repeated = pb.repeated;
+    cs.duration = pb.duration;
+
+    loginfo("(loaded) %s interval = %" PRIu32 " repeated = %" PRIu32 " duration = %" PRIu32, name, cs.interval, cs.repeated, cs.duration);
 }
 
 }

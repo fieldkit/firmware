@@ -23,10 +23,13 @@ public:
 private:
     bool load_or_create_state(Storage &storage, Pool &pool);
     bool load_state(Storage &storage, GlobalState *gs, Pool &pool);
+    bool load_previous_location(Storage &storage, GlobalState *gs, Pool &pool);
     bool create_new_state(Storage &storage, GlobalState *gs, Pool &pool);
+    bool save_startup_diagnostics();
+
+private:
     bool check_for_lora(Pool &pool);
     bool check_for_interactive_startup();
-    bool save_startup_diagnostics();
 
 };
 
