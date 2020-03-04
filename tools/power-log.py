@@ -202,7 +202,6 @@ async def rtt_listener(loop, listener, js, args):
             finally:
                 try:
                     writer.close()
-                    await writer.wait_closed()
                 except Exception as e:
                     print('error closing', e)
         except Exception as e:

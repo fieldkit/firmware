@@ -206,6 +206,13 @@ static bool configure(HttpServerConnection *connection, fk_app_HttpQuery *query,
         auto nnetworks = std::min(networks_array->length, WifiMaximumNumberOfNetworks);
         gsm.apply([=](GlobalState *gs) {
             auto networks = (fk_app_NetworkInfo *)networks_array->buffer;
+            for (auto i = 0u; i < WifiMaximumNumberOfNetworks; ++i) {
+                auto &nc = gs->network.config.wifi_networks[i];
+                nc.ssid[0] = 0;
+                nc.password[0] = 0;
+                nc.valid = false;
+                nc.create = false;
+            }
             for (auto i = 0u; i < nnetworks; ++i) {
                 auto &n = networks[i];
                 auto ssid = (const char *)n.ssid.arg;
