@@ -89,6 +89,13 @@ public:
 
     virtual bool enabled() = 0;
 
+    bool online() {
+        if (!enabled()) {
+            return false;
+        }
+        return status() == NetworkStatus::Connected;
+    }
+
 };
 
 Network *get_network();

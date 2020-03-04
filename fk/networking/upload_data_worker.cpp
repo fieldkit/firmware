@@ -144,7 +144,8 @@ static void update_after_upload(FileRecords start_records) {
 }
 
 void UploadDataWorker::run(Pool &pool) {
-    if (!get_network()->enabled()) {
+    if (!get_network()->online()) {
+        loginfo("network disabled");
         return;
     }
 
