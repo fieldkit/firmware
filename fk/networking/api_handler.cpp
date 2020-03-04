@@ -227,6 +227,11 @@ static bool configure(HttpServerConnection *connection, fk_app_HttpQuery *query,
             gs->scheduler.network = query->schedules.network;
             gs->scheduler.gps = query->schedules.gps;
             gs->scheduler.lora = query->schedules.lora;
+
+            // Don't let people make this zero.
+            if (gs->scheduler.network.duration == 0) {
+                gs->scheduler.network.duration = FiveMinutesMs;
+            }
         });
     }
 
