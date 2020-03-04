@@ -12,6 +12,11 @@ bool AtlasApi::handle(HttpServerConnection *connection, Pool &pool) {
 
     AtlasApiReply reply{ pool };
 
+    if (connection->length() == 0) {
+        connection->error("invalid query");
+        return true;
+    }
+
     auto query = fk_atlas_query_prepare_decoding(pool.malloc<fk_atlas_WireAtlasQuery>(), &pool);
     auto stream = pb_istream_from_readable(reader);
     if (!pb_decode_delimited(&stream, fk_atlas_WireAtlasQuery_fields, query)) {

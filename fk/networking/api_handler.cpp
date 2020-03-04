@@ -65,6 +65,11 @@ void ApiHandler::adjust_location_if_necessary(fk_app_HttpQuery const *query) {
 }
 
 bool ApiHandler::handle(HttpServerConnection *connection, Pool &pool) {
+    if (connection->length() == 0) {
+        connection->error("invalid query");
+        return true;
+    }
+
     Reader *reader = connection;
     if (connection->content_type() == WellKnownContentType::TextPlain) {
         reader = new (pool) Base64Reader(reader);
