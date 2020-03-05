@@ -27,6 +27,7 @@ private:
     void *ptr_;
     size_t remaining_;
     size_t size_;
+    size_t taken_;
 
 public:
     Pool(const char *name, size_t size, void *block, size_t taken);

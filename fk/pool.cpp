@@ -28,9 +28,10 @@ FK_DECLARE_LOGGER("pool");
 Pool::Pool(const char *name, size_t size, void *block, size_t taken) {
     name_ = name;
     block_ = block;
-    ptr_ = ((uint8_t *)block) + taken;
+    taken_ = taken;
     size_ = size;
-    remaining_ = size - taken;
+    ptr_ = ((uint8_t *)block_) + taken_;
+    remaining_ = size_ - taken_;
 
     #if defined(FK_LOGGING_POOL_VERBOSE)
     if (size_ > 0) {
@@ -43,8 +44,8 @@ Pool::~Pool() {
 }
 
 void Pool::clear() {
-    ptr_ = block_;
-    remaining_ = size_;
+    ptr_ = ((uint8_t *)block_) + taken_;
+    remaining_ = size_ - taken_;
 
     #if defined( FK_LOGGING_POOL_VERBOSE)
     loginfo("clear: 0x%p %s", this, name_);

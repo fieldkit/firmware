@@ -146,5 +146,24 @@ TEST_F(PoolSuite, ChainedPoolWrapper) {
     delete wrapped_concrete;
 
     auto pool = create_pool_inside("ok");
+
     free_pool(pool);
+}
+
+class DummyObject {
+private:
+    uint8_t data_[32];
+
+};
+
+TEST_F(PoolSuite, Clear) {
+    auto pool = create_standard_pool_inside("test");
+
+    auto test1 = new (pool) DummyObject();
+
+    pool->clear();
+
+    auto test2 = new (pool) DummyObject();
+
+    pool->clear();
 }
