@@ -249,7 +249,7 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
     }
 
     // Check for a need to fixup the duration.
-    if (gs->scheduler.network.interval > 0 && gs->scheduler.network.duration == 0) {
+    if (gs->scheduler.network.duration == 0) {
         gs->scheduler.network.duration = FiveMinutesMs;
         logwarn("using five minute network duration");
     }
