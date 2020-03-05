@@ -234,12 +234,12 @@ bool MetalNetworkConnection::stop() {
 }
 
 bool MetalNetwork::begin(NetworkSettings settings) {
-    if (pool_ == nullptr) {
-        pool_ = create_standard_pool_inside("network");
+    if (pool_ != nullptr) {
+        delete pool_;
+        pool_ = nullptr;
     }
-    else {
-        pool_->clear();
-    }
+
+    pool_ = create_standard_pool_inside("network");
 
     mdns_.allocator(new (pool_) MDNSPoolAllocator(pool_));
 
