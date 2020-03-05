@@ -70,6 +70,7 @@ UploadDataWorker::FileUpload UploadDataWorker::upload_file(Storage &storage, uin
 
     auto connection_info = build_connection_info(first_block, last_block, upload_length, type, pool);
     if (strlen(connection_info.url) == 0 || strlen(connection_info.token) == 0) {
+        loginfo("no configuration");
         return { 0 };
     }
 
