@@ -52,7 +52,9 @@ $(BUILD)/samd09: setup
 
 samd51: $(BUILD)/samd51 $(BUILD)/samd51-pic
 	cd $(BUILD)/samd51 && $(MAKE)
-	# cd $(BUILD)/samd51-pic && $(MAKE)
+
+samd51-pic: $(BUILD)/samd51 $(BUILD)/samd51-pic
+	cd $(BUILD)/samd51-pic && $(MAKE)
 
 samd09: $(BUILD)/samd09
 	cd $(BUILD)/samd09 && $(MAKE)
@@ -102,6 +104,7 @@ package: fw
 	chmod 755 $(BUILD)/$(PACKAGE)/flash-*
 	chmod 755 $(BUILD)/$(PACKAGE)/jlink-*
 	cd $(BUILD) && zip -r $(PACKAGE).zip $(PACKAGE)
+	cp $(BUILD)/$(PACKAGE).zip $(BUILD)/fk-firmware.zip
 
 dependencies: libraries/done
 
