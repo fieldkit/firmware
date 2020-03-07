@@ -25,6 +25,8 @@ bool AtlasApi::handle(HttpServerConnection *connection, Pool &pool) {
         return true;
     }
 
+    loginfo("operation (%d)", query->calibration.operation);
+
     switch (query->calibration.operation) {
     case fk_atlas_CalibrationOperation_CALIBRATION_STATUS: {
         status(reply);
@@ -106,6 +108,8 @@ bool AtlasApi::status_reply(AtlasApiReply &reply, CalibrationStatus status) {
 }
 
 bool AtlasApi::clear(AtlasApiReply &reply) {
+    loginfo("clearing calibration");
+
     if (!atlas_->wake()) {
         reply.error("error waking");
         return false;
