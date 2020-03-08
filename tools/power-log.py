@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+
 import asyncio
 import joulescope
 import json
@@ -13,6 +14,7 @@ import logging
 import queue
 import sqlite3
 
+
 class Database:
     def __init__(self):
         self.queue = queue.Queue()
@@ -23,13 +25,15 @@ class Database:
         self.thread.start()
 
     def inserter(self):
-        self.db = sqlite3.connect('power.db')
-        self.db.cursor().execute('CREATE TABLE IF NOT EXISTS raw ('
-                                '  id INTEGER PRIMARY KEY AUTOINCREMENT,'
-                                '  time TIMESTAMP NOT NULL,'
-                                '  energy NUMERIC NOT NULL,'
-                                '  message TEXT NOT NULL'
-                                ')')
+        self.db = sqlite3.connect("power.db")
+        self.db.cursor().execute(
+            "CREATE TABLE IF NOT EXISTS raw ("
+            "  id INTEGER PRIMARY KEY AUTOINCREMENT,"
+            "  time TIMESTAMP NOT NULL,"
+            "  energy NUMERIC NOT NULL,"
+            "  message TEXT NOT NULL"
+            ")"
+        )
         self.db.commit()
 
         pending = 0
@@ -47,8 +51,11 @@ class Database:
                 time.sleep(1)
 
     def add_raw(self, energy, message):
-        values = [ time.time(), energy, message ]
-        self.queue.put(('INSERT INTO raw (time, energy, message) VALUES (?, ?, ?)', values))
+        values = [time.time(), energy, message]
+        self.queue.put(
+            ("INSERT INTO raw (time, energy, message) VALUES (?, ?, ?)", values)
+        )
+
 
 class FkListener:
     def __init__(self, args):
@@ -66,15 +73,17 @@ class FkListener:
         if self.energy:
             self.db.add_raw(self.energy, message)
 
+
 class FkLogParser:
     def __init__(self, listener, args):
         self.args = args
         self.listener = listener
-        self.re_ansi_escape = re.compile(r'\x1B[@-_][0-?]*[ -/]*[@-~]')
+        self.re_ansi_escape = re.compile(r"\x1B[@-_][0-?]*[ -/]*[@-~]")
 
     def handle(self, line):
-        clean = self.re_ansi_escape.sub('', line).strip()
+        clean = self.re_ansi_escape.sub("", line).strip()
         self.listener.message(clean)
+
 
 class Processor:
     def __init__(self, args, queue):
@@ -92,6 +101,7 @@ class Processor:
                 device_time, data = self.queue.get()
                 logging.info("queue: processing: %d" % (device_time,))
 
+
 class Joulescope:
     def __init__(self, args, get_device_time, update_energy):
         self.args = args
@@ -100,11 +110,8 @@ class Joulescope:
         self.queue = queue.Queue()
         self.processor = Processor(self.args, self.queue)
         self.accumulators = {
-            'time': 0.0,
-            'fields': {
-                'charge': [0.0, 0.0],
-                'energy': [0.0, 0.0],
-            },
+            "time": 0.0,
+            "fields": {"charge": [0.0, 0.0], "energy": [0.0, 0.0],},
         }
 
     def start(self):
@@ -113,25 +120,25 @@ class Joulescope:
         self.thread.start()
         self.processor.start()
 
-    def on_event_cbk(self, event=0, message=''):
+    def on_event_cbk(self, event=0, message=""):
         logging.info("js: on_event")
 
-    def on_stop_cbk(self, event=0, message=''):
+    def on_stop_cbk(self, event=0, message=""):
         logging.info("js: on_stop")
 
     def on_statistics(self, data):
-        self.accumulators['time'] += data['time']['delta']
-        for field in ['charge', 'energy']:
-            x = data['accumulators'][field]['value']
-            z = self.accumulators['fields'][field]
+        self.accumulators["time"] += data["time"]["delta"]
+        for field in ["charge", "energy"]:
+            x = data["accumulators"][field]["value"]
+            z = self.accumulators["fields"][field]
             if x > z[1]:
                 z[0] += x - z[1]
                 z[1] = x
             else:
                 z[0] += x
                 z[1] = x
-            data['accumulators'][field]['value'] = z[0]
-        energy = data['accumulators']['energy']['value']
+            data["accumulators"][field]["value"] = z[0]
+        energy = data["accumulators"]["energy"]["value"]
 
         self.update_energy(energy)
 
@@ -151,8 +158,8 @@ class Joulescope:
         device.reduction_frequency = 10
         device.open(event_callback_fn=self.on_event_cbk)
         device.statistics_callback = self.on_statistics
-        device.parameter_set('source', 'raw')
-        device.parameter_set('i_range', 'auto')
+        device.parameter_set("source", "raw")
+        device.parameter_set("i_range", "auto")
 
         info = device.info()
         logging.info("js: device_info: %s" % (json.dumps(info),))
@@ -180,11 +187,12 @@ class Joulescope:
         finally:
             self.js.close()
 
+
 async def rtt_listener(loop, listener, js, args):
     parser = FkLogParser(listener, args)
     while True:
         try:
-            reader, writer = await asyncio.open_connection('127.0.0.1', args.port)
+            reader, writer = await asyncio.open_connection("127.0.0.1", args.port)
 
             try:
                 while True:
@@ -194,27 +202,28 @@ async def rtt_listener(loop, listener, js, args):
                     try:
                         text = data.decode()
                         parser.handle(text)
-                        print(text, end='')
+                        print(text, end="")
                     except Exception as e:
-                        print('error decoding', e)
+                        print("error decoding", e)
             except Exception as e:
-                print('error reading', e)
+                print("error reading", e)
             finally:
                 try:
                     writer.close()
                 except Exception as e:
-                    print('error closing', e)
+                    print("error closing", e)
         except Exception as e:
-            print('error connecting', e)
+            print("error connecting", e)
 
         time.sleep(1)
 
-if __name__ == "__main__":
-    logging.basicConfig(format='%(asctime)-15s %(message)s', level=logging.INFO)
 
-    parser = argparse.ArgumentParser(description='fk log monitor tool')
-    parser.add_argument('--port', dest="port", type=int, default=None, help="")
-    parser.add_argument('--joulescope', dest="joulescope", action="store_true", help="")
+if __name__ == "__main__":
+    logging.basicConfig(format="%(asctime)-15s %(message)s", level=logging.INFO)
+
+    parser = argparse.ArgumentParser(description="fk log monitor tool")
+    parser.add_argument("--port", dest="port", type=int, default=None, help="")
+    parser.add_argument("--joulescope", dest="joulescope", action="store_true", help="")
     args, nargs = parser.parse_known_args()
 
     listener = FkListener(args)
