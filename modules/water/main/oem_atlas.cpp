@@ -1,5 +1,6 @@
 #include "oem_atlas.h"
 #include "platform.h"
+#include "utilities.h"
 
 namespace fk {
 
@@ -193,18 +194,18 @@ CalibrationStatus OemAtlas::calibration() {
     return { true, value };
 }
 
+struct cal_t {
+    uint8_t address;
+    uint32_t value;
+} __attribute__((packed));
+
 CalibrationStatus OemAtlas::calibrate(uint8_t which, float reference) {
     auto cfg = config(type_);
-
-    struct cal_t {
-        uint8_t address;
-        uint32_t value;
-    };
 
     cal_t data;
 
     data.address = cfg.calibrate.reg;
-    data.value = (uint32_t)(reference * cfg.calibrate.factor);
+    data.value = __builtin_bswap32((uint32_t)(reference * cfg.calibrate.factor));
 
     loginfo("calibrating[0x%x]: 0x%" PRIx32, data.address, data.value);
 
