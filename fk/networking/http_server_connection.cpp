@@ -53,7 +53,9 @@ int32_t HttpServerConnection::busy(uint32_t delay, const char *message) {
     fk_app_Error errors[] = {
         {
             .message = {
-                .funcs = {},
+                .funcs = {
+                    .encode = pb_encode_string,
+                },
                 .arg = (void *)message,
             },
             .delay = delay,
@@ -69,6 +71,7 @@ int32_t HttpServerConnection::busy(uint32_t delay, const char *message) {
 
     fk_app_HttpReply reply = fk_app_HttpReply_init_default;
     reply.type = fk_app_ReplyType_REPLY_BUSY;
+    reply.errors.funcs.encode = pb_encode_array;
     reply.errors.arg = (void *)pool_->copy(&errors_array, sizeof(errors_array));
 
     logwarn("[%" PRIu32 "] busy reply '%s'", number_, message);
@@ -80,7 +83,9 @@ int32_t HttpServerConnection::error(int32_t status, const char *message) {
     fk_app_Error errors[] = {
         {
             .message = {
-                .funcs = {},
+                .funcs = {
+                    .encode = pb_encode_string,
+                },
                 .arg = (void *)message,
             },
         }
@@ -95,6 +100,7 @@ int32_t HttpServerConnection::error(int32_t status, const char *message) {
 
     fk_app_HttpReply reply = fk_app_HttpReply_init_default;
     reply.type = fk_app_ReplyType_REPLY_ERROR;
+    reply.errors.funcs.encode = pb_encode_array;
     reply.errors.arg = (void *)pool_->copy(&errors_array, sizeof(errors_array));
 
     logwarn("[%" PRIu32 "] error reply '%s'", number_, message);
