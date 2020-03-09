@@ -37,7 +37,7 @@ public:
 
     int32_t busy(uint32_t retry, const char *message);
 
-    int32_t error(const char *message);
+    int32_t error(int32_t status, const char *message);
 
     int32_t fault();
 

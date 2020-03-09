@@ -11,7 +11,7 @@ bool ModuleHandler::handle(HttpServerConnection *connection, Pool &pool) {
 
     auto constructed = factory.get(bay_);
     if (!constructed) {
-        connection->error("invalid module");
+        connection->error(404, "invalid module");
         return true;
     }
 
@@ -25,12 +25,12 @@ bool ModuleHandler::handle(HttpServerConnection *connection, Pool &pool) {
     auto mc = ctx.module(bay_);
 
     if (!mc.open()) {
-        connection->error("error choosing module");
+        connection->error(500, "error choosing module");
         return true;
     }
 
     if (!constructed->module->api(mc, connection, pool)) {
-        connection->error("error servicing module api");
+        connection->error(500, "error servicing module api");
         return true;
     }
 

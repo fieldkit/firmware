@@ -66,7 +66,7 @@ void ApiHandler::adjust_location_if_necessary(fk_app_HttpQuery const *query) {
 
 bool ApiHandler::handle(HttpServerConnection *connection, Pool &pool) {
     if (connection->length() == 0) {
-        connection->error("invalid query");
+        connection->error(500, "invalid query");
         return true;
     }
 
@@ -86,7 +86,7 @@ bool ApiHandler::handle(HttpServerConnection *connection, Pool &pool) {
     if (!pb_decode_delimited(&stream, fk_app_HttpQuery_fields, query)) {
         fk_dump_memory("NOPARSE ", ptr, 256);
         logwarn("error parsing query (%" PRIu32 ")", connection->length());
-        connection->error("error parsing query");
+        connection->error(500, "error parsing query");
         return true;
     }
 
@@ -128,7 +128,7 @@ bool ApiHandler::handle(HttpServerConnection *connection, Pool &pool) {
     }
     }
 
-    connection->error("unknown query type");
+    connection->error(500, "unknown query type");
 
     return true;
 }

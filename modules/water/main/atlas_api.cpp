@@ -13,7 +13,7 @@ bool AtlasApi::handle(HttpServerConnection *connection, Pool &pool) {
     AtlasApiReply reply{ pool };
 
     if (connection->length() == 0) {
-        connection->error("invalid query");
+        connection->error(500, "invalid query");
         return true;
     }
 

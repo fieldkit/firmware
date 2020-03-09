@@ -76,7 +76,7 @@ int32_t HttpServerConnection::busy(uint32_t delay, const char *message) {
     return write(503, message, &reply, fk_app_HttpReply_fields);
 }
 
-int32_t HttpServerConnection::error(const char *message) {
+int32_t HttpServerConnection::error(int32_t status, const char *message) {
     fk_app_Error errors[] = {
         {
             .message = {
@@ -99,7 +99,7 @@ int32_t HttpServerConnection::error(const char *message) {
 
     logwarn("[%" PRIu32 "] error reply '%s'", number_, message);
 
-    return write(500, message, &reply, fk_app_HttpReply_fields);
+    return write(status, message, &reply, fk_app_HttpReply_fields);
 }
 
 int32_t HttpServerConnection::write(fk_app_HttpReply const *reply) {
