@@ -167,6 +167,10 @@ bool LinuxNetwork::enabled() {
     return enabled_;
 }
 
+bool LinuxNetwork::synchronize_time() {
+    return true;
+}
+
 LinuxNetworkListener::LinuxNetworkListener(uint16_t port, int32_t listening) : port_(port), listening_(listening) {
 }
 

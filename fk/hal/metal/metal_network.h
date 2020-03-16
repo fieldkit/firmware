@@ -103,6 +103,8 @@ public:
 
     bool enabled() override;
 
+    bool synchronize_time() override;
+
 };
 
 FK_ENABLE_TYPE_NAME(MetalNetworkConnection);

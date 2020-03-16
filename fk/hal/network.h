@@ -89,6 +89,8 @@ public:
 
     virtual bool enabled() = 0;
 
+    virtual bool synchronize_time() = 0;
+
     bool online() {
         if (!enabled()) {
             return false;

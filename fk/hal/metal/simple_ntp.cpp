@@ -22,6 +22,10 @@ SimpleNTP::~SimpleNTP() {
 }
 
 bool SimpleNTP::service() {
+    if (!initialized_) {
+        return true;
+    }
+
     if (synced_ > 0 && fk_uptime() - synced_ < NtpSyncInterval) {
         return true;
     }

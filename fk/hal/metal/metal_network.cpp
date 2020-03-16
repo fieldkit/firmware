@@ -301,9 +301,7 @@ bool MetalNetwork::serve() {
 
     registered_ = fk_uptime();
 
-    if (!settings_.create) {
-        ntp_.start();
-    }
+    synchronize_time();
 
     loginfo("ready (ip = %d.%d.%d.%d) (service = %s) (status = %s)",
             ip[0], ip[1], ip[2], ip[3], service_name_, get_wifi_status());
@@ -343,9 +341,7 @@ void MetalNetwork::service() {
 
     mdns_.run();
 
-    if (!settings_.create) {
-        ntp_.service();
-    }
+    ntp_.service();
 }
 
 PoolPointer<NetworkConnection> *MetalNetwork::open_connection(const char *scheme, const char *hostname, uint16_t port) {
@@ -391,6 +387,14 @@ bool MetalNetwork::stop() {
 
 bool MetalNetwork::enabled() {
     return enabled_;
+}
+
+bool MetalNetwork::synchronize_time() {
+    if (!settings_.create) {
+        ntp_.start();
+    }
+
+    return true;
 }
 
 MetalNetworkListener::MetalNetworkListener(uint16_t port) : port_(port) {
