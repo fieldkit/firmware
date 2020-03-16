@@ -31,8 +31,9 @@ void task_handler_scheduler(void *params) {
         LoraTask lora_job{ schedules.lora };
         GpsTask gps_job{ schedules.gps };
         ServiceModulesTask service_modules_job{ schedules.service_interval };
+        SynchronizeTimeTask synchronize_time_job{ DefaultSynchronizeTimeInterval };
 
-        lwcron::Task *tasks[5] { &readings_job, &upload_data_job, &lora_job, &gps_job, &service_modules_job };
+        lwcron::Task *tasks[6] { &readings_job, &upload_data_job, &lora_job, &gps_job, &service_modules_job, &synchronize_time_job };
         lwcron::Scheduler scheduler{ tasks };
         Topology topology;
 

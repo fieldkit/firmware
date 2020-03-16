@@ -10,4 +10,15 @@ CurrentSchedules::CurrentSchedules(GlobalState const *gs, ModuleFactory const &m
     service_interval = module_factory.service_interval();
 }
 
+void SynchronizeTimeTask::run() {
+    if (!get_network()->online()) {
+        alogf(LogLevels::INFO, toString(), "offline");
+        return;
+    }
+
+    alogf(LogLevels::INFO, toString(), "starting");
+
+    get_network()->synchronize_time();
+}
+
 } // namespace fk

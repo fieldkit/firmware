@@ -42,7 +42,6 @@ public:
     }
 
 public:
-public:
     void run() override {
         get_ipc()->launch_worker(create_pool_worker<ReadingsWorker>(false, false));
     }
@@ -59,13 +58,26 @@ public:
     }
 
 public:
-public:
     void run() override {
         get_ipc()->launch_worker(create_pool_worker<UploadDataWorker>());
     }
 
     const char *toString() const override {
         return "upldata";
+    }
+
+};
+
+class SynchronizeTimeTask : public lwcron::PeriodicTask, public SchedulerTask {
+public:
+    SynchronizeTimeTask(uint32_t interval) : lwcron::PeriodicTask(interval) {
+    }
+
+public:
+    void run() override;
+
+    const char *toString() const override {
+        return "synctime";
     }
 
 };

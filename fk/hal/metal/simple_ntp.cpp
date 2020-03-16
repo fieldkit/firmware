@@ -72,6 +72,8 @@ void SimpleNTP::stop() {
     if (initialized_) {
         udp_.stop();
         initialized_ = false;
+        synced_ = 0;
+        queried_ = 0;
     }
 }
 
