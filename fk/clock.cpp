@@ -8,6 +8,7 @@
 #endif
 
 #include "clock.h"
+#include "config.h"
 
 namespace fk {
 
@@ -43,6 +44,9 @@ namespace fk {
 FK_DECLARE_LOGGER("clock");
 
 struct calendar_descriptor CALENDAR_0;
+
+static bool valid = false;
+static CoreClock clock;
 
 static void CALENDAR_0_initialize(void) {
     hri_mclk_set_APBAMASK_RTC_bit(MCLK);
@@ -262,8 +266,28 @@ void CoreClock::log_tsr(uint8_t *ts) {
         );
 }
 
-static bool valid = false;
-static CoreClock clock;
+void CoreClock::compare() {
+    DateTime internal_time;
+    if (!internal(internal_time)) {
+        return;
+    }
+    DateTime external_time;
+    if (!external(external_time)) {
+        return;
+    }
+
+    auto internal_unix = internal_time.unix_time();
+    auto external_unix = external_time.unix_time();
+    auto diff = (int64_t)external_unix - internal_unix;
+
+    if (diff > TimeDriftWarnThreshold || diff < -TimeDriftWarnThreshold) {
+        FormattedTime internal_formatted{ internal_unix };
+        FormattedTime external_formatted{ external_unix };
+        loginfo("drift: '%s' -> '%s' (%" PRIu32 " - %" PRIu32 " = %" PRId64 ")",
+                external_formatted.cstr(), internal_formatted.cstr(),
+                external_unix, internal_unix, diff);
+    }
+}
 
 CoreClock *get_clock() {
     if (!valid) {
@@ -299,6 +323,9 @@ CoreClock::CoreClock() : wire_{ "fake", nullptr } {
 
 bool CoreClock::begin() {
     return false;
+}
+
+void CoreClock::compare() {
 }
 
 CoreClock *get_clock() {

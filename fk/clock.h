@@ -39,7 +39,7 @@ public:
 
     DateTime get_external();
 
-    bool valid();
+    void compare();
 
 public:
     void read_timestamp_registers();

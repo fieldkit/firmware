@@ -69,10 +69,19 @@ constexpr uint32_t OneDayMs = OneHourMs * 24;
 constexpr uint32_t OneDaySeconds  = 86400;
 
 /**
+ * Threshold for clock drift warning.
+ */
+constexpr int32_t TimeDriftWarnThreshold = 5;
+
+// -------------------------------------------------------------------------------------------
+// Sizes
+
+/**
  * Precisely 1024 * 1024.
  */
 constexpr uint32_t OneMegabyte = 1024 * 1024;
 
+// -------------------------------------------------------------------------------------------
 // Schedules and Time
 
 constexpr uint32_t DefaultReadingsInterval = 60;

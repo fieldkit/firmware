@@ -1,6 +1,7 @@
 #include "tasks/tasks.h"
 #include "status_logging.h"
 #include "config.h"
+#include "clock.h"
 #include "memory.h"
 
 namespace fk {
@@ -13,6 +14,7 @@ void task_handler_idle(void *params) {
         fk_status_log();
 
         if (counter++ == 10) {
+            get_clock()->compare();
             fk_standard_page_log();
             counter = 0;
         }
