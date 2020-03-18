@@ -254,18 +254,14 @@ static bool configure(HttpServerConnection *connection, fk_app_HttpQuery *query,
                 strncpy(gs->transmission.url, url, sizeof(gs->transmission.url));
                 loginfo("transmission url: %s", gs->transmission.url);
             }
-            else {
-                gs->transmission.url[0] = 0;
-            }
 
             auto token = pb_get_string_if_provided(query->transmission.wifi.token.arg, pool);
             if (token != nullptr) {
                 strncpy(gs->transmission.token, token, sizeof(gs->transmission.token));
                 loginfo("transmission token: %s", gs->transmission.token);
             }
-            else {
-                gs->transmission.token[0] = 0;
-            }
+
+            gs->transmission.enabled = query->transmission.wifi.enabled;
         });
     }
 

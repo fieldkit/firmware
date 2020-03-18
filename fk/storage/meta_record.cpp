@@ -116,6 +116,7 @@ void MetaRecord::include_state(GlobalState const *gs, fkb_header_t const *fkb_he
 
     record_.has_transmission = true;
     record_.transmission.has_wifi = true;
+    record_.transmission.wifi.enabled = gs->transmission.enabled;
     record_.transmission.wifi.url.arg = (void *)gs->transmission.url;
     record_.transmission.wifi.token.arg = (void *)gs->transmission.token;
 }

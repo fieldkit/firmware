@@ -252,6 +252,7 @@ struct ReadingsState {
 };
 
 struct TransmissionState {
+    bool enabled{ false };
     char url[HttpMaximumUrlLength];
     char token[HttpMaximumTokenLength];
     uint32_t data_cursor{ 0 };
