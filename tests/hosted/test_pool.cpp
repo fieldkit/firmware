@@ -159,11 +159,11 @@ private:
 TEST_F(PoolSuite, Clear) {
     auto pool = create_standard_pool_inside("test");
 
-    auto test1 = new (pool) DummyObject();
+    new (pool) DummyObject();
 
     pool->clear();
 
-    auto test2 = new (pool) DummyObject();
+    new (pool) DummyObject();
 
     pool->clear();
 }
