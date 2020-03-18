@@ -141,6 +141,22 @@ bool CoreClock::sync() {
     return true;
 }
 
+bool CoreClock::adjust_internal(DateTime now) {
+    struct calendar_time time;
+    time.hour = now.hour();
+    time.min = now.minute();
+    time.sec = now.second();
+    calendar_set_time(&CALENDAR_0, &time);
+
+    struct calendar_date date;
+    date.year = now.year();
+    date.month = now.month();
+    date.day = now.day();
+    calendar_set_date(&CALENDAR_0, &date);
+
+    return true;
+}
+
 bool CoreClock::adjust(DateTime now) {
     uint8_t adjust_command[] = {
         CTRL_STOP_EN,
@@ -167,19 +183,7 @@ bool CoreClock::adjust(DateTime now) {
         return false;
     }
 
-    struct calendar_time time;
-    time.hour = now.hour();
-    time.min = now.minute();
-    time.sec = now.second();
-    calendar_set_time(&CALENDAR_0, &time);
-
-    struct calendar_date date;
-    date.year = now.year();
-    date.month = now.month();
-    date.day = now.day();
-    calendar_set_date(&CALENDAR_0, &date);
-
-    return true;
+    return adjust_internal(now);
 }
 
 bool CoreClock::internal(DateTime &time) {
@@ -286,6 +290,9 @@ void CoreClock::compare() {
         loginfo("drift: '%s' -> '%s' (%" PRIu32 " - %" PRIu32 " = %" PRId64 ")",
                 external_formatted.cstr(), internal_formatted.cstr(),
                 external_unix, internal_unix, diff);
+        if (!adjust_internal(external_time)) {
+            logerror("error adjusting internal clock");
+        }
     }
 }
 

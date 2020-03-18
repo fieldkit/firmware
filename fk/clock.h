@@ -47,6 +47,8 @@ public:
     void clear_timestamp_registers();
 
 private:
+    bool adjust_internal(DateTime now);
+
     void log_tsr(uint8_t *ts);
 
 };
