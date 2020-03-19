@@ -262,6 +262,7 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, fkb_header_t con
         reply_.transmission.wifi.url.arg = (void *)gs_->transmission.url;
         reply_.transmission.wifi.token.arg = (void *)gs_->transmission.token;
     }
+    reply_.transmission.wifi.enabled = gs_->transmission.enabled;
 
     return true;
 }
