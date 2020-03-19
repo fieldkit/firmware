@@ -38,105 +38,63 @@ class SchedulerTask {
 
 class ReadingsTask : public lwcron::CronTask, public SchedulerTask {
 public:
-    ReadingsTask(lwcron::CronSpec cron_spec) : lwcron::CronTask(cron_spec) {
-    }
-
-public:
-    void run() override {
-        get_ipc()->launch_worker(create_pool_worker<ReadingsWorker>(false, false));
-    }
-
-    const char *toString() const override {
-        return "readings";
-    }
-
-};
-
-class UploadDataTask : public lwcron::CronTask, public SchedulerTask {
-public:
-    UploadDataTask(lwcron::CronSpec cron_spec) : lwcron::CronTask(cron_spec) {
-    }
-
-public:
-    void run() override {
-        get_ipc()->launch_worker(create_pool_worker<UploadDataWorker>());
-    }
-
-    const char *toString() const override {
-        return "upldata";
-    }
-
-};
-
-class SynchronizeTimeTask : public lwcron::PeriodicTask, public SchedulerTask {
-public:
-    SynchronizeTimeTask(uint32_t interval) : lwcron::PeriodicTask(interval) {
-    }
+    ReadingsTask(lwcron::CronSpec cron_spec);
 
 public:
     void run() override;
-
-    const char *toString() const override {
-        return "synctime";
-    }
+    const char *toString() const override;
 
 };
 
 class GpsTask : public lwcron::CronTask, public SchedulerTask {
 public:
-    GpsTask(lwcron::CronSpec cron_spec) : lwcron::CronTask(cron_spec) {
-    }
+    GpsTask(lwcron::CronSpec cron_spec);
 
 public:
-    void run() override {
-        fk_start_task_if_necessary(&gps_task);
-    }
-
-    const char *toString() const override {
-        return "gps";
-    }
+    void run() override;
+    const char *toString() const override;
 
 };
 
 class LoraTask : public lwcron::CronTask, public SchedulerTask {
 public:
-    LoraTask(lwcron::CronSpec cron_spec) : lwcron::CronTask(cron_spec) {
-    }
+    LoraTask(lwcron::CronSpec cron_spec);
 
 public:
-    void run() override {
-        auto worker = create_pool_worker<LoraWorker>();
-        get_ipc()->launch_worker(worker);
-    }
+    void run() override;
+    const char *toString() const override;
+    bool enabled() const override;
 
-    const char *toString() const override {
-        return "lora";
-    }
+};
 
-    bool enabled() const override {
-        return get_lora_network()->available();
-    }
+class UploadDataTask : public lwcron::CronTask, public SchedulerTask {
+public:
+    UploadDataTask(lwcron::CronSpec cron_spec);
+
+public:
+    void run() override;
+    const char *toString() const override;
+
+};
+
+class SynchronizeTimeTask : public lwcron::PeriodicTask, public SchedulerTask {
+public:
+    SynchronizeTimeTask(uint32_t interval);
+
+public:
+    void run() override;
+    const char *toString() const override;
 
 };
 
 class ServiceModulesTask : public lwcron::PeriodicTask, public SchedulerTask {
 public:
-    ServiceModulesTask(uint32_t interval) : lwcron::PeriodicTask(interval) {
-    }
+    ServiceModulesTask(uint32_t interval);
 
 public:
-    void run() override {
-        auto worker = create_pool_worker<ServiceModulesWorker>();
-        get_ipc()->launch_worker(worker);
-    }
-
-    const char *toString() const override {
-        return "modsvc";
-    }
-
-    bool enabled() const override {
-        return get_module_factory().service_interval() > 0;
-    }
+    void run() override ;
+    const char *toString() const override;
+    bool enabled() const override;
 
 };
 
