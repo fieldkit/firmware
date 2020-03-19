@@ -22,15 +22,12 @@ struct CurrentSchedules {
     lwcron::CronSpec gps;
     lwcron::CronSpec lora;
     uint32_t service_interval;
+    uint32_t network_jitter;
 
-    CurrentSchedules() {
-    }
-
+    CurrentSchedules();
     CurrentSchedules(GlobalState const *gs, ModuleFactory const &module_factory);
 
-    bool equals(CurrentSchedules const &o) const {
-        return readings == o.readings && network == o.network && gps == o.gps && lora == o.lora && service_interval == o.service_interval;
-    }
+    bool equals(CurrentSchedules const &o) const;
 };
 
 class SchedulerTask {
@@ -69,7 +66,7 @@ public:
 
 class UploadDataTask : public lwcron::CronTask, public SchedulerTask {
 public:
-    UploadDataTask(lwcron::CronSpec cron_spec);
+    UploadDataTask(lwcron::CronSpec cron_spec, uint32_t jitter);
 
 public:
     void run() override;

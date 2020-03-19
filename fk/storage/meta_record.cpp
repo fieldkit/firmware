@@ -3,6 +3,13 @@
 
 namespace fk {
 
+static void copy_schedule(fk_data_JobSchedule &d, const Schedule &s, Pool &pool) {
+    d.cron.arg = pb_data_create(s.cron, pool);
+    d.interval = s.interval;
+    d.duration = s.duration;
+    d.jitter = s.jitter;
+}
+
 void MetaRecord::include_state(GlobalState const *gs, fkb_header_t const *fkb_header, Pool &pool) {
     fk_serial_number_t sn;
 
@@ -99,20 +106,10 @@ void MetaRecord::include_state(GlobalState const *gs, fkb_header_t const *fkb_he
     record_.schedule.has_gps = true;
     record_.schedule.has_lora = true;
 
-    record_.schedule.readings.cron.arg = pb_data_create(gs->scheduler.readings.cron, pool);
-    record_.schedule.network.cron.arg = pb_data_create(gs->scheduler.network.cron, pool);
-    record_.schedule.gps.cron.arg = pb_data_create(gs->scheduler.gps.cron, pool);
-    record_.schedule.lora.cron.arg = pb_data_create(gs->scheduler.lora.cron, pool);
-
-    record_.schedule.readings.interval = gs->scheduler.readings.interval;
-    record_.schedule.network.interval = gs->scheduler.network.interval;
-    record_.schedule.gps.interval = gs->scheduler.gps.interval;
-    record_.schedule.lora.interval = gs->scheduler.lora.interval;
-
-    record_.schedule.readings.duration = gs->scheduler.readings.duration;
-    record_.schedule.network.duration = gs->scheduler.network.duration;
-    record_.schedule.gps.duration = gs->scheduler.gps.duration;
-    record_.schedule.lora.duration = gs->scheduler.lora.duration;
+    copy_schedule(record_.schedule.readings, gs->scheduler.readings, pool);
+    copy_schedule(record_.schedule.network, gs->scheduler.network, pool);
+    copy_schedule(record_.schedule.gps, gs->scheduler.gps, pool);
+    copy_schedule(record_.schedule.lora, gs->scheduler.lora, pool);
 
     record_.has_transmission = true;
     record_.transmission.has_wifi = true;

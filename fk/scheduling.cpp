@@ -2,12 +2,21 @@
 
 namespace fk {
 
+CurrentSchedules::CurrentSchedules() {
+}
+
 CurrentSchedules::CurrentSchedules(GlobalState const *gs, ModuleFactory const &module_factory) {
     readings = gs->scheduler.readings.cron;
-    network = gs->scheduler.network.cron;
     gps = gs->scheduler.gps.cron;
     lora = gs->scheduler.lora.cron;
+    network = gs->scheduler.network.cron;
+    network_jitter = gs->scheduler.network.jitter;
     service_interval = module_factory.service_interval();
+}
+
+bool CurrentSchedules::equals(CurrentSchedules const &o) const {
+    return readings == o.readings && network == o.network && gps == o.gps && lora == o.lora &&
+           service_interval == o.service_interval && network_jitter == o.network_jitter;
 }
 
 ReadingsTask::ReadingsTask(lwcron::CronSpec cron_spec) : lwcron::CronTask(cron_spec) {
@@ -36,8 +45,7 @@ LoraTask::LoraTask(lwcron::CronSpec cron_spec) : lwcron::CronTask(cron_spec) {
 }
 
 void LoraTask::run() {
-    auto worker = create_pool_worker<LoraWorker>();
-    get_ipc()->launch_worker(worker);
+    get_ipc()->launch_worker(create_pool_worker<LoraWorker>());
 }
 
 const char *LoraTask::toString() const {
@@ -48,7 +56,7 @@ bool LoraTask::enabled() const {
     return get_lora_network()->available();
 }
 
-UploadDataTask::UploadDataTask(lwcron::CronSpec cron_spec) : lwcron::CronTask(cron_spec) {
+UploadDataTask::UploadDataTask(lwcron::CronSpec cron_spec, uint32_t jitter) : lwcron::CronTask(cron_spec, jitter) {
 }
 
 void UploadDataTask::run() {
@@ -65,12 +73,10 @@ SynchronizeTimeTask::SynchronizeTimeTask(uint32_t interval) : lwcron::PeriodicTa
 void SynchronizeTimeTask::run() {
     if (!get_network()->online()) {
         alogf(LogLevels::INFO, toString(), "offline");
-        return;
+    } else {
+        alogf(LogLevels::INFO, toString(), "starting");
+        get_network()->synchronize_time();
     }
-
-    alogf(LogLevels::INFO, toString(), "starting");
-
-    get_network()->synchronize_time();
 }
 
 const char *SynchronizeTimeTask::toString() const {
@@ -81,8 +87,7 @@ ServiceModulesTask::ServiceModulesTask(uint32_t interval) : lwcron::PeriodicTask
 }
 
 void ServiceModulesTask::run() {
-    auto worker = create_pool_worker<ServiceModulesWorker>();
-    get_ipc()->launch_worker(worker);
+    get_ipc()->launch_worker(create_pool_worker<ServiceModulesWorker>());
 }
 
 const char *ServiceModulesTask::toString() const {

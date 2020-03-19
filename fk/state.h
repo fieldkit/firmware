@@ -229,11 +229,13 @@ struct Schedule {
     uint32_t interval = 0;
     uint32_t repeated = 0;
     uint32_t duration = 0;
+    uint32_t jitter = 0;
 
-    Schedule& operator= (const fk_app_Schedule &s) {
+    Schedule& operator=(const fk_app_Schedule &s) {
         interval = s.interval;
         repeated = s.repeated;
         duration = s.duration;
+        jitter = s.jitter;
         cron = lwcron::CronSpec::interval(s.interval);
         return *this;
     }
