@@ -23,7 +23,7 @@ static collection<NetworkSettings> copy_settings(Pool &pool) {
         }
     }
 
-    auto name = gs.get()->general.name;
+    auto name = pool.strdup(gs.get()->general.name);
     settings.add({
         .valid = true,
         .create = true,
@@ -76,24 +76,23 @@ bool NetworkTask::did_configuration_change() {
 
     auto gs = get_global_state_ro();
     auto modified = gs.get()->network.config.modified;
+    auto changed = false;
 
     last_checked_configuration_ = fk_uptime();
 
     if (modified != configuration_modified_) {
-        loginfo("modified");
-        return true;
+        loginfo("modified (version)");
+        changed = true;
     }
 
-    if (!active_settings_.create) {
-        return false;
+    if (active_settings_.create) {
+        if (strncmp(gs.get()->general.name, active_settings_.ssid, sizeof(gs.get()->general.name)) != 0) {
+            loginfo("name changed '%s' vs '%s'", gs.get()->general.name, active_settings_.ssid);
+            changed = true;
+        }
     }
 
-    if (strncmp(gs.get()->general.name, active_settings_.ssid, sizeof(gs.get()->general.name)) != 0) {
-        loginfo("name changed '%s' vs '%s'", gs.get()->general.name, active_settings_.ssid);
-        return true;
-    }
-
-    return false;
+    return changed;
 }
 
 NetworkSettings NetworkTask::get_selected_settings(Pool &pool) {
