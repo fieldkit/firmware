@@ -107,10 +107,11 @@ static bool log_diagnostics() {
             (uint32_t)__builtin_bswap32(sn.dwords[0]), (uint32_t)__builtin_bswap32(sn.dwords[1]),
             (uint32_t)__builtin_bswap32(sn.dwords[2]), (uint32_t)__builtin_bswap32(sn.dwords[3]));
 
-    loginfo("fw = %s", fkb_header.firmware.name);
+    loginfo("fw = %s (#%" PRIu32 ")", fkb_header.firmware.name, fkb_header.firmware.number);
     char hash_string[128];
     bytes_to_hex_string(hash_string, sizeof(hash_string), fkb_header.firmware.hash, fkb_header.firmware.hash_size);
     loginfo("hash = %s", hash_string);
+    loginfo("version = %s", fkb_header.firmware.version);
 
     loginfo("sizeof(RecordHeader + RecordTail) = %zd + %zd", sizeof(RecordHeader), sizeof(RecordTail));
     loginfo("sizeof(GlobalState) = %zd", sizeof(GlobalState ));
