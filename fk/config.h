@@ -281,9 +281,8 @@ constexpr uint32_t NetworkConnectionMaximumDuration = TenSecondsMs;
 
 /**
  * Maximum number of WiFi networks.
- * \todo: Eventually this should be relaxed.
  */
-constexpr size_t WifiMaximumNumberOfNetworks = 2;
+constexpr size_t WifiMaximumNumberOfNetworks = 5;
 
 /**
  * Maximum length of a WiFi SSID.
