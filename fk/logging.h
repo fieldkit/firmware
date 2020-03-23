@@ -18,6 +18,8 @@ bool fk_log_buffer_try_lock();
 
 void fk_log_buffer_unlock();
 
+bool fk_logs_flush();
+
 class LogBufferLock {
 private:
     bool success_{ false };

@@ -100,6 +100,8 @@ void UpgradeFirmwareFromSdWorker::run(Pool &pool) {
 
         log_other_firmware();
 
+        fk_logs_flush();
+
         if (params_.swap) {
             gsm.notify({ "success, swap!" });
 

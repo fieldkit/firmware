@@ -25,15 +25,21 @@ static void write_logs_buffer(char c, void *arg) {
     // This causes some weird issues. Need a way to do this w/o
     // clearing the buffer.
     if (logs.size(sd_card_iterator) >= StandardPageSize) {
-        logs_buffer_free = false;
-        get_sd_card()->append_logs(logs, sd_card_iterator);
-        sd_card_iterator = logs.end();
-        logs_buffer_free = true;
+        fk_logs_flush();
     }
 
     if (c != 0) {
         app->append(c);
     }
+}
+
+bool fk_logs_flush() {
+    logs_buffer_free = false;
+    get_sd_card()->append_logs(logs, sd_card_iterator);
+    sd_card_iterator = logs.end();
+    logs_buffer_free = true;
+
+    return true;
 }
 
 size_t write_log(LogMessage const *m, const char *fstring, va_list args) {
@@ -162,6 +168,12 @@ bool fk_logging_dump_buffer() {
 
     SEGGER_RTT_UNLOCK();
 
+    return true;
+}
+
+#else
+
+bool fk_logs_flush() {
     return true;
 }
 
