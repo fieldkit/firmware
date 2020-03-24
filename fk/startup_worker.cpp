@@ -216,7 +216,7 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
         FK_ASSERT(networks_array->length <= WifiMaximumNumberOfNetworks);
 
         auto networks = (fk_app_NetworkInfo *)networks_array->buffer;
-        for (auto i = 0u; i < WifiMaximumNumberOfNetworks; ++i) {
+        for (auto i = 0u; i < networks_array->length; ++i) {
             auto &n = networks[i];
             auto ssid = (const char *)n.ssid.arg;
             auto password = (const char *)n.password.arg;
