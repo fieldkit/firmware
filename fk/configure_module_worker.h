@@ -1,25 +1,19 @@
 #pragma once
 
 #include "worker.h"
+#include "modules/shared/modules.h"
 
 namespace fk {
 
 constexpr uint8_t AllModuleBays = 0xff;
 
-enum class ConfigureModuleKind {
-    Weather,
-    Water,
-    Distance,
-    Erase,
-};
-
 class ConfigureModuleWorker : public Worker {
 private:
     uint8_t bay_;
-    ConfigureModuleKind kind_;
+    ModuleHeader header_;
 
 public:
-    ConfigureModuleWorker(uint8_t bay, ConfigureModuleKind kind);
+    ConfigureModuleWorker(uint8_t bay, ModuleHeader header);
 
 public:
     void run(Pool &pool) override;

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "common.h"
+
 namespace fk {
 
 class ViewController {
@@ -11,6 +13,7 @@ public:
     virtual void show_name() = 0;
     virtual void show_build() = 0;
     virtual void show_module_status() = 0;
+    virtual void show_module_menu(uint8_t bay) = 0;
     virtual void show_message(const char *message) = 0;
     virtual void show_qr_code() = 0;
     virtual void show_lora() = 0;

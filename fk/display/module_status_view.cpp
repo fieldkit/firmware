@@ -49,7 +49,7 @@ void ModuleStatusView::down(ViewController *views) {
 }
 
 void ModuleStatusView::enter(ViewController *views) {
-    views->show_home();
+    views->show_module_menu(bay_);
 }
 
 }

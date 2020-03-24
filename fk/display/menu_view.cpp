@@ -172,7 +172,8 @@ MenuView::MenuView(ViewController *views, Pool &pool) : pool_(&pool), views_(vie
 
     create_info_menu();
     create_tools_menu();
-    create_modules_menu();
+    create_module_bays_menu();
+    create_module_menu();
     create_network_menu();
     create_main_menu();
 
@@ -202,57 +203,113 @@ void MenuView::create_info_menu() {
     });
 }
 
-void MenuView::create_modules_menu() {
-    MenuOption *bay_options[6];
-    for (auto i = 0u; i < MaximumNumberOfPhysicalModules; ++i) {
-        bay_options[i + 1] = to_module_bay_option(pool_, i, pool_->sprintf("%d", i + 1), [=]() {
-            selected_module_bay_ = i;
-            active_menu_ = goto_menu(module_menu_);
-            loginfo("selected %d", i);
-        });
-    }
-    bay_options[0] = to_module_bay_option(pool_, AllModuleBays, "Status", [=]() {
+void MenuView::create_module_bays_menu() {
+    auto module_bays_status = to_lambda_option(pool_, "Status", [=]() {
         back_->on_selected();
         get_ipc()->launch_worker(create_pool_worker<RefreshModulesWorker>());
         views_->show_module_status();
     });
-    bay_options[5] = to_module_bay_option(pool_, AllModuleBays, "All", [=]() {
-        selected_module_bay_ = AllModuleBays;
-        active_menu_ = goto_menu(module_menu_);
-        loginfo("selected all");
+    module_bays_menu_ = new_menu_screen<1>(pool_, "modules", {
+        module_bays_status,
     });
-    module_bays_menu_ = new_menu_screen<6>(pool_, "modules", {
-        bay_options[0], bay_options[1], bay_options[2], bay_options[3], bay_options[4], bay_options[5]
+}
+
+void MenuView::create_module_menu() {
+    auto program_weather = to_lambda_option(pool_, "Weather", [=]() {
+        back_->on_selected();
+        views_->show_module_status();
+        ModuleHeader header = {
+            .manufacturer = FK_MODULES_MANUFACTURER,
+            .kind = FK_MODULES_KIND_WEATHER,
+            .version = 0x01,
+            .id = { 0 },
+        };
+        get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, header));
+    });
+    auto program_ph = to_lambda_option(pool_, "Water (pH)", [=]() {
+        back_->on_selected();
+        views_->show_module_status();
+        ModuleHeader header = {
+            .manufacturer = FK_MODULES_MANUFACTURER,
+            .kind = FK_MODULES_KIND_WATER,
+            .version = 0x01,
+            .id = { 0 },
+        };
+        get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, header));
+    });
+    auto program_ec = to_lambda_option(pool_, "Water (EC)", [=]() {
+        back_->on_selected();
+        views_->show_module_status();
+        ModuleHeader header = {
+            .manufacturer = FK_MODULES_MANUFACTURER,
+            .kind = FK_MODULES_KIND_WATER,
+            .version = 0x01,
+            .id = { 0 },
+        };
+        get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, header));
+    });
+    auto program_do = to_lambda_option(pool_, "Water (DO)", [=]() {
+        back_->on_selected();
+        views_->show_module_status();
+        ModuleHeader header = {
+            .manufacturer = FK_MODULES_MANUFACTURER,
+            .kind = FK_MODULES_KIND_WATER,
+            .version = 0x01,
+            .id = { 0 },
+        };
+        get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, header));
+    });
+    auto program_temp = to_lambda_option(pool_, "Water (Temp)", [=]() {
+        back_->on_selected();
+        views_->show_module_status();
+        ModuleHeader header = {
+            .manufacturer = FK_MODULES_MANUFACTURER,
+            .kind = FK_MODULES_KIND_WATER,
+            .version = 0x01,
+            .id = { 0 },
+        };
+        get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, header));
+    });
+    auto program_orp = to_lambda_option(pool_, "Water (ORP)", [=]() {
+        back_->on_selected();
+        views_->show_module_status();
+        ModuleHeader header = {
+            .manufacturer = FK_MODULES_MANUFACTURER,
+            .kind = FK_MODULES_KIND_WATER,
+            .version = 0x01,
+            .id = { 0 },
+        };
+        get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, header));
+    });
+    auto program_distance = to_lambda_option(pool_, "Distance", [=]() {
+        back_->on_selected();
+        views_->show_module_status();
+        ModuleHeader header = {
+            .manufacturer = FK_MODULES_MANUFACTURER,
+            .kind = FK_MODULES_KIND_DISTANCE,
+            .version = 0x01,
+            .id = { 0 },
+        };
+        get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, header));
+    });
+    auto program_menu = new_menu_screen<7>(pool_, "program", {
+            program_weather,
+            program_ph, program_ec, program_do, program_temp, program_orp,
+            program_distance,
     });
 
-
-    auto modules_water = to_lambda_option(pool_, "Water", [=]() {
+    auto module_home = to_lambda_option(pool_, "Home", [=]() {
         back_->on_selected();
-        views_->show_module_status();
-        get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, ConfigureModuleKind::Water));
+        views_->show_home();
     });
-    auto modules_weather = to_lambda_option(pool_, "Weather", [=]() {
-        back_->on_selected();
-        views_->show_module_status();
-        get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, ConfigureModuleKind::Weather));
-    });
-    auto modules_distance = to_lambda_option(pool_, "Distance", [=]() {
-        back_->on_selected();
-        views_->show_module_status();
-        get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, ConfigureModuleKind::Distance));
-    });
-    auto modules_erase = to_lambda_option(pool_, "Erase", [=]() {
-        back_->on_selected();
-        views_->show_module_status();
-        get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, ConfigureModuleKind::Erase));
+    auto module_program = to_lambda_option(pool_, "Program", [=]() {
+        previous_menu_ = active_menu_;
+        active_menu_ = goto_menu(program_menu);
     });
 
-    module_menu_ = new_menu_screen<5>(pool_, "module", {
-        back_,
-        modules_water,
-        modules_weather,
-        modules_distance,
-        modules_erase,
+    module_menu_ = new_menu_screen<2>(pool_, "module", {
+        module_home,
+        module_program,
     });
 }
 
@@ -446,6 +503,12 @@ void MenuView::show() {
     menu_time_ = fk_uptime() + 5000;
 }
 
+void MenuView::show_for_module(uint8_t bay) {
+    selected_module_bay_ = bay;
+    active_menu_ = goto_menu(module_menu_);
+    show();
+}
+
 void MenuView::tick(ViewController *views) {
     auto bus = get_board()->i2c_core();
     auto display = get_display();
@@ -499,7 +562,7 @@ void MenuView::selection_up(MenuScreen &screen) {
     auto select_last = false;
     auto previous_selectable_index = -1;
 
-    for (auto i = 0; screen.options[i] != nullptr; ++i) {
+    for (auto i = 0u; screen.options[i] != nullptr; ++i) {
         if (screen.options[i]->active()) {
             if (screen.options[i]->selected()) {
                 screen.options[i]->selected(false);
@@ -527,7 +590,7 @@ void MenuView::selection_up(MenuScreen &screen) {
 }
 
 void MenuView::selection_down(MenuScreen &screen) {
-    for (auto i = 0; screen.options[i] != nullptr; ++i) {
+    for (auto i = 0u; screen.options[i] != nullptr; ++i) {
         if (screen.options[i]->selected()) {
             screen.options[i]->selected(false);
             for (auto j = i + 1; screen.options[j] != nullptr; ++j) {
@@ -553,7 +616,7 @@ void MenuView::refresh_visible(MenuScreen &screen, int8_t selected_index) {
 
     auto nvisible = 0u;
 
-    for (int8_t i = 0; screen.options[i] != nullptr; ++i) {
+    for (auto i = 0; screen.options[i] != nullptr; ++i) {
         auto &o = screen.options[i];
         if (selected_index - i >= MaximumVisible || nvisible >= MaximumVisible) {
             o->visible(false);
@@ -566,7 +629,7 @@ void MenuView::refresh_visible(MenuScreen &screen, int8_t selected_index) {
 }
 
 MenuOption *MenuView::selected(MenuScreen &screen) {
-    for (auto i = 0; screen.options[i] != nullptr; ++i) {
+    for (auto i = 0u; screen.options[i] != nullptr; ++i) {
         if (screen.options[i]->selected()) {
             return screen.options[i];
         }

@@ -14,13 +14,8 @@ public:
     ModuleConfigurer(ModuleScanning &scanning);
 
 public:
-    bool weather(uint8_t position);
-    bool water(uint8_t position);
-    bool distance(uint8_t position);
+    bool configure(uint8_t position, ModuleHeader header);
     bool erase(uint8_t position);
-
-private:
-    bool configure(uint8_t position, ModuleHeader &header);
 
 };
 

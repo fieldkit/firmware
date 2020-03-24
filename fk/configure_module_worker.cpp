@@ -12,7 +12,7 @@ namespace fk {
 
 FK_DECLARE_LOGGER("cfgworker");
 
-ConfigureModuleWorker::ConfigureModuleWorker(uint8_t bay, ConfigureModuleKind kind) : bay_(bay), kind_(kind) {
+ConfigureModuleWorker::ConfigureModuleWorker(uint8_t bay, ModuleHeader header) : bay_(bay), header_(header) {
 }
 
 template<typename T>
@@ -36,38 +36,10 @@ bool ConfigureModuleWorker::configure(Pool &pool) {
     ModuleScanning scanning{ get_modmux() };
     ModuleConfigurer configurer{ scanning };
 
-    switch (kind_) {
-    case ConfigureModuleKind::Weather: {
-        configure_bay_and_update_state(bay_, gs.get(), [&](uint8_t b) {
-            loginfo("configuring weather: %d", b);
-            return configurer.weather(b);
-        });
-        break;
-    }
-    case ConfigureModuleKind::Water: {
-        configure_bay_and_update_state(bay_, gs.get(), [&](uint8_t b) {
-            loginfo("configuring water: %d", b);
-            return configurer.water(b);
-        });
-        break;
-    }
-    case ConfigureModuleKind::Distance: {
-        configure_bay_and_update_state(bay_, gs.get(), [&](uint8_t b) {
-            loginfo("configuring distance: %d", b);
-            return configurer.distance(b);
-        });
-        break;
-    case ConfigureModuleKind::Erase: {
-        configure_bay_and_update_state(bay_, gs.get(), [&](uint8_t b) {
-            loginfo("erasing: %d", b);
-            return configurer.erase(b);
-        });
-        break;
-    }
-    } default: {
-        break;
-    }
-    }
+    configure_bay_and_update_state(bay_, gs.get(), [&](uint8_t b) {
+        loginfo("configuring: %d", b);
+        return configurer.configure(b, header_);
+    });
 
     return true;
 }

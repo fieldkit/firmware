@@ -78,6 +78,11 @@ public:
         show_view(module_status_view);
     }
 
+    void show_module_menu(uint8_t bay) override {
+        menu_view.show_for_module(bay);
+        show_view(menu_view);
+    }
+
     void show_message(const char *message) override {
         message_view.message(message);
         show_view(message_view);

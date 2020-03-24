@@ -30,6 +30,7 @@ public:
 
 public:
     void show() override;
+    void show_for_module(uint8_t bay);
     void tick(ViewController *views) override;
     void up(ViewController *views) override;
     void down(ViewController *views) override;
@@ -37,7 +38,8 @@ public:
 
 private:
     void create_info_menu();
-    void create_modules_menu();
+    void create_module_bays_menu();
+    void create_module_menu();
     void create_tools_menu();
     void create_network_menu();
     void create_main_menu();
