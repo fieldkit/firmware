@@ -11,6 +11,11 @@ namespace fk {
 FK_DECLARE_LOGGER("factory-wipe");
 
 void FactoryWipeWorker::run(Pool &pool) {
+    if (!initialize_memory_if_necessary()) {
+        logerror("memory failed");
+        return;
+    }
+
     GlobalStateProgressCallbacks progress;
     Storage storage{ MemoryFactory::get_data_memory(), pool };
     FactoryWipe factory_wipe{ storage };
@@ -23,6 +28,30 @@ void FactoryWipeWorker::run(Pool &pool) {
         fk_delay(500);
         fk_restart();
     }
+}
+
+bool FactoryWipeWorker::initialize_memory_if_necessary() {
+    auto banks = MemoryFactory::get_data_memory_banks();
+    auto memory = MemoryFactory::get_data_memory();
+
+    auto nbanks = 0u;
+    for (auto i = 0u; i < MemoryFactory::NumberOfDataMemoryBanks; ++i) {
+        auto &bank = *banks[i];
+
+        // TODO: Why is this necessary?
+        fk_delay(100);
+
+        if (bank.begin()) {
+            loginfo("memory bank #%d... OK", nbanks);
+            nbanks++;
+        }
+    }
+
+    if (!memory->begin()) {
+        return false;
+    }
+
+    return true;
 }
 
 }

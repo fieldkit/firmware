@@ -17,6 +17,9 @@ public:
         return "wipe";
     }
 
+private:
+    bool initialize_memory_if_necessary();
+
 };
 
 FK_ENABLE_TYPE_NAME(FactoryWipeWorker);
