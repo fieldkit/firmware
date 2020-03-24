@@ -9,18 +9,24 @@ namespace fk {
 FK_DECLARE_LOGGER("network");
 
 struct NetworkDuration {
-    uint32_t ms{ FiveMinutesMs };
+private:
+    uint32_t seconds_{ FiveMinutesSeconds };
 
+public:
     bool always_on() const {
-        return ms == UINT32_MAX;
+        return seconds_ == UINT32_MAX;
     }
 
     bool on(uint32_t activity) const {
-        return always_on() || (fk_uptime() - activity) < ms;
+        if (always_on()) {
+            return true;
+        }
+        auto seconds_up = (fk_uptime() - activity) / 1000;
+        return seconds_up < seconds_;
     }
 
-    NetworkDuration operator=(uint32_t ms) {
-        this->ms = ms;
+    NetworkDuration operator=(uint32_t seconds) {
+        seconds_ = seconds;
         return *this;
     }
 };

@@ -242,7 +242,7 @@ static bool configure(HttpServerConnection *connection, fk_app_HttpQuery *query,
 
             // Don't let people make this zero.
             if (gs->scheduler.network.duration == 0) {
-                gs->scheduler.network.duration = FiveMinutesMs;
+                gs->scheduler.network.duration = FiveMinutesSeconds;
             }
         });
     }

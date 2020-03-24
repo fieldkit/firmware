@@ -250,8 +250,12 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
 
     // Check for a need to fixup the duration.
     if (gs->scheduler.network.duration == 0) {
-        gs->scheduler.network.duration = FiveMinutesMs;
-        logwarn("using five minute network duration");
+        gs->scheduler.network.duration = FiveMinutesSeconds;
+        logwarn("using five minute network duration (zero)");
+    }
+    if (gs->scheduler.network.duration == FiveMinutesMs) {
+        gs->scheduler.network.duration = FiveMinutesSeconds;
+        logwarn("using five minute network duration (from ms value)");
     }
 
     auto url = pb_get_string_if_provided(record.transmission.wifi.url.arg, pool);

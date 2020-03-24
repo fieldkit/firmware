@@ -70,7 +70,7 @@ bool GlobalStateManager::initialize(Pool &pool) {
         gs.get()->scheduler.network.interval = DefaultDebugNetworkInterval;
         gs.get()->scheduler.gps.interval = DefaultDebugGpsInterval;
         gs.get()->scheduler.lora.interval = DefaultDebugLoraInterval;
-        gs.get()->scheduler.network.duration = FiveMinutesMs;
+        gs.get()->scheduler.network.duration = FiveMinutesSeconds;
         loginfo("using debug schedule");
     }
     else {
@@ -78,7 +78,7 @@ bool GlobalStateManager::initialize(Pool &pool) {
         gs.get()->scheduler.network.interval = DefaultNetworkInterval;
         gs.get()->scheduler.gps.interval = DefaultGpsInterval;
         gs.get()->scheduler.lora.interval = DefaultLoraInterval;
-        gs.get()->scheduler.network.duration = FiveMinutesMs;
+        gs.get()->scheduler.network.duration = FiveMinutesSeconds;
         loginfo("using default schedule");
     }
 

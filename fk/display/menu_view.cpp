@@ -135,7 +135,7 @@ struct ToggleWifiAlwaysOnOption : public MenuOption {
 
         StandardPool pool{ "toggle-always-on" };
         if (always_on_) {
-            configure_wifi_duration(FiveMinutesMs, pool);
+            configure_wifi_duration(FiveMinutesSeconds, pool);
         }
         else {
             configure_wifi_duration(UINT32_MAX, pool);
