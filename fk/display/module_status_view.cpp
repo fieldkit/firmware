@@ -13,48 +13,19 @@ static ModuleStatusScreen get_module_status_screen(uint8_t bay, PhysicalModuleSt
 
     switch (pm.status) {
     case ModuleStatus::Unknown:
-        return{
-            .bay = bay,
-            .name = name,
-            .message = "<unknown>",
-        };
+        return{ bay, name, "<unknown>" };
     case ModuleStatus::Empty:
-        return{
-            .bay = bay,
-            .name = "<empty>",
-            .message = "",
-        };
+        return{ bay, "<empty>", "" };
     case ModuleStatus::Found:
-        return{
-            .bay = bay,
-            .name = name,
-            .message = "found",
-        };
+        return{ bay, name, "found" };
     case ModuleStatus::Ok:
-        return{
-            .bay = bay,
-            .name = name,
-            .message = "ok",
-        };
+        return{ bay, name, "ok" };
     case ModuleStatus::Warning:
-        return{
-            .bay = bay,
-            .name = name,
-            .message = "warning",
-        };
+        return{ bay, name, "warning" };
     case ModuleStatus::Fatal:
-        return{
-            .bay = bay,
-            .name = name,
-            .message = "fatal",
-        };
+        return{ bay, name, "fatal" };
     }
-
-    return {
-        .bay = bay,
-        .name = "<error>",
-        .message = "<error>",
-    };
+    return { bay, "<error>", "<error>" };
 }
 
 void ModuleStatusView::tick(ViewController *views) {
