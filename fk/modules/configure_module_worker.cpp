@@ -12,6 +12,9 @@ namespace fk {
 
 FK_DECLARE_LOGGER("cfgworker");
 
+ConfigureModuleWorker::ConfigureModuleWorker(uint8_t bay) : bay_(bay), erase_(true) {
+}
+
 ConfigureModuleWorker::ConfigureModuleWorker(uint8_t bay, ModuleHeader header) : bay_(bay), header_(header) {
 }
 
@@ -37,8 +40,13 @@ bool ConfigureModuleWorker::configure(Pool &pool) {
     ModuleConfigurer configurer{ scanning };
 
     configure_bay_and_update_state(bay_, gs.get(), [&](uint8_t b) {
-        loginfo("configuring: %d", b);
-        return configurer.configure(b, header_);
+        if (erase_) {
+            loginfo("erasing: %d", b);
+            return configurer.erase(b);
+        } else {
+            loginfo("configuring: %d", b);
+            return configurer.configure(b, header_);
+        }
     });
 
     return true;

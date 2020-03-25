@@ -10,9 +10,11 @@ constexpr uint8_t AllModuleBays = 0xff;
 class ConfigureModuleWorker : public Worker {
 private:
     uint8_t bay_;
+    bool erase_{ false };
     ModuleHeader header_;
 
 public:
+    ConfigureModuleWorker(uint8_t bay);
     ConfigureModuleWorker(uint8_t bay, ModuleHeader header);
 
 public:

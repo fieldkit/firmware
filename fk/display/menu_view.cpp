@@ -307,10 +307,16 @@ void MenuView::create_module_menu() {
         previous_menu_ = active_menu_;
         active_menu_ = goto_menu(program_menu);
     });
+    auto module_erase = to_lambda_option(pool_, "Erase", [=]() {
+        back_->on_selected();
+        views_->show_home();
+        get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_));
+    });
 
-    module_menu_ = new_menu_screen<2>(pool_, "module", {
+    module_menu_ = new_menu_screen<3>(pool_, "module", {
         module_home,
         module_program,
+        module_erase,
     });
 }
 

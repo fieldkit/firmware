@@ -97,7 +97,7 @@ bool ModuleEeprom::write_header(ModuleHeader &header) {
     header.crc = fk_module_header_sign(&header);
 
     if (!write(wire_, HeaderAddress, (uint8_t *)&header, sizeof(ModuleHeader))) {
-        logerror("error writing kind");
+        logerror("error writing header");
         return false;
     }
 
@@ -119,7 +119,7 @@ bool ModuleEeprom::erase() {
 
     for (auto address = 0u; address < EepromSize; address += EepromPageSize) {
         if (!write(wire_, address, (uint8_t *)page, sizeof(page))) {
-            logerror("error writing kind");
+            logerror("error erasing (0x%0" PRIx32 ")", (uint32_t)address);
             return false;
         }
     }
