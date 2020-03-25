@@ -1,9 +1,9 @@
 #include <samd51_common.h>
 
-#include "configure_module_worker.h"
 #include "state_ref.h"
 #include "hal/board.h"
 
+#include "modules/configure_module_worker.h"
 #include "modules/bridge/modules.h"
 #include "modules/scanning.h"
 #include "modules/configure.h"
@@ -49,6 +49,8 @@ bool ConfigureModuleWorker::scan(Pool &pool) {
     auto gs = get_global_state_rw();
     auto mm = get_modmux();
 
+    loginfo("scanning modules");
+
     mm->enable_all_modules();
 
     ScanningContext ctx{ mm, gs.get(), module_bus };
@@ -59,6 +61,7 @@ bool ConfigureModuleWorker::scan(Pool &pool) {
     factory.clear();
 
     auto constructed_modules = factory.modules();
+
     gs.get()->update_physical_modules(constructed_modules);
 
     return true;

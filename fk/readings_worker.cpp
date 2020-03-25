@@ -5,7 +5,7 @@
 #include "state_manager.h"
 #include "hal/hal.h"
 
-#include "scan_modules_worker.h"
+#include "modules/scan_modules_worker.h"
 
 namespace fk {
 

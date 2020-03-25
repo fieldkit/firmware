@@ -1,4 +1,4 @@
-#include "scan_modules_worker.h"
+#include "modules/scan_modules_worker.h"
 #include "modules/module_factory.h"
 #include "modules/scanning.h"
 #include "state_manager.h"

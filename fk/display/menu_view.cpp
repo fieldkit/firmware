@@ -6,12 +6,13 @@
 #include "platform.h"
 
 #include "simple_workers.h"
-#include "configure_module_worker.h"
 #include "upgrade_from_sd_worker.h"
 #include "dump_flash_memory_worker.h"
 #include "compare_banks_worker.h"
-#include "refresh_modules_worker.h"
 #include "lora_ranging_worker.h"
+
+#include "modules/configure_module_worker.h"
+#include "modules/refresh_modules_worker.h"
 
 #include "networking/download_firmware_worker.h"
 #include "networking/upload_data_worker.h"

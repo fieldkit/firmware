@@ -7,8 +7,9 @@
 
 #include "readings_worker.h"
 #include "lora_worker.h"
-#include "service_modules_worker.h"
-#include "scan_modules_worker.h"
+
+#include "modules/service_modules_worker.h"
+#include "modules/scan_modules_worker.h"
 
 #include "networking/upload_data_worker.h"
 
