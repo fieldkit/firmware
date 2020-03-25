@@ -31,7 +31,6 @@ static ModuleStatusScreen get_module_status_screen(uint8_t bay, PhysicalModuleSt
 void ModuleStatusView::tick(ViewController *views) {
     auto gs = get_global_state_ro();
     auto &physical = gs.get()->physical_modules[bay_];
-
     auto bus = get_board()->i2c_core();
     auto display = get_display();
     auto screen = get_module_status_screen(bay_, physical);

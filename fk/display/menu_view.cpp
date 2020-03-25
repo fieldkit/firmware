@@ -231,7 +231,7 @@ void MenuView::create_module_menu() {
         views_->show_module_status();
         ModuleHeader header = {
             .manufacturer = FK_MODULES_MANUFACTURER,
-            .kind = FK_MODULES_KIND_WATER,
+            .kind = FK_MODULES_KIND_WATER_PH,
             .version = 0x01,
             .id = { 0 },
         };
@@ -242,7 +242,7 @@ void MenuView::create_module_menu() {
         views_->show_module_status();
         ModuleHeader header = {
             .manufacturer = FK_MODULES_MANUFACTURER,
-            .kind = FK_MODULES_KIND_WATER,
+            .kind = FK_MODULES_KIND_WATER_EC,
             .version = 0x01,
             .id = { 0 },
         };
@@ -253,7 +253,7 @@ void MenuView::create_module_menu() {
         views_->show_module_status();
         ModuleHeader header = {
             .manufacturer = FK_MODULES_MANUFACTURER,
-            .kind = FK_MODULES_KIND_WATER,
+            .kind = FK_MODULES_KIND_WATER_DO,
             .version = 0x01,
             .id = { 0 },
         };
@@ -264,7 +264,7 @@ void MenuView::create_module_menu() {
         views_->show_module_status();
         ModuleHeader header = {
             .manufacturer = FK_MODULES_MANUFACTURER,
-            .kind = FK_MODULES_KIND_WATER,
+            .kind = FK_MODULES_KIND_WATER_TEMP,
             .version = 0x01,
             .id = { 0 },
         };
@@ -275,7 +275,7 @@ void MenuView::create_module_menu() {
         views_->show_module_status();
         ModuleHeader header = {
             .manufacturer = FK_MODULES_MANUFACTURER,
-            .kind = FK_MODULES_KIND_WATER,
+            .kind = FK_MODULES_KIND_WATER_ORP,
             .version = 0x01,
             .id = { 0 },
         };

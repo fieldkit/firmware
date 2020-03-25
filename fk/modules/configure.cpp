@@ -26,7 +26,7 @@ bool ModuleConfigurer::configure(uint8_t position, ModuleHeader header) {
         return false;
     }
 
-    loginfo("[%d] configured", position);
+    loginfo("[%d] configured mk=%02" PRIx32 "%02" PRIx32 "", position, header.manufacturer, header.kind);
 
     return true;
 }
