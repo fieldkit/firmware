@@ -88,6 +88,9 @@ void StartupWorker::run(Pool &pool) {
 
     FK_ASSERT(load_or_create_state(storage, pool));
 
+    ModuleRegistry registry;
+    registry.initialize();
+
     mm->enable_all_modules();
 
     ReadingsWorker readings_worker{ true, true };

@@ -24,6 +24,20 @@ ModuleRegistry::ModuleRegistry() {
 ModuleRegistry::~ModuleRegistry() {
 }
 
+void ModuleRegistry::initialize() {
+    ModuleNode *iter = nullptr;
+
+    loginfo("registered:");
+
+    if (fk_modules_builtin_get(&iter) == 0) {
+        for (; iter != nullptr; iter = iter->link) {
+            auto meta = iter->meta;
+
+            loginfo("module mk=%02" PRIx32 "%02" PRIx32 " version=%" PRIu32 " %s", meta->manufacturer, meta->kind, meta->version, meta->name);
+        }
+    }
+}
+
 ModuleMetadata const *ModuleRegistry::resolve(ModuleHeader const &header) {
     ModuleNode *iter = nullptr;
 

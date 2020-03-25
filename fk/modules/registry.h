@@ -12,6 +12,8 @@ public:
     virtual ~ModuleRegistry();
 
 public:
+    void initialize();
+
     ModuleMetadata const *resolve(ModuleHeader const &header);
 
 };
