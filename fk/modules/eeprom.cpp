@@ -46,7 +46,17 @@ static bool write_page(TwoWireWrapper *wire, uint16_t address, uint8_t *data, si
         return false;
     }
 
-    return true;
+    auto to = EEPROM_TIMEOUT_WRITE;
+    while (to > 0) {
+        if (I2C_CHECK(wire->read(ModuleEeprom::EepromAddress, nullptr, 0))) {
+            return true;
+        }
+
+        fk_delay(1);
+        to--;
+    }
+
+    return false;
 }
 
 static bool write(TwoWireWrapper *wire, uint16_t address, uint8_t *data, size_t size) {
