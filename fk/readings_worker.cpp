@@ -33,6 +33,10 @@ void ReadingsWorker::run(Pool &pool) {
     }
 
     auto &all_readings = taken_readings->readings;
+    if (all_readings.size() == 0) {
+        logwarn("no readings");
+        return;
+    }
 
     auto data_pool = create_pool_inside("readings");
     auto modules = new (data_pool) ModulesState(data_pool);
