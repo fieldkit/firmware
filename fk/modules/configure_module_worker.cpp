@@ -51,8 +51,6 @@ bool ConfigureModuleWorker::scan(Pool &pool) {
 
     loginfo("scanning modules");
 
-    mm->enable_all_modules();
-
     ScanningContext ctx{ mm, gs.get(), module_bus };
     ModuleScanning scanning{ get_modmux() };
 
@@ -60,9 +58,19 @@ bool ConfigureModuleWorker::scan(Pool &pool) {
 
     factory.clear();
 
-    auto constructed_modules = factory.modules();
+    auto modules_maybe = get_module_factory().rescan_and_initialize(ctx, scanning, pool);
+    if (!modules_maybe) {
+        logerror("error scanning");
+        return false;
+    }
 
-    gs.get()->update_physical_modules(constructed_modules);
+    if (modules_maybe->size() == 0) {
+        logwarn("no modules, weird");
+    }
+
+    loginfo("found %zu modules", modules_maybe->size());
+
+    gs.get()->update_physical_modules(*modules_maybe);
 
     return true;
 }
