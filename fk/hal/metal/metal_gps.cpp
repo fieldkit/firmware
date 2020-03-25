@@ -55,7 +55,6 @@ bool MetalGps::service(GpsFix &fix) {
         gps_.f_get_position(&fix.latitude, &fix.longitude, &fix.position_fix_age);
         gps_.crack_datetime((int *)&time.year, &time.month, &time.day, &time.hour, &time.minute, &time.second, &time.hundredths, &time.time_fix_age);
         gps_.get_datetime(&time.date, &time.time, &time.time_fix_age);
-        gps_.stats(&fix.chars, &fix.good, &fix.failed);
 
         auto valid = true;
 
@@ -86,6 +85,10 @@ bool MetalGps::service(GpsFix &fix) {
         else {
             fix = { };
         }
+
+        // Do this after, so that these are included even if we have
+        // an invalid fix.
+        gps_.stats(&fix.chars, &fix.good, &fix.failed);
 
         if (GpsLoggingRaw) {
             if (position_ == sizeof(buffer_) - 1 || c == '\n') {
