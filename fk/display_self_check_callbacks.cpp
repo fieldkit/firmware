@@ -14,6 +14,7 @@ void DisplaySelfCheckCallbacks::update(SelfCheckStatus status) {
     append("qspi", status.qspi_memory);
     append("spi", status.spi_memory);
     append("wifi", status.wifi);
+    append("gps", status.gps);
     append("sdo", status.sd_card_open);
     append("sdw", status.sd_card_write);
     append("bpm", status.bp_mux);
