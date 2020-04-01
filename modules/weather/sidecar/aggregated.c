@@ -46,6 +46,7 @@ int32_t aggregated_weather_include(fk_weather_aggregated_t *aw, struct calendar_
             // Clear the gust.
             aw->wind_gust.ticks = 0;
             aw->wind_gust.direction = 0;
+            aw->rain.ticks = 0;
         }
     }
 
