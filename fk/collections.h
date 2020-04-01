@@ -113,6 +113,42 @@ public:
         return i;
     }
 
+    template<typename SortKeyFn>
+    bool sort(SortKeyFn key_fn) {
+        auto modified = false;
+        if (head_ == nullptr) {
+            return modified;
+        }
+
+        auto sorted = false;
+        auto l = head_;
+        auto r = (item_t *)nullptr;
+        do {
+            sorted = true;
+            l = head_;
+
+            while (l->np != r) {
+                auto lkey = key_fn(l->item);
+                auto rkey = key_fn(l->np->item);
+
+                if (lkey > rkey) {
+                    auto temp = l->item;
+                    l->item = l->np->item;
+                    l->np->item = temp;
+                    sorted = false;
+                    modified = true;
+                }
+
+                l = l->np;
+            }
+
+            r = l;
+        }
+        while (!sorted);
+
+        return modified;
+    }
+
 private:
     void append(item_t *node) {
         if (head_ != nullptr) {

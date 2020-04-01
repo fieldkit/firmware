@@ -46,7 +46,7 @@ ModuleConfiguration WeatherModule::get_configuration(Pool &pool) {
     #if defined(FK_WEATHER_JOURNALED)
     return { "modules.weather", ModulePower::Always, 60 };
     #else
-    return { "modules.weather", ModulePower::Always, 0 };
+    return { "modules.weather" };
     #endif
 }
 

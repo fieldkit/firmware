@@ -136,6 +136,16 @@ enum class ModulePower {
 };
 
 /**
+** Value for module ordering and ranking.
+ */
+using ModuleOrder = uint16_t;
+
+/**
+ * Default module order, right smack in the middle.
+ */
+constexpr ModuleOrder DefaultModuleOrder = UINT16_MAX / 2;
+
+/**
  * Configuration information a module can provide to the OS.
  */
 typedef struct ModuleConfiguration {
@@ -153,6 +163,14 @@ typedef struct ModuleConfiguration {
      * How often the module needs to be serviced.
      */
     uint32_t service_interval{ 0 };
+
+    /**
+     * Preferred module servicing order. This is mostly a hint to the
+     * core when to service this module. Most modules will have an
+     * average order that effectively means they'll be serviced in
+     * physical module order.
+     */
+    ModuleOrder service_order{ DefaultModuleOrder };
 
     /**
      * Shortest interval between readings.
@@ -174,7 +192,19 @@ typedef struct ModuleConfiguration {
     /**
      * Constructor
      */
+    ModuleConfiguration(const char *display_name_key, ModuleOrder order) : display_name_key(display_name_key), service_order(order) {
+    }
+
+    /**
+     * Constructor
+     */
     ModuleConfiguration(const char *display_name_key, ModulePower power, uint32_t service_interval) : display_name_key(display_name_key), power(power), service_interval(service_interval) {
+    }
+
+    /**
+     * Constructor
+     */
+    ModuleConfiguration(const char *display_name_key, ModulePower power, uint32_t service_interval, ModuleOrder order) : display_name_key(display_name_key), power(power), service_interval(service_interval), service_order(order) {
     }
 } ModuleConfiguration;
 

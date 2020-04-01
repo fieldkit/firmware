@@ -129,7 +129,13 @@ const char *WaterModule::get_display_name_key() {
 }
 
 ModuleConfiguration WaterModule::get_configuration(Pool &pool) {
-    return { get_display_name_key() };
+    // Make sure temperature is serviced before any of the other water modules.
+    switch (type_) {
+    case AtlasSensorType::Temp:
+        return { get_display_name_key(), DefaultModuleOrder - 1 };
+    default:
+        return { get_display_name_key() };
+    }
 }
 
 ModuleReadings *WaterModule::take_readings(ModuleContext mc, Pool &pool) {

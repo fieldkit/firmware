@@ -92,7 +92,15 @@ bool ModuleFactory::initialize(ScanningContext &ctx, Pool &pool) {
         }
     }
 
+    sort_modules();
+
     return success;
+}
+
+void ModuleFactory::sort_modules() {
+    modules_.sort([=](ConstructedModule constructed) -> ModuleOrder {
+        return constructed.configuration.service_order;
+    });
 }
 
 bool ModuleFactory::service(ScanningContext &ctx, Pool &pool) {

@@ -61,6 +61,8 @@ private:
 
     tl::expected<ConstructedModulesCollection, Error> resolve(FoundModuleCollection &module_headers, Pool &pool);
 
+    void sort_modules();
+
 };
 
 ModuleFactory &get_module_factory();
