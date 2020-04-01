@@ -3,6 +3,7 @@
 #include <fk-data-protocol.h>
 
 #include "state.h"
+#include "modules/bridge/contexts.h"
 
 namespace fk {
 

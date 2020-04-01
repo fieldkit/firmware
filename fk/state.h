@@ -1,14 +1,15 @@
 #pragma once
 
 #include <lwcron/lwcron.h>
+#include <fk-app-protocol.h>
 
 #include "common.h"
 #include "config.h"
 #include "pool.h"
 #include "collections.h"
-#include "modules/module_factory.h"
-#include "modules/shared/uuid.h"
 #include "platform.h"
+
+#include "modules/bridge/data.h"
 
 namespace fk {
 
@@ -33,17 +34,6 @@ public:
     SensorState *sensors;
     size_t nsensors;
 };
-
-struct ModuleMetaAndReadings {
-    uint16_t position;
-    fk_uuid_t *id;
-    ModuleMetadata const *meta;
-    ModuleSensors const *sensors;
-    ModuleReadings const *readings;
-    ModuleConfiguration configuration;
-};
-
-using ModuleReadingsCollection = collection<ModuleMetaAndReadings>;
 
 struct TakenReadings {
     uint32_t time;

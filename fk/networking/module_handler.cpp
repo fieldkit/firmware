@@ -1,5 +1,6 @@
 #include "networking/module_handler.h"
 #include "state_ref.h"
+#include "modules/module_factory.h"
 
 namespace fk {
 

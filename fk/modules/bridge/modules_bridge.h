@@ -7,67 +7,14 @@
 
 #include "networking/http_connection.h"
 
+#include "modules/bridge/data.h"
+#include "modules/bridge/contexts.h"
+
 namespace fk {
 
 class GlobalState;
 class ModuleContext;
 class HttpServerConnection;
-
-enum class ModuleStatus {
-    Unknown = 0,
-    Empty,
-    Found,
-    Ok,
-    Warning,
-    Fatal
-};
-
-class ScanningContext {
-private:
-    ModMux *mm_;
-    GlobalState const *gs_;
-    TwoWireWrapper *module_bus_{ nullptr };
-
-public:
-    ScanningContext(ModMux *mm, GlobalState const *gs, TwoWireWrapper &module_bus);
-    virtual ~ScanningContext();
-    friend class ModuleContext;
-
-public:
-    ModuleContext module(int32_t position);
-
-public:
-    GlobalState const *gs();
-
-};
-
-class ModuleContext {
-private:
-    ModMux *mm_;
-    GlobalState const *gs_;
-    TwoWireWrapper *module_bus_{ nullptr };
-    int32_t position_{ -1 };
-
-public:
-    ModuleContext(ScanningContext &from, int32_t position);
-    virtual ~ModuleContext();
-
-public:
-    bool open();
-    GlobalState const *gs();
-    TwoWireWrapper &module_bus();
-    bool power_cycle();
-    uint32_t now() const;
-
-};
-
-class ModuleReadings {
-public:
-    virtual size_t size() const = 0;
-    virtual void set(int32_t i, float value) = 0;
-    virtual float get(int32_t i) const = 0;
-    virtual ModuleReadings *clone(Pool &pool) const = 0;
-};
 
 template<size_t N>
 class NModuleReadings : public ModuleReadings {
@@ -111,109 +58,17 @@ public:
 };
 
 /**
- * Metadata for a particular sensor.
+ * Generic return value for Module bridge calls.
  */
-typedef struct SensorMetadata {
-    const char *name;
-    const char *unitOfMeasure;
-    uint32_t flags;
-} SensorMetadata;
-
-/**
- * Information on all the sensors attached to a module.
- */
-typedef struct ModuleSensors {
-    size_t nsensors;
-    SensorMetadata const *sensors;
-} ModuleSensors;
-
-/**
- * Describes the power needs for a Module.
- */
-enum class ModulePower {
-    ReadingsOnly,
-    Always,
-};
-
-/**
-** Value for module ordering and ranking.
- */
-using ModuleOrder = uint16_t;
-
-/**
- * Default module order, right smack in the middle.
- */
-constexpr ModuleOrder DefaultModuleOrder = UINT16_MAX / 2;
-
-/**
- * Configuration information a module can provide to the OS.
- */
-typedef struct ModuleConfiguration {
-    /**
-     * Localization key to use to display the module's name.
-     */
-    const char *display_name_key{ "modules.unknown" };
-
-    /**
-     * Power needs for the module.
-     */
-    ModulePower power{ ModulePower::ReadingsOnly };
-
-    /**
-     * How often the module needs to be serviced.
-     */
-    uint32_t service_interval{ 0 };
-
-    /**
-     * Preferred module servicing order. This is mostly a hint to the
-     * core when to service this module. Most modules will have an
-     * average order that effectively means they'll be serviced in
-     * physical module order.
-     */
-    ModuleOrder service_order{ DefaultModuleOrder };
-
-    /**
-     * Shortest interval between readings.
-     */
-    uint32_t minimum_readings_interval{ 0 };
-
-    /**
-     * Constructor
-     */
-    ModuleConfiguration() {
-    }
-
-    /**
-     * Constructor
-     */
-    ModuleConfiguration(const char *display_name_key) : display_name_key(display_name_key) {
-    }
-
-    /**
-     * Constructor
-     */
-    ModuleConfiguration(const char *display_name_key, ModuleOrder order) : display_name_key(display_name_key), service_order(order) {
-    }
-
-    /**
-     * Constructor
-     */
-    ModuleConfiguration(const char *display_name_key, ModulePower power, uint32_t service_interval) : display_name_key(display_name_key), power(power), service_interval(service_interval) {
-    }
-
-    /**
-     * Constructor
-     */
-    ModuleConfiguration(const char *display_name_key, ModulePower power, uint32_t service_interval, ModuleOrder order) : display_name_key(display_name_key), power(power), service_interval(service_interval), service_order(order) {
-    }
-} ModuleConfiguration;
-
 struct ModuleReturn {
     ModuleStatus status;
 
     ModuleReturn(ModuleStatus status) : status(status) {
     }
 
+    /**
+     * Returns true if the Module is A-ok
+     */
     operator bool() const {
         return status == ModuleStatus::Ok;
     }
@@ -236,23 +91,6 @@ public:
     virtual ModuleReturn api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) = 0;
 
 };
-
-/**
- * Callback function that creates an instance of a Module.
- */
-typedef Module*(*fk_module_create_fn_t)(Pool &pool);
-
-/**
- * Metadata for a particular module. This is stored in a registry.
- */
-typedef struct ModuleMetadata {
-    uint32_t manufacturer;
-    uint32_t kind;
-    uint32_t version;
-    const char *name;
-    uint32_t flags;
-    fk_module_create_fn_t ctor;
-} ModuleMetadata;
 
 #ifdef __cplusplus
 extern "C" {

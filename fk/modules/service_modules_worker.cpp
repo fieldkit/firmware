@@ -2,6 +2,7 @@
 #include "hal/hal.h"
 #include "readings_taker.h"
 #include "state_manager.h"
+#include "modules/module_factory.h"
 
 namespace fk {
 

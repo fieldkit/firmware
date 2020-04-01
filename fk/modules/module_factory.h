@@ -9,16 +9,6 @@
 
 namespace fk {
 
-struct ConstructedModule {
-    FoundModule found;
-    ModuleMetadata const *meta;
-    Module *module;
-    ModuleStatus status;
-    ModuleConfiguration configuration;
-};
-
-using ConstructedModulesCollection = collection<ConstructedModule>;
-
 class ModuleFactory {
 private:
     StandardPool pool_{ "module-factory" };

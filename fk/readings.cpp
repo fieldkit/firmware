@@ -2,6 +2,7 @@
 #include "clock.h"
 #include "records.h"
 #include "platform.h"
+#include "modules/bridge/modules.h"
 
 namespace fk {
 
@@ -70,9 +71,9 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(
 
         auto sensor_metas = module->get_sensors(pool);
         auto sensor_values = pool.malloc<fk_data_SensorAndValue>(readings->size());
-        for (uint32_t i = 0; i < readings->size(); ++i) {
+        for (auto i = 0u; i < readings->size(); ++i) {
             auto value = readings->get(i);
-            loginfo("[%2" PRIu32 "] '%s.%s' = %f", i, meta->name, sensor_metas->sensors[i].name, value);
+            loginfo("[%2d] '%s.%s' = %f", i, meta->name, sensor_metas->sensors[i].name, value);
             sensor_values[i] = { i, value };
         }
 

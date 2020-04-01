@@ -7,6 +7,7 @@
 #include "modules/bridge/modules.h"
 #include "modules/scanning.h"
 #include "modules/configure.h"
+#include "modules/module_factory.h"
 
 namespace fk {
 

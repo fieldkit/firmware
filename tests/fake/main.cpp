@@ -13,6 +13,8 @@
 #include "protobuf.h"
 
 #include "modules/registry.h"
+#include "modules/module_factory.h"
+
 #include "readings_taker.h"
 #include "test_modules.h"
 #include "state_ref.h"
