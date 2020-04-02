@@ -8,6 +8,7 @@
 namespace fk {
 
 class ModuleContext;
+class ReadingsContext;
 
 class ScanningContext {
 private:
@@ -17,11 +18,11 @@ private:
 
 public:
     ScanningContext(ModMux *mm, GlobalState const *gs, TwoWireWrapper &module_bus, Pool &pool);
-    virtual ~ScanningContext();
     friend class ModuleContext;
 
 public:
     ModuleContext module(int32_t position, Pool &pool);
+    ReadingsContext readings(int32_t position, ModuleReadingsCollection &readings, Pool &pool);
 
 public:
     GlobalState const *gs();
@@ -37,7 +38,6 @@ private:
 
 public:
     ModuleContext(ScanningContext &from, int32_t position, Pool &pool);
-    virtual ~ModuleContext();
 
 public:
     bool open();
@@ -45,6 +45,20 @@ public:
     TwoWireWrapper &module_bus();
     bool power_cycle();
     uint32_t now() const;
+
+};
+
+class ReadingsContext : public ModuleContext {
+private:
+    ModuleReadingsCollection &readings_;
+
+public:
+    ReadingsContext(ScanningContext &from, int32_t position, ModuleReadingsCollection &readings, Pool &pool);
+
+public:
+    ModuleReadingsCollection &readings() {
+        return readings_;
+    }
 
 };
 

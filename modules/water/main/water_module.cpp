@@ -138,7 +138,7 @@ ModuleConfiguration WaterModule::get_configuration(Pool &pool) {
     }
 }
 
-ModuleReadings *WaterModule::take_readings(ModuleContext mc, Pool &pool) {
+ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
     if (type_ == AtlasSensorType::Unknown) {
         return nullptr;
     }

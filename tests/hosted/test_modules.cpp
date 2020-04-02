@@ -32,7 +32,7 @@ public:
         return { "modules.fake.empty" };
     }
 
-    ModuleReadings *take_readings(ModuleContext mc, Pool &pool) override {
+    ModuleReadings *take_readings(ReadingsContext mc, Pool &pool) override {
         return nullptr;
     }
 };
@@ -83,7 +83,7 @@ public:
         return { "modules.fake.1" };
     }
 
-    ModuleReadings *take_readings(ModuleContext mc, Pool &pool) override {
+    ModuleReadings *take_readings(ReadingsContext mc, Pool &pool) override {
         auto mr = new(pool) NModuleReadings<1>();
         mr->set(0, (float)fk_random_i32(20, 100));
         return mr;
@@ -143,7 +143,7 @@ public:
         return { "modules.fake.2" };
     }
 
-    ModuleReadings *take_readings(ModuleContext mc, Pool &pool) override {
+    ModuleReadings *take_readings(ReadingsContext mc, Pool &pool) override {
         auto mr = new(pool) NModuleReadings<10>();
         for (size_t i = 0; i < mr->size(); i++) {
             mr->set(i, (float)fk_random_i32(20, 100));

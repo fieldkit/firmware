@@ -60,7 +60,7 @@ ModuleConfiguration DistanceModule::get_configuration(Pool &pool) {
     return { "modules.distance" };
 }
 
-ModuleReadings *DistanceModule::take_readings(ModuleContext mc, Pool &pool) {
+ModuleReadings *DistanceModule::take_readings(ReadingsContext mc, Pool &pool) {
     auto mr = new(pool) NModuleReadings<4>();
     auto nreadings = 0u;
 

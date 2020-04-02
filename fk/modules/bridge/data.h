@@ -4,7 +4,6 @@
 #include "collections.h"
 #include "modules/bridge/meta.h"
 #include "modules/shared/uuid.h"
-
 #include "modules/scanning.h"
 
 namespace fk {

@@ -43,7 +43,7 @@ ModuleConfiguration RandomModule::get_configuration(Pool &pool) {
     return { "modules.random" };
 }
 
-ModuleReadings *RandomModule::take_readings(ModuleContext mc, Pool &pool) {
+ModuleReadings *RandomModule::take_readings(ReadingsContext mc, Pool &pool) {
     #if defined(FK_MODULE_RANDOM_FIXED)
     auto nreadings = 10;
     #else

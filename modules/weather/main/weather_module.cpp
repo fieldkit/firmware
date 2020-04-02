@@ -64,7 +64,7 @@ ModuleReturn WeatherModule::service(ModuleContext mc, Pool &pool) {
     return delegate_.service(mc, pool);
 }
 
-ModuleReadings *WeatherModule::take_readings(ModuleContext mc, Pool &pool) {
+ModuleReadings *WeatherModule::take_readings(ReadingsContext mc, Pool &pool) {
     return delegate_.take_readings(mc, pool);
 }
 

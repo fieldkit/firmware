@@ -44,7 +44,7 @@ ModuleConfiguration DiagnosticsModule::get_configuration(Pool &pool) {
     return { "modules.diagnostics" };
 }
 
-ModuleReadings *DiagnosticsModule::take_readings(ModuleContext mc, Pool &pool) {
+ModuleReadings *DiagnosticsModule::take_readings(ReadingsContext mc, Pool &pool) {
     CoreTemperature core_temperature_sensor{ get_board()->i2c_core() };
 
     auto spmi = fk_standard_page_meminfo();

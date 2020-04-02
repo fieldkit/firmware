@@ -6,9 +6,6 @@ namespace fk {
 ScanningContext::ScanningContext(ModMux *mm, GlobalState const *gs, TwoWireWrapper &module_bus, Pool &pool) : mm_(mm), gs_(gs), module_bus_(&module_bus) {
 }
 
-ScanningContext::~ScanningContext() {
-}
-
 GlobalState const *ScanningContext::gs() {
     return gs_;
 }
@@ -17,10 +14,11 @@ ModuleContext ScanningContext::module(int32_t position, Pool &pool) {
     return { *this, position, pool };
 }
 
-ModuleContext::ModuleContext(ScanningContext &from, int32_t position, Pool &pool) : mm_(from.mm_), gs_(from.gs_), module_bus_(from.module_bus_), position_(position) {
+ReadingsContext ScanningContext::readings(int32_t position, ModuleReadingsCollection &readings, Pool &pool) {
+    return { *this, position, readings, pool };
 }
 
-ModuleContext::~ModuleContext() {
+ModuleContext::ModuleContext(ScanningContext &from, int32_t position, Pool &pool) : mm_(from.mm_), gs_(from.gs_), module_bus_(from.module_bus_), position_(position) {
 }
 
 bool ModuleContext::open() {
@@ -41,6 +39,9 @@ bool ModuleContext::power_cycle() {
 
 uint32_t ModuleContext::now() const {
     return get_clock_now();
+}
+
+ReadingsContext::ReadingsContext(ScanningContext &from, int32_t position, ModuleReadingsCollection &readings, Pool &pool) : ModuleContext(from, position, pool), readings_(readings) {
 }
 
 }
