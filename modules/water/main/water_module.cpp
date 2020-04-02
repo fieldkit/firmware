@@ -149,6 +149,15 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
         return nullptr;
     }
 
+    auto water_temperature = get_water_temperature(mc);
+    if (water_temperature) {
+        if (!atlas.compensate(*water_temperature)) {
+            logerror("compensate failed");
+        }
+    } else {
+        logdebug("no compensating, missing water temperature");
+    }
+
     size_t number_of_values = 0;
     float values[ATLAS_MAXIMUM_VALUES];
     if (!atlas.read(values, number_of_values)) {
@@ -174,6 +183,17 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
     }
 
     return mr;
+}
+
+optional<float> WaterModule::get_water_temperature(ReadingsContext mc) {
+    for (auto &r : mc.readings()) {
+        if (r.meta->manufacturer == FK_MODULES_MANUFACTURER && r.meta->kind == FK_MODULES_KIND_WATER_TEMP) {
+            if (r.readings->size() == 1) {
+                return { r.readings->get(0) };
+            }
+        }
+    }
+    return nullopt;
 }
 
 } // namespace fk

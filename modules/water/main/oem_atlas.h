@@ -40,6 +40,7 @@ public:
     bool hibernate();
     bool has_reading(uint8_t &has_reading);
     bool leds(bool on);
+    bool compensate(float water_temperature);
     bool read(float *values, size_t &number_of_values);
     const char *name() const;
     AtlasSensorType type() const;

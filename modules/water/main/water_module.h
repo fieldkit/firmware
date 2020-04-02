@@ -23,6 +23,7 @@ public:
 
 private:
     const char *get_display_name_key();
+    optional<float> get_water_temperature(ReadingsContext mc);
 
 };
 
