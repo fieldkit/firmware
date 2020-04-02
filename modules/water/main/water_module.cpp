@@ -149,13 +149,16 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
         return nullptr;
     }
 
-    auto water_temperature = get_water_temperature(mc);
-    if (water_temperature) {
-        if (!atlas.compensate(*water_temperature)) {
-            logerror("compensate failed");
-        }
-    } else {
-        logdebug("no compensating, missing water temperature");
+    auto temperature = get_temperature(mc);
+    auto salinity = get_salinity(mc);
+    auto pressure = get_pressure(mc);
+    auto compensations = Compensation{
+        .temperature = temperature,
+        .salinity = salinity,
+        .pressure = pressure,
+    };
+    if (!atlas.compensate(compensations)) {
+        logerror("compensate failed");
     }
 
     size_t number_of_values = 0;
@@ -185,7 +188,7 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
     return mr;
 }
 
-optional<float> WaterModule::get_water_temperature(ReadingsContext mc) {
+optional<float> WaterModule::get_temperature(ReadingsContext mc) {
     for (auto &r : mc.readings()) {
         if (r.meta->manufacturer == FK_MODULES_MANUFACTURER && r.meta->kind == FK_MODULES_KIND_WATER_TEMP) {
             if (r.readings->size() == 1) {
@@ -193,6 +196,21 @@ optional<float> WaterModule::get_water_temperature(ReadingsContext mc) {
             }
         }
     }
+    return nullopt;
+}
+
+optional<float> WaterModule::get_salinity(ReadingsContext mc) {
+    for (auto &r : mc.readings()) {
+        if (r.meta->manufacturer == FK_MODULES_MANUFACTURER && r.meta->kind == FK_MODULES_KIND_WATER_EC) {
+            if (r.readings->size() == 3) {
+                return { r.readings->get(2) };
+            }
+        }
+    }
+    return nullopt;
+}
+
+optional<float> WaterModule::get_pressure(ReadingsContext mc) {
     return nullopt;
 }
 

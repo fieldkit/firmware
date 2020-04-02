@@ -23,7 +23,9 @@ public:
 
 private:
     const char *get_display_name_key();
-    optional<float> get_water_temperature(ReadingsContext mc);
+    optional<float> get_temperature(ReadingsContext mc);
+    optional<float> get_salinity(ReadingsContext mc);
+    optional<float> get_pressure(ReadingsContext mc);
 
 };
 

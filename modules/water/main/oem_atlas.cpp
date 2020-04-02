@@ -31,6 +31,10 @@ struct CalibrateValueConfig {
 struct CompensationConfig {
     uint8_t temp_reg;
     uint8_t temp_confirm_reg;
+    uint8_t salinity_reg;
+    uint8_t salinity_confirm_reg;
+    uint8_t pressure_reg;
+    uint8_t pressure_confirm_reg;
 };
 
 struct Config {
@@ -57,11 +61,11 @@ constexpr uint8_t AtlasLow = 0;
 
 Config config(AtlasSensorType type) {
     switch (type) {
-    case AtlasSensorType::Ec:   return { true, 0x18, 0x07, 0x06, 3, { 0x0E, 0x01 }, { 0x0F }, { 0x0A,  100.0f }, { 0x10, 0x14 },  100.0f, "ec" };
-    case AtlasSensorType::Ph:   return { true, 0x16, 0x07, 0x06, 1, { 0x0C, 0x01 }, { 0x0D }, { 0x08, 1000.0f }, { 0x0E, 0x12 }, 1000.0f, "ph" };
-    case AtlasSensorType::Do:   return { true, 0x22, 0x07, 0x06, 1, { 0x08, 0x01 }, { 0x09 }, { 0x00,    0.0f }, { 0x12, 0x1E },  100.0f, "do" };
-    case AtlasSensorType::Temp: return { true, 0x0E, 0x07, 0x06, 1, { 0x0C, 0x01 }, { 0x0D }, { 0x08, 1000.0f }, { 0x00, 0x00 }, 1000.0f, "temp" };
-    case AtlasSensorType::Orp:  return { true, 0x0E, 0x07, 0x06, 1, { 0x0C, 0x01 }, { 0x0D }, { 0x08,   10.0f }, { 0x00, 0x00 },   10.0f, "orp" };
+    case AtlasSensorType::Ec:   return { true, 0x18, 0x07, 0x06, 3, { 0x0E, 0x01 }, { 0x0F }, { 0x0A,  100.0f }, { 0x10, 0x14, 0x00, 0x00, 0x00, 0x00 },  100.0f, "ec" };
+    case AtlasSensorType::Ph:   return { true, 0x16, 0x07, 0x06, 1, { 0x0C, 0x01 }, { 0x0D }, { 0x08, 1000.0f }, { 0x0E, 0x12, 0x00, 0x00, 0x00, 0x00 }, 1000.0f, "ph" };
+    case AtlasSensorType::Do:   return { true, 0x22, 0x07, 0x06, 1, { 0x08, 0x01 }, { 0x09 }, { 0x00,    0.0f }, { 0x12, 0x1E, 0x0A, 0x16, 0x0E, 0x1A },  100.0f, "do" };
+    case AtlasSensorType::Temp: return { true, 0x0E, 0x07, 0x06, 1, { 0x0C, 0x01 }, { 0x0D }, { 0x08, 1000.0f }, { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }, 1000.0f, "temp" };
+    case AtlasSensorType::Orp:  return { true, 0x0E, 0x07, 0x06, 1, { 0x0C, 0x01 }, { 0x0D }, { 0x08,   10.0f }, { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },   10.0f, "orp" };
     default: {
         break;
     }
@@ -133,16 +137,29 @@ bool OemAtlas::wake() {
     return I2C_CHECK(bus_->write_register_u8(address_, cfg.active_register, AtlasHigh));
 }
 
-bool OemAtlas::compensate(float water_temperature) {
+bool OemAtlas::compensate(Compensation compensation) {
     auto cfg = config(type_);
-    if (cfg.compensation.temp_reg == 0) {
-        return true;
+
+    if (cfg.compensation.temp_reg > 0 && compensation.temperature) {
+        compensate(cfg.compensation.temp_reg, *compensation.temperature);
     }
 
+    if (cfg.compensation.pressure_reg > 0 && compensation.pressure) {
+        compensate(cfg.compensation.pressure_reg, *compensation.pressure);
+    }
+
+    if (cfg.compensation.salinity_reg > 0 && compensation.salinity) {
+        compensate(cfg.compensation.salinity_reg, *compensation.salinity);
+    }
+
+    return true;
+}
+
+bool OemAtlas::compensate(uint8_t reg, float value) {
     dword_t data;
 
-    data.address = cfg.compensation.temp_reg;
-    data.value = __builtin_bswap32((uint32_t)(water_temperature * 100.0f));
+    data.address = reg;
+    data.value = __builtin_bswap32((uint32_t)(value * 100.0f));
 
     loginfo("compensate[0x%x]: 0x%" PRIx32, data.address, data.value);
 

@@ -21,6 +21,12 @@ struct CalibrationStatus {
     uint8_t value;
 };
 
+struct Compensation {
+    optional<float> temperature;
+    optional<float> salinity;
+    optional<float> pressure;
+};
+
 class OemAtlas {
 private:
     TwoWireWrapper *bus_;
@@ -40,7 +46,7 @@ public:
     bool hibernate();
     bool has_reading(uint8_t &has_reading);
     bool leds(bool on);
-    bool compensate(float water_temperature);
+    bool compensate(Compensation compensation);
     bool read(float *values, size_t &number_of_values);
     const char *name() const;
     AtlasSensorType type() const;
@@ -51,6 +57,9 @@ public:
     CalibrationStatus calibrate(uint8_t which, float reference);
     bool clear_calibration();
     bool finish_calibration();
+
+private:
+    bool compensate(uint8_t reg, float value);
 
 };
 
