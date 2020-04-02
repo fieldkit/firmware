@@ -52,7 +52,7 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(
             continue;
         }
 
-        auto mc = ctx.module(i);
+        auto mc = ctx.module(i, pool);
 
         if (!mc.open()) {
             logerror("[%d] error choosing module", i);

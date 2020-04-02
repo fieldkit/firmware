@@ -214,7 +214,7 @@ TEST_F(ProtoBufSizeSuite, Readings) {
     fake_global_state(gs, pool_);
 
     TwoWireWrapper module_bus{ "modules", nullptr };
-    ScanningContext ctx{ get_modmux(), &gs, module_bus };
+    ScanningContext ctx{ get_modmux(), &gs, module_bus, pool_ };
     ConstructedModulesCollection resolved(pool_);
     fake_modules(resolved, pool_);
 

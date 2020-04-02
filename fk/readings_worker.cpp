@@ -148,7 +148,7 @@ tl::expected<TakenReadings, Error> ReadingsWorker::take_readings(Pool &pool) {
 
     get_modmux()->check_modules();
 
-    ScanningContext ctx{ mm, gs.get(), module_bus };
+    ScanningContext ctx{ mm, gs.get(), module_bus, pool };
     StatisticsMemory memory{ MemoryFactory::get_data_memory() };
     Storage storage{ &memory, pool, read_only_ };
     if (!read_only_ && !storage.begin()) {

@@ -69,7 +69,7 @@ bool ModuleFactory::initialize(ScanningContext &ctx, Pool &pool) {
         auto mod = constructed.module;
         if (mod != nullptr) {
             if (constructed.status == ModuleStatus::Found) {
-                auto mc = ctx.module(constructed.found.position);
+                auto mc = ctx.module(constructed.found.position, pool);
                 if (!mc.open()) {
                     logerror("error opening module");
                     return false;
@@ -111,7 +111,7 @@ bool ModuleFactory::service(ScanningContext &ctx, Pool &pool) {
         if (mod != nullptr) {
             auto config = mod->get_configuration(pool);
             if (config.service_interval > 0) {
-                auto mc = ctx.module(constructed.found.position);
+                auto mc = ctx.module(constructed.found.position, pool);
                 if (!mc.open()) {
                     logerror("error opening module");
                     return false;

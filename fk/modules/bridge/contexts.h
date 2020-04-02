@@ -16,12 +16,12 @@ private:
     TwoWireWrapper *module_bus_{ nullptr };
 
 public:
-    ScanningContext(ModMux *mm, GlobalState const *gs, TwoWireWrapper &module_bus);
+    ScanningContext(ModMux *mm, GlobalState const *gs, TwoWireWrapper &module_bus, Pool &pool);
     virtual ~ScanningContext();
     friend class ModuleContext;
 
 public:
-    ModuleContext module(int32_t position);
+    ModuleContext module(int32_t position, Pool &pool);
 
 public:
     GlobalState const *gs();
@@ -36,7 +36,7 @@ private:
     int32_t position_{ -1 };
 
 public:
-    ModuleContext(ScanningContext &from, int32_t position);
+    ModuleContext(ScanningContext &from, int32_t position, Pool &pool);
     virtual ~ModuleContext();
 
 public:

@@ -144,6 +144,9 @@ info:
     cat $$m | c++filt > $$m.cpp;                                                               \
 	done
 
+debug-tests: amd64
+	gdb build/amd64/tests/hosted/testall
+
 clean:
 	rm -rf $(BUILD)
 

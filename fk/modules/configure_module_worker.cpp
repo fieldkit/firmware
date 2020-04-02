@@ -36,7 +36,7 @@ bool ConfigureModuleWorker::configure(Pool &pool) {
     auto module_bus = get_board()->i2c_module();
     auto gs = get_global_state_rw();
 
-    ScanningContext ctx{ get_modmux(), gs.get(), module_bus };
+    ScanningContext ctx{ get_modmux(), gs.get(), module_bus, pool };
     ModuleScanning scanning{ get_modmux() };
     ModuleConfigurer configurer{ scanning };
 
@@ -60,7 +60,7 @@ bool ConfigureModuleWorker::scan(Pool &pool) {
 
     loginfo("scanning modules");
 
-    ScanningContext ctx{ mm, gs.get(), module_bus };
+    ScanningContext ctx{ mm, gs.get(), module_bus, pool };
     ModuleScanning scanning{ get_modmux() };
 
     auto &factory = get_module_factory();

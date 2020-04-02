@@ -60,7 +60,7 @@ TEST_F(ReadingsSuite, TakingReadingsNoModules) {
     StaticPool<1024> pool{ "readings" };
     GlobalState gs;
     TwoWireWrapper module_bus{ "modules", nullptr };
-    ScanningContext ctx{ get_modmux(), &gs, module_bus };
+    ScanningContext ctx{ get_modmux(), &gs, module_bus, pool_ };
     ConstructedModulesCollection resolved(pool);
 
     Readings readings{ get_modmux() };
@@ -76,7 +76,7 @@ TEST_F(ReadingsSuite, TakingReadingsModuleWithNoReadings) {
     StaticPool<1024> pool{ "readings" };
     GlobalState gs;
     TwoWireWrapper module_bus{ "modules", nullptr };
-    ScanningContext ctx{ get_modmux(), &gs, module_bus };
+    ScanningContext ctx{ get_modmux(), &gs, module_bus, pool_ };
     ConstructedModulesCollection resolved(pool);
     resolved.emplace(ConstructedModule{
         .found = { },
@@ -97,7 +97,7 @@ TEST_F(ReadingsSuite, TakingReadingsOneModule) {
     StaticPool<1024> pool{ "readings" };
     GlobalState gs;
     TwoWireWrapper module_bus{ "modules", nullptr };
-    ScanningContext ctx{ get_modmux(), &gs, module_bus };
+    ScanningContext ctx{ get_modmux(), &gs, module_bus, pool_ };
     ConstructedModulesCollection resolved(pool);
     resolved.emplace(ConstructedModule{
         .found = { },
@@ -118,7 +118,7 @@ TEST_F(ReadingsSuite, TakingReadingsTwoModules) {
     StaticPool<1024> pool{ "readings" };
     GlobalState gs;
     TwoWireWrapper module_bus{ "modules", nullptr };
-    ScanningContext ctx{ get_modmux(), &gs, module_bus };
+    ScanningContext ctx{ get_modmux(), &gs, module_bus, pool_ };
     ConstructedModulesCollection resolved(pool);
     resolved.emplace(ConstructedModule{
         .found = { },
@@ -144,7 +144,7 @@ TEST_F(ReadingsSuite, TakingReadingsFourModulesEverythingWorks) {
     StandardPool pool{ "readings" };
     GlobalState gs;
     TwoWireWrapper module_bus{ "modules", nullptr };
-    ScanningContext ctx{ get_modmux(), &gs, module_bus };
+    ScanningContext ctx{ get_modmux(), &gs, module_bus, pool_ };
     ConstructedModulesCollection resolved(pool);
     resolved.emplace(ConstructedModule{
         .found = { },
@@ -182,7 +182,7 @@ TEST_F(ReadingsSuite, TakingReadingsFourModulesAndOneFailsToGetReadings) {
     StandardPool pool{ "readings" };
     GlobalState gs;
     TwoWireWrapper module_bus{ "modules", nullptr };
-    ScanningContext ctx{ get_modmux(), &gs, module_bus };
+    ScanningContext ctx{ get_modmux(), &gs, module_bus, pool_ };
     ConstructedModulesCollection resolved(pool);
     FakeModule *modules[] = {
         reinterpret_cast<FakeModule*>(fk_test_module_fake_1.ctor(pool)),

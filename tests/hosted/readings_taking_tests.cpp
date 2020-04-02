@@ -32,7 +32,7 @@ protected:
 TEST_F(ReadingsTakingSuite, WithNoModules) {
     GlobalState gs;
     TwoWireWrapper module_bus{ "modules", nullptr };
-    ScanningContext ctx{ get_modmux(), &gs, module_bus };
+    ScanningContext ctx{ get_modmux(), &gs, module_bus, pool_ };
     Storage storage{ memory_, pool_, false };
     FK_ASSERT(storage.clear());
 
@@ -50,7 +50,7 @@ TEST_F(ReadingsTakingSuite, WithNoModules) {
 TEST_F(ReadingsTakingSuite, BasicSingleModule) {
     GlobalState gs;
     TwoWireWrapper module_bus{ "modules", nullptr };
-    ScanningContext ctx{ get_modmux(), &gs, module_bus };
+    ScanningContext ctx{ get_modmux(), &gs, module_bus, pool_ };
     Storage storage{ memory_, pool_, false };
     FK_ASSERT(storage.clear());
 
@@ -76,7 +76,7 @@ TEST_F(ReadingsTakingSuite, BasicSingleModule) {
 TEST_F(ReadingsTakingSuite, BasicTwoModules) {
     GlobalState gs;
     TwoWireWrapper module_bus{ "modules", nullptr };
-    ScanningContext ctx{ get_modmux(), &gs, module_bus };
+    ScanningContext ctx{ get_modmux(), &gs, module_bus, pool_ };
     Storage storage{ memory_, pool_, false };
     FK_ASSERT(storage.clear());
 
@@ -110,7 +110,7 @@ TEST_F(ReadingsTakingSuite, BasicTwoModules) {
 TEST_F(ReadingsTakingSuite, AssignsRecordIndices) {
     GlobalState gs;
     TwoWireWrapper module_bus{ "modules", nullptr };
-    ScanningContext ctx{ get_modmux(), &gs, module_bus };
+    ScanningContext ctx{ get_modmux(), &gs, module_bus, pool_ };
     Storage storage{ memory_, pool_, false };
     FK_ASSERT(storage.clear());
 
