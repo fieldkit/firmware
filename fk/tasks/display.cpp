@@ -86,7 +86,8 @@ public:
     void show_message(const char *message) override {
         message_view.message(message);
         show_view(message_view);
-        view->tick(this);
+        StandardPool pool{ "display-frame" };
+        view->tick(this, pool);
     }
 
     void show_qr_code() override {
@@ -99,9 +100,7 @@ public:
 
     void on_external() override {
         show_qr_code();
-
-        auto worker = create_pool_worker<WifiToggleWorker>(WifiToggleWorker::DesiredState::Enabled);
-        get_ipc()->launch_worker(worker);
+        get_ipc()->launch_worker(create_pool_worker<WifiToggleWorker>(WifiToggleWorker::DesiredState::Enabled));
     }
 
     void run() {
@@ -112,11 +111,13 @@ public:
             logwarn("leds unavailable");
         }
 
+        StandardPool pool{ "display-frame" };
+
         while (!can_stop || fk_uptime() < stop_time) {
             if (!view->custom_leds()) {
                 leds.tick();
             }
-            view->tick(this);
+            view->tick(this, pool);
 
             Button *button = nullptr;
             if (get_ipc()->dequeue_button(&button)) {
@@ -151,6 +152,8 @@ public:
         }
 
         view->hide();
+
+        pool.clear();
     }
 
 };

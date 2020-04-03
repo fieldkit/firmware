@@ -2,6 +2,7 @@
 
 #include "common.h"
 #include "worker.h"
+#include "collections.h"
 
 namespace fk {
 
@@ -39,6 +40,10 @@ public:
 
     virtual bool signal_workers(WorkerCategory category, uint32_t signal) {
         return true;
+    }
+
+    virtual collection<TaskDisplayInfo> get_workers_display_info(Pool &pool) {
+        return { pool };
     }
 
 };

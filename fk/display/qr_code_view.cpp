@@ -20,7 +20,7 @@ void QrCodeView::show() {
     visible_ = false;
 }
 
-void QrCodeView::tick(ViewController *views) {
+void QrCodeView::tick(ViewController *views, Pool &pool) {
     if (visible_) {
         return;
     }

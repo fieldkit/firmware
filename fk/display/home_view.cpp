@@ -14,7 +14,7 @@ extern const struct fkb_header_t fkb_header;
 
 namespace fk {
 
-void HomeView::tick(ViewController *views) {
+void HomeView::tick(ViewController *views, Pool &pool) {
     auto bus = get_board()->i2c_core();
     auto display = get_display();
 

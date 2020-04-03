@@ -508,7 +508,7 @@ void MenuView::show_for_module(uint8_t bay) {
     show();
 }
 
-void MenuView::tick(ViewController *views) {
+void MenuView::tick(ViewController *views, Pool &pool) {
     auto bus = get_board()->i2c_core();
     auto display = get_display();
     display->menu(*active_menu_);

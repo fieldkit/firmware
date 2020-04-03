@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.h"
+#include "pool.h"
 
 namespace fk {
 
@@ -23,7 +24,7 @@ public:
 
 class DisplayView {
 public:
-    virtual void tick(ViewController *views) = 0;
+    virtual void tick(ViewController *views, Pool &pool) = 0;
 
 public:
     virtual void hide() {

@@ -21,8 +21,9 @@ os_queue_define(button_queue, 10, OS_QUEUE_FLAGS_NONE);
 os_queue_define(topology_queue, 10, OS_QUEUE_FLAGS_QUEUE_ONLY);
 
 MetalIPC::MetalIPC() {
-    for (size_t i = 0; i < NumberOfWorkerTasks; ++i) {
+    for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
         running_[i] = WorkerCategory::None;
+        workers_[i] = nullptr;
     }
 }
 
@@ -90,7 +91,7 @@ bool MetalIPC::can_launch(WorkerCategory category) {
         return true;
     }
 
-    for (size_t i = 0; i < NumberOfWorkerTasks; ++i) {
+    for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
         if (os_task_is_running(&worker_tasks[i])) {
             if (running_[i] == category) {
                 return false;
@@ -109,10 +110,11 @@ bool MetalIPC::launch_worker(WorkerCategory category, TaskWorker *worker) {
         return false;
     }
 
-    for (size_t i = 0; i < NumberOfWorkerTasks; ++i) {
+    for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
         if (!os_task_is_running(&worker_tasks[i])) {
             worker_tasks[i].name = worker->name();
             running_[i] = category;
+            workers_[i] = worker;
 
             auto priority = worker->priority();
             OS_CHECK(os_task_start_options(&worker_tasks[i], priority, worker));
@@ -130,7 +132,7 @@ bool MetalIPC::launch_worker(WorkerCategory category, TaskWorker *worker) {
 bool MetalIPC::signal_workers(WorkerCategory category, uint32_t signal) {
     logdebug("signaling workers (%" PRIu32 ")", signal);
 
-    for (size_t i = 0; i < NumberOfWorkerTasks; ++i) {
+    for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
         if (os_task_is_running(&worker_tasks[i])) {
             if (running_[i] == category) {
                 loginfo("signaling worker %zd (%" PRIu32 ")", i, signal);
@@ -140,6 +142,18 @@ bool MetalIPC::signal_workers(WorkerCategory category, uint32_t signal) {
     }
 
     return true;
+}
+
+collection<TaskDisplayInfo> MetalIPC::get_workers_display_info(Pool &pool) {
+    collection<TaskDisplayInfo> infos{ pool };
+
+    for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
+        if (os_task_is_running(&worker_tasks[i])) {
+            infos.emplace(workers_[i]->display_info());
+        }
+    }
+
+    return infos;
 }
 
 bool MetalMutex::create() {

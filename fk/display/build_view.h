@@ -17,7 +17,7 @@ private:
     char message_[MaximumBuildStringLength];
 
 public:
-    void tick(ViewController *views) override {
+    void tick(ViewController *views, Pool &pool) override {
         tiny_snprintf(message_, sizeof(message_), "Build #%" PRIu32, fkb_header.firmware.number);
         auto bus = get_board()->i2c_core();
         auto display = get_display();

@@ -8,7 +8,7 @@ namespace fk {
 
 FK_DECLARE_LOGGER("readings");
 
-void ReadingsView::tick(ViewController *views) {
+void ReadingsView::tick(ViewController *views, Pool &pool) {
     if (fk_uptime() < dirty_) {
         return;
     }

@@ -8,7 +8,7 @@
 
 namespace fk {
 
-void LoraView::tick(ViewController *views) {
+void LoraView::tick(ViewController *views, Pool &pool) {
     auto bus = get_board()->i2c_core();
     auto display = get_display();
 

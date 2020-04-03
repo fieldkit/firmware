@@ -11,7 +11,7 @@ private:
     char status_[64];
 
 public:
-    void tick(ViewController *views) override;
+    void tick(ViewController *views, Pool &pool) override;
     void hide() override;
 
 };

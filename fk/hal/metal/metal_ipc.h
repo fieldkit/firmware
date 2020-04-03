@@ -13,6 +13,7 @@ namespace fk {
 class MetalIPC : public IPC {
 private:
     WorkerCategory running_[NumberOfWorkerTasks];
+    TaskWorker *workers_[NumberOfWorkerTasks];
 
 public:
     MetalIPC();
@@ -29,7 +30,8 @@ public:
 
 public:
     bool launch_worker(WorkerCategory category, TaskWorker *worker) override;
-    bool signal_workers(WorkerCategory category, uint32_t signal);
+    bool signal_workers(WorkerCategory category, uint32_t signal) override;
+    collection<TaskDisplayInfo> get_workers_display_info(Pool &pool) override;
 
 private:
     bool can_launch(WorkerCategory category);

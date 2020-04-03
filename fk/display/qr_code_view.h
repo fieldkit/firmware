@@ -25,7 +25,7 @@ public:
 
 public:
     void show() override;
-    void tick(ViewController *views) override;
+    void tick(ViewController *views, Pool &pool) override;
 
 
 };
