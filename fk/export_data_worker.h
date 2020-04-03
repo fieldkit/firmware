@@ -6,6 +6,12 @@
 namespace fk {
 
 class ExportDataWorker : public Worker {
+private:
+    TaskDisplayInfo info_;
+
+public:
+    ExportDataWorker();
+
 public:
     void run(Pool &pool) override;
 
@@ -16,6 +22,10 @@ public:
 
     const char *name() const override {
         return "expdata";
+    }
+
+    TaskDisplayInfo display_info() const override {
+        return info_;
     }
 
 };

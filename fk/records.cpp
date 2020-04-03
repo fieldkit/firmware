@@ -9,7 +9,7 @@ static inline bool pb_data_network_info_item_decode(pb_istream_t *stream, pb_arr
     info.password.funcs.decode = pb_decode_string;
     info.password.arg = array->pool;
 
-    if (!pb_decode(stream, fk_app_NetworkInfo_fields, &info)) {
+    if (!pb_decode(stream, fk_data_NetworkInfo_fields, &info)) {
         return false;
     }
 
@@ -22,6 +22,55 @@ static inline bool pb_data_network_info_item_decode(pb_istream_t *stream, pb_arr
         memcpy(array->buffer, previous, ((array->length - 1) * array->itemSize));
     }
     memcpy(ptr, &info, array->itemSize);
+
+    return true;
+}
+
+static inline bool pb_app_sensor_and_value_item_decode(pb_istream_t *stream, pb_array_t *array) {
+    fk_data_SensorAndValue sensor_value = fk_data_SensorAndValue_init_default;
+
+    if (!pb_decode(stream, fk_data_SensorAndValue_fields, &sensor_value)) {
+        return false;
+    }
+
+    // TODO: Wasteful.
+    auto previous = (const void *)array->buffer;
+    array->length++;
+    array->buffer = array->pool->malloc(array->itemSize * array->length);
+    void *ptr = ((uint8_t *)array->buffer) + ((array->length - 1) * array->itemSize);
+    if (previous != nullptr) {
+        memcpy(array->buffer, previous, ((array->length - 1) * array->itemSize));
+    }
+    memcpy(ptr, &sensor_value, array->itemSize);
+
+    return true;
+}
+
+static inline bool pb_app_sensor_group_item_decode(pb_istream_t *stream, pb_array_t *array) {
+    fk_data_SensorGroup sensor_group = fk_data_SensorGroup_init_default;
+    sensor_group.readings.funcs.decode = pb_decode_array;
+    sensor_group.readings.arg = (void *)array->pool->malloc_with<pb_array_t>({
+        .length = 0,
+        .itemSize = sizeof(fk_data_SensorAndValue),
+        .buffer = nullptr,
+        .fields = fk_data_SensorAndValue_fields,
+        .decode_item_fn = pb_app_sensor_and_value_item_decode,
+        .pool = array->pool,
+    });
+
+    if (!pb_decode(stream, fk_data_SensorGroup_fields, &sensor_group)) {
+        return false;
+    }
+
+    // TODO: Wasteful.
+    auto previous = (const void *)array->buffer;
+    array->length++;
+    array->buffer = array->pool->malloc(array->itemSize * array->length);
+    void *ptr = ((uint8_t *)array->buffer) + ((array->length - 1) * array->itemSize);
+    if (previous != nullptr) {
+        memcpy(array->buffer, previous, ((array->length - 1) * array->itemSize));
+    }
+    memcpy(ptr, &sensor_group, array->itemSize);
 
     return true;
 }
@@ -50,6 +99,20 @@ static inline bool pb_app_network_info_item_decode(pb_istream_t *stream, pb_arra
     return true;
 }
 
+fk_data_DataRecord fk_data_record_decoding_readings_new(Pool &pool) {
+    fk_data_DataRecord record = fk_data_DataRecord_init_default;
+    record.readings.sensorGroups.funcs.decode = pb_decode_array;
+    record.readings.sensorGroups.arg = (void *)pool.malloc_with<pb_array_t>({
+        .length = 0,
+        .itemSize = sizeof(fk_data_SensorGroup),
+        .buffer = nullptr,
+        .fields = fk_data_SensorGroup_fields,
+        .decode_item_fn = pb_app_sensor_group_item_decode,
+        .pool = &pool,
+    });
+    return record;
+}
+
 fk_data_DataRecord fk_data_record_decoding_new(Pool &pool) {
     fk_data_DataRecord record = fk_data_DataRecord_init_default;
     record.metadata.firmware.version.funcs.decode = pb_decode_string;
@@ -66,8 +129,6 @@ fk_data_DataRecord fk_data_record_decoding_new(Pool &pool) {
     record.metadata.generation.arg = (void *)&pool;
     record.identity.name.funcs.decode = pb_decode_string;
     record.identity.name.arg = (void *)&pool;
-    record.readings.sensorGroups.funcs.decode = pb_decode_array;
-    record.readings.sensorGroups.arg = (void *)&pool;
     record.lora.appEui.funcs.decode = pb_decode_data;
     record.lora.appEui.arg = (void *)&pool;
     record.lora.appKey.funcs.decode = pb_decode_data;
