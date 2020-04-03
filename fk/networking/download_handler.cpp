@@ -91,11 +91,14 @@ void DownloadWorker::run(Pool &pool) {
     while (bytes_copied < info.size) {
         auto to_read = std::min<int32_t>(buffer_size, info.size - bytes_copied);
         auto bytes_read = file.read(buffer, to_read);
-        FK_ASSERT(bytes_read == to_read);
+        if (bytes_read != to_read) {
+            logerror("read error (%" PRId32 " != %" PRId32 ")", bytes_read, to_read);
+            break;
+        }
 
         auto wrote = connection_->write(buffer, to_read);
         if (wrote != (int32_t)to_read) {
-            logwarn("write error (%" PRId32 " != %" PRId32 ")", wrote, to_read);
+            logerror("write error (%" PRId32 " != %" PRId32 ")", wrote, to_read);
             break;
         }
 
