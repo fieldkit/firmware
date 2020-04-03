@@ -7,6 +7,7 @@
 #include "hal/sd_card.h"
 #include "utilities.h"
 #include "clock.h"
+#include "state_manager.h"
 
 namespace fk {
 
@@ -100,6 +101,9 @@ void DumpFlashMemoryWorker::run(Pool &pool) {
         logerror("error closing");
         return;
     }
+
+    GlobalStateManager gsm;
+    gsm.notify({ "flash copied" });
 }
 
 }
