@@ -8,6 +8,7 @@
 #include "simple_workers.h"
 #include "upgrade_from_sd_worker.h"
 #include "dump_flash_memory_worker.h"
+#include "export_data_worker.h"
 #include "compare_banks_worker.h"
 #include "lora_ranging_worker.h"
 
@@ -368,21 +369,13 @@ void MenuView::create_tools_menu() {
         get_display()->off();
         fk_restart();
     });
-
-    /*
-    auto tools_save_firmware_sd = to_lambda_option(pool_, "Firmware -> SD", [=]() {
+    auto tools_export_data = to_lambda_option(pool_, "Export CSV", [=]() {
         back_->on_selected();
         views_->show_home();
-        get_ipc()->launch_worker(create_pool_worker<UpgradeFirmwareFromSdWorker>(SdCardFirmwareOperation::Save));
+        get_ipc()->launch_worker(create_pool_worker<ExportDataWorker>());
     });
-    auto tools_compare_banks = to_lambda_option(pool_, "Compare Banks", [=]() {
-        back_->on_selected();
-        views_->show_home();
-        get_ipc()->launch_worker(create_pool_worker<CompareBanksWorker>());
-    });
-    */
 
-    tools_menu_ = new_menu_screen<10>(pool_, "tools", {
+    tools_menu_ = new_menu_screen<11>(pool_, "tools", {
         back_,
         tools_self_check,
         tools_lora_ranging,
@@ -391,10 +384,9 @@ void MenuView::create_tools_menu() {
         tools_dump_flash,
         tools_format_sd,
         tools_fsck,
+        tools_export_data,
         tools_factory_reset,
         tools_restart,
-        // tools_save_firmware_sd,
-        // tools_compare_banks,
     });
 }
 
