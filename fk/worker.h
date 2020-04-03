@@ -12,6 +12,7 @@ namespace fk {
 struct TaskDisplayInfo {
     const char *name;
     float progress;
+    bool visible;
 };
 
 class TaskWorker {
@@ -34,6 +35,7 @@ public:
         return {
             .name = name(),
             .progress = 0.0f,
+            .visible = true,
         };
     }
 
@@ -59,6 +61,7 @@ public:
         return {
             .name = name(),
             .progress = 0.0f,
+            .visible = true,
         };
     }
 
@@ -93,7 +96,6 @@ public:
         return &wrapped_;
     }
 
-
 public:
     void run() override {
         wrapped_.run(*pool_);
@@ -107,6 +109,11 @@ public:
     const char *name() const override {
         return wrapped_.name();
     }
+
+    TaskDisplayInfo display_info() const override {
+        return wrapped_.display_info();
+    }
+
 };
 
 template<typename Wrapped, class... Args>

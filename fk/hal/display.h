@@ -2,6 +2,7 @@
 
 #include "common.h"
 #include "pool.h"
+#include "config.h"
 
 namespace fk {
 
@@ -19,6 +20,12 @@ struct DisplayScreen {
 struct TaskProgress {
     const char *operation;
     float progress;
+};
+
+struct WorkerInfo {
+    const char *name;
+    float progress;
+    bool visible;
 };
 
 struct HomeScreen : public DisplayScreen {
@@ -44,6 +51,7 @@ struct HomeScreen : public DisplayScreen {
     const char *primary;
     const char *secondary;
     TaskProgress progress;
+    WorkerInfo workers[NumberOfWorkerTasks];
     uint32_t readings;
 };
 

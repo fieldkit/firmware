@@ -17,9 +17,9 @@ namespace fk {
 void HomeView::tick(ViewController *views, Pool &pool) {
     auto bus = get_board()->i2c_core();
     auto display = get_display();
-
     auto gs = get_global_state_ro();
     auto debug_mode = fk_debug_mode();
+    auto workers = get_ipc()->get_workers_display_info(pool);
 
     HomeScreen screen;
     screen.time = fk_uptime();
@@ -90,6 +90,18 @@ void HomeView::tick(ViewController *views, Pool &pool) {
         screen.primary = primary_;
         break;
     }
+    }
+
+    for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
+        screen.workers[i].visible = false;
+    }
+
+    auto index = 0u;
+    for (auto &info : workers) {
+        screen.workers[index].visible = info.visible;
+        screen.workers[index].name = info.name;
+        screen.workers[index].progress = info.progress;
+        index++;
     }
 
     display->home(screen);

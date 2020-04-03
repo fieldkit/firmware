@@ -253,16 +253,33 @@ void U8g2Display::home(HomeScreen const &data) {
 
     auto top = 18;
     auto max_h = 20;
+    auto rendered_workers = false;
     if (data.primary != nullptr && data.secondary != nullptr) {
         max_h = 16;
     }
-    if (data.primary != nullptr) {
-        draw_string_auto_sized(draw_, false, 0, top, OLED_WIDTH, max_h, data.primary);
-        top += max_h + 6;
-        max_h -= 2;
+
+    for (auto &info : data.workers) {
+        if (info.visible) {
+            draw_string_auto_sized(draw_, false, 0, top, OLED_WIDTH, max_h, info.name);
+            top += max_h + 6;
+            max_h -= 2;
+
+            auto width = (u8g2_uint_t)(OLED_WIDTH * info.progress);
+            draw_.drawHLine(0, top, width);
+
+            rendered_workers = true;
+        }
     }
-    if (data.secondary != nullptr) {
-        draw_string_auto_sized(draw_, false, 0, top, OLED_WIDTH, max_h, data.secondary);
+
+    if (!rendered_workers) {
+        if (data.primary != nullptr) {
+            draw_string_auto_sized(draw_, false, 0, top, OLED_WIDTH, max_h, data.primary);
+            top += max_h + 6;
+            max_h -= 2;
+        }
+        if (data.secondary != nullptr) {
+            draw_string_auto_sized(draw_, false, 0, top, OLED_WIDTH, max_h, data.secondary);
+        }
     }
 
     draw_.sendBuffer();
