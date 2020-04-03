@@ -16,7 +16,7 @@ public:
         return OS_PRIORITY_NORMAL;
     }
 
-    const char *name() override {
+    const char *name() const override {
         return "refmodules";
     }
 

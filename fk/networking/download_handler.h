@@ -18,7 +18,7 @@ public:
 
 };
 
-class DownloadWorker {
+class DownloadWorker : public Worker {
 private:
     HttpServerConnection *connection_;
     uint8_t file_number_;
@@ -27,13 +27,13 @@ public:
     DownloadWorker(HttpServerConnection *connection, uint8_t file_number);
 
 public:
-    void run(Pool &pool);
+    void run(Pool &pool) override;
 
-    uint8_t priority() const {
+    uint8_t priority() const override {
         return OS_PRIORITY_NORMAL + 1;
     }
 
-    const char *name() {
+    const char *name() const override {
         return "download";
     }
 

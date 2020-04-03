@@ -6,7 +6,7 @@
 
 namespace fk {
 
-class ReadingsWorker {
+class ReadingsWorker : public Worker {
 private:
     bool scan_;
     bool read_only_;
@@ -17,13 +17,13 @@ public:
     ReadingsWorker(bool scan, bool read_only);
 
 public:
-    void run(Pool &pool);
+    void run(Pool &pool) override;
 
-    uint8_t priority() const {
+    uint8_t priority() const  override{
         return OS_PRIORITY_NORMAL;
     }
 
-    const char *name() {
+    const char *name() const override{
         if (read_only_) {
             return "livedata";
         }

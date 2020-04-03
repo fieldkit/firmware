@@ -15,7 +15,7 @@ public:
 
 };
 
-class DownloadLogsWorker {
+class DownloadLogsWorker : public Worker {
 private:
     HttpServerConnection *connection_;
 
@@ -23,13 +23,13 @@ public:
     DownloadLogsWorker(HttpServerConnection *connection);
 
 public:
-    void run(Pool &pool);
+    void run(Pool &pool) override;
 
-    uint8_t priority() const {
+    uint8_t priority() const override {
         return OS_PRIORITY_NORMAL + 1;
     }
 
-    const char *name() {
+    const char *name() const override {
         return "sendlogs";
     }
 

@@ -6,18 +6,18 @@
 
 namespace fk {
 
-class ServiceModulesWorker {
+class ServiceModulesWorker : public Worker {
 public:
     ServiceModulesWorker();
 
 public:
-    void run(Pool &pool);
+    void run(Pool &pool) override;
 
-    uint8_t priority() const {
+    uint8_t priority() const override {
         return OS_PRIORITY_NORMAL;
     }
 
-    const char *name() {
+    const char *name() const override {
         return "modsvc";
     }
 

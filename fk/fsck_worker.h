@@ -12,7 +12,7 @@ public:
         return OS_PRIORITY_NORMAL + 1;
     }
 
-    const char *name() override {
+    const char *name() const override {
         return "fsck";
     }
 

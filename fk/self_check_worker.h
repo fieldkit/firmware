@@ -5,7 +5,7 @@
 
 namespace fk {
 
-class SelfCheckWorker {
+class SelfCheckWorker : public Worker {
 private:
     SelfCheckCallbacks *callbacks_;
 
@@ -13,20 +13,19 @@ public:
     SelfCheckWorker(SelfCheckCallbacks &callbacks);
 
 public:
-    void run(Pool &pool);
+    void run(Pool &pool) override;
 
-    uint8_t priority() const {
+    uint8_t priority() const override {
         return OS_PRIORITY_NORMAL;
     }
 
-    const char *name() {
+    const char *name() const override {
         return "self-check";
     }
 
 private:
     bool stop_network();
     void check();
-
 
 };
 

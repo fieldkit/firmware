@@ -5,7 +5,7 @@
 
 namespace fk {
 
-class UploadDataWorker {
+class UploadDataWorker : public Worker {
 private:
     bool all_meta_{ false };
     bool all_data_{ false };
@@ -15,14 +15,14 @@ public:
     UploadDataWorker(bool all_meta, bool all_data);
 
 public:
-    void run(Pool &pool);
+    void run(Pool &pool) override;
 
 public:
-    uint8_t priority() const {
+    uint8_t priority() const override {
         return OS_PRIORITY_NORMAL + 1;
     }
 
-    const char *name() {
+    const char *name() const override {
         return "upldata";
     }
 

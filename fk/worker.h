@@ -9,6 +9,11 @@
 
 namespace fk {
 
+struct TaskDisplayInfo {
+    const char *name;
+    float progress;
+};
+
 class TaskWorker {
 public:
     virtual ~TaskWorker() {
@@ -21,8 +26,15 @@ public:
         return OS_PRIORITY_NORMAL;
     }
 
-    virtual const char *name() {
+    virtual const char *name() const {
         return "worker";
+    }
+
+    virtual TaskDisplayInfo display_info() const {
+        return {
+            .name = name(),
+            .progress = 0.0f,
+        };
     }
 
 };
@@ -39,8 +51,15 @@ public:
         return OS_PRIORITY_NORMAL;
     }
 
-    virtual const char *name() {
+    virtual const char *name() const {
         return "worker";
+    }
+
+    virtual TaskDisplayInfo display_info() const {
+        return {
+            .name = name(),
+            .progress = 0.0f,
+        };
     }
 
 };
@@ -85,7 +104,7 @@ public:
         return wrapped_.priority();
     }
 
-    const char *name() override {
+    const char *name() const override {
         return wrapped_.name();
     }
 };
