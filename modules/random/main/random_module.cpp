@@ -47,7 +47,7 @@ ModuleReadings *RandomModule::take_readings(ReadingsContext mc, Pool &pool) {
     #if defined(FK_MODULE_RANDOM_FIXED)
     auto nreadings = 10;
     #else
-    auto nreadings = fk_random_i32(0, 10);
+    auto nreadings = fk_random_i32(1, 10);
     #endif
     auto mr = new(pool) NModuleReadings<10>(nreadings);
     for (auto i = 0; i < nreadings; i++) {

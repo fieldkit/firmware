@@ -62,7 +62,7 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(
         loginfo("'%s' mk=%02" PRIx32 "%02" PRIx32 " version=%" PRIu32, pair.configuration.display_name_key, meta->manufacturer, meta->kind, meta->version);
 
         auto readings = module->take_readings(mc, pool);
-        if (readings == nullptr) {
+        if (readings == nullptr || readings->size() == 0) {
             logwarn("'%s' no readings", meta->name);
             continue;
         }
