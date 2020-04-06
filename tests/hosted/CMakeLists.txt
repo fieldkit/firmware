@@ -50,7 +50,7 @@ set_target_properties(libgmock PROPERTIES
 include_directories("${source_dir}/googletest/include"
                     "${source_dir}/googlemock/include")
 
-file(GLOB_RECURSE fk_sources ../../fk/*.cpp ../../fk/*.c ../hosted/test_modules.cpp)
+file(GLOB_RECURSE fk_sources ../../fk/*.cpp ../../fk/*.c ../hosted/test_modules.cpp ../../modules/random/main/*.cpp)
 file(GLOB         fk_tasks ../../fk/tasks/tasks.cpp)
 
 list(FILTER fk_sources EXCLUDE REGEX ".*main.cpp$")
