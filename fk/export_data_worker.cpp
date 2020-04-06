@@ -11,16 +11,20 @@ namespace fk {
 
 FK_DECLARE_LOGGER("expdata");
 
-ExportDataWorker::ExportDataWorker() {
+ExportDataWorker::ExportDataWorker() : ExportDataWorker(MemoryFactory::get_data_memory()) {
+}
+
+ExportDataWorker::ExportDataWorker(DataMemory *data_memory) : data_memory_(data_memory) {
     info_ = { "CSV", 0.0f, true };
 }
 
 void ExportDataWorker::run(Pool &pool) {
     auto lock = storage_mutex.acquire(UINT32_MAX);
 
-    StatisticsMemory memory{ MemoryFactory::get_data_memory() };
+    StatisticsMemory memory{ data_memory_ };
     Storage storage{ &memory, pool };
     if (!storage.begin()) {
+        logerror("error opening storage");
         return;
     }
 
@@ -52,6 +56,10 @@ void ExportDataWorker::run(Pool &pool) {
     }
 
     auto total_bytes = reading.size();
+    if (total_bytes == 0) {
+        loginfo("no data");
+        return;
+    }
 
     if (!reading.seek_beginning()) {
         logerror("seek beginning failed");
@@ -74,7 +82,7 @@ void ExportDataWorker::run(Pool &pool) {
         bytes_read += record_read;
         nrecords++;
 
-        if (nrecords % 100 == 0) {
+        if (nrecords % 10 == 0) {
             auto sensor_groups_array = reinterpret_cast<pb_array_t*>(record.readings.sensorGroups.arg);
             auto sensor_groups = reinterpret_cast<fk_data_SensorGroup*>(sensor_groups_array->buffer);
 

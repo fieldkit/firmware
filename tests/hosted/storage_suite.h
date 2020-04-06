@@ -22,7 +22,7 @@ protected:
 protected:
     void SetUp() override {
         auto opaque = MemoryFactory::get_data_memory_banks();
-        for (size_t i = 0; i < MemoryFactory::NumberOfDataMemoryBanks; ++i) {
+        for (auto i = 0u; i < MemoryFactory::NumberOfDataMemoryBanks; ++i) {
             banks_[i] = reinterpret_cast<LinuxDataMemory*>(opaque[i]);
         }
 
@@ -34,7 +34,7 @@ protected:
         g_ = memory_->geometry();
         pool_.clear();
 
-        for (size_t i = 0; i < MemoryFactory::NumberOfDataMemoryBanks; ++i) {
+        for (auto i = 0u; i < MemoryFactory::NumberOfDataMemoryBanks; ++i) {
             banks_[i]->erase_all();
         }
     }
@@ -44,7 +44,7 @@ protected:
         auto reads = 0;
         auto writes = 0;
 
-        for (size_t i = 0; i < MemoryFactory::NumberOfDataMemoryBanks; ++i) {
+        for (auto i = 0u; i < MemoryFactory::NumberOfDataMemoryBanks; ++i) {
             auto &log = banks_[i]->log();
 
             erases += log.number_of(OperationType::EraseBlock);
@@ -77,7 +77,7 @@ protected:
     }
 
     void clear_logs() {
-        for (size_t i = 0; i < MemoryFactory::NumberOfDataMemoryBanks; ++i) {
+        for (auto i = 0u; i < MemoryFactory::NumberOfDataMemoryBanks; ++i) {
             auto &log = banks_[i]->log();
             log.clear();
         }

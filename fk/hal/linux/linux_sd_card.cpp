@@ -30,7 +30,7 @@ bool LinuxSdCard::is_directory(const char *path) {
 }
 
 bool LinuxSdCard::mkdir(const char *path) {
-    return false;
+    return true;
 }
 
 bool LinuxSdCard::unlink(const char *path) {

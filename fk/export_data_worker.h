@@ -7,10 +7,12 @@ namespace fk {
 
 class ExportDataWorker : public Worker {
 private:
+    DataMemory *data_memory_;
     TaskDisplayInfo info_;
 
 public:
     ExportDataWorker();
+    ExportDataWorker(DataMemory *data_memory);
 
 public:
     void run(Pool &pool) override;
