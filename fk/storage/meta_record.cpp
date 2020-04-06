@@ -10,6 +10,14 @@ static void copy_schedule(fk_data_JobSchedule &d, const Schedule &s, Pool &pool)
     d.jitter = s.jitter;
 }
 
+fk_data_DataRecord &MetaRecord::for_decoding(Pool &pool) {
+    return record_ = fk_data_record_decoding_new(pool);
+}
+
+fk_data_DataRecord const &MetaRecord::record() {
+    return record_;
+}
+
 void MetaRecord::include_state(GlobalState const *gs, fkb_header_t const *fkb_header, Pool &pool) {
     fk_serial_number_t sn;
 

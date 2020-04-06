@@ -302,7 +302,7 @@ bool StartupWorker::load_previous_location(Storage &storage, GlobalState *gs, Po
     }
 
     DataRecord record;
-    auto nread = data.read(&record.record(), fk_data_DataRecord_fields);
+    auto nread = data.read(&record.for_decoding(pool), fk_data_DataRecord_fields);
     if (nread <= 0) {
         return false;
     }
