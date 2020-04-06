@@ -28,13 +28,16 @@ protected:
 };
 
 TEST_F(ExportDataSuite, ExportingEmpty) {
+    ExportDataWorker worker{ memory_ };
+    worker.run(pool_);
+}
+
+TEST_F(ExportDataSuite, Exporting100) {
     DataWriter writer{ memory_ };
     for (auto i = 0u; i < 100u; ++i) {
         StandardPool loop_pool{ "loop" };
         ASSERT_TRUE(writer.write(loop_pool));
     }
-
-    enable_info();
 
     ExportDataWorker worker{ memory_ };
     worker.run(pool_);

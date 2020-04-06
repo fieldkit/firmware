@@ -1,11 +1,13 @@
 #include "export_data_worker.h"
+
 #include "hal/hal.h"
 #include "hal/memory.h"
 #include "hal/sd_card.h"
-#include "utilities.h"
+
 #include "clock.h"
-#include "state_manager.h"
 #include "records.h"
+
+#include "storage/signed_log.h"
 
 namespace fk {
 
@@ -48,8 +50,8 @@ void ExportDataWorker::run(Pool &pool) {
         return;
     }
 
+    auto meta_file = storage.file(Storage::Meta);
     auto reading = storage.file(Storage::Data);
-
     if (!reading.seek_end()) {
         logerror("seek end failed");
         return;
@@ -71,11 +73,16 @@ void ExportDataWorker::run(Pool &pool) {
     auto bytes_read = 0u;
     auto nrecords = 0u;
     while (bytes_read < total_bytes) {
-        auto record = fk_data_record_decoding_readings_new(loop_pool);
+        auto record = fk_data_record_decoding_new(loop_pool);
         auto record_read = reading.read(&record, fk_data_DataRecord_fields);
         if (record_read == 0) {
             loginfo("done");
             break;
+        }
+
+        if (!lookup_meta(record.readings.meta, meta_file, loop_pool)) {
+            logerror("error looking up meta (%" PRIu32 ")", record.readings.meta);
+            continue;
         }
 
         info_.progress = (float)bytes_read / total_bytes;
@@ -104,6 +111,31 @@ void ExportDataWorker::run(Pool &pool) {
         logerror("error closing");
         return;
     }
+}
+
+bool ExportDataWorker::lookup_meta(uint32_t meta_record_number, File &meta_file, Pool &pool) {
+    if (meta_record_number_ == meta_record_number) {
+        return true;
+    }
+
+    loginfo("reading meta %" PRIu32, meta_record_number);
+
+    if (!meta_file.seek(meta_record_number)) {
+        logerror("error seeking meta record");
+        return false;
+    }
+
+    meta_pool_.clear();
+
+    SignedRecordLog srl{ meta_file };
+    if (!srl.decode(&meta_record_.for_decoding(pool), fk_data_DataRecord_fields, meta_pool_)) {
+        logerror("error reading meta record");
+        return false;
+    }
+
+    meta_record_number_ = meta_record_number;
+
+    return true;
 }
 
 } // namespace fk
