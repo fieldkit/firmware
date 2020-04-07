@@ -158,4 +158,18 @@ void *operator new(size_t size, fk::Pool &pool);
  * because the compiler can't really tell which new or delete you're referring
  * to in all scenarios. Taking a Pool makes things safe, though.
  */
+void *operator new[](size_t size, fk::Pool &pool);
+
+/**
+ * New operator that allocates from a memory pool. Note that this is global
+ * because the compiler can't really tell which new or delete you're referring
+ * to in all scenarios. Taking a Pool makes things safe, though.
+ */
 void *operator new(size_t size, fk::Pool *pool);
+
+/**
+ * New operator that allocates from a memory pool. Note that this is global
+ * because the compiler can't really tell which new or delete you're referring
+ * to in all scenarios. Taking a Pool makes things safe, though.
+ */
+void *operator new[](size_t size, fk::Pool *pool);

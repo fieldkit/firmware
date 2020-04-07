@@ -53,7 +53,7 @@ public:
 public:
     class iterator {
     public:
-        iterator(item_t *iter): iter_(iter) {
+        iterator(item_t *iter) : iter_(iter) {
         }
 
     public:
@@ -166,4 +166,141 @@ private:
 
 };
 
-}
+template<typename K, size_t TableSize = 10>
+struct hash_key {
+    uint32_t operator()(K const &key) const {
+        return reinterpret_cast<uint32_t>(key) % TableSize;
+    }
+};
+
+template<typename K, typename V>
+class hash_node {
+private:
+    K key_;
+    V value_;
+    hash_node *np_;
+
+public:
+    hash_node(K const &key, V const &value) : key_(key), value_(value), np_(nullptr) {
+    }
+
+public:
+    K key() const {
+        return key_;
+    }
+
+    V value() const {
+        return value_;
+    }
+
+    void value(V value) {
+        value_ = value;
+    }
+
+    hash_node *np() const {
+        return np_;
+    }
+
+    void np(hash_node *np) {
+        np_ = np;
+    }
+};
+
+/**
+ * https://medium.com/@aozturk/simple-hash-map-hash-table-implementation-in-c-931965904250
+ */
+template<typename K, typename V, size_t TableSize = 10, typename F = hash_key<K, TableSize>>
+class hash_map {
+private:
+    Pool *pool_{ nullptr };
+    hash_node<K, V> **table_{ nullptr };
+    F hash_func_;
+
+public:
+    explicit hash_map() {
+    }
+
+    hash_map(Pool &pool) : pool_(&pool), table_(new (*pool_) hash_node<K, V> *[TableSize]()) {
+    }
+
+    hash_map(Pool *pool) : pool_(pool), table_(new (*pool_) hash_node<K, V> *[TableSize]()) {
+    }
+
+    hash_map(hash_map &&o) : pool_(exchange(o.pool_, nullptr)), table_(exchange(o.table_, nullptr)) {
+    }
+
+    explicit hash_map(hash_map const &o) : pool_(o.pool_), table_(o.table_) {
+    }
+
+public:
+    void operator=(const hash_map&) = delete;
+
+    hash_map &operator=(hash_map &&other) {
+        pool_ = exchange(other.pool_, nullptr);
+        table_ = exchange(other.table_, nullptr);
+        return *this;
+    }
+
+public:
+    bool get(K const &key, V &value) {
+        auto hash_value = hash_func_(key);
+        auto entry = table_[hash_value];
+        while (entry != nullptr) {
+            if (entry->key() == key) {
+                value = entry->value();
+                return true;
+            }
+            entry = entry->np();
+        }
+        return false;
+    }
+
+    void put(K const &key, V const &value) {
+        auto hash_value = hash_func_(key);
+        hash_node<K, V> *prev = nullptr;
+        hash_node<K, V> *entry = table_[hash_value];
+
+        while (entry != nullptr && entry->key() != key) {
+            prev = entry;
+            entry = entry->np();
+        }
+
+        if (entry == nullptr) {
+            FK_ASSERT(pool_ != nullptr);
+            entry = new (pool_) hash_node<K, V>(key, value);
+            if (prev == nullptr) {
+                table_[hash_value] = entry;
+            }
+            else {
+                prev->np(entry);
+            }
+        }
+        else {
+            entry->value(value);
+        }
+    }
+
+    void remove(K const &key) {
+        auto hash_value = hash_func_(key);
+        hash_node<K, V> *prev = nullptr;
+        hash_node<K, V> *entry = table_[hash_value];
+
+        while (entry != nullptr && entry->key() != key) {
+            prev = entry;
+            entry = entry->np();
+        }
+
+        if (entry == nullptr) {
+            return;
+        }
+
+        if (prev == nullptr) {
+            table_[hash_value] = entry->np();
+        }
+        else {
+            prev->np(entry->np());
+        }
+    }
+};
+
+} // namespace fk

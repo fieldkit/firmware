@@ -74,7 +74,7 @@ struct nested_collection_t {
     }
 };
 
-TEST_F(PoolSuite, Collections) {
+TEST_F(PoolSuite, SimpleCollection) {
     StaticPool<2048> pool("Pool");
     collection<uint32_t> integers{ pool };
     integers.add(100);
@@ -117,6 +117,22 @@ TEST_F(PoolSuite, Collections) {
     collection<nested_collection_t> nested{ pool };
 
     nested.emplace(0, std::move(integers));
+}
+
+TEST_F(PoolSuite, SimpleHashMap) {
+    StaticPool<2048> pool("Pool");
+    hash_map<uint32_t, uint32_t> integers{ pool };
+    integers.put(100, 2423);
+    integers.put(200, 9658);
+    integers.put(300, 3293);
+
+    uint32_t value = 0;
+
+    ASSERT_TRUE(integers.get(300, value));
+    ASSERT_EQ(value, 3293u);
+
+    ASSERT_TRUE(integers.get(100, value));
+    ASSERT_EQ(value, 2423u);
 }
 
 TEST_F(PoolSuite, StandardPool) {
