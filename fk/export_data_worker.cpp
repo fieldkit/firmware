@@ -78,7 +78,7 @@ void ExportDataWorker::run(Pool &pool) {
         }
 
         if (writing_ == nullptr) {
-            auto path = pool.sprintf("/%s/d_%" PRIu32 ".csv", formatted.cstr(), meta_record_number_);
+            auto path = pool.sprintf("/%s/d_%06" PRIu32 ".csv", formatted.cstr(), meta_record_number_);
             writing_ = sd->open(path, true, pool);
             if (writing_ == nullptr || !writing_) {
                 logerror("unable to open '%s'", path);
@@ -144,7 +144,7 @@ bool ExportDataWorker::write_header() {
 
     StackBufferedWriter<StackBufferSize> writer{ writing_ };
 
-    writer.write("time,meta_record");
+    writer.write("time,meta_record,note");
 
     for (auto i = 0u; i < modules_array->length; ++i) {
         auto &module = modules[i];
@@ -168,16 +168,17 @@ bool ExportDataWorker::write_row(fk_data_DataRecord &record) {
     auto modules_array = reinterpret_cast<pb_array_t *>(meta_record_.record().modules.arg);
     auto sensor_groups_array = reinterpret_cast<pb_array_t *>(record.readings.sensorGroups.arg);
 
-    if (modules_array->length != sensor_groups_array->length) {
-        return true;
-    }
-
     auto modules = reinterpret_cast<fk_data_ModuleInfo *>(modules_array->buffer);
     auto sensor_groups = reinterpret_cast<fk_data_SensorGroup *>(sensor_groups_array->buffer);
 
     StackBufferedWriter<StackBufferSize> writer{ writing_ };
 
-    writer.write("%" PRIu32 ",%" PRIu32, (uint32_t)record.readings.time, record.readings.meta);
+    if (modules_array->length != sensor_groups_array->length) {
+        writer.write("%" PRIu32 ",%" PRIu32 ",modules-mismatch\n", (uint32_t)record.readings.time, record.readings.meta);
+        return true;
+    }
+
+    writer.write("%" PRIu32 ",%" PRIu32 ",", (uint32_t)record.readings.time, record.readings.meta);
 
     for (auto i = 0u; i < sensor_groups_array->length; ++i) {
         auto &sensor_group = sensor_groups[i];
