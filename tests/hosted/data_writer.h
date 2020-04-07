@@ -20,7 +20,7 @@ public:
     }
 
 public:
-    bool write(Pool &pool) {
+    bool write(Pool &pool, int32_t number_of_modules) {
         Storage storage{ memory_, pool, false };
         if (!storage.begin()) {
             if (!storage.clear()) {
@@ -31,12 +31,14 @@ public:
         ScanningContext ctx{ get_modmux(), &gs_, module_bus_, pool };
 
         FoundModuleCollection found(pool);
-        found.emplace(FoundModule{ .position = 0xff,
-                                   .header = {
-                                       .manufacturer = FK_MODULES_MANUFACTURER,
-                                       .kind = FK_MODULES_KIND_RANDOM,
-                                       .version = 0x01,
-                                   } });
+        for (auto i = 0; i < number_of_modules; ++i) {
+            found.emplace(FoundModule{ .position = 0xff,
+                                       .header = {
+                                           .manufacturer = FK_MODULES_MANUFACTURER,
+                                           .kind = FK_MODULES_KIND_RANDOM,
+                                           .version = 0x01,
+                                       } });
+        }
         StaticModuleScanning scanning(found);
         ModuleFactory module_factory;
         auto constructed_maybe = module_factory.rescan_and_initialize(ctx, scanning, pool);

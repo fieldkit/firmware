@@ -4,6 +4,8 @@
 #include "storage/storage.h"
 #include "storage/meta_record.h"
 
+#include "hal/sd_card.h"
+
 namespace fk {
 
 class ExportDataWorker : public Worker {
@@ -13,6 +15,7 @@ private:
     TaskDisplayInfo info_;
     MetaRecord meta_record_;
     uint32_t meta_record_number_{ InvalidRecord };
+    SdCardFile *writing_{ nullptr };
 
 public:
     ExportDataWorker();
@@ -23,6 +26,8 @@ public:
 
 private:
     bool lookup_meta(uint32_t meta_record_number, File &meta_file, Pool &pool);
+    bool write_header();
+    bool write_row(fk_data_DataRecord &record);
 
 public:
     uint8_t priority() const override {

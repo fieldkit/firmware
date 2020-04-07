@@ -3,6 +3,7 @@
 
 #include "data_writer.h"
 
+#include "common.h"
 #include "hal/linux/linux.h"
 #include "storage_suite.h"
 #include "export_data_worker.h"
@@ -32,11 +33,45 @@ TEST_F(ExportDataSuite, ExportingEmpty) {
     worker.run(pool_);
 }
 
-TEST_F(ExportDataSuite, Exporting100) {
+TEST_F(ExportDataSuite, Exporting100OfSameModuleLayout) {
     DataWriter writer{ memory_ };
     for (auto i = 0u; i < 100u; ++i) {
         StandardPool loop_pool{ "loop" };
-        ASSERT_TRUE(writer.write(loop_pool));
+        ASSERT_TRUE(writer.write(loop_pool, 1));
+    }
+
+    ExportDataWorker worker{ memory_ };
+    worker.run(pool_);
+}
+
+TEST_F(ExportDataSuite, Exporting100OfTwoModuleLayouts) {
+    DataWriter writer{ memory_ };
+    for (auto i = 0u; i < 50u; ++i) {
+        StandardPool loop_pool{ "loop" };
+        ASSERT_TRUE(writer.write(loop_pool, 1));
+    }
+    for (auto i = 0u; i < 50u; ++i) {
+        StandardPool loop_pool{ "loop" };
+        ASSERT_TRUE(writer.write(loop_pool, 2));
+    }
+
+    ExportDataWorker worker{ memory_ };
+    worker.run(pool_);
+}
+
+TEST_F(ExportDataSuite, Exporting100OfThreeModuleLayouts) {
+    DataWriter writer{ memory_ };
+    for (auto i = 0u; i < 50u; ++i) {
+        StandardPool loop_pool{ "loop" };
+        ASSERT_TRUE(writer.write(loop_pool, 1));
+    }
+    for (auto i = 0u; i < 50u; ++i) {
+        StandardPool loop_pool{ "loop" };
+        ASSERT_TRUE(writer.write(loop_pool, 2));
+    }
+    for (auto i = 0u; i < 20u; ++i) {
+        StandardPool loop_pool{ "loop" };
+        ASSERT_TRUE(writer.write(loop_pool, 1));
     }
 
     ExportDataWorker worker{ memory_ };

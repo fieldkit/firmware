@@ -37,16 +37,8 @@ void ExportDataWorker::run(Pool &pool) {
     }
 
     FormattedTime formatted{ get_clock_now(), TimeFormatMachine };
-    auto path = pool.sprintf("/%s/data.csv", formatted.cstr());
-
     if (!sd->mkdir(formatted.cstr())) {
         logerror("error making directory '%s'", formatted.cstr());
-        return;
-    }
-
-    auto writing = sd->open(path, true, pool);
-    if (writing == nullptr || !writing) {
-        logerror("unable to open '%s'", path);
         return;
     }
 
@@ -85,31 +77,35 @@ void ExportDataWorker::run(Pool &pool) {
             continue;
         }
 
+        if (writing_ == nullptr) {
+            auto path = pool.sprintf("/%s/d_%" PRIu32 ".csv", formatted.cstr(), meta_record_number_);
+            writing_ = sd->open(path, true, pool);
+            if (writing_ == nullptr || !writing_) {
+                logerror("unable to open '%s'", path);
+                return;
+            }
+
+            if (!write_header()) {
+                return;
+            }
+        }
+
         info_.progress = (float)bytes_read / total_bytes;
         bytes_read += record_read;
         nrecords++;
 
-        if (nrecords % 10 == 0) {
-            auto sensor_groups_array = reinterpret_cast<pb_array_t*>(record.readings.sensorGroups.arg);
-            auto sensor_groups = reinterpret_cast<fk_data_SensorGroup*>(sensor_groups_array->buffer);
-
-            loginfo("reading: time = %" PRIu32 " meta = %" PRIu32 " groups = %zu",
-                    (uint32_t)record.readings.time, record.readings.meta, sensor_groups_array->length);
-
-            for (auto i = 0u; i < sensor_groups_array->length; ++i) {
-                auto sensor_group = sensor_groups[i];
-                auto sensor_values_array = reinterpret_cast<pb_array_t*>(sensor_group.readings.arg);
-                // auto sensor_values = reinterpret_cast<fk_data_SensorGroup*>(sensor_values_array->buffer);
-                loginfo("reading: sensors = %zu", sensor_values_array->length);
-            }
+        if (!write_row(record)) {
+            logerror("error writing row");
         }
 
         loop_pool.clear();
     }
 
-    if (!writing->close()) {
-        logerror("error closing");
-        return;
+    if (writing_ != nullptr) {
+        if (!writing_->close()) {
+            logerror("error closing");
+            return;
+        }
     }
 }
 
@@ -128,12 +124,77 @@ bool ExportDataWorker::lookup_meta(uint32_t meta_record_number, File &meta_file,
     meta_pool_.clear();
 
     SignedRecordLog srl{ meta_file };
-    if (!srl.decode(&meta_record_.for_decoding(pool), fk_data_DataRecord_fields, meta_pool_)) {
+    if (!srl.decode(&meta_record_.for_decoding(meta_pool_), fk_data_DataRecord_fields, meta_pool_)) {
         logerror("error reading meta record");
         return false;
     }
 
     meta_record_number_ = meta_record_number;
+    if (writing_ != nullptr) {
+        writing_->close();
+        writing_ = nullptr;
+    }
+
+    return true;
+}
+
+bool ExportDataWorker::write_header() {
+    auto modules_array = reinterpret_cast<pb_array_t *>(meta_record_.record().modules.arg);
+    auto modules = reinterpret_cast<fk_data_ModuleInfo *>(modules_array->buffer);
+
+    StackBufferedWriter<StackBufferSize> writer{ writing_ };
+
+    writer.write("time,meta_record");
+
+    for (auto i = 0u; i < modules_array->length; ++i) {
+        auto &module = modules[i];
+        auto sensors_array = reinterpret_cast<pb_array_t *>(module.sensors.arg);
+        auto sensors = reinterpret_cast<fk_data_SensorInfo *>(sensors_array->buffer);
+
+        writer.write(",module_index,module_position,module_name");
+
+        for (auto j = 0u; j < sensors_array->length; ++j) {
+            writer.write(",%s", (const char *)sensors[j].name.arg);
+        }
+    }
+
+    writer.write('\n');
+    writer.flush();
+
+    return true;
+}
+
+bool ExportDataWorker::write_row(fk_data_DataRecord &record) {
+    auto modules_array = reinterpret_cast<pb_array_t *>(meta_record_.record().modules.arg);
+    auto sensor_groups_array = reinterpret_cast<pb_array_t *>(record.readings.sensorGroups.arg);
+
+    if (modules_array->length != sensor_groups_array->length) {
+        return true;
+    }
+
+    auto modules = reinterpret_cast<fk_data_ModuleInfo *>(modules_array->buffer);
+    auto sensor_groups = reinterpret_cast<fk_data_SensorGroup *>(sensor_groups_array->buffer);
+
+    StackBufferedWriter<StackBufferSize> writer{ writing_ };
+
+    writer.write("%" PRIu32 ",%" PRIu32, (uint32_t)record.readings.time, record.readings.meta);
+
+    for (auto i = 0u; i < sensor_groups_array->length; ++i) {
+        auto &sensor_group = sensor_groups[i];
+        auto sensor_values_array = reinterpret_cast<pb_array_t *>(sensor_group.readings.arg);
+        auto sensor_values = reinterpret_cast<fk_data_SensorAndValue*>(sensor_values_array->buffer);
+
+        auto &module = modules[i];
+
+        writer.write(",%d,%d,%s", i, sensor_group.module, (const char *)module.name.arg);
+
+        for (auto j = 0u; j < sensor_values_array->length; ++j) {
+            writer.write(",%f", sensor_values[j].value);
+        }
+    }
+
+    writer.write('\n');
+    writer.flush();
 
     return true;
 }
