@@ -174,13 +174,13 @@ bool ExportDataWorker::write_row(fk_data_DataRecord &record) {
     StackBufferedWriter<StackBufferSize> writer{ writing_ };
 
     if (modules_array->length != sensor_groups_array->length) {
-        writer.write("%" PRIu32 ",%" PRIu32 ",%" PRIu32 ",modules-mismatch\n",
-                     (uint32_t)record.readings.time, record.readings.reading, record.readings.meta);
+        writer.write("%" PRIu64 ",%" PRIu32 ",%" PRIu32 ",modules-mismatch\n",
+                     record.readings.time, record.readings.reading, record.readings.meta);
         return true;
     }
 
-    writer.write("%" PRIu32 ",%" PRIu32 ",%" PRIu32 ",",
-                 (uint32_t)record.readings.time, record.readings.reading, record.readings.meta);
+    writer.write("%" PRIu64 ",%" PRIu32 ",%" PRIu32 ",",
+                 record.readings.time, record.readings.reading, record.readings.meta);
 
     for (auto i = 0u; i < sensor_groups_array->length; ++i) {
         auto &sensor_group = sensor_groups[i];
