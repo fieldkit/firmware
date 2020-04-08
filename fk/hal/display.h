@@ -28,6 +28,11 @@ struct WorkerInfo {
     bool visible;
 };
 
+struct PowerInfo {
+    bool charging;
+    float battery;
+};
+
 struct HomeScreen : public DisplayScreen {
     struct Gps {
         bool enabled;
@@ -47,7 +52,7 @@ struct HomeScreen : public DisplayScreen {
     bool recording;
     bool logo;
     bool debug_mode;
-    float battery;
+    PowerInfo power;
     const char *primary;
     const char *secondary;
     TaskProgress progress;

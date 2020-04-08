@@ -125,6 +125,7 @@ static void check_battery() {
     }
 
     auto gs = get_global_state_rw();
+    gs.get()->power.charging = battery.charging;
     gs.get()->power.vbus = battery.bus_voltage;
     gs.get()->power.vs = battery.shunted_voltage;
     gs.get()->power.ma = battery.ma;
