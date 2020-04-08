@@ -19,11 +19,13 @@ FK_DECLARE_LOGGER("storage");
 #endif
 #define FK_OP_STR_READ     "rd"
 #define FK_OP_STR_WRITE    "wr"
+#define FK_OP_STR_HEADER   "head"
+#define FK_OP_STR_DATA     "data"
 
-static void log_hashed_data(const char *op, uint8_t file, uint32_t record, uint32_t address, void const *data, size_t size) {
+static void log_hashed_data(const char *op, const char *c, uint8_t file, uint32_t record, uint32_t address, void const *data, size_t size) {
     #if defined(FK_STORAGE_LOGGING_HASHING)
     char prefix[32];
-    tiny_snprintf(prefix, sizeof(prefix), "%s hash %5d " PRADDRESS " ", op, record, address);
+    tiny_snprintf(prefix, sizeof(prefix), "%s-%s hash %5d " PRADDRESS " ", op, c, record, address);
     fk_dump_memory(prefix, (const uint8_t *)data, size);
     #endif
 }
@@ -145,7 +147,7 @@ int32_t File::write_record_header(size_t size) {
     hash_.reset(Hash::Length);
     hash_.update(&record_header, sizeof(record_header));
 
-    log_hashed_data(FK_OP_STR_WRITE, file_, record_ - 1, tail_, &record_header, sizeof(record_header));
+    log_hashed_data(FK_OP_STR_WRITE, FK_OP_STR_HEADER, file_, record_ - 1, tail_, &record_header, sizeof(record_header));
 
     record_address_ = tail_;
     record_remaining_ = 0;
@@ -170,7 +172,7 @@ int32_t File::write_partial(uint8_t const *record, size_t size) {
 
     hash_.update(record, size);
 
-    log_hashed_data(FK_OP_STR_WRITE, file_, record_ - 1, tail_, record, size);
+    log_hashed_data(FK_OP_STR_WRITE, FK_OP_STR_DATA, file_, record_ - 1, tail_, record, size);
 
     tail_ += size;
     record_size_ += size;
@@ -192,7 +194,7 @@ int32_t File::write_record_tail(size_t size) {
     logverbose("[%d] " PRADDRESS " write footer 0x%06" PRIx32, file_, tail_, (uint32_t)(tail_ + sizeof(record_tail)));
 
     #if defined(FK_STORAGE_LOGGING_HASHING)
-    char buffer[Hash::Length * 2];
+    char buffer[Hash::Length * 2 + 1];
     bytes_to_hex_string(buffer, sizeof(buffer), record_tail.hash.hash, Hash::Length);
     logdebug("[%d] 0x%06x hash(#%" PRIu32 ") %s", file_, record_address_, record_ - 1, buffer);
     #endif
@@ -483,10 +485,16 @@ int32_t File::rewind() {
         return false;
     }
 
+    hash_.reset(Hash::Length);
+    hash_.update(&record_header, sizeof(record_header));
+
+    log_hashed_data(FK_OP_STR_READ, FK_OP_STR_HEADER,file_, record_, tail_, &record_header, sizeof(RecordHeader));
+
     record_ = record_header.record;
     record_size_ = record_header.size;
     record_remaining_ = record_header.size;
     position_ -= record_tail.size;
+    unread_header_ = true;
 
     logtrace("[" PRADDRESS "] rewind DONE position=%" PRIu32 " record-size=%" PRIu32, tail_, position_,
              record_tail.size);
@@ -511,7 +519,8 @@ int32_t File::search_for_following_block() {
 
         if (!block_header.verify_hash() || block_header.version != version_) {
             loginfo("[%d] " PRADDRESS " invalid block header", file_, iter);
-        } else {
+        }
+        else {
             if (block_header.file == file_) {
                 loginfo("[%d] " PRADDRESS " found", file_, iter);
                 tail_ = iter;
@@ -585,6 +594,8 @@ int32_t File::try_read_record_header(uint32_t tail, RecordHeader &record_header)
 
     logverbose("[%d] " PRADDRESS " record header (%" PRIu32 " bytes) #%" PRIu32, file_, tail, record_header.size, record_header.record);
 
+    unread_header_  = false;
+
     return record_header.size;
 }
 
@@ -629,7 +640,7 @@ int32_t File::read_record_header() {
             hash_.reset(Hash::Length);
             hash_.update(&record_header, sizeof(RecordHeader));
 
-            log_hashed_data(FK_OP_STR_READ, file_, record_, tail_, &record_header, sizeof(RecordHeader));
+            log_hashed_data(FK_OP_STR_READ, FK_OP_STR_HEADER,file_, record_, tail_, &record_header, sizeof(RecordHeader));
 
             tail_ += sizeof(RecordHeader);
 
@@ -643,9 +654,16 @@ int32_t File::read_record_header() {
 int32_t File::read(uint8_t *record, size_t size) {
     auto g = geometry();
     auto left_in_block = g.remaining_in_block(tail_) - SizeofBlockTail;
-    auto bytes_read = (size_t)0;
+    auto bytes_read = 0u;
 
-    logtrace("[%d] " PRADDRESS " BEGIN read (%zd bytes) (rr = %" PRIu32 ") (lib = %" PRIu32 ")", file_, tail_, size, record_remaining_, left_in_block);
+    if (unread_header_) {
+        tail_ += sizeof(RecordHeader);
+        unread_header_ = false;
+        logtrace("[%d] " PRADDRESS " BEGIN read skip header (%zd bytes) (rr = %" PRIu32 ") (lib = %" PRIu32 ")", file_, tail_, size, record_remaining_, left_in_block);
+    }
+    else {
+        logtrace("[%d] " PRADDRESS " BEGIN read (%zd bytes) (rr = %" PRIu32 ") (lib = %" PRIu32 ")", file_, tail_, size, record_remaining_, left_in_block);
+    }
 
     while (bytes_read < size) {
         if (record_remaining_ == 0) {
@@ -665,7 +683,7 @@ int32_t File::read(uint8_t *record, size_t size) {
 
             hash_.update(record + bytes_read, reading);
 
-            log_hashed_data(FK_OP_STR_READ, file_, record_, tail_, record + bytes_read, reading);
+            log_hashed_data(FK_OP_STR_READ, FK_OP_STR_DATA, file_, record_, tail_, record + bytes_read, reading);
 
             logverbose("[%d] " PRADDRESS " data (%zd bytes)", file_, tail_, reading);
 

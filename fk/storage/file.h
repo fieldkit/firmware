@@ -49,6 +49,7 @@ private:
     uint32_t records_in_block_{ 0 };
     uint32_t wasted_{ 0 };
     bool partial_allowed_{ false };
+    bool unread_header_{ false };
     BLAKE2b hash_;
 
 public:
@@ -93,6 +94,10 @@ public:
 
     uint32_t record_address() const {
         return record_address_;
+    }
+
+    uint32_t record_size() const {
+        return record_size_;
     }
 
     uint32_t record() const {
