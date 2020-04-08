@@ -6,6 +6,7 @@ namespace fk {
 
 struct BatteryReading {
     bool available;
+    bool charging;
     float bus_voltage;
     float shunted_voltage;
     float ma;

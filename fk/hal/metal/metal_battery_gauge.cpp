@@ -7,6 +7,8 @@ namespace fk {
 
 FK_DECLARE_LOGGER("battery");
 
+constexpr uint8_t PIN_BATTERY_CHARGING = 98u;
+
 constexpr uint8_t INA219_ADDRESS = 0x40;
 constexpr uint8_t INA219_REGISTER_CONFIG = 0x00;
 constexpr uint8_t INA219_REGISTER_VOLTAGE_SHUNT = 0x01;
@@ -125,6 +127,8 @@ bool MetalBatteryGauge::begin() {
         return false;
     }
 
+    pinMode(PIN_BATTERY_CHARGING, INPUT);
+
     status_ = Availability::Available;
 
     return true;
@@ -153,30 +157,32 @@ BatteryReading MetalBatteryGauge::get() {
     // Shift to the right 3 to drop CNVR and OVF and multiply by LSB
     // auto overflow = (value & 0x1);
     // auto ready = (value & 0x2);
-    int32_t bus_voltage_raw = (int32_t)(int16_t)((value >> 3) * 4);
+    auto bus_voltage_raw = (int32_t)(int16_t)((value >> 3) * 4);
 
     if (!ina219_read(bus, INA219_REGISTER_VOLTAGE_SHUNT, value)) {
         return { .available = false };
     }
-    int32_t shunted_voltage_raw = (int32_t)(int16_t)value;
+    auto shunted_voltage_raw = (int32_t)(int16_t)value;
 
     if (!ina219_read(bus, INA219_REGISTER_CURRENT, value)) {
         return { .available = false };
     }
-    int32_t ma_raw = (int32_t)(int16_t)value;
+    auto ma_raw = (int32_t)(int16_t)value;
 
     if (!ina219_read(bus, INA219_REGISTER_POWER, value)) {
         return { .available = false };
     }
-    int32_t power_raw = (int32_t)(int16_t)value;
+    auto power_raw = (int32_t)(int16_t)value;
 
-    float bus_voltage = (float)bus_voltage_raw * 0.001f;
-    float shunted_voltage = (float)shunted_voltage_raw * 0.01f;
-    float ma = (float)ma_raw / (float)ma_divider_;
-    float power = (float)power_raw * (float)power_multiplier_;
+    auto bus_voltage = (float)bus_voltage_raw * 0.001f;
+    auto shunted_voltage = (float)shunted_voltage_raw * 0.01f;
+    auto ma = (float)ma_raw / (float)ma_divider_;
+    auto power = (float)power_raw * (float)power_multiplier_;
+    auto charging = digitalRead(PIN_BATTERY_CHARGING) == 0;
 
     return {
         .available = true,
+        .charging = charging,
         .bus_voltage = bus_voltage,
         .shunted_voltage = shunted_voltage,
         .ma = ma,

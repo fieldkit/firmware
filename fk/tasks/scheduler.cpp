@@ -130,7 +130,7 @@ static void check_battery() {
     gs.get()->power.ma = battery.ma;
     gs.get()->power.mw = battery.mw;
 
-    loginfo("battery: v_bus = %fV v_s = %fmV %fmA %fmW", battery.bus_voltage, battery.shunted_voltage, battery.ma, battery.mw);
+    loginfo("battery:%s v_bus = %fV v_s = %fmV %fmA %fmW", battery.charging ? " charging": "", battery.bus_voltage, battery.shunted_voltage, battery.ma, battery.mw);
 }
 
 }
