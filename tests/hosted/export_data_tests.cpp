@@ -33,6 +33,15 @@ TEST_F(ExportDataSuite, ExportingEmpty) {
     worker.run(pool_);
 }
 
+TEST_F(ExportDataSuite, ExportingOneRecord) {
+    DataWriter writer{ memory_ };
+    StandardPool loop_pool{ "loop" };
+    ASSERT_TRUE(writer.write(loop_pool, 1));
+
+    ExportDataWorker worker{ memory_ };
+    worker.run(pool_);
+}
+
 TEST_F(ExportDataSuite, Exporting100OfSameModuleLayout) {
     DataWriter writer{ memory_ };
     for (auto i = 0u; i < 100u; ++i) {

@@ -94,8 +94,21 @@ void ExportDataWorker::run(Pool &pool) {
         bytes_read += record_read;
         nrecords++;
 
-        if (!write_row(record)) {
+        switch (write_row(record)) {
+        case Success: {
+            break;
+        }
+        case Debug: {
+            if (!write_debug(record.readings.meta, meta_file, record.readings.reading, reading, loop_pool)) {
+                logerror("error writing diagnostics");
+                return;
+            }
+            break;
+        }
+        case Fatal: {
             logerror("error writing row");
+            return;
+        }
         }
 
         loop_pool.clear();
@@ -164,7 +177,7 @@ bool ExportDataWorker::write_header() {
     return true;
 }
 
-bool ExportDataWorker::write_row(fk_data_DataRecord &record) {
+ExportDataWorker::WriteStatus ExportDataWorker::write_row(fk_data_DataRecord &record) {
     auto modules_array = reinterpret_cast<pb_array_t *>(meta_record_.record().modules.arg);
     auto sensor_groups_array = reinterpret_cast<pb_array_t *>(record.readings.sensorGroups.arg);
 
@@ -176,7 +189,7 @@ bool ExportDataWorker::write_row(fk_data_DataRecord &record) {
     if (modules_array->length != sensor_groups_array->length) {
         writer.write("%" PRIu64 ",%" PRIu32 ",%" PRIu32 ",modules-mismatch\n",
                      record.readings.time, record.readings.reading, record.readings.meta);
-        return true;
+        return WriteStatus::Debug;
     }
 
     writer.write("%" PRIu64 ",%" PRIu32 ",%" PRIu32 ",",
@@ -198,6 +211,71 @@ bool ExportDataWorker::write_row(fk_data_DataRecord &record) {
 
     writer.write('\n');
     writer.flush();
+
+    return WriteStatus::Success;
+}
+
+static bool dump_record(uint8_t *buffer, char *line, File &file) {
+    auto record_size = file.record_size();
+    auto bytes_read = 0u;
+    while (bytes_read < record_size) {
+        auto reading = std::min<int32_t>(record_size - bytes_read, 1024);
+        auto nread = file.read(buffer, reading);
+        if (nread != reading) {
+            logerror("error reading");
+            return false;
+        }
+
+        auto ptr = buffer;
+        auto wrote = 0;
+        while (wrote < nread) {
+            auto line_size = std::min<int32_t>(nread - wrote, 32);
+
+            if (line_size > 0) {
+                auto s = line;
+                for (auto i = 0; i < line_size; ++i) {
+                    tiny_snprintf(s, 4, "%02x ", ptr[i]);
+                    s += 3;
+                }
+                s[-1] = 0;
+            }
+
+            logdebug("[%4d/%4" PRIu32 "] %s", wrote, record_size, line);
+
+            wrote += line_size;
+            ptr += line_size;
+        }
+        bytes_read += nread;
+    }
+
+    return true;
+}
+
+bool ExportDataWorker::write_debug(uint32_t meta_record_number, File &meta_file, uint32_t data_record_number, File &data_file, Pool &pool) {
+    auto buffer = reinterpret_cast<uint8_t*>(pool.malloc(1024));
+    auto line = reinterpret_cast<char*>(pool.malloc(32 * 3 + 1));
+
+    if (!meta_file.rewind()) {
+        logerror("error seeking meta record");
+        return false;
+    }
+
+    if (!dump_record(buffer, line, meta_file)) {
+        return false;
+    }
+
+    meta_file.skip();
+
+    if (!data_file.rewind()) {
+        logerror("error seeking data record");
+        return false;
+    }
+
+    if (!dump_record(buffer, line, data_file)) {
+        return false;
+    }
+
+    data_file.skip();
 
     return true;
 }

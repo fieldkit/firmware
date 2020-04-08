@@ -944,6 +944,44 @@ TEST_F(StorageSuite, FileOpsRewind) {
     ASSERT_EQ(file.record(), lrecord--);
 }
 
+TEST_F(StorageSuite, FileOpsRewindAndReadRecordRecord) {
+    write_readings(memory_, 1);
+
+    Storage storage{ memory_, pool_, true };
+    FK_ASSERT(storage.begin());
+    auto file = storage.file(0);
+    ASSERT_TRUE(file.seek_beginning());
+
+    fk_data_DataRecord record1 = fk_data_DataRecord_init_default;
+    auto read1 = file.read(&record1, fk_data_DataRecord_fields);
+
+    ASSERT_TRUE(file.rewind());
+
+    fk_data_DataRecord record2 = fk_data_DataRecord_init_default;
+    auto read2 = file.read(&record2, fk_data_DataRecord_fields);
+
+    ASSERT_EQ(read1, read2);
+}
+
+TEST_F(StorageSuite, FileOpsRewindAndReadRecordRaw) {
+    write_readings(memory_, 1);
+
+    Storage storage{ memory_, pool_, true };
+    FK_ASSERT(storage.begin());
+    auto file = storage.file(0);
+    ASSERT_TRUE(file.seek_beginning());
+
+    fk_data_DataRecord record1 = fk_data_DataRecord_init_default;
+    auto read1 = file.read(&record1, fk_data_DataRecord_fields);
+
+    ASSERT_TRUE(file.rewind());
+
+    uint8_t buffer[1024];
+    auto read2 = file.read(buffer, sizeof(buffer));
+
+    ASSERT_EQ(read1, read2);
+}
+
 TEST_F(StorageSuite, FileOpsRewindAcrossBlock) {
     write_readings(memory_, g_.block_size * 1.5);
 
