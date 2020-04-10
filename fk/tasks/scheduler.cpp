@@ -91,6 +91,11 @@ static bool has_schedule_changed(CurrentSchedules &running) {
     return !config.equals(running);
 }
 
+static void check_modules() {
+    auto modules_lock = modules_mutex.acquire(UINT32_MAX);
+    get_modmux()->check_modules();
+}
+
 static bool has_module_topology_changed(Topology &existing) {
     auto topology = get_modmux()->get_topology();
     if (!topology) {
@@ -103,10 +108,7 @@ static bool has_module_topology_changed(Topology &existing) {
 
     existing = topology.value();
 
-    {
-        auto modules_lock = modules_mutex.acquire(UINT32_MAX);
-        get_modmux()->check_modules();
-    }
+    check_modules();
 
     return true;
 }
