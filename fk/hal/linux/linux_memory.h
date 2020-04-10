@@ -44,6 +44,10 @@ public:
     void erase_all();
 
 public:
+    uint8_t *memory() {
+        return memory_;
+    }
+
     StorageLog &log() {
         return log_;
     }

@@ -25,7 +25,7 @@ list(FILTER fk_sources EXCLUDE REGEX ".*hal/metal/.*.cpp$")
 # TODO: Remove (Wire.h dependency)
 list(FILTER fk_sources EXCLUDE REGEX ".*tasks/.*.cpp$")
 
-file(GLOB sources *.cpp ${fk_sources} ${fk_tasks})
+file(GLOB sources *.cpp *.c ${fk_sources} ${fk_tasks})
 
 add_executable(fstool ${sources})
 
