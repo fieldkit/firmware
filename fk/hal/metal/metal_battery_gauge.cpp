@@ -218,9 +218,7 @@ void MetalBatteryGauge::irq() {
         blinks_++;
     }
 
-    if (last_tick_ == 0) {
-        last_tick_ = fk_uptime();
-    }
+    last_tick_ = fk_uptime();
 
     ticks_++;
 
