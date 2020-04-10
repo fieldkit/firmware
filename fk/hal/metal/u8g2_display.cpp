@@ -228,8 +228,16 @@ void U8g2Display::home(HomeScreen const &data) {
         }
     }
     else {
-        draw_.setFont(u8g2_font_battery19_tn);
-        draw_.drawGlyph(OLED_WIDTH - 12, 20, glyph_battery19[sizeof(glyph_battery19) - 1]);
+        if (data.power.charging > 0) {
+            auto frames = sizeof(glyph_battery19);
+            if (data.power.charging > 0 && data.power.charging < frames) {
+                draw_.setFont(u8g2_font_battery19_tn);
+                draw_.drawGlyph(OLED_WIDTH - 12, 20, glyph_battery19[data.power.charging]);
+            } else {
+                draw_.setFont(u8g2_font_battery19_tn);
+                draw_.drawGlyph(OLED_WIDTH - 12, 20, glyph_battery19[frames - 1]);
+            }
+        }
     }
 
     if (data.network.enabled) {

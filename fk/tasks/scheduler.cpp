@@ -12,12 +12,10 @@ namespace fk {
 FK_DECLARE_LOGGER("schedule");
 
 static CurrentSchedules get_config_schedules();
-
 static bool has_schedule_changed(CurrentSchedules &running);
-
 static bool has_module_topology_changed(Topology &existing);
-
 static void check_battery();
+static void check_charge_status();
 
 void task_handler_scheduler(void *params) {
     FK_ASSERT(fk_start_task_if_necessary(&display_task));
@@ -46,6 +44,7 @@ void task_handler_scheduler(void *params) {
         auto check_for_tasks_time = fk_uptime() + OneSecondMs;
         auto check_for_modules_time = fk_uptime() + OneSecondMs;
         auto check_battery_time = fk_uptime() + ThirtySecondsMs;
+        auto check_charge_time = fk_uptime() + OneSecondMs;
 
         while (!has_schedule_changed(schedules)) {
             // This throttles this loop, so we take a pass when we dequeue or timeout.
@@ -74,6 +73,11 @@ void task_handler_scheduler(void *params) {
             if (check_battery_time < fk_uptime()) {
                 check_battery();
                 check_battery_time = fk_uptime() + ThirtySecondsMs;
+            }
+
+            if (check_charge_time < fk_uptime()) {
+                check_charge_status();
+                check_charge_time = fk_uptime() + OneSecondMs;
             }
         }
 
@@ -113,6 +117,15 @@ static bool has_module_topology_changed(Topology &existing) {
     return true;
 }
 
+static void check_charge_status() {
+    auto battery = get_battery_gauge()->status();
+    auto gs = get_global_state_rw();
+    gs.get()->power.charging = battery.blinks;
+    if (battery.ticks > 0) {
+        loginfo("battery: ticks=%" PRIu32 " blinks=%" PRIu32, battery.ticks, battery.blinks);
+    }
+}
+
 static void check_battery() {
     if (!get_battery_gauge()->available()) {
         return;
@@ -127,7 +140,6 @@ static void check_battery() {
     }
 
     auto gs = get_global_state_rw();
-    gs.get()->power.charging = battery.charging;
     gs.get()->power.vbus = battery.bus_voltage;
     gs.get()->power.vs = battery.shunted_voltage;
     gs.get()->power.ma = battery.ma;

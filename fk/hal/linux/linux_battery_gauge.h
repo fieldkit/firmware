@@ -13,9 +13,9 @@ public:
 
     BatteryReading get() override;
 
-    bool available() override {
-        return true;
-    }
+    ChargingStatus status() override;
+
+    bool available() override;
 
 };
 

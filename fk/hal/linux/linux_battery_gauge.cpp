@@ -14,4 +14,13 @@ BatteryReading LinuxBatteryGauge::get() {
     };
 }
 
+ChargingStatus LinuxBatteryGauge::status() {
+    return {
+    };
 }
+
+bool LinuxBatteryGauge::available() {
+    return true;
+}
+
+} // namespace fk

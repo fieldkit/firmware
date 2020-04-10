@@ -29,7 +29,7 @@ struct WorkerInfo {
 };
 
 struct PowerInfo {
-    bool charging;
+    uint32_t charging;
     float battery;
 };
 

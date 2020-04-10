@@ -11,6 +11,9 @@ private:
     uint32_t calibration_value_;
     float ma_divider_;
     float power_multiplier_;
+    uint32_t last_tick_{ 0 };
+    uint32_t ticks_{ 0 };
+    uint32_t blinks_{ 0 };
 
 public:
     MetalBatteryGauge();
@@ -20,9 +23,12 @@ public:
 
     BatteryReading get() override;
 
-    bool available() override {
-        return status_ == Availability::Available;
-    }
+    ChargingStatus status() override;
+
+    bool available() override;
+
+public:
+    void irq();
 
 };
 

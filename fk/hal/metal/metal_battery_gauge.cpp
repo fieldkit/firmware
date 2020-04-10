@@ -72,6 +72,10 @@ enum {
     INA219_CONFIG_MODE_SANDBVOLT_CONTINUOUS
 };
 
+static void irq_charge_pulse() {
+    reinterpret_cast<MetalBatteryGauge*>(get_battery_gauge())->irq();
+}
+
 static bool ina219_write(TwoWireWrapper &bus, uint8_t reg, uint16_t value) {
     uint8_t data[] = {
         reg,
@@ -106,6 +110,9 @@ MetalBatteryGauge::MetalBatteryGauge() {
 bool MetalBatteryGauge::begin() {
     status_ = Availability::Unavailable;
 
+    pinMode(PIN_BATTERY_CHARGING, INPUT);
+    attachInterrupt(digitalPinToInterrupt(PIN_BATTERY_CHARGING), irq_charge_pulse, FALLING);
+
     auto bus = get_board()->i2c_module();
 
     // 16V 400ma
@@ -127,7 +134,7 @@ bool MetalBatteryGauge::begin() {
         return false;
     }
 
-    pinMode(PIN_BATTERY_CHARGING, INPUT);
+    loginfo("initialized");
 
     status_ = Availability::Available;
 
@@ -188,6 +195,36 @@ BatteryReading MetalBatteryGauge::get() {
         .ma = ma,
         .mw = power,
     };
+}
+
+ChargingStatus MetalBatteryGauge::status() {
+    auto status = ChargingStatus{
+        .ticks = ticks_,
+        .blinks = blinks_,
+    };
+
+    ticks_ = 0;
+    blinks_ = 0;
+
+    return status;
+}
+
+bool MetalBatteryGauge::available() {
+    return status_ == Availability::Available;
+}
+
+void MetalBatteryGauge::irq() {
+    if (last_tick_ == 0 || (fk_uptime() - last_tick_ > 100)) {
+        blinks_++;
+    }
+
+    if (last_tick_ == 0) {
+        last_tick_ = fk_uptime();
+    }
+
+    ticks_++;
+
+    // SEGGER_RTT_printf(0, "@");
 }
 
 } // namespace fk

@@ -13,11 +13,18 @@ struct BatteryReading {
     float mw;
 };
 
+struct ChargingStatus {
+    uint32_t ticks;
+    uint32_t blinks;
+};
+
 class BatteryGauge {
 public:
     virtual bool begin() = 0;
 
     virtual BatteryReading get() = 0;
+
+    virtual ChargingStatus status() = 0;
 
     virtual bool available() = 0;
 
