@@ -62,7 +62,7 @@ void GlobalState::released(uint32_t locked) const {
 }
 
 void GlobalState::released(uint32_t locked) {
-    loginfo("modified (%" PRIu32 "ms)", fk_uptime() - locked);
+    logverbose("modified (%" PRIu32 "ms)", fk_uptime() - locked);
     version++;
 }
 
