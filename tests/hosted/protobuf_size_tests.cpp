@@ -224,7 +224,7 @@ TEST_F(ProtoBufSizeSuite, Readings) {
     auto encoded = pool_.encode(fk_data_DataRecord_fields, &readings.record());
     dump_binary(file_, "data-readings", encoded);
 
-    ASSERT_EQ(encoded->size, 215u);
+    ASSERT_EQ(encoded->size, 218u);
 }
 
 TEST_F(ProtoBufSizeSuite, Configuration) {

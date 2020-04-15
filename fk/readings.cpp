@@ -23,6 +23,7 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(
     record_.has_readings = true;
     record_.readings.time = now;
     record_.readings.reading = reading_number;
+    record_.readings.uptime = fk_uptime();
     record_.readings.meta = meta_record;
     record_.readings.flags = fk_data_DownloadFlags_READING_FLAGS_NONE;
     record_.readings.has_location = true;
