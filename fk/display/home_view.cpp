@@ -32,8 +32,7 @@ void HomeView::tick(ViewController *views, Pool &pool) {
     screen.gps.enabled = gs.get()->gps.enabled;
     screen.gps.fix = gs.get()->gps.fix;
     screen.power = {
-        .charging = gs.get()->power.charging,
-        .battery = (float)gs.get()->power.charge,
+        .battery = gs.get()->power.charge,
     };
     screen.debug_mode = debug_mode;
     screen.logo = true;

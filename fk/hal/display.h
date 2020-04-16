@@ -28,11 +28,6 @@ struct WorkerInfo {
     bool visible;
 };
 
-struct PowerInfo {
-    uint32_t charging;
-    float battery;
-};
-
 struct HomeScreen : public DisplayScreen {
     struct Gps {
         bool enabled;
@@ -44,6 +39,10 @@ struct HomeScreen : public DisplayScreen {
         bool connected;
         uint32_t bytes_rx;
         uint32_t bytes_tx;
+    };
+
+    struct PowerInfo {
+        float battery;
     };
 
     uint32_t time;

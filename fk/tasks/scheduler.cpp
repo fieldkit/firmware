@@ -120,7 +120,6 @@ static bool has_module_topology_changed(Topology &existing) {
 static void check_charge_status() {
     auto battery = get_battery_gauge()->status();
     auto gs = get_global_state_rw();
-    gs.get()->power.charging = battery.blinks;
     if (battery.ticks > 0) {
         loginfo("battery: ticks=%" PRIu32 " blinks=%" PRIu32, battery.ticks, battery.blinks);
     }
@@ -139,13 +138,20 @@ static void check_battery() {
         return;
     }
 
+    // Bradley gave me this.
+    auto charge = (battery.bus_voltage - 3.5f) * 142.85f;
+    if (charge < 0.0f) charge = 0.0f;
+    if (charge > 100.0f) charge = 100.0f;
+
     auto gs = get_global_state_rw();
+    gs.get()->power.voltage = battery.bus_voltage;
+    gs.get()->power.charge = charge;
     gs.get()->power.vbus = battery.bus_voltage;
     gs.get()->power.vs = battery.shunted_voltage;
     gs.get()->power.ma = battery.ma;
     gs.get()->power.mw = battery.mw;
 
-    loginfo("battery:%s v_bus = %fV v_s = %fmV %fmA %fmW", battery.charging ? " charging": "", battery.bus_voltage, battery.shunted_voltage, battery.ma, battery.mw);
+    loginfo("battery:%s v_bus = %fV v_s = %fmV %fmA %fmW %f%%", battery.charging ? " charging": "", battery.bus_voltage, battery.shunted_voltage, battery.ma, battery.mw, charge);
 }
 
 }

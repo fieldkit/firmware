@@ -76,9 +76,8 @@ struct RuntimeState {
 };
 
 struct PowerState {
-    uint32_t charging{ 0 };
-    uint32_t charge{ 0 };
-    uint32_t voltage{ 0 };
+    float charge{ 0 };
+    float voltage{ 0 };
     float vbus{ 0 };
     float vs{ 0 };
     float ma{ 0 };
