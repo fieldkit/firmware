@@ -4,8 +4,8 @@
 #include "tasks/tasks.h"
 #include "state_ref.h"
 #include "scheduling.h"
-#include "hal/battery_gauge.h"
 #include "hal/random.h"
+#include "battery_status.h"
 
 namespace fk {
 
@@ -14,8 +14,6 @@ FK_DECLARE_LOGGER("schedule");
 static CurrentSchedules get_config_schedules();
 static bool has_schedule_changed(CurrentSchedules &running);
 static bool has_module_topology_changed(Topology &existing);
-static void check_battery();
-static void check_charge_status();
 
 void task_handler_scheduler(void *params) {
     FK_ASSERT(fk_start_task_if_necessary(&display_task));
@@ -44,7 +42,6 @@ void task_handler_scheduler(void *params) {
         auto check_for_tasks_time = fk_uptime() + OneSecondMs;
         auto check_for_modules_time = fk_uptime() + OneSecondMs;
         auto check_battery_time = fk_uptime() + ThirtySecondsMs;
-        auto check_charge_time = fk_uptime() + OneSecondMs;
 
         while (!has_schedule_changed(schedules)) {
             // This throttles this loop, so we take a pass when we dequeue or timeout.
@@ -71,13 +68,9 @@ void task_handler_scheduler(void *params) {
             }
 
             if (check_battery_time < fk_uptime()) {
-                check_battery();
+                BatteryStatus battery;
+                battery.refresh();
                 check_battery_time = fk_uptime() + ThirtySecondsMs;
-            }
-
-            if (check_charge_time < fk_uptime()) {
-                check_charge_status();
-                check_charge_time = fk_uptime() + OneSecondMs;
             }
         }
 
@@ -115,43 +108,6 @@ static bool has_module_topology_changed(Topology &existing) {
     check_modules();
 
     return true;
-}
-
-static void check_charge_status() {
-    auto battery = get_battery_gauge()->status();
-    auto gs = get_global_state_rw();
-    if (battery.ticks > 0) {
-        loginfo("battery: ticks=%" PRIu32 " blinks=%" PRIu32, battery.ticks, battery.blinks);
-    }
-}
-
-static void check_battery() {
-    if (!get_battery_gauge()->available()) {
-        return;
-    }
-
-    auto lock = get_modmux()->lock();
-
-    auto battery = get_battery_gauge()->get();
-    if (!battery.available) {
-        logerror("battery status unavilable");
-        return;
-    }
-
-    // Bradley gave me this.
-    auto charge = (battery.bus_voltage - 3.5f) * 142.85f;
-    if (charge < 0.0f) charge = 0.0f;
-    if (charge > 100.0f) charge = 100.0f;
-
-    auto gs = get_global_state_rw();
-    gs.get()->power.voltage = battery.bus_voltage;
-    gs.get()->power.charge = charge;
-    gs.get()->power.vbus = battery.bus_voltage;
-    gs.get()->power.vs = battery.shunted_voltage;
-    gs.get()->power.ma = battery.ma;
-    gs.get()->power.mw = battery.mw;
-
-    loginfo("battery:%s v_bus = %fV v_s = %fmV %fmA %fmW %f%%", battery.charging ? " charging": "", battery.bus_voltage, battery.shunted_voltage, battery.ma, battery.mw, charge);
 }
 
 }

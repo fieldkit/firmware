@@ -22,6 +22,8 @@
 
 #include "hal/metal/metal_lora.h"
 
+#include "battery_status.h"
+
 extern const struct fkb_header_t fkb_header;
 
 namespace fk {
@@ -87,6 +89,9 @@ void StartupWorker::run(Pool &pool) {
     }
 
     FK_ASSERT(load_or_create_state(storage, pool));
+
+    BatteryStatus battery;
+    battery.refresh();
 
     ModuleRegistry registry;
     registry.initialize();
