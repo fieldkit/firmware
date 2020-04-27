@@ -174,7 +174,6 @@ static void draw_battery(U8G2_SH1106_128X64_NONAME_F_HW_I2C &draw, float battery
     }
     draw.setFont(u8g2_font_battery19_tn);
     draw.drawGlyph(OLED_WIDTH - 12, 20, glyph_battery19[frame]);
-    SEGGER_RTT_printf(0, "FRAME: %d\n", frame);
 }
 
 void U8g2Display::home(HomeScreen const &data) {
