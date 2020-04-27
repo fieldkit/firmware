@@ -163,6 +163,20 @@ static void pretty_bytes(uint32_t bytes, uint32_t *value, const char **suffix) {
     }
 }
 
+static void draw_battery(U8G2_SH1106_128X64_NONAME_F_HW_I2C &draw, float battery) {
+    size_t frames = sizeof(glyph_battery19);
+    size_t frame = (size_t)(battery * frames) / 100.0f;
+    if (frame > frames - 1) {
+        frame = frames - 1;
+    }
+    if (frame < 0) {
+        frame = 0;
+    }
+    draw.setFont(u8g2_font_battery19_tn);
+    draw.drawGlyph(OLED_WIDTH - 12, 20, glyph_battery19[frame]);
+    SEGGER_RTT_printf(0, "FRAME: %d\n", frame);
+}
+
 void U8g2Display::home(HomeScreen const &data) {
     draw_.setPowerSave(0);
     draw_.clearBuffer();
@@ -223,17 +237,10 @@ void U8g2Display::home(HomeScreen const &data) {
             draw_.drawGlyph(OLED_WIDTH - 12, 10, glyph_open_cursor_all_recording);
         }
         else {
-            draw_.setFont(u8g2_font_battery19_tn);
-            draw_.drawGlyph(OLED_WIDTH - 12, 20, glyph_battery19[sizeof(glyph_battery19) - 1]);
+            draw_battery(draw_, data.power.battery);
         }
-    }
-    else {
-        size_t frames = sizeof(glyph_battery19);
-        size_t frame = (size_t)(data.power.battery * frames) / 100.0f;
-        if (frame > frames - 1) frame = frames - 1;
-        if (frame < 0) frame = 0;
-        draw_.setFont(u8g2_font_battery19_tn);
-        draw_.drawGlyph(OLED_WIDTH - 12, 20, glyph_battery19[frame]);
+    } else {
+        draw_battery(draw_, data.power.battery);
     }
 
     if (data.network.enabled) {
