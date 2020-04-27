@@ -114,7 +114,7 @@ static bool log_diagnostics() {
     loginfo("version = %s", fkb_header.firmware.version);
 
     loginfo("sizeof(RecordHeader + RecordTail) = %zd + %zd", sizeof(RecordHeader), sizeof(RecordTail));
-    loginfo("sizeof(GlobalState) = %zd", sizeof(GlobalState ));
+    loginfo("sizeof(GlobalState) = %zd", sizeof(GlobalState));
 
     return true;
 }
