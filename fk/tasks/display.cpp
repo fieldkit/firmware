@@ -15,6 +15,7 @@
 #include "display/message_view.h"
 #include "display/module_status_view.h"
 #include "display/lora_view.h"
+#include "display/gps_view.h"
 #include "display/leds.h"
 
 namespace fk {
@@ -33,6 +34,7 @@ private:
     ModuleStatusView module_status_view;
     QrCodeView qr_code_view;
     LoraView lora_view;
+    GpsView gps_view;
     LedsController leds;
     DisplayView *view = &home_view;
 
@@ -96,6 +98,10 @@ public:
 
     void show_lora() override {
         show_view(lora_view);
+    }
+
+    void show_gps() override {
+        show_view(gps_view);
     }
 
     void on_external() override {

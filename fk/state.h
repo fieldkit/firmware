@@ -143,6 +143,7 @@ struct GpsState {
     float longitude { 0.0f };
     float latitude { 0.0f };
     float altitude { 0.0f };
+    uint32_t chars{ 0 };
 };
 
 struct PeripheralState {

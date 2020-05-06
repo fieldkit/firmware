@@ -360,6 +360,10 @@ void MenuView::create_tools_menu() {
         views_->show_lora();
         get_ipc()->launch_worker(WorkerCategory::Lora, create_pool_worker<LoraRangingWorker>(true));
     });
+    auto tools_gps = to_lambda_option(pool_, "GPS", [=]() {
+        back_->on_selected();
+        views_->show_gps();
+    });
     auto tools_factory_reset = to_lambda_option(pool_, "Factory Reset", [=]() {
         back_->on_selected();
         views_->show_home();
@@ -375,9 +379,10 @@ void MenuView::create_tools_menu() {
         get_ipc()->launch_worker(create_pool_worker<ExportDataWorker>());
     });
 
-    tools_menu_ = new_menu_screen<11>(pool_, "tools", {
+    tools_menu_ = new_menu_screen<12>(pool_, "tools", {
         back_,
         tools_self_check,
+        tools_gps,
         tools_lora_ranging,
         tools_lora_ranging_confirmed,
         tools_load_firmware_sd,

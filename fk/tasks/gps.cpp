@@ -34,42 +34,51 @@ void task_handler_gps(void *params) {
 
         fk_delay(10);
 
-        if (fk_uptime() > status) {
-            loginfo("satellites(%d) time(%" PRIu32 ") location(%f, %f) statistics(%" PRIu32 "chrs, %d/%d)",
-                    fix.satellites, fix.time, fix.longitude, fix.latitude,
-                    fix.chars, fix.good, fix.failed);
-            status = fk_uptime() + OneMinuteMs;
-        }
-
-        if (fk_uptime() > update_gs) {
-            update_gs = fk_uptime() + FiveSecondsMs;
-
-            if (fix.good) {
-                // We only update our memorized fix/location if we
-                // have a good fix. This way any previous loaded,
-                // unfixed location can be linked to records.
-                gsm.apply([=](GlobalState *gs) {
-                    gs->gps.enabled = true;
-                    gs->gps.fix = fix.good;
-                    gs->gps.longitude = fix.longitude;
-                    gs->gps.latitude = fix.latitude;
-                    gs->gps.altitude = fix.altitude;
-                    gs->gps.satellites = fix.satellites;
-                    gs->gps.hdop = fix.hdop;
-                });
-
-                if (fixed_at == 0) {
-                    fixed_at = fk_uptime();
-                    clock_adjust(fix.time);
-                }
-                else if (fk_uptime() - fixed_at > OneMinuteMs) {
-                    loginfo("gps fix hold reached: %" PRIu32, OneMinuteMs);
-                    break;
-                }
+        if (fix.chars > 0) {
+            if (fk_uptime() > status) {
+                loginfo("satellites(%d) time(%" PRIu32 ") location(%f, %f) statistics(%" PRIu32 "chrs, %d/%d)",
+                        fix.satellites, fix.time, fix.longitude, fix.latitude,
+                        fix.chars, fix.good, fix.failed);
+                status = fk_uptime() + OneMinuteMs;
             }
-            else {
-                if (fixed_at > 0) {
-                    fixed_at = 0;
+
+            if (fk_uptime() > update_gs) {
+                update_gs = fk_uptime() + FiveSecondsMs;
+
+                if (fix.good) {
+                    // We only update our memorized fix/location if we
+                    // have a good fix. This way any previous loaded,
+                    // unfixed location can be linked to records.
+                    gsm.apply([=](GlobalState *gs) {
+                        gs->gps.enabled = true;
+                        gs->gps.fix = fix.good;
+                        gs->gps.longitude = fix.longitude;
+                        gs->gps.latitude = fix.latitude;
+                        gs->gps.altitude = fix.altitude;
+                        gs->gps.satellites = fix.satellites;
+                        gs->gps.hdop = fix.hdop;
+                        gs->gps.chars = fix.chars;
+                    });
+
+                    if (fixed_at == 0) {
+                        fixed_at = fk_uptime();
+                        clock_adjust(fix.time);
+                    }
+                    else if (fk_uptime() - fixed_at > OneMinuteMs) {
+                        loginfo("gps fix hold reached: %" PRIu32, OneMinuteMs);
+                        break;
+                    }
+                }
+                else {
+                    gsm.apply([=](GlobalState *gs) {
+                        gs->gps.enabled = true;
+                        gs->gps.fix = false;
+                        gs->gps.chars = fix.chars;
+                    });
+
+                    if (fixed_at > 0) {
+                        fixed_at = 0;
+                    }
                 }
             }
         }
