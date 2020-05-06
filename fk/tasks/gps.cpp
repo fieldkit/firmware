@@ -73,6 +73,7 @@ void task_handler_gps(void *params) {
                     gsm.apply([=](GlobalState *gs) {
                         gs->gps.enabled = true;
                         gs->gps.fix = false;
+                        gs->gps.satellites = fix.satellites;
                         gs->gps.chars = fix.chars;
                     });
 

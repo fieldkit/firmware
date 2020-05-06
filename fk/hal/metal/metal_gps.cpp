@@ -48,7 +48,6 @@ bool MetalGps::service(GpsFix &fix) {
         char c = Serial1.read();
         gps_.encode(c);
 
-        fix.satellites = gps_.satellites();
         fix.altitude = gps_.f_altitude();
         fix.hdop = gps_.hdop();
 
@@ -57,10 +56,6 @@ bool MetalGps::service(GpsFix &fix) {
         gps_.get_datetime(&time.date, &time.time, &time.time_fix_age);
 
         auto valid = true;
-
-        if (fix.satellites == TinyGPS::GPS_INVALID_SATELLITES) {
-            valid = false;
-        }
 
         if (fix.hdop == TinyGPS::GPS_INVALID_HDOP) {
             valid = false;
@@ -89,6 +84,12 @@ bool MetalGps::service(GpsFix &fix) {
         // Do this after, so that these are included even if we have
         // an invalid fix.
         gps_.stats(&fix.chars, &fix.good, &fix.failed);
+
+        // Also always include number of satellites, for diagnostics.
+        auto satellites = gps_.satellites();
+        if (satellites != TinyGPS::GPS_INVALID_SATELLITES) {
+            fix.satellites = satellites;
+        }
 
         if (GpsLoggingRaw) {
             if (position_ == sizeof(buffer_) - 1 || c == '\n') {
