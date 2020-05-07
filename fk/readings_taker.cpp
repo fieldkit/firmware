@@ -76,7 +76,7 @@ bool ReadingsTaker::append_readings(File &file, Pool &pool) {
     }
 
     auto record = readings_.record().readings.reading;
-    loginfo("wrote %zd bytes file=(#%" PRIu32 ") rec=(#%" PRIu32 ") (%" PRIu32 " bytes) (" PRADDRESS ") (%" PRIu32 " wasted)",
+    loginfo("wrote %zd bytes file=(#%" PRIu32 ") rec=(#%" PRIu64 ") (%" PRIu32 " bytes) (" PRADDRESS ") (%" PRIu32 " wasted)",
             (size_t)bytes_wrote, file.previous_record(), record, file.size(), file.tail(), file.wasted());
 
     return true;
@@ -90,7 +90,7 @@ bool ReadingsTaker::verify_reading_record(File &file, Pool &pool) {
     auto &record = readings_.record();
 
     if (file.previous_record() != record.readings.reading) {
-        logerror("unexpected record (%" PRIu32 " != %" PRIu32 ")", file.previous_record(), record.readings.reading);
+        logerror("unexpected record (%" PRIu32 " != %" PRIu64 ")", file.previous_record(), record.readings.reading);
         return false;
     }
 

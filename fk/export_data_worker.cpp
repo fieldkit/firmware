@@ -73,7 +73,7 @@ void ExportDataWorker::run(Pool &pool) {
         }
 
         if (!lookup_meta(record.readings.meta, meta_file, loop_pool)) {
-            logerror("error looking up meta (%" PRIu32 ")", record.readings.meta);
+            logerror("error looking up meta (%" PRIu64 ")", record.readings.meta);
             continue;
         }
 
