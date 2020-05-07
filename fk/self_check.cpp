@@ -262,9 +262,21 @@ bool SelfCheck::sd_card_write() {
         }
 
         auto buffer = "Self Check";
+        auto wrote = file->write((uint8_t *)buffer, strlen(buffer));
+        if (wrote != (int32_t)strlen(buffer)) {
+            logerror("error writing %s", file_name);
+            return false;
+        }
 
-        file->write((uint8_t *)buffer, strlen(buffer));
-        file->close();
+        if (!file->close()) {
+            logerror("error closing %s", file_name);
+            return false;
+        }
+
+        if (!sd_card->unlink(file_name)) {
+            logerror("error unlinking %s", file_name);
+            return false;
+        }
 
         return true;
     });
