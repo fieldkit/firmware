@@ -84,8 +84,8 @@ void task_handler_gps(void *params) {
             }
         }
 
-        if (fk_uptime() - started_at > FiveMinutesMs) {
-            loginfo("gps fix waiting reached: %" PRIu32, FiveMinutesMs);
+        if (fk_uptime() - started_at > TenMinutesMs) {
+            loginfo("gps fix waiting reached: %" PRIu32, TenMinutesMs);
             break;
         }
     }
