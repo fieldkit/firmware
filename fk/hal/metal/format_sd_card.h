@@ -28,6 +28,9 @@ private:
     uint16_t const BU32 = 8192;
 
 public:
+    FormatSdCard() { }
+
+public:
     bool begin();
     bool erase();
     bool format();

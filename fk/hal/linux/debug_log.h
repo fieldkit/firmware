@@ -75,6 +75,9 @@ private:
     std::list<LogEntry> entries_;
 
 public:
+    StorageLog() { }
+
+public:
     void append(LogEntry &&entry);
 
     void undo(size_t number);

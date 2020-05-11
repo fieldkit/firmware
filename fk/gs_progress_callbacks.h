@@ -8,6 +8,7 @@ private:
     uint32_t updated_;
 
 public:
+    GlobalStateProgressCallbacks() { }
     virtual ~GlobalStateProgressCallbacks();
 
 public:

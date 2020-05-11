@@ -13,6 +13,9 @@ private:
     uint32_t seconds_{ FiveMinutesSeconds };
 
 public:
+    NetworkDuration() { }
+
+public:
     bool always_on() const {
         return seconds_ == UINT32_MAX;
     }

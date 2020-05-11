@@ -40,6 +40,9 @@ private:
     uint8_t device_eui_[LoraDeviceEuiLength];
 
 public:
+    NoopLoraNetwork() { }
+
+public:
     bool begin() override {
         return false;
     }

@@ -10,6 +10,9 @@ private:
     uint32_t total_pages_;
 
 public:
+    Flash() { }
+
+public:
     bool initialize();
     int32_t read(uint32_t address, uint8_t *data, size_t size);
     int32_t write(uint32_t address, uint8_t *data, size_t size);

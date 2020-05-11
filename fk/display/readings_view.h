@@ -12,6 +12,9 @@ private:
     uint32_t position_{ 0 };
 
 public:
+    ReadingsView() { }
+
+public:
     void tick(ViewController *views, Pool &pool) override;
     void up(ViewController *views) override;
     void down(ViewController *views) override;

@@ -10,6 +10,9 @@ private:
     uint8_t bay_{ 0 };
 
 public:
+    ModuleStatusView() { }
+
+public:
     void tick(ViewController *views, Pool &pool) override;
     void up(ViewController *views) override;
     void down(ViewController *views) override;

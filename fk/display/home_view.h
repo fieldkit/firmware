@@ -22,6 +22,9 @@ private:
     int8_t visible_{ 0 };
 
 public:
+    HomeView() { }
+
+public:
     void tick(ViewController *views, Pool &pool) override;
     void up(ViewController *views) override;
     void down(ViewController *views) override;
