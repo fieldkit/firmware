@@ -23,7 +23,7 @@ private:
     SdCardFirmware params_;
 
 public:
-    UpgradeFirmwareFromSdWorker(SdCardFirmware params);
+    explicit UpgradeFirmwareFromSdWorker(SdCardFirmware &params);
 
 public:
     void run(Pool &pool) override;

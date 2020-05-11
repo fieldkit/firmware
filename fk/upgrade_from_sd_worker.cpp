@@ -25,7 +25,7 @@ fkb_header_t *fkb_try_header(void *ptr) {
 }
 #endif
 
-UpgradeFirmwareFromSdWorker::UpgradeFirmwareFromSdWorker(SdCardFirmware params) : params_(params) {
+UpgradeFirmwareFromSdWorker::UpgradeFirmwareFromSdWorker(SdCardFirmware &params) : params_(params) {
 }
 
 void UpgradeFirmwareFromSdWorker::log_other_firmware() {

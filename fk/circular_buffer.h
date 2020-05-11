@@ -148,7 +148,7 @@ public:
         return max_size_;
     }
 
-    size_t size(iterator iter) const {
+    size_t size(iterator &iter) const {
         if (iter == end()) {
             return 0;
         }
