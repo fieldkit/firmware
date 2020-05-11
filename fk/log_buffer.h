@@ -106,6 +106,7 @@ private:
     char buffer_[Size];
 
 public:
+    // cppcheck-suppress uninitMemberVar
     static_log_buffer() : log_buffer(buffer_, Size) {
     }
 
