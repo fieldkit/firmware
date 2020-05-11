@@ -30,7 +30,7 @@ private:
     size_t taken_;
 
 public:
-    Pool(const char *name, size_t size, void *block, size_t taken);
+    explicit Pool(const char *name, size_t size, void *block, size_t taken);
     virtual ~Pool();
 
 public:
@@ -110,8 +110,8 @@ private:
     StandardPool *sibling_{ nullptr };
 
 public:
-    StandardPool(const char *name);
-    StandardPool(const char *name, void *ptr, size_t size, size_t taken);
+    explicit StandardPool(const char *name);
+    explicit StandardPool(const char *name, void *ptr, size_t size, size_t taken);
     virtual ~StandardPool();
 
 public:

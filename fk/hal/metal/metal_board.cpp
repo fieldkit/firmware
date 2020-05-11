@@ -129,7 +129,7 @@ EepromLock Board::lock_eeprom() {
     // See the documentation of this define for more information.
     fk_delay(FK_MODULES_EEPROM_WRITE_TIME);
 
-    return { fk_uptime() };
+    return EepromLock{ fk_uptime() };
 }
 
 void Board::release_eeprom() {

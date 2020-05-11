@@ -45,16 +45,16 @@ struct BlockMagic {
 
     uint8_t data[sizeof(MagicKey)] = { 0 };
 
-    BlockMagic() {
+    explicit BlockMagic() {
     }
 
-    BlockMagic(const char *k) {
+    explicit BlockMagic(const char *k) {
         assert(k == MagicKey); // :)
         memcpy(data, k, sizeof(MagicKey));
     }
 
     static BlockMagic create_valid() {
-        return { MagicKey };
+        return BlockMagic{ MagicKey };
     }
 
     bool valid() const {

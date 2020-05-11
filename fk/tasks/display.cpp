@@ -39,7 +39,7 @@ private:
     DisplayView *view = &home_view;
 
 public:
-    MainViewController(Pool &pool) : menu_view{ this, pool } {
+    explicit MainViewController(Pool &pool) : menu_view{ this, pool } {
     }
 
 private:

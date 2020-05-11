@@ -12,7 +12,7 @@ private:
     bool awake_{ false };
 
 public:
-    LoraManager(LoraNetwork *network);
+    explicit LoraManager(LoraNetwork *network);
 
 public:
     bool begin();

@@ -18,8 +18,8 @@ private:
     SdCardFile *writing_{ nullptr };
 
 public:
-    ExportDataWorker();
-    ExportDataWorker(DataMemory *data_memory);
+    explicit ExportDataWorker();
+    explicit ExportDataWorker(DataMemory *data_memory);
 
 public:
     void run(Pool &pool) override;

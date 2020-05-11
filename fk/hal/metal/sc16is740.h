@@ -13,7 +13,7 @@ private:
     AcquireTwoWireBus *acquire_bus_;
 
 public:
-    Sc16is740(AcquireTwoWireBus *acquire_bus);
+    explicit Sc16is740(AcquireTwoWireBus *acquire_bus);
 
 public:
     bool begin(uint32_t baud);

@@ -27,7 +27,7 @@ private:
     size_t encoded_size_{ 0 };
 
 public:
-    LoraRecord(Pool &pool) : pool_(&pool) {
+    explicit LoraRecord(Pool &pool) : pool_(&pool) {
         clear();
     }
 

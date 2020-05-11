@@ -9,7 +9,7 @@ private:
     bool confirmed_;
 
 public:
-    LoraRangingWorker(bool confirmed);
+    explicit LoraRangingWorker(bool confirmed);
 
 public:
     void run(Pool &pool) override;

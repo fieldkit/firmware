@@ -11,8 +11,8 @@ private:
     bool all_data_{ false };
 
 public:
-    UploadDataWorker();
-    UploadDataWorker(bool all_meta, bool all_data);
+    explicit UploadDataWorker();
+    explicit UploadDataWorker(bool all_meta, bool all_data);
 
 public:
     void run(Pool &pool) override;

@@ -177,15 +177,14 @@ private:
     uint8_t previous_;
 
 public:
-    ScopedLogLevelChange(LogLevels level) {
+    explicit ScopedLogLevelChange(LogLevels level) {
         previous_ = log_get_level();
         log_configure_level(level);
     }
 
     virtual ~ScopedLogLevelChange() {
-    log_configure_level((LogLevels)previous_);
+        log_configure_level((LogLevels)previous_);
     }
-
 };
 
-}
+} // namespace fk

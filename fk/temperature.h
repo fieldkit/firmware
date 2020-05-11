@@ -13,7 +13,7 @@ private:
     TwoWireWrapper wire_;
 
 public:
-    CoreTemperature(TwoWireWrapper wire);
+    explicit CoreTemperature(TwoWireWrapper wire);
 
 public:
     bool begin();

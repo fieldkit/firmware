@@ -25,7 +25,7 @@ private:
     ModMux *mm_;
 
 public:
-    ModuleScanning(ModMux *mm);
+    explicit ModuleScanning(ModMux *mm);
 
 public:
     virtual tl::expected<FoundModuleCollection, Error> scan(Pool &pool);
@@ -42,7 +42,7 @@ private:
     FoundModuleCollection &found_;
 
 public:
-    StaticModuleScanning(FoundModuleCollection &found) : ModuleScanning(nullptr), found_(found) {
+    explicit StaticModuleScanning(FoundModuleCollection &found) : ModuleScanning(nullptr), found_(found) {
     }
 
 public:

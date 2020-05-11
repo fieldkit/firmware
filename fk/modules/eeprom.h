@@ -17,7 +17,7 @@ private:
     TwoWireWrapper *wire_;
 
 public:
-    ModuleEeprom(TwoWireWrapper &wire);
+    explicit ModuleEeprom(TwoWireWrapper &wire);
 
 public:
     bool read_header(ModuleHeader &header);

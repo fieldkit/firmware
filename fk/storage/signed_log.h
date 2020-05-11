@@ -26,7 +26,7 @@ private:
     File &file_;
 
 public:
-    SignedRecordLog(File &file);
+    explicit SignedRecordLog(File &file);
 
 public:
     tl::expected<uint32_t, Error> seek_record(SignedRecordKind kind);

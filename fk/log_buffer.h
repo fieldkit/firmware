@@ -19,7 +19,7 @@ public:
         bool overwrote{ false };
 
     public:
-        appender(log_buffer *lb) : lb(lb) {
+        explicit appender(log_buffer *lb) : lb(lb) {
         }
 
     public:
@@ -50,7 +50,7 @@ public:
     };
 
     appender start() {
-        return { this };
+        return appender{ this };
     }
 
     void append(const char *str) {

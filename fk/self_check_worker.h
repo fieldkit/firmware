@@ -10,7 +10,7 @@ private:
     SelfCheckCallbacks *callbacks_;
 
 public:
-    SelfCheckWorker(SelfCheckCallbacks &callbacks);
+    explicit SelfCheckWorker(SelfCheckCallbacks &callbacks);
 
 public:
     void run(Pool &pool) override;

@@ -37,7 +37,7 @@ class SchedulerTask {
 
 class ReadingsTask : public lwcron::CronTask, public SchedulerTask {
 public:
-    ReadingsTask(lwcron::CronSpec cron_spec);
+    explicit ReadingsTask(lwcron::CronSpec cron_spec);
 
 public:
     void run() override;
@@ -47,7 +47,7 @@ public:
 
 class GpsTask : public lwcron::CronTask, public SchedulerTask {
 public:
-    GpsTask(lwcron::CronSpec cron_spec);
+    explicit GpsTask(lwcron::CronSpec cron_spec);
 
 public:
     void run() override;
@@ -57,7 +57,7 @@ public:
 
 class LoraTask : public lwcron::CronTask, public SchedulerTask {
 public:
-    LoraTask(lwcron::CronSpec cron_spec);
+    explicit LoraTask(lwcron::CronSpec cron_spec);
 
 public:
     void run() override;
@@ -68,7 +68,7 @@ public:
 
 class UploadDataTask : public lwcron::CronTask, public SchedulerTask {
 public:
-    UploadDataTask(lwcron::CronSpec cron_spec, uint32_t jitter);
+    explicit UploadDataTask(lwcron::CronSpec cron_spec, uint32_t jitter);
 
 public:
     void run() override;
@@ -78,7 +78,7 @@ public:
 
 class SynchronizeTimeTask : public lwcron::PeriodicTask, public SchedulerTask {
 public:
-    SynchronizeTimeTask(uint32_t interval);
+    explicit SynchronizeTimeTask(uint32_t interval);
 
 public:
     void run() override;
@@ -88,7 +88,7 @@ public:
 
 class ServiceModulesTask : public lwcron::PeriodicTask, public SchedulerTask {
 public:
-    ServiceModulesTask(uint32_t interval);
+    explicit ServiceModulesTask(uint32_t interval);
 
 public:
     void run() override ;

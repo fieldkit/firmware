@@ -9,7 +9,7 @@ private:
     Reader *target_;
 
 public:
-    Base64Reader(Reader *target);
+    explicit Base64Reader(Reader *target);
 
 public:
     int32_t read(uint8_t *buffer, size_t size) override;
@@ -20,7 +20,7 @@ private:
     Writer *target_;
 
 public:
-    Base64Writer(Writer *target);
+    explicit Base64Writer(Writer *target);
 
 public:
     int32_t write(uint8_t const *buffer, size_t size) override;

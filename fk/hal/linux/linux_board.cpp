@@ -48,7 +48,7 @@ void Board::enable_lora() {
 }
 
 EepromLock Board::lock_eeprom() {
-    return { fk_uptime() };
+    return EepromLock{ fk_uptime() };
 }
 
 void Board::signal_eeprom(uint8_t times) {

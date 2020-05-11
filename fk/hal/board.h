@@ -121,11 +121,9 @@ private:
 
 public:
     explicit EepromLock();
-    explicit EepromLock(EepromLock const &o);
-    EepromLock(uint32_t locked);
+    explicit EepromLock(uint32_t locked);
+    EepromLock(EepromLock const &o);
     EepromLock(EepromLock &&o);
-
-public:
     virtual ~EepromLock();
 
 };

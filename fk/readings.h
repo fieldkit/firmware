@@ -13,7 +13,7 @@ private:
     fk_data_DataRecord record_;
 
 public:
-    Readings(ModMux *mm);
+    explicit Readings(ModMux *mm);
 
 public:
     tl::expected<ModuleReadingsCollection, Error> take_readings(ScanningContext &ctx, ConstructedModulesCollection const &modules,

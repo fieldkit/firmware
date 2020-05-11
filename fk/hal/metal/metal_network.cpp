@@ -21,7 +21,7 @@ private:
     Pool *pool_;
 
 public:
-    MDNSPoolAllocator(Pool *pool) : pool_(pool) {
+    explicit MDNSPoolAllocator(Pool *pool) : pool_(pool) {
     }
 
 public:

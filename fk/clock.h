@@ -19,8 +19,8 @@ private:
     TwoWireWrapper wire_;
 
 public:
-    CoreClock();
-    CoreClock(TwoWireWrapper wire);
+    explicit CoreClock();
+    explicit CoreClock(TwoWireWrapper wire);
 
 public:
     bool begin();

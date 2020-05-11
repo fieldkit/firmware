@@ -60,7 +60,7 @@ private:
     uint8_t buffer_[Size];
 
 public:
-    StackBufferedWriter(Writer *writer) : BufferedWriter(writer, buffer_, Size) {
+    explicit StackBufferedWriter(Writer *writer) : BufferedWriter(writer, buffer_, Size) {
     }
 
 };

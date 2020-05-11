@@ -15,7 +15,7 @@ private:
     Storage &storage_;
 
 public:
-    MetaOps(Storage &storage);
+    explicit MetaOps(Storage &storage);
 
 public:
     tl::expected<uint32_t, Error> write_state(GlobalState const *gs, Pool &pool);

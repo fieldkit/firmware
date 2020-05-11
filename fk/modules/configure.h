@@ -11,7 +11,7 @@ private:
     ModuleScanning *scanning_;
 
 public:
-    ModuleConfigurer(ModuleScanning &scanning);
+    explicit ModuleConfigurer(ModuleScanning &scanning);
 
 public:
     bool configure(uint8_t position, ModuleHeader header);

@@ -29,7 +29,7 @@ private:
     SpiFlashError error_{ SpiFlashError::None };
 
 public:
-    SpiFlash(uint8_t cs);
+    explicit SpiFlash(uint8_t cs);
 
 public:
     FlashGeometry geometry() const;
