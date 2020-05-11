@@ -67,6 +67,7 @@ typedef struct ModuleConfiguration {
     /**
      * Constructor
      */
+    // cppcheck-suppress noExplicitConstructor
     ModuleConfiguration(const char *display_name_key)
         : display_name_key(display_name_key) {
     }

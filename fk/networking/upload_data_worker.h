@@ -30,6 +30,7 @@ private:
     struct FileUpload {
         uint32_t record;
 
+        // cppcheck-suppress noExplicitConstructor
         FileUpload(uint32_t record) : record(record) {
         }
 
