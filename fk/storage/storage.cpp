@@ -176,14 +176,16 @@ bool Storage::begin() {
         if (!is_address_valid(block_tail.linked)) {
             logdebug("[-] block: #%" PRIu32 " invalid linked address (" PRADDRESS ")", block, block_tail.linked);
             block++;
-            break;
+            continue;
         }
 
-        FK_ASSERT(block != block_tail.linked);
+        auto linked_block = block_tail.linked / g.block_size;
 
-        logdebug("[-] block: #%" PRIu32 " -> #%" PRIu32, block, block_tail.linked);
+        FK_ASSERT(block != linked_block);
 
-        block = block_tail.linked;
+        logdebug("[-] block: #%" PRIu32 " -> #%" PRIu32, block, linked_block);
+
+        block = linked_block;
     }
 
     free_block_ = block;
