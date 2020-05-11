@@ -17,15 +17,21 @@ constexpr size_t MaximumBadBlockRun = 10;
 
 void DumpFlashMemoryWorker::run(Pool &pool) {
     auto lock = storage_mutex.acquire(UINT32_MAX);
-    auto memory = SequentialMemory{ MemoryFactory::get_data_memory() };
-    auto g = MemoryFactory::get_data_memory()->geometry();
 
-    auto sd = get_sd_card();
+    auto flash_memory = MemoryFactory::get_data_memory();
+    if (!flash_memory->begin()) {
+        logerror("error opening flash memory");
+        return;
+    }
+
+    auto g = flash_memory->geometry();
+    auto memory = SequentialMemory{ flash_memory };
     auto buffer = (uint8_t *)pool.malloc(g.page_size);
 
     FormattedTime formatted{ get_clock_now(), TimeFormatMachine };
     auto path = pool.sprintf("/%s/%08x.bin", formatted.cstr(), 0);
 
+    auto sd = get_sd_card();
     if (!sd->begin()) {
         logerror("error opening sd card");
         return;
