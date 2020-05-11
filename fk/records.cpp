@@ -311,7 +311,7 @@ fk_app_HttpQuery *fk_http_query_prepare_decoding(fk_app_HttpQuery *query, Pool *
 fk_app_HttpReply *fk_http_reply_encoding_initialize(fk_app_HttpReply *reply) {
     if (reply->errors.arg != nullptr) {
         reply->errors.funcs.encode = pb_encode_array;
-        auto array = (pb_array_t *)reply->errors.arg;
+        auto array = reinterpret_cast<pb_array_t *>(reply->errors.arg);
         for (size_t i = 0; i < array->length; ++i) {
             auto error = &((fk_app_Error *)array->buffer)[i];
             error->message.funcs.encode = pb_encode_string;
@@ -334,7 +334,7 @@ fk_app_HttpReply *fk_http_reply_encoding_initialize(fk_app_HttpReply *reply) {
 
     if (reply->modules.arg != nullptr) {
         reply->modules.funcs.encode = pb_encode_array;
-        auto array = (pb_array_t *)reply->modules.arg;
+        auto array = reinterpret_cast<pb_array_t *>(reply->modules.arg);
         for (size_t i = 0; i < array->length; ++i) {
             auto module = &((fk_app_ModuleCapabilities *)array->buffer)[i];
             module->name.funcs.encode = pb_encode_string;
@@ -342,7 +342,7 @@ fk_app_HttpReply *fk_http_reply_encoding_initialize(fk_app_HttpReply *reply) {
             module->id.funcs.encode = pb_encode_data;
             if (module->sensors.arg != nullptr) {
                 module->sensors.funcs.encode = pb_encode_array;
-                auto array = (pb_array_t *)module->sensors.arg;
+                auto array = reinterpret_cast<pb_array_t *>(module->sensors.arg);
                 for (size_t i = 0; i < array->length; ++i) {
                     auto sensor = &((fk_app_SensorCapabilities *)array->buffer)[i];
                     sensor->name.funcs.encode = pb_encode_string;
@@ -355,7 +355,7 @@ fk_app_HttpReply *fk_http_reply_encoding_initialize(fk_app_HttpReply *reply) {
 
     if (reply->streams.arg != nullptr) {
         reply->streams.funcs.encode = pb_encode_array;
-        auto array = (pb_array_t *)reply->streams.arg;
+        auto array = reinterpret_cast<pb_array_t *>(reply->streams.arg);
         for (size_t i = 0; i < array->length; ++i) {
             auto stream = &((fk_app_DataStream *)array->buffer)[i];
             stream->name.funcs.encode = pb_encode_string;
@@ -366,7 +366,7 @@ fk_app_HttpReply *fk_http_reply_encoding_initialize(fk_app_HttpReply *reply) {
 
     if (reply->networkSettings.networks.arg != nullptr) {
         reply->networkSettings.networks.funcs.encode = pb_encode_array;
-        auto array = (pb_array_t *)reply->networkSettings.networks.arg;
+        auto array = reinterpret_cast<pb_array_t *>(reply->networkSettings.networks.arg);
         for (size_t i = 0; i < array->length; ++i) {
             auto network = &((fk_app_NetworkInfo *)array->buffer)[i];
             network->ssid.funcs.encode = pb_encode_string;
@@ -376,12 +376,12 @@ fk_app_HttpReply *fk_http_reply_encoding_initialize(fk_app_HttpReply *reply) {
 
     if (reply->liveReadings.arg != nullptr) {
         reply->liveReadings.funcs.encode = pb_encode_array;
-        auto live_readings_array = (pb_array_t *)reply->liveReadings.arg;
+        auto live_readings_array = reinterpret_cast<pb_array_t *>(reply->liveReadings.arg);
         for (size_t i = 0; i < live_readings_array->length; ++i) {
             auto live_readings = &((fk_app_LiveReadings *)live_readings_array->buffer)[i];
             if (live_readings->modules.arg != nullptr) {
                 live_readings->modules.funcs.encode = pb_encode_array;
-                auto modules_array = (pb_array_t *)live_readings->modules.arg;
+                auto modules_array = reinterpret_cast<pb_array_t *>(live_readings->modules.arg);
                 for (size_t j = 0; j < modules_array->length; ++j) {
                     auto lmr = &((fk_app_LiveModuleReadings *)modules_array->buffer)[j];
                     if (lmr->module.name.arg != nullptr) {
@@ -390,7 +390,7 @@ fk_app_HttpReply *fk_http_reply_encoding_initialize(fk_app_HttpReply *reply) {
                     }
                     if (lmr->readings.arg != nullptr) {
                         lmr->readings.funcs.encode = pb_encode_array;
-                        auto readings_array = (pb_array_t *)lmr->readings.arg;
+                        auto readings_array = reinterpret_cast<pb_array_t *>(lmr->readings.arg);
                         for (size_t k = 0; k < readings_array->length; ++k) {
                             auto lsr = &((fk_app_LiveSensorReading *)readings_array->buffer)[k];
                             lsr->sensor.name.funcs.encode = pb_encode_string;

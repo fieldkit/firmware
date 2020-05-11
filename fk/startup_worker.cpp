@@ -158,7 +158,7 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
     auto name = (const char *)record.identity.name.arg;
     strncpy(gs->general.name, name, sizeof(gs->general.name));
 
-    auto generation = (pb_data_t *)record.metadata.generation.arg;
+    auto generation = reinterpret_cast<pb_data_t *>(record.metadata.generation.arg);
     FK_ASSERT(generation->length == GenerationLength);
     memcpy(gs->general.generation, generation->buffer, GenerationLength);
 
@@ -219,7 +219,7 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
         gs->lora.configured = true;
     }
 
-    auto networks_array = (pb_array_t *)record.network.networks.arg;
+    auto networks_array = reinterpret_cast<pb_data_t *>(record.network.networks.arg);
     if (networks_array->length > 0) {
         FK_ASSERT(networks_array->length <= WifiMaximumNumberOfNetworks);
 

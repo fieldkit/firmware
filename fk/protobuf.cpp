@@ -142,7 +142,7 @@ bool pb_encode_data(pb_ostream_t *stream, const pb_field_t *field, void *const *
 }
 
 pb_data_t *pb_data_allocate(Pool *pool, size_t size) {
-    auto data = (pb_data_t *)pool->malloc(sizeof(pb_data_t) + size);
+    auto data = reinterpret_cast<pb_data_t *>(pool->malloc(sizeof(pb_data_t) + size));
     data->buffer = ((uint8_t *)data) + sizeof(pb_data_t);
     data->length = size;
     return data;
@@ -197,7 +197,7 @@ pb_data_t *pb_get_data_if_provided(void *arg, Pool &pool) {
     if (arg == &pool) {
         return nullptr;
     }
-    return (pb_data_t *)arg;
+    return reinterpret_cast<pb_data_t *>(arg);
 }
 
 const char *pb_get_string_if_provided(void *arg, Pool &pool) {
