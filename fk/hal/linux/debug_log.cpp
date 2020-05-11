@@ -33,7 +33,7 @@ void LogEntry::free_backup() {
 }
 
 void StorageLog::append(LogEntry &&entry) {
-    if (!copy_on_write_ && entries_.size() > 0) {
+    if (!copy_on_write_ && !entries_.empty()) {
         entries_.back().free_backup();
     }
 
