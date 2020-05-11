@@ -80,6 +80,7 @@ int32_t LinuxNetworkConnection::vwritef(const char *str, va_list args) {
     tiny_vsnprintf(buffer, needed + 1, str, args);
     write(buffer);
     fk_free(buffer);
+    va_end(copy);
     return needed;
 }
 
