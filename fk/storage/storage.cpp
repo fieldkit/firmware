@@ -122,7 +122,7 @@ bool Storage::begin() {
         BlockHeader block_header;
         auto address = range.middle_block() * g.block_size;
         if (memory_.read(address, (uint8_t *)&block_header, sizeof(block_header)) != sizeof(block_header)) {
-            logerror("[?] read failed " PRADDRESS, address);
+            logerror("[-] read failed " PRADDRESS, address);
             return false;
         }
 
@@ -141,7 +141,7 @@ bool Storage::begin() {
             had_valid_blocks = true;
         }
         else {
-            logtrace("[?] invalid block (" PRADDRESS ")", address);
+            logtrace("[-] invalid block (" PRADDRESS ")", address);
             range = range.first_half();
         }
     }
@@ -149,6 +149,8 @@ bool Storage::begin() {
     if (!had_valid_blocks) {
         return false;
     }
+
+    logdebug("[-] block: #%" PRIu32 " sequential scan", range.start);
 
     auto block = range.start;
 
@@ -158,10 +160,11 @@ bool Storage::begin() {
 
         BlockHeader block_header;
         if (memory_.read(head_address, (uint8_t *)&block_header, sizeof(block_header)) != sizeof(block_header)) {
-            return 0;
+            return false;
         }
 
         if (!valid_block_header(block_header)) {
+            logdebug("[-] block: #%" PRIu32 " invalid header", block);
             break;
         }
 
@@ -171,22 +174,25 @@ bool Storage::begin() {
         }
 
         if (!is_address_valid(block_tail.linked)) {
+            logdebug("[-] block: #%" PRIu32 " invalid linked address (" PRADDRESS ")", block, block_tail.linked);
             block++;
             break;
         }
 
         FK_ASSERT(block != block_tail.linked);
 
+        logdebug("[-] block: #%" PRIu32 " -> #%" PRIu32, block, block_tail.linked);
+
         block = block_tail.linked;
     }
 
     free_block_ = block;
 
+    logdebug("[-] block: #%" PRIu32 " found end (%" PRIu32 "ms)", free_block_, fk_uptime() - started);
+
     for (auto i = 0; i < NumberOfFiles; ++i) {
         logdebug("[%d] header tail (" PRADDRESS ") (#%" PRIu32 ")", i, files_[i].tail, files_[i].record);
     }
-
-    logdebug("found end (block = %" PRIu32 ") (%" PRIu32 "ms)", free_block_, fk_uptime() - started);
 
     return true;
 }
