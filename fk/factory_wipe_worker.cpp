@@ -20,10 +20,6 @@ void FactoryWipeWorker::run(Pool &pool) {
     Storage storage{ MemoryFactory::get_data_memory(), pool };
     FactoryWipe factory_wipe{ storage };
 
-    if (!storage.begin()) {
-        logwarn("error initializing storage");
-    }
-
     if (factory_wipe.wipe(&progress)) {
         fk_delay(500);
         fk_restart();
