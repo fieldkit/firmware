@@ -244,8 +244,6 @@ uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address, BlockTa
 
     verify_mutable();
 
-    logdebug("allocating");
-
     // Find a good block.
     for (auto i = 0; i < StorageAvailableBlockLookAhead; ++i) {
         auto block = free_block_;
