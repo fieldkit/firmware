@@ -40,11 +40,10 @@ bool FormatSdCard::begin() {
 bool FormatSdCard::erase() {
     static constexpr uint32_t ERASE_SIZE = 262144L;
     uint32_t first_block = 0;
-    uint32_t last_block;
 
     do
     {
-        last_block = first_block + ERASE_SIZE - 1;
+        uint32_t last_block = first_block + ERASE_SIZE - 1;
         if (last_block >= card_size_blocks_) {
             last_block = card_size_blocks_ - 1;
         }
