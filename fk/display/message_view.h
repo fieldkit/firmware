@@ -14,7 +14,7 @@ public:
     void tick(ViewController *views, Pool &pool) override {
         auto bus = get_board()->i2c_core();
         auto display = get_display();
-        display->simple({ message_ });
+        display->simple(SimpleScreen{ message_ });
     }
 
 public:

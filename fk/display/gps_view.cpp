@@ -24,7 +24,7 @@ void GpsView::tick(ViewController *views, Pool &pool) {
         tiny_snprintf(first, sizeof(first), "GPS Off");
     }
 
-    display->simple({ first, second });
+    display->simple(SimpleScreen{ first, second });
 }
 
 void GpsView::hide() {

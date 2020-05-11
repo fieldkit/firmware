@@ -19,15 +19,15 @@ void LoraView::tick(ViewController *views, Pool &pool) {
                   lora.join_failures, lora.tx_successes, lora.tx_failures);
 
     if (!lora.has_module) {
-        display->simple({ "No Module!", status_ });
+        display->simple(SimpleScreen{ "No Module!", status_ });
         return;
     }
 
     if (lora.joined > 0) {
-        display->simple({ "Sending", status_ });
+        display->simple(SimpleScreen{ "Sending", status_ });
     }
     else {
-        display->simple({ "Joining", status_ });
+        display->simple(SimpleScreen{ "Joining", status_ });
     }
 }
 

@@ -112,7 +112,7 @@ static NoopDebuggerOfLastResort noop;
 
 void DebuggerOfLastResort::message(const char *message) {
     auto display = get_display();
-    display->simple({ message });
+    display->simple(SimpleScreen{ message });
     fk_delay(500);
 }
 

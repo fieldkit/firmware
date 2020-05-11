@@ -21,7 +21,7 @@ public:
         tiny_snprintf(message_, sizeof(message_), "Build #%" PRIu32, fkb_header.firmware.number);
         auto bus = get_board()->i2c_core();
         auto display = get_display();
-        display->simple({ message_ });
+        display->simple(SimpleScreen{ message_ });
     }
 
 };

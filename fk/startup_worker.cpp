@@ -368,7 +368,7 @@ bool StartupWorker::check_for_interactive_startup() {
 
     auto display = get_display();
 
-    display->simple({ "Hold for Debug" });
+    display->simple(SimpleScreen{ "Hold for Debug" });
 
     auto started = fk_uptime();
     auto enable_debug_mode = false;
@@ -376,7 +376,7 @@ bool StartupWorker::check_for_interactive_startup() {
         fk_delay(100);
 
         if (fk_uptime() - started > InteractiveStartupButtonDuration) {
-            display->simple({ "Release for Debug" });
+            display->simple(SimpleScreen{ "Release for Debug" });
             enable_debug_mode = true;
         }
     }

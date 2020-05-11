@@ -106,13 +106,13 @@ struct SimpleScreen : public DisplayScreen {
     const char *message{ nullptr };
     const char *secondary{ nullptr };
 
-    SimpleScreen() {
+    explicit SimpleScreen() {
     }
 
-    SimpleScreen(const char *message) : message(message) {
+    explicit SimpleScreen(const char *message) : message(message) {
     }
 
-    SimpleScreen(const char *message, const char *secondary) : message(message), secondary(secondary) {
+    explicit SimpleScreen(const char *message, const char *secondary) : message(message), secondary(secondary) {
     }
 };
 
