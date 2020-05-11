@@ -117,7 +117,7 @@ public:
 
 class EepromLock {
 private:
-    uint32_t locked_;
+    uint32_t locked_{ 0 };
 
 public:
     explicit EepromLock();

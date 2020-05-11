@@ -54,14 +54,14 @@ struct TakenReadings {
 };
 
 struct ModulesState {
-    Pool *pool;
-    ModuleState *modules;
-    size_t nmodules;
-    uint32_t readings_time;
-    uint32_t readings_number;
-    ModuleReadingsCollection readings;
+    Pool *pool{ nullptr };
+    ModuleState *modules{ nullptr };
+    size_t nmodules{ 0 };
+    uint32_t readings_time{ 0 };
+    uint32_t readings_number{ 0 };
+    ModuleReadingsCollection readings{ };
 
-    ModulesState(Pool *pool) : pool(pool), readings{ pool } {
+    explicit ModulesState(Pool *pool) : pool(pool), readings{ pool } {
     }
 
     TakenReadings taken() {
@@ -216,11 +216,11 @@ struct NotificationState {
 };
 
 struct Schedule {
-    lwcron::CronSpec cron;
-    uint32_t interval = 0;
-    uint32_t repeated = 0;
-    uint32_t duration = 0;
-    uint32_t jitter = 0;
+    lwcron::CronSpec cron{ };
+    uint32_t interval{ 0 };
+    uint32_t repeated{ 0 };
+    uint32_t duration{ 0 };
+    uint32_t jitter{ 0 };
 
     Schedule& operator=(const fk_app_Schedule &s) {
         interval = s.interval;
@@ -233,45 +233,45 @@ struct Schedule {
 };
 
 struct SchedulerState {
-    Schedule readings;
-    Schedule network;
-    Schedule gps;
-    Schedule lora;
+    Schedule readings{ };
+    Schedule network{ };
+    Schedule gps{ };
+    Schedule lora{ };
 };
 
 struct ReadingsState {
-    uint32_t number;
-    uint32_t time;
+    uint32_t number{ 0 };
+    uint32_t time{ 0 };
 };
 
 struct TransmissionState {
     bool enabled{ false };
-    char url[HttpMaximumUrlLength];
-    char token[HttpMaximumTokenLength];
+    char url[HttpMaximumUrlLength]{ };
+    char token[HttpMaximumTokenLength]{ };
     uint32_t data_cursor{ 0 };
     uint32_t meta_cursor{ 0 };
 };
 
 struct GlobalState {
 public:
-    uint32_t version;
-    GeneralState general;
-    RuntimeState runtime;
-    PowerState power;
-    PeripheralState peripheral;
-    GpsState gps;
-    MainNetworkState network;
-    NotificationState notification;
-    ProgressState progress;
-    StorageState storage;
-    LoraState lora;
-    SchedulerState scheduler;
-    PhysicalModuleState physical_modules[MaximumNumberOfPhysicalModules];
-    SdCardState sd_card;
+    uint32_t version{ 0 };
+    GeneralState general{ };
+    RuntimeState runtime{ };
+    PowerState power{ };
+    PeripheralState peripheral{ };
+    GpsState gps{ };
+    MainNetworkState network{ };
+    NotificationState notification{ };
+    ProgressState progress{ };
+    StorageState storage{ };
+    LoraState lora{ };
+    SchedulerState scheduler{ };
+    PhysicalModuleState physical_modules[MaximumNumberOfPhysicalModules]{ };
+    SdCardState sd_card{ };
     // TODO Merge these.
-    ModulesState *modules;
-    ReadingsState readings;
-    TransmissionState transmission;
+    ModulesState *modules{ };
+    ReadingsState readings{ };
+    TransmissionState transmission{ };
 
 public:
     GlobalState();

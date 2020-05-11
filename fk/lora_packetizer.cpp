@@ -20,9 +20,9 @@ private:
 
 private:
     Pool *pool_;
-    fk_data_LoraRecord record_;
+    fk_data_LoraRecord record_{ };
     float values_[MaxReadingsPerPacket];
-    pb_array_t values_array_;
+    pb_array_t values_array_{ };
     uint8_t previous_sensor_{ 0 };
     size_t encoded_size_{ 0 };
 

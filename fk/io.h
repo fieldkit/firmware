@@ -57,7 +57,7 @@ public:
 template<size_t Size>
 class StackBufferedWriter : public BufferedWriter {
 private:
-    uint8_t buffer_[Size];
+    uint8_t buffer_[Size]{ };
 
 public:
     explicit StackBufferedWriter(Writer *writer) : BufferedWriter(writer, buffer_, Size) {

@@ -29,8 +29,6 @@ GlobalStateRef<GlobalState const*> try_get_global_state_ro() {
 }
 
 GlobalState::GlobalState() : version(0) {
-    transmission.url[0] = 0;
-    transmission.token[0] = 0;
 }
 
 void GlobalState::update_physical_modules(ConstructedModulesCollection const &modules) {

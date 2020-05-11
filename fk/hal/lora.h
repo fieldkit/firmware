@@ -37,7 +37,7 @@ public:
 
 class NoopLoraNetwork : public LoraNetwork {
 private:
-    uint8_t device_eui_[LoraDeviceEuiLength];
+    uint8_t device_eui_[LoraDeviceEuiLength]{ };
 
 public:
     NoopLoraNetwork() { }

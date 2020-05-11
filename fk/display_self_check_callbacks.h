@@ -11,8 +11,8 @@ public:
 
 private:
     SelfCheckScreen screen_;
-    Check checks_[NumberOfChecks];
-    Check *queued_[NumberOfChecks + 1] = { nullptr };
+    Check checks_[NumberOfChecks]{ };
+    Check *queued_[NumberOfChecks + 1]{ };
     size_t number_{ 0 };
 
 public:

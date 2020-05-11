@@ -6,8 +6,8 @@ namespace fk {
 
 class Flash {
 private:
-    uint32_t page_size_;
-    uint32_t total_pages_;
+    uint32_t page_size_{ 0 };
+    uint32_t total_pages_{ 0 };
 
 public:
     Flash() { }

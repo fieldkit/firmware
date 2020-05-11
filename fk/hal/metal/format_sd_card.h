@@ -15,14 +15,14 @@ private:
     SdSpiCard card_;
     cache_t cache_;
 
-    uint32_t card_size_blocks_;
-    uint32_t card_capacity_mb_;
-    uint32_t sectors_per_cluster_;
-    uint32_t number_of_heads_;
-    uint32_t sectors_per_track_;
-    uint8_t partition_type_;
-    uint32_t relative_sector_;
-    uint32_t partition_size_;
+    uint32_t card_size_blocks_{ 0 };
+    uint32_t card_capacity_mb_{ 0 };
+    uint32_t sectors_per_cluster_{ 0 };
+    uint32_t number_of_heads_{ 0 };
+    uint32_t sectors_per_track_{ 0 };
+    uint8_t partition_type_{ 0 };
+    uint32_t relative_sector_{ 0 };
+    uint32_t partition_size_{ 0 };
 
     uint16_t const BU16 = 128;
     uint16_t const BU32 = 8192;

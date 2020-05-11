@@ -8,9 +8,9 @@ namespace fk {
 
 class FactoryWipe {
 private:
-    Display *display_;
-    Buttons *buttons_;
-    Storage *storage_;
+    Display *display_{ nullptr };
+    Buttons *buttons_{ nullptr };
+    Storage *storage_{ nullptr };
 
 public:
     explicit FactoryWipe(Storage &storage);

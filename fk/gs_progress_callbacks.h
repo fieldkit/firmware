@@ -5,7 +5,7 @@ namespace fk {
 
 class GlobalStateProgressCallbacks : public ProgressCallbacks {
 private:
-    uint32_t updated_;
+    uint32_t updated_{ 0 };
 
 public:
     GlobalStateProgressCallbacks() { }

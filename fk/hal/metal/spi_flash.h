@@ -24,8 +24,8 @@ public:
 
 private:
     Availability status_{ Availability::Unknown };
-    uint8_t cs_;
-    uint8_t id_[IdSize];
+    uint8_t cs_{ 0 };
+    uint8_t id_[IdSize]{ };
     SpiFlashError error_{ SpiFlashError::None };
 
 public:

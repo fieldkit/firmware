@@ -17,8 +17,8 @@ public:
     };
 
 private:
-    char primary_[64];
-    char secondary_[64];
+    char primary_[64]{ };
+    char secondary_[64]{ };
     int8_t visible_{ 0 };
 
 public:
