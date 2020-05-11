@@ -16,8 +16,7 @@ FK_DECLARE_LOGGER("expdata");
 ExportDataWorker::ExportDataWorker() : ExportDataWorker(MemoryFactory::get_data_memory()) {
 }
 
-ExportDataWorker::ExportDataWorker(DataMemory *data_memory) : data_memory_(data_memory) {
-    info_ = { "CSV", 0.0f, true };
+ExportDataWorker::ExportDataWorker(DataMemory *data_memory) : data_memory_(data_memory), info_{ "CSV", 0.0f, true } {
 }
 
 void ExportDataWorker::run(Pool &pool) {
