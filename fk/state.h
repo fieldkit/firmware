@@ -85,10 +85,10 @@ struct PowerState {
 };
 
 struct WifiNetworkInfo {
-    bool valid;
-    bool create;
-    char ssid[WifiMaximumSsidLength];
-    char password[WifiMaximumPasswordLength];
+    bool valid{ false };
+    bool create{ false };
+    char ssid[WifiMaximumSsidLength]{ };
+    char password[WifiMaximumPasswordLength]{ };
 
     WifiNetworkInfo() {
     }
@@ -100,17 +100,25 @@ struct WifiNetworkInfo {
         strncpy(this->password, other.password, WifiMaximumPasswordLength);
     }
 
-    WifiNetworkInfo(bool valid, bool create) : valid(valid), create(create) {
+    explicit WifiNetworkInfo(bool valid, bool create) : valid(valid), create(create) {
     }
 
-    WifiNetworkInfo(const char *ssid) : valid(true), create(true) {
+    explicit WifiNetworkInfo(const char *ssid) : valid(true), create(true) {
         strncpy(this->ssid, ssid, WifiMaximumSsidLength);
         this->password[0] = 0;
     }
 
-    WifiNetworkInfo(const char *ssid, const char *password) {
+    explicit WifiNetworkInfo(const char *ssid, const char *password) {
         strncpy(this->ssid, ssid, WifiMaximumSsidLength);
         strncpy(this->password, password, WifiMaximumPasswordLength);
+    }
+
+    WifiNetworkInfo& operator=(const WifiNetworkInfo &other) {
+        valid = other.valid;
+        create = other.create;
+        strncpy(this->ssid, other.ssid, WifiMaximumSsidLength);
+        strncpy(this->password, other.password, WifiMaximumPasswordLength);
+        return *this;
     }
 };
 
@@ -208,10 +216,10 @@ struct NotificationState {
     const char *message{ nullptr };
     uint32_t delay{ 0 };
 
-    NotificationState() {
+    explicit NotificationState() {
     }
 
-    NotificationState(const char *message) : created(fk_uptime()), message(message), delay(0) {
+    explicit NotificationState(const char *message) : created(fk_uptime()), message(message), delay(0) {
     }
 };
 

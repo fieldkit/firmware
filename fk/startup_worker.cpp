@@ -219,11 +219,11 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
         gs->lora.configured = true;
     }
 
-    auto networks_array = reinterpret_cast<pb_data_t *>(record.network.networks.arg);
+    auto networks_array = reinterpret_cast<pb_array_t *>(record.network.networks.arg);
     if (networks_array->length > 0) {
         FK_ASSERT(networks_array->length <= WifiMaximumNumberOfNetworks);
 
-        auto networks = (fk_app_NetworkInfo *)networks_array->buffer;
+        auto networks = reinterpret_cast<fk_app_NetworkInfo *>(networks_array->buffer);
         for (auto i = 0u; i < networks_array->length; ++i) {
             auto &n = networks[i];
             auto ssid = (const char *)n.ssid.arg;
