@@ -59,6 +59,7 @@ void ReceiveFirmwareWorker::run(Pool &pool) {
     connection_->plain(200, "ok", "{}");
     connection_->close();
 
+    fk_logs_flush();
     fk_delay(1000);
 
     loginfo("launch upgrade");

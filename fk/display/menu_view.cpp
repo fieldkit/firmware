@@ -371,6 +371,7 @@ void MenuView::create_tools_menu() {
     });
     auto tools_restart = to_lambda_option(pool_, "Restart", [=]() {
         get_display()->off();
+        fk_logs_flush();
         fk_restart();
     });
     auto tools_export_data = to_lambda_option(pool_, "Export CSV", [=]() {

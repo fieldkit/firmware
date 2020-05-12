@@ -137,7 +137,6 @@ bool MetalIPC::remove_worker(TaskWorker *worker) {
             workers_[i] = nullptr;
             return true;
         }
-
     }
 
     return false;

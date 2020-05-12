@@ -22,6 +22,7 @@ void FactoryWipeWorker::run(Pool &pool) {
 
     if (factory_wipe.wipe(&progress)) {
         fk_delay(500);
+        fk_logs_flush();
         fk_restart();
     }
 }
