@@ -59,26 +59,26 @@ void UpgradeFirmwareFromSdWorker::run(Pool &pool) {
     case SdCardFirmwareOperation::Save: {
         if (bl_path != nullptr) {
             if (!save_firmware(bl_path, 0x0, BootloaderSize, pool)) {
-                gsm.notify({ "error saving bl" });
+                gsm.notify("error saving bl");
                 return;
             }
         }
 
         if (main_path != nullptr) {
             if (!save_firmware(main_path, BootloaderSize, fkb_header.firmware.binary_size, pool)) {
-                gsm.notify({ "error saving fk" });
+                gsm.notify("error saving fk");
                 return;
             }
         }
 
-        gsm.notify({ "saved" });
+        gsm.notify("saved");
         break;
     }
     case SdCardFirmwareOperation::Load: {
         if (bl_path != nullptr && has_file(bl_path)) {
             loginfo("loading bootloader");
             if (!load_firmware(bl_path, OtherBankAddress, pool)) {
-                gsm.notify({ "error loading bl" });
+                gsm.notify("error loading bl");
                 return;
             }
         }
@@ -90,7 +90,7 @@ void UpgradeFirmwareFromSdWorker::run(Pool &pool) {
             loginfo("loading firmware");
 
             if (!load_firmware(main_path, OtherBankAddress + BootloaderSize, pool)) {
-                gsm.notify({ "error loading fk" });
+                gsm.notify("error loading fk");
                 return;
             }
         }
@@ -103,14 +103,14 @@ void UpgradeFirmwareFromSdWorker::run(Pool &pool) {
         fk_logs_flush();
 
         if (params_.swap) {
-            gsm.notify({ "success, swap!" });
+            gsm.notify("success, swap!");
 
             fk_delay(1000);
 
             fk_nvm_swap_banks();
         }
         else {
-            gsm.notify({ "success!" });
+            gsm.notify("success!");
         }
         break;
     }

@@ -24,6 +24,10 @@ public:
         });
     }
 
+    bool notify(const char *message) {
+        return notify(NotificationState{ message });
+    }
+
 };
 
 }

@@ -109,7 +109,7 @@ void DumpFlashMemoryWorker::run(Pool &pool) {
     }
 
     GlobalStateManager gsm;
-    gsm.notify({ "flash copied" });
+    gsm.notify("flash copied");
 }
 
 }

@@ -26,7 +26,7 @@ DownloadFirmwareWorker::DownloadFirmwareWorker() {
 
 void DownloadFirmwareWorker::run(Pool &pool) {
     GlobalStateManager gsm;
-    gsm.notify({ "downloading" });
+    gsm.notify("downloading");
 
     loginfo("backup bootloader...");
     FirmwareManager firmware;
@@ -112,12 +112,12 @@ void DownloadFirmwareWorker::run(Pool &pool) {
     http->close();
 
     if (!success) {
-        gsm.notify({ "error!" });
+        gsm.notify("error!");
         logwarn("http get of %s failed", url);
         return;
     }
 
-    gsm.notify({ "success!" });
+    gsm.notify("success!");
 
     loginfo("success!");
 
