@@ -38,6 +38,10 @@ public:
         return launch_worker(WorkerCategory::None, worker);
     }
 
+    virtual bool remove_worker(TaskWorker *worker) {
+        return false;
+    }
+
     virtual bool signal_workers(WorkerCategory category, uint32_t signal) {
         return true;
     }

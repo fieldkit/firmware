@@ -30,6 +30,7 @@ public:
 
 public:
     bool launch_worker(WorkerCategory category, TaskWorker *worker) override;
+    bool remove_worker(TaskWorker *worker) override;
     bool signal_workers(WorkerCategory category, uint32_t signal) override;
     collection<TaskDisplayInfo> get_workers_display_info(Pool &pool) override;
 

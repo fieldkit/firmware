@@ -125,7 +125,21 @@ bool MetalIPC::launch_worker(WorkerCategory category, TaskWorker *worker) {
 
     logwarn("all workers are busy");
     logwarn("deleting 0x%p", worker);
+
     delete worker;
+
+    return false;
+}
+
+bool MetalIPC::remove_worker(TaskWorker *worker) {
+    for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
+        if (workers_[i] == worker) {
+            workers_[i] = nullptr;
+            return true;
+        }
+
+    }
+
     return false;
 }
 
@@ -149,7 +163,9 @@ collection<TaskDisplayInfo> MetalIPC::get_workers_display_info(Pool &pool) {
 
     for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
         if (os_task_is_running(&worker_tasks[i])) {
-            infos.emplace(workers_[i]->display_info());
+            if (workers_[i] != nullptr) {
+                infos.emplace(workers_[i]->display_info());
+            }
         }
     }
 

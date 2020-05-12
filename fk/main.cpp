@@ -69,8 +69,7 @@ static void run_tasks() {
 
     FK_ASSERT(get_ipc()->begin());
 
-    auto worker = create_pool_worker<StartupWorker>();
-    FK_ASSERT(get_ipc()->launch_worker(worker));
+    FK_ASSERT(get_ipc()->launch_worker(create_pool_worker<StartupWorker>()));
 
     auto mi = mallinfo();
     loginfo("memory arena = %zd used = %zd", (size_t)mi.arena, (size_t)mi.uordblks);

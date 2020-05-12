@@ -11,9 +11,13 @@ FK_DECLARE_LOGGER("task");
 void task_handler_worker(void *params) {
     FK_ASSERT(params != nullptr);
 
-    auto worker = reinterpret_cast<TaskWorker*>(params);
     auto started = fk_uptime();
+    auto worker = reinterpret_cast<TaskWorker*>(params);
+
     worker->run();
+
+    get_ipc()->remove_worker(worker);
+
     delete worker;
 
     // Highwater is kind of a nisnomer because it's the number of
