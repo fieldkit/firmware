@@ -149,13 +149,13 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
     }
 
     auto record = fk_data_record_decoding_new(pool);
-    record.identity.name.arg = (void *)&pool;
-    record.metadata.generation.arg = (void *)&pool;
+    record.identity.name.arg = reinterpret_cast<void *>(&pool);
+    record.metadata.generation.arg = reinterpret_cast<void *>(&pool);
     if (!srl.decode(&record, fk_data_DataRecord_fields, pool)) {
         return true;
     }
 
-    auto name = (const char *)record.identity.name.arg;
+    auto name = reinterpret_cast<const char *>(record.identity.name.arg);
     strncpy(gs->general.name, name, sizeof(gs->general.name));
 
     auto generation = reinterpret_cast<pb_data_t *>(record.metadata.generation.arg);
@@ -226,8 +226,8 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
         auto networks = reinterpret_cast<fk_app_NetworkInfo *>(networks_array->buffer);
         for (auto i = 0u; i < networks_array->length; ++i) {
             auto &n = networks[i];
-            auto ssid = (const char *)n.ssid.arg;
-            auto password = (const char *)n.password.arg;
+            auto ssid = reinterpret_cast<const char *>(n.ssid.arg);
+            auto password = reinterpret_cast<const char *>(n.password.arg);
 
             if (strlen(ssid) > 0) {
                 loginfo("(loaded) [%d] network: %s", i, ssid);
