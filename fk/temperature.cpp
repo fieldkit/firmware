@@ -34,10 +34,10 @@ bool CoreTemperature::read(float *temperature) {
     auto lsb = buffer[0];
     auto msb = buffer[1];
 
-    auto temp_data = ((lsb << 8) | msb) >> 5;
-
-    if ((temp_data & (1 << 10)) == 1) {
-        auto temp = (int16_t)temp_data * 0.125f;
+    auto temp_data = (int16_t)((lsb << 8) | msb) >> 5;
+    auto mask = (1 << 10);
+    if ((temp_data & mask) == mask) {
+        auto temp = temp_data * 0.125f;
         if (temperature != nullptr) {
             *temperature = temp;
         }

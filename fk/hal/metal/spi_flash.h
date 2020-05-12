@@ -47,6 +47,7 @@ public:
     }
 
 private:
+    // cppcheck-suppress unusedPrivateFunction
     const SpiFlashError error() const {
         return error_;
     }
@@ -73,14 +74,17 @@ private:
 
     bool enable_writes();
 
+    // cppcheck-suppress unusedPrivateFunction
     bool disable_writes();
 
     bool get_feature(uint8_t address, uint8_t *reg);
 
     bool set_feature(uint8_t address, uint8_t value);
 
+    // cppcheck-suppress unusedPrivateFunction
     bool read_parameters_page();
 
+    // cppcheck-suppress unusedPrivateFunction
     bool read_unique_id();
 
     uint8_t read_status();
@@ -91,6 +95,7 @@ private:
 
     void disable();
 
+    // cppcheck-suppress unusedPrivateFunction
     void ecc_check();
 
     void read_ecc_information();
@@ -101,6 +106,7 @@ private:
 
     bool read_command(uint8_t command, uint8_t *data, uint32_t data_length);
 
+    // cppcheck-suppress unusedPrivateFunction
     bool write_command(uint8_t command, uint8_t *data, uint32_t data_length);
 
     bool transfer_command(uint8_t command, const uint8_t *data_w, uint8_t *data_r, uint32_t data_length);

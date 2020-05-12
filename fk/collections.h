@@ -220,15 +220,16 @@ public:
     explicit hash_map() {
     }
 
-    hash_map(Pool &pool) : pool_(&pool), table_(new (*pool_) hash_node<K, V> *[TableSize]()) {
+    explicit hash_map(Pool &pool) : pool_(&pool), table_(new (*pool_) hash_node<K, V> *[TableSize]()) {
     }
 
-    hash_map(Pool *pool) : pool_(pool), table_(new (*pool_) hash_node<K, V> *[TableSize]()) {
+    explicit hash_map(Pool *pool) : pool_(pool), table_(new (*pool_) hash_node<K, V> *[TableSize]()) {
     }
 
-    hash_map(hash_map &&o) : pool_(exchange(o.pool_, nullptr)), table_(exchange(o.table_, nullptr)), hash_func_(o.hash_func_) {
+    explicit hash_map(hash_map &&o) : pool_(exchange(o.pool_, nullptr)), table_(exchange(o.table_, nullptr)), hash_func_(o.hash_func_) {
     }
 
+    // cppcheck-suppress copyCtorPointerCopying
     explicit hash_map(hash_map const &o) : pool_(o.pool_), table_(o.table_) {
     }
 
