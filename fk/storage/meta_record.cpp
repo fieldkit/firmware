@@ -150,7 +150,7 @@ void MetaRecord::include_modules(GlobalState const *gs, fkb_header_t const *fkb_
         m.id.funcs.encode = pb_encode_data;
         m.id.arg = (void *)id_data;
         m.name.funcs.encode = pb_encode_string;
-        m.name.arg = (void *)meta->name;
+        m.name.arg = (void *)pair.configuration.display_name_key;
         m.has_header = true;
         m.header.manufacturer = meta->manufacturer;
         m.header.kind = meta->kind;
