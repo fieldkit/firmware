@@ -155,6 +155,7 @@ void MetaRecord::include_modules(GlobalState const *gs, fkb_header_t const *fkb_
         m.header.manufacturer = meta->manufacturer;
         m.header.kind = meta->kind;
         m.header.version = meta->version;
+        m.flags = meta->flags;
 
         if (sensor_metas != nullptr && sensor_metas->nsensors > 0) {
             auto sensor_infos = pool.malloc<fk_data_SensorInfo>(sensor_metas->nsensors);
@@ -164,6 +165,7 @@ void MetaRecord::include_modules(GlobalState const *gs, fkb_header_t const *fkb_
                 sensor_infos[i].name.arg = (void *)sensor_metas->sensors[i].name;
                 sensor_infos[i].unitOfMeasure.funcs.encode = pb_encode_string;
                 sensor_infos[i].unitOfMeasure.arg = (void *)sensor_metas->sensors[i].unitOfMeasure;
+                sensor_infos[i].flags = sensor_metas->sensors[i].flags;
             }
 
             auto sensors_array = pool.malloc_with<pb_array_t>({
