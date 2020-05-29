@@ -265,6 +265,10 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
         gs->scheduler.network.duration = FiveMinutesSeconds;
         logwarn("using five minute network duration (from ms value)");
     }
+    if (gs->scheduler.gps.duration == 0) {
+        gs->scheduler.gps.duration = TenMinutesSeconds;
+        logwarn("using ten minute gps duration (zero)");
+    }
 
     auto url = pb_get_string_if_provided(record.transmission.wifi.url.arg, pool);
     auto token = pb_get_string_if_provided(record.transmission.wifi.token.arg, pool);

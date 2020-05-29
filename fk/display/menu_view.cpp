@@ -114,6 +114,47 @@ struct ToggleWifiOption : public MenuOption {
     }
 };
 
+void configure_gps_duration(uint32_t duration, Pool &pool) {
+    auto gs = get_global_state_rw();
+    gs.get()->scheduler.gps.duration = duration;
+    gs.get()->flush(pool);
+}
+
+struct ToggleGpsAlwaysOnOption : public MenuOption {
+    MenuOption *back_;
+    ViewController *views_;
+    bool always_on_{ false };
+
+    ToggleGpsAlwaysOnOption(MenuOption *back, ViewController *views) : MenuOption(""), back_(back), views_(views) {
+    }
+
+    void on_selected() override {
+        back_->on_selected();
+        views_->show_home();
+
+        StandardPool pool{ "toggle-always-on" };
+        if (always_on_) {
+            configure_gps_duration(TenMinutesSeconds, pool);
+        }
+        else {
+            configure_gps_duration(UINT32_MAX, pool);
+        }
+
+        always_on_ = !always_on_;
+    }
+
+    const char *label() const override {
+        if (always_on_) {
+            return "Fixed Mode";
+        }
+        return "Moving Mode";
+    }
+
+    void refresh(GlobalState const *gs) override {
+        always_on_ = gs->scheduler.gps.duration == UINT32_MAX;
+    }
+};
+
 void configure_wifi_duration(uint32_t duration, Pool &pool) {
     auto gs = get_global_state_rw();
     gs.get()->scheduler.network.duration = duration;
@@ -325,6 +366,7 @@ void MenuView::create_tools_menu() {
     auto tools_self_check = to_lambda_option(pool_, "Self Check", [=]() {
         views_->show_self_check();
     });
+    auto tools_gps_toggle = new (*pool_) ToggleGpsAlwaysOnOption(back_, views_);
     auto tools_format_sd = to_lambda_option(pool_, "Format SD", [=]() {
         back_->on_selected();
         views_->show_message("Formatting SD");
@@ -380,10 +422,11 @@ void MenuView::create_tools_menu() {
         get_ipc()->launch_worker(create_pool_worker<ExportDataWorker>());
     });
 
-    tools_menu_ = new_menu_screen<12>(pool_, "tools", {
+    tools_menu_ = new_menu_screen<13>(pool_, "tools", {
         back_,
         tools_self_check,
         tools_gps,
+        tools_gps_toggle,
         tools_lora_ranging,
         tools_lora_ranging_confirmed,
         tools_load_firmware_sd,

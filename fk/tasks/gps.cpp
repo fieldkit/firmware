@@ -16,7 +16,7 @@ void task_handler_gps(void *params) {
     }
 
     auto started_at = fk_uptime();
-    auto status = fk_uptime() + OneMinuteMs;
+    auto status_at = fk_uptime() + OneMinuteMs;
     auto update_gs = fk_uptime() + FiveSecondsMs;
     auto fixed_at = 0;
 
@@ -35,13 +35,6 @@ void task_handler_gps(void *params) {
         fk_delay(10);
 
         if (fix.chars > 0) {
-            if (fk_uptime() > status) {
-                loginfo("satellites(%d) time(%" PRIu32 ") location(%f, %f) statistics(%" PRIu32 "chrs, %d/%d)",
-                        fix.satellites, fix.time, fix.longitude, fix.latitude,
-                        fix.chars, fix.good, fix.failed);
-                status = fk_uptime() + OneMinuteMs;
-            }
-
             if (fk_uptime() > update_gs) {
                 update_gs = fk_uptime() + FiveSecondsMs;
 
@@ -64,10 +57,6 @@ void task_handler_gps(void *params) {
                         fixed_at = fk_uptime();
                         clock_adjust(fix.time);
                     }
-                    else if (fk_uptime() - fixed_at > OneMinuteMs) {
-                        loginfo("gps fix hold reached: %" PRIu32, OneMinuteMs);
-                        break;
-                    }
                 }
                 else {
                     gsm.apply([=](GlobalState *gs) {
@@ -84,9 +73,27 @@ void task_handler_gps(void *params) {
             }
         }
 
-        if (fk_uptime() - started_at > TenMinutesMs) {
-            loginfo("gps fix waiting reached: %" PRIu32, TenMinutesMs);
-            break;
+        if (fk_uptime() > status_at) {
+            loginfo("satellites(%d) time(%" PRIu32 ") location(%f, %f) statistics(%" PRIu32 "chrs, %d/%d)",
+                    fix.satellites, fix.time, fix.longitude, fix.latitude,
+                    fix.chars, fix.good, fix.failed);
+
+            status_at = fk_uptime() + OneMinuteMs;
+
+            auto gs = get_global_state_ro();
+            auto duration = gs.get()->scheduler.gps.duration;
+            if (duration < UINT32_MAX) {
+                auto elapsed = (fk_uptime() - started_at) / 1000;
+                if (elapsed > duration) {
+                    loginfo("gps fix waiting reached: %" PRIu32, duration);
+                    break;
+                }
+
+                if (fixed_at > 0 && fk_uptime() - fixed_at > OneMinuteMs) {
+                    loginfo("gps fix hold reached: %" PRIu32, OneMinuteMs);
+                    break;
+                }
+            }
         }
     }
 
