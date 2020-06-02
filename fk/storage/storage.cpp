@@ -186,6 +186,7 @@ bool Storage::begin() {
     free_block_ = 0;
     timestamp_ = 0;
 
+    file_headers_block_ = 0;
     for (auto i = 0u; i < NumberOfFiles; ++i) {
         files_[i] = { };
     }
@@ -199,7 +200,8 @@ bool Storage::begin() {
     auto range = BlockRange{ 0, g.nblocks };
     while (!range.empty()) {
         BlockHeader block_header;
-        auto address = range.middle_block() * g.block_size;
+        auto block = range.middle_block();
+        auto address = block * g.block_size;
         if (memory_.read(address, (uint8_t *)&block_header, sizeof(block_header)) != sizeof(block_header)) {
             logerror("[-] read failed " PRADDRESS, address);
             return false;
@@ -207,11 +209,12 @@ bool Storage::begin() {
 
         if (valid_block_header(block_header)) {
             logtrace("[%d] valid block (blk %" PRIu32 ") (" PRADDRESS ") (v = %" PRIu32 ") (ts = %" PRIu32 ")",
-                     block_header.file, address / g.block_size, address, block_header.version, block_header.timestamp);
+                     block_header.file, block, address, block_header.version, block_header.timestamp);
 
             // This is open specific
             FK_ASSERT(block_header.verify_hash());
 
+            file_headers_block_ = block;
             for (auto i = 0u; i < NumberOfFiles; ++i) {
                 files_[i] = block_header.files[i];
             }
@@ -223,7 +226,7 @@ bool Storage::begin() {
             // End of open specific
         }
         else {
-            logtrace("[-] invalid block (blk %" PRIu32 ") (" PRADDRESS ")", address / g.block_size, address);
+            logtrace("[-] invalid block (blk %" PRIu32 ") (" PRADDRESS ")", block, address);
             range = range.first_half();
         }
     }
@@ -345,6 +348,7 @@ uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address, BlockTa
         auto first_record_address = address + g.sector_size();
 
         // Do this before writing header so the new value gets written.
+        file_headers_block_ = address / g.block_size;
         files_[file].tail = first_record_address;
 
         BlockHeader block_header;
@@ -464,7 +468,7 @@ SeekValue Storage::seek(SeekSettings settings) {
         return SeekValue{ };
     }
 
-    logdebug("[%d] " PRADDRESS " seeking R%" PRIu32 " (%" PRIu32 ") from blk %" PRIu32 " (bsz = %" PRIu32 " bytes)",
+    logdebug("[%d] " PRADDRESS " seeking R%" PRIu32 " (position = %" PRIu32 ") from blk %" PRIu32 " (bsz = %" PRIu32 " bytes)",
              settings.file, address, settings.record, position, fh.tail / g.block_size, fh.size);
 
     while (true) {
@@ -488,22 +492,60 @@ SeekValue Storage::seek(SeekSettings settings) {
             }
 
             if (!record_head.valid()) {
-                // This is here so that we can get the correct record_address. This
-                // will typically happen when the file block header pointed directly
-                // to the tail of the file, so we have the record number but
-                // record_address is unset because we haven't scanned the block yet.
-                // This isn't the most elegant.
+                /**
+                 * This is here so that we can get the correct record_address. This
+                 * will typically happen when the file block header pointed directly
+                 * to the tail of the file, so we have the record number but
+                 * record_address is unset because we haven't scanned the block yet.
+                 */
                 if (record_address == 0 && record > 0) {
                     auto previous_address = address;
                     address = g.start_of_block(previous_address);
-                    logdebug("[%d] " PRADDRESS " invalid head (resume " PRADDRESS ")", settings.file, previous_address, address);
+                    logdebug("[%d] " PRADDRESS " rescanning block from " PRADDRESS "", settings.file, previous_address, address);
+
                     if (g.is_start_of_block_or_header(previous_address, SizeofBlockHeader)) {
                         return SeekValue{ };
                     }
                     continue;
                 }
 
-                logdebug("[%d] " PRADDRESS " invalid head (blk %" PRIu32 ") finding block after", settings.file, address, block);
+                /**
+                 * Files headers written to blocks contain the last
+                 * address for that file when that block was
+                 * allocated. Because blocks are allocated
+                 * sequentially, we know that any new blocks added to
+                 * that file have to come after the block the header
+                 * was read from.
+                 *
+                 * So, we don't need to look for more blocks after
+                 * this block if the latest file header from some
+                 * future block has this tail address. Any future
+                 * blocks have to have been allocated after that
+                 * block with the header.
+                 *
+                 * It's important that the file headers come from a
+                 * block after this one. It's ok if the block address
+                 * is earlier than our address, though because we
+                 * could still be filling in the block.
+                 */
+                auto block = address / g.block_size;
+                if (file_headers_block_ > block) {
+                    if (files_[settings.file].tail <= address) {
+                        logdebug("[%d] " PRADDRESS " found real tail", settings.file, address);
+                        break;
+                    }
+                }
+
+                logdebug("[%d] fhb = blk %" PRIu32 " blk %" PRIu32 " " PRADDRESS " " PRADDRESS, settings.file,
+                         file_headers_block_, block, files_[settings.file].tail, address);
+
+                /**
+                 * Now, we can't be sure we're at the end of the
+                 * file so we need to scan past this block. What may
+                 * have happened is there some bad blocks after this
+                 * block and the file resumes after.
+                 */
+                logdebug("[%d] " PRADDRESS " end of block records (blk %" PRIu32 ") finding block after", settings.file, address, block);
 
                 auto blocks_after = find_blocks_after(block, settings.file, false);
                 if (!blocks_after) {
@@ -595,11 +637,13 @@ uint32_t Storage::fsck(ProgressCallbacks *progress) {
     auto file0 = this->file(0);
     auto file1 = this->file(1);
 
+    loginfo("fsck: seeding end of 0");
     if (!file0.seek_end()) {
         logwarn("seek eof failed");
         return false;
     }
 
+    loginfo("fsck: seeding end of 1");
     if (!file1.seek_end()) {
         logwarn("seek eof failed");
         return false;
@@ -608,7 +652,10 @@ uint32_t Storage::fsck(ProgressCallbacks *progress) {
     auto total_size = file0.size() + file1.size();
     auto tracker = ProgressTracker{ progress, Operation::Fsck, "fsck", "", total_size };
 
+    loginfo("fsck: walking 0");
     fsck(file0, tracker);
+
+    loginfo("fsck: walking 1");
     fsck(file1, tracker);
 
     tracker.finished();

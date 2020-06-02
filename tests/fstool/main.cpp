@@ -60,9 +60,16 @@ __int32_t main(__int32_t argc, const char **argv) {
             return 0;
         }
 
-        if (true) {
+        if (false) {
+            loginfo("fsck");
             GlobalStateProgressCallbacks progress;
             storage.fsck(&progress);
+        }
+
+        if (true) {
+            loginfo("seeking");
+            auto f = storage.file(1);
+            f.seek_end();
         }
 
         close(fd);

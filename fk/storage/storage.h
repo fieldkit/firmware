@@ -37,6 +37,7 @@ private:
     SequentialWrapper<BufferedPageMemory> memory_;
     BadBlocks bad_blocks_;
     FileHeader files_[NumberOfFiles];
+    BlockNumber file_headers_block_;
     uint32_t timestamp_{ InvalidTimestamp };
     BlockNumber free_block_{ InvalidBlock };
     uint32_t version_{ InvalidVersion };
