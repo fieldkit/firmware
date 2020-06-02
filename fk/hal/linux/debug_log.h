@@ -26,17 +26,17 @@ enum class OperationType {
 class LogEntry {
 private:
     OperationType type_;
-    BlockAddress address_;
+    StorageAddress address_;
     uint8_t *ptr_;
     size_t size_;
     uint8_t *copy_;
 
 public:
-    LogEntry(OperationType type, BlockAddress address, uint8_t *ptr) :
+    LogEntry(OperationType type, StorageAddress address, uint8_t *ptr) :
         type_(type), address_(address), ptr_(ptr), size_(0), copy_(nullptr) {
     }
 
-    LogEntry(OperationType type, BlockAddress address, uint8_t *ptr, size_t size) :
+    LogEntry(OperationType type, StorageAddress address, uint8_t *ptr, size_t size) :
         type_(type), address_(address), ptr_(ptr), size_(size), copy_(nullptr) {
     }
 
@@ -49,7 +49,7 @@ public:
         return type_;
     }
 
-    BlockAddress address() const {
+    StorageAddress address() const {
         return address_;
     }
 

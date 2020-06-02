@@ -15,15 +15,15 @@ namespace fk {
 class Storage;
 
 struct RecordReference {
-    uint32_t address{ InvalidAddress };
+    StorageAddress address{ InvalidAddress };
     uint32_t position{ 0 };
-    uint32_t record{ InvalidRecord };
+    RecordNumber record{ InvalidRecord };
     uint32_t record_size{ 0 };
 
     RecordReference() {
     }
 
-    RecordReference(uint32_t address, uint32_t position, uint32_t record, uint32_t record_size) : address(address), position(position), record(record), record_size(record_size) {
+    RecordReference(StorageAddress address, uint32_t position, RecordNumber record, uint32_t record_size) : address(address), position(position), record(record), record_size(record_size) {
     }
 
     bool valid() const {
@@ -35,25 +35,25 @@ class File : public Writer, public Reader {
 private:
     Storage *storage_;
     SequentialWrapper<BufferedPageMemory> memory_;
-    uint8_t file_;
-    uint32_t record_address_{ InvalidAddress };
-    uint32_t tail_{ InvalidAddress };
-    uint32_t record_{ InvalidRecord };
-    uint32_t version_{ InvalidVersion };
-    uint32_t record_remaining_{ 0 };
-    uint32_t record_size_{ 0 };
-    uint32_t position_{ 0 };
-    uint32_t size_{ 0 };
+    FileNumber file_;
+    StorageAddress record_address_{ InvalidAddress };
+    StorageAddress tail_{ InvalidAddress };
+    RecordNumber record_{ InvalidRecord };
+    StorageVersion version_{ InvalidVersion };
+    RecordSize record_remaining_{ 0 };
+    RecordSize record_size_{ 0 };
+    StorageSize position_{ 0 };
+    StorageSize size_{ 0 };
     uint32_t number_hash_errors_{ 0 };
-    uint32_t bytes_in_block_{ 0 };
-    uint32_t records_in_block_{ 0 };
-    uint32_t wasted_{ 0 };
+    StorageSize bytes_in_block_{ 0 };
+    RecordNumber records_in_block_{ 0 };
+    StorageSize wasted_{ 0 };
     bool partial_allowed_{ false };
     bool unread_header_{ false };
     BLAKE2b hash_;
 
 public:
-    File(Storage *storage, uint8_t file, Pool &pool);
+    File(Storage *storage, FileNumber file, Pool &pool);
     File(File &&o);
     File(File const &o) = delete;
     virtual ~File();
@@ -66,7 +66,7 @@ public:
     bool create();
     bool seek_end();
     bool seek_beginning();
-    bool seek(uint32_t record);
+    bool seek(RecordNumber record);
     bool seek(RecordReference reference);
     bool beginning_of_record();
     int32_t skip(bool new_block = false);
@@ -132,9 +132,9 @@ public:
 
 private:
     int32_t find_following_block();
-    uint32_t find_previous_sector_aligned_record(uint32_t address);
-    int32_t write_record_header(size_t size);
-    int32_t write_record_tail(size_t size);
+    uint32_t find_previous_sector_aligned_record(StorageAddress address);
+    int32_t write_record_header(RecordSize size);
+    int32_t write_record_tail(RecordSize size);
     int32_t read_record_header();
     int32_t read_record_tail();
     int32_t search_for_following_block();
@@ -146,14 +146,14 @@ public:
     int32_t try_write(void const *record, pb_msgdesc_t const *fields);
 
     struct SizeInfo {
-        uint32_t size;
-        uint32_t last_block;
+        StorageSize size;
+        BlockNumber last_block;
     };
 
-    SizeInfo get_size(uint32_t first_block, uint32_t last_block, Pool &pool);
+    SizeInfo get_size(BlockNumber first_block, BlockNumber last_block, Pool &pool);
 
 private:
-    int32_t try_read_record_header(uint32_t tail, RecordHeader &record_header);
+    int32_t try_read_record_header(StorageAddress tail, RecordHeader &record_header);
 };
 
 } // namespace fk

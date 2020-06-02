@@ -17,8 +17,8 @@ enum class SignedRecordKind : uint8_t {
 };
 
 struct AppendedRecord {
-    uint32_t record;
-    uint32_t size;
+    RecordNumber record;
+    RecordSize size;
 };
 
 class SignedRecordLog {

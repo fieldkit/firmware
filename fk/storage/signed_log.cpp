@@ -29,7 +29,7 @@ tl::expected<uint32_t, Error> SignedRecordLog::seek_record(SignedRecordKind kind
     }
 
     if (!file_.rewind()) {
-        logerror("[" PRADDRESS "] initial rewind failed #%" PRIu32 " position=%" PRIu32, file_.tail(), file_.record(), file_.position());
+        logerror("[" PRADDRESS "] initial rewind failed R%" PRIu32 " position=%" PRIu32, file_.tail(), file_.record(), file_.position());
         return tl::unexpected<Error>(Error::IO);
     }
 
@@ -45,7 +45,7 @@ tl::expected<uint32_t, Error> SignedRecordLog::seek_record(SignedRecordKind kind
         }
 
         if (!file_.rewind()) {
-            logerror("[" PRADDRESS "] rewind 1 failed #%" PRIu32 " position=%" PRIu32, file_.tail(), file_.record(), file_.position());
+            logerror("[" PRADDRESS "] rewind 1 failed R%" PRIu32 " position=%" PRIu32, file_.tail(), file_.record(), file_.position());
             return tl::unexpected<Error>(Error::IO);
         }
 
@@ -59,7 +59,7 @@ tl::expected<uint32_t, Error> SignedRecordLog::seek_record(SignedRecordKind kind
         }
 
         if (!file_.rewind()) {
-            logerror("[" PRADDRESS "] rewind 2 failed #%" PRIu32 " position=%" PRIu32, file_.tail(), file_.record(), file_.position());
+            logerror("[" PRADDRESS "] rewind 2 failed R%" PRIu32 " position=%" PRIu32, file_.tail(), file_.record(), file_.position());
             return tl::unexpected<Error>(Error::IO);
         }
     }
@@ -68,7 +68,7 @@ tl::expected<uint32_t, Error> SignedRecordLog::seek_record(SignedRecordKind kind
         return tl::unexpected<Error>(Error::IO);
     }
 
-    logdebug("[" PRADDRESS "] found record #%" PRIu32 " position=%" PRIu32,
+    logdebug("[" PRADDRESS "] found record R%" PRIu32 " position=%" PRIu32,
              file_.tail(), file_.record(), file_.position());
 
     return file_.record();
@@ -194,6 +194,5 @@ bool SignedRecordLog::decode(void *record, pb_msgdesc_t const *fields, Pool &poo
 
     return true;
 }
-
 
 }

@@ -4,33 +4,39 @@
 
 namespace fk {
 
-using BlockAddress = uint32_t;
+using FileNumber = uint8_t;
+using BlockNumber = uint32_t;
 using StorageAddress = uint32_t;
+using StorageSize = uint32_t;
+using StorageVersion = uint32_t;
+using StorageTime = uint32_t;
+using RecordNumber = uint32_t;
+using RecordSize = uint32_t;
 
-constexpr uint32_t InvalidAddress = (uint32_t)(-1);
-constexpr uint32_t InvalidSize = (uint32_t)(-1);
-constexpr uint32_t InvalidRecord = (uint32_t)(-1);
-constexpr uint32_t InvalidBlock = (uint32_t)(-1);
-constexpr uint32_t InvalidVersion = (uint32_t)(-1);
-constexpr uint32_t InvalidTimestamp  = (uint32_t)(-1);
+constexpr StorageAddress InvalidAddress = (uint32_t)(-1);
+constexpr RecordNumber InvalidRecord = (uint32_t)(-1);
+constexpr BlockNumber InvalidBlock = (uint32_t)(-1);
+constexpr StorageSize InvalidSize = (uint32_t)(-1);
+constexpr StorageVersion InvalidVersion = (uint32_t)(-1);
+constexpr StorageTime InvalidTimestamp  = (uint32_t)(-1);
 
-constexpr uint32_t LastBlock = (uint32_t)(-1);
-constexpr uint32_t LastRecord = (uint32_t)(-1);
+constexpr BlockNumber LastBlock = (uint32_t)(-1);
+constexpr RecordNumber LastRecord = (uint32_t)(-1);
 
-constexpr int32_t NumberOfFiles = 4;
+constexpr StorageSize SizeofBlockTail = 512;
+constexpr StorageSize SizeofBlockHeader = 512;
 
-constexpr uint32_t SizeofBlockTail = 512;
-constexpr uint32_t SizeofBlockHeader = 512;
+constexpr FileNumber InvalidFile = (uint8_t)(-1);
 
 constexpr uint32_t ReservedValue = 0xdeadbeef;
 
-constexpr uint8_t InvalidFile = (uint8_t)(-1);
+constexpr size_t NumberOfFiles = 4;
 
-static inline bool is_block_valid(uint32_t block) {
+static inline bool is_block_valid(BlockNumber block) {
     return block != InvalidAddress;
 }
 
-static inline bool is_address_valid(uint32_t address) {
+static inline bool is_address_valid(StorageAddress address) {
     return address != InvalidAddress;
 }
 
@@ -69,24 +75,24 @@ struct BlockMagic {
 };
 
 struct FileHeader {
-    uint32_t tail{ InvalidAddress };
-    uint32_t record{ 0 };
-    uint32_t size{ 0 };
-    uint32_t version{ 0 };
+    StorageAddress tail{ InvalidAddress };
+    RecordNumber record{ 0 };
+    StorageSize size{ 0 };
+    StorageVersion version{ 0 };
 
     FileHeader() {
     }
 
-    FileHeader(uint32_t tail, uint32_t record, uint32_t size, uint32_t version)
+    FileHeader(StorageAddress tail, RecordNumber record, StorageSize size, StorageVersion version)
         : tail(tail), record(record), size(size), version(version) {
     }
 };
 
 struct BlockHeader {
     BlockMagic magic;
-    uint32_t timestamp;
-    uint32_t file;
-    uint32_t version;
+    StorageTime timestamp;
+    FileNumber file;
+    StorageVersion version;
     FileHeader files[NumberOfFiles];
     Hash hash;
 
@@ -98,10 +104,10 @@ struct BlockHeader {
 };
 
 struct BlockTail {
-    uint32_t bytes_in_block{ 0 };
-    uint32_t records_in_block{ 0 };
-    uint32_t linked{ 0 };
-    uint32_t block_tail{ 0 };
+    StorageSize bytes_in_block{ 0 };
+    RecordNumber records_in_block{ 0 };
+    StorageAddress linked{ 0 };
+    StorageAddress block_tail{ 0 };
     uint32_t reserved[2] = { ReservedValue, ReservedValue };
     Hash hash;
 
@@ -111,9 +117,9 @@ struct BlockTail {
 };
 
 struct RecordHeader {
-    uint32_t size{ 0 };
-    uint32_t record{ 0 };
-    uint32_t previous{ InvalidAddress };
+    StorageSize size{ 0 };
+    RecordNumber record{ 0 };
+    StorageAddress previous{ InvalidAddress };
     uint32_t reserved[2] = { ReservedValue, ReservedValue };
     uint32_t crc{ 0 };
 
@@ -122,7 +128,7 @@ struct RecordHeader {
 };
 
 struct RecordTail {
-    uint32_t size{ 0 };
+    RecordSize size{ 0 };
     uint32_t reserved[2] = { ReservedValue, ReservedValue };
     Hash hash;
     uint32_t crc{ 0 };
@@ -132,33 +138,33 @@ struct RecordTail {
 };
 
 struct SeekSettings {
-    uint8_t file{ 0 };
-    uint32_t record{ 0 };
+    FileNumber file{ 0 };
+    RecordNumber record{ 0 };
 
     SeekSettings() {
     }
 
-    SeekSettings(uint8_t file, uint32_t record)
+    SeekSettings(FileNumber file, RecordNumber record)
         : file(file), record(record) {
     }
 
-    static SeekSettings end_of(uint8_t file);
+    static SeekSettings end_of(FileNumber file);
 };
 
 struct SeekValue {
-    uint32_t address{ InvalidAddress };
-    uint32_t record{ InvalidRecord };
-    uint32_t position{ InvalidAddress };
-    uint32_t block{ InvalidBlock };
-    uint32_t timestamp{ InvalidTimestamp };
-    uint32_t record_address{ InvalidAddress };
-    uint32_t bytes_in_block{ 0 };
-    uint32_t records_in_block{ 0 };
+    StorageAddress address{ InvalidAddress };
+    RecordNumber record{ InvalidRecord };
+    StorageSize position{ InvalidSize };
+    BlockNumber block{ InvalidBlock };
+    StorageTime timestamp{ InvalidTimestamp };
+    StorageAddress record_address{ InvalidAddress };
+    StorageSize bytes_in_block{ 0 };
+    RecordNumber records_in_block{ 0 };
 
     SeekValue() {
     }
 
-    SeekValue(uint32_t address, uint32_t record, uint32_t position, uint32_t block, uint32_t timestamp, uint32_t record_address, uint32_t bytes_in_block, uint32_t records_in_block)
+    SeekValue(StorageAddress address, RecordNumber record, StorageSize position, BlockNumber block, StorageTime timestamp, StorageAddress record_address, StorageSize bytes_in_block, RecordNumber records_in_block)
         : address(address), record(record), position(position), block(block),
           timestamp(timestamp), record_address(record_address), bytes_in_block(bytes_in_block), records_in_block(records_in_block) {
     }

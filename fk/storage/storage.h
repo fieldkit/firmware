@@ -26,7 +26,6 @@ struct SavedState {
 
 class Storage {
 public:
-    using FileNumber = uint8_t;
     constexpr static FileNumber Data = 0;
     constexpr static FileNumber Meta = 1;
 
@@ -39,7 +38,7 @@ private:
     BadBlocks bad_blocks_;
     FileHeader files_[NumberOfFiles];
     uint32_t timestamp_{ InvalidTimestamp };
-    uint32_t free_block_{ InvalidBlock };
+    BlockNumber free_block_{ InvalidBlock };
     uint32_t version_{ InvalidVersion };
     bool read_only_;
 
@@ -88,21 +87,21 @@ public:
 
 private:
     SeekValue seek(SeekSettings settings);
-    uint32_t allocate(uint8_t file, uint32_t previous_tail_address, BlockTail &block_tail);
+    uint32_t allocate(uint8_t file, StorageAddress previous_tail_address, BlockTail &block_tail);
     bool valid_block_header(BlockHeader &header) const;
     void verify_opened() const;
     void verify_mutable() const;
     uint32_t fsck(File &opened_file, ProgressTracker &tracker);
 
     struct BlocksAfter {
-        uint32_t starting;
-        uint32_t free;
-        uint32_t tail;
+        BlockNumber starting;
+        BlockNumber free;
+        BlockNumber tail;
 
         BlocksAfter() : starting(InvalidAddress), free(InvalidAddress), tail(InvalidAddress) {
         }
 
-        BlocksAfter(uint32_t starting, uint32_t free, uint32_t tail) : starting(starting), free(free), tail(tail) {
+        BlocksAfter(BlockNumber starting, BlockNumber free, BlockNumber tail) : starting(starting), free(free), tail(tail) {
         }
 
         operator bool() const {
@@ -110,7 +109,7 @@ private:
         }
     };
 
-    BlocksAfter find_blocks_after(uint32_t starting_block, uint8_t file, bool end);
+    BlocksAfter find_blocks_after(uint32_t starting_block, FileNumber file, bool end);
 
 };
 
