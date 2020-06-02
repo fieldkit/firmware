@@ -136,3 +136,56 @@ TEST_F(BadBlocksSuite, WritingToBadRegionDuringFileWrite) {
 
     ASSERT_TRUE(storage.begin());
 }
+
+TEST_F(BadBlocksSuite, OpeningStorageWithTwoDeepBadBlocks) {
+    bank(0).mark_block_bad_from_factory(g_.block_size * 80);
+    bank(0).mark_block_bad_from_factory(g_.block_size * 81);
+
+    {
+        Storage storage{ memory_, pool_, false };
+        ASSERT_TRUE(storage.clear());
+    }
+
+    auto record_number = 0u;
+
+    StaticPattern pattern;
+    while (true) {
+        StandardPool pool{ "tests " };
+        Storage storage{ memory_, pool, false };
+        if (record_number == 0) {
+            FK_ASSERT(storage.clear());
+        } else {
+            FK_ASSERT(storage.begin());
+        }
+
+        auto file_write = storage.file(0);
+        if (record_number > 0) {
+            file_write.seek_end();
+        }
+
+        pattern.write(file_write, 256);
+
+        record_number++;
+
+        ASSERT_EQ(record_number, file_write.record() - 1);
+
+        if (storage.is_block_bad(80)) {
+            break;
+        }
+    }
+
+    // log_configure_level(LogLevels::TRACE);
+
+    {
+        loginfo("tests opening");
+
+        Storage storage{ memory_, pool_, false };
+        ASSERT_TRUE(storage.begin());
+
+        loginfo("tests seeking to end");
+
+        auto file_write = storage.file(0);
+        FK_ASSERT(file_write.seek_end());
+        ASSERT_EQ(record_number, file_write.previous_record());
+    }
+}

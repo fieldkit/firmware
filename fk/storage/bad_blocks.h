@@ -19,8 +19,8 @@ public:
 public:
     void mark_address_as_bad(uint32_t address);
     void mark_block_as_bad(uint32_t block);
-    bool is_address_bad(uint32_t address);
-    bool is_block_bad(uint32_t block);
+    bool is_address_bad(uint32_t address) const;
+    bool is_block_bad(uint32_t block) const;
 
 };
 

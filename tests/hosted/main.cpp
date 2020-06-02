@@ -8,5 +8,11 @@ int32_t main(int32_t argc, char **argv) {
 
     log_configure_level(LogLevels::ERROR);
 
+    for (auto i = 1; i < argc; ++i) {
+        if (strcmp(argv[i], "--debug") == 0) {
+            log_configure_level(LogLevels::DEBUG);
+        }
+    }
+
     return RUN_ALL_TESTS();
 }

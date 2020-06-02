@@ -82,6 +82,10 @@ public:
         return memory_.geometry();
     }
 
+    bool is_block_bad(uint32_t block) const {
+        return bad_blocks_.is_block_bad(block);
+    }
+
 private:
     SeekValue seek(SeekSettings settings);
     uint32_t allocate(uint8_t file, uint32_t previous_tail_address, BlockTail &block_tail);

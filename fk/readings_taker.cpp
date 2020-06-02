@@ -83,6 +83,8 @@ bool ReadingsTaker::append_readings(File &file, Pool &pool) {
 }
 
 bool ReadingsTaker::verify_reading_record(File &file, Pool &pool) {
+    logdebug("verifying record");
+
     if (!file.seek_end()) {
         return false;
     }

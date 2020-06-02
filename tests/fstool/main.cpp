@@ -14,16 +14,22 @@ FK_DECLARE_LOGGER("main");
 using namespace fk;
 
 __int32_t main(__int32_t argc, const char **argv) {
-    log_configure_level(LogLevels::DEBUG);
-
     for (auto i = 1; i < argc; ++i) {
+        if (strcmp(argv[i], "--debug") == 0) {
+            log_configure_level(LogLevels::DEBUG);
+            continue;
+        }
+
+        if (strcmp(argv[i], "--verbose") == 0) {
+            log_configure_level(LogLevels::VERBOSE);
+            continue;
+        }
+
         auto fd = open(argv[i], O_RDONLY);
         if (fd < 0) {
             logerror("error opening %s", argv[i]);
             continue;
         }
-
-        loginfo("opened");
 
         struct stat statbuf;
         if (fstat(fd, &statbuf) < 0) {
@@ -54,8 +60,10 @@ __int32_t main(__int32_t argc, const char **argv) {
             return 0;
         }
 
-        GlobalStateProgressCallbacks progress;
-        storage.fsck(&progress);
+        if (true) {
+            GlobalStateProgressCallbacks progress;
+            storage.fsck(&progress);
+        }
 
         close(fd);
     }

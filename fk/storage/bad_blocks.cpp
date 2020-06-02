@@ -31,11 +31,11 @@ void BadBlocks::mark_block_as_bad(uint32_t block) {
     table_[block / 8] |= (1 << block % 8);
 }
 
-bool BadBlocks::is_address_bad(uint32_t address) {
+bool BadBlocks::is_address_bad(uint32_t address) const {
     return is_block_bad(address / geometry_.block_size);
 }
 
-bool BadBlocks::is_block_bad(uint32_t block) {
+bool BadBlocks::is_block_bad(uint32_t block) const {
     return table_[block / 8] & (1 << block % 8);
 }
 
