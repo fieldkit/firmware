@@ -12,6 +12,9 @@ int32_t main(int32_t argc, char **argv) {
         if (strcmp(argv[i], "--debug") == 0) {
             log_configure_level(LogLevels::DEBUG);
         }
+        if (strcmp(argv[i], "--verbose") == 0) {
+            log_configure_level(LogLevels::VERBOSE);
+        }
     }
 
     return RUN_ALL_TESTS();

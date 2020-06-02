@@ -156,11 +156,18 @@ bool Storage::begin() {
 
     logdebug("[-] block: #%" PRIu32 " sequential scan", range.start);
 
-    auto block = range.start;
+    auto testing_block = range.start;
+    auto end_block = range.start;
+    auto bad_blocks = 0u;
 
     while (true) {
-        auto head_address = (uint32_t)(g.block_size * block);
+        auto head_address = (uint32_t)(g.block_size * testing_block);
         auto tail_address = head_address + g.block_size - SizeofBlockTail;
+
+        // This is mostly to check for reaching the end of memory. TODO Wrap around.
+        if (!g.is_address_valid(head_address) || !g.is_address_valid(tail_address)) {
+            return false;
+        }
 
         BlockHeader block_header;
         if (memory_.read(head_address, (uint8_t *)&block_header, sizeof(block_header)) != sizeof(block_header)) {
@@ -168,8 +175,23 @@ bool Storage::begin() {
         }
 
         if (!valid_block_header(block_header)) {
-            logdebug("[-] block: #%" PRIu32 " invalid header", block);
-            break;
+            if (bad_blocks == 10) {
+                logdebug("[-] block: #%" PRIu32 " invalid header (ending search)", testing_block);
+                break;
+            }
+            else if (bad_blocks == 0) {
+                logdebug("[-] block: #%" PRIu32 " invalid header (first)", testing_block);
+                end_block = testing_block;
+            }
+            else {
+                logdebug("[-] block: #%" PRIu32 " invalid header (%d)", testing_block, bad_blocks);
+            }
+            testing_block++;
+            bad_blocks++;
+            continue;
+        }
+        else {
+            bad_blocks = 0;
         }
 
         BlockTail block_tail;
@@ -178,21 +200,23 @@ bool Storage::begin() {
         }
 
         if (!is_address_valid(block_tail.linked)) {
-            logdebug("[-] block: #%" PRIu32 " invalid linked address (" PRADDRESS ")", block, block_tail.linked);
-            block++;
+            logdebug("[-] block: #%" PRIu32 " invalid linked address (" PRADDRESS ")", testing_block, block_tail.linked);
+            testing_block++;
+            bad_blocks++;
+            end_block = testing_block;
             continue;
         }
 
         auto linked_block = block_tail.linked / g.block_size;
 
-        FK_ASSERT(block != linked_block);
+        FK_ASSERT(testing_block != linked_block);
 
-        logdebug("[-] block: #%" PRIu32 " -> #%" PRIu32, block, linked_block);
+        logdebug("[-] block: #%" PRIu32 " -> #%" PRIu32, testing_block, linked_block);
 
-        block = linked_block;
+        testing_block = linked_block;
     }
 
-    free_block_ = block;
+    free_block_ = end_block;
 
     logdebug("[-] block: #%" PRIu32 " found end (%" PRIu32 "ms)", free_block_, fk_uptime() - started);
 
