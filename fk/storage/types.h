@@ -24,6 +24,8 @@ constexpr uint32_t SizeofBlockHeader = 512;
 
 constexpr uint32_t ReservedValue = 0xdeadbeef;
 
+constexpr uint8_t InvalidFile = (uint8_t)(-1);
+
 static inline bool is_block_valid(uint32_t block) {
     return block != InvalidAddress;
 }

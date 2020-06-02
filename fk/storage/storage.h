@@ -94,6 +94,24 @@ private:
     void verify_mutable() const;
     uint32_t fsck(File &opened_file, ProgressTracker &tracker);
 
+    struct BlocksAfter {
+        uint32_t starting;
+        uint32_t free;
+        uint32_t tail;
+
+        BlocksAfter() : starting(InvalidAddress), free(InvalidAddress), tail(InvalidAddress) {
+        }
+
+        BlocksAfter(uint32_t starting, uint32_t free, uint32_t tail) : starting(starting), free(free), tail(tail) {
+        }
+
+        operator bool() const {
+            return starting != InvalidAddress && free != InvalidAddress && tail != InvalidAddress;
+        }
+    };
+
+    BlocksAfter find_blocks_after(uint32_t starting_block, uint8_t file, bool end);
+
 };
 
 inline bool is_memory_completely(uint8_t const *data, size_t size, uint8_t byte) {

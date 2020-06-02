@@ -14,6 +14,8 @@ using testing::InvokeWithoutArgs;
 using testing::_;
 using namespace fk;
 
+FK_DECLARE_LOGGER("tests");
+
 class ReadingsTakingSuite : public StorageSuite {
 protected:
     void SetUp() override {
@@ -152,24 +154,38 @@ TEST_F(ReadingsTakingSuite, AssignsRecordIndices) {
         .WillOnce(Return(as_expected(FoundModuleCollection(two_modules))));
     ReadingsTaker readings_taker{ storage, get_modmux(), false };
 
+    loginfo("tests: appending record 1");
+
     ModuleFactory module_factory;
     auto constructed_maybe1 = module_factory.rescan_and_initialize(ctx, scanning, pool_);
     ASSERT_TRUE(readings_taker.take(*constructed_maybe1, ctx, pool_));
 
+    loginfo("tests: appending record 2");
+
     auto constructed_maybe2 = module_factory.rescan_and_initialize(ctx, scanning, pool_);
     ASSERT_TRUE(readings_taker.take(*constructed_maybe2, ctx, pool_));
+
+    loginfo("tests: appending record 3");
 
     auto constructed_maybe3 = module_factory.rescan_and_initialize(ctx, scanning, pool_);
     ASSERT_TRUE(readings_taker.take(*constructed_maybe3, ctx, pool_));
 
+    loginfo("tests: appending record 4");
+
     auto constructed_maybe4 = module_factory.rescan_and_initialize(ctx, scanning, pool_);
     ASSERT_TRUE(readings_taker.take(*constructed_maybe4, ctx, pool_));
+
+    loginfo("tests: appending record 5");
 
     auto constructed_maybe5 = module_factory.rescan_and_initialize(ctx, scanning, pool_);
     ASSERT_TRUE(readings_taker.take(*constructed_maybe5, ctx, pool_));
 
+    loginfo("tests: appending record 6");
+
     auto constructed_maybe6 = module_factory.rescan_and_initialize(ctx, scanning, pool_);
     ASSERT_TRUE(readings_taker.take(*constructed_maybe6, ctx, pool_));
+
+    loginfo("tests: seeking record 4");
 
     auto meta_file = storage.file(Storage::Meta);
     auto srl = SignedRecordLog{ meta_file };
