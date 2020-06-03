@@ -245,7 +245,7 @@ bool Storage::begin() {
     logdebug("[-] block: blk %" PRIu32 " found end (%" PRIu32 "ms)", free_block_, fk_uptime() - started);
 
     for (auto i = 0u; i < NumberOfFiles; ++i) {
-        logdebug("[%d] header tail (" PRADDRESS ") (R%" PRIu32 ")", i, files_[i].tail, files_[i].record);
+        logdebug("[%d] header tail (" PRADDRESS ") (R-%" PRIu32 ")", i, files_[i].tail, files_[i].record);
     }
 
     return true;
@@ -340,7 +340,7 @@ uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address, BlockTa
             continue;
         }
 
-        loginfo("[%d] allocating block blk %" PRIu32 " ts=%" PRIu32 " (" PRADDRESS ") (pta=" PRADDRESS ") (try #%d) (R%" PRIu32 ") (%" PRIu32 " bytes)",
+        loginfo("[%d] allocating block blk %" PRIu32 " ts=%" PRIu32 " (" PRADDRESS ") (pta=" PRADDRESS ") (try #%d) (R-%" PRIu32 ") (%" PRIu32 " bytes)",
                 file, block, timestamp_, address, previous_tail_address, i, files_[file].record, files_[file].size);
 
         // First sector is the block header. We force write this to
@@ -406,7 +406,7 @@ SeekValue Storage::seek(SeekSettings settings) {
 
     verify_opened();
 
-    logtrace("[%d] seeking R%" PRIu32, settings.file, settings.record);
+    logtrace("[%d] seeking R-%" PRIu32, settings.file, settings.record);
 
     // Binary search for the block to start with.
     BlockHeader file_block_header;
@@ -468,7 +468,7 @@ SeekValue Storage::seek(SeekSettings settings) {
         return SeekValue{ };
     }
 
-    logdebug("[%d] " PRADDRESS " seeking R%" PRIu32 " (position = %" PRIu32 ") from blk %" PRIu32 " (bsz = %" PRIu32 " bytes)",
+    logdebug("[%d] " PRADDRESS " seeking R-%" PRIu32 " (position = %" PRIu32 ") from blk %" PRIu32 " (bsz = %" PRIu32 " bytes)",
              settings.file, address, settings.record, position, fh.tail / g.block_size, fh.size);
 
     while (true) {
@@ -581,12 +581,12 @@ SeekValue Storage::seek(SeekSettings settings) {
         // they're looking for?
         if (settings.record != InvalidRecord) {
             if (record_head.record == settings.record) {
-                logverbose("[%d] " PRADDRESS " found record R%" PRIu32, settings.file, address, settings.record);
+                logverbose("[%d] " PRADDRESS " found record R-%" PRIu32, settings.file, address, settings.record);
                 record = record_head.record;
                 break;
             }
             if (settings.record < record_head.record) {
-                logverbose("[%d] " PRADDRESS " found nearby record R%" PRIu32, settings.file, address, settings.record);
+                logverbose("[%d] " PRADDRESS " found nearby record R-%" PRIu32, settings.file, address, settings.record);
                 break;
             }
         }
@@ -598,7 +598,7 @@ SeekValue Storage::seek(SeekSettings settings) {
 
         auto record_length = (uint32_t)(sizeof(RecordHeader) + record_head.size + sizeof(RecordTail));
 
-        logverbose("[%d] " PRADDRESS " seeking %4" PRIu32 "/%4" PRIu32 " (R%" PRIu32 ")",
+        logverbose("[%d] " PRADDRESS " seeking %4" PRIu32 "/%4" PRIu32 " (R-%" PRIu32 ")",
                    settings.file, address, record_length, record_head.size, record_head.record);
 
         // Skip over the record head, the actual record, and the tail (hash)
@@ -613,7 +613,7 @@ SeekValue Storage::seek(SeekSettings settings) {
         }
     }
 
-    logdebug("[%d] " PRADDRESS " seeking R%" PRIu32 " done (R%" PRIu32 ") (%" PRIu32 " bytes) (%" PRIu32 " pos-bh)",
+    logdebug("[%d] " PRADDRESS " seeking R-%" PRIu32 " done (R-%" PRIu32 ") (%" PRIu32 " bytes) (%" PRIu32 " pos-bh)",
              settings.file, address, settings.record, record, position, position - fh.size);
 
     return SeekValue{ address, record, position, block, timestamp, record_address, bytes_in_block, records_in_block };

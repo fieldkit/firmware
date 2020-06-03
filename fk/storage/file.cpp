@@ -135,7 +135,7 @@ int32_t File::write_record_header(RecordSize size) {
     record_header.previous = record_address_;
     record_header.crc = record_header.sign();
 
-    logdebug("[%d] " PRADDRESS " write header R%" PRIu32 " (%" PRId32 " lib) (%" PRId32 " bytes) (position=%" PRIu32 ") sopr=" PRADDRESS,
+    logdebug("[%d] " PRADDRESS " write header R-%" PRIu32 " (%" PRId32 " lib) (%" PRId32 " bytes) (position=%" PRIu32 ") sopr=" PRADDRESS,
              file_, tail_, record_header.record, left_in_block, size, position_, record_address_);
 
     if (memory_.write(tail_, (uint8_t *)&record_header, sizeof(record_header)) != sizeof(record_header)) {
@@ -207,7 +207,7 @@ int32_t File::write_record_tail(RecordSize size) {
 int32_t File::try_write(uint8_t const *record, size_t size) {
     storage_->verify_mutable();
 
-    logtrace("[%d] " PRADDRESS " BEGIN write (%zd bytes) R%" PRIu32 " (%" PRIu32 " bytes w/ overhead)", file_, tail_, size, record_,
+    logtrace("[%d] " PRADDRESS " BEGIN write (%zd bytes) R-%" PRIu32 " (%" PRIu32 " bytes w/ overhead)", file_, tail_, size, record_,
              (uint32_t)(sizeof(RecordHeader) + sizeof(RecordTail) + size));
 
     if (write_record_header(size) == 0) {
@@ -266,7 +266,7 @@ bool File::seek(RecordReference reference) {
     bytes_in_block_ = 0;
     records_in_block_ = 0;
 
-    logtrace("[" PRADDRESS "] seek reference position = %" PRIu32 " R%" PRIu32 " size=%" PRIu32,
+    logtrace("[" PRADDRESS "] seek reference position = %" PRIu32 " R-%" PRIu32 " size=%" PRIu32,
              tail_, position_, record_, record_size_);
 
     return true;
@@ -589,7 +589,7 @@ int32_t File::try_read_record_header(uint32_t tail, RecordHeader &record_header)
         return 0;
     }
 
-    logverbose("[%d] " PRADDRESS " record header (%" PRIu32 " bytes) R%" PRIu32, file_, tail, record_header.size, record_header.record);
+    logverbose("[%d] " PRADDRESS " record header (%" PRIu32 " bytes) R-%" PRIu32, file_, tail, record_header.size, record_header.record);
 
     unread_header_  = false;
 
@@ -719,7 +719,7 @@ int32_t File::read_record_tail() {
     Hash hash;
     hash_.finalize(&hash.hash, Hash::Length);
     if (memcmp(hash.hash, record_tail.hash.hash, Hash::Length) != 0) {
-        logerror("[%d] " PRADDRESS " hash mismatch: (R%" PRIu32 ") (record address = " PRADDRESS ") (record_size = %" PRIu32 ")",
+        logerror("[%d] " PRADDRESS " hash mismatch: (R-%" PRIu32 ") (record address = " PRADDRESS ") (record_size = %" PRIu32 ")",
                  file_, tail_, record_, record_address_, record_tail.size);
         fk_dump_memory("ACT ", record_tail.hash.hash, Hash::Length);
         fk_dump_memory("EXP ", hash.hash, Hash::Length);
