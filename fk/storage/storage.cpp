@@ -101,7 +101,7 @@ bool Storage::valid_block_header(BlockHeader &header) const {
     return header.valid() && (version_ == InvalidVersion || header.version == version_);
 }
 
-Storage::BlocksAfter Storage::find_blocks_after(uint32_t starting, uint8_t file, bool end) {
+Storage::BlocksAfter Storage::find_blocks_after(uint32_t starting, FileNumber file, RecordNumber record) {
     logdebug("[-] block: blk %" PRIu32 " sequential scan", starting);
 
     auto g = memory_.geometry();
@@ -144,18 +144,27 @@ Storage::BlocksAfter Storage::find_blocks_after(uint32_t starting, uint8_t file,
             if (file == InvalidFile || file == block_header.file) {
                 tail = testing;
                 free = testing + 1;
-
-                if (!end && tail != starting) {
-                    break;
-                }
             }
 
             bad_blocks = 0;
         }
 
+        if (record != InvalidRecord) {
+            if (tail != starting) {
+                break;
+            }
+        }
+
         BlockTail block_tail;
         if (memory_.read(tail_address, (uint8_t *)&block_tail, sizeof(block_tail)) != sizeof(block_tail)) {
             return BlocksAfter{ };
+        }
+
+        if (!block_tail.verify_hash()) {
+            logdebug("[-] block: blk %" PRIu32 " invalid tail", testing);
+            testing++;
+            bad_blocks++;
+            continue;
         }
 
         if (!is_address_valid(block_tail.linked)) {
@@ -235,7 +244,7 @@ bool Storage::begin() {
         return false;
     }
 
-    auto blocks_after = find_blocks_after(range.start, InvalidFile, true);
+    auto blocks_after = find_blocks_after(range.start, InvalidFile, InvalidRecord);
     if (!blocks_after) {
         return false;
     }
@@ -461,6 +470,8 @@ SeekValue Storage::seek(SeekSettings settings) {
     auto record_address = 0u;
     auto bytes_in_block = 0u;
     auto records_in_block = 0u;
+    auto records_visited = 0u;
+    auto blocks_visited = 0u;
 
     // If the address is invalid then this file is empty, nothing to be found,
     // this is success if they were looking for the last record of the file.
@@ -547,7 +558,7 @@ SeekValue Storage::seek(SeekSettings settings) {
                  */
                 logdebug("[%d] " PRADDRESS " end of block records (blk %" PRIu32 ") finding block after", settings.file, address, block);
 
-                auto blocks_after = find_blocks_after(block, settings.file, false);
+                auto blocks_after = find_blocks_after(block, settings.file, settings.record);
                 if (!blocks_after) {
                     logdebug("[%d] " PRADDRESS " error finding blocks after (blk %" PRIu32 ")", settings.file, address, block);
                     return SeekValue{};
@@ -558,6 +569,7 @@ SeekValue Storage::seek(SeekSettings settings) {
                     break;
                 }
 
+                blocks_visited++;
                 block = blocks_after.tail;
                 address = block * g.block_size;
                 record_address = address;
@@ -576,6 +588,7 @@ SeekValue Storage::seek(SeekSettings settings) {
 
         // We've got a valid record header so let's remember this position.
         record_address = address;
+        records_visited++;
 
         // Is this the record they're looking for, or is this after the record
         // they're looking for?
@@ -613,8 +626,8 @@ SeekValue Storage::seek(SeekSettings settings) {
         }
     }
 
-    logdebug("[%d] " PRADDRESS " seeking R-%" PRIu32 " done (R-%" PRIu32 ") (%" PRIu32 " bytes) (%" PRIu32 " pos-bh)",
-             settings.file, address, settings.record, record, position, position - fh.size);
+    logdebug("[%d] " PRADDRESS " seeking R-%" PRIu32 " done (R-%" PRIu32 ") (%" PRIu32 " bytes) (%" PRIu32 " pos-bh) (%u/%u visited)",
+             settings.file, address, settings.record, record, position, position - fh.size, records_visited, blocks_visited);
 
     return SeekValue{ address, record, position, block, timestamp, record_address, bytes_in_block, records_in_block };
 }

@@ -69,7 +69,7 @@ __int32_t main(__int32_t argc, const char **argv) {
             storage.fsck(&progress);
         }
 
-        if (false) {
+        if (true) {
             Storage storage{ &memory, pool, false };
             if (!storage.begin()) {
                 logerror("storage begin failed");
@@ -77,11 +77,11 @@ __int32_t main(__int32_t argc, const char **argv) {
             }
 
             loginfo("seeking");
-            auto f = storage.file(1);
+            auto f = storage.file(0);
             f.seek_end();
         }
 
-        if (true) {
+        if (false) {
             StorageWalker walker{ &memory, pool };
             walker.walk();
         }

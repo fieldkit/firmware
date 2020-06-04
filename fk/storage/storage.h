@@ -110,7 +110,7 @@ private:
         }
     };
 
-    BlocksAfter find_blocks_after(uint32_t starting_block, FileNumber file, bool end);
+    BlocksAfter find_blocks_after(uint32_t starting_block, FileNumber file, RecordNumber record);
 
 };
 
