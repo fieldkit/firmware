@@ -6,8 +6,10 @@
 
 #include "fk.h"
 #include "hal/linux/linux.h"
+#include "hal/memory.h"
 #include "protobuf.h"
 #include "gs_progress_callbacks.h"
+#include "walker.h"
 
 FK_DECLARE_LOGGER("main");
 
@@ -54,22 +56,34 @@ __int32_t main(__int32_t argc, const char **argv) {
         loginfo("initializing");
 
         StandardPool pool{ "fstool" };
-        Storage storage{ &memory, pool, false };
-        if (!storage.begin()) {
-            logerror("storage begin failed");
-            return 0;
-        }
 
         if (false) {
+            Storage storage{ &memory, pool, false };
+            if (!storage.begin()) {
+                logerror("storage begin failed");
+                return 0;
+            }
+
             loginfo("fsck");
             GlobalStateProgressCallbacks progress;
             storage.fsck(&progress);
         }
 
-        if (true) {
+        if (false) {
+            Storage storage{ &memory, pool, false };
+            if (!storage.begin()) {
+                logerror("storage begin failed");
+                return 0;
+            }
+
             loginfo("seeking");
             auto f = storage.file(1);
             f.seek_end();
+        }
+
+        if (true) {
+            StorageWalker walker{ &memory, pool };
+            walker.walk();
         }
 
         close(fd);
