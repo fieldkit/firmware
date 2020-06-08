@@ -29,7 +29,7 @@ public:
     }
 
     NetworkDuration operator=(uint32_t seconds) {
-        seconds_ = seconds;
+        seconds_ = std::max(seconds, OneMinuteSeconds);
         return *this;
     }
 };

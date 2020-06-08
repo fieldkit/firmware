@@ -235,7 +235,12 @@ struct Schedule {
         repeated = s.repeated;
         duration = s.duration;
         jitter = s.jitter;
-        cron = lwcron::CronSpec::interval(s.interval);
+        if (s.interval > 0) {
+            cron = lwcron::CronSpec::interval(std::max(s.interval, OneMinuteSeconds));
+        }
+        else {
+            cron = lwcron::CronSpec::interval(0);
+        }
         return *this;
     }
 };
