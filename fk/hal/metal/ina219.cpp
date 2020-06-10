@@ -118,7 +118,7 @@ bool Ina219::begin() {
     return true;
 }
 
-Ina219Reading Ina219::read() {
+MeterReading Ina219::read() {
     uint16_t value;
 
     // Sometimes a sharp load will reset the INA219, which will
@@ -157,7 +157,7 @@ Ina219Reading Ina219::read() {
     auto ma = (float)ma_raw / (float)ma_divider_;
     auto power = (float)power_raw * (float)power_multiplier_;
 
-    return Ina219Reading{
+    return MeterReading{
         .available = true,
         .bus_voltage = bus_voltage,
         .shunted_voltage = shunted_voltage,

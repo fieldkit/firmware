@@ -4,7 +4,7 @@
 
 namespace fk {
 
-struct Ina219Reading {
+struct MeterReading {
     bool available;
     float bus_voltage;
     float shunted_voltage;
@@ -12,11 +12,11 @@ struct Ina219Reading {
     float mw;
 };
 
-struct BatteryReading {
+struct PowerReading {
     bool available;
     bool charging;
-    Ina219Reading battery;
-    Ina219Reading solar;
+    MeterReading battery;
+    MeterReading solar;
 };
 
 struct ChargingStatus {
@@ -28,11 +28,13 @@ class BatteryGauge {
 public:
     virtual bool begin() = 0;
 
-    virtual BatteryReading get() = 0;
+    virtual PowerReading get() = 0;
 
     virtual ChargingStatus status() = 0;
 
-    virtual bool available() = 0;
+    virtual bool battery_available() = 0;
+
+    virtual bool solar_available() = 0;
 
 };
 

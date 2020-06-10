@@ -9,17 +9,19 @@ bool LinuxBatteryGauge::begin() {
     return true;
 }
 
-BatteryReading LinuxBatteryGauge::get() {
-    return {
-    };
+PowerReading LinuxBatteryGauge::get() {
+    return PowerReading{ };
 }
 
 ChargingStatus LinuxBatteryGauge::status() {
-    return {
-    };
+    return ChargingStatus{ };
 }
 
-bool LinuxBatteryGauge::available() {
+bool LinuxBatteryGauge::battery_available() {
+    return true;
+}
+
+bool LinuxBatteryGauge::solar_available() {
     return true;
 }
 

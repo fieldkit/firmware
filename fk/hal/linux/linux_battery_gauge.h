@@ -11,11 +11,13 @@ public:
 public:
     bool begin() override;
 
-    BatteryReading get() override;
+    PowerReading get() override;
 
     ChargingStatus status() override;
 
-    bool available() override;
+    bool battery_available() override;
+
+    bool solar_available() override;
 
 };
 

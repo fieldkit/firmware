@@ -7,15 +7,11 @@ namespace fk {
 FK_DECLARE_LOGGER("battery");
 
 void BatteryStatus::refresh() {
-    if (!get_battery_gauge()->available()) {
-        return;
-    }
-
     auto lock = get_modmux()->lock();
-    auto power = get_battery_gauge()->get();
     auto gs = get_global_state_rw();
+    auto power = get_battery_gauge()->get();
 
-    if (power.available) {
+    if (power.battery.available) {
         // Bradley gave me this.
         auto charge = (power.battery.bus_voltage - 3.5f) * 142.85f;
         if (charge < 0.0f) charge = 0.0f;

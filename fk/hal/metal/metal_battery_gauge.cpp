@@ -21,7 +21,8 @@ MetalBatteryGauge::MetalBatteryGauge() {
 }
 
 bool MetalBatteryGauge::begin() {
-    status_ = Availability::Unavailable;
+    battery_ = Availability::Unavailable;
+    solar_ = Availability::Unavailable;
 
     pinMode(PIN_BATTERY_CHARGING, INPUT);
     attachInterrupt(digitalPinToInterrupt(PIN_BATTERY_CHARGING), irq_charge_pulse, FALLING);
@@ -31,44 +32,46 @@ bool MetalBatteryGauge::begin() {
     Ina219 battery_monitor{ bus, INA219_ADDRESS_BATTERY };
     if (!battery_monitor.begin()) {
         loginfo("battery: ina219 missing");
-        return false;
+    }
+    else {
+        battery_ = Availability::Available;
+        loginfo("battery: ina219 found");
     }
 
     Ina219 solar_monitor{ bus, INA219_ADDRESS_SOLAR };
     if (!solar_monitor.begin()) {
         loginfo("solar: ina219 missing");
     }
-
-    loginfo("initialized");
-
-    status_ = Availability::Available;
-
-    return true;
-}
-
-BatteryReading MetalBatteryGauge::get() {
-    if (status_ != Availability::Available) {
-        return BatteryReading{ .available = false };
+    else {
+        solar_ = Availability::Available;
+        loginfo("solar: ina219 found");
     }
 
+    return battery_ == Availability::Available;
+}
+
+PowerReading MetalBatteryGauge::get() {
     auto charging = digitalRead(PIN_BATTERY_CHARGING) == 0;
     auto bus = get_board()->i2c_module();
 
-    Ina219 battery_monitor{ bus, INA219_ADDRESS_BATTERY };
-    auto battery = battery_monitor.read();
-    if (!battery.available) {
-        return BatteryReading{ .available = false };
-    }
-
-    Ina219 solar_monitor{ bus, INA219_ADDRESS_SOLAR };
-    auto solar = solar_monitor.read();
-
-    return BatteryReading{
+    auto reading = PowerReading{
         .available = true,
         .charging = charging,
-        .battery = battery,
-        .solar = solar,
+        .battery = { },
+        .solar = { },
     };
+
+    if (battery_ == Availability::Available) {
+        Ina219 battery_monitor{ bus, INA219_ADDRESS_BATTERY };
+        reading.battery = battery_monitor.read();
+    }
+
+    if (solar_ == Availability::Available) {
+        Ina219 solar_monitor{ bus, INA219_ADDRESS_SOLAR };
+        reading.solar = solar_monitor.read();
+    }
+
+    return reading;
 }
 
 ChargingStatus MetalBatteryGauge::status() {
@@ -83,8 +86,12 @@ ChargingStatus MetalBatteryGauge::status() {
     return status;
 }
 
-bool MetalBatteryGauge::available() {
-    return status_ == Availability::Available;
+bool MetalBatteryGauge::battery_available() {
+    return battery_ == Availability::Available;
+}
+
+bool MetalBatteryGauge::solar_available() {
+    return solar_ == Availability::Available;
 }
 
 void MetalBatteryGauge::irq() {

@@ -21,7 +21,7 @@ public:
 
 public:
     bool begin();
-    Ina219Reading read() ;
+    MeterReading read() ;
 
 };
 
