@@ -19,22 +19,25 @@ void BatteryStatus::refresh() {
 
         gs.get()->power.charge = charge;
         gs.get()->power.voltage = power.battery.bus_voltage;
-        gs.get()->power.vbus = power.battery.bus_voltage;
-        gs.get()->power.vs = power.battery.shunted_voltage;
-        gs.get()->power.ma = power.battery.ma;
-        gs.get()->power.mw = power.battery.mw;
 
-        loginfo("battery: v_bus = %fV v_s = %fmV %fmA %fmW %f%% (%s)", power.battery.bus_voltage,
-                power.battery.shunted_voltage, power.battery.ma, power.battery.mw, charge,
-                power.charging ? " charging" : "");
+        gs.get()->power.battery.vbus = power.battery.bus_voltage;
+        gs.get()->power.battery.vs = power.battery.shunted_voltage;
+        gs.get()->power.battery.ma = power.battery.ma;
+        gs.get()->power.battery.mw = power.battery.mw;
+
+        loginfo("battery: v_bus = %fV v_s = %fmV %fmA %fmW %f%% (%s)", power.battery.bus_voltage, power.battery.shunted_voltage, power.battery.ma, power.battery.mw, charge, power.charging ? " charging" : "");
     }
     else {
         logerror("battery: status unavilable");
     }
 
     if (power.solar.available) {
-        loginfo("solar: v_bus = %fV v_s = %fmV %fmA %fmW", power.solar.bus_voltage, power.solar.shunted_voltage,
-                power.solar.ma, power.solar.mw);
+        gs.get()->power.solar.vbus = power.solar.bus_voltage;
+        gs.get()->power.solar.vs = power.solar.shunted_voltage;
+        gs.get()->power.solar.ma = power.solar.ma;
+        gs.get()->power.solar.mw = power.solar.mw;
+
+        loginfo("solar: v_bus = %fV v_s = %fmV %fmA %fmW", power.solar.bus_voltage, power.solar.shunted_voltage, power.solar.ma, power.solar.mw);
     }
     else {
         loginfo("solar: status unavailable");

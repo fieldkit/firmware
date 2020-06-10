@@ -8,10 +8,17 @@ namespace fk {
 static SensorMetadata const fk_module_sensor_metas[] = {
     { .name = "battery_charge",  .unitOfMeasure = "%",     .flags = 0 },
     { .name = "battery_voltage", .unitOfMeasure = "v",     .flags = 0 },
+
     { .name = "battery_vbus",    .unitOfMeasure = "v",     .flags = 0 },
     { .name = "battery_vs",      .unitOfMeasure = "mv",    .flags = 0 },
     { .name = "battery_ma",      .unitOfMeasure = "ma",    .flags = 0 },
     { .name = "battery_power",   .unitOfMeasure = "mw",    .flags = 0 },
+
+    { .name = "solar_vbus",      .unitOfMeasure = "v",     .flags = 0 },
+    { .name = "solar_vs",        .unitOfMeasure = "mv",    .flags = 0 },
+    { .name = "solar_ma",        .unitOfMeasure = "ma",    .flags = 0 },
+    { .name = "solar_power",     .unitOfMeasure = "mw",    .flags = 0 },
+
     { .name = "free_memory",     .unitOfMeasure = "bytes", .flags = 0 },
     { .name = "uptime",          .unitOfMeasure = "ms",    .flags = 0 },
     { .name = "temperature",     .unitOfMeasure = "C",     .flags = 0 },
@@ -50,13 +57,20 @@ ModuleReadings *DiagnosticsModule::take_readings(ReadingsContext mc, Pool &pool)
     auto spmi = fk_standard_page_meminfo();
 
     auto i = 0u;
-    auto mr = new(pool) NModuleReadings<9>();
+    auto mr = new(pool) NModuleReadings<13>();
     mr->set(i++, mc.gs()->power.charge);
     mr->set(i++, mc.gs()->power.voltage);
-    mr->set(i++, mc.gs()->power.vbus);
-    mr->set(i++, mc.gs()->power.vs);
-    mr->set(i++, mc.gs()->power.ma);
-    mr->set(i++, mc.gs()->power.mw);
+
+    mr->set(i++, mc.gs()->power.battery.vbus);
+    mr->set(i++, mc.gs()->power.battery.vs);
+    mr->set(i++, mc.gs()->power.battery.ma);
+    mr->set(i++, mc.gs()->power.battery.mw);
+
+    mr->set(i++, mc.gs()->power.solar.vbus);
+    mr->set(i++, mc.gs()->power.solar.vs);
+    mr->set(i++, mc.gs()->power.solar.ma);
+    mr->set(i++, mc.gs()->power.solar.mw);
+
     mr->set(i++, fk_free_memory() + (spmi.free * StandardPageSize));
     mr->set(i++, fk_uptime());
 
