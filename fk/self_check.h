@@ -38,6 +38,7 @@ struct SelfCheckStatus {
     CheckStatus rtc{ CheckStatus::Pending };
     CheckStatus temperature{ CheckStatus::Pending };
     CheckStatus battery_gauge{ CheckStatus::Pending };
+    CheckStatus solar_gauge{ CheckStatus::Pending };
     CheckStatus qspi_memory{ CheckStatus::Pending };
     CheckStatus spi_memory{ CheckStatus::Pending };
     CheckStatus gps{ CheckStatus::Pending };
@@ -78,6 +79,7 @@ private:
     bool rtc();
     bool temperature();
     bool battery_gauge();
+    bool solar_gauge();
     bool qspi_memory();
     bool spi_memory();
     bool gps();

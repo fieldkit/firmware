@@ -48,6 +48,9 @@ void SelfCheck::check(SelfCheckSettings settings, SelfCheckCallbacks &callbacks)
     status.battery_gauge = to_status(battery_gauge());
     callbacks.update(status);
 
+    status.solar_gauge = to_status(solar_gauge());
+    callbacks.update(status);
+
     status.temperature = to_status(temperature());
     callbacks.update(status);
 
@@ -140,7 +143,19 @@ bool SelfCheck::battery_gauge() {
             return false;
         }
 
-        return true;
+        return gauge->battery_available();
+    });
+}
+
+bool SelfCheck::solar_gauge() {
+    return single_check("solar gauge", []() {
+        auto gauge = get_battery_gauge();
+
+        if (!gauge->begin()) {
+            return false;
+        }
+
+        return gauge->solar_available();
     });
 }
 

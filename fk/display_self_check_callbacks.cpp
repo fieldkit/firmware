@@ -11,6 +11,7 @@ void DisplaySelfCheckCallbacks::update(SelfCheckStatus status) {
     append("rtc", status.rtc);
     append("temp", status.temperature);
     append("bg", status.battery_gauge);
+    append("sg", status.solar_gauge);
     append("qspi", status.qspi_memory);
     append("spi", status.spi_memory);
     append("wifi", status.wifi);
