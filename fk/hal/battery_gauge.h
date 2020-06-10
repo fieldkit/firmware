@@ -4,13 +4,19 @@
 
 namespace fk {
 
-struct BatteryReading {
+struct Ina219Reading {
     bool available;
-    bool charging;
     float bus_voltage;
     float shunted_voltage;
     float ma;
     float mw;
+};
+
+struct BatteryReading {
+    bool available;
+    bool charging;
+    Ina219Reading battery;
+    Ina219Reading solar;
 };
 
 struct ChargingStatus {
