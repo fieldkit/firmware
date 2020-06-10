@@ -575,6 +575,7 @@ void MenuView::tick(ViewController *views, Pool &pool) {
 void MenuView::refresh() {
     auto gs = get_global_state_ro();
     network_choose_menu_->refresh(gs.get());
+    tools_menu_->refresh(gs.get());
 }
 
 void MenuView::up(ViewController *views) {
