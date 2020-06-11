@@ -88,6 +88,10 @@ bool MetalGps::service(GpsFix &fix) {
         valid = false;
     }
 
+    if (fix.time == 0) {
+        valid = false;
+    }
+
     if (valid) {
         fix.valid = true;
     }

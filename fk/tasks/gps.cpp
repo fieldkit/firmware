@@ -29,6 +29,8 @@ void task_handler_gps(void *params) {
     // TODO: This would be way better if we used an IRQ to wake this task and
     // slurp down the latest characters.
     while (true) {
+        auto log_status = false;
+
         GpsFix fix;
         FK_ASSERT(gps->service(fix));
 
@@ -57,7 +59,11 @@ void task_handler_gps(void *params) {
                         fixed_at = fk_uptime();
                     }
 
+                    FK_ASSERT(fix.time > 0);
+
                     clock_adjust(fix.time);
+
+                    log_status = true;
                 }
                 else {
                     gsm.apply([=](GlobalState *gs) {
@@ -74,7 +80,7 @@ void task_handler_gps(void *params) {
             }
         }
 
-        if (fk_uptime() > status_at) {
+        if (fk_uptime() > status_at || log_status) {
             loginfo("satellites(%d) time(%" PRIu32 ") location(%f, %f) statistics(%" PRIu32 "chrs, %d/%d)",
                     fix.satellites, fix.time, fix.longitude, fix.latitude,
                     fix.chars, fix.good, fix.failed);
