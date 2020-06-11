@@ -112,7 +112,7 @@ constexpr uint32_t DefaultDebugGpsInterval = OneDaySeconds;
 /**
  * Maximum allowed time drift, in seconds.
  */
-constexpr uint32_t AcceptableTimeDriftSeconds = 5;
+constexpr int32_t AcceptableTimeDriftSeconds = 5;
 
 /**
  * How long the user should hold the button to initiate a factory wipe.

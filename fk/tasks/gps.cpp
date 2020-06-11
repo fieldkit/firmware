@@ -55,8 +55,9 @@ void task_handler_gps(void *params) {
 
                     if (fixed_at == 0) {
                         fixed_at = fk_uptime();
-                        clock_adjust(fix.time);
                     }
+
+                    clock_adjust(fix.time);
                 }
                 else {
                     gsm.apply([=](GlobalState *gs) {

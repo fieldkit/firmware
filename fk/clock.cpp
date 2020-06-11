@@ -1,4 +1,5 @@
 #if defined(ARDUINO)
+#include <cstdlib>
 #include <compiler.h>
 #include <hal_init.h>
 #include <hal/include/hpl_calendar.h>
@@ -349,4 +350,13 @@ uint32_t clock_adjust(uint32_t new_epoch) {
 
 #endif
 
+uint32_t clock_adjust_maybe(uint32_t new_epoch) {
+    auto existing = get_clock_now();
+    auto difference = std::abs((long)(existing - new_epoch));
+    if (difference > AcceptableTimeDriftSeconds) {
+        return clock_adjust(new_epoch);
+    }
+    return existing;
 }
+
+} // namespace fk

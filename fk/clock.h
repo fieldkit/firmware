@@ -91,4 +91,6 @@ uint32_t get_clock_now();
 
 uint32_t clock_adjust(uint32_t new_epoch);
 
+uint32_t clock_adjust_maybe(uint32_t new_epoch);
+
 }

@@ -31,13 +31,7 @@ static bool configure(HttpServerConnection *connection, fk_app_HttpQuery *query,
 
 void ApiHandler::adjust_time_if_necessary(fk_app_HttpQuery const *query) {
     if (query->time > 0) {
-        uint32_t difference = std::abs((long)(get_clock_now() - query->time));
-        if (difference > AcceptableTimeDriftSeconds) {
-            clock_adjust(query->time);
-        }
-        else {
-            logdebug("query time is close enough");
-        }
+        clock_adjust_maybe(query->time);
     }
     else {
         logdebug("query time is missing");
