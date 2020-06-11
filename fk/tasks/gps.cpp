@@ -38,13 +38,13 @@ void task_handler_gps(void *params) {
             if (fk_uptime() > update_gs) {
                 update_gs = fk_uptime() + FiveSecondsMs;
 
-                if (fix.good) {
+                if (fix.valid) {
                     // We only update our memorized fix/location if we
-                    // have a good fix. This way any previous loaded,
+                    // have a valid fix. This way any previous loaded,
                     // unfixed location can be linked to records.
                     gsm.apply([=](GlobalState *gs) {
                         gs->gps.enabled = true;
-                        gs->gps.fix = fix.good;
+                        gs->gps.fix = true;
                         gs->gps.longitude = fix.longitude;
                         gs->gps.latitude = fix.latitude;
                         gs->gps.altitude = fix.altitude;
