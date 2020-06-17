@@ -102,6 +102,11 @@ void task_handler_gps(void *params) {
                 }
             }
         }
+
+        if (fk_task_stop_requested()) {
+            loginfo("stop requested");
+            break;
+        }
     }
 
     FK_ASSERT(gps->stop());

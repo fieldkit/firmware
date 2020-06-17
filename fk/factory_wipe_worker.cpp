@@ -5,6 +5,7 @@
 #include "storage/storage.h"
 #include "gs_progress_callbacks.h"
 #include "factory_wipe.h"
+#include "graceful_shutdown.h"
 
 namespace fk {
 
@@ -21,8 +22,7 @@ void FactoryWipeWorker::run(Pool &pool) {
     FactoryWipe factory_wipe{ storage };
 
     if (factory_wipe.wipe(&progress)) {
-        fk_delay(500);
-        fk_logs_flush();
+        fk_graceful_shutdown();
         fk_restart();
     }
 }

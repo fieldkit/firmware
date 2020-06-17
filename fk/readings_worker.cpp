@@ -3,6 +3,7 @@
 #include "readings_worker.h"
 #include "readings_taker.h"
 #include "state_manager.h"
+#include "graceful_shutdown.h"
 #include "hal/hal.h"
 
 #include "modules/module_factory.h"
@@ -97,8 +98,10 @@ void ReadingsWorker::run(Pool &pool) {
         failures = 0;
     }
 
+    // NOTE Stability HACK
     if (failures == 60) {
         loginfo("too many empty readings, restarting");
+        fk_graceful_shutdown();
         fk_restart();
     }
 

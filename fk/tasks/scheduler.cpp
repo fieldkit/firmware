@@ -20,7 +20,7 @@ void task_handler_scheduler(void *params) {
     FK_ASSERT(fk_start_task_if_necessary(&network_task));
     FK_ASSERT(fk_start_task_if_necessary(&gps_task));
 
-    while (true) {
+    while (!fk_task_stop_requested()) {
         auto schedules = get_config_schedules();
 
         ReadingsTask readings_job{ schedules.readings };
@@ -43,12 +43,19 @@ void task_handler_scheduler(void *params) {
         auto check_for_modules_time = fk_uptime() + OneSecondMs;
         auto check_battery_time = fk_uptime() + ThirtySecondsMs;
 
-        while (!has_schedule_changed(schedules)) {
+        while (!has_schedule_changed(schedules) && !fk_task_stop_requested()) {
             // This throttles this loop, so we take a pass when we dequeue or timeout.
             Activity *activity = nullptr;
             if (get_ipc()->dequeue_activity(&activity)) {
                 activity->consumed();
-                fk_start_task_if_necessary(&display_task);
+                if (!fk_task_stop_requested()) {
+                    fk_start_task_if_necessary(&display_task);
+                }
+            }
+
+            if (fk_task_stop_requested()) {
+                loginfo("stop requested");
+                break;
             }
 
             if (check_for_tasks_time < fk_uptime()) {
@@ -73,8 +80,6 @@ void task_handler_scheduler(void *params) {
                 check_battery_time = fk_uptime() + ThirtySecondsMs;
             }
         }
-
-        loginfo("configuration changed");
     }
 }
 

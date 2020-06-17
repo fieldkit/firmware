@@ -76,11 +76,9 @@ void task_handler_network(void *params) {
 
             // Some other task has requested that we stop serving. Menu option
             // or a self check for example.
-            uint32_t signal = 0;
-            if (os_signal_check(&signal) == OSS_SUCCESS) {
-                if (signal > 0) {
-                    return;
-                }
+            if (fk_task_stop_requested()) {
+                loginfo("stop requested");
+                return;
             }
 
             if (task.did_configuration_change()) {

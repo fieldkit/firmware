@@ -26,4 +26,8 @@ bool fk_can_start_task(os_task_t *task);
 
 bool fk_start_task_if_necessary(os_task_t *task);
 
+bool fk_task_stop_requested();
+
+os_task_t **fk_tasks_all();
+
 }

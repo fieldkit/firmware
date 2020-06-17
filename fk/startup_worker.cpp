@@ -287,6 +287,7 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
 bool StartupWorker::create_new_state(Storage &storage, GlobalState *gs, Pool &pool) {
     if (!storage.clear()) {
         logerror("error clearing storage");
+        fk_logs_flush();
         fk_restart();
     }
 
@@ -294,6 +295,7 @@ bool StartupWorker::create_new_state(Storage &storage, GlobalState *gs, Pool &po
 
     if (!ops.write_state(gs, &fkb_header, pool)) {
         logerror("error writing state");
+        fk_logs_flush();
         fk_restart();
     }
 

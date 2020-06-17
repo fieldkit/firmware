@@ -11,6 +11,7 @@
 #include "gs_progress_callbacks.h"
 #include "utilities.h"
 #include "state_manager.h"
+#include "graceful_shutdown.h"
 #include "config.h"
 
 extern const struct fkb_header_t fkb_header;
@@ -105,7 +106,9 @@ void UpgradeFirmwareFromSdWorker::run(Pool &pool) {
         if (params_.swap) {
             gsm.notify("success, swap!");
 
-            fk_delay(1000);
+            fk_graceful_shutdown();
+
+            fk_delay(500);
 
             fk_nvm_swap_banks();
         }
