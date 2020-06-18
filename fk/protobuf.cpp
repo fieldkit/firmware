@@ -221,46 +221,73 @@ pb_data_t *pb_data_create(void const *data, size_t size, Pool &pool) {
 }
 
 bool pb_encode_logs(pb_ostream_t *stream, const pb_field_t *field, void * const *arg) {
+    auto calculated_size = (size_t *)arg;
+
     if (!pb_encode_tag_for_field(stream, field)) {
         return false;
     }
 
-    // Calculate the size of the string we're going to write and then
-    // write that to the stream.
-    auto size = 0u;
     auto &lb = fk_log_buffer();
-    for (auto c : lb) {
-        if (c != 0) {
-            size++;
+
+    // If this is our first pass we need to calculate the size of the
+    // serialized logs. We have to remember this, also because we're
+    // usually called twice, once to calculate that size and then
+    // again to serialize. If we don't remember this number we may end
+    // up writing a different amount than was expected after the size
+    // calculation pass.
+    if (*calculated_size == 0) {
+        auto size = 0u;
+        for (auto c : lb) {
+            if (c != 0) {
+                size++;
+            }
         }
+        *calculated_size = size;
     }
 
-    if (!pb_encode_varint(stream, size)) {
+    if (!pb_encode_varint(stream, *calculated_size)) {
         return false;
     }
 
     // Write the logs, buffered to avoid tons of calls.
+    uint8_t buffer[StackBufferSize];
     auto position = 0u;
     auto copied = 0u;
-    uint8_t buffer[StackBufferSize];
     for (auto c : lb) {
         // Keep ourselves from somehow accidentally writing more than
         // we planned to write.
-        if (copied == size) {
+        if (copied >= *calculated_size) {
             break;
         }
         if (c != 0) {
             buffer[position++] = c;
             copied++;
             if (position == StackBufferSize) {
-                pb_write(stream, buffer, position);
+                if (!pb_write(stream, buffer, position)) {
+                    return false;
+                }
                 position = 0;
             }
         }
     }
 
     if (position > 0) {
-        pb_write(stream, buffer, position);
+        if (!pb_write(stream, buffer, position)) {
+            return false;
+        }
+    }
+
+    // If we expected to write more than we did, pad to the expected
+    // size with newlines.
+    for (auto i = 0u; i < sizeof(buffer); ++i) {
+        buffer[i] = '\n';
+    }
+    while (copied < *calculated_size) {
+        auto writing = std::min(*calculated_size - copied, sizeof(buffer));
+        if (!pb_write(stream, buffer, writing)) {
+            return false;
+        }
+        copied += writing;
     }
 
     return true;
