@@ -91,6 +91,8 @@ public:
 
     virtual bool synchronize_time() = 0;
 
+    virtual bool get_mac_address(uint8_t *address) = 0;
+
     bool online() {
         if (!enabled()) {
             return false;

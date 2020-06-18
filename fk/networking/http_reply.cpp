@@ -1,5 +1,7 @@
 #include <loading.h>
 
+#include "hal/network.h"
+
 #include "networking/http_reply.h"
 
 #include "storage/storage.h"
@@ -247,6 +249,11 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, fkb_header_t con
     reply_.has_networkSettings = true;
     reply_.networkSettings.networks.funcs.encode = pb_encode_array;
     reply_.networkSettings.networks.arg = (void *)networks_array;
+    uint8_t mac_address[6];
+    if (get_network()->get_mac_address(mac_address)) {
+        auto mac_address_string = bytes_to_hex_string_pool(mac_address, sizeof(mac_address), *pool_);
+        reply_.networkSettings.macAddress.arg = (void *)mac_address_string;
+    }
 
     reply_.has_schedules = true;
     reply_.schedules.has_readings = true;

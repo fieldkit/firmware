@@ -374,6 +374,10 @@ fk_app_HttpReply *fk_http_reply_encoding_initialize(fk_app_HttpReply *reply) {
         }
     }
 
+    if (reply->networkSettings.macAddress.arg != nullptr) {
+        reply->networkSettings.macAddress.funcs.encode = pb_encode_string;
+    }
+
     if (reply->liveReadings.arg != nullptr) {
         reply->liveReadings.funcs.encode = pb_encode_array;
         auto live_readings_array = reinterpret_cast<pb_array_t *>(reply->liveReadings.arg);

@@ -105,6 +105,8 @@ public:
 
     bool synchronize_time() override;
 
+    bool get_mac_address(uint8_t *address) override;
+
 };
 
 FK_ENABLE_TYPE_NAME(MetalNetworkConnection);

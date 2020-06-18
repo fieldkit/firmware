@@ -172,6 +172,13 @@ bool LinuxNetwork::synchronize_time() {
     return true;
 }
 
+bool LinuxNetwork::get_mac_address(uint8_t *address) {
+    for (auto i = 0u; i < 6; ++i) {
+        address[i] = 0;
+    }
+    return true;
+}
+
 LinuxNetworkListener::LinuxNetworkListener(uint16_t port, int32_t listening) : port_(port), listening_(listening) {
 }
 

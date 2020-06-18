@@ -397,6 +397,11 @@ bool MetalNetwork::synchronize_time() {
     return true;
 }
 
+bool MetalNetwork::get_mac_address(uint8_t *address) {
+    WiFi.macAddress(address);
+    return true;
+}
+
 MetalNetworkListener::MetalNetworkListener(uint16_t port) : port_(port) {
 }
 
