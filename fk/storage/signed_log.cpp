@@ -7,7 +7,7 @@
 
 namespace fk {
 
-FK_DECLARE_LOGGER("srl");
+FK_DECLARE_LOGGER("storage");
 
 SignedRecordLog::SignedRecordLog(File &file) : file_(file) {
 }
