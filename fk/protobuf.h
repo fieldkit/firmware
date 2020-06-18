@@ -57,4 +57,6 @@ pb_data_t *pb_data_create(T const &data, Pool &pool) {
 
 pb_data_t *pb_data_create(void const *data, size_t size, Pool &pool);
 
+bool pb_encode_logs(pb_ostream_t *stream, const pb_field_t *field, void * const *arg);
+
 }

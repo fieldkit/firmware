@@ -1,6 +1,7 @@
 #include "common.h"
 #include "protobuf.h"
 #include "pool.h"
+#include "config.h"
 
 namespace fk {
 
@@ -219,4 +220,50 @@ pb_data_t *pb_data_create(void const *data, size_t size, Pool &pool) {
     });
 }
 
+bool pb_encode_logs(pb_ostream_t *stream, const pb_field_t *field, void * const *arg) {
+    if (!pb_encode_tag_for_field(stream, field)) {
+        return false;
+    }
+
+    // Calculate the size of the string we're going to write and then
+    // write that to the stream.
+    auto size = 0u;
+    auto &lb = fk_log_buffer();
+    for (auto c : lb) {
+        if (c != 0) {
+            size++;
+        }
+    }
+
+    if (!pb_encode_varint(stream, size)) {
+        return false;
+    }
+
+    // Write the logs, buffered to avoid tons of calls.
+    auto position = 0u;
+    auto copied = 0u;
+    uint8_t buffer[StackBufferSize];
+    for (auto c : lb) {
+        // Keep ourselves from somehow accidentally writing more than
+        // we planned to write.
+        if (copied == size) {
+            break;
+        }
+        if (c != 0) {
+            buffer[position++] = c;
+            copied++;
+            if (position == StackBufferSize) {
+                pb_write(stream, buffer, position);
+                position = 0;
+            }
+        }
+    }
+
+    if (position > 0) {
+        pb_write(stream, buffer, position);
+    }
+
+    return true;
 }
+
+} // namespace fk

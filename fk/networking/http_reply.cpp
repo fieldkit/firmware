@@ -48,6 +48,8 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, fkb_header_t con
     reply_.status.identity.device.arg = (void *)gs_->general.name;
     reply_.status.identity.deviceId.arg = device_id_data;
     reply_.status.identity.generation.arg = generation_data;
+    reply_.status.logs.arg = nullptr;
+    reply_.status.logs.funcs.encode = pb_encode_logs;
 
     if (fkb->firmware.hash_size > 0) {
         auto firmware_hash_string = bytes_to_hex_string_pool(fkb->firmware.hash, fkb->firmware.hash_size, *pool_);

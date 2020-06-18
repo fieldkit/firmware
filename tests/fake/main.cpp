@@ -1,9 +1,9 @@
-#include <sys/socket.h>
 #include <arpa/inet.h> //inet_addr
 #include <inttypes.h>
 #include <signal.h>
-#include <unistd.h>
+#include <sys/socket.h>
 #include <thread>
+#include <unistd.h>
 
 #include <fk-data-protocol.h>
 
@@ -12,13 +12,13 @@
 #include "networking/networking.h"
 #include "protobuf.h"
 
-#include "modules/registry.h"
 #include "modules/module_factory.h"
+#include "modules/registry.h"
 
-#include "readings_taker.h"
-#include "test_modules.h"
-#include "state_ref.h"
 #include "memory.h"
+#include "readings_taker.h"
+#include "state_ref.h"
+#include "test_modules.h"
 
 FK_DECLARE_LOGGER("main");
 
@@ -44,12 +44,11 @@ public:
     void stop() {
         running_ = false;
     }
-
 };
 
 Fake fake;
 
-static void signal_handler(int32_t s){
+static void signal_handler(int32_t s) {
     fprintf(stderr, "\n");
     loginfo("signal!");
     fake.stop();
@@ -64,23 +63,24 @@ static void setup_fake_data() {
     FK_ASSERT(memory->begin());
 
     StandardPool pool{ "fake" };
-    Storage storage{ memory, pool, false };
-    FK_ASSERT(storage.clear());
-
     TwoWireWrapper module_bus{ "modules", nullptr };
     ScanningContext ctx{ get_modmux(), get_global_state_rw().get(), module_bus, pool };
 
-    for (size_t i = 0; i < 1000; ++i) {
+    for (auto i = 0u; i < 1000; ++i) {
         StandardPool pool{ "readings" };
+        Storage storage{ memory, pool, false };
+        if (i == 0) {
+            FK_ASSERT(storage.clear());
+        } else {
+            FK_ASSERT(storage.begin());
+        }
         FoundModuleCollection found(pool);
-        found.emplace(FoundModule{
-                .position = 0xff,
-                .header = {
-                    .manufacturer = FK_MODULES_MANUFACTURER,
-                    .kind = FK_MODULES_KIND_RANDOM,
-                    .version = 0x01,
-                }
-            });
+        found.emplace(FoundModule{ .position = 0xff,
+                                   .header = {
+                                       .manufacturer = FK_MODULES_MANUFACTURER,
+                                       .kind = FK_MODULES_KIND_RANDOM,
+                                       .version = 0x01,
+                                   } });
 
         StaticModuleScanning scanning(found);
         ModuleFactory module_factory;
@@ -164,5 +164,4 @@ void fk_assert(const char *assertion, const char *file, int32_t line, const char
     fprintf(stderr, "\n\nassertion \"%s\" failed: file \"%s\", line %d\n", assertion, file, line);
     exit(2);
 }
-
 }
