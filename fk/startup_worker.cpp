@@ -362,6 +362,8 @@ bool StartupWorker::save_startup_diagnostics() {
     // Close logs so that we open a new file.
     get_sd_card()->close_logs();
 
+    fk_logs_clear();
+
     return true;
 }
 

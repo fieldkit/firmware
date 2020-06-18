@@ -60,10 +60,9 @@ void DownloadLogsWorker::run(Pool &pool) {
 
     auto &lb = fk_log_buffer();
     for (auto c : lb) {
-        if (bytes_copied > info.size) {
+        if (bytes_copied >= info.size) {
             break;
         }
-
         if (c != 0) {
             writer.write(c);
             bytes_copied++;

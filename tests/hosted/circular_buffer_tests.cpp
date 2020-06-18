@@ -95,6 +95,48 @@ TEST_F(CircularBufferSuite, AppendingReadWrappingRead) {
     ASSERT_STREQ(message, "");
 }
 
+TEST_F(CircularBufferSuite, AppendingAndIterating) {
+    static_log_buffer<16> logs;
+
+    logs.zero();
+
+    logs.append("Jacob1");
+
+    auto size = 0u;
+    auto real = 0u;
+    for (auto c : logs) {
+        if (c != 0) {
+            size++;
+        }
+        real++;
+    }
+
+    ASSERT_EQ(size, 6u);
+    ASSERT_EQ(real, 7u);
+}
+
+TEST_F(CircularBufferSuite, WrappingAndIterating) {
+    static_log_buffer<16> logs;
+
+    logs.zero();
+
+    logs.append("Jacob1");
+    logs.append("Jacob2");
+    logs.append("Jacob3");
+
+    auto size = 0u;
+    auto real = 0u;
+    for (auto c : logs) {
+        if (c != 0) {
+            size++;
+        }
+        real++;
+    }
+
+    ASSERT_EQ(size, 12u);
+    ASSERT_EQ(real, 14u);
+}
+
 template<typename T>
 static void read_until_end(T &iter, T end, char *buffer, size_t sz) {
     auto index = 0u;

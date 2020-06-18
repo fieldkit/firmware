@@ -179,6 +179,10 @@ bool fk_logs_flush() {
 
 #endif
 
+void fk_logs_clear() {
+    logs.zero();
+}
+
 bool fk_log_buffer_try_lock() {
     auto success = false;
 

@@ -20,6 +20,8 @@ void fk_log_buffer_unlock();
 
 bool fk_logs_flush();
 
+void fk_logs_clear();
+
 class LogBufferLock {
 private:
     bool success_{ false };
