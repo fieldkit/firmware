@@ -10,6 +10,7 @@
 #include "platform.h"
 
 #include "modules/bridge/data.h"
+#include "hal/battery_gauge.h" // For MeterReading
 
 namespace fk {
 
@@ -75,18 +76,10 @@ struct RuntimeState {
     uint32_t readings{ 0 };
 };
 
-struct MeterState {
-    float vbus{ 0 };
-    float vs{ 0 };
-    float ma{ 0 };
-    float mw{ 0 };
-};
-
 struct PowerState {
     float charge{ 0 };
-    float voltage{ 0 };
-    MeterState battery{ };
-    MeterState solar{ };
+    MeterReading battery{ };
+    MeterReading solar{ };
 };
 
 struct WifiNetworkInfo {

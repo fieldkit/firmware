@@ -7,7 +7,6 @@ namespace fk {
 
 static SensorMetadata const fk_module_sensor_metas[] = {
     { .name = "battery_charge",  .unitOfMeasure = "%",     .flags = 0 },
-    { .name = "battery_voltage", .unitOfMeasure = "v",     .flags = 0 },
 
     { .name = "battery_vbus",    .unitOfMeasure = "v",     .flags = 0 },
     { .name = "battery_vs",      .unitOfMeasure = "mv",    .flags = 0 },
@@ -57,17 +56,16 @@ ModuleReadings *DiagnosticsModule::take_readings(ReadingsContext mc, Pool &pool)
     auto spmi = fk_standard_page_meminfo();
 
     auto i = 0u;
-    auto mr = new(pool) NModuleReadings<13>();
+    auto mr = new(pool) NModuleReadings<12>();
     mr->set(i++, mc.gs()->power.charge);
-    mr->set(i++, mc.gs()->power.voltage);
 
-    mr->set(i++, mc.gs()->power.battery.vbus);
-    mr->set(i++, mc.gs()->power.battery.vs);
+    mr->set(i++, mc.gs()->power.battery.bus_voltage);
+    mr->set(i++, mc.gs()->power.battery.shunted_voltage);
     mr->set(i++, mc.gs()->power.battery.ma);
     mr->set(i++, mc.gs()->power.battery.mw);
 
-    mr->set(i++, mc.gs()->power.solar.vbus);
-    mr->set(i++, mc.gs()->power.solar.vs);
+    mr->set(i++, mc.gs()->power.solar.bus_voltage);
+    mr->set(i++, mc.gs()->power.solar.shunted_voltage);
     mr->set(i++, mc.gs()->power.solar.ma);
     mr->set(i++, mc.gs()->power.solar.mw);
 

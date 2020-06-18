@@ -65,8 +65,10 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, fkb_header_t con
 
     reply_.status.has_power = true;
     reply_.status.power.has_battery = true;
-    reply_.status.power.battery.voltage = gs_->power.voltage;
+    reply_.status.power.battery.voltage = gs_->power.battery.bus_voltage * 1000.0f;
     reply_.status.power.battery.percentage = gs_->power.charge;
+    reply_.status.power.has_solar = true;
+    reply_.status.power.solar.voltage = gs_->power.solar.bus_voltage * 1000.0f;
 
     reply_.status.has_recording = true;
     reply_.status.recording.enabled = gs_->general.recording > 0;
