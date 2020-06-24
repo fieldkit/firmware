@@ -72,8 +72,8 @@ struct ModulesState {
 
 struct RuntimeState {
     uint32_t startup_time{ 0 };
-    uint32_t activity{ 0 };
     uint32_t readings{ 0 };
+    bool power_save{ false };
 };
 
 struct PowerState {

@@ -19,7 +19,8 @@ ReadingsWorker::ReadingsWorker(bool scan, bool read_only) : scan_(scan), read_on
 }
 
 void ReadingsWorker::run(Pool &pool) {
-    if (should_throttle()) {
+    auto throttle_info = read_throttle_and_power_save();
+    if (throttle_info.throttle) {
         logwarn("readings throttled");
         return;
     }
@@ -80,12 +81,21 @@ void ReadingsWorker::run(Pool &pool) {
             .nsensors = m.sensors->nsensors,
         };
 
-        for (size_t i = 0; i < m.sensors->nsensors; ++i) {
+        for (auto i = 0u; i < m.sensors->nsensors; ++i) {
             sensors[i].name = m.sensors->sensors[i].name;
             sensors[i].unit_of_measure = m.sensors->sensors[i].unitOfMeasure;
             sensors[i].flags = m.sensors->sensors[i].flags;
             sensors[i].has_live_vaue = true;
             sensors[i].live_value = m.readings->get(i);
+        }
+
+        if (throttle_info.power_save) {
+            if (m.configuration.power == ModulePower::ReadingsOnly && m.position != ModMux::VirtualPosition) {
+                loginfo("[%d] powering off", m.position);
+                if (!get_modmux()->disable_module(m.position)) {
+                    loginfo("[%d] disabling module failed", m.position);
+                }
+            }
         }
 
         module_num++;
@@ -119,27 +129,26 @@ void ReadingsWorker::run(Pool &pool) {
         if (gs->modules != nullptr) {
             delete gs->modules->pool;
         }
+
         gs->modules = modules;
 
         gs->update_physical_modules(taken_readings->constructed_modules);
     });
 }
 
-bool ReadingsWorker::should_throttle() {
-    if (!read_only_) {
-        return false;
-    }
+ReadingsWorker::ThrottleAndPowerSave ReadingsWorker::read_throttle_and_power_save() {
     auto gs = get_global_state_rw();
+    if (!read_only_) {
+        return ThrottleAndPowerSave{ false, gs.get()->runtime.power_save };
+    }
     if (gs.get()->runtime.readings > 0) {
         auto elapsed = fk_uptime() - gs.get()->runtime.readings;
-
         if (elapsed < TenSecondsMs) {
-            return true;
+            return ThrottleAndPowerSave{ true, false };
         }
     }
-
     gs.get()->runtime.readings = fk_uptime();
-    return false;
+    return ThrottleAndPowerSave{ false, gs.get()->runtime.power_save };
 }
 
 tl::expected<TakenReadings, Error> ReadingsWorker::take_readings(Pool &pool) {

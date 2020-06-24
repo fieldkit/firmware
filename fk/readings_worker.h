@@ -31,9 +31,15 @@ public:
     }
 
 private:
-    bool should_throttle();
+    struct ThrottleAndPowerSave {
+        bool throttle;
+        bool power_save;
+    };
+
+    ThrottleAndPowerSave read_throttle_and_power_save();
 
     tl::expected<TakenReadings, Error> take_readings(Pool &pool);
+
 
 };
 

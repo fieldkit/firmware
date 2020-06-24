@@ -14,6 +14,7 @@ FK_DECLARE_LOGGER("schedule");
 static CurrentSchedules get_config_schedules();
 static bool has_schedule_changed(CurrentSchedules &running);
 static bool has_module_topology_changed(Topology &existing);
+static void update_power_save(bool enabled);
 
 void task_handler_scheduler(void *params) {
     FK_ASSERT(fk_start_task_if_necessary(&display_task));
@@ -42,12 +43,20 @@ void task_handler_scheduler(void *params) {
         auto check_for_tasks_time = fk_uptime() + OneSecondMs;
         auto check_for_modules_time = fk_uptime() + OneSecondMs;
         auto check_battery_time = fk_uptime() + ThirtySecondsMs;
+        auto enable_power_save_time = fk_uptime() + FiveMinutesMs;
 
         while (!has_schedule_changed(schedules) && !fk_task_stop_requested()) {
             // This throttles this loop, so we take a pass when we dequeue or timeout.
             Activity *activity = nullptr;
             if (get_ipc()->dequeue_activity(&activity)) {
+                if (enable_power_save_time == 0) {
+                    loginfo("power saved disabled");
+                    update_power_save(false);
+                    enable_power_save_time = fk_uptime() + FiveMinutesMs;
+                }
+
                 activity->consumed();
+
                 if (!fk_task_stop_requested()) {
                     fk_start_task_if_necessary(&display_task);
                 }
@@ -58,6 +67,12 @@ void task_handler_scheduler(void *params) {
                 break;
             }
 
+            if (enable_power_save_time > 0 && enable_power_save_time < fk_uptime()) {
+                loginfo("power saved enabled");
+                update_power_save(true);
+                enable_power_save_time = 0;
+            }
+
             if (check_for_tasks_time < fk_uptime()) {
                 auto time = lwcron::DateTime{ get_clock_now() };
                 auto seed = fk_random_i32(0, INT32_MAX);
@@ -66,12 +81,16 @@ void task_handler_scheduler(void *params) {
             }
 
             if (check_for_modules_time < fk_uptime()) {
-                if (has_module_topology_changed(topology)) {
-                    loginfo("topology changed: [%s]", topology.string());
-                    get_ipc()->launch_worker(create_pool_worker<ScanModulesWorker>());
-                    fk_start_task_if_necessary(&display_task);
+                // Only do this if we haven't enabled power save mode,
+                // which we do after enable_power_save_time passes.
+                if (enable_power_save_time > 0) {
+                    if (has_module_topology_changed(topology)) {
+                        loginfo("topology changed: [%s]", topology.string());
+                        get_ipc()->launch_worker(create_pool_worker<ScanModulesWorker>());
+                        fk_start_task_if_necessary(&display_task);
+                    }
+                    check_for_modules_time = fk_uptime() + OneSecondMs;
                 }
-                check_for_modules_time = fk_uptime() + OneSecondMs;
             }
 
             if (check_battery_time < fk_uptime()) {
@@ -86,6 +105,11 @@ void task_handler_scheduler(void *params) {
 static CurrentSchedules get_config_schedules() {
     auto gs = get_global_state_ro();
     return { gs.get(), get_module_factory() };
+}
+
+static void update_power_save(bool enabled) {
+    auto gs = get_global_state_rw();
+    gs.get()->runtime.power_save = enabled;
 }
 
 static bool has_schedule_changed(CurrentSchedules &running) {
