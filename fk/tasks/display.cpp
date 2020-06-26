@@ -110,7 +110,7 @@ public:
     }
 
     void run() {
-        auto stop_time = fk_uptime() + FiveMinutesMs;
+        IntervalTimer stop_timer;
         auto can_stop = os_task_is_running(&scheduler_task);
 
         if (!leds.begin()) {
@@ -119,7 +119,7 @@ public:
 
         StandardPool pool{ "display-frame" };
 
-        while (!can_stop || fk_uptime() < stop_time) {
+        while (!can_stop || !stop_timer.expired(FiveMinutesMs)) {
             if (!view->custom_leds()) {
                 leds.tick();
             }
@@ -127,7 +127,7 @@ public:
 
             Button *button = nullptr;
             if (get_ipc()->dequeue_button(&button)) {
-                stop_time = fk_uptime() + FiveMinutesMs;
+                stop_timer.mark();
 
                 switch (button->index()) {
                 case Buttons::Right: {

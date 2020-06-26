@@ -14,21 +14,21 @@ Button::Button(const char *name, uint8_t index) : name_(name), index_(index) {
 
 void Button::changed(bool down) {
     auto now = fk_uptime();
-    if (debounce_ > 0 && now < debounce_) {
+    if (debounce_ > 0 && now - debounce_ < ButtonDebounceDelay) {
         return;
     }
     if (down) {
         if (!down_) {
             down_ = true;
             time_ = now;
-            debounce_ = now + ButtonDebounceDelay;
+            debounce_ = now;
         }
     }
     else if (down_) {
         auto elapsed = now - time_;
         down_ = false;
         time_ = 0;
-        debounce_ = now + ButtonDebounceDelay;
+        debounce_ = now;
         pressed_ = now;
         loginfo("%s (%" PRIu32 "ms)", name_, elapsed);
         if (get_ipc()->available()) {
