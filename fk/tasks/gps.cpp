@@ -15,9 +15,9 @@ void task_handler_gps(void *params) {
         return;
     }
 
+    IntervalTimer status_timer;
+    IntervalTimer update_timer;
     auto started_at = fk_uptime();
-    auto status_at = fk_uptime() + OneMinuteMs;
-    auto update_gs = fk_uptime() + FiveSecondsMs;
     auto fixed_at = 0;
 
     GlobalStateManager gsm;
@@ -37,9 +37,7 @@ void task_handler_gps(void *params) {
         fk_delay(10);
 
         if (fix.chars > 0) {
-            if (fk_uptime() > update_gs) {
-                update_gs = fk_uptime() + FiveSecondsMs;
-
+            if (update_timer.expired(FiveSecondsMs)) {
                 if (fix.valid) {
                     // We only update our memorized fix/location if we
                     // have a valid fix. This way any previous loaded,
@@ -80,12 +78,10 @@ void task_handler_gps(void *params) {
             }
         }
 
-        if (fk_uptime() > status_at || log_status) {
+        if (status_timer.expired(OneMinuteMs) || log_status) {
             loginfo("satellites(%d) time(%" PRIu32 ") location(%f, %f) statistics(%" PRIu32 "chrs, %d/%d)",
                     fix.satellites, fix.time, fix.longitude, fix.latitude,
                     fix.chars, fix.good, fix.failed);
-
-            status_at = fk_uptime() + OneMinuteMs;
 
             auto gs = get_global_state_ro();
             auto duration = gs.get()->scheduler.gps.duration;

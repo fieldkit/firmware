@@ -40,19 +40,19 @@ void task_handler_scheduler(void *params) {
 
         scheduler.begin( get_clock_now() );
 
-        auto check_for_tasks_time = fk_uptime() + OneSecondMs;
-        auto check_for_modules_time = fk_uptime() + OneSecondMs;
-        auto check_battery_time = fk_uptime() + ThirtySecondsMs;
-        auto enable_power_save_time = fk_uptime() + FiveMinutesMs;
+        IntervalTimer check_for_tasks_timer;
+        IntervalTimer check_for_modules_timer;
+        IntervalTimer check_battery_timer;
+        IntervalTimer enable_power_save_timer;
 
         while (!has_schedule_changed(schedules) && !fk_task_stop_requested()) {
             // This throttles this loop, so we take a pass when we dequeue or timeout.
             Activity *activity = nullptr;
             if (get_ipc()->dequeue_activity(&activity)) {
-                if (enable_power_save_time == 0) {
+                if (!enable_power_save_timer.enabled()) {
                     loginfo("power saved disabled");
                     update_power_save(false);
-                    enable_power_save_time = fk_uptime() + FiveMinutesMs;
+                    enable_power_save_timer.mark();
                 }
 
                 activity->consumed();
@@ -67,36 +67,33 @@ void task_handler_scheduler(void *params) {
                 break;
             }
 
-            if (enable_power_save_time > 0 && enable_power_save_time < fk_uptime()) {
+            if (enable_power_save_timer.expired(FiveMinutesMs)) {
                 loginfo("power saved enabled");
                 update_power_save(true);
-                enable_power_save_time = 0;
+                enable_power_save_timer.disable();
             }
 
-            if (check_for_tasks_time < fk_uptime()) {
+            if (check_for_tasks_timer.expired(OneSecondMs)) {
                 auto time = lwcron::DateTime{ get_clock_now() };
                 auto seed = fk_random_i32(0, INT32_MAX);
                 scheduler.check(time, seed);
-                check_for_tasks_time = fk_uptime() + OneSecondMs;
             }
 
-            if (check_for_modules_time < fk_uptime()) {
+            if (check_for_modules_timer.expired(OneSecondMs)) {
                 // Only do this if we haven't enabled power save mode,
                 // which we do after enable_power_save_time passes.
-                if (enable_power_save_time > 0) {
+                if (enable_power_save_timer.enabled()) {
                     if (has_module_topology_changed(topology)) {
                         loginfo("topology changed: [%s]", topology.string());
                         get_ipc()->launch_worker(create_pool_worker<ScanModulesWorker>());
                         fk_start_task_if_necessary(&display_task);
                     }
-                    check_for_modules_time = fk_uptime() + OneSecondMs;
                 }
             }
 
-            if (check_battery_time < fk_uptime()) {
+            if (check_battery_timer.expired(ThirtySecondsMs)) {
                 BatteryStatus battery;
                 battery.refresh();
-                check_battery_time = fk_uptime() + ThirtySecondsMs;
             }
         }
     }
