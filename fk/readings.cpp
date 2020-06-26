@@ -8,6 +8,47 @@ namespace fk {
 
 FK_DECLARE_LOGGER("readings");
 
+class EnableModulePower {
+private:
+    bool enabled_;
+    ModulePower power_;
+    uint8_t position_;
+
+public:
+    bool enabled_once() {
+        return enabled_ && position_ != ModMux::VirtualPosition && power_ == ModulePower::ReadingsOnly;
+    }
+
+    bool always_enabled() {
+        return power_ == ModulePower::Always;
+    }
+
+    EnableModulePower(bool enabled, ModulePower power, uint8_t position) : enabled_(enabled), power_(power), position_(position) {
+    }
+
+    virtual ~EnableModulePower() {
+        if (enabled_once()) {
+            logverbose("[%d] powering off", position_);
+            if (!get_modmux()->disable_module(position_)) {
+                loginfo("[%d] disabling module failed", position_);
+            }
+        }
+    }
+
+public:
+    bool enable() {
+        if (enabled_once() || always_enabled()) {
+            logverbose("[%d] powering on", position_);
+            if (!get_modmux()->enable_module(position_)) {
+                loginfo("[%d] enabling module failed", position_);
+                return false;
+            }
+        }
+        return true;
+    }
+
+};
+
 Readings::Readings(ModMux *mm) : mm_(mm) {
 }
 
@@ -53,8 +94,16 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(
             continue;
         }
 
-        auto mc = ctx.readings(i, all_readings, pool);
+        EnableModulePower module_power{ true, pair.configuration.power, pair.found.position };
+        if (!module_power.enable()) {
+            logerror("[%d] error powering module", i);
+            continue;
+        }
+        if (module_power.enabled_once()) {
+            fk_delay(pair.configuration.wake_delay);
+        }
 
+        auto mc = ctx.readings(i, all_readings, pool);
         if (!mc.open()) {
             logerror("[%d] error choosing module", i);
             continue;

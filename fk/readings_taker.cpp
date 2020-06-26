@@ -102,8 +102,7 @@ bool ReadingsTaker::verify_reading_record(File &file, Pool &pool) {
 tl::expected<uint32_t, Error> ReadingsTaker::append_configuration(ConstructedModulesCollection &modules, Pool &pool) {
     MetaOps ops{ storage_ };
     auto gs = get_global_state_ro();
-    auto modules_record = ops.write_modules(gs.get(), &fkb_header, modules, pool);
-    return modules_record;
+    return ops.write_modules(gs.get(), &fkb_header, modules, pool);
 }
 
 }

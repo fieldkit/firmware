@@ -89,15 +89,6 @@ void ReadingsWorker::run(Pool &pool) {
             sensors[i].live_value = m.readings->get(i);
         }
 
-        if (throttle_info.power_save) {
-            if (m.configuration.power == ModulePower::ReadingsOnly && m.position != ModMux::VirtualPosition) {
-                loginfo("[%d] powering off", m.position);
-                if (!get_modmux()->disable_module(m.position)) {
-                    loginfo("[%d] disabling module failed", m.position);
-                }
-            }
-        }
-
         module_num++;
     }
 
@@ -138,8 +129,9 @@ void ReadingsWorker::run(Pool &pool) {
 
 ReadingsWorker::ThrottleAndPowerSave ReadingsWorker::read_throttle_and_power_save() {
     auto gs = get_global_state_rw();
+    auto power_save = ModulesPowerIndividually || gs.get()->runtime.power_save;
     if (!read_only_) {
-        return ThrottleAndPowerSave{ false, gs.get()->runtime.power_save };
+        return ThrottleAndPowerSave{ false, power_save };
     }
     if (gs.get()->runtime.readings > 0) {
         auto elapsed = fk_uptime() - gs.get()->runtime.readings;
@@ -148,7 +140,7 @@ ReadingsWorker::ThrottleAndPowerSave ReadingsWorker::read_throttle_and_power_sav
         }
     }
     gs.get()->runtime.readings = fk_uptime();
-    return ThrottleAndPowerSave{ false, gs.get()->runtime.power_save };
+    return ThrottleAndPowerSave{ false, power_save };
 }
 
 tl::expected<TakenReadings, Error> ReadingsWorker::take_readings(Pool &pool) {
@@ -158,7 +150,9 @@ tl::expected<TakenReadings, Error> ReadingsWorker::take_readings(Pool &pool) {
     auto gs = get_global_state_ro();
     auto module_bus = get_board()->i2c_module();
 
-    get_modmux()->check_modules();
+    if (!ModulesPowerIndividually) {
+        get_modmux()->check_modules();
+    }
 
     ScanningContext ctx{ mm, gs.get(), module_bus, pool };
     StatisticsMemory memory{ MemoryFactory::get_data_memory() };

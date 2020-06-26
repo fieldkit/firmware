@@ -82,7 +82,9 @@ void task_handler_scheduler(void *params) {
             if (check_for_modules_timer.expired(OneSecondMs)) {
                 // Only do this if we haven't enabled power save mode,
                 // which we do after enable_power_save_time passes.
-                if (enable_power_save_timer.enabled()) {
+                // We're also skipping this if we're setup to always
+                // power modules on their own.
+                if (!ModulesPowerIndividually && enable_power_save_timer.enabled()) {
                     if (has_module_topology_changed(topology)) {
                         loginfo("topology changed: [%s]", topology.string());
                         get_ipc()->launch_worker(create_pool_worker<ScanModulesWorker>());

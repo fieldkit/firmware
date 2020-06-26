@@ -181,6 +181,11 @@ constexpr bool ModulesEnableDiagnostics = true;
 constexpr bool ModulesEnableRandom = false;
 
 /**
+ * Only allow one module to be powered up when taking readings.
+ */
+constexpr bool ModulesPowerIndividually = true;
+
+/**
  * This is the theorhetical maximum number of modules that can be physically
  * connected to a single station. This is governed by the largest backplanes and
  * their possible combinations.

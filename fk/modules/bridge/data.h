@@ -41,6 +41,11 @@ typedef struct ModuleConfiguration {
     ModulePower power{ ModulePower::ReadingsOnly };
 
     /**
+     * How long to wait after powering up the module.
+     */
+    uint32_t wake_delay{ 100 };
+
+    /**
      * How often the module needs to be serviced.
      */
     uint32_t service_interval{ 0 };
