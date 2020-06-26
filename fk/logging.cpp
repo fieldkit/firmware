@@ -131,6 +131,7 @@ bool fk_logging_initialize() {
 
     log_configure_writer(write_log);
     log_configure_level(LogLevels::DEBUG);
+    log_configure_time(fk_uptime, nullptr);
 
     OS_CHECK(os_configure_hook(task_logging_hook));
 
