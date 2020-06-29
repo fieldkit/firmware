@@ -79,6 +79,11 @@ constexpr uint32_t OneHourMs = OneMinuteMs * 60;
 constexpr uint32_t OneDayMs = OneHourMs * 24;
 
 /**
+ * One hour in seconds.
+ */
+constexpr uint32_t OneHourSeconds = 60 * 60;
+
+/**
  * One day in seconds.
  */
 constexpr uint32_t OneDaySeconds  = 86400;
@@ -99,7 +104,7 @@ constexpr uint32_t OneMegabyte = 1024 * 1024;
 // -------------------------------------------------------------------------------------------
 // Schedules and Time
 
-constexpr uint32_t DefaultReadingsInterval = 60;
+constexpr uint32_t DefaultReadingsInterval = OneHourSeconds;
 constexpr uint32_t DefaultNetworkInterval = 60 * 60 * 60;
 constexpr uint32_t DefaultLoraInterval = 60 * 60 * 2;
 constexpr uint32_t DefaultGpsInterval = OneDaySeconds;
