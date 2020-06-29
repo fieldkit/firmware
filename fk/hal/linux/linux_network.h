@@ -83,6 +83,10 @@ public:
 
     bool get_mac_address(uint8_t *address) override;
 
+    const char *get_ssid() override;
+
+    bool get_created_ap() override;
+
 };
 
 FK_ENABLE_TYPE_NAME(LinuxNetworkConnection);

@@ -402,6 +402,15 @@ bool MetalNetwork::get_mac_address(uint8_t *address) {
     return true;
 }
 
+const char *MetalNetwork::get_ssid() {
+    return WiFi.SSID();
+}
+
+bool MetalNetwork::get_created_ap() {
+    auto status = WiFi.status();
+    return status == WL_AP_LISTENING ||  status == WL_AP_CONNECTED;
+}
+
 MetalNetworkListener::MetalNetworkListener(uint16_t port) : port_(port) {
 }
 

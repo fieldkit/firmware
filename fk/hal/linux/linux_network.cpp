@@ -179,6 +179,14 @@ bool LinuxNetwork::get_mac_address(uint8_t *address) {
     return true;
 }
 
+const char *LinuxNetwork::get_ssid() {
+    return "";
+}
+
+bool LinuxNetwork::get_created_ap() {
+    return false;
+}
+
 LinuxNetworkListener::LinuxNetworkListener(uint16_t port, int32_t listening) : port_(port), listening_(listening) {
 }
 

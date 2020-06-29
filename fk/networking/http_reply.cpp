@@ -247,6 +247,9 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, fkb_header_t con
     });
 
     reply_.has_networkSettings = true;
+    reply_.networkSettings.has_connected = true;
+    reply_.networkSettings.connected.create = get_network()->get_created_ap();
+    reply_.networkSettings.connected.ssid.arg = (void *)get_network()->get_ssid();
     reply_.networkSettings.networks.funcs.encode = pb_encode_array;
     reply_.networkSettings.networks.arg = (void *)networks_array;
     uint8_t mac_address[6];

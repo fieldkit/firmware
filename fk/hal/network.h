@@ -93,6 +93,10 @@ public:
 
     virtual bool get_mac_address(uint8_t *address) = 0;
 
+    virtual const char *get_ssid() = 0;
+
+    virtual bool get_created_ap() = 0;
+
     bool online() {
         if (!enabled()) {
             return false;
