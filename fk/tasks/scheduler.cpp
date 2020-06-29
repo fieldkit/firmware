@@ -15,6 +15,7 @@ static CurrentSchedules get_config_schedules();
 static bool has_schedule_changed(CurrentSchedules &running);
 static bool has_module_topology_changed(Topology &existing);
 static void update_power_save(bool enabled);
+static bool get_can_launch_captive_readings();
 
 void task_handler_scheduler(void *params) {
     FK_ASSERT(fk_start_task_if_necessary(&display_task));
@@ -76,7 +77,11 @@ void task_handler_scheduler(void *params) {
             if (check_for_tasks_timer.expired(OneSecondMs)) {
                 auto time = lwcron::DateTime{ get_clock_now() };
                 auto seed = fk_random_i32(0, INT32_MAX);
-                scheduler.check(time, seed);
+                if (!scheduler.check(time, seed)) {
+                    if (get_can_launch_captive_readings()) {
+                        get_ipc()->launch_worker(WorkerCategory::Readings, create_pool_worker<ReadingsWorker>(false, false));
+                    }
+                }
             }
 
             if (check_for_modules_timer.expired(OneSecondMs)) {
@@ -119,6 +124,34 @@ static bool has_schedule_changed(CurrentSchedules &running) {
 static void check_modules() {
     auto modules_lock = modules_mutex.acquire(UINT32_MAX);
     get_modmux()->check_modules();
+}
+
+static bool get_can_launch_captive_readings() {
+    // We definitely don't if there's nothing connected.
+    if (!get_network()->enabled()) {
+        return false;
+    }
+
+    auto gs = get_global_state_ro();
+
+    // Don't if it's been more than a minute since we had network activity.
+    auto since_activity = fk_uptime() - gs.get()->network.state.activity;
+    if (since_activity > OneMinuteMs) {
+        return false;
+    }
+
+    // Will we be throttled?
+    auto elapsed = fk_uptime() - gs.get()->runtime.readings;
+    if (elapsed < TenSecondsMs) {
+        return false;
+    }
+
+    // Don't bother if the worker is already running.
+    if (get_ipc()->has_running_worker(WorkerCategory::Readings)) {
+        return false;
+    }
+
+    return true;
 }
 
 static bool has_module_topology_changed(Topology &existing) {

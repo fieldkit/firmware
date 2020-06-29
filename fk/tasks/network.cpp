@@ -34,7 +34,7 @@ public:
     }
 };
 
-void task_handler_network(void *params) {
+void try_and_serve_connections() {
     while (true) {
         auto network = get_network();
 
@@ -146,6 +146,7 @@ void task_handler_network(void *params) {
                 gsm.apply([&](GlobalState *gs) {
                     gs->network.state.bytes_rx = network_services.bytes_rx();
                     gs->network.state.bytes_tx = network_services.bytes_tx();
+                    gs->network.state.activity = network_services.activity();
                     duration = gs->scheduler.network.duration;
                 });
                 statistics_update = fk_uptime() + OneSecondMs;
@@ -156,4 +157,17 @@ void task_handler_network(void *params) {
     }
 }
 
+void task_handler_network(void *params) {
+    try_and_serve_connections();
+
+    GlobalStateManager gsm;
+    gsm.apply([=](GlobalState *gs) {
+        gs->network.state.ssid[0] = 0;
+        gs->network.state.enabled = 0;
+        gs->network.state.connected = 0;
+        gs->network.state.activity = 0;
+        gs->network.state.ip = 0;
+    });
 }
+
+} // namespace fk

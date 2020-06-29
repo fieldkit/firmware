@@ -130,9 +130,6 @@ void ReadingsWorker::run(Pool &pool) {
 ReadingsWorker::ThrottleAndPowerSave ReadingsWorker::read_throttle_and_power_save() {
     auto gs = get_global_state_rw();
     auto power_save = ModulesPowerIndividually || gs.get()->runtime.power_save;
-    if (!read_only_) {
-        return ThrottleAndPowerSave{ false, power_save };
-    }
     if (gs.get()->runtime.readings > 0) {
         auto elapsed = fk_uptime() - gs.get()->runtime.readings;
         if (elapsed < TenSecondsMs) {
