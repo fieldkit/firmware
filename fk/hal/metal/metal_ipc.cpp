@@ -171,6 +171,18 @@ collection<TaskDisplayInfo> MetalIPC::get_workers_display_info(Pool &pool) {
     return infos;
 }
 
+bool MetalIPC::has_running_worker(WorkerCategory category) {
+    for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
+        if (os_task_is_running(&worker_tasks[i])) {
+            if (running_[i] == category) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 bool MetalMutex::create() {
     return os_mutex_create(&mutex_, &def_) == OSS_SUCCESS;
 }

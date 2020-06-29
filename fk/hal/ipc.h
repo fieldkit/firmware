@@ -46,6 +46,10 @@ public:
         return true;
     }
 
+    virtual bool has_running_worker(WorkerCategory category) {
+        return false;
+    }
+
     virtual collection<TaskDisplayInfo> get_workers_display_info(Pool &pool) {
         return { pool };
     }
