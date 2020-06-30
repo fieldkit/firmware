@@ -17,8 +17,8 @@ namespace fk {
 
 FK_DECLARE_LOGGER("readings");
 
-ReadingsTaker::ReadingsTaker(Storage &storage, ModMux *mm, bool read_only)
-    : storage_(storage), readings_{ mm }, mm_(mm), read_only_(read_only) {
+ReadingsTaker::ReadingsTaker(Storage &storage, ModMux *mm, bool read_only, bool verify)
+    : storage_(storage), readings_{ mm }, mm_(mm), read_only_(read_only), verify_(verify) {
 }
 
 tl::expected<TakenReadings, Error> ReadingsTaker::take(ConstructedModulesCollection &constructed_modules, ScanningContext &ctx, Pool &pool) {
@@ -51,9 +51,11 @@ tl::expected<TakenReadings, Error> ReadingsTaker::take(ConstructedModulesCollect
             return tl::unexpected<Error>(Error::General);
         }
 
-        if (!verify_reading_record(data, pool)) {
-            logerror("error verifying readings");
-            return tl::unexpected<Error>(Error::General);
+        if (verify_)  {
+            if (!verify_reading_record(data, pool)) {
+                logerror("error verifying readings");
+                return tl::unexpected<Error>(Error::General);
+            }
         }
 
         return TakenReadings{ get_clock_now(), number, std::move(constructed_modules), std::move(*all_readings) };

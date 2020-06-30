@@ -79,7 +79,7 @@ void task_handler_scheduler(void *params) {
                 auto seed = fk_random_i32(0, INT32_MAX);
                 if (!scheduler.check(time, seed)) {
                     if (get_can_launch_captive_readings()) {
-                        get_ipc()->launch_worker(WorkerCategory::Readings, create_pool_worker<ReadingsWorker>(false, false));
+                        get_ipc()->launch_worker(WorkerCategory::Readings, create_pool_worker<ReadingsWorker>(false, false, false));
                     }
                 }
             }

@@ -14,9 +14,10 @@ private:
     Readings readings_;
     ModMux *mm_;
     bool read_only_;
+    bool verify_;
 
 public:
-    ReadingsTaker(Storage &storage, ModMux *mm, bool read_only);
+    ReadingsTaker(Storage &storage, ModMux *mm, bool read_only, bool verify);
 
 public:
     tl::expected<TakenReadings, Error> take(ConstructedModulesCollection &constructed_modules, ScanningContext &mc, Pool &pool);

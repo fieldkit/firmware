@@ -10,11 +10,12 @@ class ReadingsWorker : public Worker {
 private:
     bool scan_;
     bool read_only_;
+    bool verify_;
     FileHeader meta_fh_;
     FileHeader data_fh_;
 
 public:
-    ReadingsWorker(bool scan, bool read_only);
+    ReadingsWorker(bool scan, bool read_only, bool verify);
 
 public:
     void run(Pool &pool) override;

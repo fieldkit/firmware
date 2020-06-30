@@ -15,7 +15,7 @@ static size_t failures = 0;
 
 FK_DECLARE_LOGGER("rw");
 
-ReadingsWorker::ReadingsWorker(bool scan, bool read_only) : scan_(scan), read_only_(read_only) {
+ReadingsWorker::ReadingsWorker(bool scan, bool read_only, bool verify) : scan_(scan), read_only_(read_only), verify_(verify) {
 }
 
 void ReadingsWorker::run(Pool &pool) {
@@ -160,7 +160,7 @@ tl::expected<TakenReadings, Error> ReadingsWorker::take_readings(Pool &pool) {
     }
 
     ModuleScanning scanning{ get_modmux() };
-    ReadingsTaker readings_taker{ storage, get_modmux(), read_only_ };
+    ReadingsTaker readings_taker{ storage, get_modmux(), read_only_, verify_ };
     auto modules = get_module_factory().modules();
     auto taken_readings = readings_taker.take(modules, ctx, pool);
     if (!taken_readings) {
