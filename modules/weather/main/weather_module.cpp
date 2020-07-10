@@ -16,7 +16,7 @@ static SensorMetadata const fk_module_weather_sensor_metas[] = {
     { .name = "pressure",             .unitOfMeasure = "kPa",    .flags = 0 },
     { .name = "temperature_2",        .unitOfMeasure = "C",      .flags = 0 },
 
-    { .name = "rain",                 .unitOfMeasure = "inches", .flags = 0 },
+    { .name = "rain",                 .unitOfMeasure = "mm",     .flags = 0 },
 
     { .name = "wind_speed",           .unitOfMeasure = "km/hr",  .flags = 0 },
     { .name = "wind_dir",             .unitOfMeasure = "",       .flags = 0 },
@@ -29,8 +29,8 @@ static SensorMetadata const fk_module_weather_sensor_metas[] = {
     { .name = "wind_2m_avg_speed",    .unitOfMeasure = "km/hr",  .flags = 0 },
     { .name = "wind_2m_avg_dir",      .unitOfMeasure = "",       .flags = 0 },
 
-    { .name = "rain_this_hour",       .unitOfMeasure = "inches", .flags = 0 },
-    { .name = "rain_prev_hour",       .unitOfMeasure = "inches", .flags = 0 },
+    { .name = "rain_this_hour",       .unitOfMeasure = "mm",     .flags = 0 },
+    { .name = "rain_prev_hour",       .unitOfMeasure = "mm",     .flags = 0 },
 };
 
 static ModuleSensors fk_module_weather_sensors = {
