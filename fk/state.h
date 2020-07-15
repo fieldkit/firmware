@@ -300,7 +300,7 @@ public:
     void update_meta_stream(File const &file);
     void released(uint32_t locked) const;
     void released(uint32_t locked);
-    bool flush(Pool &pool) const;
+    bool flush(Pool &pool);
 
 public:
     GpsState const *location(Pool &pool) const;

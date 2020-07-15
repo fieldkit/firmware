@@ -130,7 +130,7 @@ bool ApiHandler::handle(HttpServerConnection *connection, Pool &pool) {
 }
 
 static bool flush_configuration(Pool &pool) {
-    auto gs = get_global_state_ro();
+    auto gs = get_global_state_rw();
     return gs.get()->flush(pool);
 }
 

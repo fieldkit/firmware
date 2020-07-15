@@ -109,10 +109,6 @@ void ReadingsWorker::run(Pool &pool) {
     GlobalStateManager gsm;
     gsm.apply([&](GlobalState *gs) {
         if (!read_only_) {
-            gs->storage.meta.size = meta_fh_.size;
-            gs->storage.meta.block = meta_fh_.record;
-            gs->storage.data.size = data_fh_.size;
-            gs->storage.data.block = data_fh_.record;
             gs->readings.time = modules->readings_time;
             gs->readings.number = modules->readings_number;
         }
@@ -170,9 +166,6 @@ tl::expected<TakenReadings, Error> ReadingsWorker::take_readings(Pool &pool) {
     if (!taken_readings) {
         return tl::unexpected<Error>(taken_readings.error());
     }
-
-    meta_fh_ = storage.file_header(Storage::Meta);
-    data_fh_ = storage.file_header(Storage::Data);
 
     return taken_readings;
 }

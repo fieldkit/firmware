@@ -39,13 +39,13 @@ GlobalState::GlobalState() : version(0) {
 
 void GlobalState::update_data_stream(File const &file) {
     storage.data.size = file.size();
-    storage.data.block = file.record();
-    readings.number = file.record();
+    storage.data.block = file.end_record();
+    readings.number = file.end_record();
 }
 
 void GlobalState::update_meta_stream(File const &file) {
     storage.meta.size = file.size();
-    storage.meta.block = file.record();
+    storage.meta.block = file.end_record();
 }
 
 void GlobalState::update_physical_modules(ConstructedModulesCollection const &modules) {
@@ -81,7 +81,7 @@ void GlobalState::released(uint32_t locked) {
     version++;
 }
 
-bool GlobalState::flush(Pool &pool) const {
+bool GlobalState::flush(Pool &pool) {
     Storage storage{ MemoryFactory::get_data_memory(), pool, false };
     if (!storage.begin()) {
         return false;

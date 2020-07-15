@@ -81,6 +81,9 @@ bool ReadingsTaker::append_readings(File &file, Pool &pool) {
     loginfo("wrote %zd bytes file=(#%" PRIu32 ") rec=(#%" PRIu64 ") (%" PRIu32 " bytes) (" PRADDRESS ") (%" PRIu32 " wasted)",
             (size_t)bytes_wrote, file.previous_record(), record, file.size(), file.tail(), file.wasted());
 
+    auto gs = get_global_state_rw();
+    gs.get()->update_data_stream(file);
+
     return true;
 }
 
@@ -103,7 +106,7 @@ bool ReadingsTaker::verify_reading_record(File &file, Pool &pool) {
 
 tl::expected<uint32_t, Error> ReadingsTaker::append_configuration(ConstructedModulesCollection &modules, Pool &pool) {
     MetaOps ops{ storage_ };
-    auto gs = get_global_state_ro();
+    auto gs = get_global_state_rw();
     return ops.write_modules(gs.get(), &fkb_header, modules, pool);
 }
 

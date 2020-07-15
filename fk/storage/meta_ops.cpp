@@ -12,11 +12,11 @@ FK_DECLARE_LOGGER("meta");
 MetaOps::MetaOps(Storage &storage) : storage_(storage) {
 }
 
-tl::expected<uint32_t, Error> MetaOps::write_state(GlobalState const *gs, Pool &pool) {
+tl::expected<uint32_t, Error> MetaOps::write_state(GlobalState *gs, Pool &pool) {
     return write_state(gs, &fkb_header, pool);
 }
 
-tl::expected<uint32_t, Error> MetaOps::write_state(GlobalState const *gs, fkb_header_t const *fkb, Pool &pool) {
+tl::expected<uint32_t, Error> MetaOps::write_state(GlobalState *gs, fkb_header_t const *fkb, Pool &pool) {
     MetaRecord record;
     record.include_state(gs, fkb, pool);
 
@@ -31,6 +31,8 @@ tl::expected<uint32_t, Error> MetaOps::write_state(GlobalState const *gs, fkb_he
         return tl::unexpected<Error>(meta_record.error());
     }
 
+    gs->update_meta_stream(meta);
+
     char gen_string[GenerationLength * 2 + 1];
     bytes_to_hex_string(gen_string, sizeof(gen_string), gs->general.generation, sizeof(gs->general.generation));
     loginfo("(saved) name: '%s'", gs->general.name);
@@ -43,7 +45,7 @@ tl::expected<uint32_t, Error> MetaOps::write_state(GlobalState const *gs, fkb_he
     return (*meta_record).record;
 }
 
-tl::expected<uint32_t, Error> MetaOps::write_modules(GlobalState const *gs, fkb_header_t const *fkb, ConstructedModulesCollection &modules, Pool &pool) {
+tl::expected<uint32_t, Error> MetaOps::write_modules(GlobalState *gs, fkb_header_t const *fkb, ConstructedModulesCollection &modules, Pool &pool) {
     MetaRecord record;
     record.include_modules(gs, fkb, modules, pool);
 
@@ -54,6 +56,8 @@ tl::expected<uint32_t, Error> MetaOps::write_modules(GlobalState const *gs, fkb_
     auto srl = SignedRecordLog { meta };
 
     auto meta_record = srl.append_immutable(SignedRecordKind::Modules, &record.record(), fk_data_DataRecord_fields, pool);
+
+    gs->update_meta_stream(meta);
 
     return (*meta_record).record;
 }
