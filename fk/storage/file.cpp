@@ -236,6 +236,7 @@ int32_t File::try_write(uint8_t const *record, size_t size) {
 }
 
 bool File::seek_end() {
+    loginfo("[%d] [" PRADDRESS "] seek end", file_, tail_);
     return seek(LastRecord);
 }
 
@@ -249,6 +250,7 @@ RecordReference File::reference() const {
 }
 
 bool File::seek_beginning() {
+    loginfo("[%d] [" PRADDRESS "] seek beginning", file_, tail_);
     return seek(0);
 }
 

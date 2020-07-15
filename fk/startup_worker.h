@@ -25,11 +25,14 @@ public:
     }
 
 private:
-    bool load_or_create_state(Storage &storage, Pool &pool);
-    bool load_state(Storage &storage, GlobalState *gs, Pool &pool);
-    bool load_previous_location(Storage &storage, GlobalState *gs, Pool &pool);
-    bool create_new_state(Storage &storage, GlobalState *gs, Pool &pool);
     bool save_startup_diagnostics();
+    bool load_or_create_state(Pool &pool);
+    bool load_state(Storage &storage, GlobalState *gs, Pool &pool);
+    bool create_new_state(Storage &storage, GlobalState *gs, Pool &pool);
+
+private:
+    bool load_from_files(Storage &storage, GlobalState *gs, Pool &pool);
+    bool load_previous_location(Storage &storage, GlobalState *gs, File &data, Pool &pool);
 
 private:
     bool check_for_lora(Pool &pool);

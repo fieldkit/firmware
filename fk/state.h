@@ -14,6 +14,8 @@
 
 namespace fk {
 
+class File;
+
 struct SensorState {
     const char *name;
     const char *unit_of_measure;
@@ -290,6 +292,8 @@ public:
 
 public:
     void update_physical_modules(ConstructedModulesCollection const &modules);
+    void update_data_stream(File const &file);
+    void update_meta_stream(File const &file);
     void released(uint32_t locked) const;
     void released(uint32_t locked);
     bool flush(Pool &pool) const;

@@ -70,25 +70,9 @@ void StartupWorker::run(Pool &pool) {
 
     FK_ASSERT(check_for_lora(pool));
 
-    Storage storage{ MemoryFactory::get_data_memory(), pool, false };
-    if (storage.begin()) {
-        GlobalStateManager gsm;
-        gsm.apply([&](GlobalState *gs) {
-            auto meta_fh = storage.file_header(Storage::Meta);
-            auto data_fh = storage.file_header(Storage::Data);
+    loginfo("loading/creating state");
 
-            gs->storage.meta.size = meta_fh.size;
-            gs->storage.meta.block = meta_fh.record;
-            gs->storage.data.size = data_fh.size;
-            gs->storage.data.block = data_fh.record;
-
-            // Set up the cursors for transmission.
-            gs->transmission.data_cursor = data_fh.record;
-            gs->transmission.meta_cursor = meta_fh.record - 1;
-        });
-    }
-
-    FK_ASSERT(load_or_create_state(storage, pool));
+    FK_ASSERT(load_or_create_state(pool));
 
     BatteryStatus battery;
     battery.refresh();
@@ -104,7 +88,9 @@ void StartupWorker::run(Pool &pool) {
     FK_ASSERT(os_task_start(&scheduler_task) == OSS_SUCCESS);
 }
 
-bool StartupWorker::load_or_create_state(Storage &storage, Pool &pool) {
+bool StartupWorker::load_or_create_state(Pool &pool) {
+    Storage storage{ MemoryFactory::get_data_memory(), pool, false };
+
     auto gs = get_global_state_rw();
 
     if (!load_state(storage, gs.get(), pool)) {
@@ -114,13 +100,9 @@ bool StartupWorker::load_or_create_state(Storage &storage, Pool &pool) {
             logerror("error creating new state");
         }
     }
-    else {
-        if (!load_previous_location(storage, gs.get(), pool)) {
-            logerror("error loading location");
-        }
-    }
 
     // The preconfigured LoRa ABP state always takes precedence.
+    // TODO Hack
     for (auto &abp : lora_preconfigured_abp) {
         if (memcmp(gs.get()->lora.device_eui, abp.device_eui, LoraDeviceEuiLength) == 0) {
             memcpy(gs.get()->lora.device_address, abp.device_address, LoraDeviceAddressLength);
@@ -139,6 +121,10 @@ bool StartupWorker::load_or_create_state(Storage &storage, Pool &pool) {
 
 bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
     if (!storage.begin()) {
+        return false;
+    }
+
+    if (!load_from_files(storage, gs, pool)) {
         return false;
     }
 
@@ -302,12 +288,55 @@ bool StartupWorker::create_new_state(Storage &storage, GlobalState *gs, Pool &po
     return true;
 }
 
-bool StartupWorker::load_previous_location(Storage &storage, GlobalState *gs, Pool &pool) {
-    auto data = storage.file(Storage::Data);
-    if (!data.seek_end()) {
-        return false;
+bool StartupWorker::load_from_files(Storage &storage, GlobalState *gs, Pool &pool) {
+    auto meta_fh = storage.file_header(Storage::Meta);
+    auto data_fh = storage.file_header(Storage::Data);
+
+    /**
+     * We intentionally use a known earlier starting point here, the
+     * positions in the block header so we can overlap the recording
+     * since we aren't keeping fine grained track yet of what's
+     * uploaded.
+     */
+    gs->transmission.data_cursor = data_fh.record;
+    gs->transmission.meta_cursor = meta_fh.record - 1;
+
+    /**
+     * Now actually do seeks to the end to find the accurate sizes and
+     * positions of each file.
+     */
+    {
+        auto meta = storage.file(Storage::Meta);
+        if (!meta.seek_end()) {
+            return false;
+        }
+
+        gs->update_meta_stream(meta);
+
+        loginfo("read file state (meta) R-%" PRIu32, gs->storage.meta.block);
     }
 
+    {
+        auto data = storage.file(Storage::Data);
+        if (!data.seek_end()) {
+            return false;
+        }
+
+        gs->update_data_stream(data);
+
+        loginfo("read file state (data) R-%" PRIu32, gs->storage.data.block);
+
+        // This function depends on data being seeked to the end.
+        if (!load_previous_location(storage, gs, data, pool)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool StartupWorker::load_previous_location(Storage &storage, GlobalState *gs, File &data, Pool &pool) {
+    // How do we verify we're seeked to the end? NOTE
     if (!data.rewind()) {
         return false;
     }

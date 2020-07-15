@@ -31,6 +31,17 @@ GlobalStateRef<GlobalState const*> try_get_global_state_ro() {
 GlobalState::GlobalState() : version(0) {
 }
 
+void GlobalState::update_data_stream(File const &file) {
+    storage.data.size = file.size();
+    storage.data.block = file.record();
+    readings.number = file.record();
+}
+
+void GlobalState::update_meta_stream(File const &file) {
+    storage.meta.size = file.size();
+    storage.meta.block = file.record();
+}
+
 void GlobalState::update_physical_modules(ConstructedModulesCollection const &modules) {
     for (auto &status : physical_modules) {
         status.meta = nullptr;
