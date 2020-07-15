@@ -58,7 +58,7 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(
     ModuleReadingsCollection all_readings{ pool };
 
     auto now = get_clock_now();
-    auto gs = ctx.gs();
+    auto gps = ctx.gps();
 
     record_ = fk_data_record_encoding_new();
     record_.has_readings = true;
@@ -68,13 +68,13 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(
     record_.readings.meta = meta_record;
     record_.readings.flags = fk_data_DownloadFlags_READING_FLAGS_NONE;
     record_.readings.has_location = true;
-    record_.readings.location.time = gs->gps.time;
-    record_.readings.location.fix = gs->gps.fix;
-    record_.readings.location.longitude = gs->gps.longitude;
-    record_.readings.location.latitude = gs->gps.latitude;
-    record_.readings.location.altitude = gs->gps.altitude;
-    record_.readings.location.satellites = gs->gps.satellites;
-    record_.readings.location.hdop = gs->gps.hdop;
+    record_.readings.location.time = gps->time;
+    record_.readings.location.fix = gps->fix;
+    record_.readings.location.longitude = gps->longitude;
+    record_.readings.location.latitude = gps->latitude;
+    record_.readings.location.altitude = gps->altitude;
+    record_.readings.location.satellites = gps->satellites;
+    record_.readings.location.hdop = gps->hdop;
 
     if (modules.size() == 0) {
         return std::move(all_readings);

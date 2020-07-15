@@ -34,7 +34,7 @@ static bool scan_modules(Pool &pool) {
 static bool initialize_modules(Pool &pool) {
     auto gs = get_global_state_ro();
     auto module_bus = get_board()->i2c_module();
-    ScanningContext ctx{ get_modmux(), gs.get(), module_bus, pool };
+    ScanningContext ctx{ get_modmux(), gs.get()->location(pool), module_bus, pool };
     if (!get_module_factory().initialize(ctx, pool)) {
         return false;
     }

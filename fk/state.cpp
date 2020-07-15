@@ -2,6 +2,12 @@
 #include "state_ref.h"
 #include "storage/meta_ops.h"
 
+#if defined(__SAMD51__)
+#include "hal/metal/metal_ipc.h"
+#else
+#include "hal/linux/linux_ipc.h"
+#endif
+
 namespace fk {
 
 FK_DECLARE_LOGGER("gs");
@@ -87,6 +93,16 @@ bool GlobalState::flush(Pool &pool) const {
     }
 
     return true;
+}
+
+GpsState *GpsState::clone(Pool &pool) const {
+    auto clone = new (pool) GpsState();
+    memcpy(clone, this, sizeof(GpsState));
+    return clone;
+}
+
+GpsState const *GlobalState::location(Pool &pool) const {
+    return gps.clone(pool);
 }
 
 }

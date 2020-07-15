@@ -6,6 +6,12 @@
 #include "hal/display.h"
 #include "platform.h"
 
+#if defined(__SAMD51__)
+#include "hal/metal/metal_ipc.h"
+#else
+#include "hal/linux/linux_ipc.h"
+#endif
+
 namespace fk {
 
 void LoraView::tick(ViewController *views, Pool &pool) {

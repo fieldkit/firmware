@@ -64,7 +64,7 @@ static void setup_fake_data() {
 
     StandardPool pool{ "fake" };
     TwoWireWrapper module_bus{ "modules", nullptr };
-    ScanningContext ctx{ get_modmux(), get_global_state_rw().get(), module_bus, pool };
+    ScanningContext ctx{ get_modmux(), get_global_state_ro().get()->location(pool), module_bus, pool };
 
     for (auto i = 0u; i < 1000; ++i) {
         StandardPool pool{ "readings" };

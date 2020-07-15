@@ -3,11 +3,11 @@
 
 namespace fk {
 
-ScanningContext::ScanningContext(ModMux *mm, GlobalState const *gs, TwoWireWrapper &module_bus, Pool &pool) : mm_(mm), gs_(gs), module_bus_(&module_bus) {
+ScanningContext::ScanningContext(ModMux *mm, GpsState const *gps, TwoWireWrapper &module_bus, Pool &pool) : mm_(mm), gps_(gps), module_bus_(&module_bus) {
 }
 
-GlobalState const *ScanningContext::gs() {
-    return gs_;
+GpsState const *ScanningContext::gps() {
+    return gps_;
 }
 
 ModuleContext ScanningContext::module(int32_t position, Pool &pool) {
@@ -18,15 +18,11 @@ ReadingsContext ScanningContext::readings(int32_t position, ModuleReadingsCollec
     return { *this, position, readings, pool };
 }
 
-ModuleContext::ModuleContext(ScanningContext &from, int32_t position, Pool &pool) : mm_(from.mm_), gs_(from.gs_), module_bus_(from.module_bus_), position_(position) {
+ModuleContext::ModuleContext(ScanningContext &from, int32_t position, Pool &pool) : mm_(from.mm_), module_bus_(from.module_bus_), position_(position) {
 }
 
 bool ModuleContext::open() {
     return mm_->choose(position_);
-}
-
-GlobalState const *ModuleContext::gs() {
-    return gs_;
 }
 
 TwoWireWrapper &ModuleContext::module_bus() {

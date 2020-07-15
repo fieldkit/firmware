@@ -1,6 +1,7 @@
 #include "diagnostics_module.h"
 #include "platform.h"
 #include "state.h"
+#include "state_ref.h"
 #include "temperature.h"
 
 namespace fk {
@@ -53,21 +54,23 @@ ModuleConfiguration DiagnosticsModule::get_configuration(Pool &pool) {
 ModuleReadings *DiagnosticsModule::take_readings(ReadingsContext mc, Pool &pool) {
     CoreTemperature core_temperature_sensor{ get_board()->i2c_core() };
 
+    auto gs = get_global_state_ro();
+
     auto spmi = fk_standard_page_meminfo();
 
     auto i = 0u;
     auto mr = new(pool) NModuleReadings<12>();
-    mr->set(i++, mc.gs()->power.charge);
+    mr->set(i++, gs.get()->power.charge);
 
-    mr->set(i++, mc.gs()->power.battery.bus_voltage);
-    mr->set(i++, mc.gs()->power.battery.shunted_voltage);
-    mr->set(i++, mc.gs()->power.battery.ma);
-    mr->set(i++, mc.gs()->power.battery.mw);
+    mr->set(i++, gs.get()->power.battery.bus_voltage);
+    mr->set(i++, gs.get()->power.battery.shunted_voltage);
+    mr->set(i++, gs.get()->power.battery.ma);
+    mr->set(i++, gs.get()->power.battery.mw);
 
-    mr->set(i++, mc.gs()->power.solar.bus_voltage);
-    mr->set(i++, mc.gs()->power.solar.shunted_voltage);
-    mr->set(i++, mc.gs()->power.solar.ma);
-    mr->set(i++, mc.gs()->power.solar.mw);
+    mr->set(i++, gs.get()->power.solar.bus_voltage);
+    mr->set(i++, gs.get()->power.solar.shunted_voltage);
+    mr->set(i++, gs.get()->power.solar.ma);
+    mr->set(i++, gs.get()->power.solar.mw);
 
     mr->set(i++, fk_free_memory() + (spmi.free * StandardPageSize));
     mr->set(i++, fk_uptime());

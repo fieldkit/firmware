@@ -140,18 +140,22 @@ ReadingsWorker::ThrottleAndPowerSave ReadingsWorker::read_throttle_and_power_sav
     return ThrottleAndPowerSave{ false, power_save };
 }
 
+static GpsState const *get_gps_from_global_state(Pool &pool) {
+    return get_global_state_ro().get()->location(pool);
+}
+
 tl::expected<TakenReadings, Error> ReadingsWorker::take_readings(Pool &pool) {
     auto mm = get_modmux();
     auto modules_lock = mm->lock();
     auto lock = storage_mutex.acquire(UINT32_MAX);
-    auto gs = get_global_state_ro();
     auto module_bus = get_board()->i2c_module();
 
     if (!ModulesPowerIndividually) {
         get_modmux()->check_modules();
     }
 
-    ScanningContext ctx{ mm, gs.get(), module_bus, pool };
+    auto gps = get_gps_from_global_state(pool);
+    ScanningContext ctx{ mm, gps, module_bus, pool };
     StatisticsMemory memory{ MemoryFactory::get_data_memory() };
     Storage storage{ &memory, pool, read_only_ };
     if (!read_only_ && !storage.begin()) {

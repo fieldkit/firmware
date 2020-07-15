@@ -10,6 +10,12 @@
 #include "utilities.h"
 #include "clock.h"
 
+#if defined(__SAMD51__)
+#include "hal/metal/metal_ipc.h"
+#else
+#include "hal/linux/linux_ipc.h"
+#endif
+
 extern const struct fkb_header_t fkb_header;
 
 namespace fk {

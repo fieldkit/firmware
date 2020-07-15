@@ -13,11 +13,11 @@ class ReadingsContext;
 class ScanningContext {
 private:
     ModMux *mm_;
-    GlobalState const *gs_;
+    GpsState const *gps_;
     TwoWireWrapper *module_bus_{ nullptr };
 
 public:
-    ScanningContext(ModMux *mm, GlobalState const *gs, TwoWireWrapper &module_bus, Pool &pool);
+    ScanningContext(ModMux *mm, GpsState const *gps, TwoWireWrapper &module_bus, Pool &pool);
     friend class ModuleContext;
 
 public:
@@ -25,14 +25,13 @@ public:
     ReadingsContext readings(int32_t position, ModuleReadingsCollection &readings, Pool &pool);
 
 public:
-    GlobalState const *gs();
+    GpsState const *gps();
 
 };
 
 class ModuleContext {
 private:
     ModMux *mm_;
-    GlobalState const *gs_;
     TwoWireWrapper *module_bus_{ nullptr };
     int32_t position_{ -1 };
 
@@ -41,7 +40,6 @@ public:
 
 public:
     bool open();
-    GlobalState const *gs();
     TwoWireWrapper &module_bus();
     bool power_cycle();
     uint32_t now() const;

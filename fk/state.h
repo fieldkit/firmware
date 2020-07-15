@@ -144,6 +144,7 @@ struct MainNetworkState {
 };
 
 struct GpsState {
+public:
     uint8_t enabled{ 0 };
     uint8_t fix{ 0 };
     uint8_t satellites{ 0 };
@@ -153,6 +154,9 @@ struct GpsState {
     float latitude { 0.0f };
     float altitude { 0.0f };
     uint32_t chars{ 0 };
+
+public:
+    GpsState *clone(Pool &pool) const;
 };
 
 struct PeripheralState {
@@ -297,6 +301,9 @@ public:
     void released(uint32_t locked) const;
     void released(uint32_t locked);
     bool flush(Pool &pool) const;
+
+public:
+    GpsState const *location(Pool &pool) const;
 
 };
 

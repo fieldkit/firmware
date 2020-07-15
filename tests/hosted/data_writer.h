@@ -28,7 +28,7 @@ public:
             }
         }
 
-        ScanningContext ctx{ get_modmux(), &gs_, module_bus_, pool };
+        ScanningContext ctx{ get_modmux(), gs_.location(pool), module_bus_, pool };
 
         FoundModuleCollection found(pool);
         for (auto i = 0; i < number_of_modules; ++i) {
