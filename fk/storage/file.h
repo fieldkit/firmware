@@ -48,6 +48,7 @@ private:
     StorageSize bytes_in_block_{ 0 };
     RecordNumber records_in_block_{ 0 };
     StorageSize wasted_{ 0 };
+    bool written_{ false };
     bool partial_allowed_{ false };
     bool unread_header_{ false };
     BLAKE2b hash_;
@@ -101,6 +102,13 @@ public:
     }
 
     uint32_t record() const {
+        return record_;
+    }
+
+    uint32_t end_record() const {
+        if (written_) {
+            return record_ - 1;
+        }
         return record_;
     }
 

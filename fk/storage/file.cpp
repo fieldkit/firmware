@@ -72,6 +72,16 @@ FlashGeometry File::geometry() const {
     return storage_->memory_.geometry();
 }
 
+bool File::create() {
+    record_ = 1;
+    position_ = 0;
+    size_ = 0;
+    record_remaining_ = 0;
+    record_size_ = 0;
+    tail_ = InvalidAddress;
+    return true;
+}
+
 bool File::beginning_of_record() {
     FK_ASSERT(record_address_ != InvalidAddress);
 
@@ -134,6 +144,8 @@ int32_t File::write_record_header(RecordSize size) {
     record_header.record = record_++;
     record_header.previous = record_address_;
     record_header.crc = record_header.sign();
+
+    written_ = true;
 
     logdebug("[%d] " PRADDRESS " write header R-%" PRIu32 " (%" PRId32 " lib) (%" PRId32 " bytes) (position=%" PRIu32 ") sopr=" PRADDRESS,
              file_, tail_, record_header.record, left_in_block, size, position_, record_address_);
@@ -235,11 +247,6 @@ int32_t File::try_write(uint8_t const *record, size_t size) {
     return size;
 }
 
-bool File::seek_end() {
-    loginfo("[%d] [" PRADDRESS "] seek end", file_, tail_);
-    return seek(LastRecord);
-}
-
 RecordReference File::reference() const {
     return RecordReference{
         .address = record_address_,
@@ -247,6 +254,11 @@ RecordReference File::reference() const {
         .record = record_,
         .record_size = record_size_,
     };
+}
+
+bool File::seek_end() {
+    loginfo("[%d] [" PRADDRESS "] seek end", file_, tail_);
+    return seek(LastRecord);
 }
 
 bool File::seek_beginning() {
@@ -260,6 +272,7 @@ bool File::seek(RecordReference reference) {
     position_ = reference.position;
     record_ = reference.record;
     record_size_ = reference.record_size;
+    written_ = false;
 
     // This forces us to reread the header of the record, which clears the hash state.
     record_remaining_ = 0;
@@ -274,22 +287,13 @@ bool File::seek(RecordReference reference) {
     return true;
 }
 
-bool File::create() {
-    record_ = 1;
-    position_ = 0;
-    size_ = 0;
-    record_remaining_ = 0;
-    record_size_ = 0;
-    tail_ = InvalidAddress;
-    return true;
-}
-
 bool File::seek(uint32_t record) {
     auto sv = storage_->seek(SeekSettings{ file_, record });
     if (!sv.valid()) {
         return false;
     }
 
+    written_ = false;
     wasted_ = 0;
     tail_ = sv.address;
     record_ = sv.record;
