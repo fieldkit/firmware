@@ -219,7 +219,7 @@ bool OemAtlas::read(float *values, size_t &number_of_values) {
     }
 
     for (auto i = 0; i < cfg.number_of_values; ++i) {
-        float value = __builtin_bswap32(raw[i].u32);
+        float value = (int32_t)__builtin_bswap32(raw[i].u32);
         value /= cfg.divisor;
         values[i] = value;
     }
