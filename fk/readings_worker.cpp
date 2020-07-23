@@ -25,6 +25,8 @@ void ReadingsWorker::run(Pool &pool) {
         return;
     }
 
+    auto lock = storage_mutex.acquire(UINT32_MAX);
+
     if (scan_) {
         ScanModulesWorker scan_worker;
         scan_worker.run(pool);
@@ -143,7 +145,6 @@ static GpsState const *get_gps_from_global_state(Pool &pool) {
 tl::expected<TakenReadings, Error> ReadingsWorker::take_readings(Pool &pool) {
     auto mm = get_modmux();
     auto modules_lock = mm->lock();
-    auto lock = storage_mutex.acquire(UINT32_MAX);
     auto module_bus = get_board()->i2c_module();
 
     if (!ModulesPowerIndividually) {
