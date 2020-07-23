@@ -146,6 +146,20 @@ static void try_and_reproduce_weird_block_issue() {
     }
 }
 
+static void fsck_and_stop() {
+    loginfo(__PRETTY_FUNCTION__);
+
+    StandardPool pool{ "live-tests" };
+    NoopProgressCallbacks progress;
+    Storage storage{ MemoryFactory::get_data_memory(), pool, false };
+    FK_ASSERT(storage.begin());
+    FK_ASSERT(storage.fsck(&progress));
+
+    while (true) {
+        fk_delay(100);
+    }
+}
+
 template<typename T>
 static uint32_t calculate_crc(uint32_t seed, T &object) {
     return crc32_checksum(seed, (uint8_t *)&object, sizeof(T) - sizeof(uint32_t));
@@ -507,6 +521,9 @@ static void https_test() {
 }
 
 void fk_live_tests() {
+    if (false) {
+        fsck_and_stop();
+    }
     if (false) {
         try_and_reproduce_weird_block_issue();
     }
