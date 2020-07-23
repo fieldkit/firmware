@@ -149,6 +149,8 @@ static void try_and_reproduce_weird_block_issue() {
 static void fsck_and_stop() {
     loginfo(__PRETTY_FUNCTION__);
 
+    FK_ASSERT(MemoryFactory::get_data_memory()->begin());
+
     StandardPool pool{ "live-tests" };
     NoopProgressCallbacks progress;
     Storage storage{ MemoryFactory::get_data_memory(), pool, false };

@@ -662,6 +662,8 @@ uint32_t Storage::fsck(ProgressCallbacks *progress) {
         return false;
     }
 
+    loginfo("fsck: size of 0 = %" PRIu32 " size of 1 = %" PRIu32, file0.size(), file1.size());
+
     auto total_size = file0.size() + file1.size();
     auto tracker = ProgressTracker{ progress, Operation::Fsck, "fsck", "", total_size };
 
