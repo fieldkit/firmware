@@ -871,6 +871,31 @@ int32_t File::write(void const *record, pb_msgdesc_t const *fields) {
     return rv;
 }
 
+void File::walk(BlockNumber first_block, BlockNumber last_block, Pool &pool) {
+    loginfo("walking: R-%" PRIu32 " -> R-%" PRIu32, first_block, last_block);
+
+    if (!seek(first_block)) {
+        return;
+    }
+
+    uint32_t bytes = 0u;
+
+    while (record() < last_block - 1) {
+        loginfo("[" PRADDRESS "] reading header R-%" PRIu32, tail(), record());
+
+        auto record_size = read_record_header();
+        if (record_size == 0) {
+            return;
+        }
+
+        bytes += record_size;
+
+        tail_ += record_size + sizeof(RecordTail);
+
+        loginfo("[" PRADDRESS "] skip %" PRIu32 " bytes = %" PRIu32, tail(), record_size, bytes);
+    }
+}
+
 File::SizeInfo File::get_size(BlockNumber first_block, BlockNumber last_block, Pool &pool) {
     if (first_block >= last_block) {
         return {
@@ -889,6 +914,8 @@ File::SizeInfo File::get_size(BlockNumber first_block, BlockNumber last_block, P
     auto final_position = position();
     auto actual_last_block = record();
 
+    loginfo("position(%" PRIu32 ") = %" PRIu32, last_block, final_position);
+
     if (!seek(first_block)) {
         return {
             .size = 0,
@@ -898,6 +925,8 @@ File::SizeInfo File::get_size(BlockNumber first_block, BlockNumber last_block, P
 
     auto start_position = position();
     auto size = final_position - start_position;
+
+    loginfo("position(%" PRIu32 ") = %" PRIu32, first_block, start_position);
 
     return {
         .size = size,

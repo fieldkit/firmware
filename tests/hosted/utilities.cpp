@@ -183,6 +183,29 @@ void write_number_of_readings(DataMemory *memory, size_t n) {
     }
 }
 
+uint32_t write_number_of_blocks(DataMemory *memory, size_t nblocks) {
+    StandardPool pool{ __func__ };
+    Storage storage{ memory, pool, false };
+    if (!storage.begin()) {
+        if (!storage.clear()) {
+            return 0;
+        }
+    }
+    auto file = storage.file(0);
+    if (!file.seek_end()) {
+        if (!file.create()) {
+            return 0;
+        }
+    }
+    auto starting_block = file.tail_block();
+    auto size = 0u;
+    while (file.tail_block() - starting_block < nblocks) {
+        auto wrote = write_reading(file);
+        size += wrote;
+    }
+    return size;
+}
+
 void write_readings(DataMemory *memory, size_t total) {
     StandardPool pool{ __func__ };
     Storage storage{ memory, pool, false };

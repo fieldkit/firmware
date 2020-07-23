@@ -98,11 +98,13 @@ private:
         BlockNumber starting;
         BlockNumber free;
         BlockNumber tail;
+        StorageSize bytes;
+        RecordNumber records;
 
-        BlocksAfter() : starting(InvalidAddress), free(InvalidAddress), tail(InvalidAddress) {
+        BlocksAfter() : starting(InvalidAddress), free(InvalidAddress), tail(InvalidAddress), bytes(0), records(0) {
         }
 
-        BlocksAfter(BlockNumber starting, BlockNumber free, BlockNumber tail) : starting(starting), free(free), tail(tail) {
+        BlocksAfter(BlockNumber starting, BlockNumber free, BlockNumber tail, StorageSize bytes, RecordNumber records) : starting(starting), free(free), tail(tail), bytes(bytes), records(records) {
         }
 
         operator bool() const {

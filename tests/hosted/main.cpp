@@ -6,7 +6,7 @@ int32_t main(int32_t argc, char **argv) {
     ::testing::InitGoogleMock(&argc, argv);
     ::testing::InitGoogleTest(&argc, argv);
 
-    log_configure_level(LogLevels::ERROR);
+    log_configure_level(LogLevels::NONE);
 
     for (auto i = 1; i < argc; ++i) {
         if (strcmp(argv[i], "--debug") == 0) {

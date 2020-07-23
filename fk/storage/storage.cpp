@@ -109,6 +109,8 @@ Storage::BlocksAfter Storage::find_blocks_after(uint32_t starting, FileNumber fi
     auto free = starting;
     auto tail = starting;
     auto bad_blocks = 0u;
+    auto records_skipped = 0u;
+    auto bytes_skipped = 0u;
 
     while (true) {
         auto head_address = (uint32_t)(g.block_size * testing);
@@ -176,16 +178,19 @@ Storage::BlocksAfter Storage::find_blocks_after(uint32_t starting, FileNumber fi
 
         auto linked = block_tail.linked / g.block_size;
 
-        logdebug("[-] block: blk %" PRIu32 " -> blk %" PRIu32, testing, linked);
+        logdebug("[-] block: blk %" PRIu32 " -> blk %" PRIu32 " %" PRIu32, testing, linked, block_tail.bytes_in_block);
+
+        bytes_skipped += block_tail.bytes_in_block;
+        records_skipped += block_tail.records_in_block;
 
         FK_ASSERT(testing != linked);
 
         testing = linked;
     }
 
-    logdebug("[-] block: scan done free = blk %" PRIu32 " tail = blk %" PRIu32, free, tail);
+    logdebug("[-] block: scan done free = blk %" PRIu32 " tail = blk %" PRIu32 " %u bytes skipped", free, tail, bytes_skipped);
 
-    return BlocksAfter{ starting, free, tail };
+    return BlocksAfter{ starting, free, tail, bytes_skipped, records_skipped };
 }
 
 bool Storage::begin() {
@@ -479,7 +484,7 @@ SeekValue Storage::seek(SeekSettings settings) {
         return SeekValue{ };
     }
 
-    logdebug("[%d] " PRADDRESS " seeking R-%" PRIu32 " (position = %" PRIu32 ") from blk %" PRIu32 " (bsz = %" PRIu32 " bytes)",
+    logdebug("[%d] " PRADDRESS " seeking R-%" PRIu32 " (position = %" PRIu32 ") block scan done, from blk %" PRIu32 " (bsz = %" PRIu32 " bytes)",
              settings.file, address, settings.record, position, fh.tail / g.block_size, fh.size);
 
     while (true) {
@@ -562,6 +567,24 @@ SeekValue Storage::seek(SeekSettings settings) {
                 if (!blocks_after) {
                     logdebug("[%d] " PRADDRESS " error finding blocks after (blk %" PRIu32 ")", settings.file, address, block);
                     return SeekValue{};
+                }
+
+                /**
+                 * WhenABadBlockStumblesBinarySearchAndSeekNeedsToTraverseTailBlocksLinearlyTheSizeAndPositionWouldBeWrong
+                 * The idea is here that find_blocks_after may have
+                 * actually done just that, and traversed across some
+                 * blocks at the end of the file to arrive where we
+                 * are now. This will update our position to account
+                 * for the file that it skipped over. We subtract how
+                 * much we've already seen in our current block
+                 * because the find_blocks_after will just look at
+                 * block tails, even for the block it's beginning in.
+                 * The if is to keep us from doing this if we haven't
+                 * actually traversed the block yet.
+                 */
+                if (blocks_after.bytes > 0) {
+                    position += blocks_after.bytes - bytes_in_block;
+                    records_visited += blocks_after.records - records_in_block;
                 }
 
                 if (blocks_after.tail == block) {

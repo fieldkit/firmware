@@ -22,6 +22,8 @@ void write_meta_records(fk::DataMemory *memory, size_t total);
 
 void write_readings(fk::DataMemory *memory, size_t total);
 
+uint32_t write_number_of_blocks(fk::DataMemory *memory, size_t nblocks);
+
 void write_number_of_readings(fk::DataMemory *memory, size_t n);
 
 void write_alternating(fk::DataMemory *memory, size_t total);

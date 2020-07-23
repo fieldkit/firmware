@@ -93,6 +93,13 @@ public:
         return tail_;
     }
 
+    BlockNumber tail_block() const {
+        if (tail_ == InvalidAddress) {
+            return 0;
+        }
+        return tail_ / geometry().block_size;
+    }
+
     uint32_t record_address() const {
         return record_address_;
     }
@@ -159,6 +166,7 @@ public:
     };
 
     SizeInfo get_size(BlockNumber first_block, BlockNumber last_block, Pool &pool);
+    void walk(BlockNumber first_block, BlockNumber last_block, Pool &pool);
 
 private:
     int32_t try_read_record_header(StorageAddress tail, RecordHeader &record_header);

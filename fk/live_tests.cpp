@@ -522,7 +522,54 @@ static void https_test() {
     }
 }
 
+static void chase_upload_truncation() {
+    loginfo(__PRETTY_FUNCTION__);
+
+    FK_ASSERT(MemoryFactory::get_data_memory()->begin());
+
+    log_configure_level(LogLevels::TRACE);
+
+    StandardPool pool{ "live-tests" };
+    NoopProgressCallbacks progress;
+    Storage storage{ MemoryFactory::get_data_memory(), pool, false };
+    FK_ASSERT(storage.begin());
+
+    loginfo("storage ready");
+
+    // 389383 -> 390151 41682 bytes
+    // Start position is the same for both, it's the ending position.
+    // that ends up wrong. Which means we definitely seem to be
+    // truncating during the read.
+
+    if (true) {
+        uint32_t first_block = 389383;
+        uint32_t last_block = 390151;
+        auto file = storage.file(Storage::Data);
+        auto size_info = file.get_size(first_block, last_block, pool);
+        loginfo("size-info(one beyond): size = %" PRIu32 " %" PRIu32, size_info.size, size_info.last_block);
+    }
+
+    if (true) {
+        uint32_t first_block = 389383;
+        auto file = storage.file(Storage::Data);
+        auto size_info = file.get_size(first_block, UINT32_MAX, pool);
+        loginfo("size-info(max): size = %" PRIu32 " %" PRIu32, size_info.size, size_info.last_block);
+    }
+
+    if (false) {
+        auto file = storage.file(Storage::Data);
+        file.walk(389383, 390151, pool);
+    }
+
+    while (true) {
+        fk_delay(100);
+    }
+}
+
 void fk_live_tests() {
+    if (false) {
+        chase_upload_truncation();
+    }
     if (false) {
         fsck_and_stop();
     }

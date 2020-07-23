@@ -1131,3 +1131,17 @@ TEST_F(StorageSuite, RecordNumbers) {
         ASSERT_EQ(file_write.record(), 5u);
     }
 }
+
+TEST_F(StorageSuite, WhenABadBlockStumblesBinarySearchAndSeekNeedsToTraverseTailBlocksLinearlyTheSizeAndPositionWouldBeWrong) {
+    bank(0).mark_block_bad_from_factory(g_.block_size * 8);
+
+    auto total_size = write_number_of_blocks(memory_, 12);
+
+    ASSERT_TRUE(total_size > 0u);
+
+    Storage storage{ memory_, pool_, true };
+    ASSERT_TRUE(storage.begin());
+    auto file = storage.file(0);
+    ASSERT_TRUE(file.seek_end());
+    ASSERT_EQ(total_size, file.position());
+}
