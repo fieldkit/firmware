@@ -18,6 +18,10 @@ ModuleReturn WaterModule::initialize(ModuleContext mc, Pool &pool) {
     return { ModuleStatus::Ok };
 }
 
+ModuleStatusReturn WaterModule::status(ModuleContext mc, Pool &pool) {
+    return { ModuleStatus::Ok, nullptr, 0 };
+}
+
 ModuleReturn WaterModule::api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
     if (type_ == AtlasSensorType::Unknown) {
         if (!initialize(mc, pool)) {

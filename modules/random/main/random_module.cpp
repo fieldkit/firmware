@@ -7,6 +7,10 @@ ModuleReturn RandomModule::initialize(ModuleContext mc, Pool &pool) {
     return { ModuleStatus::Ok };
 }
 
+ModuleStatusReturn RandomModule::status(ModuleContext mc, Pool &pool) {
+    return { ModuleStatus::Ok, nullptr, 0 };
+}
+
 ModuleReturn RandomModule::api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
     connection->busy(0, "unsupported");
 

@@ -30,6 +30,10 @@ ModuleReturn DistanceModule::initialize(ModuleContext mc, Pool &pool) {
     return { ModuleStatus::Ok };
 }
 
+ModuleStatusReturn DistanceModule::status(ModuleContext mc, Pool &pool) {
+    return { ModuleStatus::Ok, nullptr, 0 };
+}
+
 ModuleReturn DistanceModule::api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
     connection->busy(0, "unsupported");
 

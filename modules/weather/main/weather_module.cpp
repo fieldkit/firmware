@@ -54,6 +54,10 @@ ModuleReturn WeatherModule::initialize(ModuleContext mc, Pool &pool) {
     return delegate_.initialize(mc, pool);
 }
 
+ModuleStatusReturn WeatherModule::status(ModuleContext mc, Pool &pool) {
+    return { ModuleStatus::Ok, nullptr, 0 };
+}
+
 ModuleReturn WeatherModule::api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
     connection->busy(0, "unsupported");
 

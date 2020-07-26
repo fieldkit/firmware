@@ -33,6 +33,10 @@ ModuleReturn DiagnosticsModule::initialize(ModuleContext mc, Pool &pool) {
     return { ModuleStatus::Ok };
 }
 
+ModuleStatusReturn DiagnosticsModule::status(ModuleContext mc, Pool &pool) {
+    return { ModuleStatus::Ok, nullptr, 0 };
+}
+
 ModuleReturn DiagnosticsModule::api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
     connection->busy(0, "unsupported");
 
