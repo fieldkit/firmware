@@ -123,6 +123,14 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, fkb_header_t con
             modules[m].header.manufacturer = module.manufacturer;
             modules[m].header.kind = module.kind;
             modules[m].header.version = module.version;
+
+            if (module.status_message != nullptr) {
+                auto status_message_data = pool_->malloc_with<pb_data_t>({
+                    .length = module.status_message->size,
+                    .buffer = module.status_message->buffer,
+                });
+                modules[m].status.arg = (void *)status_message_data;
+            }
         }
 
         auto modules_array = pool_->malloc_with<pb_array_t>({

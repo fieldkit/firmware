@@ -56,6 +56,7 @@ public:
     char *sprintf(const char *str, ...);
     EncodedMessage *encode(pb_msgdesc_t const *fields, void const *src, bool delimited = true);
     void *decode(pb_msgdesc_t const *fields, uint8_t *src, size_t size, size_t message_size);
+    EncodedMessage *copy(EncodedMessage const *message);
 
 public:
     virtual size_t allocated() const {

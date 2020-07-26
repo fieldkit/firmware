@@ -128,6 +128,7 @@ struct ModuleMetaAndReadings {
     uint16_t position;
     fk_uuid_t *id;
     ModuleMetadata const *meta;
+    EncodedMessage const *status_message;
     ModuleSensors const *sensors;
     ModuleReadings const *readings;
     ModuleConfiguration configuration;

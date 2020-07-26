@@ -17,7 +17,7 @@ public:
     }
 
     ModuleStatusReturn status(ModuleContext mc, Pool &pool) {
-        return { ModuleStatus::Ok, nullptr, 0 };
+        return { ModuleStatus::Ok, nullptr };
     }
 
     ModuleReturn api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
@@ -72,7 +72,7 @@ public:
     }
 
     ModuleStatusReturn status(ModuleContext mc, Pool &pool) {
-        return { ModuleStatus::Ok, nullptr, 0 };
+        return { ModuleStatus::Ok, nullptr };
     }
 
     ModuleReturn api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
@@ -136,7 +136,7 @@ public:
     }
 
     ModuleStatusReturn status(ModuleContext mc, Pool &pool) {
-        return { ModuleStatus::Ok, nullptr, 0 };
+        return { ModuleStatus::Ok, nullptr };
     }
 
     ModuleReturn api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {

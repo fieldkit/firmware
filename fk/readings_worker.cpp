@@ -61,10 +61,13 @@ void ReadingsWorker::run(Pool &pool) {
             has_readings = true;
         }
 
+        auto status_message = data_pool->copy(m.status_message);
+
         modules->readings.emplace(ModuleMetaAndReadings{
             .position = m.position,
             .id = nullptr,
             .meta = m.meta,
+            .status_message = status_message,
             .sensors = nullptr,
             .readings = m.readings->clone(*data_pool),
             .configuration = m.configuration,
@@ -79,6 +82,7 @@ void ReadingsWorker::run(Pool &pool) {
             .display_name_key = m.configuration.display_name_key,
             .id = (fk_uuid_t *)data_pool->copy(m.id, sizeof(fk_uuid_t)),
             .flags = m.meta->flags,
+            .status_message = status_message,
             .sensors = sensors,
             .nsensors = m.sensors->nsensors,
         };

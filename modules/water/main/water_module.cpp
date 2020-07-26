@@ -25,21 +25,21 @@ ModuleStatusReturn WaterModule::status(ModuleContext mc, Pool &pool) {
 
     if (!atlas.wake()) {
         reply.error("error waking");
-        return { ModuleStatus::Fatal, nullptr, 0 };
+        return { ModuleStatus::Fatal, nullptr };
     }
 
     auto calibrationStatus = atlas.calibration();
     if (!calibrationStatus.success) {
-        return { ModuleStatus::Fatal, nullptr, 0 };
+        return { ModuleStatus::Fatal, nullptr };
     }
 
     if (!reply.status_reply(atlas, calibrationStatus)) {
-        return { ModuleStatus::Fatal, nullptr, 0 };
+        return { ModuleStatus::Fatal, nullptr };
     }
 
     auto message = pool.encode(fk_atlas_WireAtlasReply_fields, reply.reply(), false);
 
-    return { ModuleStatus::Ok, message->buffer, message->size };
+    return { ModuleStatus::Ok, message };
 }
 
 ModuleReturn WaterModule::api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {

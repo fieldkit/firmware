@@ -8,7 +8,7 @@ ModuleReturn RandomModule::initialize(ModuleContext mc, Pool &pool) {
 }
 
 ModuleStatusReturn RandomModule::status(ModuleContext mc, Pool &pool) {
-    return { ModuleStatus::Ok, nullptr, 0 };
+    return { ModuleStatus::Ok, nullptr };
 }
 
 ModuleReturn RandomModule::api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {

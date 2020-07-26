@@ -127,6 +127,13 @@ char *Pool::sprintf(const char *str, ...) {
     return ptr;
 }
 
+EncodedMessage *Pool::copy(EncodedMessage const *message) {
+    if (message == nullptr) {
+        return nullptr;
+    }
+    return new (*this) EncodedMessage(message->size, (uint8_t *)copy(message->buffer, message->size));
+}
+
 EncodedMessage *Pool::encode(pb_msgdesc_t const *fields, void const *src, bool delimited) {
     size_t required = 0;
     if (!pb_get_encoded_size(&required, fields, src)) {

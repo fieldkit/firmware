@@ -34,7 +34,7 @@ ModuleReturn DiagnosticsModule::initialize(ModuleContext mc, Pool &pool) {
 }
 
 ModuleStatusReturn DiagnosticsModule::status(ModuleContext mc, Pool &pool) {
-    return { ModuleStatus::Ok, nullptr, 0 };
+    return { ModuleStatus::Ok, nullptr };
 }
 
 ModuleReturn DiagnosticsModule::api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {

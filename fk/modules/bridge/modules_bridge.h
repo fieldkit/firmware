@@ -38,10 +38,9 @@ struct ModuleReturn {
  */
 struct ModuleStatusReturn {
     ModuleStatus status;
-    uint8_t *ptr;
-    size_t size;
+    EncodedMessage *message;
 
-    ModuleStatusReturn(ModuleStatus status, uint8_t *ptr, size_t size) : status(status), ptr(ptr), size(size) {
+    ModuleStatusReturn(ModuleStatus status, EncodedMessage *message) : status(status), message(message) {
     }
 
     /**

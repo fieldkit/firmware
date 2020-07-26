@@ -55,7 +55,7 @@ ModuleReturn WeatherModule::initialize(ModuleContext mc, Pool &pool) {
 }
 
 ModuleStatusReturn WeatherModule::status(ModuleContext mc, Pool &pool) {
-    return { ModuleStatus::Ok, nullptr, 0 };
+    return { ModuleStatus::Ok, nullptr };
 }
 
 ModuleReturn WeatherModule::api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {

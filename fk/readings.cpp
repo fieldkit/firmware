@@ -111,6 +111,18 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(
 
         loginfo("'%s' mk=%02" PRIx32 "%02" PRIx32 " version=%" PRIu32, pair.configuration.display_name_key, meta->manufacturer, meta->kind, meta->version);
 
+        auto module_status = module->status(mc, pool);
+        if (module_status.status != ModuleStatus::Ok) {
+            logwarn("'%s' status error", meta->name);
+        } else {
+            if (module_status.message != nullptr) {
+                loginfo("'%s' status ok (%zu bytes)", meta->name, module_status.message->size);
+            }
+            else {
+                loginfo("'%s' status ok", meta->name);
+            }
+        }
+
         auto readings = module->take_readings(mc, pool);
         if (readings == nullptr || readings->size() == 0) {
             logwarn("'%s' no readings", meta->name);
@@ -144,6 +156,7 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(
             .position = pair.found.position,
             .id = (fk_uuid_t *)pool.copy(&pair.found.header.id, sizeof(pair.found.header.id)),
             .meta = meta,
+            .status_message = module_status.message,
             .sensors = module->get_sensors(pool),
             .readings = readings,
             .configuration = pair.configuration,
