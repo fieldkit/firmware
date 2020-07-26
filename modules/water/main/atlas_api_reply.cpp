@@ -32,4 +32,35 @@ bool AtlasApiReply::has_errors() const {
     return reply_.errors.arg != nullptr;
 }
 
+bool AtlasApiReply::status_reply(OemAtlas &atlas, CalibrationStatus calibrationStatus) {
+    switch (atlas.type()) {
+    case AtlasSensorType::Ec: {
+        status((fk_atlas_EcCalibrations)calibrationStatus.value);
+        break;
+    }
+    case AtlasSensorType::Ph: {
+        status((fk_atlas_PhCalibrations)calibrationStatus.value);
+        break;
+    }
+    case AtlasSensorType::Do: {
+        status((fk_atlas_DoCalibrations)calibrationStatus.value);
+        break;
+    }
+    case AtlasSensorType::Temp: {
+        status((fk_atlas_TempCalibrations)calibrationStatus.value);
+        break;
+    }
+    case AtlasSensorType::Orp: {
+        status((fk_atlas_OrpCalibrations)calibrationStatus.value);
+        break;
+    }
+    default: {
+        break;
+    }
+    }
+
+    return true;
+}
+
+
 } // namespace fk

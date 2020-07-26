@@ -74,37 +74,7 @@ bool AtlasApi::status(AtlasApiReply &reply) {
         return false;
     }
 
-    return status_reply(reply, status);
-}
-
-bool AtlasApi::status_reply(AtlasApiReply &reply, CalibrationStatus status) {
-    switch (atlas_->type()) {
-    case AtlasSensorType::Ec: {
-        reply.status((fk_atlas_EcCalibrations)status.value);
-        break;
-    }
-    case AtlasSensorType::Ph: {
-        reply.status((fk_atlas_PhCalibrations)status.value);
-        break;
-    }
-    case AtlasSensorType::Do: {
-        reply.status((fk_atlas_DoCalibrations)status.value);
-        break;
-    }
-    case AtlasSensorType::Temp: {
-        reply.status((fk_atlas_TempCalibrations)status.value);
-        break;
-    }
-    case AtlasSensorType::Orp: {
-        reply.status((fk_atlas_OrpCalibrations)status.value);
-        break;
-    }
-    default: {
-        break;
-    }
-    }
-
-    return true;
+    return reply.status_reply(*atlas_, status);
 }
 
 bool AtlasApi::clear(AtlasApiReply &reply) {
@@ -169,7 +139,7 @@ bool AtlasApi::calibrate(AtlasApiReply &reply, fk_atlas_AtlasCalibrationCommand 
         return false;
     }
 
-    return status_reply(reply, status);
+    return reply.status_reply(*atlas_, status);
 }
 
 } // namespace fk

@@ -19,7 +19,27 @@ ModuleReturn WaterModule::initialize(ModuleContext mc, Pool &pool) {
 }
 
 ModuleStatusReturn WaterModule::status(ModuleContext mc, Pool &pool) {
-    return { ModuleStatus::Ok, nullptr, 0 };
+    OemAtlas atlas{ mc.module_bus(), address_, type_  };
+    AtlasApi api{ type_, atlas };
+    AtlasApiReply reply{ pool };
+
+    if (!atlas.wake()) {
+        reply.error("error waking");
+        return { ModuleStatus::Fatal, nullptr, 0 };
+    }
+
+    auto calibrationStatus = atlas.calibration();
+    if (!calibrationStatus.success) {
+        return { ModuleStatus::Fatal, nullptr, 0 };
+    }
+
+    if (!reply.status_reply(atlas, calibrationStatus)) {
+        return { ModuleStatus::Fatal, nullptr, 0 };
+    }
+
+    auto message = pool.encode(fk_atlas_WireAtlasReply_fields, reply.reply(), false);
+
+    return { ModuleStatus::Ok, message->buffer, message->size };
 }
 
 ModuleReturn WaterModule::api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {

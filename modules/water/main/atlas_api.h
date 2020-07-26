@@ -23,7 +23,6 @@ private:
     bool status(AtlasApiReply &reply);
     bool clear(AtlasApiReply &reply);
     bool calibrate(AtlasApiReply &reply, fk_atlas_AtlasCalibrationCommand command);
-    bool status_reply(AtlasApiReply &reply, CalibrationStatus status);
 
 };
 

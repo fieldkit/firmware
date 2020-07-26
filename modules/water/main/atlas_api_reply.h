@@ -1,6 +1,7 @@
 #pragma once
 
 #include "atlas_protocol.h"
+#include "oem_atlas.h"
 
 namespace fk {
 
@@ -22,6 +23,8 @@ public:
     bool has_errors() const;
 
 public:
+    bool status_reply(OemAtlas &atlas, CalibrationStatus status);
+
     void status(fk_atlas_TempCalibrations s) {
         reply_.type = fk_atlas_ReplyType_REPLY_STATUS;
         reply_.has_calibration = true;
