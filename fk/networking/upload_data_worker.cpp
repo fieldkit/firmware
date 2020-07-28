@@ -118,16 +118,25 @@ UploadDataWorker::FileUpload UploadDataWorker::upload_file(Storage &storage, uin
     auto speed = ((bytes_copied / 1024.0f) / (elapsed / 1000.0f));
     loginfo("done (%d) (%" PRIu32 "ms) %.2fkbps, waiting response", bytes_copied, elapsed, speed);
 
+    auto success = false;
+
     if (!http->read_response()) {
         loginfo("unable to read response");
     }
     else {
         loginfo("http status %" PRId32, http->status_code());
+        if (http->status_code() == 200 || http->status_code() == 204) {
+            success = true;
+        }
     }
 
     http->close();
 
-    return { last_block };
+    if (success) {
+        return { last_block };
+    }
+
+    return { 0 };
 }
 
 struct FileRecords {
