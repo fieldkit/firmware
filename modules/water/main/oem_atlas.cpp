@@ -219,9 +219,11 @@ bool OemAtlas::read(float *values, size_t &number_of_values) {
     }
 
     for (auto i = 0; i < cfg.number_of_values; ++i) {
-        float value = (int32_t)__builtin_bswap32(raw[i].u32);
-        value /= cfg.divisor;
-        values[i] = value;
+        int32_t integer = (int32_t)__builtin_bswap32(raw[i].u32);
+        loginfo("raw-atlas: 0x%" PRIx32, integer);
+        float floating = (float)integer;
+        floating /= cfg.divisor;
+        values[i] = floating;
     }
 
     number_of_values = cfg.number_of_values;

@@ -187,11 +187,26 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
 
     size_t number_of_values = 0;
     float values[ATLAS_MAXIMUM_VALUES];
-    if (!atlas.read(values, number_of_values)) {
-        atlas.leds(true);
-        atlas.hibernate();
-        logerror("readings failed");
-        return nullptr;
+    for (auto i = 0u; i < 3u; ++i) {
+        number_of_values = 0u;
+
+        if (!atlas.read(values, number_of_values)) {
+            atlas.leds(true);
+            atlas.hibernate();
+            logerror("readings failed");
+            return nullptr;
+        }
+
+        /* We're chasing down an issue with the RTD sensor, so we're
+         * going to retry if we end up with a known bad value. In this
+         * situation the sensor is returning -1023.0 and so we're
+         * seeing if trying multiple reads helps the situation.
+         */
+        if (number_of_values == 1) {
+            if (values[0] > -1000) {
+                break;
+            }
+        }
     }
 
     if (!atlas.leds(true)) {
