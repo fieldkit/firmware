@@ -23,6 +23,7 @@ public:
     bool include_success(uint32_t clock, uint32_t uptime);
     bool include_status(uint32_t clock, uint32_t uptime, fkb_header_t const *fkb);
     bool include_readings();
+    bool include_scan(NetworkScan scan);
 
 public:
     fk_app_HttpReply const *reply() {

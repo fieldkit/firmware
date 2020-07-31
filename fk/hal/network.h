@@ -87,6 +87,10 @@ public:
         return length_;
     }
 
+    const char *network(size_t i) const {
+        return networks_[i];
+    }
+
 };
 
 class Network {

@@ -332,6 +332,15 @@ fk_app_HttpReply *fk_http_reply_encoding_initialize(fk_app_HttpReply *reply) {
     if (reply->status.firmware.number.arg != nullptr) reply->status.firmware.number.funcs.encode = pb_encode_string;
     if (reply->status.firmware.hash.arg != nullptr) reply->status.firmware.hash.funcs.encode = pb_encode_string;
 
+    if (reply->nearbyNetworks.networks.arg != nullptr) {
+        reply->nearbyNetworks.networks.funcs.encode = pb_encode_array;
+        auto array = reinterpret_cast<pb_array_t *>(reply->nearbyNetworks.networks.arg);
+        for (size_t i = 0; i < array->length; ++i) {
+            auto nn = &((fk_app_NearbyNetwork *)array->buffer)[i];
+            nn->ssid.funcs.encode = pb_encode_string;
+        }
+    }
+
     if (reply->modules.arg != nullptr) {
         reply->modules.funcs.encode = pb_encode_array;
         auto array = reinterpret_cast<pb_array_t *>(reply->modules.arg);
