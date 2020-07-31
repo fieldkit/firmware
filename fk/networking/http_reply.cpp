@@ -389,6 +389,8 @@ bool HttpReply::include_scan(NetworkScan scan) {
     reply_.has_nearbyNetworks = true;
     reply_.nearbyNetworks.networks.arg = (void *)nearby_networks_array;
 
+    reply_.type = fk_app_ReplyType_REPLY_NETWORKS;
+
     return true;
 }
 
