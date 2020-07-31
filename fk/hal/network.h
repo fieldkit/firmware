@@ -71,8 +71,22 @@ public:
 
 class NetworkScan {
 private:
+    const char **networks_;
+    size_t length_;
 
 public:
+    NetworkScan(const char **networks, size_t length): networks_(networks), length_(length) {
+    }
+
+public:
+    const char **networks() const {
+        return networks_;
+    }
+
+    size_t length() const {
+        return length_;
+    }
+
 };
 
 class Network {

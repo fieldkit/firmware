@@ -412,7 +412,19 @@ bool MetalNetwork::get_created_ap() {
 }
 
 NetworkScan MetalNetwork::scan(Pool &pool) {
-    return { };
+    size_t number_ssids = WiFi.scanNetworks();
+
+
+    auto ssids = (const char **)pool.malloc(sizeof(const char *) * number_ssids);
+
+    for (auto i = 0u; i < number_ssids; ++i) {
+        auto ssid = WiFi.SSID(i);
+        if (ssid != nullptr) {
+            ssids[i] = pool.strdup(ssid);
+        }
+    }
+
+    return NetworkScan{ ssids, number_ssids };
 }
 
 MetalNetworkListener::MetalNetworkListener(uint16_t port) : port_(port) {
