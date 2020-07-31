@@ -411,6 +411,10 @@ bool MetalNetwork::get_created_ap() {
     return status == WL_AP_LISTENING ||  status == WL_AP_CONNECTED;
 }
 
+NetworkScan MetalNetwork::scan(Pool &pool) {
+    return { };
+}
+
 MetalNetworkListener::MetalNetworkListener(uint16_t port) : port_(port) {
 }
 

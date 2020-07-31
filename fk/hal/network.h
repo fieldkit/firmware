@@ -69,6 +69,12 @@ public:
 
 };
 
+class NetworkScan {
+private:
+
+public:
+};
+
 class Network {
 public:
     virtual bool begin(NetworkSettings settings) = 0;
@@ -96,6 +102,8 @@ public:
     virtual const char *get_ssid() = 0;
 
     virtual bool get_created_ap() = 0;
+
+    virtual NetworkScan scan(Pool &pool) = 0;
 
     bool online() {
         if (!enabled()) {

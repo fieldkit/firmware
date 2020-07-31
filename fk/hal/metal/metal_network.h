@@ -111,6 +111,8 @@ public:
 
     bool get_created_ap() override;
 
+    NetworkScan scan(Pool &pool) override;
+
 };
 
 FK_ENABLE_TYPE_NAME(MetalNetworkConnection);
