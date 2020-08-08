@@ -72,6 +72,7 @@ public:
 
 class MetalNetwork : public Network {
 private:
+    Availability availability_{ Availability::Unknown };
     Pool *pool_{ nullptr };
     NetworkSettings settings_;
     bool enabled_{ false };

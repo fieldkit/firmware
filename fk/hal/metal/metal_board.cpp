@@ -116,6 +116,7 @@ void Board::enable_lora() {
 
 void Board::disable_wifi() {
     digitalWrite(WINC1500_POWER, LOW);
+    SPI1.end();
 }
 
 void Board::enable_wifi() {

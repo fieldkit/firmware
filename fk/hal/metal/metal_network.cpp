@@ -234,6 +234,11 @@ bool MetalNetworkConnection::stop() {
 }
 
 bool MetalNetwork::begin(NetworkSettings settings) {
+    if (availability_ == Availability::Unavailable) {
+        logwarn("wifi unavailable");
+        return false;
+    }
+
     if (pool_ != nullptr) {
         delete pool_;
         pool_ = nullptr;
@@ -245,15 +250,21 @@ bool MetalNetwork::begin(NetworkSettings settings) {
 
     staticWiFiCallbacks.initialize(*pool_);
 
+    WiFiSocketClass::callbacks = &staticWiFiCallbacks;
+
     get_board()->enable_wifi();
+
+    fk_delay(100);
 
     WiFi.setPins(WINC1500_CS, WINC1500_IRQ, WINC1500_RESET);
 
-    WiFiSocketClass::callbacks = &staticWiFiCallbacks;
-
     if (WiFi.status() == WL_NO_SHIELD) {
+        get_board()->disable_wifi();
+        availability_ = Availability::Unavailable;
         return false;
     }
+
+    availability_ = Availability::Available;
 
     if (settings.ssid != nullptr) {
         if (settings.create) {
