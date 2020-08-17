@@ -14,6 +14,28 @@ FK_DECLARE_LOGGER("gs");
 
 static GlobalState gs;
 
+void Schedule::recreate() {
+    auto has_intervals = false;
+    auto cs = lwcron::CronSpec::interval(0);
+
+    for (auto i = 0u; i < MaximumScheduleIntervals; ++i) {
+        auto &ival = intervals[i];
+        if (ival.interval > 0) {
+            for (auto s = ival.start; s <= ival.end; s += ival.interval) {
+                lwcron::TimeOfDay tod{ s };
+                cs.set(tod);
+            }
+            has_intervals = true;
+        }
+    }
+
+    if (!has_intervals && interval > 0) {
+        cs = lwcron::CronSpec::interval(std::max(interval, OneMinuteSeconds));
+    }
+
+    cron = cs;
+}
+
 Schedule& Schedule::operator=(const fk_app_Schedule &s) {
     memzero(intervals, sizeof(intervals));
     if (s.intervals.arg != nullptr) {
@@ -25,16 +47,14 @@ Schedule& Schedule::operator=(const fk_app_Schedule &s) {
             intervals[i].interval = intervals_source[i].interval;
         }
     }
+
     interval = s.interval;
     repeated = s.repeated;
     duration = s.duration;
     jitter = s.jitter;
-    if (s.interval > 0) {
-        cron = lwcron::CronSpec::interval(std::max(s.interval, OneMinuteSeconds));
-    }
-    else {
-        cron = lwcron::CronSpec::interval(0);
-    }
+
+    recreate();
+
     return *this;
 }
 

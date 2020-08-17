@@ -140,6 +140,15 @@ static bool flush_configuration(Pool &pool) {
     return gs.get()->flush(pool);
 }
 
+static void debug_schedule(const char *which, Schedule const &s) {
+    for (auto i = 0u; i < MaximumScheduleIntervals; ++i) {
+        auto &ival = s.intervals[i];
+        if (ival.interval > 0) {
+            loginfo("schedule: [%s] %" PRIu32 " -> %" PRIu32 " every %" PRIu32 "secs", which, ival.start, ival.end, ival.interval);
+        }
+    }
+}
+
 static bool configure(HttpServerConnection *connection, fk_app_HttpQuery *query, Pool &pool) {
     auto lock = storage_mutex.acquire(500);
     if (!lock) {
@@ -242,9 +251,14 @@ static bool configure(HttpServerConnection *connection, fk_app_HttpQuery *query,
             gs->scheduler.gps = query->schedules.gps;
             gs->scheduler.lora = query->schedules.lora;
 
-            // Don't let people make this zero.
-            if (gs->scheduler.network.duration == 0) {
-                gs->scheduler.network.duration = FiveMinutesSeconds;
+            debug_schedule("readings", gs->scheduler.readings);
+            debug_schedule("network", gs->scheduler.network);
+            debug_schedule("gps", gs->scheduler.gps);
+            debug_schedule("lora", gs->scheduler.lora);
+
+            // Don't let people make this useless.
+            if (gs->scheduler.network.duration < OneMinuteSeconds) {
+                gs->scheduler.network.duration = OneMinuteSeconds;
             }
         });
     }

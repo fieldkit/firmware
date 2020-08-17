@@ -82,10 +82,10 @@ bool GlobalStateManager::initialize(Pool &pool) {
         loginfo("using default schedule");
     }
 
-    gs.get()->scheduler.readings.cron = lwcron::CronSpec::interval(gs.get()->scheduler.readings.interval);
-    gs.get()->scheduler.network.cron = lwcron::CronSpec::interval(gs.get()->scheduler.network.interval);
-    gs.get()->scheduler.gps.cron = lwcron::CronSpec::interval(gs.get()->scheduler.gps.interval);
-    gs.get()->scheduler.lora.cron = lwcron::CronSpec::interval(gs.get()->scheduler.lora.interval);
+    gs.get()->scheduler.readings.recreate();
+    gs.get()->scheduler.network.recreate();
+    gs.get()->scheduler.gps.recreate();
+    gs.get()->scheduler.lora.recreate();
 
     gs.get()->transmission.url[0] = 0;
     gs.get()->transmission.token[0] = 0;

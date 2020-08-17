@@ -245,6 +245,8 @@ struct Schedule {
     Interval intervals[MaximumScheduleIntervals];
 
     Schedule& operator=(const fk_app_Schedule &s);
+
+    void recreate();
 };
 
 struct SchedulerState {
