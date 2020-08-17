@@ -244,29 +244,7 @@ struct Schedule {
     uint32_t jitter{ 0 };
     Interval intervals[MaximumScheduleIntervals];
 
-    Schedule& operator=(const fk_app_Schedule &s) {
-        memzero(intervals, sizeof(intervals));
-        if (s.intervals.arg != nullptr) {
-            auto intervals_array = reinterpret_cast<pb_array_t*>(s.intervals.arg);
-            auto intervals_source = reinterpret_cast<fk_app_Interval*>(intervals_array->buffer);
-            for (auto i = 0u; i < std::min(intervals_array->length, MaximumScheduleIntervals); ++i) {
-                intervals[i].start = intervals_source[i].start;
-                intervals[i].end = intervals_source[i].end;
-                intervals[i].interval = intervals_source[i].interval;
-            }
-        }
-        interval = s.interval;
-        repeated = s.repeated;
-        duration = s.duration;
-        jitter = s.jitter;
-        if (s.interval > 0) {
-            cron = lwcron::CronSpec::interval(std::max(s.interval, OneMinuteSeconds));
-        }
-        else {
-            cron = lwcron::CronSpec::interval(0);
-        }
-        return *this;
-    }
+    Schedule& operator=(const fk_app_Schedule &s);
 };
 
 struct SchedulerState {
