@@ -28,6 +28,36 @@ bool HttpReply::include_success(uint32_t clock, uint32_t uptime) {
     return true;
 }
 
+static void copy_schedule(fk_app_Schedule &d, Schedule const &s, Pool *pool) {
+    auto intervals = (fk_app_Interval *)pool->malloc(sizeof(fk_app_Interval) * MaximumScheduleIntervals);
+    auto intervals_array = pool->malloc_with<pb_array_t>({
+        .length = 0,
+        .itemSize = sizeof(fk_app_Interval),
+        .buffer = intervals,
+        .fields = fk_app_Interval_fields,
+    });
+
+    for (auto i = 0u; i < MaximumScheduleIntervals; ++i) {
+        if (s.intervals[i].interval > 0) {
+            intervals_array->length++;
+            intervals[i].start = s.intervals[i].start;
+            intervals[i].end = s.intervals[i].end;
+            intervals[i].interval = s.intervals[i].interval;
+        }
+        else {
+            break;
+        }
+    }
+
+    if (intervals_array->length > 0) {
+        d.intervals.funcs.encode = pb_encode_array;
+        d.intervals.arg = (void *)intervals_array;
+    }
+
+    d.interval = s.interval;
+    d.duration = s.duration;
+}
+
 bool HttpReply::include_status(uint32_t clock, uint32_t uptime, fkb_header_t const *fkb) {
     fk_serial_number_t sn;
 
@@ -273,11 +303,10 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, fkb_header_t con
     reply_.schedules.has_gps = true;
     reply_.schedules.has_lora = true;
 
-    reply_.schedules.readings.interval = gs_->scheduler.readings.interval;
-    reply_.schedules.network.interval = gs_->scheduler.network.interval;
-    reply_.schedules.network.duration = gs_->scheduler.network.duration;
-    reply_.schedules.gps.interval = gs_->scheduler.gps.interval;
-    reply_.schedules.lora.interval = gs_->scheduler.lora.interval;
+    copy_schedule(reply_.schedules.readings, gs_->scheduler.readings, pool_);
+    copy_schedule(reply_.schedules.network, gs_->scheduler.network, pool_);
+    copy_schedule(reply_.schedules.gps, gs_->scheduler.gps, pool_);
+    copy_schedule(reply_.schedules.lora, gs_->scheduler.lora, pool_);
 
     if (strlen(gs_->transmission.url) > 0 || strlen(gs_->transmission.token) > 0) {
         reply_.has_transmission = true;

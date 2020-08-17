@@ -428,6 +428,16 @@ static void copy_cron_spec_from_pb(const char *name, Schedule &cs, fk_data_JobSc
         memcpy(&cs.cron, pbd->buffer, pbd->length);
     }
 
+    auto intervals_array = reinterpret_cast<pb_array_t *>(pb.intervals.arg);
+    if (intervals_array != nullptr && intervals_array->length > 0) {
+        auto intervals_source = reinterpret_cast<fk_app_Interval*>(intervals_array->buffer);
+        for (auto i = 0u; i < std::min(intervals_array->length, MaximumScheduleIntervals); ++i) {
+            cs.intervals[i].start = intervals_source[i].start;
+            cs.intervals[i].end = intervals_source[i].end;
+            cs.intervals[i].interval = intervals_source[i].interval;
+        }
+    }
+
     cs.interval = pb.interval;
     cs.repeated = pb.repeated;
     cs.duration = pb.duration;

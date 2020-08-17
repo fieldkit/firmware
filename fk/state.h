@@ -8,6 +8,7 @@
 #include "pool.h"
 #include "collections.h"
 #include "platform.h"
+#include "protobuf.h"
 
 #include "modules/bridge/data.h"
 #include "hal/battery_gauge.h" // For MeterReading
@@ -229,14 +230,31 @@ struct NotificationState {
     }
 };
 
+struct Interval {
+    uint32_t start;
+    uint32_t end;
+    uint32_t interval{ 0 };
+};
+
 struct Schedule {
     lwcron::CronSpec cron{ };
     uint32_t interval{ 0 };
     uint32_t repeated{ 0 };
     uint32_t duration{ 0 };
     uint32_t jitter{ 0 };
+    Interval intervals[MaximumScheduleIntervals];
 
     Schedule& operator=(const fk_app_Schedule &s) {
+        memzero(intervals, sizeof(intervals));
+        if (s.intervals.arg != nullptr) {
+            auto intervals_array = reinterpret_cast<pb_array_t*>(s.intervals.arg);
+            auto intervals_source = reinterpret_cast<fk_app_Interval*>(intervals_array->buffer);
+            for (auto i = 0u; i < std::min(intervals_array->length, MaximumScheduleIntervals); ++i) {
+                intervals[i].start = intervals_source[i].start;
+                intervals[i].end = intervals_source[i].end;
+                intervals[i].interval = intervals_source[i].interval;
+            }
+        }
         interval = s.interval;
         repeated = s.repeated;
         duration = s.duration;

@@ -156,6 +156,25 @@ static inline bool pb_app_network_info_item_decode(pb_istream_t *stream, pb_arra
     return true;
 }
 
+static inline bool fk_array_interval_decode(pb_istream_t *stream, pb_array_t *array) {
+    fk_app_Interval interval;
+    if (!pb_decode(stream, fk_app_Interval_fields, &interval)) {
+        return false;
+    }
+
+    // TODO: Wasteful.
+    auto previous = (const void *)array->buffer;
+    array->length++;
+    array->buffer = array->pool->malloc(array->itemSize * array->length);
+    void *ptr = ((uint8_t *)array->buffer) + ((array->length - 1) * array->itemSize);
+    if (previous != nullptr) {
+        memcpy(array->buffer, previous, ((array->length - 1) * array->itemSize));
+    }
+    memcpy(ptr, &interval, array->itemSize);
+
+    return true;
+}
+
 fk_data_DataRecord fk_data_record_decoding_new(Pool &pool) {
     fk_data_DataRecord record = fk_data_DataRecord_init_default;
     record.metadata.firmware.version.funcs.decode = pb_decode_string;
@@ -196,12 +215,52 @@ fk_data_DataRecord fk_data_record_decoding_new(Pool &pool) {
 
     record.schedule.readings.cron.funcs.decode = pb_decode_data;
     record.schedule.readings.cron.arg = (void *)&pool;
+    record.schedule.readings.intervals.funcs.decode = pb_decode_array;
+    record.schedule.readings.intervals.arg = (void *)pool.malloc_with<pb_array_t>({
+        .length = 0,
+        .itemSize = sizeof(fk_app_Interval),
+        .buffer = nullptr,
+        .fields = fk_app_Interval_fields,
+        .decode_item_fn = fk_array_interval_decode,
+        .pool = &pool,
+    });
+
     record.schedule.network.cron.funcs.decode = pb_decode_data;
     record.schedule.network.cron.arg = (void *)&pool;
+    record.schedule.network.intervals.funcs.decode = pb_decode_array;
+    record.schedule.network.intervals.arg = (void *)pool.malloc_with<pb_array_t>({
+        .length = 0,
+        .itemSize = sizeof(fk_app_Interval),
+        .buffer = nullptr,
+        .fields = fk_app_Interval_fields,
+        .decode_item_fn = fk_array_interval_decode,
+        .pool = &pool,
+    });
+
     record.schedule.gps.cron.funcs.decode = pb_decode_data;
     record.schedule.gps.cron.arg = (void *)&pool;
+    record.schedule.gps.intervals.funcs.decode = pb_decode_array;
+    record.schedule.gps.intervals.arg = (void *)pool.malloc_with<pb_array_t>({
+        .length = 0,
+        .itemSize = sizeof(fk_app_Interval),
+        .buffer = nullptr,
+        .fields = fk_app_Interval_fields,
+        .decode_item_fn = fk_array_interval_decode,
+        .pool = &pool,
+    });
+
     record.schedule.lora.cron.funcs.decode = pb_decode_data;
     record.schedule.lora.cron.arg = (void *)&pool;
+    record.schedule.lora.intervals.funcs.decode = pb_decode_array;
+    record.schedule.lora.intervals.arg = (void *)pool.malloc_with<pb_array_t>({
+        .length = 0,
+        .itemSize = sizeof(fk_app_Interval),
+        .buffer = nullptr,
+        .fields = fk_app_Interval_fields,
+        .decode_item_fn = fk_array_interval_decode,
+        .pool = &pool,
+    });
+
     record.transmission.wifi.url.funcs.decode = pb_decode_string;
     record.transmission.wifi.url.arg = (void *)&pool;
     record.transmission.wifi.token.funcs.decode = pb_decode_string;
@@ -249,9 +308,13 @@ fk_data_DataRecord fk_data_record_encoding_new() {
     record.lora.deviceEui.funcs.encode = pb_encode_data;
     record.network.networks.funcs.encode = pb_encode_array;
     record.schedule.readings.cron.funcs.encode = pb_encode_data;
+    record.schedule.readings.intervals.funcs.encode = pb_encode_array;
     record.schedule.network.cron.funcs.encode = pb_encode_data;
+    record.schedule.network.intervals.funcs.encode = pb_encode_array;
     record.schedule.gps.cron.funcs.encode = pb_encode_data;
+    record.schedule.gps.intervals.funcs.encode = pb_encode_array;
     record.schedule.lora.cron.funcs.encode = pb_encode_data;
+    record.schedule.lora.intervals.funcs.encode = pb_encode_array;
     record.transmission.wifi.url.funcs.encode = pb_encode_string;
     record.transmission.wifi.token.funcs.encode = pb_encode_string;
 
@@ -270,6 +333,51 @@ fk_app_HttpQuery *fk_http_query_prepare_decoding(fk_app_HttpQuery *query, Pool *
 
     query->schedules.readings.cron.funcs.decode = pb_decode_data;
     query->schedules.readings.cron.arg = (void *)pool;
+    query->schedules.readings.intervals.funcs.decode = pb_decode_array;
+    query->schedules.readings.intervals.arg = (void *)pool->malloc_with<pb_array_t>({
+        .length = 0,
+        .itemSize = sizeof(fk_app_Interval),
+        .buffer = nullptr,
+        .fields = fk_app_Interval_fields,
+        .decode_item_fn = fk_array_interval_decode,
+        .pool = pool,
+    });
+
+    query->schedules.network.cron.funcs.decode = pb_decode_data;
+    query->schedules.network.cron.arg = (void *)pool;
+    query->schedules.network.intervals.funcs.decode = pb_decode_array;
+    query->schedules.network.intervals.arg = (void *)pool->malloc_with<pb_array_t>({
+        .length = 0,
+        .itemSize = sizeof(fk_app_Interval),
+        .buffer = nullptr,
+        .fields = fk_app_Interval_fields,
+        .decode_item_fn = fk_array_interval_decode,
+        .pool = pool,
+    });
+
+    query->schedules.gps.cron.funcs.decode = pb_decode_data;
+    query->schedules.gps.cron.arg = (void *)pool;
+    query->schedules.gps.intervals.funcs.decode = pb_decode_array;
+    query->schedules.gps.intervals.arg = (void *)pool->malloc_with<pb_array_t>({
+        .length = 0,
+        .itemSize = sizeof(fk_app_Interval),
+        .buffer = nullptr,
+        .fields = fk_app_Interval_fields,
+        .decode_item_fn = fk_array_interval_decode,
+        .pool = pool,
+    });
+
+    query->schedules.lora.cron.funcs.decode = pb_decode_data;
+    query->schedules.lora.cron.arg = (void *)pool;
+    query->schedules.lora.intervals.funcs.decode = pb_decode_array;
+    query->schedules.lora.intervals.arg = (void *)pool->malloc_with<pb_array_t>({
+        .length = 0,
+        .itemSize = sizeof(fk_app_Interval),
+        .buffer = nullptr,
+        .fields = fk_app_Interval_fields,
+        .decode_item_fn = fk_array_interval_decode,
+        .pool = pool,
+    });
 
     query->loraSettings.deviceEui.funcs.decode = pb_decode_data;
     query->loraSettings.deviceEui.arg = (void *)pool;
@@ -331,6 +439,19 @@ fk_app_HttpReply *fk_http_reply_encoding_initialize(fk_app_HttpReply *reply) {
     if (reply->status.firmware.build.arg != nullptr) reply->status.firmware.build.funcs.encode = pb_encode_string;
     if (reply->status.firmware.number.arg != nullptr) reply->status.firmware.number.funcs.encode = pb_encode_string;
     if (reply->status.firmware.hash.arg != nullptr) reply->status.firmware.hash.funcs.encode = pb_encode_string;
+
+    if (reply->status.schedules.readings.intervals.arg != nullptr) {
+        reply->status.schedules.readings.intervals.funcs.encode = pb_encode_array;
+    }
+    if (reply->status.schedules.gps.intervals.arg != nullptr) {
+        reply->status.schedules.gps.intervals.funcs.encode = pb_encode_array;
+    }
+    if (reply->status.schedules.network.intervals.arg != nullptr) {
+        reply->status.schedules.network.intervals.funcs.encode = pb_encode_array;
+    }
+    if (reply->status.schedules.lora.intervals.arg != nullptr) {
+        reply->status.schedules.lora.intervals.funcs.encode = pb_encode_array;
+    }
 
     if (reply->nearbyNetworks.networks.arg != nullptr) {
         reply->nearbyNetworks.networks.funcs.encode = pb_encode_array;

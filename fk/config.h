@@ -115,6 +115,12 @@ constexpr uint32_t DefaultDebugLoraInterval = 60 * 3;
 constexpr uint32_t DefaultDebugGpsInterval = OneDaySeconds;
 
 /**
+ * Maximum number of intervals per schedule.
+ * TODO Remove eventually.
+ */
+constexpr size_t MaximumScheduleIntervals = 10;
+
+/**
  * Maximum allowed time drift, in seconds.
  */
 constexpr int32_t AcceptableTimeDriftSeconds = 5;
@@ -306,6 +312,7 @@ constexpr uint32_t NetworkConnectionMaximumDuration = TenSecondsMs;
 
 /**
  * Maximum number of WiFi networks.
+ * TODO Remove eventually.
  */
 constexpr size_t WifiMaximumNumberOfNetworks = 5;
 

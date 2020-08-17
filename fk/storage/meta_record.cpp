@@ -4,6 +4,31 @@
 namespace fk {
 
 static void copy_schedule(fk_data_JobSchedule &d, const Schedule &s, Pool &pool) {
+    auto intervals = (fk_app_Interval *)pool.malloc(sizeof(fk_app_Interval) * MaximumScheduleIntervals);
+    auto intervals_array = pool.malloc_with<pb_array_t>({
+        .length = 0,
+        .itemSize = sizeof(fk_app_Interval),
+        .buffer = intervals,
+        .fields = fk_app_Interval_fields,
+    });
+
+    for (auto i = 0u; i < MaximumScheduleIntervals; ++i) {
+        if (s.intervals[i].interval > 0) {
+            intervals_array->length++;
+            intervals[i].start = s.intervals[i].start;
+            intervals[i].end = s.intervals[i].end;
+            intervals[i].interval = s.intervals[i].interval;
+        }
+        else {
+            break;
+        }
+    }
+
+    if (intervals_array->length > 0) {
+        d.intervals.funcs.encode = pb_encode_array;
+        d.intervals.arg = (void *)intervals_array;
+    }
+
     d.cron.arg = pb_data_create(s.cron, pool);
     d.interval = s.interval;
     d.duration = s.duration;
