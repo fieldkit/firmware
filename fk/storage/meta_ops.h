@@ -20,7 +20,7 @@ public:
 public:
     tl::expected<uint32_t, Error> write_state(GlobalState *gs, Pool &pool);
     tl::expected<uint32_t, Error> write_state(GlobalState *gs, fkb_header_t const *fkb_header, Pool &pool);
-    tl::expected<uint32_t, Error> write_modules(GlobalState *gs, fkb_header_t const *fkb_header, ConstructedModulesCollection &modules, Pool &pool);
+    tl::expected<uint32_t, Error> write_modules(GlobalState *gs, fkb_header_t const *fkb_header, ConstructedModulesCollection &modules, ModuleReadingsCollection &readings, Pool &pool);
 
 };
 

@@ -144,7 +144,7 @@ static void fake_global_state(GlobalState &gs, Pool &pool) {
     gs.modules = modules;
 }
 
-static void fake_modules(ConstructedModulesCollection &modules, Pool &pool) {
+static void fake_modules(ConstructedModulesCollection &modules, ModuleReadingsCollection &readings, Pool &pool) {
     modules.emplace(ConstructedModule{
         .found = { },
         .meta = &fk_test_module_fake_1,
@@ -164,6 +164,15 @@ static void fake_modules(ConstructedModulesCollection &modules, Pool &pool) {
         .found = { },
         .meta = &fk_test_module_fake_2,
         .module = fk_test_module_fake_2.ctor(pool),
+    });
+
+    readings.emplace(ModuleMetaAndReadings{
+    });
+    readings.emplace(ModuleMetaAndReadings{
+    });
+    readings.emplace(ModuleMetaAndReadings{
+    });
+    readings.emplace(ModuleMetaAndReadings{
     });
 
     for (auto &m : modules) {
@@ -218,10 +227,12 @@ TEST_F(ProtoBufSizeSuite, Readings) {
     TwoWireWrapper module_bus{ "modules", nullptr };
     ScanningContext ctx{ get_modmux(), gs.location(pool_), module_bus, pool_ };
     ConstructedModulesCollection resolved(pool_);
-    fake_modules(resolved, pool_);
+    ModuleReadingsCollection module_readings(pool_);
+    fake_modules(resolved, module_readings, pool_);
 
     Readings readings{ get_modmux() };
-    ASSERT_TRUE(readings.take_readings(ctx, resolved, 1, 1, pool_));
+    ASSERT_TRUE(readings.take_readings(ctx, resolved, pool_));
+    readings.link(1, 1);
 
     auto encoded = pool_.encode(fk_data_DataRecord_fields, &readings.record());
     dump_binary(file_, "data-readings", encoded);
@@ -244,13 +255,14 @@ TEST_F(ProtoBufSizeSuite, Configuration) {
 
 TEST_F(ProtoBufSizeSuite, Modules) {
     ConstructedModulesCollection resolved(pool_);
-    fake_modules(resolved, pool_);
+    ModuleReadingsCollection module_readings(pool_);
+    fake_modules(resolved, module_readings, pool_);
 
     GlobalState gs;
     fake_global_state(gs, pool_);
 
     MetaRecord record;
-    record.include_modules(&gs, &fake_header, resolved, pool_);
+    record.include_modules(&gs, &fake_header, resolved, module_readings, pool_);
 
     auto encoded = pool_.encode(fk_data_DataRecord_fields, &record.record());
     dump_binary(file_, "data-modules", encoded);

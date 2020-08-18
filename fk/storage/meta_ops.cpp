@@ -45,9 +45,9 @@ tl::expected<uint32_t, Error> MetaOps::write_state(GlobalState *gs, fkb_header_t
     return (*meta_record).record;
 }
 
-tl::expected<uint32_t, Error> MetaOps::write_modules(GlobalState *gs, fkb_header_t const *fkb, ConstructedModulesCollection &modules, Pool &pool) {
+tl::expected<uint32_t, Error> MetaOps::write_modules(GlobalState *gs, fkb_header_t const *fkb, ConstructedModulesCollection &modules, ModuleReadingsCollection &readings, Pool &pool) {
     MetaRecord record;
-    record.include_modules(gs, fkb, modules, pool);
+    record.include_modules(gs, fkb, modules, readings, pool);
 
     auto meta = storage_.file(Storage::Meta);
     if (!meta.seek_end()) {

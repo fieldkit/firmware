@@ -28,7 +28,13 @@ tl::expected<TakenReadings, Error> ReadingsTaker::take(ConstructedModulesCollect
     }
 
     if (!read_only_) {
-        auto meta_record = append_configuration(constructed_modules, pool);
+        auto all_readings = readings_.take_readings(ctx, constructed_modules, pool);
+        if (!all_readings) {
+            logerror("error taking readings");
+            return tl::unexpected<Error>(Error::General);
+        }
+
+        auto meta_record = append_configuration(constructed_modules, *all_readings, pool);
         if (!meta_record) {
             logerror("error appending configuration");
             return tl::unexpected<Error>(Error::General);
@@ -40,11 +46,7 @@ tl::expected<TakenReadings, Error> ReadingsTaker::take(ConstructedModulesCollect
         }
 
         auto number = data.record();
-        auto all_readings = readings_.take_readings(ctx, constructed_modules, *meta_record, number, pool);
-        if (!all_readings) {
-            logerror("error taking readings");
-            return tl::unexpected<Error>(Error::General);
-        }
+        readings_.link(*meta_record, number);
 
         if (!append_readings(data, pool)) {
             logerror("error appending readings");
@@ -61,7 +63,7 @@ tl::expected<TakenReadings, Error> ReadingsTaker::take(ConstructedModulesCollect
         return TakenReadings{ get_clock_now(), number, std::move(constructed_modules), std::move(*all_readings) };
     }
 
-    auto all_readings = readings_.take_readings(ctx, constructed_modules, 0, 0, pool);
+    auto all_readings = readings_.take_readings(ctx, constructed_modules, pool);
     if (!all_readings) {
         logerror("error taking readings");
         return tl::unexpected<Error>(Error::General);
@@ -104,10 +106,10 @@ bool ReadingsTaker::verify_reading_record(File &file, Pool &pool) {
     return true;
 }
 
-tl::expected<uint32_t, Error> ReadingsTaker::append_configuration(ConstructedModulesCollection &modules, Pool &pool) {
+tl::expected<uint32_t, Error> ReadingsTaker::append_configuration(ConstructedModulesCollection &modules, ModuleReadingsCollection &readings, Pool &pool) {
     MetaOps ops{ storage_ };
     auto gs = get_global_state_rw();
-    return ops.write_modules(gs.get(), &fkb_header, modules, pool);
+    return ops.write_modules(gs.get(), &fkb_header, modules, readings, pool);
 }
 
 }

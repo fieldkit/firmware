@@ -25,7 +25,7 @@ public:
     bool append_readings(File &file, Pool &pool);
 
 private:
-    tl::expected<uint32_t, Error> append_configuration(ConstructedModulesCollection &modules, Pool &pool);
+    tl::expected<uint32_t, Error> append_configuration(ConstructedModulesCollection &modules, ModuleReadingsCollection &readings, Pool &pool);
 
     bool verify_reading_record(File &file, Pool &pool);
 

@@ -64,7 +64,7 @@ TEST_F(ReadingsSuite, TakingReadingsNoModules) {
     ConstructedModulesCollection resolved(pool);
 
     Readings readings{ get_modmux() };
-    ASSERT_TRUE(readings.take_readings(ctx, resolved, 0, 0, pool));
+    ASSERT_TRUE(readings.take_readings(ctx, resolved, pool));
 
     auto buffer = pool.encode(fk_data_DataRecord_fields, &readings.record());
 
@@ -85,7 +85,7 @@ TEST_F(ReadingsSuite, TakingReadingsModuleWithNoReadings) {
     });
 
     Readings readings{ get_modmux() };
-    ASSERT_TRUE(readings.take_readings(ctx, resolved, 0, 0, pool));
+    ASSERT_TRUE(readings.take_readings(ctx, resolved, pool));
 
     auto buffer = pool.encode(fk_data_DataRecord_fields, &readings.record());
 
@@ -106,7 +106,7 @@ TEST_F(ReadingsSuite, TakingReadingsOneModule) {
     });
 
     Readings readings{ get_modmux() };
-    ASSERT_TRUE(readings.take_readings(ctx, resolved, 0, 0, pool));
+    ASSERT_TRUE(readings.take_readings(ctx, resolved, pool));
 
     auto buffer = pool.encode(fk_data_DataRecord_fields, &readings.record());
 
@@ -132,7 +132,7 @@ TEST_F(ReadingsSuite, TakingReadingsTwoModules) {
     });
 
     Readings readings{ get_modmux() };
-    ASSERT_TRUE(readings.take_readings(ctx, resolved, 0, 0, pool));
+    ASSERT_TRUE(readings.take_readings(ctx, resolved, pool));
 
     auto buffer = pool.encode(fk_data_DataRecord_fields, &readings.record());
 
@@ -168,7 +168,7 @@ TEST_F(ReadingsSuite, TakingReadingsFourModulesEverythingWorks) {
     });
 
     Readings readings{ get_modmux() };
-    auto taken = readings.take_readings(ctx, resolved, 0, 0, pool);
+    auto taken = readings.take_readings(ctx, resolved, pool);
     ASSERT_TRUE(taken);
 
     auto buffer = pool.encode(fk_data_DataRecord_fields, &readings.record());
@@ -212,7 +212,7 @@ TEST_F(ReadingsSuite, TakingReadingsFourModulesAndOneFailsToGetReadings) {
     });
 
     Readings readings{ get_modmux() };
-    auto taken = readings.take_readings(ctx, resolved, 0, 0, pool);
+    auto taken = readings.take_readings(ctx, resolved, pool);
     ASSERT_TRUE(taken);
 
     auto buffer = pool.encode(fk_data_DataRecord_fields, &readings.record());

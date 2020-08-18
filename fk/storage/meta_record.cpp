@@ -3,6 +3,8 @@
 
 namespace fk {
 
+FK_DECLARE_LOGGER("readings");
+
 static void copy_schedule(fk_data_JobSchedule &d, const Schedule &s, Pool &pool) {
     auto intervals = (fk_app_Interval *)pool.malloc(sizeof(fk_app_Interval) * MaximumScheduleIntervals);
     auto intervals_array = pool.malloc_with<pb_array_t>({
@@ -151,8 +153,9 @@ void MetaRecord::include_state(GlobalState const *gs, fkb_header_t const *fkb_he
     record_.transmission.wifi.token.arg = (void *)gs->transmission.token;
 }
 
-void MetaRecord::include_modules(GlobalState const *gs, fkb_header_t const *fkb_header, ConstructedModulesCollection &modules, Pool &pool) {
+void MetaRecord::include_modules(GlobalState const *gs, fkb_header_t const *fkb_header, ConstructedModulesCollection &modules, ModuleReadingsCollection &readings, Pool &pool) {
     auto module_infos = pool.malloc<fk_data_ModuleInfo>(modules.size());
+    auto readings_iter = readings.begin();
 
     auto index = 0;
     for (auto &pair : modules) {
@@ -181,6 +184,21 @@ void MetaRecord::include_modules(GlobalState const *gs, fkb_header_t const *fkb_
         m.header.kind = meta->kind;
         m.header.version = meta->version;
         m.flags = meta->flags;
+
+        if (readings_iter != readings.end()) {
+            auto &mr = *readings_iter;
+            if (mr.status_message != nullptr) {
+                auto status_message_data = pool.malloc_with<pb_data_t>({
+                    .length = mr.status_message->size,
+                    .buffer = mr.status_message->buffer,
+                });
+                m.status.arg = (void *)status_message_data;
+            }
+            ++readings_iter;
+        }
+        else {
+            logwarn("readings vs modules size mismatch");
+        }
 
         if (sensor_metas != nullptr && sensor_metas->nsensors > 0) {
             auto sensor_infos = pool.malloc<fk_data_SensorInfo>(sensor_metas->nsensors);

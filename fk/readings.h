@@ -16,11 +16,12 @@ public:
     explicit Readings(ModMux *mm);
 
 public:
-    tl::expected<ModuleReadingsCollection, Error> take_readings(ScanningContext &ctx, ConstructedModulesCollection const &modules,
-                                                                uint32_t meta_record, uint32_t reading_number, Pool &pool);
+    tl::expected<ModuleReadingsCollection, Error> take_readings(ScanningContext &ctx, ConstructedModulesCollection const &modules, Pool &pool);
 
 public:
     fk_data_DataRecord const &record();
+
+    void link(uint32_t meta_record, uint32_t reading_number);
 
     void bump_amplified_reading() {
         record_.readings.reading++;

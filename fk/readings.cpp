@@ -52,9 +52,12 @@ public:
 Readings::Readings(ModMux *mm) : mm_(mm) {
 }
 
-tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(
-    ScanningContext &ctx, ConstructedModulesCollection const &modules,
-    uint32_t meta_record, uint32_t reading_number, Pool &pool) {
+void Readings::link(uint32_t meta_record, uint32_t reading_number) {
+    record_.readings.reading = reading_number;
+    record_.readings.meta = meta_record;
+}
+
+tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningContext &ctx, ConstructedModulesCollection const &modules, Pool &pool) {
     ModuleReadingsCollection all_readings{ pool };
 
     auto now = get_clock_now();
@@ -63,9 +66,10 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(
     record_ = fk_data_record_encoding_new();
     record_.has_readings = true;
     record_.readings.time = now;
-    record_.readings.reading = reading_number;
+    // These get set via Readings::link.
+    record_.readings.reading = 0;
+    record_.readings.meta = 0;
     record_.readings.uptime = fk_uptime();
-    record_.readings.meta = meta_record;
     record_.readings.flags = fk_data_DownloadFlags_READING_FLAGS_NONE;
     record_.readings.has_location = true;
     record_.readings.location.time = gps->time;
