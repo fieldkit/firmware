@@ -29,6 +29,16 @@ public:
         return "uplfirmware";
     }
 
+private:
+    /**
+     * This is dumb and only here to workaround a common bug in HTTP
+     * client libraries that will EPIPE/Broken Pipe if we reply with
+     * error headers before consuming the entire body. Would love to remove.
+     */
+    bool read_complete_and_fail(const char *error, Pool &pool);
+    bool write_error(const char *kind, Pool &pool);
+    bool write_success(Pool &pool);
+
 };
 
 FK_ENABLE_TYPE_NAME(ReceiveFirmwareWorker);

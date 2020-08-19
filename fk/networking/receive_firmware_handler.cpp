@@ -9,11 +9,39 @@ FK_DECLARE_LOGGER("receive");
 ReceiveFirmwareWorker::ReceiveFirmwareWorker(HttpServerConnection *connection) : connection_(connection) {
 }
 
-void ReceiveFirmwareWorker::run(Pool &pool) {
-    auto lock = sd_mutex.acquire(UINT32_MAX);
+bool ReceiveFirmwareWorker::read_complete_and_fail(const char *error, Pool &pool) {
     auto expected = connection_->length();
     auto bytes_copied = (uint32_t)0;
+    auto buffer = reinterpret_cast<uint8_t*>(pool.malloc(NetworkBufferSize));
+
+    while (connection_->active() && bytes_copied < expected) {
+        auto bytes = connection_->read(buffer, NetworkBufferSize);
+        if (bytes > 0) {
+            bytes_copied += bytes;
+        }
+    }
+
+    return write_error(error, pool);
+}
+
+bool ReceiveFirmwareWorker::write_error(const char *kind, Pool &pool) {
+    auto body = pool.sprintf("{ \"%s\": true }", kind);
+    connection_->plain(500, "error", body);
+    connection_->close();
+    return true;
+}
+
+bool ReceiveFirmwareWorker::write_success(Pool &pool) {
+    auto body = pool.sprintf("{ \"%s\": true }", "success");
+    connection_->plain(200, "ok", body);
+    connection_->close();
+    return true;
+}
+
+void ReceiveFirmwareWorker::run(Pool &pool) {
+    auto lock = sd_mutex.acquire(UINT32_MAX);
     auto file_name = "fk-bundled-fkb-network.bin";
+    auto expected = connection_->length();
 
     loginfo("receiving %" PRIu32 " bytes...", expected);
 
@@ -22,18 +50,26 @@ void ReceiveFirmwareWorker::run(Pool &pool) {
 
     auto swap = connection_->find_query_param("swap", pool) != nullptr;
     auto sd = get_sd_card();
+    if (!sd->begin()) {
+        read_complete_and_fail("sdCard", pool);
+        return;
+    }
+
     if (sd->is_file(file_name)) {
         loginfo("deleting existing file");
-
         if (!sd->unlink(file_name)) {
-            connection_->plain(500, "error", "{}");
-            connection_->close();
+            read_complete_and_fail("unlink", pool);
             return;
         }
     }
 
     auto file = sd->open(file_name, true, pool);
+    if (file == nullptr || !*file) {
+        read_complete_and_fail("create", pool);
+    }
+
     auto buffer = reinterpret_cast<uint8_t*>(pool.malloc(NetworkBufferSize));
+    auto bytes_copied = (uint32_t)0;
 
     while (connection_->active() && bytes_copied < expected) {
         auto bytes = connection_->read(buffer, NetworkBufferSize);
@@ -51,13 +87,11 @@ void ReceiveFirmwareWorker::run(Pool &pool) {
     tracker.finished();
 
     if (bytes_copied != expected) {
-        connection_->plain(500, "error", "{}");
-        connection_->close();
+        write_error("incomplete", pool);
         return;
     }
 
-    connection_->plain(200, "ok", "{}");
-    connection_->close();
+    write_success(pool);
 
     fk_logs_flush();
     fk_delay(1000);
