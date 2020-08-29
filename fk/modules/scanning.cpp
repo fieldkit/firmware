@@ -53,7 +53,7 @@ static bool add_virtual_module(FoundModuleCollection &headers, uint16_t kind) {
     return true;
 }
 
-bool ModuleScanning::try_scan_single_module(uint8_t index, FoundModuleCollection &found, Pool &pool) {
+bool ModuleScanning::try_scan_single_module(uint8_t position, FoundModuleCollection &found, Pool &pool) {
     // Take ownership over the module bus.
     auto module_bus = get_board()->i2c_module();
     ModuleEeprom eeprom{ module_bus };
@@ -66,10 +66,10 @@ bool ModuleScanning::try_scan_single_module(uint8_t index, FoundModuleCollection
 
     if (!fk_module_header_valid(&header)) {
         auto expected = fk_module_header_sign(&header);
-        logerror("[%d] invalid header (%" PRIx32 " != %" PRIx32 ")", index, expected, header.crc);
+        logerror("[%d] invalid header (%" PRIx32 " != %" PRIx32 ")", position, expected, header.crc);
         fk_dump_memory("HDR ", (uint8_t *)&header, sizeof(header));
         found.emplace(FoundModule{
-            .position = (uint8_t)index,
+            .position = (uint8_t)position,
             .header = header,
         });
         return false;
@@ -78,11 +78,11 @@ bool ModuleScanning::try_scan_single_module(uint8_t index, FoundModuleCollection
     fk_uuid_formatted_t pretty_id;
     fk_uuid_sprintf(&header.id, &pretty_id);
 
-    loginfo("[%d] mk=%02" PRIx32 "%02" PRIx32 " v%" PRIu32 " %s", index, header.manufacturer, header.kind, header.version,
+    loginfo("[%d] mk=%02" PRIx32 "%02" PRIx32 " v%" PRIu32 " %s", position, header.manufacturer, header.kind, header.version,
             pretty_id.str);
 
     found.emplace(FoundModule{
-        .position = (uint8_t)index,
+        .position = (uint8_t)position,
         .header = header,
     });
     return true;
@@ -101,6 +101,8 @@ tl::expected<FoundModuleCollection, Error> ModuleScanning::scan(Pool &pool) {
         FK_ASSERT(add_virtual_module(found, FK_MODULES_KIND_RANDOM));
     }
 
+    // If the backplane isn't available, try and find a single module
+    // on the bus.
     if (!available()) {
         if (!try_scan_single_module(0, found, pool)) {
             logerror("single module scan failed");
@@ -110,13 +112,13 @@ tl::expected<FoundModuleCollection, Error> ModuleScanning::scan(Pool &pool) {
 
     DebuggerOfLastResort::get()->message("scanning");
 
-    for (auto index = 0u; index < MaximumNumberOfPhysicalModules; ++index) {
-        if (!mm_->choose(index)) {
-            logerror("[%d] error choosing", index);
+    for (auto position = 1u; position <= MaximumNumberOfPhysicalModules; ++position) {
+        if (!mm_->choose(position)) {
+            logerror("[%d] error choosing", position);
             return tl::unexpected<Error>(Error::Bus);
         }
 
-        try_scan_single_module(index, found, pool);
+        try_scan_single_module(position, found, pool);
     }
 
     if (!mm_->choose_nothing()) {

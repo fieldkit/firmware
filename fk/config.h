@@ -201,7 +201,7 @@ constexpr bool ModulesPowerIndividually = true;
  * connected to a single station. This is governed by the largest backplanes and
  * their possible combinations.
  */
-constexpr size_t MaximumNumberOfPhysicalModules = 4;
+constexpr size_t MaximumNumberOfPhysicalModules = 5;
 
 // -------------------------------------------------------------------------------------------
 // LoRa

@@ -25,7 +25,7 @@ constexpr uint8_t MCP23008_GPIO = 0x09;
 constexpr uint8_t MCP23008_OLAT = 0x0A;
 
 constexpr uint8_t to_mux_position(uint8_t p) {
-    return p * 2;
+    return (p - 1) * 2;
 }
 
 #if defined(FK_TOPOLOGY_CHANGES)
