@@ -30,7 +30,9 @@ class FkSegger(gdb.Command):
             for h in irq_handlers:
                 gdb.execute("b " + h)
         gdb.execute("monitor reset")
-        gdb.execute("continue")
+        # NOTE GDB is crashing with this?!
+        if False:
+            gdb.execute("continue")
 
 
 class FkFixLogs(gdb.Command):
@@ -70,7 +72,9 @@ class FkRestart(gdb.Command):
 
     def invoke(self, arg, from_tty):
         gdb.execute("monitor reset")
-        gdb.execute("c")
+        # NOTE GDB is crashing with this?!
+        if False:
+            gdb.execute("continue")
 
 
 class FkReloadAllAndRun(gdb.Command):
@@ -89,7 +93,9 @@ class FkReloadAllAndRun(gdb.Command):
         gdb.execute("load build/samd51/bootloader/fkbl.elf")
         gdb.execute("load build/samd51/fk/fk-bundled-fkb.elf")
         gdb.execute("monitor reset")
-        gdb.execute("c")
+        # NOTE GDB is crashing with this?!
+        if False:
+            gdb.execute("continue")
 
 
 class FkReloadAll(gdb.Command):
