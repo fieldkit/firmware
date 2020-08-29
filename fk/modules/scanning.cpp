@@ -112,13 +112,13 @@ tl::expected<FoundModuleCollection, Error> ModuleScanning::scan(Pool &pool) {
 
     DebuggerOfLastResort::get()->message("scanning");
 
-    for (auto position = 1u; position <= MaximumNumberOfPhysicalModules; ++position) {
-        if (!mm_->choose(module_position_from(position))) {
+    for (auto position : mm_->all()) {
+        if (!mm_->choose(position)) {
             logerror("[%d] error choosing", position);
             return tl::unexpected<Error>(Error::Bus);
         }
 
-        try_scan_single_module(module_position_from(position), found, pool);
+        try_scan_single_module(position, found, pool);
     }
 
     if (!mm_->choose_nothing()) {

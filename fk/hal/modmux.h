@@ -100,6 +100,46 @@ public:
     virtual ModulesLock lock() = 0;
 
 public:
+    class iterator {
+    private:
+        uint8_t iter_;
+
+    public:
+        iterator(uint8_t iter) : iter_(iter) {
+        }
+
+    public:
+        iterator operator++() {
+            iter_++;
+            return *this;
+        }
+
+        bool operator!=(const iterator &other) const {
+            return iter_ != other.iter_;
+        }
+
+        ModulePosition operator*() const {
+            return module_position_from(iter_);
+        }
+    };
+
+    class all_modules {
+    public:
+        iterator begin() const {
+            return iterator(0);
+        }
+
+        iterator end() const {
+            return iterator(MaximumNumberOfPhysicalModules);
+        }
+    };
+
+public:
+    all_modules all() {
+        return { };
+    }
+
+public:
     optional<Topology> get_topology();
 
     bool check_modules();
