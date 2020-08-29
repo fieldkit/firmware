@@ -88,7 +88,7 @@ static size_t write_reading(File &file) {
 }
 
 static void try_and_reproduce_weird_block_issue() {
-    loginfo(__PRETTY_FUNCTION__);
+    loginfo("%s", __PRETTY_FUNCTION__);
 
     StandardPool pool{ "live-tests" };
 
@@ -147,7 +147,7 @@ static void try_and_reproduce_weird_block_issue() {
 }
 
 static void fsck_and_stop() {
-    loginfo(__PRETTY_FUNCTION__);
+    loginfo("%s", __PRETTY_FUNCTION__);
 
     FK_ASSERT(MemoryFactory::get_data_memory()->begin());
 
@@ -205,7 +205,7 @@ static bool read_weather_eeprom(uint32_t &last_address, fk_weather_t &last_recor
  * with the state of things. Saved anyway for some future analysis.
  */
 static void try_and_break_module_bus() {
-    loginfo(__PRETTY_FUNCTION__);
+    loginfo("%s", __PRETTY_FUNCTION__);
 
     get_board()->disable_everything();
 
@@ -265,7 +265,7 @@ static void try_and_break_module_bus() {
 }
 
 static void try_and_break_weather_sensor_bus() {
-    loginfo(__PRETTY_FUNCTION__);
+    loginfo("%s", __PRETTY_FUNCTION__);
 
     auto display = get_display();
 
@@ -523,7 +523,7 @@ static void https_test() {
 }
 
 static void chase_upload_truncation() {
-    loginfo(__PRETTY_FUNCTION__);
+    loginfo("%s", __PRETTY_FUNCTION__);
 
     FK_ASSERT(MemoryFactory::get_data_memory()->begin());
 

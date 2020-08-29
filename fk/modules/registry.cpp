@@ -27,8 +27,6 @@ ModuleRegistry::~ModuleRegistry() {
 void ModuleRegistry::initialize() {
     ModuleNode *iter = nullptr;
 
-    loginfo("registered:");
-
     if (fk_modules_builtin_get(&iter) == 0) {
         for (; iter != nullptr; iter = iter->link) {
             auto meta = iter->meta;
