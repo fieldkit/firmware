@@ -14,8 +14,8 @@ public:
     explicit ModuleConfigurer(ModuleScanning &scanning);
 
 public:
-    bool configure(uint8_t position, ModuleHeader header);
-    bool erase(uint8_t position);
+    bool configure(ModulePosition position, ModuleHeader header);
+    bool erase(ModulePosition position);
 
 };
 

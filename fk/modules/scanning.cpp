@@ -53,7 +53,7 @@ static bool add_virtual_module(FoundModuleCollection &headers, uint16_t kind) {
     return true;
 }
 
-bool ModuleScanning::try_scan_single_module(uint8_t position, FoundModuleCollection &found, Pool &pool) {
+bool ModuleScanning::try_scan_single_module(ModulePosition position, FoundModuleCollection &found, Pool &pool) {
     // Take ownership over the module bus.
     auto module_bus = get_board()->i2c_module();
     ModuleEeprom eeprom{ module_bus };
@@ -66,10 +66,10 @@ bool ModuleScanning::try_scan_single_module(uint8_t position, FoundModuleCollect
 
     if (!fk_module_header_valid(&header)) {
         auto expected = fk_module_header_sign(&header);
-        logerror("[%d] invalid header (%" PRIx32 " != %" PRIx32 ")", position, expected, header.crc);
+        logerror("[%d] invalid header (%" PRIx32 " != %" PRIx32 ")", module_position_display(position), expected, header.crc);
         fk_dump_memory("HDR ", (uint8_t *)&header, sizeof(header));
         found.emplace(FoundModule{
-            .position = (uint8_t)position,
+            .position = position,
             .header = header,
         });
         return false;
@@ -78,11 +78,11 @@ bool ModuleScanning::try_scan_single_module(uint8_t position, FoundModuleCollect
     fk_uuid_formatted_t pretty_id;
     fk_uuid_sprintf(&header.id, &pretty_id);
 
-    loginfo("[%d] mk=%02" PRIx32 "%02" PRIx32 " v%" PRIu32 " %s", position, header.manufacturer, header.kind, header.version,
-            pretty_id.str);
+    loginfo("[%d] mk=%02" PRIx32 "%02" PRIx32 " v%" PRIu32 " %s", module_position_display(position),
+            header.manufacturer, header.kind, header.version, pretty_id.str);
 
     found.emplace(FoundModule{
-        .position = (uint8_t)position,
+        .position = position,
         .header = header,
     });
     return true;
@@ -113,12 +113,12 @@ tl::expected<FoundModuleCollection, Error> ModuleScanning::scan(Pool &pool) {
     DebuggerOfLastResort::get()->message("scanning");
 
     for (auto position = 1u; position <= MaximumNumberOfPhysicalModules; ++position) {
-        if (!mm_->choose(position)) {
+        if (!mm_->choose(module_position_from(position))) {
             logerror("[%d] error choosing", position);
             return tl::unexpected<Error>(Error::Bus);
         }
 
-        try_scan_single_module(position, found, pool);
+        try_scan_single_module(module_position_from(position), found, pool);
     }
 
     if (!mm_->choose_nothing()) {
@@ -131,13 +131,13 @@ tl::expected<FoundModuleCollection, Error> ModuleScanning::scan(Pool &pool) {
     return std::move(found);
 }
 
-bool ModuleScanning::configure(uint8_t position, ModuleHeader &header) {
+bool ModuleScanning::configure(ModulePosition position, ModuleHeader &header) {
     if (!available()) {
         return false;
     }
 
     if (!mm_->choose(position)) {
-        logerror("[%d] error choosing module", position);
+        logerror("[%d] error choosing module", module_position_display(position));
         return false;
     }
 
@@ -149,32 +149,32 @@ bool ModuleScanning::configure(uint8_t position, ModuleHeader &header) {
     ModuleHeader existing_header;
     bzero(&existing_header, sizeof(ModuleHeader));
     if (!eeprom.read_header(existing_header)) {
-        logerror("[%d] error reading header", position);
+        logerror("[%d] error reading header", module_position_display(position));
         return false;
     }
 
     if (!fk_module_header_valid(&existing_header)) {
-        logtrace("[%d] overwriting invalid header", position);
+        logtrace("[%d] overwriting invalid header", module_position_display(position));
 
         if (!eeprom.write_header(header)) {
-            logerror("[%d] error writing header", position);
+            logerror("[%d] error writing header", module_position_display(position));
             return false;
         }
     }
     else {
-        loginfo("[%d] keeping existing header", position);
+        loginfo("[%d] keeping existing header", module_position_display(position));
     }
 
     return true;
 }
 
-bool ModuleScanning::erase(uint8_t position) {
+bool ModuleScanning::erase(ModulePosition position) {
     if (!available()) {
         return false;
     }
 
     if (!mm_->choose(position)) {
-        logerror("[%d] error choosing module", position);
+        logerror("[%d] error choosing module", module_position_display(position));
         return false;
     }
 

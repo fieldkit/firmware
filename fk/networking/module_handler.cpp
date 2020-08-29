@@ -4,7 +4,7 @@
 
 namespace fk {
 
-ModuleHandler::ModuleHandler(uint8_t bay) : bay_(bay) {
+ModuleHandler::ModuleHandler(ModulePosition bay) : bay_(bay) {
 }
 
 bool ModuleHandler::handle(HttpServerConnection *connection, Pool &pool) {

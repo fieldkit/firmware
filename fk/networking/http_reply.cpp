@@ -143,9 +143,9 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, fkb_header_t con
             });
 
             modules[m] = fk_app_ModuleCapabilities_init_default;
-            modules[m].position = module.position;
+            modules[m].position = module_position_display(module.position);
             modules[m].name.arg = (void *)module.display_name_key;
-            modules[m].path.arg = (void *)pool_->sprintf("/fk/v1/modules/%d", module.position);
+            modules[m].path.arg = (void *)pool_->sprintf("/fk/v1/modules/%d", module_position_display(module.position));
             modules[m].flags = module.flags;
             modules[m].sensors.arg = (void *)sensors_array;
             modules[m].id.arg = (void *)id_data;
@@ -362,10 +362,10 @@ bool HttpReply::include_readings() {
         lmr[m] = fk_app_LiveModuleReadings_init_default;
         lmr[m].has_module = true;
         lmr[m].module = fk_app_ModuleCapabilities_init_default;
-        lmr[m].module.position = module.position;
+        lmr[m].module.position = module_position_display(module.position);
         lmr[m].module.id.arg = (void *)id_data;
         lmr[m].module.name.arg = (void *)module.display_name_key;
-        lmr[m].module.path.arg = (void *)pool_->sprintf("/fk/v1/modules/%d", module.position);
+        lmr[m].module.path.arg = (void *)pool_->sprintf("/fk/v1/modules/%d", module_position_display(module.position));
         lmr[m].module.flags = module.flags;
         lmr[m].module.has_header = true;
         lmr[m].module.header.manufacturer = module.manufacturer;

@@ -125,7 +125,7 @@ typedef struct ModuleSensors {
 } ModuleSensors;
 
 struct ModuleMetaAndReadings {
-    uint16_t position;
+    ModulePosition position;
     fk_uuid_t *id;
     ModuleMetadata const *meta;
     EncodedMessage const *status_message;

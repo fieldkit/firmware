@@ -24,8 +24,8 @@ constexpr uint8_t MCP23008_INTCAP = 0x08;
 constexpr uint8_t MCP23008_GPIO = 0x09;
 constexpr uint8_t MCP23008_OLAT = 0x0A;
 
-constexpr uint8_t to_mux_position(uint8_t p) {
-    return (p - 1) * 2;
+constexpr uint8_t to_mux_position(ModulePosition p) {
+    return ((uint8_t)(uint32_t)p - 1) * 2;
 }
 
 #if defined(FK_TOPOLOGY_CHANGES)
@@ -169,7 +169,7 @@ bool MetalModMux::disable_all_modules() {
     return update_gpio(new_gpio);
 }
 
-bool MetalModMux::enable_module(uint8_t position) {
+bool MetalModMux::enable_module(ModulePosition position) {
     auto mux_position = to_mux_position(position);
     auto new_gpio = gpio_ | (1 << mux_position);
 
@@ -178,7 +178,7 @@ bool MetalModMux::enable_module(uint8_t position) {
     return update_gpio(new_gpio);
 }
 
-bool MetalModMux::disable_module(uint8_t position) {
+bool MetalModMux::disable_module(ModulePosition position) {
     auto mux_position = to_mux_position(position);
     auto new_gpio = gpio_ & ~(1 << mux_position);
 
@@ -187,7 +187,7 @@ bool MetalModMux::disable_module(uint8_t position) {
     return update_gpio(new_gpio);
 }
 
-bool MetalModMux::power_cycle(uint8_t position) {
+bool MetalModMux::power_cycle(ModulePosition position) {
     if (!available_) {
         return false;
     }
@@ -205,7 +205,7 @@ bool MetalModMux::power_cycle(uint8_t position) {
     return true;
 }
 
-bool MetalModMux::choose(uint8_t position) {
+bool MetalModMux::choose(ModulePosition position) {
     if (position == VirtualPosition) {
         if (!available_) {
             return true;
@@ -225,7 +225,7 @@ bool MetalModMux::choose(uint8_t position) {
 
     auto mux_position = to_mux_position(position);
 
-    logdebug("[%d] selecting (%d)", position, mux_position);
+    logdebug("[%d] selecting (%d)", to_mux_position(position), mux_position);
 
     bus.end();
     bus.begin();

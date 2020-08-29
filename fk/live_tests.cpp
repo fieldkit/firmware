@@ -171,7 +171,7 @@ static bool read_weather_eeprom(uint32_t &last_address, fk_weather_t &last_recor
     auto module_bus = get_board()->i2c_module();
     auto eeprom = ModuleEeprom{ module_bus };
 
-    get_modmux()->choose(6);
+    get_modmux()->choose((ModulePosition)6);
 
     uint32_t iter = EEPROM_ADDRESS_READINGS;
     while (true) {
@@ -223,8 +223,7 @@ static void try_and_break_module_bus() {
 
             fk_delay(100);
 
-            loginfo("choosing 6");
-            get_modmux()->choose(6);
+            get_modmux()->choose((ModulePosition)6);
 
             fk_delay(100);
 
@@ -298,7 +297,7 @@ static void try_and_break_weather_sensor_bus() {
 
             fk_delay(100);
 
-            if (!get_modmux()->choose(6)) {
+            if (!get_modmux()->choose((ModulePosition)6)) {
                 logerror("error choosing module bay");
             }
 
@@ -410,13 +409,13 @@ static void scan_i2c_module_bus() {
     auto bus = get_board()->i2c_module();
 
     while (true) {
-        for (auto i : { 0, 1, 2, 3 }) {
+        for (auto i : { module_position_from(0) }) {
             if (!mm->choose(i)) {
-                loginfo("unable to choose %d", i);
+                loginfo("unable to choose %d", module_position_display(i));
                 continue;
             }
 
-            loginfo("position: %d", i);
+            loginfo("position: %d", module_position_display(i));
 
             fk_delay(100);
 
@@ -446,13 +445,13 @@ static void test_i2c_weather_samd09() {
     auto bus = get_board()->i2c_module();
 
     while (true) {
-        for (auto i : { 3 }) {
+        for (auto i : { module_position_from(3) }) {
             if (!mm->choose(i)) {
-                loginfo("unable to choose %d", i);
+                loginfo("unable to choose %d", module_position_display(i));
                 continue;
             }
 
-            loginfo("position: %d", i);
+            loginfo("position: %d", module_position_display(i));
 
             fk_delay(100);
 

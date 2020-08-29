@@ -20,19 +20,19 @@ bool LinuxModMux::disable_all_modules() {
     return true;
 }
 
-bool LinuxModMux::enable_module(uint8_t position) {
+bool LinuxModMux::enable_module(ModulePosition position) {
     return true;
 }
 
-bool LinuxModMux::disable_module(uint8_t position) {
+bool LinuxModMux::disable_module(ModulePosition position) {
     return true;
 }
 
-bool LinuxModMux::power_cycle(uint8_t position) {
+bool LinuxModMux::power_cycle(ModulePosition position) {
     return true;
 }
 
-bool LinuxModMux::choose(uint8_t position) {
+bool LinuxModMux::choose(ModulePosition position) {
     return true;
 }
 

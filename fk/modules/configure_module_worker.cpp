@@ -13,19 +13,19 @@ namespace fk {
 
 FK_DECLARE_LOGGER("cfgworker");
 
-ConfigureModuleWorker::ConfigureModuleWorker(uint8_t bay) : bay_(bay), erase_(true) {
+ConfigureModuleWorker::ConfigureModuleWorker(ModulePosition bay) : bay_(bay), erase_(true) {
 }
 
-ConfigureModuleWorker::ConfigureModuleWorker(uint8_t bay, ModuleHeader header) : bay_(bay), header_(header) {
+ConfigureModuleWorker::ConfigureModuleWorker(ModulePosition bay, ModuleHeader header) : bay_(bay), header_(header) {
 }
 
 template<typename T>
-void configure_bay_and_update_state(uint8_t which, GlobalState *gs, T fn) {
+void configure_bay_and_update_state(ModulePosition which, GlobalState *gs, T fn) {
     for (auto bay = 0u; bay < MaximumNumberOfPhysicalModules; ++bay) {
         gs->physical_modules[bay] = { };
 
-        if (which == AllModuleBays || which == bay) {
-            if (!fn(bay)) {
+        if (which == ModMux::AllModules || which == module_position_from(bay)) {
+            if (!fn(module_position_from(bay))) {
                 return;
             }
         }
@@ -40,12 +40,12 @@ bool ConfigureModuleWorker::configure(Pool &pool) {
     ModuleScanning scanning{ get_modmux() };
     ModuleConfigurer configurer{ scanning };
 
-    configure_bay_and_update_state(bay_, gs.get(), [&](uint8_t b) {
+    configure_bay_and_update_state(bay_, gs.get(), [&](ModulePosition b) {
         if (erase_) {
-            loginfo("erasing: %d", b);
+            loginfo("erasing: %d", module_position_display(b));
             return configurer.erase(b);
         } else {
-            loginfo("configuring: %d", b);
+            loginfo("configuring: %d", module_position_display(b));
             return configurer.configure(b, header_);
         }
     });

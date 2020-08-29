@@ -7,6 +7,16 @@
 
 namespace fk {
 
+typedef uint8_t ModulePosition;
+
+static inline uint8_t module_position_display(ModulePosition position) {
+    return (uint8_t)position;
+}
+
+static inline ModulePosition module_position_from(uint8_t i) {
+    return (ModulePosition)i;
+}
+
 class ModulesLock {
 private:
     Lock lock_;
@@ -67,8 +77,9 @@ public:
 
 class ModMux {
 public:
-    constexpr static uint8_t VirtualPosition = 0xff;
-    constexpr static uint8_t NoModuleSelected = 0xff;
+    constexpr static ModulePosition VirtualPosition = 0xff;
+    constexpr static ModulePosition NoModuleSelected = 0xff;
+    constexpr static ModulePosition AllModules = 0xff;
 
 protected:
     bool available_;
@@ -78,10 +89,10 @@ public:
     virtual bool begin() = 0;
     virtual bool enable_all_modules() = 0;
     virtual bool disable_all_modules() = 0;
-    virtual bool enable_module(uint8_t position) = 0;
-    virtual bool disable_module(uint8_t position) = 0;
-    virtual bool power_cycle(uint8_t position) = 0;
-    virtual bool choose(uint8_t position) = 0;
+    virtual bool enable_module(ModulePosition position) = 0;
+    virtual bool disable_module(ModulePosition position) = 0;
+    virtual bool power_cycle(ModulePosition position) = 0;
+    virtual bool choose(ModulePosition position) = 0;
     virtual bool choose_nothing() = 0;
     virtual bool enable_topology_irq() = 0;
     virtual bool disable_topology_irq() = 0;

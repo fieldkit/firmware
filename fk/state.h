@@ -27,7 +27,7 @@ struct SensorState {
 
 struct ModuleState {
 public:
-    uint32_t position;
+    ModulePosition position;
     uint32_t manufacturer;
     uint32_t kind;
     uint32_t version;

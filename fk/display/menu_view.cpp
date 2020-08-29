@@ -268,7 +268,7 @@ void MenuView::create_module_menu() {
             .version = 0x01,
             .id = { 0 },
         };
-        get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, header));
+        get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(module_position_from(selected_module_bay_), header));
     });
     auto program_ph = to_lambda_option(pool_, "Water (pH)", [=]() {
         back_->on_selected();
@@ -279,7 +279,7 @@ void MenuView::create_module_menu() {
             .version = 0x01,
             .id = { 0 },
         };
-        get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, header));
+        get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(module_position_from(selected_module_bay_), header));
     });
     auto program_ec = to_lambda_option(pool_, "Water (EC)", [=]() {
         back_->on_selected();
@@ -290,7 +290,7 @@ void MenuView::create_module_menu() {
             .version = 0x01,
             .id = { 0 },
         };
-        get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, header));
+        get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(module_position_from(selected_module_bay_), header));
     });
     auto program_do = to_lambda_option(pool_, "Water (DO)", [=]() {
         back_->on_selected();
@@ -301,7 +301,7 @@ void MenuView::create_module_menu() {
             .version = 0x01,
             .id = { 0 },
         };
-        get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, header));
+        get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(module_position_from(selected_module_bay_), header));
     });
     auto program_temp = to_lambda_option(pool_, "Water (Temp)", [=]() {
         back_->on_selected();
@@ -312,7 +312,7 @@ void MenuView::create_module_menu() {
             .version = 0x01,
             .id = { 0 },
         };
-        get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, header));
+        get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(module_position_from(selected_module_bay_), header));
     });
     auto program_orp = to_lambda_option(pool_, "Water (ORP)", [=]() {
         back_->on_selected();
@@ -323,7 +323,7 @@ void MenuView::create_module_menu() {
             .version = 0x01,
             .id = { 0 },
         };
-        get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, header));
+        get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(module_position_from(selected_module_bay_), header));
     });
     auto program_distance = to_lambda_option(pool_, "Distance", [=]() {
         back_->on_selected();
@@ -334,7 +334,7 @@ void MenuView::create_module_menu() {
             .version = 0x01,
             .id = { 0 },
         };
-        get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, header));
+        get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(module_position_from(selected_module_bay_), header));
     });
     auto program_menu = new_menu_screen<7>(pool_, "program", {
             program_weather,
@@ -353,7 +353,7 @@ void MenuView::create_module_menu() {
     auto module_erase = to_lambda_option(pool_, "Erase", [=]() {
         back_->on_selected();
         views_->show_home();
-        get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_));
+        get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(module_position_from(selected_module_bay_)));
     });
 
     module_menu_ = new_menu_screen<3>(pool_, "module", {

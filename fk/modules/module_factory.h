@@ -22,7 +22,7 @@ public:
 public:
     void clear();
 
-    optional<ConstructedModule> get(uint8_t bay);
+    optional<ConstructedModule> get(ModulePosition bay);
 
     void modules(ConstructedModulesCollection modules) {
         clear();

@@ -5,17 +5,15 @@
 
 namespace fk {
 
-constexpr uint8_t AllModuleBays = 0xff;
-
 class ConfigureModuleWorker : public Worker {
 private:
-    uint8_t bay_;
+    ModulePosition bay_;
     bool erase_{ false };
     ModuleHeader header_;
 
 public:
-    ConfigureModuleWorker(uint8_t bay);
-    ConfigureModuleWorker(uint8_t bay, ModuleHeader header);
+    ConfigureModuleWorker(ModulePosition bay);
+    ConfigureModuleWorker(ModulePosition bay, ModuleHeader header);
 
 public:
     void run(Pool &pool) override;

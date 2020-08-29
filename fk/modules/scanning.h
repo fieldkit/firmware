@@ -10,7 +10,7 @@
 namespace fk {
 
 struct FoundModule {
-    uint8_t position;
+    ModulePosition position;
     ModuleHeader header;
 
     bool physical() const {
@@ -29,12 +29,12 @@ public:
 
 public:
     virtual tl::expected<FoundModuleCollection, Error> scan(Pool &pool);
-    virtual bool configure(uint8_t position, ModuleHeader &header);
-    virtual bool erase(uint8_t position);
+    virtual bool configure(ModulePosition position, ModuleHeader &header);
+    virtual bool erase(ModulePosition position);
 
 private:
     bool available();
-    bool try_scan_single_module(uint8_t index, FoundModuleCollection &found, Pool &pool);
+    bool try_scan_single_module(ModulePosition position, FoundModuleCollection &found, Pool &pool);
 
 };
 

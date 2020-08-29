@@ -21,8 +21,8 @@ public:
     friend class ModuleContext;
 
 public:
-    ModuleContext module(int32_t position, Pool &pool);
-    ReadingsContext readings(int32_t position, ModuleReadingsCollection &readings, Pool &pool);
+    ModuleContext module(ModulePosition position, Pool &pool);
+    ReadingsContext readings(ModulePosition position, ModuleReadingsCollection &readings, Pool &pool);
 
 public:
     GpsState const *gps();
@@ -33,10 +33,10 @@ class ModuleContext {
 private:
     ModMux *mm_;
     TwoWireWrapper *module_bus_{ nullptr };
-    int32_t position_{ -1 };
+    ModulePosition position_{ ModMux::NoModuleSelected };
 
 public:
-    ModuleContext(ScanningContext &from, int32_t position, Pool &pool);
+    ModuleContext(ScanningContext &from, ModulePosition position, Pool &pool);
 
 public:
     bool open();
@@ -51,7 +51,7 @@ private:
     ModuleReadingsCollection &readings_;
 
 public:
-    ReadingsContext(ScanningContext &from, int32_t position, ModuleReadingsCollection &readings, Pool &pool);
+    ReadingsContext(ScanningContext &from, ModulePosition position, ModuleReadingsCollection &readings, Pool &pool);
 
 public:
     ModuleReadingsCollection &readings() {

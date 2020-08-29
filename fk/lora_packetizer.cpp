@@ -151,14 +151,15 @@ tl::expected<EncodedMessage*, Error> LoraPacketizer::packetize(TakenReadings con
         if (LoraTransmitVirtual || module.position != ModMux::VirtualPosition) {
             for (auto s = 0u; s < module.readings->size(); ++s) {
                 auto value = module.readings->get(s);
-                auto adding = record.size_of_encoding(module.position, s, value);
+                auto position = module_position_display(module.position);
+                auto adding = record.size_of_encoding(position, s, value);
                 if (record.encoded_size() + adding >= maximum_packet_size_) {
                     append(&head, &tail, record.encode(pool));
                     record.clear();
                 }
 
-                record.write_reading(module.position, s, value);
-                logdebug("reading: %d/%d %f (%zd)", module.position, s, value, record.encoded_size());
+                record.write_reading(position, s, value);
+                logdebug("reading: %d/%d %f (%zd)", position, s, value, record.encoded_size());
             }
 
             append(&head, &tail, record.encode(pool));

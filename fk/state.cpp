@@ -101,7 +101,7 @@ void GlobalState::update_physical_modules(ConstructedModulesCollection const &mo
 
     for (auto &m : modules) {
         if (m.found.physical()) {
-            auto bay = m.found.position;
+            auto bay = module_position_display(m.found.position);
 
             FK_ASSERT(bay < MaximumNumberOfPhysicalModules);
 
