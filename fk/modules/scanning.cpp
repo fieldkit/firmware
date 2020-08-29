@@ -53,6 +53,41 @@ static bool add_virtual_module(FoundModuleCollection &headers, uint16_t kind) {
     return true;
 }
 
+bool ModuleScanning::try_scan_single_module(uint8_t index, FoundModuleCollection &found, Pool &pool) {
+    // Take ownership over the module bus.
+    auto module_bus = get_board()->i2c_module();
+    ModuleEeprom eeprom{ module_bus };
+
+    ModuleHeader header;
+    bzero(&header, sizeof(ModuleHeader));
+    if (!eeprom.read_header(header)) {
+        return false;
+    }
+
+    if (!fk_module_header_valid(&header)) {
+        auto expected = fk_module_header_sign(&header);
+        logerror("[%d] invalid header (%" PRIx32 " != %" PRIx32 ")", index, expected, header.crc);
+        fk_dump_memory("HDR ", (uint8_t *)&header, sizeof(header));
+        found.emplace(FoundModule{
+            .position = (uint8_t)index,
+            .header = header,
+        });
+        return false;
+    }
+
+    fk_uuid_formatted_t pretty_id;
+    fk_uuid_sprintf(&header.id, &pretty_id);
+
+    loginfo("[%d] mk=%02" PRIx32 "%02" PRIx32 " v%" PRIu32 " %s", index, header.manufacturer, header.kind, header.version,
+            pretty_id.str);
+
+    found.emplace(FoundModule{
+        .position = (uint8_t)index,
+        .header = header,
+    });
+    return true;
+}
+
 tl::expected<FoundModuleCollection, Error> ModuleScanning::scan(Pool &pool) {
     FoundModuleCollection found(pool);
 
@@ -67,47 +102,21 @@ tl::expected<FoundModuleCollection, Error> ModuleScanning::scan(Pool &pool) {
     }
 
     if (!available()) {
+        if (!try_scan_single_module(0, found, pool)) {
+            logerror("single module scan failed");
+        }
         return std::move(found);
     }
 
     DebuggerOfLastResort::get()->message("scanning");
 
-    // Take ownership over the module bus.
-    auto module_bus = get_board()->i2c_module();
-    ModuleEeprom eeprom{ module_bus };
-
-    for (auto i = 0u; i < MaximumNumberOfPhysicalModules; ++i) {
-        if (!mm_->choose(i)) {
-            logerror("[%d] error choosing", i);
+    for (auto index = 0u; index < MaximumNumberOfPhysicalModules; ++index) {
+        if (!mm_->choose(index)) {
+            logerror("[%d] error choosing", index);
             return tl::unexpected<Error>(Error::Bus);
         }
 
-        ModuleHeader header;
-        bzero(&header, sizeof(ModuleHeader));
-        if (!eeprom.read_header(header)) {
-            continue;
-        }
-
-        if (!fk_module_header_valid(&header)) {
-            auto expected = fk_module_header_sign(&header);
-            logerror("[%d] invalid header (%" PRIx32 " != %" PRIx32 ")", i, expected, header.crc);
-            fk_dump_memory("HDR ", (uint8_t *)&header, sizeof(header));
-            found.emplace(FoundModule{
-                .position = (uint8_t)i,
-                .header = header,
-            });
-            continue;
-        }
-
-        fk_uuid_formatted_t pretty_id;
-        fk_uuid_sprintf(&header.id, &pretty_id);
-
-        loginfo("[%d] mk=%02" PRIx32 "%02" PRIx32 " v%" PRIu32 " %s", i, header.manufacturer, header.kind, header.version, pretty_id.str);
-
-        found.emplace(FoundModule{
-            .position = (uint8_t)i,
-            .header = header,
-        });
+        try_scan_single_module(index, found, pool);
     }
 
     if (!mm_->choose_nothing()) {

@@ -34,6 +34,7 @@ public:
 
 private:
     bool available();
+    bool try_scan_single_module(uint8_t index, FoundModuleCollection &found, Pool &pool);
 
 };
 
