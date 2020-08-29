@@ -32,7 +32,7 @@ static collection<NetworkSettings> copy_settings(Pool &pool) {
         .port = 80,
     });
 
-    return std::move(settings);
+    return settings;
 }
 
 bool NetworkTask::begin(NetworkSettings settings, uint32_t to, Pool &pool) {
