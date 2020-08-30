@@ -409,13 +409,13 @@ static void scan_i2c_module_bus() {
     auto bus = get_board()->i2c_module();
 
     while (true) {
-        for (auto i : { module_position_from(0) }) {
+        for (auto i : { ModulePosition::from(0) }) {
             if (!mm->choose(i)) {
-                loginfo("unable to choose %d", module_position_display(i));
+                loginfo("unable to choose %d", i.integer());
                 continue;
             }
 
-            loginfo("position: %d", module_position_display(i));
+            loginfo("position: %d", i.integer());
 
             fk_delay(100);
 
@@ -445,13 +445,13 @@ static void test_i2c_weather_samd09() {
     auto bus = get_board()->i2c_module();
 
     while (true) {
-        for (auto i : { module_position_from(3) }) {
+        for (auto i : { ModulePosition::from(3) }) {
             if (!mm->choose(i)) {
-                loginfo("unable to choose %d", module_position_display(i));
+                loginfo("unable to choose %d", i.integer());
                 continue;
             }
 
-            loginfo("position: %d", module_position_display(i));
+            loginfo("position: %d", i.integer());
 
             fk_delay(100);
 

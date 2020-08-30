@@ -7,7 +7,7 @@ namespace fk {
 class MetalModMux : public ModMux {
 private:
     uint8_t gpio_{ 0 };
-    ModulePosition active_module_{ NoModuleSelected };
+    ModulePosition active_module_{ ModulePosition::None };
 
 public:
     MetalModMux();

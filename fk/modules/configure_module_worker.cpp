@@ -20,12 +20,12 @@ ConfigureModuleWorker::ConfigureModuleWorker(ModulePosition bay, ModuleHeader he
 }
 
 template<typename T>
-void configure_bay_and_update_state(ModulePosition which, GlobalState *gs, T fn) {
+void configure_bay_and_update_state(ModMux *mm, ModulePosition which, GlobalState *gs, T fn) {
     for (auto bay = 0u; bay < MaximumNumberOfPhysicalModules; ++bay) {
         gs->physical_modules[bay] = { };
 
-        if (which == ModMux::AllModules || which == module_position_from(bay)) {
-            if (!fn(module_position_from(bay))) {
+        if (which == ModulePosition::All || which == ModulePosition::from(bay)) {
+            if (!fn(ModulePosition::from(bay))) {
                 return;
             }
         }
@@ -35,17 +35,18 @@ void configure_bay_and_update_state(ModulePosition which, GlobalState *gs, T fn)
 bool ConfigureModuleWorker::configure(Pool &pool) {
     auto module_bus = get_board()->i2c_module();
     auto gs = get_global_state_rw();
+    auto mm = get_modmux();
 
     ScanningContext ctx{ get_modmux(), gs.get()->location(pool), module_bus, pool };
     ModuleScanning scanning{ get_modmux() };
     ModuleConfigurer configurer{ scanning };
 
-    configure_bay_and_update_state(bay_, gs.get(), [&](ModulePosition b) {
+    configure_bay_and_update_state(mm, bay_, gs.get(), [&](ModulePosition b) {
         if (erase_) {
-            loginfo("erasing: %d", module_position_display(b));
+            loginfo("erasing: %d", b.integer());
             return configurer.erase(b);
         } else {
-            loginfo("configuring: %d", module_position_display(b));
+            loginfo("configuring: %d", b.integer());
             return configurer.configure(b, header_);
         }
     });

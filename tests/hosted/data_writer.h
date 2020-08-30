@@ -32,7 +32,7 @@ public:
 
         FoundModuleCollection found(pool);
         for (auto i = 0; i < number_of_modules; ++i) {
-            found.emplace(FoundModule{ .position = 0xff,
+            found.emplace(FoundModule{ .position = ModulePosition::Virtual,
                                        .header = {
                                            .manufacturer = FK_MODULES_MANUFACTURER,
                                            .kind = FK_MODULES_KIND_RANDOM,

@@ -16,7 +16,7 @@ private:
 
 public:
     bool enabled_once() {
-        return enabled_ && position_ != ModMux::VirtualPosition && power_ == ModulePower::ReadingsOnly;
+        return enabled_ && position_ != ModulePosition::Virtual && power_ == ModulePower::ReadingsOnly;
     }
 
     bool always_enabled() {
@@ -28,9 +28,9 @@ public:
 
     virtual ~EnableModulePower() {
         if (enabled_once()) {
-            logverbose("[%d] powering off", module_position_display(position_));
+            logverbose("[%d] powering off", position_.integer());
             if (!get_modmux()->disable_module(position_)) {
-                loginfo("[%d] disabling module failed", module_position_display(position_));
+                loginfo("[%d] disabling module failed", position_.integer());
             }
         }
     }
@@ -38,9 +38,9 @@ public:
 public:
     bool enable() {
         if (enabled_once() || always_enabled()) {
-            logverbose("[%d] powering on", module_position_display(position_));
+            logverbose("[%d] powering on", position_.integer());
             if (!get_modmux()->enable_module(position_)) {
-                loginfo("[%d] enabling module failed", module_position_display(position_));
+                loginfo("[%d] enabling module failed", position_.integer());
                 return false;
             }
         }
@@ -100,7 +100,7 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
 
         EnableModulePower module_power{ true, pair.configuration.power, pair.found.position };
         if (!module_power.enable()) {
-            logerror("[%d] error powering module", module_position_display(i));
+            logerror("[%d] error powering module", i.integer());
             continue;
         }
         if (module_power.enabled_once()) {
@@ -109,7 +109,7 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
 
         auto mc = ctx.readings(i, all_readings, pool);
         if (!mc.open()) {
-            logerror("[%d] error choosing module", module_position_display(i));
+            logerror("[%d] error choosing module", i.integer());
             continue;
         }
 
@@ -151,7 +151,7 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
         });
 
         auto &group = groups[group_number];
-        group.module = module_position_display(i);
+        group.module = i.integer();
         group.readings.funcs.encode = pb_encode_array;
         group.readings.arg = readings_array;
         group_number++;

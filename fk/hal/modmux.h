@@ -7,15 +7,39 @@
 
 namespace fk {
 
-typedef uint8_t ModulePosition;
+struct ModulePosition {
+private:
+    uint8_t integer_;
 
-static inline uint8_t module_position_display(ModulePosition position) {
-    return (uint8_t)position;
-}
+public:
+    explicit ModulePosition(uint8_t integer) : integer_(integer) {
+    }
 
-static inline ModulePosition module_position_from(uint8_t i) {
-    return (ModulePosition)i;
-}
+public:
+    bool operator!=(const ModulePosition &other) const {
+        return integer_ != other.integer_;
+    }
+
+    bool operator==(const ModulePosition &other) const {
+        return integer_ == other.integer_;
+    }
+
+public:
+    uint8_t integer() const {
+        return integer_;
+    }
+
+public:
+    static const ModulePosition Virtual;
+    static const ModulePosition None;
+    static const ModulePosition All;
+
+public:
+    static ModulePosition from(uint8_t i) {
+        return ModulePosition(i);
+    }
+
+};
 
 class ModulesLock {
 private:
@@ -76,11 +100,6 @@ public:
 };
 
 class ModMux {
-public:
-    constexpr static ModulePosition VirtualPosition = 0xff;
-    constexpr static ModulePosition NoModuleSelected = 0xff;
-    constexpr static ModulePosition AllModules = 0xff;
-
 protected:
     bool available_;
     TopologyChange change_;
@@ -119,7 +138,7 @@ public:
         }
 
         ModulePosition operator*() const {
-            return module_position_from(iter_);
+            return ModulePosition::from(iter_);
         }
     };
 

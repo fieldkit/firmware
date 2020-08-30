@@ -31,7 +31,7 @@ TEST_F(ModuleFactorySuite, WithNoModules) {
 TEST_F(ModuleFactorySuite, BasicSingleModule) {
     FoundModuleCollection found(pool_);
     found.emplace(FoundModule{
-        .position = 0xff,
+        .position = ModulePosition::Virtual,
         .header = {
             .manufacturer = FK_MODULES_MANUFACTURER,
             .kind = FK_MODULES_KIND_RANDOM,

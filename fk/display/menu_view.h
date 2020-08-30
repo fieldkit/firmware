@@ -23,7 +23,7 @@ private:
     MenuScreen *module_menu_;
     uint32_t menu_time_{ 0 };
     uint32_t refresh_time_{ 0 };
-    uint8_t selected_module_bay_{ 0 };
+    ModulePosition selected_module_bay_{ 0 };
 
 public:
     MenuView(ViewController *views, Pool &pool);

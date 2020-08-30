@@ -24,8 +24,8 @@ constexpr uint8_t MCP23008_INTCAP = 0x08;
 constexpr uint8_t MCP23008_GPIO = 0x09;
 constexpr uint8_t MCP23008_OLAT = 0x0A;
 
-constexpr uint8_t to_mux_position(ModulePosition p) {
-    return ((uint8_t)(uint32_t)p - 1) * 2;
+static inline uint8_t to_mux_position(ModulePosition p) {
+    return ((uint8_t)(uint32_t)p.integer() - 1) * 2;
 }
 
 #if defined(FK_TOPOLOGY_CHANGES)
@@ -42,7 +42,7 @@ bool MetalModMux::begin() {
 
     // All modules off.
     gpio_ = 0;
-    active_module_ = NoModuleSelected;
+    active_module_ = ModulePosition::None;
 
     uint8_t buffer[] = {
         (uint8_t)MCP23008_IODIR,
@@ -206,7 +206,7 @@ bool MetalModMux::power_cycle(ModulePosition position) {
 }
 
 bool MetalModMux::choose(ModulePosition position) {
-    if (position == VirtualPosition) {
+    if (position == ModulePosition::Virtual) {
         if (!available_) {
             return true;
         }
@@ -256,7 +256,7 @@ bool MetalModMux::choose_nothing() {
         return true;
     }
 
-    if (active_module_ == NoModuleSelected) {
+    if (active_module_ == ModulePosition::None) {
         return true;
     }
 
@@ -269,7 +269,7 @@ bool MetalModMux::choose_nothing() {
 
     for (auto i = 0; i < 3; ++i) {
         if (I2C_CHECK(bus.write_u8(TCA9548A_ADDRESS, 0))) {
-            active_module_ = NoModuleSelected;
+            active_module_ = ModulePosition::None;
             return true;
         }
     }

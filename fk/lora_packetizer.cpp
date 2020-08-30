@@ -148,10 +148,10 @@ tl::expected<EncodedMessage*, Error> LoraPacketizer::packetize(TakenReadings con
     record.begin(taken.time, taken.number);
 
     for (auto &module : taken.readings) {
-        if (LoraTransmitVirtual || module.position != ModMux::VirtualPosition) {
+        if (LoraTransmitVirtual || module.position != ModulePosition::Virtual) {
             for (auto s = 0u; s < module.readings->size(); ++s) {
                 auto value = module.readings->get(s);
-                auto position = module_position_display(module.position);
+                auto position = module.position.integer();
                 auto adding = record.size_of_encoding(position, s, value);
                 if (record.encoded_size() + adding >= maximum_packet_size_) {
                     append(&head, &tail, record.encode(pool));

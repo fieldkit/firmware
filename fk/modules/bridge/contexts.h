@@ -33,7 +33,7 @@ class ModuleContext {
 private:
     ModMux *mm_;
     TwoWireWrapper *module_bus_{ nullptr };
-    ModulePosition position_{ ModMux::NoModuleSelected };
+    ModulePosition position_{ ModulePosition::None };
 
 public:
     ModuleContext(ScanningContext &from, ModulePosition position, Pool &pool);

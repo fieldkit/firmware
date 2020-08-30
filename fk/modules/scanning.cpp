@@ -41,7 +41,7 @@ static bool add_virtual_module(FoundModuleCollection &headers, uint16_t kind) {
     generate_unique_virtual_module_id(header);
 
     headers.emplace(FoundModule{
-        .position = ModMux::VirtualPosition,
+        .position = ModulePosition::Virtual,
         .header = header,
     });
 
@@ -66,7 +66,7 @@ bool ModuleScanning::try_scan_single_module(ModulePosition position, FoundModule
 
     if (!fk_module_header_valid(&header)) {
         auto expected = fk_module_header_sign(&header);
-        logerror("[%d] invalid header (%" PRIx32 " != %" PRIx32 ")", module_position_display(position), expected, header.crc);
+        logerror("[%d] invalid header (%" PRIx32 " != %" PRIx32 ")", position.integer(), expected, header.crc);
         fk_dump_memory("HDR ", (uint8_t *)&header, sizeof(header));
         found.emplace(FoundModule{
             .position = position,
@@ -78,7 +78,7 @@ bool ModuleScanning::try_scan_single_module(ModulePosition position, FoundModule
     fk_uuid_formatted_t pretty_id;
     fk_uuid_sprintf(&header.id, &pretty_id);
 
-    loginfo("[%d] mk=%02" PRIx32 "%02" PRIx32 " v%" PRIu32 " %s", module_position_display(position),
+    loginfo("[%d] mk=%02" PRIx32 "%02" PRIx32 " v%" PRIu32 " %s", position.integer(),
             header.manufacturer, header.kind, header.version, pretty_id.str);
 
     found.emplace(FoundModule{
@@ -104,7 +104,7 @@ tl::expected<FoundModuleCollection, Error> ModuleScanning::scan(Pool &pool) {
     // If the backplane isn't available, try and find a single module
     // on the bus.
     if (!available()) {
-        if (!try_scan_single_module(0, found, pool)) {
+        if (!try_scan_single_module(ModulePosition::from(0), found, pool)) {
             logerror("single module scan failed");
         }
         return std::move(found);
@@ -114,7 +114,7 @@ tl::expected<FoundModuleCollection, Error> ModuleScanning::scan(Pool &pool) {
 
     for (auto position : mm_->all()) {
         if (!mm_->choose(position)) {
-            logerror("[%d] error choosing", position);
+            logerror("[%d] error choosing", position.integer());
             return tl::unexpected<Error>(Error::Bus);
         }
 
@@ -137,7 +137,7 @@ bool ModuleScanning::configure(ModulePosition position, ModuleHeader &header) {
     }
 
     if (!mm_->choose(position)) {
-        logerror("[%d] error choosing module", module_position_display(position));
+        logerror("[%d] error choosing module", position.integer());
         return false;
     }
 
@@ -149,20 +149,20 @@ bool ModuleScanning::configure(ModulePosition position, ModuleHeader &header) {
     ModuleHeader existing_header;
     bzero(&existing_header, sizeof(ModuleHeader));
     if (!eeprom.read_header(existing_header)) {
-        logerror("[%d] error reading header", module_position_display(position));
+        logerror("[%d] error reading header", position.integer());
         return false;
     }
 
     if (!fk_module_header_valid(&existing_header)) {
-        logtrace("[%d] overwriting invalid header", module_position_display(position));
+        logtrace("[%d] overwriting invalid header", position.integer());
 
         if (!eeprom.write_header(header)) {
-            logerror("[%d] error writing header", module_position_display(position));
+            logerror("[%d] error writing header", position.integer());
             return false;
         }
     }
     else {
-        loginfo("[%d] keeping existing header", module_position_display(position));
+        loginfo("[%d] keeping existing header", position.integer());
     }
 
     return true;
@@ -174,7 +174,7 @@ bool ModuleScanning::erase(ModulePosition position) {
     }
 
     if (!mm_->choose(position)) {
-        logerror("[%d] error choosing module", module_position_display(position));
+        logerror("[%d] error choosing module", position.integer());
         return false;
     }
 

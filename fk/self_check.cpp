@@ -308,7 +308,7 @@ bool SelfCheck::backplane_shift() {
 
 bool SelfCheck::backplane_mux() {
     return single_check("bp mux", [=]() {
-        if (!mm_->choose(0)) {
+        if (!mm_->choose(ModulePosition::from(0))) {
             return false;
         }
         return true;

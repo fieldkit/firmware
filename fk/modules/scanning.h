@@ -14,7 +14,7 @@ struct FoundModule {
     ModuleHeader header;
 
     bool physical() const {
-        return position != ModMux::VirtualPosition;
+        return position != ModulePosition::Virtual;
     }
 };
 

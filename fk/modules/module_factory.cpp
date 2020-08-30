@@ -71,7 +71,7 @@ bool ModuleFactory::initialize(ScanningContext &ctx, Pool &pool) {
             if (constructed.status == ModuleStatus::Found) {
                 auto mc = ctx.module(constructed.found.position, pool);
                 if (!mc.open()) {
-                    logerror("[%d] error opening module", module_position_display(constructed.found.position));
+                    logerror("[%d] error opening module", constructed.found.position.integer());
                     return false;
                 }
 
@@ -113,7 +113,7 @@ bool ModuleFactory::service(ScanningContext &ctx, Pool &pool) {
             if (config.service_interval > 0) {
                 auto mc = ctx.module(constructed.found.position, pool);
                 if (!mc.open()) {
-                    logerror("[%d] error opening module", module_position_display(constructed.found.position));
+                    logerror("[%d] error opening module", constructed.found.position.integer());
                     return false;
                 }
 
@@ -140,7 +140,7 @@ tl::expected<ConstructedModulesCollection, Error> ModuleFactory::resolve(FoundMo
                 .status = ModuleStatus::Fatal,
             });
 
-            logwarn("[%d] no such module", module_position_display(f.position));
+            logwarn("[%d] no such module", f.position.integer());
         }
         else {
             auto module = meta->ctor(pool);

@@ -22,7 +22,7 @@ TEST_F(LoraPacketizerSuite, SingleReading) {
 
     ModuleReadingsCollection all_readings{ pool };
     all_readings.emplace(ModuleMetaAndReadings{
-        .position = 0,
+        .position = ModulePosition::from(0),
         .id = nullptr,
         .meta = &fk_test_module_fake_empty,
         .status_message = nullptr,
@@ -52,7 +52,7 @@ TEST_F(LoraPacketizerSuite, OneModuleMultipleReadings) {
 
     ModuleReadingsCollection all_readings{ pool };
     all_readings.emplace(ModuleMetaAndReadings{
-        .position = 0,
+        .position = ModulePosition::from(0),
         .id = nullptr,
         .meta = &fk_test_module_fake_empty,
         .status_message = nullptr,
@@ -87,7 +87,7 @@ TEST_F(LoraPacketizerSuite, TwoModulesMultipleReadings) {
 
     ModuleReadingsCollection all_readings{ pool };
     all_readings.emplace(ModuleMetaAndReadings{
-        .position = 0,
+        .position = ModulePosition::from(0),
         .id = nullptr,
         .meta = &fk_test_module_fake_empty,
         .status_message = nullptr,
@@ -96,7 +96,7 @@ TEST_F(LoraPacketizerSuite, TwoModulesMultipleReadings) {
     });
 
     all_readings.emplace(ModuleMetaAndReadings{
-        .position = 1,
+        .position = ModulePosition::from(1),
         .id = nullptr,
         .meta = &fk_test_module_fake_empty,
         .status_message = nullptr,
@@ -138,7 +138,7 @@ TEST_F(LoraPacketizerSuite, MultipleModulesVerifyLength1) {
 
     ModuleReadingsCollection all_readings{ pool };
     all_readings.emplace(ModuleMetaAndReadings{
-        .position = 2,
+        .position = ModulePosition::from(2),
         .id = nullptr,
         .meta = &fk_test_module_fake_empty,
         .status_message = nullptr,
@@ -147,7 +147,7 @@ TEST_F(LoraPacketizerSuite, MultipleModulesVerifyLength1) {
     });
 
     all_readings.emplace(ModuleMetaAndReadings{
-        .position = 6,
+        .position = ModulePosition::from(6),
         .id = nullptr,
         .meta = &fk_test_module_fake_empty,
         .status_message = nullptr,
@@ -184,7 +184,7 @@ TEST_F(LoraPacketizerSuite, MultipleModulesVerifyLength2) {
 
     ModuleReadingsCollection all_readings{ pool };
     all_readings.emplace(ModuleMetaAndReadings{
-        .position = 2,
+        .position = ModulePosition::from(2),
         .id = nullptr,
         .meta = &fk_test_module_fake_empty,
         .status_message = nullptr,
@@ -262,7 +262,7 @@ TEST_F(LoraPacketizerSuite, MultipleModulesVerifyLength3) {
 
     ModuleReadingsCollection all_readings{ pool };
     all_readings.emplace(ModuleMetaAndReadings{
-        .position = 2,
+        .position = ModulePosition::from(2),
         .id = nullptr,
         .meta = &fk_test_module_fake_empty,
         .status_message = nullptr,
@@ -270,7 +270,7 @@ TEST_F(LoraPacketizerSuite, MultipleModulesVerifyLength3) {
         .readings = module_readings0,
     });
     all_readings.emplace(ModuleMetaAndReadings{
-        .position = 6,
+        .position = ModulePosition::from(6),
         .id = nullptr,
         .meta = &fk_test_module_fake_empty,
         .status_message = nullptr,

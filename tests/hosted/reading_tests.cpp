@@ -79,7 +79,7 @@ TEST_F(ReadingsSuite, TakingReadingsModuleWithNoReadings) {
     ScanningContext ctx{ get_modmux(), gs.location(pool_), module_bus, pool_ };
     ConstructedModulesCollection resolved(pool);
     resolved.emplace(ConstructedModule{
-        .found = { },
+        .found = { .position = ModulePosition::from(0) },
         .meta = &fk_test_module_fake_empty,
         .module = fk_test_module_fake_empty.ctor(pool),
     });
@@ -100,7 +100,7 @@ TEST_F(ReadingsSuite, TakingReadingsOneModule) {
     ScanningContext ctx{ get_modmux(), gs.location(pool_), module_bus, pool_ };
     ConstructedModulesCollection resolved(pool);
     resolved.emplace(ConstructedModule{
-        .found = { },
+        .found = { .position = ModulePosition::from(0) },
         .meta = &fk_test_module_fake_1,
         .module = fk_test_module_fake_1.ctor(pool),
     });
@@ -121,12 +121,12 @@ TEST_F(ReadingsSuite, TakingReadingsTwoModules) {
     ScanningContext ctx{ get_modmux(), gs.location(pool_), module_bus, pool_ };
     ConstructedModulesCollection resolved(pool);
     resolved.emplace(ConstructedModule{
-        .found = { },
+        .found = { .position = ModulePosition::from(0) },
         .meta = &fk_test_module_fake_1,
         .module = fk_test_module_fake_1.ctor(pool),
     });
     resolved.emplace(ConstructedModule{
-        .found = { },
+        .found = { .position = ModulePosition::from(1) },
         .meta = &fk_test_module_fake_2,
         .module = fk_test_module_fake_2.ctor(pool),
     });
@@ -147,22 +147,22 @@ TEST_F(ReadingsSuite, TakingReadingsFourModulesEverythingWorks) {
     ScanningContext ctx{ get_modmux(), gs.location(pool_), module_bus, pool_ };
     ConstructedModulesCollection resolved(pool);
     resolved.emplace(ConstructedModule{
-        .found = { },
+        .found = { .position = ModulePosition::from(0) },
         .meta = &fk_test_module_fake_1,
         .module = fk_test_module_fake_1.ctor(pool),
     });
     resolved.emplace(ConstructedModule{
-        .found = { },
+        .found = { .position = ModulePosition::from(1) },
         .meta = &fk_test_module_fake_1,
         .module = fk_test_module_fake_1.ctor(pool),
     });
     resolved.emplace(ConstructedModule{
-        .found = { },
+        .found = { .position = ModulePosition::from(2) },
         .meta = &fk_test_module_fake_2,
         .module = fk_test_module_fake_2.ctor(pool),
     });
     resolved.emplace(ConstructedModule{
-        .found = { },
+        .found = { .position = ModulePosition::from(3) },
         .meta = &fk_test_module_fake_2,
         .module = fk_test_module_fake_2.ctor(pool),
     });
@@ -191,22 +191,22 @@ TEST_F(ReadingsSuite, TakingReadingsFourModulesAndOneFailsToGetReadings) {
         reinterpret_cast<FakeModule*>(fk_test_module_fake_2.ctor(pool)),
     };
     resolved.emplace(ConstructedModule{
-        .found = { },
+        .found = { .position = ModulePosition::from(0) },
         .meta = &fk_test_module_fake_1,
         .module = modules[0],
     });
     resolved.emplace(ConstructedModule{
-        .found = { },
+        .found = { .position = ModulePosition::from(1) },
         .meta = &fk_test_module_fake_empty,
         .module = modules[1],
     });
     resolved.emplace(ConstructedModule{
-        .found = { },
+        .found = { .position = ModulePosition::from(2) },
         .meta = &fk_test_module_fake_2,
         .module = modules[2],
     });
     resolved.emplace(ConstructedModule{
-        .found = { },
+        .found = { .position = ModulePosition::from(3) },
         .meta = &fk_test_module_fake_2,
         .module = modules[3],
     });

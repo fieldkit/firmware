@@ -9,11 +9,11 @@ ModuleConfigurer::ModuleConfigurer(ModuleScanning &scanning) : scanning_(&scanni
 
 bool ModuleConfigurer::erase(ModulePosition position) {
     if (!scanning_->erase(position)) {
-        logerror("[%d] unable to configure module", module_position_display(position));
+        logerror("[%d] unable to configure module", position.integer());
         return false;
     }
 
-    loginfo("[%d] erased", module_position_display(position));
+    loginfo("[%d] erased", position.integer());
 
     return true;
 }
@@ -22,11 +22,11 @@ bool ModuleConfigurer::configure(ModulePosition position, ModuleHeader header) {
     fk_uuid_generate(&header.id);
 
     if (!scanning_->configure(position, header)) {
-        logerror("[%d] unable to configure module", module_position_display(position));
+        logerror("[%d] unable to configure module", position.integer());
         return false;
     }
 
-    loginfo("[%d] configured mk=%02" PRIx32 "%02" PRIx32 "", module_position_display(position), header.manufacturer, header.kind);
+    loginfo("[%d] configured mk=%02" PRIx32 "%02" PRIx32 "", position.integer(), header.manufacturer, header.kind);
 
     return true;
 }

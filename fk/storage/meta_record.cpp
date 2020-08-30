@@ -174,7 +174,7 @@ void MetaRecord::include_modules(GlobalState const *gs, fkb_header_t const *fkb_
 
         auto &m = module_infos[index];
         m = fk_data_ModuleInfo_init_default;
-        m.position = module_position_display(pair.found.position);
+        m.position = pair.found.position.integer();
         m.id.funcs.encode = pb_encode_data;
         m.id.arg = (void *)id_data;
         m.name.funcs.encode = pb_encode_string;

@@ -28,10 +28,10 @@ private:
     };
 
     ModuleHandler module_handlers[4]{
-        { module_position_from(0) },
-        { module_position_from(1) },
-        { module_position_from(2) },
-        { module_position_from(3) },
+        { ModulePosition::from(0) },
+        { ModulePosition::from(1) },
+        { ModulePosition::from(2) },
+        { ModulePosition::from(3) },
     };
     HttpRoute modules[4]{
         { "/fk/v1/module/0", &module_handlers[0] },

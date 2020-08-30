@@ -8,6 +8,10 @@ namespace fk {
 
 FK_DECLARE_LOGGER("modmux");
 
+const ModulePosition ModulePosition::Virtual{ 0xff };
+const ModulePosition ModulePosition::None{ 0xff };
+const ModulePosition ModulePosition::All{ 0xff };
+
 optional<Topology> ModMux::get_topology() {
     auto modules_lock = modules_mutex.acquire(UINT32_MAX);
 

@@ -95,7 +95,7 @@ static void fake_global_state(GlobalState &gs, Pool &pool) {
 
     ModuleReadingsCollection readings{ pool };
     readings.emplace(ModuleMetaAndReadings{
-        .position = 0,
+        .position = ModulePosition::from(0),
         .id = nullptr,
         .meta = &fk_test_module_fake_empty,
         .status_message = nullptr,
@@ -121,7 +121,7 @@ static void fake_global_state(GlobalState &gs, Pool &pool) {
 
     auto module_states = pool.malloc_with<ModuleState, 1>({
         {
-            .position = 0,
+            .position = ModulePosition::from(0),
             .manufacturer = 1,
             .kind = 2,
             .version = 3,
@@ -146,33 +146,37 @@ static void fake_global_state(GlobalState &gs, Pool &pool) {
 
 static void fake_modules(ConstructedModulesCollection &modules, ModuleReadingsCollection &readings, Pool &pool) {
     modules.emplace(ConstructedModule{
-        .found = { },
+        .found = { .position = ModulePosition::from(0) },
         .meta = &fk_test_module_fake_1,
         .module = fk_test_module_fake_1.ctor(pool),
     });
     modules.emplace(ConstructedModule{
-        .found = { },
+        .found = { .position = ModulePosition::from(1) },
         .meta = &fk_test_module_fake_2,
         .module = fk_test_module_fake_2.ctor(pool),
     });
     modules.emplace(ConstructedModule{
-        .found = { },
+        .found = { .position = ModulePosition::from(2) },
         .meta = &fk_test_module_fake_1,
         .module = fk_test_module_fake_1.ctor(pool),
     });
     modules.emplace(ConstructedModule{
-        .found = { },
+        .found = { .position = ModulePosition::from(3) },
         .meta = &fk_test_module_fake_2,
         .module = fk_test_module_fake_2.ctor(pool),
     });
 
     readings.emplace(ModuleMetaAndReadings{
+        .position = ModulePosition::from(0),
     });
     readings.emplace(ModuleMetaAndReadings{
+        .position = ModulePosition::from(1),
     });
     readings.emplace(ModuleMetaAndReadings{
+        .position = ModulePosition::from(2),
     });
     readings.emplace(ModuleMetaAndReadings{
+        .position = ModulePosition::from(3),
     });
 
     for (auto &m : modules) {
@@ -237,7 +241,7 @@ TEST_F(ProtoBufSizeSuite, Readings) {
     auto encoded = pool_.encode(fk_data_DataRecord_fields, &readings.record());
     dump_binary(file_, "data-readings", encoded);
 
-    ASSERT_EQ(encoded->size, 218u);
+    ASSERT_EQ(encoded->size, 224u);
 }
 
 TEST_F(ProtoBufSizeSuite, Configuration) {
@@ -267,7 +271,7 @@ TEST_F(ProtoBufSizeSuite, Modules) {
     auto encoded = pool_.encode(fk_data_DataRecord_fields, &record.record());
     dump_binary(file_, "data-modules", encoded);
 
-    ASSERT_EQ(encoded->size, 970u);
+    ASSERT_EQ(encoded->size, 976u);
 }
 
 TEST_F(ProtoBufSizeSuite, HttpReplyStatus) {

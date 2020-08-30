@@ -75,7 +75,7 @@ static void setup_fake_data() {
             FK_ASSERT(storage.begin());
         }
         FoundModuleCollection found(pool);
-        found.emplace(FoundModule{ .position = 0xff,
+        found.emplace(FoundModule{ .position = ModulePosition::Virtual,
                                    .header = {
                                        .manufacturer = FK_MODULES_MANUFACTURER,
                                        .kind = FK_MODULES_KIND_RANDOM,
