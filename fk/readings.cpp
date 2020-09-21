@@ -30,7 +30,7 @@ public:
         if (enabled_once()) {
             logverbose("[%d] powering off", position_.integer());
             if (!get_modmux()->disable_module(position_)) {
-                loginfo("[%d] disabling module failed", position_.integer());
+                logerror("[%d] disabling module failed", position_.integer());
             }
         }
     }
@@ -40,7 +40,7 @@ public:
         if (enabled_once() || always_enabled()) {
             logverbose("[%d] powering on", position_.integer());
             if (!get_modmux()->enable_module(position_)) {
-                loginfo("[%d] enabling module failed", position_.integer());
+                logerror("[%d] enabling module failed", position_.integer());
                 return false;
             }
         }

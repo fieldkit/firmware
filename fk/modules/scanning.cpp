@@ -101,16 +101,16 @@ tl::expected<FoundModuleCollection, Error> ModuleScanning::scan(Pool &pool) {
         FK_ASSERT(add_virtual_module(found, FK_MODULES_KIND_RANDOM));
     }
 
+    DebuggerOfLastResort::get()->message("scanning");
+
     // If the backplane isn't available, try and find a single module
     // on the bus.
     if (!available()) {
-        if (!try_scan_single_module(ModulePosition::from(0), found, pool)) {
+        if (!try_scan_single_module(ModulePosition::Solo, found, pool)) {
             logerror("single module scan failed");
         }
         return std::move(found);
     }
-
-    DebuggerOfLastResort::get()->message("scanning");
 
     for (auto position : mm_->all()) {
         if (!mm_->choose(position)) {

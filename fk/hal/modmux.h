@@ -33,12 +33,16 @@ public:
     static const ModulePosition Virtual;
     static const ModulePosition None;
     static const ModulePosition All;
+    static const ModulePosition Solo;
 
 public:
     static ModulePosition from(uint8_t i) {
         return ModulePosition(i);
     }
 
+    bool solo() const {
+        return integer_ == Solo.integer();
+    }
 };
 
 class ModulesLock {

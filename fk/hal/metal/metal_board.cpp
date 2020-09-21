@@ -73,6 +73,9 @@ bool Board::initialize() {
     pinMode(MODULE_EEPROM_LOCK, OUTPUT);
     digitalWrite(MODULE_EEPROM_LOCK, LOW);
 
+    pinMode(MODULE_SOLO_ENABLE, OUTPUT);
+    digitalWrite(MODULE_SOLO_ENABLE, HIGH);
+
     disable_everything();
 
     return true;

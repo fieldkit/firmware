@@ -170,6 +170,10 @@ bool MetalModMux::disable_all_modules() {
 }
 
 bool MetalModMux::enable_module(ModulePosition position) {
+    if (position.solo()) {
+        return true;
+    }
+
     auto mux_position = to_mux_position(position);
     auto new_gpio = gpio_ | (1 << mux_position);
 
@@ -179,6 +183,10 @@ bool MetalModMux::enable_module(ModulePosition position) {
 }
 
 bool MetalModMux::disable_module(ModulePosition position) {
+    if (position.solo()) {
+        return true;
+    }
+
     auto mux_position = to_mux_position(position);
     auto new_gpio = gpio_ & ~(1 << mux_position);
 
@@ -211,6 +219,11 @@ bool MetalModMux::choose(ModulePosition position) {
             return true;
         }
         return choose_nothing();
+    }
+
+    if (position.solo()) {
+        // TODO Power?
+        return true;
     }
 
     if (!available_) {
