@@ -14,10 +14,7 @@ static bool scan_modules(Pool &pool) {
     get_modmux()->check_modules();
 
     auto topology = get_modmux()->read_topology_register();
-    if (!topology) {
-        logwarn("unable to read topology");
-    }
-    else {
+    if (topology) {
         loginfo("topology: [%s]", topology->string());
     }
 

@@ -26,6 +26,10 @@ optional<Topology> ModMux::get_topology() {
 }
 
 bool ModMux::check_modules() {
+    if (!available_) {
+        return false;
+    }
+
     auto topology = read_topology_register();
     if (!topology) {
         logwarn("unable to read topology");
