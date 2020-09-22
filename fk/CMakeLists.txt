@@ -98,6 +98,9 @@ target_link_libraries(fk-bundled Asf4)
 find_package(Samd51Common)
 target_link_libraries(fk-bundled Samd51Common)
 
+find_package(SleepyDog)
+target_link_libraries(fk-bundled SleepyDog)
+
 find_package(WiFi101)
 target_link_libraries(fk-bundled WiFi101)
 
