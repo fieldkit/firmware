@@ -132,9 +132,18 @@ public:
         }
 
     public:
+        iterator operator--() {
+            iter_--;
+            return *this;
+        }
+
         iterator operator++() {
             iter_++;
             return *this;
+        }
+
+        bool operator==(const iterator &other) const {
+            return iter_ == other.iter_;
         }
 
         bool operator!=(const iterator &other) const {
@@ -143,6 +152,41 @@ public:
 
         ModulePosition operator*() const {
             return ModulePosition::from(iter_);
+        }
+
+        ModulePosition operator->() const {
+            return ModulePosition::from(iter_);
+        }
+    };
+
+    class available_modules {
+    private:
+        bool available_;
+
+    public:
+        available_modules(bool available) : available_(available) {
+        }
+
+    public:
+        iterator begin() const {
+            if (available_) {
+                return iterator(1);
+            }
+            return iterator(0);
+        }
+
+        iterator end() const {
+            if (available_) {
+                return iterator(MaximumNumberOfPhysicalModules);
+            }
+            return iterator(1);
+        }
+
+        size_t size() const {
+            if (available_) {
+                return MaximumNumberOfPhysicalModules - 1;
+            }
+            return 1;
         }
     };
 
@@ -155,11 +199,19 @@ public:
         iterator end() const {
             return iterator(MaximumNumberOfPhysicalModules);
         }
+
+        size_t size() const {
+            return MaximumNumberOfPhysicalModules;
+        }
     };
 
 public:
+    available_modules available_positions() {
+        return available_modules{ available_ };
+    }
+
     all_modules all() {
-        return { };
+        return all_modules{ };
     }
 
 public:

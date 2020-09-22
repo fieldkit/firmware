@@ -420,7 +420,7 @@ void U8g2Display::reading(ReadingScreen &screen) {
 
 void U8g2Display::module_status(ModuleStatusScreen &screen) {
     char bay_info[16];
-    tiny_snprintf(bay_info, sizeof(bay_info), "Bay #%d", screen.bay + 1);
+    tiny_snprintf(bay_info, sizeof(bay_info), "Bay #%d", screen.bay);
 
     draw_.setPowerSave(0);
     draw_.clearBuffer();

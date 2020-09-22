@@ -2,15 +2,16 @@
 
 #include "common.h"
 #include "display_views.h"
+#include "hal/modmux.h"
 
 namespace fk {
 
 class ModuleStatusView : public DisplayView {
 private:
-    uint8_t bay_{ 0 };
+    ModMux::iterator module_;
 
 public:
-    ModuleStatusView() { }
+    ModuleStatusView();
 
 public:
     void tick(ViewController *views, Pool &pool) override;
