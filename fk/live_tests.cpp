@@ -1,6 +1,12 @@
 #include <tiny_printf.h>
 #include <samd51_common.h>
 
+#if defined(__SAMD51__)
+#include <Adafruit_SleepyDog.h>
+#undef min
+#undef max
+#endif
+
 #include "live_tests.h"
 #include "common.h"
 #include "storage/storage.h"
@@ -565,6 +571,20 @@ static void chase_upload_truncation() {
     }
 }
 
+static void sleep_test() {
+    loginfo("sleep test");
+
+    while (true) {
+        fk_delay(1000);
+
+        #if defined(__SAMD51__)
+        auto duration = Watchdog.sleep(1000);
+
+        loginfo("awake: %d", duration);
+        #endif
+    }
+}
+
 void fk_live_tests() {
     if (false) {
         chase_upload_truncation();
@@ -595,6 +615,9 @@ void fk_live_tests() {
     }
     if (false) {
         https_test();
+    }
+    if (false) {
+        sleep_test();
     }
 }
 
