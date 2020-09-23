@@ -17,7 +17,7 @@ public:
     U8g2Display();
 
 public:
-    bool begin();
+    bool begin() override;
     void on() override;
     void off() override;
     void centered(const xbm_data_t &xbm) override;

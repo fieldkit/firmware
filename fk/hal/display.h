@@ -186,6 +186,7 @@ struct ModuleStatusScreen : public DisplayScreen {
 
 class Display {
 public:
+    virtual bool begin() = 0;
     virtual void on() = 0;
     virtual void off() = 0;
     virtual void centered(const xbm_data_t &xbm) = 0;
@@ -203,6 +204,7 @@ public:
 
 class NullDisplay : public Display {
 public:
+    bool begin() override { return true; }
     void on() override { }
     void off() override { }
     void centered(const xbm_data_t &xbm) override { }
@@ -215,10 +217,6 @@ public:
     void simple(SimpleScreen &&screen) override { }
     void reading(ReadingScreen &screen) override { }
     void module_status(ModuleStatusScreen &screen) override { }
-
-    bool begin() {
-        return true;
-    }
 
 };
 
