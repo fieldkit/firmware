@@ -251,22 +251,63 @@ bool SpiWrapper::transfer(uint8_t *command, uint32_t command_length, const uint8
 void SpiWrapper::end() {
     if (ptr_ == nullptr) return;
 
+    // When we call this during startup, deep sleeping the MCU fails,
+    // some sort of rogue IRQ?
     reinterpret_cast<SPIClass*>(ptr_)->end();
 
+    // NOTE None of the following seems to affect the problem with
+    // deep sleep. So right now we're calling disableSPI instead of
+    // resetSPI inside the Arduino library file SPI.cpp
     if (ptr_ == &SPI) {
-        pinMode(PIN_SPI_MISO, INPUT);
-        pinMode(PIN_SPI_MOSI, INPUT);
-        pinMode(PIN_SPI_SCK, INPUT);
+        pinMode(PIN_SPI_MISO, INPUT_PULLUP);
+        pinMode(PIN_SPI_MOSI, INPUT_PULLUP);
+        pinMode(PIN_SPI_SCK, INPUT_PULLUP);
+
+        NVIC_DisableIRQ(SERCOM4_0_IRQn);
+        NVIC_DisableIRQ(SERCOM4_1_IRQn);
+        NVIC_DisableIRQ(SERCOM4_2_IRQn);
+        NVIC_DisableIRQ(SERCOM4_3_IRQn);
+
+        NVIC_ClearPendingIRQ(SERCOM4_0_IRQn);
+        NVIC_ClearPendingIRQ(SERCOM4_1_IRQn);
+        NVIC_ClearPendingIRQ(SERCOM4_2_IRQn);
+        NVIC_ClearPendingIRQ(SERCOM4_3_IRQn);
+
+        // PERIPH_SPI.disableSPI();
     }
     else if (ptr_ == &SPI1) {
-        pinMode(PIN_SPI1_MISO, INPUT);
-        pinMode(PIN_SPI1_MOSI, INPUT);
-        pinMode(PIN_SPI1_SCK, INPUT);
+        pinMode(PIN_SPI1_MISO, INPUT_PULLUP);
+        pinMode(PIN_SPI1_MOSI, INPUT_PULLUP);
+        pinMode(PIN_SPI1_SCK, INPUT_PULLUP);
+
+        NVIC_DisableIRQ(SERCOM2_0_IRQn);
+        NVIC_DisableIRQ(SERCOM2_1_IRQn);
+        NVIC_DisableIRQ(SERCOM2_2_IRQn);
+        NVIC_DisableIRQ(SERCOM2_3_IRQn);
+
+        NVIC_ClearPendingIRQ(SERCOM2_0_IRQn);
+        NVIC_ClearPendingIRQ(SERCOM2_1_IRQn);
+        NVIC_ClearPendingIRQ(SERCOM2_2_IRQn);
+        NVIC_ClearPendingIRQ(SERCOM2_3_IRQn);
+
+        // PERIPH_SPI1.disableSPI();
     }
     else if (ptr_ == &SPI2) {
-        pinMode(PIN_SPI2_MISO, INPUT);
-        pinMode(PIN_SPI2_MOSI, INPUT);
-        pinMode(PIN_SPI2_SCK, INPUT);
+        pinMode(PIN_SPI2_MISO, INPUT_PULLUP);
+        pinMode(PIN_SPI2_MOSI, INPUT_PULLUP);
+        pinMode(PIN_SPI2_SCK, INPUT_PULLUP);
+
+        NVIC_DisableIRQ(SERCOM5_0_IRQn);
+        NVIC_DisableIRQ(SERCOM5_1_IRQn);
+        NVIC_DisableIRQ(SERCOM5_2_IRQn);
+        NVIC_DisableIRQ(SERCOM5_3_IRQn);
+
+        NVIC_ClearPendingIRQ(SERCOM5_0_IRQn);
+        NVIC_ClearPendingIRQ(SERCOM5_1_IRQn);
+        NVIC_ClearPendingIRQ(SERCOM5_2_IRQn);
+        NVIC_ClearPendingIRQ(SERCOM5_3_IRQn);
+
+        // PERIPH_SPI2.disableSPI();
     }
 }
 
