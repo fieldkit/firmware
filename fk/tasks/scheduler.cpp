@@ -52,6 +52,8 @@ void task_handler_scheduler(void *params) {
         IntervalTimer check_battery_timer;
         IntervalTimer enable_power_save_timer;
 
+        auto has_workers = true;
+
         while (!has_schedule_changed(schedules) && !fk_task_stop_requested()) {
             // This throttles this loop, so we take a pass when we dequeue or timeout.
             Activity *activity = nullptr;
@@ -81,13 +83,29 @@ void task_handler_scheduler(void *params) {
             }
 
             if (check_for_tasks_timer.expired(OneSecondMs)) {
-                auto time = lwcron::DateTime{ get_clock_now() };
+                auto now = get_clock_now();
+                auto time = lwcron::DateTime{ now };
                 auto seed = fk_random_i32(0, INT32_MAX);
                 if (!scheduler.check(time, seed)) {
                     if (get_can_launch_captive_readings()) {
                         get_ipc()->launch_worker(WorkerCategory::Readings, create_pool_worker<ReadingsWorker>(false, false, false));
                     }
                 }
+            }
+
+            auto now_has_workers = get_ipc()->has_any_running_worker();
+            if (has_workers && !now_has_workers) {
+                auto now = get_clock_now();
+                auto nextTask = scheduler.nextTask(lwcron::DateTime{ now }, 0);
+                if (!nextTask) {
+                    logwarn("no workers: no next task");
+                } else {
+                    loginfo("no workers: next task: %" PRIu32, nextTask.time - now);
+                }
+                has_workers = now_has_workers;
+            }
+            else if (!has_workers && now_has_workers) {
+                has_workers = now_has_workers;
             }
 
             if (check_for_modules_timer.expired(OneSecondMs)) {
