@@ -10,17 +10,21 @@ FK_DECLARE_LOGGER("deepsleep");
 
 constexpr uint32_t MinimumDeepSleepMs = 8192;
 
+constexpr uint32_t MinimumAcceptableDeepSleepMs = (MinimumDeepSleepMs / 1000) * 1000;
+
 static uint32_t deep_sleep() {
     auto now_before = get_clock_now();
-
-    loginfo("now=%" PRIu32, now_before);
 
     fk_deep_sleep(MinimumDeepSleepMs);
 
     auto now_after = get_clock_now();
-    auto elapsed = std::min(now_after - now_before, (uint32_t)0u) * 1000;
+    if (now_after < now_before) {
+        loginfo("before=%" PRIu32 " now=%" PRIu32, now_before, now_after);
+        return 0;
+    }
 
-    loginfo("now=%" PRIu32 " elapsed=%" PRIu32, now_after, elapsed);
+    auto elapsed = (now_after - now_before) * 1000;
+    loginfo("before=%" PRIu32 " now=%" PRIu32 " elapsed=%" PRIu32, now_before, now_after, elapsed);
 
     return elapsed;
 }
@@ -44,22 +48,28 @@ bool DeepSleep::try_deep_sleep(lwcron::Scheduler &scheduler) {
             auto nextTask = scheduler.nextTask(lwcron::DateTime{ now }, 0);
             if (!nextTask) {
                 // NOTE This would be so strange.
-                logerror("no workers: no next task");
+                logerror("no next task");
                 break;
             }
 
             auto remaining_seconds = nextTask.time - now;
-            loginfo("no workers: next task: %" PRIu32 "s", remaining_seconds);
+            loginfo("next task: %" PRIu32 "s", remaining_seconds);
 
             // If we have enough time for a nap, otherwise we bail.
             if (remaining_seconds * 1000 < MinimumDeepSleepMs) {
                 break;
             }
 
-            // Can we even do this? No network, etc...
-            if (deep_sleep() < MinimumDeepSleepMs) {
-                loginfo("fake delay");
-                fk_delay(MinimumDeepSleepMs);
+            // Sleep!
+            // This can return early for a few reasons:
+            // 1) We're unable to sleep, in which case this will
+            // return 0.
+            // 2) We were woken up via IRQ of some kind, which can
+            // also return 0. So we basically gotta just bail out of
+            // here in either case.
+            if (deep_sleep() < MinimumAcceptableDeepSleepMs) {
+                loginfo("bailing");
+                break;
             }
         }
 
