@@ -46,6 +46,10 @@ public:
         return true;
     }
 
+    virtual bool has_any_running_worker() {
+        return false;
+    }
+
     virtual bool has_running_worker(WorkerCategory category) {
         return false;
     }

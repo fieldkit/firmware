@@ -183,6 +183,16 @@ bool MetalIPC::has_running_worker(WorkerCategory category) {
     return false;
 }
 
+bool MetalIPC::has_any_running_worker() {
+    for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
+        if (os_task_is_running(&worker_tasks[i])) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 bool MetalMutex::create() {
     return os_mutex_create(&mutex_, &def_) == OSS_SUCCESS;
 }
