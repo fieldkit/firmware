@@ -5,6 +5,7 @@
 #include "state_ref.h"
 #include "platform.h"
 #include "graceful_shutdown.h"
+#include "deep_sleep.h"
 
 #include "simple_workers.h"
 #include "upgrade_from_sd_worker.h"
@@ -422,8 +423,15 @@ void MenuView::create_tools_menu() {
         views_->show_home();
         get_ipc()->launch_worker(create_pool_worker<ExportDataWorker>());
     });
+    auto tools_sleep_test = to_lambda_option(pool_, "Deep Sleep", [=]() {
+        back_->on_selected();
+        views_->show_home();
+        get_display()->simple(SimpleScreen{ "Sleeping" });
+        DeepSleep ds;
+        ds.once();
+    });
 
-    tools_menu_ = new_menu_screen<13>(pool_, "tools", {
+    tools_menu_ = new_menu_screen<14>(pool_, "tools", {
         back_,
         tools_self_check,
         tools_gps,
@@ -433,6 +441,7 @@ void MenuView::create_tools_menu() {
         tools_load_firmware_sd,
         tools_dump_flash,
         tools_format_sd,
+        tools_sleep_test,
         tools_fsck,
         tools_export_data,
         tools_factory_reset,

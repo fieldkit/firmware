@@ -33,6 +33,10 @@ static bool can_deep_sleep() {
     return true;
 }
 
+bool DeepSleep::once() {
+    return deep_sleep() > 0;
+}
+
 bool DeepSleep::try_deep_sleep(lwcron::Scheduler &scheduler) {
     if (can_deep_sleep()) {
         while (true) {
