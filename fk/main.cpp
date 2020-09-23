@@ -138,6 +138,27 @@ static bool initialize_backplane() {
     return true;
 }
 
+/*
+static void sleep_test(const char *name) {
+    loginfo("sleep test: %s", name);
+
+    auto display = get_display();
+
+    display->begin();
+
+    for (auto i = 0; i < 3; ++i) {
+        display->simple(SimpleScreen{ "1s" });
+
+        fk_delay(1000);
+
+        display->simple(SimpleScreen{ name });
+
+        auto duration = fk_deep_sleep(2048);
+        loginfo("awake: %d", duration);
+    }
+}
+*/
+
 static bool initialize_hardware() {
     FK_ASSERT(get_board()->initialize());
 

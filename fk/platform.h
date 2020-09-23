@@ -21,6 +21,8 @@ uint32_t fk_uptime();
 
 uint32_t fk_delay(uint32_t ms);
 
+uint32_t fk_deep_sleep(uint32_t ms);
+
 uint32_t fk_free_memory();
 
 #if !defined(__SAMD51__)

@@ -9,6 +9,11 @@
 #include <Arduino.h>
 #include <SEGGER_RTT.h>
 #include <loading.h>
+
+#include <Adafruit_SleepyDog.h>
+#undef min
+#undef max
+
 #else // __SAMD51__
 #include <chrono>
 #include <vector>
@@ -67,6 +72,10 @@ uint32_t fk_delay(uint32_t ms) {
     return os_delay(ms);
 }
 
+uint32_t fk_deep_sleep(uint32_t ms) {
+    return Watchdog.sleep(ms);
+}
+
 extern "C" char *sbrk(int32_t i);
 
 uint32_t fk_free_memory() {
@@ -111,6 +120,10 @@ uint32_t fk_uptime() {
 
 uint32_t fk_delay(uint32_t ms) {
     return 0;
+}
+
+uint32_t fk_deep_sleep(uint32_t ms) {
+    return ms;
 }
 
 uint32_t fk_free_memory() {
