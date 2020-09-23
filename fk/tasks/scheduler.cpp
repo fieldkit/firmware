@@ -23,6 +23,26 @@ static bool has_module_topology_changed(Topology &existing);
 static void update_power_save(bool enabled);
 static bool get_can_launch_captive_readings();
 
+constexpr uint32_t MinimumDeepSleepMs = 8192;
+
+void deep_sleep() {
+    auto now_before = get_clock_now();
+    loginfo("deepsleep: now %" PRIu32, now_before);
+
+    fk_deep_sleep(MinimumDeepSleepMs);
+
+    auto now_after = get_clock_now();
+    loginfo("deepsleep: now %" PRIu32, now_after);
+}
+
+bool can_deep_sleep() {
+    if (get_network()->enabled()) return false;
+    if (os_task_is_running(&network_task)) return false;
+    if (os_task_is_running(&display_task)) return false;
+    if (os_task_is_running(&gps_task)) return false;
+    return true;
+}
+
 void task_handler_scheduler(void *params) {
     FK_ASSERT(fk_start_task_if_necessary(&display_task));
     FK_ASSERT(fk_start_task_if_necessary(&network_task));
@@ -45,7 +65,7 @@ void task_handler_scheduler(void *params) {
 
         loginfo("module service interval: %" PRIu32 "s", schedules.service_interval);
 
-        scheduler.begin( get_clock_now() );
+        scheduler.begin(get_clock_now());
 
         IntervalTimer check_for_tasks_timer;
         IntervalTimer check_for_modules_timer;
@@ -100,7 +120,15 @@ void task_handler_scheduler(void *params) {
                 if (!nextTask) {
                     logwarn("no workers: no next task");
                 } else {
-                    loginfo("no workers: next task: %" PRIu32, nextTask.time - now);
+                    auto remaining_seconds = nextTask.time - now;
+                    loginfo("no workers: next task: %" PRIu32 "s", remaining_seconds);
+                    // If we have enough time for a nap.
+                    if (remaining_seconds * 1000 > MinimumDeepSleepMs) {
+                        // Can we even do this? No network, etc...
+                        if (can_deep_sleep()) {
+                            deep_sleep();
+                        }
+                    }
                 }
                 has_workers = now_has_workers;
             }
