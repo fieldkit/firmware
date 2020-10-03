@@ -27,6 +27,10 @@ static Color get_color(ModuleStatus status) {
 }
 
 void LedsController::tick() {
+    if (get_modmux()->available_positions().size() <= 1) {
+        return;
+    }
+
     auto gs = get_global_state_ro();
     if (gs.get()->version == version_) {
         return;
@@ -34,11 +38,13 @@ void LedsController::tick() {
 
     auto module_leds = get_module_leds();
 
-    for (auto bay = 0u; bay < MaximumNumberOfPhysicalModules; ++bay) {
-        auto &physical_module = gs.get()->physical_modules[bay];
-        auto color = get_color(physical_module.status);
-
-        module_leds->color(bay, color, false);
+    for (auto bay : get_modmux()->available_positions()) {
+        auto index = bay.integer();
+        if (index > 0) {
+            auto &physical_module = gs.get()->physical_modules[index];
+            auto color = get_color(physical_module.status);
+            module_leds->color(index - 1, color, false);
+        }
     }
 
     module_leds->on();
