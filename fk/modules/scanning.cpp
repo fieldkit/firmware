@@ -112,7 +112,7 @@ tl::expected<FoundModuleCollection, Error> ModuleScanning::scan(Pool &pool) {
         return std::move(found);
     }
 
-    for (auto position : mm_->all()) {
+    for (auto position : mm_->available_positions()) {
         if (!mm_->choose(position)) {
             logerror("[%d] error choosing", position.integer());
             return tl::unexpected<Error>(Error::Bus);
