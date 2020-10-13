@@ -129,6 +129,7 @@ bool DownloadWorker::write_headers(HeaderInfo header_info) {
     CHECK(buffered.write("Content-Type: %s\n", "application/octet-stream"));
     CHECK(buffered.write("Connection: close\n"));
     CHECK(buffered.write("Fk-Blocks: %" PRIu32 ", %" PRIu32 "\n", header_info.first_block, header_info.last_block));
+    CHECK(buffered.write("Fk-Bytes: %" PRIu32 "\n", header_info.size));
     CHECK(buffered.write("Fk-DeviceId: %s\n", header_info.device_id));
     CHECK(buffered.write("Fk-Generation: %s\n\n", header_info.generation));
 
