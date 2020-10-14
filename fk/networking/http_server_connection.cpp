@@ -218,11 +218,11 @@ bool HttpServerConnection::service() {
 
                 auto handler = router_->route(path);
                 if (handler == nullptr) {
-                    plain(404, "not found", "");
+                    plain(404, "not found", "not found, no handler");
                 }
                 else {
                     if (!handler->handle(this, *pool_)) {
-                        plain(500, "internal error", "");
+                        plain(500, "internal error", "internal error");
                     }
                 }
                 routed_ = true;
