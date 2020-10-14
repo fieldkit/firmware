@@ -24,6 +24,7 @@ ModuleStatusReturn WaterModule::status(ModuleContext mc, Pool &pool) {
     AtlasApiReply reply{ pool };
 
     if (!atlas.wake()) {
+        logerror("error waking (module-status)");
         reply.error("error waking");
         return { ModuleStatus::Fatal, nullptr };
     }
@@ -169,7 +170,7 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
 
     auto atlas = OemAtlas{ mc.module_bus(), address_, type_ };
     if (!atlas.wake()) {
-        logerror("wake failed");
+        logerror("wake failed (take-readings)");
         return nullptr;
     }
 

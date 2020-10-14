@@ -19,6 +19,7 @@ int32_t HttpServerConnection::plain(int32_t status, const char *status_descripti
     auto length = strlen(text);
 
     bytes_tx_ += conn_->writef("HTTP/1.1 %" PRId32 " %s\n", status, status_description);
+    bytes_tx_ += conn_->writef("Fk-Connection: #%" PRIu32 "\n", number_);
     bytes_tx_ += conn_->writef("Content-Length: %zu\n", length);
     bytes_tx_ += conn_->write("Content-Type: text/plain\n");
     bytes_tx_ += conn_->write("Connection: close\n");
@@ -46,7 +47,7 @@ int32_t HttpServerConnection::read(uint8_t *buffer, size_t size) {
 }
 
 int32_t HttpServerConnection::fault() {
-    return plain(500, "internal error", "");
+    return plain(500, "internal error", "internal error");
 }
 
 int32_t HttpServerConnection::busy(uint32_t delay, const char *message) {
@@ -127,6 +128,7 @@ int32_t HttpServerConnection::write(int32_t status_code, const char *status_mess
     logdebug("[%" PRIu32 "] replying (%zd bytes)", number_, content_size);
 
     bytes_tx_ += conn_->writef("HTTP/1.1 %" PRId32 " %s\n", status_code, status_message);
+    bytes_tx_ += conn_->writef("Fk-Connection: #%" PRIu32 "\n", number_);
     bytes_tx_ += conn_->writef("Content-Length: %zu\n", content_size);
     bytes_tx_ += conn_->writef("Content-Type: %s\n", "application/octet-stream");
     bytes_tx_ += conn_->write("Connection: close\n");

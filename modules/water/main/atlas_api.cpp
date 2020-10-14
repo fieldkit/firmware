@@ -65,6 +65,7 @@ bool AtlasApi::handle(HttpServerConnection *connection, Pool &pool, AtlasApiRepl
 
 bool AtlasApi::status(AtlasApiReply &reply) {
     if (!atlas_->wake()) {
+        logwarn("error waking (status)");
         reply.error("error waking");
         return false;
     }
@@ -81,11 +82,13 @@ bool AtlasApi::clear(AtlasApiReply &reply) {
     loginfo("clearing calibration");
 
     if (!atlas_->wake()) {
-        reply.error("error waking");
+        logwarn("error waking (clear)");
+        reply.error("error waking (clear)");
         return false;
     }
 
     if (!atlas_->clear_calibration()) {
+        logwarn("error clearing");
         reply.error("error clearing");
         return false;
     }
@@ -97,7 +100,8 @@ bool AtlasApi::clear(AtlasApiReply &reply) {
 
 bool AtlasApi::calibrate(AtlasApiReply &reply, fk_atlas_AtlasCalibrationCommand command) {
     if (!atlas_->wake()) {
-        reply.error("error waking");
+        logwarn("error waking (calibrate)");
+        reply.error("error waking (calibrate)");
         return false;
     }
 
@@ -135,6 +139,7 @@ bool AtlasApi::calibrate(AtlasApiReply &reply, fk_atlas_AtlasCalibrationCommand 
 
     auto status = atlas_->calibrate(which, command.value);
     if (!status.success) {
+        logwarn("error calibrating");
         reply.error("error calibrating");
         return false;
     }
