@@ -1,11 +1,28 @@
 #include <malloc.h>
+#include <loading.h>
 
 #include "status_logging.h"
+#include "storage/storage.h"
 #include "tasks/tasks.h"
 #include "hal/hal.h"
 #include "clock.h"
 #include "state_manager.h"
 #include "state_ref.h"
+
+#if defined(__SAMD51__)
+
+extern const struct fkb_header_t fkb_header;
+
+extern uint32_t __cm_ram_origin__;
+extern uint32_t __cm_ram_end__;
+extern uint32_t __heap_start__;
+extern uint32_t __heap_end__;
+extern uint32_t __data_start__;
+extern uint32_t __data_end__;
+extern uint32_t __bss_start__;
+extern uint32_t __bss_end__;
+
+#endif
 
 namespace fk {
 
@@ -33,6 +50,36 @@ static void log_status() {
 
 void fk_status_log() {
     log_status();
+}
+
+bool fk_log_diagnostics() {
+#if defined(__SAMD51__)
+    uint8_t stack_dummy = 0;
+    auto in_stack = (uint8_t *)&__cm_ram_end__ - &stack_dummy;
+    auto available = (unsigned long)fk_free_memory();
+    auto data = (&__data_end__ - &__data_start__) * sizeof(uint32_t);
+    auto bss = (&__bss_end__ - &__bss_start__) * sizeof(uint32_t);
+    auto heap = (&__heap_end__ - &__heap_start__) * sizeof(uint32_t);
+    auto used = (&__heap_end__ - &__cm_ram_origin__) * sizeof(uint32_t);
+
+    loginfo("hello (memory = %lu) (data + bss + heap = %zd + %zd + %zd = %zd) (used = %zd) (stack ~ %zd)",
+            available, data, bss, heap, data + bss + heap, used, in_stack);
+
+    fk_serial_number_t sn;
+    loginfo("serial = %08" PRIx32 "-%08" PRIx32 "-%08" PRIx32 "-%08" PRIx32,
+            (uint32_t)__builtin_bswap32(sn.dwords[0]), (uint32_t)__builtin_bswap32(sn.dwords[1]),
+            (uint32_t)__builtin_bswap32(sn.dwords[2]), (uint32_t)__builtin_bswap32(sn.dwords[3]));
+
+    loginfo("fw = %s (#%" PRIu32 ")", fkb_header.firmware.name, fkb_header.firmware.number);
+    char hash_string[128];
+    bytes_to_hex_string(hash_string, sizeof(hash_string), fkb_header.firmware.hash, fkb_header.firmware.hash_size);
+    loginfo("hash = %s", hash_string);
+    loginfo("version = %s", fkb_header.firmware.version);
+
+    loginfo("sizeof(RecordHeader + RecordTail) = %zd + %zd", sizeof(RecordHeader), sizeof(RecordTail));
+    loginfo("sizeof(GlobalState) = %zd", sizeof(GlobalState));
+#endif
+    return true;
 }
 
 }

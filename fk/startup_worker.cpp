@@ -13,6 +13,7 @@
 #include "records.h"
 #include "state_ref.h"
 #include "state_manager.h"
+#include "status_logging.h"
 #include "utilities.h"
 #include "secrets.h"
 
@@ -64,6 +65,8 @@ void StartupWorker::run(Pool &pool) {
     save_startup_diagnostics();
 
     loginfo("prime global state");
+
+    FK_ASSERT(fk_log_diagnostics());
 
     GlobalStateManager gsm;
     FK_ASSERT(gsm.initialize(pool));

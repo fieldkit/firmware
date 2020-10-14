@@ -96,6 +96,8 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, fkb_header_t con
     reply_.status.firmware.timestamp = fkb->firmware.timestamp;
     reply_.status.firmware.hash.arg = (void *)bytes_to_hex_string_pool(fkb->firmware.hash, fkb->firmware.hash_size, *pool_);
 
+    loginfo("(reply) firmware: number=%" PRIu32 " build=%s", fkb->firmware.number, fkb->firmware.name);
+
     reply_.status.has_power = true;
     reply_.status.power.has_battery = true;
     reply_.status.power.battery.voltage = gs_->power.battery.bus_voltage * 1000.0f;
@@ -273,7 +275,7 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, fkb_header_t con
             networks[nnetworks].ssid.arg = (void *)gs_->network.config.wifi_networks[i].ssid;
             networks[nnetworks].password.funcs.encode = pb_encode_string;
             networks[nnetworks].password.arg = (void *)gs_->network.config.wifi_networks[i].password;
-            loginfo("(loaded) [%d] network: %s", nnetworks, gs_->network.config.wifi_networks[i].ssid);
+            loginfo("(reply) [%d] network: %s", nnetworks, gs_->network.config.wifi_networks[i].ssid);
             nnetworks++;
         }
     }
