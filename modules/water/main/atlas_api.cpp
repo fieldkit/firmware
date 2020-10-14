@@ -93,9 +93,13 @@ bool AtlasApi::clear(AtlasApiReply &reply) {
         return false;
     }
 
-    loginfo("cleared calibration");
+    loginfo("cleared, status");
+    auto status = atlas_->calibration();
+    if (!status.success) {
+        return false;
+    }
 
-    return true;
+    return reply.status_reply(*atlas_, status);
 }
 
 bool AtlasApi::calibrate(AtlasApiReply &reply, fk_atlas_AtlasCalibrationCommand command) {
