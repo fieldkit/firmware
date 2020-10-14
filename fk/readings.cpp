@@ -3,51 +3,11 @@
 #include "records.h"
 #include "platform.h"
 #include "modules/bridge/modules.h"
+#include "modules/enable_module_power.h"
 
 namespace fk {
 
 FK_DECLARE_LOGGER("readings");
-
-class EnableModulePower {
-private:
-    bool enabled_;
-    ModulePower power_;
-    ModulePosition position_;
-
-public:
-    bool enabled_once() {
-        return enabled_ && position_ != ModulePosition::Virtual && power_ == ModulePower::ReadingsOnly;
-    }
-
-    bool always_enabled() {
-        return power_ == ModulePower::Always;
-    }
-
-    EnableModulePower(bool enabled, ModulePower power, ModulePosition position) : enabled_(enabled), power_(power), position_(position) {
-    }
-
-    virtual ~EnableModulePower() {
-        if (enabled_once()) {
-            logverbose("[%d] powering off", position_.integer());
-            if (!get_modmux()->disable_module(position_)) {
-                logerror("[%d] disabling module failed", position_.integer());
-            }
-        }
-    }
-
-public:
-    bool enable() {
-        if (enabled_once() || always_enabled()) {
-            logverbose("[%d] powering on", position_.integer());
-            if (!get_modmux()->enable_module(position_)) {
-                logerror("[%d] enabling module failed", position_.integer());
-                return false;
-            }
-        }
-        return true;
-    }
-
-};
 
 Readings::Readings(ModMux *mm) : mm_(mm) {
 }
