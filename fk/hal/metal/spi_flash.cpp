@@ -26,6 +26,8 @@ constexpr uint8_t CMD_PROGRAM_EXECUTE = 0x10;
 
 constexpr uint8_t FLASH_JEDEC_MANUFACTURE = 0x98;
 constexpr uint8_t FLASH_JEDEC_DEVICE = 0xcb;
+constexpr uint8_t FLASH_JEDEC_MANUFACTURE_KIOXIA = 0x98;
+constexpr uint8_t FLASH_JEDEC_DEVICE_KIOXIA = 0xe4;
 
 constexpr uint8_t CMD_REGISTER_1 = 0xa0;
 constexpr uint8_t CMD_REGISTER_2 = 0xb0;
@@ -52,6 +54,17 @@ FlashGeometry SpiFlash::geometry() const {
     return { PageSize, BlockSize, NumberOfBlocks, NumberOfBlocks * BlockSize };
 }
 
+static bool check_jedec(uint8_t *jedec) {
+    if (jedec[1] == FLASH_JEDEC_MANUFACTURE || jedec[2] == FLASH_JEDEC_DEVICE) {
+        return true;
+    }
+    if (jedec[1] == FLASH_JEDEC_MANUFACTURE_KIOXIA || jedec[2] == FLASH_JEDEC_DEVICE_KIOXIA) {
+        return true;
+    }
+    logwarn("unexpected jedec: 0x%02x%02x%02x%02x", jedec[0], jedec[1], jedec[2], jedec[3]);
+    return false;
+}
+
 bool SpiFlash::begin() {
     if (status_ != Availability::Unknown) {
         return status_ == Availability::Available;
@@ -65,19 +78,21 @@ bool SpiFlash::begin() {
     SPI.begin();
 
     if (!reset()) {
+        logerror("error resetting chip");
         return false;
     }
 
     // First byte is a dummy byte (p31)
     auto started = fk_uptime();
-    uint8_t jedec_id[3] = { 0xff, 0xff, 0xff };
+    uint8_t jedec_id[4] = { 0xff, 0xff, 0xff, 0xff };
     while (jedec_id[1] == 0xff) {
-        read_command(CMD_READ_JEDEC_ID, jedec_id, 3);
+        read_command(CMD_READ_JEDEC_ID, jedec_id, sizeof(jedec_id));
         if (fk_uptime() - started > SpiFlashReadyMs) {
+            logerror("error reading jedec");
             return false;
         }
     }
-    if (jedec_id[1] != FLASH_JEDEC_MANUFACTURE || jedec_id[2] != FLASH_JEDEC_DEVICE) {
+    if (!check_jedec(jedec_id)) {
         return false;
     }
 
