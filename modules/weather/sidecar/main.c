@@ -33,13 +33,6 @@ static void timer_task_cb(struct timer_task const *const timer_task) {
 int32_t take_readings(fk_weather_t *weather, uint8_t *failures) {
     int32_t rv;
 
-    adc081c_reading_t wind_direction;
-    rv = adc081c_reading_get(&I2C_1, &wind_direction);
-    if (rv != FK_SUCCESS) {
-        logerrorf("adc081c (%d)", rv);
-        *failures++;
-    }
-
     mpl3115a2_reading_t mpl3115a2_reading;
     rv = mpl3115a2_reading_get(&I2C_1, &mpl3115a2_reading);
     if (rv != FK_SUCCESS) {
@@ -54,12 +47,21 @@ int32_t take_readings(fk_weather_t *weather, uint8_t *failures) {
         *failures++;
     }
 
+    #if !defined(FK_WEATHER_UNMETERED)
+    adc081c_reading_t wind_direction;
+    rv = adc081c_reading_get(&I2C_1, &wind_direction);
+    if (rv != FK_SUCCESS) {
+        logerrorf("adc081c (%d)", rv);
+        *failures++;
+    }
+
     counters_reading_t counters_reading;
     rv = counters_reading_get(&I2C_1, &counters_reading);
     if (rv != FK_SUCCESS) {
         logerrorf("counters (%d)", rv);
         *failures++;
     }
+    #endif
 
     weather->seconds++;
     weather->session++;
@@ -67,9 +69,11 @@ int32_t take_readings(fk_weather_t *weather, uint8_t *failures) {
     weather->temperature_1 = sht31_reading.temperature;
     weather->pressure = mpl3115a2_reading.pressure;
     weather->temperature_2 = mpl3115a2_reading.temperature;
+    #if !defined(FK_WEATHER_UNMETERED)
     weather->wind.direction = wind_direction.value;
     weather->wind.ticks = counters_reading.wind;
     weather->rain.ticks = counters_reading.rain;
+    #endif
     weather->crc = fk_weather_sign(weather);
 
     if (*failures > 0) {
@@ -112,6 +116,7 @@ static bool eeprom_clear_or_outside_window(uint32_t now) {
 }
 
 static void regmap_before_read(void *ptr) {
+    #if !defined(FK_WEATHER_UNMETERED)
     fk_weather_aggregated_t *aw = (fk_weather_aggregated_t *)ptr;
 
     aw->previous_wind = aw->wind;
@@ -119,6 +124,7 @@ static void regmap_before_read(void *ptr) {
 
     memzero(&aw->wind, sizeof(aw->wind));
     memzero(&aw->rain, sizeof(aw->rain));
+    #endif
 }
 
 #else

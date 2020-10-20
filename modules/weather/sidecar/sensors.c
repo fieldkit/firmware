@@ -54,6 +54,7 @@ int32_t sensors_initialize(struct i2c_m_sync_desc *i2c, sensors_t *sensors) {
 
     sensors->failures = 0;
 
+    #if !defined(FK_WEATHER_UNMETERED)
     nsensors++;
     rv = configure_io_expander(i2c, MCP2803_RAIN_I2C_ADDRESS, MCP2803_RAIN_IODIR, 0);
     if (rv != FK_SUCCESS) {
@@ -76,6 +77,14 @@ int32_t sensors_initialize(struct i2c_m_sync_desc *i2c, sensors_t *sensors) {
     }
 
     nsensors++;
+    rv = adc081c_initialize(i2c);
+    if (rv != FK_SUCCESS) {
+        log_sensor_error("adc081c", rv);
+        sensors->failures++;
+    }
+    #endif
+
+    nsensors++;
     rv = sht31_initialize(i2c);
     if (rv != FK_SUCCESS) {
         log_sensor_error("sht31", rv);
@@ -93,13 +102,6 @@ int32_t sensors_initialize(struct i2c_m_sync_desc *i2c, sensors_t *sensors) {
     rv = mpl3115a2_initialize(i2c);
     if (rv != FK_SUCCESS) {
         log_sensor_error("mpl3115a2", rv);
-        sensors->failures++;
-    }
-
-    nsensors++;
-    rv = adc081c_initialize(i2c);
-    if (rv != FK_SUCCESS) {
-        log_sensor_error("adc081c", rv);
         sensors->failures++;
     }
 

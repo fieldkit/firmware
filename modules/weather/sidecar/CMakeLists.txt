@@ -116,3 +116,4 @@ endfunction()
 
 add_sidecar_target("simple" "")
 add_sidecar_target("aggregated" "-DFK_WEATHER_SIDECAR_SUBORDINATE=1")
+add_sidecar_target("unmetered" "-DFK_WEATHER_UNMETERED=1")
