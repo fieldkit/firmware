@@ -24,6 +24,18 @@ static bool has_module_topology_changed(Topology &existing);
 static void update_power_save(bool enabled);
 static bool get_can_launch_captive_readings();
 
+static void log_task_eta(lwcron::Scheduler &scheduler) {
+    auto now = get_clock_now();
+    auto nextTask = scheduler.nextTask(lwcron::DateTime{ now }, 0);
+    if (!nextTask) {
+        // NOTE This would be so strange.
+        logerror("no next task");
+    } else {
+        auto remaining_seconds = nextTask.time - now;
+        loginfo("next task: %" PRIu32 "s", remaining_seconds);
+    }
+}
+
 void task_handler_scheduler(void *params) {
     FK_ASSERT(fk_start_task_if_necessary(&display_task));
     FK_ASSERT(fk_start_task_if_necessary(&network_task));
@@ -52,6 +64,7 @@ void task_handler_scheduler(void *params) {
         IntervalTimer check_for_modules_timer;
         IntervalTimer check_battery_timer;
         IntervalTimer enable_power_save_timer;
+        IntervalTimer eta_debug_timer;
 
         auto has_workers = true;
 
@@ -124,6 +137,11 @@ void task_handler_scheduler(void *params) {
             if (check_battery_timer.expired(ThirtySecondsMs)) {
                 BatteryStatus battery;
                 battery.refresh();
+                log_task_eta(scheduler);
+            }
+
+            if (eta_debug_timer.expired(ThirtySecondsMs)) {
+                log_task_eta(scheduler);
             }
         }
     }
