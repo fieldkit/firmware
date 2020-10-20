@@ -17,14 +17,19 @@ void BatteryStatus::refresh() {
     if (charge > 100.0f) charge = 100.0f;
 
     if (power.battery.available) {
-        loginfo("battery: v_bus = %fV v_s = %fmV %fmA %fmW %f%% (%s)", power.battery.bus_voltage, power.battery.shunted_voltage, power.battery.ma, power.battery.mw, charge, power.charging ? " charging" : "");
+        loginfo("battery: v_bus = %fV v_s = %fmV %fmA %fmW %f%% %s",
+                power.battery.bus_voltage, power.battery.shunted_voltage,
+                power.battery.ma, power.battery.mw,
+                charge, power.charging ? "(charging)" : "");
     }
     else {
         logerror("battery: status unavilable");
     }
 
     if (power.solar.available) {
-        loginfo("solar: v_bus = %fV v_s = %fmV %fmA %fmW", power.solar.bus_voltage, power.solar.shunted_voltage, power.solar.ma, power.solar.mw);
+        loginfo("solar: v_bus = %fV v_s = %fmV %fmA %fmW",
+                power.solar.bus_voltage, power.solar.shunted_voltage,
+                power.solar.ma, power.solar.mw);
     }
     else {
         loginfo("solar: status unavailable");

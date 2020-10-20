@@ -98,6 +98,8 @@ void task_handler_scheduler(void *params) {
             if (has_workers && !now_has_workers) {
                 has_workers = now_has_workers;
 
+                loginfo("deep sleep: no workers, trying");
+
                 DeepSleep deep_sleep;
                 deep_sleep.try_deep_sleep(scheduler);
             }

@@ -30,10 +30,23 @@ static uint32_t deep_sleep() {
 }
 
 static bool can_deep_sleep() {
-    if (get_network()->enabled()) return false;
-    if (os_task_is_running(&network_task)) return false;
-    if (os_task_is_running(&display_task)) return false;
-    if (os_task_is_running(&gps_task)) return false;
+    if (get_network()->enabled()) {
+        loginfo("no deep sleep: network");
+        return false;
+    }
+    if (os_task_is_running(&network_task)) {
+        loginfo("no deep sleep: network task");
+        return false;
+    }
+    if (os_task_is_running(&display_task)) {
+        loginfo("no deep sleep: display task");
+        return false;
+    }
+    if (os_task_is_running(&gps_task)) {
+        loginfo("no deep sleep: gps task");
+        return false;
+    }
+
     return true;
 }
 
@@ -74,9 +87,6 @@ bool DeepSleep::try_deep_sleep(lwcron::Scheduler &scheduler) {
         }
 
         return true;
-    }
-    else {
-        loginfo("no workers: unable to deep sleep");
     }
 
     return false;
