@@ -30,7 +30,6 @@ class FkSegger(gdb.Command):
       for h in irq_handlers:
         gdb.execute("b " + h)
     gdb.execute("monitor reset")
-    gdb.execute("continue")
 
 class FkRestart(gdb.Command):
     "Restart."
@@ -39,7 +38,6 @@ class FkRestart(gdb.Command):
 
     def invoke(self, arg, from_tty):
       gdb.execute("monitor reset")
-      gdb.execute("c")
 
 class FkReloadAllAndRun(gdb.Command):
   "Reload all and run."
@@ -52,7 +50,6 @@ class FkReloadAllAndRun(gdb.Command):
       return False
     gdb.execute("load")
     gdb.execute("monitor reset")
-    gdb.execute("c")
 
 class FkReloadAll(gdb.Command):
   "Reload all."

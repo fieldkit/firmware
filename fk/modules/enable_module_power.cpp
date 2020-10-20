@@ -13,6 +13,14 @@ EnableModulePower::~EnableModulePower() {
     }
 }
 
+bool EnableModulePower::enabled_once() {
+    return enabled_ && position_ != ModulePosition::Virtual && power_ == ModulePower::ReadingsOnly;
+}
+
+bool EnableModulePower::always_enabled() {
+    return power_ == ModulePower::Always;
+}
+
 bool EnableModulePower::enable() {
     if (enabled_once() || always_enabled()) {
         logverbose("[%d] powering on", position_.integer());

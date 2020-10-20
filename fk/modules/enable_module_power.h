@@ -15,13 +15,9 @@ public:
     virtual ~EnableModulePower();
 
 public:
-    bool enabled_once() {
-        return enabled_ && position_ != ModulePosition::Virtual && power_ == ModulePower::ReadingsOnly;
-    }
+    bool enabled_once();
 
-    bool always_enabled() {
-        return power_ == ModulePower::Always;
-    }
+    bool always_enabled();
 
     bool enable();
 

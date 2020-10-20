@@ -1,7 +1,7 @@
 #include "hal/hal.h"
 #include "hal/metal/metal.h"
 
-#if defined(ARDUINO)
+#if defined(__SAMD51__)
 
 #include <Wire.h>
 
