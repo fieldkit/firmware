@@ -260,8 +260,8 @@ static bool configure(HttpServerConnection *connection, fk_app_HttpQuery *query,
             if (gs->scheduler.network.duration < OneMinuteSeconds) {
                 gs->scheduler.network.duration = OneMinuteSeconds;
             }
-            if (gs->scheduler.readings.duration < OneMinuteSeconds) {
-                gs->scheduler.readings.duration = OneMinuteSeconds;
+            if (gs->scheduler.readings.interval < OneMinuteSeconds) {
+                gs->scheduler.readings.interval = OneMinuteSeconds;
                 logerror("readings duration too short");
             }
         });
