@@ -28,16 +28,22 @@ void ScheduleView::tick(ViewController *views, Pool &pool) {
 
     auto now = fk_uptime();
     if (update_at == 0 || now > update_at) {
-        auto gs = get_global_state_rw();
+        auto gs = get_global_state_ro();
         scheduled_ = gs.get()->scheduler.upcoming;
+        interval_ = gs.get()->scheduler.readings.interval;
         update_at = now + OneSecondMs;
     }
 
+    char primary[64] = { 0 };
     char secondary[64] = { 0 };
-    tiny_snprintf(secondary, sizeof(secondary), "Next: %" PRIu32 "s", scheduled_.seconds);
 
     auto option = options[position_ % NumberOfOptions];
-    display->simple(SimpleScreen{ option.label, secondary });
+    auto selected = option.interval == interval_ ? "*" : "";
+
+    tiny_snprintf(primary, sizeof(primary), "%s%s", option.label, selected);
+    tiny_snprintf(secondary, sizeof(secondary), "Next: %" PRIu32 "s", scheduled_.seconds);
+
+    display->simple(SimpleScreen{ primary, secondary });
 }
 
 void ScheduleView::up(ViewController *views) {

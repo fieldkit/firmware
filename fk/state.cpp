@@ -37,10 +37,10 @@ void Schedule::recreate() {
 }
 
 void Schedule::simple(uint32_t interval) {
-    repeated = 0;
-    duration = 0;
-    jitter = 0;
-    interval = interval;
+    this->repeated = 0;
+    this->duration = 0;
+    this->jitter = 0;
+    this->interval = interval;
     cron = lwcron::CronSpec::interval(std::max(interval, OneMinuteSeconds));
 }
 
