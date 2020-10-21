@@ -1,11 +1,11 @@
 #include <tiny_printf.h>
 
-#include "schedule_view.h"
-#include "state_manager.h"
-#include "state_ref.h"
 #include "hal/board.h"
 #include "hal/display.h"
 #include "platform.h"
+#include "schedule_view.h"
+#include "state_manager.h"
+#include "state_ref.h"
 
 namespace fk {
 
@@ -18,15 +18,9 @@ struct Option {
 
 static constexpr size_t NumberOfOptions = 7;
 
-static Option options[NumberOfOptions] = {
-    { "Set 1min", 60 },
-    { "Set 5min", 60 * 5 },
-    { "Set 10min", 60 * 10 },
-    { "Set 30min", 60 * 30 },
-    { "Set 60min", 60 * 60 },
-    { "Cancel", -1 },
-    { "Never (!)", 0 }
-};
+static Option options[NumberOfOptions] = { { "Set 1min", 60 },       { "Set 5min", 60 * 5 },   { "Set 10min", 60 * 10 },
+                                           { "Set 30min", 60 * 30 }, { "Set 60min", 60 * 60 }, { "Cancel", -1 },
+                                           { "Never (!)", 0 } };
 
 void ScheduleView::tick(ViewController *views, Pool &pool) {
     auto bus = get_board()->i2c_core();
@@ -55,7 +49,7 @@ void ScheduleView::down(ViewController *views) {
 }
 
 void ScheduleView::enter(ViewController *views) {
-    auto& option = options[position_ % NumberOfOptions];
+    auto &option = options[position_ % NumberOfOptions];
     if (option.interval >= 0) {
         GlobalStateManager gsm;
         gsm.apply([=](GlobalState *gs) {
@@ -64,11 +58,9 @@ void ScheduleView::enter(ViewController *views) {
             gs->scheduler.readings.simple(option.interval);
             gs->flush(pool);
         });
-
-        // Save
     }
 
     views->show_home();
 }
 
-}
+} // namespace fk
