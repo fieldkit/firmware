@@ -34,8 +34,9 @@ void ScheduleView::tick(ViewController *views, Pool &pool) {
 
     auto now = fk_uptime();
     if (update_at == 0 || now > update_at) {
-        scheduled_ = fk_schedule_get_scheduled_time();
-        update_at = now + FiveSecondsMs;
+        auto gs = get_global_state_rw();
+        scheduled_ = gs.get()->scheduler.upcoming;
+        update_at = now + OneSecondMs;
     }
 
     char secondary[64] = { 0 };

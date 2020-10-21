@@ -55,6 +55,9 @@ static void log_task_eta() {
     else {
         loginfo("next task: %" PRIu32 "s", scheduled.seconds);
     }
+
+    auto gs = get_global_state_rw();
+    gs.get()->scheduler.upcoming = scheduled;
 }
 
 void task_handler_scheduler(void *params) {
@@ -161,10 +164,9 @@ void task_handler_scheduler(void *params) {
             if (check_battery_timer.expired(ThirtySecondsMs)) {
                 BatteryStatus battery;
                 battery.refresh();
-                log_task_eta();
             }
 
-            if (eta_debug_timer.expired(ThirtySecondsMs)) {
+            if (eta_debug_timer.expired(FiveSecondsMs)) {
                 log_task_eta();
             }
         }

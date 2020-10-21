@@ -17,6 +17,12 @@ namespace fk {
 
 class File;
 
+struct ScheduledTime {
+    uint32_t now;
+    uint32_t time;
+    uint32_t seconds;
+};
+
 struct SensorState {
     const char *name;
     const char *unit_of_measure;
@@ -255,6 +261,7 @@ struct SchedulerState {
     Schedule network{ };
     Schedule gps{ };
     Schedule lora{ };
+    ScheduledTime upcoming;
 };
 
 struct ReadingsState {
