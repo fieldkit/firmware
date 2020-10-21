@@ -9,18 +9,19 @@ namespace fk {
 
 class MenuView : public DisplayView {
 private:
-    Pool *pool_;
-    ViewController *views_;
-    MenuOption *back_;
+    Pool *pool_{ nullptr };
+    ViewController *views_{ nullptr };
+    MenuOption *back_{ nullptr };
     MenuScreen *active_menu_{ nullptr };
     MenuScreen *previous_menu_{ nullptr };
-    MenuScreen *info_menu_;
-    MenuScreen *network_menu_;
-    MenuScreen *network_choose_menu_;
-    MenuScreen *tools_menu_;
-    MenuScreen *main_menu_;
-    MenuScreen *module_bays_menu_;
-    MenuScreen *module_menu_;
+    MenuScreen *info_menu_{ nullptr };
+    MenuScreen *network_menu_{ nullptr };
+    MenuScreen *network_choose_menu_{ nullptr };
+    MenuScreen *tools_menu_{ nullptr };
+    MenuScreen *main_menu_{ nullptr };
+    MenuScreen *module_bays_menu_{ nullptr };
+    MenuScreen *module_menu_{ nullptr };
+    MenuScreen *schedules_menu_{ nullptr };
     uint32_t menu_time_{ 0 };
     uint32_t refresh_time_{ 0 };
     ModulePosition selected_module_bay_{ 0 };
@@ -43,6 +44,7 @@ private:
     void create_tools_menu();
     void create_network_menu();
     void create_main_menu();
+    void create_schedules_menu();
     void refresh();
 
 private:

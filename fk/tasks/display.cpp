@@ -16,6 +16,7 @@
 #include "display/module_status_view.h"
 #include "display/lora_view.h"
 #include "display/gps_view.h"
+#include "display/schedule_view.h"
 #include "display/leds.h"
 
 namespace fk {
@@ -28,6 +29,7 @@ private:
     ReadingsView readings_view;
     MenuView menu_view;
     NameView name_view;
+    ScheduleView schedule_view;
     BuildView build_view;
     MessageView message_view;
     SelfCheckView self_check_view;
@@ -64,6 +66,10 @@ public:
 
     void show_readings() override {
         show_view(readings_view);
+    }
+
+    void show_schedule() override {
+        show_view(schedule_view);
     }
 
     void show_name() override {

@@ -247,6 +247,7 @@ struct Schedule {
     Schedule& operator=(const fk_app_Schedule &s);
 
     void recreate();
+    void simple(uint32_t interval);
 };
 
 struct SchedulerState {

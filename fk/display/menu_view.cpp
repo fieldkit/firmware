@@ -221,6 +221,7 @@ MenuView::MenuView(ViewController *views, Pool &pool) : pool_(&pool), views_(vie
     create_module_menu();
     create_network_menu();
     create_main_menu();
+    create_schedules_menu();
 
     active_menu_ = main_menu_;
     refresh_visible(*active_menu_, 0);
@@ -535,6 +536,10 @@ void MenuView::create_main_menu() {
         previous_menu_ = active_menu_;
         active_menu_ = goto_menu(info_menu_);
     });
+    auto main_schedules = to_lambda_option(pool_, "Schedules", [=]() {
+        previous_menu_ = active_menu_;
+        active_menu_ = goto_menu(schedules_menu_);
+    });
     auto main_network = to_lambda_option(pool_, "Network", [=]() {
         previous_menu_ = active_menu_;
         active_menu_ = goto_menu(network_menu_);
@@ -548,12 +553,25 @@ void MenuView::create_main_menu() {
         active_menu_ = goto_menu(tools_menu_);
     });
 
-    main_menu_ = new_menu_screen<5>(pool_, "main", {
+    main_menu_ = new_menu_screen<6>(pool_, "main", {
         main_readings,
         main_info,
+        main_schedules,
         main_network,
         main_modules,
         main_tools,
+    });
+}
+
+void MenuView::create_schedules_menu() {
+    auto schedule_readings = to_lambda_option(pool_, "Readings", [=]() {
+        loginfo("hello");
+        views_->show_schedule();
+    });
+
+    schedules_menu_ = new_menu_screen<2>(pool_, "schedule", {
+        back_,
+        schedule_readings,
     });
 }
 

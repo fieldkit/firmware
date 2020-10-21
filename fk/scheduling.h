@@ -18,6 +18,14 @@
 
 namespace fk {
 
+struct ScheduledTime {
+    uint32_t now;
+    uint32_t time;
+    uint32_t seconds;
+};
+
+ScheduledTime fk_schedule_get_scheduled_time();
+
 struct CurrentSchedules {
     lwcron::CronSpec readings;
     lwcron::CronSpec network;

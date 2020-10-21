@@ -36,6 +36,14 @@ void Schedule::recreate() {
     cron = cs;
 }
 
+void Schedule::simple(uint32_t interval) {
+    repeated = 0;
+    duration = 0;
+    jitter = 0;
+    interval = interval;
+    cron = lwcron::CronSpec::interval(std::max(interval, OneMinuteSeconds));
+}
+
 Schedule& Schedule::operator=(const fk_app_Schedule &s) {
     memzero(intervals, sizeof(intervals));
     if (s.intervals.arg != nullptr) {

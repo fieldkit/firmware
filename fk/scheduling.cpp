@@ -2,6 +2,12 @@
 
 namespace fk {
 
+#if !defined(__SAMD51__)
+ScheduledTime fk_schedule_get_scheduled_time() {
+    return { };
+}
+#endif
+
 CurrentSchedules::CurrentSchedules() {
 }
 

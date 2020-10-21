@@ -24,15 +24,36 @@ static bool has_module_topology_changed(Topology &existing);
 static void update_power_save(bool enabled);
 static bool get_can_launch_captive_readings();
 
-static void log_task_eta(lwcron::Scheduler &scheduler) {
+/* Not a huge fan of this, this being local to the file is the only
+ * thing saving it from me. */
+static lwcron::Scheduler *active_{ nullptr };
+
+ScheduledTime fk_schedule_get_scheduled_time() {
+    if (active_ == nullptr) {
+        return { };
+    }
+
     auto now = get_clock_now();
-    auto nextTask = scheduler.nextTask(lwcron::DateTime{ now }, 0);
+    auto nextTask = active_->nextTask(lwcron::DateTime{ now }, 0);
     if (!nextTask) {
-        // NOTE This would be so strange.
-        logerror("no next task");
-    } else {
-        auto remaining_seconds = nextTask.time - now;
-        loginfo("next task: %" PRIu32 "s", remaining_seconds);
+        return { };
+    }
+    auto remaining_seconds = nextTask.time - now;
+
+    return {
+        .now = now,
+        .time = nextTask.time,
+        .seconds = remaining_seconds,
+    };
+}
+
+static void log_task_eta() {
+    auto scheduled = fk_schedule_get_scheduled_time();
+    if (scheduled.time == 0) {
+        logerror("no next task, huge bug!");
+    }
+    else {
+        loginfo("next task: %" PRIu32 "s", scheduled.seconds);
     }
 }
 
@@ -55,6 +76,9 @@ void task_handler_scheduler(void *params) {
                                 &service_modules_job };
         lwcron::Scheduler scheduler{ tasks };
         Topology topology;
+
+        // See above.
+        active_ = &scheduler;
 
         loginfo("module service interval: %" PRIu32 "s", schedules.service_interval);
 
@@ -137,14 +161,16 @@ void task_handler_scheduler(void *params) {
             if (check_battery_timer.expired(ThirtySecondsMs)) {
                 BatteryStatus battery;
                 battery.refresh();
-                log_task_eta(scheduler);
+                log_task_eta();
             }
 
             if (eta_debug_timer.expired(ThirtySecondsMs)) {
-                log_task_eta(scheduler);
+                log_task_eta();
             }
         }
     }
+
+    active_ = nullptr;
 }
 
 static CurrentSchedules get_config_schedules() {

@@ -24,16 +24,16 @@ void ReadingsView::tick(ViewController *views, Pool &pool) {
     }
 
     size_t number_sensors = 0;
-    for (size_t m = 0; m < modules->nmodules; ++m) {
+    for (auto m = 0u; m < modules->nmodules; ++m) {
         auto &module = modules->modules[m];
         number_sensors += module.nsensors;
     }
 
     auto index = position_ % number_sensors;
 
-    for (size_t m = 0; m < modules->nmodules; ++m) {
+    for (auto m = 0u; m < modules->nmodules; ++m) {
         auto &module = modules->modules[m];
-        for (size_t s = 0; s < module.nsensors; ++s) {
+        for (auto s = 0u; s < module.nsensors; ++s) {
             auto &sensor = module.sensors[s];
             if (index-- == 0) {
                 if (sensor.has_live_vaue) {

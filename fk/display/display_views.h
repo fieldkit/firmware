@@ -19,6 +19,7 @@ public:
     virtual void show_qr_code() = 0;
     virtual void show_lora() = 0;
     virtual void show_gps() = 0;
+    virtual void show_schedule() = 0;
     virtual void on_external() = 0;
 
 };
