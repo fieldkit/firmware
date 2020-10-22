@@ -3,7 +3,7 @@
 #include "utilities.h"
 #include "hal/metal/metal_network.h"
 
-#if defined(ARDUINO)
+#if defined(__SAMD51__)
 
 #include <WiFiSocket.h>
 
