@@ -312,6 +312,8 @@ bool MetalNetwork::serve() {
 
     registered_ = fk_uptime();
 
+    udp_discovery_.start();
+
     synchronize_time();
 
     loginfo("ready (ip = %d.%d.%d.%d) (service = %s) (status = %s)",
@@ -353,6 +355,7 @@ void MetalNetwork::service() {
     mdns_.run();
 
     ntp_.service();
+    udp_discovery_.service();
 }
 
 PoolPointer<NetworkConnection> *MetalNetwork::open_connection(const char *scheme, const char *hostname, uint16_t port) {
@@ -382,7 +385,8 @@ bool MetalNetwork::stop() {
             ntp_.stop();
             // Ensure the previous removal gets loose?
             fk_delay(500);
-            udp_.stop();
+            udp_mdns_.stop();
+            udp_discovery_.stop();
             serving_ = false;
         }
         WiFi.end();

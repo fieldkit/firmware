@@ -359,6 +359,11 @@ constexpr size_t HttpMaximumUrlLength = 64;
  */
 constexpr size_t HttpMaximumTokenLength = 512;
 
+/**
+ * Time between UDP discovery publishes.
+ */
+constexpr uint32_t NetworkUdpDiscoveryInterval = 5000;
+
 // -------------------------------------------------------------------------------------------
 // GPS
 

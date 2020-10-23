@@ -1,10 +1,11 @@
 #pragma once
 
-#if defined(ARDUINO)
+#if defined(__SAMD51__)
 
 #include "exchange.h"
 #include "hal/hal.h"
 #include "hal/metal/simple_ntp.h"
+#include "hal/metal/udp_discovery.h"
 
 #include <Arduino.h>
 #include <SPI.h>
@@ -81,8 +82,9 @@ private:
     char service_name_[64];
     uint32_t registered_{ 0 };
     WiFiServer server_{ 80 };
-    WiFiUDP udp_;
-    MDNS mdns_{ udp_ };
+    WiFiUDP udp_mdns_;
+    MDNS mdns_{ udp_mdns_ };
+    UDPDiscovery udp_discovery_;
     SimpleNTP ntp_;
 
 public:
