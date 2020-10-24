@@ -100,13 +100,7 @@ int16_t DnsMessage::answers_size() {
         case 0x0c: {
             printf("ptr record (%d)\n", rdlength);
 
-            auto name_length = read_name(p);
-
-            printf("%d\n", rdlength - name_length);
-            for (auto i = 0; i < rdlength - name_length; ++i) {
-                printf("0x%x ", p[i]);
-            }
-            printf("\n");
+            /*auto name_length = */read_name(p);
 
             p += rdlength;
             break;
