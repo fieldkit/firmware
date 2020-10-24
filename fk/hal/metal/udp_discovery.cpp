@@ -50,9 +50,7 @@ bool UDPDiscovery::service() {
             logerror("begin failed!");
         } else {
             fk_serial_number_t sn;
-            char device_id_hex[64];
-            bytes_to_hex_string(device_id_hex, sizeof(device_id_hex), (uint8_t *)&sn, sizeof(sn));
-            udp_.write((uint8_t *)device_id_hex, strlen(device_id_hex));
+            udp_.write((uint8_t *)&sn, sizeof(sn));
             if (udp_.endPacket() != 0) {
                 logerror("send failed!");
             }
