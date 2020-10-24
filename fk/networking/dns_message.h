@@ -7,38 +7,49 @@ namespace fk {
 
 typedef struct dns_header_t {
     uint16_t xid;
+    uint8_t qr : 1;
+    uint8_t opcode: 4;
+    uint8_t authoritative : 1;
+    uint8_t truncation : 1;
     uint8_t recursion_desired : 1;
-    uint8_t truncated : 1;
-    uint8_t authoritive_answer : 1;
-    uint8_t op_code : 4;
-    uint8_t query_response : 1;
-    uint8_t response_code : 4;
-    uint8_t checking_disabled : 1;
-    uint8_t authenticated_data : 1;
-    uint8_t reserved : 1;
     uint8_t recursion_available : 1;
+    uint8_t reserved : 3;
+    uint8_t response_code : 4;
     uint16_t number_query;
     uint16_t number_answer;
     uint16_t number_authority;
     uint16_t number_additional;
 } __attribute__((__packed__)) dns_header_t;
 
-class DnsMessage {
+class DNSMessage {
 private:
+    Pool *pool_{ nullptr };
     uint8_t *buffer_{ nullptr };
     size_t size_{ 0 };
+    size_t position_{ 0 };
     dns_header_t *header_{ nullptr };
+    bool verbose_{ true };
     bool error_{ true };
 
 public:
-    DnsMessage(uint8_t *ptr, size_t size);
-    virtual ~DnsMessage();
+    DNSMessage(Pool *pool, uint8_t *ptr = nullptr, size_t size = 0);
+    virtual ~DNSMessage();
+
+public:
+    struct pointer_t {
+        uint8_t *p;
+        size_t moved;
+    };
+    struct dns_name_t {
+        const char *name;
+        int16_t length;
+    };
+    dns_name_t read_name(uint8_t *p);
+    int16_t read_name(uint8_t *p, uint8_t *name, size_t size);
 
 public:
     int16_t queries_size();
     int16_t answers_size();
-    int16_t read_name(uint8_t *p);
-    int16_t read_names(uint8_t *p);
 
 public:
     uint16_t number_queries() const {
@@ -57,9 +68,13 @@ public:
         return ethutil_ntohs(header_->number_additional);
     }
 
+    uint16_t read_uint16(pointer_t &pos);
 
 public:
-    bool parse(Pool *pool);
+    bool parse();
+
+public:
+    bool query_service_type(const char *service_type);
 
 private:
     uint8_t *end_of_packet() const {
