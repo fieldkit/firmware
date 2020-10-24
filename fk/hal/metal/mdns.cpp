@@ -66,11 +66,9 @@ bool MDNSDiscovery::start(Pool *pool) {
         return false;
     }
 
-    if (false) {
-        if (!mdns_.addServiceRecord(service_name_, 80, MDNSServiceTCP)) {
-            logerror("error adding service");
-            return false;
-        }
+    if (!mdns_.addServiceRecord(service_name_, 80, MDNSServiceTCP)) {
+        logerror("error adding service");
+        return false;
     }
 
     registered_ = fk_uptime();
@@ -119,3 +117,45 @@ void MDNSDiscovery::stop() {
 }
 
 } // namespace fk
+
+/*
+auto try_again = false;
+auto discover_service = "_fk";
+
+static void service_found(const char *type, MDNSServiceProtocol, const char *name, IPAddress ip, unsigned short port, const char *txt) {
+    if (nullptr == name) {
+        loginfo("discovery finished: none");
+    } else {
+        loginfo("discovery finished: %s", name);
+
+        // Check out http://www.zeroconf.org/Rendezvous/txtrecords.html for a
+        // primer on the structure of TXT records. Note that the Bonjour
+        // library will always return the txt content as a zero-terminated
+        // string, even if the specification does not require this.
+        if (nullptr != txt) {
+            char buf[256];
+            char len = *txt++;
+            while (len) {
+                auto i = 0;
+                while (len--) {
+                    buf[i++] = *txt++;
+                }
+                buf[i] = '\0';
+                loginfo("txt: %s", buf);
+                len = *txt++;
+            }
+        }
+    }
+
+    try_again = true;
+}
+
+// Initialize
+if (false) {
+    mdns_.setServiceFoundCallback(service_found);
+
+    if (!mdns_.startDiscoveringService(discover_service, MDNSServiceTCP, 5000)) {
+        logwarn("error starting discovery");
+    }
+}
+*/
