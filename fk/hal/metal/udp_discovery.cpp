@@ -53,7 +53,7 @@ bool UDPDiscovery::service() {
             char device_id_hex[64];
             bytes_to_hex_string(device_id_hex, sizeof(device_id_hex), (uint8_t *)&sn, sizeof(sn));
             udp_.write(device_id_hex, strlen(device_id_hex));
-            if (!udp_.endPacket()) {
+            if (udp_.endPacket() != 0) {
                 logerror("send failed!");
             }
         }
