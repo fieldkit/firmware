@@ -6,12 +6,12 @@
 #include "hal/hal.h"
 #include "hal/metal/simple_ntp.h"
 #include "hal/metal/udp_discovery.h"
+#include "hal/metal/mdns.h"
 
 #include <Arduino.h>
 #include <SPI.h>
 #include <WiFi101.h>
 #include <WiFiUdp.h>
-#include <ArduinoMDNS.h>
 
 #undef min
 #undef max
@@ -78,12 +78,8 @@ private:
     NetworkSettings settings_;
     bool enabled_{ false };
     bool serving_{ false };
-    char mdns_name_[64];
-    char service_name_[64];
-    uint32_t registered_{ 0 };
     WiFiServer server_{ 80 };
-    WiFiUDP udp_mdns_;
-    MDNS mdns_{ udp_mdns_ };
+    MDNSDiscovery mdns_discovery_;
     UDPDiscovery udp_discovery_;
     SimpleNTP ntp_;
 

@@ -9,31 +9,6 @@
 
 namespace fk {
 
-/**
- * HACK: Hacks around amplifying service registration traffic.
- */
-constexpr uint32_t NetworkAddServiceRecordIntervalMs = 5000;
-constexpr uint32_t NetworkRemoveServiceRecordAmplification = 5;
-constexpr uint32_t NetworkRemoveServiceRecordDelayMs = 250;
-
-class MDNSPoolAllocator : public MDNSAllocator {
-private:
-    Pool *pool_;
-
-public:
-    explicit MDNSPoolAllocator(Pool *pool) : pool_(pool) {
-    }
-
-public:
-    void *malloc(size_t size) override {
-        return pool_->calloc(size);
-    }
-
-    void free(void *ptr) override {
-    }
-
-};
-
 class StaticWiFiCallbacks : public WiFiCallbacks {
 private:
     constexpr static size_t ExpectedWiFiBufferSize = 1472;
@@ -246,8 +221,6 @@ bool MetalNetwork::begin(NetworkSettings settings) {
 
     pool_ = create_standard_pool_inside("network");
 
-    mdns_.allocator(new (pool_) MDNSPoolAllocator(pool_));
-
     staticWiFiCallbacks.initialize(*pool_);
 
     WiFiSocketClass::callbacks = &staticWiFiCallbacks;
@@ -294,30 +267,19 @@ bool MetalNetwork::begin(NetworkSettings settings) {
 bool MetalNetwork::serve() {
     serving_ = true;
 
-    IPAddress ip = WiFi.localIP();
-
-    fk_serial_number_t sn;
-    const char *suffix = "._fk";
-    bytes_to_hex_string(mdns_name_, sizeof(mdns_name_), (uint8_t *)&sn, sizeof(sn));
-    auto id_length = bytes_to_hex_string(service_name_, sizeof(service_name_) - strlen(suffix) - 1, (uint8_t *)&sn, sizeof(sn));
-    strncpy(service_name_ + id_length, suffix, strlen(suffix));
-    service_name_[id_length + 4] = 0;
-
-    if (!mdns_.begin(ip, mdns_name_)) {
-        logerror("unable to start mdns responder!");
-        return false;
+    if (!mdns_discovery_.start(pool_)) {
+        logwarn("mdns discovery failed");
     }
 
-    mdns_.addServiceRecord(service_name_, 80, MDNSServiceTCP);
-
-    registered_ = fk_uptime();
-
-    udp_discovery_.start();
+    if (!udp_discovery_.start()) {
+        logwarn("udp discovery failed");
+    }
 
     synchronize_time();
 
-    loginfo("ready (ip = %d.%d.%d.%d) (service = %s) (status = %s)",
-            ip[0], ip[1], ip[2], ip[3], service_name_, get_wifi_status());
+    IPAddress ip = WiFi.localIP();
+    loginfo("ready (ip = %d.%d.%d.%d) (status = %s)",
+            ip[0], ip[1], ip[2], ip[3], get_wifi_status());
 
     return true;
 }
@@ -347,13 +309,7 @@ PoolPointer<NetworkListener> *MetalNetwork::listen(uint16_t port) {
 }
 
 void MetalNetwork::service() {
-    if (fk_uptime() - registered_ > NetworkAddServiceRecordIntervalMs) {
-        mdns_.addServiceRecord(service_name_, 80, MDNSServiceTCP);
-        registered_  = fk_uptime();
-    }
-
-    mdns_.run();
-
+    mdns_discovery_.service();
     ntp_.service();
     udp_discovery_.service();
 }
@@ -381,12 +337,11 @@ PoolPointer<NetworkConnection> *MetalNetwork::open_connection(const char *scheme
 bool MetalNetwork::stop() {
     if (enabled_) {
         if (serving_) {
-            mdns_.removeServiceRecord(80, MDNSServiceTCP, NetworkRemoveServiceRecordAmplification, NetworkRemoveServiceRecordDelayMs);
             ntp_.stop();
             // Ensure the previous removal gets loose?
             fk_delay(500);
-            udp_mdns_.stop();
             udp_discovery_.stop();
+            mdns_discovery_.stop();
             serving_ = false;
         }
         WiFi.end();
