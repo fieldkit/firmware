@@ -267,10 +267,12 @@ bool MetalNetwork::begin(NetworkSettings settings) {
 bool MetalNetwork::serve() {
     serving_ = true;
 
-    if (!mdns_discovery_.start(pool_)) {
+    mdns_discovery_.pool(pool_);
+    if (!mdns_discovery_.start()) {
         logwarn("mdns discovery failed");
     }
 
+    udp_discovery_.pool(pool_);
     if (!udp_discovery_.start()) {
         logwarn("udp discovery failed");
     }
@@ -361,6 +363,7 @@ bool MetalNetwork::enabled() {
 
 bool MetalNetwork::synchronize_time() {
     if (!settings_.create) {
+        ntp_.pool(pool_);
         ntp_.start();
     }
 

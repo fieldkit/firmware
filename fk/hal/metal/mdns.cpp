@@ -39,10 +39,8 @@ MDNSDiscovery::MDNSDiscovery() {
 MDNSDiscovery::~MDNSDiscovery() {
 }
 
-bool MDNSDiscovery::start(Pool *pool) {
-    FK_ASSERT(pool != nullptr);
-
-    pool_ = pool;
+bool MDNSDiscovery::start() {
+    FK_ASSERT(pool_ != nullptr);
 
     loginfo("starting");
 

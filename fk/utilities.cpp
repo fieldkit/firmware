@@ -54,16 +54,20 @@ size_t hex_string_to_bytes(uint8_t *data, size_t data_size, const char *buffer) 
     return length / 2;
 }
 
-void fk_dump_memory(const char *prefix, const uint8_t *p, size_t size) {
+void fk_dump_memory(const char *prefix, const uint8_t *p, size_t size, ...) {
+    va_list args;
+    va_start(args, size);
+
     #if defined(__SAMD51__)
     SEGGER_RTT_LOCK();
     #endif
-    fkb_external_printf("%s", prefix);
+    fkb_external_vprintf(prefix, args);
     for (auto i = (size_t)0; i < size; ++i) {
         fkb_external_printf("%02x ", p[i]);
         if ((i + 1) % 32 == 0) {
             if (i + 1 < size) {
-                fkb_external_printf("\n%s", prefix);
+                fkb_external_printf("\n");
+                fkb_external_vprintf(prefix, args);
             }
         }
     }
@@ -71,6 +75,8 @@ void fk_dump_memory(const char *prefix, const uint8_t *p, size_t size) {
     #if defined(__SAMD51__)
     SEGGER_RTT_UNLOCK();
     #endif
+
+    va_end(args);
 }
 
 size_t make_pretty_time_string(uint32_t ms, char *buffer, size_t buffer_size) {

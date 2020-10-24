@@ -18,7 +18,7 @@ const char *bytes_to_hex_string_pool(uint8_t const *data, size_t data_size, Pool
 /**
  * Function for dumping memory in hexadecimal encoding to the console for debugging.
  */
-void fk_dump_memory(const char *prefix, uint8_t const *p, size_t size);
+void fk_dump_memory(const char *prefix, uint8_t const *p, size_t size, ...);
 
 /**
  * Reverse a bytes to hex string, generating bytes from a hex string.

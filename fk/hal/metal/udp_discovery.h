@@ -10,6 +10,7 @@
 #undef abs
 
 #include "common.h"
+#include "debug_udp.h"
 
 namespace fk {
 
@@ -17,7 +18,7 @@ class Wifi;
 
 class UDPDiscovery {
 private:
-    WiFiUDP udp_;
+    DebugUDP udp_{ "sud" };
     bool initialized_{ false };
     uint32_t publish_{ 0 };
     uint32_t receive_{ 0 };
@@ -25,6 +26,11 @@ private:
 public:
     UDPDiscovery();
     virtual ~UDPDiscovery();
+
+public:
+    void pool(Pool *pool) {
+        udp_.pool(pool);
+    }
 
 public:
     bool start();
