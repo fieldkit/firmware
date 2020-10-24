@@ -119,20 +119,18 @@ static void fake_global_state(GlobalState &gs, Pool &pool) {
         { .name = "sensor-9", .unit_of_measure = "m", .flags = 0, .has_live_vaue = true, .live_value = module_readings->get(9) },
     });
 
-    auto module_states = pool.malloc_with<ModuleState, 1>({
-        {
-            .position = ModulePosition::from(0),
-            .manufacturer = 1,
-            .kind = 2,
-            .version = 3,
-            .name = "module",
-            .display_name_key = "module",
-            .id = (fk_uuid_t *)pool.copy(&module_id, sizeof(fk_uuid_t)),
-            .flags = 0,
-            .status_message = nullptr,
-            .sensors = module_sensors,
-            .nsensors = 10,
-        }
+    auto module_states = pool.malloc_with<ModuleState>({
+        .position = ModulePosition::from(0),
+        .manufacturer = 1,
+        .kind = 2,
+        .version = 3,
+        .name = "module",
+        .display_name_key = "module",
+        .id = (fk_uuid_t *)pool.copy(&module_id, sizeof(fk_uuid_t)),
+        .flags = 0,
+        .status_message = nullptr,
+        .sensors = module_sensors,
+        .nsensors = 10,
     });
 
     auto modules = new (pool) ModulesState(&pool);
