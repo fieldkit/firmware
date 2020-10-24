@@ -22,6 +22,13 @@ bool fk_logs_flush();
 
 void fk_logs_clear();
 
+void fk_logs_printf(const char *f, ...);
+
+/**
+ * Function for dumping memory in hexadecimal encoding to the console for debugging.
+ */
+void fk_logs_dump_memory(const char *prefix, uint8_t const *p, size_t size, ...);
+
 class LogBufferLock {
 private:
     bool success_{ false };

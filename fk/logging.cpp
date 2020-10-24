@@ -42,6 +42,50 @@ bool fk_logs_flush() {
     return true;
 }
 
+void fk_logs_vprintf(const char *f, va_list args) {
+    auto app = logs.start();
+    SEGGER_RTT_vprintf(0, f, &args);
+    tiny_vfctprintf(write_logs_buffer, &app, f, args);
+    app.append((char)0);
+}
+
+void fk_logs_printf(const char *f, ...) {
+    va_list args;
+    va_start(args, f);
+
+    SEGGER_RTT_LOCK();
+    fk_logs_vprintf(f, args);
+    SEGGER_RTT_UNLOCK();
+
+    va_end(args);
+}
+
+void fk_logs_dump_memory(const char *prefix, const uint8_t *p, size_t size, ...) {
+    va_list args;
+    va_start(args, size);
+
+    #if defined(__SAMD51__)
+    SEGGER_RTT_LOCK();
+    #endif
+
+    fk_logs_vprintf(prefix, args);
+    for (auto i = (size_t)0; i < size; ++i) {
+        fk_logs_printf("%02x ", p[i]);
+        if ((i + 1) % 32 == 0) {
+            if (i + 1 < size) {
+                fk_logs_printf("\n");
+                fk_logs_vprintf(prefix, args);
+            }
+        }
+    }
+    fk_logs_printf(" (%d bytes)\n", size);
+    #if defined(__SAMD51__)
+    SEGGER_RTT_UNLOCK();
+    #endif
+
+    va_end(args);
+}
+
 size_t write_log(LogMessage const *m, const char *fstring, va_list args) {
     // No reason being here if we aren't going to log anything.
     if (!logs_rtt_enabled && !logs_buffer_free) {

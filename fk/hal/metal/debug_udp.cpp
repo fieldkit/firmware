@@ -110,7 +110,7 @@ size_t DebugUDP::append(uint8_t const *buffer, size_t size) {
 }
 
 size_t DebugUDP::debug(char const *prefix, uint8_t const *buffer, size_t size) {
-    fk_dump_memory("%s[%s]: ", buffer, size, prefix, name_);
+    fk_logs_dump_memory("%s[%s]: ", buffer, size, prefix, name_);
     return size;
 }
 
