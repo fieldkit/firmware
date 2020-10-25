@@ -71,7 +71,12 @@ BufferedReader::~BufferedReader() {
 }
 
 int32_t BufferedReader::read(uint8_t *buffer, size_t size) {
-    if (bytes_read_ == 0) {
+    auto available = bytes_read_ - position_;
+    if (bytes_read_ == 0 || available == 0) {
+        if (reader_ == nullptr) {
+            return -1;
+        }
+
         auto reading = buffer_size_;
         auto nread = reader_->read(buffer_, reading);
         if (nread <= 0) {
