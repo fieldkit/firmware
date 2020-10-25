@@ -38,12 +38,12 @@ void try_and_serve_connections() {
     while (true) {
         auto network = get_network();
 
-        GlobalStateManager gsm;
+        StandardPool tick_pool{ "network-tick" };
         NetworkServices network_services{ network };
         NetworkTask task{ network, network_services };
         StandardPool pool{ "network" };
-        StandardPool tick_pool{ "network-tick" };
         NetworkDuration duration;
+        GlobalStateManager gsm;
 
         auto settings = task.get_selected_settings(pool);
 
