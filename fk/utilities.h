@@ -2,6 +2,7 @@
 
 #include "common.h"
 #include "pool.h"
+#include "ethutil.h"
 
 namespace fk {
 

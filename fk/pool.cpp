@@ -134,6 +134,10 @@ EncodedMessage *Pool::copy(EncodedMessage const *message) {
     return new (*this) EncodedMessage(message->size, (uint8_t *)copy(message->buffer, message->size));
 }
 
+EncodedMessage *Pool::wrap(uint8_t *buffer, size_t size) {
+    return new (*this) EncodedMessage(size, buffer);
+}
+
 EncodedMessage *Pool::encode(pb_msgdesc_t const *fields, void const *src, bool delimited) {
     size_t required = 0;
     if (!pb_get_encoded_size(&required, fields, src)) {

@@ -57,6 +57,7 @@ public:
     EncodedMessage *encode(pb_msgdesc_t const *fields, void const *src, bool delimited = true);
     void *decode(pb_msgdesc_t const *fields, uint8_t *src, size_t size, size_t message_size);
     EncodedMessage *copy(EncodedMessage const *message);
+    EncodedMessage *wrap(uint8_t *buffer, size_t size);
 
 public:
     virtual size_t allocated() const {

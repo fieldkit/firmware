@@ -10,6 +10,18 @@ namespace fk {
 class Writer {
 public:
     virtual int32_t write(uint8_t const *buffer, size_t size) = 0;
+
+    int32_t write_u8(uint8_t b) {
+        return write(&b, 1);
+    }
+
+    int32_t write_u32(uint32_t value) {
+        return write((uint8_t *)&value, sizeof(value));
+    }
+
+    int32_t write_u16(uint16_t value) {
+        return write((uint8_t *)&value, sizeof(value));
+    }
 };
 
 class Reader {
@@ -28,6 +40,11 @@ private:
 public:
     BufferedWriter(Writer *writer, uint8_t *buffer, size_t size);
     virtual ~BufferedWriter();
+
+public:
+    size_t position() const {
+        return position_;
+    }
 
 public:
     int32_t write(uint8_t const *buffer, size_t size) override;

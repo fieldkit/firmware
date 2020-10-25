@@ -70,12 +70,25 @@ udp-recv[mdns]: 37 66 34 33 66 2d 62 36 35 32 2d 35 33 34 36 2d 39 65 33 64 2d 3
 udp-recv[mdns]: c0 58 00 10 00 01 00 00 00 3c 00 21 0b 43 50 61 74 68 3d 2f 7a 63 2f 30 0b 56 45 52 53 49 4f 4e
 udp-recv[mdns]: 3d 31 2e 30 08 53 74 61 63 6b 3d 53 50 c0 9c 00 01 00 01 00 00 00 3c 00 04 c0 a8 00 c0  (253 bytes)
 
-udp-recv[mdns]: 00 00 00 00 00 01 00 00 00 00 00 00 03 5f 66 6b 05 5f 68 74 74 70 04 5f 74 63 70 05 6c 6f 63 61
-udp-recv[mdns]: 6c 00 00 0c 00 01  (38 bytes)
+udp-send[mdns]: 00 00 84 00 00 00 00 04 00 00 00 01 20 34 66 62 31 61 31 35 35 35 33 33 36 35 37 33 32 33 32 32
+udp-send[mdns]: 30 32 30 32 30 66 66 31 39 33 38 31 31 03 5f 66 6b 04 5f 74 63 70 05 6c 6f 63 61 6c 00 00 21 80
+udp-send[mdns]: 01 00 00 00 78 00 2e 00 00 00 00 00 50 20 34 66 62 31 61 31 35 35 35 33 33 36 35 37 33 32 33 32
+udp-send[mdns]: 32 30 32 30 32 30 66 66 31 39 33 38 31 31 05 6c 6f 63 61 6c 00 20 34 66 62 31 61 31 35 35 35 33
+udp-send[mdns]: 33 36 35 37 33 32 33 32 32 30 32 30 32 30 66 66 31 39 33 38 31 31 03 5f 66 6b 04 5f 74 63 70 05
+udp-send[mdns]: 6c 6f 63 61 6c 00 00 10 80 01 00 00 00 78 00 01 00 09 5f 73 65 72 76 69 63 65 73 07 5f 64 6e 73
+udp-send[mdns]: 2d 73 64 04 5f 75 64 70 05 6c 6f 63 61 6c 00 00 0c 00 01 00 00 00 78 00 10 03 5f 66 6b 04 5f 74
+udp-send[mdns]: 63 70 05 6c 6f 63 61 6c 00 03 5f 66 6b 04 5f 74 63 70 05 6c 6f 63 61 6c 00 00 0c 00 01 00 00 00
+udp-send[mdns]: 78 00 31 20 34 66 62 31 61 31 35 35 35 33 33 36 35 37 33 32 33 32 32 30 32 30 32 30 66 66 31 39
+udp-send[mdns]: 33 38 31 31 03 5f 66 6b 04 5f 74 63 70 05 6c 6f 63 61 6c 00 20 34 66 62 31 61 31 35 35 35 33 33
+udp-send[mdns]: 36 35 37 33 32 33 32 32 30 32 30 32 30 66 66 31 39 33 38 31 31 05 6c 6f 63 61 6c 00 00 01 80 01
+udp-send[mdns]: 00 00 00 78 00 04 c0 a8 00 d1  (362 bytes)
 
-udp-recv[mdns]: 00 00 00 00 00 01 00 01 00 00 00 00 03 5f 66 6b 04 5f 74 63 70 05 6c 6f 63 61 6c 00 00 0c 00 01
-udp-recv[mdns]: c0 0c 00 0c 00 01 00 00 00 78 00 23 20 34 66 62 31 61 31 35 35 35 33 33 36 35 37 33 32 33 32 32
-udp-recv[mdns]: 30 32 30 32 30 66 66 31 39 33 38 31 31 c0 0c  (79 bytes)
+
+udp-recv[mdns]: 00 00 00 00 00 03 00 00 00 03 00 00 0b 6a 61 63 6f 62 2d 70 68 6f 6e 65 05 5f 68 74 74 70 04 5f
+udp-recv[mdns]: 74 63 70 05 6c 6f 63 61 6c 00 00 ff 00 01 07 41 6e 64 72 6f 69 64 c0 23 00 ff 00 01 c0 2e 00 ff
+udp-recv[mdns]: 00 01 c0 0c 00 21 00 01 00 00 00 78 00 08 00 00 00 00 00 50 c0 2e c0 2e 00 01 00 01 00 00 00 78
+udp-recv[mdns]: 00 04 c0 a8 00 95 c0 2e 00 1c 00 01 00 00 00 78 00 10 fe 80 00 00 00 00 00 00 42 4e 36 ff fe 1e
+udp-recv[mdns]: ec c1  (130 bytes)
 
 udp-send[mdns]: 00 00 84 00 00 00 00 04 00 00 00 01 20 34 66 62 31 61 31 35 35 35 33 33 36 35 37 33 32 33 32 32
 udp-send[mdns]: 30 32 30 32 30 66 66 31 39 33 38 31 31 03 5f 66 6b 04 5f 74 63 70 05 6c 6f 63 61 6c 00 00 21 80
@@ -89,28 +102,81 @@ udp-send[mdns]: 78 00 31 20 34 66 62 31 61 31 35 35 35 33 33 36 35 37 33 32 33 3
 udp-send[mdns]: 33 38 31 31 03 5f 66 6b 04 5f 74 63 70 05 6c 6f 63 61 6c 00 20 34 66 62 31 61 31 35 35 35 33 33
 udp-send[mdns]: 36 35 37 33 32 33 32 32 30 32 30 32 30 66 66 31 39 33 38 31 31 05 6c 6f 63 61 6c 00 00 01 80 01
 udp-send[mdns]: 00 00 00 78 00 04 c0 a8 00 d1  (362 bytes)
+
+udp-recv[mdns]: 00 00 84 00 00 00 00 08 00 00 00 04 0b 6a 61 63 6f 62 2d 70 68 6f 6e 65 05 5f 68 74 74 70 04 5f
+udp-recv[mdns]: 74 63 70 05 6c 6f 63 61 6c 00 00 10 80 01 00 00 11 94 00 01 00 09 5f 73 65 72 76 69 63 65 73 07
+udp-recv[mdns]: 5f 64 6e 73 2d 73 64 04 5f 75 64 70 c0 23 00 0c 00 01 00 00 11 94 00 02 c0 18 c0 18 00 0c 00 01
+udp-recv[mdns]: 00 00 11 94 00 02 c0 0c c0 0c 00 21 80 01 00 00 00 78 00 10 00 00 00 00 00 50 07 41 6e 64 72 6f
+udp-recv[mdns]: 69 64 c0 23 03 31 34 39 01 30 03 31 36 38 03 31 39 32 07 69 6e 2d 61 64 64 72 04 61 72 70 61 00
+udp-recv[mdns]: 00 0c 80 01 00 00 00 78 00 02 c0 7a 01 31 01 43 01 43 01 45 01 45 01 31 01 45 01 46 01 46 01 46
+udp-recv[mdns]: 01 36 01 33 01 45 01 34 01 32 01 34 01 30 01 30 01 30 01 30 01 30 01 30 01 30 01 30 01 30 01 30
+udp-recv[mdns]: 01 30 01 30 01 30 01 38 01 45 01 46 03 69 70 36 c0 9a 00 0c 80 01 00 00 00 78 00 02 c0 7a c0 7a
+udp-recv[mdns]: 00 01 80 01 00 00 00 78 00 04 c0 a8 00 95 c0 7a 00 1c 80 01 00 00 00 78 00 10 fe 80 00 00 00 00
+udp-recv[mdns]: 00 00 42 4e 36 ff fe 1e ec c1 c0 0c 00 2f 80 01 00 00 11 94 00 09 c0 0c 00 05 00 00 80 00 40 c0
+udp-recv[mdns]: 84 00 2f 80 01 00 00 00 78 00 06 c0 84 00 02 00 08 c0 ac 00 2f 80 01 00 00 00 78 00 06 c0 ac 00
+udp-recv[mdns]: 02 00 08 c0 7a 00 2f 80 01 00 00 00 78 00 08 c0 7a 00 04 40 00 00 08  (375 bytes)
+
+udp-recv[mdns]: 00 00 00 00 00 01 00 01 00 00 00 00 03 5f 66 6b 04 5f 74 63 70 05 6c 6f 63 61 6c 00 00 0c 00 01
+udp-recv[mdns]: c0 0c 00 0c 00 01 00 00 00 78 00 23 20 34 66 62 31 61 31 35 35 35 33 33 36 35 37 33 32 33 32 32
+udp-recv[mdns]: 30 32 30 32 30 66 66 31 39 33 38 31 31 c0 0c  (79 bytes)
+
+udp-recv[mdns]: 00 00 00 00 00 01 00 01 00 00 00 00 03 5f 66 6b 04 5f 74 63 70 05 6c 6f 63 61 6c 00 00 0c 00 01
+udp-recv[mdns]: c0 0c 00 0c 00 01 00 00 00 78 00 23 20 34 66 62 31 61 31 35 35 35 33 33 36 35 37 33 32 33 32 32
+udp-recv[mdns]: 30 32 30 32 30 66 66 31 39 33 38 31 31 c0 0c  (79 bytes)
+
+udp-recv[mdns]: 00 00 00 00 00 01 00 00 00 00 00 00 03 5f 66 6b 05 5f 68 74 74 70 04 5f 74 63 70 05 6c 6f 63 61
+udp-recv[mdns]: 6c 00 00 0c 00 01  (38 bytes)
+
+#invalid no idea where the hell this one came from
+udp-recv[mdns]: 00 00 00 00 00 17 00 04 00 00 00 00 08 5f 61 69 72 70 6f 72 74 04 5f 74 63 70 05 6c 6f 63 61 6c
+udp-recv[mdns]: 00 00 0c 00 01 08 5f 61 69 72 70 6c 61 79 c0 15 00 0c 00 01 05 5f 72 61 6f 70 c0 15 00 0c 00 01
+udp-recv[mdns]: 06 5f 75 73 63 61 6e c0 15 00 0c 00 01 07 5f 75 73 63 61 6e 73 c0 15 00 0c 00 01 07 5f 69 70 70
+udp-recv[mdns]: 75 73 62 c0 15 00 0c 00 01 08 5f 73 63 61 6e 6e 65 72 c0 15 00 0c 00 01 04 5f 69 70 70 c0 15 00
+udp-recv[mdns]: 0c 00 01 05 5f 69 70 70 73 c0 15 00 0c 00 01 08 5f 70 72 69 6e 74 65 72 c0 15 00 0c 00 01 0f 5f
+udp-recv[mdns]: 70 64 6c 2d 64 61 74 61 73 74 72 65 61 6d c0 15 00 0c 00 01 04 5f 70 74 70 c0 15 00 0c 00 01 07
+udp-recv[mdns]: 5f 72 64 6c 69 6e 6b c0 15 00 0c 00 01 08 5f 68 6f 6d 65 6b 69 74 c0 15 00 0c 00 01 0b 5f 61 66
+udp-recv[mdns]: 70 6f 76 65 72 74 63 70 c0 15 00 0c 00 01 04 5f 73 6d 62 c0 15 00 0c 00 01 04 5f 72 66 62 c0 15
+udp-recv[mdns]: 00 0c 00 01 06 5f 61 64 69 73 6b c0 15 00 0c 00 01 0f 5f 63 6f 6d 70 61 6e 69 6f 6e 2d 6c 69 6e
+udp-recv[mdns]: 6b c0 15 00 0c 00 01 0c 5f 73 6c 65 65 70 2d 70 72 6f 78 79 04 5f 75 64 70 c0 1a 00 0c 00 01 0d
+udp-recv[mdns]: 5f 61 70 70 6c 65 2d 6d 6f 62 64 65 76 c0 15 00 0c 00 01 08 39 32 39 33 30 37 64 61 04 5f 73 75
+udp-recv[mdns]: 62 0e 5f 61 70 70 6c 65 2d 6d 6f 62 64 65 76 32 c0 15 00 0c 00 01 0f 5f 61 70 70 6c 65 2d 70 61
+udp-recv[mdns]: 69 72 61 62 6c 65 c0 15 00 0c 00 01 c0 ee 00 0c 00 01 00 00 10 28 00 0d 0a 4a 41 43 4f 42 2d 48
+udp-recv[mdns]: 4f 4d 45 c0 ee c0 ee 00 0c 00 01 00 00 10 2f 00 19 16 43 6f 6e 73 65 72 76 69 66 79 20 4d 61 63
+udp-recv[mdns]: 42 6f 6f 6b 20 50 72 6f c0 ee c0 f9 00 0c 00 01 00 00 10 2f 00 19 16 43 6f 6e 73 65 72 76 69 66
+udp-recv[mdns]: 79 20 4d 61 63 42 6f 6f 6b 20 50 72 6f c0 f9 c1 11 00 0c 00 01 00 00 10 2f 00 19 16 43 6f 6e 73
+udp-recv[mdns]: 65 72 76 69 66 79 20 4d 61 63 42 6f 6f 6b 20 50 72 6f c1 11  (532 bytes)
 """
 
 
 class Packet:
     def __init__(self):
         self.data = []
+        self.aliases = []
+        self.from_device = False
+        self.valid = True
 
 
 inside = False
 packets = []
 packet = None
+valid = True
 for line in source.split("\n"):
+    if line.startswith("#invalid"):
+        valid = False
+        continue
     l = re.sub("^.+:\s+", "", line)
     l = re.sub("\s+\(\d+\s+bytes\)", "", l)
     if l:
         if not packet:
             packet = Packet()
+            packet.from_device = "udp-send" in line
+            packet.valid = valid
             packets.append(packet)
             inside = True
         row = ["0x" + b for b in l.split(" ")]
         packet.data.append(row)
     else:
+        valid = True
         packet = None
 
 print(
@@ -120,6 +186,8 @@ print(
 typedef struct packet_t {
     uint8_t const *data;
     size_t size;
+    bool valid;
+    bool from_device;
 } packet_t;
 
 """
@@ -133,6 +201,14 @@ for i, packet in enumerate(packets):
 
 print("const packet_t packets[%d] = {" % (len(packets),))
 for i, packet in enumerate(packets):
-    print("  { packet_%d, sizeof(packet_%d) }," % (i, i))
+    print(
+        "  { packet_%d, sizeof(packet_%d), %s, %s },"
+        % (
+            i,
+            i,
+            "true" if packet.valid else "false",
+            "true" if packet.from_device else "false",
+        )
+    )
 print("};")
 print()

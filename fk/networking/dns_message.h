@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pool.h"
+#include "io.h"
 #include "ethutil.h"
 
 namespace fk {
@@ -28,7 +29,6 @@ private:
     size_t size_{ 0 };
     size_t position_{ 0 };
     dns_header_t *header_{ nullptr };
-    bool verbose_{ true };
     bool error_{ true };
 
 public:
@@ -44,8 +44,12 @@ public:
         const char *name;
         int16_t length;
     };
+    struct dns_name_length_t {
+        int16_t compressed;
+        int16_t name;
+    };
+    dns_name_length_t read_name(uint8_t *p, uint8_t *name, size_t size);
     dns_name_t read_name(uint8_t *p);
-    int16_t read_name(uint8_t *p, uint8_t *name, size_t size);
 
 public:
     int16_t queries_size();
@@ -71,10 +75,11 @@ public:
     uint16_t read_uint16(pointer_t &pos);
 
 public:
-    bool parse();
+    int16_t parse();
 
 public:
-    bool query_service_type(const char *service_type);
+    EncodedMessage *query_service_type(uint16_t xid, const char *service_type, Pool *pool);
+    EncodedMessage *answer_service_type(uint16_t xid, const char *service_type, const char *name, Pool *pool);
 
 private:
     uint8_t *end_of_packet() const {

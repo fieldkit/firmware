@@ -27,6 +27,9 @@ int32_t BufferedWriter::write(uint8_t const *buffer, size_t size) {
 
     while (wrote < size) {
         auto available = buffer_size_ - position_;
+        if (available == 0) {
+            return -1;
+        }
         auto writing = std::min<size_t>(available, size - wrote);
         memcpy(buffer_ + position_, buffer + wrote, writing);
         wrote += writing;
@@ -56,7 +59,11 @@ int32_t BufferedWriter::write(char c) {
 }
 
 int32_t BufferedWriter::flush() {
+    if (writer_ == nullptr) {
+        return -1;
+    }
     if (position_ > 0) {
+        FK_ASSERT(writer_ != nullptr);
         auto rv = writer_->write(buffer_, position_);
         position_ = 0;
         return rv;
