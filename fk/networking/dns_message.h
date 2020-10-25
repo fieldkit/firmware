@@ -77,10 +77,6 @@ public:
 public:
     int16_t parse();
 
-public:
-    EncodedMessage *query_service_type(uint16_t xid, const char *service_type, Pool *pool);
-    EncodedMessage *answer_service_type(uint16_t xid, const char *service_type, const char *name, Pool *pool);
-
 private:
     uint8_t *end_of_packet() const {
         return buffer_ + size_;
@@ -89,6 +85,36 @@ private:
     uint8_t *after_header() const {
         return buffer_ + sizeof(dns_header_t);
     }
+};
+
+class DNSWriter {
+private:
+    Pool *pool_{ nullptr };
+    size_t size_{ 512 };
+    uint8_t *buffer_{ nullptr };
+    BufferedWriter writer_;
+
+public:
+    DNSWriter(Pool *pool);
+
+public:
+    void begin();
+    EncodedMessage *finish();
+
+public:
+    dns_header_t *header() {
+        return (dns_header_t *)buffer_;
+    }
+
+public:
+    int32_t write_question(const char *name, uint16_t record_type, uint16_t record_class);
+    int32_t write_answer_srv(const char *name, const char *server_name, uint16_t port);
+    int32_t write_answer_ptr(const char *name, const char *ptr);
+
+public:
+    EncodedMessage *query_service_type(uint16_t xid, const char *service_type);
+    EncodedMessage *answer_service_type(uint16_t xid, const char *service_type, const char *name);
+
 };
 
 } // namespace fk

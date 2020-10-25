@@ -7,6 +7,14 @@ namespace fk {
 
 FK_DECLARE_LOGGER("dns");
 
+enum class RecordTypes : uint16_t {
+    A = 0x01,
+    Aaaa = 0x1c,
+    Null = 0x10,
+    Ptr = 0x0c,
+    Srv = 0x21,
+};
+
 DNSMessage::DNSMessage(Pool *pool, uint8_t *buffer, size_t size)
     : pool_(pool), buffer_(buffer), size_(size), header_((dns_header_t *)buffer_) {
 }
@@ -148,7 +156,7 @@ int16_t DNSMessage::answers_size() {
         }
 
         switch (record_type) {
-        case 0x01: { // A
+        case (uint16_t)RecordTypes::A: {
             if (rdlength != 4) {
                 error_ = true;
                 return -1;
@@ -158,25 +166,31 @@ int16_t DNSMessage::answers_size() {
             p += rdlength;
             break;
         }
-        case 0x1c: { // AAAA Ipv6
+        case (uint16_t)RecordTypes::Aaaa: {
             logdebug("aaaa (ipv6) record (%d)", rdlength);
             p += rdlength;
             break;
         }
-        case 0x10: { // NULL
+        case (uint16_t)RecordTypes::Null: {
             logdebug("null record (%d)", rdlength);
             p += rdlength;
             break;
         }
-        case 0x21: { // SRV
+        case (uint16_t)RecordTypes::Srv: {
             auto priority = ethutil_ntohs(*(uint16_t *)&p[0]);
             auto weight = ethutil_ntohs(*(uint16_t *)&p[2]);
             auto port = ethutil_ntohs(*(uint16_t *)&p[4]);
-            logdebug("srv record (%d) pri=%d w=%d port=%d", rdlength, priority, weight, port);
+            auto name = read_name(p + 6);
+            if (name.name != nullptr) {
+                logdebug("srv record (%d) pri=%d w=%d port=%d '%s'", rdlength, priority, weight, port, name.name);
+            }
+            else {
+                logdebug("srv record (%d) pri=%d w=%d port=%d <noname>", rdlength, priority, weight, port);
+            }
             p += rdlength;
             break;
         }
-        case 0x0c: { // PTR
+        case (uint16_t)RecordTypes::Ptr: {
             auto name = read_name(p);
             if (name.name != nullptr) {
                 logdebug("ptr record (%d) '%s' (%d)", rdlength, name.name, name.length);
@@ -200,6 +214,18 @@ int16_t DNSMessage::answers_size() {
     }
 
     return bytes;
+}
+
+DNSWriter::DNSWriter(Pool *pool) : pool_(pool),
+                                   buffer_((uint8_t *)pool->malloc(size_)),
+                                   writer_{ nullptr, buffer_, size_ } {
+    begin();
+}
+
+void DNSWriter::begin() {
+    dns_header_t header;
+    memzero(&header, sizeof(dns_header_t));
+    writer_.write((uint8_t *)&header, sizeof(dns_header_t));
 }
 
 static int32_t write_name(Writer *writer, const char *name) {
@@ -236,110 +262,132 @@ static int32_t write_name(Writer *writer, const char *name) {
     return bytes;
 }
 
-static int32_t write_question(Writer *writer, const char *name, uint16_t record_type, uint16_t record_class) {
-    auto name_bytes = write_name(writer, name);
+int32_t DNSWriter::write_question(const char *name, uint16_t record_type, uint16_t record_class) {
+    header()->number_query = ethutil_htons(ethutil_ntohs(header()->number_query) + 1);
+
+    auto name_bytes = write_name(&writer_, name);
     if (name_bytes < 0) {
         return -1;
     }
 
-    if (writer->write_u16(ethutil_htons(record_type)) < 0) {
+    if (writer_.write_u16(ethutil_htons(record_type)) < 0) {
         return -1;
     }
 
-    if (writer->write_u16(ethutil_htons(record_class)) < 0) {
+    if (writer_.write_u16(ethutil_htons(record_class)) < 0) {
         return -1;
     }
 
     return name_bytes + 4;
 }
 
-EncodedMessage *DNSMessage::query_service_type(uint16_t xid, const char *service_type, Pool *pool) {
-    auto size = 512u;
-    auto buffer = (uint8_t *)pool->malloc(size);
-    BufferedWriter writer{ nullptr, buffer, size };
-    memzero(buffer, size);
+EncodedMessage *DNSWriter::query_service_type(uint16_t xid, const char *service_type) {
+    header()->xid = xid;
+    header()->recursion_desired = 0;
 
-    dns_header_t header;
-    header.xid = xid;
-    header.recursion_desired = 0;
-    header.number_query = ethutil_htons(1);
-
-    if (writer.write((uint8_t *)&header, sizeof(dns_header_t)) < 0) {
+    if (write_question(service_type, 12, 1) < 0) {
         return nullptr;
     }
 
-    if (write_question(&writer, service_type, 12, 1) < 0) {
-        return nullptr;
-    }
-
-    return pool->wrap(buffer, writer.position());
+    return finish();
 }
 
-static int32_t write_answer_ptr(Writer *writer, const char *name, const char *ptr) {
-    if (write_name(writer, name) < 0) {
+int32_t DNSWriter::write_answer_ptr(const char *name, const char *ptr) {
+    header()->number_answer = ethutil_htons(ethutil_ntohs(header()->number_answer) + 1);
+
+    if (write_name(&writer_, name) < 0) {
         return -1;
     }
 
-    auto name_size = write_name(nullptr, ptr);
+    auto name_length = write_name(nullptr, ptr);
 
-    if (writer->write_u16(ethutil_htons(12)) < 0) { // type
+    if (writer_.write_u16(ethutil_htons((uint16_t)RecordTypes::Ptr)) < 0) { // type
         return -1;
     }
-    if (writer->write_u16(ethutil_htons(1)) < 0) { // class
+    if (writer_.write_u16(ethutil_htons(1)) < 0) { // class
         return -1;
     }
-    if (writer->write_u16(ethutil_htons(0)) < 0) { // ttl1
+    if (writer_.write_u16(ethutil_htons(0)) < 0) { // ttl1
         return -1;
     }
-    if (writer->write_u16(ethutil_htons(120)) < 0) { // ttl2
+    if (writer_.write_u16(ethutil_htons(120)) < 0) { // ttl2
         return -1;
     }
-    if (writer->write_u16(ethutil_htons(name_size)) < 0) { // rdlength
+    if (writer_.write_u16(ethutil_htons(name_length)) < 0) { // rdlength
         return -1;
     }
 
     // rddata
 
-    if (write_name(writer, ptr) < 0) {
+    if (write_name(&writer_, ptr) < 0) {
         return -1;
     }
 
     return 0;
 }
 
-static int32_t write_answer_srv(Writer *writer, const char *name, uint16_t port) {
+int32_t DNSWriter::write_answer_srv(const char *name, const char *server_name, uint16_t port) {
+    header()->number_answer = ethutil_htons(ethutil_ntohs(header()->number_answer) + 1);
+
+    if (write_name(&writer_, name) < 0) {
+        return -1;
+    }
+
+    auto server_name_length = write_name(nullptr, server_name);
+
+    if (writer_.write_u16(ethutil_htons((uint16_t)RecordTypes::Srv)) < 0) { // type
+        return -1;
+    }
+    if (writer_.write_u16(ethutil_htons(1)) < 0) { // class
+        return -1;
+    }
+    if (writer_.write_u16(ethutil_htons(0)) < 0) { // ttl1
+        return -1;
+    }
+    if (writer_.write_u16(ethutil_htons(120)) < 0) { // ttl2
+        return -1;
+    }
+    if (writer_.write_u16(ethutil_htons(2 + 2 + 2 + server_name_length)) < 0) { // rdlength
+        return -1;
+    }
+
+    // rddata
+
+    writer_.write_u16(ethutil_htons(0));
+    writer_.write_u16(ethutil_htons(0));
+    writer_.write_u16(ethutil_htons(port));
+
+    if (write_name(&writer_, server_name) < 0) {
+        return -1;
+    }
+
     return 0;
 }
 
-EncodedMessage *DNSMessage::answer_service_type(uint16_t xid, const char *service_type, const char *name, Pool *pool) {
-    auto size = 512u;
-    auto buffer = (uint8_t *)pool->malloc(size);
-    BufferedWriter writer{ nullptr, buffer, size };
-    memzero(buffer, size);
+EncodedMessage *DNSWriter::answer_service_type(uint16_t xid, const char *service_type, const char *name) {
+    auto fq_name = pool_->sprintf("%s.%s", name, service_type);
+    auto server_name = pool_->sprintf("%s.%s", name, "local");
 
-    dns_header_t header;
-    header.xid = xid;
-    header.recursion_desired = 0;
-    header.number_query = ethutil_htons(1);
-    header.number_answer = ethutil_htons(1);
+    header()->xid = xid;
+    header()->recursion_desired = 0;
 
-    if (writer.write((uint8_t *)&header, sizeof(dns_header_t)) < 0) {
+    if (write_question(service_type, 12, 1) < 0) {
         return nullptr;
     }
 
-    if (write_question(&writer, service_type, 12, 1) < 0) {
+    if (write_answer_srv(fq_name, server_name, 80) < 0) {
         return nullptr;
     }
 
-    if (write_answer_srv(&writer, service_type, 80) < 0) {
+    if (write_answer_ptr(service_type, fq_name) < 0) {
         return nullptr;
     }
 
-    if (write_answer_ptr(&writer, service_type, name) < 0) {
-        return nullptr;
-    }
+    return finish();
+}
 
-    return pool->wrap(buffer, writer.position());
+EncodedMessage *DNSWriter::finish() {
+    return pool_->wrap(buffer_, writer_.position());
 }
 
 } // namespace fk
