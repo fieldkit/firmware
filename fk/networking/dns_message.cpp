@@ -168,9 +168,8 @@ int16_t DNSReader::read_additionals() {
 }
 
 int16_t DNSReader::read_records(uint16_t number) {
-    auto answers = number;
     auto bytes = 0;
-    while (answers > 0) {
+    while (number > 0) {
         auto name = read_name(&reader_);
 
         auto record_type = read_u16();
@@ -235,7 +234,7 @@ int16_t DNSReader::read_records(uint16_t number) {
         }
         }
 
-        answers--;
+        number--;
     }
 
     return bytes;

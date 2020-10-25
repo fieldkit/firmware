@@ -11,7 +11,7 @@ FK_DECLARE_LOGGER("dns");
 class DnsSuite : public ::testing::Test {
 protected:
     void SetUp() override {
-        log_configure_level(LogLevels::DEBUG);
+        // log_configure_level(LogLevels::DEBUG);
     }
 
     void TearDown() override {
