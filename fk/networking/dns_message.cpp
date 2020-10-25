@@ -45,6 +45,7 @@ DNSReader::dns_name_length_t DNSReader::read_name(BufferedReader *reader, uint8_
         // occupy the remaining part of the byte, only I keep seeing
         // the pointer offset in the byte after? What's going on?
         if ((part_length & 0xc0) == 0xc0) {
+            auto upper = part_length & 0x3f;
             if (position >  0) {
                 if (name != nullptr) {
                     name[position++] = '.';
@@ -53,7 +54,7 @@ DNSReader::dns_name_length_t DNSReader::read_name(BufferedReader *reader, uint8_
             }
 
             auto pointed = reader->beginning();
-            auto offset = reader->read_u8();
+            auto offset = (upper << 8) | reader->read_u8();
             pointed.skip(offset);
 
             auto pointer_bytes = read_name(&pointed, name == nullptr ? nullptr : name + position);
