@@ -364,6 +364,11 @@ constexpr size_t HttpMaximumTokenLength = 512;
  */
 constexpr uint32_t NetworkUdpDiscoveryInterval = 5000;
 
+/**
+ * Port to do our own lazy broadcasting on.
+ */
+constexpr uint32_t NetworkUdpDiscoveryPort = 22143;
+
 // -------------------------------------------------------------------------------------------
 // GPS
 
