@@ -59,10 +59,13 @@ samd51-pic: $(BUILD)/samd51 $(BUILD)/samd51-pic
 samd09: $(BUILD)/samd09
 	cd $(BUILD)/samd09 && $(MAKE)
 
-amd64: $(BUILD)/amd64
+amd64: $(BUILD)/amd64 tests/hosted/dns_packets.h
 	cd $(BUILD)/amd64 && $(MAKE)
 
 fw: samd51 samd09
+
+tests/hosted/dns_packets.h: tools/write_test_packets.py
+	tools/write_test_packets.py > tests/hosted/dns_packets.h
 
 test: amd64
 	cd $(BUILD)/amd64 && env GTEST_COLOR=1 $(MAKE) test ARGS=-VV
