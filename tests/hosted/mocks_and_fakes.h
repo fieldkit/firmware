@@ -89,7 +89,7 @@ public:
         return 0;
     }
 
-    void service() override {
+    void service(Pool *pool) override {
     }
 
     PoolPointer<NetworkConnection> *open_connection(const char *scheme, const char *hostname, uint16_t port) override {

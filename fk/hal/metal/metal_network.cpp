@@ -310,10 +310,10 @@ PoolPointer<NetworkListener> *MetalNetwork::listen(uint16_t port) {
     return listener;
 }
 
-void MetalNetwork::service() {
-    mdns_discovery_.service();
+void MetalNetwork::service(Pool *pool) {
+    mdns_discovery_.service(pool);
+    udp_discovery_.service(pool);
     ntp_.service();
-    udp_discovery_.service();
 }
 
 PoolPointer<NetworkConnection> *MetalNetwork::open_connection(const char *scheme, const char *hostname, uint16_t port) {

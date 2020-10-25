@@ -2,6 +2,7 @@
 #include "hal/metal/debug_udp.h"
 #include "common.h"
 #include "utilities.h"
+#include "networking/dns_message.h"
 #include "config.h"
 
 #if defined(__SAMD51__)
@@ -27,6 +28,10 @@ void DebugUDP::pool(Pool *pool) {
     buffer_ = (uint8_t *)pool_->malloc(size_);
 }
 
+void DebugUDP::dns_pool(Pool *pool) {
+    dns_pool_ = pool;
+}
+
 int DebugUDP::parsePacket() {
     position_ = 0;
     size_ = 0;
@@ -49,6 +54,11 @@ int DebugUDP::parsePacket() {
         size_ = bytes_read;
 
         debug("udp-recv", buffer_, bytes_read);
+
+        if (dns_pool_ != nullptr && size_ > 0) {
+            DNSReader message{ dns_pool_, buffer_, size_ };
+            message.parse();
+        }
     }
 
     return parsed_size;
@@ -67,6 +77,12 @@ int DebugUDP::beginPacket(const char *host, uint16_t port) {
 int DebugUDP::endPacket() {
     if (buffer_ != nullptr && position_ > 0) {
         debug("udp-send", buffer_, position_);
+
+        if (dns_pool_ != nullptr) {
+            DNSReader message{ dns_pool_, buffer_, position_ };
+            message.parse();
+        }
+
         position_ = 0;
     }
     return WiFiUDP::endPacket();

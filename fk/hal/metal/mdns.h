@@ -38,7 +38,7 @@ public:
 
 public:
     bool start();
-    bool service();
+    bool service(Pool *pool);
     void stop();
 
 };

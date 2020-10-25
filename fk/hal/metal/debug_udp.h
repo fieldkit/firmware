@@ -18,6 +18,7 @@ class DebugUDP : public WiFiUDP {
 private:
     const char *name_{ nullptr };
     Pool *pool_{ nullptr };
+    Pool *dns_pool_{ nullptr };
     uint8_t *buffer_{ nullptr };
     size_t size_{ 0 };
     size_t position_{ 0 };
@@ -29,6 +30,7 @@ public:
 
 public:
     void pool(Pool *pool);
+    void dns_pool(Pool *pool);
 
 public:
     int parsePacket() override;

@@ -103,7 +103,7 @@ public:
 
     virtual uint32_t ip_address() = 0;
 
-    virtual void service() = 0;
+    virtual void service(Pool *pool) = 0;
 
     virtual PoolPointer<NetworkConnection> *open_connection(const char *scheme, const char *hostname, uint16_t port) = 0;
 

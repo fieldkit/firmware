@@ -96,7 +96,7 @@ bool NetworkServices::serve() {
     return true;
 }
 
-void NetworkServices::tick() {
+void NetworkServices::tick(Pool *pool) {
     if (pool_.available() > 0) {
         auto http_connection = http_listener_->get()->accept();
         if (http_connection != nullptr) {
@@ -109,7 +109,7 @@ void NetworkServices::tick() {
         }
     }
 
-    network_->service();
+    network_->service(pool);
 
     pool_.service();
 }

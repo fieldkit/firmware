@@ -27,7 +27,7 @@ public:
 
     bool serve();
 
-    void tick();
+    void tick(Pool *pool);
 
     void stop();
 

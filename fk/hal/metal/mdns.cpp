@@ -78,7 +78,7 @@ bool MDNSDiscovery::start() {
     return true;
 }
 
-bool MDNSDiscovery::service() {
+bool MDNSDiscovery::service(Pool *pool) {
     if (false) {
         if (fk_uptime() - registered_ > NetworkAddServiceRecordIntervalMs) {
             if (!mdns_.addServiceRecord(service_name_, 80, MDNSServiceTCP)) {
@@ -88,6 +88,8 @@ bool MDNSDiscovery::service() {
             registered_ = fk_uptime();
         }
     }
+
+    udp_.dns_pool(pool);
 
     mdns_.run();
 

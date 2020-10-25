@@ -148,7 +148,7 @@ PoolPointer<NetworkListener> *LinuxNetwork::listen(uint16_t port) {
     return create_network_listener_wrapper<LinuxNetworkListener>(port, listening);
 }
 
-void LinuxNetwork::service() {
+void LinuxNetwork::service(Pool *pool) {
 }
 
 PoolPointer<NetworkConnection> *LinuxNetwork::open_connection(const char *scheme, const char *hostname, uint16_t port) {

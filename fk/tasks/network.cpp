@@ -42,6 +42,7 @@ void try_and_serve_connections() {
         NetworkServices network_services{ network };
         NetworkTask task{ network, network_services };
         StandardPool pool{ "network" };
+        StandardPool tick_pool{ "network-tick" };
         NetworkDuration duration;
 
         auto settings = task.get_selected_settings(pool);
@@ -112,7 +113,9 @@ void try_and_serve_connections() {
         auto statistics_update = fk_uptime() + OneSecondMs;
 
         while (true) {
-            network_services.tick();
+            network_services.tick(&tick_pool);
+
+            tick_pool.clear();
 
             // Some other task has requested that we stop serving. Menu option
             // or a self check for example.

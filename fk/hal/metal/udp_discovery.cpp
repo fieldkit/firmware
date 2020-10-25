@@ -39,7 +39,7 @@ void UDPDiscovery::stop() {
     }
 }
 
-bool UDPDiscovery::service() {
+bool UDPDiscovery::service(Pool *pool) {
     if (!initialized_) {
         return true;
     }

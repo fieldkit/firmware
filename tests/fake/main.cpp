@@ -98,6 +98,7 @@ static void setup_fake_data() {
 
 static void server(Fake *fake) {
     StandardPool pool{ "pool" };
+    StandardPool tick_pool{ "tick" };
     LinuxNetwork network;
     NetworkServices network_services{ &network };
     auto gs = get_global_state_ro();
@@ -116,7 +117,8 @@ static void server(Fake *fake) {
     }
 
     while (fake->running()) {
-        network_services.tick();
+        network_services.tick(&tick_pool);
+        tick_pool.clear();
     }
 
     loginfo("stopping...");
