@@ -22,24 +22,55 @@ typedef struct dns_header_t {
     uint16_t number_additional;
 } __attribute__((__packed__)) dns_header_t;
 
-class DNSMessage {
+class DNSReader {
 private:
     Pool *pool_{ nullptr };
     uint8_t *buffer_{ nullptr };
     size_t size_{ 0 };
-    size_t position_{ 0 };
-    dns_header_t *header_{ nullptr };
     bool error_{ true };
+    BufferedReader reader_;
 
 public:
-    DNSMessage(Pool *pool, uint8_t *ptr = nullptr, size_t size = 0);
-    virtual ~DNSMessage();
+    DNSReader(Pool *pool, uint8_t *ptr = nullptr, size_t size = 0);
+    virtual ~DNSReader();
 
 public:
-    struct pointer_t {
-        uint8_t *p;
-        size_t moved;
-    };
+    dns_header_t *header() const {
+        return (dns_header_t *)buffer_;
+    }
+
+    dns_header_t *header() {
+        return (dns_header_t *)buffer_;
+    }
+
+public:
+    int16_t parse();
+
+public:
+    int16_t read_queries();
+    int16_t read_answers();
+    int16_t read_authorities();
+    int16_t read_additionals();
+    int16_t read_records(uint16_t number);
+
+private:
+    uint16_t number_queries() const {
+        return ethutil_ntohs(header()->number_query);
+    }
+
+    uint16_t number_answers() const {
+        return ethutil_ntohs(header()->number_answer);
+    }
+
+    uint16_t number_authorities() const {
+        return ethutil_ntohs(header()->number_authority);
+    }
+
+    uint16_t number_additional() const {
+        return ethutil_ntohs(header()->number_additional);
+    }
+
+public:
     struct dns_name_t {
         const char *name;
         int16_t length;
@@ -48,43 +79,10 @@ public:
         int16_t compressed;
         int16_t name;
     };
-    dns_name_length_t read_name(uint8_t *p, uint8_t *name, size_t size);
-    dns_name_t read_name(uint8_t *p);
+    dns_name_length_t read_name(BufferedReader *reader, uint8_t *name);
+    dns_name_t read_name(BufferedReader *reader);
 
-public:
-    int16_t queries_size();
-    int16_t answers_size();
-
-public:
-    uint16_t number_queries() const {
-        return ethutil_ntohs(header_->number_query);
-    }
-
-    uint16_t number_answers() const {
-        return ethutil_ntohs(header_->number_answer);
-    }
-
-    uint16_t number_authorities() const {
-        return ethutil_ntohs(header_->number_authority);
-    }
-
-    uint16_t number_additional() const {
-        return ethutil_ntohs(header_->number_additional);
-    }
-
-    uint16_t read_uint16(pointer_t &pos);
-
-public:
-    int16_t parse();
-
-private:
-    uint8_t *end_of_packet() const {
-        return buffer_ + size_;
-    }
-
-    uint8_t *after_header() const {
-        return buffer_ + sizeof(dns_header_t);
-    }
+    uint16_t read_u16();
 };
 
 class DNSWriter {

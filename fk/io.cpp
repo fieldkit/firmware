@@ -71,7 +71,9 @@ int32_t BufferedWriter::flush() {
     return position_;
 }
 
-BufferedReader::BufferedReader(Reader *reader, uint8_t *buffer, size_t size) : reader_(reader), buffer_(buffer), buffer_size_(size) {
+BufferedReader::BufferedReader(Reader *reader, uint8_t *buffer, size_t buffer_size, size_t bytes_read) : reader_(reader), buffer_(buffer),
+                                                                                                         buffer_size_(buffer_size),
+                                                                                                         bytes_read_(bytes_read) {
 }
 
 BufferedReader::~BufferedReader() {
@@ -97,8 +99,22 @@ int32_t BufferedReader::read(uint8_t *buffer, size_t size) {
     auto reading = std::min<size_t>(bytes_read_ - position_, size);
     memcpy(buffer, buffer_ + position_, reading);
     position_ += reading;
-
     return reading;
+}
+
+int32_t BufferedReader::skip(size_t bytes) {
+    position_ += bytes;
+    return position_  < bytes_read_ ? bytes : -1;
+}
+
+BufferedReader BufferedReader::beginning() const {
+    return BufferedReader{ nullptr, buffer_, buffer_size_, bytes_read_ };
+}
+
+BufferedReader BufferedReader::remaining() const {
+    BufferedReader reader{ nullptr, buffer_, buffer_size_, bytes_read_ };
+    reader.skip(position_);
+    return reader;
 }
 
 static bool write_callback(pb_ostream_t *stream, const uint8_t *buf, size_t c) {

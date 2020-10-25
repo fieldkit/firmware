@@ -186,6 +186,6 @@ const packet_t packets[18] = {
   { packet_14, sizeof(packet_14), true, false },
   { packet_15, sizeof(packet_15), true, false },
   { packet_16, sizeof(packet_16), true, false },
-  { packet_17, sizeof(packet_17), false, false },
+  { packet_17, sizeof(packet_17), true, false },
 };
 

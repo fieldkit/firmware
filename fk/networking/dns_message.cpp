@@ -15,23 +15,28 @@ enum class RecordTypes : uint16_t {
     Srv = 0x21,
 };
 
-DNSMessage::DNSMessage(Pool *pool, uint8_t *buffer, size_t size)
-    : pool_(pool), buffer_(buffer), size_(size), header_((dns_header_t *)buffer_) {
+DNSReader::DNSReader(Pool *pool, uint8_t *buffer, size_t size)
+    : pool_(pool), buffer_(buffer), size_(size), reader_{ nullptr, buffer, size, size } {
 }
 
-DNSMessage::~DNSMessage() {
+DNSReader::~DNSReader() {
 }
 
-DNSMessage::dns_name_length_t DNSMessage::read_name(uint8_t *p, uint8_t *name, size_t size) {
+DNSReader::dns_name_length_t DNSReader::read_name(BufferedReader *reader, uint8_t *name) {
     auto position = 0u;
     auto length = 0u;
     auto bytes = 0u;
-    while (p < end_of_packet()) {
+    while (bytes < 255) { // HACK
+        if (reader->available() == 0) {
+            logwarn("unexpected end");
+            return { -1, -1 };
+        }
+
         // Check length, 0 means we're done reading this name.
-        auto part_length = *p;
+        auto part_length = reader->read_u8();
+        bytes++;
+
         if (part_length == 0) {
-            p++;
-            bytes++;
             break;
         }
 
@@ -47,113 +52,133 @@ DNSMessage::dns_name_length_t DNSMessage::read_name(uint8_t *p, uint8_t *name, s
                 length++;
             }
 
-            auto offset = p[1];
-            auto pointer_bytes = read_name(buffer_ + offset, name + position, size - position);
+            auto pointed = reader->beginning();
+            auto offset = reader->read_u8();
+            pointed.skip(offset);
+
+            auto pointer_bytes = read_name(&pointed, name == nullptr ? nullptr : name + position);
             if (pointer_bytes.compressed < 0) {
                 return { -1, -1 };
             }
-            p += 2;
-            bytes += 2;
+            bytes++;
+            position += pointer_bytes.name;
             length += pointer_bytes.name;
             break;
         }
 
-        // Are we doing any copying? We get called once to calculate sizes.
-        if (name != nullptr) {
-            if (position > 0) {
+        if (position > 0) {
+            if (name != nullptr) {
                 name[position++] = '.';
-                length++;
             }
-            memcpy(name + position, p + 1, part_length);
-            position += part_length;
+            length++;
+        }
+
+        if (name != nullptr) {
+            if (reader->read(name + position, part_length) != part_length) {
+                return { -1, -1 };
+            }
+        }
+        else {
+            if (reader->skip(part_length) != part_length) {
+                return { -1, -1 };
+            }
         }
 
         // Move our pointer and the number of bytes.
-        p += part_length + 1;
-        bytes += part_length + 1;
+        bytes += part_length;
         length += part_length;
-    }
-    if (p >= end_of_packet() + 1) {
-        return { -1, -1 };
+        position += part_length;
     }
     return { (int16_t)bytes, (int16_t)length };
 }
 
-DNSMessage::dns_name_t DNSMessage::read_name(uint8_t *p) {
+DNSReader::dns_name_t DNSReader::read_name(BufferedReader *reader) {
+    auto searching = reader->remaining();
     // Read the name once to get the length and then we can allocate
     // memory for the name.
-    auto lengths = read_name(p, nullptr, 0);
+    auto lengths = read_name(&searching, nullptr);
     if (lengths.compressed < 0) {
         return { nullptr, -1 };
     }
+
     auto name = (uint8_t *)pool_->malloc(lengths.name + 1);
-    read_name(p, name, lengths.name + 1);
+    read_name(reader, name);
     return { (char *)name, lengths.compressed };
 }
 
-int16_t DNSMessage::parse() {
+int16_t DNSReader::parse() {
     loginfo("parsing %zu bytes q=%d a=%d au=%d ad=%d", size_, number_queries(), number_answers(),
             number_authorities(), number_additional());
 
-    return answers_size();
+    if (reader_.skip(sizeof(dns_header_t)) < 0) {
+        return -1;
+    }
+    if (read_queries() < 0) {
+        return -1;
+    }
+    if (read_answers() < 0) {
+        return -1;
+    }
+    if (read_authorities() < 0) {
+        return -1;
+    }
+    if (read_additionals() < 0) {
+        return -1;
+    }
+
+    return 1;
 }
 
-uint16_t DNSMessage::read_uint16(pointer_t &pos) {
-    auto value = ethutil_ntohs(*(uint16_t *)&pos.p[0]);
-    pos.moved += 2;
-    pos.p += 2;
-    return value;
+uint16_t DNSReader::read_u16() {
+    uint16_t value;
+    if (reader_.read((uint8_t *)&value, sizeof(value)) != sizeof(value)) {
+        error_ = true;
+        return 0;
+    }
+    return ethutil_ntohs(value);
 }
 
-int16_t DNSMessage::queries_size() {
-    auto queries = ethutil_ntohs(header_->number_query);
+int16_t DNSReader::read_queries() {
+    auto queries = ethutil_ntohs(header()->number_query);
     auto bytes = 0;
-    auto p = after_header();
-    while (queries > 0 && p < end_of_packet()) {
-        auto name = read_name(p);
-        auto record_length = name.length;
-        p += record_length;
+    while (queries > 0) {
+        auto name = read_name(&reader_);
 
-        auto record_type = ethutil_ntohs(*(uint16_t *)&p[0]);
-        auto record_class = ethutil_ntohs(*(uint16_t *)&p[2]);
+        auto record_type = read_u16();
+        auto record_class = read_u16();
 
         loginfo("query: '%s' type=%d class=%d", name.name, record_type, record_class);
 
-        record_length += 2 * 2;
-        bytes += record_length;
         queries--;
     }
     return bytes;
 }
 
-int16_t DNSMessage::answers_size() {
-    auto answers = ethutil_ntohs(header_->number_answer);
+int16_t DNSReader::read_answers() {
+    return read_records(number_answers());
+}
+
+int16_t DNSReader::read_authorities() {
+    return read_records(number_authorities());
+}
+
+int16_t DNSReader::read_additionals() {
+    return read_records(number_additional());
+}
+
+int16_t DNSReader::read_records(uint16_t number) {
+    auto answers = number;
     auto bytes = 0;
-    auto p = after_header() + queries_size();
-    while (answers > 0 && p < end_of_packet()) {
-        auto name = read_name(p);
-        auto record_length = name.length;
-        p += record_length;
+    while (answers > 0) {
+        auto name = read_name(&reader_);
 
-        // Technically possible if rdlength is 0.
-        if (p + 5 * 2 >= end_of_packet() + 1) {
-            return -1;
-        }
-
-        auto record_type = ethutil_ntohs(*(uint16_t *)&p[0]);
-        auto record_class = ethutil_ntohs(*(uint16_t *)&p[2]);
-        auto ttl1 = ethutil_ntohs(*(uint16_t *)&p[4]);
-        auto ttl2 = ethutil_ntohs(*(uint16_t *)&p[6]);
-        auto rdlength = ethutil_ntohs(*(uint16_t *)&p[8]);
-
-        p += 5 * 2;
+        auto record_type = read_u16();
+        auto record_class = read_u16();
+        auto ttl1 = read_u16();
+        auto ttl2 = read_u16();
+        auto rdlength = read_u16();
 
         logdebug("answer: '%s' type=%d class=%d ttl=%d/%d", name.name, record_type, record_class, ttl1, ttl2);
-
-        if (p + rdlength >= end_of_packet() + 1) {
-            logwarn("answers: packet overflow");
-            return -1;
-        }
 
         switch (record_type) {
         case (uint16_t)RecordTypes::A: {
@@ -162,54 +187,53 @@ int16_t DNSMessage::answers_size() {
                 return -1;
             }
 
-            logdebug("a record (%d) %d.%d.%d.%d", rdlength, p[0], p[1], p[2], p[3]);
-            p += rdlength;
+            uint8_t ip[4];
+            reader_.read((uint8_t *)&ip, sizeof(ip));
+
+            logdebug("a record (%d) %d.%d.%d.%d", rdlength, ip[0], ip[1], ip[2], ip[3]);
             break;
         }
         case (uint16_t)RecordTypes::Aaaa: {
             logdebug("aaaa (ipv6) record (%d)", rdlength);
-            p += rdlength;
+            reader_.skip(rdlength);
             break;
         }
         case (uint16_t)RecordTypes::Null: {
             logdebug("null record (%d)", rdlength);
-            p += rdlength;
+            reader_.skip(rdlength);
             break;
         }
         case (uint16_t)RecordTypes::Srv: {
-            auto priority = ethutil_ntohs(*(uint16_t *)&p[0]);
-            auto weight = ethutil_ntohs(*(uint16_t *)&p[2]);
-            auto port = ethutil_ntohs(*(uint16_t *)&p[4]);
-            auto name = read_name(p + 6);
+            auto priority = read_u16();
+            auto weight = read_u16();
+            auto port = read_u16();
+            auto name = read_name(&reader_);
             if (name.name != nullptr) {
                 logdebug("srv record (%d) pri=%d w=%d port=%d '%s'", rdlength, priority, weight, port, name.name);
             }
             else {
                 logdebug("srv record (%d) pri=%d w=%d port=%d <noname>", rdlength, priority, weight, port);
             }
-            p += rdlength;
             break;
         }
         case (uint16_t)RecordTypes::Ptr: {
-            auto name = read_name(p);
+            auto name = read_name(&reader_);
             if (name.name != nullptr) {
                 logdebug("ptr record (%d) '%s' (%d)", rdlength, name.name, name.length);
             }
             else {
                 logdebug("ptr record (%d) <noname>", rdlength);
             }
-            p += rdlength;
+            reader_.skip(rdlength - name.length);
             break;
         }
         default: {
             logdebug("unknown type (0x%x/%d) (rdlength=%d)", record_type, record_type, rdlength);
-            p += rdlength;
+            reader_.skip(rdlength);
             break;
         }
         }
 
-        record_length += rdlength + 2 * 5;
-        bytes += record_length;
         answers--;
     }
 

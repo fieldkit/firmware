@@ -27,6 +27,15 @@ public:
 class Reader {
 public:
     virtual int32_t read(uint8_t *buffer, size_t size) = 0;
+
+public:
+    uint8_t read_u8() {
+        uint8_t value{ 0 };
+        if (read(&value, sizeof(value)) != 1) {
+            return 0;
+        }
+        return value;
+    }
 };
 
 class BufferedWriter : public Writer {
@@ -63,11 +72,24 @@ private:
     size_t bytes_read_{ 0 };
 
 public:
-    BufferedReader(Reader *reader, uint8_t *buffer, size_t size);
+    BufferedReader(Reader *reader, uint8_t *buffer, size_t buffer_size, size_t bytes_read = 0);
     virtual ~BufferedReader();
 
 public:
+    BufferedReader beginning() const;
+    BufferedReader remaining() const;
+
+public:
     int32_t read(uint8_t *buffer, size_t size) override;
+    int32_t skip(size_t bytes);
+
+    size_t position() const {
+        return position_;
+    }
+
+    size_t available() const {
+        return buffer_size_ - position_;
+    }
 
 };
 

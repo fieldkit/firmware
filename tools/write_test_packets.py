@@ -127,7 +127,6 @@ udp-recv[mdns]: 30 32 30 32 30 66 66 31 39 33 38 31 31 c0 0c  (79 bytes)
 udp-recv[mdns]: 00 00 00 00 00 01 00 00 00 00 00 00 03 5f 66 6b 05 5f 68 74 74 70 04 5f 74 63 70 05 6c 6f 63 61
 udp-recv[mdns]: 6c 00 00 0c 00 01  (38 bytes)
 
-#invalid no idea where the hell this one came from
 udp-recv[mdns]: 00 00 00 00 00 17 00 04 00 00 00 00 08 5f 61 69 72 70 6f 72 74 04 5f 74 63 70 05 6c 6f 63 61 6c
 udp-recv[mdns]: 00 00 0c 00 01 08 5f 61 69 72 70 6c 61 79 c0 15 00 0c 00 01 05 5f 72 61 6f 70 c0 15 00 0c 00 01
 udp-recv[mdns]: 06 5f 75 73 63 61 6e c0 15 00 0c 00 01 07 5f 75 73 63 61 6e 73 c0 15 00 0c 00 01 07 5f 69 70 70
