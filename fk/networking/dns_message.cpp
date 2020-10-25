@@ -78,6 +78,7 @@ DNSReader::dns_name_length_t DNSReader::read_name(BufferedReader *reader, uint8_
             if (reader->read(name + position, part_length) != part_length) {
                 return { -1, -1 };
             }
+            name[position + part_length] = 0;
         }
         else {
             if (reader->skip(part_length) != part_length) {
