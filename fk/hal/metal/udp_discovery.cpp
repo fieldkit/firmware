@@ -34,6 +34,10 @@ bool UDPDiscovery::start() {
 
 void UDPDiscovery::stop() {
     if (initialized_) {
+        for (auto i = 0; i < 3; ++i) {
+            send(UDPStatus::Bye);
+            delay(50);
+        }
         udp_.stop();
         initialized_ = false;
     }
@@ -45,14 +49,14 @@ bool UDPDiscovery::service(Pool *pool) {
     }
 
     if (fk_uptime() > publish_) {
-        send();
+        send(UDPStatus::Online);
         publish_ = fk_uptime() + NetworkUdpDiscoveryInterval;
     }
 
     return true;
 }
 
-bool UDPDiscovery::send() {
+bool UDPDiscovery::send(UDPStatus status) {
     loginfo("publishing");
     if (!udp_.beginPacket(IPAddress(224, 1, 2, 3), NetworkUdpDiscoveryPort)) {
         logerror("begin failed!");
@@ -61,6 +65,8 @@ bool UDPDiscovery::send() {
 
     fk_serial_number_t sn;
     udp_.write((uint8_t *)&sn, sizeof(sn));
+    udp_.write((uint8_t *)&status, sizeof(status));
+
     if (udp_.endPacket() != 0) {
         logerror("send failed!");
         return false;

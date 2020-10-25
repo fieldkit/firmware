@@ -16,6 +16,11 @@ namespace fk {
 
 class Wifi;
 
+enum class UDPStatus : uint16_t {
+    Online,
+    Bye,
+};
+
 class UDPDiscovery {
 private:
     DebugUDP udp_{ "sud" };
@@ -38,7 +43,7 @@ public:
     void stop();
 
 public:
-    bool send();
+    bool send(UDPStatus status);
 
 };
 
