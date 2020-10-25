@@ -149,7 +149,7 @@ int16_t DNSReader::read_queries() {
         auto record_type = read_u16();
         auto record_class = read_u16();
 
-        loginfo("query: '%s' type=%d class=%d", name.name, record_type, record_class);
+        logdebug("query: '%s' type=%d class=%d", name.name, record_type, record_class);
 
         queries--;
     }
