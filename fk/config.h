@@ -369,6 +369,11 @@ constexpr uint32_t NetworkUdpDiscoveryInterval = 5000;
  */
 constexpr uint32_t NetworkUdpDiscoveryPort = 22143;
 
+/**
+ * Flag to disable parsing of DNS to flex the DNS parsing code.
+ */
+constexpr bool NetworkDebugDnsParsing = true;
+
 // -------------------------------------------------------------------------------------------
 // GPS
 

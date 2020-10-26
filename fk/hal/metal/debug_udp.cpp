@@ -55,9 +55,11 @@ int DebugUDP::parsePacket() {
 
         debug("udp-recv", buffer_, bytes_read);
 
-        if (dns_pool_ != nullptr && size_ > 0) {
-            DNSReader message{ dns_pool_, buffer_, size_ };
-            message.parse();
+        if (NetworkDebugDnsParsing) {
+            if (dns_pool_ != nullptr && size_ > 0) {
+                DNSReader message{ dns_pool_, buffer_, size_ };
+                message.parse();
+            }
         }
     }
 
@@ -78,9 +80,11 @@ int DebugUDP::endPacket() {
     if (buffer_ != nullptr && position_ > 0) {
         debug("udp-send", buffer_, position_);
 
-        if (dns_pool_ != nullptr) {
-            DNSReader message{ dns_pool_, buffer_, position_ };
-            message.parse();
+        if (NetworkDebugDnsParsing) {
+            if (dns_pool_ != nullptr) {
+                DNSReader message{ dns_pool_, buffer_, position_ };
+                message.parse();
+            }
         }
 
         position_ = 0;
