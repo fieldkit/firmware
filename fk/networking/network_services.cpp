@@ -54,12 +54,13 @@ bool NetworkServices::begin(NetworkSettings settings, uint32_t to, Pool &pool) {
         loginfo("trying '%s'", settings.ssid);
     }
 
-    if (!network_->begin(settings)) {
+    if (!network_->begin(settings, &pool)) {
         loginfo("unable to configure network");
         return false;
     }
 
     auto started = fk_uptime();
+
     do {
         if (network_began(network_->status())) {
             settings_ = settings;
@@ -71,6 +72,7 @@ bool NetworkServices::begin(NetworkSettings settings, uint32_t to, Pool &pool) {
     while (fk_uptime() - started < to);
 
     logerror("networking took too long");
+
     return false;
 }
 

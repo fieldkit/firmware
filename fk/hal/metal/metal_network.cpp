@@ -208,18 +208,15 @@ bool MetalNetworkConnection::stop() {
     return true;
 }
 
-bool MetalNetwork::begin(NetworkSettings settings) {
+bool MetalNetwork::begin(NetworkSettings settings, Pool *pool) {
     if (availability_ == Availability::Unavailable) {
         logwarn("wifi unavailable");
         return false;
     }
 
-    if (pool_ != nullptr) {
-        delete pool_;
-        pool_ = nullptr;
-    }
+    FK_ASSERT(pool != nullptr);
 
-    pool_ = create_standard_pool_inside("network");
+    pool_ = pool;
 
     staticWiFiCallbacks.initialize(*pool_);
 
@@ -350,10 +347,7 @@ bool MetalNetwork::stop() {
         enabled_ = false;
         get_board()->disable_wifi();
     }
-    if (pool_ != nullptr) {
-        delete pool_;
-        pool_ = nullptr;
-    }
+    pool_ = nullptr;
     return true;
 }
 

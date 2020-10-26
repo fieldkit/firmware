@@ -39,9 +39,9 @@ void try_and_serve_connections() {
         auto network = get_network();
 
         StandardPool tick_pool{ "network-tick" };
+        StandardPool pool{ "network-task" };
         NetworkServices network_services{ network };
         NetworkTask task{ network, network_services };
-        StandardPool pool{ "network" };
         NetworkDuration duration;
         GlobalStateManager gsm;
 

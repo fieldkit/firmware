@@ -72,7 +72,7 @@ private:
     bool enabled_{ false };
 
 public:
-    bool begin(NetworkSettings settings) override {
+    bool begin(NetworkSettings settings, Pool *pool) override {
         settings_ = settings;
         return true;
     }

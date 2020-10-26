@@ -60,7 +60,7 @@ void StartupWorker::run(Pool &pool) {
 
     NoopSelfCheckCallbacks noop_callbacks;
     SelfCheck self_check(display, get_network(), mm, get_module_leds());
-    self_check.check(SelfCheckSettings::defaults(), noop_callbacks);
+    self_check.check(SelfCheckSettings::defaults(), noop_callbacks, &pool);
 
     save_startup_diagnostics();
 

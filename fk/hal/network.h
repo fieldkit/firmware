@@ -95,7 +95,7 @@ public:
 
 class Network {
 public:
-    virtual bool begin(NetworkSettings settings) = 0;
+    virtual bool begin(NetworkSettings settings, Pool *pool) = 0;
 
     virtual bool serve() = 0;
 

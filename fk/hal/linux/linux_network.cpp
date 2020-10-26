@@ -100,7 +100,7 @@ bool LinuxNetworkConnection::stop() {
     return true;
 }
 
-bool LinuxNetwork::begin(NetworkSettings settings) {
+bool LinuxNetwork::begin(NetworkSettings settings, Pool *pool) {
     settings_ = settings;
     enabled_ = true;
 

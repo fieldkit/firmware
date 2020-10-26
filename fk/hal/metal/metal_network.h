@@ -84,7 +84,7 @@ private:
     SimpleNTP ntp_;
 
 public:
-    bool begin(NetworkSettings settings) override;
+    bool begin(NetworkSettings settings, Pool *pool) override;
 
     NetworkStatus status() override;
 

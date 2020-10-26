@@ -73,7 +73,7 @@ public:
     SelfCheck(Display *display, Network *network, ModMux *mm, ModuleLeds *leds);
 
 public:
-    void check(SelfCheckSettings settings, SelfCheckCallbacks &callback);
+    void check(SelfCheckSettings settings, SelfCheckCallbacks &callback, Pool *pool);
 
 private:
     bool rtc();
@@ -83,7 +83,7 @@ private:
     bool qspi_memory();
     bool spi_memory();
     bool gps();
-    bool wifi();
+    bool wifi(Pool *pool);
     bool sd_card_open();
     bool sd_card_write();
     bool backplane_shift();

@@ -35,7 +35,7 @@ static CheckStatus to_status(bool ok) {
     return ok ? CheckStatus::Pass : CheckStatus::Fail;
 }
 
-void SelfCheck::check(SelfCheckSettings settings, SelfCheckCallbacks &callbacks) {
+void SelfCheck::check(SelfCheckSettings settings, SelfCheckCallbacks &callbacks, Pool *pool) {
     loginfo("starting");
 
     SelfCheckStatus status;
@@ -60,7 +60,7 @@ void SelfCheck::check(SelfCheckSettings settings, SelfCheckCallbacks &callbacks)
     status.spi_memory = to_status(spi_memory());
     callbacks.update(status);
 
-    status.wifi = to_status(wifi());
+    status.wifi = to_status(wifi(pool));
     callbacks.update(status);
 
     if (settings.check_gps) {
@@ -226,7 +226,7 @@ bool SelfCheck::gps() {
     });
 }
 
-bool SelfCheck::wifi() {
+bool SelfCheck::wifi(Pool *pool) {
     return single_check("wifi", [=]() {
         auto settings = NetworkSettings{
             .valid = false,
@@ -235,7 +235,7 @@ bool SelfCheck::wifi() {
             .password = nullptr,
             .port = 0,
         };
-        auto ok = network_->begin(settings);
+        auto ok = network_->begin(settings, pool);
         if (ok) {
             network_->stop();
         }

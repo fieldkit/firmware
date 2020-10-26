@@ -61,7 +61,7 @@ private:
     int32_t listening_;
 
 public:
-    bool begin(NetworkSettings settings) override;
+    bool begin(NetworkSettings settings, Pool *pool) override;
 
     NetworkStatus status() override;
 

@@ -489,6 +489,8 @@ static void test_i2c_weather_samd09() {
 }
 
 static void https_test() {
+    StandardPool main_pool{ "https-test" };
+
     get_board()->enable_everything();
 
     auto network = get_network();
@@ -498,7 +500,7 @@ static void https_test() {
         .create = false,
         .ssid = "Conservify",
         .password = "Okavang0",
-    });
+        }, &main_pool);
 
     while (network->status() != NetworkStatus::Connected) {
         fk_delay(1000);

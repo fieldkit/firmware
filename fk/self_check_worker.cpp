@@ -39,9 +39,10 @@ bool SelfCheckWorker::stop_network() {
 void SelfCheckWorker::check() {
     auto lock = storage_mutex.acquire(UINT32_MAX);
     FK_ASSERT(lock);
+    StandardPool pool{ "self-check" };
     NullDisplay noop_display;
     SelfCheck self_check(&noop_display, get_network(), get_modmux(), get_module_leds());
-    self_check.check(SelfCheckSettings::detailed(), *callbacks_);
+    self_check.check(SelfCheckSettings::detailed(), *callbacks_, &pool);
 }
 
 }
