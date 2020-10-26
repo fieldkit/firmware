@@ -110,8 +110,10 @@ DNSReader::dns_name_t DNSReader::read_name(BufferedReader *reader) {
 }
 
 int16_t DNSReader::parse() {
-    loginfo("parsing %zu bytes q=%d a=%d au=%d ad=%d", size_, number_queries(), number_answers(),
-            number_authorities(), number_additional());
+    auto h = header();
+
+    loginfo("parsing %zu bytes q=%d a=%d au=%d ad=%d op=%d rcode=%d auth=%d", size_, number_queries(), number_answers(),
+            number_authorities(), number_additional(), h->opcode, h->response_code, h->authoritative);
 
     if (reader_.skip(sizeof(dns_header_t)) < 0) {
         return -1;
