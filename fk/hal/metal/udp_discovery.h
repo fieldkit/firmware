@@ -11,18 +11,13 @@
 
 #include "common.h"
 #include "debug_udp.h"
+#include "records.h"
 
 namespace fk {
 
-class Wifi;
-
-enum class UDPStatus : uint16_t {
-    Online,
-    Bye,
-};
-
 class UDPDiscovery {
 private:
+    Pool *pool_{ nullptr };
     DebugUDP udp_{ "sud" };
     bool initialized_{ false };
     uint32_t publish_{ 0 };
@@ -34,6 +29,7 @@ public:
 
 public:
     void pool(Pool *pool) {
+        pool_ = pool;
         udp_.pool(pool);
     }
 
@@ -43,7 +39,7 @@ public:
     void stop();
 
 public:
-    bool send(UDPStatus status);
+    bool send(fk_app_UdpStatus status, Pool *pool);
 
 };
 
