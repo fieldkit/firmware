@@ -24,18 +24,11 @@ public:
 
     optional<ConstructedModule> get(ModulePosition bay);
 
-    void modules(ConstructedModulesCollection modules) {
-        clear();
-        modules_.add(modules);
-    }
+    void modules(ConstructedModulesCollection modules);
 
-    ConstructedModulesCollection modules() {
-        return ConstructedModulesCollection(modules_);
-    }
+    ConstructedModulesCollection modules();
 
-    uint32_t service_interval() const {
-        return service_interval_;
-    }
+    uint32_t service_interval() const;
 
 public:
     tl::expected<ConstructedModulesCollection, Error> rescan(ModuleScanning &scanning, Pool &pool);

@@ -32,6 +32,19 @@ optional<ConstructedModule> ModuleFactory::get(ModulePosition position) {
     return nullopt;
 }
 
+void ModuleFactory::modules(ConstructedModulesCollection modules) {
+    clear();
+    modules_.add(modules);
+}
+
+ConstructedModulesCollection ModuleFactory::modules() {
+    return ConstructedModulesCollection(modules_);
+}
+
+uint32_t ModuleFactory::service_interval() const {
+    return service_interval_;
+}
+
 bool ModuleFactory::changes(FoundModuleCollection &a, ConstructedModulesCollection &b) {
     if (a.size() != b.size()) {
         return true;
