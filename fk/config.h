@@ -2,6 +2,7 @@
 
 #include <inttypes.h>
 #include <string.h>
+#include "secrets.h"
 
 namespace fk {
 
@@ -276,6 +277,8 @@ struct LoraAbpSettings {
     uint8_t app_session_key[LoraAppSessionKeyLength];
 };
 
+extern LoraAbpSettings lora_preconfigured_abp[0];
+
 // -------------------------------------------------------------------------------------------
 // Field Lengths
 
@@ -372,7 +375,11 @@ constexpr uint32_t NetworkUdpDiscoveryPort = 22143;
 /**
  * Flag to disable parsing of DNS to flex the DNS parsing code.
  */
+#if defined(FK_DNS_PARSE_ENABLED)
+constexpr bool NetworkDebugDnsParsing = true;
+#else
 constexpr bool NetworkDebugDnsParsing = false;
+#endif
 
 // -------------------------------------------------------------------------------------------
 // GPS
