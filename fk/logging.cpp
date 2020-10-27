@@ -91,10 +91,13 @@ void fk_logs_printf(const char *f, ...) {
 }
 
 void fk_logs_write_saved_and_free() {
+    auto begin_header = "\n\n=================== raw log memory begin\n\n";
+    auto end_footer = "\n\n=================== raw log memory end\n\n";
+
     SEGGER_RTT_LOCK();
 
-    fk_logs_printf("\n");
-    fk_logs_printf("=================== raw log memory begin\n\n");
+    fk_logs_printf(begin_header);
+
     for (auto i = 0u; i < StandardPagesForLogs; ++i) {
         auto page = saved_logs.pages[i];
         for (auto p = page; p < page + StandardPageSize; ) {
@@ -108,15 +111,19 @@ void fk_logs_write_saved_and_free() {
 
         SEGGER_RTT_Write(0, page, StandardPageSize);
     }
-    fk_logs_printf("\n\n=================== raw log memory end\n\n");
+    fk_logs_printf(end_footer);
 
     SEGGER_RTT_UNLOCK();
+
+    get_sd_card()->append_logs((uint8_t *)begin_header, strlen(begin_header));
 
     for (auto i = 0u; i < StandardPagesForLogs; ++i) {
         auto page = saved_logs.pages[i];
         get_sd_card()->append_logs(page, StandardPageSize);
         fk_standard_page_free(page);
     }
+
+    get_sd_card()->append_logs((uint8_t *)end_footer, strlen(end_footer));
 }
 
 void fk_logs_dump_memory(const char *prefix, const uint8_t *p, size_t size, ...) {
@@ -144,6 +151,9 @@ void fk_logs_dump_memory(const char *prefix, const uint8_t *p, size_t size, ...)
             fk_logs_printf("%s\n", line);
             p = line + prefix_length;
         }
+    }
+    if (line[0] != 0) {
+        fk_logs_printf("%s\n", line);
     }
     #if defined(__SAMD51__)
     SEGGER_RTT_UNLOCK();
