@@ -372,7 +372,7 @@ constexpr uint32_t NetworkUdpDiscoveryPort = 22143;
 /**
  * Flag to disable parsing of DNS to flex the DNS parsing code.
  */
-constexpr bool NetworkDebugDnsParsing = true;
+constexpr bool NetworkDebugDnsParsing = false;
 
 // -------------------------------------------------------------------------------------------
 // GPS
