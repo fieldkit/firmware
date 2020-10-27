@@ -17,7 +17,7 @@ void GpsView::tick(ViewController *views, Pool &pool) {
     char second[64] = { 0 };
 
     if (gs.get()->gps.enabled) {
-        tiny_snprintf(first, sizeof(first), "%.1f,  %.2f", gs.get()->gps.latitude, gs.get()->gps.longitude);
+        tiny_snprintf(first, sizeof(first), "%.1f,  %.1f", gs.get()->gps.latitude, gs.get()->gps.longitude);
         tiny_snprintf(second, sizeof(second), "%d (%" PRIu32 ") %s", gs.get()->gps.satellites, gs.get()->gps.chars, gs.get()->gps.fix ? "F" : "");
     }
     else {
