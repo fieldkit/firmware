@@ -24,11 +24,13 @@ public:
 
     optional<ConstructedModule> get(ModulePosition bay);
 
-    void modules(ConstructedModulesCollection modules);
-
     ConstructedModulesCollection modules();
 
     uint32_t service_interval() const;
+
+    #if !defined(__SAMD51__)
+    void modules(ConstructedModulesCollection modules);
+    #endif
 
 public:
     tl::expected<ConstructedModulesCollection, Error> rescan(ModuleScanning &scanning, Pool &pool);

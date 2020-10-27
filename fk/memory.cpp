@@ -52,7 +52,9 @@ void *fk_standard_page_malloc(size_t size, const char *name) {
             allocated = pages[i].base;
             pages[i].available = false;
             pages[i].owner = name;
+            #if defined(__SAMD51__)
             pages[i].allocated = fk_uptime();
+            #endif
 
             logdebug("[%2d] malloc '%s'", i, name);
 

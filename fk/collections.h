@@ -50,6 +50,10 @@ public:
         return *this;
     }
 
+    Pool *pool() const {
+        return pool_;
+    }
+
 public:
     class iterator {
     public:

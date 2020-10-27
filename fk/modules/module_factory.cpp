@@ -7,13 +7,10 @@ namespace fk {
 
 FK_DECLARE_LOGGER("modules");
 
-static ModuleFactory *module_factory{ nullptr };
+static ModuleFactory module_factory;
 
 ModuleFactory &get_module_factory() {
-    if (module_factory == nullptr) {
-        module_factory = new ModuleFactory();
-    }
-    return *module_factory;
+    return module_factory;
 }
 
 ModuleFactory::ModuleFactory() {
@@ -32,10 +29,12 @@ optional<ConstructedModule> ModuleFactory::get(ModulePosition position) {
     return nullopt;
 }
 
+#if !defined(__SAMD51__)
 void ModuleFactory::modules(ConstructedModulesCollection modules) {
     clear();
     modules_.add(modules);
 }
+#endif
 
 ConstructedModulesCollection ModuleFactory::modules() {
     return ConstructedModulesCollection(modules_);
