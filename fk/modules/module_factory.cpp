@@ -7,10 +7,13 @@ namespace fk {
 
 FK_DECLARE_LOGGER("modules");
 
-static ModuleFactory module_factory;
+static ModuleFactory *module_factory{ nullptr };
 
 ModuleFactory &get_module_factory() {
-    return module_factory;
+    if (module_factory == nullptr) {
+        module_factory = new ModuleFactory();
+    }
+    return *module_factory;
 }
 
 ModuleFactory::ModuleFactory() {
