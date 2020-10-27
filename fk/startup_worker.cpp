@@ -388,13 +388,7 @@ bool StartupWorker::check_for_lora(Pool &pool) {
 bool StartupWorker::save_startup_diagnostics() {
     loginfo("saving startup diagnostics (%s) (bank = %d)", fk_get_reset_reason_string(), fk_nvm_get_active_bank());
 
-    auto &logs = fk_log_buffer();
-    get_sd_card()->append_logs(logs);
-
-    // Close logs so that we open a new file.
-    get_sd_card()->close_logs();
-
-    fk_logs_clear();
+    fk_logs_write_saved_and_free();
 
     return true;
 }

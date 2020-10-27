@@ -8,6 +8,7 @@
 #include "config.h"
 #include "circular_buffer.h"
 #include "hal/sd_card.h"
+#include "memory.h"
 
 namespace fk {
 
@@ -16,8 +17,37 @@ static log_buffer::iterator sd_card_iterator;
 static bool logs_buffer_free = true;
 
 #if defined(__SAMD51__)
+static_assert(InMemoryLogBufferSize % StandardPageSize == 0, "log size should be divisible by standard page size.");
+#endif
+
+constexpr size_t StandardPagesForLogs = InMemoryLogBufferSize / StandardPageSize;
+
+#if defined(__SAMD51__)
 
 static bool logs_rtt_enabled = true;
+
+typedef struct saved_logs_t {
+    uint8_t *pages[StandardPagesForLogs];
+} saved_logs_t;
+
+static saved_logs_t saved_logs = { .pages = { nullptr, nullptr, nullptr, nullptr } };
+
+void fk_logs_save() {
+    auto source = logs.buffer();
+    for (auto i = 0u; i < StandardPagesForLogs; ++i) {
+        saved_logs.pages[i] = (uint8_t *)fk_standard_page_malloc(StandardPageSize, "saved-logs");
+        memcpy(saved_logs.pages[i], source, StandardPageSize);
+        source += StandardPageSize;
+
+        /**
+         * We'll be called very early and so the odds of us being
+         * given non-consecutive pages is zero. It's also not
+         * important but I figured I'd keep this in here just in case
+         * I ever forget that fact.
+         */
+        FK_ASSERT(i == 0 || saved_logs.pages[i] == saved_logs.pages[i - 1] + StandardPageSize);
+    }
+}
 
 static void write_logs_buffer(char c, void *arg) {
     auto app = reinterpret_cast<log_buffer::appender *>(arg);
@@ -60,6 +90,35 @@ void fk_logs_printf(const char *f, ...) {
     va_end(args);
 }
 
+void fk_logs_write_saved_and_free() {
+    SEGGER_RTT_LOCK();
+
+    fk_logs_printf("\n");
+    fk_logs_printf("=================== raw log memory begin\n\n");
+    for (auto i = 0u; i < StandardPagesForLogs; ++i) {
+        auto page = saved_logs.pages[i];
+        for (auto p = page; p < page + StandardPageSize; ) {
+            if (*p == 0) {
+                *p = '\n';
+            } else if (!isprint(*p)) {
+                *p = '?';
+            }
+            p++;
+        }
+
+        SEGGER_RTT_Write(0, page, StandardPageSize);
+    }
+    fk_logs_printf("\n\n=================== raw log memory end\n\n");
+
+    SEGGER_RTT_UNLOCK();
+
+    for (auto i = 0u; i < StandardPagesForLogs; ++i) {
+        auto page = saved_logs.pages[i];
+        get_sd_card()->append_logs(page, StandardPageSize);
+        fk_standard_page_free(page);
+    }
+}
+
 void fk_logs_dump_memory(const char *prefix, const uint8_t *p, size_t size, ...) {
     va_list args;
     va_start(args, size);
@@ -68,17 +127,24 @@ void fk_logs_dump_memory(const char *prefix, const uint8_t *p, size_t size, ...)
     SEGGER_RTT_LOCK();
     #endif
 
-    fk_logs_vprintf(prefix, args);
+    // Prewrite the prefix into the line. We force this to max 32
+    // characters here.
+    char line[(32) + (32 * 2) + 1];
+    auto prefix_length = tiny_vsnprintf(line, 32, prefix, args);
+    if (prefix_length > 32) {
+        prefix_length = 32;
+    }
+    auto p = line + prefix_length;
+
     for (auto i = (size_t)0; i < size; ++i) {
-        fk_logs_printf("%02x ", p[i]);
+        tiny_sprintf(p, "%02x ", p[i]);
+        p += 3;
         if ((i + 1) % 32 == 0) {
-            if (i + 1 < size) {
-                fk_logs_printf("\n");
-                fk_logs_vprintf(prefix, args);
-            }
+            *p = 0;
+            fk_logs_printf("%s\n", line);
+            p = line + prefix_length;
         }
     }
-    fk_logs_printf(" (%d bytes)\n", size);
     #if defined(__SAMD51__)
     SEGGER_RTT_UNLOCK();
     #endif
@@ -147,29 +213,10 @@ void task_logging_hook(os_task_t *task, os_task_status previous_status) {
     }
 }
 
-static bool logs_buffer_has_garbage() {
-    for (auto c : logs) {
-        if (c == 0) continue;
-        if (isspace(c)) continue;
-        if (isprint(c)) continue;
-
-        return false;
-    }
-    return false;
-}
-
 bool fk_logging_initialize() {
-    // This is very experimental... first check for weird  circular
-    // log values, this sanity checks the head and tail pointers, for example.
-    if (!logs.sane_state()) {
-        logs.zero();
-    }
+    fk_logs_save();
 
-    // This looks for a buffer that has unexpected characters, which
-    // is another good sign things aren't ready for us.
-    if (logs_buffer_has_garbage()) {
-        logs.zero();
-    }
+    fk_logs_clear();
 
     sd_card_iterator = logs.end();
 
@@ -220,6 +267,9 @@ bool fk_logging_dump_buffer() {
 
 bool fk_logs_flush() {
     return true;
+}
+
+void fk_logs_write_saved_and_free() {
 }
 
 #endif

@@ -24,7 +24,6 @@ FK_DECLARE_LOGGER("main");
 static void run_tasks() {
     uint32_t stack_size = (4096 + 2048) / sizeof(uint32_t);
 
-
     /**
      * This is very deliberate. By placing these on the stack this way, we
      * ensure that the stack pointer relative to the heap location is as

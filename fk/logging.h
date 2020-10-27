@@ -24,6 +24,10 @@ void fk_logs_clear();
 
 void fk_logs_printf(const char *f, ...);
 
+void fk_logs_save();
+
+void fk_logs_write_saved_and_free();
+
 /**
  * Function for dumping memory in hexadecimal encoding to the console for debugging.
  */
