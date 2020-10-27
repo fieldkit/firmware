@@ -73,7 +73,7 @@ bool UDPDiscovery::send(fk_app_UdpStatus status, Pool *pool) {
     message.deviceId.arg = device_id_data;
     message.status = status;
 
-    auto encoded = pool_->encode(fk_app_UdpMessage_fields, &message);
+    auto encoded = pool->encode(fk_app_UdpMessage_fields, &message);
     if (encoded == nullptr) {
         loginfo("encode failed");
         return false;
