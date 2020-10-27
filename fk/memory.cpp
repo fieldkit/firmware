@@ -1,5 +1,6 @@
 #include "memory.h"
 #include "config.h"
+#include "platform.h"
 
 namespace fk {
 
@@ -11,6 +12,7 @@ struct StandardPages {
     void *base{ nullptr };
     uint8_t available;
     const char *owner;
+    uint32_t allocated{ 0 };
 };
 
 static StandardPages pages[SizeOfStandardPagePool];
@@ -25,6 +27,7 @@ void fk_standard_page_initialize() {
             pages[i].base = memory;
             pages[i].available = true;
             pages[i].owner = nullptr;
+            pages[i].allocated = 0;
 
             memory += StandardPageSize;
         }
@@ -49,6 +52,8 @@ void *fk_standard_page_malloc(size_t size, const char *name) {
             allocated = pages[i].base;
             pages[i].available = false;
             pages[i].owner = name;
+            pages[i].allocated = fk_uptime();
+
             logdebug("[%2d] malloc '%s'", i, name);
 
             if (i > highwater) {
@@ -63,7 +68,8 @@ void *fk_standard_page_malloc(size_t size, const char *name) {
 
         for (auto i = 0u; i < SizeOfStandardPagePool; ++i) {
             if (!pages[i].available) {
-                logerror("[%2d] owner = %s", i, pages[i].owner);
+                logerror("[%2d] owner = %s allocated=%" PRIu32,
+                         i, pages[i].owner, pages[i].allocated);
             }
         }
     }
@@ -106,7 +112,7 @@ StandardPageMemInfo fk_standard_page_meminfo() {
 void fk_standard_page_log() {
     for (auto i = 0u; i < SizeOfStandardPagePool; ++i) {
         if (!pages[i].available) {
-            logdebug("[%2d] owner = %s", i, pages[i].owner);
+            logdebug("[%2d] owner = %s allocated=%" PRIu32, i, pages[i].owner, pages[i].allocated);
         }
     }
 }
