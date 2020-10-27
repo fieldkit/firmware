@@ -24,6 +24,7 @@ public:
     bool begin() override;
     bool append_logs(circular_buffer<char> &buffer) override;
     bool append_logs(circular_buffer<char> &buffer, circular_buffer<char>::iterator iter) override;
+    bool append_logs(uint8_t const *buffer, size_t size) override;
     bool close_logs() override;
     bool is_file(const char *path) override;
     bool is_directory(const char *path) override;
@@ -31,6 +32,9 @@ public:
     bool unlink(const char *path) override;
     SdCardFile *open(const char *path, bool writing, Pool &pool) override;
     bool format() override;
+
+private:
+    bool initialize_logs();
 
 };
 

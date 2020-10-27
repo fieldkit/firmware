@@ -52,11 +52,32 @@ bool MetalSdCard::append_logs(circular_buffer<char> &buffer) {
     return append_logs(buffer, buffer.begin());
 }
 
-bool MetalSdCard::append_logs(circular_buffer<char> &buffer, circular_buffer<char>::iterator iter) {
-    // auto lock = sd_mutex.acquire(UINT32_MAX);
+class LogFile {
+private:
+    MetalSdCard *card_{ nullptr };
 
-    auto started = fk_uptime();
+public:
+    LogFile(MetalSdCard *card);
+    virtual ~LogFile();
 
+public:
+    bool open();
+
+public:
+
+};
+
+LogFile::LogFile(MetalSdCard *card) : card_(card) {
+}
+
+LogFile::~LogFile() {
+}
+
+bool LogFile::open() {
+    return false;
+}
+
+bool MetalSdCard::initialize_logs() {
     if (!begin()) {
         if (sd_.card()->errorCode()) {
             loginfo("ignoring logs: no sd card, error = 0x%x", sd_.card()->errorCode());
@@ -90,6 +111,14 @@ bool MetalSdCard::append_logs(circular_buffer<char> &buffer, circular_buffer<cha
         }
     }
 
+    return true;
+}
+
+bool MetalSdCard::append_logs(circular_buffer<char> &buffer, circular_buffer<char>::iterator iter) {
+    auto started = fk_uptime();
+
+    initialize_logs();
+
     if (log_initialized_) {
         SdFile file;
 
@@ -122,7 +151,33 @@ bool MetalSdCard::append_logs(circular_buffer<char> &buffer, circular_buffer<cha
     }
     else {
         loginfo("ignored (%" PRIu32 "ms)", fk_uptime() - started);
-        log_initialized_ = false;
+    }
+
+    return true;
+}
+
+bool MetalSdCard::append_logs(uint8_t const *buffer, size_t size) {
+    auto started = fk_uptime();
+
+    initialize_logs();
+
+    if (log_initialized_) {
+        SdFile file;
+
+        if (!file.open(log_file_name_, O_WRONLY | O_CREAT | O_APPEND)) {
+            logerror("error opening %s", log_file_name_);
+            return false;
+        }
+
+        file.write(buffer, size);
+
+        file.flush();
+        file.close();
+
+        loginfo("flushed %d to %s (%" PRIu32 "ms) (%" PRIu32 " bytes)", size, log_file_name_, fk_uptime() - started, file.fileSize());
+    }
+    else {
+        loginfo("ignored (%" PRIu32 "ms)", fk_uptime() - started);
     }
 
     return true;

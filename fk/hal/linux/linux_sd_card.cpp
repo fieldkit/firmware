@@ -9,6 +9,10 @@ bool LinuxSdCard::begin() {
     return true;
 }
 
+bool LinuxSdCard::append_logs(uint8_t const *buffer, size_t size) {
+    return true;
+}
+
 bool LinuxSdCard::append_logs(circular_buffer<char> &buffer) {
     return true;
 }
