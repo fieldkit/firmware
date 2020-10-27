@@ -91,8 +91,8 @@ void fk_logs_printf(const char *f, ...) {
 }
 
 void fk_logs_write_saved_and_free() {
-    auto begin_header = "\n\n=================== raw log memory begin\n\n";
-    auto end_footer = "\n\n=================== raw log memory end\n\n";
+    auto begin_header = "\n\n=================== raw log memory begin: remember buffer is circular!\n\n";
+    auto end_footer = "\n\n=================== raw log memory end: remember buffer is circular!\n\n";
 
     SEGGER_RTT_LOCK();
 
