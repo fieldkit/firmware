@@ -64,8 +64,15 @@ namespace fk {
 
 #if defined(__SAMD51__)
 
+static uint32_t adjusted = 0;
+
 uint32_t fk_uptime() {
-    return millis();
+    return millis() + adjusted;
+}
+
+uint32_t fk_uptime_adjust_after_sleep(uint32_t delta) {
+    adjusted += delta;
+    return fk_uptime();
 }
 
 uint32_t fk_delay(uint32_t ms) {
@@ -101,6 +108,10 @@ uint32_t fk_fake_uptime(std::vector<uint32_t> more) {
         uptimes.push(a);
     }
     return uptimes.size();
+}
+
+uint32_t fk_uptime_adjust_after_sleep(uint32_t delta) {
+    return fk_uptime();
 }
 
 static uint32_t started = 0;

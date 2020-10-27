@@ -26,6 +26,8 @@ static uint32_t deep_sleep() {
     auto elapsed = (now_after - now_before) * 1000;
     loginfo("before=%" PRIu32 " now=%" PRIu32 " elapsed=%" PRIu32, now_before, now_after, elapsed);
 
+    fk_uptime_adjust_after_sleep(elapsed);
+
     return elapsed;
 }
 
