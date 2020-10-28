@@ -61,12 +61,24 @@ ModuleReturn AggregatedWeather::service(ModuleContext mc, Pool &pool) {
     return { ModuleStatus::Ok };
 }
 
+static ModuleReadings *new_module_readings(bool unmetered, Pool &pool) {
+    if (unmetered) {
+        return new (pool) NModuleReadings<4>();
+    }
+    return new (pool) NModuleReadings<16>();
+}
+
 ModuleReadings *AggregatedWeather::take_readings(ModuleContext mc, Pool &pool) {
     auto &bus = mc.module_bus();
+
+    if (!I2C_CHECK(bus.write_register_u32(FK_WEATHER_I2C_ADDRESS, FK_WEATHER_I2C_COMMAND_CONFIG, get_clock_now()))) {
+        logwarn("unable to configure");
+    }
 
     fk_weather_aggregated_t aw;
     memzero(&aw, sizeof(aw));
     if (!I2C_CHECK(bus.read_register_buffer(FK_WEATHER_I2C_ADDRESS, FK_WEATHER_I2C_COMMAND_READ, (uint8_t *)&aw, sizeof(aw)))) {
+        logwarn("error reading weather memory");
         return nullptr;
     }
 
@@ -74,16 +86,24 @@ ModuleReadings *AggregatedWeather::take_readings(ModuleContext mc, Pool &pool) {
 
     AggregatedWeatherHelpers awh{ aw };
 
-    auto wind_adc_mv = WindDirection::get_mv_from_raw_adc(aw.previous_wind.direction);
-    auto wind_angle = WindDirection::get_angle_from_raw_adc(aw.previous_wind.direction);
-
-    auto mr = new (pool) NModuleReadings<16>();
+    auto unmetered = aw.wind.ticks == FK_WEATHER_UNMETERED_MAGIC && aw.rain.ticks == FK_WEATHER_UNMETERED_MAGIC;
+    auto mr = new_module_readings(unmetered, pool);
     auto i = 0u;
 
     mr->set(i++, 100.0f * ((float)aw.humidity / (0xffff)));
     mr->set(i++, -45.0f + 175.0f * ((float)aw.temperature_1 / (0xffff)));
     mr->set(i++, aw.pressure / 64.0f / 1000.0f);
     mr->set(i++, aw.temperature_2 / 16.0f);
+
+    // Detect the unmetered weather scenario.
+    if (unmetered) {
+        loginfo("unmetered weather detected");
+        return mr;
+    }
+
+    auto wind_adc_mv = WindDirection::get_mv_from_raw_adc(aw.previous_wind.direction);
+    auto wind_angle = WindDirection::get_angle_from_raw_adc(aw.previous_wind.direction);
+
     mr->set(i++, aw.previous_rain.ticks * RainPerTick);
 
     mr->set(i++, aw.previous_wind.ticks * WindPerTick);
@@ -104,10 +124,6 @@ ModuleReadings *AggregatedWeather::take_readings(ModuleContext mc, Pool &pool) {
 
     mr->set(i++, awh.get_hourly_rain());
     mr->set(i++, aw.rain_previous_hour.ticks * RainPerTick);
-
-    if (!I2C_CHECK(bus.write_register_u32(FK_WEATHER_I2C_ADDRESS, FK_WEATHER_I2C_COMMAND_CONFIG, get_clock_now()))) {
-        logwarn("unable to configure");
-    }
 
     return mr;
 }

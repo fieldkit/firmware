@@ -115,7 +115,7 @@ function(add_sidecar_target profile flags)
 endfunction()
 
 set(aggregated_flags -DFK_WEATHER_SIDECAR_SUBORDINATE=1 -DFK_WEATHER_STAND_ALONE=1)
-set(unmetered_flags -DFK_WEATHER_UNMETERED=1 -DFK_WEATHER_SIDECAR_SUBORDINATE=1)
+set(unmetered_flags -DFK_WEATHER_SIDECAR_SUBORDINATE=1 -DFK_WEATHER_STAND_ALONE=1 -DFK_WEATHER_UNMETERED=1)
 
 add_sidecar_target("simple" "")
 add_sidecar_target("aggregated" "${aggregated_flags}")

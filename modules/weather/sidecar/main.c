@@ -112,15 +112,22 @@ static bool eeprom_clear_or_outside_window(uint32_t now) {
 }
 
 static void regmap_before_read(void *ptr) {
-    #if !defined(FK_WEATHER_UNMETERED)
     fk_weather_aggregated_t *aw = (fk_weather_aggregated_t *)ptr;
 
+    #if !defined(FK_WEATHER_UNMETERED)
     aw->previous_wind = aw->wind;
     aw->previous_rain = aw->rain;
-
     memzero(&aw->wind, sizeof(aw->wind));
     memzero(&aw->rain, sizeof(aw->rain));
+    #else
+    aw->wind.ticks = FK_WEATHER_UNMETERED_MAGIC;
+    aw->rain.ticks = FK_WEATHER_UNMETERED_MAGIC;
+    aw->previous_wind = aw->wind;
+    aw->previous_rain = aw->rain;
     #endif
+
+    aw->uptime = board_system_time_get();
+    aw->crc = aggregated_weather_sign(aw);
 }
 
 #else
@@ -153,6 +160,8 @@ __int32_t main() {
     loginfof("board ready (%zd, %zd)", sizeof(fk_weather_t), sizeof(fk_weather_aggregated_t));
 
     #if !defined(FK_WEATHER_STAND_ALONE)
+    loginfo("board in legacy mode...");
+
     if (ext_irq_register(PA25, eeprom_signal) != 0) {
         logerror("registering irq");
     }
@@ -160,10 +169,8 @@ __int32_t main() {
     if (ext_irq_enable(PA25) != 0) {
         logerror("enabling irq");
     }
-    #endif
 
-    #if !defined(FK_WEATHER_STAND_ALONE)
-    loginfo("eeprom...");
+    loginfo("waiting on eeprom...");
 
     // When we startup, sometimes the parent will hold this high so that it can
     // talk to the bus. Give the parent a chance to do that.
@@ -181,6 +188,8 @@ __int32_t main() {
     memzero(&weather, sizeof(fk_weather_t));
 
     #if defined(FK_WEATHER_STAND_ALONE)
+
+    loginfo("board in stand alone...");
 
     fk_weather_aggregated_t aggregated;
     memzero(&aggregated, sizeof(fk_weather_aggregated_t));

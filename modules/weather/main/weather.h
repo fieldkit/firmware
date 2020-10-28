@@ -87,6 +87,8 @@ typedef struct fk_weather_aggregated_t {
 #define FK_WEATHER_I2C_COMMAND_READ                    (0x00)
 #define FK_WEATHER_I2C_COMMAND_CONFIG                  (0x01)
 
+#define FK_WEATHER_UNMETERED_MAGIC                     (0x0D15EA5E)
+
 #ifdef __cplusplus
 } // namespace fk
 #endif
