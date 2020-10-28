@@ -15,10 +15,6 @@
 #include "crc.h"
 #include "aggregated.h"
 
-#if defined(FK_WEATHER_SIDECAR_SUBORDINATE)
-#define FK_WEATHER_STAND_ALONE
-#endif
-
 static volatile uint8_t take_readings_triggered = 0;
 
 static void timer_task_cb(struct timer_task const *const timer_task) {
