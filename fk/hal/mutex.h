@@ -17,7 +17,6 @@ class Mutex : public Releasable {
 public:
     virtual bool create() = 0;
     virtual Lock acquire(uint32_t to) = 0;
-    virtual bool release() = 0;
     virtual bool is_owner() = 0;
 
 };
@@ -27,7 +26,6 @@ public:
     virtual bool create() = 0;
     virtual Lock acquire_read(uint32_t to) = 0;
     virtual Lock acquire_write(uint32_t to) = 0;
-    virtual bool release() = 0;
 
 };
 

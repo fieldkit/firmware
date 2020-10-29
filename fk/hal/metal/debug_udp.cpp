@@ -29,6 +29,7 @@ void DebugUDP::pool(Pool *pool) {
 }
 
 void DebugUDP::dns_pool(Pool *pool) {
+    FK_ASSERT(pool != nullptr);
     dns_pool_ = pool;
 }
 

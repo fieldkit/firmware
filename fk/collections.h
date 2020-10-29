@@ -237,6 +237,9 @@ public:
     explicit hash_map(hash_map const &o) : pool_(o.pool_), table_(o.table_) {
     }
 
+    virtual ~hash_map() {
+    }
+
 public:
     void operator=(const hash_map&) = delete;
 

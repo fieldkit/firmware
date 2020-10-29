@@ -38,6 +38,8 @@ void BatteryStatus::refresh() {
     gs.get()->power.battery = power.battery;
     gs.get()->power.solar = power.solar;
     gs.get()->power.charge = charge;
+
+    (void)lock;
 }
 
 } // namespace fk

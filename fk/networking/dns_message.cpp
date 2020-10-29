@@ -17,6 +17,8 @@ enum class RecordTypes : uint16_t {
 
 DNSReader::DNSReader(Pool *pool, uint8_t *buffer, size_t size)
     : pool_(pool), buffer_(buffer), size_(size), reader_{ nullptr, buffer, size, size } {
+    FK_ASSERT(buffer != nullptr);
+    FK_ASSERT(size > 0);
 }
 
 DNSReader::~DNSReader() {
@@ -62,7 +64,7 @@ DNSReader::dns_name_length_t DNSReader::read_name(BufferedReader *reader, uint8_
                 return { -1, -1 };
             }
             bytes++;
-            position += pointer_bytes.name;
+            // position += pointer_bytes.name;
             length += pointer_bytes.name;
             break;
         }
@@ -111,6 +113,8 @@ DNSReader::dns_name_t DNSReader::read_name(BufferedReader *reader) {
 }
 
 int16_t DNSReader::parse() {
+    FK_ASSERT(size_ > 0);
+
     auto h = header();
 
     loginfo("parsing %zu bytes q=%d a=%d au=%d ad=%d op=%d rcode=%d auth=%d", size_, number_queries(), number_answers(),
@@ -138,7 +142,6 @@ int16_t DNSReader::parse() {
 uint16_t DNSReader::read_u16() {
     uint16_t value;
     if (reader_.read((uint8_t *)&value, sizeof(value)) != sizeof(value)) {
-        error_ = true;
         return 0;
     }
     return ethutil_ntohs(value);
@@ -149,6 +152,9 @@ int16_t DNSReader::read_queries() {
     auto bytes = 0;
     while (queries > 0) {
         auto name = read_name(&reader_);
+        if (name.name == nullptr) {
+            return -1;
+        }
 
         auto record_type = read_u16();
         auto record_class = read_u16();
@@ -176,6 +182,9 @@ int16_t DNSReader::read_records(uint16_t number) {
     auto bytes = 0;
     while (number > 0) {
         auto name = read_name(&reader_);
+        if (name.name == nullptr) {
+            return -1;
+        }
 
         auto record_type = read_u16();
         auto record_class = read_u16();
@@ -188,7 +197,6 @@ int16_t DNSReader::read_records(uint16_t number) {
         switch (record_type) {
         case (uint16_t)RecordTypes::A: {
             if (rdlength != 4) {
-                error_ = true;
                 return -1;
             }
 
@@ -212,9 +220,9 @@ int16_t DNSReader::read_records(uint16_t number) {
             auto priority = read_u16();
             auto weight = read_u16();
             auto port = read_u16();
-            auto name = read_name(&reader_);
-            if (name.name != nullptr) {
-                logdebug("srv record (%d) pri=%d w=%d port=%d '%s'", rdlength, priority, weight, port, name.name);
+            auto record_name = read_name(&reader_);
+            if (record_name.name != nullptr) {
+                logdebug("srv record (%d) pri=%d w=%d port=%d '%s'", rdlength, priority, weight, port, record_name.name);
             }
             else {
                 logdebug("srv record (%d) pri=%d w=%d port=%d <noname>", rdlength, priority, weight, port);
@@ -222,14 +230,14 @@ int16_t DNSReader::read_records(uint16_t number) {
             break;
         }
         case (uint16_t)RecordTypes::Ptr: {
-            auto name = read_name(&reader_);
-            if (name.name != nullptr) {
-                logdebug("ptr record (%d) '%s' (%d)", rdlength, name.name, name.length);
+            auto record_name = read_name(&reader_);
+            if (record_name.name != nullptr) {
+                logdebug("ptr record (%d) '%s' (%d)", rdlength, record_name.name, record_name.length);
             }
             else {
                 logdebug("ptr record (%d) <noname>", rdlength);
             }
-            reader_.skip(rdlength - name.length);
+            reader_.skip(rdlength - record_name.length);
             break;
         }
         default: {

@@ -39,8 +39,8 @@ public:
     int endPacket() override;
     size_t write(uint8_t) override;
     size_t write(uint8_t const *buffer, size_t size) override;
-    int read(unsigned char *buffer, size_t len);
-    int read(char *buffer, size_t len) {
+    int read(unsigned char *buffer, size_t len) override;
+    int read(char *buffer, size_t len) override {
         return read((unsigned char *)buffer, len);
     };
 

@@ -28,12 +28,11 @@ private:
     Pool *pool_{ nullptr };
     uint8_t *buffer_{ nullptr };
     size_t size_{ 0 };
-    bool error_{ true };
     BufferedReader reader_;
     collection<const char *> names_{ pool_ };
 
 public:
-    DNSReader(Pool *pool, uint8_t *ptr = nullptr, size_t size = 0);
+    DNSReader(Pool *pool, uint8_t *ptr, size_t size);
     virtual ~DNSReader();
 
 public:
