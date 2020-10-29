@@ -326,4 +326,5 @@ const packet_t packets[31] = {
   { packet_29, sizeof(packet_29), true, true },
   { packet_30, sizeof(packet_30), true, false },
 };
+const packet_t packet_announced = { packet_29, sizeof(packet_29), true, true };
 

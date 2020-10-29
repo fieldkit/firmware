@@ -106,6 +106,7 @@ DNSReader::dns_name_t DNSReader::read_name(BufferedReader *reader) {
     FK_ASSERT(pool_ != nullptr);
     auto name = (uint8_t *)pool_->malloc(lengths.name + 1);
     read_name(reader, name);
+    names_.add((char *)name);
     return { (char *)name, lengths.compressed };
 }
 

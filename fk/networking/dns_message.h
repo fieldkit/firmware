@@ -3,6 +3,7 @@
 #include "pool.h"
 #include "io.h"
 #include "ethutil.h"
+#include "collections.h"
 
 namespace fk {
 
@@ -29,6 +30,7 @@ private:
     size_t size_{ 0 };
     bool error_{ true };
     BufferedReader reader_;
+    collection<const char *> names_{ pool_ };
 
 public:
     DNSReader(Pool *pool, uint8_t *ptr = nullptr, size_t size = 0);
@@ -41,6 +43,10 @@ public:
 
     dns_header_t *header() {
         return (dns_header_t *)buffer_;
+    }
+
+    collection<const char *> &names() {
+        return names_;
     }
 
 public:

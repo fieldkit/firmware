@@ -33,6 +33,22 @@ TEST_F(DnsSuite, ParseAll) {
     }
 }
 
+TEST_F(DnsSuite, ParseAnnouncedHasName) {
+    StandardPool pool{ "dns" };
+    auto p = packet_announced;
+    auto buffer = (uint8_t *)pool.copy(p.data, p.size);
+    DNSReader message{ &pool, buffer, p.size };
+    ASSERT_GE(message.parse(), 0);
+    for (auto name : message.names()) {
+        loginfo("name: '%s'", name);
+    }
+    ASSERT_EQ(message.names().size(), 2u);
+    auto iter = message.names().begin();
+    ASSERT_STREQ(*iter, "_fk._tcp.local");
+    ++iter;
+    ASSERT_STREQ(*iter, "4fb1a1555336573232202020ff193811._fk._tcp.local");
+}
+
 TEST_F(DnsSuite, BuildQueryServiceType) {
     StandardPool pool{ "dns" };
     DNSWriter writer{ &pool };
