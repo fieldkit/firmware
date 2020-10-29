@@ -81,6 +81,11 @@ int DebugUDP::parsePacket() {
 }
 
 void DebugUDP::reply_with_query(const char *name) {
+    if (throttled_ > 0 && fk_uptime() < throttled_) {
+        loginfo("query for: %s (throttled)", name);
+        return;
+    }
+
     loginfo("query for: %s", name);
 
     DNSWriter query_writer{ dns_pool_ };
@@ -91,6 +96,8 @@ void DebugUDP::reply_with_query(const char *name) {
         write(encoded->buffer, encoded->size);
         endPacket();
     }
+
+    throttled_ = fk_uptime() + 1000;
 }
 
 int DebugUDP::beginPacket(IPAddress ip, uint16_t port) {

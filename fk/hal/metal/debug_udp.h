@@ -23,6 +23,7 @@ private:
     size_t size_{ 0 };
     size_t position_{ 0 };
     size_t available_{ 0 };
+    uint32_t throttled_{ 0 };
 
 public:
     DebugUDP(const char *name);
