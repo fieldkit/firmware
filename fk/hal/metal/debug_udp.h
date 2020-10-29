@@ -22,7 +22,7 @@ private:
     uint8_t *buffer_{ nullptr };
     size_t size_{ 0 };
     size_t position_{ 0 };
-    size_t expected_{ 0 };
+    size_t available_{ 0 };
 
 public:
     DebugUDP(const char *name);
@@ -47,6 +47,9 @@ public:
 private:
     size_t append(uint8_t const *buffer, size_t size);
     size_t debug(char const *prefix, uint8_t const *buffer, size_t size);
+
+private:
+    void reply_with_query(const char *name);
 
 };
 

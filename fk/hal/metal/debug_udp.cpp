@@ -35,6 +35,7 @@ void DebugUDP::dns_pool(Pool *pool) {
 
 int DebugUDP::parsePacket() {
     position_ = 0;
+    available_ = 0;
 
     auto parsed_size = WiFiUDP::parsePacket();
     if (parsed_size == 0) {
@@ -46,30 +47,50 @@ int DebugUDP::parsePacket() {
     }
 
     // Read the whole packet in and read from our buffer.
-    if (parsed_size < (int32_t)NetworkDebugUDPMaximumPacketSize) {
+    if (parsed_size > 0 && parsed_size < (int32_t)NetworkDebugUDPMaximumPacketSize) {
         auto bytes_read = WiFiUDP::read(buffer_, parsed_size);
-        if (bytes_read != parsed_size) {
-            logwarn("read less than available (%d vs %d)", bytes_read, parsed_size);
-        }
 
-        debug("udp-recv", buffer_, bytes_read);
+        available_ = bytes_read;
 
-        if (NetworkDebugDnsParsing) {
-            if (dns_pool_ != nullptr && bytes_read > 0) {
-                DNSReader message{ dns_pool_, buffer_, (size_t)bytes_read };
-                if (message.parse()) {
-                    for (auto name : message.names()) {
-                        auto found_suffix = strstr(name, "_fk._tcp.local");
-                        if (found_suffix != nullptr && found_suffix != name) {
-                            loginfo("query for: %s", name);
+        if (bytes_read != parsed_size && bytes_read > 0) {
+            logwarn("read less than available (%d vs %d)", available_, parsed_size);
+        } else {
+            debug("udp-recv", buffer_, parsed_size);
+
+            if (NetworkDebugDnsParsing) {
+                if (dns_pool_ != nullptr && parsed_size > 0) {
+                    DNSReader message{ dns_pool_, buffer_, (size_t)parsed_size };
+                    if (message.parse()) {
+                        for (auto name : message.names()) {
+                            auto found_suffix = strstr(name, "_fk._tcp.local");
+                            if (found_suffix != nullptr && found_suffix != name) {
+                                reply_with_query(name);
+                            }
                         }
+                    } else {
+                        loginfo("unable to parse dns");
                     }
+                } else {
+                    loginfo("nothing to parse 0x%p bytes-read=%zu parsed-size=%zu", dns_pool_, bytes_read, parsed_size);
                 }
             }
         }
     }
 
     return parsed_size;
+}
+
+void DebugUDP::reply_with_query(const char *name) {
+    loginfo("query for: %s", name);
+
+    DNSWriter query_writer{ pool_ };
+    auto encoded = query_writer.query_service_type(fk_uptime() % 65535, name);
+    static uint8_t mdns_address[] = { 224, 0, 0, 251 };
+    static uint16_t mdns_port = 5353;
+    if (beginPacket(mdns_address, mdns_port)) {
+        write(encoded->buffer, encoded->size);
+        endPacket();
+    }
 }
 
 int DebugUDP::beginPacket(IPAddress ip, uint16_t port) {
@@ -100,7 +121,7 @@ int DebugUDP::endPacket() {
 
 int DebugUDP::read(unsigned char *buffer, size_t len) {
     if (size_ > 0) {
-        auto remaining = size_ - position_;
+        auto remaining = available_ - position_;
         if (remaining < 0) {
             return 0;
         }
