@@ -280,6 +280,12 @@ bool MetalNetwork::serve() {
     loginfo("ready (ip = %d.%d.%d.%d) (status = %s)",
             ip[0], ip[1], ip[2], ip[3], get_wifi_status());
 
+    if (WiFi.status() == WL_AP_CONNECTED) {
+        uint8_t mac_address[6];
+        WiFi.APClientMacAddress(mac_address);
+        loginfo("remote mac: %s", bytes_to_hex_string_pool(mac_address, sizeof(mac_address), *pool_));
+    }
+
     return true;
 }
 
@@ -380,7 +386,6 @@ bool MetalNetwork::get_created_ap() {
 
 NetworkScan MetalNetwork::scan(Pool &pool) {
     size_t number_ssids = WiFi.scanNetworks();
-
 
     auto ssids = (const char **)pool.malloc(sizeof(const char *) * number_ssids);
 
