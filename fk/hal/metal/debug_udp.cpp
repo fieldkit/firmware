@@ -83,7 +83,7 @@ int DebugUDP::parsePacket() {
 void DebugUDP::reply_with_query(const char *name) {
     loginfo("query for: %s", name);
 
-    DNSWriter query_writer{ pool_ };
+    DNSWriter query_writer{ dns_pool_ };
     auto encoded = query_writer.query_service_type(fk_uptime() % 65535, name);
     static uint8_t mdns_address[] = { 224, 0, 0, 251 };
     static uint16_t mdns_port = 5353;
