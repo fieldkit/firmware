@@ -104,7 +104,11 @@ void fk_logs_write_saved_and_free() {
             if (*p == 0) {
                 *p = '\n';
             } else if (!isprint(*p)) {
-                *p = '?';
+                if (*p == '\n') {
+                    *p = ' ';
+                } else {
+                    *p = '?';
+                }
             }
             p++;
         }
