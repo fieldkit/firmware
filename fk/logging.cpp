@@ -145,19 +145,24 @@ void fk_logs_dump_memory(const char *prefix, const uint8_t *p, size_t size, ...)
     if (prefix_length > 32) {
         prefix_length = 32;
     }
-    auto p = line + prefix_length;
+    auto p = (char *)nullptr;
 
     for (auto i = (size_t)0; i < size; ++i) {
+        if (p == nullptr) {
+            p = line + prefix_length;
+        }
         tiny_sprintf(p, "%02x ", p[i]);
         p += 3;
         if ((i + 1) % 32 == 0) {
             *p = 0;
             fk_logs_printf("%s\n", line);
-            p = line + prefix_length;
+            p = nullptr;
         }
     }
-    if (line[0] != 0) {
+    if (p != nullptr) {
+        *p = 0;
         fk_logs_printf("%s\n", line);
+        p = nullptr;
     }
     #if defined(__SAMD51__)
     SEGGER_RTT_UNLOCK();
