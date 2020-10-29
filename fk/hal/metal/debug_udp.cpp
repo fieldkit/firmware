@@ -58,7 +58,14 @@ int DebugUDP::parsePacket() {
         if (NetworkDebugDnsParsing) {
             if (dns_pool_ != nullptr && size_ > 0) {
                 DNSReader message{ dns_pool_, buffer_, size_ };
-                message.parse();
+                if (message.parse()) {
+                    for (auto name : message.names()) {
+                        auto found_suffix = strstr(name, "_fk._tcp.local");
+                        if (found_suffix != nullptr && found_suffix != name) {
+                            loginfo("query for: %s", name);
+                        }
+                    }
+                }
             }
         }
     }
