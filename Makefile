@@ -140,7 +140,7 @@ veryclean: clean
 cppcheck:
 	rm -rf $(BUILD)/cpp-check
 	mkdir $(BUILD)/cpp-check
-	cd fk && cppcheck -q -j8 --enable=all --inline-suppr --force --output-file=$(BUILD)/cppcheck.xml --xml --xml-version=2 .
+	cd fk && cppcheck -q --enable=all --inline-suppr --force --output-file=$(BUILD)/cppcheck.xml --xml --xml-version=2 .
 	cd fk && cppcheck-htmlreport --source-dir=. --title=fk --file=$(BUILD)/cppcheck.xml --report-dir=$(BUILD)/cpp-check
 
 info:
