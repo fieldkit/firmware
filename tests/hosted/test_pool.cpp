@@ -177,9 +177,57 @@ TEST_F(PoolSuite, Clear) {
 
     new (pool) DummyObject();
 
+    ASSERT_EQ(pool->used(), 104u);
+
     pool->clear();
+
+    ASSERT_EQ(pool->used(), 72u);
 
     new (pool) DummyObject();
 
+    ASSERT_EQ(pool->used(), 104u);
+
     pool->clear();
+
+    ASSERT_EQ(pool->used(), 72u);
+
+    delete pool;
+}
+
+TEST_F(PoolSuite, AllocatingSiblings) {
+    // log_configure_level(LogLevels::DEBUG);
+
+    fk_standard_page_log();
+    // One page taken up by module factory ctor, still need to fix that.
+    ASSERT_EQ(fk_standard_page_meminfo().used, 1u);
+
+    StandardPool pool{ "test-siblings" };
+    ASSERT_EQ(pool.size(), 8192u);
+
+    ASSERT_EQ(fk_standard_page_meminfo().used, 2u);
+
+    for (auto i = 0u; i < 20; ++i) {
+        pool.malloc(2048);
+        pool.malloc(2048);
+        pool.malloc(2048);
+        pool.malloc(2048);
+        pool.malloc(2048);
+        pool.clear();
+    }
+
+    ASSERT_EQ(pool.size(), 8192u);
+    ASSERT_EQ(fk_standard_page_meminfo().used, 2u);
+
+    for (auto i = 0u; i < 20; ++i) {
+        StandardPool pool{ "test" };
+        pool.malloc(2048);
+        pool.malloc(2048);
+        pool.malloc(2048);
+        pool.malloc(2048);
+        pool.malloc(2048);
+    }
+
+    ASSERT_EQ(fk_standard_page_meminfo().used, 2u);
+
+    fk_standard_page_log();
 }

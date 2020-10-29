@@ -99,13 +99,16 @@ void fk_standard_page_free(void *ptr) {
 }
 
 StandardPageMemInfo fk_standard_page_meminfo() {
-    StandardPageMemInfo info = { 0, 0, highwater };
+    StandardPageMemInfo info = { 0, 0, 0, highwater };
 
     for (auto i = 0u; i < SizeOfStandardPagePool; ++i) {
         if (pages[i].available) {
-            info.free += 1;
+            info.free++;
         }
-        info.total += 1;
+        else {
+            info.used++;
+        }
+        info.total++;
     }
 
     return info;

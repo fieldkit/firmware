@@ -13,6 +13,7 @@ void fk_standard_page_free(void *ptr);
 struct StandardPageMemInfo {
     size_t free;
     size_t total;
+    size_t used;
     size_t highwater;
 };
 

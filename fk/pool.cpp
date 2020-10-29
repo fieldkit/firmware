@@ -236,6 +236,15 @@ void *StandardPool::malloc(size_t bytes) {
     return sibling_->malloc(bytes);
 }
 
+void StandardPool::clear() {
+    Pool::clear();
+
+    if (sibling_ != nullptr) {
+        delete sibling_;
+        sibling_ = nullptr;
+    }
+}
+
 Pool *create_standard_pool_inside(const char *name) {
     auto size = StandardPageSize;
     auto ptr = fk_standard_page_malloc(size, name);

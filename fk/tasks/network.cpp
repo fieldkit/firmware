@@ -115,7 +115,10 @@ void try_and_serve_connections() {
         while (true) {
             network_services.tick(&tick_pool);
 
-            tick_pool.clear();
+            if (tick_pool.used() > 0) {
+                loginfo("network-tick: %zu/%zu", tick_pool.used(), tick_pool.size());
+                tick_pool.clear();
+            }
 
             // Some other task has requested that we stop serving. Menu option
             // or a self check for example.

@@ -49,7 +49,6 @@ public:
         remaining_ = size;
     }
 
-    void clear();
     void *copy(void const *ptr, size_t size);
     char *strdup(const char *str);
     char *strndup(const char *str, size_t len);
@@ -73,6 +72,8 @@ public:
     }
 
     virtual void *malloc(size_t size);
+
+    virtual void clear();
 
     void *calloc(size_t size) {
         auto ptr = malloc(size);
@@ -135,6 +136,7 @@ public:
     }
 
     void *malloc(size_t bytes) override;
+    void clear() override;
 
     bool can_malloc(size_t bytes) const {
         return (Pool::size() - Pool::used()) >= aligned_size(bytes);
