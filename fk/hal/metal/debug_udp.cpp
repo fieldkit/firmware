@@ -34,7 +34,6 @@ void DebugUDP::dns_pool(Pool *pool) {
 
 int DebugUDP::parsePacket() {
     position_ = 0;
-    size_ = 0;
 
     auto parsed_size = WiFiUDP::parsePacket();
     if (parsed_size == 0) {
@@ -51,13 +50,12 @@ int DebugUDP::parsePacket() {
         if (bytes_read != parsed_size) {
             logwarn("read less than available (%d vs %d)", bytes_read, parsed_size);
         }
-        size_ = bytes_read;
 
         debug("udp-recv", buffer_, bytes_read);
 
         if (NetworkDebugDnsParsing) {
-            if (dns_pool_ != nullptr && size_ > 0) {
-                DNSReader message{ dns_pool_, buffer_, size_ };
+            if (dns_pool_ != nullptr && bytes_read > 0) {
+                DNSReader message{ dns_pool_, buffer_, (size_t)bytes_read };
                 if (message.parse()) {
                     for (auto name : message.names()) {
                         auto found_suffix = strstr(name, "_fk._tcp.local");
