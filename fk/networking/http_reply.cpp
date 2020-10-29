@@ -117,7 +117,7 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, fkb_header_t con
     reply_.status.memory.dataMemoryUsed = 0;
     reply_.status.memory.dataMemoryConsumption = 0;
 
-    if (gs_->modules != nullptr) {
+    if (gs_->modules != nullptr && gs_->modules->nmodules > 0) {
         auto nmodules = gs_->modules->nmodules;
         auto modules = pool_->malloc<fk_app_ModuleCapabilities>(nmodules);
         for (size_t m = 0; m < nmodules; ++m) {
@@ -173,6 +173,9 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, fkb_header_t con
         });
 
         reply_.modules.arg = (void *)modules_array;
+    }
+    else {
+        logwarn("no modules");
     }
 
     auto &gps = gs_->gps;
