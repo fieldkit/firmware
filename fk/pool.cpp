@@ -222,6 +222,7 @@ StandardPool::~StandardPool() {
 
 void *StandardPool::malloc(size_t bytes) {
     FK_ASSERT(bytes > 0);
+    FK_ASSERT(bytes <= StandardPageSize);
 
     if (can_malloc(bytes)) {
         return Pool::malloc(bytes);
