@@ -14,6 +14,7 @@
 
 #include "readings_worker.h"
 #include "simple_workers.h"
+#include "modules/scan_modules_worker.h"
 
 extern const struct fkb_header_t fkb_header;
 
@@ -123,6 +124,12 @@ bool ApiHandler::handle(HttpServerConnection *connection, Pool &pool) {
         loginfo("scanning done: %zu", scan.length());
 
         return send_networks(connection, scan, pool);
+    }
+    case fk_app_QueryType_QUERY_SCAN_MODULES: {
+        loginfo("handling %s", "QUERY_SCAN_MODULES");
+        ScanModulesWorker worker;
+        worker.run(pool);
+        return send_simple_success(connection, query, pool);
     }
     default: {
         loginfo("unknown %d", query->type);
