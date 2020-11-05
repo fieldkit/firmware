@@ -433,7 +433,7 @@ fk_app_HttpReply *fk_http_reply_encoding_initialize(fk_app_HttpReply *reply) {
     if (reply->status.identity.build.arg != nullptr) reply->status.identity.build.funcs.encode = pb_encode_string;
     if (reply->status.identity.number.arg != nullptr) reply->status.identity.number.funcs.encode = pb_encode_string;
     if (reply->status.identity.name.arg != nullptr) reply->status.identity.name.funcs.encode = pb_encode_string;
-    if (reply->status.identity.generation.arg != nullptr) reply->status.identity.generation.funcs.encode = pb_encode_data;
+    if (reply->status.identity.generationId.arg != nullptr) reply->status.identity.generationId.funcs.encode = pb_encode_data;
 
     if (reply->status.firmware.version.arg != nullptr) reply->status.firmware.version.funcs.encode = pb_encode_string;
     if (reply->status.firmware.build.arg != nullptr) reply->status.firmware.build.funcs.encode = pb_encode_string;

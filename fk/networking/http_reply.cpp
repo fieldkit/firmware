@@ -80,7 +80,7 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, fkb_header_t con
     reply_.status.identity.name.arg = (void *)gs_->general.name;
     reply_.status.identity.device.arg = (void *)gs_->general.name;
     reply_.status.identity.deviceId.arg = device_id_data;
-    reply_.status.identity.generation.arg = generation_data;
+    reply_.status.identity.generationId.arg = generation_data;
     reply_.status.logs.arg = 0; // This is used to store the calculated size.
     reply_.status.logs.funcs.encode = pb_encode_logs;
 
