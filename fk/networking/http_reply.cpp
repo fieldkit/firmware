@@ -122,22 +122,27 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, fkb_header_t con
         auto modules = pool_->malloc<fk_app_ModuleCapabilities>(nmodules);
         for (size_t m = 0; m < nmodules; ++m) {
             auto &module = gs_->modules->modules[m];
-            auto sensors = pool_->malloc<fk_app_SensorCapabilities>(module.nsensors);
-            for (size_t s = 0; s < module.nsensors; ++s) {
-                auto &sensor = module.sensors[s];
-                sensors[s] = fk_app_SensorCapabilities_init_default;
-                sensors[s].number = s;
-                sensors[s].name.arg = (void *)sensor.name;
-                sensors[s].unitOfMeasure.arg = (void *)sensor.unit_of_measure;
-                sensors[s].flags = sensor.flags;
-            }
 
             auto sensors_array = pool_->malloc_with<pb_array_t>({
-               .length = module.nsensors,
-               .itemSize = sizeof(fk_app_SensorCapabilities),
-               .buffer = sensors,
-               .fields = fk_app_SensorCapabilities_fields,
+                .length = module.nsensors,
+                .itemSize = sizeof(fk_app_SensorCapabilities),
+                .buffer = nullptr,
+                .fields = fk_app_SensorCapabilities_fields,
             });
+
+            if (module.nsensors > 0) {
+                auto sensors = pool_->malloc<fk_app_SensorCapabilities>(module.nsensors);
+                for (size_t s = 0; s < module.nsensors; ++s) {
+                    auto &sensor = module.sensors[s];
+                    sensors[s] = fk_app_SensorCapabilities_init_default;
+                    sensors[s].number = s;
+                    sensors[s].name.arg = (void *)sensor.name;
+                    sensors[s].unitOfMeasure.arg = (void *)sensor.unit_of_measure;
+                    sensors[s].flags = sensor.flags;
+                }
+
+                sensors_array->buffer = sensors;
+            }
 
             auto id_data = pool_->malloc_with<pb_data_t>({
                 .length = sizeof(fk_uuid_t),
@@ -149,12 +154,14 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, fkb_header_t con
             modules[m].name.arg = (void *)module.display_name_key;
             modules[m].path.arg = (void *)pool_->sprintf("/fk/v1/modules/%d", module.position.integer());
             modules[m].flags = module.flags;
-            modules[m].sensors.arg = (void *)sensors_array;
             modules[m].id.arg = (void *)id_data;
             modules[m].has_header = true;
             modules[m].header.manufacturer = module.manufacturer;
             modules[m].header.kind = module.kind;
             modules[m].header.version = module.version;
+            if (sensors_array->buffer != nullptr) {
+                modules[m].sensors.arg = (void *)sensors_array;
+            }
 
             if (module.status_message != nullptr) {
                 auto status_message_data = pool_->malloc_with<pb_data_t>({
