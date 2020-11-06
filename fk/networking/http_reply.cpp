@@ -338,37 +338,19 @@ bool HttpReply::include_readings() {
     }
 
     auto nmodules = gs_->modules->nmodules;
+    if (nmodules == 0) {
+        loginfo("no modules");
+        return true;
+    }
+
     auto lmr = pool_->malloc<fk_app_LiveModuleReadings>(nmodules);
 
     for (auto m = 0u; m < nmodules; ++m) {
         auto &module = gs_->modules->modules[m];
-        auto nreadings = module.nsensors;
-        auto readings = pool_->malloc<fk_app_LiveSensorReading>(nreadings);
-
-        for (auto s = 0u; s < nreadings; ++s) {
-            auto &sensor = module.sensors[s];
-            readings[s] = fk_app_LiveSensorReading_init_default;
-            readings[s].has_sensor = true;
-            readings[s].sensor = fk_app_SensorCapabilities_init_default;
-            readings[s].sensor.number = s;
-            readings[s].sensor.name.arg = (void *)sensor.name;
-            readings[s].sensor.unitOfMeasure.arg = (void *)sensor.unit_of_measure;
-            readings[s].sensor.flags = sensor.flags;
-            if (sensor.has_live_vaue) {
-                readings[s].value = sensor.live_value;
-            }
-        }
 
         auto id_data = pool_->malloc_with<pb_data_t>({
             .length = sizeof(fk_uuid_t),
             .buffer = module.id,
-        });
-
-        auto readings_array = pool_->malloc_with<pb_array_t>({
-            .length = nreadings,
-            .itemSize = sizeof(fk_app_LiveSensorReading),
-            .buffer = readings,
-            .fields = fk_app_LiveSensorReading_fields,
         });
 
         lmr[m] = fk_app_LiveModuleReadings_init_default;
@@ -383,7 +365,34 @@ bool HttpReply::include_readings() {
         lmr[m].module.header.manufacturer = module.manufacturer;
         lmr[m].module.header.kind = module.kind;
         lmr[m].module.header.version = module.version;
-        lmr[m].readings.arg = (void *)readings_array;
+
+        auto nreadings = module.nsensors;
+        if (nreadings > 0) {
+            auto readings = pool_->malloc<fk_app_LiveSensorReading>(nreadings);
+
+            for (auto s = 0u; s < nreadings; ++s) {
+                auto &sensor = module.sensors[s];
+                readings[s] = fk_app_LiveSensorReading_init_default;
+                readings[s].has_sensor = true;
+                readings[s].sensor = fk_app_SensorCapabilities_init_default;
+                readings[s].sensor.number = s;
+                readings[s].sensor.name.arg = (void *)sensor.name;
+                readings[s].sensor.unitOfMeasure.arg = (void *)sensor.unit_of_measure;
+                readings[s].sensor.flags = sensor.flags;
+                if (sensor.has_live_vaue) {
+                    readings[s].value = sensor.live_value;
+                }
+            }
+
+            auto readings_array = pool_->malloc_with<pb_array_t>({
+                .length = nreadings,
+                .itemSize = sizeof(fk_app_LiveSensorReading),
+                .buffer = readings,
+                .fields = fk_app_LiveSensorReading_fields,
+            });
+
+            lmr[m].readings.arg = (void *)readings_array;
+        }
     }
 
     auto lmr_array = pool_->malloc_with<pb_array_t>({
