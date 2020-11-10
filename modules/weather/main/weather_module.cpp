@@ -19,15 +19,15 @@ static SensorMetadata const fk_module_weather_sensor_metas[] = {
     { .name = "rain",                 .unitOfMeasure = "mm",     .flags = 0 },
 
     { .name = "wind_speed",           .unitOfMeasure = "km/hr",  .flags = 0 },
-    { .name = "wind_dir",             .unitOfMeasure = "",       .flags = 0 },
+    { .name = "wind_dir",             .unitOfMeasure = "°",      .flags = 0 },
     { .name = "wind_dir_mv",          .unitOfMeasure = "mv",     .flags = 0 },
 
     { .name = "wind_hr_max_speed",    .unitOfMeasure = "km/hr",  .flags = 0 },
-    { .name = "wind_hr_max_dir",      .unitOfMeasure = "",       .flags = 0 },
+    { .name = "wind_hr_max_dir",      .unitOfMeasure = "°",      .flags = 0 },
     { .name = "wind_10m_max_speed",   .unitOfMeasure = "km/hr",  .flags = 0 },
-    { .name = "wind_10m_max_dir",     .unitOfMeasure = "",       .flags = 0 },
+    { .name = "wind_10m_max_dir",     .unitOfMeasure = "°",      .flags = 0 },
     { .name = "wind_2m_avg_speed",    .unitOfMeasure = "km/hr",  .flags = 0 },
-    { .name = "wind_2m_avg_dir",      .unitOfMeasure = "",       .flags = 0 },
+    { .name = "wind_2m_avg_dir",      .unitOfMeasure = "°",      .flags = 0 },
 
     { .name = "rain_this_hour",       .unitOfMeasure = "mm",     .flags = 0 },
     { .name = "rain_prev_hour",       .unitOfMeasure = "mm",     .flags = 0 },
