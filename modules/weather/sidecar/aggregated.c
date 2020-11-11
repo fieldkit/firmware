@@ -69,9 +69,19 @@ int32_t aggregated_weather_include(fk_weather_aggregated_t *aw, struct calendar_
         aw->wind_gust = weather->wind;
     }
 
+    #if defined(FK_LOGGING)
+    uint32_t wind_before = aw->wind.ticks;
+    uint32_t rain_before = aw->rain.ticks;
+    #endif
+
     aw->wind.ticks += weather->wind.ticks;
     aw->wind.direction = weather->wind.direction;
     aw->rain.ticks += weather->rain.ticks;
+
+    #if defined(FK_LOGGING)
+    loginfof("include: wb=%" PRIu32 " wa=%" PRIu32 " acc=%" PRIu32, wind_before, aw->wind.ticks, weather->wind.ticks);
+    loginfof("include: rb=%" PRIu32 " ra=%" PRIu32 " acc=%" PRIu32, rain_before, aw->rain.ticks, weather->rain.ticks);
+    #endif
 
     aw->uptime = board_system_time_get();
     aw->crc = aggregated_weather_sign(aw);

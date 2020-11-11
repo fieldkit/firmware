@@ -163,6 +163,11 @@ int32_t counters_reading_get(struct i2c_m_sync_desc *i2c, counters_reading_t *re
     reading->wind = reverse(wind_reversed);
     reading->rain = reverse(rain_reversed);
 
+    #if defined(FK_LOGGING)
+    loginfof("wind: raw=%" PRIu32 " val=%" PRIu32, wind_reversed, reading->wind);
+    loginfof("rain: raw=%" PRIu32 " val=%" PRIu32, rain_reversed, reading->rain);
+    #endif
+
     return FK_SUCCESS;
 }
 

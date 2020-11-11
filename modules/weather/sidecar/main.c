@@ -115,6 +115,9 @@ static void regmap_before_read(void *ptr) {
     fk_weather_aggregated_t *aw = (fk_weather_aggregated_t *)ptr;
 
     #if !defined(FK_WEATHER_UNMETERED)
+    #if defined(FK_LOGGING)
+    loginfof("before-read: %" PRIu32 " %" PRIu32, aw->wind, aw->rain);
+    #endif
     aw->previous_wind = aw->wind;
     aw->previous_rain = aw->rain;
     memzero(&aw->wind, sizeof(aw->wind));
@@ -305,7 +308,7 @@ __int32_t main() {
             #if defined(FK_LOGGING)
             SEGGER_RTT_WriteString(0, "\n");
 
-            loginfof("crc: %" PRIu32 " 0x%" PRIx32 " %" PRIu32 " 0x%04" PRIx32, weather.seconds, weather.crc, free_memory(), readings_region.tail);
+            loginfof("crc: %" PRIu32 " 0x%" PRIx32 "", weather.seconds, weather.crc);
             loginfof("adc081c wind dir: %d", weather.wind.direction);
             loginfof("wind: %d", weather.wind.ticks);
             loginfof("rain: %d", weather.rain.ticks);
