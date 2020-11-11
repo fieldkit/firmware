@@ -14,24 +14,41 @@ struct AggregatedWeatherHelpers {
     }
 
     WindReading get_wind_gust() {
+        if (aw.wind_gust.ticks == FK_WEATHER_TICKS_NULL) {
+            return WindReading{ };
+        }
         return WindReading{ aw.wind_gust };
     }
 
     WindReading get_wind_10m_max() {
         auto max = WindReading{ };
         for (auto &raw_wind : aw.wind_10m) {
-            auto wind = WindReading{ raw_wind };
-            if (wind.stronger_than(max)) {
-                max = wind;
+            if (raw_wind.ticks != FK_WEATHER_TICKS_NULL) {
+                auto wind = WindReading{ raw_wind };
+                if (wind.stronger_than(max)) {
+                    max = wind;
+                }
             }
         }
         return max;
     }
 
     WindReading get_wind_two_minute_average() {
+        WindReading readings[30];
+        for (auto i = 0u; i < 30; ++i) {
+            if (aw.wind_120s[i].ticks != FK_WEATHER_TICKS_NULL) {
+                readings[i] = WindReading{ aw.wind_120s[i] };
+            }
+        }
+        return WindReading::get_average(readings);
+    }
+
+    WindReading get_wind_30_second_average() {
         WindReading readings[120];
         for (auto i = 0u; i < 120; ++i) {
-            readings[i] = WindReading{ aw.wind_120s[i] };
+            if (aw.wind_120s[i].ticks != FK_WEATHER_TICKS_NULL) {
+                readings[i] = WindReading{ aw.wind_120s[i] };
+            }
         }
         return WindReading::get_average(readings);
     }
@@ -40,7 +57,9 @@ struct AggregatedWeatherHelpers {
         float value = 0.0f;
 
         for (auto &r : aw.rain_60m) {
-            value += r.ticks * RainPerTick;
+            if (r.ticks != FK_WEATHER_TICKS_NULL) {
+                value += r.ticks * RainPerTick;
+            }
         }
 
         return value;
@@ -86,7 +105,7 @@ ModuleReadings *AggregatedWeather::take_readings(ModuleContext mc, Pool &pool) {
 
     AggregatedWeatherHelpers awh{ aw };
 
-    auto unmetered = aw.wind.ticks == FK_WEATHER_UNMETERED_MAGIC && aw.rain.ticks == FK_WEATHER_UNMETERED_MAGIC;
+    auto unmetered = aw.wind_120s[0].ticks == FK_WEATHER_UNMETERED_MAGIC && aw.rain_60m[0].ticks == FK_WEATHER_UNMETERED_MAGIC;
     auto mr = new_module_readings(unmetered, pool);
     auto i = 0u;
 
@@ -101,14 +120,12 @@ ModuleReadings *AggregatedWeather::take_readings(ModuleContext mc, Pool &pool) {
         return mr;
     }
 
-    auto wind_adc_mv = WindDirection::get_mv_from_raw_adc(aw.previous_wind.direction);
-    auto wind_angle = WindDirection::get_angle_from_raw_adc(aw.previous_wind.direction);
+    mr->set(i++, awh.get_rain_inches_per_hour());
 
-    mr->set(i++, aw.previous_rain.ticks * RainPerTick);
-
-    mr->set(i++, aw.previous_wind.ticks * WindPerTick);
-    mr->set(i++, wind_angle);
-    mr->set(i++, wind_adc_mv);
+    auto wind_30s_average = awh.get_wind_30_second_average();
+    mr->set(i++, wind_30s_average.speed);
+    mr->set(i++, wind_30s_average.direction.angle);
+    mr->set(i++, wind_30s_average.direction.raw);
 
     auto wind_gust = awh.get_wind_gust();
     mr->set(i++, wind_gust.speed);
@@ -123,7 +140,7 @@ ModuleReadings *AggregatedWeather::take_readings(ModuleContext mc, Pool &pool) {
     mr->set(i++, wind_2m_average.direction.angle);
 
     mr->set(i++, awh.get_rain_inches_per_hour());
-    mr->set(i++, aw.rain_previous_hour.ticks * RainPerTick);
+    mr->set(i++, 0);
 
     return mr;
 }

@@ -114,19 +114,9 @@ static bool eeprom_clear_or_outside_window(uint32_t now) {
 static void regmap_before_read(void *ptr) {
     fk_weather_aggregated_t *aw = (fk_weather_aggregated_t *)ptr;
 
-    #if !defined(FK_WEATHER_UNMETERED)
-    #if defined(FK_LOGGING)
-    loginfof("before-read: %" PRIu32 " %" PRIu32, aw->wind, aw->rain);
-    #endif
-    aw->previous_wind = aw->wind;
-    aw->previous_rain = aw->rain;
-    memzero(&aw->wind, sizeof(aw->wind));
-    memzero(&aw->rain, sizeof(aw->rain));
-    #else
-    aw->wind.ticks = FK_WEATHER_UNMETERED_MAGIC;
-    aw->rain.ticks = FK_WEATHER_UNMETERED_MAGIC;
-    aw->previous_wind = aw->wind;
-    aw->previous_rain = aw->rain;
+    #if defined(FK_WEATHER_UNMETERED)
+    aw->wind_120s[0].ticks = FK_WEATHER_UNMETERED_MAGIC;
+    aw->rain_60m[0].ticks = FK_WEATHER_UNMETERED_MAGIC;
     #endif
 
     aw->uptime = board_system_time_get();
@@ -195,7 +185,7 @@ __int32_t main() {
     loginfo("board in stand alone...");
 
     fk_weather_aggregated_t aggregated;
-    memzero(&aggregated, sizeof(fk_weather_aggregated_t));
+    aggregated_weather_initialize(&aggregated);
 
     board_register_map_t regmap = {
         (uint8_t *)&aggregated,

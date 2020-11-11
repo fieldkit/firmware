@@ -465,16 +465,13 @@ static void test_i2c_weather_samd09() {
                 logwarn("error reading");
             }
             else {
-                // constexpr float RainPerTick = 0.2794; // mm
-                // constexpr float WindPerTick = 2.4; // km/hr
-
                 loginfo("weather: %ds %dm (%d, %d)", aw.second, aw.minute, aw.counter_120s, aw.counter_10m);
                 loginfo("weather: humidity = %" PRIu32, aw.humidity);
                 loginfo("weather: temperature_1 = %" PRIu32, aw.temperature_1);
                 loginfo("weather: pressure = %" PRIu32, aw.pressure);
                 loginfo("weather: temperature_2 = %" PRIu32, aw.temperature_2);
-                loginfo("weather: rain = %" PRIu32, aw.rain.ticks);
-                loginfo("weather: wind = %" PRIu32, aw.wind.ticks);
+                loginfo("weather: skipping wind");
+                loginfo("weather: skipping rain");
                 loginfo("weather: crc = %" PRIu32, aw.crc);
 
                 loginfo("weather: humidity = %f", 100.0f * ((float)aw.humidity / (0xffff)));

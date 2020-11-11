@@ -55,6 +55,7 @@ typedef struct fk_weather_aggregated_t {
     uint16_t hour;
     uint8_t counter_120s;
     uint8_t counter_10m;
+    uint8_t counter_60m;
 
     uint32_t humidity;
     uint32_t temperature_1;
@@ -68,12 +69,7 @@ typedef struct fk_weather_aggregated_t {
 
     fk_rain_t rain_60m[60];
 
-    fk_rain_t rain_previous_hour;
-
-    fk_rain_t previous_rain;
-    fk_wind_t previous_wind;
-    fk_rain_t rain;
-    fk_wind_t wind;
+    uint32_t reserved[7];
 
     uint32_t uptime;
     uint32_t crc;
@@ -88,6 +84,8 @@ typedef struct fk_weather_aggregated_t {
 #define FK_WEATHER_I2C_COMMAND_CONFIG                  (0x01)
 
 #define FK_WEATHER_UNMETERED_MAGIC                     (0x0D15EA5E)
+#define FK_WEATHER_TICKS_NULL                          (0x0D15EA5E)
+
 
 #ifdef __cplusplus
 } // namespace fk
