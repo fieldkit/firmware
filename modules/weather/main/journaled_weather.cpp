@@ -228,7 +228,7 @@ WindDirection JournaledWeather::get_wind_direction(fk_weather_t const &raw) {
 
 WindReading JournaledWeather::get_wind_reading(fk_weather_t const &raw, int32_t seconds_elapsed) {
     auto speed = raw.wind.ticks / ((float)seconds_elapsed) * WindPerTick;
-    return { speed, get_wind_direction(raw) };
+    return WindReading{ speed, get_wind_direction(raw) };
 }
 
 void JournaledWeather::include(uint32_t now, fk_weather_t const &raw) {

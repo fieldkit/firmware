@@ -33,18 +33,21 @@ struct WindDirection {
 };
 
 struct WindReading {
+public:
     float speed{ 0 };
     WindDirection direction;
 
+public:
     WindReading() {
     }
 
-    WindReading(fk_wind_t raw) : speed{ raw.ticks * WindPerTick }, direction{ raw.direction } {
+    explicit WindReading(fk_wind_t raw) : speed{ raw.ticks * WindPerTick }, direction{ raw.direction } {
     }
 
-    WindReading(float speed, WindDirection direction) : speed(speed), direction(direction) {
+    explicit WindReading(float speed, WindDirection direction) : speed(speed), direction(direction) {
     }
 
+public:
     bool stronger_than(WindReading const &r) const {
         return speed > r.speed;
     }
@@ -77,7 +80,7 @@ struct WindReading {
             }
         }
 
-        auto average_speed =  speed_sum / (float)number_of_samples;
+        auto average_speed = speed_sum / (float)number_of_samples;
 
         auto average_direction = (int16_t)(direction_sum / number_of_samples);
         if (average_direction >= 360) {
