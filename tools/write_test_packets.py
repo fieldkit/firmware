@@ -261,6 +261,40 @@ udp-recv[mdns]: 00 00 00 00 00 01 00 00 00 00 00 00 05 63 61 72 6c 61 05 6c 6f 6
 #invalid
 udp-recv[mdns]: 00 01 01 54 77 74 a3 00 00 00 38 07 54 00 3f 3f 54 77 a7 cc 6c 38 3f f3 3f 80 08 09 dd 3f f3 70
 udp-recv[mdns]: 20 35 30 20 35 37 20 36 38 20 33 30 20 64 66 20 00 80 08 09 dd 3f f3 70 f3 38 34 3f ff 00 e5
+
+#invalid
+udp-recv[mdns]: cd 44 ed 34 4d f9 ec d0 b5 00 8f 03 14 00 0b 0b 0a 60 c9 01 07 2f 00 2f 01 0b 67 c9 01 00 00 01
+udp-recv[mdns]: b5 00 8f 03 14 00 0b 0b 0a 60 c9 01 07 2f 00 2f 01 0b 67 c9 01 00 00 01 5b 00 60 20 01 ed 00 00
+udp-recv[mdns]: 0a 60 c9 01 07 2f 00 2f 01 0b 67 c9 01 00 00 01 5b 00 60 20 01 ed 00 00 00 60 25 05 60 00 01 02
+udp-recv[mdns]: 01 0b 67 c9 01 00 00 01 5b 00 60 20 01
+
+#invalid
+udp-recv[mdns]: 00 01 01 5c ed 7c 77 00 00 00 44 07 5c 00 a9 a9 5c ed 7b d4 74 44 a9 cd d0 e4 08 38 d1 a9 cd 60
+udp-recv[mdns]: 20 35 30 20 35 64 20 37 34 20 64 34 20 64 39 20 00 e4 08 38 d1 a9 cd 60 cd 44 a9 34 4d f9 ec d0
+udp-recv[mdns]: 39 20 63 34 20 34 39 20 00 e4 08 38 d1 a9 cd 60 cd 44 a9 34 4d f9 ec d0 b5 00 8f 03 14 00 0b 0b
+udp-recv[mdns]: 00 e4 08 38 d1 a9 cd 60 cd 44 a9 34 4d f9 ec d0 b5 00 8f 03 14 00 0b 0b 0a 60 c9 01 07 2f 00 2f
+udp-recv[mdns]: cd 44 a9 34 4d f9 ec d0 b5 00 8f 03 14 00 0b 0b 0a 60 c9 01 07 2f 00 2f 01 0b 67 c9 01 00 00 01
+udp-recv[mdns]: b5 00 8f 03 14 00 0b 0b 0a 60 c9 01 07 2f 00 2f 01 0b 67 c9 01 00 00 01 5b 00 60 20 01 a9 00 00
+udp-recv[mdns]: 0a 60 c9 01 07 2f 00 2f 01 0b 67 c9 01 00 00 01 5b 00 60 20 01 a9 00 00 00 60 25 05 60 00 01 02
+udp-recv[mdns]: 01 0b 67 c9 01 00 00 01 5b 00 60 20 01 a9 00 00 00 60 25 05 60 00 01 02 4b a4 68 09 25 04 02 c0
+udp-recv[mdns]: 5b 00 60 20 01 a9 00 00 00 60 25 05 60 00 01 02 4b a4 68 09 25 04 02 c0 a9 07 68 a9 2d c0 04 04
+udp-recv[mdns]: 00 60 25 05 60 00 01 02 4b a4 68 09 25 04 02 c0 a9 07 68 a9 2d c0 04 04 01 0a 20 00 00 18 d9 00
+udp-recv[mdns]: 4b a4 68 09 25 04 02 c0 a9 07 68 a9 2d c0 04 04 01 0a 20 00 00 18 d9 00 18 04 78 00 00 80 00 f4
+udp-recv[mdns]: a9 07 68 a9 2d c0 04 04 01 0a 20 00 00 18 d9 00 18 04 78 00 00 80 00 f4 01 48 2d 10 63 82 ec d0
+udp-recv[mdns]: 01 0a 20 00 00 18 d9 00 18 04 78 00 00 80 00 f4 01 48 2d 10 63 82 ec d0 d0 e4 08 38 0a 0b b1 0a
+udp-recv[mdns]: 18 04 78 00 00 80 00 f4 01
+
+#invalid
+udp-recv[mdns]: 00 01 01 5c 70 7c 77 00 00 00 44 07 5c 00 2c 2c 5c 70 7b d4 74 44 2c cd d0 f0 08 38 d1 2c cd 60
+udp-recv[mdns]: 20 35 30 20 35 30 20 37 34 20 64 30 20 64 63 20 00 f0 08 38 d1 2c cd 60 cd 44 2c 34 4d f9 ec d0
+udp-recv[mdns]: 63 20 63 34 20 34 39 20 00 f0 08 38 d1 2c cd 60 cd 44 2c 34 4d f9 ec d0 b5 7c 74 00 74 00 b5 00
+udp-recv[mdns]: 00 f0 08 38 d1 2c cd 60 cd 44 2c 34 4d f9 ec d0 b5 7c 74 00 74 00 b5 00 64 6f 64 6f 7b 00 00 2f
+udp-recv[mdns]: cd 44 2c 34 4d f9 ec d0 b5 7c 74 00 74 00 b5 00 64 6f 64 6f 7b 00 00 2f 70 00 8f 03 54 00 0b 0b
+udp-recv[mdns]: b5 7c 74 00 74 00 b5 00 64 6f 64 6f 7b 00 00 2f 70 00 8f 03 54 00 0b 0b 0a 60 c9 01 07 6f 00 00
+udp-recv[mdns]: 64 6f 64 6f 7b 00 00 2f 70 00 8f 03 54 00 0b 0b 0a 60 c9 01 07 6f 00 00 00 0b 67 c9 01 00 00 01
+udp-recv[mdns]: 70 00 8f 03 54 00 0b 0b 0a 60 c9 01 07 6f 00 00 00 0b 67 c9 01 00 00 01 5b 00 60 20 01 2c 01 40
+udp-recv[mdns]: 0a 60 c9 01 07 6f 00 00 00 0b 67 c9 01 00 00 01 5b 00 60 20 01 2c 01 40 45 60 25 05 60 00 01 02
+udp-recv[mdns]: 00 0b 67 c9 01 00 00 01 5b 00 60 20
 """
 
 
@@ -307,6 +341,7 @@ print(
 
 typedef struct packet_t {
     uint8_t const *data;
+    char const *name;
     size_t size;
     bool valid;
     bool from_device;
@@ -324,8 +359,9 @@ for i, packet in enumerate(packets):
 print("const packet_t packets[%d] = {" % (len(packets),))
 for i, packet in enumerate(packets):
     print(
-        "  { packet_%d, sizeof(packet_%d), %s, %s },"
+        '  { packet_%d, "packet_%d", sizeof(packet_%d), %s, %s },'
         % (
+            i,
             i,
             i,
             "true" if packet.valid else "false",
@@ -337,9 +373,10 @@ print("};")
 for i, packet in enumerate(packets):
     for alias in packet.aliases:
         print(
-            "const packet_t packet_%s = { packet_%d, sizeof(packet_%d), %s, %s };"
+            'const packet_t packet_%s = { packet_%d, "packet_%d", sizeof(packet_%d), %s, %s };'
             % (
                 alias,
+                i,
                 i,
                 i,
                 "true" if packet.valid else "false",

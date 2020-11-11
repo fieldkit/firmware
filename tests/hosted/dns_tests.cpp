@@ -24,6 +24,7 @@ TEST_F(DnsSuite, ParseAll) {
         StandardPool pool{ "dns" };
         auto buffer = (uint8_t *)pool.copy(p.data, p.size);
         DNSReader message{ &pool, buffer, p.size };
+        loginfo("parsing: %s", p.name);
         if (p.valid) {
             ASSERT_GE(message.parse(), 0);
         }
