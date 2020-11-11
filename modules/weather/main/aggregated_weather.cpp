@@ -44,11 +44,16 @@ struct AggregatedWeatherHelpers {
     }
 
     WindReading get_wind_30_second_average() {
+        auto index = aw.counter_120s;
         WindReading readings[120];
         for (auto i = 0u; i < 120; ++i) {
-            if (aw.wind_120s[i].ticks != FK_WEATHER_TICKS_NULL) {
-                readings[i] = WindReading{ aw.wind_120s[i] };
+            if (aw.wind_120s[index].ticks != FK_WEATHER_TICKS_NULL) {
+                readings[i] = WindReading{ aw.wind_120s[index] };
             }
+            if (index == 0) {
+                index = 120;
+            }
+            index--;
         }
         return WindReading::get_average(readings);
     }
