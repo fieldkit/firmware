@@ -26,6 +26,23 @@ static void timer_task_cb(struct timer_task const *const timer_task) {
  */
 #define FK_WEATHER_TAKE_READINGS_SENSORS            (4)
 
+int32_t fake_readings(fk_weather_t *weather) {
+    weather->seconds++;
+    weather->session++;
+    weather->humidity = 0;
+    weather->temperature_1 = 0;
+    weather->pressure = 0;
+    weather->temperature_2 = 0;
+    #if !defined(FK_WEATHER_UNMETERED)
+    weather->wind.direction = 0;
+    weather->wind.ticks = 0;
+    weather->rain.ticks = 1;
+    #endif
+    weather->crc = fk_weather_sign(weather);
+
+    return FK_SUCCESS;
+}
+
 int32_t take_readings(fk_weather_t *weather, uint8_t *failures) {
     int32_t rv;
 
@@ -233,9 +250,13 @@ __int32_t main() {
         #endif
 
         if (sensors.working == 0) {
+            #if !defined(FK_WEATHER_IGNORE_NO_SENSORS)
             i2c_sensors_recover();
             delay_ms(8000);
             NVIC_SystemReset();
+            #else
+            loginfo("ignoring no sensors");
+            #endif
         }
     }
 
@@ -250,6 +271,9 @@ __int32_t main() {
         if (take_readings_triggered && eeprom_clear_or_outside_window(now)) {
             take_readings_triggered = 0;
 
+            #if defined(FK_WEATHER_IGNORE_NO_SENSORS)
+            fake_readings(&weather);
+            #else
             uint8_t failures = 0;
             int32_t rv = take_readings(&weather, &failures);
             if (rv != FK_SUCCESS) {
@@ -266,6 +290,7 @@ __int32_t main() {
                 weather.error = 0;
                 weather.reading_failures = 0;
             }
+            #endif
 
             #if defined(FK_WEATHER_STAND_ALONE)
 
