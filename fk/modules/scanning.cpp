@@ -153,7 +153,8 @@ bool ModuleScanning::configure(ModulePosition position, ModuleHeader &header) {
         return false;
     }
 
-    if (!fk_module_header_valid(&existing_header)) {
+    auto rewrite = !fk_module_header_valid(&existing_header) || memcmp(&existing_header, &header, sizeof(ModuleHeader)) != 0;
+    if (rewrite) {
         logtrace("[%d] overwriting invalid header", position.integer());
 
         if (!eeprom.write_header(header)) {
@@ -163,6 +164,7 @@ bool ModuleScanning::configure(ModulePosition position, ModuleHeader &header) {
     }
     else {
         loginfo("[%d] keeping existing header", position.integer());
+        fk_logs_dump_memory("header: ", (uint8_t *)&existing_header, sizeof(existing_header));
     }
 
     return true;
