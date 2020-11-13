@@ -79,17 +79,6 @@ void fk_logs_vprintf(const char *f, va_list args) {
     app.append((char)0);
 }
 
-void fk_logs_printf(const char *f, ...) {
-    va_list args;
-    va_start(args, f);
-
-    SEGGER_RTT_LOCK();
-    fk_logs_vprintf(f, args);
-    SEGGER_RTT_UNLOCK();
-
-    va_end(args);
-}
-
 void fk_logs_write_saved_and_free() {
     auto begin_header = "\n\n=================== raw log memory begin: remember buffer is circular!\n\n";
     auto end_footer = "\n\n=================== raw log memory end: remember buffer is circular!\n\n";
@@ -128,47 +117,6 @@ void fk_logs_write_saved_and_free() {
     }
 
     get_sd_card()->append_logs((uint8_t *)end_footer, strlen(end_footer));
-}
-
-void fk_logs_dump_memory(const char *prefix, const uint8_t *p, size_t size, ...) {
-    va_list args;
-    va_start(args, size);
-
-    #if defined(__SAMD51__)
-    SEGGER_RTT_LOCK();
-    #endif
-
-    // Prewrite the prefix into the line. We force this to max 32
-    // characters here.
-    char line[(32) + (32 * 2) + 1];
-    auto prefix_length = tiny_vsnprintf(line, 32, prefix, args);
-    if (prefix_length > 32) {
-        prefix_length = 32;
-    }
-    auto p = (char *)nullptr;
-
-    for (auto i = (size_t)0; i < size; ++i) {
-        if (p == nullptr) {
-            p = line + prefix_length;
-        }
-        tiny_sprintf(p, "%02x ", p[i]);
-        p += 3;
-        if ((i + 1) % 32 == 0) {
-            *p = 0;
-            fk_logs_printf("%s\n", line);
-            p = nullptr;
-        }
-    }
-    if (p != nullptr) {
-        *p = 0;
-        fk_logs_printf("%s\n", line);
-        p = nullptr;
-    }
-    #if defined(__SAMD51__)
-    SEGGER_RTT_UNLOCK();
-    #endif
-
-    va_end(args);
 }
 
 size_t write_log(LogMessage const *m, const char *fstring, va_list args) {
@@ -284,6 +232,10 @@ bool fk_logging_dump_buffer() {
 
 #else
 
+void fk_logs_vprintf(const char *f, va_list args) {
+    vprintf(f, args);
+}
+
 bool fk_logs_flush() {
     return true;
 }
@@ -292,6 +244,58 @@ void fk_logs_write_saved_and_free() {
 }
 
 #endif
+
+void fk_logs_printf(const char *f, ...) {
+    va_list args;
+    va_start(args, f);
+
+    SEGGER_RTT_LOCK();
+    fk_logs_vprintf(f, args);
+    SEGGER_RTT_UNLOCK();
+
+    va_end(args);
+}
+
+void fk_logs_dump_memory(const char *prefix, uint8_t const *ptr, size_t size, ...) {
+    va_list args;
+    va_start(args, size);
+
+    #if defined(__SAMD51__)
+    SEGGER_RTT_LOCK();
+    #endif
+
+    // Prewrite the prefix into the line. We force this to max 32
+    // characters here.
+    char line[(32) + (32 * 2) + 1];
+    auto prefix_length = tiny_vsnprintf(line, 32, prefix, args);
+    if (prefix_length > 32) {
+        prefix_length = 32;
+    }
+    auto p = (char *)nullptr;
+
+    for (auto i = (size_t)0; i < size; ++i) {
+        if (p == nullptr) {
+            p = line + prefix_length;
+        }
+        tiny_sprintf(p, "%02x ", ptr[i]);
+        p += 3;
+        if ((i + 1) % 32 == 0) {
+            *p = 0;
+            fk_logs_printf("%s\n", line);
+            p = nullptr;
+        }
+    }
+    if (p != nullptr) {
+        *p = 0;
+        fk_logs_printf("%s\n", line);
+        p = nullptr;
+    }
+    #if defined(__SAMD51__)
+    SEGGER_RTT_UNLOCK();
+    #endif
+
+    va_end(args);
+}
 
 void fk_logs_clear() {
     logs.zero();
