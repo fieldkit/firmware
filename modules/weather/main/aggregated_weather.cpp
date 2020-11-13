@@ -58,7 +58,7 @@ struct AggregatedWeatherHelpers {
         return WindReading::get_average(readings);
     }
 
-    float get_rain_inches_per_hour() {
+    float get_rain_mm_per_hour() {
         float value = 0.0f;
 
         for (auto &r : aw.rain_60m) {
@@ -125,7 +125,7 @@ ModuleReadings *AggregatedWeather::take_readings(ModuleContext mc, Pool &pool) {
         return mr;
     }
 
-    mr->set(i++, awh.get_rain_inches_per_hour());
+    mr->set(i++, awh.get_rain_mm_per_hour());
 
     auto wind_30s_average = awh.get_wind_30_second_average();
     mr->set(i++, wind_30s_average.speed);
@@ -144,7 +144,7 @@ ModuleReadings *AggregatedWeather::take_readings(ModuleContext mc, Pool &pool) {
     mr->set(i++, wind_2m_average.speed);
     mr->set(i++, wind_2m_average.direction.angle);
 
-    mr->set(i++, awh.get_rain_inches_per_hour());
+    mr->set(i++, awh.get_rain_mm_per_hour());
     mr->set(i++, 0);
 
     return mr;
