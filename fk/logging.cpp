@@ -191,7 +191,7 @@ bool fk_logging_initialize() {
     log_configure_level(LogLevels::DEBUG);
     log_configure_time(fk_uptime, nullptr);
 
-    OS_CHECK(os_configure_hook(task_logging_hook));
+    OS_CHECK(os_configure_hooks(task_logging_hook, nullptr));
 
     auto has_rtt_reader = false;
     auto waiting_until = fk_uptime() + OneSecondMs;

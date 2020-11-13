@@ -172,6 +172,8 @@ void task_handler_scheduler(void *params) {
         }
     }
 
+    loginfo("scheduler exited");
+
     active_ = nullptr;
 }
 

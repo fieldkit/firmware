@@ -40,6 +40,11 @@ bool fk_graceful_shutdown() {
         }
     }
 
+    auto gave_up = fk_uptime() > give_up;
+    if (gave_up) {
+        loginfo("still have procs running, gave up");
+    }
+
     loginfo("graceful shutdown done, flushing");
 
     fk_logs_flush();
