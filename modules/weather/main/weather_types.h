@@ -54,6 +54,7 @@ public:
 
     template<typename T, size_t Size>
     static WindReading get_average(T(&readings)[Size]) {
+        int16_t mv = 0;
         auto speed_sum = 0.0f;
         auto number_of_samples = 0;
         auto direction_sum = readings[0].direction.angle;
@@ -77,6 +78,8 @@ public:
                 speed_sum += readings[i].speed;
 
                 number_of_samples++;
+
+                mv = readings[i].direction.raw;
             }
         }
 
@@ -90,7 +93,7 @@ public:
             average_direction += 360;
         }
 
-        return WindReading{ average_speed, WindDirection{ -1, average_direction } };
+        return WindReading{ average_speed, WindDirection{ mv, average_direction } };
     }
 
 };
