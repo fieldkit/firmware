@@ -145,6 +145,8 @@ bool MetalIPC::remove_worker(TaskWorker *worker) {
 bool MetalIPC::signal_workers(WorkerCategory category, uint32_t signal) {
     logdebug("signaling workers (%" PRIu32 ")", signal);
 
+    __disable_irq();
+
     for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
         if (os_task_is_running(&worker_tasks[i])) {
             if (running_[i] == category) {
@@ -154,43 +156,65 @@ bool MetalIPC::signal_workers(WorkerCategory category, uint32_t signal) {
         }
     }
 
+    __enable_irq();
+
     return true;
 }
 
 collection<TaskDisplayInfo> MetalIPC::get_workers_display_info(Pool &pool) {
     collection<TaskDisplayInfo> infos{ pool };
 
+    __disable_irq();
+
     for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
         if (os_task_is_running(&worker_tasks[i])) {
             if (workers_[i] != nullptr) {
+                loginfo("gdi:begin");
                 infos.emplace(workers_[i]->display_info());
+                loginfo("gdi:end");
             }
         }
     }
+
+    __enable_irq();
 
     return infos;
 }
 
 bool MetalIPC::has_running_worker(WorkerCategory category) {
+    auto found = false;
+
+    __disable_irq();
+
     for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
         if (os_task_is_running(&worker_tasks[i])) {
             if (running_[i] == category) {
-                return true;
+                found = true;
+                break;
             }
         }
     }
 
-    return false;
+    __enable_irq();
+
+    return found;
 }
 
 bool MetalIPC::has_any_running_worker() {
+    auto found = false;
+
+    __disable_irq();
+
     for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
         if (os_task_is_running(&worker_tasks[i])) {
-            return true;
+            found = true;
+            break;
         }
     }
 
-    return false;
+    __enable_irq();
+
+    return found;
 }
 
 bool MetalMutex::create() {
