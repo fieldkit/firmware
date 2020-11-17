@@ -14,6 +14,10 @@
 extern "C" {
 #endif
 
+#define FK_DISABLE_IRQ     SEGGER_RTT_LOCK
+
+#define FK_ENABLE_IRQ      SEGGER_RTT_UNLOCK
+
 /**
  * Invoked to handle assertion failures. This is variadic so we can create more
  * useful messages, with interpolated values, etc...

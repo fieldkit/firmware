@@ -145,7 +145,7 @@ bool MetalIPC::remove_worker(TaskWorker *worker) {
 bool MetalIPC::signal_workers(WorkerCategory category, uint32_t signal) {
     logdebug("signaling workers (%" PRIu32 ")", signal);
 
-    __disable_irq();
+    FK_DISABLE_IRQ();
 
     for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
         if (os_task_is_running(&worker_tasks[i])) {
@@ -156,7 +156,7 @@ bool MetalIPC::signal_workers(WorkerCategory category, uint32_t signal) {
         }
     }
 
-    __enable_irq();
+    FK_ENABLE_IRQ();
 
     return true;
 }
@@ -164,7 +164,7 @@ bool MetalIPC::signal_workers(WorkerCategory category, uint32_t signal) {
 collection<TaskDisplayInfo> MetalIPC::get_workers_display_info(Pool &pool) {
     collection<TaskDisplayInfo> infos{ pool };
 
-    __disable_irq();
+    FK_DISABLE_IRQ();
 
     for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
         if (os_task_is_running(&worker_tasks[i])) {
@@ -176,7 +176,7 @@ collection<TaskDisplayInfo> MetalIPC::get_workers_display_info(Pool &pool) {
         }
     }
 
-    __enable_irq();
+    FK_ENABLE_IRQ();
 
     return infos;
 }
@@ -184,7 +184,7 @@ collection<TaskDisplayInfo> MetalIPC::get_workers_display_info(Pool &pool) {
 bool MetalIPC::has_running_worker(WorkerCategory category) {
     auto found = false;
 
-    __disable_irq();
+    FK_DISABLE_IRQ();
 
     for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
         if (os_task_is_running(&worker_tasks[i])) {
@@ -195,7 +195,7 @@ bool MetalIPC::has_running_worker(WorkerCategory category) {
         }
     }
 
-    __enable_irq();
+    FK_ENABLE_IRQ();
 
     return found;
 }
@@ -203,7 +203,7 @@ bool MetalIPC::has_running_worker(WorkerCategory category) {
 bool MetalIPC::has_any_running_worker() {
     auto found = false;
 
-    __disable_irq();
+    FK_DISABLE_IRQ();
 
     for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
         if (os_task_is_running(&worker_tasks[i])) {
@@ -212,7 +212,7 @@ bool MetalIPC::has_any_running_worker() {
         }
     }
 
-    __enable_irq();
+    FK_ENABLE_IRQ();
 
     return found;
 }
