@@ -54,6 +54,7 @@ Pool::~Pool() {
 void Pool::clear() {
     ptr_ = ((uint8_t *)block_) + taken_;
     remaining_ = size_ - taken_;
+    bzero(ptr_, remaining_);
 
     #if defined( FK_LOGGING_POOL_VERBOSE)
     loginfo("clear: 0x%p %s", this, name_);
