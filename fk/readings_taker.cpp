@@ -86,6 +86,8 @@ bool ReadingsTaker::append_readings(File &file, Pool &pool) {
     auto gs = get_global_state_rw();
     gs.get()->update_data_stream(file);
 
+    logdebug("updated data");
+
     return true;
 }
 

@@ -119,6 +119,7 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, fkb_header_t con
 
     if (gs_->modules != nullptr && gs_->modules->nmodules > 0) {
         auto nmodules = gs_->modules->nmodules;
+        FK_ASSERT(nmodules < 10); // NOTE: Just a sane number. Chasing a crash.
         auto modules = pool_->malloc<fk_app_ModuleCapabilities>(nmodules);
         for (size_t m = 0; m < nmodules; ++m) {
             auto &module = gs_->modules->modules[m];

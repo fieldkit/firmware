@@ -39,7 +39,7 @@ void ConnectionPool::service() {
         log_status = true;
     }
 
-    for (auto i = (size_t)0; i < MaximumConnections; ++i) {
+    for (auto i = 0u; i < MaximumConnections; ++i) {
         if (connections_[i] != nullptr) {
             auto c = connections_[i];
 
@@ -50,11 +50,11 @@ void ConnectionPool::service() {
                 update_statistics(c);
 
                 if (activity_elapsed < NetworkConnectionMaximumDuration) {
-                    logtrace("[%" PRIu32 "] [%zd] active (%" PRIu32 "ms) (%" PRIu32 "ms) (%" PRIu32 " down) (%" PRIu32 " up)",
+                    logtrace("[%" PRIu32 "] [%d] active (%" PRIu32 "ms) (%" PRIu32 "ms) (%" PRIu32 " down) (%" PRIu32 " up)",
                              c->number_, i, activity_elapsed, started_elapsed, c->bytes_rx_, c->bytes_tx_);
                 }
                 else {
-                    logwarn("[%" PRIu32 "] [%zd] killing (%" PRIu32 "ms) (%" PRIu32 "ms) (%" PRIu32 " down) (%" PRIu32 " up)",
+                    logwarn("[%" PRIu32 "] [%d] killing (%" PRIu32 "ms) (%" PRIu32 "ms) (%" PRIu32 " down) (%" PRIu32 " up)",
                             c->number_, i, activity_elapsed, started_elapsed, c->bytes_rx_, c->bytes_tx_);
                     c->close();
                     free_connection(i);
@@ -62,7 +62,9 @@ void ConnectionPool::service() {
                 }
             }
 
+            loginfo("[%d] connection: 0x%p pool=0x%p", i, c, pools_[i]);
             if (c->closed() || !c->service()) {
+                loginfo("[%d] closing: 0x%p", i, c);
                 // Do this before freeing to avoid a race empty pool after a
                 // long connection, for example.
                 update_statistics(c);
@@ -125,6 +127,7 @@ void ConnectionPool::update_statistics(Connection *c) {
 }
 
 void ConnectionPool::free_connection(uint16_t index) {
+    logdebug("[%d] free connection", index);
     connections_[index]->close();
     delete pools_[index];
     connections_[index] = nullptr;

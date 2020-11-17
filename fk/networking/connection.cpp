@@ -15,6 +15,8 @@ Connection::~Connection() {
 bool Connection::service() {
     FK_ASSERT(conn_ != nullptr);
 
+    FK_ASSERT_ADDRESS(conn_);
+
     if (conn_->status() != NetworkConnectionStatus::Connected) {
         loginfo("[%" PRIu32 "] disconnected", number_);
         return false;

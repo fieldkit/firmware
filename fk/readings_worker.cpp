@@ -112,6 +112,8 @@ void ReadingsWorker::run(Pool &pool) {
         fk_restart();
     }
 
+    logdebug("updating global state");
+
     GlobalStateManager gsm;
     gsm.apply([&](GlobalState *gs) {
         if (!read_only_) {
@@ -126,6 +128,8 @@ void ReadingsWorker::run(Pool &pool) {
         gs->modules = modules;
 
         gs->update_physical_modules(taken_readings->constructed_modules);
+
+        logdebug("physical updated gs->modules=0x%p .modules=0x%p nmodules=%zd", modules, modules->modules, modules->nmodules);
     });
 }
 

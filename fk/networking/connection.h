@@ -50,6 +50,7 @@ public:
     }
 
     bool closed() const {
+        alogf(LogLevels::DEBUG, "debugging", "[0x%p] connection: 0x%p", this, conn_);
         return conn_ == nullptr;
     }
 

@@ -152,6 +152,8 @@ struct MenuScreen : public DisplayScreen {
     MenuScreen(const char *title, MenuOption **options);
 
     void refresh(GlobalState const *gs) {
+        FK_ASSERT(options != nullptr);
+        FK_ASSERT_ADDRESS(options);
         for (auto i = 0u; options[i] != nullptr; ++i) {
             options[i]->refresh(gs);
         }
