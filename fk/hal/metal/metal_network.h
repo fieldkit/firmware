@@ -112,6 +112,7 @@ public:
 
     NetworkScan scan(Pool &pool) override;
 
+    void verify() override;
 };
 
 FK_ENABLE_TYPE_NAME(MetalNetworkConnection);

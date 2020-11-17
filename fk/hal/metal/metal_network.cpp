@@ -399,6 +399,9 @@ NetworkScan MetalNetwork::scan(Pool &pool) {
     return NetworkScan{ ssids, number_ssids };
 }
 
+void MetalNetwork::verify() {
+}
+
 MetalNetworkListener::MetalNetworkListener(uint16_t port) : port_(port) {
 }
 

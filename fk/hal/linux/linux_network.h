@@ -89,6 +89,8 @@ public:
 
     NetworkScan scan(Pool &pool) override;
 
+    void verify();
+
 };
 
 FK_ENABLE_TYPE_NAME(LinuxNetworkConnection);

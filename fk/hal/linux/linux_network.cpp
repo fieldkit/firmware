@@ -191,6 +191,9 @@ NetworkScan LinuxNetwork::scan(Pool &pool) {
     return { nullptr, 0 };
 }
 
+void LinuxNetwork::verify() {
+}
+
 LinuxNetworkListener::LinuxNetworkListener(uint16_t port, int32_t listening) : port_(port), listening_(listening) {
 }
 
