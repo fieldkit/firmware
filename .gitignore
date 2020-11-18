@@ -12,3 +12,5 @@ compile_commands.json
 protobuf.pb
 power.db
 *.db-journal
+logs
+logs.txt
