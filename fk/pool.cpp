@@ -41,14 +41,23 @@ Pool::Pool(const char *name, size_t size, void *block, size_t taken) {
     ptr_ = ((uint8_t *)block_) + taken_;
     remaining_ = size_ - taken_;
 
-    #if defined(FK_LOGGING_POOL_VERBOSE)
+    #if defined(FK_LOGGING_POOL_VERBOSE) || defined(FK_LOGGING_POOL_TRACING)
     if (size_ > 0) {
-        loginfo("create: 0x%p %s size=%zu ptr=0x%p", this, name_, size_, ptr_);
+        loginfo("create: 0x%p %s size=%zu ptr=0x%p", this, name_, remaining_, ptr_);
     }
     #endif
 }
 
 Pool::~Pool() {
+    log_destroy("~pool");
+}
+
+void Pool::log_destroy(const char *how) {
+    #if defined(FK_LOGGING_POOL_VERBOSE) || defined(FK_LOGGING_POOL_TRACING)
+    if (size_ > 0) {
+        loginfo("destroy: 0x%p %s size=%zu ptr=0x%p (%s)", this, name_, size_ - taken_, ((uint8_t *)block_) + taken_, how);
+    }
+    #endif
 }
 
 void Pool::clear() {
@@ -56,8 +65,8 @@ void Pool::clear() {
     remaining_ = size_ - taken_;
     bzero(ptr_, remaining_);
 
-    #if defined( FK_LOGGING_POOL_VERBOSE)
-    loginfo("clear: 0x%p %s", this, name_);
+    #if defined(FK_LOGGING_POOL_VERBOSE) || defined(FK_LOGGING_POOL_TRACING)
+    loginfo("clear: 0x%p %s size=%zd", ptr_, name_, remaining_);
     #endif
 }
 
@@ -80,6 +89,11 @@ void *Pool::malloc(size_t allocating) {
     auto *p = ptr_;
     ptr_ = ((uint8_t *)ptr_) + aligned;
     remaining_ -= aligned;
+
+    #if defined(FK_LOGGING_POOL_TRACING)
+    loginfo("malloc 0x%p %s size=%zu allocating=%zu/%zu remaining=%zu remaining-aligned=%zu ptr=0x%p",
+            this, name_, size_, allocating, aligned, remaining_, remaining_ - aligned, p);
+    #endif
 
     return (void *)p;
 }
@@ -185,6 +199,8 @@ public:
 
 public:
     static void operator delete(void *p) {
+        auto pool = (InsidePool *)p;
+        pool->log_destroy("inside-pool;:delete");
         fk_standard_page_free(p);
     }
 
@@ -208,6 +224,7 @@ StandardPool::~StandardPool() {
     loginfo("free: 0x%p %s size=%zu ptr=0x%p (free=%" PRIu32 ")",
             this, name(), size(), block(), fk_free_memory());
     #endif
+    log_destroy("~standard-pool");
     if (sibling_ != nullptr) {
         delete sibling_;
         sibling_ = nullptr;

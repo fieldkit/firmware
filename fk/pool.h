@@ -105,6 +105,9 @@ public:
         return (T *)malloc(sizeof(T) * n);
     }
 
+public:
+    void log_destroy(const char *how);
+
 };
 
 class StandardPool : public Pool {
