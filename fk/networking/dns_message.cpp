@@ -24,7 +24,7 @@ DNSReader::DNSReader(Pool *pool, uint8_t *buffer, size_t size)
 DNSReader::~DNSReader() {
 }
 
-DNSReader::dns_name_length_t DNSReader::read_name(BufferedReader *reader, uint8_t *name) {
+DNSReader::dns_name_length_t DNSReader::read_name(BufferedReader *reader, uint8_t *name, size_t name_size) {
     auto position = 0u;
     auto length = 0u;
     auto bytes = 0u;
@@ -50,6 +50,7 @@ DNSReader::dns_name_length_t DNSReader::read_name(BufferedReader *reader, uint8_
             auto upper = part_length & 0x3f;
             if (position >  0) {
                 if (name != nullptr) {
+                    FK_ASSERT(position < name_size);
                     name[position++] = '.';
                 }
                 length++;
@@ -59,7 +60,7 @@ DNSReader::dns_name_length_t DNSReader::read_name(BufferedReader *reader, uint8_
             auto offset = (upper << 8) | reader->read_u8();
             pointed.skip(offset);
 
-            auto pointer_bytes = read_name(&pointed, name == nullptr ? nullptr : name + position);
+            auto pointer_bytes = read_name(&pointed, name == nullptr ? nullptr : name + position, name_size - position);
             if (pointer_bytes.compressed < 0) {
                 return { -1, -1 };
             }
@@ -100,7 +101,7 @@ DNSReader::dns_name_t DNSReader::read_name(BufferedReader *reader) {
     auto searching = reader->remaining();
     // Read the name once to get the length and then we can allocate
     // memory for the name.
-    auto lengths = read_name(&searching, nullptr);
+    auto lengths = read_name(&searching, nullptr, 0);
     if (lengths.compressed < 0) {
         return { nullptr, -1 };
     }
@@ -113,7 +114,7 @@ DNSReader::dns_name_t DNSReader::read_name(BufferedReader *reader) {
 
     FK_ASSERT(pool_ != nullptr);
     auto name = (uint8_t *)pool_->malloc(lengths.name + 1);
-    read_name(reader, name);
+    read_name(reader, name, lengths.name);
     names_.add((char *)name);
     return { (char *)name, lengths.compressed };
 }

@@ -84,7 +84,7 @@ public:
         int16_t compressed;
         int16_t name;
     };
-    dns_name_length_t read_name(BufferedReader *reader, uint8_t *name);
+    dns_name_length_t read_name(BufferedReader *reader, uint8_t *name, size_t name_size);
     dns_name_t read_name(BufferedReader *reader);
 
     uint16_t read_u16();
