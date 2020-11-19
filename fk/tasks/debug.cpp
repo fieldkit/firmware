@@ -8,7 +8,7 @@
 
 namespace fk {
 
-FK_DECLARE_LOGGER("misc");
+FK_DECLARE_LOGGER("debug");
 
 void fk_verify_state() {
     get_ipc()->verify();
@@ -18,12 +18,12 @@ void fk_verify_state() {
     FK_ASSERT(gs.get()->modules->nmodules >= 0 && gs.get()->modules->nmodules < 10);
 }
 
-void task_handler_misc(void *params) {
-    loginfo("misc: started, waiting");
+void task_handler_debug(void *params) {
+    loginfo("started, waiting");
 
     fk_delay(5000);
 
-    loginfo("misc: ready");
+    loginfo("ready");
 
     while (true) {
         fk_delay(10);

@@ -65,7 +65,7 @@ void task_handler_scheduler(void *params) {
     FK_ASSERT(fk_start_task_if_necessary(&network_task));
     // NOTE: These share the same stack and so they can never be running together.
     #if defined(FK_ENABLE_DEBUG_TASK)
-    FK_ASSERT(fk_start_task_if_necessary(&misc_task));
+    FK_ASSERT(fk_start_task_if_necessary(&debug_task));
     #else
     FK_ASSERT(fk_start_task_if_necessary(&gps_task));
     #endif
