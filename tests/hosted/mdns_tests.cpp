@@ -22,6 +22,14 @@ protected:
 };
 
 class DummyUDP : public UDP {
+private:
+    packet_t const *queued_{ nullptr };
+
+public:
+    void queue(packet_t const *p) {
+        queued_ = p;
+    }
+
 public:
     uint8_t beginMulticast(IPAddress, uint16_t) {
         return true;
@@ -43,13 +51,22 @@ public:
     }
 
     int parsePacket() {
+        if (queued_ == nullptr) {
+            return 0;
+        }
         loginfo("dummy-udp: parse-packet");
-        return sizeof(packet_40);
+        return queued_->size;
     }
 
     int read(unsigned char *buffer, size_t len) {
+        if (queued_ == nullptr) {
+            return 0;
+        }
+        FK_ASSERT(len == queued_->size); // Make our lives easier in
+                                         // here, maybe.
         loginfo("dummy-udp:read %zu", len);
-        memcpy(buffer, packet_40, len);
+        memcpy(buffer, queued_->data, len);
+        queued_ = nullptr;
         return len;
     }
 
@@ -82,16 +99,19 @@ public:
     }
 };
 
-TEST_F(MdnsSuite, DISABLED_MDNS) {
+TEST_F(MdnsSuite, MDNS) {
     StandardPool pool{ "dns" };
     MDNSPoolAllocator allocator{ &pool };
     DummyUDP udp;
     MDNS mdns(udp);
     mdns.allocator(&allocator);
 
-    ASSERT_TRUE(mdns.begin({ }));
+    ASSERT_TRUE(mdns.begin({}));
 
     ASSERT_TRUE(mdns.addServiceRecord("_fk._tcp", 80, MDNSServiceTCP));
 
-    mdns.run();
+    for (auto &p : packets) {
+        udp.queue(&p);
+        mdns.run();
+    }
 }
