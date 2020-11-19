@@ -31,6 +31,9 @@ public:
     virtual bool enqueue_topology(Activity *ptr) = 0;
     virtual bool dequeue_topology(Activity **ptr, uint32_t to) = 0;
 
+    virtual void verify() {
+    }
+
 public:
     virtual bool launch_worker(WorkerCategory category, TaskWorker *worker) = 0;
 

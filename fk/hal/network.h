@@ -123,7 +123,8 @@ public:
 
     virtual NetworkScan scan(Pool &pool) = 0;
 
-    virtual void verify() = 0;
+    virtual void verify() {
+    }
 
     bool online() {
         if (!enabled()) {

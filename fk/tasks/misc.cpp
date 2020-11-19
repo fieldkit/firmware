@@ -11,6 +11,9 @@ namespace fk {
 FK_DECLARE_LOGGER("misc");
 
 void fk_verify_state() {
+    get_ipc()->verify();
+    get_network()->verify();
+
     auto gs = get_global_state_ro();
     FK_ASSERT(gs.get()->modules->nmodules >= 0 && gs.get()->modules->nmodules < 10);
 }
@@ -24,8 +27,8 @@ void task_handler_misc(void *params) {
 
     while (true) {
         fk_delay(10);
-        fk_verify_state();
         SEGGER_RTT_printf(0, ".");
+        fk_verify_state();
     }
 }
 

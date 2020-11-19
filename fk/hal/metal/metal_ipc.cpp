@@ -217,6 +217,14 @@ bool MetalIPC::has_any_running_worker() {
     return found;
 }
 
+void MetalIPC::verify() {
+    for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
+        if (workers_[i] != nullptr) {
+            FK_ASSERT_ADDRESS(workers_[i]);
+        }
+    }
+}
+
 bool MetalMutex::create() {
     return os_mutex_create(&mutex_, &def_) == OSS_SUCCESS;
 }

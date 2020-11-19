@@ -27,6 +27,7 @@ public:
     bool dequeue_button(Button **ptr) override;
     bool enqueue_topology(Activity *ptr) override;
     bool dequeue_topology(Activity **ptr, uint32_t to = FiveSecondsMs) override;
+    void verify() override;
 
 public:
     bool launch_worker(WorkerCategory category, TaskWorker *worker) override;
