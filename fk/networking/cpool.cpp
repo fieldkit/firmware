@@ -51,18 +51,18 @@ void ConnectionPool::service() {
 
                 if (activity_elapsed < NetworkConnectionMaximumDuration) {
                     logtrace("[%" PRIu32 "] [%d] active (%" PRIu32 "ms) (%" PRIu32 "ms) (%" PRIu32 " down) (%" PRIu32 " up)",
-                             c->number_, i, activity_elapsed, started_elapsed, c->bytes_rx_, c->bytes_tx_);
+                             c->number(), i, activity_elapsed, started_elapsed, c->bytes_rx_, c->bytes_tx_);
                 }
                 else {
                     logwarn("[%" PRIu32 "] [%d] killing (%" PRIu32 "ms) (%" PRIu32 "ms) (%" PRIu32 " down) (%" PRIu32 " up)",
-                            c->number_, i, activity_elapsed, started_elapsed, c->bytes_rx_, c->bytes_tx_);
+                            c->number(), i, activity_elapsed, started_elapsed, c->bytes_rx_, c->bytes_tx_);
                     c->close();
                     free_connection(i);
                     continue;
                 }
             }
 
-            loginfo("[%d] connection: 0x%p pool=0x%p", i, c, pools_[i]);
+            loginfo("[%" PRIu32 "] [%d] connection: 0x%p pool=0x%p", c->number(), i, c, pools_[i]);
             auto closing = c->closed() || !c->service();
             SEGGER_RTT_printf(0, "~[cpool-ok]~");
             if (closing) {
