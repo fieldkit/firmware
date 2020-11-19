@@ -64,8 +64,10 @@ static void run_tasks() {
     OS_CHECK(os_task_initialize(&scheduler_task, "scheduler", OS_TASK_START_SUSPENDED, &task_handler_scheduler, nullptr, scheduler_stack, sizeof(scheduler_stack)));
     OS_CHECK(os_task_initialize(&network_task, "network", OS_TASK_START_SUSPENDED, &task_handler_network, nullptr, network_stack, sizeof(network_stack)));
     OS_CHECK(os_task_initialize(&gps_task, "gps", OS_TASK_START_SUSPENDED, &task_handler_gps, nullptr, gps_stack, sizeof(gps_stack)));
+    #if defined(FK_ENABLE_DEBUG_TASK)
     // NOTICE NOTICE We share GPS stack!
     OS_CHECK(os_task_initialize(&misc_task, "misc", OS_TASK_START_SUSPENDED, &task_handler_misc, nullptr, gps_stack, sizeof(gps_stack)));
+    #endif
 
     OS_CHECK(os_task_initialize_options(&display_task, &display_task_options));
 
