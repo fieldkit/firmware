@@ -61,16 +61,15 @@ void Pool::log_destroy(const char *how) {
 }
 
 void Pool::clear() {
+    #if defined(FK_LOGGING_POOL_VERBOSE) || defined(FK_LOGGING_POOL_TRACING)
+    loginfo("clear: 0x%p %s size=%zd", ptr_, name_, remaining_);
+    #endif
     ptr_ = ((uint8_t *)block_) + taken_;
     remaining_ = size_ - taken_;
     #if defined(FK_ENABLE_MEMORY_GARBLE)
     fk_memory_garble(ptr_, remaining_);
     #else
     bzero(ptr_, remaining_);
-    #endif
-
-    #if defined(FK_LOGGING_POOL_VERBOSE) || defined(FK_LOGGING_POOL_TRACING)
-    loginfo("clear: 0x%p %s size=%zd", ptr_, name_, remaining_);
     #endif
 }
 
@@ -204,7 +203,7 @@ public:
 public:
     static void operator delete(void *p) {
         auto pool = (InsidePool *)p;
-        pool->log_destroy("inside-pool;:delete");
+        pool->log_destroy("inside-pool-delete");
         fk_standard_page_free(p);
     }
 
@@ -218,9 +217,11 @@ Pool *create_pool_inside(const char *name) {
 }
 
 StandardPool::StandardPool(const char *name) : Pool(name, StandardPageSize, (void *)fk_standard_page_malloc(StandardPageSize, name), 0), free_self_{ true } {
+    FK_ASSERT(sibling_ == nullptr);
 }
 
 StandardPool::StandardPool(const char *name, void *ptr, size_t size, size_t taken) : Pool(name, size, ptr, taken), free_self_{ false } {
+    FK_ASSERT(sibling_ == nullptr);
 }
 
 StandardPool::~StandardPool() {
@@ -230,10 +231,16 @@ StandardPool::~StandardPool() {
     #endif
     log_destroy("~standard-pool");
     if (sibling_ != nullptr) {
+        #if defined(FK_LOGGING_POOL_VERBOSE) || defined(FK_LOGGING_POOL_TRACING)
+        loginfo("standard-pool-delete-sibling: 0x%p sibling=0x%p", this, sibling_);
+        #endif
         delete sibling_;
         sibling_ = nullptr;
     }
     if (free_self_) {
+        #if defined(FK_LOGGING_POOL_VERBOSE) || defined(FK_LOGGING_POOL_TRACING)
+        loginfo("standard-pool-free-self: 0x%p", this);
+        #endif
         auto ptr = block();
         if (ptr != nullptr) {
             block(nullptr, 0);
@@ -263,6 +270,9 @@ void StandardPool::clear() {
     Pool::clear();
 
     if (sibling_ != nullptr) {
+        #if defined(FK_LOGGING_POOL_VERBOSE) || defined(FK_LOGGING_POOL_TRACING)
+        loginfo("standard-pool-clear: sibling=0x%p", sibling_);
+        #endif
         delete sibling_;
         sibling_ = nullptr;
     }
