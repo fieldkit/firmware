@@ -11,9 +11,16 @@ FK_DECLARE_LOGGER("network");
 struct NetworkDuration {
 private:
     uint32_t seconds_{ FiveMinutesSeconds };
+    #if defined(FK_ENABLE_NETWORK_UP_AND_DOWN)
+    uint32_t on_{ 0 };
+    #endif
 
 public:
-    NetworkDuration() { }
+    NetworkDuration() {
+        #if defined(FK_ENABLE_NETWORK_UP_AND_DOWN)
+        on_ = fk_uptime();
+        #endif
+    }
 
 public:
     bool always_on() const {
@@ -24,8 +31,13 @@ public:
         if (always_on()) {
             return true;
         }
+        #if defined(FK_ENABLE_NETWORK_UP_AND_DOWN)
+        auto seconds_up = (fk_uptime() - on_) / 1000;
+        return seconds_up < OneMinuteSeconds * 2;
+        #else
         auto seconds_up = (fk_uptime() - activity) / 1000;
         return seconds_up < seconds_;
+        #endif
     }
 
     NetworkDuration operator=(uint32_t seconds) {

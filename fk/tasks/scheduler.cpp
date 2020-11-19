@@ -97,6 +97,9 @@ void task_handler_scheduler(void *params) {
         IntervalTimer check_battery_timer;
         IntervalTimer enable_power_save_timer;
         IntervalTimer eta_debug_timer;
+        #if defined(FK_ENABLE_NETWORK_UP_AND_DOWN)
+        IntervalTimer debug_enable_network_timer;
+        #endif
 
         auto has_workers = true;
 
@@ -174,6 +177,14 @@ void task_handler_scheduler(void *params) {
             if (eta_debug_timer.expired(FiveSecondsMs)) {
                 log_task_eta();
             }
+
+            #if defined(FK_ENABLE_NETWORK_UP_AND_DOWN)
+            if (debug_enable_network_timer.expired(ThirtySecondsMs)) {
+                if (!os_task_is_running(&network_task)) {
+                    FK_ASSERT(fk_start_task_if_necessary(&network_task));
+                }
+            }
+            #endif
         }
     }
 
