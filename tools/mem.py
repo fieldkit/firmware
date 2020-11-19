@@ -32,6 +32,8 @@ class Create(Entry):
         memory.mark(self.address, self.size, self.name)
 
 
+# 00263247 readings   info    pool: destroy: 0x2001F628 readings size=8164 ptr=0x2001F644 (inside-pool;:delete)
+# 00263249 readings   info    pool: destroy: 0x20017628 ReadingsWorker size=8156 ptr=0x2001764C (~standard-pool)
 # 00004745 startup    info    pool: destroy: 0x20015628 StartupWorker size=8192 ptr=0x2001638C
 class Destroy(Entry):
     def __str__(self):
@@ -170,7 +172,9 @@ class Memory:
                 return True
 
         if len(self.overlapping(unmarking)) == 0:
-            log.warn("double free: {} {}".format(unmarking, size))
+            if True:
+                raise Exception("double free: {} {}".format(unmarking, size))
+            log.warning("double free: {} {}".format(unmarking, size))
             return True
 
         log.error("{} {}".format(unmarking, size))
@@ -203,9 +207,16 @@ def process(fp):
                 memory.clear()
             entry = make_entry(line)
             if entry:
+                # log.info("line : {}".format(line))
                 log.info("entry: {} '{}'".format(entry, ""))
                 entries.append(entry)
-                entry.apply(memory)
+                try:
+                    entry.apply(memory)
+                except:
+                    print()
+                    log.error("line: {}".format(line))
+                    log.error("line: {}".format(index))
+                    raise
 
         if "raw log memory" in line:
             parsing = not parsing
