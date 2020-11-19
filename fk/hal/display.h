@@ -157,6 +157,7 @@ struct MenuScreen : public DisplayScreen {
         for (auto i = 0u; options[i] != nullptr; ++i) {
             options[i]->refresh(gs);
         }
+        SEGGER_RTT_printf(0, "~[menu-ok]~");
     }
 };
 

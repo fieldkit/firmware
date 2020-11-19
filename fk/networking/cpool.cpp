@@ -63,7 +63,9 @@ void ConnectionPool::service() {
             }
 
             loginfo("[%d] connection: 0x%p pool=0x%p", i, c, pools_[i]);
-            if (c->closed() || !c->service()) {
+            auto closing = c->closed() || !c->service();
+            SEGGER_RTT_printf(0, "~[cpool-ok]~");
+            if (closing) {
                 loginfo("[%d] closing: 0x%p", i, c);
                 // Do this before freeing to avoid a race empty pool after a
                 // long connection, for example.

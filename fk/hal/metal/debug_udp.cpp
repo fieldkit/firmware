@@ -133,6 +133,7 @@ int DebugUDP::read(unsigned char *buffer, size_t len) {
             return 0;
         }
         auto copying = std::min(remaining, len);
+        FK_ASSERT(position_ + copying <= size_ && position_ >= 0);
         memcpy(buffer, buffer_ + position_, copying);
         position_ += len;
         return copying;
@@ -156,8 +157,8 @@ size_t DebugUDP::append(uint8_t const *buffer, size_t size) {
             if (position_ == NetworkDebugUDPMaximumPacketSize) {
                 break;
             }
-            buffer_[position_] = buffer[i];
-            position_++;
+            FK_ASSERT(position_ < size_ && position_ >= 0);
+            buffer_[position_++] = buffer[i];
         }
     }
     return size;

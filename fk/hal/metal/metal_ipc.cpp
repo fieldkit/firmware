@@ -169,9 +169,8 @@ collection<TaskDisplayInfo> MetalIPC::get_workers_display_info(Pool &pool) {
     for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
         if (os_task_is_running(&worker_tasks[i])) {
             if (workers_[i] != nullptr) {
-                loginfo("[%d] gdi:begin: 0x%p", i, workers_[i]);
+                FK_ASSERT_ADDRESS(workers_[i]);
                 infos.emplace(workers_[i]->display_info());
-                loginfo("[%d] gdi:end", i);
             }
         }
     }

@@ -50,8 +50,13 @@ public:
     }
 
     bool closed() const {
-        alogf(LogLevels::DEBUG, "debugging", "[0x%p] connection: 0x%p", this, conn_);
-        return conn_ == nullptr;
+        if (conn_ != nullptr) {
+            alogf(LogLevels::DEBUG, "debugging", "[0x%p] connection: 0x%p", this, conn_);
+            FK_ASSERT_ADDRESS(conn_);
+            return false;
+        }
+        alogf(LogLevels::DEBUG, "debugging", "[0x%p] closed", this);
+        return true;
     }
 
     Pool *pool() {
