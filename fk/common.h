@@ -88,7 +88,11 @@ using nonstd::nullopt;
  */
 #define FK_ASSERT_GT(a, b)                            FK_ASSERT_INTERNAL((a) > (b), "%d > %d", a, b)
 
+#if defined(__SAMD51__)
 #define FK_ASSERT_ADDRESS(ptr)                        FK_ASSERT((intptr_t)ptr != 0 && (intptr_t)ptr >= 0x20000000 && (intptr_t)ptr < 0x20040000);
+#else
+#define FK_ASSERT_ADDRESS(ptr)                        FK_ASSERT((intptr_t)ptr != 0);
+#endif
 
 /**
  * Check the return value of an I2C operation and return true if the operation
