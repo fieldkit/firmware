@@ -20,6 +20,8 @@ static bool initialized = false;
 static size_t highwater = 0u;
 
 void fk_standard_page_initialize() {
+    FK_DISABLE_IRQ();
+
     if (!initialized) {
         auto memory = reinterpret_cast<uint8_t*>(fk_malloc(StandardPageSize * SizeOfStandardPagePool));
 
@@ -33,39 +35,46 @@ void fk_standard_page_initialize() {
         }
     }
 
-    loginfo("allocated %zd bytes", StandardPageSize * SizeOfStandardPagePool);
-
     initialized = true;
+
+    FK_ENABLE_IRQ();
+
+    loginfo("allocated %zd bytes", StandardPageSize * SizeOfStandardPagePool);
 }
 
 void *fk_standard_page_malloc(size_t size, const char *name) {
-    void *allocated = nullptr;
+    FK_ASSERT(size == StandardPageSize);
 
     if (!initialized) {
         fk_standard_page_initialize();
     }
 
-    FK_ASSERT(size == StandardPageSize);
+    auto selected = -1;
+
+    FK_DISABLE_IRQ();
 
     for (auto i = 0u; i < SizeOfStandardPagePool; ++i) {
         if (pages[i].available) {
-            allocated = pages[i].base;
-            pages[i].available = false;
-            pages[i].owner = name;
-            #if defined(__SAMD51__)
-            pages[i].allocated = fk_uptime();
-            #endif
-
-            logdebug("[%2d] malloc '%s'", i, name);
-
-            if (i > highwater) {
-                highwater = i;
+            selected = i;
+            if (selected > (int32_t)highwater) {
+                highwater = selected;
             }
             break;
         }
     }
 
-    if (allocated == nullptr) {
+    FK_ENABLE_IRQ();
+
+    if (selected >= 0) {
+        pages[selected].available = false;
+        pages[selected].owner = name;
+        #if defined(__SAMD51__)
+        pages[selected].allocated = fk_uptime();
+        #endif
+        logdebug("[%2d] malloc '%s'", selected, name);
+        return pages[selected].base;
+    }
+    else {
         logerror("oom!");
 
         for (auto i = 0u; i < SizeOfStandardPagePool; ++i) {
@@ -76,30 +85,40 @@ void *fk_standard_page_malloc(size_t size, const char *name) {
         }
     }
 
-    FK_ASSERT(allocated != nullptr);
-
-    return allocated;
+    FK_ASSERT(false);
+    return nullptr;
 }
 
 void fk_standard_page_free(void *ptr) {
-    auto success = false;
+    auto selected = -1;
+
+    FK_DISABLE_IRQ();
 
     for (auto i = 0u; i < SizeOfStandardPagePool; ++i) {
         if (pages[i].base == ptr) {
-            logdebug("[%2d] free '%s'", i, pages[i].owner);
-            #if defined(FK_ENABLE_MEMORY_GARBLE)
-            fk_memory_garble(pages[i].base, StandardPageSize);
-            #else
-            bzero(pages[i].base, StandardPageSize);
-            #endif
-            pages[i].available = true;
-            pages[i].owner = nullptr;
-            success = true;
+            selected = i;
             break;
         }
     }
 
-    FK_ASSERT(success);
+    FK_ENABLE_IRQ();
+
+    if (selected < 0) {
+        FK_ASSERT(false);
+        return;
+    }
+
+    logdebug("[%2d] free '%s'", selected, pages[selected].owner);
+
+    #if defined(FK_ENABLE_MEMORY_GARBLE)
+    fk_memory_garble(pages[selected].base, StandardPageSize);
+    #else
+    bzero(pages[selected].base, StandardPageSize);
+    #endif
+    pages[selected].available = true;
+    pages[selected].owner = nullptr;
+
+    return;
 }
 
 StandardPageMemInfo fk_standard_page_meminfo() {
