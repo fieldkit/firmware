@@ -439,4 +439,11 @@ constexpr uint32_t OtherBankAddress = 0x80000;
  */
 constexpr size_t NumberOfWorkerTasks = 2;
 
+// #define FK_ENABLE_DEBUG_TASK
+// #define FK_ENABLE_MEMORY_GARBLE
+// #define FK_LOGGING_POOL_VERBOSE
+// #define FK_LOGGING_POOL_MALLOC_FREE
+// #define FK_LOGGING_POOL_TRACING
+
+
 }
