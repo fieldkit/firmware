@@ -63,7 +63,11 @@ void Pool::log_destroy(const char *how) {
 void Pool::clear() {
     ptr_ = ((uint8_t *)block_) + taken_;
     remaining_ = size_ - taken_;
+    #if defined(FK_ENABLE_MEMORY_GARBLE)
+    fk_memory_garble(ptr_, remaining_);
+    #else
     bzero(ptr_, remaining_);
+    #endif
 
     #if defined(FK_LOGGING_POOL_VERBOSE) || defined(FK_LOGGING_POOL_TRACING)
     loginfo("clear: 0x%p %s size=%zd", ptr_, name_, remaining_);

@@ -87,7 +87,11 @@ void fk_standard_page_free(void *ptr) {
     for (auto i = 0u; i < SizeOfStandardPagePool; ++i) {
         if (pages[i].base == ptr) {
             logdebug("[%2d] free '%s'", i, pages[i].owner);
+            #if defined(FK_ENABLE_MEMORY_GARBLE)
+            fk_memory_garble(pages[i].base, StandardPageSize);
+            #else
             bzero(pages[i].base, StandardPageSize);
+            #endif
             pages[i].available = true;
             pages[i].owner = nullptr;
             success = true;
@@ -119,6 +123,15 @@ void fk_standard_page_log() {
         if (!pages[i].available) {
             logdebug("[%2d] owner = %s allocated=%" PRIu32, i, pages[i].owner, pages[i].allocated);
         }
+    }
+}
+
+void fk_memory_garble(void *ptr, size_t size) {
+    FK_ASSERT((size % 4) == 0);
+
+    auto p = (uint32_t *)ptr;
+    for (auto i = 0u; i < size / 4; ++i) {
+        *p = 0xbeefdead;
     }
 }
 

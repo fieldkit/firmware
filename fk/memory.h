@@ -21,4 +21,6 @@ StandardPageMemInfo fk_standard_page_meminfo();
 
 void fk_standard_page_log();
 
+void fk_memory_garble(void *ptr, size_t size);
+
 } // namespace fk
