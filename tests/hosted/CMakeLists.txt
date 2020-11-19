@@ -72,6 +72,9 @@ target_link_libraries(testall HttpParser)
 find_package(arduino-logging)
 target_link_libraries(testall arduino-logging)
 
+find_package(ArduinoMDNS)
+target_link_libraries(testall ArduinoMDNS)
+
 find_package(lwcron)
 target_link_libraries(testall lwcron)
 
