@@ -7,18 +7,14 @@ OFFLINE := /bin/false
 BUILD_NUMBER ?= none
 PACKAGE = fk-firmware-$(BUILD_NUMBER)
 
-LIBRARY_REPOSITORIES := jlewallen/arduino-osh jlewallen/loading conservify/segger \
-	conservify/phylum conservify/lwstreams conservify/lwcron conservify/arduino-logging \
-	conservify/WiFi101 conservify/Adafruit_SPIFlash conservify/Adafruit_QSPI nanopb/nanopb \
-	olikraus/u8g2 mikalhart/TinyGPS nodejs/http-parser arduino-libraries/ArduinoMDNS \
-	fieldkit/app-protocol fieldkit/data-protocol conservify/asf4 conservify/SdFat
-LOCAL_LIBRARY_PATHS := $(patsubst %, libraries/%, $(LIBRARY_REPOSITORIES))
-
 default: setup all
 
 all: samd51 samd09 test
 
-ci: setup all doc package
+checks: amd64
+	valgrind $(BUILD)/amd64/tests/hosted/testall
+
+ci: setup veryclean all doc package
 
 setup: .python-setup fk/secrets.h fk/secrets.cpp fk/data/animals.h fk/data/adjectives.h libraries/done
 
@@ -120,22 +116,12 @@ libraries/done:
 	$(OFFLINE) || simple-deps --nested --config modules/weather/main/dependencies.sd --dir libraries
 	touch libraries/done
 
-deps-initialize:
-	+@for l in $(LIBRARY_REPOSITORIES); do                                                     \
-		git subtree add --prefix libraries/$(l) https://github.com/$(l).git master --squash;   \
-	done
-
-deps-update:
-	+@for l in $(LIBRARY_REPOSITORIES); do                                                     \
-		git subtree pull --prefix libraries/$(l) https://github.com/$(l).git master --squash;  \
-	done
-
 veryclean: clean
+	rm -rf libraries/adafruit libraries/adamvr libraries/conservify libraries/dependencies.cmake \
+           libraries/done libraries/fieldkit libraries/jlewallen libraries/mikalhart libraries/nanopb \
+           libraries/nodejs libraries/olikraus libraries/ricmoo
 	rm -rf bootloader/dependencies.cmake libraries/dependencies.cmake libraries/done
 	rm -rf modules/weather/sidecar/dependencies.cmake modules/weather/main/dependencies.cmake
-	@for l in $(LOCAL_LIBRARY_PATHS); do                                                       \
-		echo rm -rf $$l; rm -rf $$l;                                                           \
-	done
 
 cppcheck:
 	rm -rf $(BUILD)/cpp-check
