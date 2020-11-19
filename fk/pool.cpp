@@ -43,13 +43,16 @@ Pool::Pool(const char *name, size_t size, void *block, size_t taken) {
 
     #if defined(FK_LOGGING_POOL_VERBOSE) || defined(FK_LOGGING_POOL_TRACING)
     if (size_ > 0) {
-        loginfo("create: 0x%p %s size=%zu ptr=0x%p", this, name_, remaining_, ptr_);
+        loginfo("create: 0x%p %s size=%zu ptr=0x%p taken=%zu", this, name_, remaining_, ptr_, taken_);
     }
     #endif
 }
 
 Pool::~Pool() {
-    log_destroy("~pool");
+}
+
+void Pool::log_info() {
+    loginfo("info: 0x%p %s size=%zu ptr=0x%p remaining=0x%" PRIx16, this, name_, size_ - taken_, ((uint8_t *)block_) + taken_, (uint16_t)remaining_);
 }
 
 void Pool::log_destroy(const char *how) {

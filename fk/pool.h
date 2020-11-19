@@ -108,6 +108,8 @@ public:
 public:
     void log_destroy(const char *how);
 
+    void log_info();
+
 };
 
 class StandardPool : public Pool {

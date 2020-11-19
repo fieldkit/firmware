@@ -125,26 +125,26 @@ void try_and_serve_connections() {
             uint32_t signal = 0;
             if (os_signal_check(&signal) == OSS_SUCCESS) {
                 if (signal > 0) {
-                    loginfo("killed");
+                    loginfo("stopping: killed");
                     return;
                 }
             }
 
             // Check to see if we've been inactive for too long.
             if (!duration.on(network_services.activity())) {
-                loginfo("inactive");
+                loginfo("stopping: inactive");
                 return;
             }
 
             // This will happen when a foreign device disconnects from our WiFi AP.
             if (!network_services.ready_to_serve()) {
-                loginfo("disconnected");
+                loginfo("stopping: disconnected");
                 break;
             }
 
             // Break this loop and go to the beginning to recreate.
             if (task.did_configuration_change()) {
-                loginfo("configuration change");
+                loginfo("stopping: configuration");
                 break;
             }
 
