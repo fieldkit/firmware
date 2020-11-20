@@ -14,9 +14,9 @@ all: samd51 samd09 test
 checks: amd64
 	valgrind $(BUILD)/amd64/tests/hosted/testall
 
-ci: setup veryclean all doc package
+ci: veryclean setup all doc package
 
-setup: .python-setup fk/secrets.h fk/secrets.cpp fk/data/animals.h fk/data/adjectives.h libraries/done
+setup: .python-setup fk/secrets.h fk/secrets.cpp fk/data/animals.h fk/data/adjectives.h dependencies
 
 .python-setup:
 	pip3 install -U sphinx pyelftools pyblake2
@@ -106,8 +106,6 @@ package: fw
 	cp $(BUILD)/$(PACKAGE).zip $(BUILD)/fk-firmware.zip
 
 dependencies: libraries/done
-
-gitdeps: dependencies
 
 libraries/done:
 	$(OFFLINE) || simple-deps --nested --config bootloader/dependencies.sd --dir libraries
