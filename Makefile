@@ -107,6 +107,8 @@ package: fw
 
 dependencies: libraries/done
 
+gitdeps: dependencies
+
 libraries/done:
 	$(OFFLINE) || simple-deps --nested --config bootloader/dependencies.sd --dir libraries
 	$(OFFLINE) || simple-deps --nested --config libraries/dependencies.sd --dir libraries
