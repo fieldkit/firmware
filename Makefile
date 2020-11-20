@@ -14,7 +14,7 @@ all: samd51 samd09 test
 checks: amd64
 	valgrind $(BUILD)/amd64/tests/hosted/testall
 
-ci: veryclean setup all doc package
+ci: veryclean setup all package
 
 setup: .python-setup fk/secrets.h fk/secrets.cpp fk/data/animals.h fk/data/adjectives.h dependencies
 
