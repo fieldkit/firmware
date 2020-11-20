@@ -9,8 +9,8 @@
 #undef max
 #undef abs
 
-#include "hal/metal/debug_udp.h"
 #include "common.h"
+#include "networking/debug_udp.h"
 
 namespace fk {
 
@@ -20,7 +20,8 @@ class SimpleNTP {
     static constexpr size_t NumberOfAddresses = 2;
 
 private:
-    DebugUDP udp_{ "ntp" };
+    WiFiUDP wifi_udp_;
+    DebugUDP udp_{ wifi_udp_, "ntp" };
     IPAddress addresses_[NumberOfAddresses] {
         IPAddress{129, 6, 15, 28},
         IPAddress{164, 67, 62, 194}

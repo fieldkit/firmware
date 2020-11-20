@@ -1,11 +1,9 @@
-#include "platform.h"
-#include "hal/metal/debug_udp.h"
 #include "common.h"
-#include "utilities.h"
-#include "networking/dns_message.h"
 #include "config.h"
-
-#if defined(__SAMD51__)
+#include "networking/debug_udp.h"
+#include "networking/dns_message.h"
+#include "platform.h"
+#include "utilities.h"
 
 namespace fk {
 
@@ -13,7 +11,7 @@ constexpr size_t NetworkDebugUDPMaximumPacketSize = 1024;
 
 FK_DECLARE_LOGGER("dbgudp");
 
-DebugUDP::DebugUDP(const char *name) : name_(name) {
+DebugUDP::DebugUDP(UDP &target, const char *name) : target_(&target), name_(name) {
 }
 
 DebugUDP::~DebugUDP() {
@@ -37,7 +35,7 @@ int DebugUDP::parsePacket() {
     position_ = 0;
     available_ = 0;
 
-    auto parsed_size = WiFiUDP::parsePacket();
+    auto parsed_size = target_->parsePacket();
     if (parsed_size == 0) {
         return 0;
     }
@@ -48,12 +46,12 @@ int DebugUDP::parsePacket() {
 
     // Read the whole packet in and read from our buffer.
     if (parsed_size > 0 && parsed_size < (int32_t)NetworkDebugUDPMaximumPacketSize) {
-        auto bytes_read = WiFiUDP::read(buffer_, parsed_size);
+        auto bytes_read = target_->read(buffer_, parsed_size);
 
         available_ = bytes_read;
 
         if (bytes_read != parsed_size && bytes_read > 0) {
-            logwarn("read less than available (%d vs %d)", available_, parsed_size);
+            logwarn("read less than available (%zu vs %d)", available_, parsed_size);
         } else {
             debug("udp-recv", buffer_, parsed_size);
 
@@ -71,7 +69,7 @@ int DebugUDP::parsePacket() {
                         loginfo("unable to parse dns");
                     }
                 } else {
-                    loginfo("nothing to parse 0x%p bytes-read=%zu parsed-size=%zu", dns_pool_, bytes_read, parsed_size);
+                    loginfo("nothing to parse 0x%p bytes-read=%d parsed-size=%d", dns_pool_, bytes_read, parsed_size);
                 }
             }
         }
@@ -90,9 +88,10 @@ void DebugUDP::reply_with_query(const char *name) {
 
     DNSWriter query_writer{ dns_pool_ };
     auto encoded = query_writer.query_service_type(fk_uptime() % 65535, name);
-    static uint8_t mdns_address[] = { 224, 0, 0, 251 };
+    static uint8_t mdns_address[4] = { 224, 0, 0, 251 };
     static uint16_t mdns_port = 5353;
-    if (beginPacket(mdns_address, mdns_port)) {
+    IPAddress ip{ mdns_address };
+    if (beginPacket(ip, mdns_port)) {
         write(encoded->buffer, encoded->size);
         endPacket();
     }
@@ -102,12 +101,12 @@ void DebugUDP::reply_with_query(const char *name) {
 
 int DebugUDP::beginPacket(IPAddress ip, uint16_t port) {
     position_ = 0;
-    return WiFiUDP::beginPacket(ip, port);
+    return target_->beginPacket(ip, port);
 }
 
 int DebugUDP::beginPacket(const char *host, uint16_t port) {
     position_ = 0;
-    return WiFiUDP::beginPacket(host, port);
+    return target_->beginPacket(host, port);
 }
 
 int DebugUDP::endPacket() {
@@ -123,7 +122,7 @@ int DebugUDP::endPacket() {
 
         position_ = 0;
     }
-    return WiFiUDP::endPacket();
+    return target_->endPacket();
 }
 
 int DebugUDP::read(unsigned char *buffer, size_t len) {
@@ -138,17 +137,21 @@ int DebugUDP::read(unsigned char *buffer, size_t len) {
         position_ += len;
         return copying;
     }
-    return WiFiUDP::read(buffer, len);
+    return target_->read(buffer, len);
 }
 
 size_t DebugUDP::write(uint8_t c) {
     append(&c, 1);
-    return WiFiUDP::write(c);
+    return target_->write(c);
 }
 
 size_t DebugUDP::write(uint8_t const *buffer, size_t size) {
     append(buffer, size);
-    return WiFiUDP::write(buffer, size);
+    return target_->write(buffer, size);
+}
+
+int DebugUDP::available() {
+    return target_->available();
 }
 
 size_t DebugUDP::append(uint8_t const *buffer, size_t size) {
@@ -170,5 +173,3 @@ size_t DebugUDP::debug(char const *prefix, uint8_t const *buffer, size_t size) {
 }
 
 } // namespace fk
-
-#endif

@@ -1,7 +1,9 @@
 #include "tests.h"
 #include "common.h"
 #include "hal/linux/linux.h"
+#include "networking/debug_udp.h"
 #include "networking/dns_message.h"
+#include "hal/metal/mdns_pool_allocator.h"
 #include "dns_packets.h"
 
 #include <ArduinoMDNS.h>
@@ -31,26 +33,42 @@ public:
     }
 
 public:
-    uint8_t beginMulticast(IPAddress, uint16_t) {
+    uint8_t begin(uint16_t) override {
         return true;
     }
 
-    void stop() {
+    uint8_t beginMulticast(IPAddress, uint16_t) override {
+        return true;
     }
 
-    int beginPacket(IPAddress ip, uint16_t port) {
+    void stop() override {
+    }
+
+    int beginPacket(const char *host, uint16_t port) {
         return 0;
     }
 
-    int endPacket() {
+    int beginPacket(IPAddress ip, uint16_t port) override {
         return 0;
     }
 
-    size_t write(const uint8_t *buffer, size_t size) {
+    int endPacket() override {
         return 0;
     }
 
-    int parsePacket() {
+    int read(char *buffer, size_t len) override {
+        return 0;
+    }
+
+    size_t write(const uint8_t *buffer, size_t size) override {
+        return 0;
+    }
+
+    size_t write(uint8_t) override {
+        return 0;
+    }
+
+    int parsePacket() override {
         if (queued_ == nullptr) {
             return 0;
         }
@@ -58,7 +76,7 @@ public:
         return queued_->size;
     }
 
-    int read(unsigned char *buffer, size_t len) {
+    int read(unsigned char *buffer, size_t len) override {
         if (queued_ == nullptr) {
             return 0;
         }
@@ -70,32 +88,29 @@ public:
         return len;
     }
 
-    void flush() {
+    int read() override {
+        FK_ASSERT(false);
+        return 0;
     }
 
-    IPAddress remoteIP() {
+    int peek() override {
+        FK_ASSERT(false);
+        return 0;
+    }
+
+    int available() override {
+        return 0;
+    }
+
+    void flush() override {
+    }
+
+    IPAddress remoteIP() override {
         return { };
     }
 
-    uint16_t remotePort() {
+    uint16_t remotePort() override {
         return 0;
-    }
-};
-
-class MDNSPoolAllocator : public MDNSAllocator {
-private:
-    Pool *pool_;
-
-public:
-    explicit MDNSPoolAllocator(Pool *pool) : pool_(pool) {
-    }
-
-public:
-    void *malloc(size_t size) override {
-        return pool_->calloc(size);
-    }
-
-    void free(void *ptr) override {
     }
 };
 
@@ -103,7 +118,8 @@ TEST_F(MdnsSuite, MDNS) {
     StandardPool pool{ "dns" };
     MDNSPoolAllocator allocator{ &pool };
     DummyUDP udp;
-    MDNS mdns(udp);
+    DebugUDP debug_udp{ udp, "debug" };
+    MDNS mdns(debug_udp);
     mdns.allocator(&allocator);
 
     ASSERT_TRUE(mdns.begin({}));

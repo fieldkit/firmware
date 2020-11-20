@@ -16,7 +16,7 @@ find_package(Threads REQUIRED)
 
 include(ExternalProject)
 
-file(GLOB_RECURSE fk_sources ../../fk/*.cpp ../../fk/*.c ../hosted/test_modules.cpp)
+file(GLOB_RECURSE fk_sources ../../fk/*.cpp ../../fk/*.c ../hosted/test_modules.cpp ../../third-party/arduino-stubs/*.cpp)
 file(GLOB         fk_tasks ../../fk/tasks/tasks.cpp)
 
 list(FILTER fk_sources EXCLUDE REGEX ".*main.cpp$")

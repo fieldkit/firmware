@@ -1,5 +1,6 @@
 #include "platform.h"
 #include "hal/metal/mdns.h"
+#include "hal/metal/mdns_pool_allocator.h"
 #include "common.h"
 #include "utilities.h"
 #include "config.h"
@@ -12,24 +13,6 @@ namespace fk {
 constexpr uint32_t NetworkAddServiceRecordIntervalMs = 5000;
 constexpr uint32_t NetworkRemoveServiceRecordAmplification = 5;
 constexpr uint32_t NetworkRemoveServiceRecordDelayMs = 250;
-
-class MDNSPoolAllocator : public MDNSAllocator {
-private:
-    Pool *pool_;
-
-public:
-    explicit MDNSPoolAllocator(Pool *pool) : pool_(pool) {
-    }
-
-public:
-    void *malloc(size_t size) override {
-        return pool_->calloc(size);
-    }
-
-    void free(void *ptr) override {
-    }
-
-};
 
 FK_DECLARE_LOGGER("mdns");
 

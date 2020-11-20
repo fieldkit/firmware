@@ -430,7 +430,7 @@ SeekValue Storage::seek(SeekSettings settings) {
         BlockHeader block_header;
         auto address = range.middle_block() * g.block_size;
         auto rv = memory_.read(address, (uint8_t *)&block_header, sizeof(block_header));
-        if (rv <= 0) {
+        if (rv != sizeof(block_header)) {
             logerror("[%d] read failed " PRADDRESS, settings.file, address);
             return SeekValue{ };
         }

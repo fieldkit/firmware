@@ -10,7 +10,7 @@
 #undef abs
 
 #include "common.h"
-#include "debug_udp.h"
+#include "networking/debug_udp.h"
 #include "records.h"
 
 namespace fk {
@@ -18,7 +18,8 @@ namespace fk {
 class UDPDiscovery {
 private:
     Pool *pool_{ nullptr };
-    DebugUDP udp_{ "sud" };
+    WiFiUDP wifi_udp_;
+    DebugUDP udp_{ wifi_udp_, "sud" };
     bool initialized_{ false };
     uint32_t publish_{ 0 };
     uint32_t receive_{ 0 };

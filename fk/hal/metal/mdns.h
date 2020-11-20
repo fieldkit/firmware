@@ -5,7 +5,8 @@
 #include <WiFi101.h>
 #include <WiFiUdp.h>
 #include <ArduinoMDNS.h>
-#include "hal/metal/debug_udp.h"
+
+#include "networking/debug_udp.h"
 #include "common.h"
 #include "pool.h"
 
@@ -18,7 +19,8 @@ namespace fk {
 class MDNSDiscovery {
 private:
     Pool *pool_;
-    DebugUDP udp_{ "mdns" };
+    WiFiUDP wifi_udp_;
+    DebugUDP udp_{ wifi_udp_, "mdns" };
     MDNS mdns_{ udp_ };
     bool initialized_{ false };
     uint32_t registered_{ 0 };

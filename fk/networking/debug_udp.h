@@ -1,21 +1,14 @@
 #pragma once
 
-#if defined(__SAMD51__)
-
-#include <WiFi101.h>
-#include <WiFiUdp.h>
-
-#undef min
-#undef max
-#undef abs
-
+#include <Udp.h>
 #include "common.h"
 #include "pool.h"
 
 namespace fk {
 
-class DebugUDP : public WiFiUDP {
+class DebugUDP : public UDP {
 private:
+    UDP *target_{ nullptr };
     const char *name_{ nullptr };
     Pool *pool_{ nullptr };
     Pool *dns_pool_{ nullptr };
@@ -26,7 +19,7 @@ private:
     uint32_t throttled_{ 0 };
 
 public:
-    DebugUDP(const char *name);
+    DebugUDP(UDP &target, const char *name);
     virtual ~DebugUDP();
 
 public:
@@ -34,6 +27,12 @@ public:
     void dns_pool(Pool *pool);
 
 public:
+    uint8_t begin(uint16_t port) override {
+        return target_->begin(port);
+    }
+    uint8_t beginMulticast(IPAddress address, uint16_t port) override {
+        return target_->beginMulticast(address, port);
+    }
     int parsePacket() override;
     int beginPacket(IPAddress ip, uint16_t port) override;
     int beginPacket(const char *host, uint16_t port) override;
@@ -44,6 +43,26 @@ public:
     int read(char *buffer, size_t len) override {
         return read((unsigned char *)buffer, len);
     };
+    void flush() override {
+        target_->flush();
+    }
+    int available() override;
+    int read() override {
+        FK_ASSERT(false);
+        return target_->read();
+    }
+    int peek() override {
+        return target_->peek();
+    }
+    IPAddress remoteIP() override {
+        return target_->remoteIP();
+    }
+    uint16_t remotePort() override {
+        return target_->remotePort();
+    }
+    void stop() {
+        target_->stop();
+    }
 
 private:
     size_t append(uint8_t const *buffer, size_t size);
@@ -55,5 +74,3 @@ private:
 };
 
 } // namespace fk
-
-#endif // defined(__SAMD51__)
