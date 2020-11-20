@@ -7,8 +7,8 @@
 
 namespace fk {
 
-static constexpr float RainPerTick = 0.2794; // mm
-static constexpr float WindPerTick = 2.4; // km/hr
+static constexpr float RainPerTick = 0.336; // mm
+static constexpr float WindPerTick = 2.4;   // km/hr
 
 using DateTime = lwcron::DateTime;
 
