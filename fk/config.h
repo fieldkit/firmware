@@ -444,6 +444,6 @@ constexpr size_t NumberOfWorkerTasks = 2;
 // #define FK_LOGGING_POOL_VERBOSE
 // #define FK_LOGGING_POOL_MALLOC_FREE
 // #define FK_LOGGING_POOL_TRACING
-
+// #define FK_ENABLE_NETWORK_UP_AND_DOWN
 
 }
