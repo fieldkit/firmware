@@ -90,9 +90,9 @@ struct FileHeader {
 
 struct BlockHeader {
     BlockMagic magic;
-    StorageTime timestamp;
-    FileNumber file;
-    StorageVersion version;
+    StorageTime timestamp{ 0 };
+    FileNumber file{ 0 };
+    StorageVersion version{ 0 };
     FileHeader files[NumberOfFiles];
     Hash hash;
 
