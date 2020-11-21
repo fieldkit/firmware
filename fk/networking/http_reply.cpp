@@ -58,7 +58,7 @@ static void copy_schedule(fk_app_Schedule &d, Schedule const &s, Pool *pool) {
     d.duration = s.duration;
 }
 
-bool HttpReply::include_status(uint32_t clock, uint32_t uptime, fkb_header_t const *fkb) {
+bool HttpReply::include_status(uint32_t clock, uint32_t uptime, bool logs, fkb_header_t const *fkb) {
     fk_serial_number_t sn;
 
     auto device_id_data = pool_->malloc_with<pb_data_t>({
@@ -81,8 +81,10 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, fkb_header_t con
     reply_.status.identity.device.arg = (void *)gs_->general.name;
     reply_.status.identity.deviceId.arg = device_id_data;
     reply_.status.identity.generationId.arg = generation_data;
-    reply_.status.logs.arg = 0; // This is used to store the calculated size.
-    reply_.status.logs.funcs.encode = pb_encode_logs;
+    if (logs) {
+        reply_.status.logs.arg = 0; // This is used to store the calculated size.
+        reply_.status.logs.funcs.encode = pb_encode_logs;
+    }
 
     if (fkb->firmware.hash_size > 0) {
         auto firmware_hash_string = bytes_to_hex_string_pool(fkb->firmware.hash, fkb->firmware.hash_size, *pool_);

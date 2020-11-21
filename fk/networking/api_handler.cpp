@@ -331,7 +331,9 @@ static bool send_status(HttpServerConnection *connection, fk_app_HttpQuery *quer
 
     HttpReply http_reply{ pool, gs.get() };
 
-    FK_ASSERT(http_reply.include_status(get_clock_now(), fk_uptime(), &fkb_header));
+    auto logs = (query->flags & fk_app_QueryFlags_QUERY_FLAGS_LOGS) == fk_app_QueryFlags_QUERY_FLAGS_LOGS;
+
+    FK_ASSERT(http_reply.include_status(get_clock_now(), fk_uptime(), logs, &fkb_header));
 
     connection->write(http_reply.reply());
     connection->close();
@@ -344,7 +346,9 @@ static bool send_readings(HttpServerConnection *connection, fk_app_HttpQuery *qu
 
     HttpReply http_reply{ pool, gs.get() };
 
-    FK_ASSERT(http_reply.include_status(get_clock_now(), fk_uptime(), &fkb_header));
+    auto logs = (query->flags & fk_app_QueryFlags_QUERY_FLAGS_LOGS) == fk_app_QueryFlags_QUERY_FLAGS_LOGS;
+
+    FK_ASSERT(http_reply.include_status(get_clock_now(), fk_uptime(), logs, &fkb_header));
     FK_ASSERT(http_reply.include_readings());
 
     connection->write(http_reply.reply());

@@ -277,7 +277,7 @@ TEST_F(ProtoBufSizeSuite, HttpReplyStatus) {
     fake_global_state(gs, pool_);
 
     HttpReply reply(pool_, &gs);
-    reply.include_status(1580763366, 327638, &fake_header);
+    reply.include_status(1580763366, 327638, true, &fake_header);
 
     auto encoded = pool_.encode(fk_app_HttpReply_fields, reply.reply());
     dump_binary(file_, "http-reply-status", encoded);
