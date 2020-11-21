@@ -447,4 +447,30 @@ bool HttpReply::include_scan(NetworkScan scan) {
     return true;
 }
 
+bool HttpReply::include_listing(const char *path, fk_app_DirectoryEntry *entries, size_t number_entries) {
+    reply_ = fk_app_HttpReply_init_default;
+    reply_.type = fk_app_ReplyType_REPLY_FILES;
+
+    if (number_entries == 0) {
+        return true;
+    }
+
+    auto entries_array = pool_->malloc_with<pb_array_t>({
+        .length = number_entries,
+        .itemSize = sizeof(fk_app_DirectoryEntry),
+        .buffer = entries,
+        .fields = fk_app_DirectoryEntry_fields,
+    });
+
+    loginfo("returning listing %zu", number_entries);
+
+    reply_.has_listing = true;
+    reply_.listing.path.arg = (void *)path;
+    reply_.listing.path.funcs.encode = pb_encode_string;
+    reply_.listing.entries.arg = (void *)entries_array;
+    reply_.listing.entries.funcs.encode = pb_encode_array;
+
+    return true;
+}
+
 }

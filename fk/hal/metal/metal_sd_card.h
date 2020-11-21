@@ -32,6 +32,7 @@ public:
     bool unlink(const char *path) override;
     SdCardFile *open(const char *path, bool writing, Pool &pool) override;
     bool format() override;
+    bool ls(const char *path, size_t skip, fk_app_DirectoryEntry **files, size_t &nfiles, Pool &pool) override;
 
 private:
     bool initialize_logs();

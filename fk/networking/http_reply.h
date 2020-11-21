@@ -24,6 +24,7 @@ public:
     bool include_status(uint32_t clock, uint32_t uptime, bool logs, fkb_header_t const *fkb);
     bool include_readings();
     bool include_scan(NetworkScan scan);
+    bool include_listing(const char *path, fk_app_DirectoryEntry *entries, size_t number_entries);
 
 public:
     fk_app_HttpReply const *reply() {

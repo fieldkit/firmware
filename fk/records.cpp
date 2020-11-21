@@ -331,6 +331,9 @@ fk_app_HttpQuery *fk_http_query_prepare_decoding(fk_app_HttpQuery *query, Pool *
     query->identity.name.funcs.decode = pb_decode_string;
     query->identity.name.arg = (void *)pool;
 
+    query->directory.path.funcs.decode = pb_decode_string;
+    query->directory.path.arg = (void *)pool;
+
     query->schedules.readings.cron.funcs.decode = pb_decode_data;
     query->schedules.readings.cron.arg = (void *)pool;
     query->schedules.readings.intervals.funcs.decode = pb_decode_array;

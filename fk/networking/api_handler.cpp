@@ -30,6 +30,8 @@ static bool send_status(HttpServerConnection *connection, fk_app_HttpQuery *quer
 
 static bool send_readings(HttpServerConnection *connection, fk_app_HttpQuery *query, Pool &pool);
 
+static bool send_files(HttpServerConnection *connection, fk_app_HttpQuery *query, Pool &pool);
+
 static bool configure(HttpServerConnection *connection, fk_app_HttpQuery *query, Pool &pool);
 
 void ApiHandler::adjust_time_if_necessary(fk_app_HttpQuery const *query) {
@@ -111,6 +113,10 @@ bool ApiHandler::handle(HttpServerConnection *connection, Pool &pool) {
     case fk_app_QueryType_QUERY_GET_READINGS: {
         loginfo("handling %s", "QUERY_GET_READINGS");
         return send_readings(connection, query, pool);
+    }
+    case fk_app_QueryType_QUERY_FILES: {
+        loginfo("handling %s", "QUERY_FILES");
+        return send_files(connection, query, pool);
     }
     case fk_app_QueryType_QUERY_RESET: {
         loginfo("handling %s", "QUERY_RESET");
@@ -350,6 +356,39 @@ static bool send_readings(HttpServerConnection *connection, fk_app_HttpQuery *qu
 
     FK_ASSERT(http_reply.include_status(get_clock_now(), fk_uptime(), logs, &fkb_header));
     FK_ASSERT(http_reply.include_readings());
+
+    connection->write(http_reply.reply());
+    connection->close();
+
+    return true;
+}
+
+static bool send_files(HttpServerConnection *connection, fk_app_HttpQuery *query, Pool &pool) {
+    auto lock = sd_mutex.acquire(UINT32_MAX);
+    auto gs = get_global_state_ro();
+
+    auto sd = get_sd_card();
+    if (!sd->begin()) {
+        logwarn("error opening sd");
+        connection->error(500, "error opening sd");
+        return true;
+    }
+
+    fk_app_DirectoryEntry *entries = nullptr;
+    size_t number_entries = 0u;
+    auto path = (const char *)query->directory.path.arg;
+
+    loginfo("listing: %s", path);
+
+    if (!sd->ls(path, query->directory.page, &entries, number_entries, pool)) {
+        logwarn("error listing sd");
+        connection->error(500, "error listing sd");
+        return true;
+    }
+
+    HttpReply http_reply{ pool, gs.get() };
+
+    FK_ASSERT(http_reply.include_listing(path, entries, number_entries));
 
     connection->write(http_reply.reply());
     connection->close();

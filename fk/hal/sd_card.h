@@ -1,8 +1,11 @@
 #pragma once
 
+#include <fk-app-protocol.h>
+
 #include "pool.h"
 #include "io.h"
 #include "circular_buffer.h"
+#include "collections.h"
 
 namespace fk {
 
@@ -31,6 +34,9 @@ public:
     virtual bool unlink(const char *path) = 0;
     virtual SdCardFile *open(const char *path, bool writing, Pool &pool) = 0;
     virtual bool format() = 0;
+    virtual bool ls(const char *path, size_t skip, fk_app_DirectoryEntry **files, size_t &nfiles, Pool &pool) {
+        return true;
+    }
 
 };
 
