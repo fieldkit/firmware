@@ -376,11 +376,12 @@ static bool send_files(HttpServerConnection *connection, fk_app_HttpQuery *query
 
     fk_app_DirectoryEntry *entries = nullptr;
     size_t number_entries = 0u;
+    size_t total_entries = 0u;
     auto path = (const char *)query->directory.path.arg;
 
     loginfo("listing: %s", path);
 
-    if (!sd->ls(path, query->directory.page, &entries, number_entries, pool)) {
+    if (!sd->ls(path, query->directory.page, &entries, number_entries, total_entries, pool)) {
         logwarn("error listing sd");
         connection->error(500, "error listing sd");
         return true;
@@ -388,7 +389,7 @@ static bool send_files(HttpServerConnection *connection, fk_app_HttpQuery *query
 
     HttpReply http_reply{ pool, gs.get() };
 
-    FK_ASSERT(http_reply.include_listing(path, entries, number_entries));
+    FK_ASSERT(http_reply.include_listing(path, entries, number_entries, total_entries));
 
     connection->write(http_reply.reply());
     connection->close();

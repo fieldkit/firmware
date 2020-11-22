@@ -13,6 +13,7 @@
 // NOTE This is so embarassing.
 #undef abs
 #undef min
+#undef max
 
 #if defined(__SAMD51__)
 
@@ -255,11 +256,12 @@ bool MetalSdCard::format() {
     return true;
 }
 
-bool MetalSdCard::ls(const char *path, size_t skip, fk_app_DirectoryEntry** files, size_t &nfiles, Pool &pool) {
-    FK_ASSERT_ADDRESS(files);
+bool MetalSdCard::ls(const char *path, size_t skip, fk_app_DirectoryEntry** dir_entries, size_t &number_entries, size_t &total_entries, Pool &pool) {
+    FK_ASSERT_ADDRESS(dir_entries);
 
-    *files = nullptr;
-    nfiles = 0;
+    *dir_entries = nullptr;
+    number_entries = 0;
+    total_entries = 0;
 
     SdFile dir;
     auto opened = open_path(dir, path, O_RDONLY);
@@ -272,23 +274,22 @@ bool MetalSdCard::ls(const char *path, size_t skip, fk_app_DirectoryEntry** file
         return false;
     }
 
-    auto files_in_directory = 0u;
-    if (!number_of_files(dir, files_in_directory)) {
+    if (!number_of_files(dir, total_entries)) {
         return false;
     }
 
-    loginfo("ls nentries-dir=%zu", files_in_directory);
+    loginfo("ls total-entries=%zu", total_entries);
 
-    if (files_in_directory == 0) {
+    if (total_entries == 0) {
         return true;
     }
 
     // Avoid overflowing page allocation by paging.
     auto max_files_per_ls = StandardPageSize / sizeof(fk_app_DirectoryEntry) / 2;
-    auto number_entries = std::min(max_files_per_ls, files_in_directory - skip);
-    auto entries = (fk_app_DirectoryEntry *)pool.malloc(sizeof(fk_app_DirectoryEntry) * number_entries);
+    auto returning_entries = (size_t)std::min((int32_t)max_files_per_ls, std::max((int32_t)(total_entries - skip), (int32_t)0));
+    auto entries = (fk_app_DirectoryEntry *)pool.malloc(sizeof(fk_app_DirectoryEntry) * returning_entries);
 
-    loginfo("ls netries=%zu max=%zu skip=%zu", number_entries, max_files_per_ls, skip);
+    loginfo("ls netries=%zu max=%zu skip=%zu", returning_entries, max_files_per_ls, skip);
 
     auto file_number = 0u;
     auto index = 0u;
@@ -310,22 +311,22 @@ bool MetalSdCard::ls(const char *path, size_t skip, fk_app_DirectoryEntry** file
             entries[index].name.arg = (void *)name;
             entries[index].name.funcs.encode = pb_encode_string;
 
-            loginfo("[%zu/%zu] file '%s'", index, file_number, name);
+            logdebug("[%zu/%zu] file '%s'", index, file_number, name);
 
             index++;
         }
         file_number++;
         file.close();
 
-        if (index == number_entries) {
+        if (index == returning_entries) {
             break;
         }
     }
 
     dir.close();
 
-    *files = entries;
-    nfiles = number_entries;
+    *dir_entries = entries;
+    number_entries = returning_entries;
 
     return true;
 }

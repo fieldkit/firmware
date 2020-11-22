@@ -447,7 +447,7 @@ bool HttpReply::include_scan(NetworkScan scan) {
     return true;
 }
 
-bool HttpReply::include_listing(const char *path, fk_app_DirectoryEntry *entries, size_t number_entries) {
+bool HttpReply::include_listing(const char *path, fk_app_DirectoryEntry *entries, size_t number_entries, size_t total_entries) {
     reply_ = fk_app_HttpReply_init_default;
     reply_.type = fk_app_ReplyType_REPLY_FILES;
 
@@ -465,6 +465,7 @@ bool HttpReply::include_listing(const char *path, fk_app_DirectoryEntry *entries
     loginfo("returning listing %zu", number_entries);
 
     reply_.has_listing = true;
+    reply_.listing.totalEntries = total_entries;
     reply_.listing.path.arg = (void *)path;
     reply_.listing.path.funcs.encode = pb_encode_string;
     reply_.listing.entries.arg = (void *)entries_array;

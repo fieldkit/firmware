@@ -38,7 +38,7 @@ public:
     virtual bool unlink(const char *path) = 0;
     virtual SdCardFile *open(const char *path, bool writing, Pool &pool) = 0;
     virtual bool format() = 0;
-    virtual bool ls(const char *path, size_t skip, fk_app_DirectoryEntry **files, size_t &nfiles, Pool &pool) {
+    virtual bool ls(const char *path, size_t skip, fk_app_DirectoryEntry **files, size_t &number_entries, size_t &total_entries, Pool &pool) {
         return true;
     }
 
