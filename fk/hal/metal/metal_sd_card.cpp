@@ -20,6 +20,11 @@ namespace fk {
 
 FK_DECLARE_LOGGER("sdcard");
 
+constexpr size_t SdMaximumNameLength = 13;
+
+static bool number_of_files(SdFile &dir, size_t &nfiles);
+static optional<bool> open_path(SdFile &dir, const char *path, Pool &pool);
+
 MetalSdCard::MetalSdCard() : sd_(&SD_SPI) {
 }
 
@@ -245,73 +250,6 @@ bool MetalSdCard::format() {
     }
 
     loginfo("done");
-
-    return true;
-}
-
-static bool number_of_files(SdFile &dir, size_t &nfiles) {
-    dir.rewind();
-    nfiles = 0;
-
-    SdFile file;
-    while (file.openNext(&dir, O_RDONLY)) {
-        nfiles++;
-        file.close();
-    }
-
-    return true;
-}
-
-constexpr size_t SdMaximumNameLength = 13;
-
-/**
- * I wish there was an easier way to do this. This starts at the root
- * and opens up an arbitrary directory so we can do the listing.
- */
-static bool open_path(SdFat &sd, SdFile &dir, const char *path, Pool &pool) {
-    auto copy = pool.strdup(path);
-    auto p = copy;
-
-    if (p[0] != '/') {
-        logerror("absoulte path required");
-        return false;
-    }
-
-    loginfo("opening: /");
-    if (!dir.open("/")) {
-        logerror("unable to open %s", path);
-        return false;
-    }
-
-    p++;
-
-    while (*p != 0) {
-        auto slash = strchr(p, '/');
-        if (slash != nullptr) {
-            *slash = 0;
-        }
-
-        loginfo("opening: %s", p);
-
-        dir.rewind();
-
-        SdFile file;
-        while (file.openNext(&dir, O_RDONLY)) {
-            char name[SdMaximumNameLength];
-            file.getName(name, sizeof(name));
-            if (strcmp(name, p) == 0) {
-                dir = file;
-                break;
-            }
-            file.close();
-        }
-
-        if (slash == nullptr) {
-            break;
-        }
-
-        p = slash + 1;
-    }
 
     return true;
 }
