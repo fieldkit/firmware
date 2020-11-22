@@ -31,7 +31,7 @@ public:
     int32_t seek_end() override;
     size_t file_size() override;
     bool close() override;
-    operator bool() const override {
+    bool is_open() const override {
         return false;
     }
 

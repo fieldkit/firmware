@@ -52,13 +52,8 @@ public:
     int32_t seek_beginning() override;
     int32_t seek_end() override;
     size_t file_size() override;
-    bool is_open() const;
+    bool is_open() const override;
     bool close() override;
-
-public:
-    operator bool() const override {
-        return is_open();
-    }
 
 };
 

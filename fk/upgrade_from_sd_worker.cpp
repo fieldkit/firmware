@@ -136,7 +136,7 @@ bool UpgradeFirmwareFromSdWorker::save_firmware(const char *path, uint32_t addre
     loginfo("saving firmware 0x%" PRIx32 " (%zd bytes)", address, bytes);
 
     auto file = sd->open(path, true, pool);
-    if (file == nullptr || !file) {
+    if (file == nullptr || !file->is_open()) {
         logerror("unable to open '%s'", path);
         return false;
     }
@@ -197,7 +197,7 @@ bool UpgradeFirmwareFromSdWorker::load_firmware(const char *path, uint32_t addre
     loginfo("loading firmware");
 
     auto file = sd->open(path, false, pool);
-    if (file == nullptr || !file) {
+    if (file == nullptr || !file->is_open()) {
         logerror("unable to open '%s'", path);
         return false;
     }
