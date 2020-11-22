@@ -5,6 +5,7 @@
 #include "networking/download_handler.h"
 #include "networking/receive_firmware_handler.h"
 #include "networking/logs_handler.h"
+#include "networking/file_handler.h"
 
 #include "storage/storage.h"
 
@@ -18,13 +19,15 @@ private:
     ReceiveFirmwareHandler receive_firmware_handler;
     HttpRoute receive_firmware{ "/fk/v1/upload/firmware", &receive_firmware_handler };
 
-    DownloadLogsHandler download_logs_handler;
+    DownloadLogsHandler download_handler_logs;
+    DownloadFileHandler download_handler_file;
     DownloadHandler download_handler_data{ Storage::Data };
     DownloadHandler download_handler_meta{ Storage::Meta };
-    HttpRoute downloads[3]{
-        { "/fk/v1/download/logs", &download_logs_handler },
+    HttpRoute downloads[4]{
+        { "/fk/v1/download/logs", &download_handler_logs },
         { "/fk/v1/download/data", &download_handler_data },
         { "/fk/v1/download/meta", &download_handler_meta },
+        { "/fk/v1/download/file", &download_handler_file },
     };
 
     ModuleHandler module_handlers[5]{
@@ -54,6 +57,7 @@ public:
         router.add_route(&downloads[0]);
         router.add_route(&downloads[1]);
         router.add_route(&downloads[2]);
+        router.add_route(&downloads[3]);
         router.add_route(&receive_firmware);
         router.add_route(&api);
     }

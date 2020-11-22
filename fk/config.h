@@ -333,7 +333,7 @@ constexpr size_t WifiMaximumPasswordLength = 64;
  * The number of fixed HTTP routes that the firmware registers. These are routes
  * that are always there and never change with configuration.
  */
-constexpr size_t HttpFixedRoutes = 5;
+constexpr size_t HttpFixedRoutes = 6;
 
 /**
  * The maximum number of HTTP routes that can be registered. Trying to register

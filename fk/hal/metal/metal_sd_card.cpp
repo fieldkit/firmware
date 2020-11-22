@@ -20,10 +20,11 @@ namespace fk {
 
 FK_DECLARE_LOGGER("sdcard");
 
-constexpr size_t SdMaximumNameLength = 13;
+constexpr size_t SdMaximumNameLength = 30;
+
+static optional<bool> open_path(SdFile &dir, const char *path, oflag_t oflag);
 
 static bool number_of_files(SdFile &dir, size_t &nfiles);
-static optional<bool> open_path(SdFile &dir, const char *path, Pool &pool);
 
 MetalSdCard::MetalSdCard() : sd_(&SD_SPI) {
 }
@@ -261,7 +262,13 @@ bool MetalSdCard::ls(const char *path, size_t skip, fk_app_DirectoryEntry** file
     nfiles = 0;
 
     SdFile dir;
-    if (!open_path(sd_, dir, path, pool)) {
+    auto opened = open_path(dir, path, O_RDONLY);
+    if (!opened) {
+        return false;
+    }
+
+    if (!*opened) {
+        logwarn("no such path, todo-404");
         return false;
     }
 
@@ -325,13 +332,21 @@ bool MetalSdCard::ls(const char *path, size_t skip, fk_app_DirectoryEntry** file
 
 SdCardFile *MetalSdCard::open(const char *path, bool writing, Pool &pool) {
     loginfo("opening '%s'", path);
-
     auto flags = writing ? O_WRONLY | O_CREAT | O_EXCL : O_RDONLY;
-
     return new (pool) MetalSdCardFile(path, flags);
 }
 
-MetalSdCardFile::MetalSdCardFile(const char *path, oflag_t oflag) : file_(path, oflag) {
+MetalSdCardFile::MetalSdCardFile(const char *path, oflag_t oflag) {
+    if (path[0] == '/') {
+        if (!open_path(file_, path, oflag)) {
+            logwarn("open failed");
+        }
+    }
+    else {
+        if (!file_.open(path, oflag)) {
+            logwarn("open failed");
+        }
+    }
 }
 
 int32_t MetalSdCardFile::write(uint8_t const *buffer, size_t size) {
@@ -358,12 +373,84 @@ size_t MetalSdCardFile::file_size() {
 
 bool MetalSdCardFile::close() {
     file_.flush();
-
     return file_.close();
 }
 
 bool MetalSdCardFile::is_open() const {
     return file_.isFile() && file_.isOpen();
+}
+
+/**
+ * I wish there was an easier way to do this. This starts at the root
+ * and opens up an arbitrary directory so we can do the listing.
+ */
+static optional<bool> open_path(SdFile &dir, const char *path, oflag_t oflag) {
+    auto p = path;
+
+    if (p[0] != '/') {
+        logerror("absoulte path required");
+        return nullopt;
+    }
+
+    loginfo("opening: /");
+    if (!dir.open("/")) {
+        logerror("unable to open %s", path);
+        return nullopt;
+    }
+
+    p++;
+
+    while (*p != 0) {
+        char name[SdMaximumNameLength];
+
+        auto slash = strchr(p, '/');
+        size_t length = slash == nullptr ? strlen(p) : slash - p;
+        auto end = slash == nullptr;
+
+        bzero(name, sizeof(name));
+        strncpy(name, p, std::min(length, SdMaximumNameLength));
+
+        loginfo("opening: %s%s", name, end ? " E" : "");
+
+        dir.rewind();
+
+        auto found = false;
+        SdFile file;
+        while (file.openNext(&dir, end ? oflag : O_RDONLY)) {
+            file.getName(name, sizeof(name));
+            if (strncmp(name, p, length) == 0) {
+                found = true;
+                dir = file;
+                break;
+            }
+            file.close();
+        }
+
+        if (!found) {
+            return false;
+        }
+
+        if (slash == nullptr) {
+            break;
+        }
+
+        p = slash + 1;
+    }
+
+    return true;
+}
+
+static bool number_of_files(SdFile &dir, size_t &nfiles) {
+    dir.rewind();
+    nfiles = 0;
+
+    SdFile file;
+    while (file.openNext(&dir, O_RDONLY)) {
+        nfiles++;
+        file.close();
+    }
+
+    return true;
 }
 
 }

@@ -267,7 +267,7 @@ bool SelfCheck::sd_card_write() {
         }
 
         FormattedTime formatted{ get_clock_now(), TimeFormatMachine };
-        char file_name[strlen(formatted.cstr()) + 4 + 1];
+        char file_name[strlen(formatted.cstr()) + 4 + 1]; // TODO: Ugly
         tiny_snprintf(file_name, sizeof(file_name), "%s.chk", formatted.cstr());
 
         auto file = sd_card->open(file_name, true, pool);
