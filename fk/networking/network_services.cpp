@@ -79,10 +79,6 @@ bool NetworkServices::begin(NetworkSettings settings, uint32_t to, Pool &pool) {
 bool NetworkServices::serve() {
     default_routes.add_routes(router_);
 
-    if (!network_->serve()) {
-        return false;
-    }
-
     http_listener_ = network_->listen(80);
     if (http_listener_ == nullptr) {
         return false;
@@ -90,6 +86,10 @@ bool NetworkServices::serve() {
 
     debug_listener_ = network_->listen(23);
     if (debug_listener_ == nullptr) {
+        return false;
+    }
+
+    if (!network_->serve()) {
         return false;
     }
 

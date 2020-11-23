@@ -322,8 +322,7 @@ void MetalNetwork::service(Pool *pool) {
 PoolPointer<NetworkConnection> *MetalNetwork::open_connection(const char *scheme, const char *hostname, uint16_t port) {
     WiFiClient wcl;
 
-    auto https = "https";
-    if (strcmp(scheme, https) == 0) {
+    if (strcmp(scheme, "https") == 0) {
         logdebug("connection %s %d (ssl)", hostname, port);
         if (!wcl.connectSSL(hostname, port, true)) {
             return nullptr;
@@ -366,7 +365,6 @@ bool MetalNetwork::synchronize_time() {
         ntp_.pool(pool_);
         ntp_.start();
     }
-
     return true;
 }
 
@@ -407,7 +405,6 @@ MetalNetworkListener::MetalNetworkListener(uint16_t port) : port_(port) {
 
 bool MetalNetworkListener::begin() {
     server_.begin();
-
     return true;
 }
 
