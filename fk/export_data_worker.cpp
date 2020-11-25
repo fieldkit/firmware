@@ -36,6 +36,7 @@ void ExportDataWorker::run(Pool &pool) {
     }
 
     FormattedTime formatted{ get_clock_now(), TimeFormatMachine };
+    loginfo("mkdir %s", formatted.cstr());
     if (!sd->mkdir(formatted.cstr())) {
         logerror("error making directory '%s'", formatted.cstr());
         return;

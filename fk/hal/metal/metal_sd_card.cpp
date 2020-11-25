@@ -339,14 +339,24 @@ SdCardFile *MetalSdCard::open(const char *path, bool writing, Pool &pool) {
 
 MetalSdCardFile::MetalSdCardFile(const char *path, oflag_t oflag) {
     if (path[0] == '/') {
-        if (!open_path(file_, path, oflag)) {
-            logwarn("open failed");
+        auto opened = open_path(file_, path, oflag);
+        if (!opened) {
+            logerror("open failed (serious)");
+        }
+        else if (!*opened) {
+            logerror("open failed");
         }
     }
     else {
         if (!file_.open(path, oflag)) {
             logwarn("open failed");
         }
+    }
+    if (!file_.isFile())  {
+        logwarn("open failed, no file");
+    }
+    if (!file_.isOpen())  {
+        logwarn("open failed, closed");
     }
 }
 
@@ -393,13 +403,18 @@ static optional<bool> open_path(SdFile &dir, const char *path, oflag_t oflag) {
         return nullopt;
     }
 
-    loginfo("opening: /");
+    if (oflag & O_CREAT) {
+        loginfo("creating new file: %s", path);
+        return dir.open(path, oflag);
+    }
+
+    p++;
+
+    loginfo("opening: /%s", *p == 0 ? " E" : "");
     if (!dir.open("/")) {
         logerror("unable to open %s", path);
         return nullopt;
     }
-
-    p++;
 
     while (*p != 0) {
         char name[SdMaximumNameLength];
@@ -420,6 +435,7 @@ static optional<bool> open_path(SdFile &dir, const char *path, oflag_t oflag) {
         while (file.openNext(&dir, end ? oflag : O_RDONLY)) {
             file.getName(name, sizeof(name));
             if (strncmp(name, p, length) == 0) {
+                loginfo("path found");
                 found = true;
                 dir = file;
                 break;
@@ -428,10 +444,12 @@ static optional<bool> open_path(SdFile &dir, const char *path, oflag_t oflag) {
         }
 
         if (!found) {
+            loginfo("path missing");
             return false;
         }
 
         if (slash == nullptr) {
+            loginfo("end of path");
             break;
         }
 
