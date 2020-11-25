@@ -287,9 +287,12 @@ bool MetalSdCard::ls(const char *path, size_t skip, fk_app_DirectoryEntry** dir_
     // Avoid overflowing page allocation by paging.
     auto max_files_per_ls = StandardPageSize / sizeof(fk_app_DirectoryEntry) / 2;
     auto returning_entries = (size_t)std::min((int32_t)max_files_per_ls, std::max((int32_t)(total_entries - skip), (int32_t)0));
-    auto entries = (fk_app_DirectoryEntry *)pool.malloc(sizeof(fk_app_DirectoryEntry) * returning_entries);
-
     loginfo("ls netries=%zu max=%zu skip=%zu", returning_entries, max_files_per_ls, skip);
+    if (returning_entries == 0) {
+        return true;
+    }
+
+    auto entries = (fk_app_DirectoryEntry *)pool.malloc(sizeof(fk_app_DirectoryEntry) * returning_entries);
 
     auto file_number = 0u;
     auto index = 0u;
