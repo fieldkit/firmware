@@ -20,28 +20,43 @@ ReadingsWorker::ReadingsWorker(bool scan, bool read_only, bool verify)
 }
 
 void ReadingsWorker::run(Pool &pool) {
-    auto throttle_info = read_throttle_and_power_save();
-    if (throttle_info.throttle) {
-        logwarn("readings throttled");
+    if (!prepare(pool)) {
         return;
     }
 
-    auto lock = storage_mutex.acquire(UINT32_MAX);
+    take(pool);
+}
 
+bool ReadingsWorker::prepare(Pool &pool) {
+    if (get_ipc()->has_running_worker(WorkerCategory::Readings)) {
+        return false;
+    }
+
+    auto throttle_info = read_throttle_and_power_save();
+    if (throttle_info.throttle) {
+        logwarn("readings throttled");
+        return false;
+    }
+
+    auto lock = storage_mutex.acquire(UINT32_MAX);
     if (scan_) {
         ScanModulesWorker scan_worker;
         scan_worker.run(pool);
     }
 
+    return true;
+}
+
+bool ReadingsWorker::take(Pool &pool) {
     auto taken_readings = take_readings(pool);
     if (!taken_readings) {
-        return;
+        return false;
     }
 
     auto &all_readings = taken_readings->readings;
     if (all_readings.size() == 0) {
         logwarn("no readings");
-        return;
+        return false;
     }
 
     auto data_pool = create_pool_inside("readings");
@@ -132,6 +147,8 @@ void ReadingsWorker::run(Pool &pool) {
         logdebug("physical updated gs->modules=0x%p .modules=0x%p nmodules=%zd", modules, modules->modules,
                  modules->nmodules);
     });
+
+    return true;
 }
 
 ReadingsWorker::ThrottleAndPowerSave ReadingsWorker::read_throttle_and_power_save() {

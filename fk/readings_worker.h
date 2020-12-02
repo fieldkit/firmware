@@ -29,6 +29,10 @@ public:
         return "readings";
     }
 
+protected:
+    bool prepare(Pool &pool);
+    bool take(Pool &pool);
+
 private:
     struct ThrottleAndPowerSave {
         bool throttle;

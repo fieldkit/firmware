@@ -13,6 +13,7 @@
 #include "export_data_worker.h"
 #include "compare_banks_worker.h"
 #include "lora_ranging_worker.h"
+#include "poll_sensors_worker.h"
 
 #include "modules/configure_module_worker.h"
 #include "modules/refresh_modules_worker.h"
@@ -438,8 +439,13 @@ void MenuView::create_tools_menu() {
         DeepSleep ds;
         ds.once();
     });
+    auto tools_poll_sensors = to_lambda_option(pool_, "Poll Sensors", [=]() {
+        back_->on_selected();
+        get_ipc()->launch_worker(create_pool_worker<PollSensorsWorker>());
+        views_->show_readings();
+    });
 
-    tools_menu_ = new_menu_screen<14>(pool_, "tools", {
+    tools_menu_ = new_menu_screen<15>(pool_, "tools", {
         back_,
         tools_self_check,
         tools_gps,
@@ -450,6 +456,7 @@ void MenuView::create_tools_menu() {
         tools_dump_flash,
         tools_format_sd,
         tools_sleep_test,
+        tools_poll_sensors,
         tools_fsck,
         tools_export_data,
         tools_factory_reset,
