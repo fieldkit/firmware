@@ -12,6 +12,7 @@ class Activity;
 enum class WorkerCategory  {
     None,
     Readings,
+    Polling,
     Storage,
     Transfer,
     Lora,

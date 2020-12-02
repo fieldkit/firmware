@@ -441,7 +441,7 @@ void MenuView::create_tools_menu() {
     });
     auto tools_poll_sensors = to_lambda_option(pool_, "Poll Sensors", [=]() {
         back_->on_selected();
-        get_ipc()->launch_worker(create_pool_worker<PollSensorsWorker>());
+        get_ipc()->launch_worker(WorkerCategory::Polling, create_pool_worker<PollSensorsWorker>());
         views_->show_readings();
     });
 

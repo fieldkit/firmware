@@ -20,6 +20,10 @@ ReadingsWorker::ReadingsWorker(bool scan, bool read_only, bool verify)
 }
 
 void ReadingsWorker::run(Pool &pool) {
+    if (get_ipc()->has_running_worker(WorkerCategory::Polling)) {
+        return;
+    }
+
     if (!prepare(pool)) {
         return;
     }
@@ -28,10 +32,6 @@ void ReadingsWorker::run(Pool &pool) {
 }
 
 bool ReadingsWorker::prepare(Pool &pool) {
-    if (get_ipc()->has_running_worker(WorkerCategory::Readings)) {
-        return false;
-    }
-
     auto throttle_info = read_throttle_and_power_save();
     if (throttle_info.throttle) {
         logwarn("readings throttled");
