@@ -246,9 +246,23 @@ static bool configure(HttpServerConnection *connection, fk_app_HttpQuery *query,
                 auto &n = networks[i];
                 auto ssid = (const char *)n.ssid.arg;
                 auto password = (const char *)n.password.arg;
-                loginfo("[%d] network: %s", i, ssid);
-
                 auto &nc = gs->network.config.wifi_networks[i];
+
+                // Check to see if the user is intending to keep this
+                // network as-is. We always set them if the SSID is
+                // different.
+                auto same_ssid = strncmp(ssid, nc.ssid, sizeof(nc.ssid)) == 0;
+                if (same_ssid) {
+                    // If they are, then great we just skip. Otherwise
+                    // they're intending to change the password.
+                    if (n.keeping) {
+                        loginfo("[%d] network: %s (keep)", i, ssid);
+                        continue;
+                    }
+                }
+
+                loginfo("[%d] network: %s %s", i, ssid, same_ssid ? "(same)" : "(new)");
+
                 strncpy(nc.ssid, ssid, sizeof(nc.ssid));
                 strncpy(nc.password, password, sizeof(nc.password));
                 nc.valid = nc.ssid[0] != 0;
