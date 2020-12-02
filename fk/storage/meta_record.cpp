@@ -119,7 +119,7 @@ void MetaRecord::include_state(GlobalState const *gs, fkb_header_t const *fkb_he
 
     auto networks = pool.malloc<fk_data_NetworkInfo>(WifiMaximumNumberOfNetworks);
     for (auto i = 0u; i < WifiMaximumNumberOfNetworks; ++i) {
-        networks[i] = fk_app_NetworkInfo_init_default;
+        networks[i] = fk_data_NetworkInfo_init_default;
         networks[i].ssid.funcs.encode = pb_encode_string;
         networks[i].ssid.arg = (void *)gs->network.config.wifi_networks[i].ssid;
         networks[i].password.funcs.encode = pb_encode_string;
