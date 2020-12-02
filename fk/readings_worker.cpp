@@ -1,10 +1,10 @@
 #include <samd51_common.h>
 
-#include "readings_worker.h"
-#include "readings_taker.h"
-#include "state_manager.h"
 #include "graceful_shutdown.h"
 #include "hal/hal.h"
+#include "readings_taker.h"
+#include "readings_worker.h"
+#include "state_manager.h"
 
 #include "modules/module_factory.h"
 #include "modules/scan_modules_worker.h"
@@ -15,7 +15,8 @@ static size_t failures = 0;
 
 FK_DECLARE_LOGGER("rw");
 
-ReadingsWorker::ReadingsWorker(bool scan, bool read_only, bool verify) : scan_(scan), read_only_(read_only), verify_(verify) {
+ReadingsWorker::ReadingsWorker(bool scan, bool read_only, bool verify)
+    : scan_(scan), read_only_(read_only), verify_(verify) {
 }
 
 void ReadingsWorker::run(Pool &pool) {
@@ -100,8 +101,7 @@ void ReadingsWorker::run(Pool &pool) {
 
     if (!has_readings) {
         failures++;
-    }
-    else {
+    } else {
         failures = 0;
     }
 
@@ -129,7 +129,8 @@ void ReadingsWorker::run(Pool &pool) {
 
         gs->update_physical_modules(taken_readings->constructed_modules);
 
-        logdebug("physical updated gs->modules=0x%p .modules=0x%p nmodules=%zd", modules, modules->modules, modules->nmodules);
+        logdebug("physical updated gs->modules=0x%p .modules=0x%p nmodules=%zd", modules, modules->modules,
+                 modules->nmodules);
     });
 }
 
@@ -179,4 +180,4 @@ tl::expected<TakenReadings, Error> ReadingsWorker::take_readings(Pool &pool) {
     return taken_readings;
 }
 
-}
+} // namespace fk

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "worker.h"
 #include "readings.h"
 #include "storage/storage.h"
+#include "worker.h"
 
 namespace fk {
 
@@ -18,11 +18,11 @@ public:
 public:
     void run(Pool &pool) override;
 
-    uint8_t priority() const  override{
+    uint8_t priority() const override {
         return OS_PRIORITY_NORMAL;
     }
 
-    const char *name() const override{
+    const char *name() const override {
         if (read_only_) {
             return "livedata";
         }
@@ -38,10 +38,8 @@ private:
     ThrottleAndPowerSave read_throttle_and_power_save();
 
     tl::expected<TakenReadings, Error> take_readings(Pool &pool);
-
-
 };
 
 FK_ENABLE_TYPE_NAME(ReadingsWorker);
 
-}
+} // namespace fk
