@@ -444,8 +444,18 @@ void MenuView::create_tools_menu() {
         get_ipc()->launch_worker(WorkerCategory::Polling, create_pool_worker<PollSensorsWorker>());
         views_->show_readings();
     });
+    auto tools_crash_assertion = to_lambda_option(pool_, "Crash Assert", [=]() {
+        back_->on_selected();
+        views_->show_home();
+        FK_ASSERT(false);
+    });
+    auto tools_crash_hardf = to_lambda_option(pool_, "Crash HF", [=]() {
+        back_->on_selected();
+        views_->show_home();
+        *((uint32_t *)0xdeadbeef) = 0xdeadbeef;
+    });
 
-    tools_menu_ = new_menu_screen<15>(pool_, "tools", {
+    tools_menu_ = new_menu_screen<17>(pool_, "tools", {
         back_,
         tools_self_check,
         tools_gps,
@@ -458,6 +468,8 @@ void MenuView::create_tools_menu() {
         tools_sleep_test,
         tools_poll_sensors,
         tools_fsck,
+        tools_crash_hardf,
+        tools_crash_assertion,
         tools_export_data,
         tools_factory_reset,
         tools_restart,
