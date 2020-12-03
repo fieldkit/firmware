@@ -1,5 +1,7 @@
 #pragma once
 
+#include <loading.h>
+
 #include "worker.h"
 #include "storage/storage.h"
 #include "hal/sd_card.h"
@@ -7,6 +9,7 @@
 namespace fk {
 
 enum class SdCardFirmwareOperation {
+    None,
     Save,
     Load,
 };
@@ -16,6 +19,8 @@ struct SdCardFirmware {
     const char *bootloader;
     const char *main;
     bool swap;
+    bool compare;
+    uint32_t delay;
 };
 
 class UpgradeFirmwareFromSdWorker : public Worker {
@@ -41,6 +46,8 @@ public:
     bool save_firmware(const char *path, uint32_t address, size_t bytes, Pool &pool);
 
     bool load_firmware(const char *path, uint32_t address, Pool &pool);
+
+    bool log_file_firmware(const char *path, fkb_header_t *header, Pool &pool);
 
     void log_other_firmware();
 

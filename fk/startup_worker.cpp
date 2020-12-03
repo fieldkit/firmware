@@ -16,6 +16,7 @@
 #include "status_logging.h"
 #include "utilities.h"
 #include "secrets.h"
+#include "upgrade_from_sd_worker.h"
 
 #include "modules/bridge/modules.h"
 #include "modules/scanning.h"
@@ -34,18 +35,23 @@ FK_DECLARE_LOGGER("startup");
 static void copy_cron_spec_from_pb(const char *name, Schedule &cs, fk_data_JobSchedule &pb, Pool &pool);
 
 void StartupWorker::run(Pool &pool) {
-    if (check_for_interactive_startup()) {
+    loginfo("ready display");
+    auto display = get_display();
+
+    loginfo("check for provision startup");
+    if (check_for_provision_startup(pool)) {
+        return;
+    }
+
+    loginfo("check for interactive startup");
+    if (check_for_interactive_startup(pool)) {
         FK_ASSERT(os_task_start(&display_task) == OSS_SUCCESS);
         return;
     }
 
-    loginfo("ready display");
-
-    auto display = get_display();
     display->company_logo();
 
     loginfo("ready hardware");
-
     auto mm = get_modmux();
 
     // NOTE Power cycle modules, this gives us a fresh start. Some times behave
@@ -54,15 +60,17 @@ void StartupWorker::run(Pool &pool) {
     // I tried moving the enable all to after the storage read and ran into the
     // same issue. After the self check seems ok, though?
     mm->disable_all_modules();
-
     // Lock, just during startup.
     auto lock = mm->lock();
 
+    // Save startup diagnostics before self-check, just incase there
+    // was something wrong last time.
+    save_startup_diagnostics();
+
+    // Run self-check.
     NoopSelfCheckCallbacks noop_callbacks;
     SelfCheck self_check(display, get_network(), mm, get_module_leds());
     self_check.check(SelfCheckSettings::defaults(), noop_callbacks, &pool);
-
-    save_startup_diagnostics();
 
     loginfo("prime global state");
 
@@ -92,10 +100,9 @@ void StartupWorker::run(Pool &pool) {
 }
 
 bool StartupWorker::load_or_create_state(Pool &pool) {
-    Storage storage{ MemoryFactory::get_data_memory(), pool, false };
-
     auto gs = get_global_state_rw();
 
+    Storage storage{ MemoryFactory::get_data_memory(), pool, false };
     if (!load_state(storage, gs.get(), pool)) {
         logwarn("problem loading state, starting fresh");
 
@@ -367,15 +374,12 @@ bool StartupWorker::load_previous_location(Storage &storage, GlobalState *gs, Fi
 bool StartupWorker::check_for_lora(Pool &pool) {
     auto gs = get_global_state_rw();
     auto lora = get_lora_network();
-
     if (!lora->begin()) {
         return true;
     }
 
     auto device_eui = lora->device_eui();
-
     memcpy(gs.get()->lora.device_eui, device_eui, LoraDeviceEuiLength);
-
     loginfo("(loaded) lora device eui: %s", bytes_to_hex_string_pool(device_eui, LoraDeviceEuiLength, pool));
 
     // Turn the radio off for now, will stay powered when we start
@@ -387,21 +391,49 @@ bool StartupWorker::check_for_lora(Pool &pool) {
 
 bool StartupWorker::save_startup_diagnostics() {
     loginfo("saving startup diagnostics (%s) (bank = %d)", fk_get_reset_reason_string(), fk_nvm_get_active_bank());
-
     fk_logs_write_saved_and_free();
+    return true;
+}
+
+bool StartupWorker::check_for_provision_startup(Pool &pool) {
+    auto lock = sd_mutex.acquire(UINT32_MAX);
+    auto sd = get_sd_card();
+
+    if (!sd->begin()) {
+        logerror("error opening sd card");
+        return false;
+    }
+
+    auto config_file = "fk.cfg";
+    if (!sd->is_file(config_file)) {
+        loginfo("no %s found", config_file);
+        return false;
+    }
+
+    GlobalStateManager gsm;
+    gsm.notify("provisioning");
+
+    FK_ASSERT(os_task_start(&display_task) == OSS_SUCCESS);
+
+    auto swap = true;
+    auto main_binary = "fk-bundled-fkb.bin";
+    auto bl_binary = "fkbl-fkb.bin";
+    auto params = SdCardFirmware{ SdCardFirmwareOperation::Load, bl_binary, main_binary, swap, true, OneSecondMs };
+    UpgradeFirmwareFromSdWorker upgrade_worker{ params };
+    upgrade_worker.run(pool);
+
+    fk_logs_flush();
 
     return true;
 }
 
-bool StartupWorker::check_for_interactive_startup() {
+bool StartupWorker::check_for_interactive_startup(Pool &pool) {
     auto buttons = get_buttons();
-
     if (buttons->number_pressed() == 0) {
         return false;
     }
 
     auto display = get_display();
-
     display->simple(SimpleScreen{ "Hold for Debug" });
 
     auto started = fk_uptime();

@@ -430,6 +430,11 @@ constexpr bool DebugEnableMemoryDumps = false;
 constexpr uint32_t BootloaderSize = 0x8000;
 
 /**
+ * Address of the primary bank of flash memory.
+ */
+constexpr uint32_t PrimaryBankAddress = 0x00000;
+
+/**
  * Address of the secondary bank of flash memory.
  */
 constexpr uint32_t OtherBankAddress = 0x80000;

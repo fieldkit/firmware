@@ -29,15 +29,8 @@ fkb_header_t *fkb_try_header(void *ptr) {
 UpgradeFirmwareFromSdWorker::UpgradeFirmwareFromSdWorker(SdCardFirmware &params) : params_(params) {
 }
 
-void UpgradeFirmwareFromSdWorker::log_other_firmware() {
-    auto ptr = reinterpret_cast<uint8_t*>(OtherBankAddress + BootloaderSize);
-
-    auto fkbh = fkb_try_header(ptr);
-    if (fkbh == NULL) {
-        return;
-    }
-
-    loginfo("[0x%8p] found '%s' / #%" PRIu32 " '%s' flags=0x%" PRIx32 " size=%" PRIu32 " dyntables=+%" PRIu32 " data=%" PRIu32 " bss=%" PRIu32 " got=%" PRIu32 " vtor=0x%" PRIx32, ptr,
+static void log_fkb_header(fkb_header_t *fkbh) {
+    loginfo("[0x%8p] found '%s' / #%" PRIu32 " '%s' flags=0x%" PRIx32 " size=%" PRIu32 " dyntables=+%" PRIu32 " data=%" PRIu32 " bss=%" PRIu32 " got=%" PRIu32 " vtor=0x%" PRIx32, fkbh,
             fkbh->firmware.name, fkbh->firmware.number, fkbh->firmware.version,
             fkbh->firmware.flags, fkbh->firmware.binary_size, fkbh->firmware.tables_offset,
             fkbh->firmware.data_size, fkbh->firmware.bss_size, fkbh->firmware.got_size,
@@ -46,17 +39,85 @@ void UpgradeFirmwareFromSdWorker::log_other_firmware() {
     char hex_hash[(fkbh->firmware.hash_size * 2) + 1];
     bytes_to_hex_string(hex_hash, sizeof(hex_hash), fkbh->firmware.hash, fkbh->firmware.hash_size);
 
-    loginfo("[0x%8p] hash='%s' timestamp=%" PRIu32, ptr, hex_hash, fkbh->firmware.timestamp);
+    loginfo("[0x%8p] hash='%s' timestamp=%" PRIu32, fkbh, hex_hash, fkbh->firmware.timestamp);
+}
+
+static bool same_header(fkb_header_t *a, fkb_header_t *b) {
+    if (a == nullptr || b == nullptr) return false;
+    if (a->firmware.hash_size != b->firmware.hash_size) return false;
+    return memcmp(a->firmware.hash, b->firmware.hash, b->firmware.hash_size) == 0;
+}
+
+bool UpgradeFirmwareFromSdWorker::log_file_firmware(const char *path, fkb_header_t *header, Pool &pool) {
+    auto sd = get_sd_card();
+    if (!sd->begin()) {
+        logerror("error opening sd card");
+        return false;
+    }
+
+    if (!sd->is_file(path)) {
+        loginfo("no such file %s", path);
+        return false;
+    }
+
+    auto file = sd->open(path, false, pool);
+    if (file == nullptr || !file->is_open()) {
+        logerror("unable to open '%s'", path);
+        return false;
+    }
+
+    auto file_size = file->file_size();
+    loginfo("opened %zd bytes", file_size);
+    if (file_size == 0) {
+        logerror("empty file '%s'", path);
+        file->close();
+        return false;
+    }
+
+    file->seek_beginning();
+
+    auto HeaderSize = sizeof(fkb_header_t);
+    auto bytes_read = file->read((uint8_t *)header, HeaderSize);
+    file->close();
+
+    if (bytes_read != (int32_t)HeaderSize) {
+        logerror("error reading header '%s'", path);
+        return false;
+    }
+
+    auto fkbh = fkb_try_header((void *)header);
+    if (fkbh == NULL) {
+        logerror("error finding header '%s'", path);
+        return false;
+    }
+
+    log_fkb_header(fkbh);
+
+    return true;
+}
+
+void UpgradeFirmwareFromSdWorker::log_other_firmware() {
+    auto ptr = reinterpret_cast<uint8_t*>(OtherBankAddress + BootloaderSize);
+    auto fkbh = fkb_try_header(ptr);
+    if (fkbh == NULL) {
+        return;
+    }
+
+    log_fkb_header(fkbh);
 }
 
 void UpgradeFirmwareFromSdWorker::run(Pool &pool) {
     auto bl_path = params_.bootloader;
     auto main_path = params_.main;
+    // Why not do this?
     // auto lock = sd_mutex.acquire(UINT32_MAX);
 
     GlobalStateManager gsm;
 
     switch (params_.operation) {
+    case SdCardFirmwareOperation::None: {
+        break;
+    }
     case SdCardFirmwareOperation::Save: {
         if (bl_path != nullptr) {
             if (!save_firmware(bl_path, 0x0, BootloaderSize, pool)) {
@@ -76,6 +137,36 @@ void UpgradeFirmwareFromSdWorker::run(Pool &pool) {
         break;
     }
     case SdCardFirmwareOperation::Load: {
+        if (main_path != nullptr) {
+            fkb_header_t file_header;
+            if (!log_file_firmware(main_path, &file_header, pool)) {
+                gsm.notify("error inspecting fk");
+                return;
+            }
+
+            auto ptr = reinterpret_cast<uint8_t *>(PrimaryBankAddress + BootloaderSize);
+            auto running_fkbh = fkb_try_header(ptr);
+            if (running_fkbh == NULL) {
+                gsm.notify("fatal error");
+                return;
+            }
+
+            loginfo("running firmware");
+            log_fkb_header(running_fkbh);
+
+            if (params_.compare) {
+                loginfo("comparing firmware");
+                if (same_header(running_fkbh, &file_header)) {
+                    gsm.notify(pool.sprintf("fw #%d", running_fkbh->firmware.number));
+                    loginfo("same firmware");
+                    return;
+                }
+                else {
+                    loginfo("new firmware");
+                }
+            }
+        }
+
         if (bl_path != nullptr && has_file(bl_path)) {
             loginfo("loading bootloader");
             if (!load_firmware(bl_path, OtherBankAddress, pool)) {
@@ -89,7 +180,6 @@ void UpgradeFirmwareFromSdWorker::run(Pool &pool) {
 
         if (main_path != nullptr) {
             loginfo("loading firmware");
-
             if (!load_firmware(main_path, OtherBankAddress + BootloaderSize, pool)) {
                 gsm.notify("error loading fk");
                 return;
@@ -108,8 +198,7 @@ void UpgradeFirmwareFromSdWorker::run(Pool &pool) {
 
             fk_graceful_shutdown();
 
-            fk_delay(500);
-
+            fk_delay(params_.delay);
             fk_nvm_swap_banks();
         }
         else {
@@ -203,9 +292,12 @@ bool UpgradeFirmwareFromSdWorker::load_firmware(const char *path, uint32_t addre
     }
 
     auto file_size = file->file_size();
+    if (file_size == 0) {
+        logerror("empty file '%s'", path);
+        return false;
+    }
 
     loginfo("opened %zd bytes", file_size);
-
     file->seek_beginning();
 
     BLAKE2b b2b;

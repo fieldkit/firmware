@@ -98,7 +98,7 @@ void ReceiveFirmwareWorker::run(Pool &pool) {
 
     loginfo("launch upgrade");
 
-    auto params = SdCardFirmware{ SdCardFirmwareOperation::Load, nullptr, file_name, swap };
+    auto params = SdCardFirmware{ SdCardFirmwareOperation::Load, nullptr, file_name, swap, false, OneSecondMs };
     UpgradeFirmwareFromSdWorker upgrade_worker{ params };
     upgrade_worker.run(pool);
 }
