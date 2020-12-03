@@ -100,7 +100,10 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
         for (auto i = 0u; i < readings->size(); ++i) {
             auto value = readings->get(i);
             loginfo("[%2d] '%s.%s' = %f", i, meta->name, sensor_metas->sensors[i].name, value);
-            sensor_values[i] = { i, value };
+            sensor_values[i] = fk_data_SensorAndValue_init_default;
+            sensor_values[i].sensor = i;
+            sensor_values[i].value = value;
+            // sensor_values[i].uncalibrated = value;
         }
 
         auto readings_array = pool.malloc_with<pb_array_t>({
