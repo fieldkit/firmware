@@ -4,6 +4,7 @@
 
 #include "fk.h"
 #include "platform.h"
+#include "logging.h"
 
 #if defined(__SAMD51__)
 #include <Arduino.h>
@@ -200,6 +201,8 @@ void osi_panic(os_panic_kind_t code) {
     for (os_task_t *iter = osg.waitqueue; iter != NULL; iter = iter->nrp) {
         alogf(LogLevels::ERROR, "error", "wq '%s' status(%s) (0x%" PRIx32 ")", iter->name, os_task_status_str(iter->status), iter->priority);
     }
+
+    fk::fk_logs_flush();
 
     #if defined(__SAMD21__) || defined(__SAMD51__)
     NVIC_SystemReset();
