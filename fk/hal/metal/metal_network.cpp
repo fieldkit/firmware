@@ -384,6 +384,9 @@ bool MetalNetwork::get_created_ap() {
 
 NetworkScan MetalNetwork::scan(Pool &pool) {
     size_t number_ssids = WiFi.scanNetworks();
+    if (number_ssids == 0) {
+        return NetworkScan{ nullptr, 0 };
+    }
 
     auto ssids = (const char **)pool.malloc(sizeof(const char *) * number_ssids);
 

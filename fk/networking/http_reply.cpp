@@ -426,18 +426,21 @@ bool HttpReply::include_readings() {
 }
 
 bool HttpReply::include_scan(NetworkScan scan) {
-    auto nearby = (fk_app_NearbyNetwork *)pool_->malloc(sizeof(fk_app_NearbyNetwork) * scan.length());
-    for (auto i = 0u; i < scan.length(); ++i) {
-        loginfo("[%u]: network: %s", i, scan.network(i));
-        nearby[i].ssid.arg = (void *)scan.network(i);
-    }
-
     auto nearby_networks_array = pool_->malloc_with<pb_array_t>({
         .length = scan.length(),
         .itemSize = sizeof(fk_app_NearbyNetwork),
-        .buffer = nearby,
+        .buffer = nullptr,
         .fields = fk_app_NearbyNetwork_fields,
     });
+
+    if (scan.length() > 0) {
+        auto nearby = (fk_app_NearbyNetwork *)pool_->malloc(sizeof(fk_app_NearbyNetwork) * scan.length());
+        for (auto i = 0u; i < scan.length(); ++i) {
+            loginfo("[%u]: network: %s", i, scan.network(i));
+            nearby[i].ssid.arg = (void *)scan.network(i);
+        }
+        nearby_networks_array->buffer = nearby;
+    }
 
     reply_.has_nearbyNetworks = true;
     reply_.nearbyNetworks.networks.arg = (void *)nearby_networks_array;
