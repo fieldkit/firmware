@@ -23,6 +23,14 @@ public:
 
 };
 
+enum OpenFlags { Read = 1, Write = 2, Append = 4};
+
+/*
+inline OpenFlags operator|(OpenFlags a, OpenFlags b) {
+    return static_cast<OpenFlags>(static_cast<int>(a) | static_cast<int>(b));
+}
+*/
+
 class SdCard {
 public:
     virtual bool begin() = 0;
@@ -36,14 +44,14 @@ public:
     virtual bool is_directory(const char *path) = 0;
     virtual bool mkdir(const char *path) = 0;
     virtual bool unlink(const char *path) = 0;
-    virtual SdCardFile *open(const char *path, bool writing, Pool &pool) = 0;
+    virtual SdCardFile *open(const char *path, OpenFlags flags, Pool &pool) = 0;
     virtual bool format() = 0;
-    virtual bool ls(const char *path, size_t skip, fk_app_DirectoryEntry **files, size_t &number_entries, size_t &total_entries, Pool &pool) {
+    virtual bool ls(const char *path, size_t skip, fk_app_DirectoryEntry **files, size_t &number_entries,
+                    size_t &total_entries, Pool &pool) {
         return true;
     }
-
 };
 
 SdCard *get_sd_card();
 
-}
+} // namespace fk

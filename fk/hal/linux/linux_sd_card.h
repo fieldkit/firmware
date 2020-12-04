@@ -18,7 +18,7 @@ public:
     bool is_directory(const char *path) override;
     bool mkdir(const char *path) override;
     bool unlink(const char *path) override;
-    SdCardFile *open(const char *path, bool writing, Pool &pool) override;
+    SdCardFile *open(const char *path, OpenFlags flags, Pool &pool) override;
     bool format() override;
 
 };

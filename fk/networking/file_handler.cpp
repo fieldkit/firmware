@@ -37,7 +37,7 @@ void DownloadFileWorker::run(Pool &pool) {
     loginfo("downloading file: %s", path);
 
     auto sd = get_sd_card();
-    auto file = sd->open(path, false, pool);
+    auto file = sd->open(path, OpenFlags::Read, pool);
     if (file == nullptr || !file->is_open()) {
         connection_->plain(404, "not found", "not found");
         return;

@@ -42,7 +42,7 @@ void DumpFlashMemoryWorker::run(Pool &pool) {
         return;
     }
 
-    auto file = sd->open(path, true, pool);
+    auto file = sd->open(path, OpenFlags::Write, pool);
     if (file == nullptr || !file) {
         logerror("unable to open '%s'", path);
         return;

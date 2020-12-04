@@ -334,10 +334,20 @@ bool MetalSdCard::ls(const char *path, size_t skip, fk_app_DirectoryEntry** dir_
     return true;
 }
 
-SdCardFile *MetalSdCard::open(const char *path, bool writing, Pool &pool) {
-    loginfo("opening '%s'", path);
-    auto flags = writing ? O_WRONLY | O_CREAT | O_EXCL : O_RDONLY;
-    return new (pool) MetalSdCardFile(path, flags);
+SdCardFile *MetalSdCard::open(const char *path, OpenFlags flags, Pool &pool) {
+    auto sd_flags = 0;
+    // These are all or can be considered mutually exclusive.
+    if (flags == OpenFlags::Read) {
+        sd_flags = O_RDONLY;
+    }
+    else if (flags == OpenFlags::Append) {
+        sd_flags = O_WRONLY | O_CREAT | O_EXCL | O_APPEND;
+    }
+    else if (flags == OpenFlags::Write) {
+        sd_flags = O_WRONLY | O_CREAT | O_EXCL;
+    }
+    loginfo("opening '%s' (%d)", path, sd_flags);
+    return new (pool) MetalSdCardFile(path, sd_flags);
 }
 
 MetalSdCardFile::MetalSdCardFile(const char *path, oflag_t oflag) {

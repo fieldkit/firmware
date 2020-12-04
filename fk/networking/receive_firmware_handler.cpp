@@ -63,7 +63,7 @@ void ReceiveFirmwareWorker::run(Pool &pool) {
         }
     }
 
-    auto file = sd->open(file_name, true, pool);
+    auto file = sd->open(file_name, OpenFlags::Write, pool);
     if (file == nullptr || !*file) {
         read_complete_and_fail("create", pool);
     }

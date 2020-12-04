@@ -79,7 +79,7 @@ void ExportDataWorker::run(Pool &pool) {
 
         if (writing_ == nullptr) {
             auto path = pool.sprintf("/%s/d_%06" PRIu32 ".csv", formatted.cstr(), meta_record_number_);
-            writing_ = sd->open(path, true, pool);
+            writing_ = sd->open(path, OpenFlags::Append, pool);
             if (writing_ == nullptr || !writing_->is_open()) {
                 logerror("unable to open '%s'", path);
                 return;

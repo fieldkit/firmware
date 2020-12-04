@@ -30,7 +30,7 @@ public:
     bool is_directory(const char *path) override;
     bool mkdir(const char *path) override;
     bool unlink(const char *path) override;
-    SdCardFile *open(const char *path, bool writing, Pool &pool) override;
+    SdCardFile *open(const char *path, OpenFlags flags, Pool &pool) override;
     bool format() override;
     bool ls(const char *path, size_t skip, fk_app_DirectoryEntry **files, size_t &number_entries, size_t &total_entries, Pool &pool) override;
 
