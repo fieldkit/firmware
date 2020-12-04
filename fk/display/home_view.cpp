@@ -113,10 +113,6 @@ void HomeView::tick(ViewController *views, Pool &pool) {
     }
 
     display->home(screen);
-
-    if (fk_uptime() - gs.get()->notification.created < 1000) {
-        views->show_message(gs.get()->notification.message);
-    }
 }
 
 void HomeView::up(ViewController *views) {

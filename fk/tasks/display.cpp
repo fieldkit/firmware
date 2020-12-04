@@ -39,6 +39,7 @@ private:
     GpsView gps_view;
     LedsController leds;
     DisplayView *view = &home_view;
+    uint32_t notified_{ 0 };
 
 public:
     explicit MainViewController(Pool &pool) : menu_view{ this, pool } {
@@ -115,21 +116,36 @@ public:
         get_ipc()->launch_worker(create_pool_worker<WifiToggleWorker>(WifiToggleWorker::DesiredState::Enabled));
     }
 
-    void run() {
-        IntervalTimer stop_timer;
-        auto can_stop = os_task_is_running(&scheduler_task);
+    void refresh_notifications() {
+        auto gs = get_global_state_ro();
+        auto &notif = gs.get()->notification;
+        if (notif.created > 0 && notified_ < notif.created) {
+            loginfo("notification: '%s'", notif.message);
+            notified_ = notif.created;
+            show_message(notif.message);
+        }
+    }
 
+    void run() {
+        auto can_stop = os_task_is_running(&scheduler_task);
         if (!leds.begin()) {
             logwarn("leds unavailable");
         }
 
-        StandardPool pool{ "display-frame" };
+        refresh_notifications();
 
+        IntervalTimer stop_timer;
+        IntervalTimer notifications_timer;
+        StandardPool pool{ "display-frame" };
         while (!can_stop || !stop_timer.expired(FiveMinutesMs)) {
             if (!view->custom_leds()) {
                 leds.tick();
             }
             view->tick(this, pool);
+
+            if (notifications_timer.expired(100)) {
+                refresh_notifications();
+            }
 
             Button *button = nullptr;
             if (get_ipc()->dequeue_button(&button)) {
