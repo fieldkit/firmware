@@ -9,22 +9,22 @@
 #include "storage/signed_log.h"
 #include "storage/meta_ops.h"
 #include "storage/data_record.h"
-#include "readings_worker.h"
 #include "records.h"
 #include "state_ref.h"
 #include "state_manager.h"
 #include "status_logging.h"
 #include "utilities.h"
-#include "secrets.h"
+#include "battery_status.h"
+
+#include "readings_worker.h"
 #include "upgrade_from_sd_worker.h"
 
 #include "modules/bridge/modules.h"
 #include "modules/scanning.h"
 #include "modules/configure.h"
-
 #include "hal/metal/metal_lora.h"
-
-#include "battery_status.h"
+#include "display/display_views.h"
+#include "secrets.h"
 
 extern const struct fkb_header_t fkb_header;
 
@@ -37,6 +37,11 @@ static void copy_cron_spec_from_pb(const char *name, Schedule &cs, fk_data_JobSc
 void StartupWorker::run(Pool &pool) {
     loginfo("ready display");
     auto display = get_display();
+
+    loginfo("check for self test startup");
+    if (check_for_self_test_startup(pool)) {
+        return;
+    }
 
     loginfo("check for provision startup");
     if (check_for_provision_startup(pool)) {
@@ -392,6 +397,38 @@ bool StartupWorker::check_for_lora(Pool &pool) {
 bool StartupWorker::save_startup_diagnostics() {
     loginfo("saving startup diagnostics (%s) (bank = %d)", fk_get_reset_reason_string(), fk_nvm_get_active_bank());
     fk_logs_write_saved_and_free();
+    return true;
+}
+
+bool StartupWorker::check_for_self_test_startup(Pool &pool) {
+    auto lock = sd_mutex.acquire(UINT32_MAX);
+    auto sd = get_sd_card();
+
+    if (!sd->begin()) {
+        logerror("error opening sd card");
+        return false;
+    }
+
+    auto config_file = "testing.cfg";
+    if (!sd->is_file(config_file)) {
+        loginfo("no %s found", config_file);
+        return false;
+    }
+
+    GlobalStateManager gsm;
+    gsm.notify("self test");
+
+    FK_ASSERT(os_task_start(&display_task) == OSS_SUCCESS);
+
+    // This is so risky, thankfully we're rarely in here. This is here
+    // to allow the display task to start so the controller is available.
+    fk_delay(100);
+
+    auto vc = ViewController::get();
+    if (vc != nullptr) {
+        vc->show_self_check();
+    }
+
     return true;
 }
 

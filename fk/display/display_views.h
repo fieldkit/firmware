@@ -6,6 +6,14 @@
 namespace fk {
 
 class ViewController {
+protected:
+    static ViewController *instance_;
+
+public:
+    static ViewController *get() {
+        return instance_;
+    }
+
 public:
     virtual void show_menu() = 0;
     virtual void show_home() = 0;

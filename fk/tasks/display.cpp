@@ -43,6 +43,11 @@ private:
 
 public:
     explicit MainViewController(Pool &pool) : menu_view{ this, pool } {
+        instance_ = this;
+    }
+
+    virtual ~MainViewController() {
+        instance_ = nullptr;
     }
 
 private:
