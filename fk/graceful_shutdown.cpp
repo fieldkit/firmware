@@ -13,7 +13,7 @@ bool fk_graceful_shutdown() {
     loginfo("graceful shutdown");
 
     for (auto iter = all_tasks; *iter != nullptr; iter++) {
-        if (*iter != self) {
+        if (*iter != self && *iter != &display_task) {
             if (os_task_is_running(*iter)) {
                 loginfo("stop %s", (*iter)->name);
                 os_signal(*iter, 9);
@@ -27,7 +27,7 @@ bool fk_graceful_shutdown() {
 
         auto running = false;
         for (auto iter = all_tasks; *iter != nullptr; iter++) {
-            if (*iter != self) {
+            if (*iter != self && *iter != &display_task) {
                 if (os_task_is_running(*iter)) {
                     loginfo("waiting on %s", (*iter)->name);
                     running = true;
