@@ -23,6 +23,7 @@ bool UDPDiscovery::start() {
     }
 
     if (!udp_.beginMulticast(IPAddress(224, 1, 2, 3), 22143)) {
+        logerror("unable to begin udp");
         return false;
     }
 

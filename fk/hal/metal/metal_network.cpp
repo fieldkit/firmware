@@ -264,6 +264,8 @@ bool MetalNetwork::begin(NetworkSettings settings, Pool *pool) {
 bool MetalNetwork::serve() {
     serving_ = true;
 
+    fk_delay(500);
+
     mdns_discovery_.pool(pool_);
     if (!mdns_discovery_.start()) {
         logwarn("mdns discovery failed");
