@@ -1,7 +1,11 @@
+#include <loading.h>
 #include "networking/http_server_connection.h"
 
 #include "protobuf.h"
 #include "base64.h"
+#include "state_ref.h"
+
+extern const struct fkb_header_t fkb_header;
 
 namespace fk {
 
@@ -211,7 +215,10 @@ bool HttpServerConnection::service() {
             if (!routed_) {
                 auto path = req_.url_parser().path();
                 if (path == nullptr) {
-                    plain(404, "not found", "");
+                    auto gs = get_global_state_ro();
+                    plain(200, "ok", pool_->sprintf("Hello! I am a FieldKit station. My name is %s.\nFirmware: %s (#%" PRIu32 ")\n",
+                                                    gs.get()->general.name,
+                                                    fkb_header.firmware.name, fkb_header.firmware.number));
                     return true;
                 }
 
@@ -220,11 +227,11 @@ bool HttpServerConnection::service() {
 
                 auto handler = router_->route(path);
                 if (handler == nullptr) {
-                    plain(404, "not found", "not found, no handler");
+                    plain(404, "not found", "404: not found, no handler");
                 }
                 else {
                     if (!handler->handle(this, *pool_)) {
-                        plain(500, "internal error", "internal error");
+                        plain(500, "internal error", "500: internal error");
                     }
                 }
                 routed_ = true;
