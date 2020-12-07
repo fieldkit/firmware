@@ -2,24 +2,10 @@
 
 PROGRAM=fk-weather-sidecar-aggregated.bin
 
-if [ ! -f $PROGRAM ]; then
-    PROGRAM=build/samd09/modules/weather/sidecar/fk-weather-sidecar-aggregated.bin
-fi
-
-ls -alh $PROGRAM
-sha1sum $PROGRAM
-
-EXTRA_ARGS=""
-if [ "$(hostname 2> /dev/null)" = "JACOB-WORK" ]; then
-    EXTRA_ARGS="-SelectEmuBySN 801000989 "
-fi
-if [ "$(hostname 2> /dev/null)" = "JACOB-HOME" ]; then
-    EXTRA_ARGS="-SelectEmuBySN 801000989 "
-fi
-
-JLinkExe -if SWD -device ATSAMD09D14A -speed 4000 $EXTRA_ARGS -RTTTelnetPort 19022 <<EOF
+JLinkExe -if SWD -device ATSAMD09D14A -speed 4000 <<EOF
 exitonerror 1
 connect
+h
 exec SetRTTSearchRanges 0x20000000 64
 sleep 100
 r
@@ -27,5 +13,7 @@ sleep 100
 loadfile $PROGRAM,0x0000
 sleep 100
 r
+sleep 100
 go
+q
 EOF
