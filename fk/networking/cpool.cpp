@@ -62,9 +62,9 @@ void ConnectionPool::service() {
                 }
             }
 
-            loginfo("[%" PRIu32 "] [%d] connection: 0x%p pool=0x%p", c->number(), i, c, pools_[i]);
+            // loginfo("[%" PRIu32 "] [%d] connection: 0x%p pool=0x%p", c->number(), i, c, pools_[i]);
             auto closing = c->closed() || !c->service();
-            SEGGER_RTT_printf(0, "~[cpool-ok]~");
+            // SEGGER_RTT_printf(0, "~[cpool-ok]~");
             if (closing) {
                 loginfo("[%d] closing: 0x%p", i, c);
                 // Do this before freeing to avoid a race empty pool after a

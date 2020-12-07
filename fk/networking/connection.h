@@ -51,11 +51,11 @@ public:
 
     bool closed() const {
         if (conn_ != nullptr) {
-            alogf(LogLevels::DEBUG, "debugging", "[0x%p] connection: 0x%p", this, conn_);
+            // alogf(LogLevels::DEBUG, "debugging", "[0x%p] connection: 0x%p", this, conn_);
             FK_ASSERT_ADDRESS(conn_);
             return false;
         }
-        alogf(LogLevels::DEBUG, "debugging", "[0x%p] closed", this);
+        // alogf(LogLevels::DEBUG, "debugging", "[0x%p] closed", this);
         return true;
     }
 
