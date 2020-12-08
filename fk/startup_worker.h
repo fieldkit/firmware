@@ -35,6 +35,7 @@ private:
     bool load_previous_location(Storage &storage, GlobalState *gs, File &data, Pool &pool);
 
 private:
+    bool check_for_upgrading_startup(Pool &pool);
     bool check_for_provision_startup(Pool &pool);
     bool check_for_self_test_startup(Pool &pool);
     bool check_for_interactive_startup(Pool &pool);

@@ -25,6 +25,7 @@
 #include "hal/metal/metal_lora.h"
 #include "display/display_views.h"
 #include "secrets.h"
+#include "graceful_shutdown.h"
 
 extern const struct fkb_header_t fkb_header;
 
@@ -51,6 +52,11 @@ void StartupWorker::run(Pool &pool) {
 
     loginfo("check for provision startup");
     if (check_for_provision_startup(pool)) {
+        return;
+    }
+
+    loginfo("check for upgrading startup");
+    if (check_for_upgrading_startup(pool)) {
         return;
     }
 
@@ -428,6 +434,46 @@ bool StartupWorker::check_for_self_test_startup(Pool &pool) {
     if (vc != nullptr) {
         vc->show_self_check();
     }
+
+    return true;
+}
+
+bool StartupWorker::check_for_upgrading_startup(Pool &pool) {
+    auto lock = sd_mutex.acquire(UINT32_MAX);
+    auto sd = get_sd_card();
+
+    if (!sd->begin()) {
+        logerror("error opening sd card");
+        return false;
+    }
+
+    auto config_file = "upgrade.cfg";
+    if (!sd->is_file(config_file)) {
+        loginfo("no %s found", config_file);
+        return false;
+    }
+
+    if (!sd->unlink(config_file)) {
+        loginfo("error unlinking %s", config_file);
+        return false;
+    }
+
+    GlobalStateManager gsm;
+    gsm.notify("upgrading");
+
+    FK_ASSERT(os_task_start(&display_task) == OSS_SUCCESS);
+
+    auto swap = true;
+    auto main_binary = "fk-bundled-fkb-network.bin";
+    auto params = SdCardFirmware{ SdCardFirmwareOperation::Load, nullptr, main_binary, swap, true, OneSecondMs };
+    UpgradeFirmwareFromSdWorker upgrade_worker{ params };
+    upgrade_worker.run(pool);
+
+    fk_graceful_shutdown();
+
+    fk_logs_flush();
+
+    fk_restart();
 
     return true;
 }

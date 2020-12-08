@@ -1,6 +1,9 @@
+#include <samd51_common.h>
+
 #include "networking/receive_firmware_handler.h"
 #include "upgrade_from_sd_worker.h"
 #include "gs_progress_callbacks.h"
+#include "graceful_shutdown.h"
 
 namespace fk {
 
@@ -93,14 +96,29 @@ void ReceiveFirmwareWorker::run(Pool &pool) {
 
     write_success(pool);
 
+    if (!swap) {
+        loginfo("just writing to card");
+        return;
+    }
+
+    auto marker_file_name = "upgrade.cfg";
+    auto marker_file = sd->open(marker_file_name, OpenFlags::Write, pool);
+    if (marker_file == nullptr || !marker_file) {
+        logerror("error touching %s", marker_file_name);
+        return;
+    }
+
+    file->close();
+
+    loginfo("graceful shutdown");
+
+    fk_graceful_shutdown();
+
+    loginfo("restarting");
+
     fk_logs_flush();
-    fk_delay(1000);
 
-    loginfo("launch upgrade");
-
-    auto params = SdCardFirmware{ SdCardFirmwareOperation::Load, nullptr, file_name, swap, false, OneSecondMs };
-    UpgradeFirmwareFromSdWorker upgrade_worker{ params };
-    upgrade_worker.run(pool);
+    fk_restart();
 }
 
 bool ReceiveFirmwareHandler::handle(HttpServerConnection *connection, Pool &pool) {
