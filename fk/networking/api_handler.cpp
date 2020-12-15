@@ -241,6 +241,16 @@ static bool configure(HttpServerConnection *connection, fk_app_HttpQuery *query,
                 auto password = (const char *)n.password.arg;
                 auto &nc = gs->network.config.wifi_networks[i];
 
+                // Ignore empty SSID networks.
+                if (strlen(ssid) == 0) {
+                    loginfo("[%d] network skipping (empty)", i);
+                    nc.ssid[0] = 0;
+                    nc.password[0] = 0;
+                    nc.valid = false;
+                    nc.create = false;
+                    continue;
+                }
+
                 // Check to see if the user is intending to keep this
                 // network as-is. We always set them if the SSID is
                 // different.
