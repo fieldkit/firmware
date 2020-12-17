@@ -2,6 +2,7 @@
 #include "sensors.h"
 #include "i2c.h"
 #include "sht31.h"
+#include "bme280.h"
 #include "mpl3115a2.h"
 #include "adc081c.h"
 
@@ -84,25 +85,29 @@ int32_t sensors_initialize(struct i2c_m_sync_desc *i2c, sensors_t *sensors) {
     }
     #endif
 
-    nsensors++;
-    rv = sht31_initialize(i2c);
+    sensors->has_bme280 = false;
+
+    rv = bme280_initialize(i2c);
     if (rv != FK_SUCCESS) {
-        log_sensor_error("sht31", rv);
-        sensors->failures++;
-    }
-    else {
-        rv = sht31_status_get(i2c, &status);
+        log_sensor_error("bme280", rv);
+
+        nsensors++;
+        rv = sht31_initialize(i2c);
         if (rv != FK_SUCCESS) {
-            log_sensor_error("sht31-status", rv);
+            log_sensor_error("sht31", rv);
+            sensors->failures++;
+        }
+
+        nsensors++;
+        rv = mpl3115a2_initialize(i2c);
+        if (rv != FK_SUCCESS) {
+            log_sensor_error("mpl3115a2", rv);
             sensors->failures++;
         }
     }
-
-    nsensors++;
-    rv = mpl3115a2_initialize(i2c);
-    if (rv != FK_SUCCESS) {
-        log_sensor_error("mpl3115a2", rv);
-        sensors->failures++;
+    else {
+        nsensors++;
+        sensors->has_bme280 = true;
     }
 
     sensors->working = nsensors - sensors->failures;

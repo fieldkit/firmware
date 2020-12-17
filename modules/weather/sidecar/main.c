@@ -43,21 +43,41 @@ int32_t fake_readings(fk_weather_t *weather) {
     return FK_SUCCESS;
 }
 
-int32_t take_readings(fk_weather_t *weather, uint8_t *failures) {
+int32_t take_readings(fk_weather_t *weather, sensors_t *sensors, uint8_t *failures) {
     int32_t rv;
 
-    mpl3115a2_reading_t mpl3115a2_reading;
-    rv = mpl3115a2_reading_get(&I2C_1, &mpl3115a2_reading);
-    if (rv != FK_SUCCESS) {
-        logerrorf("mpl3115a2 (%d)", rv);
-        *failures++;
-    }
+    if (sensors->has_bme280) {
+        bme280_reading_t bme280_reading;
+        rv = bme280_reading_get(&I2C_1, &bme280_reading);
+        if (rv != FK_SUCCESS) {
+            logerrorf("bme280 (%d)", rv);
+            *failures++;
+        }
 
-    sht31_reading_t sht31_reading;
-    rv = sht31_reading_get(&I2C_1, &sht31_reading);
-    if (rv != FK_SUCCESS) {
-        logerrorf("sht31 (%d)", rv);
-        *failures++;
+        weather->humidity = bme280_reading.humidity;
+        weather->temperature_1 = bme280_reading.temperature;
+        weather->pressure = bme280_reading.pressure;
+        weather->temperature_2 = weather->temperature_1;
+    }
+    else {
+        mpl3115a2_reading_t mpl3115a2_reading;
+        rv = mpl3115a2_reading_get(&I2C_1, &mpl3115a2_reading);
+        if (rv != FK_SUCCESS) {
+            logerrorf("mpl3115a2 (%d)", rv);
+            *failures++;
+        }
+
+        sht31_reading_t sht31_reading;
+        rv = sht31_reading_get(&I2C_1, &sht31_reading);
+        if (rv != FK_SUCCESS) {
+            logerrorf("sht31 (%d)", rv);
+            *failures++;
+        }
+
+        weather->humidity = sht31_reading.humidity;
+        weather->temperature_1 = sht31_reading.temperature;
+        weather->pressure = mpl3115a2_reading.pressure;
+        weather->temperature_2 = mpl3115a2_reading.temperature;
     }
 
     #if !defined(FK_WEATHER_UNMETERED)
@@ -78,10 +98,6 @@ int32_t take_readings(fk_weather_t *weather, uint8_t *failures) {
 
     weather->seconds++;
     weather->session++;
-    weather->humidity = sht31_reading.humidity;
-    weather->temperature_1 = sht31_reading.temperature;
-    weather->pressure = mpl3115a2_reading.pressure;
-    weather->temperature_2 = mpl3115a2_reading.temperature;
     #if !defined(FK_WEATHER_UNMETERED)
     weather->wind.direction = wind_direction.value;
     weather->wind.ticks = counters_reading.wind;
@@ -170,8 +186,6 @@ __int32_t main() {
     loginfof("board ready (%zd, %zd)", sizeof(fk_weather_t), sizeof(fk_weather_aggregated_t));
 
     #if !defined(FK_WEATHER_STAND_ALONE)
-    loginfo("board in legacy mode...");
-
     if (ext_irq_register(PA25, eeprom_signal) != 0) {
         logerror("registering irq");
     }
@@ -179,8 +193,6 @@ __int32_t main() {
     if (ext_irq_enable(PA25) != 0) {
         logerror("enabling irq");
     }
-
-    loginfo("waiting on eeprom...");
 
     // When we startup, sometimes the parent will hold this high so that it can
     // talk to the bus. Give the parent a chance to do that.
@@ -199,8 +211,6 @@ __int32_t main() {
 
     #if defined(FK_WEATHER_STAND_ALONE)
 
-    loginfo("board in stand alone...");
-
     fk_weather_aggregated_t aggregated;
     aggregated_weather_initialize(&aggregated);
 
@@ -217,8 +227,6 @@ __int32_t main() {
 
     eeprom_region_t readings_region;
     FK_ASSERT(eeprom_region_create(&readings_region, &I2C_0_m, EEPROM_ADDRESS_READINGS, EEPROM_ADDRESS_READINGS_END, sizeof(fk_weather_t)) == FK_SUCCESS);
-
-    loginfo("eeprom...");
 
     board_eeprom_i2c_enable();
 
@@ -263,8 +271,6 @@ __int32_t main() {
     struct timer_task timer_task;
     FK_ASSERT(board_timer_setup(&timer_task, 1000, timer_task_cb) == FK_SUCCESS);
 
-    loginfo("ready!");
-
     while (true) {
         uint32_t now = board_system_time_get();
 
@@ -275,7 +281,7 @@ __int32_t main() {
             fake_readings(&weather);
             #else
             uint8_t failures = 0;
-            int32_t rv = take_readings(&weather, &failures);
+            int32_t rv = take_readings(&weather, &sensors, &failures);
             if (rv != FK_SUCCESS) {
                 weather.error = FK_WEATHER_ERROR_SENSORS_READING;
                 weather.reading_failures = failures;
@@ -307,10 +313,10 @@ __int32_t main() {
             rv = eeprom_region_append_unwritten(&readings_region, &ur);
             if (rv != FK_SUCCESS) {
                 if (rv == FK_ERROR_BUSY) {
-                    loginfo("readings: eeprom busy");
+                    loginfo("eeprom busy");
                 }
                 else {
-                    logerrorf("readings: error appending (%" PRIu32 ")", nentries);
+                    logerror("!");
                     weather.memory_failures++;
                 }
             }

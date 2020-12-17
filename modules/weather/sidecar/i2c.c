@@ -143,3 +143,33 @@ int32_t i2c_read_u16(struct i2c_m_sync_desc *i2c, uint8_t address, uint8_t reg, 
     return FK_SUCCESS;
 }
 
+int32_t i2c_read_s16(struct i2c_m_sync_desc *i2c, uint8_t address, uint8_t reg, int16_t *value) {
+    uint16_t raw;
+    int32_t rv = i2c_read_u16(i2c, address, reg, &raw);
+    *value = (int16_t)raw;
+    return rv;
+}
+
+int32_t i2c_read_u24(struct i2c_m_sync_desc *i2c, uint8_t address, uint8_t reg, uint32_t *value) {
+    struct _i2c_m_msg msg;
+    int32_t rv;
+
+    msg.addr   = address;
+    msg.flags  = I2C_M_SEVEN;
+    msg.buffer = (void *)&reg;
+    msg.len    = sizeof(uint8_t);
+    rv = _i2c_m_sync_transfer(&i2c->device, &msg);
+    if (rv != 0) {
+        return rv;
+    }
+
+    msg.flags  = I2C_M_SEVEN | I2C_M_STOP | I2C_M_RD;
+    msg.buffer = (void *)value;
+    msg.len    = 3; // 3 bytes * 8 = 24
+    rv = _i2c_m_sync_transfer(&i2c->device, &msg);
+    if (rv != 0) {
+        return rv;
+    }
+
+    return FK_SUCCESS;
+}
