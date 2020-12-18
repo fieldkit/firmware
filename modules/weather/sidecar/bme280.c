@@ -4,63 +4,63 @@
 
 #define BME280_I2C_ADDRESS                               (0x76)
 
-#define BME280_SAMPLING_NONE     0b000
-#define BME280_SAMPLING_X1       0b001
-#define BME280_SAMPLING_X2       0b010
-#define BME280_SAMPLING_X4       0b011
-#define BME280_SAMPLING_X8       0b100
-#define BME280_SAMPLING_X16      0b101
+#define BME280_SAMPLING_NONE                             (0b000)
+#define BME280_SAMPLING_X1                               (0b001)
+#define BME280_SAMPLING_X2                               (0b010)
+#define BME280_SAMPLING_X4                               (0b011)
+#define BME280_SAMPLING_X8                               (0b100)
+#define BME280_SAMPLING_X16                              (0b101)
 
-#define BME280_MODE_SLEEP        0b00
-#define BME280_MODE_FORCED       0b01
-#define BME280_MODE_NORMAL       0b11
+#define BME280_MODE_SLEEP                                (0b00)
+#define BME280_MODE_FORCED                               (0b01)
+#define BME280_MODE_NORMAL                               (0b11)
 
-#define BME280_FILTER_OFF        0b000
-#define BME280_FILTER_X2         0b001
-#define BME280_FILTER_X4         0b010
-#define BME280_FILTER_X8         0b011
-#define BME280_FILTER_X16        0b100
+#define BME280_FILTER_OFF                                (0b000)
+#define BME280_FILTER_X2                                 (0b001)
+#define BME280_FILTER_X4                                 (0b010)
+#define BME280_FILTER_X8                                 (0b011)
+#define BME280_FILTER_X16                                (0b100)
 
-#define BME280_STANDBY_MS_0_5    0b000
-#define BME280_STANDBY_MS_10     0b110
-#define BME280_STANDBY_MS_20     0b111
-#define BME280_STANDBY_MS_62_5   0b001
-#define BME280_STANDBY_MS_125    0b010
-#define BME280_STANDBY_MS_250    0b011
-#define BME280_STANDBY_MS_500    0b100
-#define BME280_STANDBY_MS_1000   0b101
+#define BME280_STANDBY_MS_0_5                            (0b000)
+#define BME280_STANDBY_MS_10                             (0b110)
+#define BME280_STANDBY_MS_20                             (0b111)
+#define BME280_STANDBY_MS_62_5                           (0b001)
+#define BME280_STANDBY_MS_125                            (0b010)
+#define BME280_STANDBY_MS_250                            (0b011)
+#define BME280_STANDBY_MS_500                            (0b100)
+#define BME280_STANDBY_MS_1000                           (0b101)
 
 #define BME280_REGISTER_CHIPID                           (0xD0)
 #define BME280_REGISTER_SOFTRESET                        (0xE0)
 
-#define BME280_REGISTER_CONTROLHUMID   0xF2
-#define BME280_REGISTER_STATUS         0XF3
-#define BME280_REGISTER_CONTROL        0xF4
-#define BME280_REGISTER_CONFIG         0xF5
-#define BME280_REGISTER_PRESSUREDATA   0xF7
-#define BME280_REGISTER_TEMPDATA       0xFA
-#define BME280_REGISTER_HUMIDDATA      0xFD
+#define BME280_REGISTER_CONTROLHUMID                     (0xF2)
+#define BME280_REGISTER_STATUS                           (0XF3)
+#define BME280_REGISTER_CONTROL                          (0xF4)
+#define BME280_REGISTER_CONFIG                           (0xF5)
+#define BME280_REGISTER_PRESSUREDATA                     (0xF7)
+#define BME280_REGISTER_TEMPDATA                         (0xFA)
+#define BME280_REGISTER_HUMIDDATA                        (0xFD)
 
-#define BME280_REGISTER_DIG_T1   0x88
-#define BME280_REGISTER_DIG_T2   0x8A
-#define BME280_REGISTER_DIG_T3   0x8C
+#define BME280_REGISTER_DIG_T1                           (0x88)
+#define BME280_REGISTER_DIG_T2                           (0x8A)
+#define BME280_REGISTER_DIG_T3                           (0x8C)
 
-#define BME280_REGISTER_DIG_P1   0x8E
-#define BME280_REGISTER_DIG_P2   0x90
-#define BME280_REGISTER_DIG_P3   0x92
-#define BME280_REGISTER_DIG_P4   0x94
-#define BME280_REGISTER_DIG_P5   0x96
-#define BME280_REGISTER_DIG_P6   0x98
-#define BME280_REGISTER_DIG_P7   0x9A
-#define BME280_REGISTER_DIG_P8   0x9C
-#define BME280_REGISTER_DIG_P9   0x9E
+#define BME280_REGISTER_DIG_P1                           (0x8E)
+#define BME280_REGISTER_DIG_P2                           (0x90)
+#define BME280_REGISTER_DIG_P3                           (0x92)
+#define BME280_REGISTER_DIG_P4                           (0x94)
+#define BME280_REGISTER_DIG_P5                           (0x96)
+#define BME280_REGISTER_DIG_P6                           (0x98)
+#define BME280_REGISTER_DIG_P7                           (0x9A)
+#define BME280_REGISTER_DIG_P8                           (0x9C)
+#define BME280_REGISTER_DIG_P9                           (0x9E)
 
-#define BME280_REGISTER_DIG_H1   0xA1
-#define BME280_REGISTER_DIG_H2   0xE1
-#define BME280_REGISTER_DIG_H3   0xE3
-#define BME280_REGISTER_DIG_H4   0xE4
-#define BME280_REGISTER_DIG_H5   0xE5
-#define BME280_REGISTER_DIG_H6   0xE7
+#define BME280_REGISTER_DIG_H1                           (0xA1)
+#define BME280_REGISTER_DIG_H2                           (0xE1)
+#define BME280_REGISTER_DIG_H3                           (0xE3)
+#define BME280_REGISTER_DIG_H4                           (0xE4)
+#define BME280_REGISTER_DIG_H5                           (0xE5)
+#define BME280_REGISTER_DIG_H6                           (0xE7)
 
 typedef struct {
     uint16_t dig_T1;
@@ -115,9 +115,13 @@ typedef union ctrl_humidity_register {
 } ctrl_humidity_register;
 
 static uint8_t bme280_is_reading_calibration(struct i2c_m_sync_desc *i2c);
+
 static int32_t bme280_read_coefficients(struct i2c_m_sync_desc *i2c, bme280_calibration_data *calib);
+
 static int32_t bme280_read_temperature(struct i2c_m_sync_desc *i2c, bme280_calibration_data *calib, bme280_reading_t *reading);
+
 static int32_t bme280_read_pressure(struct i2c_m_sync_desc *i2c, bme280_calibration_data *calib, bme280_reading_t *reading);
+
 static int32_t bme280_read_humidity(struct i2c_m_sync_desc *i2c, bme280_calibration_data *calib, bme280_reading_t *reading);
 
 static bme280_calibration_data bme280_calib;
