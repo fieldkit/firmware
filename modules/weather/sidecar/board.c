@@ -101,7 +101,7 @@ static void i2c_0_rx_stop(const struct i2c_s_async_descriptor *const descr) {
             i2c_regmap->before_read(i2c_regmap->registers);
         }
 
-        SEGGER_RTT_WriteString(0, "R");
+        // SEGGER_RTT_WriteString(0, "R");
 
         break;
     }
@@ -111,7 +111,7 @@ static void i2c_0_rx_stop(const struct i2c_s_async_descriptor *const descr) {
             break;
         }
 
-        SEGGER_RTT_WriteString(0, "C");
+        // SEGGER_RTT_WriteString(0, "C");
 
         // This structures is identical to the
         // fkw_calendar_date_time used on the other side.
