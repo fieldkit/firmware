@@ -86,6 +86,36 @@ typedef struct fk_weather_aggregated_t {
 #define FK_WEATHER_UNMETERED_MAGIC                     (0x0D15EA5E)
 #define FK_WEATHER_TICKS_NULL                          (0x0D15EA5E)
 
+/**
+ * \brief Time struct for calendar
+ */
+struct fkw_calendar_time {
+	/*range from 0 to 59*/
+	uint8_t sec;
+	/*range from 0 to 59*/
+	uint8_t min;
+	/*range from 0 to 23*/
+	uint8_t hour;
+};
+
+/**
+ * \brief Time struct for calendar
+ */
+struct fkw_calendar_date {
+	/*range from 1 to 28/29/30/31*/
+	uint8_t day;
+	/*range from 1 to 12*/
+	uint8_t month;
+	/*absolute year>= 1970(such as 2000)*/
+	uint16_t year;
+};
+
+/** \brief Date&Time struct for calendar
+ */
+struct fkw_calendar_date_time {
+	struct fkw_calendar_time time;
+	struct fkw_calendar_date date;
+};
 
 #ifdef __cplusplus
 } // namespace fk

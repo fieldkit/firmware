@@ -187,6 +187,8 @@ __int32_t main() {
 
     loginfof("board ready (%zd, %zd)", sizeof(fk_weather_t), sizeof(fk_weather_aggregated_t));
 
+    FK_ASSERT(sizeof(struct fkw_calendar_date_time) == sizeof(struct calendar_date_time));
+
     #if !defined(FK_WEATHER_STAND_ALONE)
     if (ext_irq_register(PA25, eeprom_signal) != 0) {
         logerror("registering irq");

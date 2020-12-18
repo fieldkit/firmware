@@ -79,10 +79,11 @@ public:
 
 public:
     int32_t read(uint8_t address, void *data, int32_t size);
-    int32_t write(uint8_t address, const void *data, int32_t size);
+    int32_t write(uint8_t address, void const *data, int32_t size);
     int32_t read_register_u8(uint8_t address, uint8_t reg, uint8_t &value);
     int32_t read_register_buffer(uint8_t address, uint8_t reg, uint8_t *buffer, int32_t size);
     int32_t write_register_u8(uint8_t address, uint8_t reg, uint8_t value);
+    int32_t write_register_buffer(uint8_t address, uint8_t reg, void const *data, int32_t size);
     int32_t write_u8(uint8_t address, uint8_t value);
     int32_t write_register_u16(uint8_t address, uint8_t reg, uint16_t value);
     int32_t write_register_u32(uint8_t address, uint8_t reg, uint32_t value);

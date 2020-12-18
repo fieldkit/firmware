@@ -100,29 +100,24 @@ static void i2c_0_rx_stop(const struct i2c_s_async_descriptor *const descr) {
         if (i2c_regmap->before_read != NULL) {
             i2c_regmap->before_read(i2c_regmap->registers);
         }
+
+        SEGGER_RTT_WriteString(0, "R");
+
         break;
     }
     case FK_WEATHER_I2C_COMMAND_CONFIG: {
         int32_t bytes = i2c_s_async_get_bytes_received(descr);
-        if (bytes != sizeof(uint32_t)) {
+        if (bytes != sizeof(struct fkw_calendar_date_time)) {
             break;
         }
 
-        uint32_t clock = 0;
+        SEGGER_RTT_WriteString(0, "C");
+
+        struct fkw_calendar_date_time clock;
         io_read(i2c_subordinate_io, (uint8_t *)&clock, sizeof(clock));
 
-        struct tm *t = gmtime((time_t *)&clock);
-
-        struct calendar_date_time dt;
-        dt.date.year  = t->tm_year + 1900;
-        dt.date.month = t->tm_mon + 1;
-        dt.date.day   = t->tm_mday;
-        dt.time.hour  = t->tm_hour;
-        dt.time.min   = t->tm_min;
-        dt.time.sec   = t->tm_sec;
-
-        calendar_set_date(&CALENDAR_0, &dt.date);
-        calendar_set_time(&CALENDAR_0, &dt.time);
+        calendar_set_date(&CALENDAR_0, &clock.date);
+        calendar_set_time(&CALENDAR_0, &clock.time);
 
         break;
     }

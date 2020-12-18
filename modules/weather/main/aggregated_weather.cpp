@@ -74,8 +74,32 @@ struct AggregatedWeatherHelpers {
 ModuleReturn AggregatedWeather::initialize(ModuleContext mc, Pool &pool) {
     auto &bus = mc.module_bus();
 
-    if (!I2C_CHECK(bus.write_register_u32(FK_WEATHER_I2C_ADDRESS, FK_WEATHER_I2C_COMMAND_CONFIG, get_clock_now()))) {
-        return { ModuleStatus::Fatal };
+    auto now = get_clock_now();
+
+    // TODO Check version
+    if (false) {
+        loginfo("sending clock (u32)");
+
+        if (!I2C_CHECK(bus.write_register_u32(FK_WEATHER_I2C_ADDRESS, FK_WEATHER_I2C_COMMAND_CONFIG, now))) {
+            return { ModuleStatus::Fatal };
+        }
+    }
+    else {
+        loginfo("sending clock (calendar)");
+
+        DateTime date_time{ now };
+
+        struct fkw_calendar_date_time dt;
+        dt.date.year  = date_time.year();
+        dt.date.month = date_time.month();
+        dt.date.day   = date_time.day();
+        dt.time.hour  = date_time.hour();
+        dt.time.min   = date_time.minute();
+        dt.time.sec   = date_time.second();
+
+        if (!I2C_CHECK(bus.write_register_buffer(FK_WEATHER_I2C_ADDRESS, FK_WEATHER_I2C_COMMAND_CONFIG, &dt, sizeof(dt)))) {
+            return { ModuleStatus::Fatal };
+        }
     }
 
     return { ModuleStatus::Ok };
