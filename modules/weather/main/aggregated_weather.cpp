@@ -138,10 +138,18 @@ ModuleReadings *AggregatedWeather::take_readings(ModuleContext mc, Pool &pool) {
     auto mr = new_module_readings(unmetered, pool);
     auto i = 0u;
 
-    mr->set(i++, 100.0f * ((float)aw.humidity / (0xffff)));
-    mr->set(i++, -45.0f + 175.0f * ((float)aw.temperature_1 / (0xffff)));
-    mr->set(i++, aw.pressure / 64.0f / 1000.0f);
-    mr->set(i++, aw.temperature_2 / 16.0f);
+    if (false) {
+        mr->set(i++, 100.0f * ((float)aw.humidity / (0xffff)));
+        mr->set(i++, -45.0f + 175.0f * ((float)aw.temperature_1 / (0xffff)));
+        mr->set(i++, aw.pressure / 64.0f / 1000.0f);
+        mr->set(i++, aw.temperature_2 / 16.0f);
+    }
+    else {
+        mr->set(i++, fkw_weather_humidity(&aw));
+        mr->set(i++, fkw_weather_temperature_1(&aw));
+        mr->set(i++, fkw_weather_pressure(&aw));
+        mr->set(i++, fkw_weather_temperature_2(&aw));
+    }
 
     // Detect the unmetered weather scenario.
     if (unmetered) {

@@ -86,6 +86,22 @@ typedef struct fk_weather_aggregated_t {
 #define FK_WEATHER_UNMETERED_MAGIC                     (0x0D15EA5E)
 #define FK_WEATHER_TICKS_NULL                          (0x0D15EA5E)
 
+static inline float fkw_weather_temperature_1(fk_weather_aggregated_t *w) {
+    return ((float)w->temperature_1) / 100.0f;
+}
+
+static inline float fkw_weather_temperature_2(fk_weather_aggregated_t *w) {
+    return ((float)w->temperature_1) / 100.0f;
+}
+
+static inline float fkw_weather_pressure(fk_weather_aggregated_t *w) {
+    return ((float)w->pressure) / 256.0f / 1000.0f;
+}
+
+static inline float fkw_weather_humidity(fk_weather_aggregated_t *w) {
+    return ((float)w->humidity) / 1024.0f;
+}
+
 /**
  * \brief Time struct for calendar
  */

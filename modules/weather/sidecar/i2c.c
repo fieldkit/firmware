@@ -163,9 +163,11 @@ int32_t i2c_read_u24(struct i2c_m_sync_desc *i2c, uint8_t address, uint8_t reg, 
         return rv;
     }
 
+    *value = 0;
+
     msg.flags  = I2C_M_SEVEN | I2C_M_STOP | I2C_M_RD;
     msg.buffer = (void *)value;
-    msg.len    = 3; // 3 bytes * 8 = 24
+    msg.len    = 3;
     rv = _i2c_m_sync_transfer(&i2c->device, &msg);
     if (rv != 0) {
         return rv;

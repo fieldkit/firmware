@@ -113,7 +113,9 @@ static void i2c_0_rx_stop(const struct i2c_s_async_descriptor *const descr) {
 
         SEGGER_RTT_WriteString(0, "C");
 
-        struct fkw_calendar_date_time clock;
+        // This structures is identical to the
+        // fkw_calendar_date_time used on the other side.
+        struct calendar_date_time clock;
         io_read(i2c_subordinate_io, (uint8_t *)&clock, sizeof(clock));
 
         calendar_set_date(&CALENDAR_0, &clock.date);
