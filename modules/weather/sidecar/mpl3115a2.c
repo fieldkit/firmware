@@ -1,6 +1,8 @@
 #include "mpl3115a2.h"
 #include "i2c.h"
 
+#if defined(FK_ENABLE_SH31_AND_MPL3115A2)
+
 #define MPL3115A2_I2C_ADDRESS                            (0x60)
 #define MPL3115A2_REGISTER_STATUS                        (0x00)
 #define MPL3115A2_REGISTER_PRESSURE_MSB                  (0x01)
@@ -183,3 +185,5 @@ int32_t mpl3115a2_reading_get(struct i2c_m_sync_desc *i2c, mpl3115a2_reading_t *
 
     return FK_SUCCESS;
 }
+
+#endif

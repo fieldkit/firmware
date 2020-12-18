@@ -60,6 +60,7 @@ int32_t take_readings(fk_weather_t *weather, sensors_t *sensors, uint8_t *failur
         weather->temperature_2 = weather->temperature_1;
     }
     else {
+        #if defined(FK_ENABLE_SH31_AND_MPL3115A2)
         mpl3115a2_reading_t mpl3115a2_reading;
         rv = mpl3115a2_reading_get(&I2C_1, &mpl3115a2_reading);
         if (rv != FK_SUCCESS) {
@@ -78,6 +79,7 @@ int32_t take_readings(fk_weather_t *weather, sensors_t *sensors, uint8_t *failur
         weather->temperature_1 = sht31_reading.temperature;
         weather->pressure = mpl3115a2_reading.pressure;
         weather->temperature_2 = mpl3115a2_reading.temperature;
+        #endif
     }
 
     #if !defined(FK_WEATHER_UNMETERED)

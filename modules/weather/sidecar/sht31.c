@@ -1,6 +1,8 @@
 #include "sht31.h"
 #include "i2c.h"
 
+#if defined(FK_ENABLE_SH31_AND_MPL3115A2)
+
 #define SHT31_I2C_ADDRESS                                (0x44)
 #define SHT31_MEAS_HIGH_REPEATABILITY_STRETCH            (0x2C06)
 #define SHT31_MEAS_HIGH_REPEATABILITY                    (0x2400)
@@ -94,3 +96,5 @@ static uint8_t sht31_crc8(uint8_t const *data, size_t len) {
     }
     return crc;
 }
+
+#endif

@@ -1,5 +1,7 @@
 #pragma once
 
+#if defined(FK_ENABLE_SH31_AND_MPL3115A2)
+
 #include "sidecar.h"
 
 typedef struct mpl3115a2_reading_t {
@@ -10,3 +12,5 @@ typedef struct mpl3115a2_reading_t {
 int32_t mpl3115a2_initialize(struct i2c_m_sync_desc *i2c);
 
 int32_t mpl3115a2_reading_get(struct i2c_m_sync_desc *i2c, mpl3115a2_reading_t *reading);
+
+#endif
