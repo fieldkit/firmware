@@ -42,8 +42,13 @@ void LedsController::tick() {
         auto index = bay.integer();
         if (index > 0) {
             auto &physical_module = gs.get()->physical_modules[index];
-            auto color = get_color(physical_module.status);
-            module_leds->color(index - 1, color, false);
+            if (physical_module.meta != nullptr) {
+                auto color = get_color(physical_module.status);
+                module_leds->color(index - 1, color, false);
+            }
+            else {
+                module_leds->color(index - 1, { 0, 0, 0 }, false);
+            }
         }
     }
 
