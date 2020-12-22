@@ -279,12 +279,16 @@ void MenuView::create_module_menu() {
         loginfo("program distance: %d", selected_module_bay_.integer());
         get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, header));
     });
-    auto program_menu = new_menu_screen<7>(pool_, "program", {
-            program_weather,
-            program_ph, program_ec, program_do, program_temp, program_orp,
-            program_distance,
+    auto program_menu = new_menu_screen<8>(pool_, "program", {
+        back_,
+        program_weather,
+        program_ph, program_ec, program_do, program_temp, program_orp,
+        program_distance,
     });
 
+    auto module_back = to_lambda_option(pool_, "Back", [=]() {
+        views_->show_module_status();
+    });
     auto module_home = to_lambda_option(pool_, "Home", [=]() {
         back_->on_selected();
         views_->show_home();
@@ -300,7 +304,7 @@ void MenuView::create_module_menu() {
     });
 
     module_menu_ = new_menu_screen<4>(pool_, "module", {
-        back_,
+        module_back,
         module_home,
         module_program,
         module_erase,
