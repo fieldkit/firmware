@@ -578,6 +578,7 @@ void MenuView::create_main_menu() {
         previous_menu_ = active_menu_;
         active_menu_ = goto_menu(tools_menu_);
     });
+    main_tools->selected(true);
 
     main_menu_ = new_menu_screen<6>(pool_, "main", {
         main_readings,

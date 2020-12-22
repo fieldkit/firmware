@@ -87,7 +87,6 @@ struct MenuOption {
         visible_ = visible;
     }
 
-    /*
     virtual bool selected() const {
         return selected_;
     }
@@ -95,7 +94,6 @@ struct MenuOption {
     virtual void selected(bool value) {
         selected_ = value;
     }
-    */
 
     virtual bool focused() const {
         return focused_;

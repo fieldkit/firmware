@@ -297,6 +297,7 @@ void U8g2Display::home(HomeScreen const &data) {
 
 void U8g2Display::menu(MenuScreen const &data) {
     draw_.setPowerSave(0);
+    draw_.setFontMode(1);
     draw_.clearBuffer();
 
     if (data.options != nullptr) {
@@ -306,9 +307,20 @@ void U8g2Display::menu(MenuScreen const &data) {
         for (auto i = 0; data.options[i] != nullptr; ++i) {
             auto option = data.options[i];
             if (option->visible()) {
-                draw_.drawUTF8(2 + 10, y + 12, option->label());
                 if (option->focused()) {
-                    draw_.drawBox(2, y + 4, 10, 10);
+                    draw_.drawBox(2, y + 6, 6, 6);
+                }
+                if (option->selected()) {
+                    draw_.setDrawColor(1);
+                    auto h = min(10, OLED_HEIGHT - y + 4);
+                    draw_.drawBox(10, y + 4, OLED_WIDTH - 10, h);
+                    draw_.setDrawColor(0);
+                    draw_.drawUTF8(2 + 10, y + 12, option->label());
+                    draw_.setDrawColor(1);
+                }
+                else {
+                    draw_.setDrawColor(1);
+                    draw_.drawUTF8(2 + 10, y + 12, option->label());
                 }
                 y += 12;
             }
