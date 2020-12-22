@@ -25,9 +25,14 @@ namespace fk {
 
 FK_DECLARE_LOGGER("menu");
 
-template<typename T>
-LambdaOption<T> *to_lambda_option(Pool *pool, const char *label, T fn) {
-    return new (*pool) LambdaOption<T>(label, fn);
+template<typename TSelect, typename TSelected>
+SelectableLambdaOption<TSelect, TSelected> *to_selectable_lambda_option(Pool *pool, const char *label, TSelect select_fn, TSelected selected_fn) {
+    return new (*pool) SelectableLambdaOption<TSelect, TSelected>(label, select_fn, selected_fn);
+}
+
+template<typename TSelect>
+LambdaOption<TSelect> *to_lambda_option(Pool *pool, const char *label, TSelect fn) {
+    return new (*pool) LambdaOption<TSelect>(label, fn);
 }
 
 template<size_t N>
@@ -112,9 +117,6 @@ struct ToggleWifiOption : public MenuOption {
         }
         return "Enable";
     }
-
-    void refresh(GlobalState const *gs) override {
-    }
 };
 
 void configure_gps_duration(uint32_t duration, Pool &pool) {
@@ -122,41 +124,6 @@ void configure_gps_duration(uint32_t duration, Pool &pool) {
     gs.get()->scheduler.gps.duration = duration;
     gs.get()->flush(pool);
 }
-
-struct ToggleGpsAlwaysOnOption : public MenuOption {
-    MenuOption *back_;
-    ViewController *views_;
-    bool always_on_{ false };
-
-    ToggleGpsAlwaysOnOption(MenuOption *back, ViewController *views) : MenuOption(""), back_(back), views_(views) {
-    }
-
-    void on_selected() override {
-        back_->on_selected();
-        views_->show_home();
-
-        StandardPool pool{ "toggle-always-on" };
-        if (always_on_) {
-            configure_gps_duration(TenMinutesSeconds, pool);
-        }
-        else {
-            configure_gps_duration(UINT32_MAX, pool);
-        }
-
-        always_on_ = !always_on_;
-    }
-
-    const char *label() const override {
-        if (always_on_) {
-            return "Fixed Mode";
-        }
-        return "Moving Mode";
-    }
-
-    void refresh(GlobalState const *gs) override {
-        always_on_ = gs->scheduler.gps.duration == UINT32_MAX;
-    }
-};
 
 void configure_wifi_duration(uint32_t duration, Pool &pool) {
     auto gs = get_global_state_rw();
@@ -166,41 +133,6 @@ void configure_wifi_duration(uint32_t duration, Pool &pool) {
         get_ipc()->launch_worker(create_pool_worker<WifiToggleWorker>());
     }
 }
-
-struct ToggleWifiAlwaysOnOption : public MenuOption {
-    MenuOption *back_;
-    ViewController *views_;
-    bool always_on_{ false };
-
-    ToggleWifiAlwaysOnOption(MenuOption *back, ViewController *views) : MenuOption(""), back_(back), views_(views) {
-    }
-
-    void on_selected() override {
-        back_->on_selected();
-        views_->show_home();
-
-        StandardPool pool{ "toggle-always-on" };
-        if (always_on_) {
-            configure_wifi_duration(FiveMinutesSeconds, pool);
-        }
-        else {
-            configure_wifi_duration(UINT32_MAX, pool);
-        }
-
-        always_on_ = !always_on_;
-    }
-
-    const char *label() const override {
-        if (always_on_) {
-            return "Idle Off";
-        }
-        return "Always On";
-    }
-
-    void refresh(GlobalState const *gs) override {
-        always_on_ = gs->scheduler.network.duration == UINT32_MAX;
-    }
-};
 
 MenuView::MenuView(ViewController *views, Pool &pool) : pool_(&pool), views_(views) {
     back_ = to_lambda_option(&pool, "Back", [=]() {
@@ -376,10 +308,41 @@ void MenuView::create_module_menu() {
 }
 
 void MenuView::create_tools_menu() {
+    auto toggle_gps_fixed = to_selectable_lambda_option(pool_, "Idle Off", [=]() {
+        back_->on_selected();
+        views_->show_home();
+        StandardPool pool{ "gps-option" };
+        configure_gps_duration(TenMinutesSeconds, pool);
+    }, [=](GlobalState const *gs) {
+        loginfo("update fixed %" PRIu32, gs->scheduler.gps.duration);
+        return gs->scheduler.gps.duration != UINT32_MAX;
+    });
+    auto toggle_gps_moving = to_selectable_lambda_option(pool_, "Always On", [=]() {
+        back_->on_selected();
+        views_->show_home();
+        StandardPool pool{ "gps-option" };
+        configure_gps_duration(UINT32_MAX, pool);
+    }, [=](GlobalState const *gs) {
+        loginfo("update moving %" PRIu32, gs->scheduler.gps.duration);
+        return gs->scheduler.gps.duration == UINT32_MAX;
+    });
+
+    toggle_gps_menu_ = new_menu_screen<3>(pool_, "gpsmode", {
+        back_,
+        toggle_gps_fixed,
+        toggle_gps_moving,
+    });
+
+
     auto tools_self_check = to_lambda_option(pool_, "Self Check", [=]() {
         views_->show_self_check();
     });
-    auto tools_gps_toggle = new (*pool_) ToggleGpsAlwaysOnOption(back_, views_);
+
+    auto tools_gps_toggle = to_lambda_option(pool_, "GPS Mode", [=]() {
+        previous_menu_ = tools_menu_;
+        active_menu_ = goto_menu(toggle_gps_menu_);
+    });
+
     auto tools_format_sd = to_lambda_option(pool_, "Format SD", [=]() {
         back_->on_selected();
         views_->show_message("Formatting SD");
@@ -415,7 +378,7 @@ void MenuView::create_tools_menu() {
         views_->show_lora();
         get_ipc()->launch_worker(WorkerCategory::Lora, create_pool_worker<LoraRangingWorker>(true));
     });
-    auto tools_gps = to_lambda_option(pool_, "GPS", [=]() {
+    auto tools_gps = to_lambda_option(pool_, "Watch GPS", [=]() {
         back_->on_selected();
         views_->show_gps();
     });
@@ -484,6 +447,32 @@ static WifiNetworkInfo get_self_ap_network() {
 }
 
 void MenuView::create_network_menu() {
+    auto toggle_wifi_default = to_selectable_lambda_option(pool_, "Idle Off", [=]() {
+        back_->on_selected();
+        views_->show_home();
+        StandardPool pool{ "wifi-option" };
+        configure_wifi_duration(FiveMinutesSeconds, pool);
+    }, [=](GlobalState const *gs) {
+        loginfo("update wifi %" PRIu32, gs->scheduler.gps.duration);
+        return gs->scheduler.network.duration != UINT32_MAX;
+    });
+    auto toggle_wifi_always = to_selectable_lambda_option(pool_, "Always On", [=]() {
+        back_->on_selected();
+        views_->show_home();
+        StandardPool pool{ "wifi-option" };
+        configure_wifi_duration(UINT32_MAX, pool);
+    }, [=](GlobalState const *gs) {
+        loginfo("update wifi %" PRIu32, gs->scheduler.gps.duration);
+        return gs->scheduler.network.duration == UINT32_MAX;
+    });
+
+    toggle_wifi_menu_ = new_menu_screen<3>(pool_, "wifimode", {
+        back_,
+        toggle_wifi_default,
+        toggle_wifi_always,
+    });
+
+
     auto network_choose_self = to_lambda_option(pool_, "Create AP", [=]() {
         choose_active_network(get_self_ap_network());
         back_->on_selected();
@@ -524,7 +513,10 @@ void MenuView::create_network_menu() {
         get_ipc()->launch_worker(create_pool_worker<DownloadFirmwareWorker>());
     });
 
-    auto network_always_on_toggle = new (*pool_) ToggleWifiAlwaysOnOption(back_, views_);
+    auto network_duration = to_lambda_option(pool_, "WiFI Duration", [=]() {
+        previous_menu_ = network_menu_;
+        active_menu_ = goto_menu(toggle_wifi_menu_);
+    });
 
     auto network_upload_resume = to_lambda_option(pool_, "Upload Rsm", [=]() {
         back_->on_selected();
@@ -551,7 +543,7 @@ void MenuView::create_network_menu() {
         network_upload_resume,
         network_upload_meta,
         network_upload_data,
-        network_always_on_toggle,
+        network_duration,
         network_download_fw,
     });
 }
@@ -580,7 +572,6 @@ void MenuView::create_main_menu() {
         previous_menu_ = active_menu_;
         active_menu_ = goto_menu(tools_menu_);
     });
-    main_tools->selected(true);
 
     main_menu_ = new_menu_screen<6>(pool_, "main", {
         main_readings,
@@ -594,7 +585,6 @@ void MenuView::create_main_menu() {
 
 void MenuView::create_schedules_menu() {
     auto schedule_readings = to_lambda_option(pool_, "Readings", [=]() {
-        loginfo("hello");
         views_->show_schedule();
     });
 
@@ -633,6 +623,8 @@ void MenuView::refresh() {
     auto gs = get_global_state_ro();
     network_choose_menu_->refresh(gs.get());
     tools_menu_->refresh(gs.get());
+    toggle_gps_menu_->refresh(gs.get());
+    toggle_wifi_menu_->refresh(gs.get());
 }
 
 void MenuView::up(ViewController *views) {
@@ -652,8 +644,6 @@ void MenuView::enter(ViewController *views) {
 
 void MenuView::choose_active_network(WifiNetworkInfo network) {
     auto gs = get_global_state_rw();
-
-    loginfo("hello '%s'", network.ssid);
 
     gs.get()->network.config.selected = network;
     gs.get()->network.config.modified = fk_uptime();

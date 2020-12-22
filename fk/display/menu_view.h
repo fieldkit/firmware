@@ -18,6 +18,8 @@ private:
     MenuScreen *network_menu_{ nullptr };
     MenuScreen *network_choose_menu_{ nullptr };
     MenuScreen *tools_menu_{ nullptr };
+    MenuScreen *toggle_gps_menu_{ nullptr };
+    MenuScreen *toggle_wifi_menu_{ nullptr };
     MenuScreen *main_menu_{ nullptr };
     MenuScreen *module_bays_menu_{ nullptr };
     MenuScreen *module_menu_{ nullptr };

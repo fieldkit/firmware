@@ -137,15 +137,32 @@ struct ReadingScreen : public DisplayScreen {
     }
 };
 
-template<typename T>
+template<typename TSelect>
 struct LambdaOption : public MenuOption {
-    T fn;
+    TSelect select_fn;
 
-    LambdaOption(const char *label, T fn) : MenuOption(label), fn(fn) {
+    LambdaOption(const char *label, TSelect select_fn) : MenuOption(label), select_fn(select_fn) {
     }
 
     void on_selected() override {
-        fn();
+        select_fn();
+    }
+};
+
+template<typename TSelect, typename TSelected>
+struct SelectableLambdaOption : public MenuOption {
+    TSelect select_fn;
+    TSelected selected_fn;
+
+    SelectableLambdaOption(const char *label, TSelect select_fn, TSelected selected_fn) : MenuOption(label), select_fn(select_fn), selected_fn(selected_fn) {
+    }
+
+    void on_selected() override {
+        select_fn();
+    }
+
+    void refresh(GlobalState const *gs) override {
+        selected(selected_fn(gs));
     }
 };
 
