@@ -204,7 +204,7 @@ struct ToggleWifiAlwaysOnOption : public MenuOption {
 
 MenuView::MenuView(ViewController *views, Pool &pool) : pool_(&pool), views_(views) {
     back_ = to_lambda_option(&pool, "Back", [=]() {
-        back_->selected(false);
+        back_->focused(false);
 
         if (previous_menu_ == nullptr || previous_menu_ == active_menu_) {
             loginfo("selected main-menu '%s'", active_menu_->title);
@@ -634,12 +634,12 @@ void MenuView::refresh() {
 
 void MenuView::up(ViewController *views) {
     show();
-    selection_up(*active_menu_);
+    focus_up(*active_menu_);
 }
 
 void MenuView::down(ViewController *views) {
     show();
-    selection_down(*active_menu_);
+    focus_down(*active_menu_);
 }
 
 void MenuView::enter(ViewController *views) {
@@ -661,51 +661,51 @@ void MenuView::choose_active_network(WifiNetworkInfo network) {
     }
 }
 
-void MenuView::selection_up(MenuScreen &screen) {
-    auto select_last = false;
-    auto previous_selectable_index = -1;
+void MenuView::focus_up(MenuScreen &screen) {
+    auto focus_last = false;
+    auto previous_focusable_index = -1;
 
     for (auto i = 0u; screen.options[i] != nullptr; ++i) {
         if (screen.options[i]->active()) {
-            if (screen.options[i]->selected()) {
-                screen.options[i]->selected(false);
+            if (screen.options[i]->focused()) {
+                screen.options[i]->focused(false);
 
-                if (previous_selectable_index == -1) {
-                    select_last = true;
+                if (previous_focusable_index == -1) {
+                    focus_last = true;
                 }
                 else {
-                    screen.options[previous_selectable_index]->selected(true);
-                    refresh_visible(screen, previous_selectable_index);
+                    screen.options[previous_focusable_index]->focused(true);
+                    refresh_visible(screen, previous_focusable_index);
                     break;
                 }
             }
 
-            previous_selectable_index = i;
+            previous_focusable_index = i;
         }
     }
 
-    if (select_last) {
-        FK_ASSERT(previous_selectable_index >= 0);
-        auto &option = screen.options[previous_selectable_index];
-        option->selected(true);
-        refresh_visible(screen, previous_selectable_index);
+    if (focus_last) {
+        FK_ASSERT(previous_focusable_index >= 0);
+        auto &option = screen.options[previous_focusable_index];
+        option->focused(true);
+        refresh_visible(screen, previous_focusable_index);
     }
 }
 
-void MenuView::selection_down(MenuScreen &screen) {
+void MenuView::focus_down(MenuScreen &screen) {
     for (auto i = 0u; screen.options[i] != nullptr; ++i) {
-        if (screen.options[i]->selected()) {
-            screen.options[i]->selected(false);
+        if (screen.options[i]->focused()) {
+            screen.options[i]->focused(false);
             for (auto j = i + 1; screen.options[j] != nullptr; ++j) {
                 if (screen.options[j]->active()) {
-                    screen.options[j]->selected(true);
+                    screen.options[j]->focused(true);
                     refresh_visible(screen, j);
                     return;
                 }
             }
             for (auto j = 0; screen.options[j] != nullptr; ++j) {
                 if (screen.options[j]->active()) {
-                    screen.options[j]->selected(true);
+                    screen.options[j]->focused(true);
                     refresh_visible(screen, j);
                     return;
                 }
@@ -714,14 +714,14 @@ void MenuView::selection_down(MenuScreen &screen) {
     }
 }
 
-void MenuView::refresh_visible(MenuScreen &screen, int8_t selected_index) {
+void MenuView::refresh_visible(MenuScreen &screen, int8_t focused_index) {
     static constexpr int8_t MaximumVisible = 4;
 
     auto nvisible = 0u;
 
     for (auto i = 0; screen.options[i] != nullptr; ++i) {
         auto &o = screen.options[i];
-        if (selected_index - i >= MaximumVisible || nvisible >= MaximumVisible) {
+        if (focused_index - i >= MaximumVisible || nvisible >= MaximumVisible) {
             o->visible(false);
         }
         else {
@@ -733,7 +733,7 @@ void MenuView::refresh_visible(MenuScreen &screen, int8_t selected_index) {
 
 MenuOption *MenuView::selected(MenuScreen &screen) {
     for (auto i = 0u; screen.options[i] != nullptr; ++i) {
-        if (screen.options[i]->selected()) {
+        if (screen.options[i]->focused()) {
             return screen.options[i];
         }
     }
@@ -743,21 +743,21 @@ MenuOption *MenuView::selected(MenuScreen &screen) {
 }
 
 MenuScreen *MenuView::goto_menu(MenuScreen *screen) {
-    auto selectable = -1;
+    auto focusable = -1;
     for (auto i = 0; screen->options[i] != nullptr; ++i) {
-        if (screen->options[i]->selected()) {
+        if (screen->options[i]->focused()) {
             refresh_visible(*screen, i);
             return screen;
         }
         if (screen->options[i]->active()) {
-            if (selectable < 0) {
-                selectable = i;
+            if (focusable < 0) {
+                focusable = i;
             }
         }
     }
 
-    screen->options[selectable]->selected(true);
-    refresh_visible(*screen, selectable);
+    screen->options[focusable]->focused(true);
+    refresh_visible(*screen, focusable);
 
     return screen;
 }

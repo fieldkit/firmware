@@ -9,7 +9,7 @@ MenuScreen::MenuScreen() : options(nullptr) {
 }
 
 MenuScreen::MenuScreen(const char *title, MenuOption **options) : title(title), options(options) {
-    options[0]->selected_ = true;
+    options[0]->focused_ = true;
 }
 
 static NullDisplay null_display;

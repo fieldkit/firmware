@@ -61,11 +61,12 @@ struct HomeScreen : public DisplayScreen {
 
 struct MenuOption {
     const char *label_;
+    bool focused_;
     bool selected_;
     bool visible_;
     bool active_;
 
-    MenuOption(const char *label) : label_(label), selected_(false), visible_(true), active_(true) {
+    MenuOption(const char *label) : label_(label), focused_(false), selected_(false), visible_(true), active_(true) {
     }
 
     virtual void on_selected() = 0;
@@ -86,12 +87,22 @@ struct MenuOption {
         visible_ = visible;
     }
 
+    /*
     virtual bool selected() const {
         return selected_;
     }
 
     virtual void selected(bool value) {
         selected_ = value;
+    }
+    */
+
+    virtual bool focused() const {
+        return focused_;
+    }
+
+    virtual void focused(bool value) {
+        focused_ = value;
     }
 
     virtual const char *label() const {

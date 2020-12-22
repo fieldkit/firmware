@@ -307,7 +307,7 @@ void U8g2Display::menu(MenuScreen const &data) {
             auto option = data.options[i];
             if (option->visible()) {
                 draw_.drawUTF8(2 + 10, y + 12, option->label());
-                if (option->selected()) {
+                if (option->focused()) {
                     draw_.drawBox(2, y + 4, 10, 10);
                 }
                 y += 12;
