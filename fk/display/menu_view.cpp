@@ -256,7 +256,8 @@ void MenuView::create_module_bays_menu() {
         get_ipc()->launch_worker(create_pool_worker<RefreshModulesWorker>());
         views_->show_module_status();
     });
-    module_bays_menu_ = new_menu_screen<1>(pool_, "modules", {
+    module_bays_menu_ = new_menu_screen<2>(pool_, "modules", {
+        back_,
         module_bays_status,
     });
 }
@@ -366,7 +367,8 @@ void MenuView::create_module_menu() {
         get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_));
     });
 
-    module_menu_ = new_menu_screen<3>(pool_, "module", {
+    module_menu_ = new_menu_screen<4>(pool_, "module", {
+        back_,
         module_home,
         module_program,
         module_erase,
