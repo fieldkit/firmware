@@ -34,8 +34,8 @@ struct AggregatedWeatherHelpers {
     }
 
     WindReading get_wind_two_minute_average() {
-        WindReading readings[30];
-        for (auto i = 0u; i < 30; ++i) {
+        WindReading readings[120];
+        for (auto i = 0u; i < 120; ++i) {
             if (aw.wind_120s[i].ticks != FK_WEATHER_TICKS_NULL) {
                 readings[i] = WindReading{ aw.wind_120s[i] };
             }
@@ -44,10 +44,12 @@ struct AggregatedWeatherHelpers {
     }
 
     WindReading get_wind_30_second_average() {
+        WindReading readings[30];
         auto index = aw.counter_120s;
-        WindReading readings[120];
-        for (auto i = 0u; i < 120; ++i) {
+        loginfo("getting 30s average %zd", sizeof(readings));
+        for (auto i = 0u; i < 30; ++i) {
             if (aw.wind_120s[index].ticks != FK_WEATHER_TICKS_NULL) {
+                loginfo("wind120s[%d/%d] %" PRIu32 " %" PRIu32, i, index, aw.wind_120s[index].ticks, aw.wind_120s[index].direction);
                 readings[i] = WindReading{ aw.wind_120s[index] };
             }
             if (index == 0) {
@@ -156,6 +158,8 @@ ModuleReadings *AggregatedWeather::take_readings(ModuleContext mc, Pool &pool) {
         loginfo("unmetered weather detected");
         return mr;
     }
+
+
 
     mr->set(i++, awh.get_rain_mm_per_hour());
 
