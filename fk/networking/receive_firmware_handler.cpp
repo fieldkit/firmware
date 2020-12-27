@@ -69,6 +69,7 @@ void ReceiveFirmwareWorker::run(Pool &pool) {
     auto file = sd->open(file_name, OpenFlags::Write, pool);
     if (file == nullptr || !*file) {
         read_complete_and_fail("create", pool);
+        return;
     }
 
     auto buffer = reinterpret_cast<uint8_t*>(pool.malloc(NetworkBufferSize));
@@ -90,6 +91,7 @@ void ReceiveFirmwareWorker::run(Pool &pool) {
     tracker.finished();
 
     if (bytes_copied != expected) {
+        logwarn("unexpected bytes %" PRIu32 " != %" PRIu32, bytes_copied, expected);
         write_error("incomplete", pool);
         return;
     }
