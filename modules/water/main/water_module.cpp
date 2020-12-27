@@ -9,6 +9,7 @@ FK_DECLARE_LOGGER("water");
 ModuleReturn WaterModule::initialize(ModuleContext mc, Pool &pool) {
     auto atlas = OemAtlas{ mc.module_bus() };
     if (!atlas.find()) {
+        logerror("no atlas module (ms::fatal)");
         return { ModuleStatus::Fatal };
     }
 
@@ -24,17 +25,19 @@ ModuleStatusReturn WaterModule::status(ModuleContext mc, Pool &pool) {
     AtlasApiReply reply{ pool };
 
     if (!atlas.wake()) {
-        logerror("error waking (module-status)");
+        logerror("error waking (module-status) (ms::fatal)");
         reply.error("error waking");
         return { ModuleStatus::Fatal, nullptr };
     }
 
     auto calibrationStatus = atlas.calibration();
     if (!calibrationStatus.success) {
+        logerror("error calibrating (ms::fatal)");
         return { ModuleStatus::Fatal, nullptr };
     }
 
     if (!reply.status_reply(atlas, calibrationStatus)) {
+        logerror("error replying (ms::fatal)");
         return { ModuleStatus::Fatal, nullptr };
     }
 
@@ -46,6 +49,7 @@ ModuleStatusReturn WaterModule::status(ModuleContext mc, Pool &pool) {
 ModuleReturn WaterModule::api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
     if (type_ == AtlasSensorType::Unknown) {
         if (!initialize(mc, pool)) {
+            logerror("error initializing (ms::fatal)");
             return { ModuleStatus::Fatal };
         }
     }
@@ -53,6 +57,7 @@ ModuleReturn WaterModule::api(ModuleContext mc, HttpServerConnection *connection
     OemAtlas atlas{ mc.module_bus(), address_, type_  };
     AtlasApi api{ type_, atlas };
     if (!api.handle(connection, pool)) {
+        logerror("error handling api (ms::fatal)");
         return { ModuleStatus::Fatal };
     }
 

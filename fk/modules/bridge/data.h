@@ -145,6 +145,25 @@ enum class ModuleStatus {
     Fatal
 };
 
+inline const char *get_module_status_string(ModuleStatus ms) {
+    switch (ms) {
+    case ModuleStatus::Unknown:
+        return "unknown";
+    case ModuleStatus::Empty:
+        return "empty";
+    case ModuleStatus::Found:
+        return "found";
+    case ModuleStatus::Ok:
+        return "ok";
+    case ModuleStatus::Warning:
+        return "warning";
+    case ModuleStatus::Fatal:
+        return "fatal";
+    default:
+        return "unknown!";
+    }
+}
+
 struct ConstructedModule {
     FoundModule found;
     ModuleMetadata const *meta;

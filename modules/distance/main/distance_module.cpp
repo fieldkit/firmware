@@ -23,7 +23,7 @@ ModuleReturn DistanceModule::initialize(ModuleContext mc, Pool &pool) {
     }
 
     if (!bridge_.begin(9600)) {
-        logerror("initializing bridge");
+        logerror("initializing bridge (ms::fatal)");
         return { ModuleStatus::Fatal };
     }
 

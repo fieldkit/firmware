@@ -112,11 +112,14 @@ void GlobalState::update_physical_modules(ConstructedModulesCollection const &mo
     for (auto &m : modules) {
         if (m.found.physical()) {
             auto index = m.found.position.integer();
+
             FK_ASSERT(index < MaximumNumberOfPhysicalModules);
             auto &status = physical_modules[index];
             status.header = m.found.header;
             status.meta = m.meta;
             status.status = m.status;
+
+            loginfo("[%d] '%s' module status = %s", index, m.meta->name, get_module_status_string(m.status));
         }
     }
 }

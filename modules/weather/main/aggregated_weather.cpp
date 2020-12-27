@@ -83,6 +83,7 @@ ModuleReturn AggregatedWeather::initialize(ModuleContext mc, Pool &pool) {
         loginfo("sending clock (u32)");
 
         if (!I2C_CHECK(bus.write_register_u32(FK_WEATHER_I2C_ADDRESS, FK_WEATHER_I2C_COMMAND_CONFIG, now))) {
+            logerror("error sending clock (ms::fatal)");
             return { ModuleStatus::Fatal };
         }
     }
@@ -100,6 +101,7 @@ ModuleReturn AggregatedWeather::initialize(ModuleContext mc, Pool &pool) {
         dt.time.sec   = date_time.second();
 
         if (!I2C_CHECK(bus.write_register_buffer(FK_WEATHER_I2C_ADDRESS, FK_WEATHER_I2C_COMMAND_CONFIG, &dt, sizeof(dt)))) {
+            logerror("error sending clock (ms::fatal)");
             return { ModuleStatus::Fatal };
         }
     }

@@ -13,17 +13,17 @@ static ModuleStatusScreen get_module_status_screen(uint8_t bay, PhysicalModuleSt
 
     switch (pm.status) {
     case ModuleStatus::Unknown:
-        return{ bay, name, "<unknown>" };
+        return { bay, name, "<unknown>" };
     case ModuleStatus::Empty:
-        return{ bay, "<empty>", "" };
+        return { bay, "<empty>", "" };
     case ModuleStatus::Found:
-        return{ bay, name, "found" };
+        return { bay, name, "found" };
     case ModuleStatus::Ok:
-        return{ bay, name, "ok" };
+        return { bay, name, "ok" };
     case ModuleStatus::Warning:
-        return{ bay, name, "warning" };
+        return { bay, name, "warning" };
     case ModuleStatus::Fatal:
-        return{ bay, name, "fatal" };
+        return { bay, name, "fatal" };
     }
     return { bay, "<error>", "<error>" };
 }

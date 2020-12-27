@@ -155,7 +155,7 @@ tl::expected<ConstructedModulesCollection, Error> ModuleFactory::resolve(FoundMo
                 .status = ModuleStatus::Fatal,
             });
 
-            logwarn("[%d] no such module", f.position.integer());
+            logwarn("[%d] no such module (ms::fatal)", f.position.integer());
         }
         else {
             auto module = meta->ctor(pool);

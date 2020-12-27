@@ -27,7 +27,7 @@ ModuleReturn JournaledWeather::initialize(ModuleContext mc, Pool &pool) {
 
         fk_weather_t temp;
         if (!eeprom.read_data(iter, &temp, sizeof(fk_weather_t))) {
-            logerror("error reading eeprom");
+            logerror("error reading eeprom (ms::fatal)");
             return { ModuleStatus::Fatal };
         }
 
@@ -72,12 +72,12 @@ ModuleReturn JournaledWeather::service(ModuleContext mc, Pool &pool) {
     // Keep trying to find the end if we weren't able to.
     if (address_ == 0) {
         if (initialize(mc, pool).status != ModuleStatus::Ok) {
-            logerror("initialize failed");
+            logerror("initialize failed (ms::fatal)");
             return { ModuleStatus::Fatal };
         }
 
         if (address_ == 0) {
-            logerror("no readings");
+            logerror("no readings (ms::fatal)");
             return { ModuleStatus::Fatal };
         }
     }
@@ -101,7 +101,7 @@ ModuleReturn JournaledWeather::service(ModuleContext mc, Pool &pool) {
 
         fk_weather_t temp;
         if (!eeprom.read_data(address_, &temp, sizeof(fk_weather_t))) {
-            logerror("error reading eeprom");
+            logerror("error reading eeprom (ms::fatal)");
             return { ModuleStatus::Fatal };
         }
 
