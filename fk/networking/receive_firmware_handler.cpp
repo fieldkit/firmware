@@ -59,8 +59,13 @@ void ReceiveFirmwareWorker::run(Pool &pool) {
     }
 
     if (sd->is_file(file_name)) {
-        loginfo("deleting existing file");
+        loginfo("unlink existing file");
         if (!sd->unlink(file_name)) {
+            read_complete_and_fail("unlink", pool);
+            return;
+        }
+        if (sd->is_file(file_name)) {
+            logerror("unlink failed");
             read_complete_and_fail("unlink", pool);
             return;
         }
