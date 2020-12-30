@@ -43,7 +43,8 @@ int32_t fake_readings(fk_weather_t *weather) {
     return FK_SUCCESS;
 }
 
-int32_t take_readings(fk_weather_t *weather, sensors_t *sensors, uint8_t *failures) {
+int32_t take_readings(fk_weather_t *weather, sensors_t *sensors, uint8_t *failures_rv) {
+    uint8_t failures = 0;
     int32_t rv;
 
     if (sensors->has_bme280) {
@@ -51,7 +52,7 @@ int32_t take_readings(fk_weather_t *weather, sensors_t *sensors, uint8_t *failur
         rv = bme280_reading_get(&I2C_1, &bme280_reading);
         if (rv != FK_SUCCESS) {
             logerrorf("bme280 (%d)", rv);
-            *failures++;
+            failures |= FK_WEATHER_SENSORS_BME280;
         }
 
         weather->humidity = bme280_reading.humidity;
@@ -65,14 +66,14 @@ int32_t take_readings(fk_weather_t *weather, sensors_t *sensors, uint8_t *failur
         rv = mpl3115a2_reading_get(&I2C_1, &mpl3115a2_reading);
         if (rv != FK_SUCCESS) {
             logerrorf("mpl3115a2 (%d)", rv);
-            *failures++;
+            failures |= FK_WEATHER_SENSORS_MPL3115A2;
         }
 
         sht31_reading_t sht31_reading;
         rv = sht31_reading_get(&I2C_1, &sht31_reading);
         if (rv != FK_SUCCESS) {
             logerrorf("sht31 (%d)", rv);
-            *failures++;
+            failures |= FK_WEATHER_SENSORS_SHT31;
         }
 
         weather->humidity = sht31_reading.humidity;
@@ -87,17 +88,19 @@ int32_t take_readings(fk_weather_t *weather, sensors_t *sensors, uint8_t *failur
     rv = adc081c_reading_get(&I2C_1, &wind_direction);
     if (rv != FK_SUCCESS) {
         logerrorf("adc081c (%d)", rv);
-        *failures++;
+        failures |= FK_WEATHER_SENSORS_ADC;
     }
 
     counters_reading_t counters_reading;
     rv = counters_reading_get(&I2C_1, &counters_reading);
     if (rv != FK_SUCCESS) {
         logerrorf("counters (%d)", rv);
-        *failures++;
+        failures |= FK_WEATHER_SENSORS_COUNTERS;
     }
     #endif
 
+    (*failures_rv) = failures;
+    weather->failures = failures;
     weather->seconds++;
     weather->session++;
     #if !defined(FK_WEATHER_UNMETERED)
@@ -107,7 +110,7 @@ int32_t take_readings(fk_weather_t *weather, sensors_t *sensors, uint8_t *failur
     #endif
     weather->crc = fk_weather_sign(weather);
 
-    if (*failures > 0) {
+    if (failures > 0) {
         return FK_ERROR_GENERAL;
     }
 
