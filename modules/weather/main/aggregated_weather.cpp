@@ -78,35 +78,41 @@ ModuleReturn AggregatedWeather::initialize(ModuleContext mc, Pool &pool) {
 
     auto now = get_clock_now();
 
-    // TODO Check version
-    if (false) {
-        loginfo("sending clock (u32)");
+    for (auto i = 0u; i < 3u; ++i) {
+        // TODO Check version
+        if (false) {
+            loginfo("sending clock (u32)");
 
-        if (!I2C_CHECK(bus.write_register_u32(FK_WEATHER_I2C_ADDRESS, FK_WEATHER_I2C_COMMAND_CONFIG, now))) {
+            if (I2C_CHECK(bus.write_register_u32(FK_WEATHER_I2C_ADDRESS, FK_WEATHER_I2C_COMMAND_CONFIG, now))) {
+                return { ModuleStatus::Ok };
+            }
+
             logerror("error sending clock (ms::fatal)");
-            return { ModuleStatus::Fatal };
         }
-    }
-    else {
-        loginfo("sending clock (calendar)");
+        else {
+            loginfo("sending clock (calendar)");
 
-        DateTime date_time{ now };
+            DateTime date_time{ now };
 
-        struct fkw_calendar_date_time dt;
-        dt.date.year  = date_time.year();
-        dt.date.month = date_time.month();
-        dt.date.day   = date_time.day();
-        dt.time.hour  = date_time.hour();
-        dt.time.min   = date_time.minute();
-        dt.time.sec   = date_time.second();
+            struct fkw_calendar_date_time dt;
+            dt.date.year  = date_time.year();
+            dt.date.month = date_time.month();
+            dt.date.day   = date_time.day();
+            dt.time.hour  = date_time.hour();
+            dt.time.min   = date_time.minute();
+            dt.time.sec   = date_time.second();
 
-        if (!I2C_CHECK(bus.write_register_buffer(FK_WEATHER_I2C_ADDRESS, FK_WEATHER_I2C_COMMAND_CONFIG, &dt, sizeof(dt)))) {
+            if (I2C_CHECK(bus.write_register_buffer(FK_WEATHER_I2C_ADDRESS, FK_WEATHER_I2C_COMMAND_CONFIG, &dt, sizeof(dt)))) {
+                return { ModuleStatus::Ok };
+            }
+
             logerror("error sending clock (ms::fatal)");
-            return { ModuleStatus::Fatal };
         }
+
+        fk_delay(10);
     }
 
-    return { ModuleStatus::Ok };
+    return { ModuleStatus::Fatal };
 }
 
 ModuleReturn AggregatedWeather::service(ModuleContext mc, Pool &pool) {
