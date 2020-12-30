@@ -282,8 +282,6 @@ uint32_t fk_free_memory() {
 }
 
 void NMI_Handler(void) {
-    logerror("isr: nmi fault");
-
     volatile int32_t i = 0;
     while (1) {
         i++;
@@ -291,8 +289,6 @@ void NMI_Handler(void) {
 }
 
 void HardFault_Handler(void) {
-    logerror("isr: hard fault");
-
     volatile int32_t i = 0;
     while (1) {
         i++;
@@ -300,8 +296,6 @@ void HardFault_Handler(void) {
 }
 
 void MemManage_Handler(void) {
-    logerror("isr: memmanage fault");
-
     volatile int32_t i = 0;
     while (1) {
         i++;
@@ -309,8 +303,6 @@ void MemManage_Handler(void) {
 }
 
 void BusFault_Handler(void) {
-    logerror("isr: bus fault");
-
     volatile int32_t i = 0;
     while (1) {
         i++;
@@ -318,5 +310,5 @@ void BusFault_Handler(void) {
 }
 
 void WDT_Handler(void) {
-    logerror("isr: watchdog");
+
 }

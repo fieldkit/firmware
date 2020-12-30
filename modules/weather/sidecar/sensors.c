@@ -45,7 +45,7 @@
 static int32_t configure_io_expander(struct i2c_m_sync_desc *i2c, uint8_t address, uint8_t iodir, uint8_t gpio);
 
 static void log_sensor_error(const char *which, int32_t rv) {
-    logerrorf("%s: error initializing (%d)", which, rv);
+    logerrorf("%s: error (%d)", which, rv);
 }
 
 int32_t sensors_initialize(struct i2c_m_sync_desc *i2c, sensors_t *sensors) {
