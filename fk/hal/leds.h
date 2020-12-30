@@ -17,7 +17,7 @@ public:
 
 public:
     virtual bool begin() = 0;
-    virtual void brightness(uint8_t value, bool refresh = true) = 0;
+    virtual bool brightness(uint8_t value, bool refresh = true) = 0;
     virtual void off() = 0;
     virtual void on() = 0;
     virtual void color(uint8_t position, Color color, bool refresh = true) = 0;

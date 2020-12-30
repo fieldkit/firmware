@@ -9,7 +9,8 @@ bool LinuxLeds::begin() {
     return true;
 }
 
-void LinuxLeds::brightness(uint8_t value, bool refresh) {
+bool LinuxLeds::brightness(uint8_t value, bool refresh) {
+    return false;
 }
 
 void LinuxLeds::off() {
