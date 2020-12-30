@@ -4,18 +4,13 @@
 
 #include "weather.h"
 #include "aggregated_weather.h"
-#include "journaled_weather.h"
 #include "weather_types.h"
 
 namespace fk {
 
 class WeatherModule : public Module {
 private:
-    #if defined(FK_WEATHER_JOURNALED)
-    JournaledWeather delegate_;
-    #else
     AggregatedWeather delegate_;
-    #endif
 
 public:
     ModuleReturn initialize(ModuleContext mc, Pool &pool) override;

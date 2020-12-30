@@ -43,11 +43,7 @@ ModuleSensors const *WeatherModule::get_sensors(Pool &pool) {
 }
 
 ModuleConfiguration WeatherModule::get_configuration(Pool &pool) {
-    #if defined(FK_WEATHER_JOURNALED)
-    return { "modules.weather", ModulePower::Always, 60 };
-    #else
     return { "modules.weather", ModulePower::Always, 0 };
-    #endif
 }
 
 ModuleReturn WeatherModule::initialize(ModuleContext mc, Pool &pool) {

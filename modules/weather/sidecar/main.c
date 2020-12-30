@@ -143,8 +143,6 @@ static void i2c_sensors_recover() {
     gpio_set_pin_direction(PA23, GPIO_DIRECTION_OFF);
 }
 
-#if defined(FK_WEATHER_STAND_ALONE)
-
 static bool eeprom_clear_or_outside_window(uint32_t now) {
     return true;
 }
@@ -161,28 +159,6 @@ static void regmap_before_read(void *ptr) {
     aw->crc = aggregated_weather_sign(aw);
 }
 
-#else
-
-static volatile uint32_t eeprom_signaled = 0;
-static volatile uint32_t eeprom_signals = 0;
-
-static void eeprom_signal() {
-    uint32_t now = board_system_time_get();
-    if (eeprom_lock_test()) {
-        if (eeprom_signaled == 0 || now - eeprom_signaled > FK_MODULES_EEPROM_WARNING_WINDOW) {
-            eeprom_signaled = now;
-            eeprom_signals = 0;
-        }
-        eeprom_signals++;
-    }
-}
-
-static bool eeprom_clear_or_outside_window(uint32_t now) {
-    return eeprom_signaled == 0 || now - eeprom_signaled > FK_MODULES_EEPROM_WARNING_WINDOW;
-}
-
-#endif
-
 __int32_t main() {
     SEGGER_RTT_SetFlagsUpBuffer(0, SEGGER_RTT_MODE_NO_BLOCK_SKIP);
 
@@ -192,22 +168,6 @@ __int32_t main() {
 
     FK_ASSERT(sizeof(struct fkw_calendar_date_time) == sizeof(struct calendar_date_time));
 
-    #if !defined(FK_WEATHER_STAND_ALONE)
-    if (ext_irq_register(PA25, eeprom_signal) != 0) {
-        logerror("registering irq");
-    }
-
-    if (ext_irq_enable(PA25) != 0) {
-        logerror("enabling irq");
-    }
-
-    // When we startup, sometimes the parent will hold this high so that it can
-    // talk to the bus. Give the parent a chance to do that.
-    while (eeprom_lock_test()) {
-        delay_ms(100);
-    }
-    #endif
-
     uint32_t clk_rate = 1000;
     uint16_t to_period = 4096;
     wdt_set_timeout_period(&WDT_0, clk_rate, to_period);
@@ -215,8 +175,6 @@ __int32_t main() {
 
     fk_weather_t weather;
     memzero(&weather, sizeof(fk_weather_t));
-
-    #if defined(FK_WEATHER_STAND_ALONE)
 
     fk_weather_aggregated_t aggregated;
     aggregated_weather_initialize(&aggregated);
@@ -230,40 +188,11 @@ __int32_t main() {
 
     FK_ASSERT(board_subordinate_initialize(&regmap) == FK_SUCCESS);
 
-    #else // defined(FK_WEATHER_STAND_ALONE)
-
-    eeprom_region_t readings_region;
-    FK_ASSERT(eeprom_region_create(&readings_region, &I2C_0_m, EEPROM_ADDRESS_READINGS, EEPROM_ADDRESS_READINGS_END, sizeof(fk_weather_t)) == FK_SUCCESS);
-
-    board_eeprom_i2c_enable();
-
-    if (eeprom_region_seek_end(&readings_region, &weather.seconds, &weather.startups) != FK_SUCCESS) {
-        logerror("eeprom end");
-        board_eeprom_i2c_disable();
-        delay_ms(8000);
-        NVIC_SystemReset();
-    }
-
-    unwritten_readings_t ur;
-    FK_ASSERT(unwritten_readings_initialize(&ur) == FK_SUCCESS);
-
-    board_eeprom_i2c_disable();
-
-    weather.startups++;
-
-    loginfof("startup=%d, done", weather.startups);
-
-    #endif // defined(FK_WEATHER_STAND_ALONE)
-
     board_sensors_i2c_enable();
 
     sensors_t sensors = { 0, 0 };
     int32_t rv = sensors_initialize(&I2C_1, &sensors);
     if (rv != FK_SUCCESS) {
-        #if !defined(FK_WEATHER_STAND_ALONE)
-        eeprom_region_append_error(&readings_region, weather.startups, FK_WEATHER_ERROR_SENSORS_STARTUP, 0, sensors.failures);
-        #endif
-
         if (sensors.working == 0) {
             #if !defined(FK_WEATHER_IGNORE_NO_SENSORS)
             i2c_sensors_recover();
@@ -305,33 +234,10 @@ __int32_t main() {
             }
             #endif
 
-            #if defined(FK_WEATHER_STAND_ALONE)
-
             struct calendar_date_time clock;
             calendar_get_date_time(&CALENDAR_0, &clock);
 
             FK_ASSERT(aggregated_weather_include(&aggregated, &clock, &weather) == FK_SUCCESS);
-
-            #else // defined(FK_WEATHER_STAND_ALONE)
-
-            unwritten_readings_push(&ur, &weather);
-
-            int32_t nentries = unwritten_readings_get_size(&ur);
-            rv = eeprom_region_append_unwritten(&readings_region, &ur);
-            if (rv != FK_SUCCESS) {
-                if (rv == FK_ERROR_BUSY) {
-                    loginfo("eeprom busy");
-                }
-                else {
-                    logerror("!");
-                    weather.memory_failures++;
-                }
-            }
-            else {
-                weather.memory_failures = 0;
-            }
-
-            #endif // defined(FK_WEATHER_STAND_ALONE)
 
             #if defined(FK_LOGGING)
             SEGGER_RTT_WriteString(0, "\n");
@@ -352,14 +258,6 @@ __int32_t main() {
         wdt_feed(&WDT_0);
 
         sleep(SYSTEM_SLEEPMODE_IDLE_2);
-
-        #if !defined(FK_WEATHER_STAND_ALONE)
-        if (eeprom_signals >= FK_MODULES_EEPROM_WARNING_TICKS) {
-            loginfof("warning signal: %" PRIu32, eeprom_signals);
-            delay_ms((eeprom_signals - 1) * FK_MODULES_EEPROM_WARNING_SLEEP_PER_TICK);
-            eeprom_signals = 0;
-        }
-        #endif // !defined(FK_WEATHER_STAND_ALONE)
     }
 
     return 0;
