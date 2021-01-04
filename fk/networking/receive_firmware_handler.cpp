@@ -101,21 +101,26 @@ void ReceiveFirmwareWorker::run(Pool &pool) {
         return;
     }
 
+    file->close();
+
     write_success(pool);
+
+    fk_delay(500);
 
     if (!swap) {
         loginfo("just writing to card");
         return;
     }
 
-    auto marker_file_name = "upgrade.cfg";
-    auto marker_file = sd->open(marker_file_name, OpenFlags::Write, pool);
-    if (marker_file == nullptr || !marker_file) {
-        logerror("error touching %s", marker_file_name);
-        return;
+    // Allows for easier testing of the app.
+    if (true) {
+        auto marker_file_name = "upgrade.cfg";
+        auto marker_file = sd->open(marker_file_name, OpenFlags::Write, pool);
+        if (marker_file == nullptr || !marker_file) {
+            logerror("error touching %s", marker_file_name);
+            return;
+        }
     }
-
-    file->close();
 
     loginfo("graceful shutdown");
 
