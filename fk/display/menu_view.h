@@ -24,9 +24,11 @@ private:
     MenuScreen *module_bays_menu_{ nullptr };
     MenuScreen *module_menu_{ nullptr };
     MenuScreen *schedules_menu_{ nullptr };
+    MenuScreen *confirm_menu_{ nullptr };
     uint32_t menu_time_{ 0 };
     uint32_t refresh_time_{ 0 };
     ModulePosition selected_module_bay_{ 0 };
+    MenuOption *pending_{ nullptr };
 
 public:
     MenuView(ViewController *views, Pool &pool);
@@ -38,6 +40,7 @@ public:
     void up(ViewController *views) override;
     void down(ViewController *views) override;
     void enter(ViewController *views) override;
+    void confirm(MenuOption *pending);
 
 private:
     void create_info_menu();
@@ -47,7 +50,9 @@ private:
     void create_network_menu();
     void create_main_menu();
     void create_schedules_menu();
+    void create_confirmation_menu();
     void refresh();
+    MenuScreen *goto_menu(MenuScreen *screen);
 
 private:
     static void choose_active_network(WifiNetworkInfo network);
@@ -55,7 +60,6 @@ private:
     static void focus_down(MenuScreen &screen);
     static void refresh_visible(MenuScreen &screen, int8_t focused_index);
     static MenuOption *selected(MenuScreen &screen);
-    static MenuScreen *goto_menu(MenuScreen *screen);
 
 };
 

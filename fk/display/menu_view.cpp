@@ -45,6 +45,18 @@ MenuScreen *new_menu_screen(Pool *pool, const char *title, MenuOption* (&&option
     return new (*pool) MenuScreen(title, n_options);
 }
 
+struct ConfirmOption : public MenuOption {
+    MenuView *view_;
+    MenuOption *yes_;
+
+    ConfirmOption(MenuView *view, MenuOption *yes) : MenuOption(yes->label_), view_(view), yes_(yes) {
+    }
+
+    void on_selected() override {
+        view_->confirm(yes_);
+    }
+};
+
 template<typename T>
 struct NetworkOption : public MenuOption {
     int32_t index_;
@@ -140,11 +152,11 @@ MenuView::MenuView(ViewController *views, Pool &pool) : pool_(&pool), views_(vie
 
         if (previous_menu_ == nullptr || previous_menu_ == active_menu_) {
             loginfo("selected main-menu '%s'", active_menu_->title);
-            active_menu_ = goto_menu(main_menu_);
+            goto_menu(main_menu_);
         }
         else {
             loginfo("selected previous-menu '%s'", active_menu_->title);
-            active_menu_ = goto_menu(previous_menu_);
+            goto_menu(previous_menu_);
         }
     });
 
@@ -155,6 +167,7 @@ MenuView::MenuView(ViewController *views, Pool &pool) : pool_(&pool), views_(vie
     create_network_menu();
     create_main_menu();
     create_schedules_menu();
+    create_confirmation_menu();
 
     active_menu_ = main_menu_;
     refresh_visible(*active_menu_, 0);
@@ -295,7 +308,7 @@ void MenuView::create_module_menu() {
     });
     auto module_program = to_lambda_option(pool_, "Program", [=]() {
         previous_menu_ = active_menu_;
-        active_menu_ = goto_menu(program_menu);
+        goto_menu(program_menu);
     });
     auto module_erase = to_lambda_option(pool_, "Erase", [=]() {
         back_->on_selected();
@@ -308,6 +321,24 @@ void MenuView::create_module_menu() {
         module_home,
         module_program,
         module_erase,
+    });
+}
+
+void MenuView::create_confirmation_menu() {
+    auto confirm_no = to_lambda_option(pool_, "Cancel / No", [=]() {
+        back_->on_selected();
+        views_->show_home();
+    });
+    auto confirm_yes = to_lambda_option(pool_, "Yes", [=]() {
+        if (pending_ != nullptr) {
+            pending_->on_selected();
+            pending_ = nullptr;
+        }
+    });
+
+    confirm_menu_ = new_menu_screen<2>(pool_, "confirm", {
+        confirm_no,
+        confirm_yes
     });
 }
 
@@ -344,7 +375,7 @@ void MenuView::create_tools_menu() {
 
     auto tools_gps_toggle = to_lambda_option(pool_, "GPS Mode", [=]() {
         previous_menu_ = tools_menu_;
-        active_menu_ = goto_menu(toggle_gps_menu_);
+        goto_menu(toggle_gps_menu_);
     });
 
     auto tools_format_sd = to_lambda_option(pool_, "Format SD", [=]() {
@@ -386,16 +417,16 @@ void MenuView::create_tools_menu() {
         back_->on_selected();
         views_->show_gps();
     });
-    auto tools_factory_reset = to_lambda_option(pool_, "Factory Reset", [=]() {
+    auto tools_factory_reset = new (pool_) ConfirmOption(this, to_lambda_option(pool_, "Factory Reset", [=]() {
         back_->on_selected();
         views_->show_home();
         get_ipc()->launch_worker(create_pool_worker<FactoryWipeWorker>());
-    });
-    auto tools_restart = to_lambda_option(pool_, "Restart", [=]() {
+    }));
+    auto tools_restart = new (pool_) ConfirmOption(this, to_lambda_option(pool_, "Restart", [=]() {
         get_display()->off();
         fk_graceful_shutdown();
         fk_restart();
-    });
+    }));
     auto tools_export_data = to_lambda_option(pool_, "Export CSV", [=]() {
         back_->on_selected();
         views_->show_home();
@@ -508,7 +539,7 @@ void MenuView::create_network_menu() {
     auto network_toggle = new (*pool_) ToggleWifiOption(back_, views_);
     auto network_choose = to_lambda_option(pool_, "Choose", [=]() {
         previous_menu_ = active_menu_;
-        active_menu_ = goto_menu(network_choose_menu_);
+        goto_menu(network_choose_menu_);
     });
 
     auto network_download_fw = to_lambda_option(pool_, "Upgrade", [=]() {
@@ -519,7 +550,7 @@ void MenuView::create_network_menu() {
 
     auto network_duration = to_lambda_option(pool_, "WiFI Duration", [=]() {
         previous_menu_ = network_menu_;
-        active_menu_ = goto_menu(toggle_wifi_menu_);
+        goto_menu(toggle_wifi_menu_);
     });
 
     auto network_upload_resume = to_lambda_option(pool_, "Upload Rsm", [=]() {
@@ -558,23 +589,23 @@ void MenuView::create_main_menu() {
     });
     auto main_info = to_lambda_option(pool_, "Info", [=]() {
         previous_menu_ = active_menu_;
-        active_menu_ = goto_menu(info_menu_);
+        goto_menu(info_menu_);
     });
     auto main_schedules = to_lambda_option(pool_, "Schedules", [=]() {
         previous_menu_ = active_menu_;
-        active_menu_ = goto_menu(schedules_menu_);
+        goto_menu(schedules_menu_);
     });
     auto main_network = to_lambda_option(pool_, "Network", [=]() {
         previous_menu_ = active_menu_;
-        active_menu_ = goto_menu(network_menu_);
+        goto_menu(network_menu_);
     });
     auto main_modules = to_lambda_option(pool_, "Modules", [=]() {
         previous_menu_ = active_menu_;
-        active_menu_ = goto_menu(module_bays_menu_);
+        goto_menu(module_bays_menu_);
     });
     auto main_tools = to_lambda_option(pool_, "Tools", [=]() {
         previous_menu_ = active_menu_;
-        active_menu_ = goto_menu(tools_menu_);
+        goto_menu(tools_menu_);
     });
 
     main_menu_ = new_menu_screen<6>(pool_, "main", {
@@ -604,7 +635,7 @@ void MenuView::show() {
 
 void MenuView::show_for_module(uint8_t bay) {
     selected_module_bay_ = ModulePosition::from(bay);
-    active_menu_ = goto_menu(module_menu_);
+    goto_menu(module_menu_);
     show();
 }
 
@@ -644,6 +675,13 @@ void MenuView::down(ViewController *views) {
 void MenuView::enter(ViewController *views) {
     show();
     selected(*active_menu_)->on_selected();
+}
+
+void MenuView::confirm(MenuOption *pending) {
+    pending_ = pending;
+    confirm_menu_->options[0]->focused(true);
+    confirm_menu_->options[1]->focused(false);
+    goto_menu(confirm_menu_);
 }
 
 void MenuView::choose_active_network(WifiNetworkInfo network) {
@@ -744,6 +782,8 @@ MenuScreen *MenuView::goto_menu(MenuScreen *screen) {
     for (auto i = 0; screen->options[i] != nullptr; ++i) {
         if (screen->options[i]->focused()) {
             refresh_visible(*screen, i);
+            active_menu_ = screen;
+
             return screen;
         }
         if (screen->options[i]->active()) {
@@ -755,6 +795,7 @@ MenuScreen *MenuView::goto_menu(MenuScreen *screen) {
 
     screen->options[focusable]->focused(true);
     refresh_visible(*screen, focusable);
+    active_menu_ = screen;
 
     return screen;
 }
