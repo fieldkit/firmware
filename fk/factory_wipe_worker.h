@@ -5,6 +5,12 @@
 namespace fk {
 
 class FactoryWipeWorker : public Worker {
+private:
+    bool restart_{ true };
+
+public:
+    FactoryWipeWorker(bool restart);
+
 public:
     void run(Pool &pool) override;
 

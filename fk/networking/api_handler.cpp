@@ -120,7 +120,7 @@ bool ApiHandler::handle(HttpServerConnection *connection, Pool &pool) {
     }
     case fk_app_QueryType_QUERY_RESET: {
         loginfo("handling %s", "QUERY_RESET");
-        get_ipc()->launch_worker(create_pool_worker<FactoryWipeWorker>());
+        get_ipc()->launch_worker(create_pool_worker<FactoryWipeWorker>(false));
         return send_simple_success(connection, query, pool);
     }
     case fk_app_QueryType_QUERY_SCAN_NETWORKS: {

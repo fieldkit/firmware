@@ -11,6 +11,9 @@ namespace fk {
 
 FK_DECLARE_LOGGER("factory-wipe");
 
+FactoryWipeWorker::FactoryWipeWorker(bool restart) : restart_(restart) {
+}
+
 void FactoryWipeWorker::run(Pool &pool) {
     if (!initialize_memory_if_necessary()) {
         logerror("memory failed");
@@ -22,8 +25,10 @@ void FactoryWipeWorker::run(Pool &pool) {
     FactoryWipe factory_wipe{ storage };
 
     if (factory_wipe.wipe(&progress)) {
-        fk_graceful_shutdown();
-        fk_restart();
+        if (restart_) {
+            fk_graceful_shutdown();
+            fk_restart();
+        }
     }
 }
 

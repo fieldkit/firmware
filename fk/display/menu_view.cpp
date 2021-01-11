@@ -420,7 +420,7 @@ void MenuView::create_tools_menu() {
     auto tools_factory_reset = new (pool_) ConfirmOption(this, to_lambda_option(pool_, "Factory Reset", [=]() {
         back_->on_selected();
         views_->show_home();
-        get_ipc()->launch_worker(create_pool_worker<FactoryWipeWorker>());
+        get_ipc()->launch_worker(create_pool_worker<FactoryWipeWorker>(true));
     }));
     auto tools_restart = new (pool_) ConfirmOption(this, to_lambda_option(pool_, "Restart", [=]() {
         get_display()->off();

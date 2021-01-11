@@ -26,6 +26,7 @@
 #include "display/display_views.h"
 #include "secrets.h"
 #include "graceful_shutdown.h"
+#include "factory_wipe_worker.h"
 
 extern const struct fkb_header_t fkb_header;
 
@@ -504,6 +505,9 @@ bool StartupWorker::check_for_provision_startup(Pool &pool) {
     auto params = SdCardFirmware{ SdCardFirmwareOperation::Load, bl_binary, main_binary, swap, true, OneSecondMs };
     UpgradeFirmwareFromSdWorker upgrade_worker{ params };
     upgrade_worker.run(pool);
+
+    FactoryWipeWorker factory_wipe_worker{ false };
+    factory_wipe_worker.run(pool);
 
     fk_logs_flush();
 
