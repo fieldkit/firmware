@@ -102,6 +102,7 @@ package: fw
 	chmod 644 $(BUILD)/$(PACKAGE)/*
 	chmod 755 $(BUILD)/$(PACKAGE)/flash-*
 	chmod 755 $(BUILD)/$(PACKAGE)/jlink-*
+	touch $(BUILD)/$(PACKAGE)/fk.cfg-disabled
 	cd $(BUILD) && zip -r $(PACKAGE).zip $(PACKAGE)
 	cp $(BUILD)/$(PACKAGE).zip $(BUILD)/fk-firmware.zip
 
