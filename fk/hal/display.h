@@ -50,7 +50,7 @@ struct HomeScreen : public DisplayScreen {
     Gps gps;
     bool recording;
     bool logo;
-    bool debug_mode;
+    const char *debug_mode;
     PowerInfo power;
     const char *primary;
     const char *secondary;

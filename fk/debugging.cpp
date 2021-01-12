@@ -69,6 +69,7 @@ void __cyg_profile_func_exit(void *this_fn, void *call_site) {
 namespace fk {
 
 static bool fk_console_attached = false;
+static const char *debug_mode_type = nullptr;
 
 bool fk_debugging_initialize() {
     return true;
@@ -78,8 +79,15 @@ bool fk_debug_is_attached() {
     return false;
 }
 
-bool fk_debug_mode() {
-    return !os_task_is_running(&scheduler_task);
+void fk_debug_mode_configure(const char *type) {
+    debug_mode_type = type;
+}
+
+const char *fk_debug_mode() {
+    if (os_task_is_running(&scheduler_task)) {
+        return nullptr;
+    }
+    return debug_mode_type;
 }
 
 bool fk_debug_get_console_attached() {

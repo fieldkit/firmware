@@ -4,7 +4,9 @@ namespace fk {
 
 bool fk_debugging_initialize() ;
 
-bool fk_debug_mode();
+void fk_debug_mode_configure(const char *type);
+
+const char *fk_debug_mode();
 
 bool fk_debug_is_attached();
 

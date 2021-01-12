@@ -48,16 +48,19 @@ void StartupWorker::run(Pool &pool) {
 
     loginfo("check for self test startup");
     if (check_for_self_test_startup(pool)) {
+        fk_debug_mode_configure("Self Test");
         return;
     }
 
     loginfo("check for provision startup");
     if (check_for_provision_startup(pool)) {
+        fk_debug_mode_configure("Provision");
         return;
     }
 
     loginfo("check for upgrading startup");
     if (check_for_upgrading_startup(pool)) {
+        fk_debug_mode_configure("Upgrading");
         return;
     }
 
@@ -532,6 +535,10 @@ bool StartupWorker::check_for_interactive_startup(Pool &pool) {
             display->simple(SimpleScreen{ "Release for Debug" });
             enable_debug_mode = true;
         }
+    }
+
+    if (enable_debug_mode) {
+        fk_debug_mode_configure("Debug Mode");
     }
 
     return enable_debug_mode;

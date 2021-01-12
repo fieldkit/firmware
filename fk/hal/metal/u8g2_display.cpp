@@ -204,12 +204,11 @@ void U8g2Display::home(HomeScreen const &data) {
             }
         }
         else {
-            if (data.debug_mode) {
-                const char *text = "Debug Mode";
-                auto width = draw_.getUTF8Width(text);
+            if (data.debug_mode != nullptr) {
+                auto width = draw_.getUTF8Width(data.debug_mode);
                 draw_.setFontMode(0);
                 draw_.setFont(u8g2_font_courB08_tf);
-                draw_.drawUTF8(((OLED_WIDTH - 48) / 2) - (width / 2), 12, text);
+                draw_.drawUTF8(((OLED_WIDTH - 48) / 2) - (width / 2), 12, data.debug_mode);
             }
             else {
                 tiny_snprintf(buffer, sizeof(buffer), "%d", data.readings);
