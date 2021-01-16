@@ -231,8 +231,11 @@ static bool configure(HttpServerConnection *connection, fk_app_HttpQuery *query,
     }
 
     auto networks_array = (pb_array_t *)query->networkSettings.networks.arg;
-    if (networks_array->length > 0) {
+    if (networks_array != nullptr) {
         auto nnetworks = std::min(networks_array->length, WifiMaximumNumberOfNetworks);
+
+        loginfo("have %zd networks", networks_array->length);
+
         gsm.apply([=](GlobalState *gs) {
             auto networks = (fk_app_NetworkInfo *)networks_array->buffer;
             for (auto i = 0u; i < nnetworks; ++i) {
