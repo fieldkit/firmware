@@ -316,11 +316,14 @@ void MenuView::create_module_menu() {
         get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_));
     });
 
-    module_menu_ = new_menu_screen<4>(pool_, "module", {
+    (void)module_program;
+    (void)module_erase;
+
+    module_menu_ = new_menu_screen<4 - 2>(pool_, "module", {
         module_back,
         module_home,
-        module_program,
-        module_erase,
+        // module_program,
+        // module_erase,
     });
 }
 
@@ -455,21 +458,28 @@ void MenuView::create_tools_menu() {
         *((uint32_t *)0xdeadbeef) = 0xdeadbeef;
     });
 
-    tools_menu_ = new_menu_screen<17>(pool_, "tools", {
+    (void)tools_lora_ranging;
+    (void)tools_lora_ranging_confirmed;
+    (void)tools_sleep_test;
+    (void)tools_poll_sensors;
+    (void)tools_crash_hardf;
+    (void)tools_crash_assertion;
+
+    tools_menu_ = new_menu_screen<17 - 6>(pool_, "tools", {
         back_,
         tools_self_check,
         tools_gps,
         tools_gps_toggle,
-        tools_lora_ranging,
-        tools_lora_ranging_confirmed,
+        // tools_lora_ranging,
+        // tools_lora_ranging_confirmed,
         tools_load_firmware_sd,
         tools_dump_flash,
         tools_format_sd,
-        tools_sleep_test,
-        tools_poll_sensors,
+        // tools_sleep_test,
+        // tools_poll_sensors,
         tools_fsck,
-        tools_crash_hardf,
-        tools_crash_assertion,
+        // tools_crash_hardf,
+        // tools_crash_assertion,
         tools_export_data,
         tools_factory_reset,
         tools_restart,
@@ -506,7 +516,6 @@ void MenuView::create_network_menu() {
         toggle_wifi_default,
         toggle_wifi_always,
     });
-
 
     auto network_choose_self = to_lambda_option(pool_, "Create AP", [=]() {
         choose_active_network(get_self_ap_network());
@@ -571,7 +580,9 @@ void MenuView::create_network_menu() {
         get_ipc()->launch_worker(create_pool_worker<UploadDataWorker>(false, true));
     });
 
-    network_menu_ = new_menu_screen<8>(pool_, "network", {
+    (void)network_download_fw;
+
+    network_menu_ = new_menu_screen<8 - 1>(pool_, "network", {
         back_,
         network_toggle,
         network_choose,
@@ -579,7 +590,7 @@ void MenuView::create_network_menu() {
         network_upload_meta,
         network_upload_data,
         network_duration,
-        network_download_fw,
+        // network_download_fw,
     });
 }
 
