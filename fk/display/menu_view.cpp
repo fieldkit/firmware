@@ -187,11 +187,14 @@ void MenuView::create_info_menu() {
         back_->on_selected();
     });
 
-    info_menu_ = new_menu_screen<4>(pool_, "info", {
+    (void)info_name;
+    (void)info_qr_code;
+
+    info_menu_ = new_menu_screen<4 - 1>(pool_, "info", {
         back_,
         info_build,
-        info_name,
-        info_qr_code,
+        // info_name,
+        // info_qr_code,
     });
 }
 
