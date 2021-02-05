@@ -44,7 +44,7 @@ ModuleSensors const *RandomModule::get_sensors(Pool &pool) {
 }
 
 ModuleConfiguration RandomModule::get_configuration(Pool &pool) {
-    return { "modules.random" };
+    return ModuleConfiguration{ "modules.random", ModuleOrderInternal };
 }
 
 ModuleReadings *RandomModule::take_readings(ReadingsContext mc, Pool &pool) {

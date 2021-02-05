@@ -27,6 +27,17 @@ using ModuleOrder = uint16_t;
 constexpr ModuleOrder DefaultModuleOrder = UINT16_MAX / 2;
 
 /**
+ * Module order for internal modules.
+ */
+constexpr ModuleOrder ModuleOrderInternal = DefaultModuleOrder  - 10;
+
+/**
+ * Module order for modules that provide calibration data other
+ * modules may use.
+ */
+constexpr ModuleOrder ModuleOrderProvidesCalibration = DefaultModuleOrder  - 1;
+
+/**
  * Configuration information a module can provide to the OS.
  */
 typedef struct ModuleConfiguration {
