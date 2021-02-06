@@ -2,7 +2,7 @@
 
 namespace fk {
 
-Base64Reader::Base64Reader(Reader *target) : target_(target) {
+HexReader::HexReader(Reader *target) : target_(target) {
 }
 
 static size_t hexchr2bin(uint8_t const hex, uint8_t *p) {
@@ -21,7 +21,7 @@ static size_t hexchr2bin(uint8_t const hex, uint8_t *p) {
     return 1;
 }
 
-int32_t Base64Reader::read(uint8_t *buffer, size_t size) {
+int32_t HexReader::read(uint8_t *buffer, size_t size) {
     for (size_t i = 0; i < size; ++i) {
         uint8_t encoded[2];
         if (target_->read(encoded, sizeof(encoded)) != 2) {
@@ -36,10 +36,10 @@ int32_t Base64Reader::read(uint8_t *buffer, size_t size) {
     return size;
 }
 
-Base64Writer::Base64Writer(Writer *target) : target_(target) {
+HexWriter::HexWriter(Writer *target) : target_(target) {
 }
 
-int32_t Base64Writer::write(uint8_t const *buffer, size_t size) {
+int32_t HexWriter::write(uint8_t const *buffer, size_t size) {
     constexpr static char Hex[] = "0123456789ABCDEF";
 
     for (size_t i = 0; i < size; i++) {

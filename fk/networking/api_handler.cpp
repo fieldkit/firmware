@@ -71,7 +71,7 @@ bool ApiHandler::handle(HttpServerConnection *connection, Pool &pool) {
 
     Reader *reader = connection;
     if (connection->content_type() == WellKnownContentType::TextPlain) {
-        reader = new (pool) Base64Reader(reader);
+        reader = new (pool) HexReader(reader);
         connection->hex_encoding(true);
     }
 
