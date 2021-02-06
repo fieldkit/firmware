@@ -2,7 +2,9 @@ package main
 
 import (
 	"bufio"
+	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -27,6 +29,27 @@ type options struct {
 	HttpReply bool
 }
 
+func decodeAndLog(data string) error {
+	bytes, err := base64.StdEncoding.DecodeString(data)
+	if err != nil {
+		return err
+	}
+	buffer := proto.NewBuffer(bytes)
+
+	var dataRecord pbdata.DataRecord
+	if err := buffer.Unmarshal(&dataRecord); err == nil {
+		bytes, err := json.MarshalIndent(dataRecord, "", "  ")
+		if err != nil {
+			return err
+		}
+		fmt.Println(string(bytes))
+	} else {
+		return fmt.Errorf("error parsing data: %v", err)
+	}
+
+	return nil
+}
+
 func main() {
 	o := options{}
 
@@ -37,6 +60,12 @@ func main() {
 	flag.BoolVar(&o.HttpReply, "http-reply", false, "")
 
 	flag.Parse()
+
+	if false {
+		decodeAndLog("KtABCKvb3P8FEJjPASIKHWUl7MIlxlMJQipKCP8BEgASBwgBFbfzfT8SBwgCFQrXI70SAggDEgIIBBICCAUSAggGEgIIBxICCAgSBwgJFQC6sEcSBwgKFQDRe0cSBwgLFQAAzEEqZhIFFbvWWkISBwgBFegnv0ESBwgCFQjMy0ISBwgDFQCAskESAggEEgIIBRIHCAYVAADiQhICCAcSAggIEgcICRUAAOBCEgIIChIHCAsVAACAvxICCAwSBwgNFQAA5kISAggOEgIIDzACONH3Aw==")
+
+		decodeAndLog("Ep4BChAfAcOyUzZXMjIgICD/GTMSQmgKABIvZmstYnVuZGxlZC1ma2IuZWxmX2FhNWQzYTI4YzhhOV8yMDIwMTExNl8yMTQ1MDYaAzY4MyDi5cv9BSooZmFkMTQ1ZGZlYTIyMzFmNjI2MTkxM2FhY2QyNjJmY2M3OTc5NzA2Zkog/JB7eX+B0wHani1fjzoBk6WboZaGvmQwMJ9zoYFQSG4yORoSbW9kdWxlcy53YXRlci50ZW1wIgYIARAHGAEyCRIEdGVtcBoBQzoQGOgiW7gCU8IwaCTEpRS8yjKQAgj/ARoTbW9kdWxlcy5kaWFnbm9zdGljcyIHCAEQoQEYATITEg5iYXR0ZXJ5X2NoYXJnZRoBJTIREgxiYXR0ZXJ5X3ZidXMaAXYyEBIKYmF0dGVyeV92cxoCbXYyEBIKYmF0dGVyeV9tYRoCbWEyExINYmF0dGVyeV9wb3dlchoCbXcyDxIKc29sYXJfdmJ1cxoBdjIOEghzb2xhcl92cxoCbXYyDhIIc29sYXJfbWEaAm1hMhESC3NvbGFyX3Bvd2VyGgJtdzIUEgtmcmVlX21lbW9yeRoFYnl0ZXMyDBIGdXB0aW1lGgJtczIQEgt0ZW1wZXJhdHVyZRoBQzoQ7pRfzScO/amVgmQlczR44EABShUKE0h1bWJsZSBKZWxseWZpc2ggNzY=")
+	}
 
 	bytesRe := regexp.MustCompile("\\(\\d+ bytes\\)")
 
@@ -84,8 +113,13 @@ func main() {
 			var dataRecord pbdata.DataRecord
 			err = buffer.Unmarshal(&dataRecord)
 			if err == nil {
-				pp.Print(dataRecord)
-				fmt.Println()
+				// pp.Print(dataRecord)
+				// fmt.Println()
+				bytes, err := json.MarshalIndent(dataRecord, "", "  ")
+				if err != nil {
+					panic(err)
+				}
+				fmt.Println(string(bytes))
 				dataRecords = append(dataRecords, &dataRecord)
 			} else {
 				fmt.Printf("error parsing data: %v\n", err)
