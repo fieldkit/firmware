@@ -2,6 +2,7 @@
 
 #include "hal/sd_card.h"
 #include "clock.h"
+#include "config.h"
 
 #if defined(__SAMD51__)
 
@@ -14,7 +15,8 @@ class MetalSdCard : public SdCard {
 private:
     SdFat sd_;
     uint32_t log_time_{ 0 };
-    char log_file_name_[1 + MaximumLengthOfTimeString + 1 + 13];
+    char log_file_name_[128] = { 0 };
+    char name_[12] = { 0 };
     bool log_initialized_{ false };
 
 public:
@@ -33,6 +35,7 @@ public:
     SdCardFile *open(const char *path, OpenFlags flags, Pool &pool) override;
     bool format() override;
     bool ls(const char *path, size_t skip, fk_app_DirectoryEntry **files, size_t &number_entries, size_t &total_entries, Pool &pool) override;
+    void name(const char *name) override;
 
 private:
     bool initialize_logs();

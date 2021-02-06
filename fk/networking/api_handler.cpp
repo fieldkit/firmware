@@ -175,6 +175,7 @@ static bool configure(HttpServerConnection *connection, fk_app_HttpQuery *query,
         gsm.apply([=](GlobalState *gs) {
             loginfo("rename: '%s'", name);
             strncpy(gs->general.name, name, sizeof(gs->general.name));
+            get_sd_card()->name(gs->general.name);
         });
     }
 

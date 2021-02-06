@@ -169,6 +169,8 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
     auto name = reinterpret_cast<const char *>(record.identity.name.arg);
     strncpy(gs->general.name, name, sizeof(gs->general.name));
 
+    get_sd_card()->name(gs->general.name);
+
     auto generation = reinterpret_cast<pb_data_t *>(record.metadata.generation.arg);
     FK_ASSERT(generation->length == GenerationLength);
     memcpy(gs->general.generation, generation->buffer, GenerationLength);

@@ -50,6 +50,8 @@ public:
                     size_t &total_entries, Pool &pool) {
         return true;
     }
+    virtual void name(const char *name) {
+    }
 };
 
 SdCard *get_sd_card();

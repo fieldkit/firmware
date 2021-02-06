@@ -28,6 +28,7 @@ static optional<bool> open_path(SdFile &dir, const char *path, oflag_t oflag);
 static bool number_of_files(SdFile &dir, size_t &nfiles);
 
 MetalSdCard::MetalSdCard() : sd_(&SD_SPI) {
+    strncpy(name_, "Boot", sizeof(name_));
 }
 
 bool MetalSdCard::begin() {
@@ -86,6 +87,14 @@ bool LogFile::open() {
     return false;
 }
 
+void MetalSdCard::name(const char *name) {
+    if (strncmp(name_, name, sizeof(name_)) == 0) {
+        return;
+    }
+    strncpy(name_, name, sizeof(name_));
+    log_initialized_ = false;
+}
+
 bool MetalSdCard::initialize_logs() {
     if (!begin()) {
         if (sd_.card()->errorCode()) {
@@ -102,15 +111,24 @@ bool MetalSdCard::initialize_logs() {
         if (!log_initialized_) {
             FormattedTime formatted{ log_time_, TimeFormatMachine };
 
-            if (!sd_.exists(formatted.cstr())) {
-                if (!sd_.mkdir(formatted.cstr())) {
-                    logerror("error making directory '%s'", formatted.cstr());
+            tiny_snprintf(log_file_name_, sizeof(log_file_name_), "/%s", name_);
+            if (!sd_.exists(log_file_name_)) {
+                if (!sd_.mkdir(log_file_name_)) {
+                    logerror("error making directory '%s'", log_file_name_);
+                    return false;
+                }
+            }
+
+            tiny_snprintf(log_file_name_, sizeof(log_file_name_), "/%s/%s", name_, formatted.cstr());
+            if (!sd_.exists(log_file_name_)) {
+                if (!sd_.mkdir(log_file_name_)) {
+                    logerror("error making directory '%s'", log_file_name_);
                     return false;
                 }
             }
 
             for (auto counter = 0; counter < 1000; ++counter) {
-                tiny_snprintf(log_file_name_, sizeof(log_file_name_), "/%s/fkl_%03d.txt", formatted.cstr(), counter);
+                tiny_snprintf(log_file_name_, sizeof(log_file_name_), "/%s/%s/fkl_%03d.txt", name_, formatted.cstr(), counter);
                 if (!sd_.exists(log_file_name_)) {
                     loginfo("picked file name %s", log_file_name_);
                     log_initialized_ = true;
