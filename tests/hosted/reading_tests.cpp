@@ -115,7 +115,7 @@ TEST_F(ReadingsSuite, TakingReadingsOneModule) {
 }
 
 TEST_F(ReadingsSuite, TakingReadingsTwoModules) {
-    StaticPool<1024> pool{ "readings" };
+    StaticPool<2048> pool{ "readings" };
     GlobalState gs;
     TwoWireWrapper module_bus{ "modules", nullptr };
     ScanningContext ctx{ get_modmux(), gs.location(pool_), module_bus, pool_ };
@@ -219,5 +219,5 @@ TEST_F(ReadingsSuite, TakingReadingsFourModulesAndOneFailsToGetReadings) {
     ASSERT_NE(buffer, nullptr);
     ASSERT_NE(buffer->buffer, nullptr);
 
-    ASSERT_EQ(taken->size(), 3u);
+    ASSERT_EQ(taken->size(), 4u);
 }

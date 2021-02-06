@@ -63,40 +63,18 @@ static ModuleSensors fk_module_fake_1_sensors = {
     .sensors = fk_module_fake_1_sensor_metas,
 };
 
-class FakeModule1 : public FakeModule {
-private:
+ModuleSensors const *FakeModule1::get_sensors(Pool &pool) {
+    return &fk_module_fake_1_sensors;
+}
 
-public:
-    ModuleReturn initialize(ModuleContext mc, Pool &pool) override {
-        return { ModuleStatus::Ok };
+ModuleReadings *FakeModule1::take_readings(ReadingsContext mc, Pool &pool) {
+    if (return_none_) {
+        return nullptr;
     }
-
-    ModuleStatusReturn status(ModuleContext mc, Pool &pool) {
-        return { ModuleStatus::Ok, nullptr };
-    }
-
-    ModuleReturn api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
-        return { ModuleStatus::Ok };
-    }
-
-    ModuleReturn service(ModuleContext mc, Pool &pool) {
-        return { ModuleStatus::Ok };
-    }
-
-    ModuleSensors const *get_sensors(Pool &pool) override {
-        return &fk_module_fake_1_sensors;
-    }
-
-    ModuleConfiguration get_configuration(Pool &pool) override {
-        return { "modules.fake.1" };
-    }
-
-    ModuleReadings *take_readings(ReadingsContext mc, Pool &pool) override {
-        auto mr = new(pool) NModuleReadings<1>();
-        mr->set(0, (float)fk_random_i32(20, 100));
-        return mr;
-    }
-};
+    auto mr = new(pool) NModuleReadings<1>();
+    mr->set(0, (float)fk_random_i32(20, 100));
+    return mr;
+}
 
 static Module *fk_test_module_create_1(Pool &pool) {
     return new(pool) FakeModule1();

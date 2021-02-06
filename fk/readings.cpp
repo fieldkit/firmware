@@ -49,18 +49,44 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
 
     bzero(groups, sizeof(fk_data_SensorGroup) * modules.size());
 
+    // Initialize an empty sensor group at each module position here,
+    // so that if we `contionue` in the loop after they're
+    // initialized. This isn't ideal, continue just sucks.
+    auto empty_readings_array = pool.malloc_with<pb_array_t>({
+        .length = 0,
+        .itemSize = sizeof(fk_data_SensorAndValue),
+        .buffer = nullptr,
+        .fields = fk_data_SensorAndValue_fields,
+    });
+    for (auto i = 0u; i < modules.size(); ++i) {
+        auto &group = groups[i];
+        group.module = i;
+        group.readings.funcs.encode = pb_encode_array;
+        group.readings.arg = empty_readings_array;
+    }
+
     for (auto pair : modules) {
         auto meta = pair.meta;
         auto module = pair.module;
         auto i = pair.found.position;
 
-        if (module == nullptr) {
-            continue;
-        }
+        FK_ASSERT(module != nullptr);
+
+        auto adding = ModuleMetaAndReadings{
+            .position = pair.found.position,
+            .id = (fk_uuid_t *)pool.copy(&pair.found.header.id, sizeof(pair.found.header.id)),
+            .meta = meta,
+            .status_message = nullptr,
+            .sensors = module->get_sensors(pool),
+            .readings = nullptr,
+            .configuration = pair.configuration,
+        };
 
         EnableModulePower module_power{ true, pair.configuration.power, pair.found.position };
         if (!module_power.enable()) {
             logerror("[%d] error powering module", i.integer());
+            group_number++;
+            all_readings.emplace(adding);
             continue;
         }
         if (module_power.enabled_once()) {
@@ -70,6 +96,8 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
         auto mc = ctx.readings(i, all_readings, pool);
         if (!mc.open()) {
             logerror("[%d] error choosing module", i.integer());
+            group_number++;
+            all_readings.emplace(adding);
             continue;
         }
 
@@ -90,6 +118,8 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
         auto readings = module->take_readings(mc, pool);
         if (readings == nullptr || readings->size() == 0) {
             logwarn("'%s' no readings", meta->name);
+            group_number++;
+            all_readings.emplace(adding);
             continue;
         }
 
@@ -103,7 +133,6 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
             sensor_values[i] = fk_data_SensorAndValue_init_default;
             sensor_values[i].sensor = i;
             sensor_values[i].value = value;
-            // sensor_values[i].uncalibrated = value;
         }
 
         auto readings_array = pool.malloc_with<pb_array_t>({
@@ -119,15 +148,9 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
         group.readings.arg = readings_array;
         group_number++;
 
-        all_readings.emplace(ModuleMetaAndReadings{
-            .position = pair.found.position,
-            .id = (fk_uuid_t *)pool.copy(&pair.found.header.id, sizeof(pair.found.header.id)),
-            .meta = meta,
-            .status_message = module_status.message,
-            .sensors = module->get_sensors(pool),
-            .readings = readings,
-            .configuration = pair.configuration,
-        });
+        adding.status_message = module_status.message;
+        adding.readings = readings;
+        all_readings.emplace(adding);
     }
 
     auto sensor_groups_array = pool.malloc_with<pb_array_t>({

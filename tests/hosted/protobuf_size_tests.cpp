@@ -242,6 +242,53 @@ TEST_F(ProtoBufSizeSuite, Readings) {
     ASSERT_EQ(encoded->size, 224u);
 }
 
+TEST_F(ProtoBufSizeSuite, ReadingsNoneBackFromFirstModule) {
+    GlobalState gs;
+    fake_global_state(gs, pool_);
+
+    TwoWireWrapper module_bus{ "modules", nullptr };
+    ScanningContext ctx{ get_modmux(), gs.location(pool_), module_bus, pool_ };
+    ConstructedModulesCollection resolved(pool_);
+    ModuleReadingsCollection module_readings(pool_);
+
+    auto first = (FakeModule1 *)fk_test_module_fake_1.ctor(pool_);
+    first->return_none();
+    resolved.emplace(ConstructedModule{
+        .found = { .position = ModulePosition::from(0) },
+        .meta = &fk_test_module_fake_1,
+        .module = first,
+    });
+    resolved.emplace(ConstructedModule{
+        .found = { .position = ModulePosition::from(1) },
+        .meta = &fk_test_module_fake_2,
+        .module = fk_test_module_fake_2.ctor(pool_),
+    });
+
+    module_readings.emplace(ModuleMetaAndReadings{
+        .position = ModulePosition::from(0),
+    });
+    module_readings.emplace(ModuleMetaAndReadings{
+        .position = ModulePosition::from(1),
+    });
+
+    for (auto &m : resolved) {
+        fake_data(m.found.header.id.data);
+    }
+
+    Readings readings{ get_modmux() };
+    auto taken = readings.take_readings(ctx, resolved, pool_);
+    ASSERT_TRUE(taken);
+
+    ASSERT_EQ((*taken).size(), 2u);
+
+    readings.link(1, 1);
+
+    auto encoded = pool_.encode(fk_data_DataRecord_fields, &readings.record());
+    dump_binary(file_, "data-readings-failed-first", encoded);
+
+    ASSERT_EQ(encoded->size, 112u);
+}
+
 TEST_F(ProtoBufSizeSuite, Configuration) {
     GlobalState gs;
     fake_global_state(gs, pool_);

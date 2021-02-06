@@ -13,4 +13,38 @@ extern ModuleMetadata const fk_test_module_fake_empty;
 class FakeModule : public Module {
 };
 
+class FakeModule1 : public FakeModule {
+private:
+    bool return_none_{ false };
+
+public:
+    ModuleReturn initialize(ModuleContext mc, Pool &pool) override {
+        return { ModuleStatus::Ok };
+    }
+
+    ModuleStatusReturn status(ModuleContext mc, Pool &pool) {
+        return { ModuleStatus::Ok, nullptr };
+    }
+
+    ModuleReturn api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
+        return { ModuleStatus::Ok };
+    }
+
+    ModuleReturn service(ModuleContext mc, Pool &pool) {
+        return { ModuleStatus::Ok };
+    }
+
+    ModuleSensors const *get_sensors(Pool &pool) override;
+
+    ModuleConfiguration get_configuration(Pool &pool) override {
+        return { "modules.fake.1" };
+    }
+
+    ModuleReadings *take_readings(ReadingsContext mc, Pool &pool) override;
+
+    void return_none() {
+        return_none_ = true;
+    }
+};
+
 }
