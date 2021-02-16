@@ -1,5 +1,5 @@
 add_subdirectory(diagnostics)
 add_subdirectory(random)
 add_subdirectory(weather)
-add_subdirectory(water)
+add_subdirectory(atlas)
 add_subdirectory(distance)

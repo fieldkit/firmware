@@ -144,7 +144,7 @@ target_link_libraries(fk-bundled arduino-base64)
 fk_add_builtin_module(random)
 fk_add_builtin_module(diagnostics)
 fk_add_builtin_module(weather)
-fk_add_builtin_module(water)
+fk_add_builtin_module(atlas)
 fk_add_builtin_module(distance)
 
 configure_firmware_linker_script(fk-bundled ${CMAKE_SOURCE_DIR}/boards/samd51/main.ld)
