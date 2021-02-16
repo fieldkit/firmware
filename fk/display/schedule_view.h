@@ -12,7 +12,7 @@ private:
     ScheduledTime scheduled_;
     int32_t interval_{ 0 };
     uint8_t position_{ 0 };
-    uint32_t update_at{ 0 };
+    uint32_t update_at_{ 0 };
 
 public:
     ScheduleView() { }

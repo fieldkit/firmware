@@ -27,11 +27,11 @@ void ScheduleView::tick(ViewController *views, Pool &pool) {
     auto display = get_display();
 
     auto now = fk_uptime();
-    if (update_at == 0 || now > update_at) {
+    if (update_at_ == 0 || now > update_at_) {
         auto gs = get_global_state_ro();
         scheduled_ = gs.get()->scheduler.upcoming;
         interval_ = gs.get()->scheduler.readings.interval;
-        update_at = now + OneSecondMs;
+        update_at_ = now + OneSecondMs;
     }
 
     char primary[64] = { 0 };
@@ -68,6 +68,7 @@ void ScheduleView::enter(ViewController *views) {
             loginfo("selected: %s", option.label);
             gs->scheduler.readings.simple(option.interval);
             gs->flush(pool);
+            update_at_ = 0; // Force display refresh.
         });
     }
 
