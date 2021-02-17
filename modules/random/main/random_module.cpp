@@ -39,7 +39,7 @@ ModuleSensors const *RandomModule::get_sensors(Pool &pool) {
     return &fk_module_random_sensors;
 }
 
-ModuleConfiguration RandomModule::get_configuration(Pool &pool) {
+ModuleConfiguration const RandomModule::get_configuration(Pool &pool) {
     return ModuleConfiguration{ "modules.random", ModuleOrderInternal };
 }
 

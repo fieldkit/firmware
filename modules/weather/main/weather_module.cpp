@@ -42,7 +42,7 @@ ModuleSensors const *WeatherModule::get_sensors(Pool &pool) {
     return &fk_module_weather_sensors;
 }
 
-ModuleConfiguration WeatherModule::get_configuration(Pool &pool) {
+ModuleConfiguration const WeatherModule::get_configuration(Pool &pool) {
     return { "modules.weather", ModulePower::Always, 0 };
 }
 

@@ -32,7 +32,7 @@ public:
 
     ModuleSensors const *get_sensors(Pool &pool) override;
 
-    ModuleConfiguration get_configuration(Pool &pool) override {
+    ModuleConfiguration const get_configuration(Pool &pool) override {
         return { "modules.fake.1" };
     }
 

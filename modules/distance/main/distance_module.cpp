@@ -56,7 +56,7 @@ ModuleSensors const *DistanceModule::get_sensors(Pool &pool) {
     return &fk_module_distance_sensors;
 }
 
-ModuleConfiguration DistanceModule::get_configuration(Pool &pool) {
+ModuleConfiguration const DistanceModule::get_configuration(Pool &pool) {
     return { "modules.distance" };
 }
 

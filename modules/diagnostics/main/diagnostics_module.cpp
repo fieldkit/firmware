@@ -47,7 +47,7 @@ ModuleSensors const *DiagnosticsModule::get_sensors(Pool &pool) {
     return &fk_module_sensors;
 }
 
-ModuleConfiguration DiagnosticsModule::get_configuration(Pool &pool) {
+ModuleConfiguration const DiagnosticsModule::get_configuration(Pool &pool) {
     return ModuleConfiguration{ "modules.diagnostics", ModuleOrderInternal };
 }
 

@@ -28,7 +28,7 @@ public:
         return &fk_module_fake_empty_sensors;
     }
 
-    ModuleConfiguration get_configuration(Pool &pool) override {
+    ModuleConfiguration const get_configuration(Pool &pool) override {
         return { "modules.fake.empty" };
     }
 
@@ -121,7 +121,7 @@ public:
         return &fk_module_fake_2_sensors;
     }
 
-    ModuleConfiguration get_configuration(Pool &pool) override {
+    ModuleConfiguration const get_configuration(Pool &pool) override {
         return { "modules.fake.2" };
     }
 
