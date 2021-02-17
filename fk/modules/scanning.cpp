@@ -82,10 +82,30 @@ bool ModuleScanning::try_scan_single_module(ModulePosition position, FoundModule
     loginfo("[%d] mk=%02" PRIx32 "%02" PRIx32 " v%" PRIu32 " %s", position.integer(),
             header.manufacturer, header.kind, header.version, pretty_id.str);
 
+    if (!try_read_configuration(position, pool)) {
+        logerror("[%d] error reading config", position.integer());
+        return false;
+    }
+
     found.emplace(FoundModule{
         .position = position,
         .header = header,
     });
+    return true;
+}
+
+bool ModuleScanning::try_read_configuration(ModulePosition position, Pool &pool) {
+    // Take ownership over the module bus.
+    auto module_bus = get_board()->i2c_module();
+    ModuleEeprom eeprom{ module_bus };
+
+    size_t size = 0;
+    auto buffer = (uint8_t *)pool.malloc(MaximumConfigurationSize);
+    bzero(buffer, MaximumConfigurationSize);
+    if (!eeprom.read_configuration(buffer, size, MaximumConfigurationSize)) {
+        return false;
+    }
+
     return true;
 }
 
@@ -192,7 +212,7 @@ bool ModuleScanning::erase(ModulePosition position) {
 
     fk_delay(50);
 
-    eeprom.erase();
+    eeprom.erase_all();
 
     return true;
 }

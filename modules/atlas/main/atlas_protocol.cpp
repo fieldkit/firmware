@@ -4,7 +4,9 @@ namespace fk {
 
 
 fk_atlas_WireAtlasQuery *fk_atlas_query_prepare_decoding(fk_atlas_WireAtlasQuery *query, Pool *pool) {
-    *query = fk_atlas_WireAtlasQuery_init_default;
+    (*query) = fk_atlas_WireAtlasQuery_init_default;
+    (*query).calibration.configuration.arg = (void *)pool;
+    (*query).calibration.configuration.funcs.decode = pb_decode_data;
 
     return query;
 }

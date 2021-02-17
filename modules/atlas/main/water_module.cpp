@@ -1,6 +1,7 @@
 #include "water_module.h"
 #include "platform.h"
 #include "atlas_api.h"
+#include "modules/eeprom.h"
 
 namespace fk {
 
@@ -20,28 +21,17 @@ ModuleReturn WaterModule::initialize(ModuleContext mc, Pool &pool) {
 }
 
 ModuleStatusReturn WaterModule::status(ModuleContext mc, Pool &pool) {
-    OemAtlas atlas{ mc.module_bus(), address_, type_  };
-    AtlasApi api{ type_, atlas };
-    AtlasApiReply reply{ pool };
+    ModuleEeprom eeprom{ mc.module_bus() };
 
-    if (!atlas.wake()) {
-        logerror("error waking (module-status) (ms::fatal)");
-        reply.error("error waking");
+    size_t size = 0;
+    auto buffer = (uint8_t *)pool.malloc(MaximumConfigurationSize);
+    bzero(buffer, MaximumConfigurationSize);
+    if (!eeprom.read_configuration(buffer, size, MaximumConfigurationSize)) {
+        logwarn("error reading configuration");
         return { ModuleStatus::Fatal, nullptr };
     }
 
-    auto calibrationStatus = atlas.calibration();
-    if (!calibrationStatus.success) {
-        logerror("error calibrating (ms::fatal)");
-        return { ModuleStatus::Fatal, nullptr };
-    }
-
-    if (!reply.status_reply(atlas, calibrationStatus)) {
-        logerror("error replying (ms::fatal)");
-        return { ModuleStatus::Fatal, nullptr };
-    }
-
-    auto message = pool.encode(fk_atlas_WireAtlasReply_fields, reply.reply(), false);
+    auto message = new (pool) EncodedMessage(size, buffer);
 
     return { ModuleStatus::Ok, message };
 }
@@ -56,7 +46,7 @@ ModuleReturn WaterModule::api(ModuleContext mc, HttpServerConnection *connection
 
     OemAtlas atlas{ mc.module_bus(), address_, type_  };
     AtlasApi api{ type_, atlas };
-    if (!api.handle(connection, pool)) {
+    if (!api.handle(mc, connection, pool)) {
         logerror("error handling api (ms::fatal)");
         return { ModuleStatus::Fatal };
     }

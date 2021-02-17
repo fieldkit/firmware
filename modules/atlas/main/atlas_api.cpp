@@ -1,4 +1,5 @@
 #include "atlas_api.h"
+#include "modules/eeprom.h"
 
 namespace fk {
 
@@ -7,7 +8,7 @@ FK_DECLARE_LOGGER("water");
 AtlasApi::AtlasApi(AtlasSensorType type, OemAtlas &atlas) : type_(type), atlas_(&atlas) {
 }
 
-bool AtlasApi::handle(HttpServerConnection *connection, Pool &pool) {
+bool AtlasApi::handle(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
     Reader *reader = connection;
 
     AtlasApiReply reply{ pool };
@@ -29,15 +30,15 @@ bool AtlasApi::handle(HttpServerConnection *connection, Pool &pool) {
 
     switch (query->calibration.operation) {
     case fk_atlas_CalibrationOperation_CALIBRATION_STATUS: {
-        status(reply);
+        status(mc, reply);
         break;
     }
     case fk_atlas_CalibrationOperation_CALIBRATION_CLEAR: {
-        clear(reply);
+        clear(mc, reply);
         break;
     }
     case fk_atlas_CalibrationOperation_CALIBRATION_SET: {
-        calibrate(reply, query->calibration);
+        calibrate(mc, reply, query->calibration);
         break;
     }
     default: {
@@ -47,10 +48,10 @@ bool AtlasApi::handle(HttpServerConnection *connection, Pool &pool) {
     }
     }
 
-    return handle(connection, pool, reply);
+    return send_reply(connection, pool, reply);
 }
 
-bool AtlasApi::handle(HttpServerConnection *connection, Pool &pool, AtlasApiReply &reply) {
+bool AtlasApi::send_reply(HttpServerConnection *connection, Pool &pool, AtlasApiReply &reply) {
     if (reply.has_errors()) {
         connection->write(500, "error", reply.reply(), fk_atlas_WireAtlasReply_fields);
     }
@@ -63,23 +64,30 @@ bool AtlasApi::handle(HttpServerConnection *connection, Pool &pool, AtlasApiRepl
     return true;
 }
 
-bool AtlasApi::status(AtlasApiReply &reply) {
-    if (!atlas_->wake()) {
-        logwarn("error waking (status)");
-        reply.error("error waking");
+bool AtlasApi::status(ModuleContext mc, AtlasApiReply &reply) {
+    auto module_bus = get_board()->i2c_module();
+    ModuleEeprom eeprom{ module_bus };
+
+    size_t size = 0;
+    auto buffer = (uint8_t *)pool_->malloc(MaximumConfigurationSize);
+    bzero(buffer, MaximumConfigurationSize);
+    if (!eeprom.read_configuration(buffer, size, MaximumConfigurationSize)) {
+        logwarn("error reading configuration");
         return false;
     }
 
-    auto status = atlas_->calibration();
-    if (!status.success) {
-        return false;
-    }
-
-    return reply.status_reply(*atlas_, status);
+    return reply.status_reply(buffer, size);
 }
 
-bool AtlasApi::clear(AtlasApiReply &reply) {
+bool AtlasApi::clear(ModuleContext mc, AtlasApiReply &reply) {
     loginfo("clearing calibration");
+
+    auto module_bus = get_board()->i2c_module();
+    ModuleEeprom eeprom{ module_bus };
+
+    if (!eeprom.erase_configuration()) {
+        logerror("error clearing module configuration");
+    }
 
     if (!atlas_->wake()) {
         logwarn("error waking (clear)");
@@ -93,62 +101,26 @@ bool AtlasApi::clear(AtlasApiReply &reply) {
         return false;
     }
 
-    loginfo("cleared, status");
-    auto status = atlas_->calibration();
-    if (!status.success) {
-        return false;
-    }
-
-    return reply.status_reply(*atlas_, status);
+    return status(mc, reply);
 }
 
-bool AtlasApi::calibrate(AtlasApiReply &reply, fk_atlas_AtlasCalibrationCommand command) {
-    if (!atlas_->wake()) {
-        logwarn("error waking (calibrate)");
-        reply.error("error waking (calibrate)");
+bool AtlasApi::calibrate(ModuleContext mc, AtlasApiReply &reply, fk_atlas_AtlasCalibrationCommand command) {
+    if (!clear(mc, reply)) {
         return false;
     }
 
-    uint8_t which = command.which;
+    auto data = (pb_data_t *)command.configuration.arg;
 
-    if (false) {
-        switch (atlas_->type()) {
-        case AtlasSensorType::Ec: {
-            which = (uint8_t)command.ec;
-            break;
-        }
-        case AtlasSensorType::Ph: {
-            which = (uint8_t)command.ph;
-            break;
-        }
-        case AtlasSensorType::Do: {
-            which = (uint8_t)command.dissolvedOxygen;
-            break;
-        }
-        case AtlasSensorType::Temp: {
-            which = (uint8_t)command.temp;
-            break;
-        }
-        case AtlasSensorType::Orp: {
-            which = (uint8_t)command.orp;
-            break;
-        }
-        default: {
-            break;
-        }
-        }
+    loginfo("calibrating (%zd bytes)", data->length);
+
+    auto module_bus = get_board()->i2c_module();
+    ModuleEeprom eeprom{ module_bus };
+
+    if (!eeprom.write_configuration((uint8_t *)data->buffer, data->length)) {
+        logerror("error writing module configuration");
     }
 
-    loginfo("calibrating (0x%x @ %f) ...", which, command.value);
-
-    auto status = atlas_->calibrate(which, command.value);
-    if (!status.success) {
-        logwarn("error calibrating");
-        reply.error("error calibrating");
-        return false;
-    }
-
-    return reply.status_reply(*atlas_, status);
+    return status(mc, reply);
 }
 
 } // namespace fk

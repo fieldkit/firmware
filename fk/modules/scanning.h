@@ -36,6 +36,7 @@ public:
 private:
     bool available();
     bool try_scan_single_module(ModulePosition position, FoundModuleCollection &found, Pool &pool);
+    bool try_read_configuration(ModulePosition position, Pool &pool);
 
 };
 

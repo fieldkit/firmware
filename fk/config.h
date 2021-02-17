@@ -204,6 +204,8 @@ constexpr bool ModulesPowerIndividually = true;
  */
 constexpr size_t MaximumNumberOfPhysicalModules = 5;
 
+constexpr size_t MaximumConfigurationSize = 256;
+
 // -------------------------------------------------------------------------------------------
 // LoRa
 

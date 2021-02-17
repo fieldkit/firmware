@@ -16,13 +16,13 @@ public:
     AtlasApi(AtlasSensorType type, OemAtlas &atlas);
 
 public:
-    bool handle(HttpServerConnection *connection, Pool &pool);
+    bool handle(ModuleContext mc, HttpServerConnection *connection, Pool &pool);
 
 private:
-    bool handle(HttpServerConnection *connection, Pool &pool, AtlasApiReply &reply);
-    bool status(AtlasApiReply &reply);
-    bool clear(AtlasApiReply &reply);
-    bool calibrate(AtlasApiReply &reply, fk_atlas_AtlasCalibrationCommand command);
+    bool send_reply(HttpServerConnection *connection, Pool &pool, AtlasApiReply &reply);
+    bool status(ModuleContext mc, AtlasApiReply &reply);
+    bool clear(ModuleContext mc, AtlasApiReply &reply);
+    bool calibrate(ModuleContext mc, AtlasApiReply &reply, fk_atlas_AtlasCalibrationCommand command);
 
 };
 

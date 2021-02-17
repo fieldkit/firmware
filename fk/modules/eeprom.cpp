@@ -1,5 +1,6 @@
 #include "eeprom.h"
 #include "platform.h"
+#include "protobuf.h"
 
 namespace fk {
 
@@ -114,6 +115,33 @@ bool ModuleEeprom::write_header(ModuleHeader &header) {
     return true;
 }
 
+bool ModuleEeprom::read_configuration(uint8_t *buffer, size_t &size, size_t buffer_size) {
+    if (!read_data_delimited(ConfigurationAddress, (uint8_t *)buffer, size, buffer_size)) {
+        return false;
+    }
+
+    loginfo("configuration size=%zd", size);
+
+    return true;
+}
+
+bool ModuleEeprom::write_configuration(uint8_t const *buffer, size_t size) {
+    // TODO Checksum?
+
+    if (!write(wire_, ConfigurationAddress, (uint8_t *)buffer, size)) {
+        return false;
+    }
+
+    return true;
+}
+
+bool ModuleEeprom::erase_configuration() {
+    if (!erase_page(ConfigurationAddress)) {
+        return false;
+    }
+    return true;
+}
+
 bool ModuleEeprom::read_data(uint32_t address, void *data, size_t size) {
     if (!read(wire_, address, (uint8_t *)data, size)) {
         return false;
@@ -122,16 +150,63 @@ bool ModuleEeprom::read_data(uint32_t address, void *data, size_t size) {
     return true;
 }
 
-bool ModuleEeprom::erase() {
-    uint8_t page[EepromPageSize];
-
-    memset(page, 0xff, sizeof(page));
-
+bool ModuleEeprom::erase_all() {
     for (auto address = 0u; address < EepromSize; address += EepromPageSize) {
-        if (!write(wire_, address, (uint8_t *)page, sizeof(page))) {
+        if (!erase_page(address)) {
             logerror("error erasing (0x%0" PRIx32 ")", (uint32_t)address);
             return false;
         }
+    }
+
+    return true;
+}
+
+bool ModuleEeprom::erase_page(uint32_t address) {
+    uint8_t page[EepromPageSize];
+    memset(page, 0xff, sizeof(page));
+    if (!write(wire_, address, (uint8_t *)page, sizeof(page))) {
+        logerror("error erasing (0x%0" PRIx32 ")", (uint32_t)address);
+        return false;
+    }
+    return true;
+}
+
+bool ModuleEeprom::read_data_delimited(uint32_t address, uint8_t *buffer, size_t &bytes_read, size_t buffer_size) {
+    uint8_t *ptr = buffer;
+    size_t remaining = buffer_size;
+
+    FK_ASSERT(buffer_size >= EEPROM_PAGE_SIZE);
+
+    bytes_read = 0;
+
+    while (remaining > 0) {
+        size_t to_read = MIN(EEPROM_PAGE_SIZE, remaining);
+        if (!read_page(wire_, address, ptr, to_read)) {
+            return false;
+        }
+
+        if (bytes_read == 0) {
+            auto stream = pb_istream_from_buffer((pb_byte_t *)buffer, to_read);
+            bool pb_decode_varint32(pb_istream_t *stream, uint32_t *dest);
+            uint32_t encoded_size = 0;
+            if (!::pb_decode_varint32(&stream, &encoded_size)) {
+                return true;
+            }
+
+            bytes_read = pb_varint_size(encoded_size) + encoded_size;
+
+            FK_ASSERT(encoded_size < buffer_size);
+
+            if (encoded_size < EEPROM_PAGE_SIZE) {
+                return true;
+            }
+
+            remaining = bytes_read;
+        }
+
+        ptr += to_read;
+        remaining -= to_read;
+        address += to_read;
     }
 
     return true;
