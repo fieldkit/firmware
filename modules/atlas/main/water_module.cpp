@@ -15,10 +15,19 @@ ModuleReturn WaterModule::initialize(ModuleContext mc, Pool &pool) {
     bzero(buffer, MaximumConfigurationSize);
     if (!eeprom.read_configuration(buffer, size, MaximumConfigurationSize)) {
         logwarn("error reading configuration");
-        configuration_ = nullptr;
-    }
-    else {
-        configuration_ = new (pool) EncodedMessage(size, buffer);
+        cfg_message_ = nullptr;
+        cfg_ = nullptr;
+    } else {
+        auto cfg = (fk_data_ModuleConfiguration *)pool.malloc(sizeof(fk_data_ModuleConfiguration));
+        auto stream = pb_istream_from_buffer(buffer, size);
+        if (!pb_decode_delimited(&stream, fk_data_ModuleConfiguration_fields, cfg)) {
+            logerror("mod-cfg: error decoding ");
+        }
+        else {
+            loginfo("mod-cfg: decoded");
+            cfg_message_ = new (pool) EncodedMessage(size, buffer);
+            cfg_ = cfg;
+        }
     }
 
     auto atlas = OemAtlas{ mc.module_bus() };
@@ -149,9 +158,9 @@ ModuleConfiguration WaterModule::get_configuration(Pool &pool) {
     // Make sure temperature is serviced before any of the other water modules.
     switch (type_) {
     case AtlasSensorType::Temp:
-        return { get_display_name_key(), configuration_, ModuleOrderProvidesCalibration };
+        return { get_display_name_key(), cfg_message_, ModuleOrderProvidesCalibration };
     default:
-        return { get_display_name_key(), configuration_ };
+        return { get_display_name_key(), cfg_message_ };
     }
 }
 

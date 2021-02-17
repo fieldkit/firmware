@@ -3,6 +3,7 @@
 #include <modules/bridge/modules.h>
 
 #include "oem_atlas.h"
+#include "records.h"
 
 namespace fk {
 
@@ -10,7 +11,8 @@ class WaterModule : public Module {
 private:
     AtlasSensorType type_{ AtlasSensorType::Unknown };
     uint8_t address_{ 0 };
-    EncodedMessage *configuration_{ nullptr };
+    EncodedMessage *cfg_message_{ nullptr };
+    fk_data_ModuleConfiguration *cfg_{ nullptr };
 
 public:
     ModuleReturn initialize(ModuleContext mc, Pool &pool) override;

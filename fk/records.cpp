@@ -565,4 +565,42 @@ fk_data_LoraRecord fk_lora_record_encoding_new() {
     return record;
 }
 
+static inline bool pb_decode_float_array(pb_istream_t *stream, const pb_field_t *field, void **arg) {
+    float value = 0.0f;
+
+    if (!pb_decode_fixed32(stream, &value)) {
+        return false;
+    }
+
+    auto array = (pb_array_t *)*arg;
+
+    // TODO: Wasteful.
+    auto previous = (const void *)array->buffer;
+    array->length++;
+    array->buffer = array->pool->malloc(array->itemSize * array->length);
+    void *ptr = ((uint8_t *)array->buffer) + ((array->length - 1) * array->itemSize);
+    if (previous != nullptr) {
+        memcpy(array->buffer, previous, ((array->length - 1) * array->itemSize));
+    }
+    memcpy(ptr, &value, array->itemSize);
+
+    return true;
+}
+
+fk_data_ModuleConfiguration fk_module_configuration_decoding_new(Pool *pool) {
+    fk_data_ModuleConfiguration record = fk_data_ModuleConfiguration_init_default;
+
+    record.calibration.coefficients.values.funcs.decode = pb_decode_float_array;
+    record.calibration.coefficients.values.arg = (void *)pool->malloc_with<pb_array_t>({
+        .length = 0,
+        .itemSize = sizeof(float),
+        .buffer = nullptr,
+        .fields = nullptr,
+        .decode_item_fn = nullptr,
+        .pool = pool,
+    });
+
+    return record;
+}
+
 }
