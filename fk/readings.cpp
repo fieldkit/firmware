@@ -72,12 +72,14 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
 
         FK_ASSERT(module != nullptr);
 
+        auto sensor_metas = module->get_sensors(pool);
+
         auto adding = ModuleMetaAndReadings{
             .position = pair.found.position,
             .id = (fk_uuid_t *)pool.copy(&pair.found.header.id, sizeof(pair.found.header.id)),
             .meta = meta,
             .configuration_message = nullptr,
-            .sensors = module->get_sensors(pool),
+            .sensors = sensor_metas,
             .readings = nullptr,
             .configuration = pair.configuration,
         };
@@ -104,16 +106,13 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
         loginfo("'%s' mk=%02" PRIx32 "%02" PRIx32 " version=%" PRIu32, pair.configuration.display_name_key, meta->manufacturer, meta->kind, meta->version);
 
         // TODO Cache this? POWER
-        auto module_configuration = module->status(mc, pool);
-        if (module_configuration.status != ModuleStatus::Ok) {
-            logwarn("'%s' status error", meta->name);
-        } else {
-            if (module_configuration.message != nullptr) {
-                loginfo("'%s' config ok (%zu bytes)", meta->name, module_configuration.message->size);
-            }
-            else {
-                loginfo("'%s' config ok", meta->name);
-            }
+        auto module_configuration = module->get_configuration(pool);
+        if (module_configuration.message != nullptr) {
+            adding.configuration_message = module_configuration.message;
+            loginfo("'%s' config ok (%zu bytes)", meta->name, module_configuration.message->size);
+        }
+        else {
+            loginfo("'%s' config ok", meta->name);
         }
 
         auto readings = module->take_readings(mc, pool);
@@ -126,7 +125,6 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
 
         loginfo("'%s' %zd readings", meta->name, readings->size());
 
-        auto sensor_metas = module->get_sensors(pool);
         auto sensor_values = pool.malloc<fk_data_SensorAndValue>(readings->size());
         for (auto i = 0u; i < readings->size(); ++i) {
             auto reading = readings->get(i);

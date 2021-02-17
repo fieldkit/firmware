@@ -16,10 +16,6 @@ public:
         return { ModuleStatus::Ok };
     }
 
-    ModuleStatusReturn status(ModuleContext mc, Pool &pool) {
-        return { ModuleStatus::Ok, nullptr };
-    }
-
     ModuleReturn api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
         return { ModuleStatus::Ok };
     }
@@ -111,10 +107,6 @@ class FakeModule2 : public FakeModule {
 public:
     ModuleReturn initialize(ModuleContext mc, Pool &pool) override {
         return { ModuleStatus::Ok };
-    }
-
-    ModuleStatusReturn status(ModuleContext mc, Pool &pool) {
-        return { ModuleStatus::Ok, nullptr };
     }
 
     ModuleReturn api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {

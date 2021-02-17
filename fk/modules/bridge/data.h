@@ -47,6 +47,11 @@ typedef struct ModuleConfiguration {
     const char *display_name_key{ "modules.unknown" };
 
     /**
+     * Delimiter encoded ModuleConfiguration.
+     */
+    EncodedMessage *message{ nullptr };
+
+    /**
      * Power needs for the module.
      */
     ModulePower power{ ModulePower::ReadingsOnly };
@@ -91,8 +96,23 @@ typedef struct ModuleConfiguration {
     /**
      * Constructor
      */
+    // cppcheck-suppress noExplicitConstructor
+    ModuleConfiguration(const char *display_name_key, EncodedMessage *message)
+        : display_name_key(display_name_key), message(message) {
+    }
+
+    /**
+     * Constructor
+     */
     ModuleConfiguration(const char *display_name_key, ModuleOrder order)
         : display_name_key(display_name_key), service_order(order) {
+    }
+
+    /**
+     * Constructor
+     */
+    ModuleConfiguration(const char *display_name_key, EncodedMessage *message, ModuleOrder order)
+        : display_name_key(display_name_key), message(message), service_order(order) {
     }
 
     /**

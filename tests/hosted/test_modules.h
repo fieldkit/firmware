@@ -22,10 +22,6 @@ public:
         return { ModuleStatus::Ok };
     }
 
-    ModuleStatusReturn status(ModuleContext mc, Pool &pool) {
-        return { ModuleStatus::Ok, nullptr };
-    }
-
     ModuleReturn api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
         return { ModuleStatus::Ok };
     }

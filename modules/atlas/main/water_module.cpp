@@ -8,6 +8,19 @@ namespace fk {
 FK_DECLARE_LOGGER("water");
 
 ModuleReturn WaterModule::initialize(ModuleContext mc, Pool &pool) {
+    ModuleEeprom eeprom{ mc.module_bus() };
+
+    size_t size = 0;
+    auto buffer = (uint8_t *)pool.malloc(MaximumConfigurationSize);
+    bzero(buffer, MaximumConfigurationSize);
+    if (!eeprom.read_configuration(buffer, size, MaximumConfigurationSize)) {
+        logwarn("error reading configuration");
+        configuration_ = nullptr;
+    }
+    else {
+        configuration_ = new (pool) EncodedMessage(size, buffer);
+    }
+
     auto atlas = OemAtlas{ mc.module_bus() };
     if (!atlas.find()) {
         logerror("no atlas module (ms::fatal)");
@@ -18,22 +31,6 @@ ModuleReturn WaterModule::initialize(ModuleContext mc, Pool &pool) {
     address_ = atlas.address();
 
     return { ModuleStatus::Ok };
-}
-
-ModuleStatusReturn WaterModule::status(ModuleContext mc, Pool &pool) {
-    ModuleEeprom eeprom{ mc.module_bus() };
-
-    size_t size = 0;
-    auto buffer = (uint8_t *)pool.malloc(MaximumConfigurationSize);
-    bzero(buffer, MaximumConfigurationSize);
-    if (!eeprom.read_configuration(buffer, size, MaximumConfigurationSize)) {
-        logwarn("error reading configuration");
-        return { ModuleStatus::Fatal, nullptr };
-    }
-
-    auto message = new (pool) EncodedMessage(size, buffer);
-
-    return { ModuleStatus::Ok, message };
 }
 
 ModuleReturn WaterModule::api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
@@ -152,9 +149,9 @@ ModuleConfiguration WaterModule::get_configuration(Pool &pool) {
     // Make sure temperature is serviced before any of the other water modules.
     switch (type_) {
     case AtlasSensorType::Temp:
-        return { get_display_name_key(), ModuleOrderProvidesCalibration };
+        return { get_display_name_key(), configuration_, ModuleOrderProvidesCalibration };
     default:
-        return { get_display_name_key() };
+        return { get_display_name_key(), configuration_ };
     }
 }
 

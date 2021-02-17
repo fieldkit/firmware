@@ -34,24 +34,6 @@ struct ModuleReturn {
 };
 
 /**
- * Generic return value for Module bridge calls.
- */
-struct ModuleStatusReturn {
-    ModuleStatus status;
-    EncodedMessage *message;
-
-    ModuleStatusReturn(ModuleStatus status, EncodedMessage *message) : status(status), message(message) {
-    }
-
-    /**
-     * Returns true if the Module is A-ok
-     */
-    operator bool() const {
-        return status == ModuleStatus::Ok;
-    }
-};
-
-/**
  * Primary module interface.
  */
 class Module {
@@ -66,7 +48,6 @@ public:
     virtual ModuleConfiguration get_configuration(Pool &pool) = 0;
     virtual ModuleReturn service(ModuleContext mc, Pool &pool) = 0;
     virtual ModuleReturn api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) = 0;
-    virtual ModuleStatusReturn status(ModuleContext mc, Pool &pool) = 0;
 
 };
 

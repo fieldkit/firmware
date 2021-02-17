@@ -10,12 +10,12 @@ class WaterModule : public Module {
 private:
     AtlasSensorType type_{ AtlasSensorType::Unknown };
     uint8_t address_{ 0 };
+    EncodedMessage *configuration_{ nullptr };
 
 public:
     ModuleReturn initialize(ModuleContext mc, Pool &pool) override;
     ModuleReturn service(ModuleContext mc, Pool &pool) override;
     ModuleReturn api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) override;
-    ModuleStatusReturn status(ModuleContext mc, Pool &pool) override;
     ModuleReadings *take_readings(ReadingsContext mc, Pool &pool) override;
 
 public:
