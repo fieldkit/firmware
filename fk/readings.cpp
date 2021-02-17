@@ -76,7 +76,7 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
             .position = pair.found.position,
             .id = (fk_uuid_t *)pool.copy(&pair.found.header.id, sizeof(pair.found.header.id)),
             .meta = meta,
-            .status_message = nullptr,
+            .configuration_message = nullptr,
             .sensors = module->get_sensors(pool),
             .readings = nullptr,
             .configuration = pair.configuration,
@@ -103,15 +103,16 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
 
         loginfo("'%s' mk=%02" PRIx32 "%02" PRIx32 " version=%" PRIu32, pair.configuration.display_name_key, meta->manufacturer, meta->kind, meta->version);
 
-        auto module_status = module->status(mc, pool);
-        if (module_status.status != ModuleStatus::Ok) {
+        // TODO Cache this? POWER
+        auto module_configuration = module->status(mc, pool);
+        if (module_configuration.status != ModuleStatus::Ok) {
             logwarn("'%s' status error", meta->name);
         } else {
-            if (module_status.message != nullptr) {
-                loginfo("'%s' status ok (%zu bytes)", meta->name, module_status.message->size);
+            if (module_configuration.message != nullptr) {
+                loginfo("'%s' config ok (%zu bytes)", meta->name, module_configuration.message->size);
             }
             else {
-                loginfo("'%s' status ok", meta->name);
+                loginfo("'%s' config ok", meta->name);
             }
         }
 
@@ -149,7 +150,7 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
         group.readings.arg = readings_array;
         group_number++;
 
-        adding.status_message = module_status.message;
+        adding.configuration_message = module_configuration.message;
         adding.readings = readings;
         all_readings.emplace(adding);
     }

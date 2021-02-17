@@ -166,12 +166,12 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, bool logs, fkb_h
                 modules[m].sensors.arg = (void *)sensors_array;
             }
 
-            if (module.status_message != nullptr) {
-                auto status_message_data = pool_->malloc_with<pb_data_t>({
-                    .length = module.status_message->size,
-                    .buffer = module.status_message->buffer,
+            if (module.configuration_message != nullptr) {
+                auto configuration_message_data = pool_->malloc_with<pb_data_t>({
+                    .length = module.configuration_message->size,
+                    .buffer = module.configuration_message->buffer,
                 });
-                modules[m].status.arg = (void *)status_message_data;
+                modules[m].configuration.arg = (void *)configuration_message_data;
             }
         }
 

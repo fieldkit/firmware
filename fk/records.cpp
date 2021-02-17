@@ -473,7 +473,7 @@ fk_app_HttpReply *fk_http_reply_encoding_initialize(fk_app_HttpReply *reply) {
             module->name.funcs.encode = pb_encode_string;
             module->path.funcs.encode = pb_encode_string;
             module->id.funcs.encode = pb_encode_data;
-            module->status.funcs.encode = pb_encode_data;
+            module->configuration.funcs.encode = pb_encode_data;
             if (module->sensors.arg != nullptr) {
                 module->sensors.funcs.encode = pb_encode_array;
                 auto array = reinterpret_cast<pb_array_t *>(module->sensors.arg);
@@ -529,7 +529,7 @@ fk_app_HttpReply *fk_http_reply_encoding_initialize(fk_app_HttpReply *reply) {
                     if (lmr->module.name.arg != nullptr) {
                         lmr->module.name.funcs.encode = pb_encode_string;
                         lmr->module.id.funcs.encode = pb_encode_data;
-                        lmr->module.status.funcs.encode = pb_encode_data;
+                        lmr->module.configuration.funcs.encode = pb_encode_data;
                     }
                     if (lmr->readings.arg != nullptr) {
                         lmr->readings.funcs.encode = pb_encode_array;

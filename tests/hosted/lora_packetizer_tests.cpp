@@ -25,7 +25,7 @@ TEST_F(LoraPacketizerSuite, SingleReading) {
         .position = ModulePosition::from(0),
         .id = nullptr,
         .meta = &fk_test_module_fake_empty,
-        .status_message = nullptr,
+        .configuration_message = nullptr,
         .sensors = nullptr,
         .readings = module_readings,
     });
@@ -55,7 +55,7 @@ TEST_F(LoraPacketizerSuite, OneModuleMultipleReadings) {
         .position = ModulePosition::from(0),
         .id = nullptr,
         .meta = &fk_test_module_fake_empty,
-        .status_message = nullptr,
+        .configuration_message = nullptr,
         .sensors = nullptr,
         .readings = module_readings,
     });
@@ -90,7 +90,7 @@ TEST_F(LoraPacketizerSuite, TwoModulesMultipleReadings) {
         .position = ModulePosition::from(0),
         .id = nullptr,
         .meta = &fk_test_module_fake_empty,
-        .status_message = nullptr,
+        .configuration_message = nullptr,
         .sensors = nullptr,
         .readings = module_readings0,
     });
@@ -99,7 +99,7 @@ TEST_F(LoraPacketizerSuite, TwoModulesMultipleReadings) {
         .position = ModulePosition::from(1),
         .id = nullptr,
         .meta = &fk_test_module_fake_empty,
-        .status_message = nullptr,
+        .configuration_message = nullptr,
         .sensors = nullptr,
         .readings = module_readings1,
     });
@@ -141,7 +141,7 @@ TEST_F(LoraPacketizerSuite, MultipleModulesVerifyLength1) {
         .position = ModulePosition::from(2),
         .id = nullptr,
         .meta = &fk_test_module_fake_empty,
-        .status_message = nullptr,
+        .configuration_message = nullptr,
         .sensors = nullptr,
         .readings = module_readings0,
     });
@@ -150,7 +150,7 @@ TEST_F(LoraPacketizerSuite, MultipleModulesVerifyLength1) {
         .position = ModulePosition::from(6),
         .id = nullptr,
         .meta = &fk_test_module_fake_empty,
-        .status_message = nullptr,
+        .configuration_message = nullptr,
         .sensors = nullptr,
         .readings = module_readings1,
     });
@@ -187,7 +187,7 @@ TEST_F(LoraPacketizerSuite, MultipleModulesVerifyLength2) {
         .position = ModulePosition::from(2),
         .id = nullptr,
         .meta = &fk_test_module_fake_empty,
-        .status_message = nullptr,
+        .configuration_message = nullptr,
         .sensors = nullptr,
         .readings = module_readings0,
     });
@@ -265,7 +265,7 @@ TEST_F(LoraPacketizerSuite, MultipleModulesVerifyLength3) {
         .position = ModulePosition::from(2),
         .id = nullptr,
         .meta = &fk_test_module_fake_empty,
-        .status_message = nullptr,
+        .configuration_message = nullptr,
         .sensors = nullptr,
         .readings = module_readings0,
     });
@@ -273,7 +273,7 @@ TEST_F(LoraPacketizerSuite, MultipleModulesVerifyLength3) {
         .position = ModulePosition::from(6),
         .id = nullptr,
         .meta = &fk_test_module_fake_empty,
-        .status_message = nullptr,
+        .configuration_message = nullptr,
         .sensors = nullptr,
         .readings = module_readings1,
     });
