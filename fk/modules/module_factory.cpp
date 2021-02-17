@@ -120,27 +120,7 @@ void ModuleFactory::sort_modules() {
 }
 
 bool ModuleFactory::service(ScanningContext &ctx, Pool &pool) {
-    auto success = true;
-
-    for (auto &constructed : modules_) {
-        auto mod = constructed.module;
-        if (mod != nullptr) {
-            auto config = mod->get_configuration(pool);
-            if (config.service_interval > 0) {
-                auto mc = ctx.module(constructed.found.position, pool);
-                if (!mc.open()) {
-                    logerror("[%d] error opening module", constructed.found.position.integer());
-                    return false;
-                }
-
-                if (!mod->service(mc, pool)) {
-                    success = false;
-                }
-            }
-        }
-    }
-
-    return success;
+    return true;
 }
 
 tl::expected<ConstructedModulesCollection, Error> ModuleFactory::resolve(FoundModuleCollection &module_headers, Pool &pool) {
