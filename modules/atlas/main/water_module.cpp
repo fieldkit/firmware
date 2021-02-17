@@ -227,7 +227,7 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
 
     auto mr = new(pool) NModuleReadings<ATLAS_MAXIMUM_VALUES>(number_of_values);
     for (size_t i = 0; i < mr->size(); ++i) {
-        mr->set(i, values[i]);
+        mr->set(i, ModuleReading{ values[i] });
     }
 
     return mr;
@@ -237,7 +237,7 @@ optional<float> WaterModule::get_temperature(ReadingsContext mc) {
     for (auto &r : mc.readings()) {
         if (r.meta->manufacturer == FK_MODULES_MANUFACTURER && r.meta->kind == FK_MODULES_KIND_WATER_TEMP) {
             if (r.readings->size() == 1) {
-                return { r.readings->get(0) };
+                return { r.readings->get(0).calibrated };
             }
         }
     }
@@ -248,7 +248,7 @@ optional<float> WaterModule::get_salinity(ReadingsContext mc) {
     for (auto &r : mc.readings()) {
         if (r.meta->manufacturer == FK_MODULES_MANUFACTURER && r.meta->kind == FK_MODULES_KIND_WATER_EC) {
             if (r.readings->size() == 3) {
-                return { r.readings->get(2) };
+                return { r.readings->get(2).calibrated };
             }
         }
     }

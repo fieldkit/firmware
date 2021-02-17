@@ -7,10 +7,6 @@ namespace fk {
 template<size_t N>
 class NModuleReadings : public ModuleReadings {
 private:
-    typedef struct ModuleReading {
-        float value{ 0.0f };
-    } ModuleReading;
-
     size_t nreadings_{ N };
     ModuleReading readings_[N];
 
@@ -27,14 +23,14 @@ public:
         return nreadings_;
     }
 
-    void set(int32_t i, float value) override {
+    void set(int32_t i, ModuleReading reading) override {
         if ((size_t)i < N) {
-            readings_[i].value = value;
+            readings_[i] = reading;
         }
     }
 
-    float get(int32_t i) const override {
-        return readings_[i].value;
+    ModuleReading get(int32_t i) const override {
+        return readings_[i];
     }
 
     ModuleReadings *clone(Pool &pool) const override {

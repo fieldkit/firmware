@@ -108,7 +108,7 @@ bool ReadingsWorker::take(Pool &pool) {
             sensors[i].unit_of_measure = m.sensors->sensors[i].unitOfMeasure;
             sensors[i].flags = m.sensors->sensors[i].flags;
             sensors[i].has_live_vaue = true;
-            sensors[i].live_value = m.readings->get(i);
+            sensors[i].live_value = m.readings->get(i).calibrated;
         }
 
         module_num++;

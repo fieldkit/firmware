@@ -150,16 +150,16 @@ tl::expected<EncodedMessage*, Error> LoraPacketizer::packetize(TakenReadings con
     for (auto &module : taken.readings) {
         if (LoraTransmitVirtual || module.position != ModulePosition::Virtual) {
             for (auto s = 0u; s < module.readings->size(); ++s) {
-                auto value = module.readings->get(s);
+                auto reading = module.readings->get(s);
                 auto position = module.position.integer();
-                auto adding = record.size_of_encoding(position, s, value);
+                auto adding = record.size_of_encoding(position, s, reading.calibrated);
                 if (record.encoded_size() + adding >= maximum_packet_size_) {
                     append(&head, &tail, record.encode(pool));
                     record.clear();
                 }
 
-                record.write_reading(position, s, value);
-                logdebug("reading: %d/%d %f (%zd)", position, s, value, record.encoded_size());
+                record.write_reading(position, s, reading.calibrated);
+                logdebug("reading: %d/%d %f (%zd)", position, s, reading.calibrated, record.encoded_size());
             }
 
             append(&head, &tail, record.encode(pool));

@@ -110,11 +110,22 @@ typedef struct ModuleConfiguration {
     }
 } ModuleConfiguration;
 
+struct ModuleReading {
+    float calibrated;
+    float uncalibrated;
+
+    ModuleReading() : calibrated(0.0), uncalibrated(0.0) {
+    }
+
+    ModuleReading(float one_value) : calibrated(one_value), uncalibrated(0.0) {
+    }
+};
+
 class ModuleReadings {
 public:
     virtual size_t size() const = 0;
-    virtual void set(int32_t i, float value) = 0;
-    virtual float get(int32_t i) const = 0;
+    virtual void set(int32_t i, ModuleReading value) = 0;
+    virtual ModuleReading get(int32_t i) const = 0;
     virtual ModuleReadings *clone(Pool &pool) const = 0;
 };
 
