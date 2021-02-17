@@ -46,8 +46,8 @@ bool ConfigureModuleWorker::configure(Pool &pool) {
             loginfo("erasing: %d", b.integer());
             return configurer.erase(b);
         } else {
-            loginfo("configuring: %d", b.integer());
-            return configurer.configure(b, header_);
+            loginfo("provisioning: %d", b.integer());
+            return configurer.provision(b, header_);
         }
     });
 

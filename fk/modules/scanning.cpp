@@ -61,6 +61,7 @@ bool ModuleScanning::try_scan_single_module(ModulePosition position, FoundModule
     ModuleHeader header;
     bzero(&header, sizeof(ModuleHeader));
     if (!eeprom.read_header(header)) {
+        logwarn("[%d] error reading header", position.integer());
         return false;
     }
 
@@ -72,7 +73,7 @@ bool ModuleScanning::try_scan_single_module(ModulePosition position, FoundModule
             .position = position,
             .header = header,
         });
-        return false;
+        return true;
     }
 
     fk_uuid_formatted_t pretty_id;
@@ -107,7 +108,7 @@ tl::expected<FoundModuleCollection, Error> ModuleScanning::scan(Pool &pool) {
     // on the bus.
     if (!available()) {
         if (!try_scan_single_module(ModulePosition::Solo, found, pool)) {
-            logerror("single module scan failed");
+            logerror("[-] single module scan failed");
         }
         return std::move(found);
     }
@@ -118,7 +119,9 @@ tl::expected<FoundModuleCollection, Error> ModuleScanning::scan(Pool &pool) {
             return tl::unexpected<Error>(Error::Bus);
         }
 
-        try_scan_single_module(position, found, pool);
+        if (!try_scan_single_module(position, found, pool)) {
+            logwarn("[%d] no module", position.integer());
+        }
     }
 
     if (!mm_->choose_nothing()) {
@@ -131,7 +134,7 @@ tl::expected<FoundModuleCollection, Error> ModuleScanning::scan(Pool &pool) {
     return std::move(found);
 }
 
-bool ModuleScanning::configure(ModulePosition position, ModuleHeader &header) {
+bool ModuleScanning::provision(ModulePosition position, ModuleHeader &header) {
     if (!available()) {
         return false;
     }
@@ -167,6 +170,10 @@ bool ModuleScanning::configure(ModulePosition position, ModuleHeader &header) {
         fk_logs_dump_memory("header: ", (uint8_t *)&existing_header, sizeof(existing_header));
     }
 
+    return true;
+}
+
+bool ModuleScanning::configure(ModulePosition position, uint8_t const *buffer, size_t size) {
     return true;
 }
 

@@ -29,7 +29,8 @@ public:
 
 public:
     virtual tl::expected<FoundModuleCollection, Error> scan(Pool &pool);
-    virtual bool configure(ModulePosition position, ModuleHeader &header);
+    virtual bool provision(ModulePosition position, ModuleHeader &header);
+    virtual bool configure(ModulePosition position, uint8_t const *buffer, size_t size);
     virtual bool erase(ModulePosition position);
 
 private:
