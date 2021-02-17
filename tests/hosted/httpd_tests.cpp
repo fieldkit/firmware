@@ -115,10 +115,10 @@ protected:
 };
 
 TEST_F(HttpParsingQuerySuite, SimpleGet1) {
-    fk_app_WireMessageQuery query = fk_app_WireMessageQuery_init_default;
+    fk_app_HttpQuery query = fk_app_HttpQuery_init_default;
     query.type = fk_app_QueryType_QUERY_STATUS;
 
-    auto encoded = pool_.encode(fk_app_WireMessageQuery_fields, &query);
+    auto encoded = pool_.encode(fk_app_HttpQuery_fields, &query);
 
     auto req_header = pool_.sprintf(
         "GET / HTTP/1.1\n"
