@@ -23,8 +23,8 @@ bool ModuleHandler::handle(HttpServerConnection *connection, Pool &pool) {
     auto lock = mm->lock();
     auto module_bus = get_board()->i2c_module();
 
-    auto configuration = constructed->configuration;
-    EnableModulePower module_power{ true, configuration.power, constructed->found.position };
+    auto configuration = (*constructed)->configuration;
+    EnableModulePower module_power{ true, configuration.power, (*constructed)->found.position };
     if (!module_power.enable()) {
         connection->error(500, "error powering module");
         return true;
@@ -45,7 +45,7 @@ bool ModuleHandler::handle(HttpServerConnection *connection, Pool &pool) {
             return true;
         }
 
-        if (!constructed->module->api(mc, connection, pool)) {
+        if (!(*constructed)->module->api(mc, connection, pool)) {
             connection->error(500, "error servicing module api");
             return true;
         }
@@ -53,11 +53,14 @@ bool ModuleHandler::handle(HttpServerConnection *connection, Pool &pool) {
 
     {
         auto gs = get_global_state_rw();
-        configuration = constructed->module->get_configuration(factory.pool());
-        constructed->configuration = configuration;
+        configuration = (*constructed)->module->get_configuration(factory.pool());
+        (*constructed)->configuration = configuration;
 
         if (configuration.message != nullptr) {
             fk_dump_memory("mod-cfg ", configuration.message->buffer, configuration.message->size);
+        }
+        else {
+            loginfo("no updated configuration message");
         }
     }
 

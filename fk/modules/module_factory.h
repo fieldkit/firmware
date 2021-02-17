@@ -27,7 +27,7 @@ public:
         return pool_;
     }
 
-    optional<ConstructedModule> get(ModulePosition bay);
+    optional<ConstructedModule*> get(ModulePosition bay);
 
     ConstructedModulesCollection modules();
 

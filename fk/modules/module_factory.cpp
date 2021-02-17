@@ -19,10 +19,10 @@ ModuleFactory::ModuleFactory() {
 ModuleFactory::~ModuleFactory() {
 }
 
-optional<ConstructedModule> ModuleFactory::get(ModulePosition position) {
+optional<ConstructedModule*> ModuleFactory::get(ModulePosition position) {
     for (auto &m : modules_) {
         if (m.found.position == position) {
-            return m;
+            return &m;
         }
     }
 
