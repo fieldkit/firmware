@@ -90,9 +90,10 @@ bool ModuleFactory::initialize(ScanningContext &ctx, Pool &pool) {
                     return false;
                 }
 
-                auto mr = mod->initialize(mc, pool);
-                auto config = mod->get_configuration(pool_);
+                auto mr = mod->initialize(mc, pool_);
+                // TODO Check status?
 
+                auto config = mod->get_configuration(pool);
                 if (config.service_interval > 0) {
                     if (service_interval_ > 0) {
                         service_interval_ = std::min(config.service_interval, service_interval_);
