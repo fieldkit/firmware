@@ -152,8 +152,9 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, bool logs, fkb_h
                 .buffer = module.id,
             });
 
+            auto index = module.position.integer();
             modules[m] = fk_app_ModuleCapabilities_init_default;
-            modules[m].position = module.position.integer();
+            modules[m].position = index;
             modules[m].name.arg = (void *)module.display_name_key;
             modules[m].path.arg = (void *)pool_->sprintf("/fk/v1/modules/%d", module.position.integer());
             modules[m].flags = module.flags;
@@ -167,11 +168,14 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, bool logs, fkb_h
             }
 
             if (module.configuration_message != nullptr) {
+                loginfo("[%d] config reply (%zd bytes)", index, module.configuration_message->size);
                 auto configuration_message_data = pool_->malloc_with<pb_data_t>({
                     .length = module.configuration_message->size,
                     .buffer = module.configuration_message->buffer,
                 });
                 modules[m].configuration.arg = (void *)configuration_message_data;
+
+                fk_dump_memory("mod-cfg ", module.configuration_message->buffer, module.configuration_message->size);
             }
         }
 

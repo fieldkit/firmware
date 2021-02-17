@@ -8,27 +8,12 @@ namespace fk {
 FK_DECLARE_LOGGER("water");
 
 ModuleReturn WaterModule::initialize(ModuleContext mc, Pool &pool) {
-    ModuleEeprom eeprom{ mc.module_bus() };
+    // TODO Not a fan of this, move to ctor?
+    FK_ASSERT(pool_ == nullptr);
 
-    size_t size = 0;
-    auto buffer = (uint8_t *)pool.malloc(MaximumConfigurationSize);
-    bzero(buffer, MaximumConfigurationSize);
-    if (!eeprom.read_configuration(buffer, size, MaximumConfigurationSize)) {
-        logwarn("error reading configuration");
-        cfg_message_ = nullptr;
-        cfg_ = nullptr;
-    } else {
-        auto cfg = (fk_data_ModuleConfiguration *)pool.malloc(sizeof(fk_data_ModuleConfiguration));
-        auto stream = pb_istream_from_buffer(buffer, size);
-        if (!pb_decode_delimited(&stream, fk_data_ModuleConfiguration_fields, cfg)) {
-            logerror("mod-cfg: error decoding ");
-        }
-        else {
-            loginfo("mod-cfg: decoded");
-            cfg_message_ = new (pool) EncodedMessage(size, buffer);
-            cfg_ = cfg;
-        }
-    }
+    pool_ = &pool;
+
+    load_configuration(mc, pool);
 
     auto atlas = OemAtlas{ mc.module_bus() };
     if (!atlas.find()) {
@@ -40,6 +25,34 @@ ModuleReturn WaterModule::initialize(ModuleContext mc, Pool &pool) {
     address_ = atlas.address();
 
     return { ModuleStatus::Ok };
+}
+
+bool WaterModule::load_configuration(ModuleContext mc, Pool &pool) {
+    ModuleEeprom eeprom{ mc.module_bus() };
+
+    cfg_message_ = nullptr;
+    cfg_ = nullptr;
+
+    size_t size = 0;
+    auto buffer = (uint8_t *)pool.malloc(MaximumConfigurationSize);
+    bzero(buffer, MaximumConfigurationSize);
+    if (!eeprom.read_configuration(buffer, size, MaximumConfigurationSize)) {
+        logwarn("error reading configuration");
+    } else if (size > 0) {
+        auto cfg = (fk_data_ModuleConfiguration *)pool_->malloc(sizeof(fk_data_ModuleConfiguration));
+        auto stream = pb_istream_from_buffer(buffer, size);
+        if (!pb_decode_delimited(&stream, fk_data_ModuleConfiguration_fields, cfg)) {
+            logerror("mod-cfg: error decoding ");
+            return false;
+        }
+        else {
+            loginfo("mod-cfg: decoded");
+            cfg_message_ = pool_->wrap_copy(buffer, size);
+            cfg_ = cfg;
+        }
+    }
+
+    return true;
 }
 
 ModuleReturn WaterModule::api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
@@ -56,6 +69,8 @@ ModuleReturn WaterModule::api(ModuleContext mc, HttpServerConnection *connection
         logerror("error handling api (ms::fatal)");
         return { ModuleStatus::Fatal };
     }
+
+    load_configuration(mc, pool);
 
     return { ModuleStatus::Ok };
 }

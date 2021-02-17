@@ -139,6 +139,9 @@ bool ModuleEeprom::erase_configuration() {
     if (!erase_page(ConfigurationAddress)) {
         return false;
     }
+
+    loginfo("configuration erased");
+
     return true;
 }
 

@@ -33,15 +33,18 @@ bool AtlasApiReply::has_errors() const {
 }
 
 bool AtlasApiReply::status_reply(uint8_t const *buffer, size_t size) {
-    auto cfg_data = pool_->malloc_with<pb_data_t>({
-        .length = size,
-        .buffer = buffer,
-    });
-
     reply_.type = fk_atlas_ReplyType_REPLY_STATUS;
     reply_.has_calibration = true;
-    reply_.calibration.configuration.arg = (void *)cfg_data;
-    reply_.calibration.configuration.funcs.encode = pb_encode_data;
+
+    if (size > 0) {
+        auto cfg_data = pool_->malloc_with<pb_data_t>({
+            .length = size,
+            .buffer = buffer,
+        });
+
+        reply_.calibration.configuration.arg = (void *)cfg_data;
+        reply_.calibration.configuration.funcs.encode = pb_encode_data;
+    }
 
     return true;
 }

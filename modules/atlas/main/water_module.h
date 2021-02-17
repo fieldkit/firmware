@@ -11,6 +11,7 @@ class WaterModule : public Module {
 private:
     AtlasSensorType type_{ AtlasSensorType::Unknown };
     uint8_t address_{ 0 };
+    Pool *pool_{ nullptr };
     EncodedMessage *cfg_message_{ nullptr };
     fk_data_ModuleConfiguration *cfg_{ nullptr };
 
@@ -29,6 +30,7 @@ private:
     optional<float> get_temperature(ReadingsContext mc);
     optional<float> get_salinity(ReadingsContext mc);
     optional<float> get_pressure(ReadingsContext mc);
+    bool load_configuration(ModuleContext mc, Pool &pool);
 
 };
 

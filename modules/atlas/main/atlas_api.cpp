@@ -30,15 +30,15 @@ bool AtlasApi::handle(ModuleContext mc, HttpServerConnection *connection, Pool &
 
     switch (query->calibration.operation) {
     case fk_atlas_CalibrationOperation_CALIBRATION_STATUS: {
-        status(mc, reply);
+        status(mc, reply, pool);
         break;
     }
     case fk_atlas_CalibrationOperation_CALIBRATION_CLEAR: {
-        clear(mc, reply);
+        clear(mc, reply, pool);
         break;
     }
     case fk_atlas_CalibrationOperation_CALIBRATION_SET: {
-        calibrate(mc, reply, query->calibration);
+        calibrate(mc, reply, query->calibration, pool);
         break;
     }
     default: {
@@ -64,12 +64,12 @@ bool AtlasApi::send_reply(HttpServerConnection *connection, Pool &pool, AtlasApi
     return true;
 }
 
-bool AtlasApi::status(ModuleContext mc, AtlasApiReply &reply) {
+bool AtlasApi::status(ModuleContext mc, AtlasApiReply &reply, Pool &pool) {
     auto module_bus = get_board()->i2c_module();
     ModuleEeprom eeprom{ module_bus };
 
     size_t size = 0;
-    auto buffer = (uint8_t *)pool_->malloc(MaximumConfigurationSize);
+    auto buffer = (uint8_t *)pool.malloc(MaximumConfigurationSize);
     bzero(buffer, MaximumConfigurationSize);
     if (!eeprom.read_configuration(buffer, size, MaximumConfigurationSize)) {
         logwarn("error reading configuration");
@@ -79,7 +79,7 @@ bool AtlasApi::status(ModuleContext mc, AtlasApiReply &reply) {
     return reply.status_reply(buffer, size);
 }
 
-bool AtlasApi::clear(ModuleContext mc, AtlasApiReply &reply) {
+bool AtlasApi::clear(ModuleContext mc, AtlasApiReply &reply, Pool &pool) {
     loginfo("clearing calibration");
 
     auto module_bus = get_board()->i2c_module();
@@ -101,11 +101,11 @@ bool AtlasApi::clear(ModuleContext mc, AtlasApiReply &reply) {
         return false;
     }
 
-    return status(mc, reply);
+    return status(mc, reply, pool);
 }
 
-bool AtlasApi::calibrate(ModuleContext mc, AtlasApiReply &reply, fk_atlas_AtlasCalibrationCommand command) {
-    if (!clear(mc, reply)) {
+bool AtlasApi::calibrate(ModuleContext mc, AtlasApiReply &reply, fk_atlas_AtlasCalibrationCommand command, Pool &pool) {
+    if (!clear(mc, reply, pool)) {
         return false;
     }
 
@@ -120,7 +120,7 @@ bool AtlasApi::calibrate(ModuleContext mc, AtlasApiReply &reply, fk_atlas_AtlasC
         logerror("error writing module configuration");
     }
 
-    return status(mc, reply);
+    return status(mc, reply, pool);
 }
 
 } // namespace fk

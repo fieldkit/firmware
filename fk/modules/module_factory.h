@@ -22,6 +22,11 @@ public:
 public:
     void clear();
 
+    // TODO Remove this
+    Pool &pool() {
+        return pool_;
+    }
+
     optional<ConstructedModule> get(ModulePosition bay);
 
     ConstructedModulesCollection modules();

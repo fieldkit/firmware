@@ -9,8 +9,7 @@ namespace fk {
 class AtlasApi {
 private:
     AtlasSensorType type_{ AtlasSensorType::Unknown };
-    OemAtlas *atlas_;
-    Pool *pool_;
+    OemAtlas *atlas_{ nullptr };
 
 public:
     AtlasApi(AtlasSensorType type, OemAtlas &atlas);
@@ -20,9 +19,9 @@ public:
 
 private:
     bool send_reply(HttpServerConnection *connection, Pool &pool, AtlasApiReply &reply);
-    bool status(ModuleContext mc, AtlasApiReply &reply);
-    bool clear(ModuleContext mc, AtlasApiReply &reply);
-    bool calibrate(ModuleContext mc, AtlasApiReply &reply, fk_atlas_AtlasCalibrationCommand command);
+    bool status(ModuleContext mc, AtlasApiReply &reply, Pool &pool);
+    bool clear(ModuleContext mc, AtlasApiReply &reply, Pool &pool);
+    bool calibrate(ModuleContext mc, AtlasApiReply &reply, fk_atlas_AtlasCalibrationCommand command, Pool &pool);
 
 };
 

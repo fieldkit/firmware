@@ -5,6 +5,8 @@
 
 namespace fk {
 
+FK_DECLARE_LOGGER("mod-api");
+
 ModuleHandler::ModuleHandler(ModulePosition bay) : bay_(bay) {
 }
 
@@ -31,20 +33,32 @@ bool ModuleHandler::handle(HttpServerConnection *connection, Pool &pool) {
         fk_delay(configuration.wake_delay);
     }
 
-    auto gs = get_global_state_ro();
+    {
+        auto gs = get_global_state_ro();
 
-    ScanningContext ctx{ mm, gs.get()->location(pool), module_bus, pool };
+        ScanningContext ctx{ mm, gs.get()->location(pool), module_bus, pool };
 
-    auto mc = ctx.module(bay_, pool);
+        auto mc = ctx.module(bay_, pool);
 
-    if (!mc.open()) {
-        connection->error(500, "error choosing module");
-        return true;
+        if (!mc.open()) {
+            connection->error(500, "error choosing module");
+            return true;
+        }
+
+        if (!constructed->module->api(mc, connection, pool)) {
+            connection->error(500, "error servicing module api");
+            return true;
+        }
     }
 
-    if (!constructed->module->api(mc, connection, pool)) {
-        connection->error(500, "error servicing module api");
-        return true;
+    {
+        auto gs = get_global_state_rw();
+        configuration = constructed->module->get_configuration(factory.pool());
+        constructed->configuration = configuration;
+
+        if (configuration.message != nullptr) {
+            fk_dump_memory("mod-cfg ", configuration.message->buffer, configuration.message->size);
+        }
     }
 
     return true;
