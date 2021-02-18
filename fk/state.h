@@ -41,7 +41,6 @@ public:
     const char *display_name_key;
     fk_uuid_t *id;
     uint32_t flags;
-    EncodedMessage *configuration_message;
     SensorState *sensors;
     size_t nsensors;
 };

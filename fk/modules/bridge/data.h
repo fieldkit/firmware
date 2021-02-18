@@ -170,7 +170,6 @@ struct ModuleMetaAndReadings {
     ModulePosition position;
     fk_uuid_t *id;
     ModuleMetadata const *meta;
-    EncodedMessage const *configuration_message;
     ModuleSensors const *sensors;
     ModuleReadings const *readings;
     ModuleConfiguration configuration;

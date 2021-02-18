@@ -123,7 +123,7 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, bool logs, fkb_h
         auto nmodules = gs_->modules->nmodules;
         FK_ASSERT(nmodules < 10); // NOTE: Just a sane number. Chasing a crash.
         auto modules = pool_->malloc<fk_app_ModuleCapabilities>(nmodules);
-        for (size_t m = 0; m < nmodules; ++m) {
+        for (auto m = 0u; m < nmodules; ++m) {
             auto &module = gs_->modules->modules[m];
 
             auto sensors_array = pool_->malloc_with<pb_array_t>({
@@ -167,15 +167,20 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, bool logs, fkb_h
                 modules[m].sensors.arg = (void *)sensors_array;
             }
 
-            if (module.configuration_message != nullptr) {
-                loginfo("[%d] config reply (%zd bytes)", index, module.configuration_message->size);
-                auto configuration_message_data = pool_->malloc_with<pb_data_t>({
-                    .length = module.configuration_message->size,
-                    .buffer = module.configuration_message->buffer,
-                });
-                modules[m].configuration.arg = (void *)configuration_message_data;
+            for (auto &module_meta_and_readings : gs_->modules->readings) {
+                if (module_meta_and_readings.position == module.position) {
+                    auto message = module_meta_and_readings.configuration.message;
+                    if (message != nullptr) {
+                        loginfo("[%d] config reply (%zd bytes)", index, message->size);
+                        auto configuration_message_data = pool_->malloc_with<pb_data_t>({
+                            .length = message->size,
+                            .buffer = message->buffer,
+                        });
+                        modules[m].configuration.arg = (void *)configuration_message_data;
 
-                fk_dump_memory("mod-cfg ", module.configuration_message->buffer, module.configuration_message->size);
+                        fk_dump_memory("mod-cfg ", message->buffer, message->size);
+                    }
+                }
             }
         }
 

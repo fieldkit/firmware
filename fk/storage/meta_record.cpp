@@ -187,10 +187,10 @@ void MetaRecord::include_modules(GlobalState const *gs, fkb_header_t const *fkb_
 
         if (readings_iter != readings.end()) {
             auto &mr = *readings_iter;
-            if (mr.configuration_message != nullptr) {
+            if (mr.configuration.message != nullptr) {
                 auto configuration_message_data = pool.malloc_with<pb_data_t>({
-                    .length = mr.configuration_message->size,
-                    .buffer = mr.configuration_message->buffer,
+                    .length = mr.configuration.message->size,
+                    .buffer = mr.configuration.message->buffer,
                 });
                 m.configuration.arg = (void *)configuration_message_data;
             }

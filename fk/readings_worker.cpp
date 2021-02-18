@@ -77,16 +77,16 @@ bool ReadingsWorker::take(Pool &pool) {
             has_readings = true;
         }
 
-        auto configuration_message = data_pool->copy(m.configuration_message);
+        auto configuration = m.configuration;
+        configuration.message = data_pool->copy(m.configuration.message);
 
         modules->readings.emplace(ModuleMetaAndReadings{
             .position = m.position,
             .id = nullptr,
             .meta = m.meta,
-            .configuration_message = configuration_message,
             .sensors = nullptr,
             .readings = m.readings->clone(*data_pool),
-            .configuration = m.configuration,
+            .configuration = configuration,
         });
 
         modules->modules[module_num] = ModuleState{
@@ -98,7 +98,6 @@ bool ReadingsWorker::take(Pool &pool) {
             .display_name_key = m.configuration.display_name_key,
             .id = (fk_uuid_t *)data_pool->copy(m.id, sizeof(fk_uuid_t)),
             .flags = m.meta->flags,
-            .configuration_message = configuration_message,
             .sensors = sensors,
             .nsensors = m.sensors->nsensors,
         };

@@ -78,7 +78,6 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
             .position = pair.found.position,
             .id = (fk_uuid_t *)pool.copy(&pair.found.header.id, sizeof(pair.found.header.id)),
             .meta = meta,
-            .configuration_message = nullptr,
             .sensors = sensor_metas,
             .readings = nullptr,
             .configuration = pair.configuration,
@@ -107,8 +106,8 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
 
         // TODO Cache this? POWER
         auto module_configuration = module->get_configuration(pool);
+        adding.configuration = module_configuration;
         if (module_configuration.message != nullptr) {
-            adding.configuration_message = module_configuration.message;
             loginfo("'%s' config ok (%zu bytes)", meta->name, module_configuration.message->size);
         }
         else {
@@ -148,7 +147,6 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
         group.readings.arg = readings_array;
         group_number++;
 
-        adding.configuration_message = module_configuration.message;
         adding.readings = readings;
         all_readings.emplace(adding);
     }

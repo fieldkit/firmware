@@ -98,7 +98,6 @@ static void fake_global_state(GlobalState &gs, Pool &pool) {
         .position = ModulePosition::from(0),
         .id = nullptr,
         .meta = &fk_test_module_fake_empty,
-        .configuration_message = nullptr,
         .sensors = nullptr,
         .readings = module_readings,
     });
@@ -128,7 +127,6 @@ static void fake_global_state(GlobalState &gs, Pool &pool) {
         .display_name_key = "module",
         .id = (fk_uuid_t *)pool.copy(&module_id, sizeof(fk_uuid_t)),
         .flags = 0,
-        .configuration_message = nullptr,
         .sensors = module_sensors,
         .nsensors = 10,
     });
