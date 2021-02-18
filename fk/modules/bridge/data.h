@@ -139,6 +139,9 @@ struct ModuleReading {
 
     ModuleReading(float one_value) : calibrated(one_value), uncalibrated(0.0) {
     }
+
+    ModuleReading(float uncalibrated, float calibrated) : calibrated(calibrated), uncalibrated(uncalibrated) {
+    }
 };
 
 class ModuleReadings {

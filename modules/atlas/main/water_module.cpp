@@ -7,6 +7,13 @@ namespace fk {
 
 FK_DECLARE_LOGGER("water");
 
+class Curve {
+public:
+    virtual float apply(float uncalibrated) = 0;
+};
+
+static Curve *create_curve(fk_data_ModuleConfiguration *cfg, Pool &pool);
+
 ModuleReturn WaterModule::initialize(ModuleContext mc, Pool &pool) {
     // TODO Not a fan of this, move to ctor?
     FK_ASSERT(pool_ == nullptr);
@@ -184,6 +191,8 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
         return nullptr;
     }
 
+    auto curve = create_curve(cfg_, pool);
+
     auto atlas = OemAtlas{ mc.module_bus(), address_, type_ };
     if (!atlas.wake()) {
         logerror("wake failed (take-readings)");
@@ -237,8 +246,13 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
     }
 
     auto mr = new(pool) NModuleReadings<ATLAS_MAXIMUM_VALUES>(number_of_values);
-    for (size_t i = 0; i < mr->size(); ++i) {
-        mr->set(i, ModuleReading{ values[i] });
+    if (mr->size() == 1) {
+        mr->set(0, ModuleReading{ values[0], curve->apply(values[0]) });
+    }
+    else {
+        for (auto i = 0u; i < mr->size(); ++i) {
+            mr->set(i, ModuleReading{ values[i] });
+        }
     }
 
     return mr;
@@ -268,6 +282,47 @@ optional<float> WaterModule::get_salinity(ReadingsContext mc) {
 
 optional<float> WaterModule::get_pressure(ReadingsContext mc) {
     return nullopt;
+}
+
+class NoopCurve : public Curve {
+public:
+    virtual float apply(float uncalibrated) override {
+        return uncalibrated;
+    }
+};
+
+class LinearCurve : public Curve {
+private:
+    float b_{ 0.0f };
+    float m_{ 1.0f };
+
+public:
+    LinearCurve(fk_data_ModuleConfiguration *cfg) {
+        if (cfg == nullptr) return;
+        if (!cfg->has_calibration) return;
+        if (!cfg->calibration.has_coefficients) return;
+        if (cfg->calibration.coefficients.values.arg == nullptr) return;
+
+        auto values_array = reinterpret_cast<pb_array_t *>(cfg->calibration.coefficients.values.arg);
+        if (values_array->length != 2) return;
+
+        auto values = reinterpret_cast<float*>(values_array->buffer);
+        b_ = values[0];
+        m_ = values[1];
+
+        loginfo("cal: b = %f m = %f", b_, m_);
+    }
+
+public:
+    virtual float apply(float uncalibrated) override {
+        return b_ + (uncalibrated * m_);
+    }
+};
+
+static Curve *create_curve(fk_data_ModuleConfiguration *cfg, Pool &pool) {
+    if (cfg == nullptr) return new (pool) NoopCurve();
+    if (cfg->calibration.type == fk_data_CurveType_CURVE_LINEAR) return new (pool) LinearCurve(cfg);
+    return new (pool) NoopCurve();
 }
 
 } // namespace fk
