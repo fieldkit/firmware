@@ -33,6 +33,10 @@ bool ModuleHandler::handle(HttpServerConnection *connection, Pool &pool) {
         fk_delay(configuration.wake_delay);
     }
 
+    // Grab a read only lock for the global state before we descend
+    // into the module's code. We get a read write lock later, but I'm
+    // hoping to remove that eventually and would rather keep things
+    // read only where I can.
     {
         auto gs = get_global_state_ro();
 
@@ -51,10 +55,21 @@ bool ModuleHandler::handle(HttpServerConnection *connection, Pool &pool) {
         }
     }
 
+    // HACK In order to get the new calibration code up and running
+    // this manually fixes up the module configuration in our global
+    // state in two places. First in the module factory copy of module
+    // state and then in the global state. We're also careful to
+    // create the copy in the correct pool.
     {
         auto gs = get_global_state_rw();
         configuration = (*constructed)->module->get_configuration(factory.pool());
         (*constructed)->configuration = configuration;
+
+        for (auto &module_meta_and_readings : gs.get()->modules->readings) {
+            if (module_meta_and_readings.position == (*constructed)->found.position) {
+                module_meta_and_readings.configuration = configuration;
+            }
+        }
 
         if (configuration.message != nullptr) {
             fk_dump_memory("mod-cfg ", configuration.message->buffer, configuration.message->size);
