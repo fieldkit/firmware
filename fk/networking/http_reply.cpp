@@ -392,7 +392,8 @@ bool HttpReply::include_readings() {
                 readings[s].sensor.unitOfMeasure.arg = (void *)sensor.unit_of_measure;
                 readings[s].sensor.flags = sensor.flags;
                 if (sensor.has_live_vaue) {
-                    readings[s].value = sensor.live_value;
+                    readings[s].value = sensor.live_value.calibrated;
+                    readings[s].uncalibrated = sensor.live_value.uncalibrated;
                 }
             }
 

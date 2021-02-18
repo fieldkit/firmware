@@ -37,7 +37,7 @@ void ReadingsView::tick(ViewController *views, Pool &pool) {
             auto &sensor = module.sensors[s];
             if (index-- == 0) {
                 if (sensor.has_live_vaue) {
-                    ReadingScreen reading{ module.name, sensor.name, sensor.live_value };
+                    ReadingScreen reading{ module.name, sensor.name, sensor.live_value.calibrated };
                     auto bus = get_board()->i2c_core();
                     auto display = get_display();
                     display->reading(reading);
