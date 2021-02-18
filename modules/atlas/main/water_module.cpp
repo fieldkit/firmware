@@ -39,7 +39,7 @@ bool WaterModule::load_configuration(ModuleContext mc, Pool &pool) {
     if (!eeprom.read_configuration(buffer, size, MaximumConfigurationSize)) {
         logwarn("error reading configuration");
     } else if (size > 0) {
-        auto cfg = (fk_data_ModuleConfiguration *)pool_->malloc(sizeof(fk_data_ModuleConfiguration));
+        auto cfg = fk_module_configuration_decoding_new(pool_);
         auto stream = pb_istream_from_buffer(buffer, size);
         if (!pb_decode_delimited(&stream, fk_data_ModuleConfiguration_fields, cfg)) {
             logerror("mod-cfg: error decoding ");

@@ -587,11 +587,11 @@ static inline bool pb_decode_float_array(pb_istream_t *stream, const pb_field_t 
     return true;
 }
 
-fk_data_ModuleConfiguration fk_module_configuration_decoding_new(Pool *pool) {
-    fk_data_ModuleConfiguration record = fk_data_ModuleConfiguration_init_default;
+fk_data_ModuleConfiguration *fk_module_configuration_decoding_new(Pool *pool) {
+    auto record = (fk_data_ModuleConfiguration *)pool->malloc(sizeof(fk_data_ModuleConfiguration));
 
-    record.calibration.coefficients.values.funcs.decode = pb_decode_float_array;
-    record.calibration.coefficients.values.arg = (void *)pool->malloc_with<pb_array_t>({
+    record->calibration.coefficients.values.funcs.decode = pb_decode_float_array;
+    record->calibration.coefficients.values.arg = (void *)pool->malloc_with<pb_array_t>({
         .length = 0,
         .itemSize = sizeof(float),
         .buffer = nullptr,
