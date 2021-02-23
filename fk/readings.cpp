@@ -50,7 +50,7 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
     bzero(groups, sizeof(fk_data_SensorGroup) * modules.size());
 
     // Initialize an empty sensor group at each module position here,
-    // so that if we `contionue` in the loop after they're
+    // so that if we `continue` in the loop after they're
     // initialized. This isn't ideal, continue just sucks.
     auto empty_readings_array = pool.malloc_with<pb_array_t>({
         .length = 0,
@@ -70,9 +70,7 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
         auto module = pair.module;
         auto i = pair.found.position;
 
-        FK_ASSERT(module != nullptr);
-
-        auto sensor_metas = module->get_sensors(pool);
+        auto sensor_metas = module != nullptr ? module->get_sensors(pool) : nullptr;
 
         auto adding = ModuleMetaAndReadings{
             .position = pair.found.position,
@@ -82,6 +80,13 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
             .readings = nullptr,
             .configuration = pair.configuration,
         };
+
+        if (module == nullptr) {
+            logwarn("[%d] ignore unknown module", i.integer());
+            group_number++;
+            all_readings.emplace(adding);
+            continue;
+        }
 
         EnableModulePower module_power{ true, pair.configuration.power, pair.found.position };
         if (!module_power.enable()) {
