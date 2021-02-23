@@ -1,4 +1,5 @@
-#include "registry.h"
+#include "modules/registry.h"
+#include "modules/unknown.h"
 
 namespace fk {
 
@@ -40,7 +41,7 @@ ModuleMetadata const *ModuleRegistry::resolve(ModuleHeader const &header) {
     ModuleNode *iter = nullptr;
 
     if (fk_modules_builtin_get(&iter) != 0) {
-        return nullptr;
+        return &fk_unknown_module;
     }
 
     for ( ; iter != nullptr; iter = iter->link) {
@@ -53,7 +54,7 @@ ModuleMetadata const *ModuleRegistry::resolve(ModuleHeader const &header) {
         }
     }
 
-    return nullptr;
+    return &fk_unknown_module;
 }
 
 static uint32_t fk_modules_builtin_get(ModuleNode **iter) {

@@ -70,7 +70,7 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
         auto module = pair.module;
         auto i = pair.found.position;
 
-        auto sensor_metas = module != nullptr ? module->get_sensors(pool) : nullptr;
+        auto sensor_metas = module->get_sensors(pool);
 
         auto adding = ModuleMetaAndReadings{
             .position = pair.found.position,

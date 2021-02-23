@@ -130,25 +130,14 @@ tl::expected<ConstructedModulesCollection, Error> ModuleFactory::resolve(FoundMo
     ModuleRegistry registry;
     for (auto &f : module_headers) {
         auto meta = registry.resolve(f.header);
-        if (meta == nullptr) {
-            modules.emplace(ConstructedModule{
-                .found = f,
-                .meta = nullptr,
-                .module = nullptr,
-                .status = ModuleStatus::Fatal,
-            });
-
-            logwarn("[%d] no such module (ms::fatal)", f.position.integer());
-        }
-        else {
-            auto module = meta->ctor(pool);
-            modules.emplace(ConstructedModule{
-                .found = f,
-                .meta = meta,
-                .module = module,
-                .status = ModuleStatus::Found,
-            });
-        }
+        FK_ASSERT(meta != nullptr);
+        auto module = meta->ctor(pool);
+        modules.emplace(ConstructedModule{
+            .found = f,
+            .meta = meta,
+            .module = module,
+            .status = ModuleStatus::Found,
+        });
     }
 
     return ConstructedModulesCollection(modules);

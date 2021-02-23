@@ -38,7 +38,7 @@ public:
 };
 
 static Module *fk_test_module_create_empty(Pool &pool) {
-    return new(pool) FakeModuleEmpty();
+    return new (pool) FakeModuleEmpty();
 }
 
 ModuleMetadata const fk_test_module_fake_empty = {
@@ -67,13 +67,13 @@ ModuleReadings *FakeModule1::take_readings(ReadingsContext mc, Pool &pool) {
     if (return_none_) {
         return nullptr;
     }
-    auto mr = new(pool) NModuleReadings<1>();
+    auto mr = new (pool) NModuleReadings<1>();
     mr->set(0, (float)fk_random_i32(20, 100));
     return mr;
 }
 
 static Module *fk_test_module_create_1(Pool &pool) {
-    return new(pool) FakeModule1();
+    return new (pool) FakeModule1();
 }
 
 ModuleMetadata const fk_test_module_fake_1 = {
@@ -126,7 +126,7 @@ public:
     }
 
     ModuleReadings *take_readings(ReadingsContext mc, Pool &pool) override {
-        auto mr = new(pool) NModuleReadings<10>();
+        auto mr = new (pool) NModuleReadings<10>();
         for (size_t i = 0; i < mr->size(); i++) {
             mr->set(i, (float)fk_random_i32(20, 100));
         }
@@ -135,7 +135,7 @@ public:
 };
 
 static Module *fk_test_module_create_2(Pool &pool) {
-    return new(pool) FakeModule2();
+    return new (pool) FakeModule2();
 }
 
 ModuleMetadata const fk_test_module_fake_2 = {

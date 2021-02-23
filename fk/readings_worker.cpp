@@ -71,7 +71,7 @@ bool ReadingsWorker::take(Pool &pool) {
     auto has_readings = false;
 
     for (auto &m : all_readings) {
-        auto sensors = data_pool->malloc<SensorState>(m.sensors->nsensors);
+        FK_ASSERT(m.meta != nullptr);
 
         if (m.meta->flags != FK_MODULES_FLAG_INTERNAL) {
             has_readings = true;
@@ -85,9 +85,23 @@ bool ReadingsWorker::take(Pool &pool) {
             .id = nullptr,
             .meta = m.meta,
             .sensors = nullptr,
-            .readings = m.readings->clone(*data_pool),
+            .readings = m.readings != nullptr ? m.readings->clone(*data_pool) : nullptr,
             .configuration = configuration,
         });
+
+        auto sensors = m.sensors->nsensors > 0 ? data_pool->malloc<SensorState>(m.sensors->nsensors) : nullptr;
+
+        if (sensors != nullptr) {
+            for (auto i = 0u; i < m.sensors->nsensors; ++i) {
+                sensors[i].name = m.sensors->sensors[i].name;
+                sensors[i].unit_of_measure = m.sensors->sensors[i].unitOfMeasure;
+                sensors[i].flags = m.sensors->sensors[i].flags;
+                sensors[i].has_live_vaue = true;
+                if (m.readings != nullptr) {
+                    sensors[i].live_value = m.readings->get(i);
+                }
+            }
+        }
 
         modules->modules[module_num] = ModuleState{
             .position = m.position,
@@ -101,14 +115,6 @@ bool ReadingsWorker::take(Pool &pool) {
             .sensors = sensors,
             .nsensors = m.sensors->nsensors,
         };
-
-        for (auto i = 0u; i < m.sensors->nsensors; ++i) {
-            sensors[i].name = m.sensors->sensors[i].name;
-            sensors[i].unit_of_measure = m.sensors->sensors[i].unitOfMeasure;
-            sensors[i].flags = m.sensors->sensors[i].flags;
-            sensors[i].has_live_vaue = true;
-            sensors[i].live_value = m.readings->get(i);
-        }
 
         module_num++;
     }
