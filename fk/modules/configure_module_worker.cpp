@@ -8,6 +8,7 @@
 #include "modules/scanning.h"
 #include "modules/configure.h"
 #include "modules/module_factory.h"
+#include "modules/enable_module_power.h"
 
 namespace fk {
 
@@ -36,6 +37,11 @@ bool ConfigureModuleWorker::configure(Pool &pool) {
     auto module_bus = get_board()->i2c_module();
     auto gs = get_global_state_rw();
     auto mm = get_modmux();
+
+    EnableModulePower module_power{ true, ModulePower::Always, bay_ };
+    if (!module_power.enable()) {
+        return false;
+    }
 
     ScanningContext ctx{ get_modmux(), gs.get()->location(pool), module_bus, pool };
     ModuleScanning scanning{ get_modmux() };
