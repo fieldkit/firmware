@@ -322,11 +322,11 @@ void MenuView::create_module_menu() {
     (void)module_program;
     (void)module_erase;
 
-    module_menu_ = new_menu_screen<4 - 2>(pool_, "module", {
+    module_menu_ = new_menu_screen<4>(pool_, "module", {
         module_back,
         module_home,
-        // module_program,
-        // module_erase,
+        module_program,
+        module_erase,
     });
 }
 
