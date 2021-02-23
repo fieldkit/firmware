@@ -2,6 +2,7 @@
 #include "self_check.h"
 #include "clock.h"
 #include "temperature.h"
+#include "modules/scanning.h"
 #include "hal/metal/metal.h"
 
 namespace fk {
@@ -20,8 +21,8 @@ bool single_check(const char *name, T fn) {
     return ok;
 }
 
-template<typename T>
-bool single_noncritical_check(const char *name, T fn) {
+template<typename V, typename T>
+V single_noncritical_check(const char *name, T fn) {
     auto started = fk_uptime();
     auto ok = fn();
     check_message(name, ok, fk_uptime() - started, false);
@@ -90,6 +91,10 @@ void SelfCheck::check(SelfCheckSettings settings, SelfCheckCallbacks &callbacks,
 
         status.bp_leds = to_status(backplane_leds());
         callbacks.update(status);
+
+        if (settings.module_presence) {
+            status.modules = modules(pool);
+        }
     }
     else {
         status.bp_mux = CheckStatus::Unknown;
@@ -245,7 +250,7 @@ bool SelfCheck::wifi(Pool *pool) {
 }
 
 bool SelfCheck::sd_card_open() {
-    return single_noncritical_check("sd card open", []() {
+    return single_noncritical_check<bool>("sd card open", []() {
         auto sd_card = get_sd_card();
 
         if (!sd_card->begin()) {
@@ -257,7 +262,7 @@ bool SelfCheck::sd_card_open() {
 }
 
 bool SelfCheck::sd_card_write() {
-    return single_noncritical_check("sd card write", []() {
+    return single_noncritical_check<bool>("sd card write", []() {
         StandardPool pool{ "sdw" };
 
         auto sd_card = get_sd_card();
@@ -325,7 +330,7 @@ bool SelfCheck::backplane_leds() {
 }
 
 bool SelfCheck::lora() {
-    return single_noncritical_check("lora", [=]() {
+    return single_noncritical_check<bool>("lora", [=]() {
         auto lora = get_lora_network();
 
         if (!lora->begin()) {
@@ -333,6 +338,28 @@ bool SelfCheck::lora() {
         }
 
         return true;
+    });
+}
+
+ModuleCheckStatus SelfCheck::modules(Pool *pool) {
+    return single_noncritical_check<ModuleCheckStatus>("lora", [=]() {
+        auto mm = get_modmux();
+        ModuleScanning scanning(mm);
+        mm->enable_all_modules();
+        auto scan = scanning.scan(*pool);
+        mm->disable_all_modules();
+
+        if (!scan) {
+            return ModuleCheckStatus{ 0 };
+        }
+
+        auto value = 0u;
+        for (auto &m : (*scan)) {
+            auto position = m.position.integer();
+            value |= (0x1 << position);
+        }
+
+        return ModuleCheckStatus{ value };
     });
 }
 

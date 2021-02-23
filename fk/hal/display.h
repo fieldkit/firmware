@@ -193,7 +193,8 @@ struct QrCodeScreen : public DisplayScreen {
 
 struct Check {
     const char *name;
-    bool pass;
+    uint32_t value;
+    bool flags;
 };
 
 struct SelfCheckScreen : public DisplayScreen {

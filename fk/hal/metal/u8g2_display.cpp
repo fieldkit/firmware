@@ -353,7 +353,18 @@ void U8g2Display::qr(QrCodeScreen const &screen) {
         }
     }
     draw_.sendBuffer();
-    // draw_.setDrawColor(0);
+}
+
+static const char *to_flags(char *str, uint32_t value, uint8_t length) {
+    for (auto i = 0u; i < length; ++i) {
+        if ((value & (0x1 << i)) > 0) {
+            str[i] = 'X';
+        } else {
+            str[i] = 'O';
+        }
+    }
+    str[length] = 0;
+    return str;
 }
 
 void U8g2Display::self_check(SelfCheckScreen const &screen) {
@@ -362,25 +373,32 @@ void U8g2Display::self_check(SelfCheckScreen const &screen) {
     draw_.setFontMode(1);
     draw_.setFont(u8g2_font_courR08_tf);
 
+    char flags_str[6];
     auto x = 0;
     auto y = 12;
-    for (size_t i = 0; screen.checks[i] != nullptr; ++i) {
+    for (auto i = 0u; screen.checks[i] != nullptr; ++i) {
         auto c = screen.checks[i];
-        auto width = draw_.getUTF8Width(c->name);
+
+        auto label = c->name;
+        if (c->flags) {
+            label = to_flags(flags_str, c->value, sizeof(flags_str) - 1);
+        }
+
+        auto width = draw_.getUTF8Width(label);
         if (x + width > OLED_WIDTH) {
             y += 16;
             x = 0;
         }
 
-        if (c->pass) {
+        if (c->value) {
             draw_.setDrawColor(1);
-            draw_.drawUTF8(x, y, c->name);
+            draw_.drawUTF8(x, y, label);
         }
         else {
             draw_.setDrawColor(1);
             draw_.drawBox(x - 2, y - 10, width + 4, 14);
             draw_.setDrawColor(0);
-            draw_.drawUTF8(x, y, c->name);
+            draw_.drawUTF8(x, y, label);
         }
 
         x += width + 10;

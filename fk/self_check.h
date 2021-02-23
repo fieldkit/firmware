@@ -11,6 +11,7 @@ struct SelfCheckSettings {
     bool check_backplane{ false };
     bool check_lora{ false };
     bool flash_leds{ false };
+    bool module_presence{ true };
 
     SelfCheckSettings() {
     }
@@ -34,6 +35,24 @@ enum class CheckStatus : uint8_t {
     Fail,
 };
 
+class ModuleCheckStatus {
+private:
+    uint32_t value_{ 0 };
+
+public:
+    ModuleCheckStatus(uint32_t value) : value_(value) {
+    }
+
+public:
+    uint16_t value() const {
+        return value_;
+    }
+
+    operator bool() const {
+        return value_ > 0;
+    }
+};
+
 struct SelfCheckStatus {
     CheckStatus rtc{ CheckStatus::Pending };
     CheckStatus temperature{ CheckStatus::Pending };
@@ -49,6 +68,7 @@ struct SelfCheckStatus {
     CheckStatus bp_shift{ CheckStatus::Pending };
     CheckStatus bp_leds{ CheckStatus::Pending };
     CheckStatus lora{ CheckStatus::Pending };
+    ModuleCheckStatus modules{ 0 };
 };
 
 class SelfCheckCallbacks {
@@ -90,6 +110,7 @@ private:
     bool backplane_mux();
     bool backplane_leds();
     bool lora();
+    ModuleCheckStatus modules(Pool *pool);
     void flash_leds();
 
 };

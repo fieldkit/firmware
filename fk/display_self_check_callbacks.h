@@ -7,7 +7,7 @@ namespace fk {
 
 class DisplaySelfCheckCallbacks : public SelfCheckCallbacks {
 public:
-    constexpr static size_t NumberOfChecks = 14;
+    constexpr static size_t NumberOfChecks = 16;
 
 private:
     SelfCheckScreen screen_;
@@ -21,6 +21,7 @@ public:
 public:
     void update(SelfCheckStatus status) override;
     void append(const char *name, CheckStatus status);
+    void append(const char *name, ModuleCheckStatus status);
     void clear();
 
 public:
