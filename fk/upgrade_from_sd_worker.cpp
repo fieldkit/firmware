@@ -234,7 +234,7 @@ bool UpgradeFirmwareFromSdWorker::save_firmware(const char *path, uint32_t addre
     auto eeprom_address = address;
 
     GlobalStateProgressCallbacks gs_progress;
-    auto tracker = ProgressTracker{ &gs_progress, Operation::Download, "SD", "", (uint32_t)bytes };
+    auto tracker = ProgressTracker{ &gs_progress, Operation::Download, "sd", "", (uint32_t)bytes };
 
     auto buffer = (uint8_t *)pool.malloc(CodeMemoryPageSize);
 
@@ -304,7 +304,7 @@ bool UpgradeFirmwareFromSdWorker::load_firmware(const char *path, uint32_t addre
     b2b.reset(Hash::Length);
 
     GlobalStateProgressCallbacks gs_progress;
-    auto tracker = ProgressTracker{ &gs_progress, Operation::Download, "SD", "", (uint32_t)file_size };
+    auto tracker = ProgressTracker{ &gs_progress, Operation::Download, "sd", "", (uint32_t)file_size };
 
     for (auto eeprom_address = address; eeprom_address < address + file_size; ) {
         loginfo("[0x%06" PRIx32 "] erasing", eeprom_address);
@@ -335,6 +335,8 @@ bool UpgradeFirmwareFromSdWorker::load_firmware(const char *path, uint32_t addre
             b2b.update(buffer, nread);
         }
     }
+
+    loginfo("hash calculated");
 
     tracker.finished();
 
