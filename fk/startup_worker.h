@@ -25,7 +25,7 @@ public:
     }
 
 private:
-    bool save_startup_diagnostics();
+    bool save_captured_logs(bool free);
     bool load_or_create_state(Pool &pool);
     bool load_state(Storage &storage, GlobalState *gs, Pool &pool);
     bool create_new_state(Storage &storage, GlobalState *gs, Pool &pool);

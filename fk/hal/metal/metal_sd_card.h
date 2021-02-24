@@ -18,6 +18,7 @@ private:
     char log_file_name_[128] = { 0 };
     char name_[12] = { 0 };
     bool log_initialized_{ false };
+    uint32_t log_writes_{ 0 };
 
 public:
     MetalSdCard();

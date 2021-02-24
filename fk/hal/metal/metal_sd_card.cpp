@@ -166,11 +166,13 @@ bool MetalSdCard::append_logs(circular_buffer<char> &buffer, circular_buffer<cha
         file.flush();
         file.close();
 
-        loginfo("flushed %d to %s (%" PRIu32 "ms) (%" PRIu32 " bytes)", size, log_file_name_, fk_uptime() - started, file.fileSize());
+        loginfo("flushed %d to %s (%" PRIu32 "ms) (%" PRIu32 " bytes) (%" PRIu32 ")", size, log_file_name_, fk_uptime() - started, file.fileSize(), log_writes_);
     }
     else {
         loginfo("ignored (%" PRIu32 "ms)", fk_uptime() - started);
     }
+
+    log_writes_++;
 
     return true;
 }
@@ -193,7 +195,7 @@ bool MetalSdCard::append_logs(uint8_t const *buffer, size_t size) {
         file.flush();
         file.close();
 
-        loginfo("flushed %d to %s (%" PRIu32 "ms) (%" PRIu32 " bytes)", size, log_file_name_, fk_uptime() - started, file.fileSize());
+        loginfo("flushed %d to %s (%" PRIu32 "ms) (%" PRIu32 " bytes) (buffer)", size, log_file_name_, fk_uptime() - started, file.fileSize());
     }
     else {
         loginfo("ignored (%" PRIu32 "ms)", fk_uptime() - started);

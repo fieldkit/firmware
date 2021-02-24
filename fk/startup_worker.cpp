@@ -15,6 +15,7 @@
 #include "status_logging.h"
 #include "utilities.h"
 #include "battery_status.h"
+#include "clock.h"
 
 #include "readings_worker.h"
 #include "upgrade_from_sd_worker.h"
@@ -64,6 +65,13 @@ void StartupWorker::run(Pool &pool) {
         return;
     }
 
+    // Pretty safe to do this early on as this thing is also clocking
+    // the CPU we're running on. :)
+    auto clock = get_clock();
+    if (!clock->begin()) {
+        logerror("rtc error");
+    }
+
     display->company_logo();
 
     loginfo("ready hardware");
@@ -79,8 +87,9 @@ void StartupWorker::run(Pool &pool) {
     auto lock = mm->lock();
 
     // Save startup diagnostics before self-check, just incase there
-    // was something wrong last time.
-    save_startup_diagnostics();
+    // was something wrong last time. We don't free them here, we free
+    // them further on as these are for dire circumstances.
+    save_captured_logs(false);
 
     // Run self-check.
     NoopSelfCheckCallbacks noop_callbacks;
@@ -99,6 +108,10 @@ void StartupWorker::run(Pool &pool) {
     loginfo("loading/creating state");
 
     FK_ASSERT(load_or_create_state(pool));
+
+    // Now write saved logs and free them. These will end up in the
+    // named folder.
+    save_captured_logs(true);
 
     BatteryStatus battery;
     battery.refresh();
@@ -169,14 +182,14 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
     auto name = reinterpret_cast<const char *>(record.identity.name.arg);
     strncpy(gs->general.name, name, sizeof(gs->general.name));
 
-    get_sd_card()->name(gs->general.name);
-
     auto generation = reinterpret_cast<pb_data_t *>(record.metadata.generation.arg);
     FK_ASSERT(generation->length == GenerationLength);
     memcpy(gs->general.generation, generation->buffer, GenerationLength);
 
     char gen_string[GenerationLength * 2 + 1];
     bytes_to_hex_string(gen_string, sizeof(gen_string), gs->general.generation, GenerationLength);
+
+    get_sd_card()->name(gs->general.name);
 
     loginfo("(loaded) name: '%s'", gs->general.name);
     loginfo("(loaded) generation: %s", gen_string);
@@ -406,9 +419,13 @@ bool StartupWorker::check_for_lora(Pool &pool) {
     return true;
 }
 
-bool StartupWorker::save_startup_diagnostics() {
-    loginfo("saving startup diagnostics (%s) (bank = %d)", fk_get_reset_reason_string(), fk_nvm_get_active_bank());
-    fk_logs_write_saved_and_free();
+bool StartupWorker::save_captured_logs(bool free) {
+    loginfo("saving captured logs (%s) (bank = %d)", fk_get_reset_reason_string(), fk_nvm_get_active_bank());
+    fk_logs_saved_write(!free);
+    if (free) {
+        fk_logs_saved_free();
+    }
+    loginfo("done saving captured logs");
     return true;
 }
 

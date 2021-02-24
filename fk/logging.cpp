@@ -32,29 +32,10 @@ typedef struct saved_logs_t {
 
 static saved_logs_t saved_logs = { .pages = { nullptr, nullptr, nullptr, nullptr } };
 
-void fk_logs_save() {
-    auto source = logs.buffer();
-    for (auto i = 0u; i < StandardPagesForLogs; ++i) {
-        saved_logs.pages[i] = (uint8_t *)fk_standard_page_malloc(StandardPageSize, "saved-logs");
-        memcpy(saved_logs.pages[i], source, StandardPageSize);
-        source += StandardPageSize;
-
-        /**
-         * We'll be called very early and so the odds of us being
-         * given non-consecutive pages is zero. It's also not
-         * important but I figured I'd keep this in here just in case
-         * I ever forget that fact.
-         */
-        FK_ASSERT(i == 0 || saved_logs.pages[i] == saved_logs.pages[i - 1] + StandardPageSize);
-    }
-}
-
 static void write_logs_buffer(char c, void *arg) {
     auto app = reinterpret_cast<log_buffer::appender *>(arg);
 
-    // This causes some weird issues. Need a way to do this w/o
-    // clearing the buffer.
-    if (logs.size(sd_card_iterator) >= StandardPageSize) {
+    if (logs.size(sd_card_iterator) >= InMemoryLogBufferSize - 1024) {
         fk_logs_flush();
     }
 
@@ -79,44 +60,80 @@ void fk_logs_vprintf(const char *f, va_list args) {
     app.append((char)0);
 }
 
-void fk_logs_write_saved_and_free() {
-    auto begin_header = "\n\n=================== raw log memory begin: remember buffer is circular!\n\n";
-    auto end_footer = "\n\n=================== raw log memory end: remember buffer is circular!\n\n";
+void fk_logs_saved_capture() {
+    auto source = logs.buffer();
+    for (auto i = 0u; i < StandardPagesForLogs; ++i) {
+        saved_logs.pages[i] = (uint8_t *)fk_standard_page_malloc(StandardPageSize, "saved-logs");
+        memcpy(saved_logs.pages[i], source, StandardPageSize);
+        source += StandardPageSize;
 
-    SEGGER_RTT_LOCK();
-
-    fk_logs_printf(begin_header);
+        /**
+         * We'll be called very early and so the odds of us being
+         * given non-consecutive pages is zero. It's also not
+         * important but I figured I'd keep this in here just in case
+         * I ever forget that fact.
+         */
+        FK_ASSERT(i == 0 || saved_logs.pages[i] == saved_logs.pages[i - 1] + StandardPageSize);
+    }
 
     for (auto i = 0u; i < StandardPagesForLogs; ++i) {
         auto page = saved_logs.pages[i];
-        for (auto p = page; p < page + StandardPageSize; ) {
-            if (*p == 0) {
-                *p = '\n';
-            } else if (!isprint(*p)) {
-                if (*p == '\n') {
-                    *p = ' ';
-                } else {
-                    *p = '?';
+        if (page != nullptr) {
+            for (auto p = page; p < page + StandardPageSize; ) {
+                if (*p == 0) {
+                    *p = '\n';
+                } else if (!isprint(*p)) {
+                    if (*p == '\n') {
+                        *p = ' ';
+                    } else {
+                        *p = '?';
+                    }
                 }
+                p++;
             }
-            p++;
+        }
+    }
+}
+
+void fk_logs_saved_write(bool echo) {
+    auto begin_header = "\n\n=================== raw log memory begin: remember buffer is circular!\n\n";
+    auto end_footer = "\n\n=================== raw log memory end: remember buffer is circular!\n\n";
+
+    if (echo) {
+        SEGGER_RTT_LOCK();
+
+        fk_logs_printf(begin_header);
+
+        for (auto i = 0u; i < StandardPagesForLogs; ++i) {
+            auto page = saved_logs.pages[i];
+            if (page != nullptr) {
+                SEGGER_RTT_Write(0, page, StandardPageSize);
+            }
         }
 
-        SEGGER_RTT_Write(0, page, StandardPageSize);
-    }
-    fk_logs_printf(end_footer);
+        fk_logs_printf(end_footer);
 
-    SEGGER_RTT_UNLOCK();
+        SEGGER_RTT_UNLOCK();
+    }
 
     get_sd_card()->append_logs((uint8_t *)begin_header, strlen(begin_header));
 
     for (auto i = 0u; i < StandardPagesForLogs; ++i) {
-        auto page = saved_logs.pages[i];
-        get_sd_card()->append_logs(page, StandardPageSize);
-        fk_standard_page_free(page);
+        if (saved_logs.pages[i] != nullptr) {
+            get_sd_card()->append_logs(saved_logs.pages[i], StandardPageSize);
+        }
     }
 
     get_sd_card()->append_logs((uint8_t *)end_footer, strlen(end_footer));
+}
+
+void fk_logs_saved_free() {
+    for (auto i = 0u; i < StandardPagesForLogs; ++i) {
+        if (saved_logs.pages[i] != nullptr) {
+            fk_standard_page_free(saved_logs.pages[i]);
+            saved_logs.pages[i] = nullptr;
+        }
+    }
 }
 
 size_t write_log(LogMessage const *m, const char *fstring, va_list args) {
@@ -181,7 +198,7 @@ void task_logging_hook(os_task_t *task, os_task_status previous_status) {
 }
 
 bool fk_logging_initialize() {
-    fk_logs_save();
+    fk_logs_saved_capture();
 
     fk_logs_clear();
 
@@ -240,7 +257,10 @@ bool fk_logs_flush() {
     return true;
 }
 
-void fk_logs_write_saved_and_free() {
+void fk_logs_saved_write(bool echo) {
+}
+
+void fk_logs_saved_free() {
 }
 
 #endif
