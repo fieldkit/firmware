@@ -58,9 +58,18 @@ constexpr size_t length(char const (&)[N]) {
     return N - 1;
 }
 
+template <typename T>
+constexpr T const &constexpr_max(T const &a, T const &b) {
+    return a > b ? a : b;
+}
+
 constexpr const char *TimeFormatReadable = "%d/%d/%d %02d:%02d:%02d";
+constexpr size_t MaximumLengthOfReadableTimeString = length("0000/00/00 00:00:00");
 constexpr const char *TimeFormatMachine = "%04d%02d%02d_%02d%02d%02d";
-constexpr size_t MaximumLengthOfTimeString = length("0000/00/00 00:00:00");
+constexpr size_t MaximumLengthOfMachineTimeString = length("00000000_000000");
+constexpr const char *TimeFormatLogs = "%04d%02d%02d_%02d%02d";
+constexpr size_t MaximumLengthOfLogsTimeString = length("00000000_0000");
+constexpr size_t MaximumLengthOfTimeString = constexpr_max(constexpr_max(MaximumLengthOfReadableTimeString, MaximumLengthOfMachineTimeString), MaximumLengthOfLogsTimeString);
 
 class FormattedTime {
 public:

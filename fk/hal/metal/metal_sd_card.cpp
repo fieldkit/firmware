@@ -109,7 +109,7 @@ bool MetalSdCard::initialize_logs() {
             log_initialized_ = false;
         }
         if (!log_initialized_) {
-            FormattedTime formatted{ log_time_, TimeFormatMachine };
+            FormattedTime formatted{ log_time_, TimeFormatLogs };
 
             tiny_snprintf(log_file_name_, sizeof(log_file_name_), "/%s", name_);
             if (!sd_.exists(log_file_name_)) {
@@ -119,16 +119,8 @@ bool MetalSdCard::initialize_logs() {
                 }
             }
 
-            tiny_snprintf(log_file_name_, sizeof(log_file_name_), "/%s/%s", name_, formatted.cstr());
-            if (!sd_.exists(log_file_name_)) {
-                if (!sd_.mkdir(log_file_name_)) {
-                    logerror("error making directory '%s'", log_file_name_);
-                    return false;
-                }
-            }
-
-            for (auto counter = 0; counter < 1000; ++counter) {
-                tiny_snprintf(log_file_name_, sizeof(log_file_name_), "/%s/%s/fkl_%03d.txt", name_, formatted.cstr(), counter);
+            for (auto counter = 0u; counter < 100u; ++counter) {
+                tiny_snprintf(log_file_name_, sizeof(log_file_name_), "/%s/%s_%02d.txt", name_, formatted.cstr(), counter);
                 if (!sd_.exists(log_file_name_)) {
                     loginfo("picked file name %s", log_file_name_);
                     log_initialized_ = true;
