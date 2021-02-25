@@ -16,6 +16,31 @@ bool MetalQspiMemory::begin() {
         return false;
     }
 
+    alogf(LogLevels::INFO, "qspi", "qspi jedec id: 0x%" PRIx32, flash_.getJEDECID());
+    alogf(LogLevels::INFO, "qspi", "qspi size: 0x%" PRIx32 " pages: %" PRIu32 " page-size: %" PRIu32, flash_.size(), (uint32_t)flash_.numPages(), (uint32_t)flash_.pageSize());
+
+    if (false) {
+        StandardPool pool{ "qspi" };
+        auto buffer = (uint8_t *)pool.malloc(2048);
+
+        alogf(LogLevels::INFO, "qspi", "reading");
+        auto nread = flash_.readBuffer(0, buffer, 256);
+        fk_dump_memory("qspi ", buffer, nread);
+        alogf(LogLevels::INFO, "qspi", "read: 0x%" PRIx32, nread);
+
+        for (auto i = 0u; i < 256; ++i) {
+            buffer[i] = i;
+        }
+
+        alogf(LogLevels::INFO, "qspi", "writing");
+        auto nwrote = flash_.writeBuffer(0, buffer, 256);
+        alogf(LogLevels::INFO, "qspi", "wrote: 0x%" PRIx32, nwrote);
+
+        while (true) {
+            fk_delay(1000);
+        }
+    }
+
     return true;
 }
 
