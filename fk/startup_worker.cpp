@@ -41,12 +41,6 @@ void StartupWorker::run(Pool &pool) {
     loginfo("ready display");
     auto display = get_display();
 
-    loginfo("check for interactive startup");
-    if (check_for_interactive_startup(pool)) {
-        FK_ASSERT(os_task_start(&display_task) == OSS_SUCCESS);
-        return;
-    }
-
     loginfo("check for self test startup");
     if (check_for_self_test_startup(pool)) {
         fk_debug_mode_configure("Self Test");
@@ -62,6 +56,12 @@ void StartupWorker::run(Pool &pool) {
     loginfo("check for upgrading startup");
     if (check_for_upgrading_startup(pool)) {
         fk_debug_mode_configure("Upgrading");
+        return;
+    }
+
+    loginfo("check for interactive startup");
+    if (check_for_interactive_startup(pool)) {
+        FK_ASSERT(os_task_start(&display_task) == OSS_SUCCESS);
         return;
     }
 
