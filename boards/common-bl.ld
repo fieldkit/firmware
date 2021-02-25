@@ -36,10 +36,12 @@ SECTIONS
   } > BOOTLOADER
 
   __exidx_start = .;
+
   .ARM.exidx ALIGN(0x4) :
   {
     *(.ARM.exidx* .gnu.linkonce.armexidx.*)
   } > BOOTLOADER
+
   __exidx_end = .;
 
   __etext_global = .;

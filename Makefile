@@ -143,6 +143,12 @@ info:
 debug-tests: amd64
 	gdb build/amd64/tests/hosted/testall
 
+module-test:
+	cd build/samd51/modules/dynamic/main && $(MAKE) clean > /dev/null
+	cd build/samd51/modules/dynamic/main && $(MAKE)
+	readelf --sections build/samd51/modules/dynamic/main/fkdynamic-fkb.elf
+	arm-none-eabi-objdump -dr build/samd51/modules/dynamic/main/fkdynamic-fkb.elf
+
 clean:
 	rm -rf $(BUILD)
 

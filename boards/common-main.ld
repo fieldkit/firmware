@@ -17,9 +17,9 @@ SECTIONS
     __text_start__ = .;
 
     /**
-     * IRQs     Align
-     * 0-16     32-word
-     * 17-48	  64-word
+     * IRQs      Align
+     * 0-16      32-word
+     * 17-48     64-word
      * 49-112   128-word
      * 113-240	256-word
      */

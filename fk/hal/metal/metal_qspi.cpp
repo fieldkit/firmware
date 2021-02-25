@@ -12,7 +12,7 @@ bool MetalQspiMemory::begin() {
     pinMode(QSPI_FLASH_CS, OUTPUT);
     digitalWrite(QSPI_FLASH_CS, LOW);
 
-    if (!flash_.begin()){
+    if (!flash_.begin()) {
         return false;
     }
 

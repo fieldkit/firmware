@@ -66,6 +66,31 @@ endfunction()
 function(enable_samd09_firmware target)
 endfunction()
 
+function(enable_fk_module)
+  set(ARDUINO_PROJECT_FLAGS "-fpic -fno-inline -msingle-pic-base -mno-pic-data-is-text-relative")
+endfunction()
+
+function(add_fk_module target_name)
+  get_target_property(target_board ${target_name} target_board)
+
+  configure_arduino_core_target(${target_board})
+
+  set_target_properties(${target_name} PROPERTIES
+    target_custom_ldflags "-nostartfiles -nodefaultlibs -nostdlib -Wl,--unresolved-symbols=ignore-in-object-files -shared"
+  )
+
+  find_package(CortexLoading)
+  target_link_libraries(${target_name} CortexLoading)
+
+  # find_package(ConservifyOS)
+  # target_link_libraries(${target_name} ConservifyOS)
+
+  configure_firmware_linker_script(${target_name} ${CMAKE_SOURCE_DIR}/boards/samd51/module.ld)
+
+  configure_firmware_link(${target_name} "")
+endfunction()
+
+
 if (NOT DEFINED ARDUINO_IDE)
   foreach(path $ENV{HOME}/arduino-1.8.3 $ENV{HOME}/conservify/arduino-1.8.3
                $ENV{HOME}/workspace/arduino-1.8.3
