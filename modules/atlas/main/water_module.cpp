@@ -124,7 +124,7 @@ ModuleSensors const *WaterModule::get_sensors(Pool &pool) {
     }
     case AtlasSensorType::Do: {
         auto meta = pool.malloc_with<SensorMetadata>({
-            .name = "do",
+            .name = "dox",
             .unitOfMeasure = "mg/L",
             .flags = 0,
         });
@@ -169,7 +169,7 @@ const char *WaterModule::get_display_name_key() {
     switch (type_) {
     case AtlasSensorType::Ec: return "modules.water.ec";
     case AtlasSensorType::Ph: return "modules.water.ph";
-    case AtlasSensorType::Do: return "modules.water.do";
+    case AtlasSensorType::Do: return "modules.water.dox";
     case AtlasSensorType::Temp: return "modules.water.temp";
     case AtlasSensorType::Orp: return "modules.water.orp";
     default: return "modules.water.unknown";
