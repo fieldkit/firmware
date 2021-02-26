@@ -35,6 +35,8 @@ SECTIONS
   {
     __got_start__ = .;
     *(.got*)
+    *(.got.plt*)
+    *(.plt.got*)
     . = ALIGN(4);
     __got_end__ = .;
   } > MODULE
@@ -53,5 +55,11 @@ SECTIONS
     *(.bss*)
     . = ALIGN(4);
     __bss_end__ = .;
+  } > MODULE
+
+  .fkdyn :
+  {
+    *(.fkdyn*)
+    . = ALIGN(4);
   } > MODULE
 }

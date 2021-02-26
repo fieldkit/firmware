@@ -67,7 +67,8 @@ function(enable_samd09_firmware target)
 endfunction()
 
 function(enable_fk_module)
-  set(ARDUINO_PROJECT_FLAGS "-fpic -fno-inline -msingle-pic-base -mno-pic-data-is-text-relative")
+  # TODO Why isn't -fno-plt implemented?!
+  set(ARDUINO_PROJECT_FLAGS "-fPIC -fno-inline -mpic-register=r9 -msingle-pic-base -mno-pic-data-is-text-relative" PARENT_SCOPE)
 endfunction()
 
 function(add_fk_module target_name)
