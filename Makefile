@@ -146,9 +146,7 @@ debug-tests: amd64
 module-test:
 	cd build/samd51/modules/dynamic/main && $(MAKE) clean > /dev/null
 	cd build/samd51/modules/dynamic/main && $(MAKE)
-	true || readelf --sections --relocs build/samd51/modules/dynamic/main/fkdynamic.elf
 	readelf --sections --relocs build/samd51/modules/dynamic/main/fkdynamic-fkb.elf
-	true || arm-none-eabi-objdump -dr build/samd51/modules/dynamic/main/fkdynamic.elf
 	arm-none-eabi-objdump -dr build/samd51/modules/dynamic/main/fkdynamic-fkb.elf
 	ls -alh build/samd51/modules/dynamic/main/*.bin
 

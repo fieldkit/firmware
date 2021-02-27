@@ -49,4 +49,4 @@ const struct fkb_header_t fkb_header = {
 };
 
 __attribute__((section(".fkdyn")))
-const uint8_t data[0x400] = { 0 };
+const uint8_t data[0x1000] = { 0 };

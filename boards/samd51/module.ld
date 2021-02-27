@@ -57,6 +57,24 @@ SECTIONS
     __bss_end__ = .;
   } > MODULE
 
+  .hash :
+  {
+    *(.hash*)
+    . = ALIGN(4);
+  } > MODULE
+
+  .dynsym :
+  {
+    *(.dynsym*)
+    . = ALIGN(4);
+  } > MODULE
+
+  .dynstr :
+  {
+    *(.dynstr*)
+    . = ALIGN(4);
+  } > MODULE
+
   .fkdyn :
   {
     *(.fkdyn*)
