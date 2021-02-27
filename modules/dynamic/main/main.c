@@ -20,13 +20,18 @@ extern size_t (*fkos_logf)(uint8_t level, const char *facility, const char *f, .
 
 uint32_t counter = 0;
 
+int32_t work() {
+    fkos_logf(0, "dynamic", "hello, world");
+    return counter;
+}
+
 int32_t fkmodule() {
     while (1) {
         os_delay(1000);
         counter++;
     }
 
-    return 0;
+    return work();
 }
 
 __attribute__((section(".fkb.header")))
