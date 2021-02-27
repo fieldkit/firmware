@@ -16,5 +16,3 @@ file(GLOB module_sources *.c *.cpp)
 add_arduino_library(fkdynamic "${common_sources};${module_sources}")
 target_compile_options(fkdynamic PRIVATE -Wall -Werror)
 add_fk_module(fkdynamic)
-
-enable_fkb_firmware(fkdynamic)

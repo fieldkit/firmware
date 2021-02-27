@@ -63,6 +63,41 @@ function(enable_fkb_firmware target)
     "${CMAKE_CURRENT_BINARY_DIR}/${target}.map")
 endfunction()
 
+function(enable_fkb_module target)
+  get_target_property(binary_dir ${target} BINARY_DIR)
+
+  set(elf_target ${target}.elf)
+  set(bin_target ${target}.bin)
+  set(fkb_elf_target ${target}-fkb.elf)
+  set(fkb_bin_target ${target}-fkb.bin)
+
+  set(elf_file ${binary_dir}/${target}.elf)
+  set(bin_file ${binary_dir}/${target}.bin)
+  set(fkb_elf_file ${binary_dir}/${target}-fkb.elf)
+  set(fkb_bin_file ${binary_dir}/${target}-fkb.bin)
+
+  add_custom_command(
+    OUTPUT ${fkb_elf_file}
+    DEPENDS ${elf_file}
+    COMMAND ${loading_PATH}/tools/mkfirmware.py --elf ${elf_file} --fkb ${fkb_elf_file} --bin ${fkb_bin_file} --dynamic
+    WORKING_DIRECTORY ${binary_dir}
+    )
+
+  add_custom_target(${fkb_elf_target} ALL DEPENDS ${fkb_elf_file})
+  add_dependencies(${fkb_elf_target} ${elf_target})
+
+  set_target_properties(${fkb_elf_target} PROPERTIES OUTPUT_NAME ${fkb_elf_file})
+
+  set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/${target}.syms"
+    "${CMAKE_CURRENT_BINARY_DIR}/${target}.s"
+    "${CMAKE_CURRENT_BINARY_DIR}/${target}.elf"
+    "${CMAKE_CURRENT_BINARY_DIR}/${target}.bin"
+    "${CMAKE_CURRENT_BINARY_DIR}/${target}.fkb"
+    "${CMAKE_CURRENT_BINARY_DIR}/${target}-fkb.bin"
+    "${CMAKE_CURRENT_BINARY_DIR}/${target}.map")
+endfunction()
+
 function(enable_samd09_firmware target)
 endfunction()
 
@@ -89,6 +124,8 @@ function(add_fk_module target_name)
   configure_firmware_linker_script(${target_name} ${CMAKE_SOURCE_DIR}/boards/samd51/module.ld)
 
   configure_firmware_link(${target_name} "")
+
+  enable_fkb_module(${target_name})
 endfunction()
 
 
