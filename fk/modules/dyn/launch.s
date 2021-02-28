@@ -30,8 +30,9 @@ fk_dyn_run:
 
 	/* Push GOT value onto stack, the application can then use
 	 * this to check for corruption. */
-	push    {r9}
-	bx      r1
+	push    {r9, lr}
+	blx     r1
+	pop     {r9, pc}
 
 	.fnend
 	.size   fk_dyn_run, .-fk_dyn_run
