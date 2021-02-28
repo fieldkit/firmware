@@ -7,10 +7,27 @@ namespace fk {
 
 FK_DECLARE_LOGGER("modules");
 
-static ModuleFactory module_factory;
+template<typename T>
+class lazy_allocation {
+private:
+    uint8_t buffer_[sizeof(T)]{ };
+    T *ptr_{ nullptr };
+
+public:
+    T *get() {
+        if (ptr_ == nullptr) {
+            ptr_ = new (buffer_) T();
+        }
+        return ptr_;
+    }
+
+};
+
+
+static lazy_allocation<ModuleFactory> module_factory;
 
 ModuleFactory &get_module_factory() {
-    return module_factory;
+    return *module_factory.get();
 }
 
 ModuleFactory::ModuleFactory() {

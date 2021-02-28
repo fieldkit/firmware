@@ -199,12 +199,12 @@ TEST_F(PoolSuite, AllocatingSiblings) {
 
     fk_standard_page_log();
     // One page taken up by module factory ctor, still need to fix that.
-    ASSERT_EQ(fk_standard_page_meminfo().used, 1u);
+    ASSERT_EQ(fk_standard_page_meminfo().used, 0u);
 
     StandardPool pool{ "test-siblings" };
     ASSERT_EQ(pool.size(), 8192u);
 
-    ASSERT_EQ(fk_standard_page_meminfo().used, 2u);
+    ASSERT_EQ(fk_standard_page_meminfo().used, 1u);
 
     for (auto i = 0u; i < 20; ++i) {
         pool.malloc(2048);
@@ -216,7 +216,7 @@ TEST_F(PoolSuite, AllocatingSiblings) {
     }
 
     ASSERT_EQ(pool.size(), 8192u);
-    ASSERT_EQ(fk_standard_page_meminfo().used, 2u);
+    ASSERT_EQ(fk_standard_page_meminfo().used, 1u);
 
     for (auto i = 0u; i < 20; ++i) {
         StandardPool pool{ "test" };
@@ -227,7 +227,7 @@ TEST_F(PoolSuite, AllocatingSiblings) {
         pool.malloc(2048);
     }
 
-    ASSERT_EQ(fk_standard_page_meminfo().used, 2u);
+    ASSERT_EQ(fk_standard_page_meminfo().used, 1u);
 
     fk_standard_page_log();
 }
