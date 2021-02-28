@@ -1,9 +1,9 @@
 #include "hal/hal.h"
 #include "hal/metal/metal.h"
 
-#if defined(__SAMD51__)
+#include "modules/dyn/dyn.h"
 
-// #include "modules/dyn/compiled.h"
+#if defined(__SAMD51__)
 
 namespace fk {
 
@@ -23,25 +23,27 @@ bool MetalQspiMemory::begin() {
     loginfo("qspi jedec id: 0x%" PRIx32, flash_.getJEDECID());
     loginfo("qspi size: 0x%" PRIx32 " pages: %" PRIu32 " page-size: %" PRIu32, flash_.size(), (uint32_t)flash_.numPages(), (uint32_t)flash_.pageSize());
 
-    flash_.readBuffer(0, nullptr, 0);
-
     #if 0
-    if (false) {
-        if (false) {
-            flash_.eraseBlock(0);
+    if (true) {
+        loginfo("erasing");
 
-            auto ptr = (uint8_t *)build_samd51_modules_dynamic_main_fkdynamic_fkb_bin;
-            auto copied = 0u;
-            while (copied < build_samd51_modules_dynamic_main_fkdynamic_fkb_bin_len) {
-                if (flash_.writeBuffer(copied, ptr, 256)) {
-                    ptr += 256;
-                    copied += 256;
-                }
-                else {
-                    FK_ASSERT(0);
-                }
+        flash_.eraseBlock(0);
+
+        loginfo("copying");
+
+        auto ptr = (uint8_t *)build_samd51_modules_dynamic_main_fkdynamic_fkb_bin;
+        auto copied = 0u;
+        while (copied < build_samd51_modules_dynamic_main_fkdynamic_fkb_bin_len) {
+            if (flash_.writeBuffer(copied, ptr, 256)) {
+                ptr += 256;
+                copied += 256;
+            }
+            else {
+                FK_ASSERT(0);
             }
         }
+
+        loginfo("done");
 
         while (true) {
             fk_delay(1000);
@@ -49,7 +51,20 @@ bool MetalQspiMemory::begin() {
     }
     #endif
 
+    // Teach the peripheral how to do reads so we can execute in place.
+    flash_.readBuffer(0, nullptr, 0);
+
     return true;
+}
+
+int32_t MetalQspiMemory::execute(uint32_t *got, uint32_t *entry) {
+    // Teach the peripheral how to do reads so we can execute in place.
+    flash_.readBuffer(0, nullptr, 0);
+
+    // Dive into the code.
+    fk_dyn_run(got, entry);
+
+    return 0;
 }
 
 FlashGeometry MetalQspiMemory::geometry() const {

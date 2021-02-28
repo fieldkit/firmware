@@ -31,6 +31,11 @@ void LinuxDataMemory::erase_all() {
     memset(memory_, 0xff, size_);
 }
 
+int32_t LinuxDataMemory::execute(uint32_t *got, uint32_t *entry) {
+    FK_ASSERT(false);
+    return 0;
+}
+
 FlashGeometry LinuxDataMemory::geometry() const {
     return { PageSize, BlockSize, NumberOfBlocks, NumberOfBlocks * BlockSize };
 }

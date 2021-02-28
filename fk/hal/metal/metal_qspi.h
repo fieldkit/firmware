@@ -9,7 +9,7 @@
 
 namespace fk {
 
-class MetalQspiMemory : public DataMemory {
+class MetalQspiMemory : public ExecutableMemory {
 private:
     Adafruit_FlashTransport_QSPI transport_;
     Adafruit_SPIFlash flash_;
@@ -29,6 +29,10 @@ public:
     int32_t erase_block(uint32_t address) override;
 
     int32_t flush() override;
+
+public:
+    int32_t execute(uint32_t *got, uint32_t *entry) override;
+
 };
 
 }

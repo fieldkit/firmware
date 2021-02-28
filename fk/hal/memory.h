@@ -114,6 +114,11 @@ public:
 
 };
 
+class ExecutableMemory : public DataMemory {
+public:
+    virtual int32_t execute(uint32_t *got, uint32_t *entry) = 0;
+};
+
 class EmptyMemory : public DataMemory {
 public:
     bool begin() override {
@@ -175,7 +180,7 @@ public:
 public:
     static DataMemory **get_data_memory_banks();
     static DataMemory *get_data_memory();
-    static DataMemory *get_qspi_memory();
+    static ExecutableMemory *get_qspi_memory();
 };
 
 }

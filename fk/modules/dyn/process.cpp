@@ -12,8 +12,6 @@
 
 extern "C" {
 
-void fk_dyn_run(void *got, void *entry);
-
 static size_t fkos_logf(uint32_t level, const char *facility, const char *f, ...) {
     va_list args;
     va_start(args, f);
@@ -35,11 +33,6 @@ static syscall_entry_t externals[] = {
 };
 
 static constexpr size_t externals_size = sizeof(externals) / sizeof(syscall_entry_t);
-
-#else
-
-extern "C" void fk_dyn_run(void *got, void *entry) {
-}
 
 #endif
 
@@ -112,7 +105,11 @@ void Process::run(Pool &pool) {
 
     loginfo("ready");
 
-    auto header = (fkb_header_t *)0x04000000; // bhuild_samd51_modules_dynamic_main_fkdynamic_fkb_bin;
+    #if 0
+    auto header = (fkb_header_t *)0x04000000;
+    #else
+    auto header = (fkb_header_t *)build_samd51_modules_dynamic_main_fkdynamic_fkb_bin;
+    #endif
 
     log_fkb_header(header);
 
@@ -129,7 +126,7 @@ void Process::run(Pool &pool) {
 
     loginfo("calling module");
 
-    fk_dyn_run(got, entry);
+    memory->execute((uint32_t *)got, (uint32_t *)entry);
 
     loginfo("module finished");
 

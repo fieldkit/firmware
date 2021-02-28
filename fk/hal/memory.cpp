@@ -153,7 +153,7 @@ DataMemory *MemoryFactory::get_data_memory() {
     #endif
 }
 
-DataMemory *MemoryFactory::get_qspi_memory() {
+ExecutableMemory *MemoryFactory::get_qspi_memory() {
     return &qspi_memory;
 }
 

@@ -9,7 +9,7 @@
 
 namespace fk {
 
-class LinuxDataMemory : public DataMemory {
+class LinuxDataMemory : public ExecutableMemory {
 private:
     /* These mimic a single bank of memory. */
     constexpr static uint32_t PageSize = 2048;
@@ -42,6 +42,8 @@ public:
     int32_t flush() override;
 
     void erase_all();
+
+    int32_t execute(uint32_t *got, uint32_t *entry) override;
 
 public:
     uint8_t *memory() {
