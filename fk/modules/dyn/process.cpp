@@ -50,21 +50,19 @@ static fkb_symbol_t *get_first_symbol(fkb_header_t *header);
 
 static uint32_t allocate_process_got(fkb_header_t *header, uint8_t *got, uint8_t *data) {
     auto base = (uint8_t *)header;
-    auto syms = get_first_symbol(header);
 
-    fkb_external_println("bl: [0x%08x] number-syms=%d number-rels=%d got=0x%x", base,
-                         header->number_symbols, header->number_relocations,
-                         header->firmware.got_offset);
-    fkb_external_println("bl: [0x%08x] first-sym=0x%x", base, syms);
+    loginfo("[0x%8p] number-syms=%" PRIu32 " number-rels=%" PRIu32 "got=0x%" PRIx32, base,
+            header->number_symbols, header->number_relocations,
+            header->firmware.got_offset);
 
-    auto s = syms;
+    auto sym = get_first_symbol(header);
     for (auto i = 0u; i < header->number_symbols; ++i) {
-        auto ptr = (uint32_t *)((uint8_t *)got + s->address);
+        auto ptr = (uint32_t *)((uint8_t *)got + sym->address);
         auto linked = false;
 
         #if defined(__SAMD51__)
         for (auto i = 0u; i < externals_size; ++i) {
-            if (strncmp((const char *)s->name, externals[i].name, sizeof(s->name)) == 0) {
+            if (strncmp((const char *)sym->name, externals[i].name, sizeof(sym->name)) == 0) {
                 // Notice this address taking and remember that the
                 // GOT has pointers to function pointers!
                 *ptr = (uint32_t)&externals[i].fn;
@@ -75,14 +73,14 @@ static uint32_t allocate_process_got(fkb_header_t *header, uint8_t *got, uint8_t
 
         if (!linked) {
             *ptr = (uint32_t)(void *)data;
-            data += s->size;
+            data += sym->size;
         }
         #endif
 
-        fkb_external_println("bl: [0x%08x] %s #%6d addr=0x%8x size=0x%4x '%s' (0x%x = 0x%x)",
-                             base, linked ? "linked" : "alloc", i, s->address, s->size, s->name, ptr, *ptr);
+        loginfo("[0x%8p] %s addr=0x%8" PRIx32 " size=0x%4" PRIx32 " '%s' (0x%8p = 0x%" PRIx32 ")",
+                base, linked ? "linked" : "alloc", sym->address, sym->size, sym->name, ptr, *ptr);
 
-        s++;
+        sym++;
     }
 
     return 0;
