@@ -6,6 +6,8 @@
 #include "utilities.h"
 #include "syscalls_app.h"
 
+#include "hal/memory.h"
+
 #if defined(__SAMD51__)
 
 extern "C" {
@@ -86,7 +88,6 @@ static uint32_t allocate_process_got(fkb_header_t *header, uint8_t *got, uint8_t
     return 0;
 }
 
-
 static void log_fkb_header(fkb_header_t *fkbh) {
     loginfo("[0x%8p] found '%s' / #%" PRIu32 " '%s' flags=0x%" PRIx32 " size=%" PRIu32 " dyntables=+%" PRIu32 " data=%" PRIu32 " bss=%" PRIu32 " got=%" PRIu32 " vtor=0x%" PRIx32, fkbh,
             fkbh->firmware.name, fkbh->firmware.number, fkbh->firmware.version,
@@ -101,7 +102,17 @@ static void log_fkb_header(fkb_header_t *fkbh) {
 }
 
 void Process::run(Pool &pool) {
-    auto header = (fkb_header_t *)build_samd51_modules_dynamic_main_fkdynamic_fkb_bin;
+    auto memory = MemoryFactory::get_qspi_memory();
+
+    loginfo("begin");
+
+    if (!memory->begin()) {
+        return;
+    }
+
+    loginfo("ready");
+
+    auto header = (fkb_header_t *)0x04000000; // bhuild_samd51_modules_dynamic_main_fkdynamic_fkb_bin;
 
     log_fkb_header(header);
 

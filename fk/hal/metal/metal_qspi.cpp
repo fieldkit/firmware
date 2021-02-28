@@ -3,7 +3,11 @@
 
 #if defined(__SAMD51__)
 
+// #include "modules/dyn/compiled.h"
+
 namespace fk {
+
+FK_DECLARE_LOGGER("qspi");
 
 MetalQspiMemory::MetalQspiMemory() : transport_{ PIN_QSPI_SCK, QSPI_FLASH_CS, PIN_QSPI_IO0, PIN_QSPI_IO1, PIN_QSPI_IO2, PIN_QSPI_IO3 }, flash_{ &transport_ } {
 }
@@ -16,30 +20,34 @@ bool MetalQspiMemory::begin() {
         return false;
     }
 
-    alogf(LogLevels::INFO, "qspi", "qspi jedec id: 0x%" PRIx32, flash_.getJEDECID());
-    alogf(LogLevels::INFO, "qspi", "qspi size: 0x%" PRIx32 " pages: %" PRIu32 " page-size: %" PRIu32, flash_.size(), (uint32_t)flash_.numPages(), (uint32_t)flash_.pageSize());
+    loginfo("qspi jedec id: 0x%" PRIx32, flash_.getJEDECID());
+    loginfo("qspi size: 0x%" PRIx32 " pages: %" PRIu32 " page-size: %" PRIu32, flash_.size(), (uint32_t)flash_.numPages(), (uint32_t)flash_.pageSize());
 
+    flash_.readBuffer(0, nullptr, 0);
+
+    #if 0
     if (false) {
-        StandardPool pool{ "qspi" };
-        auto buffer = (uint8_t *)pool.malloc(2048);
+        if (false) {
+            flash_.eraseBlock(0);
 
-        alogf(LogLevels::INFO, "qspi", "reading");
-        auto nread = flash_.readBuffer(0, buffer, 256);
-        fk_dump_memory("qspi ", buffer, nread);
-        alogf(LogLevels::INFO, "qspi", "read: 0x%" PRIx32, nread);
-
-        for (auto i = 0u; i < 256; ++i) {
-            buffer[i] = i;
+            auto ptr = (uint8_t *)build_samd51_modules_dynamic_main_fkdynamic_fkb_bin;
+            auto copied = 0u;
+            while (copied < build_samd51_modules_dynamic_main_fkdynamic_fkb_bin_len) {
+                if (flash_.writeBuffer(copied, ptr, 256)) {
+                    ptr += 256;
+                    copied += 256;
+                }
+                else {
+                    FK_ASSERT(0);
+                }
+            }
         }
-
-        alogf(LogLevels::INFO, "qspi", "writing");
-        auto nwrote = flash_.writeBuffer(0, buffer, 256);
-        alogf(LogLevels::INFO, "qspi", "wrote: 0x%" PRIx32, nwrote);
 
         while (true) {
             fk_delay(1000);
         }
     }
+    #endif
 
     return true;
 }
