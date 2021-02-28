@@ -27,12 +27,12 @@ typedef struct syscall_entry_t {
     void *fn;
 } syscall_entry_t;
 
-static constexpr size_t externals_size = 2;
-
-static syscall_entry_t externals[externals_size] = {
+static syscall_entry_t externals[] = {
     { "fkos_delay",  (void *)os_delay },
     { "fkos_logf", (void *)fkos_logf },
 };
+
+static constexpr size_t externals_size = sizeof(externals) / sizeof(syscall_entry_t);
 
 #else
 
