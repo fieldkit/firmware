@@ -20,7 +20,7 @@ public:
     Ina219(TwoWireWrapper &bus, uint8_t address);
 
 public:
-    bool begin();
+    bool begin(bool trigger);
     MeterReading read() ;
 
 };

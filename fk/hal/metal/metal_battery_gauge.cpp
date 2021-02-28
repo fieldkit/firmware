@@ -30,7 +30,7 @@ bool MetalBatteryGauge::begin() {
     auto bus = get_board()->i2c_module();
 
     Ina219 battery_monitor{ bus, INA219_ADDRESS_BATTERY };
-    if (!battery_monitor.begin()) {
+    if (!battery_monitor.begin(false)) {
         loginfo("battery: ina219 missing");
     }
     else {
@@ -39,7 +39,7 @@ bool MetalBatteryGauge::begin() {
     }
 
     Ina219 solar_monitor{ bus, INA219_ADDRESS_SOLAR };
-    if (!solar_monitor.begin()) {
+    if (!solar_monitor.begin(false)) {
         loginfo("solar: ina219 missing");
     }
     else {
@@ -63,12 +63,22 @@ PowerReading MetalBatteryGauge::get() {
 
     if (battery_ == Availability::Available) {
         Ina219 battery_monitor{ bus, INA219_ADDRESS_BATTERY };
-        reading.battery = battery_monitor.read();
+        if (battery_monitor.begin(true)) {
+            reading.battery = battery_monitor.read();
+        }
+        if (!battery_monitor.begin(false)) {
+            logwarn("error powering down ina219");
+        }
     }
 
     if (solar_ == Availability::Available) {
         Ina219 solar_monitor{ bus, INA219_ADDRESS_SOLAR };
-        reading.solar = solar_monitor.read();
+        if (solar_monitor.begin(true)) {
+            reading.solar = solar_monitor.read();
+        }
+        if (!solar_monitor.begin(false)) {
+            logwarn("error powering down ina219");
+        }
     }
 
     return reading;

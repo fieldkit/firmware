@@ -95,22 +95,23 @@ static bool ina219_read(TwoWireWrapper &bus, uint8_t address, uint8_t reg, uint1
 Ina219::Ina219(TwoWireWrapper &bus, uint8_t address) : bus_(&bus), address_(address) {
 }
 
-bool Ina219::begin() {
+bool Ina219::begin(bool trigger) {
     // 16V 400ma
     calibration_value_ = 8192;
     ma_divider_ = 20.0f;
     power_multiplier_ = 1.0f;
-    config_ = INA219_CONFIG_BVOLTAGERANGE_16V | INA219_CONFIG_GAIN_1_40MV | INA219_CONFIG_BADCRES_12BIT | INA219_CONFIG_SADCRES_12BIT_1S_532US | INA219_CONFIG_MODE_SANDBVOLT_CONTINUOUS;
+    config_ = INA219_CONFIG_BVOLTAGERANGE_16V | INA219_CONFIG_GAIN_1_40MV | INA219_CONFIG_BADCRES_12BIT | INA219_CONFIG_SADCRES_12BIT_1S_532US | (trigger ? INA219_CONFIG_MODE_SANDBVOLT_TRIGGERED : INA219_CONFIG_MODE_POWERDOWN);
 
     // 32V 1A
     calibration_value_ = 10240;
     ma_divider_ = 25.0f;
     power_multiplier_ = 0.8f;
-    config_ = INA219_CONFIG_BVOLTAGERANGE_32V | INA219_CONFIG_GAIN_8_320MV | INA219_CONFIG_BADCRES_12BIT | INA219_CONFIG_SADCRES_12BIT_1S_532US | INA219_CONFIG_MODE_SANDBVOLT_CONTINUOUS;
+    config_ = INA219_CONFIG_BVOLTAGERANGE_32V | INA219_CONFIG_GAIN_8_320MV | INA219_CONFIG_BADCRES_12BIT | INA219_CONFIG_SADCRES_12BIT_1S_532US | (trigger ? INA219_CONFIG_MODE_SANDBVOLT_TRIGGERED : INA219_CONFIG_MODE_POWERDOWN);
 
     if (!ina219_write(*bus_, address_, INA219_REGISTER_CALIBRATION, calibration_value_)) {
         return false;
     }
+
     if (!ina219_write(*bus_, address_, INA219_REGISTER_CONFIG, config_)) {
         return false;
     }
