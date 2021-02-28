@@ -168,7 +168,9 @@ size_t DebugUDP::append(uint8_t const *buffer, size_t size) {
 }
 
 size_t DebugUDP::debug(char const *prefix, uint8_t const *buffer, size_t size) {
+    #if defined(FK_DNS_DEBUG_LOGGING)
     fk_logs_dump_memory("%s[%s]: ", buffer, size, prefix, name_);
+    #endif
     return size;
 }
 
