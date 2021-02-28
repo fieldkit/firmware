@@ -103,7 +103,9 @@ endfunction()
 
 function(enable_fk_module)
   # TODO Why isn't -fno-plt implemented?!
-  set(ARDUINO_PROJECT_FLAGS "-fPIC -fno-inline -mpic-register=r9 -msingle-pic-base -mno-pic-data-is-text-relative" PARENT_SCOPE)
+  # Right now we're using -mpic-data-is-text-relative so that we don't
+  # need to deal with GOT relocations into the data section.
+  set(ARDUINO_PROJECT_FLAGS "-fPIC -fno-inline -mpic-register=r9 -msingle-pic-base -mpic-data-is-text-relative" PARENT_SCOPE)
 endfunction()
 
 function(add_fk_module target_name)
