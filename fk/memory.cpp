@@ -6,46 +6,49 @@ namespace fk {
 
 FK_DECLARE_LOGGER("memory");
 
-constexpr size_t SizeOfStandardPagePool = 18;
+constexpr size_t SizeOfStandardPagePool = 17;
 
 struct StandardPages {
     void *base{ nullptr };
-    uint8_t available;
-    const char *owner;
+    uint32_t available{ 0 };
+    const char *owner{ nullptr };
     uint32_t allocated{ 0 };
 };
 
 static StandardPages pages[SizeOfStandardPagePool];
-static bool initialized = false;
+static size_t pages_allocated = 0u;
 static size_t highwater = 0u;
 
 void fk_standard_page_initialize() {
     FK_DISABLE_IRQ();
 
-    if (!initialized) {
-        auto memory = reinterpret_cast<uint8_t*>(fk_malloc(StandardPageSize * SizeOfStandardPagePool));
+    if (pages_allocated == 0) {
+        auto number_pages = SizeOfStandardPagePool;
+        auto memory = reinterpret_cast<uint8_t*>(fk_malloc(StandardPageSize * number_pages));
 
-        for (auto i = 0u; i < SizeOfStandardPagePool; ++i) {
+        FK_ASSERT(number_pages <= SizeOfStandardPagePool);
+        FK_ASSERT(number_pages > 0);
+
+        for (auto i = 0u; i < number_pages; ++i) {
             pages[i].base = memory;
             pages[i].available = true;
             pages[i].owner = nullptr;
             pages[i].allocated = 0;
-
             memory += StandardPageSize;
         }
-    }
 
-    initialized = true;
+        pages_allocated = number_pages;
+    }
 
     FK_ENABLE_IRQ();
 
-    loginfo("allocated %zd bytes", StandardPageSize * SizeOfStandardPagePool);
+    loginfo("allocated %zd pages (%zd bytes)", pages_allocated, pages_allocated * StandardPageSize);
 }
 
 void *fk_standard_page_malloc(size_t size, const char *name) {
     FK_ASSERT(size == StandardPageSize);
 
-    if (!initialized) {
+    if (pages_allocated == 0) {
         fk_standard_page_initialize();
     }
 
@@ -78,7 +81,7 @@ void *fk_standard_page_malloc(size_t size, const char *name) {
         logerror("oom!");
 
         for (auto i = 0u; i < SizeOfStandardPagePool; ++i) {
-            if (!pages[i].available) {
+            if (!pages[i].available && pages[i].base != nullptr) {
                 logerror("[%2d] owner = %s allocated=%" PRIu32,
                          i, pages[i].owner, pages[i].allocated);
             }
@@ -95,7 +98,7 @@ void fk_standard_page_free(void *ptr) {
     FK_DISABLE_IRQ();
 
     for (auto i = 0u; i < SizeOfStandardPagePool; ++i) {
-        if (pages[i].base == ptr) {
+        if (pages[i].base == ptr && pages[i].base != nullptr) {
             selected = i;
             break;
         }
@@ -127,11 +130,12 @@ StandardPageMemInfo fk_standard_page_meminfo() {
     for (auto i = 0u; i < SizeOfStandardPagePool; ++i) {
         if (pages[i].available) {
             info.free++;
+            info.total++;
         }
-        else {
+        else if (pages[i].base != nullptr) {
             info.used++;
+            info.total++;
         }
-        info.total++;
     }
 
     return info;
@@ -139,7 +143,7 @@ StandardPageMemInfo fk_standard_page_meminfo() {
 
 void fk_standard_page_log() {
     for (auto i = 0u; i < SizeOfStandardPagePool; ++i) {
-        if (!pages[i].available) {
+        if (!pages[i].available && pages[i].base != nullptr) {
             logdebug("[%2d] owner = %s allocated=%" PRIu32, i, pages[i].owner, pages[i].allocated);
         }
     }
