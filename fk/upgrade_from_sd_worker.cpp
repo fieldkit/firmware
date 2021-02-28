@@ -29,7 +29,7 @@ fkb_header_t *fkb_try_header(void *ptr) {
 UpgradeFirmwareFromSdWorker::UpgradeFirmwareFromSdWorker(SdCardFirmware &params) : params_(params) {
 }
 
-static void log_fkb_header(fkb_header_t *fkbh) {
+static void log_fkb_header(fkb_header_t const *fkbh) {
     loginfo("[0x%8p] found '%s' / #%" PRIu32 " '%s' flags=0x%" PRIx32 " size=%" PRIu32 " dyntables=+%" PRIu32 " data=%" PRIu32 " bss=%" PRIu32 " got=%" PRIu32 " vtor=0x%" PRIx32, fkbh,
             fkbh->firmware.name, fkbh->firmware.number, fkbh->firmware.version,
             fkbh->firmware.flags, fkbh->firmware.binary_size, fkbh->firmware.tables_offset,
@@ -42,7 +42,7 @@ static void log_fkb_header(fkb_header_t *fkbh) {
     loginfo("[0x%8p] hash='%s' timestamp=%" PRIu32, fkbh, hex_hash, fkbh->firmware.timestamp);
 }
 
-static bool same_header(fkb_header_t *a, fkb_header_t *b) {
+static bool same_header(fkb_header_t const *a, fkb_header_t const *b) {
     if (a == nullptr || b == nullptr) return false;
     if (a->firmware.hash_size != b->firmware.hash_size) return false;
     return memcmp(a->firmware.hash, b->firmware.hash, b->firmware.hash_size) == 0;

@@ -34,8 +34,6 @@ static syscall_entry_t externals[] = {
 
 static constexpr size_t externals_size = sizeof(externals) / sizeof(syscall_entry_t);
 
-#endif
-
 namespace fk {
 
 FK_DECLARE_LOGGER("proc");
@@ -81,7 +79,7 @@ static uint32_t allocate_process_got(fkb_header_t *header, uint32_t *got, uint32
     return 0;
 }
 
-static void log_fkb_header(fkb_header_t *fkbh) {
+static void log_fkb_header(fkb_header_t const *fkbh) {
     loginfo("[0x%8p] found '%s' / #%" PRIu32 " '%s' flags=0x%" PRIx32 " size=%" PRIu32 " dyntables=+%" PRIu32 " data=%" PRIu32 " bss=%" PRIu32 " got=%" PRIu32 " vtor=0x%" PRIx32, fkbh,
             fkbh->firmware.name, fkbh->firmware.number, fkbh->firmware.version,
             fkbh->firmware.flags, fkbh->firmware.binary_size, fkbh->firmware.tables_offset,
@@ -145,3 +143,5 @@ static fkb_symbol_t *get_first_symbol(fkb_header_t *header) {
 }
 
 } // namespace fk
+
+#endif
