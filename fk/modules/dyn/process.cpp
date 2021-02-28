@@ -43,7 +43,7 @@ FK_DECLARE_LOGGER("proc");
 static fkb_symbol_t *get_symbol_by_index(fkb_header_t *header, uint32_t symbol);
 static fkb_symbol_t *get_first_symbol(fkb_header_t *header);
 
-static uint32_t allocate_process_got(fkb_header_t *header, uint8_t *got, uint8_t *data) {
+static uint32_t allocate_process_got(fkb_header_t *header, uint32_t *got, uint32_t *data) {
     auto base = (uint8_t *)header;
 
     loginfo("[0x%8p] number-syms=%" PRIu32 " number-rels=%" PRIu32 "got=0x%" PRIx32, base,
@@ -68,7 +68,7 @@ static uint32_t allocate_process_got(fkb_header_t *header, uint8_t *got, uint8_t
 
         if (!linked) {
             *ptr = (uint32_t)(void *)data;
-            data += sym->size;
+            data += (sym->size / 4);
         }
         #endif
 
@@ -105,7 +105,7 @@ void Process::run(Pool &pool) {
 
     loginfo("ready");
 
-    #if 0
+    #if 1
     auto header = (fkb_header_t *)0x04000000;
     #else
     auto header = (fkb_header_t *)build_samd51_modules_dynamic_main_fkdynamic_fkb_bin;
@@ -113,8 +113,8 @@ void Process::run(Pool &pool) {
 
     log_fkb_header(header);
 
-    auto got = (uint8_t *)pool.malloc(header->firmware.got_size);
-    auto data = (uint8_t *)pool.malloc(header->firmware.data_size);
+    auto got = (uint32_t *)pool.malloc(header->firmware.got_size);
+    auto data = (uint32_t *)pool.malloc(header->firmware.data_size);
 
     if (allocate_process_got(header, got, data)) {
         logerror("error allocating got");
@@ -122,11 +122,11 @@ void Process::run(Pool &pool) {
     }
 
     // Notice the +1 here is intentional, per the ARM standard.
-    auto entry = ((uint8_t *)header) + header->firmware.vtor_offset + 1;
+    auto entry = (uint32_t *)(((uint8_t *)header) + header->firmware.vtor_offset + 1);
 
     loginfo("calling module");
 
-    memory->execute((uint32_t *)got, (uint32_t *)entry);
+    memory->execute(got, entry);
 
     loginfo("module finished");
 
