@@ -53,7 +53,7 @@ static void log_task_eta() {
         logerror("no next task, huge bug!");
     }
     else {
-        loginfo("next task: %" PRIu32 "s", scheduled.seconds);
+        logdebug("next task: %" PRIu32 "s", scheduled.seconds);
     }
 
     auto gs = get_global_state_rw();

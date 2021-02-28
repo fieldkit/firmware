@@ -43,11 +43,13 @@ static void log_status() {
     ip4_address ip{ gs.get()->network.state.ip };
     auto spmi = fk_standard_page_meminfo();
     auto memory_oddity = mi.arena != mi.uordblks;
+    auto percentage = (float)spmi.used / spmi.total * 100.0f;
 
     FormattedTime formatted{ now };
-    loginfo("%s '%s' (%d.%d.%d.%d) memory(%" PRIu32 " / %zd%s) pages(%zd / %zd / %zd)",
+    loginfo("%s '%s' (%d.%d.%d.%d) memory(%" PRIu32 " / %zd%s) pages(%zd / %zd / %zd, %.2f%% used)",
             formatted.cstr(), name, ip.u.bytes[0], ip.u.bytes[1], ip.u.bytes[2], ip.u.bytes[3],
-            fk_free_memory(), (size_t)mi.arena, (memory_oddity ? " ERR" : ""), spmi.total - spmi.free, spmi.highwater, spmi.total);
+            fk_free_memory(), (size_t)mi.arena, (memory_oddity ? " ERR" : ""),
+            spmi.total - spmi.free, spmi.highwater, spmi.total, percentage);
 }
 
 void fk_status_log() {
@@ -55,7 +57,7 @@ void fk_status_log() {
 }
 
 bool fk_log_diagnostics() {
-#if defined(__SAMD51__)
+    #if defined(__SAMD51__)
     uint8_t stack_dummy = 0;
     auto in_stack = (uint8_t *)&__cm_ram_end__ - &stack_dummy;
     auto available = (unsigned long)fk_free_memory();
@@ -81,7 +83,8 @@ bool fk_log_diagnostics() {
 
     loginfo("sizeof(RecordHeader + RecordTail) = %zd + %zd", sizeof(RecordHeader), sizeof(RecordTail));
     loginfo("sizeof(GlobalState) = %zd", sizeof(GlobalState));
-#endif
+    #endif
+
     return true;
 }
 
