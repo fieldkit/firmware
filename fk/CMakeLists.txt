@@ -73,7 +73,7 @@ enable_language(ASM)
 
 enable_m4_board(fieldkit_core)
 
-file(GLOB_RECURSE sources *.cpp *.c *.h)
+file(GLOB_RECURSE sources *.cpp *.c *.h *.s)
 
 add_arduino_library(fk-bundled "${sources}")
 

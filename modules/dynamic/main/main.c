@@ -14,21 +14,21 @@
  * https://answers.launchpad.net/gcc-arm-embedded/+question/669758
  *
  */
-extern uint32_t (*os_delay)(uint32_t ms);
+extern uint32_t (*fkos_delay)(uint32_t ms) __attribute__((unused));
 
-extern size_t (*fkos_logf)(uint8_t level, const char *facility, const char *f, ...) __attribute__((unused)) __attribute__((format(printf, 3, 4)));
+extern size_t (*fkos_logf)(uint32_t level, const char *facility, const char *f, ...) __attribute__((unused)) __attribute__((format(printf, 3, 4)));
 
 uint32_t counter = 0;
 
-int32_t work() {
-    fkos_logf(0, "dynamic", "hello, world");
+static int32_t work() {
+    fkos_logf(3, "dynamic", "hello, world");
     return counter;
 }
 
 int32_t fkmodule() {
-    while (1) {
-        os_delay(1000);
-        counter++;
+    for (counter = 0; counter < 5; ++counter) {
+        fkos_delay(1000);
+        fkos_logf(3, "dynamic", "tick");
     }
 
     return work();
@@ -53,5 +53,11 @@ const struct fkb_header_t fkb_header = {
     .number_relocations = 0
 };
 
+/**
+ * This section is pre-allocated and will contain our symbol and
+ * relocation table. Would love to see this get done automatically,
+ * just kept running into issues with resizing the ELF file. May just
+ * drop this and append to the raw binary.
+ */
 __attribute__((section(".fkdyn")))
 const uint8_t data[0x1000] = { 0 };

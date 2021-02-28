@@ -149,6 +149,9 @@ module-test:
 	readelf --sections --relocs build/samd51/modules/dynamic/main/fkdynamic-fkb.elf
 	arm-none-eabi-objdump -dr build/samd51/modules/dynamic/main/fkdynamic-fkb.elf
 	ls -alh build/samd51/modules/dynamic/main/*.bin
+	xxd -i build/samd51/modules/dynamic/main/fkdynamic-fkb.bin > fk/modules/dyn/compiled.h
+	sed -i 's/\[\] = /\[\] __attribute__((aligned(4))) =/g' fk/modules/dyn/compiled.h
+	cd build/samd51/fk && $(MAKE)
 
 clean:
 	rm -rf $(BUILD)

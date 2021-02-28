@@ -7,13 +7,14 @@
 #include "hal/metal/metal.h"
 #include "hal/flash.h"
 #include "debugging.h"
-#include "startup_worker.h"
 #include "storage/storage.h"
 #include "tasks/tasks.h"
 #include "state.h"
 #include "logging.h"
 #include "status_logging.h"
 #include "live_tests.h"
+#include "startup_worker.h"
+#include "modules/dyn/process.h"
 
 extern const struct fkb_header_t fkb_header;
 
