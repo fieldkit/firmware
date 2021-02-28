@@ -79,6 +79,7 @@ static void run_tasks() {
 
     FK_ASSERT(get_ipc()->begin());
 
+    // FK_ASSERT(get_ipc()->launch_worker(create_pool_worker<Process>()));
     FK_ASSERT(get_ipc()->launch_worker(create_pool_worker<StartupWorker>()));
 
     auto mi = mallinfo();

@@ -21,6 +21,8 @@ extern uint32_t __data_start__;
 extern uint32_t __data_end__;
 extern uint32_t __bss_start__;
 extern uint32_t __bss_end__;
+extern uint32_t __noinit_start__;
+extern uint32_t __noinit_end__;
 
 #endif
 
@@ -60,10 +62,11 @@ bool fk_log_diagnostics() {
     auto data = (&__data_end__ - &__data_start__) * sizeof(uint32_t);
     auto bss = (&__bss_end__ - &__bss_start__) * sizeof(uint32_t);
     auto heap = (&__heap_end__ - &__heap_start__) * sizeof(uint32_t);
+    auto noi = (&__noinit_end__ - &__noinit_start__) * sizeof(uint32_t);
     auto used = (&__heap_end__ - &__cm_ram_origin__) * sizeof(uint32_t);
 
-    loginfo("hello (memory = %lu) (data + bss + heap = %zd + %zd + %zd = %zd) (used = %zd) (stack ~ %zd)",
-            available, data, bss, heap, data + bss + heap, used, in_stack);
+    loginfo("hello (memory = %lu) (data + bss + noi + heap = %zd + %zd + %zd + %zd = %zd) (used = %zd) (stack-left-now ~ %zd)",
+            available, data, bss, noi, heap, noi + data + bss + heap, used, in_stack);
 
     fk_serial_number_t sn;
     loginfo("serial = %08" PRIx32 "-%08" PRIx32 "-%08" PRIx32 "-%08" PRIx32,
