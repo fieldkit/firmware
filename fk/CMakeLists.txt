@@ -147,9 +147,11 @@ fk_add_builtin_module(weather)
 fk_add_builtin_module(atlas)
 fk_add_builtin_module(distance)
 
-configure_firmware_linker_script(fk-bundled ${CMAKE_SOURCE_DIR}/boards/samd51/main.ld)
-
-#target_link_libraries(fk-bundled PRIVATE -lstdc++)
+if(${FK_TARGET_QSPI_MEMORY})
+  configure_firmware_linker_script(fk-bundled ${CMAKE_SOURCE_DIR}/boards/samd51/qspi.ld)
+else()
+  configure_firmware_linker_script(fk-bundled ${CMAKE_SOURCE_DIR}/boards/samd51/main.ld)
+endif()
 
 add_arduino_firmware(fk-bundled)
 

@@ -9,7 +9,7 @@ PACKAGE = fk-firmware-$(BUILD_NUMBER)
 
 default: setup all
 
-all: samd51 samd09 test
+all: samd51 samd51-qspi samd09 test
 
 checks: amd64
 	valgrind $(BUILD)/amd64/tests/hosted/testall
@@ -22,21 +22,15 @@ setup: .python-setup fk/secrets.h fk/secrets.cpp fk/data/animals.h fk/data/adjec
 	pip3 install -U sphinx pyelftools pyblake2
 	touch .python-setup
 
-cmake: $(BUILD)/samd51 $(BUILD)/samd51-pic $(BUILD)/samd09 $(BUILD)/amd64
+cmake: $(BUILD)/samd51 $(BUILD)/samd51-qspi $(BUILD)/samd09 $(BUILD)/amd64
 
 $(BUILD)/samd51: setup
 	mkdir -p $(BUILD)/samd51
-	cd $(BUILD)/samd51 && cmake -DTARGET_ARCH=samd51 ../../
+	cd $(BUILD)/samd51      && cmake -DTARGET_ARCH=samd51 ../../
 
-$(BUILD)/samd51-pic: setup
-	mkdir -p $(BUILD)/samd51-pic
-	cd $(BUILD)/samd51-pic && cmake -DTARGET_ARCH=samd51 -DFK_TARGET_PIC=ON ../../
-
-oversized:
-	mkdir -p $(BUILD)/samd51
-	cd $(BUILD)/samd51 && cmake -DTARGET_ARCH=samd51 -DFK_OVERSIZED=ON ../../
-	mkdir -p $(BUILD)/samd51-pic
-	cd $(BUILD)/samd51-pic && cmake -DTARGET_ARCH=samd51 -DFK_OVERSIZED=ON -DFK_TARGET_PIC=ON ../../
+$(BUILD)/samd51-qspi: setup
+	mkdir -p $(BUILD)/samd51-qspi
+	cd $(BUILD)/samd51-qspi && cmake -DTARGET_ARCH=samd51 -DFK_TARGET_QSPI_MEMORY=ON ../../
 
 $(BUILD)/amd64: setup
 	mkdir -p $(BUILD)/amd64
@@ -46,11 +40,11 @@ $(BUILD)/samd09: setup
 	mkdir -p $(BUILD)/samd09
 	cd $(BUILD)/samd09 && cmake -DTARGET_ARCH=samd09 ../../
 
-samd51: $(BUILD)/samd51 $(BUILD)/samd51-pic
+samd51: $(BUILD)/samd51 $(BUILD)/samd51-qspi
 	cd $(BUILD)/samd51 && $(MAKE)
 
-samd51-pic: $(BUILD)/samd51 $(BUILD)/samd51-pic
-	cd $(BUILD)/samd51-pic && $(MAKE)
+samd51-qspi: $(BUILD)/samd51 $(BUILD)/samd51-qspi
+	cd $(BUILD)/samd51-qspi && $(MAKE)
 
 samd09: $(BUILD)/samd09
 	cd $(BUILD)/samd09 && $(MAKE)
@@ -135,7 +129,7 @@ info:
     echo $$m.cpp;                                                                              \
     cat $$m | c++filt > $$m.cpp;                                                               \
 	done
-	+@for m in build/samd51-pic/fk/*.map; do                                                   \
+	+@for m in build/samd51-qspi/fk/*.map; do                                                   \
     echo $$m.cpp;                                                                              \
     cat $$m | c++filt > $$m.cpp;                                                               \
 	done
