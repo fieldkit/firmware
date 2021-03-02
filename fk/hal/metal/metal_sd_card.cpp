@@ -5,6 +5,8 @@
 #include "common.h"
 #include "hal/board.h"
 #include "hal/metal/metal_sd_card.h"
+#include "hal/watchdog.h"
+
 #include "platform.h"
 #include "format_sd_card.h"
 #include "standard_page.h"
@@ -136,6 +138,8 @@ bool MetalSdCard::initialize_logs() {
 bool MetalSdCard::append_logs(circular_buffer<char> &buffer, circular_buffer<char>::iterator iter) {
     auto started = fk_uptime();
 
+    EnableWatchdog watchdog;
+
     initialize_logs();
 
     if (log_initialized_) {
@@ -179,6 +183,8 @@ bool MetalSdCard::append_logs(circular_buffer<char> &buffer, circular_buffer<cha
 
 bool MetalSdCard::append_logs(uint8_t const *buffer, size_t size) {
     auto started = fk_uptime();
+
+    EnableWatchdog watchdog;
 
     initialize_logs();
 

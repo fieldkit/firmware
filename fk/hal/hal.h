@@ -5,6 +5,7 @@
 
 #include "hal/board.h"
 
+#include "hal/watchdog.h"
 #include "hal/random.h"
 #include "hal/network.h"
 #include "hal/memory.h"

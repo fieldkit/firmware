@@ -114,6 +114,8 @@ static bool initialize_hardware() {
 
     FK_ASSERT(get_buttons()->begin());
 
+    FK_ASSERT(fk_wdt_initialize() == 0);
+
     FK_ASSERT(fk_random_initialize() == 0);
 
     FK_ASSERT(get_flash()->initialize());
