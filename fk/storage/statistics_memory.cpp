@@ -35,9 +35,14 @@ int32_t StatisticsMemory::write(uint32_t address, const uint8_t *data, size_t le
     return target_->write(address, data, length, flags);
 }
 
+int32_t StatisticsMemory::erase(uint32_t address, size_t length) {
+    FK_ASSERT(geometry().is_address_valid(address));
+    statistics_.nerases += length / geometry().block_size;
+    return target_->erase(address, length);
+}
+
 int32_t StatisticsMemory::erase_block(uint32_t address) {
     FK_ASSERT(geometry().is_address_valid(address));
-
     statistics_.nerases++;
     return target_->erase_block(address);
 }

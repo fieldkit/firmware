@@ -78,6 +78,13 @@ int32_t MetalQspiMemory::erase_block(uint32_t address) {
     return true;
 }
 
+int32_t MetalQspiMemory::erase(uint32_t address, size_t length) {
+    auto g = geometry();
+    return for_each_block_between(address, length, g.block_size, [=](uint32_t block_address) {
+        return erase_block(block_address);
+    });
+}
+
 int32_t MetalQspiMemory::flush() {
     return true;
 }

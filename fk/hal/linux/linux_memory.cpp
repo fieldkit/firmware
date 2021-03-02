@@ -1,4 +1,5 @@
 #include "hal/linux/linux.h"
+#include "utilities.h"
 
 #if defined(linux)
 
@@ -91,6 +92,12 @@ int32_t LinuxDataMemory::write(uint32_t address, const uint8_t *data, size_t len
     log_.append(LogEntry{ OperationType::Write, address, p, length });
 
     return length;
+}
+
+int32_t LinuxDataMemory::erase(uint32_t address, size_t length) {
+    return for_each_block_between(address, length, BlockSize, [=](uint32_t block_address) {
+        return erase_block(block_address);
+    });
 }
 
 int32_t LinuxDataMemory::erase_block(uint32_t address) {

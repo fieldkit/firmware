@@ -24,6 +24,13 @@ int32_t MetalDataMemory::write(uint32_t address, const uint8_t *data, size_t len
     return flash_.write(address, data, length);
 }
 
+int32_t MetalDataMemory::erase(uint32_t address, size_t length) {
+    auto g = flash_.geometry();
+    return for_each_block_between(address, length, g.block_size, [=](uint32_t block_address) {
+        return erase_block(block_address);
+    });
+}
+
 int32_t MetalDataMemory::erase_block(uint32_t address) {
     return flash_.erase_block(address);
 }

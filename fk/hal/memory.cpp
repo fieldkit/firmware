@@ -24,7 +24,7 @@ BankedDataMemory::BankedDataMemory(DataMemory **memories, size_t size) : memorie
 template<typename F>
 size_t with_bank(DataMemory **memories, size_t size, uint32_t address, F fn) {
     auto bank_address = address;
-    for (size_t i = 0; i < size; ++i) {
+    for (auto i = 0u; i < size; ++i) {
         auto &bank = *memories[i];
         auto g = bank.geometry();
 
@@ -73,6 +73,12 @@ int32_t BankedDataMemory::read(uint32_t address, uint8_t *data, size_t length, M
 int32_t BankedDataMemory::write(uint32_t address, uint8_t const *data, size_t length, MemoryWriteFlags flags) {
     return with_bank(memories_, size_, address, [&](DataMemory &bank, uint32_t bank_address) {
         return bank.write(bank_address, data, length, flags);
+    });
+}
+
+int32_t BankedDataMemory::erase(uint32_t address, size_t length) {
+    return for_each_block_between(address, length, geometry_.block_size, [=](uint32_t block_address) {
+        return erase_block(block_address);
     });
 }
 

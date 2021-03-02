@@ -35,6 +35,8 @@ public:
 
     int32_t erase_block(uint32_t address) override;
 
+    int32_t erase(uint32_t address, size_t length);
+
     int32_t flush() override;
 
 public:

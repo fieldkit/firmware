@@ -96,6 +96,8 @@ public:
 
     virtual int32_t write(uint32_t address, uint8_t const *data, size_t length, MemoryWriteFlags flags) = 0;
 
+    virtual int32_t erase(uint32_t address, size_t length) = 0;
+
     virtual int32_t erase_block(uint32_t address) = 0;
 
     virtual int32_t flush() = 0;
@@ -166,6 +168,8 @@ public:
     int32_t read(uint32_t address, uint8_t *data, size_t length, MemoryReadFlags flags) override;
 
     int32_t write(uint32_t address, uint8_t const *data, size_t length, MemoryWriteFlags flags) override;
+
+    int32_t erase(uint32_t address, size_t length) override;
 
     int32_t erase_block(uint32_t address) override;
 
