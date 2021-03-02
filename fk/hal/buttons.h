@@ -54,7 +54,7 @@ protected:
 public:
     virtual bool begin() = 0;
 
-    virtual uint8_t number_pressed() const = 0;
+    virtual bool is_debug_pressed() const = 0;
 
     virtual bool get(uint8_t which) const = 0;
 

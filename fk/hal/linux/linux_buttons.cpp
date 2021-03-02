@@ -9,8 +9,8 @@ bool LinuxButtons::begin() {
     return true;
 }
 
-uint8_t LinuxButtons::number_pressed() const {
-    return 0;
+bool LinuxButtons::is_debug_pressed() const {
+    return false;
 }
 
 bool LinuxButtons::get(uint8_t which) const {

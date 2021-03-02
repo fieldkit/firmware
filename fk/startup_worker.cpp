@@ -538,7 +538,7 @@ bool StartupWorker::check_for_provision_startup(Pool &pool) {
 
 bool StartupWorker::check_for_interactive_startup(Pool &pool) {
     auto buttons = get_buttons();
-    if (buttons->number_pressed() == 0) {
+    if (!buttons->is_debug_pressed()) {
         return false;
     }
 
@@ -547,7 +547,7 @@ bool StartupWorker::check_for_interactive_startup(Pool &pool) {
 
     auto started = fk_uptime();
     auto enable_debug_mode = false;
-    while (buttons->number_pressed() > 0) {
+    while (buttons->is_debug_pressed()) {
         fk_delay(100);
 
         if (fk_uptime() - started > InteractiveStartupButtonDuration) {

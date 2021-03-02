@@ -54,16 +54,8 @@ bool MetalButtons::begin() {
     return true;
 }
 
-uint8_t MetalButtons::number_pressed() const {
-    auto n = 0;
-
-    for (auto i = 0; i < NumberOfButtons; ++i) {
-        if (buttons_[i].down()) {
-            n++;
-        }
-    }
-
-    return n;
+bool MetalButtons::is_debug_pressed() const {
+    return buttons_[Buttons::Right].down();
 }
 
 bool MetalButtons::get(uint8_t which) const {
