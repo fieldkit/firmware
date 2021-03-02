@@ -10,7 +10,14 @@
 namespace fk {
 
 class MetalQspiMemory : public ExecutableMemory {
+public:
+    constexpr static uint32_t PageSize = 256;
+    constexpr static uint32_t SectorSize = 4096;
+    constexpr static uint32_t BlockSize = 64 * 1024;
+    constexpr static uint32_t NumberOfBlocks = 128;
+
 private:
+    Availability status_{ Availability::Unknown };
     Adafruit_FlashTransport_QSPI transport_;
     Adafruit_SPIFlash flash_;
 

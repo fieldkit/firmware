@@ -13,6 +13,12 @@ MetalQspiMemory::MetalQspiMemory() : transport_{ PIN_QSPI_SCK, QSPI_FLASH_CS, PI
 }
 
 bool MetalQspiMemory::begin() {
+    if (status_ != Availability::Unknown) {
+        return status_ == Availability::Available;
+    }
+
+    status_ = Availability::Unavailable;
+
     pinMode(QSPI_FLASH_CS, OUTPUT);
     digitalWrite(QSPI_FLASH_CS, LOW);
 
@@ -20,17 +26,18 @@ bool MetalQspiMemory::begin() {
         return false;
     }
 
+    status_ = Availability::Available;
+
     loginfo("qspi jedec id: 0x%" PRIx32, flash_.getJEDECID());
     loginfo("qspi size: 0x%" PRIx32 " pages: %" PRIu32 " page-size: %" PRIu32,
             flash_.size(), (uint32_t)flash_.numPages(), (uint32_t)flash_.pageSize());
-
-    // Teach the peripheral how to do reads so we can execute in place.
-    flash_.readBuffer(0, nullptr, 0);
 
     return true;
 }
 
 int32_t MetalQspiMemory::execute(uint32_t *got, uint32_t *entry) {
+    FK_ASSERT(status_ == Availability::Available);
+
     // Teach the peripheral how to do reads so we can execute in place.
     flash_.readBuffer(0, nullptr, 0);
 
@@ -41,19 +48,34 @@ int32_t MetalQspiMemory::execute(uint32_t *got, uint32_t *entry) {
 }
 
 FlashGeometry MetalQspiMemory::geometry() const {
-    return  { };
+    if (status_ != Availability::Available) {
+        return { 0, 0, 0, 0 };
+    }
+    return { PageSize, BlockSize, NumberOfBlocks, NumberOfBlocks * BlockSize };
 }
 
 int32_t MetalQspiMemory::read(uint32_t address, uint8_t *data, size_t length, MemoryReadFlags flags) {
-    return false;
+    auto nread = flash_.readBuffer(address, data, length);
+    if (nread != length) {
+        return false;
+    }
+    return true;
 }
 
 int32_t MetalQspiMemory::write(uint32_t address, const uint8_t *data, size_t length, MemoryWriteFlags flags) {
-    return false;
+    auto nread = flash_.writeBuffer(address, data, length);
+    if (nread != length) {
+        return false;
+    }
+    return true;
 }
 
 int32_t MetalQspiMemory::erase_block(uint32_t address) {
-    return false;
+    auto g = geometry();
+    if (!flash_.eraseBlock(address / g.block_size)) {
+        return false;
+    }
+    return true;
 }
 
 int32_t MetalQspiMemory::flush() {
