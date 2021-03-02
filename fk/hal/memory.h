@@ -98,8 +98,6 @@ public:
 
     virtual int32_t erase(uint32_t address, size_t length) = 0;
 
-    virtual int32_t erase_block(uint32_t address) = 0;
-
     virtual int32_t flush() = 0;
 
     int32_t read(uint32_t address, uint8_t *data, size_t length) {
@@ -121,36 +119,6 @@ public:
     virtual int32_t execute(uint32_t *got, uint32_t *entry) = 0;
 };
 
-class EmptyMemory : public DataMemory {
-public:
-    bool begin() override {
-        return false;
-    }
-
-    FlashGeometry geometry() const override {
-        return { };
-    }
-
-    int32_t read(uint32_t address, uint8_t *data, size_t length, MemoryReadFlags flags) override {
-        FK_ASSERT(false);
-        return (int32_t)Error::IO;
-    }
-
-    int32_t write(uint32_t address, uint8_t const *data, size_t length, MemoryWriteFlags flags) override {
-        FK_ASSERT(false);
-        return (int32_t)Error::IO;
-    }
-
-    int32_t erase_block(uint32_t address) override {
-        FK_ASSERT(false);
-        return (int32_t)Error::IO;
-    }
-
-    int32_t flush() override {
-        return 0;
-    }
-};
-
 class BankedDataMemory : public DataMemory {
 private:
     DataMemory **memories_;
@@ -170,8 +138,6 @@ public:
     int32_t write(uint32_t address, uint8_t const *data, size_t length, MemoryWriteFlags flags) override;
 
     int32_t erase(uint32_t address, size_t length) override;
-
-    int32_t erase_block(uint32_t address) override;
 
     int32_t flush() override;
 

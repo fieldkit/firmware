@@ -284,7 +284,7 @@ bool Storage::clear() {
     while (!range.empty()) {
         uint32_t address = range.middle_block() * g.block_size;
         logdebug("[" PRADDRESS "] erasing block", address);
-        if (!memory_.erase_block(address)) {
+        if (!memory_.erase(address, g.block_size)) {
             // We just keep going, clearing earlier blocks. We'll
             // handle this block being bad during reads/seeks. Still
             // mark the block as bad though so that we can remember.
@@ -347,7 +347,7 @@ uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address, BlockTa
         }
 
         // Erase new block and write header.
-        rv = memory_.erase_block(address);
+        rv = memory_.erase(address, g.block_size);
         if (rv <= 0) {
             logerror("[%d] allocating ignoring bad block: blk %" PRIu32 " (erase failed)", file, block);
             bad_blocks_.mark_address_as_bad(address);

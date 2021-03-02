@@ -78,13 +78,9 @@ int32_t BankedDataMemory::write(uint32_t address, uint8_t const *data, size_t le
 
 int32_t BankedDataMemory::erase(uint32_t address, size_t length) {
     return for_each_block_between(address, length, geometry_.block_size, [=](uint32_t block_address) {
-        return erase_block(block_address);
-    });
-}
-
-int32_t BankedDataMemory::erase_block(uint32_t address) {
-    return with_bank(memories_, size_, address, [&](DataMemory &bank, uint32_t bank_address) {
-        return bank.erase_block(bank_address);
+        return with_bank(memories_, size_, block_address, [&](DataMemory &bank, uint32_t bank_address) {
+            return bank.erase(bank_address, geometry_.block_size);
+        });
     });
 }
 

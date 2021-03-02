@@ -41,12 +41,6 @@ int32_t StatisticsMemory::erase(uint32_t address, size_t length) {
     return target_->erase(address, length);
 }
 
-int32_t StatisticsMemory::erase_block(uint32_t address) {
-    FK_ASSERT(geometry().is_address_valid(address));
-    statistics_.nerases++;
-    return target_->erase_block(address);
-}
-
 int32_t StatisticsMemory::flush() {
     return target_->flush();
 }

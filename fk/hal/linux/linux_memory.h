@@ -39,8 +39,6 @@ public:
 
     int32_t erase(uint32_t address, size_t length) override;
 
-    int32_t erase_block(uint32_t address) override;
-
     int32_t flush() override;
 
     void erase_all();
@@ -55,6 +53,9 @@ public:
     StorageLog &log() {
         return log_;
     }
+
+private:
+    int32_t erase_block(uint32_t address);
 
 private:
     struct Region {

@@ -151,20 +151,6 @@ int32_t BufferedPageMemory::write(uint32_t address, uint8_t const *data, size_t 
     return length;
 }
 
-int32_t BufferedPageMemory::erase_block(uint32_t address) {
-    if (cached_ != UINT32_MAX) {
-        auto g = target_->geometry();
-        auto cached_address = cached_ * g.page_size;
-        if (cached_address >= address && cached_address < address + g.block_size) {
-            cached_ = UINT32_MAX;
-            dirty_start_ = -1;
-            dirty_end_ = -1;
-            dirty_ = false;
-        }
-    }
-    return target_->erase_block(address);
-}
-
 int32_t BufferedPageMemory::erase(uint32_t address, size_t length) {
     if (cached_ != UINT32_MAX) {
         auto g = target_->geometry();

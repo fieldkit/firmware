@@ -80,6 +80,7 @@ int32_t CachingMemory::write(uint32_t address, const uint8_t *data, size_t lengt
     return length;
 }
 
+/*
 int32_t CachingMemory::erase_block(uint32_t address) {
     if (!target_->erase_block(address)) {
         return false;
@@ -89,6 +90,7 @@ int32_t CachingMemory::erase_block(uint32_t address) {
 
     return true;
 }
+*/
 
 int32_t CachingMemory::flush() {
     if (!target_->flush()) {
