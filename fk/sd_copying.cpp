@@ -86,7 +86,7 @@ bool copy_sd_to_flash(const char *path, FlashMemory *flash, uint32_t address, ui
         return false;
     }
 
-    loginfo("[0x%08" PRIx32 "] loading binary %s", address, path);
+    loginfo("[0x%08" PRIx32 "] loading binary %s (%s)", address, path, flash->name());
     auto file = sd->open(path, OpenFlags::Read, pool);
     if (file == nullptr || !file->is_open()) {
         logerror("unable to open '%s'", path);

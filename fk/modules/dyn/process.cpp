@@ -165,6 +165,14 @@ public:
         return data_->erase(address, size);
     }
 
+    uint32_t flash_to_cpu(uint32_t address) override {
+        return address + 0x040000000;
+    }
+
+    const char *name() override {
+        return "qspi";
+    }
+
 };
 
 void Process::run(Pool &pool) {
