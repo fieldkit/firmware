@@ -112,8 +112,19 @@ bool MetalSdCard::initialize_logs() {
         }
         if (!log_initialized_) {
             FormattedTime formatted{ log_time_, TimeFormatLogs };
+            char directory[MaximumDirectoryNameLength];
 
-            tiny_snprintf(log_file_name_, sizeof(log_file_name_), "/%s", name_);
+            // Turn spaces into underscores for tool and command line friendliness.
+            for (auto i = 0u; i < sizeof(name_); ++i) {
+                if (name_[i] == ' ') {
+                    directory[i] = '_';
+                }
+                else {
+                    directory[i] = name_[i];
+                }
+            }
+
+            tiny_snprintf(log_file_name_, sizeof(log_file_name_), "/%s", directory);
             if (!sd_.exists(log_file_name_)) {
                 if (!sd_.mkdir(log_file_name_)) {
                     logerror("error making directory '%s'", log_file_name_);
@@ -122,7 +133,7 @@ bool MetalSdCard::initialize_logs() {
             }
 
             for (auto counter = 0u; counter < 100u; ++counter) {
-                tiny_snprintf(log_file_name_, sizeof(log_file_name_), "/%s/%s_%02d.txt", name_, formatted.cstr(), counter);
+                tiny_snprintf(log_file_name_, sizeof(log_file_name_), "/%s/%s_%02d.txt", directory, formatted.cstr(), counter);
                 if (!sd_.exists(log_file_name_)) {
                     loginfo("picked file name %s", log_file_name_);
                     log_initialized_ = true;
