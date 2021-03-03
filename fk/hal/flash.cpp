@@ -35,11 +35,12 @@ int32_t Flash::read(uint32_t address, uint8_t *data, size_t size) {
     return flash_read(&FLASH_0, address, data, size);
 }
 
-int32_t Flash::write(uint32_t address, uint8_t *data, size_t size) {
-    return flash_append(&FLASH_0, address, data, size);
+int32_t Flash::write(uint32_t address, uint8_t const *data, size_t size) {
+    return flash_append(&FLASH_0, address, (uint8_t *)data, size);
 }
 
-int32_t Flash::erase(uint32_t address, size_t pages) {
+int32_t Flash::erase(uint32_t address, size_t size) {
+    auto pages = aligned_on(size, page_size()) / page_size();
     return flash_erase(&FLASH_0, address, pages);
 }
 
@@ -53,7 +54,7 @@ int32_t Flash::read(uint32_t address, uint8_t *data, size_t size) {
     return 0;
 }
 
-int32_t Flash::write(uint32_t address, uint8_t *data, size_t size) {
+int32_t Flash::write(uint32_t address, uint8_t const *data, size_t size) {
     return 0;
 }
 

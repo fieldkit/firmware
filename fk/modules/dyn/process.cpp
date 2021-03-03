@@ -8,6 +8,7 @@
 #include "syscalls_app.h"
 
 #include "hal/memory.h"
+#include "sd_copying.h"
 
 #if defined(__SAMD51__)
 
@@ -79,14 +80,6 @@ static uint32_t allocate_process_got(fkb_header_t *header, uint32_t *got, uint32
     return 0;
 }
 
-static uint32_t aligned_on(uint32_t value, uint32_t on) {
-    return ((value % on != 0) ? (value + (on - (value % on))) : value);
-}
-
-static uint8_t const *aligned_on(uint8_t const *value, uint32_t on) {
-    return (uint8_t const *)aligned_on((uint32_t)value, on);
-}
-
 class FirmwareStorage {
 public:
     template<typename R>
@@ -151,6 +144,29 @@ public:
 
 };
 
+class DataMemoryWrapper : public FlashMemory {
+private:
+    DataMemory *data_;
+
+public:
+    DataMemoryWrapper(DataMemory *data) : data_(data) {
+    }
+
+public:
+    int32_t read(uint32_t address, uint8_t *data, size_t size) override {
+        return data_->read(address, data, size);
+    }
+
+    int32_t write(uint32_t address, uint8_t const *data, size_t size) override {
+        return data_->write(address, data, size);
+    }
+
+    int32_t erase(uint32_t address, size_t size) override {
+        return data_->erase(address, size);
+    }
+
+};
+
 void Process::run(Pool &pool) {
     auto memory = MemoryFactory::get_qspi_memory();
 
@@ -161,6 +177,12 @@ void Process::run(Pool &pool) {
     }
 
     loginfo("ready");
+
+    DataMemoryWrapper flash{ memory };
+    if (!copy_sd_to_flash("fk-bundled-fkb-qspi.bin", &flash, 0x0, 4096, pool)) {
+        logerror("error copying from sd");
+        return;
+    }
 
     FirmwareStorage firmware;
 
@@ -178,16 +200,16 @@ void Process::run(Pool &pool) {
         firmware.find(incoming->size);
     }
 
-    #if 1
+    #if 0
     auto header = (fkb_header_t *)0x04000000;
     #else
     auto header = (fkb_header_t *)build_samd51_modules_dynamic_main_fkdynamic_fkb_bin;
     #endif
 
-    // log_fkb_header(header);
+    fkb_log_header(header);
 
-    auto got = (uint32_t *)pool.malloc(header->firmware.got_size);
-    auto data = (uint32_t *)pool.malloc(header->firmware.data_size);
+    auto got = (uint32_t *)(header->firmware.got_size > 0 ? pool.malloc(header->firmware.got_size) : nullptr);
+    auto data = (uint32_t *)(header->firmware.got_size > 0 ? pool.malloc(header->firmware.data_size) : nullptr);
 
     if (allocate_process_got(header, got, data)) {
         logerror("error allocating got");

@@ -4,7 +4,15 @@
 
 namespace fk {
 
-class Flash {
+class FlashMemory {
+public:
+    virtual int32_t read(uint32_t address, uint8_t *data, size_t size) = 0;
+    virtual int32_t write(uint32_t address, uint8_t const *data, size_t size) = 0;
+    virtual int32_t erase(uint32_t address, size_t size) = 0;
+
+};
+
+class Flash : public FlashMemory {
 private:
     uint32_t page_size_{ 0 };
     uint32_t total_pages_{ 0 };
@@ -14,9 +22,11 @@ public:
 
 public:
     bool initialize();
-    int32_t read(uint32_t address, uint8_t *data, size_t size);
-    int32_t write(uint32_t address, uint8_t *data, size_t size);
-    int32_t erase(uint32_t address, size_t pages);
+
+public:
+    int32_t read(uint32_t address, uint8_t *data, size_t size) override;
+    int32_t write(uint32_t address, uint8_t const *data, size_t size) override;
+    int32_t erase(uint32_t address, size_t size) override;
 
 public:
     uint32_t page_size() const {

@@ -15,6 +15,8 @@
 #include "graceful_shutdown.h"
 #include "config.h"
 
+#include "sd_copying.h"
+
 extern const struct fkb_header_t fkb_header;
 
 namespace fk {
@@ -213,7 +215,7 @@ bool UpgradeFirmwareFromSdWorker::save_firmware(const char *path, uint32_t addre
     }
 
     auto total_bytes = (uint32_t)0u;
-    auto eeprom_address = address;
+    auto flash_address = address;
 
     GlobalStateProgressCallbacks gs_progress;
     auto tracker = ProgressTracker{ &gs_progress, Operation::Download, "sd", "", (uint32_t)bytes };
@@ -221,7 +223,7 @@ bool UpgradeFirmwareFromSdWorker::save_firmware(const char *path, uint32_t addre
     auto buffer = (uint8_t *)pool.malloc(CodeMemoryPageSize);
 
     while (total_bytes < bytes) {
-        get_flash()->read(eeprom_address, buffer, CodeMemoryPageSize);
+        get_flash()->read(flash_address, buffer, CodeMemoryPageSize);
 
         auto nwrote = file->write(buffer, CodeMemoryPageSize);
         if (nwrote <= 0) {
@@ -231,7 +233,7 @@ bool UpgradeFirmwareFromSdWorker::save_firmware(const char *path, uint32_t addre
         FK_ASSERT(nwrote == CodeMemoryPageSize);
 
         total_bytes += nwrote;
-        eeprom_address += nwrote;
+        flash_address += nwrote;
 
         tracker.update(nwrote);
     }
@@ -253,6 +255,11 @@ bool UpgradeFirmwareFromSdWorker::has_file(const char *path) {
 }
 
 bool UpgradeFirmwareFromSdWorker::load_firmware(const char *path, uint32_t address, Pool &pool) {
+    return copy_sd_to_flash(path, get_flash(), address, CodeMemoryPageSize, pool);
+}
+
+bool copy_sd_to_flash(const char *path, FlashMemory *flash, uint32_t address, uint32_t page_size, Pool &pool) {
+    // Open the file and get the file size.
     auto sd = get_sd_card();
 
     if (!sd->begin()) {
@@ -261,12 +268,11 @@ bool UpgradeFirmwareFromSdWorker::load_firmware(const char *path, uint32_t addre
     }
 
     if (!sd->is_file(path)) {
-        loginfo("no such file %s", path);
+        logwarn("no such file %s", path);
         return false;
     }
 
-    loginfo("loading firmware");
-
+    loginfo("loading binary %s into 0x%" PRIx32, path, address);
     auto file = sd->open(path, OpenFlags::Read, pool);
     if (file == nullptr || !file->is_open()) {
         logerror("unable to open '%s'", path);
@@ -282,31 +288,40 @@ bool UpgradeFirmwareFromSdWorker::load_firmware(const char *path, uint32_t addre
     loginfo("opened %zd bytes", file_size);
     file->seek_beginning();
 
+    // TODO We should probably read back and calculate the hash after
+    // we're done copying.
     BLAKE2b b2b;
     b2b.reset(Hash::Length);
 
     GlobalStateProgressCallbacks gs_progress;
     auto tracker = ProgressTracker{ &gs_progress, Operation::Download, "sd", "", (uint32_t)file_size };
+    auto flash_address = address;
 
-    for (auto eeprom_address = address; eeprom_address < address + file_size; ) {
-        loginfo("[0x%06" PRIx32 "] erasing", eeprom_address);
-        get_flash()->erase(eeprom_address, CodeMemoryBlockSize / CodeMemoryPageSize);
-        eeprom_address += CodeMemoryBlockSize;
+    loginfo("[0x%06" PRIx32 "] erasing to [0x%06" PRIx32 "]", flash_address, (uint32_t)(flash_address + file_size));
+
+    if (!flash->erase(flash_address, file_size)) {
+        logerror("error rasing");
     }
 
+    loginfo("[0x%06" PRIx32 "] copying %zd bytes" PRId32, flash_address, file_size);
+
+    // Copy the bytes from the file to memory, using whatever page
+    // size we were told to use.
     auto total_bytes = (uint32_t)0u;
-    auto buffer = (uint8_t *)pool.malloc(CodeMemoryPageSize);
-    auto eeprom_address = address;
+    auto buffer = (uint8_t *)pool.malloc(page_size);
     while (total_bytes < file_size) {
-        auto nread = file->read(buffer, CodeMemoryPageSize);
+        auto nread = file->read(buffer, page_size);
         if (nread <= 0) {
             break;
         }
 
-        get_flash()->write(eeprom_address, buffer, nread);
+        if (!flash->write(flash_address, buffer, nread)) {
+            logerror("error writing to flash");
+            return false;
+        }
 
         total_bytes += nread;
-        eeprom_address += nread;
+        flash_address += nread;
 
         tracker.update(nread);
 
@@ -318,29 +333,36 @@ bool UpgradeFirmwareFromSdWorker::load_firmware(const char *path, uint32_t addre
         }
     }
 
-    loginfo("hash calculated");
-
     tracker.finished();
 
-    Hash hash;
-    b2b.finalize(&hash.hash, Hash::Length);
+    Hash actual_hash;
+    b2b.finalize(&actual_hash.hash, Hash::Length);
 
-    // Compare the hash we calculated with the one that was
-    // just written to memory.
-    auto success = false;
-    auto eeprom_hash_ptr = reinterpret_cast<uint8_t*>(eeprom_address - Hash::Length);
-    if (memcmp(eeprom_hash_ptr, hash.hash, Hash::Length) != 0) {
-        logerror("hash mismatch!");
-        fk_dump_memory("EXP ", eeprom_hash_ptr, Hash::Length);
-        fk_dump_memory("ACT ", hash.hash, Hash::Length);
+    loginfo("done copying %" PRIu32 " bytes", total_bytes);
+
+    auto hex_str = bytes_to_hex_string_pool(actual_hash.hash, Hash::Length, pool);
+    loginfo("hash: %s", hex_str);
+
+    // Read expected hash from the flash memory device, it's always
+    // occupying the end of the binary.
+    Hash expected_hash;
+    auto hash_address = address + file_size - Hash::Length;
+    if (!flash->read(hash_address, (uint8_t *)&expected_hash.hash, Hash::Length)) {
+        logerror("error reading hash");
+        return false;
     }
-    else {
-        auto hex_str = bytes_to_hex_string_pool(hash.hash, Hash::Length, pool);
-        loginfo("hash is good: %s", hex_str);
+
+    // Compare the hash we calculated with the one that was just
+    // written to memory.
+    auto success = false;
+    if (memcmp(&expected_hash.hash, &actual_hash.hash, Hash::Length) != 0) {
+        logerror("hash mismatch!");
+        fk_dump_memory("expected ", (uint8_t *)&expected_hash.hash, Hash::Length);
+        fk_dump_memory("actual   ", (uint8_t *)&actual_hash.hash, Hash::Length);
+    } else {
+        loginfo("hash is good!");
         success = true;
     }
-
-    loginfo("done reading %" PRIu32, total_bytes);
 
     return success;
 }
