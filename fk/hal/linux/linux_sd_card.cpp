@@ -65,6 +65,10 @@ int32_t LinuxSdCardFile::seek_end() {
     return 0;
 }
 
+int32_t LinuxSdCardFile::seek_from_end(int32_t offset) {
+    return 0;
+}
+
 size_t LinuxSdCardFile::file_size() {
     return 0;
 }

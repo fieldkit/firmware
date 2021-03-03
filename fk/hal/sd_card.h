@@ -15,6 +15,7 @@ public:
     virtual size_t file_size() = 0;
     virtual int32_t seek_beginning() = 0;
     virtual int32_t seek_end() = 0;
+    virtual int32_t seek_from_end(int32_t offset) = 0;
     virtual bool is_open() const = 0;
 
     operator bool() const {

@@ -420,6 +420,11 @@ int32_t MetalSdCardFile::seek_end() {
     return 0;
 }
 
+int32_t MetalSdCardFile::seek_from_end(int32_t offset) {
+    file_.seekEnd(offset);
+    return 0;
+}
+
 size_t MetalSdCardFile::file_size() {
     return file_.fileSize();
 }

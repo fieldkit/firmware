@@ -59,6 +59,7 @@ public:
     int32_t read(uint8_t *buffer, size_t size) override;
     int32_t seek_beginning() override;
     int32_t seek_end() override;
+    int32_t seek_from_end(int32_t offset) override;
     size_t file_size() override;
     bool is_open() const override;
     bool close() override;

@@ -8,6 +8,7 @@
 #include "syscalls_app.h"
 
 #include "hal/memory.h"
+#include "io.h"
 #include "sd_copying.h"
 
 #if defined(__SAMD51__)
@@ -93,19 +94,21 @@ public:
                 ptr = aligned_on(ptr, block_size());
                 loginfo("[0x%8p] checking", ptr);
                 fkbh = fkb_try_header(ptr);
-                if (fkbh == nullptr) {
-                    break;
+            }
+
+            if (fkbh != nullptr) {
+                optional<R> r = fn(fkbh);
+                if (r) {
+                    return r;
                 }
+
+                FK_ASSERT(fkbh->firmware.binary_size > 0);
+
+                ptr += fkbh->firmware.binary_size;
             }
-
-            optional<R> r = fn(fkbh);
-            if (r) {
-                return r;
+            else {
+                ptr += block_size();
             }
-
-            FK_ASSERT(fkbh->firmware.binary_size > 0);
-
-            ptr += fkbh->firmware.binary_size;
         }
 
         return nullopt;
@@ -122,7 +125,7 @@ public:
     }
 
     optional<uint32_t> find(size_t required) {
-        return nullopt;
+        return 0;
     }
 
 public:
@@ -175,6 +178,9 @@ public:
 
 };
 
+class FlashMemoryWriter : public Writer {
+};
+
 void Process::run(Pool &pool) {
     auto memory = MemoryFactory::get_qspi_memory();
 
@@ -187,33 +193,29 @@ void Process::run(Pool &pool) {
     loginfo("ready");
 
     DataMemoryFlash flash{ memory };
-    if (!copy_sd_to_flash("fk-bundled-fkb-qspi.bin", &flash, 0x0, 4096, pool)) {
+
+    if (!copy_sd_to_flash("fk-bundled-fkb-qspi.bin", &flash, 0, 4096, pool)) {
         logerror("error copying from sd");
         return;
     }
 
-    FirmwareStorage firmware;
+    if (!copy_memory_to_flash(&flash, build_samd51_modules_dynamic_main_fkdynamic_fkb_bin,
+                              build_samd51_modules_dynamic_main_fkdynamic_fkb_bin_len, 512 * 1024,
+                              4096, pool)) {
+        logerror("error copying binary");
+        return;
+    }
 
+    FirmwareStorage firmware;
     if (!firmware.walk<bool>([](fkb_header_t const *fkbh) {
         fkb_log_header(fkbh);
-        return true;
+        return nullopt;
     })) {
         return;
     }
 
     #if 0
-    auto incoming = (fkb_header_t *)build_samd51_modules_dynamic_main_fkdynamic_fkb_bin;
-    auto found = firmware.find(incoming);
-    if (!found) {
-        loginfo("missing firmware, finding room");
-        firmware.find(incoming->size);
-    }
-
-    #if 0
-    auto header = (fkb_header_t *)0x04000000;
-    #else
     auto header = (fkb_header_t *)build_samd51_modules_dynamic_main_fkdynamic_fkb_bin;
-    #endif
 
     fkb_log_header(header);
 
