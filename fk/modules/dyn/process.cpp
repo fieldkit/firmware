@@ -44,7 +44,7 @@ static fkb_symbol_t *get_symbol_by_index(fkb_header_t *header, uint32_t symbol);
 
 static fkb_symbol_t *get_first_symbol(fkb_header_t *header);
 
-static uint32_t allocate_process_got(fkb_header_t *header, uint32_t *got, uint32_t *data) {
+uint32_t allocate_process_got(fkb_header_t *header, uint32_t *got, uint32_t *data) {
     auto base = (uint8_t *)header;
 
     loginfo("[0x%8p] number-syms=%" PRIu32 " number-rels=%" PRIu32 "got=0x%" PRIx32, base,
@@ -144,12 +144,12 @@ public:
 
 };
 
-class DataMemoryWrapper : public FlashMemory {
+class DataMemoryFlash : public FlashMemory {
 private:
     DataMemory *data_;
 
 public:
-    DataMemoryWrapper(DataMemory *data) : data_(data) {
+    DataMemoryFlash(DataMemory *data) : data_(data) {
     }
 
 public:
@@ -186,7 +186,7 @@ void Process::run(Pool &pool) {
 
     loginfo("ready");
 
-    DataMemoryWrapper flash{ memory };
+    DataMemoryFlash flash{ memory };
     if (!copy_sd_to_flash("fk-bundled-fkb-qspi.bin", &flash, 0x0, 4096, pool)) {
         logerror("error copying from sd");
         return;
@@ -201,6 +201,7 @@ void Process::run(Pool &pool) {
         return;
     }
 
+    #if 0
     auto incoming = (fkb_header_t *)build_samd51_modules_dynamic_main_fkdynamic_fkb_bin;
     auto found = firmware.find(incoming);
     if (!found) {
@@ -232,6 +233,7 @@ void Process::run(Pool &pool) {
     memory->execute(got, entry);
 
     loginfo("module finished");
+    #endif
 
     while (true) {
         os_delay(1000);

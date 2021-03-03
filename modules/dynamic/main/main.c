@@ -1,5 +1,6 @@
 #include <inttypes.h>
 #include <loading.h>
+#include "modules/shared/modules.h"
 
 /**
  * These pointers are weird and unfortunately necessary.
@@ -40,7 +41,7 @@ const struct fkb_header_t fkb_header = {
     .version            = 1,
     .size               = sizeof(fkb_header_t),
     .firmware           = {
-        .flags          = 0,
+        .flags          = FKB_FLAGS_DYNAMIC,
         .timestamp      = 0,
         .binary_size    = 0,
         .vtor_offset    = 0,

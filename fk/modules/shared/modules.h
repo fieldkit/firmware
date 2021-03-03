@@ -22,6 +22,9 @@ uint32_t fk_module_header_valid(ModuleHeader const *header);
 
 uint8_t fk_module_is_available_i2c_address(uint8_t address);
 
+#define FKB_FLAGS_NONE                             (0x0)
+#define FKB_FLAGS_DYNAMIC                          (0x1)
+
 #define FK_MODULES_MANUFACTURER                    (0x01)
 #define FK_MODULES_KIND_WEATHER                    (0x01)
 #define FK_MODULES_KIND_WATER                      (0x02)

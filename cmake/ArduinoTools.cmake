@@ -123,6 +123,8 @@ function(add_fk_module target_name)
   # find_package(ConservifyOS)
   # target_link_libraries(${target_name} ConservifyOS)
 
+  target_include_directories(${target_name} PUBLIC ${CMAKE_SOURCE_DIR}/fk ${CMAKE_SOURCE_DIR}/third-party/nonstd ${CMAKE_SOURCE_DIR}/third-party/tl)
+
   configure_firmware_linker_script(${target_name} ${CMAKE_SOURCE_DIR}/boards/samd51/module.ld)
 
   configure_firmware_link(${target_name} "")
