@@ -139,6 +139,8 @@ bool StartupWorker::load_or_create_state(Pool &pool) {
         }
     }
 
+    get_sd_card()->name(gs.get()->general.name);
+
     // The preconfigured LoRa ABP state always takes precedence.
     // TODO Hack
     for (auto &abp : lora_preconfigured_abp) {
@@ -188,8 +190,6 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
 
     char gen_string[GenerationLength * 2 + 1];
     bytes_to_hex_string(gen_string, sizeof(gen_string), gs->general.generation, GenerationLength);
-
-    get_sd_card()->name(gs->general.name);
 
     loginfo("(loaded) name: '%s'", gs->general.name);
     loginfo("(loaded) generation: %s", gen_string);
