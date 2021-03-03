@@ -11,8 +11,6 @@
 
 namespace fk {
 
-static size_t failures = 0;
-
 FK_DECLARE_LOGGER("rw");
 
 ReadingsWorker::ReadingsWorker(bool scan, bool read_only, bool verify)
@@ -68,14 +66,9 @@ bool ReadingsWorker::take(Pool &pool) {
     modules->readings_number = taken_readings->number;
 
     auto module_num = 0;
-    auto has_readings = false;
 
     for (auto &m : all_readings) {
         FK_ASSERT(m.meta != nullptr);
-
-        if (m.meta->flags != FK_MODULES_FLAG_INTERNAL) {
-            has_readings = true;
-        }
 
         auto configuration = m.configuration;
         configuration.message = data_pool->copy(m.configuration.message);
@@ -117,19 +110,6 @@ bool ReadingsWorker::take(Pool &pool) {
         };
 
         module_num++;
-    }
-
-    if (!has_readings) {
-        failures++;
-    } else {
-        failures = 0;
-    }
-
-    // NOTE Stability HACK
-    if (failures == 60) {
-        loginfo("too many empty readings, restarting");
-        fk_graceful_shutdown();
-        fk_restart();
     }
 
     logdebug("updating global state");
