@@ -12,11 +12,15 @@
 namespace fk {
 
 class MetalSdCard : public SdCard {
+public:
+    constexpr static size_t MaximumPathLength = 128;
+    constexpr static size_t MaximumDirectoryNameLength = 32;
+
 private:
     SdFat sd_;
     uint32_t log_time_{ 0 };
-    char log_file_name_[128] = { 0 };
-    char name_[12] = { 0 };
+    char log_file_name_[MaximumPathLength] = { 0 };
+    char name_[MaximumDirectoryNameLength] = { 0 };
     bool log_initialized_{ false };
     uint32_t log_writes_{ 0 };
 
