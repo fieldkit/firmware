@@ -41,11 +41,11 @@ namespace fk {
 
 FK_DECLARE_LOGGER("proc");
 
-static fkb_symbol_t *get_symbol_by_index(fkb_header_t *header, uint32_t symbol);
+static fkb_symbol_t const *get_symbol_by_index(fkb_header_t const *header, uint32_t symbol);
 
-static fkb_symbol_t *get_first_symbol(fkb_header_t *header);
+static fkb_symbol_t const *get_first_symbol(fkb_header_t const *header);
 
-uint32_t allocate_process_got(fkb_header_t *header, uint32_t *got, uint32_t *data) {
+uint32_t allocate_process_got(fkb_header_t const *header, uint32_t *got, uint32_t *data) {
     auto base = (uint8_t *)header;
 
     loginfo("[0x%8p] number-syms=%" PRIu32 " number-rels=%" PRIu32 "got=0x%" PRIx32, base,
@@ -77,6 +77,27 @@ uint32_t allocate_process_got(fkb_header_t *header, uint32_t *got, uint32_t *dat
 
         sym++;
     }
+
+    return 0;
+}
+
+int32_t fk_module_run(fkb_header_t const *header, Pool &pool) {
+    auto got = (uint32_t *)(header->firmware.got_size > 0 ? pool.malloc(header->firmware.got_size) : nullptr);
+    auto data = (uint32_t *)(header->firmware.got_size > 0 ? pool.malloc(header->firmware.data_size) : nullptr);
+
+    if (allocate_process_got(header, got, data)) {
+        logerror("error allocating got");
+        return -1;
+    }
+
+    // Notice the +1 here is intentional, per the ARM standard.
+    auto entry = (uint32_t *)(((uint8_t *)header) + header->firmware.vtor_offset + 1);
+
+    loginfo("calling module");
+
+    MemoryFactory::get_qspi_memory()->execute(got, entry);
+
+    loginfo("module finished");
 
     return 0;
 }
@@ -207,47 +228,30 @@ void Process::run(Pool &pool) {
     }
 
     FirmwareStorage firmware;
-    if (!firmware.walk<bool>([](fkb_header_t const *fkbh) {
+    firmware.walk<bool>([](fkb_header_t const *fkbh) {
         fkb_log_header(fkbh);
         return nullopt;
-    })) {
-        return;
-    }
+    });
 
-    #if 0
-    auto header = (fkb_header_t *)build_samd51_modules_dynamic_main_fkdynamic_fkb_bin;
-
-    fkb_log_header(header);
-
-    auto got = (uint32_t *)(header->firmware.got_size > 0 ? pool.malloc(header->firmware.got_size) : nullptr);
-    auto data = (uint32_t *)(header->firmware.got_size > 0 ? pool.malloc(header->firmware.data_size) : nullptr);
-
-    if (allocate_process_got(header, got, data)) {
-        logerror("error allocating got");
-        return;
-    }
-
-    // Notice the +1 here is intentional, per the ARM standard.
-    auto entry = (uint32_t *)(((uint8_t *)header) + header->firmware.vtor_offset + 1);
-
-    loginfo("calling module");
-
-    memory->execute(got, entry);
-
-    loginfo("module finished");
-    #endif
+    firmware.walk<bool>([&](fkb_header_t const *fkbh) {
+        if (fkbh->firmware.flags > 0) {
+            fkb_log_header(fkbh);
+            fk_module_run(fkbh, pool);
+        }
+        return nullopt;
+    });
 
     while (true) {
         os_delay(1000);
     }
 }
 
-static fkb_symbol_t *get_symbol_by_index(fkb_header_t *header, uint32_t symbol) {
-    uint8_t *base = (uint8_t *)header + header->firmware.tables_offset;
+static fkb_symbol_t const *get_symbol_by_index(fkb_header_t const *header, uint32_t symbol) {
+    uint8_t const *base = (uint8_t const *)header + header->firmware.tables_offset;
     return (fkb_symbol_t *)(base + sizeof(fkb_symbol_t) * symbol);
 }
 
-static fkb_symbol_t *get_first_symbol(fkb_header_t *header) {
+static fkb_symbol_t const *get_first_symbol(fkb_header_t const *header) {
     return get_symbol_by_index(header, 0);
 }
 

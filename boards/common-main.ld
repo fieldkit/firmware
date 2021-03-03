@@ -162,6 +162,7 @@ SECTIONS
 
   PROVIDE(__stack = __StackTop);
 
+  __cm_ram_origin = ORIGIN(RAM);
   __cm_ram_origin__ = ORIGIN(RAM);
   __cm_ram_end__ = ORIGIN(RAM) + LENGTH(RAM) - 1;
 
