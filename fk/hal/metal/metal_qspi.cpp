@@ -17,6 +17,10 @@ bool MetalQspiMemory::begin() {
         return status_ == Availability::Available;
     }
 
+    #if defined(FK_TARGET_QSPI_MEMORY)
+    return true;
+    #endif
+
     status_ = Availability::Unavailable;
 
     pinMode(QSPI_FLASH_CS, OUTPUT);

@@ -82,9 +82,12 @@ bool Board::initialize() {
 }
 
 void Board::disable_everything() {
+    #if defined(FK_TARGET_QSPI_MEMORY)
+    #else
     spi_flash().end();
     spi_radio().end();
     spi_module().end();
+    #endif
 
     i2c_core().end();
     i2c_radio().end();
