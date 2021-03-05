@@ -52,9 +52,9 @@ optional<bool> verify_flash_binary_hash(FlashMemory *flash, uint32_t address, ui
 
     // Read expected hash from the flash memory device, it's always
     // occupying the end of the binary.
-    Hash written_hash;
+    Hash flash_hash;
     auto hash_address = address + binary_size_including_hash - Hash::Length;
-    if (!flash->read(hash_address, (uint8_t *)&written_hash.hash, Hash::Length)) {
+    if (!flash->read(hash_address, (uint8_t *)&flash_hash.hash, Hash::Length)) {
         logerror("error reading hash");
         return nullopt;
     }
@@ -64,8 +64,8 @@ optional<bool> verify_flash_binary_hash(FlashMemory *flash, uint32_t address, ui
     auto success = false;
     if (memcmp(&expected_hash.hash, &actual_hash.hash, Hash::Length) != 0) {
         logerror("[0x%08" PRIx32 "] hash mismatch!", address);
-        fk_dump_memory("written  ", (uint8_t *)&written_hash.hash, Hash::Length);
         fk_dump_memory("expected ", (uint8_t *)&expected_hash.hash, Hash::Length);
+        fk_dump_memory("flash    ", (uint8_t *)&flash_hash.hash, Hash::Length);
         fk_dump_memory("actual   ", (uint8_t *)&actual_hash.hash, Hash::Length);
     } else {
         loginfo("[0x%08" PRIx32 "] hash is good!", address);
@@ -100,7 +100,7 @@ bool copy_memory_to_flash(FlashMemory *flash, uint8_t const *buffer, size_t size
         logerror("error rasing");
     }
 
-    loginfo("[0x%08" PRIx32 "] copying %zd bytes" PRId32, address, size);
+    loginfo("[0x%08" PRIx32 "] copying %zd bytes", address, size);
 
     // Copy the bytes from the file to memory, using whatever page
     // size we were told to use.
@@ -166,7 +166,6 @@ bool copy_sd_to_flash(const char *path, FlashMemory *flash, uint32_t address, ui
 
     loginfo("[0x%08" PRIx32 "] opened, %zd bytes", address, file_size);
 
-    // TODO Read hash from file on SD.
     // Check to see if a copy is even necessary.
     auto verify_before = verify_flash_binary_hash(flash, address, file_size, page_size, expected_hash, pool);
     if (!verify_before) {
@@ -191,7 +190,7 @@ bool copy_sd_to_flash(const char *path, FlashMemory *flash, uint32_t address, ui
         logerror("error rasing");
     }
 
-    loginfo("[0x%08" PRIx32 "] copying %zd bytes" PRId32, flash_address, file_size);
+    loginfo("[0x%08" PRIx32 "] copying %zd bytes", flash_address, file_size);
 
     // Copy the bytes from the file to memory, using whatever page
     // size we were told to use.
