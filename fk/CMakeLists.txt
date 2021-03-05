@@ -145,6 +145,7 @@ fk_add_builtin_module(distance)
 
 if(${FK_TARGET_QSPI_MEMORY})
   configure_firmware_linker_script(fk-bundled ${CMAKE_SOURCE_DIR}/boards/samd51/qspi.ld)
+  target_compile_options(fk-bundled PRIVATE -DFK_TARGET_QSPI_MEMORY)
 else()
   configure_firmware_linker_script(fk-bundled ${CMAKE_SOURCE_DIR}/boards/samd51/main.ld)
 endif()
