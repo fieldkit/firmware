@@ -43,7 +43,6 @@ bool ReceiveFirmwareWorker::write_success(Pool &pool) {
 
 void ReceiveFirmwareWorker::run(Pool &pool) {
     auto lock = sd_mutex.acquire(UINT32_MAX);
-    auto file_name = "fk-bundled-fkb-network.bin";
     auto expected = connection_->length();
 
     loginfo("receiving %" PRIu32 " bytes...", expected);
@@ -52,6 +51,11 @@ void ReceiveFirmwareWorker::run(Pool &pool) {
     ProgressTracker tracker{ &gs_progress, Operation::Download, "receiving", "", expected };
 
     auto swap = connection_->find_query_param("swap", pool) != nullptr;
+    auto file_name = connection_->find_query_param("fn", pool);
+    if (file_name == nullptr) {
+        file_name = "fk-bundled-fkb-network.bin";
+    }
+
     auto sd = get_sd_card();
     if (!sd->begin()) {
         read_complete_and_fail("sdCard", pool);
