@@ -23,6 +23,55 @@ uint32_t launch() {
     return fkb_find_and_launch((void *)&__cm_app_vectors_ptr);
 }
 
+int32_t bl_upgrade_firmware_necessary(fkb_header_t *running, fkb_header_t *testing) {
+    if (!fkb_has_valid_signature(testing)) {
+        return 0;
+    }
+
+    if (fkb_has_valid_signature(running)) {
+        bl_fkb_log_header(running);
+
+        if (fkb_same_header(running, testing)) {
+            return 0;
+        }
+    }
+
+    fkb_external_println("bl: upgrading");
+
+    bl_fkb_log_header(testing);
+
+    return 1;
+}
+
+int32_t bl_upgrade_firmware(fkb_header_t *fkbh, uint32_t address) {
+    if (!fkb_has_valid_signature(fkbh)) {
+        return -1;
+    }
+
+    fkb_external_println("bl: [0x%08" PRIx32 "] erasing %" PRIu32, address, fkbh->firmware.binary_size);
+
+    if (bl_flash_erase(address, fkbh->firmware.binary_size) < 0) {
+        return -1;
+    }
+
+    fkb_external_println("bl: [0x%08" PRIx32 "] copying %" PRIu32, address, fkbh->firmware.binary_size);
+
+    uint8_t *source = (uint8_t *)fkbh;
+    int32_t remaining = fkbh->firmware.binary_size;
+    while (remaining > 0) {
+        int32_t ncopy = bl_flash_page_size <= remaining ? bl_flash_page_size : remaining;
+        if (bl_flash_write(address, source, ncopy) < 0) {
+            return -1;
+        }
+
+        remaining -= ncopy;
+        source += ncopy;
+        address += ncopy;
+    }
+
+    return 0;
+}
+
 int32_t main() {
     memory_initialize();
 
@@ -35,13 +84,41 @@ int32_t main() {
 
     SysTick_Config(F_CPU / 1000);
 
-    fkb_external_println("bl: board ready (%s) (bank = %d)", fk_get_reset_reason_string(), fk_nvm_get_active_bank());
-
     uint32_t sn[4];
     serial_number_get(sn);
     fkb_external_println("bl: serial='%08" PRIx32 "-%08" PRIx32 "-%08" PRIx32 "-%08" PRIx32 "'",
                          (uint32_t)__builtin_bswap32(sn[0]), (uint32_t)__builtin_bswap32(sn[1]),
                          (uint32_t)__builtin_bswap32(sn[2]), (uint32_t)__builtin_bswap32(sn[3]));
+
+    fkb_external_println("bl: board ready (%s) (bank = %d)", fk_get_reset_reason_string(), fk_nvm_get_active_bank());
+
+    fkb_external_println("bl: flash...");
+
+    bl_flash_initialize();
+
+    fkb_external_println("bl: qspi...");
+
+    bl_qspi_initialize();
+
+    fkb_header_t *flash = (fkb_header_t *)((uint32_t *)(0x00000000 + 0x8000));
+    fkb_header_t *qspi = (fkb_header_t *)((uint32_t *)(0x04000000 + 0x10000));
+
+    if (bl_upgrade_firmware_necessary(flash, qspi)) {
+        if (0 && bl_upgrade_firmware(qspi, 0x8000) < 0) {
+            while (1) {
+                // NOTE Really bad.
+                delay(1000);
+            }
+        }
+
+        fkb_external_println("bl: upgrade!");
+
+        bl_fkb_log_header(flash);
+    }
+
+    while (0) {
+        delay(1000);
+    }
 
     launch();
 
