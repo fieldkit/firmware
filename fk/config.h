@@ -432,6 +432,13 @@ constexpr bool DebugEnableMemoryDumps = false;
 constexpr uint32_t BootloaderSize = 0x8000;
 
 /**
+ * Maximum size of the vector table at the start of the
+ * bootloader. This is used to calculate an offset into memory to
+ * check for the fkb_header_t struct.
+ */
+constexpr uint32_t VectorsMaximumSize = 0x40;
+
+/**
  * Address of the primary bank of flash memory.
  */
 constexpr uint32_t PrimaryBankAddress = 0x00000;

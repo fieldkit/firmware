@@ -192,6 +192,7 @@ void delay(uint32_t ms) {
 
 extern uint32_t __cm_stack_top;
 
+// WARNING: DO NOT CHANGE THE SIZE OF THIS.
 __attribute__((section(".isr_vector")))
 const struct cm_vector_table_t vector_table = {
     .stack               = (void *)(&__cm_stack_top),
@@ -210,6 +211,25 @@ const struct cm_vector_table_t vector_table = {
     .reserved_m3         = (void *)(0UL),
     .pendsv_handler      = (void *)cm_pendsv,
     .systick_handler     = (void *)cm_systick,
+};
+
+__attribute__((section(".fkb.header")))
+const struct fkb_header_t fkb_header = {
+    .signature          = FKB_HEADER_SIGNATURE(),
+    .version            = 1,
+    .size               = sizeof(fkb_header_t),
+    .firmware           = {
+        .flags          = 0,
+        .timestamp      = 0,
+        .binary_size    = 0,
+        .vtor_offset    = 0,
+        .got_offset     = 0,
+        .name           = { 0 },
+        .hash_size      = 0,
+        .hash           = { 0 }
+    },
+    .number_symbols     = 0,
+    .number_relocations = 0
 };
 
 __attribute__((section(".fkb.launch")))

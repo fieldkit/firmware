@@ -14,6 +14,10 @@ SECTIONS
     KEEP(*(.isr_vector))
   } > BOOTLOADER
 
+  .data.fkb.header : {
+    KEEP(*(.fkb.header))
+  } > BOOTLOADER
+
   .text ALIGN(0x4) :
   {
     *(.text*)

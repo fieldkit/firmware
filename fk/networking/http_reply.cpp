@@ -58,24 +58,37 @@ static void copy_schedule(fk_app_Schedule &d, Schedule const &s, Pool *pool) {
     d.duration = s.duration;
 }
 
-static bool try_populate_firmware(fk_app_Firmware& fw, fkb_header_t const *fkbh, Pool &pool) {
-    if (fkbh == nullptr) {
-        return false;
-    }
-    if (!fkb_has_valid_signature(fkbh)) {
+static bool try_populate_firmware(fk_app_Firmware& fw, void const *ptr, Pool &pool) {
+    #if defined(__SAMD51__)
+    uint32_t logical_address = (uint32_t)ptr;
+    #else
+    if (ptr == nullptr) {
         return false;
     }
 
+    uint32_t logical_address = 0;
+    #endif
+
+    if (!fkb_has_valid_signature(ptr)) {
+        #if defined(__SAMD51__)
+        ptr = ((uint8_t *)ptr) + VectorsMaximumSize;
+        if (!fkb_has_valid_signature(ptr)) {
+            return false;
+        }
+        #else
+        return false;
+        #endif
+    }
+
+    fkb_header_t const *fkbh = (fkb_header_t const *)ptr;
     fw.version.arg = (void *)fkbh->firmware.version;
     fw.build.arg = (void *)fkbh->firmware.name;
     fw.number.arg = (void *)pool.sprintf("%d", fkbh->firmware.number);
     fw.timestamp = fkbh->firmware.timestamp;
     fw.hash.arg = (void *)bytes_to_hex_string_pool(fkbh->firmware.hash, fkbh->firmware.hash_size, pool);
-    #if defined(__SAMD51__)
-    fw.logical_address = (uint32_t)fkbh;
-    #endif
+    fw.logical_address = logical_address;
 
-    loginfo("(reply) firmware: number=%" PRIu32 " build=%s", fkbh->firmware.number, fkbh->firmware.name);
+    loginfo("[0x%08" PRIx32 "] firmware: number=%" PRIu32 " build=%s", ptr, fkbh->firmware.number, fkbh->firmware.name);
 
     return true;
 }
@@ -115,7 +128,7 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, bool logs, fkb_h
     }
     // TODO Deprecate
     reply_.status.has_firmware = true;
-    try_populate_firmware(reply_.status.firmware, fkb, *pool_);
+    try_populate_firmware(reply_.status.firmware, (uint32_t *)fkb, *pool_);
 
     reply_.status.has_power = true;
     reply_.status.power.has_battery = true;
@@ -153,7 +166,7 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, bool logs, fkb_h
         0x04000000 + 0x10000
     };
     for (auto address : addresses) {
-        fkb_header_t *fkbh = (fkb_header_t *)((uint32_t *)(address));
+        uint32_t *fkbh = (uint32_t *)(address);
         if (try_populate_firmware(all_firmware[firmware_array->length], fkbh, *pool_)) {
             firmware_array->length++;
         }

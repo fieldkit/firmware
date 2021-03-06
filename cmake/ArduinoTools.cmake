@@ -9,11 +9,12 @@ function(enable_signed_bin_firmware target)
 
   set(elf_file ${binary_dir}/${target}.elf)
   set(fkb_bin_file ${binary_dir}/${target}-fkb.bin)
+  set(fkb_elf_file ${binary_dir}/${target}-fkb.elf)
 
   add_custom_command(
     OUTPUT ${fkb_bin_file}
     DEPENDS ${elf_file}
-    COMMAND ${loading_PATH}/tools/mkfirmware.py --elf ${elf_file} --bin ${fkb_bin_file}
+    COMMAND ${loading_PATH}/tools/mkfirmware.py --elf ${elf_file} --fkb ${fkb_elf_file} --bin ${fkb_bin_file}
     WORKING_DIRECTORY ${binary_dir}
     )
 
