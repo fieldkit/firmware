@@ -85,7 +85,7 @@ static bool _run_instruction(uint8_t command, uint32_t iframe, uint32_t addr, ui
 
 extern "C" {
 
-int32_t qspi_read_memory(uint32_t addr, uint8_t *data, uint32_t len) {
+int32_t bl_qspi_read_memory(uint32_t addr, uint8_t *data, uint32_t len) {
     // Copied from `bool Adafruit_FlashTransport_QSPI::readMemory(uint32_t addr, uint8_t *data, uint32_t len)`
     uint32_t iframe = QSPI_INSTRFRAME_WIDTH_QUAD_OUTPUT | QSPI_INSTRFRAME_ADDRLEN_24BITS |
                       QSPI_INSTRFRAME_TFRTYPE_READMEMORY | QSPI_INSTRFRAME_INSTREN | QSPI_INSTRFRAME_ADDREN |
@@ -95,7 +95,7 @@ int32_t qspi_read_memory(uint32_t addr, uint8_t *data, uint32_t len) {
     return _run_instruction(SFLASH_CMD_QUAD_READ, iframe, addr, data, len);
 }
 
-int32_t qspi_initialize() {
+int32_t bl_qspi_initialize() {
     // Copied from `void Adafruit_FlashTransport_QSPI::begin(void)`
     MCLK->AHBMASK.reg |= MCLK_AHBMASK_QSPI;
     MCLK->AHBMASK.reg |= MCLK_AHBMASK_QSPI_2X;
@@ -120,7 +120,7 @@ int32_t qspi_initialize() {
 
     QSPI->CTRLA.bit.ENABLE = 1;
 
-    return qspi_read_memory(0, nullptr, 0);
+    return bl_qspi_read_memory(0, nullptr, 0);
 }
 
 }

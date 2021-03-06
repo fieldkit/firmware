@@ -9,7 +9,7 @@ extern "C" {
 /**
  *
  */
-int32_t qspi_initialize();
+int32_t bl_qspi_initialize();
 
 #if defined(__cplusplus)
 } // extern "C"

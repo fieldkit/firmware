@@ -16,5 +16,6 @@ uint32_t millis();
 
 void delay(uint32_t ms);
 
+#include "flash.h"
 #include "qspi.h"
 #include "utilities.h"
