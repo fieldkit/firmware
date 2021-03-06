@@ -101,24 +101,6 @@ void UpgradeFirmwareFromSdWorker::run(Pool &pool) {
     case SdCardFirmwareOperation::None: {
         break;
     }
-    case SdCardFirmwareOperation::Save: {
-        if (bl_path != nullptr) {
-            if (!save_firmware(bl_path, 0x0, BootloaderSize, pool)) {
-                gsm.notify("error saving bl");
-                return;
-            }
-        }
-
-        if (main_path != nullptr) {
-            if (!save_firmware(main_path, BootloaderSize, fkb_header.firmware.binary_size, pool)) {
-                gsm.notify("error saving fk");
-                return;
-            }
-        }
-
-        gsm.notify("saved");
-        break;
-    }
     case SdCardFirmwareOperation::Load: {
         if (main_path != nullptr) {
             fkb_header_t file_header;
@@ -190,62 +172,6 @@ void UpgradeFirmwareFromSdWorker::run(Pool &pool) {
         break;
     }
     }
-}
-
-bool UpgradeFirmwareFromSdWorker::save_firmware(const char *path, uint32_t address, size_t bytes, Pool &pool) {
-    auto sd = get_sd_card();
-
-    if (!sd->begin()) {
-        logerror("error opening sd card");
-        return false;
-    }
-
-    if (sd->is_file(path)) {
-        loginfo("deleting %s", path);
-        sd->unlink(path);
-    }
-
-    loginfo("saving firmware 0x%" PRIx32 " (%zd bytes)", address, bytes);
-
-    auto file = sd->open(path, OpenFlags::Write, pool);
-    if (file == nullptr || !file->is_open()) {
-        logerror("unable to open '%s'", path);
-        return false;
-    }
-
-    auto total_bytes = (uint32_t)0u;
-    auto flash_address = address;
-
-    GlobalStateProgressCallbacks gs_progress;
-    auto tracker = ProgressTracker{ &gs_progress, Operation::Download, "sd", "", (uint32_t)bytes };
-
-    auto buffer = (uint8_t *)pool.malloc(CodeMemoryPageSize);
-
-    while (total_bytes < bytes) {
-        get_flash()->read(flash_address, buffer, CodeMemoryPageSize);
-
-        auto nwrote = file->write(buffer, CodeMemoryPageSize);
-        if (nwrote <= 0) {
-            break;
-        }
-
-        FK_ASSERT(nwrote == CodeMemoryPageSize);
-
-        total_bytes += nwrote;
-        flash_address += nwrote;
-
-        tracker.update(nwrote);
-    }
-
-    tracker.finished();
-
-    auto file_size = file->file_size();
-
-    file->close();
-
-    loginfo("done saving %" PRIu32 " (%zd)", total_bytes, file_size);
-
-    return true;
 }
 
 bool UpgradeFirmwareFromSdWorker::has_file(const char *path) {

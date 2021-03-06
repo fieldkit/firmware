@@ -10,7 +10,6 @@ namespace fk {
 
 enum class SdCardFirmwareOperation {
     None,
-    Save,
     Load,
 };
 
@@ -43,8 +42,6 @@ public:
     }
 
 public:
-    bool save_firmware(const char *path, uint32_t address, size_t bytes, Pool &pool);
-
     bool load_firmware(const char *path, uint32_t address, Pool &pool);
 
     bool log_file_firmware(const char *path, fkb_header_t *header, Pool &pool);
