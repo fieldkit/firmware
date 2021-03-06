@@ -488,7 +488,8 @@ bool StartupWorker::check_for_upgrading_startup(Pool &pool) {
 
     auto swap = true;
     auto main_binary = "fk-bundled-fkb-network.bin";
-    auto params = SdCardFirmware{ SdCardFirmwareOperation::Load, nullptr, main_binary, swap, true, OneSecondMs };
+    auto bl_binary = "fkbl-fkb-network.bin";
+    auto params = SdCardFirmware{ SdCardFirmwareOperation::Load, bl_binary, main_binary, swap, true, OneSecondMs };
     UpgradeFirmwareFromSdWorker upgrade_worker{ params };
     upgrade_worker.run(pool);
 
