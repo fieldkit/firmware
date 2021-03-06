@@ -17,12 +17,6 @@ void fkb_log_header(fkb_header_t const *fkbh) {
     alogf(LogLevels::INFO, "fkbh", "[0x%8p] hash='%s' timestamp=%" PRIu32, fkbh, hex_hash, fkbh->firmware.timestamp);
 }
 
-bool fkb_same_header(fkb_header_t const *a, fkb_header_t const *b) {
-    if (a == nullptr || b == nullptr) return false;
-    if (a->firmware.hash_size != b->firmware.hash_size) return false;
-    return memcmp(a->firmware.hash, b->firmware.hash, b->firmware.hash_size) == 0;
-}
-
 } // namespace fk
 
 #if !defined(__SAMD51__)
