@@ -11,6 +11,26 @@ namespace fk {
 
 FK_DECLARE_LOGGER("flash");
 
+int32_t FlashWriter::write(uint8_t const *buffer, size_t size) {
+    if (address_ + size > erased_) {
+        auto erase_multiple = 64u * 1024u;
+        loginfo("[0x%08" PRIx32 "] erasing %zd", erased_, erase_multiple);
+        if (!memory_->erase(erased_, erased_ + erase_multiple)) {
+            return 0;
+        }
+
+        erased_ += erase_multiple;
+    }
+
+    if (!memory_->write(address_, buffer, size)) {
+        return 0;
+    }
+
+    address_ += size;
+
+    return size;
+}
+
 #if defined(__SAMD51__)
 
 struct flash_descriptor FLASH_0;

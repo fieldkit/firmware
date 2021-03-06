@@ -168,40 +168,6 @@ public:
 
 };
 
-class DataMemoryFlash : public FlashMemory {
-private:
-    DataMemory *data_;
-
-public:
-    DataMemoryFlash(DataMemory *data) : data_(data) {
-    }
-
-public:
-    int32_t read(uint32_t address, uint8_t *data, size_t size) override {
-        return data_->read(address, data, size);
-    }
-
-    int32_t write(uint32_t address, uint8_t const *data, size_t size) override {
-        return data_->write(address, data, size);
-    }
-
-    int32_t erase(uint32_t address, size_t size) override {
-        return data_->erase(address, size);
-    }
-
-    uint32_t flash_to_cpu(uint32_t address) override {
-        return address + 0x040000000;
-    }
-
-    const char *name() override {
-        return "qspi";
-    }
-
-};
-
-class FlashMemoryWriter : public Writer {
-};
-
 void Process::run(Pool &pool) {
     auto memory = MemoryFactory::get_qspi_memory();
 
