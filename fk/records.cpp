@@ -443,6 +443,18 @@ fk_app_HttpReply *fk_http_reply_encoding_initialize(fk_app_HttpReply *reply) {
     if (reply->status.firmware.number.arg != nullptr) reply->status.firmware.number.funcs.encode = pb_encode_string;
     if (reply->status.firmware.hash.arg != nullptr) reply->status.firmware.hash.funcs.encode = pb_encode_string;
 
+    if (reply->status.memory.firmware.arg != nullptr) {
+        reply->status.memory.firmware.funcs.encode = pb_encode_array;
+        auto array = reinterpret_cast<pb_array_t *>(reply->status.memory.firmware.arg);
+        for (size_t i = 0; i < array->length; ++i) {
+            auto fw = &((fk_app_Firmware *)array->buffer)[i];
+            fw->version.funcs.encode = pb_encode_string;
+            fw->build.funcs.encode = pb_encode_string;
+            fw->number.funcs.encode = pb_encode_string;
+            fw->name.funcs.encode = pb_encode_string;
+        }
+    }
+
     if (reply->status.schedules.readings.intervals.arg != nullptr) {
         reply->status.schedules.readings.intervals.funcs.encode = pb_encode_array;
     }

@@ -58,6 +58,28 @@ static void copy_schedule(fk_app_Schedule &d, Schedule const &s, Pool *pool) {
     d.duration = s.duration;
 }
 
+static bool try_populate_firmware(fk_app_Firmware& fw, fkb_header_t const *fkbh, Pool &pool) {
+    if (fkbh == nullptr) {
+        return false;
+    }
+    if (!fkb_has_valid_signature(fkbh)) {
+        return false;
+    }
+
+    fw.version.arg = (void *)fkbh->firmware.version;
+    fw.build.arg = (void *)fkbh->firmware.name;
+    fw.number.arg = (void *)pool.sprintf("%d", fkbh->firmware.number);
+    fw.timestamp = fkbh->firmware.timestamp;
+    fw.hash.arg = (void *)bytes_to_hex_string_pool(fkbh->firmware.hash, fkbh->firmware.hash_size, pool);
+    #if defined(__SAMD51__)
+    fw.logical_address = (uint32_t)fkbh;
+    #endif
+
+    loginfo("(reply) firmware: number=%" PRIu32 " build=%s", fkbh->firmware.number, fkbh->firmware.name);
+
+    return true;
+}
+
 bool HttpReply::include_status(uint32_t clock, uint32_t uptime, bool logs, fkb_header_t const *fkb) {
     fk_serial_number_t sn;
 
@@ -86,19 +108,14 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, bool logs, fkb_h
         reply_.status.logs.funcs.encode = pb_encode_logs;
     }
 
+    // TODO Deprecate
     if (fkb->firmware.hash_size > 0) {
         auto firmware_hash_string = bytes_to_hex_string_pool(fkb->firmware.hash, fkb->firmware.hash_size, *pool_);
         reply_.status.identity.firmware.arg = (void *)firmware_hash_string;
     }
-
+    // TODO Deprecate
     reply_.status.has_firmware = true;
-    reply_.status.firmware.version.arg = (void *)fkb->firmware.version;
-    reply_.status.firmware.build.arg = (void *)fkb->firmware.name;
-    reply_.status.firmware.number.arg = (void *)pool_->sprintf("%d", fkb->firmware.number);
-    reply_.status.firmware.timestamp = fkb->firmware.timestamp;
-    reply_.status.firmware.hash.arg = (void *)bytes_to_hex_string_pool(fkb->firmware.hash, fkb->firmware.hash_size, *pool_);
-
-    loginfo("(reply) firmware: number=%" PRIu32 " build=%s", fkb->firmware.number, fkb->firmware.name);
+    try_populate_firmware(reply_.status.firmware, fkb, *pool_);
 
     reply_.status.has_power = true;
     reply_.status.power.has_battery = true;
@@ -118,6 +135,36 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, bool logs, fkb_h
     reply_.status.memory.dataMemoryInstalled = 512 * 1024 * 1024;
     reply_.status.memory.dataMemoryUsed = 0;
     reply_.status.memory.dataMemoryConsumption = 0;
+
+    auto maximum_firmware = 4;
+    auto all_firmware = pool_->malloc<fk_app_Firmware>(maximum_firmware);
+    auto firmware_array = pool_->malloc_with<pb_array_t>({
+        .length = 0,
+        .itemSize = sizeof(fk_app_Firmware),
+        .buffer = all_firmware,
+        .fields = fk_app_Firmware_fields,
+    });
+
+    #if defined(__SAMD51__)
+    constexpr uint32_t addresses[]{
+        0x00000000,
+        0x00000000 + 0x08000,
+        0x04000000,
+        0x04000000 + 0x10000
+    };
+    for (auto address : addresses) {
+        fkb_header_t *fkbh = (fkb_header_t *)((uint32_t *)(address));
+        if (try_populate_firmware(all_firmware[firmware_array->length], fkbh, *pool_)) {
+            firmware_array->length++;
+        }
+    }
+    #else
+    if (try_populate_firmware(all_firmware[firmware_array->length], fkb, *pool_)) {
+        firmware_array->length++;
+    }
+    #endif
+
+    reply_.status.memory.firmware.arg = (void *)firmware_array;
 
     if (gs_->modules != nullptr && gs_->modules->nmodules > 0) {
         auto nmodules = gs_->modules->nmodules;
