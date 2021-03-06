@@ -11,6 +11,23 @@ namespace fk {
 
 FK_DECLARE_LOGGER("flash");
 
+DataMemoryFlash::DataMemoryFlash(DataMemory *data) : data_(data) {
+}
+
+DataMemoryFlash::~DataMemoryFlash() {
+    if (data_ != nullptr) {
+        if (!data_->begin()) {
+            logerror("error returning qspi to read");
+        }
+    }
+}
+
+FlashWriter::FlashWriter(FlashMemory *memory, uint32_t address) : memory_(memory), address_(address), erased_(address) {
+}
+
+FlashWriter::~FlashWriter() {
+}
+
 int32_t FlashWriter::write(uint8_t const *buffer, size_t size) {
     if (address_ + size > erased_) {
         auto erase_multiple = 64u * 1024u;

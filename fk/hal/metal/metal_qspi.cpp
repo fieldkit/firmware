@@ -32,6 +32,9 @@ bool MetalQspiMemory::begin() {
 
     status_ = Availability::Available;
 
+    // Teach the peripheral how to do reads so we can execute in place.
+    flash_.readBuffer(0, nullptr, 0);
+
     loginfo("qspi jedec id: 0x%" PRIx32, flash_.getJEDECID());
     loginfo("qspi size: 0x%" PRIx32 " pages: %" PRIu32 " page-size: %" PRIu32,
             flash_.size(), (uint32_t)flash_.numPages(), (uint32_t)flash_.pageSize());

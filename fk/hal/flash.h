@@ -22,8 +22,8 @@ private:
     DataMemory *data_;
 
 public:
-    DataMemoryFlash(DataMemory *data) : data_(data) {
-    }
+    DataMemoryFlash(DataMemory *data);
+    virtual ~DataMemoryFlash();
 
 public:
     int32_t read(uint32_t address, uint8_t *data, size_t size) override {
@@ -55,8 +55,8 @@ private:
     uint32_t erased_{ 0x0 };
 
 public:
-    FlashWriter(FlashMemory *memory, uint32_t address) : memory_(memory), address_(address), erased_(address) {
-    }
+    FlashWriter(FlashMemory *memory, uint32_t address);
+    virtual ~FlashWriter();
 
 public:
     int32_t write(uint8_t const *buffer, size_t size) override;
