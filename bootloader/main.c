@@ -31,7 +31,14 @@ int32_t bl_upgrade_firmware_necessary(fkb_header_t *running, fkb_header_t *testi
     if (fkb_has_valid_signature(running)) {
         bl_fkb_log_header(running);
 
-        if (fkb_same_header(running, testing)) {
+        if (running->firmware.timestamp == testing->firmware.timestamp) {
+            return 0;
+        }
+
+        if (running->firmware.timestamp >= testing->firmware.timestamp) {
+            fkb_external_println("bl: [0x%08" PRIx32 "] running is newer (%" PRIu32 " >= %" PRIu32 ")",
+                                 (uint32_t)testing, running->firmware.timestamp,
+                                 testing->firmware.timestamp);
             return 0;
         }
     }
@@ -104,9 +111,14 @@ int32_t main() {
     fkb_header_t *qspi = (fkb_header_t *)((uint32_t *)(0x04000000 + 0x10000));
 
     if (bl_upgrade_firmware_necessary(flash, qspi)) {
-        if (0 && bl_upgrade_firmware(qspi, 0x8000) < 0) {
+        if (bl_upgrade_firmware(qspi, 0x8000) < 0) {
+            // NOTE Really bad! Just really really bad. These likely
+            // means there's no firmware ahead of us anymore.
+            // TODO: Try again?
+            // TODO: Swap banks and do so in a way that won't cause
+            // the other bootloader to just have the same mistake? We
+            // won't always be able to swap banks.
             while (1) {
-                // NOTE Really bad.
                 delay(1000);
             }
         }
