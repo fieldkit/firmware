@@ -4,6 +4,7 @@
 #include "networking/module_handler.h"
 #include "networking/download_handler.h"
 #include "networking/receive_firmware_handler.h"
+#include "networking/write_memory_handler.h"
 #include "networking/logs_handler.h"
 #include "networking/file_handler.h"
 
@@ -18,6 +19,9 @@ private:
 
     ReceiveFirmwareHandler receive_firmware_handler;
     HttpRoute receive_firmware{ "/fk/v1/upload/firmware", &receive_firmware_handler };
+
+    WriteMemoryHandler write_memory_handler;
+    HttpRoute write_memory{ "/fk/v1/memory/qspi", &write_memory_handler };
 
     DownloadLogsHandler download_handler_logs;
     DownloadFileHandler download_handler_file;
@@ -59,6 +63,7 @@ public:
         router.add_route(&downloads[2]);
         router.add_route(&downloads[3]);
         router.add_route(&receive_firmware);
+        router.add_route(&write_memory);
         router.add_route(&api);
     }
 
