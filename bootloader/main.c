@@ -2,23 +2,11 @@
  *
  *
  */
-#include <samd51_common.h>
-#include <string.h>
-#include <cortex.h>
-#include <loading.h>
-#include <SEGGER_RTT.h>
+#include "bl.h"
 
-enum reset_reason _get_reset_reason(void);
-
-extern void memory_initialize(void);
-extern void board_minimal_initialize(void);
-extern void board_initialize();
+extern enum reset_reason _get_reset_reason(void);
 
 extern uint32_t __cm_app_vectors_ptr;
-
-uint32_t millis();
-
-void delay(uint32_t ms);
 
 uint32_t serial_number_get(uint32_t *sn) {
     sn[0] = __builtin_bswap32(*(uint32_t *)0x008061FC);
