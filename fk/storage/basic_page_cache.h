@@ -7,6 +7,9 @@ namespace fk {
 template<typename PageStoreType, size_t PageSize, size_t N>
 class BasicPageCache : public PageCache {
 private:
+    FK_DECLARE_LOGGER_MEMBER("pagecache");
+
+private:
     void *memory_;
     PageStoreType store_;
     CachedPage pages_[N];
@@ -217,9 +220,6 @@ public:
 
         return success;
     }
-
-private:
-    FK_DECLARE_LOGGER_MEMBERS("pagecache");
 
 };
 

@@ -345,3 +345,14 @@ log_buffer &fk_log_buffer() {
 }
 
 }
+
+namespace fk {
+
+void fk_logf(LogLevels level, const char *logger, const char *f, ...) {
+    va_list args;
+    va_start(args, f);
+    valogf(level, logger, f, args);
+    va_end(args);
+}
+
+} // namespace fk

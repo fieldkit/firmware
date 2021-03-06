@@ -35,6 +35,12 @@ void fk_logs_saved_free();
  */
 void fk_logs_dump_memory(const char *prefix, uint8_t const *p, size_t size, ...);
 
+/**
+ * Main logging function, the workhorse. This is called everywhere,
+ * usually by macro to add the logger and level.
+ */
+void fk_logf(LogLevels level, const char *logger, const char *f, ...);
+
 class LogBufferLock {
 private:
     bool success_{ false };

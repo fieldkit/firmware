@@ -101,60 +101,21 @@ using nonstd::nullopt;
 #define I2C_CHECK(expr)                               ((expr) == 0)
 
 /**
- * Declare loginfo, logerror, logwarn functions and any other necessary helpers
- * for a specific logger. Typically used at the top of a file.
+ * Declare logger facility to be used for logging calls in this scope.
  */
-#define FK_DECLARE_LOGGER_MEMBERS(name)                                         \
-    static void loginfo(const char *f, ...) {      \
-        va_list args;                              \
-        va_start(args, f);                         \
-        valogf(LogLevels::INFO, name, f, args);    \
-        va_end(args);                              \
-    }                                              \
-    static void logerror(const char *f, ...) {     \
-        va_list args;                              \
-        va_start(args, f);                         \
-        valogf(LogLevels::ERROR, name, f, args);   \
-        va_end(args);                              \
-    }                                              \
-    static void logdebug(const char *f, ...) {     \
-        va_list args;                              \
-        va_start(args, f);                         \
-        valogf(LogLevels::DEBUG, name, f, args);   \
-        va_end(args);                              \
-    }                                              \
-    static void logtrace(const char *f, ...) {     \
-        va_list args;                              \
-        va_start(args, f);                         \
-        valogf(LogLevels::TRACE, name, f, args);   \
-        va_end(args);                              \
-    }                                              \
-    static void logverbose(const char *f, ...) {   \
-        va_list args;                              \
-        va_start(args, f);                         \
-        valogf(LogLevels::VERBOSE, name, f, args); \
-        va_end(args);                              \
-    }                                              \
-    static void logwarn(const char *f, ...) {      \
-        va_list args;                              \
-        va_start(args, f);                         \
-        valogf(LogLevels::WARN, name, f, args);    \
-        va_end(args);                              \
-    }
+#define FK_DECLARE_LOGGER(name)        constexpr const char *LOG_FACILITY = name;
 
 /**
- * Declare loginfo, logerror, logwarn functions and any other necessary helpers
- * for a specific logger. Typically used at the top of a file.
+ * Declare logger facility to be used for logging calls in this class.
  */
-#define FK_DECLARE_LOGGER(name)                                         \
-    constexpr const char *LOG_FACILITY = name;                          \
-    static void loginfo(const char *f, ...) __attribute__((unused)) __attribute__((format(printf, 1, 2)));    \
-    static void logerror(const char *f, ...) __attribute__((unused)) __attribute__((format(printf, 1, 2)));   \
-    static void logwarn(const char *f, ...) __attribute__((unused)) __attribute__((format(printf, 1, 2)));    \
-    static void logtrace(const char *f, ...) __attribute__((unused)) __attribute__((format(printf, 1, 2)));   \
-    static void logdebug(const char *f, ...) __attribute__((unused)) __attribute__((format(printf, 1, 2)));   \
-    static void logverbose(const char *f, ...) __attribute__((unused)) __attribute__((format(printf, 1, 2))); \
-    FK_DECLARE_LOGGER_MEMBERS(name)
+#define FK_DECLARE_LOGGER_MEMBER(name) static constexpr const char *LOG_FACILITY = name;
+
+#define loginfo(f, ...)                fk_logf(LogLevels::INFO, LOG_FACILITY, f, ## __VA_ARGS__)
+#define logwarn(f, ...)                fk_logf(LogLevels::WARN, LOG_FACILITY, f, ## __VA_ARGS__)
+#define logerror(f, ...)               fk_logf(LogLevels::ERROR, LOG_FACILITY, f, ## __VA_ARGS__)
+#define logdebug(f, ...)               fk_logf(LogLevels::DEBUG, LOG_FACILITY, f, ## __VA_ARGS__)
+#define logtrace(f, ...)               fk_logf(LogLevels::TRACE, LOG_FACILITY, f, ## __VA_ARGS__)
+#define logverbose(f, ...)             fk_logf(LogLevels::VERBOSE, LOG_FACILITY, f, ## __VA_ARGS__)
 
 /**
  * Evaluates to 1 shifted by the given position.
