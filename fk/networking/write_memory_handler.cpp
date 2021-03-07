@@ -1,4 +1,5 @@
 #include <samd51_common.h>
+#include <loading.h>
 
 #include "networking/write_memory_handler.h"
 #include "gs_progress_callbacks.h"
@@ -49,7 +50,7 @@ static bool obliterate(FlashMemory &flash, uint32_t address, uint8_t *buffer, si
 }
 
 #if defined(__SAMD51__)
-static_assert(VectorsMaximumSize + 256 < NetworkBufferSize, "offset fkb headers should be within first io page");
+static_assert(VectorsMaximumSize + sizeof(fkb_header_t) < NetworkBufferSize, "offset fkb headers should be within first io page");
 #endif
 
 void WriteMemoryWorker::run(Pool &pool) {
