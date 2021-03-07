@@ -118,18 +118,13 @@ int32_t main() {
             // TODO: Swap banks and do so in a way that won't cause
             // the other bootloader to just have the same mistake? We
             // won't always be able to swap banks.
-            while (1) {
-                delay(1000);
-            }
+            delay(1000);
+            NVIC_SystemReset();
         }
 
         fkb_external_println("bl: upgrade!");
 
         bl_fkb_log_header(flash);
-    }
-
-    while (0) {
-        delay(1000);
     }
 
     launch();
