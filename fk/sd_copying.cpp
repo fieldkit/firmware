@@ -7,7 +7,6 @@
 #include "hal/sd_card.h"
 #include "progress_tracker.h"
 #include "gs_progress_callbacks.h"
-#include "storage/types.h"
 #include "utilities.h"
 
 namespace fk {
@@ -34,6 +33,7 @@ optional<bool> verify_flash_binary_hash(FlashMemory *flash, uint32_t address, ui
         total_bytes += nread;
         flash_address += nread;
 
+        // TODO Could we end up breaking the hash into two reads?
         if (total_bytes == binary_size_including_hash) {
             b2b.update(buffer, nread - Hash::Length);
         }

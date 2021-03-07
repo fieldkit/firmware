@@ -3,7 +3,9 @@
 #include "networking/write_memory_handler.h"
 #include "gs_progress_callbacks.h"
 #include "progress_tracker.h"
+#include "storage/types.h"
 #include "hal/flash.h"
+#include "sd_copying.h"
 
 namespace fk {
 
@@ -67,14 +69,16 @@ void WriteMemoryWorker::run(Pool &pool) {
     auto memory = MemoryFactory::get_qspi_memory();
     DataMemoryFlash flash{ memory };
     FlashWriter writer{ &flash, address };
+    BufferedWriter buffered{ &writer, (uint8_t *)pool.malloc(NetworkBufferSize), NetworkBufferSize };
 
     auto buffer = reinterpret_cast<uint8_t*>(pool.malloc(NetworkBufferSize));
     auto bytes_copied = (uint32_t)0;
 
     while (connection_->active() && bytes_copied < expected) {
-        auto bytes = connection_->read(buffer, NetworkBufferSize);
+        auto nread = std::min<size_t>(NetworkBufferSize, expected - bytes_copied);
+        auto bytes = connection_->read(buffer, nread);
         if (bytes > 0) {
-            if (writer.write(buffer, bytes) == bytes) {
+            if (buffered.write(buffer, bytes) == bytes) {
                 bytes_copied += bytes;
             }
 
@@ -82,11 +86,37 @@ void WriteMemoryWorker::run(Pool &pool) {
         }
     }
 
+    buffered.flush();
+
     tracker.finished();
 
     if (bytes_copied != expected) {
         logwarn("unexpected bytes %" PRIu32 " != %" PRIu32, bytes_copied, expected);
         write_error("incomplete", pool);
+        // TODO Nuke first page?
+        return;
+    }
+
+    Hash expected_hash;
+    if (!flash.read((address + bytes_copied) - Hash::Length, (uint8_t *)&expected_hash.hash, Hash::Length)) {
+        logerror("error reading hash");
+        write_error("hash_read", pool);
+        // TODO Nuke first page?
+        return;
+    }
+
+    auto hash_check = verify_flash_binary_hash(&flash, address, bytes_copied, 4096, expected_hash, pool);
+    if (!hash_check) {
+        logwarn("error checking hash");
+        write_error("hash_check", pool);
+        // TODO Nuke first page?
+        return;
+    }
+
+    if (!*hash_check) {
+        logwarn("hash mismatch");
+        write_error("hash_mismatch", pool);
+        // TODO Nuke first page?
         return;
     }
 
