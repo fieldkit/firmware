@@ -435,6 +435,9 @@ constexpr uint32_t BootloaderSize = 0x8000;
  * Maximum size of the vector table at the start of the
  * bootloader. This is used to calculate an offset into memory to
  * check for the fkb_header_t struct.
+ *
+ * Also note that this should be within NetworkBufferSize as well so
+ * that first-page erases nuke this as well.
  */
 constexpr uint32_t VectorsMaximumSize = 0x40;
 

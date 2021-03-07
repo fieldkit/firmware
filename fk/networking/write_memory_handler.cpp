@@ -43,6 +43,15 @@ bool WriteMemoryWorker::write_success(Pool &pool) {
     return true;
 }
 
+static bool obliterate(FlashMemory &flash, uint32_t address, uint8_t *buffer, size_t size) {
+    bzero(buffer, size);
+    return flash.write(address, buffer, size);
+}
+
+#if defined(__SAMD51__)
+static_assert(VectorsMaximumSize + 256 < NetworkBufferSize, "offset fkb headers should be within first io page");
+#endif
+
 void WriteMemoryWorker::run(Pool &pool) {
     auto lock = sd_mutex.acquire(UINT32_MAX);
     auto expected = connection_->length();
@@ -78,7 +87,12 @@ void WriteMemoryWorker::run(Pool &pool) {
         auto nread = std::min<size_t>(NetworkBufferSize, expected - bytes_copied);
         auto bytes = connection_->read(buffer, nread);
         if (bytes > 0) {
-            if (buffered.write(buffer, bytes) == bytes) {
+            if (buffered.write(buffer, bytes) != bytes) {
+                logerror("write error");
+                read_complete_and_fail("write", pool);
+                return;
+            }
+            else {
                 bytes_copied += bytes;
             }
 
@@ -86,37 +100,42 @@ void WriteMemoryWorker::run(Pool &pool) {
         }
     }
 
-    buffered.flush();
+    if (!buffered.flush()) {
+        logwarn("error flushing");
+        read_complete_and_fail("incomplete", pool);
+        obliterate(flash, address, buffer, NetworkBufferSize);
+        return;
+    }
 
     tracker.finished();
 
     if (bytes_copied != expected) {
         logwarn("unexpected bytes %" PRIu32 " != %" PRIu32, bytes_copied, expected);
-        write_error("incomplete", pool);
-        // TODO Nuke first page?
+        read_complete_and_fail("incomplete", pool);
+        obliterate(flash, address, buffer, NetworkBufferSize);
         return;
     }
 
     Hash expected_hash;
     if (!flash.read((address + bytes_copied) - Hash::Length, (uint8_t *)&expected_hash.hash, Hash::Length)) {
         logerror("error reading hash");
-        write_error("hash_read", pool);
-        // TODO Nuke first page?
+        read_complete_and_fail("hash_read", pool);
+        obliterate(flash, address, buffer, NetworkBufferSize);
         return;
     }
 
     auto hash_check = verify_flash_binary_hash(&flash, address, bytes_copied, 4096, expected_hash, pool);
     if (!hash_check) {
         logwarn("error checking hash");
-        write_error("hash_check", pool);
-        // TODO Nuke first page?
+        read_complete_and_fail("hash_check", pool);
+        obliterate(flash, address, buffer, NetworkBufferSize);
         return;
     }
 
     if (!*hash_check) {
         logwarn("hash mismatch");
-        write_error("hash_mismatch", pool);
-        // TODO Nuke first page?
+        read_complete_and_fail("hash_mismatch", pool);
+        obliterate(flash, address, buffer, NetworkBufferSize);
         return;
     }
 
