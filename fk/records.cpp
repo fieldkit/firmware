@@ -452,6 +452,7 @@ fk_app_HttpReply *fk_http_reply_encoding_initialize(fk_app_HttpReply *reply) {
             fw->build.funcs.encode = pb_encode_string;
             fw->number.funcs.encode = pb_encode_string;
             fw->name.funcs.encode = pb_encode_string;
+            fw->hash.funcs.encode = pb_encode_string;
         }
     }
 
