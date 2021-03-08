@@ -232,7 +232,7 @@ static bool configure(HttpServerConnection *connection, fk_app_HttpQuery *query,
     }
 
     auto networks_array = (pb_array_t *)query->networkSettings.networks.arg;
-    if (networks_array != nullptr) {
+    if (query->networkSettings.modifying && networks_array != nullptr) {
         auto nnetworks = std::min(networks_array->length, WifiMaximumNumberOfNetworks);
 
         loginfo("have %zd networks", networks_array->length);
