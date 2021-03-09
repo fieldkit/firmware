@@ -12,8 +12,6 @@ typedef DataMemory*(*DataMemoryFn)(void);
 // Read a region in a block. Negative error codes are propogated
 // to the user.
 int lfs_block_device_read(struct lfs_config const *c, lfs_block_t block, lfs_off_t off, void *buffer, lfs_size_t size) {
-    logdebug("read: %" PRIu32 " off=%" PRIu32 " size=%" PRIu32, block, off, size);
-
     auto memory = reinterpret_cast<DataMemoryFn>(c->context)();
     auto g = memory->geometry();
     auto address = block * g.block_size + off;
@@ -25,8 +23,6 @@ int lfs_block_device_read(struct lfs_config const *c, lfs_block_t block, lfs_off
 }
 
 int lfs_block_device_prog(struct lfs_config const *c, lfs_block_t block, lfs_off_t off, const void *buffer, lfs_size_t size) {
-    logdebug("prog: %" PRIu32 " off=%" PRIu32 " size=%" PRIu32, block, off, size);
-
     auto memory = reinterpret_cast<DataMemoryFn>(c->context)();
     auto g = memory->geometry();
     auto address = block * g.block_size + off;
@@ -42,8 +38,6 @@ int lfs_block_device_prog(struct lfs_config const *c, lfs_block_t block, lfs_off
 // are propogated to the user.
 // May return LFS_ERR_CORRUPT if the block should be considered bad.
 int lfs_block_device_erase(struct lfs_config const *c, lfs_block_t block) {
-    logdebug("erase: %" PRIu32, block);
-
     auto memory = reinterpret_cast<DataMemoryFn>(c->context)();
     auto g = memory->geometry();
     auto address = block * g.block_size;
@@ -102,20 +96,34 @@ int32_t lfs_test() {
         lfs_mount(&lfs, &cfg);
     }
 
-    uint32_t boot_count = 0;
-    lfs_file_t file;
     lfs_file_config file_cfg = {
         .buffer = pool.malloc(1024),
+        .attrs = nullptr,
+        .attr_count = 0,
     };
+
+    lfs_file_t file;
+    uint32_t boot_count = 0;
     lfs_file_opencfg(&lfs, &file, "boot_count", LFS_O_RDWR | LFS_O_CREAT, &file_cfg);
     lfs_file_read(&lfs, &file, &boot_count, sizeof(boot_count));
     boot_count += 1;
     lfs_file_rewind(&lfs, &file);
     lfs_file_write(&lfs, &file, &boot_count, sizeof(boot_count));
     lfs_file_close(&lfs, &file);
+
+    lfs_dir_t dir;
+    struct lfs_info info;
+    lfs_dir_open(&lfs, &dir, "/");
+    while (lfs_dir_read(&lfs, &dir, &info)) {
+        loginfo("ls: %d '%s' (%d)", info.type, info.name, info.size);
+    }
+    lfs_dir_close(&lfs, &dir);
+
     lfs_unmount(&lfs);
 
-    loginfo("test done: %" PRIu32, boot_count);
+    auto fs_blocks = lfs_fs_size(&lfs);
+
+    loginfo("test done: %" PRIu32 " size=%" PRIu32, boot_count, fs_blocks * cfg.block_size);
 
     while (1) {
     }

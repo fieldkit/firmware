@@ -224,7 +224,7 @@ int32_t SpiFlash::write_internal(uint32_t address, const uint8_t *data, size_t l
     row_address_to_bytes(address, program_execute_command + 1);
     column_address_to_bytes(address, program_load_command + 1);
 
-    logtrace("[0x%08" PRIx32 "] write: length=%d (end = [0x%06" PRIx32 "])", address, length, address + length);
+    logdebug("[0x%08" PRIx32 "] write: length=%d (end = [0x%06" PRIx32 "])", address, length, address + length);
 
     // auto lock = spi_flash_mutex.acquire(UINT32_MAX);
     // FK_ASSERT(lock);

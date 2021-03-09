@@ -13,6 +13,7 @@
 #include "hal/battery_gauge.h"
 #include "state_ref.h"
 #include "clock.h"
+#include "storage/lfs_driver.h"
 
 #include "../modules/weather/main/weather.h"
 
@@ -616,6 +617,9 @@ void fk_live_tests() {
     }
     if (false) {
         sleep_test();
+    }
+    if (true) {
+        lfs_test();
     }
 }
 
