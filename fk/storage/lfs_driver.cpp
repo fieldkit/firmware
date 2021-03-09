@@ -1,6 +1,7 @@
 #include "lfs_driver.h"
 
 #include "hal/memory.h"
+#include "pool.h"
 
 namespace fk {
 
@@ -82,9 +83,15 @@ struct lfs_config cfg = {
 };
 
 int32_t lfs_test() {
+    StandardPool pool{ "lfs" };
+
     lfs_t lfs;
 
     FK_ASSERT(MemoryFactory::get_data_memory()->begin());
+
+    cfg.read_buffer = pool.malloc(1024);
+    cfg.prog_buffer = pool.malloc(1024);
+    cfg.lookahead_buffer = pool.malloc(16);
 
     int32_t err = lfs_mount(&lfs, &cfg);
 
@@ -97,7 +104,10 @@ int32_t lfs_test() {
 
     uint32_t boot_count = 0;
     lfs_file_t file;
-    lfs_file_open(&lfs, &file, "boot_count", LFS_O_RDWR | LFS_O_CREAT);
+    lfs_file_config file_cfg = {
+        .buffer = pool.malloc(1024),
+    };
+    lfs_file_opencfg(&lfs, &file, "boot_count", LFS_O_RDWR | LFS_O_CREAT, &file_cfg);
     lfs_file_read(&lfs, &file, &boot_count, sizeof(boot_count));
     boot_count += 1;
     lfs_file_rewind(&lfs, &file);
