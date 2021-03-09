@@ -5,6 +5,11 @@
 
 namespace fk {
 
+#define LFS_DRIVER_READ_SIZE             (1024)
+#define LFS_DRIVER_PROG_SIZE             (1024)
+#define LFS_DRIVER_CACHE_SIZE            (LFS_DRIVER_READ_SIZE * 2)
+#define LFS_DRIVER_LOOKAHEAD_SIZE        (16)
+
 FK_DECLARE_LOGGER("lfs");
 
 typedef DataMemory*(*DataMemoryFn)(void);
@@ -12,6 +17,8 @@ typedef DataMemory*(*DataMemoryFn)(void);
 // Read a region in a block. Negative error codes are propogated
 // to the user.
 int lfs_block_device_read(struct lfs_config const *c, lfs_block_t block, lfs_off_t off, void *buffer, lfs_size_t size) {
+    logdebug("read: %" PRIu32 " off=%" PRIu32 " size=%" PRIu32, block, off, size);
+
     auto memory = reinterpret_cast<DataMemoryFn>(c->context)();
     auto g = memory->geometry();
     auto address = block * g.block_size + off;
@@ -23,6 +30,8 @@ int lfs_block_device_read(struct lfs_config const *c, lfs_block_t block, lfs_off
 }
 
 int lfs_block_device_prog(struct lfs_config const *c, lfs_block_t block, lfs_off_t off, const void *buffer, lfs_size_t size) {
+    logdebug("prog: %" PRIu32 " off=%" PRIu32 " size=%" PRIu32, block, off, size);
+
     auto memory = reinterpret_cast<DataMemoryFn>(c->context)();
     auto g = memory->geometry();
     auto address = block * g.block_size + off;
@@ -38,6 +47,8 @@ int lfs_block_device_prog(struct lfs_config const *c, lfs_block_t block, lfs_off
 // are propogated to the user.
 // May return LFS_ERR_CORRUPT if the block should be considered bad.
 int lfs_block_device_erase(struct lfs_config const *c, lfs_block_t block) {
+    logdebug("erase: %" PRIu32, block);
+
     auto memory = reinterpret_cast<DataMemoryFn>(c->context)();
     auto g = memory->geometry();
     auto address = block * g.block_size;
@@ -60,13 +71,13 @@ struct lfs_config cfg = {
     .prog = lfs_block_device_prog,
     .erase = lfs_block_device_erase,
     .sync = lfs_block_device_sync,
-    .read_size = 1024,
-    .prog_size = 1024,
+    .read_size = LFS_DRIVER_READ_SIZE,
+    .prog_size = LFS_DRIVER_PROG_SIZE,
     .block_size = 128 * 1024,
-    .block_count = 128,
+    .block_count = 128, // TODO
     .block_cycles = 500,
-    .cache_size = 1024,
-    .lookahead_size = 16,
+    .cache_size = LFS_DRIVER_CACHE_SIZE,
+    .lookahead_size = LFS_DRIVER_LOOKAHEAD_SIZE,
     .read_buffer = nullptr,
     .prog_buffer = nullptr,
     .lookahead_buffer = nullptr,
@@ -83,9 +94,9 @@ int32_t lfs_test() {
 
     FK_ASSERT(MemoryFactory::get_data_memory()->begin());
 
-    cfg.read_buffer = pool.malloc(1024);
-    cfg.prog_buffer = pool.malloc(1024);
-    cfg.lookahead_buffer = pool.malloc(16);
+    cfg.read_buffer = pool.malloc(cfg.read_size);
+    cfg.prog_buffer = pool.malloc(cfg.prog_size);
+    cfg.lookahead_buffer = pool.malloc(cfg.lookahead_size);
 
     int32_t err = lfs_mount(&lfs, &cfg);
 
@@ -97,7 +108,7 @@ int32_t lfs_test() {
     }
 
     lfs_file_config file_cfg = {
-        .buffer = pool.malloc(1024),
+        .buffer = pool.malloc(cfg.cache_size),
         .attrs = nullptr,
         .attr_count = 0,
     };
