@@ -241,28 +241,13 @@ void _flash_append(struct _flash_device *const device, const uint32_t dst_addr, 
  */
 void _flash_erase(struct _flash_device *const device, uint32_t dst_addr, uint32_t page_nums)
 {
-	uint8_t  tmp_buffer[NVMCTRL_PAGE_SIZE];
 	uint32_t row_start_addr;
 	uint32_t i;
 
 	row_start_addr = dst_addr & ~((NVMCTRL_PAGE_SIZE * NVMCTRL_ROW_PAGES) - 1);
 
-	memset(tmp_buffer, 0xFF, NVMCTRL_PAGE_SIZE);
-
 	/* when address is not aligned with row start address */
-	if (dst_addr != row_start_addr) {
-		row_start_addr += NVMCTRL_ROW_PAGES * NVMCTRL_PAGE_SIZE;
-		for (i = 0; i < NVMCTRL_ROW_PAGES - 1; i++) {
-			_flash_write(device, dst_addr, tmp_buffer, NVMCTRL_PAGE_SIZE);
-			if (--page_nums == 0) {
-				return;
-			}
-			dst_addr += NVMCTRL_PAGE_SIZE;
-			if (dst_addr == row_start_addr) {
-				break;
-			}
-		}
-	}
+	ASSERT(dst_addr == row_start_addr);
 
 	while (page_nums >= NVMCTRL_ROW_PAGES) {
 		_flash_erase_row(device->hw, row_start_addr, NVMCTRL_CTRLA_CMD_ER);
@@ -270,12 +255,7 @@ void _flash_erase(struct _flash_device *const device, uint32_t dst_addr, uint32_
 		page_nums -= NVMCTRL_ROW_PAGES;
 	}
 
-	if (page_nums != 0) {
-		for (i = 0; i < page_nums; i++) {
-			_flash_write(device, row_start_addr, tmp_buffer, NVMCTRL_PAGE_SIZE);
-			row_start_addr += NVMCTRL_PAGE_SIZE;
-		}
-	}
+    ASSERT(page_nums == 0);
 }
 
 /**
