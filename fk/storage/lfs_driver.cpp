@@ -73,6 +73,24 @@ bool LfsDriver::begin() {
     return true;
 }
 
+lfs_file_config LfsDriver::make_file_cfg() {
+    auto attrs = (struct lfs_attr *)pool_->malloc<struct lfs_attr>(2);
+
+    attrs[0].type = LFS_DRIVER_ATTR_FIRST_BLOCK;
+    attrs[0].buffer = pool_->malloc(sizeof(uint32_t));
+    attrs[0].size = sizeof(uint32_t);
+
+    attrs[1].type = LFS_DRIVER_ATTR_NBLOCKS;
+    attrs[1].buffer = pool_->malloc(sizeof(uint32_t));
+    attrs[1].size = sizeof(uint32_t);
+
+    return {
+        .buffer = pool_->malloc(LFS_DRIVER_CACHE_SIZE),
+        .attrs = attrs,
+        .attr_count = 2,
+    };
+};
+
 int32_t LfsDriver::read(struct lfs_config const *c, lfs_block_t block, lfs_off_t off, void *buffer, lfs_size_t size) {
     // logdebug("read: %" PRIu32 " off=%" PRIu32 " size=%" PRIu32, block, off, size);
 
@@ -120,6 +138,12 @@ int32_t lfs_test() {
 
     auto &lfs = lfs_driver.lfs();
 
+    // Without opening:
+    uint32_t nblocks = 0;
+    lfs_getattr(&lfs, "boot_count", LFS_DRIVER_ATTR_NBLOCKS, &nblocks, sizeof(nblocks));
+
+    loginfo("attr = %" PRIu32, nblocks);
+
     lfs_file_config file_cfg = lfs_driver.make_file_cfg();
 
     lfs_file_t file;
@@ -129,6 +153,13 @@ int32_t lfs_test() {
     boot_count += 1;
     lfs_file_rewind(&lfs, &file);
     lfs_file_write(&lfs, &file, &boot_count, sizeof(boot_count));
+
+    // Faster:
+    memcpy(&nblocks, file_cfg.attrs[1].buffer, sizeof(nblocks));
+    nblocks += 1;
+    memcpy(file_cfg.attrs[1].buffer, &nblocks, sizeof(nblocks));
+    loginfo("attr = %" PRIu32, nblocks);
+
     lfs_file_close(&lfs, &file);
 
     lfs_dir_t dir;

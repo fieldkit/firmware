@@ -14,6 +14,9 @@ int32_t lfs_test();
 #define LFS_DRIVER_CACHE_SIZE            (LFS_DRIVER_READ_SIZE * 2)
 #define LFS_DRIVER_LOOKAHEAD_SIZE        (16)
 
+#define LFS_DRIVER_ATTR_FIRST_BLOCK      (0x01)
+#define LFS_DRIVER_ATTR_NBLOCKS          (0x02)
+
 class LfsDriver {
 private:
     DataMemory *memory_{ nullptr };
@@ -33,17 +36,11 @@ public:
 public:
     bool begin();
 
+    lfs_file_config make_file_cfg();
+
     lfs_t &lfs() {
         return lfs_;
     }
-
-    lfs_file_config make_file_cfg() {
-        return {
-            .buffer = pool_->malloc(LFS_DRIVER_CACHE_SIZE),
-            .attrs = nullptr,
-            .attr_count = 0,
-        };
-    };
 
 };
 
