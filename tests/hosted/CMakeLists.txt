@@ -82,6 +82,9 @@ target_link_libraries(testall data-protocol)
 find_package(CortexLoading)
 target_link_libraries(testall CortexLoading)
 
+find_package(Lfs)
+target_link_libraries(testall Lfs)
+
 find_package(Samd51Common)
 target_link_libraries(testall Samd51Common)
 

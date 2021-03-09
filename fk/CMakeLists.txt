@@ -91,6 +91,9 @@ target_link_libraries(fk-bundled ConservifyOS)
 find_package(Asf4)
 target_link_libraries(fk-bundled Asf4)
 
+find_package(Lfs)
+target_link_libraries(fk-bundled Lfs)
+
 find_package(Samd51Common)
 target_link_libraries(fk-bundled Samd51Common)
 
