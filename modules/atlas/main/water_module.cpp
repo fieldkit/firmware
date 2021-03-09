@@ -136,7 +136,7 @@ ModuleSensors const *WaterModule::get_sensors(Pool &pool) {
     case AtlasSensorType::Temp: {
         auto meta = pool.malloc_with<SensorMetadata>({
             .name = "temp",
-            .unitOfMeasure = "C",
+            .unitOfMeasure = "°C",
             .flags = 0,
         });
         return pool.malloc_with<ModuleSensors>({
