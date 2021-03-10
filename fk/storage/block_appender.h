@@ -6,16 +6,30 @@
 
 namespace fk {
 
+class FileSizeRollover {
+private:
+    lfs_size_t size_;
+
+public:
+    FileSizeRollover(lfs_size_t size) : size_(size) {
+    }
+
+public:
+    bool should_rollover(lfs_t *lfs, lfs_file_t *file);
+
+};
+
 class BlockAppender {
 private:
     LfsDriver *lfs_{ nullptr };
     FileMap *map_{ nullptr };
+    FileSizeRollover strategy_;
     uint32_t start_block_of_last_file_{ 0 };
     bool initialized_{ false };
     char *path_{ nullptr };
 
 public:
-    BlockAppender(LfsDriver *lfs, FileMap *map, Pool &pool);
+    BlockAppender(LfsDriver *lfs, FileMap *map, lfs_size_t rollover_size, Pool &pool);
 
 public:
     bool create_directory_if_necessary();
@@ -31,7 +45,9 @@ private:
         return map_->directory();
     }
 
-    bool should_rollover(lfs_file_t *file);
+    bool should_rollover(lfs_file_t *file) {
+        return strategy_.should_rollover(lfs(), file);
+    }
 
 };
 

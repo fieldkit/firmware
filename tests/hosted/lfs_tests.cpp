@@ -94,7 +94,7 @@ TEST_F(LfsSuite, Create) {
     log_configure_level(LogLevels::NONE);
 
     FileMap map{ &lfs_driver, "data", pool };
-    BlockAppender appender{ &lfs_driver, &map, pool };
+    BlockAppender appender{ &lfs_driver, &map, 1024, pool };
 
     ReadingRecord readings{ 10000, 0 };
     for (auto i = 0u; i < 4 * 20; ++i) {

@@ -8,7 +8,7 @@ namespace fk {
 
 FK_DECLARE_LOGGER("lfs");
 
-BlockAppender::BlockAppender(LfsDriver *lfs, FileMap *map, Pool &pool) : lfs_(lfs), map_(map) {
+BlockAppender::BlockAppender(LfsDriver *lfs, FileMap *map, lfs_size_t rollover_size, Pool &pool) : lfs_(lfs), map_(map), strategy_{ rollover_size } {
     path_ = (char *)pool.malloc(LFS_NAME_MAX);
 }
 
@@ -25,9 +25,9 @@ bool BlockAppender::append(fk_data_DataRecord *record, Pool &pool) {
     if (!initialized_) {
         FK_ASSERT(create_directory_if_necessary());
 
-        // In order to append we only need to know the file that we're
-        // starting with, so refresh the map and get the start block
-        // of the last file.
+        // In order to append we only need to know the very last file
+        // in the sequence, so refresh the map and get the start block
+        // of that last file.
         auto search = map_->find(UINT32_MAX, pool);
         if (!search) {
             logerror("append error finding tail");
@@ -100,8 +100,8 @@ bool BlockAppender::append(fk_data_DataRecord *record, Pool &pool) {
     return true;
 }
 
-bool BlockAppender::should_rollover(lfs_file_t *file) {
-    auto file_size = lfs_file_size(lfs(), file);
+bool FileSizeRollover::should_rollover(lfs_t *lfs, lfs_file_t *file) {
+    auto file_size = lfs_file_size(lfs, file);
     return file_size > 1024;
 }
 
