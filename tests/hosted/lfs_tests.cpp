@@ -11,16 +11,16 @@ FK_DECLARE_LOGGER("lfs");
 class ReadingRecord {
 public:
     fk_data_SensorAndValue readings[10]{
-        { 0, (float)random() },
-        { 1, (float)random() },
-        { 2, (float)random() },
-        { 3, (float)random() },
-        { 4, (float)random() },
-        { 5, (float)random() },
-        { 6, (float)random() },
-        { 7, (float)random() },
-        { 8, (float)random() },
-        { 9, (float)random() },
+        { 0, (float)fk_random_i32(0, 100) },
+        { 1, (float)fk_random_i32(0, 100) },
+        { 2, (float)fk_random_i32(0, 100) },
+        { 3, (float)fk_random_i32(0, 100) },
+        { 4, (float)fk_random_i32(0, 100) },
+        { 5, (float)fk_random_i32(0, 100) },
+        { 6, (float)fk_random_i32(0, 100) },
+        { 7, (float)fk_random_i32(0, 100) },
+        { 8, (float)fk_random_i32(0, 100) },
+        { 9, (float)fk_random_i32(0, 100) },
     };
 
     pb_array_t readings_array{
@@ -60,7 +60,7 @@ public:
         record.readings.flags = 0;
         record.readings.has_location = true;
         record.readings.location.fix = 0;
-        record.readings.location.time = fk_uptime();
+        record.readings.location.time = uptime;
         record.readings.location.longitude = -118.2709223;
         record.readings.location.latitude = 34.0318047;
         record.readings.location.altitude = 100.0f;
@@ -72,10 +72,10 @@ public:
 class LfsSuite : public ::testing::Test {
 protected:
     void SetUp() override {
-        log_configure_level(LogLevels::INFO);
     }
 
     void TearDown() override {
+        log_configure_level(LogLevels::NONE);
     }
 
 };
@@ -91,18 +91,16 @@ TEST_F(LfsSuite, Create) {
 
     auto lfs = lfs_driver.lfs();
 
-    log_configure_level(LogLevels::NONE);
+    // log_configure_level(LogLevels::INFO);
 
     FileMap map{ &lfs_driver, "data", pool };
     BlockAppender appender{ &lfs_driver, &map, 1024, pool };
 
-    ReadingRecord readings{ 10000, 0 };
+    ReadingRecord readings{ 0, 0 };
     for (auto i = 0u; i < 4 * 20; ++i) {
         StandardPool iter{ "iter" };
         FK_ASSERT(appender.append(&readings.record, iter));
     }
-
-    log_configure_level(LogLevels::INFO);
 
     PartitionedReader reader{ &lfs_driver, &map, pool };
 
@@ -110,15 +108,15 @@ TEST_F(LfsSuite, Create) {
     ASSERT_TRUE(seek1);
     ASSERT_EQ(seek1->block, 17u);
     ASSERT_EQ(seek1->first_block_of_containing_file, 10u);
-    ASSERT_EQ(seek1->absolute_position, 3051u);
-    ASSERT_EQ(seek1->file_position, 791u);
+    ASSERT_EQ(seek1->absolute_position, 2970u);
+    ASSERT_EQ(seek1->file_position, 770u);
 
     auto seek2 = reader.seek(64, pool);
     ASSERT_TRUE(seek2);
     ASSERT_EQ(seek2->block, 64u);
     ASSERT_EQ(seek2->first_block_of_containing_file, 60u);
-    ASSERT_EQ(seek2->absolute_position, 8362u);
-    ASSERT_EQ(seek2->file_position, 452u);
+    ASSERT_EQ(seek2->absolute_position, 8140u);
+    ASSERT_EQ(seek2->file_position, 440u);
 
     lfs_unmount(lfs);
 }
