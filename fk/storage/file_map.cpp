@@ -7,17 +7,16 @@ namespace fk {
 FK_DECLARE_LOGGER("lfs");
 
 FileMap::FileMap(LfsDriver *lfs, Pool &pool) : lfs_(lfs) {
+    path_ = (char *)pool.malloc(LFS_NAME_MAX);
 }
 
 bool FileMap::refresh(const char *directory, uint32_t desired_block, Pool &pool) {
-    auto path = (char *)pool.malloc(LFS_NAME_MAX);
-
-    lfs_dir_t dir;
-    lfs_dir_open(lfs(), &dir, directory);
-
     bytes_traversed_ = 0;
     start_of_last_file_ = 0;
     first_file_ = UINT32_MAX;
+
+    lfs_dir_t dir;
+    lfs_dir_open(lfs(), &dir, directory);
 
     /**
      * This is basically an array of indices/block numbers and
@@ -31,7 +30,6 @@ bool FileMap::refresh(const char *directory, uint32_t desired_block, Pool &pool)
      * Which will easily sit inside a single page of memory:
      *
      * 8192 / 4 = 2048 files, or one file per block on two chip.
-     *
      */
     struct lfs_info info;
     while (lfs_dir_read(lfs(), &dir, &info)) {
@@ -39,13 +37,13 @@ bool FileMap::refresh(const char *directory, uint32_t desired_block, Pool &pool)
             continue;
         }
 
-        tiny_snprintf(path, LFS_NAME_MAX, "%s/%s", directory, info.name);
+        tiny_snprintf(path_, LFS_NAME_MAX, "%s/%s", directory, info.name);
 
         uint32_t first_block = 0;
-        lfs_getattr(lfs(), path, LFS_DRIVER_ATTR_FIRST_BLOCK, &first_block, sizeof(first_block));
+        lfs_getattr(lfs(), path_, LFS_DRIVER_ATTR_FIRST_BLOCK, &first_block, sizeof(first_block));
 
         uint32_t nblocks = 0;
-        lfs_getattr(lfs(), path, LFS_DRIVER_ATTR_NBLOCKS, &nblocks, sizeof(nblocks));
+        lfs_getattr(lfs(), path_, LFS_DRIVER_ATTR_NBLOCKS, &nblocks, sizeof(nblocks));
 
         loginfo("ls: '%s' type=%d size=%d attrs: first-block=%" PRIu32 " nblocks=%" PRIu32, info.name, info.type,
                 info.size, first_block, nblocks);

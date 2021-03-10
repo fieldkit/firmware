@@ -7,6 +7,7 @@ namespace fk {
 class FileMap {
 private:
     LfsDriver *lfs_{ nullptr };
+    char *path_{ nullptr };
     uint32_t first_file_{ 0 };
     uint32_t start_of_last_file_{ 0 };
     uint32_t last_block_{ 0 };
