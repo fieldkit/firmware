@@ -1,43 +1,39 @@
 #pragma once
 
+#include <tl/expected.hpp>
+
 #include "storage/lfs_driver.h"
 
 namespace fk {
 
+struct block_search_t {
+    uint32_t start_block_of_first_file;
+    uint32_t start_block_of_last_file;
+    uint32_t bytes_before_start_of_last_file;
+    uint32_t last_block;
+};
+
 class FileMap {
 private:
     LfsDriver *lfs_{ nullptr };
+    const char *directory_{ nullptr };
     char *path_{ nullptr };
-    uint32_t first_file_{ 0 };
-    uint32_t start_of_last_file_{ 0 };
-    uint32_t last_block_{ 0 };
-    uint32_t bytes_traversed_{ 0 };
     bool initialized_{ false };
 
 public:
-    FileMap(LfsDriver *lfs, Pool &pool);
+    FileMap(LfsDriver *lfs, const char *directory, Pool &pool);
 
 public:
-    uint32_t first_file() {
-        return first_file_;
-    }
-
-    uint32_t start_of_last_file() {
-        return start_of_last_file_;
-    }
-
-    uint32_t last_block() {
-        return last_block_;
-    }
-
-    uint32_t bytes_traversed() {
-        return bytes_traversed_;
+    const char *directory() {
+        return directory_;
     }
 
 public:
-    bool refresh(const char *directory, uint32_t desired_block, Pool &pool);
+    bool refresh(Pool &pool);
 
-    bool refresh(const char *directory, Pool &pool);
+    tl::expected<block_search_t, Error> find(uint32_t desired_block, Pool &pool);
+
+    void invalidate();
 
 private:
     lfs_t *lfs() {

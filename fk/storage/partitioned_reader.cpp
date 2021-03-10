@@ -2,28 +2,26 @@
 
 #include "storage/partitioned_reader.h"
 #include "storage/lfs_attributes.h"
-#include "storage/file_map.h"
 #include "protobuf.h"
 
 namespace fk {
 
 FK_DECLARE_LOGGER("lfs");
 
-PartitionedReader::PartitionedReader(LfsDriver *lfs, const char *directory, Pool &pool) : lfs_(lfs), directory_(directory) {
+PartitionedReader::PartitionedReader(LfsDriver *lfs, FileMap *map, Pool &pool) : lfs_(lfs), map_(map) {
     path_ = (char *)pool.malloc(LFS_NAME_MAX);
     buffer_ = (uint8_t *)pool.malloc(buffer_size_);
 }
 
 bool PartitionedReader::seek(uint32_t desired_block, Pool &pool) {
-    FileMap map{ lfs_, pool };
+    loginfo("seeking R-%" PRIu32 " in %s", desired_block, directory());
 
-    loginfo("seeking R-%" PRIu32 " in %s", desired_block, directory_);
-
-    if (!map.refresh(directory_, desired_block, pool)) {
+    auto search = map_->find(desired_block, pool);
+    if (!search) {
         return false;
     }
 
-    tiny_snprintf(path_, LFS_NAME_MAX, "%s/%08" PRIx32 ".fkpb", directory_, map.start_of_last_file());
+    tiny_snprintf(path_, LFS_NAME_MAX, "%s/%08" PRIx32 ".fkpb", directory(), search->start_block_of_last_file);
 
     loginfo("opening %s", path_);
 

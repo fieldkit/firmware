@@ -6,17 +6,25 @@ namespace fk {
 
 FK_DECLARE_LOGGER("lfs");
 
-FileMap::FileMap(LfsDriver *lfs, Pool &pool) : lfs_(lfs) {
+FileMap::FileMap(LfsDriver *lfs, const char *directory, Pool &pool) : lfs_(lfs), directory_(directory) {
     path_ = (char *)pool.malloc(LFS_NAME_MAX);
 }
 
-bool FileMap::refresh(const char *directory, uint32_t desired_block, Pool &pool) {
-    bytes_traversed_ = 0;
-    start_of_last_file_ = 0;
-    first_file_ = UINT32_MAX;
+bool FileMap::refresh(Pool &pool) {
+    if (!find(UINT32_MAX, pool)) {
+        return false;
+    }
+    return true;
+}
+
+tl::expected<block_search_t, Error> FileMap::find(uint32_t desired_block, Pool &pool) {
+    uint32_t start_block_of_first_file{ UINT32_MAX };
+    uint32_t start_block_of_last_file{ 0 };
+    uint32_t bytes_before_start_of_last_file{ 0 };
+    uint32_t last_block{ 0 };
 
     lfs_dir_t dir;
-    lfs_dir_open(lfs(), &dir, directory);
+    lfs_dir_open(lfs(), &dir, directory_);
 
     /**
      * This is basically an array of indices/block numbers and
@@ -37,7 +45,7 @@ bool FileMap::refresh(const char *directory, uint32_t desired_block, Pool &pool)
             continue;
         }
 
-        tiny_snprintf(path_, LFS_NAME_MAX, "%s/%s", directory, info.name);
+        tiny_snprintf(path_, LFS_NAME_MAX, "%s/%s", directory_, info.name);
 
         uint32_t first_block = 0;
         lfs_getattr(lfs(), path_, LFS_DRIVER_ATTR_FIRST_BLOCK, &first_block, sizeof(first_block));
@@ -48,15 +56,15 @@ bool FileMap::refresh(const char *directory, uint32_t desired_block, Pool &pool)
         loginfo("ls: '%s' type=%d size=%d attrs: first-block=%" PRIu32 " nblocks=%" PRIu32, info.name, info.type,
                 info.size, first_block, nblocks);
 
-        if (first_block > start_of_last_file_) {
-            start_of_last_file_ = first_block;
+        if (first_block > start_block_of_last_file) {
+            start_block_of_last_file = first_block;
         }
 
-        if (first_block < first_file_) {
-            first_file_ = first_block;
+        if (first_block < start_block_of_first_file) {
+            start_block_of_first_file = first_block;
         }
 
-        bytes_traversed_ += info.size;
+        bytes_before_start_of_last_file += info.size;
 
         if (desired_block >= first_block && desired_block < first_block + nblocks) {
             break;
@@ -65,11 +73,18 @@ bool FileMap::refresh(const char *directory, uint32_t desired_block, Pool &pool)
 
     lfs_dir_close(lfs(), &dir);
 
-    return true;
+    // return tl::unexpected<Error>(Error::General);
+
+    return block_search_t{
+        .start_block_of_first_file = start_block_of_first_file,
+        .start_block_of_last_file = start_block_of_last_file,
+        .bytes_before_start_of_last_file = bytes_before_start_of_last_file,
+        .last_block = last_block,
+    };
 }
 
-bool FileMap::refresh(const char *directory, Pool &pool) {
-    return refresh(directory, UINT32_MAX, pool);
+void FileMap::invalidate() {
+    initialized_ = false;
 }
 
 } // namespace fk

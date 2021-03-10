@@ -93,7 +93,8 @@ TEST_F(LfsSuite, Create) {
 
     log_configure_level(LogLevels::NONE);
 
-    BlockAppender appender{ &lfs_driver, "data", pool };
+    FileMap map{ &lfs_driver, "data", pool };
+    BlockAppender appender{ &lfs_driver, &map, pool };
 
     ReadingRecord readings{ 10000, 0 };
     for (auto i = 0u; i < 4 * 20; ++i) {
@@ -103,10 +104,9 @@ TEST_F(LfsSuite, Create) {
 
     log_configure_level(LogLevels::INFO);
 
-    PartitionedReader reader{ &lfs_driver, "data", pool };
+    PartitionedReader reader{ &lfs_driver, &map, pool };
     FK_ASSERT(reader.seek(17, pool));
     FK_ASSERT(reader.seek(65, pool));
 
-    loginfo("unmounting");
     lfs_unmount(lfs);
 }
