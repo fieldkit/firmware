@@ -19,12 +19,21 @@ public:
 
 };
 
+struct appended_block_t {
+    uint32_t block;
+    uint32_t first_block_of_containing_file;
+    lfs_size_t absolute_position;
+    lfs_size_t file_position;
+    lfs_size_t record_size;
+};
+
 class BlockAppender {
 private:
     LfsDriver *lfs_{ nullptr };
     FileMap *map_{ nullptr };
     FileSizeRollover strategy_;
     uint32_t start_block_of_last_file_{ 0 };
+    uint32_t bytes_before_start_of_last_file_{ 0 };
     bool initialized_{ false };
     char *path_{ nullptr };
 
@@ -34,7 +43,9 @@ public:
 public:
     bool create_directory_if_necessary();
 
-    bool append(fk_data_DataRecord *record, Pool &pool);
+    tl::expected<appended_block_t, Error> append_always(fk_data_DataRecord *record, Pool &pool);
+
+    tl::expected<appended_block_t, Error> append_immutable(fk_data_DataRecord *record, Pool &pool);
 
 private:
     lfs_t *lfs() {

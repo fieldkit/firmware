@@ -21,7 +21,7 @@ bool BlockAppender::create_directory_if_necessary() {
     return true;
 }
 
-bool BlockAppender::append(fk_data_DataRecord *record, Pool &pool) {
+tl::expected<appended_block_t, Error> BlockAppender::append_always(fk_data_DataRecord *record, Pool &pool) {
     if (!initialized_) {
         FK_ASSERT(create_directory_if_necessary());
 
@@ -31,10 +31,11 @@ bool BlockAppender::append(fk_data_DataRecord *record, Pool &pool) {
         auto search = map_->find(UINT32_MAX, pool);
         if (!search) {
             logerror("append error finding tail");
-            return false;
+            return tl::unexpected<Error>(search.error());
         }
 
         start_block_of_last_file_ = search->start_block_of_last_file;
+        bytes_before_start_of_last_file_ = search->bytes_before_start_of_last_file;
 
         initialized_ = true;
     }
@@ -94,10 +95,22 @@ bool BlockAppender::append(fk_data_DataRecord *record, Pool &pool) {
     logdebug("closing");
     lfs_file_close(lfs(), &file);
 
-    loginfo("wrote: R-%" PRIu32 " file-size=%" PRIu32 " record-size=%d", block, file_size_after,
-            file_size_after - file_size_before);
+    auto absolute_position = bytes_before_start_of_last_file_ + file_size_before;
+    auto record_size = file_size_after - file_size_before;
+    loginfo("wrote: R-%" PRIu32 " file-size=%" PRIu32 " record-size=%d",
+            block, file_size_after, record_size);
 
-    return true;
+    return appended_block_t{
+        .block = block,
+        .first_block_of_containing_file = start_block_of_last_file_,
+        .absolute_position = absolute_position,
+        .file_position = (lfs_size_t)file_size_before,
+        .record_size = (lfs_size_t)record_size,
+    };
+}
+
+tl::expected<appended_block_t, Error> BlockAppender::append_immutable(fk_data_DataRecord *record, Pool &pool) {
+    return append_always(record, pool);
 }
 
 bool FileSizeRollover::should_rollover(lfs_t *lfs, lfs_file_t *file) {

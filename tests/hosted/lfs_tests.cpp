@@ -99,7 +99,7 @@ TEST_F(LfsSuite, Create) {
     ReadingRecord readings{ 0, 0 };
     for (auto i = 0u; i < 4 * 20; ++i) {
         StandardPool iter{ "iter" };
-        FK_ASSERT(appender.append(&readings.record, iter));
+        FK_ASSERT(appender.append_always(&readings.record, iter));
     }
 
     PartitionedReader reader{ &lfs_driver, &map, pool };
