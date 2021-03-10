@@ -618,9 +618,6 @@ void fk_live_tests() {
     if (false) {
         sleep_test();
     }
-    if (true) {
-        lfs_test();
-    }
 }
 
 }

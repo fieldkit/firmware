@@ -4,6 +4,10 @@
 
 #include "hal/memory.h"
 #include "pool.h"
+#include "storage/types.h"
+#include "io.h"
+
+#include "progress.h"
 
 namespace fk {
 
@@ -14,8 +18,17 @@ int32_t lfs_test();
 #define LFS_DRIVER_CACHE_SIZE            (LFS_DRIVER_READ_SIZE * 2)
 #define LFS_DRIVER_LOOKAHEAD_SIZE        (16)
 
+#define LFS_DRIVER_ATTR_NBLOCKS          (0x00)
 #define LFS_DRIVER_ATTR_FIRST_BLOCK      (0x01)
-#define LFS_DRIVER_ATTR_NBLOCKS          (0x02)
+#define LFS_DRIVER_ATTR_CONFIG_MODULES   (0x02)
+#define LFS_DRIVER_ATTR_CONFIG_SCHEDULE  (0x03)
+#define LFS_DRIVER_ATTR_CONFIG_STATE     (0x04)
+#define LFS_DRIVER_ATTR_CONFIG_OTHER     (0x05)
+
+typedef struct fklfs_attribute_template_t {
+    uint8_t type;
+    lfs_size_t size;
+} fklfs_attribute_template_t;
 
 class LfsDriver {
 private:
@@ -34,12 +47,16 @@ public:
     int32_t erase(struct lfs_config const *c, lfs_block_t block);
 
 public:
-    bool begin();
+    bool begin(bool force_create = false);
 
-    lfs_file_config make_file_cfg();
+    lfs_file_config make_file_cfg(fklfs_attribute_template_t const *attributes, lfs_size_t nattributes, Pool &pool);
 
-    lfs_t &lfs() {
-        return lfs_;
+    lfs_file_config make_data_cfg(Pool &pool);
+
+    lfs_file_config make_meta_cfg(Pool &pool);
+
+    lfs_t *lfs() {
+        return &lfs_;
     }
 
 };
