@@ -13,12 +13,12 @@ PartitionedReader::PartitionedReader(LfsDriver *lfs, FileMap *map, Pool &pool) :
     buffer_ = (uint8_t *)pool.malloc(buffer_size_);
 }
 
-bool PartitionedReader::seek(uint32_t desired_block, Pool &pool) {
+tl::expected<block_seek_t, Error> PartitionedReader::seek(uint32_t desired_block, Pool &pool) {
     loginfo("seeking R-%" PRIu32 " in %s", desired_block, directory());
 
     auto search = map_->find(desired_block, pool);
     if (!search) {
-        return false;
+        return tl::unexpected<Error>(search.error());
     }
 
     tiny_snprintf(path_, LFS_NAME_MAX, "%s/%08" PRIx32 ".fkpb", directory(), search->start_block_of_last_file);
@@ -31,23 +31,34 @@ bool PartitionedReader::seek(uint32_t desired_block, Pool &pool) {
 
     Attributes attributes{ file_cfg };
 
-    auto success = false;
-
     auto block_number = attributes.first_block();
 
-    while (true) {
+    auto file_position = 0u;
+
+    auto success = false;
+    block_seek_t seek;
+    bzero(&seek, sizeof(block_seek_t));
+
+    while (!success) {
         if (block_number == desired_block) {
             auto position = lfs_file_tell(lfs(), &file);
             loginfo("seek: have R-%" PRIu32 " found at %" PRIu32, block_number, position);
             success = true;
+            seek = {
+                .block = desired_block,
+                .first_block_of_containing_file = search->start_block_of_last_file,
+                .absolute_position = file_position + search->bytes_before_start_of_last_file,
+                .file_position = file_position,
+            };
             break;
         }
 
         auto nread = lfs_file_read(lfs(), &file, buffer_, buffer_size_);
         if (nread < 0) {
             logerror("seek error reading file");
-            return false;
-        } else if (nread == 0) {
+            return tl::unexpected<Error>(Error::General);
+        }
+        else if (nread == 0) {
             break;
         }
 
@@ -55,7 +66,7 @@ bool PartitionedReader::seek(uint32_t desired_block, Pool &pool) {
         pb_istream_t stream = pb_istream_from_buffer((pb_byte_t *)buffer_, nread);
         if (!pb_decode_varint32(&stream, &record_size)) {
             logerror("seek error decoding record size");
-            return false;
+            return tl::unexpected<Error>(Error::General);
         }
 
         uint32_t total_record_size = record_size + pb_varint_size(record_size);
@@ -65,14 +76,18 @@ bool PartitionedReader::seek(uint32_t desired_block, Pool &pool) {
         loginfo("seek: skip R-%" PRIu32 " size=%" PRIu32 " seeking=%d nread=%d", block_number, total_record_size,
                 sibling_offset, nread);
 
-        lfs_file_seek(lfs(), &file, sibling_offset, LFS_SEEK_CUR);
+        file_position = lfs_file_seek(lfs(), &file, sibling_offset, LFS_SEEK_CUR);
 
         block_number++;
     }
 
     FK_ASSERT(lfs_file_close(lfs(), &file) == 0);
 
-    return success;
+    if (!success) {
+        return tl::unexpected<Error>(Error::EoF);
+    }
+
+    return seek;
 }
 
 } // namespace fk

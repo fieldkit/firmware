@@ -6,7 +6,7 @@
 
 namespace fk {
 
-struct block_search_t {
+struct block_file_search_t {
     uint32_t start_block_of_first_file;
     uint32_t start_block_of_last_file;
     uint32_t bytes_before_start_of_last_file;
@@ -31,7 +31,7 @@ public:
 public:
     bool refresh(Pool &pool);
 
-    tl::expected<block_search_t, Error> find(uint32_t desired_block, Pool &pool);
+    tl::expected<block_file_search_t, Error> find(uint32_t desired_block, Pool &pool);
 
     void invalidate();
 

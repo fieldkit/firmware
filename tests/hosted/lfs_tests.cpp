@@ -105,8 +105,20 @@ TEST_F(LfsSuite, Create) {
     log_configure_level(LogLevels::INFO);
 
     PartitionedReader reader{ &lfs_driver, &map, pool };
-    FK_ASSERT(reader.seek(17, pool));
-    FK_ASSERT(reader.seek(65, pool));
+
+    auto seek1 = reader.seek(17, pool);
+    ASSERT_TRUE(seek1);
+    ASSERT_EQ(seek1->block, 17u);
+    ASSERT_EQ(seek1->first_block_of_containing_file, 10u);
+    ASSERT_EQ(seek1->absolute_position, 3051u);
+    ASSERT_EQ(seek1->file_position, 791u);
+
+    auto seek2 = reader.seek(64, pool);
+    ASSERT_TRUE(seek2);
+    ASSERT_EQ(seek2->block, 64u);
+    ASSERT_EQ(seek2->first_block_of_containing_file, 60u);
+    ASSERT_EQ(seek2->absolute_position, 8362u);
+    ASSERT_EQ(seek2->file_position, 452u);
 
     lfs_unmount(lfs);
 }

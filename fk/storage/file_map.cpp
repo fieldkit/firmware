@@ -17,7 +17,7 @@ bool FileMap::refresh(Pool &pool) {
     return true;
 }
 
-tl::expected<block_search_t, Error> FileMap::find(uint32_t desired_block, Pool &pool) {
+tl::expected<block_file_search_t, Error> FileMap::find(uint32_t desired_block, Pool &pool) {
     uint32_t start_block_of_first_file{ UINT32_MAX };
     uint32_t start_block_of_last_file{ 0 };
     uint32_t bytes_before_start_of_last_file{ 0 };
@@ -73,9 +73,7 @@ tl::expected<block_search_t, Error> FileMap::find(uint32_t desired_block, Pool &
 
     lfs_dir_close(lfs(), &dir);
 
-    // return tl::unexpected<Error>(Error::General);
-
-    return block_search_t{
+    return block_file_search_t{
         .start_block_of_first_file = start_block_of_first_file,
         .start_block_of_last_file = start_block_of_last_file,
         .bytes_before_start_of_last_file = bytes_before_start_of_last_file,

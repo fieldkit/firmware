@@ -5,6 +5,13 @@
 
 namespace fk {
 
+struct block_seek_t {
+    uint32_t block;
+    uint32_t first_block_of_containing_file;
+    uint32_t absolute_position;
+    uint32_t file_position;
+};
+
 class PartitionedReader {
 private:
     LfsDriver *lfs_{ nullptr };
@@ -18,7 +25,7 @@ public:
     PartitionedReader(LfsDriver *lfs, FileMap *map, Pool &pool);
 
 public:
-    bool seek(uint32_t desired_block, Pool &pool);
+    tl::expected<block_seek_t, Error> seek(uint32_t desired_block, Pool &pool);
 
 private:
     lfs_t *lfs() {
