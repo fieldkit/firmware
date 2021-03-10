@@ -30,6 +30,8 @@ typedef struct fklfs_attribute_template_t {
     lfs_size_t size;
 } fklfs_attribute_template_t;
 
+constexpr size_t MaximumRecordSizeEncodedSize = 4;
+
 class LfsDriver {
 private:
     DataMemory *memory_{ nullptr };
