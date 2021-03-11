@@ -114,8 +114,8 @@ bool ApiHandler::handle(HttpServerConnection *connection, Pool &pool) {
         loginfo("handling %s", "QUERY_GET_READINGS");
         return send_readings(connection, query, pool);
     }
-    case fk_app_QueryType_QUERY_FILES: {
-        loginfo("handling %s", "QUERY_FILES");
+    case fk_app_QueryType_QUERY_FILES_SD: {
+        loginfo("handling %s", "QUERY_FILES_SD");
         return send_files(connection, query, pool);
     }
     case fk_app_QueryType_QUERY_RESET: {
