@@ -38,6 +38,13 @@ FK_DECLARE_LOGGER("startup");
 static void copy_cron_spec_from_pb(const char *name, Schedule &cs, fk_data_JobSchedule &pb, Pool &pool);
 
 void StartupWorker::run(Pool &pool) {
+    get_board()->i2c_core().begin();
+
+    auto clock = get_clock();
+    if (!clock->begin()) {
+        logerror("rtc error");
+    }
+
     loginfo("ready display");
     auto display = get_display();
 
