@@ -251,9 +251,19 @@ optional<Error> BlockAppender::locate_tail(Pool &pool) {
     return nullopt;
 }
 
+FileSizeRollover::FileSizeRollover(lfs_size_t size) : size_(size) {
+}
+
 bool FileSizeRollover::should_rollover(lfs_t *lfs, lfs_file_t *file) {
-    auto file_size = lfs_file_size(lfs, file);
-    return file_size > 1024;
+    if (size_ == 0) {
+        return false;
+    }
+    int32_t file_size = lfs_file_size(lfs, file);
+    if (file_size < 0) {
+        // TODO Why not?
+        return true;
+    }
+    return (lfs_size_t)file_size > size_;
 }
 
 } // namespace fk

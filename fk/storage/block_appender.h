@@ -12,8 +12,7 @@ private:
     lfs_size_t size_;
 
 public:
-    FileSizeRollover(lfs_size_t size) : size_(size) {
-    }
+    FileSizeRollover(lfs_size_t size);
 
 public:
     bool should_rollover(lfs_t *lfs, lfs_file_t *file);
