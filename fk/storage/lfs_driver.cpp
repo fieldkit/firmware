@@ -4,22 +4,27 @@ namespace fk {
 
 FK_DECLARE_LOGGER("lfs");
 
+/**
+ * These are intentional constructed so that the same attributes share
+ * the same array indices for both data and meta files.
+ */
+
 constexpr lfs_size_t number_data_attributes = 2;
 
 fklfs_attribute_template_t data_attributes[number_data_attributes] = {
-    { LFS_DRIVER_ATTR_NBLOCKS,     sizeof(uint32_t) },
-    { LFS_DRIVER_ATTR_FIRST_BLOCK, sizeof(uint32_t) },
+    { LFS_DRIVER_ATTR_NBLOCKS,         sizeof(uint32_t), 0x00 },
+    { LFS_DRIVER_ATTR_FIRST_BLOCK,     sizeof(uint32_t), 0x00 },
 };
 
 constexpr lfs_size_t number_meta_attributes = 6;
 
 fklfs_attribute_template_t meta_attributes[number_meta_attributes] = {
-    { LFS_DRIVER_ATTR_FIRST_BLOCK,     sizeof(uint32_t) },
-    { LFS_DRIVER_ATTR_NBLOCKS,         sizeof(uint32_t) },
-    { LFS_DRIVER_ATTR_CONFIG_MODULES,  sizeof(uint32_t) },
-    { LFS_DRIVER_ATTR_CONFIG_SCHEDULE, sizeof(uint32_t) },
-    { LFS_DRIVER_ATTR_CONFIG_STATE,    sizeof(uint32_t) },
-    { LFS_DRIVER_ATTR_CONFIG_OTHER,    sizeof(uint32_t) },
+    { LFS_DRIVER_ATTR_FIRST_BLOCK,     sizeof(uint32_t), 0x00 },
+    { LFS_DRIVER_ATTR_NBLOCKS,         sizeof(uint32_t), 0x00 },
+    { LFS_DRIVER_ATTR_CONFIG_MODULES,  sizeof(uint32_t), 0xff },
+    { LFS_DRIVER_ATTR_CONFIG_SCHEDULE, sizeof(uint32_t), 0xff },
+    { LFS_DRIVER_ATTR_CONFIG_STATE,    sizeof(uint32_t), 0xff },
+    { LFS_DRIVER_ATTR_CONFIG_OTHER,    sizeof(uint32_t), 0xff },
 };
 
 // Read a region in a block. Negative error codes are propogated
@@ -105,15 +110,17 @@ lfs_file_config LfsDriver::make_data_cfg(Pool &pool) {
 
 lfs_file_config LfsDriver::make_file_cfg(fklfs_attribute_template_t const *attributes, lfs_size_t nattributes, Pool &pool) {
     auto attrs = (struct lfs_attr *)pool.malloc<struct lfs_attr>(nattributes);
-    auto buffer = pool.malloc(LFS_DRIVER_CACHE_SIZE);
 
     for (auto i = 0u; i < nattributes; ++i) {
         auto size = attributes[i].size;
+        auto buffer = pool.malloc(size);
+        memset(buffer, attributes[i].fill, size);
         attrs[i].type = attributes[i].type;
-        attrs[i].buffer = pool.malloc(size);
+        attrs[i].buffer = buffer;
         attrs[i].size = size;
-        bzero(attrs[i].buffer, size);
     }
+
+    auto buffer = pool.malloc(LFS_DRIVER_CACHE_SIZE);
 
     return {
         .buffer = buffer,

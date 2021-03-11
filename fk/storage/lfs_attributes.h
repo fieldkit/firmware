@@ -31,6 +31,10 @@ public:
         *(uint32_t *)cfg_.attrs[index].buffer = value;
     }
 
+    uint32_t get(uint8_t index) {
+        return *(uint32_t *)cfg_.attrs[index].buffer;
+    }
+
     void first_block(uint32_t first_block) {
         set(LFS_DRIVER_ATTR_FIRST_BLOCK, first_block);
     }

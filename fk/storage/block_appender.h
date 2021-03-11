@@ -2,6 +2,7 @@
 
 #include "storage/lfs_driver.h"
 #include "storage/file_map.h"
+#include "storage/lfs_attributes.h"
 #include "records.h"
 
 namespace fk {
@@ -27,6 +28,8 @@ struct appended_block_t {
     lfs_size_t record_size;
 };
 
+using AppendedBlockOrError = tl::expected<appended_block_t, Error>;
+
 class BlockAppender {
 private:
     LfsDriver *lfs_{ nullptr };
@@ -43,9 +46,14 @@ public:
 public:
     bool create_directory_if_necessary();
 
-    tl::expected<appended_block_t, Error> append_always(fk_data_DataRecord *record, Pool &pool);
+    AppendedBlockOrError append_data_record(fk_data_DataRecord *record, Pool &pool);
 
-    tl::expected<appended_block_t, Error> append_immutable(fk_data_DataRecord *record, Pool &pool);
+    AppendedBlockOrError append_changes(uint8_t kind, void *record, pb_msgdesc_t const *fields, Pool &pool);
+
+private:
+    optional<Error> locate_tail(Pool &pool);
+
+    AppendedBlockOrError write_record(lfs_file_t &file, Attributes &attributes, void *record, pb_msgdesc_t const *fields, Pool &pool);
 
 private:
     lfs_t *lfs() {

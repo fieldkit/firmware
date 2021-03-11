@@ -28,6 +28,7 @@ int32_t lfs_test();
 typedef struct fklfs_attribute_template_t {
     uint8_t type;
     lfs_size_t size;
+    uint8_t fill;
 } fklfs_attribute_template_t;
 
 constexpr size_t MaximumRecordSizeEncodedSize = 4;
