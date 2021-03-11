@@ -9,18 +9,20 @@ FK_DECLARE_LOGGER("lfs");
  * the same array indices for both data and meta files.
  */
 
-constexpr lfs_size_t number_data_attributes = 2;
+constexpr lfs_size_t number_data_attributes = 3;
 
 fklfs_attribute_template_t data_attributes[number_data_attributes] = {
     { LFS_DRIVER_FILE_ATTR_NBLOCKS,         sizeof(uint32_t), 0x00 },
     { LFS_DRIVER_FILE_ATTR_FIRST_BLOCK,     sizeof(uint32_t), 0x00 },
+    { LFS_DRIVER_FILE_ATTR_TAIL_RECORD,     sizeof(uint32_t), 0x00 },
 };
 
-constexpr lfs_size_t number_meta_attributes = 6;
+constexpr lfs_size_t number_meta_attributes = 7;
 
 fklfs_attribute_template_t meta_attributes[number_meta_attributes] = {
     { LFS_DRIVER_FILE_ATTR_FIRST_BLOCK,     sizeof(uint32_t), 0x00 },
     { LFS_DRIVER_FILE_ATTR_NBLOCKS,         sizeof(uint32_t), 0x00 },
+    { LFS_DRIVER_FILE_ATTR_TAIL_RECORD,     sizeof(uint32_t), 0x00 },
     { LFS_DRIVER_FILE_ATTR_CONFIG_MODULES,  sizeof(uint32_t), 0xff },
     { LFS_DRIVER_FILE_ATTR_CONFIG_SCHEDULE, sizeof(uint32_t), 0xff },
     { LFS_DRIVER_FILE_ATTR_CONFIG_STATE,    sizeof(uint32_t), 0xff },

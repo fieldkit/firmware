@@ -13,19 +13,26 @@ namespace fk {
 
 int32_t lfs_test();
 
-#define LFS_DRIVER_READ_SIZE             (1024)
-#define LFS_DRIVER_PROG_SIZE             (1024)
-#define LFS_DRIVER_CACHE_SIZE            (LFS_DRIVER_READ_SIZE * 2)
-#define LFS_DRIVER_LOOKAHEAD_SIZE        (16)
+#define LFS_DRIVER_READ_SIZE                  (1024)
+#define LFS_DRIVER_PROG_SIZE                  (1024)
+#define LFS_DRIVER_CACHE_SIZE                 (LFS_DRIVER_READ_SIZE * 2)
+#define LFS_DRIVER_LOOKAHEAD_SIZE             (16)
 
+/**
+ * Warning: These are also used as indices.
+ */
 #define LFS_DRIVER_DIR_ATTR_NFILES            (0x00)
 
+/**
+ * Warning: These are also used as indices.
+ */
 #define LFS_DRIVER_FILE_ATTR_NBLOCKS          (0x00)
 #define LFS_DRIVER_FILE_ATTR_FIRST_BLOCK      (0x01)
-#define LFS_DRIVER_FILE_ATTR_CONFIG_MODULES   (0x02)
-#define LFS_DRIVER_FILE_ATTR_CONFIG_SCHEDULE  (0x03)
-#define LFS_DRIVER_FILE_ATTR_CONFIG_STATE     (0x04)
-#define LFS_DRIVER_FILE_ATTR_CONFIG_OTHER     (0x05)
+#define LFS_DRIVER_FILE_ATTR_TAIL_RECORD      (0x02)
+#define LFS_DRIVER_FILE_ATTR_CONFIG_MODULES   (0x03)
+#define LFS_DRIVER_FILE_ATTR_CONFIG_SCHEDULE  (0x04)
+#define LFS_DRIVER_FILE_ATTR_CONFIG_STATE     (0x05)
+#define LFS_DRIVER_FILE_ATTR_CONFIG_OTHER     (0x06)
 
 typedef struct fklfs_attribute_template_t {
     uint8_t type;
@@ -54,8 +61,6 @@ public:
 public:
     bool begin(bool force_create = false);
 
-    lfs_file_config make_file_cfg(fklfs_attribute_template_t const *attributes, lfs_size_t nattributes, Pool &pool);
-
     lfs_file_config make_data_cfg(Pool &pool);
 
     lfs_file_config make_meta_cfg(Pool &pool);
@@ -69,6 +74,9 @@ public:
     lfs_t *lfs() {
         return &lfs_;
     }
+
+private:
+    lfs_file_config make_file_cfg(fklfs_attribute_template_t const *attributes, lfs_size_t nattributes, Pool &pool);
 
 };
 

@@ -189,6 +189,8 @@ AppendedBlockOrError BlockAppender::write_record(lfs_file_t &file, Attributes &a
         map_->invalidate();
     }
 
+    attributes.set(LFS_DRIVER_FILE_ATTR_TAIL_RECORD, file_size_before);
+
     loginfo("writing block: R-%" PRIu32, block);
 
     // Spin up a writer and drop the record into the directly file.
