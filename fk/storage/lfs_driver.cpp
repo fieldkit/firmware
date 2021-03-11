@@ -57,7 +57,7 @@ int lfs_block_device_sync(struct lfs_config const *c) {
 }
 
 
-LfsDriver::LfsDriver(DataMemory *memory, Pool &pool) : memory_(memory), pool_(&pool) {
+LfsDriver::LfsDriver(DataMemory *memory, Pool &pool) : memory_(memory) {
     auto g = memory->geometry();
 
     cfg_ = {
@@ -74,9 +74,9 @@ LfsDriver::LfsDriver(DataMemory *memory, Pool &pool) : memory_(memory), pool_(&p
         .cache_size = LFS_DRIVER_CACHE_SIZE,
         .lookahead_size = LFS_DRIVER_LOOKAHEAD_SIZE,
         // NOTE: Read/prog buffers are LFS_DRIVER_CACHE_SIZE bytes large!
-        .read_buffer = pool_->malloc(LFS_DRIVER_CACHE_SIZE),
-        .prog_buffer = pool_->malloc(LFS_DRIVER_CACHE_SIZE),
-        .lookahead_buffer = pool_->malloc(LFS_DRIVER_LOOKAHEAD_SIZE),
+        .read_buffer = pool.malloc(LFS_DRIVER_CACHE_SIZE),
+        .prog_buffer = pool.malloc(LFS_DRIVER_CACHE_SIZE),
+        .lookahead_buffer = pool.malloc(LFS_DRIVER_LOOKAHEAD_SIZE),
         .name_max = 0,
         .file_max = 0,
         .attr_max = 0,

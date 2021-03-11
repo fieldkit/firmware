@@ -45,7 +45,6 @@ constexpr size_t MaximumRecordSizeEncodedSize = 4;
 class LfsDriver {
 private:
     DataMemory *memory_{ nullptr };
-    Pool *pool_{ nullptr };
     struct lfs_config cfg_;
     lfs_t lfs_;
 
