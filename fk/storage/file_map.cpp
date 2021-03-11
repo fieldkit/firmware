@@ -8,44 +8,33 @@ FK_DECLARE_LOGGER("lfs");
 
 FileMap::FileMap(LfsDriver *lfs, const char *directory, Pool &pool) : lfs_(lfs), directory_(directory) {
     path_ = (char *)pool.malloc(LFS_NAME_MAX);
+    cache_pool_ = pool.subpool("file-map");
 }
 
-bool FileMap::refresh(Pool &pool) {
-    if (!find(UINT32_MAX, pool)) {
-        return false;
-    }
-    return true;
+FileMap::~FileMap() {
 }
 
-tl::expected<block_file_search_t, Error> FileMap::find(uint32_t desired_block, Pool &pool) {
-    uint32_t start_block_of_first_file{ UINT32_MAX };
-    uint32_t start_block_of_last_file{ 0 };
-    uint32_t bytes_before_start_of_last_file{ 0 };
-    uint32_t last_block{ 0 };
-
+bool FileMap::refresh() {
     int32_t number_of_files = 0;
     int32_t expected_number_of_files = lfs_->get_number_of_files(directory_);
     if (number_of_files < 0) {
-        return tl::unexpected<Error>(Error::IO);
+        return false;
     }
+
+    // Clear the pool and invalidate cache.
+    cache_pool_->clear();
+    cache_ = nullptr;
 
     lfs_dir_t dir;
 
-    lfs_dir_open(lfs(), &dir, directory_);
+    if (lfs_dir_open(lfs(), &dir, directory_) < 0) {
+        return false;
+    }
 
-    /**
-     * This is basically an array of indices/block numbers and
-     * their lengths, which for full memory consumes
-     *
-     * (4 + 4) * (NBLOCKS / BLOCKS_PER_FILE) bytes
-     *
-     * You can even get this down to 4 bytes if you assume
-     * contiguous ranges, and verify before assuming.
-     *
-     * Which will easily sit inside a single page of memory:
-     *
-     * 8192 / 4 = 2048 files, or one file per block on two chip.
-     */
+    // We're building a new cache.
+    cache_entry_t *head = nullptr;
+    cache_entry_t *tail = nullptr;
+
     struct lfs_info info;
     while (lfs_dir_read(lfs(), &dir, &info)) {
         if (info.name[0] == '.') {
@@ -55,27 +44,34 @@ tl::expected<block_file_search_t, Error> FileMap::find(uint32_t desired_block, P
         tiny_snprintf(path_, LFS_NAME_MAX, "%s/%s", directory_, info.name);
 
         uint32_t first_block = 0;
-        lfs_getattr(lfs(), path_, LFS_DRIVER_FILE_ATTR_FIRST_BLOCK, &first_block, sizeof(first_block));
+        if (lfs_getattr(lfs(), path_, LFS_DRIVER_FILE_ATTR_FIRST_BLOCK, &first_block, sizeof(first_block)) < 0) {
+            return false;
+        }
 
         uint32_t nblocks = 0;
-        lfs_getattr(lfs(), path_, LFS_DRIVER_FILE_ATTR_NBLOCKS, &nblocks, sizeof(nblocks));
+        if (lfs_getattr(lfs(), path_, LFS_DRIVER_FILE_ATTR_NBLOCKS, &nblocks, sizeof(nblocks)) < 0) {
+            return false;
+        }
 
         loginfo("ls: '%s' type=%d size=%d attrs: first-block=%" PRIu32 " nblocks=%" PRIu32, info.name, info.type,
                 info.size, first_block, nblocks);
 
-        if (first_block > start_block_of_last_file) {
-            start_block_of_last_file = first_block;
+        auto entry = (cache_entry_t *)cache_pool_->malloc(sizeof(cache_entry_t));
+        entry->first_block = first_block;
+        entry->nblocks = nblocks;
+        entry->size = info.size;
+        entry->np = nullptr;
+
+        // TODO We be verifying the sort order.
+        if (head == nullptr) {
+            head = entry;
+            tail = entry;
+        }
+        else {
+            tail->np = entry;
+            tail = entry;
         }
 
-        if (first_block < start_block_of_first_file) {
-            start_block_of_first_file = first_block;
-        }
-
-        if (desired_block >= first_block && desired_block < first_block + nblocks) {
-            break;
-        }
-
-        bytes_before_start_of_last_file += info.size;
         number_of_files++;
     }
 
@@ -84,6 +80,41 @@ tl::expected<block_file_search_t, Error> FileMap::find(uint32_t desired_block, P
     // Only update the number of files when they change.
     if (number_of_files != expected_number_of_files) {
         lfs_->set_number_of_files(directory_, number_of_files);
+    }
+
+    cache_ = head;
+
+    return true;
+}
+
+tl::expected<block_file_search_t, Error> FileMap::find(uint32_t desired_block, Pool &pool) {
+    if (!initialized_) {
+        if (!refresh()) {
+            return tl::unexpected<Error>(Error::IO);
+        }
+
+        initialized_ = true;
+    }
+
+    uint32_t start_block_of_first_file{ UINT32_MAX };
+    uint32_t start_block_of_last_file{ 0 };
+    uint32_t bytes_before_start_of_last_file{ 0 };
+    uint32_t last_block{ 0 };
+
+    for (auto iter = cache_; iter != nullptr; iter = iter->np) {
+        if (iter->first_block > start_block_of_last_file) {
+            start_block_of_last_file = iter->first_block;
+        }
+
+        if (iter->first_block < start_block_of_first_file) {
+            start_block_of_first_file = iter->first_block;
+        }
+
+        if (desired_block >= iter->first_block && desired_block < iter->first_block + iter->nblocks) {
+            break;
+        }
+
+        bytes_before_start_of_last_file += iter->size;
     }
 
     return block_file_search_t{
