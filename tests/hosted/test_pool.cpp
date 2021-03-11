@@ -177,19 +177,19 @@ TEST_F(PoolSuite, Clear) {
 
     new (pool) DummyObject();
 
-    ASSERT_EQ(pool->used(), 104u);
+    ASSERT_EQ(pool->used(), 120u);
 
     pool->clear();
 
-    ASSERT_EQ(pool->used(), 72u);
+    ASSERT_EQ(pool->used(), 88u);
 
     new (pool) DummyObject();
 
-    ASSERT_EQ(pool->used(), 104u);
+    ASSERT_EQ(pool->used(), 120u);
 
     pool->clear();
 
-    ASSERT_EQ(pool->used(), 72u);
+    ASSERT_EQ(pool->used(), 88u);
 
     delete pool;
 }
@@ -230,4 +230,27 @@ TEST_F(PoolSuite, AllocatingSiblings) {
     ASSERT_EQ(fk_standard_page_meminfo().used, 1u);
 
     fk_standard_page_log();
+}
+
+TEST_F(PoolSuite, Subpool) {
+    StandardPool pool{ "top" };
+
+    loginfo("spawn");
+    Pool *child = pool.subpool("child");
+    loginfo("alloc 4096");
+    child->malloc(4096);
+    // Force another allocation in the child.
+    loginfo("alloc 4096");
+    child->malloc(4096);
+
+    loginfo("clearing child");
+    child->clear();
+
+    loginfo("alloc 4096");
+    child->malloc(4096);
+    loginfo("alloc 4096");
+    child->malloc(4096);
+
+    loginfo("clearing");
+    pool.clear();
 }

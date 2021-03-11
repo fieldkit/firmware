@@ -221,11 +221,30 @@ Pool *create_pool_inside(const char *name) {
 }
 
 StandardPool::StandardPool(const char *name) : Pool(name, StandardPageSize, (void *)fk_standard_page_malloc(StandardPageSize, name), 0), free_self_{ true } {
-    FK_ASSERT(sibling_ == nullptr);
 }
 
 StandardPool::StandardPool(const char *name, void *ptr, size_t size, size_t taken) : Pool(name, size, ptr, taken), free_self_{ false } {
     FK_ASSERT(sibling_ == nullptr);
+}
+
+Pool *StandardPool::subpool(const char *name) {
+    auto ptr = fk_standard_page_malloc(size(), name);
+    auto overhead = sizeof(StandardPool);
+    auto child = new (ptr) StandardPool(name, ptr, size(), overhead);
+
+    if (child_ != nullptr) {
+        for (auto iter = child_; ; iter = iter->np_) {
+            if (iter->np_ == nullptr) {
+                iter->np_ = child;
+                break;
+            }
+        }
+    }
+    else {
+        child_ = child;
+    }
+
+    return child;
 }
 
 StandardPool::~StandardPool() {
@@ -240,6 +259,9 @@ StandardPool::~StandardPool() {
         #endif
         delete sibling_;
         sibling_ = nullptr;
+    }
+    for (auto iter = child_; iter != nullptr; iter = iter->np_) {
+        delete iter;
     }
     if (free_self_) {
         #if defined(FK_LOGGING_POOL_VERBOSE) || defined(FK_LOGGING_POOL_TRACING)
@@ -279,6 +301,10 @@ void StandardPool::clear() {
         #endif
         delete sibling_;
         sibling_ = nullptr;
+    }
+
+    for (auto iter = child_; iter != nullptr; iter = iter->np_) {
+        iter->clear();
     }
 }
 
