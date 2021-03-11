@@ -21,6 +21,8 @@
 #include "networking/download_firmware_worker.h"
 #include "networking/upload_data_worker.h"
 
+#include "storage/backup_worker.h"
+
 namespace fk {
 
 FK_DECLARE_LOGGER("menu");
@@ -398,6 +400,11 @@ void MenuView::create_tools_menu() {
         views_->show_home();
         get_ipc()->launch_worker(create_pool_worker<DumpFlashMemoryWorker>());
     });
+    auto tools_backup = to_lambda_option(pool_, "Backup", [=]() {
+        back_->on_selected();
+        views_->show_home();
+        get_ipc()->launch_worker(create_pool_worker<BackupWorker>());
+    });
     auto tools_load_firmware_sd = to_lambda_option(pool_, "SD Upgrade", [=]() {
         back_->on_selected();
         views_->show_home();
@@ -468,7 +475,7 @@ void MenuView::create_tools_menu() {
     (void)tools_crash_hardf;
     (void)tools_crash_assertion;
 
-    tools_menu_ = new_menu_screen<17 - 6>(pool_, "tools", {
+    tools_menu_ = new_menu_screen<18 - 6>(pool_, "tools", {
         back_,
         tools_self_check,
         tools_gps,
@@ -477,6 +484,7 @@ void MenuView::create_tools_menu() {
         // tools_lora_ranging_confirmed,
         tools_load_firmware_sd,
         tools_dump_flash,
+        tools_backup,
         tools_format_sd,
         // tools_sleep_test,
         // tools_poll_sensors,

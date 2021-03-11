@@ -15,6 +15,7 @@
 #include "live_tests.h"
 #include "startup_worker.h"
 #include "modules/dyn/process.h"
+#include "storage/backup_worker.h"
 
 extern const struct fkb_header_t fkb_header;
 
