@@ -64,11 +64,11 @@ tl::expected<block_file_search_t, Error> FileMap::find(uint32_t desired_block, P
             start_block_of_first_file = first_block;
         }
 
-        bytes_before_start_of_last_file += info.size;
-
         if (desired_block >= first_block && desired_block < first_block + nblocks) {
             break;
         }
+
+        bytes_before_start_of_last_file += info.size;
     }
 
     lfs_dir_close(lfs(), &dir);
