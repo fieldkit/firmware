@@ -22,12 +22,12 @@ protected:
 };
 
 TEST_F(LfsSuite, CreateAndAppendDataRecords) {
+    LinuxDataMemory memory{ 20 };
     StandardPool pool{ "lfs" };
-    auto memory = MemoryFactory::get_data_memory();
 
-    ASSERT_TRUE(memory->begin());
+    ASSERT_TRUE(memory.begin());
 
-    LfsDriver lfs_driver{ memory, pool };
+    LfsDriver lfs_driver{ &memory, pool };
     ASSERT_TRUE(lfs_driver.begin(true));
 
     auto lfs = lfs_driver.lfs();
@@ -48,12 +48,12 @@ TEST_F(LfsSuite, CreateAndAppendDataRecords) {
 }
 
 TEST_F(LfsSuite, AppendChanges) {
+    LinuxDataMemory memory{ 20 };
     StandardPool pool{ "lfs" };
-    auto memory = MemoryFactory::get_data_memory();
 
-    ASSERT_TRUE(memory->begin());
+    ASSERT_TRUE(memory.begin());
 
-    LfsDriver lfs_driver{ memory, pool };
+    LfsDriver lfs_driver{ &memory, pool };
     ASSERT_TRUE(lfs_driver.begin(true));
 
     auto lfs = lfs_driver.lfs();
@@ -83,12 +83,12 @@ TEST_F(LfsSuite, AppendChanges) {
 }
 
 TEST_F(LfsSuite, ReadAcrossPartitionedFiles) {
+    LinuxDataMemory memory{ 20 };
     StandardPool pool{ "lfs" };
-    auto memory = MemoryFactory::get_data_memory();
 
-    ASSERT_TRUE(memory->begin());
+    ASSERT_TRUE(memory.begin());
 
-    LfsDriver lfs_driver{ memory, pool };
+    LfsDriver lfs_driver{ &memory, pool };
     ASSERT_TRUE(lfs_driver.begin(true));
 
     auto lfs = lfs_driver.lfs();

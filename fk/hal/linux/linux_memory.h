@@ -14,19 +14,19 @@ private:
     /* These mimic a single bank of memory. */
     constexpr static uint32_t PageSize = 2048;
     constexpr static uint32_t BlockSize = 2048 * 64;
-    constexpr static uint32_t NumberOfBlocks = 2048;
 
 private:
     StorageLog log_;
-    FlashGeometry geometry_;
+    uint32_t number_of_blocks_{ 0 };
     uint8_t *memory_{ nullptr };
-    size_t size_{ 0 };
+    FlashGeometry geometry_;
 
 public:
     static uint8_t EraseByte;
 
 public:
-    LinuxDataMemory();
+    LinuxDataMemory(uint32_t number_of_blocks = 2048);
+    virtual ~LinuxDataMemory();
 
 public:
     bool begin() override;
