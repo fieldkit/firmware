@@ -12,7 +12,7 @@ FK_DECLARE_LOGGER("lfs");
 class LfsSuite : public ::testing::Test {
 protected:
     void SetUp() override {
-        log_configure_level(LogLevels::NONE);
+        log_configure_level(LogLevels::INFO);
     }
 
     void TearDown() override {
