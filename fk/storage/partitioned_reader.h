@@ -12,7 +12,7 @@ struct block_seek_t {
     uint32_t file_position;
 };
 
-class PartitionedReader {
+class PartitionedReader : Reader {
 private:
     LfsDriver *lfs_{ nullptr };
     FileMap *map_{ nullptr };
@@ -20,12 +20,22 @@ private:
     char *path_{ nullptr };
     uint8_t *buffer_{ nullptr };
     lfs_size_t buffer_size_{ MaximumRecordSizeEncodedSize };
+    lfs_file_t file_;
+    lfs_file_config file_cfg_;
+    bool opened_{ false };
+    Pool *reader_pool_{ nullptr };
 
 public:
     PartitionedReader(LfsDriver *lfs, FileMap *map, Pool &pool);
 
 public:
     tl::expected<block_seek_t, Error> seek(uint32_t desired_block, Pool &pool);
+
+    Reader *open_reader(Pool &pool);
+
+    int32_t read(uint8_t *buffer, size_t size) override;
+
+    void close();
 
 private:
     lfs_t *lfs() {

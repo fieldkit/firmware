@@ -14,10 +14,7 @@ public:
 
 public:
     int32_t read(uint8_t *buffer, size_t size) override {
-        if (lfs_file_read(lfs_->lfs(), file_, buffer, size) >= 0) {
-            return size;
-        }
-        return -1;
+        return lfs_file_read(lfs_->lfs(), file_, buffer, size);
     }
 };
 
@@ -32,10 +29,7 @@ public:
 
 public:
     int32_t write(uint8_t const *buffer, size_t size) override {
-        if (lfs_file_write(lfs_->lfs(), file_, buffer, size) >= 0) {
-            return size;
-        }
-        return -1;
+        return lfs_file_write(lfs_->lfs(), file_, buffer, size);
     }
 };
 

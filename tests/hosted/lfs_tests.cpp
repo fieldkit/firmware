@@ -21,7 +21,7 @@ protected:
 
 };
 
-TEST_F(LfsSuite, Create) {
+TEST_F(LfsSuite, CreateAndAppendDataRecords) {
     StandardPool pool{ "lfs" };
     auto memory = MemoryFactory::get_data_memory();
 
@@ -32,13 +32,11 @@ TEST_F(LfsSuite, Create) {
 
     auto lfs = lfs_driver.lfs();
 
-    // log_configure_level(LogLevels::INFO);
-
     FileMap map{ &lfs_driver, "data", pool };
-    BlockAppender appender{ &lfs_driver, &map, 1024, pool };
+    BlockAppender appender{ &lfs_driver, &map, 1024 * 100, pool };
 
     ReadingRecord readings{ 0, 0 };
-    for (auto i = 0u; i < 4 * 20; ++i) {
+    for (auto i = 0u; i < 10; ++i) {
         StandardPool iter{ "iter" };
 
         auto appended = appender.append_data_record(&readings.record, iter);
@@ -46,26 +44,10 @@ TEST_F(LfsSuite, Create) {
         ASSERT_EQ(appended->block, i);
     }
 
-    PartitionedReader reader{ &lfs_driver, &map, pool };
-
-    auto seek1 = reader.seek(17, pool);
-    ASSERT_TRUE(seek1);
-    ASSERT_EQ(seek1->block, 17u);
-    ASSERT_EQ(seek1->first_block_of_containing_file, 10u);
-    ASSERT_EQ(seek1->absolute_position, 3022u);
-    ASSERT_EQ(seek1->file_position, 784u);
-
-    auto seek2 = reader.seek(64, pool);
-    ASSERT_TRUE(seek2);
-    ASSERT_EQ(seek2->block, 64u);
-    ASSERT_EQ(seek2->first_block_of_containing_file, 60u);
-    ASSERT_EQ(seek2->absolute_position, 8286u);
-    ASSERT_EQ(seek2->file_position, 448u);
-
     lfs_unmount(lfs);
 }
 
-TEST_F(LfsSuite, AppendImmutable) {
+TEST_F(LfsSuite, AppendChanges) {
     StandardPool pool{ "lfs" };
     auto memory = MemoryFactory::get_data_memory();
 
@@ -75,8 +57,6 @@ TEST_F(LfsSuite, AppendImmutable) {
     ASSERT_TRUE(lfs_driver.begin(true));
 
     auto lfs = lfs_driver.lfs();
-
-    log_configure_level(LogLevels::INFO);
 
     FileMap map{ &lfs_driver, "data", pool };
     BlockAppender appender{ &lfs_driver, &map, 1024, pool };
@@ -89,9 +69,73 @@ TEST_F(LfsSuite, AppendImmutable) {
 
     auto appended2 = appender.append_changes(LFS_DRIVER_ATTR_CONFIG_MODULES, &readings2.record, fk_data_DataRecord_fields, pool);
     ASSERT_TRUE(appended2);
+    ASSERT_NE(appended1->block, appended2->block);
+    ASSERT_NE(appended1->absolute_position, appended2->absolute_position);
+    ASSERT_NE(appended1->file_position, appended2->file_position);
 
     auto appended3 = appender.append_changes(LFS_DRIVER_ATTR_CONFIG_MODULES, &readings2.record, fk_data_DataRecord_fields, pool);
     ASSERT_TRUE(appended3);
+    ASSERT_EQ(appended3->block, appended2->block);
+    ASSERT_EQ(appended3->absolute_position, appended2->absolute_position);
+    ASSERT_EQ(appended3->file_position, appended2->file_position);
+
+    lfs_unmount(lfs);
+}
+
+TEST_F(LfsSuite, ReadAcrossPartitionedFiles) {
+    StandardPool pool{ "lfs" };
+    auto memory = MemoryFactory::get_data_memory();
+
+    ASSERT_TRUE(memory->begin());
+
+    LfsDriver lfs_driver{ memory, pool };
+    ASSERT_TRUE(lfs_driver.begin(true));
+
+    auto lfs = lfs_driver.lfs();
+
+    FileMap map{ &lfs_driver, "data", pool };
+    BlockAppender appender{ &lfs_driver, &map, 1024, pool };
+
+    auto total_written = 0u;
+
+    ReadingRecord readings{ 0, 0 };
+    for (auto i = 0u; i < 4 * 20; ++i) {
+        StandardPool iter{ "iter" };
+
+        auto appended = appender.append_data_record(&readings.record, iter);
+
+        ASSERT_TRUE(appended);
+        ASSERT_EQ(appended->block, i);
+
+        total_written += appended->record_size;
+    }
+
+    PartitionedReader reader{ &lfs_driver, &map, pool };
+
+    // log_configure_level(LogLevels::INFO);
+
+    auto seek1 = reader.seek(17, pool);
+    ASSERT_TRUE(seek1);
+    ASSERT_EQ(seek1->block, 17u);
+    ASSERT_EQ(seek1->first_block_of_containing_file, 10u);
+    ASSERT_EQ(seek1->absolute_position, 1902u);
+    ASSERT_EQ(seek1->file_position, 784u);
+
+    auto file_reader = reader.open_reader(pool);
+    ASSERT_TRUE(file_reader);
+
+    auto total_read = 0u;
+    auto buffer = pool.malloc(1024);
+    while (true) {
+        auto nread = file_reader->read((uint8_t *)buffer, 1024);
+        if (nread <= 0) {
+            break;
+        }
+
+        total_read += nread;
+    }
+
+    ASSERT_EQ(total_written, total_read + seek1->absolute_position);
 
     lfs_unmount(lfs);
 }

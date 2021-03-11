@@ -25,13 +25,19 @@ tl::expected<block_seek_t, Error> PartitionedReader::seek(uint32_t desired_block
 
     loginfo("opening %s", path_);
 
-    lfs_file_t file;
-    lfs_file_config file_cfg = lfs_->make_data_cfg(pool);
-    FK_ASSERT(lfs_file_opencfg(lfs(), &file, path_, LFS_O_RDONLY, &file_cfg) == 0);
+    close();
 
-    Attributes attributes{ file_cfg };
+    file_cfg_ = lfs_->make_data_cfg(pool);
+    FK_ASSERT(lfs_file_opencfg(lfs(), &file_, path_, LFS_O_RDONLY, &file_cfg_) == 0);
+
+    Attributes attributes{ file_cfg_ };
 
     auto block_number = attributes.first_block();
+
+    if (!(desired_block >= block_number && desired_block < block_number + attributes.nblocks())) {
+        loginfo("desired block outside of file");
+        return tl::unexpected<Error>(Error::General);
+    }
 
     auto file_position = 0u;
 
@@ -41,7 +47,7 @@ tl::expected<block_seek_t, Error> PartitionedReader::seek(uint32_t desired_block
 
     while (!success) {
         if (block_number == desired_block) {
-            auto position = lfs_file_tell(lfs(), &file);
+            auto position = lfs_file_tell(lfs(), &file_);
             loginfo("seek: have R-%" PRIu32 " found at %" PRIu32, block_number, position);
             success = true;
             seek = {
@@ -53,7 +59,7 @@ tl::expected<block_seek_t, Error> PartitionedReader::seek(uint32_t desired_block
             break;
         }
 
-        auto nread = lfs_file_read(lfs(), &file, buffer_, buffer_size_);
+        auto nread = lfs_file_read(lfs(), &file_, buffer_, buffer_size_);
         if (nread < 0) {
             logerror("seek error reading file");
             return tl::unexpected<Error>(Error::General);
@@ -76,18 +82,67 @@ tl::expected<block_seek_t, Error> PartitionedReader::seek(uint32_t desired_block
         loginfo("seek: skip R-%" PRIu32 " size=%" PRIu32 " seeking=%d nread=%d", block_number, total_record_size,
                 sibling_offset, nread);
 
-        file_position = lfs_file_seek(lfs(), &file, sibling_offset, LFS_SEEK_CUR);
+        file_position = lfs_file_seek(lfs(), &file_, sibling_offset, LFS_SEEK_CUR);
 
         block_number++;
     }
-
-    FK_ASSERT(lfs_file_close(lfs(), &file) == 0);
 
     if (!success) {
         return tl::unexpected<Error>(Error::EoF);
     }
 
+    opened_ = true;
+
     return seek;
+}
+
+Reader *PartitionedReader::open_reader(Pool &pool) {
+    FK_ASSERT(opened_);
+
+    reader_pool_ = &pool;
+
+    return this;
+}
+
+int32_t PartitionedReader::read(uint8_t *buffer, size_t size) {
+    FK_ASSERT(reader_pool_ != nullptr);
+
+    auto bytes_or_err = lfs_file_read(lfs(), &file_, buffer, size);
+    if (bytes_or_err < 0) {
+        return bytes_or_err;
+    }
+    if (bytes_or_err > 0) {
+        return bytes_or_err;
+    }
+
+    // We need to move to the following file, now.
+    loginfo("end of file, seeking");
+
+    Attributes attributes{ file_cfg_ };
+
+    auto block_after = attributes.first_block() + attributes.nblocks();
+
+    if (!seek(block_after, *reader_pool_)) {
+        loginfo("end of partitioned file");
+        return 0;
+    }
+
+    bytes_or_err = lfs_file_read(lfs(), &file_, buffer, size);
+    if (bytes_or_err < 0) {
+        return bytes_or_err;
+    }
+    if (bytes_or_err > 0) {
+        return bytes_or_err;
+    }
+
+    return -1;
+}
+
+void PartitionedReader::close() {
+    if (opened_) {
+        lfs_file_close(lfs(), &file_);
+        opened_ = false;
+    }
 }
 
 } // namespace fk
