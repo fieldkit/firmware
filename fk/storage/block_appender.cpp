@@ -99,6 +99,8 @@ AppendedBlockOrError BlockAppender::append_data_record(fk_data_DataRecord *recor
         attributes.first_block(first_block);
         attributes.nblocks(0);
 
+        lfs_->add_number_of_files(directory(), 1);
+
         start_block_of_last_file_ = first_block;
     }
 

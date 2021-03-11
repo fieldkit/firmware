@@ -12,19 +12,19 @@ FK_DECLARE_LOGGER("lfs");
 constexpr lfs_size_t number_data_attributes = 2;
 
 fklfs_attribute_template_t data_attributes[number_data_attributes] = {
-    { LFS_DRIVER_ATTR_NBLOCKS,         sizeof(uint32_t), 0x00 },
-    { LFS_DRIVER_ATTR_FIRST_BLOCK,     sizeof(uint32_t), 0x00 },
+    { LFS_DRIVER_FILE_ATTR_NBLOCKS,         sizeof(uint32_t), 0x00 },
+    { LFS_DRIVER_FILE_ATTR_FIRST_BLOCK,     sizeof(uint32_t), 0x00 },
 };
 
 constexpr lfs_size_t number_meta_attributes = 6;
 
 fklfs_attribute_template_t meta_attributes[number_meta_attributes] = {
-    { LFS_DRIVER_ATTR_FIRST_BLOCK,     sizeof(uint32_t), 0x00 },
-    { LFS_DRIVER_ATTR_NBLOCKS,         sizeof(uint32_t), 0x00 },
-    { LFS_DRIVER_ATTR_CONFIG_MODULES,  sizeof(uint32_t), 0xff },
-    { LFS_DRIVER_ATTR_CONFIG_SCHEDULE, sizeof(uint32_t), 0xff },
-    { LFS_DRIVER_ATTR_CONFIG_STATE,    sizeof(uint32_t), 0xff },
-    { LFS_DRIVER_ATTR_CONFIG_OTHER,    sizeof(uint32_t), 0xff },
+    { LFS_DRIVER_FILE_ATTR_FIRST_BLOCK,     sizeof(uint32_t), 0x00 },
+    { LFS_DRIVER_FILE_ATTR_NBLOCKS,         sizeof(uint32_t), 0x00 },
+    { LFS_DRIVER_FILE_ATTR_CONFIG_MODULES,  sizeof(uint32_t), 0xff },
+    { LFS_DRIVER_FILE_ATTR_CONFIG_SCHEDULE, sizeof(uint32_t), 0xff },
+    { LFS_DRIVER_FILE_ATTR_CONFIG_STATE,    sizeof(uint32_t), 0xff },
+    { LFS_DRIVER_FILE_ATTR_CONFIG_OTHER,    sizeof(uint32_t), 0xff },
 };
 
 // Read a region in a block. Negative error codes are propogated
@@ -163,6 +163,34 @@ int32_t LfsDriver::erase(struct lfs_config const *c, lfs_block_t block) {
     }
 
     return 0;
+}
+
+int32_t LfsDriver::get_number_of_files(const char *path) {
+    int32_t value = 0;
+    auto err = lfs_getattr(lfs(), path, LFS_DRIVER_DIR_ATTR_NFILES, &value, sizeof(int32_t));
+    if (err < 0) {
+        return err;
+    }
+    return value;
+}
+
+int32_t LfsDriver::set_number_of_files(const char *path, int32_t value) {
+    return lfs_setattr(lfs(), path, LFS_DRIVER_DIR_ATTR_NFILES, &value, sizeof(int32_t));
+}
+
+int32_t LfsDriver::add_number_of_files(const char *path, int32_t value) {
+    auto nfiles = get_number_of_files(path);
+    if (nfiles < 0) {
+        return nfiles;
+    }
+
+    nfiles += value;
+
+    auto err = set_number_of_files(path, nfiles);
+    if (err < 0) {
+        return err;
+    }
+    return nfiles;
 }
 
 } // namespace fk

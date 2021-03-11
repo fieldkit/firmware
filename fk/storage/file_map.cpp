@@ -23,7 +23,14 @@ tl::expected<block_file_search_t, Error> FileMap::find(uint32_t desired_block, P
     uint32_t bytes_before_start_of_last_file{ 0 };
     uint32_t last_block{ 0 };
 
+    int32_t number_of_files = 0;
+    int32_t expected_number_of_files = lfs_->get_number_of_files(directory_);
+    if (number_of_files < 0) {
+        return tl::unexpected<Error>(Error::IO);
+    }
+
     lfs_dir_t dir;
+
     lfs_dir_open(lfs(), &dir, directory_);
 
     /**
@@ -48,10 +55,10 @@ tl::expected<block_file_search_t, Error> FileMap::find(uint32_t desired_block, P
         tiny_snprintf(path_, LFS_NAME_MAX, "%s/%s", directory_, info.name);
 
         uint32_t first_block = 0;
-        lfs_getattr(lfs(), path_, LFS_DRIVER_ATTR_FIRST_BLOCK, &first_block, sizeof(first_block));
+        lfs_getattr(lfs(), path_, LFS_DRIVER_FILE_ATTR_FIRST_BLOCK, &first_block, sizeof(first_block));
 
         uint32_t nblocks = 0;
-        lfs_getattr(lfs(), path_, LFS_DRIVER_ATTR_NBLOCKS, &nblocks, sizeof(nblocks));
+        lfs_getattr(lfs(), path_, LFS_DRIVER_FILE_ATTR_NBLOCKS, &nblocks, sizeof(nblocks));
 
         loginfo("ls: '%s' type=%d size=%d attrs: first-block=%" PRIu32 " nblocks=%" PRIu32, info.name, info.type,
                 info.size, first_block, nblocks);
@@ -69,9 +76,15 @@ tl::expected<block_file_search_t, Error> FileMap::find(uint32_t desired_block, P
         }
 
         bytes_before_start_of_last_file += info.size;
+        number_of_files++;
     }
 
     lfs_dir_close(lfs(), &dir);
+
+    // Only update the number of files when they change.
+    if (number_of_files != expected_number_of_files) {
+        lfs_->set_number_of_files(directory_, number_of_files);
+    }
 
     return block_file_search_t{
         .start_block_of_first_file = start_block_of_first_file,

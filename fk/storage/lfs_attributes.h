@@ -14,15 +14,15 @@ public:
 
 public:
     uint32_t nblocks() const {
-        return *(uint32_t *)cfg_.attrs[LFS_DRIVER_ATTR_NBLOCKS].buffer;
+        return *(uint32_t *)cfg_.attrs[LFS_DRIVER_FILE_ATTR_NBLOCKS].buffer;
     }
 
     uint32_t first_block() const {
-        return *(uint32_t *)cfg_.attrs[LFS_DRIVER_ATTR_FIRST_BLOCK].buffer;
+        return *(uint32_t *)cfg_.attrs[LFS_DRIVER_FILE_ATTR_FIRST_BLOCK].buffer;
     }
 
     uint32_t increase_nblocks() {
-        auto &nblocks = *(uint32_t *)cfg_.attrs[LFS_DRIVER_ATTR_NBLOCKS].buffer;
+        auto &nblocks = *(uint32_t *)cfg_.attrs[LFS_DRIVER_FILE_ATTR_NBLOCKS].buffer;
         nblocks++;
         return nblocks;
     }
@@ -36,11 +36,11 @@ public:
     }
 
     void first_block(uint32_t first_block) {
-        set(LFS_DRIVER_ATTR_FIRST_BLOCK, first_block);
+        set(LFS_DRIVER_FILE_ATTR_FIRST_BLOCK, first_block);
     }
 
     void nblocks(uint32_t nblocks) {
-        set(LFS_DRIVER_ATTR_NBLOCKS, nblocks);
+        set(LFS_DRIVER_FILE_ATTR_NBLOCKS, nblocks);
     }
 };
 

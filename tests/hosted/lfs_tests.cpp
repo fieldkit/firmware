@@ -64,16 +64,16 @@ TEST_F(LfsSuite, AppendChanges) {
     ReadingRecord readings1{ 0, 0 };
     ReadingRecord readings2{ 0, 0 };
 
-    auto appended1 = appender.append_changes(LFS_DRIVER_ATTR_CONFIG_MODULES, &readings1.record, fk_data_DataRecord_fields, pool);
+    auto appended1 = appender.append_changes(LFS_DRIVER_FILE_ATTR_CONFIG_MODULES, &readings1.record, fk_data_DataRecord_fields, pool);
     ASSERT_TRUE(appended1);
 
-    auto appended2 = appender.append_changes(LFS_DRIVER_ATTR_CONFIG_MODULES, &readings2.record, fk_data_DataRecord_fields, pool);
+    auto appended2 = appender.append_changes(LFS_DRIVER_FILE_ATTR_CONFIG_MODULES, &readings2.record, fk_data_DataRecord_fields, pool);
     ASSERT_TRUE(appended2);
     ASSERT_NE(appended1->block, appended2->block);
     ASSERT_NE(appended1->absolute_position, appended2->absolute_position);
     ASSERT_NE(appended1->file_position, appended2->file_position);
 
-    auto appended3 = appender.append_changes(LFS_DRIVER_ATTR_CONFIG_MODULES, &readings2.record, fk_data_DataRecord_fields, pool);
+    auto appended3 = appender.append_changes(LFS_DRIVER_FILE_ATTR_CONFIG_MODULES, &readings2.record, fk_data_DataRecord_fields, pool);
     ASSERT_TRUE(appended3);
     ASSERT_EQ(appended3->block, appended2->block);
     ASSERT_EQ(appended3->absolute_position, appended2->absolute_position);
