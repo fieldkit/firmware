@@ -9,7 +9,7 @@ PACKAGE = fk-firmware-$(BUILD_NUMBER)
 
 default: setup all
 
-all: samd51 samd51-qspi samd09 test
+all: samd51 samd09 test
 
 checks: amd64
 	valgrind $(BUILD)/amd64/tests/hosted/testall
