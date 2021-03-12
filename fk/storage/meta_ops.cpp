@@ -43,11 +43,33 @@ tl::expected<uint32_t, Error> MetaOps::write_kind(GlobalState *gs, SignedRecordK
     return (*meta_record).record;
 }
 
+tl::expected<FileAttributes, Error> MetaOps::atttributes() {
+    auto file = storage_.file(Storage::Meta);
+    if (!file.seek_end()) {
+        return tl::unexpected<Error>(Error::IO);
+    }
+
+    return FileAttributes{ file.size(), file.record() };
+}
+
+bool MetaOps::read_record(SignedRecordKind kind, MetaRecord &record, Pool &pool) {
+    auto meta = storage_.file(Storage::Meta);
+    auto srl = SignedRecordLog{ meta };
+    if (!srl.seek_record(kind)) {
+        return false;
+    }
+
+    if (!srl.decode(&record.for_decoding(pool), fk_data_DataRecord_fields, pool)) {
+        return false;
+    }
+
+    return true;
+}
+
 DataOps::DataOps(Storage &storage) : storage_(storage) {
 }
 
 tl::expected<uint32_t, Error> DataOps::write_readings(GlobalState *gs, fk_data_DataRecord *record, Pool &pool) {
-    // jlewallen: storage-write
     auto file = storage_.file(Storage::Data);
     if (!file.seek_end()) {
         FK_ASSERT(file.create());
@@ -70,6 +92,33 @@ tl::expected<uint32_t, Error> DataOps::write_readings(GlobalState *gs, fk_data_D
     gs->update_data_stream(file);
 
     return record->readings.reading;
+}
+
+tl::expected<FileAttributes, Error> DataOps::atttributes() {
+    auto file = storage_.file(Storage::Data);
+    if (!file.seek_end()) {
+        return tl::unexpected<Error>(Error::IO);
+    }
+
+    return FileAttributes{ file.size(), file.record() };
+}
+
+bool DataOps::read_fixed_record(DataRecord &record, Pool &pool) {
+    auto file = storage_.file(Storage::Data);
+    if (!file.seek_end()) {
+        FK_ASSERT(file.create());
+    }
+
+    if (!file.rewind()) {
+        return false;
+    }
+
+    auto nread = file.read(&record.for_decoding(pool), fk_data_DataRecord_fields);
+    if (nread <= 0) {
+        return false;
+    }
+
+    return true;
 }
 
 }

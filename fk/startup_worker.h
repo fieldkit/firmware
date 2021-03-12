@@ -2,6 +2,7 @@
 
 #include "worker.h"
 #include "storage/storage.h"
+#include "storage/meta_ops.h"
 
 namespace fk {
 
@@ -32,7 +33,7 @@ private:
 
 private:
     bool load_from_files(Storage &storage, GlobalState *gs, Pool &pool);
-    bool load_previous_location(Storage &storage, GlobalState *gs, File &data, Pool &pool);
+    bool load_previous_location(GlobalState *gs, DataOps &ops, Pool &pool);
 
 private:
     bool check_for_upgrading_startup(Pool &pool);

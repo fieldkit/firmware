@@ -35,7 +35,7 @@ namespace fk {
 
 FK_DECLARE_LOGGER("startup");
 
-static void copy_cron_spec_from_pb(const char *name, Schedule &cs, fk_data_JobSchedule &pb, Pool &pool);
+static void copy_cron_spec_from_pb(const char *name, Schedule &cs, fk_data_JobSchedule const &pb, Pool &pool);
 
 void StartupWorker::run(Pool &pool) {
     get_board()->i2c_core().begin();
@@ -83,7 +83,7 @@ void StartupWorker::run(Pool &pool) {
     }
 
     if (!low_power_startup) {
-        display->company_logo();
+    display->company_logo();
     }
 
     loginfo("ready hardware");
@@ -177,18 +177,13 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
         return false;
     }
 
-    auto meta = storage.file(Storage::Meta);
-    auto srl = SignedRecordLog{ meta };
-    if (!srl.seek_record(SignedRecordKind::State)) {
+    MetaOps ops{ storage };
+    MetaRecord meta_record;
+    if (!ops.read_record(SignedRecordKind::State, meta_record, pool)) {
         return true;
     }
 
-    auto record = fk_data_record_decoding_new(pool);
-    record.identity.name.arg = reinterpret_cast<void *>(&pool);
-    record.metadata.generation.arg = reinterpret_cast<void *>(&pool);
-    if (!srl.decode(&record, fk_data_DataRecord_fields, pool)) {
-        return true;
-    }
+    auto &record = meta_record.record();
 
     auto name = reinterpret_cast<const char *>(record.identity.name.arg);
     strncpy(gs->general.name, name, sizeof(gs->general.name));
@@ -327,7 +322,6 @@ bool StartupWorker::create_new_state(Storage &storage, GlobalState *gs, Pool &po
     }
 
     MetaOps ops{ storage };
-
     if (!ops.write_state(gs, &fkb_header, pool)) {
         logerror("error writing state");
         fk_logs_flush();
@@ -338,45 +332,28 @@ bool StartupWorker::create_new_state(Storage &storage, GlobalState *gs, Pool &po
 }
 
 bool StartupWorker::load_from_files(Storage &storage, GlobalState *gs, Pool &pool) {
-    auto meta_fh = storage.file_header(Storage::Meta);
-    auto data_fh = storage.file_header(Storage::Data);
-
-    /**
-     * We intentionally use a known earlier starting point here, the
-     * positions in the block header so we can overlap the recording
-     * since we aren't keeping fine grained track yet of what's
-     * uploaded.
-     */
-    gs->transmission.data_cursor = data_fh.record;
-    gs->transmission.meta_cursor = meta_fh.record - 1;
-
-    /**
-     * Now actually do seeks to the end to find the accurate sizes and
-     * positions of each file.
-     */
     {
-        auto meta = storage.file(Storage::Meta);
-        if (!meta.seek_end()) {
-            return false;
-        }
+        MetaOps ops{ storage };
+        auto attributes = ops.atttributes();
 
-        gs->update_meta_stream(meta);
+        gs->update_meta_stream(attributes->size, attributes->records);
+        // TODO This should be managed better.
+        gs->transmission.meta_cursor = attributes->records - 2;
 
         loginfo("read file state (meta) R-%" PRIu32, gs->storage.meta.block);
     }
 
     {
-        auto data = storage.file(Storage::Data);
-        if (!data.seek_end()) {
-            return false;
-        }
+        DataOps ops{ storage };
+        auto attributes = ops.atttributes();
 
-        gs->update_data_stream(data);
+        gs->update_data_stream(attributes->size, attributes->records);
+        // TODO This should be managed better.
+        gs->transmission.data_cursor = attributes->records;
 
         loginfo("read file state (data) R-%" PRIu32, gs->storage.data.block);
 
-        // This function depends on data being seeked to the end.
-        if (!load_previous_location(storage, gs, data, pool)) {
+        if (!load_previous_location(gs, ops, pool)) {
             return false;
         }
     }
@@ -384,15 +361,9 @@ bool StartupWorker::load_from_files(Storage &storage, GlobalState *gs, Pool &poo
     return true;
 }
 
-bool StartupWorker::load_previous_location(Storage &storage, GlobalState *gs, File &data, Pool &pool) {
-    // How do we verify we're seeked to the end? NOTE
-    if (!data.rewind()) {
-        return false;
-    }
-
+bool StartupWorker::load_previous_location(GlobalState *gs, DataOps &ops, Pool &pool) {
     DataRecord record;
-    auto nread = data.read(&record.for_decoding(pool), fk_data_DataRecord_fields);
-    if (nread <= 0) {
+    if (!ops.read_fixed_record(record, pool)) {
         return false;
     }
 
@@ -596,7 +567,7 @@ bool StartupWorker::check_for_low_power_startup(Pool &pool) {
     return true;
 }
 
-static void copy_cron_spec_from_pb(const char *name, Schedule &cs, fk_data_JobSchedule &pb, Pool &pool) {
+static void copy_cron_spec_from_pb(const char *name, Schedule &cs, fk_data_JobSchedule const &pb, Pool &pool) {
     auto pbd = pb_get_data_if_provided(pb.cron.arg, pool);
     if (pbd != nullptr) {
         FK_ASSERT(pbd->length == sizeof(lwcron::CronSpec));
