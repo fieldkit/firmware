@@ -40,20 +40,13 @@ tl::expected<TakenReadings, Error> ReadingsTaker::take(ConstructedModulesCollect
             return tl::unexpected<Error>(Error::General);
         }
 
-        auto data = storage_.file(Storage::Data);
-        if (!data.seek_end()) {
-            FK_ASSERT(data.create());
-        }
-
-        auto number = data.record();
-        readings_.link(*meta_record, number);
-
-        if (!append_readings(data, pool)) {
+        auto data_record = append_readings(*meta_record, pool);
+        if (!data_record) {
             logerror("error appending readings");
             return tl::unexpected<Error>(Error::General);
         }
 
-        return TakenReadings{ get_clock_now(), number, std::move(constructed_modules), std::move(*all_readings) };
+        return TakenReadings{ get_clock_now(), *data_record, std::move(constructed_modules), std::move(*all_readings) };
     }
 
     auto all_readings = readings_.take_readings(ctx, constructed_modules, pool);
@@ -65,11 +58,19 @@ tl::expected<TakenReadings, Error> ReadingsTaker::take(ConstructedModulesCollect
     return TakenReadings{ 0, 0, std::move(constructed_modules), std::move(*all_readings) };
 }
 
-bool ReadingsTaker::append_readings(File &file, Pool &pool) {
+tl::expected<uint32_t, Error> ReadingsTaker::append_readings(uint32_t meta_record, Pool &pool) {
+    auto file = storage_.file(Storage::Data);
+    if (!file.seek_end()) {
+        FK_ASSERT(file.create());
+    }
+
+    auto number = file.record();
+    readings_.link(meta_record, number);
+
     auto bytes_wrote = file.write(&readings_.record(), fk_data_DataRecord_fields);
     if (bytes_wrote == 0) {
         logerror("error saving readings");
-        return false;
+        return tl::unexpected<Error>(Error::IO);
     }
 
     auto record = readings_.record().readings.reading;
@@ -81,7 +82,7 @@ bool ReadingsTaker::append_readings(File &file, Pool &pool) {
 
     logdebug("updated data");
 
-    return true;
+    return number;
 }
 
 tl::expected<uint32_t, Error> ReadingsTaker::append_configuration(ConstructedModulesCollection &modules, ModuleReadingsCollection &readings, Pool &pool) {
