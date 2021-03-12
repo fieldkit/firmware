@@ -137,6 +137,7 @@ void GlobalState::released(uint32_t locked) {
 }
 
 bool GlobalState::flush(Pool &pool) {
+    // jlewallen: storage-write
     Storage storage{ MemoryFactory::get_data_memory(), pool, false };
     if (!storage.begin()) {
         return false;

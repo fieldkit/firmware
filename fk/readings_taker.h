@@ -21,10 +21,10 @@ public:
 public:
     tl::expected<TakenReadings, Error> take(ConstructedModulesCollection &constructed_modules, ScanningContext &mc, Pool &pool);
 
-    tl::expected<uint32_t, Error> append_readings(uint32_t meta_record, Pool &pool);
-
 private:
     tl::expected<uint32_t, Error> append_configuration(ConstructedModulesCollection &modules, ModuleReadingsCollection &readings, Pool &pool);
+
+    tl::expected<uint32_t, Error> append_readings(uint32_t meta_record, Pool &pool);
 
 };
 

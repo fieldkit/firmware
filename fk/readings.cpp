@@ -12,11 +12,6 @@ FK_DECLARE_LOGGER("readings");
 Readings::Readings(ModMux *mm) : mm_(mm) {
 }
 
-void Readings::link(uint32_t meta_record, uint32_t reading_number) {
-    record_.readings.reading = reading_number;
-    record_.readings.meta = meta_record;
-}
-
 tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningContext &ctx, ConstructedModulesCollection const &modules, Pool &pool) {
     ModuleReadingsCollection all_readings{ pool };
 
@@ -173,8 +168,16 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
     return std::move(all_readings);
 }
 
-fk_data_DataRecord const &Readings::record() {
+void Readings::meta_record(uint32_t meta_record) {
+    record_.readings.meta = meta_record;
+}
+
+void Readings::record_number(uint32_t record_number) {
+    record_.readings.reading = record_number;
+}
+
+fk_data_DataRecord &Readings::record() {
     return record_;
 }
 
-}
+} // namespace fk

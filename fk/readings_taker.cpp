@@ -58,37 +58,21 @@ tl::expected<TakenReadings, Error> ReadingsTaker::take(ConstructedModulesCollect
     return TakenReadings{ 0, 0, std::move(constructed_modules), std::move(*all_readings) };
 }
 
-tl::expected<uint32_t, Error> ReadingsTaker::append_readings(uint32_t meta_record, Pool &pool) {
-    auto file = storage_.file(Storage::Data);
-    if (!file.seek_end()) {
-        FK_ASSERT(file.create());
-    }
-
-    auto number = file.record();
-    readings_.link(meta_record, number);
-
-    auto bytes_wrote = file.write(&readings_.record(), fk_data_DataRecord_fields);
-    if (bytes_wrote == 0) {
-        logerror("error saving readings");
-        return tl::unexpected<Error>(Error::IO);
-    }
-
-    auto record = readings_.record().readings.reading;
-    loginfo("wrote %zd bytes file=(#%" PRIu32 ") rec=(#%" PRIu64 ") (%" PRIu32 " bytes) (" PRADDRESS ") (%" PRIu32 " wasted)",
-            (size_t)bytes_wrote, file.previous_record(), record, file.size(), file.tail(), file.wasted());
-
-    auto gs = get_global_state_rw();
-    gs.get()->update_data_stream(file);
-
-    logdebug("updated data");
-
-    return number;
-}
-
 tl::expected<uint32_t, Error> ReadingsTaker::append_configuration(ConstructedModulesCollection &modules, ModuleReadingsCollection &readings, Pool &pool) {
+    // jlewallen: storage-write
     MetaOps ops{ storage_ };
     auto gs = get_global_state_rw();
     return ops.write_modules(gs.get(), &fkb_header, modules, readings, pool);
+}
+
+tl::expected<uint32_t, Error> ReadingsTaker::append_readings(uint32_t meta_record, Pool &pool) {
+    // We fill in the number in write_readings
+    readings_.record().readings.meta = meta_record;
+
+    // jlewallen: storage-write
+    DataOps ops{ storage_ };
+    auto gs = get_global_state_rw();
+    return ops.write_readings(gs.get(), &readings_.record(), pool);
 }
 
 }

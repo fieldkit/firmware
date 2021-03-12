@@ -231,7 +231,8 @@ TEST_F(ProtoBufSizeSuite, Readings) {
 
     Readings readings{ get_modmux() };
     ASSERT_TRUE(readings.take_readings(ctx, resolved, pool_));
-    readings.link(1, 1);
+    readings.meta_record(1);
+    readings.record_number(1);
 
     auto encoded = pool_.encode(fk_data_DataRecord_fields, &readings.record());
     dump_binary(file_, "data-readings", encoded);
@@ -278,7 +279,8 @@ TEST_F(ProtoBufSizeSuite, ReadingsNoneBackFromFirstModule) {
 
     ASSERT_EQ((*taken).size(), 2u);
 
-    readings.link(1, 1);
+    readings.meta_record(1);
+    readings.record_number(1);
 
     auto encoded = pool_.encode(fk_data_DataRecord_fields, &readings.record());
     dump_binary(file_, "data-readings-failed-first", encoded);
