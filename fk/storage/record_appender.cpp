@@ -186,7 +186,9 @@ AppendedRecordOrError RecordAppender::write_record(lfs_file_t &file, Attributes 
     // map because this is a new file, so we invalidate to ensure a
     // future rescan.
     if (file_size_before == 0) {
-        map_->invalidate();
+        if (!map_->refresh()) {
+            return tl::unexpected<Error>(Error::IO);
+        }
     }
 
     attributes.set(LFS_DRIVER_FILE_ATTR_TAIL_RECORD, file_size_before);
@@ -198,7 +200,9 @@ AppendedRecordOrError RecordAppender::write_record(lfs_file_t &file, Attributes 
     BufferedWriter buffered{ &lfs_writer, (uint8_t *)pool.malloc(1024), 1024 };
     auto ostream = pb_ostream_from_writable(&buffered);
     FK_ASSERT(pb_encode_delimited(&ostream, fields, record));
-    buffered.flush();
+    if (buffered.flush() <= 0) {
+        return tl::unexpected<Error>(Error::IO);
+    }
 
     // Ensure the updated nrecords attributes gets written with this
     // appended record.
