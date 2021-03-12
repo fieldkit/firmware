@@ -372,6 +372,10 @@ static bool send_status(HttpServerConnection *connection, fk_app_HttpQuery *quer
     connection->write(http_reply.reply());
     connection->close();
 
+    #if defined(FK_LOGS_FLUSH_AGGRESSIVE)
+    fk::fk_logs_flush();
+    #endif
+
     return true;
 }
 
@@ -387,6 +391,10 @@ static bool send_readings(HttpServerConnection *connection, fk_app_HttpQuery *qu
 
     connection->write(http_reply.reply());
     connection->close();
+
+    #if defined(FK_LOGS_FLUSH_AGGRESSIVE)
+    fk::fk_logs_flush();
+    #endif
 
     return true;
 }

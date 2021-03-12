@@ -463,4 +463,9 @@ constexpr size_t NumberOfWorkerTasks = 2;
 // #define FK_LOGGING_POOL_TRACING
 // #define FK_ENABLE_NETWORK_UP_AND_DOWN
 
+/**
+ * Enable the aggressive flushing of logs.
+ */
+#define FK_LOGS_FLUSH_AGGRESSIVE
+
 }
