@@ -182,15 +182,6 @@ AppendedRecordOrError RecordAppender::write_record(lfs_file_t &file, Attributes 
     auto record_number = attributes.first_record() + attributes.nrecords();
     auto file_size_before = lfs_file_size(lfs(), &file);
 
-    // If this file is 0 bytes in length then we need to refresh our
-    // map because this is a new file, so we invalidate to ensure a
-    // future rescan.
-    if (file_size_before == 0) {
-        if (!map_->refresh()) {
-            return tl::unexpected<Error>(Error::IO);
-        }
-    }
-
     attributes.set(LFS_DRIVER_FILE_ATTR_TAIL_RECORD, file_size_before);
 
     logdebug("writing record: R-%" PRIu32, record_number);
@@ -213,6 +204,15 @@ AppendedRecordOrError RecordAppender::write_record(lfs_file_t &file, Attributes 
     // Commit our changes to the file system.
     logdebug("closing");
     lfs_file_close(lfs(), &file);
+
+    // If this file is 0 bytes in length then we need to refresh our
+    // map because this is a new file, so we invalidate to ensure a
+    // future rescan.
+    if (file_size_before == 0) {
+        if (!map_->refresh()) {
+            return tl::unexpected<Error>(Error::IO);
+        }
+    }
 
     auto absolute_position = bytes_before_start_of_last_file_ + file_size_before;
     auto record_size = file_size_after - file_size_before;
