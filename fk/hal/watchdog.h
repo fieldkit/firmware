@@ -12,12 +12,16 @@ int32_t fk_wdt_disable();
 
 int32_t fk_wdt_feed();
 
+namespace fk {
+
 class EnableWatchdog {
 public:
     EnableWatchdog();
     virtual ~EnableWatchdog();
 
 };
+
+}
 
 #ifdef __cplusplus
 }

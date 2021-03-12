@@ -8,6 +8,8 @@
 
 #include "hal/hal.h"
 
+namespace fk {
+
 EnableWatchdog::EnableWatchdog() {
     fk_wdt_enable();
 }
@@ -15,6 +17,8 @@ EnableWatchdog::EnableWatchdog() {
 EnableWatchdog::~EnableWatchdog() {
     fk_wdt_disable();
 }
+
+} // namespace fk
 
 extern "C" {
 
