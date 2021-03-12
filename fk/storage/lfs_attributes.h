@@ -13,18 +13,18 @@ public:
     }
 
 public:
-    uint32_t nblocks() const {
-        return *(uint32_t *)cfg_.attrs[LFS_DRIVER_FILE_ATTR_NBLOCKS].buffer;
+    uint32_t nrecords() const {
+        return *(uint32_t *)cfg_.attrs[LFS_DRIVER_FILE_ATTR_NRECORDS].buffer;
     }
 
-    uint32_t first_block() const {
-        return *(uint32_t *)cfg_.attrs[LFS_DRIVER_FILE_ATTR_FIRST_BLOCK].buffer;
+    uint32_t first_record() const {
+        return *(uint32_t *)cfg_.attrs[LFS_DRIVER_FILE_ATTR_FIRST_RECORD].buffer;
     }
 
-    uint32_t increase_nblocks() {
-        auto &nblocks = *(uint32_t *)cfg_.attrs[LFS_DRIVER_FILE_ATTR_NBLOCKS].buffer;
-        nblocks++;
-        return nblocks;
+    uint32_t increase_nrecords() {
+        auto &nrecords = *(uint32_t *)cfg_.attrs[LFS_DRIVER_FILE_ATTR_NRECORDS].buffer;
+        nrecords++;
+        return nrecords;
     }
 
     void set(uint8_t index, uint32_t value) {
@@ -35,12 +35,12 @@ public:
         return *(uint32_t *)cfg_.attrs[index].buffer;
     }
 
-    void first_block(uint32_t first_block) {
-        set(LFS_DRIVER_FILE_ATTR_FIRST_BLOCK, first_block);
+    void first_record(uint32_t first_record) {
+        set(LFS_DRIVER_FILE_ATTR_FIRST_RECORD, first_record);
     }
 
-    void nblocks(uint32_t nblocks) {
-        set(LFS_DRIVER_FILE_ATTR_NBLOCKS, nblocks);
+    void nrecords(uint32_t nrecords) {
+        set(LFS_DRIVER_FILE_ATTR_NRECORDS, nrecords);
     }
 };
 

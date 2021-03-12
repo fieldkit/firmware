@@ -5,9 +5,9 @@
 
 namespace fk {
 
-struct block_seek_t {
-    uint32_t block;
-    uint32_t first_block_of_containing_file;
+struct record_seek_t {
+    uint32_t record;
+    uint32_t first_record_of_containing_file;
     uint32_t absolute_position;
     uint32_t file_position;
 };
@@ -29,7 +29,7 @@ public:
     PartitionedReader(LfsDriver *lfs, FileMap *map, Pool &pool);
 
 public:
-    tl::expected<block_seek_t, Error> seek(uint32_t desired_block, Pool &pool);
+    tl::expected<record_seek_t, Error> seek(uint32_t desired_record, Pool &pool);
 
     Reader *open_reader(Pool &pool);
 

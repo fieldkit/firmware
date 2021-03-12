@@ -26,8 +26,8 @@ int32_t lfs_test();
 /**
  * Warning: These are also used as indices.
  */
-#define LFS_DRIVER_FILE_ATTR_NBLOCKS          (0x00)
-#define LFS_DRIVER_FILE_ATTR_FIRST_BLOCK      (0x01)
+#define LFS_DRIVER_FILE_ATTR_NRECORDS         (0x00)
+#define LFS_DRIVER_FILE_ATTR_FIRST_RECORD     (0x01)
 #define LFS_DRIVER_FILE_ATTR_TAIL_RECORD      (0x02)
 #define LFS_DRIVER_FILE_ATTR_CONFIG_MODULES   (0x03)
 #define LFS_DRIVER_FILE_ATTR_CONFIG_SCHEDULE  (0x04)

@@ -12,16 +12,16 @@ FK_DECLARE_LOGGER("lfs");
 constexpr lfs_size_t number_data_attributes = 3;
 
 fklfs_attribute_template_t data_attributes[number_data_attributes] = {
-    { LFS_DRIVER_FILE_ATTR_NBLOCKS,         sizeof(uint32_t), 0x00 },
-    { LFS_DRIVER_FILE_ATTR_FIRST_BLOCK,     sizeof(uint32_t), 0x00 },
+    { LFS_DRIVER_FILE_ATTR_NRECORDS,        sizeof(uint32_t), 0x00 },
+    { LFS_DRIVER_FILE_ATTR_FIRST_RECORD,    sizeof(uint32_t), 0x00 },
     { LFS_DRIVER_FILE_ATTR_TAIL_RECORD,     sizeof(uint32_t), 0x00 },
 };
 
 constexpr lfs_size_t number_meta_attributes = 7;
 
 fklfs_attribute_template_t meta_attributes[number_meta_attributes] = {
-    { LFS_DRIVER_FILE_ATTR_FIRST_BLOCK,     sizeof(uint32_t), 0x00 },
-    { LFS_DRIVER_FILE_ATTR_NBLOCKS,         sizeof(uint32_t), 0x00 },
+    { LFS_DRIVER_FILE_ATTR_FIRST_RECORD,    sizeof(uint32_t), 0x00 },
+    { LFS_DRIVER_FILE_ATTR_NRECORDS,        sizeof(uint32_t), 0x00 },
     { LFS_DRIVER_FILE_ATTR_TAIL_RECORD,     sizeof(uint32_t), 0x00 },
     { LFS_DRIVER_FILE_ATTR_CONFIG_MODULES,  sizeof(uint32_t), 0xff },
     { LFS_DRIVER_FILE_ATTR_CONFIG_SCHEDULE, sizeof(uint32_t), 0xff },
@@ -55,7 +55,6 @@ int lfs_block_device_erase(struct lfs_config const *c, lfs_block_t block) {
 int lfs_block_device_sync(struct lfs_config const *c) {
     return 0;
 }
-
 
 LfsDriver::LfsDriver(DataMemory *memory, Pool &pool) : memory_(memory) {
     auto g = memory->geometry();

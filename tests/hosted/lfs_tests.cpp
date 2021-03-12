@@ -1,7 +1,7 @@
 #include "tests.h"
 #include "common.h"
 #include "hal/linux/linux.h"
-#include "storage/block_appender.h"
+#include "storage/record_appender.h"
 #include "storage/partitioned_reader.h"
 #include "utilities.h"
 
@@ -33,7 +33,7 @@ TEST_F(LfsSuite, CreateAndAppendDataRecords) {
     auto lfs = lfs_driver.lfs();
 
     FileMap map{ &lfs_driver, "data", pool };
-    BlockAppender appender{ &lfs_driver, &map, 1024 * 100, pool };
+    RecordAppender appender{ &lfs_driver, &map, 1024 * 100, pool };
 
     ReadingRecord readings{ 0, 0 };
     for (auto i = 0u; i < 10; ++i) {
@@ -41,7 +41,7 @@ TEST_F(LfsSuite, CreateAndAppendDataRecords) {
 
         auto appended = appender.append_data_record(&readings.record, iter);
         ASSERT_TRUE(appended);
-        ASSERT_EQ(appended->block, i);
+        ASSERT_EQ(appended->record, i);
     }
 
     lfs_unmount(lfs);
@@ -59,7 +59,7 @@ TEST_F(LfsSuite, AppendChanges) {
     auto lfs = lfs_driver.lfs();
 
     FileMap map{ &lfs_driver, "data", pool };
-    BlockAppender appender{ &lfs_driver, &map, 1024, pool };
+    RecordAppender appender{ &lfs_driver, &map, 1024, pool };
 
     ReadingRecord readings1{ 0, 0 };
     ReadingRecord readings2{ 0, 0 };
@@ -69,13 +69,13 @@ TEST_F(LfsSuite, AppendChanges) {
 
     auto appended2 = appender.append_changes(LFS_DRIVER_FILE_ATTR_CONFIG_MODULES, &readings2.record, fk_data_DataRecord_fields, pool);
     ASSERT_TRUE(appended2);
-    ASSERT_NE(appended1->block, appended2->block);
+    ASSERT_NE(appended1->record, appended2->record);
     ASSERT_NE(appended1->absolute_position, appended2->absolute_position);
     ASSERT_NE(appended1->file_position, appended2->file_position);
 
     auto appended3 = appender.append_changes(LFS_DRIVER_FILE_ATTR_CONFIG_MODULES, &readings2.record, fk_data_DataRecord_fields, pool);
     ASSERT_TRUE(appended3);
-    ASSERT_EQ(appended3->block, appended2->block);
+    ASSERT_EQ(appended3->record, appended2->record);
     ASSERT_EQ(appended3->absolute_position, appended2->absolute_position);
     ASSERT_EQ(appended3->file_position, appended2->file_position);
 
@@ -94,7 +94,7 @@ TEST_F(LfsSuite, ReadAcrossPartitionedFiles) {
     auto lfs = lfs_driver.lfs();
 
     FileMap map{ &lfs_driver, "data", pool };
-    BlockAppender appender{ &lfs_driver, &map, 1024, pool };
+    RecordAppender appender{ &lfs_driver, &map, 1024, pool };
 
     auto total_written = 0u;
 
@@ -105,7 +105,7 @@ TEST_F(LfsSuite, ReadAcrossPartitionedFiles) {
         auto appended = appender.append_data_record(&readings.record, iter);
 
         ASSERT_TRUE(appended);
-        ASSERT_EQ(appended->block, i);
+        ASSERT_EQ(appended->record, i);
 
         total_written += appended->record_size;
     }
@@ -116,8 +116,8 @@ TEST_F(LfsSuite, ReadAcrossPartitionedFiles) {
 
     auto seek1 = reader.seek(17, pool);
     ASSERT_TRUE(seek1);
-    ASSERT_EQ(seek1->block, 17u);
-    ASSERT_EQ(seek1->first_block_of_containing_file, 10u);
+    ASSERT_EQ(seek1->record, 17u);
+    ASSERT_EQ(seek1->first_record_of_containing_file, 10u);
     ASSERT_EQ(seek1->absolute_position, 1902u);
     ASSERT_EQ(seek1->file_position, 784u);
 

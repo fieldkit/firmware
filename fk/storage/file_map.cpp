@@ -43,22 +43,22 @@ bool FileMap::refresh() {
 
         tiny_snprintf(path_, LFS_NAME_MAX, "%s/%s", directory_, info.name);
 
-        uint32_t first_block = 0;
-        if (lfs_getattr(lfs(), path_, LFS_DRIVER_FILE_ATTR_FIRST_BLOCK, &first_block, sizeof(first_block)) < 0) {
+        uint32_t first_record = 0;
+        if (lfs_getattr(lfs(), path_, LFS_DRIVER_FILE_ATTR_FIRST_RECORD, &first_record, sizeof(first_record)) < 0) {
             return false;
         }
 
-        uint32_t nblocks = 0;
-        if (lfs_getattr(lfs(), path_, LFS_DRIVER_FILE_ATTR_NBLOCKS, &nblocks, sizeof(nblocks)) < 0) {
+        uint32_t nrecords = 0;
+        if (lfs_getattr(lfs(), path_, LFS_DRIVER_FILE_ATTR_NRECORDS, &nrecords, sizeof(nrecords)) < 0) {
             return false;
         }
 
-        loginfo("ls: '%s' type=%d size=%d attrs: first-block=%" PRIu32 " nblocks=%" PRIu32, info.name, info.type,
-                info.size, first_block, nblocks);
+        loginfo("ls: '%s' type=%d size=%d attrs: first-record=%" PRIu32 " nrecords=%" PRIu32, info.name, info.type,
+                info.size, first_record, nrecords);
 
         auto entry = (cache_entry_t *)cache_pool_->malloc(sizeof(cache_entry_t));
-        entry->first_block = first_block;
-        entry->nblocks = nblocks;
+        entry->first_record = first_record;
+        entry->nrecords = nrecords;
         entry->size = info.size;
         entry->np = nullptr;
 
@@ -87,7 +87,7 @@ bool FileMap::refresh() {
     return true;
 }
 
-tl::expected<block_file_search_t, Error> FileMap::find(uint32_t desired_block, Pool &pool) {
+tl::expected<record_file_search_t, Error> FileMap::find(uint32_t desired_record, Pool &pool) {
     if (!initialized_) {
         if (!refresh()) {
             return tl::unexpected<Error>(Error::IO);
@@ -96,32 +96,32 @@ tl::expected<block_file_search_t, Error> FileMap::find(uint32_t desired_block, P
         initialized_ = true;
     }
 
-    uint32_t start_block_of_first_file{ UINT32_MAX };
-    uint32_t start_block_of_last_file{ 0 };
+    uint32_t start_record_of_first_file{ UINT32_MAX };
+    uint32_t start_record_of_last_file{ 0 };
     uint32_t bytes_before_start_of_last_file{ 0 };
-    uint32_t last_block{ 0 };
+    uint32_t last_record{ 0 };
 
     for (auto iter = cache_; iter != nullptr; iter = iter->np) {
-        if (iter->first_block > start_block_of_last_file) {
-            start_block_of_last_file = iter->first_block;
+        if (iter->first_record > start_record_of_last_file) {
+            start_record_of_last_file = iter->first_record;
         }
 
-        if (iter->first_block < start_block_of_first_file) {
-            start_block_of_first_file = iter->first_block;
+        if (iter->first_record < start_record_of_first_file) {
+            start_record_of_first_file = iter->first_record;
         }
 
-        if (desired_block >= iter->first_block && desired_block < iter->first_block + iter->nblocks) {
+        if (desired_record >= iter->first_record && desired_record < iter->first_record + iter->nrecords) {
             break;
         }
 
         bytes_before_start_of_last_file += iter->size;
     }
 
-    return block_file_search_t{
-        .start_block_of_first_file = start_block_of_first_file,
-        .start_block_of_last_file = start_block_of_last_file,
+    return record_file_search_t{
+        .start_record_of_first_file = start_record_of_first_file,
+        .start_record_of_last_file = start_record_of_last_file,
         .bytes_before_start_of_last_file = bytes_before_start_of_last_file,
-        .last_block = last_block,
+        .last_record = last_record,
     };
 }
 

@@ -19,40 +19,40 @@ public:
 
 };
 
-struct appended_block_t {
-    uint32_t block;
-    uint32_t first_block_of_containing_file;
+struct appended_record_t {
+    uint32_t record;
+    uint32_t first_record_of_containing_file;
     lfs_size_t absolute_position;
     lfs_size_t file_position;
     lfs_size_t record_size;
 };
 
-using AppendedBlockOrError = tl::expected<appended_block_t, Error>;
+using AppendedRecordOrError = tl::expected<appended_record_t, Error>;
 
-class BlockAppender {
+class RecordAppender {
 private:
     LfsDriver *lfs_{ nullptr };
     FileMap *map_{ nullptr };
     FileSizeRollover strategy_;
-    uint32_t start_block_of_last_file_{ 0 };
+    uint32_t start_record_of_last_file_{ 0 };
     uint32_t bytes_before_start_of_last_file_{ 0 };
     bool initialized_{ false };
     char *path_{ nullptr };
 
 public:
-    BlockAppender(LfsDriver *lfs, FileMap *map, lfs_size_t rollover_size, Pool &pool);
+    RecordAppender(LfsDriver *lfs, FileMap *map, lfs_size_t rollover_size, Pool &pool);
 
 public:
     bool create_directory_if_necessary();
 
-    AppendedBlockOrError append_data_record(fk_data_DataRecord *record, Pool &pool);
+    AppendedRecordOrError append_data_record(fk_data_DataRecord *record, Pool &pool);
 
-    AppendedBlockOrError append_changes(uint8_t kind, void *record, pb_msgdesc_t const *fields, Pool &pool);
+    AppendedRecordOrError append_changes(uint8_t kind, void *record, pb_msgdesc_t const *fields, Pool &pool);
 
 private:
     optional<Error> locate_tail(Pool &pool);
 
-    AppendedBlockOrError write_record(lfs_file_t &file, Attributes &attributes, void *record, pb_msgdesc_t const *fields, Pool &pool);
+    AppendedRecordOrError write_record(lfs_file_t &file, Attributes &attributes, void *record, pb_msgdesc_t const *fields, Pool &pool);
 
 private:
     lfs_t *lfs() {

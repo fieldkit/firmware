@@ -6,18 +6,18 @@
 
 namespace fk {
 
-struct block_file_search_t {
-    uint32_t start_block_of_first_file;
-    uint32_t start_block_of_last_file;
+struct record_file_search_t {
+    uint32_t start_record_of_first_file;
+    uint32_t start_record_of_last_file;
     uint32_t bytes_before_start_of_last_file;
-    uint32_t last_block;
+    uint32_t last_record;
 };
 
 class FileMap {
 private:
     struct cache_entry_t {
-        uint32_t first_block;
-        uint32_t nblocks;
+        uint32_t first_record;
+        uint32_t nrecords;
         uint32_t size;
         cache_entry_t *np;
     };
@@ -42,7 +42,7 @@ public:
 public:
     bool refresh();
 
-    tl::expected<block_file_search_t, Error> find(uint32_t desired_block, Pool &pool);
+    tl::expected<record_file_search_t, Error> find(uint32_t desired_record, Pool &pool);
 
     void invalidate();
 
