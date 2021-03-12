@@ -6,7 +6,7 @@ namespace fk {
 
 FK_DECLARE_LOGGER("lfs");
 
-FileMap::FileMap(LfsDriver *lfs, const char *directory, Pool &pool) : lfs_(lfs), directory_(directory) {
+FileMap::FileMap(LfsDriver *lfs, const char *directory, int32_t number_of_files_to_keep, Pool &pool) : lfs_(lfs), directory_(directory), number_of_files_to_keep_(number_of_files_to_keep) {
     path_ = (char *)pool.malloc(LFS_NAME_MAX);
     cache_pool_ = pool.subpool("file-map");
 }
@@ -18,7 +18,8 @@ bool FileMap::refresh() {
     int32_t number_of_files = 0;
     int32_t expected_number_of_files = lfs_->get_number_of_files(directory_);
     if (number_of_files < 0) {
-        return false;
+        loginfo("empty directory");
+        return true;
     }
 
     // Clear the pool and invalidate cache.
@@ -27,7 +28,9 @@ bool FileMap::refresh() {
 
     lfs_dir_t dir;
 
-    if (lfs_dir_open(lfs(), &dir, directory_) < 0) {
+    auto err = lfs_dir_open(lfs(), &dir, directory_);
+    if (err < 0) {
+        logerror("empty opening dir (%d)", err);
         return false;
     }
 
@@ -44,12 +47,16 @@ bool FileMap::refresh() {
         tiny_snprintf(path_, LFS_NAME_MAX, "%s/%s", directory_, info.name);
 
         uint32_t first_record = 0;
-        if (lfs_getattr(lfs(), path_, LFS_DRIVER_FILE_ATTR_FIRST_RECORD, &first_record, sizeof(first_record)) < 0) {
+        err = lfs_getattr(lfs(), path_, LFS_DRIVER_FILE_ATTR_FIRST_RECORD, &first_record, sizeof(first_record));
+        if (err < 0) {
+            logerror("error reading attr (%d)", err);
             return false;
         }
 
         uint32_t nrecords = 0;
-        if (lfs_getattr(lfs(), path_, LFS_DRIVER_FILE_ATTR_NRECORDS, &nrecords, sizeof(nrecords)) < 0) {
+        err = lfs_getattr(lfs(), path_, LFS_DRIVER_FILE_ATTR_NRECORDS, &nrecords, sizeof(nrecords));
+        if (err < 0) {
+            logerror("error reading attr (%d)", err);
             return false;
         }
 
@@ -123,6 +130,34 @@ tl::expected<record_file_search_t, Error> FileMap::find(uint32_t desired_record,
         .bytes_before_start_of_last_file = bytes_before_start_of_last_file,
         .last_record = last_record,
     };
+}
+
+bool FileMap::prune() {
+    if (cache_ == nullptr) {
+        return true;
+    }
+
+    int32_t keeping = number_of_files_to_keep_;
+    for (auto iter = cache_; iter != nullptr; iter = iter->np) {
+        if (--keeping < 0) {
+            // Notice that we're pruning the head of the cache here.
+            auto pruning = cache_;
+
+            tiny_snprintf(path_, LFS_NAME_MAX, "%s/%08" PRIx32 ".fkpb", directory_, pruning->first_record);
+
+            loginfo("removing: '%s' first-record=%" PRIu32 " nrecords=%" PRIu32 "",
+                    path_, pruning->first_record, pruning->nrecords);
+
+            auto err = lfs_remove(lfs(), path_);
+            if (err < 0) {
+                logwarn("error removing '%s' (%d)", path_, err);
+            }
+
+            cache_ = cache_->np;
+        }
+    }
+
+    return true;
 }
 
 void FileMap::invalidate() {

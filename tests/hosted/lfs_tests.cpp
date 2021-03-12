@@ -32,7 +32,7 @@ TEST_F(LfsSuite, CreateAndAppendDataRecords) {
 
     auto lfs = lfs_driver.lfs();
 
-    FileMap map{ &lfs_driver, "data", pool };
+    FileMap map{ &lfs_driver, "data", 5, pool };
     RecordAppender appender{ &lfs_driver, &map, 1024 * 100, pool };
 
     ReadingRecord readings{ 0, 0 };
@@ -58,7 +58,7 @@ TEST_F(LfsSuite, AppendChanges) {
 
     auto lfs = lfs_driver.lfs();
 
-    FileMap map{ &lfs_driver, "data", pool };
+    FileMap map{ &lfs_driver, "data", 5, pool };
     RecordAppender appender{ &lfs_driver, &map, 1024, pool };
 
     ReadingRecord readings1{ 0, 0 };
@@ -93,7 +93,7 @@ TEST_F(LfsSuite, ReadAcrossPartitionedFiles) {
 
     auto lfs = lfs_driver.lfs();
 
-    FileMap map{ &lfs_driver, "data", pool };
+    FileMap map{ &lfs_driver, "data", 5, pool };
     RecordAppender appender{ &lfs_driver, &map, 1024, pool };
 
     auto total_written = 0u;

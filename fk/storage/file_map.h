@@ -25,13 +25,14 @@ private:
 private:
     LfsDriver *lfs_{ nullptr };
     const char *directory_{ nullptr };
+    int32_t number_of_files_to_keep_{ 0u };
     Pool *cache_pool_{ nullptr };
     cache_entry_t *cache_{ nullptr };
     char *path_{ nullptr };
     bool initialized_{ false };
 
 public:
-    FileMap(LfsDriver *lfs, const char *directory, Pool &pool);
+    FileMap(LfsDriver *lfs, const char *directory, int32_t number_of_files_to_keep, Pool &pool);
     virtual ~FileMap();
 
 public:
@@ -45,6 +46,8 @@ public:
     tl::expected<record_file_search_t, Error> find(uint32_t desired_record, Pool &pool);
 
     void invalidate();
+
+    bool prune();
 
 private:
     lfs_t *lfs() {
