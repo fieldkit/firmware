@@ -13,8 +13,8 @@ namespace fk {
 
 FK_DECLARE_LOGGER("rw");
 
-ReadingsWorker::ReadingsWorker(bool scan, bool read_only, bool verify, ModulePowerState power_state)
-    : scan_(scan), read_only_(read_only), verify_(verify), power_state_(power_state) {
+ReadingsWorker::ReadingsWorker(bool scan, bool read_only, ModulePowerState power_state)
+    : scan_(scan), read_only_(read_only), power_state_(power_state) {
 }
 
 void ReadingsWorker::run(Pool &pool) {
@@ -167,7 +167,7 @@ tl::expected<TakenReadings, Error> ReadingsWorker::take_readings(Pool &pool) {
     }
 
     ModuleScanning scanning{ get_modmux() };
-    ReadingsTaker readings_taker{ storage, get_modmux(), read_only_, verify_ };
+    ReadingsTaker readings_taker{ storage, get_modmux(), read_only_ };
     auto modules = get_module_factory().modules();
     auto taken_readings = readings_taker.take(modules, ctx, pool);
     if (!taken_readings) {

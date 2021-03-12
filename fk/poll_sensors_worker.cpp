@@ -3,7 +3,7 @@
 
 namespace fk {
 
-PollSensorsWorker::PollSensorsWorker() : ReadingsWorker(true, false, false) {
+PollSensorsWorker::PollSensorsWorker() : ReadingsWorker(true, false) {
 }
 
 void PollSensorsWorker::run(Pool &pool) {

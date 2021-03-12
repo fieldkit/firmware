@@ -17,8 +17,8 @@ namespace fk {
 
 FK_DECLARE_LOGGER("readings");
 
-ReadingsTaker::ReadingsTaker(Storage &storage, ModMux *mm, bool read_only, bool verify)
-    : storage_(storage), readings_{ mm }, mm_(mm), read_only_(read_only), verify_(verify) {
+ReadingsTaker::ReadingsTaker(Storage &storage, ModMux *mm, bool read_only)
+    : storage_(storage), readings_{ mm }, mm_(mm), read_only_(read_only) {
 }
 
 tl::expected<TakenReadings, Error> ReadingsTaker::take(ConstructedModulesCollection &constructed_modules, ScanningContext &ctx, Pool &pool) {
@@ -53,13 +53,6 @@ tl::expected<TakenReadings, Error> ReadingsTaker::take(ConstructedModulesCollect
             return tl::unexpected<Error>(Error::General);
         }
 
-        if (verify_)  {
-            if (!verify_reading_record(data, pool)) {
-                logerror("error verifying readings");
-                return tl::unexpected<Error>(Error::General);
-            }
-        }
-
         return TakenReadings{ get_clock_now(), number, std::move(constructed_modules), std::move(*all_readings) };
     }
 
@@ -87,23 +80,6 @@ bool ReadingsTaker::append_readings(File &file, Pool &pool) {
     gs.get()->update_data_stream(file);
 
     logdebug("updated data");
-
-    return true;
-}
-
-bool ReadingsTaker::verify_reading_record(File &file, Pool &pool) {
-    logdebug("verifying record");
-
-    if (!file.seek_end()) {
-        return false;
-    }
-
-    auto &record = readings_.record();
-
-    if (file.previous_record() != record.readings.reading) {
-        logerror("unexpected record (%" PRIu32 " != %" PRIu64 ")", file.previous_record(), record.readings.reading);
-        return false;
-    }
 
     return true;
 }
