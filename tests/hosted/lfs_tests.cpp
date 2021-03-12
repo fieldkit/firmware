@@ -172,12 +172,14 @@ TEST_F(LfsSuite, DISABLED_BlockConsumption) {
 
         auto size = lfs_fs_size(lfs);
         if (size != blocks_used) {
-            printf("blocks-changed records=%d blocks-used=%d bytes-written-since=%d\n", i, blocks_used, bytes_written_since_block_changed);
+            printf("blocks-changed records=%d blocks-used=%d bytes-written-since=%d nfiles=%d\n",
+                   i, blocks_used, bytes_written_since_block_changed, map.number_files());
             bytes_written_since_block_changed = 0;
             blocks_used = size;
         }
         if (file_block != appended->first_record_of_containing_file) {
-            printf("files-changed records=%d blocks-used=%d bytes-written-since=%d\n", i, blocks_used, bytes_written_since_block_changed);
+            printf("files-changed records=%d blocks-used=%d bytes-written-since=%d nfiles=%d\n",
+                   i, blocks_used, bytes_written_since_block_changed, map.number_files());
             file_block = appended->first_record_of_containing_file;
         }
 

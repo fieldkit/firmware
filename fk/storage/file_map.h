@@ -30,14 +30,19 @@ private:
     cache_entry_t *cache_{ nullptr };
     char *path_{ nullptr };
     bool initialized_{ false };
+    int32_t number_files_{ 0u };
 
 public:
     FileMap(LfsDriver *lfs, const char *directory, int32_t number_of_files_to_keep, Pool &pool);
     virtual ~FileMap();
 
 public:
-    const char *directory() {
+    const char *directory() const {
         return directory_;
+    }
+
+    int32_t number_files() const {
+        return number_files_;
     }
 
 public:

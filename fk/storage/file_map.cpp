@@ -15,11 +15,10 @@ FileMap::~FileMap() {
 }
 
 bool FileMap::refresh() {
-    int32_t number_of_files = 0;
     int32_t expected_number_of_files = lfs_->get_number_of_files(directory_);
-    if (number_of_files < 0) {
-        loginfo("empty directory");
-        return true;
+    if (expected_number_of_files < 0) {
+        logwarn("error number of files (%d)", expected_number_of_files);
+        expected_number_of_files = 0;
     }
 
     // Clear the pool and invalidate cache.
@@ -33,6 +32,8 @@ bool FileMap::refresh() {
         logerror("empty opening dir (%d)", err);
         return false;
     }
+
+    number_files_ = 0;
 
     // We're building a new cache.
     cache_entry_t *head = nullptr;
@@ -79,14 +80,14 @@ bool FileMap::refresh() {
             tail = entry;
         }
 
-        number_of_files++;
+        number_files_++;
     }
 
     lfs_dir_close(lfs(), &dir);
 
     // Only update the number of files when they change.
-    if (number_of_files != expected_number_of_files) {
-        lfs_->set_number_of_files(directory_, number_of_files);
+    if (number_files_ != expected_number_of_files) {
+        lfs_->set_number_of_files(directory_, number_files_);
     }
 
     cache_ = head;
