@@ -139,3 +139,54 @@ TEST_F(LfsSuite, ReadAcrossPartitionedFiles) {
 
     lfs_unmount(lfs);
 }
+
+TEST_F(LfsSuite, DISABLED_BlockConsumption) {
+    LinuxDataMemory memory{ 100 };
+    StandardPool pool{ "lfs" };
+
+    ASSERT_TRUE(memory.begin());
+
+    LfsDriver lfs_driver{ &memory, pool };
+    ASSERT_TRUE(lfs_driver.begin(true));
+
+    auto lfs = lfs_driver.lfs();
+
+    FileMap map{ &lfs_driver, "data", 3, pool };
+    RecordAppender appender{ &lfs_driver, &map, 64 * 2048 * 5, pool };
+
+    auto total_written = 0u;
+    auto bytes_written_since_block_changed = 0u;
+    auto blocks_used = 0;
+    auto file_block = 0u;
+
+    ReadingRecord readings{ 0, 0 };
+    for (auto i = 0u; /*i < 100*/; ++i) {
+        StandardPool iter{ "iter" };
+
+        auto appended = appender.append_data_record(&readings.record, iter);
+
+        ASSERT_TRUE(appended);
+
+        total_written += appended->record_size;
+        bytes_written_since_block_changed += appended->record_size;
+
+        auto size = lfs_fs_size(lfs);
+        if (size != blocks_used) {
+            printf("blocks-changed records=%d blocks-used=%d bytes-written-since=%d\n", i, blocks_used, bytes_written_since_block_changed);
+            bytes_written_since_block_changed = 0;
+            blocks_used = size;
+        }
+        if (file_block != appended->first_record_of_containing_file) {
+            printf("files-changed records=%d blocks-used=%d bytes-written-since=%d\n", i, blocks_used, bytes_written_since_block_changed);
+            file_block = appended->first_record_of_containing_file;
+        }
+
+        if (!map.prune()) {
+            logerror("prune failed");
+        }
+    }
+
+    log_configure_level(LogLevels::INFO);
+
+    lfs_unmount(lfs);
+}
