@@ -106,21 +106,70 @@ bool BackupWorker::write_file(File &file, const char *path, Pool &pool) {
 
     writing->close();
 
-    uint8_t hash[Hash::Length];
-    b2b.finalize(&hash, Hash::Length);
+    uint8_t expected[Hash::Length];
+    b2b.finalize(&expected, Hash::Length);
 
-    auto hash_hex = bytes_to_hex_string_pool(hash, Hash::Length, pool);
+    auto expected_hex = bytes_to_hex_string_pool(expected, Hash::Length, pool);
 
-    auto hash_file = sd->open(pool.sprintf("%s.hash", path), OpenFlags::Write, pool);
-    if (hash_file == nullptr || !*hash_file) {
+    auto hash_writer = sd->open(pool.sprintf("%s.hash", path), OpenFlags::Write, pool);
+    if (hash_writer == nullptr || !*hash_writer) {
         return false;
     }
 
-    hash_file->write((uint8_t *)hash_hex, strlen(hash_hex));
+    hash_writer->write((uint8_t *)expected_hex, strlen(expected_hex));
 
-    hash_file->close();
+    hash_writer->close();
 
-    loginfo("done writing %" PRIu32 " bytes hash=%s", bytes_copied, hash_hex);
+    loginfo("done writing %" PRIu32 " bytes hash=%s", bytes_copied, expected_hex);
+
+    uint8_t actual[Hash::Length];
+    if (!hash_file(path, actual, pool)) {
+        return false;
+    }
+
+    if (memcmp(actual, expected, Hash::Length) != 0) {
+        logerror("hash mismatch!");
+        fk_dump_memory("expected ", (uint8_t *)&expected, Hash::Length);
+        fk_dump_memory("actual   ", (uint8_t *)&actual, Hash::Length);
+    }
+
+    return true;
+}
+
+bool BackupWorker::hash_file(const char *path, uint8_t *hash, Pool &pool) {
+    auto sd = get_sd_card();
+
+    auto file = sd->open(path, OpenFlags::Read, pool);
+    if (file == nullptr || !file->is_open()) {
+        logerror("unable to open '%s'", path);
+        return false;
+    }
+
+    auto file_size = file->file_size();
+    if (file_size == 0) {
+        logerror("empty file '%s'", path);
+        return false;
+    }
+
+    file->seek_beginning();
+
+    BLAKE2b b2b;
+    b2b.reset(Hash::Length);
+
+    auto total_bytes = (uint32_t)0u;
+    auto buffer = (uint8_t *)pool.malloc(NetworkBufferSize);
+    while (total_bytes < file_size) {
+        auto nread = file->read(buffer, NetworkBufferSize);
+        if (nread <= 0) {
+            break;
+        }
+
+        b2b.update(buffer, nread);
+
+        total_bytes += nread;
+    }
+
+    b2b.finalize(hash, Hash::Length);
 
     return true;
 }

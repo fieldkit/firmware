@@ -25,6 +25,7 @@ public:
 
 private:
     bool write_file(File &file, const char *path, Pool &pool);
+    bool hash_file(const char *path, uint8_t *hash, Pool &pool);
 
 };
 
