@@ -228,9 +228,10 @@ StandardPool::StandardPool(const char *name, void *ptr, size_t size, size_t take
 }
 
 Pool *StandardPool::subpool(const char *name) {
-    auto ptr = fk_standard_page_malloc(size(), name);
+    auto size = StandardPageSize;
+    auto ptr = fk_standard_page_malloc(size, name);
     auto overhead = sizeof(StandardPool);
-    auto child = new (ptr) StandardPool(name, ptr, size(), overhead);
+    auto child = new (ptr) StandardPool(name, ptr, size, overhead);
 
     if (child_ != nullptr) {
         for (auto iter = child_; ; iter = iter->np_) {
@@ -284,9 +285,10 @@ void *StandardPool::malloc(size_t bytes) {
     }
 
     if (sibling_ == nullptr) {
-        auto ptr = fk_standard_page_malloc(size(), name());
+        auto size = StandardPageSize;
+        auto ptr = fk_standard_page_malloc(size, name());
         auto overhead = sizeof(StandardPool);
-        sibling_ = new (ptr) StandardPool(name(), ptr, size(), overhead);
+        sibling_ = new (ptr) StandardPool(name(), ptr, size, overhead);
     }
 
     return sibling_->malloc(bytes);
