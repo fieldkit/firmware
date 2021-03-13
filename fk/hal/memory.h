@@ -180,6 +180,9 @@ public:
 public:
     static DataMemory **get_data_memory_banks();
     static DataMemory *get_data_memory();
+    static DataMemory *get_reversed_data_memory();
+    static DataMemory *get_data_memory_bank_0();
+    static DataMemory *get_data_memory_bank_1();
     static ExecutableMemory *get_qspi_memory();
 };
 
