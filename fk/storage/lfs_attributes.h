@@ -18,7 +18,7 @@ public:
     }
 
     uint32_t first_record() const {
-        return *(uint32_t *)cfg_.attrs[LFS_DRIVER_FILE_ATTR_FIRST_RECORD].buffer;
+        return *(uint32_t *)cfg_.attrs[LFS_DRIVER_FILE_ATTR_RECORD_FIRST].buffer;
     }
 
     uint32_t increase_nrecords() {
@@ -35,8 +35,12 @@ public:
         return *(uint32_t *)cfg_.attrs[index].buffer;
     }
 
+    void mark_last_record(uint32_t position) {
+        set(LFS_DRIVER_FILE_ATTR_RECORD_SEEK_LAST, position);
+    }
+
     void first_record(uint32_t first_record) {
-        set(LFS_DRIVER_FILE_ATTR_FIRST_RECORD, first_record);
+        set(LFS_DRIVER_FILE_ATTR_RECORD_FIRST, first_record);
     }
 
     void nrecords(uint32_t nrecords) {

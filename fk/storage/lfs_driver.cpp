@@ -9,24 +9,28 @@ FK_DECLARE_LOGGER("lfs");
  * the same array indices for both data and meta files.
  */
 
-constexpr lfs_size_t number_data_attributes = 3;
+constexpr lfs_size_t number_data_attributes = 5;
 
 fklfs_attribute_template_t data_attributes[number_data_attributes] = {
-    { LFS_DRIVER_FILE_ATTR_NRECORDS,        sizeof(uint32_t), 0x00 },
-    { LFS_DRIVER_FILE_ATTR_FIRST_RECORD,    sizeof(uint32_t), 0x00 },
-    { LFS_DRIVER_FILE_ATTR_TAIL_RECORD,     sizeof(uint32_t), 0x00 },
+    { LFS_DRIVER_FILE_ATTR_NRECORDS,          sizeof(uint32_t), 0x00 },
+    { LFS_DRIVER_FILE_ATTR_RECORD_FIRST,      sizeof(uint32_t), 0x00 },
+    { LFS_DRIVER_FILE_ATTR_RECORD_SEEK_LAST,  sizeof(uint32_t), 0x00 },
+    { LFS_DRIVER_FILE_ATTR_RECORD_GPS,        sizeof(uint32_t), 0xff },
+    { LFS_DRIVER_FILE_ATTR_RECORD_UPLOADED,   sizeof(uint32_t), 0xff },
 };
 
-constexpr lfs_size_t number_meta_attributes = 7;
+constexpr lfs_size_t number_meta_attributes = 9;
 
 fklfs_attribute_template_t meta_attributes[number_meta_attributes] = {
-    { LFS_DRIVER_FILE_ATTR_FIRST_RECORD,    sizeof(uint32_t), 0x00 },
-    { LFS_DRIVER_FILE_ATTR_NRECORDS,        sizeof(uint32_t), 0x00 },
-    { LFS_DRIVER_FILE_ATTR_TAIL_RECORD,     sizeof(uint32_t), 0x00 },
-    { LFS_DRIVER_FILE_ATTR_CONFIG_MODULES,  sizeof(uint32_t), 0xff },
-    { LFS_DRIVER_FILE_ATTR_CONFIG_SCHEDULE, sizeof(uint32_t), 0xff },
-    { LFS_DRIVER_FILE_ATTR_CONFIG_STATE,    sizeof(uint32_t), 0xff },
-    { LFS_DRIVER_FILE_ATTR_CONFIG_OTHER,    sizeof(uint32_t), 0xff },
+    { LFS_DRIVER_FILE_ATTR_NRECORDS,          sizeof(uint32_t), 0x00 },
+    { LFS_DRIVER_FILE_ATTR_RECORD_FIRST,      sizeof(uint32_t), 0x00 },
+    { LFS_DRIVER_FILE_ATTR_RECORD_SEEK_LAST,  sizeof(uint32_t), 0x00 },
+    { LFS_DRIVER_FILE_ATTR_RECORD_GPS,        sizeof(uint32_t), 0xff },
+    { LFS_DRIVER_FILE_ATTR_RECORD_UPLOADED,   sizeof(uint32_t), 0xff },
+    { LFS_DRIVER_FILE_ATTR_CONFIG_MODULES,    sizeof(uint32_t), 0xff },
+    { LFS_DRIVER_FILE_ATTR_CONFIG_SCHEDULE,   sizeof(uint32_t), 0xff },
+    { LFS_DRIVER_FILE_ATTR_CONFIG_STATE,      sizeof(uint32_t), 0xff },
+    { LFS_DRIVER_FILE_ATTR_CONFIG_OTHER,      sizeof(uint32_t), 0xff },
 };
 
 // Read a region in a block. Negative error codes are propogated

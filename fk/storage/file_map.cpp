@@ -48,7 +48,7 @@ bool FileMap::refresh() {
         tiny_snprintf(path_, LFS_NAME_MAX, "%s/%s", directory_, info.name);
 
         uint32_t first_record = 0;
-        err = lfs_getattr(lfs(), path_, LFS_DRIVER_FILE_ATTR_FIRST_RECORD, &first_record, sizeof(first_record));
+        err = lfs_getattr(lfs(), path_, LFS_DRIVER_FILE_ATTR_RECORD_FIRST, &first_record, sizeof(first_record));
         if (err < 0) {
             logerror("error reading attr (%d)", err);
             return false;

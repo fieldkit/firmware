@@ -182,7 +182,7 @@ AppendedRecordOrError RecordAppender::write_record(lfs_file_t &file, Attributes 
     auto record_number = attributes.first_record() + attributes.nrecords();
     auto file_size_before = lfs_file_size(lfs(), &file);
 
-    attributes.set(LFS_DRIVER_FILE_ATTR_TAIL_RECORD, file_size_before);
+    attributes.mark_last_record(file_size_before);
 
     logdebug("writing record: R-%" PRIu32, record_number);
 

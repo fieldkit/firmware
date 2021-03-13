@@ -13,26 +13,28 @@ namespace fk {
 
 int32_t lfs_test();
 
-#define LFS_DRIVER_READ_SIZE                  (1024)
-#define LFS_DRIVER_PROG_SIZE                  (1024)
-#define LFS_DRIVER_CACHE_SIZE                 (LFS_DRIVER_READ_SIZE * 2)
-#define LFS_DRIVER_LOOKAHEAD_SIZE             (16)
+#define LFS_DRIVER_READ_SIZE                      (1024)
+#define LFS_DRIVER_PROG_SIZE                      (1024)
+#define LFS_DRIVER_CACHE_SIZE                     (LFS_DRIVER_READ_SIZE * 2)
+#define LFS_DRIVER_LOOKAHEAD_SIZE                 (16)
 
 /**
  * Warning: These are also used as indices.
  */
-#define LFS_DRIVER_DIR_ATTR_NFILES            (0x00)
+#define LFS_DRIVER_DIR_ATTR_NFILES                (0x00)
 
 /**
  * Warning: These are also used as indices.
  */
-#define LFS_DRIVER_FILE_ATTR_NRECORDS         (0x00)
-#define LFS_DRIVER_FILE_ATTR_FIRST_RECORD     (0x01)
-#define LFS_DRIVER_FILE_ATTR_TAIL_RECORD      (0x02)
-#define LFS_DRIVER_FILE_ATTR_CONFIG_MODULES   (0x03)
-#define LFS_DRIVER_FILE_ATTR_CONFIG_SCHEDULE  (0x04)
-#define LFS_DRIVER_FILE_ATTR_CONFIG_STATE     (0x05)
-#define LFS_DRIVER_FILE_ATTR_CONFIG_OTHER     (0x06)
+#define LFS_DRIVER_FILE_ATTR_NRECORDS             (0x00)
+#define LFS_DRIVER_FILE_ATTR_RECORD_FIRST         (0x01)
+#define LFS_DRIVER_FILE_ATTR_RECORD_SEEK_LAST     (0x02)
+#define LFS_DRIVER_FILE_ATTR_RECORD_GPS           (0x03)
+#define LFS_DRIVER_FILE_ATTR_RECORD_UPLOADED      (0x04)
+#define LFS_DRIVER_FILE_ATTR_CONFIG_MODULES       (0x05)
+#define LFS_DRIVER_FILE_ATTR_CONFIG_SCHEDULE      (0x06)
+#define LFS_DRIVER_FILE_ATTR_CONFIG_STATE         (0x07)
+#define LFS_DRIVER_FILE_ATTR_CONFIG_OTHER         (0x08)
 
 typedef struct fklfs_attribute_template_t {
     uint8_t type;
