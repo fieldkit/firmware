@@ -1,4 +1,5 @@
 #include "storage/meta_ops.h"
+#include "storage/storage.h"
 #include "utilities.h"
 #include "records.h"
 #include "state.h"

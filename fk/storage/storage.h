@@ -9,6 +9,7 @@
 #include "storage/bad_blocks.h"
 #include "storage/sequential_memory.h"
 #include "storage/statistics_memory.h"
+#include "storage/meta_ops.h"
 
 namespace fk {
 
@@ -42,10 +43,21 @@ private:
     BlockNumber free_block_{ InvalidBlock };
     uint32_t version_{ InvalidVersion };
     bool read_only_;
+    MetaOps meta_ops_;
+    DataOps data_ops_;
 
 public:
     Storage(DataMemory *memory, Pool &pool, bool read_only = true);
     virtual ~Storage();
+
+public:
+    DataOps &data_ops() {
+        return data_ops_;
+    }
+
+    MetaOps &meta_ops() {
+        return meta_ops_;
+    }
 
 public:
     bool begin();

@@ -2,7 +2,6 @@
 
 #include <loading.h>
 
-#include "storage/storage.h"
 #include "storage/signed_log.h"
 #include "storage/meta_record.h"
 #include "storage/data_record.h"
@@ -10,6 +9,8 @@
 #include "state.h"
 
 namespace fk {
+
+class Storage;
 
 struct FileAttributes {
     uint32_t size;

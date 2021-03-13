@@ -1,6 +1,6 @@
 #include "state.h"
 #include "state_ref.h"
-#include "storage/meta_ops.h"
+#include "storage/storage.h"
 
 #if defined(__SAMD51__)
 #include "hal/metal/metal_ipc.h"
@@ -151,8 +151,7 @@ bool GlobalState::flush(Pool &pool) {
         return false;
     }
 
-    MetaOps ops{ storage };
-    if (!ops.write_state(this, pool)) {
+    if (!storage.meta_ops().write_state(this, pool)) {
         return false;
     }
 

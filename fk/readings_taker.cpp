@@ -59,20 +59,16 @@ tl::expected<TakenReadings, Error> ReadingsTaker::take(ConstructedModulesCollect
 }
 
 tl::expected<uint32_t, Error> ReadingsTaker::append_configuration(ConstructedModulesCollection &modules, ModuleReadingsCollection &readings, Pool &pool) {
-    // jlewallen: storage-write
-    MetaOps ops{ storage_ };
     auto gs = get_global_state_rw();
-    return ops.write_modules(gs.get(), &fkb_header, modules, readings, pool);
+    return storage_.meta_ops().write_modules(gs.get(), &fkb_header, modules, readings, pool);
 }
 
 tl::expected<uint32_t, Error> ReadingsTaker::append_readings(uint32_t meta_record, Pool &pool) {
     // We fill in the number in write_readings
     readings_.record().readings.meta = meta_record;
 
-    // jlewallen: storage-write
-    DataOps ops{ storage_ };
     auto gs = get_global_state_rw();
-    return ops.write_readings(gs.get(), &readings_.record(), pool);
+    return storage_.data_ops().write_readings(gs.get(), &readings_.record(), pool);
 }
 
 }
