@@ -5,7 +5,6 @@
 
 #include "storage/storage.h"
 #include "storage/signed_log.h"
-#include "storage/meta_ops.h"
 #include "state_manager.h"
 #include "utilities.h"
 #include "records.h"

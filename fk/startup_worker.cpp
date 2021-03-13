@@ -7,7 +7,6 @@
 #include "factory_wipe.h"
 #include "storage/storage.h"
 #include "storage/signed_log.h"
-#include "storage/meta_ops.h"
 #include "storage/data_record.h"
 #include "records.h"
 #include "state_ref.h"
@@ -177,9 +176,8 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
         return false;
     }
 
-    MetaOps ops{ storage };
     MetaRecord meta_record;
-    if (!ops.read_record(SignedRecordKind::State, meta_record, pool)) {
+    if (!storage.meta_ops()->read_record(SignedRecordKind::State, meta_record, pool)) {
         return true;
     }
 
@@ -321,8 +319,7 @@ bool StartupWorker::create_new_state(Storage &storage, GlobalState *gs, Pool &po
         fk_restart();
     }
 
-    MetaOps ops{ storage };
-    if (!ops.write_state(gs, &fkb_header, pool)) {
+    if (!storage.meta_ops()->write_state(gs, &fkb_header, pool)) {
         logerror("error writing state");
         fk_logs_flush();
         fk_restart();
@@ -333,8 +330,7 @@ bool StartupWorker::create_new_state(Storage &storage, GlobalState *gs, Pool &po
 
 bool StartupWorker::load_from_files(Storage &storage, GlobalState *gs, Pool &pool) {
     {
-        MetaOps ops{ storage };
-        auto attributes = ops.atttributes();
+        auto attributes = storage.meta_ops()->atttributes();
 
         gs->update_meta_stream(attributes->size, attributes->records);
         // TODO This should be managed better.
@@ -344,8 +340,8 @@ bool StartupWorker::load_from_files(Storage &storage, GlobalState *gs, Pool &poo
     }
 
     {
-        DataOps ops{ storage };
-        auto attributes = ops.atttributes();
+        auto ops = storage.data_ops();
+        auto attributes = ops->atttributes();
 
         gs->update_data_stream(attributes->size, attributes->records);
         // TODO This should be managed better.
@@ -361,9 +357,9 @@ bool StartupWorker::load_from_files(Storage &storage, GlobalState *gs, Pool &poo
     return true;
 }
 
-bool StartupWorker::load_previous_location(GlobalState *gs, DataOps &ops, Pool &pool) {
+bool StartupWorker::load_previous_location(GlobalState *gs, DataOps *ops, Pool &pool) {
     DataRecord record;
-    if (!ops.read_fixed_record(record, pool)) {
+    if (!ops->read_fixed_record(record, pool)) {
         return false;
     }
 

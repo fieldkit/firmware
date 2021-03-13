@@ -1,5 +1,5 @@
-#include "storage/meta_ops.h"
 #include "storage/storage.h"
+#include "storage/file_ops_darwin.h"
 #include "utilities.h"
 #include "records.h"
 #include "state.h"
@@ -7,6 +7,8 @@
 extern const struct fkb_header_t fkb_header;
 
 namespace fk {
+
+namespace darwin {
 
 FK_DECLARE_LOGGER("sops");
 
@@ -166,4 +168,6 @@ int32_t FileReader::read(void *record, pb_msgdesc_t const *fields) {
     return file_.read(record, fields);
 }
 
-}
+} // namespace darwin
+
+} // namespace fk

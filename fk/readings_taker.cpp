@@ -8,7 +8,6 @@
 #include "records.h"
 #include "state_ref.h"
 #include "readings.h"
-#include "storage/meta_ops.h"
 #include "modules/module_factory.h"
 
 extern const struct fkb_header_t fkb_header;

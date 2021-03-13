@@ -5,7 +5,6 @@
 #include "common.h"
 #include "storage/storage.h"
 #include "storage/signed_log.h"
-#include "storage/meta_ops.h"
 #include "modules/shared/crc.h"
 #include "modules/eeprom.h"
 #include "hal/random.h"
