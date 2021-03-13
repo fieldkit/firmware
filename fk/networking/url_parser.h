@@ -1,3 +1,5 @@
+#pragma once
+
 namespace fk {
 
 struct UrlParser {
@@ -9,11 +11,21 @@ private:
     uint16_t port_{ 80 };
 
 public:
-    const char *scheme() const { return scheme_; }
-    const char *server() const { return server_; }
-    const char *path() const { return path_; }
-    const char *query_string() const { return query_string_; }
-    uint16_t    port() const { return port_; }
+    const char *scheme() const {
+        return scheme_;
+    }
+    const char *server() const {
+        return server_;
+    }
+    const char *path() const {
+        return path_;
+    }
+    const char *query_string() const {
+        return query_string_;
+    }
+    uint16_t port() const {
+        return port_;
+    }
 
 public:
     UrlParser() {
@@ -26,19 +38,18 @@ public:
                 p[0] = 0;
 
                 if (p - buffer == 5) {
-                    if (buffer[0] == 'h' && buffer[1] == 't' && buffer[2] == 't' && buffer[3] == 'p' && buffer[4] == 's') {
+                    if (buffer[0] == 'h' && buffer[1] == 't' && buffer[2] == 't' && buffer[3] == 'p' &&
+                        buffer[4] == 's') {
                         port_ = 443;
                     }
                 }
-            }
-            else if (server_ == nullptr && p[0] == '/' && p[1] == '/') {
+            } else if (server_ == nullptr && p[0] == '/' && p[1] == '/') {
                 p += 2;
                 server_ = p;
-            }
-            else if (server_ != nullptr && p[0] == ':') {
+            } else if (server_ != nullptr && p[0] == ':') {
                 p[0] = 0;
                 auto port_begin = ++p;
-                for ( ; p[0] != 0; ++p) {
+                for (; p[0] != 0; ++p) {
                     if (p[0] == '/') {
                         p[0] = 0;
                         port_ = atoi(port_begin);
@@ -47,16 +58,13 @@ public:
                     }
                 }
                 break;
-            }
-            else if (server_ != nullptr && p[0] == '/') {
+            } else if (server_ != nullptr && p[0] == '/') {
                 p[0] = 0;
                 path_ = p + 1;
                 break;
-            }
-            else if (server_ == nullptr && p[0] == '/' && p[1] != '/' && path_ == nullptr) {
+            } else if (server_ == nullptr && p[0] == '/' && p[1] != '/' && path_ == nullptr) {
                 path_ = p;
-            }
-            else if (path_ != nullptr && p[0] == '?') {
+            } else if (path_ != nullptr && p[0] == '?') {
                 p[0] = 0;
                 query_string_ = p + 1;
             }
@@ -71,7 +79,7 @@ public:
 
         auto key_len = strlen(key);
         auto qs_len = strlen(query_string_);
-        for (auto p = query_string_; p[0] != 0; ) {
+        for (auto p = query_string_; p[0] != 0;) {
             if (key_len >= qs_len) {
                 return nullptr;
             }
@@ -98,7 +106,6 @@ public:
 
         return nullptr;
     }
-
 };
 
-}
+} // namespace fk
