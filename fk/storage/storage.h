@@ -9,8 +9,8 @@
 #include "storage/bad_blocks.h"
 #include "storage/sequential_memory.h"
 #include "storage/statistics_memory.h"
-#include "storage/file_ops_darwin.h"
 #include "storage/lfs_driver.h"
+#include "storage/file_ops.h"
 
 namespace fk {
 
@@ -44,8 +44,8 @@ private:
     BlockNumber free_block_{ InvalidBlock };
     uint32_t version_{ InvalidVersion };
     bool read_only_;
-    darwin::MetaOps meta_ops_;
-    darwin::DataOps data_ops_;
+    MetaOps *meta_ops_{ nullptr };
+    DataOps *data_ops_{ nullptr };
     bool lfs_enabled_{ false };
     LfsDriver lfs_;
 

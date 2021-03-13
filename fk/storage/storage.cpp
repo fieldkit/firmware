@@ -8,6 +8,9 @@
 #include "progress_tracker.h"
 #include "utilities.h"
 
+#include "storage/file_ops_lfs.h"
+#include "storage/file_ops_darwin.h"
+
 namespace fk {
 
 FK_DECLARE_LOGGER("storage");
@@ -89,7 +92,7 @@ SeekSettings SeekSettings::end_of(uint8_t file) {
 
 Storage::Storage(DataMemory *memory, Pool &pool, bool read_only)
     : data_memory_(memory), pool_(&pool), memory_(memory, pool), bad_blocks_(memory, pool),
-      read_only_(read_only), meta_ops_{ *this }, data_ops_{ *this } {
+      read_only_(read_only) {
     FK_ASSERT(memory != nullptr);
 }
 
@@ -99,15 +102,65 @@ Storage::~Storage() {
     }
 }
 
+bool Storage::begin() {
+    if (!begin_internal()) {
+        return false;
+    }
+
+    if (free_block_ < 512) {
+        lfs_enabled_ = true;
+
+        auto memory = new (pool_) TranslatingMemory(data_memory_, 512);
+
+        if (!lfs_.begin(memory, *pool_)) {
+            logerror("lfs: begin failed");
+            return false;
+        }
+
+        loginfo("lfs ready");
+
+        data_ops_ = new (pool_) lfs::DataOps(lfs_);
+        meta_ops_ = new (pool_) lfs::MetaOps(lfs_);
+    }
+    else {
+        data_ops_ = new (pool_) darwin::DataOps(*this);
+        meta_ops_ = new (pool_) darwin::MetaOps(*this);
+    }
+
+    return true;
+}
+
+bool Storage::clear() {
+    if (lfs_enabled_) {
+        return true;
+    }
+
+    #if defined(__SAMD51__)
+    FK_ASSERT(false);
+    #endif
+
+    if (!clear_internal()) {
+        return false;
+    }
+
+    data_ops_ = new (pool_) darwin::DataOps(*this);
+    meta_ops_ = new (pool_) darwin::MetaOps(*this);
+
+    return true;
+}
+
 DataOps *Storage::data_ops() {
-    return &data_ops_;
+    return data_ops_;
 }
 
 MetaOps *Storage::meta_ops() {
-    return &meta_ops_;
+    return meta_ops_;
 }
 
 FileReader *Storage::file_reader(FileNumber file_number, Pool &pool) {
+    if (lfs_enabled_) {
+        return new (pool) lfs::FileReader{ lfs_, file_number, pool };
+    }
     return new (pool) darwin::FileReader{ *this, file_number, pool };
 }
 
@@ -207,27 +260,6 @@ Storage::BlocksAfter Storage::find_blocks_after(uint32_t starting, FileNumber fi
     return BlocksAfter{ starting, free, tail, bytes_skipped, records_skipped };
 }
 
-bool Storage::begin() {
-    if (!begin_internal()) {
-        return false;
-    }
-
-    if (free_block_ < 512) {
-        lfs_enabled_ = true;
-
-        auto memory = new (pool_) TranslatingMemory(data_memory_, 512);
-
-        if (!lfs_.begin(memory, *pool_)) {
-            logerror("lfs: begin failed");
-            return false;
-        }
-
-        loginfo("lfs ready");
-    }
-
-    return true;
-}
-
 bool Storage::begin_internal() {
     auto g = memory_.geometry();
     auto started = fk_uptime();
@@ -298,13 +330,6 @@ bool Storage::begin_internal() {
     }
 
     return true;
-}
-
-bool Storage::clear() {
-    #if defined(__SAMD51__)
-    FK_ASSERT(false);
-    #endif
-    return clear_internal();
 }
 
 bool Storage::clear_internal() {
