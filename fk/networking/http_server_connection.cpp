@@ -161,6 +161,11 @@ int32_t HttpServerConnection::write(int32_t status_code, const char *status_mess
         return content_size;
     }
 
+    if (!buffered.flush()) {
+        logdebug("[%" PRIu32 "] fail flush", number_);
+        return content_size;
+    }
+
     logdebug("[%" PRIu32 "] pb done", number_);
 
     bytes_tx_ += content_size;
