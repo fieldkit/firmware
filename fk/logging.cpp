@@ -247,6 +247,20 @@ bool fk_logging_dump_buffer() {
     return true;
 }
 
+void fk_log_debugging(const char *source) {
+    for (os_task_t *iter = osg.runqueue; iter != NULL; iter = iter->nrp) {
+        alogf(LogLevels::DEBUG, source, "rq '%s' status(%s) (0x%" PRIx32 ")", iter->name,
+              os_task_status_str(iter->status), iter->priority);
+    }
+
+    for (os_task_t *iter = osg.waitqueue; iter != NULL; iter = iter->nrp) {
+        alogf(LogLevels::DEBUG, source, "wq '%s' status(%s) (0x%" PRIx32 ")", iter->name,
+              os_task_status_str(iter->status), iter->priority);
+    }
+
+    fk_standard_page_log();
+}
+
 #else
 
 void fk_logs_vprintf(const char *f, va_list args) {
@@ -261,6 +275,9 @@ void fk_logs_saved_write(bool echo) {
 }
 
 void fk_logs_saved_free() {
+}
+
+void fk_log_debugging(const char *source) {
 }
 
 #endif

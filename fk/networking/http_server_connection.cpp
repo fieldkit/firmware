@@ -148,13 +148,20 @@ int32_t HttpServerConnection::write(int32_t status_code, const char *status_mess
         writer = &b64_writer;
     }
 
+    logdebug("[%" PRIu32 "] ready to write", number_);
+
     auto ostream = pb_ostream_from_writable(writer);
     if (!pb_encode_delimited(&ostream, fields, record)) {
+        logdebug("[%" PRIu32 "] fail pb", number_);
         return content_size;
     }
 
+    logdebug("[%" PRIu32 "] pb done", number_);
+
     bytes_tx_ += content_size;
     activity_ = fk_uptime();
+
+    logdebug("[%" PRIu32 "] finished", number_);
 
     req_.finished();
 

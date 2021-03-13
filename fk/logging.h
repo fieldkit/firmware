@@ -30,6 +30,8 @@ void fk_logs_saved_write(bool echo);
 
 void fk_logs_saved_free();
 
+void fk_log_debugging(const char *source);
+
 /**
  * Function for dumping memory in hexadecimal encoding to the console for debugging.
  */
