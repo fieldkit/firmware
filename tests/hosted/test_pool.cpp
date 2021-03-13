@@ -254,3 +254,20 @@ TEST_F(PoolSuite, Subpool) {
     loginfo("clearing");
     pool.clear();
 }
+
+TEST_F(PoolSuite, SubpoolMultiple) {
+    StandardPool pool{ "top" };
+
+    loginfo("spawn");
+
+    Pool *child1 = pool.subpool("child1");
+    loginfo("child1 alloc 4096");
+    child1->malloc(4096);
+
+    Pool *child2 = pool.subpool("child2");
+    loginfo("child2 4096");
+    child2->malloc(4096);
+
+    loginfo("clearing");
+    pool.clear();
+}

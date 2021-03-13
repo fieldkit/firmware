@@ -261,8 +261,10 @@ StandardPool::~StandardPool() {
         delete sibling_;
         sibling_ = nullptr;
     }
-    for (auto iter = child_; iter != nullptr; iter = iter->np_) {
-        delete iter;
+    while (child_ != nullptr) {
+        auto np = child_->np_;
+        delete child_;
+        child_ = np;
     }
     if (free_self_) {
         #if defined(FK_LOGGING_POOL_VERBOSE) || defined(FK_LOGGING_POOL_TRACING)
