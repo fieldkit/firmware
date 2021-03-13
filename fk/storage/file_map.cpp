@@ -15,6 +15,8 @@ FileMap::~FileMap() {
 }
 
 bool FileMap::refresh() {
+    loginfo("map[%s]: refresh", directory_);
+
     int32_t expected_number_of_files = lfs_->get_number_of_files(directory_);
     if (expected_number_of_files < 0) {
         if (expected_number_of_files != LFS_ERR_NOATTR) {
@@ -63,8 +65,8 @@ bool FileMap::refresh() {
             return false;
         }
 
-        loginfo("[% 4d] ls: '%s' type=%d size=%d attrs: first-record=%" PRIu32 " nrecords=%" PRIu32, number_files_,
-                info.name, info.type, info.size, first_record, nrecords);
+        loginfo("[% 4d] ls: '%s/%s' type=%d size=%d attrs: first-record=%" PRIu32 " nrecords=%" PRIu32, number_files_,
+                directory_, info.name, info.type, info.size, first_record, nrecords);
 
         auto entry = (cache_entry_t *)cache_pool_->malloc(sizeof(cache_entry_t));
         entry->first_record = first_record;
@@ -98,6 +100,8 @@ bool FileMap::refresh() {
 }
 
 tl::expected<record_file_search_t, Error> FileMap::find(uint32_t desired_record, Pool &pool) {
+    loginfo("map[%s]: find R-%" PRIu32, directory_, desired_record);
+
     if (!initialized_) {
         if (!refresh()) {
             return tl::unexpected<Error>(Error::IO);
@@ -177,6 +181,8 @@ bool FileMap::prune() {
 }
 
 tl::expected<partition_attributes_t, Error> FileMap::attributes(Pool &pool) {
+    loginfo("reading %s attributes", directory_);
+
     auto end_of_file = find(UINT32_MAX, pool);
     if (!end_of_file) {
         return tl::unexpected<Error>(end_of_file.error());

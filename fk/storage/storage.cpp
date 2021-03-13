@@ -102,14 +102,23 @@ Storage::~Storage() {
     }
 }
 
+static bool first_open_ = true;
+static bool always_lfs_ = false;
+
 bool Storage::begin() {
+    #if defined(__SAMD51__)
+    if (!always_lfs_) {
+        if (!begin_internal()) {
+            return false;
+        }
+    }
+
+    if (!always_lfs_ && free_block_ > 512) {
+    #else
     if (!begin_internal()) {
         return false;
     }
 
-    #if defined(__SAMD51__)
-    if (free_block_ > 512) {
-    #else
     if (true) {
     #endif
         data_ops_ = new (pool_) darwin::DataOps(*this);
@@ -118,13 +127,16 @@ bool Storage::begin() {
     }
 
     lfs_enabled_ = true;
+    always_lfs_ = true;
 
     auto memory = new (pool_) TranslatingMemory(data_memory_, 512);
 
-    if (!lfs_.begin(memory, *pool_, true)) {
+    if (!lfs_.begin(memory, *pool_, false)) {
         logerror("lfs: begin failed");
         return false;
     }
+
+    first_open_ = false;
 
     loginfo("lfs ready");
 

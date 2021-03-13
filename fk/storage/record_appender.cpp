@@ -82,6 +82,8 @@ AppendedRecordOrError RecordAppender::append_data_record(fk_data_DataRecord *rec
     lfs_file_config file_cfg = lfs_->make_data_cfg(pool);
     FK_ASSERT(lfs_file_opencfg(lfs(), &file, path_, LFS_O_RDWR | LFS_O_CREAT | LFS_O_APPEND, &file_cfg) == 0);
 
+    lfs_debug_attributes(file_cfg);
+
     Attributes attributes{ file_cfg };
 
     // Check to see if this file is full and we can rollover to a new
@@ -123,58 +125,84 @@ AppendedRecordOrError RecordAppender::append_changes(uint8_t kind_index, void co
 
     lfs_file_t file;
     lfs_file_config file_cfg = lfs_->make_meta_cfg(pool);
-    FK_ASSERT(lfs_file_opencfg(lfs(), &file, path_, LFS_O_RDWR | LFS_O_CREAT | LFS_O_APPEND, &file_cfg) == 0);
     Attributes attributes{ file_cfg };
+    auto err = lfs_file_opencfg(lfs(), &file, path_, LFS_O_RDONLY, &file_cfg);
+    if (err >= 0) {
+        lfs_debug_attributes(file_cfg);
 
-    auto record_number = attributes.first_record() + attributes.nrecords();
-    SignedRecordBuilder signed_record{ record_number, record, fields, pool };
+        auto record_number = attributes.first_record() + attributes.nrecords();
+        SignedRecordBuilder signed_record{ record_number, record, fields, pool };
 
-    // Do we have a record of this kind yet? The default value for
-    // these attributes is a 0xff fill just to avoid ambiguity over
-    // the start of the file at 0.
-    auto position = attributes.get(kind_index);
-    if (position != UINT32_MAX) {
-        loginfo("found existing kind=%d @ %" PRIu32 "", kind_index, position);
+        // Do we have a record of this kind yet? The default value for
+        // these attributes is a 0xff fill just to avoid ambiguity over
+        // the start of the file at 0.
+        auto position = attributes.get(kind_index);
+        if (position != UINT32_MAX) {
+            loginfo("found existing kind=%d @ %" PRIu32 "", kind_index, position);
 
-        // Seek to the position in the file, this returns the new
-        // position in the file.
-        FK_ASSERT(lfs_file_seek(lfs(), &file, position, LFS_SEEK_SET) >= 0);
+            // Seek to the position in the file, this returns the new
+            // position in the file.
+            if (lfs_file_seek(lfs(), &file, position, LFS_SEEK_SET) < 0) {
+                logerror("seek file record");
+                return tl::unexpected<Error>(Error::IO);
+            }
 
-        // TODO Move to class
-        fk_data_SignedRecord sr = fk_data_SignedRecord_init_default;
-        sr.hash.funcs.decode = pb_decode_data;
-        sr.hash.arg = (void *)&pool;
+            // TODO Move to class
+            fk_data_SignedRecord sr = fk_data_SignedRecord_init_default;
+            sr.hash.funcs.decode = pb_decode_data;
+            sr.hash.arg = (void *)&pool;
 
-        LfsReader lfs_reader{ lfs_, &file };
-        auto istream = pb_istream_from_readable(&lfs_reader);
-        if (!pb_decode_delimited(&istream, fk_data_SignedRecord_fields, &sr)) {
-            logerror("decoding existing");
-            return tl::unexpected<Error>(Error::IO);
+            LfsReader lfs_reader{ lfs_, &file };
+            BufferedReader buffered{ &lfs_reader, (uint8_t *)pool.malloc(1024), 1024 };
+            auto istream = pb_istream_from_readable(&buffered);
+            if (!pb_decode_delimited(&istream, fk_data_SignedRecord_fields, &sr)) {
+                logerror("decoding existing");
+                return tl::unexpected<Error>(Error::IO);
+            }
+
+            // Compare the hashes here, if this is different we'll be
+            // appending this new record.
+            auto hash_ref = (pb_data_t *)sr.hash.arg;
+            FK_ASSERT(hash_ref->length == Hash::Length);
+            if (memcmp(signed_record.hash(), hash_ref->buffer, Hash::Length) == 0) {
+                auto absolute_position = bytes_before_start_of_last_file_ + position;
+
+                lfs_file_close(lfs(), &file);
+
+                return appended_record_t{
+                    .record = (uint32_t)sr.record,
+                    .first_record_of_containing_file = start_record_of_last_file_,
+                    .absolute_position = (lfs_size_t)absolute_position,
+                    .file_position = (lfs_size_t)position,
+                    .record_size = UINT32_MAX,
+                };
+            }
+
+            loginfo("modified, appending");
+        }
+        else {
+            loginfo("first of its kind=%d, appending", kind_index);
         }
 
-        // Compare the hashes here, if this is different we'll be
-        // appending this new record.
-        auto hash_ref = (pb_data_t *)sr.hash.arg;
-        FK_ASSERT(hash_ref->length == Hash::Length);
-        if (memcmp(signed_record.hash(), hash_ref->buffer, Hash::Length) == 0) {
-            auto absolute_position = bytes_before_start_of_last_file_ + position;
-            return appended_record_t{
-                .record = (uint32_t)sr.record,
-                .first_record_of_containing_file = start_record_of_last_file_,
-                .absolute_position = (lfs_size_t)absolute_position,
-                .file_position = (lfs_size_t)position,
-                .record_size = (lfs_size_t)0,
-            };
-        }
-
-        loginfo("modified, appending");
+        lfs_file_close(lfs(), &file);
     }
-    else {
-        loginfo("first of its kind=%d, appending", kind_index);
+    else if (err != LFS_ERR_NOENT) {
+        return tl::unexpected<Error>(Error::IO);
+    }
+
+    if (lfs_file_opencfg(lfs(), &file, path_, LFS_O_WRONLY | LFS_O_CREAT | LFS_O_APPEND, &file_cfg) < 0) {
+        return tl::unexpected<Error>(Error::IO);
+    }
+
+    if (lfs_file_seek(lfs(), &file, 0, LFS_SEEK_END) < 0) {
+        logerror("seek file end");
     }
 
     // Set the attribute for this kind to the position of this new record.
     attributes.set(kind_index, lfs_file_tell(lfs(), &file));
+
+    auto record_number = attributes.first_record() + attributes.nrecords();
+    SignedRecordBuilder signed_record{ record_number, record, fields, pool };
 
     return write_record(file, attributes, signed_record.record(), fk_data_SignedRecord_fields, pool);
 }
@@ -191,7 +219,9 @@ AppendedRecordOrError RecordAppender::write_record(lfs_file_t &file, Attributes 
     LfsWriter lfs_writer{ lfs_, &file };
     BufferedWriter buffered{ &lfs_writer, (uint8_t *)pool.malloc(1024), 1024 };
     auto ostream = pb_ostream_from_writable(&buffered);
-    FK_ASSERT(pb_encode_delimited(&ostream, fields, record));
+    if (!pb_encode_delimited(&ostream, fields, record)) {
+        return tl::unexpected<Error>(Error::IO);
+    }
     if (buffered.flush() <= 0) {
         return tl::unexpected<Error>(Error::IO);
     }
@@ -235,9 +265,13 @@ bool RecordAppender::create_directory_if_necessary() {
     struct lfs_info info;
 
     auto err = lfs_stat(lfs(), directory(), &info);
-    if (err == LFS_ERR_NOENT) {
-        logdebug("creating '%s'", directory());
-        FK_ASSERT(lfs_mkdir(lfs(), directory()) == 0);
+    if (err < 0) {
+        if (err == LFS_ERR_NOENT) {
+            loginfo("creating '%s'", directory());
+            FK_ASSERT(lfs_mkdir(lfs(), directory()) == 0);
+            return true;
+        }
+        return false;
     }
 
     return true;
@@ -245,7 +279,7 @@ bool RecordAppender::create_directory_if_necessary() {
 
 optional<Error> RecordAppender::locate_tail(Pool &pool) {
     if (!initialized_) {
-        logdebug("appending, initializing");
+        logdebug("%s: initializing", directory());
 
         FK_ASSERT(create_directory_if_necessary());
 
@@ -254,7 +288,7 @@ optional<Error> RecordAppender::locate_tail(Pool &pool) {
         // of that last file.
         auto search = map_->find(UINT32_MAX, pool);
         if (!search) {
-            logerror("append error finding tail");
+            logerror("finding tail");
             return search.error();
         }
 

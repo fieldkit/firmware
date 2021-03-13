@@ -33,6 +33,19 @@ fklfs_attribute_template_t meta_attributes[number_meta_attributes] = {
     { LFS_DRIVER_FILE_ATTR_CONFIG_OTHER,      sizeof(uint32_t), 0xff },
 };
 
+int32_t lfs_debug_attributes(lfs_file_config &config) {
+    for (auto i = 0u; i < config.attr_count; ++i) {
+        if (config.attrs[i].size == sizeof(uint32_t)) {
+            logdebug("attr[%2x] = %" PRIu32, i, *(uint32_t *)config.attrs[i].buffer);
+        }
+        else {
+            logdebug("attr[%2x] unknown size=%d", config.attrs[i].size);
+        }
+    }
+
+    return 0;
+}
+
 // Read a region in a block. Negative error codes are propogated
 // to the user.
 int lfs_block_device_read(struct lfs_config const *c, lfs_block_t block, lfs_off_t off, void *buffer, lfs_size_t size) {
@@ -143,31 +156,56 @@ lfs_file_config LfsDriver::make_file_cfg(fklfs_attribute_template_t const *attri
     };
 };
 
-int32_t LfsDriver::read(struct lfs_config const *c, lfs_block_t block, lfs_off_t off, void *buffer, lfs_size_t size) {
+int32_t LfsDriver::read(struct lfs_config const *cfg, lfs_block_t block, lfs_off_t off, void *buffer, lfs_size_t size) {
+    LFS_ASSERT(off  % cfg->read_size == 0);
+    LFS_ASSERT(size % cfg->read_size == 0);
+    LFS_ASSERT(block < cfg->block_count);
+
+    auto g = memory_->geometry();
+    auto address = block * g.block_size + off;
+    auto remaining = size;
+
     logverbose("read: %" PRIu32 " off=%" PRIu32 " size=%" PRIu32, block, off, size);
 
-    auto g = memory_->geometry();
-    auto address = block * g.block_size + off;
-    if (memory_->read(address, (uint8_t *)buffer, size) != (int32_t)size) {
-        return -1;
+    while (remaining > 0) {
+        if (memory_->read(address, (uint8_t *)buffer, cfg->read_size) != (int32_t)cfg->read_size) {
+            return -1;
+        }
+
+        address += cfg->read_size;
+        remaining -= cfg->read_size;
+        buffer = ((uint8_t *)buffer) + cfg->read_size;
     }
+
 
     return 0;
 }
 
-int32_t LfsDriver::prog(struct lfs_config const *c, lfs_block_t block, lfs_off_t off, const void *buffer, lfs_size_t size) {
+int32_t LfsDriver::prog(struct lfs_config const *cfg, lfs_block_t block, lfs_off_t off, const void *buffer, lfs_size_t size) {
+    LFS_ASSERT(off  % cfg->prog_size == 0);
+    LFS_ASSERT(size % cfg->prog_size == 0);
+    LFS_ASSERT(block < cfg->block_count);
+
+    auto g = memory_->geometry();
+    auto address = block * g.block_size + off;
+    auto remaining = size;
+
     logdebug("prog: %" PRIu32 " off=%" PRIu32 " size=%" PRIu32, block, off, size);
 
-    auto g = memory_->geometry();
-    auto address = block * g.block_size + off;
-    if (memory_->write(address, (uint8_t *)buffer, size) != (int32_t)size) {
-        return -1;
+    while (remaining > 0) {
+        if (memory_->write(address, (uint8_t *)buffer, cfg->prog_size) != (int32_t)cfg->prog_size) {
+            return -1;
+        }
+
+        address += cfg->prog_size;
+        remaining -= cfg->prog_size;
+        buffer = ((uint8_t *)buffer) + cfg->prog_size;
     }
 
     return 0;
 }
 
-int32_t LfsDriver::erase(struct lfs_config const *c, lfs_block_t block) {
+int32_t LfsDriver::erase(struct lfs_config const *cfg, lfs_block_t block) {
     logdebug("erase: %" PRIu32, block);
 
     auto g = memory_->geometry();

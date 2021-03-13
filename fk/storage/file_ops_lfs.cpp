@@ -49,16 +49,25 @@ tl::expected<uint32_t, Error> MetaOps::write_modules(GlobalState *gs, fkb_header
 }
 
 tl::expected<uint32_t, Error> MetaOps::write_kind(GlobalState *gs, SignedRecordKind kind, MetaRecord &record, Pool &pool) {
+    auto index = kind_to_attribute_index(kind);
+    loginfo("writing kind: %d", index);
     RecordAppender appender{ &lfs_, &map_, 64 * 2048 * 5, pool };
-    auto appended = appender.append_changes((uint8_t)kind, &record.record(), fk_data_DataRecord_fields, pool);
+    auto appended = appender.append_changes(index, &record.record(), fk_data_DataRecord_fields, pool);
     if (!appended) {
+        logerror("error appending");
         return tl::unexpected<Error>(appended.error());
     }
+
+    gs->update_meta_stream(appended->absolute_position + appended->record_size, appended->record);
+
     return appended->record;
 }
 
 tl::expected<FileAttributes, Error> MetaOps::attributes() {
     auto attributes = map_.attributes(*lfs_.pool());
+    if (!attributes) {
+        return tl::unexpected<Error>(attributes.error());
+    }
     return FileAttributes{
         .size = attributes->size,
         .records = attributes->records
@@ -66,7 +75,37 @@ tl::expected<FileAttributes, Error> MetaOps::attributes() {
 }
 
 bool MetaOps::read_record(SignedRecordKind kind, MetaRecord &record, Pool &pool) {
-    return false;
+    loginfo("reading meta record kind=%d", kind);
+
+    PartitionedReader partitioned_reader{ &lfs_, &map_, pool };
+    auto seek = partitioned_reader.seek_via_attr(kind_to_attribute_index(kind), pool);
+    if (!seek) {
+        logerror("seeking via attribute");
+        return false;
+    }
+
+    fk_data_SignedRecord signed_record = fk_data_SignedRecord_init_default;
+    signed_record.data.funcs.decode = pb_decode_data;
+    signed_record.data.arg = (void *)&pool;
+    signed_record.data.funcs.decode = pb_decode_data;
+    signed_record.hash.arg = (void *)&pool;
+
+    auto reader = partitioned_reader.open_reader(pool);
+    FK_ASSERT(reader != nullptr);
+    BufferedReader buffered{ reader, (uint8_t *)pool.malloc(1024), 1024u };
+    auto stream = pb_istream_from_readable(&buffered);
+    if (!pb_decode_delimited(&stream, fk_data_SignedRecord_fields, &signed_record)) {
+        logerror("read-record: decoding record");
+        return false;
+    }
+
+    auto data_ref = (pb_data_t *)signed_record.data.arg;
+    auto record_stream = pb_istream_from_buffer((pb_byte_t *)data_ref->buffer, data_ref->length);
+    if (!pb_decode_delimited(&record_stream, fk_data_DataRecord_fields, &record.for_decoding(pool))) {
+        return false;
+    }
+
+    return true;
 }
 
 DataOps::DataOps(LfsDriver &lfs) : lfs_(lfs), map_(&lfs_, "data", 3, *lfs.pool()) {
@@ -78,11 +117,17 @@ tl::expected<uint32_t, Error> DataOps::write_readings(GlobalState *gs, fk_data_D
     if (!appended) {
         return tl::unexpected<Error>(appended.error());
     }
+
+    gs->update_data_stream(appended->absolute_position + appended->record_size, appended->record);
+
     return appended->record;
 }
 
 tl::expected<FileAttributes, Error> DataOps::attributes() {
     auto attributes = map_.attributes(*lfs_.pool());
+    if (!attributes) {
+        return tl::unexpected<Error>(attributes.error());
+    }
     return FileAttributes{
         .size = attributes->size,
         .records = attributes->records
@@ -90,6 +135,8 @@ tl::expected<FileAttributes, Error> DataOps::attributes() {
 }
 
 bool DataOps::read_fixed_record(DataRecord &record, Pool &pool) {
+    loginfo("reading known location");
+
     PartitionedReader partitioned_reader{ &lfs_, &map_, pool };
     auto gps_record = partitioned_reader.seek_fixed(pool);
     if (!gps_record) {
@@ -112,12 +159,29 @@ FileReader::FileReader(LfsDriver &lfs, FileNumber file_number, Pool &pool)
       map_(&lfs_, file_number == Storage::Data ? "data" : "meta", 0, *lfs.pool()) {
 }
 
-FileReader::SizeInfo FileReader::get_size(BlockNumber first_block, BlockNumber last_block, Pool &pool) {
-    auto seek_first = partitioned_.seek(first_block, pool);
-    FK_ASSERT(seek_first);
+tl::expected<FileReader::SizeInfo, Error> FileReader::get_size(BlockNumber first_block, BlockNumber last_block, Pool &pool) {
+    // If they're asking for the final record of the file, we use the
+    // specific one because seek is very strict about acceptable inputs.
+    if (last_block == UINT32_MAX) {
+        auto attributes = map_.attributes(pool);
+        if (!attributes) {
+            return tl::unexpected<Error>(attributes.error());
+        }
+        last_block = attributes->records;
+    }
 
     auto seek_last = partitioned_.seek(last_block, pool);
-    FK_ASSERT(seek_last);
+    if (!seek_last) {
+        return tl::unexpected<Error>(seek_last.error());
+    }
+
+    // NOTE: We seek to the starting position in the end so that if a
+    // file reader is opened it'll be opened at this location.
+
+    auto seek_first = partitioned_.seek(first_block, pool);
+    if (!seek_first) {
+        return tl::unexpected<Error>(seek_first.error());
+    }
 
     return SizeInfo{
         .size = seek_last->absolute_position - seek_first->absolute_position,

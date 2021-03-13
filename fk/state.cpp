@@ -89,6 +89,8 @@ GlobalStateRef<GlobalState const*> try_get_global_state_ro() {
 }
 
 GlobalState::GlobalState() : version(0) {
+    update_data_stream(0, 0);
+    update_meta_stream(0, 0);
 }
 
 void GlobalState::update_data_stream(File const &file) {

@@ -71,8 +71,9 @@ void BackupWorker::run(Pool &pool) {
 
 bool BackupWorker::write_file(FileReader *file, const char *path, Pool &pool) {
     auto info = file->get_size(0, UINT32_MAX, pool);
+    FK_ASSERT(info); // TODO
 
-    loginfo("total size: %" PRIu32, info.size);
+    loginfo("total size: %" PRIu32, info->size);
 
     auto sd = get_sd_card();
     if (!sd->begin()) {
@@ -90,8 +91,8 @@ bool BackupWorker::write_file(FileReader *file, const char *path, Pool &pool) {
     auto buffer = reinterpret_cast<uint8_t*>(pool.malloc(NetworkBufferSize));
     auto bytes_copied = (uint32_t)0;
 
-    while (bytes_copied < info.size) {
-        auto to_read = std::min<int32_t>(NetworkBufferSize, info.size - bytes_copied);
+    while (bytes_copied < info->size) {
+        auto to_read = std::min<int32_t>(NetworkBufferSize, info->size - bytes_copied);
         auto bytes = file->read(buffer, to_read);
         if (bytes > 0) {
             b2b.update(buffer, bytes);

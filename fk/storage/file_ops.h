@@ -41,7 +41,7 @@ public:
         BlockNumber last_block;
     };
 
-    virtual SizeInfo get_size(BlockNumber first_block, BlockNumber last_block, Pool &pool) = 0;
+    virtual tl::expected<SizeInfo, Error> get_size(BlockNumber first_block, BlockNumber last_block, Pool &pool) = 0;
 
     virtual bool decode_signed(void *record, pb_msgdesc_t const *fields, Pool &pool) = 0;
 

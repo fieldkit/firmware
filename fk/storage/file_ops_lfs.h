@@ -57,7 +57,7 @@ public:
     explicit FileReader(LfsDriver &lfs, FileNumber file_number, Pool &pool);
 
 public:
-    SizeInfo get_size(BlockNumber first_block, BlockNumber last_block, Pool &pool) override;
+    tl::expected<SizeInfo, Error> get_size(BlockNumber first_block, BlockNumber last_block, Pool &pool) override;
 
     bool decode_signed(void *record, pb_msgdesc_t const *fields, Pool &pool) override;
 

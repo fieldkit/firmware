@@ -331,28 +331,30 @@ bool StartupWorker::create_new_state(Storage &storage, GlobalState *gs, Pool &po
 bool StartupWorker::load_from_files(Storage &storage, GlobalState *gs, Pool &pool) {
     {
         auto attributes = storage.meta_ops()->attributes();
+        if (attributes) {
+            gs->update_meta_stream(attributes->size, attributes->records);
+            // TODO This should be managed better.
+            if (attributes->records >= 2) {
+                gs->transmission.meta_cursor = attributes->records - 2;
+            }
+            else {
+                gs->transmission.meta_cursor = 0;
+            }
 
-        gs->update_meta_stream(attributes->size, attributes->records);
-        // TODO This should be managed better.
-        if (attributes->records >= 2) {
-            gs->transmission.meta_cursor = attributes->records - 2;
+            loginfo("meta file state R-%" PRIu32, gs->storage.meta.block);
         }
-        else {
-            gs->transmission.meta_cursor = 0;
-        }
-
-        loginfo("meta file state R-%" PRIu32, gs->storage.meta.block);
     }
 
     {
         auto ops = storage.data_ops();
         auto attributes = ops->attributes();
+        if (attributes) {
+            gs->update_data_stream(attributes->size, attributes->records);
+            // TODO This should be managed better.
+            gs->transmission.data_cursor = attributes->records;
 
-        gs->update_data_stream(attributes->size, attributes->records);
-        // TODO This should be managed better.
-        gs->transmission.data_cursor = attributes->records;
-
-        loginfo("data file state R-%" PRIu32, gs->storage.data.block);
+            loginfo("data file state R-%" PRIu32, gs->storage.data.block);
+        }
 
         if (!load_previous_location(gs, ops, pool)) {
             return false;

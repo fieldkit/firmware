@@ -33,13 +33,14 @@ DownloadWorker::HeaderInfo DownloadWorker::get_headers(FileReader *file_reader, 
 
     // Calculate the size.
     auto size_info = file_reader->get_size(first_block, last_block, pool);
+    FK_ASSERT(size_info); // TODO
 
-    loginfo("last_block = #%" PRIu32 " actual_lb = #%" PRIu32 "", last_block, size_info.last_block);
+    loginfo("last_block = #%" PRIu32 " actual_lb = #%" PRIu32 "", last_block, size_info->last_block);
 
     return HeaderInfo{
-        .size = size_info.size,
+        .size = size_info->size,
         .first_block = first_block,
-        .last_block = size_info.last_block,
+        .last_block = size_info->last_block,
         .device_id = bytes_to_hex_string_pool((uint8_t *)&sn, sizeof(sn), pool),
         .generation = bytes_to_hex_string_pool(gs.get()->general.generation, GenerationLength, pool),
     };
@@ -92,14 +93,17 @@ void DownloadWorker::run(Pool &pool) {
     while (bytes_copied < info.size) {
         auto to_read = std::min<int32_t>(buffer_size, info.size - bytes_copied);
         auto bytes_read = file_reader->read(buffer, to_read);
-        if (bytes_read != to_read) {
+        if (bytes_read == 0) {
+            break;
+        }
+        if (bytes_read < 0) {
             logerror("read error (%" PRId32 " != %" PRId32 ")", bytes_read, to_read);
             break;
         }
 
-        auto wrote = connection_->write(buffer, to_read);
-        if (wrote != (int32_t)to_read) {
-            logerror("write error (%" PRId32 " != %" PRId32 ")", wrote, to_read);
+        auto wrote = connection_->write(buffer, bytes_read);
+        if (wrote != bytes_read) {
+            logerror("write error (%" PRId32 " != %" PRId32 ")", wrote, bytes_read);
             break;
         }
 

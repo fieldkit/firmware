@@ -10,6 +10,7 @@ struct record_seek_t {
     uint32_t first_record_of_containing_file;
     uint32_t absolute_position;
     uint32_t file_position;
+    bool     readable;
 };
 
 class PartitionedReader : Reader {
@@ -27,11 +28,14 @@ private:
 
 public:
     PartitionedReader(LfsDriver *lfs, FileMap *map, Pool &pool);
+    virtual ~PartitionedReader();
 
 public:
     tl::expected<record_seek_t, Error> seek(uint32_t desired_record, Pool &pool);
 
     tl::expected<record_seek_t, Error> seek_fixed(Pool &pool);
+
+    tl::expected<record_seek_t, Error> seek_via_attr(uint8_t index, Pool &pool);
 
     Reader *open_reader(Pool &pool);
 

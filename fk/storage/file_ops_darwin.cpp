@@ -127,7 +127,7 @@ bool DataOps::read_fixed_record(DataRecord &record, Pool &pool) {
 FileReader::FileReader(Storage &storage, FileNumber file_number, Pool &pool) : storage_(storage), file_number_(file_number), pool_(pool), file_(&storage, file_number, pool) {
 }
 
-FileReader::SizeInfo FileReader::get_size(BlockNumber first_block, BlockNumber last_block, Pool &pool) {
+tl::expected<FileReader::SizeInfo, Error> FileReader::get_size(BlockNumber first_block, BlockNumber last_block, Pool &pool) {
     auto size = file_.get_size(first_block, last_block, pool);
     return SizeInfo{
         .size = size.size,

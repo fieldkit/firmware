@@ -216,7 +216,7 @@ int32_t SpiFlash::write(uint32_t address, const uint8_t *data, size_t length) {
 }
 
 int32_t SpiFlash::write_internal(uint32_t address, const uint8_t *data, size_t length) {
-    // FK_ASSERT_LE((address % PageSize) + length, PageSize);
+    FK_ASSERT_LE((address % PageSize) + length, PageSize);
 
     uint8_t program_load_command[] = { CMD_PROGRAM_LOAD, 0x00, 0x00 }; // 4dummy/12
     uint8_t program_execute_command[] = { CMD_PROGRAM_EXECUTE, 0x00, 0x00, 0x00 }; // 7dummy/17
@@ -299,7 +299,7 @@ int32_t SpiFlash::erase_block_internal(uint32_t address) {
     }
 
     if (!transfer(command, sizeof(command), nullptr, nullptr, 0)) {
-        logerror("erase: erase failed");
+        logerror("erase: erase failed [0x%06" PRIx32 "]", address);
         return 0;
     }
 

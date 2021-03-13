@@ -13,9 +13,14 @@ PartitionedReader::PartitionedReader(LfsDriver *lfs, FileMap *map, Pool &pool) :
     buffer_ = (uint8_t *)pool.malloc(buffer_size_);
 }
 
-tl::expected<record_file_search_t, Error> PartitionedReader::seek_and_open(uint32_t desired_record, Pool &pool) {
-    loginfo("seeking R-%" PRIu32 " in %s", desired_record, directory());
+PartitionedReader::~PartitionedReader() {
+    if (opened_) {
+        lfs_file_close(lfs(), &file_);
+        opened_ = false;
+    }
+}
 
+tl::expected<record_file_search_t, Error> PartitionedReader::seek_and_open(uint32_t desired_record, Pool &pool) {
     auto search = map_->find(desired_record, pool);
     if (!search) {
         return tl::unexpected<Error>(search.error());
@@ -27,13 +32,17 @@ tl::expected<record_file_search_t, Error> PartitionedReader::seek_and_open(uint3
 
     close();
 
-    file_cfg_ = lfs_->make_data_cfg(pool);
+    file_cfg_ = lfs_->make_meta_cfg(pool);
     FK_ASSERT(lfs_file_opencfg(lfs(), &file_, path_, LFS_O_RDONLY, &file_cfg_) == 0);
+
+    lfs_debug_attributes(file_cfg_);
 
     return search;
 }
 
 tl::expected<record_seek_t, Error> PartitionedReader::seek(uint32_t desired_record, Pool &pool) {
+    loginfo("seeking R-%" PRIu32 " in %s", desired_record, directory());
+
     auto search = seek_and_open(desired_record, pool);
     if (!search) {
         return tl::unexpected<Error>(search.error());
@@ -42,17 +51,60 @@ tl::expected<record_seek_t, Error> PartitionedReader::seek(uint32_t desired_reco
     Attributes attributes{ file_cfg_ };
 
     auto record_number = attributes.first_record();
+    // auto last_record = attributes.first_record() + attributes.nrecords() - 1;
+    auto file_position = 0u;
+    auto success = false;
+    record_seek_t seek;
+    bzero(&seek, sizeof(record_seek_t));
 
-    if (!(desired_record >= record_number && desired_record < record_number + attributes.nrecords())) {
+    auto total_records = attributes.first_record() + attributes.nrecords();
+    if (desired_record < attributes.first_record() || desired_record > total_records) {
         loginfo("desired record outside of file");
         return tl::unexpected<Error>(Error::General);
     }
 
-    auto file_position = 0u;
+    // Special case the end of the file.
+    if (desired_record == total_records) {
+        auto file_position = lfs_file_seek(lfs(), &file_, 0, LFS_SEEK_END);
+        if (file_position < 0) {
+            loginfo("seeking to end");
+            return tl::unexpected<Error>(Error::IO);
+        }
 
-    auto success = false;
-    record_seek_t seek;
-    bzero(&seek, sizeof(record_seek_t));
+        seek = {
+            .record = total_records,
+            .first_record_of_containing_file = search->start_record_of_last_file,
+            .absolute_position = file_position + search->bytes_before_start_of_last_file,
+            .file_position = (uint32_t)file_position,
+            .readable = false,
+        };
+
+        loginfo("seek: eof R-%" PRIu32 " position=%" PRIu32 "", desired_record, file_position);
+
+        success = true;
+    }
+
+    // Special case the start of the tail record.
+    if (desired_record + 1 == total_records) {
+        file_position = attributes.position_of_last_record();
+
+        if (lfs_file_seek(lfs(), &file_, file_position, LFS_SEEK_SET) < 0) {
+            loginfo("seeking to tail record");
+            return tl::unexpected<Error>(Error::IO);
+        }
+
+        seek = {
+            .record = total_records - 1,
+            .first_record_of_containing_file = search->start_record_of_last_file,
+            .absolute_position = file_position + search->bytes_before_start_of_last_file,
+            .file_position = file_position,
+            .readable = true,
+        };
+
+        loginfo("seek: fast R-%" PRIu32 " position=%" PRIu32 "", desired_record, file_position);
+
+        success = true;
+    }
 
     while (!success) {
         if (record_number == desired_record) {
@@ -64,6 +116,7 @@ tl::expected<record_seek_t, Error> PartitionedReader::seek(uint32_t desired_reco
                 .first_record_of_containing_file = search->start_record_of_last_file,
                 .absolute_position = file_position + search->bytes_before_start_of_last_file,
                 .file_position = file_position,
+                .readable = true,
             };
             break;
         }
@@ -106,6 +159,12 @@ tl::expected<record_seek_t, Error> PartitionedReader::seek(uint32_t desired_reco
 }
 
 tl::expected<record_seek_t, Error> PartitionedReader::seek_fixed(Pool &pool) {
+    return seek_via_attr(LFS_DRIVER_FILE_ATTR_RECORD_LAST, pool);
+}
+
+tl::expected<record_seek_t, Error> PartitionedReader::seek_via_attr(uint8_t index, Pool &pool) {
+    loginfo("seeking via attribute: %d in %s", index, directory());
+
     auto search = seek_and_open(UINT32_MAX, pool);
     if (!search) {
         return tl::unexpected<Error>(search.error());
@@ -113,15 +172,26 @@ tl::expected<record_seek_t, Error> PartitionedReader::seek_fixed(Pool &pool) {
 
     Attributes attributes{ file_cfg_ };
 
-    auto file_position = attributes.position_of_last_record();
+    auto file_position = attributes.get(index);
+    if (file_position == UINT32_MAX) {
+        loginfo("empty attribute");
+        return tl::unexpected<Error>(Error::General);
+    }
 
-    FK_ASSERT(lfs_file_seek(lfs(), &file_, file_position, LFS_SEEK_SET) == 0);
+    loginfo("seeking position: %" PRIu32, file_position);
+
+    if (lfs_file_seek(lfs(), &file_, file_position, LFS_SEEK_SET) < 0) {
+        return tl::unexpected<Error>(Error::IO);
+    }
+
+    opened_ = true;
 
     return record_seek_t{
         .record = (uint32_t)(attributes.first_record() + attributes.nrecords() - 1),
         .first_record_of_containing_file = search->start_record_of_last_file,
         .absolute_position = file_position + search->bytes_before_start_of_last_file,
         .file_position = file_position,
+        .readable = true,
     };
 }
 
@@ -150,9 +220,12 @@ int32_t PartitionedReader::read(uint8_t *buffer, size_t size) {
     Attributes attributes{ file_cfg_ };
 
     auto record_after = attributes.first_record() + attributes.nrecords();
-
-    if (!seek(record_after, *reader_pool_)) {
-        loginfo("end of partitioned file");
+    auto resuming = seek(record_after, *reader_pool_);
+    if (!resuming) {
+        logerror("seeking resume");
+        return -1;
+    }
+    if (!resuming->readable) {
         return 0;
     }
 
