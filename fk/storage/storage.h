@@ -51,24 +51,20 @@ public:
     virtual ~Storage();
 
 public:
-    DataOps &data_ops() {
-        return data_ops_;
-    }
+    DataOps *data_ops();
 
-    MetaOps &meta_ops() {
-        return meta_ops_;
-    }
+    MetaOps *meta_ops();
 
-    FileReader file_reader(FileNumber file_number, Pool &pool);
+    FileReader *file_reader(FileNumber file_number, Pool &pool);
 
 public:
     bool begin();
     bool clear();
+
+public:
     File file(FileNumber file_number);
     File file(FileNumber file_number, Pool &pool);
     bool flush();
-
-public:
     uint32_t fsck(ProgressCallbacks *progress);
 
 public:

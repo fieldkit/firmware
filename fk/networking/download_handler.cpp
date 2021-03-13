@@ -13,7 +13,7 @@ FK_DECLARE_LOGGER("download");
 DownloadWorker::DownloadWorker(HttpServerConnection *connection, uint8_t file_number) : connection_(connection), file_number_(file_number) {
 }
 
-DownloadWorker::HeaderInfo DownloadWorker::get_headers(FileReader &file_reader, Pool &pool) {
+DownloadWorker::HeaderInfo DownloadWorker::get_headers(FileReader *file_reader, Pool &pool) {
     fk_serial_number_t sn;
 
     auto gs = get_global_state_ro();
@@ -32,7 +32,7 @@ DownloadWorker::HeaderInfo DownloadWorker::get_headers(FileReader &file_reader, 
     }
 
     // Calculate the size.
-    auto size_info = file_reader.get_size(first_block, last_block, pool);
+    auto size_info = file_reader->get_size(first_block, last_block, pool);
 
     loginfo("last_block = #%" PRIu32 " actual_lb = #%" PRIu32 "", last_block, size_info.last_block);
 
@@ -91,7 +91,7 @@ void DownloadWorker::run(Pool &pool) {
     auto bytes_copied = 0u;
     while (bytes_copied < info.size) {
         auto to_read = std::min<int32_t>(buffer_size, info.size - bytes_copied);
-        auto bytes_read = file_reader.read(buffer, to_read);
+        auto bytes_read = file_reader->read(buffer, to_read);
         if (bytes_read != to_read) {
             logerror("read error (%" PRId32 " != %" PRId32 ")", bytes_read, to_read);
             break;

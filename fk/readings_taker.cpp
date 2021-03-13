@@ -60,7 +60,7 @@ tl::expected<TakenReadings, Error> ReadingsTaker::take(ConstructedModulesCollect
 
 tl::expected<uint32_t, Error> ReadingsTaker::append_configuration(ConstructedModulesCollection &modules, ModuleReadingsCollection &readings, Pool &pool) {
     auto gs = get_global_state_rw();
-    return storage_.meta_ops().write_modules(gs.get(), &fkb_header, modules, readings, pool);
+    return storage_.meta_ops()->write_modules(gs.get(), &fkb_header, modules, readings, pool);
 }
 
 tl::expected<uint32_t, Error> ReadingsTaker::append_readings(uint32_t meta_record, Pool &pool) {
@@ -68,7 +68,7 @@ tl::expected<uint32_t, Error> ReadingsTaker::append_readings(uint32_t meta_recor
     readings_.record().readings.meta = meta_record;
 
     auto gs = get_global_state_rw();
-    return storage_.data_ops().write_readings(gs.get(), &readings_.record(), pool);
+    return storage_.data_ops()->write_readings(gs.get(), &readings_.record(), pool);
 }
 
 }

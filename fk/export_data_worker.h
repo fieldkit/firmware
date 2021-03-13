@@ -25,7 +25,7 @@ public:
     void run(Pool &pool) override;
 
 private:
-    bool lookup_meta(uint32_t meta_record_number, FileReader &meta_file, Pool &pool);
+    bool lookup_meta(uint32_t meta_record_number, FileReader *meta_file, Pool &pool);
     bool write_header();
 
     enum WriteStatus {

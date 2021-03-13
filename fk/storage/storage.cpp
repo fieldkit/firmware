@@ -99,8 +99,16 @@ Storage::~Storage() {
     }
 }
 
-FileReader Storage::file_reader(FileNumber file_number, Pool &pool) {
-    return FileReader{ *this, file_number, pool };
+DataOps *Storage::data_ops() {
+    return &data_ops_;
+}
+
+MetaOps *Storage::meta_ops() {
+    return &meta_ops_;
+}
+
+FileReader *Storage::file_reader(FileNumber file_number, Pool &pool) {
+    return new (pool) FileReader{ *this, file_number, pool };
 }
 
 bool Storage::valid_block_header(BlockHeader &header) const {

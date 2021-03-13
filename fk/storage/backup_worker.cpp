@@ -69,8 +69,8 @@ void BackupWorker::run(Pool &pool) {
     }
 }
 
-bool BackupWorker::write_file(FileReader &file, const char *path, Pool &pool) {
-    auto info = file.get_size(0, UINT32_MAX, pool);
+bool BackupWorker::write_file(FileReader *file, const char *path, Pool &pool) {
+    auto info = file->get_size(0, UINT32_MAX, pool);
 
     loginfo("total size: %" PRIu32, info.size);
 
@@ -92,7 +92,7 @@ bool BackupWorker::write_file(FileReader &file, const char *path, Pool &pool) {
 
     while (bytes_copied < info.size) {
         auto to_read = std::min<int32_t>(NetworkBufferSize, info.size - bytes_copied);
-        auto bytes = file.read(buffer, to_read);
+        auto bytes = file->read(buffer, to_read);
         if (bytes > 0) {
             b2b.update(buffer, bytes);
             if (writing->write(buffer, bytes) == bytes) {

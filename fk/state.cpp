@@ -151,7 +151,7 @@ bool GlobalState::flush(Pool &pool) {
         return false;
     }
 
-    if (!storage.meta_ops().write_state(this, pool)) {
+    if (!storage.meta_ops()->write_state(this, pool)) {
         return false;
     }
 

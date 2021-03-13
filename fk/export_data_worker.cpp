@@ -69,7 +69,7 @@ void ExportDataWorker::run(Pool &pool) {
     auto nrecords = 0u;
     while (bytes_read < total_bytes) {
         auto record = fk_data_record_decoding_new(loop_pool);
-        auto record_read = reading.read(&record, fk_data_DataRecord_fields);
+        auto record_read = reading->read(&record, fk_data_DataRecord_fields);
         if (record_read == 0) {
             loginfo("done");
             break;
@@ -121,21 +121,21 @@ void ExportDataWorker::run(Pool &pool) {
     }
 }
 
-bool ExportDataWorker::lookup_meta(uint32_t meta_record_number, FileReader &meta_file, Pool &pool) {
+bool ExportDataWorker::lookup_meta(uint32_t meta_record_number, FileReader *meta_file, Pool &pool) {
     if (meta_record_number_ == meta_record_number) {
         return true;
     }
 
     loginfo("reading meta %" PRIu32, meta_record_number);
 
-    if (!meta_file.seek_record(meta_record_number)) {
+    if (!meta_file->seek_record(meta_record_number)) {
         logerror("error seeking meta record");
         return false;
     }
 
     meta_pool_.clear();
 
-    if (!meta_file.decode_signed(&meta_record_.for_decoding(meta_pool_), fk_data_DataRecord_fields, meta_pool_)) {
+    if (!meta_file->decode_signed(&meta_record_.for_decoding(meta_pool_), fk_data_DataRecord_fields, meta_pool_)) {
         logerror("error reading meta record");
         return false;
     }
