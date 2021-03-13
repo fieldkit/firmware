@@ -17,7 +17,9 @@ FileMap::~FileMap() {
 bool FileMap::refresh() {
     int32_t expected_number_of_files = lfs_->get_number_of_files(directory_);
     if (expected_number_of_files < 0) {
-        logwarn("error number of files (%d)", expected_number_of_files);
+        if (expected_number_of_files != LFS_ERR_NOATTR) {
+            logerror("error number of files (%d)", expected_number_of_files);
+        }
         expected_number_of_files = 0;
     }
 
@@ -108,6 +110,7 @@ tl::expected<record_file_search_t, Error> FileMap::find(uint32_t desired_record,
     uint32_t start_record_of_last_file{ 0 };
     uint32_t bytes_before_start_of_last_file{ 0 };
     uint32_t last_record{ 0 };
+    uint32_t total_bytes{ 0 };
 
     for (auto iter = cache_; iter != nullptr; iter = iter->np) {
         if (iter->first_record > start_record_of_last_file) {
@@ -118,11 +121,17 @@ tl::expected<record_file_search_t, Error> FileMap::find(uint32_t desired_record,
             start_record_of_first_file = iter->first_record;
         }
 
+        auto last_record_in_file = iter->first_record + iter->nrecords;
+        if (last_record < last_record_in_file) {
+            last_record = last_record_in_file;
+        }
+
         if (desired_record >= iter->first_record && desired_record < iter->first_record + iter->nrecords) {
             break;
         }
 
         bytes_before_start_of_last_file += iter->size;
+        total_bytes += iter->size;
     }
 
     return record_file_search_t{
@@ -130,6 +139,7 @@ tl::expected<record_file_search_t, Error> FileMap::find(uint32_t desired_record,
         .start_record_of_last_file = start_record_of_last_file,
         .bytes_before_start_of_last_file = bytes_before_start_of_last_file,
         .last_record = last_record,
+        .total_bytes = total_bytes,
     };
 }
 
@@ -159,6 +169,18 @@ bool FileMap::prune() {
     }
 
     return true;
+}
+
+tl::expected<partition_attributes_t, Error> FileMap::attributes(Pool &pool) {
+    auto end_of_file = find(UINT32_MAX, pool);
+    if (!end_of_file) {
+        return tl::unexpected<Error>(end_of_file.error());
+    }
+
+    return partition_attributes_t{
+        .size = end_of_file->total_bytes,
+        .records = end_of_file->last_record,
+    };
 }
 
 void FileMap::invalidate() {

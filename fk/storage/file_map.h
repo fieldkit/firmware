@@ -11,6 +11,13 @@ struct record_file_search_t {
     uint32_t start_record_of_last_file;
     uint32_t bytes_before_start_of_last_file;
     uint32_t last_record;
+    uint32_t total_bytes;
+};
+
+struct partition_attributes_t {
+    lfs_size_t size;
+    lfs_size_t records;
+    lfs_size_t files;
 };
 
 class FileMap {
@@ -53,6 +60,8 @@ public:
     void invalidate();
 
     bool prune();
+
+    tl::expected<partition_attributes_t, Error> attributes(Pool &pool);
 
 private:
     lfs_t *lfs() {
