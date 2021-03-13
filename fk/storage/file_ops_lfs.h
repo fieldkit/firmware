@@ -1,17 +1,18 @@
 #pragma once
 
 #include "storage/file_ops.h"
+#include "storage/lfs_driver.h"
 
 namespace fk {
 
-namespace darwin {
+namespace lfs {
 
 class MetaOps : public fk::MetaOps {
 private:
-    Storage &storage_;
+    LfsDriver &lfs_;
 
 public:
-    explicit MetaOps(Storage &storage);
+    explicit MetaOps(LfsDriver &lfs);
 
 public:
     tl::expected<uint32_t, Error> write_state(GlobalState *gs, Pool &pool) override;
@@ -30,10 +31,10 @@ private:
 
 class DataOps : public fk::DataOps {
 private:
-    Storage &storage_;
+    LfsDriver &lfs_;
 
 public:
-    explicit DataOps(Storage &storage);
+    explicit DataOps(LfsDriver &lfs);
 
 public:
     tl::expected<uint32_t, Error> write_readings(GlobalState *gs, fk_data_DataRecord *record, Pool &pool) override;
@@ -43,13 +44,12 @@ public:
 
 class FileReader : public fk::FileReader {
 private:
-    Storage &storage_;
+    LfsDriver &lfs_;
     FileNumber file_number_;
     Pool &pool_;
-    File file_;
 
 public:
-    explicit FileReader(Storage &storage, FileNumber file_number, Pool &pool);
+    explicit FileReader(LfsDriver &lfs, FileNumber file_number, Pool &pool);
 
 public:
     SizeInfo get_size(BlockNumber first_block, BlockNumber last_block, Pool &pool) override;
@@ -62,6 +62,6 @@ public:
     int32_t read(void *record, pb_msgdesc_t const *fields) override;
 };
 
-} // namespace darwin
+} // namespace lfs
 
 } // namespace fk
