@@ -25,8 +25,8 @@ class FkSegger(gdb.Command):
             gdb.execute("b osi_hard_fault_report")
             gdb.execute("b cm_hard_fault")
             gdb.execute("b osi_panic")
-            gdb.execute("b fk_assert")
             gdb.execute("b __cxa_pure_virtual")
+            gdb.execute("b fk_assert")
         if False:
             for h in irq_handlers:
                 gdb.execute("b " + h)
