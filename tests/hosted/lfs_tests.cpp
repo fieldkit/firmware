@@ -82,6 +82,47 @@ TEST_F(LfsSuite, AppendChanges) {
     lfs_unmount(lfs);
 }
 
+TEST_F(LfsSuite, AppendChangesSeparateInstances) {
+    LinuxDataMemory memory{ 20 };
+    StandardPool pool{ "lfs" };
+
+    ASSERT_TRUE(memory.begin());
+
+    LfsDriver lfs_driver;
+    ASSERT_TRUE(lfs_driver.begin(&memory, pool, true));
+
+    auto lfs = lfs_driver.lfs();
+
+    ReadingRecord readings1{ 0, 0 };
+    ReadingRecord readings2{ 0, 0 };
+
+    FileMap map1{ &lfs_driver, "data", 5, pool };
+    RecordAppender appender1{ &lfs_driver, &map1, 1024, pool };
+
+    auto appended1 = appender1.append_changes(LFS_DRIVER_FILE_ATTR_CONFIG_MODULES, &readings1.record, fk_data_DataRecord_fields, pool);
+    ASSERT_TRUE(appended1);
+
+    FileMap map2{ &lfs_driver, "data", 5, pool };
+    RecordAppender appender2{ &lfs_driver, &map2, 1024, pool };
+
+    auto appended2 = appender2.append_changes(LFS_DRIVER_FILE_ATTR_CONFIG_MODULES, &readings2.record, fk_data_DataRecord_fields, pool);
+    ASSERT_TRUE(appended2);
+    ASSERT_NE(appended1->record, appended2->record);
+    ASSERT_NE(appended1->file_position, appended2->file_position);
+    ASSERT_NE(appended1->absolute_position, appended2->absolute_position);
+
+    FileMap map3{ &lfs_driver, "data", 5, pool };
+    RecordAppender appender3{ &lfs_driver, &map3, 1024, pool };
+
+    auto appended3 = appender3.append_changes(LFS_DRIVER_FILE_ATTR_CONFIG_MODULES, &readings2.record, fk_data_DataRecord_fields, pool);
+    ASSERT_TRUE(appended3);
+    ASSERT_EQ(appended3->record, appended2->record);
+    ASSERT_EQ(appended3->file_position, appended2->file_position);
+    ASSERT_EQ(appended3->absolute_position, appended2->absolute_position);
+
+    lfs_unmount(lfs);
+}
+
 TEST_F(LfsSuite, ReadAcrossPartitionedFiles) {
     LinuxDataMemory memory{ 20 };
     StandardPool pool{ "lfs" };

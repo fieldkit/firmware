@@ -130,7 +130,12 @@ tl::expected<record_file_search_t, Error> FileMap::find(uint32_t desired_record,
             break;
         }
 
-        bytes_before_start_of_last_file += iter->size;
+        // If we're here and this is the final file then definitely
+        // don't count that one.
+        if (iter->np != nullptr) {
+            bytes_before_start_of_last_file += iter->size;
+        }
+
         total_bytes += iter->size;
     }
 
