@@ -149,7 +149,7 @@ bool SpiFlash::reset() {
 }
 
 int32_t SpiFlash::read(uint32_t address, uint8_t *data, size_t length) {
-    FK_ASSERT_LE((address % PageSize) + length, PageSize);
+    // FK_ASSERT_LE((address % PageSize) + length, PageSize);
 
     uint8_t read_cell_command[] = { CMD_READ_CELL_ARRAY, 0x00, 0x00, 0x00 }; // 7dummy/17 (Row)
     uint8_t read_buffer_command[] = { CMD_READ_BUFFER, 0x00, 0x00, 0x00 };   // 4dummy/12/8dummy // (Col)
@@ -216,7 +216,7 @@ int32_t SpiFlash::write(uint32_t address, const uint8_t *data, size_t length) {
 }
 
 int32_t SpiFlash::write_internal(uint32_t address, const uint8_t *data, size_t length) {
-    FK_ASSERT_LE((address % PageSize) + length, PageSize);
+    // FK_ASSERT_LE((address % PageSize) + length, PageSize);
 
     uint8_t program_load_command[] = { CMD_PROGRAM_LOAD, 0x00, 0x00 }; // 4dummy/12
     uint8_t program_execute_command[] = { CMD_PROGRAM_EXECUTE, 0x00, 0x00, 0x00 }; // 7dummy/17
