@@ -57,19 +57,19 @@ void BackupWorker::run(Pool &pool) {
     }
 
     auto meta_path = pool.sprintf("/%s/meta.fkpb", formatted.cstr());
-    auto meta_file = storage.file(Storage::Meta);
+    auto meta_file = storage.file_reader(Storage::Meta, pool);
     if (!write_file(meta_file, meta_path, pool)) {
         return;
     }
 
     auto data_path = pool.sprintf("/%s/data.fkpb", formatted.cstr());
-    auto data_file = storage.file(Storage::Data);
+    auto data_file = storage.file_reader(Storage::Data, pool);
     if (!write_file(data_file, data_path, pool)) {
         return;
     }
 }
 
-bool BackupWorker::write_file(File &file, const char *path, Pool &pool) {
+bool BackupWorker::write_file(FileReader &file, const char *path, Pool &pool) {
     auto info = file.get_size(0, UINT32_MAX, pool);
 
     loginfo("total size: %" PRIu32, info.size);

@@ -122,4 +122,48 @@ bool DataOps::read_fixed_record(DataRecord &record, Pool &pool) {
     return true;
 }
 
+FileReader::FileReader(Storage &storage, FileNumber file_number, Pool &pool) : storage_(storage), file_number_(file_number), pool_(pool), file_(&storage, file_number, pool) {
+}
+
+FileReader::SizeInfo FileReader::get_size(BlockNumber first_block, BlockNumber last_block, Pool &pool) {
+    auto size = file_.get_size(first_block, last_block, pool);
+    return SizeInfo{
+        .size = size.size,
+        .last_block = size.last_block,
+    };
+}
+
+bool FileReader::decode_signed(void *record, pb_msgdesc_t const *fields, Pool &pool) {
+    fk_data_SignedRecord sr = fk_data_SignedRecord_init_default;
+    sr.data.funcs.decode = pb_decode_data;
+    sr.data.arg = (void *)&pool;
+    sr.data.funcs.decode = pb_decode_data;
+    sr.hash.arg = (void *)&pool;
+
+    auto nread = file_.read(&sr, fk_data_SignedRecord_fields);
+    if (nread == 0) {
+        return false;
+    }
+
+    auto data_ref = (pb_data_t *)sr.data.arg;
+    auto stream = pb_istream_from_buffer((pb_byte_t *)data_ref->buffer, data_ref->length);
+    if (!pb_decode_delimited(&stream, fields, record)) {
+        return false;
+    }
+
+    return true;
+}
+
+bool FileReader::seek_record(RecordNumber record) {
+    return file_.seek(record);
+}
+
+int32_t FileReader::read(uint8_t *record, size_t size) {
+    return file_.read(record, size);
+}
+
+int32_t FileReader::read(void *record, pb_msgdesc_t const *fields) {
+    return file_.read(record, fields);
+}
+
 }

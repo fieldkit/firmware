@@ -99,6 +99,10 @@ Storage::~Storage() {
     }
 }
 
+FileReader Storage::file_reader(FileNumber file_number, Pool &pool) {
+    return FileReader{ *this, file_number, pool };
+}
+
 bool Storage::valid_block_header(BlockHeader &header) const {
     return header.valid() && (version_ == InvalidVersion || header.version == version_);
 }

@@ -59,12 +59,7 @@ ConnectionInfo build_connection_info(uint32_t first, uint32_t last, uint32_t len
 
 UploadDataWorker::FileUpload UploadDataWorker::upload_file(Storage &storage, uint8_t file_number, uint32_t first_record, const char *type, Pool &pool) {
     auto started = fk_uptime();
-    auto file = storage.file(file_number);
-    if (false) {
-        if (!file.seek_end()) {
-            return { 0 };
-        }
-    }
+    auto file = storage.file_reader(file_number, pool);
 
     auto first_block = first_record;
     auto size_info = file.get_size(first_block, UINT32_MAX, pool);

@@ -48,7 +48,7 @@ private:
 
     bool write_headers(HeaderInfo header_info);
 
-    HeaderInfo get_headers(File &file, Pool &pool);
+    HeaderInfo get_headers(FileReader &file_reader, Pool &pool);
 
 };
 

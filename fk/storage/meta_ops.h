@@ -54,4 +54,31 @@ public:
 
 };
 
+class FileReader  {
+private:
+    Storage &storage_;
+    FileNumber file_number_;
+    Pool &pool_;
+    File file_;
+
+public:
+    explicit FileReader(Storage &storage, FileNumber file_number, Pool &pool);
+
+public:
+    struct SizeInfo {
+        StorageSize size;
+        BlockNumber last_block;
+    };
+
+    SizeInfo get_size(BlockNumber first_block, BlockNumber last_block, Pool &pool);
+
+    bool decode_signed(void *record, pb_msgdesc_t const *fields, Pool &pool);
+
+public:
+    bool seek_record(RecordNumber record);
+    int32_t read(uint8_t *record, size_t size);
+    int32_t read(void *record, pb_msgdesc_t const *fields);
+
+};
+
 }

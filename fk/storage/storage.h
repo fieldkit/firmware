@@ -59,6 +59,8 @@ public:
         return meta_ops_;
     }
 
+    FileReader file_reader(FileNumber file_number, Pool &pool);
+
 public:
     bool begin();
     bool clear();
