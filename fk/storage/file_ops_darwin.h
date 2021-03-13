@@ -20,7 +20,7 @@ public:
                                                 ConstructedModulesCollection &modules,
                                                 ModuleReadingsCollection &readings, Pool &pool) override;
 
-    tl::expected<FileAttributes, Error> atttributes() override;
+    tl::expected<FileAttributes, Error> attributes() override;
 
     bool read_record(SignedRecordKind kind, MetaRecord &record, Pool &pool) override;
 
@@ -37,7 +37,7 @@ public:
 
 public:
     tl::expected<uint32_t, Error> write_readings(GlobalState *gs, fk_data_DataRecord *record, Pool &pool) override;
-    tl::expected<FileAttributes, Error> atttributes() override;
+    tl::expected<FileAttributes, Error> attributes() override;
     bool read_fixed_record(DataRecord &record, Pool &pool) override;
 };
 

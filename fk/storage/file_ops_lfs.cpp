@@ -15,6 +15,20 @@ namespace lfs {
 
 FK_DECLARE_LOGGER("lfsops");
 
+static uint8_t kind_to_attribute_index(SignedRecordKind kind) {
+    switch (kind) {
+    case SignedRecordKind::Modules:
+        return LFS_DRIVER_FILE_ATTR_CONFIG_MODULES;
+    case SignedRecordKind::Schedule:
+        return LFS_DRIVER_FILE_ATTR_CONFIG_SCHEDULE;
+    case SignedRecordKind::State:
+        return LFS_DRIVER_FILE_ATTR_CONFIG_STATE;
+    default:
+        FK_ASSERT(false);
+        return 0;
+    }
+}
+
 MetaOps::MetaOps(LfsDriver &lfs) : lfs_(lfs), map_(&lfs_, "meta", 0, *lfs.pool()) {
 }
 
@@ -43,7 +57,7 @@ tl::expected<uint32_t, Error> MetaOps::write_kind(GlobalState *gs, SignedRecordK
     return appended->record;
 }
 
-tl::expected<FileAttributes, Error> MetaOps::atttributes() {
+tl::expected<FileAttributes, Error> MetaOps::attributes() {
     auto attributes = map_.attributes(*lfs_.pool());
     return FileAttributes{
         .size = attributes->size,
@@ -67,7 +81,7 @@ tl::expected<uint32_t, Error> DataOps::write_readings(GlobalState *gs, fk_data_D
     return appended->record;
 }
 
-tl::expected<FileAttributes, Error> DataOps::atttributes() {
+tl::expected<FileAttributes, Error> DataOps::attributes() {
     auto attributes = map_.attributes(*lfs_.pool());
     return FileAttributes{
         .size = attributes->size,

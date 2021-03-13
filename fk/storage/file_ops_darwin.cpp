@@ -46,7 +46,7 @@ tl::expected<uint32_t, Error> MetaOps::write_kind(GlobalState *gs, SignedRecordK
     return (*meta_record).record;
 }
 
-tl::expected<FileAttributes, Error> MetaOps::atttributes() {
+tl::expected<FileAttributes, Error> MetaOps::attributes() {
     auto file = storage_.file(Storage::Meta);
     if (!file.seek_end()) {
         return tl::unexpected<Error>(Error::IO);
@@ -97,7 +97,7 @@ tl::expected<uint32_t, Error> DataOps::write_readings(GlobalState *gs, fk_data_D
     return record->readings.reading;
 }
 
-tl::expected<FileAttributes, Error> DataOps::atttributes() {
+tl::expected<FileAttributes, Error> DataOps::attributes() {
     auto file = storage_.file(Storage::Data);
     if (!file.seek_end()) {
         return tl::unexpected<Error>(Error::IO);

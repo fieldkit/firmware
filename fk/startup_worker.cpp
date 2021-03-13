@@ -314,13 +314,13 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
 
 bool StartupWorker::create_new_state(Storage &storage, GlobalState *gs, Pool &pool) {
     if (!storage.clear()) {
-        logerror("error clearing storage");
+        logerror("clearing storage");
         fk_logs_flush();
         fk_restart();
     }
 
     if (!storage.meta_ops()->write_state(gs, &fkb_header, pool)) {
-        logerror("error writing state");
+        logerror("writing state");
         fk_logs_flush();
         fk_restart();
     }
@@ -330,24 +330,29 @@ bool StartupWorker::create_new_state(Storage &storage, GlobalState *gs, Pool &po
 
 bool StartupWorker::load_from_files(Storage &storage, GlobalState *gs, Pool &pool) {
     {
-        auto attributes = storage.meta_ops()->atttributes();
+        auto attributes = storage.meta_ops()->attributes();
 
         gs->update_meta_stream(attributes->size, attributes->records);
         // TODO This should be managed better.
-        gs->transmission.meta_cursor = attributes->records - 2;
+        if (attributes->records >= 2) {
+            gs->transmission.meta_cursor = attributes->records - 2;
+        }
+        else {
+            gs->transmission.meta_cursor = 0;
+        }
 
-        loginfo("read file state (meta) R-%" PRIu32, gs->storage.meta.block);
+        loginfo("meta file state R-%" PRIu32, gs->storage.meta.block);
     }
 
     {
         auto ops = storage.data_ops();
-        auto attributes = ops->atttributes();
+        auto attributes = ops->attributes();
 
         gs->update_data_stream(attributes->size, attributes->records);
         // TODO This should be managed better.
         gs->transmission.data_cursor = attributes->records;
 
-        loginfo("read file state (data) R-%" PRIu32, gs->storage.data.block);
+        loginfo("data file state R-%" PRIu32, gs->storage.data.block);
 
         if (!load_previous_location(gs, ops, pool)) {
             return false;

@@ -100,8 +100,8 @@ void GlobalState::update_meta_stream(File const &file) {
 }
 
 void GlobalState::update_data_stream(uint32_t size, uint32_t records) {
-    storage.meta.size = size;
-    storage.meta.block = records;
+    storage.data.size = size;
+    storage.data.block = records;
     readings.number = records;
 }
 
