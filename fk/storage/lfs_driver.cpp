@@ -60,8 +60,22 @@ int lfs_block_device_sync(struct lfs_config const *c) {
     return 0;
 }
 
-LfsDriver::LfsDriver(DataMemory *memory, Pool &pool) : memory_(memory) {
+LfsDriver::LfsDriver() : memory_(nullptr), pool_(nullptr) {
+}
+
+LfsDriver::~LfsDriver() {
+}
+
+bool LfsDriver::begin(DataMemory *memory, Pool &pool, bool force_create) {
+    memory_ = memory;
+    pool_ = &pool;
+
     auto g = memory->geometry();
+
+    if (!memory->begin()) {
+        logerror("begin memory failed");
+        return false;
+    }
 
     cfg_ = {
         .context = this,
@@ -85,12 +99,7 @@ LfsDriver::LfsDriver(DataMemory *memory, Pool &pool) : memory_(memory) {
         .attr_max = 0,
         .metadata_max = 0,
     };
-}
 
-LfsDriver::~LfsDriver() {
-}
-
-bool LfsDriver::begin(bool force_create) {
     if (force_create) {
         FK_ASSERT(!lfs_format(&lfs_, &cfg_));
         FK_ASSERT(!lfs_mount(&lfs_, &cfg_));

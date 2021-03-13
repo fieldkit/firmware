@@ -46,6 +46,8 @@ private:
     bool read_only_;
     darwin::MetaOps meta_ops_;
     darwin::DataOps data_ops_;
+    bool lfs_enabled_{ false };
+    LfsDriver lfs_;
 
 public:
     Storage(DataMemory *memory, Pool &pool, bool read_only = true);
@@ -68,7 +70,9 @@ public:
     bool flush();
     uint32_t fsck(ProgressCallbacks *progress);
 
-public:
+private:
+    bool begin_internal();
+    bool clear_internal();
     SavedState save() const;
     void restore(SavedState const &state);
 

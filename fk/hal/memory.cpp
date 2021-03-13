@@ -158,7 +158,6 @@ MetalDataMemory banks[MemoryFactory::NumberOfDataMemoryBanks] {
     { SPI_FLASH_CS_BANK_2 },
 };
 DataMemory *bank_pointers_normal[]{ &banks[0], &banks[1] };
-DataMemory *bank_pointers_reversed[]{ &banks[1], &banks[0] };
 
 #endif
 
@@ -171,13 +170,11 @@ TranslatingMemory qspi_memory_translated{ &qspi_memory, -FK_MEMORY_QSPI_BASE };
 
 LinuxDataMemory banks[MemoryFactory::NumberOfDataMemoryBanks];
 DataMemory *bank_pointers_normal[]{ &banks[0], &banks[1], &banks[2], &banks[3] };
-DataMemory *bank_pointers_reversed[]{ &banks[1], &banks[0], &banks[2], &banks[3] };
 
 #else
 
 LinuxDataMemory banks[MemoryFactory::NumberOfDataMemoryBanks];
 DataMemory *bank_pointers_normal[]{ &banks[0], &banks[1] };
-DataMemory *bank_pointers_reversed[]{ &banks[1], &banks[0] };
 
 #endif
 
@@ -187,7 +184,6 @@ TranslatingMemory qspi_memory_translated{ &qspi_memory, -FK_MEMORY_QSPI_BASE };
 #endif
 
 BankedDataMemory banked_flash_memory{ bank_pointers_normal, MemoryFactory::NumberOfDataMemoryBanks };
-BankedDataMemory reversed_banked_flash_memory{ bank_pointers_reversed, MemoryFactory::NumberOfDataMemoryBanks };
 
 #if defined(FK_ENABLE_PAGE_CACHE)
 BasicPageCache<MemoryPageStore, 2048, 4> flash_cache{ { &banked_flash_memory } };
@@ -204,18 +200,6 @@ DataMemory *MemoryFactory::get_data_memory() {
     #else
     return &banked_flash_memory;
     #endif
-}
-
-DataMemory *MemoryFactory::get_reversed_data_memory() {
-    return &reversed_banked_flash_memory;
-}
-
-DataMemory *MemoryFactory::get_data_memory_bank_0() {
-    return &banks[0];
-}
-
-DataMemory *MemoryFactory::get_data_memory_bank_1() {
-    return &banks[1];
 }
 
 ExecutableMemory *MemoryFactory::get_qspi_memory() {

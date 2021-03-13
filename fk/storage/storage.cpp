@@ -208,6 +208,27 @@ Storage::BlocksAfter Storage::find_blocks_after(uint32_t starting, FileNumber fi
 }
 
 bool Storage::begin() {
+    if (!begin_internal()) {
+        return false;
+    }
+
+    if (free_block_ < 512) {
+        lfs_enabled_ = true;
+
+        auto memory = new (pool_) TranslatingMemory(data_memory_, 512);
+
+        if (!lfs_.begin(memory, *pool_)) {
+            logerror("lfs: begin failed");
+            return false;
+        }
+
+        loginfo("lfs ready");
+    }
+
+    return true;
+}
+
+bool Storage::begin_internal() {
     auto g = memory_.geometry();
     auto started = fk_uptime();
 
@@ -280,6 +301,13 @@ bool Storage::begin() {
 }
 
 bool Storage::clear() {
+    #if defined(__SAMD51__)
+    FK_ASSERT(false);
+    #endif
+    return clear_internal();
+}
+
+bool Storage::clear_internal() {
     auto g = memory_.geometry();
 
     free_block_ = 0;

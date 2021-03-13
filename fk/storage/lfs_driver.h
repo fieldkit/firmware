@@ -47,11 +47,12 @@ constexpr size_t MaximumRecordSizeEncodedSize = 4;
 class LfsDriver {
 private:
     DataMemory *memory_{ nullptr };
+    Pool *pool_{ nullptr };
     struct lfs_config cfg_;
     lfs_t lfs_;
 
 public:
-    LfsDriver(DataMemory *memory, Pool &pool);
+    LfsDriver();
     virtual ~LfsDriver();
 
 public:
@@ -60,7 +61,7 @@ public:
     int32_t erase(struct lfs_config const *c, lfs_block_t block);
 
 public:
-    bool begin(bool force_create = false);
+    bool begin(DataMemory *memory, Pool &pool, bool force_create = false);
 
     lfs_file_config make_data_cfg(Pool &pool);
 
