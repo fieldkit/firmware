@@ -110,7 +110,7 @@ AppendedRecordOrError RecordAppender::append_data_record(fk_data_DataRecord *rec
     return write_record(file, attributes, record, fk_data_DataRecord_fields, pool);
 }
 
-AppendedRecordOrError RecordAppender::append_changes(uint8_t kind, void const *record, pb_msgdesc_t const *fields, Pool &pool) {
+AppendedRecordOrError RecordAppender::append_changes(uint8_t kind_index, void const *record, pb_msgdesc_t const *fields, Pool &pool) {
     auto maybe_err = locate_tail(pool);
     if (maybe_err) {
         return tl::unexpected<Error>(*maybe_err);
@@ -132,9 +132,9 @@ AppendedRecordOrError RecordAppender::append_changes(uint8_t kind, void const *r
     // Do we have a record of this kind yet? The default value for
     // these attributes is a 0xff fill just to avoid ambiguity over
     // the start of the file at 0.
-    auto position = attributes.get(kind);
+    auto position = attributes.get(kind_index);
     if (position != UINT32_MAX) {
-        loginfo("found existing kind=%d @ %" PRIu32 "", kind, position);
+        loginfo("found existing kind=%d @ %" PRIu32 "", kind_index, position);
 
         // Seek to the position in the file, this returns the new
         // position in the file.
@@ -148,6 +148,7 @@ AppendedRecordOrError RecordAppender::append_changes(uint8_t kind, void const *r
         LfsReader lfs_reader{ lfs_, &file };
         auto istream = pb_istream_from_readable(&lfs_reader);
         if (!pb_decode_delimited(&istream, fk_data_SignedRecord_fields, &sr)) {
+            logerror("decoding existing");
             return tl::unexpected<Error>(Error::IO);
         }
 
@@ -169,11 +170,11 @@ AppendedRecordOrError RecordAppender::append_changes(uint8_t kind, void const *r
         loginfo("modified, appending");
     }
     else {
-        loginfo("first of its kind=%d, appending", kind);
+        loginfo("first of its kind=%d, appending", kind_index);
     }
 
     // Set the attribute for this kind to the position of this new record.
-    attributes.set(kind, lfs_file_tell(lfs(), &file));
+    attributes.set(kind_index, lfs_file_tell(lfs(), &file));
 
     return write_record(file, attributes, signed_record.record(), fk_data_SignedRecord_fields, pool);
 }
@@ -184,7 +185,7 @@ AppendedRecordOrError RecordAppender::write_record(lfs_file_t &file, Attributes 
 
     attributes.mark_last_record(file_size_before);
 
-    logdebug("writing record: R-%" PRIu32, record_number);
+    logdebug("writing record: R-%" PRIu32 " file-size=%" PRIu32, record_number, file_size_before);
 
     // Spin up a writer and drop the record into the directly file.
     LfsWriter lfs_writer{ lfs_, &file };
@@ -197,27 +198,29 @@ AppendedRecordOrError RecordAppender::write_record(lfs_file_t &file, Attributes 
 
     // Ensure the updated nrecords attributes gets written with this
     // appended record.
-    attributes.increase_nrecords();
+    auto nrecords_after = attributes.increase_nrecords();
 
     auto file_size_after = lfs_file_size(lfs(), &file);
 
     // Commit our changes to the file system.
-    logdebug("closing");
+    logdebug("closing file");
     lfs_file_close(lfs(), &file);
+
+    auto absolute_position = bytes_before_start_of_last_file_ + file_size_before;
+    auto record_size = file_size_after - file_size_before;
+    loginfo("wrote: R-%" PRIu32 " file-size=%" PRIu32 " record-size=%d nrecords=%" PRIu32,
+            record_number, file_size_after, record_size, nrecords_after);
 
     // If this file is 0 bytes in length then we need to refresh our
     // map because this is a new file, so we invalidate to ensure a
     // future rescan.
     if (file_size_before == 0) {
+        logdebug("forcing refresh (file creation)");
         if (!map_->refresh()) {
+            logerror("error refreshing");
             return tl::unexpected<Error>(Error::IO);
         }
     }
-
-    auto absolute_position = bytes_before_start_of_last_file_ + file_size_before;
-    auto record_size = file_size_after - file_size_before;
-    loginfo("wrote: R-%" PRIu32 " file-size=%" PRIu32 " record-size=%d",
-            record_number, file_size_after, record_size);
 
     return appended_record_t{
         .record = record_number,
@@ -230,7 +233,10 @@ AppendedRecordOrError RecordAppender::write_record(lfs_file_t &file, Attributes 
 
 bool RecordAppender::create_directory_if_necessary() {
     struct lfs_info info;
-    if (lfs_stat(lfs(), directory(), &info) == LFS_ERR_NOENT) {
+
+    auto err = lfs_stat(lfs(), directory(), &info);
+    if (err == LFS_ERR_NOENT) {
+        logdebug("creating '%s'", directory());
         FK_ASSERT(lfs_mkdir(lfs(), directory()) == 0);
     }
 
@@ -239,6 +245,8 @@ bool RecordAppender::create_directory_if_necessary() {
 
 optional<Error> RecordAppender::locate_tail(Pool &pool) {
     if (!initialized_) {
+        logdebug("appending, initializing");
+
         FK_ASSERT(create_directory_if_necessary());
 
         // In order to append we only need to know the very last file

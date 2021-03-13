@@ -63,8 +63,8 @@ bool FileMap::refresh() {
             return false;
         }
 
-        loginfo("ls: '%s' type=%d size=%d attrs: first-record=%" PRIu32 " nrecords=%" PRIu32, info.name, info.type,
-                info.size, first_record, nrecords);
+        loginfo("[% 4d] ls: '%s' type=%d size=%d attrs: first-record=%" PRIu32 " nrecords=%" PRIu32, number_files_,
+                info.name, info.type, info.size, first_record, nrecords);
 
         auto entry = (cache_entry_t *)cache_pool_->malloc(sizeof(cache_entry_t));
         entry->first_record = first_record;

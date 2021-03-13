@@ -47,7 +47,7 @@ public:
 
     AppendedRecordOrError append_data_record(fk_data_DataRecord *record, Pool &pool);
 
-    AppendedRecordOrError append_changes(uint8_t kind, void const *record, pb_msgdesc_t const *fields, Pool &pool);
+    AppendedRecordOrError append_changes(uint8_t kind_index, void const *record, pb_msgdesc_t const *fields, Pool &pool);
 
 private:
     optional<Error> locate_tail(Pool &pool);
