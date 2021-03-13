@@ -140,7 +140,12 @@ int32_t HttpServerConnection::write(int32_t status_code, const char *status_mess
 
     logdebug("[%" PRIu32 "] headers done (%" PRIu32 "ms)", number_, fk_uptime() - started);
 
-    StackBufferedWriter<StackBufferSize> buffered{ this };
+    if (buffer_ == nullptr) {
+        size_ = HttpConnectionBufferSize;
+        buffer_ = (uint8_t *)pool_->malloc(size_);
+    }
+
+    BufferedWriter buffered{ this, buffer_, size_ };
     HexWriter b64_writer{ &buffered };
     Writer *writer = &buffered;
 
@@ -178,7 +183,7 @@ bool HttpServerConnection::service() {
     if (!req_.have_headers() && conn_->available()) {
         if (buffer_ == nullptr) {
             size_ = HttpConnectionBufferSize;
-            buffer_ = (uint8_t *)pool_->malloc(HttpConnectionBufferSize);
+            buffer_ = (uint8_t *)pool_->malloc(size_);
             position_ = 0;
         }
 
