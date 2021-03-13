@@ -20,7 +20,7 @@ private:
     fk_data_SignedRecord record_;
 
 public:
-    SignedRecordBuilder(uint32_t record_number, void *record, pb_msgdesc_t const *fields, Pool &pool);
+    SignedRecordBuilder(uint32_t record_number, void const *record, pb_msgdesc_t const *fields, Pool &pool);
 
 public:
     fk_data_SignedRecord *record();
@@ -32,7 +32,7 @@ public:
 
 };
 
-SignedRecordBuilder::SignedRecordBuilder(uint32_t record_number, void *record, pb_msgdesc_t const *fields, Pool &pool) {
+SignedRecordBuilder::SignedRecordBuilder(uint32_t record_number, void const *record, pb_msgdesc_t const *fields, Pool &pool) {
     auto encoded = pool.encode(fields, record);
 
     BLAKE2b b2b;
@@ -110,7 +110,7 @@ AppendedRecordOrError RecordAppender::append_data_record(fk_data_DataRecord *rec
     return write_record(file, attributes, record, fk_data_DataRecord_fields, pool);
 }
 
-AppendedRecordOrError RecordAppender::append_changes(uint8_t kind, void *record, pb_msgdesc_t const *fields, Pool &pool) {
+AppendedRecordOrError RecordAppender::append_changes(uint8_t kind, void const *record, pb_msgdesc_t const *fields, Pool &pool) {
     auto maybe_err = locate_tail(pool);
     if (maybe_err) {
         return tl::unexpected<Error>(*maybe_err);

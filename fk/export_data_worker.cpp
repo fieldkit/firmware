@@ -128,7 +128,7 @@ bool ExportDataWorker::lookup_meta(uint32_t meta_record_number, FileReader *meta
 
     loginfo("reading meta %" PRIu32, meta_record_number);
 
-    if (!meta_file->seek_record(meta_record_number)) {
+    if (!meta_file->seek_record(meta_record_number, pool)) {
         logerror("error seeking meta record");
         return false;
     }

@@ -46,7 +46,7 @@ public:
     virtual bool decode_signed(void *record, pb_msgdesc_t const *fields, Pool &pool) = 0;
 
 public:
-    virtual bool seek_record(RecordNumber record) = 0;
+    virtual bool seek_record(RecordNumber record, Pool &pool) = 0;
     virtual int32_t read(uint8_t *record, size_t size) = 0;
     virtual int32_t read(void *record, pb_msgdesc_t const *fields) = 0;
 };

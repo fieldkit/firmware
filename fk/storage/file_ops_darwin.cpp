@@ -156,7 +156,7 @@ bool FileReader::decode_signed(void *record, pb_msgdesc_t const *fields, Pool &p
     return true;
 }
 
-bool FileReader::seek_record(RecordNumber record) {
+bool FileReader::seek_record(RecordNumber record, Pool &pool) {
     return file_.seek(record);
 }
 
