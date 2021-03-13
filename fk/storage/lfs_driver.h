@@ -77,6 +77,11 @@ public:
         return &lfs_;
     }
 
+    Pool *pool() {
+        FK_ASSERT(pool_ != nullptr);
+        return pool_;
+    }
+
 private:
     lfs_file_config make_file_cfg(fklfs_attribute_template_t const *attributes, lfs_size_t nattributes, Pool &pool);
 

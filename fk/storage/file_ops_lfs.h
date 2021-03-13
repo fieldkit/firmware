@@ -1,7 +1,8 @@
 #pragma once
 
 #include "storage/file_ops.h"
-#include "storage/lfs_driver.h"
+#include "storage/file_map.h"
+#include "storage/partitioned_reader.h"
 
 namespace fk {
 
@@ -10,6 +11,7 @@ namespace lfs {
 class MetaOps : public fk::MetaOps {
 private:
     LfsDriver &lfs_;
+    FileMap map_;
 
 public:
     explicit MetaOps(LfsDriver &lfs);
@@ -32,6 +34,7 @@ private:
 class DataOps : public fk::DataOps {
 private:
     LfsDriver &lfs_;
+    FileMap map_;
 
 public:
     explicit DataOps(LfsDriver &lfs);
@@ -47,6 +50,8 @@ private:
     LfsDriver &lfs_;
     FileNumber file_number_;
     Pool &pool_;
+    FileMap map_;
+    PartitionedReader partitioned_{ &lfs_, &map_, pool_ };
 
 public:
     explicit FileReader(LfsDriver &lfs, FileNumber file_number, Pool &pool);

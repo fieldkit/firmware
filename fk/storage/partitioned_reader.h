@@ -31,6 +31,8 @@ public:
 public:
     tl::expected<record_seek_t, Error> seek(uint32_t desired_record, Pool &pool);
 
+    tl::expected<record_seek_t, Error> seek_fixed(Pool &pool);
+
     Reader *open_reader(Pool &pool);
 
     int32_t read(uint8_t *buffer, size_t size) override;
@@ -46,6 +48,9 @@ private:
         return map_->directory();
     }
 
+private:
+    tl::expected<record_file_search_t, Error> seek_and_open(uint32_t desired_record, Pool &pool);
+
 };
 
-}
+} // namespace fk

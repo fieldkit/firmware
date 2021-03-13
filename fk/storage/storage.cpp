@@ -107,25 +107,29 @@ bool Storage::begin() {
         return false;
     }
 
-    if (free_block_ < 512) {
-        lfs_enabled_ = true;
-
-        auto memory = new (pool_) TranslatingMemory(data_memory_, 512);
-
-        if (!lfs_.begin(memory, *pool_)) {
-            logerror("lfs: begin failed");
-            return false;
-        }
-
-        loginfo("lfs ready");
-
-        data_ops_ = new (pool_) lfs::DataOps(lfs_);
-        meta_ops_ = new (pool_) lfs::MetaOps(lfs_);
-    }
-    else {
+    #if defined(__SAMD51__)
+    if (free_block_ > 512) {
+    #else
+    if (true) {
+    #endif
         data_ops_ = new (pool_) darwin::DataOps(*this);
         meta_ops_ = new (pool_) darwin::MetaOps(*this);
+        return true;
     }
+
+    lfs_enabled_ = true;
+
+    auto memory = new (pool_) TranslatingMemory(data_memory_, 512);
+
+    if (!lfs_.begin(memory, *pool_, true)) {
+        logerror("lfs: begin failed");
+        return false;
+    }
+
+    loginfo("lfs ready");
+
+    data_ops_ = new (pool_) lfs::DataOps(lfs_);
+    meta_ops_ = new (pool_) lfs::MetaOps(lfs_);
 
     return true;
 }

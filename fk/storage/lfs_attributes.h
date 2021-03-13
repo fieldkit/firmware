@@ -39,6 +39,10 @@ public:
         set(LFS_DRIVER_FILE_ATTR_RECORD_SEEK_LAST, position);
     }
 
+    uint32_t position_of_last_record() {
+        return get(LFS_DRIVER_FILE_ATTR_RECORD_SEEK_LAST);
+    }
+
     void first_record(uint32_t first_record) {
         set(LFS_DRIVER_FILE_ATTR_RECORD_FIRST, first_record);
     }

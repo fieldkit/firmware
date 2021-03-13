@@ -13,7 +13,7 @@ PartitionedReader::PartitionedReader(LfsDriver *lfs, FileMap *map, Pool &pool) :
     buffer_ = (uint8_t *)pool.malloc(buffer_size_);
 }
 
-tl::expected<record_seek_t, Error> PartitionedReader::seek(uint32_t desired_record, Pool &pool) {
+tl::expected<record_file_search_t, Error> PartitionedReader::seek_and_open(uint32_t desired_record, Pool &pool) {
     loginfo("seeking R-%" PRIu32 " in %s", desired_record, directory());
 
     auto search = map_->find(desired_record, pool);
@@ -29,6 +29,15 @@ tl::expected<record_seek_t, Error> PartitionedReader::seek(uint32_t desired_reco
 
     file_cfg_ = lfs_->make_data_cfg(pool);
     FK_ASSERT(lfs_file_opencfg(lfs(), &file_, path_, LFS_O_RDONLY, &file_cfg_) == 0);
+
+    return search;
+}
+
+tl::expected<record_seek_t, Error> PartitionedReader::seek(uint32_t desired_record, Pool &pool) {
+    auto search = seek_and_open(desired_record, pool);
+    if (!search) {
+        return tl::unexpected<Error>(search.error());
+    }
 
     Attributes attributes{ file_cfg_ };
 
@@ -94,6 +103,26 @@ tl::expected<record_seek_t, Error> PartitionedReader::seek(uint32_t desired_reco
     opened_ = true;
 
     return seek;
+}
+
+tl::expected<record_seek_t, Error> PartitionedReader::seek_fixed(Pool &pool) {
+    auto search = seek_and_open(UINT32_MAX, pool);
+    if (!search) {
+        return tl::unexpected<Error>(search.error());
+    }
+
+    Attributes attributes{ file_cfg_ };
+
+    auto file_position = attributes.position_of_last_record();
+
+    FK_ASSERT(lfs_file_seek(lfs(), &file_, file_position, LFS_SEEK_SET) == 0);
+
+    return record_seek_t{
+        .record = (uint32_t)(attributes.first_record() + attributes.nrecords() - 1),
+        .first_record_of_containing_file = search->start_record_of_last_file,
+        .absolute_position = file_position + search->bytes_before_start_of_last_file,
+        .file_position = file_position,
+    };
 }
 
 Reader *PartitionedReader::open_reader(Pool &pool) {
