@@ -92,7 +92,7 @@ GlobalState::GlobalState() : version(0) {
 }
 
 void GlobalState::update_data_stream(File const &file) {
-    update_meta_stream(file.size(), file.end_record());
+    update_data_stream(file.size(), file.end_record());
 }
 
 void GlobalState::update_meta_stream(File const &file) {
