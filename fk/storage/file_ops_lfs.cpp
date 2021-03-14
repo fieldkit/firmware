@@ -13,6 +13,17 @@ namespace fk {
 
 namespace lfs {
 
+/**
+ * File size that triggers rolling over to a new meta file. 0 disables
+ * rollover, creating one long file.
+ */
+constexpr size_t MetaRolloverSize = 0;
+
+/**
+ * File size that triggers rolling over to a new data file.
+ */
+constexpr size_t DataRolloverSize = 64 * 2048 * 5;
+
 FK_DECLARE_LOGGER("lfsops");
 
 static uint8_t kind_to_attribute_index(SignedRecordKind kind) {
@@ -51,7 +62,8 @@ tl::expected<uint32_t, Error> MetaOps::write_modules(GlobalState *gs, fkb_header
 tl::expected<uint32_t, Error> MetaOps::write_kind(GlobalState *gs, SignedRecordKind kind, MetaRecord &record, Pool &pool) {
     auto index = kind_to_attribute_index(kind);
     loginfo("writing kind: %d", index);
-    RecordAppender appender{ &lfs_, &map_, 64 * 2048 * 5, pool };
+
+    RecordAppender appender{ &lfs_, &map_, MetaRolloverSize, pool };
     auto appended = appender.append_changes(index, &record.record(), fk_data_DataRecord_fields, pool);
     if (!appended) {
         logerror("error appending");
@@ -108,11 +120,11 @@ bool MetaOps::read_record(SignedRecordKind kind, MetaRecord &record, Pool &pool)
     return true;
 }
 
-DataOps::DataOps(LfsDriver &lfs) : lfs_(lfs), map_(&lfs_, "data", 3, *lfs.pool()) {
+DataOps::DataOps(LfsDriver &lfs) : lfs_(lfs), map_(&lfs_, "data", 0, *lfs.pool()) {
 }
 
 tl::expected<uint32_t, Error> DataOps::write_readings(GlobalState *gs, fk_data_DataRecord *record, Pool &pool) {
-    RecordAppender appender{ &lfs_, &map_, 64 * 2048 * 5, pool };
+    RecordAppender appender{ &lfs_, &map_, DataRolloverSize, pool };
     auto appended = appender.append_data_record(record, pool);
     if (!appended) {
         return tl::unexpected<Error>(appended.error());

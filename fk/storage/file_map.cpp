@@ -157,6 +157,10 @@ bool FileMap::prune() {
         return true;
     }
 
+    if (number_of_files_to_keep_ == 0) {
+        return true;
+    }
+
     int32_t keeping = number_of_files_to_keep_;
     for (auto iter = cache_; iter != nullptr; iter = iter->np) {
         if (--keeping < 0) {
