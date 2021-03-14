@@ -329,6 +329,9 @@ bool StartupWorker::create_new_state(Storage &storage, GlobalState *gs, Pool &po
 }
 
 bool StartupWorker::load_from_files(Storage &storage, GlobalState *gs, Pool &pool) {
+    gs->storage.spi.installed = storage.installed();
+    gs->storage.spi.used = storage.used();
+
     {
         auto attributes = storage.meta_ops()->attributes();
         if (attributes) {

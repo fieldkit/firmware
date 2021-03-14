@@ -70,6 +70,7 @@ tl::expected<uint32_t, Error> MetaOps::write_kind(GlobalState *gs, SignedRecordK
         return tl::unexpected<Error>(appended.error());
     }
 
+    gs->storage.spi.used = lfs_.used();
     gs->update_meta_stream(appended->absolute_position + appended->record_size, appended->record);
 
     return appended->record;

@@ -60,6 +60,10 @@ public:
 
     FileReader *file_reader(FileNumber file_number, Pool &pool);
 
+    int32_t installed();
+
+    int32_t used();
+
 public:
     bool begin();
     bool clear();

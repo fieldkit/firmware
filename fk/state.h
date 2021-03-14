@@ -193,7 +193,14 @@ struct StreamState {
     uint32_t modified{ 0 };
 };
 
+struct MemoryState {
+    uint32_t installed{ 0 };
+    uint32_t used{ 0 };
+};
+
 struct StorageState {
+    MemoryState spi;
+    MemoryState qspi;
     StreamState data;
     StreamState meta;
 };

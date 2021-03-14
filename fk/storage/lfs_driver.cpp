@@ -79,6 +79,10 @@ LfsDriver::LfsDriver() : memory_(nullptr), pool_(nullptr) {
 LfsDriver::~LfsDriver() {
 }
 
+int32_t LfsDriver::used() {
+    return lfs_fs_size(lfs()) * memory_->geometry().block_size;
+}
+
 bool LfsDriver::begin(DataMemory *memory, Pool &pool, bool force_create) {
     memory_ = memory;
     pool_ = &pool;

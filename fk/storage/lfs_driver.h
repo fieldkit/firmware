@@ -82,6 +82,8 @@ public:
         return pool_;
     }
 
+    int32_t used();
+
 private:
     lfs_file_config make_file_cfg(fklfs_attribute_template_t const *attributes, lfs_size_t nattributes, Pool &pool);
 

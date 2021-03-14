@@ -177,6 +177,17 @@ MetaOps *Storage::meta_ops() {
     return meta_ops_;
 }
 
+int32_t Storage::installed() {
+    return data_memory_->geometry().total_size;
+}
+
+int32_t Storage::used() {
+    if (lfs_enabled_) {
+        return lfs_.used();
+    }
+    return 0;
+}
+
 FileReader *Storage::file_reader(FileNumber file_number, Pool &pool) {
     if (lfs_enabled_) {
         return new (pool) lfs::FileReader{ lfs_, file_number, pool };

@@ -144,10 +144,13 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, bool logs, fkb_h
     reply_.status.has_memory = true;
     reply_.status.memory.sramAvailable = fk_free_memory();
     reply_.status.memory.programFlashAvailable = 1024 * 1024 - BootloaderSize - fkb_header.firmware.binary_size;
-    reply_.status.memory.extendedMemoryAvailable = 8 * 1024 * 1024;
-    reply_.status.memory.dataMemoryInstalled = 512 * 1024 * 1024;
-    reply_.status.memory.dataMemoryUsed = 0;
-    reply_.status.memory.dataMemoryConsumption = 0;
+    reply_.status.memory.extendedMemoryAvailable = 0u;
+    reply_.status.memory.dataMemoryInstalled = gs_->storage.spi.installed;
+    reply_.status.memory.dataMemoryUsed = gs_->storage.spi.used;
+    if (reply_.status.memory.dataMemoryInstalled > 0) {
+        reply_.status.memory.dataMemoryConsumption = reply_.status.memory.dataMemoryUsed / reply_.status.memory.dataMemoryInstalled * 100.0f;
+    }
+
 
     auto maximum_firmware = 4;
     auto all_firmware = pool_->malloc<fk_app_Firmware>(maximum_firmware);
@@ -313,9 +316,6 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, bool logs, fkb_h
 
     streams[Storage::Data].size = gs_->storage.data.size;
     streams[Storage::Data].block = gs_->storage.data.block;
-
-    reply_.status.memory.dataMemoryUsed = streams[Storage::Data].size + streams[Storage::Meta].size;
-    reply_.status.memory.dataMemoryConsumption = reply_.status.memory.dataMemoryUsed / reply_.status.memory.dataMemoryInstalled * 100.0f;
 
     auto streams_array = pool_->malloc_with<pb_array_t>({
         .length = (size_t)2,

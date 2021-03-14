@@ -40,7 +40,7 @@ tl::expected<uint32_t, Error> MetaOps::write_kind(GlobalState *gs, SignedRecordK
     auto srl = SignedRecordLog { meta };
     auto meta_record = srl.append_immutable(kind, &record.record(), fk_data_DataRecord_fields, pool);
 
-    // Return this information and do outside.
+    gs->storage.spi.used = storage_.used();
     gs->update_meta_stream(meta);
 
     return (*meta_record).record;
@@ -92,6 +92,7 @@ tl::expected<uint32_t, Error> DataOps::write_readings(GlobalState *gs, fk_data_D
     loginfo("wrote %zd bytes rec=(#%" PRIu32 ") (%" PRIu32 " bytes) (" PRADDRESS ") (%" PRIu32 " wasted)",
             (size_t)bytes_wrote, record_number, file.size(), file.tail(), file.wasted());
 
+    gs->storage.spi.used = storage_.used();
     gs->update_data_stream(file);
 
     return record->readings.reading;
