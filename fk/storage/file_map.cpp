@@ -8,7 +8,7 @@ FK_DECLARE_LOGGER("lfs");
 
 FileMap::FileMap(LfsDriver *lfs, const char *directory, int32_t number_of_files_to_keep, Pool &pool) : lfs_(lfs), directory_(directory), number_of_files_to_keep_(number_of_files_to_keep) {
     path_ = (char *)pool.malloc(LFS_NAME_MAX);
-    cache_pool_ = pool.subpool("file-map");
+    cache_pool_ = pool.subpool("file-map", 1024);
 }
 
 FileMap::~FileMap() {

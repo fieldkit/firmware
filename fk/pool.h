@@ -60,7 +60,7 @@ public:
     EncodedMessage *wrap_copy(uint8_t *buffer, size_t size);
 
 public:
-    virtual Pool *subpool(const char *name) {
+    virtual Pool *subpool(const char *name, size_t page_size) {
         FK_ASSERT(0);
         return nullptr;
     }
@@ -121,6 +121,8 @@ public:
 class StandardPool : public Pool {
 private:
     bool free_self_{ false };
+    size_t page_size_{ 0u };
+    Pool *page_source_{ nullptr };
     // This pool is where we're allocating from, because we've grown.
     StandardPool *sibling_{ nullptr };
     // This is the first of our children/subpools, used to clear/free.
@@ -130,7 +132,8 @@ private:
 
 public:
     explicit StandardPool(const char *name);
-    explicit StandardPool(const char *name, void *ptr, size_t size, size_t taken);
+    explicit StandardPool(const char *name, size_t page_size, Pool *page_source);
+    explicit StandardPool(const char *name, void *ptr, size_t size, size_t taken, bool free_self);
     virtual ~StandardPool();
 
 public:
@@ -151,7 +154,7 @@ public:
         return Pool::used() + (sibling_ == nullptr ? 0u : sibling_->used());
     }
 
-    Pool *subpool(const char *name) override;
+    Pool *subpool(const char *name, size_t page_size) override;
 
     void *malloc(size_t bytes) override;
 

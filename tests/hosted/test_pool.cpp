@@ -177,19 +177,19 @@ TEST_F(PoolSuite, Clear) {
 
     new (pool) DummyObject();
 
-    ASSERT_EQ(pool->used(), 120u);
+    ASSERT_EQ(pool->used(), sizeof(StandardPool) + sizeof(DummyObject));
 
     pool->clear();
 
-    ASSERT_EQ(pool->used(), 88u);
+    ASSERT_EQ(pool->used(), sizeof(StandardPool));
 
     new (pool) DummyObject();
 
-    ASSERT_EQ(pool->used(), 120u);
+    ASSERT_EQ(pool->used(), sizeof(StandardPool) + sizeof(DummyObject));
 
     pool->clear();
 
-    ASSERT_EQ(pool->used(), 88u);
+    ASSERT_EQ(pool->used(), sizeof(StandardPool));
 
     delete pool;
 }
@@ -235,21 +235,29 @@ TEST_F(PoolSuite, AllocatingSiblings) {
 TEST_F(PoolSuite, Subpool) {
     StandardPool pool{ "top" };
 
+    ASSERT_EQ(pool.used(), 0u);
+
     loginfo("spawn");
-    Pool *child = pool.subpool("child");
-    loginfo("alloc 4096");
-    child->malloc(4096);
+    Pool *child = pool.subpool("child", 128);
+    loginfo("alloc 96");
+    child->malloc(96);
+
+    ASSERT_EQ(pool.used(), (128u + sizeof(StandardPool)) * 1);
+
     // Force another allocation in the child.
-    loginfo("alloc 4096");
-    child->malloc(4096);
+    loginfo("alloc 96");
+    child->malloc(96);
 
     loginfo("clearing child");
     child->clear();
 
-    loginfo("alloc 4096");
-    child->malloc(4096);
-    loginfo("alloc 4096");
-    child->malloc(4096);
+    loginfo("alloc 96");
+    child->malloc(96);
+
+    loginfo("alloc 96");
+    child->malloc(96);
+
+    ASSERT_EQ(pool.used(), (128u + sizeof(StandardPool)) * 2);
 
     loginfo("clearing");
     pool.clear();
@@ -260,14 +268,38 @@ TEST_F(PoolSuite, SubpoolMultiple) {
 
     loginfo("spawn");
 
-    Pool *child1 = pool.subpool("child1");
-    loginfo("child1 alloc 4096");
-    child1->malloc(4096);
+    ASSERT_EQ(pool.size(), 8192u);
+    ASSERT_EQ(pool.used(), 0u);
 
-    Pool *child2 = pool.subpool("child2");
-    loginfo("child2 4096");
-    child2->malloc(4096);
+    Pool *child1 = pool.subpool("child1", 128);
+    loginfo("+child1 alloc 96.0");
+    child1->malloc(96);
+    loginfo("-child1 alloc 96.0");
+
+    ASSERT_EQ(pool.used(), (128u + sizeof(StandardPool)) * 1);
+
+    Pool *child2 = pool.subpool("child2", 128);
+    loginfo("+child2 alloc 96.1");
+    child2->malloc(96);
+    loginfo("-child2 alloc 96.1");
+
+    ASSERT_EQ(pool.used(), (128u + sizeof(StandardPool)) * 2);
+
+    loginfo("+child2 alloc 96.2");
+    child2->malloc(96);
+    loginfo("-child2 alloc 96.2");
+
+    ASSERT_EQ(pool.used(), (128u + sizeof(StandardPool)) * 3);
 
     loginfo("clearing");
     pool.clear();
+
+    ASSERT_EQ(pool.used(), 0u);
+
+    Pool *child3 = pool.subpool("child3", 128);
+    loginfo("+child3 alloc 96.1");
+    child3->malloc(96);
+    loginfo("-child3 alloc 96.1");
+
+    ASSERT_EQ(pool.used(), (128u + sizeof(StandardPool)) * 1);
 }

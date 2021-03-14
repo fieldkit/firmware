@@ -220,18 +220,17 @@ Pool *create_pool_inside(const char *name) {
     return new (ptr) InsidePool(name, ptr, size, overhead);
 }
 
-StandardPool::StandardPool(const char *name) : Pool(name, StandardPageSize, (void *)fk_standard_page_malloc(StandardPageSize, name), 0), free_self_{ true } {
+StandardPool::StandardPool(const char *name) : Pool(name, StandardPageSize, (void *)fk_standard_page_malloc(StandardPageSize, name), 0u), free_self_{ true } {
 }
 
-StandardPool::StandardPool(const char *name, void *ptr, size_t size, size_t taken) : Pool(name, size, ptr, taken), free_self_{ false } {
-    FK_ASSERT(sibling_ == nullptr);
+StandardPool::StandardPool(const char *name, size_t page_size, Pool *page_source) : Pool(name, page_size, page_source->malloc(page_size), 0u), free_self_{ false }, page_size_(page_size), page_source_(page_source) {
 }
 
-Pool *StandardPool::subpool(const char *name) {
-    auto size = StandardPageSize;
-    auto ptr = fk_standard_page_malloc(size, name);
-    auto overhead = sizeof(StandardPool);
-    auto child = new (ptr) StandardPool(name, ptr, size, overhead);
+StandardPool::StandardPool(const char *name, void *ptr, size_t size, size_t taken, bool free_self) : Pool(name, size, ptr, taken), free_self_{ free_self } {
+}
+
+Pool *StandardPool::subpool(const char *name, size_t page_size) {
+    auto child = new (this) StandardPool(name, page_size, this);
 
     if (child_ != nullptr) {
         for (auto iter = child_; ; iter = iter->np_) {
@@ -254,17 +253,21 @@ StandardPool::~StandardPool() {
             this, name(), size(), block(), fk_free_memory());
     #endif
     log_destroy("~standard-pool");
+    /*
+    NOTE No need for this, child/subpools are allocated in parallel to
+    our allocations.
+    while (child_ != nullptr) {
+        auto np = child_->np_;
+        delete child_;
+        child_ = np;
+    }
+    */
     if (sibling_ != nullptr) {
         #if defined(FK_LOGGING_POOL_VERBOSE) || defined(FK_LOGGING_POOL_TRACING)
         loginfo("standard-pool-delete-sibling: 0x%p sibling=0x%p", this, sibling_);
         #endif
         delete sibling_;
         sibling_ = nullptr;
-    }
-    while (child_ != nullptr) {
-        auto np = child_->np_;
-        delete child_;
-        child_ = np;
     }
     if (free_self_) {
         #if defined(FK_LOGGING_POOL_VERBOSE) || defined(FK_LOGGING_POOL_TRACING)
@@ -287,36 +290,55 @@ void *StandardPool::malloc(size_t bytes) {
     }
 
     if (sibling_ == nullptr) {
-        auto size = StandardPageSize;
-        auto ptr = fk_standard_page_malloc(size, name());
         auto overhead = sizeof(StandardPool);
-        sibling_ = new (ptr) StandardPool(name(), ptr, size, overhead);
+        auto size = page_size_;
+        auto free_self = false;
+        void *ptr = nullptr;
+        if (page_size_ > 0) {
+            FK_ASSERT(page_source_ != nullptr);
+            ptr = page_source_->malloc(page_size_ + overhead);
+        }
+        else {
+            free_self = true;
+            size = StandardPageSize;
+            ptr = fk_standard_page_malloc(size, name());
+        }
+
+        // Id love to try and allocate from the parent pool if
+        // there's room for StandardPool, that breaks on delete, though.
+        sibling_ = new (ptr) StandardPool(name(), ptr, size, overhead, free_self);
     }
 
     return sibling_->malloc(bytes);
 }
 
 void StandardPool::clear() {
-    Pool::clear();
+    child_ = nullptr;
 
     if (sibling_ != nullptr) {
         #if defined(FK_LOGGING_POOL_VERBOSE) || defined(FK_LOGGING_POOL_TRACING)
         loginfo("standard-pool-clear: sibling=0x%p", sibling_);
         #endif
-        delete sibling_;
-        sibling_ = nullptr;
+        // If we were allocated as pages from a page source, those
+        // can't be freed, so we own those pages still until we're
+        // gone forever.
+        if (page_size_ > 0) {
+            sibling_->clear();
+        }
+        else {
+            delete sibling_;
+            sibling_ = nullptr;
+        }
     }
 
-    for (auto iter = child_; iter != nullptr; iter = iter->np_) {
-        iter->clear();
-    }
+    Pool::clear();
 }
 
 Pool *create_standard_pool_inside(const char *name) {
     auto size = StandardPageSize;
     auto ptr = fk_standard_page_malloc(size, name);
     auto overhead = sizeof(StandardPool);
-    return new (ptr) StandardPool(name, ptr, size, overhead);
+    return new (ptr) StandardPool(name, ptr, size, overhead, true);
 }
 
 }
