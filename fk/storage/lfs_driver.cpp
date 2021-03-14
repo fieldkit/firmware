@@ -114,14 +114,28 @@ bool LfsDriver::begin(DataMemory *memory, Pool &pool, bool force_create) {
     };
 
     if (force_create) {
-        FK_ASSERT(!lfs_format(&lfs_, &cfg_));
-        FK_ASSERT(!lfs_mount(&lfs_, &cfg_));
+        auto format_err = lfs_format(&lfs_, &cfg_);
+        if (format_err < 0) {
+            return false;
+        }
+
+        auto mount_err = lfs_mount(&lfs_, &cfg_);
+        if (mount_err < 0) {
+            return false;
+        }
         return true;
     }
 
     if (lfs_mount(&lfs_, &cfg_) != 0) {
-        FK_ASSERT(!lfs_format(&lfs_, &cfg_));
-        FK_ASSERT(!lfs_mount(&lfs_, &cfg_));
+        auto format_err = lfs_format(&lfs_, &cfg_);
+        if (format_err < 0) {
+            return false;
+        }
+
+        auto mount_err = lfs_mount(&lfs_, &cfg_);
+        if (mount_err < 0) {
+            return false;
+        }
     }
 
     return true;
@@ -210,10 +224,10 @@ int32_t LfsDriver::erase(struct lfs_config const *cfg, lfs_block_t block) {
 
     auto g = memory_->geometry();
     auto address = block * g.block_size;
-    if (!memory_->erase(address, g.block_size)) {
-        return -1;
+    auto err = memory_->erase(address, g.block_size);
+    if (err < 0) {
+        return err;
     }
-
     return 0;
 }
 

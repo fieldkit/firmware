@@ -22,7 +22,7 @@ BankedDataMemory::BankedDataMemory(DataMemory **memories, size_t size) : memorie
 }
 
 template<typename F>
-size_t with_bank(DataMemory **memories, size_t size, uint32_t address, F fn) {
+int32_t with_bank(DataMemory **memories, size_t size, uint32_t address, F fn) {
     auto bank_address = address;
     for (auto i = 0u; i < size; ++i) {
         auto &bank = *memories[i];
@@ -34,7 +34,7 @@ size_t with_bank(DataMemory **memories, size_t size, uint32_t address, F fn) {
 
         bank_address -= g.total_size;
     }
-    return false;
+    return 0;
 }
 
 bool BankedDataMemory::begin() {

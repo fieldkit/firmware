@@ -104,6 +104,7 @@ Storage::~Storage() {
 
 static bool first_open_ = true;
 static bool always_lfs_ = false;
+static bool formatted_ = false;
 
 bool Storage::begin() {
     #if defined(__SAMD51__)
@@ -131,11 +132,12 @@ bool Storage::begin() {
 
     auto memory = new (pool_) TranslatingMemory(data_memory_, 512);
 
-    if (!lfs_.begin(memory, *pool_, false)) {
+    if (!lfs_.begin(memory, *pool_, first_open_)) {
         logerror("lfs: begin failed");
         return false;
     }
 
+    formatted_ = true;
     first_open_ = false;
 
     loginfo("lfs ready");
@@ -150,6 +152,8 @@ bool Storage::clear() {
     if (lfs_enabled_) {
         return true;
     }
+
+    FK_ASSERT(!formatted_);
 
     #if defined(__SAMD51__)
     FK_ASSERT(false);
@@ -367,7 +371,8 @@ bool Storage::clear_internal() {
     while (!range.empty()) {
         uint32_t address = range.middle_block() * g.block_size;
         logdebug("[" PRADDRESS "] erasing block", address);
-        if (!memory_.erase(address, g.block_size)) {
+        auto err = memory_.erase(address, g.block_size);
+        if (err < 0) {
             // We just keep going, clearing earlier blocks. We'll
             // handle this block being bad during reads/seeks. Still
             // mark the block as bad though so that we can remember.
@@ -431,7 +436,7 @@ uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address, BlockTa
 
         // Erase new block and write header.
         rv = memory_.erase(address, g.block_size);
-        if (rv <= 0) {
+        if (rv < 0) {
             logerror("[%d] allocating ignoring bad block: blk %" PRIu32 " (erase failed)", file, block);
             bad_blocks_.mark_address_as_bad(address);
             continue;

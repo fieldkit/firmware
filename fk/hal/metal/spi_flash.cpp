@@ -1,3 +1,5 @@
+#include <lfs.h>
+
 #include "spi_flash.h"
 #include "platform.h"
 #include "utilities.h"
@@ -24,8 +26,8 @@ constexpr uint8_t CMD_PROGRAM_LOAD = 0x02;
 constexpr uint8_t CMD_PROGRAM_LOAD_RANDOM = 0x84;
 constexpr uint8_t CMD_PROGRAM_EXECUTE = 0x10;
 
-constexpr uint8_t FLASH_JEDEC_MANUFACTURE = 0x98;
-constexpr uint8_t FLASH_JEDEC_DEVICE = 0xcb;
+constexpr uint8_t FLASH_JEDEC_MANUFACTURE_TOSHIBA = 0x98;
+constexpr uint8_t FLASH_JEDEC_DEVICE_TOSHIBA = 0xcb;
 constexpr uint8_t FLASH_JEDEC_MANUFACTURE_KIOXIA = 0x98;
 constexpr uint8_t FLASH_JEDEC_DEVICE_KIOXIA = 0xe4;
 
@@ -44,25 +46,49 @@ constexpr uint8_t STATUS_FLAG_ECC_STATUS_Pos = (4);
 
 static SPISettings SpiSettings{ 50000000, MSBFIRST, SPI_MODE0 };
 
-SpiFlash::SpiFlash(uint8_t cs) : cs_(cs) {
+constexpr static uint32_t ToshibaPageSize = 2048;
+constexpr static uint32_t ToshibaBlockSize = 2048 * 64;
+constexpr static uint32_t ToshibaNumberOfBlocks = 2048;
+
+static FlashGeometry ToshibaGeometry{
+    ToshibaPageSize,
+    ToshibaBlockSize,
+    ToshibaNumberOfBlocks,
+    ToshibaNumberOfBlocks * ToshibaBlockSize
+};
+
+constexpr static uint32_t KoxiaPageSize = 4096;
+constexpr static uint32_t KoxiaBlockSize = 256 * 1024;
+constexpr static uint32_t KoxiaNumberOfBlocks = 4096;
+
+static FlashGeometry KoxiaGeometry{
+    KoxiaPageSize,
+    KoxiaBlockSize,
+    KoxiaNumberOfBlocks,
+    KoxiaNumberOfBlocks * KoxiaBlockSize
+};
+
+SpiFlash::SpiFlash(uint8_t cs) : cs_(cs), model_(ChipModel::Unknown) {
 }
 
 FlashGeometry SpiFlash::geometry() const {
     if (status_ != Availability::Available) {
         return { 0, 0, 0, 0 };
     }
-    return { PageSize, BlockSize, NumberOfBlocks, NumberOfBlocks * BlockSize };
+    return geometry_;
 }
 
-static bool check_jedec(uint8_t *jedec) {
-    if (jedec[1] == FLASH_JEDEC_MANUFACTURE || jedec[2] == FLASH_JEDEC_DEVICE) {
-        return true;
+static ChipModel check_jedec(uint8_t *jedec) {
+    if (jedec[1] == FLASH_JEDEC_MANUFACTURE_TOSHIBA && jedec[2] == FLASH_JEDEC_DEVICE_TOSHIBA) {
+        loginfo("toshiba bank: 0x%02x%02x%02x%02x", jedec[0], jedec[1], jedec[2], jedec[3]);
+        return ChipModel::Toshiba;
     }
-    if (jedec[1] == FLASH_JEDEC_MANUFACTURE_KIOXIA || jedec[2] == FLASH_JEDEC_DEVICE_KIOXIA) {
-        return true;
+    if (jedec[1] == FLASH_JEDEC_MANUFACTURE_KIOXIA && jedec[2] == FLASH_JEDEC_DEVICE_KIOXIA) {
+        loginfo("koxia bank: 0x%02x%02x%02x%02x", jedec[0], jedec[1], jedec[2], jedec[3]);
+        return ChipModel::Koxia;
     }
     logwarn("unexpected jedec: 0x%02x%02x%02x%02x", jedec[0], jedec[1], jedec[2], jedec[3]);
-    return false;
+    return ChipModel::Unknown;
 }
 
 bool SpiFlash::begin() {
@@ -75,10 +101,12 @@ bool SpiFlash::begin() {
 
     status_ = Availability::Unavailable;
 
-    SPI.begin();
+    pinMode(cs_, OUTPUT);
+    digitalWrite(cs_, LOW);
 
+    SPI.begin();
     if (!reset()) {
-        logerror("error resetting chip");
+        logerror("resetting chip");
         return false;
     }
 
@@ -88,30 +116,38 @@ bool SpiFlash::begin() {
     while (jedec_id[1] == 0xff) {
         read_command(CMD_READ_JEDEC_ID, jedec_id, sizeof(jedec_id));
         if (fk_uptime() - started > SpiFlashReadyMs) {
-            logerror("error reading jedec");
+            logerror("reading jedec");
             return false;
         }
     }
-    if (!check_jedec(jedec_id)) {
+
+    model_ = check_jedec(jedec_id);
+
+    switch (model_) {
+    case ChipModel::Toshiba:
+        geometry_ = ToshibaGeometry;
+        break;
+    case ChipModel::Koxia:
+        geometry_ = KoxiaGeometry;
+        break;
+    default:
         return false;
     }
 
-    dump_feature_registers();
+    if (!read_parameters_page()) {
+       return false;
+    }
 
     if (false) {
+        dump_feature_registers();
+
         if (!read_unique_id()) {
             return false;
         }
 
-        if (!read_parameters_page()) {
-            return false;
+        while (true) {
+            fk_delay(100);
         }
-    }
-
-    if (false) {
-        char id_string[sizeof(id_) * 2];
-        bytes_to_hex_string(id_string, sizeof(id_string), id_, sizeof(id_));
-        loginfo("%s", id_string);
     }
 
     status_ = Availability::Available;
@@ -162,7 +198,7 @@ int32_t SpiFlash::read(uint32_t address, uint8_t *data, size_t length) {
 
     if (!is_ready()) {
         logerror("read: !ready");
-        return 0;
+        return -1;
     }
 
     /* Disable high speed read mode. */
@@ -171,19 +207,19 @@ int32_t SpiFlash::read(uint32_t address, uint8_t *data, size_t length) {
     /* Load page into buffer. */
     if (!complex_command(read_cell_command, sizeof(read_cell_command))) {
         logerror("read: read cell failed");
-        return 0;
+        return -1;
     }
 
     /* Wait for buffer to fill with data from cell array. */
     if (!is_ready(false)) {
         logerror("read: read cell !ready");
-        return 0;
+        return -1;
     }
 
     /* Read the buffer in. */
     if (!transfer(read_buffer_command, sizeof(read_buffer_command), nullptr, data, length)) {
         logerror("read: read buffer failed");
-        return 0;
+        return -1;
     }
 
     return length;
@@ -200,7 +236,7 @@ int32_t SpiFlash::write(uint32_t address, const uint8_t *data, size_t length) {
         if (!reset()) {
             logerror("resetting failed");
         }
-        return 0;
+        return -1;
     }
 
     logerror("write failed, trying to recover...");
@@ -209,14 +245,14 @@ int32_t SpiFlash::write(uint32_t address, const uint8_t *data, size_t length) {
 
     if (!begin()) {
         logerror("begin failed!");
-        return 0;
+        return -1;
     }
 
     return write_internal(address, data, length);
 }
 
 int32_t SpiFlash::write_internal(uint32_t address, const uint8_t *data, size_t length) {
-    FK_ASSERT_LE((address % PageSize) + length, PageSize);
+    FK_ASSERT_LE((address % geometry().page_size) + length, geometry().page_size);
 
     uint8_t program_load_command[] = { CMD_PROGRAM_LOAD, 0x00, 0x00 }; // 4dummy/12
     uint8_t program_execute_command[] = { CMD_PROGRAM_EXECUTE, 0x00, 0x00, 0x00 }; // 7dummy/17
@@ -265,15 +301,14 @@ int32_t SpiFlash::write_internal(uint32_t address, const uint8_t *data, size_t l
 
 int32_t SpiFlash::erase_block(uint32_t address) {
     auto rv = erase_block_internal(address);
-    if (rv <= 0) {
-        if (error_ == SpiFlashError::Erase) {
-            loginfo("resetting");
-            if (!reset()) {
-                logerror("resetting failed");
-            }
+    if (rv < 0) {
+        loginfo("resetting");
+        if (!reset()) {
+            logerror("resetting failed");
         }
+        return LFS_ERR_CORRUPT;
     }
-    return rv;
+    return 0;
 }
 
 int32_t SpiFlash::erase_block_internal(uint32_t address) {
@@ -290,25 +325,25 @@ int32_t SpiFlash::erase_block_internal(uint32_t address) {
         if (reset()) {
             logerror("erase: reset failed");
         }
-        return 0;
+        return -1;
     }
 
     if (!enable_writes()) {
         logerror("erase: enable writes failed");
-        return 0;
+        return -1;
     }
 
     if (!transfer(command, sizeof(command), nullptr, nullptr, 0)) {
         logerror("erase: erase failed [0x%06" PRIx32 "]", address);
-        return 0;
+        return -1;
     }
 
     if (!is_ready()) {
         logerror("erase: erase !ready");
-        return 0;
+        return -1;
     }
 
-    return 1;
+    return 0;
 }
 
 struct __attribute__ ((packed)) parameters_page_t {
@@ -353,7 +388,10 @@ bool SpiFlash::read_parameters_page() {
     uint8_t read_cell_command[] = { CMD_READ_CELL_ARRAY, 0x00, 0x00, 0x00 }; // 7dummy/17 (Row)
     uint8_t read_buffer_command[] = { CMD_READ_BUFFER, 0x00, 0x00, 0x00 };   // 4dummy/12/8dummy (Col)
 
-    row_address_to_bytes(PageSize, read_cell_command + 1);
+    row_address_to_bytes(geometry().page_size, read_cell_command + 1);
+    if (model_ == ChipModel::Koxia) {
+        row_address_to_bytes(1, read_cell_command + 1);
+    }
 
     // 1. Set Feature (1Fh) with address B0h and set bit [6]. : To set the IDR_E bit in the feature table.
     // 2. Read Cell Array (13h) with address 01h. : To read the parameter page.
@@ -436,14 +474,14 @@ bool SpiFlash::read_unique_id() {
 }
 
 void SpiFlash::row_address_to_bytes(uint32_t address, uint8_t *bytes) {
-    uint32_t row = (address / PageSize);
+    uint32_t row = (address / geometry().page_size);
     bytes[0] = (row >> 16) & 0xff;
     bytes[1] = (row >> 8) & 0xff;
     bytes[2] = (row & 0xff);
 }
 
 void SpiFlash::column_address_to_bytes(uint32_t address, uint8_t *bytes) {
-    uint32_t column = (address % PageSize);
+    uint32_t column = (address % geometry().page_size);
     bytes[0] = (column >> 8) & 0xff;
     bytes[1] = (column & 0xff);
 }
@@ -518,12 +556,12 @@ bool SpiFlash::is_ready(bool ecc_check) {
 
         if ((status & STATUS_FLAG_PROGRAM_FAIL) == STATUS_FLAG_PROGRAM_FAIL) {
             error_ = SpiFlashError::Program;
-            logwarn("program failed");
+            logwarn("is-ready: program failed");
             break;
         }
         if ((status & STATUS_FLAG_ERASE_FAIL) == STATUS_FLAG_ERASE_FAIL) {
             error_ = SpiFlashError::Erase;
-            logwarn("erase failed");
+            logwarn("is-ready: erase failed");
             break;
         }
 

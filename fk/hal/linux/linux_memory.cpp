@@ -118,7 +118,7 @@ int32_t LinuxDataMemory::erase_block(uint32_t address) {
     assert(address % BlockSize == 0);
 
     if (affects_bad_block_from_wear(address)) {
-        return 0;
+        return -1;
     }
 
     auto p = memory_ + address;
@@ -126,7 +126,7 @@ int32_t LinuxDataMemory::erase_block(uint32_t address) {
 
     log_.append(LogEntry{ OperationType::EraseBlock, address, p });
 
-    return true;
+    return 0;
 }
 
 int32_t LinuxDataMemory::flush() {

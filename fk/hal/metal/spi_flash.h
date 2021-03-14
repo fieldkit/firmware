@@ -11,22 +11,25 @@ enum class SpiFlashError {
     Erase
 };
 
+enum class ChipModel {
+    Unknown,
+    Toshiba,
+    Koxia,
+};
+
 class SpiFlash {
 private:
     constexpr static uint32_t SpiFlashReadyMs = 10;
     constexpr static uint32_t SpiFlashTimeoutMs = 500;
     constexpr static uint32_t IdSize = 32;
 
-public:
-    constexpr static uint32_t PageSize = 2048;
-    constexpr static uint32_t BlockSize = 2048 * 64;
-    constexpr static uint32_t NumberOfBlocks = 2048;
-
 private:
     Availability status_{ Availability::Unknown };
     uint8_t cs_{ 0 };
     uint8_t id_[IdSize]{ };
     SpiFlashError error_{ SpiFlashError::None };
+    FlashGeometry geometry_;
+    ChipModel model_;
 
 public:
     explicit SpiFlash(uint8_t cs);
