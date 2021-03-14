@@ -112,9 +112,9 @@ public:
     }
 
 public:
-    void log_destroy(const char *how);
+    virtual void log_destroy(const char *how);
 
-    void log_info();
+    virtual void log_info(int32_t depth = 0u);
 
 };
 
@@ -142,6 +142,8 @@ public:
     }
 
 public:
+    void log_info(int32_t depth = 0u) override;
+
     size_t allocated() const override {
         return Pool::allocated() + (sibling_ == nullptr ? 0u : sibling_->allocated());
     }

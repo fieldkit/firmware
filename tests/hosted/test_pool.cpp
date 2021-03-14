@@ -291,6 +291,8 @@ TEST_F(PoolSuite, SubpoolMultiple) {
 
     ASSERT_EQ(pool.used(), (128u + sizeof(StandardPool)) * 3);
 
+    pool.log_info();
+
     loginfo("clearing");
     pool.clear();
 

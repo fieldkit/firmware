@@ -48,8 +48,16 @@ Pool::Pool(const char *name, size_t size, void *block, size_t taken) {
 Pool::~Pool() {
 }
 
-void Pool::log_info() {
-    loginfo("info: 0x%p %s size=%zu ptr=0x%p remaining=0x%" PRIx16, this, name_, size_ - taken_, ((uint8_t *)block_) + taken_, (uint16_t)remaining_);
+constexpr int32_t MaximumDepth = 4;
+
+void Pool::log_info(int32_t depth) {
+    FK_ASSERT(depth < MaximumDepth);
+    char prefix[MaximumDepth + 1];
+    bzero(prefix, sizeof(prefix));
+    for (auto i = 0; i < MaximumDepth; ++i) {
+        prefix[i] = i < depth ? '=' : ' ';
+    }
+    loginfo("info: %s %p '%s' ptr=%p size=%zu remaining=%" PRIu16, prefix, this, name_, ((uint8_t *)block_) + taken_, size_ - taken_, (uint16_t)remaining_);
 }
 
 void Pool::log_destroy(const char *how) {
@@ -332,6 +340,16 @@ void StandardPool::clear() {
     }
 
     Pool::clear();
+}
+
+void StandardPool::log_info(int32_t depth) {
+    Pool::log_info(depth);
+    if (sibling_ != nullptr) {
+        sibling_->log_info(depth);
+    }
+    for (auto iter = child_; iter != nullptr; iter = iter->np_) {
+        iter->log_info(depth + 1);
+    }
 }
 
 Pool *create_standard_pool_inside(const char *name) {
