@@ -28,7 +28,7 @@ TEST_F(LfsSuite, CreateAndAppendDataRecords) {
     ASSERT_TRUE(memory.begin());
 
     LfsDriver lfs_driver;
-    ASSERT_TRUE(lfs_driver.begin(&memory, pool, true));
+    ASSERT_TRUE(lfs_driver.begin(&memory, true, pool));
 
     auto lfs = lfs_driver.lfs();
 
@@ -54,7 +54,7 @@ TEST_F(LfsSuite, AppendChanges) {
     ASSERT_TRUE(memory.begin());
 
     LfsDriver lfs_driver;
-    ASSERT_TRUE(lfs_driver.begin(&memory, pool, true));
+    ASSERT_TRUE(lfs_driver.begin(&memory, true, pool));
 
     auto lfs = lfs_driver.lfs();
 
@@ -89,7 +89,7 @@ TEST_F(LfsSuite, AppendChangesSeparateInstances) {
     ASSERT_TRUE(memory.begin());
 
     LfsDriver lfs_driver;
-    ASSERT_TRUE(lfs_driver.begin(&memory, pool, true));
+    ASSERT_TRUE(lfs_driver.begin(&memory, true, pool));
 
     auto lfs = lfs_driver.lfs();
 
@@ -130,7 +130,7 @@ TEST_F(LfsSuite, ReadAcrossPartitionedFiles) {
     ASSERT_TRUE(memory.begin());
 
     LfsDriver lfs_driver;
-    ASSERT_TRUE(lfs_driver.begin(&memory, pool, true));
+    ASSERT_TRUE(lfs_driver.begin(&memory, true, pool));
 
     auto lfs = lfs_driver.lfs();
 
@@ -188,7 +188,7 @@ TEST_F(LfsSuite, DISABLED_BlockConsumption) {
     ASSERT_TRUE(memory.begin());
 
     LfsDriver lfs_driver;
-    ASSERT_TRUE(lfs_driver.begin(&memory, pool, true));
+    ASSERT_TRUE(lfs_driver.begin(&memory, true, pool));
 
     auto lfs = lfs_driver.lfs();
 

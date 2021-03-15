@@ -1,4 +1,5 @@
-#include "lfs_driver.h"
+#include "storage/lfs_driver.h"
+#include "storage/dhara.h"
 
 namespace fk {
 
@@ -83,7 +84,7 @@ int32_t LfsDriver::used() {
     return lfs_fs_size(lfs()) * memory_->geometry().block_size;
 }
 
-bool LfsDriver::begin(DataMemory *memory, Pool &pool, bool force_create) {
+bool LfsDriver::begin(DataMemory *memory, bool force_create, Pool &pool) {
     memory_ = memory;
     pool_ = &pool;
 

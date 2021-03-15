@@ -61,7 +61,7 @@ public:
     int32_t erase(struct lfs_config const *cfg, lfs_block_t block);
 
 public:
-    bool begin(DataMemory *memory, Pool &pool, bool force_create = false);
+    bool begin(DataMemory *memory, bool force_create, Pool &pool);
 
     lfs_file_config make_data_cfg(Pool &pool);
 

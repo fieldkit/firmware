@@ -132,7 +132,7 @@ bool Storage::begin() {
 
     auto memory = new (pool_) TranslatingMemory(data_memory_, 512);
 
-    if (!lfs_.begin(memory, *pool_, false)) {
+    if (!lfs_.begin(memory, false, *pool_)) {
         logerror("lfs: begin failed");
         return false;
     }
