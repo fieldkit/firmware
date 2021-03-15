@@ -1,5 +1,4 @@
 #include "storage/lfs_driver.h"
-#include "storage/dhara.h"
 
 namespace fk {
 
@@ -101,8 +100,8 @@ bool LfsDriver::begin(DataMemory *memory, bool force_create, Pool &pool) {
         .prog = lfs_block_device_prog,
         .erase = lfs_block_device_erase,
         .sync = lfs_block_device_sync,
-        .read_size = LFS_DRIVER_READ_SIZE,
-        .prog_size = LFS_DRIVER_PROG_SIZE,
+        .read_size = g.page_size,
+        .prog_size = g.prog_size,
         .block_size = g.block_size,
         .block_count = g.nblocks,
         .block_cycles = 500,

@@ -13,9 +13,7 @@ namespace fk {
 
 int32_t lfs_test();
 
-#define LFS_DRIVER_READ_SIZE                      (2048)
-#define LFS_DRIVER_PROG_SIZE                      (512)
-#define LFS_DRIVER_CACHE_SIZE                     (LFS_DRIVER_READ_SIZE * 2)
+#define LFS_DRIVER_CACHE_SIZE                     (4096)
 #define LFS_DRIVER_LOOKAHEAD_SIZE                 (16)
 
 /**

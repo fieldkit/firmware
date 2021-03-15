@@ -47,6 +47,7 @@ constexpr uint8_t STATUS_FLAG_ECC_STATUS_Pos = (4);
 static SPISettings SpiSettings{ 50000000, MSBFIRST, SPI_MODE0 };
 
 constexpr static uint32_t ToshibaPageSize = 2048;
+constexpr static uint32_t ToshibaProgramSize = 512;
 constexpr static uint32_t ToshibaBlockSize = 2048 * 64;
 constexpr static uint32_t ToshibaNumberOfBlocks = 2048;
 
@@ -54,10 +55,12 @@ static FlashGeometry ToshibaGeometry{
     ToshibaPageSize,
     ToshibaBlockSize,
     ToshibaNumberOfBlocks,
-    ToshibaNumberOfBlocks * ToshibaBlockSize
+    ToshibaNumberOfBlocks * ToshibaBlockSize,
+    ToshibaProgramSize
 };
 
 constexpr static uint32_t KoxiaPageSize = 4096;
+constexpr static uint32_t KoxiaProgramSize = 512;
 constexpr static uint32_t KoxiaBlockSize = 256 * 1024;
 constexpr static uint32_t KoxiaNumberOfBlocks = 4096;
 
@@ -65,7 +68,8 @@ static FlashGeometry KoxiaGeometry{
     KoxiaPageSize,
     KoxiaBlockSize,
     KoxiaNumberOfBlocks,
-    KoxiaNumberOfBlocks * KoxiaBlockSize
+    KoxiaNumberOfBlocks * KoxiaBlockSize,
+    KoxiaProgramSize
 };
 
 SpiFlash::SpiFlash(uint8_t cs) : cs_(cs), model_(ChipModel::Unknown) {
@@ -73,7 +77,7 @@ SpiFlash::SpiFlash(uint8_t cs) : cs_(cs), model_(ChipModel::Unknown) {
 
 FlashGeometry SpiFlash::geometry() const {
     if (status_ != Availability::Available) {
-        return { 0, 0, 0, 0 };
+        return { 0, 0, 0, 0, 0 };
     }
     return geometry_;
 }

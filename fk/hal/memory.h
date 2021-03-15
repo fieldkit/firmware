@@ -7,12 +7,11 @@
 namespace fk {
 
 struct FlashGeometry {
-    static constexpr uint32_t SectorSize = 512;
-
     uint32_t page_size;
     uint32_t block_size;
     uint32_t nblocks;
     uint32_t total_size;
+    uint32_t prog_size;
 
     uint32_t beginning() const {
         return 0;
@@ -61,20 +60,20 @@ struct FlashGeometry {
     }
 
     uint32_t partial_write_boundary_before(uint32_t address) const {
-        if (address < SectorSize) {
+        if (address < prog_size) {
             return 0;
         }
-        auto padding = address % SectorSize;
+        auto padding = address % prog_size;
         return padding == 0 ? address : address - padding;
     }
 
     uint32_t partial_write_boundary_after(uint32_t address) const {
-        auto padding = address % SectorSize;
-        return padding == 0 ? address : address + (SectorSize - padding);
+        auto padding = address % prog_size;
+        return padding == 0 ? address : address + (prog_size - padding);
     }
 
     uint32_t sector_size() const {
-        return SectorSize;
+        return prog_size;
     }
 };
 

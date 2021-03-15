@@ -26,6 +26,7 @@ bool LinuxDataMemory::begin() {
     geometry_.block_size = BlockSize;
     geometry_.nblocks = number_of_blocks_;
     geometry_.total_size = BlockSize * number_of_blocks_;
+    geometry_.prog_size = 512;
 
     if (memory_ == nullptr) {
         memory_ = (uint8_t *)fk_malloc(geometry_.total_size);
