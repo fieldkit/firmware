@@ -220,16 +220,16 @@ int dhara_nand_copy(const struct dhara_nand *n, dhara_page_t src, dhara_page_t d
 }
 
 int32_t DharaNand::is_bad(const struct dhara_nand *n, dhara_block_t b) {
-    loginfo("nand-is-bad: %d", b);
+    logverbose("nand-is-bad: %d", b);
     return 0;
 }
 
 void DharaNand::mark_bad(const struct dhara_nand *n, dhara_block_t b) {
-    loginfo("nand-mark-bad: %d", b);
+    logverbose("nand-mark-bad: %d", b);
 }
 
 int32_t DharaNand::erase(const struct dhara_nand *n, dhara_block_t b, dhara_error_t *err) {
-    logdebug("nand-erase: %d", b);
+    logverbose("nand-erase: %d", b);
 
     auto block_size = memory_->geometry().block_size;
     auto address = b * block_size;
@@ -255,7 +255,7 @@ int32_t DharaNand::prog(const struct dhara_nand *n, dhara_page_t p, const uint8_
 }
 
 int32_t DharaNand::is_free(const struct dhara_nand *n, dhara_page_t p) {
-    loginfo("nand-is-free: page=%d", p);
+    logverbose("nand-is-free: page=%d", p);
     return 0;
 }
 
@@ -274,7 +274,7 @@ int32_t DharaNand::read(const struct dhara_nand *n, dhara_page_t p, size_t offse
 }
 
 int32_t DharaNand::copy(const struct dhara_nand *n, dhara_page_t src, dhara_page_t dst, dhara_error_t *err) {
-    loginfo("nand-copy: %d -> %d", src, dst);
+    logverbose("nand-copy: %d -> %d", src, dst);
 
     auto page_size = memory_->geometry().page_size;
 
@@ -334,7 +334,7 @@ int32_t DharaMemory::write(uint32_t address, uint8_t const *data, size_t length,
 int32_t DharaMemory::erase(uint32_t address, size_t length) {
     auto sector = address / dhara_->page_size();
 
-    loginfo("erase: %" PRIu32 " size=%" PRIu32 " (noop)", address, length);
+    logverbose("erase: %" PRIu32 " size=%" PRIu32 " (noop)", address, length);
 
     if (!dhara_->trim(sector)) {
         return -1;

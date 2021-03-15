@@ -103,7 +103,7 @@ Storage::~Storage() {
 }
 
 static bool first_open_ = true;
-static bool always_lfs_ = false;
+static bool always_lfs_ = true;
 static bool formatted_ = false;
 
 bool Storage::begin() {
@@ -130,9 +130,11 @@ bool Storage::begin() {
     lfs_enabled_ = true;
     always_lfs_ = true;
 
-    auto memory = new (pool_) TranslatingMemory(data_memory_, 512);
+    auto translated = new (pool_) TranslatingMemory(data_memory_, 512);
 
-    if (!lfs_.begin(memory, false, *pool_)) {
+    FK_ASSERT(dhara_.begin(translated, false, *pool_));
+
+    if (!lfs_.begin(dhara_.map(), false, *pool_)) {
         logerror("lfs: begin failed");
         return false;
     }
@@ -852,6 +854,12 @@ void Storage::restore(SavedState const &state) {
 bool Storage::flush() {
     if (memory_.flush() <= 0) {
         return false;
+    }
+
+    if (lfs_enabled_) {
+        if (!dhara_.sync()) {
+            return false;
+        }
     }
 
     return true;

@@ -11,6 +11,7 @@
 #include "storage/statistics_memory.h"
 #include "storage/lfs_driver.h"
 #include "storage/file_ops.h"
+#include "storage/dhara.h"
 
 namespace fk {
 
@@ -48,6 +49,7 @@ private:
     DataOps *data_ops_{ nullptr };
     bool lfs_enabled_{ false };
     LfsDriver lfs_;
+    Dhara dhara_;
 
 public:
     Storage(DataMemory *memory, Pool &pool, bool read_only = true);
@@ -67,11 +69,11 @@ public:
 public:
     bool begin();
     bool clear();
+    bool flush();
 
 public:
     File file(FileNumber file_number);
     File file(FileNumber file_number, Pool &pool);
-    bool flush();
     uint32_t fsck(ProgressCallbacks *progress);
 
 private:

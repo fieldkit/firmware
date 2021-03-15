@@ -190,7 +190,7 @@ int32_t LfsDriver::read(struct lfs_config const *cfg, lfs_block_t block, lfs_off
     auto address = block * g.block_size + off;
     auto remaining = size;
 
-    logdebug("read: %" PRIu32 " off=%" PRIu32 " size=%" PRIu32, block, off, size);
+    logverbose("read: %" PRIu32 " off=%" PRIu32 " size=%" PRIu32, block, off, size);
 
     while (remaining > 0) {
         if (memory_->read(address, (uint8_t *)buffer, cfg->read_size) != (int32_t)cfg->read_size) {

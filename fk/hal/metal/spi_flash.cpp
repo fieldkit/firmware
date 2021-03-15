@@ -262,7 +262,7 @@ int32_t SpiFlash::write_internal(uint32_t address, const uint8_t *data, size_t l
     row_address_to_bytes(address, program_execute_command + 1);
     column_address_to_bytes(address, program_load_command + 1);
 
-    logverbose("[0x%08" PRIx32 "] write: length=%d (end = [0x%08" PRIx32 "])", address, length, address + length);
+    logdebug("[0x%08" PRIx32 "] write: length=%d (end = [0x%08" PRIx32 "])", address, length, address + length);
 
     if (!is_ready()) {
         logerror("write: !ready");
@@ -349,7 +349,7 @@ int32_t SpiFlash::copy_page(uint32_t source, uint32_t destiny) {
     row_address_to_bytes(source, read_cell_command + 1);
     row_address_to_bytes(destiny, program_execute_command + 1);
 
-    loginfo("[0x%08" PRIx32 "] copy to [0x%08" PRIx32 "]", source, destiny);
+    logdebug("[0x%08" PRIx32 "] copy to [0x%08" PRIx32 "]", source, destiny);
 
     // Disable high speed read mode.
     set_feature(CMD_REGISTER_2, 0x14);
