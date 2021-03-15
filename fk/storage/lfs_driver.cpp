@@ -132,14 +132,19 @@ bool LfsDriver::begin(DataMemory *memory, bool force_create, Pool &pool) {
         return true;
     }
 
-    if (lfs_mount(&lfs_, &cfg_) != 0) {
+    auto mount_err = lfs_mount(&lfs_, &cfg_);
+    if (mount_err != 0) {
+        logwarn("mount (%d), formatting", mount_err);
+
         auto format_err = lfs_format(&lfs_, &cfg_);
         if (format_err < 0) {
+            logerror("format (%d)", format_err);
             return false;
         }
 
         auto mount_err = lfs_mount(&lfs_, &cfg_);
         if (mount_err < 0) {
+            logerror("mount (%d)", mount_err);
             return false;
         }
     }
