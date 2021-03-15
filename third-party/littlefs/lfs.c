@@ -121,7 +121,7 @@ static int lfs_bd_cmp(lfs_t *lfs,
     lfs_size_t diff = 0;
 
     for (lfs_off_t i = 0; i < size; i += diff) {
-        uint8_t dat[8];
+        uint8_t dat[256]; // NOTE jlewallen stack use.
 
         diff = lfs_min(size-i, sizeof(dat));
         int res = lfs_bd_read(lfs,
@@ -5427,4 +5427,3 @@ int lfs_migrate(lfs_t *lfs, const struct lfs_config *cfg) {
     return err;
 }
 #endif
-
