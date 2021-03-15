@@ -3,6 +3,7 @@
 #include <inttypes.h>
 #include <string.h>
 #include "secrets.h"
+#include "common/memory.h"
 
 namespace fk {
 
@@ -400,11 +401,6 @@ constexpr bool GpsLoggingRaw = false;
 // Storage
 
 /**
- * Maximum number of memory banks we're capable of supporting.
- */
-// #define FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS (2)
-
-/**
  * Maximum number of blocks to look ahead for an available block. This means we
  * can't deal with this many bad blocks sequentially.
  */
@@ -429,7 +425,7 @@ constexpr bool DebugEnableMemoryDumps = false;
 /**
  * Size of the bootloader.
  */
-constexpr uint32_t BootloaderSize = 0x8000;
+constexpr uint32_t BootloaderSize = FK_MEMORY_BOOTLOADER_SIZE;
 
 /**
  * Maximum size of the vector table at the start of the
@@ -439,17 +435,17 @@ constexpr uint32_t BootloaderSize = 0x8000;
  * Also note that this should be within NetworkBufferSize as well so
  * that first-page erases nuke this as well.
  */
-constexpr uint32_t VectorsMaximumSize = 0x40;
+constexpr uint32_t VectorsMaximumSize = FK_MEMORY_MAXIMUM_VTOR_SIZE;
 
 /**
  * Address of the primary bank of flash memory.
  */
-constexpr uint32_t PrimaryBankAddress = 0x00000;
+constexpr uint32_t PrimaryBankAddress = FK_MEMORY_FLASH_ADDRESS_RUNNING_BASE;
 
 /**
  * Address of the secondary bank of flash memory.
  */
-constexpr uint32_t OtherBankAddress = 0x80000;
+constexpr uint32_t OtherBankAddress = FK_MEMORY_FLASH_ADDRESS_UPGRADE_BASE;
 
 /**
  * Number of worker tasks to allow.

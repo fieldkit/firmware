@@ -2,6 +2,8 @@
  *
  *
  */
+#include <memory.h>
+
 #include "bl.h"
 
 extern enum reset_reason _get_reset_reason(void);
@@ -107,11 +109,11 @@ int32_t main() {
 
     bl_qspi_initialize();
 
-    fkb_header_t *flash = (fkb_header_t *)((uint32_t *)(0x00000000 + 0x8000));
-    fkb_header_t *qspi = (fkb_header_t *)((uint32_t *)(0x04000000 + 0x10000));
+    fkb_header_t *flash = (fkb_header_t *)(uint32_t *)FK_MEMORY_FLASH_ADDRESS_RUNNING_CORE;
+    fkb_header_t *qspi = (fkb_header_t *)(uint32_t *)FK_MEMORY_QSPI_ADDRESS_UPGRADE_CORE;
 
     if (bl_upgrade_firmware_necessary(flash, qspi)) {
-        if (bl_upgrade_firmware(qspi, 0x8000) < 0) {
+        if (bl_upgrade_firmware(qspi, FK_MEMORY_FLASH_ADDRESS_RUNNING_CORE) < 0) {
             // NOTE Really bad! Just really really bad. These likely
             // means there's no firmware ahead of us anymore.
             // TODO: Try again?

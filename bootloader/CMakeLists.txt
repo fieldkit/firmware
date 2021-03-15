@@ -36,6 +36,8 @@ target_link_libraries(fkbl Asf4)
 find_package(arduino-logging)
 target_link_libraries(fkbl arduino-logging)
 
+target_include_directories(fkbl PUBLIC ${CMAKE_SOURCE_DIR}/fk/common)
+
 configure_firmware_linker_script(fkbl ${CMAKE_SOURCE_DIR}/boards/samd51/bootloader.ld)
 
 add_arduino_bootloader(fkbl)
