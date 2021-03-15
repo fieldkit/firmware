@@ -60,8 +60,6 @@ static void log_task_eta() {
 
     auto gs = get_global_state_rw();
     gs.get()->scheduler.upcoming = scheduled;
-
-    logdebug("updated gs");
 }
 
 void task_handler_scheduler(void *params) {

@@ -53,7 +53,7 @@ bool ReadingsWorker::take(Pool &pool) {
 
     auto &all_readings = taken_readings->readings;
     if (all_readings.size() == 0) {
-        logwarn("no readings");
+        logwarn("empty readings");
         return false;
     }
 
@@ -112,8 +112,6 @@ bool ReadingsWorker::take(Pool &pool) {
         module_num++;
     }
 
-    logdebug("updating global state");
-
     GlobalStateManager gsm;
     gsm.apply([&](GlobalState *gs) {
         if (!read_only_) {
@@ -128,9 +126,6 @@ bool ReadingsWorker::take(Pool &pool) {
         gs->modules = modules;
 
         gs->update_physical_modules(taken_readings->constructed_modules);
-
-        logdebug("physical updated gs->modules=0x%p .modules=0x%p nmodules=%zd", modules, modules->modules,
-                 modules->nmodules);
     });
 
     return true;
@@ -167,7 +162,7 @@ tl::expected<TakenReadings, Error> ReadingsWorker::take_readings(Pool &pool) {
     StatisticsMemory memory{ MemoryFactory::get_data_memory() };
     Storage storage{ &memory, pool, read_only_ };
     if (!read_only_ && !storage.begin()) {
-        logerror("error opening storage...");
+        logerror("opening storage");
         return tl::unexpected<Error>(Error::IO);
     }
 
