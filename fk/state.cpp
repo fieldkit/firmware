@@ -157,6 +157,10 @@ bool GlobalState::flush(Pool &pool) {
         return false;
     }
 
+    if (!storage.flush()) {
+        return false;
+    }
+
     return true;
 }
 

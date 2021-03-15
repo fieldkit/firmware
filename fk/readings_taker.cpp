@@ -29,20 +29,25 @@ tl::expected<TakenReadings, Error> ReadingsTaker::take(ConstructedModulesCollect
     if (!read_only_) {
         auto all_readings = readings_.take_readings(ctx, constructed_modules, pool);
         if (!all_readings) {
-            logerror("error taking readings");
+            logerror("taking readings");
             return tl::unexpected<Error>(Error::General);
         }
 
         auto meta_record = append_configuration(constructed_modules, *all_readings, pool);
         if (!meta_record) {
-            logerror("error appending configuration");
+            logerror("appending configuration");
             return tl::unexpected<Error>(Error::General);
         }
 
         auto data_record = append_readings(*meta_record, pool);
         if (!data_record) {
-            logerror("error appending readings");
+            logerror("appending readings");
             return tl::unexpected<Error>(Error::General);
+        }
+
+        if (!storage_.flush()) {
+            logerror("flushing");
+            return tl::unexpected<Error>(Error::IO);
         }
 
         return TakenReadings{ get_clock_now(), *data_record, std::move(constructed_modules), std::move(*all_readings) };
@@ -50,7 +55,7 @@ tl::expected<TakenReadings, Error> ReadingsTaker::take(ConstructedModulesCollect
 
     auto all_readings = readings_.take_readings(ctx, constructed_modules, pool);
     if (!all_readings) {
-        logerror("error taking readings");
+        logerror("taking readings");
         return tl::unexpected<Error>(Error::General);
     }
 

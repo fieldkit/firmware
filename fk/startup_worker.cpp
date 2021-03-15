@@ -145,6 +145,10 @@ bool StartupWorker::load_or_create_state(Pool &pool) {
         if (!create_new_state(storage, gs.get(), pool)) {
             logerror("error creating new state");
         }
+
+        if (!storage.flush()) {
+            logerror("flush storage");
+        }
     }
 
     get_sd_card()->name(gs.get()->general.name);
