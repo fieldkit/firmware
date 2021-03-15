@@ -85,6 +85,9 @@ target_link_libraries(testall CortexLoading)
 find_package(Lfs)
 target_link_libraries(testall Lfs)
 
+find_package(Dhara)
+target_link_libraries(testall Dhara)
+
 find_package(Samd51Common)
 target_link_libraries(testall Samd51Common)
 

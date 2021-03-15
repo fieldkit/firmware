@@ -51,6 +51,9 @@ target_link_libraries(fstool ConservifyOS)
 find_package(Lfs)
 target_link_libraries(fstool Lfs)
 
+find_package(Dhara)
+target_link_libraries(fstool Dhara)
+
 find_package(Samd51Common)
 target_link_libraries(fstool Samd51Common)
 

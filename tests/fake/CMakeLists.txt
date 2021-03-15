@@ -48,6 +48,9 @@ target_link_libraries(fake CortexLoading)
 find_package(Lfs)
 target_link_libraries(fake Lfs)
 
+find_package(Dhara)
+target_link_libraries(fake Dhara)
+
 find_package(ConservifyOS)
 target_link_libraries(fake ConservifyOS)
 
