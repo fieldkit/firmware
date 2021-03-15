@@ -54,6 +54,10 @@ public:
         statistics_.log();
     }
 
+    void clear() {
+        statistics_ = {};
+    }
+
 };
 
 }

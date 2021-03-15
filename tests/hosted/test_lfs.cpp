@@ -30,8 +30,6 @@ TEST_F(LfsSuite, CreateAndAppendDataRecords) {
     LfsDriver lfs_driver;
     ASSERT_TRUE(lfs_driver.begin(&memory, true, pool));
 
-    auto lfs = lfs_driver.lfs();
-
     FileMap map{ &lfs_driver, "data", 5, pool };
     RecordAppender appender{ &lfs_driver, &map, 1024 * 100, pool };
 
@@ -44,7 +42,7 @@ TEST_F(LfsSuite, CreateAndAppendDataRecords) {
         ASSERT_EQ(appended->record, i);
     }
 
-    lfs_unmount(lfs);
+    lfs_unmount(lfs_driver.lfs());
 }
 
 TEST_F(LfsSuite, AppendChanges) {

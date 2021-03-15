@@ -120,11 +120,13 @@ bool LfsDriver::begin(DataMemory *memory, bool force_create, Pool &pool) {
     if (force_create) {
         auto format_err = lfs_format(&lfs_, &cfg_);
         if (format_err < 0) {
+            logerror("format (%d)", format_err);
             return false;
         }
 
         auto mount_err = lfs_mount(&lfs_, &cfg_);
         if (mount_err < 0) {
+            logerror("mount (%d)", mount_err);
             return false;
         }
         return true;
@@ -183,7 +185,7 @@ int32_t LfsDriver::read(struct lfs_config const *cfg, lfs_block_t block, lfs_off
     auto address = block * g.block_size + off;
     auto remaining = size;
 
-    logverbose("read: %" PRIu32 " off=%" PRIu32 " size=%" PRIu32, block, off, size);
+    logdebug("read: %" PRIu32 " off=%" PRIu32 " size=%" PRIu32, block, off, size);
 
     while (remaining > 0) {
         if (memory_->read(address, (uint8_t *)buffer, cfg->read_size) != (int32_t)cfg->read_size) {

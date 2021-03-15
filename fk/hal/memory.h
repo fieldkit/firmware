@@ -56,6 +56,7 @@ struct FlashGeometry {
     }
 
     bool is_address_valid(uint32_t address) const {
+        FK_ASSERT(total_size > 0);
         return address >= 0 && address < total_size;
     }
 

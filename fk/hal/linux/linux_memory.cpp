@@ -66,8 +66,8 @@ int32_t LinuxDataMemory::read(uint32_t address, uint8_t *data, size_t length, Me
     }
 
     // NOTE Disabled temporarily to test LFS storage.
-    // size_t page = address / PageSize;
-    // assert((address + length - 1) / PageSize == page);
+    size_t page = address / PageSize;
+    assert((address + length - 1) / PageSize == page);
 
     size_t block = address / BlockSize;
     size_t start_of_block = block * BlockSize;
@@ -93,8 +93,8 @@ int32_t LinuxDataMemory::write(uint32_t address, const uint8_t *data, size_t len
     }
 
     // NOTE Disabled temporarily to test LFS storage.
-    // size_t page = address / PageSize;
-    // assert((address + length - 1) / PageSize == page);
+    size_t page = address / PageSize;
+    assert((address + length - 1) / PageSize == page);
 
     size_t block = address / BlockSize;
     size_t start_of_block = block * BlockSize;
