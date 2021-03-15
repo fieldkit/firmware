@@ -343,16 +343,21 @@ PoolPointer<NetworkConnection> *MetalNetwork::open_connection(const char *scheme
 bool MetalNetwork::stop() {
     if (enabled_) {
         if (serving_) {
+            logdebug("ntp-stop");
             ntp_.stop();
             // Ensure the previous removal gets loose?
             fk_delay(500);
+            logdebug("udp-stop");
             udp_discovery_.stop();
+            logdebug("mdns-stop");
             mdns_discovery_.stop();
             serving_ = false;
         }
+        logdebug("wifi-end");
         WiFi.end();
-        enabled_ = false;
+        logdebug("disable-wifi");
         get_board()->disable_wifi();
+        enabled_ = false;
     }
     pool_ = nullptr;
     return true;
