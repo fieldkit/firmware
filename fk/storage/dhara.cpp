@@ -278,13 +278,8 @@ int32_t DharaNand::copy(const struct dhara_nand *n, dhara_page_t src, dhara_page
 
     auto page_size = memory_->geometry().page_size;
 
-    if (memory_->read(src * page_size, copy_buffer_, page_size) < 0) {
-        logerror("reading");
-        return -1;
-    }
-
-    if (memory_->write(dst * page_size, copy_buffer_, page_size) < 0) {
-        logerror("writing");
+    if (memory_->copy_page(src * page_size, dst * page_size, page_size) < 0) {
+        logerror("copy-page");
         return -1;
     }
 

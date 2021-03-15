@@ -178,18 +178,22 @@ bool SpiFlash::reset() {
         return false;
     }
 
-    /* Unlock all blocks. */
+    // Unlock all blocks.
     set_feature(CMD_REGISTER_1, 0xB8);
     set_feature(CMD_REGISTER_1, 0x00 | (0x1 << 7));
 
-    /* Disable ECC. */
+    // Disable ECC.
     // set_feature(CMD_REGISTER_2, 0b00000110);
 
     return ok;
 }
 
 int32_t SpiFlash::read(uint32_t address, uint8_t *data, size_t length) {
-    // FK_ASSERT_LE((address % PageSize) + length, PageSize);
+    auto page_size = geometry_.page_size;
+
+    FK_ASSERT_LE((address % page_size) + length, page_size);
+
+    logverbose("[0x%08" PRIx32 "] read: length=%d (end = [0x%08" PRIx32 "])", address, length, address + length);
 
     uint8_t read_cell_command[] = { CMD_READ_CELL_ARRAY, 0x00, 0x00, 0x00 }; // 7dummy/17 (Row)
     uint8_t read_buffer_command[] = { CMD_READ_BUFFER, 0x00, 0x00, 0x00 };   // 4dummy/12/8dummy // (Col)
@@ -197,30 +201,24 @@ int32_t SpiFlash::read(uint32_t address, uint8_t *data, size_t length) {
     row_address_to_bytes(address, read_cell_command + 1);
     column_address_to_bytes(address, read_buffer_command + 1);
 
-    // auto lock = spi_flash_mutex.acquire(UINT32_MAX);
-    // FK_ASSERT(lock);
-
     if (!is_ready()) {
         logerror("read: !ready");
         return -1;
     }
 
-    /* Disable high speed read mode. */
-    // set_feature(CMD_REGISTER_2, 0x14);
-
-    /* Load page into buffer. */
+    // Load page into buffer.
     if (!complex_command(read_cell_command, sizeof(read_cell_command))) {
         logerror("read: read cell failed");
         return -1;
     }
 
-    /* Wait for buffer to fill with data from cell array. */
+    // Wait for buffer to fill with data from cell array.
     if (!is_ready(false)) {
         logerror("read: read cell !ready");
         return -1;
     }
 
-    /* Read the buffer in. */
+    // Read the buffer in.
     if (!transfer(read_buffer_command, sizeof(read_buffer_command), nullptr, data, length)) {
         logerror("read: read buffer failed");
         return -1;
@@ -264,39 +262,36 @@ int32_t SpiFlash::write_internal(uint32_t address, const uint8_t *data, size_t l
     row_address_to_bytes(address, program_execute_command + 1);
     column_address_to_bytes(address, program_load_command + 1);
 
-    logverbose("[0x%08" PRIx32 "] write: length=%d (end = [0x%06" PRIx32 "])", address, length, address + length);
-
-    // auto lock = spi_flash_mutex.acquire(UINT32_MAX);
-    // FK_ASSERT(lock);
+    logverbose("[0x%08" PRIx32 "] write: length=%d (end = [0x%08" PRIx32 "])", address, length, address + length);
 
     if (!is_ready()) {
-        logerror("flush: !ready");
+        logerror("write: !ready");
         return 0;
     }
 
     if (!enable_writes()) {
-        logerror("flush: enabling writes failed");
+        logerror("write: enabling writes failed");
         return 0;
     }
 
     if (!transfer(program_load_command, sizeof(program_load_command), data, nullptr, length)) {
-        logerror("flush: program load failed");
+        logerror("write: program load failed");
         return 0;
     }
 
     /* May be unnecessary. */
     if (!is_ready()) {
-        logerror("flush: program load !ready");
+        logerror("write: program load !ready");
         return 0;
     }
 
     if (!complex_command(program_execute_command, sizeof(program_execute_command))) {
-        logerror("flush: program execute failed");
+        logerror("write: program execute failed");
         return 0;
     }
 
     if (!is_ready()) {
-        logerror("flush: program execute !ready");
+        logerror("write: program execute !ready");
         return 0;
     }
 
@@ -319,10 +314,7 @@ int32_t SpiFlash::erase_block_internal(uint32_t address) {
     uint8_t command[] = { CMD_ERASE_BLOCK, 0x00, 0x00, 0x00 }; // 7dummy/17 (Row)
     row_address_to_bytes(address, command + 1);
 
-    // auto lock = spi_flash_mutex.acquire(UINT32_MAX);
-    // FK_ASSERT(lock);
-
-    logverbose("[0x%06" PRIx32 "] erase", address);
+    logverbose("[0x%08" PRIx32 "] erase", address);
 
     if (!is_ready()) {
         logerror("erase: !ready");
@@ -338,13 +330,60 @@ int32_t SpiFlash::erase_block_internal(uint32_t address) {
     }
 
     if (!transfer(command, sizeof(command), nullptr, nullptr, 0)) {
-        logerror("erase: erase failed [0x%06" PRIx32 "]", address);
+        logerror("erase: erase failed [0x%08" PRIx32 "]", address);
         return -1;
     }
 
     if (!is_ready()) {
         logerror("erase: erase !ready");
         return -1;
+    }
+
+    return 0;
+}
+
+int32_t SpiFlash::copy_page(uint32_t source, uint32_t destiny) {
+    uint8_t read_cell_command[] = { CMD_READ_CELL_ARRAY, 0x00, 0x00, 0x00 }; // 7dummy/17 (Row)
+    uint8_t program_execute_command[] = { CMD_PROGRAM_EXECUTE, 0x00, 0x00, 0x00 }; // 7dummy/17
+
+    row_address_to_bytes(source, read_cell_command + 1);
+    row_address_to_bytes(destiny, program_execute_command + 1);
+
+    loginfo("[0x%08" PRIx32 "] copy to [0x%08" PRIx32 "]", source, destiny);
+
+    // Disable high speed read mode.
+    set_feature(CMD_REGISTER_2, 0x14);
+
+    if (!is_ready()) {
+        logerror("copy: !ready");
+        return -1;
+    }
+
+    // Load page into buffer.
+    if (!complex_command(read_cell_command, sizeof(read_cell_command))) {
+        logerror("copy: read cell failed");
+        return -1;
+    }
+
+    // Wait for buffer to fill with data from cell array.
+    if (!is_ready(false)) {
+        logerror("copy: read cell !ready");
+        return -1;
+    }
+
+    if (!enable_writes()) {
+        logerror("write: enabling writes failed");
+        return 0;
+    }
+
+    if (!complex_command(program_execute_command, sizeof(program_execute_command))) {
+        logerror("copy: program execute failed");
+        return 0;
+    }
+
+    if (!is_ready()) {
+        logerror("copy: program execute !ready");
+        return 0;
     }
 
     return 0;

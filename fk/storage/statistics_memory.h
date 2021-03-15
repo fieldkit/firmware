@@ -46,6 +46,10 @@ public:
 
     int32_t erase(uint32_t address, size_t length) override;
 
+    int32_t copy_page(uint32_t source, uint32_t destiny, size_t page_size) override {
+        return target_->copy_page(source, destiny, page_size);
+    }
+
     int32_t flush() override;
 
     MemoryStatistics &statistics();

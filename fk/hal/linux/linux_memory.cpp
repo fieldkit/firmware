@@ -130,6 +130,18 @@ int32_t LinuxDataMemory::erase_block(uint32_t address) {
     return 0;
 }
 
+int32_t LinuxDataMemory::copy_page(uint32_t source, uint32_t destiny, size_t length) {
+    assert(source >= 0 && source < geometry_.total_size);
+    assert(source % PageSize == 0);
+    assert(destiny >= 0 && destiny < geometry_.total_size);
+    assert(destiny % PageSize == 0);
+    assert(length == PageSize);
+
+    memcpy(memory_ + destiny, memory_ + source, PageSize);
+
+    return 0;
+}
+
 int32_t LinuxDataMemory::flush() {
     return true;
 }

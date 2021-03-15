@@ -43,6 +43,8 @@ public:
 
     int32_t write(uint32_t address, const uint8_t *data, size_t length);
 
+    int32_t copy_page(uint32_t source, uint32_t destiny);
+
     int32_t erase_block(uint32_t address);
 
     const uint8_t *id() const {
