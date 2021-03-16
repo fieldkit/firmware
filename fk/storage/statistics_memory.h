@@ -8,6 +8,7 @@ typedef struct MemoryStatistics {
     uint32_t nreads{ 0 };
     uint32_t nwrites{ 0 };
     uint32_t nerases{ 0 };
+    uint32_t ncopies{ 0 };
     uint32_t bytes_read{ 0 };
     uint32_t bytes_wrote{ 0 };
 
@@ -23,7 +24,7 @@ typedef struct MemoryStatistics {
 
     void add(MemoryStatistics s);
 
-    void log() const;
+    void log(const char *prefix) const;
 } MemoryStatistics;
 
 class StatisticsMemory : public DataMemory {
@@ -46,16 +47,14 @@ public:
 
     int32_t erase(uint32_t address, size_t length) override;
 
-    int32_t copy_page(uint32_t source, uint32_t destiny, size_t page_size) override {
-        return target_->copy_page(source, destiny, page_size);
-    }
+    int32_t copy_page(uint32_t source, uint32_t destiny, size_t page_size) override;
 
     int32_t flush() override;
 
     MemoryStatistics &statistics();
 
-    void log_statistics() {
-        statistics_.log();
+    void log_statistics(const char *prefix) {
+        statistics_.log(prefix);
     }
 
     void clear() {

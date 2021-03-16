@@ -116,7 +116,7 @@ bool Dhara::sync() {
     }
 
     if (mapped_ != nullptr) {
-        mapped_->log_statistics();
+        mapped_->log_statistics("dhara usage: ");
     }
 
     return true;

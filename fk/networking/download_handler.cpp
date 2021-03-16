@@ -72,7 +72,7 @@ void DownloadWorker::run(Pool &pool) {
         loginfo("range #%" PRIu32 " - #%" PRIu32 " size = %" PRIu32 " %s", info.first_block, info.last_block, info.size, is_head ? "HEAD": "GET");
     }
 
-    memory.log_statistics();
+    memory.log_statistics("flash usage: ");
 
     if (!write_headers(info)) {
         connection_->close();
@@ -120,7 +120,7 @@ void DownloadWorker::run(Pool &pool) {
 
     connection_->close();
 
-    memory.log_statistics();
+    memory.log_statistics("flash usage: ");
 }
 
 bool DownloadWorker::write_headers(HeaderInfo header_info) {

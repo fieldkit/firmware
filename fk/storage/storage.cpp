@@ -91,7 +91,7 @@ SeekSettings SeekSettings::end_of(uint8_t file) {
 }
 
 Storage::Storage(DataMemory *memory, Pool &pool, bool read_only)
-    : data_memory_(memory), pool_(&pool), memory_(memory, pool), bad_blocks_(memory, pool),
+    : data_memory_(memory), pool_(&pool), memory_(memory, pool), statistics_data_memory_(data_memory_), bad_blocks_(memory, pool),
       read_only_(read_only) {
     FK_ASSERT(memory != nullptr);
 }
@@ -130,7 +130,7 @@ bool Storage::begin() {
     lfs_enabled_ = true;
     always_lfs_ = true;
 
-    auto translated = new (pool_) TranslatingMemory(data_memory_, 512);
+    auto translated = new (pool_) TranslatingMemory(&statistics_data_memory_, 512);
 
     FK_ASSERT(dhara_.begin(translated, false, *pool_));
 
@@ -861,6 +861,8 @@ bool Storage::flush() {
             return false;
         }
     }
+
+    statistics_data_memory_.log_statistics("flash usage: ");
 
     return true;
 }

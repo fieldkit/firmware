@@ -38,6 +38,7 @@ private:
     DataMemory *data_memory_;
     Pool *pool_;
     SequentialWrapper<BufferedPageMemory> memory_;
+    StatisticsMemory statistics_data_memory_;
     BadBlocks bad_blocks_;
     FileHeader files_[NumberOfFiles];
     BlockNumber file_headers_block_;
