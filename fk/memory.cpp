@@ -58,8 +58,9 @@ void *fk_standard_page_malloc(size_t size, const char *name) {
 
     for (auto i = 0u; i < SizeOfStandardPagePool; ++i) {
         if (pages[i].available) {
+            pages[i].available = false;
             selected = i;
-            if (selected > (int32_t)highwater) {
+            if (i > highwater) {
                 highwater = selected;
             }
             break;
@@ -69,7 +70,6 @@ void *fk_standard_page_malloc(size_t size, const char *name) {
     FK_ENABLE_IRQ();
 
     if (selected >= 0) {
-        pages[selected].available = false;
         pages[selected].owner = name;
         #if defined(__SAMD51__)
         pages[selected].allocated = fk_uptime();
@@ -93,9 +93,12 @@ void *fk_standard_page_malloc(size_t size, const char *name) {
 }
 
 void fk_standard_page_free(void *ptr) {
+    const char *owner = "<unknown>";
     auto selected = -1;
 
-    FK_DISABLE_IRQ();
+    // Before we actually free, we still own the page, so we can
+    // garble/zero the page before. Before we do that let's make sure
+    // we have a valid page pointer.
 
     for (auto i = 0u; i < SizeOfStandardPagePool; ++i) {
         if (pages[i].base == ptr && pages[i].base != nullptr) {
@@ -104,22 +107,26 @@ void fk_standard_page_free(void *ptr) {
         }
     }
 
-    FK_ENABLE_IRQ();
-
-    if (selected < 0) {
-        FK_ASSERT(false);
-        return;
-    }
-
-    logdebug("[%2d] free '%s'", selected, pages[selected].owner);
+    FK_ASSERT(selected >= 0);
 
     #if defined(FK_ENABLE_MEMORY_GARBLE)
-    fk_memory_garble(pages[selected].base, StandardPageSize);
+    fk_memory_garble(ptr, StandardPageSize);
     #else
-    bzero(pages[selected].base, StandardPageSize);
+    bzero(ptr, StandardPageSize);
     #endif
-    pages[selected].available = true;
+
+    // Now we can atomicly update the global pages array. Notice that
+    // this is probably unnecessary.
+
+    FK_DISABLE_IRQ();
+
+    owner = pages[selected].owner;
     pages[selected].owner = nullptr;
+    pages[selected].available = true;
+
+    FK_ENABLE_IRQ();
+
+    logdebug("[%2d] free '%s'", selected, owner);
 
     return;
 }
