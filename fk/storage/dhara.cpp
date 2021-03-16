@@ -235,6 +235,8 @@ int32_t DharaNand::erase(const struct dhara_nand *n, dhara_block_t b, dhara_erro
     auto address = b * block_size;
     if (memory_->erase(address, block_size) < 0) {
         logerror("erase");
+        *err = DHARA_E_BAD_BLOCK;
+        return -1;
     }
 
     return 0;

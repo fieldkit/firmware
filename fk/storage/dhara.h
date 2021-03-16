@@ -4,6 +4,7 @@ extern "C" {
 
 #include <dhara/map.h>
 #include <dhara/nand.h>
+#include <dhara/error.h>
 
 }
 
