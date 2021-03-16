@@ -240,8 +240,3 @@ const struct fkb_header_t fkb_header = {
     .number_symbols     = 0,
     .number_relocations = 0
 };
-
-__attribute__((section(".fkb.launch")))
-fkb_launch_info_t fkb_launch_info = {
-    .upgrading = 0,
-};

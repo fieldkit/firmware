@@ -48,37 +48,62 @@ SECTIONS
 
   __exidx_end = .;
 
-  __etext_global = .;
+  __etext = .;
+  _etext = .;
 
-  .data.rtt : AT(__etext_global)
+  .data.rtt : AT (__etext)
   {
+    _srelocate = .;
+    __data_start__ = .;
     *(SORT_BY_INIT_PRIORITY(.rtt.control))
     *(SORT_BY_INIT_PRIORITY(.rtt.buffers))
   } > RAM
 
-  .data.fkb.launch (NOLOAD) :
+  .data ALIGN(4) :
   {
-    KEEP(*(.fkb.launch))
-  } > RAM
-
-  __etext = __etext_global + SIZEOF(.data.rtt) + SIZEOF(.data.fkb.launch);
-
-  .data : AT (__etext)
-  {
-    __data_start__ = .;
     *(.data*)
+
+    . = ALIGN(4);
+    PROVIDE_HIDDEN (__preinit_array_start = .);
+    KEEP(*(.preinit_array))
+    PROVIDE_HIDDEN (__preinit_array_end = .);
+
+    . = ALIGN(4);
+    PROVIDE_HIDDEN (__init_array_start = .);
+    KEEP(*(SORT(.init_array.*)))
+    KEEP(*(.init_array))
+    PROVIDE_HIDDEN (__init_array_end = .);
+
+    . = ALIGN(4);
+    PROVIDE_HIDDEN (__fini_array_start = .);
+    KEEP(*(SORT(.fini_array.*)))
+    KEEP(*(.fini_array))
+    PROVIDE_HIDDEN (__fini_array_end = .);
+
     . = ALIGN(4);
     __data_end__ = .;
+    _erelocate = .;
   } > RAM
 
-  .bss :
+  .bss (NOLOAD) :
   {
     . = ALIGN(4);
+    _szero = .;
     __bss_start__ = .;
     *(.bss*)
     *(COMMON)
     . = ALIGN(4);
     __bss_end__ = .;
+    _ezero = .;
+  } > RAM
+
+  .noinit (NOLOAD) :
+  {
+    . = ALIGN(4);
+    __noinit_start__ = .;
+    *(.noinit*)
+    . = ALIGN(4);
+    __noinit_end__ = .;
   } > RAM
 
   .heap (COPY):
