@@ -105,6 +105,7 @@ Storage::~Storage() {
 static bool first_open_ = true;
 static bool always_lfs_ = true;
 static bool formatted_ = false;
+static bool dhara_enabled_ = true;
 
 bool Storage::begin() {
     #if defined(__SAMD51__)
@@ -130,11 +131,15 @@ bool Storage::begin() {
     lfs_enabled_ = true;
     always_lfs_ = true;
 
-    auto translated = new (pool_) TranslatingMemory(&statistics_data_memory_, 512);
+    DataMemory *translated = new (pool_) TranslatingMemory(&statistics_data_memory_, 512);
 
-    FK_ASSERT(dhara_.begin(translated, false, *pool_));
+    if (dhara_enabled_) {
+        FK_ASSERT(dhara_.begin(translated, false, *pool_));
 
-    if (!lfs_.begin(dhara_.map(), false, *pool_)) {
+        translated = dhara_.map();
+    }
+
+    if (!lfs_.begin(translated, false, *pool_)) {
         logerror("lfs: begin failed");
         return false;
     }
@@ -856,7 +861,7 @@ bool Storage::flush() {
         return false;
     }
 
-    if (lfs_enabled_) {
+    if (dhara_enabled_) {
         if (!dhara_.sync()) {
             return false;
         }
