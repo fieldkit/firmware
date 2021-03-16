@@ -15,7 +15,7 @@ class FkSegger(gdb.Command):
         if arg is None or len(arg) == 0:
             print("Pass JLink port: js 2331")
             return
-        if False:
+        if True:
             gdb.execute("add-symbol-file build/samd51/bootloader/fkbl.elf 0x0000")
         gdb.execute("target extended-remote :" + arg)
         gdb.execute("monitor exec SetRTTSearchRanges 0x20000000 64")
