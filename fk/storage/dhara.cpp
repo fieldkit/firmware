@@ -334,13 +334,15 @@ int32_t DharaMemory::write(uint32_t address, uint8_t const *data, size_t length,
 }
 
 int32_t DharaMemory::erase(uint32_t address, size_t length) {
-    auto sector = address / dhara_->page_size();
-
     logverbose("erase: %" PRIu32 " size=%" PRIu32 " (noop)", address, length);
 
-    if (!dhara_->trim(sector)) {
-        return -1;
-    }
+    return for_each_block_between(address, length, dhara_->block_size(), [=](uint32_t block_address) {
+        auto sector = block_address / dhara_->page_size();
+        if (!dhara_->trim(sector)) {
+            return -1;
+        }
+        return 0;
+    });
 
     return 0;
 }
