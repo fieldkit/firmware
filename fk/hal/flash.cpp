@@ -83,11 +83,14 @@ int32_t Flash::write(uint32_t address, uint8_t const *data, size_t size) {
 }
 
 int32_t Flash::erase(uint32_t address, size_t size) {
-    auto pages = aligned_on(size, page_size()) / page_size();
-    if (flash_erase(&FLASH_0, address, pages) == 0) {
-        return size;
+    auto erasing = 0u;
+    while (erasing < size) {
+        if (flash_erase(&FLASH_0, address + erasing, CodeMemoryBlockSize / CodeMemoryPageSize) < 0) {
+            return -1;
+        }
+        erasing += CodeMemoryBlockSize;
     }
-    return -1;
+    return size;
 }
 
 #else

@@ -20,6 +20,7 @@ optional<bool> verify_flash_binary_hash(FlashMemory *flash, uint32_t address, ui
     BLAKE2b b2b;
     b2b.reset(Hash::Length);
 
+    auto hash_included = true;
     auto flash_address = address;
     auto total_bytes = (uint32_t)0u;
     auto buffer = (uint8_t *)pool.malloc(page_size);
@@ -35,11 +36,17 @@ optional<bool> verify_flash_binary_hash(FlashMemory *flash, uint32_t address, ui
 
         // TODO Could we end up breaking the hash into two reads?
         if (total_bytes == binary_size_including_hash) {
+            hash_included = false;
             b2b.update(buffer, nread - Hash::Length);
         }
         else {
             b2b.update(buffer, nread);
         }
+    }
+
+    if (!hash_included) {
+        logerror("hash failed, never saw tail hash");
+        return nullopt;
     }
 
     Hash actual_hash;
@@ -55,7 +62,7 @@ optional<bool> verify_flash_binary_hash(FlashMemory *flash, uint32_t address, ui
     Hash flash_hash;
     auto hash_address = address + binary_size_including_hash - Hash::Length;
     if (!flash->read(hash_address, (uint8_t *)&flash_hash.hash, Hash::Length)) {
-        logerror("error reading hash");
+        logerror("reading hash");
         return nullopt;
     }
 
@@ -97,7 +104,7 @@ bool copy_memory_to_flash(FlashMemory *flash, uint8_t const *buffer, size_t size
     loginfo("[0x%08" PRIx32 "] erasing to [0x%08" PRIx32 "]", address, (uint32_t)(address + size));
 
     if (!flash->erase(address, size)) {
-        logerror("error rasing");
+        logerror("error erasing");
     }
 
     loginfo("[0x%08" PRIx32 "] copying %zd bytes", address, size);
@@ -134,7 +141,7 @@ bool copy_sd_to_flash(const char *path, FlashMemory *flash, uint32_t address, ui
     // Open the file and get the file size.
     auto sd = get_sd_card();
     if (!sd->begin()) {
-        logerror("error opening sd card");
+        logerror("opening sd card");
         return false;
     }
 
