@@ -107,7 +107,10 @@ void fk_standard_page_free(void *ptr) {
         }
     }
 
-    FK_ASSERT(selected >= 0);
+    if (selected == -1) {
+        logerror("unknown page pointer: %p", ptr);
+        FK_ASSERT(selected != -1);
+    }
 
     #if defined(FK_ENABLE_MEMORY_GARBLE)
     fk_memory_garble(ptr, StandardPageSize);
