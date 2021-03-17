@@ -11,11 +11,11 @@ BadBlocks::BadBlocks(DataMemory *memory, Pool &pool) : memory_(memory), pool_(&p
 
     geometry_ = memory->geometry();
 
-    auto size = geometry_.number_of_blocks() / 8;
+    size_ = geometry_.number_of_blocks() / 8;
 
-    loginfo("allocating bad blocks table (%" PRIu32 " bytes)", size);
-    table_ = (uint8_t *)pool_->malloc(size);
-    bzero(table_, size);
+    loginfo("allocating bad blocks table (%" PRIu32 " bytes)", size_);
+    table_ = (uint8_t *)pool_->malloc(size_);
+    bzero(table_, size_);
 }
 
 BadBlocks::~BadBlocks() {
@@ -28,15 +28,19 @@ void BadBlocks::mark_address_as_bad(uint32_t address) {
 
 void BadBlocks::mark_block_as_bad(uint32_t block) {
     loginfo("[" PRADDRESS "] marking block #%" PRIu32 " bad", block * geometry_.block_size, block);
-    table_[block / 8] |= (1 << block % 8);
+    table_[block / 8] |= (1 << block % 8) & 0xff;
 }
 
 bool BadBlocks::is_address_bad(uint32_t address) const {
+    if (!is_address_valid(address)) {
+        return false;
+    }
     return is_block_bad(address / geometry_.block_size);
 }
 
 bool BadBlocks::is_block_bad(uint32_t block) const {
-    return table_[block / 8] & (1 << block % 8);
+    FK_ASSERT(block < geometry_.number_of_blocks());
+    return (table_[block / 8] & (1 << block % 8)) > 0;
 }
 
 }

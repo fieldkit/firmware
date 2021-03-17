@@ -7,10 +7,11 @@ namespace fk {
 
 class BadBlocks {
 private:
-    DataMemory *memory_;
-    Pool *pool_;
+    DataMemory *memory_{ nullptr };
+    Pool *pool_{ nullptr };
     FlashGeometry geometry_;
-    uint8_t *table_;
+    uint8_t *table_{ nullptr };
+    size_t size_{ 0 };
 
 public:
     BadBlocks(DataMemory *memory, Pool &pool);

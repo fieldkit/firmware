@@ -366,6 +366,7 @@ uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address, BlockTa
         files_[file].tail = first_record_address;
 
         BlockHeader block_header;
+        bzero((void *)&block_header, sizeof(BlockHeader));
         block_header.magic.fill();
         block_header.file = file;
         block_header.timestamp = timestamp_;
