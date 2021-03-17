@@ -105,18 +105,18 @@ static void fake_global_state(GlobalState &gs, Pool &pool) {
     fk_uuid_t module_id;
     fake_data(module_id.data);
 
-    auto module_sensors = pool.malloc_with<SensorState, 10>({
-        { .name = "sensor-0", .unit_of_measure = "m", .flags = 0, .has_live_vaue = true, .live_value = module_readings->get(0) },
-        { .name = "sensor-1", .unit_of_measure = "m", .flags = 0, .has_live_vaue = true, .live_value = module_readings->get(1) },
-        { .name = "sensor-2", .unit_of_measure = "m", .flags = 0, .has_live_vaue = true, .live_value = module_readings->get(2) },
-        { .name = "sensor-3", .unit_of_measure = "m", .flags = 0, .has_live_vaue = true, .live_value = module_readings->get(3) },
-        { .name = "sensor-4", .unit_of_measure = "m", .flags = 0, .has_live_vaue = true, .live_value = module_readings->get(4) },
-        { .name = "sensor-5", .unit_of_measure = "m", .flags = 0, .has_live_vaue = true, .live_value = module_readings->get(5) },
-        { .name = "sensor-6", .unit_of_measure = "m", .flags = 0, .has_live_vaue = true, .live_value = module_readings->get(6) },
-        { .name = "sensor-7", .unit_of_measure = "m", .flags = 0, .has_live_vaue = true, .live_value = module_readings->get(7) },
-        { .name = "sensor-8", .unit_of_measure = "m", .flags = 0, .has_live_vaue = true, .live_value = module_readings->get(8) },
-        { .name = "sensor-9", .unit_of_measure = "m", .flags = 0, .has_live_vaue = true, .live_value = module_readings->get(9) },
-    });
+    auto i = 0u;
+    auto module_sensors = pool.malloc<SensorState>(10);
+    module_sensors[i++] = { .name = "sensor-0", .unit_of_measure = "m", .flags = 0, .has_live_vaue = true, .live_value = module_readings->get(0) };
+    module_sensors[i++] = { .name = "sensor-1", .unit_of_measure = "m", .flags = 0, .has_live_vaue = true, .live_value = module_readings->get(1) };
+    module_sensors[i++] = { .name = "sensor-2", .unit_of_measure = "m", .flags = 0, .has_live_vaue = true, .live_value = module_readings->get(2) };
+    module_sensors[i++] = { .name = "sensor-3", .unit_of_measure = "m", .flags = 0, .has_live_vaue = true, .live_value = module_readings->get(3) };
+    module_sensors[i++] = { .name = "sensor-4", .unit_of_measure = "m", .flags = 0, .has_live_vaue = true, .live_value = module_readings->get(4) };
+    module_sensors[i++] = { .name = "sensor-5", .unit_of_measure = "m", .flags = 0, .has_live_vaue = true, .live_value = module_readings->get(5) };
+    module_sensors[i++] = { .name = "sensor-6", .unit_of_measure = "m", .flags = 0, .has_live_vaue = true, .live_value = module_readings->get(6) };
+    module_sensors[i++] = { .name = "sensor-7", .unit_of_measure = "m", .flags = 0, .has_live_vaue = true, .live_value = module_readings->get(7) };
+    module_sensors[i++] = { .name = "sensor-8", .unit_of_measure = "m", .flags = 0, .has_live_vaue = true, .live_value = module_readings->get(8) };
+    module_sensors[i++] = { .name = "sensor-9", .unit_of_measure = "m", .flags = 0, .has_live_vaue = true, .live_value = module_readings->get(9) };
 
     auto module_states = pool.malloc_with<ModuleState>({
         .position = ModulePosition::from(0),
