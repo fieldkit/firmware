@@ -243,3 +243,122 @@ TEST_F(DharaSuite, RewriteSector0OverAndOver) {
         }
     }
 }
+
+#define DE_CREATE           (1)
+#define DE_UNLINK           (2)
+#define DE_SECTOR           (4)
+#define DE_UPDATE           (5)
+#define DE_INLINE           (6)
+
+struct phy_superblock_t {
+    char magic[8];
+    uint32_t version;
+    uint32_t nsectors;
+};
+
+struct phy_directory_entry_t {
+    uint8_t type;
+};
+
+struct phy_sector_chain_t {
+    phy_directory_entry_t entry;
+    uint32_t head;
+    uint32_t nsectors;
+    uint32_t tail;
+};
+
+struct phy_attribute_t {
+    uint8_t type;
+    uint32_t size : 24;
+};
+
+struct phy_file_create_t {
+    phy_directory_entry_t entry;
+    uint32_t id;
+    uint32_t size;
+    uint32_t head;
+    uint32_t tail;
+    char name[128];
+    uint16_t nattrs;
+};
+
+struct phy_file_sector_t {
+    phy_directory_entry_t entry;
+    uint32_t id;
+    uint32_t size;
+    uint32_t sector;
+    uint16_t nattrs;
+};
+
+struct phy_file_unlink_t {
+    phy_directory_entry_t entry;
+    uint32_t id;
+};
+
+struct phy_file_data_inline_t {
+    phy_directory_entry_t entry;
+    uint32_t id;
+    uint32_t size;
+};
+
+struct phy_file_data_link_t {
+    phy_directory_entry_t entry;
+    uint32_t id;
+    uint32_t sector;
+};
+
+int32_t phy_sector_chain_initialize(phy_sector_chain_t *sc, uint32_t head) {
+    return 0;
+}
+
+int32_t phy_sector_chain_iterate(phy_sector_chain_t *sc) {
+    return 0;
+}
+
+int32_t phy_sector_chain_eoc_get(phy_sector_chain_t *sc) {
+    return 0;
+}
+
+dhara_sector_t phy_sector_chain_sector_get(phy_sector_chain_t *sc) {
+    return 0;
+}
+
+class DirectoryPage {
+private:
+    uint8_t *ptr_{ nullptr };
+    size_t size_{ 0 };
+    size_t id_{ 0 };
+    phy_file_create_t *file_create_{ nullptr };
+    uint8_t *tail_{ nullptr };
+
+public:
+    DirectoryPage(uint8_t *ptr, size_t size);
+
+public:
+    bool touch(const char *name);
+    bool unlink(const char *name);
+
+};
+
+DirectoryPage::DirectoryPage(uint8_t *ptr, size_t size) : ptr_(ptr), size_(size) {
+}
+
+bool DirectoryPage::touch(const char *name) {
+    auto fc = reinterpret_cast<phy_file_create_t *>(tail_);
+    fc->entry.type = DE_CREATE;
+    strncpy(fc->name, name, sizeof(fc->name));
+    fc->id = ++id_;
+    fc->size = 0;
+    tail_ += sizeof(phy_file_create_t);
+
+    return true;
+}
+
+bool DirectoryPage::unlink(const char *name) {
+    auto fc = reinterpret_cast<phy_file_unlink_t *>(tail_);
+    fc->entry.type = DE_UNLINK;
+    fc->id = 0;
+    tail_ += sizeof(phy_file_unlink_t);
+
+    return true;
+}
