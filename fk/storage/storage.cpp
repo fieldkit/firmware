@@ -102,70 +102,25 @@ Storage::~Storage() {
     }
 }
 
-static bool first_open_ = true;
-static bool always_lfs_ = true;
-static bool formatted_ = false;
-static bool dhara_enabled_ = true;
-
 bool Storage::begin() {
-    #if defined(__SAMD51__)
-    if (!always_lfs_) {
-        if (!begin_internal()) {
-            return false;
-        }
-    }
-
-    if (!always_lfs_ && free_block_ > 512) {
-    #else
     if (!begin_internal()) {
         return false;
     }
 
-    if (true) {
-    #endif
-        data_ops_ = new (pool_) darwin::DataOps(*this);
-        meta_ops_ = new (pool_) darwin::MetaOps(*this);
-        return true;
-    }
+    data_ops_ = new (pool_) darwin::DataOps(*this);
+    meta_ops_ = new (pool_) darwin::MetaOps(*this);
+    return true;
 
-    lfs_enabled_ = true;
-    always_lfs_ = true;
-
+    /*
     DataMemory *translated = new (pool_) TranslatingMemory(&statistics_data_memory_, 512);
-
     if (dhara_enabled_) {
         FK_ASSERT(dhara_.begin(translated, false, *pool_));
-
         translated = dhara_.map();
     }
-
-    if (!lfs_.begin(translated, false, *pool_)) {
-        logerror("lfs: begin failed");
-        return false;
-    }
-
-    formatted_ = true;
-    first_open_ = false;
-
-    loginfo("lfs ready");
-
-    data_ops_ = new (pool_) lfs::DataOps(lfs_);
-    meta_ops_ = new (pool_) lfs::MetaOps(lfs_);
-
-    return true;
+    */
 }
 
 bool Storage::clear() {
-    if (lfs_enabled_) {
-        return true;
-    }
-
-    FK_ASSERT(!formatted_);
-
-    #if defined(__SAMD51__)
-    FK_ASSERT(false);
-    #endif
-
     if (!clear_internal()) {
         return false;
     }

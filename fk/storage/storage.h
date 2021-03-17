@@ -51,6 +51,7 @@ private:
     bool lfs_enabled_{ false };
     LfsDriver lfs_;
     Dhara dhara_;
+    bool dhara_enabled_{ false };
 
 public:
     Storage(DataMemory *memory, Pool &pool, bool read_only = true);

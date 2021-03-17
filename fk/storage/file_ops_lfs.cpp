@@ -125,15 +125,25 @@ DataOps::DataOps(LfsDriver &lfs) : lfs_(lfs), map_(&lfs_, "data", 0, *lfs.pool()
 }
 
 tl::expected<uint32_t, Error> DataOps::write_readings(GlobalState *gs, fk_data_DataRecord *record, Pool &pool) {
+    uint32_t record_number = UINT32_MAX;
+
+    auto iter = pool.subpool("appending", 4096);
+
     RecordAppender appender{ &lfs_, &map_, DataRolloverSize, pool };
-    auto appended = appender.append_data_record(record, pool);
-    if (!appended) {
-        return tl::unexpected<Error>(appended.error());
+    for (auto i = 0u; i < 10; ++i) {
+        auto appended = appender.append_data_record(record, *iter);
+        if (!appended) {
+            return tl::unexpected<Error>(appended.error());
+        }
+
+        gs->update_data_stream(appended->absolute_position + appended->record_size, appended->record);
+
+        record_number = appended->record;
+
+        iter->clear();
     }
 
-    gs->update_data_stream(appended->absolute_position + appended->record_size, appended->record);
-
-    return appended->record;
+    return record_number;
 }
 
 tl::expected<FileAttributes, Error> DataOps::attributes() {
