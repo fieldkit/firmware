@@ -200,3 +200,46 @@ TEST_F(DharaSuite, LfsCreateWriteRead) {
         logerror("sync");
     }
 }
+
+typedef struct sector_header_t {
+    uint32_t version;
+} sector_header_t;
+
+TEST_F(DharaSuite, RewriteSector0OverAndOver) {
+    LinuxDataMemory memory{ 100 };
+    StandardPool pool{ "dhara" };
+
+    ASSERT_TRUE(memory.begin());
+
+    Dhara dhara;
+    ASSERT_TRUE(dhara.begin(&memory, true, pool));
+
+    auto sector = (uint8_t *)pool.malloc(dhara.page_size());
+    auto ptr = (sector_header_t *)sector;
+    bzero(sector, dhara.page_size());
+
+    for (auto i = 0; i < 100; ++i) {
+        dhara_page_t page = 0;
+        if (!dhara.find(0, &page)) {
+            logerror("find");
+        }
+
+        if (i > 0) {
+            if (!dhara.read(0, sector, dhara.page_size())) {
+                logerror("read");
+            }
+
+            ptr->version++;
+        }
+
+        loginfo("%d page=%d", ptr->version, page);
+
+        if (!dhara.write(0, sector, dhara.page_size())) {
+            logerror("write");
+        }
+
+        if (!dhara.sync()) {
+            logerror("sync");
+        }
+    }
+}

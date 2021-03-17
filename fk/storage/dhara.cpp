@@ -77,6 +77,24 @@ bool Dhara::write(dhara_sector_t sector, uint8_t const *data, size_t size) {
     return true;
 }
 
+bool Dhara::find(dhara_sector_t sector, dhara_page_t *page) {
+    dhara_error_t derr;
+
+    logverbose("dhara-find: sector=%" PRIu32 "", sector);
+
+    auto err = dhara_map_find(&dmap_, sector, page, &derr);
+    if (err < 0) {
+        if (err == DHARA_E_NOT_FOUND) {
+            *page = -1;
+        }
+        else {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 bool Dhara::read(dhara_sector_t sector, uint8_t *data, size_t size) {
     dhara_error_t derr;
 

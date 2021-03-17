@@ -41,6 +41,7 @@ public:
     bool write(dhara_sector_t sector, uint8_t const *data, size_t size);
     bool read(dhara_sector_t sector, uint8_t *data, size_t size);
     bool trim(dhara_sector_t sector);
+    bool find(dhara_sector_t sector, dhara_page_t *page);
     void clear();
     bool sync();
 
