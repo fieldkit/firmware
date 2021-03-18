@@ -139,7 +139,7 @@ static void single_threaded_setup() {
 
     FK_ASSERT(fk_log_diagnostics());
 }
-
+/*
 static bool need_segger_initialize() {
     SEGGER_RTT_CB* p = &_SEGGER_RTT;
     if (strncmp(&p->acID[7], "RTT", 3) != 0) {
@@ -153,11 +153,9 @@ static bool need_segger_initialize() {
     }
     return false;
 }
-
+*/
 void setup() {
-    if (false && need_segger_initialize()) {
-        SEGGER_RTT_Init();
-    }
+    SEGGER_RTT_WriteString(0, "\n");
     single_threaded_setup();
     fk_live_tests();
     run_tasks();
