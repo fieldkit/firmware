@@ -155,7 +155,7 @@ static bool need_segger_initialize() {
 }
 
 void setup() {
-    if (need_segger_initialize()) {
+    if (false && need_segger_initialize()) {
         SEGGER_RTT_Init();
     }
     single_threaded_setup();
