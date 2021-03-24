@@ -1,0 +1,5 @@
+clean:
+	echo
+
+veryclean:
+	echo
