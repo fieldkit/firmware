@@ -1,6 +1,6 @@
 #include <loading.h>
 #include <samd51_common.h>
-#include <phylum/blake2b.h>
+#include <blake2b.h>
 
 #include "networking/download_firmware_worker.h"
 #include "networking/http_connection.h"

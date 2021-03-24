@@ -1,5 +1,5 @@
 #include <algorithm>
-#include <phylum/crc.h>
+#include <phylum.h>
 
 #include "storage/storage.h"
 

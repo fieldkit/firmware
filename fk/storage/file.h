@@ -4,7 +4,7 @@
 #include "storage/types.h"
 #include "storage/sequential_memory.h"
 
-#include <phylum/blake2b.h>
+#include <blake2b.h>
 #include <pb_encode.h>
 #include <pb_decode.h>
 

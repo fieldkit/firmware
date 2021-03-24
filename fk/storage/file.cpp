@@ -1,6 +1,6 @@
 #include <algorithm>
 #include <tiny_printf.h>
-#include <phylum/crc.h>
+#include <phylum.h>
 #include <fk-data-protocol.h>
 
 #include "platform.h"

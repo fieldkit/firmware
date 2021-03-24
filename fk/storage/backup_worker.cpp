@@ -1,6 +1,6 @@
 #include <tiny_printf.h>
 #include <inttypes.h>
-#include <phylum/blake2b.h>
+#include <blake2b.h>
 
 #include "backup_worker.h"
 

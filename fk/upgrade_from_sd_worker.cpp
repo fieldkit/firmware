@@ -1,7 +1,7 @@
 #include <samd51_common.h>
 
 #include <loading.h>
-#include <phylum/blake2b.h>
+#include <blake2b.h>
 
 #include "modules/dyn/dyn.h"
 #include "upgrade_from_sd_worker.h"

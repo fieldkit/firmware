@@ -6,7 +6,7 @@
 #include "modules/shared/uuid.h"
 #include "state.h"
 
-#include <phylum/blake2b.h>
+#include <blake2b.h>
 
 namespace fk {
 

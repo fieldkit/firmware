@@ -1,5 +1,5 @@
 #include <fk-data-protocol.h>
-#include <phylum/blake2b.h>
+#include <blake2b.h>
 
 #include "storage/signed_log.h"
 #include "storage/storage.h"

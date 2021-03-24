@@ -1,5 +1,5 @@
 #include <tiny_printf.h>
-#include <phylum/crc.h>
+#include <phylum.h>
 
 #include "device_name.h"
 #include "platform.h"
