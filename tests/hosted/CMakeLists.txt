@@ -16,8 +16,8 @@ find_package(Threads REQUIRED)
 
 include(ExternalProject)
 
-set(GTEST_URL ${CMAKE_SOURCE_DIR}/third-party/googletest-1.8.0.zip)
-set(GTEST_SHA256 SHA256=f3ed3b58511efd272eb074a3a6d6fb79d7c2e6a0e374323d1e6bcbcc1ef141bf)
+set(GTEST_URL ${CMAKE_SOURCE_DIR}/third-party/googletest-release-1.10.0.tar.gz)
+set(GTEST_SHA256 SHA256=9dc9157a9a1551ec7a7e43daea9a694a0bb5fb8bec81235d8a1e6ef64c716dcb)
 ExternalProject_Add(
     gtest
     URL ${GTEST_URL}
@@ -34,7 +34,7 @@ ExternalProject_Get_Property(gtest source_dir binary_dir)
 add_library(libgtest IMPORTED STATIC GLOBAL)
 add_dependencies(libgtest gtest)
 set_target_properties(libgtest PROPERTIES
-  "IMPORTED_LOCATION" "${binary_dir}/googlemock/gtest/libgtest.a"
+  "IMPORTED_LOCATION" "${binary_dir}/lib/libgtest.a"
   "IMPORTED_LINK_INTERFACE_LIBRARIES" "${CMAKE_THREAD_LIBS_INIT}"
 )
 
@@ -42,7 +42,7 @@ set_target_properties(libgtest PROPERTIES
 add_library(libgmock IMPORTED STATIC GLOBAL)
 add_dependencies(libgmock gtest)
 set_target_properties(libgmock PROPERTIES
-  "IMPORTED_LOCATION" "${binary_dir}/googlemock/libgmock.a"
+  "IMPORTED_LOCATION" "${binary_dir}/lib/libgmock.a"
   "IMPORTED_LINK_INTERFACE_LIBRARIES" "${CMAKE_THREAD_LIBS_INIT}"
 )
 
