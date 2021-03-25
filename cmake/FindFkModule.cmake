@@ -55,9 +55,6 @@ if (NOT TARGET firmware-common)
   find_package(module-protocol)
   target_link_libraries(firmware-common module-protocol)
 
-  find_package(lwstreams)
-  target_link_libraries(firmware-common lwstreams)
-
   find_package(Adafruit_ASFcore)
   target_link_libraries(firmware-common Adafruit_ASFcore)
 

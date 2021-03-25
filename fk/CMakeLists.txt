@@ -106,9 +106,6 @@ target_link_libraries(fk-bundled u8g2)
 find_package(lwcron)
 target_link_libraries(fk-bundled lwcron)
 
-find_package(lwstreams)
-target_link_libraries(fk-bundled lwstreams)
-
 find_package(HttpParser)
 target_link_libraries(fk-bundled HttpParser)
 

@@ -10,8 +10,5 @@ target_link_libraries(simple-lora-comms arduino-logging)
 find_package(nanopb)
 target_link_libraries(simple-lora-comms nanopb)
 
-find_package(lwstreams)
-target_link_libraries(simple-lora-comms lwstreams)
-
 find_package(RadioHead)
 target_link_libraries(simple-lora-comms RadioHead)

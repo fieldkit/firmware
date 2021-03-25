@@ -29,9 +29,6 @@ file(GLOB sources *.cpp ${fk_sources} ${fk_tasks})
 
 add_executable(fake ${sources})
 
-find_package(lwstreams)
-target_link_libraries(fake lwstreams)
-
 find_package(HttpParser)
 target_link_libraries(fake HttpParser)
 

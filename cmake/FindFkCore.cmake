@@ -51,10 +51,6 @@ function(fk_add_core_library target_name)
   find_package(simple-lora-comms)
   target_link_libraries(${target_name} simple-lora-comms)
 
-  find_package(lwstreams)
-  target_link_libraries(${target_name} lwstreams)
-  target_compile_options(phylum PUBLIC -DLWS_ENABLE_PROTOBUF)
-
   find_package(lwcron)
   target_link_libraries(${target_name} lwcron)
 

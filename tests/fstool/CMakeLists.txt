@@ -29,9 +29,6 @@ file(GLOB sources *.cpp *.c ${fk_sources} ${fk_tasks})
 
 add_executable(fstool ${sources})
 
-find_package(lwstreams)
-target_link_libraries(fstool lwstreams)
-
 find_package(HttpParser)
 target_link_libraries(fstool HttpParser)
 
