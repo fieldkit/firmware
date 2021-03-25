@@ -29,6 +29,9 @@ extern "C" {
 
 void fk_assert(const char *assertion, const char *file, int32_t line, const char *f, ...) {
     logerrorf("assertion", "\"%s\" failed: file \"%s\", line %" PRIu32, assertion, file, line);
+    #if defined(__SAMD21__) || defined(__SAMD51__)
+    NVIC_SystemReset();
+    #endif // defined(__SAMD21__) || defined(__SAMD51__)
     os_panic(OS_PANIC_ASSERTION);
 }
 
