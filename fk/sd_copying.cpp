@@ -44,8 +44,8 @@ optional<bool> verify_flash_binary_hash(FlashMemory *flash, uint32_t address, ui
         }
     }
 
-    if (!hash_included) {
-        logerror("hash failed, never saw tail hash");
+    if (hash_included) {
+        logerror("hash failed, never excluded tail hash");
         return nullopt;
     }
 
