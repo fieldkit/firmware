@@ -1,0 +1,292 @@
+{
+  "nested": {
+    "fk_atlas": {
+      "options": {
+        "java_package": "org.conservify.fieldkit.atlas.pb",
+        "go_package": "github.com/fieldkit/atlas-protocol"
+      },
+      "nested": {
+        "SensorType": {
+          "values": {
+            "SENSOR_NONE": 0,
+            "SENSOR_PH": 1,
+            "SENSOR_TEMP": 2,
+            "SENSOR_ORP": 3,
+            "SENSOR_DO": 4,
+            "SENSOR_EC": 5
+          }
+        },
+        "QueryType": {
+          "values": {
+            "QUERY_NONE": 0
+          }
+        },
+        "CalibrationOperation": {
+          "values": {
+            "CALIBRATION_NONE": 0,
+            "CALIBRATION_STATUS": 1,
+            "CALIBRATION_CLEAR": 2,
+            "CALIBRATION_SET": 3
+          }
+        },
+        "TempCalibrations": {
+          "values": {
+            "TEMP_NONE": 0,
+            "TEMP_SINGLE": 1
+          }
+        },
+        "TempCalibrateCommand": {
+          "values": {
+            "CALIBRATE_TEMP_NONE": 0,
+            "CALIBRATE_TEMP_CLEAR": 1,
+            "CALIBRATE_TEMP_SINGLE": 2
+          }
+        },
+        "DoCalibrations": {
+          "values": {
+            "DO_NONE": 0,
+            "DO_ATMOSPHERE": 1,
+            "DO_ZERO": 2
+          }
+        },
+        "DoCalibrateCommand": {
+          "values": {
+            "CALIBRATE_DO_NONE": 0,
+            "CALIBRATE_DO_CLEAR": 1,
+            "CALIBRATE_DO_ATMOSPHERE": 2,
+            "CALIBRATE_DO_ZERO": 3
+          }
+        },
+        "PhCalibrations": {
+          "values": {
+            "PH_NONE": 0,
+            "PH_LOW": 1,
+            "PH_MIDDLE": 2,
+            "PH_HIGH": 4
+          }
+        },
+        "PhCalibrateCommand": {
+          "values": {
+            "CALIBRATE_PH_NONE": 0,
+            "CALIBRATE_PH_CLEAR": 1,
+            "CALIBRATE_PH_LOW": 2,
+            "CALIBRATE_PH_MIDDLE": 3,
+            "CALIBRATE_PH_HIGH": 4
+          }
+        },
+        "EcCalibrations": {
+          "values": {
+            "EC_NONE": 0,
+            "EC_DRY": 1,
+            "EC_SINGLE": 2,
+            "EC_DUAL_LOW": 4,
+            "EC_DUAL_HIGH": 8
+          }
+        },
+        "EcCalibrateCommand": {
+          "values": {
+            "CALIBRATE_EC_NONE": 0,
+            "CALIBRATE_EC_CLEAR": 1,
+            "CALIBRATE_EC_DRY": 2,
+            "CALIBRATE_EC_SINGLE": 3,
+            "CALIBRATE_EC_DUAL_LOW": 4,
+            "CALIBRATE_EC_DUAL_HIGH": 5
+          }
+        },
+        "OrpCalibrations": {
+          "values": {
+            "ORP_NONE": 0,
+            "ORP_SINGLE": 1
+          }
+        },
+        "OrpCalibrateCommand": {
+          "values": {
+            "CALIBRATE_ORP_NONE": 0,
+            "CALIBRATE_ORP_SINGLE": 1
+          }
+        },
+        "AtlasCalibrationCommand": {
+          "fields": {
+            "operation": {
+              "type": "CalibrationOperation",
+              "id": 1
+            },
+            "temp": {
+              "type": "TempCalibrations",
+              "id": 2
+            },
+            "dissolvedOxygen": {
+              "type": "DoCalibrations",
+              "id": 3
+            },
+            "ph": {
+              "type": "PhCalibrations",
+              "id": 4
+            },
+            "ec": {
+              "type": "EcCalibrations",
+              "id": 5
+            },
+            "orp": {
+              "type": "OrpCalibrations",
+              "id": 6
+            },
+            "which": {
+              "type": "uint32",
+              "id": 8
+            },
+            "value": {
+              "type": "float",
+              "id": 7
+            },
+            "configuration": {
+              "type": "bytes",
+              "id": 9
+            }
+          }
+        },
+        "TwoWireQuery": {
+          "fields": {
+            "read": {
+              "type": "uint32",
+              "id": 1
+            },
+            "write": {
+              "type": "uint32",
+              "id": 2
+            },
+            "data": {
+              "type": "bytes",
+              "id": 3
+            }
+          }
+        },
+        "Compensations": {
+          "fields": {
+            "temperature": {
+              "type": "float",
+              "id": 1
+            }
+          }
+        },
+        "WireAtlasQuery": {
+          "fields": {
+            "type": {
+              "type": "QueryType",
+              "id": 1
+            },
+            "calibration": {
+              "type": "AtlasCalibrationCommand",
+              "id": 2
+            },
+            "compensations": {
+              "type": "Compensations",
+              "id": 3
+            },
+            "wire": {
+              "type": "TwoWireQuery",
+              "id": 4
+            }
+          }
+        },
+        "AtlasCalibrationStatus": {
+          "fields": {
+            "type": {
+              "type": "SensorType",
+              "id": 1
+            },
+            "time": {
+              "type": "uint32",
+              "id": 2
+            },
+            "raw": {
+              "type": "uint32",
+              "id": 8
+            },
+            "temp": {
+              "type": "TempCalibrations",
+              "id": 3
+            },
+            "dissolvedOxygen": {
+              "type": "DoCalibrations",
+              "id": 4
+            },
+            "ph": {
+              "type": "PhCalibrations",
+              "id": 5
+            },
+            "ec": {
+              "type": "EcCalibrations",
+              "id": 6
+            },
+            "orp": {
+              "type": "OrpCalibrations",
+              "id": 7
+            },
+            "configuration": {
+              "type": "bytes",
+              "id": 9
+            }
+          }
+        },
+        "TwoWireReply": {
+          "fields": {
+            "data": {
+              "type": "bytes",
+              "id": 1
+            }
+          }
+        },
+        "ReplyType": {
+          "values": {
+            "REPLY_NONE": 0,
+            "REPLY_RETRY": 1,
+            "REPLY_ERROR": 2,
+            "REPLY_STATUS": 3,
+            "REPLY_COMMAND": 4
+          }
+        },
+        "ErrorType": {
+          "values": {
+            "NONE": 0,
+            "GENERAL": 1,
+            "UNEXPECTED": 2
+          }
+        },
+        "Error": {
+          "fields": {
+            "type": {
+              "type": "ErrorType",
+              "id": 1
+            },
+            "message": {
+              "type": "string",
+              "id": 2
+            }
+          }
+        },
+        "WireAtlasReply": {
+          "fields": {
+            "type": {
+              "type": "ReplyType",
+              "id": 1
+            },
+            "errors": {
+              "rule": "repeated",
+              "type": "Error",
+              "id": 2
+            },
+            "calibration": {
+              "type": "AtlasCalibrationStatus",
+              "id": 3
+            },
+            "wire": {
+              "type": "TwoWireReply",
+              "id": 4
+            }
+          }
+        }
+      }
+    }
+  }
+}
