@@ -1,0 +1,517 @@
+syntax = "proto3";
+package fk_app;
+option java_package = "org.conservify.fieldkit.app.pb";
+option go_package = "github.com/fieldkit/app-protocol";
+
+// QueryType provides a way of determining the incoming type of a message. In
+// some cases simply looking at which "sub-message" is populated would work but the
+// QueryType is useful for situations where the query sub-message is empty.
+
+enum QueryFlags {
+  QUERY_FLAGS_NONE = 0;
+  QUERY_FLAGS_LOGS = 1;
+}
+
+enum QueryType {
+  QUERY_NONE = 0;
+  QUERY_CAPABILITIES = 1;
+  QUERY_CONFIGURE_SENSOR = 2;
+  QUERY_LIVE_DATA_POLL = 7;
+  QUERY_SCHEDULES = 8;
+  QUERY_CONFIGURE_SCHEDULES = 9;
+  QUERY_FILES_SD = 10;
+  QUERY_DOWNLOAD_FILE = 11;
+  QUERY_ERASE_FILE = 12;
+  QUERY_RESET = 13;
+  QUERY_NETWORK_SETTINGS = 14;
+  QUERY_CONFIGURE_NETWORK_SETTINGS = 15;
+  QUERY_SCAN_MODULES = 16;
+  QUERY_CONFIGURE_IDENTITY = 17;
+  QUERY_STATUS = 18;
+  QUERY_MODULE = 19;
+  QUERY_METADATA = 20;
+  QUERY_FORMAT = 21;
+  QUERY_GET_READINGS = 22;
+  QUERY_TAKE_READINGS = 23;
+  QUERY_RECORDING_CONTROL = 24;
+  QUERY_CONFIGURE = 25;
+  QUERY_SCAN_NETWORKS = 26;
+  QUERY_FILES_SPI = 27;
+  QUERY_FILES_QSPI = 28;
+}
+
+// ReplyType serves a similar purpose. In general situations this isn't as
+// useful as the QueryType, but may be useful if there's ever any kind of
+// asynchronous communications where replies can come back out of order.
+
+enum ReplyType {
+  REPLY_NONE = 0;
+  REPLY_SUCCESS = 1;
+  REPLY_BUSY = 2;
+  REPLY_ERROR = 3;
+  REPLY_CAPABILITIES = 4;
+  REPLY_LIVE_DATA_POLL = 8;
+  REPLY_SCHEDULES = 9;
+  REPLY_FILES = 10;
+  REPLY_DOWNLOAD_FILE = 11;
+  REPLY_RESET = 12;
+  REPLY_NETWORK_SETTINGS = 13;
+  REPLY_IDENTITY = 14;
+  REPLY_STATUS = 15;
+  REPLY_MODULE = 16;
+  REPLY_METADATA = 17;
+  REPLY_READINGS = 18;
+  REPLY_NETWORKS = 19;
+}
+
+enum DownloadFlags {
+  DOWNLOAD_FLAG_NONE = 0;
+  DOWNLOAD_FLAG_METADATA_PREPEND = 1;
+  DOWNLOAD_FLAG_METADATA_ONLY = 2;
+}
+
+enum ModuleFlags {
+  MODULE_FLAG_NONE = 0;
+  MODULE_FLAG_INTERNAL = 1;
+}
+
+enum SensorFlags {
+  SENSOR_FLAG_NONE = 0;
+}
+
+// Querying information about the device, what it's capable of. Typically the
+// first message that will be sent to a device.
+
+message QueryCapabilities {
+  uint32 version = 1;
+  uint32 callerTime = 2;
+}
+
+// Information about an individual sensor attached to the device. Temerature,
+// Depth, Conductivity, Humidity, etc...
+
+message LiveValue {
+  bool valid = 1;
+  float value = 2;
+  float uncalibrated = 3;
+}
+
+message SensorCapabilities {
+  uint32 number = 1;
+  uint32 module = 2;
+  string name = 3;
+  uint32 frequency = 4;
+  string unitOfMeasure = 5;
+
+  // v2
+  string path = 6;
+  uint32 flags = 7;
+  LiveValue value = 8;
+}
+
+message ModuleHeader {
+  uint32 manufacturer = 1;
+  uint32 kind = 2;
+  uint32 version = 3;
+}
+
+message ModuleCapabilities {
+  uint32 position = 1;
+  string name = 2;
+  repeated SensorCapabilities sensors = 3;
+
+  // v2
+  string path = 4;
+  uint32 flags = 5;
+  bytes id = 6;
+  ModuleHeader header = 7;
+  bytes configuration = 8;
+}
+
+message Capabilities {
+  uint32 version = 1;
+  bytes deviceId = 2;
+  string name = 3;
+  repeated ModuleCapabilities modules = 4;
+  repeated SensorCapabilities sensors = 5;
+}
+
+message NetworkInfo {
+  string ssid = 1;
+  string password = 2;
+  bool create = 3;
+  bool preferred = 4;
+  bool keeping = 5;
+}
+
+message NetworkSettings {
+  int32 createAccessPoint = 1;
+  NetworkInfo connected = 3;
+  string macAddress = 4;
+  bool modifying = 5;
+  repeated NetworkInfo networks = 2;
+}
+
+message Firmware {
+  string version = 1;
+  string build = 2;
+  string number = 3;
+  uint64 timestamp = 4;
+  string hash = 5;
+  uint64 logical_address = 6;
+  string name = 7;
+}
+
+message Identity {
+  string device = 1;
+  string stream = 2;
+  bytes deviceId = 3;
+  string firmware = 4;
+  string build = 5;
+  string number = 8;
+
+  // v2
+  string name = 6;
+  bytes generationId = 7;
+}
+
+// Configuring a particular sensor on the device. Some sensors may require
+// sub-messages to be defined here. It will be interesting to see how this has to
+// change to facilitate dynamic sensor configuration.
+
+message ConfigureSensorQuery {
+  uint32 id = 1;
+  uint32 frequency = 2;
+}
+
+// Querying for a list of data sets that the device has in memory.
+
+message LiveDataPoll {
+  uint32 interval = 1;
+}
+
+message LiveDataSample {
+  uint32 sensor = 1;
+  uint64 time = 2;
+  float value = 3;
+}
+
+message LiveData {
+  repeated LiveDataSample samples = 1;
+}
+
+// Files
+
+message File {
+  uint32 id = 1;
+  uint64 time = 2;
+  uint64 size = 3;
+  uint32 version = 4;
+  string name = 5;
+  uint64 maximum = 6;
+}
+
+message Files {
+  repeated File files = 1;
+}
+
+message DownloadFile {
+  uint32 id = 1;
+  uint32 offset = 2;
+  uint32 length = 3;
+  uint32 flags = 4;
+}
+
+message EraseFile {
+  uint32 id = 1;
+}
+
+message FileData {
+  uint32 offset = 1;
+  bytes data = 2;
+  uint32 size = 3;
+  uint32 hash = 4;
+  uint32 version = 5;
+  uint32 id = 6;
+}
+
+message DeviceStatus {
+  uint32 uptime = 1;
+  float batteryPercentage = 2;
+  float batteryVoltage = 3;
+  uint32 gpsHasFix = 4;
+  uint32 gpsSatellites = 5;
+}
+
+message QueryModule {
+  uint32 id = 1;
+  uint32 address = 2;
+  bytes message = 3;
+}
+
+message ModuleReply {
+  uint32 id = 1;
+  uint32 address = 2;
+  bytes message = 3;
+}
+
+// Top level messages exchanged over the wire.
+
+message WireMessageQuery {
+  QueryType type = 1;
+  QueryCapabilities queryCapabilities = 2;
+  ConfigureSensorQuery configureSensor = 3;
+  LiveDataPoll liveDataPoll = 8;
+  DownloadFile downloadFile = 10;
+  EraseFile eraseFile = 11;
+  NetworkSettings networkSettings = 12;
+  Identity identity = 13;
+  QueryModule module = 14;
+}
+
+message Error {
+  string message = 1;
+  uint32 delay = 2;
+}
+
+message WireMessageReply {
+  ReplyType type = 1;
+  repeated Error errors = 2;
+  Capabilities capabilities = 3;
+  LiveData liveData = 6;
+  Files files = 8;
+  FileData fileData = 9;
+  NetworkSettings networkSettings = 10;
+  Identity identity = 11;
+  DeviceStatus status = 12;
+  ModuleReply module = 13;
+}
+
+/**************************************************************************************************/
+
+message Interval {
+  uint64 start = 1;
+  uint64 end = 2;
+  uint32 interval = 3;
+}
+
+message Schedule {
+  bytes cron = 1;
+  uint32 interval = 2;
+  uint32 repeated = 3;
+  uint32 duration = 4;
+  uint32 jitter = 5;
+  repeated Interval intervals = 6;
+}
+
+message Schedules {
+  bool modifying = 1;
+  Schedule readings = 2;
+  Schedule lora = 3;
+  Schedule network = 4;
+  Schedule gps = 5;
+}
+
+message HardwareStatus {
+}
+
+message GpsStatus {
+  uint32 enabled = 7;
+  uint32 fix = 1;
+  uint64 time = 2;
+  uint32 satellites = 3;
+  float longitude = 4;
+  float latitude = 5;
+  float altitude = 6;
+}
+
+message MemoryStatus {
+  uint32 sramAvailable = 1;
+  uint32 programFlashAvailable = 2;
+  uint32 extendedMemoryAvailable = 3;
+  uint32 dataMemoryInstalled = 4;
+  uint32 dataMemoryUsed = 5;
+  float dataMemoryConsumption = 6;
+  repeated Firmware firmware = 7;
+}
+
+message BatteryStatus {
+  uint32 voltage = 1;
+  uint32 percentage = 2;
+}
+
+message SolarStatus {
+  uint32 voltage = 1;
+}
+
+message PowerStatus {
+  BatteryStatus battery = 1;
+  SolarStatus solar = 2;
+}
+
+message Status {
+  uint32 version = 1;
+  uint32 uptime = 2;
+  Identity identity = 3;
+  HardwareStatus hardware = 4;
+  PowerStatus power = 5;
+  MemoryStatus memory = 6;
+  GpsStatus gps = 7;
+  Schedules schedules = 8;
+  Recording recording = 9;
+  NetworkSettings network = 10;
+  uint64 time = 11;
+  Firmware firmware = 12;
+  string logs = 13;
+}
+
+message Range {
+  uint32 start = 1;
+  uint32 end = 2;
+}
+
+message DownloadQuery {
+  uint32 stream = 1;
+  repeated Range ranges = 3;
+  repeated uint32 blocks = 4;
+}
+
+message Recording {
+  bool modifying = 1;
+  bool enabled = 2;
+  uint64 startedTime = 3;
+  Location location = 4;
+}
+
+message LoraSettings {
+  bool available = 1;
+  bool modifying = 2;
+  bytes deviceEui = 3;
+  bytes appKey = 4;
+  bytes appEui = 5;
+  uint32 frequencyBand = 6;
+  bytes deviceAddress = 7;
+  bytes networkSessionKey = 8;
+  bytes appSessionKey = 9;
+  uint32 uplinkCounter = 10;
+  uint32 downlinkCounter = 11;
+}
+
+message Location {
+  bool modifying = 1;
+  float longitude = 2;
+  float latitude = 3;
+  uint64 time = 4;
+}
+
+message WifiTransmission {
+  bool modifying = 1;
+  string url = 2;
+  string token = 3;
+  bool enabled = 4;
+}
+
+message Transmission {
+  WifiTransmission wifi = 1;
+}
+
+message ListDirectory {
+  string path = 1;
+  uint32 page = 2;
+}
+
+message HttpQuery {
+  QueryType type = 1;
+  Identity identity = 2;
+  Recording recording = 3;
+  Schedules schedules = 4;
+  NetworkSettings networkSettings = 6;
+  LoraSettings loraSettings = 7;
+  Location locate = 9;
+  Transmission transmission = 10;
+  ListDirectory directory = 11;
+  uint32 flags = 5;
+  uint64 time = 8;
+}
+
+message DataStream {
+  uint32 id = 1;
+  uint64 time = 2;
+  uint64 size = 3;
+  uint32 version = 4;
+  uint64 block = 5;
+  bytes hash = 6;
+  string name = 7;
+  string path = 8;
+}
+
+message LiveSensorReading {
+  SensorCapabilities sensor = 1;
+  float value = 2;
+  float uncalibrated = 3;
+}
+
+message LiveModuleReadings {
+  ModuleCapabilities module = 1;
+  repeated LiveSensorReading readings = 2;
+}
+
+message LiveReadings {
+  uint64 time = 1;
+  repeated LiveModuleReadings modules = 2;
+}
+
+message DirectoryEntry {
+  string name = 1;
+  string path = 2;
+  uint32 size = 3;
+  bool directory = 4;
+}
+
+message DirectoryListing {
+  string path = 1;
+  uint32 totalEntries = 3;
+  repeated DirectoryEntry entries = 2;
+}
+
+message NearbyNetwork {
+  string ssid = 1;
+}
+
+message NearbyNetworks {
+  repeated NearbyNetwork networks = 1;
+}
+
+message Fault {
+  uint32 time = 1;
+  uint32 code = 2;
+  string description = 3;
+  bytes debug = 4;
+}
+
+message HttpReply {
+  ReplyType type = 1;
+  repeated Error errors = 2;
+  Status status = 3;
+  NetworkSettings networkSettings = 4;
+  LoraSettings loraSettings = 8;
+  repeated ModuleCapabilities modules = 5;
+  repeated DataStream streams = 6;
+  repeated LiveReadings liveReadings = 7;
+  Schedules schedules = 9;
+  Transmission transmission = 10;
+  DirectoryListing listing = 11;
+  NearbyNetworks  nearbyNetworks = 12;
+  repeated Fault faults = 13;
+}
+
+enum UdpStatus {
+  UDP_STATUS_ONLINE = 0;
+  UDP_STATUS_BYE = 1;
+}
+
+message UdpMessage {
+  bytes deviceId = 1;
+  UdpStatus status = 2;
+  uint32 counter = 3;
+}
