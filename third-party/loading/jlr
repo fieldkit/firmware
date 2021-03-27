@@ -1,0 +1,8 @@
+#!/bin/bash
+
+JLinkExe -if SWD -device ATSAMD21G18 -speed 4000 <<EOF
+connect
+sleep 100
+r
+q
+EOF
