@@ -1,0 +1,161 @@
+syntax = "proto3";
+package fk_atlas;
+option java_package = "org.conservify.fieldkit.atlas.pb";
+option go_package = "github.com/fieldkit/atlas-protocol";
+
+enum SensorType {
+  SENSOR_NONE = 0;
+  SENSOR_PH = 1;
+  SENSOR_TEMP = 2;
+  SENSOR_ORP = 3;
+  SENSOR_DO = 4;
+  SENSOR_EC = 5;
+}
+
+enum QueryType {
+  QUERY_NONE = 0;
+}
+
+enum CalibrationOperation {
+  CALIBRATION_NONE = 0;
+  CALIBRATION_STATUS = 1;
+  CALIBRATION_CLEAR = 2;
+  CALIBRATION_SET = 3;
+}
+
+enum TempCalibrations {
+  TEMP_NONE = 0;
+  TEMP_SINGLE = 1;
+}
+
+enum TempCalibrateCommand {
+  CALIBRATE_TEMP_NONE = 0;
+  CALIBRATE_TEMP_CLEAR = 1;
+  CALIBRATE_TEMP_SINGLE = 2;
+}
+
+enum DoCalibrations {
+  DO_NONE = 0;
+  DO_ATMOSPHERE = 1;
+  DO_ZERO = 2;
+}
+
+enum DoCalibrateCommand {
+  CALIBRATE_DO_NONE = 0;
+  CALIBRATE_DO_CLEAR = 1;
+  CALIBRATE_DO_ATMOSPHERE = 2;
+  CALIBRATE_DO_ZERO = 3;
+}
+
+enum PhCalibrations {
+  PH_NONE = 0;
+  PH_LOW = 1;
+  PH_MIDDLE = 2;
+  PH_HIGH = 4;
+}
+
+enum PhCalibrateCommand {
+  CALIBRATE_PH_NONE = 0;
+  CALIBRATE_PH_CLEAR = 1;
+  CALIBRATE_PH_LOW = 2;
+  CALIBRATE_PH_MIDDLE = 3;
+  CALIBRATE_PH_HIGH = 4;
+}
+
+enum EcCalibrations {
+  EC_NONE = 0;
+  EC_DRY = 1;
+  EC_SINGLE = 2;
+  EC_DUAL_LOW = 4;
+  EC_DUAL_HIGH = 8;
+}
+
+enum EcCalibrateCommand {
+  CALIBRATE_EC_NONE = 0;
+  CALIBRATE_EC_CLEAR = 1;
+  CALIBRATE_EC_DRY = 2;
+  CALIBRATE_EC_SINGLE = 3;
+  CALIBRATE_EC_DUAL_LOW = 4;
+  CALIBRATE_EC_DUAL_HIGH = 5;
+}
+
+enum OrpCalibrations {
+  ORP_NONE = 0;
+  ORP_SINGLE = 1;
+}
+
+enum OrpCalibrateCommand {
+  CALIBRATE_ORP_NONE = 0;
+  CALIBRATE_ORP_SINGLE = 1;
+}
+
+message AtlasCalibrationCommand {
+  CalibrationOperation operation = 1;
+  TempCalibrations temp = 2;
+  DoCalibrations dissolvedOxygen = 3;
+  PhCalibrations ph = 4;
+  EcCalibrations ec = 5;
+  OrpCalibrations orp = 6;
+  uint32 which = 8;
+  float value = 7;
+  bytes configuration = 9;
+}
+
+message TwoWireQuery {
+  uint32 read = 1;
+  uint32 write = 2;
+  bytes data = 3;
+}
+
+message Compensations {
+  float temperature = 1;
+}
+
+message WireAtlasQuery {
+  QueryType type = 1;
+  AtlasCalibrationCommand calibration = 2;
+  Compensations compensations = 3;
+  TwoWireQuery wire = 4;
+}
+
+message AtlasCalibrationStatus {
+  SensorType type = 1;
+  uint32 time = 2;
+  uint32 raw = 8;
+  TempCalibrations temp = 3;
+  DoCalibrations dissolvedOxygen = 4;
+  PhCalibrations ph = 5;
+  EcCalibrations ec = 6;
+  OrpCalibrations orp = 7;
+  bytes configuration = 9;
+}
+
+message TwoWireReply {
+  bytes data = 1;
+}
+
+enum ReplyType {
+  REPLY_NONE = 0;
+  REPLY_RETRY = 1;
+  REPLY_ERROR = 2;
+  REPLY_STATUS = 3;
+  REPLY_COMMAND = 4;
+}
+
+enum ErrorType {
+  NONE = 0;
+  GENERAL = 1;
+  UNEXPECTED = 2;
+}
+
+message Error {
+  ErrorType type = 1;
+  string message = 2;
+}
+
+message WireAtlasReply {
+  ReplyType type = 1;
+  repeated Error errors = 2;
+  AtlasCalibrationStatus calibration = 3;
+  TwoWireReply wire = 4;
+}

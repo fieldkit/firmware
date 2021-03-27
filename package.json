@@ -1,0 +1,9 @@
+{
+  "name": "fk-atlas-protocol",
+  "version": "0.0.1",
+  "private": true,
+  "main": "fk-atlas.proto.json",
+  "devDependencies": {
+    "protobufjs": "^6.8.0"
+  }
+}
