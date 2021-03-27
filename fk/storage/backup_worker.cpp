@@ -71,7 +71,10 @@ void BackupWorker::run(Pool &pool) {
 
 bool BackupWorker::write_file(FileReader *file, const char *path, Pool &pool) {
     auto info = file->get_size(0, UINT32_MAX, pool);
-    FK_ASSERT(info); // TODO
+    if (!info) {
+        logerror("get-size");
+        return false;
+    }
 
     loginfo("total size: %" PRIu32, info->size);
 

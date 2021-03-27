@@ -33,7 +33,7 @@ DownloadWorker::HeaderInfo DownloadWorker::get_headers(FileReader *file_reader, 
 
     // Calculate the size.
     auto size_info = file_reader->get_size(first_block, last_block, pool);
-    FK_ASSERT(size_info); // TODO
+    FK_ASSERT(size_info);
 
     loginfo("last_block = #%" PRIu32 " actual_lb = #%" PRIu32 "", last_block, size_info->last_block);
 

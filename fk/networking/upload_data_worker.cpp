@@ -64,6 +64,11 @@ UploadDataWorker::FileUpload UploadDataWorker::upload_file(Storage &storage, uin
     auto first_block = first_record;
     auto size_info = file->get_size(first_block, UINT32_MAX, pool);
     FK_ASSERT(size_info); // TODO
+    if (!size_info) {
+        logerror("get-size");
+        return { 0 };
+    }
+
     auto upload_length = size_info->size;
     auto last_block = size_info->last_block;
     if (upload_length == 0) {
