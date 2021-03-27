@@ -1,6 +1,6 @@
 include(ArduinoTools)
 
-include(dependencies.cmake)
+include(${CMAKE_SOURCE_DIR}/fk/dependencies.cmake)
 
 set(asf4_PATH ${CMAKE_SOURCE_DIR}/third-party/asf4)
 

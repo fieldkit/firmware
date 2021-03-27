@@ -5,8 +5,6 @@ if(TARGET HttpParser)
   return()
 endif()
 
-set(HttpParser_PATH ${CMAKE_SOURCE_DIR}/libraries/nodejs/http-parser)
-
 file(GLOB sources ${HttpParser_PATH}/http_parser.c)
 
 if(${TARGET_ARCH} MATCHES "amd64")

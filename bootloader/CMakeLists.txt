@@ -5,7 +5,7 @@ include(Arduino)
 
 include(ArduinoTools)
 
-include(${CMAKE_CURRENT_SOURCE_DIR}/dependencies.cmake)
+include(${CMAKE_SOURCE_DIR}/fk/dependencies.cmake)
 
 enable_arduino_toolchain()
 

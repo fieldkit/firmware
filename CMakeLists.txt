@@ -16,8 +16,6 @@ message("Target Architecture: ${TARGET_ARCH}")
 
 enable_testing()
 
-add_subdirectory(libraries)
-
 add_subdirectory(boards)
 
 if(${TARGET_ARCH} MATCHES "samd51")

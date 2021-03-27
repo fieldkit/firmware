@@ -355,10 +355,6 @@ function(add_arduino_bootloader target_name)
 endfunction()
 
 function(add_external_arduino_library name)
-  if(NOT DEFINED EXTERNAL_DEPENDENCIES)
-    include(${CMAKE_CURRENT_SOURCE_DIR}/dependencies.cmake)
-  endif()
-
   if (NOT EXISTS ${${name}_PATH})
     message(FATAL_ERROR "No ${name}_PATH")
   endif()

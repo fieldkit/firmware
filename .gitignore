@@ -1,5 +1,4 @@
 *.swp
-dependencies.cmake
 .gdb_history
 .python-setup
 build

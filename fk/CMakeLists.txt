@@ -11,7 +11,7 @@ include(Arduino)
 
 include(ArduinoTools)
 
-include(${CMAKE_SOURCE_DIR}/libraries/dependencies.cmake)
+include(${CMAKE_SOURCE_DIR}/fk/dependencies.cmake)
 
 function(fk_add_builtin_module name)
   set(module_dir ${CMAKE_SOURCE_DIR}/modules/${name})

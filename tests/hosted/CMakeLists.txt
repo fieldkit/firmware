@@ -2,7 +2,7 @@
 #
 #
 
-include(${CMAKE_SOURCE_DIR}/libraries/dependencies.cmake)
+include(${CMAKE_SOURCE_DIR}/fk/dependencies.cmake)
 
 set(CMAKE_BUILD_TYPE DEBUG)
 

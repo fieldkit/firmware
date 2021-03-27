@@ -1,4 +1,4 @@
-include(${CMAKE_SOURCE_DIR}/libraries/dependencies.cmake)
+include(${CMAKE_SOURCE_DIR}/fk/dependencies.cmake)
 
 include(Arduino)
 

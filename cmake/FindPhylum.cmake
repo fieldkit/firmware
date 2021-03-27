@@ -10,11 +10,17 @@ if(${TARGET_ARCH} MATCHES "amd64")
 
   find_package(arduino-logging)
   target_link_libraries(phylum arduino-logging)
+
+  find_package(Dhara)
+  target_link_libraries(phylum Dhara)
 else()
   add_external_arduino_library(phylum)
 
   find_package(arduino-logging)
   target_link_libraries(phylum arduino-logging)
+
+  find_package(Dhara)
+  target_link_libraries(phylum Dhara)
 
   find_package(SPI)
   target_link_libraries(phylum SPI)

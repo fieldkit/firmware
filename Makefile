@@ -16,6 +16,9 @@ checks: amd64
 
 ci: veryclean setup all package
 
+gitdeps:
+	echo noop
+
 setup: .python-setup fk/secrets.h fk/secrets.cpp fk/data/animals.h fk/data/adjectives.h dependencies
 
 .python-setup:
@@ -100,23 +103,7 @@ package: fw
 	cd $(BUILD) && zip -r $(PACKAGE).zip $(PACKAGE)
 	cp $(BUILD)/$(PACKAGE).zip $(BUILD)/fk-firmware.zip
 
-dependencies: libraries/done
-
-gitdeps: dependencies
-
-libraries/done:
-	$(OFFLINE) || simple-deps --nested --config bootloader/dependencies.sd --dir libraries
-	$(OFFLINE) || simple-deps --nested --config libraries/dependencies.sd --dir libraries
-	$(OFFLINE) || simple-deps --nested --config modules/weather/sidecar/dependencies.sd --dir libraries
-	$(OFFLINE) || simple-deps --nested --config modules/weather/main/dependencies.sd --dir libraries
-	touch libraries/done
-
 veryclean: clean
-	rm -rf libraries/adafruit libraries/adamvr libraries/conservify libraries/dependencies.cmake \
-           libraries/done libraries/fieldkit libraries/jlewallen libraries/mikalhart libraries/nanopb \
-           libraries/nodejs libraries/olikraus libraries/ricmoo
-	rm -rf bootloader/dependencies.cmake libraries/dependencies.cmake libraries/done
-	rm -rf modules/weather/sidecar/dependencies.cmake modules/weather/main/dependencies.cmake
 
 cppcheck:
 	rm -rf $(BUILD)/cpp-check
