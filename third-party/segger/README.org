@@ -1,0 +1,8 @@
+#+TITLE:	README for SeggerRTT
+#+AUTHOR:	Jacob Lewallen
+#+EMAIL:	jacob@conservify.org
+
+* Overview
+
+SeggerRTT is a really useful debugging library that works with Segger's
+JLink programmers.
