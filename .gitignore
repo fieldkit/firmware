@@ -1,0 +1,6 @@
+build
+.gdb_history
+jlink.log
+dependencies.cmake
+__pycache__
+.ccls-cache/

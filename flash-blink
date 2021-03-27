@@ -1,0 +1,18 @@
+#!/bin/bash
+
+BUILD=build/m0-fk
+BOOTLOADER=${BUILD}/bootloader/bootloader.bin
+PROGRAM=${BUILD}/blink/blink-hdr-fkb.bin
+
+JLinkExe -if SWD -device ATSAMD21G18 -speed 4000 <<EOF
+exitonerror 1
+connect
+sleep 100
+r
+sleep 100
+loadfile $BOOTLOADER,0x0000
+sleep 100
+loadfile $PROGRAM,0x4000
+r
+q
+EOF
