@@ -9,7 +9,6 @@
 #include "storage/bad_blocks.h"
 #include "storage/sequential_memory.h"
 #include "storage/statistics_memory.h"
-#include "storage/lfs_driver.h"
 #include "storage/file_ops.h"
 #include "storage/dhara.h"
 
@@ -48,8 +47,6 @@ private:
     bool read_only_;
     MetaOps *meta_ops_{ nullptr };
     DataOps *data_ops_{ nullptr };
-    bool lfs_enabled_{ false };
-    LfsDriver lfs_;
     Dhara dhara_;
     bool dhara_enabled_{ false };
 

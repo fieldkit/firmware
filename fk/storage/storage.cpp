@@ -8,7 +8,6 @@
 #include "progress_tracker.h"
 #include "utilities.h"
 
-#include "storage/file_ops_lfs.h"
 #include "storage/file_ops_darwin.h"
 
 namespace fk {
@@ -144,16 +143,10 @@ int32_t Storage::installed() {
 }
 
 int32_t Storage::used() {
-    if (lfs_enabled_) {
-        return lfs_.used();
-    }
     return 0;
 }
 
 FileReader *Storage::file_reader(FileNumber file_number, Pool &pool) {
-    if (lfs_enabled_) {
-        return new (pool) lfs::FileReader{ lfs_, file_number, pool };
-    }
     return new (pool) darwin::FileReader{ *this, file_number, pool };
 }
 

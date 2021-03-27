@@ -91,9 +91,6 @@ target_link_libraries(fk-bundled ConservifyOS)
 find_package(Asf4)
 target_link_libraries(fk-bundled Asf4)
 
-find_package(Lfs)
-target_link_libraries(fk-bundled Lfs)
-
 find_package(Dhara)
 target_link_libraries(fk-bundled Dhara)
 

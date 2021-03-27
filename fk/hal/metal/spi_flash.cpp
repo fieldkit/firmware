@@ -1,5 +1,3 @@
-#include <lfs.h>
-
 #include "spi_flash.h"
 #include "platform.h"
 #include "utilities.h"
@@ -305,7 +303,7 @@ int32_t SpiFlash::erase_block(uint32_t address) {
         if (!reset()) {
             logerror("resetting failed");
         }
-        return LFS_ERR_CORRUPT;
+        return -1;
     }
     return 0;
 }
