@@ -49,6 +49,7 @@ public:
     virtual bool seek_record(RecordNumber record, Pool &pool) = 0;
     virtual int32_t read(uint8_t *record, size_t size) = 0;
     virtual int32_t read(void *record, pb_msgdesc_t const *fields) = 0;
+    virtual int32_t get_file_size(size_t &file_size) = 0;
 };
 
 } // namespace fk

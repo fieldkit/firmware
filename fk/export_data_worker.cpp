@@ -44,24 +44,15 @@ void ExportDataWorker::run(Pool &pool) {
 
     auto meta_file = storage.file_reader(Storage::Meta, pool);
     auto reading = storage.file_reader(Storage::Data, pool);
-    auto total_bytes = 0u;
-    /*
-    if (!reading.seek_end()) {
-        logerror("seek end failed");
+    size_t total_bytes = 0u;
+    if (reading->get_file_size(total_bytes) < 0) {
         return;
     }
 
-    auto total_bytes = reading.size();
     if (total_bytes == 0) {
-        loginfo("no data");
+        logerror("no data");
         return;
     }
-
-    if (!reading.seek_beginning()) {
-        logerror("seek beginning failed");
-        return;
-    }
-    */
 
     StandardPool loop_pool{ "decode" };
 

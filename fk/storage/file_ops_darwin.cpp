@@ -169,6 +169,20 @@ int32_t FileReader::read(void *record, pb_msgdesc_t const *fields) {
     return file_.read(record, fields);
 }
 
+int32_t FileReader::get_file_size(size_t &file_size) {
+    if (!file_.seek_end()) {
+        logerror("seek end failed");
+        return -1;
+    }
+
+    if (!file_.seek_beginning()) {
+        logerror("seek beginning failed");
+        return -1;
+    }
+
+    return 0;
+}
+
 } // namespace darwin
 
 } // namespace fk
