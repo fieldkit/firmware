@@ -57,13 +57,22 @@ static FlashGeometry ToshibaGeometry{
     ToshibaProgramSize
 };
 
+/**
+ * True Koxia page size is 4096, only the earlier code would always
+ * assume a page size of 2048. So, we can't assumed a fixed geometry
+ * based on the chip we have. This will be the case until we can get
+ * ourselves off the old file system.  So this code starts by just
+ * assuming the old page size and then when we learn that the choice
+ * is up to us we can use the proper one.
+ */
+constexpr static uint32_t OriginalPageSize = 2048;
 constexpr static uint32_t KoxiaPageSize = 4096;
 constexpr static uint32_t KoxiaProgramSize = 512;
-constexpr static uint32_t KoxiaBlockSize = 256 * 1024;
-constexpr static uint32_t KoxiaNumberOfBlocks = 4096;
+constexpr static uint32_t KoxiaBlockSize = 2048 * 64;
+constexpr static uint32_t KoxiaNumberOfBlocks = 2048;
 
 static FlashGeometry KoxiaGeometry{
-    KoxiaPageSize,
+    OriginalPageSize,
     KoxiaBlockSize,
     KoxiaNumberOfBlocks,
     KoxiaNumberOfBlocks * KoxiaBlockSize,
