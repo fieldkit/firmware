@@ -128,6 +128,13 @@ typedef struct ModuleConfiguration {
     ModuleConfiguration(const char *display_name_key, ModulePower power, uint32_t service_interval, ModuleOrder order)
         : display_name_key(display_name_key), power(power), service_interval(service_interval), service_order(order) {
     }
+
+    /**
+     * Constructor
+     */
+    ModuleConfiguration(const char *display_name_key, ModulePower power, uint32_t service_interval, EncodedMessage *message, ModuleOrder order)
+        : display_name_key(display_name_key), message(message), power(power), service_interval(service_interval), service_order(order) {
+    }
 } ModuleConfiguration;
 
 struct ModuleReading {
