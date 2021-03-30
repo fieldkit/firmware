@@ -24,42 +24,28 @@ static bool has_module_topology_changed(Topology &existing);
 static void update_power_save(bool enabled);
 static bool get_can_launch_captive_readings();
 
-/* Not a huge fan of this, this being local to the file is the only
- * thing saving it from me. */
-static lwcron::Scheduler *active_{ nullptr };
-
-ScheduledTime fk_schedule_get_scheduled_time() {
-    if (active_ == nullptr) {
-        return { };
-    }
-
+static ScheduledTime get_next_task_time(lwcron::Task &task) {
     auto now = get_clock_now();
-    auto nextTask = active_->nextTask(lwcron::DateTime{ now }, 0);
-    if (!nextTask) {
-        return { };
-    }
-    auto remaining_seconds = nextTask.time - now;
-
+    auto next_task_time = task.getNextTime(lwcron::DateTime{ now }, 0);
+    auto remaining_seconds = next_task_time - now;
     return {
         .now = now,
-        .time = nextTask.time,
+        .time = next_task_time,
         .seconds = remaining_seconds,
     };
 }
 
-static void log_task_eta() {
-    auto scheduled = fk_schedule_get_scheduled_time();
+static void update_task_upcoming(ReadingsTask &readings_job) {
+    auto scheduled = get_next_task_time(readings_job);
     if (scheduled.time == 0) {
-        logerror("no next task, huge bug!");
+        logerror("no next readings scheduled, huge bug!");
     }
     else {
-        logdebug("next task: %" PRIu32 "s (log)", scheduled.seconds);
+        logdebug("next readings: %" PRIu32 "s (log)", scheduled.seconds);
     }
 
-    fk_log_debugging("log-task");
-
     auto gs = get_global_state_rw();
-    gs.get()->scheduler.upcoming = scheduled;
+    gs.get()->scheduler.readings.upcoming = scheduled;
 }
 
 void task_handler_scheduler(void *params) {
@@ -86,9 +72,6 @@ void task_handler_scheduler(void *params) {
                                 &service_modules_job };
         lwcron::Scheduler scheduler{ tasks };
         Topology topology;
-
-        // See above.
-        active_ = &scheduler;
 
         loginfo("module service interval: %" PRIu32 "s", schedules.service_interval);
 
@@ -136,11 +119,13 @@ void task_handler_scheduler(void *params) {
             if (check_for_tasks_timer.expired(OneSecondMs)) {
                 auto now = get_clock_now();
                 auto time = lwcron::DateTime{ now };
-                auto seed = fk_random_i32(0, INT32_MAX);
-                if (!scheduler.check(time, seed)) {
+                if (!scheduler.check(time, 0)) {
                     if (get_can_launch_captive_readings()) {
                         get_ipc()->launch_worker(WorkerCategory::Readings, create_pool_worker<ReadingsWorker>(false, false, false));
                     }
+                }
+                else {
+                    update_task_upcoming(readings_job);
                 }
             }
 
@@ -177,7 +162,7 @@ void task_handler_scheduler(void *params) {
             }
 
             if (eta_debug_timer.expired(FiveSecondsMs)) {
-                log_task_eta();
+                update_task_upcoming(readings_job);
             }
 
             #if defined(FK_ENABLE_NETWORK_UP_AND_DOWN)
@@ -191,8 +176,6 @@ void task_handler_scheduler(void *params) {
     }
 
     loginfo("scheduler exited");
-
-    active_ = nullptr;
 }
 
 static CurrentSchedules get_config_schedules() {

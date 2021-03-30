@@ -18,8 +18,6 @@
 
 namespace fk {
 
-ScheduledTime fk_schedule_get_scheduled_time();
-
 struct CurrentSchedules {
     lwcron::CronSpec readings;
     lwcron::CronSpec network;

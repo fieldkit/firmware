@@ -248,6 +248,7 @@ struct Schedule {
     uint32_t duration{ 0 };
     uint32_t jitter{ 0 };
     Interval intervals[MaximumScheduleIntervals];
+    ScheduledTime upcoming;
 
     Schedule& operator=(const fk_app_Schedule &s);
 
@@ -260,7 +261,6 @@ struct SchedulerState {
     Schedule network{ };
     Schedule gps{ };
     Schedule lora{ };
-    ScheduledTime upcoming;
 };
 
 struct ReadingsState {
