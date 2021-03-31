@@ -180,9 +180,9 @@ ModuleConfiguration const WaterModule::get_configuration(Pool &pool) {
     // Make sure temperature is serviced before any of the other water modules.
     switch (type_) {
     case AtlasSensorType::Temp:
-        return { get_display_name_key(), ModulePower::Always, 0, cfg_message_, ModuleOrderProvidesCalibration };
+        return { get_display_name_key(), ModulePower::ReadingsOnly, 0, cfg_message_, ModuleOrderProvidesCalibration };
     default:
-        return { get_display_name_key(), ModulePower::Always, 0, cfg_message_, DefaultModuleOrder };
+        return { get_display_name_key(), ModulePower::ReadingsOnly, 0, cfg_message_, DefaultModuleOrder };
     }
 }
 
@@ -198,6 +198,8 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
         logerror("wake failed (take-readings)");
         return nullptr;
     }
+
+    fk_delay(1000);
 
     auto temperature = get_temperature(mc);
     auto salinity = get_salinity(mc);
@@ -240,12 +242,12 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
         return nullptr;
     }
 
-    /*
+    fk_delay(1000);
+
     if (!atlas.hibernate()) {
         logerror("hibernate failed");
         return nullptr;
     }
-    */
 
     auto mr = new(pool) NModuleReadings<ATLAS_MAXIMUM_VALUES>(number_of_values);
     if (mr->size() == 1) {
