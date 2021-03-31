@@ -59,6 +59,10 @@ ModulesLock LinuxModMux::lock() {
     return { std::move(modules_lock), std::move(eeprom_lock), fk_uptime() };
 }
 
+bool LinuxModMux::any_modules_on() {
+    return false;
+}
+
 }
 
 #endif

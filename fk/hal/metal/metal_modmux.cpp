@@ -311,6 +311,19 @@ ModulesLock MetalModMux::lock() {
     return { std::move(modules_lock), std::move(eeprom_lock), fk_uptime() };
 }
 
+bool MetalModMux::any_modules_on() {
+    if (!available_) {
+        return false;
+    }
+
+    if (ModulesAlwaysOn) {
+        return true;
+    }
+
+    const auto power_mask = 0b01010101;
+    return (gpio_ & power_mask) > 0;
+}
+
 } // namespace fk
 
 #endif

@@ -21,6 +21,7 @@ public:
     bool disable_topology_irq() override;
     optional<Topology> read_topology_register() override;
     ModulesLock lock() override;
+    bool any_modules_on() override;
 
 };
 

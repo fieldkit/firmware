@@ -121,6 +121,7 @@ public:
     virtual bool disable_topology_irq() = 0;
     virtual optional<Topology> read_topology_register() = 0;
     virtual ModulesLock lock() = 0;
+    virtual bool any_modules_on() = 0;
 
 public:
     class iterator {
