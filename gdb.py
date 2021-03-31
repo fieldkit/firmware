@@ -19,7 +19,7 @@ class FkSegger(gdb.Command):
             gdb.execute("add-symbol-file build/samd51/bootloader/fkbl.elf 0x0000")
         gdb.execute("target extended-remote :" + arg)
         gdb.execute("monitor exec SetRTTSearchRanges 0x20000000 64")
-        if False:
+        if True:
             gdb.execute("b Dummy_Handler")
             gdb.execute("b HardFault_Handler")
             gdb.execute("b osi_hard_fault_report")

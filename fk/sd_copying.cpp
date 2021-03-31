@@ -20,12 +20,11 @@ optional<bool> verify_flash_binary_hash(FlashMemory *flash, uint32_t address, ui
     BLAKE2b b2b;
     b2b.reset(Hash::Length);
 
-    auto hash_included = true;
     auto flash_address = address;
     auto total_bytes = (uint32_t)0u;
     auto buffer = (uint8_t *)pool.malloc(page_size);
-    while (total_bytes < binary_size_including_hash) {
-        auto nread = std::min(page_size, binary_size_including_hash - total_bytes);
+    while (total_bytes < binary_size_including_hash - Hash::Length) {
+        auto nread = std::min(page_size, binary_size_including_hash - Hash::Length - total_bytes);
         if (!flash->read(flash_address, buffer, page_size)) {
             logerror("error reading flash");
             return nullopt;
@@ -34,19 +33,9 @@ optional<bool> verify_flash_binary_hash(FlashMemory *flash, uint32_t address, ui
         total_bytes += nread;
         flash_address += nread;
 
-        // TODO Could we end up breaking the hash into two reads?
-        if (total_bytes == binary_size_including_hash) {
-            hash_included = false;
-            b2b.update(buffer, nread - Hash::Length);
-        }
-        else {
-            b2b.update(buffer, nread);
-        }
-    }
+        loginfo("bytes: %zu %zu %zu", (size_t)total_bytes, (size_t)nread, (size_t)binary_size_including_hash);
 
-    if (hash_included) {
-        logerror("hash failed, never excluded tail hash");
-        return nullopt;
+        b2b.update(buffer, nread);
     }
 
     Hash actual_hash;
