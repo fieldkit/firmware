@@ -17,6 +17,12 @@ namespace fk {
 
 class File;
 
+enum ModulePowerState {
+    Unknown,
+    AlwaysOn,
+    Preserve
+};
+
 struct ScheduledTime {
     uint32_t now;
     uint32_t time;

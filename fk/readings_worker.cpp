@@ -13,8 +13,8 @@ namespace fk {
 
 FK_DECLARE_LOGGER("rw");
 
-ReadingsWorker::ReadingsWorker(bool scan, bool read_only, bool verify)
-    : scan_(scan), read_only_(read_only), verify_(verify) {
+ReadingsWorker::ReadingsWorker(bool scan, bool read_only, bool verify, ModulePowerState power_state)
+    : scan_(scan), read_only_(read_only), verify_(verify), power_state_(power_state) {
 }
 
 void ReadingsWorker::run(Pool &pool) {
@@ -158,7 +158,7 @@ tl::expected<TakenReadings, Error> ReadingsWorker::take_readings(Pool &pool) {
     }
 
     auto gps = get_gps_from_global_state(pool);
-    ScanningContext ctx{ mm, gps, module_bus, pool };
+    ScanningContext ctx{ mm, gps, module_bus, power_state_, pool };
     StatisticsMemory memory{ MemoryFactory::get_data_memory() };
     Storage storage{ &memory, pool, read_only_ };
     if (!read_only_ && !storage.begin()) {
