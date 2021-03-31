@@ -7,6 +7,16 @@
 
 namespace fk {
 
+/**
+ * Describes the power needs for a Module.
+ */
+enum class ModulePower {
+    Unknown = 0,
+    ReadingsOnly = 1,
+    RareStarts = 2,
+    Always = 3,
+};
+
 struct ModulePosition {
 private:
     uint8_t integer_;
@@ -112,8 +122,9 @@ public:
     virtual bool begin() = 0;
     virtual bool enable_all_modules() = 0;
     virtual bool disable_all_modules() = 0;
-    virtual bool enable_module(ModulePosition position) = 0;
+    virtual bool enable_module(ModulePosition position, ModulePower power) = 0;
     virtual bool disable_module(ModulePosition position) = 0;
+    virtual bool disable_modules(ModulePower power) = 0;
     virtual bool power_cycle(ModulePosition position) = 0;
     virtual bool choose(ModulePosition position) = 0;
     virtual bool choose_nothing() = 0;
@@ -121,7 +132,8 @@ public:
     virtual bool disable_topology_irq() = 0;
     virtual optional<Topology> read_topology_register() = 0;
     virtual ModulesLock lock() = 0;
-    virtual bool any_modules_on() = 0;
+    virtual bool any_modules_on(ModulePower power) = 0;
+    virtual bool is_module_on(ModulePosition position) = 0;
 
 public:
     class iterator {

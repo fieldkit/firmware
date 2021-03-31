@@ -20,11 +20,15 @@ bool LinuxModMux::disable_all_modules() {
     return true;
 }
 
-bool LinuxModMux::enable_module(ModulePosition position) {
+bool LinuxModMux::enable_module(ModulePosition position, ModulePower power) {
     return true;
 }
 
 bool LinuxModMux::disable_module(ModulePosition position) {
+    return true;
+}
+
+bool LinuxModMux::disable_modules(ModulePower power) {
     return true;
 }
 
@@ -59,7 +63,11 @@ ModulesLock LinuxModMux::lock() {
     return { std::move(modules_lock), std::move(eeprom_lock), fk_uptime() };
 }
 
-bool LinuxModMux::any_modules_on() {
+bool LinuxModMux::any_modules_on(ModulePower power) {
+    return false;
+}
+
+bool LinuxModMux::is_module_on(ModulePosition position) {
     return false;
 }
 

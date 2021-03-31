@@ -80,6 +80,7 @@ void task_handler_scheduler(void *params) {
         IntervalTimer check_for_tasks_timer;
         IntervalTimer check_for_modules_timer;
         IntervalTimer check_battery_timer;
+        IntervalTimer check_module_power_timer;
         IntervalTimer enable_power_save_timer;
         IntervalTimer eta_debug_timer;
         #if defined(FK_ENABLE_NETWORK_UP_AND_DOWN)
@@ -159,6 +160,26 @@ void task_handler_scheduler(void *params) {
             if (check_battery_timer.expired(ThirtySecondsMs)) {
                 BatteryStatus battery;
                 battery.refresh();
+            }
+
+            if (check_module_power_timer.expired(FiveSecondsMs)) {
+                auto gs = get_global_state_ro();
+                auto time = gs.get()->runtime.readings;
+                auto elapsed = fk_uptime() - time;
+                if (elapsed > 20000) {
+                    if (get_modmux()->any_modules_on(ModulePower::Unknown)) {
+                        loginfo("readings-time: %" PRIu32 " (%" PRIu32 ") (disabling mp::unknown)", elapsed, time);
+                        if (!get_modmux()->disable_modules(ModulePower::Unknown)) {
+                            logerror("disabling module-power::unknown modules");
+                        }
+                    }
+                    if (get_modmux()->any_modules_on(ModulePower::RareStarts)) {
+                        loginfo("readings-time: %" PRIu32 " (%" PRIu32 ") (disabling mp::rare)", elapsed, time);
+                        if (!get_modmux()->disable_modules(ModulePower::RareStarts)) {
+                            logerror("disabling module-power::unknown modules");
+                        }
+                    }
+                }
             }
 
             if (eta_debug_timer.expired(FiveSecondsMs)) {

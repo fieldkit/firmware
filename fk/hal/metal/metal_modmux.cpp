@@ -63,6 +63,10 @@ bool MetalModMux::begin() {
 
     auto success = true;
 
+    for (auto i = 0u; i < MaximumNumberOfPhysicalModules; ++i) {
+        bay_power_[i] = ModulePower::Unknown;
+    }
+
     if (!I2C_CHECK(bus.write(MCP23008_ADDRESS, buffer, sizeof(buffer)))) {
         logerror("mcp23008 unresponsive");
         success = false;
@@ -133,10 +137,10 @@ bool MetalModMux::update_gpio(uint8_t new_gpio) {
     }
 
     if (gpio_ == new_gpio) {
-        logdebug("gpio = %d (noop)", new_gpio);
+        logdebug("gpio = 0x%x (noop)", new_gpio);
     }
     else {
-        loginfo("gpio = %d", new_gpio);
+        loginfo("gpio = 0x%x", new_gpio);
     }
 
     auto bus = get_board()->i2c_module();
@@ -169,7 +173,7 @@ bool MetalModMux::disable_all_modules() {
     return update_gpio(new_gpio);
 }
 
-bool MetalModMux::enable_module(ModulePosition position) {
+bool MetalModMux::enable_module(ModulePosition position, ModulePower power) {
     if (position.solo()) {
         return true;
     }
@@ -177,7 +181,9 @@ bool MetalModMux::enable_module(ModulePosition position) {
     auto mux_position = to_mux_position(position);
     auto new_gpio = gpio_ | (1 << mux_position);
 
-    loginfo("[%d] module on (0x%02x)", mux_position, new_gpio);
+    bay_power_[position.integer()] = power;
+
+    loginfo("[%d] module on (0x%02x) (power=%d)", mux_position, new_gpio, power);
 
     return update_gpio(new_gpio);
 }
@@ -195,6 +201,25 @@ bool MetalModMux::disable_module(ModulePosition position) {
     return update_gpio(new_gpio);
 }
 
+bool MetalModMux::disable_modules(ModulePower power) {
+    auto success = true;
+    for (auto i = 0u; i < MaximumNumberOfPhysicalModules; ++i) {
+        auto mp = ModulePosition::from(i);
+        // Power for backpack is controlled via a GPIO.
+        if (mp.solo()) {
+            continue;
+        }
+        if (is_module_on(mp)) {
+            if (bay_power_[i] == power) {
+                if (!disable_module(mp)) {
+                    success = false;
+                }
+            }
+        }
+    }
+    return success;
+}
+
 bool MetalModMux::power_cycle(ModulePosition position) {
     if (!available_) {
         return false;
@@ -206,7 +231,7 @@ bool MetalModMux::power_cycle(ModulePosition position) {
 
     fk_delay(1000);
 
-    if (!enable_module(position)) {
+    if (!enable_module(position, bay_power_[position.integer()])) {
         return false;
     }
 
@@ -311,17 +336,38 @@ ModulesLock MetalModMux::lock() {
     return { std::move(modules_lock), std::move(eeprom_lock), fk_uptime() };
 }
 
-bool MetalModMux::any_modules_on() {
+bool MetalModMux::any_modules_on(ModulePower power) {
     if (!available_) {
         return false;
     }
 
     if (ModulesAlwaysOn) {
+        loginfo("modules-always-on");
         return true;
     }
 
-    const auto power_mask = 0b01010101;
-    return (gpio_ & power_mask) > 0;
+    auto on = false;
+
+    for (auto i = 0u; i < MaximumNumberOfPhysicalModules; ++i) {
+        auto mp = ModulePosition::from(i);
+        // Power for backpack is controlled via a GPIO.
+        if (mp.solo()) continue;
+        if (is_module_on(mp)) {
+            auto bp = bay_power_[mp.integer()];
+            if (bp == power) {
+                logdebug("[%d] on: %d", i, bp);
+                on = true;
+            }
+        }
+    }
+
+    return on;
+}
+
+bool MetalModMux::is_module_on(ModulePosition position) {
+    auto mux_position = to_mux_position(position);
+    auto new_gpio = gpio_ | (1 << mux_position);
+    return new_gpio == gpio_;
 }
 
 } // namespace fk

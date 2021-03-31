@@ -7,6 +7,7 @@ private:
     bool enabled_;
     ModulePower power_;
     ModulePosition position_;
+    bool was_enabled_{ false };
 
 public:
     EnableModulePower(bool enabled, ModulePower power, ModulePosition position) : enabled_(enabled), power_(power), position_(position) {
@@ -14,12 +15,21 @@ public:
 
     virtual ~EnableModulePower();
 
-public:
+private:
+    bool can_control();
+
     bool enabled_once();
 
     bool always_enabled();
 
+    bool should_enable();
+
+public:
     bool enable();
+
+    bool was_enabled() {
+        return was_enabled_;
+    }
 
 };
 

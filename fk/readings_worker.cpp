@@ -154,7 +154,7 @@ tl::expected<TakenReadings, Error> ReadingsWorker::take_readings(Pool &pool) {
     auto module_bus = get_board()->i2c_module();
 
     if (!ModulesPowerIndividually) {
-        get_modmux()->check_modules();
+        mm->check_modules();
     }
 
     auto gps = get_gps_from_global_state(pool);
