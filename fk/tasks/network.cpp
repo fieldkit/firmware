@@ -132,6 +132,12 @@ void try_and_serve_connections() {
                 tick_pool.clear();
             }
 
+            // Break this loop and go to the beginning to recreate.
+            if (task.did_configuration_change()) {
+                loginfo("stopping: configuration");
+                break;
+            }
+
             // Some other task has requested that we stop serving. Menu option
             // or a self check for example.
             uint32_t signal = 0;
@@ -151,13 +157,7 @@ void try_and_serve_connections() {
             // This will happen when a foreign device disconnects from our WiFi AP.
             if (!network_services.ready_to_serve()) {
                 loginfo("stopping: disconnected");
-                break;
-            }
-
-            // Break this loop and go to the beginning to recreate.
-            if (task.did_configuration_change()) {
-                loginfo("stopping: configuration");
-                break;
+                return;
             }
 
             if (fk_uptime() > statistics_update) {
@@ -170,7 +170,9 @@ void try_and_serve_connections() {
                 statistics_update = fk_uptime() + OneSecondMs;
             }
 
-            fk_delay(10);
+            if (!network_services.active_connections()) {
+                fk_delay(10);
+            }
         }
     }
 }
