@@ -242,7 +242,7 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
         return nullptr;
     }
 
-    fk_delay(1000);
+    // fk_delay(1000);
 
     if (!atlas.hibernate()) {
         logerror("hibernate failed");
