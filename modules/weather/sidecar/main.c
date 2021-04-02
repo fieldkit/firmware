@@ -282,31 +282,19 @@ uint32_t fk_free_memory() {
 }
 
 void NMI_Handler(void) {
-    volatile int32_t i = 0;
-    while (1) {
-        i++;
-    }
+    NVIC_SystemReset();
 }
 
 void HardFault_Handler(void) {
-    volatile int32_t i = 0;
-    while (1) {
-        i++;
-    }
+    NVIC_SystemReset();
 }
 
 void MemManage_Handler(void) {
-    volatile int32_t i = 0;
-    while (1) {
-        i++;
-    }
+    NVIC_SystemReset();
 }
 
 void BusFault_Handler(void) {
-    volatile int32_t i = 0;
-    while (1) {
-        i++;
-    }
+    NVIC_SystemReset();
 }
 
 void WDT_Handler(void) {
