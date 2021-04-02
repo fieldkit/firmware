@@ -116,6 +116,8 @@ endfunction()
 
 set(aggregated_flags -DFK_WEATHER_SIDECAR_SUBORDINATE=1)
 set(unmetered_flags -DFK_WEATHER_SIDECAR_SUBORDINATE=1 -DFK_WEATHER_UNMETERED=1)
+set(shtmpl_flags -DFK_WEATHER_SIDECAR_SUBORDINATE=1 -DFK_ENABLE_SHT31_AND_MPL3115A2=1)
 
 add_sidecar_target("aggregated" "${aggregated_flags}")
 add_sidecar_target("unmetered" "${unmetered_flags}")
+add_sidecar_target("shtmpl" "${shtmpl_flags}")

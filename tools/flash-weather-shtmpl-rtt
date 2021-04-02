@@ -1,0 +1,18 @@
+#!/bin/bash
+
+PROGRAM=fk-weather-sidecar-shtmpl.bin
+
+JLinkExe -if SWD -device ATSAMD09D14A -speed 4000 -RTTTelnetPort 19021 <<EOF
+exitonerror 1
+connect
+h
+exec SetRTTSearchRanges 0x20000000 64
+sleep 100
+r
+sleep 100
+loadfile $PROGRAM,0x0000
+sleep 100
+r
+sleep 100
+go
+EOF
