@@ -91,7 +91,7 @@ int32_t sensors_initialize(struct i2c_m_sync_desc *i2c, sensors_t *sensors) {
     if (rv != FK_SUCCESS) {
         log_sensor_error("bme280", rv);
 
-        #if defined(FK_ENABLE_SH31_AND_MPL3115A2)
+        #if defined(FK_ENABLE_SHT31_AND_MPL3115A2)
         nsensors++;
         rv = sht31_initialize(i2c);
         if (rv != FK_SUCCESS) {

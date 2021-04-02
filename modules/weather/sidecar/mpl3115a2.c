@@ -1,7 +1,7 @@
 #include "mpl3115a2.h"
 #include "i2c.h"
 
-#if defined(FK_ENABLE_SH31_AND_MPL3115A2)
+#if defined(FK_ENABLE_SHT31_AND_MPL3115A2)
 
 #define MPL3115A2_I2C_ADDRESS                            (0x60)
 #define MPL3115A2_REGISTER_STATUS                        (0x00)

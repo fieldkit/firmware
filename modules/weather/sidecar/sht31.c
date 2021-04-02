@@ -1,7 +1,7 @@
 #include "sht31.h"
 #include "i2c.h"
 
-#if defined(FK_ENABLE_SH31_AND_MPL3115A2)
+#if defined(FK_ENABLE_SHT31_AND_MPL3115A2)
 
 #define SHT31_I2C_ADDRESS                                (0x44)
 #define SHT31_MEAS_HIGH_REPEATABILITY_STRETCH            (0x2C06)

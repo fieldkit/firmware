@@ -1,8 +1,8 @@
 #pragma once
 
-#if defined(FK_ENABLE_SH31_AND_MPL3115A2)
-
 #include "sidecar.h"
+
+#if defined(FK_ENABLE_SHT31_AND_MPL3115A2)
 
 typedef struct sht31_reading_t {
     uint32_t humidity;
