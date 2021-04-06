@@ -9,4 +9,4 @@ MEMORY
   RAM (rwx) : ORIGIN = 0x20000000, LENGTH = 0x00040000
 }
 
-INCLUDE ../common-main.ld
+INCLUDE common-main.ld

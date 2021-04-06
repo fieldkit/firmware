@@ -4,4 +4,4 @@
  *
  */
 INCLUDE memory.ld
-INCLUDE ../common-main.ld
+INCLUDE common-main.ld
