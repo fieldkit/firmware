@@ -90,6 +90,7 @@ int32_t aggregated_weather_include(fk_weather_aggregated_t *aw, struct calendar_
         }
     }
 
+    aw->initialized = weather->initialized;
     aw->failures = weather->failures;
     aw->uptime = board_system_time_get();
     aw->crc = aggregated_weather_sign(aw);

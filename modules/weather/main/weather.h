@@ -32,8 +32,8 @@ typedef struct fk_weather_t {
 
     uint32_t reserved[1];
     uint8_t failures;
-    uint8_t reserved_failures;
-    uint8_t reserved_u8[2];
+    uint8_t initialized;
+    uint8_t reserved_u8;
 
     uint32_t startups;
     uint32_t reading_failures;
@@ -75,8 +75,8 @@ typedef struct fk_weather_aggregated_t {
 
     uint32_t reserved_u32[6];
     uint8_t failures;
-    uint8_t reserved_failures;
-    uint8_t reserved_u8[2];
+    uint8_t initialized;
+    uint8_t reserved_u8;
 
     uint32_t uptime;
     uint32_t crc;
@@ -98,6 +98,7 @@ typedef struct fk_weather_aggregated_t {
 #define FK_WEATHER_SENSORS_SHT31                       (1 << 2)
 #define FK_WEATHER_SENSORS_ADC                         (1 << 3)
 #define FK_WEATHER_SENSORS_COUNTERS                    (1 << 4)
+#define FK_WEATHER_SENSORS_ALL                         FK_WEATHER_SENSORS_COUNTERS | FK_WEATHER_SENSORS_ADC | FK_WEATHER_SENSORS_SHT31 | FK_WEATHER_SENSORS_MPL3115A2 | FK_WEATHER_SENSORS_BME280;
 
 static inline float fkw_weather_temperature_1(fk_weather_aggregated_t *w) {
     return ((float)w->temperature_1) / 100.0f;

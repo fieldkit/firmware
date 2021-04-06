@@ -47,20 +47,26 @@ int32_t take_readings(fk_weather_t *weather, sensors_t *sensors, uint8_t *failur
     uint8_t failures = 0;
     int32_t rv;
 
-    if (sensors->has_bme280) {
+    if ((sensors->initialized & FK_WEATHER_SENSORS_BME280) == 1) {
+        failures |= FK_WEATHER_SENSORS_SHT31;
+        failures |= FK_WEATHER_SENSORS_MPL3115A2;
+
         bme280_reading_t bme280_reading;
         rv = bme280_reading_get(&I2C_1, &bme280_reading);
         if (rv != FK_SUCCESS) {
             logerrorf("bme280 (%d)", rv);
             failures |= FK_WEATHER_SENSORS_BME280;
         }
-
-        weather->humidity = bme280_reading.humidity;
-        weather->temperature_1 = bme280_reading.temperature;
-        weather->pressure = bme280_reading.pressure;
-        weather->temperature_2 = weather->temperature_1;
+        else {
+            weather->humidity = bme280_reading.humidity;
+            weather->temperature_1 = bme280_reading.temperature;
+            weather->pressure = bme280_reading.pressure;
+            weather->temperature_2 = weather->temperature_1;
+        }
     }
     else {
+        failures |= FK_WEATHER_SENSORS_BME280;
+
         #if defined(FK_ENABLE_SHT31_AND_MPL3115A2)
         mpl3115a2_reading_t mpl3115a2_reading;
         rv = mpl3115a2_reading_get(&I2C_1, &mpl3115a2_reading);
@@ -80,6 +86,9 @@ int32_t take_readings(fk_weather_t *weather, sensors_t *sensors, uint8_t *failur
         weather->temperature_1 = sht31_reading.temperature;
         weather->pressure = mpl3115a2_reading.pressure;
         weather->temperature_2 = mpl3115a2_reading.temperature;
+        #else
+        failures |= FK_WEATHER_SENSORS_SHT31;
+        failures |= FK_WEATHER_SENSORS_MPL3115A2;
         #endif
     }
 
@@ -100,6 +109,7 @@ int32_t take_readings(fk_weather_t *weather, sensors_t *sensors, uint8_t *failur
     #endif
 
     (*failures_rv) = failures;
+    weather->initialized = sensors->initialized;
     weather->failures = failures;
     weather->seconds++;
     weather->session++;
@@ -190,10 +200,10 @@ __int32_t main() {
 
     board_sensors_i2c_enable();
 
-    sensors_t sensors = { 0, 0 };
+    sensors_t sensors = { 0 };
     int32_t rv = sensors_initialize(&I2C_1, &sensors);
     if (rv != FK_SUCCESS) {
-        if (sensors.working == 0) {
+        if (sensors.initialized == 0) {
             #if !defined(FK_WEATHER_IGNORE_NO_SENSORS)
             i2c_sensors_recover();
             delay_ms(8000);

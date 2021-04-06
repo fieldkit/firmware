@@ -148,13 +148,17 @@ ModuleReadings *AggregatedWeather::take_readings(ModuleContext mc, Pool &pool) {
     auto mr = new_module_readings(unmetered, pool);
     auto i = 0u;
 
-    if (false) {
+    auto having_supply_chain_nightmare = ((aw.initialized & FK_WEATHER_SENSORS_SHT31) > 0) &&
+                                         ((aw.initialized & FK_WEATHER_SENSORS_MPL3115A2) > 0);
+    if (having_supply_chain_nightmare) {
+        loginfo("variant: sht31/mpl3115a2 initialized=0x%x failures=0x%x", aw.initialized, aw.failures);
         mr->set(i++, 100.0f * ((float)aw.humidity / (0xffff)));
         mr->set(i++, -45.0f + 175.0f * ((float)aw.temperature_1 / (0xffff)));
         mr->set(i++, aw.pressure / 64.0f / 1000.0f);
         mr->set(i++, aw.temperature_2 / 16.0f);
     }
     else {
+        loginfo("variant: bme280 initialized=0x%x failures=0x%x", aw.initialized, aw.failures);
         mr->set(i++, fkw_weather_humidity(&aw));
         mr->set(i++, fkw_weather_temperature_1(&aw));
         mr->set(i++, fkw_weather_pressure(&aw));
@@ -163,11 +167,9 @@ ModuleReadings *AggregatedWeather::take_readings(ModuleContext mc, Pool &pool) {
 
     // Detect the unmetered weather scenario.
     if (unmetered) {
-        loginfo("unmetered weather detected");
+        loginfo("variant: unmetered");
         return mr;
     }
-
-
 
     mr->set(i++, awh.get_rain_mm_per_hour());
 

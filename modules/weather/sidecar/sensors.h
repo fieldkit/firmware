@@ -8,9 +8,7 @@
 #include "bme280.h"
 
 typedef struct sensors_t {
-    int8_t failures;
-    int8_t working;
-    int8_t has_bme280;
+    int8_t initialized;
 } sensors_t;
 
 int32_t sensors_initialize(struct i2c_m_sync_desc *i2c, sensors_t *sensors);

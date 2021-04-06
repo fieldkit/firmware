@@ -51,71 +51,60 @@ static void log_sensor_error(const char *which, int32_t rv) {
 int32_t sensors_initialize(struct i2c_m_sync_desc *i2c, sensors_t *sensors) {
     uint16_t status;
     int32_t rv;
-    int32_t nsensors = 0;
 
-    sensors->failures = 0;
+    // All sensors are initialized to begin with and we clear these
+    // bits as we go.
+    sensors->initialized = FK_WEATHER_SENSORS_ALL;
 
     #if !defined(FK_WEATHER_UNMETERED)
-    nsensors++;
     rv = configure_io_expander(i2c, MCP2803_RAIN_I2C_ADDRESS, MCP2803_RAIN_IODIR, 0);
     if (rv != FK_SUCCESS) {
         log_sensor_error("rain-mcp", rv);
-        sensors->failures++;
+        sensors->initialized ^= FK_WEATHER_SENSORS_COUNTERS;
     }
 
-    nsensors++;
     rv = configure_io_expander(i2c, MCP2803_WIND_I2C_ADDRESS, MCP2803_WIND_IODIR, 0);
     if (rv != FK_SUCCESS) {
         log_sensor_error("wind-mcp", rv);
-        sensors->failures++;
+        sensors->initialized ^= FK_WEATHER_SENSORS_COUNTERS;
     }
 
-    nsensors++;
     rv = configure_io_expander(i2c, MCP2803_CONTROL_I2C_ADDRESS, MCP2803_CONTROL_IODIR, MCP2803_CONTROL_GPIO_INITIAL);
     if (rv != FK_SUCCESS) {
         log_sensor_error("control-mcp", rv);
-        sensors->failures++;
+        sensors->initialized ^= FK_WEATHER_SENSORS_COUNTERS;
     }
 
-    nsensors++;
     rv = adc081c_initialize(i2c);
     if (rv != FK_SUCCESS) {
         log_sensor_error("adc081c", rv);
-        sensors->failures++;
+        sensors->initialized ^= FK_WEATHER_SENSORS_ADC;
     }
     #endif
-
-    sensors->has_bme280 = false;
 
     rv = bme280_initialize(i2c);
     if (rv != FK_SUCCESS) {
         log_sensor_error("bme280", rv);
 
+        sensors->initialized ^= FK_WEATHER_SENSORS_BME280;
+
         #if defined(FK_ENABLE_SHT31_AND_MPL3115A2)
-        nsensors++;
         rv = sht31_initialize(i2c);
         if (rv != FK_SUCCESS) {
             log_sensor_error("sht31", rv);
-            sensors->failures++;
+            sensors->initialized ^= FK_WEATHER_SENSORS_SHT31;
         }
 
-        nsensors++;
         rv = mpl3115a2_initialize(i2c);
         if (rv != FK_SUCCESS) {
             log_sensor_error("mpl3115a2", rv);
-            sensors->failures++;
+            sensors->initialized ^= FK_WEATHER_SENSORS_MPL3115A2;
         }
         #endif
     }
     else {
-        nsensors++;
-        sensors->has_bme280 = true;
-    }
-
-    sensors->working = nsensors - sensors->failures;
-
-    if (sensors->failures > 0) {
-        return FK_ERROR_GENERAL;
+        sensors->initialized ^= FK_WEATHER_SENSORS_SHT31;
+        sensors->initialized ^= FK_WEATHER_SENSORS_MPL3115A2;
     }
 
     return FK_SUCCESS;
