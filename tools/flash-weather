@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PROGRAM=fk-weather-sidecar-aggregated.bin
+PROGRAM=fk-weather-sidecar-normal.bin
 
 JLinkExe -if SWD -device ATSAMD09D14A -speed 4000 <<EOF
 exitonerror 1

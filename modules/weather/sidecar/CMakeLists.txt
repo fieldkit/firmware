@@ -114,8 +114,8 @@ function(add_sidecar_target profile flags)
 	add_dependencies(${sym_target} ${elf_target})
 endfunction()
 
-set(aggregated_flags -DFK_WEATHER_SIDECAR_SUBORDINATE=1 -DFK_ENABLE_SHT31_AND_MPL3115A2=1)
+set(normal_flags -DFK_WEATHER_SIDECAR_SUBORDINATE=1 -DFK_ENABLE_SHT31_AND_MPL3115A2=1)
 set(unmetered_flags -DFK_WEATHER_SIDECAR_SUBORDINATE=1 -DFK_WEATHER_UNMETERED=1)
 
-add_sidecar_target("aggregated" "${aggregated_flags}")
+add_sidecar_target("normal" "${normal_flags}")
 add_sidecar_target("unmetered" "${unmetered_flags}")
