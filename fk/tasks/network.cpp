@@ -156,8 +156,14 @@ void try_and_serve_connections() {
 
             // This will happen when a foreign device disconnects from our WiFi AP.
             if (!network_services.ready_to_serve()) {
-                loginfo("stopping: disconnected");
-                return;
+                if (duration.always_on()) {
+                    loginfo("stopping: disconnected (always-on)");
+                    break;
+                }
+                else {
+                    loginfo("stopping: disconnected");
+                    return;
+                }
             }
 
             if (fk_uptime() > statistics_update) {
