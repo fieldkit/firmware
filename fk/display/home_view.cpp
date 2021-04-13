@@ -88,9 +88,20 @@ void HomeView::tick(ViewController *views, Pool &pool) {
         break;
     }
     case Visible::Build: {
-        DateTime ts{ fkb_header.firmware.timestamp };
-        tiny_snprintf(primary_, sizeof(primary_), "Build #%" PRIu32, fkb_header.firmware.number);
-        tiny_snprintf(secondary_, sizeof(secondary_), "%02d%02d-%02d%02d", ts.month(), ts.day(), ts.hour(), ts.minute());
+        if ((screen.time / 5000) % 2 == 0) {
+            DateTime ts{ fkb_header.firmware.timestamp };
+            tiny_snprintf(primary_, sizeof(primary_), "Build #%" PRIu32, fkb_header.firmware.number);
+            tiny_snprintf(secondary_, sizeof(secondary_), "%02d%02d-%02d%02d", ts.month(), ts.day(), ts.hour(), ts.minute());
+        }
+        else {
+            auto hash_dash = strrchr((char const *)fkb_header.firmware.version, '-');
+            if (hash_dash != nullptr) {
+                auto prefix_length = hash_dash - (char const *)fkb_header.firmware.version;
+                auto copying = std::min<size_t>(prefix_length, sizeof(primary_));
+                strncpy(primary_, (char const *)fkb_header.firmware.version, copying);
+                strncpy(secondary_, hash_dash + 1, sizeof(secondary_));
+            }
+        }
         screen.primary = primary_;
         screen.secondary = secondary_;
         break;

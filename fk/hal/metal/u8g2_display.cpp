@@ -95,15 +95,13 @@ void U8g2Display::fk_logo() {
 }
 
 static bool toggle_every(uint32_t time, uint32_t interval) {
-    return (time / interval ) % 2 == 0;
+    return (time / interval) % 2 == 0;
 }
 
-/*
 static int32_t lerp(int32_t start, int32_t end, uint32_t interval, uint32_t time) {
     auto scale = ((float)(time % interval) / (float)interval);
     return start + (int32_t)((float)(end - start) * scale);
 }
-*/
 
 template<typename T>
 static void draw_centered(T draw, uint16_t y, const char *str) {
@@ -282,7 +280,13 @@ void U8g2Display::home(HomeScreen const &data) {
 
     if (!rendered_workers) {
         if (data.primary != nullptr) {
-            draw_string_auto_sized(draw_, false, 0, top, OLED_WIDTH, max_h, data.primary);
+            if (!draw_string_auto_sized(draw_, false, 0, top, OLED_WIDTH, max_h, data.primary)) {
+                draw_.setFontMode(0);
+                draw_.setFont(u8g2_font_courB14_tf);
+                auto width = draw_.getUTF8Width(data.primary);
+                auto x = lerp(-width, OLED_WIDTH, 10000, data.time);
+                draw_.drawUTF8(x, 18 + 20, data.primary);
+            }
             top += max_h + 6;
             max_h -= 2;
         }
