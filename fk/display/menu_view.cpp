@@ -357,7 +357,7 @@ void MenuView::create_tools_menu() {
         StandardPool pool{ "gps-option" };
         configure_gps_duration(TenMinutesSeconds, pool);
     }, [=](GlobalState const *gs) {
-        loginfo("update fixed %" PRIu32, gs->scheduler.gps.duration);
+        loginfo("refresh fixed %" PRIu32, gs->scheduler.gps.duration);
         return gs->scheduler.gps.duration != UINT32_MAX;
     });
     auto toggle_gps_moving = to_selectable_lambda_option(pool_, "Always On", [=]() {
@@ -366,7 +366,7 @@ void MenuView::create_tools_menu() {
         StandardPool pool{ "gps-option" };
         configure_gps_duration(UINT32_MAX, pool);
     }, [=](GlobalState const *gs) {
-        loginfo("update moving %" PRIu32, gs->scheduler.gps.duration);
+        loginfo("refresh moving %" PRIu32, gs->scheduler.gps.duration);
         return gs->scheduler.gps.duration == UINT32_MAX;
     });
 
@@ -510,7 +510,7 @@ void MenuView::create_network_menu() {
         StandardPool pool{ "wifi-option" };
         configure_wifi_duration(FiveMinutesSeconds, pool);
     }, [=](GlobalState const *gs) {
-        loginfo("update wifi %" PRIu32, gs->scheduler.gps.duration);
+        loginfo("refresh wifi %" PRIu32, gs->scheduler.network.duration);
         return gs->scheduler.network.duration != UINT32_MAX;
     });
     auto toggle_wifi_always = to_selectable_lambda_option(pool_, "Always On", [=]() {
@@ -519,7 +519,7 @@ void MenuView::create_network_menu() {
         StandardPool pool{ "wifi-option" };
         configure_wifi_duration(UINT32_MAX, pool);
     }, [=](GlobalState const *gs) {
-        loginfo("update wifi %" PRIu32, gs->scheduler.gps.duration);
+        loginfo("refresh wifi %" PRIu32, gs->scheduler.network.duration);
         return gs->scheduler.network.duration == UINT32_MAX;
     });
 
