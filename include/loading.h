@@ -26,7 +26,7 @@ typedef struct fkb_firmware_t {
     uint32_t flags;
     uint32_t timestamp;
     uint32_t number;
-    uint8_t version[16];
+    uint8_t reserved[16];
     uint32_t binary_size;
     uint32_t tables_offset;
     uint32_t data_size;
@@ -34,7 +34,7 @@ typedef struct fkb_firmware_t {
     uint32_t got_size;
     uint32_t vtor_offset;
     uint32_t got_offset;
-    uint8_t name[256];
+    uint8_t version[256];
     uint32_t hash_size;
     uint8_t hash[128];
 } fkb_firmware_t;
