@@ -65,7 +65,7 @@ void MetaRecord::include_state(GlobalState const *gs, fkb_header_t const *fkb_he
     record_.has_metadata = true;
     record_.metadata.has_firmware = true;
     record_.metadata.firmware.version.arg = (void *)fkb_header->firmware.version;
-    record_.metadata.firmware.build.arg = (void *)fkb_header->firmware.name;
+    record_.metadata.firmware.build.arg = (void *)"";
     record_.metadata.firmware.hash.arg = (void *)hash_hex;
     record_.metadata.firmware.number.arg = (void *)pool.sprintf("%d", fkb_header->firmware.number);
     record_.metadata.firmware.timestamp = fkb_header->firmware.timestamp;
@@ -251,7 +251,7 @@ void MetaRecord::include_modules(GlobalState const *gs, fkb_header_t const *fkb_
     record_.has_metadata = true;
     record_.metadata.has_firmware = true;
     record_.metadata.firmware.version.arg = (void *)fkb_header->firmware.version;
-    record_.metadata.firmware.build.arg = (void *)fkb_header->firmware.name;
+    record_.metadata.firmware.build.arg = (void *)"";
     record_.metadata.firmware.hash.arg = (void *)hash_hex;
     record_.metadata.firmware.number.arg = (void *)pool.sprintf("%d", fkb_header->firmware.number);
     record_.metadata.firmware.timestamp = fkb_header->firmware.timestamp;

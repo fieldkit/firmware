@@ -21,7 +21,7 @@ fkb_header_t fake_header = {
         .flags          = 0,
         .timestamp      = 1580763366,
         .number         = 1000,
-        .version        = { 0x0 },
+        .reserved       = { 0x0 },
         .binary_size    = 65536,
         .tables_offset  = 8192,
         .data_size      = 8192,
@@ -29,7 +29,7 @@ fkb_header_t fake_header = {
         .got_size       = 8192,
         .vtor_offset    = 8192,
         .got_offset     = 32768,
-        .name           = { 0x0 },
+        .version        = { 0x0 },
         .hash_size      = 32,
         .hash           = { 0xB2 }
     },
@@ -209,7 +209,6 @@ public:
         pool_.clear();
 
         fake_string(fake_header.firmware.version);
-        fake_string(fake_header.firmware.name);
         fake_string(fake_header.firmware.hash);
     }
 
@@ -297,7 +296,7 @@ TEST_F(ProtoBufSizeSuite, Configuration) {
     auto encoded = pool_.encode(fk_data_DataRecord_fields, &record.record());
     dump_binary(file_, "data-configuration", encoded);
 
-    ASSERT_EQ(encoded->size, 1359u);
+    ASSERT_EQ(encoded->size, 1344u);
 }
 
 TEST_F(ProtoBufSizeSuite, Modules) {
@@ -314,7 +313,7 @@ TEST_F(ProtoBufSizeSuite, Modules) {
     auto encoded = pool_.encode(fk_data_DataRecord_fields, &record.record());
     dump_binary(file_, "data-modules", encoded);
 
-    ASSERT_EQ(encoded->size, 976u);
+    ASSERT_EQ(encoded->size, 961u);
 }
 
 TEST_F(ProtoBufSizeSuite, HttpReplyStatus) {
@@ -327,7 +326,7 @@ TEST_F(ProtoBufSizeSuite, HttpReplyStatus) {
     auto encoded = pool_.encode(fk_app_HttpReply_fields, reply.reply());
     dump_binary(file_, "http-reply-status", encoded);
 
-    ASSERT_EQ(encoded->size, 2084u);
+    ASSERT_EQ(encoded->size, 2054u);
 }
 
 TEST_F(ProtoBufSizeSuite, HttpReplyReadings) {

@@ -5,7 +5,6 @@ BUILD ?= $(abspath build)
 SHELL := /bin/bash
 OFFLINE := /bin/false
 BUILD_NUMBER ?= none
-PACKAGE = fk-firmware-$(BUILD_NUMBER)
 
 default: setup all
 
@@ -86,7 +85,10 @@ fk/data/adjectives.h: fk/data/adjectives.txt
 fk/data/animals.h: fk/data/animals.txt
 	cd fk/data && ./generate.py
 
-package: fw
+package: samd51 samd09
+	cd build/samd51/fk && $(MAKE) package
+
+package-old: fw
 	mkdir -p $(BUILD)/$(PACKAGE)
 	cp tools/flash-* $(BUILD)/$(PACKAGE)
 	cp tools/jlink-* $(BUILD)/$(PACKAGE)

@@ -235,7 +235,7 @@ bool HttpServerConnection::service() {
                     auto gs = get_global_state_ro();
                     plain(200, "ok", pool_->sprintf("Hello! I am a FieldKit station. My name is %s.\nFirmware: %s (#%" PRIu32 ")\n",
                                                     gs.get()->general.name,
-                                                    fkb_header.firmware.name, fkb_header.firmware.number));
+                                                    fkb_header.firmware.version, fkb_header.firmware.number));
                     return true;
                 }
 

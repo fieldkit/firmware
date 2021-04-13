@@ -46,7 +46,7 @@ const struct fkb_header_t fkb_header = {
         .binary_size    = 0,
         .vtor_offset    = 0,
         .got_offset     = 0,
-        .name           = { 0 },
+        .version        = { 0 },
         .hash_size      = 0,
         .hash           = { 0 }
     },

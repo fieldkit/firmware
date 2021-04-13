@@ -147,6 +147,12 @@ else()
   configure_firmware_linker_script(fk-bundled ${CMAKE_SOURCE_DIR}/boards/samd51/main.ld)
 endif()
 
+target_compile_options(fk-bundled PRIVATE -DFK_VERSION=${FK_VERSION})
+
 add_arduino_firmware(fk-bundled)
 
 enable_fkb_firmware(fk-bundled)
+
+configure_file(version.txt.in ${CMAKE_BINARY_DIR}/version.txt)
+
+add_custom_target(package COMMAND ${CMAKE_SOURCE_DIR}/tools/package.sh ${CMAKE_BINARY_DIR}/../ ${FK_VERSION})

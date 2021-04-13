@@ -5,6 +5,10 @@
  */
 #include <loading.h>
 
+#define FK_XSTR(s) FK_STR(s)
+
+#define FK_STR(s)  #s
+
 __attribute__((section(".fkb.header")))
 const struct fkb_header_t fkb_header = {
     .signature          = FKB_HEADER_SIGNATURE(),
@@ -16,7 +20,7 @@ const struct fkb_header_t fkb_header = {
         .binary_size    = 0,
         .vtor_offset    = 0,
         .got_offset     = 0,
-        .name           = { 0 },
+        .version        = FK_XSTR(FK_VERSION),
         .hash_size      = 0,
         .hash           = { 0 }
     },

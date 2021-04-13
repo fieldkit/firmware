@@ -82,13 +82,13 @@ static bool try_populate_firmware(fk_app_Firmware& fw, void const *ptr, Pool &po
 
     fkb_header_t const *fkbh = (fkb_header_t const *)ptr;
     fw.version.arg = (void *)fkbh->firmware.version;
-    fw.build.arg = (void *)fkbh->firmware.name;
+    fw.build.arg = (void *)"";
     fw.number.arg = (void *)pool.sprintf("%d", fkbh->firmware.number);
     fw.timestamp = fkbh->firmware.timestamp;
     fw.hash.arg = (void *)bytes_to_hex_string_pool(fkbh->firmware.hash, fkbh->firmware.hash_size, pool);
     fw.logical_address = logical_address;
 
-    loginfo("[0x%08" PRIx32 "] firmware: number=%" PRIu32 " build=%s", ptr, fkbh->firmware.number, fkbh->firmware.name);
+    loginfo("[0x%08" PRIx32 "] firmware: number=%" PRIu32 " version=%s", ptr, fkbh->firmware.number, fkbh->firmware.version);
 
     return true;
 }
