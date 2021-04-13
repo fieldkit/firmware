@@ -82,9 +82,9 @@ uint32_t fkb_find_and_launch(void const *ptr) {
 
         selected = fkbh;
 
-        fkb_external_println("bl: [0x%08p] found '%s' / #%lu '%s' flags=0x%x size=%lu dyntables=+%lu data=%lu bss=%lu got=%lu vtor=0x%x", ptr,
-                             fkbh->firmware.name, fkbh->firmware.number, fkbh->firmware.version,
-                             fkbh->firmware.flags, fkbh->firmware.binary_size, fkbh->firmware.tables_offset,
+        fkb_external_println("bl: [0x%08p] found '%s' (#%lu) flags=0x%x binary-size=%lu dyntables=+%lu data=%lu bss=%lu got=%lu vtor=0x%x", ptr,
+                             fkbh->firmware.version, fkbh->firmware.number, fkbh->firmware.flags,
+                             fkbh->firmware.binary_size, fkbh->firmware.tables_offset,
                              fkbh->firmware.data_size, fkbh->firmware.bss_size, fkbh->firmware.got_size,
                              fkbh->firmware.vtor_offset);
 

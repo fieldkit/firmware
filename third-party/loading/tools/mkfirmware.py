@@ -313,12 +313,11 @@ class ElfAnalyzer:
 
 class FkbHeader:
     SIGNATURE_FIELD = 0
-    VERSION_FIELD = 1
+    HEADER_VERSION_FIELD = 1
     HEADER_SIZE_FIELD = 2
     FLAGS_FIELD = 3
     TIMESTAMP_FIELD = 4
     BUILD_NUMBER_FIELD = 5
-    VERSION_FIELD = 6
     BINARY_SIZE_FIELD = 7
     TABLES_OFFSET_FIELD = 8
     BINARY_DATA_FIELD = 9
@@ -326,7 +325,7 @@ class FkbHeader:
     BINARY_GOT_FIELD = 11
     VTOR_OFFSET_FIELD = 12
     GOT_OFFSET_FIELD = 13
-    NAME_FIELD = 14
+    BINARY_VERSION_FIELD = 14
     HASH_SIZE_FIELD = 15
     HASH_FIELD = 16
     NUMBER_SYMBOLS_FIELD = 17
@@ -342,7 +341,7 @@ class FkbHeader:
             struct.unpack(self.min_packspec, bytearray(data[: self.min_size]))
         )
 
-    def has_invalid_name(self, value: str) -> bool:
+    def has_invalid_version(self, value: str) -> bool:
         return len(value) == 0 or value[0] == "\0" or value[0] == 0
 
     def populate(self, ea: "ElfAnalyzer", name: str):
@@ -371,10 +370,10 @@ class FkbHeader:
         self.fields[self.HASH_FIELD] = fwhash
 
         if name:
-            self.fields[self.NAME_FIELD] = name
+            self.fields[self.BINARY_VERSION_FIELD] = name
 
-        if self.has_invalid_name(self.fields[self.NAME_FIELD]):
-            self.fields[self.NAME_FIELD] = self.generate_name(ea)
+        if self.has_invalid_version(self.fields[self.BINARY_VERSION_FIELD]):
+            self.fields[self.BINARY_VERSION_FIELD] = self.generate_version(ea)
 
         if "BUILD_NUMBER" in os.environ:
             self.fields[self.BUILD_NUMBER_FIELD] = int(os.environ["BUILD_NUMBER"])
@@ -382,7 +381,7 @@ class FkbHeader:
         self.fields[self.NUMBER_SYMBOLS_FIELD] = len(ea.symbols)
         self.fields[self.NUMBER_RELOCATIONS_FIELD] = len(ea.relocations)
 
-    def generate_name(self, ea: ElfAnalyzer):
+    def generate_version(self, ea: ElfAnalyzer):
         name = os.path.basename(self.fkb_path)
         when = datetime.datetime.utcfromtimestamp(ea.timestamp())
         ft = when.strftime("%Y%m%d_%H%M%S")
@@ -391,8 +390,8 @@ class FkbHeader:
     def to_bytes(self):
         new_header = bytearray(bytes(struct.pack(self.min_packspec, *self.fields)))
 
-        logging.info("Name: %s" % (self.fields[self.NAME_FIELD]))
-        logging.info("Version: %s" % (self.fields[self.VERSION_FIELD]))
+        logging.info("Binary Version: %s" % (self.fields[self.BINARY_VERSION_FIELD]))
+        logging.info("Header Version: %s" % (self.fields[self.HEADER_VERSION_FIELD]))
         logging.info("Number: %s" % (self.fields[self.BUILD_NUMBER_FIELD]))
         logging.info("Hash: %s" % (self.fields[self.HASH_FIELD].hex()))
         logging.info("Time: %d" % (self.fields[self.TIMESTAMP_FIELD]))
