@@ -4,6 +4,8 @@ conservifyProperties()
 
 timestamps {
     node () {
+		sh "env"
+
         conservifyBuild(name: 'firmware', target: "ci", clean: "veryclean", archive: "build/*.zip, build/samd51/bootloader/*.elf, build/samd51/bootloader/*.bin, build/*/fk/*.bin, build/*/fk/*.elf, build/*/modules/*/*/*.bin, build/*/modules/*/*/*.elf")
 
 		stage ('distribute') {
