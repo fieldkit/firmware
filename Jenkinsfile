@@ -3,7 +3,7 @@
 conservifyProperties()
 
 def uploadFirmware(Map parameters = [:]) {
-	def command = "fktool --scheme https"
+	def command = "--scheme https"
 
 	if (parameters.directory) {
 		command += " --firmware-directory " + parameters.directory
@@ -33,11 +33,13 @@ def uploadFirmware(Map parameters = [:]) {
 		command += " --version " + parameters.version
 	}
 
-	echo command + " --host api.fkdev.org"
-	sh command + " --host api.fkdev.org"
+	def dev = "fktool  --host api.fkdev.org " + command
+	echo dev
+	sh dev
 
-	echo command + " --host api.fieldkit.org"
-	sh command + " --host api.fieldkit.org"
+	def prod = "fktool  --host api.fieldkit.org " + command
+	echo prod
+	sh prod
 }
 
 timestamps {
