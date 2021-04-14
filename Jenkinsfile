@@ -76,7 +76,7 @@ timestamps {
 			stage ('distribute') {
 				def version = readFile('build/samd51/version.txt')
 
-				currentBuild.description = version
+				currentBuild.description = version.trim()
 
 				withCredentials([usernamePassword(credentialsId: 'fkpassword', usernameVariable: 'FK_USER', passwordVariable: 'FK_PASSWORD')]) {
 					uploadFirmware(version: version, profile: 'standard', module: 'fk-core', file: "build/samd51/fk/fk-bundled-fkb.bin", email: "${env.FK_USER}", password: "${env.FK_PASSWORD}")
