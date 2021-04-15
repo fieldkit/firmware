@@ -75,16 +75,16 @@ timestamps {
 				sh "make test"
 			}
 
+			def version = readFile('build/samd51/version.txt')
+
+			currentBuild.description = version.trim()
+
 			stage ('archive') {
 				archiveArtifacts artifacts: "build/*.zip, build/samd51/bootloader/*.elf, build/samd51/bootloader/*.bin, build/*/fk/*.bin, build/*/fk/*.elf, build/*/modules/*/*/*.bin, build/*/modules/*/*/*.elf"
 			}
 
 			if (branch == "main") {
 				stage ('distribute') {
-					def version = readFile('build/samd51/version.txt')
-
-					currentBuild.description = version.trim()
-
 					withCredentials([usernamePassword(credentialsId: 'fkpassword', usernameVariable: 'FK_USER', passwordVariable: 'FK_PASSWORD')]) {
 						uploadFirmware(version: version, profile: 'standard', module: 'fk-core', file: "build/samd51/fk/fk-bundled-fkb.bin", email: "${env.FK_USER}", password: "${env.FK_PASSWORD}")
 						uploadFirmware(version: version, profile: 'standard', module: 'fk-bl', file: "build/samd51/bootloader/fkbl-fkb.bin", email: "${env.FK_USER}", password: "${env.FK_PASSWORD}")
