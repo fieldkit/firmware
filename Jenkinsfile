@@ -62,6 +62,8 @@ timestamps {
 					withEnv(["PATH+GOLANG=${tool 'golang-amd64'}/bin"]) {
 						withEnv(["PATH+GOHOME=${HOME}/go/bin"]) {
 							withPythonEnv("python3") {
+								sh "which python3"
+								sh "which python"
 								sh "make ci"
 							}
 						}
