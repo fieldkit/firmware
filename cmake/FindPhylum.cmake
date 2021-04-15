@@ -25,7 +25,7 @@ else()
   find_package(SPI)
   target_link_libraries(phylum SPI)
 
-  target_compile_options(phylum PUBLIC -DPHYLUM_ENABLE_SD)
+  target_compile_options(phylum PUBLIC -DPHYLUM_LOCAL_EXCHANGE=1 -I${CMAKE_SOURCE_DIR}/fk)
 endif()
 
 target_include_directories(phylum
