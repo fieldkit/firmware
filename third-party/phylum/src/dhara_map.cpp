@@ -1,4 +1,5 @@
 #include "dhara_map.h"
+#include "working_buffers.h"
 
 namespace phylum {
 
@@ -18,7 +19,7 @@ static inline uint32_t lfs_npw2(uint32_t a) {
 #endif
 }
 
-dhara_sector_map::dhara_sector_map(flash_memory &target) : target_(&target) {
+dhara_sector_map::dhara_sector_map(working_buffers &buffers, flash_memory &target) : buffers_(&buffers), target_(&target) {
 }
 
 dhara_sector_map::~dhara_sector_map() {
@@ -46,12 +47,23 @@ int32_t dhara_sector_map::begin(bool force_create) {
         .dn = this,
     };
 
-    // TODO Allocates
-    auto buffer = (uint8_t *)malloc(page_size);
+    if (!buffer_.valid()) {
+        buffer_ = buffers_->allocate(page_size);
+    }
+
+    // Notice that this is just named this way to indicate that we're
+    // doing something unusual compared to the other calls to
+    // unsafe_all, in that dhara basically owns this buffer now.
+    auto err = buffer_.unsafe_forever([&](uint8_t *ptr, size_t size) {
+        assert(size == page_size);
+        dhara_map_init(&dmap_, &nand_.dhara, ptr, gc_ratio_);
+        return 0;
+    });
+    if (err < 0) {
+        return err;
+    }
 
     dhara_error_t derr;
-    dhara_map_init(&dmap_, &nand_.dhara, buffer, gc_ratio_);
-
     if (dhara_map_resume(&dmap_, &derr) < 0) {
         phywarnf("resume failed, clearing");
         dhara_map_clear(&dmap_);
@@ -72,8 +84,8 @@ int32_t dhara_sector_map::begin(bool force_create) {
 
     auto loss = (float)(total_size - capacity_bytes) / total_size * 100.0f;
 
-    phydebugf("dmap: capacity=%d size=%d bytes=%" PRIu32 " loss=%.2f",
-              capacity, dhara_map_size(&dmap_), capacity_bytes, loss);
+    phyinfof("dmap: capacity=%d size=%d bytes=%" PRIu32 " total=%" PRIu32 " loss=%.2f", capacity,
+             dhara_map_size(&dmap_), capacity_bytes, total_size, loss);
 
     return 0;
 }
@@ -99,6 +111,10 @@ int32_t dhara_sector_map::write(dhara_sector_t sector, uint8_t const *data, size
         return err;
     }
 
+    if (false) {
+        phydebug_dump_memory("write ", data, size);
+    }
+
     return 0;
 }
 
@@ -110,7 +126,7 @@ int32_t dhara_sector_map::find(dhara_sector_t sector, dhara_page_t *page) {
     dhara_error_t derr;
     auto err = dhara_map_find(&dmap_, sector, page, &derr);
     if (err < 0) {
-        phyerrorf("find");
+        phywarnf("find");
         return err;
     }
 
@@ -143,6 +159,10 @@ int32_t dhara_sector_map::read(dhara_sector_t sector, uint8_t *data, size_t size
     if (err < 0) {
         phyerrorf("read");
         return err;
+    }
+
+    if (false) {
+        phydebug_dump_memory("read ", data, size);
     }
 
     return 0;

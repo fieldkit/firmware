@@ -1,7 +1,10 @@
 #pragma once
 
-#include "sector_allocator.h"
+#include "phylum.h"
 #include "delimited_buffer.h"
+#include "sector_allocator.h"
+#include "working_buffers.h"
+#include "paging_delimited_buffer.h"
 
 namespace phylum {
 
@@ -10,29 +13,29 @@ private:
     static constexpr size_t ChainNameLength = 32;
 
 private:
-    sector_map *sectors_;
-    sector_allocator *allocator_;
-    delimited_buffer buffer_;
+    using buffer_type = paging_delimited_buffer;
+    working_buffers *buffers_{ nullptr };
+    sector_map *sectors_{ nullptr };
+    sector_allocator *allocator_{ nullptr };
+    buffer_type buffer_;
     dhara_sector_t head_{ InvalidSector };
     dhara_sector_t tail_{ InvalidSector };
     dhara_sector_t sector_{ InvalidSector };
     dhara_sector_t length_sectors_{ 0 };
-    bool dirty_{ false };
     bool appendable_{ false };
     const char *prefix_{ "sector-chain" };
     char name_[ChainNameLength];
 
 public:
-    sector_chain(sector_map &sectors, sector_allocator &allocator, simple_buffer &&buffer, head_tail_t chain,
-                 const char *prefix)
-        : sectors_(&sectors), allocator_(&allocator), buffer_(std::move(buffer)), head_(chain.head), tail_(chain.tail),
-          prefix_(prefix) {
+    sector_chain(working_buffers &buffers, sector_map &sectors, sector_allocator &allocator, head_tail_t chain, const char *prefix)
+        : buffers_(&buffers), sectors_(&sectors), allocator_(&allocator), buffer_(buffers, sectors), head_(chain.head),
+          tail_(chain.tail), prefix_(prefix) {
         name("%s[unk]", prefix_);
     }
 
     sector_chain(sector_chain &other, head_tail_t chain, const char *prefix)
-        : sectors_(other.sectors_), allocator_(other.allocator_), buffer_(other.sector_size()), head_(chain.head),
-          tail_(chain.tail), prefix_(prefix) {
+        : buffers_(other.buffers_), sectors_(other.sectors_), allocator_(other.allocator_),
+          buffer_(*other.buffers_, *other.sectors_), head_(chain.head), tail_(chain.tail), prefix_(prefix) {
         name("%s[unk]", prefix_);
     }
 
@@ -40,8 +43,16 @@ public:
     }
 
 public:
-    const char *name() const {
-        return name_;
+    working_buffers &buffers() {
+        return *buffers_;
+    }
+
+    dhara_sector_t length_sectors() const {
+        return length_sectors_;
+    }
+
+    bool valid() const {
+        return head_ != 0 && head_ != InvalidSector && tail_ != 0 && tail_ != InvalidSector;
     }
 
     dhara_sector_t head() const {
@@ -52,39 +63,29 @@ public:
         return tail_;
     }
 
-    dhara_sector_t sector() const {
-        return sector_;
-    }
-
-    dhara_sector_t length_sectors() const {
-        return length_sectors_;
-    }
-
     int32_t log();
 
     int32_t create_if_necessary();
 
-    int32_t flush();
-
-    int32_t back_to_head();
-
-    bool valid() const {
-        return head_ != 0 && head_ != InvalidSector && tail_ != 0 && tail_ != InvalidSector;
+    const char *name() const {
+        return name_;
     }
 
+    int32_t flush();
+
+    int32_t dequeue_sector(dhara_sector_t *sector);
+
 protected:
+    int32_t flush(page_lock &page_lock);
+
     void name(const char *f, ...);
+
+    dhara_sector_t sector() const {
+        return sector_;
+    }
 
     sector_map *sectors() {
         return sectors_;
-    }
-
-    void dirty(bool value) {
-        dirty_ = value;
-    }
-
-    bool dirty() {
-        return dirty_;
     }
 
     void appendable(bool value) {
@@ -95,15 +96,11 @@ protected:
         return appendable_;
     }
 
-    delimited_buffer const &buffer() {
-        return buffer_;
-    }
-
     sector_allocator &allocator() {
         return *allocator_;
     }
 
-    delimited_buffer &db() {
+    buffer_type &db() {
         return buffer_;
     }
 
@@ -135,42 +132,31 @@ protected:
         return 0;
     }
 
-    int32_t ensure_loaded() {
+    int32_t ensure_loaded(page_lock &page_lock) {
         assert_valid();
 
         if (sector_ == InvalidSector) {
-            return forward();
+            return forward(page_lock);
         }
 
         return 0;
     }
 
-    int32_t back_to_tail();
+    int32_t back_to_head(page_lock &page_lock);
 
-    int32_t forward();
+    int32_t forward(page_lock &page_lock);
 
     template <typename T>
-    int32_t walk(T fn) {
+    int32_t walk(page_lock &page_lock, T fn) {
         logged_task lt{ "sc-walk", name() };
 
         assert_valid();
 
-        assert(!dirty());
-
-        assert(back_to_head() >= 0);
-
         while (true) {
-            auto err = forward();
-            if (err < 0) {
-                return err;
-            }
-            if (err == 0) {
-                break;
-            }
-            for (auto &record : buffer_) {
-                auto entry = record.as<entry_t>();
+            for (auto &record_ptr : buffer_) {
+                auto entry = record_ptr.as<entry_t>();
                 assert(entry != nullptr);
-                auto err = fn(entry, record);
+                auto err = fn(page_lock, entry, record_ptr);
                 if (err < 0) {
                     return err;
                 }
@@ -178,28 +164,42 @@ protected:
                     return err;
                 }
             }
+
+            auto err = forward(page_lock);
+            if (err < 0) {
+                return err;
+            }
+            if (err == 0) {
+                break;
+            }
         }
 
         return 0;
     }
+    template <typename T>
+    int32_t walk(T fn) {
+        logged_task lt{ "sc-walk", name() };
 
-    template <typename T> T *header() {
-        return db().begin()->as<T>();
+        assert_valid();
+
+        auto page_lock = db().reading(head());
+
+        assert(back_to_head(page_lock) >= 0);
+
+        return walk(page_lock, fn);
     }
 
-    int32_t load();
+    int32_t load(page_lock &page_lock);
 
-    int32_t grow_head();
+    int32_t grow_tail(page_lock &page_lock);
 
-    int32_t grow_tail();
+    int32_t write_header_if_at_start(page_lock &page_lock);
 
-    int32_t write_header_if_at_start();
+    virtual int32_t seek_end_of_chain(page_lock &page_lock);
 
-    virtual int32_t seek_end_of_chain();
+    virtual int32_t seek_end_of_buffer(page_lock &page_lock) = 0;
 
-    virtual int32_t seek_end_of_buffer() = 0;
-
-    virtual int32_t write_header() = 0;
+    virtual int32_t write_header(page_lock &page_lock) = 0;
 };
 
 } // namespace phylum

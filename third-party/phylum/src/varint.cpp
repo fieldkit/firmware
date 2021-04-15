@@ -45,10 +45,10 @@ uint8_t *varint_encode(unsigned long long n, uint8_t *buf, int32_t len) {
     return buf;
 }
 
-unsigned long long varint_decode(uint8_t *buf, size_t len, int32_t *err) {
+unsigned long long varint_decode(uint8_t const *buf, size_t len, int32_t *err) {
     unsigned long long result = 0;
     int bits = 0;
-    uint8_t *ptr = buf;
+    uint8_t const *ptr = buf;
     unsigned long long ll;
     while (*ptr & MSB) {
         ll = *ptr;

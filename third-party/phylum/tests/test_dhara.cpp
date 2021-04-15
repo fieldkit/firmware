@@ -1,19 +1,20 @@
 #include <dhara_map.h>
 
-#include "suite_base.h"
+#include "phylum_tests.h"
 
 using namespace phylum;
 
-class DharaSuite : public PhylumSuite {};
+class DharaFixture : public PhylumFixture {};
 
-TEST_F(DharaSuite, Initialize) {
+TEST_F(DharaFixture, Initialize) {
     memory_flash_memory memory{ 4096 };
-    dhara_sector_map sectors{ memory };
+    malloc_working_buffers buffers{ 4096 };
+    dhara_sector_map sectors{ buffers, memory };
 
     ASSERT_EQ(sectors.begin(true), 0);
 
     sector_allocator allocator{ sectors };
-    directory_chain chain{ sectors, allocator, 0, simple_buffer{ sectors.sector_size() } };
+    directory_chain chain{ buffers, sectors, allocator, 0 };
 
     ASSERT_EQ(chain.format(), 0);
 }

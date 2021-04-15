@@ -35,21 +35,23 @@ void phywarnf(const char *f, ...) {
 
 void phydebug_dump_memory(const char *prefix, const uint8_t *p, size_t size, ...) {
     va_list args;
+    char rendered_prefix[32];
     va_start(args, size);
+    vsnprintf(rendered_prefix, sizeof(rendered_prefix), prefix, args);
+    va_end(args);
 
-    vprintf(prefix, args);
+
+    printf("%s", rendered_prefix);
     for (auto i = 0u; i < size; ++i) {
         printf("%02x ", p[i]);
         if ((i + 1) % 32 == 0) {
             if (i + 1 < size) {
                 printf("\n");
-                vprintf(prefix, args);
+                printf("%s", rendered_prefix);
             }
         }
     }
     printf(" (%zu bytes)\n", size);
-
-    va_end(args);
 }
 
 } // namespace phylum

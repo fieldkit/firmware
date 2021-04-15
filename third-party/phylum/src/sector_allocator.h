@@ -26,6 +26,11 @@ public:
         // numbers.
         return counter_++;
     }
+
+    dhara_sector_t allocated() {
+        return counter_;
+    }
+
 };
 
 } // namespace phylum

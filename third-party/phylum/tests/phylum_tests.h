@@ -26,8 +26,9 @@ struct layout_4096 {
 class FlashMemory {
 private:
     size_t sector_size_;
+    malloc_working_buffers buffers_{ sector_size_ };
     memory_flash_memory memory_{ sector_size_ };
-    dhara_sector_map sectors_{ memory_ };
+    dhara_sector_map sectors_{ buffers_, memory_ };
     sector_allocator allocator_{ sectors_ };
     bool formatted_{ false };
     bool initialized_{ false };
@@ -39,6 +40,10 @@ public:
 public:
     size_t sector_size() const {
         return sector_size_;
+    }
+
+    malloc_working_buffers &buffers() {
+        return buffers_;
     }
 
     dhara_sector_map &sectors() {
@@ -66,8 +71,8 @@ public:
         ASSERT_EQ(sectors_.sync(), 0);
     }
 
-    template<typename T>
-    void mounted(T fn) {
+    template<typename DirectoryType>
+    void mounted(std::function<void(DirectoryType &dir)> fn) {
         if (formatted_) {
             ASSERT_EQ(sectors_.begin(false), 0);
         }
@@ -77,22 +82,22 @@ public:
             initialized_ = true;
         }
 
-        directory_chain chain{ sectors_, allocator_, 0, simple_buffer{ sector_size() } };
+        DirectoryType dir{ buffers_, sectors_, allocator_, 0 };
         if (formatted_) {
-            ASSERT_EQ(chain.mount(), 0);
+            ASSERT_EQ(dir.mount(), 0);
         }
         else {
-            ASSERT_EQ(chain.format(), 0);
+            ASSERT_EQ(dir.format(), 0);
             formatted_ = true;
         }
 
-        fn(chain);
+        fn(dir);
 
         ASSERT_EQ(sectors_.sync(), 0);
     }
 };
 
-class PhylumSuite : public ::testing::Test {
+class PhylumFixture : public ::testing::Test {
 private:
     open_file_attribute attributes_[2];
     open_file_config file_cfg_;
@@ -103,12 +108,12 @@ public:
     }
 
 public:
-    PhylumSuite() {
+    PhylumFixture() {
         attributes_[0] = open_file_attribute{ ATTRIBUTE_ONE, 4, nullptr, false };
         attributes_[1] = open_file_attribute{ ATTRIBUTE_TWO, 4, nullptr, false };
     }
 
-    virtual ~PhylumSuite() {
+    virtual ~PhylumFixture() {
     }
 
 public:

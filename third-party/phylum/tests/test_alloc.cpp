@@ -2,17 +2,17 @@
 #include <file_appender.h>
 #include <working_buffers.h>
 
-#include "suite_base.h"
+#include "phylum_tests.h"
 #include "geometry.h"
 
 using namespace phylum;
 
-class AllocSuite : public PhylumSuite {
+class AllocFixture : public PhylumFixture {
 protected:
     FlashMemory memory{ 256 };
 
 };
 
-TEST_F(AllocSuite, Allocate) {
+TEST_F(AllocFixture, Allocate) {
 
 }

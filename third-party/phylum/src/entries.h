@@ -1,8 +1,7 @@
 #pragma once
 
 #include <cinttypes>
-
-#include "dhara_map.h"
+#include <cstddef>
 
 namespace phylum {
 
@@ -13,10 +12,11 @@ typedef uint32_t file_size_t;
 typedef uint16_t file_flags_t;
 typedef uint16_t record_number_t;
 typedef uint16_t sector_offset_t;
-
-#define PHY_PACKED __attribute__((__packed__))
+typedef uint32_t dhara_sector_t;
 
 constexpr dhara_sector_t InvalidSector = (dhara_sector_t)-1;
+
+#define PHY_PACKED __attribute__((__packed__))
 
 struct PHY_PACKED head_tail_t {
     dhara_sector_t head{ InvalidSector };
@@ -27,6 +27,25 @@ struct PHY_PACKED head_tail_t {
 
     head_tail_t(dhara_sector_t head, dhara_sector_t tail) : head(head), tail(tail) {
     }
+
+    bool valid() const {
+        return head != InvalidSector;
+    }
+};
+
+struct PHY_PACKED tree_ptr_t {
+    dhara_sector_t root{ InvalidSector };
+    dhara_sector_t tail{ InvalidSector };
+
+    tree_ptr_t() {
+    }
+
+    tree_ptr_t(dhara_sector_t root, dhara_sector_t tail) : root(root), tail(tail) {
+    }
+
+    bool valid() const {
+        return root != InvalidSector;
+    }
 };
 
 enum entry_type : uint8_t {
@@ -34,16 +53,29 @@ enum entry_type : uint8_t {
     SuperBlock = 1,
     DataSector = 2,
     DirectorySector = 3,
-    FileEntry = 4,
-    FileData = 5,
-    FileAttribute = 6,
-    TreeNode = 7,
+    FreeChainSector = 4,
+    TreeSector = 5,
+    FileEntry = 6,
+    FsFileEntry = 7,
+    FsDirectoryEntry = 8,
+    FileData = 9,
+    TreeNode = 10,
+    FileAttribute = 11,
+    FreeSectors = 12,
 };
 
 struct PHY_PACKED entry_t {
     entry_type type{ entry_type::None };
 
     entry_t(entry_type type) : type(type) {
+    }
+};
+
+struct PHY_PACKED super_block_t : entry_t {
+    uint32_t version{ 0 };
+    uint32_t reserved{ (uint32_t)-1 };
+
+    super_block_t(uint32_t version) : entry_t(entry_type::SuperBlock), version(version) {
     }
 };
 
@@ -66,6 +98,14 @@ struct PHY_PACKED directory_chain_header_t : sector_chain_header_t {
     }
 };
 
+struct PHY_PACKED free_chain_header_t : sector_chain_header_t {
+    free_chain_header_t() : sector_chain_header_t(entry_type::FreeChainSector) {
+    }
+
+    free_chain_header_t(dhara_sector_t pp, dhara_sector_t np) : sector_chain_header_t(entry_type::FreeChainSector, pp, np) {
+    }
+};
+
 struct PHY_PACKED data_chain_header_t : sector_chain_header_t {
     uint16_t bytes{ 0 };
 
@@ -79,17 +119,62 @@ struct PHY_PACKED data_chain_header_t : sector_chain_header_t {
     }
 };
 
-struct PHY_PACKED super_block_t : entry_t {
-    uint32_t version{ 0 };
-    uint32_t tail{ 0 };
-
-    super_block_t(uint32_t version, uint32_t tail) : entry_t(entry_type::SuperBlock), version(version), tail(tail) {
-    }
-};
-
 inline uint32_t make_file_id(const char *path) {
     return crc32_checksum(path);
 }
+
+enum class FsDirTreeFlags : uint16_t {
+    None = 0,
+    Deleted = 1 << 0,
+};
+
+struct PHY_PACKED dirtree_entry_t : entry_t {
+    char name[MaximumNameLength];
+    file_flags_t flags;
+
+    dirtree_entry_t(entry_type type, const char *full_name, uint16_t flags) : entry_t(type), flags(flags) {
+        bzero(name, sizeof(name));
+        strncpy(name, full_name, sizeof(name));
+    }
+};
+
+struct PHY_PACKED dirtree_dir_t : dirtree_entry_t {
+    dhara_sector_t attributes{ InvalidSector };
+    dhara_sector_t children{ InvalidSector };
+
+    dirtree_dir_t(const char *name, uint16_t flags = 0)
+        : dirtree_entry_t(entry_type::FsDirectoryEntry, name, flags) {
+    }
+};
+
+struct PHY_PACKED dirtree_file_t : dirtree_entry_t {
+    file_size_t directory_size{ 0 };
+    head_tail_t chain;
+    tree_ptr_t attributes{ };
+    tree_ptr_t position_index{ };
+    tree_ptr_t record_index{ };
+
+    dirtree_file_t(const char *name, uint16_t flags = 0)
+        : dirtree_entry_t(entry_type::FsFileEntry, name, flags) {
+    }
+};
+
+template<size_t Storage>
+struct PHY_PACKED dirtree_tree_value_t {
+    union PHY_PACKED entry_union {
+        dirtree_entry_t e;
+        dirtree_dir_t dir;
+        dirtree_file_t file;
+
+        entry_union() {
+        }
+    } u;
+
+    uint8_t data[Storage];
+
+    dirtree_tree_value_t() {
+    }
+};
 
 struct PHY_PACKED file_entry_t : entry_t {
     file_id_t id;
@@ -113,12 +198,27 @@ struct PHY_PACKED file_data_t : entry_t {
     file_id_t id{ 0 };
     file_size_t size{ 0 };
     head_tail_t chain;
+    dhara_sector_t attributes{ InvalidSector };
+    dhara_sector_t position_index{ InvalidSector };
+    dhara_sector_t record_index{ InvalidSector };
 
     file_data_t(file_id_t id, file_size_t size) : entry_t(entry_type::FileData), id(id), size(size) {
     }
 
     file_data_t(file_id_t id, head_tail_t chain)
         : entry_t(entry_type::FileData), id(id), chain(chain) {
+    }
+};
+
+struct PHY_PACKED free_sectors_t : entry_t {
+    dhara_sector_t head{ InvalidSector };
+
+    free_sectors_t()
+        : entry_t(entry_type::FreeSectors) {
+    }
+
+    free_sectors_t(dhara_sector_t head)
+        : entry_t(entry_type::FreeSectors), head(head) {
     }
 };
 
@@ -153,37 +253,36 @@ enum node_type : uint8_t {
 
 struct PHY_PACKED tree_node_header_t : entry_t {
 public:
-    file_id_t id{ 0 };
     depth_type depth{ 0 };
     index_type number_keys{ 0 };
     node_type type{ node_type::Leaf };
-    node_ptr_t parent;
+    uint8_t reserved[11];
 
 public:
-    tree_node_header_t() : entry_t(entry_type::TreeNode), parent() {
+    tree_node_header_t() : entry_t(entry_type::TreeNode) {
     }
 
-    tree_node_header_t(node_type type) : entry_t(entry_type::TreeNode), type(type), parent() {
+    tree_node_header_t(node_type type) : entry_t(entry_type::TreeNode), type(type) {
     }
 };
 
-template <typename KEY, typename VALUE, size_t InnerSize, size_t LeafSize>
-struct PHY_PACKED tree_node_t : tree_node_header_t {
+template <typename KEY, typename VALUE, size_t Size>
+struct tree_node_t : tree_node_header_t {
 public:
     typedef KEY key_type;
     typedef VALUE value_type;
 
-    union PHY_PACKED data_t {
-        VALUE values[LeafSize];
-        node_ptr_t children[InnerSize + 1];
+    union data_t {
+        VALUE values[Size];
+        node_ptr_t children[Size + 1];
 
         data_t() {
         }
     };
 
 public:
-    KEY keys[InnerSize];
     data_t d;
+    KEY keys[Size];
 
 public:
     tree_node_t() : tree_node_header_t() {
@@ -198,9 +297,9 @@ public:
     void clear() {
         depth = 0;
         number_keys = 0;
-        for (auto i = 0u; i < InnerSize; ++i) {
+        for (auto i = 0u; i < Size; ++i) {
             keys[i] = 0;
-            d.values[i] = 0;
+            d.values[i] = {};
             d.children[i] = {};
         }
         for (auto &ref : d.children) {

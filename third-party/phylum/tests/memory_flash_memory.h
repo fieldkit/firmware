@@ -21,7 +21,8 @@ public:
 
 public:
     size_t block_size() override {
-        return 128 * 1024;
+        assert(page_size_ > 0);
+        return 128 * page_size_;
     }
 
     size_t number_blocks() override {
