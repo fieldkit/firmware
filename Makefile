@@ -13,7 +13,7 @@ all: samd51 samd09 test
 checks: amd64
 	valgrind $(BUILD)/amd64/tests/hosted/testall
 
-ci: veryclean setup all package
+ci: veryclean setup samd51 samd09 package
 
 gitdeps:
 	echo noop
