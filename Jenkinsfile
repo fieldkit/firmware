@@ -61,7 +61,7 @@ timestamps {
 				withEnv(["GIT_LOCAL_BRANCH=${branch}"]) {
 					withEnv(["PATH+GOLANG=${tool 'golang-amd64'}/bin"]) {
 						withEnv(["PATH+GOHOME=${HOME}/go/bin"]) {
-							withPythonEnv("python") {
+							withPythonEnv("python3") {
 								sh "make ci"
 							}
 						}
