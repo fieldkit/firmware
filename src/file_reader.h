@@ -1,21 +1,23 @@
 #pragma once
 
 #include "data_chain.h"
-#include "directory_chain.h"
 #include "simple_buffer.h"
+#include "directory.h"
 
 namespace phylum {
 
 class file_reader {
 private:
-    directory_chain &directory_;
+    directory *directory_{ nullptr };
     found_file file_;
     simple_buffer buffer_;
     data_chain data_chain_;
     file_size_t position_{ 0 };
 
 public:
-    file_reader(directory_chain &directory, found_file file, simple_buffer &&buffer);
+    file_reader(sector_chain &other, directory *directory, found_file file);
+
+    file_reader(working_buffers &buffers, sector_map &sectors, sector_allocator &allocator, directory *directory, found_file file);
 
     virtual ~file_reader();
 
@@ -26,7 +28,6 @@ public:
 
     uint32_t u32(uint8_t type);
 
-public:
     file_size_t position() const {
         return position_;
     }

@@ -2,34 +2,32 @@
 #include <file_appender.h>
 #include <tree_sector.h>
 
-#include "suite_base.h"
+#include "phylum_tests.h"
 #include "geometry.h"
 
 using namespace phylum;
 
 template<typename T>
-class LargeFileSuite : public PhylumSuite {};
+class LargeFileFixture : public PhylumFixture {};
 
 typedef ::testing::Types<
-    std::pair<layout_256, tree_sector<uint32_t, uint32_t, 6, 6>>,
-    std::pair<layout_4096, tree_sector<uint32_t, uint32_t, 64, 64>>,
-    std::pair<layout_4096, tree_sector<uint32_t, uint32_t, 288, 288>>,
-    std::pair<layout_4096, tree_sector<uint32_t, uint32_t, 407, 408>>>
+    std::pair<layout_256, tree_sector<uint32_t, uint32_t, 5>>,
+    std::pair<layout_4096, tree_sector<uint32_t, uint32_t, 63>>,
+    std::pair<layout_4096, tree_sector<uint32_t, uint32_t, 287>>,
+    std::pair<layout_4096, tree_sector<uint32_t, uint32_t, 405>>>
     Implementations;
 
-TYPED_TEST_SUITE(LargeFileSuite, Implementations);
+TYPED_TEST_SUITE(LargeFileFixture, Implementations);
 
-TYPED_TEST(LargeFileSuite, WriteOneMegabyte) {
+TYPED_TEST(LargeFileFixture, WriteOneMegabyte) {
     typename TypeParam::first_type layout;
     FlashMemory memory{ layout.sector_size };
 
-    memory.mounted([&](directory_chain &chain) {
+    memory.mounted<directory_chain>([&](auto &chain) {
         ASSERT_EQ(chain.touch("data.txt"), 0);
-        ASSERT_EQ(chain.flush(), 0);
 
         ASSERT_EQ(chain.find("data.txt", open_file_config{ }), 1);
-        simple_buffer file_buffer{ memory.sector_size() };
-        file_appender opened{ chain, chain.open(), std::move(file_buffer) };
+        file_appender opened{ chain, &chain, chain.open() };
 
         phydebugf("suppressing 1MB of writes from debug");
         suppress_logs sl;
@@ -40,28 +38,27 @@ TYPED_TEST(LargeFileSuite, WriteOneMegabyte) {
             ASSERT_GT(wrote, 0);
             written += wrote;
         }
+
         ASSERT_EQ(opened.flush(), 0);
     });
 
-    memory.mounted([&](directory_chain &chain) {
+    memory.mounted<directory_chain>([&](auto &chain) {
         ASSERT_EQ(chain.log(), 0);
     });
 }
 
-TYPED_TEST(LargeFileSuite, WriteOneMegabyteIndexed) {
+TYPED_TEST(LargeFileFixture, WriteOneMegabyteIndexed) {
     typename TypeParam::first_type layout;
     FlashMemory memory{ layout.sector_size };
 
-    memory.mounted([&](directory_chain &chain) {
+    memory.mounted<directory_chain>([&](auto &chain) {
         ASSERT_EQ(chain.touch("data.txt"), 0);
-        ASSERT_EQ(chain.flush(), 0);
 
         ASSERT_EQ(chain.find("data.txt", open_file_config{ }), 1);
-        simple_buffer file_buffer{ memory.sector_size() };
-        file_appender opened{ chain, chain.open(), std::move(file_buffer) };
+        file_appender opened{ chain, &chain, chain.open() };
 
         auto tree_sector = memory.allocator().allocate();
-        typename TypeParam::second_type tree{ memory.sectors(), memory.allocator(), simple_buffer{ memory.sector_size() }, tree_sector, "tree" };
+        typename TypeParam::second_type tree{ memory.buffers(), memory.sectors(), memory.allocator(), tree_sector, "tree" };
 
         ASSERT_EQ(tree.create(), 0);
 

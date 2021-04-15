@@ -17,8 +17,8 @@ public:
     int32_t read(uint32_t *values, size_t length);
 
 protected:
-    int32_t write_header() override;
-    int32_t seek_end_of_buffer() override;
+    int32_t write_header(page_lock &page_lock) override;
+    int32_t seek_end_of_buffer(page_lock &page_lock) override;
 };
 
 } // namespace phylum

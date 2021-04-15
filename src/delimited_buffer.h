@@ -5,22 +5,49 @@
 
 namespace phylum {
 
-struct written_record {
-    simple_buffer view;
-    size_t size_of_record;
-    size_t size_with_delimiter;
-    size_t position;
+class delimited_buffer;
 
-    template <typename T>
-    T *as() {
-        return reinterpret_cast<T *>(view.cursor());
+struct record_ptr {
+private:
+    read_buffer buffer_;
+    size_t size_of_record_;
+
+public:
+    size_t position() const {
+        return buffer_.position();
     }
 
-    template<typename T>
-    simple_buffer data() {
-        auto p = (uint8_t *)view.cursor() + sizeof(T);
-        return simple_buffer{ p, size_of_record - sizeof(T) };
+    size_t size_of_record() const {
+        return buffer_.available();
     }
+
+    size_t start_of_record() const {
+        auto size_overhead = varint_encoding_length(size_of_record_);
+        return buffer_.position() + size_overhead;
+    }
+
+public:
+    record_ptr() {
+    }
+
+    record_ptr(read_buffer buffer, size_t size_of_record) : buffer_(std::move(buffer)), size_of_record_(size_of_record) {
+    }
+
+public:
+    template <typename DataType, typename T>
+    int32_t read_data(T fn) const {
+        auto size_overhead = varint_encoding_length(size_of_record_);
+        read_buffer data_buffer{ buffer_.cursor() + sizeof(DataType) + size_overhead,
+                                 size_of_record() - sizeof(DataType) - size_overhead };
+        return fn(std::move(data_buffer));
+    }
+
+    template <typename TRecord>
+    TRecord const *as() {
+        auto size_overhead = varint_encoding_length(size_of_record_);
+        return reinterpret_cast<TRecord const *>(buffer_.cursor() + size_overhead);
+    }
+
 };
 
 /**
@@ -37,13 +64,20 @@ struct written_record {
 class delimited_buffer {
 private:
     simple_buffer buffer_;
-    size_t offset_{ 0 };
 
-public:
-    delimited_buffer(size_t size, size_t offset = 0) : buffer_(size), offset_(offset) {
+protected:
+    delimited_buffer() {
     }
 
-    delimited_buffer(simple_buffer &&buffer, size_t offset = 0) : buffer_(std::move(buffer)), offset_(offset) {
+public:
+    delimited_buffer(simple_buffer &&buffer) : buffer_(std::move(buffer)) {
+    }
+
+    delimited_buffer(delimited_buffer &&other)
+        : buffer_(std::exchange(other.buffer_, simple_buffer{ })) {
+    }
+
+    virtual ~delimited_buffer() {
     }
 
 public:
@@ -57,7 +91,9 @@ public:
         sector_offset_t start_position{ 0 };
         auto allocd = (uint8_t *)reserve(sizeof(T) + size, start_position);
         memcpy(allocd, &record, sizeof(T));
-        memcpy(allocd + sizeof(T), buffer, size);
+        if (buffer != nullptr) {
+            memcpy(allocd + sizeof(T), buffer, size);
+        }
         return start_position;
     }
 
@@ -96,6 +132,7 @@ public:
      * and that acts a NULL terminator.
      */
     sector_offset_t terminate() {
+        ensure_valid();
         sector_offset_t start_position{ 0 };
         (uint8_t *)reserve(0, start_position);
         return start_position;
@@ -107,66 +144,174 @@ public:
     }
 
     bool room_for(size_t length) {
+        // ensure_valid();
         return buffer_.room_for(varint_encoding_length(length) + length);
     }
 
     template <typename T>
     int32_t unsafe_all(T fn) {
+        ensure_valid();
         return buffer_.unsafe_all<T>(fn);
     }
 
     template <typename T>
-    int32_t unsafe_at(T fn) {
-        return buffer_.unsafe_at<T>(fn);
+    int32_t unsafe_forever(T fn) {
+        ensure_valid();
+        return buffer_.unsafe_forever<T>(fn);
     }
 
-    simple_buffer &read_view() {
-        return buffer_;
+    template <typename T>
+    int32_t read_to_end(T fn) const {
+        ensure_valid();
+        return buffer_.read_to_end<T>(fn);
     }
 
-    simple_buffer &write_view() {
-        return buffer_;
+    template <typename T>
+    int32_t read_to_position(T fn) const {
+        ensure_valid();
+        return buffer_.read_to_position<T>(fn);
+    }
+
+    read_buffer to_read_buffer() const {
+        ensure_valid();
+        return read_buffer{ buffer_.ptr(), buffer_.size(), buffer_.position() };
+    }
+
+    template <typename T>
+    T const *header() const {
+        ensure_valid();
+        return begin()->as<T>();
+    }
+
+    template<typename THeader>
+    int32_t write_header(std::function<int32_t(THeader *header)> fn) {
+        ensure_valid();
+        return fn(as_mutable<THeader>(*begin()));
+    }
+
+    int32_t write_view(std::function<int32_t(write_buffer)> fn) {
+        ensure_valid();
+        return unsafe_all([&](uint8_t *ptr, size_t size) {
+            return fn(write_buffer(ptr, size, position()));
+        });
     }
 
     int32_t skip_end() {
+        ensure_valid();
         return buffer_.skip_end();
     }
 
     int32_t skip(size_t bytes) {
+        ensure_valid();
         return buffer_.skip(bytes);
     }
 
     int32_t constrain(size_t bytes) {
+        ensure_valid();
         return buffer_.constrain(bytes);
     }
 
-private:
-    void *reserve(size_t length, sector_offset_t &start_position);
+    int32_t seek_end() {
+        ensure_valid();
+        auto iter = begin();
+        while (iter != end()) {
+            buffer_.position(iter->position() + iter->size_of_record());
+            iter = ++iter;
+        }
+        return 0;
+    }
+
+    int32_t seek_once() {
+        ensure_valid();
+        auto iter = begin();
+        while (iter != end()) {
+            buffer_.position(iter->position() + iter->size_of_record());
+            return 0;
+        }
+        return -1;
+    }
+
+    size_t size() const {
+        assert(buffer_.size() > 0);
+        return buffer_.size();
+    }
+
+    size_t position() const {
+        ensure_valid();
+        return buffer_.position();
+    }
+
+    bool empty() const {
+        ensure_valid();
+        return buffer_.position() == 0;
+    }
+
+    bool at_start() const {
+        ensure_valid();
+        return empty();
+    }
+
+    void position(size_t position) {
+        ensure_valid();
+        buffer_.position(position);
+    }
+
+    size_t available() const {
+        ensure_valid();
+        return buffer_.available();
+    }
+
+    void clear(uint8_t value = 0xff) {
+        ensure_valid();
+        buffer_.clear(value);
+    }
+
+    void rewind() {
+        ensure_valid();
+        buffer_.rewind();
+    }
+
+    void debug(const char *prefix, size_t bytes) {
+        if (false) {
+            phydebug_dump_memory(prefix, ptr(), bytes);
+        }
+    }
+
+    template<typename T>
+    T* as_mutable(record_ptr &record_ptr) {
+        return reinterpret_cast<T*>(buffer_.ptr() + record_ptr.start_of_record());
+    }
+
+protected:
+    void ptr(uint8_t *ptr, size_t size) {
+        buffer_.ptr(ptr, size);
+    }
+
+    uint8_t *ptr() {
+        return buffer_.ptr();
+    }
 
 public:
     class iterator {
     private:
-        simple_buffer view_;
-        written_record record_;
+        int32_t size_of_record_{ -1 };
+        record_ptr record_;
+        read_buffer buffer_;
 
     public:
-        uint8_t *ptr() {
-            return view_.ptr();
-        }
-
         size_t position() {
-            return view_.position();
+            return buffer_.position();
         }
 
     public:
-        iterator(simple_buffer &&view) : view_(std::move(view)) {
-            if (view_.valid()) {
+        iterator(read_buffer buffer) : buffer_(std::move(buffer)) {
+            if (buffer_.valid()) {
                 uint32_t offset = 0u;
-                if (!view_.try_read(offset)) {
-                    view_ = view_.end_view();
+                if (!buffer_.try_read(offset)) {
+                    buffer_ = buffer_.end_view();
                 } else {
                     if (!read()) {
-                        view_ = view_.end_view();
+                        buffer_ = buffer_.end_view();
                     }
                 }
             }
@@ -174,30 +319,28 @@ public:
 
     private:
         bool read() {
-            assert(view_.valid());
+            assert(buffer_.valid());
 
-            // Position of the delimiter, rather than the record.
-            auto record_position = position();
+            auto position = buffer_.position();
 
             uint32_t maybe_record_length = 0u;
-            if (!view_.try_read(maybe_record_length)) {
-                record_ = written_record{};
+            if (!buffer_.try_read(maybe_record_length)) {
+                record_ = record_ptr{};
                 return false;
             }
 
             if (maybe_record_length == 0) {
-                record_ = written_record{};
+                record_ = record_ptr{};
                 return false;
             }
 
             auto delimiter_overhead = varint_encoding_length(maybe_record_length);
+            auto size_at_end_of_record = position + maybe_record_length + delimiter_overhead;
 
-            // Clear record and fill in the details we have.
-            record_ = written_record{};
-            record_.view = view_;
-            record_.position = record_position;
-            record_.size_of_record = maybe_record_length;
-            record_.size_with_delimiter = maybe_record_length + delimiter_overhead;
+            read_buffer record_buffer( buffer_.ptr(), size_at_end_of_record, position );
+            record_ = record_ptr{ std::move(record_buffer), maybe_record_length };
+
+            size_of_record_ = maybe_record_length;
 
             return true;
         }
@@ -207,92 +350,53 @@ public:
             // Advance to the record after this one, we only adjust
             // position_, then we do a read and see if we have a
             // legitimate record length.
-            view_.skip(record_.size_of_record);
-            if (!view_.valid()) {
-                view_ = view_.end_view();
+            buffer_.skip(size_of_record_);
+            if (!buffer_.valid()) {
+                buffer_ = buffer_.end_view();
                 return *this;
             }
             if (!read()) {
-                view_ = view_.end_view();
+                buffer_ = buffer_.end_view();
             }
             return *this;
         }
 
         bool operator!=(const iterator &other) const {
-            return view_.position() != other.view_.position();
+            return buffer_.position() != other.buffer_.position();
         }
 
         bool operator==(const iterator &other) const {
-            return view_.position() == other.view_.position();
+            return buffer_.position() == other.buffer_.position();
         }
 
-        written_record &operator*() {
+        record_ptr &operator*() {
             return record_;
         }
 
-        written_record *operator->() {
+        record_ptr *operator->() {
             return &record_;
         }
     };
 
 public:
     iterator begin() const {
+        ensure_valid();
         return iterator(buffer_.begin_view());
     }
 
     iterator end() const {
+        ensure_valid();
         return iterator(buffer_.end_view());
     }
 
-    int32_t seek_end() {
-        auto iter = begin();
-        while (iter != end()) {
-            buffer_.position(iter.position() + iter->size_of_record);
-            iter = ++iter;
-        }
-        return 0;
+private:
+    void *reserve(size_t length, sector_offset_t &start_position);
+
+protected:
+    virtual void ensure_valid() const {
+        assert(buffer_.ptr() != nullptr);
     }
 
-    int32_t seek_once() {
-        auto iter = begin();
-        while (iter != end()) {
-            buffer_.position(iter.position() + iter->size_of_record);
-            return 0;
-        }
-        return -1;
-    }
-
-    size_t size() const {
-        return buffer_.size();
-    }
-
-    size_t position() const {
-        return buffer_.position();
-    }
-
-    bool empty() const {
-        return buffer_.position() == 0;
-    }
-
-    bool at_start() const {
-        return empty();
-    }
-
-    void position(size_t position) {
-        buffer_.position(position);
-    }
-
-    size_t available() const {
-        return buffer_.available();
-    }
-
-    void clear(uint8_t value = 0xff) {
-        buffer_.clear(value);
-    }
-
-    void rewind() {
-        buffer_.rewind();
-    }
 };
 
 } // namespace phylum

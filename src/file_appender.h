@@ -1,20 +1,22 @@
 #pragma once
 
 #include "data_chain.h"
-#include "directory_chain.h"
 #include "simple_buffer.h"
+#include "directory.h"
 
 namespace phylum {
 
 class file_appender {
 private:
-    directory_chain &directory_;
+    directory *directory_{ nullptr };
     found_file file_;
     simple_buffer buffer_;
     data_chain data_chain_;
 
 public:
-    file_appender(directory_chain &directory, found_file file, simple_buffer &&buffer);
+    file_appender(sector_chain &other, directory *directory, found_file file);
+
+    file_appender(working_buffers &buffers, sector_map &sectors, sector_allocator &allocator, directory *directory, found_file file);
 
     virtual ~file_appender();
 

@@ -9,6 +9,9 @@ int32_t main(int32_t argc, char **argv) {
     log_configure_level(LogLevels::NONE);
 
     for (auto i = 1; i < argc; ++i) {
+        if (strcmp(argv[i], "--info") == 0) {
+            log_configure_level(LogLevels::INFO);
+        }
         if (strcmp(argv[i], "--debug") == 0) {
             log_configure_level(LogLevels::DEBUG);
         }

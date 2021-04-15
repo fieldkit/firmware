@@ -2,7 +2,7 @@
 
 namespace phylum {
 
-int32_t integer_chain::seek_end_of_buffer() {
+int32_t integer_chain::seek_end_of_buffer(page_lock &/*page_lock*/) {
     auto err = db().seek_once();
     if (err < 0) {
         return err;
@@ -13,7 +13,7 @@ int32_t integer_chain::seek_end_of_buffer() {
     return 0;
 }
 
-int32_t integer_chain::write_header() {
+int32_t integer_chain::write_header(page_lock &page_lock) {
     logged_task lt{ "ic-write-hdr", name() };
 
     assert_valid();
@@ -22,7 +22,7 @@ int32_t integer_chain::write_header() {
 
     db().terminate();
 
-    dirty(true);
+    page_lock.dirty();
     appendable(true);
 
     return 0;
@@ -32,7 +32,7 @@ int32_t integer_chain::write(uint32_t const *values, size_t length) {
     logged_task lt{ "ic-write", name() };
 
     auto index = 0u;
-    return write_chain([&](simple_buffer &buffer, bool &grow) {
+    return write_chain([&](write_buffer buffer, bool &grow) {
         int32_t written = 0;
         while (index < length) {
             int32_t needed = varint_encoding_length(values[index]);
@@ -55,17 +55,17 @@ int32_t integer_chain::read(uint32_t *values, size_t length) {
     logged_task lt{ "ic-read", name() };
 
     int32_t index = 0;
-    return read_chain([&](simple_buffer &view) {
-        while (index < (int32_t)length && view.position() < view.size()) {
+    return read_chain([&](read_buffer buffer) {
+        while (index < (int32_t)length && buffer.position() < buffer.size()) {
             int32_t err = 0;
-            auto value = varint_decode(view.cursor(), view.available(), &err);
+            auto value = varint_decode(buffer.cursor(), buffer.available(), &err);
             if (err < 0) {
                 return err;
             }
 
             auto needed = varint_encoding_length(value);
 
-            view.skip(needed);
+            buffer.skip(needed);
             values[index] = value;
             index++;
         }
