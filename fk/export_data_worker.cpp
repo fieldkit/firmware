@@ -198,8 +198,6 @@ ExportDataWorker::WriteStatus ExportDataWorker::write_row(fk_data_DataRecord &re
     if (modules_array->length != sensor_groups_array->length) {
         writer.write("modules-mismatch\n");
         return WriteStatus::Debug;
-    } else {
-        writer.write(",");
     }
 
     for (auto i = 0u; i < sensor_groups_array->length; ++i) {
