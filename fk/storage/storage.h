@@ -10,7 +10,6 @@
 #include "storage/sequential_memory.h"
 #include "storage/statistics_memory.h"
 #include "storage/file_ops.h"
-#include "storage/dhara.h"
 
 namespace fk {
 
@@ -47,8 +46,6 @@ private:
     bool read_only_;
     MetaOps *meta_ops_{ nullptr };
     DataOps *data_ops_{ nullptr };
-    Dhara dhara_;
-    bool dhara_enabled_{ false };
 
 public:
     Storage(DataMemory *memory, Pool &pool, bool read_only = true);

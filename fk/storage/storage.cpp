@@ -809,12 +809,6 @@ bool Storage::flush() {
         return false;
     }
 
-    if (dhara_enabled_) {
-        if (!dhara_.sync()) {
-            return false;
-        }
-    }
-
     statistics_data_memory_.log_statistics("flash usage: ");
 
     return true;
