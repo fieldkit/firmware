@@ -10,6 +10,7 @@
 #include "storage/sequential_memory.h"
 #include "storage/statistics_memory.h"
 #include "storage/file_ops.h"
+#include "storage/phylum.h"
 
 namespace fk {
 
@@ -38,6 +39,8 @@ private:
     SequentialWrapper<BufferedPageMemory> memory_;
     StatisticsMemory statistics_data_memory_;
     BadBlocks bad_blocks_;
+    Phylum phylum_;
+    bool phylum_enabled_{ false };
     FileHeader files_[NumberOfFiles];
     BlockNumber file_headers_block_;
     uint32_t timestamp_{ InvalidTimestamp };

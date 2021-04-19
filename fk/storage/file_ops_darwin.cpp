@@ -10,7 +10,7 @@ namespace fk {
 
 namespace darwin {
 
-FK_DECLARE_LOGGER("sops");
+FK_DECLARE_LOGGER("darops");
 
 MetaOps::MetaOps(Storage &storage) : storage_(storage) {
 }
