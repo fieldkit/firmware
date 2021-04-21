@@ -1,5 +1,9 @@
 #pragma once
 
+#if defined(__linux__)
+#include <map>
+#endif
+
 #include "simple_buffer.h"
 
 namespace phylum {
@@ -12,6 +16,7 @@ protected:
         dhara_sector_t sector{ InvalidSector };
         bool dirty{ false };
         int32_t refs{ 0 };
+        int32_t hits{ 0 };
         uint32_t used{ 0 };
     };
 
@@ -20,6 +25,18 @@ protected:
     page_t pages_[Size];
     size_t highwater_{ 0 };
     uint32_t counter_{ 0 };
+    size_t reads_{ 0 };
+    size_t writes_{ 0 };
+    size_t misses_{ 0 };
+
+#if defined(__linux__)
+    struct sector_statistics_t {
+        size_t reads{ 0 };
+        size_t writes{ 0 };
+        size_t misses{ 0 };
+    };
+    std::map<dhara_sector_t, sector_statistics_t> statistics_;
+#endif
 
 public:
     working_buffers(size_t buffer_size) : buffer_size_(buffer_size) {
@@ -29,7 +46,7 @@ public:
     }
 
     virtual ~working_buffers() {
-        phyinfof("wbuffers::dtor hw=%zu", highwater_);
+        phyinfof("wbuffers::dtor hw=%zu reads=%zu writes=%zu misses=%zu", highwater_, reads_, writes_, misses_);
         debug();
     }
 
@@ -87,14 +104,18 @@ public:
                     }
 
                     phydebugf("wbuffers[%d] flush sector=%d", i, sector);
+
                     auto err = flush(sector, p.buffer, buffer_size_);
                     if (err < 0) {
                         return err;
                     }
 
                     flushed = true;
-
                     p.dirty = false;
+                    writes_++;
+#if defined(__linux__)
+                    statistics_[sector].writes++;
+#endif
                 }
             }
         }
@@ -110,20 +131,33 @@ public:
         auto selected = -1;
         auto flushing = -1;
 
+        reads_++;
+#if defined(__linux__)
+        statistics_[sector].reads++;
+#endif
+
         for (auto i = 0u; i < Size; ++i) {
             auto &p = pages_[i];
             if (p.buffer == nullptr) break;
+            if (p.sector == InvalidSector) {
+                // Free page.
+            }
             if (p.sector == sector) {
                 // Otherwise, this sector is open for writing as we
                 // speak. Which should never happen.
-                if (!read_only) {
+                if (read_only && p.refs >= 0) {
                     assert(p.refs >= 0);
+                    p.refs++;
+                }
+                else {
+                    assert(p.refs <= 0);
+                    p.refs--;
                 }
 
                 counter_++;
 
-                p.refs++;
                 p.used = counter_;
+                p.hits++;
 
                 phydebugf("wbuffers[%d]: reusing refs=%d", i, p.refs);
 
@@ -134,15 +168,23 @@ public:
                 return p.buffer;
             }
             else {
-                // If we see any pages that are unreferenced save just
-                // in case we need to load.
-                // TODO LRU?
                 if (p.refs == 0) {
                     if (p.dirty) {
+                        // TODO Check age
                         flushing = i;
                     }
                     else {
-                        selected = i;
+                        if (selected == -1)  {
+                            selected = i;
+                        }
+                        else {
+                            if (p.sector == InvalidSector && pages_[selected].sector != InvalidSector) {
+                                selected = i;
+                            }
+                            else if (p.used < pages_[selected].used) {
+                                selected = i;
+                            }
+                        }
                     }
                 }
             }
@@ -165,6 +207,7 @@ public:
 
                 p.dirty = false;
                 p.sector = InvalidSector;
+                writes_++;
 
                 selected = flushing;
             }
@@ -174,7 +217,7 @@ public:
             }
         }
         else {
-            phydebugf("wbuffers[%d]: allocating", selected);
+            phydebugf("wbuffers[%d]: allocating sector=%d", selected, sector);
         }
 
         // Load the sector.
@@ -184,6 +227,15 @@ public:
         if (err < 0) {
             assert(err >= 0);
             return { };
+        }
+
+        // If we just zeroed the buffer, this will be zero otherwise
+        // this'll have the number of bytes we read.
+        if (err > 0) {
+            misses_++;
+#if defined(__linux__)
+            statistics_[sector].misses++;
+#endif
         }
 
         if (read_only) {
@@ -197,6 +249,7 @@ public:
 
         p.sector = sector;
         p.used = counter_;
+        p.hits = 0;
 
         if (false) {
             phydebug_dump_memory("alloc[%d, sector=%d] ", p.buffer, buffer_size_, selected, sector);
@@ -211,9 +264,18 @@ public:
         for (auto i = 0u; i < Size; ++i) {
             auto &p = pages_[i];
             if (p.buffer != nullptr) {
-                phydebugf("wbuffers[%d] sector=%d dirty=%d refs=%d used=%d", i, p.sector, p.dirty, p.refs, p.used);
+                phydebugf("wbuffers[%d] sector=%d dirty=%d refs=%d hits=%d used=%d", i, p.sector, p.dirty, p.refs, p.hits, p.used);
             }
         }
+
+#if defined(__linux__)
+        if (false) {
+            for (auto i : statistics_) {
+                phydebugf("wbuffers[-] sector=%d reads=%zu writes=%zu misses=%zu",
+                        i.first, i.second.reads, i.second.writes, i.second.misses);
+            }
+        }
+#endif
 
         return 0;
     }
@@ -240,27 +302,38 @@ public:
 
         update_highwater();
 
+        auto selected = -1;
+
         for (auto i = 0u; i < Size; ++i) {
             auto &p = pages_[i];
-            if (p.buffer == nullptr) {
-                break;
-            }
+            if (p.buffer == nullptr) break;
             if (p.refs == 0) {
-                counter_++;
-
-                p.refs++;
-                p.used = counter_;
-
-                update_highwater();
-
-                phydebugf("wbuffers[%d]: allocate sector=%d hw=%zu", i, p.sector, highwater_);
-                auto free_fn = std::bind(&working_buffers::free, this, std::placeholders::_1);
-                return simple_buffer{ pages_[i].buffer, size, free_fn };
+                if (selected < 0) {
+                    selected = i;
+                }
+                else {
+                    if (pages_[selected].sector != InvalidSector && p.sector == InvalidSector) {
+                        selected = i;
+                    }
+                }
             }
         }
 
-        assert(false);
-        return simple_buffer{ nullptr, 0u };
+        assert(selected >= 0);
+
+        counter_++;
+
+        auto &p = pages_[selected];
+        p.used = counter_;
+        p.sector = InvalidSector;
+        p.hits = 0;
+        p.refs--;
+
+        update_highwater();
+
+        phydebugf("wbuffers[%d]: allocate sector=%d hw=%zu", selected, p.sector, highwater_);
+        auto free_fn = std::bind(&working_buffers::free, this, std::placeholders::_1);
+        return simple_buffer{ p.buffer, size, free_fn };
     }
 
     void free(uint8_t const *ptr) {
@@ -268,6 +341,8 @@ public:
         for (auto i = 0u; i < Size; ++i) {
             auto &p = pages_[i];
             if (p.buffer == ptr) {
+                phydebugf("wbuffers[%d]: free refs-before=%d sector=%d", i, p.refs, p.sector);
+
                 assert(p.refs != 0);
 
                 if (p.refs > 0) {
@@ -277,7 +352,6 @@ public:
                     p.refs++;
                 }
 
-                phydebugf("wbuffers[%d]: free refs=%d sector=%d", i, p.refs, p.sector);
                 if (false) {
                     phydebug_dump_memory("free[%d, sector=%d] ", p.buffer, buffer_size_, i, p.sector);
                 }

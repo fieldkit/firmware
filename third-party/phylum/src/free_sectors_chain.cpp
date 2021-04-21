@@ -2,13 +2,7 @@
 
 namespace phylum {
 
-free_sectors_chain::free_sectors_chain(working_buffers &buffers, sector_map &sectors, sector_allocator &allocator,
-                                       head_tail_t chain, const char *prefix)
-    : record_chain(buffers, sectors, allocator, chain, prefix) {
-}
-
-free_sectors_chain::free_sectors_chain(sector_chain &other, head_tail_t chain, const char *prefix)
-    : record_chain(other, chain, prefix) {
+free_sectors_chain::free_sectors_chain(phyctx pc, head_tail_t chain) : record_chain(pc, chain, "fsc") {
 }
 
 free_sectors_chain::~free_sectors_chain() {
@@ -100,7 +94,7 @@ int32_t free_sectors_chain::dequeue(dhara_sector_t *sector) {
                 if (fs->head != InvalidSector) {
                     phydebugf("walk: free-sectors(chain): %d", fs->head);
 
-                    free_sectors_chain chain{ *this, head_tail_t{ fs->head, InvalidSector }, "dequeue" };
+                    free_sectors_chain chain{ pc(), head_tail_t{ fs->head, InvalidSector } };
                     err = chain.dequeue_sector(sector);
                     if (err < 0) {
                         return err;

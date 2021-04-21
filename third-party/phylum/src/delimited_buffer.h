@@ -10,11 +10,15 @@ class delimited_buffer;
 struct record_ptr {
 private:
     read_buffer buffer_;
-    size_t size_of_record_;
+    size_t size_of_record_{ 0 };
 
 public:
     size_t position() const {
         return buffer_.position();
+    }
+
+    size_t delimited_size() const {
+        return size_of_record_;
     }
 
     size_t size_of_record() const {
@@ -144,7 +148,6 @@ public:
     }
 
     bool room_for(size_t length) {
-        // ensure_valid();
         return buffer_.room_for(varint_encoding_length(length) + length);
     }
 
@@ -272,9 +275,7 @@ public:
     }
 
     void debug(const char *prefix, size_t bytes) {
-        if (false) {
-            phydebug_dump_memory(prefix, ptr(), bytes);
-        }
+        phydebug_dump_memory(prefix, ptr(), bytes);
     }
 
     template<typename T>
@@ -329,11 +330,6 @@ public:
                 return false;
             }
 
-            if (maybe_record_length == 0) {
-                record_ = record_ptr{};
-                return false;
-            }
-
             auto delimiter_overhead = varint_encoding_length(maybe_record_length);
             auto size_at_end_of_record = position + maybe_record_length + delimiter_overhead;
 
@@ -350,6 +346,10 @@ public:
             // Advance to the record after this one, we only adjust
             // position_, then we do a read and see if we have a
             // legitimate record length.
+            if (size_of_record_ == 0) {
+                buffer_ = buffer_.end_view();
+                return *this;
+            }
             buffer_.skip(size_of_record_);
             if (!buffer_.valid()) {
                 buffer_ = buffer_.end_view();

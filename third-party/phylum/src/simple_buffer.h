@@ -111,8 +111,21 @@ public:
         return size_;
     }
 
+    int32_t read_byte(uint8_t *byte) {
+        assert(byte != nullptr);
+        if (position_ == size_) {
+            return 0;
+        }
+        *byte = *((uint8_t *)ptr() + position());
+        position_++;
+        return 1;
+    }
+
     template <typename T>
     int32_t fill(general_buffer<uint8_t const> &sb, T flush) {
+        if (sb.ptr() == nullptr) {
+            return fill(nullptr, sb.size() - sb.position(), flush);
+        }
         return fill(sb.ptr() + sb.position(), sb.size() - sb.position(), flush);
     }
 
@@ -122,7 +135,9 @@ public:
         while (copied < size) {
             auto copying = std::min<size_t>(size - copied, size_ - position_);
             if (copying > 0) {
-                memcpy(ptr_ + position_, source + copied, copying);
+                if (ptr_ != nullptr) {
+                    memcpy(ptr_ + position_, source + copied, copying);
+                }
                 position_ += copying;
                 copied += copying;
             }
@@ -140,39 +155,47 @@ public:
 
     template <typename T>
     int32_t read_to_end(T fn) const {
+        assert(ptr_ != nullptr);
         return fn(general_buffer<uint8_t const>(ptr_, size_));
     }
 
     template <typename T>
     int32_t read_to_position(T fn) const {
+        assert(ptr_ != nullptr);
         return fn(general_buffer<uint8_t const>(ptr_, position_));
     }
 
     template <typename T>
     int32_t unsafe_all(T fn) {
+        assert(ptr_ != nullptr);
         return fn(ptr_, size_);
     }
 
     template <typename T>
     int32_t unsafe_forever(T fn) {
+        assert(ptr_ != nullptr);
         return fn(ptr_, size_);
     }
 
     template <typename T>
     int32_t unsafe_at(T fn) {
+        assert(ptr_ != nullptr);
         return fn(ptr_ + position_, size_ - position_);
     }
 
     int32_t fill_from(general_buffer<uint8_t const> &buffer) {
         auto copying = std::min<int32_t>(buffer.available(), available());
         if (copying > 0) {
-            memcpy(cursor(), buffer.cursor(), copying);
+            if (cursor() != nullptr) {
+                memcpy(cursor(), buffer.cursor(), copying);
+            }
             buffer.skip(copying);
         }
         return copying;
     }
 
     void clear(uint8_t value = 0xff) {
+        assert(ptr_ != nullptr);
         memset(ptr_, value, size_);
         position_ = 0;
     }
@@ -186,6 +209,7 @@ public:
     }
 
     PointerType *take(size_t size) {
+        assert(ptr_ != nullptr);
         assert(size <= size_ - position_);
         auto p = ptr_ + position_;
         position_ += size;
@@ -205,6 +229,7 @@ public:
     }
 
     int32_t constrain(size_t bytes) {
+        assert(bytes <= size_);
         size_ = bytes;
         return 0;
     }

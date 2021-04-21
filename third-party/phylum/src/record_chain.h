@@ -6,15 +6,15 @@ namespace phylum {
 
 class record_chain : public sector_chain {
 public:
-    record_chain(working_buffers &buffers, sector_map &sectors, sector_allocator &allocator, head_tail_t chain, const char *prefix)
-        : sector_chain(buffers, sectors, allocator, chain, prefix) {
+    record_chain(phyctx pc, head_tail_t chain, const char *prefix)
+        : sector_chain(pc, chain, prefix) {
     }
 
-    record_chain(sector_chain &other, head_tail_t chain, const char *prefix)
-        : sector_chain(other, chain, prefix) {
-    }
+protected:
+    int32_t mount_chain(page_lock &page_lock);
 
-public:
+    int32_t create_chain(page_lock &page_lock);
+
     int32_t prepare(page_lock &page_lock, size_t required);
 
     int32_t grow_if_necessary(page_lock &page_lock, size_t required);

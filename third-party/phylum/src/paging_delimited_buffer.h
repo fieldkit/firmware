@@ -16,6 +16,10 @@ private:
     bool dirty_{ false };
 
 public:
+    page_lock(page_lock &other) = delete;
+
+    page_lock(page_lock &&other);
+
     page_lock(paging_delimited_buffer *buffer, dhara_sector_t sector, bool read_only, bool overwrite);
 
     virtual ~page_lock();
@@ -33,6 +37,10 @@ public:
 
     dhara_sector_t sector() const {
         return sector_;
+    }
+
+    paging_delimited_buffer &db() {
+        return *buffer_;
     }
 
 };
@@ -59,7 +67,7 @@ protected:
 
     int32_t replace(dhara_sector_t sector, bool read_only, bool overwrite = false);
 
-    int32_t release();
+    int32_t release(dhara_sector_t sector);
 
     int32_t flush(dhara_sector_t sector);
 

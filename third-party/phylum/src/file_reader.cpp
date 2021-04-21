@@ -2,29 +2,44 @@
 
 namespace phylum {
 
-file_reader::file_reader(sector_chain &other, directory *directory, found_file file)
-    : directory_(directory), file_(file), buffer_(std::move(other.buffers().allocate(other.buffers().buffer_size()))),
-      data_chain_(other, file.chain, "file-rdr") {
-}
-
-file_reader::file_reader(working_buffers &buffers, sector_map &sectors, sector_allocator &allocator, directory *directory, found_file file)
-    : directory_(directory), file_(file), buffer_(std::move(buffers.allocate(sectors.sector_size()))),
-      data_chain_(buffers, sectors, allocator, file.chain, "file-rdr") {
+file_reader::file_reader(phyctx pc, directory *directory, found_file file)
+    : pc_(pc), directory_(directory), file_(file), buffer_(std::move(pc.buffers_.allocate(pc.sectors_.sector_size()))),
+      data_chain_(pc, file.chain, "file-rdr") {
 }
 
 file_reader::~file_reader() {
 }
 
+file_size_t file_reader::position() const {
+    auto buffer_position = buffer_.position();
+    if (has_chain()) {
+        auto dcc = data_chain_.cursor();
+        return dcc.position + buffer_position;
+    }
+    return inline_position_;
+}
+
+int32_t file_reader::read(size_t size) {
+    return read(nullptr, size);
+}
+
 int32_t file_reader::read(uint8_t *data, size_t size) {
     if (has_chain()) {
-        auto err = data_chain_.read(data, size);
-        if (err < 0) {
-            return err;
+        auto nread = 0u;
+        while (nread < size) {
+            auto err = data_chain_.read(data == nullptr ? nullptr : data + nread, size - nread);
+            if (err < 0) {
+                return err;
+            }
+
+            if (err == 0) {
+                break;
+            }
+
+            nread += err;
         }
 
-        position_ += err;
-
-        return err;
+        return nread;
     }
 
     // Right now all inline data has to be read in a single
@@ -48,7 +63,7 @@ int32_t file_reader::read(uint8_t *data, size_t size) {
         return err;
     }
 
-    position_ += err;
+    inline_position_ += err;
 
     return err;
 }

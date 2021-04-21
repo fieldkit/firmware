@@ -19,6 +19,13 @@ void phyerrorf(const char *f, ...) {
     va_end(args);
 }
 
+void phyverbosef(const char *f, ...) {
+    va_list args;
+    va_start(args, f);
+    valogfs(LogLevels::VERBOSE, "phylum", get_task_stack()->get(), f, args);
+    va_end(args);
+}
+
 void phydebugf(const char *f, ...) {
     va_list args;
     va_start(args, f);

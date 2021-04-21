@@ -6,9 +6,7 @@ namespace phylum {
 
 class free_sectors_chain : public record_chain {
 public:
-    free_sectors_chain(working_buffers &buffers, sector_map &sectors, sector_allocator &allocator, head_tail_t chain, const char *prefix);
-
-    free_sectors_chain(sector_chain &other, head_tail_t chain, const char *prefix);
+    free_sectors_chain(phyctx pc, head_tail_t chain);
 
     virtual ~free_sectors_chain();
 

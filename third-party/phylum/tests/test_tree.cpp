@@ -1,4 +1,5 @@
 #include <directory_chain.h>
+#include <directory_tree.h>
 #include <file_appender.h>
 #include <tree_sector.h>
 
@@ -39,7 +40,7 @@ TYPED_TEST(TreeFixture, SingleNodeTree) {
     FlashMemory memory{ layout.sector_size };
     memory.mounted<directory_chain>([&](auto &chain) {
         auto first = memory.allocator().allocate();
-        typename TypeParam::second_type tree{ memory.buffers(), memory.sectors(), memory.allocator(), first, "tree" };
+        typename TypeParam::second_type tree{ memory.pc(), tree_ptr_t{ first }, "tree" };
 
         ASSERT_EQ(tree.exists(), 0);
         ASSERT_EQ(tree.create(), 0);
@@ -62,6 +63,9 @@ TYPED_TEST(TreeFixture, SingleNodeTree) {
         ASSERT_EQ(found, 3u);
 
         ASSERT_EQ(tree.find(4, &found), 0);
+
+        temporary_log_level info{ LogLevels::INFO };
+        ASSERT_EQ(tree.log(), 0);
     });
 }
 
@@ -70,11 +74,12 @@ TYPED_TEST(TreeFixture, SingleNodeTreeGrowingByOneNode) {
     FlashMemory memory{ layout.sector_size };
     memory.mounted<directory_chain>([&](auto &chain) {
         auto first = memory.allocator().allocate();
-        typename TypeParam::second_type tree{ memory.buffers(), memory.sectors(), memory.allocator(), first, "tree" };
+        typename TypeParam::second_type tree{ memory.pc(), tree_ptr_t{ first }, "tree" };
 
         ASSERT_EQ(tree.create(), 0);
 
         for (auto i = 1u; i < 8; ++i) {
+            phydebugf("adding %d", i);
             uint32_t found = 0u;
             ASSERT_EQ(tree.add(i, i), 0);
             EXPECT_EQ(tree.find(i, &found), 1);
@@ -88,21 +93,18 @@ TYPED_TEST(TreeFixture, SingleNodeTreeGrowingByTwoNodes) {
     FlashMemory memory{ layout.sector_size };
     memory.mounted<directory_chain>([&](auto &chain) {
         auto first = memory.allocator().allocate();
-        typename TypeParam::second_type tree{ memory.buffers(), memory.sectors(), memory.allocator(), first, "tree" };
+        typename TypeParam::second_type tree{ memory.pc(), tree_ptr_t{ first }, "tree" };
 
         ASSERT_EQ(tree.create(), 0);
 
         for (auto i = 1u; i < 16; ++i) {
-            uint32_t found = 0u;
+            phydebugf("adding %d", i);
             ASSERT_EQ(tree.add(i, i), 0);
-            EXPECT_EQ(tree.find(i, &found), 1);
-            ASSERT_EQ(found, i);
-        }
-
-        for (auto i = 1u; i < 16; ++i) {
-            uint32_t found = 0u;
-            EXPECT_EQ(tree.find(i, &found), 1);
-            ASSERT_EQ(found, i);
+            for (auto j = 1u; j < i; ++j) {
+                uint32_t found = 0u;
+                EXPECT_EQ(tree.find(j, &found), 1);
+                ASSERT_EQ(found, j);
+            }
         }
     });
 }
@@ -112,14 +114,20 @@ TYPED_TEST(TreeFixture, TreeWith1024Node1Reachable) {
     FlashMemory memory{ layout.sector_size };
     memory.mounted<directory_chain>([&](auto &chain) {
         auto first = memory.allocator().allocate();
-        typename TypeParam::second_type tree{ memory.buffers(), memory.sectors(), memory.allocator(), first, "tree" };
+        typename TypeParam::second_type tree{ memory.pc(), tree_ptr_t{ first }, "tree" };
 
         ASSERT_EQ(tree.create(), 0);
 
         suppress_logs sl;
 
         for (auto i = 1u; i < 1024; ++i) {
+            phydebugf("adding %d", i);
             ASSERT_EQ(tree.add(i, i), 0);
+
+            {
+                temporary_log_level info{ LogLevels::WARN };
+                ASSERT_EQ(tree.log(), 0);
+            }
 
             uint32_t found = 0u;
             EXPECT_EQ(tree.find(1, &found), 1);
@@ -133,7 +141,7 @@ TYPED_TEST(TreeFixture, TreeAllReachableAsAdded) {
     FlashMemory memory{ layout.sector_size };
     memory.mounted<directory_chain>([&](auto &chain) {
         auto first = memory.allocator().allocate();
-        typename TypeParam::second_type tree{ memory.buffers(), memory.sectors(), memory.allocator(), first, "tree" };
+        typename TypeParam::second_type tree{ memory.pc(), tree_ptr_t{ first }, "tree" };
 
         ASSERT_EQ(tree.create(), 0);
 
@@ -155,9 +163,10 @@ TYPED_TEST(TreeFixture, TreeAllReachableAsAdded) {
 TYPED_TEST(TreeFixture, TreeWith1024) {
     typename TypeParam::first_type layout;
     FlashMemory memory{ layout.sector_size };
+
     memory.mounted<directory_chain>([&](auto &chain) {
         auto first = memory.allocator().allocate();
-        typename TypeParam::second_type tree{ memory.buffers(), memory.sectors(), memory.allocator(), first, "tree" };
+        typename TypeParam::second_type tree{ memory.pc(), tree_ptr_t{ first }, "tree" };
 
         ASSERT_EQ(tree.create(), 0);
 
@@ -179,5 +188,24 @@ TYPED_TEST(TreeFixture, TreeWith1024) {
         }
 
         EXPECT_EQ(tree.log(), 0);
+    });
+}
+
+TYPED_TEST(TreeFixture, OverwriteValue_SingleNode) {
+    typename TypeParam::first_type layout;
+    FlashMemory memory{ layout.sector_size };
+
+    memory.mounted<directory_chain>([&](auto &chain) {
+        auto first = memory.allocator().allocate();
+        typename TypeParam::second_type tree{ memory.pc(), tree_ptr_t{ first }, "tree" };
+
+        ASSERT_EQ(tree.create(), 0);
+
+        ASSERT_EQ(tree.add(1, 1), 0);
+        ASSERT_EQ(tree.add(1, 2), 0);
+
+        uint32_t found = 0;
+        ASSERT_EQ(tree.find(1, &found), 1);
+        ASSERT_EQ(found, 2u);
     });
 }

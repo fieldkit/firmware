@@ -10,7 +10,7 @@ constexpr size_t MaximumNameLength = 64;
 typedef uint32_t file_id_t;
 typedef uint32_t file_size_t;
 typedef uint16_t file_flags_t;
-typedef uint16_t record_number_t;
+typedef uint32_t record_number_t;
 typedef uint16_t sector_offset_t;
 typedef uint32_t dhara_sector_t;
 
@@ -31,6 +31,14 @@ struct PHY_PACKED head_tail_t {
     bool valid() const {
         return head != InvalidSector;
     }
+
+    bool operator!=(const head_tail_t &other) const {
+        return head != other.head || tail != other.tail;
+    }
+
+    bool operator==(const head_tail_t &other) const {
+        return head == other.head && tail == other.tail;
+    }
 };
 
 struct PHY_PACKED tree_ptr_t {
@@ -40,11 +48,22 @@ struct PHY_PACKED tree_ptr_t {
     tree_ptr_t() {
     }
 
-    tree_ptr_t(dhara_sector_t root, dhara_sector_t tail) : root(root), tail(tail) {
+    explicit tree_ptr_t(dhara_sector_t first) : root(first), tail(first) {
+    }
+
+    explicit tree_ptr_t(dhara_sector_t root, dhara_sector_t tail) : root(root), tail(tail) {
     }
 
     bool valid() const {
         return root != InvalidSector;
+    }
+
+    bool operator!=(const tree_ptr_t &other) const {
+        return root != other.root || tail != other.tail;
+    }
+
+    bool operator==(const tree_ptr_t &other) const {
+        return root == other.root && tail == other.tail;
     }
 };
 
@@ -71,22 +90,35 @@ struct PHY_PACKED entry_t {
     }
 };
 
-struct PHY_PACKED super_block_t : entry_t {
-    uint32_t version{ 0 };
-    uint32_t reserved{ (uint32_t)-1 };
-
-    super_block_t(uint32_t version) : entry_t(entry_type::SuperBlock), version(version) {
-    }
+enum class sector_flags : uint8_t {
+    None = 0,
+    Tail = 1,
 };
 
 struct PHY_PACKED sector_chain_header_t : entry_t {
     dhara_sector_t pp{ (dhara_sector_t)InvalidSector };
     dhara_sector_t np{ (dhara_sector_t)InvalidSector };
+    sector_flags flags{ sector_flags::None };
 
     sector_chain_header_t(entry_type type) : entry_t(type) {
     }
 
     sector_chain_header_t(entry_type type, dhara_sector_t pp, dhara_sector_t np) : entry_t(type), pp(pp), np(np) {
+    }
+
+    sector_chain_header_t(entry_type type, dhara_sector_t pp, dhara_sector_t np, sector_flags flags) : entry_t(type), pp(pp), np(np), flags(flags) {
+    }
+};
+
+struct PHY_PACKED super_block_t : sector_chain_header_t {
+    char magic[8];
+    uint32_t version{ 1 };
+    tree_ptr_t directory_tree{ };
+    head_tail_t free_chain{ };
+
+    super_block_t() : sector_chain_header_t(entry_type::SuperBlock) {
+        bzero(magic, sizeof(magic));
+        strncpy(magic, "phylum", sizeof(magic));
     }
 };
 
@@ -95,6 +127,9 @@ struct PHY_PACKED directory_chain_header_t : sector_chain_header_t {
     }
 
     directory_chain_header_t(dhara_sector_t pp, dhara_sector_t np) : sector_chain_header_t(entry_type::DirectorySector, pp, np) {
+    }
+
+    directory_chain_header_t(dhara_sector_t pp, dhara_sector_t np, sector_flags flags) : sector_chain_header_t(entry_type::DirectorySector, pp, np, flags) {
     }
 };
 
@@ -117,6 +152,9 @@ struct PHY_PACKED data_chain_header_t : sector_chain_header_t {
 
     data_chain_header_t(uint16_t bytes, dhara_sector_t pp, dhara_sector_t np) : sector_chain_header_t(entry_type::DataSector, pp, np), bytes(bytes) {
     }
+
+    data_chain_header_t(uint16_t bytes, dhara_sector_t pp, dhara_sector_t np, sector_flags flags) : sector_chain_header_t(entry_type::DataSector, pp, np, flags), bytes(bytes) {
+    }
 };
 
 inline uint32_t make_file_id(const char *path) {
@@ -131,6 +169,7 @@ enum class FsDirTreeFlags : uint16_t {
 struct PHY_PACKED dirtree_entry_t : entry_t {
     char name[MaximumNameLength];
     file_flags_t flags;
+    uint32_t reserved[3] = { 0, 0, 0 };
 
     dirtree_entry_t(entry_type type, const char *full_name, uint16_t flags) : entry_t(type), flags(flags) {
         bzero(name, sizeof(name));
@@ -192,15 +231,20 @@ struct PHY_PACKED file_entry_t : entry_t {
         bzero(name, sizeof(name));
         strncpy(name, full_name, sizeof(name));
     }
+
+    file_entry_t(file_id_t id, uint16_t flags = 0)
+        : entry_t(entry_type::FileEntry), id(id), flags(flags) {
+        bzero(name, sizeof(name));
+    }
 };
 
 struct PHY_PACKED file_data_t : entry_t {
     file_id_t id{ 0 };
     file_size_t size{ 0 };
     head_tail_t chain;
-    dhara_sector_t attributes{ InvalidSector };
-    dhara_sector_t position_index{ InvalidSector };
-    dhara_sector_t record_index{ InvalidSector };
+    tree_ptr_t attributes{ };
+    tree_ptr_t position_index{ };
+    tree_ptr_t record_index{ };
 
     file_data_t(file_id_t id, file_size_t size) : entry_t(entry_type::FileData), id(id), size(size) {
     }
@@ -239,12 +283,31 @@ struct PHY_PACKED node_ptr_t {
     node_ptr_t() : sector(InvalidSector), position(0) {
     }
 
+    node_ptr_t(dhara_sector_t sector, size_t position): sector(sector), position((sector_offset_t)position) {
+    }
+
     node_ptr_t(dhara_sector_t sector, sector_offset_t position): sector(sector), position(position) {
+    }
+
+    bool valid() const {
+        // NOTE It's also true that position can never be zero for a
+        // node_ptr_t, because headers are zero-length.
+        return sector != InvalidSector;
+    }
+
+    bool operator!=(const node_ptr_t &other) const {
+        return sector != other.sector || position != other.position;
+    }
+
+    bool operator==(const node_ptr_t &other) const {
+        return sector == other.sector && position == other.position;
     }
 };
 
+using sector_position_t = node_ptr_t;
+
 using depth_type = uint8_t;
-using index_type = uint16_t;
+using index_type = int16_t;
 
 enum node_type : uint8_t {
     Leaf,
@@ -256,7 +319,11 @@ public:
     depth_type depth{ 0 };
     index_type number_keys{ 0 };
     node_type type{ node_type::Leaf };
-    uint8_t reserved[11];
+    union PHY_PACKED debug_t {
+        uint8_t reserved[11];
+        dhara_sector_t sector;
+    };
+    debug_t dbg;
 
 public:
     tree_node_header_t() : entry_t(entry_type::TreeNode) {

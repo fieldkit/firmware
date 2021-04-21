@@ -71,6 +71,10 @@ public:
         ASSERT_EQ(sectors_.sync(), 0);
     }
 
+    phyctx pc() {
+        return phyctx{ buffers(), sectors(), allocator() };
+    }
+
     template<typename DirectoryType>
     void mounted(std::function<void(DirectoryType &dir)> fn) {
         if (formatted_) {
@@ -82,7 +86,7 @@ public:
             initialized_ = true;
         }
 
-        DirectoryType dir{ buffers_, sectors_, allocator_, 0 };
+        DirectoryType dir{ pc(), 0 };
         if (formatted_) {
             ASSERT_EQ(dir.mount(), 0);
         }
@@ -103,7 +107,8 @@ private:
     open_file_config file_cfg_;
 
 public:
-    open_file_config &file_cfg() {
+    open_file_config &file_cfg(open_file_flags flags = open_file_flags::None) {
+        file_cfg_.flags = flags;
         return file_cfg_;
     }
 
@@ -135,17 +140,23 @@ public:
 
 };
 
-class suppress_logs {
+class temporary_log_level {
 private:
     uint8_t saved_;
 
 public:
-    suppress_logs() {
+    temporary_log_level(LogLevels level) {
         saved_ = log_get_level();
-        log_configure_level(LogLevels::NONE);
+        log_configure_level(level);
     }
 
-    virtual ~suppress_logs() {
+    virtual ~temporary_log_level() {
         log_configure_level((LogLevels)saved_);
+    }
+};
+
+class suppress_logs : public temporary_log_level {
+public:
+    suppress_logs() : temporary_log_level(LogLevels::NONE) {
     }
 };
