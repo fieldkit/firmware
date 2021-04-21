@@ -14,7 +14,7 @@ TEST_F(DharaFixture, Initialize) {
     ASSERT_EQ(sectors.begin(true), 0);
 
     sector_allocator allocator{ sectors };
-    directory_chain chain{ buffers, sectors, allocator, 0 };
+    directory_chain chain{ phyctx{ buffers, sectors, allocator }, 0 };
 
     ASSERT_EQ(chain.format(), 0);
 }

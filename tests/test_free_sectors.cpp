@@ -23,17 +23,22 @@ using dir_type = directory_chain;
 
 class test_data_chain : public data_chain {
 public:
-    test_data_chain(working_buffers &buffers, sector_map &sectors, sector_allocator &allocator, head_tail_t chain, const char *prefix)
-        : data_chain(buffers, sectors, allocator, chain, prefix) {
+    test_data_chain(phyctx pc, head_tail_t chain, const char *prefix = "tdc")
+        : data_chain(pc, chain, prefix) {
     }
 
 public:
     int32_t grow_by(size_t blocks) {
         phydebugf("grow by %d blocks", blocks);
         suppress_logs sl;
-        auto page_lock = db().writing(sector());
+        auto lock = db().writing(sector());
         for (auto i = 0u; i < blocks; ++i) {
-            auto err = grow_tail(page_lock);
+            auto err = grow_tail(lock);
+            if (err < 0) {
+                return err;
+            }
+
+            err = lock.flush(lock.sector());
             if (err < 0) {
                 return err;
             }
@@ -47,10 +52,10 @@ TYPED_TEST(FreeSectorsFixture, FreeSectorsChain_DataChains_SingleBlock) {
     FlashMemory memory{ layout.sector_size };
 
     memory.mounted<dir_type>([&](auto &dir) {
-        test_data_chain dc{ memory.buffers(), memory.sectors(), memory.allocator(), head_tail_t{ }, "dc" };
+        test_data_chain dc{ memory.pc(), head_tail_t{ } };
         ASSERT_EQ(dc.create_if_necessary(), 0);
 
-        free_sectors_chain fsc{ memory.buffers(), memory.sectors(), memory.allocator(), head_tail_t{ }, "fsc" };
+        free_sectors_chain fsc{ memory.pc(), head_tail_t{ } };
         ASSERT_EQ(fsc.create_if_necessary(), 0);
 
         dhara_sector_t sector = 0;
@@ -70,13 +75,13 @@ TYPED_TEST(FreeSectorsFixture, FreeSectorsChain_DataChains_TwoBlocks) {
     FlashMemory memory{ layout.sector_size };
 
     memory.mounted<dir_type>([&](auto &dir) {
-        test_data_chain dc{ memory.buffers(), memory.sectors(), memory.allocator(), head_tail_t{ }, "dc" };
+        test_data_chain dc{ memory.pc(), head_tail_t{ } };
         ASSERT_EQ(dc.create_if_necessary(), 0);
         ASSERT_EQ(dc.grow_by(1), 0);
 
         ASSERT_NE(dc.head(), dc.tail());
 
-        free_sectors_chain fsc{ memory.buffers(), memory.sectors(), memory.allocator(), head_tail_t{ }, "fsc" };
+        free_sectors_chain fsc{ memory.pc(), head_tail_t{ } };
         ASSERT_EQ(fsc.create_if_necessary(), 0);
 
         dhara_sector_t sector = 0;
@@ -99,13 +104,13 @@ TYPED_TEST(FreeSectorsFixture, FreeSectorsChain_DataChains_SeveralBlock) {
     FlashMemory memory{ layout.sector_size };
 
     memory.mounted<dir_type>([&](auto &dir) {
-        test_data_chain dc{ memory.buffers(), memory.sectors(), memory.allocator(), head_tail_t{ }, "dc" };
+        test_data_chain dc{ memory.pc(), head_tail_t{ } };
         ASSERT_EQ(dc.create_if_necessary(), 0);
         ASSERT_EQ(dc.grow_by(10), 0);
 
         ASSERT_NE(dc.head(), dc.tail());
 
-        free_sectors_chain fsc{ memory.buffers(), memory.sectors(), memory.allocator(), head_tail_t{ }, "fsc" };
+        free_sectors_chain fsc{ memory.pc(), head_tail_t{ } };
         ASSERT_EQ(fsc.create_if_necessary(), 0);
 
         dhara_sector_t sector = 0;
@@ -127,17 +132,17 @@ TYPED_TEST(FreeSectorsFixture, FreeSectorsChain_DataChains_ReuseConsumedNode) {
     FlashMemory memory{ layout.sector_size };
 
     memory.mounted<dir_type>([&](auto &dir) {
-        test_data_chain dc1{ memory.buffers(), memory.sectors(), memory.allocator(), head_tail_t{ }, "dc" };
+        test_data_chain dc1{ memory.pc(), head_tail_t{ } };
         ASSERT_EQ(dc1.create_if_necessary(), 0);
         ASSERT_EQ(dc1.grow_by(1), 0);
         ASSERT_NE(dc1.head(), dc1.tail());
 
-        test_data_chain dc2{ memory.buffers(), memory.sectors(), memory.allocator(), head_tail_t{ }, "dc" };
+        test_data_chain dc2{ memory.pc(), head_tail_t{ } };
         ASSERT_EQ(dc2.create_if_necessary(), 0);
         ASSERT_EQ(dc2.grow_by(1), 0);
         ASSERT_NE(dc2.head(), dc2.tail());
 
-        free_sectors_chain fsc{ memory.buffers(), memory.sectors(), memory.allocator(), head_tail_t{ }, "fsc" };
+        free_sectors_chain fsc{ memory.pc(), head_tail_t{ } };
         ASSERT_EQ(fsc.create_if_necessary(), 0);
 
         dhara_sector_t sector = 0;
@@ -167,14 +172,14 @@ TYPED_TEST(FreeSectorsFixture, FreeSectorsChain_Trees_SingleSector) {
     FlashMemory memory{ layout.sector_size };
 
     memory.mounted<dir_type>([&](auto &dir) {
-        tree_type tree{ memory.buffers(), memory.sectors(), memory.allocator(), memory.allocator().allocate(), "dc" };
+        tree_type tree{ memory.pc(), tree_ptr_t{ memory.allocator().allocate() } };
         ASSERT_EQ(tree.create(), 0);
 
         for (auto i = 1u; i < 1; ++i) {
             ASSERT_EQ(tree.add(i, i), 0);
         }
 
-        free_sectors_chain fsc{ memory.buffers(), memory.sectors(), memory.allocator(), head_tail_t{ }, "fsc" };
+        free_sectors_chain fsc{ memory.pc(), head_tail_t{ } };
         ASSERT_EQ(fsc.create_if_necessary(), 0);
 
         dhara_sector_t sector = 0;
@@ -196,7 +201,7 @@ TYPED_TEST(FreeSectorsFixture, FreeSectorsChain_Trees_MultipleSectors) {
     auto &allocator = memory.allocator();
 
     memory.mounted<dir_type>([&](auto &dir) {
-        tree_type tree{ memory.buffers(), memory.sectors(), memory.allocator(), memory.allocator().allocate(), "dc" };
+        tree_type tree{ memory.pc(), tree_ptr_t{ memory.allocator().allocate() } };
         ASSERT_EQ(tree.create(), 0);
 
         {
@@ -209,7 +214,7 @@ TYPED_TEST(FreeSectorsFixture, FreeSectorsChain_Trees_MultipleSectors) {
 
         EXPECT_EQ(tree.log(), 0);
 
-        free_sectors_chain fsc{ memory.buffers(), memory.sectors(), memory.allocator(), head_tail_t{ }, "fsc" };
+        free_sectors_chain fsc{ memory.pc(), head_tail_t{ } };
         ASSERT_EQ(fsc.create_if_necessary(), 0);
 
         dhara_sector_t sector = 0;
@@ -239,10 +244,10 @@ TYPED_TEST(FreeSectorsFixture, FreeSectorsChain_Trees_Large) {
     auto &allocator = memory.allocator();
 
     memory.mounted<dir_type>([&](auto &dir) {
-        tree_type tree{ memory.buffers(), memory.sectors(), memory.allocator(), memory.allocator().allocate(), "dc" };
+        tree_type tree{ memory.pc(), tree_ptr_t{ memory.allocator().allocate() } };
         ASSERT_EQ(tree.create(), 0);
 
-        free_sectors_chain fsc{ memory.buffers(), memory.sectors(), memory.allocator(), head_tail_t{ }, "fsc" };
+        free_sectors_chain fsc{ memory.pc(), head_tail_t{ } };
         ASSERT_EQ(fsc.create_if_necessary(), 0);
 
         dhara_sector_t sector = 0;

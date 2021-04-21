@@ -37,7 +37,9 @@ public:
                 ++iter;
                 --n;
             }
-            if (iter == buffer_.end()) {
+            // We now see an iterator position for the NULL
+            // terminator.
+            if (iter->delimited_size() == 0) {
                 return testing::AssertionSuccess();
             }
             return testing::AssertionFailure() << "too many records";

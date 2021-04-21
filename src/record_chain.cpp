@@ -2,6 +2,56 @@
 
 namespace phylum {
 
+int32_t record_chain::mount_chain(page_lock &page_lock) {
+    logged_task lt{ "mount" };
+
+    sector(head());
+
+    dhara_page_t page = 0;
+    auto find = sectors()->find(0, &page);
+    if (find < 0) {
+        return find;
+    }
+
+    auto err = page_lock.replace(sector());
+    if (err < 0) {
+        return err;
+    }
+
+    err = load(page_lock);
+    if (err < 0) {
+        return err;
+    }
+
+    back_to_head(page_lock);
+
+    phyinfof("mounted %d", sector());
+
+    return 0;
+}
+
+int32_t record_chain::create_chain(page_lock &page_lock) {
+    logged_task lt{ "create" };
+
+    sector(head());
+
+    phyinfof("creating");
+    auto err = write_header(page_lock);
+    if (err < 0) {
+        return err;
+    }
+
+    page_lock.dirty();
+    appendable(true);
+
+    err = flush(page_lock);
+    if (err < 0) {
+        return err;
+    }
+
+    return 0;
+}
+
 int32_t record_chain::seek_end_of_buffer(page_lock &/*page_lock*/) {
     return db().seek_end();
 }

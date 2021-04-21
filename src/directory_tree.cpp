@@ -1,4 +1,6 @@
 #include "directory_tree.h"
+#include "data_chain.h"
+#include "tree_sector.h"
 
 namespace phylum {
 
@@ -80,17 +82,25 @@ int32_t directory_tree::find(const char *name, open_file_config file_cfg) {
     assert(node_.u.e.type == entry_type::FsFileEntry);
 
     if (!node_.u.file.chain.valid()) {
-        file_.directory_size = node_.u.file.directory_size;
-        file_.directory_capacity = DataCapacity - node_.u.file.directory_size;
+        if (((int32_t)file_cfg.flags & (int32_t)open_file_flags::Truncate) == 0) {
+            file_.directory_size = node_.u.file.directory_size;
+            file_.directory_capacity = DataCapacity - node_.u.file.directory_size;
+        }
+        else {
+            file_.directory_size = 0;
+            file_.directory_capacity = DataCapacity;
+        }
     }
     else {
         file_.chain = node_.u.file.chain;
+        file_.position_index = node_.u.file.position_index;
+        file_.record_index = node_.u.file.record_index;
     }
 
     // If we're being asked to load attributes.
     if (file_cfg.nattrs > 0) {
         if (node_.u.file.attributes.valid()) {
-            attr_tree_type tree{ *buffers_, *sectors_, *allocator_, node_.u.file.attributes, "attrs" };
+            attr_tree_type tree{ phyctx{ *buffers_, *sectors_, *allocator_ }, node_.u.file.attributes, "attrs" };
             for (auto i = 0u; i < file_cfg.nattrs; ++i) {
                 auto &attr = file_cfg.attributes[i];
                 attr_node_type attr_node;
@@ -114,16 +124,16 @@ found_file directory_tree::open() {
     return file_;
 }
 
-int32_t directory_tree::file_data(file_id_t id, uint8_t const *buffer, size_t size) {
+int32_t directory_tree::file_data(file_id_t id, file_size_t position, uint8_t const *buffer, size_t size) {
     assert(file_.id == id);
 
-    if (node_.u.file.directory_size + size > DataCapacity) {
+    if (position + size > DataCapacity) {
         return -1;
     }
 
-    memcpy(node_.data + node_.u.file.directory_size, buffer, size);
+    memcpy(node_.data + position, buffer, size);
 
-    node_.u.file.directory_size += size;
+    node_.u.file.directory_size = position + size;
 
     auto err = flush();
     if (err < 0) {
@@ -161,15 +171,15 @@ int32_t directory_tree::file_attributes(file_id_t id, open_file_attribute *attri
     phydebugf("saving attributes total-size=%zu", attribute_size);
 
     // TODO Store attributes in inline data when we can.
-    auto sector = node_.u.file.attributes;
+    auto attributes_tree = node_.u.file.attributes;
     auto create = false;
     if (!node_.u.file.attributes.valid()) {
         auto allocated = allocator_->allocate();
-        sector = tree_ptr_t{ allocated, allocated };
+        attributes_tree = tree_ptr_t{ allocated, allocated };
         create = true;
     }
 
-    attr_tree_type tree{ *buffers_, *sectors_, *allocator_, sector, "attrs" };
+    attr_tree_type tree{ phyctx{ *buffers_, *sectors_, *allocator_ }, attributes_tree, "attrs" };
 
     if (create) {
         auto err = tree.create();
@@ -186,13 +196,27 @@ int32_t directory_tree::file_attributes(file_id_t id, open_file_attribute *attri
         }
     }
 
-    if (node_.u.file.attributes.root != sector.root || node_.u.file.attributes.tail != sector.tail ) {
-        node_.u.file.attributes = sector;
+    if (node_.u.file.attributes != attributes_tree) {
+        node_.u.file.attributes = attributes_tree;
 
         auto err = flush();
         if (err < 0) {
             return err;
         }
+    }
+
+    return 0;
+}
+
+int32_t directory_tree::file_trees(file_id_t id, tree_ptr_t position_index, tree_ptr_t record_index) {
+    assert(file_.id == id);
+
+    node_.u.file.position_index = position_index;
+    node_.u.file.record_index = record_index;
+
+    auto err = flush();
+    if (err < 0) {
+        return err;
     }
 
     return 0;

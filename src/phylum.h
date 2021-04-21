@@ -31,6 +31,8 @@ void phyerrorf(const char *f, ...);
 
 void phywarnf(const char *f, ...);
 
+void phyverbosef(const char *f, ...);
+
 void phydebug_dump_memory(const char *prefix, uint8_t const *p, size_t size, ...);
 
 /*

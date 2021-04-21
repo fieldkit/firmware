@@ -1,5 +1,7 @@
 #include <directory_chain.h>
+#include <directory_tree.h>
 #include <file_appender.h>
+#include <file_reader.h>
 
 #include "phylum_tests.h"
 #include "geometry.h"
@@ -11,19 +13,24 @@ class WriteFixture : public PhylumFixture {
 };
 
 typedef ::testing::Types<
-    std::pair<layout_256, directory_chain>
+    std::pair<layout_256, directory_chain>,
+    std::pair<layout_4096, directory_tree>
     > Implementations;
 
 TYPED_TEST_SUITE(WriteFixture, Implementations);
 
-TYPED_TEST(WriteFixture, WriteInlineOnce) {
-    typename TypeParam::first_type layout;
-    FlashMemory memory{ layout.sector_size };
-    memory.mounted<directory_chain>([&](auto &chain) {
-        ASSERT_EQ(chain.touch("data.txt"), 0);
+TYPED_TEST(WriteFixture, WriteInline_Once) {
+    using layout_type = typename TypeParam::first_type;
+    using dir_type = typename TypeParam::second_type;
 
-        ASSERT_EQ(chain.find("data.txt", this->file_cfg()), 1);
-        file_appender opened{ chain, &chain, chain.open() };
+    layout_type layout;
+    FlashMemory memory{ layout.sector_size };
+
+    memory.mounted<dir_type>([&](auto &dir) {
+        ASSERT_EQ(dir.touch("data.txt"), 0);
+
+        ASSERT_EQ(dir.find("data.txt", this->file_cfg()), 1);
+        file_appender opened{ memory.pc(), &dir, dir.open() };
 
         auto hello = "Hello, world! How are you!";
 
@@ -32,14 +39,68 @@ TYPED_TEST(WriteFixture, WriteInlineOnce) {
     });
 }
 
-TYPED_TEST(WriteFixture, WriteInlineBuffersMultipleSmall) {
-    typename TypeParam::first_type layout;
-    FlashMemory memory{ layout.sector_size };
-    memory.mounted<directory_chain>([&](auto &chain) {
-        ASSERT_EQ(chain.touch("data.txt"), 0);
+TYPED_TEST(WriteFixture, WriteInline_TwiceSeparately_Appends) {
+    using layout_type = typename TypeParam::first_type;
+    using dir_type = typename TypeParam::second_type;
 
-        ASSERT_EQ(chain.find("data.txt", this->file_cfg()), 1);
-        file_appender opened{ chain, &chain, chain.open() };
+    layout_type layout;
+    FlashMemory memory{ layout.sector_size };
+
+    auto hello = "Hello, world! How are you!";
+
+    memory.mounted<dir_type>([&](auto &dir) {
+        ASSERT_EQ(dir.touch("data.txt"), 0);
+
+        ASSERT_EQ(dir.find("data.txt", this->file_cfg()), 1);
+        file_appender opened{ memory.pc(), &dir, dir.open() };
+
+        ASSERT_GT(opened.write(hello), 0);
+        ASSERT_EQ(opened.position(), strlen(hello));
+        ASSERT_EQ(opened.flush(), 0);
+    });
+
+    memory.mounted<dir_type>([&](auto &dir) {
+        ASSERT_EQ(dir.find("data.txt", open_file_config{ }), 1);
+        file_reader reader{ memory.pc(), &dir, dir.open() };
+
+        uint8_t buffer[256];
+        ASSERT_EQ(reader.read(buffer, sizeof(buffer)), (int32_t)strlen(hello));
+        ASSERT_EQ(reader.position(), strlen(hello));
+        ASSERT_EQ(reader.close(), 0);
+    });
+
+    memory.mounted<dir_type>([&](auto &dir) {
+        ASSERT_EQ(dir.find("data.txt", this->file_cfg()), 1);
+        file_appender opened{ memory.pc(), &dir, dir.open() };
+
+        ASSERT_GT(opened.write(hello), 0);
+        ASSERT_EQ(opened.position(), strlen(hello) * 2);
+        ASSERT_EQ(opened.flush(), 0);
+    });
+
+    memory.mounted<dir_type>([&](auto &dir) {
+        ASSERT_EQ(dir.find("data.txt", open_file_config{ }), 1);
+        file_reader reader{ memory.pc(), &dir, dir.open() };
+
+        uint8_t buffer[256];
+        ASSERT_EQ(reader.read(buffer, sizeof(buffer)), (int32_t)strlen(hello) * 2);
+        ASSERT_EQ(reader.position(), strlen(hello) * 2);
+        ASSERT_EQ(reader.close(), 0);
+    });
+}
+
+TYPED_TEST(WriteFixture, WriteInline_MultipleSmall_Buffers) {
+    using layout_type = typename TypeParam::first_type;
+    using dir_type = typename TypeParam::second_type;
+
+    layout_type layout;
+    FlashMemory memory{ layout.sector_size };
+
+    memory.mounted<dir_type>([&](auto &dir) {
+        ASSERT_EQ(dir.touch("data.txt"), 0);
+
+        ASSERT_EQ(dir.find("data.txt", this->file_cfg()), 1);
+        file_appender opened{ memory.pc(), &dir, dir.open() };
 
         auto hello = "Hello, world! How are you!";
 
@@ -50,14 +111,18 @@ TYPED_TEST(WriteFixture, WriteInlineBuffersMultipleSmall) {
     });
 }
 
-TYPED_TEST(WriteFixture, WriteInlineMultipleFlushEach) {
-    typename TypeParam::first_type layout;
+TYPED_TEST(WriteFixture, WriteInline_Multiple_FlushEach) {
+    using layout_type = typename TypeParam::first_type;
+    using dir_type = typename TypeParam::second_type;
+
+    layout_type layout;
     FlashMemory memory{ layout.sector_size };
-    memory.mounted<directory_chain>([&](auto &chain) {
+
+    memory.mounted<dir_type>([&](auto &chain) {
         ASSERT_EQ(chain.touch("data.txt"), 0);
 
         ASSERT_EQ(chain.find("data.txt", this->file_cfg()), 1);
-        file_appender opened{ chain, &chain, chain.open() };
+        file_appender opened{ memory.pc(), &chain, chain.open() };
 
         auto hello = "Hello, world! How are you!";
 
@@ -70,14 +135,18 @@ TYPED_TEST(WriteFixture, WriteInlineMultipleFlushEach) {
     });
 }
 
-TYPED_TEST(WriteFixture, WriteThreeInlineWritesAndTriggerDataChain) {
-    typename TypeParam::first_type layout;
-    FlashMemory memory{ layout.sector_size };
-    memory.mounted<directory_chain>([&](auto &chain) {
-        ASSERT_EQ(chain.touch("data.txt"), 0);
+TYPED_TEST(WriteFixture, WriteInline_ThreeWritesAndTriggerDataChain) {
+    using layout_type = typename TypeParam::first_type;
+    using dir_type = typename TypeParam::second_type;
 
-        ASSERT_EQ(chain.find("data.txt", this->file_cfg()), 1);
-        file_appender opened{ chain, &chain, chain.open() };
+    layout_type layout;
+    FlashMemory memory{ layout.sector_size };
+
+    memory.mounted<dir_type>([&](auto &dir) {
+        ASSERT_EQ(dir.touch("data.txt"), 0);
+
+        ASSERT_EQ(dir.find("data.txt", this->file_cfg()), 1);
+        file_appender opened{ memory.pc(), &dir, dir.open() };
 
         auto hello = "Hello, world! How are you!";
 
@@ -92,14 +161,18 @@ TYPED_TEST(WriteFixture, WriteThreeInlineWritesAndTriggerDataChain) {
     });
 }
 
-TYPED_TEST(WriteFixture, WriteAppendsToDataChain) {
-    typename TypeParam::first_type layout;
-    FlashMemory memory{ layout.sector_size };
-    memory.mounted<directory_chain>([&](auto &chain) {
-        ASSERT_EQ(chain.touch("data.txt"), 0);
+TYPED_TEST(WriteFixture, WriteAppends_DataChain) {
+    using layout_type = typename TypeParam::first_type;
+    using dir_type = typename TypeParam::second_type;
 
-        ASSERT_EQ(chain.find("data.txt", this->file_cfg()), 1);
-        file_appender opened{ chain, &chain, chain.open() };
+    layout_type layout;
+    FlashMemory memory{ layout.sector_size };
+
+    memory.mounted<dir_type>([&](auto &dir) {
+        ASSERT_EQ(dir.touch("data.txt"), 0);
+
+        ASSERT_EQ(dir.find("data.txt", this->file_cfg()), 1);
+        file_appender opened{ memory.pc(), &dir, dir.open() };
 
         auto hello = "Hello, world! How are you!";
 
@@ -116,14 +189,18 @@ TYPED_TEST(WriteFixture, WriteAppendsToDataChain) {
     });
 }
 
-TYPED_TEST(WriteFixture, WriteAppendsToDataChainGrowingToNewBlock) {
-    typename TypeParam::first_type layout;
-    FlashMemory memory{ layout.sector_size };
-    memory.mounted<directory_chain>([&](auto &chain) {
-        ASSERT_EQ(chain.touch("data.txt"), 0);
+TYPED_TEST(WriteFixture, WriteAppends_DataChainGrowingToNewBlock) {
+    using layout_type = typename TypeParam::first_type;
+    using dir_type = typename TypeParam::second_type;
 
-        ASSERT_EQ(chain.find("data.txt", this->file_cfg()), 1);
-        file_appender opened{ chain, &chain, chain.open() };
+    layout_type layout;
+    FlashMemory memory{ layout.sector_size };
+
+    memory.mounted<dir_type>([&](auto &dir) {
+        ASSERT_EQ(dir.touch("data.txt"), 0);
+
+        ASSERT_EQ(dir.find("data.txt", this->file_cfg()), 1);
+        file_appender opened{ memory.pc(), &dir, dir.open() };
 
         auto hello = "Hello, world! How are you!";
 
@@ -141,13 +218,17 @@ TYPED_TEST(WriteFixture, WriteAppendsToDataChainGrowingToNewBlock) {
 }
 
 TYPED_TEST(WriteFixture, WriteAndIncrementAttribute) {
-    typename TypeParam::first_type layout;
-    FlashMemory memory{ layout.sector_size };
-    memory.mounted<directory_chain>([&](auto &chain) {
-        ASSERT_EQ(chain.touch("data.txt"), 0);
+    using layout_type = typename TypeParam::first_type;
+    using dir_type = typename TypeParam::second_type;
 
-        ASSERT_EQ(chain.find("data.txt", this->file_cfg()), 1);
-        file_appender opened{ chain, &chain, chain.open() };
+    layout_type layout;
+    FlashMemory memory{ layout.sector_size };
+
+    memory.mounted<dir_type>([&](auto &dir) {
+        ASSERT_EQ(dir.touch("data.txt"), 0);
+
+        ASSERT_EQ(dir.find("data.txt", this->file_cfg()), 1);
+        file_appender opened{ memory.pc(), &dir, dir.open() };
 
         auto hello = "Hello, world! How are you!";
 
@@ -162,13 +243,17 @@ TYPED_TEST(WriteFixture, WriteAndIncrementAttribute) {
 }
 
 TYPED_TEST(WriteFixture, WriteAndIncrementAttributeThreeTimes) {
-    typename TypeParam::first_type layout;
-    FlashMemory memory{ layout.sector_size };
-    memory.mounted<directory_chain>([&](auto &chain) {
-        ASSERT_EQ(chain.touch("data.txt"), 0);
+    using layout_type = typename TypeParam::first_type;
+    using dir_type = typename TypeParam::second_type;
 
-        ASSERT_EQ(chain.find("data.txt", this->file_cfg()), 1);
-        file_appender opened{ chain, &chain, chain.open() };
+    layout_type layout;
+    FlashMemory memory{ layout.sector_size };
+
+    memory.mounted<dir_type>([&](auto &dir) {
+        ASSERT_EQ(dir.touch("data.txt"), 0);
+
+        ASSERT_EQ(dir.find("data.txt", this->file_cfg()), 1);
+        file_appender opened{ memory.pc(), &dir, dir.open() };
 
         auto hello = "Hello, world! How are you!";
 
@@ -182,13 +267,17 @@ TYPED_TEST(WriteFixture, WriteAndIncrementAttributeThreeTimes) {
 }
 
 TYPED_TEST(WriteFixture, WriteToDataChainAndIncrementAttributeThreeTimes) {
-    typename TypeParam::first_type layout;
-    FlashMemory memory{ layout.sector_size };
-    memory.mounted<directory_chain>([&](auto &chain) {
-        ASSERT_EQ(chain.touch("data.txt"), 0);
+    using layout_type = typename TypeParam::first_type;
+    using dir_type = typename TypeParam::second_type;
 
-        ASSERT_EQ(chain.find("data.txt", this->file_cfg()), 1);
-        file_appender opened{ chain, &chain, chain.open() };
+    layout_type layout;
+    FlashMemory memory{ layout.sector_size };
+
+    memory.mounted<dir_type>([&](auto &dir) {
+        ASSERT_EQ(dir.touch("data.txt"), 0);
+
+        ASSERT_EQ(dir.find("data.txt", this->file_cfg()), 1);
+        file_appender opened{ memory.pc(), &dir, dir.open() };
 
         auto hello = "Hello, world! How are you!";
 
@@ -209,41 +298,45 @@ TYPED_TEST(WriteFixture, WriteToDataChainAndIncrementAttributeThreeTimes) {
 }
 
 TYPED_TEST(WriteFixture, WriteImmediatelyToDataChain_SingleBlock) {
+    using layout_type = typename TypeParam::first_type;
+    using dir_type = typename TypeParam::second_type;
+
+    layout_type layout;
+    FlashMemory memory{ layout.sector_size };
+
     auto hello = "Hello, world! How are you!";
 
-    typename TypeParam::first_type layout;
-    FlashMemory memory{ layout.sector_size };
-    memory.mounted<directory_chain>([&](auto &chain) {
-        ASSERT_EQ(chain.touch("data.txt"), 0);
+    memory.mounted<dir_type>([&](auto &dir) {
+        ASSERT_EQ(dir.touch("data.txt"), 0);
 
-        ASSERT_EQ(chain.find("data.txt", this->file_cfg()), 1);
-        file_appender opened{ chain, &chain, chain.open() };
+        ASSERT_EQ(dir.find("data.txt", this->file_cfg()), 1);
+        file_appender opened{ memory.pc(), &dir, dir.open() };
 
         for (auto i = 0u; i < 5; ++i) {
             ASSERT_GT(opened.write(hello), 0);
         }
         ASSERT_EQ(opened.flush(), 0);
-
-        chain.log();
     });
 }
 
 TYPED_TEST(WriteFixture, WriteImmediatelyToDataChain_TwoBlocks) {
+    using layout_type = typename TypeParam::first_type;
+    using dir_type = typename TypeParam::second_type;
+
+    layout_type layout;
+    FlashMemory memory{ layout.sector_size };
+
     auto hello = "Hello, world! How are you!";
 
-    typename TypeParam::first_type layout;
-    FlashMemory memory{ layout.sector_size };
-    memory.mounted<directory_chain>([&](auto &chain) {
-        ASSERT_EQ(chain.touch("data.txt"), 0);
+    memory.mounted<dir_type>([&](auto &dir) {
+        ASSERT_EQ(dir.touch("data.txt"), 0);
 
-        ASSERT_EQ(chain.find("data.txt", this->file_cfg()), 1);
-        file_appender opened{ chain, &chain, chain.open() };
+        ASSERT_EQ(dir.find("data.txt", this->file_cfg()), 1);
+        file_appender opened{ memory.pc(), &dir, dir.open() };
 
         for (auto i = 0u; i < 10; ++i) {
             ASSERT_GT(opened.write(hello), 0);
         }
         ASSERT_EQ(opened.flush(), 0);
-
-        chain.log();
     });
 }

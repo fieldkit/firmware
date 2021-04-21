@@ -18,6 +18,11 @@ int32_t sector_chain::create_if_necessary() {
         return err;
     }
 
+    err = flush(page_lock);
+    if (err < 0) {
+        return err;
+    }
+
     phydebugf("%s: created, ready", name());
 
     return 0;
@@ -84,7 +89,7 @@ int32_t sector_chain::back_to_head(page_lock &page_lock) {
     db().rewind();
 
     sector_ = head_;
-    length_sectors_ = 0;
+    visited_sectors_ = 0;
 
     return 0;
 }
@@ -101,12 +106,21 @@ int32_t sector_chain::forward(page_lock &page_lock) {
         sector_ = head_;
     } else {
         auto hdr = db().header<sector_chain_header_t>();
+        if (((int32_t)hdr->flags & (int32_t)sector_flags::Tail) > 0) {
+            if (hdr->type == entry_type::DataSector) {
+                auto dchdr = db().header<data_chain_header_t>();
+                phydebugf("%s sector=%d bytes=%d visited=%d (tail)", name(), sector_, dchdr->bytes, visited_sectors_);
+            } else {
+                phydebugf("%s sector=%d visited=%d (tail)", name(), sector_, visited_sectors_);
+            }
+            return 0;
+        }
         if (hdr->np == 0 || hdr->np == UINT32_MAX) {
             if (hdr->type == entry_type::DataSector) {
                 auto dchdr = db().header<data_chain_header_t>();
-                phydebugf("%s sector=%d bytes=%d length=%d (end)", name(), sector_, dchdr->bytes, length_sectors_);
+                phydebugf("%s sector=%d bytes=%d visited=%d (end)", name(), sector_, dchdr->bytes, visited_sectors_);
             } else {
-                phydebugf("%s sector=%d length=%d (end)", name(), sector_, length_sectors_);
+                phydebugf("%s sector=%d visited=%d (end)", name(), sector_, visited_sectors_);
             }
             return 0;
         }
@@ -115,9 +129,9 @@ int32_t sector_chain::forward(page_lock &page_lock) {
 
         if (hdr->type == entry_type::DataSector) {
             auto dchdr = db().header<data_chain_header_t>();
-            phydebugf("%s sector=%d bytes=%d length=%d", name(), sector_, dchdr->bytes, length_sectors_);
+            phydebugf("%s sector=%d bytes=%d visited=%d", name(), sector_, dchdr->bytes, visited_sectors_);
         } else {
-            phydebugf("%s sector=%d length=%d", name(), sector_, length_sectors_);
+            phydebugf("%s sector=%d visited=%d", name(), sector_, visited_sectors_);
         }
     }
 
@@ -127,9 +141,42 @@ int32_t sector_chain::forward(page_lock &page_lock) {
         return err;
     }
 
-    length_sectors_++;
+    visited_sectors_++;
 
     return 1;
+}
+
+int32_t sector_chain::truncate() {
+    assert(head_ != InvalidSector && tail_ != InvalidSector);
+
+    sector(head_);
+
+    auto page_lock = db().writing(sector());
+
+    sector_chain_header_t saved = *db().header<sector_chain_header_t>();
+
+    db().clear();
+
+    auto err = write_header(page_lock);
+    if (err < 0) {
+        return err;
+    }
+
+    phydebugf("truncated, keeping pp=%d np=%d", saved.pp, saved.np);
+
+    assert(db().write_header<sector_chain_header_t>([&](sector_chain_header_t *header) {
+        header->np = saved.np;
+        header->pp = saved.pp;
+        header->flags = sector_flags::Tail;
+        return 0;
+    }) == 0);
+
+    err = flush(page_lock);
+    if (err < 0) {
+        return err;
+    }
+
+    return 0;
 }
 
 int32_t sector_chain::load(page_lock &page_lock) {
@@ -212,9 +259,6 @@ int32_t sector_chain::log() {
             } else {
                 phyinfof("data (%zu) id=0x%x chain=%d/%d", record.size_of_record(), fd->id, fd->chain.head,
                          fd->chain.tail);
-
-                data_chain dc{ *this, fd->chain };
-                phyinfof("chain total-bytes=%d", dc.total_bytes());
             }
             break;
         }
@@ -268,6 +312,7 @@ int32_t sector_chain::grow_tail(page_lock &page_lock) {
 
         assert(db().write_header<sector_chain_header_t>([&](sector_chain_header_t *header) {
             header->np = allocated;
+            header->flags = sector_flags::None;
             return 0;
         }) == 0);
 
@@ -282,13 +327,13 @@ int32_t sector_chain::grow_tail(page_lock &page_lock) {
     tail(allocated);
     sector(allocated);
 
-    auto err = page_lock.replace(allocated);
+    auto err = page_lock.replace(allocated, true);
     if (err < 0) {
         return err;
     }
 
     buffer_.clear();
-    length_sectors_++;
+    visited_sectors_++;
 
     err = write_header(page_lock);
     if (err < 0) {
@@ -297,6 +342,7 @@ int32_t sector_chain::grow_tail(page_lock &page_lock) {
 
     assert(db().write_header<sector_chain_header_t>([&](sector_chain_header_t *header) {
         header->pp = previous_sector;
+        header->flags = sector_flags::Tail;
         return 0;
     }) == 0);
 

@@ -6,7 +6,7 @@ namespace phylum {
 
 class integer_chain : public data_chain {
 public:
-    integer_chain(sector_chain &other, head_tail_t chain) : data_chain(other, chain, "integers") {
+    integer_chain(phyctx pc, head_tail_t chain) : data_chain(pc, chain, "integers") {
     }
 
     virtual ~integer_chain() {

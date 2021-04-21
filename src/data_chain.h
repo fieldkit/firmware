@@ -4,6 +4,8 @@
 
 namespace phylum {
 
+constexpr size_t MaximumNullReadSize = 65 * 1024;
+
 enum seek_reference {
     Start,
     End,
@@ -32,15 +34,8 @@ private:
     file_size_t position_at_start_of_sector_{ 0 };
 
 public:
-    data_chain(working_buffers &buffers, sector_map &sectors, sector_allocator &allocator, head_tail_t chain, const char *prefix)
-        : sector_chain(buffers, sectors, allocator, chain, prefix) {
-    }
-
-    data_chain(sector_chain &other, head_tail_t chain) : sector_chain(other, chain, "data"), chain_(chain) {
-    }
-
-    data_chain(sector_chain &other, head_tail_t chain, const char *prefix)
-        : sector_chain(other, chain, prefix), chain_(chain) {
+    data_chain(phyctx pc, head_tail_t chain, const char *prefix = "dc")
+        : sector_chain(pc, chain, prefix) {
     }
 
     virtual ~data_chain() {
@@ -49,11 +44,17 @@ public:
 public:
     int32_t write(uint8_t const *data, size_t size);
     int32_t read(uint8_t *data, size_t size);
-    uint32_t total_bytes();
-    int32_t seek(file_size_t position, seek_reference reference);
+    int32_t read_delimiter(uint32_t *delimiter);
+    int32_t seek_sector(dhara_sector_t new_sector, file_size_t position_at_start_of_sector, file_size_t desired_position);
+    int32_t skip_bytes(file_size_t bytes);
+    int32_t skip_records(record_number_t number_records);
+    file_size_t total_bytes();
 
 public:
-    data_chain_cursor cursor() {
+    data_chain_cursor cursor() const {
+        if (sector() == InvalidSector) {
+            return data_chain_cursor{ head(), position_, position_at_start_of_sector_ };
+        }
         return data_chain_cursor{ sector(), position_, position_at_start_of_sector_ };
     }
 
