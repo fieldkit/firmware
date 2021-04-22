@@ -94,6 +94,51 @@ int32_t BankedDataMemory::flush() {
     }
     return !failed;
 }
+
+TranslatingMemory::TranslatingMemory(DataMemory *target, int32_t offset_blocks) : target_(target), offset_(offset_blocks) {
+}
+
+bool TranslatingMemory::begin() {
+    if (!target_->begin()) {
+        return false;
+    }
+
+    block_size_ = target_->geometry().block_size;
+
+    return true;
+}
+
+FlashGeometry TranslatingMemory::geometry() const {
+    auto g = target_->geometry();
+    g.nblocks -= offset_;
+    return g;
+}
+
+int32_t TranslatingMemory::read(uint32_t address, uint8_t *data, size_t length, MemoryReadFlags flags) {
+    return target_->read(translate(address), data, length, flags);
+}
+
+int32_t TranslatingMemory::write(uint32_t address, uint8_t const *data, size_t length, MemoryWriteFlags flags) {
+    return target_->write(translate(address), data, length, flags);
+}
+
+int32_t TranslatingMemory::erase(uint32_t address, size_t length) {
+    return target_->erase(translate(address), length);
+}
+
+int32_t TranslatingMemory::flush() {
+    return target_->flush();
+}
+
+uint32_t TranslatingMemory::translate(uint32_t address) {
+    return address + offset_;
+}
+
+int32_t TranslatingMemory::execute(uint32_t *got, uint32_t *entry) {
+    FK_ASSERT(false);
+    return -1;
+}
+
 #if defined(FK_HARDWARE_FULL)
 
 #if FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS == 4

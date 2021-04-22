@@ -143,6 +143,36 @@ public:
 
 };
 
+class TranslatingMemory : public ExecutableMemory {
+private:
+    DataMemory *target_;
+    FlashGeometry geometry_;
+    uint32_t block_size_{ 0 };
+    int32_t offset_{ 0 };
+
+public:
+    TranslatingMemory(DataMemory *target, int32_t offset_blocks);
+
+public:
+    bool begin() override;
+
+    FlashGeometry geometry() const override;
+
+    int32_t read(uint32_t address, uint8_t *data, size_t length, MemoryReadFlags flags) override;
+
+    int32_t write(uint32_t address, uint8_t const *data, size_t length, MemoryWriteFlags flags) override;
+
+    int32_t erase(uint32_t address, size_t length) override;
+
+    int32_t flush() override;
+
+    int32_t execute(uint32_t *got, uint32_t *entry) override;
+
+private:
+    uint32_t translate(uint32_t address);
+
+};
+
 class MemoryFactory {
 public:
     constexpr static size_t NumberOfDataMemoryBanks = StorageMaximumNumberOfMemoryBanks;
