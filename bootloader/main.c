@@ -2,9 +2,13 @@
  *
  *
  */
+#include <hal_gpio.h>
 #include <memory.h>
 
 #include "bl.h"
+
+#define FK_BUTTON_RIGHT            GPIO(GPIO_PORTA, 21)
+#define FK_FAILSAFE_HOLD_TIME      1000 * 10
 
 extern enum reset_reason _get_reset_reason(void);
 
@@ -25,34 +29,47 @@ uint32_t launch() {
     return fkb_find_and_launch((void *)&__cm_app_vectors_ptr);
 }
 
-int32_t bl_upgrade_firmware_necessary(fkb_header_t *running, fkb_header_t *testing) {
-    if (!fkb_has_valid_signature(testing)) {
+int32_t bl_upgrade_firmware_necessary(fkb_header_t *running, fkb_header_t *upgrade, fkb_header_t *failsafe) {
+    if (!fkb_has_valid_signature(upgrade)) {
         return 0;
     }
 
     if (fkb_has_valid_signature(running)) {
         bl_fkb_log_header(running);
 
-        if (running->firmware.timestamp == testing->firmware.timestamp) {
+        // If we're running the upgraded firmware then all is fine. This is the most common situation.
+        if (running->firmware.timestamp == upgrade->firmware.timestamp) {
+            fkb_external_println("bl: [0x%08" PRIx32 "] running same (%" PRIu32 " == %" PRIu32 ")",
+                                 (uint32_t)upgrade, running->firmware.timestamp, upgrade->firmware.timestamp);
             return 0;
         }
 
-        if (running->firmware.timestamp >= testing->firmware.timestamp) {
+        // If running firmware is older then ignore the upgraded firmware.
+        if (running->firmware.timestamp > upgrade->firmware.timestamp) {
             fkb_external_println("bl: [0x%08" PRIx32 "] running is newer (%" PRIu32 " >= %" PRIu32 ")",
-                                 (uint32_t)testing, running->firmware.timestamp,
-                                 testing->firmware.timestamp);
+                                 (uint32_t)upgrade, running->firmware.timestamp, upgrade->firmware.timestamp);
+            return 0;
+        }
+
+        // Never automatically upgrade to previously running firmware.
+        if (running->firmware.previous > 0 && running->firmware.previous != UINT32_MAX &&
+            running->firmware.previous <= upgrade->firmware.timestamp) {
+            fkb_external_println("bl: [0x%08" PRIx32 "] requiring newer (%" PRIu32 " > %" PRIu32 ")",
+                                 (uint32_t)upgrade, running->firmware.previous, upgrade->firmware.timestamp);
             return 0;
         }
     }
 
+    // We're going to upgrade!
+
     fkb_external_println("bl: upgrading");
 
-    bl_fkb_log_header(testing);
+    bl_fkb_log_header(upgrade);
 
     return 1;
 }
 
-int32_t bl_upgrade_firmware(fkb_header_t *fkbh, uint32_t address) {
+int32_t bl_upgrade_firmware(fkb_header_t *running, fkb_header_t *fkbh, uint32_t address) {
     if (!fkb_has_valid_signature(fkbh)) {
         return -1;
     }
@@ -67,6 +84,22 @@ int32_t bl_upgrade_firmware(fkb_header_t *fkbh, uint32_t address) {
 
     uint8_t *source = (uint8_t *)fkbh;
     int32_t remaining = fkbh->firmware.binary_size;
+
+    // Customize the header by including the firmware timestamp of the
+    // firmware that performed the upgrade. This is very handy, and
+    // the downside is that the hash is no longer valid.
+    fkb_header_t header = *fkbh;
+
+    header.firmware.previous = running->firmware.timestamp;
+
+    if (bl_flash_write(address, (uint8_t *)&header, sizeof(fkb_header_t)) < 0) {
+        return -1;
+    }
+
+    remaining -= sizeof(fkb_header_t);
+    source += sizeof(fkb_header_t);
+    address += sizeof(fkb_header_t);
+
     while (remaining > 0) {
         int32_t ncopy = bl_flash_page_size <= remaining ? bl_flash_page_size : remaining;
         if (bl_flash_write(address, source, ncopy) < 0) {
@@ -78,6 +111,34 @@ int32_t bl_upgrade_firmware(fkb_header_t *fkbh, uint32_t address) {
         address += ncopy;
     }
 
+    fkb_external_println("bl: [0x%08" PRIx32 "] copied %" PRIu32, address, fkbh->firmware.binary_size);
+
+    return 0;
+}
+
+int32_t bl_button_initialize() {
+    gpio_set_pin_direction(FK_BUTTON_RIGHT, GPIO_DIRECTION_IN);
+
+	gpio_set_pin_pull_mode(FK_BUTTON_RIGHT, GPIO_PULL_UP);
+
+    return 0;
+}
+
+int32_t bl_button_pressed() {
+    return gpio_get_pin_level(FK_BUTTON_RIGHT) == 0;
+}
+
+int32_t bl_firmware_upgrade_failed() {
+    fkb_external_println("bl: upgrade failed!");
+
+    // NOTE Really bad! Just really really bad. This likely
+    // means there's no firmware ahead of us anymore.
+    // TODO: Try again?
+    // TODO: Swap banks and do so in a way that won't cause
+    // the other bootloader to just have the same mistake? We
+    // won't always be able to swap banks.
+    delay(1000);
+    NVIC_SystemReset();
     return 0;
 }
 
@@ -109,24 +170,40 @@ int32_t main() {
 
     bl_qspi_initialize();
 
-    fkb_header_t *flash = (fkb_header_t *)(uint32_t *)FK_MEMORY_FLASH_ADDRESS_RUNNING_CORE;
-    fkb_header_t *qspi = (fkb_header_t *)(uint32_t *)FK_MEMORY_QSPI_ADDRESS_UPGRADE_CORE;
+    bl_button_initialize();
 
-    if (bl_upgrade_firmware_necessary(flash, qspi)) {
-        if (bl_upgrade_firmware(qspi, FK_MEMORY_FLASH_ADDRESS_RUNNING_CORE) < 0) {
-            // NOTE Really bad! Just really really bad. These likely
-            // means there's no firmware ahead of us anymore.
-            // TODO: Try again?
-            // TODO: Swap banks and do so in a way that won't cause
-            // the other bootloader to just have the same mistake? We
-            // won't always be able to swap banks.
-            delay(1000);
-            NVIC_SystemReset();
+    int32_t failsafe = false;
+
+    while (bl_button_pressed()) {
+        if (millis() > FK_FAILSAFE_HOLD_TIME) {
+            if (!failsafe) {
+                fkb_external_println("bl: failsafe!");
+            }
+            failsafe = true;
+        }
+    }
+
+    fkb_header_t *running = (fkb_header_t *)(uint32_t *)FK_MEMORY_FLASH_ADDRESS_RUNNING_CORE;
+    fkb_header_t *upgrade_firmware = (fkb_header_t *)(uint32_t *)FK_MEMORY_QSPI_ADDRESS_UPGRADE_CORE;
+    fkb_header_t *failsafe_firmware = (fkb_header_t *)(uint32_t *)FK_MEMORY_QSPI_ADDRESS_FAILSAFE_CORE;
+
+    if (failsafe) {
+        if (bl_upgrade_firmware(running, failsafe_firmware, FK_MEMORY_FLASH_ADDRESS_RUNNING_CORE) < 0) {
+            bl_firmware_upgrade_failed();
+        }
+    }
+    else {
+        fkb_external_println("bl: normal");
+    }
+
+    if (bl_upgrade_firmware_necessary(running, upgrade_firmware, failsafe_firmware)) {
+        if (bl_upgrade_firmware(running, upgrade_firmware, FK_MEMORY_FLASH_ADDRESS_RUNNING_CORE) < 0) {
+            bl_firmware_upgrade_failed();
         }
 
-        fkb_external_println("bl: upgrade!");
+        fkb_external_println("bl: upgraded!");
 
-        bl_fkb_log_header(flash);
+        bl_fkb_log_header(running);
     }
 
     launch();
@@ -222,6 +299,10 @@ const struct cm_vector_table_t vector_table = {
     .systick_handler     = (void *)cm_systick,
 };
 
+#define FK_XSTR(s) FK_STR(s)
+
+#define FK_STR(s)  #s
+
 __attribute__((section(".fkb.header")))
 const struct fkb_header_t fkb_header = {
     .signature          = FKB_HEADER_SIGNATURE(),
@@ -230,10 +311,18 @@ const struct fkb_header_t fkb_header = {
     .firmware           = {
         .flags          = 0,
         .timestamp      = 0,
+        .number         = 0,
+        .reserved       = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff },
+        .safe           = 0xff,
+        .previous       = UINT32_MAX,
         .binary_size    = 0,
+        .tables_offset  = 0,
+        .data_size      = 0,
+        .bss_size       = 0,
+        .got_size       = 0,
         .vtor_offset    = 0,
         .got_offset     = 0,
-        .version        = { 0 },
+        .version        = FK_XSTR(FK_VERSION),
         .hash_size      = 0,
         .hash           = { 0 }
     },
