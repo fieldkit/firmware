@@ -46,7 +46,7 @@ int32_t bl_upgrade_firmware_necessary(fkb_header_t *running, fkb_header_t *upgra
 
         // If running firmware is older then ignore the upgraded firmware.
         if (running->firmware.timestamp > upgrade->firmware.timestamp) {
-            fkb_external_println("bl: [0x%08" PRIx32 "] running is newer (%" PRIu32 " >= %" PRIu32 ")",
+            fkb_external_println("bl: [0x%08" PRIx32 "] running newer (%" PRIu32 " >= %" PRIu32 ")",
                                  (uint32_t)upgrade, running->firmware.timestamp, upgrade->firmware.timestamp);
             return 0;
         }
