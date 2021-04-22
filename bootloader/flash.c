@@ -5,6 +5,9 @@
 
 struct flash_descriptor FLASH_0;
 
+#if defined(__SAMD51__)
+uint32_t bl_pages_per_block = 16;
+#endif
 uint32_t bl_flash_page_size = 0;
 uint32_t bl_flash_total_pages = 0;
 
@@ -29,6 +32,12 @@ int32_t bl_flash_write(uint32_t address, uint8_t const *data, int32_t size) {
 }
 
 int32_t bl_flash_erase(uint32_t address, int32_t size) {
-    int32_t pages = aligned_on(size, bl_flash_page_size) / bl_flash_page_size;
-    return flash_erase(&FLASH_0, address, pages);
+    uint32_t erasing = 0u;
+    while (erasing < size) {
+        if (flash_erase(&FLASH_0, address + erasing, bl_pages_per_block) < 0) {
+            return -1;
+        }
+        erasing += bl_pages_per_block * bl_flash_page_size;
+    }
+    return size;
 }
