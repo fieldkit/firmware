@@ -162,6 +162,7 @@ DataMemory *bank_pointers[]{ &banks[0], &banks[1] };
 #endif
 
 MetalQspiMemory qspi_memory;
+TranslatingMemory qspi_memory_translated{ &qspi_memory, -FK_MEMORY_QSPI_BASE };
 
 #else
 
@@ -178,6 +179,7 @@ DataMemory *bank_pointers[]{ &banks[0], &banks[1] };
 #endif
 
 LinuxDataMemory qspi_memory;
+TranslatingMemory qspi_memory_translated{ &qspi_memory, -FK_MEMORY_QSPI_BASE };
 
 #endif
 
@@ -201,7 +203,7 @@ DataMemory *MemoryFactory::get_data_memory() {
 }
 
 ExecutableMemory *MemoryFactory::get_qspi_memory() {
-    return &qspi_memory;
+    return &qspi_memory_translated;
 }
 
 }

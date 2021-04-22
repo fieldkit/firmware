@@ -33,8 +33,6 @@ optional<bool> verify_flash_binary_hash(FlashMemory *flash, uint32_t address, ui
         total_bytes += nread;
         flash_address += nread;
 
-        loginfo("bytes: %zu %zu %zu", (size_t)total_bytes, (size_t)nread, (size_t)binary_size_including_hash);
-
         b2b.update(buffer, nread);
     }
 

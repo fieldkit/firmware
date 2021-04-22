@@ -109,11 +109,16 @@ public:
         auto ptr = begin();
 
         while (ptr < end()) {
-            loginfo("[0x%8p] checking", ptr);
+            logverbose("[0x%8p] checking", ptr);
             auto fkbh = fkb_try_header(ptr);
             if (fkbh == nullptr) {
                 ptr = aligned_on(ptr, block_size());
-                loginfo("[0x%8p] checking", ptr);
+                logverbose("[0x%8p] checking", ptr);
+                fkbh = fkb_try_header(ptr);
+            }
+            if (fkbh == nullptr) {
+                ptr += FK_MEMORY_BOOTLOADER_SIZE;
+                logverbose("[0x%8p] checking", ptr);
                 fkbh = fkb_try_header(ptr);
             }
 
@@ -151,11 +156,11 @@ public:
 
 public:
     uint8_t const *begin() const {
-        return (uint8_t *)0x04000000;
+        return (uint8_t *)FK_MEMORY_QSPI_BASE;
     }
 
     uint8_t const *end() const {
-        return begin() + (1024 * 1024 * 1);
+        return begin() + FK_MEMORY_QSPI_SIZE;
     }
 
     size_t block_size() const {
@@ -181,16 +186,23 @@ void Process::run(Pool &pool) {
 
     DataMemoryFlash flash{ memory };
 
-    if (!copy_sd_to_flash("fk-bundled-fkb-qspi.bin", &flash, 0, 4096, pool)) {
+    if (!copy_sd_to_flash("fk-bundled-fkb.bin", &flash, FK_MEMORY_QSPI_ADDRESS_UPGRADE_CORE, 4096, pool)) {
         logerror("error copying from sd");
         return;
     }
 
-    if (!copy_memory_to_flash(&flash, build_samd51_modules_dynamic_main_fkdynamic_fkb_bin,
-                              build_samd51_modules_dynamic_main_fkdynamic_fkb_bin_len, 512 * 1024,
-                              4096, pool)) {
-        logerror("error copying binary");
+    if (!copy_sd_to_flash("fk-bundled-fkb.bin", &flash, FK_MEMORY_QSPI_ADDRESS_FAILSAFE_CORE, 4096, pool)) {
+        logerror("error copying from sd");
         return;
+    }
+
+    if (false) {
+        if (!copy_memory_to_flash(&flash, build_samd51_modules_dynamic_main_fkdynamic_fkb_bin,
+                                build_samd51_modules_dynamic_main_fkdynamic_fkb_bin_len, 512 * 1024,
+                                4096, pool)) {
+            logerror("error copying binary");
+            return;
+        }
     }
 
     FirmwareStorage firmware;
@@ -199,13 +211,15 @@ void Process::run(Pool &pool) {
         return nullopt;
     });
 
-    firmware.walk<bool>([&](fkb_header_t const *fkbh) {
-        if (fkbh->firmware.flags > 0) {
-            fkb_log_header(fkbh);
-            fk_module_run(fkbh, pool);
-        }
-        return nullopt;
-    });
+    if (false) {
+        firmware.walk<bool>([&](fkb_header_t const *fkbh) {
+            if (fkbh->firmware.flags > 0) {
+                fkb_log_header(fkbh);
+                fk_module_run(fkbh, pool);
+            }
+            return nullopt;
+        });
+    }
 
     while (true) {
         os_delay(1000);
