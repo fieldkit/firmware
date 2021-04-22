@@ -48,27 +48,27 @@
  * Base address of the upgrade bank in QSPI memory. Banks are
  * intentionally located at the end of the QSPI memory.
  */
-#define FK_MEMORY_QSPI_ADDRESS_UPGRADE_BASE    (FK_MEMORY_QSPI_BASE - FK_MEMORY_QSPI_SIZE - FK_MEMORY_FLASH_MAXIMUM_FIRMWARE_SIZE)
+#define FK_MEMORY_QSPI_ADDRESS_UPGRADE_BASE    (FK_MEMORY_QSPI_BASE + FK_MEMORY_QSPI_SIZE - FK_MEMORY_FLASH_MAXIMUM_FIRMWARE_SIZE)
 
 /**
  * Base address of the upgrade bank's core firmware in QSPI
  * memory. Banks are intentionally located at the end of the QSPI
  * memory.
  */
-#define FK_MEMORY_QSPI_ADDRESS_UPGRADE_CORE    (FK_MEMORY_QSPI_BASE + FK_MEMORY_BOOTLOADER_SIZE)
+#define FK_MEMORY_QSPI_ADDRESS_UPGRADE_CORE    (FK_MEMORY_QSPI_ADDRESS_UPGRADE_BASE + FK_MEMORY_BOOTLOADER_SIZE)
 
 /**
  * Base address of the failsafe bank in QSPI memory. Banks are
  * intentionally located at the end of the QSPI memory.
  */
-#define FK_MEMORY_QSPI_ADDRESS_FAILSAFE_BASE   (FK_MEMORY_QSPI_BASE - FK_MEMORY_QSPI_SIZE - FK_MEMORY_FLASH_MAXIMUM_FIRMWARE_SIZE - FK_MEMORY_FLASH_MAXIMUM_FIRMWARE_SIZE)
+#define FK_MEMORY_QSPI_ADDRESS_FAILSAFE_BASE   (FK_MEMORY_QSPI_BASE + FK_MEMORY_QSPI_SIZE - FK_MEMORY_FLASH_MAXIMUM_FIRMWARE_SIZE - FK_MEMORY_FLASH_MAXIMUM_FIRMWARE_SIZE)
 
 /**
  * Base address of the failsafe bank's core firmware in QSPI
  * memory. Banks are intentionally located at the end of the QSPI
  * memory.
  */
-#define FK_MEMORY_QSPI_ADDRESS_FAILSAFE_CORE   (FK_MEMORY_QSPI_BASE + FK_MEMORY_BOOTLOADER_SIZE)
+#define FK_MEMORY_QSPI_ADDRESS_FAILSAFE_CORE   (FK_MEMORY_QSPI_ADDRESS_FAILSAFE_BASE + FK_MEMORY_BOOTLOADER_SIZE)
 
 /**
  * Maximum size of the vector table at the start of the
