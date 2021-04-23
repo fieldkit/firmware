@@ -229,7 +229,7 @@ TEST_F(ProtoBufSizeSuite, Readings) {
     ModuleReadingsCollection module_readings(pool_);
     fake_modules(resolved, module_readings, pool_);
 
-    Readings readings{ get_modmux() };
+    Readings readings{ get_modmux(), pool_ };
     ASSERT_TRUE(readings.take_readings(ctx, resolved, pool_));
     readings.meta_record(1);
     readings.record_number(1);
@@ -273,7 +273,7 @@ TEST_F(ProtoBufSizeSuite, ReadingsNoneBackFromFirstModule) {
         fake_data(m.found.header.id.data);
     }
 
-    Readings readings{ get_modmux() };
+    Readings readings{ get_modmux(), pool_ };
     auto taken = readings.take_readings(ctx, resolved, pool_);
     ASSERT_TRUE(taken);
 

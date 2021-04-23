@@ -10,10 +10,10 @@ namespace fk {
 class Readings {
 private:
     ModMux *mm_;
-    fk_data_DataRecord record_;
+    fk_data_DataRecord *record_{ nullptr };
 
 public:
-    explicit Readings(ModMux *mm);
+    explicit Readings(ModMux *mm, Pool &pool);
 
 public:
     tl::expected<ModuleReadingsCollection, Error> take_readings(ScanningContext &ctx, ConstructedModulesCollection const &modules, Pool &pool);
@@ -26,10 +26,9 @@ public:
     void record_number(uint32_t reading_number);
 
     void bump_amplified_reading() {
-        record_.readings.reading++;
+        record_->readings.reading++;
     }
 
 };
-
 
 }

@@ -167,7 +167,7 @@ tl::expected<TakenReadings, Error> ReadingsWorker::take_readings(Pool &pool) {
     }
 
     ModuleScanning scanning{ get_modmux() };
-    ReadingsTaker readings_taker{ storage, get_modmux(), read_only_ };
+    ReadingsTaker readings_taker{ storage, get_modmux(), read_only_, pool };
     auto modules = get_module_factory().modules();
     auto taken_readings = readings_taker.take(modules, ctx, pool);
     if (!taken_readings) {

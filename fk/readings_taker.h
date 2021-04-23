@@ -16,7 +16,7 @@ private:
     bool read_only_;
 
 public:
-    ReadingsTaker(Storage &storage, ModMux *mm, bool read_only);
+    ReadingsTaker(Storage &storage, ModMux *mm, bool read_only, Pool &pool);
 
 public:
     tl::expected<TakenReadings, Error> take(ConstructedModulesCollection &constructed_modules, ScanningContext &mc, Pool &pool);

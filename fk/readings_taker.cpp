@@ -16,8 +16,8 @@ namespace fk {
 
 FK_DECLARE_LOGGER("readings");
 
-ReadingsTaker::ReadingsTaker(Storage &storage, ModMux *mm, bool read_only)
-    : storage_(storage), readings_{ mm }, mm_(mm), read_only_(read_only) {
+ReadingsTaker::ReadingsTaker(Storage &storage, ModMux *mm, bool read_only, Pool &pool)
+    : storage_(storage), readings_{ mm, pool }, mm_(mm), read_only_(read_only) {
 }
 
 tl::expected<TakenReadings, Error> ReadingsTaker::take(ConstructedModulesCollection &constructed_modules, ScanningContext &ctx, Pool &pool) {

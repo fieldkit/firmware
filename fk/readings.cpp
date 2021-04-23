@@ -9,7 +9,8 @@ namespace fk {
 
 FK_DECLARE_LOGGER("readings");
 
-Readings::Readings(ModMux *mm) : mm_(mm) {
+Readings::Readings(ModMux *mm, Pool &pool) : mm_(mm) {
+    record_ = pool.malloc<fk_data_DataRecord>();
 }
 
 tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningContext &ctx, ConstructedModulesCollection const &modules, Pool &pool) {
@@ -18,22 +19,22 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
     auto now = get_clock_now();
     auto gps = ctx.gps();
 
-    record_ = fk_data_record_encoding_new();
-    record_.has_readings = true;
-    record_.readings.time = now;
+    *record_ = fk_data_record_encoding_new();
+    record_->has_readings = true;
+    record_->readings.time = now;
     // These get set via Readings::link.
-    record_.readings.reading = 0;
-    record_.readings.meta = 0;
-    record_.readings.uptime = fk_uptime();
-    record_.readings.flags = fk_data_DownloadFlags_READING_FLAGS_NONE;
-    record_.readings.has_location = true;
-    record_.readings.location.time = gps->time;
-    record_.readings.location.fix = gps->fix;
-    record_.readings.location.longitude = gps->longitude;
-    record_.readings.location.latitude = gps->latitude;
-    record_.readings.location.altitude = gps->altitude;
-    record_.readings.location.satellites = gps->satellites;
-    record_.readings.location.hdop = gps->hdop;
+    record_->readings.reading = 0;
+    record_->readings.meta = 0;
+    record_->readings.uptime = fk_uptime();
+    record_->readings.flags = fk_data_DownloadFlags_READING_FLAGS_NONE;
+    record_->readings.has_location = true;
+    record_->readings.location.time = gps->time;
+    record_->readings.location.fix = gps->fix;
+    record_->readings.location.longitude = gps->longitude;
+    record_->readings.location.latitude = gps->latitude;
+    record_->readings.location.altitude = gps->altitude;
+    record_->readings.location.satellites = gps->satellites;
+    record_->readings.location.hdop = gps->hdop;
 
     if (modules.size() == 0) {
         return std::move(all_readings);
@@ -158,7 +159,7 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
         .fields = fk_data_SensorGroup_fields,
     });
 
-    record_.readings.sensorGroups.arg = sensor_groups_array;
+    record_->readings.sensorGroups.arg = sensor_groups_array;
 
     if (!mm_->choose_nothing()) {
         logerror("[-] error deselecting");
@@ -169,15 +170,15 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
 }
 
 void Readings::meta_record(uint32_t meta_record) {
-    record_.readings.meta = meta_record;
+    record_->readings.meta = meta_record;
 }
 
 void Readings::record_number(uint32_t record_number) {
-    record_.readings.reading = record_number;
+    record_->readings.reading = record_number;
 }
 
 fk_data_DataRecord &Readings::record() {
-    return record_;
+    return *record_;
 }
 
 } // namespace fk
