@@ -10,7 +10,7 @@ namespace fk {
 
 class DataRecord {
 private:
-    fk_data_DataRecord record_;
+    fk_data_DataRecord *record_{ nullptr };
 
 public:
     fk_data_DataRecord &for_decoding(Pool &pool);

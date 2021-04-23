@@ -49,7 +49,7 @@ public:
     }
 
     void clear() {
-        record_ = fk_lora_record_encoding_new();
+        fk_lora_record_encoding_new(&record_);
         record_.time = 0;
         record_.number = 0;
         record_.module = 0;

@@ -54,7 +54,7 @@ int32_t HttpServerConnection::fault() {
     return plain(500, "internal error", "internal error");
 }
 
-int32_t HttpServerConnection::busy(uint32_t delay, const char *message) {
+int32_t HttpServerConnection::busy(uint32_t delay, const char *message, Pool &pool) {
     fk_app_Error errors[] = {
         {
             .message = {
@@ -74,17 +74,18 @@ int32_t HttpServerConnection::busy(uint32_t delay, const char *message) {
         .fields = fk_app_Error_fields,
     };
 
-    fk_app_HttpReply reply = fk_app_HttpReply_init_default;
-    reply.type = fk_app_ReplyType_REPLY_BUSY;
-    reply.errors.funcs.encode = pb_encode_array;
-    reply.errors.arg = (void *)pool_->copy(&errors_array, sizeof(errors_array));
+    auto reply = pool.malloc<fk_app_HttpReply>();
+    *reply = fk_app_HttpReply_init_default;
+    reply->type = fk_app_ReplyType_REPLY_BUSY;
+    reply->errors.funcs.encode = pb_encode_array;
+    reply->errors.arg = (void *)pool_->copy(&errors_array, sizeof(errors_array));
 
     logwarn("[%" PRIu32 "] busy reply '%s'", number_, message);
 
-    return write(503, message, &reply, fk_app_HttpReply_fields);
+    return write(503, message, reply, fk_app_HttpReply_fields);
 }
 
-int32_t HttpServerConnection::error(int32_t status, const char *message) {
+int32_t HttpServerConnection::error(int32_t status, const char *message, Pool &pool) {
     fk_app_Error errors[] = {
         {
             .message = {
@@ -103,14 +104,15 @@ int32_t HttpServerConnection::error(int32_t status, const char *message) {
         .fields = fk_app_Error_fields,
     };
 
-    fk_app_HttpReply reply = fk_app_HttpReply_init_default;
-    reply.type = fk_app_ReplyType_REPLY_ERROR;
-    reply.errors.funcs.encode = pb_encode_array;
-    reply.errors.arg = (void *)pool_->copy(&errors_array, sizeof(errors_array));
+    auto reply = pool.malloc<fk_app_HttpReply>();
+    *reply = fk_app_HttpReply_init_default;
+    reply->type = fk_app_ReplyType_REPLY_ERROR;
+    reply->errors.funcs.encode = pb_encode_array;
+    reply->errors.arg = (void *)pool_->copy(&errors_array, sizeof(errors_array));
 
     logwarn("[%" PRIu32 "] error reply '%s'", number_, message);
 
-    return write(status, message, &reply, fk_app_HttpReply_fields);
+    return write(status, message, reply, fk_app_HttpReply_fields);
 }
 
 int32_t HttpServerConnection::write(fk_app_HttpReply const *reply) {

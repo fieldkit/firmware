@@ -160,6 +160,8 @@ public:
 
     void *malloc(size_t bytes) override;
 
+    using Pool::malloc;
+
     void clear() override;
 
     bool can_malloc(size_t bytes) const {

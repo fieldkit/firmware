@@ -16,14 +16,15 @@ namespace fk {
 FK_DECLARE_LOGGER("reply");
 
 HttpReply::HttpReply(Pool &pool, GlobalState const *gs) : pool_(&pool), gs_(gs) {
-    reply_ = fk_http_reply_encoding();
+    reply_ = pool.malloc<fk_app_HttpReply>();
+    *reply_ = { };
 }
 
 bool HttpReply::include_success(uint32_t clock, uint32_t uptime) {
-    reply_.type = fk_app_ReplyType_REPLY_SUCCESS;
-    reply_.status.version = 1;
-    reply_.status.uptime = uptime;
-    reply_.status.time = clock;
+    reply_->type = fk_app_ReplyType_REPLY_SUCCESS;
+    reply_->status.version = 1;
+    reply_->status.uptime = uptime;
+    reply_->status.time = clock;
 
     return true;
 }
@@ -106,49 +107,49 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, bool logs, fkb_h
         .buffer = &gs_->general.generation,
     });
 
-    reply_.type = fk_app_ReplyType_REPLY_STATUS;
-    reply_.has_status = true;
-    reply_.status.time = clock;
-    reply_.status.version = 1;
-    reply_.status.uptime = uptime;
-    reply_.status.has_identity = true;
-    reply_.status.identity.name.arg = (void *)gs_->general.name;
-    reply_.status.identity.device.arg = (void *)gs_->general.name;
-    reply_.status.identity.deviceId.arg = device_id_data;
-    reply_.status.identity.generationId.arg = generation_data;
+    reply_->type = fk_app_ReplyType_REPLY_STATUS;
+    reply_->has_status = true;
+    reply_->status.time = clock;
+    reply_->status.version = 1;
+    reply_->status.uptime = uptime;
+    reply_->status.has_identity = true;
+    reply_->status.identity.name.arg = (void *)gs_->general.name;
+    reply_->status.identity.device.arg = (void *)gs_->general.name;
+    reply_->status.identity.deviceId.arg = device_id_data;
+    reply_->status.identity.generationId.arg = generation_data;
     if (logs) {
-        reply_.status.logs.arg = 0; // This is used to store the calculated size.
-        reply_.status.logs.funcs.encode = pb_encode_logs;
+        reply_->status.logs.arg = 0; // This is used to store the calculated size.
+        reply_->status.logs.funcs.encode = pb_encode_logs;
     }
 
     // TODO Deprecate
     if (fkb->firmware.hash_size > 0) {
         auto firmware_hash_string = bytes_to_hex_string_pool(fkb->firmware.hash, fkb->firmware.hash_size, *pool_);
-        reply_.status.identity.firmware.arg = (void *)firmware_hash_string;
+        reply_->status.identity.firmware.arg = (void *)firmware_hash_string;
     }
     // TODO Deprecate
-    reply_.status.has_firmware = true;
-    try_populate_firmware(reply_.status.firmware, (uint32_t *)fkb, *pool_);
+    reply_->status.has_firmware = true;
+    try_populate_firmware(reply_->status.firmware, (uint32_t *)fkb, *pool_);
 
-    reply_.status.has_power = true;
-    reply_.status.power.has_battery = true;
-    reply_.status.power.battery.voltage = gs_->power.battery.bus_voltage * 1000.0f;
-    reply_.status.power.battery.percentage = gs_->power.charge;
-    reply_.status.power.has_solar = true;
-    reply_.status.power.solar.voltage = gs_->power.solar.bus_voltage * 1000.0f;
+    reply_->status.has_power = true;
+    reply_->status.power.has_battery = true;
+    reply_->status.power.battery.voltage = gs_->power.battery.bus_voltage * 1000.0f;
+    reply_->status.power.battery.percentage = gs_->power.charge;
+    reply_->status.power.has_solar = true;
+    reply_->status.power.solar.voltage = gs_->power.solar.bus_voltage * 1000.0f;
 
-    reply_.status.has_recording = true;
-    reply_.status.recording.enabled = gs_->general.recording > 0;
-    reply_.status.recording.startedTime = gs_->general.recording;
+    reply_->status.has_recording = true;
+    reply_->status.recording.enabled = gs_->general.recording > 0;
+    reply_->status.recording.startedTime = gs_->general.recording;
 
-    reply_.status.has_memory = true;
-    reply_.status.memory.sramAvailable = fk_free_memory();
-    reply_.status.memory.programFlashAvailable = 1024 * 1024 - BootloaderSize - fkb_header.firmware.binary_size;
-    reply_.status.memory.extendedMemoryAvailable = 0u;
-    reply_.status.memory.dataMemoryInstalled = gs_->storage.spi.installed;
-    reply_.status.memory.dataMemoryUsed = gs_->storage.spi.used;
-    if (reply_.status.memory.dataMemoryInstalled > 0) {
-        reply_.status.memory.dataMemoryConsumption = reply_.status.memory.dataMemoryUsed / reply_.status.memory.dataMemoryInstalled * 100.0f;
+    reply_->status.has_memory = true;
+    reply_->status.memory.sramAvailable = fk_free_memory();
+    reply_->status.memory.programFlashAvailable = 1024 * 1024 - BootloaderSize - fkb_header.firmware.binary_size;
+    reply_->status.memory.extendedMemoryAvailable = 0u;
+    reply_->status.memory.dataMemoryInstalled = gs_->storage.spi.installed;
+    reply_->status.memory.dataMemoryUsed = gs_->storage.spi.used;
+    if (reply_->status.memory.dataMemoryInstalled > 0) {
+        reply_->status.memory.dataMemoryConsumption = reply_->status.memory.dataMemoryUsed / reply_->status.memory.dataMemoryInstalled * 100.0f;
     }
 
 
@@ -180,7 +181,7 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, bool logs, fkb_h
     }
     #endif
 
-    reply_.status.memory.firmware.arg = (void *)firmware_array;
+    reply_->status.memory.firmware.arg = (void *)firmware_array;
 
     if (gs_->modules != nullptr && gs_->modules->nmodules > 0) {
         auto nmodules = gs_->modules->nmodules;
@@ -254,21 +255,21 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, bool logs, fkb_h
             .fields = fk_app_ModuleCapabilities_fields,
         });
 
-        reply_.modules.arg = (void *)modules_array;
+        reply_->modules.arg = (void *)modules_array;
     }
     else {
         logwarn("no modules");
     }
 
     auto &gps = gs_->gps;
-    reply_.status.has_gps = true;
-    reply_.status.gps.enabled = gps.enabled;
-    reply_.status.gps.fix = gps.fix;
-    reply_.status.gps.time = gps.time;
-    reply_.status.gps.satellites = gps.satellites;
-    reply_.status.gps.longitude = gps.longitude;
-    reply_.status.gps.latitude = gps.latitude;
-    reply_.status.gps.altitude = gps.altitude;
+    reply_->status.has_gps = true;
+    reply_->status.gps.enabled = gps.enabled;
+    reply_->status.gps.fix = gps.fix;
+    reply_->status.gps.time = gps.time;
+    reply_->status.gps.satellites = gps.satellites;
+    reply_->status.gps.longitude = gps.longitude;
+    reply_->status.gps.latitude = gps.latitude;
+    reply_->status.gps.altitude = gps.altitude;
 
     auto streams = pool_->malloc_with<fk_app_DataStream, 2>({
         {
@@ -324,8 +325,8 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, bool logs, fkb_h
         .fields = fk_app_DataStream_fields,
     });
 
-    reply_.streams.funcs.encode = pb_encode_array;
-    reply_.streams.arg = (void *)streams_array;
+    reply_->streams.funcs.encode = pb_encode_array;
+    reply_->streams.arg = (void *)streams_array;
 
     auto device_eui_data = pool_->malloc_with<pb_data_t>({
         .length = sizeof(gs_->lora.device_eui),
@@ -340,13 +341,13 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, bool logs, fkb_h
         .buffer = gs_->lora.app_key,
     });
 
-    reply_.has_loraSettings = true;
-    reply_.loraSettings.deviceEui.funcs.encode = pb_encode_data;
-    reply_.loraSettings.deviceEui.arg = (void *)device_eui_data;
-    reply_.loraSettings.appEui.funcs.encode = pb_encode_data;
-    reply_.loraSettings.appEui.arg = (void *)app_eui_data;
-    reply_.loraSettings.appKey.funcs.encode = pb_encode_data;
-    reply_.loraSettings.appKey.arg = (void *)app_key_data;
+    reply_->has_loraSettings = true;
+    reply_->loraSettings.deviceEui.funcs.encode = pb_encode_data;
+    reply_->loraSettings.deviceEui.arg = (void *)device_eui_data;
+    reply_->loraSettings.appEui.funcs.encode = pb_encode_data;
+    reply_->loraSettings.appEui.arg = (void *)app_eui_data;
+    reply_->loraSettings.appKey.funcs.encode = pb_encode_data;
+    reply_->loraSettings.appKey.arg = (void *)app_key_data;
 
     auto nnetworks = 0u;
     auto networks = pool_->malloc<fk_app_NetworkInfo>(WifiMaximumNumberOfNetworks);
@@ -369,36 +370,36 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, bool logs, fkb_h
         .fields = fk_app_NetworkInfo_fields,
     });
 
-    reply_.has_networkSettings = true;
-    reply_.networkSettings.has_connected = true;
-    reply_.networkSettings.connected.create = get_network()->get_created_ap();
-    reply_.networkSettings.connected.ssid.arg = (void *)get_network()->get_ssid();
-    reply_.networkSettings.networks.funcs.encode = pb_encode_array;
-    reply_.networkSettings.networks.arg = (void *)networks_array;
+    reply_->has_networkSettings = true;
+    reply_->networkSettings.has_connected = true;
+    reply_->networkSettings.connected.create = get_network()->get_created_ap();
+    reply_->networkSettings.connected.ssid.arg = (void *)get_network()->get_ssid();
+    reply_->networkSettings.networks.funcs.encode = pb_encode_array;
+    reply_->networkSettings.networks.arg = (void *)networks_array;
     uint8_t mac_address[6];
     if (get_network()->get_mac_address(mac_address)) {
         auto mac_address_string = bytes_to_hex_string_pool(mac_address, sizeof(mac_address), *pool_);
-        reply_.networkSettings.macAddress.arg = (void *)mac_address_string;
+        reply_->networkSettings.macAddress.arg = (void *)mac_address_string;
     }
 
-    reply_.has_schedules = true;
-    reply_.schedules.has_readings = true;
-    reply_.schedules.has_network = true;
-    reply_.schedules.has_gps = true;
-    reply_.schedules.has_lora = true;
+    reply_->has_schedules = true;
+    reply_->schedules.has_readings = true;
+    reply_->schedules.has_network = true;
+    reply_->schedules.has_gps = true;
+    reply_->schedules.has_lora = true;
 
-    copy_schedule(reply_.schedules.readings, gs_->scheduler.readings, pool_);
-    copy_schedule(reply_.schedules.network, gs_->scheduler.network, pool_);
-    copy_schedule(reply_.schedules.gps, gs_->scheduler.gps, pool_);
-    copy_schedule(reply_.schedules.lora, gs_->scheduler.lora, pool_);
+    copy_schedule(reply_->schedules.readings, gs_->scheduler.readings, pool_);
+    copy_schedule(reply_->schedules.network, gs_->scheduler.network, pool_);
+    copy_schedule(reply_->schedules.gps, gs_->scheduler.gps, pool_);
+    copy_schedule(reply_->schedules.lora, gs_->scheduler.lora, pool_);
 
     if (strlen(gs_->transmission.url) > 0 || strlen(gs_->transmission.token) > 0) {
-        reply_.has_transmission = true;
-        reply_.transmission.has_wifi = true;
-        reply_.transmission.wifi.url.arg = (void *)gs_->transmission.url;
-        reply_.transmission.wifi.token.arg = (void *)gs_->transmission.token;
+        reply_->has_transmission = true;
+        reply_->transmission.has_wifi = true;
+        reply_->transmission.wifi.url.arg = (void *)gs_->transmission.url;
+        reply_->transmission.wifi.token.arg = (void *)gs_->transmission.token;
     }
-    reply_.transmission.wifi.enabled = gs_->transmission.enabled;
+    reply_->transmission.wifi.enabled = gs_->transmission.enabled;
 
     return true;
 }
@@ -487,10 +488,10 @@ bool HttpReply::include_readings() {
         .fields = fk_app_LiveReadings_fields,
     });
 
-    reply_.type = fk_app_ReplyType_REPLY_READINGS;
-    reply_.has_status = true;
-    reply_.status.time = get_clock_now();
-    reply_.liveReadings.arg = (void *)live_readings_array;
+    reply_->type = fk_app_ReplyType_REPLY_READINGS;
+    reply_->has_status = true;
+    reply_->status.time = get_clock_now();
+    reply_->liveReadings.arg = (void *)live_readings_array;
 
     return true;
 }
@@ -512,17 +513,17 @@ bool HttpReply::include_scan(NetworkScan scan) {
         nearby_networks_array->buffer = nearby;
     }
 
-    reply_.has_nearbyNetworks = true;
-    reply_.nearbyNetworks.networks.arg = (void *)nearby_networks_array;
+    reply_->has_nearbyNetworks = true;
+    reply_->nearbyNetworks.networks.arg = (void *)nearby_networks_array;
 
-    reply_.type = fk_app_ReplyType_REPLY_NETWORKS;
+    reply_->type = fk_app_ReplyType_REPLY_NETWORKS;
 
     return true;
 }
 
 bool HttpReply::include_listing(const char *path, fk_app_DirectoryEntry *entries, size_t number_entries, size_t total_entries) {
-    reply_ = fk_app_HttpReply_init_default;
-    reply_.type = fk_app_ReplyType_REPLY_FILES;
+    *reply_ = fk_app_HttpReply_init_default;
+    reply_->type = fk_app_ReplyType_REPLY_FILES;
 
     if (number_entries == 0) {
         return true;
@@ -537,12 +538,12 @@ bool HttpReply::include_listing(const char *path, fk_app_DirectoryEntry *entries
 
     loginfo("returning listing %zu", number_entries);
 
-    reply_.has_listing = true;
-    reply_.listing.totalEntries = total_entries;
-    reply_.listing.path.arg = (void *)path;
-    reply_.listing.path.funcs.encode = pb_encode_string;
-    reply_.listing.entries.arg = (void *)entries_array;
-    reply_.listing.entries.funcs.encode = pb_encode_array;
+    reply_->has_listing = true;
+    reply_->listing.totalEntries = total_entries;
+    reply_->listing.path.arg = (void *)path;
+    reply_->listing.path.funcs.encode = pb_encode_string;
+    reply_->listing.entries.arg = (void *)entries_array;
+    reply_->listing.entries.funcs.encode = pb_encode_array;
 
     return true;
 }

@@ -35,9 +35,9 @@ public:
 
     int32_t plain(int32_t status, const char *status_description, const char *text);
 
-    int32_t busy(uint32_t retry, const char *message);
+    int32_t busy(uint32_t retry, const char *message, Pool &pool);
 
-    int32_t error(int32_t status, const char *message);
+    int32_t error(int32_t status, const char *message, Pool &pool);
 
     int32_t fault();
 

@@ -14,7 +14,7 @@ bool AtlasApi::handle(ModuleContext mc, HttpServerConnection *connection, Pool &
     AtlasApiReply reply{ pool };
 
     if (connection->length() == 0) {
-        connection->error(500, "invalid query");
+        connection->error(500, "invalid query", pool);
         return true;
     }
 

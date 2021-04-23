@@ -64,7 +64,7 @@ void ApiHandler::adjust_location_if_necessary(fk_app_HttpQuery const *query) {
 
 bool ApiHandler::handle(HttpServerConnection *connection, Pool &pool) {
     if (connection->length() == 0) {
-        connection->error(500, "invalid query");
+        connection->error(500, "invalid query", pool);
         return true;
     }
 
@@ -84,7 +84,7 @@ bool ApiHandler::handle(HttpServerConnection *connection, Pool &pool) {
     if (!pb_decode_delimited(&stream, fk_app_HttpQuery_fields, query)) {
         fk_dump_memory("NOPARSE ", ptr, 256);
         logwarn("error parsing query (%" PRIu32 ")", connection->length());
-        connection->error(500, "error parsing query");
+        connection->error(500, "error parsing query", pool);
         return true;
     }
 
@@ -142,7 +142,7 @@ bool ApiHandler::handle(HttpServerConnection *connection, Pool &pool) {
     }
     }
 
-    connection->error(500, "unknown query type");
+    connection->error(500, "unknown query type", pool);
 
     return true;
 }
@@ -164,7 +164,7 @@ static void debug_schedule(const char *which, Schedule const &s) {
 static bool configure(HttpServerConnection *connection, fk_app_HttpQuery *query, Pool &pool) {
     auto lock = storage_mutex.acquire(500);
     if (!lock) {
-        return connection->busy(OneSecondMs, "storage busy");
+        return connection->busy(OneSecondMs, "storage busy", pool);
     }
 
     GlobalStateManager gsm;
@@ -405,7 +405,7 @@ static bool send_files(HttpServerConnection *connection, fk_app_HttpQuery *query
     auto sd = get_sd_card();
     if (!sd->begin()) {
         logwarn("error opening sd");
-        connection->error(500, "error opening sd");
+        connection->error(500, "error opening sd", pool);
         return true;
     }
 
@@ -418,7 +418,7 @@ static bool send_files(HttpServerConnection *connection, fk_app_HttpQuery *query
 
     if (!sd->ls(path, query->directory.page, &entries, number_entries, total_entries, pool)) {
         logwarn("error listing sd");
-        connection->error(500, "error listing sd");
+        connection->error(500, "error listing sd", pool);
         return true;
     }
 

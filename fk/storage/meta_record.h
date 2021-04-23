@@ -10,7 +10,7 @@ namespace fk {
 
 class MetaRecord {
 private:
-    fk_data_DataRecord record_;
+    fk_data_DataRecord *record_{ nullptr };
 
 public:
     void include_state(GlobalState const *gs, fkb_header_t const *fkb, Pool &pool);

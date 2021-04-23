@@ -36,7 +36,8 @@ void LoraRangingWorker::run(Pool &pool) {
                 .buffer = &sn,
             };
 
-            fk_data_LoraRecord record = fk_lora_record_encoding_new();
+            fk_data_LoraRecord record;
+            fk_lora_record_encoding_new(&record);
             record.deviceId.arg = (void *)&device_id;
 
             auto encoded = work_pool.encode(fk_data_LoraRecord_fields, &record);

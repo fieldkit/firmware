@@ -56,7 +56,7 @@ void DownloadWorker::run(Pool &pool) {
     Storage storage{ &memory, pool };
 
     if (!storage.begin()) {
-        connection_->error(500, "error opening storage");
+        connection_->error(500, "error opening storage", pool);
         return;
     }
 

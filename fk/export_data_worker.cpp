@@ -59,15 +59,17 @@ void ExportDataWorker::run(Pool &pool) {
     auto bytes_read = 0u;
     auto nrecords = 0u;
     while (bytes_read < total_bytes) {
-        auto record = fk_data_record_decoding_new(loop_pool);
-        auto record_read = reading->read(&record, fk_data_DataRecord_fields);
+        auto record = loop_pool.malloc<fk_data_DataRecord>();
+        fk_data_record_decoding_new(record, loop_pool);
+
+        auto record_read = reading->read(record, fk_data_DataRecord_fields);
         if (record_read == 0) {
             loginfo("done");
             break;
         }
 
-        if (!lookup_meta(record.readings.meta, meta_file, loop_pool)) {
-            logerror("error looking up meta (%" PRIu64 ")", record.readings.meta);
+        if (!lookup_meta(record->readings.meta, meta_file, loop_pool)) {
+            logerror("error looking up meta (%" PRIu64 ")", record->readings.meta);
             continue;
         }
 
@@ -88,7 +90,7 @@ void ExportDataWorker::run(Pool &pool) {
         bytes_read += record_read;
         nrecords++;
 
-        switch (write_row(record)) {
+        switch (write_row(*record)) {
         case Success: {
             break;
         }

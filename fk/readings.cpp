@@ -19,7 +19,7 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
     auto now = get_clock_now();
     auto gps = ctx.gps();
 
-    *record_ = fk_data_record_encoding_new();
+    fk_data_record_encoding_new(record_);
     record_->has_readings = true;
     record_->readings.time = now;
     // These get set via Readings::link.
