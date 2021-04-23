@@ -58,7 +58,7 @@ function(fk_add_builtin_module name)
 endfunction()
 
 if(${FK_OVERSIZED})
-  set(ARDUINO_PROJECT_FLAGS "${ARDUINO_PROJECT_FLAGS} -finstrument-functions")
+  set(ARDUINO_PROJECT_FLAGS "${ARDUINO_PROJECT_FLAGS} -finstrument-functions -finstrument-functions-exclude-file-list=arduino-1.8.3,arduinog-logging,arduino-osh -finstrument-functions-exclude-function-list=alog,vlog,log_raw,logerror,loginfo,logdebug,logtrace,SEGGER_RTT,os_,fk_uptime,__get,dbg_")
 endif()
 
 set(ARDUINO_PROJECT_LD_FLAGS "-Wl,-wrap,malloc -Wl,-wrap,free")
