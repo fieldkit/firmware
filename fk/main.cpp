@@ -86,7 +86,7 @@ static void run_tasks() {
     loginfo("memory arena = %zd used = %zd", (size_t)mi.arena, (size_t)mi.uordblks);
     loginfo("stacks = %d", total_stacks);
     loginfo("free = %" PRIu32, fk_free_memory());
-    loginfo("sizeof(Storage) = %zu sizeof(File) = %zu", sizeof(Storage), sizeof(fk::File));
+    loginfo("sizeof(Storage) = %zu sizeof(File) = %zu sizeof(BLAKE2b) = %zu", sizeof(Storage), sizeof(fk::File), sizeof(BLAKE2b));
     loginfo("starting os!");
 
     OS_CHECK(os_start());

@@ -18,9 +18,19 @@
 
 namespace fk {
 
+struct WifiBufferedWriter {
+    uint8_t buffer[256];
+    size_t buffer_size{ 256 };
+    size_t position{ 0 };
+    WiFiClient *wcl;
+    int32_t return_value{ 0 };
+    int32_t flush();
+};
+
 class MetalNetworkConnection : public NetworkConnection {
 private:
     WiFiClient wcl_;
+    WifiBufferedWriter *buffered_writer_{ nullptr };
     bool debugging_{ false };
     uint8_t *buffer_{ nullptr };
     size_t size_{ 0 };
