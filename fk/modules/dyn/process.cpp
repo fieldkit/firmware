@@ -117,7 +117,7 @@ public:
                 fkbh = fkb_try_header(ptr);
             }
             if (fkbh == nullptr) {
-                ptr += FK_MEMORY_BOOTLOADER_SIZE;
+                ptr += FK_MEMORY_BOOTLOADER_SIZE_NEW;
                 logverbose("[0x%8p] checking", ptr);
                 fkbh = fkb_try_header(ptr);
             }
@@ -186,20 +186,41 @@ void Process::run(Pool &pool) {
 
     DataMemoryFlash flash{ memory };
 
-    if (!copy_sd_to_flash("fk-bundled-fkb.bin", &flash, FK_MEMORY_QSPI_ADDRESS_UPGRADE_CORE, 4096, pool)) {
-        logerror("error copying from sd");
-        return;
+    if (false) {
+        auto running = (fkb_header_t const *)FK_MEMORY_FLASH_ADDRESS_RUNNING_CORE;
+
+        if (!copy_memory_to_flash((uint8_t *)running, running->firmware.binary_size,
+                                &flash, FK_MEMORY_QSPI_ADDRESS_UPGRADE_CORE, 4096,
+                                pool)) {
+            logerror("error copying binary");
+            return;
+        }
+
+        if (!copy_memory_to_flash((uint8_t *)running, running->firmware.binary_size,
+                                &flash, FK_MEMORY_QSPI_ADDRESS_FAILSAFE_CORE, 4096,
+                                pool)) {
+            logerror("error copying binary");
+            return;
+        }
     }
 
-    if (!copy_sd_to_flash("fk-bundled-fkb.bin", &flash, FK_MEMORY_QSPI_ADDRESS_FAILSAFE_CORE, 4096, pool)) {
-        logerror("error copying from sd");
-        return;
+    if (true) {
+        if (!copy_sd_to_flash("fk-bundled-fkb.bin", &flash, FK_MEMORY_QSPI_ADDRESS_UPGRADE_CORE, 4096, pool)) {
+            logerror("error copying from sd");
+            return;
+        }
+
+        if (!copy_sd_to_flash("fk-bundled-fkb.bin", &flash, FK_MEMORY_QSPI_ADDRESS_FAILSAFE_CORE, 4096, pool)) {
+            logerror("error copying from sd");
+            return;
+        }
     }
 
     if (false) {
-        if (!copy_memory_to_flash(&flash, build_samd51_modules_dynamic_main_fkdynamic_fkb_bin,
-                                build_samd51_modules_dynamic_main_fkdynamic_fkb_bin_len, 512 * 1024,
-                                4096, pool)) {
+        if (!copy_memory_to_flash(build_samd51_modules_dynamic_main_fkdynamic_fkb_bin,
+                                  build_samd51_modules_dynamic_main_fkdynamic_fkb_bin_len,
+                                  &flash, 512 * 1024, 4096,
+                                  pool)) {
             logerror("error copying binary");
             return;
         }

@@ -69,12 +69,8 @@ optional<bool> verify_flash_binary_hash(FlashMemory *flash, uint32_t address, ui
     return success;
 }
 
-bool copy_memory_to_flash(FlashMemory *flash, uint8_t const *buffer, size_t size, uint32_t address, uint32_t page_size, Pool &pool) {
+bool copy_memory_to_flash(uint8_t const *buffer, size_t size, Hash &expected_hash, FlashMemory *flash, uint32_t address, uint32_t page_size, Pool &pool) {
     loginfo("[0x%08" PRIx32 "] loading binary (%s)", address, flash->name());
-
-    // Read the expected hash from end of given buffer.
-    Hash expected_hash;
-    memcpy(&expected_hash.hash, (buffer + size) - Hash::Length, Hash::Length);
 
     // Check to see if a copy is even necessary.
     auto verify_before = verify_flash_binary_hash(flash, address, size, page_size, expected_hash, pool);
@@ -122,6 +118,14 @@ bool copy_memory_to_flash(FlashMemory *flash, uint8_t const *buffer, size_t size
     }
 
     return true;
+}
+
+bool copy_memory_to_flash(uint8_t const *buffer, size_t size, FlashMemory *flash, uint32_t address, uint32_t page_size, Pool &pool) {
+    // Read the expected hash from end of given buffer.
+    Hash expected_hash;
+    memcpy(&expected_hash.hash, (buffer + size) - Hash::Length, Hash::Length);
+
+    return copy_memory_to_flash(buffer, size, expected_hash, flash, address, page_size, pool);
 }
 
 bool copy_sd_to_flash(const char *path, FlashMemory *flash, uint32_t address, uint32_t page_size, Pool &pool) {

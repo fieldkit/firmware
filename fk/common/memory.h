@@ -2,9 +2,13 @@
 
 /**
  * Size of the bootloader.
- * TODO Double this.
  */
 #define FK_MEMORY_BOOTLOADER_SIZE              (0x8000)
+
+/**
+ * Size of the bootloader we'd eventually like to use.
+ */
+#define FK_MEMORY_BOOTLOADER_SIZE_NEW          (FK_MEMORY_BOOTLOADER_SIZE * 2)
 
 /**
  * Base address of the firmware that is running. This would be the
@@ -15,7 +19,7 @@
 /**
  * Base address of the core firmware that is running.
  */
-#define FK_MEMORY_FLASH_ADDRESS_RUNNING_CORE   (FK_MEMORY_FLASH_ADDRESS_RUNNING_BASE + 0x8000)
+#define FK_MEMORY_FLASH_ADDRESS_RUNNING_CORE   (FK_MEMORY_FLASH_ADDRESS_RUNNING_BASE + FK_MEMORY_BOOTLOADER_SIZE)
 
 /**
  * Base address, in flash, of the other firmware we can optional swap
@@ -55,7 +59,7 @@
  * memory. Banks are intentionally located at the end of the QSPI
  * memory.
  */
-#define FK_MEMORY_QSPI_ADDRESS_UPGRADE_CORE    (FK_MEMORY_QSPI_ADDRESS_UPGRADE_BASE + FK_MEMORY_BOOTLOADER_SIZE)
+#define FK_MEMORY_QSPI_ADDRESS_UPGRADE_CORE    (FK_MEMORY_QSPI_ADDRESS_UPGRADE_BASE + FK_MEMORY_BOOTLOADER_SIZE_NEW)
 
 /**
  * Base address of the failsafe bank in QSPI memory. Banks are
@@ -68,7 +72,7 @@
  * memory. Banks are intentionally located at the end of the QSPI
  * memory.
  */
-#define FK_MEMORY_QSPI_ADDRESS_FAILSAFE_CORE   (FK_MEMORY_QSPI_ADDRESS_FAILSAFE_BASE + FK_MEMORY_BOOTLOADER_SIZE)
+#define FK_MEMORY_QSPI_ADDRESS_FAILSAFE_CORE   (FK_MEMORY_QSPI_ADDRESS_FAILSAFE_BASE + FK_MEMORY_BOOTLOADER_SIZE_NEW)
 
 /**
  * Maximum size of the vector table at the start of the
