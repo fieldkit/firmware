@@ -8,21 +8,21 @@ namespace fk {
 FK_DECLARE_LOGGER("weather");
 
 struct AggregatedWeatherHelpers {
-    fk_weather_aggregated_t &aw;
+    fk_weather_aggregated_t *aw{ nullptr };
 
-    AggregatedWeatherHelpers(fk_weather_aggregated_t &aw) : aw(aw) {
+    AggregatedWeatherHelpers(fk_weather_aggregated_t *aw) : aw(aw) {
     }
 
     WindReading get_wind_gust() {
-        if (aw.wind_gust.ticks == FK_WEATHER_TICKS_NULL) {
+        if (aw->wind_gust.ticks == FK_WEATHER_TICKS_NULL) {
             return WindReading{ };
         }
-        return WindReading{ aw.wind_gust };
+        return WindReading{ aw->wind_gust };
     }
 
     WindReading get_wind_10m_max() {
         auto max = WindReading{ };
-        for (auto &raw_wind : aw.wind_10m) {
+        for (auto &raw_wind : aw->wind_10m) {
             if (raw_wind.ticks != FK_WEATHER_TICKS_NULL) {
                 auto wind = WindReading{ raw_wind };
                 if (wind.stronger_than(max)) {
@@ -33,37 +33,37 @@ struct AggregatedWeatherHelpers {
         return max;
     }
 
-    WindReading get_wind_two_minute_average() {
-        WindReading readings[120];
+    WindReading get_wind_two_minute_average(Pool &pool) {
+        WindReading *readings = pool.malloc<WindReading>(120);
         for (auto i = 0u; i < 120; ++i) {
-            if (aw.wind_120s[i].ticks != FK_WEATHER_TICKS_NULL) {
-                readings[i] = WindReading{ aw.wind_120s[i] };
+            if (aw->wind_120s[i].ticks != FK_WEATHER_TICKS_NULL) {
+                readings[i] = WindReading{ aw->wind_120s[i] };
             }
         }
-        return WindReading::get_average(readings);
+        return WindReading::get_average(readings, 120);
     }
 
-    WindReading get_wind_30_second_average() {
-        WindReading readings[30];
-        auto index = aw.counter_120s;
+    WindReading get_wind_30_second_average(Pool &pool) {
+        WindReading *readings = pool.malloc<WindReading>(30);
+        auto index = aw->counter_120s;
         loginfo("getting 30s average %zd", sizeof(readings));
         for (auto i = 0u; i < 30; ++i) {
-            if (aw.wind_120s[index].ticks != FK_WEATHER_TICKS_NULL) {
-                loginfo("wind120s[%d/%d] %" PRIu32 " %" PRIu32, i, index, aw.wind_120s[index].ticks, aw.wind_120s[index].direction);
-                readings[i] = WindReading{ aw.wind_120s[index] };
+            if (aw->wind_120s[index].ticks != FK_WEATHER_TICKS_NULL) {
+                loginfo("wind120s[%d/%d] %" PRIu32 " %" PRIu32, i, index, aw->wind_120s[index].ticks, aw->wind_120s[index].direction);
+                readings[i] = WindReading{ aw->wind_120s[index] };
             }
             if (index == 0) {
                 index = 120;
             }
             index--;
         }
-        return WindReading::get_average(readings);
+        return WindReading::get_average(readings, 30);
     }
 
     float get_rain_mm_per_hour() {
         float value = 0.0f;
 
-        for (auto &r : aw.rain_60m) {
+        for (auto &r : aw->rain_60m) {
             if (r.ticks != FK_WEATHER_TICKS_NULL) {
                 value += r.ticks * RainPerTick;
             }
@@ -133,36 +133,36 @@ ModuleReadings *AggregatedWeather::take_readings(ModuleContext mc, Pool &pool) {
         logwarn("unable to configure");
     }
 
-    fk_weather_aggregated_t aw;
-    memzero(&aw, sizeof(aw));
-    if (!I2C_CHECK(bus.read_register_buffer(FK_WEATHER_I2C_ADDRESS, FK_WEATHER_I2C_COMMAND_READ, (uint8_t *)&aw, sizeof(aw)))) {
+    fk_weather_aggregated_t *aw = pool.malloc<fk_weather_aggregated_t>();
+    memzero(aw, sizeof(fk_weather_aggregated_t));
+    if (!I2C_CHECK(bus.read_register_buffer(FK_WEATHER_I2C_ADDRESS, FK_WEATHER_I2C_COMMAND_READ, (uint8_t *)aw, sizeof(aw)))) {
         logwarn("error reading weather memory");
         return nullptr;
     }
 
-    logdebug("time: %d/%02d/%02d (%" PRIu32 ")", aw.hour, aw.minute, aw.second, aw.uptime);
+    logdebug("time: %d/%02d/%02d (%" PRIu32 ")", aw->hour, aw->minute, aw->second, aw->uptime);
 
     AggregatedWeatherHelpers awh{ aw };
 
-    auto unmetered = aw.wind_120s[0].ticks == FK_WEATHER_UNMETERED_MAGIC && aw.rain_60m[0].ticks == FK_WEATHER_UNMETERED_MAGIC;
+    auto unmetered = aw->wind_120s[0].ticks == FK_WEATHER_UNMETERED_MAGIC && aw->rain_60m[0].ticks == FK_WEATHER_UNMETERED_MAGIC;
     auto mr = new_module_readings(unmetered, pool);
     auto i = 0u;
 
-    auto having_supply_chain_nightmare = ((aw.initialized & FK_WEATHER_SENSORS_SHT31) > 0) &&
-                                         ((aw.initialized & FK_WEATHER_SENSORS_MPL3115A2) > 0);
+    auto having_supply_chain_nightmare = ((aw->initialized & FK_WEATHER_SENSORS_SHT31) > 0) &&
+                                         ((aw->initialized & FK_WEATHER_SENSORS_MPL3115A2) > 0);
     if (having_supply_chain_nightmare) {
-        loginfo("variant: sht31/mpl3115a2 initialized=0x%x failures=0x%x", aw.initialized, aw.failures);
-        mr->set(i++, 100.0f * ((float)aw.humidity / (0xffff)));
-        mr->set(i++, -45.0f + 175.0f * ((float)aw.temperature_1 / (0xffff)));
-        mr->set(i++, aw.pressure / 64.0f / 1000.0f);
-        mr->set(i++, aw.temperature_2 / 16.0f);
+        loginfo("variant: sht31/mpl3115a2 initialized=0x%x failures=0x%x", aw->initialized, aw->failures);
+        mr->set(i++, 100.0f * ((float)aw->humidity / (0xffff)));
+        mr->set(i++, -45.0f + 175.0f * ((float)aw->temperature_1 / (0xffff)));
+        mr->set(i++, aw->pressure / 64.0f / 1000.0f);
+        mr->set(i++, aw->temperature_2 / 16.0f);
     }
     else {
-        loginfo("variant: bme280 initialized=0x%x failures=0x%x", aw.initialized, aw.failures);
-        mr->set(i++, fkw_weather_humidity(&aw));
-        mr->set(i++, fkw_weather_temperature_1(&aw));
-        mr->set(i++, fkw_weather_pressure(&aw));
-        mr->set(i++, fkw_weather_temperature_2(&aw));
+        loginfo("variant: bme280 initialized=0x%x failures=0x%x", aw->initialized, aw->failures);
+        mr->set(i++, fkw_weather_humidity(aw));
+        mr->set(i++, fkw_weather_temperature_1(aw));
+        mr->set(i++, fkw_weather_pressure(aw));
+        mr->set(i++, fkw_weather_temperature_2(aw));
     }
 
     // Detect the unmetered weather scenario.
@@ -173,7 +173,7 @@ ModuleReadings *AggregatedWeather::take_readings(ModuleContext mc, Pool &pool) {
 
     mr->set(i++, awh.get_rain_mm_per_hour());
 
-    auto wind_30s_average = awh.get_wind_30_second_average();
+    auto wind_30s_average = awh.get_wind_30_second_average(pool);
     mr->set(i++, wind_30s_average.speed);
     mr->set(i++, wind_30s_average.direction.angle);
     mr->set(i++, wind_30s_average.direction.raw);
@@ -186,7 +186,7 @@ ModuleReadings *AggregatedWeather::take_readings(ModuleContext mc, Pool &pool) {
     mr->set(i++, wind_10m_max.speed);
     mr->set(i++, wind_10m_max.direction.angle);
 
-    auto wind_2m_average = awh.get_wind_two_minute_average();
+    auto wind_2m_average = awh.get_wind_two_minute_average(pool);
     mr->set(i++, wind_2m_average.speed);
     mr->set(i++, wind_2m_average.direction.angle);
 
