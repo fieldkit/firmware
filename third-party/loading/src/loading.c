@@ -96,6 +96,8 @@ uint32_t fkb_find_and_launch(void const *ptr) {
                              hex_hash, fkbh->firmware.timestamp);
 
         ptr += fkb_aligned_on(fkbh->firmware.binary_size, 0x1000);
+
+        break;
     }
 
     if (selected == NULL) {
