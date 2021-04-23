@@ -78,7 +78,7 @@ tl::expected<AppendedRecord, Error> SignedRecordLog::append_always(SignedRecordK
     auto encoded = pool.encode(fields, record);
 
     uint8_t hash[Hash::Length];
-    BLAKE2b b2b;
+    BLAKE2b b2b; // LARGE-STACK-ALLOC
     b2b.reset(Hash::Length);
     b2b.update(encoded->buffer, encoded->size);
     b2b.finalize(&hash, Hash::Length);
@@ -93,21 +93,22 @@ tl::expected<AppendedRecord, Error> SignedRecordLog::append_always(SignedRecordK
         .buffer = hash,
     };
 
-    fk_data_SignedRecord sr = fk_data_SignedRecord_init_default;
-    sr.kind = (fk_data_SignedRecordKind)kind;
-    sr.data.funcs.encode = pb_encode_data;
-    sr.data.arg = (void *)&data_ref;
-    sr.hash.funcs.encode = pb_encode_data;
-    sr.hash.arg = (void *)&hash_ref;
-    sr.record = file_.record();
-    sr.time = get_clock_now();
+    auto sr = pool.malloc<fk_data_SignedRecord>();
+    *sr = fk_data_SignedRecord_init_default;
+    sr->kind = (fk_data_SignedRecordKind)kind;
+    sr->data.funcs.encode = pb_encode_data;
+    sr->data.arg = (void *)&data_ref;
+    sr->hash.funcs.encode = pb_encode_data;
+    sr->hash.arg = (void *)&hash_ref;
+    sr->record = file_.record();
+    sr->time = get_clock_now();
 
-    auto record_size = file_.write(&sr, fk_data_SignedRecord_fields);
+    auto record_size = file_.write(sr, fk_data_SignedRecord_fields);
     if (record_size == 0) {
         return tl::unexpected<Error>(Error::IO);
     }
 
-    return AppendedRecord{ (uint32_t)sr.record, (uint32_t)record_size };
+    return AppendedRecord{ (uint32_t)sr->record, (uint32_t)record_size };
 }
 
 tl::expected<AppendedRecord, Error> SignedRecordLog::append_immutable(SignedRecordKind kind, void const *record, pb_msgdesc_t const *fields, Pool &pool) {
@@ -119,38 +120,39 @@ tl::expected<AppendedRecord, Error> SignedRecordLog::append_immutable(SignedReco
         FK_ASSERT(encoded != nullptr);
 
         uint8_t new_hash[Hash::Length];
-        BLAKE2b b2b;
+        BLAKE2b b2b; // LARGE-STACK-ALLOC
         b2b.reset(Hash::Length);
         b2b.update(encoded->buffer, encoded->size);
         b2b.finalize(&new_hash, Hash::Length);
 
-        fk_data_SignedRecord sr = fk_data_SignedRecord_init_default;
-        sr.hash.funcs.decode = pb_decode_data;
-        sr.hash.arg = (void *)&pool;
+        auto sr = pool.malloc<fk_data_SignedRecord>();
+        *sr = fk_data_SignedRecord_init_default;
+        sr->hash.funcs.decode = pb_decode_data;
+        sr->hash.arg = (void *)&pool;
         if (DebugEnableMemoryDumps) {
-            sr.data.funcs.decode = pb_decode_data;
-            sr.data.arg = (void *)&pool;
+            sr->data.funcs.decode = pb_decode_data;
+            sr->data.arg = (void *)&pool;
         }
 
-        auto nread = file_.read(&sr, fk_data_SignedRecord_fields);
+        auto nread = file_.read(sr, fk_data_SignedRecord_fields);
         if (nread == 0) {
             return tl::unexpected<Error>(Error::IO);
         }
 
         // Compare the hashes here, ensuring they're the same length.
-        auto hash_ref = (pb_data_t *)sr.hash.arg;
+        auto hash_ref = (pb_data_t *)sr->hash.arg;
         FK_ASSERT(hash_ref->length == Hash::Length);
         if (memcmp(new_hash, hash_ref->buffer, Hash::Length) == 0) {
             logdebug("[" PRADDRESS "] identical record", file_.tail());
             if (!file_.seek(LastRecord)) {
                 return tl::unexpected<Error>(Error::IO);
             }
-            return AppendedRecord{ (uint32_t)sr.record, 0u };
+            return AppendedRecord{ (uint32_t)sr->record, 0u };
         }
         else {
             if (DebugEnableMemoryDumps) {
                 if (log_is_debug()) {
-                    auto record_data = (pb_data_t *)sr.data.arg;
+                    auto record_data = (pb_data_t *)sr->data.arg;
                     fk_dump_memory("saved ", (uint8_t *)record_data->buffer, record_data->length);
                     fk_dump_memory("wrote ", (uint8_t *)encoded->buffer, encoded->size);
                 }
@@ -175,18 +177,18 @@ tl::expected<AppendedRecord, Error> SignedRecordLog::append_immutable(SignedReco
 }
 
 bool SignedRecordLog::decode(void *record, pb_msgdesc_t const *fields, Pool &pool) {
-    fk_data_SignedRecord sr = fk_data_SignedRecord_init_default;
-    sr.data.funcs.decode = pb_decode_data;
-    sr.data.arg = (void *)&pool;
-    sr.data.funcs.decode = pb_decode_data;
-    sr.hash.arg = (void *)&pool;
+    auto sr = pool.malloc<fk_data_SignedRecord>();
+    sr->data.funcs.decode = pb_decode_data;
+    sr->data.arg = (void *)&pool;
+    sr->data.funcs.decode = pb_decode_data;
+    sr->hash.arg = (void *)&pool;
 
-    auto nread = file_.read(&sr, fk_data_SignedRecord_fields);
+    auto nread = file_.read(sr, fk_data_SignedRecord_fields);
     if (nread == 0) {
         return false;
     }
 
-    auto data_ref = (pb_data_t *)sr.data.arg;
+    auto data_ref = (pb_data_t *)sr->data.arg;
     auto stream = pb_istream_from_buffer((pb_byte_t *)data_ref->buffer, data_ref->length);
     if (!pb_decode_delimited(&stream, fields, record)) {
         return false;
