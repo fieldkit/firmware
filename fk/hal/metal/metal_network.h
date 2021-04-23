@@ -28,7 +28,7 @@ private:
 
 public:
     MetalNetworkConnection();
-    MetalNetworkConnection(WiFiClient wcl);
+    MetalNetworkConnection(Pool *pool, WiFiClient wcl);
     virtual ~MetalNetworkConnection() override;
 
 public:
@@ -60,7 +60,7 @@ private:
     WiFiServer server_{ port_ };
 
 public:
-    MetalNetworkListener(uint16_t port);
+    MetalNetworkListener(Pool *pool, uint16_t port);
 
 public:
     bool begin();

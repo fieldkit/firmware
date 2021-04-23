@@ -90,7 +90,7 @@ FK_DECLARE_LOGGER("network");
 MetalNetworkConnection::MetalNetworkConnection() {
 }
 
-MetalNetworkConnection::MetalNetworkConnection(WiFiClient wcl) : wcl_(wcl) {
+MetalNetworkConnection::MetalNetworkConnection(Pool *pool, WiFiClient wcl) : wcl_(wcl) {
     if (debugging_) {
         size_ = StandardPageSize;
         buffer_ = reinterpret_cast<uint8_t *>(fk_standard_page_malloc(size_, __func__));
@@ -194,16 +194,17 @@ uint32_t MetalNetworkConnection::remote_address() {
 }
 
 bool MetalNetworkConnection::stop() {
-    auto s = wcl_.socket();
-
     wcl_.flush();
     wcl_.stop();
 
+    /*
+    auto s = wcl_.socket();
     if (buffer_ != nullptr && position_ > 0) {
         char temp[32];
         tiny_snprintf(temp, sizeof(temp), "CDGB-%d ", s);
         fk_dump_memory(temp, buffer_, position_);
     }
+    */
 
     return true;
 }
@@ -410,7 +411,7 @@ NetworkScan MetalNetwork::scan(Pool &pool) {
 void MetalNetwork::verify() {
 }
 
-MetalNetworkListener::MetalNetworkListener(uint16_t port) : port_(port) {
+MetalNetworkListener::MetalNetworkListener(Pool *pool, uint16_t port) : port_(port) {
 }
 
 bool MetalNetworkListener::begin() {

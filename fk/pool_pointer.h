@@ -34,7 +34,7 @@ private:
     ConcreteWrapped wrapped_;
 
 public:
-    WeakPoolWrapper(Pool &pool, Args&&... args) : pool_(&pool), wrapped_(std::forward<Args>(args)...) {
+    WeakPoolWrapper(Pool &pool, Args&&... args) : pool_(&pool), wrapped_(&pool, std::forward<Args>(args)...) {
     }
 
     virtual ~WeakPoolWrapper() {
@@ -66,7 +66,7 @@ private:
     ConcreteWrapped wrapped_;
 
 public:
-    StandardPoolWrapper(Pool *pool, Args&&... args) : pool_(pool), wrapped_(std::forward<Args>(args)...) {
+    StandardPoolWrapper(Pool *pool, Args&&... args) : pool_(pool), wrapped_(pool, std::forward<Args>(args)...) {
     }
 
     virtual ~StandardPoolWrapper() {
