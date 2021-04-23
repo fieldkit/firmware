@@ -94,6 +94,7 @@ Storage::Storage(DataMemory *memory, Pool &pool, bool read_only)
     : data_memory_(memory), pool_(&pool), memory_(memory, pool), statistics_data_memory_(data_memory_), bad_blocks_(memory, pool),
       phylum_{ memory }, read_only_(read_only) {
     FK_ASSERT(memory != nullptr);
+    files_ = pool.malloc<FileHeader>(NumberOfFiles);
 }
 
 Storage::~Storage() {
@@ -792,14 +793,14 @@ SavedState Storage::save() const {
     state.timestamp = timestamp_;
     state.free_block = free_block_;
     state.version = version_;
-    static_assert(sizeof(files_) == sizeof(state.files), "sizeof(files_) == sizeof(state.files)");
-    memcpy(state.files, files_, sizeof(files_));
+    static_assert(sizeof(state.files) == sizeof(FileHeader) * NumberOfFiles, "sizeof(state.files) == sizeof(FileHeader) * NumberOfFiles");
+    memcpy(state.files, files_, sizeof(state.files));
     return state;
 }
 
 void Storage::restore(SavedState const &state) {
-    static_assert(sizeof(files_) == sizeof(state.files), "sizeof(files_) == sizeof(state.files)");
-    memcpy(files_, state.files, sizeof(files_));
+    static_assert(sizeof(state.files) == sizeof(FileHeader) * NumberOfFiles, "sizeof(state.files) == sizeof(FileHeader) * NumberOfFiles");
+    memcpy(files_, state.files, sizeof(state.files));
     timestamp_ = state.timestamp;
     free_block_ = state.free_block;
     version_ = state.version;

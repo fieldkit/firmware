@@ -88,7 +88,7 @@ int32_t bl_upgrade_firmware(fkb_header_t *running, fkb_header_t *fkbh, uint32_t 
     // Customize the header by including the firmware timestamp of the
     // firmware that performed the upgrade. This is very handy, and
     // the downside is that the hash is no longer valid.
-    fkb_header_t header = *fkbh;
+    fkb_header_t header = *fkbh; // LARGE-STACK-ALLOC
 
     header.firmware.previous = running->firmware.timestamp;
 

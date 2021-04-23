@@ -41,7 +41,7 @@ private:
     BadBlocks bad_blocks_;
     Phylum phylum_;
     bool phylum_enabled_{ false };
-    FileHeader files_[NumberOfFiles];
+    FileHeader *files_{ nullptr };
     BlockNumber file_headers_block_;
     uint32_t timestamp_{ InvalidTimestamp };
     BlockNumber free_block_{ InvalidBlock };
