@@ -1,3 +1,0 @@
-#+TITLE:	README for fk-atlas-protocol
-#+AUTHOR:	Jacob Lewallen
-#+EMAIL:	jacob@conservify.org

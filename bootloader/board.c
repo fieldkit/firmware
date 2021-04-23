@@ -17,7 +17,6 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 #include <sam.h>
-#include <variant.h>
 
 #define GENERIC_CLOCK_GENERATOR_MAIN       (0u)
 
@@ -34,7 +33,7 @@
 #define GENERIC_CLOCK_GENERATOR_12M_SYNC   GCLK_SYNCBUSY_GENCTRL4
 #define MAIN_CLOCK_SOURCE				           GCLK_GENCTRL_SRC_DPLL0
 #define GENERIC_CLOCK_GENERATOR_1M		     (7u)
-#define CRYSTALLESS
+// #define CRYSTALLESS
 #else
 #define GENERIC_CLOCK_GENERATOR_XOSC32K    (1u)
 #endif
@@ -67,111 +66,6 @@ void memory_initialize(void) {
             *destiny = 0ul;
         }
     }
-}
-
-void initialize_dpll() {
-    OSCCTRL->Dpll[0].DPLLCTRLA.reg = OSCCTRL_DPLLCTRLA_RESETVALUE;
-    OSCCTRL->Dpll[0].DPLLCTRLB.reg = OSCCTRL_DPLLCTRLB_RESETVALUE;
-    while (OSCCTRL->Dpll[0].DPLLSYNCBUSY.bit.ENABLE != 0);
-
-    OSCCTRL->Dpll[1].DPLLCTRLA.reg = OSCCTRL_DPLLCTRLA_RESETVALUE;
-    OSCCTRL->Dpll[1].DPLLCTRLB.reg = OSCCTRL_DPLLCTRLB_RESETVALUE;
-    while (OSCCTRL->Dpll[1].DPLLSYNCBUSY.bit.ENABLE != 0);
-
-    // PLL0 is 120MHz
-    GCLK->PCHCTRL[OSCCTRL_GCLK_ID_FDPLL0].reg = (1 << GCLK_PCHCTRL_CHEN_Pos) | GCLK_PCHCTRL_GEN(GCLK_PCHCTRL_GEN_GCLK7_Val);
-    OSCCTRL->Dpll[0].DPLLRATIO.reg = OSCCTRL_DPLLRATIO_LDRFRAC(0x00) | OSCCTRL_DPLLRATIO_LDR(59); // 120 Mhz
-    while (OSCCTRL->Dpll[0].DPLLSYNCBUSY.bit.DPLLRATIO);
-
-    // MUST USE LBYPASS DUE TO BUG IN REV A OF SAMD51
-    OSCCTRL->Dpll[0].DPLLCTRLB.reg = OSCCTRL_DPLLCTRLB_REFCLK_GCLK | OSCCTRL_DPLLCTRLB_LBYPASS;
-    OSCCTRL->Dpll[0].DPLLCTRLA.reg = OSCCTRL_DPLLCTRLA_ENABLE;
-    while (OSCCTRL->Dpll[0].DPLLSTATUS.bit.CLKRDY == 0 || OSCCTRL->Dpll[0].DPLLSTATUS.bit.LOCK == 0);
-
-
-    // PLL1 is 100MHz
-    GCLK->PCHCTRL[OSCCTRL_GCLK_ID_FDPLL1].reg = (1 << GCLK_PCHCTRL_CHEN_Pos) | GCLK_PCHCTRL_GEN(GCLK_PCHCTRL_GEN_GCLK7_Val);
-    OSCCTRL->Dpll[1].DPLLRATIO.reg = OSCCTRL_DPLLRATIO_LDRFRAC(0x00) | OSCCTRL_DPLLRATIO_LDR(49); // 100 Mhz
-    while (OSCCTRL->Dpll[1].DPLLSYNCBUSY.bit.DPLLRATIO);
-
-    // MUST USE LBYPASS DUE TO BUG IN REV A OF SAMD51
-    OSCCTRL->Dpll[1].DPLLCTRLB.reg = OSCCTRL_DPLLCTRLB_REFCLK_GCLK | OSCCTRL_DPLLCTRLB_LBYPASS;
-    OSCCTRL->Dpll[1].DPLLCTRLA.reg = OSCCTRL_DPLLCTRLA_ENABLE;
-    while (OSCCTRL->Dpll[1].DPLLSTATUS.bit.CLKRDY == 0 || OSCCTRL->Dpll[1].DPLLSTATUS.bit.LOCK == 0);
-}
-
-void board_minimal_initialize(void) {
-    /* Set 1 Flash Wait State for 48MHz */
-    NVMCTRL->CTRLA.reg |= NVMCTRL_CTRLA_RWS(0);
-
-    /* Software reset the module to ensure it is re-initialized correctly */
-    /* Note: Due to synchronization, there is a delay from writing CTRL.SWRST until the reset is complete.
-     * CTRL.SWRST and STATUS.SYNCBUSY will both be cleared when the reset is complete
-     */
-    GCLK->CTRLA.bit.SWRST = 1;
-    while (GCLK->SYNCBUSY.bit.SWRST) {
-        /* wait for reset to complete */
-    }
-
-    // Temporarily switch the CPU to the internal 32k oscillator while we
-    // reconfigure the DFLL.
-    GCLK->GENCTRL[0].reg = GCLK_GENCTRL_SRC(GCLK_GENCTRL_SRC_OSCULP32K) |
-        GCLK_GENCTRL_OE |
-        GCLK_GENCTRL_GENEN;
-
-    while (GCLK->SYNCBUSY.bit.GENCTRL0) {
-        /* Wait for synchronization */
-    }
-
-    // Configure the DFLL for USB clock recovery.
-    OSCCTRL->DFLLCTRLA.reg = 0;
-
-    OSCCTRL->DFLLMUL.reg = OSCCTRL_DFLLMUL_CSTEP(0x1) |
-        OSCCTRL_DFLLMUL_FSTEP(0x1) |
-        OSCCTRL_DFLLMUL_MUL(0xBB80);
-
-    while (OSCCTRL->DFLLSYNC.bit.DFLLMUL) {
-        /* Wait for synchronization */
-    }
-
-    OSCCTRL->DFLLCTRLB.reg = 0;
-    while (OSCCTRL->DFLLSYNC.bit.DFLLCTRLB) {
-        /* Wait for synchronization */
-    }
-
-    OSCCTRL->DFLLCTRLA.bit.ENABLE = 1;
-    while (OSCCTRL->DFLLSYNC.bit.ENABLE) {
-        /* Wait for synchronization */
-    }
-
-    OSCCTRL->DFLLVAL.reg = OSCCTRL->DFLLVAL.reg;
-    while(OSCCTRL->DFLLSYNC.bit.DFLLVAL ) {}
-
-    OSCCTRL->DFLLCTRLB.reg = OSCCTRL_DFLLCTRLB_WAITLOCK |
-        OSCCTRL_DFLLCTRLB_CCDIS | OSCCTRL_DFLLCTRLB_USBCRM ;
-
-    while (!OSCCTRL->STATUS.bit.DFLLRDY) {
-        /* Wait for synchronization */
-    }
-
-    // 5) Switch Generic Clock Generator 0 to DFLL48M. CPU will run at 48MHz.
-    GCLK->GENCTRL[0].reg =
-        GCLK_GENCTRL_SRC(GCLK_GENCTRL_SRC_DFLL) |
-        GCLK_GENCTRL_IDC |
-        GCLK_GENCTRL_OE |
-        GCLK_GENCTRL_GENEN;
-
-    while (GCLK->SYNCBUSY.bit.GENCTRL0) {
-        /* Wait for synchronization */
-    }
-
-    /*
-     * Now that all system clocks are configured, we can set CLKDIV .
-     * These values are normally the ones present after Reset.
-     */
-    MCLK->CPUDIV.reg = MCLK_CPUDIV_DIV_DIV1;
-
-    SysTick_Config(1000);
 }
 
 void board_initialize(void) {
@@ -272,8 +166,34 @@ void board_initialize(void) {
      * Set up the PLLs
      */
 
-    initialize_dpll();
-    
+    // PLL0 is 120MHz
+    GCLK->PCHCTRL[OSCCTRL_GCLK_ID_FDPLL0].reg = (1 << GCLK_PCHCTRL_CHEN_Pos) | GCLK_PCHCTRL_GEN(GCLK_PCHCTRL_GEN_GCLK7_Val);
+
+    OSCCTRL->Dpll[0].DPLLRATIO.reg = OSCCTRL_DPLLRATIO_LDRFRAC(0x00) | OSCCTRL_DPLLRATIO_LDR(59); //120 Mhz
+
+    while (OSCCTRL->Dpll[0].DPLLSYNCBUSY.bit.DPLLRATIO);
+
+    //MUST USE LBYPASS DUE TO BUG IN REV A OF SAMD51
+    OSCCTRL->Dpll[0].DPLLCTRLB.reg = OSCCTRL_DPLLCTRLB_REFCLK_GCLK | OSCCTRL_DPLLCTRLB_LBYPASS;
+
+    OSCCTRL->Dpll[0].DPLLCTRLA.reg = OSCCTRL_DPLLCTRLA_ENABLE;
+
+    while (OSCCTRL->Dpll[0].DPLLSTATUS.bit.CLKRDY == 0 || OSCCTRL->Dpll[0].DPLLSTATUS.bit.LOCK == 0);
+
+    // PLL1 is 100MHz
+    GCLK->PCHCTRL[OSCCTRL_GCLK_ID_FDPLL1].reg = (1 << GCLK_PCHCTRL_CHEN_Pos) | GCLK_PCHCTRL_GEN(GCLK_PCHCTRL_GEN_GCLK7_Val);
+
+    OSCCTRL->Dpll[1].DPLLRATIO.reg = OSCCTRL_DPLLRATIO_LDRFRAC(0x00) | OSCCTRL_DPLLRATIO_LDR(49); //100 Mhz
+
+    while (OSCCTRL->Dpll[1].DPLLSYNCBUSY.bit.DPLLRATIO);
+
+    // MUST USE LBYPASS DUE TO BUG IN REV A OF SAMD51
+    OSCCTRL->Dpll[1].DPLLCTRLB.reg = OSCCTRL_DPLLCTRLB_REFCLK_GCLK | OSCCTRL_DPLLCTRLB_LBYPASS;
+
+    OSCCTRL->Dpll[1].DPLLCTRLA.reg = OSCCTRL_DPLLCTRLA_ENABLE;
+
+    while (OSCCTRL->Dpll[1].DPLLSTATUS.bit.CLKRDY == 0 || OSCCTRL->Dpll[1].DPLLSTATUS.bit.LOCK == 0);
+
 
     /* ------------------------------------------------------------------------
      * Set up the peripheral clocks

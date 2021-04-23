@@ -1,5 +1,0 @@
-#!/bin/bash
-
-set -xe
-
-gdb-multiarch build/m4-gc/blink/blink-pic-fkb.elf

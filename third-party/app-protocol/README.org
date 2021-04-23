@@ -1,8 +1,0 @@
-#+TITLE:	README for fk-app-protocol
-#+AUTHOR:	Jacob Lewallen
-#+EMAIL:	jacob@conservify.org
-
-* 1. Overview
-
-This is the Google Protocol Buffers specification for the communications between
-a FieldKit device and the FieldKit mobile application.

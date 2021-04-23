@@ -2,4 +2,4 @@
 
 set -xe
 
-gdb-multiarch -q build/samd51/fk/fk-bundled-fkb.elf
+gdb-multiarch build/m4-gc/blink/blink-pic-fkb.elf

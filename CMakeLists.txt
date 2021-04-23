@@ -1,96 +1,54 @@
-#
-#
-#
-project(fk)
+project(loading)
 cmake_minimum_required(VERSION 3.6)
+set(CMAKE_MODULE_PATH $ENV{CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
 
-set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
-set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
+include(Arduino)
 
-find_package(Git)
+function(add_extra_targets target)
+  get_target_property(binary_dir ${target} BINARY_DIR)
 
-if(DEFINED ENV{GIT_LOCAL_BRANCH})
-message("Using ENV GIT_LOCAL_BRANCH")
-set(GIT_BRANCH $ENV{GIT_LOCAL_BRANCH})
-else()
-execute_process(
-  COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-  OUTPUT_VARIABLE GIT_BRANCH
-  OUTPUT_STRIP_TRAILING_WHITESPACE
+  add_custom_target(${target}.S ALL
+    arm-none-eabi-objdump --disassemble ${binary_dir}/${target}.elf | c++filt > ${target}.S
+    DEPENDS ${target}.elf
   )
-endif()
 
-if (DEFINED ENV{GIT_COMMIT})
-message("Using ENV GIT_COMMIT")
-set(GIT_COMMIT_HASH $ENV{GIT_COMMIT})
-else()
-execute_process(
-  COMMAND ${GIT_EXECUTABLE} log -1 --format=%h
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-  OUTPUT_VARIABLE GIT_COMMIT_HASH
-  OUTPUT_STRIP_TRAILING_WHITESPACE
+  add_custom_target(${target}.dump ALL
+    arm-none-eabi-objdump -s ${binary_dir}/${target}.elf | c++filt > ${target}.s
+    DEPENDS ${target}.elf
   )
-endif()
 
-message("Branch: ${GIT_BRANCH}")
-message("Hash: ${GIT_COMMIT_HASH}")
+  # add_custom_target(${target}.sections ALL
+  #  arm-none-eabi-readelf --sections ${binary_dir}/${target}.elf > ${target}.sections
+  #  DEPENDS ${target}.elf
+  # )
 
-set(VERSION_MAJOR 0 CACHE STRING "Project major version number.")
-set(VERSION_MINOR 1 CACHE STRING "Project minor version number.")
-set(VERSION_PATCH 0 CACHE STRING "Project patch version number.")
+  add_custom_target(${target}-fkb.elf ALL
+    ${CMAKE_SOURCE_DIR}/tools/mkfirmware.py --elf ${binary_dir}/${target}.elf --fkb ${binary_dir}/${target}-fkb.elf
+    DEPENDS ${target}.elf
+  )
 
-if(DEFINED ENV{BUILD_NUMBER})
-message("Using ENV build number for prerelease.")
-set(VERSION_PREL $ENV{BUILD_NUMBER} CACHE STRING "Project prelease version number.")
-else()
-message("No build prerelease.")
-set(VERSION_PREL 0 CACHE STRING "Project prelease version number.")
-endif()
-mark_as_advanced(VERSION_MAJOR VERSION_MINOR VERSION_PATCH)
+  add_custom_target(${target}-fkb.bin)
 
-set(FK_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}-${GIT_BRANCH}.${VERSION_PREL}-${GIT_COMMIT_HASH}")
+  add_dependencies(${target}-fkb.bin ${target}-fkb.elf)
 
-message("Version: ${FK_VERSION}")
+  add_custom_command(TARGET ${target}-fkb.bin POST_BUILD COMMAND ${ARDUINO_OBJCOPY} -O binary
+    ${CMAKE_CURRENT_BINARY_DIR}/${target}-fkb.elf
+    ${CMAKE_CURRENT_BINARY_DIR}/${target}-fkb.bin)
 
-message("Target Architecture: ${TARGET_ARCH}")
+  add_custom_target(${target}_fkb_bin ALL DEPENDS ${target}-fkb.bin)
 
-enable_testing()
+  set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/${target}.syms"
+    "${CMAKE_CURRENT_BINARY_DIR}/${target}.s"
+    "${CMAKE_CURRENT_BINARY_DIR}/${target}.S"
+    "${CMAKE_CURRENT_BINARY_DIR}/${target}.sections"
+    "${CMAKE_CURRENT_BINARY_DIR}/${target}.elf"
+    "${CMAKE_CURRENT_BINARY_DIR}/${target}.bin"
+    "${CMAKE_CURRENT_BINARY_DIR}/${target}.fkb"
+    "${CMAKE_CURRENT_BINARY_DIR}/${target}-fkb.bin"
+    "${CMAKE_CURRENT_BINARY_DIR}/${target}.map")
+endfunction()
 
-add_subdirectory(boards)
-
-if(${TARGET_ARCH} MATCHES "samd51")
-  if(${FK_TARGET_QSPI_MEMORY})
-    add_subdirectory(fk)
-  else()
-    add_subdirectory(bootloader)
-    add_subdirectory(fk)
-  endif()
-endif()
-
-add_subdirectory(modules)
-
-add_subdirectory(tests)
-
-# Add a target to generate API documentation with Doxygen
-find_package(Doxygen)
-option(BUILD_DOCUMENTATION "Create and install the HTML based API documentation (requires Doxygen)" ${DOXYGEN_FOUND})
-
-if(BUILD_DOCUMENTATION)
-    if(NOT DOXYGEN_FOUND)
-        message(FATAL_ERROR "Doxygen is needed to build the documentation.")
-    endif()
-
-    set(doxyfile_in ${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile.in)
-    set(doxyfile ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
-
-    configure_file(${doxyfile_in} ${doxyfile} @ONLY)
-
-    add_custom_target(doc
-        COMMAND ${DOXYGEN_EXECUTABLE} ${doxyfile}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-        COMMENT "Generating API documentation with Doxygen"
-        VERBATIM)
-
-    install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html DESTINATION share/doc)
-endif()
+add_subdirectory(bootloader)
+add_subdirectory(shim)
+add_subdirectory(blink)
