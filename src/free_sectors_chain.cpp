@@ -19,16 +19,17 @@ int32_t free_sectors_chain::add_free_sectors(free_sectors_t record) {
 
     while (true) {
         for (auto iter = db().begin(); iter != db().end(); ++iter) {
-            auto entry = iter->as<entry_t>();
+            auto rp = *iter;
+            auto entry = rp.as<entry_t>();
             assert(entry != nullptr);
 
             if (entry->type == entry_type::FreeSectors) {
-                auto fs = iter->as<free_sectors_t>();
+                auto fs = rp.as<free_sectors_t>();
 
                 if (fs->head == InvalidSector) {
                     phydebugf("add-chain: reusing: %d", fs->head);
 
-                    auto mutable_record = db().as_mutable<free_sectors_t>(*iter);
+                    auto mutable_record = db().as_mutable<free_sectors_t>(rp);
 
                     *mutable_record = record;
 
@@ -82,11 +83,12 @@ int32_t free_sectors_chain::dequeue(dhara_sector_t *sector) {
 
     while (true) {
         for (auto iter = db().begin(); iter != db().end(); ++iter) {
-            auto entry = iter->as<entry_t>();
+            auto rp = *iter;
+            auto entry = rp.as<entry_t>();
             assert(entry != nullptr);
 
             if (entry->type == entry_type::FreeSectors) {
-                auto fs = iter->as<free_sectors_t>();
+                auto fs = rp.as<free_sectors_t>();
                 auto new_head = fs->head;
 
                 int32_t err = 0;
@@ -107,7 +109,7 @@ int32_t free_sectors_chain::dequeue(dhara_sector_t *sector) {
                     if (fs->head != new_head) {
                         phydebugf("walk: head changed %d vs %d", fs->head, new_head);
 
-                        auto mutable_record = db().as_mutable<free_sectors_t>(*iter);
+                        auto mutable_record = db().as_mutable<free_sectors_t>(rp);
 
                         mutable_record->head = new_head;
 

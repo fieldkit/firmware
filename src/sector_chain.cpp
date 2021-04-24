@@ -146,32 +146,46 @@ int32_t sector_chain::forward(page_lock &page_lock) {
     return 1;
 }
 
+int32_t sector_chain::prepare_sector(page_lock &lock, dhara_sector_t previous_sector, bool preserve_header) {
+    dhara_sector_t following_sector = InvalidSector;
+
+    if (preserve_header) {
+        auto hdr = db().header<sector_chain_header_t>();
+        following_sector = hdr->np;
+    }
+
+    db().clear();
+
+    auto err = write_header(lock);
+    if (err < 0) {
+        return err;
+    }
+
+    phydebugf("truncated, keeping pp=%d np=%d", previous_sector, following_sector);
+
+    assert(db().write_header<sector_chain_header_t>([&](sector_chain_header_t *header) {
+        header->pp = previous_sector;
+        header->np = following_sector;
+        header->flags = sector_flags::Tail;
+        return 0;
+    }) == 0);
+
+    return 0;
+}
+
 int32_t sector_chain::truncate() {
     assert(head_ != InvalidSector && tail_ != InvalidSector);
 
     sector(head_);
 
-    auto page_lock = db().writing(sector());
+    auto lock = db().writing(sector());
 
-    sector_chain_header_t saved = *db().header<sector_chain_header_t>();
-
-    db().clear();
-
-    auto err = write_header(page_lock);
+    auto err = prepare_sector(lock, InvalidSector, true);
     if (err < 0) {
         return err;
     }
 
-    phydebugf("truncated, keeping pp=%d np=%d", saved.pp, saved.np);
-
-    assert(db().write_header<sector_chain_header_t>([&](sector_chain_header_t *header) {
-        header->np = saved.np;
-        header->pp = saved.pp;
-        header->flags = sector_flags::Tail;
-        return 0;
-    }) == 0);
-
-    err = flush(page_lock);
+    err = flush(lock);
     if (err < 0) {
         return err;
     }
@@ -297,56 +311,55 @@ int32_t sector_chain::write_header_if_at_start(page_lock &page_lock) {
     return 1;
 }
 
-int32_t sector_chain::grow_tail(page_lock &page_lock) {
+int32_t sector_chain::grow_tail(page_lock &lock) {
     logged_task lt{ "grow" };
 
     auto previous_sector = sector_;
-    auto allocated = allocator_->allocate();
-    assert(allocated != sector_); // Don't ask.
-
-    // Assertion on db().size()
-    // phydebugf("%s grow! %zu/%zu alloc=%d", name(), db().position(), db().size(), allocated);
+    auto following_sector = InvalidSector;
+    auto allocated = true;
 
     if (sector_ != InvalidSector) {
         assert(db().begin() != db().end());
 
         assert(db().write_header<sector_chain_header_t>([&](sector_chain_header_t *header) {
-            header->np = allocated;
+            if (header->np == InvalidSector) {
+                header->np = allocator_->allocate();
+            }
+            else {
+                allocated = false;
+            }
             header->flags = sector_flags::None;
+            following_sector = header->np;
             return 0;
         }) == 0);
 
-        page_lock.dirty();
+        lock.dirty();
 
-        auto err = flush(page_lock);
+        auto err = flush(lock);
         if (err < 0) {
             return err;
         }
     }
+    else {
+        following_sector = allocator_->allocate();
+    }
 
-    tail(allocated);
-    sector(allocated);
+    tail(following_sector);
+    sector(following_sector);
 
-    auto err = page_lock.replace(allocated, true);
+    auto err = lock.replace(following_sector, true);
     if (err < 0) {
         return err;
     }
 
-    buffer_.clear();
+    err = prepare_sector(lock, previous_sector, !allocated);
+    if (err < 0) {
+        return err;
+    }
+
     visited_sectors_++;
 
-    err = write_header(page_lock);
-    if (err < 0) {
-        return err;
-    }
-
-    assert(db().write_header<sector_chain_header_t>([&](sector_chain_header_t *header) {
-        header->pp = previous_sector;
-        header->flags = sector_flags::Tail;
-        return 0;
-    }) == 0);
-
-    page_lock.dirty();
+    lock.dirty();
 
     return 0;
 }

@@ -89,6 +89,8 @@ TYPED_TEST(TruncateFixture, Truncate_DataChain_Simple) {
         ASSERT_EQ(opened.flush(), 0);
     });
 
+    memory.allocator().disable();
+
     memory.mounted<dir_type>([&](auto &dir) {
         ASSERT_EQ(dir.find("data.txt", this->file_cfg()), 1);
         file_reader reader{ memory.pc(), &dir, dir.open() };

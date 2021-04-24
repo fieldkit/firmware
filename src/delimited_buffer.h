@@ -183,13 +183,15 @@ public:
     template <typename T>
     T const *header() const {
         ensure_valid();
-        return begin()->as<T>();
+        auto rp = *begin();
+        return rp.as<T>();
     }
 
     template<typename THeader>
     int32_t write_header(std::function<int32_t(THeader *header)> fn) {
         ensure_valid();
-        return fn(as_mutable<THeader>(*begin()));
+        auto rp = *begin();
+        return fn(as_mutable<THeader>(rp));
     }
 
     int32_t write_view(std::function<int32_t(write_buffer)> fn) {
@@ -218,7 +220,7 @@ public:
         ensure_valid();
         auto iter = begin();
         while (iter != end()) {
-            buffer_.position(iter->position() + iter->size_of_record());
+            buffer_.position(iter.position() + iter.size_of_record());
             iter = ++iter;
         }
         return 0;
@@ -228,7 +230,7 @@ public:
         ensure_valid();
         auto iter = begin();
         while (iter != end()) {
-            buffer_.position(iter->position() + iter->size_of_record());
+            buffer_.position(iter.position() + iter.size_of_record());
             return 0;
         }
         return -1;
@@ -295,13 +297,16 @@ protected:
 public:
     class iterator {
     private:
-        int32_t size_of_record_{ -1 };
-        record_ptr record_;
         read_buffer buffer_;
+        int32_t record_size_{ -1 };
 
     public:
         size_t position() {
             return buffer_.position();
+        }
+
+        int32_t size_of_record() {
+            return record_size_;
         }
 
     public:
@@ -322,22 +327,13 @@ public:
         bool read() {
             assert(buffer_.valid());
 
-            auto position = buffer_.position();
-
             uint32_t maybe_record_length = 0u;
             if (!buffer_.try_read(maybe_record_length)) {
-                record_ = record_ptr{};
+                record_size_ = -1;
                 return false;
             }
 
-            auto delimiter_overhead = varint_encoding_length(maybe_record_length);
-            auto size_at_end_of_record = position + maybe_record_length + delimiter_overhead;
-
-            read_buffer record_buffer( buffer_.ptr(), size_at_end_of_record, position );
-            record_ = record_ptr{ std::move(record_buffer), maybe_record_length };
-
-            size_of_record_ = maybe_record_length;
-
+            record_size_ = maybe_record_length;
             return true;
         }
 
@@ -346,11 +342,12 @@ public:
             // Advance to the record after this one, we only adjust
             // position_, then we do a read and see if we have a
             // legitimate record length.
-            if (size_of_record_ == 0) {
+            auto size_of_record = record_size_;
+            if (size_of_record == 0) {
                 buffer_ = buffer_.end_view();
                 return *this;
             }
-            buffer_.skip(size_of_record_);
+            buffer_.skip(size_of_record);
             if (!buffer_.valid()) {
                 buffer_ = buffer_.end_view();
                 return *this;
@@ -369,12 +366,13 @@ public:
             return buffer_.position() == other.buffer_.position();
         }
 
-        record_ptr &operator*() {
-            return record_;
-        }
-
-        record_ptr *operator->() {
-            return &record_;
+        record_ptr operator*() {
+            auto delimiter_overhead = varint_encoding_length(record_size_);
+            auto position_after_delimiter = buffer_.position();
+            auto position_before_delimiter = position_after_delimiter - delimiter_overhead;
+            auto position_end_of_record = position_after_delimiter + record_size_;
+            read_buffer record_buffer( buffer_.ptr(), position_end_of_record, position_before_delimiter);
+            return record_ptr{ std::move(record_buffer), (size_t)record_size_ };
         }
     };
 

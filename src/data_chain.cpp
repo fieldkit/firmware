@@ -283,12 +283,11 @@ int32_t data_chain::write_chain(std::function<int32_t(write_buffer, bool &)> dat
     return written;
 }
 
-
 int32_t data_chain::constrain() {
     auto iter = db().begin();
     auto hdr = db().header<data_chain_header_t>();
-    auto total = hdr->bytes + iter->position() + iter->size_of_record() + 1 /*     Null terminator */;
-    phydebugf("constrain hdr-bytes=%d + hdr-pos=%d + hdr->size=%d + 1 <null> = total=%d", hdr->bytes, iter->position(), iter->size_of_record(), total);
+    auto total = hdr->bytes + iter.position() + iter.size_of_record() + 1 /* Null terminator */;
+    phydebugf("constrain hdr-bytes=%d + hdr-pos=%d + hdr->size=%d + 1 <null> = total=%d", hdr->bytes, iter.position(), iter.size_of_record(), total);
     assert(db().constrain(total) >= 0);
     return 0;
 }

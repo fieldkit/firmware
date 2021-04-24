@@ -107,10 +107,11 @@ private:
     static persisted_node_t find_root_in_sector(dhara_sector_t sector, delimited_buffer &db) {
         persisted_node_t selected;
         for (auto iter = db.begin(); iter != db.end(); ++iter) {
-            if (iter->as<entry_t>()->type == entry_type::TreeNode) {
-                auto node = db.as_mutable<default_node_type>(*iter);
+            auto rp = *iter;
+            if (rp.as<entry_t>()->type == entry_type::TreeNode) {
+                auto node = db.as_mutable<default_node_type>(rp);
                 if (selected.node == nullptr || selected.node->depth < node->depth) {
-                    selected = persisted_node_t{ node, node_ptr_t{ sector, (sector_offset_t)iter->position() } };
+                    selected = persisted_node_t{ node, node_ptr_t{ sector, (sector_offset_t)rp.position() } };
                 }
             }
         }
@@ -121,8 +122,9 @@ private:
     static persisted_node_t find_node_in_sector(delimited_buffer &db, node_ptr_t ptr) {
         persisted_node_t selected;
         for (auto iter = db.begin(); iter != db.end(); ++iter) {
-            if (iter->position() == ptr.position) {
-                auto node = db.as_mutable<default_node_type>(*iter);
+            auto rp = *iter;
+            if (rp.position() == ptr.position) {
+                auto node = db.as_mutable<default_node_type>(rp);
                 return persisted_node_t{ node, ptr };
             }
         }
@@ -339,7 +341,7 @@ private:
 
             // We recurse outside of the dereference lambda so that we
             // are only ever consuming the minimum number of pages.
-            auto err = dereference(true, node_ptr, [&](page_lock &/*lock*/, default_node_type *node) -> int32_t {
+            auto err = dereference(true, node_ptr, [this, &i, &node_ptr, &follow_ptr](page_lock &/*lock*/, default_node_type *node) -> int32_t {
                 if (node->type == node_type::Inner) {
                     if (i == 0) {
                         phyinfof("inner nkeys=%d", node->number_keys);
@@ -383,13 +385,13 @@ private:
     }
 
     int32_t split_child(page_lock &lock, index_type index, node_ptr_t node_ptr, default_node_type *node, node_ptr_t child_ptr, default_node_type *child) {
-        index_type threshold = (Size + 1) / 2;
-
         // Node has children which child should be one of and so has to be an inner node.
         assert(node->type == node_type::Inner);
 
         node_ptr_t allocated_ptr;
-        auto err = allocate_node(lock, allocated_ptr, [&](page_lock &new_lock, default_node_type *new_node, node_ptr_t new_node_ptr) -> int32_t {
+        auto err = allocate_node(lock, allocated_ptr, [this, index, &node_ptr, node, &child_ptr, child](page_lock &new_lock, default_node_type *new_node, node_ptr_t new_node_ptr) -> int32_t {
+            index_type threshold = (Size + 1) / 2;
+
             assert(child->number_keys >= threshold);
 
             phydebugf("splitting child-nkeys=%d parent=%d:%d child=%d:%d new-child=%d:%d type=%s threshold=%d",
@@ -455,7 +457,7 @@ private:
     int32_t insert_non_full(node_ptr_t node_ptr, KEY &key, VALUE &value) {
         node_ptr_t insertion_ptr;
 
-        auto err = dereference(false, node_ptr, [&](page_lock &lock, default_node_type *node) -> int32_t {
+        auto err = dereference(false, node_ptr, [this, &insertion_ptr, node_ptr, &key, &value](page_lock &lock, default_node_type *node) -> int32_t {
             index_type index = node->number_keys - 1;
 
             assert(node->number_keys < (index_type)Size);
@@ -600,7 +602,7 @@ public:
 
         node_ptr_t insertion_ptr;
 
-        auto err = dereference_root([&](page_lock &lock, default_node_type *node, node_ptr_t node_ptr) -> int32_t {
+        auto err = dereference_root([this, &insertion_ptr, &key, &value](page_lock &lock, default_node_type *node, node_ptr_t node_ptr) -> int32_t {
             phydebugf("%s adding node depth=%d", name(), node->depth);
 
             log_node(node_ptr, node);
@@ -617,31 +619,42 @@ public:
                 lock.dirty();
             }
             else if (node->number_keys == Size) {
-                phydebugf("root full, growing tree %d", lock.sector());
+                phydebugf("root full, growing tree");
 
                 node_ptr_t allocated_ptr;
-                auto err = allocate_node(lock, allocated_ptr, [&](page_lock &new_lock, default_node_type *new_node, node_ptr_t new_node_ptr) -> int32_t {
-                    new_node->type = node_type::Inner;
-                    new_node->depth = node->depth + 1;
-                    new_node->d.children[0] = node_ptr;
+                auto err = allocate_node(lock, allocated_ptr,
+                                         [this, &lock, &insertion_ptr, &key, &value, node, &node_ptr]
+                                         (page_lock &new_lock, default_node_type *new_node, node_ptr_t new_node_ptr) -> int32_t {
+
+                    // This is unusual and the reason we do this is so
+                    // that the root node is always in the same
+                    // place. This has several benefits, the most
+                    // notable of which is that we don't need to
+                    // update references to this tree when we add
+                    // values and we keep the head of the "chain"
+                    // formed by the sectors in the tree.
+                    *new_node = *node;
 
                     new_lock.dirty();
 
-                    auto err = split_child(new_lock, 0, new_node_ptr, new_node, node_ptr, node);
+                    *node = default_node_type{ };
+                    node->type = node_type::Inner;
+                    node->depth = new_node->depth + 1;
+                    node->d.children[0] = new_node_ptr;
+
+                    auto err = split_child(new_lock, 0, node_ptr, node, new_node_ptr, new_node);
                     if (err < 0) {
                         return err;
                     }
 
                     lock.dirty();
 
-                    phydebugf("after split nkeys=%d", new_node->number_keys);
-
                     auto index = 0;
-                    if (new_node->keys[0] < key) {
+                    if (node->keys[0] < key) {
                         index++;
                     }
 
-                    insertion_ptr = new_node->d.children[index];
+                    insertion_ptr = node->d.children[index];
 
                     return 0;
                 });
@@ -649,9 +662,8 @@ public:
                     return err;
                 }
 
-                phydebugf("root full, new root=%d:%d", allocated_ptr.sector, allocated_ptr.position);
-
-                root_ = allocated_ptr.sector;
+                phydebugf("root full, root=%d:%d old-root=%d:%d", node_ptr.sector, node_ptr.position,
+                          allocated_ptr.sector, allocated_ptr.position);
             }
             else {
                 insertion_ptr = node_ptr;

@@ -23,6 +23,23 @@ TEST(General, EntrySizes) {
     EXPECT_EQ(sizeof(tree_node_header_t), 16u);
 }
 
+TEST(General, ObjectSizes) {
+    phydebugf("sizeof(malloc_working_buffers) = %zu", sizeof(malloc_working_buffers));
+    phydebugf("sizeof(memory_flash_memory) = %zu", sizeof(memory_flash_memory));
+    phydebugf("sizeof(memory_sector_map) = %zu", sizeof(memory_sector_map));
+    phydebugf("sizeof(sector_allocator) = %zu", sizeof(sector_allocator));
+    phydebugf("sizeof(directory_tree) = %zu", sizeof(directory_tree));
+
+    phydebugf("sizeof(directory_tree::dir_node_type) = %zu", sizeof(directory_tree::dir_node_type));
+    phydebugf("sizeof(directory_tree::dir_tree_type) = %zu", sizeof(directory_tree::dir_tree_type));
+    phydebugf("sizeof(directory_tree::attr_node_type) = %zu", sizeof(directory_tree::attr_node_type));
+    phydebugf("sizeof(directory_tree::attr_tree_type) = %zu", sizeof(directory_tree::attr_tree_type));
+
+    phydebugf("sizeof(delimited_buffer::iterator) = %zu", sizeof(delimited_buffer::iterator));
+    phydebugf("sizeof(read_buffer) = %zu", sizeof(read_buffer));
+    phydebugf("sizeof(record_ptr) = %zu", sizeof(record_ptr));
+}
+
 template <typename T> class BasicsFixture : public PhylumFixture {};
 
 typedef ::testing::Types<
