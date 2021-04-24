@@ -48,12 +48,12 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
     // Initialize an empty sensor group at each module position here,
     // so that if we `continue` in the loop after they're
     // initialized. This isn't ideal, continue just sucks.
-    auto empty_readings_array = pool.malloc_with<pb_array_t>({
-        .length = 0,
-        .itemSize = sizeof(fk_data_SensorAndValue),
-        .buffer = nullptr,
-        .fields = fk_data_SensorAndValue_fields,
-    });
+    auto empty_readings_array = pool.malloc<pb_array_t>();
+    empty_readings_array->length = 0;
+    empty_readings_array->itemSize = sizeof(fk_data_SensorAndValue);
+    empty_readings_array->buffer = nullptr;
+    empty_readings_array->fields = fk_data_SensorAndValue_fields;
+
     for (auto i = 0u; i < modules.size(); ++i) {
         auto &group = groups[i];
         group.module = i;
@@ -135,12 +135,11 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
             sensor_values[i].uncalibrated = reading.uncalibrated;
         }
 
-        auto readings_array = pool.malloc_with<pb_array_t>({
-            .length = (size_t)readings->size(),
-            .itemSize = sizeof(fk_data_SensorAndValue),
-            .buffer = sensor_values,
-            .fields = fk_data_SensorAndValue_fields,
-        });
+        auto readings_array = pool.malloc<pb_array_t>();
+        readings_array->length = (size_t)readings->size();;
+        readings_array->itemSize = sizeof(fk_data_SensorAndValue);
+        readings_array->buffer = sensor_values;
+        readings_array->fields = fk_data_SensorAndValue_fields;
 
         auto &group = groups[group_number];
         group.module = i.integer();
@@ -152,12 +151,11 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
         all_readings.emplace(adding);
     }
 
-    auto sensor_groups_array = pool.malloc_with<pb_array_t>({
-        .length = (size_t)modules.size(),
-        .itemSize = sizeof(fk_data_SensorGroup),
-        .buffer = groups,
-        .fields = fk_data_SensorGroup_fields,
-    });
+    auto sensor_groups_array = pool.malloc<pb_array_t>();
+    sensor_groups_array->length = (size_t)modules.size();
+    sensor_groups_array->itemSize = sizeof(fk_data_SensorGroup);
+    sensor_groups_array->buffer = groups;
+    sensor_groups_array->fields = fk_data_SensorGroup_fields;
 
     record_->readings.sensorGroups.arg = sensor_groups_array;
 

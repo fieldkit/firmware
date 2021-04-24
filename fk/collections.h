@@ -91,7 +91,9 @@ public:
     }
 
     void add(T value) {
-        auto node = pool_->malloc_with<item_t>(std::move(value));
+        auto node = pool_->malloc<item_t>();
+        node->np = nullptr;
+        node->item = std::move(value);
         append(node);
     }
 
@@ -103,7 +105,9 @@ public:
 
     template<class... Args>
     void emplace(Args&&... args) {
-        auto node = pool_->malloc_with<item_t>(T(std::forward<Args>(args)...));
+        auto node = pool_->malloc<item_t>();
+        node->np = nullptr;
+        node->item = T(std::forward<Args>(args)...);
         append(node);
     }
 
