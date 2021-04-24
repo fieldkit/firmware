@@ -20,7 +20,7 @@ public:
         return 0;
     }
 
-    dhara_sector_t allocate() {
+    virtual dhara_sector_t allocate() {
         // TODO We should also maintain a free sector collection. We
         // can do this by just keeping a sector chain with their
         // numbers.

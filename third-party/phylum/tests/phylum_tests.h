@@ -1,5 +1,6 @@
 #pragma once
 
+#include <exception>
 #include <gtest/gtest.h>
 
 #include <delimited_buffer.h>
@@ -23,13 +24,33 @@ struct layout_4096 {
     size_t sector_size{ 4096 };
 };
 
+class test_sector_allocator : public sector_allocator {
+private:
+    bool disabled_{ false };
+
+public:
+    test_sector_allocator(sector_map &sectors) : sector_allocator(sectors) {
+    }
+
+public:
+    void disable() {
+        disabled_ = true;
+    }
+
+public:
+    dhara_sector_t allocate() override {
+        assert(!disabled_);
+        return sector_allocator::allocate();
+    }
+};
+
 class FlashMemory {
 private:
     size_t sector_size_;
     malloc_working_buffers buffers_{ sector_size_ };
     memory_flash_memory memory_{ sector_size_ };
     dhara_sector_map sectors_{ buffers_, memory_ };
-    sector_allocator allocator_{ sectors_ };
+    test_sector_allocator allocator_{ sectors_ };
     bool formatted_{ false };
     bool initialized_{ false };
 
@@ -50,7 +71,7 @@ public:
         return sectors_;
     }
 
-    sector_allocator &allocator() {
+    test_sector_allocator &allocator() {
         return allocator_;
     }
 

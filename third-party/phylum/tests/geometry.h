@@ -37,9 +37,11 @@ public:
                 ++iter;
                 --n;
             }
-            // We now see an iterator position for the NULL
-            // terminator.
-            if (iter->delimited_size() == 0) {
+
+            // This is awkward because there's two ways to end, one
+            // includes a NULL terminator, 0-length record and the
+            // other is unparseable length.
+            if (iter.size_of_record() <= 0) {
                 return testing::AssertionSuccess();
             }
             return testing::AssertionFailure() << "too many records";
@@ -68,10 +70,12 @@ public:
             if (iter == buffer_.end()) {
                 return testing::AssertionFailure() << "unexpected end of records";
             }
-            auto actual = iter->as<T>();
+
+            auto rp = *iter;
+            auto actual = rp.as<T>();
             if (memcmp(&expected, actual, sizeof(T)) == 0) {
                 if (payload_size > 0) {
-                    auto err = iter->read_data<T>([&](auto data_buffer) {
+                    auto err = rp.read_data<T>([&](auto data_buffer) {
                         auto ptr = data_buffer.cursor();
                         auto size = data_buffer.available();
                         if (memcmp(expected_payload, ptr, size) == 0) {

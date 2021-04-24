@@ -209,3 +209,43 @@ TYPED_TEST(TreeFixture, OverwriteValue_SingleNode) {
         ASSERT_EQ(found, 2u);
     });
 }
+
+TYPED_TEST(TreeFixture, DISABLED_Truncate_SingleSector) {
+    typename TypeParam::first_type layout;
+    FlashMemory memory{ layout.sector_size };
+
+    tree_ptr_t tree_ptr;
+
+    memory.mounted<directory_chain>([&](auto &chain) {
+        auto first = memory.allocator().allocate();
+        typename TypeParam::second_type tree{ memory.pc(), tree_ptr_t{ first }, "tree" };
+
+        ASSERT_EQ(tree.create(), 0);
+
+        for (auto i = 1u; i < 4; ++i) {
+            phydebugf("adding %d", i);
+            uint32_t found = 0u;
+            ASSERT_EQ(tree.add(i, i), 0);
+            EXPECT_EQ(tree.find(i, &found), 1);
+            ASSERT_EQ(found, i);
+        }
+
+        tree_ptr = tree.to_tree_ptr();
+    });
+
+    memory.allocator().disable();
+
+    memory.mounted<directory_chain>([&](auto &chain) {
+        typename TypeParam::second_type tree{ memory.pc(), tree_ptr, "tree" };
+
+        ASSERT_EQ(tree.create(), 0);
+
+        for (auto i = 1u; i < 4; ++i) {
+            phydebugf("adding %d", i);
+            uint32_t found = 0u;
+            ASSERT_EQ(tree.add(i, i), 0);
+            EXPECT_EQ(tree.find(i, &found), 1);
+            ASSERT_EQ(found, i);
+        }
+    });
+}
