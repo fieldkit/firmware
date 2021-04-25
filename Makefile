@@ -45,6 +45,7 @@ $(BUILD)/samd09: setup
 
 samd51: $(BUILD)/samd51 $(BUILD)/samd51-qspi
 	cd $(BUILD)/samd51 && $(MAKE)
+	tools/stack-usage.py $(BUILD)/samd51 > doc/stack-usage.txt
 
 samd51-qspi: $(BUILD)/samd51 $(BUILD)/samd51-qspi
 	cd $(BUILD)/samd51-qspi && $(MAKE)
