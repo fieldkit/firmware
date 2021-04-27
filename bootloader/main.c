@@ -162,6 +162,8 @@ int32_t main() {
 
     fkb_external_println("bl: board ready (%s) (bank = %d)", fk_get_reset_reason_string(), fk_nvm_get_active_bank());
 
+    fkb_external_println("bl: this line artificially inflates the firmware size as a bug workaround");
+
     fkb_external_println("bl: flash...");
 
     bl_flash_initialize();
