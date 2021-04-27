@@ -44,6 +44,14 @@ def uploadFirmware(Map parameters = [:]) {
 	sh prod
 }
 
+def getBranch(scmInfo) {
+	def (remoteOrBranch, branch) = scmInfo.GIT_BRANCH.tokenize('/')
+	if (branch) {
+		return branch;
+	}
+	return remoteOrBranch;
+}
+
 timestamps {
     node () {
 		try {
@@ -53,7 +61,7 @@ timestamps {
 				scmInfo = checkout scm
 			}
 
-			def (remote, branch) = scmInfo.GIT_BRANCH.tokenize('/')
+			def branch = getBranch(scmInfo)
 
 			stage ('build') {
 				sh "env"
