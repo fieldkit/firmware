@@ -1,6 +1,6 @@
 @Library('conservify') _
 
-conservifyProperties()
+conservifyProperties([ disableConcurrentBuilds() ])
 
 def uploadFirmware(Map parameters = [:]) {
 	def command = "--scheme https"
