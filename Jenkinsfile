@@ -1,6 +1,6 @@
 @Library('conservify') _
 
-conservifyProperties()
+conservifyProperties([ disableConcurrentBuilds() ])
 
 def uploadFirmware(Map parameters = [:]) {
 	def command = "--scheme https"
@@ -44,6 +44,14 @@ def uploadFirmware(Map parameters = [:]) {
 	sh prod
 }
 
+def getBranch(scmInfo) {
+	def (remoteOrBranch, branch) = scmInfo.GIT_BRANCH.tokenize('/')
+	if (branch) {
+		return branch;
+	}
+	return remoteOrBranch;
+}
+
 timestamps {
     node () {
 		try {
@@ -53,7 +61,7 @@ timestamps {
 				scmInfo = checkout scm
 			}
 
-			def (remote, branch) = scmInfo.GIT_BRANCH.tokenize('/')
+			def branch = getBranch(scmInfo)
 
 			stage ('build') {
 				sh "env"
@@ -85,12 +93,10 @@ timestamps {
 				archiveArtifacts artifacts: "build/*.zip, build/samd51/bootloader/*.elf, build/samd51/bootloader/*.bin, build/*/fk/*.bin, build/*/fk/*.elf, build/*/modules/*/*/*.bin, build/*/modules/*/*/*.elf"
 			}
 
-			if (branch == "main") {
-				stage ('distribute') {
-					withCredentials([usernamePassword(credentialsId: 'fkpassword', usernameVariable: 'FK_USER', passwordVariable: 'FK_PASSWORD')]) {
-						uploadFirmware(version: version, profile: 'standard', module: 'fk-core', file: "build/samd51/fk/fk-bundled-fkb.bin", email: "${env.FK_USER}", password: "${env.FK_PASSWORD}")
-						uploadFirmware(version: version, profile: 'standard', module: 'fk-bl', file: "build/samd51/bootloader/fkbl-fkb.bin", email: "${env.FK_USER}", password: "${env.FK_PASSWORD}")
-					}
+			stage ('distribute') {
+				withCredentials([usernamePassword(credentialsId: 'fkpassword', usernameVariable: 'FK_USER', passwordVariable: 'FK_PASSWORD')]) {
+					uploadFirmware(version: version, profile: 'standard', module: 'fk-core', file: "build/samd51/fk/fk-bundled-fkb.bin", email: "${env.FK_USER}", password: "${env.FK_PASSWORD}")
+					uploadFirmware(version: version, profile: 'standard', module: 'fk-bl', file: "build/samd51/bootloader/fkbl-fkb.bin", email: "${env.FK_USER}", password: "${env.FK_PASSWORD}")
 				}
 			}
 
