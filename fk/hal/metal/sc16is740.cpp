@@ -1,5 +1,3 @@
-#include <algorithm>
-
 #include "sc16is740.h"
 #include "platform.h"
 
@@ -8,8 +6,6 @@
 namespace fk {
 
 FK_DECLARE_LOGGER("sc16is740");
-
-#include <Arduino.h>
 
 constexpr uint8_t Sc16iS740Address = 0x9A >> 1;
 
