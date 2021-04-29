@@ -9,14 +9,6 @@
 namespace fk {
 
 /**
- * Describes the power needs for a Module.
- */
-enum class ModulePower {
-    ReadingsOnly,
-    Always,
-};
-
-/**
 ** Value for module ordering and ranking.
  */
 using ModuleOrder = uint16_t;

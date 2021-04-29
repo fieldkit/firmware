@@ -15,9 +15,11 @@ private:
     ModMux *mm_;
     GpsState const *gps_;
     TwoWireWrapper *module_bus_{ nullptr };
+    ModulePowerState power_state_{ ModulePowerState::Unknown };
 
 public:
     ScanningContext(ModMux *mm, GpsState const *gps, TwoWireWrapper &module_bus, Pool &pool);
+    ScanningContext(ModMux *mm, GpsState const *gps, TwoWireWrapper &module_bus, ModulePowerState power_state, Pool &pool);
     friend class ModuleContext;
 
 public:
@@ -49,9 +51,10 @@ public:
 class ReadingsContext : public ModuleContext {
 private:
     ModuleReadingsCollection &readings_;
+    ModulePowerState power_state_{ ModulePowerState::Unknown };
 
 public:
-    ReadingsContext(ScanningContext &from, ModulePosition position, ModuleReadingsCollection &readings, Pool &pool);
+    ReadingsContext(ScanningContext &from, ModulePosition position, ModuleReadingsCollection &readings, ModulePowerState power_state, Pool &pool);
 
 public:
     ModuleReadingsCollection &readings() {

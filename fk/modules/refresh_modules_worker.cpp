@@ -7,7 +7,7 @@ RefreshModulesWorker::RefreshModulesWorker() {
 }
 
 void RefreshModulesWorker::run(Pool &pool) {
-    ReadingsWorker worker{ true, true, false };
+    ReadingsWorker worker{ true, true, false, ModulePowerState::Unknown };
     worker.run(pool);
 }
 

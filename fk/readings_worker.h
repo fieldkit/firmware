@@ -11,9 +11,10 @@ private:
     bool scan_;
     bool read_only_;
     bool verify_;
+    ModulePowerState power_state_{ ModulePowerState::Unknown };
 
 public:
-    ReadingsWorker(bool scan, bool read_only, bool verify);
+    ReadingsWorker(bool scan, bool read_only, bool verify, ModulePowerState power_state = ModulePowerState::Unknown);
 
 public:
     void run(Pool &pool) override;

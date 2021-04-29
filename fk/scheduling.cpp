@@ -2,12 +2,6 @@
 
 namespace fk {
 
-#if !defined(__SAMD51__)
-ScheduledTime fk_schedule_get_scheduled_time() {
-    return { };
-}
-#endif
-
 CurrentSchedules::CurrentSchedules() {
 }
 
@@ -29,7 +23,7 @@ ReadingsTask::ReadingsTask(lwcron::CronSpec cron_spec) : lwcron::CronTask(cron_s
 }
 
 void ReadingsTask::run() {
-    get_ipc()->launch_worker(WorkerCategory::Readings, create_pool_worker<ReadingsWorker>(false, false, true));
+    get_ipc()->launch_worker(WorkerCategory::Readings, create_pool_worker<ReadingsWorker>(false, false, true, ModulePowerState::Unknown));
 }
 
 const char *ReadingsTask::toString() const {

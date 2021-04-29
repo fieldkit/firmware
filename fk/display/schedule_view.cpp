@@ -29,7 +29,7 @@ void ScheduleView::tick(ViewController *views, Pool &pool) {
     auto now = fk_uptime();
     if (update_at_ == 0 || now > update_at_) {
         auto gs = get_global_state_ro();
-        scheduled_ = gs.get()->scheduler.upcoming;
+        scheduled_ = gs.get()->scheduler.readings.upcoming;
         interval_ = gs.get()->scheduler.readings.interval;
         update_at_ = now + OneSecondMs;
     }
@@ -39,11 +39,6 @@ void ScheduleView::tick(ViewController *views, Pool &pool) {
 
     auto option = options[position_ % NumberOfOptions];
     auto selected = option.interval == interval_ ? "*" : "";
-
-    if ((int32_t)scheduled_.seconds > option.interval) {
-        logwarn("unusual schedule: interval: %" PRId32 " remaining: %" PRIu32 " now: %" PRIu32 " schival: %" PRIu32,
-                option.interval, scheduled_.seconds, now, interval_);
-    }
 
     tiny_snprintf(primary, sizeof(primary), "%s%s", option.label, selected);
     tiny_snprintf(secondary, sizeof(secondary), "Next: %" PRIu32 "s", scheduled_.seconds);

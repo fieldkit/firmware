@@ -95,7 +95,7 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
             all_readings.emplace(adding);
             continue;
         }
-        if (module_power.enabled_once()) {
+        if (module_power.was_enabled()) {
             fk_delay(pair.configuration.wake_delay);
         }
 

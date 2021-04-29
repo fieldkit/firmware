@@ -29,7 +29,7 @@ bool ModuleHandler::handle(HttpServerConnection *connection, Pool &pool) {
         connection->error(500, "error powering module");
         return true;
     }
-    if (module_power.enabled_once()) {
+    if (module_power.was_enabled()) {
         fk_delay(configuration.wake_delay);
     }
 
