@@ -1,0 +1,515 @@
+# Copyright (c) 2014-2015 Arduino LLC.  All right reserved.
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See the GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
+menu.cache=Cache
+
+adafruit_feather_m0.name=Adafruit Feather M0
+adafruit_feather_m0.vid.0=0x239A
+adafruit_feather_m0.pid.0=0x800B
+adafruit_feather_m0.vid.1=0x239A
+adafruit_feather_m0.pid.1=0x000B
+adafruit_feather_m0.upload.tool=bossac
+adafruit_feather_m0.upload.protocol=sam-ba
+adafruit_feather_m0.upload.maximum_size=262144
+adafruit_feather_m0.upload.offset=0x2000
+adafruit_feather_m0.upload.use_1200bps_touch=true
+adafruit_feather_m0.upload.wait_for_upload_port=true
+adafruit_feather_m0.upload.native_usb=true
+adafruit_feather_m0.build.mcu=cortex-m0plus
+adafruit_feather_m0.build.f_cpu=48000000L
+adafruit_feather_m0.build.usb_product="Feather M0"
+adafruit_feather_m0.build.usb_manufacturer="Adafruit"
+adafruit_feather_m0.build.board=SAMD_ZERO
+adafruit_feather_m0.build.core=arduino
+adafruit_feather_m0.build.extra_flags=-DARDUINO_SAMD_ZERO -DARM_MATH_CM0PLUS  -DADAFRUIT_FEATHER_M0 -D__SAMD21G18A__ {build.usb_flags}
+adafruit_feather_m0.build.ldscript=linker_scripts/gcc/flash_with_bootloader.ld
+adafruit_feather_m0.build.openocdscript=openocd_scripts/arduino_zero.cfg
+adafruit_feather_m0.build.variant=feather_m0
+adafruit_feather_m0.build.variant_system_lib=
+adafruit_feather_m0.build.vid=0x239A
+adafruit_feather_m0.build.pid=0x800B
+adafruit_feather_m0.bootloader.tool=openocd
+adafruit_feather_m0.bootloader.file=featherM0/bootloader-feather_m0-v2.0.0-adafruit.5.bin
+
+adafruit_feather_m0_express.name=Adafruit Feather M0 Express
+adafruit_feather_m0_express.vid.0=0x239A
+adafruit_feather_m0_express.pid.0=0x801B
+adafruit_feather_m0_express.vid.1=0x239A
+adafruit_feather_m0_express.pid.1=0x001B
+adafruit_feather_m0_express.upload.tool=bossac
+adafruit_feather_m0_express.upload.protocol=sam-ba
+adafruit_feather_m0_express.upload.maximum_size=262144
+adafruit_feather_m0_express.upload.offset=0x2000
+adafruit_feather_m0_express.upload.use_1200bps_touch=true
+adafruit_feather_m0_express.upload.wait_for_upload_port=true
+adafruit_feather_m0_express.upload.native_usb=true
+adafruit_feather_m0_express.build.mcu=cortex-m0plus
+adafruit_feather_m0_express.build.f_cpu=48000000L
+adafruit_feather_m0_express.build.usb_product="Feather M0 Express"
+adafruit_feather_m0_express.build.usb_manufacturer="Adafruit"
+adafruit_feather_m0_express.build.board=SAMD_FEATHER_M0_EXPRESS
+adafruit_feather_m0_express.build.core=arduino
+adafruit_feather_m0_express.build.extra_flags=-DARDUINO_SAMD_ZERO -DARDUINO_SAMD_FEATHER_M0 -DARM_MATH_CM0PLUS -DADAFRUIT_FEATHER_M0_EXPRESS -D__SAMD21G18A__ {build.usb_flags}
+adafruit_feather_m0_express.build.ldscript=linker_scripts/gcc/flash_with_bootloader.ld
+adafruit_feather_m0_express.build.openocdscript=openocd_scripts/arduino_zero.cfg
+adafruit_feather_m0_express.build.variant=feather_m0_express
+adafruit_feather_m0_express.build.variant_system_lib=
+adafruit_feather_m0_express.build.vid=0x239A
+adafruit_feather_m0_express.build.pid=0x801B
+adafruit_feather_m0_express.bootloader.tool=openocd
+adafruit_feather_m0_express.bootloader.file=featherM0/bootloader-feather_m0-v2.0.0-adafruit.5.bin
+
+#adafruit_radio_m0.name=Adafruit M0 Radio (Native USB Port)
+#adafruit_radio_m0.vid.0=0x239A
+#adafruit_radio_m0.pid.0=0x8014
+#adafruit_radio_m0.vid.1=0x239A
+#adafruit_radio_m0.pid.1=0x0014
+#adafruit_radio_m0.upload.tool=bossac
+#adafruit_radio_m0.upload.protocol=sam-ba
+#adafruit_radio_m0.upload.maximum_size=262144
+#adafruit_radio_m0.upload.use_1200bps_touch=true
+#adafruit_radio_m0.upload.wait_for_upload_port=true
+#adafruit_radio_m0.upload.native_usb=true
+#adafruit_radio_m0.build.mcu=cortex-m0plus
+#adafruit_radio_m0.build.f_cpu=48000000L
+#adafruit_radio_m0.build.usb_product="Radio M0"
+#adafruit_radio_m0.build.usb_manufacturer="Adafruit"
+#adafruit_radio_m0.build.board=SAMD_ZERO
+#adafruit_radio_m0.build.core=arduino
+#adafruit_radio_m0.build.extra_flags=-D__SAMR21G18A__ -DARM_MATH_CM0PLUS {build.usb_flags}
+#adafruit_radio_m0.build.ldscript=linker_scripts/gcc/flash_with_bootloader.ld
+#adafruit_radio_m0.build.openocdscript=openocd_scripts/arduino_zero.cfg
+#adafruit_radio_m0.build.variant=zero_radio
+#adafruit_radio_m0.build.variant_system_lib=
+#adafruit_radio_m0.build.vid=0x239A
+#adafruit_radio_m0.build.pid=0x8014
+#adafruit_radio_m0.bootloader.tool=openocd
+#adafruit_radio_m0.bootloader.file=feather/samr21_sam_ba.bin
+
+adafruit_metro_m0.name=Adafruit Metro M0 Express
+adafruit_metro_m0.vid.0=0x239A
+adafruit_metro_m0.pid.0=0x8013
+adafruit_metro_m0.vid.1=0x239A
+adafruit_metro_m0.pid.1=0x0013
+adafruit_metro_m0.upload.tool=bossac
+adafruit_metro_m0.upload.protocol=sam-ba
+adafruit_metro_m0.upload.maximum_size=262144
+adafruit_metro_m0.upload.offset=0x2000
+adafruit_metro_m0.upload.use_1200bps_touch=true
+adafruit_metro_m0.upload.wait_for_upload_port=true
+adafruit_metro_m0.upload.native_usb=true
+adafruit_metro_m0.build.mcu=cortex-m0plus
+adafruit_metro_m0.build.f_cpu=48000000L
+adafruit_metro_m0.build.usb_product="Metro M0 Express"
+adafruit_metro_m0.build.usb_manufacturer="Adafruit"
+adafruit_metro_m0.build.board=SAMD_ZERO
+adafruit_metro_m0.build.core=arduino
+adafruit_metro_m0.build.extra_flags=-D__SAMD21G18A__  -DARDUINO_SAMD_ZERO -DARM_MATH_CM0PLUS -DADAFRUIT_METRO_M0_EXPRESS {build.usb_flags}
+adafruit_metro_m0.build.ldscript=linker_scripts/gcc/flash_with_bootloader.ld
+adafruit_metro_m0.build.openocdscript=openocd_scripts/arduino_zero.cfg
+adafruit_metro_m0.build.variant=metro_m0
+adafruit_metro_m0.build.variant_system_lib=
+adafruit_metro_m0.build.vid=0x239A
+adafruit_metro_m0.build.pid=0x8013
+adafruit_metro_m0.bootloader.tool=openocd
+adafruit_metro_m0.bootloader.file=metroM0/bootloader-metro_m0-v2.0.0-adafruit.5.bin
+
+#
+# Adafruit Circuit Playground M0
+# ------------------------------
+adafruit_circuitplayground_m0.name=Adafruit Circuit Playground Express
+adafruit_circuitplayground_m0.vid.0=0x239A
+adafruit_circuitplayground_m0.pid.0=0x8018
+adafruit_circuitplayground_m0.vid.1=0x239A
+adafruit_circuitplayground_m0.pid.1=0x0019
+adafruit_circuitplayground_m0.upload.tool=bossac
+adafruit_circuitplayground_m0.upload.protocol=sam-ba
+adafruit_circuitplayground_m0.upload.maximum_size=262144
+adafruit_circuitplayground_m0.upload.offset=0x2000
+adafruit_circuitplayground_m0.upload.use_1200bps_touch=true
+adafruit_circuitplayground_m0.upload.wait_for_upload_port=true
+adafruit_circuitplayground_m0.upload.native_usb=true
+adafruit_circuitplayground_m0.build.mcu=cortex-m0plus
+adafruit_circuitplayground_m0.build.f_cpu=48000000L
+adafruit_circuitplayground_m0.build.usb_product="Circuit Playground Express"
+adafruit_circuitplayground_m0.build.usb_manufacturer="Adafruit"
+adafruit_circuitplayground_m0.build.board=SAMD_CIRCUITPLAYGROUND_EXPRESS
+adafruit_circuitplayground_m0.build.core=arduino
+adafruit_circuitplayground_m0.build.extra_flags=-DCRYSTALLESS -DARDUINO_SAMD_ZERO -D__SAMD21G18A__ -DARM_MATH_CM0PLUS -DADAFRUIT_CIRCUITPLAYGROUND_M0 {build.usb_flags}
+adafruit_circuitplayground_m0.build.ldscript=linker_scripts/gcc/flash_with_bootloader.ld
+adafruit_circuitplayground_m0.build.openocdscript=openocd_scripts/arduino_zero.cfg
+adafruit_circuitplayground_m0.build.variant=circuitplay
+adafruit_circuitplayground_m0.build.variant_system_lib=
+adafruit_circuitplayground_m0.build.vid=0x239A
+adafruit_circuitplayground_m0.build.pid=0x8018
+adafruit_circuitplayground_m0.bootloader.tool=openocd
+adafruit_circuitplayground_m0.bootloader.file=circuitplayM0/bootloader-circuitplay_m0-v2.0.0-adafruit.5.bin
+
+adafruit_gemma_m0.name=Adafruit Gemma M0
+adafruit_gemma_m0.vid.0=0x239A
+adafruit_gemma_m0.pid.0=0x801C
+adafruit_gemma_m0.vid.1=0x239A
+adafruit_gemma_m0.pid.1=0x001C
+adafruit_gemma_m0.upload.tool=bossac
+adafruit_gemma_m0.upload.protocol=sam-ba
+adafruit_gemma_m0.upload.maximum_size=262144
+adafruit_gemma_m0.upload.offset=0x2000
+adafruit_gemma_m0.upload.use_1200bps_touch=true
+adafruit_gemma_m0.upload.wait_for_upload_port=true
+adafruit_gemma_m0.upload.native_usb=true
+adafruit_gemma_m0.build.mcu=cortex-m0plus
+adafruit_gemma_m0.build.f_cpu=48000000L
+adafruit_gemma_m0.build.usb_product="Gemma M0"
+adafruit_gemma_m0.build.usb_manufacturer="Adafruit"
+adafruit_gemma_m0.build.board=GEMMA_M0
+adafruit_gemma_m0.build.core=arduino
+adafruit_gemma_m0.build.extra_flags=-DCRYSTALLESS -DADAFRUIT_GEMMA_M0 -D__SAMD21E18A__ -DARM_MATH_CM0PLUS {build.usb_flags}
+adafruit_gemma_m0.build.ldscript=linker_scripts/gcc/flash_with_bootloader.ld
+adafruit_gemma_m0.build.openocdscript=openocd_scripts/arduino_zero.cfg
+adafruit_gemma_m0.build.variant=gemma_m0
+adafruit_gemma_m0.build.variant_system_lib=
+adafruit_gemma_m0.build.vid=0x239A
+adafruit_gemma_m0.build.pid=0x801C
+adafruit_gemma_m0.bootloader.tool=openocd
+adafruit_gemma_m0.bootloader.file=gemmaM0/bootloader-gemma_m0-v2.0.0-adafruit.5.bin
+
+adafruit_trinket_m0.name=Adafruit Trinket M0
+adafruit_trinket_m0.vid.0=0x239A
+adafruit_trinket_m0.pid.0=0x801E
+adafruit_trinket_m0.vid.1=0x239A
+adafruit_trinket_m0.pid.1=0x001E
+adafruit_trinket_m0.upload.tool=bossac
+adafruit_trinket_m0.upload.protocol=sam-ba
+adafruit_trinket_m0.upload.maximum_size=262144
+adafruit_trinket_m0.upload.offset=0x2000
+adafruit_trinket_m0.upload.use_1200bps_touch=true
+adafruit_trinket_m0.upload.wait_for_upload_port=true
+adafruit_trinket_m0.upload.native_usb=true
+adafruit_trinket_m0.build.mcu=cortex-m0plus
+adafruit_trinket_m0.build.f_cpu=48000000L
+adafruit_trinket_m0.build.usb_product="Trinket M0"
+adafruit_trinket_m0.build.usb_manufacturer="Adafruit"
+adafruit_trinket_m0.build.board=TRINKET_M0
+adafruit_trinket_m0.build.core=arduino
+adafruit_trinket_m0.build.extra_flags=-DCRYSTALLESS -DADAFRUIT_TRINKET_M0 -D__SAMD21E18A__ -DARM_MATH_CM0PLUS {build.usb_flags}
+adafruit_trinket_m0.build.ldscript=linker_scripts/gcc/flash_with_bootloader.ld
+adafruit_trinket_m0.build.openocdscript=openocd_scripts/arduino_zero.cfg
+adafruit_trinket_m0.build.variant=trinket_m0
+adafruit_trinket_m0.build.variant_system_lib=
+adafruit_trinket_m0.build.vid=0x239A
+adafruit_trinket_m0.build.pid=0x801E
+adafruit_trinket_m0.bootloader.tool=openocd
+adafruit_trinket_m0.bootloader.file=trinketM0/bootloader-trinket_m0-v2.0.0-adafruit.5.bin
+
+adafruit_itsybitsy_m0.name=Adafruit ItsyBitsy M0
+adafruit_itsybitsy_m0.vid.0=0x239A
+adafruit_itsybitsy_m0.pid.0=0x800F
+adafruit_itsybitsy_m0.vid.1=0x239A
+adafruit_itsybitsy_m0.pid.1=0x000F
+adafruit_itsybitsy_m0.vid.2=0x239A
+adafruit_itsybitsy_m0.pid.2=0x8012
+adafruit_itsybitsy_m0.upload.tool=bossac
+adafruit_itsybitsy_m0.upload.protocol=sam-ba
+adafruit_itsybitsy_m0.upload.maximum_size=262144
+adafruit_itsybitsy_m0.upload.offset=0x2000
+adafruit_itsybitsy_m0.upload.use_1200bps_touch=true
+adafruit_itsybitsy_m0.upload.wait_for_upload_port=true
+adafruit_itsybitsy_m0.upload.native_usb=true
+adafruit_itsybitsy_m0.build.mcu=cortex-m0plus
+adafruit_itsybitsy_m0.build.f_cpu=48000000L
+adafruit_itsybitsy_m0.build.usb_product="ItsyBitsy M0 Express"
+adafruit_itsybitsy_m0.build.usb_manufacturer="Adafruit"
+adafruit_itsybitsy_m0.build.board=ITSYBITSY_M0
+adafruit_itsybitsy_m0.build.core=arduino
+adafruit_itsybitsy_m0.build.extra_flags=-DCRYSTALLESS -DADAFRUIT_ITSYBITSY_M0 -D__SAMD21G18A__ -DARM_MATH_CM0PLUS {build.usb_flags}
+adafruit_itsybitsy_m0.build.ldscript=linker_scripts/gcc/flash_with_bootloader.ld
+adafruit_itsybitsy_m0.build.openocdscript=openocd_scripts/arduino_zero.cfg
+adafruit_itsybitsy_m0.build.variant=itsybitsy_m0
+adafruit_itsybitsy_m0.build.variant_system_lib=
+adafruit_itsybitsy_m0.build.vid=0x239A
+adafruit_itsybitsy_m0.build.pid=0x800F
+adafruit_itsybitsy_m0.bootloader.tool=openocd
+adafruit_itsybitsy_m0.bootloader.file=itsybitsyM0/bootloader-itsybitsy_m0-v2.0.0-adafruit.5.bin
+
+adafruit_pirkey.name=Adafruit pIRkey
+adafruit_pirkey.vid.0=0x239A
+adafruit_pirkey.pid.0=0x801E
+adafruit_pirkey.vid.1=0x239A
+adafruit_pirkey.pid.1=0x001E
+adafruit_pirkey.upload.tool=bossac
+adafruit_pirkey.upload.protocol=sam-ba
+adafruit_pirkey.upload.maximum_size=262144
+adafruit_pirkey.upload.offset=0x2000
+adafruit_pirkey.upload.use_1200bps_touch=true
+adafruit_pirkey.upload.wait_for_upload_port=true
+adafruit_pirkey.upload.native_usb=true
+adafruit_pirkey.build.mcu=cortex-m0plus
+adafruit_pirkey.build.f_cpu=48000000L
+adafruit_pirkey.build.usb_product="pIRKey"
+adafruit_pirkey.build.usb_manufacturer="Adafruit"
+adafruit_pirkey.build.board=PIRKEY
+adafruit_pirkey.build.core=arduino
+adafruit_pirkey.build.extra_flags=-DCRYSTALLESS -DADAFRUIT_PIRKEY -D__SAMD21E18A__ -DARM_MATH_CM0PLUS {build.usb_flags}
+adafruit_pirkey.build.ldscript=linker_scripts/gcc/flash_with_bootloader.ld
+adafruit_pirkey.build.openocdscript=openocd_scripts/arduino_zero.cfg
+adafruit_pirkey.build.variant=pirkey
+adafruit_pirkey.build.variant_system_lib=
+adafruit_pirkey.build.vid=0x239A
+adafruit_pirkey.build.pid=0x801E
+adafruit_pirkey.bootloader.tool=openocd
+adafruit_pirkey.bootloader.file=pirkey/bootloader-pirkey-v2.0.0-adafruit.5.bin
+
+
+# Adafruit Metro M4 (SAMD51)
+# ------------------------------
+adafruit_metro_m4.name=Adafruit Metro M4 (SAMD51)
+adafruit_metro_m4.vid.0=0x239A
+adafruit_metro_m4.pid.0=0x8020
+adafruit_metro_m4.vid.1=0x239A
+adafruit_metro_m4.pid.1=0x0020
+adafruit_metro_m4.upload.tool=bossac18
+adafruit_metro_m4.upload.protocol=sam-ba
+adafruit_metro_m4.upload.maximum_size=507904
+adafruit_metro_m4.upload.offset=0x4000
+adafruit_metro_m4.upload.use_1200bps_touch=true
+adafruit_metro_m4.upload.wait_for_upload_port=true
+adafruit_metro_m4.upload.native_usb=true
+adafruit_metro_m4.build.mcu=cortex-m4
+adafruit_metro_m4.build.f_cpu=120000000L
+adafruit_metro_m4.build.usb_product="Adafruit Metro M4"
+adafruit_metro_m4.build.usb_manufacturer="Adafruit LLC"
+adafruit_metro_m4.build.board=METRO_M4
+adafruit_metro_m4.build.core=arduino
+adafruit_metro_m4.build.extra_flags=-D__SAMD51J19A__ -DADAFRUIT_METRO_M4_EXPRESS -D__SAMD51__ {build.usb_flags} -D__FPU_PRESENT -DARM_MATH_CM4 -mfloat-abi=hard -mfpu=fpv4-sp-d16
+adafruit_metro_m4.build.ldscript=linker_scripts/gcc/flash_with_bootloader.ld
+adafruit_metro_m4.build.openocdscript=openocd_scripts/arduino_zero.cfg
+adafruit_metro_m4.build.variant=metro_m4
+adafruit_metro_m4.build.variant_system_lib=
+adafruit_metro_m4.build.vid=0x239A
+adafruit_metro_m4.build.pid=0x8020
+adafruit_metro_m4.bootloader.tool=openocd
+adafruit_metro_m4.bootloader.file=metroM4/bootloader-metro_m4-v2.0.0-adafruit.5.bin
+adafruit_metro_m4.compiler.arm.cmsis.ldflags="-L{build.variant.path}" -larm_cortexM4lf_math -mfloat-abi=hard -mfpu=fpv4-sp-d16
+adafruit_metro_m4.menu.cache.on=Enabled
+adafruit_metro_m4.menu.cache.on.build.cache_flags=-DENABLE_CACHE
+adafruit_metro_m4.menu.cache.off=Disabled
+adafruit_metro_m4.menu.cache.off.build.cache_flags=
+
+# Adafruit Grand Central M4 (SAMD51)
+# ------------------------------
+adafruit_grandcentral_m4.name=Adafruit Grand Central M4 (SAMD51)
+adafruit_grandcentral_m4.vid.0=0x239A
+adafruit_grandcentral_m4.pid.0=0x8020
+adafruit_grandcentral_m4.vid.1=0x239A
+adafruit_grandcentral_m4.pid.1=0x0020
+adafruit_grandcentral_m4.upload.tool=bossac18
+adafruit_grandcentral_m4.upload.protocol=sam-ba
+adafruit_grandcentral_m4.upload.maximum_size=1032192
+adafruit_grandcentral_m4.upload.offset=0x4000
+adafruit_grandcentral_m4.upload.use_1200bps_touch=true
+adafruit_grandcentral_m4.upload.wait_for_upload_port=true
+adafruit_grandcentral_m4.upload.native_usb=true
+adafruit_grandcentral_m4.build.mcu=cortex-m4
+adafruit_grandcentral_m4.build.f_cpu=120000000L
+adafruit_grandcentral_m4.build.usb_product="Adafruit Grand Central M4"
+adafruit_grandcentral_m4.build.usb_manufacturer="Adafruit LLC"
+adafruit_grandcentral_m4.build.board=GRAND_CENTRAL_M4
+adafruit_grandcentral_m4.build.core=arduino
+adafruit_grandcentral_m4.build.extra_flags=-D__SAMD51P20A__ -DADAFRUIT_GRAND_CENTRAL_M4 -D__SAMD51__ {build.usb_flags} -D__FPU_PRESENT -DARM_MATH_CM4 -mfloat-abi=hard -mfpu=fpv4-sp-d16
+adafruit_grandcentral_m4.build.ldscript=linker_scripts/gcc/flash_with_bootloader.ld
+adafruit_grandcentral_m4.build.openocdscript=openocd_scripts/arduino_zero.cfg
+adafruit_grandcentral_m4.build.variant=grand_central_m4
+adafruit_grandcentral_m4.build.variant_system_lib=
+adafruit_grandcentral_m4.build.vid=0x239A
+adafruit_grandcentral_m4.build.pid=0x8020
+adafruit_grandcentral_m4.bootloader.tool=openocd
+adafruit_grandcentral_m4.bootloader.file=grand_central_m4/bootloader-grandcentralM4-v2.0.0-adafruit.5.bin
+adafruit_grandcentral_m4.compiler.arm.cmsis.ldflags="-L{build.variant.path}" -larm_cortexM4lf_math -mfloat-abi=hard -mfpu=fpv4-sp-d16
+adafruit_grandcentral_m4.menu.cache.on=Enabled
+adafruit_grandcentral_m4.menu.cache.on.build.cache_flags=-DENABLE_CACHE
+adafruit_grandcentral_m4.menu.cache.off=Disabled
+adafruit_grandcentral_m4.menu.cache.off.build.cache_flags=
+
+
+# Adafruit ItsyBitsy M4 (SAMD51)
+# ------------------------------
+adafruit_itsybitsy_m4.name=Adafruit ItsyBitsy M4 (SAMD51)
+adafruit_itsybitsy_m4.vid.0=0x239A
+adafruit_itsybitsy_m4.pid.0=0x802B
+adafruit_itsybitsy_m4.vid.1=0x239A
+adafruit_itsybitsy_m4.pid.1=0x002B
+adafruit_itsybitsy_m4.upload.tool=bossac18
+adafruit_itsybitsy_m4.upload.protocol=sam-ba
+adafruit_itsybitsy_m4.upload.maximum_size=507904
+adafruit_itsybitsy_m4.upload.offset=0x4000
+adafruit_itsybitsy_m4.upload.use_1200bps_touch=true
+adafruit_itsybitsy_m4.upload.wait_for_upload_port=true
+adafruit_itsybitsy_m4.upload.native_usb=true
+adafruit_itsybitsy_m4.build.mcu=cortex-m4
+adafruit_itsybitsy_m4.build.f_cpu=120000000L
+adafruit_itsybitsy_m4.build.usb_product="Adafruit ItsyBitsy M4"
+adafruit_itsybitsy_m4.build.usb_manufacturer="Adafruit LLC"
+adafruit_itsybitsy_m4.build.board=ITSYBITSY_M4
+adafruit_itsybitsy_m4.build.core=arduino
+adafruit_itsybitsy_m4.build.extra_flags=-D__SAMD51G19A__ -DADAFRUIT_ITSYBITSY_M4_EXPRESS -D__SAMD51__ {build.usb_flags} -D__FPU_PRESENT -DARM_MATH_CM4 -DCRYSTALLESS -mfloat-abi=hard -mfpu=fpv4-sp-d16
+adafruit_itsybitsy_m4.build.ldscript=linker_scripts/gcc/flash_with_bootloader.ld
+adafruit_itsybitsy_m4.build.openocdscript=openocd_scripts/arduino_zero.cfg
+adafruit_itsybitsy_m4.build.variant=itsybitsy_m4
+adafruit_itsybitsy_m4.build.variant_system_lib=
+adafruit_itsybitsy_m4.build.vid=0x239A
+adafruit_itsybitsy_m4.build.pid=0x802B
+adafruit_itsybitsy_m4.bootloader.tool=openocd
+adafruit_itsybitsy_m4.bootloader.file=itsybitsyM4/bootloader-itsybitsy_m4-v2.0.0-adafruit.5.bin
+adafruit_itsybitsy_m4.compiler.arm.cmsis.ldflags="-L{build.variant.path}" -larm_cortexM4lf_math -mfloat-abi=hard -mfpu=fpv4-sp-d16
+adafruit_itsybitsy_m4.menu.cache.on=Enabled
+adafruit_itsybitsy_m4.menu.cache.on.build.cache_flags=-DENABLE_CACHE
+adafruit_itsybitsy_m4.menu.cache.off=Disabled
+adafruit_itsybitsy_m4.menu.cache.off.build.cache_flags=
+
+
+# Adafruit Feather M4 (SAMD51)
+# ------------------------------
+adafruit_feather_m4.name=Adafruit Feather M4 Express (SAMD51)
+adafruit_feather_m4.vid.0=0x239A
+adafruit_feather_m4.pid.0=0x8022
+adafruit_feather_m4.vid.1=0x239A
+adafruit_feather_m4.pid.1=0x0022
+adafruit_feather_m4.upload.tool=bossac18
+adafruit_feather_m4.upload.protocol=sam-ba
+adafruit_feather_m4.upload.maximum_size=507904
+adafruit_feather_m4.upload.offset=0x4000
+adafruit_feather_m4.upload.use_1200bps_touch=true
+adafruit_feather_m4.upload.wait_for_upload_port=true
+adafruit_feather_m4.upload.native_usb=true
+adafruit_feather_m4.build.mcu=cortex-m4
+adafruit_feather_m4.build.f_cpu=120000000L
+adafruit_feather_m4.build.usb_product="Adafruit Feather M4"
+adafruit_feather_m4.build.usb_manufacturer="Adafruit LLC"
+adafruit_feather_m4.build.board=FEATHER_M4
+adafruit_feather_m4.build.core=arduino
+adafruit_feather_m4.build.extra_flags=-D__SAMD51J19A__  -DADAFRUIT_FEATHER_M4_EXPRESS  -D__SAMD51__ {build.usb_flags} -D__FPU_PRESENT -DARM_MATH_CM4 -mfloat-abi=hard -mfpu=fpv4-sp-d16
+adafruit_feather_m4.build.ldscript=linker_scripts/gcc/flash_with_bootloader.ld
+adafruit_feather_m4.build.openocdscript=openocd_scripts/arduino_zero.cfg
+adafruit_feather_m4.build.variant=feather_m4
+adafruit_feather_m4.build.variant_system_lib=
+adafruit_feather_m4.build.vid=0x239A
+adafruit_feather_m4.build.pid=0x8022
+adafruit_feather_m4.bootloader.tool=openocd
+adafruit_feather_m4.bootloader.file=featherM4/bootloader-feather_m4-v2.0.0-adafruit.5.bin
+adafruit_feather_m4.compiler.arm.cmsis.ldflags="-L{build.variant.path}" -larm_cortexM4lf_math -mfloat-abi=hard -mfpu=fpv4-sp-d16
+adafruit_feather_m4.menu.cache.on=Enabled
+adafruit_feather_m4.menu.cache.on.build.cache_flags=-DENABLE_CACHE
+adafruit_feather_m4.menu.cache.off=Disabled
+adafruit_feather_m4.menu.cache.off.build.cache_flags=
+
+adafruit_hallowing.name=Adafruit Hallowing M0
+adafruit_hallowing.vid.0=0x239A
+adafruit_hallowing.pid.0=0xDEAD
+adafruit_hallowing.vid.1=0x239A
+adafruit_hallowing.pid.1=0xD1ED
+adafruit_hallowing.vid.1=0x239A
+adafruit_hallowing.pid.1=0xB000
+adafruit_hallowing.upload.tool=bossac
+adafruit_hallowing.upload.protocol=sam-ba
+adafruit_hallowing.upload.maximum_size=262144
+adafruit_hallowing.upload.offset=0x2000
+adafruit_hallowing.upload.use_1200bps_touch=true
+adafruit_hallowing.upload.wait_for_upload_port=true
+adafruit_hallowing.upload.native_usb=true
+adafruit_hallowing.build.mcu=cortex-m0plus
+adafruit_hallowing.build.f_cpu=48000000L
+adafruit_hallowing.build.usb_product="Hallowing M0"
+adafruit_hallowing.build.usb_manufacturer="Adafruit"
+adafruit_hallowing.build.board=SAMD_HALLOWING
+adafruit_hallowing.build.core=arduino
+adafruit_hallowing.build.extra_flags=-DCRYSTALLESS -DARDUINO_SAMD_ZERO -DARDUINO_SAMD_HALLOWING_M0 -DARM_MATH_CM0PLUS -DADAFRUIT_HALLOWING -D__SAMD21G18A__ {build.usb_flags}
+adafruit_hallowing.build.ldscript=linker_scripts/gcc/flash_with_bootloader.ld
+adafruit_hallowing.build.openocdscript=openocd_scripts/arduino_zero.cfg
+adafruit_hallowing.build.variant=hallowing_m0_express
+adafruit_hallowing.build.variant_system_lib=
+adafruit_hallowing.build.vid=0x239A
+adafruit_hallowing.build.pid=0xDEAD
+adafruit_hallowing.bootloader.tool=openocd
+adafruit_hallowing.bootloader.file=hallowingM0/bootloader-hallowing_m0-v2.0.0-adafruit.0-21-g887cc30.bin
+
+
+# Adafruit Trellis M4 (SAMD51)
+# ------------------------------
+adafruit_trellis_m4.name=Adafruit Trellis M4 (SAMD51)
+adafruit_trellis_m4.vid.0=0x239A
+adafruit_trellis_m4.pid.0=0x802F
+adafruit_trellis_m4.vid.1=0x239A
+adafruit_trellis_m4.pid.1=0x002F
+adafruit_trellis_m4.vid.2=0x239A
+adafruit_trellis_m4.pid.2=0x0030
+adafruit_trellis_m4.upload.tool=bossac18
+adafruit_trellis_m4.upload.protocol=sam-ba
+adafruit_trellis_m4.upload.maximum_size=507904
+adafruit_trellis_m4.upload.offset=0x4000
+adafruit_trellis_m4.upload.use_1200bps_touch=true
+adafruit_trellis_m4.upload.wait_for_upload_port=true
+adafruit_trellis_m4.upload.native_usb=true
+adafruit_trellis_m4.build.mcu=cortex-m4
+adafruit_trellis_m4.build.f_cpu=120000000L
+adafruit_trellis_m4.build.usb_product="Adafruit Trellis M4"
+adafruit_trellis_m4.build.usb_manufacturer="Adafruit LLC"
+adafruit_trellis_m4.build.board=TRELLIS_M4
+adafruit_trellis_m4.build.core=arduino
+adafruit_trellis_m4.build.extra_flags=-D__SAMD51G19A__ -DADAFRUIT_TRELLIS_M4_EXPRESS -D__SAMD51__ {build.usb_flags} -D__FPU_PRESENT -DARM_MATH_CM4 -DCRYSTALLESS -mfloat-abi=hard -mfpu=fpv4-sp-d16
+adafruit_trellis_m4.build.ldscript=linker_scripts/gcc/flash_with_bootloader.ld
+adafruit_trellis_m4.build.openocdscript=openocd_scripts/arduino_zero.cfg
+adafruit_trellis_m4.build.variant=trellis_m4
+adafruit_trellis_m4.build.variant_system_lib=
+adafruit_trellis_m4.build.vid=0x239A
+adafruit_trellis_m4.build.pid=0x802F
+adafruit_trellis_m4.bootloader.tool=openocd
+adafruit_trellis_m4.bootloader.file=trellisM4/bootloader-trellis_m4-v2.0.0-adafruit.5.bin
+adafruit_trellis_m4.compiler.arm.cmsis.ldflags="-L{build.variant.path}" -larm_cortexM4lf_math -mfloat-abi=hard -mfpu=fpv4-sp-d16
+adafruit_trellis_m4.menu.cache.on=Enabled
+adafruit_trellis_m4.menu.cache.on.build.cache_flags=-DENABLE_CACHE
+adafruit_trellis_m4.menu.cache.off=Disabled
+adafruit_trellis_m4.menu.cache.off.build.cache_flags=
+
+adafruit_crickit_m0.name=Adafruit Crickit M0
+adafruit_crickit_m0.vid.0=0x239A
+adafruit_crickit_m0.pid.0=0x802D
+adafruit_crickit_m0.vid.1=0x239A
+adafruit_crickit_m0.pid.1=0x002D
+adafruit_crickit_m0.vid.2=0x239A
+adafruit_crickit_m0.pid.2=0x802D
+adafruit_crickit_m0.upload.tool=bossac
+adafruit_crickit_m0.upload.protocol=sam-ba
+adafruit_crickit_m0.upload.maximum_size=262144
+adafruit_crickit_m0.upload.offset=0x2000
+adafruit_crickit_m0.upload.use_1200bps_touch=true
+adafruit_crickit_m0.upload.wait_for_upload_port=true
+adafruit_crickit_m0.upload.native_usb=true
+adafruit_crickit_m0.build.mcu=cortex-m0plus
+adafruit_crickit_m0.build.f_cpu=48000000L
+adafruit_crickit_m0.build.usb_product="Crickit M0"
+adafruit_crickit_m0.build.usb_manufacturer="Adafruit"
+adafruit_crickit_m0.build.board=CRICKIT_M0
+adafruit_crickit_m0.build.core=arduino
+adafruit_crickit_m0.build.extra_flags=-DCRYSTALLESS -DADAFRUIT_CRICKIT_M0 -D__SAMD21G18A__ -DARM_MATH_CM0PLUS {build.usb_flags}
+adafruit_crickit_m0.build.ldscript=linker_scripts/gcc/flash_with_bootloader.ld
+adafruit_crickit_m0.build.openocdscript=openocd_scripts/arduino_zero.cfg
+adafruit_crickit_m0.build.variant=crickit_m0
+adafruit_crickit_m0.build.variant_system_lib=
+adafruit_crickit_m0.build.vid=0x239A
+adafruit_crickit_m0.build.pid=0x802D
+adafruit_crickit_m0.bootloader.tool=openocd
+adafruit_crickit_m0.bootloader.file=crickit/samd21_sam_ba.bin
+
