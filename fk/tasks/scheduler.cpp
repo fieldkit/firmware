@@ -162,7 +162,7 @@ void task_handler_scheduler(void *params) {
                 battery.refresh();
             }
 
-            if (check_module_power_timer.expired(FiveSecondsMs)) {
+            if (false && check_module_power_timer.expired(FiveSecondsMs)) {
                 auto gs = get_global_state_ro();
                 auto time = gs.get()->runtime.readings;
                 auto elapsed = fk_uptime() - time;
