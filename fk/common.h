@@ -19,6 +19,14 @@ extern "C" {
 #define FK_ENABLE_IRQ      SEGGER_RTT_UNLOCK
 
 /**
+ * These disappeared on after upgrading compilers.
+ */
+#if !defined(PRIu64)
+#define PRIu64             "llu"
+#define PRId64             "lld"
+#endif
+
+/**
  * Invoked to handle assertion failures. This is variadic so we can create more
  * useful messages, with interpolated values, etc...
  */

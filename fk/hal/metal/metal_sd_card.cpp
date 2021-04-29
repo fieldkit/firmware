@@ -106,7 +106,7 @@ bool MetalSdCard::initialize_logs() {
     }
     else {
         auto now = get_clock_now();
-        if (log_time_ == 0 || std::abs(now - log_time_) > OneDayMs) {
+        if (log_time_ == 0 || std::abs((int32_t)(now - log_time_)) > (int32_t)OneDayMs) {
             log_time_ = get_clock_now();
             log_initialized_ = false;
         }
