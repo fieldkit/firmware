@@ -15,6 +15,7 @@
 #include "utilities.h"
 #include "battery_status.h"
 #include "clock.h"
+#include "live_tests.h"
 
 #include "readings_worker.h"
 #include "upgrade_from_sd_worker.h"
@@ -43,6 +44,8 @@ void StartupWorker::run(Pool &pool) {
     if (!clock->begin()) {
         logerror("rtc error");
     }
+
+    fk_live_tests();
 
     loginfo("ready display");
     auto display = get_display();
@@ -74,15 +77,8 @@ void StartupWorker::run(Pool &pool) {
     loginfo("check for low power startup");
     auto low_power_startup = check_for_low_power_startup(pool);
 
-    // Pretty safe to do this early on as this thing is also clocking
-    // the CPU we're running on. :)
-    auto clock = get_clock();
-    if (!clock->begin()) {
-        logerror("rtc error");
-    }
-
     if (!low_power_startup) {
-    display->company_logo();
+        display->company_logo();
     }
 
     loginfo("ready hardware");
