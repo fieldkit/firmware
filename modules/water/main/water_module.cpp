@@ -2,6 +2,7 @@
 #include "water_api.h"
 #include "platform.h"
 #include "modules/eeprom.h"
+#include "curves.h"
 
 namespace fk {
 
@@ -186,7 +187,9 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
 
     loginfo("water: %f", reading);
 
-    mr->set(nreadings++, reading);
+    auto curve = create_curve(cfg_, pool);
+
+    mr->set(nreadings++, ModuleReading{ reading, curve->apply(reading) });
 
     return mr;
 }
