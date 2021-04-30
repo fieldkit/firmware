@@ -116,7 +116,57 @@ int32_t HttpServerConnection::error(int32_t status, const char *message, Pool &p
 }
 
 int32_t HttpServerConnection::write(fk_app_HttpReply const *reply) {
-    return write(200, "OK", reply, fk_app_HttpReply_fields);
+    return write(200, "ok", reply, fk_app_HttpReply_fields);
+}
+
+int32_t HttpServerConnection::write(int32_t status_code, const char *status_message, uint8_t const *data, size_t size) {
+    auto started = fk_uptime();
+
+    logdebug("[%" PRIu32 "] replying (%zd bytes)", number_, size);
+
+    bytes_tx_ += conn_->writef("HTTP/1.1 %" PRId32 " %s\n", status_code, status_message);
+    bytes_tx_ += conn_->writef("Fk-Connection: #%" PRIu32 "\n", number_);
+    bytes_tx_ += conn_->writef("Content-Length: %zu\n", size);
+    bytes_tx_ += conn_->writef("Content-Type: %s\n", "application/octet-stream");
+    bytes_tx_ += conn_->write("Connection: close\n");
+    bytes_tx_ += conn_->write("\n");
+
+    logdebug("[%" PRIu32 "] headers done (%" PRIu32 "ms)", number_, fk_uptime() - started);
+
+    if (buffer_ == nullptr) {
+        size_ = HttpConnectionBufferSize;
+        buffer_ = (uint8_t *)pool_->malloc(size_);
+    }
+
+    BufferedWriter buffered{ this, buffer_, size_ };
+    HexWriter b64_writer{ &buffered };
+    Writer *writer = &buffered;
+
+    if (hex_encoding_) {
+        writer = &b64_writer;
+    }
+
+    logdebug("[%" PRIu32 "] ready to write", number_);
+
+    writer->write(data, size);
+
+    if (!buffered.flush()) {
+        logdebug("[%" PRIu32 "] fail flush", number_);
+        return size;
+    }
+
+    logdebug("[%" PRIu32 "] pb done", number_);
+
+    bytes_tx_ += size;
+    activity_ = fk_uptime();
+
+    logdebug("[%" PRIu32 "] finished", number_);
+
+    req_.finished();
+
+    logdebug("[%" PRIu32 "] done writing (%" PRIu32 "ms)", number_, fk_uptime() - started);
+
+    return size;
 }
 
 int32_t HttpServerConnection::write(int32_t status_code, const char *status_message, void const *record, pb_msgdesc_t const *fields) {

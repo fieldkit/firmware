@@ -29,6 +29,8 @@ public:
 
     int32_t read(uint8_t *buffer, size_t size) override;
 
+    int32_t write(int32_t status_code, const char *status_message, uint8_t const *data, size_t size);
+
     int32_t write(int32_t status_code, const char *status_message, void const *record, pb_msgdesc_t const *fields);
 
     int32_t write(fk_app_HttpReply const *reply);
