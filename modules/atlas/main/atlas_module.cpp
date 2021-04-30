@@ -264,7 +264,7 @@ ModuleReadings *AtlasModule::take_readings(ReadingsContext mc, Pool &pool) {
 
 optional<float> AtlasModule::get_temperature(ReadingsContext mc) {
     for (auto &r : mc.readings()) {
-        if (r.meta->manufacturer == FK_MODULES_MANUFACTURER && r.meta->kind == FK_MODULES_KIND_WATER_TEMP) {
+        if (r.meta->manufacturer == FK_MODULES_MANUFACTURER && r.meta->kind == FK_MODULES_KIND_ATLAS_TEMP) {
             if (r.readings->size() == 1) {
                 return { r.readings->get(0).calibrated };
             }
@@ -275,7 +275,7 @@ optional<float> AtlasModule::get_temperature(ReadingsContext mc) {
 
 optional<float> AtlasModule::get_salinity(ReadingsContext mc) {
     for (auto &r : mc.readings()) {
-        if (r.meta->manufacturer == FK_MODULES_MANUFACTURER && r.meta->kind == FK_MODULES_KIND_WATER_EC) {
+        if (r.meta->manufacturer == FK_MODULES_MANUFACTURER && r.meta->kind == FK_MODULES_KIND_ATLAS_EC) {
             if (r.readings->size() == 3) {
                 return { r.readings->get(2).calibrated };
             }

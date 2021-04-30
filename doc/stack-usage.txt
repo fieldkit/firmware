@@ -419,15 +419,15 @@ display.cpp:91:10:virtual void fk::MainViewController::show_module_status() 0
 display.h:102:18:virtual void fk::MenuOption::focused(bool) 0
 display.h:106:25:virtual const char* fk::MenuOption::label() const 0
 display.h:110:18:virtual void fk::MenuOption::refresh(const fk::GlobalState*) 0
-display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_main_menu()::__lambda60] 0
-display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_main_menu()::__lambda61] 0
-display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_main_menu()::__lambda62] 0
-display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_main_menu()::__lambda63] 0
-display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_main_menu()::__lambda64] 0
-display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_module_menu()::__lambda22] 0
-display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_network_menu()::__lambda53] 0
-display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_network_menu()::__lambda55] 0
-display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_tools_menu()::__lambda31] 0
+display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_main_menu()::__lambda65] 0
+display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_main_menu()::__lambda66] 0
+display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_main_menu()::__lambda67] 0
+display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_main_menu()::__lambda68] 0
+display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_main_menu()::__lambda69] 0
+display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_module_menu()::__lambda27] 0
+display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_network_menu()::__lambda58] 0
+display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_network_menu()::__lambda60] 0
+display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_tools_menu()::__lambda36] 0
 display.h:236:10:virtual bool fk::NullDisplay::begin() 0
 display.h:236:10:virtual bool fk::NullDisplay::begin() 0
 display.h:237:10:virtual void fk::NullDisplay::on() 0
@@ -1090,8 +1090,8 @@ memory.cpp:214:13:static fk::DataMemory* fk::MemoryFactory::get_data_memory() 0
 memory.cpp:222:19:static fk::ExecutableMemory* fk::MemoryFactory::get_qspi_memory() 0
 memory_page_store.cpp:7:1:fk::MemoryPageStore::MemoryPageStore(fk::DataMemory*) 0
 menu_view.cpp:57:10:virtual void fk::ConfirmOption::on_selected() 0
-menu_view.cpp:75:10:bool fk::NetworkOption<T>::active() const [with T = fk::MenuView::create_network_menu()::__lambda52] 0
-menu_view.cpp:79:17:const char* fk::NetworkOption<T>::label() const [with T = fk::MenuView::create_network_menu()::__lambda52] 0
+menu_view.cpp:75:10:bool fk::NetworkOption<T>::active() const [with T = fk::MenuView::create_network_menu()::__lambda57] 0
+menu_view.cpp:79:17:const char* fk::NetworkOption<T>::label() const [with T = fk::MenuView::create_network_menu()::__lambda57] 0
 metal_battery_gauge.cpp:103:6:virtual bool fk::MetalBatteryGauge::solar_available() 0
 metal_battery_gauge.cpp:20:1:fk::MetalBatteryGauge::MetalBatteryGauge() 0
 metal_battery_gauge.cpp:87:16:virtual fk::ChargingStatus fk::MetalBatteryGauge::status() 0
@@ -1169,12 +1169,10 @@ module_readings.h:22:12:size_t fk::NModuleReadings<N>::size() const [with unsign
 module_readings.h:22:12:size_t fk::NModuleReadings<N>::size() const [with unsigned int N = 12u; size_t = unsigned int] 0
 module_readings.h:22:12:size_t fk::NModuleReadings<N>::size() const [with unsigned int N = 16u; size_t = unsigned int] 0
 module_readings.h:22:12:size_t fk::NModuleReadings<N>::size() const [with unsigned int N = 3u; size_t = unsigned int] 0
-module_readings.h:22:12:size_t fk::NModuleReadings<N>::size() const [with unsigned int N = 3u; size_t = unsigned int] 0
 module_readings.h:22:12:size_t fk::NModuleReadings<N>::size() const [with unsigned int N = 4u; size_t = unsigned int] 0
 module_readings.h:22:12:size_t fk::NModuleReadings<N>::size() const [with unsigned int N = 4u; size_t = unsigned int] 0
 modules.c:12:9:fk_module_is_available_i2c_address 0
 modules.c:4:10:fk_module_header_sign 0
-modules_bridge.h:42:13:fk::Module::~Module() 0
 modules_bridge.h:42:13:fk::Module::~Module() 0
 modules_bridge.h:42:13:fk::Module::~Module() 0
 modules_bridge.h:42:13:fk::Module::~Module() 0
@@ -1215,7 +1213,6 @@ nmspi.c:1276:7:nm_spi_deinit 0
 oem_atlas.cpp:127:17:fk::AtlasSensorType fk::OemAtlas::type() const 0
 oem_atlas.cpp:131:9:uint8_t fk::OemAtlas::address() const 0
 oem_atlas.cpp:76:1:fk::OemAtlas::OemAtlas(fk::TwoWireWrapper&) 0
-optional.hpp:863:26:nonstd::optional_lite::optional<T>::optional(const nonstd::optional_lite::optional<T>&, typename std::enable_if<(true || std::is_copy_constructible<_Tp>::value), void*>::type) [with T = float; typename std::enable_if<(true || std::is_copy_constructible<_Tp>::value), void*>::type = void*] 0
 optional.hpp:863:26:nonstd::optional_lite::optional<T>::optional(const nonstd::optional_lite::optional<T>&, typename std::enable_if<(true || std::is_copy_constructible<_Tp>::value), void*>::type) [with T = float; typename std::enable_if<(true || std::is_copy_constructible<_Tp>::value), void*>::type = void*] 0
 os.c:247:10:os_task_is_running 0
 os.c:260:13:os_task_start 0
@@ -1733,11 +1730,6 @@ variant.cpp:208:6:void SERCOM0_1_Handler() 0
 variant.cpp:212:6:void SERCOM0_2_Handler() 0
 variant.cpp:216:6:void SERCOM0_3_Handler() 0
 varint.cpp:20:8:size_t phylum::varint_encoding_length(long long unsigned int) 0
-water_module.cpp:168:13:const char* fk::WaterModule::get_display_name_key() 0
-water_module.cpp:287:17:nonstd::optional_lite::optional<float> fk::WaterModule::get_pressure(fk::ReadingsContext) 0
-water_module.cpp:293:19:virtual float fk::NoopCurve::apply(float) 0
-water_module.cpp:321:19:virtual float fk::LinearCurve::apply(float) 0
-water_module.h:10:7:fk::WaterModule::~WaterModule() 0
 weather_module.cpp:41:22:virtual const ModuleSensors* fk::WeatherModule::get_sensors(fk::Pool&) 0
 weather_module.cpp:45:27:virtual const ModuleConfiguration fk::WeatherModule::get_configuration(fk::Pool&) 0
 weather_module.h:11:7:fk::WeatherModule::~WeatherModule() 0
@@ -2267,21 +2259,21 @@ directory_tree.h:58:13:virtual phylum::directory_tree::~directory_tree() 8
 display.cpp:49:13:virtual fk::MainViewController::~MainViewController() 8
 display.cpp:81:10:virtual void fk::MainViewController::show_name() 8
 display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::MenuView(fk::ViewController*, fk::Pool&)::__lambda8] 8
-display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_confirmation_menu()::__lambda24] 8
-display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_confirmation_menu()::__lambda25] 8
+display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_confirmation_menu()::__lambda29] 8
+display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_confirmation_menu()::__lambda30] 8
 display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_info_menu()::__lambda10] 8
 display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_info_menu()::__lambda11] 8
 display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_info_menu()::__lambda9] 8
-display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_main_menu()::__lambda59] 8
-display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_module_menu()::__lambda20] 8
-display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_module_menu()::__lambda21] 8
-display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_schedules_menu()::__lambda65] 8
-display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_tools_menu()::__lambda30] 8
-display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_tools_menu()::__lambda32] 8
-display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_tools_menu()::__lambda39] 8
-display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_tools_menu()::__lambda41] 8
-display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_tools_menu()::__lambda45] 8
+display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_main_menu()::__lambda64] 8
+display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_module_menu()::__lambda25] 8
+display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_module_menu()::__lambda26] 8
+display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_schedules_menu()::__lambda70] 8
+display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_tools_menu()::__lambda35] 8
+display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_tools_menu()::__lambda37] 8
+display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_tools_menu()::__lambda44] 8
 display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_tools_menu()::__lambda46] 8
+display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_tools_menu()::__lambda50] 8
+display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_tools_menu()::__lambda51] 8
 display_views.h:46:18:virtual void fk::DisplayView::external(fk::ViewController*) 8
 display_views.h:46:18:virtual void fk::DisplayView::external(fk::ViewController*) 8
 display_views.h:46:18:virtual void fk::DisplayView::external(fk::ViewController*) 8
@@ -2630,13 +2622,13 @@ memory.h:101:21:virtual int32_t fk::DataMemory::copy_page(uint32_t, uint32_t, si
 memory.h:101:21:virtual int32_t fk::DataMemory::copy_page(uint32_t, uint32_t, size_t) 8
 memory.h:101:21:virtual int32_t fk::DataMemory::copy_page(uint32_t, uint32_t, size_t) 8
 menu_view.cpp:128:17:virtual const char* fk::ToggleWifiOption::label() const 8
-menu_view.cpp:655:6:virtual void fk::MenuView::show() 8
-menu_view.cpp:659:6:void fk::MenuView::show_for_module(uint8_t) 8
-menu_view.cpp:688:6:virtual void fk::MenuView::up(fk::ViewController*) 8
-menu_view.cpp:693:6:virtual void fk::MenuView::down(fk::ViewController*) 8
-menu_view.cpp:698:6:virtual void fk::MenuView::enter(fk::ViewController*) 8
-menu_view.cpp:703:6:void fk::MenuView::confirm(fk::MenuOption*) 8
-menu_view.cpp:83:10:void fk::NetworkOption<T>::refresh(const fk::GlobalState*) [with T = fk::MenuView::create_network_menu()::__lambda52] 8
+menu_view.cpp:716:6:virtual void fk::MenuView::show() 8
+menu_view.cpp:720:6:void fk::MenuView::show_for_module(uint8_t) 8
+menu_view.cpp:749:6:virtual void fk::MenuView::up(fk::ViewController*) 8
+menu_view.cpp:754:6:virtual void fk::MenuView::down(fk::ViewController*) 8
+menu_view.cpp:759:6:virtual void fk::MenuView::enter(fk::ViewController*) 8
+menu_view.cpp:764:6:void fk::MenuView::confirm(fk::MenuOption*) 8
+menu_view.cpp:83:10:void fk::NetworkOption<T>::refresh(const fk::GlobalState*) [with T = fk::MenuView::create_network_menu()::__lambda57] 8
 meta_record.cpp:48:27:const fk_data_DataRecord& fk::MetaRecord::record() 8
 metal_battery_gauge.cpp:107:6:void fk::MetalBatteryGauge::irq() 8
 metal_battery_gauge.cpp:16:13:void fk::irq_charge_pulse() 8
@@ -2723,7 +2715,7 @@ modmux.cpp:101:1:fk::Topology::Topology(uint8_t) 8
 modmux.cpp:62:1:fk::ModulesLock::ModulesLock() 8
 modmux.cpp:73:1:fk::ModulesLock::~ModulesLock() 8
 modmux.cpp:73:1:virtual fk::ModulesLock::~ModulesLock() 8
-module.cpp:66:6:void fk_module_initialize_atlas() 8
+module.cpp:57:6:void fk_module_initialize_atlas() 8
 module.cpp:7:16:fk::Module* fk_module_create_atlas(fk::Pool&) 8
 module.cpp:7:16:fk::Module* fk_module_create_diagnostics(fk::Pool&) 8
 module.cpp:7:16:fk::Module* fk_module_create_distance(fk::Pool&) 8
@@ -2736,17 +2728,14 @@ module_readings.h:26:10:void fk::NModuleReadings<N>::set(int32_t, fk::ModuleRead
 module_readings.h:26:10:void fk::NModuleReadings<N>::set(int32_t, fk::ModuleReading) [with unsigned int N = 12u; int32_t = long int] 8
 module_readings.h:26:10:void fk::NModuleReadings<N>::set(int32_t, fk::ModuleReading) [with unsigned int N = 16u; int32_t = long int] 8
 module_readings.h:26:10:void fk::NModuleReadings<N>::set(int32_t, fk::ModuleReading) [with unsigned int N = 3u; int32_t = long int] 8
-module_readings.h:26:10:void fk::NModuleReadings<N>::set(int32_t, fk::ModuleReading) [with unsigned int N = 3u; int32_t = long int] 8
 module_readings.h:26:10:void fk::NModuleReadings<N>::set(int32_t, fk::ModuleReading) [with unsigned int N = 4u; int32_t = long int] 8
 module_readings.h:26:10:void fk::NModuleReadings<N>::set(int32_t, fk::ModuleReading) [with unsigned int N = 4u; int32_t = long int] 8
-module_readings.h:36:21:fk::ModuleReadings* fk::NModuleReadings<N>::clone(fk::Pool&) const [with unsigned int N = 3u] 8
 module_readings.h:36:21:fk::ModuleReadings* fk::NModuleReadings<N>::clone(fk::Pool&) const [with unsigned int N = 3u] 8
 module_status_view.cpp:31:1:fk::ModuleStatusView::ModuleStatusView() 8
 module_status_view.cpp:44:6:virtual void fk::ModuleStatusView::up(fk::ViewController*) 8
 module_status_view.cpp:54:6:virtual void fk::ModuleStatusView::down(fk::ViewController*) 8
 module_status_view.cpp:64:6:virtual void fk::ModuleStatusView::enter(fk::ViewController*) 8
 modules.c:8:10:fk_module_header_valid 8
-modules_bridge.h:42:13:virtual fk::Module::~Module() 8
 modules_bridge.h:42:13:virtual fk::Module::~Module() 8
 modules_bridge.h:42:13:virtual fk::Module::~Module() 8
 modules_bridge.h:42:13:virtual fk::Module::~Module() 8
@@ -2967,8 +2956,6 @@ pool.h:91:8:T* fk::Pool::malloc() [with T = _fk_data_SignedRecord] 8
 pool.h:91:8:T* fk::Pool::malloc() [with T = fk::collection<fk::ConstructedModule>::item_t] 8
 pool.h:91:8:T* fk::Pool::malloc() [with T = fk::pb_array_t] 8
 pool.h:96:8:T* fk::Pool::malloc_with(T&&) [with T = fk::ModuleSensors] 8
-pool.h:96:8:T* fk::Pool::malloc_with(T&&) [with T = fk::ModuleSensors] 8
-pool.h:96:8:T* fk::Pool::malloc_with(T&&) [with T = fk::SensorMetadata] 8
 pool.h:96:8:T* fk::Pool::malloc_with(T&&) [with T = fk::SensorMetadata] 8
 pool.h:96:8:T* fk::Pool::malloc_with(T&&) [with T = fk::pb_data_t] 8
 pool.h:96:8:T* fk::Pool::malloc_with(T&&) [with T = fk::pb_data_t] 8
@@ -3334,7 +3321,6 @@ watchdog.cpp:29:9:int32_t fk_wdt_initialize() 8
 watchdog.cpp:35:9:int32_t fk_wdt_enable() 8
 watchdog.cpp:43:9:int32_t fk_wdt_disable() 8
 watchdog.cpp:48:9:int32_t fk_wdt_feed() 8
-water_module.h:10:7:virtual fk::WaterModule::~WaterModule() 8
 weather_module.h:11:7:virtual fk::WeatherModule::~WeatherModule() 8
 wifi_toggle_worker.cpp:16:6:virtual void fk::WifiToggleWorker::run(fk::Pool&) 8
 wifi_toggle_worker.h:7:7:virtual fk::WifiToggleWorker::~WifiToggleWorker() 8
@@ -3830,13 +3816,13 @@ display.cpp:24:10:fk::Display* fk::get_display() 16
 display.cpp:54:10:11(fk::DisplayView**, fk::DisplayView&) 16
 display.cpp:86:10:virtual void fk::MainViewController::show_build() 16
 display.cpp:95:10:virtual void fk::MainViewController::show_module_menu(uint8_t) 16
-display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_tools_menu()::__lambda33] 16
-display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_tools_menu()::__lambda36] 16
-display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_tools_menu()::__lambda43] 16
-display.h:164:10:void fk::SelectableLambdaOption<TSelect, TSelected>::refresh(const fk::GlobalState*) [with TSelect = fk::MenuView::create_network_menu()::__lambda47; TSelected = fk::MenuView::create_network_menu()::__lambda48] 16
-display.h:164:10:void fk::SelectableLambdaOption<TSelect, TSelected>::refresh(const fk::GlobalState*) [with TSelect = fk::MenuView::create_network_menu()::__lambda49; TSelected = fk::MenuView::create_network_menu()::__lambda50] 16
-display.h:164:10:void fk::SelectableLambdaOption<TSelect, TSelected>::refresh(const fk::GlobalState*) [with TSelect = fk::MenuView::create_tools_menu()::__lambda26; TSelected = fk::MenuView::create_tools_menu()::__lambda27] 16
-display.h:164:10:void fk::SelectableLambdaOption<TSelect, TSelected>::refresh(const fk::GlobalState*) [with TSelect = fk::MenuView::create_tools_menu()::__lambda28; TSelected = fk::MenuView::create_tools_menu()::__lambda29] 16
+display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_tools_menu()::__lambda38] 16
+display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_tools_menu()::__lambda41] 16
+display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_tools_menu()::__lambda48] 16
+display.h:164:10:void fk::SelectableLambdaOption<TSelect, TSelected>::refresh(const fk::GlobalState*) [with TSelect = fk::MenuView::create_network_menu()::__lambda52; TSelected = fk::MenuView::create_network_menu()::__lambda53] 16
+display.h:164:10:void fk::SelectableLambdaOption<TSelect, TSelected>::refresh(const fk::GlobalState*) [with TSelect = fk::MenuView::create_network_menu()::__lambda54; TSelected = fk::MenuView::create_network_menu()::__lambda55] 16
+display.h:164:10:void fk::SelectableLambdaOption<TSelect, TSelected>::refresh(const fk::GlobalState*) [with TSelect = fk::MenuView::create_tools_menu()::__lambda31; TSelected = fk::MenuView::create_tools_menu()::__lambda32] 16
+display.h:164:10:void fk::SelectableLambdaOption<TSelect, TSelected>::refresh(const fk::GlobalState*) [with TSelect = fk::MenuView::create_tools_menu()::__lambda33; TSelected = fk::MenuView::create_tools_menu()::__lambda34] 16
 display.h:180:10:void fk::MenuScreen::refresh(const fk::GlobalState*) 16
 display_self_check_callbacks.cpp:28:6:void fk::DisplaySelfCheckCallbacks::append(const char*, fk::CheckStatus) 16
 display_self_check_callbacks.cpp:43:6:void fk::DisplaySelfCheckCallbacks::append(const char*, fk::ModuleCheckStatus) 16
@@ -4057,9 +4043,9 @@ memory.h:58:10:8(const uint32_t*, uint32_t) 16
 menu_view.cpp:122:10:virtual void fk::ToggleWifiOption::on_selected() 16
 menu_view.cpp:151:1:fk::MenuView::MenuView(fk::ViewController*, fk::Pool&) 16
 menu_view.cpp:203:6:void fk::MenuView::create_module_bays_menu() 16
-menu_view.cpp:644:6:void fk::MenuView::create_schedules_menu() 16
-menu_view.cpp:792:13:static fk::MenuOption* fk::MenuView::selected(fk::MenuScreen&) 16
-menu_view.cpp:826:1:cpp) 16
+menu_view.cpp:705:6:void fk::MenuView::create_schedules_menu() 16
+menu_view.cpp:853:13:static fk::MenuOption* fk::MenuView::selected(fk::MenuScreen&) 16
+menu_view.cpp:887:1:cpp) 16
 meta_record.cpp:40:21:fk_data_DataRecord& fk::MetaRecord::for_decoding(fk::Pool&) 16
 metal_battery_gauge.cpp:117:1:cpp) 16
 metal_board.cpp:146:6:void fk::Board::signal_eeprom(uint8_t) 16
@@ -4113,7 +4099,6 @@ module_handler.cpp:85:1:cpp) 16
 module_readings.h:32:19:fk::ModuleReading fk::NModuleReadings<N>::get(int32_t) const [with unsigned int N = 10u; int32_t = long int] 16
 module_readings.h:32:19:fk::ModuleReading fk::NModuleReadings<N>::get(int32_t) const [with unsigned int N = 12u; int32_t = long int] 16
 module_readings.h:32:19:fk::ModuleReading fk::NModuleReadings<N>::get(int32_t) const [with unsigned int N = 16u; int32_t = long int] 16
-module_readings.h:32:19:fk::ModuleReading fk::NModuleReadings<N>::get(int32_t) const [with unsigned int N = 3u; int32_t = long int] 16
 module_readings.h:32:19:fk::ModuleReading fk::NModuleReadings<N>::get(int32_t) const [with unsigned int N = 3u; int32_t = long int] 16
 module_readings.h:32:19:fk::ModuleReading fk::NModuleReadings<N>::get(int32_t) const [with unsigned int N = 4u; int32_t = long int] 16
 module_readings.h:32:19:fk::ModuleReading fk::NModuleReadings<N>::get(int32_t) const [with unsigned int N = 4u; int32_t = long int] 16
@@ -4462,8 +4447,6 @@ url_parser.h:34:5:fk::UrlParser::UrlParser(char*) 16
 url_parser.h:34:5:fk::UrlParser::UrlParser(char*) 16
 variant.cpp:219:1:cpp) 16
 watchdog.cpp:75:1:cpp) 16
-water_module.cpp:179:27:virtual const ModuleConfiguration fk::WaterModule::get_configuration(fk::Pool&) 16
-water_module.cpp:85:14:virtual fk::ModuleReturn fk::WaterModule::service(fk::ModuleContext, fk::Pool&) 16
 weather_types.h:25:5:fk::WindDirection::WindDirection(uint32_t) 16
 wifi_toggle_worker.cpp:61:1:cpp) 16
 wiring.c:65:6:init 16
@@ -4625,17 +4608,17 @@ directory_tree.cpp:146:9:virtual int32_t phylum::directory_tree::file_chain(phyl
 directory_tree.cpp:211:9:virtual int32_t phylum::directory_tree::file_trees(phylum::file_id_t, phylum::tree_ptr_t, phylum::tree_ptr_t) 24
 display.cpp:119:10:virtual void fk::MainViewController::on_external() 24
 display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_module_bays_menu()::__lambda12] 24
-display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_module_menu()::__lambda23] 24
-display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_network_menu()::__lambda54] 24
-display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_network_menu()::__lambda56] 24
-display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_network_menu()::__lambda57] 24
-display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_network_menu()::__lambda58] 24
-display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_tools_menu()::__lambda34] 24
-display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_tools_menu()::__lambda37] 24
-display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_tools_menu()::__lambda38] 24
-display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_tools_menu()::__lambda40] 24
+display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_module_menu()::__lambda28] 24
+display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_network_menu()::__lambda59] 24
+display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_network_menu()::__lambda61] 24
+display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_network_menu()::__lambda62] 24
+display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_network_menu()::__lambda63] 24
+display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_tools_menu()::__lambda39] 24
 display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_tools_menu()::__lambda42] 24
-display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_tools_menu()::__lambda44] 24
+display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_tools_menu()::__lambda43] 24
+display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_tools_menu()::__lambda45] 24
+display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_tools_menu()::__lambda47] 24
+display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_tools_menu()::__lambda49] 24
 distance_module.cpp:33:14:virtual fk::ModuleReturn fk::DistanceModule::api(fk::ModuleContext, fk::HttpServerConnection*, fk::Pool&) 24
 dns_message.cpp:18:1:fk::DNSReader::DNSReader(fk::Pool*, uint8_t*, size_t) 24
 dns_message.cpp:309:9:int32_t fk::DNSWriter::write_question(const char*, uint16_t, uint16_t) 24
@@ -4798,11 +4781,11 @@ memory.cpp:95:6:void fk::fk_standard_page_free(void*) 24
 menu_view.cpp:41:13:fk::MenuScreen* fk::new_menu_screen(fk::Pool*, const char*, fk::MenuOption* (&&)[N]) [with unsigned int N = 2u] 24
 menu_view.cpp:41:13:fk::MenuScreen* fk::new_menu_screen(fk::Pool*, const char*, fk::MenuOption* (&&)[N]) [with unsigned int N = 3u] 24
 menu_view.cpp:41:13:fk::MenuScreen* fk::new_menu_screen(fk::Pool*, const char*, fk::MenuOption* (&&)[N]) [with unsigned int N = 4u] 24
-menu_view.cpp:665:6:virtual void fk::MenuView::tick(fk::ViewController*, fk::Pool&) 24
-menu_view.cpp:722:6:static void fk::MenuView::focus_up(fk::MenuScreen&) 24
-menu_view.cpp:753:6:static void fk::MenuView::focus_down(fk::MenuScreen&) 24
-menu_view.cpp:775:6:static void fk::MenuView::refresh_visible(fk::MenuScreen&, int8_t) 24
-menu_view.cpp:803:13:fk::MenuScreen* fk::MenuView::goto_menu(fk::MenuScreen*) 24
+menu_view.cpp:726:6:virtual void fk::MenuView::tick(fk::ViewController*, fk::Pool&) 24
+menu_view.cpp:783:6:static void fk::MenuView::focus_up(fk::MenuScreen&) 24
+menu_view.cpp:814:6:static void fk::MenuView::focus_down(fk::MenuScreen&) 24
+menu_view.cpp:836:6:static void fk::MenuView::refresh_visible(fk::MenuScreen&, int8_t) 24
+menu_view.cpp:864:13:fk::MenuScreen* fk::MenuView::goto_menu(fk::MenuScreen*) 24
 message_view.h:14:10:virtual void fk::MessageView::tick(fk::ViewController*, fk::Pool&) 24
 metal_board.cpp:335:9:int32_t fk::TwoWireWrapper::read(uint8_t, void*, int32_t) 24
 metal_board.cpp:351:9:int32_t fk::TwoWireWrapper::write(uint8_t, const void*, int32_t) 24
@@ -5045,8 +5028,6 @@ url_parser.h:75:17:const char* fk::UrlParser::find_query_param(const char*, fk::
 utilities.cpp:14:8:size_t fk::bytes_to_hex_string(char*, size_t, const uint8_t*, size_t) 24
 utilities.cpp:29:13:const char* fk::bytes_to_hex_string_pool(const uint8_t*, size_t, fk::Pool&) 24
 uuid.c:15:9:fk_uuid_sprintf 24
-water_module.cpp:265:17:nonstd::optional_lite::optional<float> fk::WaterModule::get_temperature(fk::ReadingsContext) 24
-water_module.cpp:276:17:nonstd::optional_lite::optional<float> fk::WaterModule::get_salinity(fk::ReadingsContext) 24
 weather_module.cpp:53:14:virtual fk::ModuleReturn fk::WeatherModule::api(fk::ModuleContext, fk::HttpServerConnection*, fk::Pool&) 24
 wiring_analog.c:354:6:analogWrite 24
 wiring_shift.c:28:10:shiftIn 24
@@ -5215,9 +5196,9 @@ m2m_wifi.c:793:7:m2m_wifi_request_scan_passive 32
 m2m_wifi.c:934:7:m2m_wifi_p2p 32
 map.c:188:5:dhara_map_read 32
 memory.cpp:48:7:void* fk::fk_standard_page_malloc(size_t, const char*) 32
-menu_view.cpp:335:6:void fk::MenuView::create_confirmation_menu() 32
-menu_view.cpp:680:6:void fk::MenuView::refresh() 32
-menu_view.cpp:710:6:static void fk::MenuView::choose_active_network(fk::WifiNetworkInfo) 32
+menu_view.cpp:396:6:void fk::MenuView::create_confirmation_menu() 32
+menu_view.cpp:741:6:void fk::MenuView::refresh() 32
+menu_view.cpp:771:6:static void fk::MenuView::choose_active_network(fk::WifiNetworkInfo) 32
 metal_board.cpp:217:6:bool fk::SpiWrapper::transfer_command(uint8_t, const uint8_t*, uint8_t*, uint32_t) 32
 metal_ipc.cpp:105:6:virtual bool fk::MetalIPC::launch_worker(fk::WorkerCategory, fk::TaskWorker*) 32
 metal_leds.cpp:42:6:virtual bool fk::MetalLeds::brightness(uint8_t, bool) 32
@@ -6210,7 +6191,12 @@ display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = f
 display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_module_menu()::__lambda17] 48
 display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_module_menu()::__lambda18] 48
 display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_module_menu()::__lambda19] 48
-display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_tools_menu()::__lambda35] 48
+display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_module_menu()::__lambda20] 48
+display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_module_menu()::__lambda21] 48
+display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_module_menu()::__lambda22] 48
+display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_module_menu()::__lambda23] 48
+display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_module_menu()::__lambda24] 48
+display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_tools_menu()::__lambda40] 48
 dtostrf.c:22:7:dtostrf 48
 eeprom.cpp:167:6:bool fk::ModuleEeprom::erase_page(uint32_t) 48
 eeprom.cpp:63:13:bool fk::write(fk::TwoWireWrapper*, uint16_t, uint8_t*, size_t) 48
@@ -6320,7 +6306,6 @@ u8x8_d_st7528.c:109:16:u8x8_d_st7528_generic 48
 u8x8_d_uc1617.c:135:9:u8x8_d_uc1617_common 48
 u8x8_string.c:159:9:u8x8_DrawUTF8Lines 48
 varint.cpp:35:10:uint8_t* phylum::varint_encode(long long unsigned int, uint8_t*, int32_t) 48
-water_module.cpp:17:14:virtual fk::ModuleReturn fk::WaterModule::initialize(fk::ModuleContext, fk::Pool&) 48
 working_buffers.h:300:19:phylum::simple_buffer phylum::working_buffers::allocate(size_t) 48
 working_buffers.h:300:19:phylum::simple_buffer phylum::working_buffers::allocate(size_t) 48
 working_buffers.h:300:19:phylum::simple_buffer phylum::working_buffers::allocate(size_t) 48
@@ -6411,10 +6396,10 @@ data_chain.cpp:286:9:int32_t phylum::data_chain::constrain() 64
 directory_chain.cpp:27:9:virtual int32_t phylum::directory_chain::touch(const char*) 64
 directory_chain.cpp:42:9:virtual int32_t phylum::directory_chain::unlink(const char*) 64
 display.cpp:100:10:virtual void fk::MainViewController::show_message(const char*) 64
-display.h:160:10:void fk::SelectableLambdaOption<TSelect, TSelected>::on_selected() [with TSelect = fk::MenuView::create_network_menu()::__lambda47; TSelected = fk::MenuView::create_network_menu()::__lambda48] 64
-display.h:160:10:void fk::SelectableLambdaOption<TSelect, TSelected>::on_selected() [with TSelect = fk::MenuView::create_network_menu()::__lambda49; TSelected = fk::MenuView::create_network_menu()::__lambda50] 64
-display.h:160:10:void fk::SelectableLambdaOption<TSelect, TSelected>::on_selected() [with TSelect = fk::MenuView::create_tools_menu()::__lambda26; TSelected = fk::MenuView::create_tools_menu()::__lambda27] 64
-display.h:160:10:void fk::SelectableLambdaOption<TSelect, TSelected>::on_selected() [with TSelect = fk::MenuView::create_tools_menu()::__lambda28; TSelected = fk::MenuView::create_tools_menu()::__lambda29] 64
+display.h:160:10:void fk::SelectableLambdaOption<TSelect, TSelected>::on_selected() [with TSelect = fk::MenuView::create_network_menu()::__lambda52; TSelected = fk::MenuView::create_network_menu()::__lambda53] 64
+display.h:160:10:void fk::SelectableLambdaOption<TSelect, TSelected>::on_selected() [with TSelect = fk::MenuView::create_network_menu()::__lambda54; TSelected = fk::MenuView::create_network_menu()::__lambda55] 64
+display.h:160:10:void fk::SelectableLambdaOption<TSelect, TSelected>::on_selected() [with TSelect = fk::MenuView::create_tools_menu()::__lambda31; TSelected = fk::MenuView::create_tools_menu()::__lambda32] 64
+display.h:160:10:void fk::SelectableLambdaOption<TSelect, TSelected>::on_selected() [with TSelect = fk::MenuView::create_tools_menu()::__lambda33; TSelected = fk::MenuView::create_tools_menu()::__lambda34] 64
 dns_message.cpp:100:23:fk::DNSReader::dns_name_t fk::DNSReader::read_name(fk::BufferedReader*) 64
 dns_message.cpp:122:9:int16_t fk::DNSReader::parse() 64
 file.cpp:170:9:int32_t fk::File::write_partial(const uint8_t*, size_t) 64
@@ -6459,9 +6444,6 @@ u8g2_box.c:88:6:u8g2_DrawRBox 64
 u8g2_message.c:99:9:u8g2_UserInterfaceMessage 64
 u8g2_selection_list.c:52:6:u8g2_DrawUTF8Line 64
 u8x8_d_uc1611.c:413:9:u8x8_d_uc1611_ew50850 64
-water_module.cpp:37:6:bool fk::WaterModule::load_configuration(fk::ModuleContext, fk::Pool&) 64
-water_module.cpp:65:14:virtual fk::ModuleReturn fk::WaterModule::api(fk::ModuleContext, fk::HttpServerConnection*, fk::Pool&) 64
-water_module.cpp:89:22:virtual const ModuleSensors* fk::WaterModule::get_sensors(fk::Pool&) 64
 FatFileLFN.cpp:503:8:size_t FatFile::printName(print_t*) 72
 MDNS.cpp:290:13:MDNSError_t MDNS::_sendMDNSMessage(uint32_t, uint32_t, int, int) 72
 data_chain.cpp:166:9:int32_t phylum::data_chain::read(uint8_t*, size_t) 72
@@ -6486,7 +6468,7 @@ http_server_connection.cpp:57:9:int32_t fk::HttpServerConnection::busy(uint32_t,
 m2m_wifi.c:1182:7:m2m_wifi_set_device_name 72
 m2m_wifi.c:461:7:m2m_wifi_init 72
 memory.cpp:82:9:virtual int32_t fk::BankedDataMemory::erase(uint32_t, size_t) 72
-menu_view.cpp:609:6:void fk::MenuView::create_main_menu() 72
+menu_view.cpp:670:6:void fk::MenuView::create_main_menu() 72
 oem_atlas.cpp:234:19:fk::CalibrationStatus fk::OemAtlas::calibration() 72
 os.c:841:6:osi_hard_fault_handler 72
 paging_delimited_buffer.cpp:102:9:int32_t phylum::paging_delimited_buffer::replace(phylum::dhara_sector_t, bool, bool) 72
@@ -6531,7 +6513,6 @@ hpl_aes.c:915:9:__aes_sync_ccm_crypt_and_tag 80
 http_server_connection.cpp:88:9:int32_t fk::HttpServerConnection::error(int32_t, const char*, fk::Pool&) 80
 lora_worker.cpp:15:38:tl::expected<fk::BufferPtr*, fk::Error> fk::packetize(fk::Pool&) 80
 memory.cpp:90:9:virtual int32_t fk::BankedDataMemory::copy_page(uint32_t, uint32_t, size_t) 80
-menu_view.cpp:215:6:void fk::MenuView::create_module_menu() 80
 oem_atlas.cpp:102:6:bool fk::OemAtlas::find(uint8_t) 80
 oem_atlas.cpp:248:19:fk::CalibrationStatus fk::OemAtlas::calibrate(uint8_t, float) 80
 pb_decode.c:786:25:decode_field 80
@@ -6571,7 +6552,7 @@ blake2b.cpp:281:6:void BLAKE2b::finalizeHMAC(const void*, size_t, void*, size_t)
 clock.cpp:108:6:bool fk::CoreClock::sync() 96
 clock.cpp:312:10:uint32_t fk::clock_adjust(uint32_t) 96
 http_server_connection.cpp:122:9:int32_t fk::HttpServerConnection::write(int32_t, const char*, const void*, const pb_msgdesc_t*) 96
-menu_view.cpp:506:6:void fk::MenuView::create_network_menu() 96
+menu_view.cpp:567:6:void fk::MenuView::create_network_menu() 96
 meta_record.cpp:164:6:void fk::MetaRecord::include_modules(const fk::GlobalState*, const fkb_header_t*, fk::ConstructedModulesCollection&, fk::ModuleReadingsCollection&, fk::Pool&) 96
 pb_encode.c:509:18:pb_encode 96
 rn2903.cpp:201:6:bool fk::Rn2903::provision(const char*, const char*, const char*, uint32_t, uint32_t) 96
@@ -6597,7 +6578,7 @@ configure_module_worker.cpp:63:6:bool fk::ConfigureModuleWorker::scan(fk::Pool&)
 data_chain.cpp:295:9:int32_t phylum::data_chain::read_chain(std::function<long int(phylum::general_buffer<const unsigned char>)>) 112
 dhara_map.cpp:28:9:virtual int32_t phylum::dhara_sector_map::begin(bool) 112
 file.cpp:716:9:int32_t fk::File::read_record_tail() 112
-menu_view.cpp:353:6:void fk::MenuView::create_tools_menu() 112
+menu_view.cpp:414:6:void fk::MenuView::create_tools_menu() 112
 metal_gps.cpp:33:6:virtual bool fk::MetalGps::service(fk::GpsFix&) 112
 schedule_view.cpp:57:6:virtual void fk::ScheduleView::enter(fk::ViewController*) 112
 sector_chain.cpp:314:9:int32_t phylum::sector_chain::grow_tail(phylum::page_lock&) 112
@@ -6609,6 +6590,7 @@ delimited_buffer.h:219:13:int32_t phylum::delimited_buffer::seek_end() 120
 delimited_buffer.h:219:13:int32_t phylum::delimited_buffer::seek_end() 120
 delimited_buffer.h:229:13:int32_t phylum::delimited_buffer::seek_once() 120
 http_parser.c:641:8:http_parser_execute 120
+menu_view.cpp:215:6:void fk::MenuView::create_module_menu() 120
 metal_sd_card.cpp:149:6:virtual bool fk::MetalSdCard::append_logs(fk::circular_buffer<char>&, fk::circular_buffer<char>::iterator) 120
 module_factory.cpp:145:51:tl::expected<fk::collection<fk::ConstructedModule>, fk::Error> fk::ModuleFactory::resolve(fk::FoundModuleCollection&, fk::Pool&) 120
 self_check_worker.cpp:39:6:void fk::SelfCheckWorker::check() 120
@@ -6642,7 +6624,6 @@ file.cpp:402:9:int32_t fk::File::rewind() 144
 lora_manager.cpp:23:6:bool fk::LoraManager::begin() 144
 metal_sd_card.cpp:100:6:bool fk::MetalSdCard::initialize_logs() 144
 pb_decode.c:978:25:pb_decode_inner 144
-water_module.cpp:189:17:virtual fk::ModuleReadings* fk::WaterModule::take_readings(fk::ReadingsContext, fk::Pool&) 144
 api_handler.cpp:65:6:virtual bool fk::ApiHandler::handle(fk::HttpServerConnection*, fk::Pool&) 152
 m2m_wifi.c:550:7:m2m_wifi_connect_sc 152
 map.c:253:12:pad_queue 152
@@ -6672,7 +6653,7 @@ map.c:122:12:trace_path 168
 protobuf.cpp:223:6:bool fk::pb_encode_logs(pb_ostream_t*, const pb_field_t*, void* const*) 168
 scanning.cpp:56:6:bool fk::ModuleScanning::try_scan_single_module(fk::ModulePosition, fk::FoundModuleCollection&, fk::Pool&) 168
 configure_module_worker.cpp:36:6:bool fk::ConfigureModuleWorker::configure(fk::Pool&) 176
-display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_network_menu()::__lambda51] 176
+display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_network_menu()::__lambda56] 176
 map.c:212:12:raw_gc 176
 readings_worker.cpp:48:6:bool fk::ReadingsWorker::take(fk::Pool&) 176
 schedule_view.cpp:25:6:virtual void fk::ScheduleView::tick(fk::ViewController*, fk::Pool&) 176
@@ -6709,7 +6690,7 @@ storage.cpp:371:10:uint32_t fk::Storage::allocate(uint8_t, uint32_t, fk::BlockTa
 storage.cpp:159:22:fk::Storage::BlocksAfter fk::Storage::find_blocks_after(uint32_t, fk::FileNumber, fk::RecordNumber) 264
 entries.h:355:5:phylum::tree_node_t<KEY, VALUE, Size>::tree_node_t() [with KEY = long unsigned int; VALUE = phylum::dirtree_tree_value_t<128u>; unsigned int Size = 4u] 272
 free_sectors_chain.cpp:75:9:int32_t phylum::free_sectors_chain::dequeue(phylum::dhara_sector_t*) 272
-menu_view.cpp:71:10:void fk::NetworkOption<T>::on_selected() [with T = fk::MenuView::create_network_menu()::__lambda52] 272
+menu_view.cpp:71:10:void fk::NetworkOption<T>::on_selected() [with T = fk::MenuView::create_network_menu()::__lambda57] 272
 rn2903.cpp:76:6:bool fk::Rn2903::send_command(const char*, va_list) 272
 entries.h:364:10:void phylum::tree_node_t<KEY, VALUE, Size>::clear() [with KEY = long unsigned int; VALUE = phylum::attribute_value_t<256u>; unsigned int Size = 15u] 280
 directory_chain.cpp:135:9:virtual int32_t phylum::directory_chain::find(const char*, phylum::open_file_config) 288
