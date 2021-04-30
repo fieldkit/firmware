@@ -299,6 +299,11 @@ arduino.cpp:51:10:uint32_t osi_platform_uptime() 0
 arduino.cpp:60:10:uint32_t osi_platform_micros() 0
 atlas_api.cpp:8:1:fk::AtlasApi::AtlasApi(fk::AtlasSensorType, fk::OemAtlas&) 0
 atlas_api_reply.cpp:31:6:bool fk::AtlasApiReply::has_errors() const 0
+atlas_module.cpp:168:13:const char* fk::AtlasModule::get_display_name_key() 0
+atlas_module.cpp:287:17:nonstd::optional_lite::optional<float> fk::AtlasModule::get_pressure(fk::ReadingsContext) 0
+atlas_module.cpp:293:19:virtual float fk::NoopCurve::apply(float) 0
+atlas_module.cpp:321:19:virtual float fk::LinearCurve::apply(float) 0
+atlas_module.h:10:7:fk::AtlasModule::~AtlasModule() 0
 backup_worker.cpp:20:1:fk::BackupWorker::BackupWorker() 0
 backup_worker.h:10:7:fk::BackupWorker::~BackupWorker() 0
 backup_worker.h:18:13:virtual uint8_t fk::BackupWorker::priority() const 0
@@ -1164,10 +1169,12 @@ module_readings.h:22:12:size_t fk::NModuleReadings<N>::size() const [with unsign
 module_readings.h:22:12:size_t fk::NModuleReadings<N>::size() const [with unsigned int N = 12u; size_t = unsigned int] 0
 module_readings.h:22:12:size_t fk::NModuleReadings<N>::size() const [with unsigned int N = 16u; size_t = unsigned int] 0
 module_readings.h:22:12:size_t fk::NModuleReadings<N>::size() const [with unsigned int N = 3u; size_t = unsigned int] 0
+module_readings.h:22:12:size_t fk::NModuleReadings<N>::size() const [with unsigned int N = 3u; size_t = unsigned int] 0
 module_readings.h:22:12:size_t fk::NModuleReadings<N>::size() const [with unsigned int N = 4u; size_t = unsigned int] 0
 module_readings.h:22:12:size_t fk::NModuleReadings<N>::size() const [with unsigned int N = 4u; size_t = unsigned int] 0
 modules.c:12:9:fk_module_is_available_i2c_address 0
 modules.c:4:10:fk_module_header_sign 0
+modules_bridge.h:42:13:fk::Module::~Module() 0
 modules_bridge.h:42:13:fk::Module::~Module() 0
 modules_bridge.h:42:13:fk::Module::~Module() 0
 modules_bridge.h:42:13:fk::Module::~Module() 0
@@ -1208,6 +1215,7 @@ nmspi.c:1276:7:nm_spi_deinit 0
 oem_atlas.cpp:127:17:fk::AtlasSensorType fk::OemAtlas::type() const 0
 oem_atlas.cpp:131:9:uint8_t fk::OemAtlas::address() const 0
 oem_atlas.cpp:76:1:fk::OemAtlas::OemAtlas(fk::TwoWireWrapper&) 0
+optional.hpp:863:26:nonstd::optional_lite::optional<T>::optional(const nonstd::optional_lite::optional<T>&, typename std::enable_if<(true || std::is_copy_constructible<_Tp>::value), void*>::type) [with T = float; typename std::enable_if<(true || std::is_copy_constructible<_Tp>::value), void*>::type = void*] 0
 optional.hpp:863:26:nonstd::optional_lite::optional<T>::optional(const nonstd::optional_lite::optional<T>&, typename std::enable_if<(true || std::is_copy_constructible<_Tp>::value), void*>::type) [with T = float; typename std::enable_if<(true || std::is_copy_constructible<_Tp>::value), void*>::type = void*] 0
 os.c:247:10:os_task_is_running 0
 os.c:260:13:os_task_start 0
@@ -2139,6 +2147,7 @@ Wire.cpp:305:3:cpp) 8
 arduino.cpp:55:10:uint32_t osi_platform_delay(uint32_t) 8
 arduino.cpp:66:9:int32_t sysTickHook() 8
 atlas_api_reply.cpp:5:1:fk::AtlasApiReply::AtlasApiReply(fk::Pool&) 8
+atlas_module.h:10:7:virtual fk::AtlasModule::~AtlasModule() 8
 backup_worker.h:10:7:virtual fk::BackupWorker::~BackupWorker() 8
 bad_blocks.cpp:21:1:virtual fk::BadBlocks::~BadBlocks() 8
 blake2b.cpp:110:1:BLAKE2b::BLAKE2b() 8
@@ -2714,11 +2723,11 @@ modmux.cpp:101:1:fk::Topology::Topology(uint8_t) 8
 modmux.cpp:62:1:fk::ModulesLock::ModulesLock() 8
 modmux.cpp:73:1:fk::ModulesLock::~ModulesLock() 8
 modmux.cpp:73:1:virtual fk::ModulesLock::~ModulesLock() 8
-module.cpp:66:6:void fk_module_initialize_water() 8
+module.cpp:66:6:void fk_module_initialize_atlas() 8
+module.cpp:7:16:fk::Module* fk_module_create_atlas(fk::Pool&) 8
 module.cpp:7:16:fk::Module* fk_module_create_diagnostics(fk::Pool&) 8
 module.cpp:7:16:fk::Module* fk_module_create_distance(fk::Pool&) 8
 module.cpp:7:16:fk::Module* fk_module_create_random(fk::Pool&) 8
-module.cpp:7:16:fk::Module* fk_module_create_water(fk::Pool&) 8
 module.cpp:7:16:fk::Module* fk_module_create_weather(fk::Pool&) 8
 module_factory.cpp:29:16:fk::ModuleFactory& fk::get_module_factory() 8
 module_factory.cpp:36:1:fk::ModuleFactory::~ModuleFactory() 8
@@ -2727,14 +2736,17 @@ module_readings.h:26:10:void fk::NModuleReadings<N>::set(int32_t, fk::ModuleRead
 module_readings.h:26:10:void fk::NModuleReadings<N>::set(int32_t, fk::ModuleReading) [with unsigned int N = 12u; int32_t = long int] 8
 module_readings.h:26:10:void fk::NModuleReadings<N>::set(int32_t, fk::ModuleReading) [with unsigned int N = 16u; int32_t = long int] 8
 module_readings.h:26:10:void fk::NModuleReadings<N>::set(int32_t, fk::ModuleReading) [with unsigned int N = 3u; int32_t = long int] 8
+module_readings.h:26:10:void fk::NModuleReadings<N>::set(int32_t, fk::ModuleReading) [with unsigned int N = 3u; int32_t = long int] 8
 module_readings.h:26:10:void fk::NModuleReadings<N>::set(int32_t, fk::ModuleReading) [with unsigned int N = 4u; int32_t = long int] 8
 module_readings.h:26:10:void fk::NModuleReadings<N>::set(int32_t, fk::ModuleReading) [with unsigned int N = 4u; int32_t = long int] 8
+module_readings.h:36:21:fk::ModuleReadings* fk::NModuleReadings<N>::clone(fk::Pool&) const [with unsigned int N = 3u] 8
 module_readings.h:36:21:fk::ModuleReadings* fk::NModuleReadings<N>::clone(fk::Pool&) const [with unsigned int N = 3u] 8
 module_status_view.cpp:31:1:fk::ModuleStatusView::ModuleStatusView() 8
 module_status_view.cpp:44:6:virtual void fk::ModuleStatusView::up(fk::ViewController*) 8
 module_status_view.cpp:54:6:virtual void fk::ModuleStatusView::down(fk::ViewController*) 8
 module_status_view.cpp:64:6:virtual void fk::ModuleStatusView::enter(fk::ViewController*) 8
 modules.c:8:10:fk_module_header_valid 8
+modules_bridge.h:42:13:virtual fk::Module::~Module() 8
 modules_bridge.h:42:13:virtual fk::Module::~Module() 8
 modules_bridge.h:42:13:virtual fk::Module::~Module() 8
 modules_bridge.h:42:13:virtual fk::Module::~Module() 8
@@ -2955,6 +2967,8 @@ pool.h:91:8:T* fk::Pool::malloc() [with T = _fk_data_SignedRecord] 8
 pool.h:91:8:T* fk::Pool::malloc() [with T = fk::collection<fk::ConstructedModule>::item_t] 8
 pool.h:91:8:T* fk::Pool::malloc() [with T = fk::pb_array_t] 8
 pool.h:96:8:T* fk::Pool::malloc_with(T&&) [with T = fk::ModuleSensors] 8
+pool.h:96:8:T* fk::Pool::malloc_with(T&&) [with T = fk::ModuleSensors] 8
+pool.h:96:8:T* fk::Pool::malloc_with(T&&) [with T = fk::SensorMetadata] 8
 pool.h:96:8:T* fk::Pool::malloc_with(T&&) [with T = fk::SensorMetadata] 8
 pool.h:96:8:T* fk::Pool::malloc_with(T&&) [with T = fk::pb_data_t] 8
 pool.h:96:8:T* fk::Pool::malloc_with(T&&) [with T = fk::pb_data_t] 8
@@ -3744,6 +3758,8 @@ api_handler.cpp:435:1:cpp) 16
 arduino.cpp:34:10:) 16
 assert.cpp:9:6:void __cfy_assert(const char*, const char*, int) 16
 atlas_api_reply.cpp:35:6:bool fk::AtlasApiReply::status_reply(const uint8_t*, size_t) 16
+atlas_module.cpp:179:27:virtual const ModuleConfiguration fk::AtlasModule::get_configuration(fk::Pool&) 16
+atlas_module.cpp:85:14:virtual fk::ModuleReturn fk::AtlasModule::service(fk::ModuleContext, fk::Pool&) 16
 atlas_protocol.cpp:6:26:fk_atlas_WireAtlasQuery* fk::fk_atlas_query_prepare_decoding(fk_atlas_WireAtlasQuery*, fk::Pool*) 16
 backup_worker.cpp:181:1:cpp) 16
 bad_blocks.cpp:41:6:bool fk::BadBlocks::is_block_bad(uint32_t) const 16
@@ -4097,6 +4113,7 @@ module_handler.cpp:85:1:cpp) 16
 module_readings.h:32:19:fk::ModuleReading fk::NModuleReadings<N>::get(int32_t) const [with unsigned int N = 10u; int32_t = long int] 16
 module_readings.h:32:19:fk::ModuleReading fk::NModuleReadings<N>::get(int32_t) const [with unsigned int N = 12u; int32_t = long int] 16
 module_readings.h:32:19:fk::ModuleReading fk::NModuleReadings<N>::get(int32_t) const [with unsigned int N = 16u; int32_t = long int] 16
+module_readings.h:32:19:fk::ModuleReading fk::NModuleReadings<N>::get(int32_t) const [with unsigned int N = 3u; int32_t = long int] 16
 module_readings.h:32:19:fk::ModuleReading fk::NModuleReadings<N>::get(int32_t) const [with unsigned int N = 3u; int32_t = long int] 16
 module_readings.h:32:19:fk::ModuleReading fk::NModuleReadings<N>::get(int32_t) const [with unsigned int N = 4u; int32_t = long int] 16
 module_readings.h:32:19:fk::ModuleReading fk::NModuleReadings<N>::get(int32_t) const [with unsigned int N = 4u; int32_t = long int] 16
@@ -4571,6 +4588,8 @@ WiFiUdp.cpp:77:9:virtual uint8_t WiFiUDP::beginMulticast(IPAddress, uint16_t) 24
 Wire.cpp:167:8:virtual size_t TwoWire::write(const uint8_t*, size_t) 24
 Wire.cpp:65:9:uint8_t TwoWire::requestFrom(uint8_t, size_t, bool) 24
 atlas_api.cpp:54:6:bool fk::AtlasApi::send_reply(fk::HttpServerConnection*, fk::Pool&, fk::AtlasApiReply&) 24
+atlas_module.cpp:265:17:nonstd::optional_lite::optional<float> fk::AtlasModule::get_temperature(fk::ReadingsContext) 24
+atlas_module.cpp:276:17:nonstd::optional_lite::optional<float> fk::AtlasModule::get_salinity(fk::ReadingsContext) 24
 bad_blocks.cpp:29:6:void fk::BadBlocks::mark_block_as_bad(uint32_t) 24
 blake2b.cpp:197:6:void BLAKE2b::reset(const void*, size_t, uint8_t) 24
 blake2b.cpp:274:6:void BLAKE2b::resetHMAC(const void*, size_t) 24
@@ -6152,6 +6171,7 @@ WiFiMDNSResponder.cpp:123:6:bool WiFiMDNSResponder::parseRequest() 48
 WiFiSocket.cpp:232:5:int WiFiSocketClass::read(SOCKET, uint8_t*, size_t) 48
 WiFiUdp.cpp:40:9:virtual uint8_t WiFiUDP::begin(uint16_t) 48
 atlas_api.cpp:67:6:bool fk::AtlasApi::status(fk::ModuleContext, fk::AtlasApiReply&, fk::Pool&) 48
+atlas_module.cpp:17:14:virtual fk::ModuleReturn fk::AtlasModule::initialize(fk::ModuleContext, fk::Pool&) 48
 caching_memory.cpp:39:9:virtual int32_t fk::CachingMemory::read(uint32_t, uint8_t*, size_t, fk::MemoryReadFlags) 48
 caching_memory.cpp:63:9:virtual int32_t fk::CachingMemory::write(uint32_t, const uint8_t*, size_t, fk::MemoryWriteFlags) 48
 clock.cpp:161:6:bool fk::CoreClock::adjust(fk::DateTime) 48
@@ -6384,6 +6404,9 @@ api_handler.cpp:381:13:27(fk::HttpServerConnection*, uint32_t*, fk::Pool&) 64
 atlas_api.cpp:107:6:bool fk::AtlasApi::calibrate(fk::ModuleContext, fk::AtlasApiReply&, fk_atlas_AtlasCalibrationCommand, fk::Pool&) 64
 atlas_api.cpp:82:6:bool fk::AtlasApi::clear(fk::ModuleContext, fk::AtlasApiReply&, fk::Pool&) 64
 atlas_api_reply.cpp:9:6:void fk::AtlasApiReply::error(const char*) 64
+atlas_module.cpp:37:6:bool fk::AtlasModule::load_configuration(fk::ModuleContext, fk::Pool&) 64
+atlas_module.cpp:65:14:virtual fk::ModuleReturn fk::AtlasModule::api(fk::ModuleContext, fk::HttpServerConnection*, fk::Pool&) 64
+atlas_module.cpp:89:22:virtual const ModuleSensors* fk::AtlasModule::get_sensors(fk::Pool&) 64
 data_chain.cpp:286:9:int32_t phylum::data_chain::constrain() 64
 directory_chain.cpp:27:9:virtual int32_t phylum::directory_chain::touch(const char*) 64
 directory_chain.cpp:42:9:virtual int32_t phylum::directory_chain::unlink(const char*) 64
@@ -6614,6 +6637,7 @@ network_task.cpp:57:1:fk::NetworkTask::~NetworkTask() 136
 self_check.cpp:25:3:V fk::single_noncritical_check(const char*, T) [with V = bool; T = fk::SelfCheck::sd_card_write()::__lambda8] 136
 startup_worker.cpp:165:6:bool fk::StartupWorker::load_state(fk::Storage&, fk::GlobalState*, fk::Pool&) 136
 super_chain.cpp:31:9:int32_t phylum::super_chain::update(phylum::tree_ptr_t) 136
+atlas_module.cpp:189:17:virtual fk::ModuleReadings* fk::AtlasModule::take_readings(fk::ReadingsContext, fk::Pool&) 144
 file.cpp:402:9:int32_t fk::File::rewind() 144
 lora_manager.cpp:23:6:bool fk::LoraManager::begin() 144
 metal_sd_card.cpp:100:6:bool fk::MetalSdCard::initialize_logs() 144

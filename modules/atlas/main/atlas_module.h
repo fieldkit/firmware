@@ -7,7 +7,7 @@
 
 namespace fk {
 
-class WaterModule : public Module {
+class AtlasModule : public Module {
 private:
     AtlasSensorType type_{ AtlasSensorType::Unknown };
     uint8_t address_{ 0 };

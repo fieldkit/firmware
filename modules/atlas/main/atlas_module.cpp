@@ -1,11 +1,11 @@
-#include "water_module.h"
+#include "atlas_module.h"
 #include "platform.h"
 #include "atlas_api.h"
 #include "modules/eeprom.h"
 
 namespace fk {
 
-FK_DECLARE_LOGGER("water");
+FK_DECLARE_LOGGER("atlas");
 
 class Curve {
 public:
@@ -14,7 +14,7 @@ public:
 
 static Curve *create_curve(fk_data_ModuleConfiguration *cfg, Pool &pool);
 
-ModuleReturn WaterModule::initialize(ModuleContext mc, Pool &pool) {
+ModuleReturn AtlasModule::initialize(ModuleContext mc, Pool &pool) {
     // TODO Not a fan of this, move to ctor?
     FK_ASSERT(pool_ == nullptr);
 
@@ -34,7 +34,7 @@ ModuleReturn WaterModule::initialize(ModuleContext mc, Pool &pool) {
     return { ModuleStatus::Ok };
 }
 
-bool WaterModule::load_configuration(ModuleContext mc, Pool &pool) {
+bool AtlasModule::load_configuration(ModuleContext mc, Pool &pool) {
     ModuleEeprom eeprom{ mc.module_bus() };
 
     cfg_message_ = nullptr;
@@ -62,7 +62,7 @@ bool WaterModule::load_configuration(ModuleContext mc, Pool &pool) {
     return true;
 }
 
-ModuleReturn WaterModule::api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
+ModuleReturn AtlasModule::api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
     if (type_ == AtlasSensorType::Unknown) {
         if (!initialize(mc, pool)) {
             logerror("error initializing (ms::fatal)");
@@ -82,11 +82,11 @@ ModuleReturn WaterModule::api(ModuleContext mc, HttpServerConnection *connection
     return { ModuleStatus::Ok };
 }
 
-ModuleReturn WaterModule::service(ModuleContext mc, Pool &pool) {
+ModuleReturn AtlasModule::service(ModuleContext mc, Pool &pool) {
     return { ModuleStatus::Ok };
 }
 
-ModuleSensors const *WaterModule::get_sensors(Pool &pool) {
+ModuleSensors const *AtlasModule::get_sensors(Pool &pool) {
     switch (type_) {
     case AtlasSensorType::Ec: {
         auto meta = pool.malloc_with<SensorMetadata, 3>({
@@ -165,7 +165,7 @@ ModuleSensors const *WaterModule::get_sensors(Pool &pool) {
     return nullptr;
 }
 
-const char *WaterModule::get_display_name_key() {
+const char *AtlasModule::get_display_name_key() {
     switch (type_) {
     case AtlasSensorType::Ec: return "modules.water.ec";
     case AtlasSensorType::Ph: return "modules.water.ph";
@@ -176,7 +176,7 @@ const char *WaterModule::get_display_name_key() {
     }
 }
 
-ModuleConfiguration const WaterModule::get_configuration(Pool &pool) {
+ModuleConfiguration const AtlasModule::get_configuration(Pool &pool) {
     // Make sure temperature is serviced before any of the other water modules.
     switch (type_) {
     case AtlasSensorType::Temp:
@@ -186,7 +186,7 @@ ModuleConfiguration const WaterModule::get_configuration(Pool &pool) {
     }
 }
 
-ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
+ModuleReadings *AtlasModule::take_readings(ReadingsContext mc, Pool &pool) {
     if (type_ == AtlasSensorType::Unknown) {
         return nullptr;
     }
@@ -262,7 +262,7 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
     return mr;
 }
 
-optional<float> WaterModule::get_temperature(ReadingsContext mc) {
+optional<float> AtlasModule::get_temperature(ReadingsContext mc) {
     for (auto &r : mc.readings()) {
         if (r.meta->manufacturer == FK_MODULES_MANUFACTURER && r.meta->kind == FK_MODULES_KIND_WATER_TEMP) {
             if (r.readings->size() == 1) {
@@ -273,7 +273,7 @@ optional<float> WaterModule::get_temperature(ReadingsContext mc) {
     return nullopt;
 }
 
-optional<float> WaterModule::get_salinity(ReadingsContext mc) {
+optional<float> AtlasModule::get_salinity(ReadingsContext mc) {
     for (auto &r : mc.readings()) {
         if (r.meta->manufacturer == FK_MODULES_MANUFACTURER && r.meta->kind == FK_MODULES_KIND_WATER_EC) {
             if (r.readings->size() == 3) {
@@ -284,7 +284,7 @@ optional<float> WaterModule::get_salinity(ReadingsContext mc) {
     return nullopt;
 }
 
-optional<float> WaterModule::get_pressure(ReadingsContext mc) {
+optional<float> AtlasModule::get_pressure(ReadingsContext mc) {
     return nullopt;
 }
 
