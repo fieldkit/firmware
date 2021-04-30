@@ -8,15 +8,6 @@ static Module *fk_module_create_water(Pool &pool) {
     return new(pool) WaterModule();
 }
 
-ModuleMetadata const fk_module_meta_water = {
-    .manufacturer = FK_MODULES_MANUFACTURER,
-    .kind = FK_MODULES_KIND_WATER,
-    .version = 0x01,
-    .name = "water",
-    .flags = FK_MODULES_FLAG_NONE,
-    .ctor = fk_module_create_water,
-};
-
 ModuleMetadata const fk_module_meta_water_ph = {
     .manufacturer = FK_MODULES_MANUFACTURER,
     .kind = FK_MODULES_KIND_WATER_PH,
@@ -64,7 +55,6 @@ ModuleMetadata const fk_module_meta_water_orp = {
 
 __attribute__((constructor))
 void fk_module_initialize_water() {
-    fk_modules_builtin_register(&fk_module_meta_water);
     fk_modules_builtin_register(&fk_module_meta_water_ph);
     fk_modules_builtin_register(&fk_module_meta_water_ec);
     fk_modules_builtin_register(&fk_module_meta_water_do);
