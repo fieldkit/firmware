@@ -32,25 +32,22 @@ FK_DECLARE_LOGGER("ads1219");
 #define ADS1219_MODE_SINGLE_SHOT		0x00
 #define ADS1219_MODE_CONTINUOUS			0x02
 
-Ads1219::Ads1219(uint8_t address, Ads1219ReadyChecker *ready) : address_(address), ready_(ready) {
+Ads1219::Ads1219(TwoWireWrapper &bus, uint8_t address, Ads1219ReadyChecker *ready) : bus_(bus), address_(address), ready_(ready), config_(0) {
 }
 
 Ads1219::~Ads1219()  {
 }
 
-bool Ads1219::begin(TwoWireWrapper &bus) {
+bool Ads1219::begin() {
     return true;
 }
 
-bool Ads1219::set_voltage_reference(TwoWireWrapper &bus, Ads1219VoltageReference vref) {
-    config_ &= ADS1219_VREF_MASK;
+bool Ads1219::set_voltage_reference(Ads1219VoltageReference vref) {
     config_ |= (uint8_t)vref;
-    return I2C_CHECK(bus.write_register_u8(address_, ADS1219_CONFIG_REGISTER_ADDRESS, config_));
+    return I2C_CHECK(bus_.write_register_u8(address_, ADS1219_CONFIG_REGISTER_ADDRESS, config_));
 }
 
-bool Ads1219::read_single_ended(TwoWireWrapper &bus, int32_t channel, int32_t &value) {
-    config_ &= ADS1219_MUX_MASK;
-
+bool Ads1219::read_single_ended(int32_t channel, int32_t &value) {
     switch (channel) {
     case (0):
         config_ |= ADS1219_MUX_SINGLE_0;
@@ -68,56 +65,57 @@ bool Ads1219::read_single_ended(TwoWireWrapper &bus, int32_t channel, int32_t &v
         break;
     }
 
-    if (!I2C_CHECK(bus.write_register_u8(address_, ADS1219_CONFIG_REGISTER_ADDRESS, config_))) {
+    if (!I2C_CHECK(bus_.write_register_u8(address_, ADS1219_CONFIG_REGISTER_ADDRESS, config_))) {
         return false;
     }
 
-    if (!start(bus)) {
+    if (!start()) {
         return false;
     }
 
-    if (!ready_->block_until_ready(bus)) {
+    if (!ready_->block_until_ready(bus_)) {
         return false;
     }
 
-    return read_conversion(bus, value);
+    return read_conversion(value);
 }
 
-bool Ads1219::read_differential_0_1(TwoWireWrapper &bus, int32_t &value) {
-    return read_dfferential(bus, ADS1219_MUX_DIFF_0_1, value);
+bool Ads1219::read_differential_0_1(int32_t &value) {
+    return read_dfferential(ADS1219_MUX_DIFF_0_1, value);
 }
 
-bool Ads1219::read_differential_2_3(TwoWireWrapper &bus, int32_t &value) {
-    return read_dfferential(bus, ADS1219_MUX_DIFF_2_3, value);
+bool Ads1219::read_differential_2_3(int32_t &value) {
+    return read_dfferential(ADS1219_MUX_DIFF_2_3, value);
 }
 
-bool Ads1219::read_dfferential_1_2(TwoWireWrapper &bus, int32_t &value) {
-    return read_dfferential(bus, ADS1219_MUX_DIFF_1_2, value);
+bool Ads1219::read_dfferential_1_2(int32_t &value) {
+    return read_dfferential(ADS1219_MUX_DIFF_1_2, value);
 }
 
-bool Ads1219::read_dfferential(TwoWireWrapper &bus, uint8_t config, int32_t &value) {
-    config_ &= ADS1219_MUX_MASK;
+bool Ads1219::read_dfferential(uint8_t config, int32_t &value) {
     config_ |= config;
 
-    if (!I2C_CHECK(bus.write_register_u8(address_, ADS1219_CONFIG_REGISTER_ADDRESS, config_))) {
+    logdebug("config: %x", config_);
+
+    if (!I2C_CHECK(bus_.write_register_u8(address_, ADS1219_CONFIG_REGISTER_ADDRESS, config_))) {
         return false;
     }
 
-    if (!start(bus)) {
+    if (!start()) {
         return false;
     }
 
-    if (!ready_->block_until_ready(bus)) {
+    if (!ready_->block_until_ready(bus_)) {
         return false;
     }
 
-    return read_conversion(bus, value);
+    return read_conversion(value);
 }
 
-bool Ads1219::read_conversion(TwoWireWrapper &bus, int32_t &value) {
+bool Ads1219::read_conversion(int32_t &value) {
     uint8_t data[3] = { 0xff, 0xff, 0xff };
 
-    if (!I2C_CHECK(bus.read_register_buffer(address_, 0x10, data, sizeof(data)))) {
+    if (!I2C_CHECK(bus_.read_register_buffer(address_, 0x10, data, sizeof(data)))) {
         return false;
     }
 
@@ -134,8 +132,8 @@ bool Ads1219::read_conversion(TwoWireWrapper &bus, int32_t &value) {
     return true;
 }
 
-bool Ads1219::start(TwoWireWrapper &bus) {
-    return I2C_CHECK(bus.write_u8(address_, 0x08));
+bool Ads1219::start() {
+    return I2C_CHECK(bus_.write_u8(address_, 0x08));
 }
 
 }

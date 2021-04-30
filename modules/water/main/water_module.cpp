@@ -2,20 +2,21 @@
 #include "platform.h"
 #include "modules/eeprom.h"
 
-#include "mcp_2803.h"
-#include "ads_1219.h"
-
 namespace fk {
 
 FK_DECLARE_LOGGER("water");
 
-#define FK_MCP2803_ADDRESS      0x22
-#define FK_ADS1219_ADDRESS      0x41
+#define FK_MCP2803_ADDRESS          0x22
+#define FK_ADS1219_ADDRESS          0x41
 
-#define FK_MCP2803_IODIR        0b00000010
-#define FK_MCP2803_GPPU         0b00000010
-#define FK_MCP2803_GPIO_ON_A    0b00000000
-#define FK_MCP2803_GPIO_ON_B    0b00000001
+#define FK_MCP2803_IODIR            0b00000010
+#define FK_MCP2803_GPPU             0b00000010
+
+#define FK_MCP2803_GPIO_ON          0b00000001
+#define FK_MCP2803_GPIO_OFF         0b00000000
+
+#define FK_MCP2803_GPIO_EXCITE_ON   0b00000101
+#define FK_MCP2803_GPIO_EXCITE_OFF  0b00000001
 
 class Mcp2803ReadyChecker : public Ads1219ReadyChecker {
 private:
@@ -31,7 +32,7 @@ public:
         while (fk_uptime() < give_up) {
             uint8_t gpio{ 0 };
 
-            if (!mcp2803_.read_gpio(bus, gpio)) {
+            if (!mcp2803_.read_gpio(gpio)) {
                 return false;
             }
 
@@ -60,28 +61,27 @@ ModuleReturn WaterModule::initialize(ModuleContext mc, Pool &pool) {
 
     auto &bus = mc.module_bus();
 
-    Mcp2803 mcp{ FK_MCP2803_ADDRESS };
-
-    if (!mcp.begin(bus, FK_MCP2803_IODIR, FK_MCP2803_GPPU, FK_MCP2803_GPIO_ON_A)) {
+    Mcp2803 mcp{ bus, FK_MCP2803_ADDRESS };
+    if (!mcp.configure(FK_MCP2803_IODIR, FK_MCP2803_GPPU, FK_MCP2803_GPIO_OFF)) {
         logerror("mcp2803::begin");
         return { ModuleStatus::Fatal };
     }
 
     fk_delay(100);
 
-    if (!mcp.begin(bus, FK_MCP2803_IODIR, FK_MCP2803_GPPU, FK_MCP2803_GPIO_ON_B)) {
+    if (!mcp.configure(FK_MCP2803_IODIR, FK_MCP2803_GPPU, FK_MCP2803_GPIO_ON)) {
         logerror("mcp2803::begin");
         return { ModuleStatus::Fatal };
     }
 
     Mcp2803ReadyChecker ready_checker{ mcp };
-    Ads1219 ads{ FK_ADS1219_ADDRESS, &ready_checker };
-    if (!ads.begin(bus)) {
+    Ads1219 ads{ bus, FK_ADS1219_ADDRESS, &ready_checker };
+    if (!ads.begin()) {
         logerror("ads1219::begin");
         return { ModuleStatus::Fatal };
     }
 
-    if (!ads.set_voltage_reference(bus, Ads1219VoltageReference::EXTERNAL)) {
+    if (!ads.set_voltage_reference(Ads1219VoltageReference::EXTERNAL)) {
         logerror("ads1219::set_vref");
         return { ModuleStatus::Fatal };
     }
@@ -127,23 +127,58 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
 
     auto &bus = mc.module_bus();
 
-    Mcp2803 mcp{ FK_MCP2803_ADDRESS };
+    Mcp2803 mcp{ bus, FK_MCP2803_ADDRESS };
     Mcp2803ReadyChecker ready_checker{ mcp };
-    Ads1219 ads{ FK_ADS1219_ADDRESS, &ready_checker };
+    Ads1219 ads{ bus, FK_ADS1219_ADDRESS, &ready_checker };
+
+    if (!ads.set_voltage_reference(Ads1219VoltageReference::EXTERNAL)) {
+        logerror("ads1219::set_vref");
+        return nullptr;
+    }
+
+    if (false) {
+        if (!excite(mcp, 100)) {
+            logerror("ads1219::excite failed");
+            return nullptr;
+        }
+    }
 
     int32_t value = 0;
-    if (!ads.read_differential_0_1(bus, value)) {
+    if (!ads.read_differential_0_1(value)) {
         logerror("ads1219::read_diff_0_1");
         return nullptr;
     }
 
-    auto reading = ((float)value * 3.3f / 8388608.0f) / 1.61f;
+    auto reading = ((float)value * 3.3f / 8388608.0f);
 
     loginfo("water: %f", reading);
 
     mr->set(nreadings++, reading);
 
     return mr;
+}
+
+bool WaterModule::excite(Mcp2803 &mcp, uint32_t cleanse_ms) {
+    if (!mcp.configure(FK_MCP2803_IODIR, FK_MCP2803_GPPU, FK_MCP2803_GPIO_EXCITE_ON)) {
+        logerror("mcp2803::begin");
+        return false;
+    }
+
+    fk_delay(cleanse_ms);
+
+    if (!mcp.configure(FK_MCP2803_IODIR, FK_MCP2803_GPPU, FK_MCP2803_GPIO_EXCITE_OFF)) {
+        logerror("mcp2803::begin");
+        return false;
+    }
+
+    fk_delay(cleanse_ms);
+
+    if (!mcp.configure(FK_MCP2803_IODIR, FK_MCP2803_GPPU, FK_MCP2803_GPIO_EXCITE_ON)) {
+        logerror("mcp2803::begin");
+        return false;
+    }
+
+    return true;
 }
 
 } // namespace fk

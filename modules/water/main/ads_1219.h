@@ -21,26 +21,27 @@ public:
 
 class Ads1219 {
 private:
+    TwoWireWrapper &bus_;
     uint8_t address_{ 0 };
     Ads1219ReadyChecker *ready_{ nullptr };
     uint8_t config_{ 0 };
 
 public:
-    Ads1219(uint8_t address, Ads1219ReadyChecker *ready);
+    Ads1219(TwoWireWrapper &bus, uint8_t address, Ads1219ReadyChecker *ready);
     virtual ~Ads1219();
 
 public:
-    bool begin(TwoWireWrapper &bus);
-    bool set_voltage_reference(TwoWireWrapper &bus, Ads1219VoltageReference vref);
-    bool read_single_ended(TwoWireWrapper &bus, int32_t channel, int32_t &value);
-    bool read_differential_0_1(TwoWireWrapper &bus, int32_t &value);
-    bool read_differential_2_3(TwoWireWrapper &bus, int32_t &value);
-    bool read_dfferential_1_2(TwoWireWrapper &bus, int32_t &value);
+    bool begin();
+    bool set_voltage_reference(Ads1219VoltageReference vref);
+    bool read_single_ended(int32_t channel, int32_t &value);
+    bool read_differential_0_1(int32_t &value);
+    bool read_differential_2_3(int32_t &value);
+    bool read_dfferential_1_2(int32_t &value);
 
 private:
-    bool read_dfferential(TwoWireWrapper &bus, uint8_t config, int32_t &value);
-    bool read_conversion(TwoWireWrapper &bus, int32_t &value);
-    bool start(TwoWireWrapper &bus);
+    bool read_dfferential(uint8_t config, int32_t &value);
+    bool read_conversion( int32_t &value);
+    bool start();
 
 };
 

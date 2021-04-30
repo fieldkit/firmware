@@ -16,13 +16,13 @@ namespace fk {
 
 FK_DECLARE_LOGGER("mcp2803");
 
-Mcp2803::Mcp2803(uint8_t address) : address_(address)  {
+Mcp2803::Mcp2803(TwoWireWrapper &bus, uint8_t address) : bus_(bus), address_(address)  {
 }
 
 Mcp2803::~Mcp2803()  {
 }
 
-bool Mcp2803::begin(TwoWireWrapper &bus, uint8_t iodir, uint8_t gppu, uint8_t gpio) {
+bool Mcp2803::configure(uint8_t iodir, uint8_t gppu, uint8_t gpio) {
     uint8_t buffer[] = {
         0x00,   // IODIR (Address)
         iodir,  // IODIR
@@ -37,15 +37,15 @@ bool Mcp2803::begin(TwoWireWrapper &bus, uint8_t iodir, uint8_t gppu, uint8_t gp
         gpio,   // GPIO
     };
 
-    auto rv = bus.write(address_, buffer, sizeof(buffer));
+    auto rv = bus_.write(address_, buffer, sizeof(buffer));
     if (!I2C_CHECK(rv)) {
         return false;
     }
     return true;
 }
 
-bool Mcp2803::read_gpio(TwoWireWrapper &bus, uint8_t &gpio) {
-    auto rv = bus.read_register_u8(address_, MCP23008_GPIO, gpio);
+bool Mcp2803::read_gpio(uint8_t &gpio) {
+    auto rv = bus_.read_register_u8(address_, MCP23008_GPIO, gpio);
     if (!I2C_CHECK(rv)) {
         return false;
     }

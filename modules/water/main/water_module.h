@@ -3,6 +3,8 @@
 #include <modules/bridge/modules.h>
 
 #include "records.h"
+#include "mcp_2803.h"
+#include "ads_1219.h"
 
 namespace fk {
 
@@ -25,6 +27,9 @@ public:
 private:
     const char *get_display_name_key();
     bool load_configuration(ModuleContext mc, Pool &pool);
+
+private:
+    bool excite(Mcp2803 &mcp, uint32_t cleanse_ms);
 
 };
 
