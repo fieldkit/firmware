@@ -2,7 +2,8 @@
 
 BUILD=$1
 FK_VERSION=$2
-PACKAGE=fk-firmware-${FK_VERSION}
+FK_VERSION_PATH=${FK_VERSION//\//_}
+PACKAGE=fk-firmware-${FK_VERSION_PATH}
 
 mkdir -p ${BUILD}/${PACKAGE}
 cp ${BUILD}/../tools/flash-* ${BUILD}/${PACKAGE}
