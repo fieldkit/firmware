@@ -51,7 +51,7 @@ public:
 
 };
 
-WaterModule::WaterModule(Pool &pool) : pool_(&pool) {
+WaterModule::WaterModule(Pool &pool) : pool_(pool.subpool("water", MaximumConfigurationSize)) {
 }
 
 WaterModule::~WaterModule() {
@@ -97,6 +97,7 @@ bool WaterModule::load_configuration(ModuleContext mc, Pool &pool) {
 
     cfg_message_ = nullptr;
     cfg_ = nullptr;
+    pool_->clear();
 
     size_t size = 0;
     auto buffer = (uint8_t *)pool.malloc(MaximumConfigurationSize);

@@ -8,7 +8,7 @@ namespace fk {
 
 FK_DECLARE_LOGGER("atlas");
 
-AtlasModule::AtlasModule(Pool &pool) : pool_(&pool) {
+AtlasModule::AtlasModule(Pool &pool) : pool_(pool.subpool("atlas", MaximumConfigurationSize)) {
 }
 
 AtlasModule::~AtlasModule() {
@@ -34,6 +34,7 @@ bool AtlasModule::load_configuration(ModuleContext mc, Pool &pool) {
 
     cfg_message_ = nullptr;
     cfg_ = nullptr;
+    pool_->clear();
 
     size_t size = 0;
     auto buffer = (uint8_t *)pool.malloc(MaximumConfigurationSize);
