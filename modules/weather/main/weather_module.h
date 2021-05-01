@@ -13,6 +13,10 @@ private:
     AggregatedWeather delegate_;
 
 public:
+    WeatherModule(Pool &pool);
+    virtual ~WeatherModule();
+
+public:
     ModuleReturn initialize(ModuleContext mc, Pool &pool) override;
     ModuleReturn service(ModuleContext mc, Pool &pool) override;
     ModuleReturn api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) override;

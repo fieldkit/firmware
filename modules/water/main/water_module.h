@@ -15,6 +15,10 @@ private:
     fk_data_ModuleConfiguration *cfg_{ nullptr };
 
 public:
+    WaterModule(Pool &pool);
+    virtual ~WaterModule();
+
+public:
     ModuleReturn initialize(ModuleContext mc, Pool &pool) override;
     ModuleReturn service(ModuleContext mc, Pool &pool) override;
     ModuleReturn api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) override;

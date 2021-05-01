@@ -16,6 +16,10 @@ private:
     fk_data_ModuleConfiguration *cfg_{ nullptr };
 
 public:
+    AtlasModule(Pool &pool);
+    virtual ~AtlasModule();
+
+public:
     ModuleReturn initialize(ModuleContext mc, Pool &pool) override;
     ModuleReturn service(ModuleContext mc, Pool &pool) override;
     ModuleReturn api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) override;

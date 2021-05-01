@@ -304,9 +304,10 @@ arduino.cpp:51:10:uint32_t osi_platform_uptime() 0
 arduino.cpp:60:10:uint32_t osi_platform_micros() 0
 atlas_api.cpp:8:1:fk::AtlasApi::AtlasApi(fk::AtlasSensorType, fk::OemAtlas&) 0
 atlas_api_reply.cpp:31:6:bool fk::AtlasApiReply::has_errors() const 0
-atlas_module.cpp:162:13:const char* fk::AtlasModule::get_display_name_key() 0
-atlas_module.cpp:281:17:nonstd::optional_lite::optional<float> fk::AtlasModule::get_pressure(fk::ReadingsContext) 0
-atlas_module.h:10:7:fk::AtlasModule::~AtlasModule() 0
+atlas_module.cpp:11:1:fk::AtlasModule::AtlasModule(fk::Pool&) 0
+atlas_module.cpp:14:1:fk::AtlasModule::~AtlasModule() 0
+atlas_module.cpp:163:13:const char* fk::AtlasModule::get_display_name_key() 0
+atlas_module.cpp:282:17:nonstd::optional_lite::optional<float> fk::AtlasModule::get_pressure(fk::ReadingsContext) 0
 backup_worker.cpp:20:1:fk::BackupWorker::BackupWorker() 0
 backup_worker.h:10:7:fk::BackupWorker::~BackupWorker() 0
 backup_worker.h:18:13:virtual uint8_t fk::BackupWorker::priority() const 0
@@ -402,9 +403,10 @@ dhara_map.cpp:273:6:void phylum::dhara_nand_mark_bad(const dhara_nand*, phylum::
 dhara_map.cpp:303:5:int phylum::dhara_nand_is_free(const dhara_nand*, phylum::dhara_page_t) 0
 dhara_map.cpp:93:8:virtual size_t phylum::dhara_sector_map::sector_size() 0
 dhara_map.cpp:97:16:virtual phylum::dhara_sector_t phylum::dhara_sector_map::size() 0
-diagnostics_module.cpp:46:22:virtual const ModuleSensors* fk::DiagnosticsModule::get_sensors(fk::Pool&) 0
-diagnostics_module.cpp:50:27:virtual const ModuleConfiguration fk::DiagnosticsModule::get_configuration(fk::Pool&) 0
-diagnostics_module.h:7:7:fk::DiagnosticsModule::~DiagnosticsModule() 0
+diagnostics_module.cpp:32:1:fk::DiagnosticsModule::DiagnosticsModule(fk::Pool&) 0
+diagnostics_module.cpp:35:1:fk::DiagnosticsModule::~DiagnosticsModule() 0
+diagnostics_module.cpp:52:22:virtual const ModuleSensors* fk::DiagnosticsModule::get_sensors(fk::Pool&) 0
+diagnostics_module.cpp:56:27:virtual const ModuleConfiguration fk::DiagnosticsModule::get_configuration(fk::Pool&) 0
 directory.h:23:8:phylum::found_file::found_file() 0
 directory.h:23:8:phylum::found_file::found_file() 0
 directory_tree.h:58:13:phylum::directory_tree::~directory_tree() 0
@@ -493,9 +495,9 @@ display_views.h:62:18:virtual bool fk::DisplayView::custom_leds() 0
 display_views.h:62:18:virtual bool fk::DisplayView::custom_leds() 0
 display_views.h:62:18:virtual bool fk::DisplayView::custom_leds() 0
 display_views.h:62:18:virtual bool fk::DisplayView::custom_leds() 0
-distance_module.cpp:55:22:virtual const ModuleSensors* fk::DistanceModule::get_sensors(fk::Pool&) 0
-distance_module.cpp:59:27:virtual const ModuleConfiguration fk::DistanceModule::get_configuration(fk::Pool&) 0
-distance_module.h:10:7:fk::DistanceModule::~DistanceModule() 0
+distance_module.cpp:11:1:fk::DistanceModule::~DistanceModule() 0
+distance_module.cpp:58:22:virtual const ModuleSensors* fk::DistanceModule::get_sensors(fk::Pool&) 0
+distance_module.cpp:62:27:virtual const ModuleConfiguration fk::DistanceModule::get_configuration(fk::Pool&) 0
 dns_message.cpp:433:17:fk::EncodedMessage* fk::DNSWriter::finish() 0
 download_firmware_worker.cpp:24:1:fk::DownloadFirmwareWorker::DownloadFirmwareWorker() 0
 download_firmware_worker.h:17:13:virtual uint8_t fk::DownloadFirmwareWorker::priority() const 0
@@ -1188,11 +1190,6 @@ modules_bridge.h:42:13:fk::Module::~Module() 0
 modules_bridge.h:42:13:fk::Module::~Module() 0
 modules_bridge.h:42:13:fk::Module::~Module() 0
 modules_bridge.h:42:13:fk::Module::~Module() 0
-modules_bridge.h:42:13:fk::Module::~Module() 0
-modules_bridge.h:42:13:fk::Module::~Module() 0
-modules_bridge.h:42:13:fk::Module::~Module() 0
-modules_bridge.h:42:13:fk::Module::~Module() 0
-modules_bridge.h:42:13:fk::Module::~Module() 0
 mutex.c:34:13:osi_mutex_create 0
 mutex.c:44:13:os_mutex_is_owner 0
 network.cpp:14:10:fk::Network* fk::get_network() 0
@@ -1360,9 +1357,10 @@ qrcode.c:248:13:bb_getBit 0
 qrcode.c:774:10:qrcode_getBufferSize 0
 qrcode.c:859:6:qrcode_getModule 0
 queue.c:34:13:osi_queue_create 0
-random_module.cpp:38:22:virtual const ModuleSensors* fk::RandomModule::get_sensors(fk::Pool&) 0
-random_module.cpp:42:27:virtual const ModuleConfiguration fk::RandomModule::get_configuration(fk::Pool&) 0
-random_module.h:7:7:fk::RandomModule::~RandomModule() 0
+random_module.cpp:44:22:virtual const ModuleSensors* fk::RandomModule::get_sensors(fk::Pool&) 0
+random_module.cpp:48:27:virtual const ModuleConfiguration fk::RandomModule::get_configuration(fk::Pool&) 0
+random_module.cpp:6:1:fk::RandomModule::RandomModule(fk::Pool&) 0
+random_module.cpp:9:1:fk::RandomModule::~RandomModule() 0
 readings.cpp:170:6:void fk::Readings::meta_record(uint32_t) 0
 readings.cpp:174:6:void fk::Readings::record_number(uint32_t) 0
 readings.cpp:178:21:fk_data_DataRecord& fk::Readings::record() 0
@@ -1741,12 +1739,14 @@ variant.cpp:212:6:void SERCOM0_2_Handler() 0
 variant.cpp:216:6:void SERCOM0_3_Handler() 0
 varint.cpp:20:8:size_t phylum::varint_encoding_length(long long unsigned int) 0
 water_api.cpp:8:1:fk::WaterApi::WaterApi() 0
-water_module.cpp:150:13:const char* fk::WaterModule::get_display_name_key() 0
-water_module.cpp:154:27:virtual const ModuleConfiguration fk::WaterModule::get_configuration(fk::Pool&) 0
-water_module.h:11:7:fk::WaterModule::~WaterModule() 0
-weather_module.cpp:41:22:virtual const ModuleSensors* fk::WeatherModule::get_sensors(fk::Pool&) 0
-weather_module.cpp:45:27:virtual const ModuleConfiguration fk::WeatherModule::get_configuration(fk::Pool&) 0
-weather_module.h:11:7:fk::WeatherModule::~WeatherModule() 0
+water_module.cpp:151:13:const char* fk::WaterModule::get_display_name_key() 0
+water_module.cpp:155:27:virtual const ModuleConfiguration fk::WaterModule::get_configuration(fk::Pool&) 0
+water_module.cpp:54:1:fk::WaterModule::WaterModule(fk::Pool&) 0
+water_module.cpp:57:1:fk::WaterModule::~WaterModule() 0
+weather_module.cpp:41:1:fk::WeatherModule::WeatherModule(fk::Pool&) 0
+weather_module.cpp:44:1:fk::WeatherModule::~WeatherModule() 0
+weather_module.cpp:47:22:virtual const ModuleSensors* fk::WeatherModule::get_sensors(fk::Pool&) 0
+weather_module.cpp:51:27:virtual const ModuleConfiguration fk::WeatherModule::get_configuration(fk::Pool&) 0
 weather_types.cpp:32:7:static float fk::WindDirection::get_mv_from_raw_adc(uint32_t) 0
 weather_types.cpp:5:9:static int16_t fk::WindDirection::get_adc_value_from_raw_adc(uint32_t) 0
 weather_types.cpp:9:9:static int16_t fk::WindDirection::get_angle_from_raw_adc(uint32_t) 0
@@ -2156,7 +2156,7 @@ ads_1219.cpp:45:6:bool fk::Ads1219::set_voltage_reference(fk::Ads1219VoltageRefe
 arduino.cpp:55:10:uint32_t osi_platform_delay(uint32_t) 8
 arduino.cpp:66:9:int32_t sysTickHook() 8
 atlas_api_reply.cpp:5:1:fk::AtlasApiReply::AtlasApiReply(fk::Pool&) 8
-atlas_module.h:10:7:virtual fk::AtlasModule::~AtlasModule() 8
+atlas_module.cpp:14:1:virtual fk::AtlasModule::~AtlasModule() 8
 backup_worker.h:10:7:virtual fk::BackupWorker::~BackupWorker() 8
 bad_blocks.cpp:21:1:virtual fk::BadBlocks::~BadBlocks() 8
 blake2b.cpp:110:1:BLAKE2b::BLAKE2b() 8
@@ -2268,7 +2268,7 @@ dhara_map.cpp:171:9:virtual int32_t phylum::dhara_sector_map::clear() 8
 dhara_map.cpp:22:1:phylum::dhara_sector_map::dhara_sector_map(phylum::working_buffers&, phylum::flash_memory&) 8
 dhara_map.cpp:25:1:phylum::dhara_sector_map::~dhara_sector_map() 8
 dhara_map.cpp:25:1:virtual phylum::dhara_sector_map::~dhara_sector_map() 8
-diagnostics_module.h:7:7:virtual fk::DiagnosticsModule::~DiagnosticsModule() 8
+diagnostics_module.cpp:35:1:virtual fk::DiagnosticsModule::~DiagnosticsModule() 8
 directory_chain.h:20:13:phylum::directory_chain::~directory_chain() 8
 directory_chain.h:20:13:virtual phylum::directory_chain::~directory_chain() 8
 directory_tree.cpp:15:9:virtual int32_t phylum::directory_tree::format() 8
@@ -2318,7 +2318,7 @@ display_views.h:58:18:virtual void fk::DisplayView::enter(fk::ViewController*) 8
 display_views.h:58:18:virtual void fk::DisplayView::enter(fk::ViewController*) 8
 display_views.h:58:18:virtual void fk::DisplayView::enter(fk::ViewController*) 8
 display_views.h:58:18:virtual void fk::DisplayView::enter(fk::ViewController*) 8
-distance_module.h:10:7:virtual fk::DistanceModule::~DistanceModule() 8
+distance_module.cpp:11:1:virtual fk::DistanceModule::~DistanceModule() 8
 dns_message.cpp:176:9:int16_t fk::DNSReader::read_answers() 8
 dns_message.cpp:180:9:int16_t fk::DNSReader::read_authorities() 8
 dns_message.cpp:184:9:int16_t fk::DNSReader::read_additionals() 8
@@ -2737,12 +2737,6 @@ modmux.cpp:73:1:fk::ModulesLock::~ModulesLock() 8
 modmux.cpp:73:1:virtual fk::ModulesLock::~ModulesLock() 8
 module.cpp:57:6:void fk_module_initialize_atlas() 8
 module.cpp:57:6:void fk_module_initialize_water() 8
-module.cpp:7:16:fk::Module* fk_module_create_atlas(fk::Pool&) 8
-module.cpp:7:16:fk::Module* fk_module_create_diagnostics(fk::Pool&) 8
-module.cpp:7:16:fk::Module* fk_module_create_distance(fk::Pool&) 8
-module.cpp:7:16:fk::Module* fk_module_create_random(fk::Pool&) 8
-module.cpp:7:16:fk::Module* fk_module_create_water(fk::Pool&) 8
-module.cpp:7:16:fk::Module* fk_module_create_weather(fk::Pool&) 8
 module_factory.cpp:29:16:fk::ModuleFactory& fk::get_module_factory() 8
 module_factory.cpp:36:1:fk::ModuleFactory::~ModuleFactory() 8
 module_factory.cpp:36:1:virtual fk::ModuleFactory::~ModuleFactory() 8
@@ -2759,11 +2753,6 @@ module_status_view.cpp:44:6:virtual void fk::ModuleStatusView::up(fk::ViewContro
 module_status_view.cpp:54:6:virtual void fk::ModuleStatusView::down(fk::ViewController*) 8
 module_status_view.cpp:64:6:virtual void fk::ModuleStatusView::enter(fk::ViewController*) 8
 modules.c:8:10:fk_module_header_valid 8
-modules_bridge.h:42:13:virtual fk::Module::~Module() 8
-modules_bridge.h:42:13:virtual fk::Module::~Module() 8
-modules_bridge.h:42:13:virtual fk::Module::~Module() 8
-modules_bridge.h:42:13:virtual fk::Module::~Module() 8
-modules_bridge.h:42:13:virtual fk::Module::~Module() 8
 modules_bridge.h:42:13:virtual fk::Module::~Module() 8
 modules_bridge.h:42:13:virtual fk::Module::~Module() 8
 modules_bridge.h:42:13:virtual fk::Module::~Module() 8
@@ -3001,7 +2990,7 @@ qspi.cpp:98:9:int32_t bl_qspi_initialize() 8
 random.cpp:17:9:int32_t fk_random_initialize() 8
 random.cpp:24:9:int32_t fk_random_fill_u32(uint32_t*, size_t) 8
 random.cpp:29:9:int32_t fk_random_fill_u8(uint8_t*, size_t) 8
-random_module.h:7:7:virtual fk::RandomModule::~RandomModule() 8
+random_module.cpp:9:1:virtual fk::RandomModule::~RandomModule() 8
 readings.cpp:12:1:fk::Readings::Readings(fk::ModMux*, fk::Pool&) 8
 readings_view.cpp:61:6:virtual void fk::ReadingsView::enter(fk::ViewController*) 8
 readings_worker.h:9:7:virtual fk::ReadingsWorker::~ReadingsWorker() 8
@@ -3346,8 +3335,8 @@ watchdog.cpp:29:9:int32_t fk_wdt_initialize() 8
 watchdog.cpp:35:9:int32_t fk_wdt_enable() 8
 watchdog.cpp:43:9:int32_t fk_wdt_disable() 8
 watchdog.cpp:48:9:int32_t fk_wdt_feed() 8
-water_module.h:11:7:virtual fk::WaterModule::~WaterModule() 8
-weather_module.h:11:7:virtual fk::WeatherModule::~WeatherModule() 8
+water_module.cpp:57:1:virtual fk::WaterModule::~WaterModule() 8
+weather_module.cpp:44:1:virtual fk::WeatherModule::~WeatherModule() 8
 wifi_toggle_worker.cpp:16:6:virtual void fk::WifiToggleWorker::run(fk::Pool&) 8
 wifi_toggle_worker.h:7:7:virtual fk::WifiToggleWorker::~WifiToggleWorker() 8
 wiring_analog.c:212:10:analogRead 8
@@ -3773,8 +3762,8 @@ api_handler.cpp:435:1:cpp) 16
 arduino.cpp:34:10:) 16
 assert.cpp:9:6:void __cfy_assert(const char*, const char*, int) 16
 atlas_api_reply.cpp:35:6:bool fk::AtlasApiReply::status_reply(const uint8_t*, size_t) 16
-atlas_module.cpp:173:27:virtual const ModuleConfiguration fk::AtlasModule::get_configuration(fk::Pool&) 16
-atlas_module.cpp:79:14:virtual fk::ModuleReturn fk::AtlasModule::service(fk::ModuleContext, fk::Pool&) 16
+atlas_module.cpp:174:27:virtual const ModuleConfiguration fk::AtlasModule::get_configuration(fk::Pool&) 16
+atlas_module.cpp:80:14:virtual fk::ModuleReturn fk::AtlasModule::service(fk::ModuleContext, fk::Pool&) 16
 atlas_protocol.cpp:6:26:fk_atlas_WireAtlasQuery* fk::fk_atlas_query_prepare_decoding(fk_atlas_WireAtlasQuery*, fk::Pool*) 16
 backup_worker.cpp:181:1:cpp) 16
 bad_blocks.cpp:41:6:bool fk::BadBlocks::is_block_bad(uint32_t) const 16
@@ -3835,8 +3824,8 @@ dhara_map.cpp:190:5:int phylum::dhara_sector_map::dhara_erase(const dhara_nand*,
 dhara_map.cpp:207:5:int phylum::dhara_sector_map::dhara_prog(const dhara_nand*, phylum::dhara_page_t, const uint8_t*, dhara_error_t*) 16
 dhara_map.cpp:233:5:int phylum::dhara_sector_map::dhara_read(const dhara_nand*, phylum::dhara_page_t, size_t, size_t, uint8_t*, dhara_error_t*) 16
 dhara_map.cpp:247:5:int phylum::dhara_sector_map::dhara_copy(const dhara_nand*, phylum::dhara_page_t, phylum::dhara_page_t, dhara_error_t*) 16
-diagnostics_module.cpp:32:14:virtual fk::ModuleReturn fk::DiagnosticsModule::initialize(fk::ModuleContext, fk::Pool&) 16
-diagnostics_module.cpp:42:14:virtual fk::ModuleReturn fk::DiagnosticsModule::service(fk::ModuleContext, fk::Pool&) 16
+diagnostics_module.cpp:38:14:virtual fk::ModuleReturn fk::DiagnosticsModule::initialize(fk::ModuleContext, fk::Pool&) 16
+diagnostics_module.cpp:48:14:virtual fk::ModuleReturn fk::DiagnosticsModule::service(fk::ModuleContext, fk::Pool&) 16
 directory_chain.cpp:130:9:virtual int32_t phylum::directory_chain::file_trees(phylum::file_id_t, phylum::tree_ptr_t, phylum::tree_ptr_t) 16
 directory_chain.cpp:218:12:virtual phylum::found_file phylum::directory_chain::open() 16
 directory_tree.cpp:122:12:virtual phylum::found_file phylum::directory_tree::open() 16
@@ -3858,8 +3847,8 @@ display_self_check_callbacks.cpp:43:6:void fk::DisplaySelfCheckCallbacks::append
 display_self_check_callbacks.cpp:5:1:fk::DisplaySelfCheckCallbacks::DisplaySelfCheckCallbacks() 16
 display_self_check_callbacks.cpp:60:1:cpp) 16
 display_self_check_callbacks.cpp:9:6:virtual void fk::DisplaySelfCheckCallbacks::update(fk::SelfCheckStatus) 16
-distance_module.cpp:39:14:virtual fk::ModuleReturn fk::DistanceModule::service(fk::ModuleContext, fk::Pool&) 16
-distance_module.cpp:8:1:fk::DistanceModule::DistanceModule() 16
+distance_module.cpp:42:14:virtual fk::ModuleReturn fk::DistanceModule::service(fk::ModuleContext, fk::Pool&) 16
+distance_module.cpp:8:1:fk::DistanceModule::DistanceModule(fk::Pool&) 16
 dns_message.cpp:149:10:uint16_t fk::DNSReader::read_u16() 16
 download_firmware_worker.cpp:129:1:cpp) 16
 download_handler.cpp:153:1:cpp) 16
@@ -4122,6 +4111,12 @@ modmux.cpp:141:1:cpp) 16
 modmux.cpp:64:1:fk::ModulesLock::ModulesLock(const fk::ModulesLock&) 16
 modmux.cpp:67:1:fk::ModulesLock::ModulesLock(fk::Lock, fk::EepromLock, uint32_t) 16
 modmux.cpp:70:1:fk::ModulesLock::ModulesLock(fk::ModulesLock&&) 16
+module.cpp:7:16:fk::Module* fk_module_create_atlas(fk::Pool&) 16
+module.cpp:7:16:fk::Module* fk_module_create_diagnostics(fk::Pool&) 16
+module.cpp:7:16:fk::Module* fk_module_create_distance(fk::Pool&) 16
+module.cpp:7:16:fk::Module* fk_module_create_random(fk::Pool&) 16
+module.cpp:7:16:fk::Module* fk_module_create_water(fk::Pool&) 16
+module.cpp:7:16:fk::Module* fk_module_create_weather(fk::Pool&) 16
 module_factory.cpp:185:6:void fk::ModuleFactory::clear() 16
 module_factory.cpp:33:1:fk::ModuleFactory::ModuleFactory() 16
 module_handler.cpp:85:1:cpp) 16
@@ -4209,8 +4204,8 @@ queue.c:17:13:blocked_enq 16
 queue.c:23:19:blocked_deq 16
 random.cpp:34:9:int32_t fk_random_i32(int32_t, int32_t) 16
 random.cpp:65:1:cpp) 16
-random_module.cpp:16:14:virtual fk::ModuleReturn fk::RandomModule::service(fk::ModuleContext, fk::Pool&) 16
-random_module.cpp:6:14:virtual fk::ModuleReturn fk::RandomModule::initialize(fk::ModuleContext, fk::Pool&) 16
+random_module.cpp:12:14:virtual fk::ModuleReturn fk::RandomModule::initialize(fk::ModuleContext, fk::Pool&) 16
+random_module.cpp:22:14:virtual fk::ModuleReturn fk::RandomModule::service(fk::ModuleContext, fk::Pool&) 16
 readings_taker.cpp:19:1:fk::ReadingsTaker::ReadingsTaker(fk::Storage&, fk::ModMux*, bool, fk::Pool&) 16
 readings_taker.cpp:78:1:cpp) 16
 readings_worker.cpp:180:1:cpp) 16
@@ -4478,8 +4473,8 @@ url_parser.h:34:5:fk::UrlParser::UrlParser(char*) 16
 url_parser.h:34:5:fk::UrlParser::UrlParser(char*) 16
 variant.cpp:219:1:cpp) 16
 watchdog.cpp:75:1:cpp) 16
-water_module.cpp:134:14:virtual fk::ModuleReturn fk::WaterModule::service(fk::ModuleContext, fk::Pool&) 16
-water_module.cpp:197:6:bool fk::WaterModule::excite(fk::Mcp2803&, uint32_t) 16
+water_module.cpp:135:14:virtual fk::ModuleReturn fk::WaterModule::service(fk::ModuleContext, fk::Pool&) 16
+water_module.cpp:198:6:bool fk::WaterModule::excite(fk::Mcp2803&, uint32_t) 16
 weather_types.h:25:5:fk::WindDirection::WindDirection(uint32_t) 16
 wifi_toggle_worker.cpp:61:1:cpp) 16
 wiring.c:65:6:init 16
@@ -4604,8 +4599,8 @@ WiFiUdp.cpp:77:9:virtual uint8_t WiFiUDP::beginMulticast(IPAddress, uint16_t) 24
 Wire.cpp:167:8:virtual size_t TwoWire::write(const uint8_t*, size_t) 24
 Wire.cpp:65:9:uint8_t TwoWire::requestFrom(uint8_t, size_t, bool) 24
 atlas_api.cpp:54:6:bool fk::AtlasApi::send_reply(fk::HttpServerConnection*, fk::Pool&, fk::AtlasApiReply&) 24
-atlas_module.cpp:259:17:nonstd::optional_lite::optional<float> fk::AtlasModule::get_temperature(fk::ReadingsContext) 24
-atlas_module.cpp:270:17:nonstd::optional_lite::optional<float> fk::AtlasModule::get_salinity(fk::ReadingsContext) 24
+atlas_module.cpp:260:17:nonstd::optional_lite::optional<float> fk::AtlasModule::get_temperature(fk::ReadingsContext) 24
+atlas_module.cpp:271:17:nonstd::optional_lite::optional<float> fk::AtlasModule::get_salinity(fk::ReadingsContext) 24
 bad_blocks.cpp:29:6:void fk::BadBlocks::mark_block_as_bad(uint32_t) 24
 blake2b.cpp:197:6:void BLAKE2b::reset(const void*, size_t, uint8_t) 24
 blake2b.cpp:274:6:void BLAKE2b::resetHMAC(const void*, size_t) 24
@@ -4633,7 +4628,7 @@ dhara_map.cpp:121:9:virtual int32_t phylum::dhara_sector_map::find(phylum::dhara
 dhara_map.cpp:136:9:virtual int32_t phylum::dhara_sector_map::trim(phylum::dhara_sector_t) 24
 dhara_map.cpp:297:5:int phylum::dhara_nand_prog(const dhara_nand*, phylum::dhara_page_t, const uint8_t*, dhara_error_t*) 24
 dhara_map.cpp:322:5:int phylum::dhara_nand_copy(const dhara_nand*, phylum::dhara_page_t, phylum::dhara_page_t, dhara_error_t*) 24
-diagnostics_module.cpp:36:14:virtual fk::ModuleReturn fk::DiagnosticsModule::api(fk::ModuleContext, fk::HttpServerConnection*, fk::Pool&) 24
+diagnostics_module.cpp:42:14:virtual fk::ModuleReturn fk::DiagnosticsModule::api(fk::ModuleContext, fk::HttpServerConnection*, fk::Pool&) 24
 directory_chain.cpp:11:9:virtual int32_t phylum::directory_chain::format() 24
 directory_chain.cpp:5:9:virtual int32_t phylum::directory_chain::mount() 24
 directory_tree.cpp:127:9:virtual int32_t phylum::directory_tree::file_data(phylum::file_id_t, phylum::file_size_t, const uint8_t*, size_t) 24
@@ -4652,7 +4647,7 @@ display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = f
 display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_tools_menu()::__lambda45] 24
 display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_tools_menu()::__lambda47] 24
 display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_tools_menu()::__lambda49] 24
-distance_module.cpp:33:14:virtual fk::ModuleReturn fk::DistanceModule::api(fk::ModuleContext, fk::HttpServerConnection*, fk::Pool&) 24
+distance_module.cpp:36:14:virtual fk::ModuleReturn fk::DistanceModule::api(fk::ModuleContext, fk::HttpServerConnection*, fk::Pool&) 24
 dns_message.cpp:18:1:fk::DNSReader::DNSReader(fk::Pool*, uint8_t*, size_t) 24
 dns_message.cpp:309:9:int32_t fk::DNSWriter::write_question(const char*, uint16_t, uint16_t) 24
 dns_message.cpp:339:9:int32_t fk::DNSWriter::write_answer_ptr(const char*, const char*) 24
@@ -4890,7 +4885,7 @@ protobuf.cpp:46:6:bool fk::pb_encode_array(pb_ostream_t*, const pb_field_t*, voi
 protobuf.cpp:88:6:bool fk::pb_encode_uint32_array(pb_ostream_t*, const pb_field_t*, void* const*) 24
 queue.c:141:13:osi_queue_dequeue 24
 queue.c:49:12:osi_queue_enqueue_isr 24
-random_module.cpp:10:14:virtual fk::ModuleReturn fk::RandomModule::api(fk::ModuleContext, fk::HttpServerConnection*, fk::Pool&) 24
+random_module.cpp:16:14:virtual fk::ModuleReturn fk::RandomModule::api(fk::ModuleContext, fk::HttpServerConnection*, fk::Pool&) 24
 record_chain.cpp:33:9:int32_t phylum::record_chain::create_chain(phylum::page_lock&) 24
 registry.cpp:28:6:void fk::ModuleRegistry::initialize() 24
 req.cpp:169:9:int32_t fk::HttpRequest::on_data(const char*, size_t) 24
@@ -5062,7 +5057,7 @@ utilities.cpp:14:8:size_t fk::bytes_to_hex_string(char*, size_t, const uint8_t*,
 utilities.cpp:29:13:const char* fk::bytes_to_hex_string_pool(const uint8_t*, size_t, fk::Pool&) 24
 uuid.c:15:9:fk_uuid_sprintf 24
 water_module.cpp:32:10:virtual bool fk::Mcp2803ReadyChecker::block_until_ready(fk::TwoWireWrapper&) 24
-weather_module.cpp:53:14:virtual fk::ModuleReturn fk::WeatherModule::api(fk::ModuleContext, fk::HttpServerConnection*, fk::Pool&) 24
+weather_module.cpp:59:14:virtual fk::ModuleReturn fk::WeatherModule::api(fk::ModuleContext, fk::HttpServerConnection*, fk::Pool&) 24
 wiring_analog.c:354:6:analogWrite 24
 wiring_shift.c:28:10:shiftIn 24
 wiring_shift.c:52:6:shiftOut 24
@@ -5264,7 +5259,7 @@ process.cpp:108:17:nonstd::optional_lite::optional<T> fk::FirmwareStorage::walk(
 qrcode.c:314:13:drawFormatBits 32
 qrcode.c:855:8:qrcode_initText 32
 queue.c:92:13:osi_queue_enqueue 32
-random_module.cpp:46:17:virtual fk::ModuleReadings* fk::RandomModule::take_readings(fk::ReadingsContext, fk::Pool&) 32
+random_module.cpp:52:17:virtual fk::ModuleReadings* fk::RandomModule::take_readings(fk::ReadingsContext, fk::Pool&) 32
 readings_worker.cpp:32:6:bool fk::ReadingsWorker::prepare(fk::Pool&) 32
 receive_firmware_handler.cpp:15:6:bool fk::ReceiveFirmwareWorker::read_complete_and_fail(const char*, fk::Pool&) 32
 record_chain.cpp:59:9:int32_t phylum::record_chain::prepare(phylum::page_lock&, size_t) 32
@@ -6011,10 +6006,10 @@ utilities.cpp:26:6:) 32
 utilities.cpp:57:6:) 32
 utilities.cpp:82:8:size_t fk::make_pretty_time_string(uint32_t, char*, size_t) 32
 varint.cpp:48:20:long long unsigned int phylum::varint_decode(const uint8_t*, size_t, int32_t*) 32
-water_module.cpp:138:22:virtual const ModuleSensors* fk::WaterModule::get_sensors(fk::Pool&) 32
-weather_module.cpp:49:14:virtual fk::ModuleReturn fk::WeatherModule::initialize(fk::ModuleContext, fk::Pool&) 32
-weather_module.cpp:59:14:virtual fk::ModuleReturn fk::WeatherModule::service(fk::ModuleContext, fk::Pool&) 32
-weather_module.cpp:63:17:virtual fk::ModuleReadings* fk::WeatherModule::take_readings(fk::ReadingsContext, fk::Pool&) 32
+water_module.cpp:139:22:virtual const ModuleSensors* fk::WaterModule::get_sensors(fk::Pool&) 32
+weather_module.cpp:55:14:virtual fk::ModuleReturn fk::WeatherModule::initialize(fk::ModuleContext, fk::Pool&) 32
+weather_module.cpp:65:14:virtual fk::ModuleReturn fk::WeatherModule::service(fk::ModuleContext, fk::Pool&) 32
+weather_module.cpp:69:17:virtual fk::ModuleReadings* fk::WeatherModule::take_readings(fk::ReadingsContext, fk::Pool&) 32
 working_buffers.h:263:13:int32_t phylum::working_buffers::debug() 32
 working_buffers.h:48:13:phylum::working_buffers::~working_buffers() 32
 write_memory_handler.cpp:18:6:bool fk::WriteMemoryWorker::read_complete_and_fail(const char*, fk::Pool&) 32
@@ -6053,7 +6048,7 @@ data_chain.cpp:177:13:phylum::file_size_t phylum::data_chain::total_bytes() 40
 deep_sleep.cpp:59:6:bool fk::DeepSleep::try_deep_sleep(lwcron::Scheduler&) 40
 delimited_buffer.h:341:19:phylum::delimited_buffer::iterator& phylum::delimited_buffer::iterator::operator++() 40
 display.cpp:124:10:void fk::MainViewController::refresh_notifications() 40
-distance_module.cpp:11:14:virtual fk::ModuleReturn fk::DistanceModule::initialize(fk::ModuleContext, fk::Pool&) 40
+distance_module.cpp:14:14:virtual fk::ModuleReturn fk::DistanceModule::initialize(fk::ModuleContext, fk::Pool&) 40
 dns_message.cpp:157:9:int16_t fk::DNSReader::read_queries() 40
 file.cpp:586:9:int32_t fk::File::try_read_record_header(uint32_t, fk::RecordHeader&) 40
 file.cpp:808:9:int32_t fk::File::read(void*, const pb_msgdesc_t*) 40
@@ -6190,7 +6185,7 @@ WiFiMDNSResponder.cpp:123:6:bool WiFiMDNSResponder::parseRequest() 48
 WiFiSocket.cpp:232:5:int WiFiSocketClass::read(SOCKET, uint8_t*, size_t) 48
 WiFiUdp.cpp:40:9:virtual uint8_t WiFiUDP::begin(uint16_t) 48
 atlas_api.cpp:67:6:bool fk::AtlasApi::status(fk::ModuleContext, fk::AtlasApiReply&, fk::Pool&) 48
-atlas_module.cpp:11:14:virtual fk::ModuleReturn fk::AtlasModule::initialize(fk::ModuleContext, fk::Pool&) 48
+atlas_module.cpp:17:14:virtual fk::ModuleReturn fk::AtlasModule::initialize(fk::ModuleContext, fk::Pool&) 48
 caching_memory.cpp:39:9:virtual int32_t fk::CachingMemory::read(uint32_t, uint8_t*, size_t, fk::MemoryReadFlags) 48
 caching_memory.cpp:63:9:virtual int32_t fk::CachingMemory::write(uint32_t, const uint8_t*, size_t, fk::MemoryWriteFlags) 48
 clock.cpp:161:6:bool fk::CoreClock::adjust(fk::DateTime) 48
@@ -6344,7 +6339,7 @@ u8x8_d_st7528.c:109:16:u8x8_d_st7528_generic 48
 u8x8_d_uc1617.c:135:9:u8x8_d_uc1617_common 48
 u8x8_string.c:159:9:u8x8_DrawUTF8Lines 48
 varint.cpp:35:10:uint8_t* phylum::varint_encode(long long unsigned int, uint8_t*, int32_t) 48
-water_module.cpp:122:14:virtual fk::ModuleReturn fk::WaterModule::api(fk::ModuleContext, fk::HttpServerConnection*, fk::Pool&) 48
+water_module.cpp:123:14:virtual fk::ModuleReturn fk::WaterModule::api(fk::ModuleContext, fk::HttpServerConnection*, fk::Pool&) 48
 working_buffers.h:300:19:phylum::simple_buffer phylum::working_buffers::allocate(size_t) 48
 working_buffers.h:300:19:phylum::simple_buffer phylum::working_buffers::allocate(size_t) 48
 working_buffers.h:300:19:phylum::simple_buffer phylum::working_buffers::allocate(size_t) 48
@@ -6373,7 +6368,7 @@ delimited_buffer.cpp:5:7:void* phylum::delimited_buffer::reserve(size_t, phylum:
 delimited_buffer.h:313:9:phylum::delimited_buffer::iterator::iterator(phylum::read_buffer) 56
 directory_chain.cpp:58:9:int32_t phylum::directory_chain::file_attribute(phylum::page_lock&, phylum::file_id_t, phylum::open_file_attribute) 56
 directory_chain.cpp:67:9:virtual int32_t phylum::directory_chain::file_attributes(phylum::file_id_t, phylum::open_file_attribute*, size_t) 56
-distance_module.cpp:63:17:virtual fk::ModuleReadings* fk::DistanceModule::take_readings(fk::ReadingsContext, fk::Pool&) 56
+distance_module.cpp:66:17:virtual fk::ModuleReadings* fk::DistanceModule::take_readings(fk::ReadingsContext, fk::Pool&) 56
 file.cpp:290:6:bool fk::File::seek(uint32_t) 56
 file_handler.cpp:16:32:fk::DownloadFileWorker::HeaderInfo fk::DownloadFileWorker::get_headers(fk::SdCardFile*, fk::Pool&) 56
 functional:2054:7:) [with _Res = long int; _Functor = phylum::data_chain::read_delimiter(uint32_t*)::__lambda2; _ArgTypes = {phylum::general_buffer<const unsigned char>}] 56
@@ -6428,9 +6423,9 @@ api_handler.cpp:381:13:27(fk::HttpServerConnection*, uint32_t*, fk::Pool&) 64
 atlas_api.cpp:107:6:bool fk::AtlasApi::calibrate(fk::ModuleContext, fk::AtlasApiReply&, fk_atlas_AtlasCalibrationCommand, fk::Pool&) 64
 atlas_api.cpp:82:6:bool fk::AtlasApi::clear(fk::ModuleContext, fk::AtlasApiReply&, fk::Pool&) 64
 atlas_api_reply.cpp:9:6:void fk::AtlasApiReply::error(const char*) 64
-atlas_module.cpp:31:6:bool fk::AtlasModule::load_configuration(fk::ModuleContext, fk::Pool&) 64
-atlas_module.cpp:59:14:virtual fk::ModuleReturn fk::AtlasModule::api(fk::ModuleContext, fk::HttpServerConnection*, fk::Pool&) 64
-atlas_module.cpp:83:22:virtual const ModuleSensors* fk::AtlasModule::get_sensors(fk::Pool&) 64
+atlas_module.cpp:32:6:bool fk::AtlasModule::load_configuration(fk::ModuleContext, fk::Pool&) 64
+atlas_module.cpp:60:14:virtual fk::ModuleReturn fk::AtlasModule::api(fk::ModuleContext, fk::HttpServerConnection*, fk::Pool&) 64
+atlas_module.cpp:84:22:virtual const ModuleSensors* fk::AtlasModule::get_sensors(fk::Pool&) 64
 data_chain.cpp:286:9:int32_t phylum::data_chain::constrain() 64
 directory_chain.cpp:27:9:virtual int32_t phylum::directory_chain::touch(const char*) 64
 directory_chain.cpp:42:9:virtual int32_t phylum::directory_chain::unlink(const char*) 64
@@ -6484,7 +6479,7 @@ u8g2_message.c:99:9:u8g2_UserInterfaceMessage 64
 u8g2_selection_list.c:52:6:u8g2_DrawUTF8Line 64
 u8x8_d_uc1611.c:413:9:u8x8_d_uc1611_ew50850 64
 water_api.cpp:11:6:bool fk::WaterApi::handle(fk::ModuleContext, fk::HttpServerConnection*, fk::Pool&) 64
-water_module.cpp:94:6:bool fk::WaterModule::load_configuration(fk::ModuleContext, fk::Pool&) 64
+water_module.cpp:95:6:bool fk::WaterModule::load_configuration(fk::ModuleContext, fk::Pool&) 64
 FatFileLFN.cpp:503:8:size_t FatFile::printName(print_t*) 72
 MDNS.cpp:290:13:MDNSError_t MDNS::_sendMDNSMessage(uint32_t, uint32_t, int, int) 72
 data_chain.cpp:166:9:int32_t phylum::data_chain::read(uint8_t*, size_t) 72
@@ -6563,13 +6558,13 @@ startup_worker.cpp:489:6:bool fk::StartupWorker::check_for_provision_startup(fk:
 state.cpp:17:6:void fk::Schedule::recreate() 80
 tree_sector.h:387:13:int32_t phylum::tree_sector<KEY, VALUE, Size>::split_child(phylum::page_lock&, phylum::index_type, phylum::node_ptr_t, phylum::tree_sector<KEY, VALUE, Size>::default_node_type*, phylum::node_ptr_t, phylum::tree_sector<KEY, VALUE, Size>::default_node_type*) [with KEY = long unsigned int; VALUE = phylum::attribute_value_t<256u>; unsigned int Size = 15u; int32_t = long int; phylum::index_type = short int; phylum::tree_sector<KEY, VALUE, Size>::default_node_type = phylum::tree_node_t<long unsigned int, phylum::attribute_value_t<256u>, 15u>] 80
 tree_sector.h:387:13:int32_t phylum::tree_sector<KEY, VALUE, Size>::split_child(phylum::page_lock&, phylum::index_type, phylum::node_ptr_t, phylum::tree_sector<KEY, VALUE, Size>::default_node_type*, phylum::node_ptr_t, phylum::tree_sector<KEY, VALUE, Size>::default_node_type*) [with KEY = long unsigned int; VALUE = phylum::dirtree_tree_value_t<128u>; unsigned int Size = 4u; int32_t = long int; phylum::index_type = short int; phylum::tree_sector<KEY, VALUE, Size>::default_node_type = phylum::tree_node_t<long unsigned int, phylum::dirtree_tree_value_t<128u>, 4u>] 80
-water_module.cpp:54:14:virtual fk::ModuleReturn fk::WaterModule::initialize(fk::ModuleContext, fk::Pool&) 80
+water_module.cpp:60:14:virtual fk::ModuleReturn fk::WaterModule::initialize(fk::ModuleContext, fk::Pool&) 80
 FatFileLFN.cpp:122:6:bool FatFile::getName(char*, size_t) 88
 delimited_buffer.h:191:13:int32_t phylum::delimited_buffer::write_header(std::function<long int(THeader*)>) [with THeader = phylum::sector_chain_header_t; int32_t = long int] 88
 delimited_buffer.h:197:13:int32_t phylum::delimited_buffer::write_view(std::function<long int(phylum::general_buffer<unsigned char>)>) 88
 delimited_buffer.h:219:13:int32_t phylum::delimited_buffer::seek_end() 88
 delimited_buffer.h:219:13:int32_t phylum::delimited_buffer::seek_end() 88
-diagnostics_module.cpp:54:17:virtual fk::ModuleReadings* fk::DiagnosticsModule::take_readings(fk::ReadingsContext, fk::Pool&) 88
+diagnostics_module.cpp:60:17:virtual fk::ModuleReadings* fk::DiagnosticsModule::take_readings(fk::ReadingsContext, fk::Pool&) 88
 directory_chain.cpp:236:9:virtual int32_t phylum::directory_chain::read(phylum::file_id_t, std::function<long int(phylum::general_buffer<const unsigned char>)>) 88
 display.cpp:134:10:void fk::MainViewController::run() 88
 download_handler.cpp:16:28:fk::DownloadWorker::HeaderInfo fk::DownloadWorker::get_headers(fk::FileReader*, fk::Pool&) 88
@@ -6616,7 +6611,7 @@ tree_sector.h:122:29:static phylum::tree_sector<KEY, VALUE, Size>::persisted_nod
 tree_sector.h:122:29:static phylum::tree_sector<KEY, VALUE, Size>::persisted_node_t phylum::tree_sector<KEY, VALUE, Size>::find_node_in_sector(phylum::delimited_buffer&, phylum::node_ptr_t) [with KEY = long unsigned int; VALUE = phylum::dirtree_tree_value_t<128u>; unsigned int Size = 4u] 104
 tree_sector.h:561:13:int32_t phylum::tree_sector<KEY, VALUE, Size>::create() [with KEY = long unsigned int; VALUE = phylum::attribute_value_t<256u>; unsigned int Size = 15u; int32_t = long int] 104
 tree_sector.h:561:13:int32_t phylum::tree_sector<KEY, VALUE, Size>::create() [with KEY = long unsigned int; VALUE = phylum::dirtree_tree_value_t<128u>; unsigned int Size = 4u; int32_t = long int] 104
-water_module.cpp:158:17:virtual fk::ModuleReadings* fk::WaterModule::take_readings(fk::ReadingsContext, fk::Pool&) 104
+water_module.cpp:159:17:virtual fk::ModuleReadings* fk::WaterModule::take_readings(fk::ReadingsContext, fk::Pool&) 104
 SEGGER_RTT_printf.c:482:5:SEGGER_RTT_vprintf 112
 configure_module_worker.cpp:63:6:bool fk::ConfigureModuleWorker::scan(fk::Pool&) 112
 data_chain.cpp:295:9:int32_t phylum::data_chain::read_chain(std::function<long int(phylum::general_buffer<const unsigned char>)>) 112
@@ -6663,7 +6658,7 @@ network_task.cpp:57:1:fk::NetworkTask::~NetworkTask() 136
 self_check.cpp:25:3:V fk::single_noncritical_check(const char*, T) [with V = bool; T = fk::SelfCheck::sd_card_write()::__lambda8] 136
 startup_worker.cpp:168:6:bool fk::StartupWorker::load_state(fk::Storage&, fk::GlobalState*, fk::Pool&) 136
 super_chain.cpp:31:9:int32_t phylum::super_chain::update(phylum::tree_ptr_t) 136
-atlas_module.cpp:183:17:virtual fk::ModuleReadings* fk::AtlasModule::take_readings(fk::ReadingsContext, fk::Pool&) 144
+atlas_module.cpp:184:17:virtual fk::ModuleReadings* fk::AtlasModule::take_readings(fk::ReadingsContext, fk::Pool&) 144
 file.cpp:402:9:int32_t fk::File::rewind() 144
 lora_manager.cpp:23:6:bool fk::LoraManager::begin() 144
 metal_sd_card.cpp:100:6:bool fk::MetalSdCard::initialize_logs() 144

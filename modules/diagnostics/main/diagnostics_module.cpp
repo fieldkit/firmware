@@ -29,6 +29,12 @@ static ModuleSensors const fk_module_sensors = {
     .sensors = fk_module_sensor_metas,
 };
 
+DiagnosticsModule::DiagnosticsModule(Pool &pool) {
+}
+
+DiagnosticsModule::~DiagnosticsModule() {
+}
+
 ModuleReturn DiagnosticsModule::initialize(ModuleContext mc, Pool &pool) {
     return { ModuleStatus::Ok };
 }

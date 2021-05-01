@@ -6,6 +6,10 @@ namespace fk {
 
 class DiagnosticsModule : public Module {
 public:
+    DiagnosticsModule(Pool &pool);
+    virtual ~DiagnosticsModule();
+
+public:
     ModuleReturn initialize(ModuleContext mc, Pool &pool) override;
     ModuleReturn service(ModuleContext mc, Pool &pool) override;
     ModuleReturn api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) override;

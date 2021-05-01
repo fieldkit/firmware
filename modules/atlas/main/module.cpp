@@ -5,7 +5,7 @@ using namespace fk;
 extern "C" {
 
 static Module *fk_module_create_atlas(Pool &pool) {
-    return new(pool) AtlasModule();
+    return new (pool) AtlasModule(pool);
 }
 
 ModuleMetadata const fk_module_meta_atlas_ph = {

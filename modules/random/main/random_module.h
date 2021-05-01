@@ -6,6 +6,10 @@ namespace fk {
 
 class RandomModule : public Module {
 public:
+    RandomModule(Pool &pool);
+    virtual ~RandomModule();
+
+public:
     ModuleReturn initialize(ModuleContext mc, Pool &pool) override;
     ModuleReturn service(ModuleContext mc, Pool &pool) override;
     ModuleReturn api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) override;

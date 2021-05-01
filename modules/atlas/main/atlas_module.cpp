@@ -8,12 +8,13 @@ namespace fk {
 
 FK_DECLARE_LOGGER("atlas");
 
+AtlasModule::AtlasModule(Pool &pool) : pool_(&pool) {
+}
+
+AtlasModule::~AtlasModule() {
+}
+
 ModuleReturn AtlasModule::initialize(ModuleContext mc, Pool &pool) {
-    // TODO Not a fan of this, move to ctor?
-    FK_ASSERT(pool_ == nullptr);
-
-    pool_ = &pool;
-
     load_configuration(mc, pool);
 
     auto atlas = OemAtlas{ mc.module_bus() };

@@ -13,7 +13,8 @@ private:
     LineReader<256> line_reader_{ &bridge_ };
 
 public:
-    DistanceModule();
+    DistanceModule(Pool &pool);
+    virtual ~DistanceModule();
 
 public:
     ModuleReturn initialize(ModuleContext mc, Pool &pool) override;

@@ -51,12 +51,13 @@ public:
 
 };
 
+WaterModule::WaterModule(Pool &pool) : pool_(&pool) {
+}
+
+WaterModule::~WaterModule() {
+}
+
 ModuleReturn WaterModule::initialize(ModuleContext mc, Pool &pool) {
-    // TODO Not a fan of this, move to ctor?
-    FK_ASSERT(pool_ == nullptr);
-
-    pool_ = &pool;
-
     loginfo("water: initialize");
 
     load_configuration(mc, pool);

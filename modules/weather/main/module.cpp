@@ -5,7 +5,7 @@ using namespace fk;
 extern "C" {
 
 static Module *fk_module_create_weather(Pool &pool) {
-    return new(pool) WeatherModule();
+    return new (pool) WeatherModule(pool);
 }
 
 ModuleMetadata const fk_module_meta_weather = {

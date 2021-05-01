@@ -3,6 +3,12 @@
 
 namespace fk {
 
+RandomModule::RandomModule(Pool &pool) {
+}
+
+RandomModule::~RandomModule() {
+}
+
 ModuleReturn RandomModule::initialize(ModuleContext mc, Pool &pool) {
     return { ModuleStatus::Ok };
 }
