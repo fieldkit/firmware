@@ -33,7 +33,7 @@ private:
     bool load_configuration(ModuleContext mc, Pool &pool);
 
 private:
-    bool excite(Mcp2803 &mcp, uint32_t cleanse_ms);
+    bool excite_control(Mcp2803 &mcp, bool high);
 
 };
 

@@ -95,8 +95,6 @@ bool Ads1219::read_dfferential_1_2(int32_t &value) {
 bool Ads1219::read_dfferential(uint8_t config, int32_t &value) {
     config_ |= config;
 
-    logdebug("config: %x", config_);
-
     if (!I2C_CHECK(bus_.write_register_u8(address_, ADS1219_CONFIG_REGISTER_ADDRESS, config_))) {
         return false;
     }

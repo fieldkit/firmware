@@ -1004,7 +1004,6 @@ linux_sd_card.cpp:72:8:virtual size_t fk::LinuxSdCardFile::file_size() 0
 linux_sd_card.cpp:76:6:virtual bool fk::LinuxSdCardFile::close() 0
 linux_sd_card.cpp:8:6:virtual bool fk::LinuxSdCard::begin() 0
 linux_sd_card.h:35:10:virtual bool fk::LinuxSdCardFile::is_open() const 0
-live_tests.cpp:220:6:void fk::fk_live_tests() 0
 log_stream.cpp:39:11:LogStream Logger::begin(const char*) const 0
 log_stream.cpp:43:11:LogStream Logger::begin() const 0
 logging.cpp:142:13:const char* alog_get_log_level(LogLevels) 0
@@ -2570,6 +2569,7 @@ linux_leds.cpp:5:1:fk::LinuxLeds::LinuxLeds() 8
 linux_leds.h:7:7:fk::LinuxLeds::~LinuxLeds() 8
 linux_leds.h:7:7:virtual fk::LinuxLeds::~LinuxLeds() 8
 linux_sd_card.cpp:44:13:virtual fk::SdCardFile* fk::LinuxSdCard::open(const char*, fk::OpenFlags, fk::Pool&) 8
+live_tests.cpp:220:6:void fk::fk_live_tests() 8
 loading.c:18:21:fkb_try_header 8
 log_stream.cpp:47:1:LogStream::~LogStream() 8
 log_stream.cpp:51:12:LogStream& LogStream::flush() 8
@@ -2628,6 +2628,7 @@ memory.cpp:142:9:virtual int32_t fk::TranslatingMemory::flush() 8
 memory.cpp:154:9:virtual int32_t fk::TranslatingMemory::execute(uint32_t*, uint32_t*) 8
 memory.cpp:21:1:fk::BankedDataMemory::BankedDataMemory(fk::DataMemory**, size_t) 8
 memory.cpp:226:1:cpp) 8
+memory.h:101:21:virtual int32_t fk::DataMemory::copy_page(uint32_t, uint32_t, size_t) 8
 memory.h:101:21:virtual int32_t fk::DataMemory::copy_page(uint32_t, uint32_t, size_t) 8
 memory.h:101:21:virtual int32_t fk::DataMemory::copy_page(uint32_t, uint32_t, size_t) 8
 memory.h:101:21:virtual int32_t fk::DataMemory::copy_page(uint32_t, uint32_t, size_t) 8
@@ -2806,6 +2807,8 @@ mutex.h:46:13:fk::Lock::~Lock() 8
 mutex.h:46:13:fk::Lock::~Lock() 8
 mutex.h:46:13:fk::Lock::~Lock() 8
 mutex.h:46:13:fk::Lock::~Lock() 8
+mutex.h:46:13:fk::Lock::~Lock() 8
+mutex.h:46:13:virtual fk::Lock::~Lock() 8
 mutex.h:46:13:virtual fk::Lock::~Lock() 8
 mutex.h:46:13:virtual fk::Lock::~Lock() 8
 mutex.h:46:13:virtual fk::Lock::~Lock() 8
@@ -3157,6 +3160,8 @@ state_ref.h:24:13:fk::GlobalStateRef<T>::~GlobalStateRef() [with T = const fk::G
 state_ref.h:24:13:fk::GlobalStateRef<T>::~GlobalStateRef() [with T = const fk::GlobalState*] 8
 state_ref.h:24:13:fk::GlobalStateRef<T>::~GlobalStateRef() [with T = const fk::GlobalState*] 8
 state_ref.h:24:13:fk::GlobalStateRef<T>::~GlobalStateRef() [with T = const fk::GlobalState*] 8
+state_ref.h:24:13:fk::GlobalStateRef<T>::~GlobalStateRef() [with T = const fk::GlobalState*] 8
+state_ref.h:24:13:fk::GlobalStateRef<T>::~GlobalStateRef() [with T = const fk::GlobalState*] 8
 state_ref.h:24:13:fk::GlobalStateRef<T>::~GlobalStateRef() [with T = fk::GlobalState*] 8
 state_ref.h:24:13:fk::GlobalStateRef<T>::~GlobalStateRef() [with T = fk::GlobalState*] 8
 state_ref.h:24:13:fk::GlobalStateRef<T>::~GlobalStateRef() [with T = fk::GlobalState*] 8
@@ -3333,6 +3338,7 @@ watchdog.cpp:29:9:int32_t fk_wdt_initialize() 8
 watchdog.cpp:35:9:int32_t fk_wdt_enable() 8
 watchdog.cpp:43:9:int32_t fk_wdt_disable() 8
 watchdog.cpp:48:9:int32_t fk_wdt_feed() 8
+water_module.cpp:218:6:bool fk::WaterModule::excite_control(fk::Mcp2803&, bool) 8
 water_module.cpp:54:1:fk::WaterModule::WaterModule(fk::Pool&) 8
 water_module.cpp:57:1:virtual fk::WaterModule::~WaterModule() 8
 weather_module.cpp:44:1:virtual fk::WeatherModule::~WeatherModule() 8
@@ -4474,7 +4480,6 @@ url_parser.h:34:5:fk::UrlParser::UrlParser(char*) 16
 variant.cpp:219:1:cpp) 16
 watchdog.cpp:75:1:cpp) 16
 water_module.cpp:136:14:virtual fk::ModuleReturn fk::WaterModule::service(fk::ModuleContext, fk::Pool&) 16
-water_module.cpp:199:6:bool fk::WaterModule::excite(fk::Mcp2803&, uint32_t) 16
 weather_types.h:25:5:fk::WindDirection::WindDirection(uint32_t) 16
 wifi_toggle_worker.cpp:61:1:cpp) 16
 wiring.c:65:6:init 16
@@ -6776,6 +6781,7 @@ readings_worker.cpp:151:36:tl::expected<fk::TakenReadings, fk::Error> fk::Readin
 directory_tree.cpp:162:9:virtual int32_t phylum::directory_tree::file_attributes(phylum::file_id_t, phylum::open_file_attribute*, size_t) 744
 export_data_worker.cpp:22:6:virtual void fk::ExportDataWorker::run(fk::Pool&) 744
 display.cpp:194:6:void fk::task_handler_display(void*) 768
+live_tests.cpp:96:13:void fk::test_water_module() 936
 tree_sector.h:627:121:phylum::tree_sector<KEY, VALUE, Size>::add(KEY, VALUE) [with KEY = long unsigned int; VALUE = phylum::dirtree_tree_value_t<128u>; unsigned int Size = 4u; int32_t = long int]::__lambda5::__lambda6 1056
 tree_sector.h:627:121:phylum::tree_sector<KEY, VALUE, Size>::add(KEY, VALUE) [with KEY = long unsigned int; VALUE = phylum::attribute_value_t<256u>; unsigned int Size = 15u; int32_t = long int]::__lambda5::__lambda6 3976
 hpl_nvmctrl.c:159:6:_flash_write 8232

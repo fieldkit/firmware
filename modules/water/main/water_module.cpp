@@ -172,17 +172,40 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
         return nullptr;
     }
 
-    if (false) {
-        if (!excite(mcp, 100)) {
-            logerror("ads1219::excite failed");
+    auto excite_duration = mc.position().integer() == 2 ? 10u : 0u;
+    if (excite_duration > 0) {
+        loginfo("excitation: %" PRIu32 "ms", excite_duration);
+
+        if (!excite_control(mcp, true)) {
             return nullptr;
         }
+
+        fk_delay(excite_duration);
+
+        if (!excite_control(mcp, false)) {
+            return nullptr;
+        }
+
+        fk_delay(excite_duration);
+
+        if (!excite_control(mcp, true)) {
+            return nullptr;
+        }
+    }
+    else {
+        loginfo("excitation: disabled");
     }
 
     int32_t value = 0;
     if (!ads.read_differential_0_1(value)) {
         logerror("ads1219::read_diff_0_1");
         return nullptr;
+    }
+
+    if (excite_duration > 0) {
+        if (!excite_control(mcp, false)) {
+            return nullptr;
+        }
     }
 
     auto reading = ((float)value * 3.3f / 8388608.0f);
@@ -196,26 +219,11 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
     return mr;
 }
 
-bool WaterModule::excite(Mcp2803 &mcp, uint32_t cleanse_ms) {
-    if (!mcp.configure(FK_MCP2803_IODIR, FK_MCP2803_GPPU, FK_MCP2803_GPIO_EXCITE_ON)) {
-        logerror("mcp2803::begin");
+bool WaterModule::excite_control(Mcp2803 &mcp, bool high)  {
+    if (!mcp.configure(FK_MCP2803_IODIR, FK_MCP2803_GPPU, high ? FK_MCP2803_GPIO_EXCITE_ON : FK_MCP2803_GPIO_EXCITE_OFF)) {
+        logerror("mcp2803::configure-excite");
         return false;
     }
-
-    fk_delay(cleanse_ms);
-
-    if (!mcp.configure(FK_MCP2803_IODIR, FK_MCP2803_GPPU, FK_MCP2803_GPIO_EXCITE_OFF)) {
-        logerror("mcp2803::begin");
-        return false;
-    }
-
-    fk_delay(cleanse_ms);
-
-    if (!mcp.configure(FK_MCP2803_IODIR, FK_MCP2803_GPPU, FK_MCP2803_GPIO_EXCITE_ON)) {
-        logerror("mcp2803::begin");
-        return false;
-    }
-
     return true;
 }
 

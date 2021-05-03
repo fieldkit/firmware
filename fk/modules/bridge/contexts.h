@@ -45,6 +45,9 @@ public:
     TwoWireWrapper &module_bus();
     bool power_cycle();
     uint32_t now() const;
+    ModulePosition position() const {
+        return position_;
+    }
 
 };
 

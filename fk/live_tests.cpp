@@ -93,7 +93,7 @@ static GpsState const *get_gps_from_global_state(Pool &pool) {
     return get_global_state_ro().get()->location(pool);
 }
 
-static void test_module() {
+static void test_water_module() {
     StandardPool pool{ "water-test" };
 
     get_board()->i2c_core().begin();
@@ -221,8 +221,8 @@ void fk_live_tests() {
     if (false) {
         scan_i2c_module_bus();
     }
-    if (false) {
-        test_module();
+    if (true) {
+        test_water_module();
     }
     if (false) {
         scan_i2c_radio_bus();
