@@ -48,15 +48,23 @@ static void update_task_upcoming(ReadingsTask &readings_job) {
     gs.get()->scheduler.readings.upcoming = scheduled;
 }
 
+static bool check_low_battery() {
+    auto gs = get_global_state_ro();
+    return gs.get()->power.low_battery;
+}
+
 void task_handler_scheduler(void *params) {
-    FK_ASSERT(fk_start_task_if_necessary(&display_task));
-    FK_ASSERT(fk_start_task_if_necessary(&network_task));
-    // NOTE: These share the same stack and so they can never be running together.
-    #if defined(FK_ENABLE_DEBUG_TASK)
-    FK_ASSERT(fk_start_task_if_necessary(&debug_task));
-    #else
-    FK_ASSERT(fk_start_task_if_necessary(&gps_task));
-    #endif
+    if (!check_low_battery()) {
+        FK_ASSERT(fk_start_task_if_necessary(&display_task));
+        FK_ASSERT(fk_start_task_if_necessary(&network_task));
+
+        // NOTE: These share the same stack and so they can never be running together.
+#if defined(FK_ENABLE_DEBUG_TASK)
+        FK_ASSERT(fk_start_task_if_necessary(&debug_task));
+#else
+        FK_ASSERT(fk_start_task_if_necessary(&gps_task));
+#endif
+    }
 
     while (!fk_task_stop_requested()) {
         auto schedules = get_config_schedules();
