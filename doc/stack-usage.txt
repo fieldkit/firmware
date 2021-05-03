@@ -2566,7 +2566,7 @@ linux_leds.cpp:5:1:fk::LinuxLeds::LinuxLeds() 8
 linux_leds.h:7:7:fk::LinuxLeds::~LinuxLeds() 8
 linux_leds.h:7:7:virtual fk::LinuxLeds::~LinuxLeds() 8
 linux_sd_card.cpp:44:13:virtual fk::SdCardFile* fk::LinuxSdCard::open(const char*, fk::OpenFlags, fk::Pool&) 8
-live_tests.cpp:224:6:void fk::fk_live_tests() 8
+live_tests.cpp:226:6:void fk::fk_live_tests() 8
 loading.c:18:21:fkb_try_header 8
 log_stream.cpp:47:1:LogStream::~LogStream() 8
 log_stream.cpp:51:12:LogStream& LogStream::flush() 8

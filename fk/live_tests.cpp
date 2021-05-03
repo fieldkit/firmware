@@ -154,26 +154,27 @@ static void test_water_module() {
 
         auto meta = registry.resolve(header);
         auto constructed = meta->ctor(pool);
+        auto first_pass = true;
 
-        for (auto position : { ModulePosition::from(1), ModulePosition::from(2) }) {
-            loginfo("position: %d", position.integer());
+        while (true) {
+            for (auto position : { ModulePosition::from(1), ModulePosition::from(2), ModulePosition::from(3), ModulePosition::from(4) }) {
+                loginfo("position: %d", position.integer());
 
-            fk_delay(100);
-
-            auto moduleCtx = ctx.module(position, pool);
-            if (!mm->choose(position)) {
-                logerror("choose %d", position.integer());
-                while (true) {
-                    fk_delay(100);
+                auto moduleCtx = ctx.module(position, pool);
+                if (!mm->choose(position)) {
+                    logerror("choose %d", position.integer());
+                    while (true) {
+                        fk_delay(100);
+                    }
                 }
-            }
 
-            scan_bus(moduleCtx.module_bus());
+                if (first_pass) {
+                    scan_bus(moduleCtx.module_bus());
+                }
 
-            if (constructed->initialize(moduleCtx, pool)) {
-                loginfo("ready!");
+                if (constructed->initialize(moduleCtx, pool)) {
+                    loginfo("ready!");
 
-                while (true) {
                     StandardPool readings_pool{ "readings" };
                     ModuleReadingsCollection all_readings{ readings_pool };
                     auto readingsCtx = ctx.readings(position, all_readings, pool);
@@ -183,13 +184,14 @@ static void test_water_module() {
                     }
 
                     constructed->take_readings(readingsCtx, readings_pool);
-
-                    fk_delay(1000);
                 }
             }
+
+            fk_delay(1000);
+
+            first_pass = false;
         }
-    }
-    else {
+    } else {
         for (auto &m : *modules) {
             if (true || m.header.kind == FK_MODULES_KIND_WATER_PH) {
                 loginfo("module!");
