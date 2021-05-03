@@ -93,6 +93,7 @@ struct RuntimeState {
 
 struct PowerState {
     float charge{ 0 };
+    bool low_battery{ false };
     MeterReading battery{ };
     MeterReading solar{ };
 };

@@ -65,6 +65,9 @@ void StartupWorker::run(Pool &pool) {
         return;
     }
 
+    loginfo("check for low power startup");
+    auto low_power_startup = check_for_low_power_startup(pool);
+
     // Pretty safe to do this early on as this thing is also clocking
     // the CPU we're running on. :)
     auto clock = get_clock();
@@ -72,7 +75,9 @@ void StartupWorker::run(Pool &pool) {
         logerror("rtc error");
     }
 
-    display->company_logo();
+    if (!low_power_startup) {
+        display->company_logo();
+    }
 
     loginfo("ready hardware");
     auto mm = get_modmux();
@@ -112,9 +117,6 @@ void StartupWorker::run(Pool &pool) {
     // Now write saved logs and free them. These will end up in the
     // named folder.
     save_captured_logs(true);
-
-    BatteryStatus battery;
-    battery.refresh();
 
     ModuleRegistry registry;
     registry.initialize();
@@ -562,6 +564,29 @@ bool StartupWorker::check_for_interactive_startup(Pool &pool) {
     }
 
     return enable_debug_mode;
+}
+
+bool StartupWorker::check_for_low_power_startup(Pool &pool) {
+    auto gauge = get_battery_gauge();
+    if (!gauge->begin()) {
+        logwarn("battery: unavailable");
+        return false;
+    }
+
+    BatteryStatus battery;
+    battery.refresh();
+
+    if (!battery.have_charge()) {
+        logwarn("battery: unavailable");
+        return false;
+    }
+
+    if (!battery.low_battery()) {
+        return false;
+    }
+
+    loginfo("battery-charge (low)");
+    return true;
 }
 
 static void copy_cron_spec_from_pb(const char *name, Schedule &cs, fk_data_JobSchedule &pb, Pool &pool) {
