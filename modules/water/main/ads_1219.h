@@ -5,13 +5,48 @@
 
 namespace fk {
 
-#define ADS1219_VREF_MASK     0xFE
-#define ADS1219_VREF_INTERNAL 0x00
-#define ADS1219_VREF_EXTERNAL 0x01
+#define ADS1219_VREF_MASK               0xFE
+#define ADS1219_VREF_INTERNAL           0x00
+#define ADS1219_VREF_EXTERNAL           0x01
 
-enum class Ads1219VoltageReference {
-    INTERNAL = ADS1219_VREF_INTERNAL,
-    EXTERNAL = ADS1219_VREF_EXTERNAL
+#define ADS1219_MUX_MASK 				0x1F
+#define ADS1219_MUX_DIFF_0_1			0x00
+#define ADS1219_MUX_DIFF_2_3			0x20
+#define ADS1219_MUX_DIFF_1_2			0x40
+#define ADS1219_MUX_SINGLE_0			0x60
+#define ADS1219_MUX_SINGLE_1			0x80
+#define ADS1219_MUX_SINGLE_2			0xA0
+#define ADS1219_MUX_SINGLE_3			0xC0
+#define ADS1219_MUX_SHORTED				0xE0
+
+#define ADS1219_GAIN_MASK 				0xEF
+#define ADS1219_GAIN_ONE				0x00
+#define ADS1219_GAIN_FOUR				0x10
+
+#define ADS1219_DATA_RATE_MASK			0xF3
+#define ADS1219_DATA_RATE_20			0x00
+#define ADS1219_DATA_RATE_90			0x04
+#define ADS1219_DATA_RATE_330			0x08
+#define ADS1219_DATA_RATE_1000			0x0c
+
+#define ADS1219_MODE_MASK				0xFD
+#define ADS1219_MODE_SINGLE_SHOT		0x00
+#define ADS1219_MODE_CONTINUOUS			0x02
+
+enum class Ads1219VoltageReference : uint8_t {
+    Internal = ADS1219_VREF_INTERNAL,
+    External = ADS1219_VREF_EXTERNAL
+};
+
+enum class Ads1219Channel : uint8_t {
+    Diff_0_1 = ADS1219_MUX_DIFF_0_1,
+    Diff_2_3 = ADS1219_MUX_DIFF_2_3,
+    Diff_1_2 = ADS1219_MUX_DIFF_1_2,
+    Single_0 = ADS1219_MUX_SINGLE_0,
+    Single_1 = ADS1219_MUX_SINGLE_1,
+    Single_2 = ADS1219_MUX_SINGLE_2,
+    Single_3 = ADS1219_MUX_SINGLE_3,
+    Shorted = ADS1219_MUX_SHORTED,
 };
 
 class Ads1219ReadyChecker {
@@ -32,15 +67,11 @@ public:
 
 public:
     bool begin();
-    bool set_voltage_reference(Ads1219VoltageReference vref);
-    bool read_single_ended(int32_t channel, int32_t &value);
-    bool read_differential_0_1(int32_t &value);
-    bool read_differential_2_3(int32_t &value);
-    bool read_dfferential_1_2(int32_t &value);
+    bool configure(Ads1219VoltageReference vref, Ads1219Channel channel);
+    bool read(int32_t &value);
 
 private:
-    bool read_dfferential(uint8_t config, int32_t &value);
-    bool read_conversion( int32_t &value);
+    bool read_conversion(int32_t &value);
     bool start();
 
 };

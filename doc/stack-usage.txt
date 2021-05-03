@@ -290,11 +290,8 @@ abi.cpp:24:6:void __cxa_pure_virtual() 0
 abi.cpp:31:6:void __cxa_deleted_virtual() 0
 activity.h:17:18:virtual void fk::Activity::consumed() 0
 activity.h:17:18:virtual void fk::Activity::consumed() 0
-ads_1219.cpp:38:1:fk::Ads1219::~Ads1219() 0
-ads_1219.cpp:41:6:bool fk::Ads1219::begin() 0
-ads_1219.cpp:83:6:bool fk::Ads1219::read_differential_0_1(int32_t&) 0
-ads_1219.cpp:87:6:bool fk::Ads1219::read_differential_2_3(int32_t&) 0
-ads_1219.cpp:91:6:bool fk::Ads1219::read_dfferential_1_2(int32_t&) 0
+ads_1219.cpp:14:1:fk::Ads1219::~Ads1219() 0
+ads_1219.cpp:17:6:bool fk::Ads1219::begin() 0
 aggregated_weather.cpp:63:11:float fk::AggregatedWeatherHelpers::get_rain_mm_per_hour() 0
 api_handler.cpp:36:6:void fk::ApiHandler::adjust_time_if_necessary(const fk_app_HttpQuery*) 0
 arduino.cpp:24:13:void serial_putchar(char, void*) 0
@@ -2147,9 +2144,9 @@ WiFiUdp.h:81:15:virtual int WiFiUDP::read(char*, size_t) 8
 Wire.cpp:154:8:virtual size_t TwoWire::write(uint8_t) 8
 Wire.cpp:186:5:virtual int TwoWire::read() 8
 Wire.cpp:305:3:cpp) 8
-ads_1219.cpp:135:6:bool fk::Ads1219::start() 8
-ads_1219.cpp:38:1:virtual fk::Ads1219::~Ads1219() 8
-ads_1219.cpp:45:6:bool fk::Ads1219::set_voltage_reference(fk::Ads1219VoltageReference) 8
+ads_1219.cpp:14:1:virtual fk::Ads1219::~Ads1219() 8
+ads_1219.cpp:21:6:bool fk::Ads1219::configure(fk::Ads1219VoltageReference, fk::Ads1219Channel) 8
+ads_1219.cpp:58:6:bool fk::Ads1219::start() 8
 arduino.cpp:55:10:uint32_t osi_platform_delay(uint32_t) 8
 arduino.cpp:66:9:int32_t sysTickHook() 8
 atlas_api_reply.cpp:5:1:fk::AtlasApiReply::AtlasApiReply(fk::Pool&) 8
@@ -2569,7 +2566,7 @@ linux_leds.cpp:5:1:fk::LinuxLeds::LinuxLeds() 8
 linux_leds.h:7:7:fk::LinuxLeds::~LinuxLeds() 8
 linux_leds.h:7:7:virtual fk::LinuxLeds::~LinuxLeds() 8
 linux_sd_card.cpp:44:13:virtual fk::SdCardFile* fk::LinuxSdCard::open(const char*, fk::OpenFlags, fk::Pool&) 8
-live_tests.cpp:220:6:void fk::fk_live_tests() 8
+live_tests.cpp:224:6:void fk::fk_live_tests() 8
 loading.c:18:21:fkb_try_header 8
 log_stream.cpp:47:1:LogStream::~LogStream() 8
 log_stream.cpp:51:12:LogStream& LogStream::flush() 8
@@ -3338,7 +3335,7 @@ watchdog.cpp:29:9:int32_t fk_wdt_initialize() 8
 watchdog.cpp:35:9:int32_t fk_wdt_enable() 8
 watchdog.cpp:43:9:int32_t fk_wdt_disable() 8
 watchdog.cpp:48:9:int32_t fk_wdt_feed() 8
-water_module.cpp:218:6:bool fk::WaterModule::excite_control(fk::Mcp2803&, bool) 8
+water_module.cpp:222:6:bool fk::WaterModule::excite_control(fk::Mcp2803&, bool) 8
 water_module.cpp:54:1:fk::WaterModule::WaterModule(fk::Pool&) 8
 water_module.cpp:57:1:virtual fk::WaterModule::~WaterModule() 8
 weather_module.cpp:44:1:virtual fk::WeatherModule::~WeatherModule() 8
@@ -3531,7 +3528,7 @@ SERCOM.cpp:563:6:bool SERCOM::startTransmissionWIRE(uint8_t, SercomWireReadWrite
 SERCOM.cpp:740:6:void SERCOM::initClockNVIC() 12
 WiFi.cpp:242:6:void ping_cb(uint32, uint32, uint8) 12
 WiFiSocket.cpp:407:6:static void WiFiSocketClass::eventCallback(SOCKET, uint8, void*) 12
-ads_1219.cpp:35:1:fk::Ads1219::Ads1219(fk::TwoWireWrapper&, uint8_t, fk::Ads1219ReadyChecker*) 12
+ads_1219.cpp:11:1:fk::Ads1219::Ads1219(fk::TwoWireWrapper&, uint8_t, fk::Ads1219ReadyChecker*) 12
 atlas_protocol.cpp:14:26:fk_atlas_WireAtlasReply* fk::fk_atlas_reply_prepare_encoding(fk_atlas_WireAtlasReply*, fk::Pool*) 12
 blake2b.cpp:166:6:void BLAKE2b::reset(uint8_t) 12
 contexts.cpp:43:1:fk::ReadingsContext::ReadingsContext(fk::ScanningContext&, fk::ModulePosition, fk::ModuleReadingsCollection&, fk::ModulePowerState, fk::Pool&) 12
@@ -3760,8 +3757,7 @@ Wire.cpp:212:6:void TwoWire::onService() 16
 Wire.cpp:37:6:void TwoWire::begin() 16
 Wire.cpp:46:6:void TwoWire::begin(uint8_t, bool) 16
 Wire.cpp:55:6:void TwoWire::setClock(uint32_t) 16
-ads_1219.cpp:50:6:bool fk::Ads1219::read_single_ended(int32_t, int32_t&) 16
-ads_1219.cpp:95:6:bool fk::Ads1219::read_dfferential(uint8_t, int32_t&) 16
+ads_1219.cpp:26:6:bool fk::Ads1219::read(int32_t&) 16
 aggregated_weather.cpp:118:14:fk::ModuleReturn fk::AggregatedWeather::service(fk::ModuleContext, fk::Pool&) 16
 api_handler.cpp:435:1:cpp) 16
 arduino.cpp:34:10:) 16
@@ -6041,7 +6037,7 @@ WiFi.cpp:586:9:uint8_t WiFiClass::beginProvision(uint8_t) 40
 WiFiMDNSResponder.cpp:91:6:bool WiFiMDNSResponder::begin(const char*, uint32_t) 40
 WiFiSocket.cpp:335:8:sint16 WiFiSocketClass::sendto(SOCKET, void*, uint16, uint16, sockaddr*, uint8) 40
 WiFiUdp.cpp:138:5:virtual int WiFiUDP::endPacket() 40
-ads_1219.cpp:115:6:bool fk::Ads1219::read_conversion(int32_t&) 40
+ads_1219.cpp:38:6:bool fk::Ads1219::read_conversion(int32_t&) 40
 bad_blocks.cpp:9:1:fk::BadBlocks::BadBlocks(fk::DataMemory*, fk::Pool&) 40
 blake2b.cpp:227:6:void BLAKE2b::update(const void*, size_t) 40
 board.cpp:95:9:int32_t fk::TwoWireWrapper::read_register_u16(uint8_t, uint8_t, uint16_t&) 40
@@ -6781,7 +6777,7 @@ readings_worker.cpp:151:36:tl::expected<fk::TakenReadings, fk::Error> fk::Readin
 directory_tree.cpp:162:9:virtual int32_t phylum::directory_tree::file_attributes(phylum::file_id_t, phylum::open_file_attribute*, size_t) 744
 export_data_worker.cpp:22:6:virtual void fk::ExportDataWorker::run(fk::Pool&) 744
 display.cpp:194:6:void fk::task_handler_display(void*) 768
-live_tests.cpp:96:13:void fk::test_water_module() 936
+live_tests.cpp:96:13:void fk::test_water_module() 952
 tree_sector.h:627:121:phylum::tree_sector<KEY, VALUE, Size>::add(KEY, VALUE) [with KEY = long unsigned int; VALUE = phylum::dirtree_tree_value_t<128u>; unsigned int Size = 4u; int32_t = long int]::__lambda5::__lambda6 1056
 tree_sector.h:627:121:phylum::tree_sector<KEY, VALUE, Size>::add(KEY, VALUE) [with KEY = long unsigned int; VALUE = phylum::attribute_value_t<256u>; unsigned int Size = 15u; int32_t = long int]::__lambda5::__lambda6 3976
 hpl_nvmctrl.c:159:6:_flash_write 8232

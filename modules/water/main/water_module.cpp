@@ -84,8 +84,8 @@ ModuleReturn WaterModule::initialize(ModuleContext mc, Pool &pool) {
         return { ModuleStatus::Fatal };
     }
 
-    if (!ads.set_voltage_reference(Ads1219VoltageReference::EXTERNAL)) {
-        logerror("ads1219::set_vref");
+    if (!ads.configure(Ads1219VoltageReference::External, Ads1219Channel::Diff_0_1)) {
+        logerror("ads1219::configure");
         return { ModuleStatus::Fatal };
     }
 
@@ -167,8 +167,8 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
     Mcp2803ReadyChecker ready_checker{ mcp };
     Ads1219 ads{ bus, FK_ADS1219_ADDRESS, &ready_checker };
 
-    if (!ads.set_voltage_reference(Ads1219VoltageReference::EXTERNAL)) {
-        logerror("ads1219::set_vref");
+    if (!ads.configure(Ads1219VoltageReference::External, Ads1219Channel::Diff_0_1)) {
+        logerror("ads1219::configure");
         return nullptr;
     }
 
@@ -197,7 +197,7 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
     }
 
     int32_t value = 0;
-    if (!ads.read_differential_0_1(value)) {
+    if (!ads.read(value)) {
         logerror("ads1219::read_diff_0_1");
         return nullptr;
     }

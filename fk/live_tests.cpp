@@ -154,34 +154,38 @@ static void test_water_module() {
 
         auto meta = registry.resolve(header);
         auto constructed = meta->ctor(pool);
-        auto position = ModulePosition::from(1);
 
-        auto moduleCtx = ctx.module(position, pool);
+        for (auto position : { ModulePosition::from(1), ModulePosition::from(2) }) {
+            loginfo("position: %d", position.integer());
 
-        if (!mm->choose(position)) {
-            logerror("choose %d", position.integer());
-            while (true) {
-                fk_delay(100);
-            }
-        }
+            fk_delay(100);
 
-        scan_bus(moduleCtx.module_bus());
-
-        if (constructed->initialize(moduleCtx, pool)) {
-            loginfo("ready!");
-
-            while (true) {
-                StandardPool readings_pool{ "readings" };
-                ModuleReadingsCollection all_readings{ readings_pool };
-                auto readingsCtx = ctx.readings(position, all_readings, pool);
-                if (!readingsCtx.open()) {
-                    logerror("[%d] error choosing module", position.integer());
-                    continue;
+            auto moduleCtx = ctx.module(position, pool);
+            if (!mm->choose(position)) {
+                logerror("choose %d", position.integer());
+                while (true) {
+                    fk_delay(100);
                 }
+            }
 
-                constructed->take_readings(readingsCtx, readings_pool);
+            scan_bus(moduleCtx.module_bus());
 
-                fk_delay(1000);
+            if (constructed->initialize(moduleCtx, pool)) {
+                loginfo("ready!");
+
+                while (true) {
+                    StandardPool readings_pool{ "readings" };
+                    ModuleReadingsCollection all_readings{ readings_pool };
+                    auto readingsCtx = ctx.readings(position, all_readings, pool);
+                    if (!readingsCtx.open()) {
+                        logerror("[%d] error choosing module", position.integer());
+                        continue;
+                    }
+
+                    constructed->take_readings(readingsCtx, readings_pool);
+
+                    fk_delay(1000);
+                }
             }
         }
     }
