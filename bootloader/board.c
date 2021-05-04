@@ -18,6 +18,7 @@
  */
 #include <sam.h>
 #include <variant.h>
+#include "bl.h"
 
 #define GENERIC_CLOCK_GENERATOR_MAIN       (0u)
 
@@ -98,6 +99,40 @@ void initialize_dpll() {
     OSCCTRL->Dpll[1].DPLLCTRLB.reg = OSCCTRL_DPLLCTRLB_REFCLK_GCLK | OSCCTRL_DPLLCTRLB_LBYPASS;
     OSCCTRL->Dpll[1].DPLLCTRLA.reg = OSCCTRL_DPLLCTRLA_ENABLE;
     while (OSCCTRL->Dpll[1].DPLLSTATUS.bit.CLKRDY == 0 || OSCCTRL->Dpll[1].DPLLSTATUS.bit.LOCK == 0);
+}
+
+void board_configure_supply_controller() {
+    SUPC->BOD33.bit.ENABLE = 0;
+
+    while (!SUPC->STATUS.bit.B33SRDY) {
+    }
+
+    SUPC->BOD33.reg = SUPC_BOD33_LEVEL(140) |
+        SUPC_BOD33_HYST(0) |
+        SUPC_BOD33_ACTION_NONE;
+
+    SUPC->BOD33.bit.ENABLE = 1;
+    while (!SUPC->STATUS.bit.B33SRDY) {
+    }
+
+    uint32_t waiting = 0u;
+
+    while (SUPC->STATUS.bit.BOD33DET) {
+        waiting++;
+    }
+
+    SUPC->BOD33.bit.ENABLE = 0;
+    while (!SUPC->STATUS.bit.B33SRDY) {
+    }
+
+    SUPC->BOD33.reg |= SUPC_BOD33_ACTION_RESET;
+
+    SUPC->BOD33.bit.ENABLE = 1;
+    while (!SUPC->STATUS.bit.B33SRDY) {
+    }
+
+    /* Use the LDO regulator by default */
+    SUPC->VREG.bit.SEL = 0;
 }
 
 void board_minimal_initialize(void) {
@@ -268,12 +303,14 @@ void board_initialize(void) {
     }
 
 
+    board_configure_supply_controller();
+
     /* ------------------------------------------------------------------------
      * Set up the PLLs
      */
 
     initialize_dpll();
-    
+
 
     /* ------------------------------------------------------------------------
      * Set up the peripheral clocks
@@ -317,9 +354,6 @@ void board_initialize(void) {
     }
 
     MCLK->CPUDIV.reg = MCLK_CPUDIV_DIV_DIV1;
-
-    /* Use the LDO regulator by default */
-    SUPC->VREG.bit.SEL = 0;
 
     /* If desired, enable cache! */
 #if defined(ENABLE_CACHE)
