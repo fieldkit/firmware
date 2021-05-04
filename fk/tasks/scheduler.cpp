@@ -65,6 +65,10 @@ void task_handler_scheduler(void *params) {
         FK_ASSERT(fk_start_task_if_necessary(&gps_task));
 #endif
     }
+    else {
+        get_board()->disable_gps();
+        get_board()->disable_wifi();
+    }
 
     while (!fk_task_stop_requested()) {
         auto schedules = get_config_schedules();

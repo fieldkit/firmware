@@ -121,10 +121,12 @@ void StartupWorker::run(Pool &pool) {
     ModuleRegistry registry;
     registry.initialize();
 
-    mm->enable_all_modules();
+    if (!low_power_startup) {
+        mm->enable_all_modules();
 
-    ReadingsWorker readings_worker{ true, true, true };
-    readings_worker.run(pool);
+        ReadingsWorker readings_worker{ true, true, true };
+        readings_worker.run(pool);
+    }
 
     FK_ASSERT(os_task_start(&scheduler_task) == OSS_SUCCESS);
 }
