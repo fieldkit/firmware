@@ -156,6 +156,10 @@ void setup() {
     SEGGER_RTT_WriteString(0, "\n");
     single_threaded_setup();
     fk_live_tests();
+    while (true) {
+        fk_delay(500);
+        loginfo("tick");
+    }
     run_tasks();
 }
 
