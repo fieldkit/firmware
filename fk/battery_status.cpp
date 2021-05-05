@@ -9,6 +9,8 @@ FK_DECLARE_LOGGER("battery");
 void BatteryStatus::refresh() {
     auto lock = get_modmux()->lock();
     auto gs = get_global_state_rw();
+
+    logdebug("taking battery reading");
     auto power = get_battery_gauge()->get();
 
     // Bradley gave me this.

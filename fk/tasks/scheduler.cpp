@@ -158,8 +158,11 @@ void task_handler_scheduler(void *params) {
             }
 
             if (check_battery_timer.expired(ThirtySecondsMs)) {
+                auto started = fk_uptime();
+                loginfo("refreshing battery");
                 BatteryStatus battery;
                 battery.refresh();
+                loginfo("refreshing battery (%" PRIu32 "ms)", fk_uptime() - started);
             }
 
             if (false && check_module_power_timer.expired(FiveSecondsMs)) {

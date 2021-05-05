@@ -320,7 +320,7 @@ void MetalModMux::irq() {
         change_ = { fk_uptime() };
 
         if (!get_ipc()->enqueue_activity(&change_)) {
-            logerror("ipc error (activity)");
+            logerror("ipc error (topology, activity)");
         }
     }
 }
