@@ -75,8 +75,6 @@ bool DeepSleep::try_deep_sleep(lwcron::Scheduler &scheduler) {
                 break;
             }
 
-            fk_log_debugging("deep-sleep");
-
             // Sleep!
             // This can return early for a few reasons:
             // 1) We're unable to sleep, in which case this will
