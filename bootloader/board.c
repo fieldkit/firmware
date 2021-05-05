@@ -16,6 +16,7 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
+#include <hal_gpio.h>
 #include <sam.h>
 #include <variant.h>
 #include "bl.h"
@@ -101,7 +102,12 @@ void initialize_dpll() {
     while (OSCCTRL->Dpll[1].DPLLSTATUS.bit.CLKRDY == 0 || OSCCTRL->Dpll[1].DPLLSTATUS.bit.LOCK == 0);
 }
 
+#define FK_PIN_EEPROM_LOCK GPIO(GPIO_PORTB, 1)
+
 void board_configure_supply_controller() {
+    gpio_set_pin_direction(FK_PIN_EEPROM_LOCK, GPIO_DIRECTION_OUT);
+    gpio_set_pin_level(FK_PIN_EEPROM_LOCK, 0);
+
     SUPC->BOD33.bit.ENABLE = 0;
 
     while (!SUPC->STATUS.bit.B33SRDY) {
@@ -118,8 +124,11 @@ void board_configure_supply_controller() {
     uint32_t waiting = 0u;
 
     while (SUPC->STATUS.bit.BOD33DET) {
+        gpio_set_pin_level(FK_PIN_EEPROM_LOCK, 1);
         waiting++;
     }
+
+    gpio_set_pin_level(FK_PIN_EEPROM_LOCK, 0);
 
     SUPC->BOD33.bit.ENABLE = 0;
     while (!SUPC->STATUS.bit.B33SRDY) {
