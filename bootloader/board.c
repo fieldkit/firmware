@@ -114,7 +114,7 @@ void board_configure_supply_controller() {
     }
 
     SUPC->BOD33.reg = SUPC_BOD33_LEVEL(250) |
-        SUPC_BOD33_HYST(5) |
+        SUPC_BOD33_HYST(3) |
         SUPC_BOD33_ACTION_NONE;
 
     SUPC->BOD33.bit.ENABLE = 1;
