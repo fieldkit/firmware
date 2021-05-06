@@ -220,6 +220,8 @@ void board_minimal_initialize(void) {
 
 void board_initialize(void) {
 #if defined(__SAMD51__)
+    board_configure_supply_controller();
+
     NVMCTRL->CTRLA.reg |= NVMCTRL_CTRLA_RWS(0);
 
 #ifndef CRYSTALLESS
@@ -310,9 +312,6 @@ void board_initialize(void) {
     while (GCLK->SYNCBUSY.bit.GENCTRL5) {
         /* Wait for synchronization */
     }
-
-
-    board_configure_supply_controller();
 
     /* ------------------------------------------------------------------------
      * Set up the PLLs

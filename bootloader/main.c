@@ -143,16 +143,16 @@ int32_t bl_firmware_upgrade_failed() {
 }
 
 int32_t main() {
+    board_initialize();
+
+    SysTick_Config(F_CPU / 1000);
+
     memory_initialize();
 
     SEGGER_RTT_Init();
 
     fkb_external_println(RTT_CTRL_RESET "");
     fkb_external_println("bl: starting!");
-
-    board_initialize();
-
-    SysTick_Config(F_CPU / 1000);
 
     uint32_t sn[4];
     serial_number_get(sn);
