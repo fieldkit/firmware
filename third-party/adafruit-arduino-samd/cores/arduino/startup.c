@@ -52,6 +52,9 @@
 #define GENERIC_CLOCK_MULTIPLEXER_DFLL48M (0u)
 
 void board_configure_supply_controller() {
+    /* Use the LDO regulator by default */
+    SUPC->VREG.bit.SEL = 0;
+
     SUPC->BOD33.bit.ENABLE = 0;
 
     while (!SUPC->STATUS.bit.B33SRDY) {
@@ -86,9 +89,6 @@ void board_configure_supply_controller() {
     SUPC->BOD33.bit.ENABLE = 1;
     while (!SUPC->STATUS.bit.B33SRDY) {
     }
-
-    /* Use the LDO regulator by default */
-    SUPC->VREG.bit.SEL = 0;
 }
 
 void SystemInit( void )

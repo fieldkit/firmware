@@ -108,6 +108,9 @@ void board_configure_supply_controller() {
     gpio_set_pin_direction(FK_PIN_EEPROM_LOCK, GPIO_DIRECTION_OUT);
     gpio_set_pin_level(FK_PIN_EEPROM_LOCK, 0);
 
+    /* Use the LDO regulator by default */
+    SUPC->VREG.bit.SEL = 0;
+
     SUPC->BOD33.bit.ENABLE = 0;
 
     while (!SUPC->STATUS.bit.B33SRDY) {
@@ -139,9 +142,6 @@ void board_configure_supply_controller() {
     SUPC->BOD33.bit.ENABLE = 1;
     while (!SUPC->STATUS.bit.B33SRDY) {
     }
-
-    /* Use the LDO regulator by default */
-    SUPC->VREG.bit.SEL = 0;
 }
 
 void board_minimal_initialize(void) {
