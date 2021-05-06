@@ -21,6 +21,13 @@ static NullDisplay u8g2_display;
 
 static Display *picked = nullptr;
 
+Display *get_active_display() {
+    if (picked == nullptr) {
+        return &null_display;
+    }
+    return picked;
+}
+
 Display *get_display() {
     if (picked == nullptr) {
         if (u8g2_display.begin()) {

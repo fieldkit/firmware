@@ -75,7 +75,13 @@ void board_configure_supply_controller() {
     while (!SUPC->STATUS.bit.B33SRDY) {
     }
 
-    SUPC->BOD33.reg |= SUPC_BOD33_ACTION_RESET;
+    NVIC_SetPriority(SUPC_1_IRQn, 0x2);
+
+    NVIC_EnableIRQ(SUPC_1_IRQn);
+
+    SUPC->INTENSET.reg = SUPC_INTENSET_BOD33DET;
+
+    SUPC->BOD33.reg |= SUPC_BOD33_ACTION_INT;
 
     SUPC->BOD33.bit.ENABLE = 1;
     while (!SUPC->STATUS.bit.B33SRDY) {

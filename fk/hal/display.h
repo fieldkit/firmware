@@ -249,6 +249,12 @@ public:
 
 };
 
+
+/**
+ * This gets a pointer to the display if one is available.
+ */
+Display *get_active_display();
+
 Display *get_display();
 
 }
