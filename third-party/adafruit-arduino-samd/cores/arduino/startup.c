@@ -57,8 +57,8 @@ void board_configure_supply_controller() {
     while (!SUPC->STATUS.bit.B33SRDY) {
     }
 
-    SUPC->BOD33.reg = SUPC_BOD33_LEVEL(250) |
-        SUPC_BOD33_HYST(3) |
+    SUPC->BOD33.reg = SUPC_BOD33_LEVEL(255) |
+        SUPC_BOD33_HYST(0) |
         SUPC_BOD33_ACTION_NONE;
 
     SUPC->BOD33.bit.ENABLE = 1;
