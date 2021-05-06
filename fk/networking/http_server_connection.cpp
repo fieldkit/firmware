@@ -17,12 +17,12 @@ HttpServerConnection::HttpServerConnection(Pool *pool, NetworkConnection *conn, 
 HttpServerConnection::~HttpServerConnection() {
 }
 
-int32_t HttpServerConnection::plain(int32_t status, const char *status_description, const char *text) {
+int32_t HttpServerConnection::plain(HttpStatus status, const char *status_description, const char *text) {
     loginfo("[%" PRIu32 "] sending %" PRId32 " '%s'", number_, status, text);
 
     auto length = strlen(text);
 
-    bytes_tx_ += conn_->writef("HTTP/1.1 %" PRId32 " %s\n", status, status_description);
+    bytes_tx_ += conn_->writef("HTTP/1.1 %" PRId32 " %s\n", (int32_t)status, status_description);
     bytes_tx_ += conn_->writef("Fk-Connection: #%" PRIu32 "\n", number_);
     bytes_tx_ += conn_->writef("Content-Length: %zu\n", length);
     bytes_tx_ += conn_->write("Content-Type: text/plain\n");
@@ -51,7 +51,7 @@ int32_t HttpServerConnection::read(uint8_t *buffer, size_t size) {
 }
 
 int32_t HttpServerConnection::fault() {
-    return plain(500, "internal error", "internal error");
+    return plain(HttpStatus::ServerError, "internal error", "internal error");
 }
 
 int32_t HttpServerConnection::busy(uint32_t delay, const char *message) {
@@ -81,10 +81,10 @@ int32_t HttpServerConnection::busy(uint32_t delay, const char *message) {
 
     logwarn("[%" PRIu32 "] busy reply '%s'", number_, message);
 
-    return write(503, message, &reply, fk_app_HttpReply_fields);
+    return write(HttpStatus::Busy, message, &reply, fk_app_HttpReply_fields);
 }
 
-int32_t HttpServerConnection::error(int32_t status, const char *message) {
+int32_t HttpServerConnection::error(HttpStatus status, const char *message) {
     fk_app_Error errors[] = {
         {
             .message = {
@@ -114,10 +114,10 @@ int32_t HttpServerConnection::error(int32_t status, const char *message) {
 }
 
 int32_t HttpServerConnection::write(fk_app_HttpReply const *reply) {
-    return write(200, "OK", reply, fk_app_HttpReply_fields);
+    return write(HttpStatus::Ok, "OK", reply, fk_app_HttpReply_fields);
 }
 
-int32_t HttpServerConnection::write(int32_t status_code, const char *status_message, void const *record, pb_msgdesc_t const *fields) {
+int32_t HttpServerConnection::write(HttpStatus status, const char *status_message, void const *record, pb_msgdesc_t const *fields) {
     auto started = fk_uptime();
 
     size_t size = 0;
@@ -131,7 +131,7 @@ int32_t HttpServerConnection::write(int32_t status_code, const char *status_mess
 
     logdebug("[%" PRIu32 "] replying (%zd bytes)", number_, content_size);
 
-    bytes_tx_ += conn_->writef("HTTP/1.1 %" PRId32 " %s\n", status_code, status_message);
+    bytes_tx_ += conn_->writef("HTTP/1.1 %" PRId32 " %s\n", (int32_t)status, status_message);
     bytes_tx_ += conn_->writef("Fk-Connection: #%" PRIu32 "\n", number_);
     bytes_tx_ += conn_->writef("Content-Length: %zu\n", content_size);
     bytes_tx_ += conn_->writef("Content-Type: %s\n", "application/octet-stream");
@@ -233,9 +233,8 @@ bool HttpServerConnection::service() {
                 auto path = req_.url_parser().path();
                 if (path == nullptr) {
                     auto gs = get_global_state_ro();
-                    plain(200, "ok", pool_->sprintf("Hello! I am a FieldKit station. My name is %s.\nFirmware: %s (#%" PRIu32 ")\n",
-                                                    gs.get()->general.name,
-                                                    fkb_header.firmware.version, fkb_header.firmware.number));
+                    plain(HttpStatus::Ok, "ok", pool_->sprintf("Hello! I am a FieldKit station. My name is %s.\nFirmware: %s (#%" PRIu32 ")\n",
+                          gs.get()->general.name, fkb_header.firmware.version, fkb_header.firmware.number));
                     return true;
                 }
 
@@ -244,11 +243,11 @@ bool HttpServerConnection::service() {
 
                 auto handler = router_->route(path);
                 if (handler == nullptr) {
-                    plain(404, "not found", "404: not found, no handler");
+                    plain(HttpStatus::NotFound, "not found", "404: not found, no handler");
                 }
                 else {
                     if (!handler->handle(this, *pool_)) {
-                        plain(500, "internal error", "500: internal error");
+                        plain(HttpStatus::ServerError, "internal error", "500: internal error");
                     }
                 }
                 routed_ = true;

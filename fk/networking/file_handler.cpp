@@ -30,7 +30,7 @@ void DownloadFileWorker::run(Pool &pool) {
     auto is_head = connection_->is_head_method();
     auto path = connection_->find_query_param("p", pool);
     if (path == nullptr) {
-        connection_->plain(400, "path required", "path required");
+        connection_->plain(HttpStatus::BadRequest, "path required", "path required");
         return;
     }
 
@@ -39,7 +39,7 @@ void DownloadFileWorker::run(Pool &pool) {
     auto sd = get_sd_card();
     auto file = sd->open(path, OpenFlags::Read, pool);
     if (file == nullptr || !file->is_open()) {
-        connection_->plain(404, "not found", "not found");
+        connection_->plain(HttpStatus::NotFound, "not found", "not found");
         return;
     }
 

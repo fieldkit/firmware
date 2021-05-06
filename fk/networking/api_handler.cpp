@@ -65,7 +65,7 @@ void ApiHandler::adjust_location_if_necessary(fk_app_HttpQuery const *query) {
 
 bool ApiHandler::handle(HttpServerConnection *connection, Pool &pool) {
     if (connection->length() == 0) {
-        connection->error(500, "invalid query");
+        connection->error(HttpStatus::BadRequest, "invalid query");
         return true;
     }
 
@@ -85,7 +85,7 @@ bool ApiHandler::handle(HttpServerConnection *connection, Pool &pool) {
     if (!pb_decode_delimited(&stream, fk_app_HttpQuery_fields, query)) {
         fk_dump_memory("NOPARSE ", ptr, 256);
         logwarn("error parsing query (%" PRIu32 ")", connection->length());
-        connection->error(500, "error parsing query");
+        connection->error(HttpStatus::BadRequest, "error parsing query");
         return true;
     }
 
@@ -143,7 +143,7 @@ bool ApiHandler::handle(HttpServerConnection *connection, Pool &pool) {
     }
     }
 
-    connection->error(500, "unknown query type");
+    connection->error(HttpStatus::BadRequest, "unknown query type");
 
     return true;
 }
@@ -406,7 +406,7 @@ static bool send_files(HttpServerConnection *connection, fk_app_HttpQuery *query
     auto sd = get_sd_card();
     if (!sd->begin()) {
         logwarn("error opening sd");
-        connection->error(500, "error opening sd");
+        connection->error(HttpStatus::ServerError, "error opening sd");
         return true;
     }
 
@@ -419,7 +419,7 @@ static bool send_files(HttpServerConnection *connection, fk_app_HttpQuery *query
 
     if (!sd->ls(path, query->directory.page, &entries, number_entries, total_entries, pool)) {
         logwarn("error listing sd");
-        connection->error(500, "error listing sd");
+        connection->error(HttpStatus::ServerError, "error listing sd");
         return true;
     }
 

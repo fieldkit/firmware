@@ -14,7 +14,7 @@ bool AtlasApi::handle(ModuleContext mc, HttpServerConnection *connection, Pool &
     AtlasApiReply reply{ pool };
 
     if (connection->length() == 0) {
-        connection->error(500, "invalid query");
+        connection->error(HttpStatus::ServerError, "invalid query");
         return true;
     }
 
@@ -23,7 +23,7 @@ bool AtlasApi::handle(ModuleContext mc, HttpServerConnection *connection, Pool &
     if (!pb_decode_delimited(&stream, fk_atlas_WireAtlasQuery_fields, query)) {
         logwarn("error parsing query (%" PRIu32 ")", connection->length());
         reply.error("error parsing query");
-        return true;
+        return send_reply(HttpStatus::BadRequest, connection, pool, reply);
     }
 
     loginfo("operation (%d)", query->calibration.operation);
@@ -48,15 +48,15 @@ bool AtlasApi::handle(ModuleContext mc, HttpServerConnection *connection, Pool &
     }
     }
 
-    return send_reply(connection, pool, reply);
+    return send_reply(HttpStatus::Ok, connection, pool, reply);
 }
 
-bool AtlasApi::send_reply(HttpServerConnection *connection, Pool &pool, AtlasApiReply &reply) {
+bool AtlasApi::send_reply(HttpStatus status_code, HttpServerConnection *connection, Pool &pool, AtlasApiReply &reply) {
     if (reply.has_errors()) {
-        connection->write(500, "error", reply.reply(), fk_atlas_WireAtlasReply_fields);
+        connection->write(status_code, "error", reply.reply(), fk_atlas_WireAtlasReply_fields);
     }
     else {
-        connection->write(200, "ok", reply.reply(), fk_atlas_WireAtlasReply_fields);
+        connection->write(status_code, "ok", reply.reply(), fk_atlas_WireAtlasReply_fields);
     }
 
     connection->close();
