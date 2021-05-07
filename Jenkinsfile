@@ -66,6 +66,8 @@ timestamps {
 
 			def branch = getBranch(scmInfo)
 
+			notifyStarted()
+
 			stage ('build') {
 				sh "env"
 
