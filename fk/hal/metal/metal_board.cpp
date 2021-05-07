@@ -123,9 +123,17 @@ void Board::enable_lora() {
 void Board::disable_wifi() {
     digitalWrite(WINC1500_POWER, LOW);
     SPI1.end();
+
+    pinMode(WINC1500_CS, INPUT_PULLUP);
+    pinMode(WINC1500_IRQ, INPUT_PULLUP);
+    pinMode(WINC1500_RESET, INPUT_PULLUP);
 }
 
 void Board::enable_wifi() {
+    pinMode(WINC1500_CS, OUTPUT);
+    pinMode(WINC1500_IRQ, INPUT);
+    pinMode(WINC1500_RESET, OUTPUT);
+
     digitalWrite(WINC1500_POWER, HIGH);
     SPI1.begin();
 }
