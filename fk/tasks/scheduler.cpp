@@ -85,8 +85,6 @@ void task_handler_scheduler(void *params) {
         lwcron::Scheduler scheduler{ tasks };
         Topology topology;
 
-        loginfo("module service interval: %" PRIu32 "s", schedules.service_interval);
-
         scheduler.begin(get_clock_now());
 
         IntervalTimer check_for_tasks_timer;
@@ -94,10 +92,6 @@ void task_handler_scheduler(void *params) {
         IntervalTimer check_battery_timer;
         IntervalTimer check_module_power_timer;
         IntervalTimer enable_allow_deep_sleep_timer;
-        IntervalTimer eta_debug_timer;
-        #if defined(FK_ENABLE_NETWORK_UP_AND_DOWN)
-        IntervalTimer debug_enable_network_timer;
-        #endif
 
         auto has_workers = true;
 
@@ -146,12 +140,9 @@ void task_handler_scheduler(void *params) {
 
             auto now_has_workers = get_ipc()->has_any_running_worker();
             if (has_workers && !now_has_workers) {
-                has_workers = now_has_workers;
-
-                loginfo("deep sleep: no workers, trying");
-
                 DeepSleep deep_sleep;
                 deep_sleep.try_deep_sleep(scheduler);
+                has_workers = now_has_workers;
             }
             else if (!has_workers && now_has_workers) {
                 has_workers = now_has_workers;
@@ -197,18 +188,6 @@ void task_handler_scheduler(void *params) {
                     }
                 }
             }
-
-            if (eta_debug_timer.expired(FiveSecondsMs)) {
-                update_task_upcoming(readings_job);
-            }
-
-            #if defined(FK_ENABLE_NETWORK_UP_AND_DOWN)
-            if (debug_enable_network_timer.expired(ThirtySecondsMs)) {
-                if (!os_task_is_running(&network_task)) {
-                    FK_ASSERT(fk_start_task_if_necessary(&network_task));
-                }
-            }
-            #endif
         }
     }
 

@@ -83,7 +83,6 @@ bool DeepSleep::try_deep_sleep(lwcron::Scheduler &scheduler) {
             // also return 0. So we basically gotta just bail out of
             // here in either case.
             if (deep_sleep() < MinimumAcceptableDeepSleepMs) {
-                loginfo("bailing");
                 break;
             }
         }
