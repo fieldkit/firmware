@@ -143,16 +143,16 @@ int32_t bl_firmware_upgrade_failed() {
 }
 
 int32_t main() {
-    board_initialize();
-
-    SysTick_Config(F_CPU / 1000);
-
-    memory_initialize();
-
     SEGGER_RTT_Init();
 
     fkb_external_println(RTT_CTRL_RESET "");
     fkb_external_println("bl: starting!");
+
+    SysTick_Config(F_CPU / 1000);
+
+    board_initialize();
+
+    memory_initialize();
 
     uint32_t sn[4];
     serial_number_get(sn);
@@ -208,16 +208,10 @@ int32_t main() {
         bl_fkb_log_header(running);
     }
 
-    launch();
+    // launch();
 
     /* If we're here then no launching occurred! */
     fkb_external_println("bl: delay before trying again.");
-
-    while (millis() < 60 * 1000 * 2) {
-        delay(1000);
-    }
-
-    fkb_external_println("bl: hup!");
 
     delay(1000);
 

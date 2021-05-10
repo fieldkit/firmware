@@ -51,11 +51,14 @@ const uint8_t power_pins[] = {
 
 bool Board::initialize() {
     pinMode(WINC1500_POWER, OUTPUT);
+    digitalWrite(WINC1500_POWER, LOW);
+
     pinMode(WINC1500_CS, OUTPUT);
     pinMode(WINC1500_IRQ, INPUT);
     pinMode(WINC1500_RESET, OUTPUT);
 
     pinMode(GPS_POWER, OUTPUT);
+    digitalWrite(GPS_POWER, LOW);
 
     pinMode(LORA_POWER, OUTPUT);
     digitalWrite(LORA_POWER, LOW);
@@ -74,7 +77,7 @@ bool Board::initialize() {
     digitalWrite(MODULE_EEPROM_LOCK, LOW);
 
     pinMode(MODULE_SOLO_ENABLE, OUTPUT);
-    digitalWrite(MODULE_SOLO_ENABLE, HIGH);
+    digitalWrite(MODULE_SOLO_ENABLE, HIGH); // TODO
 
     disable_everything();
 
