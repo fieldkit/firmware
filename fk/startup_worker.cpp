@@ -65,9 +65,6 @@ void StartupWorker::run(Pool &pool) {
         return;
     }
 
-    loginfo("check for low power startup");
-    auto low_power_startup = check_for_low_power_startup(pool);
-
     // Pretty safe to do this early on as this thing is also clocking
     // the CPU we're running on. :)
     auto clock = get_clock();
@@ -75,18 +72,22 @@ void StartupWorker::run(Pool &pool) {
         logerror("rtc error");
     }
 
-    if (!low_power_startup) {
+    // Ensure we initialize the battery gauge before refreshing, since
+    // we're booting. BatteryChecker assumes the gauge is ready to go.
+    loginfo("check for low power startup");
+    BatteryChecker battery_checker;
+    battery_checker.refresh(true);
+
+    if (!battery_checker.low_power()) {
         display->company_logo();
     }
-
-    loginfo("ready hardware");
-    auto mm = get_modmux();
 
     // NOTE Power cycle modules, this gives us a fresh start. Some times behave
     // funny, specifically temperature. Without this the first attempt down
     // below during the scan fails fails.
     // I tried moving the enable all to after the storage read and ran into the
     // same issue. After the self check seems ok, though?
+    auto mm = get_modmux();
     mm->disable_all_modules();
     // Lock, just during startup.
     auto lock = mm->lock();
@@ -101,16 +102,16 @@ void StartupWorker::run(Pool &pool) {
     SelfCheck self_check(display, get_network(), mm, get_module_leds());
     self_check.check(SelfCheckSettings::defaults(), noop_callbacks, &pool);
 
-    loginfo("prime global state");
-
     FK_ASSERT(fk_log_diagnostics());
+
+    loginfo("prime state");
 
     GlobalStateManager gsm;
     FK_ASSERT(gsm.initialize(pool));
 
     FK_ASSERT(check_for_lora(pool));
 
-    loginfo("loading/creating state");
+    loginfo("loading state");
 
     FK_ASSERT(load_or_create_state(pool));
 
@@ -121,7 +122,7 @@ void StartupWorker::run(Pool &pool) {
     ModuleRegistry registry;
     registry.initialize();
 
-    if (!low_power_startup) {
+    if (!battery_checker.low_power()) {
         mm->enable_all_modules();
 
         ReadingsWorker readings_worker{ true, true, true };
@@ -566,29 +567,6 @@ bool StartupWorker::check_for_interactive_startup(Pool &pool) {
     }
 
     return enable_debug_mode;
-}
-
-bool StartupWorker::check_for_low_power_startup(Pool &pool) {
-    auto gauge = get_battery_gauge();
-    if (!gauge->begin()) {
-        logwarn("battery: unavailable");
-        return false;
-    }
-
-    BatteryStatus battery;
-    battery.refresh();
-
-    if (!battery.have_charge()) {
-        logwarn("battery: unavailable");
-        return false;
-    }
-
-    if (!battery.low_battery()) {
-        return false;
-    }
-
-    loginfo("battery-charge (low)");
-    return true;
 }
 
 static void copy_cron_spec_from_pb(const char *name, Schedule &cs, fk_data_JobSchedule &pb, Pool &pool) {

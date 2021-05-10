@@ -37,7 +37,6 @@ protected:
 private:
     struct ThrottleAndPowerSave {
         bool throttle;
-        bool power_save;
     };
 
     ThrottleAndPowerSave read_throttle_and_power_save();

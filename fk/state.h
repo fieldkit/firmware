@@ -85,17 +85,40 @@ struct ModulesState {
     }
 };
 
+enum class BatteryStatus {
+    Unknown,
+    Good,
+    External,
+    Low,
+    Dangerous
+};
+
+inline bool battery_status_is_low_power(BatteryStatus status) {
+    return status == BatteryStatus::Dangerous || status == BatteryStatus::Low;
+}
+
+inline const char *battery_status_to_string(BatteryStatus status) {
+    switch (status) {
+    case BatteryStatus::Unknown: return "unknown";
+    case BatteryStatus::Good: return "good";
+    case BatteryStatus::External: return "external";
+    case BatteryStatus::Low: return "low";
+    case BatteryStatus::Dangerous: return "dangerous";
+    default: return "unknown";
+    }
+}
+
 struct RuntimeState {
     uint32_t startup_time{ 0 };
     uint32_t readings{ 0 };
-    bool power_save{ false };
 };
 
 struct PowerState {
-    float charge{ 0 };
-    bool low_battery{ false };
     MeterReading battery{ };
     MeterReading solar{ };
+    BatteryStatus battery_status{ BatteryStatus::Unknown };
+    bool allow_deep_sleep{ false };
+    float charge{ 0 };
 };
 
 struct WifiNetworkInfo {
