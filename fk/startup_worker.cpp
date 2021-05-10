@@ -97,23 +97,17 @@ void StartupWorker::run(Pool &pool) {
     // them further on as these are for dire circumstances.
     save_captured_logs(false);
 
-    // Run self-check.
-    NoopSelfCheckCallbacks noop_callbacks;
-    SelfCheck self_check(display, get_network(), mm, get_module_leds());
-    self_check.check(SelfCheckSettings::defaults(), noop_callbacks, &pool);
-
-    FK_ASSERT(fk_log_diagnostics());
-
-    loginfo("prime state");
+    fk_log_diagnostics();
 
     GlobalStateManager gsm;
-    FK_ASSERT(gsm.initialize(pool));
+    gsm.initialize(pool);
 
-    FK_ASSERT(check_for_lora(pool));
-
-    loginfo("loading state");
-
-    FK_ASSERT(load_or_create_state(pool));
+    auto memory = MemoryFactory::get_data_memory();
+    if (memory->begin()) {
+        if (!load_or_create_state(pool)) {
+            logerror("load or create state");
+        }
+    }
 
     // Now write saved logs and free them. These will end up in the
     // named folder.
@@ -123,16 +117,26 @@ void StartupWorker::run(Pool &pool) {
     registry.initialize();
 
     if (!battery_checker.low_power()) {
+        // Run self-check.
+        NoopSelfCheckCallbacks noop_callbacks;
+        SelfCheck self_check(display, get_network(), mm, get_module_leds());
+        self_check.check(SelfCheckSettings::defaults(), noop_callbacks, &pool);
+
         mm->enable_all_modules();
 
         ReadingsWorker readings_worker{ true, true, true };
         readings_worker.run(pool);
     }
 
+    // TODO Move this.
+    check_for_lora(pool);
+
     FK_ASSERT(os_task_start(&scheduler_task) == OSS_SUCCESS);
 }
 
 bool StartupWorker::load_or_create_state(Pool &pool) {
+    loginfo("loading state");
+
     auto gs = get_global_state_rw();
 
     Storage storage{ MemoryFactory::get_data_memory(), pool, false };
