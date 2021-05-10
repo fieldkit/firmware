@@ -20,6 +20,7 @@ bool Ads1219::begin() {
 
 bool Ads1219::configure(Ads1219VoltageReference vref, Ads1219Channel channel) {
     config_ = (uint8_t)vref | (uint8_t)channel;
+    logdebug("config=0x%x", config_);
     return I2C_CHECK(bus_.write_register_u8(address_, ADS1219_CONFIG_REGISTER_ADDRESS, config_));
 }
 
@@ -32,7 +33,11 @@ bool Ads1219::read(int32_t &value) {
         return false;
     }
 
-    return read_conversion(value);
+    if (!read_conversion(value)) {
+        return false;
+    }
+
+    return true;
 }
 
 bool Ads1219::read_conversion(int32_t &value) {
@@ -42,11 +47,15 @@ bool Ads1219::read_conversion(int32_t &value) {
         return false;
     }
 
-    value  = data[0];
+    // data[0] = 0x9c;
+    // data[1] = 0x7e;
+    // data[2] = 0x00;
+
+    value  = ((int32_t)data[0]) & 0xff;
     value <<= 8;
-    value |= data[1];
+    value |= ((int32_t)data[1]) & 0xff;
     value <<= 8;
-    value |= data[2];
+    value |= ((int32_t)data[2]) & 0xff;
     value <<= 8;
     value >>= 8;
 

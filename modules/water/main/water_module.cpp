@@ -103,12 +103,12 @@ bool WaterModule::load_configuration(ModuleContext mc, Pool &pool) {
     auto buffer = (uint8_t *)pool.malloc(MaximumConfigurationSize);
     bzero(buffer, MaximumConfigurationSize);
     if (!eeprom.read_configuration(buffer, size, MaximumConfigurationSize)) {
-        logwarn("error reading configuration");
+        logwarn("mod-cfg: reading");
     } else if (size > 0) {
         auto cfg = fk_module_configuration_decoding_new(pool_);
         auto stream = pb_istream_from_buffer(buffer, size);
         if (!pb_decode_delimited(&stream, fk_data_ModuleConfiguration_fields, cfg)) {
-            logerror("mod-cfg: error decoding ");
+            logerror("mod-cfg: decoding ");
             return false;
         }
         else {
@@ -124,7 +124,7 @@ bool WaterModule::load_configuration(ModuleContext mc, Pool &pool) {
 ModuleReturn WaterModule::api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
     WaterApi api;
     if (!api.handle(mc, connection, pool)) {
-        logerror("error handling api (ms::fatal)");
+        logerror("api (ms::fatal)");
         return { ModuleStatus::Fatal };
     }
 
@@ -159,7 +159,6 @@ ModuleConfiguration const WaterModule::get_configuration(Pool &pool) {
 
 ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
     auto mr = new(pool) NModuleReadings<1>();
-    auto nreadings = 0u;
 
     auto &bus = mc.module_bus();
 
@@ -168,7 +167,7 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
     Ads1219 ads{ bus, FK_ADS1219_ADDRESS, &ready_checker };
 
     if (!ads.configure(Ads1219VoltageReference::External, Ads1219Channel::Diff_0_1)) {
-        logerror("ads1219::configure");
+        logerror("configure");
         return nullptr;
     }
 
@@ -198,7 +197,7 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
 
     int32_t value = 0;
     if (!ads.read(value)) {
-        logerror("ads1219::read_diff_0_1");
+        logerror("read");
         return nullptr;
     }
 
@@ -208,13 +207,14 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
         }
     }
 
-    auto reading = ((float)value * 3.3f / 8388608.0f);
-
-    loginfo("water: %f", reading);
-
     auto curve = create_curve(cfg_, pool);
+    auto uncalibrated = ((float)value * 3.3f) / 8388608.0f;
+    auto calibrated = curve->apply(uncalibrated);
 
-    mr->set(nreadings++, ModuleReading{ reading, curve->apply(reading) });
+    loginfo("water: %f (%f)", uncalibrated, calibrated);
+
+    auto nreadings = 0u;
+    mr->set(nreadings++, ModuleReading{ uncalibrated, calibrated });
 
     return mr;
 }
