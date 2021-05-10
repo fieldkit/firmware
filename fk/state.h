@@ -323,7 +323,7 @@ public:
     PhysicalModuleState physical_modules[MaximumNumberOfPhysicalModules]{ };
     SdCardState sd_card{ };
     // TODO Merge these.
-    ModulesState *modules{ };
+    ModulesState *modules{ nullptr };
     ReadingsState readings{ };
     TransmissionState transmission{ };
 
