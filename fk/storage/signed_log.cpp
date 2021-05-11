@@ -178,6 +178,7 @@ tl::expected<AppendedRecord, Error> SignedRecordLog::append_immutable(SignedReco
 
 bool SignedRecordLog::decode(void *record, pb_msgdesc_t const *fields, Pool &pool) {
     auto sr = pool.malloc<fk_data_SignedRecord>();
+    *sr = fk_data_SignedRecord_init_default;
     sr->data.funcs.decode = pb_decode_data;
     sr->data.arg = (void *)&pool;
     sr->data.funcs.decode = pb_decode_data;
