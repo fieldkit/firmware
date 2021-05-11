@@ -5,13 +5,14 @@ namespace fk {
 
 FK_DECLARE_LOGGER("ads1219");
 
-#define ADS1219_COMMAND_RESET               0x06
-#define ADS1219_COMMAND_START               0x08
-#define ADS1219_COMMAND_POWER_DOWN          0x02
-#define ADS1219_COMMAND_READ_DATA           0x10
+#define ADS1219_COMMAND_RESET                  0x06
+#define ADS1219_COMMAND_START                  0x08
+#define ADS1219_COMMAND_POWER_DOWN             0x02
+#define ADS1219_COMMAND_READ_DATA              0x10
 
-#define ADS1219_CONFIG_REGISTER_ADDRESS     0x40
-#define ADS1219_STATUS_REGISTER_ADDRESS     0x24
+#define ADS1219_COMMAND_WRITE_CONFIG_REGISTER  0x40
+#define ADS1219_COMMAND_READ_STATUS_REGISTER   0x24
+#define ADS1219_COMMAND_READ_CONFIG_REGISTER   0x20
 
 Ads1219::Ads1219(TwoWireWrapper &bus, uint8_t address, Ads1219ReadyChecker *ready) : bus_(bus), address_(address), ready_(ready), config_(0) {
 }
@@ -31,19 +32,19 @@ bool Ads1219::configure(Ads1219VoltageReference vref, Ads1219Channel channel) {
     config_ = (uint8_t)vref | (uint8_t)channel;
 
     logdebug("config=0x%x", config_);
-    if (!I2C_CHECK(bus_.write_register_u8(address_, ADS1219_CONFIG_REGISTER_ADDRESS, config_))) {
+    if (!I2C_CHECK(bus_.write_register_u8(address_, ADS1219_COMMAND_WRITE_CONFIG_REGISTER, config_))) {
         return false;
     }
 
     uint8_t config_after = 0;
-    if (!I2C_CHECK(bus_.read_register_u8(address_, 0x20, config_after))) {
+    if (!I2C_CHECK(bus_.read_register_u8(address_, ADS1219_COMMAND_READ_CONFIG_REGISTER, config_after))) {
         return false;
     }
 
     logdebug("config-after=0x%x", config_after);
 
     uint8_t status_after = 0;
-    if (!I2C_CHECK(bus_.read_register_u8(address_, 0x24, status_after))) {
+    if (!I2C_CHECK(bus_.read_register_u8(address_, ADS1219_COMMAND_READ_STATUS_REGISTER, status_after))) {
         return false;
     }
 
@@ -62,7 +63,7 @@ bool Ads1219::read(int32_t &value) {
     }
 
     uint8_t status_after = 0;
-    if (!I2C_CHECK(bus_.read_register_u8(address_, 0x24, status_after))) {
+    if (!I2C_CHECK(bus_.read_register_u8(address_, ADS1219_COMMAND_READ_STATUS_REGISTER, status_after))) {
         return false;
     }
     logdebug("status-before-read=0x%x", status_after);
@@ -96,7 +97,7 @@ bool Ads1219::read_conversion(int32_t &value) {
     logdebug("0x%x 0x%x 0x%x = 0x%x", data[0], data[1], data[2], value);
 
     uint8_t status_after = 0;
-    if (!I2C_CHECK(bus_.read_register_u8(address_, 0x24, status_after))) {
+    if (!I2C_CHECK(bus_.read_register_u8(address_, ADS1219_COMMAND_READ_STATUS_REGISTER, status_after))) {
         return false;
     }
 
