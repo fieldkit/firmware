@@ -98,6 +98,8 @@ static void test_water_module() {
 
     get_board()->i2c_core().begin();
 
+    get_board()->disable_gps();
+
     auto mm = get_modmux();
 
     mm->enable_all_modules();
@@ -157,10 +159,12 @@ static void test_water_module() {
         auto first_pass = true;
 
         while (true) {
+            StandardPool loop_pool{ "water-loop" };
+
             for (auto position : { ModulePosition::from(1), ModulePosition::from(2), ModulePosition::from(3), ModulePosition::from(4) }) {
                 loginfo("position: %d", position.integer());
 
-                auto moduleCtx = ctx.module(position, pool);
+                auto moduleCtx = ctx.module(position, loop_pool);
                 if (!mm->choose(position)) {
                     logerror("choose %d", position.integer());
                     while (true) {
@@ -172,18 +176,17 @@ static void test_water_module() {
                     scan_bus(moduleCtx.module_bus());
                 }
 
-                if (constructed->initialize(moduleCtx, pool)) {
+                if (constructed->initialize(moduleCtx, loop_pool)) {
                     loginfo("ready!");
 
-                    StandardPool readings_pool{ "readings" };
-                    ModuleReadingsCollection all_readings{ readings_pool };
-                    auto readingsCtx = ctx.readings(position, all_readings, pool);
+                    ModuleReadingsCollection all_readings{ loop_pool };
+                    auto readingsCtx = ctx.readings(position, all_readings, loop_pool);
                     if (!readingsCtx.open()) {
                         logerror("[%d] error choosing module", position.integer());
                         continue;
                     }
 
-                    constructed->take_readings(readingsCtx, readings_pool);
+                    constructed->take_readings(readingsCtx, loop_pool);
                 }
             }
 
