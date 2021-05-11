@@ -85,15 +85,13 @@ void task_handler_scheduler(void *params) {
         lwcron::Scheduler scheduler{ tasks };
         Topology topology;
 
-        scheduler.begin(get_clock_now());
-
         IntervalTimer check_for_tasks_timer;
         IntervalTimer check_for_modules_timer;
         IntervalTimer check_battery_timer;
         IntervalTimer check_module_power_timer;
         IntervalTimer enable_allow_deep_sleep_timer;
 
-        auto has_workers = true;
+        scheduler.begin(get_clock_now());
 
         while (!has_schedule_changed(schedules) && !fk_task_stop_requested()) {
             // This throttles this loop, so we take a pass when we dequeue or timeout.
@@ -138,14 +136,9 @@ void task_handler_scheduler(void *params) {
                 }
             }
 
-            auto now_has_workers = get_ipc()->has_any_running_worker();
-            if (has_workers && !now_has_workers) {
+            if (!get_ipc()->has_any_running_worker()) {
                 DeepSleep deep_sleep;
                 deep_sleep.try_deep_sleep(scheduler);
-                has_workers = now_has_workers;
-            }
-            else if (!has_workers && now_has_workers) {
-                has_workers = now_has_workers;
             }
 
             if (check_for_modules_timer.expired(OneSecondMs)) {
