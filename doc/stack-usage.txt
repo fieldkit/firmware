@@ -290,8 +290,7 @@ abi.cpp:24:6:void __cxa_pure_virtual() 0
 abi.cpp:31:6:void __cxa_deleted_virtual() 0
 activity.h:17:18:virtual void fk::Activity::consumed() 0
 activity.h:17:18:virtual void fk::Activity::consumed() 0
-ads_1219.cpp:14:1:fk::Ads1219::~Ads1219() 0
-ads_1219.cpp:17:6:bool fk::Ads1219::begin() 0
+ads_1219.cpp:20:1:fk::Ads1219::~Ads1219() 0
 aggregated_weather.cpp:63:11:float fk::AggregatedWeatherHelpers::get_rain_mm_per_hour() 0
 api_handler.cpp:36:6:void fk::ApiHandler::adjust_time_if_necessary(const fk_app_HttpQuery*) 0
 arduino.cpp:24:13:void serial_putchar(char, void*) 0
@@ -315,6 +314,7 @@ base64.cpp:39:1:fk::HexWriter::HexWriter(fk::Writer*) 0
 base64.cpp:5:1:fk::HexReader::HexReader(fk::Reader*) 0
 base64.cpp:8:15:size_t fk::hexchr2bin(uint8_t, uint8_t*) 0
 battery_gauge.cpp:13:15:fk::BatteryGauge* fk::get_battery_gauge() 0
+battery_status.cpp:74:7:static float fk::BatteryChecker::voltage_to_percentange(float) 0
 blake2b.cpp:124:8:size_t BLAKE2b::hashSize() const 0
 blake2b.cpp:129:8:size_t BLAKE2b::blockSize() const 0
 blake2b.cpp:144:6:void BLAKE2b::reset() 0
@@ -940,7 +940,6 @@ http_parser.c:2561:1:http_body_is_final 0
 http_parser.c:2566:1:http_parser_version 0
 http_parser.c:2573:1:http_parser_set_max_header_size 0
 http_server_connection.cpp:39:9:int32_t fk::HttpServerConnection::available() const 0
-http_server_connection.cpp:53:9:int32_t fk::HttpServerConnection::fault() 0
 ina219.cpp:95:1:fk::Ina219::Ina219(fk::TwoWireWrapper&, uint8_t) 0
 io.cpp:105:9:int32_t fk::BufferedReader::skip(size_t) 0
 io.cpp:144:1:fk::Buffer::Buffer(uint8_t*, size_t) 0
@@ -1073,7 +1072,7 @@ main.c:17:10:serial_number_get 0
 main.c:266:6:cm_systick 0
 main.c:270:10:millis 0
 main.c:274:6:delay 0
-main.cpp:163:6:void loop() 0
+main.cpp:161:6:void loop() 0
 main.cpp:25:6:void initVariant() 0
 main.cpp:25:6:void initVariant() 0
 map.c:62:20:meta_set_alt 0
@@ -1103,8 +1102,8 @@ metal_board.cpp:107:6:void fk::Board::disable_gps() 0
 metal_board.cpp:111:6:void fk::Board::enable_gps() 0
 metal_board.cpp:115:6:void fk::Board::disable_lora() 0
 metal_board.cpp:119:6:void fk::Board::enable_lora() 0
-metal_board.cpp:142:6:void fk::Board::release_eeprom() 0
-metal_board.cpp:195:6:void fk::SpiWrapper::begin() 0
+metal_board.cpp:150:6:void fk::Board::release_eeprom() 0
+metal_board.cpp:203:6:void fk::SpiWrapper::begin() 0
 metal_buttons.cpp:57:6:virtual bool fk::MetalButtons::is_debug_pressed() const 0
 metal_buttons.cpp:71:6:void fk::MetalButtons::irq(uint8_t, bool) 0
 metal_ipc.cpp:134:6:virtual bool fk::MetalIPC::remove_worker(fk::TaskWorker*) 0
@@ -2144,9 +2143,9 @@ WiFiUdp.h:81:15:virtual int WiFiUDP::read(char*, size_t) 8
 Wire.cpp:154:8:virtual size_t TwoWire::write(uint8_t) 8
 Wire.cpp:186:5:virtual int TwoWire::read() 8
 Wire.cpp:305:3:cpp) 8
-ads_1219.cpp:14:1:virtual fk::Ads1219::~Ads1219() 8
-ads_1219.cpp:21:6:bool fk::Ads1219::configure(fk::Ads1219VoltageReference, fk::Ads1219Channel) 8
-ads_1219.cpp:58:6:bool fk::Ads1219::start() 8
+ads_1219.cpp:109:6:bool fk::Ads1219::start() 8
+ads_1219.cpp:20:1:virtual fk::Ads1219::~Ads1219() 8
+ads_1219.cpp:23:6:bool fk::Ads1219::begin() 8
 arduino.cpp:55:10:uint32_t osi_platform_delay(uint32_t) 8
 arduino.cpp:66:9:int32_t sysTickHook() 8
 atlas_api_reply.cpp:5:1:fk::AtlasApiReply::AtlasApiReply(fk::Pool&) 8
@@ -2566,7 +2565,7 @@ linux_leds.cpp:5:1:fk::LinuxLeds::LinuxLeds() 8
 linux_leds.h:7:7:fk::LinuxLeds::~LinuxLeds() 8
 linux_leds.h:7:7:virtual fk::LinuxLeds::~LinuxLeds() 8
 linux_sd_card.cpp:44:13:virtual fk::SdCardFile* fk::LinuxSdCard::open(const char*, fk::OpenFlags, fk::Pool&) 8
-live_tests.cpp:226:6:void fk::fk_live_tests() 8
+live_tests.cpp:229:6:void fk::fk_live_tests() 8
 loading.c:18:21:fkb_try_header 8
 log_stream.cpp:47:1:LogStream::~LogStream() 8
 log_stream.cpp:51:12:LogStream& LogStream::flush() 8
@@ -2650,30 +2649,30 @@ metal_battery_gauge.cpp:107:6:void fk::MetalBatteryGauge::irq() 8
 metal_battery_gauge.cpp:16:13:void fk::irq_charge_pulse() 8
 metal_board.cpp:101:6:void fk::Board::enable_everything() 8
 metal_board.cpp:123:6:void fk::Board::disable_wifi() 8
-metal_board.cpp:128:6:void fk::Board::enable_wifi() 8
-metal_board.cpp:133:12:fk::EepromLock fk::Board::lock_eeprom() 8
-metal_board.cpp:155:12:fk::SpiWrapper fk::Board::spi_flash() 8
-metal_board.cpp:159:12:fk::SpiWrapper fk::Board::spi_sd() 8
-metal_board.cpp:163:12:fk::SpiWrapper fk::Board::spi_radio() 8
-metal_board.cpp:167:12:fk::SpiWrapper fk::Board::spi_module() 8
-metal_board.cpp:171:16:fk::TwoWireWrapper fk::Board::i2c_core() 8
-metal_board.cpp:175:16:fk::TwoWireWrapper fk::Board::i2c_radio() 8
-metal_board.cpp:179:16:fk::TwoWireWrapper fk::Board::i2c_module() 8
-metal_board.cpp:183:15:fk::SerialWrapper fk::Board::gps_serial() 8
-metal_board.cpp:187:1:fk::SpiWrapper::SpiWrapper(const char*, void*) 8
-metal_board.cpp:191:1:fk::SpiWrapper::~SpiWrapper() 8
-metal_board.cpp:254:6:void fk::SpiWrapper::end() 8
-metal_board.cpp:317:1:fk::TwoWireWrapper::TwoWireWrapper(const char*, void*) 8
-metal_board.cpp:321:1:fk::TwoWireWrapper::~TwoWireWrapper() 8
-metal_board.cpp:325:6:void fk::TwoWireWrapper::begin() 8
-metal_board.cpp:367:13:void fk::i2c_end(TwoWire*) 8
-metal_board.cpp:384:6:void fk::TwoWireWrapper::end() 8
-metal_board.cpp:466:1:fk::SerialWrapper::SerialWrapper(const char*, void*) 8
-metal_board.cpp:470:1:fk::SerialWrapper::~SerialWrapper() 8
-metal_board.cpp:474:6:bool fk::SerialWrapper::begin(uint32_t) 8
-metal_board.cpp:479:6:bool fk::SerialWrapper::end() 8
-metal_board.cpp:484:9:int32_t fk::SerialWrapper::available() 8
-metal_board.cpp:494:8:int8_t fk::SerialWrapper::read() 8
+metal_board.cpp:132:6:void fk::Board::enable_wifi() 8
+metal_board.cpp:141:12:fk::EepromLock fk::Board::lock_eeprom() 8
+metal_board.cpp:163:12:fk::SpiWrapper fk::Board::spi_flash() 8
+metal_board.cpp:167:12:fk::SpiWrapper fk::Board::spi_sd() 8
+metal_board.cpp:171:12:fk::SpiWrapper fk::Board::spi_radio() 8
+metal_board.cpp:175:12:fk::SpiWrapper fk::Board::spi_module() 8
+metal_board.cpp:179:16:fk::TwoWireWrapper fk::Board::i2c_core() 8
+metal_board.cpp:183:16:fk::TwoWireWrapper fk::Board::i2c_radio() 8
+metal_board.cpp:187:16:fk::TwoWireWrapper fk::Board::i2c_module() 8
+metal_board.cpp:191:15:fk::SerialWrapper fk::Board::gps_serial() 8
+metal_board.cpp:195:1:fk::SpiWrapper::SpiWrapper(const char*, void*) 8
+metal_board.cpp:199:1:fk::SpiWrapper::~SpiWrapper() 8
+metal_board.cpp:262:6:void fk::SpiWrapper::end() 8
+metal_board.cpp:325:1:fk::TwoWireWrapper::TwoWireWrapper(const char*, void*) 8
+metal_board.cpp:329:1:fk::TwoWireWrapper::~TwoWireWrapper() 8
+metal_board.cpp:333:6:void fk::TwoWireWrapper::begin() 8
+metal_board.cpp:375:13:void fk::i2c_end(TwoWire*) 8
+metal_board.cpp:392:6:void fk::TwoWireWrapper::end() 8
+metal_board.cpp:474:1:fk::SerialWrapper::SerialWrapper(const char*, void*) 8
+metal_board.cpp:478:1:fk::SerialWrapper::~SerialWrapper() 8
+metal_board.cpp:482:6:bool fk::SerialWrapper::begin(uint32_t) 8
+metal_board.cpp:487:6:bool fk::SerialWrapper::end() 8
+metal_board.cpp:492:9:int32_t fk::SerialWrapper::available() 8
+metal_board.cpp:502:8:int8_t fk::SerialWrapper::read() 8
 metal_buttons.cpp:14:13:void fk::irq_button_middle() 8
 metal_buttons.cpp:19:13:void fk::irq_button_right() 8
 metal_buttons.cpp:24:13:void fk::irq_button_external() 8
@@ -2945,7 +2944,6 @@ phylum.cpp:9:1:virtual fk::standard_page_working_buffers::~standard_page_working
 platform.cpp:147:1:fk::fk_serial_number_t::fk_serial_number_t() 8
 platform.cpp:194:6:void osi_hard_fault_report(uintptr_t*, uint32_t, cortex_hard_fault_t*) 8
 platform.cpp:52:10:uint32_t fk::fk_uptime() 8
-platform.h:41:5:fk::IntervalTimer::IntervalTimer() 8
 poll_sensors_worker.cpp:6:1:fk::PollSensorsWorker::PollSensorsWorker() 8
 poll_sensors_worker.h:7:7:virtual fk::PollSensorsWorker::~PollSensorsWorker() 8
 pool.cpp:13:7:void* operator new(size_t, fk::Pool&) 8
@@ -2992,8 +2990,6 @@ random_module.cpp:9:1:virtual fk::RandomModule::~RandomModule() 8
 readings.cpp:12:1:fk::Readings::Readings(fk::ModMux*, fk::Pool&) 8
 readings_view.cpp:61:6:virtual void fk::ReadingsView::enter(fk::ViewController*) 8
 readings_worker.h:9:7:virtual fk::ReadingsWorker::~ReadingsWorker() 8
-receive_firmware_handler.cpp:30:6:bool fk::ReceiveFirmwareWorker::write_error(const char*, fk::Pool&) 8
-receive_firmware_handler.cpp:37:6:bool fk::ReceiveFirmwareWorker::write_success(fk::Pool&) 8
 receive_firmware_handler.h:14:7:virtual fk::ReceiveFirmwareWorker::~ReceiveFirmwareWorker() 8
 record_chain.cpp:55:9:virtual int32_t phylum::record_chain::seek_end_of_buffer(phylum::page_lock&) 8
 record_chain.h:7:7:phylum::record_chain::~record_chain() 8
@@ -3098,7 +3094,7 @@ startup_worker.h:10:7:virtual fk::StartupWorker::~StartupWorker() 8
 state.cpp:100:6:void fk::GlobalState::update_meta_stream(const fk::File&) 8
 state.cpp:137:6:void fk::GlobalState::released(uint32_t) const 8
 state.cpp:96:6:void fk::GlobalState::update_data_stream(const fk::File&) 8
-state.h:257:8:fk::Schedule::Schedule() 8
+state.h:282:8:fk::Schedule::Schedule() 8
 state_ref.h:24:13:fk::GlobalStateRef<T>::~GlobalStateRef() [with T = const fk::GlobalState*] 8
 state_ref.h:24:13:fk::GlobalStateRef<T>::~GlobalStateRef() [with T = const fk::GlobalState*] 8
 state_ref.h:24:13:fk::GlobalStateRef<T>::~GlobalStateRef() [with T = const fk::GlobalState*] 8
@@ -3516,8 +3512,6 @@ working_buffers.h:283:13:int32_t phylum::working_buffers::update_highwater() 8
 working_buffers.h:283:13:int32_t phylum::working_buffers::update_highwater() 8
 working_buffers.h:283:13:int32_t phylum::working_buffers::update_highwater() 8
 working_buffers.h:48:13:virtual phylum::working_buffers::~working_buffers() 8
-write_memory_handler.cpp:33:6:bool fk::WriteMemoryWorker::write_error(const char*, fk::Pool&) 8
-write_memory_handler.cpp:40:6:bool fk::WriteMemoryWorker::write_success(fk::Pool&) 8
 write_memory_handler.h:14:7:virtual fk::WriteMemoryWorker::~WriteMemoryWorker() 8
 Adafruit_FlashTransport_QSPI_SAMD.cpp:53:1:Adafruit_FlashTransport_QSPI::Adafruit_FlashTransport_QSPI(int8_t, int8_t, int8_t, int8_t, int8_t, int8_t) 12
 IPAddress.cpp:28:1:IPAddress::IPAddress(uint8_t, uint8_t, uint8_t, uint8_t) 12
@@ -3528,7 +3522,7 @@ SERCOM.cpp:563:6:bool SERCOM::startTransmissionWIRE(uint8_t, SercomWireReadWrite
 SERCOM.cpp:740:6:void SERCOM::initClockNVIC() 12
 WiFi.cpp:242:6:void ping_cb(uint32, uint32, uint8) 12
 WiFiSocket.cpp:407:6:static void WiFiSocketClass::eventCallback(SOCKET, uint8, void*) 12
-ads_1219.cpp:11:1:fk::Ads1219::Ads1219(fk::TwoWireWrapper&, uint8_t, fk::Ads1219ReadyChecker*) 12
+ads_1219.cpp:17:1:fk::Ads1219::Ads1219(fk::TwoWireWrapper&, uint8_t, fk::Ads1219ReadyChecker*) 12
 atlas_protocol.cpp:14:26:fk_atlas_WireAtlasReply* fk::fk_atlas_reply_prepare_encoding(fk_atlas_WireAtlasReply*, fk::Pool*) 12
 blake2b.cpp:166:6:void BLAKE2b::reset(uint8_t) 12
 contexts.cpp:43:1:fk::ReadingsContext::ReadingsContext(fk::ScanningContext&, fk::ModulePosition, fk::ModuleReadingsCollection&, fk::ModulePowerState, fk::Pool&) 12
@@ -3757,7 +3751,6 @@ Wire.cpp:212:6:void TwoWire::onService() 16
 Wire.cpp:37:6:void TwoWire::begin() 16
 Wire.cpp:46:6:void TwoWire::begin(uint8_t, bool) 16
 Wire.cpp:55:6:void TwoWire::setClock(uint32_t) 16
-ads_1219.cpp:26:6:bool fk::Ads1219::read(int32_t&) 16
 aggregated_weather.cpp:118:14:fk::ModuleReturn fk::AggregatedWeather::service(fk::ModuleContext, fk::Pool&) 16
 api_handler.cpp:435:1:cpp) 16
 arduino.cpp:34:10:) 16
@@ -3978,8 +3971,9 @@ hpl_usb.c:1994:9:_usb_d_dev_ep_get_status 16
 http_connection.cpp:64:6:bool fk::HttpConnection::read_headers() 16
 http_parser.c:2225:1:http_parser_init 16
 http_reply.cpp:18:1:fk::HttpReply::HttpReply(fk::Pool&, const fk::GlobalState*) 16
-http_server_connection.cpp:118:9:int32_t fk::HttpServerConnection::write(const fk_app_HttpReply*) 16
+http_server_connection.cpp:118:9:int32_t fk::HttpServerConnection::write(const fk_app_HttpReply*, fk::Pool&) 16
 http_server_connection.cpp:43:9:virtual int32_t fk::HttpServerConnection::read(uint8_t*, size_t) 16
+http_server_connection.cpp:53:9:int32_t fk::HttpServerConnection::fault(fk::Pool&) 16
 idle.cpp:9:6:void fk::task_handler_idle(void*) 16
 ina219.cpp:67:13:bool fk::ina219_write(fk::TwoWireWrapper&, uint8_t, uint8_t, uint16_t) 16
 io.cpp:114:16:fk::BufferedReader fk::BufferedReader::remaining() const 16
@@ -4040,7 +4034,7 @@ m2m_wifi.c:1195:7:m2m_wifi_get_firmware_version 16
 m2m_wifi.c:546:7:m2m_wifi_connect 16
 main.c:127:9:bl_button_pressed 16
 main.c:32:9:bl_upgrade_firmware_necessary 16
-main.cpp:164:1:cpp) 16
+main.cpp:162:1:cpp) 16
 map.c:182:5:dhara_map_find 16
 map.c:308:12:auto_gc 16
 map.c:71:6:dhara_map_init 16
@@ -4068,13 +4062,13 @@ menu_view.cpp:853:13:static fk::MenuOption* fk::MenuView::selected(fk::MenuScree
 menu_view.cpp:887:1:cpp) 16
 meta_record.cpp:40:21:fk_data_DataRecord& fk::MetaRecord::for_decoding(fk::Pool&) 16
 metal_battery_gauge.cpp:117:1:cpp) 16
-metal_board.cpp:146:6:void fk::Board::signal_eeprom(uint8_t) 16
-metal_board.cpp:201:6:bool fk::SpiWrapper::simple_command(uint8_t) 16
-metal_board.cpp:205:6:bool fk::SpiWrapper::complex_command(uint8_t*, uint32_t) 16
-metal_board.cpp:209:6:bool fk::SpiWrapper::read_command(uint8_t, uint8_t*, uint32_t) 16
-metal_board.cpp:213:6:bool fk::SpiWrapper::write_command(uint8_t, uint8_t*, uint32_t) 16
-metal_board.cpp:394:13:bool fk::i2c_recover(uint8_t, uint8_t) 16
-metal_board.cpp:437:9:int32_t fk::TwoWireWrapper::recover() 16
+metal_board.cpp:154:6:void fk::Board::signal_eeprom(uint8_t) 16
+metal_board.cpp:209:6:bool fk::SpiWrapper::simple_command(uint8_t) 16
+metal_board.cpp:213:6:bool fk::SpiWrapper::complex_command(uint8_t*, uint32_t) 16
+metal_board.cpp:217:6:bool fk::SpiWrapper::read_command(uint8_t, uint8_t*, uint32_t) 16
+metal_board.cpp:221:6:bool fk::SpiWrapper::write_command(uint8_t, uint8_t*, uint32_t) 16
+metal_board.cpp:402:13:bool fk::i2c_recover(uint8_t, uint8_t) 16
+metal_board.cpp:445:9:int32_t fk::TwoWireWrapper::recover() 16
 metal_board.cpp:84:6:void fk::Board::disable_everything() 16
 metal_buttons.cpp:75:1:cpp) 16
 metal_gps.cpp:125:1:cpp) 16
@@ -4315,11 +4309,11 @@ spi_flash.cpp:662:6:bool fk::SpiFlash::read_command(uint8_t, uint8_t*, uint32_t)
 spi_flash.cpp:666:6:bool fk::SpiFlash::write_command(uint8_t, uint8_t*, uint32_t) 16
 spi_flash.cpp:82:1:fk::SpiFlash::SpiFlash(uint8_t) 16
 spi_flash.cpp:85:15:fk::FlashGeometry fk::SpiFlash::geometry() const 16
-startup_worker.cpp:575:1:cpp) 16
+startup_worker.cpp:584:1:cpp) 16
 state.cpp:144:6:void fk::GlobalState::released(uint32_t) 16
 state.cpp:167:11:fk::GpsState* fk::GpsState::clone(fk::Pool&) const 16
-state.h:106:5:fk::WifiNetworkInfo::WifiNetworkInfo() 16
-state.h:129:22:fk::WifiNetworkInfo& fk::WifiNetworkInfo::operator=(const fk::WifiNetworkInfo&) 16
+state.h:131:5:fk::WifiNetworkInfo::WifiNetworkInfo() 16
+state.h:154:22:fk::WifiNetworkInfo& fk::WifiNetworkInfo::operator=(const fk::WifiNetworkInfo&) 16
 status_logging.cpp:90:1:cpp) 16
 storage.cpp:100:1:fk::Storage::~Storage() 16
 storage.cpp:106:6:bool fk::Storage::begin() 16
@@ -4599,7 +4593,8 @@ WiFiUdp.cpp:200:5:virtual int WiFiUDP::read(unsigned char*, size_t) 24
 WiFiUdp.cpp:77:9:virtual uint8_t WiFiUDP::beginMulticast(IPAddress, uint16_t) 24
 Wire.cpp:167:8:virtual size_t TwoWire::write(const uint8_t*, size_t) 24
 Wire.cpp:65:9:uint8_t TwoWire::requestFrom(uint8_t, size_t, bool) 24
-atlas_api.cpp:54:6:bool fk::AtlasApi::send_reply(fk::HttpServerConnection*, fk::Pool&, fk::AtlasApiReply&) 24
+ads_1219.cpp:31:6:bool fk::Ads1219::configure(fk::Ads1219VoltageReference, fk::Ads1219Channel) 24
+ads_1219.cpp:56:6:bool fk::Ads1219::read(int32_t&) 24
 atlas_module.cpp:261:17:nonstd::optional_lite::optional<float> fk::AtlasModule::get_temperature(fk::ReadingsContext) 24
 atlas_module.cpp:272:17:nonstd::optional_lite::optional<float> fk::AtlasModule::get_salinity(fk::ReadingsContext) 24
 bad_blocks.cpp:29:6:void fk::BadBlocks::mark_block_as_bad(uint32_t) 24
@@ -4807,6 +4802,7 @@ memory.cpp:134:9:virtual int32_t fk::TranslatingMemory::write(uint32_t, const ui
 memory.cpp:154:6:void fk::fk_standard_page_log() 24
 memory.cpp:22:6:void fk::fk_standard_page_initialize() 24
 memory.cpp:95:6:void fk::fk_standard_page_free(void*) 24
+menu_view.cpp:41:13:fk::MenuScreen* fk::new_menu_screen(fk::Pool*, const char*, fk::MenuOption* (&&)[N]) [with unsigned int N = 13u] 24
 menu_view.cpp:41:13:fk::MenuScreen* fk::new_menu_screen(fk::Pool*, const char*, fk::MenuOption* (&&)[N]) [with unsigned int N = 2u] 24
 menu_view.cpp:41:13:fk::MenuScreen* fk::new_menu_screen(fk::Pool*, const char*, fk::MenuOption* (&&)[N]) [with unsigned int N = 3u] 24
 menu_view.cpp:41:13:fk::MenuScreen* fk::new_menu_screen(fk::Pool*, const char*, fk::MenuOption* (&&)[N]) [with unsigned int N = 4u] 24
@@ -4816,8 +4812,8 @@ menu_view.cpp:814:6:static void fk::MenuView::focus_down(fk::MenuScreen&) 24
 menu_view.cpp:836:6:static void fk::MenuView::refresh_visible(fk::MenuScreen&, int8_t) 24
 menu_view.cpp:864:13:fk::MenuScreen* fk::MenuView::goto_menu(fk::MenuScreen*) 24
 message_view.h:14:10:virtual void fk::MessageView::tick(fk::ViewController*, fk::Pool&) 24
-metal_board.cpp:335:9:int32_t fk::TwoWireWrapper::read(uint8_t, void*, int32_t) 24
-metal_board.cpp:351:9:int32_t fk::TwoWireWrapper::write(uint8_t, const void*, int32_t) 24
+metal_board.cpp:343:9:int32_t fk::TwoWireWrapper::read(uint8_t, void*, int32_t) 24
+metal_board.cpp:359:9:int32_t fk::TwoWireWrapper::write(uint8_t, const void*, int32_t) 24
 metal_board.cpp:52:6:bool fk::Board::initialize() 24
 metal_leds.cpp:105:6:virtual void fk::MetalLeds::on(uint8_t) 24
 metal_leds.cpp:116:6:virtual bool fk::MetalLeds::refresh() 24
@@ -4887,6 +4883,8 @@ protobuf.cpp:88:6:bool fk::pb_encode_uint32_array(pb_ostream_t*, const pb_field_
 queue.c:141:13:osi_queue_dequeue 24
 queue.c:49:12:osi_queue_enqueue_isr 24
 random_module.cpp:16:14:virtual fk::ModuleReturn fk::RandomModule::api(fk::ModuleContext, fk::HttpServerConnection*, fk::Pool&) 24
+receive_firmware_handler.cpp:30:6:bool fk::ReceiveFirmwareWorker::write_error(const char*, fk::Pool&) 24
+receive_firmware_handler.cpp:37:6:bool fk::ReceiveFirmwareWorker::write_success(fk::Pool&) 24
 record_chain.cpp:33:9:int32_t phylum::record_chain::create_chain(phylum::page_lock&) 24
 registry.cpp:28:6:void fk::ModuleRegistry::initialize() 24
 req.cpp:169:9:int32_t fk::HttpRequest::on_data(const char*, size_t) 24
@@ -4930,8 +4928,8 @@ spi_flash.c:747:8:spi_flash_get_size 24
 spi_flash.c:99:14:spi_flash_read_status_reg 24
 spi_flash.cpp:237:9:int32_t fk::SpiFlash::write(uint32_t, const uint8_t*, size_t) 24
 spi_flash.cpp:584:6:void fk::SpiFlash::read_ecc_information() 24
-startup_worker.cpp:406:6:bool fk::StartupWorker::save_captured_logs(bool) 24
-startup_worker.cpp:416:6:bool fk::StartupWorker::check_for_self_test_startup(fk::Pool&) 24
+startup_worker.cpp:415:6:bool fk::StartupWorker::save_captured_logs(bool) 24
+startup_worker.cpp:425:6:bool fk::StartupWorker::check_for_self_test_startup(fk::Pool&) 24
 state.cpp:47:11:fk::Schedule& fk::Schedule::operator=(const fk_app_Schedule&) 24
 state.cpp:91:1:fk::GlobalState::GlobalState() 24
 statistics_memory.cpp:28:9:virtual int32_t fk::StatisticsMemory::read(uint32_t, uint8_t*, size_t, fk::MemoryReadFlags) 24
@@ -5090,6 +5088,8 @@ worker.h:100:10:void fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::run() [with
 worker.h:100:10:void fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::run() [with Wrapped = fk::WifiToggleWorker; ConcreteWrapped = fk::WifiToggleWorker; Args = {fk::WifiToggleWorker::DesiredState}] 24
 worker.h:100:10:void fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::run() [with Wrapped = fk::WifiToggleWorker; ConcreteWrapped = fk::WifiToggleWorker; Args = {}] 24
 worker.h:100:10:void fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::run() [with Wrapped = fk::WriteMemoryWorker; ConcreteWrapped = fk::WriteMemoryWorker; Args = {fk::HttpServerConnection*&}] 24
+write_memory_handler.cpp:33:6:bool fk::WriteMemoryWorker::write_error(const char*, fk::Pool&) 24
+write_memory_handler.cpp:40:6:bool fk::WriteMemoryWorker::write_success(fk::Pool&) 24
 write_memory_handler.cpp:47:13:15(fk::FlashMemory&, uint32_t, uint8_t*) 24
 logging.cpp:110:6:) 28
 rn2903.cpp:121:6:) 28
@@ -5148,6 +5148,7 @@ WiFiSocket.cpp:149:7:sint8 WiFiSocketClass::connect(SOCKET, sockaddr*, uint8) 32
 WiFiUdp.cpp:118:5:virtual int WiFiUDP::beginPacket(const char*, uint16_t) 32
 Wire.cpp:29:1:TwoWire::TwoWire(SERCOM*, uint8_t, uint8_t) 32
 api_handler.cpp:155:13:void fk::debug_schedule(const char*, const fk::Schedule&) 32
+atlas_api.cpp:54:6:bool fk::AtlasApi::send_reply(fk::HttpStatus, fk::HttpServerConnection*, fk::Pool&, fk::AtlasApiReply&) 32
 base64.cpp:24:9:virtual int32_t fk::HexReader::read(uint8_t*, size_t) 32
 base64.cpp:42:9:virtual int32_t fk::HexWriter::write(const uint8_t*, size_t) 32
 blake2b.cpp:252:6:void BLAKE2b::finalize(void*, size_t) 32
@@ -5191,7 +5192,7 @@ hpl_usb.c:1690:9:_usb_d_dev_ep_enable 32
 http_connection.cpp:11:1:fk::HttpConnection::HttpConnection(fk::PoolPointer<fk::NetworkConnection>*) 32
 http_connection.cpp:47:6:bool fk::HttpConnection::begin(const char*, const char*, const char*, const char*, uint16_t, const char*, bool) 32
 http_parser.c:2423:1:http_parser_parse_url 32
-http_server_connection.cpp:20:9:int32_t fk::HttpServerConnection::plain(int32_t, const char*, const char*) 32
+http_server_connection.cpp:20:9:int32_t fk::HttpServerConnection::plain(fk::HttpStatus, const char*, const char*, fk::Pool&) 32
 ina219.cpp:122:14:fk::MeterReading fk::Ina219::read() 32
 istream.cpp:228:10:istream& istream::getline(char*, ios_base::streamsize, char) 32
 istream.cpp:50:10:istream& istream::get(char*, ios_base::streamsize, char) 32
@@ -5230,7 +5231,7 @@ memory.cpp:48:7:void* fk::fk_standard_page_malloc(size_t, const char*) 32
 menu_view.cpp:396:6:void fk::MenuView::create_confirmation_menu() 32
 menu_view.cpp:741:6:void fk::MenuView::refresh() 32
 menu_view.cpp:771:6:static void fk::MenuView::choose_active_network(fk::WifiNetworkInfo) 32
-metal_board.cpp:217:6:bool fk::SpiWrapper::transfer_command(uint8_t, const uint8_t*, uint8_t*, uint32_t) 32
+metal_board.cpp:225:6:bool fk::SpiWrapper::transfer_command(uint8_t, const uint8_t*, uint8_t*, uint32_t) 32
 metal_ipc.cpp:105:6:virtual bool fk::MetalIPC::launch_worker(fk::WorkerCategory, fk::TaskWorker*) 32
 metal_leds.cpp:42:6:virtual bool fk::MetalLeds::brightness(uint8_t, bool) 32
 metal_modmux.cpp:292:6:virtual bool fk::MetalModMux::choose_nothing() 32
@@ -5272,7 +5273,7 @@ rn2903.cpp:27:6:bool fk::Rn2903::wake() 32
 sc16is740.cpp:113:6:bool fk::Sc16is740::write_fifo(const uint8_t*, size_t) 32
 sc16is740.cpp:95:6:bool fk::Sc16is740::read_fifo(uint8_t*, size_t) 32
 scanning.cpp:200:6:virtual bool fk::ModuleScanning::erase(fk::ModulePosition) 32
-scheduler.cpp:207:13:void fk::update_power_save(bool) 32
+scheduler.cpp:195:13:void fk::update_allow_deep_sleep(bool) 32
 sector_chain.cpp:374:9:int32_t phylum::sector_chain::dequeue_sector(phylum::dhara_sector_t*) 32
 sector_chain.cpp:54:9:virtual int32_t phylum::sector_chain::seek_end_of_chain(phylum::page_lock&) 32
 sector_chain.cpp:7:9:int32_t phylum::sector_chain::create_if_necessary() 32
@@ -5294,12 +5295,12 @@ spi_flash.cpp:562:6:bool fk::SpiFlash::get_feature(uint8_t, uint8_t*) 32
 spi_flash.cpp:570:6:bool fk::SpiFlash::set_feature(uint8_t, uint8_t) 32
 spi_flash.cpp:670:6:bool fk::SpiFlash::transfer_command(uint8_t, const uint8_t*, uint8_t*, uint32_t) 32
 spi_flash.cpp:674:6:bool fk::SpiFlash::transfer(uint8_t*, uint32_t, const uint8_t*, uint8_t*, uint32_t) 32
-startup_worker.cpp:313:6:bool fk::StartupWorker::create_new_state(fk::Storage&, fk::GlobalState*, fk::Pool&) 32
-startup_worker.cpp:524:6:bool fk::StartupWorker::check_for_interactive_startup(fk::Pool&) 32
+startup_worker.cpp:322:6:bool fk::StartupWorker::create_new_state(fk::Storage&, fk::GlobalState*, fk::Pool&) 32
+startup_worker.cpp:533:6:bool fk::StartupWorker::check_for_interactive_startup(fk::Pool&) 32
 state.cpp:115:6:void fk::GlobalState::update_physical_modules(const ConstructedModulesCollection&) 32
 state.cpp:71:36:fk::GlobalStateRef<const fk::GlobalState*> fk::get_global_state_ro() 32
 state.cpp:77:30:fk::GlobalStateRef<fk::GlobalState*> fk::get_global_state_rw() 32
-state.h:109:5:fk::WifiNetworkInfo::WifiNetworkInfo(const fk::WifiNetworkInfo&) 32
+state.h:134:5:fk::WifiNetworkInfo::WifiNetworkInfo(const fk::WifiNetworkInfo&) 32
 statistics_memory.cpp:15:6:void fk::MemoryStatistics::log(const char*) const 32
 storage.cpp:143:9:int32_t fk::Storage::installed() 32
 storage.cpp:763:10:uint32_t fk::Storage::fsck(fk::File&, fk::ProgressTracker&) 32
@@ -6037,7 +6038,6 @@ WiFi.cpp:586:9:uint8_t WiFiClass::beginProvision(uint8_t) 40
 WiFiMDNSResponder.cpp:91:6:bool WiFiMDNSResponder::begin(const char*, uint32_t) 40
 WiFiSocket.cpp:335:8:sint16 WiFiSocketClass::sendto(SOCKET, void*, uint16, uint16, sockaddr*, uint8) 40
 WiFiUdp.cpp:138:5:virtual int WiFiUDP::endPacket() 40
-ads_1219.cpp:38:6:bool fk::Ads1219::read_conversion(int32_t&) 40
 bad_blocks.cpp:9:1:fk::BadBlocks::BadBlocks(fk::DataMemory*, fk::Pool&) 40
 blake2b.cpp:227:6:void BLAKE2b::update(const void*, size_t) 40
 board.cpp:95:9:int32_t fk::TwoWireWrapper::read_register_u16(uint8_t, uint8_t, uint16_t&) 40
@@ -6087,7 +6087,7 @@ memory.cpp:114:6:virtual bool fk::TranslatingMemory::begin() 40
 menu_view.cpp:136:6:void fk::configure_gps_duration(uint32_t, fk::Pool&) 40
 menu_view.cpp:142:6:void fk::configure_wifi_duration(uint32_t, fk::Pool&) 40
 menu_view.cpp:178:6:void fk::MenuView::create_info_menu() 40
-metal_board.cpp:222:6:bool fk::SpiWrapper::transfer(uint8_t*, uint32_t, const uint8_t*, uint8_t*, uint32_t) 40
+metal_board.cpp:230:6:bool fk::SpiWrapper::transfer(uint8_t*, uint32_t, const uint8_t*, uint8_t*, uint32_t) 40
 metal_ipc.cpp:145:6:virtual bool fk::MetalIPC::signal_workers(fk::WorkerCategory, uint32_t) 40
 metal_ipc.cpp:164:29:virtual fk::collection<fk::TaskDisplayInfo> fk::MetalIPC::get_workers_display_info(fk::Pool&) 40
 metal_modmux.cpp:119:20:virtual nonstd::optional_lite::optional<fk::Topology> fk::MetalModMux::read_topology_register() 40
@@ -6110,14 +6110,13 @@ pb_decode.c:1374:6:pb_decode_fixed64 40
 pb_decode.c:240:18:pb_decode_varint 40
 pb_encode.c:554:6:pb_get_encoded_size 40
 pool.cpp:197:7:void* fk::Pool::decode(const pb_msgdesc_t*, uint8_t*, size_t, size_t) 40
-readings_worker.cpp:134:38:fk::ReadingsWorker::ThrottleAndPowerSave fk::ReadingsWorker::read_throttle_and_power_save() 40
 records.cpp:29:20:bool fk::pb_data_sensor_and_value_item_decode(pb_istream_t*, fk::pb_array_t*) 40
 records.cpp:594:30:fk_data_ModuleConfiguration* fk::fk_module_configuration_decoding_new(fk::Pool*) 40
 rn2903.cpp:368:6:bool fk::Rn2903::send_bytes(const uint8_t*, size_t, uint8_t, bool) 40
 rn2903.cpp:97:6:) 40
 scanning.cpp:112:44:virtual tl::expected<fk::collection<fk::FoundModule>, fk::Error> fk::ModuleScanning::scan(fk::Pool&) 40
 scanning.cpp:97:6:bool fk::ModuleScanning::try_read_configuration(fk::ModulePosition, fk::Pool&) 40
-scheduler.cpp:202:25:fk::CurrentSchedules fk::get_config_schedules() 40
+scheduler.cpp:190:25:fk::CurrentSchedules fk::get_config_schedules() 40
 scheduling.cpp:22:1:fk::ReadingsTask::ReadingsTask(lwcron::CronSpec) 40
 scheduling.cpp:33:1:fk::GpsTask::GpsTask(lwcron::CronSpec) 40
 scheduling.cpp:44:1:fk::LoraTask::LoraTask(lwcron::CronSpec) 40
@@ -6137,14 +6136,14 @@ spi_flash.cpp:352:9:int32_t fk::SpiFlash::copy_page(uint32_t, uint32_t) 40
 spi_flash.cpp:526:6:void fk::SpiFlash::row_address_to_bytes(uint32_t, uint8_t*) 40
 spi_flash.cpp:533:6:void fk::SpiFlash::column_address_to_bytes(uint32_t, uint8_t*) 40
 spi_flash.cpp:591:6:bool fk::SpiFlash::is_ready(bool) 40
-startup_worker.cpp:329:6:bool fk::StartupWorker::load_from_files(fk::Storage&, fk::GlobalState*, fk::Pool&) 40
-startup_worker.cpp:551:13:void fk::copy_cron_spec_from_pb(const char*, fk::Schedule&, const fk_data_JobSchedule&, fk::Pool&) 40
+startup_worker.cpp:338:6:bool fk::StartupWorker::load_from_files(fk::Storage&, fk::GlobalState*, fk::Pool&) 40
+startup_worker.cpp:560:13:void fk::copy_cron_spec_from_pb(const char*, fk::Schedule&, const fk_data_JobSchedule&, fk::Pool&) 40
 state.cpp:39:6:void fk::Schedule::simple(uint32_t) 40
 state.cpp:83:36:fk::GlobalStateRef<const fk::GlobalState*> fk::try_get_global_state_ro() 40
-state_manager.h:15:10:bool fk::GlobalStateManager::apply(T) [with T = fk::update_modules(fk::Pool&)::__lambda1] 40
-state_manager.h:27:10:14(const char*) 40
-state_manager.h:27:10:15(const char*) 40
-state_manager.h:27:10:9(const char*) 40
+state_manager.h:21:10:bool fk::GlobalStateManager::apply(T) [with T = fk::update_modules(fk::Pool&)::__lambda1] 40
+state_manager.h:33:10:14(const char*) 40
+state_manager.h:33:10:16(const char*) 40
+state_manager.h:33:10:9(const char*) 40
 statistics_memory.cpp:43:9:virtual int32_t fk::StatisticsMemory::erase(uint32_t, size_t) 40
 storage.cpp:53:6:bool fk::BlockHeader::verify_hash() const 40
 storage.cpp:67:6:bool fk::BlockTail::verify_hash() 40
@@ -6185,6 +6184,7 @@ WiFiClient.cpp:56:5:int WiFiClient::connect(const char*, uint16_t, uint8_t, bool
 WiFiMDNSResponder.cpp:123:6:bool WiFiMDNSResponder::parseRequest() 48
 WiFiSocket.cpp:232:5:int WiFiSocketClass::read(SOCKET, uint8_t*, size_t) 48
 WiFiUdp.cpp:40:9:virtual uint8_t WiFiUDP::begin(uint16_t) 48
+ads_1219.cpp:78:6:bool fk::Ads1219::read_conversion(int32_t&) 48
 atlas_api.cpp:67:6:bool fk::AtlasApi::status(fk::ModuleContext, fk::AtlasApiReply&, fk::Pool&) 48
 atlas_module.cpp:17:14:virtual fk::ModuleReturn fk::AtlasModule::initialize(fk::ModuleContext, fk::Pool&) 48
 caching_memory.cpp:39:9:virtual int32_t fk::CachingMemory::read(uint32_t, uint8_t*, size_t, fk::MemoryReadFlags) 48
@@ -6292,12 +6292,12 @@ pool_pointer.h:94:16:) [with Wrapped = fk::ConfigureModuleWorker; Wrapee = fk::T
 printf.cpp:144:15:size_t _ntoa_format(out_fct_type, char*, size_t, size_t, char*, size_t, bool, unsigned int, unsigned int, unsigned int, unsigned int) 48
 printf.cpp:144:15:size_t _ntoa_format(out_fct_type, char*, size_t, size_t, char*, size_t, bool, unsigned int, unsigned int, unsigned int, unsigned int) 48
 qrcode.c:260:13:applyMask 48
+readings_worker.cpp:134:38:fk::ReadingsWorker::ThrottleAndScanState fk::ReadingsWorker::read_state() 48
 records.cpp:135:20:bool fk::pb_app_network_info_item_decode(pb_istream_t*, fk::pb_array_t*) 48
 records.cpp:159:20:bool fk::fk_array_interval_decode(pb_istream_t*, fk::pb_array_t*) 48
 records.cpp:5:20:bool fk::pb_data_network_info_item_decode(pb_istream_t*, fk::pb_array_t*) 48
 records.cpp:78:20:bool fk::pb_data_sensor_info_item_decode(pb_istream_t*, fk::pb_array_t*) 48
 req.cpp:90:9:int32_t fk::HttpRequest::on_url(const char*, size_t) 48
-scheduler.cpp:38:13:void fk::update_task_upcoming(fk::ReadingsTask&) 48
 sector_chain.cpp:97:9:int32_t phylum::sector_chain::forward(phylum::page_lock&) 48
 self_check.cpp:234:6:bool fk::SelfCheck::wifi(fk::Pool*) 48
 simple_buffer.h:61:21:phylum::general_buffer<PointerType>& phylum::general_buffer<PointerType>::operator=(phylum::general_buffer<PointerType>&&) [with PointerType = const unsigned char] 48
@@ -6315,8 +6315,8 @@ socket.c:743:7:connect 48
 socket.c:784:8:send 48
 socket.c:907:8:recv 48
 spi_flash.cpp:169:6:void fk::SpiFlash::dump_feature_registers() 48
-startup_worker.cpp:368:6:bool fk::StartupWorker::load_previous_location(fk::GlobalState*, fk::DataOps*, fk::Pool&) 48
-startup_worker.cpp:388:6:bool fk::StartupWorker::check_for_lora(fk::Pool&) 48
+startup_worker.cpp:377:6:bool fk::StartupWorker::load_previous_location(fk::GlobalState*, fk::DataOps*, fk::Pool&) 48
+startup_worker.cpp:397:6:bool fk::StartupWorker::check_for_lora(fk::Pool&) 48
 tiny_printf.c:147:15:_ntoa_format 48
 u8g2_bitmap.c:107:6:u8g2_DrawHXBM 48
 u8g2_bitmap.c:139:6:u8g2_DrawXBM 48
@@ -6419,8 +6419,6 @@ FatFile.cpp:639:6:bool FatFile::openParent(FatFile*) 64
 FatFilePrint.cpp:99:6:bool FatFile::ls(print_t*, uint8_t, uint8_t) 64
 WiFi.cpp:1151:10:uint32_t WiFiClass::getTime() 64
 WiFi.cpp:489:9:uint8_t WiFiClass::beginAP(const char*, uint8_t, const char*, uint8_t) 64
-api_handler.cpp:362:13:26(fk::HttpServerConnection*, uint32_t*, fk::Pool&) 64
-api_handler.cpp:381:13:27(fk::HttpServerConnection*, uint32_t*, fk::Pool&) 64
 atlas_api.cpp:107:6:bool fk::AtlasApi::calibrate(fk::ModuleContext, fk::AtlasApiReply&, fk_atlas_AtlasCalibrationCommand, fk::Pool&) 64
 atlas_api.cpp:82:6:bool fk::AtlasApi::clear(fk::ModuleContext, fk::AtlasApiReply&, fk::Pool&) 64
 atlas_api_reply.cpp:9:6:void fk::AtlasApiReply::error(const char*) 64
@@ -6483,6 +6481,8 @@ water_api.cpp:11:6:bool fk::WaterApi::handle(fk::ModuleContext, fk::HttpServerCo
 water_module.cpp:95:6:bool fk::WaterModule::load_configuration(fk::ModuleContext, fk::Pool&) 64
 FatFileLFN.cpp:503:8:size_t FatFile::printName(print_t*) 72
 MDNS.cpp:290:13:MDNSError_t MDNS::_sendMDNSMessage(uint32_t, uint32_t, int, int) 72
+api_handler.cpp:362:13:26(fk::HttpServerConnection*, uint32_t*, fk::Pool&) 72
+api_handler.cpp:381:13:27(fk::HttpServerConnection*, uint32_t*, fk::Pool&) 72
 data_chain.cpp:166:9:int32_t phylum::data_chain::read(uint8_t*, size_t) 72
 data_chain.cpp:195:9:int32_t phylum::data_chain::write_chain(std::function<long int(phylum::general_buffer<unsigned char>, bool&)>) 72
 debug_udp.cpp:81:6:void fk::DebugUDP::reply_with_query(const char*) 72
@@ -6500,7 +6500,7 @@ functional:2054:7:) [with _Res = long int; _Functor = phylum::integer_chain::wri
 hal_aes_sync.c:371:9:aes_sync_gcm_auth_decrypt 72
 hal_aes_sync.c:448:9:aes_sync_ccm_auth_decrypt 72
 http_reply.cpp:499:6:bool fk::HttpReply::include_scan(fk::NetworkScan) 72
-http_server_connection.cpp:122:9:int32_t fk::HttpServerConnection::write(int32_t, const char*, const uint8_t*, size_t) 72
+http_server_connection.cpp:122:9:int32_t fk::HttpServerConnection::write(fk::HttpStatus, const char*, const uint8_t*, size_t, fk::Pool&) 72
 http_server_connection.cpp:235:6:virtual bool fk::HttpServerConnection::service() 72
 http_server_connection.cpp:57:9:int32_t fk::HttpServerConnection::busy(uint32_t, const char*, fk::Pool&) 72
 m2m_wifi.c:1182:7:m2m_wifi_set_device_name 72
@@ -6519,7 +6519,7 @@ sd_copying.cpp:123:6:bool fk::copy_memory_to_flash(const uint8_t*, size_t, fk::F
 sd_copying.cpp:72:6:bool fk::copy_memory_to_flash(const uint8_t*, size_t, fk::Hash&, fk::FlashMemory*, uint32_t, uint32_t, fk::Pool&) 72
 self_check.cpp:39:6:void fk::SelfCheck::check(fk::SelfCheckSettings, fk::SelfCheckCallbacks&, fk::Pool*) 72
 simple_ntp.cpp:80:6:bool fk::SimpleNTP::send() 72
-startup_worker.cpp:448:6:bool fk::StartupWorker::check_for_upgrading_startup(fk::Pool&) 72
+startup_worker.cpp:457:6:bool fk::StartupWorker::check_for_upgrading_startup(fk::Pool&) 72
 u8g2_display.cpp:374:6:virtual void fk::U8g2Display::self_check(const fk::SelfCheckScreen&) 72
 u8g2_font.c:387:6:u8g2_font_decode_len 72
 u8g2_input_value.c:44:9:u8g2_UserInterfaceInputValue 72
@@ -6548,14 +6548,14 @@ file_ops_darwin.cpp:139:6:virtual bool fk::darwin::FileReader::decode_signed(voi
 functional:2054:7:) [with _Res = long int; _Functor = phylum::file_appender::make_data_chain()::__lambda3; _ArgTypes = {phylum::general_buffer<const unsigned char>}] 80
 hpl_aes.c:1101:9:__aes_sync_ccm_decrypt_and_tag 80
 hpl_aes.c:915:9:__aes_sync_ccm_crypt_and_tag 80
-http_server_connection.cpp:88:9:int32_t fk::HttpServerConnection::error(int32_t, const char*, fk::Pool&) 80
+http_server_connection.cpp:88:9:int32_t fk::HttpServerConnection::error(fk::HttpStatus, const char*, fk::Pool&) 80
 lora_worker.cpp:15:38:tl::expected<fk::BufferPtr*, fk::Error> fk::packetize(fk::Pool&) 80
 memory.cpp:90:9:virtual int32_t fk::BankedDataMemory::copy_page(uint32_t, uint32_t, size_t) 80
 oem_atlas.cpp:102:6:bool fk::OemAtlas::find(uint8_t) 80
 oem_atlas.cpp:248:19:fk::CalibrationStatus fk::OemAtlas::calibrate(uint8_t, float) 80
 pb_decode.c:786:25:decode_field 80
 pb_decode.c:939:13:pb_message_set_to_defaults 80
-startup_worker.cpp:489:6:bool fk::StartupWorker::check_for_provision_startup(fk::Pool&) 80
+startup_worker.cpp:498:6:bool fk::StartupWorker::check_for_provision_startup(fk::Pool&) 80
 state.cpp:17:6:void fk::Schedule::recreate() 80
 tree_sector.h:387:13:int32_t phylum::tree_sector<KEY, VALUE, Size>::split_child(phylum::page_lock&, phylum::index_type, phylum::node_ptr_t, phylum::tree_sector<KEY, VALUE, Size>::default_node_type*, phylum::node_ptr_t, phylum::tree_sector<KEY, VALUE, Size>::default_node_type*) [with KEY = long unsigned int; VALUE = phylum::attribute_value_t<256u>; unsigned int Size = 15u; int32_t = long int; phylum::index_type = short int; phylum::tree_sector<KEY, VALUE, Size>::default_node_type = phylum::tree_node_t<long unsigned int, phylum::attribute_value_t<256u>, 15u>] 80
 tree_sector.h:387:13:int32_t phylum::tree_sector<KEY, VALUE, Size>::split_child(phylum::page_lock&, phylum::index_type, phylum::node_ptr_t, phylum::tree_sector<KEY, VALUE, Size>::default_node_type*, phylum::node_ptr_t, phylum::tree_sector<KEY, VALUE, Size>::default_node_type*) [with KEY = long unsigned int; VALUE = phylum::dirtree_tree_value_t<128u>; unsigned int Size = 4u; int32_t = long int; phylum::index_type = short int; phylum::tree_sector<KEY, VALUE, Size>::default_node_type = phylum::tree_node_t<long unsigned int, phylum::dirtree_tree_value_t<128u>, 4u>] 80
@@ -6590,7 +6590,7 @@ api_handler.cpp:164:13:bool fk::configure(fk::HttpServerConnection*, fk_app_Http
 blake2b.cpp:281:6:void BLAKE2b::finalizeHMAC(const void*, size_t, void*, size_t) 96
 clock.cpp:108:6:bool fk::CoreClock::sync() 96
 clock.cpp:312:10:uint32_t fk::clock_adjust(uint32_t) 96
-http_server_connection.cpp:172:9:int32_t fk::HttpServerConnection::write(int32_t, const char*, const void*, const pb_msgdesc_t*) 96
+http_server_connection.cpp:172:9:int32_t fk::HttpServerConnection::write(fk::HttpStatus, const char*, const void*, const pb_msgdesc_t*, fk::Pool&) 96
 menu_view.cpp:567:6:void fk::MenuView::create_network_menu() 96
 meta_record.cpp:164:6:void fk::MetaRecord::include_modules(const fk::GlobalState*, const fkb_header_t*, fk::ConstructedModulesCollection&, fk::ModuleReadingsCollection&, fk::Pool&) 96
 pb_encode.c:509:18:pb_encode 96
@@ -6612,19 +6612,18 @@ tree_sector.h:122:29:static phylum::tree_sector<KEY, VALUE, Size>::persisted_nod
 tree_sector.h:122:29:static phylum::tree_sector<KEY, VALUE, Size>::persisted_node_t phylum::tree_sector<KEY, VALUE, Size>::find_node_in_sector(phylum::delimited_buffer&, phylum::node_ptr_t) [with KEY = long unsigned int; VALUE = phylum::dirtree_tree_value_t<128u>; unsigned int Size = 4u] 104
 tree_sector.h:561:13:int32_t phylum::tree_sector<KEY, VALUE, Size>::create() [with KEY = long unsigned int; VALUE = phylum::attribute_value_t<256u>; unsigned int Size = 15u; int32_t = long int] 104
 tree_sector.h:561:13:int32_t phylum::tree_sector<KEY, VALUE, Size>::create() [with KEY = long unsigned int; VALUE = phylum::dirtree_tree_value_t<128u>; unsigned int Size = 4u; int32_t = long int] 104
-water_module.cpp:160:17:virtual fk::ModuleReadings* fk::WaterModule::take_readings(fk::ReadingsContext, fk::Pool&) 104
 SEGGER_RTT_printf.c:482:5:SEGGER_RTT_vprintf 112
 configure_module_worker.cpp:63:6:bool fk::ConfigureModuleWorker::scan(fk::Pool&) 112
 data_chain.cpp:295:9:int32_t phylum::data_chain::read_chain(std::function<long int(phylum::general_buffer<const unsigned char>)>) 112
 dhara_map.cpp:28:9:virtual int32_t phylum::dhara_sector_map::begin(bool) 112
 file.cpp:716:9:int32_t fk::File::read_record_tail() 112
-menu_view.cpp:414:6:void fk::MenuView::create_tools_menu() 112
 metal_gps.cpp:33:6:virtual bool fk::MetalGps::service(fk::GpsFix&) 112
 schedule_view.cpp:57:6:virtual void fk::ScheduleView::enter(fk::ViewController*) 112
 sector_chain.cpp:314:9:int32_t phylum::sector_chain::grow_tail(phylum::page_lock&) 112
 socket.c:1262:7:setsockopt 112
 startup_worker.cpp:40:6:virtual void fk::StartupWorker::run(fk::Pool&) 112
 state_manager.cpp:23:6:bool fk::GlobalStateManager::initialize(fk::Pool&) 112
+water_module.cpp:160:17:virtual fk::ModuleReadings* fk::WaterModule::take_readings(fk::ReadingsContext, fk::Pool&) 112
 aggregated_weather.cpp:129:17:fk::ModuleReadings* fk::AggregatedWeather::take_readings(fk::ModuleContext, fk::Pool&) 120
 delimited_buffer.h:219:13:int32_t phylum::delimited_buffer::seek_end() 120
 delimited_buffer.h:219:13:int32_t phylum::delimited_buffer::seek_end() 120
@@ -6639,6 +6638,7 @@ spi_flash.cpp:263:9:int32_t fk::SpiFlash::write_internal(uint32_t, const uint8_t
 free_sectors_chain.cpp:11:9:int32_t phylum::free_sectors_chain::add_free_sectors(phylum::free_sectors_t) 128
 m2m_ssl.c:74:13:m2m_ssl_cb 128
 m2m_wifi.c:84:13:m2m_wifi_cb 128
+menu_view.cpp:414:6:void fk::MenuView::create_tools_menu() 128
 metal_gps.cpp:115:6:virtual bool fk::MetalGps::stop() 128
 module_factory.cpp:163:51:tl::expected<fk::collection<fk::ConstructedModule>, fk::Error> fk::ModuleFactory::rescan(fk::ModuleScanning&, fk::Pool&) 128
 tree_sector.h:198:13:int32_t phylum::tree_sector<KEY, VALUE, Size>::allocate_node(phylum::page_lock&, phylum::node_ptr_t&, TFill) [with TFill = phylum::tree_sector<KEY, VALUE, Size>::add(KEY, VALUE) [with KEY = long unsigned int; VALUE = phylum::attribute_value_t<256u>; unsigned int Size = 15u; int32_t = long int]::__lambda5::__lambda6; KEY = long unsigned int; VALUE = phylum::attribute_value_t<256u>; unsigned int Size = 15u; int32_t = long int] 128
@@ -6657,7 +6657,7 @@ metal_gps.cpp:19:6:virtual bool fk::MetalGps::begin() 136
 metal_sd_card.cpp:445:23:nonstd::optional_lite::optional<bool> fk::open_path(SdFile&, const char*, oflag_t) 136
 network_task.cpp:57:1:fk::NetworkTask::~NetworkTask() 136
 self_check.cpp:25:3:V fk::single_noncritical_check(const char*, T) [with V = bool; T = fk::SelfCheck::sd_card_write()::__lambda8] 136
-startup_worker.cpp:168:6:bool fk::StartupWorker::load_state(fk::Storage&, fk::GlobalState*, fk::Pool&) 136
+startup_worker.cpp:177:6:bool fk::StartupWorker::load_state(fk::Storage&, fk::GlobalState*, fk::Pool&) 136
 super_chain.cpp:31:9:int32_t phylum::super_chain::update(phylum::tree_ptr_t) 136
 atlas_module.cpp:185:17:virtual fk::ModuleReadings* fk::AtlasModule::take_readings(fk::ReadingsContext, fk::Pool&) 144
 file.cpp:402:9:int32_t fk::File::rewind() 144
@@ -6692,6 +6692,7 @@ lora_ranging_worker.cpp:18:6:virtual void fk::LoraRangingWorker::run(fk::Pool&) 
 map.c:122:12:trace_path 168
 protobuf.cpp:223:6:bool fk::pb_encode_logs(pb_ostream_t*, const pb_field_t*, void* const*) 168
 scanning.cpp:56:6:bool fk::ModuleScanning::try_scan_single_module(fk::ModulePosition, fk::FoundModuleCollection&, fk::Pool&) 168
+battery_status.cpp:13:6:void fk::BatteryChecker::refresh(bool) 176
 configure_module_worker.cpp:36:6:bool fk::ConfigureModuleWorker::configure(fk::Pool&) 176
 display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_network_menu()::__lambda56] 176
 map.c:212:12:raw_gc 176
@@ -6702,7 +6703,6 @@ file.cpp:314:9:int32_t fk::File::skip(bool) 184
 file_handler.cpp:89:6:bool fk::DownloadFileWorker::write_headers(fk::DownloadFileWorker::HeaderInfo) 184
 functional:2054:7:) [with _Res = long int; _Functor = phylum::data_chain::write_chain(std::function<long int(phylum::general_buffer<unsigned char>, bool&)>)::__lambda4; _ArgTypes = {phylum::general_buffer<unsigned char>}] 184
 logs_handler.cpp:83:6:bool fk::DownloadLogsWorker::write_headers(fk::DownloadLogsWorker::HeaderInfo) 184
-battery_status.cpp:9:6:void fk::BatteryStatus::refresh() 192
 sector_chain.cpp:216:9:int32_t phylum::sector_chain::log() 192
 write_memory_handler.cpp:56:6:virtual void fk::WriteMemoryWorker::run(fk::Pool&) 192
 gps.cpp:10:6:void fk::task_handler_gps(void*) 200
@@ -6768,7 +6768,7 @@ fsck_worker.cpp:10:6:virtual void fk::FsckWorker::run(fk::Pool&) 576
 state.cpp:149:6:bool fk::GlobalState::flush(fk::Pool&) 576
 factory_wipe_worker.cpp:17:6:virtual void fk::FactoryWipeWorker::run(fk::Pool&) 592
 metal_sd_card.cpp:264:6:virtual bool fk::MetalSdCard::format() 592
-startup_worker.cpp:132:6:bool fk::StartupWorker::load_or_create_state(fk::Pool&) 592
+startup_worker.cpp:139:6:bool fk::StartupWorker::load_or_create_state(fk::Pool&) 592
 upload_data_worker.cpp:163:6:virtual void fk::UploadDataWorker::run(fk::Pool&) 648
 backup_worker.cpp:23:6:virtual void fk::BackupWorker::run(fk::Pool&) 664
 storage.cpp:725:10:uint32_t fk::Storage::fsck(fk::ProgressCallbacks*) 696
@@ -6781,4 +6781,4 @@ live_tests.cpp:96:13:void fk::test_water_module() 952
 tree_sector.h:627:121:phylum::tree_sector<KEY, VALUE, Size>::add(KEY, VALUE) [with KEY = long unsigned int; VALUE = phylum::dirtree_tree_value_t<128u>; unsigned int Size = 4u; int32_t = long int]::__lambda5::__lambda6 1056
 tree_sector.h:627:121:phylum::tree_sector<KEY, VALUE, Size>::add(KEY, VALUE) [with KEY = long unsigned int; VALUE = phylum::attribute_value_t<256u>; unsigned int Size = 15u; int32_t = long int]::__lambda5::__lambda6 3976
 hpl_nvmctrl.c:159:6:_flash_write 8232
-main.cpp:157:6:void setup() 43176
+main.cpp:155:6:void setup() 43176

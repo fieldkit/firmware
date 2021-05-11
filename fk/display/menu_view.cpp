@@ -537,7 +537,7 @@ void MenuView::create_tools_menu() {
     (void)tools_crash_hardf;
     (void)tools_crash_assertion;
 
-    tools_menu_ = new_menu_screen<18 - 6>(pool_, "tools", {
+    tools_menu_ = new_menu_screen<18 - 5>(pool_, "tools", {
         back_,
         tools_self_check,
         tools_gps,
@@ -548,7 +548,7 @@ void MenuView::create_tools_menu() {
         tools_dump_flash,
         tools_backup,
         tools_format_sd,
-        // tools_sleep_test,
+        tools_sleep_test,
         // tools_poll_sensors,
         tools_fsck,
         // tools_crash_hardf,

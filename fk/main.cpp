@@ -121,8 +121,6 @@ static bool initialize_hardware() {
 
     FK_ASSERT(get_flash()->initialize());
 
-    get_board()->enable_everything();
-
     fk_delay(10);
 
     initialize_backplane();

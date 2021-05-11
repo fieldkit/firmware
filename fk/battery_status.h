@@ -1,24 +1,26 @@
 #pragma once
 
+#include "state.h"
+
 namespace fk {
 
-class BatteryStatus {
+class BatteryChecker {
 public:
     bool have_charge_{ false };
-    bool low_battery_{ false };
+    BatteryStatus battery_status_{ BatteryStatus::Unknown };
     float charge_{ 0.0f };
 
 public:
-    bool have_charge() const {
-        return have_charge_;
+    bool low_power_dangerous() const {
+        return battery_status_ == BatteryStatus::Dangerous;
     }
 
-    bool low_battery() const {
-        return low_battery_;
+    bool low_power() const {
+        return battery_status_is_low_power(battery_status_);
     }
 
 public:
-    void refresh();
+    void refresh(bool initialize = false);
 
 public:
     static float voltage_to_percentange(float voltage);

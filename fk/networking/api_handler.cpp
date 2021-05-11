@@ -64,7 +64,7 @@ void ApiHandler::adjust_location_if_necessary(fk_app_HttpQuery const *query) {
 
 bool ApiHandler::handle(HttpServerConnection *connection, Pool &pool) {
     if (connection->length() == 0) {
-        connection->error(500, "invalid query", pool);
+        connection->error(HttpStatus::BadRequest, "invalid query", pool);
         return true;
     }
 
@@ -84,7 +84,7 @@ bool ApiHandler::handle(HttpServerConnection *connection, Pool &pool) {
     if (!pb_decode_delimited(&stream, fk_app_HttpQuery_fields, query)) {
         fk_dump_memory("NOPARSE ", ptr, 256);
         logwarn("error parsing query (%" PRIu32 ")", connection->length());
-        connection->error(500, "error parsing query", pool);
+        connection->error(HttpStatus::BadRequest, "error parsing query", pool);
         return true;
     }
 
@@ -142,7 +142,7 @@ bool ApiHandler::handle(HttpServerConnection *connection, Pool &pool) {
     }
     }
 
-    connection->error(500, "unknown query type", pool);
+    connection->error(HttpStatus::BadRequest, "unknown query type", pool);
 
     return true;
 }
@@ -340,7 +340,7 @@ static bool send_networks(HttpServerConnection *connection, NetworkScan scan, Po
     FK_ASSERT(http_reply.include_success(get_clock_now(), fk_uptime()));
     FK_ASSERT(http_reply.include_scan(scan));
 
-    connection->write(http_reply.reply());
+    connection->write(http_reply.reply(), pool);
     connection->close();
 
     return true;
@@ -353,7 +353,7 @@ static bool send_simple_success(HttpServerConnection *connection, fk_app_HttpQue
 
     FK_ASSERT(http_reply.include_success(get_clock_now(), fk_uptime()));
 
-    connection->write(http_reply.reply());
+    connection->write(http_reply.reply(), pool);
     connection->close();
 
     return true;
@@ -368,7 +368,7 @@ static bool send_status(HttpServerConnection *connection, fk_app_HttpQuery *quer
 
     FK_ASSERT(http_reply.include_status(get_clock_now(), fk_uptime(), logs, &fkb_header));
 
-    connection->write(http_reply.reply());
+    connection->write(http_reply.reply(), pool);
     connection->close();
 
     #if defined(FK_LOGS_FLUSH_AGGRESSIVE)
@@ -388,7 +388,7 @@ static bool send_readings(HttpServerConnection *connection, fk_app_HttpQuery *qu
     FK_ASSERT(http_reply.include_status(get_clock_now(), fk_uptime(), logs, &fkb_header));
     FK_ASSERT(http_reply.include_readings());
 
-    connection->write(http_reply.reply());
+    connection->write(http_reply.reply(), pool);
     connection->close();
 
     #if defined(FK_LOGS_FLUSH_AGGRESSIVE)
@@ -405,7 +405,7 @@ static bool send_files(HttpServerConnection *connection, fk_app_HttpQuery *query
     auto sd = get_sd_card();
     if (!sd->begin()) {
         logwarn("error opening sd");
-        connection->error(500, "error opening sd", pool);
+        connection->error(HttpStatus::ServerError, "error opening sd", pool);
         return true;
     }
 
@@ -418,7 +418,7 @@ static bool send_files(HttpServerConnection *connection, fk_app_HttpQuery *query
 
     if (!sd->ls(path, query->directory.page, &entries, number_entries, total_entries, pool)) {
         logwarn("error listing sd");
-        connection->error(500, "error listing sd", pool);
+        connection->error(HttpStatus::ServerError, "error listing sd", pool);
         return true;
     }
 
@@ -426,7 +426,7 @@ static bool send_files(HttpServerConnection *connection, fk_app_HttpQuery *query
 
     FK_ASSERT(http_reply.include_listing(path, entries, number_entries, total_entries));
 
-    connection->write(http_reply.reply());
+    connection->write(http_reply.reply(), pool);
     connection->close();
 
     return true;

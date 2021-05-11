@@ -74,21 +74,22 @@ void StartupWorker::run(Pool &pool) {
         return;
     }
 
+    // Ensure we initialize the battery gauge before refreshing, since
+    // we're booting. BatteryChecker assumes the gauge is ready to go.
     loginfo("check for low power startup");
-    auto low_power_startup = check_for_low_power_startup(pool);
+    BatteryChecker battery_checker;
+    battery_checker.refresh(true);
 
-    if (!low_power_startup) {
+    if (!battery_checker.low_power()) {
         display->company_logo();
     }
-
-    loginfo("ready hardware");
-    auto mm = get_modmux();
 
     // NOTE Power cycle modules, this gives us a fresh start. Some times behave
     // funny, specifically temperature. Without this the first attempt down
     // below during the scan fails fails.
     // I tried moving the enable all to after the storage read and ran into the
     // same issue. After the self check seems ok, though?
+    auto mm = get_modmux();
     mm->disable_all_modules();
     // Lock, just during startup.
     auto lock = mm->lock();
@@ -98,23 +99,17 @@ void StartupWorker::run(Pool &pool) {
     // them further on as these are for dire circumstances.
     save_captured_logs(false);
 
-    // Run self-check.
-    NoopSelfCheckCallbacks noop_callbacks;
-    SelfCheck self_check(display, get_network(), mm, get_module_leds());
-    self_check.check(SelfCheckSettings::defaults(), noop_callbacks, &pool);
-
-    loginfo("prime global state");
-
-    FK_ASSERT(fk_log_diagnostics());
+    fk_log_diagnostics();
 
     GlobalStateManager gsm;
-    FK_ASSERT(gsm.initialize(pool));
+    gsm.initialize(pool);
 
-    FK_ASSERT(check_for_lora(pool));
-
-    loginfo("loading/creating state");
-
-    FK_ASSERT(load_or_create_state(pool));
+    auto memory = MemoryFactory::get_data_memory();
+    if (memory->begin()) {
+        if (!load_or_create_state(pool)) {
+            logerror("load or create state");
+        }
+    }
 
     // Now write saved logs and free them. These will end up in the
     // named folder.
@@ -123,15 +118,27 @@ void StartupWorker::run(Pool &pool) {
     ModuleRegistry registry;
     registry.initialize();
 
-    mm->enable_all_modules();
+    if (!battery_checker.low_power()) {
+        // Run self-check.
+        NoopSelfCheckCallbacks noop_callbacks;
+        SelfCheck self_check(display, get_network(), mm, get_module_leds());
+        self_check.check(SelfCheckSettings::defaults(), noop_callbacks, &pool);
 
-    ReadingsWorker readings_worker{ true, true };
-    readings_worker.run(pool);
+        mm->enable_all_modules();
+
+        ReadingsWorker readings_worker{ true, true };
+        readings_worker.run(pool);
+    }
+
+    // TODO Move this.
+    check_for_lora(pool);
 
     FK_ASSERT(os_task_start(&scheduler_task) == OSS_SUCCESS);
 }
 
 bool StartupWorker::load_or_create_state(Pool &pool) {
+    loginfo("loading state");
+
     auto gs = get_global_state_rw();
 
     Storage storage{ MemoryFactory::get_data_memory(), pool, false };
@@ -548,29 +555,6 @@ bool StartupWorker::check_for_interactive_startup(Pool &pool) {
     }
 
     return enable_debug_mode;
-}
-
-bool StartupWorker::check_for_low_power_startup(Pool &pool) {
-    auto gauge = get_battery_gauge();
-    if (!gauge->begin()) {
-        logwarn("battery: unavailable");
-        return false;
-    }
-
-    BatteryStatus battery;
-    battery.refresh();
-
-    if (!battery.have_charge()) {
-        logwarn("battery: unavailable");
-        return false;
-    }
-
-    if (!battery.low_battery()) {
-        return false;
-    }
-
-    loginfo("battery-charge (low)");
-    return true;
 }
 
 static void copy_cron_spec_from_pb(const char *name, Schedule &cs, fk_data_JobSchedule const &pb, Pool &pool) {

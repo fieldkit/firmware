@@ -15,7 +15,7 @@ bool WaterApi::handle(ModuleContext mc, HttpServerConnection *connection, Pool &
     auto content_length = connection->length();
 
     if (content_length > MaximumConfigurationSize) {
-        connection->error(400, "bad request", pool);
+        connection->error(HttpStatus::BadRequest, "bad request", pool);
         return true;
     }
 
@@ -26,13 +26,13 @@ bool WaterApi::handle(ModuleContext mc, HttpServerConnection *connection, Pool &
 
         auto nread = connection->read(configuration, content_length);
         if (nread != (int32_t)content_length) {
-            connection->error(400, "bad request", pool);
+            connection->error(HttpStatus::BadRequest, "bad request", pool);
             return true;
         }
 
         if (!eeprom.write_configuration(configuration, content_length)) {
             logerror("error writing module configuration");
-            connection->error(500, "server error", pool);
+            connection->error(HttpStatus::ServerError, "server error", pool);
             return true;
         }
     }
@@ -41,11 +41,11 @@ bool WaterApi::handle(ModuleContext mc, HttpServerConnection *connection, Pool &
     bzero(configuration, MaximumConfigurationSize);
     if (!eeprom.read_configuration(configuration, size, MaximumConfigurationSize)) {
         logwarn("error reading configuration");
-        connection->error(500, "server error", pool);
+        connection->error(HttpStatus::ServerError, "server error", pool);
         return true;
     }
 
-    connection->write(200, "ok", configuration, size);
+    connection->write(HttpStatus::Ok, "ok", configuration, size, pool);
 
     return true;
 }

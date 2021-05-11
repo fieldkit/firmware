@@ -30,14 +30,14 @@ void ReadingsWorker::run(Pool &pool) {
 }
 
 bool ReadingsWorker::prepare(Pool &pool) {
-    auto throttle_info = read_throttle_and_power_save();
-    if (throttle_info.throttle) {
+    auto state = read_state();
+    if (state.throttle) {
         logwarn("readings throttled");
         return false;
     }
 
     auto lock = storage_mutex.acquire(UINT32_MAX);
-    if (scan_) {
+    if (scan_ || !state.scanned) {
         ScanModulesWorker scan_worker;
         scan_worker.run(pool);
     }
@@ -131,17 +131,17 @@ bool ReadingsWorker::take(Pool &pool) {
     return true;
 }
 
-ReadingsWorker::ThrottleAndPowerSave ReadingsWorker::read_throttle_and_power_save() {
+ReadingsWorker::ThrottleAndScanState ReadingsWorker::read_state() {
     auto gs = get_global_state_rw();
-    auto power_save = ModulesPowerIndividually || gs.get()->runtime.power_save;
+    auto scanned = gs.get()->modules != nullptr;
     if (gs.get()->runtime.readings > 0) {
         auto elapsed = fk_uptime() - gs.get()->runtime.readings;
         if (elapsed < TenSecondsMs) {
-            return ThrottleAndPowerSave{ true, false };
+            return ThrottleAndScanState{ true, scanned };
         }
     }
     gs.get()->runtime.readings = fk_uptime();
-    return ThrottleAndPowerSave{ false, power_save };
+    return ThrottleAndScanState{ false, scanned };
 }
 
 static GpsState const *get_gps_from_global_state(Pool &pool) {
