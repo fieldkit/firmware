@@ -20,13 +20,36 @@ Ads1219::~Ads1219()  {
 }
 
 bool Ads1219::begin() {
-    return I2C_CHECK(bus_.write_u8(address_, ADS1219_COMMAND_RESET));
+    if (!I2C_CHECK(bus_.write_u8(address_, ADS1219_COMMAND_RESET))) {
+        return false;
+    }
+
+    return true;
 }
 
 bool Ads1219::configure(Ads1219VoltageReference vref, Ads1219Channel channel) {
     config_ = (uint8_t)vref | (uint8_t)channel;
+
     logdebug("config=0x%x", config_);
-    return I2C_CHECK(bus_.write_register_u8(address_, ADS1219_CONFIG_REGISTER_ADDRESS, config_));
+    if (!I2C_CHECK(bus_.write_register_u8(address_, ADS1219_CONFIG_REGISTER_ADDRESS, config_))) {
+        return false;
+    }
+
+    uint8_t config_after = 0;
+    if (!I2C_CHECK(bus_.read_register_u8(address_, 0x20, config_after))) {
+        return false;
+    }
+
+    logdebug("config-after=0x%x", config_after);
+
+    uint8_t status_after = 0;
+    if (!I2C_CHECK(bus_.read_register_u8(address_, 0x24, status_after))) {
+        return false;
+    }
+
+    logdebug("status-after=0x%x", status_after);
+
+    return true;
 }
 
 bool Ads1219::read(int32_t &value) {
@@ -37,6 +60,12 @@ bool Ads1219::read(int32_t &value) {
     if (!ready_->block_until_ready(bus_)) {
         return false;
     }
+
+    uint8_t status_after = 0;
+    if (!I2C_CHECK(bus_.read_register_u8(address_, 0x24, status_after))) {
+        return false;
+    }
+    logdebug("status-before-read=0x%x", status_after);
 
     if (!read_conversion(value)) {
         return false;
@@ -65,6 +94,13 @@ bool Ads1219::read_conversion(int32_t &value) {
     value >>= 8;
 
     logdebug("0x%x 0x%x 0x%x = 0x%x", data[0], data[1], data[2], value);
+
+    uint8_t status_after = 0;
+    if (!I2C_CHECK(bus_.read_register_u8(address_, 0x24, status_after))) {
+        return false;
+    }
+
+    logdebug("status-after=0x%x", status_after);
 
     return true;
 }

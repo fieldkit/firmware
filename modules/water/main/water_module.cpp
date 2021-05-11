@@ -38,11 +38,11 @@ public:
                 return false;
             }
 
+            logdebug("gpio: 0x%x", gpio);
+
             if (!(gpio & 0x2)) {
                 return true;
             }
-
-            logdebug("gpio: 0x%x", gpio);
 
             fk_delay(10);
         }
