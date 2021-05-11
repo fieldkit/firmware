@@ -5,8 +5,13 @@ namespace fk {
 
 FK_DECLARE_LOGGER("ads1219");
 
-#define ADS1219_CONFIG_REGISTER_ADDRESS 0x40
-#define ADS1219_STATUS_REGISTER_ADDRESS 0x24
+#define ADS1219_COMMAND_RESET               0x06
+#define ADS1219_COMMAND_START               0x08
+#define ADS1219_COMMAND_POWER_DOWN          0x02
+#define ADS1219_COMMAND_READ_DATA           0x10
+
+#define ADS1219_CONFIG_REGISTER_ADDRESS     0x40
+#define ADS1219_STATUS_REGISTER_ADDRESS     0x24
 
 Ads1219::Ads1219(TwoWireWrapper &bus, uint8_t address, Ads1219ReadyChecker *ready) : bus_(bus), address_(address), ready_(ready), config_(0) {
 }
@@ -15,7 +20,7 @@ Ads1219::~Ads1219()  {
 }
 
 bool Ads1219::begin() {
-    return true;
+    return I2C_CHECK(bus_.write_u8(address_, ADS1219_COMMAND_RESET));
 }
 
 bool Ads1219::configure(Ads1219VoltageReference vref, Ads1219Channel channel) {
@@ -43,7 +48,7 @@ bool Ads1219::read(int32_t &value) {
 bool Ads1219::read_conversion(int32_t &value) {
     uint8_t data[3] = { 0xff, 0xff, 0xff };
 
-    if (!I2C_CHECK(bus_.read_register_buffer(address_, 0x10, data, sizeof(data)))) {
+    if (!I2C_CHECK(bus_.read_register_buffer(address_, ADS1219_COMMAND_READ_DATA, data, sizeof(data)))) {
         return false;
     }
 
@@ -65,7 +70,7 @@ bool Ads1219::read_conversion(int32_t &value) {
 }
 
 bool Ads1219::start() {
-    return I2C_CHECK(bus_.write_u8(address_, 0x08));
+    return I2C_CHECK(bus_.write_u8(address_, ADS1219_COMMAND_START));
 }
 
 }
