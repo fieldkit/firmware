@@ -11,6 +11,12 @@ public:
     bool initialize(Pool &pool);
     bool rebuild();
 
+    template<typename RT>
+    RT read(std::function<RT(GlobalState*)> fn) {
+        auto gs = get_global_state_ro();
+        return fn(gs.get());
+    }
+
     template<typename T>
     bool apply(T fn) {
         auto gs = get_global_state_rw();

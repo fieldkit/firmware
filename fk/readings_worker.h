@@ -35,12 +35,12 @@ protected:
     bool take(Pool &pool);
 
 private:
-    struct ThrottleAndPowerSave {
+    struct ThrottleAndScanState {
         bool throttle;
-        bool power_save;
+        bool scanned;
     };
 
-    ThrottleAndPowerSave read_throttle_and_power_save();
+    ThrottleAndScanState read_state();
 
     tl::expected<TakenReadings, Error> take_readings(Pool &pool);
 };

@@ -67,11 +67,10 @@ bool DeepSleep::try_deep_sleep(lwcron::Scheduler &scheduler) {
                 break;
             }
 
-            auto remaining_seconds = nextTask.time - now;
-            loginfo("next task: %" PRIu32 "s (try)", remaining_seconds);
-
             // If we have enough time for a nap, otherwise we bail.
+            auto remaining_seconds = nextTask.time - now;
             if (remaining_seconds * 1000 < MinimumDeepSleepMs) {
+                loginfo("next task: %" PRIu32 "s (try)", remaining_seconds);
                 break;
             }
 
@@ -83,7 +82,6 @@ bool DeepSleep::try_deep_sleep(lwcron::Scheduler &scheduler) {
             // also return 0. So we basically gotta just bail out of
             // here in either case.
             if (deep_sleep() < MinimumAcceptableDeepSleepMs) {
-                loginfo("bailing");
                 break;
             }
         }

@@ -21,7 +21,7 @@ FK_DECLARE_LOGGER("schedule");
 static CurrentSchedules get_config_schedules();
 static bool has_schedule_changed(CurrentSchedules &running);
 static bool has_module_topology_changed(Topology &existing);
-static void update_power_save(bool enabled);
+static void update_allow_deep_sleep(bool enabled);
 static bool get_can_launch_captive_readings();
 
 static ScheduledTime get_next_task_time(lwcron::Task &task) {
@@ -49,14 +49,26 @@ static void update_task_upcoming(ReadingsTask &readings_job) {
 }
 
 void task_handler_scheduler(void *params) {
-    FK_ASSERT(fk_start_task_if_necessary(&display_task));
-    FK_ASSERT(fk_start_task_if_necessary(&network_task));
-    // NOTE: These share the same stack and so they can never be running together.
-    #if defined(FK_ENABLE_DEBUG_TASK)
-    FK_ASSERT(fk_start_task_if_necessary(&debug_task));
-    #else
-    FK_ASSERT(fk_start_task_if_necessary(&gps_task));
-    #endif
+    BatteryChecker battery;
+
+    battery.refresh();
+
+    if (!battery.low_power()) {
+        FK_ASSERT(fk_start_task_if_necessary(&display_task));
+        FK_ASSERT(fk_start_task_if_necessary(&network_task));
+
+        // NOTE: These share the same stack and so they can never be running together.
+#if defined(FK_ENABLE_DEBUG_TASK)
+        FK_ASSERT(fk_start_task_if_necessary(&debug_task));
+#else
+        FK_ASSERT(fk_start_task_if_necessary(&gps_task));
+#endif
+    }
+    else {
+        get_board()->disable_gps();
+        get_board()->disable_wifi();
+        update_allow_deep_sleep(true);
+    }
 
     while (!fk_task_stop_requested()) {
         auto schedules = get_config_schedules();
@@ -73,30 +85,22 @@ void task_handler_scheduler(void *params) {
         lwcron::Scheduler scheduler{ tasks };
         Topology topology;
 
-        loginfo("module service interval: %" PRIu32 "s", schedules.service_interval);
-
-        scheduler.begin(get_clock_now());
-
         IntervalTimer check_for_tasks_timer;
         IntervalTimer check_for_modules_timer;
         IntervalTimer check_battery_timer;
         IntervalTimer check_module_power_timer;
-        IntervalTimer enable_power_save_timer;
-        IntervalTimer eta_debug_timer;
-        #if defined(FK_ENABLE_NETWORK_UP_AND_DOWN)
-        IntervalTimer debug_enable_network_timer;
-        #endif
+        IntervalTimer enable_allow_deep_sleep_timer;
 
-        auto has_workers = true;
+        scheduler.begin(get_clock_now());
 
         while (!has_schedule_changed(schedules) && !fk_task_stop_requested()) {
             // This throttles this loop, so we take a pass when we dequeue or timeout.
             Activity *activity = nullptr;
             if (get_ipc()->dequeue_activity(&activity)) {
-                if (!enable_power_save_timer.enabled()) {
-                    loginfo("power saved disabled");
-                    update_power_save(false);
-                    enable_power_save_timer.mark();
+                if (!enable_allow_deep_sleep_timer.enabled()) {
+                    loginfo("deep sleep disabled");
+                    update_allow_deep_sleep(false);
+                    enable_allow_deep_sleep_timer.mark();
                 }
 
                 activity->consumed();
@@ -111,44 +115,38 @@ void task_handler_scheduler(void *params) {
                 break;
             }
 
-            if (enable_power_save_timer.expired(FiveMinutesMs)) {
-                loginfo("power saved enabled");
-                update_power_save(true);
-                enable_power_save_timer.disable();
+            if (enable_allow_deep_sleep_timer.expired(FiveMinutesMs)) {
+                loginfo("deep sleep enabled");
+                update_allow_deep_sleep(true);
+                enable_allow_deep_sleep_timer.disable();
             }
 
-            if (check_for_tasks_timer.expired(OneSecondMs)) {
-                auto now = get_clock_now();
-                auto time = lwcron::DateTime{ now };
-                if (!scheduler.check(time, 0)) {
-                    if (get_can_launch_captive_readings()) {
-                        get_ipc()->launch_worker(WorkerCategory::Readings, create_pool_worker<ReadingsWorker>(false, false, false, ModulePowerState::AlwaysOn));
+            if (!battery.low_power_dangerous()) {
+                if (check_for_tasks_timer.expired(OneSecondMs)) {
+                    auto now = get_clock_now();
+                    auto time = lwcron::DateTime{ now };
+                    if (!scheduler.check(time, 0)) {
+                        if (get_can_launch_captive_readings()) {
+                            get_ipc()->launch_worker(WorkerCategory::Readings, create_pool_worker<ReadingsWorker>(false, false, false, ModulePowerState::AlwaysOn));
+                        }
+                    }
+                    else {
+                        update_task_upcoming(readings_job);
                     }
                 }
-                else {
-                    update_task_upcoming(readings_job);
-                }
             }
 
-            auto now_has_workers = get_ipc()->has_any_running_worker();
-            if (has_workers && !now_has_workers) {
-                has_workers = now_has_workers;
-
-                loginfo("deep sleep: no workers, trying");
-
+            if (!get_ipc()->has_any_running_worker()) {
                 DeepSleep deep_sleep;
                 deep_sleep.try_deep_sleep(scheduler);
-            }
-            else if (!has_workers && now_has_workers) {
-                has_workers = now_has_workers;
             }
 
             if (check_for_modules_timer.expired(OneSecondMs)) {
                 // Only do this if we haven't enabled power save mode,
-                // which we do after enable_power_save_time passes.
-                // We're also skipping this if we're setup to always
-                // power modules on their own.
-                if (!ModulesPowerIndividually && enable_power_save_timer.enabled()) {
+                // which we do after the timer passes.  We're also
+                // skipping this if we're setup to always power
+                // modules on their own.
+                if (!ModulesPowerIndividually && enable_allow_deep_sleep_timer.enabled()) {
                     if (has_module_topology_changed(topology)) {
                         loginfo("topology changed: [%s]", topology.string());
                         get_ipc()->launch_worker(create_pool_worker<ScanModulesWorker>());
@@ -160,7 +158,6 @@ void task_handler_scheduler(void *params) {
             if (check_battery_timer.expired(ThirtySecondsMs)) {
                 auto started = fk_uptime();
                 loginfo("refreshing battery");
-                BatteryStatus battery;
                 battery.refresh();
                 loginfo("refreshing battery (%" PRIu32 "ms)", fk_uptime() - started);
             }
@@ -184,18 +181,6 @@ void task_handler_scheduler(void *params) {
                     }
                 }
             }
-
-            if (eta_debug_timer.expired(FiveSecondsMs)) {
-                update_task_upcoming(readings_job);
-            }
-
-            #if defined(FK_ENABLE_NETWORK_UP_AND_DOWN)
-            if (debug_enable_network_timer.expired(ThirtySecondsMs)) {
-                if (!os_task_is_running(&network_task)) {
-                    FK_ASSERT(fk_start_task_if_necessary(&network_task));
-                }
-            }
-            #endif
         }
     }
 
@@ -207,9 +192,9 @@ static CurrentSchedules get_config_schedules() {
     return { gs.get(), get_module_factory() };
 }
 
-static void update_power_save(bool enabled) {
+static void update_allow_deep_sleep(bool enabled) {
     auto gs = get_global_state_rw();
-    gs.get()->runtime.power_save = enabled;
+    gs.get()->power.allow_deep_sleep = enabled;
 }
 
 static bool has_schedule_changed(CurrentSchedules &running) {
