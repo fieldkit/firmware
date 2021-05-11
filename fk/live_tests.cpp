@@ -230,7 +230,7 @@ void fk_live_tests() {
     if (false) {
         scan_i2c_module_bus();
     }
-    if (true) {
+    if (false) {
         test_water_module();
     }
     if (false) {
