@@ -14,6 +14,8 @@
 #include "hal/linux/linux_ipc.h"
 #endif
 
+#include "modules/refresh_modules_worker.h"
+
 namespace fk {
 
 FK_DECLARE_LOGGER("schedule");
@@ -106,7 +108,9 @@ void task_handler_scheduler(void *params) {
                 activity->consumed();
 
                 if (!fk_task_stop_requested()) {
-                    fk_start_task_if_necessary(&display_task);
+                    if (fk_start_task_if_necessary(&display_task)) {
+                        get_ipc()->launch_worker(create_pool_worker<RefreshModulesWorker>());
+                    }
                 }
             }
 

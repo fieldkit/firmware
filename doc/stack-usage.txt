@@ -1305,6 +1305,8 @@ pool_pointer.h:12:13:fk::PoolPointer<T>::~PoolPointer() [with T = fk::ReceiveFir
 pool_pointer.h:12:13:fk::PoolPointer<T>::~PoolPointer() [with T = fk::ReceiveFirmwareWorker] 0
 pool_pointer.h:12:13:fk::PoolPointer<T>::~PoolPointer() [with T = fk::RefreshModulesWorker] 0
 pool_pointer.h:12:13:fk::PoolPointer<T>::~PoolPointer() [with T = fk::RefreshModulesWorker] 0
+pool_pointer.h:12:13:fk::PoolPointer<T>::~PoolPointer() [with T = fk::RefreshModulesWorker] 0
+pool_pointer.h:12:13:fk::PoolPointer<T>::~PoolPointer() [with T = fk::RefreshModulesWorker] 0
 pool_pointer.h:12:13:fk::PoolPointer<T>::~PoolPointer() [with T = fk::SelfCheckWorker] 0
 pool_pointer.h:12:13:fk::PoolPointer<T>::~PoolPointer() [with T = fk::SelfCheckWorker] 0
 pool_pointer.h:12:13:fk::PoolPointer<T>::~PoolPointer() [with T = fk::ServiceModulesWorker] 0
@@ -1770,6 +1772,7 @@ worker.h:105:13:uint8_t fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::priority
 worker.h:105:13:uint8_t fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::priority() const [with Wrapped = fk::ReadingsWorker; ConcreteWrapped = fk::ReadingsWorker; Args = {bool, bool, fk::ModulePowerState}; uint8_t = unsigned char] 0
 worker.h:105:13:uint8_t fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::priority() const [with Wrapped = fk::ReceiveFirmwareWorker; ConcreteWrapped = fk::ReceiveFirmwareWorker; Args = {fk::HttpServerConnection*&}; uint8_t = unsigned char] 0
 worker.h:105:13:uint8_t fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::priority() const [with Wrapped = fk::RefreshModulesWorker; ConcreteWrapped = fk::RefreshModulesWorker; Args = {}; uint8_t = unsigned char] 0
+worker.h:105:13:uint8_t fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::priority() const [with Wrapped = fk::RefreshModulesWorker; ConcreteWrapped = fk::RefreshModulesWorker; Args = {}; uint8_t = unsigned char] 0
 worker.h:105:13:uint8_t fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::priority() const [with Wrapped = fk::SelfCheckWorker; ConcreteWrapped = fk::SelfCheckWorker; Args = {fk::DisplaySelfCheckCallbacks&}; uint8_t = unsigned char] 0
 worker.h:105:13:uint8_t fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::priority() const [with Wrapped = fk::ServiceModulesWorker; ConcreteWrapped = fk::ServiceModulesWorker; Args = {}; uint8_t = unsigned char] 0
 worker.h:105:13:uint8_t fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::priority() const [with Wrapped = fk::StartupWorker; ConcreteWrapped = fk::StartupWorker; Args = {}; uint8_t = unsigned char] 0
@@ -1798,6 +1801,7 @@ worker.h:109:17:const char* fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::name
 worker.h:109:17:const char* fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::name() const [with Wrapped = fk::ReadingsWorker; ConcreteWrapped = fk::ReadingsWorker; Args = {bool, bool, fk::ModulePowerState}] 0
 worker.h:109:17:const char* fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::name() const [with Wrapped = fk::ReceiveFirmwareWorker; ConcreteWrapped = fk::ReceiveFirmwareWorker; Args = {fk::HttpServerConnection*&}] 0
 worker.h:109:17:const char* fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::name() const [with Wrapped = fk::RefreshModulesWorker; ConcreteWrapped = fk::RefreshModulesWorker; Args = {}] 0
+worker.h:109:17:const char* fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::name() const [with Wrapped = fk::RefreshModulesWorker; ConcreteWrapped = fk::RefreshModulesWorker; Args = {}] 0
 worker.h:109:17:const char* fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::name() const [with Wrapped = fk::SelfCheckWorker; ConcreteWrapped = fk::SelfCheckWorker; Args = {fk::DisplaySelfCheckCallbacks&}] 0
 worker.h:109:17:const char* fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::name() const [with Wrapped = fk::ServiceModulesWorker; ConcreteWrapped = fk::ServiceModulesWorker; Args = {}] 0
 worker.h:109:17:const char* fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::name() const [with Wrapped = fk::StartupWorker; ConcreteWrapped = fk::StartupWorker; Args = {}] 0
@@ -1820,28 +1824,28 @@ worker.h:20:13:fk::TaskWorker::~TaskWorker() 0
 worker.h:20:13:fk::TaskWorker::~TaskWorker() 0
 worker.h:20:13:fk::TaskWorker::~TaskWorker() 0
 worker.h:20:13:fk::TaskWorker::~TaskWorker() 0
-worker.h:26:21:virtual uint8_t fk::TaskWorker::priority() const 0
-worker.h:26:21:virtual uint8_t fk::TaskWorker::priority() const 0
-worker.h:26:21:virtual uint8_t fk::TaskWorker::priority() const 0
-worker.h:26:21:virtual uint8_t fk::TaskWorker::priority() const 0
-worker.h:26:21:virtual uint8_t fk::TaskWorker::priority() const 0
-worker.h:26:21:virtual uint8_t fk::TaskWorker::priority() const 0
-worker.h:26:21:virtual uint8_t fk::TaskWorker::priority() const 0
-worker.h:26:21:virtual uint8_t fk::TaskWorker::priority() const 0
-worker.h:26:21:virtual uint8_t fk::TaskWorker::priority() const 0
-worker.h:26:21:virtual uint8_t fk::TaskWorker::priority() const 0
-worker.h:26:21:virtual uint8_t fk::TaskWorker::priority() const 0
-worker.h:30:25:virtual const char* fk::TaskWorker::name() const 0
-worker.h:30:25:virtual const char* fk::TaskWorker::name() const 0
-worker.h:30:25:virtual const char* fk::TaskWorker::name() const 0
-worker.h:30:25:virtual const char* fk::TaskWorker::name() const 0
-worker.h:30:25:virtual const char* fk::TaskWorker::name() const 0
-worker.h:30:25:virtual const char* fk::TaskWorker::name() const 0
-worker.h:30:25:virtual const char* fk::TaskWorker::name() const 0
-worker.h:30:25:virtual const char* fk::TaskWorker::name() const 0
-worker.h:30:25:virtual const char* fk::TaskWorker::name() const 0
-worker.h:30:25:virtual const char* fk::TaskWorker::name() const 0
-worker.h:30:25:virtual const char* fk::TaskWorker::name() const 0
+worker.h:34:21:virtual uint8_t fk::TaskWorker::priority() const 0
+worker.h:34:21:virtual uint8_t fk::TaskWorker::priority() const 0
+worker.h:34:21:virtual uint8_t fk::TaskWorker::priority() const 0
+worker.h:34:21:virtual uint8_t fk::TaskWorker::priority() const 0
+worker.h:34:21:virtual uint8_t fk::TaskWorker::priority() const 0
+worker.h:34:21:virtual uint8_t fk::TaskWorker::priority() const 0
+worker.h:34:21:virtual uint8_t fk::TaskWorker::priority() const 0
+worker.h:34:21:virtual uint8_t fk::TaskWorker::priority() const 0
+worker.h:34:21:virtual uint8_t fk::TaskWorker::priority() const 0
+worker.h:34:21:virtual uint8_t fk::TaskWorker::priority() const 0
+worker.h:34:21:virtual uint8_t fk::TaskWorker::priority() const 0
+worker.h:38:25:virtual const char* fk::TaskWorker::name() const 0
+worker.h:38:25:virtual const char* fk::TaskWorker::name() const 0
+worker.h:38:25:virtual const char* fk::TaskWorker::name() const 0
+worker.h:38:25:virtual const char* fk::TaskWorker::name() const 0
+worker.h:38:25:virtual const char* fk::TaskWorker::name() const 0
+worker.h:38:25:virtual const char* fk::TaskWorker::name() const 0
+worker.h:38:25:virtual const char* fk::TaskWorker::name() const 0
+worker.h:38:25:virtual const char* fk::TaskWorker::name() const 0
+worker.h:38:25:virtual const char* fk::TaskWorker::name() const 0
+worker.h:38:25:virtual const char* fk::TaskWorker::name() const 0
+worker.h:38:25:virtual const char* fk::TaskWorker::name() const 0
 worker.h:46:13:fk::Worker::~Worker() 0
 worker.h:46:13:fk::Worker::~Worker() 0
 worker.h:46:13:fk::Worker::~Worker() 0
@@ -1957,6 +1961,7 @@ worker.h:91:11:fk::Pool* fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::pool() 
 worker.h:91:11:fk::Pool* fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::pool() [with Wrapped = fk::ReadingsWorker; ConcreteWrapped = fk::ReadingsWorker; Args = {bool, bool, fk::ModulePowerState}] 0
 worker.h:91:11:fk::Pool* fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::pool() [with Wrapped = fk::ReceiveFirmwareWorker; ConcreteWrapped = fk::ReceiveFirmwareWorker; Args = {fk::HttpServerConnection*&}] 0
 worker.h:91:11:fk::Pool* fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::pool() [with Wrapped = fk::RefreshModulesWorker; ConcreteWrapped = fk::RefreshModulesWorker; Args = {}] 0
+worker.h:91:11:fk::Pool* fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::pool() [with Wrapped = fk::RefreshModulesWorker; ConcreteWrapped = fk::RefreshModulesWorker; Args = {}] 0
 worker.h:91:11:fk::Pool* fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::pool() [with Wrapped = fk::SelfCheckWorker; ConcreteWrapped = fk::SelfCheckWorker; Args = {fk::DisplaySelfCheckCallbacks&}] 0
 worker.h:91:11:fk::Pool* fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::pool() [with Wrapped = fk::ServiceModulesWorker; ConcreteWrapped = fk::ServiceModulesWorker; Args = {}] 0
 worker.h:91:11:fk::Pool* fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::pool() [with Wrapped = fk::StartupWorker; ConcreteWrapped = fk::StartupWorker; Args = {}] 0
@@ -1984,6 +1989,7 @@ worker.h:95:14:Wrapped* fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::get() [w
 worker.h:95:14:Wrapped* fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::get() [with Wrapped = fk::ReadingsWorker; ConcreteWrapped = fk::ReadingsWorker; Args = {bool, bool, fk::ModulePowerState}] 0
 worker.h:95:14:Wrapped* fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::get() [with Wrapped = fk::ReadingsWorker; ConcreteWrapped = fk::ReadingsWorker; Args = {bool, bool, fk::ModulePowerState}] 0
 worker.h:95:14:Wrapped* fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::get() [with Wrapped = fk::ReceiveFirmwareWorker; ConcreteWrapped = fk::ReceiveFirmwareWorker; Args = {fk::HttpServerConnection*&}] 0
+worker.h:95:14:Wrapped* fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::get() [with Wrapped = fk::RefreshModulesWorker; ConcreteWrapped = fk::RefreshModulesWorker; Args = {}] 0
 worker.h:95:14:Wrapped* fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::get() [with Wrapped = fk::RefreshModulesWorker; ConcreteWrapped = fk::RefreshModulesWorker; Args = {}] 0
 worker.h:95:14:Wrapped* fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::get() [with Wrapped = fk::SelfCheckWorker; ConcreteWrapped = fk::SelfCheckWorker; Args = {fk::DisplaySelfCheckCallbacks&}] 0
 worker.h:95:14:Wrapped* fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::get() [with Wrapped = fk::ServiceModulesWorker; ConcreteWrapped = fk::ServiceModulesWorker; Args = {}] 0
@@ -2999,6 +3005,9 @@ record_chain.h:7:7:virtual phylum::record_chain::~record_chain() 8
 record_chain.h:7:7:virtual phylum::record_chain::~record_chain() 8
 records.cpp:290:6:void fk::fk_data_record_encoding_new(fk_data_DataRecord*) 8
 records.cpp:565:6:void fk::fk_lora_record_encoding_new(fk_data_LoraRecord*) 8
+refresh_modules_worker.h:23:21:virtual fk::TaskDisplayInfo fk::RefreshModulesWorker::display_info() const 8
+refresh_modules_worker.h:23:21:virtual fk::TaskDisplayInfo fk::RefreshModulesWorker::display_info() const 8
+refresh_modules_worker.h:23:21:virtual fk::TaskDisplayInfo fk::RefreshModulesWorker::display_info() const 8
 refresh_modules_worker.h:7:7:virtual fk::RefreshModulesWorker::~RefreshModulesWorker() 8
 registry.cpp:25:1:virtual fk::ModuleRegistry::~ModuleRegistry() 8
 registry.cpp:40:23:const ModuleMetadata* fk::ModuleRegistry::resolve(const ModuleHeader&) 8
@@ -3353,6 +3362,7 @@ worker.h:113:21:fk::TaskDisplayInfo fk::PoolWorker<Wrapped, ConcreteWrapped, Arg
 worker.h:113:21:fk::TaskDisplayInfo fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::display_info() const [with Wrapped = fk::ReadingsWorker; ConcreteWrapped = fk::ReadingsWorker; Args = {bool, bool, fk::ModulePowerState}] 8
 worker.h:113:21:fk::TaskDisplayInfo fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::display_info() const [with Wrapped = fk::ReceiveFirmwareWorker; ConcreteWrapped = fk::ReceiveFirmwareWorker; Args = {fk::HttpServerConnection*&}] 8
 worker.h:113:21:fk::TaskDisplayInfo fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::display_info() const [with Wrapped = fk::RefreshModulesWorker; ConcreteWrapped = fk::RefreshModulesWorker; Args = {}] 8
+worker.h:113:21:fk::TaskDisplayInfo fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::display_info() const [with Wrapped = fk::RefreshModulesWorker; ConcreteWrapped = fk::RefreshModulesWorker; Args = {}] 8
 worker.h:113:21:fk::TaskDisplayInfo fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::display_info() const [with Wrapped = fk::SelfCheckWorker; ConcreteWrapped = fk::SelfCheckWorker; Args = {fk::DisplaySelfCheckCallbacks&}] 8
 worker.h:113:21:fk::TaskDisplayInfo fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::display_info() const [with Wrapped = fk::ServiceModulesWorker; ConcreteWrapped = fk::ServiceModulesWorker; Args = {}] 8
 worker.h:113:21:fk::TaskDisplayInfo fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::display_info() const [with Wrapped = fk::UpgradeFirmwareFromSdWorker; ConcreteWrapped = fk::UpgradeFirmwareFromSdWorker; Args = {fk::SdCardFirmware&}] 8
@@ -3372,17 +3382,17 @@ worker.h:20:13:virtual fk::TaskWorker::~TaskWorker() 8
 worker.h:20:13:virtual fk::TaskWorker::~TaskWorker() 8
 worker.h:20:13:virtual fk::TaskWorker::~TaskWorker() 8
 worker.h:20:13:virtual fk::TaskWorker::~TaskWorker() 8
-worker.h:34:29:virtual fk::TaskDisplayInfo fk::TaskWorker::display_info() const 8
-worker.h:34:29:virtual fk::TaskDisplayInfo fk::TaskWorker::display_info() const 8
-worker.h:34:29:virtual fk::TaskDisplayInfo fk::TaskWorker::display_info() const 8
-worker.h:34:29:virtual fk::TaskDisplayInfo fk::TaskWorker::display_info() const 8
-worker.h:34:29:virtual fk::TaskDisplayInfo fk::TaskWorker::display_info() const 8
-worker.h:34:29:virtual fk::TaskDisplayInfo fk::TaskWorker::display_info() const 8
-worker.h:34:29:virtual fk::TaskDisplayInfo fk::TaskWorker::display_info() const 8
-worker.h:34:29:virtual fk::TaskDisplayInfo fk::TaskWorker::display_info() const 8
-worker.h:34:29:virtual fk::TaskDisplayInfo fk::TaskWorker::display_info() const 8
-worker.h:34:29:virtual fk::TaskDisplayInfo fk::TaskWorker::display_info() const 8
-worker.h:34:29:virtual fk::TaskDisplayInfo fk::TaskWorker::display_info() const 8
+worker.h:26:29:virtual fk::TaskDisplayInfo fk::TaskWorker::display_info() const 8
+worker.h:26:29:virtual fk::TaskDisplayInfo fk::TaskWorker::display_info() const 8
+worker.h:26:29:virtual fk::TaskDisplayInfo fk::TaskWorker::display_info() const 8
+worker.h:26:29:virtual fk::TaskDisplayInfo fk::TaskWorker::display_info() const 8
+worker.h:26:29:virtual fk::TaskDisplayInfo fk::TaskWorker::display_info() const 8
+worker.h:26:29:virtual fk::TaskDisplayInfo fk::TaskWorker::display_info() const 8
+worker.h:26:29:virtual fk::TaskDisplayInfo fk::TaskWorker::display_info() const 8
+worker.h:26:29:virtual fk::TaskDisplayInfo fk::TaskWorker::display_info() const 8
+worker.h:26:29:virtual fk::TaskDisplayInfo fk::TaskWorker::display_info() const 8
+worker.h:26:29:virtual fk::TaskDisplayInfo fk::TaskWorker::display_info() const 8
+worker.h:26:29:virtual fk::TaskDisplayInfo fk::TaskWorker::display_info() const 8
 worker.h:46:13:virtual fk::Worker::~Worker() 8
 worker.h:46:13:virtual fk::Worker::~Worker() 8
 worker.h:46:13:virtual fk::Worker::~Worker() 8
@@ -3483,6 +3493,8 @@ worker.h:80:13:fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::~PoolWorker() [wi
 worker.h:80:13:fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::~PoolWorker() [with Wrapped = fk::ReadingsWorker; ConcreteWrapped = fk::ReadingsWorker; Args = {bool, bool, fk::ModulePowerState}] 8
 worker.h:80:13:fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::~PoolWorker() [with Wrapped = fk::ReceiveFirmwareWorker; ConcreteWrapped = fk::ReceiveFirmwareWorker; Args = {fk::HttpServerConnection*&}] 8
 worker.h:80:13:fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::~PoolWorker() [with Wrapped = fk::ReceiveFirmwareWorker; ConcreteWrapped = fk::ReceiveFirmwareWorker; Args = {fk::HttpServerConnection*&}] 8
+worker.h:80:13:fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::~PoolWorker() [with Wrapped = fk::RefreshModulesWorker; ConcreteWrapped = fk::RefreshModulesWorker; Args = {}] 8
+worker.h:80:13:fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::~PoolWorker() [with Wrapped = fk::RefreshModulesWorker; ConcreteWrapped = fk::RefreshModulesWorker; Args = {}] 8
 worker.h:80:13:fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::~PoolWorker() [with Wrapped = fk::RefreshModulesWorker; ConcreteWrapped = fk::RefreshModulesWorker; Args = {}] 8
 worker.h:80:13:fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::~PoolWorker() [with Wrapped = fk::RefreshModulesWorker; ConcreteWrapped = fk::RefreshModulesWorker; Args = {}] 8
 worker.h:80:13:fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::~PoolWorker() [with Wrapped = fk::SelfCheckWorker; ConcreteWrapped = fk::SelfCheckWorker; Args = {fk::DisplaySelfCheckCallbacks&}] 8
@@ -5075,6 +5087,7 @@ worker.h:100:10:void fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::run() [with
 worker.h:100:10:void fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::run() [with Wrapped = fk::ReadingsWorker; ConcreteWrapped = fk::ReadingsWorker; Args = {bool, bool, fk::ModulePowerState}] 24
 worker.h:100:10:void fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::run() [with Wrapped = fk::ReceiveFirmwareWorker; ConcreteWrapped = fk::ReceiveFirmwareWorker; Args = {fk::HttpServerConnection*&}] 24
 worker.h:100:10:void fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::run() [with Wrapped = fk::RefreshModulesWorker; ConcreteWrapped = fk::RefreshModulesWorker; Args = {}] 24
+worker.h:100:10:void fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::run() [with Wrapped = fk::RefreshModulesWorker; ConcreteWrapped = fk::RefreshModulesWorker; Args = {}] 24
 worker.h:100:10:void fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::run() [with Wrapped = fk::SelfCheckWorker; ConcreteWrapped = fk::SelfCheckWorker; Args = {fk::DisplaySelfCheckCallbacks&}] 24
 worker.h:100:10:void fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::run() [with Wrapped = fk::ServiceModulesWorker; ConcreteWrapped = fk::ServiceModulesWorker; Args = {}] 24
 worker.h:100:10:void fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::run() [with Wrapped = fk::StartupWorker; ConcreteWrapped = fk::StartupWorker; Args = {}] 24
@@ -5269,7 +5282,7 @@ rn2903.cpp:27:6:bool fk::Rn2903::wake() 32
 sc16is740.cpp:113:6:bool fk::Sc16is740::write_fifo(const uint8_t*, size_t) 32
 sc16is740.cpp:95:6:bool fk::Sc16is740::read_fifo(uint8_t*, size_t) 32
 scanning.cpp:200:6:virtual bool fk::ModuleScanning::erase(fk::ModulePosition) 32
-scheduler.cpp:195:13:void fk::update_allow_deep_sleep(bool) 32
+scheduler.cpp:199:13:void fk::update_allow_deep_sleep(bool) 32
 sector_chain.cpp:374:9:int32_t phylum::sector_chain::dequeue_sector(phylum::dhara_sector_t*) 32
 sector_chain.cpp:54:9:virtual int32_t phylum::sector_chain::seek_end_of_chain(phylum::page_lock&) 32
 sector_chain.cpp:7:9:int32_t phylum::sector_chain::create_if_necessary() 32
@@ -6112,7 +6125,7 @@ rn2903.cpp:368:6:bool fk::Rn2903::send_bytes(const uint8_t*, size_t, uint8_t, bo
 rn2903.cpp:97:6:) 40
 scanning.cpp:112:44:virtual tl::expected<fk::collection<fk::FoundModule>, fk::Error> fk::ModuleScanning::scan(fk::Pool&) 40
 scanning.cpp:97:6:bool fk::ModuleScanning::try_read_configuration(fk::ModulePosition, fk::Pool&) 40
-scheduler.cpp:190:25:fk::CurrentSchedules fk::get_config_schedules() 40
+scheduler.cpp:194:25:fk::CurrentSchedules fk::get_config_schedules() 40
 scheduling.cpp:22:1:fk::ReadingsTask::ReadingsTask(lwcron::CronSpec) 40
 scheduling.cpp:33:1:fk::GpsTask::GpsTask(lwcron::CronSpec) 40
 scheduling.cpp:44:1:fk::LoraTask::LoraTask(lwcron::CronSpec) 40
@@ -6752,7 +6765,7 @@ file_ops_darwin.cpp:34:31:tl::expected<long unsigned int, fk::Error> fk::darwin:
 file_ops_darwin.cpp:75:31:virtual tl::expected<long unsigned int, fk::Error> fk::darwin::DataOps::write_readings(fk::GlobalState*, fk_data_DataRecord*, fk::Pool&) 368
 storage.cpp:474:11:fk::SeekValue fk::Storage::seek(fk::SeekSettings) 400
 network.cpp:49:6:void fk::try_and_serve_connections() 448
-scheduler.cpp:51:6:void fk::task_handler_scheduler(void*) 472
+scheduler.cpp:53:6:void fk::task_handler_scheduler(void*) 472
 main.c:72:9:bl_upgrade_firmware 488
 upgrade_from_sd_worker.cpp:92:6:virtual void fk::UpgradeFirmwareFromSdWorker::run(fk::Pool&) 488
 directory_tree.cpp:19:9:virtual int32_t phylum::directory_tree::touch(const char*) 520

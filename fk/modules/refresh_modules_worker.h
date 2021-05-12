@@ -20,6 +20,14 @@ public:
         return "refmodules";
     }
 
+    TaskDisplayInfo display_info() const override {
+        return {
+            .name = name(),
+            .progress = 0.0f,
+            .visible = false,
+        };
+    }
+
 };
 
 FK_ENABLE_TYPE_NAME(RefreshModulesWorker);

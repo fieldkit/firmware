@@ -23,20 +23,20 @@ public:
 public:
     virtual void run() = 0;
 
-    virtual uint8_t priority() const {
-        return OS_PRIORITY_NORMAL;
-    }
-
-    virtual const char *name() const {
-        return "worker";
-    }
-
     virtual TaskDisplayInfo display_info() const {
         return {
             .name = name(),
             .progress = 0.0f,
             .visible = true,
         };
+    }
+
+    virtual uint8_t priority() const {
+        return OS_PRIORITY_NORMAL;
+    }
+
+    virtual const char *name() const {
+        return "worker";
     }
 
 };
