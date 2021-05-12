@@ -1356,9 +1356,9 @@ random_module.cpp:44:22:virtual const ModuleSensors* fk::RandomModule::get_senso
 random_module.cpp:48:27:virtual const ModuleConfiguration fk::RandomModule::get_configuration(fk::Pool&) 0
 random_module.cpp:6:1:fk::RandomModule::RandomModule(fk::Pool&) 0
 random_module.cpp:9:1:fk::RandomModule::~RandomModule() 0
-readings.cpp:171:6:void fk::Readings::meta_record(uint32_t) 0
-readings.cpp:175:6:void fk::Readings::record_number(uint32_t) 0
-readings.cpp:179:21:fk_data_DataRecord& fk::Readings::record() 0
+readings.cpp:172:6:void fk::Readings::meta_record(uint32_t) 0
+readings.cpp:176:6:void fk::Readings::record_number(uint32_t) 0
+readings.cpp:180:21:fk_data_DataRecord& fk::Readings::record() 0
 readings_view.cpp:51:6:virtual void fk::ReadingsView::up(fk::ViewController*) 0
 readings_view.cpp:56:6:virtual void fk::ReadingsView::down(fk::ViewController*) 0
 readings_worker.h:21:13:virtual uint8_t fk::ReadingsWorker::priority() const 0
@@ -6734,9 +6734,9 @@ sector_chain.h:163:13:int32_t phylum::sector_chain::walk(phylum::page_lock&, T) 
 spi_flash.cpp:432:6:bool fk::SpiFlash::read_parameters_page() 288
 map.c:411:12:try_delete 304
 signed_log.cpp:77:37:tl::expected<fk::AppendedRecord, fk::Error> fk::SignedRecordLog::append_always(fk::SignedRecordKind, const void*, const pb_msgdesc_t*, fk::Pool&) 304
-readings.cpp:16:47:tl::expected<fk::collection<fk::ModuleMetaAndReadings>, fk::Error> fk::Readings::take_readings(fk::ScanningContext&, const ConstructedModulesCollection&, fk::Pool&) 312
 scanning.cpp:34:13:9(fk::FoundModuleCollection&) 312
 signed_log.cpp:114:37:tl::expected<fk::AppendedRecord, fk::Error> fk::SignedRecordLog::append_immutable(fk::SignedRecordKind, const void*, const pb_msgdesc_t*, fk::Pool&) 312
+readings.cpp:16:47:tl::expected<fk::collection<fk::ModuleMetaAndReadings>, fk::Error> fk::Readings::take_readings(fk::ScanningContext&, const ConstructedModulesCollection&, fk::Pool&) 320
 tree_sector.h:605:140:phylum::tree_sector<KEY, VALUE, Size>::add(KEY, VALUE) [with KEY = long unsigned int; VALUE = phylum::dirtree_tree_value_t<128u>; unsigned int Size = 4u; int32_t = long int]::__lambda5 320
 file_ops_darwin.cpp:101:37:virtual tl::expected<fk::FileAttributes, fk::Error> fk::darwin::DataOps::attributes() 328
 file_ops_darwin.cpp:49:37:virtual tl::expected<fk::FileAttributes, fk::Error> fk::darwin::MetaOps::attributes() 328

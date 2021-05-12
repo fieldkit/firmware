@@ -64,7 +64,7 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
     for (auto pair : modules) {
         auto meta = pair.meta;
         auto module = pair.module;
-        auto i = pair.found.position;
+        auto position = pair.found.position;
 
         auto sensor_metas = module->get_sensors(pool);
 
@@ -78,7 +78,7 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
         };
 
         if (module == nullptr) {
-            logwarn("[%d] ignore unknown module", i.integer());
+            logwarn("[%d] ignore unknown module", position.integer());
             group_number++;
             all_readings.emplace(adding);
             continue;
@@ -86,7 +86,7 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
 
         EnableModulePower module_power{ true, pair.configuration.power, pair.found.position };
         if (!module_power.enable()) {
-            logerror("[%d] error powering module", i.integer());
+            logerror("[%d] error powering module", position.integer());
             group_number++;
             all_readings.emplace(adding);
             continue;
@@ -96,9 +96,9 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
             fk_delay(pair.configuration.wake_delay);
         }
 
-        auto mc = ctx.readings(i, all_readings, pool);
+        auto mc = ctx.readings(position, all_readings, pool);
         if (!mc.open()) {
-            logerror("[%d] error choosing module", i.integer());
+            logerror("[%d] error choosing module", position.integer());
             group_number++;
             all_readings.emplace(adding);
             continue;
@@ -127,13 +127,14 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
         loginfo("'%s' %zd readings", meta->name, readings->size());
 
         auto sensor_values = pool.malloc<fk_data_SensorAndValue>(readings->size());
-        for (auto i = 0u; i < readings->size(); ++i) {
-            auto reading = readings->get(i);
-            loginfo("[%2d] '%s.%s' = %f (%f)", i, meta->name, sensor_metas->sensors[i].name, reading.calibrated, reading.uncalibrated);
-            sensor_values[i] = fk_data_SensorAndValue_init_default;
-            sensor_values[i].sensor = i;
-            sensor_values[i].value = reading.calibrated;
-            sensor_values[i].uncalibrated = reading.uncalibrated;
+        for (auto sensor_index = 0u; sensor_index < readings->size(); ++sensor_index) {
+            auto reading = readings->get(sensor_index);
+            loginfo("bay[%d] sensor[%2d] '%s.%s' = %f (%f)", position.integer(), sensor_index, meta->name,
+                    sensor_metas->sensors[sensor_index].name, reading.calibrated, reading.uncalibrated);
+            sensor_values[sensor_index] = fk_data_SensorAndValue_init_default;
+            sensor_values[sensor_index].sensor = sensor_index;
+            sensor_values[sensor_index].value = reading.calibrated;
+            sensor_values[sensor_index].uncalibrated = reading.uncalibrated;
         }
 
         auto readings_array = pool.malloc<pb_array_t>();
@@ -143,7 +144,7 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
         readings_array->fields = fk_data_SensorAndValue_fields;
 
         auto &group = groups[group_number];
-        group.module = i.integer();
+        group.module = position.integer();
         group.readings.funcs.encode = pb_encode_array;
         group.readings.arg = readings_array;
         group_number++;
