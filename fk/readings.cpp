@@ -92,6 +92,7 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
             continue;
         }
         if (module_power.was_enabled()) {
+            logdebug("wake delay: %" PRIu32 "ms", pair.configuration.wake_delay);
             fk_delay(pair.configuration.wake_delay);
         }
 

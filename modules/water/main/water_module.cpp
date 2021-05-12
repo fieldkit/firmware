@@ -58,38 +58,49 @@ WaterModule::~WaterModule() {
 }
 
 ModuleReturn WaterModule::initialize(ModuleContext mc, Pool &pool) {
-    loginfo("water: initialize");
+    loginfo("initialize");
 
-    load_configuration(mc, pool);
+    if (!load_configuration(mc, pool)) {
+        return { ModuleStatus::Fatal };
+    }
 
     auto &bus = mc.module_bus();
 
     Mcp2803 mcp{ bus, FK_MCP2803_ADDRESS };
-    if (!mcp.configure(FK_MCP2803_IODIR, FK_MCP2803_GPPU, FK_MCP2803_GPIO_OFF)) {
-        logerror("mcp2803::begin");
-        return { ModuleStatus::Fatal };
-    }
-
-    fk_delay(100);
-
-    if (!mcp.configure(FK_MCP2803_IODIR, FK_MCP2803_GPPU, FK_MCP2803_GPIO_ON)) {
-        logerror("mcp2803::begin");
-        return { ModuleStatus::Fatal };
-    }
-
     Mcp2803ReadyChecker ready_checker{ mcp };
     Ads1219 ads{ bus, FK_ADS1219_ADDRESS, &ready_checker };
-    if (!ads.begin()) {
-        logerror("ads1219::begin");
-        return { ModuleStatus::Fatal };
-    }
 
-    if (!ads.configure(Ads1219VoltageReference::External, Ads1219Channel::Diff_0_1)) {
-        logerror("ads1219::configure");
+    if (!initialize(mcp, ads)) {
         return { ModuleStatus::Fatal };
     }
 
     return { ModuleStatus::Ok };
+}
+
+bool WaterModule::initialize(Mcp2803 &mcp, Ads1219 &ads) {
+    if (!mcp.configure(FK_MCP2803_IODIR, FK_MCP2803_GPPU, FK_MCP2803_GPIO_OFF)) {
+        logerror("mcp2803::begin");
+        return false;
+    }
+
+    if (!mcp.configure(FK_MCP2803_IODIR, FK_MCP2803_GPPU, FK_MCP2803_GPIO_ON)) {
+        logerror("mcp2803::begin");
+        return false;
+    }
+
+    fk_delay(100);
+
+    if (!ads.begin()) {
+        logerror("ads1219::begin");
+        return false;
+    }
+
+    if (!ads.configure(Ads1219VoltageReference::External, Ads1219Channel::Diff_0_1)) {
+        logerror("ads1219::configure");
+        return false;
+    }
+
+    return true;
 }
 
 bool WaterModule::load_configuration(ModuleContext mc, Pool &pool) {
@@ -108,8 +119,8 @@ bool WaterModule::load_configuration(ModuleContext mc, Pool &pool) {
         auto cfg = fk_module_configuration_decoding_new(pool_);
         auto stream = pb_istream_from_buffer(buffer, size);
         if (!pb_decode_delimited(&stream, fk_data_ModuleConfiguration_fields, cfg)) {
-            logerror("mod-cfg: decoding ");
-            return false;
+            // Some modules consider this an error. We continue along uncalibrated.
+            logwarn("mod-cfg: decoding");
         }
         else {
             loginfo("mod-cfg: decoded");
@@ -166,8 +177,7 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
     Mcp2803ReadyChecker ready_checker{ mcp };
     Ads1219 ads{ bus, FK_ADS1219_ADDRESS, &ready_checker };
 
-    if (!ads.configure(Ads1219VoltageReference::External, Ads1219Channel::Diff_0_1)) {
-        logerror("configure");
+    if (!initialize(mcp, ads)) {
         return nullptr;
     }
 

@@ -34,6 +34,7 @@ private:
 
 private:
     bool excite_control(Mcp2803 &mcp, bool high);
+    bool initialize(Mcp2803 &mcp, Ads1219 &ads);
 
 };
 

@@ -1000,6 +1000,7 @@ linux_sd_card.cpp:72:8:virtual size_t fk::LinuxSdCardFile::file_size() 0
 linux_sd_card.cpp:76:6:virtual bool fk::LinuxSdCardFile::close() 0
 linux_sd_card.cpp:8:6:virtual bool fk::LinuxSdCard::begin() 0
 linux_sd_card.h:35:10:virtual bool fk::LinuxSdCardFile::is_open() const 0
+live_tests.cpp:229:6:void fk::fk_live_tests() 0
 log_stream.cpp:39:11:LogStream Logger::begin(const char*) const 0
 log_stream.cpp:43:11:LogStream Logger::begin() const 0
 logging.cpp:142:13:const char* alog_get_log_level(LogLevels) 0
@@ -1355,9 +1356,9 @@ random_module.cpp:44:22:virtual const ModuleSensors* fk::RandomModule::get_senso
 random_module.cpp:48:27:virtual const ModuleConfiguration fk::RandomModule::get_configuration(fk::Pool&) 0
 random_module.cpp:6:1:fk::RandomModule::RandomModule(fk::Pool&) 0
 random_module.cpp:9:1:fk::RandomModule::~RandomModule() 0
-readings.cpp:170:6:void fk::Readings::meta_record(uint32_t) 0
-readings.cpp:174:6:void fk::Readings::record_number(uint32_t) 0
-readings.cpp:178:21:fk_data_DataRecord& fk::Readings::record() 0
+readings.cpp:171:6:void fk::Readings::meta_record(uint32_t) 0
+readings.cpp:175:6:void fk::Readings::record_number(uint32_t) 0
+readings.cpp:179:21:fk_data_DataRecord& fk::Readings::record() 0
 readings_view.cpp:51:6:virtual void fk::ReadingsView::up(fk::ViewController*) 0
 readings_view.cpp:56:6:virtual void fk::ReadingsView::down(fk::ViewController*) 0
 readings_worker.h:21:13:virtual uint8_t fk::ReadingsWorker::priority() const 0
@@ -1733,8 +1734,8 @@ variant.cpp:212:6:void SERCOM0_2_Handler() 0
 variant.cpp:216:6:void SERCOM0_3_Handler() 0
 varint.cpp:20:8:size_t phylum::varint_encoding_length(long long unsigned int) 0
 water_api.cpp:8:1:fk::WaterApi::WaterApi() 0
-water_module.cpp:152:13:const char* fk::WaterModule::get_display_name_key() 0
-water_module.cpp:156:27:virtual const ModuleConfiguration fk::WaterModule::get_configuration(fk::Pool&) 0
+water_module.cpp:163:13:const char* fk::WaterModule::get_display_name_key() 0
+water_module.cpp:167:27:virtual const ModuleConfiguration fk::WaterModule::get_configuration(fk::Pool&) 0
 water_module.cpp:57:1:fk::WaterModule::~WaterModule() 0
 weather_module.cpp:41:1:fk::WeatherModule::WeatherModule(fk::Pool&) 0
 weather_module.cpp:44:1:fk::WeatherModule::~WeatherModule() 0
@@ -2565,7 +2566,6 @@ linux_leds.cpp:5:1:fk::LinuxLeds::LinuxLeds() 8
 linux_leds.h:7:7:fk::LinuxLeds::~LinuxLeds() 8
 linux_leds.h:7:7:virtual fk::LinuxLeds::~LinuxLeds() 8
 linux_sd_card.cpp:44:13:virtual fk::SdCardFile* fk::LinuxSdCard::open(const char*, fk::OpenFlags, fk::Pool&) 8
-live_tests.cpp:229:6:void fk::fk_live_tests() 8
 loading.c:18:21:fkb_try_header 8
 log_stream.cpp:47:1:LogStream::~LogStream() 8
 log_stream.cpp:51:12:LogStream& LogStream::flush() 8
@@ -2624,7 +2624,6 @@ memory.cpp:142:9:virtual int32_t fk::TranslatingMemory::flush() 8
 memory.cpp:154:9:virtual int32_t fk::TranslatingMemory::execute(uint32_t*, uint32_t*) 8
 memory.cpp:21:1:fk::BankedDataMemory::BankedDataMemory(fk::DataMemory**, size_t) 8
 memory.cpp:226:1:cpp) 8
-memory.h:101:21:virtual int32_t fk::DataMemory::copy_page(uint32_t, uint32_t, size_t) 8
 memory.h:101:21:virtual int32_t fk::DataMemory::copy_page(uint32_t, uint32_t, size_t) 8
 memory.h:101:21:virtual int32_t fk::DataMemory::copy_page(uint32_t, uint32_t, size_t) 8
 memory.h:101:21:virtual int32_t fk::DataMemory::copy_page(uint32_t, uint32_t, size_t) 8
@@ -2803,8 +2802,6 @@ mutex.h:46:13:fk::Lock::~Lock() 8
 mutex.h:46:13:fk::Lock::~Lock() 8
 mutex.h:46:13:fk::Lock::~Lock() 8
 mutex.h:46:13:fk::Lock::~Lock() 8
-mutex.h:46:13:fk::Lock::~Lock() 8
-mutex.h:46:13:virtual fk::Lock::~Lock() 8
 mutex.h:46:13:virtual fk::Lock::~Lock() 8
 mutex.h:46:13:virtual fk::Lock::~Lock() 8
 mutex.h:46:13:virtual fk::Lock::~Lock() 8
@@ -3153,8 +3150,6 @@ state_ref.h:24:13:fk::GlobalStateRef<T>::~GlobalStateRef() [with T = const fk::G
 state_ref.h:24:13:fk::GlobalStateRef<T>::~GlobalStateRef() [with T = const fk::GlobalState*] 8
 state_ref.h:24:13:fk::GlobalStateRef<T>::~GlobalStateRef() [with T = const fk::GlobalState*] 8
 state_ref.h:24:13:fk::GlobalStateRef<T>::~GlobalStateRef() [with T = const fk::GlobalState*] 8
-state_ref.h:24:13:fk::GlobalStateRef<T>::~GlobalStateRef() [with T = const fk::GlobalState*] 8
-state_ref.h:24:13:fk::GlobalStateRef<T>::~GlobalStateRef() [with T = const fk::GlobalState*] 8
 state_ref.h:24:13:fk::GlobalStateRef<T>::~GlobalStateRef() [with T = fk::GlobalState*] 8
 state_ref.h:24:13:fk::GlobalStateRef<T>::~GlobalStateRef() [with T = fk::GlobalState*] 8
 state_ref.h:24:13:fk::GlobalStateRef<T>::~GlobalStateRef() [with T = fk::GlobalState*] 8
@@ -3331,7 +3326,7 @@ watchdog.cpp:29:9:int32_t fk_wdt_initialize() 8
 watchdog.cpp:35:9:int32_t fk_wdt_enable() 8
 watchdog.cpp:43:9:int32_t fk_wdt_disable() 8
 watchdog.cpp:48:9:int32_t fk_wdt_feed() 8
-water_module.cpp:222:6:bool fk::WaterModule::excite_control(fk::Mcp2803&, bool) 8
+water_module.cpp:232:6:bool fk::WaterModule::excite_control(fk::Mcp2803&, bool) 8
 water_module.cpp:54:1:fk::WaterModule::WaterModule(fk::Pool&) 8
 water_module.cpp:57:1:virtual fk::WaterModule::~WaterModule() 8
 weather_module.cpp:44:1:virtual fk::WeatherModule::~WeatherModule() 8
@@ -4469,7 +4464,8 @@ url_parser.h:34:5:fk::UrlParser::UrlParser(char*) 16
 url_parser.h:34:5:fk::UrlParser::UrlParser(char*) 16
 variant.cpp:219:1:cpp) 16
 watchdog.cpp:75:1:cpp) 16
-water_module.cpp:136:14:virtual fk::ModuleReturn fk::WaterModule::service(fk::ModuleContext, fk::Pool&) 16
+water_module.cpp:147:14:virtual fk::ModuleReturn fk::WaterModule::service(fk::ModuleContext, fk::Pool&) 16
+water_module.cpp:80:6:bool fk::WaterModule::initialize(fk::Mcp2803&, fk::Ads1219&) 16
 weather_types.h:25:5:fk::WindDirection::WindDirection(uint32_t) 16
 wifi_toggle_worker.cpp:61:1:cpp) 16
 wiring.c:65:6:init 16
@@ -6008,7 +6004,7 @@ utilities.cpp:26:6:) 32
 utilities.cpp:57:6:) 32
 utilities.cpp:82:8:size_t fk::make_pretty_time_string(uint32_t, char*, size_t) 32
 varint.cpp:48:20:long long unsigned int phylum::varint_decode(const uint8_t*, size_t, int32_t*) 32
-water_module.cpp:140:22:virtual const ModuleSensors* fk::WaterModule::get_sensors(fk::Pool&) 32
+water_module.cpp:151:22:virtual const ModuleSensors* fk::WaterModule::get_sensors(fk::Pool&) 32
 weather_module.cpp:55:14:virtual fk::ModuleReturn fk::WeatherModule::initialize(fk::ModuleContext, fk::Pool&) 32
 weather_module.cpp:65:14:virtual fk::ModuleReturn fk::WeatherModule::service(fk::ModuleContext, fk::Pool&) 32
 weather_module.cpp:69:17:virtual fk::ModuleReadings* fk::WeatherModule::take_readings(fk::ReadingsContext, fk::Pool&) 32
@@ -6340,7 +6336,7 @@ u8x8_d_st7528.c:109:16:u8x8_d_st7528_generic 48
 u8x8_d_uc1617.c:135:9:u8x8_d_uc1617_common 48
 u8x8_string.c:159:9:u8x8_DrawUTF8Lines 48
 varint.cpp:35:10:uint8_t* phylum::varint_encode(long long unsigned int, uint8_t*, int32_t) 48
-water_module.cpp:124:14:virtual fk::ModuleReturn fk::WaterModule::api(fk::ModuleContext, fk::HttpServerConnection*, fk::Pool&) 48
+water_module.cpp:135:14:virtual fk::ModuleReturn fk::WaterModule::api(fk::ModuleContext, fk::HttpServerConnection*, fk::Pool&) 48
 working_buffers.h:300:19:phylum::simple_buffer phylum::working_buffers::allocate(size_t) 48
 working_buffers.h:300:19:phylum::simple_buffer phylum::working_buffers::allocate(size_t) 48
 working_buffers.h:300:19:phylum::simple_buffer phylum::working_buffers::allocate(size_t) 48
@@ -6478,7 +6474,7 @@ u8g2_message.c:99:9:u8g2_UserInterfaceMessage 64
 u8g2_selection_list.c:52:6:u8g2_DrawUTF8Line 64
 u8x8_d_uc1611.c:413:9:u8x8_d_uc1611_ew50850 64
 water_api.cpp:11:6:bool fk::WaterApi::handle(fk::ModuleContext, fk::HttpServerConnection*, fk::Pool&) 64
-water_module.cpp:95:6:bool fk::WaterModule::load_configuration(fk::ModuleContext, fk::Pool&) 64
+water_module.cpp:106:6:bool fk::WaterModule::load_configuration(fk::ModuleContext, fk::Pool&) 64
 FatFileLFN.cpp:503:8:size_t FatFile::printName(print_t*) 72
 MDNS.cpp:290:13:MDNSError_t MDNS::_sendMDNSMessage(uint32_t, uint32_t, int, int) 72
 api_handler.cpp:362:13:26(fk::HttpServerConnection*, uint32_t*, fk::Pool&) 72
@@ -6623,7 +6619,7 @@ sector_chain.cpp:314:9:int32_t phylum::sector_chain::grow_tail(phylum::page_lock
 socket.c:1262:7:setsockopt 112
 startup_worker.cpp:40:6:virtual void fk::StartupWorker::run(fk::Pool&) 112
 state_manager.cpp:23:6:bool fk::GlobalStateManager::initialize(fk::Pool&) 112
-water_module.cpp:160:17:virtual fk::ModuleReadings* fk::WaterModule::take_readings(fk::ReadingsContext, fk::Pool&) 112
+water_module.cpp:171:17:virtual fk::ModuleReadings* fk::WaterModule::take_readings(fk::ReadingsContext, fk::Pool&) 112
 aggregated_weather.cpp:129:17:fk::ModuleReadings* fk::AggregatedWeather::take_readings(fk::ModuleContext, fk::Pool&) 120
 delimited_buffer.h:219:13:int32_t phylum::delimited_buffer::seek_end() 120
 delimited_buffer.h:219:13:int32_t phylum::delimited_buffer::seek_end() 120
@@ -6777,7 +6773,6 @@ readings_worker.cpp:151:36:tl::expected<fk::TakenReadings, fk::Error> fk::Readin
 directory_tree.cpp:162:9:virtual int32_t phylum::directory_tree::file_attributes(phylum::file_id_t, phylum::open_file_attribute*, size_t) 744
 export_data_worker.cpp:22:6:virtual void fk::ExportDataWorker::run(fk::Pool&) 744
 display.cpp:194:6:void fk::task_handler_display(void*) 768
-live_tests.cpp:96:13:void fk::test_water_module() 952
 tree_sector.h:627:121:phylum::tree_sector<KEY, VALUE, Size>::add(KEY, VALUE) [with KEY = long unsigned int; VALUE = phylum::dirtree_tree_value_t<128u>; unsigned int Size = 4u; int32_t = long int]::__lambda5::__lambda6 1056
 tree_sector.h:627:121:phylum::tree_sector<KEY, VALUE, Size>::add(KEY, VALUE) [with KEY = long unsigned int; VALUE = phylum::attribute_value_t<256u>; unsigned int Size = 15u; int32_t = long int]::__lambda5::__lambda6 3976
 hpl_nvmctrl.c:159:6:_flash_write 8232
