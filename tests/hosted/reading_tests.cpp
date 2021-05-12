@@ -63,7 +63,7 @@ TEST_F(ReadingsSuite, TakingReadingsNoModules) {
     ScanningContext ctx{ get_modmux(), gs.location(pool_), module_bus, pool_ };
     ConstructedModulesCollection resolved(pool);
 
-    Readings readings{ get_modmux() };
+    Readings readings{ get_modmux(), pool_ };
     ASSERT_TRUE(readings.take_readings(ctx, resolved, pool));
 
     auto buffer = pool.encode(fk_data_DataRecord_fields, &readings.record());
@@ -84,7 +84,7 @@ TEST_F(ReadingsSuite, TakingReadingsModuleWithNoReadings) {
         .module = fk_test_module_fake_empty.ctor(pool),
     });
 
-    Readings readings{ get_modmux() };
+    Readings readings{ get_modmux(), pool_ };
     ASSERT_TRUE(readings.take_readings(ctx, resolved, pool));
 
     auto buffer = pool.encode(fk_data_DataRecord_fields, &readings.record());
@@ -105,7 +105,7 @@ TEST_F(ReadingsSuite, TakingReadingsOneModule) {
         .module = fk_test_module_fake_1.ctor(pool),
     });
 
-    Readings readings{ get_modmux() };
+    Readings readings{ get_modmux(), pool_ };
     ASSERT_TRUE(readings.take_readings(ctx, resolved, pool));
 
     auto buffer = pool.encode(fk_data_DataRecord_fields, &readings.record());
@@ -131,7 +131,7 @@ TEST_F(ReadingsSuite, TakingReadingsTwoModules) {
         .module = fk_test_module_fake_2.ctor(pool),
     });
 
-    Readings readings{ get_modmux() };
+    Readings readings{ get_modmux(), pool_ };
     ASSERT_TRUE(readings.take_readings(ctx, resolved, pool));
 
     auto buffer = pool.encode(fk_data_DataRecord_fields, &readings.record());
@@ -167,7 +167,7 @@ TEST_F(ReadingsSuite, TakingReadingsFourModulesEverythingWorks) {
         .module = fk_test_module_fake_2.ctor(pool),
     });
 
-    Readings readings{ get_modmux() };
+    Readings readings{ get_modmux(), pool_ };
     auto taken = readings.take_readings(ctx, resolved, pool);
     ASSERT_TRUE(taken);
 
@@ -211,7 +211,7 @@ TEST_F(ReadingsSuite, TakingReadingsFourModulesAndOneFailsToGetReadings) {
         .module = modules[3],
     });
 
-    Readings readings{ get_modmux() };
+    Readings readings{ get_modmux(), pool_ };
     auto taken = readings.take_readings(ctx, resolved, pool);
     ASSERT_TRUE(taken);
 

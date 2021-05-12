@@ -56,7 +56,7 @@ protected:
 
         clear_statistics();
 
-        statistics_.log();
+        statistics_.log("tests: ");
     }
 
 protected:

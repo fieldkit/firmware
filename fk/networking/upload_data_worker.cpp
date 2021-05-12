@@ -59,17 +59,18 @@ ConnectionInfo build_connection_info(uint32_t first, uint32_t last, uint32_t len
 
 UploadDataWorker::FileUpload UploadDataWorker::upload_file(Storage &storage, uint8_t file_number, uint32_t first_record, const char *type, Pool &pool) {
     auto started = fk_uptime();
-    auto file = storage.file(file_number);
-    if (false) {
-        if (!file.seek_end()) {
-            return { 0 };
-        }
-    }
+    auto file = storage.file_reader(file_number, pool);
 
     auto first_block = first_record;
-    auto size_info = file.get_size(first_block, UINT32_MAX, pool);
-    auto upload_length = size_info.size;
-    auto last_block = size_info.last_block;
+    auto size_info = file->get_size(first_block, UINT32_MAX, pool);
+    FK_ASSERT(size_info); // TODO
+    if (!size_info) {
+        logerror("get-size");
+        return { 0 };
+    }
+
+    auto upload_length = size_info->size;
+    auto last_block = size_info->last_block;
     if (upload_length == 0) {
         return { 0 };
     }
@@ -97,7 +98,7 @@ UploadDataWorker::FileUpload UploadDataWorker::upload_file(Storage &storage, uin
     auto tracker = ProgressTracker{ &gs_progress, Operation::Upload, "upload", "", upload_length };
     while (bytes_copied != upload_length) {
         auto to_read = std::min<int32_t>(NetworkBufferSize, upload_length - bytes_copied);
-        auto bytes_read = file.read(buffer, to_read);
+        auto bytes_read = file->read(buffer, to_read);
         if (bytes_read != to_read) {
             logwarn("read error (%" PRId32 " != %" PRId32 ")", bytes_read, to_read);
             break;

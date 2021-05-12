@@ -5,22 +5,22 @@
 #include "protobuf.h"
 #include "platform.h"
 
-using namespace fk;
+namespace fk {
 
 FK_DECLARE_LOGGER("tests");
 
 size_t write_reading(File &file) {
     fk_data_SensorAndValue readings[] = {
-        { 0, (float)random() },
-        { 1, (float)random() },
-        { 2, (float)random() },
-        { 3, (float)random() },
-        { 4, (float)random() },
-        { 5, (float)random() },
-        { 6, (float)random() },
-        { 7, (float)random() },
-        { 8, (float)random() },
-        { 9, (float)random() },
+        { 0, (float)fk_random_i32(0, 100) },
+        { 1, (float)fk_random_i32(0, 100) },
+        { 2, (float)fk_random_i32(0, 100) },
+        { 3, (float)fk_random_i32(0, 100) },
+        { 4, (float)fk_random_i32(0, 100) },
+        { 5, (float)fk_random_i32(0, 100) },
+        { 6, (float)fk_random_i32(0, 100) },
+        { 7, (float)fk_random_i32(0, 100) },
+        { 8, (float)fk_random_i32(0, 100) },
+        { 9, (float)fk_random_i32(0, 100) },
     };
 
     pb_array_t readings_array = {
@@ -251,3 +251,5 @@ void write_alternating(DataMemory *memory, size_t total) {
         size += appended + sizeof(RecordHeader) + sizeof(RecordTail);
     }
 }
+
+} // namespace fk

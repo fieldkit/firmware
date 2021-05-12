@@ -42,21 +42,15 @@ void ExportDataWorker::run(Pool &pool) {
         return;
     }
 
-    auto meta_file = storage.file(Storage::Meta);
-    auto reading = storage.file(Storage::Data);
-    if (!reading.seek_end()) {
-        logerror("seek end failed");
+    auto meta_file = storage.file_reader(Storage::Meta, pool);
+    auto reading = storage.file_reader(Storage::Data, pool);
+    size_t total_bytes = 0u;
+    if (reading->get_file_size(total_bytes) < 0) {
         return;
     }
 
-    auto total_bytes = reading.size();
     if (total_bytes == 0) {
-        loginfo("no data");
-        return;
-    }
-
-    if (!reading.seek_beginning()) {
-        logerror("seek beginning failed");
+        logerror("no data");
         return;
     }
 
@@ -65,15 +59,17 @@ void ExportDataWorker::run(Pool &pool) {
     auto bytes_read = 0u;
     auto nrecords = 0u;
     while (bytes_read < total_bytes) {
-        auto record = fk_data_record_decoding_new(loop_pool);
-        auto record_read = reading.read(&record, fk_data_DataRecord_fields);
+        auto record = loop_pool.malloc<fk_data_DataRecord>();
+        fk_data_record_decoding_new(record, loop_pool);
+
+        auto record_read = reading->read(record, fk_data_DataRecord_fields);
         if (record_read == 0) {
             loginfo("done");
             break;
         }
 
-        if (!lookup_meta(record.readings.meta, meta_file, loop_pool)) {
-            logerror("error looking up meta (%" PRIu64 ")", record.readings.meta);
+        if (!lookup_meta(record->readings.meta, meta_file, loop_pool)) {
+            logerror("error looking up meta (%" PRIu64 ")", record->readings.meta);
             continue;
         }
 
@@ -94,15 +90,11 @@ void ExportDataWorker::run(Pool &pool) {
         bytes_read += record_read;
         nrecords++;
 
-        switch (write_row(record)) {
+        switch (write_row(*record)) {
         case Success: {
             break;
         }
         case Debug: {
-            if (!write_debug(record.readings.meta, meta_file, record.readings.reading, reading, loop_pool)) {
-                logerror("error writing diagnostics");
-                return;
-            }
             break;
         }
         case Fatal: {
@@ -122,22 +114,21 @@ void ExportDataWorker::run(Pool &pool) {
     }
 }
 
-bool ExportDataWorker::lookup_meta(uint32_t meta_record_number, File &meta_file, Pool &pool) {
+bool ExportDataWorker::lookup_meta(uint32_t meta_record_number, FileReader *meta_file, Pool &pool) {
     if (meta_record_number_ == meta_record_number) {
         return true;
     }
 
     loginfo("reading meta %" PRIu32, meta_record_number);
 
-    if (!meta_file.seek(meta_record_number)) {
+    if (!meta_file->seek_record(meta_record_number, pool)) {
         logerror("error seeking meta record");
         return false;
     }
 
     meta_pool_.clear();
 
-    SignedRecordLog srl{ meta_file };
-    if (!srl.decode(&meta_record_.for_decoding(meta_pool_), fk_data_DataRecord_fields, meta_pool_)) {
+    if (!meta_file->decode_signed(&meta_record_.for_decoding(meta_pool_), fk_data_DataRecord_fields, meta_pool_)) {
         logerror("error reading meta record");
         return false;
     }
@@ -218,71 +209,6 @@ ExportDataWorker::WriteStatus ExportDataWorker::write_row(fk_data_DataRecord &re
     writer.flush();
 
     return WriteStatus::Success;
-}
-
-static bool dump_record(uint8_t *buffer, char *line, File &file) {
-    auto record_size = file.record_size();
-    auto bytes_read = 0u;
-    while (bytes_read < record_size) {
-        auto reading = std::min<int32_t>(record_size - bytes_read, 1024);
-        auto nread = file.read(buffer, reading);
-        if (nread != reading) {
-            logerror("error reading");
-            return false;
-        }
-
-        auto ptr = buffer;
-        auto wrote = 0;
-        while (wrote < nread) {
-            auto line_size = std::min<int32_t>(nread - wrote, 32);
-
-            if (line_size > 0) {
-                auto s = line;
-                for (auto i = 0; i < line_size; ++i) {
-                    tiny_snprintf(s, 4, "%02x ", ptr[i]);
-                    s += 3;
-                }
-                s[-1] = 0;
-            }
-
-            logdebug("[%4d/%4" PRIu32 "] %s", wrote, record_size, line);
-
-            wrote += line_size;
-            ptr += line_size;
-        }
-        bytes_read += nread;
-    }
-
-    return true;
-}
-
-bool ExportDataWorker::write_debug(uint32_t meta_record_number, File &meta_file, uint32_t data_record_number, File &data_file, Pool &pool) {
-    auto buffer = reinterpret_cast<uint8_t*>(pool.malloc(1024));
-    auto line = reinterpret_cast<char*>(pool.malloc(32 * 3 + 1));
-
-    if (!meta_file.rewind()) {
-        logerror("error seeking meta record");
-        return false;
-    }
-
-    if (!dump_record(buffer, line, meta_file)) {
-        return false;
-    }
-
-    meta_file.skip();
-
-    if (!data_file.rewind()) {
-        logerror("error seeking data record");
-        return false;
-    }
-
-    if (!dump_record(buffer, line, data_file)) {
-        return false;
-    }
-
-    data_file.skip();
-
-    return true;
 }
 
 } // namespace fk

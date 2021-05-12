@@ -9,12 +9,8 @@ namespace fk {
 
 FK_DECLARE_LOGGER("readings");
 
-Readings::Readings(ModMux *mm) : mm_(mm) {
-}
-
-void Readings::link(uint32_t meta_record, uint32_t reading_number) {
-    record_.readings.reading = reading_number;
-    record_.readings.meta = meta_record;
+Readings::Readings(ModMux *mm, Pool &pool) : mm_(mm) {
+    record_ = pool.malloc<fk_data_DataRecord>();
 }
 
 tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningContext &ctx, ConstructedModulesCollection const &modules, Pool &pool) {
@@ -23,22 +19,22 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
     auto now = get_clock_now();
     auto gps = ctx.gps();
 
-    record_ = fk_data_record_encoding_new();
-    record_.has_readings = true;
-    record_.readings.time = now;
+    fk_data_record_encoding_new(record_);
+    record_->has_readings = true;
+    record_->readings.time = now;
     // These get set via Readings::link.
-    record_.readings.reading = 0;
-    record_.readings.meta = 0;
-    record_.readings.uptime = fk_uptime();
-    record_.readings.flags = fk_data_DownloadFlags_READING_FLAGS_NONE;
-    record_.readings.has_location = true;
-    record_.readings.location.time = gps->time;
-    record_.readings.location.fix = gps->fix;
-    record_.readings.location.longitude = gps->longitude;
-    record_.readings.location.latitude = gps->latitude;
-    record_.readings.location.altitude = gps->altitude;
-    record_.readings.location.satellites = gps->satellites;
-    record_.readings.location.hdop = gps->hdop;
+    record_->readings.reading = 0;
+    record_->readings.meta = 0;
+    record_->readings.uptime = fk_uptime();
+    record_->readings.flags = fk_data_DownloadFlags_READING_FLAGS_NONE;
+    record_->readings.has_location = true;
+    record_->readings.location.time = gps->time;
+    record_->readings.location.fix = gps->fix;
+    record_->readings.location.longitude = gps->longitude;
+    record_->readings.location.latitude = gps->latitude;
+    record_->readings.location.altitude = gps->altitude;
+    record_->readings.location.satellites = gps->satellites;
+    record_->readings.location.hdop = gps->hdop;
 
     if (modules.size() == 0) {
         return std::move(all_readings);
@@ -52,12 +48,12 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
     // Initialize an empty sensor group at each module position here,
     // so that if we `continue` in the loop after they're
     // initialized. This isn't ideal, continue just sucks.
-    auto empty_readings_array = pool.malloc_with<pb_array_t>({
-        .length = 0,
-        .itemSize = sizeof(fk_data_SensorAndValue),
-        .buffer = nullptr,
-        .fields = fk_data_SensorAndValue_fields,
-    });
+    auto empty_readings_array = pool.malloc<pb_array_t>();
+    empty_readings_array->length = 0;
+    empty_readings_array->itemSize = sizeof(fk_data_SensorAndValue);
+    empty_readings_array->buffer = nullptr;
+    empty_readings_array->fields = fk_data_SensorAndValue_fields;
+
     for (auto i = 0u; i < modules.size(); ++i) {
         auto &group = groups[i];
         group.module = i;
@@ -96,6 +92,7 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
             continue;
         }
         if (module_power.was_enabled()) {
+            logdebug("wake delay: %" PRIu32 "ms", pair.configuration.wake_delay);
             fk_delay(pair.configuration.wake_delay);
         }
 
@@ -139,12 +136,11 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
             sensor_values[i].uncalibrated = reading.uncalibrated;
         }
 
-        auto readings_array = pool.malloc_with<pb_array_t>({
-            .length = (size_t)readings->size(),
-            .itemSize = sizeof(fk_data_SensorAndValue),
-            .buffer = sensor_values,
-            .fields = fk_data_SensorAndValue_fields,
-        });
+        auto readings_array = pool.malloc<pb_array_t>();
+        readings_array->length = (size_t)readings->size();;
+        readings_array->itemSize = sizeof(fk_data_SensorAndValue);
+        readings_array->buffer = sensor_values;
+        readings_array->fields = fk_data_SensorAndValue_fields;
 
         auto &group = groups[group_number];
         group.module = i.integer();
@@ -156,14 +152,13 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
         all_readings.emplace(adding);
     }
 
-    auto sensor_groups_array = pool.malloc_with<pb_array_t>({
-        .length = (size_t)modules.size(),
-        .itemSize = sizeof(fk_data_SensorGroup),
-        .buffer = groups,
-        .fields = fk_data_SensorGroup_fields,
-    });
+    auto sensor_groups_array = pool.malloc<pb_array_t>();
+    sensor_groups_array->length = (size_t)modules.size();
+    sensor_groups_array->itemSize = sizeof(fk_data_SensorGroup);
+    sensor_groups_array->buffer = groups;
+    sensor_groups_array->fields = fk_data_SensorGroup_fields;
 
-    record_.readings.sensorGroups.arg = sensor_groups_array;
+    record_->readings.sensorGroups.arg = sensor_groups_array;
 
     if (!mm_->choose_nothing()) {
         logerror("[-] error deselecting");
@@ -173,8 +168,16 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
     return std::move(all_readings);
 }
 
-fk_data_DataRecord const &Readings::record() {
-    return record_;
+void Readings::meta_record(uint32_t meta_record) {
+    record_->readings.meta = meta_record;
 }
 
+void Readings::record_number(uint32_t record_number) {
+    record_->readings.reading = record_number;
 }
+
+fk_data_DataRecord &Readings::record() {
+    return *record_;
+}
+
+} // namespace fk

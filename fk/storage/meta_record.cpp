@@ -38,11 +38,16 @@ static void copy_schedule(fk_data_JobSchedule &d, const Schedule &s, Pool &pool)
 }
 
 fk_data_DataRecord &MetaRecord::for_decoding(Pool &pool) {
-    return record_ = fk_data_record_decoding_new(pool);
+    if (record_ == nullptr) {
+        record_ = pool.malloc<fk_data_DataRecord>();
+    }
+    fk_data_record_decoding_new(record_, pool);
+    return *record_;
 }
 
 fk_data_DataRecord const &MetaRecord::record() {
-    return record_;
+    FK_ASSERT(record_ != nullptr);
+    return *record_;
 }
 
 void MetaRecord::include_state(GlobalState const *gs, fkb_header_t const *fkb_header, Pool &pool) {
@@ -61,24 +66,27 @@ void MetaRecord::include_state(GlobalState const *gs, fkb_header_t const *fkb_he
     auto hash_size = fkb_header->firmware.hash_size;
     auto hash_hex = bytes_to_hex_string_pool(fkb_header->firmware.hash, hash_size, pool);
 
-    record_ = fk_data_record_encoding_new();
-    record_.has_metadata = true;
-    record_.metadata.has_firmware = true;
-    record_.metadata.firmware.version.arg = (void *)fkb_header->firmware.version;
-    record_.metadata.firmware.build.arg = (void *)"";
-    record_.metadata.firmware.hash.arg = (void *)hash_hex;
-    record_.metadata.firmware.number.arg = (void *)pool.sprintf("%d", fkb_header->firmware.number);
-    record_.metadata.firmware.timestamp = fkb_header->firmware.timestamp;
-    record_.metadata.deviceId.arg = (void *)device_id_data;
-    record_.metadata.generation.arg = (void *)generation_data;
-    record_.has_identity = true;
-    record_.identity.name.arg = (void *)gs->general.name;
-    record_.has_condition = true;
-    record_.condition.flags = fk_data_ConditionFlags_CONDITION_FLAGS_NONE;
-    if (gs->general.recording > 0) {
-        record_.condition.flags |= fk_data_ConditionFlags_CONDITION_FLAGS_RECORDING;
+    if (record_ == nullptr) {
+        record_ = pool.malloc<fk_data_DataRecord>();
     }
-    record_.condition.recording = gs->general.recording;
+    fk_data_record_encoding_new(record_);
+    record_->has_metadata = true;
+    record_->metadata.has_firmware = true;
+    record_->metadata.firmware.version.arg = (void *)fkb_header->firmware.version;
+    record_->metadata.firmware.build.arg = (void *)"";
+    record_->metadata.firmware.hash.arg = (void *)hash_hex;
+    record_->metadata.firmware.number.arg = (void *)pool.sprintf("%d", fkb_header->firmware.number);
+    record_->metadata.firmware.timestamp = fkb_header->firmware.timestamp;
+    record_->metadata.deviceId.arg = (void *)device_id_data;
+    record_->metadata.generation.arg = (void *)generation_data;
+    record_->has_identity = true;
+    record_->identity.name.arg = (void *)gs->general.name;
+    record_->has_condition = true;
+    record_->condition.flags = fk_data_ConditionFlags_CONDITION_FLAGS_NONE;
+    if (gs->general.recording > 0) {
+        record_->condition.flags |= fk_data_ConditionFlags_CONDITION_FLAGS_RECORDING;
+    }
+    record_->condition.recording = gs->general.recording;
 
     if (gs->lora.configured) {
         auto device_eui_data = pool.malloc_with<pb_data_t>({
@@ -106,15 +114,15 @@ void MetaRecord::include_state(GlobalState const *gs, fkb_header_t const *fkb_he
             .buffer = gs->lora.device_address,
         });
 
-        record_.has_lora = true;
-        record_.lora.deviceEui.arg = (void *)device_eui_data;
-        record_.lora.appEui.arg = (void *)app_eui_data;
-        record_.lora.appKey.arg = (void *)app_key_data;
-        record_.lora.appSessionKey.arg = (void *)app_session_key_data;
-        record_.lora.networkSessionKey.arg = (void *)network_session_key_data;
-        record_.lora.deviceAddress.arg = (void *)device_address_data;
-        record_.lora.uplinkCounter = gs->lora.uplink_counter;
-        record_.lora.downlinkCounter = gs->lora.downlink_counter;
+        record_->has_lora = true;
+        record_->lora.deviceEui.arg = (void *)device_eui_data;
+        record_->lora.appEui.arg = (void *)app_eui_data;
+        record_->lora.appKey.arg = (void *)app_key_data;
+        record_->lora.appSessionKey.arg = (void *)app_session_key_data;
+        record_->lora.networkSessionKey.arg = (void *)network_session_key_data;
+        record_->lora.deviceAddress.arg = (void *)device_address_data;
+        record_->lora.uplinkCounter = gs->lora.uplink_counter;
+        record_->lora.downlinkCounter = gs->lora.downlink_counter;
     }
 
     auto networks = pool.malloc<fk_data_NetworkInfo>(WifiMaximumNumberOfNetworks);
@@ -132,25 +140,25 @@ void MetaRecord::include_state(GlobalState const *gs, fkb_header_t const *fkb_he
         .fields = fk_data_NetworkInfo_fields,
     });
 
-    record_.has_network = true;
-    record_.network.networks.arg = (void *)networks_array;
+    record_->has_network = true;
+    record_->network.networks.arg = (void *)networks_array;
 
-    record_.has_schedule = true;
-    record_.schedule.has_readings = true;
-    record_.schedule.has_network = true;
-    record_.schedule.has_gps = true;
-    record_.schedule.has_lora = true;
+    record_->has_schedule = true;
+    record_->schedule.has_readings = true;
+    record_->schedule.has_network = true;
+    record_->schedule.has_gps = true;
+    record_->schedule.has_lora = true;
 
-    copy_schedule(record_.schedule.readings, gs->scheduler.readings, pool);
-    copy_schedule(record_.schedule.network, gs->scheduler.network, pool);
-    copy_schedule(record_.schedule.gps, gs->scheduler.gps, pool);
-    copy_schedule(record_.schedule.lora, gs->scheduler.lora, pool);
+    copy_schedule(record_->schedule.readings, gs->scheduler.readings, pool);
+    copy_schedule(record_->schedule.network, gs->scheduler.network, pool);
+    copy_schedule(record_->schedule.gps, gs->scheduler.gps, pool);
+    copy_schedule(record_->schedule.lora, gs->scheduler.lora, pool);
 
-    record_.has_transmission = true;
-    record_.transmission.has_wifi = true;
-    record_.transmission.wifi.enabled = gs->transmission.enabled;
-    record_.transmission.wifi.url.arg = (void *)gs->transmission.url;
-    record_.transmission.wifi.token.arg = (void *)gs->transmission.token;
+    record_->has_transmission = true;
+    record_->transmission.has_wifi = true;
+    record_->transmission.wifi.enabled = gs->transmission.enabled;
+    record_->transmission.wifi.url.arg = (void *)gs->transmission.url;
+    record_->transmission.wifi.token.arg = (void *)gs->transmission.token;
 }
 
 void MetaRecord::include_modules(GlobalState const *gs, fkb_header_t const *fkb_header, ConstructedModulesCollection &modules, ModuleReadingsCollection &readings, Pool &pool) {
@@ -247,19 +255,22 @@ void MetaRecord::include_modules(GlobalState const *gs, fkb_header_t const *fkb_
     auto hash_size = fkb_header->firmware.hash_size;
     auto hash_hex = bytes_to_hex_string_pool(fkb_header->firmware.hash, hash_size, pool);
 
-    record_ = fk_data_record_encoding_new();
-    record_.has_metadata = true;
-    record_.metadata.has_firmware = true;
-    record_.metadata.firmware.version.arg = (void *)fkb_header->firmware.version;
-    record_.metadata.firmware.build.arg = (void *)"";
-    record_.metadata.firmware.hash.arg = (void *)hash_hex;
-    record_.metadata.firmware.number.arg = (void *)pool.sprintf("%d", fkb_header->firmware.number);
-    record_.metadata.firmware.timestamp = fkb_header->firmware.timestamp;
-    record_.metadata.deviceId.arg = (void *)device_id_data;
-    record_.metadata.generation.arg = (void *)generation_data;
-    record_.has_identity = true;
-    record_.identity.name.arg = (void *)gs->general.name;
-    record_.modules.arg = (void *)modules_array;
+    if (record_ == nullptr) {
+        record_ = pool.malloc<fk_data_DataRecord>();
+    }
+    fk_data_record_encoding_new(record_);
+    record_->has_metadata = true;
+    record_->metadata.has_firmware = true;
+    record_->metadata.firmware.version.arg = (void *)fkb_header->firmware.version;
+    record_->metadata.firmware.build.arg = (void *)"";
+    record_->metadata.firmware.hash.arg = (void *)hash_hex;
+    record_->metadata.firmware.number.arg = (void *)pool.sprintf("%d", fkb_header->firmware.number);
+    record_->metadata.firmware.timestamp = fkb_header->firmware.timestamp;
+    record_->metadata.deviceId.arg = (void *)device_id_data;
+    record_->metadata.generation.arg = (void *)generation_data;
+    record_->has_identity = true;
+    record_->identity.name.arg = (void *)gs->general.name;
+    record_->modules.arg = (void *)modules_array;
 }
 
 }

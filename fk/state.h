@@ -114,6 +114,7 @@ struct RuntimeState {
 };
 
 struct PowerState {
+    bool low_battery{ false };
     MeterReading battery{ };
     MeterReading solar{ };
     BatteryStatus battery_status{ BatteryStatus::Unknown };
@@ -216,7 +217,14 @@ struct StreamState {
     uint32_t modified{ 0 };
 };
 
+struct MemoryState {
+    uint32_t installed{ 0 };
+    uint32_t used{ 0 };
+};
+
 struct StorageState {
+    MemoryState spi;
+    MemoryState qspi;
     StreamState data;
     StreamState meta;
 };
@@ -334,6 +342,8 @@ public:
     void update_physical_modules(ConstructedModulesCollection const &modules);
     void update_data_stream(File const &file);
     void update_meta_stream(File const &file);
+    void update_data_stream(uint32_t size, uint32_t records);
+    void update_meta_stream(uint32_t size, uint32_t records);
     void released(uint32_t locked) const;
     void released(uint32_t locked);
     bool flush(Pool &pool);

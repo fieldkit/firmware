@@ -11,14 +11,26 @@ FK_DECLARE_LOGGER("memory");
 
 uint8_t LinuxDataMemory::EraseByte = 0xff;
 
-LinuxDataMemory::LinuxDataMemory() : memory_(nullptr) {
+LinuxDataMemory::LinuxDataMemory(uint32_t number_of_blocks) : number_of_blocks_(number_of_blocks), memory_(nullptr) {
+}
+
+LinuxDataMemory::~LinuxDataMemory() {
+    if (memory_ != nullptr) {
+        free(memory_);
+        memory_ = nullptr;
+    }
 }
 
 bool LinuxDataMemory::begin() {
-    size_ = BlockSize * NumberOfBlocks;
+    geometry_.page_size = PageSize;
+    geometry_.block_size = BlockSize;
+    geometry_.nblocks = number_of_blocks_;
+    geometry_.total_size = BlockSize * number_of_blocks_;
+    geometry_.prog_size = 512;
+
     if (memory_ == nullptr) {
-        memory_ = (uint8_t *)fk_malloc(size_);
-        memset(memory_, 0xff, size_);
+        memory_ = (uint8_t *)fk_malloc(geometry_.total_size);
+        memset(memory_, 0xff, geometry_.total_size);
     }
 
     log_.logging(false);
@@ -29,7 +41,7 @@ bool LinuxDataMemory::begin() {
 }
 
 void LinuxDataMemory::erase_all() {
-    memset(memory_, 0xff, size_);
+    memset(memory_, 0xff, geometry_.total_size);
 }
 
 int32_t LinuxDataMemory::execute(uint32_t *got, uint32_t *entry) {
@@ -38,12 +50,12 @@ int32_t LinuxDataMemory::execute(uint32_t *got, uint32_t *entry) {
 }
 
 FlashGeometry LinuxDataMemory::geometry() const {
-    return { PageSize, BlockSize, NumberOfBlocks, NumberOfBlocks * BlockSize };
+    return geometry_;
 }
 
 int32_t LinuxDataMemory::read(uint32_t address, uint8_t *data, size_t length, MemoryReadFlags flags) {
-    assert(address >= 0 && address < size_);
-    assert(address + length <= size_);
+    assert(address >= 0 && address < geometry_.total_size);
+    assert(address + length <= geometry_.total_size);
     assert(length <= PageSize);
 
     logverbose("[" PRADDRESS "] read %zd bytes", address, length);
@@ -53,6 +65,7 @@ int32_t LinuxDataMemory::read(uint32_t address, uint8_t *data, size_t length, Me
         return length;
     }
 
+    // NOTE Disabled temporarily to test LFS storage.
     size_t page = address / PageSize;
     assert((address + length - 1) / PageSize == page);
 
@@ -69,8 +82,8 @@ int32_t LinuxDataMemory::read(uint32_t address, uint8_t *data, size_t length, Me
 }
 
 int32_t LinuxDataMemory::write(uint32_t address, const uint8_t *data, size_t length, MemoryWriteFlags flags) {
-    assert(address >= 0 && address < size_);
-    assert(address + length <= size_);
+    assert(address >= 0 && address < geometry_.total_size);
+    assert(address + length <= geometry_.total_size);
     assert(length <= PageSize);
 
     logverbose("[" PRADDRESS "] write %zd bytes", address, length);
@@ -79,6 +92,7 @@ int32_t LinuxDataMemory::write(uint32_t address, const uint8_t *data, size_t len
         return 0;
     }
 
+    // NOTE Disabled temporarily to test LFS storage.
     size_t page = address / PageSize;
     assert((address + length - 1) / PageSize == page);
 
@@ -101,11 +115,11 @@ int32_t LinuxDataMemory::erase(uint32_t address, size_t length) {
 }
 
 int32_t LinuxDataMemory::erase_block(uint32_t address) {
-    assert(address >= 0 && address < size_);
+    assert(address >= 0 && address < geometry_.total_size);
     assert(address % BlockSize == 0);
 
     if (affects_bad_block_from_wear(address)) {
-        return 0;
+        return -1;
     }
 
     auto p = memory_ + address;
@@ -113,7 +127,19 @@ int32_t LinuxDataMemory::erase_block(uint32_t address) {
 
     log_.append(LogEntry{ OperationType::EraseBlock, address, p });
 
-    return true;
+    return 0;
+}
+
+int32_t LinuxDataMemory::copy_page(uint32_t source, uint32_t destiny, size_t length) {
+    assert(source >= 0 && source < geometry_.total_size);
+    assert(source % PageSize == 0);
+    assert(destiny >= 0 && destiny < geometry_.total_size);
+    assert(destiny % PageSize == 0);
+    assert(length == PageSize);
+
+    memcpy(memory_ + destiny, memory_ + source, PageSize);
+
+    return 0;
 }
 
 int32_t LinuxDataMemory::flush() {

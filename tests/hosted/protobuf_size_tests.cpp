@@ -229,9 +229,10 @@ TEST_F(ProtoBufSizeSuite, Readings) {
     ModuleReadingsCollection module_readings(pool_);
     fake_modules(resolved, module_readings, pool_);
 
-    Readings readings{ get_modmux() };
+    Readings readings{ get_modmux(), pool_ };
     ASSERT_TRUE(readings.take_readings(ctx, resolved, pool_));
-    readings.link(1, 1);
+    readings.meta_record(1);
+    readings.record_number(1);
 
     auto encoded = pool_.encode(fk_data_DataRecord_fields, &readings.record());
     dump_binary(file_, "data-readings", encoded);
@@ -272,13 +273,14 @@ TEST_F(ProtoBufSizeSuite, ReadingsNoneBackFromFirstModule) {
         fake_data(m.found.header.id.data);
     }
 
-    Readings readings{ get_modmux() };
+    Readings readings{ get_modmux(), pool_ };
     auto taken = readings.take_readings(ctx, resolved, pool_);
     ASSERT_TRUE(taken);
 
     ASSERT_EQ((*taken).size(), 2u);
 
-    readings.link(1, 1);
+    readings.meta_record(1);
+    readings.record_number(1);
 
     auto encoded = pool_.encode(fk_data_DataRecord_fields, &readings.record());
     dump_binary(file_, "data-readings-failed-first", encoded);
@@ -326,7 +328,7 @@ TEST_F(ProtoBufSizeSuite, HttpReplyStatus) {
     auto encoded = pool_.encode(fk_app_HttpReply_fields, reply.reply());
     dump_binary(file_, "http-reply-status", encoded);
 
-    ASSERT_EQ(encoded->size, 2054u);
+    ASSERT_EQ(encoded->size, 2043u);
 }
 
 TEST_F(ProtoBufSizeSuite, HttpReplyReadings) {

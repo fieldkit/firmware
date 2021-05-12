@@ -86,7 +86,7 @@ static void setup_fake_data() {
         ModuleFactory module_factory;
         auto constructed_maybe = module_factory.rescan_and_initialize(ctx, scanning, pool);
 
-        ReadingsTaker readings_taker{ storage, get_modmux(), false, true };
+        ReadingsTaker readings_taker{ storage, get_modmux(), false, pool };
 
         loginfo("writing fake data");
 

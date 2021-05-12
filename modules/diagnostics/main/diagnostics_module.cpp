@@ -29,12 +29,18 @@ static ModuleSensors const fk_module_sensors = {
     .sensors = fk_module_sensor_metas,
 };
 
+DiagnosticsModule::DiagnosticsModule(Pool &pool) {
+}
+
+DiagnosticsModule::~DiagnosticsModule() {
+}
+
 ModuleReturn DiagnosticsModule::initialize(ModuleContext mc, Pool &pool) {
     return { ModuleStatus::Ok };
 }
 
 ModuleReturn DiagnosticsModule::api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
-    connection->busy(0, "unsupported");
+    connection->busy(0, "unsupported", pool);
 
     return { ModuleStatus::Fatal };
 }

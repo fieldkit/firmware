@@ -5,7 +5,10 @@ namespace fk {
 
 FK_DECLARE_LOGGER("distance");
 
-DistanceModule::DistanceModule() : bridge_(get_board()->acquire_i2c_module()) {
+DistanceModule::DistanceModule(Pool &pool) : bridge_(get_board()->acquire_i2c_module()) {
+}
+
+DistanceModule::~DistanceModule() {
 }
 
 ModuleReturn DistanceModule::initialize(ModuleContext mc, Pool &pool) {
@@ -31,7 +34,7 @@ ModuleReturn DistanceModule::initialize(ModuleContext mc, Pool &pool) {
 }
 
 ModuleReturn DistanceModule::api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
-    connection->busy(0, "unsupported");
+    connection->busy(0, "unsupported", pool);
 
     return { ModuleStatus::Fatal };
 }

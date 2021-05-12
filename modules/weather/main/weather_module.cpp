@@ -38,6 +38,12 @@ static ModuleSensors fk_module_weather_sensors = {
     .sensors = fk_module_weather_sensor_metas,
 };
 
+WeatherModule::WeatherModule(Pool &pool) {
+}
+
+WeatherModule::~WeatherModule() {
+}
+
 ModuleSensors const *WeatherModule::get_sensors(Pool &pool) {
     return &fk_module_weather_sensors;
 }
@@ -51,7 +57,7 @@ ModuleReturn WeatherModule::initialize(ModuleContext mc, Pool &pool) {
 }
 
 ModuleReturn WeatherModule::api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
-    connection->busy(0, "unsupported");
+    connection->busy(0, "unsupported", pool);
 
     return { ModuleStatus::Fatal };
 }

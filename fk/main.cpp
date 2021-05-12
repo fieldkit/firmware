@@ -80,13 +80,13 @@ static void run_tasks() {
 
     FK_ASSERT(get_ipc()->begin());
 
-    // FK_ASSERT(get_ipc()->launch_worker(create_pool_worker<Process>()));
     FK_ASSERT(get_ipc()->launch_worker(create_pool_worker<StartupWorker>()));
 
     auto mi = mallinfo();
     loginfo("memory arena = %zd used = %zd", (size_t)mi.arena, (size_t)mi.uordblks);
     loginfo("stacks = %d", total_stacks);
     loginfo("free = %" PRIu32, fk_free_memory());
+    loginfo("sizeof(Storage) = %zu sizeof(File) = %zu sizeof(BLAKE2b) = %zu", sizeof(Storage), sizeof(fk::File), sizeof(BLAKE2b));
     loginfo("starting os!");
 
     OS_CHECK(os_start());
@@ -155,7 +155,6 @@ static bool need_segger_initialize() {
 void setup() {
     SEGGER_RTT_WriteString(0, "\n");
     single_threaded_setup();
-    fk_live_tests();
     run_tasks();
 }
 

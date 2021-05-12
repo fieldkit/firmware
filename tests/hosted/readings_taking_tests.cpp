@@ -45,7 +45,7 @@ TEST_F(ReadingsTakingSuite, WithNoModules) {
     ModuleFactory module_factory;
     auto constructed_maybe = module_factory.rescan_and_initialize(ctx, scanning, pool_);
 
-    ReadingsTaker readings_taker{ storage, get_modmux(), false, true };
+    ReadingsTaker readings_taker{ storage, get_modmux(), false, pool_ };
     ASSERT_TRUE(readings_taker.take(*constructed_maybe, ctx, pool_));
 }
 
@@ -71,7 +71,7 @@ TEST_F(ReadingsTakingSuite, BasicSingleModule) {
     ModuleFactory module_factory;
     auto constructed_maybe = module_factory.rescan_and_initialize(ctx, scanning, pool_);
 
-    ReadingsTaker readings_taker{ storage, get_modmux(), false, true };
+    ReadingsTaker readings_taker{ storage, get_modmux(), false, pool_ };
     ASSERT_TRUE(readings_taker.take(*constructed_maybe, ctx, pool_));
 }
 
@@ -105,7 +105,7 @@ TEST_F(ReadingsTakingSuite, BasicTwoModules) {
     ModuleFactory module_factory;
     auto constructed_maybe = module_factory.rescan_and_initialize(ctx, scanning, pool_);
 
-    ReadingsTaker readings_taker{ storage, get_modmux(), false, true };
+    ReadingsTaker readings_taker{ storage, get_modmux(), false, pool_ };
     ASSERT_TRUE(readings_taker.take(*constructed_maybe, ctx, pool_));
 }
 
@@ -152,7 +152,7 @@ TEST_F(ReadingsTakingSuite, AssignsRecordIndices) {
         .WillOnce(Return(as_expected(FoundModuleCollection(one_module))))
         .WillOnce(Return(as_expected(FoundModuleCollection(one_module))))
         .WillOnce(Return(as_expected(FoundModuleCollection(two_modules))));
-    ReadingsTaker readings_taker{ storage, get_modmux(), false, true };
+    ReadingsTaker readings_taker{ storage, get_modmux(), false, pool_ };
 
     loginfo("tests: appending record 1");
 

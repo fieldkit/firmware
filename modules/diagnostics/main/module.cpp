@@ -5,7 +5,7 @@ using namespace fk;
 extern "C" {
 
 static Module *fk_module_create_diagnostics(Pool &pool) {
-    return new(pool) DiagnosticsModule();
+    return new (pool) DiagnosticsModule(pool);
 }
 
 ModuleMetadata const fk_module_meta_diagnostics = {

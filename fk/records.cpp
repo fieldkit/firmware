@@ -175,36 +175,36 @@ static inline bool fk_array_interval_decode(pb_istream_t *stream, pb_array_t *ar
     return true;
 }
 
-fk_data_DataRecord fk_data_record_decoding_new(Pool &pool) {
-    fk_data_DataRecord record = fk_data_DataRecord_init_default;
-    record.metadata.firmware.version.funcs.decode = pb_decode_string;
-    record.metadata.firmware.version.arg = (void *)&pool;
-    record.metadata.firmware.build.funcs.decode = pb_decode_string;
-    record.metadata.firmware.build.arg = (void *)&pool;
-    record.metadata.firmware.hash.funcs.decode = pb_decode_string;
-    record.metadata.firmware.hash.arg = (void *)&pool;
-    record.metadata.firmware.number.funcs.decode = pb_decode_string;
-    record.metadata.firmware.number.arg = (void *)&pool;
-    record.metadata.deviceId.funcs.decode = pb_decode_data;
-    record.metadata.deviceId.arg = (void *)&pool;
-    record.metadata.generation.funcs.decode = pb_decode_data;
-    record.metadata.generation.arg = (void *)&pool;
-    record.identity.name.funcs.decode = pb_decode_string;
-    record.identity.name.arg = (void *)&pool;
-    record.lora.appEui.funcs.decode = pb_decode_data;
-    record.lora.appEui.arg = (void *)&pool;
-    record.lora.appKey.funcs.decode = pb_decode_data;
-    record.lora.appKey.arg = (void *)&pool;
-    record.lora.deviceEui.funcs.decode = pb_decode_data;
-    record.lora.deviceEui.arg = (void *)&pool;
-    record.lora.appSessionKey.funcs.decode = pb_decode_data;
-    record.lora.appSessionKey.arg = (void *)&pool;
-    record.lora.networkSessionKey.funcs.decode = pb_decode_data;
-    record.lora.networkSessionKey.arg = (void *)&pool;
-    record.lora.deviceAddress.funcs.decode = pb_decode_data;
-    record.lora.deviceAddress.arg = (void *)&pool;
-    record.network.networks.funcs.decode = pb_decode_array;
-    record.network.networks.arg = (void *)pool.malloc_with<pb_array_t>({
+void fk_data_record_decoding_new(fk_data_DataRecord *record, Pool &pool) {
+    *record = fk_data_DataRecord_init_default;
+    record->metadata.firmware.version.funcs.decode = pb_decode_string;
+    record->metadata.firmware.version.arg = (void *)&pool;
+    record->metadata.firmware.build.funcs.decode = pb_decode_string;
+    record->metadata.firmware.build.arg = (void *)&pool;
+    record->metadata.firmware.hash.funcs.decode = pb_decode_string;
+    record->metadata.firmware.hash.arg = (void *)&pool;
+    record->metadata.firmware.number.funcs.decode = pb_decode_string;
+    record->metadata.firmware.number.arg = (void *)&pool;
+    record->metadata.deviceId.funcs.decode = pb_decode_data;
+    record->metadata.deviceId.arg = (void *)&pool;
+    record->metadata.generation.funcs.decode = pb_decode_data;
+    record->metadata.generation.arg = (void *)&pool;
+    record->identity.name.funcs.decode = pb_decode_string;
+    record->identity.name.arg = (void *)&pool;
+    record->lora.appEui.funcs.decode = pb_decode_data;
+    record->lora.appEui.arg = (void *)&pool;
+    record->lora.appKey.funcs.decode = pb_decode_data;
+    record->lora.appKey.arg = (void *)&pool;
+    record->lora.deviceEui.funcs.decode = pb_decode_data;
+    record->lora.deviceEui.arg = (void *)&pool;
+    record->lora.appSessionKey.funcs.decode = pb_decode_data;
+    record->lora.appSessionKey.arg = (void *)&pool;
+    record->lora.networkSessionKey.funcs.decode = pb_decode_data;
+    record->lora.networkSessionKey.arg = (void *)&pool;
+    record->lora.deviceAddress.funcs.decode = pb_decode_data;
+    record->lora.deviceAddress.arg = (void *)&pool;
+    record->network.networks.funcs.decode = pb_decode_array;
+    record->network.networks.arg = (void *)pool.malloc_with<pb_array_t>({
         .length = 0,
         .itemSize = sizeof(fk_data_NetworkInfo),
         .buffer = nullptr,
@@ -213,10 +213,10 @@ fk_data_DataRecord fk_data_record_decoding_new(Pool &pool) {
         .pool = &pool,
     });
 
-    record.schedule.readings.cron.funcs.decode = pb_decode_data;
-    record.schedule.readings.cron.arg = (void *)&pool;
-    record.schedule.readings.intervals.funcs.decode = pb_decode_array;
-    record.schedule.readings.intervals.arg = (void *)pool.malloc_with<pb_array_t>({
+    record->schedule.readings.cron.funcs.decode = pb_decode_data;
+    record->schedule.readings.cron.arg = (void *)&pool;
+    record->schedule.readings.intervals.funcs.decode = pb_decode_array;
+    record->schedule.readings.intervals.arg = (void *)pool.malloc_with<pb_array_t>({
         .length = 0,
         .itemSize = sizeof(fk_app_Interval),
         .buffer = nullptr,
@@ -225,10 +225,10 @@ fk_data_DataRecord fk_data_record_decoding_new(Pool &pool) {
         .pool = &pool,
     });
 
-    record.schedule.network.cron.funcs.decode = pb_decode_data;
-    record.schedule.network.cron.arg = (void *)&pool;
-    record.schedule.network.intervals.funcs.decode = pb_decode_array;
-    record.schedule.network.intervals.arg = (void *)pool.malloc_with<pb_array_t>({
+    record->schedule.network.cron.funcs.decode = pb_decode_data;
+    record->schedule.network.cron.arg = (void *)&pool;
+    record->schedule.network.intervals.funcs.decode = pb_decode_array;
+    record->schedule.network.intervals.arg = (void *)pool.malloc_with<pb_array_t>({
         .length = 0,
         .itemSize = sizeof(fk_app_Interval),
         .buffer = nullptr,
@@ -237,10 +237,10 @@ fk_data_DataRecord fk_data_record_decoding_new(Pool &pool) {
         .pool = &pool,
     });
 
-    record.schedule.gps.cron.funcs.decode = pb_decode_data;
-    record.schedule.gps.cron.arg = (void *)&pool;
-    record.schedule.gps.intervals.funcs.decode = pb_decode_array;
-    record.schedule.gps.intervals.arg = (void *)pool.malloc_with<pb_array_t>({
+    record->schedule.gps.cron.funcs.decode = pb_decode_data;
+    record->schedule.gps.cron.arg = (void *)&pool;
+    record->schedule.gps.intervals.funcs.decode = pb_decode_array;
+    record->schedule.gps.intervals.arg = (void *)pool.malloc_with<pb_array_t>({
         .length = 0,
         .itemSize = sizeof(fk_app_Interval),
         .buffer = nullptr,
@@ -249,10 +249,10 @@ fk_data_DataRecord fk_data_record_decoding_new(Pool &pool) {
         .pool = &pool,
     });
 
-    record.schedule.lora.cron.funcs.decode = pb_decode_data;
-    record.schedule.lora.cron.arg = (void *)&pool;
-    record.schedule.lora.intervals.funcs.decode = pb_decode_array;
-    record.schedule.lora.intervals.arg = (void *)pool.malloc_with<pb_array_t>({
+    record->schedule.lora.cron.funcs.decode = pb_decode_data;
+    record->schedule.lora.cron.arg = (void *)&pool;
+    record->schedule.lora.intervals.funcs.decode = pb_decode_array;
+    record->schedule.lora.intervals.arg = (void *)pool.malloc_with<pb_array_t>({
         .length = 0,
         .itemSize = sizeof(fk_app_Interval),
         .buffer = nullptr,
@@ -261,13 +261,13 @@ fk_data_DataRecord fk_data_record_decoding_new(Pool &pool) {
         .pool = &pool,
     });
 
-    record.transmission.wifi.url.funcs.decode = pb_decode_string;
-    record.transmission.wifi.url.arg = (void *)&pool;
-    record.transmission.wifi.token.funcs.decode = pb_decode_string;
-    record.transmission.wifi.token.arg = (void *)&pool;
+    record->transmission.wifi.url.funcs.decode = pb_decode_string;
+    record->transmission.wifi.url.arg = (void *)&pool;
+    record->transmission.wifi.token.funcs.decode = pb_decode_string;
+    record->transmission.wifi.token.arg = (void *)&pool;
 
-    record.modules.funcs.decode = pb_decode_array;
-    record.modules.arg = (void *)pool.malloc_with<pb_array_t>({
+    record->modules.funcs.decode = pb_decode_array;
+    record->modules.arg = (void *)pool.malloc_with<pb_array_t>({
         .length = 0,
         .itemSize = sizeof(fk_data_ModuleInfo),
         .buffer = nullptr,
@@ -276,8 +276,8 @@ fk_data_DataRecord fk_data_record_decoding_new(Pool &pool) {
         .pool = &pool,
     });
 
-    record.readings.sensorGroups.funcs.decode = pb_decode_array;
-    record.readings.sensorGroups.arg = (void *)pool.malloc_with<pb_array_t>({
+    record->readings.sensorGroups.funcs.decode = pb_decode_array;
+    record->readings.sensorGroups.arg = (void *)pool.malloc_with<pb_array_t>({
         .length = 0,
         .itemSize = sizeof(fk_data_SensorGroup),
         .buffer = nullptr,
@@ -285,44 +285,37 @@ fk_data_DataRecord fk_data_record_decoding_new(Pool &pool) {
         .decode_item_fn = pb_data_sensor_group_item_decode,
         .pool = &pool,
     });
-
-    return record;
 }
 
-fk_data_DataRecord fk_data_record_encoding_new() {
-    fk_data_DataRecord record = fk_data_DataRecord_init_default;
-    record.metadata.firmware.version.funcs.encode = pb_encode_string;
-    record.metadata.firmware.build.funcs.encode = pb_encode_string;
-    record.metadata.firmware.number.funcs.encode = pb_encode_string;
-    record.metadata.firmware.hash.funcs.encode = pb_encode_string;
-    record.metadata.deviceId.funcs.encode = pb_encode_data;
-    record.metadata.generation.funcs.encode = pb_encode_data;
-    record.identity.name.funcs.encode = pb_encode_string;
-    record.readings.sensorGroups.funcs.encode = pb_encode_array;
-    record.modules.funcs.encode = pb_encode_array;
-    record.lora.appEui.funcs.encode = pb_encode_data;
-    record.lora.appKey.funcs.encode = pb_encode_data;
-    record.lora.appSessionKey.funcs.encode = pb_encode_data;
-    record.lora.networkSessionKey.funcs.encode = pb_encode_data;
-    record.lora.deviceAddress.funcs.encode = pb_encode_data;
-    record.lora.deviceEui.funcs.encode = pb_encode_data;
-    record.network.networks.funcs.encode = pb_encode_array;
-    record.schedule.readings.cron.funcs.encode = pb_encode_data;
-    record.schedule.readings.intervals.funcs.encode = pb_encode_array;
-    record.schedule.network.cron.funcs.encode = pb_encode_data;
-    record.schedule.network.intervals.funcs.encode = pb_encode_array;
-    record.schedule.gps.cron.funcs.encode = pb_encode_data;
-    record.schedule.gps.intervals.funcs.encode = pb_encode_array;
-    record.schedule.lora.cron.funcs.encode = pb_encode_data;
-    record.schedule.lora.intervals.funcs.encode = pb_encode_array;
-    record.transmission.wifi.url.funcs.encode = pb_encode_string;
-    record.transmission.wifi.token.funcs.encode = pb_encode_string;
+void fk_data_record_encoding_new(fk_data_DataRecord *record) {
+    *record = fk_data_DataRecord_init_default;
 
-    return record;
-}
-
-fk_app_HttpReply fk_http_reply_encoding() {
-    return { };
+    record->metadata.firmware.version.funcs.encode = pb_encode_string;
+    record->metadata.firmware.build.funcs.encode = pb_encode_string;
+    record->metadata.firmware.number.funcs.encode = pb_encode_string;
+    record->metadata.firmware.hash.funcs.encode = pb_encode_string;
+    record->metadata.deviceId.funcs.encode = pb_encode_data;
+    record->metadata.generation.funcs.encode = pb_encode_data;
+    record->identity.name.funcs.encode = pb_encode_string;
+    record->readings.sensorGroups.funcs.encode = pb_encode_array;
+    record->modules.funcs.encode = pb_encode_array;
+    record->lora.appEui.funcs.encode = pb_encode_data;
+    record->lora.appKey.funcs.encode = pb_encode_data;
+    record->lora.appSessionKey.funcs.encode = pb_encode_data;
+    record->lora.networkSessionKey.funcs.encode = pb_encode_data;
+    record->lora.deviceAddress.funcs.encode = pb_encode_data;
+    record->lora.deviceEui.funcs.encode = pb_encode_data;
+    record->network.networks.funcs.encode = pb_encode_array;
+    record->schedule.readings.cron.funcs.encode = pb_encode_data;
+    record->schedule.readings.intervals.funcs.encode = pb_encode_array;
+    record->schedule.network.cron.funcs.encode = pb_encode_data;
+    record->schedule.network.intervals.funcs.encode = pb_encode_array;
+    record->schedule.gps.cron.funcs.encode = pb_encode_data;
+    record->schedule.gps.intervals.funcs.encode = pb_encode_array;
+    record->schedule.lora.cron.funcs.encode = pb_encode_data;
+    record->schedule.lora.intervals.funcs.encode = pb_encode_array;
+    record->transmission.wifi.url.funcs.encode = pb_encode_string;
+    record->transmission.wifi.token.funcs.encode = pb_encode_string;
 }
 
 fk_app_HttpQuery *fk_http_query_prepare_decoding(fk_app_HttpQuery *query, Pool *pool) {
@@ -569,13 +562,11 @@ fk_app_HttpReply *fk_http_reply_encoding_initialize(fk_app_HttpReply *reply) {
     return reply;
 }
 
-fk_data_LoraRecord fk_lora_record_encoding_new() {
-    fk_data_LoraRecord record = fk_data_LoraRecord_init_default;
+void fk_lora_record_encoding_new(fk_data_LoraRecord *record) {
+    *record = fk_data_LoraRecord_init_default;
 
-    record.values.funcs.encode = pb_encode_array;
-    record.deviceId.funcs.encode = pb_encode_data;
-
-    return record;
+    record->values.funcs.encode = pb_encode_array;
+    record->deviceId.funcs.encode = pb_encode_data;
 }
 
 static inline bool pb_decode_float_array(pb_istream_t *stream, const pb_field_t *field, void **arg) {

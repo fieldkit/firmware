@@ -15,7 +15,7 @@ bool ModuleHandler::handle(HttpServerConnection *connection, Pool &pool) {
 
     auto constructed = factory.get(bay_);
     if (!constructed) {
-        connection->error(HttpStatus::NotFound, "invalid module");
+        connection->error(HttpStatus::NotFound, "invalid module", pool);
         return true;
     }
 
@@ -26,7 +26,7 @@ bool ModuleHandler::handle(HttpServerConnection *connection, Pool &pool) {
     auto configuration = (*constructed)->configuration;
     EnableModulePower module_power{ true, configuration.power, (*constructed)->found.position };
     if (!module_power.enable()) {
-        connection->error(HttpStatus::ServerError, "error powering module");
+        connection->error(HttpStatus::ServerError, "error powering module", pool);
         return true;
     }
     if (module_power.was_enabled()) {
@@ -45,12 +45,12 @@ bool ModuleHandler::handle(HttpServerConnection *connection, Pool &pool) {
         auto mc = ctx.module(bay_, pool);
 
         if (!mc.open()) {
-            connection->error(HttpStatus::ServerError, "error choosing module");
+            connection->error(HttpStatus::ServerError, "error choosing module", pool);
             return true;
         }
 
         if (!(*constructed)->module->api(mc, connection, pool)) {
-            connection->error(HttpStatus::ServerError, "error servicing module api");
+            connection->error(HttpStatus::ServerError, "error servicing module api", pool);
             return true;
         }
     }

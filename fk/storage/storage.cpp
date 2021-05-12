@@ -8,6 +8,9 @@
 #include "progress_tracker.h"
 #include "utilities.h"
 
+#include "storage/file_ops_darwin.h"
+#include "storage/file_ops_phylum.h"
+
 namespace fk {
 
 FK_DECLARE_LOGGER("storage");
@@ -87,14 +90,66 @@ SeekSettings SeekSettings::end_of(uint8_t file) {
     return SeekSettings{ file, LastRecord };
 }
 
-Storage::Storage(DataMemory *memory, Pool &pool, bool read_only) : data_memory_(memory), pool_(&pool), memory_(memory, pool), bad_blocks_(memory, pool), read_only_(read_only) {
+Storage::Storage(DataMemory *memory, Pool &pool, bool read_only)
+    : data_memory_(memory), pool_(&pool), memory_(memory, pool), statistics_data_memory_(data_memory_), bad_blocks_(memory, pool),
+      phylum_{ memory }, read_only_(read_only) {
     FK_ASSERT(memory != nullptr);
+    files_ = pool.malloc<FileHeader>(NumberOfFiles);
 }
 
 Storage::~Storage() {
     if (!memory_.flush()) {
         logerror("flush failed");
     }
+}
+
+bool Storage::begin() {
+    if (!begin_internal()) {
+        return false;
+    }
+
+    data_ops_ = new (pool_) darwin::DataOps(*this);
+    meta_ops_ = new (pool_) darwin::MetaOps(*this);
+    return true;
+
+    /*
+    DataMemory *translated = new (pool_) TranslatingMemory(&statistics_data_memory_, 512);
+    if (dhara_enabled_) {
+        FK_ASSERT(dhara_.begin(translated, false, *pool_));
+        translated = dhara_.map();
+    }
+    */
+}
+
+bool Storage::clear() {
+    if (!clear_internal()) {
+        return false;
+    }
+
+    data_ops_ = new (pool_) darwin::DataOps(*this);
+    meta_ops_ = new (pool_) darwin::MetaOps(*this);
+
+    return true;
+}
+
+DataOps *Storage::data_ops() {
+    return data_ops_;
+}
+
+MetaOps *Storage::meta_ops() {
+    return meta_ops_;
+}
+
+int32_t Storage::installed() {
+    return data_memory_->geometry().total_size;
+}
+
+int32_t Storage::used() {
+    return 0;
+}
+
+FileReader *Storage::file_reader(FileNumber file_number, Pool &pool) {
+    return new (pool) darwin::FileReader{ *this, file_number, pool };
 }
 
 bool Storage::valid_block_header(BlockHeader &header) const {
@@ -193,7 +248,7 @@ Storage::BlocksAfter Storage::find_blocks_after(uint32_t starting, FileNumber fi
     return BlocksAfter{ starting, free, tail, bytes_skipped, records_skipped };
 }
 
-bool Storage::begin() {
+bool Storage::begin_internal() {
     auto g = memory_.geometry();
     auto started = fk_uptime();
 
@@ -265,7 +320,7 @@ bool Storage::begin() {
     return true;
 }
 
-bool Storage::clear() {
+bool Storage::clear_internal() {
     auto g = memory_.geometry();
 
     free_block_ = 0;
@@ -284,7 +339,8 @@ bool Storage::clear() {
     while (!range.empty()) {
         uint32_t address = range.middle_block() * g.block_size;
         logdebug("[" PRADDRESS "] erasing block", address);
-        if (!memory_.erase(address, g.block_size)) {
+        auto err = memory_.erase(address, g.block_size);
+        if (err < 0) {
             // We just keep going, clearing earlier blocks. We'll
             // handle this block being bad during reads/seeks. Still
             // mark the block as bad though so that we can remember.
@@ -348,7 +404,7 @@ uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address, BlockTa
 
         // Erase new block and write header.
         rv = memory_.erase(address, g.block_size);
-        if (rv <= 0) {
+        if (rv < 0) {
             logerror("[%d] allocating ignoring bad block: blk %" PRIu32 " (erase failed)", file, block);
             bad_blocks_.mark_address_as_bad(address);
             continue;
@@ -737,14 +793,14 @@ SavedState Storage::save() const {
     state.timestamp = timestamp_;
     state.free_block = free_block_;
     state.version = version_;
-    static_assert(sizeof(files_) == sizeof(state.files), "sizeof(files_) == sizeof(state.files)");
-    memcpy(state.files, files_, sizeof(files_));
+    static_assert(sizeof(state.files) == sizeof(FileHeader) * NumberOfFiles, "sizeof(state.files) == sizeof(FileHeader) * NumberOfFiles");
+    memcpy(state.files, files_, sizeof(state.files));
     return state;
 }
 
 void Storage::restore(SavedState const &state) {
-    static_assert(sizeof(files_) == sizeof(state.files), "sizeof(files_) == sizeof(state.files)");
-    memcpy(files_, state.files, sizeof(files_));
+    static_assert(sizeof(state.files) == sizeof(FileHeader) * NumberOfFiles, "sizeof(state.files) == sizeof(FileHeader) * NumberOfFiles");
+    memcpy(files_, state.files, sizeof(state.files));
     timestamp_ = state.timestamp;
     free_block_ = state.free_block;
     version_ = state.version;
@@ -754,6 +810,8 @@ bool Storage::flush() {
     if (memory_.flush() <= 0) {
         return false;
     }
+
+    statistics_data_memory_.log_statistics("flash usage: ");
 
     return true;
 }

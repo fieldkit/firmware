@@ -2,6 +2,7 @@
 
 #include "storage/signed_log.h"
 #include "storage_suite.h"
+#include "utilities.h"
 
 using namespace fk;
 

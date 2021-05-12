@@ -52,14 +52,13 @@ public:
         return speed > r.speed;
     }
 
-    template<typename T, size_t Size>
-    static WindReading get_average(T(&readings)[Size]) {
+    static WindReading get_average(WindReading *readings, size_t size) {
         int16_t mv = 0;
         auto speed_sum = 0.0f;
         auto number_of_samples = 0;
         auto direction_sum = readings[0].direction.angle;
         auto d = readings[0].direction.angle;
-        for (auto i = 1 ; i < Size; i++) {
+        for (auto i = 1u; i < size; i++) {
             if (readings[i].direction.angle != -1) {
                 auto delta = readings[i].direction.angle - d;
 

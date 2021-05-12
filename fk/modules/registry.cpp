@@ -6,7 +6,7 @@ namespace fk {
 /**
  * Maximum number of modules that can be builtin to the firmware.
  */
-#define FK_MODULES_BUILTIN_MAXIMUM (10)
+#define FK_MODULES_BUILTIN_MAXIMUM (20)
 
 typedef struct ModuleNode {
     ModuleMetadata const *meta;

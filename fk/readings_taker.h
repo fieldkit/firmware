@@ -14,20 +14,17 @@ private:
     Readings readings_;
     ModMux *mm_;
     bool read_only_;
-    bool verify_;
 
 public:
-    ReadingsTaker(Storage &storage, ModMux *mm, bool read_only, bool verify);
+    ReadingsTaker(Storage &storage, ModMux *mm, bool read_only, Pool &pool);
 
 public:
     tl::expected<TakenReadings, Error> take(ConstructedModulesCollection &constructed_modules, ScanningContext &mc, Pool &pool);
 
-    bool append_readings(File &file, Pool &pool);
-
 private:
     tl::expected<uint32_t, Error> append_configuration(ConstructedModulesCollection &modules, ModuleReadingsCollection &readings, Pool &pool);
 
-    bool verify_reading_record(File &file, Pool &pool);
+    tl::expected<uint32_t, Error> append_readings(uint32_t meta_record, Pool &pool);
 
 };
 

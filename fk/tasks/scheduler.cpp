@@ -127,7 +127,7 @@ void task_handler_scheduler(void *params) {
                     auto time = lwcron::DateTime{ now };
                     if (!scheduler.check(time, 0)) {
                         if (get_can_launch_captive_readings()) {
-                            get_ipc()->launch_worker(WorkerCategory::Readings, create_pool_worker<ReadingsWorker>(false, false, false, ModulePowerState::AlwaysOn));
+                            get_ipc()->launch_worker(WorkerCategory::Readings, create_pool_worker<ReadingsWorker>(false, false, ModulePowerState::AlwaysOn));
                         }
                     }
                     else {

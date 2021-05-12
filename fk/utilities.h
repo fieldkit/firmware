@@ -42,14 +42,15 @@ inline uint32_t aligned_on(uint32_t value, uint32_t on) {
  *
  */
 template<typename T>
-size_t for_each_block_between(uint32_t address, size_t length, size_t block_size, T fn) {
+int32_t for_each_block_between(uint32_t address, size_t length, size_t block_size, T fn) {
     auto aligned = aligned_on(length, block_size);
     for (auto e = 0u; e < aligned; e += block_size) {
-        if (!fn(address + e)) {
-            return 0;
+        auto err = fn(address + e);
+        if (err < 0) {
+            return err;
         }
     }
-    return aligned;
+    return 0;
 }
 
 #if defined(__SAMD51__)

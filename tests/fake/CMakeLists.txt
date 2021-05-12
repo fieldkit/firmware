@@ -45,6 +45,9 @@ target_link_libraries(fake data-protocol)
 find_package(CortexLoading)
 target_link_libraries(fake CortexLoading)
 
+find_package(Dhara)
+target_link_libraries(fake Dhara)
+
 find_package(ConservifyOS)
 target_link_libraries(fake ConservifyOS)
 

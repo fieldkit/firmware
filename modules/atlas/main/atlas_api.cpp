@@ -14,7 +14,7 @@ bool AtlasApi::handle(ModuleContext mc, HttpServerConnection *connection, Pool &
     AtlasApiReply reply{ pool };
 
     if (connection->length() == 0) {
-        connection->error(HttpStatus::ServerError, "invalid query");
+        connection->error(HttpStatus::ServerError, "invalid query", pool);
         return true;
     }
 
@@ -53,10 +53,10 @@ bool AtlasApi::handle(ModuleContext mc, HttpServerConnection *connection, Pool &
 
 bool AtlasApi::send_reply(HttpStatus status_code, HttpServerConnection *connection, Pool &pool, AtlasApiReply &reply) {
     if (reply.has_errors()) {
-        connection->write(status_code, "error", reply.reply(), fk_atlas_WireAtlasReply_fields);
+        connection->write(status_code, "error", reply.reply(), fk_atlas_WireAtlasReply_fields, pool);
     }
     else {
-        connection->write(status_code, "ok", reply.reply(), fk_atlas_WireAtlasReply_fields);
+        connection->write(status_code, "ok", reply.reply(), fk_atlas_WireAtlasReply_fields, pool);
     }
 
     connection->close();

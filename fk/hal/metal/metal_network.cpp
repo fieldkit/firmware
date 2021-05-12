@@ -90,7 +90,8 @@ FK_DECLARE_LOGGER("network");
 MetalNetworkConnection::MetalNetworkConnection() {
 }
 
-MetalNetworkConnection::MetalNetworkConnection(WiFiClient wcl) : wcl_(wcl) {
+MetalNetworkConnection::MetalNetworkConnection(Pool *pool, WiFiClient wcl) : wcl_(wcl) {
+    buffered_writer_ = new (pool) WifiBufferedWriter();
     if (debugging_) {
         size_ = StandardPageSize;
         buffer_ = reinterpret_cast<uint8_t *>(fk_standard_page_malloc(size_, __func__));
@@ -149,40 +150,32 @@ int32_t MetalNetworkConnection::writef(const char *str, ...) {
     return rv;
 }
 
-typedef struct buffered_write_t {
-    uint8_t buffer[256];
-    size_t buffer_size{ 256 };
-    size_t position{ 0 };
-    WiFiClient *wcl;
-    int32_t return_value{ 0 };
-    int32_t flush() {
-        if (position > 0) {
-            auto wrote = wcl->write(buffer, position);
-            if (wrote > 0) {
-                return_value += wrote;
-            }
-            position = 0;
+int32_t WifiBufferedWriter::flush() {
+    if (position > 0) {
+        auto wrote = wcl->write(buffer, position);
+        if (wrote > 0) {
+            return_value += wrote;
         }
-        return return_value;
+        position = 0;
     }
-} buffered_write_t;
+    return return_value;
+}
 
 static void write_connection(char c, void *arg) {
     if (c > 0) {
-        auto buffers = reinterpret_cast<buffered_write_t*>(arg);
-        buffers->buffer[buffers->position++] = c;
-        if (buffers->position == buffers->buffer_size) {
-            buffers->flush();
+        auto bw = reinterpret_cast<WifiBufferedWriter*>(arg);
+        bw->buffer[bw->position++] = c;
+        if (bw->position == bw->buffer_size) {
+            bw->flush();
         }
     }
 }
 
 int32_t MetalNetworkConnection::vwritef(const char *str, va_list args) {
-    buffered_write_t buffers;
-    buffers.wcl = &wcl_;
-    tiny_vfctprintf(write_connection, &buffers, str, args);
-    buffers.flush();
-    return buffers.return_value;
+    buffered_writer_->wcl = &wcl_;
+    tiny_vfctprintf(write_connection, buffered_writer_, str, args);
+    buffered_writer_->flush();
+    return buffered_writer_->return_value;
 }
 
 int32_t MetalNetworkConnection::socket() {
@@ -194,16 +187,17 @@ uint32_t MetalNetworkConnection::remote_address() {
 }
 
 bool MetalNetworkConnection::stop() {
-    auto s = wcl_.socket();
-
     wcl_.flush();
     wcl_.stop();
 
+    /*
+    auto s = wcl_.socket();
     if (buffer_ != nullptr && position_ > 0) {
         char temp[32];
         tiny_snprintf(temp, sizeof(temp), "CDGB-%d ", s);
         fk_dump_memory(temp, buffer_, position_);
     }
+    */
 
     return true;
 }
@@ -410,7 +404,7 @@ NetworkScan MetalNetwork::scan(Pool &pool) {
 void MetalNetwork::verify() {
 }
 
-MetalNetworkListener::MetalNetworkListener(uint16_t port) : port_(port) {
+MetalNetworkListener::MetalNetworkListener(Pool *pool, uint16_t port) : port_(port) {
 }
 
 bool MetalNetworkListener::begin() {

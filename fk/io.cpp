@@ -86,7 +86,7 @@ int32_t BufferedReader::read(uint8_t *buffer, size_t size) {
             return -1;
         }
 
-        auto reading = buffer_size_;
+        auto reading = std::min<size_t>(buffer_size_, size);
         auto nread = reader_->read(buffer_, reading);
         if (nread <= 0) {
             return 0;

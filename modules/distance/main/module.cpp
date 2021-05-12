@@ -5,7 +5,7 @@ using namespace fk;
 extern "C" {
 
 static Module *fk_module_create_distance(Pool &pool) {
-    return new(pool) DistanceModule();
+    return new (pool) DistanceModule(pool);
 }
 
 ModuleMetadata const fk_module_meta_distance = {

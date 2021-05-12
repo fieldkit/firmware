@@ -1,25 +1,20 @@
-#include "water_module.h"
+#include "atlas_module.h"
 #include "platform.h"
 #include "atlas_api.h"
 #include "modules/eeprom.h"
+#include "curves.h"
 
 namespace fk {
 
-FK_DECLARE_LOGGER("water");
+FK_DECLARE_LOGGER("atlas");
 
-class Curve {
-public:
-    virtual float apply(float uncalibrated) = 0;
-};
+AtlasModule::AtlasModule(Pool &pool) : pool_(pool.subpool("atlas", MaximumConfigurationSize)) {
+}
 
-static Curve *create_curve(fk_data_ModuleConfiguration *cfg, Pool &pool);
+AtlasModule::~AtlasModule() {
+}
 
-ModuleReturn WaterModule::initialize(ModuleContext mc, Pool &pool) {
-    // TODO Not a fan of this, move to ctor?
-    FK_ASSERT(pool_ == nullptr);
-
-    pool_ = &pool;
-
+ModuleReturn AtlasModule::initialize(ModuleContext mc, Pool &pool) {
     load_configuration(mc, pool);
 
     auto atlas = OemAtlas{ mc.module_bus() };
@@ -34,11 +29,12 @@ ModuleReturn WaterModule::initialize(ModuleContext mc, Pool &pool) {
     return { ModuleStatus::Ok };
 }
 
-bool WaterModule::load_configuration(ModuleContext mc, Pool &pool) {
+bool AtlasModule::load_configuration(ModuleContext mc, Pool &pool) {
     ModuleEeprom eeprom{ mc.module_bus() };
 
     cfg_message_ = nullptr;
     cfg_ = nullptr;
+    pool_->clear();
 
     size_t size = 0;
     auto buffer = (uint8_t *)pool.malloc(MaximumConfigurationSize);
@@ -62,7 +58,7 @@ bool WaterModule::load_configuration(ModuleContext mc, Pool &pool) {
     return true;
 }
 
-ModuleReturn WaterModule::api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
+ModuleReturn AtlasModule::api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
     if (type_ == AtlasSensorType::Unknown) {
         if (!initialize(mc, pool)) {
             logerror("error initializing (ms::fatal)");
@@ -82,11 +78,11 @@ ModuleReturn WaterModule::api(ModuleContext mc, HttpServerConnection *connection
     return { ModuleStatus::Ok };
 }
 
-ModuleReturn WaterModule::service(ModuleContext mc, Pool &pool) {
+ModuleReturn AtlasModule::service(ModuleContext mc, Pool &pool) {
     return { ModuleStatus::Ok };
 }
 
-ModuleSensors const *WaterModule::get_sensors(Pool &pool) {
+ModuleSensors const *AtlasModule::get_sensors(Pool &pool) {
     switch (type_) {
     case AtlasSensorType::Ec: {
         auto meta = pool.malloc_with<SensorMetadata, 3>({
@@ -165,7 +161,7 @@ ModuleSensors const *WaterModule::get_sensors(Pool &pool) {
     return nullptr;
 }
 
-const char *WaterModule::get_display_name_key() {
+const char *AtlasModule::get_display_name_key() {
     switch (type_) {
     case AtlasSensorType::Ec: return "modules.water.ec";
     case AtlasSensorType::Ph: return "modules.water.ph";
@@ -176,7 +172,7 @@ const char *WaterModule::get_display_name_key() {
     }
 }
 
-ModuleConfiguration const WaterModule::get_configuration(Pool &pool) {
+ModuleConfiguration const AtlasModule::get_configuration(Pool &pool) {
     // Make sure temperature is serviced before any of the other water modules.
     switch (type_) {
     case AtlasSensorType::Temp:
@@ -186,7 +182,7 @@ ModuleConfiguration const WaterModule::get_configuration(Pool &pool) {
     }
 }
 
-ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
+ModuleReadings *AtlasModule::take_readings(ReadingsContext mc, Pool &pool) {
     if (type_ == AtlasSensorType::Unknown) {
         return nullptr;
     }
@@ -262,9 +258,9 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
     return mr;
 }
 
-optional<float> WaterModule::get_temperature(ReadingsContext mc) {
+optional<float> AtlasModule::get_temperature(ReadingsContext mc) {
     for (auto &r : mc.readings()) {
-        if (r.meta->manufacturer == FK_MODULES_MANUFACTURER && r.meta->kind == FK_MODULES_KIND_WATER_TEMP) {
+        if (r.meta->manufacturer == FK_MODULES_MANUFACTURER && r.meta->kind == FK_MODULES_KIND_ATLAS_TEMP) {
             if (r.readings->size() == 1) {
                 return { r.readings->get(0).calibrated };
             }
@@ -273,9 +269,9 @@ optional<float> WaterModule::get_temperature(ReadingsContext mc) {
     return nullopt;
 }
 
-optional<float> WaterModule::get_salinity(ReadingsContext mc) {
+optional<float> AtlasModule::get_salinity(ReadingsContext mc) {
     for (auto &r : mc.readings()) {
-        if (r.meta->manufacturer == FK_MODULES_MANUFACTURER && r.meta->kind == FK_MODULES_KIND_WATER_EC) {
+        if (r.meta->manufacturer == FK_MODULES_MANUFACTURER && r.meta->kind == FK_MODULES_KIND_ATLAS_EC) {
             if (r.readings->size() == 3) {
                 return { r.readings->get(2).calibrated };
             }
@@ -284,49 +280,8 @@ optional<float> WaterModule::get_salinity(ReadingsContext mc) {
     return nullopt;
 }
 
-optional<float> WaterModule::get_pressure(ReadingsContext mc) {
+optional<float> AtlasModule::get_pressure(ReadingsContext mc) {
     return nullopt;
-}
-
-class NoopCurve : public Curve {
-public:
-    virtual float apply(float uncalibrated) override {
-        return uncalibrated;
-    }
-};
-
-class LinearCurve : public Curve {
-private:
-    float b_{ 0.0f };
-    float m_{ 1.0f };
-
-public:
-    LinearCurve(fk_data_ModuleConfiguration *cfg) {
-        if (cfg == nullptr) return;
-        if (!cfg->has_calibration) return;
-        if (!cfg->calibration.has_coefficients) return;
-        if (cfg->calibration.coefficients.values.arg == nullptr) return;
-
-        auto values_array = reinterpret_cast<pb_array_t *>(cfg->calibration.coefficients.values.arg);
-        if (values_array->length != 2) return;
-
-        auto values = reinterpret_cast<float*>(values_array->buffer);
-        b_ = values[0];
-        m_ = values[1];
-
-        loginfo("cal: b = %f m = %f", b_, m_);
-    }
-
-public:
-    virtual float apply(float uncalibrated) override {
-        return b_ + (uncalibrated * m_);
-    }
-};
-
-static Curve *create_curve(fk_data_ModuleConfiguration *cfg, Pool &pool) {
-    if (cfg == nullptr) return new (pool) NoopCurve();
-    if (cfg->calibration.type == fk_data_CurveType_CURVE_LINEAR) return new (pool) LinearCurve(cfg);
-    return new (pool) NoopCurve();
 }
 
 } // namespace fk

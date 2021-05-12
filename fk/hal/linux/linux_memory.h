@@ -12,21 +12,21 @@ namespace fk {
 class LinuxDataMemory : public ExecutableMemory {
 private:
     /* These mimic a single bank of memory. */
-    constexpr static uint32_t PageSize = 2048;
-    constexpr static uint32_t BlockSize = 2048 * 64;
-    constexpr static uint32_t NumberOfBlocks = 2048;
+    constexpr static uint32_t PageSize = 4096;
+    constexpr static uint32_t BlockSize = PageSize * 64;
 
 private:
     StorageLog log_;
-    FlashGeometry geometry_;
+    uint32_t number_of_blocks_{ 0 };
     uint8_t *memory_{ nullptr };
-    size_t size_{ 0 };
+    FlashGeometry geometry_;
 
 public:
     static uint8_t EraseByte;
 
 public:
-    LinuxDataMemory();
+    LinuxDataMemory(uint32_t number_of_blocks = 2048);
+    virtual ~LinuxDataMemory();
 
 public:
     bool begin() override;
@@ -38,6 +38,8 @@ public:
     int32_t write(uint32_t address, const uint8_t *data, size_t length, MemoryWriteFlags flags) override;
 
     int32_t erase(uint32_t address, size_t length) override;
+
+    int32_t copy_page(uint32_t source, uint32_t destiny, size_t length) override;
 
     int32_t flush() override;
 

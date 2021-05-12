@@ -14,7 +14,7 @@ class HttpReply {
 private:
     Pool *pool_;
     GlobalState const *gs_;
-    fk_app_HttpReply reply_;
+    fk_app_HttpReply *reply_{ nullptr };
 
 public:
     HttpReply(Pool &pool, GlobalState const *gs);
@@ -28,7 +28,7 @@ public:
 
 public:
     fk_app_HttpReply const *reply() {
-        return fk_http_reply_encoding_initialize(&reply_);
+        return fk_http_reply_encoding_initialize(reply_);
     }
 
 };

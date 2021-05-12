@@ -1,6 +1,6 @@
 #include "state.h"
 #include "state_ref.h"
-#include "storage/meta_ops.h"
+#include "storage/storage.h"
 
 #if defined(__SAMD51__)
 #include "hal/metal/metal_ipc.h"
@@ -89,17 +89,27 @@ GlobalStateRef<GlobalState const*> try_get_global_state_ro() {
 }
 
 GlobalState::GlobalState() : version(0) {
+    update_data_stream(0, 0);
+    update_meta_stream(0, 0);
 }
 
 void GlobalState::update_data_stream(File const &file) {
-    storage.data.size = file.size();
-    storage.data.block = file.end_record();
-    readings.number = file.end_record();
+    update_data_stream(file.size(), file.end_record());
 }
 
 void GlobalState::update_meta_stream(File const &file) {
-    storage.meta.size = file.size();
-    storage.meta.block = file.end_record();
+    update_meta_stream(file.size(), file.end_record());
+}
+
+void GlobalState::update_data_stream(uint32_t size, uint32_t records) {
+    storage.data.size = size;
+    storage.data.block = records;
+    readings.number = records;
+}
+
+void GlobalState::update_meta_stream(uint32_t size, uint32_t records) {
+    storage.meta.size = size;
+    storage.meta.block = records;
 }
 
 void GlobalState::update_physical_modules(ConstructedModulesCollection const &modules) {
@@ -137,13 +147,17 @@ void GlobalState::released(uint32_t locked) {
 }
 
 bool GlobalState::flush(Pool &pool) {
+    // jlewallen: storage-write
     Storage storage{ MemoryFactory::get_data_memory(), pool, false };
     if (!storage.begin()) {
         return false;
     }
 
-    MetaOps ops{ storage };
-    if (!ops.write_state(this, pool)) {
+    if (!storage.meta_ops()->write_state(this, pool)) {
+        return false;
+    }
+
+    if (!storage.flush()) {
         return false;
     }
 

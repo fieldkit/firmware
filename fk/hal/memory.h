@@ -7,12 +7,11 @@
 namespace fk {
 
 struct FlashGeometry {
-    static constexpr uint32_t SectorSize = 512;
-
     uint32_t page_size;
     uint32_t block_size;
     uint32_t nblocks;
     uint32_t total_size;
+    uint32_t prog_size;
 
     uint32_t beginning() const {
         return 0;
@@ -57,24 +56,25 @@ struct FlashGeometry {
     }
 
     bool is_address_valid(uint32_t address) const {
+        FK_ASSERT(total_size > 0);
         return address >= 0 && address < total_size;
     }
 
     uint32_t partial_write_boundary_before(uint32_t address) const {
-        if (address < SectorSize) {
+        if (address < prog_size) {
             return 0;
         }
-        auto padding = address % SectorSize;
+        auto padding = address % prog_size;
         return padding == 0 ? address : address - padding;
     }
 
     uint32_t partial_write_boundary_after(uint32_t address) const {
-        auto padding = address % SectorSize;
-        return padding == 0 ? address : address + (SectorSize - padding);
+        auto padding = address % prog_size;
+        return padding == 0 ? address : address + (prog_size - padding);
     }
 
     uint32_t sector_size() const {
-        return SectorSize;
+        return prog_size;
     }
 };
 
@@ -97,6 +97,11 @@ public:
     virtual int32_t write(uint32_t address, uint8_t const *data, size_t length, MemoryWriteFlags flags) = 0;
 
     virtual int32_t erase(uint32_t address, size_t length) = 0;
+
+    virtual int32_t copy_page(uint32_t source, uint32_t destiny, size_t page_size) {
+        FK_ASSERT(false);
+        return -1;
+    }
 
     virtual int32_t flush() = 0;
 
@@ -139,6 +144,8 @@ public:
 
     int32_t erase(uint32_t address, size_t length) override;
 
+    int32_t copy_page(uint32_t source, uint32_t destiny, size_t page_size) override;
+
     int32_t flush() override;
 
 };
@@ -163,6 +170,8 @@ public:
     int32_t write(uint32_t address, uint8_t const *data, size_t length, MemoryWriteFlags flags) override;
 
     int32_t erase(uint32_t address, size_t length) override;
+
+    int32_t copy_page(uint32_t source, uint32_t destiny, size_t page_size) override;
 
     int32_t flush() override;
 

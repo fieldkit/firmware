@@ -4,11 +4,16 @@
 namespace fk {
 
 fk_data_DataRecord &DataRecord::for_decoding(Pool &pool) {
-    return record_ = fk_data_record_decoding_new(pool);
+    if (record_ == nullptr) {
+        record_ = pool.malloc<fk_data_DataRecord>();
+    }
+    fk_data_record_decoding_new(record_, pool);
+    return *record_;
 }
 
 fk_data_DataRecord const &DataRecord::record() {
-    return record_;
+    FK_ASSERT(record_ != nullptr);
+    return *record_;
 }
 
 } // namespace fk

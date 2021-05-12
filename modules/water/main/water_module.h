@@ -2,18 +2,21 @@
 
 #include <modules/bridge/modules.h>
 
-#include "oem_atlas.h"
 #include "records.h"
+#include "mcp_2803.h"
+#include "ads_1219.h"
 
 namespace fk {
 
 class WaterModule : public Module {
 private:
-    AtlasSensorType type_{ AtlasSensorType::Unknown };
-    uint8_t address_{ 0 };
     Pool *pool_{ nullptr };
     EncodedMessage *cfg_message_{ nullptr };
     fk_data_ModuleConfiguration *cfg_{ nullptr };
+
+public:
+    WaterModule(Pool &pool);
+    virtual ~WaterModule();
 
 public:
     ModuleReturn initialize(ModuleContext mc, Pool &pool) override;
@@ -27,10 +30,11 @@ public:
 
 private:
     const char *get_display_name_key();
-    optional<float> get_temperature(ReadingsContext mc);
-    optional<float> get_salinity(ReadingsContext mc);
-    optional<float> get_pressure(ReadingsContext mc);
     bool load_configuration(ModuleContext mc, Pool &pool);
+
+private:
+    bool excite_control(Mcp2803 &mcp, bool high);
+    bool initialize(Mcp2803 &mcp, Ads1219 &ads);
 
 };
 

@@ -22,7 +22,7 @@ BankedDataMemory::BankedDataMemory(DataMemory **memories, size_t size) : memorie
 }
 
 template<typename F>
-size_t with_bank(DataMemory **memories, size_t size, uint32_t address, F fn) {
+int32_t with_bank(DataMemory **memories, size_t size, uint32_t address, F fn) {
     auto bank_address = address;
     for (auto i = 0u; i < size; ++i) {
         auto &bank = *memories[i];
@@ -34,13 +34,13 @@ size_t with_bank(DataMemory **memories, size_t size, uint32_t address, F fn) {
 
         bank_address -= g.total_size;
     }
-    return false;
+    return 0;
 }
 
 bool BankedDataMemory::begin() {
     auto nbanks = 0;
 
-    geometry_ = { 0, 0, 0, 0 };
+    geometry_ = { 0, 0, 0, 0, 0 };
 
     for (size_t i = 0; i < size_; ++i) {
         auto bank = memories_[i];
@@ -49,9 +49,12 @@ bool BankedDataMemory::begin() {
             if (geometry_.page_size == 0) {
                 geometry_.page_size = g.page_size;
                 geometry_.block_size = g.block_size;
+                geometry_.prog_size = g.prog_size;
+                FK_ASSERT(g.prog_size > 0);
             }
             FK_ASSERT(geometry_.page_size == g.page_size);
             FK_ASSERT(geometry_.block_size == g.block_size);
+            FK_ASSERT(geometry_.prog_size == g.prog_size);
             geometry_.total_size += g.total_size;
             geometry_.nblocks += g.nblocks;
             nbanks++;
@@ -80,6 +83,16 @@ int32_t BankedDataMemory::erase(uint32_t address, size_t length) {
     return for_each_block_between(address, length, geometry_.block_size, [=](uint32_t block_address) {
         return with_bank(memories_, size_, block_address, [&](DataMemory &bank, uint32_t bank_address) {
             return bank.erase(bank_address, geometry_.block_size);
+        });
+    });
+}
+
+int32_t BankedDataMemory::copy_page(uint32_t source, uint32_t destiny, size_t page_size) {
+    return with_bank(memories_, size_, source, [&](DataMemory &source_bank, uint32_t source_bank_address) {
+        return with_bank(memories_, size_, destiny, [&](DataMemory &destiny_bank, uint32_t destiny_bank_address) {
+            // TODO If they're different banks we can fall back on read/write.
+            FK_ASSERT(&source_bank == &destiny_bank);
+            return source_bank.copy_page(source_bank_address, destiny_bank_address, page_size);
         });
     });
 }
@@ -130,6 +143,10 @@ int32_t TranslatingMemory::flush() {
     return target_->flush();
 }
 
+int32_t TranslatingMemory::copy_page(uint32_t source, uint32_t destiny, size_t page_size) {
+    return target_->copy_page(translate(source), translate(destiny), page_size);
+}
+
 uint32_t TranslatingMemory::translate(uint32_t address) {
     return address + offset_;
 }
@@ -157,7 +174,7 @@ MetalDataMemory banks[MemoryFactory::NumberOfDataMemoryBanks] {
     { SPI_FLASH_CS_BANK_1 },
     { SPI_FLASH_CS_BANK_2 },
 };
-DataMemory *bank_pointers[]{ &banks[0], &banks[1] };
+DataMemory *bank_pointers_normal[]{ &banks[0], &banks[1] };
 
 #endif
 
@@ -169,12 +186,12 @@ TranslatingMemory qspi_memory_translated{ &qspi_memory, -FK_MEMORY_QSPI_BASE };
 #if FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS == 4
 
 LinuxDataMemory banks[MemoryFactory::NumberOfDataMemoryBanks];
-DataMemory *bank_pointers[]{ &banks[0], &banks[1], &banks[2], &banks[3] };
+DataMemory *bank_pointers_normal[]{ &banks[0], &banks[1], &banks[2], &banks[3] };
 
 #else
 
 LinuxDataMemory banks[MemoryFactory::NumberOfDataMemoryBanks];
-DataMemory *bank_pointers[]{ &banks[0], &banks[1] };
+DataMemory *bank_pointers_normal[]{ &banks[0], &banks[1] };
 
 #endif
 
@@ -183,7 +200,7 @@ TranslatingMemory qspi_memory_translated{ &qspi_memory, -FK_MEMORY_QSPI_BASE };
 
 #endif
 
-BankedDataMemory banked_flash_memory{ bank_pointers, MemoryFactory::NumberOfDataMemoryBanks };
+BankedDataMemory banked_flash_memory{ bank_pointers_normal, MemoryFactory::NumberOfDataMemoryBanks };
 
 #if defined(FK_ENABLE_PAGE_CACHE)
 BasicPageCache<MemoryPageStore, 2048, 4> flash_cache{ { &banked_flash_memory } };
@@ -191,7 +208,7 @@ CachingMemory flash_caching_memory{ &banked_flash_memory, &flash_cache };
 #endif
 
 DataMemory **MemoryFactory::get_data_memory_banks() {
-    return bank_pointers;
+    return bank_pointers_normal;
 }
 
 DataMemory *MemoryFactory::get_data_memory() {
