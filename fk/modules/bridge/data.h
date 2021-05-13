@@ -210,7 +210,7 @@ inline const char *get_module_status_string(ModuleStatus ms) {
 struct ConstructedModule {
     FoundModule found;
     ModuleMetadata const *meta;
-    Module *module;
+    Module *module_instance;
     ModuleStatus status;
     ModuleConfiguration configuration;
 };

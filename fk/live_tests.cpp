@@ -214,7 +214,7 @@ static void test_water_module() {
 
                 scan_bus(moduleCtx.module_bus());
 
-                if ((*constructed)->module->initialize(moduleCtx, pool)) {
+                if ((*constructed)->module_instance->initialize(moduleCtx, pool)) {
                     loginfo("ready!");
                 }
             }

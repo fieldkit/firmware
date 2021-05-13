@@ -168,12 +168,12 @@ void MetaRecord::include_modules(GlobalState const *gs, fkb_header_t const *fkb_
     auto index = 0;
     for (auto &pair : modules) {
         auto &meta = pair.meta;
-        auto &module = pair.module;
-        if (meta == nullptr || module == nullptr) {
+        auto &module_instance = pair.module_instance;
+        if (meta == nullptr || module_instance == nullptr) {
             continue;
         }
 
-        auto sensor_metas = module->get_sensors(pool);
+        auto sensor_metas = module_instance->get_sensors(pool);
 
         auto id_data = pool.malloc_with<pb_data_t>({
             .length = sizeof(fk_uuid_t),
