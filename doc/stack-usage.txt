@@ -1358,9 +1358,9 @@ random_module.cpp:44:22:virtual const ModuleSensors* fk::RandomModule::get_senso
 random_module.cpp:48:27:virtual const ModuleConfiguration fk::RandomModule::get_configuration(fk::Pool&) 0
 random_module.cpp:6:1:fk::RandomModule::RandomModule(fk::Pool&) 0
 random_module.cpp:9:1:fk::RandomModule::~RandomModule() 0
-readings.cpp:172:6:void fk::Readings::meta_record(uint32_t) 0
-readings.cpp:176:6:void fk::Readings::record_number(uint32_t) 0
-readings.cpp:180:21:fk_data_DataRecord& fk::Readings::record() 0
+readings.cpp:174:6:void fk::Readings::meta_record(uint32_t) 0
+readings.cpp:178:6:void fk::Readings::record_number(uint32_t) 0
+readings.cpp:182:21:fk_data_DataRecord& fk::Readings::record() 0
 readings_view.cpp:51:6:virtual void fk::ReadingsView::up(fk::ViewController*) 0
 readings_view.cpp:56:6:virtual void fk::ReadingsView::down(fk::ViewController*) 0
 readings_worker.h:21:13:virtual uint8_t fk::ReadingsWorker::priority() const 0
@@ -2190,7 +2190,7 @@ connection.cpp:11:1:fk::Connection::~Connection() 8
 connection.cpp:11:1:virtual fk::Connection::~Connection() 8
 connection.cpp:15:6:virtual bool fk::Connection::service() 8
 connection.cpp:62:9:int32_t fk::Connection::close() 8
-contexts.cpp:16:15:fk::ModuleContext fk::ScanningContext::module(fk::ModulePosition, fk::Pool&) 8
+contexts.cpp:16:15:fk::ModuleContext fk::ScanningContext::open_module(fk::ModulePosition, fk::Pool&) 8
 contexts.cpp:24:1:fk::ModuleContext::ModuleContext(fk::ScanningContext&, fk::ModulePosition, fk::Pool&) 8
 contexts.cpp:27:6:bool fk::ModuleContext::open() 8
 contexts.cpp:35:6:bool fk::ModuleContext::power_cycle() 8
@@ -2354,6 +2354,7 @@ eeprom.cpp:138:6:bool fk::ModuleEeprom::erase_configuration() 8
 enable_module_power.cpp:20:6:bool fk::EnableModulePower::enabled_once() 8
 enable_module_power.cpp:24:6:bool fk::EnableModulePower::always_enabled() 8
 enable_module_power.cpp:28:6:bool fk::EnableModulePower::should_enable() 8
+enable_module_power.cpp:50:6:void fk::EnableModulePower::fatal_error() 8
 enable_module_power.cpp:7:1:fk::EnableModulePower::~EnableModulePower() 8
 enable_module_power.cpp:7:1:virtual fk::EnableModulePower::~EnableModulePower() 8
 export_data_worker.cpp:16:1:fk::ExportDataWorker::ExportDataWorker() 8
@@ -3783,7 +3784,7 @@ configure_module_worker.cpp:20:1:fk::ConfigureModuleWorker::ConfigureModuleWorke
 connection.cpp:28:9:virtual int32_t fk::Connection::read(uint8_t*, size_t) 16
 connection.cpp:40:9:virtual int32_t fk::Connection::write(const uint8_t*, size_t) 16
 connection.cpp:7:1:fk::Connection::Connection(fk::Pool*, fk::NetworkConnection*, uint32_t) 16
-contexts.cpp:20:17:fk::ReadingsContext fk::ScanningContext::readings(fk::ModulePosition, fk::ModuleReadingsCollection&, fk::Pool&) 16
+contexts.cpp:20:17:fk::ReadingsContext fk::ScanningContext::open_readings(fk::ModulePosition, fk::ModuleReadingsCollection&, fk::Pool&) 16
 cpool.cpp:112:6:void fk::ConnectionPool::update_statistics(fk::Connection*) 16
 cpool.cpp:11:1:fk::ConnectionPool::ConnectionPool(fk::HttpRouter&) 16
 cpool.cpp:143:1:cpp) 16
@@ -6749,7 +6750,6 @@ map.c:411:12:try_delete 304
 signed_log.cpp:77:37:tl::expected<fk::AppendedRecord, fk::Error> fk::SignedRecordLog::append_always(fk::SignedRecordKind, const void*, const pb_msgdesc_t*, fk::Pool&) 304
 scanning.cpp:34:13:9(fk::FoundModuleCollection&) 312
 signed_log.cpp:114:37:tl::expected<fk::AppendedRecord, fk::Error> fk::SignedRecordLog::append_immutable(fk::SignedRecordKind, const void*, const pb_msgdesc_t*, fk::Pool&) 312
-readings.cpp:16:47:tl::expected<fk::collection<fk::ModuleMetaAndReadings>, fk::Error> fk::Readings::take_readings(fk::ScanningContext&, const ConstructedModulesCollection&, fk::Pool&) 320
 tree_sector.h:605:140:phylum::tree_sector<KEY, VALUE, Size>::add(KEY, VALUE) [with KEY = long unsigned int; VALUE = phylum::dirtree_tree_value_t<128u>; unsigned int Size = 4u; int32_t = long int]::__lambda5 320
 file_ops_darwin.cpp:101:37:virtual tl::expected<fk::FileAttributes, fk::Error> fk::darwin::DataOps::attributes() 328
 file_ops_darwin.cpp:49:37:virtual tl::expected<fk::FileAttributes, fk::Error> fk::darwin::MetaOps::attributes() 328
@@ -6763,6 +6763,7 @@ backup_worker.cpp:72:6:bool fk::BackupWorker::write_file(fk::FileReader*, const 
 file_ops_darwin.cpp:58:6:virtual bool fk::darwin::MetaOps::read_record(fk::SignedRecordKind, fk::MetaRecord&, fk::Pool&) 360
 file_ops_darwin.cpp:34:31:tl::expected<long unsigned int, fk::Error> fk::darwin::MetaOps::write_kind(fk::GlobalState*, fk::SignedRecordKind, fk::MetaRecord&, fk::Pool&) 368
 file_ops_darwin.cpp:75:31:virtual tl::expected<long unsigned int, fk::Error> fk::darwin::DataOps::write_readings(fk::GlobalState*, fk_data_DataRecord*, fk::Pool&) 368
+readings.cpp:16:47:tl::expected<fk::collection<fk::ModuleMetaAndReadings>, fk::Error> fk::Readings::take_readings(fk::ScanningContext&, const ConstructedModulesCollection&, fk::Pool&) 384
 storage.cpp:474:11:fk::SeekValue fk::Storage::seek(fk::SeekSettings) 400
 network.cpp:49:6:void fk::try_and_serve_connections() 448
 scheduler.cpp:53:6:void fk::task_handler_scheduler(void*) 472

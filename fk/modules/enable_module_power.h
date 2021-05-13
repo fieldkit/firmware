@@ -27,6 +27,8 @@ private:
 public:
     bool enable();
 
+    void fatal_error();
+
     bool was_enabled() {
         return was_enabled_;
     }

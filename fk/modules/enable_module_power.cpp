@@ -47,4 +47,12 @@ bool EnableModulePower::enable() {
     return true;
 }
 
+void EnableModulePower::fatal_error() {
+    if (always_enabled()) {
+        if (!get_modmux()->disable_module(position_)) {
+            logerror("[%d] disabling module failed", position_.integer());
+        }
+    }
+}
+
 } // namespace fk

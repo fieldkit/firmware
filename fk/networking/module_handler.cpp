@@ -42,14 +42,14 @@ bool ModuleHandler::handle(HttpServerConnection *connection, Pool &pool) {
 
         ScanningContext ctx{ mm, gs.get()->location(pool), module_bus, pool };
 
-        auto mc = ctx.module(bay_, pool);
+        auto mc = ctx.open_module(bay_, pool);
 
         if (!mc.open()) {
             connection->error(HttpStatus::ServerError, "error choosing module", pool);
             return true;
         }
 
-        if (!(*constructed)->module->api(mc, connection, pool)) {
+        if (!(*constructed)->module_instance->api(mc, connection, pool)) {
             connection->error(HttpStatus::ServerError, "error servicing module api", pool);
             return true;
         }
@@ -62,7 +62,7 @@ bool ModuleHandler::handle(HttpServerConnection *connection, Pool &pool) {
     // create the copy in the correct pool.
     {
         auto gs = get_global_state_rw();
-        configuration = (*constructed)->module->get_configuration(factory.pool());
+        configuration = (*constructed)->module_instance->get_configuration(factory.pool());
         (*constructed)->configuration = configuration;
 
         for (auto &module_meta_and_readings : gs.get()->modules->readings) {

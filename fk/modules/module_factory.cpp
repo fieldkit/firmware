@@ -98,10 +98,10 @@ bool ModuleFactory::initialize(ScanningContext &ctx, Pool &pool) {
     auto success = true;
 
     for (auto &constructed : modules_) {
-        auto mod = constructed.module;
+        auto mod = constructed.module_instance;
         if (mod != nullptr) {
             if (constructed.status == ModuleStatus::Found) {
-                auto mc = ctx.module(constructed.found.position, pool);
+                auto mc = ctx.open_module(constructed.found.position, pool);
                 auto position = constructed.found.position;
                 if (!mc.open()) {
                     logerror("[%d] error opening module", position.integer());
@@ -148,11 +148,11 @@ tl::expected<ConstructedModulesCollection, Error> ModuleFactory::resolve(FoundMo
     for (auto &f : module_headers) {
         auto meta = registry.resolve(f.header);
         FK_ASSERT(meta != nullptr);
-        auto module = meta->ctor(pool);
+        auto module_instance = meta->ctor(pool);
         modules.emplace(ConstructedModule{
             .found = f,
             .meta = meta,
-            .module = module,
+            .module_instance = module_instance,
             .status = ModuleStatus::Found,
         });
     }

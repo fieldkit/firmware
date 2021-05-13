@@ -23,8 +23,8 @@ public:
     friend class ModuleContext;
 
 public:
-    ModuleContext module(ModulePosition position, Pool &pool);
-    ReadingsContext readings(ModulePosition position, ModuleReadingsCollection &readings, Pool &pool);
+    ModuleContext open_module(ModulePosition position, Pool &pool);
+    ReadingsContext open_readings(ModulePosition position, ModuleReadingsCollection &readings, Pool &pool);
 
 public:
     GpsState const *gps();

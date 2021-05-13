@@ -144,22 +144,22 @@ static void fake_modules(ConstructedModulesCollection &modules, ModuleReadingsCo
     modules.emplace(ConstructedModule{
         .found = { .position = ModulePosition::from(0) },
         .meta = &fk_test_module_fake_1,
-        .module = fk_test_module_fake_1.ctor(pool),
+        .module_instance = fk_test_module_fake_1.ctor(pool),
     });
     modules.emplace(ConstructedModule{
         .found = { .position = ModulePosition::from(1) },
         .meta = &fk_test_module_fake_2,
-        .module = fk_test_module_fake_2.ctor(pool),
+        .module_instance = fk_test_module_fake_2.ctor(pool),
     });
     modules.emplace(ConstructedModule{
         .found = { .position = ModulePosition::from(2) },
         .meta = &fk_test_module_fake_1,
-        .module = fk_test_module_fake_1.ctor(pool),
+        .module_instance = fk_test_module_fake_1.ctor(pool),
     });
     modules.emplace(ConstructedModule{
         .found = { .position = ModulePosition::from(3) },
         .meta = &fk_test_module_fake_2,
-        .module = fk_test_module_fake_2.ctor(pool),
+        .module_instance = fk_test_module_fake_2.ctor(pool),
     });
 
     readings.emplace(ModuleMetaAndReadings{
@@ -254,12 +254,12 @@ TEST_F(ProtoBufSizeSuite, ReadingsNoneBackFromFirstModule) {
     resolved.emplace(ConstructedModule{
         .found = { .position = ModulePosition::from(0) },
         .meta = &fk_test_module_fake_1,
-        .module = first,
+        .module_instance = first,
     });
     resolved.emplace(ConstructedModule{
         .found = { .position = ModulePosition::from(1) },
         .meta = &fk_test_module_fake_2,
-        .module = fk_test_module_fake_2.ctor(pool_),
+        .module_instance = fk_test_module_fake_2.ctor(pool_),
     });
 
     module_readings.emplace(ModuleMetaAndReadings{

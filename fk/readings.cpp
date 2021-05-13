@@ -63,28 +63,29 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
 
     for (auto pair : modules) {
         auto meta = pair.meta;
-        auto module = pair.module;
+        auto found = pair.found;
         auto position = pair.found.position;
-
-        auto sensor_metas = module->get_sensors(pool);
+        auto configuration = pair.configuration;
+        auto module_instance = pair.module_instance;
+        auto sensor_metas = module_instance->get_sensors(pool);
 
         auto adding = ModuleMetaAndReadings{
-            .position = pair.found.position,
-            .id = (fk_uuid_t *)pool.copy(&pair.found.header.id, sizeof(pair.found.header.id)),
+            .position = found.position,
+            .id = (fk_uuid_t *)pool.copy(&found.header.id, sizeof(found.header.id)),
             .meta = meta,
             .sensors = sensor_metas,
             .readings = nullptr,
-            .configuration = pair.configuration,
+            .configuration = configuration,
         };
 
-        if (module == nullptr) {
+        if (module_instance == nullptr) {
             logwarn("[%d] ignore unknown module", position.integer());
             group_number++;
             all_readings.emplace(adding);
             continue;
         }
 
-        EnableModulePower module_power{ true, pair.configuration.power, pair.found.position };
+        EnableModulePower module_power{ true, configuration.power, found.position };
         if (!module_power.enable()) {
             logerror("[%d] error powering module", position.integer());
             group_number++;
@@ -92,11 +93,11 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
             continue;
         }
         if (module_power.was_enabled()) {
-            logdebug("wake delay: %" PRIu32 "ms", pair.configuration.wake_delay);
-            fk_delay(pair.configuration.wake_delay);
+            logdebug("wake delay: %" PRIu32 "ms", configuration.wake_delay);
+            fk_delay(configuration.wake_delay);
         }
 
-        auto mc = ctx.readings(position, all_readings, pool);
+        auto mc = ctx.open_readings(position, all_readings, pool);
         if (!mc.open()) {
             logerror("[%d] error choosing module", position.integer());
             group_number++;
@@ -104,10 +105,10 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
             continue;
         }
 
-        loginfo("'%s' mk=%02" PRIx32 "%02" PRIx32 " version=%" PRIu32, pair.configuration.display_name_key, meta->manufacturer, meta->kind, meta->version);
+        loginfo("'%s' mk=%02" PRIx32 "%02" PRIx32 " version=%" PRIu32, configuration.display_name_key, meta->manufacturer, meta->kind, meta->version);
 
         // TODO Cache this? POWER
-        auto module_configuration = module->get_configuration(pool);
+        auto module_configuration = module_instance->get_configuration(pool);
         adding.configuration = module_configuration;
         if (module_configuration.message != nullptr) {
             loginfo("'%s' config ok (%zu bytes)", meta->name, module_configuration.message->size);
@@ -116,11 +117,12 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
             loginfo("'%s' config ok", meta->name);
         }
 
-        auto readings = module->take_readings(mc, pool);
+        auto readings = module_instance->take_readings(mc, pool);
         if (readings == nullptr || readings->size() == 0) {
             logwarn("'%s' no readings", meta->name);
             group_number++;
             all_readings.emplace(adding);
+            module_power.fatal_error();
             continue;
         }
 
