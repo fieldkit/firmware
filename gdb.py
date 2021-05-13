@@ -113,9 +113,9 @@ class FkReloadAll(gdb.Command):
         gdb.execute("monitor reset")
 
 
-FkReloadAll()
+#FkReloadAll()
 FkReloadAllAndRun()
 FkSegger()
-FkRunHosted()
-FkRestart()
-FkFixLogs()
+#FkRunHosted()
+#FkRestart()
+#FkFixLogs()
