@@ -122,6 +122,7 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
             logwarn("'%s' no readings", meta->name);
             group_number++;
             all_readings.emplace(adding);
+            module_power.fatal_error();
             continue;
         }
 
