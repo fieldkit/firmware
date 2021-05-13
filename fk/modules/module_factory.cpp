@@ -101,7 +101,7 @@ bool ModuleFactory::initialize(ScanningContext &ctx, Pool &pool) {
         auto mod = constructed.module_instance;
         if (mod != nullptr) {
             if (constructed.status == ModuleStatus::Found) {
-                auto mc = ctx.module(constructed.found.position, pool);
+                auto mc = ctx.open_module(constructed.found.position, pool);
                 auto position = constructed.found.position;
                 if (!mc.open()) {
                     logerror("[%d] error opening module", position.integer());

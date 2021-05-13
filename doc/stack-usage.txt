@@ -2190,7 +2190,7 @@ connection.cpp:11:1:fk::Connection::~Connection() 8
 connection.cpp:11:1:virtual fk::Connection::~Connection() 8
 connection.cpp:15:6:virtual bool fk::Connection::service() 8
 connection.cpp:62:9:int32_t fk::Connection::close() 8
-contexts.cpp:16:15:fk::ModuleContext fk::ScanningContext::module(fk::ModulePosition, fk::Pool&) 8
+contexts.cpp:16:15:fk::ModuleContext fk::ScanningContext::open_module(fk::ModulePosition, fk::Pool&) 8
 contexts.cpp:24:1:fk::ModuleContext::ModuleContext(fk::ScanningContext&, fk::ModulePosition, fk::Pool&) 8
 contexts.cpp:27:6:bool fk::ModuleContext::open() 8
 contexts.cpp:35:6:bool fk::ModuleContext::power_cycle() 8
@@ -3784,7 +3784,7 @@ configure_module_worker.cpp:20:1:fk::ConfigureModuleWorker::ConfigureModuleWorke
 connection.cpp:28:9:virtual int32_t fk::Connection::read(uint8_t*, size_t) 16
 connection.cpp:40:9:virtual int32_t fk::Connection::write(const uint8_t*, size_t) 16
 connection.cpp:7:1:fk::Connection::Connection(fk::Pool*, fk::NetworkConnection*, uint32_t) 16
-contexts.cpp:20:17:fk::ReadingsContext fk::ScanningContext::readings(fk::ModulePosition, fk::ModuleReadingsCollection&, fk::Pool&) 16
+contexts.cpp:20:17:fk::ReadingsContext fk::ScanningContext::open_readings(fk::ModulePosition, fk::ModuleReadingsCollection&, fk::Pool&) 16
 cpool.cpp:112:6:void fk::ConnectionPool::update_statistics(fk::Connection*) 16
 cpool.cpp:11:1:fk::ConnectionPool::ConnectionPool(fk::HttpRouter&) 16
 cpool.cpp:143:1:cpp) 16

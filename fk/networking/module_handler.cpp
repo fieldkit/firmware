@@ -42,7 +42,7 @@ bool ModuleHandler::handle(HttpServerConnection *connection, Pool &pool) {
 
         ScanningContext ctx{ mm, gs.get()->location(pool), module_bus, pool };
 
-        auto mc = ctx.module(bay_, pool);
+        auto mc = ctx.open_module(bay_, pool);
 
         if (!mc.open()) {
             connection->error(HttpStatus::ServerError, "error choosing module", pool);

@@ -97,7 +97,7 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
             fk_delay(configuration.wake_delay);
         }
 
-        auto mc = ctx.readings(position, all_readings, pool);
+        auto mc = ctx.open_readings(position, all_readings, pool);
         if (!mc.open()) {
             logerror("[%d] error choosing module", position.integer());
             group_number++;

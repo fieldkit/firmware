@@ -164,7 +164,7 @@ static void test_water_module() {
             for (auto position : { ModulePosition::from(1), ModulePosition::from(2), ModulePosition::from(3), ModulePosition::from(4) }) {
                 loginfo("position: %d", position.integer());
 
-                auto moduleCtx = ctx.module(position, loop_pool);
+                auto module_ctx = ctx.open_module(position, loop_pool);
                 if (!mm->choose(position)) {
                     logerror("choose %d", position.integer());
                     while (true) {
@@ -173,14 +173,14 @@ static void test_water_module() {
                 }
 
                 if (first_pass) {
-                    scan_bus(moduleCtx.module_bus());
+                    scan_bus(module_ctx.module_bus());
                 }
 
-                if (constructed->initialize(moduleCtx, loop_pool)) {
+                if (constructed->initialize(module_ctx, loop_pool)) {
                     loginfo("ready!");
 
                     ModuleReadingsCollection all_readings{ loop_pool };
-                    auto readingsCtx = ctx.readings(position, all_readings, loop_pool);
+                    auto readingsCtx = ctx.open_readings(position, all_readings, loop_pool);
                     if (!readingsCtx.open()) {
                         logerror("[%d] error choosing module", position.integer());
                         continue;
@@ -205,16 +205,16 @@ static void test_water_module() {
                     continue;
                 }
 
-                auto moduleCtx = ctx.module(m.position, pool);
+                auto module_ctx = ctx.open_module(m.position, pool);
 
                 if (!mm->choose(m.position)) {
                     logerror("choose %d", m.position.integer());
                     continue;
                 }
 
-                scan_bus(moduleCtx.module_bus());
+                scan_bus(module_ctx.module_bus());
 
-                if ((*constructed)->module_instance->initialize(moduleCtx, pool)) {
+                if ((*constructed)->module_instance->initialize(module_ctx, pool)) {
                     loginfo("ready!");
                 }
             }

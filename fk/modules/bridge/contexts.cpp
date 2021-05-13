@@ -13,12 +13,12 @@ GpsState const *ScanningContext::gps() {
     return gps_;
 }
 
-ModuleContext ScanningContext::module(ModulePosition position, Pool &pool) {
-    return { *this, position, pool };
+ModuleContext ScanningContext::open_module(ModulePosition position, Pool &pool) {
+    return ModuleContext{ *this, position, pool };
 }
 
-ReadingsContext ScanningContext::readings(ModulePosition position, ModuleReadingsCollection &readings, Pool &pool) {
-    return { *this, position, readings, power_state_, pool };
+ReadingsContext ScanningContext::open_readings(ModulePosition position, ModuleReadingsCollection &readings, Pool &pool) {
+    return ReadingsContext{ *this, position, readings, power_state_, pool };
 }
 
 ModuleContext::ModuleContext(ScanningContext &from, ModulePosition position, Pool &pool) : mm_(from.mm_), module_bus_(from.module_bus_), position_(position) {
