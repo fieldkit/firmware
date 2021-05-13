@@ -5,7 +5,7 @@
 #include "line_reader.h"
 #include "hal/lora.h"
 
-#if defined(ARDUINO)
+#if defined(__SAMD51__)
 
 namespace fk {
 

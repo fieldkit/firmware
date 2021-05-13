@@ -1,6 +1,6 @@
 #pragma once
 
-#if !defined(ARDUINO)
+#if !defined(__SAMD51__)
 
 #include "hal/hal.h"
 

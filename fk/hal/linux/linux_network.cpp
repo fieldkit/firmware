@@ -3,7 +3,7 @@
 #include "hal/linux/linux.h"
 #include "hal/linux/linux_network.h"
 
-#if !defined(ARDUINO)
+#if !defined(__SAMD51__)
 
 #include <sys/socket.h>
 #include <arpa/inet.h>

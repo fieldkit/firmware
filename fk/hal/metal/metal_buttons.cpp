@@ -1,6 +1,6 @@
 #include "hal/metal/metal.h"
 
-#if defined(ARDUINO)
+#if defined(__SAMD51__)
 
 namespace fk {
 
@@ -74,4 +74,4 @@ void MetalButtons::irq(uint8_t index, bool down) {
 
 }
 
-#endif // defined(ARDUINO)
+#endif // defined(__SAMD51__)

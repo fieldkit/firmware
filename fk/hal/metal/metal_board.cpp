@@ -2,7 +2,7 @@
 #include "platform.h"
 #include "modules/shared/modules.h"
 
-#if defined(ARDUINO)
+#if defined(__SAMD51__)
 
 #include <Arduino.h>
 #include <SPI.h>

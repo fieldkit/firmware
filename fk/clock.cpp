@@ -1,4 +1,4 @@
-#if defined(ARDUINO)
+#if defined(__SAMD51__)
 #include <cstdlib>
 #include <compiler.h>
 #include <hal_init.h>
@@ -13,7 +13,7 @@
 
 namespace fk {
 
-#if defined(ARDUINO)
+#if defined(__SAMD51__)
 
 #define CTRL_OFFSET           0x24
 #define CTRL_OSCILLATOR       0x25

@@ -4,7 +4,7 @@
 #include "hal/metal/rn2903.h"
 #include "config.h"
 
-#if defined(ARDUINO)
+#if defined(__SAMD51__)
 
 namespace fk {
 

@@ -4,7 +4,7 @@
 #include "hal/board.h"
 #include "io.h"
 
-#if defined(ARDUINO)
+#if defined(__SAMD51__)
 
 namespace fk {
 

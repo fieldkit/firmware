@@ -1,7 +1,7 @@
 #include "platform.h"
 #include "hal/metal/simple_ntp.h"
 
-#if defined(ARDUINO)
+#if defined(__SAMD51__)
 
 #include "clock.h"
 
@@ -103,4 +103,4 @@ bool SimpleNTP::send() {
 
 }
 
-#endif // defined(ARDUINO)
+#endif // defined(__SAMD51__)

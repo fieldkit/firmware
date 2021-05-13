@@ -3,7 +3,7 @@
 #include "rn2903.h"
 #include "utilities.h"
 
-#if defined(ARDUINO)
+#if defined(__SAMD51__)
 
 namespace fk {
 

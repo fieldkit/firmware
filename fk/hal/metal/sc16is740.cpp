@@ -1,7 +1,7 @@
 #include "sc16is740.h"
 #include "platform.h"
 
-#if defined(ARDUINO)
+#if defined(__SAMD51__)
 
 namespace fk {
 
