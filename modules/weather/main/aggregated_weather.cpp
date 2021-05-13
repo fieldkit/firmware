@@ -152,17 +152,29 @@ ModuleReadings *AggregatedWeather::take_readings(ModuleContext mc, Pool &pool) {
                                          ((aw->initialized & FK_WEATHER_SENSORS_MPL3115A2) > 0);
     if (having_supply_chain_nightmare) {
         loginfo("variant: sht31/mpl3115a2 initialized=0x%x failures=0x%x", aw->initialized, aw->failures);
+
         mr->set(i++, 100.0f * ((float)aw->humidity / (0xffff)));
         mr->set(i++, -45.0f + 175.0f * ((float)aw->temperature_1 / (0xffff)));
         mr->set(i++, aw->pressure / 64.0f / 1000.0f);
         mr->set(i++, aw->temperature_2 / 16.0f);
+
+        if (aw->failures == (FK_WEATHER_SENSORS_ADC | FK_WEATHER_SENSORS_COUNTERS | FK_WEATHER_SENSORS_BME280)) {
+            logerror("too many failures, hup module");
+            return nullptr;
+        }
     }
     else {
         loginfo("variant: bme280 initialized=0x%x failures=0x%x", aw->initialized, aw->failures);
+
         mr->set(i++, fkw_weather_humidity(aw));
         mr->set(i++, fkw_weather_temperature_1(aw));
         mr->set(i++, fkw_weather_pressure(aw));
         mr->set(i++, fkw_weather_temperature_2(aw));
+
+        if (aw->failures == (FK_WEATHER_SENSORS_ADC | FK_WEATHER_SENSORS_COUNTERS | FK_WEATHER_SENSORS_SHT31 | FK_WEATHER_SENSORS_MPL3115A2)) {
+            logerror("too many failures, hup module");
+            return nullptr;
+        }
     }
 
     // Detect the unmetered weather scenario.
