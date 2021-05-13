@@ -4749,7 +4749,7 @@ journal.c:299:12:cp_free 24
 journal.c:596:12:prepare_head 24
 journal.c:754:12:push_meta 24
 line_reader.h:23:10:bool fk::LineReader<N>::read_line_sync(const char**, uint32_t) [with unsigned int N = 256u; uint32_t = long unsigned int] 24
-line_reader.h:23:10:bool fk::LineReader<N>::read_line_sync(const char**, uint32_t) [with unsigned int N = 256u; uint32_t = long unsigned int] 24
+line_reader.h:23:10:bool fk::LineReader<N>::read_line_sync(const char**, uint32_t) [with unsigned int N = 64u; uint32_t = long unsigned int] 24
 log_stream.cpp:5:12:LogStream& LogStream::print(const char*) 24
 logging.cpp:15:6:) 24
 logging.cpp:22:6:) 24
