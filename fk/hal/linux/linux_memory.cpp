@@ -33,6 +33,8 @@ bool LinuxDataMemory::begin() {
         memset(memory_, 0xff, geometry_.total_size);
     }
 
+    loginfo("clearing");
+
     log_.logging(false);
     log_.clear();
     log_.append(LogEntry{ OperationType::Opened, 0x0, memory_ });
@@ -118,6 +120,8 @@ int32_t LinuxDataMemory::erase_block(uint32_t address) {
     assert(address >= 0 && address < geometry_.total_size);
     assert(address % BlockSize == 0);
 
+    logverbose("[" PRADDRESS "] erase-block %zd bytes", address, BlockSize);
+
     if (affects_bad_block_from_wear(address)) {
         return -1;
     }
@@ -136,6 +140,8 @@ int32_t LinuxDataMemory::copy_page(uint32_t source, uint32_t destiny, size_t len
     assert(destiny >= 0 && destiny < geometry_.total_size);
     assert(destiny % PageSize == 0);
     assert(length == PageSize);
+
+    logverbose("[" PRADDRESS "] copy [" PRADDRESS "] %zd bytes", destiny, source, length);
 
     memcpy(memory_ + destiny, memory_ + source, PageSize);
 
