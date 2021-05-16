@@ -1,6 +1,8 @@
 #include "tests.h"
 #include "worker.h"
 #include "collections.h"
+#include "storage/phylum.h"
+#include "storage/phylum_data_file.h"
 
 using namespace fk;
 
@@ -38,4 +40,47 @@ TEST_F(PhylumSuite, Basic_Format_Mount) {
         Phylum phylum{ data_memory };
         ASSERT_TRUE(phylum.mount());
     }
+}
+
+TEST_F(PhylumSuite, Basic_DataFile_Create) {
+    StandardPool pool{ "tests" };
+    auto data_memory = MemoryFactory::get_data_memory();
+    ASSERT_TRUE(data_memory->begin());
+
+    Phylum phylum{ data_memory };
+    ASSERT_TRUE(phylum.format());
+    PhylumDataFile file{ phylum, "d/00000000" };
+    ASSERT_EQ(file.create(pool), 0);
+    ASSERT_EQ(file.open(pool), 0);
+    ASSERT_TRUE(phylum.sync());
+}
+
+TEST_F(PhylumSuite, Basic_DataFile_Append) {
+    StandardPool pool{ "tests" };
+    auto data_memory = MemoryFactory::get_data_memory();
+    ASSERT_TRUE(data_memory->begin());
+
+    Phylum phylum{ data_memory };
+    ASSERT_TRUE(phylum.format());
+    PhylumDataFile file{ phylum, "d/00000000" };
+    ASSERT_EQ(file.create(pool), 0);
+    ASSERT_EQ(file.open(pool), 0);
+
+    fk_data_DataRecord record = fk_data_DataRecord_init_default;
+    record.has_log = true;
+    record.log.uptime = 935985493;
+    record.log.time = 0;
+    record.log.level = (uint32_t)LogLevels::INFO;
+    record.log.facility.arg = (void *)"facility";
+    record.log.facility.funcs.encode = pb_encode_string;
+    record.log.message.arg = (void *)"message";
+    record.log.message.funcs.encode = pb_encode_string;
+
+    ASSERT_EQ(file.append_always(RecordType::Data, fk_data_DataRecord_fields, &record, pool), 30);
+
+    ASSERT_EQ(file.append_always(RecordType::Data, fk_data_DataRecord_fields, &record, pool), 30);
+
+    ASSERT_EQ(file.append_always(RecordType::Data, fk_data_DataRecord_fields, &record, pool), 30);
+
+    ASSERT_TRUE(phylum.sync());
 }
