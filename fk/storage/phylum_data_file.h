@@ -42,16 +42,18 @@ enum class RecordType : uint8_t {
 };
 
 using record_number_t = phylum::record_number_t;
+using file_size_t = phylum::file_size_t;
 
 class PhylumDataFile {
 private:
     Phylum &phylum_;
+    Pool &pool_;
     const char *name_{ nullptr };
     phylum::open_file_config file_cfg_{ };
-    phylum::open_file_attribute attributes_[PHYLUM_DRIVER_FILE_ATTR_NUMBER];
+    phylum::open_file_attribute *attributes_{ nullptr };
 
 public:
-    PhylumDataFile(Phylum &phylum, const char *name);
+    PhylumDataFile(Phylum &phylum, const char *name, Pool &pool);
 
 public:
     int32_t open(Pool &pool);
@@ -59,9 +61,9 @@ public:
     int32_t append_always(RecordType type, pb_msgdesc_t const *fields, void const *record, Pool &pool);
     int32_t append_immutable(RecordType type, pb_msgdesc_t const *fields, void const *record, Pool &pool);
     int32_t seek_record_type(RecordType type, Pool &pool);
-    int32_t seek_record(uint32_t record, Pool &pool);
-    int32_t seek_position(uint32_t position, Pool &pool);
-    int32_t read(RecordType type, Pool &pool);
+    int32_t seek_record(record_number_t record, Pool &pool);
+    int32_t seek_position(file_size_t position, Pool &pool);
+    int32_t read(uint8_t *data, size_t size, Pool &pool);
 
 private:
     int32_t initialize_config(Pool &pool);

@@ -19,11 +19,13 @@ static uint8_t get_attribute_for_record_type(RecordType type) {
     return 0;
 }
 
-PhylumDataFile::PhylumDataFile(Phylum &phylum, const char *name) : phylum_(phylum), name_(name) {
+PhylumDataFile::PhylumDataFile(Phylum &phylum, const char *name, Pool &pool) : phylum_(phylum), pool_(pool), name_(name) {
 }
 
 int32_t PhylumDataFile::initialize_config(Pool &pool) {
-    if (file_cfg_.nattrs != PHYLUM_DRIVER_FILE_ATTR_NUMBER) {
+    if (attributes_ == nullptr) {
+        attributes_ = (open_file_attribute *)pool.malloc(sizeof(open_file_attribute) * PHYLUM_DRIVER_FILE_ATTR_NUMBER);
+
         auto i = 0;
         attributes_[i++] = open_file_attribute{ PHYLUM_DRIVER_FILE_ATTR_RECORDS,          sizeof(records_attribute_t),  0x00 };
         attributes_[i++] = open_file_attribute{ PHYLUM_DRIVER_FILE_ATTR_RECORD_GPS,       sizeof(uint32_t),             0xff };
@@ -39,12 +41,14 @@ int32_t PhylumDataFile::initialize_config(Pool &pool) {
         file_cfg_.attributes = attributes_;
         file_cfg_.nattrs = PHYLUM_DRIVER_FILE_ATTR_NUMBER;
 
-        for (auto &attr : attributes_) {
+        for (auto i = 0u; i < file_cfg_.nattrs; ++i) {
+            auto &attr = attributes_[i];
             attr.ptr = pool.malloc(attr.size);
         }
     }
 
-    for (auto &attr : attributes_) {
+    for (auto i = 0u; i < file_cfg_.nattrs; ++i) {
+        auto &attr = attributes_[i];
         memset(attr.ptr, attr.default_value, attr.size);
     }
 
@@ -225,18 +229,61 @@ int32_t PhylumDataFile::append_immutable(RecordType type, pb_msgdesc_t const *fi
 }
 
 int32_t PhylumDataFile::seek_record_type(RecordType type, Pool &pool) {
-    return -1;
+    loginfo("seek record-type=%d", type);
+
+    PhylumAttributes attributes{ file_cfg_ };
+    auto file = attributes.get<file_attribute_t>(get_attribute_for_record_type(type));
+    if (file->position == UINT32_MAX) {
+        return -1;
+    }
+
+    auto err = seek_position(file->position, pool);
+    if (err < 0) {
+        return err;
+    }
+
+    return err;
 }
 
-int32_t PhylumDataFile::seek_record(uint32_t record, Pool &pool) {
-    return -1;
+int32_t PhylumDataFile::seek_record(record_number_t record, Pool &pool) {
+    loginfo("seek record=%d", record);
+
+    directory_type dir{ pc(), 0 };
+    auto err = dir.find(name_, file_cfg_);
+    if (err < 0) {
+        logerror("seek-record: find");
+        return err;
+    }
+
+    phylum::file_reader reader{ pc(), &dir, dir.open() };
+    err = reader.seek_record<index_tree_type>(record);
+    if (err < 0) {
+        return err;
+    }
+
+    return err;
 }
 
-int32_t PhylumDataFile::seek_position(uint32_t position, Pool &pool) {
-    return -1;
+int32_t PhylumDataFile::seek_position(file_size_t position, Pool &pool) {
+    loginfo("seek position=%d", position);
+
+    directory_type dir{ pc(), 0 };
+    auto err = dir.find(name_, file_cfg_);
+    if (err < 0) {
+        logerror("seek-position: find");
+        return err;
+    }
+
+    phylum::file_reader reader{ pc(), &dir, dir.open() };
+    err = reader.seek_position<index_tree_type>(position);
+    if (err < 0) {
+        return err;
+    }
+
+    return err;
 }
 
-int32_t PhylumDataFile::read(RecordType type, Pool &pool) {
+int32_t PhylumDataFile::read(uint8_t *data, size_t size, Pool &pool) {
     return -1;
 }
 
