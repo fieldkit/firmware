@@ -6,6 +6,19 @@ FK_DECLARE_LOGGER("phylum");
 
 using namespace phylum;
 
+static uint8_t get_attribute_for_record_type(RecordType type) {
+    switch (type) {
+    case RecordType::Modules: return PHYLUM_DRIVER_FILE_ATTR_CONFIG_MODULES;
+    case RecordType::Schedule: return PHYLUM_DRIVER_FILE_ATTR_CONFIG_SCHEDULE;
+    case RecordType::State: return PHYLUM_DRIVER_FILE_ATTR_CONFIG_STATE;
+    case RecordType::Data: return PHYLUM_DRIVER_FILE_ATTR_CONFIG_DATA;
+    default:
+        break;
+    }
+    assert(0);
+    return 0;
+}
+
 PhylumDataFile::PhylumDataFile(Phylum &phylum, const char *name) : phylum_(phylum), name_(name) {
 }
 
@@ -114,7 +127,7 @@ int32_t PhylumDataFile::append_always(RecordType type, pb_msgdesc_t const *field
 
     PhylumAttributes attributes{ file_cfg_ };
     auto records = attributes.get<records_attribute_t>(PHYLUM_DRIVER_FILE_ATTR_RECORDS);
-    auto data_record = attributes.get<file_attribute_t>(PHYLUM_DRIVER_FILE_ATTR_CONFIG_DATA);
+    auto data_record = attributes.get<file_attribute_t>(get_attribute_for_record_type(type));
 
     phylum::file_appender opened{ pc(), &dir, dir.open() };
     err = opened.seek();
@@ -176,7 +189,39 @@ int32_t PhylumDataFile::append_always(RecordType type, pb_msgdesc_t const *field
 
 int32_t PhylumDataFile::append_immutable(RecordType type, pb_msgdesc_t const *fields, void const *record, Pool &pool) {
     loginfo("append-immutable");
-    return -1;
+
+    PhylumAttributes attributes{ file_cfg_ };
+    auto file = attributes.get<file_attribute_t>(get_attribute_for_record_type(type));
+
+    phylum::noop_writer noop;
+    phylum::blake2b_writer hash_writer{ &noop };
+    PhylumWriter writer{ &hash_writer };
+    auto ostream = pb_ostream_from_writable(&writer);
+    if (!pb_encode_delimited(&ostream, fields, record)) {
+        logerror("append-always: encode");
+        return -1;
+    }
+
+    uint8_t hash[phylum::HashSize];
+    hash_writer.finalize(hash, sizeof(hash));
+
+    auto previous_hex = bytes_to_hex_string_pool(file->hash, sizeof(file->hash), pool);
+    loginfo("old hash=%s", previous_hex);
+
+    auto hash_hex = bytes_to_hex_string_pool(hash, sizeof(hash), pool);
+    loginfo("new hash=%s", hash_hex);
+
+    assert(sizeof(hash) == sizeof(file->hash));
+    if (memcmp(file->hash, hash, sizeof(hash)) == 0) {
+        return 0;
+    }
+
+    auto err = append_always(type, fields, record, pool);
+    if (err < 0) {
+        return err;
+    }
+
+    return err;
 }
 
 int32_t PhylumDataFile::seek_record_type(RecordType type, Pool &pool) {

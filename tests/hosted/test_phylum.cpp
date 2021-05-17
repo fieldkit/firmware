@@ -55,7 +55,7 @@ TEST_F(PhylumSuite, Basic_DataFile_Create) {
     ASSERT_TRUE(phylum.sync());
 }
 
-TEST_F(PhylumSuite, Basic_DataFile_Append) {
+TEST_F(PhylumSuite, Basic_DataFile_AppendAlways) {
     StandardPool pool{ "tests" };
     auto data_memory = MemoryFactory::get_data_memory();
     ASSERT_TRUE(data_memory->begin());
@@ -81,6 +81,38 @@ TEST_F(PhylumSuite, Basic_DataFile_Append) {
     ASSERT_EQ(file.append_always(RecordType::Data, fk_data_DataRecord_fields, &record, pool), 30);
 
     ASSERT_EQ(file.append_always(RecordType::Data, fk_data_DataRecord_fields, &record, pool), 30);
+
+    ASSERT_TRUE(phylum.sync());
+}
+
+TEST_F(PhylumSuite, Basic_DataFile_AppendImmutable) {
+    StandardPool pool{ "tests" };
+    auto data_memory = MemoryFactory::get_data_memory();
+    ASSERT_TRUE(data_memory->begin());
+
+    Phylum phylum{ data_memory };
+    ASSERT_TRUE(phylum.format());
+    PhylumDataFile file{ phylum, "d/00000000" };
+    ASSERT_EQ(file.create(pool), 0);
+    ASSERT_EQ(file.open(pool), 0);
+
+    fk_data_DataRecord record = fk_data_DataRecord_init_default;
+    record.has_log = true;
+    record.log.uptime = 935985493;
+    record.log.time = 0;
+    record.log.level = (uint32_t)LogLevels::INFO;
+    record.log.facility.arg = (void *)"facility";
+    record.log.facility.funcs.encode = pb_encode_string;
+    record.log.message.arg = (void *)"message";
+    record.log.message.funcs.encode = pb_encode_string;
+
+    ASSERT_EQ(file.append_immutable(RecordType::State, fk_data_DataRecord_fields, &record, pool), 30);
+
+    ASSERT_EQ(file.append_immutable(RecordType::State, fk_data_DataRecord_fields, &record, pool), 0);
+
+    record.log.message.arg = (void *)"something else";
+
+    ASSERT_EQ(file.append_immutable(RecordType::State, fk_data_DataRecord_fields, &record, pool), 37);
 
     ASSERT_TRUE(phylum.sync());
 }
