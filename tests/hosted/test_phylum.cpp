@@ -19,6 +19,7 @@ public:
 
 public:
     void log_message(uint8_t seed) {
+        record = fk_data_DataRecord_init_default;
         record.has_log = true;
         record.log.uptime = 935985493 + seed;
         record.log.time = seed * 1000;
@@ -29,6 +30,15 @@ public:
         record.log.message.funcs.encode = pb_encode_string;
     }
 
+    fk_data_DataRecord *for_decode(Pool &pool) {
+        record = fk_data_DataRecord_init_default;
+        record.has_log = true;
+        record.log.facility.arg = (void *)&pool;
+        record.log.facility.funcs.decode = pb_decode_string;
+        record.log.message.arg = (void *)&pool;
+        record.log.message.funcs.decode = pb_decode_string;
+        return &record;
+    }
 };
 
 TEST_F(PhylumSuite, Basic_Format_NoSync_Mount) {
@@ -207,21 +217,32 @@ TEST_F(PhylumSuite, Basic_DataFile_Reading_SeekRecords) {
         RecordFaker fake;
         fake.log_message(i);
 
-        auto wrote = file.append_always(RecordType::Data, fk_data_DataRecord_fields, &fake.record, loop);
-        ASSERT_GT(wrote, 0);
+        auto bytes_wrote = file.append_always(RecordType::Data, fk_data_DataRecord_fields, &fake.record, loop);
+        ASSERT_GT(bytes_wrote, 0);
 
-        total_written += wrote;
+        total_written += bytes_wrote;
     }
 
     ASSERT_TRUE(phylum.sync());
+
+    auto total_read = 0u;
 
     for (auto i = 0; i < 100; ++i) {
         StandardPool loop{ "loop" };
         PhylumDataFile file{ phylum, "d/00000000", loop };
         ASSERT_EQ(file.open(loop), 0);
         ASSERT_GE(file.seek_record(i, loop), 0);
+
+        RecordFaker fake;
+        auto bytes_read = file.read(fk_data_DataRecord_fields, fake.for_decode(pool), pool);
+        ASSERT_GT(bytes_read, 0);
+
         ASSERT_EQ(file.close(), 0);
+
+        total_read += bytes_read;
     }
+
+    ASSERT_EQ(total_read, total_written);
 
     ASSERT_TRUE(phylum.sync());
 }

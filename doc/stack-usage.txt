@@ -578,7 +578,6 @@ file_ops_phylum.cpp:82:6:virtual bool fk::phylum_ops::DataOps::read_fixed_record
 file_ops_phylum.cpp:89:43:virtual tl::expected<fk::FileReader::SizeInfo, fk::Error> fk::phylum_ops::FileReader::get_size(fk::BlockNumber, fk::BlockNumber, fk::Pool&) 0
 file_ops_phylum.cpp:96:6:virtual bool fk::phylum_ops::FileReader::decode_signed(void*, const pb_msgdesc_t*, fk::Pool&) 0
 file_reader.cpp:13:13:phylum::file_size_t phylum::file_reader::position() const 0
-file_reader.cpp:71:9:int32_t phylum::file_reader::close() 0
 firmware_manager.cpp:10:1:fk::FirmwareManager::FirmwareManager() 0
 flash.cpp:118:8:fk::Flash* fk::get_flash() 0
 flash.cpp:122:1:cpp) 0
@@ -1258,11 +1257,6 @@ phyctx.h:20:13:phylum::phyctx::~phyctx() 0
 phyctx.h:20:13:phylum::phyctx::~phyctx() 0
 phyctx.h:20:13:phylum::phyctx::~phyctx() 0
 phyctx.h:20:13:phylum::phyctx::~phyctx() 0
-phylum_data_file.cpp:169:9:int32_t fk::PhylumDataFile::seek_record_type(fk::RecordType, fk::Pool&) 0
-phylum_data_file.cpp:173:9:int32_t fk::PhylumDataFile::seek_record(uint32_t, fk::Pool&) 0
-phylum_data_file.cpp:177:9:int32_t fk::PhylumDataFile::seek_position(uint32_t, fk::Pool&) 0
-phylum_data_file.cpp:181:9:int32_t fk::PhylumDataFile::read(fk::RecordType, fk::Pool&) 0
-phylum_data_file.cpp:9:1:fk::PhylumDataFile::PhylumDataFile(fk::Phylum&, const char*) 0
 platform.cpp:12:13:ostreamtype serror() 0
 platform.cpp:155:7:void* fk_malloc_internal(size_t, const char*, int32_t) 0
 platform.cpp:166:6:void fk_free_internal(void*, const char*, int32_t) 0
@@ -2024,6 +2018,7 @@ write_memory_handler.h:14:7:fk::WriteMemoryWorker::~WriteMemoryWorker() 0
 write_memory_handler.h:24:13:virtual uint8_t fk::WriteMemoryWorker::priority() const 0
 write_memory_handler.h:28:17:virtual const char* fk::WriteMemoryWorker::name() const 0
 writer.cpp:18:6:void phylum::blake2b_writer::finalize(void*, size_t) 0
+writer.h:66:13:virtual int32_t phylum::noop_writer::write(const uint8_t*, size_t) 0
 service.c:272:13:os_mutex_release 4
 service.c:276:13:os_semaphore_acquire 4
 service.c:280:13:os_semaphore_release 4
@@ -2422,6 +2417,7 @@ file_ops_phylum.cpp:40:9:virtual int32_t fk::PhylumFlashMemory::copy_page(uint32
 file_reader.cpp:10:1:phylum::file_reader::~file_reader() 8
 file_reader.cpp:10:1:virtual phylum::file_reader::~file_reader() 8
 file_reader.cpp:22:9:virtual int32_t phylum::file_reader::read(size_t) 8
+file_reader.cpp:71:9:int32_t phylum::file_reader::close() 8
 flash.c:14:9:bl_flash_initialize 8
 flash.cpp:17:1:fk::DataMemoryFlash::~DataMemoryFlash() 8
 flash.cpp:17:1:virtual fk::DataMemoryFlash::~DataMemoryFlash() 8
@@ -2450,7 +2446,9 @@ functional:2027:5:std::_Function_base::~_Function_base() 8
 functional:2027:5:std::_Function_base::~_Function_base() 8
 functional:2027:5:std::_Function_base::~_Function_base() 8
 functional:2027:5:std::_Function_base::~_Function_base() 8
+functional:2027:5:std::_Function_base::~_Function_base() 8
 functional:2054:7:) [with _Res = nonstd::optional_lite::optional<bool>; _Functor = fk::Process::run(fk::Pool&)::__lambda1; _ArgTypes = {const fkb_header_t*}] 8
+functional:2069:7:) [with _Functor = std::_Bind<std::_Mem_fn<void (phylum::working_buffers::*)(const unsigned char*)>(phylum::working_buffers*, std::_Placeholder<1>)>; _ArgTypes = {const unsigned char*}] 8
 functional:2069:7:) [with _Functor = std::_Bind<std::_Mem_fn<void (phylum::working_buffers::*)(const unsigned char*)>(phylum::working_buffers*, std::_Placeholder<1>)>; _ArgTypes = {const unsigned char*}] 8
 functional:2069:7:) [with _Functor = std::_Bind<std::_Mem_fn<void (phylum::working_buffers::*)(const unsigned char*)>(phylum::working_buffers*, std::_Placeholder<1>)>; _ArgTypes = {const unsigned char*}] 8
 functional:2069:7:) [with _Functor = std::_Bind<std::_Mem_fn<void (phylum::working_buffers::*)(const unsigned char*)>(phylum::working_buffers*, std::_Placeholder<1>)>; _ArgTypes = {const unsigned char*}] 8
@@ -2996,8 +2994,9 @@ phyctx.h:20:13:virtual phylum::phyctx::~phyctx() 8
 phyctx.h:20:13:virtual phylum::phyctx::~phyctx() 8
 phylum.cpp:13:1:virtual fk::standard_page_working_buffers::~standard_page_working_buffers() 8
 phylum.cpp:80:6:bool fk::Phylum::sync() 8
-phylum_data_file.cpp:164:9:int32_t fk::PhylumDataFile::append_immutable(fk::RecordType, fk::record_number_t, const pb_msgdesc_t*, const void*, fk::Pool&) 8
-phylum_data_file.cpp:78:13:virtual int32_t fk::PhylumWriter::write(const uint8_t*, size_t) 8
+phylum_data_file.cpp:280:9:int32_t fk::PhylumDataFile::close() 8
+phylum_data_file.cpp:93:13:virtual int32_t fk::PhylumWriter::write(const uint8_t*, size_t) 8
+phylum_data_file.cpp:9:16:uint8_t fk::get_attribute_for_record_type(fk::RecordType) 8
 platform.cpp:147:1:fk::fk_serial_number_t::fk_serial_number_t() 8
 platform.cpp:194:6:void osi_hard_fault_report(uintptr_t*, uint32_t, cortex_hard_fault_t*) 8
 platform.cpp:52:10:uint32_t fk::fk_uptime() 8
@@ -3153,7 +3152,8 @@ simple_buffer.h:44:13:phylum::general_buffer<PointerType>::~general_buffer() [wi
 simple_buffer.h:44:13:phylum::general_buffer<PointerType>::~general_buffer() [with PointerType = unsigned char] 8
 simple_buffer.h:44:13:phylum::general_buffer<PointerType>::~general_buffer() [with PointerType = unsigned char] 8
 simple_buffer.h:44:13:phylum::general_buffer<PointerType>::~general_buffer() [with PointerType = unsigned char] 8
-simple_buffer.h:44:13:phylum::general_buffer<PointerType>::~general_buffer() [with PointerType = unsigned char] 8
+simple_buffer.h:67:10:void phylum::general_buffer<PointerType>::free() [with PointerType = unsigned char] 8
+simple_buffer.h:67:10:void phylum::general_buffer<PointerType>::free() [with PointerType = unsigned char] 8
 simple_ntp.cpp:20:1:fk::SimpleNTP::~SimpleNTP() 8
 simple_ntp.cpp:20:1:virtual fk::SimpleNTP::~SimpleNTP() 8
 simple_ntp.cpp:62:6:void fk::SimpleNTP::start() 8
@@ -3591,6 +3591,7 @@ worker.h:80:13:fk::PoolWorker<Wrapped, ConcreteWrapped, Args>::~PoolWorker() [wi
 working_buffers.h:294:13:int32_t phylum::working_buffers::update_highwater() 8
 working_buffers.h:294:13:int32_t phylum::working_buffers::update_highwater() 8
 working_buffers.h:294:13:int32_t phylum::working_buffers::update_highwater() 8
+working_buffers.h:294:13:int32_t phylum::working_buffers::update_highwater() 8
 working_buffers.h:48:13:virtual phylum::working_buffers::~working_buffers() 8
 write_memory_handler.h:14:7:virtual fk::WriteMemoryWorker::~WriteMemoryWorker() 8
 Adafruit_FlashTransport_QSPI_SAMD.cpp:53:1:Adafruit_FlashTransport_QSPI::Adafruit_FlashTransport_QSPI(int8_t, int8_t, int8_t, int8_t, int8_t, int8_t) 12
@@ -3905,10 +3906,9 @@ dhara_map.cpp:181:9:virtual int32_t phylum::dhara_sector_map::sync() 16
 dhara_map.cpp:196:5:int phylum::dhara_sector_map::dhara_erase(const dhara_nand*, phylum::dhara_block_t, dhara_error_t*) 16
 diagnostics_module.cpp:38:14:virtual fk::ModuleReturn fk::DiagnosticsModule::initialize(fk::ModuleContext, fk::Pool&) 16
 diagnostics_module.cpp:48:14:virtual fk::ModuleReturn fk::DiagnosticsModule::service(fk::ModuleContext, fk::Pool&) 16
-directory_chain.cpp:130:9:virtual int32_t phylum::directory_chain::file_trees(phylum::file_id_t, phylum::tree_ptr_t, phylum::tree_ptr_t) 16
-directory_chain.cpp:218:12:virtual phylum::found_file phylum::directory_chain::open() 16
+directory_chain.cpp:133:9:virtual int32_t phylum::directory_chain::file_trees(phylum::file_id_t, phylum::tree_ptr_t, phylum::tree_ptr_t) 16
+directory_chain.cpp:221:12:virtual phylum::found_file phylum::directory_chain::open() 16
 directory_tree.cpp:138:12:virtual phylum::found_file phylum::directory_tree::open() 16
-directory_tree.h:34:5:phylum::directory_tree::directory_tree(phylum::phyctx, phylum::dhara_sector_t) 16
 directory_tree.h:34:5:phylum::directory_tree::directory_tree(phylum::phyctx, phylum::dhara_sector_t) 16
 display.cpp:202:1:cpp) 16
 display.cpp:24:10:fk::Display* fk::get_display() 16
@@ -3989,6 +3989,7 @@ functional:1931:2:static bool std::_Function_base::_Base_manager<_Functor>::_M_m
 functional:1931:2:static bool std::_Function_base::_Base_manager<_Functor>::_M_manager(std::_Any_data&, const std::_Any_data&, std::_Manager_operation) [with _Functor = phylum::sector_chain::grow_tail(phylum::page_lock&)::__lambda5] 16
 functional:1931:2:static bool std::_Function_base::_Base_manager<_Functor>::_M_manager(std::_Any_data&, const std::_Any_data&, std::_Manager_operation) [with _Functor = phylum::sector_chain::prepare_sector(phylum::page_lock&, phylum::dhara_sector_t, bool)::__lambda2] 16
 functional:1931:2:static bool std::_Function_base::_Base_manager<_Functor>::_M_manager(std::_Any_data&, const std::_Any_data&, std::_Manager_operation) [with _Functor = phylum::super_chain::update(phylum::tree_ptr_t)::__lambda2] 16
+functional:1931:2:static bool std::_Function_base::_Base_manager<_Functor>::_M_manager(std::_Any_data&, const std::_Any_data&, std::_Manager_operation) [with _Functor = std::_Bind<std::_Mem_fn<void (phylum::working_buffers::*)(const unsigned char*)>(phylum::working_buffers*, std::_Placeholder<1>)>] 16
 functional:1931:2:static bool std::_Function_base::_Base_manager<_Functor>::_M_manager(std::_Any_data&, const std::_Any_data&, std::_Manager_operation) [with _Functor = std::_Bind<std::_Mem_fn<void (phylum::working_buffers::*)(const unsigned char*)>(phylum::working_buffers*, std::_Placeholder<1>)>] 16
 functional:1931:2:static bool std::_Function_base::_Base_manager<_Functor>::_M_manager(std::_Any_data&, const std::_Any_data&, std::_Manager_operation) [with _Functor = std::_Bind<std::_Mem_fn<void (phylum::working_buffers::*)(const unsigned char*)>(phylum::working_buffers*, std::_Placeholder<1>)>] 16
 functional:1931:2:static bool std::_Function_base::_Base_manager<_Functor>::_M_manager(std::_Any_data&, const std::_Any_data&, std::_Manager_operation) [with _Functor = std::_Bind<std::_Mem_fn<void (phylum::working_buffers::*)(const unsigned char*)>(phylum::working_buffers*, std::_Placeholder<1>)>] 16
@@ -4269,6 +4270,10 @@ pb_encode.c:633:18:pb_encode_fixed32 16
 pb_encode.c:702:18:pb_encode_string 16
 phylum.cpp:13:1:fk::standard_page_working_buffers::~standard_page_working_buffers() 16
 phylum.cpp:38:6:bool fk::Phylum::begin(bool) 16
+phylum_data_file.cpp:22:1:fk::PhylumDataFile::PhylumDataFile(fk::Phylum&, const char*, fk::Pool&) 16
+phylum_data_file.cpp:269:9:int32_t fk::PhylumDataFile::read(uint8_t*, size_t, fk::Pool&) 16
+phylum_data_file.cpp:58:9:int32_t fk::PhylumDataFile::open(fk::Pool&) 16
+phylum_data_file.cpp:73:9:int32_t fk::PhylumDataFile::create(fk::Pool&) 16
 platform.cpp:204:6:void osi_assert(const char*, const char*, int) 16
 platform.h:60:10:bool fk::IntervalTimer::expired(uint32_t) 16
 platform.h:60:10:bool fk::IntervalTimer::expired(uint32_t) 16
@@ -4359,9 +4364,9 @@ service.c:284:13:os_rwlock_create 16
 service.c:298:13:os_rwlock_acquire_write 16
 service_modules_worker.cpp:27:1:cpp) 16
 signals.c:19:13:osi_signal 16
-simple_buffer.h:103:12:size_t phylum::general_buffer<PointerType>::skip(size_t) [with PointerType = const unsigned char; size_t = unsigned int] 16
-simple_buffer.h:201:10:void phylum::general_buffer<PointerType>::clear(uint8_t) [with PointerType = unsigned char; uint8_t = unsigned char] 16
-simple_buffer.h:215:18:PointerType* phylum::general_buffer<PointerType>::take(size_t) [with PointerType = unsigned char; size_t = unsigned int] 16
+simple_buffer.h:107:12:size_t phylum::general_buffer<PointerType>::skip(size_t) [with PointerType = const unsigned char; size_t = unsigned int] 16
+simple_buffer.h:205:10:void phylum::general_buffer<PointerType>::clear(uint8_t) [with PointerType = unsigned char; uint8_t = unsigned char] 16
+simple_buffer.h:219:18:PointerType* phylum::general_buffer<PointerType>::take(size_t) [with PointerType = unsigned char; size_t = unsigned int] 16
 simple_buffer.h:39:14:phylum::general_buffer<PointerType>::general_buffer(PointerType*, size_t, size_t) [with PointerType = const unsigned char; size_t = unsigned int] 16
 simple_buffer.h:39:14:phylum::general_buffer<PointerType>::general_buffer(PointerType*, size_t, size_t) [with PointerType = const unsigned char; size_t = unsigned int] 16
 simple_buffer.h:39:14:phylum::general_buffer<PointerType>::general_buffer(PointerType*, size_t, size_t) [with PointerType = const unsigned char; size_t = unsigned int] 16
@@ -4398,12 +4403,13 @@ simple_buffer.h:44:13:phylum::general_buffer<PointerType>::~general_buffer() [wi
 simple_buffer.h:44:13:phylum::general_buffer<PointerType>::~general_buffer() [with PointerType = unsigned char] 16
 simple_buffer.h:44:13:phylum::general_buffer<PointerType>::~general_buffer() [with PointerType = unsigned char] 16
 simple_buffer.h:44:13:phylum::general_buffer<PointerType>::~general_buffer() [with PointerType = unsigned char] 16
-simple_buffer.h:74:10:void phylum::general_buffer<PointerType>::ptr(PointerType*, size_t) [with PointerType = unsigned char; size_t = unsigned int] 16
-simple_buffer.h:84:18:PointerType* phylum::general_buffer<PointerType>::cursor(size_t) const [with PointerType = const unsigned char; size_t = unsigned int] 16
-simple_buffer.h:84:18:PointerType* phylum::general_buffer<PointerType>::cursor(size_t) const [with PointerType = const unsigned char; size_t = unsigned int] 16
-simple_buffer.h:84:18:PointerType* phylum::general_buffer<PointerType>::cursor(size_t) const [with PointerType = const unsigned char; size_t = unsigned int] 16
-simple_buffer.h:84:18:PointerType* phylum::general_buffer<PointerType>::cursor(size_t) const [with PointerType = const unsigned char; size_t = unsigned int] 16
-simple_buffer.h:84:18:PointerType* phylum::general_buffer<PointerType>::cursor(size_t) const [with PointerType = unsigned char; size_t = unsigned int] 16
+simple_buffer.h:44:13:phylum::general_buffer<PointerType>::~general_buffer() [with PointerType = unsigned char] 16
+simple_buffer.h:78:10:void phylum::general_buffer<PointerType>::ptr(PointerType*, size_t) [with PointerType = unsigned char; size_t = unsigned int] 16
+simple_buffer.h:88:18:PointerType* phylum::general_buffer<PointerType>::cursor(size_t) const [with PointerType = const unsigned char; size_t = unsigned int] 16
+simple_buffer.h:88:18:PointerType* phylum::general_buffer<PointerType>::cursor(size_t) const [with PointerType = const unsigned char; size_t = unsigned int] 16
+simple_buffer.h:88:18:PointerType* phylum::general_buffer<PointerType>::cursor(size_t) const [with PointerType = const unsigned char; size_t = unsigned int] 16
+simple_buffer.h:88:18:PointerType* phylum::general_buffer<PointerType>::cursor(size_t) const [with PointerType = const unsigned char; size_t = unsigned int] 16
+simple_buffer.h:88:18:PointerType* phylum::general_buffer<PointerType>::cursor(size_t) const [with PointerType = unsigned char; size_t = unsigned int] 16
 simple_ntp.cpp:104:1:cpp) 16
 socket.c:460:6:socketInit 16
 spi_flash.c:598:7:spi_flash_read 16
@@ -4441,6 +4447,7 @@ task_stack.h:44:5:logged_task::logged_task(const char*) 16
 task_stack.h:44:5:logged_task::logged_task(const char*) 16
 tasks.cpp:31:6:bool fk::fk_start_task_if_necessary(os_task_t*) 16
 tasks.cpp:46:6:bool fk::fk_task_stop_requested() 16
+tree_sector.h:303:13:int32_t phylum::tree_sector<KEY, VALUE, Size>::back_to_root(phylum::page_lock&) [with KEY = long unsigned int; VALUE = long unsigned int; unsigned int Size = 405u; int32_t = long int] 16
 u8g2_buffer.c:116:9:u8g2_NextPage 16
 u8g2_display.cpp:107:13:void fk::draw_centered(T, uint16_t, const char*) [with T = U8G2_SH1106_128X64_NONAME_F_HW_I2C; uint16_t = short unsigned int] 16
 u8g2_display.cpp:164:13:void fk::draw_battery(U8G2_SH1106_128X64_NONAME_F_HW_I2C&, float) 16
@@ -4588,6 +4595,7 @@ wiring.c:65:6:init 16
 wiring_digital.c:74:6:digitalWrite 16
 wiring_private.c:23:5:pinPeripheral 16
 worker.cpp:34:1:cpp) 16
+working_buffers.h:350:10:void phylum::working_buffers::free(const uint8_t*) 16
 working_buffers.h:350:10:void phylum::working_buffers::free(const uint8_t*) 16
 working_buffers.h:350:10:void phylum::working_buffers::free(const uint8_t*) 16
 working_buffers.h:350:10:void phylum::working_buffers::free(const uint8_t*) 16
@@ -4986,7 +4994,8 @@ pb_encode.c:533:18:pb_encode_ex 24
 pb_encode.c:604:18:pb_encode_varint 24
 pb_encode.c:81:18:pb_write 24
 phylum.cpp:22:6:bool fk::standard_page_working_buffers::lend_pages() 24
-phylum_data_file.cpp:12:9:int32_t fk::PhylumDataFile::initialize_config(fk::Pool&) 24
+phylum_data_file.cpp:228:9:int32_t fk::PhylumDataFile::seek_record_type(fk::RecordType, fk::Pool&) 24
+phylum_data_file.cpp:25:9:int32_t fk::PhylumDataFile::initialize_config(fk::Pool&) 24
 platform.cpp:176:6:void osi_panic(os_panic_kind_t) 24
 pool.cpp:129:7:char* fk::Pool::strndup(const char*, size_t) 24
 pool.cpp:234:1:fk::StandardPool::StandardPool(const char*, size_t, fk::Pool*) 24
@@ -5028,17 +5037,17 @@ sector_chain.cpp:39:9:int32_t phylum::sector_chain::flush(phylum::page_lock&) 24
 self_check.cpp:12:6:void fk::check_message(const char*, bool, uint32_t, bool) 24
 self_check_view.h:22:10:virtual void fk::SelfCheckView::tick(fk::ViewController*, fk::Pool&) 24
 semaphore.c:43:13:osi_semaphore_acquire 24
-simple_buffer.h:125:13:int32_t phylum::general_buffer<PointerType>::fill_from_buffer_ptr(const uint8_t*, size_t, T) [with T = phylum::file_reader::read(uint8_t*, size_t)::__lambda2::__lambda3; PointerType = unsigned char; int32_t = long int; uint8_t = unsigned char; size_t = unsigned int] 24
-simple_buffer.h:250:10:bool phylum::general_buffer<PointerType>::try_read(uint32_t&) [with PointerType = const unsigned char; uint32_t = long unsigned int] 24
-simple_buffer.h:250:10:bool phylum::general_buffer<PointerType>::try_read(uint32_t&) [with PointerType = const unsigned char; uint32_t = long unsigned int] 24
-simple_buffer.h:250:10:bool phylum::general_buffer<PointerType>::try_read(uint32_t&) [with PointerType = const unsigned char; uint32_t = long unsigned int] 24
-simple_buffer.h:250:10:bool phylum::general_buffer<PointerType>::try_read(uint32_t&) [with PointerType = const unsigned char; uint32_t = long unsigned int] 24
-simple_buffer.h:250:10:bool phylum::general_buffer<PointerType>::try_read(uint32_t&) [with PointerType = const unsigned char; uint32_t = long unsigned int] 24
-simple_buffer.h:250:10:bool phylum::general_buffer<PointerType>::try_read(uint32_t&) [with PointerType = const unsigned char; uint32_t = long unsigned int] 24
-simple_buffer.h:250:10:bool phylum::general_buffer<PointerType>::try_read(uint32_t&) [with PointerType = const unsigned char; uint32_t = long unsigned int] 24
-simple_buffer.h:250:10:bool phylum::general_buffer<PointerType>::try_read(uint32_t&) [with PointerType = const unsigned char; uint32_t = long unsigned int] 24
-simple_buffer.h:250:10:bool phylum::general_buffer<PointerType>::try_read(uint32_t&) [with PointerType = const unsigned char; uint32_t = long unsigned int] 24
-simple_buffer.h:250:10:bool phylum::general_buffer<PointerType>::try_read(uint32_t&) [with PointerType = const unsigned char; uint32_t = long unsigned int] 24
+simple_buffer.h:129:13:int32_t phylum::general_buffer<PointerType>::fill_from_buffer_ptr(const uint8_t*, size_t, T) [with T = phylum::file_reader::read(uint8_t*, size_t)::__lambda2::__lambda3; PointerType = unsigned char; int32_t = long int; uint8_t = unsigned char; size_t = unsigned int] 24
+simple_buffer.h:263:10:bool phylum::general_buffer<PointerType>::try_read(uint32_t&) [with PointerType = const unsigned char; uint32_t = long unsigned int] 24
+simple_buffer.h:263:10:bool phylum::general_buffer<PointerType>::try_read(uint32_t&) [with PointerType = const unsigned char; uint32_t = long unsigned int] 24
+simple_buffer.h:263:10:bool phylum::general_buffer<PointerType>::try_read(uint32_t&) [with PointerType = const unsigned char; uint32_t = long unsigned int] 24
+simple_buffer.h:263:10:bool phylum::general_buffer<PointerType>::try_read(uint32_t&) [with PointerType = const unsigned char; uint32_t = long unsigned int] 24
+simple_buffer.h:263:10:bool phylum::general_buffer<PointerType>::try_read(uint32_t&) [with PointerType = const unsigned char; uint32_t = long unsigned int] 24
+simple_buffer.h:263:10:bool phylum::general_buffer<PointerType>::try_read(uint32_t&) [with PointerType = const unsigned char; uint32_t = long unsigned int] 24
+simple_buffer.h:263:10:bool phylum::general_buffer<PointerType>::try_read(uint32_t&) [with PointerType = const unsigned char; uint32_t = long unsigned int] 24
+simple_buffer.h:263:10:bool phylum::general_buffer<PointerType>::try_read(uint32_t&) [with PointerType = const unsigned char; uint32_t = long unsigned int] 24
+simple_buffer.h:263:10:bool phylum::general_buffer<PointerType>::try_read(uint32_t&) [with PointerType = const unsigned char; uint32_t = long unsigned int] 24
+simple_buffer.h:263:10:bool phylum::general_buffer<PointerType>::try_read(uint32_t&) [with PointerType = const unsigned char; uint32_t = long unsigned int] 24
 simple_ntp.cpp:17:1:fk::SimpleNTP::SimpleNTP() 24
 socket.c:1074:8:nmi_inet_addr 24
 socket.c:1132:7:gethostbyname 24
@@ -5069,6 +5078,7 @@ task_stack.h:36:5:logged_task::logged_task(const char*, const char*) 24
 temperature.cpp:27:6:bool fk::CoreTemperature::read(float*) 24
 tiny_printf.c:686:5:tiny_vsnprintf 24
 tiny_printf.c:702:5:tiny_vfctprintf 24
+tree_sector.h:83:5:phylum::tree_sector<KEY, VALUE, Size>::tree_sector(phylum::phyctx, phylum::tree_ptr_t, const char*) [with KEY = long unsigned int; VALUE = long unsigned int; unsigned int Size = 405u] 24
 u8g2_buffer.c:187:6:u8g2_WriteBufferPBM 24
 u8g2_buffer.c:193:6:u8g2_WriteBufferXBM 24
 u8g2_buffer.c:202:6:u8g2_WriteBufferPBM2 24
@@ -6180,8 +6190,8 @@ data_chain.cpp:177:13:phylum::file_size_t phylum::data_chain::total_bytes() 40
 deep_sleep.cpp:59:6:bool fk::DeepSleep::try_deep_sleep(lwcron::Scheduler&) 40
 delimited_buffer.h:341:19:phylum::delimited_buffer::iterator& phylum::delimited_buffer::iterator::operator++() 40
 directory_tree.cpp:163:9:virtual int32_t phylum::directory_tree::file_chain(phylum::file_id_t, phylum::head_tail_t) 40
-directory_tree.cpp:181:9:virtual int32_t phylum::directory_tree::file_attributes(phylum::file_id_t, phylum::open_file_attribute*, size_t) 40
-directory_tree.cpp:207:9:virtual int32_t phylum::directory_tree::file_trees(phylum::file_id_t, phylum::tree_ptr_t, phylum::tree_ptr_t) 40
+directory_tree.cpp:183:9:virtual int32_t phylum::directory_tree::file_attributes(phylum::file_id_t, phylum::open_file_attribute*, size_t) 40
+directory_tree.cpp:209:9:virtual int32_t phylum::directory_tree::file_trees(phylum::file_id_t, phylum::tree_ptr_t, phylum::tree_ptr_t) 40
 display.cpp:124:10:void fk::MainViewController::refresh_notifications() 40
 distance_module.cpp:18:14:virtual fk::ModuleReturn fk::DistanceModule::initialize(fk::ModuleContext, fk::Pool&) 40
 dns_message.cpp:157:9:int16_t fk::DNSReader::read_queries() 40
@@ -6442,16 +6452,16 @@ records.cpp:78:20:bool fk::pb_data_sensor_info_item_decode(pb_istream_t*, fk::pb
 req.cpp:90:9:int32_t fk::HttpRequest::on_url(const char*, size_t) 48
 sector_chain.cpp:97:9:int32_t phylum::sector_chain::forward(phylum::page_lock&) 48
 self_check.cpp:234:6:bool fk::SelfCheck::wifi(fk::Pool*) 48
-simple_buffer.h:61:21:phylum::general_buffer<PointerType>& phylum::general_buffer<PointerType>::operator=(phylum::general_buffer<PointerType>&&) [with PointerType = const unsigned char] 48
-simple_buffer.h:61:21:phylum::general_buffer<PointerType>& phylum::general_buffer<PointerType>::operator=(phylum::general_buffer<PointerType>&&) [with PointerType = const unsigned char] 48
-simple_buffer.h:61:21:phylum::general_buffer<PointerType>& phylum::general_buffer<PointerType>::operator=(phylum::general_buffer<PointerType>&&) [with PointerType = const unsigned char] 48
-simple_buffer.h:61:21:phylum::general_buffer<PointerType>& phylum::general_buffer<PointerType>::operator=(phylum::general_buffer<PointerType>&&) [with PointerType = const unsigned char] 48
-simple_buffer.h:61:21:phylum::general_buffer<PointerType>& phylum::general_buffer<PointerType>::operator=(phylum::general_buffer<PointerType>&&) [with PointerType = const unsigned char] 48
-simple_buffer.h:61:21:phylum::general_buffer<PointerType>& phylum::general_buffer<PointerType>::operator=(phylum::general_buffer<PointerType>&&) [with PointerType = const unsigned char] 48
-simple_buffer.h:61:21:phylum::general_buffer<PointerType>& phylum::general_buffer<PointerType>::operator=(phylum::general_buffer<PointerType>&&) [with PointerType = const unsigned char] 48
-simple_buffer.h:61:21:phylum::general_buffer<PointerType>& phylum::general_buffer<PointerType>::operator=(phylum::general_buffer<PointerType>&&) [with PointerType = const unsigned char] 48
-simple_buffer.h:61:21:phylum::general_buffer<PointerType>& phylum::general_buffer<PointerType>::operator=(phylum::general_buffer<PointerType>&&) [with PointerType = const unsigned char] 48
-simple_buffer.h:61:21:phylum::general_buffer<PointerType>& phylum::general_buffer<PointerType>::operator=(phylum::general_buffer<PointerType>&&) [with PointerType = const unsigned char] 48
+simple_buffer.h:58:21:phylum::general_buffer<PointerType>& phylum::general_buffer<PointerType>::operator=(phylum::general_buffer<PointerType>&&) [with PointerType = const unsigned char] 48
+simple_buffer.h:58:21:phylum::general_buffer<PointerType>& phylum::general_buffer<PointerType>::operator=(phylum::general_buffer<PointerType>&&) [with PointerType = const unsigned char] 48
+simple_buffer.h:58:21:phylum::general_buffer<PointerType>& phylum::general_buffer<PointerType>::operator=(phylum::general_buffer<PointerType>&&) [with PointerType = const unsigned char] 48
+simple_buffer.h:58:21:phylum::general_buffer<PointerType>& phylum::general_buffer<PointerType>::operator=(phylum::general_buffer<PointerType>&&) [with PointerType = const unsigned char] 48
+simple_buffer.h:58:21:phylum::general_buffer<PointerType>& phylum::general_buffer<PointerType>::operator=(phylum::general_buffer<PointerType>&&) [with PointerType = const unsigned char] 48
+simple_buffer.h:58:21:phylum::general_buffer<PointerType>& phylum::general_buffer<PointerType>::operator=(phylum::general_buffer<PointerType>&&) [with PointerType = const unsigned char] 48
+simple_buffer.h:58:21:phylum::general_buffer<PointerType>& phylum::general_buffer<PointerType>::operator=(phylum::general_buffer<PointerType>&&) [with PointerType = const unsigned char] 48
+simple_buffer.h:58:21:phylum::general_buffer<PointerType>& phylum::general_buffer<PointerType>::operator=(phylum::general_buffer<PointerType>&&) [with PointerType = const unsigned char] 48
+simple_buffer.h:58:21:phylum::general_buffer<PointerType>& phylum::general_buffer<PointerType>::operator=(phylum::general_buffer<PointerType>&&) [with PointerType = const unsigned char] 48
+simple_buffer.h:58:21:phylum::general_buffer<PointerType>& phylum::general_buffer<PointerType>::operator=(phylum::general_buffer<PointerType>&&) [with PointerType = const unsigned char] 48
 socket.c:1012:8:recvfrom 48
 socket.c:540:8:socket 48
 socket.c:626:7:bind 48
@@ -6489,6 +6499,7 @@ u8x8_d_uc1617.c:135:9:u8x8_d_uc1617_common 48
 u8x8_string.c:159:9:u8x8_DrawUTF8Lines 48
 varint.cpp:35:10:uint8_t* phylum::varint_encode(long long unsigned int, uint8_t*, int32_t) 48
 water_module.cpp:135:14:virtual fk::ModuleReturn fk::WaterModule::api(fk::ModuleContext, fk::HttpServerConnection*, fk::Pool&) 48
+working_buffers.h:311:19:phylum::simple_buffer phylum::working_buffers::allocate(size_t) 48
 working_buffers.h:311:19:phylum::simple_buffer phylum::working_buffers::allocate(size_t) 48
 working_buffers.h:311:19:phylum::simple_buffer phylum::working_buffers::allocate(size_t) 48
 working_buffers.h:311:19:phylum::simple_buffer phylum::working_buffers::allocate(size_t) 48
@@ -6638,7 +6649,7 @@ api_handler.cpp:381:13:29(fk::HttpServerConnection*, uint32_t*, fk::Pool&) 72
 data_chain.cpp:166:9:int32_t phylum::data_chain::read(uint8_t*, size_t) 72
 data_chain.cpp:195:9:int32_t phylum::data_chain::write_chain(std::function<long int(phylum::general_buffer<unsigned char>, bool&)>) 72
 debug_udp.cpp:81:6:void fk::DebugUDP::reply_with_query(const char*) 72
-directory_chain.cpp:105:9:virtual int32_t phylum::directory_chain::file_data(phylum::file_id_t, phylum::file_size_t, const uint8_t*, size_t) 72
+directory_chain.cpp:108:9:virtual int32_t phylum::directory_chain::file_data(phylum::file_id_t, phylum::file_size_t, const uint8_t*, size_t) 72
 directory_chain.cpp:91:9:virtual int32_t phylum::directory_chain::file_chain(phylum::file_id_t, phylum::head_tail_t) 72
 dyn.cpp:7:6:void fk::fkb_log_header(const fkb_header_t*) 72
 eeprom.cpp:177:6:bool fk::ModuleEeprom::read_data_delimited(uint32_t, uint8_t*, size_t&, size_t) 72
@@ -6724,7 +6735,7 @@ delimited_buffer.h:219:13:int32_t phylum::delimited_buffer::seek_end() 88
 delimited_buffer.h:219:13:int32_t phylum::delimited_buffer::seek_end() 88
 delimited_buffer.h:219:13:int32_t phylum::delimited_buffer::seek_end() 88
 diagnostics_module.cpp:60:17:virtual fk::ModuleReadings* fk::DiagnosticsModule::take_readings(fk::ReadingsContext, fk::Pool&) 88
-directory_chain.cpp:236:9:virtual int32_t phylum::directory_chain::read(phylum::file_id_t, std::function<long int(phylum::general_buffer<const unsigned char>)>) 88
+directory_chain.cpp:239:9:virtual int32_t phylum::directory_chain::read(phylum::file_id_t, std::function<long int(phylum::general_buffer<const unsigned char>)>) 88
 directory_tree.cpp:20:9:virtual int32_t phylum::directory_tree::touch(const char*) 88
 directory_tree.cpp:43:9:virtual int32_t phylum::directory_tree::unlink(const char*) 88
 directory_tree.cpp:65:9:virtual int32_t phylum::directory_tree::find(const char*, phylum::open_file_config) 88
@@ -6762,10 +6773,13 @@ pb_encode.c:509:18:pb_encode 96
 rn2903.cpp:201:6:bool fk::Rn2903::provision(const char*, const char*, const char*, uint32_t, uint32_t) 96
 scan_modules_worker.cpp:50:6:virtual void fk::ScanModulesWorker::run(fk::Pool&) 96
 signed_log.cpp:19:31:tl::expected<long unsigned int, fk::Error> fk::SignedRecordLog::seek_record(fk::SignedRecordKind) 96
+tree_sector.h:112:29:static phylum::tree_sector<KEY, VALUE, Size>::persisted_node_t phylum::tree_sector<KEY, VALUE, Size>::find_root_in_sector(phylum::dhara_sector_t, phylum::delimited_buffer&) [with KEY = long unsigned int; VALUE = long unsigned int; unsigned int Size = 405u; phylum::dhara_sector_t = long unsigned int] 96
 tree_sector.h:112:29:static phylum::tree_sector<KEY, VALUE, Size>::persisted_node_t phylum::tree_sector<KEY, VALUE, Size>::find_root_in_sector(phylum::dhara_sector_t, phylum::delimited_buffer&) [with KEY = long unsigned int; VALUE = phylum::attribute_value_t<256u>; unsigned int Size = 15u; phylum::dhara_sector_t = long unsigned int] 96
 tree_sector.h:112:29:static phylum::tree_sector<KEY, VALUE, Size>::persisted_node_t phylum::tree_sector<KEY, VALUE, Size>::find_root_in_sector(phylum::dhara_sector_t, phylum::delimited_buffer&) [with KEY = long unsigned int; VALUE = phylum::dirtree_tree_value_t<128u>; unsigned int Size = 4u; phylum::dhara_sector_t = long unsigned int] 96
 upload_data_worker.cpp:31:16:fk::ConnectionInfo fk::build_connection_info(uint32_t, uint32_t, uint32_t, const char*, fk::Pool&) 96
 collections.h:125:10:bool fk::collection<T>::sort(SortKeyFn) [with SortKeyFn = fk::ModuleFactory::sort_modules()::__lambda0; T = fk::ConstructedModule] 104
+file_reader.h:38:13:int32_t phylum::file_reader::seek_position(uint32_t) [with tree_type = phylum::tree_sector<long unsigned int, long unsigned int, 405u>; int32_t = long int; uint32_t = long unsigned int] 104
+file_reader.h:66:13:int32_t phylum::file_reader::seek_record(phylum::record_number_t) [with tree_type = phylum::tree_sector<long unsigned int, long unsigned int, 405u>; int32_t = long int; phylum::record_number_t = long unsigned int] 104
 network_task.cpp:38:6:bool fk::NetworkTask::begin(fk::NetworkSettings, uint32_t, fk::Pool&) 104
 oem_atlas.cpp:188:6:bool fk::OemAtlas::read(float*, size_t&) 104
 printf.cpp:235:15:size_t _ntoa_long_long(out_fct_type, char*, size_t, size_t, long long unsigned int, bool, long long unsigned int, unsigned int, unsigned int, unsigned int) 104
@@ -6780,9 +6794,10 @@ tree_sector.h:127:29:static phylum::tree_sector<KEY, VALUE, Size>::persisted_nod
 tree_sector.h:578:13:int32_t phylum::tree_sector<KEY, VALUE, Size>::create() [with KEY = long unsigned int; VALUE = long unsigned int; unsigned int Size = 405u; int32_t = long int] 104
 tree_sector.h:578:13:int32_t phylum::tree_sector<KEY, VALUE, Size>::create() [with KEY = long unsigned int; VALUE = phylum::attribute_value_t<256u>; unsigned int Size = 15u; int32_t = long int] 104
 tree_sector.h:578:13:int32_t phylum::tree_sector<KEY, VALUE, Size>::create() [with KEY = long unsigned int; VALUE = phylum::dirtree_tree_value_t<128u>; unsigned int Size = 4u; int32_t = long int] 104
+tree_sector.h:860:13:int32_t phylum::tree_sector<KEY, VALUE, Size>::log(bool) [with KEY = long unsigned int; VALUE = long unsigned int; unsigned int Size = 405u; int32_t = long int] 104
 SEGGER_RTT_printf.c:482:5:SEGGER_RTT_vprintf 112
 configure_module_worker.cpp:63:6:bool fk::ConfigureModuleWorker::scan(fk::Pool&) 112
-data_chain.cpp:295:9:int32_t phylum::data_chain::read_chain(std::function<long int(phylum::general_buffer<const unsigned char>)>) 112
+data_chain.cpp:308:9:int32_t phylum::data_chain::read_chain(std::function<long int(phylum::general_buffer<const unsigned char>)>) 112
 dhara_map.cpp:28:9:virtual int32_t phylum::dhara_sector_map::begin(bool) 112
 file.cpp:716:9:int32_t fk::File::read_record_tail() 112
 metal_gps.cpp:33:6:virtual bool fk::MetalGps::service(fk::GpsFix&) 112
@@ -6803,7 +6818,7 @@ module_factory.cpp:145:51:tl::expected<fk::collection<fk::ConstructedModule>, fk
 self_check_worker.cpp:39:6:void fk::SelfCheckWorker::check() 120
 socket.c:221:13:m2m_ip_cb 120
 spi_flash.cpp:263:9:int32_t fk::SpiFlash::write_internal(uint32_t, const uint8_t*, size_t) 120
-directory_tree.cpp:244:9:int32_t phylum::directory_tree::flush(std::function<long int(phylum::dirtree_tree_value_t<128u>*)>) 128
+directory_tree.cpp:246:9:int32_t phylum::directory_tree::flush(std::function<long int(phylum::dirtree_tree_value_t<128u>*)>) 128
 free_sectors_chain.cpp:11:9:int32_t phylum::free_sectors_chain::add_free_sectors(phylum::free_sectors_t) 128
 m2m_ssl.c:74:13:m2m_ssl_cb 128
 m2m_wifi.c:84:13:m2m_wifi_cb 128
@@ -6842,6 +6857,7 @@ m2m_wifi.c:550:7:m2m_wifi_connect_sc 152
 map.c:253:12:pad_queue 152
 qrcode.c:779:8:qrcode_initBytes 152
 sd_copying.cpp:131:6:bool fk::copy_sd_to_flash(const char*, fk::FlashMemory*, uint32_t, uint32_t, fk::Pool&) 152
+tree_sector.h:791:10:bool phylum::tree_sector<KEY, VALUE, Size>::find_last_less_then(const KEY&, VALUE*, KEY*) [with KEY = long unsigned int; VALUE = long unsigned int; unsigned int Size = 405u] 152
 WiFi.cpp:515:9:uint8_t WiFiClass::startAP(const char*, uint8_t, const void*, uint8_t) 160
 WiFi.cpp:606:9:uint8_t WiFiClass::startProvision(const char*, const char*, uint8_t) 160
 atlas_api.cpp:11:6:bool fk::AtlasApi::handle(fk::ModuleContext, fk::HttpServerConnection*, fk::Pool&) 160
@@ -6850,11 +6866,13 @@ map.c:348:5:dhara_map_write 160
 map.c:371:5:dhara_map_copy_page 160
 metal_sd_card.cpp:288:6:virtual bool fk::MetalSdCard::ls(const char*, size_t, fk_app_DirectoryEntry**, size_t&, size_t&, fk::Pool&) 160
 module_handler.cpp:13:6:virtual bool fk::ModuleHandler::handle(fk::HttpServerConnection*, fk::Pool&) 160
+phylum_data_file.cpp:245:9:int32_t fk::PhylumDataFile::seek_record(fk::record_number_t, fk::Pool&) 160
+phylum_data_file.cpp:257:9:int32_t fk::PhylumDataFile::seek_position(fk::file_size_t, fk::Pool&) 160
 printf.cpp:394:12:int _vsnprintf(out_fct_type, char*, size_t, const char*, va_list) 160
 printf.cpp:394:12:int _vsnprintf(out_fct_type, char*, size_t, const char*, va_list) 160
 records.cpp:102:20:bool fk::pb_data_module_info_item_decode(pb_istream_t*, fk::pb_array_t*) 160
 tiny_printf.c:397:12:_vsnprintf 160
-directory_chain.cpp:223:9:int32_t phylum::directory_chain::seek_file_entry(phylum::file_id_t) 168
+directory_chain.cpp:226:9:int32_t phylum::directory_chain::seek_file_entry(phylum::file_id_t) 168
 download_handler.cpp:126:6:bool fk::DownloadWorker::write_headers(fk::DownloadWorker::HeaderInfo) 168
 file.cpp:508:9:int32_t fk::File::search_for_following_block() 168
 lora_manager.cpp:62:6:bool fk::LoraManager::join_if_necessary(fk::Pool&) 168
@@ -6864,6 +6882,8 @@ phylum.cpp:54:6:bool fk::Phylum::format() 168
 phylum.cpp:67:6:bool fk::Phylum::mount() 168
 protobuf.cpp:223:6:bool fk::pb_encode_logs(pb_ostream_t*, const pb_field_t*, void* const*) 168
 scanning.cpp:56:6:bool fk::ModuleScanning::try_scan_single_module(fk::ModulePosition, fk::FoundModuleCollection&, fk::Pool&) 168
+tree_sector.h:510:13:int32_t phylum::tree_sector<KEY, VALUE, Size>::log(phylum::node_ptr_t, bool) [with KEY = long unsigned int; VALUE = long unsigned int; unsigned int Size = 405u; int32_t = long int] 168
+tree_sector.h:638:13:int32_t phylum::tree_sector<KEY, VALUE, Size>::add(KEY, VALUE*, phylum::tree_value_ptr_t*) [with KEY = long unsigned int; VALUE = long unsigned int; unsigned int Size = 405u; int32_t = long int] 168
 tree_sector.h:638:13:int32_t phylum::tree_sector<KEY, VALUE, Size>::add(KEY, VALUE*, phylum::tree_value_ptr_t*) [with KEY = long unsigned int; VALUE = phylum::attribute_value_t<256u>; unsigned int Size = 15u; int32_t = long int] 168
 tree_sector.h:638:13:int32_t phylum::tree_sector<KEY, VALUE, Size>::add(KEY, VALUE*, phylum::tree_value_ptr_t*) [with KEY = long unsigned int; VALUE = phylum::dirtree_tree_value_t<128u>; unsigned int Size = 4u; int32_t = long int] 168
 tree_sector.h:736:13:int32_t phylum::tree_sector<KEY, VALUE, Size>::find(KEY, VALUE*, phylum::tree_value_ptr_t*) [with KEY = long unsigned int; VALUE = phylum::attribute_value_t<256u>; unsigned int Size = 15u; int32_t = long int] 168
@@ -6872,8 +6892,6 @@ battery_status.cpp:13:6:void fk::BatteryChecker::refresh(bool) 176
 configure_module_worker.cpp:36:6:bool fk::ConfigureModuleWorker::configure(fk::Pool&) 176
 display.h:147:10:void fk::LambdaOption<TSelect>::on_selected() [with TSelect = fk::MenuView::create_network_menu()::__lambda60] 176
 map.c:212:12:raw_gc 176
-phylum_data_file.cpp:41:9:int32_t fk::PhylumDataFile::open(fk::Pool&) 176
-phylum_data_file.cpp:57:9:int32_t fk::PhylumDataFile::create(fk::Pool&) 176
 readings_worker.cpp:48:6:bool fk::ReadingsWorker::take(fk::Pool&) 176
 schedule_view.cpp:25:6:virtual void fk::ScheduleView::tick(fk::ViewController*, fk::Pool&) 176
 export_data_worker.cpp:145:6:bool fk::ExportDataWorker::write_header() 184
@@ -6883,10 +6901,9 @@ functional:2054:7:) [with _Res = long int; _Functor = phylum::data_chain::write_
 logs_handler.cpp:83:6:bool fk::DownloadLogsWorker::write_headers(fk::DownloadLogsWorker::HeaderInfo) 184
 flat_attribute_storage.cpp:15:9:int32_t phylum::flat_attribute_storage::read(phylum::tree_ptr_t&, phylum::file_id_t, phylum::open_file_config) 192
 write_memory_handler.cpp:56:6:virtual void fk::WriteMemoryWorker::run(fk::Pool&) 192
-file_appender.h:63:67:phylum::file_appender::index_if_necessary(phylum::record_number_t) [with tree_type = phylum::tree_sector<long unsigned int, long unsigned int, 405u>; int32_t = long int; phylum::record_number_t = long unsigned int]::__lambda11 200
 gps.cpp:10:6:void fk::task_handler_gps(void*) 200
 storage.cpp:251:6:bool fk::Storage::begin_internal() 200
-flat_attribute_storage.cpp:48:9:int32_t phylum::flat_attribute_storage::update(phylum::tree_ptr_t&, phylum::file_id_t, phylum::open_file_attribute*, size_t) 208
+file_appender.h:63:67:phylum::file_appender::index_if_necessary(phylum::record_number_t) [with tree_type = phylum::tree_sector<long unsigned int, long unsigned int, 405u>; int32_t = long int; phylum::record_number_t = long unsigned int]::__lambda11 208
 gps_view.cpp:11:6:virtual void fk::GpsView::tick(fk::ViewController*, fk::Pool&) 208
 sector_chain.cpp:216:9:int32_t phylum::sector_chain::log(bool) 208
 status_logging.cpp:59:6:bool fk::fk_log_diagnostics() 208
@@ -6897,6 +6914,7 @@ tree_sector.h:386:13:int32_t phylum::tree_sector<KEY, VALUE, Size>::insert_non_f
 u8g2_display.cpp:415:6:virtual void fk::U8g2Display::simple(fk::SimpleScreen&&) 208
 status_logging.cpp:55:6:void fk::fk_status_log() 216
 file.cpp:541:9:int32_t fk::File::find_following_block() 224
+flat_attribute_storage.cpp:48:9:int32_t phylum::flat_attribute_storage::update(phylum::tree_ptr_t&, phylum::file_id_t, phylum::open_file_attribute*, size_t) 224
 tree_sector.h:389:152:phylum::tree_sector<KEY, VALUE, Size>::insert_non_full(phylum::node_ptr_t, KEY&, VALUE*, phylum::tree_value_ptr_t*) [with KEY = long unsigned int; VALUE = long unsigned int; unsigned int Size = 405u; int32_t = long int]::__lambda2 224
 tree_sector.h:389:152:phylum::tree_sector<KEY, VALUE, Size>::insert_non_full(phylum::node_ptr_t, KEY&, VALUE*, phylum::tree_value_ptr_t*) [with KEY = long unsigned int; VALUE = phylum::attribute_value_t<256u>; unsigned int Size = 15u; int32_t = long int]::__lambda2 224
 tree_sector.h:389:152:phylum::tree_sector<KEY, VALUE, Size>::insert_non_full(phylum::node_ptr_t, KEY&, VALUE*, phylum::tree_value_ptr_t*) [with KEY = long unsigned int; VALUE = phylum::dirtree_tree_value_t<128u>; unsigned int Size = 4u; int32_t = long int]::__lambda2 224
@@ -6909,7 +6927,6 @@ http_reply.cpp:97:6:bool fk::HttpReply::include_status(uint32_t, uint32_t, bool,
 storage.cpp:20:10:uint32_t fk::hash_block(const void*, size_t, fk::Hash&) 240
 u8g2_display.cpp:177:6:virtual void fk::U8g2Display::home(const fk::HomeScreen&) 240
 m2m_wifi.c:1243:7:m2m_wifi_start_provision_mode 248
-tree_sector.h:638:13:int32_t phylum::tree_sector<KEY, VALUE, Size>::add(KEY, VALUE*, phylum::tree_value_ptr_t*) [with KEY = long unsigned int; VALUE = long unsigned int; unsigned int Size = 405u; int32_t = long int] 248
 tree_sector.h:638:13:int32_t phylum::tree_sector<KEY, VALUE, Size>::add(KEY, VALUE*, phylum::tree_value_ptr_t*) [with KEY = long unsigned int; VALUE = phylum::dirtree_tree_value_t<128u>; unsigned int Size = 4u; int32_t = long int] 248
 backup_worker.cpp:143:6:bool fk::BackupWorker::hash_file(const char*, uint8_t*, fk::Pool&) 256
 storage.cpp:371:10:uint32_t fk::Storage::allocate(uint8_t, uint32_t, fk::BlockTail&) 256
@@ -6919,17 +6936,18 @@ directory_tree.cpp:53:45:phylum::directory_tree::unlink(const char*)::__lambda10
 free_sectors_chain.cpp:75:9:int32_t phylum::free_sectors_chain::dequeue(phylum::dhara_sector_t*) 272
 menu_view.cpp:71:10:void fk::NetworkOption<T>::on_selected() [with T = fk::MenuView::create_network_menu()::__lambda61] 272
 rn2903.cpp:76:6:bool fk::Rn2903::send_command(const char*, va_list) 272
-directory_chain.cpp:135:9:virtual int32_t phylum::directory_chain::find(const char*, phylum::open_file_config) 288
+directory_chain.cpp:138:9:virtual int32_t phylum::directory_chain::find(const char*, phylum::open_file_config) 288
 sector_chain.h:163:13:int32_t phylum::sector_chain::walk(phylum::page_lock&, WalkFn, LoadFn) [with WalkFn = phylum::directory_chain::read(phylum::file_id_t, std::function<long int(phylum::general_buffer<const unsigned char>)>)::__lambda5; LoadFn = phylum::sector_chain::walk(WalkFn) [with WalkFn = phylum::directory_chain::read(phylum::file_id_t, std::function<long int(phylum::general_buffer<const unsigned char>)>)::__lambda5; int32_t = long int]::__lambda1; int32_t = long int] 288
 spi_flash.cpp:432:6:bool fk::SpiFlash::read_parameters_page() 288
 map.c:411:12:try_delete 304
 signed_log.cpp:77:37:tl::expected<fk::AppendedRecord, fk::Error> fk::SignedRecordLog::append_always(fk::SignedRecordKind, const void*, const pb_msgdesc_t*, fk::Pool&) 304
 scanning.cpp:34:13:9(fk::FoundModuleCollection&) 312
 signed_log.cpp:114:37:tl::expected<fk::AppendedRecord, fk::Error> fk::SignedRecordLog::append_immutable(fk::SignedRecordKind, const void*, const pb_msgdesc_t*, fk::Pool&) 312
-directory_tree.cpp:223:9:virtual int32_t phylum::directory_tree::read(phylum::file_id_t, std::function<long int(phylum::general_buffer<const unsigned char>)>) 328
+directory_tree.cpp:225:9:virtual int32_t phylum::directory_tree::read(phylum::file_id_t, std::function<long int(phylum::general_buffer<const unsigned char>)>) 328
 file_ops_darwin.cpp:101:37:virtual tl::expected<fk::FileAttributes, fk::Error> fk::darwin::DataOps::attributes() 328
 file_ops_darwin.cpp:49:37:virtual tl::expected<fk::FileAttributes, fk::Error> fk::darwin::MetaOps::attributes() 328
 file_ops_darwin.cpp:110:6:virtual bool fk::darwin::DataOps::read_fixed_record(fk::DataRecord&, fk::Pool&) 336
+phylum_data_file.cpp:191:9:int32_t fk::PhylumDataFile::append_immutable(fk::RecordType, const pb_msgdesc_t*, const void*, fk::Pool&) 336
 tree_attribute_storage.cpp:5:9:int32_t phylum::tree_attribute_storage::read(phylum::tree_ptr_t&, phylum::file_id_t, phylum::open_file_config) 336
 MDNS.cpp:526:13:MDNSError_t MDNS::_processMDNSQuery() 344
 download_firmware_worker.cpp:27:6:virtual void fk::DownloadFirmwareWorker::run(fk::Pool&) 344
@@ -6953,12 +6971,12 @@ metal_sd_card.cpp:264:6:virtual bool fk::MetalSdCard::format() 592
 state.cpp:149:6:bool fk::GlobalState::flush(fk::Pool&) 592
 factory_wipe_worker.cpp:17:6:virtual void fk::FactoryWipeWorker::run(fk::Pool&) 600
 startup_worker.cpp:139:6:bool fk::StartupWorker::load_or_create_state(fk::Pool&) 608
-directory_tree.h:57:13:int32_t phylum::directory_tree::touch_indexed(const char*, phylum::open_file_config) [with TreeType = phylum::tree_sector<long unsigned int, long unsigned int, 405u>; int32_t = long int] 616
-phylum_data_file.cpp:101:9:int32_t fk::PhylumDataFile::append_always(fk::RecordType, fk::record_number_t, const pb_msgdesc_t*, const void*, fk::Pool&) 632
+directory_tree.h:57:13:int32_t phylum::directory_tree::touch_indexed(const char*, phylum::open_file_config) [with TreeType = phylum::tree_sector<long unsigned int, long unsigned int, 405u>; int32_t = long int] 632
 upload_data_worker.cpp:163:6:virtual void fk::UploadDataWorker::run(fk::Pool&) 664
 backup_worker.cpp:23:6:virtual void fk::BackupWorker::run(fk::Pool&) 672
 storage.cpp:725:10:uint32_t fk::Storage::fsck(fk::ProgressCallbacks*) 696
 download_handler.cpp:49:6:virtual void fk::DownloadWorker::run(fk::Pool&) 720
+phylum_data_file.cpp:116:9:int32_t fk::PhylumDataFile::append_always(fk::RecordType, const pb_msgdesc_t*, const void*, fk::Pool&) 728
 readings_worker.cpp:151:36:tl::expected<fk::TakenReadings, fk::Error> fk::ReadingsWorker::take_readings(fk::Pool&) 744
 export_data_worker.cpp:22:6:virtual void fk::ExportDataWorker::run(fk::Pool&) 752
 display.cpp:194:6:void fk::task_handler_display(void*) 768

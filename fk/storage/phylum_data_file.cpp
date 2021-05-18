@@ -96,6 +96,21 @@ public:
 
 };
 
+class PhylumReader : public Reader {
+private:
+    phylum::io_reader *target_;
+
+public:
+    PhylumReader(phylum::io_reader *target) : target_(target) {
+    }
+
+public:
+    int32_t read(uint8_t *buffer, size_t size) override {
+        return target_->read(buffer, size);
+    }
+
+};
+
 class PhylumAttributes {
 private:
     open_file_config cfg_;
@@ -275,6 +290,23 @@ int32_t PhylumDataFile::read(uint8_t *data, size_t size, Pool &pool) {
     }
 
     return err;
+}
+
+int32_t PhylumDataFile::read(pb_msgdesc_t const *fields, void *record, Pool &pool) {
+    assert(reader_ != nullptr);
+
+    auto position = reader_->position();
+
+    phylum::io_reader *preader = reader_;
+
+    PhylumReader reader{ preader };
+    auto istream = pb_istream_from_readable(&reader);
+    if (!pb_decode_delimited(&istream, fields, record)) {
+        logerror("read: decode");
+        return -1;
+    }
+
+    return reader_->position() - position;
 }
 
 int32_t PhylumDataFile::close() {
