@@ -46,11 +46,14 @@ using file_size_t = phylum::file_size_t;
 
 class PhylumDataFile {
 private:
+    static constexpr dhara_sector_t RootDirectorySector = 0;
     Phylum &phylum_;
     Pool &pool_;
     const char *name_{ nullptr };
     phylum::open_file_config file_cfg_{ };
     phylum::open_file_attribute *attributes_{ nullptr };
+    directory_type dir_{ pc(), RootDirectorySector };
+    phylum::file_reader *reader_{ nullptr };
 
 public:
     PhylumDataFile(Phylum &phylum, const char *name, Pool &pool);
@@ -60,10 +63,13 @@ public:
     int32_t create(Pool &pool);
     int32_t append_always(RecordType type, pb_msgdesc_t const *fields, void const *record, Pool &pool);
     int32_t append_immutable(RecordType type, pb_msgdesc_t const *fields, void const *record, Pool &pool);
+
+public:
     int32_t seek_record_type(RecordType type, Pool &pool);
     int32_t seek_record(record_number_t record, Pool &pool);
     int32_t seek_position(file_size_t position, Pool &pool);
     int32_t read(uint8_t *data, size_t size, Pool &pool);
+    int32_t close();
 
 private:
     int32_t initialize_config(Pool &pool);

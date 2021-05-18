@@ -58,8 +58,7 @@ int32_t PhylumDataFile::initialize_config(Pool &pool) {
 int32_t PhylumDataFile::open(Pool &pool) {
     assert(initialize_config(pool) == 0);
 
-    directory_type dir{ pc(), 0 };
-    auto err = dir.find(name_, file_cfg_);
+    auto err = dir_.find(name_, file_cfg_);
     if (err < 0) {
         return err;
     }
@@ -74,8 +73,7 @@ int32_t PhylumDataFile::open(Pool &pool) {
 int32_t PhylumDataFile::create(Pool &pool) {
     assert(initialize_config(pool) == 0);
 
-    directory_type dir{ pc(), 0 };
-    auto err = dir.touch_indexed<index_tree_type>(name_, file_cfg_);
+    auto err = dir_.touch_indexed<index_tree_type>(name_, file_cfg_);
     if (err < 0) {
         return err;
     }
@@ -118,8 +116,7 @@ public:
 int32_t PhylumDataFile::append_always(RecordType type, pb_msgdesc_t const *fields, void const *record, Pool &pool) {
     loginfo("append-always");
 
-    directory_type dir{ pc(), 0 };
-    auto err = dir.find(name_, file_cfg_);
+    auto err = dir_.find(name_, file_cfg_);
     if (err < 0) {
         logerror("append-always: find");
         return err;
@@ -133,7 +130,7 @@ int32_t PhylumDataFile::append_always(RecordType type, pb_msgdesc_t const *field
     auto records = attributes.get<records_attribute_t>(PHYLUM_DRIVER_FILE_ATTR_RECORDS);
     auto data_record = attributes.get<file_attribute_t>(get_attribute_for_record_type(type));
 
-    phylum::file_appender opened{ pc(), &dir, dir.open() };
+    phylum::file_appender opened{ pc(), &dir_, dir_.open() };
     err = opened.seek();
     if (err < 0) {
         logerror("append-always: seek");
@@ -248,15 +245,8 @@ int32_t PhylumDataFile::seek_record_type(RecordType type, Pool &pool) {
 int32_t PhylumDataFile::seek_record(record_number_t record, Pool &pool) {
     loginfo("seek record=%d", record);
 
-    directory_type dir{ pc(), 0 };
-    auto err = dir.find(name_, file_cfg_);
-    if (err < 0) {
-        logerror("seek-record: find");
-        return err;
-    }
-
-    phylum::file_reader reader{ pc(), &dir, dir.open() };
-    err = reader.seek_record<index_tree_type>(record);
+    reader_ = new (pool) phylum::file_reader{ pc(), &dir_, dir_.open() };
+    auto err = reader_->seek_record<index_tree_type>(record);
     if (err < 0) {
         return err;
     }
@@ -267,15 +257,8 @@ int32_t PhylumDataFile::seek_record(record_number_t record, Pool &pool) {
 int32_t PhylumDataFile::seek_position(file_size_t position, Pool &pool) {
     loginfo("seek position=%d", position);
 
-    directory_type dir{ pc(), 0 };
-    auto err = dir.find(name_, file_cfg_);
-    if (err < 0) {
-        logerror("seek-position: find");
-        return err;
-    }
-
-    phylum::file_reader reader{ pc(), &dir, dir.open() };
-    err = reader.seek_position<index_tree_type>(position);
+    reader_ = new (pool) phylum::file_reader{ pc(), &dir_, dir_.open() };
+    auto err = reader_->seek_position<index_tree_type>(position);
     if (err < 0) {
         return err;
     }
@@ -284,7 +267,26 @@ int32_t PhylumDataFile::seek_position(file_size_t position, Pool &pool) {
 }
 
 int32_t PhylumDataFile::read(uint8_t *data, size_t size, Pool &pool) {
-    return -1;
+    assert(reader_ != nullptr);
+
+    auto err = reader_->read(data, size);
+    if (err < 0) {
+        return err;
+    }
+
+    return err;
+}
+
+int32_t PhylumDataFile::close() {
+    // I'm not super happy about this, but this is required to free
+    // the buffer held by the file_reader, since it's dtor will never
+    // be called. I'd much rather fix that behavior.
+    // TODO Call destructor for pool allocations.
+    if (reader_ != nullptr) {
+        reader_->close();
+        reader_ = nullptr;
+    }
+    return 0;
 }
 
 }
