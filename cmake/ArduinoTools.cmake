@@ -14,7 +14,7 @@ function(enable_signed_bin_firmware target)
   add_custom_command(
     OUTPUT ${fkb_bin_file}
     DEPENDS ${elf_file}
-    COMMAND ${loading_PATH}/tools/mkfirmware.py --elf ${elf_file} --fkb ${fkb_elf_file} --bin ${fkb_bin_file}
+    COMMAND ${loading_PATH}/tools/mkfirmware.py --objcopy ${ARM_TOOLS}/arm-none-eabi-objcopy  --elf ${elf_file} --fkb ${fkb_elf_file} --bin ${fkb_bin_file}
     WORKING_DIRECTORY ${binary_dir}
     )
 
@@ -45,7 +45,7 @@ function(enable_fkb_firmware target)
   add_custom_command(
     OUTPUT ${fkb_elf_file}
     DEPENDS ${elf_file}
-    COMMAND ${loading_PATH}/tools/mkfirmware.py --elf ${elf_file} --fkb ${fkb_elf_file} --bin ${fkb_bin_file}
+    COMMAND ${loading_PATH}/tools/mkfirmware.py --objcopy ${ARM_TOOLS}/arm-none-eabi-objcopy --elf ${elf_file} --fkb ${fkb_elf_file} --bin ${fkb_bin_file}
     WORKING_DIRECTORY ${binary_dir}
     )
 
@@ -80,7 +80,7 @@ function(enable_fkb_module target)
   add_custom_command(
     OUTPUT ${fkb_elf_file}
     DEPENDS ${elf_file}
-    COMMAND ${loading_PATH}/tools/mkfirmware.py --elf ${elf_file} --fkb ${fkb_elf_file} --bin ${fkb_bin_file} --dynamic
+    COMMAND ${loading_PATH}/tools/mkfirmware.py --objcopy ${ARM_TOOLS}/arm-none-eabi-objcopy --elf ${elf_file} --fkb ${fkb_elf_file} --bin ${fkb_bin_file} --dynamic
     WORKING_DIRECTORY ${binary_dir}
     )
 
