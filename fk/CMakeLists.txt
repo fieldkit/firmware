@@ -151,7 +151,11 @@ else()
   configure_firmware_linker_script(fk-bundled ${CMAKE_SOURCE_DIR}/boards/samd51/main.ld)
 endif()
 
-target_compile_options(fk-bundled PRIVATE -DFK_VERSION=${FK_VERSION})
+if (${FK_PHYLUM})
+  target_compile_options(fk-bundled PRIVATE -DFK_VERSION=${FK_VERSION} -DFK_PHYLUM=1)
+else()
+  target_compile_options(fk-bundled PRIVATE -DFK_VERSION=${FK_VERSION})
+endif()
 
 add_arduino_firmware(fk-bundled)
 
