@@ -56,7 +56,7 @@ def getBranch(scmInfo) {
 }
 
 timestamps {
-    node () {
+    node ("jenkins-aws-ubuntu") {
 		try {
 			def scmInfo
 
