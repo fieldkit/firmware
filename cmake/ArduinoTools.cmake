@@ -132,19 +132,3 @@ function(add_fk_module target_name)
 
   enable_fkb_module(${target_name})
 endfunction()
-
-
-if (NOT DEFINED ARDUINO_IDE)
-  foreach(path $ENV{HOME}/arduino-1.8.3 $ENV{HOME}/conservify/arduino-1.8.3
-               $ENV{HOME}/workspace/arduino-1.8.3
-               ${PROJECT_SOURCE_DIR}/../arduino-1.8.3 ${PROJECT_SOURCE_DIR}/../../arduino-1.8.3)
-      if (EXISTS ${path})
-        set(ARDUINO_IDE ${path})
-        break()
-    endif()
-  endforeach()
-
-  if (NOT DEFINED ARDUINO_IDE)
-    message(FATAL_ERROR "Unable to find Arduino IDE")
-  endif()
-endif()

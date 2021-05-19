@@ -4,10 +4,7 @@ include(${CMAKE_SOURCE_DIR}/fk/dependencies.cmake)
 
 set(asf4_PATH ${CMAKE_SOURCE_DIR}/third-party/asf4)
 
-
-set(ARDUINO_PACKAGES_PATH "${ARDUINO_IDE}/packages")
-set(ARDUINO_TOOLS_PATH "${ARDUINO_PACKAGES_PATH}/arduino/tools")
-set(ARM_TOOLS "${ARDUINO_TOOLS_PATH}/arm-none-eabi-gcc/4.8.3-2014q1/bin")
+set(ARM_TOOLS "${CMAKE_SOURCE_DIR}/third-party/gcc-arm-none-eabi-4_8-2014q1/bin")
 
 set(ARDUINO_OBJCOPY "${ARM_TOOLS}/arm-none-eabi-objcopy")
 set(ARDUINO_NM "${ARM_TOOLS}/arm-none-eabi-nm")
