@@ -227,7 +227,7 @@ int32_t PhylumDataFile::append_immutable(RecordType type, pb_msgdesc_t const *fi
     loginfo("append-immutable");
 
     PhylumAttributes attributes{ file_cfg_ };
-    auto file = attributes.get<index_attribute_t>(get_attribute_for_record_type(type));
+    auto index_attribute = attributes.get<index_attribute_t>(get_attribute_for_record_type(type));
 
     phylum::noop_writer noop;
     phylum::blake2b_writer hash_writer{ &noop };
@@ -241,14 +241,14 @@ int32_t PhylumDataFile::append_immutable(RecordType type, pb_msgdesc_t const *fi
     uint8_t hash[phylum::HashSize];
     hash_writer.finalize(hash, sizeof(hash));
 
-    auto previous_hex = bytes_to_hex_string_pool(file->hash, sizeof(file->hash), pool);
+    auto previous_hex = bytes_to_hex_string_pool(index_attribute->hash, sizeof(index_attribute->hash), pool);
     loginfo("old hash=%s", previous_hex);
 
     auto hash_hex = bytes_to_hex_string_pool(hash, sizeof(hash), pool);
     loginfo("new hash=%s", hash_hex);
 
-    assert(sizeof(hash) == sizeof(file->hash));
-    if (memcmp(file->hash, hash, sizeof(hash)) == 0) {
+    assert(sizeof(hash) == sizeof(index_attribute->hash));
+    if (memcmp(index_attribute->hash, hash, sizeof(hash)) == 0) {
         return 0;
     }
 
@@ -266,8 +266,8 @@ int32_t PhylumDataFile::seek_record_type(RecordType type, file_size_t &position,
     loginfo("seek record-type=%d", type);
 
     PhylumAttributes attributes{ file_cfg_ };
-    auto file = attributes.get<index_attribute_t>(get_attribute_for_record_type(type));
-    position = file->position;
+    auto index_attribute = attributes.get<index_attribute_t>(get_attribute_for_record_type(type));
+    position = index_attribute->position;
 
     if (position == UINT32_MAX) {
         return 0;

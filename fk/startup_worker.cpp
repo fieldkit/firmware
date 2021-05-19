@@ -376,20 +376,21 @@ bool StartupWorker::load_from_files(Storage &storage, GlobalState *gs, Pool &poo
 
 bool StartupWorker::load_previous_location(GlobalState *gs, DataOps *ops, Pool &pool) {
     DataRecord record;
-    if (!ops->read_fixed_record(record, pool)) {
-        return false;
+    if (ops->read_fixed_record(record, pool)) {
+        auto &l = record.record().readings.location;
+        gs->gps.latitude = l.latitude;
+        gs->gps.longitude = l.longitude;
+        gs->gps.altitude = l.altitude;
+        gs->gps.time = l.time;
+        gs->gps.satellites = l.satellites;
+        gs->gps.hdop = l.hdop;
+        gs->gps.fix = false;
+
+        loginfo("(loaded) location(%f, %f)", l.longitude, l.latitude);
     }
-
-    auto &l = record.record().readings.location;
-    gs->gps.latitude = l.latitude;
-    gs->gps.longitude = l.longitude;
-    gs->gps.altitude = l.altitude;
-    gs->gps.time = l.time;
-    gs->gps.satellites = l.satellites;
-    gs->gps.hdop = l.hdop;
-    gs->gps.fix = false;
-
-    loginfo("(loaded) location(%f, %f)", l.longitude, l.latitude);
+    else {
+        logwarn("unable to read saved location");
+    }
 
     return true;
 }

@@ -132,16 +132,18 @@ bool DataOps::read_fixed_record(DataRecord &record, Pool &pool) {
     file_size_t position = UINT32_MAX;
     err = file.seek_record_type(RecordType::Location, position, pool);
     if (err < 0) {
-        logwarn("seeking gps/fixed record type");
+        logerror("seeking gps/fixed record type");
         return false;
     }
 
-    if (position != UINT32_MAX) {
-        auto bytes_read = file.read(fk_data_DataRecord_fields, &record.for_decoding(pool), pool);
-        if (bytes_read <= 0) {
-            logwarn("reading gps/fixed record type");
-            return false;
-        }
+    if (position == UINT32_MAX) {
+        return false;
+    }
+
+    auto bytes_read = file.read(fk_data_DataRecord_fields, &record.for_decoding(pool), pool);
+    if (bytes_read <= 0) {
+        logwarn("reading gps/fixed record type");
+        return false;
     }
 
     return true;
