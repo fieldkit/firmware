@@ -22,7 +22,7 @@ setup: .python-setup fk/secrets.h fk/secrets.cpp fk/data/animals.h fk/data/adjec
 
 .python-setup:
 	pip3 install -U sphinx pyelftools pyblake2
-	python3 -m easy_install -N --user third-party/lief-0.10.0.dev0-py3.7-linux-x86_64.egg
+	pip3 install --user --index-url https://lief.quarkslab.com/packages lief==0.12.0.dev0
 	touch .python-setup
 
 cmake: $(BUILD)/samd51 $(BUILD)/samd51-qspi $(BUILD)/samd09 $(BUILD)/amd64
