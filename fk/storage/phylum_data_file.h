@@ -5,12 +5,12 @@
 
 namespace fk {
 
-struct file_attribute_t {
+struct index_attribute_t {
     uint32_t record{ (uint32_t)-1 };
     uint32_t position{ (uint32_t)-1 };
     uint8_t hash[32];
 
-    file_attribute_t() {
+    index_attribute_t() {
         memset(hash, 0xff, sizeof(hash));
     }
 };
@@ -21,12 +21,12 @@ struct records_attribute_t {
 };
 
 #define PHYLUM_DRIVER_FILE_ATTR_RECORDS              (0x01)
-#define PHYLUM_DRIVER_FILE_ATTR_RECORD_LOCATION      (0x02)
-#define PHYLUM_DRIVER_FILE_ATTR_RECORD_UPLOADED      (0x03)
-#define PHYLUM_DRIVER_FILE_ATTR_CONFIG_MODULES       (0x04)
-#define PHYLUM_DRIVER_FILE_ATTR_CONFIG_SCHEDULE      (0x05)
-#define PHYLUM_DRIVER_FILE_ATTR_CONFIG_STATE         (0x06)
-#define PHYLUM_DRIVER_FILE_ATTR_CONFIG_DATA          (0x07)
+#define PHYLUM_DRIVER_FILE_ATTR_INDEX_LOCATION       (0x02)
+#define PHYLUM_DRIVER_FILE_ATTR_INDEX_UPLOADED       (0x03)
+#define PHYLUM_DRIVER_FILE_ATTR_INDEX_MODULES        (0x04)
+#define PHYLUM_DRIVER_FILE_ATTR_INDEX_SCHEDULE       (0x05)
+#define PHYLUM_DRIVER_FILE_ATTR_INDEX_STATE          (0x06)
+#define PHYLUM_DRIVER_FILE_ATTR_INDEX_DATA           (0x07)
 #define PHYLUM_DRIVER_FILE_ATTR_NUMBER               (0x07)
 
 static inline uint8_t phylum_file_attr_type_to_index(uint8_t type) {
@@ -66,7 +66,7 @@ public:
     int32_t append_immutable(RecordType type, pb_msgdesc_t const *fields, void const *record, Pool &pool);
 
 public:
-    int32_t seek_record_type(RecordType type, Pool &pool);
+    int32_t seek_record_type(RecordType type, file_size_t &position, Pool &pool);
     int32_t seek_record(record_number_t record, Pool &pool);
     int32_t seek_position(file_size_t position, Pool &pool);
     int32_t read(uint8_t *data, size_t size, Pool &pool);

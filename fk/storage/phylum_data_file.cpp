@@ -8,11 +8,11 @@ using namespace phylum;
 
 static uint8_t get_attribute_for_record_type(RecordType type) {
     switch (type) {
-    case RecordType::Modules: return PHYLUM_DRIVER_FILE_ATTR_CONFIG_MODULES;
-    case RecordType::Schedule: return PHYLUM_DRIVER_FILE_ATTR_CONFIG_SCHEDULE;
-    case RecordType::State: return PHYLUM_DRIVER_FILE_ATTR_CONFIG_STATE;
-    case RecordType::Data: return PHYLUM_DRIVER_FILE_ATTR_CONFIG_DATA;
-    case RecordType::Location: return PHYLUM_DRIVER_FILE_ATTR_RECORD_LOCATION;
+    case RecordType::Modules: return PHYLUM_DRIVER_FILE_ATTR_INDEX_MODULES;
+    case RecordType::Schedule: return PHYLUM_DRIVER_FILE_ATTR_INDEX_SCHEDULE;
+    case RecordType::State: return PHYLUM_DRIVER_FILE_ATTR_INDEX_STATE;
+    case RecordType::Data: return PHYLUM_DRIVER_FILE_ATTR_INDEX_DATA;
+    case RecordType::Location: return PHYLUM_DRIVER_FILE_ATTR_INDEX_LOCATION;
     default:
         break;
     }
@@ -39,12 +39,12 @@ int32_t PhylumDataFile::initialize_config(Pool &pool) {
 
         auto i = 0;
         attributes_[i++] = open_file_attribute{ PHYLUM_DRIVER_FILE_ATTR_RECORDS,          sizeof(records_attribute_t),  0x00 };
-        attributes_[i++] = open_file_attribute{ PHYLUM_DRIVER_FILE_ATTR_RECORD_LOCATION,  sizeof(uint32_t),             0xff };
-        attributes_[i++] = open_file_attribute{ PHYLUM_DRIVER_FILE_ATTR_RECORD_UPLOADED,  sizeof(uint32_t),             0xff };
-        attributes_[i++] = open_file_attribute{ PHYLUM_DRIVER_FILE_ATTR_CONFIG_MODULES,   sizeof(file_attribute_t),     0xff };
-        attributes_[i++] = open_file_attribute{ PHYLUM_DRIVER_FILE_ATTR_CONFIG_SCHEDULE,  sizeof(file_attribute_t),     0xff };
-        attributes_[i++] = open_file_attribute{ PHYLUM_DRIVER_FILE_ATTR_CONFIG_STATE,     sizeof(file_attribute_t),     0xff };
-        attributes_[i++] = open_file_attribute{ PHYLUM_DRIVER_FILE_ATTR_CONFIG_DATA,      sizeof(file_attribute_t),     0xff };
+        attributes_[i++] = open_file_attribute{ PHYLUM_DRIVER_FILE_ATTR_INDEX_LOCATION,   sizeof(index_attribute_t),    0xff };
+        attributes_[i++] = open_file_attribute{ PHYLUM_DRIVER_FILE_ATTR_INDEX_UPLOADED,   sizeof(index_attribute_t),    0xff };
+        attributes_[i++] = open_file_attribute{ PHYLUM_DRIVER_FILE_ATTR_INDEX_MODULES,    sizeof(index_attribute_t),    0xff };
+        attributes_[i++] = open_file_attribute{ PHYLUM_DRIVER_FILE_ATTR_INDEX_SCHEDULE,   sizeof(index_attribute_t),    0xff };
+        attributes_[i++] = open_file_attribute{ PHYLUM_DRIVER_FILE_ATTR_INDEX_STATE,      sizeof(index_attribute_t),    0xff };
+        attributes_[i++] = open_file_attribute{ PHYLUM_DRIVER_FILE_ATTR_INDEX_DATA,       sizeof(index_attribute_t),    0xff };
 
         assert(i == PHYLUM_DRIVER_FILE_ATTR_NUMBER);
 
@@ -161,7 +161,7 @@ int32_t PhylumDataFile::append_always(RecordType type, pb_msgdesc_t const *field
 
     PhylumAttributes attributes{ file_cfg_ };
     auto records = attributes.get<records_attribute_t>(PHYLUM_DRIVER_FILE_ATTR_RECORDS);
-    auto data_record = attributes.get<file_attribute_t>(get_attribute_for_record_type(type));
+    auto data_record = attributes.get<index_attribute_t>(get_attribute_for_record_type(type));
 
     phylum::file_appender opened{ pc(), &dir_, dir_.open() };
     err = opened.seek();
@@ -227,14 +227,14 @@ int32_t PhylumDataFile::append_immutable(RecordType type, pb_msgdesc_t const *fi
     loginfo("append-immutable");
 
     PhylumAttributes attributes{ file_cfg_ };
-    auto file = attributes.get<file_attribute_t>(get_attribute_for_record_type(type));
+    auto file = attributes.get<index_attribute_t>(get_attribute_for_record_type(type));
 
     phylum::noop_writer noop;
     phylum::blake2b_writer hash_writer{ &noop };
     PhylumWriter writer{ &hash_writer };
     auto ostream = pb_ostream_from_writable(&writer);
     if (!pb_encode_delimited(&ostream, fields, record)) {
-        logerror("append-always: encode");
+        logerror("append-immutable: encode");
         return -1;
     }
 
@@ -260,18 +260,20 @@ int32_t PhylumDataFile::append_immutable(RecordType type, pb_msgdesc_t const *fi
     return err;
 }
 
-int32_t PhylumDataFile::seek_record_type(RecordType type, Pool &pool) {
+int32_t PhylumDataFile::seek_record_type(RecordType type, file_size_t &position, Pool &pool) {
     assert(name_ != nullptr);
 
     loginfo("seek record-type=%d", type);
 
     PhylumAttributes attributes{ file_cfg_ };
-    auto file = attributes.get<file_attribute_t>(get_attribute_for_record_type(type));
-    if (file->position == UINT32_MAX) {
-        return -1;
+    auto file = attributes.get<index_attribute_t>(get_attribute_for_record_type(type));
+    position = file->position;
+
+    if (position == UINT32_MAX) {
+        return 0;
     }
 
-    auto err = seek_position(file->position, pool);
+    auto err = seek_position(position, pool);
     if (err < 0) {
         return err;
     }

@@ -149,7 +149,8 @@ TEST_F(PhylumSuite, Basic_DataFile_AppendImmutable_SeekRecordType) {
 
     ASSERT_EQ(file.append_immutable(RecordType::State, fk_data_DataRecord_fields, &fake.record, pool), 30);
 
-    ASSERT_EQ(file.seek_record_type(RecordType::Modules, pool), -1);
+    file_size_t position = 0;
+    ASSERT_FALSE(file.seek_record_type(RecordType::Modules, position, pool));
 
     ASSERT_EQ(file.append_immutable(RecordType::Modules, fk_data_DataRecord_fields, &fake.record, pool), 30);
 
@@ -261,5 +262,5 @@ TEST_F(PhylumSuite, Basic_StartStop) {
     auto ops = storage.data_ops();
 
     DataRecord record;
-    ASSERT_FALSE(ops->read_fixed_record(record, pool));
+    ASSERT_TRUE(ops->read_fixed_record(record, pool));
 }
