@@ -5,6 +5,10 @@ namespace fk {
 PhylumFlashMemory::PhylumFlashMemory(DataMemory *target) : target_(target) {
 }
 
+bool PhylumFlashMemory::begin() {
+    return target_->begin();
+}
+
 size_t PhylumFlashMemory::block_size() {
     return target_->geometry().block_size;
 }
@@ -14,7 +18,7 @@ size_t PhylumFlashMemory::number_blocks() {
 }
 
 size_t PhylumFlashMemory::page_size() {
-    return target_->geometry().page_size;
+    return target_->geometry().real_page_size;
 }
 
 int32_t PhylumFlashMemory::erase(uint32_t address, uint32_t length) {

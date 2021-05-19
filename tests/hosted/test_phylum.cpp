@@ -73,28 +73,28 @@ TEST_F(PhylumSuite, Basic_Format_Mount) {
 }
 
 TEST_F(PhylumSuite, Basic_DataFile_Create) {
-    StandardPool pool{ "tests" };
     auto data_memory = MemoryFactory::get_data_memory();
     ASSERT_TRUE(data_memory->begin());
 
+    StandardPool pool{ "tests" };
     Phylum phylum{ data_memory };
     ASSERT_TRUE(phylum.format());
-    PhylumDataFile file{ phylum, "d/00000000", pool };
-    ASSERT_EQ(file.create(pool), 0);
-    ASSERT_EQ(file.open(pool), 0);
+    PhylumDataFile file{ phylum, pool };
+    ASSERT_EQ(file.create("d/00000000", pool), 0);
+    ASSERT_EQ(file.open("d/00000000", pool), 0);
     ASSERT_TRUE(phylum.sync());
 }
 
 TEST_F(PhylumSuite, Basic_DataFile_AppendAlways) {
-    StandardPool pool{ "tests" };
     auto data_memory = MemoryFactory::get_data_memory();
     ASSERT_TRUE(data_memory->begin());
 
+    StandardPool pool{ "tests" };
     Phylum phylum{ data_memory };
     ASSERT_TRUE(phylum.format());
-    PhylumDataFile file{ phylum, "d/00000000", pool };
-    ASSERT_EQ(file.create(pool), 0);
-    ASSERT_EQ(file.open(pool), 0);
+    PhylumDataFile file{ phylum, pool };
+    ASSERT_EQ(file.create("d/00000000", pool), 0);
+    ASSERT_EQ(file.open("d/00000000", pool), 0);
 
     RecordFaker fake;
     fake.log_message(0);
@@ -109,15 +109,15 @@ TEST_F(PhylumSuite, Basic_DataFile_AppendAlways) {
 }
 
 TEST_F(PhylumSuite, Basic_DataFile_AppendImmutable) {
-    StandardPool pool{ "tests" };
     auto data_memory = MemoryFactory::get_data_memory();
     ASSERT_TRUE(data_memory->begin());
 
+    StandardPool pool{ "tests" };
     Phylum phylum{ data_memory };
     ASSERT_TRUE(phylum.format());
-    PhylumDataFile file{ phylum, "d/00000000", pool };
-    ASSERT_EQ(file.create(pool), 0);
-    ASSERT_EQ(file.open(pool), 0);
+    PhylumDataFile file{ phylum, pool };
+    ASSERT_EQ(file.create("d/00000000", pool), 0);
+    ASSERT_EQ(file.open("d/00000000", pool), 0);
 
     RecordFaker fake;
     fake.log_message(0);
@@ -134,15 +134,15 @@ TEST_F(PhylumSuite, Basic_DataFile_AppendImmutable) {
 }
 
 TEST_F(PhylumSuite, Basic_DataFile_AppendImmutable_SeekRecordType) {
-    StandardPool pool{ "tests" };
     auto data_memory = MemoryFactory::get_data_memory();
     ASSERT_TRUE(data_memory->begin());
 
+    StandardPool pool{ "tests" };
     Phylum phylum{ data_memory };
     ASSERT_TRUE(phylum.format());
-    PhylumDataFile file{ phylum, "d/00000000", pool };
-    ASSERT_EQ(file.create(pool), 0);
-    ASSERT_EQ(file.open(pool), 0);
+    PhylumDataFile file{ phylum, pool };
+    ASSERT_EQ(file.create("d/00000000", pool), 0);
+    ASSERT_EQ(file.open("d/00000000", pool), 0);
 
     RecordFaker fake;
     fake.log_message(0);
@@ -165,15 +165,15 @@ TEST_F(PhylumSuite, Basic_DataFile_AppendImmutable_SeekRecordType) {
 }
 
 TEST_F(PhylumSuite, Basic_DataFile_Reading_SeekBeginningAndEnd) {
-    StandardPool pool{ "tests" };
     auto data_memory = MemoryFactory::get_data_memory();
     ASSERT_TRUE(data_memory->begin());
 
+    StandardPool pool{ "tests" };
     Phylum phylum{ data_memory };
     ASSERT_TRUE(phylum.format());
-    PhylumDataFile file{ phylum, "d/00000000", pool };
-    ASSERT_EQ(file.create(pool), 0);
-    ASSERT_EQ(file.open(pool), 0);
+    PhylumDataFile file{ phylum, pool };
+    ASSERT_EQ(file.create("d/00000000", pool), 0);
+    ASSERT_EQ(file.open("d/00000000", pool), 0);
 
     auto total_written = 0u;
 
@@ -189,7 +189,7 @@ TEST_F(PhylumSuite, Basic_DataFile_Reading_SeekBeginningAndEnd) {
         total_written += wrote;
     }
 
-    ASSERT_EQ(file.open(pool), 0);
+    ASSERT_EQ(file.open("d/00000000", pool), 0);
 
     ASSERT_EQ(file.seek_position(0, pool), 0);
 
@@ -199,15 +199,15 @@ TEST_F(PhylumSuite, Basic_DataFile_Reading_SeekBeginningAndEnd) {
 }
 
 TEST_F(PhylumSuite, Basic_DataFile_Reading_SeekRecords) {
-    StandardPool pool{ "tests" };
     auto data_memory = MemoryFactory::get_data_memory();
     ASSERT_TRUE(data_memory->begin());
 
+    StandardPool pool{ "tests" };
     Phylum phylum{ data_memory };
     ASSERT_TRUE(phylum.format());
-    PhylumDataFile file{ phylum, "d/00000000", pool };
-    ASSERT_EQ(file.create(pool), 0);
-    ASSERT_EQ(file.open(pool), 0);
+    PhylumDataFile file{ phylum, pool };
+    ASSERT_EQ(file.create("d/00000000", pool), 0);
+    ASSERT_EQ(file.open("d/00000000", pool), 0);
 
     auto total_written = 0u;
 
@@ -229,8 +229,8 @@ TEST_F(PhylumSuite, Basic_DataFile_Reading_SeekRecords) {
 
     for (auto i = 0; i < 100; ++i) {
         StandardPool loop{ "loop" };
-        PhylumDataFile file{ phylum, "d/00000000", loop };
-        ASSERT_EQ(file.open(loop), 0);
+        PhylumDataFile file{ phylum, loop };
+        ASSERT_EQ(file.open("d/00000000", loop), 0);
         ASSERT_GE(file.seek_record(i, loop), 0);
 
         RecordFaker fake;
@@ -245,4 +245,21 @@ TEST_F(PhylumSuite, Basic_DataFile_Reading_SeekRecords) {
     ASSERT_EQ(total_read, total_written);
 
     ASSERT_TRUE(phylum.sync());
+}
+
+TEST_F(PhylumSuite, Basic_StartStop) {
+    ASSERT_TRUE(MemoryFactory::get_data_memory()->begin());
+
+    StandardPool pool{ "pool" };
+
+    Storage storage{ MemoryFactory::get_data_memory(), pool, false };
+
+    ASSERT_TRUE(storage.clear());
+
+    ASSERT_TRUE(storage.begin());
+
+    auto ops = storage.data_ops();
+
+    DataRecord record;
+    ASSERT_FALSE(ops->read_fixed_record(record, pool));
 }

@@ -92,7 +92,7 @@ SeekSettings SeekSettings::end_of(uint8_t file) {
 
 Storage::Storage(DataMemory *memory, Pool &pool, bool read_only)
     : data_memory_(memory), pool_(&pool), memory_(memory, pool), statistics_data_memory_(data_memory_), bad_blocks_(memory, pool),
-      phylum_{ memory }, read_only_(read_only) {
+      phylum_{ &statistics_data_memory_ }, read_only_(read_only) {
     FK_ASSERT(memory != nullptr);
     files_ = pool.malloc<FileHeader>(NumberOfFiles);
 }
@@ -104,30 +104,67 @@ Storage::~Storage() {
 }
 
 bool Storage::begin() {
-    if (!begin_internal()) {
-        return false;
+    if (phylum_.mount()) {
+        data_ops_ = new (pool_) phylum_ops::DataOps(*this);
+        meta_ops_ = new (pool_) phylum_ops::MetaOps(*this);
+        loginfo("storage-begin: phylum");
+        return true;
     }
 
-    data_ops_ = new (pool_) darwin::DataOps(*this);
-    meta_ops_ = new (pool_) darwin::MetaOps(*this);
-    return true;
-
-    /*
-    DataMemory *translated = new (pool_) TranslatingMemory(&statistics_data_memory_, 512);
-    if (dhara_enabled_) {
-        FK_ASSERT(dhara_.begin(translated, false, *pool_));
-        translated = dhara_.map();
+    if (begin_internal()) {
+        data_ops_ = new (pool_) darwin::DataOps(*this);
+        meta_ops_ = new (pool_) darwin::MetaOps(*this);
+        loginfo("storage-begin: darwin");
+        return true;
     }
-    */
+
+    loginfo("storage-begin: nothing");
+    return false;
 }
 
 bool Storage::clear() {
+    loginfo("storage: clearing");
+
+#if !defined(__SAMD51__)
     if (!clear_internal()) {
         return false;
     }
 
     data_ops_ = new (pool_) darwin::DataOps(*this);
     meta_ops_ = new (pool_) darwin::MetaOps(*this);
+
+    return true;
+#endif
+
+    for (auto block = 0u; block < data_memory_->geometry().nblocks; ++block) {
+        auto block_size = data_memory_->geometry().block_size;
+        auto address = block * block_size;
+        if (data_memory_->erase(address, block_size) < 0) {
+            logerror("erasing block=%" PRIu32, block);
+        }
+    }
+
+    if (!phylum_.format()) {
+        logerror("format");
+        return false;
+    }
+
+    auto data_ops = new (pool_) phylum_ops::DataOps(*this);
+
+    if (!data_ops->touch(*pool_)) {
+        logerror("touch");
+        return false;
+    }
+
+    if (!phylum_.sync()) {
+        logerror("sync");
+        return false;
+    }
+
+    loginfo("storage: cleared");
+
+    data_ops_ = data_ops;
+    meta_ops_ = new (pool_) phylum_ops::MetaOps(*this);
 
     return true;
 }

@@ -206,7 +206,7 @@ int32_t SpiFlash::read(uint32_t address, uint8_t *data, size_t length) {
 
     FK_ASSERT_LE((address % page_size) + length, page_size);
 
-    logverbose("[0x%08" PRIx32 "] read: length=%d (end = [0x%08" PRIx32 "])", address, length, address + length);
+    logdebug("[0x%08" PRIx32 "] read: length=%d (end = [0x%08" PRIx32 "])", address, length, address + length);
 
     uint8_t read_cell_command[] = { CMD_READ_CELL_ARRAY, 0x00, 0x00, 0x00 }; // 7dummy/17 (Row)
     uint8_t read_buffer_command[] = { CMD_READ_BUFFER, 0x00, 0x00, 0x00 };   // 4dummy/12/8dummy // (Col)

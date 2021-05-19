@@ -65,6 +65,10 @@ public:
 
     int32_t used();
 
+    Phylum &phylum() {
+        return phylum_;
+    }
+
 public:
     bool begin();
     bool clear();

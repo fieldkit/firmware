@@ -20,7 +20,7 @@ public:
     tl::expected<uint32_t, Error> write_modules(GlobalState *gs, fkb_header_t const *fkb_header,
                                                 ConstructedModulesCollection &modules,
                                                 ModuleReadingsCollection &readings, Pool &pool) override;
-
+    tl::expected<uint32_t, Error> write_kind(GlobalState *gs, RecordType record_type, MetaRecord &record, Pool &pool);
     tl::expected<FileAttributes, Error> attributes() override;
 
     bool read_record(SignedRecordKind kind, MetaRecord &record, Pool &pool) override;
@@ -38,12 +38,14 @@ public:
     tl::expected<uint32_t, Error> write_readings(GlobalState *gs, fk_data_DataRecord *record, Pool &pool) override;
     tl::expected<FileAttributes, Error> attributes() override;
     bool read_fixed_record(DataRecord &record, Pool &pool) override;
+    bool touch(Pool &pool);
 };
 
 class FileReader : public fk::FileReader {
 private:
     Storage &storage_;
     FileNumber file_number_;
+    PhylumDataFile pdf_;
     Pool &pool_;
 
 public:
@@ -59,6 +61,9 @@ public:
     int32_t read(uint8_t *record, size_t size) override;
     int32_t read(void *record, pb_msgdesc_t const *fields) override;
     int32_t get_file_size(size_t &file_size) override;
+
+private:
+    bool open_if_necessary(Pool &pool);
 
 };
 

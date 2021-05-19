@@ -12,6 +12,9 @@ public:
     PhylumFlashMemory(DataMemory *target);
 
 public:
+    bool begin();
+
+public:
     size_t block_size() override;
     size_t number_blocks() override;
     size_t page_size() override;

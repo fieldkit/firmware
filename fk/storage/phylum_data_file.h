@@ -21,7 +21,7 @@ struct records_attribute_t {
 };
 
 #define PHYLUM_DRIVER_FILE_ATTR_RECORDS              (0x01)
-#define PHYLUM_DRIVER_FILE_ATTR_RECORD_GPS           (0x02)
+#define PHYLUM_DRIVER_FILE_ATTR_RECORD_LOCATION      (0x02)
 #define PHYLUM_DRIVER_FILE_ATTR_RECORD_UPLOADED      (0x03)
 #define PHYLUM_DRIVER_FILE_ATTR_CONFIG_MODULES       (0x04)
 #define PHYLUM_DRIVER_FILE_ATTR_CONFIG_SCHEDULE      (0x05)
@@ -39,6 +39,7 @@ enum class RecordType : uint8_t {
     Schedule,
     State,
     Data,
+    Location,
 };
 
 using record_number_t = phylum::record_number_t;
@@ -56,11 +57,11 @@ private:
     phylum::file_reader *reader_{ nullptr };
 
 public:
-    PhylumDataFile(Phylum &phylum, const char *name, Pool &pool);
+    PhylumDataFile(Phylum &phylum, Pool &pool);
 
 public:
-    int32_t open(Pool &pool);
-    int32_t create(Pool &pool);
+    int32_t open(const char *name, Pool &pool);
+    int32_t create(const char *name, Pool &pool);
     int32_t append_always(RecordType type, pb_msgdesc_t const *fields, void const *record, Pool &pool);
     int32_t append_immutable(RecordType type, pb_msgdesc_t const *fields, void const *record, Pool &pool);
 
@@ -72,6 +73,20 @@ public:
     int32_t read(pb_msgdesc_t const *fields, void *record, Pool &pool);
     int32_t close();
 
+public:
+    struct DataFileAttributes {
+        record_number_t first_record;
+        record_number_t nrecords;
+        record_number_t record_number;
+        file_size_t size;
+    };
+
+    DataFileAttributes attributes();
+
+    bool is_open() const {
+        return name_ != nullptr;
+    }
+
 private:
     int32_t initialize_config(Pool &pool);
 
@@ -81,4 +96,4 @@ private:
 
 };
 
-};
+}

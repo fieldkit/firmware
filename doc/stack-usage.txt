@@ -2992,7 +2992,8 @@ phyctx.h:20:13:virtual phylum::phyctx::~phyctx() 8
 phyctx.h:20:13:virtual phylum::phyctx::~phyctx() 8
 phylum.cpp:13:1:virtual fk::standard_page_working_buffers::~standard_page_working_buffers() 8
 phylum.cpp:80:6:bool fk::Phylum::sync() 8
-phylum_data_file.cpp:280:9:int32_t fk::PhylumDataFile::close() 8
+phylum_data_file.cpp:108:13:virtual int32_t fk::PhylumReader::read(uint8_t*, size_t) 8
+phylum_data_file.cpp:312:9:int32_t fk::PhylumDataFile::close() 8
 phylum_data_file.cpp:93:13:virtual int32_t fk::PhylumWriter::write(const uint8_t*, size_t) 8
 phylum_data_file.cpp:9:16:uint8_t fk::get_attribute_for_record_type(fk::RecordType) 8
 phylum_flash_memory.cpp:20:9:virtual int32_t fk::PhylumFlashMemory::erase(uint32_t, uint32_t) 8
@@ -4271,7 +4272,7 @@ pb_encode.c:702:18:pb_encode_string 16
 phylum.cpp:13:1:fk::standard_page_working_buffers::~standard_page_working_buffers() 16
 phylum.cpp:38:6:bool fk::Phylum::begin(bool) 16
 phylum_data_file.cpp:22:1:fk::PhylumDataFile::PhylumDataFile(fk::Phylum&, const char*, fk::Pool&) 16
-phylum_data_file.cpp:269:9:int32_t fk::PhylumDataFile::read(uint8_t*, size_t, fk::Pool&) 16
+phylum_data_file.cpp:284:9:int32_t fk::PhylumDataFile::read(uint8_t*, size_t, fk::Pool&) 16
 phylum_data_file.cpp:58:9:int32_t fk::PhylumDataFile::open(fk::Pool&) 16
 phylum_data_file.cpp:73:9:int32_t fk::PhylumDataFile::create(fk::Pool&) 16
 platform.cpp:204:6:void osi_assert(const char*, const char*, int) 16
@@ -4991,7 +4992,7 @@ pb_encode.c:533:18:pb_encode_ex 24
 pb_encode.c:604:18:pb_encode_varint 24
 pb_encode.c:81:18:pb_write 24
 phylum.cpp:22:6:bool fk::standard_page_working_buffers::lend_pages() 24
-phylum_data_file.cpp:228:9:int32_t fk::PhylumDataFile::seek_record_type(fk::RecordType, fk::Pool&) 24
+phylum_data_file.cpp:243:9:int32_t fk::PhylumDataFile::seek_record_type(fk::RecordType, fk::Pool&) 24
 phylum_data_file.cpp:25:9:int32_t fk::PhylumDataFile::initialize_config(fk::Pool&) 24
 phylum_flash_memory.cpp:24:9:virtual int32_t fk::PhylumFlashMemory::write(uint32_t, const uint8_t*, size_t) 24
 phylum_flash_memory.cpp:28:9:virtual int32_t fk::PhylumFlashMemory::read(uint32_t, uint8_t*, size_t) 24
@@ -6438,6 +6439,7 @@ pb_encode.c:241:25:pb_check_proto3_default_value 48
 pb_encode.c:645:18:pb_encode_fixed64 48
 pb_encode.c:710:18:pb_encode_submessage 48
 phylum.cpp:35:1:fk::Phylum::Phylum(fk::DataMemory*) 48
+phylum_data_file.cpp:295:9:int32_t fk::PhylumDataFile::read(const pb_msgdesc_t*, void*, fk::Pool&) 48
 pool.cpp:171:17:fk::EncodedMessage* fk::Pool::encode(const pb_msgdesc_t*, const void*, bool) 48
 pool.cpp:53:6:virtual void fk::Pool::log_info(int32_t) 48
 pool_pointer.h:94:16:) [with Wrapped = fk::ConfigureModuleWorker; Wrapee = fk::TaskWorker; ConcreteWrapped = fk::PoolWorker<fk::ConfigureModuleWorker, fk::ConfigureModuleWorker, fk::ModulePosition&, ModuleHeader&>; ConcreteWrapee = fk::PoolWorker<fk::ConfigureModuleWorker, fk::ConfigureModuleWorker, fk::ModulePosition&, ModuleHeader&>; Args = {fk::ModulePosition&, ModuleHeader&}] 48
@@ -6866,8 +6868,8 @@ map.c:348:5:dhara_map_write 160
 map.c:371:5:dhara_map_copy_page 160
 metal_sd_card.cpp:288:6:virtual bool fk::MetalSdCard::ls(const char*, size_t, fk_app_DirectoryEntry**, size_t&, size_t&, fk::Pool&) 160
 module_handler.cpp:13:6:virtual bool fk::ModuleHandler::handle(fk::HttpServerConnection*, fk::Pool&) 160
-phylum_data_file.cpp:245:9:int32_t fk::PhylumDataFile::seek_record(fk::record_number_t, fk::Pool&) 160
-phylum_data_file.cpp:257:9:int32_t fk::PhylumDataFile::seek_position(fk::file_size_t, fk::Pool&) 160
+phylum_data_file.cpp:260:9:int32_t fk::PhylumDataFile::seek_record(fk::record_number_t, fk::Pool&) 160
+phylum_data_file.cpp:272:9:int32_t fk::PhylumDataFile::seek_position(fk::file_size_t, fk::Pool&) 160
 printf.cpp:394:12:int _vsnprintf(out_fct_type, char*, size_t, const char*, va_list) 160
 printf.cpp:394:12:int _vsnprintf(out_fct_type, char*, size_t, const char*, va_list) 160
 records.cpp:102:20:bool fk::pb_data_module_info_item_decode(pb_istream_t*, fk::pb_array_t*) 160
@@ -6947,7 +6949,7 @@ directory_tree.cpp:225:9:virtual int32_t phylum::directory_tree::read(phylum::fi
 file_ops_darwin.cpp:101:37:virtual tl::expected<fk::FileAttributes, fk::Error> fk::darwin::DataOps::attributes() 328
 file_ops_darwin.cpp:49:37:virtual tl::expected<fk::FileAttributes, fk::Error> fk::darwin::MetaOps::attributes() 328
 file_ops_darwin.cpp:110:6:virtual bool fk::darwin::DataOps::read_fixed_record(fk::DataRecord&, fk::Pool&) 336
-phylum_data_file.cpp:191:9:int32_t fk::PhylumDataFile::append_immutable(fk::RecordType, const pb_msgdesc_t*, const void*, fk::Pool&) 336
+phylum_data_file.cpp:206:9:int32_t fk::PhylumDataFile::append_immutable(fk::RecordType, const pb_msgdesc_t*, const void*, fk::Pool&) 336
 tree_attribute_storage.cpp:5:9:int32_t phylum::tree_attribute_storage::read(phylum::tree_ptr_t&, phylum::file_id_t, phylum::open_file_config) 336
 MDNS.cpp:526:13:MDNSError_t MDNS::_processMDNSQuery() 344
 download_firmware_worker.cpp:27:6:virtual void fk::DownloadFirmwareWorker::run(fk::Pool&) 344
@@ -6976,7 +6978,7 @@ upload_data_worker.cpp:163:6:virtual void fk::UploadDataWorker::run(fk::Pool&) 6
 backup_worker.cpp:23:6:virtual void fk::BackupWorker::run(fk::Pool&) 672
 storage.cpp:725:10:uint32_t fk::Storage::fsck(fk::ProgressCallbacks*) 696
 download_handler.cpp:49:6:virtual void fk::DownloadWorker::run(fk::Pool&) 720
-phylum_data_file.cpp:116:9:int32_t fk::PhylumDataFile::append_always(fk::RecordType, const pb_msgdesc_t*, const void*, fk::Pool&) 728
+phylum_data_file.cpp:131:9:int32_t fk::PhylumDataFile::append_always(fk::RecordType, const pb_msgdesc_t*, const void*, fk::Pool&) 728
 readings_worker.cpp:151:36:tl::expected<fk::TakenReadings, fk::Error> fk::ReadingsWorker::take_readings(fk::Pool&) 744
 export_data_worker.cpp:22:6:virtual void fk::ExportDataWorker::run(fk::Pool&) 752
 display.cpp:194:6:void fk::task_handler_display(void*) 768

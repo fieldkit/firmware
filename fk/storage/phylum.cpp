@@ -29,16 +29,19 @@ bool standard_page_working_buffers::lend_pages() {
             pages_[n] = page;
         }
     }
+
     return true;
 }
 
-Phylum::Phylum(DataMemory *data_memory) : sector_size_(data_memory->geometry().page_size), memory_(data_memory) {
+Phylum::Phylum(DataMemory *data_memory) : sector_size_(data_memory->geometry().real_page_size), memory_(data_memory) {
 }
 
 bool Phylum::begin(bool force_create) {
     if (!buffers_.lend_pages()) {
         return false;
     }
+
+    buffers_.clear();
 
     if (sectors_.begin(force_create) != 0) {
         return false;
