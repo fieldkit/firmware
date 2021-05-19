@@ -286,6 +286,8 @@ class ElfAnalyzer:
             self.by_name(".vectors"),
             self.fkbheader(),
             self.code(),
+            self.by_name(".init"),
+            self.by_name(".fini"),
             self.by_name(".ARM.exidx"),
             self.by_name(".data.rtt"),
             self.data(),
@@ -487,8 +489,8 @@ class FkbWriter:
         )
 
 
-def make_binary_from_elf(elf_path: str, bin_path: str, expected_size: int):
-    command = ["arm-none-eabi-objcopy", "-O", "binary", elf_path, bin_path]
+def make_binary_from_elf(objcopy_path: str, elf_path: str, bin_path: str, expected_size: int):
+    command = [objcopy_path, "-O", "binary", elf_path, bin_path]
     logging.info("Exporting '%s' to '%s'" % (elf_path, bin_path))
     logging.info(" ".join(command))
     subprocess.run(command, check=True)
@@ -514,6 +516,7 @@ def main():
     configure_logging()
 
     parser = argparse.ArgumentParser(description="Firmware Preparation Tool")
+    parser.add_argument("--objcopy", dest="objcopy_path", default=None, help="Path to objcopy tool")
     parser.add_argument(
         "--no-verbose",
         dest="no_verbose",
@@ -572,12 +575,10 @@ def main():
                 if args.dynamic:
                     ea.write_bin(args.bin_path)
                 else:
-                    make_binary_from_elf(
-                        args.fkb_path, args.bin_path, ea.get_binary_size()
-                    )
+                    make_binary_from_elf(args.objcopy_path, args.fkb_path, args.bin_path, ea.get_binary_size())
         else:
             if args.bin_path:
-                make_binary_from_elf(args.elf_path, args.bin_path)
+                make_binary_from_elf(args.objcopy_path, args.elf_path, args.bin_path)
 
 
 if __name__ == "__main__":
