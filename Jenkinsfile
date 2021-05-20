@@ -36,13 +36,11 @@ def uploadFirmware(Map parameters = [:]) {
 		command += " --version " + parameters.version
 	}
 
-	sh "which fktool"
-
-	def dev = "fktool  --host api.fkdev.org " + command
+	def dev = "third-party/fktool  --host api.fkdev.org " + command
 	echo dev
 	sh dev
 
-	def prod = "fktool  --host api.fieldkit.org " + command
+	def prod = "third-party/fktool  --host api.fieldkit.org " + command
 	echo prod
 	sh prod
 }
