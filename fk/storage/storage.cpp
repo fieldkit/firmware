@@ -107,6 +107,7 @@ bool Storage::begin() {
     if (phylum_.mount()) {
         data_ops_ = new (pool_) phylum_ops::DataOps(*this);
         meta_ops_ = new (pool_) phylum_ops::MetaOps(*this);
+        using_phylum_ = true;
         loginfo("storage-begin: phylum");
         return true;
     }
@@ -165,6 +166,7 @@ bool Storage::clear() {
 
     data_ops_ = data_ops;
     meta_ops_ = new (pool_) phylum_ops::MetaOps(*this);
+    using_phylum_ = true;
 
     return true;
 }
@@ -844,8 +846,15 @@ void Storage::restore(SavedState const &state) {
 }
 
 bool Storage::flush() {
-    if (memory_.flush() <= 0) {
-        return false;
+    if (using_phylum_) {
+        if (!phylum_.sync()) {
+            return false;
+        }
+    }
+    else {
+        if (memory_.flush() <= 0) {
+            return false;
+        }
     }
 
     statistics_data_memory_.log_statistics("flash usage: ");

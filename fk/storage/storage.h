@@ -49,6 +49,7 @@ private:
     bool read_only_;
     MetaOps *meta_ops_{ nullptr };
     DataOps *data_ops_{ nullptr };
+    bool using_phylum_{ false };
 
 public:
     Storage(DataMemory *memory, Pool &pool, bool read_only = true);

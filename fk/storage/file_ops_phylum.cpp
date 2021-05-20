@@ -48,10 +48,6 @@ tl::expected<uint32_t, Error> MetaOps::write_kind(GlobalState *gs, RecordType re
         return tl::unexpected<Error>(Error::IO);
     }
 
-    if (!storage_.phylum().sync()) {
-        return tl::unexpected<Error>(Error::IO);
-    }
-
     return record_number;
 }
 
@@ -99,10 +95,6 @@ tl::expected<uint32_t, Error> DataOps::write_readings(GlobalState *gs, fk_data_D
     auto bytes_wrote = file.append_always(RecordType::Data, fk_data_DataRecord_fields, record, pool);
     if (bytes_wrote == 0) {
         logerror("error saving readings");
-        return tl::unexpected<Error>(Error::IO);
-    }
-
-    if (!storage_.phylum().sync()) {
         return tl::unexpected<Error>(Error::IO);
     }
 

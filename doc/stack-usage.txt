@@ -2400,8 +2400,8 @@ file_appender.cpp:13:8:size_t phylum::file_appender::visited_sectors() 8
 file_handler.h:18:7:virtual fk::DownloadFileWorker::~DownloadFileWorker() 8
 file_ops_darwin.cpp:128:1:fk::darwin::FileReader::FileReader(fk::Storage&, fk::FileNumber, fk::Pool&) 8
 file_ops_darwin.cpp:172:9:virtual int32_t fk::darwin::FileReader::get_file_size(size_t&) 8
-file_ops_phylum.cpp:173:6:virtual bool fk::phylum_ops::FileReader::decode_signed(void*, const pb_msgdesc_t*, fk::Pool&) 8
-file_ops_phylum.cpp:229:6:bool fk::phylum_ops::FileReader::open_if_necessary(fk::Pool&) 8
+file_ops_phylum.cpp:175:6:virtual bool fk::phylum_ops::FileReader::decode_signed(void*, const pb_msgdesc_t*, fk::Pool&) 8
+file_ops_phylum.cpp:231:6:bool fk::phylum_ops::FileReader::open_if_necessary(fk::Pool&) 8
 file_reader.cpp:10:1:phylum::file_reader::~file_reader() 8
 file_reader.cpp:10:1:virtual phylum::file_reader::~file_reader() 8
 file_reader.cpp:22:9:virtual int32_t phylum::file_reader::read(size_t) 8
@@ -3949,10 +3949,10 @@ file_appender.cpp:20:19:phylum::data_chain_cursor phylum::file_appender::cursor(
 file_appender.cpp:93:9:int32_t phylum::file_appender::seek() 16
 file_handler.cpp:106:6:virtual bool fk::DownloadFileHandler::handle(fk::HttpServerConnection*, fk::Pool&) 16
 file_handler.cpp:112:1:cpp) 16
-file_ops_phylum.cpp:150:1:fk::phylum_ops::FileReader::FileReader(fk::Storage&, fk::FileNumber, fk::Pool&) 16
-file_ops_phylum.cpp:178:6:virtual bool fk::phylum_ops::FileReader::seek_record(fk::RecordNumber, fk::Pool&) 16
-file_ops_phylum.cpp:193:9:virtual int32_t fk::phylum_ops::FileReader::read(uint8_t*, size_t) 16
-file_ops_phylum.cpp:205:9:virtual int32_t fk::phylum_ops::FileReader::read(void*, const pb_msgdesc_t*) 16
+file_ops_phylum.cpp:152:1:fk::phylum_ops::FileReader::FileReader(fk::Storage&, fk::FileNumber, fk::Pool&) 16
+file_ops_phylum.cpp:180:6:virtual bool fk::phylum_ops::FileReader::seek_record(fk::RecordNumber, fk::Pool&) 16
+file_ops_phylum.cpp:195:9:virtual int32_t fk::phylum_ops::FileReader::read(uint8_t*, size_t) 16
+file_ops_phylum.cpp:207:9:virtual int32_t fk::phylum_ops::FileReader::read(void*, const pb_msgdesc_t*) 16
 file_reader.cpp:76:10:uint32_t phylum::file_reader::u32(uint8_t) 16
 firmware_manager.cpp:13:6:bool fk::FirmwareManager::backup_bootloader(fk::Pool&) 16
 flash.cpp:55:6:bool fk::Flash::initialize() 16
@@ -4417,7 +4417,7 @@ spi_flash.cpp:675:6:bool fk::SpiFlash::read_command(uint8_t, uint8_t*, uint32_t)
 spi_flash.cpp:679:6:bool fk::SpiFlash::write_command(uint8_t, uint8_t*, uint32_t) 16
 spi_flash.cpp:88:1:fk::SpiFlash::SpiFlash(uint8_t) 16
 spi_flash.cpp:91:15:fk::FlashGeometry fk::SpiFlash::geometry() const 16
-startup_worker.cpp:584:1:cpp) 16
+startup_worker.cpp:585:1:cpp) 16
 state.cpp:144:6:void fk::GlobalState::released(uint32_t) 16
 state.cpp:167:11:fk::GpsState* fk::GpsState::clone(fk::Pool&) const 16
 state.h:131:5:fk::WifiNetworkInfo::WifiNetworkInfo() 16
@@ -5054,8 +5054,8 @@ spi_flash.c:747:8:spi_flash_get_size 24
 spi_flash.c:99:14:spi_flash_read_status_reg 24
 spi_flash.cpp:243:9:int32_t fk::SpiFlash::write(uint32_t, const uint8_t*, size_t) 24
 spi_flash.cpp:597:6:void fk::SpiFlash::read_ecc_information() 24
-startup_worker.cpp:415:6:bool fk::StartupWorker::save_captured_logs(bool) 24
-startup_worker.cpp:425:6:bool fk::StartupWorker::check_for_self_test_startup(fk::Pool&) 24
+startup_worker.cpp:416:6:bool fk::StartupWorker::save_captured_logs(bool) 24
+startup_worker.cpp:426:6:bool fk::StartupWorker::check_for_self_test_startup(fk::Pool&) 24
 state.cpp:47:11:fk::Schedule& fk::Schedule::operator=(const fk_app_Schedule&) 24
 state.cpp:91:1:fk::GlobalState::GlobalState() 24
 statistics_memory.cpp:28:9:virtual int32_t fk::StatisticsMemory::read(uint32_t, uint8_t*, size_t, fk::MemoryReadFlags) 24
@@ -5305,8 +5305,8 @@ dns_message.cpp:275:16:int32_t fk::write_name(fk::Writer*, const char*) 32
 eeprom.cpp:16:13:bool fk::read_page(fk::TwoWireWrapper*, uint16_t, uint8_t*, size_t) 32
 file.cpp:219:9:int32_t fk::File::try_write(const uint8_t*, size_t) 32
 file.cpp:269:6:bool fk::File::seek(fk::RecordReference) 32
-file_ops_phylum.cpp:153:43:virtual tl::expected<fk::FileReader::SizeInfo, fk::Error> fk::phylum_ops::FileReader::get_size(fk::BlockNumber, fk::BlockNumber, fk::Pool&) 32
-file_ops_phylum.cpp:217:9:virtual int32_t fk::phylum_ops::FileReader::get_file_size(size_t&) 32
+file_ops_phylum.cpp:155:43:virtual tl::expected<fk::FileReader::SizeInfo, fk::Error> fk::phylum_ops::FileReader::get_size(fk::BlockNumber, fk::BlockNumber, fk::Pool&) 32
+file_ops_phylum.cpp:219:9:virtual int32_t fk::phylum_ops::FileReader::get_file_size(size_t&) 32
 flash.cpp:31:9:virtual int32_t fk::FlashWriter::write(const uint8_t*, size_t) 32
 format_sd_card.cpp:15:6:bool fk::FormatSdCard::begin() 32
 hal_aes_sync.c:147:20:aes_sync_cfb_crypt_last_unaligned_data 32
@@ -5431,7 +5431,7 @@ spi_flash.cpp:583:6:bool fk::SpiFlash::set_feature(uint8_t, uint8_t) 32
 spi_flash.cpp:683:6:bool fk::SpiFlash::transfer_command(uint8_t, const uint8_t*, uint8_t*, uint32_t) 32
 spi_flash.cpp:687:6:bool fk::SpiFlash::transfer(uint8_t*, uint32_t, const uint8_t*, uint8_t*, uint32_t) 32
 startup_worker.cpp:322:6:bool fk::StartupWorker::create_new_state(fk::Storage&, fk::GlobalState*, fk::Pool&) 32
-startup_worker.cpp:533:6:bool fk::StartupWorker::check_for_interactive_startup(fk::Pool&) 32
+startup_worker.cpp:534:6:bool fk::StartupWorker::check_for_interactive_startup(fk::Pool&) 32
 state.cpp:115:6:void fk::GlobalState::update_physical_modules(const ConstructedModulesCollection&) 32
 state.cpp:71:36:fk::GlobalStateRef<const fk::GlobalState*> fk::get_global_state_ro() 32
 state.cpp:77:30:fk::GlobalStateRef<fk::GlobalState*> fk::get_global_state_rw() 32
@@ -6274,7 +6274,7 @@ spi_flash.cpp:204:9:int32_t fk::SpiFlash::read(uint32_t, uint8_t*, size_t) 40
 spi_flash.cpp:360:9:int32_t fk::SpiFlash::copy_page(uint32_t, uint32_t) 40
 spi_flash.cpp:604:6:bool fk::SpiFlash::is_ready(bool) 40
 startup_worker.cpp:338:6:bool fk::StartupWorker::load_from_files(fk::Storage&, fk::GlobalState*, fk::Pool&) 40
-startup_worker.cpp:560:13:void fk::copy_cron_spec_from_pb(const char*, fk::Schedule&, const fk_data_JobSchedule&, fk::Pool&) 40
+startup_worker.cpp:561:13:void fk::copy_cron_spec_from_pb(const char*, fk::Schedule&, const fk_data_JobSchedule&, fk::Pool&) 40
 state.cpp:39:6:void fk::Schedule::simple(uint32_t) 40
 state.cpp:83:36:fk::GlobalStateRef<const fk::GlobalState*> fk::try_get_global_state_ro() 40
 state_manager.h:21:10:bool fk::GlobalStateManager::apply(T) [with T = fk::update_modules(fk::Pool&)::__lambda1] 40
@@ -6466,7 +6466,7 @@ spi_flash.cpp:269:9:int32_t fk::SpiFlash::write_internal(uint32_t, const uint8_t
 spi_flash.cpp:537:6:void fk::SpiFlash::row_address_to_bytes(uint32_t, uint8_t*) 48
 spi_flash.cpp:545:6:void fk::SpiFlash::column_address_to_bytes(uint32_t, uint8_t*) 48
 startup_worker.cpp:377:6:bool fk::StartupWorker::load_previous_location(fk::GlobalState*, fk::DataOps*, fk::Pool&) 48
-startup_worker.cpp:397:6:bool fk::StartupWorker::check_for_lora(fk::Pool&) 48
+startup_worker.cpp:398:6:bool fk::StartupWorker::check_for_lora(fk::Pool&) 48
 statistics_memory.cpp:43:9:virtual int32_t fk::StatisticsMemory::erase(uint32_t, size_t) 48
 tiny_printf.c:147:15:_ntoa_format 48
 tree_sector.h:673:121:phylum::tree_sector<KEY, VALUE, Size>::add(KEY, VALUE*, phylum::tree_value_ptr_t*) [with KEY = long unsigned int; VALUE = long unsigned int; unsigned int Size = 405u; int32_t = long int]::__lambda6::__lambda7 48
@@ -6684,7 +6684,7 @@ sequential_memory.h:41:13:int32_t fk::SequentialWrapper<T>::read(uint32_t, uint8
 sequential_memory.h:41:13:int32_t fk::SequentialWrapper<T>::read(uint32_t, uint8_t*, size_t) [with T = fk::BufferedPageMemory; int32_t = long int; uint32_t = long unsigned int; uint8_t = unsigned char; size_t = unsigned int] 72
 sequential_memory.h:70:13:int32_t fk::SequentialWrapper<T>::write(uint32_t, const uint8_t*, size_t) [with T = fk::BufferedPageMemory; int32_t = long int; uint32_t = long unsigned int; uint8_t = unsigned char; size_t = unsigned int] 72
 simple_ntp.cpp:80:6:bool fk::SimpleNTP::send() 72
-startup_worker.cpp:457:6:bool fk::StartupWorker::check_for_upgrading_startup(fk::Pool&) 72
+startup_worker.cpp:458:6:bool fk::StartupWorker::check_for_upgrading_startup(fk::Pool&) 72
 u8g2_display.cpp:374:6:virtual void fk::U8g2Display::self_check(const fk::SelfCheckScreen&) 72
 u8g2_font.c:387:6:u8g2_font_decode_len 72
 u8g2_input_value.c:44:9:u8g2_UserInterfaceInputValue 72
@@ -6721,7 +6721,7 @@ oem_atlas.cpp:102:6:bool fk::OemAtlas::find(uint8_t) 80
 oem_atlas.cpp:248:19:fk::CalibrationStatus fk::OemAtlas::calibrate(uint8_t, float) 80
 pb_decode.c:786:25:decode_field 80
 pb_decode.c:939:13:pb_message_set_to_defaults 80
-startup_worker.cpp:498:6:bool fk::StartupWorker::check_for_provision_startup(fk::Pool&) 80
+startup_worker.cpp:499:6:bool fk::StartupWorker::check_for_provision_startup(fk::Pool&) 80
 state.cpp:17:6:void fk::Schedule::recreate() 80
 tree_sector.h:316:13:int32_t phylum::tree_sector<KEY, VALUE, Size>::split_child(phylum::page_lock&, phylum::index_type, phylum::node_ptr_t, phylum::tree_sector<KEY, VALUE, Size>::default_node_type*, phylum::node_ptr_t, phylum::tree_sector<KEY, VALUE, Size>::default_node_type*) [with KEY = long unsigned int; VALUE = long unsigned int; unsigned int Size = 405u; int32_t = long int; phylum::index_type = short int; phylum::tree_sector<KEY, VALUE, Size>::default_node_type = phylum::tree_node_t<long unsigned int, long unsigned int, 405u>] 80
 tree_sector.h:316:13:int32_t phylum::tree_sector<KEY, VALUE, Size>::split_child(phylum::page_lock&, phylum::index_type, phylum::node_ptr_t, phylum::tree_sector<KEY, VALUE, Size>::default_node_type*, phylum::node_ptr_t, phylum::tree_sector<KEY, VALUE, Size>::default_node_type*) [with KEY = long unsigned int; VALUE = phylum::attribute_value_t<256u>; unsigned int Size = 15u; int32_t = long int; phylum::index_type = short int; phylum::tree_sector<KEY, VALUE, Size>::default_node_type = phylum::tree_node_t<long unsigned int, phylum::attribute_value_t<256u>, 15u>] 80
