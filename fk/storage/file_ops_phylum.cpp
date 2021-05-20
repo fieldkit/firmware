@@ -62,6 +62,19 @@ tl::expected<FileAttributes, Error> MetaOps::attributes(Pool &pool) {
     };
 }
 
+static RecordType get_record_type(SignedRecordKind kind) {
+    switch (kind) {
+    case SignedRecordKind::State: return RecordType::State;
+    case SignedRecordKind::Modules: return RecordType::Modules;
+    case SignedRecordKind::Schedule: return RecordType::Schedule;
+    default:
+        break;
+    }
+
+    FK_ASSERT(0);
+    return RecordType::Unknown;
+}
+
 bool MetaOps::read_record(SignedRecordKind kind, MetaRecord &record, Pool &pool) {
     PhylumDataFile file{ storage_.phylum(), pool };
     auto err = file.open("d/00000000", pool);
@@ -69,7 +82,24 @@ bool MetaOps::read_record(SignedRecordKind kind, MetaRecord &record, Pool &pool)
         return false;
     }
 
-    return false;
+    file_size_t position = UINT32_MAX;
+    err = file.seek_record_type(get_record_type(kind), position, pool);
+    if (err < 0) {
+        logerror("seeking record by type");
+        return false;
+    }
+
+    if (position == UINT32_MAX) {
+        return false;
+    }
+
+    auto bytes_read = file.read(fk_data_DataRecord_fields, &record.for_decoding(pool), pool);
+    if (bytes_read <= 0) {
+        logwarn("reading record by type");
+        return false;
+    }
+
+    return true;
 }
 
 DataOps::DataOps(Storage &storage) : storage_(storage) {
@@ -137,7 +167,7 @@ bool DataOps::read_fixed_record(DataRecord &record, Pool &pool) {
     file_size_t position = UINT32_MAX;
     err = file.seek_record_type(RecordType::Location, position, pool);
     if (err < 0) {
-        logerror("seeking gps/fixed record type");
+        logerror("seeking record by type");
         return false;
     }
 
