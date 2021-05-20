@@ -171,6 +171,10 @@ tl::expected<FileReader::SizeInfo, Error> FileReader::get_size(BlockNumber first
 
     auto attributes = pdf_.attributes();
 
+    if (pdf_.seek_position(0, pool) < 0) {
+        return tl::unexpected<Error>(Error::IO);
+    }
+
     return SizeInfo{
         .size = attributes.size,
         .last_block = attributes.record_number,

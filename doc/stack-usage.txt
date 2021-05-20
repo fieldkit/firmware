@@ -560,10 +560,9 @@ file_ops_darwin.cpp:160:6:virtual bool fk::darwin::FileReader::seek_record(fk::R
 file_ops_darwin.cpp:164:9:virtual int32_t fk::darwin::FileReader::read(uint8_t*, size_t) 0
 file_ops_darwin.cpp:168:9:virtual int32_t fk::darwin::FileReader::read(void*, const pb_msgdesc_t*) 0
 file_ops_darwin.cpp:72:1:fk::darwin::DataOps::DataOps(fk::Storage&) 0
-file_ops_phylum.cpp:110:37:virtual tl::expected<fk::FileAttributes, fk::Error> fk::phylum_ops::DataOps::attributes() 0
 file_ops_phylum.cpp:18:1:fk::phylum_ops::MetaOps::MetaOps(fk::Storage&) 0
-file_ops_phylum.cpp:54:37:virtual tl::expected<fk::FileAttributes, fk::Error> fk::phylum_ops::MetaOps::attributes() 0
-file_ops_phylum.cpp:71:1:fk::phylum_ops::DataOps::DataOps(fk::Storage&) 0
+file_ops_phylum.cpp:58:37:virtual tl::expected<fk::FileAttributes, fk::Error> fk::phylum_ops::MetaOps::attributes(fk::Pool&) 0
+file_ops_phylum.cpp:75:1:fk::phylum_ops::DataOps::DataOps(fk::Storage&) 0
 file_reader.cpp:13:13:phylum::file_size_t phylum::file_reader::position() const 0
 firmware_manager.cpp:10:1:fk::FirmwareManager::FirmwareManager() 0
 flash.cpp:118:8:fk::Flash* fk::get_flash() 0
@@ -1480,10 +1479,9 @@ startup_worker.h:10:7:fk::StartupWorker::~StartupWorker() 0
 startup_worker.h:14:21:virtual fk::TaskDisplayInfo fk::StartupWorker::display_info() const 0
 startup_worker.h:19:13:virtual uint8_t fk::StartupWorker::priority() const 0
 startup_worker.h:23:17:virtual const char* fk::StartupWorker::name() const 0
-state.cpp:104:6:void fk::GlobalState::update_data_stream(uint32_t, uint32_t) 0
-state.cpp:110:6:void fk::GlobalState::update_meta_stream(uint32_t, uint32_t) 0
-state.cpp:173:17:const fk::GpsState* fk::GlobalState::location(fk::Pool&) const 0
-state.cpp:177:1:cpp) 0
+state.cpp:111:6:void fk::GlobalState::update_meta_stream(uint32_t, uint32_t) 0
+state.cpp:174:17:const fk::GpsState* fk::GlobalState::location(fk::Pool&) const 0
+state.cpp:178:1:cpp) 0
 state_manager.cpp:96:6:bool fk::GlobalStateManager::rebuild() 0
 statistics_memory.cpp:53:19:fk::MemoryStatistics& fk::StatisticsMemory::statistics() 0
 storage.cpp:174:10:fk::DataOps* fk::Storage::data_ops() 0
@@ -2400,8 +2398,8 @@ file_appender.cpp:13:8:size_t phylum::file_appender::visited_sectors() 8
 file_handler.h:18:7:virtual fk::DownloadFileWorker::~DownloadFileWorker() 8
 file_ops_darwin.cpp:128:1:fk::darwin::FileReader::FileReader(fk::Storage&, fk::FileNumber, fk::Pool&) 8
 file_ops_darwin.cpp:172:9:virtual int32_t fk::darwin::FileReader::get_file_size(size_t&) 8
-file_ops_phylum.cpp:167:6:virtual bool fk::phylum_ops::FileReader::decode_signed(void*, const pb_msgdesc_t*, fk::Pool&) 8
-file_ops_phylum.cpp:223:6:bool fk::phylum_ops::FileReader::open_if_necessary(fk::Pool&) 8
+file_ops_phylum.cpp:180:6:virtual bool fk::phylum_ops::FileReader::decode_signed(void*, const pb_msgdesc_t*, fk::Pool&) 8
+file_ops_phylum.cpp:236:6:bool fk::phylum_ops::FileReader::open_if_necessary(fk::Pool&) 8
 file_reader.cpp:10:1:phylum::file_reader::~file_reader() 8
 file_reader.cpp:10:1:virtual phylum::file_reader::~file_reader() 8
 file_reader.cpp:22:9:virtual int32_t phylum::file_reader::read(size_t) 8
@@ -2982,11 +2980,10 @@ phyctx.h:20:13:virtual phylum::phyctx::~phyctx() 8
 phyctx.h:20:13:virtual phylum::phyctx::~phyctx() 8
 phylum.cpp:13:1:virtual fk::standard_page_working_buffers::~standard_page_working_buffers() 8
 phylum.cpp:83:6:bool fk::Phylum::sync() 8
-phylum_data_file.cpp:109:13:virtual int32_t fk::PhylumWriter::write(const uint8_t*, size_t) 8
-phylum_data_file.cpp:124:13:virtual int32_t fk::PhylumReader::read(uint8_t*, size_t) 8
-phylum_data_file.cpp:27:36:fk::PhylumDataFile::DataFileAttributes fk::PhylumDataFile::attributes() 8
-phylum_data_file.cpp:340:9:int32_t fk::PhylumDataFile::close() 8
-phylum_data_file.cpp:9:16:uint8_t fk::get_attribute_for_record_type(fk::RecordType) 8
+phylum_data_file.cpp:138:13:virtual int32_t fk::PhylumWriter::write(const uint8_t*, size_t) 8
+phylum_data_file.cpp:153:13:virtual int32_t fk::PhylumReader::read(uint8_t*, size_t) 8
+phylum_data_file.cpp:26:16:uint8_t fk::get_attribute_for_record_type(fk::RecordType) 8
+phylum_data_file.cpp:364:9:int32_t fk::PhylumDataFile::close() 8
 phylum_flash_memory.cpp:24:9:virtual int32_t fk::PhylumFlashMemory::erase(uint32_t, uint32_t) 8
 phylum_flash_memory.cpp:36:9:virtual int32_t fk::PhylumFlashMemory::copy_page(uint32_t, uint32_t, size_t) 8
 phylum_flash_memory.cpp:8:6:bool fk::PhylumFlashMemory::begin() 8
@@ -3157,7 +3154,7 @@ standard_page.h:25:13:fk::StandardPage::~StandardPage() 8
 standard_page.h:25:13:virtual fk::StandardPage::~StandardPage() 8
 startup_worker.h:10:7:virtual fk::StartupWorker::~StartupWorker() 8
 state.cpp:100:6:void fk::GlobalState::update_meta_stream(const fk::File&) 8
-state.cpp:137:6:void fk::GlobalState::released(uint32_t) const 8
+state.cpp:138:6:void fk::GlobalState::released(uint32_t) const 8
 state.cpp:96:6:void fk::GlobalState::update_data_stream(const fk::File&) 8
 state.h:282:8:fk::Schedule::Schedule() 8
 state_ref.h:24:13:fk::GlobalStateRef<T>::~GlobalStateRef() [with T = const fk::GlobalState*] 8
@@ -3949,10 +3946,10 @@ file_appender.cpp:20:19:phylum::data_chain_cursor phylum::file_appender::cursor(
 file_appender.cpp:93:9:int32_t phylum::file_appender::seek() 16
 file_handler.cpp:106:6:virtual bool fk::DownloadFileHandler::handle(fk::HttpServerConnection*, fk::Pool&) 16
 file_handler.cpp:112:1:cpp) 16
-file_ops_phylum.cpp:144:1:fk::phylum_ops::FileReader::FileReader(fk::Storage&, fk::FileNumber, fk::Pool&) 16
-file_ops_phylum.cpp:172:6:virtual bool fk::phylum_ops::FileReader::seek_record(fk::RecordNumber, fk::Pool&) 16
-file_ops_phylum.cpp:187:9:virtual int32_t fk::phylum_ops::FileReader::read(uint8_t*, size_t) 16
-file_ops_phylum.cpp:199:9:virtual int32_t fk::phylum_ops::FileReader::read(void*, const pb_msgdesc_t*) 16
+file_ops_phylum.cpp:157:1:fk::phylum_ops::FileReader::FileReader(fk::Storage&, fk::FileNumber, fk::Pool&) 16
+file_ops_phylum.cpp:185:6:virtual bool fk::phylum_ops::FileReader::seek_record(fk::RecordNumber, fk::Pool&) 16
+file_ops_phylum.cpp:200:9:virtual int32_t fk::phylum_ops::FileReader::read(uint8_t*, size_t) 16
+file_ops_phylum.cpp:212:9:virtual int32_t fk::phylum_ops::FileReader::read(void*, const pb_msgdesc_t*) 16
 file_reader.cpp:76:10:uint32_t phylum::file_reader::u32(uint8_t) 16
 firmware_manager.cpp:13:6:bool fk::FirmwareManager::backup_bootloader(fk::Pool&) 16
 flash.cpp:55:6:bool fk::Flash::initialize() 16
@@ -4265,8 +4262,9 @@ pb_encode.c:359:25:encode_basic_field 16
 pb_encode.c:633:18:pb_encode_fixed32 16
 pb_encode.c:702:18:pb_encode_string 16
 phylum.cpp:13:1:fk::standard_page_working_buffers::~standard_page_working_buffers() 16
-phylum_data_file.cpp:24:1:fk::PhylumDataFile::PhylumDataFile(fk::Phylum&, fk::Pool&) 16
-phylum_data_file.cpp:312:9:int32_t fk::PhylumDataFile::read(uint8_t*, size_t, fk::Pool&) 16
+phylum_data_file.cpp:108:36:fk::PhylumDataFile::DataFileAttributes fk::PhylumDataFile::attributes() 16
+phylum_data_file.cpp:330:9:int32_t fk::PhylumDataFile::read(uint8_t*, size_t, fk::Pool&) 16
+phylum_data_file.cpp:41:1:fk::PhylumDataFile::PhylumDataFile(fk::Phylum&, fk::Pool&) 16
 platform.cpp:204:6:void osi_assert(const char*, const char*, int) 16
 platform.h:60:10:bool fk::IntervalTimer::expired(uint32_t) 16
 platform.h:60:10:bool fk::IntervalTimer::expired(uint32_t) 16
@@ -4418,8 +4416,9 @@ spi_flash.cpp:679:6:bool fk::SpiFlash::write_command(uint8_t, uint8_t*, uint32_t
 spi_flash.cpp:88:1:fk::SpiFlash::SpiFlash(uint8_t) 16
 spi_flash.cpp:91:15:fk::FlashGeometry fk::SpiFlash::geometry() const 16
 startup_worker.cpp:585:1:cpp) 16
-state.cpp:144:6:void fk::GlobalState::released(uint32_t) 16
-state.cpp:167:11:fk::GpsState* fk::GpsState::clone(fk::Pool&) const 16
+state.cpp:104:6:void fk::GlobalState::update_data_stream(uint32_t, uint32_t) 16
+state.cpp:145:6:void fk::GlobalState::released(uint32_t) 16
+state.cpp:168:11:fk::GpsState* fk::GpsState::clone(fk::Pool&) const 16
 state.h:131:5:fk::WifiNetworkInfo::WifiNetworkInfo() 16
 state.h:154:22:fk::WifiNetworkInfo& fk::WifiNetworkInfo::operator=(const fk::WifiNetworkInfo&) 16
 status_logging.cpp:90:1:cpp) 16
@@ -4985,10 +4984,10 @@ pb_encode.c:604:18:pb_encode_varint 24
 pb_encode.c:81:18:pb_write 24
 phylum.cpp:22:6:bool fk::standard_page_working_buffers::lend_pages() 24
 phylum.cpp:39:6:bool fk::Phylum::begin(bool) 24
-phylum_data_file.cpp:263:9:int32_t fk::PhylumDataFile::seek_record_type(fk::RecordType, fk::file_size_t&, fk::Pool&) 24
-phylum_data_file.cpp:36:9:int32_t fk::PhylumDataFile::initialize_config(fk::Pool&) 24
-phylum_data_file.cpp:69:9:int32_t fk::PhylumDataFile::open(const char*, fk::Pool&) 24
-phylum_data_file.cpp:86:9:int32_t fk::PhylumDataFile::create(const char*, fk::Pool&) 24
+phylum_data_file.cpp:277:9:int32_t fk::PhylumDataFile::seek_record_type(fk::RecordType, fk::file_size_t&, fk::Pool&) 24
+phylum_data_file.cpp:44:9:int32_t fk::PhylumDataFile::initialize_config(fk::Pool&) 24
+phylum_data_file.cpp:77:9:int32_t fk::PhylumDataFile::open(const char*, fk::Pool&) 24
+phylum_data_file.cpp:94:9:int32_t fk::PhylumDataFile::create(const char*, fk::Pool&) 24
 phylum_flash_memory.cpp:28:9:virtual int32_t fk::PhylumFlashMemory::write(uint32_t, const uint8_t*, size_t) 24
 phylum_flash_memory.cpp:32:9:virtual int32_t fk::PhylumFlashMemory::read(uint32_t, uint8_t*, size_t) 24
 platform.cpp:176:6:void osi_panic(os_panic_kind_t) 24
@@ -5305,8 +5304,8 @@ dns_message.cpp:275:16:int32_t fk::write_name(fk::Writer*, const char*) 32
 eeprom.cpp:16:13:bool fk::read_page(fk::TwoWireWrapper*, uint16_t, uint8_t*, size_t) 32
 file.cpp:219:9:int32_t fk::File::try_write(const uint8_t*, size_t) 32
 file.cpp:269:6:bool fk::File::seek(fk::RecordReference) 32
-file_ops_phylum.cpp:147:43:virtual tl::expected<fk::FileReader::SizeInfo, fk::Error> fk::phylum_ops::FileReader::get_size(fk::BlockNumber, fk::BlockNumber, fk::Pool&) 32
-file_ops_phylum.cpp:211:9:virtual int32_t fk::phylum_ops::FileReader::get_file_size(size_t&) 32
+file_ops_phylum.cpp:160:43:virtual tl::expected<fk::FileReader::SizeInfo, fk::Error> fk::phylum_ops::FileReader::get_size(fk::BlockNumber, fk::BlockNumber, fk::Pool&) 32
+file_ops_phylum.cpp:224:9:virtual int32_t fk::phylum_ops::FileReader::get_file_size(size_t&) 32
 flash.cpp:31:9:virtual int32_t fk::FlashWriter::write(const uint8_t*, size_t) 32
 format_sd_card.cpp:15:6:bool fk::FormatSdCard::begin() 32
 hal_aes_sync.c:147:20:aes_sync_cfb_crypt_last_unaligned_data 32
@@ -5432,7 +5431,7 @@ spi_flash.cpp:683:6:bool fk::SpiFlash::transfer_command(uint8_t, const uint8_t*,
 spi_flash.cpp:687:6:bool fk::SpiFlash::transfer(uint8_t*, uint32_t, const uint8_t*, uint8_t*, uint32_t) 32
 startup_worker.cpp:322:6:bool fk::StartupWorker::create_new_state(fk::Storage&, fk::GlobalState*, fk::Pool&) 32
 startup_worker.cpp:534:6:bool fk::StartupWorker::check_for_interactive_startup(fk::Pool&) 32
-state.cpp:115:6:void fk::GlobalState::update_physical_modules(const ConstructedModulesCollection&) 32
+state.cpp:116:6:void fk::GlobalState::update_physical_modules(const ConstructedModulesCollection&) 32
 state.cpp:71:36:fk::GlobalStateRef<const fk::GlobalState*> fk::get_global_state_ro() 32
 state.cpp:77:30:fk::GlobalStateRef<fk::GlobalState*> fk::get_global_state_rw() 32
 state.h:134:5:fk::WifiNetworkInfo::WifiNetworkInfo(const fk::WifiNetworkInfo&) 32
@@ -6428,7 +6427,7 @@ pb_decode.c:393:25:decode_basic_field 48
 pb_encode.c:241:25:pb_check_proto3_default_value 48
 pb_encode.c:645:18:pb_encode_fixed64 48
 pb_encode.c:710:18:pb_encode_submessage 48
-phylum_data_file.cpp:323:9:int32_t fk::PhylumDataFile::read(const pb_msgdesc_t*, void*, fk::Pool&) 48
+phylum_data_file.cpp:341:9:int32_t fk::PhylumDataFile::read(const pb_msgdesc_t*, void*, fk::Pool&) 48
 pool.cpp:171:17:fk::EncodedMessage* fk::Pool::encode(const pb_msgdesc_t*, const void*, bool) 48
 pool.cpp:53:6:virtual void fk::Pool::log_info(int32_t) 48
 pool_pointer.h:94:16:) [with Wrapped = fk::ConfigureModuleWorker; Wrapee = fk::TaskWorker; ConcreteWrapped = fk::PoolWorker<fk::ConfigureModuleWorker, fk::ConfigureModuleWorker, fk::ModulePosition&, ModuleHeader&>; ConcreteWrapee = fk::PoolWorker<fk::ConfigureModuleWorker, fk::ConfigureModuleWorker, fk::ModulePosition&, ModuleHeader&>; Args = {fk::ModulePosition&, ModuleHeader&}] 48
@@ -6868,8 +6867,8 @@ map.c:348:5:dhara_map_write 160
 map.c:371:5:dhara_map_copy_page 160
 metal_sd_card.cpp:288:6:virtual bool fk::MetalSdCard::ls(const char*, size_t, fk_app_DirectoryEntry**, size_t&, size_t&, fk::Pool&) 160
 module_handler.cpp:13:6:virtual bool fk::ModuleHandler::handle(fk::HttpServerConnection*, fk::Pool&) 160
-phylum_data_file.cpp:284:9:int32_t fk::PhylumDataFile::seek_record(fk::record_number_t, fk::Pool&) 160
-phylum_data_file.cpp:298:9:int32_t fk::PhylumDataFile::seek_position(fk::file_size_t, fk::Pool&) 160
+phylum_data_file.cpp:298:9:int32_t fk::PhylumDataFile::seek_record(fk::record_number_t, fk::Pool&) 160
+phylum_data_file.cpp:312:9:int32_t fk::PhylumDataFile::seek_position(fk::file_size_t, fk::Pool&) 160
 printf.cpp:394:12:int _vsnprintf(out_fct_type, char*, size_t, const char*, va_list) 160
 printf.cpp:394:12:int _vsnprintf(out_fct_type, char*, size_t, const char*, va_list) 160
 records.cpp:102:20:bool fk::pb_data_module_info_item_decode(pb_istream_t*, fk::pb_array_t*) 160
@@ -6898,16 +6897,17 @@ readings_worker.cpp:48:6:bool fk::ReadingsWorker::take(fk::Pool&) 176
 schedule_view.cpp:25:6:virtual void fk::ScheduleView::tick(fk::ViewController*, fk::Pool&) 176
 export_data_worker.cpp:145:6:bool fk::ExportDataWorker::write_header() 184
 file_handler.cpp:89:6:bool fk::DownloadFileWorker::write_headers(fk::DownloadFileWorker::HeaderInfo) 184
-file_ops_phylum.cpp:61:6:virtual bool fk::phylum_ops::MetaOps::read_record(fk::SignedRecordKind, fk::MetaRecord&, fk::Pool&) 184
-file_ops_phylum.cpp:74:6:bool fk::phylum_ops::DataOps::touch(fk::Pool&) 184
+file_ops_phylum.cpp:65:6:virtual bool fk::phylum_ops::MetaOps::read_record(fk::SignedRecordKind, fk::MetaRecord&, fk::Pool&) 184
+file_ops_phylum.cpp:78:6:bool fk::phylum_ops::DataOps::touch(fk::Pool&) 184
 functional:2054:7:) [with _Res = long int; _Functor = phylum::data_chain::write_chain(std::function<long int(phylum::general_buffer<unsigned char>, bool&)>)::__lambda5; _ArgTypes = {phylum::general_buffer<unsigned char>}] 184
 logs_handler.cpp:83:6:bool fk::DownloadLogsWorker::write_headers(fk::DownloadLogsWorker::HeaderInfo) 184
 file.cpp:314:9:int32_t fk::File::skip(bool) 192
-file_ops_phylum.cpp:117:6:virtual bool fk::phylum_ops::DataOps::read_fixed_record(fk::DataRecord&, fk::Pool&) 192
 flat_attribute_storage.cpp:15:9:int32_t phylum::flat_attribute_storage::read(phylum::tree_ptr_t&, phylum::file_id_t, phylum::open_file_config) 192
 write_memory_handler.cpp:56:6:virtual void fk::WriteMemoryWorker::run(fk::Pool&) 192
+file_ops_phylum.cpp:130:6:virtual bool fk::phylum_ops::DataOps::read_fixed_record(fk::DataRecord&, fk::Pool&) 200
 gps.cpp:10:6:void fk::task_handler_gps(void*) 200
 file_appender.h:63:67:phylum::file_appender::index_if_necessary(phylum::record_number_t) [with tree_type = phylum::tree_sector<long unsigned int, long unsigned int, 405u>; int32_t = long int; phylum::record_number_t = long unsigned int]::__lambda11 208
+file_ops_phylum.cpp:115:37:virtual tl::expected<fk::FileAttributes, fk::Error> fk::phylum_ops::DataOps::attributes(fk::Pool&) 208
 gps_view.cpp:11:6:virtual void fk::GpsView::tick(fk::ViewController*, fk::Pool&) 208
 sector_chain.cpp:216:9:int32_t phylum::sector_chain::log(bool) 208
 status_logging.cpp:59:6:bool fk::fk_log_diagnostics() 208
@@ -6926,7 +6926,7 @@ tree_sector.h:389:152:phylum::tree_sector<KEY, VALUE, Size>::insert_non_full(phy
 tree_sector.h:389:152:phylum::tree_sector<KEY, VALUE, Size>::insert_non_full(phylum::node_ptr_t, KEY&, VALUE*, phylum::tree_value_ptr_t*) [with KEY = long unsigned int; VALUE = phylum::dirtree_tree_value_t<128u>; unsigned int Size = 4u; int32_t = long int]::__lambda2 224
 u8g2_display.cpp:454:6:virtual void fk::U8g2Display::module_status(fk::ModuleStatusScreen&) 224
 file.cpp:541:9:int32_t fk::File::find_following_block() 232
-file_ops_phylum.cpp:84:31:virtual tl::expected<long unsigned int, fk::Error> fk::phylum_ops::DataOps::write_readings(fk::GlobalState*, fk_data_DataRecord*, fk::Pool&) 232
+file_ops_phylum.cpp:88:31:virtual tl::expected<long unsigned int, fk::Error> fk::phylum_ops::DataOps::write_readings(fk::GlobalState*, fk_data_DataRecord*, fk::Pool&) 232
 u8g2_display.cpp:436:6:virtual void fk::U8g2Display::reading(fk::ReadingScreen&) 232
 dump_flash_memory_worker.cpp:18:6:virtual void fk::DumpFlashMemoryWorker::run(fk::Pool&) 240
 export_data_worker.cpp:171:31:fk::ExportDataWorker::WriteStatus fk::ExportDataWorker::write_row(fk_data_DataRecord&) 240
@@ -6951,10 +6951,10 @@ signed_log.cpp:77:37:tl::expected<fk::AppendedRecord, fk::Error> fk::SignedRecor
 scanning.cpp:34:13:9(fk::FoundModuleCollection&) 312
 signed_log.cpp:114:37:tl::expected<fk::AppendedRecord, fk::Error> fk::SignedRecordLog::append_immutable(fk::SignedRecordKind, const void*, const pb_msgdesc_t*, fk::Pool&) 312
 directory_tree.cpp:225:9:virtual int32_t phylum::directory_tree::read(phylum::file_id_t, std::function<long int(phylum::general_buffer<const unsigned char>)>) 328
-file_ops_darwin.cpp:101:37:virtual tl::expected<fk::FileAttributes, fk::Error> fk::darwin::DataOps::attributes() 328
-file_ops_darwin.cpp:49:37:virtual tl::expected<fk::FileAttributes, fk::Error> fk::darwin::MetaOps::attributes() 328
+file_ops_darwin.cpp:101:37:virtual tl::expected<fk::FileAttributes, fk::Error> fk::darwin::DataOps::attributes(fk::Pool&) 328
+file_ops_darwin.cpp:49:37:virtual tl::expected<fk::FileAttributes, fk::Error> fk::darwin::MetaOps::attributes(fk::Pool&) 328
 file_ops_darwin.cpp:110:6:virtual bool fk::darwin::DataOps::read_fixed_record(fk::DataRecord&, fk::Pool&) 336
-phylum_data_file.cpp:224:9:int32_t fk::PhylumDataFile::append_immutable(fk::RecordType, const pb_msgdesc_t*, const void*, fk::Pool&) 336
+phylum_data_file.cpp:238:9:int32_t fk::PhylumDataFile::append_immutable(fk::RecordType, const pb_msgdesc_t*, const void*, fk::Pool&) 336
 tree_attribute_storage.cpp:5:9:int32_t phylum::tree_attribute_storage::read(phylum::tree_ptr_t&, phylum::file_id_t, phylum::open_file_config) 336
 MDNS.cpp:526:13:MDNSError_t MDNS::_processMDNSQuery() 344
 download_firmware_worker.cpp:27:6:virtual void fk::DownloadFirmwareWorker::run(fk::Pool&) 344
@@ -6975,15 +6975,15 @@ hpl_nvmctrl.c:601:9:_user_area_write 536
 hpl_nvmctrl.c:624:9:_user_area_write_bits 544
 metal_sd_card.cpp:264:6:virtual bool fk::MetalSdCard::format() 592
 fsck_worker.cpp:10:6:virtual void fk::FsckWorker::run(fk::Pool&) 600
-state.cpp:149:6:bool fk::GlobalState::flush(fk::Pool&) 600
+state.cpp:150:6:bool fk::GlobalState::flush(fk::Pool&) 600
 factory_wipe_worker.cpp:17:6:virtual void fk::FactoryWipeWorker::run(fk::Pool&) 616
 startup_worker.cpp:139:6:bool fk::StartupWorker::load_or_create_state(fk::Pool&) 616
 directory_tree.h:57:13:int32_t phylum::directory_tree::touch_indexed(const char*, phylum::open_file_config) [with TreeType = phylum::tree_sector<long unsigned int, long unsigned int, 405u>; int32_t = long int] 632
 upload_data_worker.cpp:163:6:virtual void fk::UploadDataWorker::run(fk::Pool&) 672
 backup_worker.cpp:23:6:virtual void fk::BackupWorker::run(fk::Pool&) 688
 storage.cpp:764:10:uint32_t fk::Storage::fsck(fk::ProgressCallbacks*) 696
-phylum_data_file.cpp:147:9:int32_t fk::PhylumDataFile::append_always(fk::RecordType, const pb_msgdesc_t*, const void*, fk::Pool&) 728
 download_handler.cpp:49:6:virtual void fk::DownloadWorker::run(fk::Pool&) 736
+phylum_data_file.cpp:159:9:int32_t fk::PhylumDataFile::append_always(fk::RecordType, const pb_msgdesc_t*, const void*, fk::Pool&) 736
 readings_worker.cpp:151:36:tl::expected<fk::TakenReadings, fk::Error> fk::ReadingsWorker::take_readings(fk::Pool&) 752
 display.cpp:194:6:void fk::task_handler_display(void*) 768
 export_data_worker.cpp:22:6:virtual void fk::ExportDataWorker::run(fk::Pool&) 768
