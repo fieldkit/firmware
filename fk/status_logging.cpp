@@ -44,11 +44,12 @@ static void log_status() {
     auto spmi = fk_standard_page_meminfo();
     auto memory_oddity = mi.arena != mi.uordblks;
     auto percentage = (float)spmi.used / spmi.total * 100.0f;
+    auto rssi = get_network()->rssi();
 
     FormattedTime formatted{ now };
-    loginfo("%s '%s' (%d.%d.%d.%d) memory(%" PRIu32 " / %zd%s) pages(%zd / %zd / %zd, %.2f%% used)",
+    loginfo("%s '%s' (%d.%d.%d.%d) (%d) memory(%" PRIu32 " / %zd%s) pages(%zd / %zd / %zd, %.2f%% used)",
             formatted.cstr(), name, ip.u.bytes[0], ip.u.bytes[1], ip.u.bytes[2], ip.u.bytes[3],
-            fk_free_memory(), (size_t)mi.arena, (memory_oddity ? " ERR" : ""),
+            rssi, fk_free_memory(), (size_t)mi.arena, (memory_oddity ? " ERR" : ""),
             spmi.total - spmi.free, spmi.highwater, spmi.total, percentage);
 }
 

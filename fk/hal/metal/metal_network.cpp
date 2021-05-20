@@ -296,7 +296,17 @@ NetworkStatus MetalNetwork::status() {
 }
 
 uint32_t MetalNetwork::ip_address() {
-    return WiFi.localIP();
+    if (enabled()) {
+        return WiFi.localIP();
+    }
+    return 0;
+}
+
+uint32_t MetalNetwork::rssi() {
+    if (enabled()) {
+        return WiFi.RSSI();
+    }
+    return 0;
 }
 
 PoolPointer<NetworkListener> *MetalNetwork::listen(uint16_t port) {
@@ -319,13 +329,13 @@ PoolPointer<NetworkConnection> *MetalNetwork::open_connection(const char *scheme
     WiFiClient wcl;
 
     if (strcmp(scheme, "https") == 0) {
-        logdebug("connection %s %d (ssl)", hostname, port);
+        logdebug("connection %s %d (ssl) rssi=%d", hostname, port, WiFi.RSSI());
         if (!wcl.connectSSL(hostname, port, true)) {
             return nullptr;
         }
     }
     else {
-        logdebug("connection %s %d", hostname, port);
+        logdebug("connection %s %d rssi=%d", hostname, port, WiFi.RSSI());
         if (!wcl.connect(hostname, port)) {
             return nullptr;
         }

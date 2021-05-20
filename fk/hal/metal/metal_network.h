@@ -102,6 +102,8 @@ public:
 
     uint32_t ip_address() override;
 
+    uint32_t rssi() override;
+
     PoolPointer<NetworkListener> *listen(uint16_t port) override;
 
     void service(Pool *pool) override;
