@@ -21,8 +21,9 @@ gitdeps:
 setup: .python-setup fk/secrets.h fk/secrets.cpp fk/data/animals.h fk/data/adjectives.h dependencies
 
 .python-setup:
+	pip3 install -U wheel
 	pip3 install -U sphinx pyelftools pyblake2
-	pip3 install --user --index-url https://lief.quarkslab.com/packages lief==0.12.0.dev0
+	pip3 install --index-url https://lief.quarkslab.com/packages lief==0.12.0.dev0
 	touch .python-setup
 
 cmake: $(BUILD)/samd51 $(BUILD)/samd51-qspi $(BUILD)/samd09 $(BUILD)/amd64
