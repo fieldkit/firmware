@@ -48,10 +48,14 @@ tl::expected<uint32_t, Error> MetaOps::write_kind(GlobalState *gs, RecordType re
         return tl::unexpected<Error>(Error::IO);
     }
 
+    auto attributes = file.attributes();
+
+    gs->update_data_stream(attributes.size, attributes.nrecords);
+
     return record_number;
 }
 
-tl::expected<FileAttributes, Error> MetaOps::attributes() {
+tl::expected<FileAttributes, Error> MetaOps::attributes(Pool &pool) {
     return FileAttributes{
         0 /* size */,
         0 /* records */
@@ -101,16 +105,25 @@ tl::expected<uint32_t, Error> DataOps::write_readings(GlobalState *gs, fk_data_D
     loginfo("wrote %zd bytes rec=(#%" PRIu32 ") (%" PRIu32 " bytes)",
             (size_t)bytes_wrote, record_number, 0);
 
-    // gs->storage.spi.used = storage_.used();
-    // gs->update_data_stream(file);
+    auto attributes = file.attributes();
+
+    gs->update_data_stream(attributes.size, attributes.nrecords);
 
     return record_number;
 }
 
-tl::expected<FileAttributes, Error> DataOps::attributes() {
+tl::expected<FileAttributes, Error> DataOps::attributes(Pool &pool) {
+    PhylumDataFile file{ storage_.phylum(), pool };
+    auto err = file.open("d/00000000", pool);
+    if (err < 0) {
+        return FileAttributes{ 0, 0 };
+    }
+
+    auto file_attributes = file.attributes();
+
     return FileAttributes{
-        0 /* size */,
-        0 /* records */
+        file_attributes.size,
+        file_attributes.nrecords
     };
 }
 

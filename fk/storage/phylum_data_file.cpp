@@ -6,6 +6,23 @@ FK_DECLARE_LOGGER("phylum");
 
 using namespace phylum;
 
+class PhylumAttributes {
+private:
+    open_file_config cfg_;
+
+public:
+    PhylumAttributes(open_file_config cfg): cfg_(cfg) {
+    }
+
+public:
+    template<typename T>
+    T *get(uint8_t type) {
+        auto &attr = cfg_.attributes[phylum_file_attr_type_to_index(type)];
+        attr.dirty = true;
+        return (T *)attr.ptr;
+    }
+};
+
 static uint8_t get_attribute_for_record_type(RecordType type) {
     switch (type) {
     case RecordType::Modules: return PHYLUM_DRIVER_FILE_ATTR_INDEX_MODULES;
@@ -22,15 +39,6 @@ static uint8_t get_attribute_for_record_type(RecordType type) {
 }
 
 PhylumDataFile::PhylumDataFile(Phylum &phylum, Pool &pool) : phylum_(phylum), pool_(pool) {
-}
-
-PhylumDataFile::DataFileAttributes PhylumDataFile::attributes() {
-    return PhylumDataFile::DataFileAttributes{
-        .first_record = 0,
-        .nrecords = 0,
-        .record_number = 0,
-        .size = 0,
-    };
 }
 
 int32_t PhylumDataFile::initialize_config(Pool &pool) {
@@ -97,6 +105,27 @@ int32_t PhylumDataFile::create(const char *name, Pool &pool) {
     return 0;
 }
 
+PhylumDataFile::DataFileAttributes PhylumDataFile::attributes() {
+    assert(name_ != nullptr);
+
+    PhylumAttributes attributes{ file_cfg_ };
+    auto records = attributes.get<records_attribute_t>(PHYLUM_DRIVER_FILE_ATTR_RECORDS);
+
+    if (size_ == 0 && records->nrecords) {
+        auto err = seek_position(UINT32_MAX, pool_);
+        if (err < 0) {
+            logerror("seeking end for size");
+        }
+    }
+
+    return PhylumDataFile::DataFileAttributes{
+        .first_record = records->first,
+        .nrecords = records->nrecords,
+        .record_number = records->nrecords,
+        .size = size_,
+    };
+}
+
 class PhylumWriter : public Writer {
 private:
     phylum::io_writer *target_;
@@ -127,23 +156,6 @@ public:
 
 };
 
-class PhylumAttributes {
-private:
-    open_file_config cfg_;
-
-public:
-    PhylumAttributes(open_file_config cfg): cfg_(cfg) {
-    }
-
-public:
-    template<typename T>
-    T *get(uint8_t type) {
-        auto &attr = cfg_.attributes[phylum_file_attr_type_to_index(type)];
-        attr.dirty = true;
-        return (T *)attr.ptr;
-    }
-};
-
 int32_t PhylumDataFile::append_always(RecordType type, pb_msgdesc_t const *fields, void const *record, Pool &pool) {
     assert(name_ != nullptr);
 
@@ -161,7 +173,7 @@ int32_t PhylumDataFile::append_always(RecordType type, pb_msgdesc_t const *field
 
     PhylumAttributes attributes{ file_cfg_ };
     auto records = attributes.get<records_attribute_t>(PHYLUM_DRIVER_FILE_ATTR_RECORDS);
-    auto data_record = attributes.get<index_attribute_t>(get_attribute_for_record_type(type));
+    auto index_record = attributes.get<index_attribute_t>(get_attribute_for_record_type(type));
 
     phylum::file_appender opened{ pc(), &dir_, dir_.open() };
     err = opened.seek();
@@ -200,9 +212,9 @@ int32_t PhylumDataFile::append_always(RecordType type, pb_msgdesc_t const *field
     auto bytes_written = ostream.bytes_written;
     auto record_number = records->nrecords;
 
-    hash_writer.finalize(data_record->hash, sizeof(data_record->hash));
-    data_record->record = record_number;
-    data_record->position = record_position;
+    hash_writer.finalize(index_record->hash, sizeof(index_record->hash));
+    index_record->record = record_number;
+    index_record->position = record_position;
 
     records->nrecords++;
 
@@ -214,7 +226,9 @@ int32_t PhylumDataFile::append_always(RecordType type, pb_msgdesc_t const *field
 
     auto file_size = opened.position();
 
-    auto hash_hex = bytes_to_hex_string_pool(data_record->hash, sizeof(data_record->hash), pool);
+    size_ = file_size;
+
+    auto hash_hex = bytes_to_hex_string_pool(index_record->hash, sizeof(index_record->hash), pool);
     loginfo("wrote record R-%" PRIu32 " position=%zu bytes=%zu total=%zu hash=%s",
             record_number, record_position, bytes_written, file_size, hash_hex);
 
@@ -306,6 +320,10 @@ int32_t PhylumDataFile::seek_position(file_size_t position, Pool &pool) {
         return err;
     }
 
+    if (position == UINT32_MAX) {
+        size_ = reader_->position();
+    }
+
     return err;
 }
 
@@ -334,7 +352,13 @@ int32_t PhylumDataFile::read(pb_msgdesc_t const *fields, void *record, Pool &poo
         return -1;
     }
 
-    return reader_->position() - position;
+    auto position_after = reader_->position();
+
+    if (position_after > size_) {
+        size_ = position_after;
+    }
+
+    return position_after - position;
 }
 
 int32_t PhylumDataFile::close() {

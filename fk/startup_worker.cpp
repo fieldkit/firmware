@@ -340,7 +340,7 @@ bool StartupWorker::load_from_files(Storage &storage, GlobalState *gs, Pool &poo
     gs->storage.spi.used = storage.used();
 
     {
-        auto attributes = storage.meta_ops()->attributes();
+        auto attributes = storage.meta_ops()->attributes(pool);
         if (attributes) {
             gs->update_meta_stream(attributes->size, attributes->records);
             // TODO This should be managed better.
@@ -357,7 +357,7 @@ bool StartupWorker::load_from_files(Storage &storage, GlobalState *gs, Pool &poo
 
     {
         auto ops = storage.data_ops();
-        auto attributes = ops->attributes();
+        auto attributes = ops->attributes(pool);
         if (attributes) {
             gs->update_data_stream(attributes->size, attributes->records);
             // TODO This should be managed better.

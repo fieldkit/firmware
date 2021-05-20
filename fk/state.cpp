@@ -105,6 +105,7 @@ void GlobalState::update_data_stream(uint32_t size, uint32_t records) {
     storage.data.size = size;
     storage.data.block = records;
     readings.number = records;
+    loginfo("updating data size=%" PRIu32 " nrecords=%" PRIu32, size, records);
 }
 
 void GlobalState::update_meta_stream(uint32_t size, uint32_t records) {
