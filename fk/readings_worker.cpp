@@ -36,7 +36,6 @@ bool ReadingsWorker::prepare(Pool &pool) {
         return false;
     }
 
-    auto lock = storage_mutex.acquire(UINT32_MAX);
     if (scan_ || !state.scanned) {
         ScanModulesWorker scan_worker;
         scan_worker.run(pool);
@@ -46,6 +45,9 @@ bool ReadingsWorker::prepare(Pool &pool) {
 }
 
 bool ReadingsWorker::take(Pool &pool) {
+    auto lock = storage_mutex.acquire(UINT32_MAX);
+    FK_ASSERT(lock);
+
     auto taken_readings = take_readings(pool);
     if (!taken_readings) {
         return false;

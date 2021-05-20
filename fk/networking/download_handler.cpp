@@ -50,6 +50,7 @@ void DownloadWorker::run(Pool &pool) {
     loginfo("downloading");
 
     auto lock = storage_mutex.acquire(UINT32_MAX);
+    FK_ASSERT(lock);
 
     auto started = fk_uptime();
     StatisticsMemory memory{ MemoryFactory::get_data_memory() };
