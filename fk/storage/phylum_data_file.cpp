@@ -23,6 +23,36 @@ public:
     }
 };
 
+class PhylumWriter : public Writer {
+private:
+    phylum::io_writer *target_;
+
+public:
+    PhylumWriter(phylum::io_writer *target) : target_(target) {
+    }
+
+public:
+    int32_t write(uint8_t const *buffer, size_t size) override {
+        return target_->write(buffer, size);
+    }
+
+};
+
+class PhylumReader : public Reader {
+private:
+    phylum::io_reader *target_;
+
+public:
+    PhylumReader(phylum::io_reader *target) : target_(target) {
+    }
+
+public:
+    int32_t read(uint8_t *buffer, size_t size) override {
+        return target_->read(buffer, size);
+    }
+
+};
+
 static uint8_t get_attribute_for_record_type(RecordType type) {
     switch (type) {
     case RecordType::Modules: return PHYLUM_DRIVER_FILE_ATTR_INDEX_MODULES;
@@ -126,36 +156,6 @@ PhylumDataFile::DataFileAttributes PhylumDataFile::attributes() {
     };
 }
 
-class PhylumWriter : public Writer {
-private:
-    phylum::io_writer *target_;
-
-public:
-    PhylumWriter(phylum::io_writer *target) : target_(target) {
-    }
-
-public:
-    int32_t write(uint8_t const *buffer, size_t size) override {
-        return target_->write(buffer, size);
-    }
-
-};
-
-class PhylumReader : public Reader {
-private:
-    phylum::io_reader *target_;
-
-public:
-    PhylumReader(phylum::io_reader *target) : target_(target) {
-    }
-
-public:
-    int32_t read(uint8_t *buffer, size_t size) override {
-        return target_->read(buffer, size);
-    }
-
-};
-
 int32_t PhylumDataFile::append_always(RecordType type, pb_msgdesc_t const *fields, void const *record, Pool &pool) {
     assert(name_ != nullptr);
 
@@ -171,9 +171,13 @@ int32_t PhylumDataFile::append_always(RecordType type, pb_msgdesc_t const *field
         return -1;
     }
 
+    logdebug("append-always: attributes");
+
     PhylumAttributes attributes{ file_cfg_ };
     auto records = attributes.get<records_attribute_t>(PHYLUM_DRIVER_FILE_ATTR_RECORDS);
     auto index_record = attributes.get<index_attribute_t>(get_attribute_for_record_type(type));
+
+    logdebug("append-always: opening");
 
     phylum::file_appender opened{ pc(), &dir_, dir_.open() };
     err = opened.seek();
@@ -184,11 +188,15 @@ int32_t PhylumDataFile::append_always(RecordType type, pb_msgdesc_t const *field
 
     auto record_position = opened.position();
 
+    logdebug("append-always: index-if-necessary");
+
     err = opened.index_if_necessary<index_tree_type>(records->first + records->nrecords);
     if (err < 0) {
         logerror("append-always: index");
         return err;
     }
+
+    logdebug("append-always: writers");
 
     blake2b_writer hash_writer{ &opened };
 
@@ -202,12 +210,16 @@ int32_t PhylumDataFile::append_always(RecordType type, pb_msgdesc_t const *field
         pwriter = &cobs;
     }
 
+    logdebug("append-always: encoding");
+
     PhylumWriter writer{ pwriter };
     auto ostream = pb_ostream_from_writable(&writer);
     if (!pb_encode_delimited(&ostream, fields, record)) {
         logerror("append-always: encode");
         return -1;
     }
+
+    logdebug("append-always: finalizing");
 
     auto bytes_written = ostream.bytes_written;
     auto record_number = records->nrecords;
@@ -217,6 +229,8 @@ int32_t PhylumDataFile::append_always(RecordType type, pb_msgdesc_t const *field
     index_record->position = record_position;
 
     records->nrecords++;
+
+    logdebug("append-always: closing");
 
     err = opened.close();
     if (err < 0) {
