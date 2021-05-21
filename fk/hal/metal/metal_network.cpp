@@ -302,7 +302,7 @@ uint32_t MetalNetwork::ip_address() {
     return 0;
 }
 
-uint32_t MetalNetwork::rssi() {
+int32_t MetalNetwork::rssi() {
     if (enabled()) {
         return WiFi.RSSI();
     }
