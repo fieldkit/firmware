@@ -180,9 +180,11 @@ int32_t PhylumDataFile::append_always(RecordType type, pb_msgdesc_t const *field
     logdebug("append-always: opening");
 
     phylum::file_appender opened{ pc(), &dir_, dir_.open() };
-    err = opened.seek();
+
+    logdebug("append-always: seeking");
+    err = opened.seek_position<index_tree_type>(UINT32_MAX);
     if (err < 0) {
-        logerror("append-always: seek");
+        logerror("append-always: seeking");
         return err;
     }
 

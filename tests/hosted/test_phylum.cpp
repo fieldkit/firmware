@@ -211,8 +211,9 @@ TEST_F(PhylumSuite, Basic_DataFile_Reading_SeekRecords) {
     ASSERT_EQ(file.open("d/00000000", pool), 0);
 
     auto total_written = 0u;
+    auto nrecords = 100;
 
-    for (auto i = 0; i < 100; ++i) {
+    for (auto i = 0; i < nrecords; ++i) {
         StandardPool loop{ "loop" };
 
         RecordFaker fake;
@@ -228,7 +229,7 @@ TEST_F(PhylumSuite, Basic_DataFile_Reading_SeekRecords) {
 
     auto total_read = 0u;
 
-    for (auto i = 0; i < 100; ++i) {
+    for (auto i = 0; i < nrecords; ++i) {
         StandardPool loop{ "loop" };
         PhylumDataFile file{ phylum, loop };
         ASSERT_EQ(file.open("d/00000000", loop), 0);
