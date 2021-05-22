@@ -229,6 +229,7 @@ int32_t PhylumDataFile::append_always(RecordType type, pb_msgdesc_t const *field
     hash_writer.finalize(index_record->hash, sizeof(index_record->hash));
     index_record->record = record_number;
     index_record->position = record_position;
+    index_record->nrecords++;
 
     records->nrecords++;
 
