@@ -135,8 +135,8 @@ options:
 enable-phylum:
 	cd $(BUILD)/samd51 && cmake -DFK_PHYLUM=ON ../../
 
-disable-phylum:
-	cd $(BUILD)/samd51 && cmake -DFK_PHYLUM=OFF ../../
+enable-phylum-amplify:
+	cd $(BUILD)/samd51 && cmake -DFK_PHYLUM=ON -DFK_PHYLUM_AMPLIFICATION=10 ../../
 
 clean:
 	rm -rf $(BUILD)

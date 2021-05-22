@@ -77,6 +77,7 @@ find_package(Doxygen)
 option(BUILD_DOCUMENTATION "Create and install the HTML based API documentation (requires Doxygen)" ${DOXYGEN_FOUND})
 
 option(FK_PHYLUM "Enable phylum by default" NO)
+option(FK_PHYLUM_AMPLIFICATION "Amplify phylum readings" 1)
 
 if(BUILD_DOCUMENTATION)
     if(NOT DOXYGEN_FOUND)

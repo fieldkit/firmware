@@ -122,18 +122,27 @@ tl::expected<uint32_t, Error> DataOps::write_readings(GlobalState *gs, fk_data_D
         return tl::unexpected<Error>(Error::IO);
     }
 
-    auto record_number = file.attributes().record_number;
+    #if defined(FK_PHYLUM_AMPLIFICATION)
+    auto amplification = FK_PHYLUM_AMPLIFICATION;
+    #else
+    auto amplification = 1;
+    #endif
+    auto record_number = 0;
 
-    record->readings.reading = record_number;
+    for (auto i = 0; i < amplification; ++i) {
+        record_number = file.attributes().record_number;
 
-    auto bytes_wrote = file.append_always(RecordType::Data, fk_data_DataRecord_fields, record, pool);
-    if (bytes_wrote == 0) {
-        logerror("error saving readings");
-        return tl::unexpected<Error>(Error::IO);
+        record->readings.reading = record_number;
+
+        auto bytes_wrote = file.append_always(RecordType::Data, fk_data_DataRecord_fields, record, pool);
+        if (bytes_wrote == 0) {
+            logerror("error saving readings");
+            return tl::unexpected<Error>(Error::IO);
+        }
+
+        loginfo("wrote %zd bytes rec=(#%" PRIu32 ") (%" PRIu32 " bytes)",
+                (size_t)bytes_wrote, record_number, 0);
     }
-
-    loginfo("wrote %zd bytes rec=(#%" PRIu32 ") (%" PRIu32 " bytes)",
-            (size_t)bytes_wrote, record_number, 0);
 
     auto attributes = file.attributes();
 

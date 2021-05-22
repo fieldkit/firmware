@@ -153,6 +153,7 @@ endif()
 
 if (${FK_PHYLUM})
   target_compile_options(fk-bundled PRIVATE -DFK_VERSION=${FK_VERSION} -DFK_PHYLUM=1)
+  target_compile_options(fk-bundled PRIVATE -DFK_PHYLUM_AMPLIFICATION=${FK_PHYLUM_AMPLIFICATION})
 else()
   target_compile_options(fk-bundled PRIVATE -DFK_VERSION=${FK_VERSION})
 endif()
