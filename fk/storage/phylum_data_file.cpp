@@ -323,7 +323,7 @@ int32_t PhylumDataFile::seek_record(record_number_t record, Pool &pool) {
         return err;
     }
 
-    return err;
+    return reader_->position();
 }
 
 int32_t PhylumDataFile::seek_position(file_size_t position, Pool &pool) {

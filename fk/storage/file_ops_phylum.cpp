@@ -209,14 +209,27 @@ tl::expected<FileReader::SizeInfo, Error> FileReader::get_size(BlockNumber first
     }
 
     auto attributes = pdf_.attributes();
+    auto position_of_last = attributes.size;
 
-    if (pdf_.seek_position(0, pool) < 0) {
+    if (last_block != UINT32_MAX) {
+        position_of_last = pdf_.seek_record(last_block, pool);
+        if (position_of_last < 0) {
+            return tl::unexpected<Error>(Error::IO);
+        }
+    }
+
+    auto position_of_first = pdf_.seek_record(first_block, pool);
+    if (position_of_first < 0) {
         return tl::unexpected<Error>(Error::IO);
     }
 
+    if (last_block >= attributes.record_number) {
+        last_block = attributes.record_number;
+    }
+
     return SizeInfo{
-        .size = attributes.size,
-        .last_block = attributes.record_number,
+        .size = position_of_last - position_of_first,
+        .last_block = last_block,
     };
 }
 
