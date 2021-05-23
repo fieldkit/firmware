@@ -102,6 +102,8 @@ void DownloadWorker::run(Pool &pool) {
             break;
         }
 
+        logdebug("copied: %d", bytes_read);
+
         auto wrote = connection_->write(buffer, bytes_read);
         if (wrote != bytes_read) {
             logerror("write error (%" PRId32 " != %" PRId32 ")", wrote, bytes_read);

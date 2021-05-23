@@ -13,7 +13,11 @@ Connection::~Connection() {
 }
 
 bool Connection::service() {
-    FK_ASSERT(conn_ != nullptr);
+    // See ::close
+    if (conn_ == nullptr) {
+        logwarn("[%" PRIu32 "] !conn_", number_);
+        return true;
+    }
 
     FK_ASSERT_ADDRESS(conn_);
 
@@ -26,7 +30,11 @@ bool Connection::service() {
 }
 
 int32_t Connection::read(uint8_t *buffer, size_t size) {
-    FK_ASSERT(conn_ != nullptr);
+    // See ::close
+    if (conn_ == nullptr) {
+        logwarn("[%" PRIu32 "] !conn_", number_);
+        return -1;
+    }
 
     auto bytes = conn_->read(buffer, size);
     if (bytes > 0) {
@@ -38,7 +46,11 @@ int32_t Connection::read(uint8_t *buffer, size_t size) {
 }
 
 int32_t Connection::write(uint8_t const *buffer, size_t size) {
-    FK_ASSERT(conn_ != nullptr);
+    // See ::close
+    if (conn_ == nullptr) {
+        logwarn("[%" PRIu32 "] !conn_", number_);
+        return -1;
+    }
 
     auto bytes = conn_->write(buffer, size);
     if (bytes > 0) {
@@ -49,7 +61,11 @@ int32_t Connection::write(uint8_t const *buffer, size_t size) {
 }
 
 int32_t Connection::printf(const char *s, ...) {
-    FK_ASSERT(conn_ != nullptr);
+    // See ::close
+    if (conn_ == nullptr) {
+        logwarn("[%" PRIu32 "] !conn_", number_);
+        return -1;
+    }
 
     va_list args;
     va_start(args, s);
@@ -60,6 +76,9 @@ int32_t Connection::printf(const char *s, ...) {
 }
 
 int32_t Connection::close() {
+    // This can happen in a separate task than the one calling
+    // ::service and introduce a race, and so we check for nullptr's
+    // in all the public methods.
     if (conn_ != nullptr) {
         loginfo("[%" PRIu32 "] close", number_);
         conn_->stop();
