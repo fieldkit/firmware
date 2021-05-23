@@ -64,8 +64,8 @@ void ApiHandler::adjust_location_if_necessary(fk_app_HttpQuery const *query) {
 
 bool ApiHandler::handle(HttpServerConnection *connection, Pool &pool) {
     if (connection->length() == 0) {
-        connection->error(HttpStatus::BadRequest, "invalid query", pool);
-        return true;
+        loginfo("handling %s", "QUERY_STATUS (implied)");
+        return send_status(connection, nullptr, pool);
     }
 
     Reader *reader = connection;
@@ -364,7 +364,10 @@ static bool send_status(HttpServerConnection *connection, fk_app_HttpQuery *quer
 
     HttpReply http_reply{ pool, gs.get() };
 
-    auto logs = (query->flags & fk_app_QueryFlags_QUERY_FLAGS_LOGS) == fk_app_QueryFlags_QUERY_FLAGS_LOGS;
+    auto logs = false;
+    if (query != nullptr) {
+        logs = (query->flags & fk_app_QueryFlags_QUERY_FLAGS_LOGS) == fk_app_QueryFlags_QUERY_FLAGS_LOGS;
+    }
 
     FK_ASSERT(http_reply.include_status(get_clock_now(), fk_uptime(), logs, &fkb_header));
 
