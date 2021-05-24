@@ -12,6 +12,17 @@ struct FlashGeometry {
     uint32_t nblocks;
     uint32_t total_size;
     uint32_t prog_size;
+    uint32_t pages_per_block;
+
+    /**
+    * True Koxia page size is 4096, only the earlier code would always
+    * assume a page size of 2048. So, we can't assumed a fixed geometry
+    * based on the chip we have. This will be the case until we can get
+    * ourselves off the old file system.  So this code starts by just
+    * assuming the old page size and then when we learn that the choice
+    * is up to us we can use the proper one. (copied from spi_flash.cpp)
+    */
+    uint32_t real_page_size; // TODO Deprecate
 
     uint32_t beginning() const {
         return 0;
@@ -26,6 +37,7 @@ struct FlashGeometry {
     }
 
     uint32_t remaining_in_page(uint32_t address) const {
+        // TODO Deprecate
         return page_size - (address % page_size);
     }
 

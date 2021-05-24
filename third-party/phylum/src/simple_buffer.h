@@ -7,7 +7,10 @@
 
 namespace phylum {
 
-using free_fn_t = std::function<void(uint8_t const *)>;
+class free_buffer_callback {
+public:
+    virtual void free_buffer(void const *ptr) = 0;
+};
 
 template<typename PointerType = uint8_t>
 class general_buffer {
@@ -15,7 +18,7 @@ private:
     PointerType *ptr_{ nullptr };
     size_t size_{ 0 };
     size_t position_{ 0 };
-    free_fn_t free_;
+    free_buffer_callback *free_{ nullptr };
 
 public:
     general_buffer() {
@@ -25,10 +28,10 @@ public:
 
     general_buffer(general_buffer &&other)
         : ptr_(std::exchange(other.ptr_, nullptr)), size_(other.size_), position_(other.position_),
-          free_(std::exchange(other.free_, free_fn_t{ nullptr })) {
+          free_(std::exchange(other.free_, nullptr)) {
     }
 
-    explicit general_buffer(PointerType *ptr, size_t size, free_fn_t free) : ptr_(ptr), size_(size), position_(0), free_(free) {
+    explicit general_buffer(PointerType *ptr, size_t size, free_buffer_callback *free) : ptr_(ptr), size_(size), position_(0), free_(free) {
         assert(size > 0);
         clear();
     }
@@ -42,10 +45,7 @@ public:
     }
 
     virtual ~general_buffer() {
-        if (free_ && ptr_ != nullptr) {
-            free_(ptr_);
-            ptr_ = nullptr;
-        }
+        free();
     }
 
 public:
@@ -62,11 +62,18 @@ public:
         ptr_ = std::exchange(other.ptr_, nullptr);
         size_ = other.size_;
         position_ = other.position_;
-        free_ = std::exchange(other.free_, free_fn_t{ nullptr });
+        free_ = std::exchange(other.free_, nullptr);
         return *this;
     }
 
 public:
+    void free() {
+        if (free_ && ptr_ != nullptr) {
+            free_->free_buffer(ptr_);
+            ptr_ = nullptr;
+        }
+    }
+
     PointerType *ptr() const {
         return ptr_;
     }
@@ -114,7 +121,7 @@ public:
     int32_t read_byte(uint8_t *byte) {
         assert(byte != nullptr);
         if (position_ == size_) {
-            return 0;
+            return -1;
         }
         *byte = *((uint8_t *)ptr() + position());
         position_++;
@@ -122,17 +129,10 @@ public:
     }
 
     template <typename T>
-    int32_t fill(general_buffer<uint8_t const> &sb, T flush) {
-        if (sb.ptr() == nullptr) {
-            return fill(nullptr, sb.size() - sb.position(), flush);
-        }
-        return fill(sb.ptr() + sb.position(), sb.size() - sb.position(), flush);
-    }
-
-    template <typename T>
-    int32_t fill(uint8_t const *source, size_t size, T flush) {
+    int32_t fill_from_buffer_ptr(uint8_t const *source, size_t size, T flush) {
         auto copied = 0u;
         while (copied < size) {
+            phyverbosef("fill_from_buffer_ptr: size=%d our-size=%d our-position=%d available=%d copied=%d", size, size_, position_, size_ - position_, copied);
             auto copying = std::min<size_t>(size - copied, size_ - position_);
             if (copying > 0) {
                 if (ptr_ != nullptr) {
@@ -145,6 +145,9 @@ public:
                 auto err = flush(*this);
                 if (err < 0) {
                     return err;
+                }
+                if (err == 0) {
+                    break;
                 }
 
                 position_ = 0;
@@ -165,6 +168,10 @@ public:
         return fn(general_buffer<uint8_t const>(ptr_, position_));
     }
 
+    general_buffer<uint8_t const> read_back() {
+        return general_buffer<uint8_t const>{ ptr_, position_ };
+    }
+
     template <typename T>
     int32_t unsafe_all(T fn) {
         assert(ptr_ != nullptr);
@@ -183,7 +190,15 @@ public:
         return fn(ptr_ + position_, size_ - position_);
     }
 
-    int32_t fill_from(general_buffer<uint8_t const> &buffer) {
+    template <typename T>
+    int32_t fill_from_buffer(general_buffer<uint8_t const> &sb, T flush) {
+        if (sb.ptr() == nullptr) {
+            return fill_from_buffer_ptr(nullptr, sb.size() - sb.position(), flush);
+        }
+        return fill_from_buffer_ptr(sb.ptr() + sb.position(), sb.size() - sb.position(), flush);
+    }
+
+    int32_t copy_from(general_buffer<uint8_t const> &buffer) {
         auto copying = std::min<int32_t>(buffer.available(), available());
         if (copying > 0) {
             if (cursor() != nullptr) {
@@ -216,12 +231,30 @@ public:
         return p;
     }
 
+    int32_t write(uint8_t byte) {
+        if (position_ >= size_) {
+            return -1;
+        }
+        ptr_[position_] = byte;
+        position_++;
+        return 1;
+    }
+
+    int32_t write(uint8_t const *ptr, size_t size) {
+        if (position_ + size >= size_) {
+            return -1;
+        }
+        memcpy(ptr_ + position_, ptr, size);
+        position_ += size;
+        return size;
+    }
+
     bool room_for(size_t bytes) {
         return bytes + position_ <= size_;
     }
 
     general_buffer<uint8_t const> begin_view() const {
-        return general_buffer<uint8_t const>(ptr_, size_, 0u);
+        return general_buffer<uint8_t const>(ptr_, size_, (size_t)0u);
     }
 
     general_buffer<uint8_t const> end_view() const {

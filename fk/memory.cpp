@@ -45,6 +45,17 @@ void fk_standard_page_initialize() {
     loginfo("allocated %zd pages (%zd bytes)", pages_allocated, pages_allocated * StandardPageSize);
 }
 
+void fk_oom() {
+    logerror("oom!");
+
+    for (auto i = 0u; i < SizeOfStandardPagePool; ++i) {
+        if (!pages[i].available && pages[i].base != nullptr) {
+            logerror("[%2d] owner = %s allocated=%" PRIu32,
+                        i, pages[i].owner, pages[i].allocated);
+        }
+    }
+}
+
 void *fk_standard_page_malloc(size_t size, const char *name) {
     FK_ASSERT(size == StandardPageSize);
 
@@ -74,18 +85,11 @@ void *fk_standard_page_malloc(size_t size, const char *name) {
         #if defined(__SAMD51__)
         pages[selected].allocated = fk_uptime();
         #endif
-        logdebug("[%2d] malloc '%s'", selected, name);
+        logverbose("[%2d] malloc '%s'", selected, name);
         return pages[selected].base;
     }
     else {
-        logerror("oom!");
-
-        for (auto i = 0u; i < SizeOfStandardPagePool; ++i) {
-            if (!pages[i].available && pages[i].base != nullptr) {
-                logerror("[%2d] owner = %s allocated=%" PRIu32,
-                         i, pages[i].owner, pages[i].allocated);
-            }
-        }
+        fk_oom();
     }
 
     FK_ASSERT(false);
@@ -129,7 +133,7 @@ void fk_standard_page_free(void *ptr) {
 
     FK_ENABLE_IRQ();
 
-    logdebug("[%2d] free '%s'", selected, owner);
+    logverbose("[%2d] free '%s'", selected, owner);
 
     return;
 }

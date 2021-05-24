@@ -19,6 +19,8 @@ protected:
     void SetUp() override {
         StorageSuite::SetUp();
         fk_module_initialize_random();
+        Storage storage{ memory_, pool_ };
+        ASSERT_TRUE(storage.clear());
     }
 
     void TearDown() override {

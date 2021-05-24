@@ -26,15 +26,11 @@ setup: .python-setup fk/secrets.h fk/secrets.cpp fk/data/animals.h fk/data/adjec
 	pip3 install --index-url https://lief.quarkslab.com/packages lief==0.12.0.dev0
 	touch .python-setup
 
-cmake: $(BUILD)/samd51 $(BUILD)/samd51-qspi $(BUILD)/samd09 $(BUILD)/amd64
+cmake: $(BUILD)/samd51 $(BUILD)/samd09 $(BUILD)/amd64
 
 $(BUILD)/samd51: setup
 	mkdir -p $(BUILD)/samd51
 	cd $(BUILD)/samd51      && cmake -DTARGET_ARCH=samd51 ../../
-
-$(BUILD)/samd51-qspi: setup
-	mkdir -p $(BUILD)/samd51-qspi
-	cd $(BUILD)/samd51-qspi && cmake -DTARGET_ARCH=samd51 -DFK_TARGET_QSPI_MEMORY=ON ../../
 
 $(BUILD)/amd64: setup
 	mkdir -p $(BUILD)/amd64
@@ -44,12 +40,9 @@ $(BUILD)/samd09: setup
 	mkdir -p $(BUILD)/samd09
 	cd $(BUILD)/samd09 && cmake -DTARGET_ARCH=samd09 ../../
 
-samd51: $(BUILD)/samd51 $(BUILD)/samd51-qspi
+samd51: $(BUILD)/samd51
 	cd $(BUILD)/samd51 && $(MAKE)
 	tools/stack-usage.py $(BUILD)/samd51 > doc/stack-usage.txt
-
-samd51-qspi: $(BUILD)/samd51 $(BUILD)/samd51-qspi
-	cd $(BUILD)/samd51-qspi && $(MAKE)
 
 samd09: $(BUILD)/samd09
 	cd $(BUILD)/samd09 && $(MAKE)
@@ -121,10 +114,6 @@ info:
     echo $$m.cpp;                                                                              \
     cat $$m | c++filt > $$m.cpp;                                                               \
 	done
-	+@for m in build/samd51-qspi/fk/*.map; do                                                   \
-    echo $$m.cpp;                                                                              \
-    cat $$m | c++filt > $$m.cpp;                                                               \
-	done
 
 debug-tests: amd64
 	gdb build/amd64/tests/hosted/testall
@@ -138,6 +127,16 @@ module-test:
 	xxd -i build/samd51/modules/dynamic/main/fkdynamic-fkb.bin > fk/modules/dyn/compiled.h
 	sed -i 's/\[\] = /\[\] __attribute__((aligned(4))) =/g' fk/modules/dyn/compiled.h
 	cd build/samd51/fk && $(MAKE)
+
+options:
+	cd $(BUILD)/samd51 && cmake ../../
+	cd $(BUILD)/samd51 && cmake -LA ../../
+
+enable-phylum:
+	cd $(BUILD)/samd51 && cmake -DFK_PHYLUM=ON ../../
+
+enable-phylum-amplify:
+	cd $(BUILD)/samd51 && cmake -DFK_PHYLUM=ON -DFK_PHYLUM_AMPLIFICATION=10 ../../
 
 clean:
 	rm -rf $(BUILD)

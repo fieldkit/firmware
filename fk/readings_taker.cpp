@@ -50,6 +50,10 @@ tl::expected<TakenReadings, Error> ReadingsTaker::take(ConstructedModulesCollect
             return tl::unexpected<Error>(Error::IO);
         }
 
+        if (!storage_.phylum().sync()) {
+            return tl::unexpected<Error>(Error::IO);
+        }
+
         return TakenReadings{ get_clock_now(), *data_record, std::move(constructed_modules), std::move(*all_readings) };
     }
 

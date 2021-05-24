@@ -46,7 +46,8 @@ static SPISettings SpiSettings{ 50000000, MSBFIRST, SPI_MODE0 };
 
 constexpr static uint32_t ToshibaPageSize = 2048;
 constexpr static uint32_t ToshibaProgramSize = 512;
-constexpr static uint32_t ToshibaBlockSize = 2048 * 64;
+constexpr static uint32_t ToshibaPagesPerBlock = 64;
+constexpr static uint32_t ToshibaBlockSize = 2048 * ToshibaPagesPerBlock;
 constexpr static uint32_t ToshibaNumberOfBlocks = 2048;
 
 static FlashGeometry ToshibaGeometry{
@@ -54,7 +55,9 @@ static FlashGeometry ToshibaGeometry{
     ToshibaBlockSize,
     ToshibaNumberOfBlocks,
     ToshibaNumberOfBlocks * ToshibaBlockSize,
-    ToshibaProgramSize
+    ToshibaProgramSize,
+    ToshibaPagesPerBlock,
+    ToshibaPageSize
 };
 
 /**
@@ -68,7 +71,8 @@ static FlashGeometry ToshibaGeometry{
 constexpr static uint32_t OriginalPageSize = 2048;
 constexpr static uint32_t KoxiaPageSize = 4096;
 constexpr static uint32_t KoxiaProgramSize = 512;
-constexpr static uint32_t KoxiaBlockSize = 2048 * 64;
+constexpr static uint32_t KoxiaPagesPerBlock = 64;
+constexpr static uint32_t KoxiaBlockSize = KoxiaPageSize * KoxiaPagesPerBlock;
 constexpr static uint32_t KoxiaNumberOfBlocks = 2048;
 
 static FlashGeometry KoxiaGeometry{
@@ -76,7 +80,9 @@ static FlashGeometry KoxiaGeometry{
     KoxiaBlockSize,
     KoxiaNumberOfBlocks,
     KoxiaNumberOfBlocks * KoxiaBlockSize,
-    KoxiaProgramSize
+    KoxiaProgramSize,
+    KoxiaPagesPerBlock,
+    KoxiaPageSize
 };
 
 SpiFlash::SpiFlash(uint8_t cs) : cs_(cs), model_(ChipModel::Unknown) {
@@ -196,11 +202,11 @@ bool SpiFlash::reset() {
 }
 
 int32_t SpiFlash::read(uint32_t address, uint8_t *data, size_t length) {
-    auto page_size = geometry_.page_size;
+    auto page_size = geometry_.real_page_size;
 
     FK_ASSERT_LE((address % page_size) + length, page_size);
 
-    logverbose("[0x%08" PRIx32 "] read: length=%d (end = [0x%08" PRIx32 "])", address, length, address + length);
+    logdebug("[0x%08" PRIx32 "] read: length=%d (end = [0x%08" PRIx32 "])", address, length, address + length);
 
     uint8_t read_cell_command[] = { CMD_READ_CELL_ARRAY, 0x00, 0x00, 0x00 }; // 7dummy/17 (Row)
     uint8_t read_buffer_command[] = { CMD_READ_BUFFER, 0x00, 0x00, 0x00 };   // 4dummy/12/8dummy // (Col)
@@ -261,7 +267,9 @@ int32_t SpiFlash::write(uint32_t address, const uint8_t *data, size_t length) {
 }
 
 int32_t SpiFlash::write_internal(uint32_t address, const uint8_t *data, size_t length) {
-    FK_ASSERT_LE((address % geometry().page_size) + length, geometry().page_size);
+    auto page_size = geometry_.real_page_size;
+
+    FK_ASSERT_LE((address % page_size) + length, page_size);
 
     uint8_t program_load_command[] = { CMD_PROGRAM_LOAD, 0x00, 0x00 }; // 4dummy/12
     uint8_t program_execute_command[] = { CMD_PROGRAM_EXECUTE, 0x00, 0x00, 0x00 }; // 7dummy/17
@@ -436,9 +444,12 @@ bool SpiFlash::read_parameters_page() {
     static_assert(sizeof(parameters_page_t) == 256, "unexpected parameters page size");
 
     uint8_t read_cell_command[] = { CMD_READ_CELL_ARRAY, 0x00, 0x00, 0x00 }; // 7dummy/17 (Row)
-    uint8_t read_buffer_command[] = { CMD_READ_BUFFER, 0x00, 0x00, 0x00 };   // 4dummy/12/8dummy (Col)
+    uint8_t read_buffer_command[] = { CMD_READ_BUFFER, 0x00, 0x00, 0x00 };   // 4dummy/12/8dummy
+                                                                             // (Col)
 
-    row_address_to_bytes(geometry().page_size, read_cell_command + 1);
+    auto page_size = geometry().real_page_size;
+
+    row_address_to_bytes(page_size, read_cell_command + 1);
     if (model_ == ChipModel::Koxia) {
         row_address_to_bytes(1, read_cell_command + 1);
     }
@@ -524,14 +535,16 @@ bool SpiFlash::read_unique_id() {
 }
 
 void SpiFlash::row_address_to_bytes(uint32_t address, uint8_t *bytes) {
-    uint32_t row = (address / geometry().page_size);
+    auto page_size = geometry().real_page_size;
+    uint32_t row = (address / page_size);
     bytes[0] = (row >> 16) & 0xff;
     bytes[1] = (row >> 8) & 0xff;
     bytes[2] = (row & 0xff);
 }
 
 void SpiFlash::column_address_to_bytes(uint32_t address, uint8_t *bytes) {
-    uint32_t column = (address % geometry().page_size);
+    auto page_size = geometry().real_page_size;
+    uint32_t column = (address % page_size);
     bytes[0] = (column >> 8) & 0xff;
     bytes[1] = (column & 0xff);
 }

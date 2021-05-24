@@ -1,4 +1,4 @@
 build
 .gdb_history
 .ccls-cache
-
+*.dot

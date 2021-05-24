@@ -40,7 +40,7 @@ int32_t with_bank(DataMemory **memories, size_t size, uint32_t address, F fn) {
 bool BankedDataMemory::begin() {
     auto nbanks = 0;
 
-    geometry_ = { 0, 0, 0, 0, 0 };
+    geometry_ = { 0, 0, 0, 0, 0, 0, 0 };
 
     for (size_t i = 0; i < size_; ++i) {
         auto bank = memories_[i];
@@ -50,11 +50,14 @@ bool BankedDataMemory::begin() {
                 geometry_.page_size = g.page_size;
                 geometry_.block_size = g.block_size;
                 geometry_.prog_size = g.prog_size;
+                geometry_.real_page_size = g.real_page_size;
                 FK_ASSERT(g.prog_size > 0);
+                FK_ASSERT(g.real_page_size > 0);
             }
             FK_ASSERT(geometry_.page_size == g.page_size);
             FK_ASSERT(geometry_.block_size == g.block_size);
             FK_ASSERT(geometry_.prog_size == g.prog_size);
+            FK_ASSERT(geometry_.real_page_size == g.real_page_size);
             geometry_.total_size += g.total_size;
             geometry_.nblocks += g.nblocks;
             nbanks++;

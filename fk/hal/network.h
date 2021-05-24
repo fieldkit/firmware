@@ -103,7 +103,7 @@ public:
 
     virtual uint32_t ip_address() = 0;
 
-    virtual uint32_t rssi() {
+    virtual int32_t rssi() {
         return 0;
     }
 
