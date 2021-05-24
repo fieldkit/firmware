@@ -38,9 +38,18 @@ file_size_t file_appender::position() {
 int32_t file_appender::write(uint8_t const *data, size_t size) {
     logged_task lt{ "fa-write" };
 
-    return buffer_.fill(data, size, [&](simple_buffer &) -> int32_t {
-        return flush();
+    phyverbosef("appender-write: position=%d buffer=%d size=%d", cursor().position, buffer_.position(), size);
+
+    auto wrote = buffer_.fill_from_buffer_ptr(data, size, [&](simple_buffer &) -> int32_t {
+        auto flushing = buffer_.position();
+        auto err = flush();
+        if (err < 0) {
+            return err;
+        }
+        return flushing;
     });
+
+    return wrote;
 }
 
 int32_t file_appender::make_data_chain() {
@@ -51,11 +60,7 @@ int32_t file_appender::make_data_chain() {
         return err;
     }
 
-    err = directory_->read(file_.id, [&](read_buffer data_buffer) -> int32_t {
-        return data_buffer.read_to_end([&](read_buffer rb) -> int32_t {
-            return data_chain_.write(rb.ptr(), rb.size());
-        });
-    });
+    err = directory_->read(file_.id, data_chain_);
     if (err < 0) {
         return err;
     }
@@ -69,24 +74,38 @@ int32_t file_appender::make_data_chain() {
         }
 
         buffer_.clear();
+
+        return err;
     }
 
     return 0;
 }
 
-int32_t file_appender::index_if_necessary(std::function<int32_t(data_chain_cursor)> fn) {
+int32_t file_appender::index_necessary() {
+    // We use the appender cursor so that we don't keep indexing at
+    // the start, while data chain cursor hasn't moved because we're
+    // buffering. This doesn't affect anything.
     auto cursor = this->cursor();
     assert(cursor.sector != InvalidSector);
 
-    if (cursor.position == 0 || (data_chain_.visited_sectors() > 0 && data_chain_.visited_sectors() % 16 == 0)) {
-        auto err = fn(cursor);
-        if (err < 0) {
-            return err;
-        }
-
+    if (cursor.position == 0 || data_chain_.visited_sectors() > 16) {
         data_chain_.clear_visited_sectors();
+        return 1;
     }
 
+    return 0;
+}
+
+int32_t file_appender::seek() {
+    if (!data_chain_.valid()) {
+        phydebugf("noop seek");
+        return 0;
+    }
+
+    auto err = data_chain_.seek_sector(data_chain_.head(), 0, UINT32_MAX);
+    if (err < 0) {
+        return err;
+    }
     return 0;
 }
 
@@ -98,7 +117,7 @@ int32_t file_appender::flush() {
     // Do we already have a data chain?
     auto had_chain = data_chain_.valid();
     if (had_chain) {
-        phydebugf("writing to chain");
+        phydebugf("writing to chain head=%d", data_chain_.head());
 
         auto truncated = ((int32_t)file_.cfg.flags & (int32_t)open_file_flags::Truncate) > 0;
         if (!truncated_ && truncated) {
@@ -146,16 +165,16 @@ int32_t file_appender::flush() {
 
             auto err = make_data_chain();
             if (err < 0) {
-                phyerrorf("mdc failed");
+                phyerrorf("mdc");
                 return err;
             }
 
-            phyinfof("flush making chain done (%d)", buffer_.position());
+            phyinfof("flush making chain done position=%d err=%d", data_chain_.cursor().position, err);
         }
     }
 
     if (data_chain_.valid()) {
-        phydebugf("flush remaining (%d)", buffer_.position());
+        phyverbosef("flush remaining (%d)", buffer_.position());
 
         auto err = data_chain_.flush();
         if (err < 0) {
@@ -163,9 +182,9 @@ int32_t file_appender::flush() {
         }
 
         if (!had_chain) {
-            phyinfof("%s updating directory", data_chain_.name());
             file_.chain.head = data_chain_.head();
             file_.chain.tail = data_chain_.tail();
+            phyinfof("%s updating directory head=%d tail=%d", data_chain_.name(), file_.chain.head, file_.chain.tail);
             auto err = directory_->file_chain(file_.id, file_.chain);
             if (err < 0) {
                 return err;
@@ -176,35 +195,6 @@ int32_t file_appender::flush() {
     }
 
     return 0;
-}
-
-uint32_t file_appender::u32(uint8_t type) {
-    assert(file_.cfg.nattrs > 0);
-    for (auto i = 0u; i < file_.cfg.nattrs; ++i) {
-        auto &attr = file_.cfg.attributes[i];
-        if (attr.type == type) {
-            assert(sizeof(uint32_t) == attr.size);
-            return *(uint32_t *)attr.ptr;
-        }
-    }
-    assert(false);
-    return 0;
-}
-
-void file_appender::u32(uint8_t type, uint32_t value) {
-    assert(file_.cfg.nattrs > 0);
-    for (auto i = 0u; i < file_.cfg.nattrs; ++i) {
-        auto &attr = file_.cfg.attributes[i];
-        if (attr.type == type) {
-            assert(sizeof(uint32_t) == attr.size);
-            if (*(uint32_t *)attr.ptr != value) {
-                *(uint32_t *)attr.ptr = value;
-                attr.dirty = true;
-            }
-            return;
-        }
-    }
-    assert(false);
 }
 
 int32_t file_appender::close() {
@@ -224,6 +214,8 @@ int32_t file_appender::close() {
         auto &attr = file_.cfg.attributes[i];
         attr.dirty = false;
     }
+
+    buffer_.free();
 
     return 0;
 }

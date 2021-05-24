@@ -8,7 +8,7 @@
 
 namespace phylum {
 
-class working_buffers {
+class working_buffers : free_buffer_callback {
 protected:
     struct page_t {
         uint8_t *buffer{ nullptr };
@@ -17,6 +17,7 @@ protected:
         bool dirty{ false };
         int32_t refs{ 0 };
         int32_t hits{ 0 };
+        uint32_t wrote{ 0 };
         uint32_t used{ 0 };
     };
 
@@ -68,8 +69,16 @@ public:
     }
 
 public:
-    using miss_function_t = std::function<int32_t(dhara_sector_t, uint8_t *, size_t)>;
-    using flush_function_t = std::function<int32_t(dhara_sector_t, uint8_t *, size_t)>;
+    int32_t clear() {
+        for (auto i = 0u; i < Size; ++i) {
+            if (pages_[i].buffer != nullptr) {
+                memset(pages_[i].buffer, 0xff, pages_[i].size);
+                pages_[i].sector = InvalidSector;
+                pages_[i].dirty = false;
+            }
+        }
+        return 0;
+    }
 
     int32_t dirty_sector(dhara_sector_t sector) {
         auto err = -1;
@@ -78,7 +87,7 @@ public:
             auto &p = pages_[i];
             if (p.buffer != nullptr) {
                 if (p.sector == sector) {
-                    phydebugf("wbuffers[%d] dirty sector=%d", i, sector);
+                    phyverbosef("wbuffers[%d] dirty sector=%d", i, sector);
                     p.dirty = true;
                     err = 0;
                 }
@@ -88,7 +97,8 @@ public:
         return err;
     }
 
-    int32_t flush_sector(dhara_sector_t sector, flush_function_t flush) {
+    template<typename FlushFunction>
+    int32_t flush_sector(dhara_sector_t sector, FlushFunction flush) {
         auto flushed = false;
 
         for (auto i = 0u; i < Size; ++i) {
@@ -103,7 +113,7 @@ public:
                         phywarnf("flush of clean page sector");
                     }
 
-                    phydebugf("wbuffers[%d] flush sector=%d", i, sector);
+                    phyverbosef("wbuffers[%d] flush sector=%d", i, sector);
 
                     auto err = flush(sector, p.buffer, buffer_size_);
                     if (err < 0) {
@@ -112,7 +122,8 @@ public:
 
                     flushed = true;
                     p.dirty = false;
-                    writes_++;
+                    p.wrote = ++writes_;
+
 #if defined(__linux__)
                     statistics_[sector].writes++;
 #endif
@@ -127,7 +138,8 @@ public:
         return 0;
     }
 
-    uint8_t *open_sector(dhara_sector_t sector, bool read_only, miss_function_t miss, flush_function_t flush) {
+    template<typename MissFunction, typename FlushFunction>
+    uint8_t *open_sector(dhara_sector_t sector, bool read_only, MissFunction miss, FlushFunction flush) {
         auto selected = -1;
         auto flushing = -1;
 
@@ -159,7 +171,7 @@ public:
                 p.used = counter_;
                 p.hits++;
 
-                phydebugf("wbuffers[%d]: reusing refs=%d", i, p.refs);
+                phyverbosef("wbuffers[%d]: reusing refs=%d", i, p.refs);
 
                 if (false) {
                     phydebug_dump_memory("reuse[%d, sector=%d] ", p.buffer, buffer_size_, i, p.sector);
@@ -170,18 +182,23 @@ public:
             else {
                 if (p.refs == 0) {
                     if (p.dirty) {
-                        // TODO Check age
-                        flushing = i;
+                        if (p.sector != InvalidSector) {
+                            if (flushing == -1) {
+                                flushing = i;
+                            }
+                            else {
+                                if (better_drop_candidate(p, pages_[flushing])) {
+                                    flushing = i;
+                                }
+                            }
+                        }
                     }
                     else {
                         if (selected == -1)  {
                             selected = i;
                         }
                         else {
-                            if (p.sector == InvalidSector && pages_[selected].sector != InvalidSector) {
-                                selected = i;
-                            }
-                            else if (p.used < pages_[selected].used) {
+                            if (better_drop_candidate(p, pages_[selected])) {
                                 selected = i;
                             }
                         }
@@ -207,6 +224,7 @@ public:
 
                 p.dirty = false;
                 p.sector = InvalidSector;
+                p.wrote = 0;
                 writes_++;
 
                 selected = flushing;
@@ -217,7 +235,7 @@ public:
             }
         }
         else {
-            phydebugf("wbuffers[%d]: allocating sector=%d", selected, sector);
+            phyverbosef("wbuffers[%d]: allocating sector=%d", selected, sector);
         }
 
         // Load the sector.
@@ -250,6 +268,7 @@ public:
         p.sector = sector;
         p.used = counter_;
         p.hits = 0;
+        p.wrote = 0;
 
         if (false) {
             phydebug_dump_memory("alloc[%d, sector=%d] ", p.buffer, buffer_size_, selected, sector);
@@ -258,6 +277,26 @@ public:
         update_highwater();
 
         return p.buffer;
+    }
+
+    bool better_drop_candidate(page_t const &candidate, page_t const &selected) {
+        // Favor pages that don't have a sector in them over those that do.
+        if (candidate.sector == InvalidSector && selected.sector != InvalidSector) {
+            return true;
+        }
+
+        // Favor older written pages over one recently written as
+        // well as favoring unwritten pages over written ones.
+        if (selected.wrote > 0 && candidate.wrote < selected.wrote) {
+            return true;
+        }
+
+        // Favor pages that were used further ago than the selected one.
+        if (candidate.used < selected.used) {
+            return true;
+        }
+
+        return false;
     }
 
     int32_t debug() {
@@ -327,21 +366,21 @@ public:
         p.used = counter_;
         p.sector = InvalidSector;
         p.hits = 0;
+        p.wrote = 0;
         p.refs--;
 
         update_highwater();
 
-        phydebugf("wbuffers[%d]: allocate sector=%d hw=%zu", selected, p.sector, highwater_);
-        auto free_fn = std::bind(&working_buffers::free, this, std::placeholders::_1);
-        return simple_buffer{ p.buffer, size, free_fn };
+        phyverbosef("wbuffers[%d]: allocate sector=%d hw=%zu", selected, p.sector, highwater_);
+        return simple_buffer{ p.buffer, size, this };
     }
 
-    void free(uint8_t const *ptr) {
+    void free_buffer(void const *ptr) override {
         assert(ptr != nullptr);
         for (auto i = 0u; i < Size; ++i) {
             auto &p = pages_[i];
             if (p.buffer == ptr) {
-                phydebugf("wbuffers[%d]: free refs-before=%d sector=%d", i, p.refs, p.sector);
+                phyverbosef("wbuffers[%d]: free refs-before=%d sector=%d", i, p.refs, p.sector);
 
                 assert(p.refs != 0);
 

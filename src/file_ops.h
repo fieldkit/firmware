@@ -43,8 +43,8 @@ public:
         return 0;
     }
 
-    int32_t touch(const char *name) {
-        auto err = dir_.template touch_indexed<tree_type>(name);
+    int32_t touch(const char *name, open_file_config file_cfg = {}) {
+        auto err = dir_.template touch_indexed<tree_type>(name, file_cfg);
         if (err < 0) {
             return err;
         }

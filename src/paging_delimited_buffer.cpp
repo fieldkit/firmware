@@ -102,14 +102,14 @@ void paging_delimited_buffer::ensure_valid() const {
 int32_t paging_delimited_buffer::replace(dhara_sector_t sector, bool read_only, bool overwrite) {
     assert(sector != InvalidSector);
 
-    phydebugf("page-lock: replacing previous=%d sector=%d read-only=%d overwrite=%s", sector_, sector, read_only, overwrite ? "yes" : "no");
+    phyverbosef("page-lock: replacing previous=%d sector=%d read-only=%d overwrite=%s", sector_, sector, read_only, overwrite ? "yes" : "no");
 
     if (sector == sector_) {
         phyverbosef("page-lock: replace (noop)");
         return 0;
     }
 
-    auto miss_fn = [=](dhara_sector_t page_sector, uint8_t *buffer, size_t size) -> int32_t {
+    auto miss_fn = [this, overwrite](dhara_sector_t page_sector, uint8_t *buffer, size_t size) -> int32_t {
         assert(size > 0);
         if (overwrite) {
             return 0;
@@ -124,7 +124,7 @@ int32_t paging_delimited_buffer::replace(dhara_sector_t sector, bool read_only, 
         return size;
     };
 
-    auto flush_fn = [=](dhara_sector_t page_sector, uint8_t const *buffer, size_t size) {
+    auto flush_fn = [this](dhara_sector_t page_sector, uint8_t const *buffer, size_t size) {
         assert(size > 0);
         return sectors_->write(page_sector, buffer, size);
     };
@@ -133,7 +133,7 @@ int32_t paging_delimited_buffer::replace(dhara_sector_t sector, bool read_only, 
 
     if (ptr() != nullptr) {
         phyverbosef("page-lock: freeing previous");
-        buffers_->free(ptr());
+        buffers_->free_buffer(ptr());
         ptr(nullptr, 0);
     }
 
@@ -172,7 +172,7 @@ int32_t paging_delimited_buffer::release(dhara_sector_t sector) {
     valid_ = false;
     sector_ = InvalidSector;
     if (ptr() != nullptr) {
-        buffers_->free(ptr());
+        buffers_->free_buffer(ptr());
         ptr(nullptr, 0);
     }
 

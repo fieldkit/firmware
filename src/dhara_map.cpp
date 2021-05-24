@@ -47,6 +47,10 @@ int32_t dhara_sector_map::begin(bool force_create) {
         .dn = this,
     };
 
+    page_size_ = page_size;
+    block_size_ = block_size;
+    nblocks_ = nblocks;
+
     if (!buffer_.valid()) {
         buffer_ = buffers_->allocate(page_size);
     }
@@ -56,6 +60,7 @@ int32_t dhara_sector_map::begin(bool force_create) {
     // unsafe_all, in that dhara basically owns this buffer now.
     auto err = buffer_.unsafe_forever([&](uint8_t *ptr, size_t size) {
         assert(size == page_size);
+        memset(&dmap_, 0, sizeof(struct dhara_map));
         dhara_map_init(&dmap_, &nand_.dhara, ptr, gc_ratio_);
         return 0;
     });
@@ -64,19 +69,18 @@ int32_t dhara_sector_map::begin(bool force_create) {
     }
 
     dhara_error_t derr;
-    if (dhara_map_resume(&dmap_, &derr) < 0) {
-        phywarnf("resume failed, clearing");
-        dhara_map_clear(&dmap_);
-    }
-
     if (force_create) {
-        phywarnf("force create, clearing");
+        phywarnf("dhara clearing");
         dhara_map_clear(&dmap_);
     }
-
-    page_size_ = page_size;
-    block_size_ = block_size;
-    nblocks_ = nblocks;
+    else  {
+        phydebugf("resuming");
+        if (dhara_map_resume(&dmap_, &derr) < 0) {
+            phyerrorf("dhara resume failed (%d)", derr);
+            return -1;
+        }
+        phydebugf("dhara ready");
+    }
 
     auto capacity = dhara_map_capacity(&dmap_);
     auto capacity_bytes = capacity * page_size_;
@@ -175,6 +179,8 @@ int32_t dhara_sector_map::clear() {
 }
 
 int32_t dhara_sector_map::sync() {
+    phyinfof("syncing");
+
     dhara_error_t derr;
     auto err = dhara_map_sync(&dmap_, &derr);
     if (err < 0) {
@@ -205,6 +211,8 @@ int dhara_sector_map::dhara_erase(const struct dhara_nand */*n*/, dhara_block_t 
 }
 
 int dhara_sector_map::dhara_prog(const struct dhara_nand */*n*/, dhara_page_t p, const uint8_t *data, dhara_error_t *err) {
+    assert(page_size_ > 0);
+
     auto address = p * page_size_;
     auto nbytes = target_->write(address, data, page_size_);
     if (nbytes < 0) {
@@ -231,6 +239,8 @@ void dhara_sector_map::dhara_mark_bad(const struct dhara_nand */*n*/, dhara_bloc
 }
 
 int dhara_sector_map::dhara_read(const struct dhara_nand */*n*/, dhara_page_t p, size_t offset, size_t length, uint8_t *data, dhara_error_t *err) {
+    assert(page_size_ > 0);
+
     auto address = p * page_size_ + offset;
     auto nbytes = target_->read(address, data, length);
     if (nbytes < 0) {
@@ -245,6 +255,8 @@ int dhara_sector_map::dhara_read(const struct dhara_nand */*n*/, dhara_page_t p,
 }
 
 int dhara_sector_map::dhara_copy(const struct dhara_nand */*n*/, dhara_page_t src, dhara_page_t dst, dhara_error_t *err) {
+    assert(page_size_ > 0);
+
     if (target_->copy_page(src * page_size_, dst * page_size_, page_size_) < 0) {
         phydebugf("copy-page");
         return -1;
