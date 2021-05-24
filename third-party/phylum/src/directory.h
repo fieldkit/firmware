@@ -1,12 +1,21 @@
 #pragma once
 
+#include "writer.h"
+
 namespace phylum {
 
 struct open_file_attribute {
     uint8_t type{ 0 };
     uint8_t size{ 0 };
+    uint8_t default_value{ 0 };
     void   *ptr{ nullptr };
     bool    dirty{ 0 };
+
+    open_file_attribute() {
+    }
+
+    open_file_attribute(uint8_t type, uint8_t size, uint8_t default_value = 0x00) : type(type), size(size), default_value(default_value) {
+    }
 };
 
 enum class open_file_flags {
@@ -18,6 +27,9 @@ struct open_file_config {
     open_file_flags flags{ open_file_flags::None };
     open_file_attribute *attributes{ nullptr };
     size_t nattrs{ 0 };
+
+    open_file_config() {
+    }
 };
 
 struct found_file {
@@ -54,7 +66,7 @@ public:
 
     virtual int32_t file_trees(file_id_t id, tree_ptr_t position_index, tree_ptr_t record_index) = 0;
 
-    virtual int32_t read(file_id_t id, std::function<int32_t(read_buffer)> fn) = 0;
+    virtual int32_t read(file_id_t id, io_writer &writer) = 0;
 
 };
 

@@ -52,12 +52,14 @@ TYPED_TEST(ReadFixture, ReadInlineWrite_WithAttributes) {
 
     auto hello = "Hello, world! How are you?";
 
+    attributes_helper attributes{ this->file_cfg() };
+
     memory.mounted<dir_type>([&](auto &chain) {
         ASSERT_EQ(chain.touch("data.txt"), 0);
 
         ASSERT_EQ(chain.find("data.txt", this->file_cfg()), 1);
         file_appender opened{ memory.pc(), &chain, chain.open() };
-        opened.u32(ATTRIBUTE_ONE, opened.u32(ATTRIBUTE_ONE) + 1);
+        attributes.u32(ATTRIBUTE_ONE, attributes.u32(ATTRIBUTE_ONE) + 1);
         ASSERT_GT(opened.write(hello), 0);
         ASSERT_EQ(opened.close(), 0);
     });
@@ -68,7 +70,7 @@ TYPED_TEST(ReadFixture, ReadInlineWrite_WithAttributes) {
 
         uint8_t buffer[256];
         ASSERT_EQ(reader.read(buffer, sizeof(buffer)), (int32_t)strlen(hello));
-        ASSERT_EQ(reader.u32(ATTRIBUTE_ONE), 1u);
+        ASSERT_EQ(attributes.u32(ATTRIBUTE_ONE), 1u);
         ASSERT_EQ(reader.position(), strlen(hello));
         ASSERT_EQ(reader.close(), 0);
     });
@@ -221,6 +223,8 @@ TYPED_TEST(ReadFixture, ReadDataChain_TwoBlocks_WithAttributes) {
     auto hello = "Hello, world! How are you!";
     auto bytes_wrote = 0u;
 
+    attributes_helper attributes{ this->file_cfg() };
+
     memory.mounted<dir_type>([&](auto &chain) {
         ASSERT_EQ(chain.touch("data.txt"), 0);
 
@@ -231,7 +235,7 @@ TYPED_TEST(ReadFixture, ReadDataChain_TwoBlocks_WithAttributes) {
             ASSERT_GT(opened.write(hello), 0);
             bytes_wrote += strlen(hello);
         }
-        opened.u32(ATTRIBUTE_ONE, opened.u32(ATTRIBUTE_ONE) + 1);
+        attributes.u32(ATTRIBUTE_ONE, attributes.u32(ATTRIBUTE_ONE) + 1);
         ASSERT_EQ(opened.close(), 0);
     });
 
@@ -248,7 +252,7 @@ TYPED_TEST(ReadFixture, ReadDataChain_TwoBlocks_WithAttributes) {
             ASSERT_EQ(reader.position(), bytes_read);
         }
 
-        ASSERT_EQ(reader.u32(ATTRIBUTE_ONE), 1u);
+        ASSERT_EQ(attributes.u32(ATTRIBUTE_ONE), 1u);
         ASSERT_EQ(reader.position(), bytes_wrote);
         ASSERT_EQ(reader.close(), 0);
     });

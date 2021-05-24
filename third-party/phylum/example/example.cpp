@@ -13,7 +13,6 @@
 #include "sector_allocator.h"
 #include "directory_chain.h"
 #include "data_chain.h"
-#include "integer_chain.h"
 #include "file_appender.h"
 #include "file_reader.h"
 #include "memory_sector_map.h"

@@ -77,7 +77,9 @@ public:
 
 public:
     void begin(bool force_create) {
-        ASSERT_EQ(sectors_.begin(true), 0);
+        buffers_.clear();
+
+        ASSERT_EQ(sectors_.begin(force_create), 0);
         initialized_ = true;
     }
 
@@ -135,8 +137,8 @@ public:
 
 public:
     PhylumFixture() {
-        attributes_[0] = open_file_attribute{ ATTRIBUTE_ONE, 4, nullptr, false };
-        attributes_[1] = open_file_attribute{ ATTRIBUTE_TWO, 4, nullptr, false };
+        attributes_[0] = open_file_attribute{ ATTRIBUTE_ONE, 4 };
+        attributes_[1] = open_file_attribute{ ATTRIBUTE_TWO, 4 };
     }
 
     virtual ~PhylumFixture() {
@@ -144,10 +146,9 @@ public:
 
 public:
     void SetUp() override {
-        file_cfg_ = {
-            .attributes = attributes_,
-            .nattrs = 2,
-        };
+        file_cfg_ = {};
+        file_cfg_.attributes = attributes_;
+        file_cfg_.nattrs = 2;
         for (auto &attr : attributes_) {
             attr.ptr = malloc(attr.size);
         }
@@ -179,5 +180,44 @@ public:
 class suppress_logs : public temporary_log_level {
 public:
     suppress_logs() : temporary_log_level(LogLevels::NONE) {
+    }
+};
+
+class attributes_helper {
+private:
+    open_file_config file_cfg_;
+
+public:
+    attributes_helper(open_file_config file_cfg) : file_cfg_(file_cfg) {
+    }
+
+public:
+    uint32_t u32(uint8_t type) {
+        assert(file_cfg_.nattrs > 0);
+        for (auto i = 0u; i < file_cfg_.nattrs; ++i) {
+            auto &attr = file_cfg_.attributes[i];
+            if (attr.type == type) {
+                assert(sizeof(uint32_t) == attr.size);
+                return *(uint32_t *)attr.ptr;
+            }
+        }
+        assert(false);
+        return 0;
+    }
+
+    void u32(uint8_t type, uint32_t value) {
+        assert(file_cfg_.nattrs > 0);
+        for (auto i = 0u; i < file_cfg_.nattrs; ++i) {
+            auto &attr = file_cfg_.attributes[i];
+            if (attr.type == type) {
+                assert(sizeof(uint32_t) == attr.size);
+                if (*(uint32_t *)attr.ptr != value) {
+                    *(uint32_t *)attr.ptr = value;
+                    attr.dirty = true;
+                }
+                return;
+            }
+        }
+        assert(false);
     }
 };

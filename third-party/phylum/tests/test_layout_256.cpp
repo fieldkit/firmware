@@ -203,8 +203,10 @@ TEST_F(LayoutFixture_256, WriteAndIncrementAttribute) {
 
         auto hello = "Hello, world! How are you!";
 
+        attributes_helper attributes{ this->file_cfg() };
+
         for (auto i = 0u; i < 3; ++i) {
-            opened.u32(ATTRIBUTE_ONE, opened.u32(ATTRIBUTE_ONE) + 1);
+            attributes.u32(ATTRIBUTE_ONE, attributes.u32(ATTRIBUTE_ONE) + 1);
             ASSERT_GT(opened.write(hello), 0);
             ASSERT_GE(opened.flush(), 0);
         }
@@ -230,12 +232,14 @@ TEST_F(LayoutFixture_256, WriteAndIncrementAttributeThreeTimes) {
         ASSERT_EQ(chain.touch("data.txt"), 0);
 
         ASSERT_EQ(chain.find("data.txt", file_cfg()), 1);
-        file_appender opened{ memory.pc(), &chain, chain.open() };
 
         auto hello = "Hello, world! How are you!";
 
+        attributes_helper attributes{ this->file_cfg() };
+
         for (auto i = 0u; i < 3; ++i) {
-            opened.u32(ATTRIBUTE_ONE, opened.u32(ATTRIBUTE_ONE) + 1);
+            file_appender opened{ memory.pc(), &chain, chain.open() };
+            attributes.u32(ATTRIBUTE_ONE, attributes.u32(ATTRIBUTE_ONE) + 1);
             ASSERT_GT(opened.write(hello), 0);
             ASSERT_GE(opened.flush(), 0);
             ASSERT_GE(opened.close(), 0);
@@ -262,21 +266,22 @@ TEST_F(LayoutFixture_256, WriteToDataChainAndIncrementAttributeThreeTimes) {
         ASSERT_EQ(chain.touch("data.txt"), 0);
 
         ASSERT_EQ(chain.find("data.txt", file_cfg()), 1);
-        file_appender opened{ memory.pc(), &chain, chain.open() };
 
         auto hello = "Hello, world! How are you!";
 
+        attributes_helper attributes{ this->file_cfg() };
+
         for (auto i = 0u; i < 3; ++i) {
-            opened.u32(ATTRIBUTE_ONE, opened.u32(ATTRIBUTE_ONE) + 1);
+            file_appender opened{ memory.pc(), &chain, chain.open() };
+            attributes.u32(ATTRIBUTE_ONE, attributes.u32(ATTRIBUTE_ONE) + 1);
             ASSERT_GT(opened.write(hello), 0);
-            ASSERT_GE(opened.flush(), 0);
             ASSERT_GE(opened.close(), 0);
         }
 
         for (auto i = 0u; i < 2; ++i) {
-            opened.u32(ATTRIBUTE_ONE, opened.u32(ATTRIBUTE_ONE) + 1);
+            file_appender opened{ memory.pc(), &chain, chain.open() };
+            attributes.u32(ATTRIBUTE_ONE, attributes.u32(ATTRIBUTE_ONE) + 1);
             ASSERT_GT(opened.write(lorem1k, memory.sector_size() / 2 + 8), 0);
-            ASSERT_EQ(opened.flush(), 0);
             ASSERT_GE(opened.close(), 0);
         }
 
@@ -317,7 +322,7 @@ TEST_F(LayoutFixture_256, WriteImmediatelyToDataChain_SingleBlock) {
         for (auto i = 0u; i < 5; ++i) {
             ASSERT_GT(opened.write(hello), 0);
         }
-        ASSERT_EQ(opened.flush(), 0);
+        ASSERT_EQ(opened.close(), 0);
 
         chain.log();
 

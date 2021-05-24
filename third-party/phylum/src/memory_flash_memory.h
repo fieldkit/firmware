@@ -34,21 +34,25 @@ public:
     }
 
     int32_t erase(uint32_t address, uint32_t length) override {
+        // phydebugf("[0x%08" PRIx32 "] flash erase %" PRIu32, address, length);
         memset(memory_ + address, 0xff, length);
         return 0;
     }
 
     int32_t write(uint32_t address, uint8_t const *data, size_t size) override {
+        // phydebugf("[0x%08" PRIx32 "] write %" PRIu32, address, size);
         memcpy(memory_ + address, data, size);
         return 0;
     }
 
     int32_t read(uint32_t address, uint8_t *data, size_t size) override {
+        // phydebugf("[0x%08" PRIx32 "] read %" PRIu32, address, size);
         memcpy(data, memory_ + address, size);
         return 0;
     }
 
     int32_t copy_page(uint32_t source, uint32_t destiny, size_t size) override {
+        // phydebugf("[0x%08" PRIx32 "] copy 0x%08" PRIx32 " %", destiny, source, size);
         memcpy(memory_ + destiny, memory_ + source, size);
         return 0;
     }

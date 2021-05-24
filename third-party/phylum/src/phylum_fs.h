@@ -9,6 +9,10 @@
 #include "dhara_map.h"
 #include "working_buffers.h"
 #include "sector_allocator.h"
+#include "file_ops.h"
+#include "memory_flash_memory.h"
+#include "cobs.h"
+#include "helpers.h"
 
 namespace phylum {
 

@@ -366,7 +366,7 @@ public:
         number_keys = 0;
         for (auto i = 0u; i < Size; ++i) {
             keys[i] = 0;
-            d.values[i] = {};
+            new (&d.values[i]) VALUE{};
             d.children[i] = {};
         }
         for (auto &ref : d.children) {
