@@ -140,12 +140,9 @@ void try_and_serve_connections() {
 
             // Some other task has requested that we stop serving. Menu option
             // or a self check for example.
-            uint32_t signal = 0;
-            if (os_signal_check(&signal) == OSS_SUCCESS) {
-                if (signal > 0) {
-                    loginfo("stopping: killed");
-                    return;
-                }
+            if (fk_task_stop_requested()) {
+                loginfo("stopping: killed");
+                return;
             }
 
             // Check to see if we've been inactive for too long.
