@@ -54,7 +54,7 @@ void LoraRangingWorker::run(Pool &pool) {
 
         fk_delay(5000);
 
-        if (fk_task_stop_requested()) {
+        if (fk_task_stop_requested(nullptr)) {
             break;
         }
     }

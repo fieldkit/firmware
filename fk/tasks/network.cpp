@@ -80,7 +80,8 @@ void try_and_serve_connections() {
 
         // In self AP mode we're waiting for connections now, and hold off doing
         // anything useful until something joins.
-        auto started = fk_uptime();
+        uint32_t signal_checked = 0u;
+        uint32_t started = fk_uptime();
         auto retry = false;
         while (!network_services.ready_to_serve()) {
             if (!duration.on(started)) {
@@ -89,7 +90,7 @@ void try_and_serve_connections() {
 
             // Some other task has requested that we stop serving. Menu option
             // or a self check for example.
-            if (fk_task_stop_requested()) {
+            if (fk_task_stop_requested(&signal_checked)) {
                 loginfo("stop requested");
                 return;
             }
@@ -140,7 +141,7 @@ void try_and_serve_connections() {
 
             // Some other task has requested that we stop serving. Menu option
             // or a self check for example.
-            if (fk_task_stop_requested()) {
+            if (fk_task_stop_requested(&signal_checked)) {
                 loginfo("stopping: killed");
                 return;
             }

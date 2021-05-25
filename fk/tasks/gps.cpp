@@ -18,8 +18,9 @@ void task_handler_gps(void *params) {
 
     IntervalTimer status_timer;
     IntervalTimer update_timer;
-    auto started_at = fk_uptime();
-    auto fixed_at = 0;
+    uint32_t started_at = fk_uptime();
+    uint32_t fixed_at = 0u;
+    uint32_t signal_checked = 0u;
 
     GlobalStateManager gsm;
     gsm.apply([=](GlobalState *gs) {
@@ -100,7 +101,7 @@ void task_handler_gps(void *params) {
             }
         }
 
-        if (fk_task_stop_requested()) {
+        if (fk_task_stop_requested(&signal_checked)) {
             loginfo("stop requested");
             break;
         }
