@@ -169,6 +169,13 @@ bool MetalNetwork::begin(NetworkSettings settings, Pool *pool) {
 
     fk_delay(100);
 
+    /**
+     * Very important that this IRQ be handled immediately or terrible
+     * things begin to happen to the network transfers because this
+     * causes contention/leaks in the buffer memory of the module.
+     */
+    NVIC_SetPriority(EIC_11_IRQn, OS_IRQ_PRIORITY_SYSTICK - 1);
+
     WiFi.setPins(WINC1500_CS, WINC1500_IRQ, WINC1500_RESET);
 
     if (WiFi.status() == WL_NO_SHIELD) {
