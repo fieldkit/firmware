@@ -7,6 +7,7 @@
 #include "hal/random.h"
 #include "battery_status.h"
 #include "deep_sleep.h"
+#include "timer.h"
 
 #if defined(__SAMD51__)
 #include "hal/metal/metal_ipc.h"

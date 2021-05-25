@@ -3,6 +3,7 @@
 #include "pool.h"
 #include "state_manager.h"
 #include "storage/storage.h"
+#include "timer.h"
 
 #include "display/display_views.h"
 #include "display/home_view.h"

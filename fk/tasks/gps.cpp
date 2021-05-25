@@ -2,6 +2,7 @@
 #include "hal/hal.h"
 #include "state_manager.h"
 #include "clock.h"
+#include "timer.h"
 
 namespace fk {
 
