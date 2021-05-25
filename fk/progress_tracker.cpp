@@ -26,9 +26,11 @@ void ProgressTracker::update(int32_t bytes, uint32_t total) {
     bytes_ += bytes;
 
     if (now >= status_ || done()) {
-        auto speed = ((bytes_ / 1024.0f) / (elapsed() / 1000.0f));
+        auto elapsed_ms = elapsed();
+        auto speed = ((bytes_ / 1024.0f) / (elapsed_ms / 1000.0f));
         auto progress = (bytes_ / (float)total_) * 100.0f;
-        alogf(LogLevels::INFO, facility_, "%s%" PRIu32 "/%" PRIu32 " bytes (%.2f kbps) %.2f%% rssi=%" PRId32, prefix_, bytes_, total_, speed, progress, get_network()->rssi());
+        alogf(LogLevels::INFO, facility_, "%s%" PRIu32 "/%" PRIu32 " bytes (%.2f kbps) %.2f%% elapsed=%" PRIu32 "ms rssi=%" PRId32,
+              prefix_, bytes_, total_, speed, progress, elapsed_ms, get_network()->rssi());
         status_ = now + ProgressIntervalMs;
         callbacks_->progress(op_, progress);
     }
