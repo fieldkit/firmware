@@ -32,6 +32,9 @@ typedef struct saved_logs_t {
 
 static saved_logs_t saved_logs = { .pages = { nullptr, nullptr, nullptr, nullptr } };
 
+#define FK_LOGS_LOCK       SEGGER_RTT_LOCK
+#define FK_LOGS_UNLOCK     SEGGER_RTT_UNLOCK
+
 static void write_logs_buffer(char c, void *arg) {
     auto app = reinterpret_cast<log_buffer::appender *>(arg);
 
@@ -100,7 +103,7 @@ void fk_logs_saved_write(bool echo) {
     auto end_footer = "\n\n=================== raw log memory end: remember buffer is circular!\n\n";
 
     if (echo) {
-        SEGGER_RTT_LOCK();
+        FK_LOGS_LOCK();
 
         fk_logs_printf(begin_header);
 
@@ -113,7 +116,7 @@ void fk_logs_saved_write(bool echo) {
 
         fk_logs_printf(end_footer);
 
-        SEGGER_RTT_UNLOCK();
+        FK_LOGS_UNLOCK();
     }
 
     get_sd_card()->append_logs((uint8_t *)begin_header, strlen(begin_header));
@@ -160,7 +163,7 @@ size_t write_log(LogMessage const *m, const char *fstring, va_list args) {
         color_fs = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_CYAN " %-10s " RTT_CTRL_TEXT_YELLOW "%-7s %s" RTT_CTRL_RESET ": ";
     }
 
-    SEGGER_RTT_LOCK();
+    FK_LOGS_LOCK();
 
     if (logs_rtt_enabled) {
         SEGGER_RTT_printf(0, color_fs, m->uptime, task, level, m->facility);
@@ -178,7 +181,7 @@ size_t write_log(LogMessage const *m, const char *fstring, va_list args) {
         app.append((char)0);
     }
 
-    SEGGER_RTT_UNLOCK();
+    FK_LOGS_UNLOCK();
 
     return true;
 }
@@ -230,7 +233,7 @@ bool fk_logging_initialize() {
 }
 
 bool fk_logging_dump_buffer() {
-    SEGGER_RTT_LOCK();
+    FK_LOGS_LOCK();
 
     SEGGER_RTT_WriteString(0, RTT_CTRL_RESET "\n");
 
@@ -242,7 +245,7 @@ bool fk_logging_dump_buffer() {
 
     SEGGER_RTT_WriteString(0, RTT_CTRL_RESET "\n");
 
-    SEGGER_RTT_UNLOCK();
+    FK_LOGS_UNLOCK();
 
     return true;
 }
@@ -280,15 +283,19 @@ void fk_logs_saved_free() {
 void fk_log_debugging(const char *source) {
 }
 
+#define FK_LOGS_LOCK()
+
+#define FK_LOGS_UNLOCK()
+
 #endif
 
 void fk_logs_printf(const char *f, ...) {
     va_list args;
     va_start(args, f);
 
-    SEGGER_RTT_LOCK();
+    FK_LOGS_LOCK();
     fk_logs_vprintf(f, args);
-    SEGGER_RTT_UNLOCK();
+    FK_LOGS_UNLOCK();
 
     va_end(args);
 }
@@ -298,7 +305,7 @@ void fk_logs_dump_memory(const char *prefix, uint8_t const *ptr, size_t size, ..
     va_start(args, size);
 
     #if defined(__SAMD51__)
-    SEGGER_RTT_LOCK();
+    FK_LOGS_LOCK();
     #endif
 
     // Prewrite the prefix into the line. We force this to max 32
@@ -328,7 +335,7 @@ void fk_logs_dump_memory(const char *prefix, uint8_t const *ptr, size_t size, ..
         p = nullptr;
     }
     #if defined(__SAMD51__)
-    SEGGER_RTT_UNLOCK();
+    FK_LOGS_UNLOCK();
     #endif
 
     va_end(args);
@@ -341,14 +348,14 @@ void fk_logs_clear() {
 bool fk_log_buffer_try_lock() {
     auto success = false;
 
-    SEGGER_RTT_LOCK();
+    FK_LOGS_LOCK();
 
     if (logs_buffer_free) {
         logs_buffer_free = false;
         success = true;
     }
 
-    SEGGER_RTT_UNLOCK();
+    FK_LOGS_UNLOCK();
 
     return success;
 }
