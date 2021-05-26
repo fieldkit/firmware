@@ -3,49 +3,11 @@
 #include "tasks/tasks.h"
 #include "hal/hal.h"
 #include "networking/network_task.h"
+#include "networking/network_duration.h"
 
 namespace fk {
 
 FK_DECLARE_LOGGER("network");
-
-struct NetworkDuration {
-private:
-    uint32_t seconds_{ FiveMinutesSeconds };
-#if defined(FK_ENABLE_NETWORK_UP_AND_DOWN)
-    uint32_t on_{ 0 };
-#endif
-
-public:
-    NetworkDuration() {
-#if defined(FK_ENABLE_NETWORK_UP_AND_DOWN)
-        on_ = fk_uptime();
-#endif
-    }
-
-public:
-    bool always_on() const {
-        return seconds_ == UINT32_MAX;
-    }
-
-    bool on(uint32_t activity) const {
-        if (always_on()) {
-            return true;
-        }
-#if defined(FK_ENABLE_NETWORK_UP_AND_DOWN)
-        auto seconds_up = (fk_uptime() - on_) / 1000;
-        return seconds_up < OneMinuteSeconds * 2;
-#else
-        auto seconds_up = (fk_uptime() - activity) / 1000;
-        return seconds_up < seconds_;
-#endif
-    }
-
-    NetworkDuration operator=(uint32_t seconds) {
-        seconds_ = std::max(seconds, OneMinuteSeconds);
-        loginfo("network-duration: %" PRIu32, seconds_);
-        return *this;
-    }
-};
 
 void try_and_serve_connections() {
     while (true) {
