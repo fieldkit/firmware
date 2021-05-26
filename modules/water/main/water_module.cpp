@@ -166,30 +166,35 @@ ModuleSensors const *WaterModule::get_sensors(Pool &pool) {
             .unitOfMeasure = "pH",
             .flags = 0,
         });
+        break;
     case FK_MODULES_KIND_WATER_EC:
         sensors = pool.malloc_with<SensorMetadata>({
             .name = "ec",
             .unitOfMeasure = "µS/cm",
             .flags = 0,
         });
+        break;
     case FK_MODULES_KIND_WATER_DO:
         sensors = pool.malloc_with<SensorMetadata>({
             .name = "do",
             .unitOfMeasure = "mg/L",
             .flags = 0,
         });
+        break;
     case FK_MODULES_KIND_WATER_TEMP:
         sensors = pool.malloc_with<SensorMetadata>({
             .name = "temp",
             .unitOfMeasure = "°C",
             .flags = 0,
         });
+        break;
     case FK_MODULES_KIND_WATER_ORP:
         sensors = pool.malloc_with<SensorMetadata>({
             .name = "orp",
             .unitOfMeasure = "mV",
             .flags = 0,
         });
+        break;
     default:
         return nullptr;
     };
