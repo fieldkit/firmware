@@ -161,6 +161,23 @@ static void debug_schedule(const char *which, Schedule const &s) {
     }
 }
 
+static bool valid_readings_schedule(const fk_app_Schedule &s) {
+    Schedule app_copy;
+    app_copy = s;
+    for (auto i = 0u; i < MaximumScheduleIntervals; ++i) {
+        auto &ival = app_copy.intervals[i];
+        if (ival.start != ival.end && ival.interval > 0) {
+            return true;
+        }
+    }
+
+    return s.interval > 0;
+}
+
+static bool valid_network_schedule(const fk_app_Schedule &s) {
+    return s.duration >= 60;
+}
+
 static bool configure(HttpServerConnection *connection, fk_app_HttpQuery *query, Pool &pool) {
     auto lock = storage_mutex.acquire(500);
     if (!lock) {
@@ -286,23 +303,41 @@ static bool configure(HttpServerConnection *connection, fk_app_HttpQuery *query,
 
     if (query->schedules.modifying) {
         gsm.apply([=](GlobalState *gs) {
-            gs->scheduler.readings = query->schedules.readings;
-            gs->scheduler.network = query->schedules.network;
-            gs->scheduler.gps = query->schedules.gps;
-            gs->scheduler.lora = query->schedules.lora;
-
-            debug_schedule("readings", gs->scheduler.readings);
-            debug_schedule("network", gs->scheduler.network);
-            debug_schedule("gps", gs->scheduler.gps);
-            debug_schedule("lora", gs->scheduler.lora);
-
-            // Don't let people make this useless.
-            if (gs->scheduler.network.duration < OneMinuteSeconds) {
-                gs->scheduler.network.duration = OneMinuteSeconds;
+            if (query->schedules.has_readings) {
+                if (valid_readings_schedule(query->schedules.readings)) {
+                    gs->scheduler.readings = query->schedules.readings;
+                    debug_schedule("readings", gs->scheduler.readings);
+                }
+                else {
+                    loginfo("invalid schedule: readings");
+                }
             }
-            if (gs->scheduler.readings.interval < OneMinuteSeconds) {
-                gs->scheduler.readings.interval = OneMinuteSeconds;
-                logerror("readings duration too short");
+
+            if (query->schedules.has_network) {
+                if (valid_network_schedule(query->schedules.network)) {
+                    gs->scheduler.network = query->schedules.network;
+                    debug_schedule("network", gs->scheduler.network);
+                }
+                else {
+                    loginfo("invalid schedule: network");
+                }
+            }
+
+            if (query->schedules.has_gps) {
+                if (query->schedules.gps.interval > 0) {
+                    gs->scheduler.gps = query->schedules.gps;
+                    debug_schedule("gps", gs->scheduler.gps);
+                }
+                else {
+                    loginfo("invalid schedule: gps");
+                }
+            }
+
+            if (query->schedules.has_lora) {
+                if (query->schedules.lora.interval > 0) {
+                    gs->scheduler.lora = query->schedules.lora;
+                    debug_schedule("lora", gs->scheduler.lora);
+                }
             }
         });
     }

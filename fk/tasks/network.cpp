@@ -11,15 +11,15 @@ FK_DECLARE_LOGGER("network");
 struct NetworkDuration {
 private:
     uint32_t seconds_{ FiveMinutesSeconds };
-    #if defined(FK_ENABLE_NETWORK_UP_AND_DOWN)
+#if defined(FK_ENABLE_NETWORK_UP_AND_DOWN)
     uint32_t on_{ 0 };
-    #endif
+#endif
 
 public:
     NetworkDuration() {
-        #if defined(FK_ENABLE_NETWORK_UP_AND_DOWN)
+#if defined(FK_ENABLE_NETWORK_UP_AND_DOWN)
         on_ = fk_uptime();
-        #endif
+#endif
     }
 
 public:
@@ -31,17 +31,18 @@ public:
         if (always_on()) {
             return true;
         }
-        #if defined(FK_ENABLE_NETWORK_UP_AND_DOWN)
+#if defined(FK_ENABLE_NETWORK_UP_AND_DOWN)
         auto seconds_up = (fk_uptime() - on_) / 1000;
         return seconds_up < OneMinuteSeconds * 2;
-        #else
+#else
         auto seconds_up = (fk_uptime() - activity) / 1000;
         return seconds_up < seconds_;
-        #endif
+#endif
     }
 
     NetworkDuration operator=(uint32_t seconds) {
         seconds_ = std::max(seconds, OneMinuteSeconds);
+        loginfo("network-duration: %" PRIu32, seconds_);
         return *this;
     }
 };
@@ -152,7 +153,9 @@ void try_and_serve_connections() {
                 return;
             }
 
-            // This will happen when a foreign device disconnects from our WiFi AP.
+            // This will happen when a foreign device disconnects from
+            // our WiFi AP and in that case we keep the WiFi on until
+            // we're properly considered inactive.
             if (!network_services.ready_to_serve()) {
                 if (duration.always_on()) {
                     loginfo("stopping: disconnected (always-on)");
@@ -160,7 +163,7 @@ void try_and_serve_connections() {
                 }
                 else {
                     loginfo("stopping: disconnected");
-                    return;
+                    break;
                 }
             }
 
