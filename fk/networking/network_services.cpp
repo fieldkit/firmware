@@ -143,6 +143,9 @@ bool NetworkServices::try_begin(NetworkSettings settings, uint32_t to, Pool &poo
 }
 
 bool NetworkServices::serve() {
+    auto lock = wifi_mutex.acquire(UINT32_MAX);
+    FK_ASSERT(lock);
+
     default_routes.add_routes(router_);
 
     http_listener_ = network_->listen(80);
@@ -165,6 +168,9 @@ bool NetworkServices::serve() {
 }
 
 void NetworkServices::tick() {
+    auto lock = wifi_mutex.acquire(UINT32_MAX);
+    FK_ASSERT(lock);
+
     if (connection_pool_.available() > 0) {
         auto http_connection = http_listener_->get()->accept();
         if (http_connection != nullptr) {
@@ -188,6 +194,9 @@ void NetworkServices::tick() {
 }
 
 void NetworkServices::stop() {
+    auto lock = wifi_mutex.acquire(UINT32_MAX);
+    FK_ASSERT(lock);
+
     loginfo("stopping...");
 
     network_->stop();

@@ -14,6 +14,7 @@ FK_DECLARE_LOGGER("ipc");
 MetalMutex storage_mutex;
 MetalMutex modules_mutex;
 MetalMutex workers_mutex;
+MetalMutex wifi_mutex;
 MetalMutex sd_mutex;
 MetalRwLock data_lock;
 
@@ -40,6 +41,7 @@ bool MetalIPC::begin() {
     FK_ASSERT(storage_mutex.create());
     FK_ASSERT(modules_mutex.create());
     FK_ASSERT(workers_mutex.create());
+    FK_ASSERT(wifi_mutex.create());
     FK_ASSERT(sd_mutex.create());
     FK_ASSERT(data_lock.create());
 

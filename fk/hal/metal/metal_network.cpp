@@ -30,10 +30,6 @@ const char *get_wifi_status(uint8_t status) {
     }
 }
 
-const char *get_wifi_status() {
-    return get_wifi_status(WiFi.status());
-}
-
 FK_DECLARE_LOGGER("network");
 
 MetalNetworkConnection::MetalNetworkConnection() {
@@ -228,11 +224,12 @@ bool MetalNetwork::serve() {
 
     synchronize_time();
 
+    auto status = WiFi.status();
     IPAddress ip = WiFi.localIP();
     loginfo("ready (ip = %d.%d.%d.%d) (status = %s)",
-            ip[0], ip[1], ip[2], ip[3], get_wifi_status());
+            ip[0], ip[1], ip[2], ip[3], get_wifi_status(status));
 
-    if (WiFi.status() == WL_AP_CONNECTED) {
+    if (status == WL_AP_CONNECTED) {
         uint8_t mac_address[6];
         WiFi.APClientMacAddress(mac_address);
         loginfo("remote mac: %s", bytes_to_hex_string_pool(mac_address, sizeof(mac_address), *pool_));

@@ -62,9 +62,7 @@ void ConnectionPool::service() {
                 }
             }
 
-            // loginfo("[%" PRIu32 "] [%d] connection: 0x%p pool=0x%p", c->number(), i, c, pools_[i]);
             auto closing = c->closed() || !c->service();
-            // SEGGER_RTT_printf(0, "~[cpool-ok]~");
             if (closing) {
                 loginfo("[%d] closing: 0x%p", i, c);
                 // Do this before freeing to avoid a race empty pool after a
@@ -110,8 +108,6 @@ void ConnectionPool::queue_http(PoolPointer<NetworkConnection> *c) {
 }
 
 void ConnectionPool::update_statistics(Connection *c) {
-    // TODO This has races.
-
     auto rx = c->bytes_rx_ - c->bytes_rx_previous_;
     auto tx = c->bytes_tx_ - c->bytes_tx_previous_;
 
@@ -143,7 +139,7 @@ void ConnectionPool::free_connection(uint16_t index) {
 }
 
 bool ConnectionPool::active_connections() const {
-    for (size_t i = 0; i < MaximumConnections; ++i) {
+    for (auto i = 0u; i < MaximumConnections; ++i) {
         if (connections_[i] != nullptr) {
             return true;
         }

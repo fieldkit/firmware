@@ -104,6 +104,7 @@ public:
 extern MetalMutex storage_mutex;
 extern MetalMutex modules_mutex;
 extern MetalMutex sd_mutex;
+extern MetalMutex wifi_mutex;
 extern MetalRwLock data_lock;
 
 }
