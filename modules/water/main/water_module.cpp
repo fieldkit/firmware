@@ -157,28 +157,84 @@ ModuleReturn WaterModule::service(ModuleContext mc, Pool &pool) {
 }
 
 ModuleSensors const *WaterModule::get_sensors(Pool &pool) {
-    auto voltage = pool.malloc_with<SensorMetadata>({
-        .name = "v",
-        .unitOfMeasure = "V",
-        .flags = 0,
-    });
+    SensorMetadata *sensors = nullptr;
+
+    switch (header_.kind) {
+    case FK_MODULES_KIND_WATER_PH:
+        sensors = pool.malloc_with<SensorMetadata>({
+            .name = "ph",
+            .unitOfMeasure = "pH",
+            .flags = 0,
+        });
+    case FK_MODULES_KIND_WATER_EC:
+        sensors = pool.malloc_with<SensorMetadata>({
+            .name = "ec",
+            .unitOfMeasure = "µS/cm",
+            .flags = 0,
+        });
+    case FK_MODULES_KIND_WATER_DO:
+        sensors = pool.malloc_with<SensorMetadata>({
+            .name = "do",
+            .unitOfMeasure = "mg/L",
+            .flags = 0,
+        });
+    case FK_MODULES_KIND_WATER_TEMP:
+        sensors = pool.malloc_with<SensorMetadata>({
+            .name = "temp",
+            .unitOfMeasure = "°C",
+            .flags = 0,
+        });
+    case FK_MODULES_KIND_WATER_ORP:
+        sensors = pool.malloc_with<SensorMetadata>({
+            .name = "orp",
+            .unitOfMeasure = "mV",
+            .flags = 0,
+        });
+    default:
+        return nullptr;
+    };
+
     return pool.malloc_with<ModuleSensors>({
         .nsensors = 1,
-        .sensors = voltage,
+        .sensors = sensors,
     });
 }
 
 const char *WaterModule::get_display_name_key() {
-    return "modules.water.unknown";
+    switch (header_.kind) {
+    case FK_MODULES_KIND_WATER_PH:
+        return "modules.water.ph";
+    case FK_MODULES_KIND_WATER_EC:
+        return "modules.water.ec";
+    case FK_MODULES_KIND_WATER_DO:
+        return "modules.water.do";
+    case FK_MODULES_KIND_WATER_TEMP:
+        return "modules.water.temp";
+    case FK_MODULES_KIND_WATER_ORP:
+        return "modules.water.orp";
+    default:
+        return "modules.water.unknown";
+    };
 }
 
 ModuleConfiguration const WaterModule::get_configuration(Pool &pool) {
-    return { get_display_name_key(), ModulePower::ReadingsOnly, 0, cfg_message_, ModuleOrderProvidesCalibration };
+    switch (header_.kind) {
+    case FK_MODULES_KIND_WATER_TEMP:
+        return { get_display_name_key(), ModulePower::ReadingsOnly, 0, cfg_message_, ModuleOrderProvidesCalibration };
+    };
+    return { get_display_name_key(), ModulePower::ReadingsOnly, 0, cfg_message_, DefaultModuleOrder };
+}
+
+uint32_t WaterModule::excite_duration() {
+    switch (header_.kind) {
+    case FK_MODULES_KIND_WATER_EC:
+        return 10;
+    default:
+        return 0;
+    };
 }
 
 ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
-    auto mr = new(pool) NModuleReadings<1>();
-
     auto &bus = mc.module_bus();
 
     Mcp2803 mcp{ bus, FK_MCP2803_ADDRESS };
@@ -189,21 +245,21 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
         return nullptr;
     }
 
-    auto excite_duration = mc.position().integer() == 2 ? 10u : 0u;
-    if (excite_duration > 0) {
-        loginfo("excitation: %" PRIu32 "ms", excite_duration);
+    auto excite_for = excite_duration();
+    if (excite_for > 0) {
+        loginfo("excitation: %" PRIu32 "ms", excite_for);
 
         if (!excite_control(mcp, true)) {
             return nullptr;
         }
 
-        fk_delay(excite_duration);
+        fk_delay(excite_for);
 
         if (!excite_control(mcp, false)) {
             return nullptr;
         }
 
-        fk_delay(excite_duration);
+        fk_delay(excite_for);
 
         if (!excite_control(mcp, true)) {
             return nullptr;
@@ -219,7 +275,7 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
         return nullptr;
     }
 
-    if (excite_duration > 0) {
+    if (excite_for > 0) {
         if (!excite_control(mcp, false)) {
             return nullptr;
         }
@@ -230,6 +286,8 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
     auto calibrated = curve->apply(uncalibrated);
 
     loginfo("bay[%d] water: %f (%f)", mc.position().integer(), uncalibrated, calibrated);
+
+    auto mr = new(pool) NModuleReadings<1>();
 
     auto nreadings = 0u;
     mr->set(nreadings++, ModuleReading{ uncalibrated, calibrated });
