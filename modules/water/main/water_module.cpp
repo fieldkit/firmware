@@ -106,6 +106,14 @@ bool WaterModule::initialize(Mcp2803 &mcp, Ads1219 &ads) {
 bool WaterModule::load_configuration(ModuleContext mc, Pool &pool) {
     ModuleEeprom eeprom{ mc.module_bus() };
 
+    // We need the header to know the kind of module we are so if that
+    // fails then we're in pretty bad shape.
+    bzero(&header_, sizeof(ModuleHeader));
+    if (!eeprom.read_header(header_)) {
+        logwarn("error reading header");
+        return false;
+    }
+
     cfg_message_ = nullptr;
     cfg_ = nullptr;
     pool_->clear();
