@@ -29,7 +29,7 @@ bool fk_can_start_task(os_task_t *task) {
 }
 
 bool fk_start_task_if_necessary(os_task_t *task) {
-    if (fk_task_stop_requested()) {
+    if (fk_task_stop_requested(nullptr)) {
         return false;
     }
     if (!fk_can_start_task(task)) {
@@ -43,7 +43,15 @@ os_task_t **fk_tasks_all() {
     return all_tasks;
 }
 
-bool fk_task_stop_requested() {
+bool fk_task_stop_requested(uint32_t *checked) {
+    if (checked != nullptr) {
+        if (*checked > 0 && fk_uptime() < *checked) {
+            return false;
+        }
+
+        *checked = fk_uptime() + 100;
+    }
+
     uint32_t signal = 0;
     if (os_signal_check(&signal) == OSS_SUCCESS) {
         if (signal > 0) {

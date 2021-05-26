@@ -7,6 +7,7 @@
 #include "hal/random.h"
 #include "battery_status.h"
 #include "deep_sleep.h"
+#include "timer.h"
 
 #if defined(__SAMD51__)
 #include "hal/metal/metal_ipc.h"
@@ -72,7 +73,8 @@ void task_handler_scheduler(void *params) {
         update_allow_deep_sleep(true);
     }
 
-    while (!fk_task_stop_requested()) {
+    uint32_t signal_checked = 0;
+    while (!fk_task_stop_requested(&signal_checked)) {
         auto schedules = get_config_schedules();
 
         ReadingsTask readings_job{ schedules.readings };
@@ -95,7 +97,7 @@ void task_handler_scheduler(void *params) {
 
         scheduler.begin(get_clock_now());
 
-        while (!has_schedule_changed(schedules) && !fk_task_stop_requested()) {
+        while (!has_schedule_changed(schedules) && !fk_task_stop_requested(&signal_checked)) {
             // This throttles this loop, so we take a pass when we dequeue or timeout.
             Activity *activity = nullptr;
             if (get_ipc()->dequeue_activity(&activity)) {
@@ -107,14 +109,14 @@ void task_handler_scheduler(void *params) {
 
                 activity->consumed();
 
-                if (!fk_task_stop_requested()) {
+                if (!fk_task_stop_requested(nullptr)) {
                     if (fk_start_task_if_necessary(&display_task)) {
                         get_ipc()->launch_worker(create_pool_worker<RefreshModulesWorker>());
                     }
                 }
             }
 
-            if (fk_task_stop_requested()) {
+            if (fk_task_stop_requested(&signal_checked)) {
                 loginfo("stop requested");
                 break;
             }

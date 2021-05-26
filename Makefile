@@ -42,7 +42,7 @@ $(BUILD)/samd09: setup
 
 samd51: $(BUILD)/samd51
 	cd $(BUILD)/samd51 && $(MAKE)
-	tools/stack-usage.py $(BUILD)/samd51 > doc/stack-usage.txt
+	true || tools/stack-usage.py $(BUILD)/samd51 > doc/stack-usage.txt
 
 samd09: $(BUILD)/samd09
 	cd $(BUILD)/samd09 && $(MAKE)

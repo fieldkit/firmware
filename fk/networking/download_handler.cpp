@@ -46,6 +46,10 @@ DownloadWorker::HeaderInfo DownloadWorker::get_headers(FileReader *file_reader, 
     };
 }
 
+// #define FK_TESTING_DOWNLOAD_LIMIT           (1024 * 1024 * 100)
+// #define FK_TESTING_DOWNLOAD_READS_DISABLED
+// #define FK_TESTING_DOWNLOAD_READS_GARBAGE
+
 void DownloadWorker::run(Pool &pool) {
     loginfo("downloading");
 
@@ -93,6 +97,17 @@ void DownloadWorker::run(Pool &pool) {
 
     memory.log_statistics("flash usage: ");
 
+#if defined(FK_TESTING_DOWNLOAD_LIMIT)
+    FK_ASSERT(info.size > FK_TESTING_DOWNLOAD_LIMIT);
+    info = HeaderInfo{
+        .size = FK_TESTING_DOWNLOAD_LIMIT,
+        .first_block = 0,
+        .last_block = 0,
+        .device_id = "none",
+        .generation = "none",
+    };
+#endif
+
     if (!write_headers(info)) {
         connection_->close();
         return;
@@ -109,9 +124,16 @@ void DownloadWorker::run(Pool &pool) {
     GlobalStateProgressCallbacks gs_progress;
     auto tracker = ProgressTracker{ &gs_progress, Operation::Download, "download", "", info.size };
     auto bytes_copied = 0u;
+    auto total_read_time = 0u;
     while (bytes_copied < info.size) {
         auto to_read = std::min<int32_t>(buffer_size, info.size - bytes_copied);
+        auto read_started = fk_uptime();
+#if !defined(FK_TESTING_DOWNLOAD_READS_DISABLED)
+#if !defined(FK_TESTING_DOWNLOAD_READS_GARBAGE)
         auto bytes_read = file_reader->read(buffer, to_read);
+#else
+        auto bytes_read = memory.read(0, buffer, to_read, MemoryReadFlags::None);
+    #endif
         if (bytes_read == 0) {
             break;
         }
@@ -119,6 +141,11 @@ void DownloadWorker::run(Pool &pool) {
             logerror("read error (%" PRId32 " != %" PRId32 ")", bytes_read, to_read);
             break;
         }
+#else
+        auto bytes_read = to_read;
+        memset(buffer, 0xab, bytes_read);
+#endif
+        auto read_time = fk_uptime() - read_started;
 
         auto wrote = connection_->write(buffer, bytes_read);
         if (wrote != bytes_read) {
@@ -126,9 +153,10 @@ void DownloadWorker::run(Pool &pool) {
             break;
         }
 
-        tracker.update(bytes_read);
+        tracker.update(bytes_read, read_time);
 
         bytes_copied += bytes_read;
+        total_read_time += read_time;
     }
 
     log_configure_level(old_level);
@@ -137,7 +165,8 @@ void DownloadWorker::run(Pool &pool) {
 
     auto elapsed = fk_uptime() - started;
     auto speed = ((bytes_copied / 1024.0f) / (elapsed / 1000.0f));
-    loginfo("done (%d) (%" PRIu32 "ms) %.2fkbps", bytes_copied, elapsed, speed);
+    loginfo("done (%d) (%" PRIu32 "ms) %.2fkbps total-read-time=%" PRIu32,
+            bytes_copied, elapsed, speed, total_read_time);
 
     connection_->close();
 

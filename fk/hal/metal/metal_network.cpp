@@ -9,57 +9,6 @@
 
 namespace fk {
 
-class StaticWiFiCallbacks : public WiFiCallbacks {
-private:
-    constexpr static size_t ExpectedWiFiBufferSize = 1472;
-    constexpr static size_t NumberOfBuffers = 3;
-
-    struct Buffer {
-        bool taken{ false };
-        void *ptr{ nullptr };
-    };
-    Buffer buffers_[NumberOfBuffers];
-
-public:
-    void initialize(Pool &pool) {
-        for (auto i = 0u; i < NumberOfBuffers; ++i) {
-            buffers_[i].ptr = pool.malloc(ExpectedWiFiBufferSize);
-            buffers_[i].taken = false;
-        }
-    }
-
-    void *malloc(size_t size) override {
-        FK_ASSERT(size == ExpectedWiFiBufferSize);
-
-        for (auto i = 0u; i < NumberOfBuffers; ++i) {
-            if (!buffers_[i].taken) {
-                buffers_[i].taken = true;
-                alogf(LogLevels::DEBUG, "network", "malloc() = 0x%p", buffers_[i].ptr);
-                return buffers_[i].ptr;
-            }
-        }
-
-        return nullptr;
-    }
-
-    void free(void *ptr) override {
-        for (auto i = 0u; i < NumberOfBuffers; ++i) {
-            if (buffers_[i].ptr == ptr) {
-                buffers_[i].taken = false;
-                alogf(LogLevels::DEBUG, "network", "free(0x%p)", buffers_[i].ptr);
-                return;
-            }
-        }
-
-        alogf(LogLevels::WARN, "network", "free of old network buffer, ignoring 0x%p", ptr);
-    }
-
-    bool busy(uint32_t elapsed) override {
-        return true;
-    }
-
-};
-
 static StaticWiFiCallbacks staticWiFiCallbacks;
 
 const char *get_wifi_status(uint8_t status) {
@@ -219,6 +168,13 @@ bool MetalNetwork::begin(NetworkSettings settings, Pool *pool) {
     get_board()->enable_wifi();
 
     fk_delay(100);
+
+    /**
+     * Very important that this IRQ be handled immediately or terrible
+     * things begin to happen to the network transfers because this
+     * causes contention/leaks in the buffer memory of the module.
+     */
+    NVIC_SetPriority(EIC_11_IRQn, OS_IRQ_PRIORITY_SYSTICK - 1);
 
     WiFi.setPins(WINC1500_CS, WINC1500_IRQ, WINC1500_RESET);
 
@@ -435,6 +391,43 @@ bool MetalNetworkListener::stop() {
     return true;
 }
 
+void StaticWiFiCallbacks::initialize(Pool &pool) {
+    for (auto i = 0u; i < NumberOfBuffers; ++i) {
+        buffers_[i].ptr = pool.malloc(ExpectedWiFiBufferSize);
+        buffers_[i].taken = false;
+    }
 }
+
+void *StaticWiFiCallbacks::malloc(size_t size) {
+    FK_ASSERT(size == ExpectedWiFiBufferSize);
+
+    for (auto i = 0u; i < NumberOfBuffers; ++i) {
+        if (!buffers_[i].taken) {
+            buffers_[i].taken = true;
+            alogf(LogLevels::DEBUG, "network", "malloc() = 0x%p", buffers_[i].ptr);
+            return buffers_[i].ptr;
+        }
+    }
+
+    return nullptr;
+}
+
+void StaticWiFiCallbacks::free(void *ptr) {
+    for (auto i = 0u; i < NumberOfBuffers; ++i) {
+        if (buffers_[i].ptr == ptr) {
+            buffers_[i].taken = false;
+            alogf(LogLevels::DEBUG, "network", "free(0x%p)", buffers_[i].ptr);
+            return;
+        }
+    }
+
+    alogf(LogLevels::WARN, "network", "free of old network buffer, ignoring 0x%p", ptr);
+}
+
+bool StaticWiFiCallbacks::busy(uint32_t elapsed) {
+    return true;
+}
+
+} // namespace fk
 
 #endif

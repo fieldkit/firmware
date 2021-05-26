@@ -129,15 +129,17 @@ void ConnectionPool::update_statistics(Connection *c) {
 }
 
 void ConnectionPool::free_connection(uint16_t index) {
-    auto number = connections_[index]->number();
-    logdebug("[%" PRIu32 "] [%d] free connection", number, index);
-    FK_ASSERT_ADDRESS(connections_[index]);
-    connections_[index]->close();
-    FK_ASSERT_ADDRESS(pools_[index]);
-    delete pools_[index];
-    logdebug("[%" PRIu32 "] [%d] connection freed", number, index);
+    auto connection = connections_[index];
+    auto pool = pools_[index];
+    auto number = connection->number();
+
     connections_[index] = nullptr;
     pools_[index] = nullptr;
+
+    logdebug("[%" PRIu32 "] [%d] free connection", number, index);
+    connection->close();
+    delete pool;
+    logdebug("[%" PRIu32 "] [%d] connection freed", number, index);
 }
 
 }

@@ -13,6 +13,7 @@ FK_DECLARE_LOGGER("ipc");
 
 MetalMutex storage_mutex;
 MetalMutex modules_mutex;
+MetalMutex workers_mutex;
 MetalMutex sd_mutex;
 MetalRwLock data_lock;
 
@@ -38,6 +39,7 @@ bool MetalIPC::begin() {
 
     FK_ASSERT(storage_mutex.create());
     FK_ASSERT(modules_mutex.create());
+    FK_ASSERT(workers_mutex.create());
     FK_ASSERT(sd_mutex.create());
     FK_ASSERT(data_lock.create());
 
@@ -145,7 +147,8 @@ bool MetalIPC::remove_worker(TaskWorker *worker) {
 bool MetalIPC::signal_workers(WorkerCategory category, uint32_t signal) {
     logdebug("signaling workers (%" PRIu32 ")", signal);
 
-    FK_DISABLE_IRQ();
+    auto lock = workers_mutex.acquire(UINT32_MAX);
+    FK_ASSERT(lock);
 
     for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
         if (os_task_is_running(&worker_tasks[i])) {
@@ -156,15 +159,14 @@ bool MetalIPC::signal_workers(WorkerCategory category, uint32_t signal) {
         }
     }
 
-    FK_ENABLE_IRQ();
-
     return true;
 }
 
 collection<TaskDisplayInfo> MetalIPC::get_workers_display_info(Pool &pool) {
     collection<TaskDisplayInfo> infos{ pool };
 
-    FK_DISABLE_IRQ();
+    auto lock = workers_mutex.acquire(UINT32_MAX);
+    FK_ASSERT(lock);
 
     for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
         if (os_task_is_running(&worker_tasks[i])) {
@@ -175,15 +177,14 @@ collection<TaskDisplayInfo> MetalIPC::get_workers_display_info(Pool &pool) {
         }
     }
 
-    FK_ENABLE_IRQ();
-
     return infos;
 }
 
 bool MetalIPC::has_running_worker(WorkerCategory category) {
     auto found = false;
 
-    FK_DISABLE_IRQ();
+    auto lock = workers_mutex.acquire(UINT32_MAX);
+    FK_ASSERT(lock);
 
     for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
         if (os_task_is_running(&worker_tasks[i])) {
@@ -194,15 +195,14 @@ bool MetalIPC::has_running_worker(WorkerCategory category) {
         }
     }
 
-    FK_ENABLE_IRQ();
-
     return found;
 }
 
 bool MetalIPC::has_any_running_worker() {
     auto found = false;
 
-    FK_DISABLE_IRQ();
+    auto lock = workers_mutex.acquire(UINT32_MAX);
+    FK_ASSERT(lock);
 
     for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
         if (os_task_is_running(&worker_tasks[i])) {
@@ -210,8 +210,6 @@ bool MetalIPC::has_any_running_worker() {
             break;
         }
     }
-
-    FK_ENABLE_IRQ();
 
     return found;
 }

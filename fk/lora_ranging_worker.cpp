@@ -7,6 +7,7 @@
 #include "platform.h"
 #include "utilities.h"
 #include "records.h"
+#include "tasks/tasks.h"
 
 namespace fk {
 
@@ -53,11 +54,8 @@ void LoraRangingWorker::run(Pool &pool) {
 
         fk_delay(5000);
 
-        uint32_t signal = 0;
-        if (os_signal_check(&signal) == OSS_SUCCESS) {
-            if (signal > 0) {
-                break;
-            }
+        if (fk_task_stop_requested(nullptr)) {
+            break;
         }
     }
 

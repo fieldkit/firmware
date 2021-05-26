@@ -182,9 +182,7 @@ void SpiFlash::dump_feature_registers() {
 }
 
 bool SpiFlash::reset() {
-    enable();
     auto ok = simple_command(CMD_RESET);
-    disable();
 
     if (!is_ready()) {
         logerror("read: !ready");
@@ -559,33 +557,21 @@ void SpiFlash::ecc_check() {
 }
 
 bool SpiFlash::enable_writes() {
-    enable();
-    auto ok = simple_command(CMD_ENABLE_WRITE);
-    disable();
-    return ok;
+    return simple_command(CMD_ENABLE_WRITE);
 }
 
 bool SpiFlash::disable_writes() {
-    enable();
-    auto ok = simple_command(CMD_DISABLE_WRITE);
-    disable();
-    return ok;
+    return simple_command(CMD_DISABLE_WRITE);
 }
 
 bool SpiFlash::get_feature(uint8_t address, uint8_t *reg) {
     uint8_t command[] = { CMD_GET_FEATURE, address };
-    enable();
-    auto ok = transfer(command, sizeof(command), nullptr, reg, 1);
-    disable();
-    return ok;
+    return transfer(command, sizeof(command), nullptr, reg, 1);
 }
 
 bool SpiFlash::set_feature(uint8_t address, uint8_t value) {
     uint8_t command[] = { CMD_SET_FEATURE, address, value };
-    enable();
-    auto ok = transfer(command, sizeof(command), nullptr, nullptr, 0);
-    disable();
-    return ok;
+    return transfer(command, sizeof(command), nullptr, nullptr, 0);
 }
 
 uint8_t SpiFlash::read_status() {
@@ -648,8 +634,8 @@ bool SpiFlash::is_ready(bool ecc_check) {
         }
     }
 
-    SPI.endTransaction();
     disable();
+    SPI.endTransaction();
 
     return ok;
 }
@@ -685,7 +671,6 @@ bool SpiFlash::transfer_command(uint8_t command, const uint8_t *data_w, uint8_t 
 }
 
 bool SpiFlash::transfer(uint8_t *command, uint32_t command_length, const uint8_t *data_w, uint8_t *data_r, uint32_t data_length) {
-    __disable_irq();
     enable();
     SPI.beginTransaction(SpiSettings);
     for (uint32_t i = 0; i < command_length; ++i) {
@@ -706,9 +691,8 @@ bool SpiFlash::transfer(uint8_t *command, uint32_t command_length, const uint8_t
             SPI.transfer(data_w[i]);
         }
     }
-    SPI.endTransaction();
     disable();
-    __enable_irq();
+    SPI.endTransaction();
     return true;
 }
 

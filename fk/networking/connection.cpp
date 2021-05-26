@@ -19,11 +19,14 @@ bool Connection::service() {
         return true;
     }
 
-    FK_ASSERT_ADDRESS(conn_);
-
-    if (conn_->status() != NetworkConnectionStatus::Connected) {
-        loginfo("[%" PRIu32 "] disconnected", number_);
-        return false;
+    if (FK_ADDRESS_VALID(conn_)) {
+	    if (conn_->status() != NetworkConnectionStatus::Connected) {
+		loginfo("[%" PRIu32 "] disconnected", number_);
+		return false;
+	    }
+    }
+    else {
+	    FK_ASSERT_ADDRESS(conn_);
     }
 
     return true;
