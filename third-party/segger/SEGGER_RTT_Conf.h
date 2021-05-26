@@ -138,7 +138,9 @@ Revision: $Rev: 13430 $
 // In case of doubt mask all interrupts: 1 << (8 - BASEPRI_PRIO_BITS) i.e. 1 << 5 when 3 bits are implemented in NVIC
 // or define SEGGER_RTT_LOCK() to completely disable interrupts.
 
-#define SEGGER_RTT_MAX_INTERRUPT_PRIORITY         (1 << 5)
+#if !defined(SEGGER_RTT_MAX_INTERRUPT_PRIORITY)
+#define SEGGER_RTT_MAX_INTERRUPT_PRIORITY         (2 << (8 - /* __NVIC_PRIO_BITS */2))
+#endif
 
 /*********************************************************************
 *
