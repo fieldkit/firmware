@@ -67,13 +67,12 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
         auto position = pair.found.position;
         auto configuration = pair.configuration;
         auto module_instance = pair.module_instance;
-        auto sensor_metas = module_instance->get_sensors(pool);
 
         auto adding = ModuleMetaAndReadings{
             .position = found.position,
             .id = (fk_uuid_t *)pool.copy(&found.header.id, sizeof(found.header.id)),
             .meta = meta,
-            .sensors = sensor_metas,
+            .sensors = nullptr,
             .readings = nullptr,
             .configuration = configuration,
         };
@@ -96,6 +95,16 @@ tl::expected<ModuleReadingsCollection, Error> Readings::take_readings(ScanningCo
             logdebug("wake delay: %" PRIu32 "ms", configuration.wake_delay);
             fk_delay(configuration.wake_delay);
         }
+
+        auto sensor_metas = module_instance->get_sensors(pool);
+        if (sensor_metas == nullptr) {
+            logwarn("[%d] ignore sensorless module", position.integer());
+            group_number++;
+            all_readings.emplace(adding);
+            continue;
+        }
+
+        adding.sensors = sensor_metas;
 
         auto mc = ctx.open_readings(position, all_readings, pool);
         if (!mc.open()) {
