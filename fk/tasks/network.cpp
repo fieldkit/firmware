@@ -12,10 +12,8 @@ FK_DECLARE_LOGGER("network");
 
 void try_and_serve_connections() {
     while (true) {
-        auto network = get_network();
-
         StandardPool pool{ "network-task" };
-        NetworkServices services{ network };
+        NetworkServices services{ get_network() };
         NetworkDuration duration;
         GlobalStateManager gsm;
 
