@@ -106,6 +106,8 @@ bool WaterModule::initialize(Mcp2803 &mcp, Ads1219 &ads) {
 bool WaterModule::load_configuration(ModuleContext mc, Pool &pool) {
     ModuleEeprom eeprom{ mc.module_bus() };
 
+    logdebug("reading header");
+
     // We need the header to know the kind of module we are so if that
     // fails then we're in pretty bad shape.
     bzero(&header_, sizeof(ModuleHeader));
@@ -113,6 +115,13 @@ bool WaterModule::load_configuration(ModuleContext mc, Pool &pool) {
         logwarn("error reading header");
         return false;
     }
+
+    if (!fk_module_header_valid(&header_)) {
+        logwarn("invalid header");
+        return false;
+    }
+
+    loginfo("have header: mk=%02" PRIx32 "%02" PRIx32, header_.manufacturer, header_.kind);
 
     cfg_message_ = nullptr;
     cfg_ = nullptr;
@@ -196,6 +205,7 @@ ModuleSensors const *WaterModule::get_sensors(Pool &pool) {
         });
         break;
     default:
+        logwarn("unknown water module kind: %d", header_.kind);
         return nullptr;
     };
 

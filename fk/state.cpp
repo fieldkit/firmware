@@ -130,7 +130,8 @@ void GlobalState::update_physical_modules(ConstructedModulesCollection const &mo
             status.meta = m.meta;
             status.status = m.status;
 
-            loginfo("[%d] '%s' module status = %s", index, m.meta->name, get_module_status_string(m.status));
+            loginfo("[%d] '%s' module mk=%02" PRIx32 "%02" PRIx32 " status = %s", index, m.meta->name,
+                    m.found.header.manufacturer, m.found.header.kind, get_module_status_string(m.status));
         }
     }
 }
