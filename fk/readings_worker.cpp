@@ -84,9 +84,12 @@ bool ReadingsWorker::take(Pool &pool) {
             .configuration = configuration,
         });
 
-        auto sensors = m.sensors->nsensors > 0 ? data_pool->malloc<SensorState>(m.sensors->nsensors) : nullptr;
+        SensorState *sensors = nullptr;
+        size_t nsensors = 0;
+        if (m.sensors != nullptr && m.sensors->nsensors > 0) {
+            nsensors = m.sensors->nsensors;
+            sensors = data_pool->malloc<SensorState>(nsensors);
 
-        if (sensors != nullptr) {
             for (auto i = 0u; i < m.sensors->nsensors; ++i) {
                 sensors[i].name = m.sensors->sensors[i].name;
                 sensors[i].unit_of_measure = m.sensors->sensors[i].unitOfMeasure;
@@ -108,7 +111,7 @@ bool ReadingsWorker::take(Pool &pool) {
             .id = (fk_uuid_t *)data_pool->copy(m.id, sizeof(fk_uuid_t)),
             .flags = m.meta->flags,
             .sensors = sensors,
-            .nsensors = m.sensors->nsensors,
+            .nsensors = nsensors,
         };
 
         module_num++;
