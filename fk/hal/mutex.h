@@ -19,6 +19,13 @@ public:
     virtual Lock acquire(uint32_t to) = 0;
     virtual bool is_owner() = 0;
 
+public:
+    template<typename TReturn, typename TFn>
+    TReturn with(TFn work) {
+        auto lock = this->acquire(UINT32_MAX);
+        return work();
+    }
+
 };
 
 class RwLock : public Releasable {
