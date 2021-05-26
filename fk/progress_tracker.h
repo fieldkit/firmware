@@ -22,9 +22,11 @@ public:
 public:
     bool update(int32_t bytes);
 
-    bool update(int32_t bytes, uint32_t read_time);
+    bool update(int32_t bytes, uint32_t total);
 
-    bool update(int32_t bytes, uint32_t read_time, uint32_t total);
+    bool update(int32_t bytes, uint32_t read_time, uint32_t write_time);
+
+    bool update(int32_t bytes, uint32_t read_time, uint32_t write_time, uint32_t total);
 
     bool busy() const;
 

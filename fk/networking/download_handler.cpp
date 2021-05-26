@@ -125,6 +125,7 @@ void DownloadWorker::run(Pool &pool) {
     auto tracker = ProgressTracker{ &gs_progress, Operation::Download, "download", "", info.size };
     auto bytes_copied = 0u;
     auto total_read_time = 0u;
+    auto total_write_time = 0u;
     while (bytes_copied < info.size) {
         auto to_read = std::min<int32_t>(buffer_size, info.size - bytes_copied);
         auto read_started = fk_uptime();
@@ -147,16 +148,20 @@ void DownloadWorker::run(Pool &pool) {
 #endif
         auto read_time = fk_uptime() - read_started;
 
+        auto write_started = fk_uptime();
         auto wrote = connection_->write(buffer, bytes_read);
         if (wrote != bytes_read) {
             logerror("write error (%" PRId32 " != %" PRId32 ")", wrote, bytes_read);
             break;
         }
 
-        tracker.update(bytes_read, read_time);
+        auto write_time = fk_uptime() - write_started;
+
+        tracker.update(bytes_read, read_time, write_time);
 
         bytes_copied += bytes_read;
         total_read_time += read_time;
+        total_write_time += write_time;
     }
 
     log_configure_level(old_level);
@@ -165,8 +170,8 @@ void DownloadWorker::run(Pool &pool) {
 
     auto elapsed = fk_uptime() - started;
     auto speed = ((bytes_copied / 1024.0f) / (elapsed / 1000.0f));
-    loginfo("done (%d) (%" PRIu32 "ms) %.2fkbps total-read-time=%" PRIu32,
-            bytes_copied, elapsed, speed, total_read_time);
+    loginfo("done (%d) (%" PRIu32 "ms) %.2fkbps total-read-time=%" PRIu32 " total-write-time=%" PRIu32,
+            bytes_copied, elapsed, speed, total_read_time, total_write_time);
 
     connection_->close();
 

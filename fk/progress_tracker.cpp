@@ -10,14 +10,18 @@ ProgressTracker::ProgressTracker(ProgressCallbacks *callbacks, Operation op, con
 }
 
 bool ProgressTracker::update(int32_t bytes) {
-    return update(bytes, 0);
+    return update(bytes, 0, 0);
 }
 
-bool ProgressTracker::update(int32_t bytes, uint32_t read_time) {
-    return update(bytes, read_time, total_);
+bool ProgressTracker::update(int32_t bytes, uint32_t total) {
+    return update(bytes, 0, 0, total);
 }
 
-bool ProgressTracker::update(int32_t bytes, uint32_t read_time, uint32_t total) {
+bool ProgressTracker::update(int32_t bytes, uint32_t read_time, uint32_t write_time) {
+    return update(bytes, read_time, write_time, total_);
+}
+
+bool ProgressTracker::update(int32_t bytes, uint32_t read_time, uint32_t write_time, uint32_t total) {
     auto now = fk_uptime();
 
     total_ = total;
@@ -36,8 +40,8 @@ bool ProgressTracker::update(int32_t bytes, uint32_t read_time, uint32_t total) 
     auto elapsed_ms = elapsed();
     auto speed = ((bytes_ / 1024.0f) / (elapsed_ms / 1000.0f));
     auto progress = (bytes_ / (float)total_) * 100.0f;
-    alogf(LogLevels::INFO, facility_, "%s%" PRIu32 "/%" PRIu32 " bytes (%.2f kbps) %.2f%% elapsed=%" PRIu32 "ms read-time=%" PRIu32 "ms rssi=%" PRId32,
-          prefix_, bytes_, total_, speed, progress, elapsed_ms, read_time, get_network()->rssi());
+    alogf(LogLevels::INFO, facility_, "%s%" PRIu32 "/%" PRIu32 " bytes (%.2f kbps) %.2f%% elapsed=%" PRIu32 "ms read-time=%" PRIu32 "ms write-time=%" PRIu32 "ms rssi=%" PRId32,
+          prefix_, bytes_, total_, speed, progress, elapsed_ms, read_time, write_time, get_network()->rssi());
     status_ = now + ProgressIntervalMs;
     callbacks_->progress(op_, progress);
 
