@@ -1,8 +1,9 @@
 #include <os.h>
 
-#include "tasks/tasks.h"
 #include "hal/hal.h"
-#include "networking/network_task.h"
+#include "tasks/tasks.h"
+#include "state_manager.h"
+#include "networking/network_services.h"
 #include "networking/network_duration.h"
 
 namespace fk {
@@ -15,12 +16,11 @@ void try_and_serve_connections() {
 
         StandardPool tick_pool{ "network-tick" };
         StandardPool pool{ "network-task" };
-        NetworkServices network_services{ network };
-        NetworkTask task{ network, network_services };
+        NetworkServices services{ network };
         NetworkDuration duration;
         GlobalStateManager gsm;
 
-        auto settings = task.get_selected_settings(pool);
+        auto settings = services.get_selected_settings(pool);
 
         gsm.apply([=](GlobalState *gs) {
             gs->network.state = { };
@@ -28,13 +28,13 @@ void try_and_serve_connections() {
 
         loginfo("starting network...");
 
-        if (!task.begin(settings, NetworkConnectionTimeoutMs, pool)) {
+        if (!services.begin(settings, NetworkConnectionTimeoutMs, pool)) {
             logerror("error starting server");
             return;
         }
 
         gsm.apply([&](GlobalState *gs) {
-            strncpy(gs->network.state.ssid, network_services.ssid(), sizeof(gs->network.state.ssid));
+            strncpy(gs->network.state.ssid, services.ssid(), sizeof(gs->network.state.ssid));
             gs->network.state.ip = get_network()->ip_address();
             gs->network.state.enabled = fk_uptime();
             gs->network.state.connected = 0;
@@ -46,7 +46,7 @@ void try_and_serve_connections() {
         uint32_t signal_checked = 0u;
         uint32_t started = fk_uptime();
         auto retry = false;
-        while (!network_services.ready_to_serve()) {
+        while (!services.ready_to_serve()) {
             if (!duration.on(started)) {
                 return;
             }
@@ -58,7 +58,7 @@ void try_and_serve_connections() {
                 return;
             }
 
-            if (task.did_configuration_change()) {
+            if (services.did_configuration_change()) {
                 loginfo("configuration change");
                 retry = true;
                 break;
@@ -73,7 +73,7 @@ void try_and_serve_connections() {
         fk_delay(500);
 
         // Start the network services now that we've got things to talk to.
-        if (!network_services.serve()) {
+        if (!services.serve()) {
             logerror("error serving");
             continue;
         }
@@ -89,7 +89,7 @@ void try_and_serve_connections() {
         auto statistics_update = fk_uptime() + OneSecondMs;
 
         while (true) {
-            network_services.tick(&tick_pool);
+            services.tick(&tick_pool);
 
             if (tick_pool.used() > 0) {
                 loginfo("network-tick: %zu/%zu", tick_pool.used(), tick_pool.size());
@@ -97,7 +97,7 @@ void try_and_serve_connections() {
             }
 
             // Break this loop and go to the beginning to recreate.
-            if (task.did_configuration_change()) {
+            if (services.did_configuration_change()) {
                 loginfo("stopping: configuration");
                 break;
             }
@@ -110,7 +110,7 @@ void try_and_serve_connections() {
             }
 
             // Check to see if we've been inactive for too long.
-            if (!duration.on(network_services.activity())) {
+            if (!duration.on(services.activity())) {
                 loginfo("stopping: inactive");
                 return;
             }
@@ -118,7 +118,7 @@ void try_and_serve_connections() {
             // This will happen when a foreign device disconnects from
             // our WiFi AP and in that case we keep the WiFi on until
             // we're properly considered inactive.
-            if (!network_services.ready_to_serve()) {
+            if (!services.ready_to_serve()) {
                 if (duration.always_on()) {
                     loginfo("stopping: disconnected (always-on)");
                     break;
@@ -131,15 +131,15 @@ void try_and_serve_connections() {
 
             if (fk_uptime() > statistics_update) {
                 gsm.apply([&](GlobalState *gs) {
-                    gs->network.state.bytes_rx = network_services.bytes_rx();
-                    gs->network.state.bytes_tx = network_services.bytes_tx();
-                    gs->network.state.activity = network_services.activity();
+                    gs->network.state.bytes_rx = services.bytes_rx();
+                    gs->network.state.bytes_tx = services.bytes_tx();
+                    gs->network.state.activity = services.activity();
                     duration = gs->scheduler.network.duration;
                 });
                 statistics_update = fk_uptime() + OneSecondMs;
             }
 
-            if (!network_services.active_connections()) {
+            if (!services.active_connections()) {
                 fk_delay(10);
             }
         }

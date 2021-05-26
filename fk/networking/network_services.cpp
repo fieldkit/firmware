@@ -7,10 +7,12 @@
 #include "networking/default_routes.h"
 #include "hal/hal.h"
 #include "device_name.h"
+#include "state_ref.h"
+#include "state_manager.h"
 
 namespace fk {
 
-FK_DECLARE_LOGGER("httpd");
+FK_DECLARE_LOGGER("ns");
 
 static DefaultRoutes default_routes;
 
@@ -22,7 +24,7 @@ NetworkServices::NetworkServices(Network *network) : network_(network) {
 }
 
 NetworkServices::~NetworkServices() {
-    loginfo("stopping");
+    loginfo("dtor");
     stop();
 }
 
@@ -43,10 +45,10 @@ bool NetworkServices::ready_to_serve() const {
 }
 
 const char *NetworkServices::ssid() const {
-    return settings_.ssid;
+    return active_settings_.ssid;
 }
 
-bool NetworkServices::begin(NetworkSettings settings, uint32_t to, Pool &pool) {
+bool NetworkServices::try_begin(NetworkSettings settings, uint32_t to, Pool &pool) {
     if (settings.create) {
         loginfo("creating '%s'", settings.ssid);
     }
@@ -63,7 +65,6 @@ bool NetworkServices::begin(NetworkSettings settings, uint32_t to, Pool &pool) {
 
     do {
         if (network_began(network_->status())) {
-            settings_ = settings;
             return true;
         }
 
@@ -117,7 +118,119 @@ void NetworkServices::tick(Pool *pool) {
 }
 
 void NetworkServices::stop() {
+    loginfo("stopping...");
+
     network_->stop();
+
+    GlobalStateManager gsm;
+    gsm.apply([=](GlobalState *gs) {
+        gs->network.state = { };
+    });
+
+    loginfo("stopped");
+}
+
+static collection<NetworkSettings> copy_settings(Pool &pool) {
+    collection<NetworkSettings> settings{ pool };
+
+    auto gs = get_global_state_ro();
+    for (auto &wifi_network : gs.get()->network.config.wifi_networks) {
+        if (wifi_network.ssid[0] != 0) {
+            settings.add({
+                .valid = wifi_network.ssid[0] != 0,
+                .create = false,
+                .ssid = wifi_network.ssid,
+                .password = wifi_network.password,
+                .port = 80,
+            });
+        }
+    }
+
+    auto name = pool.strdup(gs.get()->general.name);
+    settings.add({
+        .valid = true,
+        .create = true,
+        .ssid = name,
+        .password = nullptr,
+        .port = 80,
+    });
+
+    return settings;
+}
+
+bool NetworkServices::begin(NetworkSettings settings, uint32_t to, Pool &pool) {
+    if (settings.valid) {
+        if (try_begin(settings, to, pool)) {
+            active_settings_ = settings;
+            return true;
+        }
+    }
+
+    auto network_settings = copy_settings(pool);
+    for (NetworkSettings &s : network_settings) {
+        if (try_begin(s, to, pool)) {
+            active_settings_ = s;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool NetworkServices::did_configuration_change() {
+    if (fk_uptime() - last_checked_configuration_ < ConfigurationCheckIntervalMs) {
+        return false;
+    }
+
+    auto gs = get_global_state_ro();
+    auto modified = gs.get()->network.config.modified;
+    auto changed = false;
+
+    if (modified != configuration_modified_) {
+        loginfo("configuration modified");
+
+        duration_ = gs.get()->scheduler.network.duration;
+        changed = true;
+    }
+
+    if (false) {
+        if (active_settings_.create) {
+            if (strncmp(gs.get()->general.name, active_settings_.ssid, sizeof(gs.get()->general.name)) != 0) {
+                loginfo("name changed '%s' vs '%s'", gs.get()->general.name, active_settings_.ssid);
+                changed = true;
+            }
+        }
+    }
+
+    last_checked_configuration_ = fk_uptime();
+
+    return changed;
+}
+
+NetworkSettings NetworkServices::get_selected_settings(Pool &pool) {
+    auto gs = get_global_state_ro();
+    auto &n = gs.get()->network.config.selected;
+    if (!n.valid) {
+        return {
+            .valid = false,
+            .create = false,
+            .ssid = nullptr,
+            .password = nullptr,
+            .port = 80,
+        };
+    }
+
+    auto modified = gs.get()->network.config.modified;
+
+    configuration_modified_ = modified;
+
+    return {
+        .valid = true,
+        .create = n.create,
+        .ssid = n.ssid,
+        .password = n.password,
+        .port = 80,
+    };
 }
 
 }

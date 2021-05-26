@@ -16,14 +16,16 @@ private:
     Network *network_{ nullptr };
     PoolPointer<NetworkListener> *http_listener_{ nullptr };
     PoolPointer<NetworkListener> *debug_listener_{ nullptr };
-    NetworkSettings settings_;
+    NetworkSettings active_settings_;
+    uint32_t last_checked_configuration_{ 0 };
+    uint32_t configuration_modified_{ 0 };
 
 public:
     NetworkServices(Network *network);
     virtual ~NetworkServices();
 
 public:
-    bool begin(NetworkSettings settings, uint32_t to, Pool &pool);
+    bool try_begin(NetworkSettings settings, uint32_t to, Pool &pool);
 
     bool serve();
 
@@ -49,6 +51,11 @@ public:
     uint32_t bytes_tx() const {
         return pool_.bytes_tx();
     };
+
+public:
+    bool begin(NetworkSettings settings, uint32_t to, Pool &pool);
+    NetworkSettings get_selected_settings(Pool &pool);
+    bool did_configuration_change();
 
 };
 
