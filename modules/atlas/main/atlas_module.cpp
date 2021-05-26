@@ -246,11 +246,11 @@ ModuleReadings *AtlasModule::take_readings(ReadingsContext mc, Pool &pool) {
     }
 
     auto mr = new(pool) NModuleReadings<ATLAS_MAXIMUM_VALUES>(number_of_values);
-    if (mr->size() == 1) {
-        mr->set(0, ModuleReading{ values[0], curve->apply(values[0]) });
-    }
-    else {
-        for (auto i = 0u; i < mr->size(); ++i) {
+    for (auto i = 0u; i < mr->size(); ++i) {
+        if (i == 0) {
+            mr->set(i, ModuleReading{ values[i], curve->apply(values[i]) });
+        }
+        else {
             mr->set(i, ModuleReading{ values[i] });
         }
     }
