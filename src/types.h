@@ -40,6 +40,9 @@ extern "C" {
  */
 #define OS_CONFIG_PARANOIA
 
+#define OS_IRQ_PRIORITY_PENDSV                        (0x7)
+#define OS_IRQ_PRIORITY_SYSTICK                       (0x2)
+
 /**
  *
  */
