@@ -12,6 +12,7 @@
 #include <SPI.h>
 #include <WiFi101.h>
 #include <WiFiUdp.h>
+#include <WiFiSocket.h>
 
 #undef min
 #undef max
@@ -78,6 +79,25 @@ public:
     PoolPointer<NetworkConnection> *accept() override;
 
     bool stop() override;
+
+};
+
+class StaticWiFiCallbacks : public WiFiCallbacks {
+private:
+    constexpr static size_t ExpectedWiFiBufferSize = 1472;
+    constexpr static size_t NumberOfBuffers = 3;
+
+    struct Buffer {
+        bool taken{ false };
+        void *ptr{ nullptr };
+    };
+    Buffer buffers_[NumberOfBuffers];
+
+public:
+    void initialize(Pool &pool);
+    void *malloc(size_t size) override;
+    void free(void *ptr) override;
+    bool busy(uint32_t elapsed) override;
 
 };
 
