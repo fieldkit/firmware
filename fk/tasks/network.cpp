@@ -14,7 +14,6 @@ void try_and_serve_connections() {
     while (true) {
         auto network = get_network();
 
-        StandardPool tick_pool{ "network-tick" };
         StandardPool pool{ "network-task" };
         NetworkServices services{ network };
         NetworkDuration duration;
@@ -89,12 +88,7 @@ void try_and_serve_connections() {
         auto statistics_update = fk_uptime() + OneSecondMs;
 
         while (true) {
-            services.tick(&tick_pool);
-
-            if (tick_pool.used() > 0) {
-                loginfo("network-tick: %zu/%zu", tick_pool.used(), tick_pool.size());
-                tick_pool.clear();
-            }
+            services.tick();
 
             // Break this loop and go to the beginning to recreate.
             if (services.did_configuration_change()) {

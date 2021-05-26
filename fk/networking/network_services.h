@@ -11,8 +11,9 @@ namespace fk {
 
 class NetworkServices {
 private:
+    StandardPool tick_pool_{ "network-tick" };
     HttpRouter router_;
-    ConnectionPool pool_{ router_ };
+    ConnectionPool connection_pool_{ router_ };
     Network *network_{ nullptr };
     PoolPointer<NetworkListener> *http_listener_{ nullptr };
     PoolPointer<NetworkListener> *debug_listener_{ nullptr };
@@ -29,7 +30,7 @@ public:
 
     bool serve();
 
-    void tick(Pool *pool);
+    void tick();
 
     void stop();
 
@@ -44,13 +45,9 @@ public:
 
     const char *ssid() const;
 
-    uint32_t bytes_rx() const {
-        return pool_.bytes_rx();
-    };
+    uint32_t bytes_rx() const;
 
-    uint32_t bytes_tx() const {
-        return pool_.bytes_tx();
-    };
+    uint32_t bytes_tx() const;
 
 public:
     bool begin(NetworkSettings settings, uint32_t to, Pool &pool);

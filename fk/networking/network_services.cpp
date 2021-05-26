@@ -33,11 +33,11 @@ bool NetworkServices::enabled() const {
 }
 
 uint32_t NetworkServices::activity() const {
-    return pool_.activity();
+    return connection_pool_.activity();
 }
 
 bool NetworkServices::active_connections() const {
-    return pool_.active_connections();
+    return connection_pool_.active_connections();
 }
 
 bool NetworkServices::ready_to_serve() const {
@@ -47,6 +47,14 @@ bool NetworkServices::ready_to_serve() const {
 const char *NetworkServices::ssid() const {
     return active_settings_.ssid;
 }
+
+uint32_t NetworkServices::bytes_rx() const {
+    return connection_pool_.bytes_rx();
+};
+
+uint32_t NetworkServices::bytes_tx() const {
+    return connection_pool_.bytes_tx();
+};
 
 bool NetworkServices::try_begin(NetworkSettings settings, uint32_t to, Pool &pool) {
     if (settings.create) {
@@ -99,22 +107,27 @@ bool NetworkServices::serve() {
     return true;
 }
 
-void NetworkServices::tick(Pool *pool) {
-    if (pool_.available() > 0) {
+void NetworkServices::tick() {
+    if (connection_pool_.available() > 0) {
         auto http_connection = http_listener_->get()->accept();
         if (http_connection != nullptr) {
-            pool_.queue_http(http_connection);
+            connection_pool_.queue_http(http_connection);
         }
 
         auto debug_connection = debug_listener_->get()->accept();
         if (debug_connection != nullptr) {
-            pool_.queue_debug(debug_connection);
+            connection_pool_.queue_debug(debug_connection);
         }
     }
 
-    network_->service(pool);
+    network_->service(&tick_pool_);
 
-    pool_.service();
+    connection_pool_.service();
+
+    if (tick_pool_.used() > 0) {
+        loginfo("network-tick: %zu/%zu", tick_pool_.used(), tick_pool_.size());
+        tick_pool_.clear();
+    }
 }
 
 void NetworkServices::stop() {
