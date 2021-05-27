@@ -13,7 +13,7 @@ ConnectionPool::ConnectionPool(HttpRouter &router) : router_(&router) {
 }
 
 ConnectionPool::~ConnectionPool() {
-    for (auto i = (size_t)0; i < MaximumConnections; ++i) {
+    for (auto i = 0u; i < MaximumConnections; ++i) {
         if (connections_[i] != nullptr) {
             update_statistics(connections_[i]);
             free_connection(i);
@@ -22,8 +22,8 @@ ConnectionPool::~ConnectionPool() {
 }
 
 size_t ConnectionPool::available() {
-    size_t used = 0;
-    for (auto i = (size_t)0; i < MaximumConnections; ++i) {
+    auto used = 0;
+    for (auto i = 0u; i < MaximumConnections; ++i) {
         if (connections_[i] != nullptr) {
             used++;
         }
@@ -141,5 +141,26 @@ void ConnectionPool::free_connection(uint16_t index) {
     delete pool;
     logdebug("[%" PRIu32 "] [%d] connection freed", number, index);
 }
+
+bool ConnectionPool::active_connections() const {
+    for (size_t i = 0; i < MaximumConnections; ++i) {
+        if (connections_[i] != nullptr) {
+            return true;
+        }
+    }
+    return false;
+}
+
+uint32_t ConnectionPool::activity() const {
+    return activity_;
+}
+
+uint32_t ConnectionPool::bytes_rx() const {
+    return bytes_rx_;
+};
+
+uint32_t ConnectionPool::bytes_tx() const {
+    return bytes_tx_;
+};
 
 }

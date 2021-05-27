@@ -38,26 +38,13 @@ public:
 
     void queue(PoolPointer<NetworkConnection> *c, Connection *connection);
 
-    uint32_t activity() const {
-        return activity_;
-    }
+    bool active_connections() const;
 
-    bool active_connections() const {
-        for (size_t i = 0; i < MaximumConnections; ++i) {
-            if (connections_[i] != nullptr) {
-                return true;
-            }
-        }
-        return false;
-    }
+    uint32_t activity() const;
 
-    uint32_t bytes_rx() const {
-        return bytes_rx_;
-    };
+    uint32_t bytes_rx() const;
 
-    uint32_t bytes_tx() const {
-        return bytes_tx_;
-    };
+    uint32_t bytes_tx() const;
 
 private:
     void update_statistics(Connection *c);
