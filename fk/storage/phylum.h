@@ -10,7 +10,7 @@
 namespace fk {
 
 using directory_type = phylum::directory_tree;
-using index_tree_type = phylum::tree_sector<uint32_t, uint32_t, 405>;
+using index_tree_type = phylum::tree_sector<uint32_t, uint32_t, 201>;
 using file_ops_type = phylum::file_ops<directory_type, index_tree_type>;
 
 class standard_page_working_buffers : public phylum::working_buffers {
