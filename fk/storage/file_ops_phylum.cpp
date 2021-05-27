@@ -79,6 +79,7 @@ bool MetaOps::read_record(SignedRecordKind kind, MetaRecord &record, Pool &pool)
     PhylumDataFile file{ storage_.phylum(), pool };
     auto err = file.open("d/00000000", pool);
     if (err < 0) {
+        logerror("opening file");
         return false;
     }
 
@@ -90,6 +91,7 @@ bool MetaOps::read_record(SignedRecordKind kind, MetaRecord &record, Pool &pool)
     }
 
     if (position == UINT32_MAX) {
+        loginfo("lookup %d: invalid position", (int32_t)kind);
         return false;
     }
 

@@ -173,9 +173,12 @@ int32_t PhylumDataFile::append_always(RecordType type, pb_msgdesc_t const *field
 
     logdebug("append-always: attributes");
 
+    auto attribute_type = get_attribute_for_record_type(type);
+    auto attribute_index = phylum_file_attr_type_to_index(attribute_type);
+
     PhylumAttributes attributes{ file_cfg_ };
     auto records = attributes.get<records_attribute_t>(PHYLUM_DRIVER_FILE_ATTR_RECORDS);
-    auto index_record = attributes.get<index_attribute_t>(get_attribute_for_record_type(type));
+    auto index_record = attributes.get<index_attribute_t>(attribute_type);
 
     logdebug("append-always: opening");
 
@@ -225,6 +228,9 @@ int32_t PhylumDataFile::append_always(RecordType type, pb_msgdesc_t const *field
 
     auto bytes_written = ostream.bytes_written;
     auto record_number = records->nrecords;
+
+    logdebug("append-always: record-type=%d attribute-type=%d index=%d number=%" PRIu32 " position=%" PRIu32,
+             type, attribute_type, attribute_index, record_number, record_position);
 
     hash_writer.finalize(index_record->hash, sizeof(index_record->hash));
     index_record->record = record_number;
@@ -294,10 +300,14 @@ int32_t PhylumDataFile::append_immutable(RecordType type, pb_msgdesc_t const *fi
 int32_t PhylumDataFile::seek_record_type(RecordType type, file_size_t &position, Pool &pool) {
     assert(name_ != nullptr);
 
-    loginfo("seek record-type=%d", type);
+    auto attribute_type = get_attribute_for_record_type(type);
+    auto attribute_index = phylum_file_attr_type_to_index(attribute_type);
+
+    loginfo("seek record-type=%d attribute-type=%d index=%d", type, attribute_type, attribute_index);
 
     PhylumAttributes attributes{ file_cfg_ };
-    auto index_attribute = attributes.get<index_attribute_t>(get_attribute_for_record_type(type));
+    auto index_attribute = attributes.get<index_attribute_t>(attribute_type);
+
     position = index_attribute->position;
 
     if (position == UINT32_MAX) {

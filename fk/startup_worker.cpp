@@ -190,6 +190,10 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
             return false;
         }
 
+        if (!storage.flush()) {
+            logerror("flush storage");
+        }
+
         return true;
     }
 
