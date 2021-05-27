@@ -32,7 +32,9 @@ private:
     size_t sector_size_;
     PhylumFlashMemory memory_;
     standard_page_working_buffers buffers_{ sector_size_ };
-    phylum::dhara_sector_map sectors_{ buffers_, memory_ };
+    phylum::noop_page_cache page_cache_;
+    // phylum::simple_page_cache page_cache_{ buffers_.allocate(sector_size_) };
+    phylum::dhara_sector_map sectors_{ buffers_, memory_, &page_cache_ };
     phylum::sector_allocator allocator_{ sectors_ };
 
 public:
