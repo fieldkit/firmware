@@ -158,7 +158,7 @@ constexpr size_t InMemoryLogBufferSize = 32768;
 /**
  * Size of the network buffers.
  */
-constexpr size_t NetworkBufferSize = 1024;
+constexpr size_t NetworkBufferSize = 1400;
 
 /**
  * Maximum size to use for buffers allocated on the stack.
