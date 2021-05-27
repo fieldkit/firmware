@@ -30,10 +30,6 @@ const char *get_wifi_status(uint8_t status) {
     }
 }
 
-const char *get_wifi_status() {
-    return get_wifi_status(WiFi.status());
-}
-
 FK_DECLARE_LOGGER("network");
 
 MetalNetworkConnection::MetalNetworkConnection() {
@@ -178,7 +174,9 @@ bool MetalNetwork::begin(NetworkSettings settings, Pool *pool) {
 
     WiFi.setPins(WINC1500_CS, WINC1500_IRQ, WINC1500_RESET);
 
-    if (WiFi.status() == WL_NO_SHIELD) {
+    status_ = WiFi.status();
+
+    if (status_ == WL_NO_SHIELD) {
         get_board()->disable_wifi();
         availability_ = Availability::Unavailable;
         return false;
@@ -212,8 +210,6 @@ bool MetalNetwork::begin(NetworkSettings settings, Pool *pool) {
 }
 
 bool MetalNetwork::serve() {
-    serving_ = true;
-
     fk_delay(500);
 
     mdns_discovery_.pool(pool_);
@@ -228,21 +224,25 @@ bool MetalNetwork::serve() {
 
     synchronize_time();
 
+    status_ = WiFi.status();
+
     IPAddress ip = WiFi.localIP();
     loginfo("ready (ip = %d.%d.%d.%d) (status = %s)",
-            ip[0], ip[1], ip[2], ip[3], get_wifi_status());
+            ip[0], ip[1], ip[2], ip[3], get_wifi_status(status_));
 
-    if (WiFi.status() == WL_AP_CONNECTED) {
+    if (status_ == WL_AP_CONNECTED) {
         uint8_t mac_address[6];
         WiFi.APClientMacAddress(mac_address);
         loginfo("remote mac: %s", bytes_to_hex_string_pool(mac_address, sizeof(mac_address), *pool_));
     }
 
+    serving_ = true;
+
     return true;
 }
 
 NetworkStatus MetalNetwork::status() {
-    switch (WiFi.status()) {
+    switch (status_) {
     case WL_NO_SHIELD: return NetworkStatus::Error;
     case WL_CONNECTED: return NetworkStatus::Connected;
     case WL_AP_LISTENING: return NetworkStatus::Listening;
@@ -276,9 +276,15 @@ PoolPointer<NetworkListener> *MetalNetwork::listen(uint16_t port) {
 }
 
 void MetalNetwork::service(Pool *pool) {
-    mdns_discovery_.service(pool);
-    udp_discovery_.service(pool);
-    ntp_.service();
+    status_ = WiFi.status();
+
+    if (pool != nullptr) {
+        if (serving_) {
+            mdns_discovery_.service(pool);
+            udp_discovery_.service(pool);
+            ntp_.service();
+        }
+    }
 }
 
 PoolPointer<NetworkConnection> *MetalNetwork::open_connection(const char *scheme, const char *hostname, uint16_t port) {
@@ -345,8 +351,7 @@ const char *MetalNetwork::get_ssid() {
 }
 
 bool MetalNetwork::get_created_ap() {
-    auto status = WiFi.status();
-    return status == WL_AP_LISTENING ||  status == WL_AP_CONNECTED;
+    return status_ == WL_AP_LISTENING ||  status_ == WL_AP_CONNECTED;
 }
 
 NetworkScan MetalNetwork::scan(Pool &pool) {

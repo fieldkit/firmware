@@ -11,10 +11,11 @@ namespace fk {
 
 FK_DECLARE_LOGGER("ipc");
 
-MetalMutex storage_mutex;
-MetalMutex modules_mutex;
-MetalMutex workers_mutex;
-MetalMutex sd_mutex;
+MetalMutex storage_mutex{ "storage" };
+MetalMutex modules_mutex{ "modules" };
+MetalMutex workers_mutex{ "workers" };
+MetalMutex wifi_mutex{ "wifi" };
+MetalMutex sd_mutex{ "sd" };
 MetalRwLock data_lock;
 
 os_queue_define(activity_queue, 10, OS_QUEUE_FLAGS_QUEUE_ONLY);
@@ -40,6 +41,7 @@ bool MetalIPC::begin() {
     FK_ASSERT(storage_mutex.create());
     FK_ASSERT(modules_mutex.create());
     FK_ASSERT(workers_mutex.create());
+    FK_ASSERT(wifi_mutex.create());
     FK_ASSERT(sd_mutex.create());
     FK_ASSERT(data_lock.create());
 
@@ -231,8 +233,10 @@ Lock MetalMutex::acquire(uint32_t to) {
         return Lock{ this };
     }
     if (os_mutex_acquire(&mutex_, to) == OSS_SUCCESS) {
+        logtrace("%s acquire", name_);
         return Lock{ this };
     }
+    logerror("%s failed-acquire!", name_);
     return Lock{ nullptr };
 }
 
@@ -240,6 +244,7 @@ bool MetalMutex::release() {
     if (!os_is_running()) {
         return true;
     }
+    logtrace("%s release", name_);
     os_mutex_release(&mutex_);
     return true;
 }

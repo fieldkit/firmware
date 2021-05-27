@@ -98,15 +98,11 @@ static void setup_fake_data() {
 
 static void server(Fake *fake) {
     StandardPool pool{ "pool" };
-    StandardPool tick_pool{ "tick" };
     LinuxNetwork network;
     NetworkServices network_services{ &network };
     auto gs = get_global_state_ro();
 
-    auto settings = NetworkSettings{
-        .valid = true,
-    };
-    if (!network_services.begin(settings, FiveMinutesMs, pool)) {
+    if (!network_services.begin(FiveMinutesMs, pool)) {
         return;
     }
 
@@ -117,8 +113,7 @@ static void server(Fake *fake) {
     }
 
     while (fake->running()) {
-        network_services.tick(&tick_pool);
-        tick_pool.clear();
+        network_services.tick();
     }
 
     loginfo("stopping...");

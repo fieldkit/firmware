@@ -77,8 +77,13 @@ public:
 
 class MetalMutex : public Mutex {
 private:
+    const char *name_{ "unknown" };
     os_mutex_definition_t def_;
     os_mutex_t mutex_;
+
+public:
+    MetalMutex(const char *name) : name_(name) {
+    }
 
 public:
     bool create() override;
@@ -104,6 +109,7 @@ public:
 extern MetalMutex storage_mutex;
 extern MetalMutex modules_mutex;
 extern MetalMutex sd_mutex;
+extern MetalMutex wifi_mutex;
 extern MetalRwLock data_lock;
 
 }

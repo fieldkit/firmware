@@ -1,5 +1,7 @@
 #include "networking/connection.h"
 
+#include "hal/hal.h"
+
 namespace fk {
 
 FK_DECLARE_LOGGER("connection");
@@ -20,7 +22,10 @@ bool Connection::service() {
     }
 
     if (FK_ADDRESS_VALID(conn_)) {
-        if (conn_->status() != NetworkConnectionStatus::Connected) {
+        auto status = wifi_mutex.with<NetworkConnectionStatus>([&]() {
+            return conn_->status();
+        });
+        if (status != NetworkConnectionStatus::Connected) {
             loginfo("[%" PRIu32 "] disconnected", number_);
             return false;
         }
@@ -39,7 +44,9 @@ int32_t Connection::read(uint8_t *buffer, size_t size) {
         return -1;
     }
 
-    auto bytes = conn_->read(buffer, size);
+    auto bytes = wifi_mutex.with<int32_t>([&]() {
+        return conn_->read(buffer, size);
+    });
     if (bytes > 0) {
         bytes_rx_ += bytes;
         activity_ = fk_uptime();
@@ -55,7 +62,9 @@ int32_t Connection::write(uint8_t const *buffer, size_t size) {
         return -1;
     }
 
-    auto bytes = conn_->write(buffer, size);
+    auto bytes = wifi_mutex.with<int32_t>([&]() {
+        return conn_->write(buffer, size);
+    });
     if (bytes > 0) {
         bytes_tx_ += bytes;
         activity_ = fk_uptime();
@@ -72,7 +81,9 @@ int32_t Connection::printf(const char *s, ...) {
 
     va_list args;
     va_start(args, s);
-    auto r = conn_->vwritef(s, args);
+    auto r = wifi_mutex.with<int32_t>([&]() {
+        return conn_->vwritef(s, args);
+    });
     va_end(args);
     bytes_tx_ += r;
     return r;
@@ -82,12 +93,15 @@ int32_t Connection::close() {
     // This can happen in a separate task than the one calling
     // ::service and introduce a race, and so we check for nullptr's
     // in all the public methods.
-    if (conn_ != nullptr) {
-        loginfo("[%" PRIu32 "] close", number_);
-        conn_->stop();
-        conn_ = nullptr;
-    }
-    return 0;
+    loginfo("[%" PRIu32 "] close", number_);
+    return wifi_mutex.with<int32_t>([=]() {
+        if (conn_ != nullptr) {
+            auto c = conn_;
+            conn_ = nullptr;
+            c->stop();
+        }
+        return 0;
+    });
 }
 
 }

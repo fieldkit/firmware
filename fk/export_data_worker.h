@@ -37,10 +37,6 @@ private:
     WriteStatus write_row(fk_data_DataRecord &record);
 
 public:
-    uint8_t priority() const override {
-        return OS_PRIORITY_NORMAL + 1;
-    }
-
     const char *name() const override {
         return "expdata";
     }

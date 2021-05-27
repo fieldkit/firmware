@@ -57,14 +57,23 @@ static void run_tasks() {
         nullptr,
         display_stack,
         sizeof(display_stack),
-        OS_PRIORITY_NORMAL + 2
+        FK_PRIORITY_NORMAL
+    };
+
+    os_task_options_t network_task_options = {
+        "network",
+        OS_TASK_START_SUSPENDED,
+        task_handler_network,
+        nullptr,
+        network_stack,
+        sizeof(network_stack),
+        FK_PRIORITY_NORMAL
     };
 
     OS_CHECK(os_initialize());
 
     OS_CHECK(os_task_initialize(&idle_task, "idle", OS_TASK_START_RUNNING, &task_handler_idle, nullptr, idle_stack, sizeof(idle_stack)));
     OS_CHECK(os_task_initialize(&scheduler_task, "scheduler", OS_TASK_START_SUSPENDED, &task_handler_scheduler, nullptr, scheduler_stack, sizeof(scheduler_stack)));
-    OS_CHECK(os_task_initialize(&network_task, "network", OS_TASK_START_SUSPENDED, &task_handler_network, nullptr, network_stack, sizeof(network_stack)));
     #if defined(FK_ENABLE_DEBUG_TASK)
     // NOTICE NOTICE We share GPS stack! NOTICE NOTICE
     OS_CHECK(os_task_initialize(&debug_task, "debug", OS_TASK_START_SUSPENDED, &task_handler_debug, nullptr, gps_stack, sizeof(gps_stack)));
@@ -72,6 +81,7 @@ static void run_tasks() {
     OS_CHECK(os_task_initialize(&gps_task, "gps", OS_TASK_START_SUSPENDED, &task_handler_gps, nullptr, gps_stack, sizeof(gps_stack)));
     #endif
 
+    OS_CHECK(os_task_initialize_options(&network_task, &network_task_options));
     OS_CHECK(os_task_initialize_options(&display_task, &display_task_options));
 
     for (size_t i = 0; i < NumberOfWorkerTasks; ++i) {
