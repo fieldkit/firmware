@@ -7,7 +7,7 @@
 
 #include "bl.h"
 
-#define FK_BUTTON_RIGHT            GPIO(GPIO_PORTA, 21)
+#define FK_BUTTON_LEFT             GPIO(GPIO_PORTA, 23)
 #define FK_FAILSAFE_HOLD_TIME      1000 * 10
 
 extern enum reset_reason _get_reset_reason(void);
@@ -117,15 +117,15 @@ int32_t bl_upgrade_firmware(fkb_header_t *running, fkb_header_t *fkbh, uint32_t 
 }
 
 int32_t bl_button_initialize() {
-    gpio_set_pin_direction(FK_BUTTON_RIGHT, GPIO_DIRECTION_IN);
+    gpio_set_pin_direction(FK_BUTTON_LEFT, GPIO_DIRECTION_IN);
 
-	gpio_set_pin_pull_mode(FK_BUTTON_RIGHT, GPIO_PULL_UP);
+	gpio_set_pin_pull_mode(FK_BUTTON_LEFT, GPIO_PULL_UP);
 
     return 0;
 }
 
 int32_t bl_button_pressed() {
-    return gpio_get_pin_level(FK_BUTTON_RIGHT) == 0;
+    return gpio_get_pin_level(FK_BUTTON_LEFT) == 0;
 }
 
 int32_t bl_firmware_upgrade_failed() {
