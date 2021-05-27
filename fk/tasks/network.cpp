@@ -41,6 +41,8 @@ void try_and_serve_connections() {
                 return;
             }
 
+            services.tick();
+
             fk_delay(10);
         }
 

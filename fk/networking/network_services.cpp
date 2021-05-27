@@ -129,6 +129,8 @@ bool NetworkServices::try_begin(NetworkSettings settings, uint32_t to, Pool &poo
     auto started = fk_uptime();
 
     do {
+        network_->service(nullptr);
+
         if (network_began(network_->status())) {
             return true;
         }
@@ -171,21 +173,23 @@ void NetworkServices::tick() {
     auto lock = wifi_mutex.acquire(UINT32_MAX);
     FK_ASSERT(lock);
 
-    if (connection_pool_.available() > 0) {
-        auto http_connection = http_listener_->get()->accept();
-        if (http_connection != nullptr) {
-            connection_pool_.queue_http(http_connection);
-        }
-
-        auto debug_connection = debug_listener_->get()->accept();
-        if (debug_connection != nullptr) {
-            connection_pool_.queue_debug(debug_connection);
-        }
-    }
-
     network_->service(&tick_pool_);
 
-    connection_pool_.service();
+    if (network_->status() == NetworkStatus::Connected) {
+        if (connection_pool_.available() > 0) {
+            auto http_connection = http_listener_->get()->accept();
+            if (http_connection != nullptr) {
+                connection_pool_.queue_http(http_connection);
+            }
+
+            auto debug_connection = debug_listener_->get()->accept();
+            if (debug_connection != nullptr) {
+                connection_pool_.queue_debug(debug_connection);
+            }
+        }
+
+        connection_pool_.service();
+    }
 
     if (tick_pool_.used() > 0) {
         loginfo("network-tick: %zu/%zu", tick_pool_.used(), tick_pool_.size());

@@ -112,6 +112,7 @@ private:
     MDNSDiscovery mdns_discovery_;
     UDPDiscovery udp_discovery_;
     SimpleNTP ntp_;
+    uint8_t status_{ 0 };
 
 public:
     bool begin(NetworkSettings settings, Pool *pool) override;
