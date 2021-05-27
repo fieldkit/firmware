@@ -24,6 +24,7 @@ private:
     NetworkDuration duration_;
     uint32_t signal_checked_{ 0u };
     uint32_t started_{ 0 };
+    bool serving_{ false };
 
 public:
     NetworkServices(Network *network);

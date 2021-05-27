@@ -164,6 +164,8 @@ bool NetworkServices::serve() {
         return false;
     }
 
+    serving_ = true;
+
     loginfo("serving");
 
     return true;
@@ -185,7 +187,9 @@ void NetworkServices::tick() {
         }
     }
 
-    if (network_->status() == NetworkStatus::Connected) {
+    // We use this instead of connection status because that can
+    // change while we're waiting and before ::serve is called.
+    if (serving_) {
         if (connection_pool_.available() > 0) {
             auto http_connection = http_listener_->get()->accept();
             if (http_connection != nullptr) {
