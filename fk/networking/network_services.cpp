@@ -9,6 +9,7 @@
 #include "device_name.h"
 #include "state_ref.h"
 #include "state_manager.h"
+#include "tasks/tasks.h"
 
 namespace fk {
 
@@ -21,6 +22,7 @@ static bool network_began(NetworkStatus status) {
 }
 
 NetworkServices::NetworkServices(Network *network) : network_(network) {
+    started_ = fk_uptime();
 }
 
 NetworkServices::~NetworkServices() {
@@ -32,20 +34,16 @@ bool NetworkServices::enabled() const {
     return network_->enabled();
 }
 
-uint32_t NetworkServices::activity() const {
-    return connection_pool_.activity();
+const char *NetworkServices::ssid() const {
+    return active_settings_.ssid;
 }
 
 bool NetworkServices::active_connections() const {
     return connection_pool_.active_connections();
 }
 
-bool NetworkServices::ready_to_serve() const {
-    return network_->status() == NetworkStatus::Connected;
-}
-
-const char *NetworkServices::ssid() const {
-    return active_settings_.ssid;
+uint32_t NetworkServices::activity() const {
+    return connection_pool_.activity();
 }
 
 uint32_t NetworkServices::bytes_rx() const {
@@ -55,6 +53,65 @@ uint32_t NetworkServices::bytes_rx() const {
 uint32_t NetworkServices::bytes_tx() const {
     return connection_pool_.bytes_tx();
 };
+
+
+bool NetworkServices::waiting_to_serve() {
+    if (network_->status() == NetworkStatus::Connected) {
+        loginfo("connected");
+        return false;
+    }
+
+    if (did_configuration_change()) {
+        loginfo("configuration changed");
+        return false;
+    }
+
+    return true;
+}
+
+bool NetworkServices::can_serve() const {
+    return network_->status() == NetworkStatus::Connected;
+}
+
+bool NetworkServices::serving() {
+    // Break this loop and go to the beginning to recreate.
+    if (did_configuration_change()) {
+        loginfo("stopping: configuration");
+        return false;
+    }
+
+    // This will happen when a foreign device disconnects from
+    // our WiFi AP and in that case we keep the WiFi on until
+    // we're properly considered inactive.
+    if (network_->status() != NetworkStatus::Connected) {
+        if (duration_.always_on()) {
+            loginfo("stopping: disconnected (always-on)");
+        }
+        else {
+            loginfo("stopping: disconnected");
+        }
+        return false;
+    }
+
+    return true;
+}
+
+bool NetworkServices::should_stop() {
+    // Check to see if we've been inactive for too long.
+    if (!duration_.on(std::max(started_, activity()))) {
+        loginfo("inactive");
+        return true;
+    }
+
+    // Some other task has requested that we stop serving. Menu option
+    // or a self check for example.
+    if (fk_task_stop_requested(&signal_checked_)) {
+        loginfo("stop requested");
+        return true;
+    }
+
+    return false;
+}
 
 bool NetworkServices::try_begin(NetworkSettings settings, uint32_t to, Pool &pool) {
     if (settings.create) {
@@ -171,7 +228,8 @@ static collection<NetworkSettings> copy_settings(Pool &pool) {
     return settings;
 }
 
-bool NetworkServices::begin(NetworkSettings settings, uint32_t to, Pool &pool) {
+bool NetworkServices::begin(uint32_t to, Pool &pool) {
+    auto settings = get_selected_settings(pool);
     if (settings.valid) {
         if (try_begin(settings, to, pool)) {
             active_settings_ = settings;
@@ -223,6 +281,9 @@ bool NetworkServices::did_configuration_change() {
 NetworkSettings NetworkServices::get_selected_settings(Pool &pool) {
     auto gs = get_global_state_ro();
     auto &n = gs.get()->network.config.selected;
+
+    duration_ = gs.get()->scheduler.network.duration;
+
     if (!n.valid) {
         return {
             .valid = false,

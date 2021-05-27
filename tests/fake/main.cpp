@@ -102,10 +102,7 @@ static void server(Fake *fake) {
     NetworkServices network_services{ &network };
     auto gs = get_global_state_ro();
 
-    auto settings = NetworkSettings{
-        .valid = true,
-    };
-    if (!network_services.begin(settings, FiveMinutesMs, pool)) {
+    if (!network_services.begin(FiveMinutesMs, pool)) {
         return;
     }
 
