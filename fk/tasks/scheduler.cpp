@@ -89,11 +89,9 @@ void task_handler_scheduler(void *params) {
         lwcron::Scheduler scheduler{ tasks };
         Topology topology;
 
-        IntervalTimer check_for_tasks_timer;
-        IntervalTimer check_for_modules_timer;
-        IntervalTimer check_battery_timer;
-        IntervalTimer check_module_power_timer;
         IntervalTimer enable_allow_deep_sleep_timer;
+        IntervalTimer every_second;
+        IntervalTimer every_thirty_seconds;
 
         scheduler.begin(get_clock_now());
 
@@ -108,17 +106,17 @@ void task_handler_scheduler(void *params) {
                 }
 
                 activity->consumed();
-
-                if (!fk_task_stop_requested(nullptr)) {
-                    if (fk_start_task_if_necessary(&display_task)) {
-                        get_ipc()->launch_worker(create_pool_worker<RefreshModulesWorker>());
-                    }
-                }
             }
 
             if (fk_task_stop_requested(&signal_checked)) {
                 loginfo("stop requested");
                 break;
+            }
+
+            if (activity != nullptr) {
+                if (fk_start_task_if_necessary(&display_task)) {
+                    get_ipc()->launch_worker(create_pool_worker<RefreshModulesWorker>());
+                }
             }
 
             if (enable_allow_deep_sleep_timer.expired(FiveMinutesMs)) {
@@ -127,8 +125,27 @@ void task_handler_scheduler(void *params) {
                 enable_allow_deep_sleep_timer.disable();
             }
 
-            if (!battery.low_power_dangerous()) {
-                if (check_for_tasks_timer.expired(OneSecondMs)) {
+            if (every_thirty_seconds.expired(ThirtySecondsMs)) {
+                auto started = fk_uptime();
+                loginfo("refreshing battery");
+                battery.refresh();
+                loginfo("refreshing battery (%" PRIu32 "ms)", fk_uptime() - started);
+            }
+
+            if (every_second.expired(OneSecondMs)) {
+                if (!battery.low_power_dangerous()) {
+                    // Only do this if we haven't enabled power save mode,
+                    // which we do after the timer passes.  We're also
+                    // skipping this if we're setup to always power
+                    // modules on their own.
+                    if (!ModulesPowerIndividually && enable_allow_deep_sleep_timer.enabled()) {
+                        if (has_module_topology_changed(topology)) {
+                            loginfo("topology changed: [%s]", topology.string());
+                            get_ipc()->launch_worker(create_pool_worker<ScanModulesWorker>());
+                            fk_start_task_if_necessary(&display_task);
+                        }
+                    }
+
                     auto now = get_clock_now();
                     auto time = lwcron::DateTime{ now };
                     if (!scheduler.check(time, 0)) {
@@ -140,51 +157,10 @@ void task_handler_scheduler(void *params) {
                         update_task_upcoming(readings_job);
                     }
                 }
-            }
 
-            if (!get_ipc()->has_any_running_worker()) {
-                DeepSleep deep_sleep;
-                deep_sleep.try_deep_sleep(scheduler);
-            }
-
-            if (check_for_modules_timer.expired(OneSecondMs)) {
-                // Only do this if we haven't enabled power save mode,
-                // which we do after the timer passes.  We're also
-                // skipping this if we're setup to always power
-                // modules on their own.
-                if (!ModulesPowerIndividually && enable_allow_deep_sleep_timer.enabled()) {
-                    if (has_module_topology_changed(topology)) {
-                        loginfo("topology changed: [%s]", topology.string());
-                        get_ipc()->launch_worker(create_pool_worker<ScanModulesWorker>());
-                        fk_start_task_if_necessary(&display_task);
-                    }
-                }
-            }
-
-            if (check_battery_timer.expired(ThirtySecondsMs)) {
-                auto started = fk_uptime();
-                loginfo("refreshing battery");
-                battery.refresh();
-                loginfo("refreshing battery (%" PRIu32 "ms)", fk_uptime() - started);
-            }
-
-            if (false && check_module_power_timer.expired(FiveSecondsMs)) {
-                auto gs = get_global_state_ro();
-                auto time = gs.get()->runtime.readings;
-                auto elapsed = fk_uptime() - time;
-                if (elapsed > 20000) {
-                    if (get_modmux()->any_modules_on(ModulePower::Unknown)) {
-                        loginfo("readings-time: %" PRIu32 " (%" PRIu32 ") (disabling mp::unknown)", elapsed, time);
-                        if (!get_modmux()->disable_modules(ModulePower::Unknown)) {
-                            logerror("disabling module-power::unknown modules");
-                        }
-                    }
-                    if (get_modmux()->any_modules_on(ModulePower::RareStarts)) {
-                        loginfo("readings-time: %" PRIu32 " (%" PRIu32 ") (disabling mp::rare)", elapsed, time);
-                        if (!get_modmux()->disable_modules(ModulePower::RareStarts)) {
-                            logerror("disabling module-power::unknown modules");
-                        }
-                    }
+                if (!get_ipc()->has_any_running_worker()) {
+                    DeepSleep deep_sleep;
+                    deep_sleep.try_deep_sleep(scheduler);
                 }
             }
         }
