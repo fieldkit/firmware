@@ -227,6 +227,10 @@ struct StorageState {
     MemoryState qspi;
     StreamState data;
     StreamState meta;
+
+    bool is_phylum() const {
+        return data.block > 0 && meta.block == 0;
+    }
 };
 
 struct LoraState {

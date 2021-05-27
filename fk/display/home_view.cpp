@@ -108,7 +108,14 @@ void HomeView::tick(ViewController *views, Pool &pool) {
     }
     case Visible::Uptime: {
         make_pretty_time_string(fk_uptime(), primary_, sizeof(primary_));
+        if (gs.get()->storage.is_phylum()) {
+            strncpy(secondary_, "phylum-fs", sizeof(secondary_));
+        }
+        else {
+            strncpy(secondary_, "legacy-fs", sizeof(secondary_));
+        }
         screen.primary = primary_;
+        screen.secondary = secondary_;
         break;
     }
     }
