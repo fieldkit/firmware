@@ -1,6 +1,6 @@
 #include "factory_wipe.h"
-#include "storage/storage.h"
 #include "config.h"
+#include "storage/storage.h"
 
 namespace fk {
 
@@ -9,7 +9,8 @@ FK_DECLARE_LOGGER("factory");
 FactoryWipe::FactoryWipe(Storage &storage) : storage_(&storage) {
 }
 
-FactoryWipe::FactoryWipe(Display *display, Buttons *buttons, Storage *storage) : display_(display), buttons_(buttons), storage_(storage) {
+FactoryWipe::FactoryWipe(Display *display, Buttons *buttons, Storage *storage)
+    : display_(display), buttons_(buttons), storage_(storage) {
 }
 
 bool FactoryWipe::wipe(ProgressCallbacks *progress) {
@@ -24,4 +25,4 @@ bool FactoryWipe::wipe(ProgressCallbacks *progress) {
     return true;
 }
 
-}
+} // namespace fk

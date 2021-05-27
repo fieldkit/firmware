@@ -185,6 +185,11 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
 
     MetaRecord meta_record;
     if (!storage.meta_ops()->read_record(SignedRecordKind::State, meta_record, pool)) {
+        if (!storage.meta_ops()->write_state(gs, &fkb_header, pool)) {
+            logerror("writing state");
+            return false;
+        }
+
         return true;
     }
 
