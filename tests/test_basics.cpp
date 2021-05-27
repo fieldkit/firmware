@@ -38,6 +38,10 @@ TEST(General, ObjectSizes) {
     phydebugf("sizeof(delimited_buffer::iterator) = %zu", sizeof(delimited_buffer::iterator));
     phydebugf("sizeof(read_buffer) = %zu", sizeof(read_buffer));
     phydebugf("sizeof(record_ptr) = %zu", sizeof(record_ptr));
+
+    phydebugf("sizeof(tree_sector<uint32_t, uint32_t, 63>::default_node_type) = %zu", sizeof(tree_sector<uint32_t, uint32_t, 63>::default_node_type));
+    phydebugf("sizeof(tree_sector<uint32_t, uint32_t, 405>::default_node_type) = %zu", sizeof(tree_sector<uint32_t, uint32_t, 405>::default_node_type));
+    phydebugf("sizeof(tree_sector<uint32_t, uint32_t, 201>::default_node_type) = %zu", sizeof(tree_sector<uint32_t, uint32_t, 201>::default_node_type));
 }
 
 template <typename T> class BasicsFixture : public PhylumFixture {};

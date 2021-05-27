@@ -20,9 +20,11 @@ struct test_types {
 
 typedef ::testing::Types<
     test_types<layout_256, directory_chain, tree_sector<uint32_t, uint32_t, 5>>,
+    test_types<layout_2048, directory_tree, tree_sector<uint32_t, uint32_t, 201>>,
     test_types<layout_4096, directory_chain, tree_sector<uint32_t, uint32_t, 63>>,
     test_types<layout_4096, directory_chain, tree_sector<uint32_t, uint32_t, 287>>,
     test_types<layout_4096, directory_chain, tree_sector<uint32_t, uint32_t, 405>>,
+    test_types<layout_4096, directory_tree, tree_sector<uint32_t, uint32_t, 201>>,
     test_types<layout_4096, directory_tree, tree_sector<uint32_t, uint32_t, 405>>>
     Implementations;
 

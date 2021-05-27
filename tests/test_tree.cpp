@@ -17,6 +17,7 @@ TEST(TreeInfo, NodeSizes) {
     EXPECT_EQ(sizeof(tree_node_t<uint64_t, uint32_t, 288>), 4056u);
     EXPECT_EQ(sizeof(tree_node_t<uint64_t, uint32_t, 291>), 4096u);
     EXPECT_EQ(sizeof(tree_node_t<uint32_t, uint32_t, 291>), 2932u);
+    EXPECT_EQ(sizeof(tree_node_t<uint32_t, uint32_t, 201>), 2032u);
     EXPECT_EQ(sizeof(tree_node_t<uint32_t, uint32_t, 407>), 4092u);
 }
 
@@ -25,13 +26,17 @@ class TreeFixture : public ::testing::Test {
 };
 
 typedef ::testing::Types<std::pair<layout_256, tree_sector<uint32_t, uint32_t, 5>>,
+                         std::pair<layout_2048, tree_sector<uint32_t, uint32_t, 201>>,
+                         std::pair<layout_4096, tree_sector<uint32_t, uint32_t, 201>>,
                          std::pair<layout_4096, tree_sector<uint32_t, uint32_t, 63>>,
                          std::pair<layout_4096, tree_sector<uint64_t, uint32_t, 287>>>
     Implementations;
 
 static_assert(sizeof(tree_node_t<uint32_t, uint32_t, 6>) <= 4096, "sizeof(Node) <= 256");
 
-static_assert(sizeof(tree_node_t<uint64_t, uint32_t, 288>) <= 4096, "sizeof(Node) <= 4096");
+static_assert(sizeof(tree_node_t<uint32_t, uint32_t, 201>) <= 2048, "sizeof(Node) <= 2048");
+
+static_assert(sizeof(tree_node_t<uint64_t, uint32_t, 287>) <= 4096, "sizeof(Node) <= 4096");
 
 TYPED_TEST_SUITE(TreeFixture, Implementations);
 
@@ -71,14 +76,16 @@ TYPED_TEST(TreeFixture, SingleNodeTree) {
 
 TYPED_TEST(TreeFixture, SingleNodeTreeGrowingByOneNode) {
     typename TypeParam::first_type layout;
+    using tree_type = typename TypeParam::second_type;
+
     FlashMemory memory{ layout.sector_size };
     memory.mounted<directory_chain>([&](auto &chain) {
         auto first = memory.allocator().allocate();
-        typename TypeParam::second_type tree{ memory.pc(), tree_ptr_t{ first }, "tree" };
+        tree_type tree{ memory.pc(), tree_ptr_t{ first }, "tree" };
 
         ASSERT_EQ(tree.create(), 0);
 
-        for (auto i = 1u; i < 8; ++i) {
+        for (auto i = 1u; i < tree_type::NodeSize + 2; ++i) {
             phydebugf("adding %d", i);
             uint32_t found = 0u;
             ASSERT_EQ(tree.add(i, i), 0);
@@ -86,18 +93,22 @@ TYPED_TEST(TreeFixture, SingleNodeTreeGrowingByOneNode) {
             ASSERT_EQ(found, i);
         }
     });
+
+    phydebugf("flash::dtor layout-size=%d nodes=%d", layout.sector_size, (tree_type::NodeSize + 2) * 1);
 }
 
 TYPED_TEST(TreeFixture, SingleNodeTreeGrowingByTwoNodes) {
     typename TypeParam::first_type layout;
+    using tree_type = typename TypeParam::second_type;
+
     FlashMemory memory{ layout.sector_size };
     memory.mounted<directory_chain>([&](auto &chain) {
         auto first = memory.allocator().allocate();
-        typename TypeParam::second_type tree{ memory.pc(), tree_ptr_t{ first }, "tree" };
+        tree_type tree{ memory.pc(), tree_ptr_t{ first }, "tree" };
 
         ASSERT_EQ(tree.create(), 0);
 
-        for (auto i = 1u; i < 16; ++i) {
+        for (auto i = 1u; i < (tree_type::NodeSize + 2) * 2; ++i) {
             phydebugf("adding %d", i);
             ASSERT_EQ(tree.add(i, i), 0);
             for (auto j = 1u; j < i; ++j) {
@@ -107,11 +118,14 @@ TYPED_TEST(TreeFixture, SingleNodeTreeGrowingByTwoNodes) {
             }
         }
     });
+
+    phydebugf("flash::dtor layout-size=%d nodes=%d", layout.sector_size, (tree_type::NodeSize + 2) * 2);
 }
 
 TYPED_TEST(TreeFixture, TreeWith1024Node1Reachable) {
     typename TypeParam::first_type layout;
     FlashMemory memory{ layout.sector_size };
+
     memory.mounted<directory_chain>([&](auto &chain) {
         auto first = memory.allocator().allocate();
         typename TypeParam::second_type tree{ memory.pc(), tree_ptr_t{ first }, "tree" };
@@ -134,6 +148,8 @@ TYPED_TEST(TreeFixture, TreeWith1024Node1Reachable) {
             ASSERT_EQ(found, 1u);
         }
     });
+
+    phydebugf("flash::dtor layout-size=%d nodes=%d", layout.sector_size, 1024);
 }
 
 TYPED_TEST(TreeFixture, TreeAllReachableAsAdded) {

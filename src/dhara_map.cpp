@@ -19,7 +19,7 @@ static inline uint32_t lfs_npw2(uint32_t a) {
 #endif
 }
 
-dhara_sector_map::dhara_sector_map(working_buffers &buffers, flash_memory &target) : buffers_(&buffers), target_(&target) {
+dhara_sector_map::dhara_sector_map(working_buffers &buffers, flash_memory &target, sector_page_cache *page_cache) : buffers_(&buffers), target_(&target), page_cache_(page_cache) {
 }
 
 dhara_sector_map::~dhara_sector_map() {
@@ -115,6 +115,13 @@ int32_t dhara_sector_map::write(dhara_sector_t sector, uint8_t const *data, size
         return err;
     }
 
+    // This is easier than invalidating.
+    dhara_page_t page = 0;
+    err = dhara_map_find(&dmap_, sector, &page, &derr);
+    if (err == 0) {
+        page_cache_->set(sector, page);
+    }
+
     if (false) {
         phydebug_dump_memory("write ", data, size);
     }
@@ -159,7 +166,25 @@ int32_t dhara_sector_map::read(dhara_sector_t sector, uint8_t *data, size_t size
     assert(size == page_size_);
 
     dhara_error_t derr;
-    auto err = dhara_map_read(&dmap_, sector, data, &derr);
+    dhara_page_t page = 0;
+    if (!page_cache_->get(sector, &page)) {
+        auto err = dhara_map_find(&dmap_, sector, &page, &derr);
+        if (err < 0) {
+            phywarnf("cache-find");
+            auto err = dhara_map_read(&dmap_, sector, data, &derr);
+            if (err < 0) {
+                phyerrorf("read");
+                return err;
+            }
+
+            return err;
+        }
+
+        page_cache_->set(sector, page);
+    }
+
+    phydebugf("fast-dhara-read: sector=%d page=%d", sector, page);
+    auto err = dhara_nand_read(&nand_.dhara, page, 0, size, data, &derr);
     if (err < 0) {
         phyerrorf("read");
         return err;

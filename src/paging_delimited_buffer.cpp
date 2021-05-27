@@ -112,6 +112,7 @@ int32_t paging_delimited_buffer::replace(dhara_sector_t sector, bool read_only, 
     auto miss_fn = [this, overwrite](dhara_sector_t page_sector, uint8_t *buffer, size_t size) -> int32_t {
         assert(size > 0);
         if (overwrite) {
+            phyverbosef("page-lock: overwriting %d", page_sector);
             return 0;
         }
 
@@ -132,14 +133,14 @@ int32_t paging_delimited_buffer::replace(dhara_sector_t sector, bool read_only, 
     auto opened = buffers_->open_sector(sector, read_only, miss_fn, flush_fn);
 
     if (ptr() != nullptr) {
-        phyverbosef("page-lock: freeing previous");
+        phyverbosef("page-lock: freeing previous buffer");
         buffers_->free_buffer(ptr());
         ptr(nullptr, 0);
     }
 
     ptr(opened, buffers_->buffer_size());
 
-    phyverbosef("page-lock: replaced previous=%d sector=%d buffer=0x%x read-only=%d", sector_, sector, opened, read_only);
+    phydebugf("page-lock: replaced previous=%d sector=%d buffer=0x%x read-only=%d", sector_, sector, opened, read_only);
 
     sector_ = sector;
     valid_ = true;

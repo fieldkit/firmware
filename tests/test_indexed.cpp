@@ -22,7 +22,9 @@ struct test_types {
 };
 
 typedef ::testing::Types<
+    test_types<layout_2048, directory_tree, tree_sector<uint32_t, uint32_t, 201>>,
     test_types<layout_4096, directory_tree, tree_sector<uint32_t, uint32_t, 63>>,
+    test_types<layout_4096, directory_tree, tree_sector<uint32_t, uint32_t, 201>>,
     test_types<layout_4096, directory_tree, tree_sector<uint32_t, uint32_t, 405>>>
     Implementations;
 
@@ -454,7 +456,7 @@ TYPED_TEST(IndexedFixture, WriteFile_IndexedSeekAndAppend) {
             ASSERT_GE(err, 0);
             index_modifications += err;
 
-            auto wrote = opened.write(lorem1k);
+            auto wrote = opened.write(lorem256);
             ASSERT_GT(wrote, 0);
 
             total_written += wrote;
