@@ -32,7 +32,7 @@ public:
     }
 
     virtual uint8_t priority() const {
-        return OS_PRIORITY_NORMAL;
+        return FK_PRIORITY_NORMAL;
     }
 
     virtual const char *name() const {
@@ -50,7 +50,7 @@ public:
     virtual void run(Pool &pool) = 0;
 
     virtual uint8_t priority() const {
-        return OS_PRIORITY_NORMAL;
+        return FK_PRIORITY_NORMAL;
     }
 
     virtual const char *name() const {

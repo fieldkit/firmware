@@ -127,6 +127,12 @@ using nonstd::nullopt;
 #define logtrace(f, ...)               fk_logf(LogLevels::TRACE, LOG_FACILITY, f, ## __VA_ARGS__)
 #define logverbose(f, ...)             fk_logf(LogLevels::VERBOSE, LOG_FACILITY, f, ## __VA_ARGS__)
 
+
+/**
+ * Default OS priority.
+ */
+#define FK_PRIORITY_NORMAL             (OS_PRIORITY_NORMAL + 1)
+
 /**
  * Evaluates to 1 shifted by the given position.
  */

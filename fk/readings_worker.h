@@ -18,10 +18,6 @@ public:
 public:
     void run(Pool &pool) override;
 
-    uint8_t priority() const override {
-        return OS_PRIORITY_NORMAL;
-    }
-
     const char *name() const override {
         if (read_only_) {
             return "livedata";
