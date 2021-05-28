@@ -1,12 +1,12 @@
-#include "atlas_api_reply.h"
+#include "water_api_reply.h"
 
 namespace fk {
 
-AtlasApiReply::AtlasApiReply(Pool &pool) : pool_(&pool) {
+WaterApiReply::WaterApiReply(Pool &pool) : pool_(&pool) {
     reply_ = fk_app_ModuleHttpReply_init_default;
 }
 
-void AtlasApiReply::error(const char *message) {
+void WaterApiReply::error(const char *message) {
     fk_app_Error errors[] = {
         {
             .message = {
@@ -27,11 +27,11 @@ void AtlasApiReply::error(const char *message) {
     reply_.errors.arg = (void *)pool_->copy(&errors_array, sizeof(errors_array));
 }
 
-bool AtlasApiReply::has_errors() const {
+bool WaterApiReply::has_errors() const {
     return reply_.errors.arg != nullptr;
 }
 
-bool AtlasApiReply::status_reply(uint8_t const *buffer, size_t size) {
+bool WaterApiReply::status_reply(uint8_t const *buffer, size_t size) {
     reply_.type = fk_app_ModuleReplyType_MODULE_REPLY_SUCCESS;
 
     if (size > 0) {

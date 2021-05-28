@@ -241,8 +241,6 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, bool logs, fkb_h
                             .buffer = message->buffer,
                         });
                         modules[m].configuration.arg = (void *)configuration_message_data;
-
-                        fk_dump_memory("mod-cfg ", message->buffer, message->size);
                     }
                 }
             }

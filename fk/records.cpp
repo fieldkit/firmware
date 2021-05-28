@@ -607,4 +607,25 @@ fk_data_ModuleConfiguration *fk_module_configuration_decoding_new(Pool *pool) {
     return record;
 }
 
+fk_app_ModuleHttpQuery *fk_module_query_prepare_decoding(fk_app_ModuleHttpQuery *query, Pool *pool) {
+    (*query) = fk_app_ModuleHttpQuery_init_default;
+    (*query).configuration.arg = (void *)pool;
+    (*query).configuration.funcs.decode = pb_decode_data;
+
+    return query;
+}
+
+fk_app_ModuleHttpReply *fk_module_reply_prepare_encoding(fk_app_ModuleHttpReply *reply, Pool *pool) {
+    if (reply->errors.arg != nullptr) {
+        reply->errors.funcs.encode = pb_encode_array;
+        auto array = (pb_array_t *)reply->errors.arg;
+        for (auto i = 0u; i < array->length; ++i) {
+            auto error = &((fk_app_Error *)array->buffer)[i];
+            error->message.funcs.encode = pb_encode_string;
+        }
+    }
+
+    return reply;
+}
+
 }

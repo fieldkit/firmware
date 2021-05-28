@@ -4,13 +4,13 @@
 
 namespace fk {
 
-class AtlasApiReply {
+class WaterApiReply {
 private:
     Pool *pool_;
     fk_app_ModuleHttpReply reply_;
 
 public:
-    AtlasApiReply(Pool &pool);
+    WaterApiReply(Pool &pool);
 
 public:
     fk_app_ModuleHttpReply const *reply() {

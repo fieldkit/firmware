@@ -20,4 +20,8 @@ void fk_lora_record_encoding_new(fk_data_LoraRecord *record);
 
 fk_data_ModuleConfiguration *fk_module_configuration_decoding_new(Pool *pool);
 
+fk_app_ModuleHttpQuery *fk_module_query_prepare_decoding(fk_app_ModuleHttpQuery *reply, Pool *pool);
+
+fk_app_ModuleHttpReply *fk_module_reply_prepare_encoding(fk_app_ModuleHttpReply *reply, Pool *pool);
+
 }

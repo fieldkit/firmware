@@ -18,10 +18,10 @@ public:
     bool handle(ModuleContext mc, HttpServerConnection *connection, Pool &pool);
 
 private:
-    bool send_reply(HttpStatus status_code, HttpServerConnection *connection, Pool &pool, AtlasApiReply &reply);
+    bool send_reply(HttpStatus status_code, HttpServerConnection *connection, AtlasApiReply &reply, Pool &pool);
     bool status(ModuleContext mc, AtlasApiReply &reply, Pool &pool);
     bool clear(ModuleContext mc, AtlasApiReply &reply, Pool &pool);
-    bool calibrate(ModuleContext mc, AtlasApiReply &reply, fk_atlas_AtlasCalibrationCommand command, Pool &pool);
+    bool calibrate(ModuleContext mc, AtlasApiReply &reply, fk_app_ModuleHttpQuery *query, Pool &pool);
 
 };
 

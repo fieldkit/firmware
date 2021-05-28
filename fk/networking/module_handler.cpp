@@ -72,10 +72,10 @@ bool ModuleHandler::handle(HttpServerConnection *connection, Pool &pool) {
         }
 
         if (configuration.message != nullptr) {
-            fk_dump_memory("mod-cfg ", configuration.message->buffer, configuration.message->size);
+            loginfo("updated configuration");
         }
         else {
-            loginfo("no updated configuration message");
+            loginfo("no updated configuration");
         }
     }
 

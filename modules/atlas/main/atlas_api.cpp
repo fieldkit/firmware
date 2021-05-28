@@ -1,5 +1,7 @@
 #include "atlas_api.h"
+#include "atlas_api_reply.h"
 #include "modules/eeprom.h"
+#include "records.h"
 
 namespace fk {
 
@@ -18,45 +20,43 @@ bool AtlasApi::handle(ModuleContext mc, HttpServerConnection *connection, Pool &
         return true;
     }
 
-    auto query = fk_atlas_query_prepare_decoding(pool.malloc<fk_atlas_WireAtlasQuery>(), &pool);
+    auto query = fk_module_query_prepare_decoding(pool.malloc<fk_app_ModuleHttpQuery>(), &pool);
     auto stream = pb_istream_from_readable(reader);
-    if (!pb_decode_delimited(&stream, fk_atlas_WireAtlasQuery_fields, query)) {
-        logwarn("error parsing query (%" PRIu32 ")", connection->length());
-        reply.error("error parsing query");
-        return send_reply(HttpStatus::BadRequest, connection, pool, reply);
+    if (!pb_decode_delimited(&stream, fk_app_ModuleHttpQuery_fields, query)) {
+        logwarn("parsing query (%" PRIu32 ")", connection->length());
+        reply.error("parsing query");
+        return send_reply(HttpStatus::BadRequest, connection, reply, pool);
     }
 
-    loginfo("operation (%d)", query->calibration.operation);
-
-    switch (query->calibration.operation) {
-    case fk_atlas_CalibrationOperation_CALIBRATION_STATUS: {
+    switch (query->type) {
+    case fk_app_ModuleQueryType_MODULE_QUERY_STATUS: {
         status(mc, reply, pool);
         break;
     }
-    case fk_atlas_CalibrationOperation_CALIBRATION_CLEAR: {
+    case fk_app_ModuleQueryType_MODULE_QUERY_RESET: {
         clear(mc, reply, pool);
         break;
     }
-    case fk_atlas_CalibrationOperation_CALIBRATION_SET: {
-        calibrate(mc, reply, query->calibration, pool);
+    case fk_app_ModuleQueryType_MODULE_QUERY_CONFIGURE: {
+        calibrate(mc, reply, query, pool);
         break;
     }
     default: {
-        logwarn("unknown operation (%d)", query->calibration.operation);
-        reply.error("unknown operation");
+        logwarn("unknown query (%d)", query->type);
+        reply.error("unknown query");
         break;
     }
     }
 
-    return send_reply(HttpStatus::Ok, connection, pool, reply);
+    return send_reply(HttpStatus::Ok, connection, reply, pool);
 }
 
-bool AtlasApi::send_reply(HttpStatus status_code, HttpServerConnection *connection, Pool &pool, AtlasApiReply &reply) {
+bool AtlasApi::send_reply(HttpStatus status_code, HttpServerConnection *connection, AtlasApiReply &reply, Pool &pool) {
     if (reply.has_errors()) {
-        connection->write(status_code, "error", reply.reply(), fk_atlas_WireAtlasReply_fields, pool);
+        connection->write(status_code, "error", reply.reply(), fk_app_ModuleHttpReply_fields, pool);
     }
     else {
-        connection->write(status_code, "ok", reply.reply(), fk_atlas_WireAtlasReply_fields, pool);
+        connection->write(status_code, "ok", reply.reply(), fk_app_ModuleHttpReply_fields, pool);
     }
 
     connection->close();
@@ -72,7 +72,7 @@ bool AtlasApi::status(ModuleContext mc, AtlasApiReply &reply, Pool &pool) {
     auto buffer = (uint8_t *)pool.malloc(MaximumConfigurationSize);
     bzero(buffer, MaximumConfigurationSize);
     if (!eeprom.read_configuration(buffer, size, MaximumConfigurationSize)) {
-        logwarn("error reading configuration");
+        logwarn("reading configuration");
         return false;
     }
 
@@ -80,44 +80,44 @@ bool AtlasApi::status(ModuleContext mc, AtlasApiReply &reply, Pool &pool) {
 }
 
 bool AtlasApi::clear(ModuleContext mc, AtlasApiReply &reply, Pool &pool) {
-    loginfo("clearing calibration");
+    loginfo("clearing configuration");
 
     auto module_bus = get_board()->i2c_module();
     ModuleEeprom eeprom{ module_bus };
 
     if (!eeprom.erase_configuration()) {
-        logerror("error clearing module configuration");
+        logerror("clearing module configuration");
     }
 
     if (!atlas_->wake()) {
-        logwarn("error waking (clear)");
-        reply.error("error waking (clear)");
+        logwarn("waking (clear)");
+        reply.error("waking (clear)");
         return false;
     }
 
     if (!atlas_->clear_calibration()) {
-        logwarn("error clearing");
-        reply.error("error clearing");
+        logwarn("clearing");
+        reply.error("clearing");
         return false;
     }
 
     return status(mc, reply, pool);
 }
 
-bool AtlasApi::calibrate(ModuleContext mc, AtlasApiReply &reply, fk_atlas_AtlasCalibrationCommand command, Pool &pool) {
+bool AtlasApi::calibrate(ModuleContext mc, AtlasApiReply &reply, fk_app_ModuleHttpQuery *query, Pool &pool) {
     if (!clear(mc, reply, pool)) {
         return false;
     }
 
-    auto data = (pb_data_t *)command.configuration.arg;
+    auto data = (pb_data_t *)query->configuration.arg;
 
-    loginfo("calibrating (%zd bytes)", data->length);
+    loginfo("configuring (%zd bytes)", data->length);
 
     auto module_bus = get_board()->i2c_module();
     ModuleEeprom eeprom{ module_bus };
 
     if (!eeprom.write_configuration((uint8_t *)data->buffer, data->length)) {
-        logerror("error writing module configuration");
+        logerror("writing module configuration");
     }
 
     return status(mc, reply, pool);
