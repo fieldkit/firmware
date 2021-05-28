@@ -89,9 +89,9 @@ void task_handler_scheduler(void *params) {
         lwcron::Scheduler scheduler{ tasks };
         Topology topology;
 
-        IntervalTimer enable_allow_deep_sleep_timer;
-        IntervalTimer every_second;
-        IntervalTimer every_thirty_seconds;
+        IntervalTimer enable_allow_deep_sleep_timer{ FiveMinutesMs };
+        IntervalTimer every_second{ OneSecondMs };
+        IntervalTimer every_thirty_seconds{ ThirtySecondsMs };
 
         scheduler.begin(get_clock_now());
 
@@ -119,20 +119,20 @@ void task_handler_scheduler(void *params) {
                 }
             }
 
-            if (enable_allow_deep_sleep_timer.expired(FiveMinutesMs)) {
+            if (enable_allow_deep_sleep_timer.expired()) {
                 loginfo("deep sleep enabled");
                 update_allow_deep_sleep(true);
                 enable_allow_deep_sleep_timer.disable();
             }
 
-            if (every_thirty_seconds.expired(ThirtySecondsMs)) {
+            if (every_thirty_seconds.expired()) {
                 auto started = fk_uptime();
                 loginfo("refreshing battery");
                 battery.refresh();
                 loginfo("refreshing battery (%" PRIu32 "ms)", fk_uptime() - started);
             }
 
-            if (every_second.expired(OneSecondMs)) {
+            if (every_second.expired()) {
                 if (!battery.low_power_dangerous()) {
                     // Only do this if we haven't enabled power save mode,
                     // which we do after the timer passes.  We're also
