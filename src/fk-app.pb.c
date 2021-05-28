@@ -168,7 +168,15 @@ PB_BIND(fk_app_Fault, fk_app_Fault, AUTO)
 PB_BIND(fk_app_HttpReply, fk_app_HttpReply, 2)
 
 
+PB_BIND(fk_app_ModuleHttpQuery, fk_app_ModuleHttpQuery, AUTO)
+
+
+PB_BIND(fk_app_ModuleHttpReply, fk_app_ModuleHttpReply, AUTO)
+
+
 PB_BIND(fk_app_UdpMessage, fk_app_UdpMessage, AUTO)
+
+
 
 
 
