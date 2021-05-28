@@ -51,22 +51,37 @@ public:
         return mark_ > 0;
     }
 
+    uint32_t ms_left(uint32_t interval) const {
+        if (!enabled()) {
+            return UINT32_MAX;
+        }
+        auto now = fk_uptime();
+        auto elapsed = mark_ - now;
+        if (elapsed >= interval) {
+            return 0;
+        }
+        return interval - elapsed;
+    }
+
     bool expired(uint32_t interval) {
         if (!enabled()) {
             return false;
         }
+
         auto now = fk_uptime();
         auto elapsed = now - mark_;
-        if (elapsed >= interval) {
-            if (mark_ + interval < now) {
-                mark_ = now;
-            } else {
-                mark_ = now;
-            }
-            return true;
+        if (elapsed < interval) {
+            return false;
         }
-        return false;
+
+        if (mark_ + interval < now) {
+            mark_ = now;
+        } else {
+            mark_ = now;
+        }
+        return true;
     }
+
 };
 
 } // namespace fk
