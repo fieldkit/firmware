@@ -135,7 +135,7 @@ ModuleReadings *AggregatedWeather::take_readings(ModuleContext mc, Pool &pool) {
 
     fk_weather_aggregated_t *aw = pool.malloc<fk_weather_aggregated_t>();
     memzero(aw, sizeof(fk_weather_aggregated_t));
-    if (!I2C_CHECK(bus.read_register_buffer(FK_WEATHER_I2C_ADDRESS, FK_WEATHER_I2C_COMMAND_READ, (uint8_t *)aw, sizeof(aw)))) {
+    if (!I2C_CHECK(bus.read_register_buffer(FK_WEATHER_I2C_ADDRESS, FK_WEATHER_I2C_COMMAND_READ, (uint8_t *)aw, sizeof(fk_weather_aggregated_t)))) {
         logwarn("error reading weather memory");
         return nullptr;
     }
