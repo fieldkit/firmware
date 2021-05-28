@@ -45,8 +45,11 @@ public:
 
 extern LinuxMutex storage_mutex;
 extern LinuxMutex modules_mutex;
-extern LinuxMutex wifi_mutex;
 extern LinuxMutex sd_mutex;
+extern LinuxMutex wifi_mutex;
+extern LinuxMutex i2c_module_mutex;
+extern LinuxMutex i2c_core_mutex;
+extern LinuxMutex i2c_radio_mutex;
 extern LinuxRwLock data_lock;
 
 }

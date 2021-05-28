@@ -11,7 +11,7 @@ namespace fk {
 
 class DataWriter {
 private:
-    TwoWireWrapper module_bus_{ "modules", nullptr };
+    TwoWireWrapper module_bus_{ nullptr, "modules", nullptr };
     GlobalState gs_;
     DataMemory *memory_;
 

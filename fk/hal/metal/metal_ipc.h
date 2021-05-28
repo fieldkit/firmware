@@ -42,39 +42,6 @@ private:
 
 };
 
-class NoopMutex {
-public:
-    class Lock {
-    public:
-        Lock() {
-        }
-        virtual ~Lock() {
-        }
-
-    public:
-        operator bool() {
-            return true;
-        }
-    };
-
-public:
-    bool create() {
-        return true;
-    }
-
-    Lock acquire(uint32_t to) {
-        return Lock{ };
-    }
-
-    bool release() {
-        return true;
-    }
-
-    bool is_owner() {
-        return true;
-    }
-};
-
 class MetalMutex : public Mutex {
 private:
     const char *name_{ "unknown" };
@@ -110,6 +77,9 @@ extern MetalMutex storage_mutex;
 extern MetalMutex modules_mutex;
 extern MetalMutex sd_mutex;
 extern MetalMutex wifi_mutex;
+extern MetalMutex i2c_module_mutex;
+extern MetalMutex i2c_core_mutex;
+extern MetalMutex i2c_radio_mutex;
 extern MetalRwLock data_lock;
 
 }

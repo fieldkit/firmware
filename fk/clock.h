@@ -16,11 +16,9 @@ private:
 
 private:
     bool configured_{ false };
-    TwoWireWrapper wire_;
 
 public:
     explicit CoreClock();
-    explicit CoreClock(TwoWireWrapper wire);
 
 public:
     bool begin();

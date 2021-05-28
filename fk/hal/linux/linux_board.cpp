@@ -74,15 +74,15 @@ SpiWrapper Board::spi_module() {
 }
 
 TwoWireWrapper Board::i2c_core() {
-    return { "i2c-core", nullptr };
+    return TwoWireWrapper{ nullptr, "i2c-core", nullptr };
 }
 
 TwoWireWrapper Board::i2c_radio() {
-    return { "i2c-radio", nullptr };
+    return TwoWireWrapper{ nullptr, "i2c-radio", nullptr };
 }
 
 TwoWireWrapper Board::i2c_module() {
-    return { "i2c-mod", nullptr };
+    return TwoWireWrapper{ nullptr, "i2c-mod", nullptr };
 }
 
 SerialWrapper Board::gps_serial() {
@@ -103,7 +103,7 @@ void SpiWrapper::begin() {
 void SpiWrapper::end() {
 }
 
-TwoWireWrapper::TwoWireWrapper(const char *name, void *ptr) : name_(name), ptr_(ptr) {
+TwoWireWrapper::TwoWireWrapper(Mutex *lock, const char *name, void *ptr) : lock_(lock), name_(name), ptr_(ptr) {
     logverbose("acquire %s", name_);
 }
 

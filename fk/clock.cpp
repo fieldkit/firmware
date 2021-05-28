@@ -46,7 +46,6 @@ FK_DECLARE_LOGGER("clock");
 
 struct calendar_descriptor CALENDAR_0;
 
-static bool valid = false;
 static CoreClock clock;
 
 static void CALENDAR_0_initialize(void) {
@@ -62,10 +61,7 @@ static uint8_t bin2bcd(uint8_t val) {
     return val + 6 * (val / 10);
 }
 
-CoreClock::CoreClock() : wire_{ "fake", nullptr } {
-}
-
-CoreClock::CoreClock(TwoWireWrapper wire) : wire_(wire) {
+CoreClock::CoreClock() {
 }
 
 bool CoreClock::begin() {
@@ -88,14 +84,16 @@ bool CoreClock::configure() {
         return true;
     }
 
+    auto bus = get_board()->i2c_core();
+
     uint8_t bsm;
-    if (!I2C_CHECK(wire_.read_register_u8(Address, 0x26, bsm))) {
+    if (!I2C_CHECK(bus.read_register_u8(Address, 0x26, bsm))) {
         return false;
     }
 
     if (bsm != 0) {
         loginfo("fixing battery switch mode = 0x%x", bsm);
-        if (!I2C_CHECK(wire_.write_register_u8(Address, 0x26, 0x00))) {
+        if (!I2C_CHECK(bus.write_register_u8(Address, 0x26, 0x00))) {
             return false;
         }
     }
@@ -159,6 +157,8 @@ bool CoreClock::adjust_internal(DateTime now) {
 }
 
 bool CoreClock::adjust(DateTime now) {
+    auto bus = get_board()->i2c_core();
+
     uint8_t adjust_command[] = {
         CTRL_STOP_EN,
         STOP_EN_STOP,
@@ -172,7 +172,7 @@ bool CoreClock::adjust(DateTime now) {
         bin2bcd(now.month()),
         bin2bcd(now.year() - 2000),
     };
-    if (!I2C_CHECK(wire_.write(Address, &adjust_command, sizeof(adjust_command)))) {
+    if (!I2C_CHECK(bus.write(Address, &adjust_command, sizeof(adjust_command)))) {
         return false;
     }
 
@@ -180,7 +180,7 @@ bool CoreClock::adjust(DateTime now) {
         CTRL_STOP_EN,
         0,
     };
-    if (!I2C_CHECK(wire_.write(Address, &resume_command, sizeof(resume_command)))) {
+    if (!I2C_CHECK(bus.write(Address, &resume_command, sizeof(resume_command)))) {
         return false;
     }
 
@@ -204,8 +204,10 @@ bool CoreClock::internal(DateTime &time) {
 }
 
 bool CoreClock::external(DateTime &time) {
+    auto bus = get_board()->i2c_core();
+
     uint8_t data[8];
-    if (!I2C_CHECK(wire_.read_register_buffer(Address, 0x00, data, sizeof(data)))) {
+    if (!I2C_CHECK(bus.read_register_buffer(Address, 0x00, data, sizeof(data)))) {
         return false;
     }
 
@@ -243,8 +245,10 @@ DateTime CoreClock::get_external() {
 }
 
 void CoreClock::read_timestamp_registers() {
+    auto bus = get_board()->i2c_core();
+
     uint8_t data[6 * 3];
-    if (!I2C_CHECK(wire_.read_register_buffer(Address, 0x11, data, sizeof(data)))) {
+    if (!I2C_CHECK(bus.read_register_buffer(Address, 0x11, data, sizeof(data)))) {
         return;
     }
 
@@ -256,7 +260,9 @@ void CoreClock::read_timestamp_registers() {
 void CoreClock::clear_timestamp_registers() {
     loginfo("clearing TSR (seems broken)");
 
-    wire_.write_register_u8(Address, 0x2f, 0x25);
+    auto bus = get_board()->i2c_core();
+
+    bus.write_register_u8(Address, 0x2f, 0x25);
 }
 
 void CoreClock::log_tsr(uint8_t *ts) {
@@ -298,10 +304,6 @@ void CoreClock::compare() {
 }
 
 CoreClock *get_clock() {
-    if (!valid) {
-        clock = CoreClock{ get_board()->i2c_core() };
-        valid = true;
-    }
     return &clock;
 }
 
@@ -326,7 +328,7 @@ uint32_t clock_adjust(uint32_t new_epoch) {
 
 static CoreClock clock;
 
-CoreClock::CoreClock() : wire_{ "fake", nullptr } {
+CoreClock::CoreClock() {
 }
 
 bool CoreClock::begin() {

@@ -59,7 +59,8 @@ protected:
 TEST_F(ReadingsSuite, TakingReadingsNoModules) {
     StaticPool<1024> pool{ "readings" };
     GlobalState gs;
-    TwoWireWrapper module_bus{ "modules", nullptr };
+    NoopMutex mutex;
+    TwoWireWrapper module_bus{ &mutex, "modules", nullptr };
     ScanningContext ctx{ get_modmux(), gs.location(pool_), module_bus, pool_ };
     ConstructedModulesCollection resolved(pool);
 
@@ -75,7 +76,8 @@ TEST_F(ReadingsSuite, TakingReadingsNoModules) {
 TEST_F(ReadingsSuite, TakingReadingsModuleWithNoReadings) {
     StaticPool<1024> pool{ "readings" };
     GlobalState gs;
-    TwoWireWrapper module_bus{ "modules", nullptr };
+    NoopMutex mutex;
+    TwoWireWrapper module_bus{ &mutex, "modules", nullptr };
     ScanningContext ctx{ get_modmux(), gs.location(pool_), module_bus, pool_ };
     ConstructedModulesCollection resolved(pool);
     resolved.emplace(ConstructedModule{
@@ -96,7 +98,8 @@ TEST_F(ReadingsSuite, TakingReadingsModuleWithNoReadings) {
 TEST_F(ReadingsSuite, TakingReadingsOneModule) {
     StaticPool<1024> pool{ "readings" };
     GlobalState gs;
-    TwoWireWrapper module_bus{ "modules", nullptr };
+    NoopMutex mutex;
+    TwoWireWrapper module_bus{ &mutex, "modules", nullptr };
     ScanningContext ctx{ get_modmux(), gs.location(pool_), module_bus, pool_ };
     ConstructedModulesCollection resolved(pool);
     resolved.emplace(ConstructedModule{
@@ -117,7 +120,8 @@ TEST_F(ReadingsSuite, TakingReadingsOneModule) {
 TEST_F(ReadingsSuite, TakingReadingsTwoModules) {
     StaticPool<2048> pool{ "readings" };
     GlobalState gs;
-    TwoWireWrapper module_bus{ "modules", nullptr };
+    NoopMutex mutex;
+    TwoWireWrapper module_bus{ &mutex, "modules", nullptr };
     ScanningContext ctx{ get_modmux(), gs.location(pool_), module_bus, pool_ };
     ConstructedModulesCollection resolved(pool);
     resolved.emplace(ConstructedModule{
@@ -143,7 +147,8 @@ TEST_F(ReadingsSuite, TakingReadingsTwoModules) {
 TEST_F(ReadingsSuite, TakingReadingsFourModulesEverythingWorks) {
     StandardPool pool{ "readings" };
     GlobalState gs;
-    TwoWireWrapper module_bus{ "modules", nullptr };
+    NoopMutex mutex;
+    TwoWireWrapper module_bus{ &mutex, "modules", nullptr };
     ScanningContext ctx{ get_modmux(), gs.location(pool_), module_bus, pool_ };
     ConstructedModulesCollection resolved(pool);
     resolved.emplace(ConstructedModule{
@@ -181,7 +186,8 @@ TEST_F(ReadingsSuite, TakingReadingsFourModulesEverythingWorks) {
 TEST_F(ReadingsSuite, TakingReadingsFourModulesAndOneFailsToGetReadings) {
     StandardPool pool{ "readings" };
     GlobalState gs;
-    TwoWireWrapper module_bus{ "modules", nullptr };
+    NoopMutex mutex;
+    TwoWireWrapper module_bus{ &mutex, "modules", nullptr };
     ScanningContext ctx{ get_modmux(), gs.location(pool_), module_bus, pool_ };
     ConstructedModulesCollection resolved(pool);
     FakeModule *modules[] = {

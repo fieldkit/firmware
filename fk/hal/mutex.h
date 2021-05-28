@@ -1,17 +1,41 @@
 #pragma once
 
-#include "exchange.h"
 #include "common.h"
 
 namespace fk {
-
-class Mutex;
-class Lock;
 
 class Releasable {
 public:
     virtual bool release() = 0;
 };
+
+class Lock {
+private:
+    Releasable *releasable_;
+
+public:
+    explicit Lock();
+    explicit Lock(Releasable *releasable);
+    Lock(Lock &&rhs);
+    virtual ~Lock();
+
+public:
+    Lock &operator=(Lock &&rhs) {
+        if (this != &rhs) {
+            releasable_ = rhs.releasable_;
+            rhs.releasable_ = nullptr;
+        }
+        return *this;
+    }
+
+public:
+    operator bool() {
+        return releasable_ != nullptr;
+    }
+};
+
+class Mutex;
+class Lock;
 
 class Mutex : public Releasable {
 public:
@@ -36,39 +60,22 @@ public:
 
 };
 
-class Lock {
-private:
-    Releasable *releasable_;
-
+class NoopMutex : public Mutex {
 public:
-    explicit Lock() : releasable_(nullptr) {
+    bool create() override {
+        return true;
     }
 
-    explicit Lock(Releasable *releasable) : releasable_(releasable) {
+    Lock acquire(uint32_t to) override {
+        return Lock{ this };
     }
 
-    Lock(Lock &&rhs) : releasable_(exchange(rhs.releasable_, nullptr)) {
+    bool release() override {
+        return true;
     }
 
-    virtual ~Lock() {
-        if (releasable_ != nullptr) {
-            releasable_->release();
-            releasable_ = nullptr;
-        }
-    }
-
-public:
-    Lock &operator=(Lock &&rhs) {
-        if (this != &rhs) {
-            releasable_ = rhs.releasable_;
-            rhs.releasable_ = nullptr;
-        }
-        return *this;
-    }
-
-public:
-    operator bool() {
-        return releasable_ != nullptr;
+    bool is_owner() override {
+        return true;
     }
 };
 

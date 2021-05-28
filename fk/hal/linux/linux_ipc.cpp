@@ -9,8 +9,11 @@ FK_DECLARE_LOGGER("ipc");
 
 LinuxMutex storage_mutex;
 LinuxMutex modules_mutex;
-LinuxMutex wifi_mutex;
 LinuxMutex sd_mutex;
+LinuxMutex wifi_mutex;
+LinuxMutex i2c_module_mutex;
+LinuxMutex i2c_core_mutex;
+LinuxMutex i2c_radio_mutex;
 LinuxRwLock data_lock;
 
 LinuxIPC::LinuxIPC() {
