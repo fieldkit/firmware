@@ -9,7 +9,7 @@ namespace fk {
 FK_DECLARE_LOGGER("water");
 
 #define FK_MCP2803_ADDRESS          0x22
-#define FK_ADS1219_ADDRESS          0x41
+#define FK_ADS1219_ADDRESS          0x45
 
 #define FK_MCP2803_IODIR            0b00000010
 #define FK_MCP2803_GPPU             0b00000010
