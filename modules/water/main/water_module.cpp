@@ -297,7 +297,7 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
     }
 
     auto curve = create_curve(cfg_, pool);
-    auto uncalibrated = ((float)value * 3.3f) / 8388608.0f;
+    auto uncalibrated = ((float)value * 3.0f) / 8388608.0f;
     auto calibrated = curve->apply(uncalibrated);
 
     loginfo("bay[%d] water: %f (%f)", mc.position().integer(), uncalibrated, calibrated);
