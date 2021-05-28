@@ -65,7 +65,7 @@ void try_and_serve_connections() {
             gs->network.state.ip = get_network()->ip_address();
         });
 
-        IntervalTimer refresh_statistics;
+        IntervalTimer refresh_statistics{ OneSecondMs };
         while (services.serving()) {
             if (services.should_stop()) {
                 return;
@@ -77,7 +77,7 @@ void try_and_serve_connections() {
                 fk_delay(10);
             }
 
-            if (refresh_statistics.expired(OneSecondMs)) {
+            if (refresh_statistics.expired()) {
                 gsm.apply([&](GlobalState *gs) {
                     gs->network.state.bytes_rx = services.bytes_rx();
                     gs->network.state.bytes_tx = services.bytes_tx();

@@ -18,9 +18,6 @@ DistanceModule::~DistanceModule() {
 ModuleReturn DistanceModule::initialize(ModuleContext mc, Pool &pool) {
     auto bus = get_board()->i2c_module();
 
-    bus.end();
-    bus.begin();
-
     if (!bridge_.begin(9600)) {
         logerror("initializing bridge (ms::fatal)");
         return { ModuleStatus::Fatal };

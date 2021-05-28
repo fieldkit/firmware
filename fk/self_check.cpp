@@ -130,7 +130,7 @@ bool SelfCheck::rtc() {
 
 bool SelfCheck::temperature() {
     return single_check("temperature", []() {
-        CoreTemperature temp{ get_board()->i2c_core() };
+        CoreTemperature temp;
 
         if (!temp.begin()) {
             return false;

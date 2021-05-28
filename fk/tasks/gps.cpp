@@ -16,8 +16,8 @@ void task_handler_gps(void *params) {
         return;
     }
 
-    IntervalTimer status_timer;
-    IntervalTimer update_timer;
+    IntervalTimer status_timer{ ThirtySecondsMs };
+    IntervalTimer update_timer{ FiveSecondsMs };
     uint32_t started_at = fk_uptime();
     uint32_t fixed_at = 0u;
     uint32_t signal_checked = 0u;
@@ -39,7 +39,7 @@ void task_handler_gps(void *params) {
         fk_delay(10);
 
         if (fix.chars > 0) {
-            if (update_timer.expired(FiveSecondsMs)) {
+            if (update_timer.expired()) {
                 if (fix.valid) {
                     // We only update our memorized fix/location if we
                     // have a valid fix. This way any previous loaded,
@@ -80,7 +80,7 @@ void task_handler_gps(void *params) {
             }
         }
 
-        if (status_timer.expired(OneMinuteMs) || log_status) {
+        if (status_timer.expired() || log_status) {
             loginfo("satellites(%d) time(%" PRIu32 ") location(%f, %f) statistics(%" PRIu32 "chrs, %d/%d)",
                     fix.satellites, fix.time, fix.longitude, fix.latitude,
                     fix.chars, fix.good, fix.failed);

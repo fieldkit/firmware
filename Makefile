@@ -52,6 +52,8 @@ amd64: $(BUILD)/amd64 tests/hosted/dns_packets.h
 
 fw: samd51 samd09
 
+code: samd51 samd09 amd64
+
 tests/hosted/dns_packets.h: tools/write_test_packets.py
 	tools/write_test_packets.py > tests/hosted/dns_packets.h
 

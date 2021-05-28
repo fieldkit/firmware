@@ -29,13 +29,17 @@ public:
 
 class IntervalTimer {
 private:
+    uint32_t interval_;
     uint32_t mark_;
 
 public:
-    IntervalTimer() : mark_(fk_uptime()) {
+    IntervalTimer(int32_t interval) : interval_(interval), mark_(fk_uptime()) {
     }
 
-    IntervalTimer(bool enabled) : mark_(enabled ? fk_uptime() : 0) {
+    IntervalTimer(uint32_t interval) : interval_(interval), mark_(fk_uptime()) {
+    }
+
+    IntervalTimer(bool enabled) : interval_(0), mark_(enabled ? fk_uptime() : 0) {
     }
 
 public:
@@ -51,22 +55,49 @@ public:
         return mark_ > 0;
     }
 
+    uint32_t interval() const {
+        return interval_;
+    }
+
+    uint32_t ms_left() const {
+        return ms_left(interval_);
+    }
+
+    uint32_t ms_left(uint32_t interval) const {
+        if (!enabled()) {
+            return UINT32_MAX;
+        }
+        auto now = fk_uptime();
+        auto elapsed = mark_ - now;
+        if (elapsed >= interval) {
+            return 0;
+        }
+        return interval - elapsed;
+    }
+
+    bool expired() {
+        return expired(interval_);
+    }
+
     bool expired(uint32_t interval) {
         if (!enabled()) {
             return false;
         }
+
         auto now = fk_uptime();
         auto elapsed = now - mark_;
-        if (elapsed >= interval) {
-            if (mark_ + interval < now) {
-                mark_ = now;
-            } else {
-                mark_ = now;
-            }
-            return true;
+        if (elapsed < interval) {
+            return false;
         }
-        return false;
+
+        if (mark_ + interval < now) {
+            mark_ = now;
+        } else {
+            mark_ = now;
+        }
+        return true;
     }
+
 };
 
 } // namespace fk

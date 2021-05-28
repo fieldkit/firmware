@@ -9,12 +9,6 @@ class CoreTemperature {
 private:
     constexpr static uint8_t Address = 0x48u;
 
-private:
-    TwoWireWrapper wire_;
-
-public:
-    explicit CoreTemperature(TwoWireWrapper wire);
-
 public:
     bool begin();
 

@@ -140,16 +140,16 @@ public:
 
         refresh_notifications();
 
-        IntervalTimer stop_timer;
-        IntervalTimer notifications_timer;
+        IntervalTimer stop_timer{ FiveMinutesMs };
+        IntervalTimer notifications_timer{ OneSecondMs / 10 };
         StandardPool pool{ "display-frame" };
-        while (!can_stop || !stop_timer.expired(FiveMinutesMs)) {
+        while (!can_stop || !stop_timer.expired()) {
             if (!view->custom_leds()) {
                 leds.tick();
             }
             view->tick(this, pool);
 
-            if (notifications_timer.expired(100)) {
+            if (notifications_timer.expired()) {
                 refresh_notifications();
             }
 

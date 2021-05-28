@@ -4,9 +4,6 @@ namespace fk {
 
 #if defined(linux)
 
-CoreTemperature::CoreTemperature(TwoWireWrapper wire) : wire_(wire) {
-}
-
 bool CoreTemperature::begin() {
     return false;
 }
@@ -17,9 +14,6 @@ bool CoreTemperature::read(float *temperature) {
 
 #else
 
-CoreTemperature::CoreTemperature(TwoWireWrapper wire) : wire_(wire) {
-}
-
 bool CoreTemperature::begin() {
     return read(nullptr);
 }
@@ -27,7 +21,9 @@ bool CoreTemperature::begin() {
 bool CoreTemperature::read(float *temperature) {
     uint8_t buffer[2];
 
-    if (!I2C_CHECK(wire_.read_register_buffer(Address, 0x00, buffer, sizeof(buffer)))) {
+    auto bus = get_board()->i2c_core();
+
+    if (!I2C_CHECK(bus.read_register_buffer(Address, 0x00, buffer, sizeof(buffer)))) {
         return false;
     }
 

@@ -223,7 +223,8 @@ TEST_F(ProtoBufSizeSuite, Readings) {
     GlobalState gs;
     fake_global_state(gs, pool_);
 
-    TwoWireWrapper module_bus{ "modules", nullptr };
+    NoopMutex mutex;
+    TwoWireWrapper module_bus{ &mutex, "modules", nullptr };
     ScanningContext ctx{ get_modmux(), gs.location(pool_), module_bus, pool_ };
     ConstructedModulesCollection resolved(pool_);
     ModuleReadingsCollection module_readings(pool_);
@@ -244,7 +245,8 @@ TEST_F(ProtoBufSizeSuite, ReadingsNoneBackFromFirstModule) {
     GlobalState gs;
     fake_global_state(gs, pool_);
 
-    TwoWireWrapper module_bus{ "modules", nullptr };
+    NoopMutex mutex;
+    TwoWireWrapper module_bus{ &mutex, "modules", nullptr };
     ScanningContext ctx{ get_modmux(), gs.location(pool_), module_bus, pool_ };
     ConstructedModulesCollection resolved(pool_);
     ModuleReadingsCollection module_readings(pool_);

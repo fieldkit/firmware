@@ -1,6 +1,7 @@
 #include "hal/board.h"
 #include "platform.h"
 #include "modules/shared/modules.h"
+#include "hal/metal/metal_ipc.h"
 
 #if defined(__SAMD51__)
 
@@ -177,15 +178,15 @@ SpiWrapper Board::spi_module() {
 }
 
 TwoWireWrapper Board::i2c_core() {
-    return { "i2c-core", &Wire };
+    return TwoWireWrapper { &i2c_core_mutex, "i2c-core", &Wire };
 }
 
 TwoWireWrapper Board::i2c_radio() {
-    return { "i2c-radio", &Wire1 };
+    return TwoWireWrapper{ &i2c_radio_mutex, "i2c-radio", &Wire1 };
 }
 
 TwoWireWrapper Board::i2c_module() {
-    return { "i2c-mod", &Wire2 };
+    return TwoWireWrapper{ &i2c_module_mutex, "i2c-mod", &Wire2 };
 }
 
 SerialWrapper Board::gps_serial() {
@@ -318,7 +319,7 @@ void SpiWrapper::end() {
     }
 }
 
-TwoWireWrapper::TwoWireWrapper(const char *name, void *ptr) : name_(name), ptr_(ptr) {
+TwoWireWrapper::TwoWireWrapper(Mutex *lock, const char *name, void *ptr) : lock_(lock), name_(name), ptr_(ptr) {
     logverbose("acquire %s", name_);
 }
 
@@ -333,6 +334,8 @@ void TwoWireWrapper::begin() {
 }
 
 int32_t TwoWireWrapper::read(uint8_t address, void *data, int32_t size) {
+    auto lock = lock_->acquire(UINT32_MAX);
+
     auto bus = reinterpret_cast<TwoWire*>(ptr_);
     bus->requestFrom(address, size);
     auto ptr = (uint8_t *)data;
@@ -345,15 +348,15 @@ int32_t TwoWireWrapper::read(uint8_t address, void *data, int32_t size) {
 }
 
 int32_t TwoWireWrapper::write(uint8_t address, const void *data, int32_t size) {
+    auto lock = lock_->acquire(UINT32_MAX);
+
     auto bus = reinterpret_cast<TwoWire*>(ptr_);
     bus->beginTransmission(address);
     auto ptr = (uint8_t *)data;
     for (auto i = 0; i < size; ++i) {
         bus->write((uint8_t)*ptr++);
     }
-    auto rv = bus->endTransmission();
-
-    return rv;
+    return bus->endTransmission();
 }
 
 static void i2c_end(TwoWire *ptr) {
@@ -374,9 +377,15 @@ static void i2c_end(TwoWire *ptr) {
 }
 
 void TwoWireWrapper::end() {
-    if (ptr_ == nullptr) return;
+    auto lock = lock_->acquire(UINT32_MAX);
 
-    i2c_end(reinterpret_cast<TwoWire*>(ptr_));
+    auto bus = reinterpret_cast<TwoWire*>(ptr_);
+
+    logwarn("i2c::end");
+
+    if (bus != nullptr) {
+        i2c_end(bus);
+    }
 }
 
 static bool i2c_recover(uint8_t scl, uint8_t sda) {
@@ -423,9 +432,11 @@ static bool i2c_recover(uint8_t scl, uint8_t sda) {
 }
 
 int32_t TwoWireWrapper::recover() {
-    logwarn("trying to recover i2c bus");
+    auto lock = lock_->acquire(UINT32_MAX);
 
     auto tw = reinterpret_cast<TwoWire*>(ptr_);
+
+    logwarn("trying to recover i2c bus");
 
     i2c_end(tw);
 

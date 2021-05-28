@@ -58,7 +58,7 @@ ModuleConfiguration const DiagnosticsModule::get_configuration(Pool &pool) {
 }
 
 ModuleReadings *DiagnosticsModule::take_readings(ReadingsContext mc, Pool &pool) {
-    CoreTemperature core_temperature_sensor{ get_board()->i2c_core() };
+    CoreTemperature core_temperature_sensor;
 
     auto gs = get_global_state_ro();
 
