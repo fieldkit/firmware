@@ -505,6 +505,32 @@ message HttpReply {
   repeated Fault faults = 13;
 }
 
+enum ModuleQueryType {
+  MODULE_QUERY_NONE = 0;
+  MODULE_QUERY_STATUS = 1;
+  MODULE_QUERY_CONFIGURE = 2;
+  MODULE_QUERY_RESET = 3;
+}
+
+message ModuleHttpQuery {
+  ModuleQueryType type = 1;
+  repeated Error errors = 2;
+  bytes configuration = 3;
+}
+
+enum ModuleReplyType {
+  MODULE_REPLY_NONE = 0;
+  MODULE_REPLY_SUCCESS = 1;
+  MODULE_REPLY_BUSY = 2;
+  MODULE_REPLY_ERROR = 3;
+}
+
+message ModuleHttpReply {
+  ModuleReplyType type = 1;
+  repeated Error errors = 2;
+  bytes configuration = 3;
+}
+
 enum UdpStatus {
   UDP_STATUS_ONLINE = 0;
   UDP_STATUS_BYE = 1;
