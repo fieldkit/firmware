@@ -2,8 +2,6 @@
 #include "hal/metal/ina219.h"
 #include "platform.h"
 
-#include <Wire.h>
-
 namespace fk {
 
 FK_DECLARE_LOGGER("power");
