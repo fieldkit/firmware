@@ -59,7 +59,7 @@ bool ReadingsWorker::take(Pool &pool) {
         }
     }
 
-    {
+    if (!read_only_) {
         auto lock = storage_mutex.acquire(UINT32_MAX);
         FK_ASSERT(lock);
 
