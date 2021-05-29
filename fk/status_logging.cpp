@@ -80,9 +80,6 @@ bool fk_log_diagnostics() {
     char hash_string[128];
     bytes_to_hex_string(hash_string, sizeof(hash_string), fkb_header.firmware.hash, fkb_header.firmware.hash_size);
     loginfo("hash = %s", hash_string);
-
-    loginfo("sizeof(RecordHeader + RecordTail) = %zd + %zd", sizeof(RecordHeader), sizeof(RecordTail));
-    loginfo("sizeof(GlobalState) = %zd", sizeof(GlobalState));
     #endif
 
     return true;
