@@ -254,7 +254,9 @@ TEST_F(ProtoBufSizeSuite, Readings) {
     gs.readings.number = 1;
 
     DataRecord record{ pool_ };
-    record.include_readings(&gs, &fake_header, 1, 1, pool_);
+    record.include_readings(&gs, &fake_header, 1, pool_);
+
+    record.record().readings.uptime = 1;
 
     auto encoded = pool_.encode(fk_data_DataRecord_fields, &record.record());
     dump_binary(file_, "data-readings", encoded);
@@ -292,14 +294,14 @@ TEST_F(ProtoBufSizeSuite, ReadingsNoneBackFromFirstModule) {
     // regardless of what a readings take does. That'll have to change.
 
     DataRecord record{ pool_ };
-    record.include_readings(&gs, &fake_header, 1, 1, pool_);
+    record.include_readings(&gs, &fake_header, 1, pool_);
 
     record.record().readings.uptime = 1;
 
     auto encoded = pool_.encode(fk_data_DataRecord_fields, &record.record());
     dump_binary(file_, "data-readings-failed-first", encoded);
 
-    ASSERT_EQ(encoded->size, 112u);
+    ASSERT_EQ(encoded->size, 111u);
 }
 
 TEST_F(ProtoBufSizeSuite, Configuration) {
