@@ -31,12 +31,6 @@ tl::expected<uint32_t, Error> MetaOps::write_modules(GlobalState *gs, fkb_header
     return write_kind(gs, SignedRecordKind::Modules, record, pool);
 }
 
-tl::expected<uint32_t, Error> MetaOps::write_modules(GlobalState *gs, fkb_header_t const *fkb, ConstructedModulesCollection &modules, ModuleReadingsCollection &readings, Pool &pool) {
-    MetaRecord record;
-    record.include_modules(gs, fkb, modules, readings, pool);
-    return write_kind(gs, SignedRecordKind::Modules, record, pool);
-}
-
 tl::expected<uint32_t, Error> MetaOps::write_kind(GlobalState *gs, SignedRecordKind kind, MetaRecord &record, Pool &pool) {
     auto meta = storage_.file(Storage::Meta);
     if (!meta.seek_end()) {

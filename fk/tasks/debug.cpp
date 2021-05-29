@@ -2,7 +2,6 @@
 #include "hal/hal.h"
 
 #include "storage/storage.h"
-#include "readings_taker.h"
 #include "state_ref.h"
 #include "config.h"
 

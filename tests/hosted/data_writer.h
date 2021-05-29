@@ -1,8 +1,6 @@
 #pragma once
 
 #include "state.h"
-#include "modules/module_factory.h"
-#include "readings_taker.h"
 
 #include "mocks_and_fakes.h"
 #include "test_modules.h"

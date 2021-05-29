@@ -295,10 +295,9 @@ int32_t AttachedModules::take_readings(Pool &pool) {
     auto bus = get_board()->i2c_module();
     ScanningContext ctx{ mm, &gps, bus, pool };
 
-    ModuleReadingsCollection readings{ pool }; // DUMMY
     for (auto &attached : modules_) {
         auto position = attached.position();
-        auto sub = ctx.open_readings(position, readings, pool);
+        auto sub = ctx.open_readings(position, pool);
         if (!sub.open()) {
             logerror("[%d] choosing module", position.integer());
         } else {

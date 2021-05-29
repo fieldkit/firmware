@@ -171,7 +171,7 @@ void task_handler_scheduler(void *params) {
 
 static CurrentSchedules get_config_schedules() {
     auto gs = get_global_state_ro();
-    return { gs.get(), get_module_factory() };
+    return { gs.get() };
 }
 
 static void update_allow_deep_sleep(bool enabled) {

@@ -7,7 +7,6 @@
 #include "modules/bridge/modules.h"
 #include "modules/scanning.h"
 #include "modules/configure.h"
-#include "modules/module_factory.h"
 #include "modules/enable_module_power.h"
 
 namespace fk {
@@ -23,10 +22,6 @@ ConfigureModuleWorker::ConfigureModuleWorker(ModulePosition bay, ModuleHeader he
 template<typename T>
 void configure_bay_and_update_state(ModMux *mm, ModulePosition which, GlobalState *gs, T fn) {
     for (auto bay = 0u; bay < MaximumNumberOfPhysicalModules; ++bay) {
-#if defined(FK_OLD_STATE)
-        gs->physical_modules[bay] = { };
-#endif
-
         if (which == ModulePosition::All || which == ModulePosition::from(bay)) {
             if (!fn(ModulePosition::from(bay))) {
                 return;
@@ -72,23 +67,13 @@ bool ConfigureModuleWorker::scan(Pool &pool) {
     ScanningContext ctx{ mm, gs.get()->location(pool), module_bus, pool };
     ModuleScanning scanning{ get_modmux() };
 
-    auto &factory = get_module_factory();
+    state::DynamicState dynamic;
 
-    factory.clear();
-
-    auto modules_maybe = get_module_factory().rescan_and_initialize(ctx, scanning, pool);
-    if (!modules_maybe) {
-        logerror("error scanning");
-        return false;
+    if (dynamic.attached()->create(pool) < 0) {
+        logerror("scanning");
     }
 
-    if (modules_maybe->size() == 0) {
-        logwarn("no modules, weird");
-    }
-
-    loginfo("found %zu modules", modules_maybe->size());
-
-    gs.get()->update_physical_modules(*modules_maybe);
+    gs.get()->dynamic = std::move(dynamic);
 
     return true;
 }

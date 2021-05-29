@@ -1,6 +1,5 @@
 #pragma once
 
-#include "readings.h"
 #include "storage/storage.h"
 #include "worker.h"
 
@@ -36,8 +35,6 @@ private:
     };
 
     ThrottleAndScanState read_state();
-
-    tl::expected<TakenReadings, Error> take_readings(Pool &pool);
 };
 
 FK_ENABLE_TYPE_NAME(ReadingsWorker);

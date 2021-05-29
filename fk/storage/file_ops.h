@@ -21,9 +21,6 @@ public:
     virtual tl::expected<uint32_t, Error> write_state(GlobalState *gs, Pool &pool) = 0;
     virtual tl::expected<uint32_t, Error> write_state(GlobalState *gs, fkb_header_t const *fkb_header, Pool &pool) = 0;
     virtual tl::expected<uint32_t, Error> write_modules(GlobalState *gs, fkb_header_t const *fkb_header, Pool &pool) = 0;
-    virtual tl::expected<uint32_t, Error> write_modules(GlobalState *gs, fkb_header_t const *fkb_header,
-                                                        ConstructedModulesCollection &modules,
-                                                        ModuleReadingsCollection &readings, Pool &pool) = 0;
     virtual tl::expected<FileAttributes, Error> attributes(Pool &pool) = 0;
     virtual bool read_record(SignedRecordKind kind, MetaRecord &record, Pool &pool) = 0;
 };

@@ -3,7 +3,6 @@
 #include <loading.h>
 #include <fk-data-protocol.h>
 
-#include "modules/module_factory.h"
 #include "state.h"
 
 namespace fk {

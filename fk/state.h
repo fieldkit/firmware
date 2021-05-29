@@ -24,62 +24,6 @@ struct ScheduledTime {
     uint32_t seconds;
 };
 
-struct SensorState {
-    const char *name;
-    const char *unit_of_measure;
-    uint32_t flags;
-    bool has_live_vaue;
-    ModuleReading live_value;
-};
-
-struct ModuleState {
-public:
-    ModulePosition position;
-    uint32_t manufacturer;
-    uint32_t kind;
-    uint32_t version;
-    const char *name;
-    const char *display_name_key;
-    fk_uuid_t *id;
-    uint32_t flags;
-    SensorState *sensors;
-    size_t nsensors;
-};
-
-struct TakenReadings {
-    uint32_t time;
-    uint32_t number;
-    ConstructedModulesCollection constructed_modules;
-    ModuleReadingsCollection readings;
-
-    TakenReadings() {
-    }
-
-    TakenReadings(uint32_t time, uint32_t number, ModuleReadingsCollection readings) :
-        time(time), number(number), readings(std::move(readings)) {
-    }
-
-    TakenReadings(uint32_t time, uint32_t number, ConstructedModulesCollection constructed_modules, ModuleReadingsCollection readings) :
-        time(time), number(number), constructed_modules(std::move(constructed_modules)), readings(std::move(readings)) {
-    }
-};
-
-struct ModulesState {
-    Pool *pool{ nullptr };
-    ModuleState *modules{ nullptr };
-    size_t nmodules{ 0 };
-    uint32_t readings_time{ 0 };
-    uint32_t readings_number{ 0 };
-    ModuleReadingsCollection readings{ };
-
-    explicit ModulesState(Pool *pool) : pool(pool), readings{ pool } {
-    }
-
-    TakenReadings taken() {
-        return { readings_time, readings_number, ModuleReadingsCollection(readings) };
-    }
-};
-
 enum class BatteryStatus {
     Unknown,
     Good,
@@ -328,14 +272,7 @@ public:
     StorageState storage{ };
     LoraState lora{ };
     SchedulerState scheduler{ };
-#if defined(FK_OLD_STATE)
-    PhysicalModuleState physical_modules[MaximumNumberOfPhysicalModules]{ };
-#endif
     SdCardState sd_card{ };
-#if defined(FK_OLD_STATE)
-    // TODO Merge these.
-    ModulesState *modules{ nullptr };
-#endif
     ReadingsState readings{ };
     TransmissionState transmission{ };
 
@@ -343,7 +280,6 @@ public:
     GlobalState();
 
 public:
-    void update_physical_modules(ConstructedModulesCollection const &modules);
     void update_data_stream(File const &file);
     void update_meta_stream(File const &file);
     void update_data_stream(uint32_t size, uint32_t records);

@@ -34,12 +34,6 @@ tl::expected<uint32_t, Error> MetaOps::write_modules(GlobalState *gs, fkb_header
     return write_kind(gs, RecordType::Modules, record, pool);
 }
 
-tl::expected<uint32_t, Error> MetaOps::write_modules(GlobalState *gs, fkb_header_t const *fkb, ConstructedModulesCollection &modules, ModuleReadingsCollection &readings, Pool &pool) {
-    MetaRecord record;
-    record.include_modules(gs, fkb, modules, readings, pool);
-    return write_kind(gs, RecordType::Modules, record, pool);
-}
-
 tl::expected<uint32_t, Error> MetaOps::write_kind(GlobalState *gs, RecordType record_type, MetaRecord &record, Pool &pool) {
     PhylumDataFile file{ storage_.phylum(), pool };
     auto err = file.open("d/00000000", pool);

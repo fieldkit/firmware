@@ -20,17 +20,14 @@ TEST_F(LoraPacketizerSuite, SingleReading) {
     auto module_readings = new (pool) NModuleReadings<4>();
     module_readings->set(0, 23.0f);
 
-    ModuleReadingsCollection all_readings{ pool };
-    all_readings.emplace(ModuleMetaAndReadings{
+    LoraPacketizer::ModuleReadingsCollection all_readings{ pool };
+    all_readings.emplace(LoraPacketizer::TakenReadingsModule{
         .position = ModulePosition::from(0),
-        .id = nullptr,
-        .meta = &fk_test_module_fake_empty,
-        .sensors = nullptr,
         .readings = module_readings,
     });
 
     LoraPacketizer packetizer;
-    auto taken = TakenReadings{ 1571072401, 323432, std::move(all_readings) };
+    auto taken = LoraPacketizer::TakenReadings{ 1571072401, 323432, std::move(all_readings) };
     auto packets = packetizer.packetize(taken, pool);
     ASSERT_TRUE(packets);
 
@@ -49,17 +46,14 @@ TEST_F(LoraPacketizerSuite, OneModuleMultipleReadings) {
     module_readings->set(3, 100.0f);
     module_readings->set(4, 39843.0f);
 
-    ModuleReadingsCollection all_readings{ pool };
-    all_readings.emplace(ModuleMetaAndReadings{
+    LoraPacketizer::ModuleReadingsCollection all_readings{ pool };
+    all_readings.emplace(LoraPacketizer::TakenReadingsModule{
         .position = ModulePosition::from(0),
-        .id = nullptr,
-        .meta = &fk_test_module_fake_empty,
-        .sensors = nullptr,
         .readings = module_readings,
     });
 
     LoraPacketizer packetizer;
-    auto taken = TakenReadings{ 1571072401, 323432, std::move(all_readings) };
+    auto taken = LoraPacketizer::TakenReadings{ 1571072401, 323432, std::move(all_readings) };
     auto packets = packetizer.packetize(taken, pool);
     ASSERT_TRUE(packets);
 
@@ -83,25 +77,20 @@ TEST_F(LoraPacketizerSuite, TwoModulesMultipleReadings) {
     module_readings1->set(2, 100.0f);
     module_readings1->set(3, 39843.0f);
 
-    ModuleReadingsCollection all_readings{ pool };
-    all_readings.emplace(ModuleMetaAndReadings{
+    LoraPacketizer::ModuleReadingsCollection all_readings{ pool };
+
+    all_readings.emplace(LoraPacketizer::TakenReadingsModule{
         .position = ModulePosition::from(0),
-        .id = nullptr,
-        .meta = &fk_test_module_fake_empty,
-        .sensors = nullptr,
         .readings = module_readings0,
     });
 
-    all_readings.emplace(ModuleMetaAndReadings{
+    all_readings.emplace(LoraPacketizer::TakenReadingsModule{
         .position = ModulePosition::from(1),
-        .id = nullptr,
-        .meta = &fk_test_module_fake_empty,
-        .sensors = nullptr,
         .readings = module_readings1,
     });
 
     LoraPacketizer packetizer;
-    auto taken = TakenReadings{ 1571072401, 323432, std::move(all_readings) };
+    auto taken = LoraPacketizer::TakenReadings{ 1571072401, 323432, std::move(all_readings) };
     auto packets = packetizer.packetize(taken, pool);
     ASSERT_TRUE(packets);
 
@@ -132,25 +121,19 @@ TEST_F(LoraPacketizerSuite, MultipleModulesVerifyLength1) {
     module_readings1->set(i++, 8.067230);
     module_readings1->set(i++, 147.000000);
 
-    ModuleReadingsCollection all_readings{ pool };
-    all_readings.emplace(ModuleMetaAndReadings{
+    LoraPacketizer::ModuleReadingsCollection all_readings{ pool };
+    all_readings.emplace(LoraPacketizer::TakenReadingsModule{
         .position = ModulePosition::from(2),
-        .id = nullptr,
-        .meta = &fk_test_module_fake_empty,
-        .sensors = nullptr,
         .readings = module_readings0,
     });
 
-    all_readings.emplace(ModuleMetaAndReadings{
+    all_readings.emplace(LoraPacketizer::TakenReadingsModule{
         .position = ModulePosition::from(6),
-        .id = nullptr,
-        .meta = &fk_test_module_fake_empty,
-        .sensors = nullptr,
         .readings = module_readings1,
     });
 
     LoraPacketizer packetizer;
-    auto taken = TakenReadings{ 1571073001, 7187, std::move(all_readings) };
+    auto taken = LoraPacketizer::TakenReadings{ 1571073001, 7187, std::move(all_readings) };
     auto packets = packetizer.packetize(taken, pool);
     ASSERT_TRUE(packets);
 
@@ -176,17 +159,14 @@ TEST_F(LoraPacketizerSuite, MultipleModulesVerifyLength2) {
     module_readings0->set(1, 1727.000000);
     module_readings0->set(2, 1728.000000);
 
-    ModuleReadingsCollection all_readings{ pool };
-    all_readings.emplace(ModuleMetaAndReadings{
+    LoraPacketizer::ModuleReadingsCollection all_readings{ pool };
+    all_readings.emplace(LoraPacketizer::TakenReadingsModule{
         .position = ModulePosition::from(2),
-        .id = nullptr,
-        .meta = &fk_test_module_fake_empty,
-        .sensors = nullptr,
         .readings = module_readings0,
     });
 
     LoraPacketizer packetizer;
-    auto taken = TakenReadings{ 7435, 0, std::move(all_readings) };
+    auto taken = LoraPacketizer::TakenReadings{ 7435, 0, std::move(all_readings) };
     auto packets = packetizer.packetize(taken, pool);
     ASSERT_TRUE(packets);
 
@@ -253,24 +233,18 @@ TEST_F(LoraPacketizerSuite, MultipleModulesVerifyLength3) {
     module_readings1->set(i++, 0.000000);
     module_readings1->set(i++, 0.000000);
 
-    ModuleReadingsCollection all_readings{ pool };
-    all_readings.emplace(ModuleMetaAndReadings{
+    LoraPacketizer::ModuleReadingsCollection all_readings{ pool };
+    all_readings.emplace(LoraPacketizer::TakenReadingsModule{
         .position = ModulePosition::from(2),
-        .id = nullptr,
-        .meta = &fk_test_module_fake_empty,
-        .sensors = nullptr,
         .readings = module_readings0,
     });
-    all_readings.emplace(ModuleMetaAndReadings{
+    all_readings.emplace(LoraPacketizer::TakenReadingsModule{
         .position = ModulePosition::from(6),
-        .id = nullptr,
-        .meta = &fk_test_module_fake_empty,
-        .sensors = nullptr,
         .readings = module_readings1,
     });
 
     LoraPacketizer packetizer;
-    auto taken = TakenReadings{ 1571088572 , 7499, std::move(all_readings) };
+    auto taken = LoraPacketizer::TakenReadings{ 1571088572 , 7499, std::move(all_readings) };
     auto packets = packetizer.packetize(taken, pool);
     ASSERT_TRUE(packets);
 

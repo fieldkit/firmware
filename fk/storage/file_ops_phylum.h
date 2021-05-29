@@ -18,13 +18,12 @@ public:
     tl::expected<uint32_t, Error> write_state(GlobalState *gs, Pool &pool) override;
     tl::expected<uint32_t, Error> write_state(GlobalState *gs, fkb_header_t const *fkb_header, Pool &pool) override;
     tl::expected<uint32_t, Error> write_modules(GlobalState *gs, fkb_header_t const *fkb_header, Pool &pool) override;
-    tl::expected<uint32_t, Error> write_modules(GlobalState *gs, fkb_header_t const *fkb_header,
-                                                ConstructedModulesCollection &modules,
-                                                ModuleReadingsCollection &readings, Pool &pool) override;
-    tl::expected<uint32_t, Error> write_kind(GlobalState *gs, RecordType record_type, MetaRecord &record, Pool &pool);
+
     tl::expected<FileAttributes, Error> attributes(Pool &pool) override;
 
     bool read_record(SignedRecordKind kind, MetaRecord &record, Pool &pool) override;
+
+    tl::expected<uint32_t, Error> write_kind(GlobalState *gs, RecordType record_type, MetaRecord &record, Pool &pool);
 
 };
 

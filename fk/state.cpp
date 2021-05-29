@@ -113,31 +113,6 @@ void GlobalState::update_meta_stream(uint32_t size, uint32_t records) {
     storage.meta.block = records;
 }
 
-void GlobalState::update_physical_modules(ConstructedModulesCollection const &modules) {
-#if defined(FK_OLD_STATE)
-    for (auto &status : physical_modules) {
-        status.meta = nullptr;
-        status.header = { };
-        status.status = ModuleStatus::Empty;
-    }
-
-    for (auto &m : modules) {
-        if (m.found.physical()) {
-            auto index = m.found.position.integer();
-
-            FK_ASSERT(index < MaximumNumberOfPhysicalModules);
-            auto &status = physical_modules[index];
-            status.header = m.found.header;
-            status.meta = m.meta;
-            status.status = m.status;
-
-            loginfo("[%d] '%s' module mk=%02" PRIx32 "%02" PRIx32 " status = %s", index, m.meta->name,
-                    m.found.header.manufacturer, m.found.header.kind, get_module_status_string(m.status));
-        }
-    }
-#endif
-}
-
 void GlobalState::released(uint32_t locked) const {
     auto elapsed = fk_uptime() - locked;
     if (elapsed > 100) {

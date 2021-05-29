@@ -2,7 +2,7 @@
 
 #include <fk-data-protocol.h>
 
-#include "readings_taker.h"
+#include "hal/hal.h"
 #include "networking/http_reply.h"
 #include "storage/signed_log.h"
 #include "storage/meta_record.h"
@@ -143,65 +143,6 @@ static void fake_global_state(GlobalState &gs, Pool &pool) {
     gs.scheduler.gps.interval = 3600;
     gs.scheduler.lora.interval = 86400;
 
-#if defined(FK_OLD_STATE)
-    auto module_readings = new (pool) NModuleReadings<10>();
-    module_readings->set(0, 23.0f);
-    module_readings->set(1, 332.0f);
-    module_readings->set(2, 934839.0f);
-    module_readings->set(3, 100.0f);
-    module_readings->set(4, 39843.0f);
-    module_readings->set(5, -23.0f);
-    module_readings->set(6, 825398.0f);
-    module_readings->set(7, 41017.0f);
-    module_readings->set(8, 2111193.0f);
-    module_readings->set(9, 937281.0f);
-
-    ModuleReadingsCollection readings{ pool };
-    readings.emplace(ModuleMetaAndReadings{
-        .position = ModulePosition::from(0),
-        .id = nullptr,
-        .meta = &fk_test_module_fake_empty,
-        .sensors = nullptr,
-        .readings = module_readings,
-    });
-
-    auto i = 0u;
-    auto module_sensors = pool.malloc<SensorState>(10);
-    module_sensors[i++] = { .name = "sensor-0", .unit_of_measure = "m", .flags = 0, .has_live_vaue = true, .live_value = module_readings->get(0) };
-    module_sensors[i++] = { .name = "sensor-1", .unit_of_measure = "m", .flags = 0, .has_live_vaue = true, .live_value = module_readings->get(1) };
-    module_sensors[i++] = { .name = "sensor-2", .unit_of_measure = "m", .flags = 0, .has_live_vaue = true, .live_value = module_readings->get(2) };
-    module_sensors[i++] = { .name = "sensor-3", .unit_of_measure = "m", .flags = 0, .has_live_vaue = true, .live_value = module_readings->get(3) };
-    module_sensors[i++] = { .name = "sensor-4", .unit_of_measure = "m", .flags = 0, .has_live_vaue = true, .live_value = module_readings->get(4) };
-    module_sensors[i++] = { .name = "sensor-5", .unit_of_measure = "m", .flags = 0, .has_live_vaue = true, .live_value = module_readings->get(5) };
-    module_sensors[i++] = { .name = "sensor-6", .unit_of_measure = "m", .flags = 0, .has_live_vaue = true, .live_value = module_readings->get(6) };
-    module_sensors[i++] = { .name = "sensor-7", .unit_of_measure = "m", .flags = 0, .has_live_vaue = true, .live_value = module_readings->get(7) };
-    module_sensors[i++] = { .name = "sensor-8", .unit_of_measure = "m", .flags = 0, .has_live_vaue = true, .live_value = module_readings->get(8) };
-    module_sensors[i++] = { .name = "sensor-9", .unit_of_measure = "m", .flags = 0, .has_live_vaue = true, .live_value = module_readings->get(9) };
-
-    fk_uuid_t module_id;
-    fake_data(module_id.data);
-
-    auto module_states = pool.malloc_with<ModuleState>({
-        .position = ModulePosition::from(0),
-        .manufacturer = 1,
-        .kind = 2,
-        .version = 3,
-        .name = "module",
-        .display_name_key = "module",
-        .id = (fk_uuid_t *)pool.copy(&module_id, sizeof(fk_uuid_t)),
-        .flags = 0,
-        .sensors = module_sensors,
-        .nsensors = 10,
-    });
-
-    auto modules = new (pool) ModulesState(&pool);
-    modules->nmodules = 1;
-    modules->modules = module_states;
-    modules->readings_time = 65536;
-    modules->readings_number = 32768;
-
-    gs.modules = modules;
-#else
     state::DynamicState dynamic;
 
     ModuleHeader header = {
@@ -234,49 +175,9 @@ static void fake_global_state(GlobalState &gs, Pool &pool) {
     }
 
     gs.dynamic = std::move(dynamic);
-#endif
 }
 
 static void fake_modules(GlobalState &gs, Pool &pool) {
-    /*
-    modules.emplace(ConstructedModule{
-        .found = { .position = ModulePosition::from(0) },
-        .meta = &fk_test_module_fake_1,
-        .module_instance = fk_test_module_fake_1.ctor(pool),
-    });
-    modules.emplace(ConstructedModule{
-        .found = { .position = ModulePosition::from(1) },
-        .meta = &fk_test_module_fake_2,
-        .module_instance = fk_test_module_fake_2.ctor(pool),
-    });
-    modules.emplace(ConstructedModule{
-        .found = { .position = ModulePosition::from(2) },
-        .meta = &fk_test_module_fake_1,
-        .module_instance = fk_test_module_fake_1.ctor(pool),
-    });
-    modules.emplace(ConstructedModule{
-        .found = { .position = ModulePosition::from(3) },
-        .meta = &fk_test_module_fake_2,
-        .module_instance = fk_test_module_fake_2.ctor(pool),
-    });
-
-    readings.emplace(ModuleMetaAndReadings{
-        .position = ModulePosition::from(0),
-    });
-    readings.emplace(ModuleMetaAndReadings{
-        .position = ModulePosition::from(1),
-    });
-    readings.emplace(ModuleMetaAndReadings{
-        .position = ModulePosition::from(2),
-    });
-    readings.emplace(ModuleMetaAndReadings{
-        .position = ModulePosition::from(3),
-    });
-
-    for (auto &m : modules) {
-        fake_data(m.found.header.id.data);
-    }
-    */
     state::DynamicState dynamic;
 
     auto attached = dynamic.attached();

@@ -168,17 +168,6 @@ typedef struct ModuleSensors {
     SensorMetadata const *sensors;
 } ModuleSensors;
 
-struct ModuleMetaAndReadings {
-    ModulePosition position;
-    fk_uuid_t *id;
-    ModuleMetadata const *meta;
-    ModuleSensors const *sensors;
-    ModuleReadings const *readings;
-    ModuleConfiguration configuration;
-};
-
-using ModuleReadingsCollection = collection<ModuleMetaAndReadings>;
-
 enum class ModuleStatus {
     Unknown = 0,
     Empty,
@@ -206,15 +195,5 @@ inline const char *get_module_status_string(ModuleStatus ms) {
         return "unknown!";
     }
 }
-
-struct ConstructedModule {
-    FoundModule found;
-    ModuleMetadata const *meta;
-    Module *module_instance;
-    ModuleStatus status;
-    ModuleConfiguration configuration;
-};
-
-using ConstructedModulesCollection = collection<ConstructedModule>;
 
 }
