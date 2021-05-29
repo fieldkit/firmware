@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/r3labs/diff"
@@ -53,7 +54,7 @@ func decodeAndLog(data string) error {
 func main() {
 	o := options{}
 
-	flag.BoolVar(&o.Delimited, "delimited", false, "")
+	flag.BoolVar(&o.Delimited, "delimited", true, "")
 	flag.BoolVar(&o.Lora, "lora", false, "")
 	flag.BoolVar(&o.Data, "data", false, "")
 	flag.BoolVar(&o.Signed, "signed", false, "")
@@ -94,7 +95,15 @@ func main() {
 	loraRecords := make([]*pbdata.LoraRecord, 0)
 	httpReplies := make([]*pbapp.HttpReply, 0)
 
-	for key, value := range blocks {
+	keys := make([]string, 0)
+	for key, _ := range blocks {
+		keys = append(keys, key)
+	}
+
+	sort.Strings(keys)
+
+	for _, key := range keys {
+		value := blocks[key]
 		bytes, err := hex.DecodeString(value)
 		if err != nil {
 			panic(err)
