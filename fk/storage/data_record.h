@@ -13,8 +13,14 @@ private:
     fk_data_DataRecord *record_{ nullptr };
 
 public:
+    DataRecord(Pool &pool);
+
+public:
+    void include_readings(GlobalState const *gs, fkb_header_t const *fkb_header, uint32_t meta_record, Pool &pool);
+
+public:
     fk_data_DataRecord &for_decoding(Pool &pool);
-    fk_data_DataRecord const &record();
+    fk_data_DataRecord &record();
 
 };
 
