@@ -25,6 +25,12 @@ tl::expected<uint32_t, Error> MetaOps::write_state(GlobalState *gs, fkb_header_t
     return write_kind(gs, SignedRecordKind::State, record, pool);
 }
 
+tl::expected<uint32_t, Error> MetaOps::write_modules(GlobalState *gs, fkb_header_t const *fkb_header, Pool &pool) {
+    MetaRecord record;
+    record.include_modules(gs, fkb_header, pool);
+    return write_kind(gs, SignedRecordKind::Modules, record, pool);
+}
+
 tl::expected<uint32_t, Error> MetaOps::write_modules(GlobalState *gs, fkb_header_t const *fkb, ConstructedModulesCollection &modules, ModuleReadingsCollection &readings, Pool &pool) {
     MetaRecord record;
     record.include_modules(gs, fkb, modules, readings, pool);
