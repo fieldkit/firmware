@@ -11,6 +11,7 @@ ModuleHandler::ModuleHandler(ModulePosition bay) : bay_(bay) {
 }
 
 bool ModuleHandler::handle(HttpServerConnection *connection, Pool &pool) {
+#if defined(FK_OLD_STATE)
     auto &factory = get_module_factory();
 
     auto constructed = factory.get(bay_);
@@ -78,7 +79,48 @@ bool ModuleHandler::handle(HttpServerConnection *connection, Pool &pool) {
             loginfo("no updated configuration");
         }
     }
+#else
+    auto gs = get_global_state_rw();
+    auto attached = gs.get()->dynamic.attached();
+    auto attached_module = attached->get_by_position(bay_);
+    if (attached_module == nullptr) {
+        connection->error(HttpStatus::NotFound, "invalid module", pool);
+        return true;
+    }
 
+    auto configuration = attached_module->configuration();
+
+    auto mm = get_modmux();
+    auto lock = mm->lock();
+    auto module_bus = get_board()->i2c_module();
+
+    EnableModulePower module_power{ true, configuration.power, bay_ };
+    if (!module_power.enable()) {
+        connection->error(HttpStatus::ServerError, "error powering module", pool);
+        return true;
+    }
+
+    if (module_power.was_enabled()) {
+        fk_delay(configuration.wake_delay);
+    }
+
+    ScanningContext ctx{ mm, gs.get()->location(pool), module_bus, pool };
+
+    auto mc = ctx.open_module(bay_, pool);
+
+    if (!mc.open()) {
+        connection->error(HttpStatus::ServerError, "error choosing module", pool);
+        return true;
+    }
+
+    if (!attached_module->get()->api(mc, connection, pool)) {
+        connection->error(HttpStatus::ServerError, "error servicing module api", pool);
+        return true;
+    }
+
+    // The memory for this is handled by the module itself, which is risky.
+    configuration = attached_module->get_configuration(&pool);
+#endif
     return true;
 }
 

@@ -23,7 +23,9 @@ ConfigureModuleWorker::ConfigureModuleWorker(ModulePosition bay, ModuleHeader he
 template<typename T>
 void configure_bay_and_update_state(ModMux *mm, ModulePosition which, GlobalState *gs, T fn) {
     for (auto bay = 0u; bay < MaximumNumberOfPhysicalModules; ++bay) {
+#if defined(FK_OLD_STATE)
         gs->physical_modules[bay] = { };
+#endif
 
         if (which == ModulePosition::All || which == ModulePosition::from(bay)) {
             if (!fn(ModulePosition::from(bay))) {

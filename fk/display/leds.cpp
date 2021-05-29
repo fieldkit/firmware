@@ -41,6 +41,7 @@ void LedsController::tick() {
     for (auto bay : get_modmux()->available_positions()) {
         auto index = bay.integer();
         if (index > 0) {
+#if defined(FK_OLD_STATE)
             auto &physical_module = gs.get()->physical_modules[index];
             if (physical_module.meta != nullptr) {
                 auto color = get_color(physical_module.status);
@@ -49,6 +50,14 @@ void LedsController::tick() {
             else {
                 module_leds->color(index - 1, { 0, 0, 0 }, false);
             }
+#else
+            auto attached = gs.get()->dynamic.attached();
+            FK_ASSERT(attached != nullptr);
+
+            auto module_status = attached->get_module_status(bay);
+            auto color = get_color(module_status);
+            module_leds->color(index - 1, color, false);
+#endif
         }
     }
 

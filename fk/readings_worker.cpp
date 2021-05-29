@@ -9,6 +9,8 @@
 #include "modules/module_factory.h"
 #include "modules/scan_modules_worker.h"
 
+extern const struct fkb_header_t fkb_header;
+
 namespace fk {
 
 FK_DECLARE_LOGGER("rw");
@@ -45,6 +47,7 @@ bool ReadingsWorker::prepare(Pool &pool) {
 }
 
 bool ReadingsWorker::take(Pool &pool) {
+#if defined(FK_OLD_STATE)
     auto lock = storage_mutex.acquire(UINT32_MAX);
     FK_ASSERT(lock);
 
@@ -132,13 +135,62 @@ bool ReadingsWorker::take(Pool &pool) {
 
         gs->update_physical_modules(taken_readings->constructed_modules);
     });
+#else
+    {
+        auto gs = get_global_state_ro(); // TODO
+        auto attached = gs.get()->dynamic.attached();
+        if (attached == nullptr) {
+            logerror("scan necessary");
+            return false;
+        }
+
+        if (attached->take_readings(pool) < 0) {
+            logerror("take readings");
+            return false;
+        }
+    }
+
+    {
+        auto lock = storage_mutex.acquire(UINT32_MAX);
+        FK_ASSERT(lock);
+
+        // jlewallen: storage-write
+        Storage storage{ MemoryFactory::get_data_memory(), pool, false };
+        if (!storage.begin()) {
+            return false;
+        }
+
+        auto gs = get_global_state_rw();
+
+        auto meta_record_number = storage.meta_ops()->write_modules(gs.get(), &fkb_header, pool);
+        if (!meta_record_number) {
+            return false;
+        }
+
+        DataRecord record{ pool };
+        record.include_readings(gs.get(), &fkb_header, *meta_record_number, pool);
+
+        if (!storage.data_ops()->write_readings(gs.get(), &record.record(), pool)) {
+            return false;
+        }
+
+        if (!storage.flush()) {
+            return false;
+        }
+    }
+
+#endif
 
     return true;
 }
 
 ReadingsWorker::ThrottleAndScanState ReadingsWorker::read_state() {
     auto gs = get_global_state_rw();
-    auto scanned = gs.get()->modules != nullptr;
+#if defined(FK_OLD_STATE)
+    auto scanned = gs.get()->modules != nullptr || gs.get()->dynamic.attached() != nullptr;
+#else
+    auto scanned = gs.get()->dynamic.attached() != nullptr;
+#endif
     if (gs.get()->runtime.readings > 0) {
         auto elapsed = fk_uptime() - gs.get()->runtime.readings;
         if (elapsed < TenSecondsMs) {

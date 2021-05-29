@@ -10,6 +10,8 @@ FK_DECLARE_LOGGER("modscan");
 ScanModulesWorker::ScanModulesWorker() {
 }
 
+#if defined(FK_OLD_STATE)
+    scan_modules(pool);
 static bool scan_modules(Pool &pool) {
     get_modmux()->check_modules();
 
@@ -46,10 +48,12 @@ static void update_modules(Pool &pool) {
         gs->update_physical_modules(modules);
     });
 }
+#endif
 
 void ScanModulesWorker::run(Pool &pool) {
     auto lock = get_modmux()->lock();
 
+#if defined(FK_OLD_STATE)
     scan_modules(pool);
 
     update_modules(pool);
@@ -57,6 +61,16 @@ void ScanModulesWorker::run(Pool &pool) {
     initialize_modules(pool);
 
     update_modules(pool);
+#else
+    state::DynamicState dynamic;
+
+    if (dynamic.attached()->create(pool) < 0) {
+        logerror("scanning");
+    }
+
+    auto gs = get_global_state_rw();
+    gs.get()->dynamic = std::move(dynamic);
+#endif
 }
 
 } // namespace fk

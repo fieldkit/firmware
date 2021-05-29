@@ -31,7 +31,7 @@ protected:
     }
 };
 
-TEST_F(ReadingsTakingSuite, WithNoModules) {
+TEST_F(ReadingsTakingSuite, DISABLED_WithNoModules) {
     GlobalState gs;
     NoopMutex mutex;
     TwoWireWrapper module_bus{ &mutex, "modules", nullptr };
@@ -50,7 +50,7 @@ TEST_F(ReadingsTakingSuite, WithNoModules) {
     ASSERT_TRUE(readings_taker.take(*constructed_maybe, ctx, pool_));
 }
 
-TEST_F(ReadingsTakingSuite, BasicSingleModule) {
+TEST_F(ReadingsTakingSuite, DISABLED_BasicSingleModule) {
     GlobalState gs;
     NoopMutex mutex;
     TwoWireWrapper module_bus{ &mutex, "modules", nullptr };
@@ -77,7 +77,7 @@ TEST_F(ReadingsTakingSuite, BasicSingleModule) {
     ASSERT_TRUE(readings_taker.take(*constructed_maybe, ctx, pool_));
 }
 
-TEST_F(ReadingsTakingSuite, BasicTwoModules) {
+TEST_F(ReadingsTakingSuite, DISABLED_BasicTwoModules) {
     GlobalState gs;
     NoopMutex mutex;
     TwoWireWrapper module_bus{ &mutex, "modules", nullptr };
@@ -112,7 +112,7 @@ TEST_F(ReadingsTakingSuite, BasicTwoModules) {
     ASSERT_TRUE(readings_taker.take(*constructed_maybe, ctx, pool_));
 }
 
-TEST_F(ReadingsTakingSuite, AssignsRecordIndices) {
+TEST_F(ReadingsTakingSuite, DISABLED_AssignsRecordIndices) {
     GlobalState gs;
     NoopMutex mutex;
     TwoWireWrapper module_bus{ &mutex, "modules", nullptr };

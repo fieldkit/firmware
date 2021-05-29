@@ -114,6 +114,7 @@ void GlobalState::update_meta_stream(uint32_t size, uint32_t records) {
 }
 
 void GlobalState::update_physical_modules(ConstructedModulesCollection const &modules) {
+#if defined(FK_OLD_STATE)
     for (auto &status : physical_modules) {
         status.meta = nullptr;
         status.header = { };
@@ -134,6 +135,7 @@ void GlobalState::update_physical_modules(ConstructedModulesCollection const &mo
                     m.found.header.manufacturer, m.found.header.kind, get_module_status_string(m.status));
         }
     }
+#endif
 }
 
 void GlobalState::released(uint32_t locked) const {

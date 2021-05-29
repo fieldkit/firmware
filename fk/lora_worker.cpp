@@ -13,6 +13,7 @@ namespace fk {
 FK_DECLARE_LOGGER("lora");
 
 tl::expected<EncodedMessage*, Error> packetize(Pool &pool) {
+#if defined(FK_OLD_STATE)
     auto gs = get_global_state_ro();
     if (gs.get()->modules == nullptr) {
         logwarn("packetize: no modules");
@@ -27,6 +28,9 @@ tl::expected<EncodedMessage*, Error> packetize(Pool &pool) {
 
     LoraPacketizer packetizer;
     return packetizer.packetize(taken, pool);
+#else
+    return nullptr;
+#endif
 }
 
 void LoraWorker::run(Pool &pool) {

@@ -108,6 +108,7 @@ void DataRecord::include_readings(GlobalState const *gs, fkb_header_t const *fkb
         record_->readings.sensorGroups.arg = sensor_groups_array;
     }
 
+#if defined(FK_OLD_STATE)
     if (gs->modules != nullptr) {
         auto nmodules = gs->modules->nmodules;
         auto groups = pool.malloc<fk_data_SensorGroup>(nmodules);
@@ -171,6 +172,7 @@ void DataRecord::include_readings(GlobalState const *gs, fkb_header_t const *fkb
 
         record_->readings.sensorGroups.arg = sensor_groups_array;
     }
+#endif
 }
 
 fk_data_DataRecord &DataRecord::for_decoding(Pool &pool) {

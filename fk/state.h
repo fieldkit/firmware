@@ -12,6 +12,7 @@
 
 #include "modules/bridge/data.h"
 #include "hal/battery_gauge.h" // For MeterReading
+#include "state/dynamic.h"
 
 namespace fk {
 
@@ -315,6 +316,7 @@ struct TransmissionState {
 struct GlobalState {
 public:
     uint32_t version{ 0 };
+    state::DynamicState dynamic;
     GeneralState general{ };
     RuntimeState runtime{ };
     PowerState power{ };
@@ -326,10 +328,14 @@ public:
     StorageState storage{ };
     LoraState lora{ };
     SchedulerState scheduler{ };
+#if defined(FK_OLD_STATE)
     PhysicalModuleState physical_modules[MaximumNumberOfPhysicalModules]{ };
+#endif
     SdCardState sd_card{ };
+#if defined(FK_OLD_STATE)
     // TODO Merge these.
     ModulesState *modules{ nullptr };
+#endif
     ReadingsState readings{ };
     TransmissionState transmission{ };
 
