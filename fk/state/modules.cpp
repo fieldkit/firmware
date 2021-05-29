@@ -236,6 +236,10 @@ AttachedModules::ModuleAndSensor AttachedModules::get_nth_sensor(size_t n) {
 int32_t AttachedModules::scan(Pool &pool) {
     auto mm = get_modmux();
 
+    mm->enable_all_modules();
+
+    fk_delay(100);
+
     ModuleScanning scanning{ mm };
     auto err = scanning.scan(this, pool);
     if (err < 0) {
