@@ -83,7 +83,7 @@ void *fk_standard_page_malloc(size_t size, const char *name) {
             #if defined(__SAMD51__)
             pages[selected].allocated = fk_uptime();
             #endif
-            logverbose("[%2d] malloc '%s'", selected, name);
+            logdebug("[%2d] malloc '%s'", selected, name);
             return pages[selected].base;
         }
     }
@@ -121,7 +121,7 @@ void fk_standard_page_free(void *ptr) {
         FK_ASSERT(selected != -1);
     }
 
-    logverbose("[%2d] free '%s'", selected, owner);
+    logdebug("[%2d] free '%s'", selected, owner);
 
     return;
 }
