@@ -2,13 +2,19 @@
 
 #include "hal/board.h"
 #include "hal/modmux.h"
-#include "state.h"
 #include "modules/bridge/data.h"
 
 namespace fk {
 
 class ModuleContext;
 class ReadingsContext;
+class GpsState;
+
+enum ModulePowerState {
+    Unknown,
+    AlwaysOn,
+    Preserve
+};
 
 class ScanningContext {
 private:
