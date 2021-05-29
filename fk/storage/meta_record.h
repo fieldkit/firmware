@@ -14,6 +14,7 @@ private:
 
 public:
     void include_state(GlobalState const *gs, fkb_header_t const *fkb, Pool &pool);
+    void include_modules(GlobalState const *gs, fkb_header_t const *fkb, Pool &pool);
     void include_modules(GlobalState const *gs, fkb_header_t const *fkb, ConstructedModulesCollection &modules, ModuleReadingsCollection &readings, Pool &pool);
 
 public:
