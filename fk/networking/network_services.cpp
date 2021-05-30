@@ -21,7 +21,7 @@ static bool network_began(NetworkStatus status) {
     return status == NetworkStatus::Connected || status == NetworkStatus::Listening;
 }
 
-NetworkServices::NetworkServices(Network *network) : network_(network) {
+NetworkServices::NetworkServices(Network *network, Pool &pool) : tick_pool_(pool.subpool("network-tick", 1024)), network_(network) {
     started_ = fk_uptime();
 }
 
@@ -179,11 +179,11 @@ void NetworkServices::tick() {
         network_->service(nullptr);
     }
     else {
-        network_->service(&tick_pool_);
+        network_->service(tick_pool_);
 
-        if (tick_pool_.used() > 0) {
-            loginfo("network-tick: %zu/%zu", tick_pool_.used(), tick_pool_.size());
-            tick_pool_.clear();
+        if (tick_pool_->used() > 0) {
+            loginfo("network-tick: %zu/%zu", tick_pool_->used(), tick_pool_->size());
+            tick_pool_->clear();
         }
     }
 

@@ -82,7 +82,7 @@ static void setup_fake_data() {
 static void server(Fake *fake) {
     StandardPool pool{ "pool" };
     LinuxNetwork network;
-    NetworkServices network_services{ &network };
+    NetworkServices network_services{ &network, pool };
     auto gs = get_global_state_ro();
 
     if (!network_services.begin(FiveMinutesMs, pool)) {

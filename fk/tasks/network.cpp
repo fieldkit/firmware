@@ -13,7 +13,7 @@ FK_DECLARE_LOGGER("network");
 void try_and_serve_connections() {
     while (true) {
         StandardPool pool{ "network-task" };
-        NetworkServices services{ get_network() };
+        NetworkServices services{ get_network(), pool };
         GlobalStateManager gsm;
 
         gsm.apply([=](GlobalState *gs) {
