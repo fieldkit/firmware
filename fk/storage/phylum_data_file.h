@@ -62,10 +62,21 @@ public:
     PhylumDataFile(Phylum &phylum, Pool &pool);
 
 public:
+    struct appended_t {
+        int32_t bytes;
+        uint32_t record;
+
+        appended_t(int32_t err) : bytes(err), record(UINT32_MAX) {
+        }
+
+        appended_t(int32_t bytes, uint32_t record) : bytes(bytes), record(record) {
+        }
+    };
+
     int32_t open(const char *name, Pool &pool);
     int32_t create(const char *name, Pool &pool);
-    int32_t append_always(RecordType type, pb_msgdesc_t const *fields, void const *record, Pool &pool);
-    int32_t append_immutable(RecordType type, pb_msgdesc_t const *fields, void const *record, Pool &pool);
+    appended_t append_always(RecordType type, pb_msgdesc_t const *fields, void const *record, Pool &pool);
+    appended_t append_immutable(RecordType type, pb_msgdesc_t const *fields, void const *record, Pool &pool);
 
 public:
     int32_t seek_record_type(RecordType type, file_size_t &position, Pool &pool);

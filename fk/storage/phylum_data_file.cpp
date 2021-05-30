@@ -156,7 +156,7 @@ PhylumDataFile::DataFileAttributes PhylumDataFile::attributes() {
     };
 }
 
-int32_t PhylumDataFile::append_always(RecordType type, pb_msgdesc_t const *fields, void const *record, Pool &pool) {
+PhylumDataFile::appended_t PhylumDataFile::append_always(RecordType type, pb_msgdesc_t const *fields, void const *record, Pool &pool) {
     assert(name_ != nullptr);
 
     loginfo("append-always");
@@ -164,11 +164,11 @@ int32_t PhylumDataFile::append_always(RecordType type, pb_msgdesc_t const *field
     auto err = dir_.find(name_, file_cfg_);
     if (err < 0) {
         logerror("append-always: find");
-        return err;
+        return appended_t{ err };
     }
 
     if (err == 0) {
-        return -1;
+        return appended_t{ -1 };
     }
 
     logdebug("append-always: attributes");
@@ -188,7 +188,7 @@ int32_t PhylumDataFile::append_always(RecordType type, pb_msgdesc_t const *field
     err = opened.seek_position<index_tree_type>(UINT32_MAX);
     if (err < 0) {
         logerror("append-always: seeking");
-        return err;
+        return appended_t{ err };
     }
 
     auto record_position = opened.position();
@@ -198,7 +198,7 @@ int32_t PhylumDataFile::append_always(RecordType type, pb_msgdesc_t const *field
     err = opened.index_if_necessary<index_tree_type>(records->first + records->nrecords);
     if (err < 0) {
         logerror("append-always: index");
-        return err;
+        return appended_t{ err };
     }
 
     logdebug("append-always: writers");
@@ -221,7 +221,7 @@ int32_t PhylumDataFile::append_always(RecordType type, pb_msgdesc_t const *field
     auto ostream = pb_ostream_from_writable(&writer);
     if (!pb_encode_delimited(&ostream, fields, record)) {
         logerror("append-always: encode");
-        return -1;
+        return appended_t{ -1 };
     }
 
     logdebug("append-always: finalizing");
@@ -244,7 +244,7 @@ int32_t PhylumDataFile::append_always(RecordType type, pb_msgdesc_t const *field
     err = opened.close();
     if (err < 0) {
         logerror("append-always: close");
-        return err;
+        return appended_t{ err };
     }
 
     auto file_size = opened.position();
@@ -255,10 +255,10 @@ int32_t PhylumDataFile::append_always(RecordType type, pb_msgdesc_t const *field
     loginfo("wrote record R-%" PRIu32 " position=%zu bytes=%zu total=%zu hash=%s",
             record_number, record_position, bytes_written, file_size, hash_hex);
 
-    return bytes_written;
+    return appended_t{ (int32_t)bytes_written, record_number };
 }
 
-int32_t PhylumDataFile::append_immutable(RecordType type, pb_msgdesc_t const *fields, void const *record, Pool &pool) {
+PhylumDataFile::appended_t PhylumDataFile::append_immutable(RecordType type, pb_msgdesc_t const *fields, void const *record, Pool &pool) {
     assert(name_ != nullptr);
 
     loginfo("append-immutable");
@@ -272,7 +272,7 @@ int32_t PhylumDataFile::append_immutable(RecordType type, pb_msgdesc_t const *fi
     auto ostream = pb_ostream_from_writable(&writer);
     if (!pb_encode_delimited(&ostream, fields, record)) {
         logerror("append-immutable: encode");
-        return -1;
+        return appended_t{ -1 };
     }
 
     uint8_t hash[phylum::HashSize];
@@ -286,15 +286,15 @@ int32_t PhylumDataFile::append_immutable(RecordType type, pb_msgdesc_t const *fi
 
     assert(sizeof(hash) == sizeof(index_attribute->hash));
     if (memcmp(index_attribute->hash, hash, sizeof(hash)) == 0) {
-        return 0;
+        return appended_t{ 0, index_attribute->record };
     }
 
-    auto err = append_always(type, fields, record, pool);
-    if (err < 0) {
-        return err;
+    auto appended = append_always(type, fields, record, pool);
+    if (appended.bytes < 0) {
+        return appended;
     }
 
-    return err;
+    return appended;
 }
 
 int32_t PhylumDataFile::seek_record_type(RecordType type, file_size_t &position, Pool &pool) {

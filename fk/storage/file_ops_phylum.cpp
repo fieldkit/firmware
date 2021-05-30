@@ -41,10 +41,8 @@ tl::expected<uint32_t, Error> MetaOps::write_kind(GlobalState *gs, RecordType re
         return tl::unexpected<Error>(Error::IO);
     }
 
-    auto record_number = file.attributes().record_number;
-
-    err = file.append_immutable(record_type, fk_data_DataRecord_fields, &record.record(), pool);
-    if (err < 0) {
+    auto appended = file.append_immutable(record_type, fk_data_DataRecord_fields, &record.record(), pool);
+    if (appended.bytes < 0) {
         return tl::unexpected<Error>(Error::IO);
     }
 
@@ -52,7 +50,7 @@ tl::expected<uint32_t, Error> MetaOps::write_kind(GlobalState *gs, RecordType re
 
     gs->update_data_stream(attributes.size, attributes.nrecords);
 
-    return record_number;
+    return appended.record;
 }
 
 tl::expected<FileAttributes, Error> MetaOps::attributes(Pool &pool) {
@@ -136,14 +134,14 @@ tl::expected<uint32_t, Error> DataOps::write_readings(GlobalState *gs, fk_data_D
 
         record->readings.reading = record_number;
 
-        auto bytes_wrote = file.append_always(RecordType::Data, fk_data_DataRecord_fields, record, pool);
-        if (bytes_wrote == 0) {
+        auto appended = file.append_always(RecordType::Data, fk_data_DataRecord_fields, record, pool);
+        if (appended.bytes <= 0) {
             logerror("error saving readings");
             return tl::unexpected<Error>(Error::IO);
         }
 
         loginfo("wrote %zd bytes rec=(#%" PRIu32 ") (%" PRIu32 " bytes)",
-                (size_t)bytes_wrote, record_number, 0);
+                (size_t)appended.bytes, appended.record, 0);
     }
 
     auto attributes = file.attributes();
