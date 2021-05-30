@@ -147,6 +147,7 @@ tl::expected<uint32_t, Error> DataOps::write_readings(GlobalState *gs, fk_data_D
     auto attributes = file.attributes();
 
     gs->update_data_stream(attributes.size, attributes.nrecords);
+    gs->readings.number = record_number;
 
     return record_number;
 }

@@ -94,6 +94,7 @@ tl::expected<uint32_t, Error> DataOps::write_readings(GlobalState *gs, fk_data_D
 
     gs->storage.spi.used = storage_.used();
     gs->update_data_stream(file);
+    gs->readings.number = record->readings.reading;
 
     return record->readings.reading;
 }
