@@ -14,16 +14,10 @@ public:
     explicit MetaOps(Storage &storage);
 
 public:
-    tl::expected<uint32_t, Error> write_state(GlobalState *gs, Pool &pool) override;
-    tl::expected<uint32_t, Error> write_state(GlobalState *gs, fkb_header_t const *fkb_header, Pool &pool) override;
-    tl::expected<uint32_t, Error> write_modules(GlobalState *gs, fkb_header_t const *fkb_header, Pool &pool) override;
-
+    tl::expected<uint32_t, Error> write_record(SignedRecordKind kind, fk_data_DataRecord *record, Pool &pool) override;
     tl::expected<FileAttributes, Error> attributes(Pool &pool) override;
-
     bool read_record(SignedRecordKind kind, MetaRecord &record, Pool &pool) override;
 
-private:
-    tl::expected<uint32_t, Error> write_kind(SignedRecordKind kind, MetaRecord &record, Pool &pool);
 };
 
 class DataOps : public fk::DataOps {

@@ -8,6 +8,15 @@
 
 namespace phylum {
 
+class buffer_memory {
+public:
+	virtual void *alloc_memory(size_t size) = 0;
+	virtual void free_memory(void *ptr) = 0;
+	virtual void *alloc_page(size_t size) = 0;
+	virtual void free_page(void *ptr) = 0;
+
+};
+
 class working_buffers : free_buffer_callback {
 protected:
     struct page_t {
@@ -21,9 +30,10 @@ protected:
         uint32_t used{ 0 };
     };
 
-    static constexpr size_t Size = 8;
+    buffer_memory *mem_{ nullptr };
     size_t buffer_size_{ 0 };
-    page_t pages_[Size];
+    size_t size_{ 0 };
+    page_t *pages_{ nullptr };
     size_t highwater_{ 0 };
     uint32_t counter_{ 0 };
     size_t reads_{ 0 };
@@ -40,15 +50,22 @@ protected:
 #endif
 
 public:
-    working_buffers(size_t buffer_size) : buffer_size_(buffer_size) {
-        for (auto i = 0u; i < Size; ++i) {
-            pages_[i] = { };
-        }
+    working_buffers(buffer_memory *mem, size_t buffer_size, size_t maximum_pages) : mem_(mem), buffer_size_(buffer_size), size_(maximum_pages) {
     }
 
     virtual ~working_buffers() {
         phyinfof("wbuffers::dtor hw=%zu reads=%zu writes=%zu misses=%zu", highwater_, reads_, writes_, misses_);
-        debug();
+        if (pages_ != nullptr) {
+            debug();
+            for (auto i = 0u; i < size_; ++i) {
+                if (pages_[i].buffer != nullptr) {
+                    mem_->free_page(pages_[i].buffer);
+                    pages_[i].buffer = nullptr;
+                }
+            }
+            mem_->free_memory(pages_);
+            pages_ = nullptr;
+        }
     }
 
 public:
@@ -57,24 +74,14 @@ public:
     }
 
 public:
-    void lend(uint8_t *ptr, size_t size) {
-        assert(buffer_size_ == size);
-        for (auto i = 0u; i < Size; ++i) {
-            if (pages_[i].buffer == nullptr) {
-                pages_[i].buffer = ptr;
-                pages_[i].size = size;
-                break;
-            }
-        }
-    }
-
-public:
     int32_t clear() {
-        for (auto i = 0u; i < Size; ++i) {
-            if (pages_[i].buffer != nullptr) {
-                memset(pages_[i].buffer, 0xff, pages_[i].size);
-                pages_[i].sector = InvalidSector;
-                pages_[i].dirty = false;
+        if (pages_ != nullptr) {
+            for (auto i = 0u; i < size_; ++i) {
+                if (pages_[i].buffer != nullptr) {
+                    memset(pages_[i].buffer, 0xff, pages_[i].size);
+                    pages_[i].sector = InvalidSector;
+                    pages_[i].dirty = false;
+                }
             }
         }
         return 0;
@@ -83,7 +90,9 @@ public:
     int32_t dirty_sector(dhara_sector_t sector) {
         auto err = -1;
 
-        for (auto i = 0u; i < Size; ++i) {
+        assert(pages_ != nullptr);
+
+        for (auto i = 0u; i < size_; ++i) {
             auto &p = pages_[i];
             if (p.buffer != nullptr) {
                 if (p.sector == sector) {
@@ -101,7 +110,9 @@ public:
     int32_t flush_sector(dhara_sector_t sector, FlushFunction flush) {
         auto flushed = false;
 
-        for (auto i = 0u; i < Size; ++i) {
+        assert(pages_ != nullptr);
+
+        for (auto i = 0u; i < size_; ++i) {
             auto &p = pages_[i];
             if (p.buffer != nullptr) {
                 if (p.sector == sector) {
@@ -143,12 +154,14 @@ public:
         auto selected = -1;
         auto flushing = -1;
 
+        allocate();
+
         reads_++;
 #if defined(__linux__)
         statistics_[sector].reads++;
 #endif
 
-        for (auto i = 0u; i < Size; ++i) {
+        for (auto i = 0u; i < size_; ++i) {
             auto &p = pages_[i];
             if (p.buffer == nullptr) break;
             if (p.sector == InvalidSector) {
@@ -279,31 +292,13 @@ public:
         return p.buffer;
     }
 
-    bool better_drop_candidate(page_t const &candidate, page_t const &selected) {
-        // Favor pages that don't have a sector in them over those that do.
-        if (candidate.sector == InvalidSector && selected.sector != InvalidSector) {
-            return true;
-        }
-
-        // Favor older written pages over one recently written as
-        // well as favoring unwritten pages over written ones.
-        if (selected.wrote > 0 && candidate.wrote < selected.wrote) {
-            return true;
-        }
-
-        // Favor pages that were used further ago than the selected one.
-        if (candidate.used < selected.used) {
-            return true;
-        }
-
-        return false;
-    }
-
     int32_t debug() {
-        for (auto i = 0u; i < Size; ++i) {
-            auto &p = pages_[i];
-            if (p.buffer != nullptr) {
-                phydebugf("wbuffers[%d] sector=%d dirty=%d refs=%d hits=%d used=%d", i, p.sector, p.dirty, p.refs, p.hits, p.used);
+        if (pages_ != nullptr) {
+            for (auto i = 0u; i < size_; ++i) {
+                auto &p = pages_[i];
+                if (p.buffer != nullptr) {
+                    phydebugf("wbuffers[%d] sector=%d dirty=%d refs=%d hits=%d used=%d", i, p.sector, p.dirty, p.refs, p.hits, p.used);
+                }
             }
         }
 
@@ -319,31 +314,16 @@ public:
         return 0;
     }
 
-    int32_t update_highwater() {
-        auto hw = 0u;
-
-        for (auto i = 0u; i < Size; ++i) {
-            if (pages_[i].buffer == nullptr) break;
-            if (pages_[i].refs != 0) {
-                hw++;
-            }
-        }
-
-        if (hw > highwater_) {
-            highwater_ = hw;
-        }
-
-        return 0;
-    }
-
     simple_buffer allocate(size_t size) {
         assert(size == buffer_size_);
+
+        allocate();
 
         update_highwater();
 
         auto selected = -1;
 
-        for (auto i = 0u; i < Size; ++i) {
+        for (auto i = 0u; i < size_; ++i) {
             auto &p = pages_[i];
             if (p.buffer == nullptr) break;
             if (p.refs == 0) {
@@ -376,8 +356,10 @@ public:
     }
 
     void free_buffer(void const *ptr) override {
+        assert(pages_ != nullptr);
+
         assert(ptr != nullptr);
-        for (auto i = 0u; i < Size; ++i) {
+        for (auto i = 0u; i < size_; ++i) {
             auto &p = pages_[i];
             if (p.buffer == ptr) {
                 phyverbosef("wbuffers[%d]: free refs-before=%d sector=%d", i, p.refs, p.sector);
@@ -399,24 +381,74 @@ public:
         }
     }
 
-};
-
-class malloc_working_buffers : public working_buffers {
 private:
-    uint8_t *memory_{ nullptr };
-
-public:
-    malloc_working_buffers(size_t buffer_size) : working_buffers(buffer_size) {
-        memory_ = (uint8_t *)malloc(Size * buffer_size);
-        memset(memory_, 0xff, Size * buffer_size);
-        for (auto i = 0u; i < Size; ++i) {
-            this->lend(memory_ + (i * buffer_size), buffer_size);
+    void allocate() {
+        if (pages_ == nullptr) {
+            pages_ = (page_t *)mem_->alloc_memory(sizeof(page_t) * size_);
+            for (auto i = 0u; i < size_; ++i) {
+                pages_[i] = { };
+                pages_[i].buffer = (uint8_t *)mem_->alloc_page(buffer_size_);
+            }
         }
     }
 
-    virtual ~malloc_working_buffers() {
-        ::free(memory_);
+    bool better_drop_candidate(page_t const &candidate, page_t const &selected) {
+        // Favor pages that don't have a sector in them over those that do.
+        if (candidate.sector == InvalidSector && selected.sector != InvalidSector) {
+            return true;
+        }
+
+        // Favor older written pages over one recently written as
+        // well as favoring unwritten pages over written ones.
+        if (selected.wrote > 0 && candidate.wrote < selected.wrote) {
+            return true;
+        }
+
+        // Favor pages that were used further ago than the selected one.
+        if (candidate.used < selected.used) {
+            return true;
+        }
+
+        return false;
     }
+
+    int32_t update_highwater() {
+        auto hw = 0u;
+
+        for (auto i = 0u; i < size_; ++i) {
+            if (pages_[i].buffer == nullptr) break;
+            if (pages_[i].refs != 0) {
+                hw++;
+            }
+        }
+
+        if (hw > highwater_) {
+            highwater_ = hw;
+        }
+
+        return 0;
+    }
+
+};
+
+class standard_library_malloc : public buffer_memory {
+public:
+	void *alloc_memory(size_t size) override {
+		return malloc(size);
+	}
+
+	void free_memory(void *ptr) override {
+		free(ptr);
+	}
+
+	void *alloc_page(size_t size) override {
+		return malloc(size);
+	}
+
+	void free_page(void *ptr) override {
+		free(ptr);
+	}
+
 };
 
 } // namespace phylum

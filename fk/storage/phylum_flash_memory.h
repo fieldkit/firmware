@@ -7,9 +7,10 @@ namespace fk {
 class PhylumFlashMemory : public phylum::flash_memory {
 private:
     DataMemory *target_{ nullptr };
+    phylum::working_buffers *buffers_{ nullptr };
 
 public:
-    PhylumFlashMemory(DataMemory *target);
+    PhylumFlashMemory(DataMemory *target, phylum::working_buffers *buffers);
 
 public:
     bool begin();

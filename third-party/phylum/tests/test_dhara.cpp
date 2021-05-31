@@ -8,7 +8,8 @@ class DharaFixture : public PhylumFixture {};
 
 TEST_F(DharaFixture, Initialize) {
     memory_flash_memory memory{ 4096 };
-    malloc_working_buffers buffers{ 4096 };
+    standard_library_malloc buffer_memory;
+    working_buffers buffers{ &buffer_memory, 4096, 32 };
     noop_page_cache page_cache;
     dhara_sector_map sectors{ buffers, memory, &page_cache };
 

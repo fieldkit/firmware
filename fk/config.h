@@ -462,6 +462,6 @@ constexpr size_t NumberOfWorkerTasks = 2;
 /**
  * Enable the aggressive flushing of logs.
  */
-#define FK_LOGS_FLUSH_AGGRESSIVE
+// #define FK_LOGS_FLUSH_AGGRESSIVE
 
 }

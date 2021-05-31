@@ -2,7 +2,7 @@
 
 namespace fk {
 
-PhylumFlashMemory::PhylumFlashMemory(DataMemory *target) : target_(target) {
+PhylumFlashMemory::PhylumFlashMemory(DataMemory *target, phylum::working_buffers *buffers) : target_(target), buffers_(buffers) {
 }
 
 bool PhylumFlashMemory::begin() {
@@ -34,7 +34,8 @@ int32_t PhylumFlashMemory::read(uint32_t address, uint8_t *data, size_t size) {
 }
 
 int32_t PhylumFlashMemory::copy_page(uint32_t source, uint32_t destiny, size_t size) {
-    return target_->copy_page(source, destiny, size);
+    auto temporary = buffers_->allocate(page_size());
+    return target_->copy_page(source, destiny, size, temporary.ptr(), temporary.size());
 }
 
 } // namespace fk

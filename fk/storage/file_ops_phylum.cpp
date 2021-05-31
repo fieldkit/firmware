@@ -7,8 +7,6 @@
 #include "hal/flash.h"
 #include "storage/phylum_data_file.h"
 
-extern const struct fkb_header_t fkb_header;
-
 namespace fk {
 
 namespace phylum_ops {
@@ -16,44 +14,6 @@ namespace phylum_ops {
 FK_DECLARE_LOGGER("phyops");
 
 MetaOps::MetaOps(Storage &storage) : storage_(storage) {
-}
-
-tl::expected<uint32_t, Error> MetaOps::write_state(GlobalState *gs, Pool &pool) {
-    return write_state(gs, &fkb_header, pool);
-}
-
-tl::expected<uint32_t, Error> MetaOps::write_state(GlobalState *gs, fkb_header_t const *fkb, Pool &pool) {
-    MetaRecord record;
-    record.include_state(gs, fkb, pool);
-    return write_kind(RecordType::State, record, pool);
-}
-
-tl::expected<uint32_t, Error> MetaOps::write_modules(GlobalState *gs, fkb_header_t const *fkb, Pool &pool) {
-    MetaRecord record;
-    record.include_modules(gs, fkb, pool);
-    return write_kind(RecordType::Modules, record, pool);
-}
-
-tl::expected<uint32_t, Error> MetaOps::write_kind(RecordType record_type, MetaRecord &record, Pool &pool) {
-    PhylumDataFile file{ storage_.phylum(), pool };
-    auto err = file.open("d/00000000", pool);
-    if (err < 0) {
-        return tl::unexpected<Error>(Error::IO);
-    }
-
-    auto appended = file.append_immutable(record_type, fk_data_DataRecord_fields, &record.record(), pool);
-    if (appended.bytes < 0) {
-        return tl::unexpected<Error>(Error::IO);
-    }
-
-    return appended.record;
-}
-
-tl::expected<FileAttributes, Error> MetaOps::attributes(Pool &pool) {
-    return FileAttributes{
-        0 /* size */,
-        0 /* records */
-    };
 }
 
 static RecordType get_record_type(SignedRecordKind kind) {
@@ -67,6 +27,32 @@ static RecordType get_record_type(SignedRecordKind kind) {
 
     FK_ASSERT(0);
     return RecordType::Unknown;
+}
+
+tl::expected<uint32_t, Error> MetaOps::write_record(SignedRecordKind kind, fk_data_DataRecord *record, Pool &pool) {
+    return write_kind(get_record_type(kind), record, pool);
+}
+
+tl::expected<uint32_t, Error> MetaOps::write_kind(RecordType record_type, fk_data_DataRecord *record, Pool &pool) {
+    PhylumDataFile file{ storage_.phylum(), pool };
+    auto err = file.open("d/00000000", pool);
+    if (err < 0) {
+        return tl::unexpected<Error>(Error::IO);
+    }
+
+    auto appended = file.append_immutable(record_type, fk_data_DataRecord_fields, record, pool);
+    if (appended.bytes < 0) {
+        return tl::unexpected<Error>(Error::IO);
+    }
+
+    return appended.record;
+}
+
+tl::expected<FileAttributes, Error> MetaOps::attributes(Pool &pool) {
+    return FileAttributes{
+        0 /* size */,
+        0 /* records */
+    };
 }
 
 bool MetaOps::read_record(SignedRecordKind kind, MetaRecord &record, Pool &pool) {

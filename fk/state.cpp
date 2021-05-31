@@ -8,6 +8,8 @@
 #include "hal/linux/linux_ipc.h"
 #endif
 
+extern const struct fkb_header_t fkb_header;
+
 namespace fk {
 
 FK_DECLARE_LOGGER("gs");
@@ -105,7 +107,7 @@ void GlobalState::apply(StorageUpdate &update) {
 void GlobalState::released(uint32_t locked) const {
     auto elapsed = fk_uptime() - locked;
     if (elapsed > 100) {
-        logwarn("read (%" PRIu32 "ms)", elapsed);
+        loginfo("read (%" PRIu32 "ms)", elapsed);
     }
 }
 
@@ -121,7 +123,10 @@ bool GlobalState::flush(Pool &pool) {
         return false;
     }
 
-    if (!storage.meta_ops()->write_state(this, pool)) {
+    MetaRecord meta_record;
+    meta_record.include_state(this, &fkb_header, pool);
+
+    if (!storage.meta_ops()->write_record(SignedRecordKind::State, &meta_record.record(), pool)) {
         return false;
     }
 

@@ -185,7 +185,10 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
 
     MetaRecord meta_record;
     if (!storage.meta_ops()->read_record(SignedRecordKind::State, meta_record, pool)) {
-        if (!storage.meta_ops()->write_state(gs, &fkb_header, pool)) {
+        meta_record = MetaRecord{ };
+        meta_record.include_state(gs, &fkb_header, pool);
+
+        if (!storage.meta_ops()->write_record(SignedRecordKind::State, &meta_record.record(), pool)) {
             logerror("writing state");
             return false;
         }
@@ -335,7 +338,10 @@ bool StartupWorker::create_new_state(Storage &storage, GlobalState *gs, Pool &po
         fk_restart();
     }
 
-    if (!storage.meta_ops()->write_state(gs, &fkb_header, pool)) {
+    MetaRecord meta_record;
+    meta_record.include_state(gs, &fkb_header, pool);
+
+    if (!storage.meta_ops()->write_record(SignedRecordKind::State, &meta_record.record(), pool)) {
         logerror("writing state");
         fk_logs_flush();
         fk_restart();

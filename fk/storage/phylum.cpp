@@ -3,44 +3,57 @@
 
 namespace fk {
 
-standard_page_working_buffers::standard_page_working_buffers(size_t buffer_size) : working_buffers(buffer_size) {
-    FK_ASSERT(StandardPageSize % buffer_size == 0);
-    for (auto n = 0u; n < NumberOfPages; ++n) {
-        pages_[n] = nullptr;
-    }
+standard_page_buffer_memory::standard_page_buffer_memory(Pool *pool) : pool_(pool) {
 }
 
-standard_page_working_buffers::~standard_page_working_buffers() {
-    for (auto n = 0u; n < NumberOfPages; ++n) {
-        if (pages_[n] != nullptr) {
-            fk_standard_page_free(pages_[n]);
-            pages_[n] = nullptr;
-        }
-    }
+standard_page_buffer_memory::~standard_page_buffer_memory() {
 }
 
-bool standard_page_working_buffers::lend_pages() {
-    for (auto n = 0u; n < NumberOfPages; ++n) {
-        if (pages_[n] == nullptr) {
-            auto page = (uint8_t *)fk_standard_page_malloc(StandardPageSize, "wbuffers");
-            for (auto offset = 0u; offset < StandardPageSize; offset += buffer_size()) {
-                lend(page + offset, buffer_size());
-            }
-            pages_[n] = page;
+void *standard_page_buffer_memory::alloc_memory(size_t size) {
+    return pool_->malloc(size);
+}
+
+void standard_page_buffer_memory::free_memory(void *ptr) {
+    // Free with pool.
+}
+
+void *standard_page_buffer_memory::alloc_page(size_t size) {
+    for (auto iter = pages_; iter != nullptr; iter = iter->np) {
+        if (iter->position + size <= iter->size) {
+            auto ptr = iter->ptr + iter->position;
+            iter->position += size;
+            return ptr;
         }
     }
 
-    return true;
+    auto page = (uint8_t *)fk_standard_page_malloc(StandardPageSize, "phylum");
+    FK_ASSERT(page != nullptr);
+
+    // Allocate new page.
+    auto node = (page_t *)pool_->malloc(sizeof(page_t));
+    node->ptr = page;
+    node->position = 0;
+    node->size = StandardPageSize;
+    node->np = pages_;
+    pages_ = node;
+
+    auto ptr = node->ptr + node->position;
+    node->position += size;
+
+    return ptr;
 }
 
-Phylum::Phylum(DataMemory *data_memory) : sector_size_(data_memory->geometry().real_page_size), memory_(data_memory) {
+void standard_page_buffer_memory::free_page(void *ptr) {
+    while (pages_ != nullptr) {
+        fk_standard_page_free(pages_->ptr);
+        pages_ = pages_->np;
+    }
+}
+
+Phylum::Phylum(DataMemory *data_memory, Pool &pool) : memory_(data_memory, &buffers_), pool_(&pool), sector_size_(data_memory->geometry().real_page_size) {
 }
 
 bool Phylum::begin(bool force_create) {
-    if (!buffers_.lend_pages()) {
-        return false;
-    }
-
     buffers_.clear();
 
     if (sectors_.begin(force_create) != 0) {

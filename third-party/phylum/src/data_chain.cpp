@@ -145,7 +145,7 @@ int32_t data_chain::truncate(uint8_t const *data, size_t size) {
         return err;
     }
 
-    return 0;
+    return size;
 }
 
 int32_t data_chain::read_delimiter(uint32_t *delimiter) {

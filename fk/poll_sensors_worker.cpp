@@ -16,8 +16,9 @@ void PollSensorsWorker::run(Pool &pool) {
         // return;
     }
 
+    state::NoopReadingsListener listener;
     while (true) {
-        take(pool);
+        take(&listener, pool);
 
         pool.clear();
 

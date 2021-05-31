@@ -103,6 +103,8 @@ void fk_standard_page_free(void *ptr) {
             selected = i;
 
             owner = pages[selected].owner;
+            FK_ASSERT(owner != nullptr);
+
             pages[selected].owner = nullptr;
 
             #if defined(FK_ENABLE_MEMORY_GARBLE)

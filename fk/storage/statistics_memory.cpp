@@ -35,9 +35,9 @@ int32_t StatisticsMemory::write(uint32_t address, const uint8_t *data, size_t le
     return target_->write(address, data, length, flags);
 }
 
-int32_t StatisticsMemory::copy_page(uint32_t source, uint32_t destiny, size_t page_size) {
+int32_t StatisticsMemory::copy_page(uint32_t source, uint32_t destiny, size_t page_size, uint8_t *buffer, size_t buffer_size) {
     statistics_.ncopies++;
-    return target_->copy_page(source, destiny, page_size);
+    return target_->copy_page(source, destiny, page_size, buffer, buffer_size);
 }
 
 int32_t StatisticsMemory::erase(uint32_t address, size_t length) {

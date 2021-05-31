@@ -70,7 +70,10 @@ public:
     }
 
     virtual ~StandardPoolWrapper() {
-        delete pool_;
+        if (pool_ != nullptr) {
+            delete pool_;
+            pool_ = nullptr;
+        }
     }
 
 public:

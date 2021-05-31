@@ -135,7 +135,7 @@ int32_t LinuxDataMemory::erase_block(uint32_t address) {
     return 0;
 }
 
-int32_t LinuxDataMemory::copy_page(uint32_t source, uint32_t destiny, size_t length) {
+int32_t LinuxDataMemory::copy_page(uint32_t source, uint32_t destiny, size_t length, uint8_t *buffer, size_t buffer_size) {
     assert(source >= 0 && source < geometry_.total_size);
     assert(source % PageSize == 0);
     assert(destiny >= 0 && destiny < geometry_.total_size);

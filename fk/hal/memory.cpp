@@ -90,12 +90,29 @@ int32_t BankedDataMemory::erase(uint32_t address, size_t length) {
     });
 }
 
-int32_t BankedDataMemory::copy_page(uint32_t source, uint32_t destiny, size_t page_size) {
-    return with_bank(memories_, size_, source, [&](DataMemory &source_bank, uint32_t source_bank_address) {
-        return with_bank(memories_, size_, destiny, [&](DataMemory &destiny_bank, uint32_t destiny_bank_address) {
-            // TODO If they're different banks we can fall back on read/write.
-            FK_ASSERT(&source_bank == &destiny_bank);
-            return source_bank.copy_page(source_bank_address, destiny_bank_address, page_size);
+int32_t BankedDataMemory::copy_page(uint32_t source, uint32_t destiny, size_t page_size, uint8_t *buffer, size_t buffer_size) {
+    return with_bank(memories_, size_, source, [&](DataMemory &source_bank, uint32_t source_bank_address) -> int32_t {
+        return with_bank(memories_, size_, destiny, [&](DataMemory &destiny_bank, uint32_t destiny_bank_address) -> int32_t {
+            if (&source_bank == &destiny_bank) {
+                return source_bank.copy_page(source_bank_address, destiny_bank_address, page_size, buffer, buffer_size);
+            }
+            else {
+                FK_ASSERT(buffer_size >= page_size);
+
+                logdebug("[0x%08" PRIx32 "] slow-copy to [0x%08" PRIx32 "]", source, destiny);
+
+                auto read_err = source_bank.read(source_bank_address, buffer, page_size);
+                if (read_err < 0) {
+                    return read_err;
+                }
+
+                auto write_err = destiny_bank.read(destiny_bank_address, buffer, page_size);
+                if (write_err < 0) {
+                    return write_err;
+                }
+
+                return 0;
+            }
         });
     });
 }
@@ -146,8 +163,8 @@ int32_t TranslatingMemory::flush() {
     return target_->flush();
 }
 
-int32_t TranslatingMemory::copy_page(uint32_t source, uint32_t destiny, size_t page_size) {
-    return target_->copy_page(translate(source), translate(destiny), page_size);
+int32_t TranslatingMemory::copy_page(uint32_t source, uint32_t destiny, size_t page_size, uint8_t *buffer, size_t buffer_size) {
+    return target_->copy_page(translate(source), translate(destiny), page_size, buffer, buffer_size);
 }
 
 uint32_t TranslatingMemory::translate(uint32_t address) {

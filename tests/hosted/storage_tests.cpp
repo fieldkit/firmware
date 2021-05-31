@@ -412,10 +412,12 @@ TEST_F(StorageSuite, WritingSequentiallyHasCorrectRecordNumbers) {
 }
 
 TEST_F(StorageSuite, WritingOncePerOpenHasCorrectRecordNumbers) {
-    Storage storage{ memory_, pool_, false };
     StaticPattern pattern;
 
     {
+        StandardPool pool{ "test" };
+        Storage storage{ memory_, pool, false };
+
         ASSERT_TRUE(storage.clear());
         auto file_write = storage.file(0);
         ASSERT_TRUE(file_write.create());
@@ -426,6 +428,9 @@ TEST_F(StorageSuite, WritingOncePerOpenHasCorrectRecordNumbers) {
     ASSERT_TRUE(memory_->flush());
 
     for (auto i = 0; i < 9; ++i) {
+        StandardPool pool{ "test" };
+        Storage storage{ memory_, pool, false };
+
         ASSERT_TRUE(storage.begin());
         auto file_write = storage.file(0);
         ASSERT_TRUE(file_write.seek_end());

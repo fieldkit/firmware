@@ -175,8 +175,6 @@ public:
 
 };
 
-Pool *create_pool_inside(const char *name);
-
 Pool *create_standard_pool_inside(const char *name);
 
 }

@@ -92,7 +92,7 @@ SeekSettings SeekSettings::end_of(uint8_t file) {
 
 Storage::Storage(DataMemory *memory, Pool &pool, bool read_only)
     : data_memory_(memory), pool_(&pool), memory_(memory, pool), statistics_data_memory_(data_memory_), bad_blocks_(memory, pool),
-      phylum_{ &statistics_data_memory_ }, read_only_(read_only) {
+      phylum_{ &statistics_data_memory_, pool }, read_only_(read_only) {
     FK_ASSERT(memory != nullptr);
     files_ = pool.malloc<FileHeader>(NumberOfFiles);
 }

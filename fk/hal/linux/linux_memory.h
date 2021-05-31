@@ -39,7 +39,7 @@ public:
 
     int32_t erase(uint32_t address, size_t length) override;
 
-    int32_t copy_page(uint32_t source, uint32_t destiny, size_t length) override;
+    int32_t copy_page(uint32_t source, uint32_t destiny, size_t length, uint8_t *buffer, size_t buffer_size) override;
 
     int32_t flush() override;
 

@@ -154,15 +154,20 @@ void free_pool(Pool *pool) {
 
 TEST_F(PoolSuite, ChainedPoolWrapper) {
     PoolPointer<SimpleWorker> *wrapped_concrete = create_chained_pool_wrapper<SimpleWorker>();
-
-    PoolPointer<Worker> *wrapped = create_chained_pool_wrapper<Worker, PoolPointer<Worker>, SimpleWorker>();
-
-    delete wrapped;
-
     delete wrapped_concrete;
 
-    auto pool = create_pool_inside("ok");
+    PoolPointer<Worker> *wrapped = create_chained_pool_wrapper<Worker, PoolPointer<Worker>, SimpleWorker>();
+    delete wrapped;
 
+    PoolPointer<Worker> *wrapped_grows = create_chained_pool_wrapper<Worker, PoolPointer<Worker>, SimpleWorker>();
+    wrapped_grows->pool()->malloc(2048);
+    wrapped_grows->pool()->malloc(2048);
+    wrapped_grows->pool()->malloc(2048);
+    wrapped_grows->pool()->malloc(2048);
+    wrapped_grows->pool()->malloc(2048);
+    delete wrapped_grows;
+
+    auto pool = create_standard_pool_inside("ok");
     free_pool(pool);
 }
 
