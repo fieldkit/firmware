@@ -26,7 +26,17 @@ void ReadingsWorker::run(Pool &pool) {
         return;
     }
 
-    take(pool);
+    if (!take(pool)) {
+        logerror("take");
+        return;
+    }
+
+    if (!read_only_) {
+        if (!save(pool)) {
+            logerror("save");
+            return;
+        }
+    }
 }
 
 bool ReadingsWorker::prepare(Pool &pool) {
@@ -45,47 +55,50 @@ bool ReadingsWorker::prepare(Pool &pool) {
 }
 
 bool ReadingsWorker::take(Pool &pool) {
-    {
-        auto gs = get_global_state_ro(); // TODO
-        auto attached = gs.get()->dynamic.attached();
-        if (attached == nullptr) {
-            logerror("scan necessary");
-            return false;
-        }
-
-        if (attached->take_readings(pool) < 0) {
-            logerror("take readings");
-            return false;
-        }
+    // So, this is a little strange because we're getting a read only
+    // lock but we do actually write the live readings. No real
+    // danger, yet but it's strange.
+    auto gs = get_global_state_ro();
+    auto attached = gs.get()->dynamic.attached();
+    if (attached == nullptr) {
+        logerror("scan necessary");
+        return false;
     }
 
-    if (!read_only_) {
-        auto lock = storage_mutex.acquire(UINT32_MAX);
-        FK_ASSERT(lock);
+    if (attached->take_readings(pool) < 0) {
+        logerror("take readings");
+        return false;
+    }
 
-        // jlewallen: storage-write
-        Storage storage{ MemoryFactory::get_data_memory(), pool, false };
-        if (!storage.begin()) {
-            return false;
-        }
+    return true;
+}
 
-        auto gs = get_global_state_rw();
+bool ReadingsWorker::save(Pool &pool) {
+    auto lock = storage_mutex.acquire(UINT32_MAX);
+    FK_ASSERT(lock);
 
-        auto meta_record_number = storage.meta_ops()->write_modules(gs.get(), &fkb_header, pool);
-        if (!meta_record_number) {
-            return false;
-        }
+    // jlewallen: storage-write
+    Storage storage{ MemoryFactory::get_data_memory(), pool, false };
+    if (!storage.begin()) {
+        return false;
+    }
 
-        DataRecord record{ pool };
-        record.include_readings(gs.get(), &fkb_header, *meta_record_number, pool);
+    auto gs = get_global_state_rw();
 
-        if (!storage.data_ops()->write_readings(gs.get(), &record.record(), pool)) {
-            return false;
-        }
+    auto meta_record_number = storage.meta_ops()->write_modules(gs.get(), &fkb_header, pool);
+    if (!meta_record_number) {
+        return false;
+    }
 
-        if (!storage.flush()) {
-            return false;
-        }
+    DataRecord record{ pool };
+    record.include_readings(gs.get(), &fkb_header, *meta_record_number, pool);
+
+    if (!storage.data_ops()->write_readings(gs.get(), &record.record(), pool)) {
+        return false;
+    }
+
+    if (!storage.flush()) {
+        return false;
     }
 
     return true;

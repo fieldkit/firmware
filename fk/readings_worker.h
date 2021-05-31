@@ -27,6 +27,7 @@ public:
 protected:
     bool prepare(Pool &pool);
     bool take(Pool &pool);
+    bool save(Pool &pool);
 
 private:
     struct ThrottleAndScanState {
