@@ -10,7 +10,7 @@ ModuleHandler::ModuleHandler(ModulePosition bay) : bay_(bay) {
 }
 
 bool ModuleHandler::handle(HttpServerConnection *connection, Pool &pool) {
-    auto gs = get_global_state_rw();
+    auto gs = get_global_state_ro();
     auto attached = gs.get()->dynamic.attached();
     auto attached_module = attached->get_by_position(bay_);
     if (attached_module == nullptr) {
