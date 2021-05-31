@@ -46,7 +46,8 @@ TEST_F(PhylumSuite, Basic_Format_NoSync_Mount) {
     ASSERT_TRUE(data_memory->begin());
 
     {
-        Phylum phylum{ data_memory };
+        StandardPool pool{ "phylum" };
+        Phylum phylum{ data_memory, pool };
         ASSERT_FALSE(phylum.mount());
         ASSERT_TRUE(phylum.format());
         ASSERT_FALSE(phylum.mount());
@@ -60,14 +61,16 @@ TEST_F(PhylumSuite, Basic_Format_Mount) {
     ASSERT_TRUE(data_memory->begin());
 
     {
-        Phylum phylum{ data_memory };
+        StandardPool pool{ "phylum" };
+        Phylum phylum{ data_memory, pool };
         ASSERT_FALSE(phylum.mount());
         ASSERT_TRUE(phylum.format());
         ASSERT_TRUE(phylum.sync());
     }
 
     {
-        Phylum phylum{ data_memory };
+        StandardPool pool{ "phylum" };
+        Phylum phylum{ data_memory, pool };
         ASSERT_TRUE(phylum.mount());
     }
 }
@@ -77,7 +80,7 @@ TEST_F(PhylumSuite, Basic_DataFile_Create) {
     ASSERT_TRUE(data_memory->begin());
 
     StandardPool pool{ "tests" };
-    Phylum phylum{ data_memory };
+    Phylum phylum{ data_memory, pool };
     ASSERT_TRUE(phylum.format());
     PhylumDataFile file{ phylum, pool };
     ASSERT_EQ(file.create("d/00000000", pool), 0);
@@ -90,7 +93,7 @@ TEST_F(PhylumSuite, Basic_DataFile_AppendAlways) {
     ASSERT_TRUE(data_memory->begin());
 
     StandardPool pool{ "tests" };
-    Phylum phylum{ data_memory };
+    Phylum phylum{ data_memory, pool };
     ASSERT_TRUE(phylum.format());
     PhylumDataFile file{ phylum, pool };
     ASSERT_EQ(file.create("d/00000000", pool), 0);
@@ -113,7 +116,7 @@ TEST_F(PhylumSuite, Basic_DataFile_AppendImmutable) {
     ASSERT_TRUE(data_memory->begin());
 
     StandardPool pool{ "tests" };
-    Phylum phylum{ data_memory };
+    Phylum phylum{ data_memory, pool };
     ASSERT_TRUE(phylum.format());
     PhylumDataFile file{ phylum, pool };
     ASSERT_EQ(file.create("d/00000000", pool), 0);
@@ -138,7 +141,7 @@ TEST_F(PhylumSuite, Basic_DataFile_AppendImmutable_SeekRecordType) {
     ASSERT_TRUE(data_memory->begin());
 
     StandardPool pool{ "tests" };
-    Phylum phylum{ data_memory };
+    Phylum phylum{ data_memory, pool };
     ASSERT_TRUE(phylum.format());
     PhylumDataFile file{ phylum, pool };
     ASSERT_EQ(file.create("d/00000000", pool), 0);
@@ -170,7 +173,7 @@ TEST_F(PhylumSuite, Basic_DataFile_Reading_SeekBeginningAndEnd) {
     ASSERT_TRUE(data_memory->begin());
 
     StandardPool pool{ "tests" };
-    Phylum phylum{ data_memory };
+    Phylum phylum{ data_memory, pool };
     ASSERT_TRUE(phylum.format());
     PhylumDataFile file{ phylum, pool };
     ASSERT_EQ(file.create("d/00000000", pool), 0);
@@ -204,7 +207,7 @@ TEST_F(PhylumSuite, Basic_DataFile_Reading_SeekRecords) {
     ASSERT_TRUE(data_memory->begin());
 
     StandardPool pool{ "tests" };
-    Phylum phylum{ data_memory };
+    Phylum phylum{ data_memory, pool };
     ASSERT_TRUE(phylum.format());
     PhylumDataFile file{ phylum, pool };
     ASSERT_EQ(file.create("d/00000000", pool), 0);
