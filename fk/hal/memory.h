@@ -110,7 +110,7 @@ public:
 
     virtual int32_t erase(uint32_t address, size_t length) = 0;
 
-    virtual int32_t copy_page(uint32_t source, uint32_t destiny, size_t page_size) {
+    virtual int32_t copy_page(uint32_t source, uint32_t destiny, size_t page_size, uint8_t *buffer, size_t buffer_size) {
         FK_ASSERT(false);
         return -1;
     }
@@ -156,7 +156,7 @@ public:
 
     int32_t erase(uint32_t address, size_t length) override;
 
-    int32_t copy_page(uint32_t source, uint32_t destiny, size_t page_size) override;
+    int32_t copy_page(uint32_t source, uint32_t destiny, size_t page_size, uint8_t *buffer, size_t buffer_size) override;
 
     int32_t flush() override;
 
@@ -183,7 +183,7 @@ public:
 
     int32_t erase(uint32_t address, size_t length) override;
 
-    int32_t copy_page(uint32_t source, uint32_t destiny, size_t page_size) override;
+    int32_t copy_page(uint32_t source, uint32_t destiny, size_t page_size, uint8_t *buffer, size_t buffer_size) override;
 
     int32_t flush() override;
 

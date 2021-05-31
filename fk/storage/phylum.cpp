@@ -33,7 +33,7 @@ bool standard_page_working_buffers::lend_pages() {
     return true;
 }
 
-Phylum::Phylum(DataMemory *data_memory) : sector_size_(data_memory->geometry().real_page_size), memory_(data_memory) {
+Phylum::Phylum(DataMemory *data_memory) : sector_size_(data_memory->geometry().real_page_size), memory_(data_memory, &buffers_) {
 }
 
 bool Phylum::begin(bool force_create) {
