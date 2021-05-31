@@ -98,7 +98,7 @@ tl::expected<FileAttributes, Error> DataOps::attributes(Pool &pool) {
         return tl::unexpected<Error>(Error::IO);
     }
 
-    return FileAttributes{ file.size(), file.record() };
+    return FileAttributes{ file.size(), file.record(), file.record() };
 }
 
 bool DataOps::read_fixed_record(DataRecord &record, Pool &pool) {

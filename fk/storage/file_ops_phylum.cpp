@@ -154,7 +154,8 @@ tl::expected<FileAttributes, Error> DataOps::attributes(Pool &pool) {
 
     return FileAttributes{
         file_attributes.size,
-        file_attributes.nrecords
+        file_attributes.nrecords,
+        file_attributes.record_number,
     };
 }
 

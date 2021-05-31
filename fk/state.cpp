@@ -98,8 +98,8 @@ void GlobalState::apply(StorageUpdate &update) {
     storage.data.block = update.data.records;
     readings.number = update.reading;
 
-    loginfo("meta-size=%" PRIu32 " meta-records=%" PRIu32 " data-size=%" PRIu32 " data-records=%" PRIu32,
-            storage.meta.size, storage.meta.block, storage.data.size, storage.data.block);
+    loginfo("meta-size=%" PRIu32 " meta-records=%" PRIu32 " data-size=%" PRIu32 " data-records=%" PRIu32 " reading=%" PRIu32,
+            storage.meta.size, storage.meta.block, storage.data.size, storage.data.block, readings.number);
 }
 
 void GlobalState::released(uint32_t locked) const {

@@ -14,6 +14,7 @@ class Storage;
 struct FileAttributes {
     uint32_t size;
     uint32_t records;
+    uint32_t reading;
 };
 
 class MetaOps {
