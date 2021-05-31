@@ -17,7 +17,7 @@ public:
 
 public:
     fk_data_DataRecord &for_decoding(Pool &pool);
-    fk_data_DataRecord const &record();
+    fk_data_DataRecord &record();
 
 };
 

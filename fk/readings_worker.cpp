@@ -86,8 +86,12 @@ bool ReadingsWorker::save(Pool &pool) {
     }
 
     auto gs = get_global_state_rw();
+
+    MetaRecord meta_record;
+    meta_record.include_modules(gs.get(), &fkb_header, pool);
+
     auto meta_ops = storage.meta_ops();
-    auto meta_record_number = meta_ops->write_modules(gs.get(), &fkb_header, pool);
+    auto meta_record_number = meta_ops->write_record(SignedRecordKind::Modules, &meta_record.record(), pool);
     if (!meta_record_number) {
         return false;
     }
@@ -97,11 +101,11 @@ bool ReadingsWorker::save(Pool &pool) {
         return false;
     }
 
-    DataRecord record{ pool };
-    record.include_readings(gs.get(), &fkb_header, *meta_record_number, pool);
+    DataRecord data_record{ pool };
+    data_record.include_readings(gs.get(), &fkb_header, *meta_record_number, pool);
 
     auto data_ops = storage.data_ops();
-    auto data_record_number = data_ops->write_readings(&record.record(), pool);
+    auto data_record_number = data_ops->write_readings(&data_record.record(), pool);
     if (!data_record_number) {
         return false;
     }

@@ -4,8 +4,6 @@
 #include "records.h"
 #include "state.h"
 
-extern const struct fkb_header_t fkb_header;
-
 namespace fk {
 
 namespace darwin {
@@ -15,30 +13,14 @@ FK_DECLARE_LOGGER("darops");
 MetaOps::MetaOps(Storage &storage) : storage_(storage) {
 }
 
-tl::expected<uint32_t, Error> MetaOps::write_state(GlobalState *gs, Pool &pool) {
-    return write_state(gs, &fkb_header, pool);
-}
-
-tl::expected<uint32_t, Error> MetaOps::write_state(GlobalState *gs, fkb_header_t const *fkb, Pool &pool) {
-    MetaRecord record;
-    record.include_state(gs, fkb, pool);
-    return write_kind(SignedRecordKind::State, record, pool);
-}
-
-tl::expected<uint32_t, Error> MetaOps::write_modules(GlobalState *gs, fkb_header_t const *fkb_header, Pool &pool) {
-    MetaRecord record;
-    record.include_modules(gs, fkb_header, pool);
-    return write_kind(SignedRecordKind::Modules, record, pool);
-}
-
-tl::expected<uint32_t, Error> MetaOps::write_kind(SignedRecordKind kind, MetaRecord &record, Pool &pool) {
+tl::expected<uint32_t, Error> MetaOps::write_record(SignedRecordKind kind, fk_data_DataRecord *record, Pool &pool) {
     auto meta = storage_.file(Storage::Meta);
     if (!meta.seek_end()) {
         FK_ASSERT(meta.create());
     }
 
     auto srl = SignedRecordLog { meta };
-    auto meta_record = srl.append_immutable(kind, &record.record(), fk_data_DataRecord_fields, pool);
+    auto meta_record = srl.append_immutable(kind, record, fk_data_DataRecord_fields, pool);
 
     return (*meta_record).record;
 }

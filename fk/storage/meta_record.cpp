@@ -45,7 +45,7 @@ fk_data_DataRecord &MetaRecord::for_decoding(Pool &pool) {
     return *record_;
 }
 
-fk_data_DataRecord const &MetaRecord::record() {
+fk_data_DataRecord &MetaRecord::record() {
     FK_ASSERT(record_ != nullptr);
     return *record_;
 }
