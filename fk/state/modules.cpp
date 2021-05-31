@@ -88,8 +88,8 @@ int32_t AttachedModule::initialize(ModuleContext ctx, Pool *pool) {
 }
 
 int32_t AttachedModule::take_readings(ReadingsContext ctx, Pool *pool) {
-    loginfo("'%s' mk=%02" PRIx32 "%02" PRIx32 " version=%" PRIu32, configuration_.display_name_key, meta_->manufacturer,
-            meta_->kind, meta_->version);
+    loginfo("[%d] '%s' mk=%02" PRIx32 "%02" PRIx32 " version=%" PRIu32, position_.integer(),
+		    configuration_.display_name_key, meta_->manufacturer, meta_->kind, meta_->version);
 
     configuration_ = driver_->get_configuration(*pool_);
 

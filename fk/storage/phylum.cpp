@@ -22,7 +22,7 @@ standard_page_working_buffers::~standard_page_working_buffers() {
 bool standard_page_working_buffers::lend_pages() {
     for (auto n = 0u; n < NumberOfPages; ++n) {
         if (pages_[n] == nullptr) {
-            auto page = (uint8_t *)fk_standard_page_malloc(StandardPageSize, "wbuffers");
+            auto page = (uint8_t *)fk_standard_page_malloc(StandardPageSize, "phylum");
             for (auto offset = 0u; offset < StandardPageSize; offset += buffer_size()) {
                 lend(page + offset, buffer_size());
             }
