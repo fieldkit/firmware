@@ -6,6 +6,7 @@
 #include "networking/http_reply.h"
 #include "storage/signed_log.h"
 #include "storage/meta_record.h"
+#include "update_readings_listener.h"
 
 #include "storage_suite.h"
 
@@ -202,7 +203,10 @@ static void fake_modules(GlobalState &gs, Pool &pool) {
         auto sub_ctx = ctx.open_module(attached_module.position(), pool);
         attached_module.initialize(sub_ctx, &pool);
     }
-    attached->take_readings(pool);
+
+    UpdateReadingsListener listener{ pool };
+    attached->take_readings(&listener, pool);
+    listener.flush();
 
     gs.dynamic = std::move(dynamic);
 }
@@ -285,7 +289,10 @@ TEST_F(ProtoBufSizeSuite, ReadingsNoneBackFromFirstModule) {
     attached->modules().emplace(ModulePosition::from(1), header, &fk_test_module_fake_2, fk_test_module_fake_2.ctor(pool_), pool_);
 
     attached->initialize(pool_);
-    attached->take_readings(pool_);
+
+    UpdateReadingsListener listener{ pool_ };
+    attached->take_readings(&listener, pool_);
+    listener.flush();
 
     gs.dynamic = std::move(dynamic);
     gs.readings.number = 1;

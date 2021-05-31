@@ -87,7 +87,7 @@ int32_t AttachedModule::initialize(ModuleContext ctx, Pool *pool) {
     return 0;
 }
 
-int32_t AttachedModule::take_readings(ReadingsContext ctx, Pool *pool) {
+int32_t AttachedModule::take_readings(ReadingsContext ctx, ReadingsListener *listener, Pool *pool) {
     loginfo("[%d] '%s' mk=%02" PRIx32 "%02" PRIx32 " version=%" PRIu32, position_.integer(),
 		    configuration_.display_name_key, meta_->manufacturer, meta_->kind, meta_->version);
 
@@ -124,13 +124,25 @@ int32_t AttachedModule::take_readings(ReadingsContext ctx, Pool *pool) {
 
     loginfo("[%d] %d readings", position_.integer(), nreadings);
 
+    auto err = listener->readings_taken(this, module_readings, pool);
+    if (err < 0) {
+        logerror("readings listener");
+        return err;
+    }
+
     for (auto &sensor : sensors_) {
         auto i = sensor.index();
         if (i < nreadings) {
             auto reading = module_readings->get(i);
+
             loginfo("[%d] sensor[%2d] name=%s reading=%f (%f)", position_.integer(), sensor.index(), sensor.name(),
                     reading.calibrated, reading.uncalibrated);
-            sensor.reading(reading);
+
+            auto err = listener->sensor_reading(this, &sensor, reading, pool);
+            if (err < 0) {
+                logerror("reading listener");
+                return err;
+            }
         } else {
             logwarn("[%d] sensor[%2d] name=%s no-reading", position_.integer(), sensor.index(), sensor.name());
         }
@@ -301,7 +313,7 @@ int32_t AttachedModules::initialize(Pool &pool) {
     return 0;
 }
 
-int32_t AttachedModules::take_readings(Pool &pool) {
+int32_t AttachedModules::take_readings(ReadingsListener *listener, Pool &pool) {
     auto started = fk_uptime();
 
     loginfo("take-readings begin");
@@ -317,7 +329,7 @@ int32_t AttachedModules::take_readings(Pool &pool) {
         if (!sub.open()) {
             logerror("[%d] choosing module", position.integer());
         } else {
-            auto err = attached.take_readings(sub, &pool);
+            auto err = attached.take_readings(sub, listener, &pool);
             if (err < 0) {
                 return err;
             }
@@ -357,7 +369,8 @@ bool fk_state_test() {
             pool.clear();
         }
 
-        if (dynamic.attached()->take_readings(pool) < 0) {
+        state::NoopReadingsListener readings_listener;
+        if (dynamic.attached()->take_readings(&readings_listener, pool) < 0) {
             logerror("scanning");
         }
 

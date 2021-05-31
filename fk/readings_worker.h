@@ -1,7 +1,7 @@
 #pragma once
 
-#include "storage/storage.h"
 #include "worker.h"
+#include "storage/storage.h"
 
 namespace fk {
 
@@ -27,7 +27,7 @@ public:
 
 protected:
     bool prepare(Pool &pool);
-    bool take(Pool &pool);
+    bool take(state::ReadingsListener *listener, Pool &pool);
     bool save(Pool &pool);
     bool update_global_state(Pool &pool);
 

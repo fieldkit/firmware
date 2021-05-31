@@ -6,6 +6,7 @@
 #include "state_manager.h"
 
 #include "modules/scan_modules_worker.h"
+#include "update_readings_listener.h"
 
 extern const struct fkb_header_t fkb_header;
 
@@ -26,10 +27,13 @@ void ReadingsWorker::run(Pool &pool) {
         return;
     }
 
-    if (!take(pool)) {
+    UpdateReadingsListener listener{ pool };
+    if (!take(&listener, pool)) {
         logerror("take");
         return;
     }
+
+    FK_ASSERT(listener.flush() >= 0);
 
     if (!read_only_) {
         if (!save(pool)) {
@@ -56,7 +60,7 @@ bool ReadingsWorker::prepare(Pool &pool) {
     return true;
 }
 
-bool ReadingsWorker::take(Pool &pool) {
+bool ReadingsWorker::take(state::ReadingsListener *listener, Pool &pool) {
     // So, this is a little strange because we're getting a read only
     // lock but we do actually write the live readings. No real
     // danger, yet but it's strange.
@@ -67,7 +71,7 @@ bool ReadingsWorker::take(Pool &pool) {
         return false;
     }
 
-    if (attached->take_readings(pool) < 0) {
+    if (attached->take_readings(listener, pool) < 0) {
         logerror("take readings");
         return false;
     }
@@ -85,7 +89,7 @@ bool ReadingsWorker::save(Pool &pool) {
         return false;
     }
 
-    auto gs = get_global_state_rw();
+    auto gs = get_global_state_ro();
 
     MetaRecord meta_record;
     meta_record.include_modules(gs.get(), &fkb_header, pool);

@@ -30,6 +30,26 @@ public:
 
 };
 
+class AttachedModule;
+
+class ReadingsListener {
+public:
+    virtual int32_t readings_taken(AttachedModule *attached_module, ModuleReadings *readings, Pool *pool) = 0;
+    virtual int32_t sensor_reading(AttachedModule *attached_module, AttachedSensor *sensor, ModuleReading reading, Pool *pool) = 0;
+
+};
+
+class NoopReadingsListener : public ReadingsListener {
+public:
+    int32_t readings_taken(AttachedModule *attached_module, ModuleReadings *readings, Pool *pool) override {
+        return 0;
+    }
+
+    int32_t sensor_reading(AttachedModule *attached_module, AttachedSensor *sensor, ModuleReading reading, Pool *pool) override {
+        return 0;
+    }
+};
+
 class AttachedModule {
 private:
     using Sensors = collection<AttachedSensor>;
@@ -69,7 +89,7 @@ public:
 
 public:
     int32_t initialize(ModuleContext ctx, Pool *pool);
-    int32_t take_readings(ReadingsContext ctx, Pool *pool);
+    int32_t take_readings(ReadingsContext ctx, ReadingsListener *listener, Pool *pool);
     ModuleConfiguration get_configuration(Pool *pool);
     bool has_id(fk_uuid_t const &id) const;
 
@@ -109,7 +129,7 @@ private:
 public:
     int32_t create(Pool &pool);
     int32_t initialize(Pool &pool);
-    int32_t take_readings(Pool &pool);
+    int32_t take_readings(ReadingsListener *listener, Pool &pool);
 
 };
 
