@@ -56,7 +56,6 @@ void ConnectionPool::service() {
                 else {
                     logwarn("[%" PRIu32 "] [%d] killing (%" PRIu32 "ms) (%" PRIu32 "ms) (%" PRIu32 " down) (%" PRIu32 " up)",
                             c->number(), i, activity_elapsed, started_elapsed, c->bytes_rx_, c->bytes_tx_);
-                    c->close();
                     free_connection(i);
                     continue;
                 }
