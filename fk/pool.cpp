@@ -204,30 +204,6 @@ void *Pool::decode(pb_msgdesc_t const *fields, uint8_t *src, size_t size, size_t
     return ptr;
 }
 
-class InsidePool : public Pool {
-public:
-    InsidePool(const char *name, void *ptr, size_t size, size_t taken) : Pool(name, size, ptr, taken) {
-    }
-
-    virtual ~InsidePool() {
-    }
-
-public:
-    static void operator delete(void *p) {
-        auto pool = (InsidePool *)p;
-        pool->log_destroy("inside-pool-delete");
-        fk_standard_page_free(p);
-    }
-
-};
-
-Pool *create_pool_inside(const char *name) {
-    auto size = StandardPageSize;
-    auto ptr = fk_standard_page_malloc(size, name);
-    auto overhead = sizeof(InsidePool);
-    return new (ptr) InsidePool(name, ptr, size, overhead);
-}
-
 StandardPool::StandardPool(const char *name) : Pool(name, StandardPageSize, (void *)fk_standard_page_malloc(StandardPageSize, name), 0u), free_self_{ true } {
 }
 
@@ -300,21 +276,20 @@ void *StandardPool::malloc(size_t bytes) {
     if (sibling_ == nullptr) {
         auto overhead = sizeof(StandardPool);
         auto size = page_size_;
-        auto free_self = false;
         void *ptr = nullptr;
         if (page_size_ > 0) {
             FK_ASSERT(page_source_ != nullptr);
             ptr = page_source_->malloc(page_size_ + overhead);
         }
         else {
-            free_self = true;
             size = StandardPageSize;
             ptr = fk_standard_page_malloc(size, name());
         }
 
-        // Id love to try and allocate from the parent pool if
-        // there's room for StandardPool, that breaks on delete, though.
-        sibling_ = new (ptr) StandardPool(name(), ptr, size, overhead, free_self);
+        // Siblings don't need to free because if they're sourced from
+        // another pool, then that pool will free and if they're
+        // backed by a page the delete call will free them.
+        sibling_ = new (ptr) StandardPool(name(), ptr, size, overhead, false);
     }
 
     return sibling_->malloc(bytes);
@@ -356,7 +331,7 @@ Pool *create_standard_pool_inside(const char *name) {
     auto size = StandardPageSize;
     auto ptr = fk_standard_page_malloc(size, name);
     auto overhead = sizeof(StandardPool);
-    return new (ptr) StandardPool(name, ptr, size, overhead, true);
+    return new (ptr) StandardPool(name, ptr, size, overhead, false);
 }
 
 }
