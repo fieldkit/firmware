@@ -24,7 +24,7 @@ TEST(General, EntrySizes) {
 }
 
 TEST(General, ObjectSizes) {
-    phydebugf("sizeof(malloc_working_buffers) = %zu", sizeof(malloc_working_buffers));
+    phydebugf("sizeof(malloc_working_buffers) = %zu", sizeof(working_buffers));
     phydebugf("sizeof(memory_flash_memory) = %zu", sizeof(memory_flash_memory));
     phydebugf("sizeof(memory_sector_map) = %zu", sizeof(memory_sector_map));
     phydebugf("sizeof(sector_allocator) = %zu", sizeof(sector_allocator));

@@ -51,7 +51,8 @@ public:
 class FlashMemory {
 private:
     size_t sector_size_;
-    malloc_working_buffers buffers_{ sector_size_ };
+    standard_library_malloc buffer_memory_;
+    working_buffers buffers_{ &buffer_memory_, sector_size_, 32 };
     memory_flash_memory memory_{ sector_size_ };
     // noop_page_cache page_cache_;
     simple_page_cache page_cache_{ buffers_.allocate(sector_size_) };
@@ -74,7 +75,7 @@ public:
         return sector_size_;
     }
 
-    malloc_working_buffers &buffers() {
+    working_buffers &buffers() {
         return buffers_;
     }
 
