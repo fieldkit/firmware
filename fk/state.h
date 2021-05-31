@@ -136,9 +136,6 @@ public:
     GpsState *clone(Pool &pool) const;
 };
 
-struct PeripheralState {
-};
-
 struct GeneralState {
     char name[MaximumNameLength];
     uint8_t generation[GenerationLength];
@@ -188,12 +185,6 @@ struct LoraState {
     uint32_t join_failures;
     uint32_t tx_successes;
     uint32_t tx_failures;
-};
-
-struct PhysicalModuleState {
-    ModuleStatus status{ ModuleStatus::Unknown };
-    ModuleHeader header;
-    ModuleMetadata const *meta;
 };
 
 struct SdCardState {
@@ -264,7 +255,6 @@ public:
     GeneralState general{ };
     RuntimeState runtime{ };
     PowerState power{ };
-    PeripheralState peripheral{ };
     GpsState gps{ };
     MainNetworkState network{ };
     NotificationState notification{ };
