@@ -8,10 +8,12 @@ namespace fk {
 
 FK_DECLARE_LOGGER("modstatus");
 
-static ModuleStatusScreen get_module_status_screen(uint8_t bay, PhysicalModuleState const &pm) {
-    auto name = pm.meta == nullptr ? "<unknown>" : pm.meta->name;
-
-    switch (pm.status) {
+static ModuleStatusScreen get_module_status_screen(uint8_t bay, state::AttachedModule *attached_module) {
+    if (attached_module == nullptr) {
+        return { bay, "<empty>", "" };
+    }
+    auto name = attached_module->meta() == nullptr ? "<unknown>" : attached_module->meta()->name;
+    switch (attached_module->status()) {
     case ModuleStatus::Unknown:
         return { bay, name, "<unknown>" };
     case ModuleStatus::Empty:
@@ -34,10 +36,9 @@ ModuleStatusView::ModuleStatusView() : module_(get_modmux()->available_positions
 void ModuleStatusView::tick(ViewController *views, Pool &pool) {
     auto index = (*module_).integer();
     auto gs = get_global_state_ro();
-    auto &physical = gs.get()->physical_modules[index];
     auto bus = get_board()->i2c_core();
     auto display = get_display();
-    auto screen = get_module_status_screen(index, physical);
+    auto screen = get_module_status_screen(index, gs.get()->dynamic.attached()->get_by_position(*module_));
     display->module_status(screen);
 }
 

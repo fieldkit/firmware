@@ -2,13 +2,19 @@
 
 #include "hal/board.h"
 #include "hal/modmux.h"
-#include "state.h"
 #include "modules/bridge/data.h"
 
 namespace fk {
 
 class ModuleContext;
 class ReadingsContext;
+class GpsState;
+
+enum ModulePowerState {
+    Unknown,
+    AlwaysOn,
+    Preserve
+};
 
 class ScanningContext {
 private:
@@ -24,7 +30,7 @@ public:
 
 public:
     ModuleContext open_module(ModulePosition position, Pool &pool);
-    ReadingsContext open_readings(ModulePosition position, ModuleReadingsCollection &readings, Pool &pool);
+    ReadingsContext open_readings(ModulePosition position, Pool &pool);
 
 public:
     GpsState const *gps();
@@ -53,16 +59,10 @@ public:
 
 class ReadingsContext : public ModuleContext {
 private:
-    ModuleReadingsCollection &readings_;
     ModulePowerState power_state_{ ModulePowerState::Unknown };
 
 public:
-    ReadingsContext(ScanningContext &from, ModulePosition position, ModuleReadingsCollection &readings, ModulePowerState power_state, Pool &pool);
-
-public:
-    ModuleReadingsCollection &readings() {
-        return readings_;
-    }
+    ReadingsContext(ScanningContext &from, ModulePosition position, ModulePowerState power_state, Pool &pool);
 
 };
 

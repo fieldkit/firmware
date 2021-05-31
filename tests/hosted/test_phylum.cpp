@@ -262,6 +262,6 @@ TEST_F(PhylumSuite, Basic_StartStop) {
 
     auto ops = storage.data_ops();
 
-    DataRecord record;
+    DataRecord record{ pool };
     ASSERT_FALSE(ops->read_fixed_record(record, pool));
 }

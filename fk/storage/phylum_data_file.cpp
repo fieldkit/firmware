@@ -140,6 +140,7 @@ PhylumDataFile::DataFileAttributes PhylumDataFile::attributes() {
 
     PhylumAttributes attributes{ file_cfg_ };
     auto records = attributes.get<records_attribute_t>(PHYLUM_DRIVER_FILE_ATTR_RECORDS);
+    auto data_index = attributes.get<index_attribute_t>(PHYLUM_DRIVER_FILE_ATTR_INDEX_DATA);
 
     if (size_ == 0 && records->nrecords) {
         auto err = seek_position(UINT32_MAX, pool_);
@@ -151,7 +152,7 @@ PhylumDataFile::DataFileAttributes PhylumDataFile::attributes() {
     return PhylumDataFile::DataFileAttributes{
         .first_record = records->first,
         .nrecords = records->nrecords,
-        .record_number = records->nrecords,
+        .record_number = data_index->nrecords,
         .size = size_,
     };
 }

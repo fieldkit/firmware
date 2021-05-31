@@ -25,16 +25,16 @@ tl::expected<uint32_t, Error> MetaOps::write_state(GlobalState *gs, Pool &pool) 
 tl::expected<uint32_t, Error> MetaOps::write_state(GlobalState *gs, fkb_header_t const *fkb, Pool &pool) {
     MetaRecord record;
     record.include_state(gs, fkb, pool);
-    return write_kind(gs, RecordType::State, record, pool);
+    return write_kind(RecordType::State, record, pool);
 }
 
-tl::expected<uint32_t, Error> MetaOps::write_modules(GlobalState *gs, fkb_header_t const *fkb, ConstructedModulesCollection &modules, ModuleReadingsCollection &readings, Pool &pool) {
+tl::expected<uint32_t, Error> MetaOps::write_modules(GlobalState *gs, fkb_header_t const *fkb, Pool &pool) {
     MetaRecord record;
-    record.include_modules(gs, fkb, modules, readings, pool);
-    return write_kind(gs, RecordType::Modules, record, pool);
+    record.include_modules(gs, fkb, pool);
+    return write_kind(RecordType::Modules, record, pool);
 }
 
-tl::expected<uint32_t, Error> MetaOps::write_kind(GlobalState *gs, RecordType record_type, MetaRecord &record, Pool &pool) {
+tl::expected<uint32_t, Error> MetaOps::write_kind(RecordType record_type, MetaRecord &record, Pool &pool) {
     PhylumDataFile file{ storage_.phylum(), pool };
     auto err = file.open("d/00000000", pool);
     if (err < 0) {
@@ -45,10 +45,6 @@ tl::expected<uint32_t, Error> MetaOps::write_kind(GlobalState *gs, RecordType re
     if (appended.bytes < 0) {
         return tl::unexpected<Error>(Error::IO);
     }
-
-    auto attributes = file.attributes();
-
-    gs->update_data_stream(attributes.size, attributes.nrecords);
 
     return appended.record;
 }
@@ -115,7 +111,7 @@ bool DataOps::touch(Pool &pool) {
     return true;
 }
 
-tl::expected<uint32_t, Error> DataOps::write_readings(GlobalState *gs, fk_data_DataRecord *record, Pool &pool) {
+tl::expected<uint32_t, Error> DataOps::write_readings(fk_data_DataRecord *record, Pool &pool) {
     PhylumDataFile file{ storage_.phylum(), pool };
     auto err = file.open("d/00000000", pool);
     if (err < 0) {
@@ -144,10 +140,6 @@ tl::expected<uint32_t, Error> DataOps::write_readings(GlobalState *gs, fk_data_D
                 (size_t)appended.bytes, appended.record, 0);
     }
 
-    auto attributes = file.attributes();
-
-    gs->update_data_stream(attributes.size, attributes.nrecords);
-
     return record_number;
 }
 
@@ -162,7 +154,8 @@ tl::expected<FileAttributes, Error> DataOps::attributes(Pool &pool) {
 
     return FileAttributes{
         file_attributes.size,
-        file_attributes.nrecords
+        file_attributes.nrecords,
+        file_attributes.record_number,
     };
 }
 

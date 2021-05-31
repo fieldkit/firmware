@@ -1,8 +1,6 @@
 #pragma once
 
 #include "state.h"
-#include "modules/module_factory.h"
-#include "readings_taker.h"
 
 #include "mocks_and_fakes.h"
 #include "test_modules.h"
@@ -28,6 +26,7 @@ public:
             }
         }
 
+#if defined(FK_OLD_STATE)
         ScanningContext ctx{ get_modmux(), gs_.location(pool), module_bus_, pool };
 
         FoundModuleCollection found(pool);
@@ -45,6 +44,9 @@ public:
 
         ReadingsTaker readings_taker{ storage, get_modmux(), false, pool };
         return (bool)readings_taker.take(*constructed_maybe, ctx, pool);
+#else
+        return true;
+#endif
     }
 };
 

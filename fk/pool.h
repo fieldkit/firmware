@@ -49,6 +49,11 @@ public:
         remaining_ = size;
     }
 
+    template<typename T>
+    T *copy(T const &original) {
+        return reinterpret_cast<T*>(copy(&original, sizeof(T)));
+    }
+
     void *copy(void const *ptr, size_t size);
     char *strdup(const char *str);
     char *strndup(const char *str, size_t len);

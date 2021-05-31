@@ -89,51 +89,17 @@ GlobalStateRef<GlobalState const*> try_get_global_state_ro() {
 }
 
 GlobalState::GlobalState() : version(0) {
-    update_data_stream(0, 0);
-    update_meta_stream(0, 0);
 }
 
-void GlobalState::update_data_stream(File const &file) {
-    update_data_stream(file.size(), file.end_record());
-}
+void GlobalState::apply(StorageUpdate &update) {
+    storage.meta.size = update.meta.size;
+    storage.meta.block = update.meta.records;
+    storage.data.size = update.data.size;
+    storage.data.block = update.data.records;
+    readings.number = update.reading;
 
-void GlobalState::update_meta_stream(File const &file) {
-    update_meta_stream(file.size(), file.end_record());
-}
-
-void GlobalState::update_data_stream(uint32_t size, uint32_t records) {
-    storage.data.size = size;
-    storage.data.block = records;
-    readings.number = records;
-    loginfo("updating data size=%" PRIu32 " nrecords=%" PRIu32, size, records);
-}
-
-void GlobalState::update_meta_stream(uint32_t size, uint32_t records) {
-    storage.meta.size = size;
-    storage.meta.block = records;
-}
-
-void GlobalState::update_physical_modules(ConstructedModulesCollection const &modules) {
-    for (auto &status : physical_modules) {
-        status.meta = nullptr;
-        status.header = { };
-        status.status = ModuleStatus::Empty;
-    }
-
-    for (auto &m : modules) {
-        if (m.found.physical()) {
-            auto index = m.found.position.integer();
-
-            FK_ASSERT(index < MaximumNumberOfPhysicalModules);
-            auto &status = physical_modules[index];
-            status.header = m.found.header;
-            status.meta = m.meta;
-            status.status = m.status;
-
-            loginfo("[%d] '%s' module mk=%02" PRIx32 "%02" PRIx32 " status = %s", index, m.meta->name,
-                    m.found.header.manufacturer, m.found.header.kind, get_module_status_string(m.status));
-        }
-    }
+    loginfo("meta-size=%" PRIu32 " meta-records=%" PRIu32 " data-size=%" PRIu32 " data-records=%" PRIu32 " reading=%" PRIu32,
+            storage.meta.size, storage.meta.block, storage.data.size, storage.data.block, readings.number);
 }
 
 void GlobalState::released(uint32_t locked) const {

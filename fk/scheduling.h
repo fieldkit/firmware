@@ -10,7 +10,6 @@
 
 #include "modules/service_modules_worker.h"
 #include "modules/scan_modules_worker.h"
-#include "modules/module_factory.h"
 
 #include "networking/upload_data_worker.h"
 
@@ -27,7 +26,7 @@ struct CurrentSchedules {
     uint32_t network_jitter;
 
     CurrentSchedules();
-    CurrentSchedules(GlobalState const *gs, ModuleFactory const &module_factory);
+    CurrentSchedules(GlobalState const *gs);
 
     bool equals(CurrentSchedules const &o) const;
 };

@@ -12,77 +12,16 @@
 
 #include "modules/bridge/data.h"
 #include "hal/battery_gauge.h" // For MeterReading
+#include "state/dynamic.h"
 
 namespace fk {
 
 class File;
 
-enum ModulePowerState {
-    Unknown,
-    AlwaysOn,
-    Preserve
-};
-
 struct ScheduledTime {
     uint32_t now;
     uint32_t time;
     uint32_t seconds;
-};
-
-struct SensorState {
-    const char *name;
-    const char *unit_of_measure;
-    uint32_t flags;
-    bool has_live_vaue;
-    ModuleReading live_value;
-};
-
-struct ModuleState {
-public:
-    ModulePosition position;
-    uint32_t manufacturer;
-    uint32_t kind;
-    uint32_t version;
-    const char *name;
-    const char *display_name_key;
-    fk_uuid_t *id;
-    uint32_t flags;
-    SensorState *sensors;
-    size_t nsensors;
-};
-
-struct TakenReadings {
-    uint32_t time;
-    uint32_t number;
-    ConstructedModulesCollection constructed_modules;
-    ModuleReadingsCollection readings;
-
-    TakenReadings() {
-    }
-
-    TakenReadings(uint32_t time, uint32_t number, ModuleReadingsCollection readings) :
-        time(time), number(number), readings(std::move(readings)) {
-    }
-
-    TakenReadings(uint32_t time, uint32_t number, ConstructedModulesCollection constructed_modules, ModuleReadingsCollection readings) :
-        time(time), number(number), constructed_modules(std::move(constructed_modules)), readings(std::move(readings)) {
-    }
-};
-
-struct ModulesState {
-    Pool *pool{ nullptr };
-    ModuleState *modules{ nullptr };
-    size_t nmodules{ 0 };
-    uint32_t readings_time{ 0 };
-    uint32_t readings_number{ 0 };
-    ModuleReadingsCollection readings{ };
-
-    explicit ModulesState(Pool *pool) : pool(pool), readings{ pool } {
-    }
-
-    TakenReadings taken() {
-        return { readings_time, readings_number, ModuleReadingsCollection(readings) };
-    }
 };
 
 enum class BatteryStatus {
@@ -197,9 +136,6 @@ public:
     GpsState *clone(Pool &pool) const;
 };
 
-struct PeripheralState {
-};
-
 struct GeneralState {
     char name[MaximumNameLength];
     uint8_t generation[GenerationLength];
@@ -233,6 +169,17 @@ struct StorageState {
     }
 };
 
+struct StorageStreamUpdate {
+    uint32_t size;
+    uint32_t records;
+};
+
+struct StorageUpdate {
+    StorageStreamUpdate meta;
+    StorageStreamUpdate data;
+    uint32_t reading;
+};
+
 struct LoraState {
     bool configured;
     uint8_t device_eui[LoraDeviceEuiLength];
@@ -249,12 +196,6 @@ struct LoraState {
     uint32_t join_failures;
     uint32_t tx_successes;
     uint32_t tx_failures;
-};
-
-struct PhysicalModuleState {
-    ModuleStatus status{ ModuleStatus::Unknown };
-    ModuleHeader header;
-    ModuleMetadata const *meta;
 };
 
 struct SdCardState {
@@ -321,10 +262,10 @@ struct TransmissionState {
 struct GlobalState {
 public:
     uint32_t version{ 0 };
+    state::DynamicState dynamic;
     GeneralState general{ };
     RuntimeState runtime{ };
     PowerState power{ };
-    PeripheralState peripheral{ };
     GpsState gps{ };
     MainNetworkState network{ };
     NotificationState notification{ };
@@ -332,10 +273,7 @@ public:
     StorageState storage{ };
     LoraState lora{ };
     SchedulerState scheduler{ };
-    PhysicalModuleState physical_modules[MaximumNumberOfPhysicalModules]{ };
     SdCardState sd_card{ };
-    // TODO Merge these.
-    ModulesState *modules{ nullptr };
     ReadingsState readings{ };
     TransmissionState transmission{ };
 
@@ -343,11 +281,7 @@ public:
     GlobalState();
 
 public:
-    void update_physical_modules(ConstructedModulesCollection const &modules);
-    void update_data_stream(File const &file);
-    void update_meta_stream(File const &file);
-    void update_data_stream(uint32_t size, uint32_t records);
-    void update_meta_stream(uint32_t size, uint32_t records);
+    void apply(StorageUpdate &update);
     void released(uint32_t locked) const;
     void released(uint32_t locked);
     bool flush(Pool &pool);

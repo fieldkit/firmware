@@ -183,67 +183,70 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, bool logs, fkb_h
 
     reply_->status.memory.firmware.arg = (void *)firmware_array;
 
-    if (gs_->modules != nullptr && gs_->modules->nmodules > 0) {
-        auto nmodules = gs_->modules->nmodules;
-        FK_ASSERT(nmodules < 10); // NOTE: Just a sane number. Chasing a crash.
+    auto attached = gs_->dynamic.attached();
+    if (attached != nullptr && attached->modules().size() > 0) {
+        auto nmodules = attached->modules().size();
         auto modules = pool_->malloc<fk_app_ModuleCapabilities>(nmodules);
-        for (auto m = 0u; m < nmodules; ++m) {
-            auto &module = gs_->modules->modules[m];
+        auto m = 0u;
+        for (auto &am : attached->modules()) {
+            // auto &module = gs_->modules->modules[m];
+
+            auto &attached_sensors = am.sensors();
 
             auto sensors_array = pool_->malloc_with<pb_array_t>({
-                .length = module.nsensors,
+                .length = attached_sensors.size(),
                 .itemSize = sizeof(fk_app_SensorCapabilities),
                 .buffer = nullptr,
                 .fields = fk_app_SensorCapabilities_fields,
             });
 
-            if (module.nsensors > 0) {
-                auto sensors = pool_->malloc<fk_app_SensorCapabilities>(module.nsensors);
-                for (size_t s = 0; s < module.nsensors; ++s) {
-                    auto &sensor = module.sensors[s];
+            if (attached_sensors.size() > 0) {
+                auto sensors = pool_->malloc<fk_app_SensorCapabilities>(attached_sensors.size());
+                for (auto &attached_sensor : attached_sensors) {
+                    auto s = attached_sensor.index();
                     sensors[s] = fk_app_SensorCapabilities_init_default;
                     sensors[s].number = s;
-                    sensors[s].name.arg = (void *)sensor.name;
-                    sensors[s].unitOfMeasure.arg = (void *)sensor.unit_of_measure;
-                    sensors[s].flags = sensor.flags;
+                    sensors[s].name.arg = (void *)attached_sensor.name();
+                    sensors[s].unitOfMeasure.arg = (void *)attached_sensor.unit_of_measure();
+                    sensors[s].flags = attached_sensor.flags();
                 }
 
                 sensors_array->buffer = sensors;
             }
 
+            auto id = am.id();
             auto id_data = pool_->malloc_with<pb_data_t>({
                 .length = sizeof(fk_uuid_t),
-                .buffer = module.id,
+                .buffer = pool_->copy(id),
             });
 
-            auto index = module.position.integer();
+            auto header = am.header();
+            auto index = am.position().integer();
             modules[m] = fk_app_ModuleCapabilities_init_default;
             modules[m].position = index;
-            modules[m].name.arg = (void *)module.display_name_key;
-            modules[m].path.arg = (void *)pool_->sprintf("/fk/v1/modules/%d", module.position.integer());
-            modules[m].flags = module.flags;
+            modules[m].name.arg = (void *)am.name();
+            modules[m].path.arg = (void *)pool_->sprintf("/fk/v1/modules/%d", index);
+            modules[m].flags = am.flags();
             modules[m].id.arg = (void *)id_data;
             modules[m].has_header = true;
-            modules[m].header.manufacturer = module.manufacturer;
-            modules[m].header.kind = module.kind;
-            modules[m].header.version = module.version;
+            modules[m].header.manufacturer = header.manufacturer;
+            modules[m].header.kind = header.kind;
+            modules[m].header.version = header.version;
             if (sensors_array->buffer != nullptr) {
                 modules[m].sensors.arg = (void *)sensors_array;
             }
 
-            for (auto &module_meta_and_readings : gs_->modules->readings) {
-                if (module_meta_and_readings.position == module.position) {
-                    auto message = module_meta_and_readings.configuration.message;
-                    if (message != nullptr) {
-                        loginfo("[%d] config reply (%zd bytes)", index, message->size);
-                        auto configuration_message_data = pool_->malloc_with<pb_data_t>({
-                            .length = message->size,
-                            .buffer = message->buffer,
-                        });
-                        modules[m].configuration.arg = (void *)configuration_message_data;
-                    }
-                }
+            auto message = am.configuration().message;
+            if (message != nullptr) {
+                loginfo("[%d] config reply (%zd bytes)", index, message->size);
+                auto configuration_message_data = pool_->malloc_with<pb_data_t>({
+                    .length = message->size,
+                    .buffer = message->buffer,
+                });
+                modules[m].configuration.arg = (void *)configuration_message_data;
             }
+
+            m++;
         }
 
         auto modules_array = pool_->malloc_with<pb_array_t>({
@@ -403,57 +406,58 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, bool logs, fkb_h
 }
 
 bool HttpReply::include_readings() {
-    if (gs_->modules == nullptr) {
+    auto attached = gs_->dynamic.attached();
+    if (attached == nullptr) {
         loginfo("no live readings");
         return true;
     }
 
-    auto nmodules = gs_->modules->nmodules;
+    auto nmodules = attached->modules().size();
     if (nmodules == 0) {
         loginfo("no modules");
         return true;
     }
 
     auto lmr = pool_->malloc<fk_app_LiveModuleReadings>(nmodules);
-
-    for (auto m = 0u; m < nmodules; ++m) {
-        auto &module = gs_->modules->modules[m];
+    auto m = 0;
+    for (auto &am : attached->modules()) {
+        auto id = am.id();
+        auto header = am.header();
 
         auto id_data = pool_->malloc_with<pb_data_t>({
             .length = sizeof(fk_uuid_t),
-            .buffer = module.id,
+            .buffer = pool_->copy(id),
         });
 
         lmr[m] = fk_app_LiveModuleReadings_init_default;
         lmr[m].has_module = true;
         lmr[m].module = fk_app_ModuleCapabilities_init_default;
-        lmr[m].module.position = module.position.integer();
+        lmr[m].module.position = am.position().integer();
         lmr[m].module.id.arg = (void *)id_data;
-        lmr[m].module.name.arg = (void *)module.display_name_key;
-        lmr[m].module.path.arg = (void *)pool_->sprintf("/fk/v1/modules/%d", module.position.integer());
-        lmr[m].module.flags = module.flags;
+        lmr[m].module.name.arg = (void *)am.name();
+        lmr[m].module.path.arg = (void *)pool_->sprintf("/fk/v1/modules/%d", am.position().integer());
+        lmr[m].module.flags = am.flags();
         lmr[m].module.has_header = true;
-        lmr[m].module.header.manufacturer = module.manufacturer;
-        lmr[m].module.header.kind = module.kind;
-        lmr[m].module.header.version = module.version;
+        lmr[m].module.header.manufacturer = header.manufacturer;
+        lmr[m].module.header.kind = header.kind;
+        lmr[m].module.header.version = header.version;
 
-        auto nreadings = module.nsensors;
+        auto nreadings = am.sensors().size();
         if (nreadings > 0) {
             auto readings = pool_->malloc<fk_app_LiveSensorReading>(nreadings);
 
-            for (auto s = 0u; s < nreadings; ++s) {
-                auto &sensor = module.sensors[s];
+            for (auto &attached_sensor : am.sensors()) {
+                auto s = attached_sensor.index();
                 readings[s] = fk_app_LiveSensorReading_init_default;
                 readings[s].has_sensor = true;
                 readings[s].sensor = fk_app_SensorCapabilities_init_default;
                 readings[s].sensor.number = s;
-                readings[s].sensor.name.arg = (void *)sensor.name;
-                readings[s].sensor.unitOfMeasure.arg = (void *)sensor.unit_of_measure;
-                readings[s].sensor.flags = sensor.flags;
-                if (sensor.has_live_vaue) {
-                    readings[s].value = sensor.live_value.calibrated;
-                    readings[s].uncalibrated = sensor.live_value.uncalibrated;
-                }
+                readings[s].sensor.name.arg = (void *)attached_sensor.name();
+                readings[s].sensor.unitOfMeasure.arg = (void *)attached_sensor.unit_of_measure();
+                readings[s].sensor.flags = attached_sensor.flags();
+                auto reading = attached_sensor.reading();
+                readings[s].value = reading.calibrated;
+                readings[s].uncalibrated = reading.uncalibrated;
             }
 
             auto readings_array = pool_->malloc_with<pb_array_t>({
@@ -465,6 +469,8 @@ bool HttpReply::include_readings() {
 
             lmr[m].readings.arg = (void *)readings_array;
         }
+
+        m++;
     }
 
     auto lmr_array = pool_->malloc_with<pb_array_t>({

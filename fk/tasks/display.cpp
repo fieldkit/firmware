@@ -26,6 +26,7 @@ FK_DECLARE_LOGGER("display");
 
 class MainViewController : public ViewController {
 private:
+    Pool *pool_{ nullptr };
     HomeView home_view;
     ReadingsView readings_view;
     MenuView menu_view;
@@ -43,7 +44,7 @@ private:
     uint32_t notified_{ 0 };
 
 public:
-    explicit MainViewController(Pool &pool) : menu_view{ this, pool } {
+    explicit MainViewController(Pool &pool) : pool_(&pool), menu_view{ this, pool } {
         instance_ = this;
     }
 
@@ -142,12 +143,13 @@ public:
 
         IntervalTimer stop_timer{ FiveMinutesMs };
         IntervalTimer notifications_timer{ OneSecondMs / 10 };
-        StandardPool pool{ "display-frame" };
+        auto maximum_used = 0u;
+        auto frame_pool = pool_->subpool("display-frame", 1024);
         while (!can_stop || !stop_timer.expired()) {
             if (!view->custom_leds()) {
                 leds.tick();
             }
-            view->tick(this, pool);
+            view->tick(this, *frame_pool);
 
             if (notifications_timer.expired()) {
                 refresh_notifications();
@@ -183,11 +185,17 @@ public:
                 }
                 }
             }
+
+            if (frame_pool->used() > 0) {
+                if (frame_pool->used() > maximum_used) {
+                    maximum_used = frame_pool->used();
+                    loginfo("new display usage maximum: %zu", maximum_used);
+                }
+                frame_pool->clear();
+            }
         }
 
         view->hide();
-
-        pool.clear();
     }
 
 };

@@ -12,11 +12,9 @@
 #include "networking/networking.h"
 #include "protobuf.h"
 
-#include "modules/module_factory.h"
 #include "modules/registry.h"
 
 #include "memory.h"
-#include "readings_taker.h"
 #include "state_ref.h"
 #include "test_modules.h"
 
@@ -74,23 +72,8 @@ static void setup_fake_data() {
         } else {
             FK_ASSERT(storage.begin());
         }
-        FoundModuleCollection found(pool);
-        found.emplace(FoundModule{ .position = ModulePosition::Virtual,
-                                   .header = {
-                                       .manufacturer = FK_MODULES_MANUFACTURER,
-                                       .kind = FK_MODULES_KIND_RANDOM,
-                                       .version = 0x01,
-                                   } });
-
-        StaticModuleScanning scanning(found);
-        ModuleFactory module_factory;
-        auto constructed_maybe = module_factory.rescan_and_initialize(ctx, scanning, pool);
-
-        ReadingsTaker readings_taker{ storage, get_modmux(), false, pool };
 
         loginfo("writing fake data");
-
-        FK_ASSERT(readings_taker.take(*constructed_maybe, ctx, pool));
     }
 
     loginfo("done");
@@ -99,7 +82,7 @@ static void setup_fake_data() {
 static void server(Fake *fake) {
     StandardPool pool{ "pool" };
     LinuxNetwork network;
-    NetworkServices network_services{ &network };
+    NetworkServices network_services{ &network, pool };
     auto gs = get_global_state_ro();
 
     if (!network_services.begin(FiveMinutesMs, pool)) {

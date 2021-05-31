@@ -1,6 +1,5 @@
 #pragma once
 
-#include "readings.h"
 #include "storage/storage.h"
 #include "worker.h"
 
@@ -11,6 +10,7 @@ private:
     bool scan_;
     bool read_only_;
     ModulePowerState power_state_{ ModulePowerState::Unknown };
+    StorageUpdate storage_update_;
 
 public:
     ReadingsWorker(bool scan, bool read_only, ModulePowerState power_state = ModulePowerState::Unknown);
@@ -28,6 +28,8 @@ public:
 protected:
     bool prepare(Pool &pool);
     bool take(Pool &pool);
+    bool save(Pool &pool);
+    bool update_global_state(Pool &pool);
 
 private:
     struct ThrottleAndScanState {
@@ -36,8 +38,6 @@ private:
     };
 
     ThrottleAndScanState read_state();
-
-    tl::expected<TakenReadings, Error> take_readings(Pool &pool);
 };
 
 FK_ENABLE_TYPE_NAME(ReadingsWorker);

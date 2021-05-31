@@ -58,7 +58,6 @@ bool MetalModMux::begin() {
         (uint8_t)gpio_,      // GPIO
     };
 
-    bus.end();
     bus.begin();
 
     auto success = true;
@@ -144,9 +143,6 @@ bool MetalModMux::update_gpio(uint8_t new_gpio) {
     }
 
     auto bus = get_board()->i2c_module();
-
-    bus.end();
-    bus.begin();
 
     if (!I2C_CHECK(bus.write_register_u8(MCP23008_ADDRESS, MCP23008_GPIO, new_gpio))) {
         return false;
@@ -265,9 +261,6 @@ bool MetalModMux::choose(ModulePosition position) {
 
     logdebug("[%d] selecting (%d)", to_mux_position(position), mux_position);
 
-    bus.end();
-    bus.begin();
-
     for (auto i = 0; i < 3; ++i) {
         if (!I2C_CHECK(bus.write_u8(TCA9548A_ADDRESS, 0))) {
             logwarn("choose nothing fail");
@@ -301,9 +294,6 @@ bool MetalModMux::choose_nothing() {
     logtrace("[-] deselecting");
 
     auto bus = get_board()->i2c_module();
-
-    bus.end();
-    bus.begin();
 
     for (auto i = 0; i < 3; ++i) {
         if (I2C_CHECK(bus.write_u8(TCA9548A_ADDRESS, 0))) {

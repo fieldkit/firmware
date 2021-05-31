@@ -3,7 +3,7 @@
 
 namespace fk {
 
-FK_DECLARE_LOGGER("readings");
+FK_DECLARE_LOGGER("meta-record");
 
 static void copy_schedule(fk_data_JobSchedule &d, const Schedule &s, Pool &pool) {
     auto intervals = (fk_app_Interval *)pool.malloc(sizeof(fk_app_Interval) * MaximumScheduleIntervals);
@@ -161,15 +161,28 @@ void MetaRecord::include_state(GlobalState const *gs, fkb_header_t const *fkb_he
     record_->transmission.wifi.token.arg = (void *)gs->transmission.token;
 }
 
-void MetaRecord::include_modules(GlobalState const *gs, fkb_header_t const *fkb_header, ConstructedModulesCollection &modules, ModuleReadingsCollection &readings, Pool &pool) {
-    auto module_infos = pool.malloc<fk_data_ModuleInfo>(modules.size());
-    auto readings_iter = readings.begin();
+void MetaRecord::include_modules(GlobalState const *gs, fkb_header_t const *fkb_header, Pool &pool) {
+    auto attached = gs->dynamic.attached();
+    if (attached == nullptr) {
+        return;
+    }
 
-    auto index = 0;
-    for (auto &pair : modules) {
-        auto &meta = pair.meta;
-        auto &module_instance = pair.module_instance;
+    auto nmodules = attached->modules().size();
+    if (nmodules == 0) {
+        return;
+    }
+
+    auto module_infos = pool.malloc<fk_data_ModuleInfo>(nmodules);
+    for (auto &attached_module : attached->modules()) {
+        auto position = attached_module.position();
+        auto index = position.integer();
+        auto meta = attached_module.meta();
+
+        auto header = attached_module.header();
+        auto configuration = attached_module.configuration();
+        auto module_instance = attached_module.get();
         if (meta == nullptr || module_instance == nullptr) {
+            logerror("constructed module");
             continue;
         }
 
@@ -177,35 +190,27 @@ void MetaRecord::include_modules(GlobalState const *gs, fkb_header_t const *fkb_
 
         auto id_data = pool.malloc_with<pb_data_t>({
             .length = sizeof(fk_uuid_t),
-            .buffer = &pair.found.header.id,
+            .buffer = pool.copy(header.id),
         });
 
         auto &m = module_infos[index];
         m = fk_data_ModuleInfo_init_default;
-        m.position = pair.found.position.integer();
+        m.position = position.integer();
         m.id.funcs.encode = pb_encode_data;
         m.id.arg = (void *)id_data;
         m.name.funcs.encode = pb_encode_string;
-        m.name.arg = (void *)pair.configuration.display_name_key;
+        m.name.arg = (void *)configuration.display_name_key;
         m.has_header = true;
         m.header.manufacturer = meta->manufacturer;
         m.header.kind = meta->kind;
         m.header.version = meta->version;
         m.flags = meta->flags;
-
-        if (readings_iter != readings.end()) {
-            auto &mr = *readings_iter;
-            if (mr.configuration.message != nullptr) {
-                auto configuration_message_data = pool.malloc_with<pb_data_t>({
-                    .length = mr.configuration.message->size,
-                    .buffer = mr.configuration.message->buffer,
-                });
-                m.configuration.arg = (void *)configuration_message_data;
-            }
-            ++readings_iter;
-        }
-        else {
-            logwarn("readings vs modules size mismatch");
+        if (configuration.message != nullptr) {
+            auto configuration_message_data = pool.malloc_with<pb_data_t>({
+                .length = configuration.message->size,
+                .buffer = configuration.message->buffer,
+            });
+            m.configuration.arg = (void *)configuration_message_data;
         }
 
         if (sensor_metas != nullptr && sensor_metas->nsensors > 0) {
@@ -234,7 +239,7 @@ void MetaRecord::include_modules(GlobalState const *gs, fkb_header_t const *fkb_
     }
 
     auto modules_array = pool.malloc_with<pb_array_t>({
-        .length = (size_t)index,
+        .length = nmodules,
         .itemSize = sizeof(fk_data_ModuleInfo),
         .buffer = module_infos,
         .fields = fk_data_ModuleInfo_fields,

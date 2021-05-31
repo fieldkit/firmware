@@ -12,7 +12,7 @@ namespace fk {
 
 class NetworkServices {
 private:
-    StandardPool tick_pool_{ "network-tick" };
+    Pool *tick_pool_{ nullptr };
     HttpRouter router_;
     ConnectionPool connection_pool_{ router_ };
     Network *network_{ nullptr };
@@ -27,7 +27,7 @@ private:
     bool serving_{ false };
 
 public:
-    NetworkServices(Network *network);
+    NetworkServices(Network *network, Pool &pool);
     virtual ~NetworkServices();
 
 public:

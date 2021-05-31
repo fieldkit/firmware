@@ -5,13 +5,13 @@ namespace fk {
 CurrentSchedules::CurrentSchedules() {
 }
 
-CurrentSchedules::CurrentSchedules(GlobalState const *gs, ModuleFactory const &module_factory) {
+CurrentSchedules::CurrentSchedules(GlobalState const *gs) {
     readings = gs->scheduler.readings.cron;
     gps = gs->scheduler.gps.cron;
     lora = gs->scheduler.lora.cron;
     network = gs->scheduler.network.cron;
     network_jitter = gs->scheduler.network.jitter;
-    service_interval = module_factory.service_interval();
+    service_interval = 0; // module_factory.service_interval();
 }
 
 bool CurrentSchedules::equals(CurrentSchedules const &o) const {
@@ -95,7 +95,7 @@ const char *ServiceModulesTask::toString() const {
 }
 
 bool ServiceModulesTask::enabled() const {
-    return get_module_factory().service_interval() > 0;
+    return false; // get_module_factory().service_interval() > 0;
 }
 
 } // namespace fk

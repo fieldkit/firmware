@@ -22,12 +22,7 @@ public:
     }
 
     virtual ~GlobalStateRef() {
-        if (!readonly_) {
-            value_->released(created_);
-        }
-        else {
-            value_->released(created_);
-        }
+        value_->released(created_);
     }
 
 public:
