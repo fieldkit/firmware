@@ -169,6 +169,17 @@ struct StorageState {
     }
 };
 
+struct StorageStreamUpdate {
+    uint32_t size;
+    uint32_t records;
+};
+
+struct StorageUpdate {
+    StorageStreamUpdate meta;
+    StorageStreamUpdate data;
+    uint32_t reading;
+};
+
 struct LoraState {
     bool configured;
     uint8_t device_eui[LoraDeviceEuiLength];
@@ -270,10 +281,7 @@ public:
     GlobalState();
 
 public:
-    void update_data_stream(File const &file);
-    void update_meta_stream(File const &file);
-    void update_data_stream(uint32_t size, uint32_t records);
-    void update_meta_stream(uint32_t size, uint32_t records);
+    void apply(StorageUpdate &update);
     void released(uint32_t locked) const;
     void released(uint32_t locked);
     bool flush(Pool &pool);

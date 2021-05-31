@@ -348,36 +348,38 @@ bool StartupWorker::load_from_files(Storage &storage, GlobalState *gs, Pool &poo
     gs->storage.spi.installed = storage.installed();
     gs->storage.spi.used = storage.used();
 
-    {
-        auto attributes = storage.meta_ops()->attributes(pool);
-        if (attributes) {
-            gs->update_meta_stream(attributes->size, attributes->records);
-            // TODO This should be managed better.
-            if (attributes->records >= 2) {
-                gs->transmission.meta_cursor = attributes->records - 2;
-            }
-            else {
-                gs->transmission.meta_cursor = 0;
-            }
-
-            loginfo("meta file state R-%" PRIu32, gs->storage.meta.block);
-        }
+    auto meta_attributes = storage.meta_ops()->attributes(pool);
+    if (!meta_attributes) {
+        logerror("meta attributes");
+        return false;
     }
 
-    {
-        auto ops = storage.data_ops();
-        auto attributes = ops->attributes(pool);
-        if (attributes) {
-            gs->update_data_stream(attributes->size, attributes->records);
-            // TODO This should be managed better.
-            gs->transmission.data_cursor = attributes->records;
+    auto data_ops = storage.data_ops();
+    auto data_attributes = data_ops->attributes(pool);
+    if (!data_attributes) {
+        logerror("data attributes");
+        return false;
+    }
 
-            loginfo("data file state R-%" PRIu32, gs->storage.data.block);
-        }
+    auto storage_update = StorageUpdate{
+        .meta = StorageStreamUpdate{ meta_attributes->size, meta_attributes->records },
+        .data = StorageStreamUpdate{ data_attributes->size, data_attributes->records },
+        .reading = 0, // TODO
+    };
 
-        if (!load_previous_location(gs, ops, pool)) {
-            return false;
-        }
+    gs->apply(storage_update);
+
+    // TODO This should be managed better.
+    if (meta_attributes->records >= 2) {
+        gs->transmission.meta_cursor = meta_attributes->records - 2;
+    }
+    else {
+        gs->transmission.meta_cursor = 0;
+    }
+    gs->transmission.data_cursor = data_attributes->records;
+
+    if (!load_previous_location(gs, data_ops, pool)) {
+        return false;
     }
 
     return true;

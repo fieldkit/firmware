@@ -10,6 +10,7 @@ private:
     bool scan_;
     bool read_only_;
     ModulePowerState power_state_{ ModulePowerState::Unknown };
+    StorageUpdate storage_update_;
 
 public:
     ReadingsWorker(bool scan, bool read_only, ModulePowerState power_state = ModulePowerState::Unknown);
@@ -28,6 +29,7 @@ protected:
     bool prepare(Pool &pool);
     bool take(Pool &pool);
     bool save(Pool &pool);
+    bool update_global_state(Pool &pool);
 
 private:
     struct ThrottleAndScanState {

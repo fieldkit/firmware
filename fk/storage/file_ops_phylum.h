@@ -23,7 +23,7 @@ public:
 
     bool read_record(SignedRecordKind kind, MetaRecord &record, Pool &pool) override;
 
-    tl::expected<uint32_t, Error> write_kind(GlobalState *gs, RecordType record_type, MetaRecord &record, Pool &pool);
+    tl::expected<uint32_t, Error> write_kind(RecordType record_type, MetaRecord &record, Pool &pool);
 
 };
 
@@ -35,7 +35,7 @@ public:
     explicit DataOps(Storage &storage);
 
 public:
-    tl::expected<uint32_t, Error> write_readings(GlobalState *gs, fk_data_DataRecord *record, Pool &pool) override;
+    tl::expected<uint32_t, Error> write_readings(fk_data_DataRecord *record, Pool &pool) override;
     tl::expected<FileAttributes, Error> attributes(Pool &pool) override;
     bool read_fixed_record(DataRecord &record, Pool &pool) override;
     bool touch(Pool &pool);

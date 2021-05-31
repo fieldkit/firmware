@@ -22,16 +22,16 @@ tl::expected<uint32_t, Error> MetaOps::write_state(GlobalState *gs, Pool &pool) 
 tl::expected<uint32_t, Error> MetaOps::write_state(GlobalState *gs, fkb_header_t const *fkb, Pool &pool) {
     MetaRecord record;
     record.include_state(gs, fkb, pool);
-    return write_kind(gs, SignedRecordKind::State, record, pool);
+    return write_kind(SignedRecordKind::State, record, pool);
 }
 
 tl::expected<uint32_t, Error> MetaOps::write_modules(GlobalState *gs, fkb_header_t const *fkb_header, Pool &pool) {
     MetaRecord record;
     record.include_modules(gs, fkb_header, pool);
-    return write_kind(gs, SignedRecordKind::Modules, record, pool);
+    return write_kind(SignedRecordKind::Modules, record, pool);
 }
 
-tl::expected<uint32_t, Error> MetaOps::write_kind(GlobalState *gs, SignedRecordKind kind, MetaRecord &record, Pool &pool) {
+tl::expected<uint32_t, Error> MetaOps::write_kind(SignedRecordKind kind, MetaRecord &record, Pool &pool) {
     auto meta = storage_.file(Storage::Meta);
     if (!meta.seek_end()) {
         FK_ASSERT(meta.create());
@@ -39,9 +39,6 @@ tl::expected<uint32_t, Error> MetaOps::write_kind(GlobalState *gs, SignedRecordK
 
     auto srl = SignedRecordLog { meta };
     auto meta_record = srl.append_immutable(kind, &record.record(), fk_data_DataRecord_fields, pool);
-
-    gs->storage.spi.used = storage_.used();
-    gs->update_meta_stream(meta);
 
     return (*meta_record).record;
 }
@@ -72,7 +69,7 @@ bool MetaOps::read_record(SignedRecordKind kind, MetaRecord &record, Pool &pool)
 DataOps::DataOps(Storage &storage) : storage_(storage) {
 }
 
-tl::expected<uint32_t, Error> DataOps::write_readings(GlobalState *gs, fk_data_DataRecord *record, Pool &pool) {
+tl::expected<uint32_t, Error> DataOps::write_readings(fk_data_DataRecord *record, Pool &pool) {
     auto file = storage_.file(Storage::Data);
     if (!file.seek_end()) {
         FK_ASSERT(file.create());
@@ -91,10 +88,6 @@ tl::expected<uint32_t, Error> DataOps::write_readings(GlobalState *gs, fk_data_D
 
     loginfo("wrote %zd bytes rec=(#%" PRIu32 ") (%" PRIu32 " bytes) (" PRADDRESS ") (%" PRIu32 " wasted)",
             (size_t)bytes_wrote, record_number, file.size(), file.tail(), file.wasted());
-
-    gs->storage.spi.used = storage_.used();
-    gs->update_data_stream(file);
-    gs->readings.number = record->readings.reading;
 
     return record->readings.reading;
 }

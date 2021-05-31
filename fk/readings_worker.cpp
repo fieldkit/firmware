@@ -36,6 +36,8 @@ void ReadingsWorker::run(Pool &pool) {
             logerror("save");
             return;
         }
+
+        update_global_state(pool);
     }
 }
 
@@ -84,22 +86,48 @@ bool ReadingsWorker::save(Pool &pool) {
     }
 
     auto gs = get_global_state_rw();
-
-    auto meta_record_number = storage.meta_ops()->write_modules(gs.get(), &fkb_header, pool);
+    auto meta_ops = storage.meta_ops();
+    auto meta_record_number = meta_ops->write_modules(gs.get(), &fkb_header, pool);
     if (!meta_record_number) {
+        return false;
+    }
+
+    auto meta_attributes = meta_ops->attributes(pool);
+    if (!meta_attributes) {
         return false;
     }
 
     DataRecord record{ pool };
     record.include_readings(gs.get(), &fkb_header, *meta_record_number, pool);
 
-    if (!storage.data_ops()->write_readings(gs.get(), &record.record(), pool)) {
+    auto data_ops = storage.data_ops();
+    auto data_record_number = data_ops->write_readings(&record.record(), pool);
+    if (!data_record_number) {
         return false;
     }
+
+    auto data_attributes = data_ops->attributes(pool);
+    if (!data_attributes) {
+        return false;
+    }
+
+    storage_update_ = StorageUpdate{
+        .meta = StorageStreamUpdate{ meta_attributes->size, meta_attributes->records },
+        .data = StorageStreamUpdate{ data_attributes->size, data_attributes->records },
+        .reading = *data_record_number,
+    };
 
     if (!storage.flush()) {
         return false;
     }
+
+    return true;
+}
+
+bool ReadingsWorker::update_global_state(Pool &pool) {
+    auto gs = get_global_state_rw();
+
+    gs.get()->apply(storage_update_);
 
     return true;
 }
