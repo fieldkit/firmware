@@ -109,7 +109,9 @@ int32_t AttachedModule::take_readings(ReadingsContext ctx, Pool *pool) {
         return 0;
     }
 
-    // TODO Warn if number of sensors changes?
+    if (sensor_metas->nsensors != sensors_.size()) {
+        logwarn("[%d] sensors change");
+    }
 
     auto module_readings = driver_->take_readings(ctx, *pool);
     if (module_readings == nullptr) {
@@ -120,7 +122,7 @@ int32_t AttachedModule::take_readings(ReadingsContext ctx, Pool *pool) {
 
     auto nreadings = module_readings->size();
 
-    loginfo("bay[%d] %d readings", position_.integer(), nreadings);
+    loginfo("[%d] %d readings", position_.integer(), nreadings);
 
     for (auto &sensor : sensors_) {
         auto i = sensor.index();
@@ -256,7 +258,6 @@ int32_t AttachedModules::scan(Pool &pool) {
 
 int32_t AttachedModules::create(Pool &pool) {
     modules_ = Modules{ pool_ };
-    creating_ = true;
 
     auto err = scan(pool);
     if (err < 0) {
@@ -267,6 +268,10 @@ int32_t AttachedModules::create(Pool &pool) {
 }
 
 int32_t AttachedModules::initialize(Pool &pool) {
+    auto started = fk_uptime();
+
+    loginfo("initialize begin");
+
     auto mm = get_modmux();
     auto gps = GpsState{};
     auto bus = get_board()->i2c_module();
@@ -288,11 +293,18 @@ int32_t AttachedModules::initialize(Pool &pool) {
     if (!mm->choose_nothing()) {
         logerror("[-] deselecting");
     }
+
+    auto elapsed = fk_uptime() - started;
+
+    loginfo("initialize elapsed=%" PRIu32 "ms", elapsed);
+
     return 0;
 }
 
 int32_t AttachedModules::take_readings(Pool &pool) {
-    creating_ = false;
+    auto started = fk_uptime();
+
+    loginfo("take-readings begin");
 
     auto mm = get_modmux();
     auto gps = GpsState{};
@@ -315,6 +327,10 @@ int32_t AttachedModules::take_readings(Pool &pool) {
     if (!mm->choose_nothing()) {
         logerror("[-] deselecting");
     }
+
+    auto elapsed = fk_uptime() - started;
+
+    loginfo("take-readings elapsed=%" PRIu32 "ms", elapsed);
 
     return 0;
 }

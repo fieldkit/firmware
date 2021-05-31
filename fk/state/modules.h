@@ -80,8 +80,6 @@ private:
     using Modules = collection<AttachedModule>;
     Modules modules_{ pool_ };
     Pool *pool_{ nullptr };
-    bool refresh_necessary_{ true };
-    bool creating_{ true };
 
 public:
     AttachedModules(Pool &pool);
