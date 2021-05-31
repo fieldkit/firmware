@@ -11,12 +11,7 @@ standard_page_working_buffers::standard_page_working_buffers(size_t buffer_size)
 }
 
 standard_page_working_buffers::~standard_page_working_buffers() {
-    for (auto n = 0u; n < NumberOfPages; ++n) {
-        if (pages_[n] != nullptr) {
-            fk_standard_page_free(pages_[n]);
-            pages_[n] = nullptr;
-        }
-    }
+    free_pages();
 }
 
 bool standard_page_working_buffers::lend_pages() {
@@ -31,6 +26,15 @@ bool standard_page_working_buffers::lend_pages() {
     }
 
     return true;
+}
+
+void standard_page_working_buffers::free_pages() {
+    for (auto n = 0u; n < NumberOfPages; ++n) {
+        if (pages_[n] != nullptr) {
+            fk_standard_page_free(pages_[n]);
+            pages_[n] = nullptr;
+        }
+    }
 }
 
 Phylum::Phylum(DataMemory *data_memory) : sector_size_(data_memory->geometry().real_page_size), memory_(data_memory, &buffers_) {

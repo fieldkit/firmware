@@ -24,6 +24,7 @@ public:
 
 public:
     bool lend_pages();
+    void free_pages();
 
 };
 
