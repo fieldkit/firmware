@@ -9,11 +9,12 @@ class ReadingsWorker : public Worker {
 private:
     bool scan_;
     bool read_only_;
+    bool throttle_;
     ModulePowerState power_state_{ ModulePowerState::Unknown };
     StorageUpdate storage_update_;
 
 public:
-    ReadingsWorker(bool scan, bool read_only, ModulePowerState power_state = ModulePowerState::Unknown);
+    ReadingsWorker(bool scan, bool read_only, bool throttle = true, ModulePowerState power_state = ModulePowerState::Unknown);
 
 public:
     void run(Pool &pool) override;

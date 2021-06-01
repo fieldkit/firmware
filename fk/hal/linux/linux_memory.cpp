@@ -34,8 +34,6 @@ bool LinuxDataMemory::begin() {
         memset(memory_, 0xff, geometry_.total_size);
     }
 
-    loginfo("clearing");
-
     log_.logging(false);
     log_.clear();
     log_.append(LogEntry{ OperationType::Opened, 0x0, memory_ });

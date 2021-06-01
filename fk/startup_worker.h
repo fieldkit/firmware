@@ -8,6 +8,16 @@ namespace fk {
 class GlobalState;
 
 class StartupWorker : public Worker {
+private:
+    bool allow_phylum_{ false };
+
+public:
+#if defined(__SAMD51__)
+    StartupWorker(bool allow_phylum = true);
+#else
+    StartupWorker(bool allow_phylum = false);
+#endif
+
 public:
     void run(Pool &pool) override;
 

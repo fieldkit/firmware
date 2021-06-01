@@ -49,10 +49,11 @@ private:
     bool read_only_;
     MetaOps *meta_ops_{ nullptr };
     DataOps *data_ops_{ nullptr };
+    bool allow_phylum_{ false };
     bool using_phylum_{ false };
 
 public:
-    Storage(DataMemory *memory, Pool &pool, bool read_only = true);
+    Storage(DataMemory *memory, Pool &pool, bool read_only = true, bool allow_phylum = false);
     virtual ~Storage();
 
 public:

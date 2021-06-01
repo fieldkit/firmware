@@ -90,9 +90,9 @@ SeekSettings SeekSettings::end_of(uint8_t file) {
     return SeekSettings{ file, LastRecord };
 }
 
-Storage::Storage(DataMemory *memory, Pool &pool, bool read_only)
+Storage::Storage(DataMemory *memory, Pool &pool, bool read_only, bool allow_phylum)
     : data_memory_(memory), pool_(&pool), memory_(memory, pool), statistics_data_memory_(data_memory_), bad_blocks_(memory, pool),
-      phylum_{ &statistics_data_memory_, pool }, read_only_(read_only) {
+      phylum_{ &statistics_data_memory_, pool }, read_only_(read_only), allow_phylum_(allow_phylum) {
     FK_ASSERT(memory != nullptr);
     files_ = pool.malloc<FileHeader>(NumberOfFiles);
 }
@@ -126,16 +126,16 @@ bool Storage::begin() {
 bool Storage::clear() {
     loginfo("storage: clearing");
 
-#if !defined(__SAMD51__)
-    if (!clear_internal()) {
-        return false;
+    if (!allow_phylum_) {
+        if (!clear_internal()) {
+            return false;
+        }
+
+        data_ops_ = new (pool_) darwin::DataOps(*this);
+        meta_ops_ = new (pool_) darwin::MetaOps(*this);
+
+        return true;
     }
-
-    data_ops_ = new (pool_) darwin::DataOps(*this);
-    meta_ops_ = new (pool_) darwin::MetaOps(*this);
-
-    return true;
-#endif
 
     for (auto block = 0u; block < data_memory_->geometry().nblocks; ++block) {
         auto block_size = data_memory_->geometry().block_size;

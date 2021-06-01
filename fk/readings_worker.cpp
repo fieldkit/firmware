@@ -14,8 +14,8 @@ namespace fk {
 
 FK_DECLARE_LOGGER("rw");
 
-ReadingsWorker::ReadingsWorker(bool scan, bool read_only, ModulePowerState power_state)
-    : scan_(scan), read_only_(read_only), power_state_(power_state) {
+ReadingsWorker::ReadingsWorker(bool scan, bool read_only, bool throttle, ModulePowerState power_state)
+    : scan_(scan), read_only_(read_only), throttle_(throttle), power_state_(power_state) {
 }
 
 void ReadingsWorker::run(Pool &pool) {
@@ -47,7 +47,7 @@ void ReadingsWorker::run(Pool &pool) {
 
 bool ReadingsWorker::prepare(Pool &pool) {
     auto state = read_state();
-    if (state.throttle) {
+    if (throttle_ && state.throttle) {
         logwarn("readings throttled");
         return false;
     }

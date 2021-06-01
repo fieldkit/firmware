@@ -37,15 +37,20 @@ FK_DECLARE_LOGGER("startup");
 
 static void copy_cron_spec_from_pb(const char *name, Schedule &cs, fk_data_JobSchedule const &pb, Pool &pool);
 
+StartupWorker::StartupWorker(bool allow_phylum) : allow_phylum_(allow_phylum) {
+}
+
 void StartupWorker::run(Pool &pool) {
     get_board()->i2c_core().begin();
 
+#if defined(__SAMD51__)
     auto clock = get_clock();
     if (!clock->begin()) {
         logerror("rtc error");
     }
 
     fk_live_tests();
+#endif
 
     loginfo("ready display");
     auto display = get_display();
@@ -133,7 +138,11 @@ void StartupWorker::run(Pool &pool) {
     // TODO Move this.
     check_for_lora(pool);
 
+    loginfo("started");
+
+#if defined(__SAMD51__)
     FK_ASSERT(os_task_start(&scheduler_task) == OSS_SUCCESS);
+#endif
 }
 
 bool StartupWorker::load_or_create_state(Pool &pool) {
@@ -141,7 +150,7 @@ bool StartupWorker::load_or_create_state(Pool &pool) {
 
     auto gs = get_global_state_rw();
 
-    Storage storage{ MemoryFactory::get_data_memory(), pool, false };
+    Storage storage{ MemoryFactory::get_data_memory(), pool, false, allow_phylum_ };
     if (!load_state(storage, gs.get(), pool)) {
         logwarn("problem loading state, starting fresh");
 
@@ -432,12 +441,11 @@ bool StartupWorker::check_for_lora(Pool &pool) {
 }
 
 bool StartupWorker::save_captured_logs(bool free) {
-    loginfo("saving captured logs (%s) (bank = %d)", fk_get_reset_reason_string(), fk_nvm_get_active_bank());
+    loginfo("saving captured logs reset-reason=%s bank=%d", fk_get_reset_reason_string(), fk_nvm_get_active_bank());
     fk_logs_saved_write(!free);
     if (free) {
         fk_logs_saved_free();
     }
-    loginfo("done saving captured logs");
     return true;
 }
 

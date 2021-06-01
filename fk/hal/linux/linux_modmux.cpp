@@ -9,6 +9,7 @@ LinuxModMux::LinuxModMux() {
 }
 
 bool LinuxModMux::begin() {
+    available_ = true;
     return true;
 }
 
