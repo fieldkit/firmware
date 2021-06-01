@@ -2680,9 +2680,6 @@ export namespace fk_data {
         /** DataRecord log */
         log?: (fk_data.ILogMessage|null);
 
-        /** DataRecord logs */
-        logs?: (fk_data.ILogMessage[]|null);
-
         /** DataRecord status */
         status?: (fk_data.IStatus|null);
 
@@ -2710,14 +2707,20 @@ export namespace fk_data {
         /** DataRecord network */
         network?: (fk_data.INetworkSettings|null);
 
+        /** DataRecord logs */
+        logs?: (fk_data.ILogMessage[]|null);
+
         /** DataRecord transmission */
         transmission?: (fk_data.ITransmissionSettings|null);
 
         /** DataRecord faults */
         faults?: (fk_data.IFault[]|null);
+
+        /** DataRecord record */
+        record?: (number|Long|null);
     }
 
-    /** I may break this into a MetaRecord. */
+    /** Represents a DataRecord. */
     class DataRecord implements IDataRecord {
 
         /**
@@ -2734,9 +2737,6 @@ export namespace fk_data {
 
         /** DataRecord log. */
         public log?: (fk_data.ILogMessage|null);
-
-        /** DataRecord logs. */
-        public logs: fk_data.ILogMessage[];
 
         /** DataRecord status. */
         public status?: (fk_data.IStatus|null);
@@ -2765,11 +2765,17 @@ export namespace fk_data {
         /** DataRecord network. */
         public network?: (fk_data.INetworkSettings|null);
 
+        /** DataRecord logs. */
+        public logs: fk_data.ILogMessage[];
+
         /** DataRecord transmission. */
         public transmission?: (fk_data.ITransmissionSettings|null);
 
         /** DataRecord faults. */
         public faults: fk_data.IFault[];
+
+        /** DataRecord record. */
+        public record: (number|Long);
 
         /**
          * Creates a new DataRecord instance using the specified properties.

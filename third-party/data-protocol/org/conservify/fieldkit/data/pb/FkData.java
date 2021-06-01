@@ -13824,20 +13824,6 @@ public final class FkData {
     org.conservify.fieldkit.data.pb.FkData.LogMessage getLog();
 
     /**
-     * <code>repeated .fk_data.LogMessage logs = 13;</code>
-     */
-    java.util.List<org.conservify.fieldkit.data.pb.FkData.LogMessage> 
-        getLogsList();
-    /**
-     * <code>repeated .fk_data.LogMessage logs = 13;</code>
-     */
-    org.conservify.fieldkit.data.pb.FkData.LogMessage getLogs(int index);
-    /**
-     * <code>repeated .fk_data.LogMessage logs = 13;</code>
-     */
-    int getLogsCount();
-
-    /**
      * <code>.fk_data.Status status = 4;</code>
      * @return Whether the status field is set.
      */
@@ -13935,6 +13921,20 @@ public final class FkData {
     org.conservify.fieldkit.data.pb.FkData.NetworkSettings getNetwork();
 
     /**
+     * <code>repeated .fk_data.LogMessage logs = 13;</code>
+     */
+    java.util.List<org.conservify.fieldkit.data.pb.FkData.LogMessage> 
+        getLogsList();
+    /**
+     * <code>repeated .fk_data.LogMessage logs = 13;</code>
+     */
+    org.conservify.fieldkit.data.pb.FkData.LogMessage getLogs(int index);
+    /**
+     * <code>repeated .fk_data.LogMessage logs = 13;</code>
+     */
+    int getLogsCount();
+
+    /**
      * <code>.fk_data.TransmissionSettings transmission = 14;</code>
      * @return Whether the transmission field is set.
      */
@@ -13958,13 +13958,14 @@ public final class FkData {
      * <code>repeated .fk_data.Fault faults = 15;</code>
      */
     int getFaultsCount();
+
+    /**
+     * <code>uint64 record = 16;</code>
+     * @return The record.
+     */
+    long getRecord();
   }
   /**
-   * <pre>
-   **
-   * I may break this into a MetaRecord.
-   * </pre>
-   *
    * Protobuf type {@code fk_data.DataRecord}
    */
   public  static final class DataRecord extends
@@ -13973,8 +13974,8 @@ public final class FkData {
       // @@protoc_insertion_point(message_implements:fk_data.DataRecord)
       DataRecordOrBuilder {
     private DataRecord() {
-      logs_ = emptyProtobufList();
       modules_ = emptyProtobufList();
+      logs_ = emptyProtobufList();
       faults_ = emptyProtobufList();
     }
     public static final int LOGGEDREADING_FIELD_NUMBER = 1;
@@ -14113,99 +14114,6 @@ public final class FkData {
      */
     private void clearLog() {  log_ = null;
       
-    }
-
-    public static final int LOGS_FIELD_NUMBER = 13;
-    private com.google.protobuf.Internal.ProtobufList<org.conservify.fieldkit.data.pb.FkData.LogMessage> logs_;
-    /**
-     * <code>repeated .fk_data.LogMessage logs = 13;</code>
-     */
-    @java.lang.Override
-    public java.util.List<org.conservify.fieldkit.data.pb.FkData.LogMessage> getLogsList() {
-      return logs_;
-    }
-    /**
-     * <code>repeated .fk_data.LogMessage logs = 13;</code>
-     */
-    public java.util.List<? extends org.conservify.fieldkit.data.pb.FkData.LogMessageOrBuilder> 
-        getLogsOrBuilderList() {
-      return logs_;
-    }
-    /**
-     * <code>repeated .fk_data.LogMessage logs = 13;</code>
-     */
-    @java.lang.Override
-    public int getLogsCount() {
-      return logs_.size();
-    }
-    /**
-     * <code>repeated .fk_data.LogMessage logs = 13;</code>
-     */
-    @java.lang.Override
-    public org.conservify.fieldkit.data.pb.FkData.LogMessage getLogs(int index) {
-      return logs_.get(index);
-    }
-    /**
-     * <code>repeated .fk_data.LogMessage logs = 13;</code>
-     */
-    public org.conservify.fieldkit.data.pb.FkData.LogMessageOrBuilder getLogsOrBuilder(
-        int index) {
-      return logs_.get(index);
-    }
-    private void ensureLogsIsMutable() {
-      if (!logs_.isModifiable()) {
-        logs_ =
-            com.google.protobuf.GeneratedMessageLite.mutableCopy(logs_);
-       }
-    }
-
-    /**
-     * <code>repeated .fk_data.LogMessage logs = 13;</code>
-     */
-    private void setLogs(
-        int index, org.conservify.fieldkit.data.pb.FkData.LogMessage value) {
-      value.getClass();
-  ensureLogsIsMutable();
-      logs_.set(index, value);
-    }
-    /**
-     * <code>repeated .fk_data.LogMessage logs = 13;</code>
-     */
-    private void addLogs(org.conservify.fieldkit.data.pb.FkData.LogMessage value) {
-      value.getClass();
-  ensureLogsIsMutable();
-      logs_.add(value);
-    }
-    /**
-     * <code>repeated .fk_data.LogMessage logs = 13;</code>
-     */
-    private void addLogs(
-        int index, org.conservify.fieldkit.data.pb.FkData.LogMessage value) {
-      value.getClass();
-  ensureLogsIsMutable();
-      logs_.add(index, value);
-    }
-    /**
-     * <code>repeated .fk_data.LogMessage logs = 13;</code>
-     */
-    private void addAllLogs(
-        java.lang.Iterable<? extends org.conservify.fieldkit.data.pb.FkData.LogMessage> values) {
-      ensureLogsIsMutable();
-      com.google.protobuf.AbstractMessageLite.addAll(
-          values, logs_);
-    }
-    /**
-     * <code>repeated .fk_data.LogMessage logs = 13;</code>
-     */
-    private void clearLogs() {
-      logs_ = emptyProtobufList();
-    }
-    /**
-     * <code>repeated .fk_data.LogMessage logs = 13;</code>
-     */
-    private void removeLogs(int index) {
-      ensureLogsIsMutable();
-      logs_.remove(index);
     }
 
     public static final int STATUS_FIELD_NUMBER = 4;
@@ -14649,6 +14557,99 @@ public final class FkData {
       
     }
 
+    public static final int LOGS_FIELD_NUMBER = 13;
+    private com.google.protobuf.Internal.ProtobufList<org.conservify.fieldkit.data.pb.FkData.LogMessage> logs_;
+    /**
+     * <code>repeated .fk_data.LogMessage logs = 13;</code>
+     */
+    @java.lang.Override
+    public java.util.List<org.conservify.fieldkit.data.pb.FkData.LogMessage> getLogsList() {
+      return logs_;
+    }
+    /**
+     * <code>repeated .fk_data.LogMessage logs = 13;</code>
+     */
+    public java.util.List<? extends org.conservify.fieldkit.data.pb.FkData.LogMessageOrBuilder> 
+        getLogsOrBuilderList() {
+      return logs_;
+    }
+    /**
+     * <code>repeated .fk_data.LogMessage logs = 13;</code>
+     */
+    @java.lang.Override
+    public int getLogsCount() {
+      return logs_.size();
+    }
+    /**
+     * <code>repeated .fk_data.LogMessage logs = 13;</code>
+     */
+    @java.lang.Override
+    public org.conservify.fieldkit.data.pb.FkData.LogMessage getLogs(int index) {
+      return logs_.get(index);
+    }
+    /**
+     * <code>repeated .fk_data.LogMessage logs = 13;</code>
+     */
+    public org.conservify.fieldkit.data.pb.FkData.LogMessageOrBuilder getLogsOrBuilder(
+        int index) {
+      return logs_.get(index);
+    }
+    private void ensureLogsIsMutable() {
+      if (!logs_.isModifiable()) {
+        logs_ =
+            com.google.protobuf.GeneratedMessageLite.mutableCopy(logs_);
+       }
+    }
+
+    /**
+     * <code>repeated .fk_data.LogMessage logs = 13;</code>
+     */
+    private void setLogs(
+        int index, org.conservify.fieldkit.data.pb.FkData.LogMessage value) {
+      value.getClass();
+  ensureLogsIsMutable();
+      logs_.set(index, value);
+    }
+    /**
+     * <code>repeated .fk_data.LogMessage logs = 13;</code>
+     */
+    private void addLogs(org.conservify.fieldkit.data.pb.FkData.LogMessage value) {
+      value.getClass();
+  ensureLogsIsMutable();
+      logs_.add(value);
+    }
+    /**
+     * <code>repeated .fk_data.LogMessage logs = 13;</code>
+     */
+    private void addLogs(
+        int index, org.conservify.fieldkit.data.pb.FkData.LogMessage value) {
+      value.getClass();
+  ensureLogsIsMutable();
+      logs_.add(index, value);
+    }
+    /**
+     * <code>repeated .fk_data.LogMessage logs = 13;</code>
+     */
+    private void addAllLogs(
+        java.lang.Iterable<? extends org.conservify.fieldkit.data.pb.FkData.LogMessage> values) {
+      ensureLogsIsMutable();
+      com.google.protobuf.AbstractMessageLite.addAll(
+          values, logs_);
+    }
+    /**
+     * <code>repeated .fk_data.LogMessage logs = 13;</code>
+     */
+    private void clearLogs() {
+      logs_ = emptyProtobufList();
+    }
+    /**
+     * <code>repeated .fk_data.LogMessage logs = 13;</code>
+     */
+    private void removeLogs(int index) {
+      ensureLogsIsMutable();
+      logs_.remove(index);
+    }
+
     public static final int TRANSMISSION_FIELD_NUMBER = 14;
     private org.conservify.fieldkit.data.pb.FkData.TransmissionSettings transmission_;
     /**
@@ -14788,6 +14789,32 @@ public final class FkData {
       faults_.remove(index);
     }
 
+    public static final int RECORD_FIELD_NUMBER = 16;
+    private long record_;
+    /**
+     * <code>uint64 record = 16;</code>
+     * @return The record.
+     */
+    @java.lang.Override
+    public long getRecord() {
+      return record_;
+    }
+    /**
+     * <code>uint64 record = 16;</code>
+     * @param value The record to set.
+     */
+    private void setRecord(long value) {
+      
+      record_ = value;
+    }
+    /**
+     * <code>uint64 record = 16;</code>
+     */
+    private void clearRecord() {
+      
+      record_ = 0L;
+    }
+
     public static org.conservify.fieldkit.data.pb.FkData.DataRecord parseFrom(
         java.nio.ByteBuffer data)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -14870,11 +14897,6 @@ public final class FkData {
     }
 
     /**
-     * <pre>
-     **
-     * I may break this into a MetaRecord.
-     * </pre>
-     *
      * Protobuf type {@code fk_data.DataRecord}
      */
     public static final class Builder extends
@@ -15026,108 +15048,6 @@ public final class FkData {
        */
       public Builder clearLog() {  copyOnWrite();
         instance.clearLog();
-        return this;
-      }
-
-      /**
-       * <code>repeated .fk_data.LogMessage logs = 13;</code>
-       */
-      @java.lang.Override
-      public java.util.List<org.conservify.fieldkit.data.pb.FkData.LogMessage> getLogsList() {
-        return java.util.Collections.unmodifiableList(
-            instance.getLogsList());
-      }
-      /**
-       * <code>repeated .fk_data.LogMessage logs = 13;</code>
-       */
-      @java.lang.Override
-      public int getLogsCount() {
-        return instance.getLogsCount();
-      }/**
-       * <code>repeated .fk_data.LogMessage logs = 13;</code>
-       */
-      @java.lang.Override
-      public org.conservify.fieldkit.data.pb.FkData.LogMessage getLogs(int index) {
-        return instance.getLogs(index);
-      }
-      /**
-       * <code>repeated .fk_data.LogMessage logs = 13;</code>
-       */
-      public Builder setLogs(
-          int index, org.conservify.fieldkit.data.pb.FkData.LogMessage value) {
-        copyOnWrite();
-        instance.setLogs(index, value);
-        return this;
-      }
-      /**
-       * <code>repeated .fk_data.LogMessage logs = 13;</code>
-       */
-      public Builder setLogs(
-          int index, org.conservify.fieldkit.data.pb.FkData.LogMessage.Builder builderForValue) {
-        copyOnWrite();
-        instance.setLogs(index,
-            builderForValue.build());
-        return this;
-      }
-      /**
-       * <code>repeated .fk_data.LogMessage logs = 13;</code>
-       */
-      public Builder addLogs(org.conservify.fieldkit.data.pb.FkData.LogMessage value) {
-        copyOnWrite();
-        instance.addLogs(value);
-        return this;
-      }
-      /**
-       * <code>repeated .fk_data.LogMessage logs = 13;</code>
-       */
-      public Builder addLogs(
-          int index, org.conservify.fieldkit.data.pb.FkData.LogMessage value) {
-        copyOnWrite();
-        instance.addLogs(index, value);
-        return this;
-      }
-      /**
-       * <code>repeated .fk_data.LogMessage logs = 13;</code>
-       */
-      public Builder addLogs(
-          org.conservify.fieldkit.data.pb.FkData.LogMessage.Builder builderForValue) {
-        copyOnWrite();
-        instance.addLogs(builderForValue.build());
-        return this;
-      }
-      /**
-       * <code>repeated .fk_data.LogMessage logs = 13;</code>
-       */
-      public Builder addLogs(
-          int index, org.conservify.fieldkit.data.pb.FkData.LogMessage.Builder builderForValue) {
-        copyOnWrite();
-        instance.addLogs(index,
-            builderForValue.build());
-        return this;
-      }
-      /**
-       * <code>repeated .fk_data.LogMessage logs = 13;</code>
-       */
-      public Builder addAllLogs(
-          java.lang.Iterable<? extends org.conservify.fieldkit.data.pb.FkData.LogMessage> values) {
-        copyOnWrite();
-        instance.addAllLogs(values);
-        return this;
-      }
-      /**
-       * <code>repeated .fk_data.LogMessage logs = 13;</code>
-       */
-      public Builder clearLogs() {
-        copyOnWrite();
-        instance.clearLogs();
-        return this;
-      }
-      /**
-       * <code>repeated .fk_data.LogMessage logs = 13;</code>
-       */
-      public Builder removeLogs(int index) {
-        copyOnWrite();
-        instance.removeLogs(index);
         return this;
       }
 
@@ -15591,6 +15511,108 @@ public final class FkData {
       }
 
       /**
+       * <code>repeated .fk_data.LogMessage logs = 13;</code>
+       */
+      @java.lang.Override
+      public java.util.List<org.conservify.fieldkit.data.pb.FkData.LogMessage> getLogsList() {
+        return java.util.Collections.unmodifiableList(
+            instance.getLogsList());
+      }
+      /**
+       * <code>repeated .fk_data.LogMessage logs = 13;</code>
+       */
+      @java.lang.Override
+      public int getLogsCount() {
+        return instance.getLogsCount();
+      }/**
+       * <code>repeated .fk_data.LogMessage logs = 13;</code>
+       */
+      @java.lang.Override
+      public org.conservify.fieldkit.data.pb.FkData.LogMessage getLogs(int index) {
+        return instance.getLogs(index);
+      }
+      /**
+       * <code>repeated .fk_data.LogMessage logs = 13;</code>
+       */
+      public Builder setLogs(
+          int index, org.conservify.fieldkit.data.pb.FkData.LogMessage value) {
+        copyOnWrite();
+        instance.setLogs(index, value);
+        return this;
+      }
+      /**
+       * <code>repeated .fk_data.LogMessage logs = 13;</code>
+       */
+      public Builder setLogs(
+          int index, org.conservify.fieldkit.data.pb.FkData.LogMessage.Builder builderForValue) {
+        copyOnWrite();
+        instance.setLogs(index,
+            builderForValue.build());
+        return this;
+      }
+      /**
+       * <code>repeated .fk_data.LogMessage logs = 13;</code>
+       */
+      public Builder addLogs(org.conservify.fieldkit.data.pb.FkData.LogMessage value) {
+        copyOnWrite();
+        instance.addLogs(value);
+        return this;
+      }
+      /**
+       * <code>repeated .fk_data.LogMessage logs = 13;</code>
+       */
+      public Builder addLogs(
+          int index, org.conservify.fieldkit.data.pb.FkData.LogMessage value) {
+        copyOnWrite();
+        instance.addLogs(index, value);
+        return this;
+      }
+      /**
+       * <code>repeated .fk_data.LogMessage logs = 13;</code>
+       */
+      public Builder addLogs(
+          org.conservify.fieldkit.data.pb.FkData.LogMessage.Builder builderForValue) {
+        copyOnWrite();
+        instance.addLogs(builderForValue.build());
+        return this;
+      }
+      /**
+       * <code>repeated .fk_data.LogMessage logs = 13;</code>
+       */
+      public Builder addLogs(
+          int index, org.conservify.fieldkit.data.pb.FkData.LogMessage.Builder builderForValue) {
+        copyOnWrite();
+        instance.addLogs(index,
+            builderForValue.build());
+        return this;
+      }
+      /**
+       * <code>repeated .fk_data.LogMessage logs = 13;</code>
+       */
+      public Builder addAllLogs(
+          java.lang.Iterable<? extends org.conservify.fieldkit.data.pb.FkData.LogMessage> values) {
+        copyOnWrite();
+        instance.addAllLogs(values);
+        return this;
+      }
+      /**
+       * <code>repeated .fk_data.LogMessage logs = 13;</code>
+       */
+      public Builder clearLogs() {
+        copyOnWrite();
+        instance.clearLogs();
+        return this;
+      }
+      /**
+       * <code>repeated .fk_data.LogMessage logs = 13;</code>
+       */
+      public Builder removeLogs(int index) {
+        copyOnWrite();
+        instance.removeLogs(index);
+        return this;
+      }
+
+      /**
        * <code>.fk_data.TransmissionSettings transmission = 14;</code>
        */
       @java.lang.Override
@@ -15739,6 +15761,34 @@ public final class FkData {
         return this;
       }
 
+      /**
+       * <code>uint64 record = 16;</code>
+       * @return The record.
+       */
+      @java.lang.Override
+      public long getRecord() {
+        return instance.getRecord();
+      }
+      /**
+       * <code>uint64 record = 16;</code>
+       * @param value The record to set.
+       * @return This builder for chaining.
+       */
+      public Builder setRecord(long value) {
+        copyOnWrite();
+        instance.setRecord(value);
+        return this;
+      }
+      /**
+       * <code>uint64 record = 16;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearRecord() {
+        copyOnWrite();
+        instance.clearRecord();
+        return this;
+      }
+
       // @@protoc_insertion_point(builder_scope:fk_data.DataRecord)
     }
     @java.lang.Override
@@ -15773,11 +15823,12 @@ public final class FkData {
               "transmission_",
               "faults_",
               org.conservify.fieldkit.data.pb.FkData.Fault.class,
+              "record_",
             };
             java.lang.String info =
-                "\u0000\u000f\u0000\u0000\u0001\u000f\u000f\u0000\u0003\u0000\u0001\t\u0002\t\u0003" +
+                "\u0000\u0010\u0000\u0000\u0001\u0010\u0010\u0000\u0003\u0000\u0001\t\u0002\t\u0003" +
                 "\t\u0004\t\u0005\t\u0006\u001b\u0007\t\b\u0003\t\t\n\t\u000b\t\f\t\r\u001b\u000e" +
-                "\t\u000f\u001b";
+                "\t\u000f\u001b\u0010\u0003";
             return newMessageInfo(DEFAULT_INSTANCE, info, objects);
         }
         // fall through
