@@ -1,5 +1,6 @@
 #include "hal/hal.h"
 #include "hal/metal/metal.h"
+#include "modules/eeprom.h"
 
 #if defined(__SAMD51__)
 
@@ -280,6 +281,16 @@ bool MetalModMux::choose(ModulePosition position) {
     }
 
     return false;
+}
+
+bool MetalModMux::read_eeprom(uint32_t address, uint8_t *data, size_t size) {
+    auto module_bus = get_board()->i2c_module();
+    ModuleEeprom eeprom{ module_bus };
+    if (!eeprom.read_data(address, data, size)) {
+        return false;
+    }
+
+    return true;
 }
 
 bool MetalModMux::choose_nothing() {

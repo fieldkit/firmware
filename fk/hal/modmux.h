@@ -134,6 +134,7 @@ public:
     virtual ModulesLock lock() = 0;
     virtual bool any_modules_on(ModulePower power) = 0;
     virtual bool is_module_on(ModulePosition position) = 0;
+    virtual bool read_eeprom(uint32_t address, uint8_t *data, size_t size) = 0;
 
 public:
     class iterator {

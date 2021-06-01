@@ -1,10 +1,21 @@
 #pragma once
 
+#include <map>
+
 #include "hal/hal.h"
 
 namespace fk {
 
 class LinuxModMux : public ModMux {
+private:
+    struct ModuleMux {
+        uint8_t const *eeprom;
+        size_t size;
+    };
+
+    std::map<uint8_t, ModuleMux> map_;
+    ModulePosition selected_{ ModulePosition::None };
+
 public:
     LinuxModMux();
 
@@ -24,6 +35,10 @@ public:
     ModulesLock lock() override;
     bool any_modules_on(ModulePower power) override;
     bool is_module_on(ModulePosition position) override;
+    bool read_eeprom(uint32_t address, uint8_t *data, size_t size) override;
+
+public:
+    bool set_eeprom_data(ModulePosition position, uint8_t const *data, size_t size);
 
 };
 

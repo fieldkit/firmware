@@ -69,13 +69,9 @@ static bool add_virtual_module(ScanningListener *listener, uint16_t kind, Pool *
 }
 
 bool ModuleScanning::try_scan_single_module(ScanningListener *listener, ModulePosition position, Pool &pool) {
-    // Take ownership over the module bus.
-    auto module_bus = get_board()->i2c_module();
-    ModuleEeprom eeprom{ module_bus };
-
     ModuleHeader header;
     bzero(&header, sizeof(ModuleHeader));
-    if (!eeprom.read_header(header)) {
+    if (!mm_->read_eeprom(ModuleEeprom::HeaderAddress, (uint8_t *)&header, sizeof(ModuleHeader))) {
         logwarn("[%d] error reading header", position.integer());
         return false;
     }

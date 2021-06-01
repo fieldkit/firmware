@@ -6,10 +6,10 @@
 namespace fk {
 
 LinuxModMux::LinuxModMux() {
+    available_ = true;
 }
 
 bool LinuxModMux::begin() {
-    available_ = true;
     return true;
 }
 
@@ -38,10 +38,12 @@ bool LinuxModMux::power_cycle(ModulePosition position) {
 }
 
 bool LinuxModMux::choose(ModulePosition position) {
+    selected_ = position;
     return true;
 }
 
 bool LinuxModMux::choose_nothing() {
+    selected_ = ModulePosition::None;
     return true;
 }
 
@@ -70,6 +72,23 @@ bool LinuxModMux::any_modules_on(ModulePower power) {
 
 bool LinuxModMux::is_module_on(ModulePosition position) {
     return false;
+}
+
+bool LinuxModMux::read_eeprom(uint32_t address, uint8_t *data, size_t size) {
+    if (map_.find(selected_.integer()) == map_.end()) {
+        return false;
+    }
+
+    auto fake = map_[selected_.integer()];
+    auto copying = std::min<int32_t>(size, fake.size);
+    memcpy(data, fake.eeprom, copying);
+
+    return size <= fake.size;
+}
+
+bool LinuxModMux::set_eeprom_data(ModulePosition position, uint8_t const *data, size_t size) {
+    map_[position.integer()] = ModuleMux{ data, size };
+    return true;
 }
 
 }
