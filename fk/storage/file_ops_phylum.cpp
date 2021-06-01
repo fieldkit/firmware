@@ -104,17 +104,20 @@ tl::expected<uint32_t, Error> DataOps::write_readings(fk_data_DataRecord *record
         return tl::unexpected<Error>(Error::IO);
     }
 
+    record_number_t record_number = 0;
+
     #if defined(FK_PHYLUM_AMPLIFICATION)
     auto amplification = FK_PHYLUM_AMPLIFICATION;
     #else
     auto amplification = 1;
     #endif
-    auto record_number = 0;
 
     for (auto i = 0; i < amplification; ++i) {
-        record_number = file.attributes().record_number;
+        auto attributes = file.attributes();
 
+        record_number = attributes.nrecords;
         record->readings.reading = record_number;
+        loginfo("writing record=#%" PRIu32, record_number);
 
         auto appended = file.append_always(RecordType::Data, fk_data_DataRecord_fields, record, pool);
         if (appended.bytes <= 0) {
@@ -122,8 +125,7 @@ tl::expected<uint32_t, Error> DataOps::write_readings(fk_data_DataRecord *record
             return tl::unexpected<Error>(Error::IO);
         }
 
-        loginfo("wrote %zd bytes rec=(#%" PRIu32 ") (%" PRIu32 " bytes)",
-                (size_t)appended.bytes, appended.record, 0);
+        loginfo("wrote %zd bytes record=#%" PRIu32 "", (size_t)appended.bytes, appended.record);
     }
 
     return record_number;
@@ -141,7 +143,7 @@ tl::expected<FileAttributes, Error> DataOps::attributes(Pool &pool) {
     return FileAttributes{
         file_attributes.size,
         file_attributes.nrecords,
-        file_attributes.record_number,
+        file_attributes.nreadings,
     };
 }
 
@@ -202,8 +204,8 @@ tl::expected<FileReader::SizeInfo, Error> FileReader::get_size(BlockNumber first
         return tl::unexpected<Error>(Error::IO);
     }
 
-    if (last_block >= attributes.record_number) {
-        last_block = attributes.record_number;
+    if (last_block >= attributes.nrecords) {
+        last_block = attributes.nrecords;
     }
 
     return SizeInfo{

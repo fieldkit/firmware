@@ -90,15 +90,17 @@ int32_t PhylumDataFile::initialize_config(Pool &pool) {
         file_cfg_.attributes = attributes_;
         file_cfg_.nattrs = PHYLUM_DRIVER_FILE_ATTR_NUMBER;
 
-        for (auto i = 0u; i < file_cfg_.nattrs; ++i) {
-            auto &attr = attributes_[i];
+        for (auto index = 0u; index < file_cfg_.nattrs; ++index) {
+            auto &attr = attributes_[index];
             attr.ptr = pool.malloc(attr.size);
-        }
-    }
 
-    for (auto i = 0u; i < file_cfg_.nattrs; ++i) {
-        auto &attr = attributes_[i];
-        memset(attr.ptr, attr.default_value, attr.size);
+            if (index == 0) {
+                *((records_attribute_t *)attr.ptr) = records_attribute_t{ };
+            }
+            else {
+                *((index_attribute_t *)attr.ptr) = index_attribute_t{ };
+            }
+        }
     }
 
     return 0;
@@ -142,17 +144,22 @@ PhylumDataFile::DataFileAttributes PhylumDataFile::attributes() {
     auto records = attributes.get<records_attribute_t>(PHYLUM_DRIVER_FILE_ATTR_RECORDS);
     auto data_index = attributes.get<index_attribute_t>(PHYLUM_DRIVER_FILE_ATTR_INDEX_DATA);
 
-    if (size_ == 0 && records->nrecords) {
+    // If size is 0 and we have records we know we haven't calculated
+    // the size.
+    if (size_ == 0 && records->nrecords > 0) {
         auto err = seek_position(UINT32_MAX, pool_);
         if (err < 0) {
             logerror("seeking end for size");
         }
     }
 
+    loginfo("attributes first=%" PRIu32 " nrecords=%" PRIu32 " nreadings=%" PRIu32 " size=%" PRIu32,
+            records->first, records->nrecords, data_index->nrecords, size_);
+
     return PhylumDataFile::DataFileAttributes{
         .first_record = records->first,
         .nrecords = records->nrecords,
-        .record_number = data_index->nrecords,
+        .nreadings = data_index->nrecords,
         .size = size_,
     };
 }

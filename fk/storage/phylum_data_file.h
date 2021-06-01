@@ -90,7 +90,7 @@ public:
     struct DataFileAttributes {
         record_number_t first_record;
         record_number_t nrecords;
-        record_number_t record_number;
+        record_number_t nreadings;
         file_size_t size;
     };
 
