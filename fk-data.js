@@ -6827,7 +6827,6 @@
              * @property {fk_data.ILoggedReading|null} [loggedReading] DataRecord loggedReading
              * @property {fk_data.IMetadata|null} [metadata] DataRecord metadata
              * @property {fk_data.ILogMessage|null} [log] DataRecord log
-             * @property {Array.<fk_data.ILogMessage>|null} [logs] DataRecord logs
              * @property {fk_data.IStatus|null} [status] DataRecord status
              * @property {fk_data.IReadings|null} [readings] DataRecord readings
              * @property {Array.<fk_data.IModuleInfo>|null} [modules] DataRecord modules
@@ -6837,21 +6836,23 @@
              * @property {fk_data.ICondition|null} [condition] DataRecord condition
              * @property {fk_data.ILoraSettings|null} [lora] DataRecord lora
              * @property {fk_data.INetworkSettings|null} [network] DataRecord network
+             * @property {Array.<fk_data.ILogMessage>|null} [logs] DataRecord logs
              * @property {fk_data.ITransmissionSettings|null} [transmission] DataRecord transmission
              * @property {Array.<fk_data.IFault>|null} [faults] DataRecord faults
+             * @property {number|Long|null} [record] DataRecord record
              */
     
             /**
              * Constructs a new DataRecord.
              * @memberof fk_data
-             * @classdesc I may break this into a MetaRecord.
+             * @classdesc Represents a DataRecord.
              * @implements IDataRecord
              * @constructor
              * @param {fk_data.IDataRecord=} [properties] Properties to set
              */
             function DataRecord(properties) {
-                this.logs = [];
                 this.modules = [];
+                this.logs = [];
                 this.faults = [];
                 if (properties)
                     for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
@@ -6882,14 +6883,6 @@
              * @instance
              */
             DataRecord.prototype.log = null;
-    
-            /**
-             * DataRecord logs.
-             * @member {Array.<fk_data.ILogMessage>} logs
-             * @memberof fk_data.DataRecord
-             * @instance
-             */
-            DataRecord.prototype.logs = $util.emptyArray;
     
             /**
              * DataRecord status.
@@ -6964,6 +6957,14 @@
             DataRecord.prototype.network = null;
     
             /**
+             * DataRecord logs.
+             * @member {Array.<fk_data.ILogMessage>} logs
+             * @memberof fk_data.DataRecord
+             * @instance
+             */
+            DataRecord.prototype.logs = $util.emptyArray;
+    
+            /**
              * DataRecord transmission.
              * @member {fk_data.ITransmissionSettings|null|undefined} transmission
              * @memberof fk_data.DataRecord
@@ -6978,6 +6979,14 @@
              * @instance
              */
             DataRecord.prototype.faults = $util.emptyArray;
+    
+            /**
+             * DataRecord record.
+             * @member {number|Long} record
+             * @memberof fk_data.DataRecord
+             * @instance
+             */
+            DataRecord.prototype.record = $util.Long ? $util.Long.fromBits(0,0,true) : 0;
     
             /**
              * Creates a new DataRecord instance using the specified properties.
@@ -7036,6 +7045,8 @@
                 if (message.faults != null && message.faults.length)
                     for (var i = 0; i < message.faults.length; ++i)
                         $root.fk_data.Fault.encode(message.faults[i], writer.uint32(/* id 15, wireType 2 =*/122).fork()).ldelim();
+                if (message.record != null && message.hasOwnProperty("record"))
+                    writer.uint32(/* id 16, wireType 0 =*/128).uint64(message.record);
                 return writer;
             };
     
@@ -7079,11 +7090,6 @@
                     case 3:
                         message.log = $root.fk_data.LogMessage.decode(reader, reader.uint32());
                         break;
-                    case 13:
-                        if (!(message.logs && message.logs.length))
-                            message.logs = [];
-                        message.logs.push($root.fk_data.LogMessage.decode(reader, reader.uint32()));
-                        break;
                     case 4:
                         message.status = $root.fk_data.Status.decode(reader, reader.uint32());
                         break;
@@ -7113,6 +7119,11 @@
                     case 12:
                         message.network = $root.fk_data.NetworkSettings.decode(reader, reader.uint32());
                         break;
+                    case 13:
+                        if (!(message.logs && message.logs.length))
+                            message.logs = [];
+                        message.logs.push($root.fk_data.LogMessage.decode(reader, reader.uint32()));
+                        break;
                     case 14:
                         message.transmission = $root.fk_data.TransmissionSettings.decode(reader, reader.uint32());
                         break;
@@ -7120,6 +7131,9 @@
                         if (!(message.faults && message.faults.length))
                             message.faults = [];
                         message.faults.push($root.fk_data.Fault.decode(reader, reader.uint32()));
+                        break;
+                    case 16:
+                        message.record = reader.uint64();
                         break;
                     default:
                         reader.skipType(tag & 7);
@@ -7171,15 +7185,6 @@
                     if (error)
                         return "log." + error;
                 }
-                if (message.logs != null && message.hasOwnProperty("logs")) {
-                    if (!Array.isArray(message.logs))
-                        return "logs: array expected";
-                    for (var i = 0; i < message.logs.length; ++i) {
-                        var error = $root.fk_data.LogMessage.verify(message.logs[i]);
-                        if (error)
-                            return "logs." + error;
-                    }
-                }
                 if (message.status != null && message.hasOwnProperty("status")) {
                     var error = $root.fk_data.Status.verify(message.status);
                     if (error)
@@ -7227,6 +7232,15 @@
                     if (error)
                         return "network." + error;
                 }
+                if (message.logs != null && message.hasOwnProperty("logs")) {
+                    if (!Array.isArray(message.logs))
+                        return "logs: array expected";
+                    for (var i = 0; i < message.logs.length; ++i) {
+                        var error = $root.fk_data.LogMessage.verify(message.logs[i]);
+                        if (error)
+                            return "logs." + error;
+                    }
+                }
                 if (message.transmission != null && message.hasOwnProperty("transmission")) {
                     var error = $root.fk_data.TransmissionSettings.verify(message.transmission);
                     if (error)
@@ -7241,6 +7255,9 @@
                             return "faults." + error;
                     }
                 }
+                if (message.record != null && message.hasOwnProperty("record"))
+                    if (!$util.isInteger(message.record) && !(message.record && $util.isInteger(message.record.low) && $util.isInteger(message.record.high)))
+                        return "record: integer|Long expected";
                 return null;
             };
     
@@ -7270,16 +7287,6 @@
                     if (typeof object.log !== "object")
                         throw TypeError(".fk_data.DataRecord.log: object expected");
                     message.log = $root.fk_data.LogMessage.fromObject(object.log);
-                }
-                if (object.logs) {
-                    if (!Array.isArray(object.logs))
-                        throw TypeError(".fk_data.DataRecord.logs: array expected");
-                    message.logs = [];
-                    for (var i = 0; i < object.logs.length; ++i) {
-                        if (typeof object.logs[i] !== "object")
-                            throw TypeError(".fk_data.DataRecord.logs: object expected");
-                        message.logs[i] = $root.fk_data.LogMessage.fromObject(object.logs[i]);
-                    }
                 }
                 if (object.status != null) {
                     if (typeof object.status !== "object")
@@ -7335,6 +7342,16 @@
                         throw TypeError(".fk_data.DataRecord.network: object expected");
                     message.network = $root.fk_data.NetworkSettings.fromObject(object.network);
                 }
+                if (object.logs) {
+                    if (!Array.isArray(object.logs))
+                        throw TypeError(".fk_data.DataRecord.logs: array expected");
+                    message.logs = [];
+                    for (var i = 0; i < object.logs.length; ++i) {
+                        if (typeof object.logs[i] !== "object")
+                            throw TypeError(".fk_data.DataRecord.logs: object expected");
+                        message.logs[i] = $root.fk_data.LogMessage.fromObject(object.logs[i]);
+                    }
+                }
                 if (object.transmission != null) {
                     if (typeof object.transmission !== "object")
                         throw TypeError(".fk_data.DataRecord.transmission: object expected");
@@ -7350,6 +7367,15 @@
                         message.faults[i] = $root.fk_data.Fault.fromObject(object.faults[i]);
                     }
                 }
+                if (object.record != null)
+                    if ($util.Long)
+                        (message.record = $util.Long.fromValue(object.record)).unsigned = true;
+                    else if (typeof object.record === "string")
+                        message.record = parseInt(object.record, 10);
+                    else if (typeof object.record === "number")
+                        message.record = object.record;
+                    else if (typeof object.record === "object")
+                        message.record = new $util.LongBits(object.record.low >>> 0, object.record.high >>> 0).toNumber(true);
                 return message;
             };
     
@@ -7388,6 +7414,11 @@
                     object.lora = null;
                     object.network = null;
                     object.transmission = null;
+                    if ($util.Long) {
+                        var long = new $util.Long(0, 0, true);
+                        object.record = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+                    } else
+                        object.record = options.longs === String ? "0" : 0;
                 }
                 if (message.loggedReading != null && message.hasOwnProperty("loggedReading"))
                     object.loggedReading = $root.fk_data.LoggedReading.toObject(message.loggedReading, options);
@@ -7431,6 +7462,11 @@
                     for (var j = 0; j < message.faults.length; ++j)
                         object.faults[j] = $root.fk_data.Fault.toObject(message.faults[j], options);
                 }
+                if (message.record != null && message.hasOwnProperty("record"))
+                    if (typeof message.record === "number")
+                        object.record = options.longs === String ? String(message.record) : message.record;
+                    else
+                        object.record = options.longs === String ? $util.Long.prototype.toString.call(message.record) : options.longs === Number ? new $util.LongBits(message.record.low >>> 0, message.record.high >>> 0).toNumber(true) : message.record;
                 return object;
             };
     
