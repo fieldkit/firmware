@@ -173,16 +173,16 @@ void MetaRecord::include_modules(GlobalState const *gs, fkb_header_t const *fkb_
     }
 
     auto module_infos = pool.malloc<fk_data_ModuleInfo>(nmodules);
+    auto module_info = module_infos;
     for (auto &attached_module : attached->modules()) {
         auto position = attached_module.position();
-        auto index = position.integer();
         auto meta = attached_module.meta();
-
         auto header = attached_module.header();
         auto configuration = attached_module.configuration();
         auto module_instance = attached_module.get();
         if (meta == nullptr || module_instance == nullptr) {
             logerror("constructed module");
+            module_info++;
             continue;
         }
 
@@ -193,24 +193,22 @@ void MetaRecord::include_modules(GlobalState const *gs, fkb_header_t const *fkb_
             .buffer = pool.copy(header.id),
         });
 
-        auto &m = module_infos[index];
-        m = fk_data_ModuleInfo_init_default;
-        m.position = position.integer();
-        m.id.funcs.encode = pb_encode_data;
-        m.id.arg = (void *)id_data;
-        m.name.funcs.encode = pb_encode_string;
-        m.name.arg = (void *)configuration.display_name_key;
-        m.has_header = true;
-        m.header.manufacturer = meta->manufacturer;
-        m.header.kind = meta->kind;
-        m.header.version = meta->version;
-        m.flags = meta->flags;
+        module_info->position = position.integer();
+        module_info->id.funcs.encode = pb_encode_data;
+        module_info->id.arg = (void *)id_data;
+        module_info->name.funcs.encode = pb_encode_string;
+        module_info->name.arg = (void *)configuration.display_name_key;
+        module_info->has_header = true;
+        module_info->header.manufacturer = meta->manufacturer;
+        module_info->header.kind = meta->kind;
+        module_info->header.version = meta->version;
+        module_info->flags = meta->flags;
         if (configuration.message != nullptr) {
             auto configuration_message_data = pool.malloc_with<pb_data_t>({
                 .length = configuration.message->size,
                 .buffer = configuration.message->buffer,
             });
-            m.configuration.arg = (void *)configuration_message_data;
+            module_info->configuration.arg = (void *)configuration_message_data;
         }
 
         if (sensor_metas != nullptr && sensor_metas->nsensors > 0) {
@@ -231,11 +229,11 @@ void MetaRecord::include_modules(GlobalState const *gs, fkb_header_t const *fkb_
                 .fields = fk_data_SensorInfo_fields,
             });
 
-            m.sensors.funcs.encode = pb_encode_array;
-            m.sensors.arg = (void *)sensors_array;
+            module_info->sensors.funcs.encode = pb_encode_array;
+            module_info->sensors.arg = (void *)sensors_array;
         }
 
-        index++;
+        module_info++;
     }
 
     auto modules_array = pool.malloc_with<pb_array_t>({
