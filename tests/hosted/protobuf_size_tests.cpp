@@ -255,7 +255,7 @@ TEST_F(ProtoBufSizeSuite, Readings) {
     fake_global_state(gs, pool_);
     fake_modules(gs, pool_);
 
-    gs.readings.number = 1;
+    gs.readings.nreadings = 1;
 
     DataRecord record{ pool_ };
     record.include_readings(&gs, &fake_header, 1, pool_);
@@ -295,7 +295,7 @@ TEST_F(ProtoBufSizeSuite, ReadingsNoneBackFromFirstModule) {
     listener.flush();
 
     gs.dynamic = std::move(dynamic);
-    gs.readings.number = 1;
+    gs.readings.nreadings = 1;
 
     // This is failing because we actually serialize all sensors now,
     // regardless of what a readings take does. That'll have to change.

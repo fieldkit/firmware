@@ -122,7 +122,7 @@ bool ReadingsWorker::save(Pool &pool) {
     storage_update_ = StorageUpdate{
         .meta = StorageStreamUpdate{ meta_attributes->size, meta_attributes->records },
         .data = StorageStreamUpdate{ data_attributes->size, data_attributes->records },
-        .reading = *data_record_number,
+        .nreadings = data_attributes->nreadings,
     };
 
     if (!storage.flush()) {

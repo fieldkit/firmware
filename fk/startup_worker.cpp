@@ -371,7 +371,7 @@ bool StartupWorker::load_from_files(Storage &storage, GlobalState *gs, Pool &poo
     auto storage_update = StorageUpdate{
         .meta = StorageStreamUpdate{ meta_attributes->size, meta_attributes->records },
         .data = StorageStreamUpdate{ data_attributes->size, data_attributes->records },
-        .reading = data_attributes->reading,
+        .nreadings = data_attributes->nreadings,
     };
 
     gs->apply(storage_update);

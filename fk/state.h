@@ -177,7 +177,7 @@ struct StorageStreamUpdate {
 struct StorageUpdate {
     StorageStreamUpdate meta;
     StorageStreamUpdate data;
-    uint32_t reading;
+    uint32_t nreadings;
 };
 
 struct LoraState {
@@ -247,7 +247,7 @@ struct SchedulerState {
 };
 
 struct ReadingsState {
-    uint32_t number{ 0 };
+    uint32_t nreadings{ 0 };
     uint32_t time{ 0 };
 };
 
