@@ -4,8 +4,9 @@
 #include "pool.h"
 #include "hal/linux/linux.h"
 #include "storage/storage.h"
-#include "patterns.h"
+#include "state_ref.h"
 #include "protobuf.h"
+#include "patterns.h"
 
 namespace fk {
 
@@ -37,6 +38,9 @@ protected:
         for (auto i = 0u; i < MemoryFactory::NumberOfDataMemoryBanks; ++i) {
             banks_[i]->erase_all();
         }
+
+        auto gs = get_global_state_rw();
+        *gs.get() = GlobalState{ };
     }
 
     void TearDown() override {
