@@ -40,6 +40,7 @@ int32_t fk_random_i32(int32_t start, int32_t end) {
 #if defined(linux)
 
 int32_t fk_random_initialize() {
+    srand(0);
     return 0;
 }
 

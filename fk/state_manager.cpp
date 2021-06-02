@@ -33,7 +33,7 @@ bool GlobalStateManager::initialize(Pool &pool) {
 
     char gen_string[GenerationLength * 2 + 1];
     bytes_to_hex_string(gen_string, sizeof(gen_string), gs.get()->general.generation, sizeof(gs.get()->general.generation));
-    loginfo("(generated) name: '%s'", gs.get()->general.name);
+    loginfo("(generated) name: '%s' (%zu)", gs.get()->general.name, strlen(gs.get()->general.name));
     loginfo("(generated) gen: %s", gen_string);
 
     for (auto i = 0u; i < WifiMaximumNumberOfNetworks; ++i) {

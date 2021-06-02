@@ -91,6 +91,11 @@ bool LinuxModMux::set_eeprom_data(ModulePosition position, uint8_t const *data, 
     return true;
 }
 
+bool LinuxModMux::clear_all() {
+    map_.clear();
+    return true;
+}
+
 }
 
 #endif

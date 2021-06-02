@@ -39,6 +39,7 @@ public:
 
 public:
     bool set_eeprom_data(ModulePosition position, uint8_t const *data, size_t size);
+    bool clear_all();
 
 };
 

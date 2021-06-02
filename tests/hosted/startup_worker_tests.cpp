@@ -14,15 +14,6 @@ using namespace fk;
 FK_DECLARE_LOGGER("startup-worker-tests");
 
 class StartupWorkerSuite : public StorageSuite {
-protected:
-    void SetUp() override {
-        StorageSuite::SetUp();
-    }
-
-    void TearDown() override {
-        StorageSuite::TearDown();
-    }
-
 };
 
 TEST_F(StartupWorkerSuite, FreshStart) {

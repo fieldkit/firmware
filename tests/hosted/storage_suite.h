@@ -41,6 +41,8 @@ protected:
 
         auto gs = get_global_state_rw();
         *gs.get() = GlobalState{ };
+
+        fk_random_initialize();
     }
 
     void TearDown() override {
@@ -59,6 +61,9 @@ protected:
         }
 
         clear_statistics();
+
+        auto mm = (LinuxModMux *)get_modmux();
+        mm->clear_all();
 
         statistics_.log("tests: ");
     }
