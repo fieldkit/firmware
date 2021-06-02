@@ -44,12 +44,14 @@ bool GlobalStateManager::initialize(Pool &pool) {
         nc.password[0] = 0;
     }
 
+    #if defined(__SAMD51__)
     #if defined(FK_WIFI_0_SSID) && defined(FK_WIFI_0_PASSWORD)
     initialize_compile_time_wifi(gs.get()->network.config.wifi_networks[0], FK_WIFI_0_SSID, FK_WIFI_0_PASSWORD);
     #endif
 
     #if defined(FK_WIFI_1_SSID) && defined(FK_WIFI_1_PASSWORD)
     initialize_compile_time_wifi(gs.get()->network.config.wifi_networks[1], FK_WIFI_1_SSID, FK_WIFI_1_PASSWORD);
+    #endif
     #endif
 
     #if defined(FK_LORA_APP_KEY)
