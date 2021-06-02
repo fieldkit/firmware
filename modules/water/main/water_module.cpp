@@ -95,7 +95,7 @@ bool WaterModule::initialize(Mcp2803 &mcp, Ads1219 &ads) {
         return false;
     }
 
-    if (!ads.configure(Ads1219VoltageReference::External, Ads1219Channel::Diff_0_1)) {
+    if (!ads.configure(Ads1219VoltageReference::Internal, Ads1219Channel::Diff_0_1)) {
         logerror("ads1219::configure");
         return false;
     }
@@ -297,7 +297,7 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
     }
 
     auto curve = create_curve(cfg_, pool);
-    auto uncalibrated = ((float)value * 3.0f) / 8388608.0f;
+    auto uncalibrated = ((float)value * 2.048f) / 8388608.0f;
     auto calibrated = curve->apply(uncalibrated);
 
     loginfo("[%d] water: %f (%f)", mc.position().integer(), uncalibrated, calibrated);
