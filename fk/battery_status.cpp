@@ -44,7 +44,7 @@ void BatteryChecker::refresh(bool initialize) {
             battery_status_ = BatteryStatus::External;
         }
 
-        loginfo("battery: v_bus = %fV v_s = %fmV %fmA %fmW %f%% %s %s",
+        loginfo("battery: v_bus=%fV v_s=%fmV %fmA %fmW %f%% %s %s",
                 power.battery.bus_voltage, power.battery.shunted_voltage,
                 power.battery.ma, power.battery.mw,
                 charge, battery_status_to_string(battery_status_),
@@ -56,7 +56,7 @@ void BatteryChecker::refresh(bool initialize) {
     }
 
     if (power.solar.available) {
-        loginfo("solar: v_bus = %fV v_s = %fmV %fmA %fmW",
+        loginfo("solar: v_bus=%fV v_s=%fmV %fmA %fmW",
                 power.solar.bus_voltage, power.solar.shunted_voltage,
                 power.solar.ma, power.solar.mw);
     }

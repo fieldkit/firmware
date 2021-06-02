@@ -70,8 +70,8 @@ void DataRecord::include_readings(GlobalState const *gs, fkb_header_t const *fkb
                 auto reading = sensor.reading();
                 auto sensor_index = sensor.index();
 
-                loginfo("bay[%d] sensor[%2d] '%s.%s' = %f (%f)", position.integer(), sensor_index, meta->name,
-                        sensor.name(), reading.calibrated, reading.uncalibrated);
+                logverbose("[%d] sensor[%2d] name='%s.%s' calibrated=%f uncalibrated=%f",
+                           position.integer(), sensor_index, meta->name, sensor.name(), reading.calibrated, reading.uncalibrated);
                 sensor_values[sensor_index] = fk_data_SensorAndValue_init_default;
                 sensor_values[sensor_index].sensor = sensor.index();
                 sensor_values[sensor_index].value = reading.calibrated;

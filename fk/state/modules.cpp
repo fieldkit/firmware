@@ -79,7 +79,7 @@ int32_t AttachedModule::initialize(ModuleContext ctx, Pool *pool) {
     for (auto i = 0u; i < sensor_metas->nsensors; ++i) {
         auto &s = sensor_metas->sensors[i];
 
-        loginfo("[%d] sensor[%2d] name=%s", position_.integer(), i, s.name);
+        loginfo("[%d] sensor[%2d] name='%s.%s'", position_.integer(), i, meta_->name, s.name);
 
         sensors_.emplace(&s, i);
     }
@@ -135,8 +135,8 @@ int32_t AttachedModule::take_readings(ReadingsContext ctx, ReadingsListener *lis
         if (i < nreadings) {
             auto reading = module_readings->get(i);
 
-            loginfo("[%d] sensor[%2d] name=%s reading=%f (%f)", position_.integer(), sensor.index(), sensor.name(),
-                    reading.calibrated, reading.uncalibrated);
+            loginfo("[%d] sensor[%2d] name='%s.%s' reading=%f (%f)", position_.integer(), sensor.index(),
+                    meta_->name, sensor.name(), reading.calibrated, reading.uncalibrated);
 
             auto err = listener->sensor_reading(this, &sensor, reading, pool);
             if (err < 0) {
@@ -144,7 +144,7 @@ int32_t AttachedModule::take_readings(ReadingsContext ctx, ReadingsListener *lis
                 return err;
             }
         } else {
-            logwarn("[%d] sensor[%2d] name=%s no-reading", position_.integer(), sensor.index(), sensor.name());
+            logwarn("[%d] sensor[%2d] name='%s.%s' no-reading", position_.integer(), sensor.index(), meta_->name, sensor.name());
         }
     }
 
