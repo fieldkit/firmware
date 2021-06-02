@@ -9,7 +9,7 @@ struct index_attribute_t {
     uint32_t record{ (uint32_t)-1 };
     uint32_t position{ (uint32_t)-1 };
     uint32_t nrecords{ 0 };
-    uint8_t  hash[32];
+    uint8_t  hash[Hash::Length];
 
     index_attribute_t() {
         memset(hash, 0xff, sizeof(hash));

@@ -6,12 +6,34 @@ FK_DECLARE_LOGGER("phylum");
 
 using namespace phylum;
 
+static const char *get_attribute_name(uint8_t type) {
+    switch (type) {
+    case PHYLUM_DRIVER_FILE_ATTR_RECORDS:
+        return "records";
+    case PHYLUM_DRIVER_FILE_ATTR_INDEX_LOCATION:
+        return "location";
+    case PHYLUM_DRIVER_FILE_ATTR_INDEX_UPLOADED:
+        return "uploaded";
+    case PHYLUM_DRIVER_FILE_ATTR_INDEX_MODULES:
+        return "modules";
+    case PHYLUM_DRIVER_FILE_ATTR_INDEX_SCHEDULE:
+        return "schedule";
+    case PHYLUM_DRIVER_FILE_ATTR_INDEX_STATE:
+        return "state";
+    case PHYLUM_DRIVER_FILE_ATTR_INDEX_DATA:
+        return "data";
+    default:
+        return "UNKNOWN";
+    }
+}
+
 class PhylumAttributes {
 private:
-    open_file_config cfg_;
+    open_file_config &cfg_;
+    Pool &pool_;
 
 public:
-    PhylumAttributes(open_file_config cfg): cfg_(cfg) {
+    PhylumAttributes(open_file_config &cfg, Pool &pool): cfg_(cfg), pool_(pool) {
     }
 
 public:
@@ -20,6 +42,63 @@ public:
         auto &attr = cfg_.attributes[phylum_file_attr_type_to_index(type)];
         attr.dirty = true;
         return (T *)attr.ptr;
+    }
+
+    void initialize() {
+        if (cfg_.attributes != nullptr) {
+            return;
+        }
+
+        auto attributes =
+            (open_file_attribute *)pool_.malloc(sizeof(open_file_attribute) * PHYLUM_DRIVER_FILE_ATTR_NUMBER);
+
+        auto i = 0;
+        attributes[i++] = open_file_attribute{ PHYLUM_DRIVER_FILE_ATTR_RECORDS, sizeof(records_attribute_t), 0x00 };
+        attributes[i++] = open_file_attribute{ PHYLUM_DRIVER_FILE_ATTR_INDEX_LOCATION, sizeof(index_attribute_t), 0xff };
+        attributes[i++] = open_file_attribute{ PHYLUM_DRIVER_FILE_ATTR_INDEX_UPLOADED, sizeof(index_attribute_t), 0xff };
+        attributes[i++] = open_file_attribute{ PHYLUM_DRIVER_FILE_ATTR_INDEX_MODULES, sizeof(index_attribute_t), 0xff };
+        attributes[i++] = open_file_attribute{ PHYLUM_DRIVER_FILE_ATTR_INDEX_SCHEDULE, sizeof(index_attribute_t), 0xff };
+        attributes[i++] = open_file_attribute{ PHYLUM_DRIVER_FILE_ATTR_INDEX_STATE, sizeof(index_attribute_t), 0xff };
+        attributes[i++] = open_file_attribute{ PHYLUM_DRIVER_FILE_ATTR_INDEX_DATA, sizeof(index_attribute_t), 0xff };
+
+        assert(i == PHYLUM_DRIVER_FILE_ATTR_NUMBER);
+
+        cfg_ = {};
+        cfg_.attributes = attributes;
+        cfg_.nattrs = PHYLUM_DRIVER_FILE_ATTR_NUMBER;
+
+        for (auto index = 0u; index < cfg_.nattrs; ++index) {
+            auto &attr = attributes[index];
+            attr.ptr = pool_.malloc(attr.size);
+
+            if (index == 0) {
+                *((records_attribute_t *)attr.ptr) = records_attribute_t{};
+            } else {
+                *((index_attribute_t *)attr.ptr) = index_attribute_t{};
+            }
+        }
+    }
+
+    void debug() {
+        char hash_hex[Hash::Length * 2 + 1];
+        for (auto index = 0u; index < cfg_.nattrs; ++index) {
+            auto &attr = cfg_.attributes[index];
+            auto name = get_attribute_name(attr.type);
+            if (index == 0) {
+                auto value = (records_attribute_t *)attr.ptr;
+                loginfo("attribute[%d] %-8s first-record=%" PRIu32 " nrecords=%" PRIu32 "", index, name, value->first, value->nrecords);
+            } else {
+                auto value = (index_attribute_t *)attr.ptr;
+                if (value->nrecords == 0) {
+                    loginfo("attribute[%d] %-8s nrecords=%" PRIu32 "", index, name, value->nrecords);
+                }
+                else {
+                    bytes_to_hex_string(hash_hex, sizeof(hash_hex), value->hash, sizeof(value->hash));
+                    loginfo("attribute[%d] %-8s nrecords=%" PRIu32 " record=%" PRIu32 " position=%" PRIu32 " hash=%s",
+                            index, name, value->nrecords, value->record, value->position, hash_hex);
+                }
+            }
+        }
     }
 };
 
@@ -72,36 +151,8 @@ PhylumDataFile::PhylumDataFile(Phylum &phylum, Pool &pool) : phylum_(phylum), po
 }
 
 int32_t PhylumDataFile::initialize_config(Pool &pool) {
-    if (attributes_ == nullptr) {
-        attributes_ = (open_file_attribute *)pool.malloc(sizeof(open_file_attribute) * PHYLUM_DRIVER_FILE_ATTR_NUMBER);
-
-        auto i = 0;
-        attributes_[i++] = open_file_attribute{ PHYLUM_DRIVER_FILE_ATTR_RECORDS,          sizeof(records_attribute_t),  0x00 };
-        attributes_[i++] = open_file_attribute{ PHYLUM_DRIVER_FILE_ATTR_INDEX_LOCATION,   sizeof(index_attribute_t),    0xff };
-        attributes_[i++] = open_file_attribute{ PHYLUM_DRIVER_FILE_ATTR_INDEX_UPLOADED,   sizeof(index_attribute_t),    0xff };
-        attributes_[i++] = open_file_attribute{ PHYLUM_DRIVER_FILE_ATTR_INDEX_MODULES,    sizeof(index_attribute_t),    0xff };
-        attributes_[i++] = open_file_attribute{ PHYLUM_DRIVER_FILE_ATTR_INDEX_SCHEDULE,   sizeof(index_attribute_t),    0xff };
-        attributes_[i++] = open_file_attribute{ PHYLUM_DRIVER_FILE_ATTR_INDEX_STATE,      sizeof(index_attribute_t),    0xff };
-        attributes_[i++] = open_file_attribute{ PHYLUM_DRIVER_FILE_ATTR_INDEX_DATA,       sizeof(index_attribute_t),    0xff };
-
-        assert(i == PHYLUM_DRIVER_FILE_ATTR_NUMBER);
-
-        file_cfg_ = {};
-        file_cfg_.attributes = attributes_;
-        file_cfg_.nattrs = PHYLUM_DRIVER_FILE_ATTR_NUMBER;
-
-        for (auto index = 0u; index < file_cfg_.nattrs; ++index) {
-            auto &attr = attributes_[index];
-            attr.ptr = pool.malloc(attr.size);
-
-            if (index == 0) {
-                *((records_attribute_t *)attr.ptr) = records_attribute_t{ };
-            }
-            else {
-                *((index_attribute_t *)attr.ptr) = index_attribute_t{ };
-            }
-        }
-    }
+    PhylumAttributes attributes{ file_cfg_, pool_ };
+    attributes.initialize();
 
     return 0;
 }
@@ -119,6 +170,9 @@ int32_t PhylumDataFile::open(const char *name, Pool &pool) {
     }
 
     name_ = name;
+
+    PhylumAttributes attributes{ file_cfg_, pool_ };
+    attributes.debug();
 
     return 0;
 }
@@ -140,7 +194,8 @@ int32_t PhylumDataFile::create(const char *name, Pool &pool) {
 PhylumDataFile::DataFileAttributes PhylumDataFile::attributes() {
     assert(name_ != nullptr);
 
-    PhylumAttributes attributes{ file_cfg_ };
+    PhylumAttributes attributes{ file_cfg_, pool_ };
+
     auto records = attributes.get<records_attribute_t>(PHYLUM_DRIVER_FILE_ATTR_RECORDS);
     auto data_index = attributes.get<index_attribute_t>(PHYLUM_DRIVER_FILE_ATTR_INDEX_DATA);
 
@@ -184,7 +239,7 @@ PhylumDataFile::appended_t PhylumDataFile::append_always(RecordType type, pb_msg
     auto attribute_type = get_attribute_for_record_type(type);
     auto attribute_index = phylum_file_attr_type_to_index(attribute_type);
 
-    PhylumAttributes attributes{ file_cfg_ };
+    PhylumAttributes attributes{ file_cfg_, pool_ };
     auto records = attributes.get<records_attribute_t>(PHYLUM_DRIVER_FILE_ATTR_RECORDS);
     auto index_record = attributes.get<index_attribute_t>(attribute_type);
 
@@ -263,6 +318,8 @@ PhylumDataFile::appended_t PhylumDataFile::append_always(RecordType type, pb_msg
     loginfo("wrote record R-%" PRIu32 " position=%zu bytes=%zu total=%zu hash=%s",
             record_number, record_position, bytes_written, file_size, hash_hex);
 
+    attributes.debug();
+
     return appended_t{ (int32_t)bytes_written, record_number };
 }
 
@@ -271,7 +328,7 @@ PhylumDataFile::appended_t PhylumDataFile::append_immutable(RecordType type, pb_
 
     loginfo("append-immutable");
 
-    PhylumAttributes attributes{ file_cfg_ };
+    PhylumAttributes attributes{ file_cfg_, pool_ };
     auto index_attribute = attributes.get<index_attribute_t>(get_attribute_for_record_type(type));
 
     phylum::noop_writer noop;
@@ -313,7 +370,7 @@ int32_t PhylumDataFile::seek_record_type(RecordType type, file_size_t &position,
 
     loginfo("seek record-type=%d attribute-type=%d index=%d", type, attribute_type, attribute_index);
 
-    PhylumAttributes attributes{ file_cfg_ };
+    PhylumAttributes attributes{ file_cfg_, pool_ };
     auto index_attribute = attributes.get<index_attribute_t>(attribute_type);
 
     position = index_attribute->position;
