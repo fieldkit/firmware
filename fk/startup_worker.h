@@ -9,6 +9,7 @@ class GlobalState;
 
 class StartupWorker : public Worker {
 private:
+    fkb_header_t *fkb_header_{ nullptr };
     bool allow_phylum_{ false };
 
 public:
@@ -35,6 +36,10 @@ private:
     bool load_or_create_state(Pool &pool);
     bool load_state(Storage &storage, GlobalState *gs, Pool &pool);
     bool create_new_state(Storage &storage, GlobalState *gs, Pool &pool);
+    fkb_header_t const *fkb_header();
+
+public:
+    void fkb_header(fkb_header_t *fkb_header);
 
 private:
     bool load_from_files(Storage &storage, GlobalState *gs, Pool &pool);

@@ -14,7 +14,7 @@
 
 using namespace fk;
 
-fkb_header_t fake_header = {
+static fkb_header_t fake_header = {
     .signature          = { 'F', 'K', 'B', 0 },
     .version            = 1,
     .size               = sizeof(fkb_header_t),
@@ -22,7 +22,9 @@ fkb_header_t fake_header = {
         .flags          = 0,
         .timestamp      = 1580763366,
         .number         = 1000,
-        .reserved       = { 0x0 },
+        .reserved       = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff },
+        .safe           = 0xff,
+        .previous       = UINT32_MAX,
         .binary_size    = 65536,
         .tables_offset  = 8192,
         .data_size      = 8192,

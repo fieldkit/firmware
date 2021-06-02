@@ -11,6 +11,32 @@
 
 using namespace fk;
 
+static fkb_header_t fake_header = {
+    .signature          = { 'F', 'K', 'B', 0 },
+    .version            = 1,
+    .size               = sizeof(fkb_header_t),
+    .firmware           = {
+        .flags          = 0,
+        .timestamp      = 1580763366,
+        .number         = 1000,
+        .reserved       = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff },
+        .safe           = 0xff,
+        .previous       = UINT32_MAX,
+        .binary_size    = 65536,
+        .tables_offset  = 8192,
+        .data_size      = 8192,
+        .bss_size       = 8192,
+        .got_size       = 8192,
+        .vtor_offset    = 8192,
+        .got_offset     = 32768,
+        .version        = { 0x0 },
+        .hash_size      = 32,
+        .hash           = { 0xB2 }
+    },
+    .number_symbols     = 100,
+    .number_relocations = 100
+};
+
 FK_DECLARE_LOGGER("readings-worker-tests");
 
 class ReadingsWorkerSuite : public StorageSuite {
@@ -19,6 +45,7 @@ class ReadingsWorkerSuite : public StorageSuite {
 TEST_F(ReadingsWorkerSuite, OnlyDiagnosticsModule_FirstReading) {
     StandardPool pool{ "tests" };
     StartupWorker startup_worker{ true };
+    startup_worker.fkb_header(&fake_header);
     startup_worker.run(pool);
 
     auto gs = get_global_state_ro();
@@ -36,6 +63,7 @@ TEST_F(ReadingsWorkerSuite, OnlyDiagnosticsModule_SecondReading) {
 
     StandardPool pool{ "tests" };
     StartupWorker startup_worker{ true };
+    startup_worker.fkb_header(&fake_header);
     startup_worker.run(pool);
 
     ASSERT_EQ(gs.get()->readings.nreadings, 0u);
@@ -61,6 +89,7 @@ TEST_F(ReadingsWorkerSuite, ScannedModule_InvalidHeader) {
 
     StandardPool pool{ "tests" };
     StartupWorker startup_worker{ true };
+    startup_worker.fkb_header(&fake_header);
     startup_worker.run(pool);
 
     ASSERT_EQ(gs.get()->readings.nreadings, 0u);
@@ -92,6 +121,7 @@ TEST_F(ReadingsWorkerSuite, ScannedModule_MultipleReadings) {
 
     StandardPool pool{ "tests" };
     StartupWorker startup_worker{ true };
+    startup_worker.fkb_header(&fake_header);
     startup_worker.run(pool);
 
     ASSERT_EQ(gs.get()->readings.nreadings, 0u);
@@ -128,7 +158,7 @@ TEST_F(ReadingsWorkerSuite, ScannedModule_MultipleReadings) {
 
         // State record
         auto bytes_read = reader->read(&meta_record.for_decoding(pool), fk_data_DataRecord_fields);
-        ASSERT_EQ(bytes_read, 349);
+        ASSERT_EQ(bytes_read, 413);
 
         // Modules record
         bytes_read = reader->read(&meta_record.for_decoding(pool), fk_data_DataRecord_fields);
@@ -177,6 +207,7 @@ TEST_F(ReadingsWorkerSuite, ScannedModule_ModuleAdded) {
 
     StandardPool pool{ "tests" };
     StartupWorker startup_worker{ true };
+    startup_worker.fkb_header(&fake_header);
     startup_worker.run(pool);
 
     ASSERT_EQ(gs.get()->readings.nreadings, 0u);
@@ -211,7 +242,7 @@ TEST_F(ReadingsWorkerSuite, ScannedModule_ModuleAdded) {
 
         // State record
         auto bytes_read = reader->read(&meta_record.for_decoding(pool), fk_data_DataRecord_fields);
-        ASSERT_EQ(bytes_read, 349);
+        ASSERT_EQ(bytes_read, 413);
 
         // Modules record
         bytes_read = reader->read(&meta_record.for_decoding(pool), fk_data_DataRecord_fields);

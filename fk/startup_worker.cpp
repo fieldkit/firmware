@@ -40,6 +40,17 @@ static void copy_cron_spec_from_pb(const char *name, Schedule &cs, fk_data_JobSc
 StartupWorker::StartupWorker(bool allow_phylum) : allow_phylum_(allow_phylum) {
 }
 
+fkb_header_t const *StartupWorker::fkb_header() {
+    if (fkb_header_ == nullptr) {
+        return &::fkb_header;
+    }
+    return fkb_header_;
+}
+
+void StartupWorker::fkb_header(fkb_header_t *fkb_header) {
+    fkb_header_ = fkb_header;
+}
+
 void StartupWorker::run(Pool &pool) {
     get_board()->i2c_core().begin();
 
@@ -195,7 +206,7 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
     MetaRecord meta_record;
     if (!storage.meta_ops()->read_record(SignedRecordKind::State, meta_record, pool)) {
         meta_record = MetaRecord{ };
-        meta_record.include_state(gs, &fkb_header, pool);
+        meta_record.include_state(gs, fkb_header(), pool);
 
         if (!storage.meta_ops()->write_record(SignedRecordKind::State, &meta_record.record(), pool)) {
             logerror("writing state");
@@ -348,7 +359,7 @@ bool StartupWorker::create_new_state(Storage &storage, GlobalState *gs, Pool &po
     }
 
     MetaRecord meta_record;
-    meta_record.include_state(gs, &fkb_header, pool);
+    meta_record.include_state(gs, fkb_header(), pool);
 
     if (!storage.meta_ops()->write_record(SignedRecordKind::State, &meta_record.record(), pool)) {
         logerror("writing state");
