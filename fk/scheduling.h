@@ -15,6 +15,8 @@
 
 #include "tasks/tasks.h"
 
+#include "gps_service.h"
+
 namespace fk {
 
 struct CurrentSchedules {
@@ -45,8 +47,11 @@ public:
 };
 
 class GpsTask : public lwcron::CronTask, public SchedulerTask {
+private:
+    GpsService &gps_service_;
+
 public:
-    explicit GpsTask(lwcron::CronSpec cron_spec);
+    explicit GpsTask(lwcron::CronSpec cron_spec, GpsService &gps_service);
 
 public:
     void run() override;

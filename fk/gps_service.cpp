@@ -19,15 +19,23 @@ GpsService::~GpsService() {
 }
 
 bool GpsService::begin() {
-    if (!stopped_) {
-        logerror("gps already started");
+    if (running_) {
+        logerror("already running");
         return false;
     }
 
     if (!gps_->begin()) {
-        logerror("initializing gps");
+        logerror("initializing");
         return false;
     }
+
+    loginfo("begin");
+
+    running_ = true;
+    status_timer_ = IntervalTimer{ ThirtySecondsMs };
+    update_timer_ = IntervalTimer{ FiveSecondsMs };
+    started_at_ = fk_uptime();
+    fixed_at_ = 0u;
 
     GlobalStateManager gsm;
     gsm.apply([=](GlobalState *gs) {
@@ -35,19 +43,18 @@ bool GpsService::begin() {
         gs->gps.enabled = true;
     });
 
-    stopped_ = false;
-
     return true;
 }
 
 bool GpsService::service() {
-    if (stopped_) {
+    if (!running_) {
         return true;
     }
-    GlobalStateManager gsm;
 
     GpsFix fix;
     FK_ASSERT(gps_->service(fix));
+
+    GlobalStateManager gsm;
 
     bool log_status = false;
     if (fix.chars > 0) {
@@ -114,7 +121,7 @@ bool GpsService::service() {
 }
 
 bool GpsService::stop() {
-    if (stopped_) {
+    if (!running_) {
         return true;
     }
 
@@ -126,7 +133,7 @@ bool GpsService::stop() {
         gs->gps.fix = false;
     });
 
-    stopped_ = true;
+    running_ = false;
 
     return true;
 }

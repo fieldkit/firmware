@@ -30,11 +30,11 @@ const char *ReadingsTask::toString() const {
     return "readings";
 }
 
-GpsTask::GpsTask(lwcron::CronSpec cron_spec) : lwcron::CronTask(cron_spec) {
+GpsTask::GpsTask(lwcron::CronSpec cron_spec, GpsService &gps_service) : lwcron::CronTask(cron_spec), gps_service_(gps_service) {
 }
 
 void GpsTask::run() {
-    fk_start_task_if_necessary(&gps_task);
+    gps_service_.begin();
 }
 
 const char *GpsTask::toString() const {

@@ -8,6 +8,7 @@
 #include "battery_status.h"
 #include "deep_sleep.h"
 #include "timer.h"
+#include "gps_service.h"
 
 #if defined(__SAMD51__)
 #include "hal/metal/metal_ipc.h"
@@ -56,16 +57,15 @@ void task_handler_scheduler(void *params) {
 
     battery.refresh();
 
+    GpsService gps_service{ get_gps() };
+
     if (!battery.low_power()) {
         FK_ASSERT(fk_start_task_if_necessary(&display_task));
         FK_ASSERT(fk_start_task_if_necessary(&network_task));
 
-        // NOTE: These share the same stack and so they can never be running together.
-#if defined(FK_ENABLE_DEBUG_TASK)
-        FK_ASSERT(fk_start_task_if_necessary(&debug_task));
-#else
-        FK_ASSERT(fk_start_task_if_necessary(&gps_task));
-#endif
+        if (!gps_service.begin()) {
+            logerror("gps");
+        }
     }
     else {
         get_board()->disable_gps();
@@ -80,7 +80,7 @@ void task_handler_scheduler(void *params) {
         ReadingsTask readings_job{ schedules.readings };
         UploadDataTask upload_data_job{ schedules.network, schedules.network_jitter };
         LoraTask lora_job{ schedules.lora };
-        GpsTask gps_job{ schedules.gps };
+        GpsTask gps_job{ schedules.gps, gps_service };
         ServiceModulesTask service_modules_job{ schedules.service_interval };
         SynchronizeTimeTask synchronize_time_job{ DefaultSynchronizeTimeInterval };
 
@@ -160,9 +160,11 @@ void task_handler_scheduler(void *params) {
 
                 if (!get_ipc()->has_any_running_worker()) {
                     DeepSleep deep_sleep;
-                    deep_sleep.try_deep_sleep(scheduler);
+                    deep_sleep.try_deep_sleep(scheduler, gps_service);
                 }
             }
+
+            gps_service.service();
         }
     }
 

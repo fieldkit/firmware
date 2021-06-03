@@ -33,7 +33,7 @@ static uint32_t deep_sleep() {
     return elapsed;
 }
 
-static bool can_deep_sleep() {
+static bool can_deep_sleep(Runnable const &runnable) {
     if (os_task_is_running(&network_task)) {
         loginfo("no-sleep: network task");
         return false;
@@ -42,8 +42,8 @@ static bool can_deep_sleep() {
         loginfo("no-sleep: display task");
         return false;
     }
-    if (os_task_is_running(&gps_task)) {
-        loginfo("no-sleep: gps task");
+    if (runnable.is_running()) {
+        loginfo("no-sleep: runnable (gps)");
         return false;
     }
     if (get_network()->enabled()) {
@@ -58,8 +58,8 @@ bool DeepSleep::once() {
     return deep_sleep() > 0;
 }
 
-bool DeepSleep::try_deep_sleep(lwcron::Scheduler &scheduler) {
-    if (can_deep_sleep()) {
+bool DeepSleep::try_deep_sleep(lwcron::Scheduler &scheduler, Runnable const &runnable) {
+    if (can_deep_sleep(runnable)) {
         while (true) {
             auto now = get_clock_now();
             auto nextTask = scheduler.nextTask(lwcron::DateTime{ now }, 0);
