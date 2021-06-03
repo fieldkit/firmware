@@ -106,7 +106,7 @@ int32_t BankedDataMemory::copy_page(uint32_t source, uint32_t destiny, size_t pa
                     return read_err;
                 }
 
-                auto write_err = destiny_bank.read(destiny_bank_address, buffer, page_size);
+                auto write_err = destiny_bank.write(destiny_bank_address, buffer, page_size);
                 if (write_err < 0) {
                     return write_err;
                 }
