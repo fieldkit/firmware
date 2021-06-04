@@ -313,15 +313,10 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
         loginfo("(loaded) recording (%" PRIu32 ")", record.condition.recording);
     }
 
-    if (!fk_debug_override_schedules()) {
-        copy_cron_spec_from_pb("readings", gs->scheduler.readings, record.schedule.readings, pool);
-        copy_cron_spec_from_pb("network", gs->scheduler.network, record.schedule.network, pool);
-        copy_cron_spec_from_pb("gps", gs->scheduler.gps, record.schedule.gps, pool);
-        copy_cron_spec_from_pb("lora", gs->scheduler.lora, record.schedule.lora, pool);
-    }
-    else {
-        logwarn("ignored loaded schedules, debugger attached");
-    }
+    copy_cron_spec_from_pb("readings", gs->scheduler.readings, record.schedule.readings, pool);
+    copy_cron_spec_from_pb("network", gs->scheduler.network, record.schedule.network, pool);
+    copy_cron_spec_from_pb("gps", gs->scheduler.gps, record.schedule.gps, pool);
+    copy_cron_spec_from_pb("lora", gs->scheduler.lora, record.schedule.lora, pool);
 
     // Check for a need to fixup the duration.
     if (gs->scheduler.network.duration == 0) {
@@ -596,6 +591,11 @@ bool StartupWorker::check_for_interactive_startup(Pool &pool) {
 }
 
 static void copy_cron_spec_from_pb(const char *name, Schedule &cs, fk_data_JobSchedule const &pb, Pool &pool) {
+    #if defined(FK_DEBUG_OVERRIDE_SCHEDULES)
+    logwarn("(ignoring) %s schedule (FK_DEBUG_OVERRIDE_SCHEDULES)", name);
+    return;
+    #endif
+
     auto pbd = pb_get_data_if_provided(pb.cron.arg, pool);
     if (pbd != nullptr) {
         FK_ASSERT(pbd->length == sizeof(lwcron::CronSpec));
