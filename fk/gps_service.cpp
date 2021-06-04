@@ -66,6 +66,7 @@ bool GpsService::service() {
                 gsm.apply([=](GlobalState *gs) {
                     gs->gps.enabled = true;
                     gs->gps.fix = true;
+                    gs->gps.time = fix.time;
                     gs->gps.longitude = fix.longitude;
                     gs->gps.latitude = fix.latitude;
                     gs->gps.altitude = fix.altitude;

@@ -50,17 +50,40 @@ static void log_status() {
     auto mi = mallinfo();
     FK_ASSERT(mi.arena == mi.uordblks);
 
+    char gps_status[64];
+    if (gs.get()->gps.enabled) {
+        if (gs.get()->gps.fix) {
+            snprintf(gps_status, sizeof(gps_status), "chars=%" PRIu32 " satellites=%d ", gs.get()->gps.chars, gs.get()->gps.satellites);
+        }
+        else {
+            snprintf(gps_status, sizeof(gps_status), "chars=%" PRIu32 " no-fix, ", gs.get()->gps.chars);
+        }
+    }
+    else {
+        snprintf(gps_status, sizeof(gps_status), "off, ");
+    }
+
+    auto length = strlen(gps_status);
+    if (gs.get()->gps.time > 0) {
+        uint32_t age = now - gs.get()->gps.time;
+        snprintf(gps_status + length, sizeof(gps_status) - length, "fix-age=%" PRIu32 " [%f, %f]",
+                 age, gs.get()->gps.longitude, gs.get()->gps.latitude);
+    }
+    else {
+        snprintf(gps_status + length, sizeof(gps_status) - length, "fix-age=inf");
+    }
+
     FormattedTime formatted{ now };
     if (get_network()->enabled()) {
-        loginfo("%s '%s' data(records=%" PRIu32 " readings=%" PRIu32 ") pages(%zd/%zd/%zd, %.2f%% used) (%d.%d.%d.%d) (%" PRId32 ")",
-                formatted.cstr(), name, records, readings,
+        loginfo("%s '%s' data(readings=%" PRIu32 "/%" PRIu32 ") gps(%s) pages(%zd/%zd/%zd, %.2f%% used) (%d.%d.%d.%d) (%" PRId32 ")",
+                formatted.cstr(), name, readings, records, gps_status,
                 spmi.total - spmi.free, spmi.highwater, spmi.total, percentage,
                 ip.u.bytes[0], ip.u.bytes[1], ip.u.bytes[2], ip.u.bytes[3], rssi
             );
     }
     else {
-        loginfo("%s '%s' data(records=%" PRIu32 " readings=%" PRIu32 ") pages(%zd/%zd/%zd, %.2f%% used)",
-                formatted.cstr(), name, records, readings,
+        loginfo("%s '%s' data(readings=%" PRIu32 "/%" PRIu32 ") gps(%s) pages(%zd/%zd/%zd, %.2f%% used)",
+                formatted.cstr(), name, readings, records, gps_status,
                 spmi.total - spmi.free, spmi.highwater, spmi.total, percentage);
     }
 }
