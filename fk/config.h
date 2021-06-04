@@ -110,11 +110,13 @@ constexpr uint32_t DefaultReadingsInterval = OneHourSeconds;
 constexpr uint32_t DefaultNetworkInterval = 60 * 60 * 60;
 constexpr uint32_t DefaultLoraInterval = 60 * 60 * 2;
 constexpr uint32_t DefaultGpsInterval = OneDaySeconds;
+constexpr uint32_t DefaultGpsDuration = TenMinutesSeconds;
 constexpr uint32_t DefaultSynchronizeTimeInterval = OneDaySeconds;
 constexpr uint32_t DefaultDebugReadingsInterval = 60;
 constexpr uint32_t DefaultDebugNetworkInterval = 60 * 60 * 60;
 constexpr uint32_t DefaultDebugLoraInterval = 60 * 3;
-constexpr uint32_t DefaultDebugGpsInterval = OneDaySeconds;
+constexpr uint32_t DefaultDebugGpsInterval = 60 * 60 * 2;
+constexpr uint32_t DefaultDebugGpsDuration = TenMinutesSeconds;
 
 /**
  * Maximum number of intervals per schedule.

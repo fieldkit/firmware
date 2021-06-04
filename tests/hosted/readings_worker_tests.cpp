@@ -158,7 +158,7 @@ TEST_F(ReadingsWorkerSuite, ScannedModule_MultipleReadings) {
 
         // State record
         auto bytes_read = reader->read(&meta_record.for_decoding(pool), fk_data_DataRecord_fields);
-        ASSERT_EQ(bytes_read, 399);
+        ASSERT_EQ(bytes_read, 402);
 
         // Modules record
         bytes_read = reader->read(&meta_record.for_decoding(pool), fk_data_DataRecord_fields);
@@ -242,7 +242,7 @@ TEST_F(ReadingsWorkerSuite, ScannedModule_ModuleAdded) {
 
         // State record
         auto bytes_read = reader->read(&meta_record.for_decoding(pool), fk_data_DataRecord_fields);
-        ASSERT_EQ(bytes_read, 399);
+        ASSERT_EQ(bytes_read, 402);
 
         // Modules record
         bytes_read = reader->read(&meta_record.for_decoding(pool), fk_data_DataRecord_fields);
