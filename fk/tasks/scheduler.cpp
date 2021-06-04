@@ -78,14 +78,15 @@ void task_handler_scheduler(void *params) {
         auto schedules = get_config_schedules();
 
         ReadingsTask readings_job{ schedules.readings };
+        BackupTask backup_job{ schedules.backup };
         UploadDataTask upload_data_job{ schedules.network, schedules.network_jitter };
         LoraTask lora_job{ schedules.lora };
         GpsTask gps_job{ schedules.gps, gps_service };
         ServiceModulesTask service_modules_job{ schedules.service_interval };
         SynchronizeTimeTask synchronize_time_job{ DefaultSynchronizeTimeInterval };
 
-        lwcron::Task *tasks[6]{ &synchronize_time_job, &readings_job, &upload_data_job, &lora_job, &gps_job,
-                                &service_modules_job };
+        lwcron::Task *tasks[7]{ &synchronize_time_job, &readings_job, &upload_data_job, &lora_job, &gps_job,
+                                &service_modules_job,  &backup_job };
         lwcron::Scheduler scheduler{ tasks };
         Topology topology;
 

@@ -24,6 +24,7 @@ struct CurrentSchedules {
     lwcron::CronSpec network;
     lwcron::CronSpec gps;
     lwcron::CronSpec lora;
+    lwcron::CronSpec backup;
     uint32_t service_interval;
     uint32_t network_jitter;
 
@@ -98,6 +99,16 @@ public:
     void run() override ;
     const char *toString() const override;
     bool enabled() const override;
+
+};
+
+class BackupTask : public lwcron::CronTask, public SchedulerTask {
+public:
+    explicit BackupTask(lwcron::CronSpec cron_spec);
+
+public:
+    void run() override;
+    const char *toString() const override;
 
 };
 

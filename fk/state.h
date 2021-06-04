@@ -244,6 +244,7 @@ struct SchedulerState {
     Schedule network{ };
     Schedule gps{ };
     Schedule lora{ };
+    Schedule backup{ };
 };
 
 struct ReadingsState {
