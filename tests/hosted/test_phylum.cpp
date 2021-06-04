@@ -259,9 +259,10 @@ TEST_F(PhylumSuite, Basic_StartStop) {
 
     Storage storage{ MemoryFactory::get_data_memory(), pool, false };
 
+    // Old fs will fail to mount even after a clear.
     ASSERT_TRUE(storage.clear());
 
-    ASSERT_TRUE(storage.begin());
+    ASSERT_FALSE(storage.begin());
 
     auto ops = storage.data_ops();
 

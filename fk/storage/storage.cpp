@@ -126,7 +126,17 @@ bool Storage::begin() {
 bool Storage::clear() {
     loginfo("storage: clearing");
 
+    for (auto block = 0u; block < data_memory_->geometry().nblocks; ++block) {
+        auto block_size = data_memory_->geometry().block_size;
+        auto address = block * block_size;
+        if (data_memory_->erase(address, block_size) < 0) {
+            logerror("erasing block=%" PRIu32, block);
+        }
+    }
+
     if (!allow_phylum_) {
+        loginfo("storage: formatting darwin-fs");
+
         if (!clear_internal()) {
             return false;
         }
@@ -137,13 +147,7 @@ bool Storage::clear() {
         return true;
     }
 
-    for (auto block = 0u; block < data_memory_->geometry().nblocks; ++block) {
-        auto block_size = data_memory_->geometry().block_size;
-        auto address = block * block_size;
-        if (data_memory_->erase(address, block_size) < 0) {
-            logerror("erasing block=%" PRIu32, block);
-        }
-    }
+    loginfo("storage: formatting phylum-fs");
 
     if (!phylum_.format()) {
         logerror("format");
@@ -343,6 +347,7 @@ bool Storage::begin_internal() {
     }
 
     if (!had_valid_blocks) {
+        logdebug("[-] begin: no valid blocks");
         return false;
     }
 
