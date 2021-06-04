@@ -38,19 +38,31 @@ static void log_status() {
     }
 
     auto now = get_clock_now();
-    auto mi = mallinfo();
     auto name = gs.get()->general.name;
-    ip4_address ip{ gs.get()->network.state.ip };
+    auto readings = gs.get()->readings.nreadings;
+    auto records = gs.get()->storage.data.block + gs.get()->storage.meta.block;
     auto spmi = fk_standard_page_meminfo();
-    auto memory_oddity = mi.arena != mi.uordblks;
     auto percentage = (float)spmi.used / spmi.total * 100.0f;
+
+    ip4_address ip{ gs.get()->network.state.ip };
     auto rssi = get_network()->rssi();
 
+    auto mi = mallinfo();
+    FK_ASSERT(mi.arena == mi.uordblks);
+
     FormattedTime formatted{ now };
-    loginfo("%s '%s' (%d.%d.%d.%d) (%" PRId32 ") memory(%" PRIu32 " / %zd%s) pages(%zd / %zd / %zd, %.2f%% used)",
-            formatted.cstr(), name, ip.u.bytes[0], ip.u.bytes[1], ip.u.bytes[2], ip.u.bytes[3],
-            rssi, fk_free_memory(), (size_t)mi.arena, (memory_oddity ? " ERR" : ""),
-            spmi.total - spmi.free, spmi.highwater, spmi.total, percentage);
+    if (get_network()->enabled()) {
+        loginfo("%s '%s' data(records=%" PRIu32 " readings=%" PRIu32 ") pages(%zd/%zd/%zd, %.2f%% used) (%d.%d.%d.%d) (%" PRId32 ")",
+                formatted.cstr(), name, records, readings,
+                spmi.total - spmi.free, spmi.highwater, spmi.total, percentage,
+                ip.u.bytes[0], ip.u.bytes[1], ip.u.bytes[2], ip.u.bytes[3], rssi
+            );
+    }
+    else {
+        loginfo("%s '%s' data(records=%" PRIu32 " readings=%" PRIu32 ") pages(%zd/%zd/%zd, %.2f%% used)",
+                formatted.cstr(), name, records, readings,
+                spmi.total - spmi.free, spmi.highwater, spmi.total, percentage);
+    }
 }
 
 void fk_status_log() {
