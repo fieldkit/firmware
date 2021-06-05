@@ -24,6 +24,13 @@ public:
         return true;
     }
 
+    template<typename T>
+    bool apply_update(T has_apply) {
+        auto gs = get_global_state_rw();
+        gs.get()->apply(has_apply);
+        return true;
+    }
+
     bool notify(NotificationState notification) {
         return apply([=](GlobalState *gs) {
             gs->notification = notification;
