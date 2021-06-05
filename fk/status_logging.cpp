@@ -44,19 +44,17 @@ static void log_status() {
     auto spmi = fk_standard_page_meminfo();
     auto percentage = (float)spmi.used / spmi.total * 100.0f;
 
-    ip4_address ip{ gs.get()->network.state.ip };
-    auto rssi = get_network()->rssi();
-
     auto mi = mallinfo();
     FK_ASSERT(mi.arena == mi.uordblks);
 
     char gps_status[64];
-    if (gs.get()->gps.enabled) {
-        if (gs.get()->gps.fix) {
-            snprintf(gps_status, sizeof(gps_status), "chars=%" PRIu32 " satellites=%d ", gs.get()->gps.chars, gs.get()->gps.satellites);
+    auto &gps = gs.get()->gps;
+    if (gps.enabled) {
+        if (gps.fix) {
+            snprintf(gps_status, sizeof(gps_status), "chars=%" PRIu32 " satellites=%d ", gps.chars, gps.satellites);
         }
         else {
-            snprintf(gps_status, sizeof(gps_status), "chars=%" PRIu32 " no-fix, ", gs.get()->gps.chars);
+            snprintf(gps_status, sizeof(gps_status), "chars=%" PRIu32 " ", gps.chars);
         }
     }
     else {
@@ -64,28 +62,34 @@ static void log_status() {
     }
 
     auto length = strlen(gps_status);
-    if (gs.get()->gps.time > 0) {
-        uint32_t age = now - gs.get()->gps.time;
+    if (gps.time > 0) {
+        uint32_t age = now - gps.time;
         snprintf(gps_status + length, sizeof(gps_status) - length, "fix-age=%" PRIu32 " [%f, %f]",
-                 age, gs.get()->gps.longitude, gs.get()->gps.latitude);
-    }
-    else {
+                 age, gps.longitude, gps.latitude);
+    } else {
         snprintf(gps_status + length, sizeof(gps_status) - length, "fix-age=inf");
     }
 
-    FormattedTime formatted{ now };
+    char scheduler_status[32];
+    auto &s = gs.get()->scheduler;
+    snprintf(scheduler_status, sizeof(scheduler_status), "%" PRIu32 "/%" PRIu32 "",
+             s.readings.upcoming.seconds, s.gps.upcoming.seconds);
+
+    char network_status[32];
+    ip4_address ip{ gs.get()->network.state.ip };
+    auto rssi = get_network()->rssi();
     if (get_network()->enabled()) {
-        loginfo("%s '%s' data(readings=%" PRIu32 "/%" PRIu32 ") gps(%s) pages(%zd/%zd/%zd, %.2f%% used) (%d.%d.%d.%d) (%" PRId32 ")",
-                formatted.cstr(), name, readings, records, gps_status,
-                spmi.total - spmi.free, spmi.highwater, spmi.total, percentage,
-                ip.u.bytes[0], ip.u.bytes[1], ip.u.bytes[2], ip.u.bytes[3], rssi
-            );
+        snprintf(network_status, sizeof(network_status), "%d.%d.%d.%d rssi=%" PRId32 "",
+                 ip.u.bytes[0], ip.u.bytes[1], ip.u.bytes[2], ip.u.bytes[3], rssi);
     }
     else {
-        loginfo("%s '%s' data(readings=%" PRIu32 "/%" PRIu32 ") gps(%s) pages(%zd/%zd/%zd, %.2f%% used)",
-                formatted.cstr(), name, readings, records, gps_status,
-                spmi.total - spmi.free, spmi.highwater, spmi.total, percentage);
+        snprintf(network_status, sizeof(network_status), "off");
     }
+
+    FormattedTime formatted{ now };
+    loginfo("%s '%s' data(readings=%" PRIu32 "/%" PRIu32 ") gps(%s) mem(%zd/%zd/%zd, %.2f%% used) sched(%s) wifi(%s)",
+            formatted.cstr(), name, readings, records, gps_status, spmi.total - spmi.free, spmi.highwater, spmi.total,
+            percentage, scheduler_status, network_status);
 }
 
 void fk_status_log() {
