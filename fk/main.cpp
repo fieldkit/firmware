@@ -74,8 +74,15 @@ static void run_tasks() {
     OS_CHECK(os_task_initialize_options(&network_task, &network_task_options));
     OS_CHECK(os_task_initialize_options(&display_task, &display_task_options));
 
-    for (size_t i = 0; i < NumberOfWorkerTasks; ++i) {
+    auto data_index = 0u;
+    os_task_user_data_set(&idle_task, &task_data[data_index++]);
+    os_task_user_data_set(&scheduler_task, &task_data[data_index++]);
+    os_task_user_data_set(&network_task, &task_data[data_index++]);
+    os_task_user_data_set(&display_task, &task_data[data_index++]);
+
+    for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
         OS_CHECK(os_task_initialize(&worker_tasks[i], "worker", OS_TASK_START_SUSPENDED, &task_handler_worker, nullptr, worker_stacks[i], sizeof(worker_stacks[i])));
+        os_task_user_data_set(&worker_tasks[i], &task_data[data_index++]);
     }
 
     FK_ASSERT(get_ipc()->begin());

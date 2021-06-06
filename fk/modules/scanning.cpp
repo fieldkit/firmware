@@ -47,6 +47,8 @@ static bool generate_unique_virtual_module_id(ModuleHeader &header) {
 }
 
 static bool add_virtual_module(ScanningListener *listener, uint16_t kind, Pool *pool) {
+    logged_task lt{ "module[virt]" };
+
     ModuleHeader header;
     bzero(&header, sizeof(ModuleHeader));
     header.manufacturer = FK_MODULES_MANUFACTURER;
@@ -150,6 +152,8 @@ int32_t ModuleScanning::scan(ScanningListener *listener, Pool &pool) {
     }
 
     for (auto position : mm_->available_positions()) {
+        logged_task lt{ pool.sprintf("module[%d]", position.integer()) };
+
         if (!mm_->choose(position)) {
             logerror("[%d] error choosing", position.integer());
             return -1;
