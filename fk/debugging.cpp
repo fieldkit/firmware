@@ -119,10 +119,6 @@ bool fk_debug_get_console_attached() {
     return fk_console_attached;
 }
 
-bool fk_debug_override_schedules() {
-    return false;
-}
-
 void fk_debug_set_console_attached() {
     if (!fk_console_attached) {
         fk_console_attached = true;

@@ -8,6 +8,8 @@
 #include "battery_status.h"
 #include "deep_sleep.h"
 #include "timer.h"
+#include "gps_service.h"
+#include "state_manager.h"
 
 #if defined(__SAMD51__)
 #include "hal/metal/metal_ipc.h"
@@ -27,8 +29,7 @@ static bool has_module_topology_changed(Topology &existing);
 static void update_allow_deep_sleep(bool enabled);
 static bool get_can_launch_captive_readings();
 
-static ScheduledTime get_next_task_time(lwcron::Task &task) {
-    auto now = get_clock_now();
+static ScheduledTime get_next_task_time(uint32_t now, lwcron::Task &task) {
     auto next_task_time = task.getNextTime(lwcron::DateTime{ now }, 0);
     auto remaining_seconds = next_task_time - now;
     return {
@@ -38,34 +39,20 @@ static ScheduledTime get_next_task_time(lwcron::Task &task) {
     };
 }
 
-static void update_task_upcoming(ReadingsTask &readings_job) {
-    auto scheduled = get_next_task_time(readings_job);
-    if (scheduled.time == 0) {
-        logerror("no next readings scheduled, huge bug!");
-    }
-    else {
-        logdebug("next readings: %" PRIu32 "s (log)", scheduled.seconds);
-    }
-
-    auto gs = get_global_state_rw();
-    gs.get()->scheduler.readings.upcoming = scheduled;
-}
-
 void task_handler_scheduler(void *params) {
     BatteryChecker battery;
 
     battery.refresh();
 
+    GpsService gps_service{ get_gps() };
+
     if (!battery.low_power()) {
         FK_ASSERT(fk_start_task_if_necessary(&display_task));
         FK_ASSERT(fk_start_task_if_necessary(&network_task));
 
-        // NOTE: These share the same stack and so they can never be running together.
-#if defined(FK_ENABLE_DEBUG_TASK)
-        FK_ASSERT(fk_start_task_if_necessary(&debug_task));
-#else
-        FK_ASSERT(fk_start_task_if_necessary(&gps_task));
-#endif
+        if (!gps_service.begin()) {
+            logerror("gps");
+        }
     }
     else {
         get_board()->disable_gps();
@@ -78,14 +65,15 @@ void task_handler_scheduler(void *params) {
         auto schedules = get_config_schedules();
 
         ReadingsTask readings_job{ schedules.readings };
+        BackupTask backup_job{ schedules.backup };
         UploadDataTask upload_data_job{ schedules.network, schedules.network_jitter };
         LoraTask lora_job{ schedules.lora };
-        GpsTask gps_job{ schedules.gps };
+        GpsTask gps_job{ schedules.gps, gps_service };
         ServiceModulesTask service_modules_job{ schedules.service_interval };
         SynchronizeTimeTask synchronize_time_job{ DefaultSynchronizeTimeInterval };
 
-        lwcron::Task *tasks[6]{ &synchronize_time_job, &readings_job, &upload_data_job, &lora_job, &gps_job,
-                                &service_modules_job };
+        lwcron::Task *tasks[7]{ &synchronize_time_job, &readings_job, &upload_data_job, &lora_job, &gps_job,
+                                &service_modules_job,  &backup_job };
         lwcron::Scheduler scheduler{ tasks };
         Topology topology;
 
@@ -119,20 +107,20 @@ void task_handler_scheduler(void *params) {
                 }
             }
 
-            if (enable_allow_deep_sleep_timer.expired()) {
-                loginfo("deep sleep enabled");
-                update_allow_deep_sleep(true);
-                enable_allow_deep_sleep_timer.disable();
-            }
-
-            if (every_thirty_seconds.expired()) {
-                auto started = fk_uptime();
-                loginfo("refreshing battery");
-                battery.refresh();
-                loginfo("refreshing battery (%" PRIu32 "ms)", fk_uptime() - started);
-            }
-
             if (every_second.expired()) {
+                if (enable_allow_deep_sleep_timer.expired()) {
+                    loginfo("deep sleep enabled");
+                    update_allow_deep_sleep(true);
+                    enable_allow_deep_sleep_timer.disable();
+                }
+
+                if (every_thirty_seconds.expired()) {
+                    auto started = fk_uptime();
+                    loginfo("refreshing battery");
+                    battery.refresh();
+                    loginfo("refreshing battery (%" PRIu32 "ms)", fk_uptime() - started);
+                }
+
                 if (!battery.low_power_dangerous()) {
                     // Only do this if we haven't enabled power save mode,
                     // which we do after the timer passes.  We're also
@@ -153,16 +141,24 @@ void task_handler_scheduler(void *params) {
                             get_ipc()->launch_worker(WorkerCategory::Readings, create_pool_worker<ReadingsWorker>(false, false, ModulePowerState::AlwaysOn));
                         }
                     }
-                    else {
-                        update_task_upcoming(readings_job);
-                    }
+
+                    GlobalStateManager gsm;
+                    UpcomingUpdate update;
+                    update.readings = get_next_task_time(now, readings_job);
+                    update.network = get_next_task_time(now, upload_data_job);
+                    update.gps = get_next_task_time(now, gps_job);
+                    update.lora = get_next_task_time(now, lora_job);
+                    update.backup = get_next_task_time(now, backup_job);
+                    gsm.apply_update(update);
                 }
 
                 if (!get_ipc()->has_any_running_worker()) {
                     DeepSleep deep_sleep;
-                    deep_sleep.try_deep_sleep(scheduler);
+                    deep_sleep.try_deep_sleep(scheduler, gps_service);
                 }
             }
+
+            gps_service.service();
         }
     }
 

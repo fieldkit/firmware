@@ -71,16 +71,20 @@ bool GlobalStateManager::initialize(Pool &pool) {
         gs.get()->scheduler.readings.interval = DefaultDebugReadingsInterval;
         gs.get()->scheduler.network.interval = DefaultDebugNetworkInterval;
         gs.get()->scheduler.gps.interval = DefaultDebugGpsInterval;
+        gs.get()->scheduler.gps.duration = DefaultDebugGpsDuration;
         gs.get()->scheduler.lora.interval = DefaultDebugLoraInterval;
         gs.get()->scheduler.network.duration = FiveMinutesSeconds;
+        gs.get()->scheduler.backup.interval = OneDaySeconds;
         loginfo("using debug schedule");
     }
     else {
         gs.get()->scheduler.readings.interval = DefaultReadingsInterval;
         gs.get()->scheduler.network.interval = DefaultNetworkInterval;
         gs.get()->scheduler.gps.interval = DefaultGpsInterval;
+        gs.get()->scheduler.gps.duration = DefaultGpsDuration;
         gs.get()->scheduler.lora.interval = DefaultLoraInterval;
         gs.get()->scheduler.network.duration = FiveMinutesSeconds;
+        gs.get()->scheduler.backup.interval = OneDaySeconds;
         loginfo("using default schedule");
     }
 

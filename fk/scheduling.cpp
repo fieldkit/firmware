@@ -1,5 +1,7 @@
 #include "scheduling.h"
 
+#include "storage/backup_worker.h"
+
 namespace fk {
 
 CurrentSchedules::CurrentSchedules() {
@@ -11,6 +13,7 @@ CurrentSchedules::CurrentSchedules(GlobalState const *gs) {
     lora = gs->scheduler.lora.cron;
     network = gs->scheduler.network.cron;
     network_jitter = gs->scheduler.network.jitter;
+    backup = gs->scheduler.backup.cron;
     service_interval = 0; // module_factory.service_interval();
 }
 
@@ -30,11 +33,11 @@ const char *ReadingsTask::toString() const {
     return "readings";
 }
 
-GpsTask::GpsTask(lwcron::CronSpec cron_spec) : lwcron::CronTask(cron_spec) {
+GpsTask::GpsTask(lwcron::CronSpec cron_spec, GpsService &gps_service) : lwcron::CronTask(cron_spec), gps_service_(gps_service) {
 }
 
 void GpsTask::run() {
-    fk_start_task_if_necessary(&gps_task);
+    gps_service_.begin();
 }
 
 const char *GpsTask::toString() const {
@@ -96,6 +99,17 @@ const char *ServiceModulesTask::toString() const {
 
 bool ServiceModulesTask::enabled() const {
     return false; // get_module_factory().service_interval() > 0;
+}
+
+BackupTask::BackupTask(lwcron::CronSpec cron_spec) : lwcron::CronTask(cron_spec) {
+}
+
+void BackupTask::run() {
+    get_ipc()->launch_worker(create_pool_worker<BackupWorker>());
+}
+
+const char *BackupTask::toString() const {
+    return "backup";
 }
 
 } // namespace fk

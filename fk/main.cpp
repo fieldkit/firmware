@@ -37,16 +37,12 @@ static void run_tasks() {
     uint32_t idle_stack[stack_size];
     uint32_t scheduler_stack[stack_size];
     uint32_t display_stack[stack_size];
-    uint32_t gps_stack[stack_size];
-    // uint32_t debug_stack[128];
     uint32_t worker_stacks[NumberOfWorkerTasks][stack_size];
     uint32_t network_stack[stack_size];
 
     auto total_stacks = sizeof(idle_stack) +
         sizeof(scheduler_stack) +
         sizeof(display_stack) +
-        sizeof(gps_stack) +
-        // sizeof(debug_stack) +
         sizeof(worker_stacks) +
         sizeof(network_stack);
 
@@ -74,12 +70,6 @@ static void run_tasks() {
 
     OS_CHECK(os_task_initialize(&idle_task, "idle", OS_TASK_START_RUNNING, &task_handler_idle, nullptr, idle_stack, sizeof(idle_stack)));
     OS_CHECK(os_task_initialize(&scheduler_task, "scheduler", OS_TASK_START_SUSPENDED, &task_handler_scheduler, nullptr, scheduler_stack, sizeof(scheduler_stack)));
-    #if defined(FK_ENABLE_DEBUG_TASK)
-    // NOTICE NOTICE We share GPS stack! NOTICE NOTICE
-    OS_CHECK(os_task_initialize(&debug_task, "debug", OS_TASK_START_SUSPENDED, &task_handler_debug, nullptr, gps_stack, sizeof(gps_stack)));
-    #else
-    OS_CHECK(os_task_initialize(&gps_task, "gps", OS_TASK_START_SUSPENDED, &task_handler_gps, nullptr, gps_stack, sizeof(gps_stack)));
-    #endif
 
     OS_CHECK(os_task_initialize_options(&network_task, &network_task_options));
     OS_CHECK(os_task_initialize_options(&display_task, &display_task_options));
@@ -97,6 +87,8 @@ static void run_tasks() {
     loginfo("stacks = %d", total_stacks);
     loginfo("free = %" PRIu32, fk_free_memory());
     loginfo("starting os!");
+
+    FK_ASSERT(fk_free_memory() > 2048);
 
     OS_CHECK(os_start());
 }

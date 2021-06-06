@@ -104,6 +104,14 @@ void GlobalState::apply(StorageUpdate &update) {
             storage.meta.size, storage.meta.block, storage.data.size, storage.data.block, readings.nreadings);
 }
 
+void GlobalState::apply(UpcomingUpdate &update) {
+    scheduler.readings.upcoming = update.readings;
+    scheduler.gps.upcoming = update.gps;
+    scheduler.network.upcoming = update.network;
+    scheduler.backup.upcoming = update.backup;
+    scheduler.lora.upcoming = update.lora;
+}
+
 void GlobalState::released(uint32_t locked) const {
     auto elapsed = fk_uptime() - locked;
     if (elapsed > 100) {

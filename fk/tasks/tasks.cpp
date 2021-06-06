@@ -6,18 +6,12 @@ os_task_t idle_task;
 os_task_t scheduler_task;
 os_task_t display_task;
 os_task_t network_task;
-os_task_t gps_task;
-os_task_t debug_task;
-os_task_t readings_task;
 os_task_t worker_tasks[NumberOfWorkerTasks];
 
-os_task_t *all_tasks[6 + NumberOfWorkerTasks + 1] = {
+os_task_t *all_tasks[3 + NumberOfWorkerTasks + 1] = {
     &scheduler_task,
     &display_task,
     &network_task,
-    &gps_task,
-    &debug_task,
-    &readings_task,
     &worker_tasks[0],
     &worker_tasks[1],
     nullptr,

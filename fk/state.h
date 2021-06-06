@@ -244,6 +244,7 @@ struct SchedulerState {
     Schedule network{ };
     Schedule gps{ };
     Schedule lora{ };
+    Schedule backup{ };
 };
 
 struct ReadingsState {
@@ -257,6 +258,14 @@ struct TransmissionState {
     char token[HttpMaximumTokenLength]{ };
     uint32_t data_cursor{ 0 };
     uint32_t meta_cursor{ 0 };
+};
+
+struct UpcomingUpdate {
+    ScheduledTime readings;
+    ScheduledTime network;
+    ScheduledTime gps;
+    ScheduledTime lora;
+    ScheduledTime backup;
 };
 
 struct GlobalState {
@@ -282,6 +291,7 @@ public:
 
 public:
     void apply(StorageUpdate &update);
+    void apply(UpcomingUpdate &update);
     void released(uint32_t locked) const;
     void released(uint32_t locked);
     bool flush(Pool &pool);

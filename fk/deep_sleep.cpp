@@ -1,12 +1,12 @@
 #include "deep_sleep.h"
-#include "tasks/tasks.h"
 #include "clock.h"
-#include "hal/random.h"
 #include "hal/network.h"
+#include "hal/random.h"
+#include "tasks/tasks.h"
 
 namespace fk {
 
-FK_DECLARE_LOGGER("deepsleep");
+FK_DECLARE_LOGGER("sleep");
 
 constexpr uint32_t MinimumDeepSleepMs = 8192;
 
@@ -19,33 +19,35 @@ static uint32_t deep_sleep() {
 
     auto now_after = get_clock_now();
     if (now_after < now_before) {
-        loginfo("before=%" PRIu32 " now=%" PRIu32, now_before, now_after);
+        logwarn("before=%" PRIu32 " now=%" PRIu32, now_before, now_after);
         return 0;
     }
 
     auto elapsed = (now_after - now_before) * 1000;
-    loginfo("before=%" PRIu32 " now=%" PRIu32 " elapsed=%" PRIu32, now_before, now_after, elapsed);
+    if (elapsed > 0) {
+        logdebug("before=%" PRIu32 " now=%" PRIu32 " elapsed=%" PRIu32, now_before, now_after, elapsed);
+    }
 
     fk_uptime_adjust_after_sleep(elapsed);
 
     return elapsed;
 }
 
-static bool can_deep_sleep() {
-    if (get_network()->enabled()) {
-        loginfo("no deep sleep: network");
-        return false;
-    }
+static bool can_deep_sleep(Runnable const &runnable) {
     if (os_task_is_running(&network_task)) {
-        loginfo("no deep sleep: network task");
+        loginfo("no-sleep: network task");
         return false;
     }
     if (os_task_is_running(&display_task)) {
-        loginfo("no deep sleep: display task");
+        loginfo("no-sleep: display task");
         return false;
     }
-    if (os_task_is_running(&gps_task)) {
-        loginfo("no deep sleep: gps task");
+    if (runnable.is_running()) {
+        loginfo("no-sleep: runnable (gps)");
+        return false;
+    }
+    if (get_network()->enabled()) {
+        loginfo("no-sleep: network");
         return false;
     }
 
@@ -56,21 +58,20 @@ bool DeepSleep::once() {
     return deep_sleep() > 0;
 }
 
-bool DeepSleep::try_deep_sleep(lwcron::Scheduler &scheduler) {
-    if (can_deep_sleep()) {
+bool DeepSleep::try_deep_sleep(lwcron::Scheduler &scheduler, Runnable const &runnable) {
+    if (can_deep_sleep(runnable)) {
         while (true) {
             auto now = get_clock_now();
             auto nextTask = scheduler.nextTask(lwcron::DateTime{ now }, 0);
             if (!nextTask) {
-                // NOTE This would be so strange.
-                logerror("no next task");
+                logerror("no next task, that's very strange");
                 break;
             }
 
             // If we have enough time for a nap, otherwise we bail.
             auto remaining_seconds = nextTask.time - now;
             if (remaining_seconds * 1000 < MinimumDeepSleepMs) {
-                loginfo("next task: %" PRIu32 "s (try)", remaining_seconds);
+                loginfo("no-sleep: task-eta=%" PRIu32 "s", remaining_seconds);
                 break;
             }
 

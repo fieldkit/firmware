@@ -6,7 +6,7 @@ namespace fk {
 
 FK_DECLARE_LOGGER("memory");
 
-constexpr size_t SizeOfStandardPagePool = 17;
+constexpr size_t SizeOfStandardPagePool = 18;
 
 struct StandardPages {
     void *base{ nullptr };
