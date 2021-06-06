@@ -146,7 +146,7 @@ size_t write_log(LogMessage const *m, const char *fstring, va_list args) {
     }
 
     auto level = alog_get_log_level((LogLevels)m->level);
-    auto plain_fs = "%08" PRIu32 " %-10s %-7s %s: ";
+    auto plain_fs = "%08" PRIu32 " %-10s %-7s %s: %s";
     auto color_fs = "";
     auto task = os_task_name();
     if (task == nullptr) {
@@ -154,19 +154,19 @@ size_t write_log(LogMessage const *m, const char *fstring, va_list args) {
     }
 
     if ((LogLevels)m->level == LogLevels::ERROR) {
-        color_fs = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_CYAN " %-10s " RTT_CTRL_TEXT_RED "%-7s %s: ";
+        color_fs = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_CYAN " %-10s " RTT_CTRL_TEXT_RED "%-7s %s%s: ";
     }
     else if ((LogLevels)m->level == LogLevels::WARN) {
-        color_fs = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_CYAN " %-10s " RTT_CTRL_TEXT_MAGENTA "%-7s %s: ";
+        color_fs = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_CYAN " %-10s " RTT_CTRL_TEXT_MAGENTA "%-7s %s%s: ";
     }
     else {
-        color_fs = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_CYAN " %-10s " RTT_CTRL_TEXT_YELLOW "%-7s %s" RTT_CTRL_RESET ": ";
+        color_fs = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_CYAN " %-10s " RTT_CTRL_TEXT_YELLOW "%-7s %s%s" RTT_CTRL_RESET ": ";
     }
 
     FK_LOGS_LOCK();
 
     if (logs_rtt_enabled) {
-        SEGGER_RTT_printf(0, color_fs, m->uptime, task, level, m->facility);
+        SEGGER_RTT_printf(0, color_fs, m->uptime, task, level, m->scope, m->facility);
         SEGGER_RTT_vprintf(0, fstring, &args);
         SEGGER_RTT_WriteString(0, RTT_CTRL_RESET "\n");
     }
@@ -174,7 +174,7 @@ size_t write_log(LogMessage const *m, const char *fstring, va_list args) {
     if (logs_buffer_free) {
         auto app = logs.start();
 
-        tiny_fctprintf(write_logs_buffer, &app, plain_fs, m->uptime, task, level, m->facility);
+        tiny_fctprintf(write_logs_buffer, &app, plain_fs, m->uptime, task, level, m->scope, m->facility);
         tiny_vfctprintf(write_logs_buffer, &app, fstring, args);
         tiny_fctprintf(write_logs_buffer, &app, "\n");
 
