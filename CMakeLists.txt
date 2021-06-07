@@ -1,10 +1,7 @@
-#
-#
-#
-project(fk)
-cmake_minimum_required(VERSION 3.6)
+cmake_minimum_required(VERSION 3.17)
 
-set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
+project(Sectors)
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 find_package(Git)
@@ -38,7 +35,7 @@ message("Hash: ${GIT_COMMIT_HASH}")
 
 set(VERSION_MAJOR 0 CACHE STRING "Project major version number.")
 set(VERSION_MINOR 1 CACHE STRING "Project minor version number.")
-set(VERSION_PATCH 1 CACHE STRING "Project patch version number.")
+set(VERSION_PATCH 0 CACHE STRING "Project patch version number.")
 
 if(DEFINED ENV{BUILD_NUMBER})
 message("Using ENV build number for prerelease.")
@@ -49,51 +46,12 @@ set(VERSION_PREL 0 CACHE STRING "Project prelease version number.")
 endif()
 mark_as_advanced(VERSION_MAJOR VERSION_MINOR VERSION_PATCH)
 
-set(FK_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}-${GIT_BRANCH}.${VERSION_PREL}-${GIT_COMMIT_HASH}")
+set(PHYLUM_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}-${GIT_BRANCH}.${VERSION_PREL}-${GIT_COMMIT_HASH}")
 
-message("Version: ${FK_VERSION}")
+message("Version: ${PHYLUM_VERSION}")
 
-message("Target Architecture: ${TARGET_ARCH}")
+configure_file(version.txt.in ${CMAKE_BINARY_DIR}/version.txt)
 
-enable_testing()
-
-add_subdirectory(boards)
-
-if(${TARGET_ARCH} MATCHES "samd51")
-  if(${FK_TARGET_QSPI_MEMORY})
-    add_subdirectory(fk)
-  else()
-    add_subdirectory(bootloader)
-    add_subdirectory(fk)
-  endif()
-endif()
-
-add_subdirectory(modules)
-
+add_subdirectory(src)
+add_subdirectory(example)
 add_subdirectory(tests)
-
-# Add a target to generate API documentation with Doxygen
-find_package(Doxygen)
-option(BUILD_DOCUMENTATION "Create and install the HTML based API documentation (requires Doxygen)" ${DOXYGEN_FOUND})
-
-option(FK_PHYLUM "Enable phylum by default" NO)
-option(FK_PHYLUM_AMPLIFICATION "Amplify phylum readings" 1)
-
-if(BUILD_DOCUMENTATION)
-    if(NOT DOXYGEN_FOUND)
-        message(FATAL_ERROR "Doxygen is needed to build the documentation.")
-    endif()
-
-    set(doxyfile_in ${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile.in)
-    set(doxyfile ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
-
-    configure_file(${doxyfile_in} ${doxyfile} @ONLY)
-
-    add_custom_target(doc
-        COMMAND ${DOXYGEN_EXECUTABLE} ${doxyfile}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-        COMMENT "Generating API documentation with Doxygen"
-        VERBATIM)
-
-    install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html DESTINATION share/doc)
-endif()

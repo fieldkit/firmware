@@ -1,5 +1,0 @@
-#!/bin/bash
-
-set -xe
-
-gdb-multiarch -q -ex "target extended-remote :5331" ../../../build/samd09/modules/weather/sidecar/fk-weather-sidecar-normal.elf

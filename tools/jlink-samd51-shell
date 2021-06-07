@@ -1,5 +1,0 @@
-#!/bin/bash
-
-PATH=~/tools/jlink:$PATH
-
-JLinkExe -if SWD -device ATSAMD51P20 -RTTTelnetPort 19021 -autoconnect 1

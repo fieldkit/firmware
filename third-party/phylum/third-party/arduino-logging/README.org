@@ -1,6 +1,0 @@
-#+TITLE:	README for arduino-logging
-#+AUTHOR:	Jacob Lewallen
-#+EMAIL:	jacob@conservify.org
-
-* Overview
-

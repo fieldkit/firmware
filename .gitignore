@@ -1,15 +1,4 @@
-*.swp
-.gdb_history
-.python-setup
 build
-fk/secrets.h
-fk/secrets.cpp
-core.*
+.gdb_history
 .ccls-cache
-.clangd
-compile_commands.json
-protobuf.pb
-power.db
-*.db-journal
-logs
-logs.txt
+*.dot
