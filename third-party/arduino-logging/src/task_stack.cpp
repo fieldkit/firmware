@@ -3,6 +3,20 @@
 #include "logging.h"
 #include "task_stack.h"
 
+static task_stack *nullptr_task_stack() {
+    return nullptr;
+}
+
+log_message_task_stack_fn_t log_task_stack_fn = nullptr_task_stack;
+
+task_stack *log_task_stack_get() {
+    return log_task_stack_fn();
+}
+
+void log_configure_task_stack(log_message_task_stack_fn_t stack_fn) {
+    log_task_stack_fn = stack_fn;
+}
+
 task_stack::task_stack(size_t size) {
     memset(value_, 0, sizeof(value_));
     size_ = size;
@@ -27,10 +41,4 @@ void task_stack::pop() {
     position_--;
     auto old_len = stack_[position_];
     memset(value_ + old_len, 0, sizeof(value_) - old_len);
-}
-
-static task_stack singleton_task_stack{ 10 };
-
-task_stack *get_task_stack() {
-    return &singleton_task_stack;
 }
