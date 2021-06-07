@@ -172,6 +172,14 @@ uint32_t os_task_highwater(os_task_t *task) {
     return task->highwater;
 }
 
+void *os_task_user_data_get(os_task_t *task) {
+    return task->user_data;
+}
+
+void os_task_user_data_set(os_task_t *task, void *user_data) {
+    task->user_data = user_data;
+}
+
 os_status_t os_task_initialize(os_task_t *task, const char *name, os_start_status status, void (*handler)(void *params), void *params, uint32_t *stack, size_t stack_size) {
     os_task_options_t options = {
         name,

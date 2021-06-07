@@ -178,6 +178,7 @@ typedef struct os_task_t {
     uint32_t flags;
     uint32_t signal;
     uint32_t highwater;
+    void *user_data;
     #if defined(OS_CONFIG_DEBUG)
     uint32_t debug_stack_max;
     #endif
