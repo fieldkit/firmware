@@ -10,6 +10,7 @@
 #include "hal/random.h"
 #include "hal/display.h"
 #include "hal/battery_gauge.h"
+#include "hal/buttons.h"
 #include "state_ref.h"
 #include "state_manager.h"
 #include "clock.h"
@@ -89,12 +90,30 @@ static void scan_i2c_module_bus() {
     }
 }
 
+static void watch_button() {
+    auto buttons = get_buttons();
+    auto display = get_display();
+
+    while (true) {
+        if (buttons->get(Buttons::External)) {
+            display->simple(SimpleScreen{ "Down" });
+        }
+        else {
+            display->simple(SimpleScreen{ "Up" });
+        }
+        fk_delay(100);
+    }
+}
+
 void fk_live_tests() {
     if (false) {
         scan_i2c_module_bus();
     }
     if (false) {
         scan_i2c_radio_bus();
+    }
+    if (true) {
+        watch_button();
     }
 }
 
