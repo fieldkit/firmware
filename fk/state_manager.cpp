@@ -92,6 +92,7 @@ bool GlobalStateManager::initialize(Pool &pool) {
     gs.get()->scheduler.network.recreate();
     gs.get()->scheduler.gps.recreate();
     gs.get()->scheduler.lora.recreate();
+    gs.get()->scheduler.backup.recreate();
 
     gs.get()->transmission.url[0] = 0;
     gs.get()->transmission.token[0] = 0;
