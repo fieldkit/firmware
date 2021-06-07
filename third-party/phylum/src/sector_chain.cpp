@@ -5,11 +5,9 @@
 namespace phylum {
 
 int32_t sector_chain::create_if_necessary() {
-    logged_task lt{ "sc-create" };
-
     assert(head_ == InvalidSector && tail_ == InvalidSector);
 
-    phydebugf("creating sector=%d", sector());
+    phyverbosef("creating sector=%d", sector());
 
     auto page_lock = db().writing(sector());
 
@@ -23,7 +21,7 @@ int32_t sector_chain::create_if_necessary() {
         return err;
     }
 
-    phydebugf("%s: created, ready", name());
+    phyverbosef("%s: created, ready", name());
 
     return 0;
 }
@@ -37,8 +35,6 @@ int32_t sector_chain::flush() {
 }
 
 int32_t sector_chain::flush(page_lock &page_lock) {
-    logged_task lt{ "sc-flush" };
-
     assert_valid();
 
     phyverbosef("%s flush", name());
@@ -52,8 +48,6 @@ int32_t sector_chain::flush(page_lock &page_lock) {
 }
 
 int32_t sector_chain::seek_end_of_chain(page_lock &page_lock) {
-    logged_task lt{ "seek-eoc" };
-
     assert_valid();
 
     phyverbosef("%s starting", name());
@@ -73,7 +67,7 @@ int32_t sector_chain::seek_end_of_chain(page_lock &page_lock) {
         return err;
     }
 
-    phydebugf("%s sector=%d position=%zu", name(), sector_, db().position());
+    phyverbosef("%s sector=%d position=%zu", name(), sector_, db().position());
 
     return 0;
 }
@@ -95,32 +89,30 @@ int32_t sector_chain::back_to_head(page_lock &page_lock) {
 }
 
 int32_t sector_chain::forward(page_lock &page_lock) {
-    logged_task lt{ "forward" };
-
     assert_valid();
 
     appendable(false);
 
     if (sector_ == InvalidSector) {
-        phydebugf("%s first load", name());
+        phyverbosef("%s first load", name());
         sector_ = head_;
     } else {
         auto hdr = db().header<sector_chain_header_t>();
         if (((int32_t)hdr->flags & (int32_t)sector_flags::Tail) > 0) {
             if (hdr->type == entry_type::DataSector) {
                 auto dchdr = db().header<data_chain_header_t>();
-                phydebugf("%s sector=%d bytes=%d visited=%d (tail)", name(), sector_, dchdr->bytes, visited_sectors_);
+                phyverbosef("%s sector=%d bytes=%d visited=%d (tail)", name(), sector_, dchdr->bytes, visited_sectors_);
             } else {
-                phydebugf("%s sector=%d visited=%d (tail)", name(), sector_, visited_sectors_);
+                phyverbosef("%s sector=%d visited=%d (tail)", name(), sector_, visited_sectors_);
             }
             return 0;
         }
         if (hdr->np == 0 || hdr->np == UINT32_MAX) {
             if (hdr->type == entry_type::DataSector) {
                 auto dchdr = db().header<data_chain_header_t>();
-                phydebugf("%s sector=%d bytes=%d visited=%d (end)", name(), sector_, dchdr->bytes, visited_sectors_);
+                phyverbosef("%s sector=%d bytes=%d visited=%d (end)", name(), sector_, dchdr->bytes, visited_sectors_);
             } else {
-                phydebugf("%s sector=%d visited=%d (end)", name(), sector_, visited_sectors_);
+                phyverbosef("%s sector=%d visited=%d (end)", name(), sector_, visited_sectors_);
             }
             return 0;
         }
@@ -129,15 +121,15 @@ int32_t sector_chain::forward(page_lock &page_lock) {
 
         if (hdr->type == entry_type::DataSector) {
             auto dchdr = db().header<data_chain_header_t>();
-            phydebugf("%s sector=%d bytes=%d visited=%d", name(), sector_, dchdr->bytes, visited_sectors_);
+            phyverbosef("%s sector=%d bytes=%d visited=%d", name(), sector_, dchdr->bytes, visited_sectors_);
         } else {
-            phydebugf("%s sector=%d visited=%d", name(), sector_, visited_sectors_);
+            phyverbosef("%s sector=%d visited=%d", name(), sector_, visited_sectors_);
         }
     }
 
     auto err = load(page_lock);
     if (err < 0) {
-        phydebugf("%s: load failed", name());
+        phyerrorf("%s: load failed", name());
         return err;
     }
 
@@ -161,7 +153,7 @@ int32_t sector_chain::prepare_sector(page_lock &lock, dhara_sector_t previous_se
         return err;
     }
 
-    phydebugf("prepare-sector pp=%d np=%d", previous_sector, following_sector);
+    phyverbosef("prepare-sector pp=%d np=%d", previous_sector, following_sector);
 
     assert(db().write_header<sector_chain_header_t>([&](sector_chain_header_t *header) {
         header->pp = previous_sector;
@@ -194,12 +186,12 @@ int32_t sector_chain::truncate() {
 }
 
 int32_t sector_chain::load(page_lock &page_lock) {
-    logged_task lt{ "load" };
+    // logged_task lt{ "load" };
 
     assert_valid();
 
     if (sector_ == InvalidSector) {
-        phydebugf("invalid sector");
+        phyerrorf("invalid sector");
         return -1;
     }
 
@@ -239,7 +231,7 @@ int32_t sector_chain::log(bool graph) {
     };
 
     auto walk_fn = [&](page_lock &/*page_lock*/, entry_t const *entry, record_ptr &record) -> int32_t {
-        logged_task lt{ this->name() };
+        // logged_task lt{ this->name() };
 
         switch (entry->type) {
         case entry_type::None: {
@@ -329,7 +321,7 @@ int32_t sector_chain::write_header_if_at_start(page_lock &page_lock) {
         return 0;
     }
 
-    phydebugf("%s write header", name());
+    phyverbosef("%s write header", name());
 
     auto err = write_header(page_lock);
     if (err < 0) {
@@ -340,7 +332,7 @@ int32_t sector_chain::write_header_if_at_start(page_lock &page_lock) {
 }
 
 int32_t sector_chain::grow_tail(page_lock &lock) {
-    logged_task lt{ "grow" };
+    // logged_task lt{ "grow" };
 
     auto previous_sector = sector_;
     auto following_sector = InvalidSector;
@@ -413,7 +405,7 @@ int32_t sector_chain::dequeue_sector(dhara_sector_t *sector) {
     *sector = head_;
     head_ = hdr->np;
 
-    phydebugf("dequeue sector=%d head=%d", *sector, head_);
+    phyverbosef("dequeue sector=%d head=%d", *sector, head_);
 
     return 1;
 }

@@ -9,6 +9,7 @@
 #include "circular_buffer.h"
 #include "hal/sd_card.h"
 #include "memory.h"
+#include "tasks/tasks.h"
 
 namespace fk {
 
@@ -146,7 +147,7 @@ size_t write_log(LogMessage const *m, const char *fstring, va_list args) {
     }
 
     auto level = alog_get_log_level((LogLevels)m->level);
-    auto plain_fs = "%08" PRIu32 " %-10s %-7s %s: ";
+    auto plain_fs = "%08" PRIu32 " %-10s %-7s %s: %s";
     auto color_fs = "";
     auto task = os_task_name();
     if (task == nullptr) {
@@ -154,19 +155,19 @@ size_t write_log(LogMessage const *m, const char *fstring, va_list args) {
     }
 
     if ((LogLevels)m->level == LogLevels::ERROR) {
-        color_fs = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_CYAN " %-10s " RTT_CTRL_TEXT_RED "%-7s %s: ";
+        color_fs = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_CYAN " %-10s " RTT_CTRL_TEXT_RED "%-7s %s%s: ";
     }
     else if ((LogLevels)m->level == LogLevels::WARN) {
-        color_fs = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_CYAN " %-10s " RTT_CTRL_TEXT_MAGENTA "%-7s %s: ";
+        color_fs = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_CYAN " %-10s " RTT_CTRL_TEXT_MAGENTA "%-7s %s%s: ";
     }
     else {
-        color_fs = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_CYAN " %-10s " RTT_CTRL_TEXT_YELLOW "%-7s %s" RTT_CTRL_RESET ": ";
+        color_fs = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_CYAN " %-10s " RTT_CTRL_TEXT_YELLOW "%-7s " RTT_CTRL_TEXT_GREEN "%s" RTT_CTRL_TEXT_YELLOW "%s" RTT_CTRL_RESET ": ";
     }
 
     FK_LOGS_LOCK();
 
     if (logs_rtt_enabled) {
-        SEGGER_RTT_printf(0, color_fs, m->uptime, task, level, m->facility);
+        SEGGER_RTT_printf(0, color_fs, m->uptime, task, level, m->scope, m->facility);
         SEGGER_RTT_vprintf(0, fstring, &args);
         SEGGER_RTT_WriteString(0, RTT_CTRL_RESET "\n");
     }
@@ -174,7 +175,7 @@ size_t write_log(LogMessage const *m, const char *fstring, va_list args) {
     if (logs_buffer_free) {
         auto app = logs.start();
 
-        tiny_fctprintf(write_logs_buffer, &app, plain_fs, m->uptime, task, level, m->facility);
+        tiny_fctprintf(write_logs_buffer, &app, plain_fs, m->uptime, task, level, m->scope, m->facility);
         tiny_vfctprintf(write_logs_buffer, &app, fstring, args);
         tiny_fctprintf(write_logs_buffer, &app, "\n");
 
@@ -184,6 +185,23 @@ size_t write_log(LogMessage const *m, const char *fstring, va_list args) {
     FK_LOGS_UNLOCK();
 
     return true;
+}
+
+task_stack *fk_get_task_stack() {
+    auto task = os_task_self();
+    if (task == nullptr) {
+        return nullptr;
+    }
+    auto user_data = (fk_task_data_t *)os_task_user_data_get(task);
+    return &user_data->log_stack;
+}
+
+const char *fk_get_scope() {
+    auto stack = fk_get_task_stack();
+    if (stack == nullptr) {
+        return "";
+    }
+    return stack->get();
 }
 
 void task_logging_hook(os_task_t *task, os_task_status previous_status) {
@@ -210,6 +228,8 @@ bool fk_logging_initialize() {
     log_configure_writer(write_log);
     log_configure_level(LogLevels::DEBUG);
     log_configure_time(fk_uptime, nullptr);
+    log_configure_scope(fk_get_scope);
+    log_configure_task_stack(fk_get_task_stack);
 
     OS_CHECK(os_configure_hooks(task_logging_hook, nullptr));
 

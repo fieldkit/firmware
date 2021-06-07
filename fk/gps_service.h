@@ -13,6 +13,7 @@ private:
     IntervalTimer update_timer_{ FiveSecondsMs };
     uint32_t started_at_{ fk_uptime() };
     uint32_t fixed_at_{ 0u };
+    uint32_t adjusted_at_{ 0u };
     bool running_{ false };
 
 public:

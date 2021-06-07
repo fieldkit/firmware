@@ -3,6 +3,7 @@
 #include "modules/registry.h"
 #include "modules/enable_module_power.h"
 #include "state.h"
+#include "task_stack.h"
 
 namespace fk {
 
@@ -291,6 +292,9 @@ int32_t AttachedModules::initialize(Pool &pool) {
 
     for (auto &attached : modules_) {
         auto position = attached.position();
+
+        logged_task lt{ pool.sprintf("module[%d]", position.integer()) };
+
         auto sub = ctx.open_module(position, pool);
         if (!sub.open()) {
             logerror("[%d] choosing module", position.integer());
@@ -325,6 +329,9 @@ int32_t AttachedModules::take_readings(ReadingsListener *listener, Pool &pool) {
 
     for (auto &attached : modules_) {
         auto position = attached.position();
+
+        logged_task lt{ pool.sprintf("module[%d]", position.integer()) };
+
         auto sub = ctx.open_readings(position, pool);
         if (!sub.open()) {
             logerror("[%d] choosing module", position.integer());

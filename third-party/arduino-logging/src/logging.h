@@ -36,6 +36,8 @@ typedef uint32_t (*log_message_time_fn_t)();
 
 typedef uint32_t (*log_message_uptime_fn_t)();
 
+typedef const char *(*log_message_scope_fn_t)();
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -49,6 +51,8 @@ void log_configure_hook(bool enabled);
 void log_configure_time(log_message_uptime_fn_t uptime_fn, log_message_time_fn_t time_fn);
 
 void log_configure_level(LogLevels level);
+
+void log_configure_scope(log_message_scope_fn_t scope_fn);
 
 uint8_t log_get_level(void);
 

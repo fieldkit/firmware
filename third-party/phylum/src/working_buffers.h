@@ -54,7 +54,7 @@ public:
     }
 
     virtual ~working_buffers() {
-        phyinfof("wbuffers::dtor hw=%zu reads=%zu writes=%zu misses=%zu", highwater_, reads_, writes_, misses_);
+        phyinfof("wbuffers[-] hw=%zu reads=%zu writes=%zu misses=%zu", highwater_, reads_, writes_, misses_);
         if (pages_ != nullptr) {
             debug();
             for (auto i = 0u; i < size_; ++i) {

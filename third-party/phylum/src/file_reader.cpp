@@ -24,6 +24,8 @@ int32_t file_reader::read(size_t size) {
 }
 
 int32_t file_reader::read(uint8_t *data, size_t size) {
+    logged_task lt{ "fr-read" };
+
     if (has_chain()) {
         auto nread = 0u;
         while (nread < size) {

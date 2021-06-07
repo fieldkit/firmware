@@ -5,8 +5,13 @@
 #include "common.h"
 #include "platform.h"
 #include "config.h"
+#include "task_stack.h"
 
 namespace fk {
+
+struct fk_task_data_t {
+    task_stack log_stack{ 10 };
+};
 
 void task_handler_idle(void *params);
 void task_handler_scheduler(void *params);
@@ -19,6 +24,7 @@ extern os_task_t scheduler_task;
 extern os_task_t display_task;
 extern os_task_t network_task;
 extern os_task_t worker_tasks[NumberOfWorkerTasks];
+extern fk_task_data_t task_data[4 + NumberOfWorkerTasks];
 
 bool fk_can_start_task(os_task_t *task);
 

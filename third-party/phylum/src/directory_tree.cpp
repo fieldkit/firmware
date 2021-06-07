@@ -6,6 +6,8 @@
 namespace phylum {
 
 int32_t directory_tree::mount() {
+    logged_task lt{ "dir-tree-mount" };
+
     if (!tree_.exists()) {
         return -1;
     }
@@ -14,10 +16,16 @@ int32_t directory_tree::mount() {
 }
 
 int32_t directory_tree::format() {
+    logged_task lt{ "dir-tree-format" };
+
     return tree_.create();
 }
 
 int32_t directory_tree::touch(const char *name) {
+    logged_task lt{ "dir-tree-touch" };
+
+    phydebugf("touch '%s'", name);
+
     auto id = make_file_id(name);
 
     file_ = {};
@@ -41,6 +49,10 @@ int32_t directory_tree::touch(const char *name) {
 }
 
 int32_t directory_tree::unlink(const char *name) {
+    logged_task lt{ "dir-tree-unlink" };
+
+    phydebugf("unlink '%s'", name);
+
     auto id = make_file_id(name);
 
     file_ = {};
@@ -63,6 +75,10 @@ int32_t directory_tree::unlink(const char *name) {
 }
 
 int32_t directory_tree::find(const char *name, open_file_config file_cfg) {
+    logged_task lt{ "dir-tree-find" };
+
+    phydebugf("finding '%s'", name);
+
     auto id = make_file_id(name);
 
     file_ = found_file{};
@@ -81,6 +97,7 @@ int32_t directory_tree::find(const char *name, open_file_config file_cfg) {
         return err;
     }
     if (err == 0) {
+        phydebugf("no file");
         return 0;
     }
 
@@ -129,8 +146,11 @@ int32_t directory_tree::find(const char *name, open_file_config file_cfg) {
     }
 
     if (deleted) {
+        phydebugf("found, deleted");
         return 0;
     }
+
+    phydebugf("found");
 
     return 1;
 }
@@ -147,6 +167,8 @@ int32_t directory_tree::file_data(file_id_t id, file_size_t position, uint8_t co
         return -1;
     }
 
+    logged_task lt{ "dir-tree-file-data" };
+
     auto err = flush([&](dir_node_type *node) -> int32_t {
         memcpy(node->data + position, buffer, size);
         node->u.file.directory_size = position + size;
@@ -162,6 +184,8 @@ int32_t directory_tree::file_data(file_id_t id, file_size_t position, uint8_t co
 
 int32_t directory_tree::file_chain(file_id_t id, head_tail_t chain) {
     assert(file_.id == id);
+
+    logged_task lt{ "dir-tree-file-chain" };
 
     auto err = flush([&](dir_node_type *node) -> int32_t {
         assert(!node->u.file.chain.valid());
@@ -182,6 +206,8 @@ int32_t directory_tree::file_chain(file_id_t id, head_tail_t chain) {
 
 int32_t directory_tree::file_attributes(file_id_t id, open_file_attribute *attributes, size_t nattrs) {
     assert(file_.id == id);
+
+    logged_task lt{ "dir-tree-file-attrs" };
 
     auto err = flush([&](dir_node_type *node) -> int32_t {
         auto attributes_ptr = node->u.file.attributes;
@@ -209,6 +235,8 @@ int32_t directory_tree::file_attributes(file_id_t id, open_file_attribute *attri
 int32_t directory_tree::file_trees(file_id_t id, tree_ptr_t position_index, tree_ptr_t record_index) {
     assert(file_.id == id);
 
+    logged_task lt{ "dir-tree-file-trees" };
+
     auto err = flush([&](dir_node_type *node) -> int32_t {
         node->u.file.position_index = position_index;
         node->u.file.record_index = record_index;
@@ -224,6 +252,8 @@ int32_t directory_tree::file_trees(file_id_t id, tree_ptr_t position_index, tree
 
 int32_t directory_tree::read(file_id_t id, io_writer &writer) {
     assert(file_.id == id);
+
+    logged_task lt{ "dir-tree-read" };
 
     dir_node_type node;
     auto err = tree_.find(file_.id, &node, &file_node_ptr_);

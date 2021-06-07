@@ -17,6 +17,8 @@ os_task_t *all_tasks[3 + NumberOfWorkerTasks + 1] = {
     nullptr,
 };
 
+fk_task_data_t task_data[4 + NumberOfWorkerTasks];
+
 bool fk_can_start_task(os_task_t *task) {
     auto status = os_task_get_status(task);
     return status == OS_TASK_STATUS_SUSPENDED || status == OS_TASK_STATUS_FINISHED || status == OS_TASK_STATUS_PANIC || status == OS_TASK_STATUS_ABORTED;

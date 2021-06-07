@@ -28,6 +28,8 @@ int32_t flat_attribute_storage::read(tree_ptr_t &ptr, file_id_t /*id*/, open_fil
             break;
         }
 
+        logged_task lt{ chain.name() };
+
         phydebugf("attribute: type=%d size=%d", header.type, header.size);
 
         for (auto i = 0u; i < file_cfg.nattrs; ++i) {

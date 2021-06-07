@@ -71,7 +71,7 @@ public:
 
         auto position_index_sector = allocator_->allocate();
         auto position_index_tree = tree_ptr_t{ position_index_sector };
-        TreeType position_index{ pc(), position_index_tree, "posidx" };
+        TreeType position_index{ pc(), position_index_tree, "pos-idx" };
         err = position_index.create();
         if (err < 0) {
             return err;
@@ -81,7 +81,7 @@ public:
 
         auto record_index_sector = allocator_->allocate();
         auto record_index_tree = tree_ptr_t{ record_index_sector };
-        TreeType record_index{ pc(), record_index_tree, "recidx" };
+        TreeType record_index{ pc(), record_index_tree, "rec-idx" };
         err = record_index.create();
         if (err < 0) {
             return err;
