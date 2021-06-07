@@ -36,6 +36,7 @@ bool GpsService::begin() {
     update_timer_ = IntervalTimer{ FiveSecondsMs };
     started_at_ = fk_uptime();
     fixed_at_ = 0u;
+    adjusted_at_ = 0u;
 
     GlobalStateManager gsm;
     gsm.apply([=](GlobalState *gs) {
@@ -81,7 +82,10 @@ bool GpsService::service() {
 
                 FK_ASSERT(fix.time > 0);
 
-                clock_adjust(fix.time);
+                if (adjusted_at_ != fix.time) {
+                    clock_adjust(fix.time);
+                    adjusted_at_ = fix.time;
+                }
 
                 log_status = true;
             } else {
