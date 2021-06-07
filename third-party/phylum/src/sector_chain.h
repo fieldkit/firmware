@@ -31,7 +31,12 @@ public:
     sector_chain(phyctx pc, head_tail_t chain, const char *prefix)
         : buffers_(&pc.buffers_), sectors_(&pc.sectors_), allocator_(&pc.allocator_), buffer_(pc.buffers_, pc.sectors_), head_(chain.head),
           tail_(chain.tail), prefix_(prefix) {
-        name("%s[unk]", prefix_);
+        if (head_ == InvalidSector) {
+            name("%s[unk]", prefix_);
+        }
+        else {
+            name("%s[%d]", prefix_, head_);
+        }
     }
 
     virtual ~sector_chain() {
@@ -135,7 +140,12 @@ protected:
 
     void sector(dhara_sector_t sector) {
         sector_ = sector;
-        name("%s[%d]", prefix_, sector_);
+        if (sector_ == InvalidSector) {
+            name("%s[unk]", prefix_, sector_);
+        }
+        else {
+            name("%s[%d]", prefix_, sector_);
+        }
     }
 
     int32_t assert_valid() {
@@ -161,7 +171,7 @@ protected:
 
     template <typename WalkFn, typename LoadFn>
     int32_t walk(page_lock &page_lock, WalkFn walk_fn, LoadFn load_fn) {
-        logged_task lt{ "sc-walk", name() };
+        // logged_task lt{ "sc-walk", name() };
 
         assert_valid();
 
@@ -206,7 +216,7 @@ protected:
 
     template <typename WalkFn, typename LoadFn>
     int32_t walk(WalkFn walk_fn, LoadFn load_fn) {
-        logged_task lt{ "sc-walk", name() };
+        // logged_task lt{ "sc-walk", name() };
 
         assert_valid();
 

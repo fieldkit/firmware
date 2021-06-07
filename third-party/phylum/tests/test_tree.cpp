@@ -108,6 +108,8 @@ TYPED_TEST(TreeFixture, SingleNodeTreeGrowingByTwoNodes) {
 
         ASSERT_EQ(tree.create(), 0);
 
+        suppress_logs sl;
+
         for (auto i = 1u; i < (tree_type::NodeSize + 2) * 2; ++i) {
             phydebugf("adding %d", i);
             ASSERT_EQ(tree.add(i, i), 0);
@@ -137,12 +139,6 @@ TYPED_TEST(TreeFixture, TreeWith1024Node1Reachable) {
         for (auto i = 1u; i < 1024; ++i) {
             phydebugf("adding %d", i);
             ASSERT_EQ(tree.add(i, i), 0);
-
-            {
-                temporary_log_level info{ LogLevels::WARN };
-                ASSERT_EQ(tree.log(), 0);
-            }
-
             uint32_t found = 0u;
             EXPECT_EQ(tree.find(1, &found), 1);
             ASSERT_EQ(found, 1u);
@@ -160,6 +156,8 @@ TYPED_TEST(TreeFixture, TreeAllReachableAsAdded) {
         typename TypeParam::second_type tree{ memory.pc(), tree_ptr_t{ first }, "tree" };
 
         ASSERT_EQ(tree.create(), 0);
+
+        suppress_logs sl;
 
         for (auto i = 1u; i < 1024; ++i) {
             ASSERT_EQ(tree.add(i, i), 0);
@@ -186,9 +184,9 @@ TYPED_TEST(TreeFixture, TreeWith1024) {
 
         ASSERT_EQ(tree.create(), 0);
 
-        {
-            suppress_logs sl;
+        suppress_logs sl;
 
+        {
             for (auto i = 1u; i < 1024; ++i) {
                 uint32_t found = 0u;
                 ASSERT_EQ(tree.add(i, i), 0);

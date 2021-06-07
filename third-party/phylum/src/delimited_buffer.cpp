@@ -29,8 +29,8 @@ void *delimited_buffer::reserve(size_t length, sector_offset_t &start_position) 
 
     auto position_after = buffer_.position();
 
-    phydebugf("reserve: %zu (+%d) = %zu before=%zu after=%zu", length, delimiter_overhead, length + delimiter_overhead,
-              position_before, position_after);
+    phyverbosef("reserve: %zu (+%d) = %zu before=%zu after=%zu", length, delimiter_overhead,
+                length + delimiter_overhead, position_before, position_after);
 
     // This is where we'll ask the caller to construct their record.
     auto allocated = p + delimiter_overhead;

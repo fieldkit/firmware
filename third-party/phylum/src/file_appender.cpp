@@ -98,7 +98,7 @@ int32_t file_appender::index_necessary() {
 
 int32_t file_appender::seek() {
     if (!data_chain_.valid()) {
-        phydebugf("noop seek");
+        phywarnf("noop seek");
         return 0;
     }
 
@@ -117,7 +117,7 @@ int32_t file_appender::flush() {
     // Do we already have a data chain?
     auto had_chain = data_chain_.valid();
     if (had_chain) {
-        phydebugf("writing to chain head=%d", data_chain_.head());
+        phyverbosef("writing to chain head=%d", data_chain_.head());
 
         auto truncated = ((int32_t)file_.cfg.flags & (int32_t)open_file_flags::Truncate) > 0;
         if (!truncated_ && truncated) {
@@ -144,7 +144,7 @@ int32_t file_appender::flush() {
         }
 
         if (pending < file_.directory_capacity) {
-            phyinfof("flush: inline id=0x%x bytes=%zu begin", file_.id, pending);
+            phyverbosef("flush: inline id=0x%x bytes=%zu begin", file_.id, pending);
 
             auto err = buffer_.read_to_position([&](read_buffer buffer) -> int32_t {
                 assert(directory_->file_data(file_.id, file_.directory_size, buffer.ptr(), buffer.size()) >= 0);
@@ -159,9 +159,9 @@ int32_t file_appender::flush() {
 
             buffer_.clear();
 
-            phyinfof("flush: inline done");
+            phyverbosef("flush: inline done");
         } else {
-            phyinfof("flush making chain (%d)", buffer_.position());
+            phyverbosef("flush making chain (%d)", buffer_.position());
 
             auto err = make_data_chain();
             if (err < 0) {
@@ -169,7 +169,7 @@ int32_t file_appender::flush() {
                 return err;
             }
 
-            phyinfof("flush making chain done position=%d err=%d", data_chain_.cursor().position, err);
+            phyverbosef("flush making chain done position=%d err=%d", data_chain_.cursor().position, err);
         }
     }
 
@@ -184,7 +184,7 @@ int32_t file_appender::flush() {
         if (!had_chain) {
             file_.chain.head = data_chain_.head();
             file_.chain.tail = data_chain_.tail();
-            phyinfof("%s updating directory head=%d tail=%d", data_chain_.name(), file_.chain.head, file_.chain.tail);
+            phyverbosef("%s updating directory head=%d tail=%d", data_chain_.name(), file_.chain.head, file_.chain.tail);
             auto err = directory_->file_chain(file_.id, file_.chain);
             if (err < 0) {
                 return err;

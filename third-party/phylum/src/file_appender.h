@@ -65,13 +65,13 @@ public:
         alogf(LogLevels::INFO, "phylum", "indexing position=%" PRIu32 ", psos=%" PRIu32 " cursor=%" PRIu32 " buffer-pos=%zu",
               cursor.position, cursor.position_at_start_of_sector, cursor.sector, buffer_.position());
 
-        tree_type position_index{ data_chain_.pc(), file_.position_index, "posidx" };
+        tree_type position_index{ data_chain_.pc(), file_.position_index, "pos-idx" };
         err = position_index.add(cursor.position_at_start_of_sector, cursor.sector);
         if (err < 0) {
             return err;
         }
 
-        tree_type record_index{ data_chain_.pc(), file_.record_index, "recidx" };
+        tree_type record_index{ data_chain_.pc(), file_.record_index, "rec-idx" };
         err = record_index.add(record_number, cursor.position);
         if (err < 0) {
             return err;

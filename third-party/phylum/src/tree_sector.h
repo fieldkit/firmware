@@ -148,7 +148,7 @@ private:
     int32_t dereference_root(TAccess fn) {
         buffer_type buffer{ *buffers_, *sectors_ };
 
-        phydebugf("dereference-root: %d", root_);
+        phyverbosef("dereference-root: %d", root_);
 
         auto lock = buffer.writing(root_);
 
@@ -172,7 +172,7 @@ private:
 
         buffer_type buffer{ *buffers_, *sectors_ };
 
-        phydebugf("dereference-node: %d:%d", node_ptr.sector, node_ptr.position);
+        phyverbosef("dereference-node: %d:%d", node_ptr.sector, node_ptr.position);
 
         auto lock = read_only ? buffer.reading(node_ptr.sector) : buffer.writing(node_ptr.sector);
 
@@ -487,7 +487,7 @@ private:
     int32_t log_node(node_ptr_t node_ptr, default_node_type *node) {
         name("%s[%d]", prefix_, node_ptr.sector);
 
-        logged_task it{ name() };
+        // logged_task it{ name() };
 
         if (node->type == node_type::Inner) {
             phyinfof("inner nkeys=%d", node->number_keys);
@@ -510,7 +510,7 @@ private:
     int32_t log(node_ptr_t node_ptr, bool graph) {
         name("%s[%d]", prefix_, node_ptr.sector);
 
-        logged_task it{ name() };
+        // logged_task it{ name() };
 
         for (auto i = 0; i < (index_type)Size; ++i) {
             node_ptr_t follow_ptr;
@@ -576,14 +576,15 @@ public:
     }
 
     int32_t create() {
-        logged_task lt{ "tree-create" };
-
-        phydebugf("%s creating", name());
-
         if (root_ == InvalidSector) {
             root_ = allocator_->allocate();
             tail_ = root_;
+            phydebugf("tree-create allocating sector=%d", root_);
         }
+
+        logged_task lt{ name(), "tree-create" };
+
+        phydebugf("creating");
 
         buffer_type db{ *buffers_, *sectors_ };
 
@@ -637,16 +638,16 @@ public:
     }
 
     int32_t add(KEY key, VALUE *value, tree_value_ptr_t *found_ptr) {
-        logged_task lt{ "tree-add" };
+        logged_task lt{ name(), "tree-add" };
 
         assert(root_ != InvalidSector);
 
-        phydebugf("%s adding node", name());
+        phydebugf("adding node");
 
         node_ptr_t insertion_ptr;
 
         auto err = dereference_root([this, &insertion_ptr, &key, &value, found_ptr](page_lock &lock, default_node_type *node, node_ptr_t node_ptr) -> int32_t {
-            phydebugf("%s adding node depth=%d", name(), node->depth);
+            phydebugf("adding node depth=%d", node->depth);
 
             if (node->number_keys == 0) {
                 assert(node->type == node_type::Leaf);
@@ -729,13 +730,13 @@ public:
             }
         }
 
-        phydebugf("%s done adding", name());
+        phydebugf("done adding");
 
         return 0;
     }
 
     int32_t find(KEY key, VALUE *value = nullptr, tree_value_ptr_t *found_ptr = nullptr) {
-        logged_task lt{ "tree-find" };
+        logged_task lt{ name(), "tree-find" };
 
         phydebugf("finding %d", key);
 
@@ -790,7 +791,7 @@ public:
     }
 
     bool find_last_less_then(const KEY &key, VALUE *value = 0, KEY *out_key = 0) {
-        logged_task lt{ "tree-find-less" };
+        logged_task lt{ name(), "tree-find-less" };
 
         phydebugf("finding %d", key);
 
@@ -859,7 +860,7 @@ public:
     }
 
     int32_t log(bool graph = false) {
-        logged_task lt{ "tree-log" };
+        logged_task lt{ name(), "tree-log" };
 
         buffer_type db{ *buffers_, *sectors_ };
 

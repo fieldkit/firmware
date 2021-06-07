@@ -4,8 +4,6 @@
 namespace phylum {
 
 int32_t data_chain::write_header(page_lock &lock) {
-    logged_task it{ "dc-write-hdr", name() };
-
     assert_valid();
 
     db().clear();
@@ -21,6 +19,8 @@ int32_t data_chain::write_header(page_lock &lock) {
 }
 
 int32_t data_chain::seek_sector(dhara_sector_t new_sector, file_size_t position_at_start_of_sector, file_size_t desired_position) {
+    logged_task lt{ "dc-seek", name() };
+
     assert(desired_position >= position_at_start_of_sector);
 
     sector(new_sector);
@@ -34,7 +34,7 @@ int32_t data_chain::seek_sector(dhara_sector_t new_sector, file_size_t position_
         return nread;
     }
 
-    phydebugf("seek done desired=%d position=%d nread=%d", desired_position, position_, nread);
+    phyinfof("seek done desired=%d position=%d nread=%d", desired_position, position_, nread);
 
     assert(desired_position == UINT32_MAX || desired_position == position_);
 
@@ -95,7 +95,7 @@ int32_t data_chain::skip_records(record_number_t skipping) {
         records++;
     }
 
-    phydebugf("skipped records=%d bytes=%d position=%d", records, bytes, position_);
+    phyverbosef("skipped records=%d bytes=%d position=%d", records, bytes, position_);
 
     return records;
 }
@@ -151,8 +151,6 @@ int32_t data_chain::truncate(uint8_t const *data, size_t size) {
 int32_t data_chain::read_delimiter(uint32_t *delimiter) {
     assert(delimiter != nullptr);
 
-    logged_task lt{ "dc-read-delim", name() };
-
     assert_valid();
 
     varint_decoder decoder;
@@ -177,7 +175,7 @@ int32_t data_chain::read(uint8_t *data, size_t size) {
 }
 
 file_size_t data_chain::total_bytes() {
-    logged_task lt{ "total-bytes" };
+    logged_task lt{ "total-bytes", name() };
 
     auto lock = db().reading(head());
 
@@ -189,14 +187,12 @@ file_size_t data_chain::total_bytes() {
     }
     while (forward(lock) > 0);
 
-    phydebugf("done (%d)", bytes);
+    phyverbosef("done (%d)", bytes);
 
     return bytes;
 }
 
 int32_t data_chain::write_chain(io_reader &reader) {
-    logged_task lt{ "write-data-chain" };
-
     if (!appendable()) {
         phyverbosef("making appendable");
 
@@ -204,7 +200,7 @@ int32_t data_chain::write_chain(io_reader &reader) {
 
         assert(back_to_head(lock) >= 0);
 
-        logged_task lt{ name() };
+        // logged_task lt{ name() };
 
         auto err = seek_end_of_chain(lock);
         if (err < 0) {
@@ -314,15 +310,13 @@ int32_t data_chain::constrain() {
      */
     auto minimum = 2 + sizeof(data_chain_header_t) + 1;
     if (db().position() < minimum) {
-        phydebugf("constraining to minimum position=%d", minimum);
+        phyverbosef("constraining to minimum position=%d", minimum);
         db().position(minimum);
     }
     return 0;
 }
 
 int32_t data_chain::read_chain(io_writer &writer) {
-    logged_task lt{ "read-data-chain", name() };
-
     assert_valid();
 
     auto lock = db().reading(sector());

@@ -140,7 +140,7 @@ int32_t paging_delimited_buffer::replace(dhara_sector_t sector, bool read_only, 
 
     ptr(opened, buffers_->buffer_size());
 
-    phydebugf("page-lock: replaced previous=%d sector=%d buffer=0x%x read-only=%d", sector_, sector, opened, read_only);
+    phyverbosef("page-lock: replaced previous=%d sector=%d buffer=0x%x read-only=%d", sector_, sector, opened, read_only);
 
     sector_ = sector;
     valid_ = true;

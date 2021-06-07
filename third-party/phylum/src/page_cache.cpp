@@ -7,7 +7,7 @@ simple_page_cache::simple_page_cache(simple_buffer buffer) : buffer_(std::move(b
     size_ = buffer_.size() / sizeof(cache_entry_t);
     entries_ = (cache_entry_t *)buffer_.ptr();
     buffer_.clear(0xff);
-    phydebugf("page-cache-ready size=%d", size_);
+    phyverbosef("page-cache-ready size=%d", size_);
 }
 
 simple_page_cache::simple_page_cache(simple_page_cache &&other) : buffer_(std::move(other.buffer_)){
@@ -20,7 +20,7 @@ bool simple_page_cache::get(dhara_sector_t sector, dhara_page_t *page) {
     for (auto i = 0u; i < size_; ++i) {
         auto &e = entries_[i];
         if (e.sector == sector) {
-            phydebugf("page-cache-got sector=%d page=%d age=%d", sector, e.page, e.age);
+            phyverbosef("page-cache-got sector=%d page=%d age=%d", sector, e.page, e.age);
             *page = e.page;
             return true;
         }
@@ -71,7 +71,7 @@ bool simple_page_cache::set(dhara_sector_t sector, dhara_page_t page) {
     e.page = page;
     e.age = ++counter_;
 
-    phydebugf("page-cache-set sector=%d page=%d age=%d", sector, e.page, e.age);
+    phyverbosef("page-cache-set sector=%d page=%d age=%d", sector, e.page, e.age);
 
     return true;
 }

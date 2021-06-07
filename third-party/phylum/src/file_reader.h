@@ -44,7 +44,7 @@ public:
 
         // TODO Skip this if desired_record == 0
 
-        tree_type record_index{ data_chain_.pc(), file_.record_index, "recidx" };
+        tree_type record_index{ data_chain_.pc(), file_.record_index, "rec-idx" };
 
         uint32_t found_record = 0;
         uint32_t found_record_position = 0;

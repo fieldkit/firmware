@@ -11,7 +11,7 @@ free_sectors_chain::~free_sectors_chain() {
 int32_t free_sectors_chain::add_free_sectors(free_sectors_t record) {
     assert(record.head != InvalidSector);
 
-    logged_task lt{ "fc-add-chain" };
+    logged_task lt{ "fc-add-sectors" };
 
     auto page_lock = db().writing(sector());
 
@@ -139,8 +139,6 @@ int32_t free_sectors_chain::dequeue(dhara_sector_t *sector) {
 }
 
 int32_t free_sectors_chain::write_header(page_lock &page_lock) {
-    logged_task lt{ "fc-write-hdr", this->name() };
-
     assert_valid();
 
     db().emplace<free_chain_header_t>();

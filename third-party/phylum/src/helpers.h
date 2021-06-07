@@ -11,7 +11,7 @@ public:
     static int32_t indexed_seek(data_chain &chain, tree_ptr_t ptr, uint32_t desired_position) {
         int32_t err;
 
-        tree_type position_index{ chain.pc(), ptr, "posidx" };
+        tree_type position_index{ chain.pc(), ptr, "pos-idx" };
 
         uint32_t found_position = 0;
         uint32_t found_sector = InvalidSector;

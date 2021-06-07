@@ -8,35 +8,35 @@ namespace phylum {
 void phyinfof(const char *f, ...) {
     va_list args;
     va_start(args, f);
-    valogfs(LogLevels::INFO, "phylum", get_task_stack()->get(), f, args);
+    valogf(LogLevels::INFO, "phylum", f, args);
     va_end(args);
 }
 
 void phyerrorf(const char *f, ...) {
     va_list args;
     va_start(args, f);
-    valogfs(LogLevels::ERROR, "phylum", get_task_stack()->get(), f, args);
+    valogf(LogLevels::ERROR, "phylum", f, args);
     va_end(args);
 }
 
 void phyverbosef(const char *f, ...) {
     va_list args;
     va_start(args, f);
-    valogfs(LogLevels::VERBOSE, "phylum", get_task_stack()->get(), f, args);
+    valogf(LogLevels::VERBOSE, "phylum", f, args);
     va_end(args);
 }
 
 void phydebugf(const char *f, ...) {
     va_list args;
     va_start(args, f);
-    valogfs(LogLevels::DEBUG, "phylum", get_task_stack()->get(), f, args);
+    valogf(LogLevels::DEBUG, "phylum", f, args);
     va_end(args);
 }
 
 void phywarnf(const char *f, ...) {
     va_list args;
     va_start(args, f);
-    valogfs(LogLevels::WARN, "phylum", get_task_stack()->get(), f, args);
+    valogf(LogLevels::WARN, "phylum", f, args);
     va_end(args);
 }
 
