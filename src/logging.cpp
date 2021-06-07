@@ -11,9 +11,14 @@ extern size_t platform_write_fn(const LogMessage *m, const char *fstring, va_lis
 
 static uint32_t always_zero();
 
+static const char *empty_scope_fn() {
+    return "";
+}
+
 static log_message_uptime_fn_t log_uptime_fn = millis;
 static log_message_time_fn_t log_time_fn = always_zero;
-static log_message_write_fn_t write_fn = platform_write_fn;
+static log_message_write_fn_t log_write_fn = platform_write_fn;
+static log_message_scope_fn_t log_scope_fn = empty_scope_fn;
 
 static log_message_hook_fn_t log_hook_fn = nullptr;
 static void *log_hook_arg = nullptr;
@@ -26,7 +31,7 @@ static uint32_t always_zero() {
 }
 
 void log_configure_writer(log_message_write_fn_t new_fn) {
-    write_fn = new_fn;
+    log_write_fn = new_fn;
 }
 
 void log_configure_hook_register(log_message_hook_fn_t hook, void *arg) {
@@ -60,9 +65,13 @@ void log_configure_time(log_message_uptime_fn_t uptime_fn, log_message_time_fn_t
     log_time_fn = time_fn == nullptr ? always_zero : time_fn;
 }
 
+void log_configure_scope(log_message_scope_fn_t scope_fn) {
+    log_scope_fn = scope_fn;
+}
+
 void log_raw(const LogMessage *m, const char *fstring, va_list args) {
-    if (write_fn != nullptr) {
-        write_fn(m, fstring, args);
+    if (log_write_fn != nullptr) {
+        log_write_fn(m, fstring, args);
     }
 
     if (log_hook_fn != nullptr) {
@@ -75,7 +84,7 @@ void log_raw(const LogMessage *m, const char *fstring, va_list args) {
 }
 
 void valogf(LogLevels level, const char *facility, const char *f, va_list args) {
-    return valogfs(level, facility, "", f, args);
+    return valogfs(level, facility, log_scope_fn(), f, args);
 }
 
 void valogfs(LogLevels level, const char *facility, const char *scope, const char *f, va_list args) {

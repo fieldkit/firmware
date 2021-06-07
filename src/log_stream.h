@@ -60,9 +60,11 @@ public:
         return printf("%" PRIu32, i);
     }
 
+#if defined(PRIu64)
     LogStream& operator<<(uint64_t i) {
         return printf("%" PRIu64, i);
     }
+#endif
 
     LogStream& operator<<(int8_t i) {
         return printf("%d", i);
@@ -76,9 +78,11 @@ public:
         return printf("%" PRId32, i);
     }
 
+#if defined(PRIu64)
     LogStream& operator<<(int64_t i) {
         return printf("%" PRId64, i);
     }
+#endif
 
     LogStream& operator<<(void *i) {
         return printf("0x%p", i);
