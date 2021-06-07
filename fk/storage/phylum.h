@@ -62,6 +62,8 @@ public:
         return phylum::phyctx{ buffers_, sectors_, allocator_ };
     }
 
+    uint32_t bytes_used();
+
 public:
     bool begin(bool force_create);
     bool format();

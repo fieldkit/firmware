@@ -51,25 +51,26 @@ private:
     DataOps *data_ops_{ nullptr };
     bool allow_phylum_{ false };
     bool using_phylum_{ false };
+    int32_t bytes_used_{ 0 };
 
 public:
     Storage(DataMemory *memory, Pool &pool, bool read_only = true, bool allow_phylum = false);
     virtual ~Storage();
 
 public:
+    Phylum &phylum() {
+        return phylum_;
+    }
+
     DataOps *data_ops();
 
     MetaOps *meta_ops();
 
     FileReader *file_reader(FileNumber file_number, Pool &pool);
 
-    int32_t installed();
+    uint32_t installed();
 
-    int32_t used();
-
-    Phylum &phylum() {
-        return phylum_;
-    }
+    uint32_t used();
 
 public:
     bool begin();

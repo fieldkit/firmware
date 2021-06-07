@@ -101,4 +101,8 @@ bool Phylum::sync() {
     return true;
 }
 
+uint32_t Phylum::bytes_used() {
+    return allocator_.allocated() * sector_size_;
+}
+
 }

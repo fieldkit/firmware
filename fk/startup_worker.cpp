@@ -366,9 +366,6 @@ bool StartupWorker::create_new_state(Storage &storage, GlobalState *gs, Pool &po
 }
 
 bool StartupWorker::load_from_files(Storage &storage, GlobalState *gs, Pool &pool) {
-    gs->storage.spi.installed = storage.installed();
-    gs->storage.spi.used = storage.used();
-
     auto meta_ops = storage.meta_ops();
     auto meta_attributes = meta_ops->attributes(pool);
     if (!meta_attributes) {
@@ -387,6 +384,8 @@ bool StartupWorker::load_from_files(Storage &storage, GlobalState *gs, Pool &poo
         .meta = StorageStreamUpdate{ meta_attributes->size, meta_attributes->records },
         .data = StorageStreamUpdate{ data_attributes->size, data_attributes->records },
         .nreadings = data_attributes->nreadings,
+        .installed = storage.installed(),
+        .used = storage.used(),
     };
 
     gs->apply(storage_update);

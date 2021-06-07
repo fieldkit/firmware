@@ -108,6 +108,7 @@ bool Storage::begin() {
         data_ops_ = new (pool_) phylum_ops::DataOps(*this);
         meta_ops_ = new (pool_) phylum_ops::MetaOps(*this);
         using_phylum_ = true;
+        bytes_used_ = phylum_.bytes_used();
         loginfo("storage-begin: phylum");
         return true;
     }
@@ -183,12 +184,12 @@ MetaOps *Storage::meta_ops() {
     return meta_ops_;
 }
 
-int32_t Storage::installed() {
+uint32_t Storage::installed() {
     return data_memory_->geometry().total_size;
 }
 
-int32_t Storage::used() {
-    return 0;
+uint32_t Storage::used() {
+    return bytes_used_;
 }
 
 FileReader *Storage::file_reader(FileNumber file_number, Pool &pool) {
@@ -357,6 +358,7 @@ bool Storage::begin_internal() {
     }
 
     free_block_ = blocks_after.free;
+    bytes_used_ = free_block_ * g.block_size;
 
     logdebug("[-] block: blk %" PRIu32 " found end (%" PRIu32 "ms)", free_block_, fk_uptime() - started);
 

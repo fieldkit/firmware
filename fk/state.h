@@ -178,6 +178,8 @@ struct StorageUpdate {
     StorageStreamUpdate meta;
     StorageStreamUpdate data;
     uint32_t nreadings;
+    uint32_t installed;
+    uint32_t used;
 };
 
 struct LoraState {
