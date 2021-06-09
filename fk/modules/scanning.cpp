@@ -22,6 +22,7 @@ public:
 
 public:
     int32_t scanned_module(ModulePosition const position, ModuleHeader const &header, Pool *pool) override {
+        collection_.emplace(position, header);
         return 0;
     }
 

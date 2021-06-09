@@ -13,6 +13,9 @@ struct FoundModule {
     ModulePosition position;
     ModuleHeader header;
 
+    FoundModule(ModulePosition const &position, ModuleHeader const &header) : position(position), header(header) {
+    }
+
     bool physical() const {
         return position != ModulePosition::Virtual;
     }
