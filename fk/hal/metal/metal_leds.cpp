@@ -23,9 +23,6 @@ MetalLeds::MetalLeds() {
 bool MetalLeds::begin() {
     auto bus = get_board()->i2c_module();
 
-    bus.end();
-    bus.begin();
-
     status_ = Availability::Unavailable;
 
     if (!I2C_CHECK(bus.write_register_u8(LP50_ADDRESS, LP50_REGISTER_ENABLE, LP50_ENABLE_ON))) {
