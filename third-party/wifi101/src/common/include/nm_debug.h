@@ -67,8 +67,9 @@
 extern "C" {
 #endif
 #define CONF_WINC_DEBUG (1)
-unsigned long fkb_external_printf(const char *str, ...);
-#define CONF_WINC_PRINTF   fkb_external_printf
+void nm_dbg_wifi_printf(const char *str, ...);
+
+#define CONF_WINC_PRINTF                                nm_dbg_wifi_printf
 #ifdef __cplusplus
 }
 #endif

@@ -38,7 +38,48 @@
  * \asf_license_stop
  *
  */
+
+#include <stdarg.h>
+
 #include "common/include/nm_common.h"
+
+static char log_buffer[256];
+static uint32 log_position = 0;
+
+int tiny_vsnprintf(char* buffer, uint32 count, const char* format, va_list va);
+
+int SEGGER_RTT_vprintf(unsigned BufferIndex, const char * sFormat, va_list * pParamList);
+
+void loginfof(const char *facility, const char *f, ...) __attribute__((format(printf, 2, 3)));
+
+void nm_dbg_wifi_printf(const char *str, ...) {
+    va_list args;
+    va_start(args, str);
+    int r = tiny_vsnprintf(log_buffer + log_position, sizeof(log_buffer) - log_position - 1, str, args);
+    va_end(args);
+
+    log_position += r;
+    log_buffer[log_position] = 0;
+
+    int flush = 0;
+    int ignore = 1;
+    for (int i = 0; i < log_position; ++i) {
+        if (log_buffer[i] == '\n' || log_buffer[i] == '\r') {
+            log_buffer[i] = '.';
+            flush = 1;
+        }
+        else {
+            ignore = 0;
+        }
+    }
+
+    if (flush) {
+        if (!ignore) {
+            loginfof("wifi101", log_buffer);
+        }
+        log_position = 0;
+    }
+}
 
 void m2m_memcpy(uint8* pDst,uint8* pSrc,uint32 sz)
 {
