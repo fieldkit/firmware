@@ -47,6 +47,11 @@ void ReceiveFirmwareWorker::run(Pool &pool) {
 
     loginfo("receiving %" PRIu32 " bytes...", expected);
 
+    if (expected == 0) {
+        read_complete_and_fail("empty", pool);
+        return;
+    }
+
     GlobalStateProgressCallbacks gs_progress;
     ProgressTracker tracker{ &gs_progress, Operation::Download, "receiving", "", expected };
 
@@ -80,6 +85,8 @@ void ReceiveFirmwareWorker::run(Pool &pool) {
         read_complete_and_fail("create", pool);
         return;
     }
+
+    loginfo("reading binary");
 
     auto buffer = reinterpret_cast<uint8_t*>(pool.malloc(NetworkBufferSize));
     auto bytes_copied = (uint32_t)0;
