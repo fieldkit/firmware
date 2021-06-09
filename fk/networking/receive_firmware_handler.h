@@ -33,7 +33,7 @@ private:
      */
     bool read_complete_and_fail(const char *error, Pool &pool);
     bool write_error(const char *kind, Pool &pool);
-    bool write_success(Pool &pool);
+    bool write_success(const char *hash, Pool &pool);
 
 };
 

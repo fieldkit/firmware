@@ -34,8 +34,8 @@ bool ReceiveFirmwareWorker::write_error(const char *kind, Pool &pool) {
     return true;
 }
 
-bool ReceiveFirmwareWorker::write_success(Pool &pool) {
-    auto body = pool.sprintf("{ \"%s\": true }", "success");
+bool ReceiveFirmwareWorker::write_success(const char *hash, Pool &pool) {
+    auto body = pool.sprintf("{ \"success\": true, \"hash\": \"%s\" }", hash);
     connection_->plain(HttpStatus::Ok, "ok", body, pool);
     connection_->close();
     return true;
@@ -134,7 +134,7 @@ void ReceiveFirmwareWorker::run(Pool &pool) {
 
     file->close();
 
-    write_success(pool);
+    write_success(hex_hash, pool);
 
     fk_delay(500);
 
