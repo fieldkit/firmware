@@ -94,8 +94,12 @@ void ReceiveFirmwareWorker::run(Pool &pool) {
     while (connection_->active() && bytes_copied < expected) {
         auto bytes = connection_->read(buffer, NetworkBufferSize);
         if (bytes > 0) {
-            if (file->write(buffer, bytes) == bytes) {
+            auto wrote = file->write(buffer, bytes);
+            if (wrote == bytes) {
                 bytes_copied += bytes;
+            }
+            else {
+                logerror("write (%d != %d)", wrote, bytes);
             }
 
             tracker.update(bytes);
