@@ -47,8 +47,8 @@ void ReceiveFirmwareWorker::run(Pool &pool) {
 
     loginfo("receiving %" PRIu32 " bytes...", expected);
 
-    if (expected == 0) {
-        read_complete_and_fail("empty", pool);
+    if (expected <= Hash::Length) {
+        read_complete_and_fail("length", pool);
         return;
     }
 
@@ -86,10 +86,16 @@ void ReceiveFirmwareWorker::run(Pool &pool) {
         return;
     }
 
+    auto b2b = new (pool) BLAKE2b();
+
+    b2b->reset(Hash::Length);
+
     loginfo("reading binary");
 
     auto buffer = reinterpret_cast<uint8_t*>(pool.malloc(NetworkBufferSize));
-    auto bytes_copied = (uint32_t)0;
+    auto bytes_copied = 0u;
+    auto bytes_hashing = expected - Hash::Length;
+    auto bytes_hashed = 0u;
 
     while (connection_->active() && bytes_copied < expected) {
         auto bytes = connection_->read(buffer, NetworkBufferSize);
@@ -103,12 +109,22 @@ void ReceiveFirmwareWorker::run(Pool &pool) {
             }
 
             tracker.update(bytes);
+
+            auto nbytes_hash = std::min<int32_t>(bytes_hashing - bytes_hashed, wrote);
+            b2b->update(buffer, nbytes_hash);
+            bytes_hashed += nbytes_hash;
         }
     }
 
     file->close();
 
     tracker.finished();
+
+    Hash received_hash;
+    b2b->finalize(&received_hash.hash, Hash::Length);
+
+    auto hex_hash = bytes_to_hex_string_pool(received_hash.hash, Hash::Length, pool);
+    loginfo("received hash: %s", hex_hash);
 
     if (bytes_copied != expected) {
         logwarn("unexpected bytes %" PRIu32 " != %" PRIu32, bytes_copied, expected);
