@@ -323,9 +323,13 @@ void EIC_10_Handler(void)
   InterruptHandler(EXTERNAL_INT_10);
 }
 
+uint32_t irq_eic_11_handler = 0;
+
 void EIC_11_Handler(void)
 {
+  __atomic_store_n(&irq_eic_11_handler, 1, __ATOMIC_SEQ_CST);
   InterruptHandler(EXTERNAL_INT_11);
+  __atomic_store_n(&irq_eic_11_handler, 0, __ATOMIC_SEQ_CST);
 }
 
 void EIC_12_Handler(void)
