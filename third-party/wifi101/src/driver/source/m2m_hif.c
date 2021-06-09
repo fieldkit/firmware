@@ -411,7 +411,7 @@ sint8 hif_send(uint8 u8Gid,uint8 u8Opcode,uint8 *pu8CtrlBuf,uint16 u16CtrlBufSiz
 		else
 		{
 			ret = hif_chip_sleep();
-			M2M_DBG("Failed to alloc rx size %d\r",ret);
+			M2M_DBG("Failed to alloc rx size %d\n",ret);
 			ret = M2M_ERR_MEM_ALLOC;
 			goto ERR2;
 		}
@@ -599,7 +599,7 @@ static sint8 hif_isr(void)
 		else
 		{
 #ifndef WIN32
-			M2M_ERR("(hif) False interrupt %lx",reg);
+			M2M_ERR("(hif) False interrupt %lx\n",reg);
 #ifdef ARDUINO
 			// ignore false interrupts, since they cause infinite loops in hif_handle_isr
 #else
