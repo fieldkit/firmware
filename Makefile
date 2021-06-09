@@ -71,8 +71,8 @@ run-fake: fake
 doc:
 	cd $(BUILD)/amd64 && $(MAKE) doc
 
-fk/secrets.h: fk/secrets.h.template
-	cp $^ $@
+fk/secrets.h:
+	cp fk/secrets.h.template $@
 
 fk/secrets.cpp: fk/secrets.cpp.template
 	cp $^ $@
