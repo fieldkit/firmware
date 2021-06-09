@@ -160,6 +160,8 @@ int32_t PhylumDataFile::initialize_config(Pool &pool) {
 int32_t PhylumDataFile::open(const char *name, Pool &pool) {
     assert(initialize_config(pool) == 0);
 
+    logged_task lt{ "df-open" };
+
     auto err = dir_.find(name, file_cfg_);
     if (err < 0) {
         return err;
@@ -181,6 +183,8 @@ int32_t PhylumDataFile::create(const char *name, Pool &pool) {
     assert(name_ == nullptr);
     assert(initialize_config(pool) == 0);
 
+    logged_task lt{ "df-create" };
+
     auto err = dir_.touch_indexed<index_tree_type>(name, file_cfg_);
     if (err < 0) {
         return err;
@@ -193,6 +197,8 @@ int32_t PhylumDataFile::create(const char *name, Pool &pool) {
 
 PhylumDataFile::DataFileAttributes PhylumDataFile::attributes() {
     assert(name_ != nullptr);
+
+    logged_task lt{ "df-attrs" };
 
     PhylumAttributes attributes{ file_cfg_, pool_ };
 
@@ -221,6 +227,8 @@ PhylumDataFile::DataFileAttributes PhylumDataFile::attributes() {
 
 PhylumDataFile::appended_t PhylumDataFile::append_always(RecordType type, pb_msgdesc_t const *fields, void const *record, Pool &pool) {
     assert(name_ != nullptr);
+
+    logged_task lt{ "df-always" };
 
     loginfo("append-always");
 
@@ -326,6 +334,8 @@ PhylumDataFile::appended_t PhylumDataFile::append_always(RecordType type, pb_msg
 PhylumDataFile::appended_t PhylumDataFile::append_immutable(RecordType type, pb_msgdesc_t const *fields, void const *record, Pool &pool) {
     assert(name_ != nullptr);
 
+    logged_task lt{ "df-idemp" };
+
     loginfo("append-immutable");
 
     PhylumAttributes attributes{ file_cfg_, pool_ };
@@ -365,6 +375,8 @@ PhylumDataFile::appended_t PhylumDataFile::append_immutable(RecordType type, pb_
 int32_t PhylumDataFile::seek_record_type(RecordType type, file_size_t &position, Pool &pool) {
     assert(name_ != nullptr);
 
+    logged_task lt{ "df-seek-rec-type" };
+
     auto attribute_type = get_attribute_for_record_type(type);
     auto attribute_index = phylum_file_attr_type_to_index(attribute_type);
 
@@ -390,6 +402,8 @@ int32_t PhylumDataFile::seek_record_type(RecordType type, file_size_t &position,
 int32_t PhylumDataFile::seek_record(record_number_t record, Pool &pool) {
     assert(name_ != nullptr);
 
+    logged_task lt{ "df-seek-rec" };
+
     loginfo("seek record=%d", record);
 
     reader_ = new (pool) phylum::file_reader{ pc(), &dir_, dir_.open() };
@@ -403,6 +417,8 @@ int32_t PhylumDataFile::seek_record(record_number_t record, Pool &pool) {
 
 int32_t PhylumDataFile::seek_position(file_size_t position, Pool &pool) {
     assert(name_ != nullptr);
+
+    logged_task lt{ "df-seek-pos" };
 
     loginfo("seek position=%d", position);
 
@@ -422,6 +438,8 @@ int32_t PhylumDataFile::seek_position(file_size_t position, Pool &pool) {
 int32_t PhylumDataFile::read(uint8_t *data, size_t size, Pool &pool) {
     assert(reader_ != nullptr);
 
+    logged_task lt{ "df-read" };
+
     auto err = reader_->read(data, size);
     if (err < 0) {
         return err;
@@ -432,6 +450,8 @@ int32_t PhylumDataFile::read(uint8_t *data, size_t size, Pool &pool) {
 
 int32_t PhylumDataFile::read(pb_msgdesc_t const *fields, void *record, Pool &pool) {
     assert(reader_ != nullptr);
+
+    logged_task lt{ "df-read" };
 
     auto position = reader_->position();
 
@@ -459,6 +479,7 @@ int32_t PhylumDataFile::close() {
     // be called. I'd much rather fix that behavior.
     // TODO Call destructor for pool allocations.
     if (reader_ != nullptr) {
+        logged_task lt{ "df-close" };
         reader_->close();
         reader_ = nullptr;
     }
