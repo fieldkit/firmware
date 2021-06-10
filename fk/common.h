@@ -133,6 +133,12 @@ using nonstd::nullopt;
  */
 #define FK_PRIORITY_NORMAL             (OS_PRIORITY_NORMAL + 1)
 
+#define FK_PRIORITY_BUTTONS            (FK_PRIORITY_NORMAL)
+
+#define FK_PRIORITY_GPS                (FK_PRIORITY_NORMAL)
+
+#define FK_PRIORITY_SERCOM             (FK_PRIORITY_NORMAL)
+
 /**
  * Evaluates to 1 shifted by the given position.
  */

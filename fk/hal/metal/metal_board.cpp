@@ -331,6 +331,11 @@ void TwoWireWrapper::begin() {
     if (ptr_ == nullptr) return;
 
     reinterpret_cast<TwoWire*>(ptr_)->begin();
+
+    NVIC_SetPriority(SERCOM4_0_IRQn, FK_PRIORITY_SERCOM);
+    NVIC_SetPriority(SERCOM4_1_IRQn, FK_PRIORITY_SERCOM);
+    NVIC_SetPriority(SERCOM4_2_IRQn, FK_PRIORITY_SERCOM);
+    NVIC_SetPriority(SERCOM4_3_IRQn, FK_PRIORITY_SERCOM);
 }
 
 int32_t TwoWireWrapper::read(uint8_t address, void *data, int32_t size) {

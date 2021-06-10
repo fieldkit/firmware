@@ -22,6 +22,8 @@ bool MetalBatteryGauge::begin() {
     battery_ = Availability::Unavailable;
     solar_ = Availability::Unavailable;
 
+    NVIC_SetPriority(EIC_12_IRQn, OS_IRQ_PRIORITY_SYSTICK + 1);
+
     pinMode(PIN_BATTERY_CHARGING, INPUT);
     attachInterrupt(digitalPinToInterrupt(PIN_BATTERY_CHARGING), irq_charge_pulse, FALLING);
 

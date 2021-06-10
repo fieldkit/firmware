@@ -86,6 +86,7 @@ bool MetalModMux::begin() {
         pinMode(MODULE_SWAP, INPUT);
         auto irq = digitalPinToInterrupt(MODULE_SWAP);
         attachInterrupt(irq, topology_irq, CHANGE);
+        NVIC_SetPriority(EIC_3_IRQn, FK_PRIORITY_BUTTONS);
         #endif
     }
 
