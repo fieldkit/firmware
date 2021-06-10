@@ -13,3 +13,4 @@ power.db
 *.db-journal
 logs
 logs.txt
+data_*.fkpb
