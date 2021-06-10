@@ -399,11 +399,11 @@ os_status_t os_start(void) {
     return OSS_SUCCESS;
 }
 
-extern uint32_t irq_eic_11_handler;
+extern uint32_t irq_eic_11_handling;
 
 os_status_t osi_task_status_set(os_task_t *task, os_task_status new_status) {
 #if defined(__SAMD51__)
-    OS_ASSERT(irq_eic_11_handler == 0);
+    OS_ASSERT(irq_eic_11_handling == 0);
 #endif
 
     OS_LOCK();

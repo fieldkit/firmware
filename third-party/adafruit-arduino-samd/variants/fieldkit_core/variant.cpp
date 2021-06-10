@@ -201,19 +201,46 @@ SERCOM sercom7( SERCOM7 ) ;
 
 Uart Serial1( &sercom0, PIN_SERIAL1_RX, PIN_SERIAL1_TX, PAD_SERIAL1_RX, PAD_SERIAL1_TX ) ;
 
+uint32_t irq_sercom_0_calls = 0;
+uint32_t irq_sercom_0_handling = 0;
+
 void SERCOM0_0_Handler()
 {
+    __atomic_add_fetch(&irq_sercom_0_calls, 1, __ATOMIC_SEQ_CST);
+    __atomic_store_n(&irq_sercom_0_handling, 1, __ATOMIC_SEQ_CST);
     Serial1.IrqHandler();
+    __atomic_store_n(&irq_sercom_0_handling, 0, __ATOMIC_SEQ_CST);
 }
+
+uint32_t irq_sercom_1_calls = 0;
+uint32_t irq_sercom_1_handling = 0;
+
 void SERCOM0_1_Handler()
 {
+    __atomic_add_fetch(&irq_sercom_1_calls, 1, __ATOMIC_SEQ_CST);
+    __atomic_store_n(&irq_sercom_1_handling, 1, __ATOMIC_SEQ_CST);
     Serial1.IrqHandler();
+    __atomic_store_n(&irq_sercom_1_handling, 0, __ATOMIC_SEQ_CST);
 }
+
+uint32_t irq_sercom_2_calls = 0;
+uint32_t irq_sercom_2_handling = 0;
+
 void SERCOM0_2_Handler()
 {
+    __atomic_add_fetch(&irq_sercom_2_calls, 1, __ATOMIC_SEQ_CST);
+    __atomic_store_n(&irq_sercom_2_handling, 1, __ATOMIC_SEQ_CST);
     Serial1.IrqHandler();
+    __atomic_store_n(&irq_sercom_2_handling, 0, __ATOMIC_SEQ_CST);
 }
+
+uint32_t irq_sercom_3_calls = 0;
+uint32_t irq_sercom_3_handling = 0;
+
 void SERCOM0_3_Handler()
 {
+    __atomic_add_fetch(&irq_sercom_3_calls, 1, __ATOMIC_SEQ_CST);
+    __atomic_store_n(&irq_sercom_3_handling, 1, __ATOMIC_SEQ_CST);
     Serial1.IrqHandler();
+    __atomic_store_n(&irq_sercom_3_handling, 0, __ATOMIC_SEQ_CST);
 }

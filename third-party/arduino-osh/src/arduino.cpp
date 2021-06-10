@@ -65,10 +65,10 @@ extern void SysTick_DefaultHandler(void);
 
 uint32_t irq_systick = 0;
 
-extern uint32_t irq_eic_11_handler;
+extern uint32_t irq_eic_11_handling;
 
 int32_t sysTickHook(void) {
-    if (irq_eic_11_handler != 0) {
+    if (irq_eic_11_handling != 0) {
         osi_printf("\n\n\nsys-tick during eic-11\n\n\n");
     }
 
