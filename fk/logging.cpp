@@ -155,7 +155,7 @@ size_t write_log(LogMessage const *m, const char *fstring, va_list args) {
     }
 
     auto level = alog_get_log_level((LogLevels)m->level);
-    auto plain_fs = "%08" PRIu32 " %-10s %-7s %s: %s";
+    auto plain_fs = "%08" PRIu32 " %-10s %-7s %s%s: ";
     auto color_fs = "";
     auto task = os_task_name();
     if (task == nullptr) {
