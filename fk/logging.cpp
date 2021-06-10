@@ -39,9 +39,17 @@ static saved_logs_t saved_logs = { .pages = { nullptr, nullptr, nullptr, nullptr
 static void write_logs_buffer(char c, void *arg) {
     auto app = reinterpret_cast<log_buffer::appender *>(arg);
 
-    if (logs.size(sd_card_iterator) >= InMemoryLogBufferSize - 1024) {
+#if !defined(FK_DEBUG_LOGGING_SD_DISABLED)
+#if defined(FK_DEBUG_LOGGING_SD_FLUSH_SIZE)
+    if (logs.size(sd_card_iterator) >= FK_DEBUG_LOGGING_SD_FLUSH_SIZE) {
         fk_logs_flush();
     }
+#else
+    if (logs.size(sd_card_iterator) >= (InMemoryLogBufferSize - 1024)) {
+        fk_logs_flush();
+    }
+#endif
+#endif
 
     if (c != 0) {
         app->append(c);
