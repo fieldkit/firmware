@@ -31,8 +31,8 @@ const PinDescription g_APinDescription[]=
   // 0..13 - Digital pins
   // ----------------------
   // 0/1 - SERCOM/UART (Serial1)
-  { PORTB, 25,  PIO_SERCOM, PIN_ATTR_DIGITAL, No_ADC_Channel, NOT_ON_PWM, NOT_ON_TIMER,    EXTERNAL_INT_9 }, // RX: SERCOMX/PAD[1]
-  { PORTB, 24,  PIO_SERCOM, PIN_ATTR_DIGITAL, No_ADC_Channel, NOT_ON_PWM, NOT_ON_TIMER,    EXTERNAL_INT_8 }, // TX: SERCOMX/PAD[0]
+  { PORTB, 25,  PIO_SERCOM, PIN_ATTR_DIGITAL, No_ADC_Channel, NOT_ON_PWM, NOT_ON_TIMER, EXTERNAL_INT_NONE }, // RX: SERCOMX/PAD[1]
+  { PORTB, 24,  PIO_SERCOM, PIN_ATTR_DIGITAL, No_ADC_Channel, NOT_ON_PWM, NOT_ON_TIMER, EXTERNAL_INT_NONE }, // TX: SERCOMX/PAD[0]
 
   // 2..12
   // Digital Low
@@ -145,8 +145,8 @@ const PinDescription g_APinDescription[]=
   // 77..79 - USB
   // --------------------
   { PORTA, 27, PIO_COM,     PIN_ATTR_DIGITAL, No_ADC_Channel, NOT_ON_PWM, NOT_ON_TIMER, EXTERNAL_INT_NONE }, // USB HOST EnABLE
-  { PORTA, 24, PIO_COM,     PIN_ATTR_NONE,    No_ADC_Channel, NOT_ON_PWM, NOT_ON_TIMER,    EXTERNAL_INT_8 }, // USB/DM
-  { PORTA, 25, PIO_COM,     PIN_ATTR_NONE,    No_ADC_Channel, NOT_ON_PWM, NOT_ON_TIMER,    EXTERNAL_INT_9 }, // USB/DP
+  { PORTA, 24, PIO_COM,     PIN_ATTR_NONE,    No_ADC_Channel, NOT_ON_PWM, NOT_ON_TIMER, EXTERNAL_INT_NONE }, // USB/DM
+  { PORTA, 25, PIO_COM,     PIN_ATTR_NONE,    No_ADC_Channel, NOT_ON_PWM, NOT_ON_TIMER, EXTERNAL_INT_NONE }, // USB/DP
 
   // 80..83 - SPI pins
   // ----------------------
