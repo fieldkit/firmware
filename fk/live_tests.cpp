@@ -354,13 +354,13 @@ void wifi101_example() {
                                 auto flush_took = fk_uptime() - flush_started;
 
                                 if (bytes_copied == 0) {
-                                    SEGGER_RTT_printf(0, "packets=%d copied=%d bytes=%d wrote=%dms flush=%dms rssi=%d (failed)\n",
+                                    loginfof("live", "packets=%" PRIu32 " copied=%d bytes=%d wrote=%" PRIu32 "ms flush=%" PRIu32 "ms rssi=%" PRIu32 " (failed)",
                                                       packet_writes, copied, bytes_copied, write_took, flush_took, WiFi.RSSI());
                                     fk_delay(100);
                                 } else {
-                                    SEGGER_RTT_printf(0, "packets=%d copied=%d bytes=%d wrote=%dms flush=%dms rssi=%d total=%d\n",
-                                        packet_writes, copied, bytes_copied, write_took, flush_took, WiFi.RSSI(),
-                                        total_transferred);
+                                    loginfof("live", "packets=%" PRIu32 " copied=%d bytes=%d wrote=%" PRIu32 "ms flush=%" PRIu32 "ms rssi=%" PRIu32 " total=%" PRIu32 "",
+                                             packet_writes, copied, bytes_copied, write_took, flush_took, WiFi.RSSI(),
+                                             total_transferred);
                                     fkwifi_log();
                                     copied += bytes_copied;
                                     total_transferred += bytes_copied;
