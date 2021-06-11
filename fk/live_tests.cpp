@@ -33,6 +33,18 @@ uint32_t packet_writes = 0;
 
 namespace fk {
 
+/**
+ * Maximum number of busy tasks that can be spawned in multithreaded live tests.
+ */
+#define FK_DEBUG_LIVE_TEST_BUSY_TASKS_MAXIMUM     2
+
+#if !defined(FK_DEBUG_LIVE_TEST_BUSY_TASKS_ACTIVE)
+/**
+ * Actual number of busy tasks to spawn.
+ */
+#define FK_DEBUG_LIVE_TEST_BUSY_TASKS_ACTIVE      0
+#endif
+
 FK_DECLARE_LOGGER("live-tests");
 
 static void scan_i2c_radio_bus() __attribute__((unused));
@@ -393,6 +405,7 @@ void wifi101_example() {
 
 os_task_t test_idle_task;
 os_task_t test_work_task;
+os_task_t test_busy_tasks[FK_DEBUG_LIVE_TEST_BUSY_TASKS_MAXIMUM];
 
 void test_handler_idle(void *params) {
     while (true) {
@@ -404,14 +417,24 @@ void test_handler_work(void *params) {
     wifi101_example();
 }
 
+void test_handler_busy(void *params) {
+    while (true) {
+        fk_delay(10);
+    }
+}
+
 void wifi101_example_osh() {
 #if defined(__SAMD51__) && defined(FK_WIFI_0_SSID) && defined(FK_WIFI_0_PASSWORD)
     OS_CHECK(os_initialize());
 
     uint32_t idle_stack[1024];
     uint32_t work_stack[4096];
+    uint32_t busy_stacks[2048][FK_DEBUG_LIVE_TEST_BUSY_TASKS_MAXIMUM];
     OS_CHECK(os_task_initialize(&test_idle_task, "idle", OS_TASK_START_RUNNING, &test_handler_idle, nullptr, idle_stack, sizeof(idle_stack)));
     OS_CHECK(os_task_initialize(&test_work_task, "work", OS_TASK_START_RUNNING, &test_handler_work, nullptr, work_stack, sizeof(work_stack)));
+    for (auto i = 0u; i < FK_DEBUG_LIVE_TEST_BUSY_TASKS_ACTIVE; ++i) {
+        OS_CHECK(os_task_initialize(&test_busy_tasks[i], "busy", OS_TASK_START_RUNNING, &test_handler_busy, nullptr, busy_stacks[i], sizeof(busy_stacks[i])));
+    }
 
     FK_ASSERT(get_ipc()->begin());
 
