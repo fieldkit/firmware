@@ -149,7 +149,9 @@ bool MetalSdCard::initialize_logs() {
 bool MetalSdCard::append_logs(circular_buffer<char> &buffer, circular_buffer<char>::iterator iter) {
     auto started = fk_uptime();
 
+#if !defined(FK_DEBUG_DISABLE_WDT)
     EnableWatchdog watchdog;
+#endif
 
     initialize_logs();
 
@@ -195,7 +197,9 @@ bool MetalSdCard::append_logs(circular_buffer<char> &buffer, circular_buffer<cha
 bool MetalSdCard::append_logs(uint8_t const *buffer, size_t size) {
     auto started = fk_uptime();
 
+#if !defined(FK_DEBUG_DISABLE_WDT)
     EnableWatchdog watchdog;
+#endif
 
     initialize_logs();
 
