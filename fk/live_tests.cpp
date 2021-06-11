@@ -47,6 +47,10 @@ namespace fk {
 
 FK_DECLARE_LOGGER("live-tests");
 
+os_task_t test_idle_task;
+os_task_t test_work_task;
+os_task_t test_busy_tasks[FK_DEBUG_LIVE_TEST_BUSY_TASKS_MAXIMUM];
+
 static void scan_i2c_radio_bus() __attribute__((unused));
 
 static void scan_i2c_module_bus() __attribute__((unused));
@@ -213,6 +217,9 @@ void test_networking() {
         &main_pool);
 
     while (network->status() != NetworkStatus::Connected) {
+        StandardPool loop_pool{ "loop_pool" };
+        network->service(&loop_pool);
+
         fk_delay(1000);
         loginfo("connecting...");
     }
@@ -262,10 +269,6 @@ void test_networking() {
         }
     }
 #endif
-
-    while (true) {
-        fk_delay(1000);
-    }
 }
 
 void wifi101_example() {
@@ -397,15 +400,7 @@ void wifi101_example() {
         fk_delay(100);
     }
 #endif
-
-    while (true) {
-        fk_delay(1000);
-    }
 }
-
-os_task_t test_idle_task;
-os_task_t test_work_task;
-os_task_t test_busy_tasks[FK_DEBUG_LIVE_TEST_BUSY_TASKS_MAXIMUM];
 
 void test_handler_idle(void *params) {
     while (true) {
@@ -413,23 +408,52 @@ void test_handler_idle(void *params) {
     }
 }
 
-void test_handler_work(void *params) {
-    wifi101_example();
-}
-
-void test_handler_busy(void *params) {
+void busy_printing() {
     while (true) {
+        loginfo("busy-printing");
         fk_delay(10);
     }
 }
 
-void wifi101_example_osh() {
-#if defined(__SAMD51__) && defined(FK_WIFI_0_SSID) && defined(FK_WIFI_0_PASSWORD)
+os_mutex_definition_t def;
+os_mutex_t mutex;
+
+void busy_syscalls() {
+    while (true) {
+        os_printf("busy-syscalls\n");
+        fk_delay(10);
+
+        FK_ASSERT(os_mutex_acquire(&mutex, UINT32_MAX) == OSS_SUCCESS);
+        fk_delay(1);
+        FK_ASSERT(os_mutex_release(&mutex) == OSS_SUCCESS);
+    }
+}
+
+void test_handler_work(void *params) {
+#if defined(FK_DEBUG_LIVE_TEST_ENABLE)
+    FK_DEBUG_LIVE_TEST_ENABLE();
+#endif
+
+    test_handler_idle(nullptr);
+}
+
+void test_handler_busy(void *params) {
+#if defined(FK_DEBUG_LIVE_TEST_BUSY_ENABLE)
+    FK_DEBUG_LIVE_TEST_BUSY_ENABLE();
+#endif
+    test_handler_idle(nullptr);
+}
+
+void live_test_multitasking() {
+#if defined(__SAMD51__)
     OS_CHECK(os_initialize());
 
-    uint32_t idle_stack[1024];
+    FK_ASSERT(os_mutex_create(&mutex, &def) == OSS_SUCCESS);
+
+    uint32_t idle_stack[2048];
     uint32_t work_stack[4096];
-    uint32_t busy_stacks[2048][FK_DEBUG_LIVE_TEST_BUSY_TASKS_MAXIMUM];
+    uint32_t busy_stacks[FK_DEBUG_LIVE_TEST_BUSY_TASKS_MAXIMUM][4096];
+
     OS_CHECK(os_task_initialize(&test_idle_task, "idle", OS_TASK_START_RUNNING, &test_handler_idle, nullptr, idle_stack, sizeof(idle_stack)));
     OS_CHECK(os_task_initialize(&test_work_task, "work", OS_TASK_START_RUNNING, &test_handler_work, nullptr, work_stack, sizeof(work_stack)));
     for (auto i = 0u; i < FK_DEBUG_LIVE_TEST_BUSY_TASKS_ACTIVE; ++i) {
@@ -440,10 +464,6 @@ void wifi101_example_osh() {
 
     OS_CHECK(os_start());
 #endif
-
-    while (true) {
-        fk_delay(1000);
-    }
 }
 
 void fk_live_tests() {
@@ -460,8 +480,14 @@ void fk_live_tests() {
         }
     }
 #if defined(FK_DEBUG_LIVE_TEST_ENABLE)
+#if defined(FK_DEBUG_LIVE_TEST_MULTITASKING_ENABLE)
+    live_test_multitasking();
+#else
     FK_DEBUG_LIVE_TEST_ENABLE();
+#endif
+
+    test_handler_idle(nullptr);
 #endif
 }
 
-}
+} // namespace fk
