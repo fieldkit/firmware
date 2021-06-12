@@ -205,37 +205,29 @@ void test_networking() {
 
     get_board()->enable_everything();
 
-    auto network = get_network();
+    NetworkServices services{ get_network(), main_pool };
 
-    network->begin(
+    auto begin_ok = services.try_begin(
         {
             .valid = true,
             .create = false,
             .ssid = FK_WIFI_0_SSID,
             .password = FK_WIFI_0_PASSWORD,
         },
-        &main_pool);
+        10 * 1000,
+        main_pool);
 
-    while (network->status() != NetworkStatus::Connected) {
-        StandardPool loop_pool{ "loop_pool" };
-        network->service(&loop_pool);
-
-        fk_delay(1000);
-        loginfo("connecting...");
+    if (!begin_ok) {
+        logerror("begin");
+        while (true) {
+            fk_delay(1000);
+        }
     }
 
     loginfo("connected!");
 
     if (true) {
-        HttpRouter router;
-        ConnectionPool connection_pool{ router };
-
-        DefaultRoutes default_routes;
-        default_routes.add_routes(router);
-
-        auto http_listener = network->listen(80);
-
-        if (!network->serve()) {
+        if (!services.serve()) {
             logerror("serving");
             while (true) {
                 fk_delay(100);
@@ -243,14 +235,11 @@ void test_networking() {
         }
 
         while (true) {
-            if (connection_pool.available() > 0) {
-                auto http_connection = http_listener->get()->accept();
-                if (http_connection != nullptr) {
-                    connection_pool.queue_http(http_connection);
-                }
-            }
+            services.tick();
 
-            connection_pool.service();
+            if (!services.active_connections()) {
+                fk_delay(10);
+            }
         }
     }
 
