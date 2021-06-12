@@ -75,6 +75,11 @@ bool DeepSleep::try_deep_sleep(lwcron::Scheduler &scheduler, Runnable const &run
                 break;
             }
 
+            // So we can trigger after if we don't try and do this
+            // again soon enough. For example, after the last call to
+            // this function before we enter the above condition.
+            // loginfo("try deep-sleep");
+
             // Sleep!
             // This can return early for a few reasons:
             // 1) We're unable to sleep, in which case this will
