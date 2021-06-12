@@ -115,9 +115,6 @@ volatile uint8 hif_receive_blocked = 0;
 static void isr(void)
 {
 	gstrHifCxt.u8Interrupt++;
-#ifdef NM_LEVEL_INTERRUPT
-	nm_bsp_interrupt_ctrl(0);
-#endif
 }
 static sint8 hif_set_rx_done(void)
 {
@@ -129,7 +126,7 @@ static sint8 hif_set_rx_done(void)
 #endif
 	gstrHifCxt.u8HifRXDone = 0;
 #ifdef NM_EDGE_INTERRUPT
-	nm_bsp_interrupt_ctrl(1);
+	// nm_bsp_interrupt_ctrl(1);
 #endif
 	ret = nm_read_reg_with_ret(WIFI_HOST_RCV_CTRL_0,&reg);
 	if(ret != M2M_SUCCESS)goto ERR1;
@@ -138,7 +135,7 @@ static sint8 hif_set_rx_done(void)
 	ret = nm_write_reg(WIFI_HOST_RCV_CTRL_0,reg);
 	if(ret != M2M_SUCCESS)goto ERR1;
 #ifdef NM_LEVEL_INTERRUPT
-	nm_bsp_interrupt_ctrl(1);
+	// nm_bsp_interrupt_ctrl(1);
 #endif
 ERR1:
 	return ret;
@@ -507,7 +504,7 @@ static sint8 hif_isr(void)
 		{
 			uint16 size;
 
-			nm_bsp_interrupt_ctrl(0);
+			// nm_bsp_interrupt_ctrl(0);
 			/*Clearing RX interrupt*/
 			reg &= ~NBIT0;
 			ret = nm_write_reg(WIFI_HOST_RCV_CTRL_0,reg);
@@ -523,7 +520,7 @@ static sint8 hif_isr(void)
 				if(M2M_SUCCESS != ret)
 				{
 					M2M_ERR("(hif) WIFI_HOST_RCV_CTRL_1 bus fail\n");
-					nm_bsp_interrupt_ctrl(1);
+					//nm_bsp_interrupt_ctrl(1);
 					goto ERR1;
 				}
 
@@ -539,7 +536,7 @@ static sint8 hif_isr(void)
 				if(M2M_SUCCESS != ret)
 				{
 					M2M_ERR("(hif) address bus fail\n");
-					nm_bsp_interrupt_ctrl(1);
+					//nm_bsp_interrupt_ctrl(1);
 					goto ERR1;
 				}
 				if(strHif.u16Length != size)
@@ -548,7 +545,7 @@ static sint8 hif_isr(void)
 					{
 						M2M_ERR("(hif) Corrupted packet Size = %u <L = %u, G = %u, OP = %02X>\n",
 							size, strHif.u16Length, strHif.u8Gid, strHif.u8Opcode);
-						nm_bsp_interrupt_ctrl(1);
+						//nm_bsp_interrupt_ctrl(1);
 						ret = M2M_ERR_BUS_FAIL;
 						goto ERR1;
 					}
