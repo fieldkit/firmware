@@ -12,9 +12,9 @@ FK_DECLARE_LOGGER("weather");
 
 static SensorMetadata const fk_module_weather_sensor_metas[] = {
     { .name = "humidity",             .unitOfMeasure = "%",      .flags = 0 },
-    { .name = "temperature_1",        .unitOfMeasure = "C",      .flags = 0 },
+    { .name = "temperature_1",        .unitOfMeasure = "°C",     .flags = 0 },
     { .name = "pressure",             .unitOfMeasure = "kPa",    .flags = 0 },
-    { .name = "temperature_2",        .unitOfMeasure = "C",      .flags = 0 },
+    { .name = "temperature_2",        .unitOfMeasure = "°C",     .flags = 0 },
 
     { .name = "rain",                 .unitOfMeasure = "mm",     .flags = 0 },
 

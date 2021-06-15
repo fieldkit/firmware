@@ -21,7 +21,7 @@ static SensorMetadata const fk_module_sensor_metas[] = {
 
     { .name = "free_memory",     .unitOfMeasure = "bytes", .flags = 0 },
     { .name = "uptime",          .unitOfMeasure = "ms",    .flags = 0 },
-    { .name = "temperature",     .unitOfMeasure = "C",     .flags = 0 },
+    { .name = "temperature",     .unitOfMeasure = "°C",    .flags = 0 },
 };
 
 static ModuleSensors const fk_module_sensors = {
