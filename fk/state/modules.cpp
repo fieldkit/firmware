@@ -77,12 +77,17 @@ int32_t AttachedModule::initialize(ModuleContext ctx, Pool *pool) {
 
     loginfo("[%d] '%s' status=%s", position_.integer(), configuration_.display_name_key, status_str);
 
-    for (auto i = 0u; i < sensor_metas->nsensors; ++i) {
-        auto &s = sensor_metas->sensors[i];
+    if (sensor_metas != nullptr) {
+        for (auto i = 0u; i < sensor_metas->nsensors; ++i) {
+            auto &s = sensor_metas->sensors[i];
 
-        loginfo("[%d] sensor[%2d] name='%s.%s'", position_.integer(), i, meta_->name, s.name);
+            loginfo("[%d] sensor[%2d] name='%s.%s'", position_.integer(), i, meta_->name, s.name);
 
-        sensors_.emplace(&s, i);
+            sensors_.emplace(&s, i);
+        }
+    }
+    else {
+        logwarn("[%d] no sensors", position_.integer());
     }
 
     return 0;
