@@ -126,6 +126,11 @@ bool BackupWorker::write_file(FileReader *file, const char *path, Pool &pool) {
 
     loginfo("done writing %" PRIu32 " bytes hash=%s", bytes_copied, expected_hex);
 
+    if (bytes_copied == 0) {
+        logwarn("empty file '%s'", path);
+        return true;
+    }
+
     uint8_t actual[Hash::Length];
     if (!hash_file(path, actual, pool)) {
         return false;
@@ -151,8 +156,8 @@ bool BackupWorker::hash_file(const char *path, uint8_t *hash, Pool &pool) {
 
     auto file_size = file->file_size();
     if (file_size == 0) {
-        logerror("empty file '%s'", path);
-        return false;
+        logwarn("empty file '%s'", path);
+        return true;
     }
 
     file->seek_beginning();
