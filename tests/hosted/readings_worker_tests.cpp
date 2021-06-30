@@ -154,7 +154,7 @@ TEST_F(ReadingsWorkerSuite, ScannedModule_MultipleReadings) {
 
         ASSERT_TRUE(reader->seek_record(0, pool));
 
-        MetaRecord meta_record;
+        MetaRecord meta_record{ pool };
 
         // State record
         auto bytes_read = reader->read(&meta_record.for_decoding(pool), fk_data_DataRecord_fields);
@@ -238,7 +238,7 @@ TEST_F(ReadingsWorkerSuite, ScannedModule_ModuleAdded) {
 
         ASSERT_TRUE(reader->seek_record(0, pool));
 
-        MetaRecord meta_record;
+        MetaRecord meta_record{ pool };
 
         // State record
         auto bytes_read = reader->read(&meta_record.for_decoding(pool), fk_data_DataRecord_fields);

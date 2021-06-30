@@ -11,9 +11,9 @@ namespace fk {
 class ExportDataWorker : public Worker {
 private:
     StandardPool meta_pool_{ "meta-pool" };
+    MetaRecord meta_record_{ meta_pool_ };
     DataMemory *data_memory_;
     TaskDisplayInfo info_;
-    MetaRecord meta_record_;
     uint32_t meta_record_number_{ InvalidRecord };
     SdCardFile *writing_{ nullptr };
 

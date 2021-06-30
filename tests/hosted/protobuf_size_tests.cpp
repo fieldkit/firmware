@@ -317,7 +317,7 @@ TEST_F(ProtoBufSizeSuite, Configuration) {
     GlobalState gs;
     fake_global_state(gs, pool_);
 
-    MetaRecord record;
+    MetaRecord record{ pool_ };
     record.include_state(&gs, &fake_header, pool_);
 
     auto encoded = pool_.encode(fk_data_DataRecord_fields, &record.record());
@@ -331,7 +331,7 @@ TEST_F(ProtoBufSizeSuite, Modules) {
     fake_global_state(gs, pool_);
     fake_modules(gs, pool_);
 
-    MetaRecord record;
+    MetaRecord record{ pool_ };
     record.include_modules(&gs, &fake_header, pool_);
 
     auto encoded = pool_.encode(fk_data_DataRecord_fields, &record.record());

@@ -135,7 +135,7 @@ bool GlobalState::flush(Pool &pool) {
         return false;
     }
 
-    MetaRecord meta_record;
+    MetaRecord meta_record{ pool };
     meta_record.include_state(this, &fkb_header, pool);
 
     if (!storage.meta_ops()->write_record(SignedRecordKind::State, &meta_record.record(), pool)) {

@@ -91,7 +91,7 @@ bool ReadingsWorker::save(Pool &pool) {
 
     auto gs = get_global_state_ro();
 
-    MetaRecord meta_record;
+    MetaRecord meta_record{ pool };
     meta_record.include_modules(gs.get(), &fkb_header, pool);
 
     auto meta_ops = storage.meta_ops();

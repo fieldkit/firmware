@@ -37,6 +37,10 @@ static void copy_schedule(fk_data_JobSchedule &d, const Schedule &s, Pool &pool)
     d.jitter = s.jitter;
 }
 
+MetaRecord::MetaRecord(Pool &pool) {
+    record_ = pool.malloc<fk_data_DataRecord>();
+}
+
 fk_data_DataRecord &MetaRecord::for_decoding(Pool &pool) {
     if (record_ == nullptr) {
         record_ = pool.malloc<fk_data_DataRecord>();

@@ -12,6 +12,9 @@ private:
     fk_data_DataRecord *record_{ nullptr };
 
 public:
+    MetaRecord(Pool &pool);
+
+public:
     void include_state(GlobalState const *gs, fkb_header_t const *fkb, Pool &pool);
     void include_modules(GlobalState const *gs, fkb_header_t const *fkb, Pool &pool);
 
