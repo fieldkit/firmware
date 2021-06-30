@@ -2,4 +2,4 @@
 
 PATH=~/tools/jlink:$PATH
 
-JLinkExe -if SWD -device ATSAMD51P20 -RTTTelnetPort 19021 -autoconnect 1
+JLinkExe -if SWD -device ATSAMD51P20 -speed 4000 -RTTTelnetPort 19021 -autoconnect 1
