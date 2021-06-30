@@ -15,6 +15,7 @@ enum class ChipModel {
     Unknown,
     Toshiba,
     Koxia,
+    Alliance,
 };
 
 class SpiFlash {

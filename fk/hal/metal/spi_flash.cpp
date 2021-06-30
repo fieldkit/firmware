@@ -28,6 +28,9 @@ constexpr uint8_t FLASH_JEDEC_MANUFACTURE_TOSHIBA = 0x98;
 constexpr uint8_t FLASH_JEDEC_DEVICE_TOSHIBA = 0xcb;
 constexpr uint8_t FLASH_JEDEC_MANUFACTURE_KIOXIA = 0x98;
 constexpr uint8_t FLASH_JEDEC_DEVICE_KIOXIA = 0xe4;
+constexpr uint8_t FLASH_JEDEC_MANUFACTURE_ALLIANCE = 0x52;
+constexpr uint8_t FLASH_JEDEC_DEVICE_ALLIANCE = 0x2f;
+
 
 constexpr uint8_t CMD_REGISTER_1 = 0xa0;
 constexpr uint8_t CMD_REGISTER_2 = 0xb0;
@@ -85,6 +88,22 @@ static FlashGeometry KoxiaGeometry{
     KoxiaPageSize
 };
 
+constexpr static uint32_t AlliancePageSize = 2048;
+constexpr static uint32_t AllianceProgramSize = 512;
+constexpr static uint32_t AlliancePagesPerBlock = 64;
+constexpr static uint32_t AllianceBlockSize = AlliancePageSize * AlliancePagesPerBlock;
+constexpr static uint32_t AllianceNumberOfBlocks = 4096;
+
+static FlashGeometry AllianceGeometry{
+    AlliancePageSize,
+    AllianceBlockSize,
+    AllianceNumberOfBlocks,
+    AllianceNumberOfBlocks * AllianceBlockSize,
+    AllianceProgramSize,
+    AlliancePagesPerBlock,
+    AlliancePageSize
+};
+
 SpiFlash::SpiFlash(uint8_t cs) : cs_(cs), model_(ChipModel::Unknown) {
 }
 
@@ -103,6 +122,10 @@ static ChipModel check_jedec(uint8_t *jedec) {
     if (jedec[1] == FLASH_JEDEC_MANUFACTURE_KIOXIA && jedec[2] == FLASH_JEDEC_DEVICE_KIOXIA) {
         loginfo("koxia bank: 0x%02x%02x%02x%02x", jedec[0], jedec[1], jedec[2], jedec[3]);
         return ChipModel::Koxia;
+    }
+    if (jedec[0] == FLASH_JEDEC_MANUFACTURE_ALLIANCE && jedec[1] == FLASH_JEDEC_DEVICE_ALLIANCE) {
+        loginfo("alliance bank: 0x%02x%02x%02x%02x", jedec[0], jedec[1], jedec[2], jedec[3]);
+        return ChipModel::Alliance;
     }
     logwarn("unexpected jedec: 0x%02x%02x%02x%02x", jedec[0], jedec[1], jedec[2], jedec[3]);
     return ChipModel::Unknown;
@@ -128,8 +151,9 @@ bool SpiFlash::begin() {
     }
 
     // First byte is a dummy byte (p31)
-    auto started = fk_uptime();
     uint8_t jedec_id[4] = { 0xff, 0xff, 0xff, 0xff };
+
+    auto started = fk_uptime();
     while (jedec_id[1] == 0xff) {
         read_command(CMD_READ_JEDEC_ID, jedec_id, sizeof(jedec_id));
         if (fk_uptime() - started > SpiFlashReadyMs) {
@@ -139,6 +163,19 @@ bool SpiFlash::begin() {
     }
 
     model_ = check_jedec(jedec_id);
+    if (model_ == ChipModel::Unknown) {
+        uint8_t read_jedec_addressed[2] = {
+            CMD_READ_JEDEC_ID,
+            0x00
+        };
+
+        if (!transfer(read_jedec_addressed, sizeof(read_jedec_addressed), nullptr, jedec_id, sizeof(jedec_id))) {
+            logerror("reading jedec (addressed)");
+            return -1;
+        }
+
+        model_ = check_jedec(jedec_id);
+    }
 
     switch (model_) {
     case ChipModel::Toshiba:
@@ -146,6 +183,9 @@ bool SpiFlash::begin() {
         break;
     case ChipModel::Koxia:
         geometry_ = KoxiaGeometry;
+        break;
+    case ChipModel::Alliance:
+        geometry_ = AllianceGeometry;
         break;
     default:
         return false;
