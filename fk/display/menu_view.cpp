@@ -516,7 +516,7 @@ void MenuView::create_tools_menu() {
     });
     auto tools_poll_sensors = to_lambda_option(pool_, "Poll Sensors", [=]() {
         back_->on_selected();
-        get_ipc()->launch_worker(WorkerCategory::Polling, create_pool_worker<PollSensorsWorker>());
+        get_ipc()->launch_worker(WorkerCategory::Polling, create_pool_worker<PollSensorsWorker>(true, false));
         views_->show_readings();
     });
     auto tools_crash_assertion = to_lambda_option(pool_, "Crash Assert", [=]() {

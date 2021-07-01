@@ -6,7 +6,7 @@ namespace fk {
 
 class PollSensorsWorker : public ReadingsWorker {
 public:
-    explicit PollSensorsWorker();
+    explicit PollSensorsWorker(bool scan, bool read_only);
 
 public:
     void run(Pool &pool) override;

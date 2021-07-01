@@ -3,7 +3,7 @@
 
 namespace fk {
 
-PollSensorsWorker::PollSensorsWorker() : ReadingsWorker(true, false) {
+PollSensorsWorker::PollSensorsWorker(bool scan, bool read_only) : ReadingsWorker(scan, read_only) {
 }
 
 void PollSensorsWorker::run(Pool &pool) {
@@ -18,9 +18,10 @@ void PollSensorsWorker::run(Pool &pool) {
 
     state::NoopReadingsListener listener;
     while (true) {
-        take(&listener, pool);
-
-        pool.clear();
+        {
+            StandardPool loop_pool{ "poll" };
+            take(&listener, loop_pool);
+        }
 
         fk_delay(2000);
     }
