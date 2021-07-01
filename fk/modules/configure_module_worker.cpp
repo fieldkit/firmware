@@ -24,7 +24,9 @@ void configure_bay_and_update_state(ModMux *mm, ModulePosition which, GlobalStat
     for (auto bay = 0u; bay < MaximumNumberOfPhysicalModules; ++bay) {
         if (which == ModulePosition::All || which == ModulePosition::from(bay)) {
             if (!fn(ModulePosition::from(bay))) {
-                return;
+                if (which != ModulePosition::All) {
+                    return;
+                }
             }
         }
     }

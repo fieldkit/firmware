@@ -50,6 +50,7 @@ private:
     bool check_for_provision_startup(Pool &pool);
     bool check_for_self_test_startup(Pool &pool);
     bool check_for_interactive_startup(Pool &pool);
+    bool check_for_programmer_startup(Pool &pool);
     bool check_for_lora(Pool &pool);
 
 };

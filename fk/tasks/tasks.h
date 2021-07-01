@@ -26,6 +26,12 @@ extern os_task_t network_task;
 extern os_task_t worker_tasks[NumberOfWorkerTasks];
 extern fk_task_data_t task_data[4 + NumberOfWorkerTasks];
 
+struct display_params_t {
+    bool readings{ false };
+};
+
+extern display_params_t task_display_params;
+
 bool fk_can_start_task(os_task_t *task);
 
 bool fk_start_task_if_necessary(os_task_t *task);

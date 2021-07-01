@@ -10,9 +10,11 @@ class ReadingsView : public DisplayView {
 private:
     uint32_t dirty_{ true };
     uint32_t position_{ 0 };
+    bool skip_diagnostics_{ true };
 
 public:
-    ReadingsView() { }
+    ReadingsView() {
+    }
 
 public:
     void tick(ViewController *views, Pool &pool) override;

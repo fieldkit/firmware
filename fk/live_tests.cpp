@@ -10,6 +10,8 @@
 #include "hal/random.h"
 #include "hal/display.h"
 #include "hal/battery_gauge.h"
+#include "hal/sd_card.h"
+#include "hal/hal.h"
 #include "state_ref.h"
 #include "state_manager.h"
 #include "clock.h"
@@ -89,12 +91,99 @@ static void scan_i2c_module_bus() {
     }
 }
 
+static bool write_header_file(const char *name, ModuleHeader &header, Pool &pool) {
+    auto sd = get_sd_card();
+
+    auto file = sd->open(name, OpenFlags::Write, pool);
+    if (file == nullptr || !*file) {
+        return false;
+    }
+
+    if (file->write((uint8_t *)&header, sizeof(ModuleHeader)) != sizeof(ModuleHeader)) {
+        return false;
+    }
+
+    file->close();
+
+    return true;
+}
+
+static void write_headers() {
+    StandardPool pool{ "write-headers "};
+
+    auto lock = sd_mutex.acquire(UINT32_MAX);
+    auto sd = get_sd_card();
+
+    if (!sd->begin()) {
+        logerror("error opening sd card");
+        return;
+    }
+
+    ModuleHeader header_weather = {
+        .manufacturer = FK_MODULES_MANUFACTURER,
+        .kind = FK_MODULES_KIND_WEATHER,
+        .version = 0x01,
+        .id = { 0 },
+    };
+
+    ModuleHeader header_water_ph = {
+        .manufacturer = FK_MODULES_MANUFACTURER,
+        .kind = FK_MODULES_KIND_WATER_PH,
+        .version = 0x01,
+        .id = { 0 },
+    };
+
+    ModuleHeader header_water_ec = {
+        .manufacturer = FK_MODULES_MANUFACTURER,
+        .kind = FK_MODULES_KIND_WATER_EC,
+        .version = 0x01,
+        .id = { 0 },
+    };
+
+    ModuleHeader header_water_do = {
+        .manufacturer = FK_MODULES_MANUFACTURER,
+        .kind = FK_MODULES_KIND_WATER_DO,
+        .version = 0x01,
+        .id = { 0 },
+    };
+
+    ModuleHeader header_water_temp = {
+        .manufacturer = FK_MODULES_MANUFACTURER,
+        .kind = FK_MODULES_KIND_WATER_TEMP,
+        .version = 0x01,
+        .id = { 0 },
+    };
+
+    ModuleHeader header_water_orp = {
+        .manufacturer = FK_MODULES_MANUFACTURER,
+        .kind = FK_MODULES_KIND_WATER_ORP,
+        .version = 0x01,
+        .id = { 0 },
+    };
+
+    write_header_file("weather.hdr", header_weather, pool);
+    write_header_file("w-ph.hdr", header_water_ph, pool);
+    write_header_file("w-ec.hdr", header_water_ec, pool);
+    write_header_file("w-do.hdr", header_water_do, pool);
+    write_header_file("w-temp.hdr", header_water_temp, pool);
+    write_header_file("w-orp.hdr", header_water_orp, pool);
+    if (false) {
+        write_header_file("fk-program.cfg", header_weather, pool);
+    }
+}
+
 void fk_live_tests() {
     if (false) {
         scan_i2c_module_bus();
     }
     if (false) {
         scan_i2c_radio_bus();
+    }
+    if (false) {
+        write_headers();
+        while (true) {
+            fk_delay(1000);
+        }
     }
 }
 
