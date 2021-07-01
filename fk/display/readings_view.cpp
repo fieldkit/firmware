@@ -22,10 +22,9 @@ void ReadingsView::tick(ViewController *views, Pool &pool) {
     }
 
     auto number_sensors = attached->number_of_sensors();
-
     if (skip_diagnostics_) {
         skip_diagnostics_ = false;
-        for (auto index = 0; index < number_sensors; index++) {
+        for (auto index = 0u; index < number_sensors; index++) {
             auto mas = attached->get_nth_sensor(index);
             if (mas.attached_module->position().integer() != 255) {
                 position_ = index;
@@ -53,7 +52,6 @@ void ReadingsView::tick(ViewController *views, Pool &pool) {
         auto bus = get_board()->i2c_core();
         auto display = get_display();
         display->reading(reading_screen);
-        return;
     }
 }
 

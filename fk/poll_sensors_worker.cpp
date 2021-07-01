@@ -1,5 +1,6 @@
 #include "poll_sensors_worker.h"
 #include "tasks/tasks.h"
+#include "update_readings_listener.h"
 
 namespace fk {
 
@@ -16,11 +17,12 @@ void PollSensorsWorker::run(Pool &pool) {
         // return;
     }
 
-    state::NoopReadingsListener listener;
     while (true) {
         {
             StandardPool loop_pool{ "poll" };
+            UpdateReadingsListener listener{ loop_pool };
             take(&listener, loop_pool);
+            FK_ASSERT(listener.flush() >= 0);
         }
 
         fk_delay(2000);
