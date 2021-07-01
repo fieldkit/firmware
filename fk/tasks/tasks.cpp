@@ -2,6 +2,8 @@
 
 namespace fk {
 
+display_params_t task_display_params;
+
 os_task_t idle_task;
 os_task_t scheduler_task;
 os_task_t display_task;

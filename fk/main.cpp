@@ -50,7 +50,7 @@ static void run_tasks() {
         "display",
         OS_TASK_START_SUSPENDED,
         task_handler_display,
-        nullptr,
+        &task_display_params,
         display_stack,
         sizeof(display_stack),
         FK_PRIORITY_NORMAL

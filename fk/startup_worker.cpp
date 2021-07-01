@@ -18,6 +18,7 @@
 #include "live_tests.h"
 
 #include "readings_worker.h"
+#include "poll_sensors_worker.h"
 #include "upgrade_from_sd_worker.h"
 
 #include "modules/bridge/modules.h"
@@ -87,13 +88,13 @@ void StartupWorker::run(Pool &pool) {
 
     loginfo("check for interactive startup");
     if (check_for_interactive_startup(pool)) {
-        FK_ASSERT(os_task_start(&display_task) == OSS_SUCCESS);
+        FK_ASSERT(os_task_start_options(&display_task, display_task.priority, &task_display_params) == OSS_SUCCESS);
         return;
     }
 
     loginfo("check for programmer startup");
     if (check_for_programmer_startup(pool)) {
-        FK_ASSERT(os_task_start(&display_task) == OSS_SUCCESS);
+        FK_ASSERT(os_task_start_options(&display_task, display_task.priority, &task_display_params) == OSS_SUCCESS);
         return;
     }
 
@@ -604,14 +605,21 @@ bool StartupWorker::check_for_programmer_startup(Pool &pool) {
 
     get_modmux()->enable_all_modules();
 
+    BatteryChecker battery_checker;
+    battery_checker.refresh(true);
+
     ModuleRegistry registry;
     registry.initialize();
 
     ConfigureModuleWorker configure_worker{ ModulePosition::All, header };
     configure_worker.run(pool);
 
-    ReadingsWorker readings_worker{ true, true, false };
+    ReadingsWorker readings_worker{ false, true, false };
     readings_worker.run(pool);
+
+    get_ipc()->launch_worker(WorkerCategory::Polling, create_pool_worker<PollSensorsWorker>(false, true));
+
+    task_display_params.readings = true;
 
     return true;
 }

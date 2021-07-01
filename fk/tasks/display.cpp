@@ -133,8 +133,7 @@ public:
         }
     }
 
-    void run() {
-        auto can_stop = os_task_is_running(&scheduler_task);
+    void run(display_params_t *params) {
         if (!leds.begin()) {
             logwarn("leds unavailable");
         }
@@ -145,10 +144,16 @@ public:
         IntervalTimer notifications_timer{ OneSecondMs / 10 };
         auto maximum_used = 0u;
         auto frame_pool = pool_->subpool("display-frame", 1024);
+        auto can_stop = os_task_is_running(&scheduler_task);
+        auto should_show_readings = params->readings;
+
+        loginfo("should-show-readings: %d", should_show_readings);
+
         while (!can_stop || !stop_timer.expired()) {
             if (!view->custom_leds()) {
                 leds.tick();
             }
+
             view->tick(this, *frame_pool);
 
             if (notifications_timer.expired()) {
@@ -193,6 +198,11 @@ public:
                 }
                 frame_pool->clear();
             }
+
+            if (should_show_readings) {
+                show_readings();
+                should_show_readings = false;
+            }
         }
 
         view->hide();
@@ -203,7 +213,7 @@ public:
 void task_handler_display(void *params) {
     StandardPool pool{ "display" };
     MainViewController views{ pool };
-    views.run();
+    views.run((display_params_t *)params);
     get_module_leds()->off();
     get_display()->off();
 }
