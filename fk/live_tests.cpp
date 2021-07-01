@@ -257,8 +257,7 @@ void test_networking() {
 }
 
 void wifi101_example() {
-#if defined(__SAMD51__)
-#if defined(FK_WIFI_0_SSID) && defined(FK_WIFI_0_PASSWORD)
+#if defined(__SAMD51__) && defined(FK_WIFI_0_SSID) && defined(FK_WIFI_0_PASSWORD)
     StandardPool pool{ "wifi101-examplel" };
     char ssid[] = FK_WIFI_0_SSID;
     char pass[] = FK_WIFI_0_PASSWORD;
@@ -386,7 +385,6 @@ void wifi101_example() {
         fk_delay(100);
     }
 #endif
-#endif
 
     while (true) {
         fk_delay(1000);
@@ -406,7 +404,8 @@ void test_handler_work(void *params) {
     wifi101_example();
 }
 
-void live_os() {
+void wifi101_example_osh() {
+#if defined(__SAMD51__) && defined(FK_WIFI_0_SSID) && defined(FK_WIFI_0_PASSWORD)
     OS_CHECK(os_initialize());
 
     uint32_t idle_stack[1024];
@@ -417,6 +416,11 @@ void live_os() {
     FK_ASSERT(get_ipc()->begin());
 
     OS_CHECK(os_start());
+#endif
+
+    while (true) {
+        fk_delay(1000);
+    }
 }
 
 void fk_live_tests() {
