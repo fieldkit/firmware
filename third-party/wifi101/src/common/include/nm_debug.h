@@ -60,7 +60,7 @@
 #if (defined __APS3_CORTUS__)
 #define M2M_LOG_LEVEL									M2M_LOG_INFO
 #else
-#define M2M_LOG_LEVEL									M2M_LOG_REQ
+#define M2M_LOG_LEVEL									M2M_LOG_DBG
 #endif
 
 #ifdef __cplusplus

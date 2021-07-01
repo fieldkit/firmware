@@ -94,9 +94,9 @@ sint8 WiFiSocketClass::bind(SOCKET sock, struct sockaddr *pstrAddr, uint8 u8Addr
 	unsigned long start = millis();
 
 	while (_info[sock].state == SOCKET_STATE_BINDING && millis() - start < 2000) {
-    if (!callbacks->busy(millis() - start)) {
-        break;
-    }
+        if (!callbacks->busy(millis() - start)) {
+            break;
+        }
 		m2m_wifi_handle_events(NULL);
 	}
 
@@ -311,16 +311,36 @@ size_t WiFiSocketClass::write(SOCKET sock, const uint8_t *buf, size_t size)
 
 	sint16 err;
 
+    uint32 attempts = 0;
+
+	unsigned long start = millis();
+
 	while ((err = send(sock, (void *)buf, size, 0)) < 0) {
 		// Exit on fatal error, retry if buffer not ready.
 		if (err != SOCK_ERR_BUFFER_FULL) {
 			size = 0;
 			break;
 		} else if (hif_receive_blocked) {
+            M2M_DBG("[wifi] receive blocked socket=%d, size=%d, sends@:%d\n", sock, size, attempts);
 			size = 0;
 			break;
 		}
+
+        if (attempts % 1000 == 0) {
+            M2M_DBG("[wifi] writing socket=%d, size=%d, sends@:%d\n", sock, size, attempts);
+        }
+
+        if (!callbacks->busy(millis() - start)) {
+            break;
+        }
+
 		m2m_wifi_handle_events(NULL);
+
+        attempts++;
+	}
+
+    if (attempts > 1) {
+		M2M_DBG("[wifi] write COMPLETED: send attempts=%d\n", attempts);
 	}
 
 #ifdef CONF_PERIPH
@@ -346,7 +366,7 @@ sint16 WiFiSocketClass::sendto(SOCKET sock, void *pvSendBuffer, uint16 u16SendLe
 		return ::sendto(sock, pvSendBuffer, u16SendLength, flags, pstrDestAddr, u8AddrLen);
 	} else {
 		return ::send(sock, pvSendBuffer, u16SendLength, 0);
-	}	
+	}
 }
 
 sint8 WiFiSocketClass::close(SOCKET sock)

@@ -62,6 +62,17 @@ MACROS
 
 #define M2M_HIF_HDR_OFFSET (sizeof(tstrHifHdr) + 4)
 
+
+typedef struct fkwifi_t {
+    uint32 hif_sends;
+    uint32 hif_sends_ok;
+    uint32 hif_sends_dma_try;
+    uint32 hif_sends_dma_ok;
+    uint32 irqs_all;
+} fkwifi_t;
+
+extern fkwifi_t fkwifi;
+
 /**
 *	@struct		tstrHifHdr
 *	@brief		Structure to hold HIF header

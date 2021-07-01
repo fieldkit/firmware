@@ -1197,6 +1197,8 @@ static void spi_init_pkt_sz(void)
 
 	}
 	nm_spi_write_reg(SPI_BASE+0x24, val32);
+
+	M2M_DBG("[nmi spi]: packet size=%d %d\n", DATA_PKT_SZ, val32);
 }
 
 sint8 nm_spi_reset(void)

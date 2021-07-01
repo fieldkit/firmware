@@ -83,6 +83,31 @@ typedef struct {
 }tstrHifContext;
 
 volatile tstrHifContext gstrHifCxt;
+
+fkwifi_t fkwifi = { 0, 0, 0, 0, 0 };
+
+extern uint32 SEGGER_RTT_printf(uint32, const char *f, ...);
+
+extern void loginfof(const char *facility, const char *f, ...) __attribute__((format(printf, 2, 3)));
+
+extern uint32 irq_eic_11_calls;
+extern uint32 irq_eic_11_pending;
+extern uint32 hif_receive_blocks;
+extern uint32 packet_writes;
+
+void fkwifi_log() {
+    fkwifi_t copy = fkwifi;
+    uint32 irq_eic_11_calls_copy = irq_eic_11_calls;
+    uint32 lib_irqs = gstrHifCxt.u8Interrupt;
+
+    loginfof("wifi101inf", "packets=%d hif_sends=%d hif_sends_ok=%d hif_sends_dma_try=%d hif_sends_dma_ok=%d irqs_all=%d/%d/%d pending=%d hif-blocks=%d (irqs - sends_ok)=%d",
+		    packet_writes,
+		    copy.hif_sends, copy.hif_sends_ok, copy.hif_sends_dma_try, copy.hif_sends_dma_ok,
+		    copy.irqs_all, irq_eic_11_calls_copy, lib_irqs, irq_eic_11_pending,
+		    hif_receive_blocks,
+		    copy.irqs_all - copy.hif_sends_ok);
+}
+
 #ifdef ARDUINO
 volatile uint8 hif_receive_blocked = 0;
 #endif
@@ -234,7 +259,7 @@ sint8 hif_chip_sleep(void)
 	{
 		gstrHifCxt.u8ChipSleep--;
 	}
-	
+
 	if(gstrHifCxt.u8ChipSleep == 0)
 	{
 		if(gstrHifCxt.u8ChipMode != M2M_NO_PS)
@@ -307,11 +332,15 @@ sint8 hif_deinit(void * arg)
 *    @return		The function shall return ZERO for successful operation and a negative value otherwise.
 */
 
+static uint32 counter = 0;
+
 sint8 hif_send(uint8 u8Gid,uint8 u8Opcode,uint8 *pu8CtrlBuf,uint16 u16CtrlBufSize,
 			   uint8 *pu8DataBuf,uint16 u16DataSize, uint16 u16DataOffset)
 {
 	sint8		ret = M2M_ERR_SEND;
 	volatile tstrHifHdr	strHif;
+
+    __atomic_add_fetch(&fkwifi.hif_sends, 1, __ATOMIC_SEQ_CST);
 
 	strHif.u8Opcode		= u8Opcode&(~NBIT7);
 	strHif.u8Gid		= u8Gid;
@@ -329,7 +358,7 @@ sint8 hif_send(uint8 u8Gid,uint8 u8Opcode,uint8 *pu8CtrlBuf,uint16 u16CtrlBufSiz
 	{
 		volatile uint32 reg, dma_addr = 0;
 		volatile uint16 cnt = 0;
-//#define OPTIMIZE_BUS 
+//#define OPTIMIZE_BUS
 /*please define in firmware also*/
 #ifndef OPTIMIZE_BUS
 		reg = 0UL;
@@ -353,13 +382,13 @@ sint8 hif_send(uint8 u8Gid,uint8 u8Opcode,uint8 *pu8CtrlBuf,uint16 u16CtrlBufSiz
 		if(M2M_SUCCESS != ret) goto ERR1;
 #endif
 		dma_addr = 0;
-		
+
 		for(cnt = 0; cnt < 1000; cnt ++)
 		{
 			ret = nm_read_reg_with_ret(WIFI_HOST_RCV_CTRL_2,(uint32 *)&reg);
 			if(ret != M2M_SUCCESS) break;
 			/*
-			 * If it takes too long to get a response, the slow down to 
+			 * If it takes too long to get a response, the slow down to
 			 * avoid back-to-back register read operations.
 			 */
 			if(cnt >= 500) {
@@ -381,9 +410,24 @@ sint8 hif_send(uint8 u8Gid,uint8 u8Opcode,uint8 *pu8CtrlBuf,uint16 u16CtrlBufSiz
 			}
 		}
 
+        if (cnt > 0 || dma_addr != 0) {
+            /*
+            M2M_DBG("hif-send: ctrl-size=%d data-size=%d zeros=%d cnt=%d dma=%d\n", u16CtrlBufSize, u16DataSize, counter, cnt, dma_addr);
+            */
+            loginfof("wifi101dma", "zeros=%d tries=%d ctrl-size=%d data-size=%d dma=%d", counter, cnt, u16CtrlBufSize, u16DataSize, dma_addr);
+            fkwifi_log();
+            counter = 0;
+        }
+        else {
+            counter++;
+        }
+
 		if (dma_addr != 0)
 		{
 			volatile uint32	u32CurrAddr;
+
+            __atomic_add_fetch(&fkwifi.hif_sends_dma_try, 1, __ATOMIC_SEQ_CST);
+
 			u32CurrAddr = dma_addr;
 			strHif.u16Length=NM_BSP_B_L_16(strHif.u16Length);
 			ret = nm_write_block(u32CurrAddr, (uint8*)&strHif, M2M_HIF_HDR_OFFSET);
@@ -407,6 +451,8 @@ sint8 hif_send(uint8 u8Gid,uint8 u8Opcode,uint8 *pu8CtrlBuf,uint16 u16CtrlBufSiz
 			reg |= NBIT1;
 			ret = nm_write_reg(WIFI_HOST_RCV_CTRL_3, reg);
 			if(M2M_SUCCESS != ret) goto ERR1;
+
+            __atomic_add_fetch(&fkwifi.hif_sends_dma_ok, 1, __ATOMIC_SEQ_CST);
 		}
 		else
 		{
@@ -422,6 +468,7 @@ sint8 hif_send(uint8 u8Gid,uint8 u8Opcode,uint8 *pu8CtrlBuf,uint16 u16CtrlBufSiz
 		M2M_ERR("(HIF)Fail to wakup the chip\n");
 		goto ERR2;
 	}
+    __atomic_add_fetch(&fkwifi.hif_sends_ok, 1, __ATOMIC_SEQ_CST);
 	/*actual sleep ret = M2M_SUCCESS*/
  	ret = hif_chip_sleep();
 	return ret;
@@ -446,6 +493,8 @@ static sint8 hif_isr(void)
 	sint8 ret = M2M_SUCCESS;
 	volatile uint32 reg;
 	volatile tstrHifHdr strHif;
+
+    __atomic_add_fetch(&fkwifi.irqs_all, 1, __ATOMIC_SEQ_CST);
 
 #ifdef ARDUINO
 	ret = nm_read_reg_with_ret(WIFI_HOST_RCV_CTRL_0, (uint32*)&reg);
@@ -477,6 +526,12 @@ static sint8 hif_isr(void)
 					nm_bsp_interrupt_ctrl(1);
 					goto ERR1;
 				}
+
+                // I've seen an ISR come in and give the same address
+                // here twice w/o giving another one, is this where we
+                // can prove something is happening?
+                M2M_DBG("(hif-isr) address=%d size=%d\n", address, size);
+
 				gstrHifCxt.u32RxAddr = address;
 				gstrHifCxt.u32RxSize = size;
 				ret = nm_read_block(address, (uint8*)&strHif, sizeof(tstrHifHdr));
@@ -628,7 +683,7 @@ ERR1:
 
 sint8 hif_handle_isr(void)
 {
-	sint8 ret = M2M_SUCCESS;	
+	sint8 ret = M2M_SUCCESS;
 
 #ifdef ARDUINO
 	if (hif_receive_blocked) {
@@ -679,7 +734,7 @@ sint8 hif_receive(uint32 u32Addr, uint8 *pu8Buf, uint16 u16Sz, uint8 isDone)
 	if((u32Addr == 0)||(pu8Buf == NULL) || (u16Sz == 0))
 	{
 		if(isDone)
-		{			
+		{
 			/* set RX done */
 			ret = hif_set_rx_done();
 		}
@@ -703,7 +758,7 @@ sint8 hif_receive(uint32 u32Addr, uint8 *pu8Buf, uint16 u16Sz, uint8 isDone)
 		M2M_ERR("APP Requested Address beyond the recived buffer address and length\n");
 		goto ERR1;
 	}
-	
+
 	/* Receive the payload */
 	ret = nm_read_block(u32Addr, pu8Buf, u16Sz);
 	if(ret != M2M_SUCCESS)goto ERR1;

@@ -15,10 +15,21 @@
 #include "state_ref.h"
 #include "state_manager.h"
 #include "clock.h"
+#include "networking/cpool.h"
+#include "networking/default_routes.h"
 
 #include "../modules/weather/main/weather.h"
 
 extern const struct fkb_header_t fkb_header;
+
+extern "C" {
+
+// From wifi101 hif
+extern void fkwifi_log();
+
+uint32_t packet_writes = 0;
+
+}
 
 namespace fk {
 
@@ -172,6 +183,242 @@ static void write_headers() {
     }
 }
 
+void test_networking() {
+#if defined(FK_WIFI_0_SSID) && defined(FK_WIFI_0_PASSWORD)
+    StandardPool main_pool{ "network-test" };
+
+    get_board()->enable_everything();
+
+    auto network = get_network();
+
+    network->begin(
+        {
+            .valid = true,
+            .create = false,
+            .ssid = FK_WIFI_0_SSID,
+            .password = FK_WIFI_0_PASSWORD,
+        },
+        &main_pool);
+
+    while (network->status() != NetworkStatus::Connected) {
+        fk_delay(1000);
+        loginfo("connecting...");
+    }
+
+    loginfo("connected!");
+
+    if (true) {
+        HttpRouter router;
+        ConnectionPool connection_pool{ router };
+
+        DefaultRoutes default_routes;
+        default_routes.add_routes(router);
+
+        auto http_listener = network->listen(80);
+
+        if (!network->serve()) {
+            logerror("serving");
+            while (true) {
+                fk_delay(100);
+            }
+        }
+
+        while (true) {
+            if (connection_pool.available() > 0) {
+                auto http_connection = http_listener->get()->accept();
+                if (http_connection != nullptr) {
+                    connection_pool.queue_http(http_connection);
+                }
+            }
+
+            connection_pool.service();
+        }
+    }
+
+    if (false) {
+        while (true) {
+            StandardPool pool{ "test" };
+            auto url = "https://api.fkdev.org/status";
+            auto http = open_http_connection("GET", url, "", true, pool);
+            if (http != nullptr) {
+                http->close();
+            }
+
+            fk_delay(1000);
+
+            loginfo("ping");
+        }
+    }
+#endif
+
+    while (true) {
+        fk_delay(1000);
+    }
+}
+
+void wifi101_example() {
+#if defined(__SAMD51__)
+#if defined(FK_WIFI_0_SSID) && defined(FK_WIFI_0_PASSWORD)
+    StandardPool pool{ "wifi101-examplel" };
+    char ssid[] = FK_WIFI_0_SSID;
+    char pass[] = FK_WIFI_0_PASSWORD;
+
+    int32_t status = WL_IDLE_STATUS;
+
+    StaticWiFiCallbacks staticWiFiCallbacks;
+
+    staticWiFiCallbacks.initialize(pool);
+
+    WiFiSocketClass::callbacks = &staticWiFiCallbacks;
+
+    get_board()->enable_wifi();
+
+    fk_delay(100);
+
+    WiFi.setPins(WINC1500_CS, WINC1500_IRQ, WINC1500_RESET);
+
+    WiFiServer server(80);
+
+    // check for the presence of the shield:
+    if (WiFi.status() == WL_NO_SHIELD) {
+        logerror("WiFi shield not present");
+        while (true);
+    }
+
+    status = WiFi.begin(ssid, pass);
+
+    while (status != WL_CONNECTED) {
+        delay(1000);
+        logdebug("connecting");
+    }
+
+    server.begin();
+
+    SEGGER_RTT_printf(0, "ready\n");
+
+    uint32_t total_transferred = 0;
+
+    while (true) {
+        StandardPool loop_pool{ "wifi101-loop" };
+
+        auto wcl = server.available();
+        if (wcl) {
+            SEGGER_RTT_printf(0, "new connection\n");
+
+            auto total_bytes = 1024u * 1024u * 100u;
+            String line = "";
+            while (wcl.connected()) {
+                if (wcl.available()) {
+                    char c = wcl.read();
+                    if (c == '\n') {
+                        if (line.length() == 0) {
+                            auto buffer_size = 1400;
+                            auto buffer = (uint8_t *)loop_pool.malloc(buffer_size);
+                            memset(buffer, 0, buffer_size);
+
+                            strcpy((char *)buffer, "HTTP/1.1 200 OK\n");
+                            strcat((char *)buffer, "Content-Type: text/html\n");
+                            strcat((char *)buffer, loop_pool.sprintf("Content-Length: %d\n\n", total_bytes));
+
+                            wcl.write(buffer, strlen((char *)buffer));
+
+                            memset(buffer, 0, buffer_size);
+
+                            char message[128];
+
+                            struct header_t {
+                                uint32_t packets;
+                                uint32_t counter;
+                            };
+
+                            uint32_t counter = 0;
+                            uint8_t marker = 0;
+                            for (auto copied = 0u; copied < total_bytes; ) {
+                                memset(buffer, marker++, buffer_size);
+
+                                header_t header;
+                                header.packets = packet_writes++;
+                                header.counter = counter++;
+
+                                tiny_snprintf(message, sizeof(message), "   packets=%" PRIu32 " counter=%" PRIu32 "   ", packet_writes, counter);
+
+                                memcpy((void *)(buffer), &header, sizeof(header));
+                                memcpy((void *)(buffer + sizeof(header_t)), message, strlen(message));
+
+                                auto write_started = fk_uptime();
+                                auto bytes_copied = wcl.write(buffer, buffer_size);
+                                auto write_took = fk_uptime() - write_started;
+
+                                auto flush_started = fk_uptime();
+                                wcl.flush();
+                                auto flush_took = fk_uptime() - flush_started;
+
+                                if (bytes_copied == 0) {
+                                    SEGGER_RTT_printf(0, "packets=%d copied=%d bytes=%d wrote=%dms flush=%dms rssi=%d (failed)\n",
+                                                      packet_writes, copied, bytes_copied, write_took, flush_took, WiFi.RSSI());
+                                    fk_delay(100);
+                                } else {
+                                    SEGGER_RTT_printf(0, "packets=%d copied=%d bytes=%d wrote=%dms flush=%dms rssi=%d total=%d\n",
+                                        packet_writes, copied, bytes_copied, write_took, flush_took, WiFi.RSSI(),
+                                        total_transferred);
+                                    fkwifi_log();
+                                    copied += bytes_copied;
+                                    total_transferred += bytes_copied;
+                                }
+                            }
+                            break;
+                        }
+                        else {
+                            line = "";
+                        }
+                    }
+                    else if (c != '\r') {
+                        line += c;
+                    }
+                }
+            }
+
+            wcl.stop();
+
+            SEGGER_RTT_printf(0, "bye bye\n");
+        }
+
+        fk_delay(100);
+    }
+#endif
+#endif
+
+    while (true) {
+        fk_delay(1000);
+    }
+}
+
+os_task_t test_idle_task;
+os_task_t test_work_task;
+
+void test_handler_idle(void *params) {
+    while (true) {
+        fk_delay(FiveSecondsMs);
+    }
+}
+
+void test_handler_work(void *params) {
+    wifi101_example();
+}
+
+void live_os() {
+    OS_CHECK(os_initialize());
+
+    uint32_t idle_stack[1024];
+    uint32_t work_stack[4096];
+    OS_CHECK(os_task_initialize(&test_idle_task, "idle", OS_TASK_START_RUNNING, &test_handler_idle, nullptr, idle_stack, sizeof(idle_stack)));
+    OS_CHECK(os_task_initialize(&test_work_task, "work", OS_TASK_START_RUNNING, &test_handler_work, nullptr, work_stack, sizeof(work_stack)));
+
+    FK_ASSERT(get_ipc()->begin());
+
+    OS_CHECK(os_start());
+}
+
 void fk_live_tests() {
     if (false) {
         scan_i2c_module_bus();
@@ -185,6 +432,9 @@ void fk_live_tests() {
             fk_delay(1000);
         }
     }
+#if defined(FK_DEBUG_LIVE_TEST_ENABLE)
+    FK_DEBUG_LIVE_TEST_ENABLE();
+#endif
 }
 
 }

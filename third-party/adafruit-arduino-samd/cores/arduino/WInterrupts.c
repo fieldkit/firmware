@@ -44,7 +44,7 @@ static void __initialize()
     NVIC_SetPriority(irqn, 0);
     NVIC_EnableIRQ(irqn);
   }
-  
+
   GCLK->PCHCTRL[EIC_GCLK_ID].reg = GCLK_PCHCTRL_GEN_GCLK2_Val | (1 << GCLK_PCHCTRL_CHEN_Pos);
 #else
   NVIC_DisableIRQ(EIC_IRQn);
@@ -212,14 +212,14 @@ void detachInterrupt(uint32_t pin)
   EExt_Interrupts in = g_APinDescription[pin].ulExtInt;
 #else
   EExt_Interrupts in = digitalPinToInterrupt(pin);
-#endif 
+#endif
   if (in == NOT_AN_INTERRUPT) return;
 
   if(in == EXTERNAL_INT_NMI) {
     EIC->NMICTRL.bit.NMISENSE = 0; // Turn off detection
   } else {
     EIC->INTENCLR.reg = EIC_INTENCLR_EXTINT(1 << in);
-  
+
   // Disable wakeup capability on pin during sleep
 #if defined(__SAMD51__)
 //I believe this is done automatically
@@ -324,12 +324,20 @@ void EIC_10_Handler(void)
 }
 
 uint32_t irq_eic_11_handler = 0;
+uint32_t irq_eic_11_calls = 0;
+uint32_t irq_eic_11_pending = 0;
 
 void EIC_11_Handler(void)
 {
+  __atomic_add_fetch(&irq_eic_11_calls, 1, __ATOMIC_SEQ_CST);
+
   __atomic_store_n(&irq_eic_11_handler, 1, __ATOMIC_SEQ_CST);
   InterruptHandler(EXTERNAL_INT_11);
   __atomic_store_n(&irq_eic_11_handler, 0, __ATOMIC_SEQ_CST);
+
+  if (NVIC_GetPendingIRQ(EIC_11_IRQn)) {
+    __atomic_add_fetch(&irq_eic_11_pending, 1, __ATOMIC_SEQ_CST);
+  }
 }
 
 void EIC_12_Handler(void)

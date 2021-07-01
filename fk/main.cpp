@@ -163,6 +163,15 @@ static bool need_segger_initialize() {
 void setup() {
     SEGGER_RTT_WriteString(0, "\n");
     single_threaded_setup();
+
+    get_board()->i2c_core().begin();
+    auto clock = get_clock();
+    if (!clock->begin()) {
+        logerror("rtc error");
+    }
+
+    fk_live_tests();
+
     run_tasks();
 }
 
