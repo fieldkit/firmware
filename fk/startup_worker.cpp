@@ -23,6 +23,7 @@
 #include "modules/bridge/modules.h"
 #include "modules/scanning.h"
 #include "modules/configure.h"
+#include "modules/configure_module_worker.h"
 #include "hal/metal/metal_lora.h"
 #include "display/display_views.h"
 #include "secrets.h"
@@ -86,6 +87,12 @@ void StartupWorker::run(Pool &pool) {
 
     loginfo("check for interactive startup");
     if (check_for_interactive_startup(pool)) {
+        FK_ASSERT(os_task_start(&display_task) == OSS_SUCCESS);
+        return;
+    }
+
+    loginfo("check for programmer startup");
+    if (check_for_programmer_startup(pool)) {
         FK_ASSERT(os_task_start(&display_task) == OSS_SUCCESS);
         return;
     }
@@ -557,6 +564,54 @@ bool StartupWorker::check_for_provision_startup(Pool &pool) {
     factory_wipe_worker.run(pool);
 
     fk_logs_flush();
+
+    return true;
+}
+
+bool StartupWorker::check_for_programmer_startup(Pool &pool) {
+    auto lock = sd_mutex.acquire(UINT32_MAX);
+    auto sd = get_sd_card();
+
+    if (!sd->begin()) {
+        logerror("error opening sd card");
+        return false;
+    }
+
+    auto config_file = "fk-program.cfg";
+    if (!sd->is_file(config_file)) {
+        loginfo("no %s found", config_file);
+        return false;
+    }
+
+    auto file = sd->open(config_file, OpenFlags::Read, pool);
+    if (file == nullptr || !file->is_open()) {
+        logerror("unable to open '%s'", config_file);
+        return false;
+    }
+
+    auto file_size = file->file_size();
+    if (file_size == 0) {
+        logerror("empty file '%s'", config_file);
+        return false;
+    }
+
+    ModuleHeader header;
+    auto bytes_read = file->read((uint8_t *)&header, sizeof(ModuleHeader));
+    if (bytes_read != sizeof(ModuleHeader)) {
+        logerror("error reading header '%s'", config_file);
+        return false;
+    }
+
+    get_modmux()->enable_all_modules();
+
+    ModuleRegistry registry;
+    registry.initialize();
+
+    ConfigureModuleWorker configure_worker{ ModulePosition::All, header };
+    configure_worker.run(pool);
+
+    ReadingsWorker readings_worker{ true, true, false };
+    readings_worker.run(pool);
 
     return true;
 }
