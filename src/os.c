@@ -826,8 +826,8 @@ void osi_priority_check(os_task_t *scheduled) {
                     osi_printf("scheduler panic: [0x%p] '%s' (%d) < [0x%p] '%s' (%d)",
                                scheduled, scheduled->name, scheduled_priority,
                                iter, iter->name, iter->priority);
+                    osi_debug_dump(OS_PANIC_ASSERTION);
                 }
-                OS_ASSERT(scheduled_priority >= iter->priority);
             }
         }
     }

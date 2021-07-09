@@ -44,6 +44,8 @@ extern "C" {
  */
 void osi_panic(os_panic_kind_t code);
 
+void osi_debug_dump(os_panic_kind_t code);
+
 /**
  *
  */
