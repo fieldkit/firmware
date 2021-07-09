@@ -37,11 +37,13 @@ int32_t fk_wdt_enable() {
     uint16_t to_period = 4096;
     wdt_set_timeout_period(&WDT_0, clk_rate, to_period);
     wdt_enable(&WDT_0);
+    alogf(LogLevels::INFO, "watchdog", "wdt:enabled");
     return 0;
 }
 
 int32_t fk_wdt_disable() {
     wdt_disable(&WDT_0);
+    alogf(LogLevels::INFO, "watchdog", "wdt:disabled");
     return 0;
 }
 
