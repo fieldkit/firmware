@@ -173,8 +173,16 @@ void fk_free_internal(void *ptr, const char *file, int32_t line) {
     return ::free(ptr);
 }
 
-void osi_panic(os_panic_kind_t code) {
+void osi_debug_dump(os_panic_kind_t code) {
     alogf(LogLevels::ERROR, "error", "panic! (%s)", os_panic_kind_str(code));
+
+    if (osg.scheduled != NULL) {
+        alogf(LogLevels::ERROR, "error", "osg.scheduled '%s' status(%s) (0x%" PRIx32 ")", osg.scheduled->name, os_task_status_str(osg.scheduled->status), osg.scheduled->priority);
+    }
+
+    if (osg.running != NULL) {
+        alogf(LogLevels::ERROR, "error", "osg.running '%s' status(%s) (0x%" PRIx32 ")", osg.running->name, os_task_status_str(osg.running->status), osg.running->priority);
+    }
 
     for (os_task_t *iter = osg.runqueue; iter != NULL; iter = iter->nrp) {
         alogf(LogLevels::ERROR, "error", "rq '%s' status(%s) (0x%" PRIx32 ")", iter->name, os_task_status_str(iter->status), iter->priority);
@@ -185,6 +193,10 @@ void osi_panic(os_panic_kind_t code) {
     }
 
     fk::fk_logs_flush();
+}
+
+void osi_panic(os_panic_kind_t code) {
+    osi_debug_dump(code);
 
     #if defined(__SAMD21__) || defined(__SAMD51__)
     NVIC_SystemReset();
