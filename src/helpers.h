@@ -16,8 +16,6 @@ public:
         uint32_t found_position = 0;
         uint32_t found_sector = InvalidSector;
 
-        position_index.log();
-
         err = position_index.find_last_less_then(desired_position, &found_sector, &found_position);
         if (err < 0) {
             return err;
