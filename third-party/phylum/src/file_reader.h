@@ -49,8 +49,6 @@ public:
         uint32_t found_record = 0;
         uint32_t found_record_position = 0;
 
-        record_index.log();
-
         err = record_index.find_last_less_then(desired_record, &found_record_position, &found_record);
         if (err < 0) {
             return err;
