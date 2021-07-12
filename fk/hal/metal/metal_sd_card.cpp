@@ -102,6 +102,9 @@ bool MetalSdCard::initialize_logs() {
         if (sd_.card()->errorCode()) {
             loginfo("ignoring logs: no sd card, error = 0x%x", sd_.card()->errorCode());
         }
+
+        log_initialized_ = false;
+
         return false;
     }
     else {
