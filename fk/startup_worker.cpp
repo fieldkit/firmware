@@ -130,6 +130,12 @@ void StartupWorker::run(Pool &pool) {
 
     auto memory = MemoryFactory::get_data_memory();
     if (memory->begin()) {
+#if defined(__SAMD51__)
+        // The new file system code is very verbose at the DEBG level
+        // and so this ensures the full startup ends up in the
+        // logs. There should be a better fix, for this though.
+        ScopedLogLevelChange temporary_info_only{ LogLevels::INFO };
+#endif
         if (!load_or_create_state(pool)) {
             logerror("load or create state");
         }
