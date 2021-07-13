@@ -707,12 +707,12 @@ SeekValue Storage::seek(SeekSettings settings) {
                 records_in_block = 0u;
 
                 logdebug("[%d] " PRADDRESS " resuming head (blk %" PRIu32 ")", settings.file, address, block);
-
-                continue;
             }
             else {
                 address = partial_aligned;
             }
+
+            continue;
         }
 
         // We've got a valid record header so let's remember this position.
