@@ -599,6 +599,8 @@ SeekValue Storage::seek(SeekSettings settings) {
             address += sizeof(BlockHeader);
         }
 
+        logverbose("[%d] " PRADDRESS " reading head", settings.file, address);
+
         RecordHeader record_head;
         auto rv = memory_.read(address, (uint8_t *)&record_head, sizeof(record_head));
         if (rv <= 0) {
@@ -607,6 +609,8 @@ SeekValue Storage::seek(SeekSettings settings) {
 
         // Is there a valid record here?
         if (!record_head.valid()) {
+            logverbose("[%d] " PRADDRESS " invalid head", settings.file, address);
+
             auto partial_aligned = g.partial_write_boundary_after(address);
             rv = memory_.read(partial_aligned, (uint8_t *)&record_head, sizeof(record_head));
             if (rv <= 0) {
@@ -713,6 +717,9 @@ SeekValue Storage::seek(SeekSettings settings) {
             }
 
             continue;
+        }
+        else {
+            logverbose("[%d] " PRADDRESS " valid head", settings.file, address);
         }
 
         // We've got a valid record header so let's remember this position.
