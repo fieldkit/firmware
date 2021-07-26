@@ -17,18 +17,19 @@ protected:
 TEST_F(LoraPacketizerSuite, SingleReading) {
     StaticPool<1024> pool("Pool");
 
-    auto module_readings = new (pool) NModuleReadings<4>();
-    module_readings->set(0, 23.0f);
+    ModuleHeader header;
+    state::DynamicState dynamic;
+    state::AttachedModule am{ ModulePosition::from(0), header, nullptr, nullptr, pool };
+    am.add_sensor(state::AttachedSensor{ nullptr, 0, ModuleReading{ 23.0f } });
+    dynamic.attached()->add_module(am);
 
-    LoraPacketizer::ModuleReadingsCollection all_readings{ pool };
-    all_readings.emplace(LoraPacketizer::TakenReadingsModule{
-        .position = ModulePosition::from(0),
-        .readings = module_readings,
-    });
+    GlobalState gs;
+    gs.readings.time = 1600000000;
+    gs.readings.nreadings = 100;
+    gs.dynamic = std::move(dynamic);
 
     LoraPacketizer packetizer;
-    auto taken = LoraPacketizer::TakenReadings{ 1571072401, 323432, std::move(all_readings) };
-    auto packets = packetizer.packetize(taken, pool);
+    auto packets = packetizer.packetize(&gs, pool);
     ASSERT_TRUE(packets);
 
     for (auto p = *packets; p != nullptr; p = p->link) {
@@ -39,22 +40,23 @@ TEST_F(LoraPacketizerSuite, SingleReading) {
 TEST_F(LoraPacketizerSuite, OneModuleMultipleReadings) {
     StaticPool<1024> pool("Pool");
 
-    auto module_readings = new (pool) NModuleReadings<5>();
-    module_readings->set(0, 23.0f);
-    module_readings->set(1, 332.0f);
-    module_readings->set(2, 934839.0f);
-    module_readings->set(3, 100.0f);
-    module_readings->set(4, 39843.0f);
+    ModuleHeader header;
+    state::DynamicState dynamic;
+    state::AttachedModule am{ ModulePosition::from(0), header, nullptr, nullptr, pool };
+    am.add_sensor(state::AttachedSensor{ nullptr, 0, ModuleReading{ 23.0f } });
+    am.add_sensor(state::AttachedSensor{ nullptr, 1, ModuleReading{ 332.0f } });
+    am.add_sensor(state::AttachedSensor{ nullptr, 2, ModuleReading{ 9348839.0f } });
+    am.add_sensor(state::AttachedSensor{ nullptr, 3, ModuleReading{ 100.0f } });
+    am.add_sensor(state::AttachedSensor{ nullptr, 4, ModuleReading{ 39843.0f } });
+    dynamic.attached()->add_module(am);
 
-    LoraPacketizer::ModuleReadingsCollection all_readings{ pool };
-    all_readings.emplace(LoraPacketizer::TakenReadingsModule{
-        .position = ModulePosition::from(0),
-        .readings = module_readings,
-    });
+    GlobalState gs;
+    gs.readings.time = 1600000000;
+    gs.readings.nreadings = 100;
+    gs.dynamic = std::move(dynamic);
 
     LoraPacketizer packetizer;
-    auto taken = LoraPacketizer::TakenReadings{ 1571072401, 323432, std::move(all_readings) };
-    auto packets = packetizer.packetize(taken, pool);
+    auto packets = packetizer.packetize(&gs, pool);
     ASSERT_TRUE(packets);
 
     for (auto p = *packets; p != nullptr; p = p->link) {
@@ -65,33 +67,28 @@ TEST_F(LoraPacketizerSuite, OneModuleMultipleReadings) {
 TEST_F(LoraPacketizerSuite, TwoModulesMultipleReadings) {
     StaticPool<1024> pool("Pool");
 
-    auto module_readings0 = new (pool) NModuleReadings<5>();
-    module_readings0->set(0, 23.0f);
-    module_readings0->set(1, 332.0f);
-    module_readings0->set(2, 934839.0f);
-    module_readings0->set(3, 100.0f);
-    module_readings0->set(4, 39843.0f);
+    ModuleHeader header;
+    state::DynamicState dynamic;
+    state::AttachedModule am1{ ModulePosition::from(0), header, nullptr, nullptr, pool };
+    am1.add_sensor(state::AttachedSensor{ nullptr, 0, ModuleReading{ 23.0f } });
+    am1.add_sensor(state::AttachedSensor{ nullptr, 1, ModuleReading{ 332.0f } });
+    am1.add_sensor(state::AttachedSensor{ nullptr, 2, ModuleReading{ 9348839.0f } });
+    am1.add_sensor(state::AttachedSensor{ nullptr, 3, ModuleReading{ 100.0f } });
+    am1.add_sensor(state::AttachedSensor{ nullptr, 4, ModuleReading{ 39843.0f } });
+    dynamic.attached()->add_module(am1);
+    state::AttachedModule am2{ ModulePosition::from(1), header, nullptr, nullptr, pool };
+    am2.add_sensor(state::AttachedSensor{ nullptr, 0, ModuleReading{ 23.0f } });
+    am2.add_sensor(state::AttachedSensor{ nullptr, 1, ModuleReading{ 100.0f } });
+    am2.add_sensor(state::AttachedSensor{ nullptr, 2, ModuleReading{ 39843.0f } });
+    dynamic.attached()->add_module(am2);
 
-    auto module_readings1 = new (pool) NModuleReadings<3>();
-    module_readings1->set(1, 23.0f);
-    module_readings1->set(2, 100.0f);
-    module_readings1->set(3, 39843.0f);
-
-    LoraPacketizer::ModuleReadingsCollection all_readings{ pool };
-
-    all_readings.emplace(LoraPacketizer::TakenReadingsModule{
-        .position = ModulePosition::from(0),
-        .readings = module_readings0,
-    });
-
-    all_readings.emplace(LoraPacketizer::TakenReadingsModule{
-        .position = ModulePosition::from(1),
-        .readings = module_readings1,
-    });
+    GlobalState gs;
+    gs.readings.time = 1600000000;
+    gs.readings.nreadings = 100;
+    gs.dynamic = std::move(dynamic);
 
     LoraPacketizer packetizer;
-    auto taken = LoraPacketizer::TakenReadings{ 1571072401, 323432, std::move(all_readings) };
-    auto packets = packetizer.packetize(taken, pool);
+    auto packets = packetizer.packetize(&gs, pool);
     ASSERT_TRUE(packets);
 
     for (auto p = *packets; p != nullptr; p = p->link) {
@@ -102,39 +99,35 @@ TEST_F(LoraPacketizerSuite, TwoModulesMultipleReadings) {
 TEST_F(LoraPacketizerSuite, MultipleModulesVerifyLength1) {
     StaticPool<1024> pool("Pool");
 
-    auto module_readings0 = new (pool) NModuleReadings<3>();
-    module_readings0->set(0, 1725.000000);
-    module_readings0->set(1, 1726.000000);
-    module_readings0->set(2, 1727.000000);
-
+    ModuleHeader header;
+    state::DynamicState dynamic;
+    state::AttachedModule am1{ ModulePosition::from(0), header, nullptr, nullptr, pool };
+    am1.add_sensor(state::AttachedSensor{ nullptr, 0, ModuleReading{ 1725.0f } });
+    am1.add_sensor(state::AttachedSensor{ nullptr, 1, ModuleReading{ 1726.0f } });
+    am1.add_sensor(state::AttachedSensor{ nullptr, 2, ModuleReading{ 1727.0f } });
+    dynamic.attached()->add_module(am1);
     auto i = 0u;
-    auto module_readings1 = new (pool) NModuleReadings<13>();
-    module_readings1->set(i++, 24.196228);
-    module_readings1->set(i++, 100.226753);
-    module_readings1->set(i++, 22.937500);
-    module_readings1->set(i++, 7.200000);
-    module_readings1->set(i++, 0.000000);
-    module_readings1->set(i++, 157.000000);
-    module_readings1->set(i++, 309.375000);
-    module_readings1->set(i++, 9.600000);
-    module_readings1->set(i++, 9.600000);
-    module_readings1->set(i++, 8.067230);
-    module_readings1->set(i++, 147.000000);
+    state::AttachedModule am2{ ModulePosition::from(1), header, nullptr, nullptr, pool };
+    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 24.196228 } });
+    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 100.226753 } });
+    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 22.937500 } });
+    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 7.200000 } });
+    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 0.000000 } });
+    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 157.000000 } });
+    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 309.375000 } });
+    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 9.600000 } });
+    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 9.600000 } });
+    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 8.067230 } });
+    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 147.000000 } });
+    dynamic.attached()->add_module(am2);
 
-    LoraPacketizer::ModuleReadingsCollection all_readings{ pool };
-    all_readings.emplace(LoraPacketizer::TakenReadingsModule{
-        .position = ModulePosition::from(2),
-        .readings = module_readings0,
-    });
-
-    all_readings.emplace(LoraPacketizer::TakenReadingsModule{
-        .position = ModulePosition::from(6),
-        .readings = module_readings1,
-    });
+    GlobalState gs;
+    gs.readings.time = 1600000000;
+    gs.readings.nreadings = 100;
+    gs.dynamic = std::move(dynamic);
 
     LoraPacketizer packetizer;
-    auto taken = LoraPacketizer::TakenReadings{ 1571073001, 7187, std::move(all_readings) };
-    auto packets = packetizer.packetize(taken, pool);
+    auto packets = packetizer.packetize(&gs, pool);
     ASSERT_TRUE(packets);
 
     for (auto p = *packets; p != nullptr; p = p->link) {
@@ -154,20 +147,21 @@ TEST_F(LoraPacketizerSuite, MultipleModulesVerifyLength2) {
     // 00027445 lora       warn    packetizer: encoded size differs from predicted (19 != 21)
     // LORA 10 8b 3a 20 02 32 0c 00 c0 d7 44 00 e0 d7 44 00 00 d8 44  (19 bytes)
 
-    auto module_readings0 = new (pool) NModuleReadings<3>();
-    module_readings0->set(0, 1726.000000);
-    module_readings0->set(1, 1727.000000);
-    module_readings0->set(2, 1728.000000);
+    ModuleHeader header;
+    state::DynamicState dynamic;
+    state::AttachedModule am1{ ModulePosition::from(2), header, nullptr, nullptr, pool };
+    am1.add_sensor(state::AttachedSensor{ nullptr, 0, ModuleReading{ 1726.0f } });
+    am1.add_sensor(state::AttachedSensor{ nullptr, 1, ModuleReading{ 1727.0f } });
+    am1.add_sensor(state::AttachedSensor{ nullptr, 2, ModuleReading{ 1728.0f } });
+    dynamic.attached()->add_module(am1);
 
-    LoraPacketizer::ModuleReadingsCollection all_readings{ pool };
-    all_readings.emplace(LoraPacketizer::TakenReadingsModule{
-        .position = ModulePosition::from(2),
-        .readings = module_readings0,
-    });
+    GlobalState gs;
+    gs.readings.time = 1600000000;
+    gs.readings.nreadings = 100;
+    gs.dynamic = std::move(dynamic);
 
     LoraPacketizer packetizer;
-    auto taken = LoraPacketizer::TakenReadings{ 7435, 0, std::move(all_readings) };
-    auto packets = packetizer.packetize(taken, pool);
+    auto packets = packetizer.packetize(&gs, pool);
     ASSERT_TRUE(packets);
 
     for (auto p = *packets; p != nullptr; p = p->link) {
@@ -214,38 +208,36 @@ LORA 20 06 28 0b 32 0c 00 00 4a 43 33 33 f3 40 00 00 9c 43  (18 bytes)
 TEST_F(LoraPacketizerSuite, MultipleModulesVerifyLength3) {
     StaticPool<1024> pool("Pool");
 
-    auto module_readings0 = new (pool) NModuleReadings<3>();
-    module_readings0->set(0, 1221.000000);
-    module_readings0->set(1, 1221.000000);
-    module_readings0->set(2, 1224.000000);
-
+    ModuleHeader header;
+    state::DynamicState dynamic;
+    state::AttachedModule am1{ ModulePosition::from(2), header, nullptr, nullptr, pool };
+    am1.add_sensor(state::AttachedSensor{ nullptr, 0, ModuleReading{ 1221.0f } });
+    am1.add_sensor(state::AttachedSensor{ nullptr, 1, ModuleReading{ 1222.0f } });
+    am1.add_sensor(state::AttachedSensor{ nullptr, 2, ModuleReading{ 1222.0f } });
+    dynamic.attached()->add_module(am1);
+    state::AttachedModule am2{ ModulePosition::from(6), header, nullptr, nullptr, pool };
     auto i = 0u;
-    auto module_readings1 = new (pool) NModuleReadings<14>();
-    module_readings1->set(i++, 44.954605);
-    module_readings1->set(i++, 24.110779);
-    module_readings1->set(i++, 100.027252);
-    module_readings1->set(i++, 22.812500);
-    module_readings1->set(i++, 0.0);
-    module_readings1->set(i++, 9.600000);
-    module_readings1->set(i++, 0.0);
-    module_readings1->set(i++, 2307.421875);
-    module_readings1->set(i++, 9.600000);
-    module_readings1->set(i++, 0.000000);
-    module_readings1->set(i++, 0.000000);
+    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 44.954605 } } );
+    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 24.110779 } } );
+    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 100.027252 } } );
+    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 22.812500 } } );
+    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 0.0 } } );
+    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 9.600000 } } );
+    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 0.0 } } );
+    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 2307.421875 } } );
+    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 9.600000 } } );
+    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 0.000000 } } );
+    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 0.000000 } } );
+    dynamic.attached()->add_module(am2);
 
-    LoraPacketizer::ModuleReadingsCollection all_readings{ pool };
-    all_readings.emplace(LoraPacketizer::TakenReadingsModule{
-        .position = ModulePosition::from(2),
-        .readings = module_readings0,
-    });
-    all_readings.emplace(LoraPacketizer::TakenReadingsModule{
-        .position = ModulePosition::from(6),
-        .readings = module_readings1,
-    });
+    GlobalState gs;
+    gs.readings.time = 1600000000;
+    gs.readings.nreadings = 100;
+    gs.dynamic = std::move(dynamic);
+
 
     LoraPacketizer packetizer;
-    auto taken = LoraPacketizer::TakenReadings{ 1571088572 , 7499, std::move(all_readings) };
-    auto packets = packetizer.packetize(taken, pool);
+    auto packets = packetizer.packetize(&gs, pool);
     ASSERT_TRUE(packets);
 
     for (auto p = *packets; p != nullptr; p = p->link) {

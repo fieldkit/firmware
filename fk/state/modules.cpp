@@ -13,6 +13,9 @@ namespace state {
 AttachedSensor::AttachedSensor(SensorMetadata const *meta, uint32_t index) : meta_(meta), index_(index) {
 }
 
+AttachedSensor::AttachedSensor(SensorMetadata const *meta, uint32_t index, ModuleReading reading) : meta_(meta), index_(index), reading_(reading) {
+}
+
 uint32_t AttachedSensor::index() {
     return index_;
 }
@@ -158,6 +161,9 @@ ModuleConfiguration AttachedModule::get_configuration(Pool *pool) {
 
 EnableModulePower AttachedModule::enable() {
     return EnableModulePower{ position_, configuration_.power, configuration_.wake_delay };
+}
+
+AttachedModules::AttachedModules(AttachedModules::Modules modules, Pool &pool) : modules_(modules), pool_(&pool) {
 }
 
 AttachedModules::AttachedModules(Pool &pool) : pool_(&pool) {

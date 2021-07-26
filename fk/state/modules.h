@@ -16,6 +16,7 @@ private:
 
 public:
     AttachedSensor(SensorMetadata const *meta, uint32_t index);
+    AttachedSensor(SensorMetadata const *meta, uint32_t index, ModuleReading reading);
 
 public:
     uint32_t index();
@@ -98,6 +99,15 @@ public:
     ModuleConfiguration get_configuration(Pool *pool);
     bool has_id(fk_uuid_t const &id) const;
     EnableModulePower enable();
+
+#if defined(__linux__)
+public:
+#else
+private:
+#endif
+    void add_sensor(AttachedSensor as) {
+        sensors_.add(as);
+    }
 };
 
 class AttachedModules : public ScanningListener {
@@ -107,6 +117,7 @@ private:
     Pool *pool_{ nullptr };
 
 public:
+    AttachedModules(Modules modules, Pool &pool);
     AttachedModules(Pool &pool);
 
 public:
@@ -136,6 +147,14 @@ public:
     int32_t create(Pool &pool);
     int32_t initialize(Pool &pool);
     int32_t take_readings(ReadingsListener *listener, Pool &pool);
+#if defined(__linux__)
+public:
+#else
+private:
+#endif
+    void add_module(AttachedModule am) {
+        modules_.add(am);
+    }
 };
 
 } // namespace state

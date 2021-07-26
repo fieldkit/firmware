@@ -139,29 +139,37 @@ static void append(EncodedMessage **head, EncodedMessage **tail, EncodedMessage 
     }
 }
 
-tl::expected<EncodedMessage*, Error> LoraPacketizer::packetize(TakenReadings const &taken, Pool &pool) {
+tl::expected<EncodedMessage*, Error> LoraPacketizer::packetize(GlobalState const *gs, Pool &pool) {
     EncodedMessage *head = nullptr;
     EncodedMessage *tail = nullptr;
 
+    auto attached = gs->dynamic.attached();
+    if (attached == nullptr) {
+        return tl::unexpected<Error>(Error::General);
+    }
+
     LoraRecord record{ pool };
 
-    logdebug("begin time=%" PRIu32 " reading=%" PRIu32, taken.time, taken.number);
+    record.begin(gs->readings.time, gs->readings.nreadings);
 
-    record.begin(taken.time, taken.number);
+    for (auto &attached_module : attached->modules()) {
+        auto position = attached_module.position();
+        // auto meta = attached_module.meta();
 
-    for (auto &module : taken.readings) {
-        if (LoraTransmitVirtual || module.position != ModulePosition::Virtual) {
-            for (auto s = 0u; s < module.readings->size(); ++s) {
-                auto reading = module.readings->get(s);
-                auto position = module.position.integer();
-                auto adding = record.size_of_encoding(position, s, reading.calibrated);
+        if (LoraTransmitVirtual || position != ModulePosition::Virtual) {
+            for (auto &sensor : attached_module.sensors()) {
+                auto reading = sensor.reading();
+
+                auto integer_position = position.integer();
+                auto sensor_index = sensor.index();
+                auto adding = record.size_of_encoding(integer_position, sensor_index, reading.calibrated);
                 if (record.encoded_size() + adding >= maximum_packet_size_) {
                     append(&head, &tail, record.encode(pool));
                     record.clear();
                 }
 
-                record.write_reading(position, s, reading.calibrated);
-                logdebug("reading: %d/%d %f (%zd)", position, s, reading.calibrated, record.encoded_size());
+                record.write_reading(integer_position, sensor_index, reading.calibrated);
+                logdebug("reading: %d/%d %f (%zd)", integer_position, sensor_index, reading.calibrated, record.encoded_size());
             }
 
             append(&head, &tail, record.encode(pool));

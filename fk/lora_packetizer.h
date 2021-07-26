@@ -18,28 +18,8 @@ public:
     LoraPacketizer();
     virtual ~LoraPacketizer();
 
-    struct TakenReadingsModule {
-        ModulePosition position;
-        ModuleReadings *readings;
-    };
-
-    using ModuleReadingsCollection = collection<TakenReadingsModule>;
-
-    struct TakenReadings {
-        uint32_t time;
-        uint32_t number;
-        ModuleReadingsCollection readings;
-
-        TakenReadings() {
-        }
-
-        TakenReadings(uint32_t time, uint32_t number, ModuleReadingsCollection readings)
-            : time(time), number(number), readings(std::move(readings)) {
-        }
-    };
-
 public:
-    tl::expected<EncodedMessage *, Error> packetize(TakenReadings const &taken, Pool &pool);
+    tl::expected<EncodedMessage *, Error> packetize(GlobalState const *gs, Pool &pool);
 
 };
 
