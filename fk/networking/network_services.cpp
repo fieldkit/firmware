@@ -2,18 +2,18 @@
 #include <malloc.h>
 
 #include "common.h"
-#include "platform.h"
-#include "networking/network_services.h"
-#include "networking/default_routes.h"
-#include "hal/hal.h"
 #include "device_name.h"
-#include "state_ref.h"
+#include "hal/hal.h"
+#include "networking/default_routes.h"
+#include "networking/network_services.h"
+#include "platform.h"
 #include "state_manager.h"
+#include "state_ref.h"
 #include "tasks/tasks.h"
 
 namespace fk {
 
-FK_DECLARE_LOGGER("ns");
+FK_DECLARE_LOGGER("network");
 
 static DefaultRoutes default_routes;
 
@@ -21,12 +21,13 @@ static bool network_began(NetworkStatus status) {
     return status == NetworkStatus::Connected || status == NetworkStatus::Listening;
 }
 
-NetworkServices::NetworkServices(Network *network, Pool &pool) : tick_pool_(pool.subpool("network-tick", 1024)), network_(network) {
+NetworkServices::NetworkServices(Network *network, Pool &pool)
+    : tick_pool_(pool.subpool("network-tick", 1024)), network_(network) {
     started_ = fk_uptime();
 }
 
 NetworkServices::~NetworkServices() {
-    loginfo("dtor");
+    logdebug("dtor");
     stop();
 }
 
@@ -53,7 +54,6 @@ uint32_t NetworkServices::bytes_rx() const {
 uint32_t NetworkServices::bytes_tx() const {
     return connection_pool_.bytes_tx();
 };
-
 
 bool NetworkServices::waiting_to_serve() {
     if (network_->status() == NetworkStatus::Connected) {
@@ -132,6 +132,8 @@ bool NetworkServices::try_begin(NetworkSettings settings, uint32_t to, Pool &poo
         network_->service(nullptr);
 
         if (network_began(network_->status())) {
+            logdebug("try-begin: %dms (ok)", fk_uptime() - started);
+
             return true;
         }
 
@@ -139,14 +141,18 @@ bool NetworkServices::try_begin(NetworkSettings settings, uint32_t to, Pool &poo
     }
     while (fk_uptime() - started < to);
 
-    logerror("networking took too long");
+    logwarn("try-begin: %dms (too long)", fk_uptime() - started);
 
     return false;
 }
 
 bool NetworkServices::serve() {
+    logdebug("serve: acquiring");
+
     auto lock = wifi_mutex.acquire(UINT32_MAX);
     FK_ASSERT(lock);
+
+    logdebug("serve: initializing");
 
     default_routes.add_routes(router_);
 
@@ -166,7 +172,7 @@ bool NetworkServices::serve() {
 
     serving_ = true;
 
-    loginfo("serving");
+    loginfo("serve: ready");
 
     return true;
 }
@@ -329,4 +335,4 @@ NetworkSettings NetworkServices::get_selected_settings(Pool &pool) {
     };
 }
 
-}
+} // namespace fk

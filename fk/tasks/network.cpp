@@ -27,12 +27,16 @@ void try_and_serve_connections() {
             return;
         }
 
+        loginfo("started");
+
         gsm.apply([&](GlobalState *gs) {
             strncpy(gs->network.state.ssid, services.ssid(), sizeof(gs->network.state.ssid));
             gs->network.state.enabled = fk_uptime();
             gs->network.state.connected = 0;
             gs->network.state.ip = get_network()->ip_address();
         });
+
+        loginfo("waiting to serve");
 
         // In self AP mode we're waiting for connections now, and hold off doing
         // anything useful until something joins.

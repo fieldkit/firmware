@@ -153,6 +153,8 @@ bool MetalNetwork::begin(NetworkSettings settings, Pool *pool) {
         return false;
     }
 
+    auto started = fk_uptime();
+
     FK_ASSERT(pool != nullptr);
 
     pool_ = pool;
@@ -205,6 +207,8 @@ bool MetalNetwork::begin(NetworkSettings settings, Pool *pool) {
     settings_ = settings;
     enabled_ = true;
     serving_ = false;
+
+    logdebug("begin exiting after %dms", fk_uptime() - started);
 
     return true;
 }
