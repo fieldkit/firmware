@@ -38,6 +38,11 @@ enum class Ads1219VoltageReference : uint8_t {
     External = ADS1219_VREF_EXTERNAL
 };
 
+enum class Ads1219Gain : uint8_t {
+    One = ADS1219_GAIN_ONE,
+    Four = ADS1219_GAIN_FOUR,
+};
+
 enum class Ads1219Channel : uint8_t {
     Diff_0_1 = ADS1219_MUX_DIFF_0_1,
     Diff_2_3 = ADS1219_MUX_DIFF_2_3,
@@ -67,7 +72,7 @@ public:
 
 public:
     bool begin();
-    bool configure(Ads1219VoltageReference vref, Ads1219Channel channel);
+    bool configure(Ads1219VoltageReference vref, Ads1219Channel channel, Ads1219Gain gain);
     bool read(int32_t &value);
 
 private:

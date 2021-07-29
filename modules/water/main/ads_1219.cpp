@@ -28,8 +28,8 @@ bool Ads1219::begin() {
     return true;
 }
 
-bool Ads1219::configure(Ads1219VoltageReference vref, Ads1219Channel channel) {
-    config_ = (uint8_t)vref | (uint8_t)channel;
+bool Ads1219::configure(Ads1219VoltageReference vref, Ads1219Channel channel, Ads1219Gain gain) {
+    config_ = (uint8_t)vref | (uint8_t)channel | (uint8_t)gain;
 
     logdebug("config=0x%x", config_);
     if (!I2C_CHECK(bus_.write_register_u8(address_, ADS1219_COMMAND_WRITE_CONFIG_REGISTER, config_))) {
@@ -66,6 +66,7 @@ bool Ads1219::read(int32_t &value) {
     if (!I2C_CHECK(bus_.read_register_u8(address_, ADS1219_COMMAND_READ_STATUS_REGISTER, status_after))) {
         return false;
     }
+
     logdebug("status-before-read=0x%x", status_after);
 
     if (!read_conversion(value)) {
@@ -81,10 +82,6 @@ bool Ads1219::read_conversion(int32_t &value) {
     if (!I2C_CHECK(bus_.read_register_buffer(address_, ADS1219_COMMAND_READ_DATA, data, sizeof(data)))) {
         return false;
     }
-
-    // data[0] = 0x9c;
-    // data[1] = 0x7e;
-    // data[2] = 0x00;
 
     value  = ((int32_t)data[0]) & 0xff;
     value <<= 8;

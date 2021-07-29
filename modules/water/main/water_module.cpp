@@ -95,7 +95,7 @@ bool WaterModule::initialize(Mcp2803 &mcp, Ads1219 &ads) {
         return false;
     }
 
-    if (!ads.configure(Ads1219VoltageReference::Internal, Ads1219Channel::Diff_0_1)) {
+    if (!ads.configure(Ads1219VoltageReference::Internal, Ads1219Channel::Diff_0_1, Ads1219Gain::One)) {
         logerror("ads1219::configure");
         return false;
     }
