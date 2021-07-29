@@ -43,8 +43,6 @@ public:
         record_->time = time;
         record_->number = reading;
 
-        FK_ASSERT(time > 0);
-
         encoded_size_ = 0;
         encoded_size_ += record_->time > 0 ? pb_varint_size(record_->time) + TagSize : 0;
         encoded_size_ += record_->number > 0 ? pb_varint_size(record_->number) + TagSize : 0;

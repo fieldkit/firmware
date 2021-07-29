@@ -41,8 +41,9 @@ bool Rn2903::wake() {
             // This should be 'ok', which is the ack from the actual sleep.
             if (read_line_sync(&line, 1000)) {
                 loginfo("rn2903 > '%s'", line);
-
-                line_reader_.read_line_sync(&line, 1000);
+                if (line_reader_.read_line_sync(&line, 1000)) {
+                    loginfo("rn2903 > '%s'", line);
+                }
                 line_reader_.clear();
 
                 return true;
