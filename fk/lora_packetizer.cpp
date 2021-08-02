@@ -160,7 +160,11 @@ tl::expected<EncodedMessage*, Error> LoraPacketizer::packetize(GlobalState const
         auto position = attached_module.position();
         // auto meta = attached_module.meta();
 
-        if (LoraTransmitVirtual || position != ModulePosition::Virtual) {
+        #if defined(FK_LORA_TRANSMIT_VIRTUAL)
+        {
+        #else
+        if (position != ModulePosition::Virtual) {
+        #endif
             for (auto &sensor : attached_module.sensors()) {
                 auto reading = sensor.reading();
 

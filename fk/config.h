@@ -220,11 +220,6 @@ constexpr uint32_t MinimumModuleStartupDelayMs = 10;
 constexpr uint32_t LoraUplinksSaveFrequency = 10;
 
 /**
- * If enabled then the device will transmit readings from virtual modules.
- */
-constexpr bool LoraTransmitVirtual = false;
-
-/**
  * Length of a LoRa App EUI.
  */
 constexpr size_t LoraAppEuiLength = 8;
