@@ -121,6 +121,10 @@ public:
         return i;
     }
 
+    bool only_one() const {
+        return head_ != nullptr && head_->np == nullptr;
+    }
+
     template<typename SortKeyFn>
     bool sort(SortKeyFn key_fn) {
         auto modified = false;

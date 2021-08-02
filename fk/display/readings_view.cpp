@@ -44,11 +44,13 @@ void ReadingsView::tick(ViewController *views, Pool &pool) {
         auto position = mas.attached_module->position().integer();
         auto pretty_module_line = pool.sprintf("%d: %s", position, module_wo_modules);
 
-        ReadingScreen reading_screen{
+        collection<DisplayReading> readings{ pool };
+        readings.emplace(
             pretty_module_line,
             mas.sensor->name(),
             reading.calibrated
-        };
+        );
+        ReadingScreen reading_screen{ &readings };
         auto bus = get_board()->i2c_core();
         auto display = get_display();
         display->reading(reading_screen);

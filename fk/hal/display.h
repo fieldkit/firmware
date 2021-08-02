@@ -3,6 +3,7 @@
 #include "common.h"
 #include "pool.h"
 #include "config.h"
+#include "collections.h"
 
 namespace fk {
 
@@ -125,15 +126,25 @@ struct SimpleScreen : public DisplayScreen {
     }
 };
 
+struct DisplayReading {
+    const char *module_name{ nullptr };
+    const char *sensor_name{ nullptr };
+    float value{ 0 };
+
+    DisplayReading() {
+    }
+
+    DisplayReading(const char *module_name, const char *sensor_name, float value) : module_name(module_name), sensor_name(sensor_name), value(value) {
+    }
+};
+
 struct ReadingScreen : public DisplayScreen {
-    const char *module;
-    const char *sensor;
-    float value;
+    collection<DisplayReading> *readings{ nullptr };
 
     ReadingScreen() {
     }
 
-    ReadingScreen(const char *module, const char *sensor, float value) : module(module), sensor(sensor), value(value) {
+    ReadingScreen(collection<DisplayReading> *readings) : readings(readings) {
     }
 };
 
