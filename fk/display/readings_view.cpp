@@ -63,6 +63,21 @@ void ReadingsView::tick(ViewController *views, Pool &pool) {
     }
 }
 
+void ReadingsView::up(ViewController *views) {
+    position_--;
+    dirty_ = 0;
+}
+
+void ReadingsView::down(ViewController *views) {
+    position_++;
+    dirty_ = 0;
+}
+
+void ReadingsView::enter(ViewController *views) {
+    logwarn("show home");
+    views->show_home();
+}
+
 template<typename TSelect>
 struct SensorReadingOption : public MenuOption {
     uint32_t sensor_index_;
@@ -123,25 +138,13 @@ MenuScreen *create_readings_menu(GlobalState const *gs, MenuOption *back_option,
         }
     }
 
+    back_option->focused(false);
+
     options[option_index++] = back_option;
 
     options[option_index] = nullptr;
 
     return new (pool) MenuScreen("readings", options);
-}
-
-void ReadingsView::up(ViewController *views) {
-    position_--;
-    dirty_ = 0;
-}
-
-void ReadingsView::down(ViewController *views) {
-    position_++;
-    dirty_ = 0;
-}
-
-void ReadingsView::enter(ViewController *views) {
-    views->show_home();
 }
 
 }

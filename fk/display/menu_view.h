@@ -26,6 +26,7 @@ private:
     MenuScreen *schedules_menu_{ nullptr };
     MenuScreen *confirm_menu_{ nullptr };
     uint32_t menu_time_{ 0 };
+    uint32_t hold_time_{ FiveSecondsMs };
     uint32_t refresh_time_{ 0 };
     ModulePosition selected_module_bay_{ 0 };
     MenuOption *pending_{ nullptr };
@@ -53,7 +54,7 @@ private:
     void create_schedules_menu();
     void create_confirmation_menu();
     void refresh();
-    MenuScreen *goto_menu(MenuScreen *screen);
+    MenuScreen *goto_menu(MenuScreen *screen, uint32_t hold_time = FiveSecondsMs);
 
 private:
     static void choose_active_network(WifiNetworkInfo network);

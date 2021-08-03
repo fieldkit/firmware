@@ -419,7 +419,7 @@ void MenuView::create_tools_menu() {
         StandardPool pool{ "gps-option" };
         configure_gps_duration(TenMinutesSeconds, pool);
     }, [=](GlobalState const *gs) {
-        loginfo("refresh fixed %" PRIu32, gs->scheduler.gps.duration);
+        logverbose("refresh fixed %" PRIu32, gs->scheduler.gps.duration);
         return gs->scheduler.gps.duration != UINT32_MAX;
     });
     auto toggle_gps_moving = to_selectable_lambda_option(pool_, "Always On", [=]() {
@@ -428,7 +428,7 @@ void MenuView::create_tools_menu() {
         StandardPool pool{ "gps-option" };
         configure_gps_duration(UINT32_MAX, pool);
     }, [=](GlobalState const *gs) {
-        loginfo("refresh moving %" PRIu32, gs->scheduler.gps.duration);
+        logverbose("refresh moving %" PRIu32, gs->scheduler.gps.duration);
         return gs->scheduler.gps.duration == UINT32_MAX;
     });
 
@@ -522,8 +522,7 @@ void MenuView::create_tools_menu() {
         // TODO Move to subpool to allow for repeated readings presses.
         readings_menu_ = create_readings_menu(gs.get(), back_, *pool_);
         previous_menu_ = active_menu_;
-        goto_menu(readings_menu_);
-        menu_time_ = TenMinutesMs;
+        goto_menu(readings_menu_, TenMinutesMs);
     });
     auto tools_crash_assertion = to_lambda_option(pool_, "Crash Assert", [=]() {
         back_->on_selected();
@@ -577,7 +576,7 @@ void MenuView::create_network_menu() {
         StandardPool pool{ "wifi-option" };
         configure_wifi_duration(FiveMinutesSeconds, pool);
     }, [=](GlobalState const *gs) {
-        loginfo("refresh wifi %" PRIu32, gs->scheduler.network.duration);
+        logverbose("refresh wifi %" PRIu32, gs->scheduler.network.duration);
         return gs->scheduler.network.duration != UINT32_MAX;
     });
     auto toggle_wifi_always = to_selectable_lambda_option(pool_, "Always On", [=]() {
@@ -586,7 +585,7 @@ void MenuView::create_network_menu() {
         StandardPool pool{ "wifi-option" };
         configure_wifi_duration(UINT32_MAX, pool);
     }, [=](GlobalState const *gs) {
-        loginfo("refresh wifi %" PRIu32, gs->scheduler.network.duration);
+        logverbose("refresh wifi %" PRIu32, gs->scheduler.network.duration);
         return gs->scheduler.network.duration == UINT32_MAX;
     });
 
@@ -724,7 +723,10 @@ void MenuView::create_schedules_menu() {
 }
 
 void MenuView::show() {
-    menu_time_ = fk_uptime() + 5000;
+    FK_ASSERT(hold_time_ > 0);
+    auto previous = menu_time_;
+    menu_time_ = fk_uptime() + hold_time_;
+    loginfo("menu-view: show: %d %d %d", previous, menu_time_, hold_time_);
 }
 
 void MenuView::show_for_module(uint8_t bay) {
@@ -739,6 +741,7 @@ void MenuView::tick(ViewController *views, Pool &pool) {
     display->menu(*active_menu_);
 
     if (fk_uptime() > menu_time_) {
+        loginfo("menu-view: return to home (%d)", menu_time_);
         views->show_home();
     }
 
@@ -874,14 +877,16 @@ MenuOption *MenuView::selected(MenuScreen &screen) {
     return nullptr;
 }
 
-MenuScreen *MenuView::goto_menu(MenuScreen *screen) {
+MenuScreen *MenuView::goto_menu(MenuScreen *screen, uint32_t hold_time) {
     auto focusable = -1;
     for (auto i = 0; screen->options[i] != nullptr; ++i) {
         if (screen->options[i]->focused()) {
             refresh_visible(*screen, i);
             active_menu_ = screen;
+            hold_time_ = hold_time;
+            menu_time_ = fk_uptime() + hold_time;
 
-            return screen;
+            return screen; // I hate this return.
         }
         if (screen->options[i]->active()) {
             if (focusable < 0) {
@@ -891,8 +896,11 @@ MenuScreen *MenuView::goto_menu(MenuScreen *screen) {
     }
 
     screen->options[focusable]->focused(true);
+
     refresh_visible(*screen, focusable);
     active_menu_ = screen;
+    hold_time_ = hold_time;
+    menu_time_ = fk_uptime() + hold_time;
 
     return screen;
 }
