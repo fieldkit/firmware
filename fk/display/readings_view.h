@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.h"
+#include "hal/display.h"
 #include "display_views.h"
 #include "state_ref.h"
 
@@ -23,5 +24,7 @@ public:
     void enter(ViewController *views) override;
 
 };
+
+MenuScreen *create_readings_menu(GlobalState const *gs, MenuOption *back_option, Pool &pool);
 
 }

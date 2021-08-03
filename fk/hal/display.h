@@ -195,6 +195,15 @@ struct MenuScreen : public DisplayScreen {
             options[i]->refresh(gs);
         }
     }
+
+    size_t number_of_options() const {
+        for (auto i = 0; ; ++i) {
+            if (options[i] == nullptr) {
+                return i;
+            }
+        }
+        return 0;
+    }
 };
 
 struct QrCodeScreen : public DisplayScreen {

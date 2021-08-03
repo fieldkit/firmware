@@ -29,6 +29,7 @@ private:
     uint32_t refresh_time_{ 0 };
     ModulePosition selected_module_bay_{ 0 };
     MenuOption *pending_{ nullptr };
+    MenuScreen *readings_menu_{ nullptr };
 
 public:
     MenuView(ViewController *views, Pool &pool);

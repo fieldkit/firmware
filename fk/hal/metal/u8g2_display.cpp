@@ -3,7 +3,7 @@
 #include "fk.h"
 #include "hal/metal/u8g2_display.h"
 
-#if defined(FK_HARDWARE_FULL)
+#if defined(__SAMD51__)
 
 namespace fk {
 
@@ -447,9 +447,6 @@ void U8g2Display::reading(ReadingScreen &screen) {
         char value[16];
         tiny_snprintf(value, sizeof(value), "%.3f", reading.value);
         draw_centered(draw_, 40, value);
-    }
-    else {
-        alogf(LogLevels::WARN, "menu", "rendering more than one");
     }
 
     draw_.sendBuffer();

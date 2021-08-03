@@ -77,14 +77,17 @@ public:
     Sensors &sensors() {
         return sensors_;
     }
-    fk_uuid_t id() {
+    fk_uuid_t id() const {
         return header_.id;
     }
-    uint32_t flags() {
+    uint32_t flags() const {
         return meta_->flags;
     }
     Module *get() {
         return driver_;
+    }
+    bool is_virtual() const {
+        return position() == ModulePosition::Virtual;
     }
 
 public:
@@ -111,7 +114,8 @@ public:
     ModuleStatus get_module_status(ModulePosition const position);
     AttachedModule *get_by_position(ModulePosition const position);
     AttachedModule *get_by_id(fk_uuid_t const &id);
-    size_t number_of_sensors();
+    size_t number_of_sensors() const;
+    size_t number_of_physical_sensors() const;
 
     struct ModuleAndSensor{
         AttachedModule *attached_module;

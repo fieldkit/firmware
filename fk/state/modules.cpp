@@ -234,10 +234,20 @@ AttachedModule *AttachedModules::get_by_id(fk_uuid_t const &id) {
     return nullptr;
 }
 
-size_t AttachedModules::number_of_sensors() {
+size_t AttachedModules::number_of_sensors() const {
     size_t total = 0;
     for (auto &am : modules_) {
         total += am.sensors().size();
+    }
+    return total;
+}
+
+size_t AttachedModules::number_of_physical_sensors() const {
+    size_t total = 0;
+    for (auto &am : modules_) {
+        if (!am.is_virtual()) {
+            total += am.sensors().size();
+        }
     }
     return total;
 }

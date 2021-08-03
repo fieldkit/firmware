@@ -22,6 +22,7 @@
 #include "networking/upload_data_worker.h"
 
 #include "storage/backup_worker.h"
+#include "display/readings_view.h"
 
 namespace fk {
 
@@ -517,7 +518,12 @@ void MenuView::create_tools_menu() {
     auto tools_poll_sensors = to_lambda_option(pool_, "Poll Sensors", [=]() {
         back_->on_selected();
         get_ipc()->launch_worker(WorkerCategory::Polling, create_pool_worker<PollSensorsWorker>(true, false));
-        views_->show_readings();
+        auto gs = get_global_state_ro();
+        // TODO Move to subpool to allow for repeated readings presses.
+        readings_menu_ = create_readings_menu(gs.get(), back_, *pool_);
+        previous_menu_ = active_menu_;
+        goto_menu(readings_menu_);
+        menu_time_ = TenMinutesMs;
     });
     auto tools_crash_assertion = to_lambda_option(pool_, "Crash Assert", [=]() {
         back_->on_selected();
@@ -669,7 +675,11 @@ void MenuView::create_network_menu() {
 
 void MenuView::create_main_menu() {
     auto main_readings = to_lambda_option(pool_, "Readings", [=]() {
-        views_->show_readings();
+        auto gs = get_global_state_ro();
+        // TODO Move to subpool to allow for repeated readings presses.
+        readings_menu_ = create_readings_menu(gs.get(), back_, *pool_);
+        previous_menu_ = active_menu_;
+        goto_menu(readings_menu_);
     });
     auto main_info = to_lambda_option(pool_, "Info", [=]() {
         previous_menu_ = active_menu_;
@@ -744,6 +754,9 @@ void MenuView::refresh() {
     tools_menu_->refresh(gs.get());
     toggle_gps_menu_->refresh(gs.get());
     toggle_wifi_menu_->refresh(gs.get());
+    if (readings_menu_ != nullptr) {
+        readings_menu_->refresh(gs.get());
+    }
 }
 
 void MenuView::up(ViewController *views) {
