@@ -29,7 +29,6 @@ void LoraWorker::run(Pool &pool) {
     }
 
     if (!lora.begin()) {
-        logwarn("begin failed");
         return;
     }
 

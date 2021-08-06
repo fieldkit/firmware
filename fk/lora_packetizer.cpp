@@ -1,4 +1,3 @@
-#include "records.h"
 #include "lora_packetizer.h"
 #include "clock.h"
 #include "records.h"
@@ -22,7 +21,7 @@ private:
     Pool *pool_;
     fk_data_LoraRecord *record_{ nullptr };
     float *values_{ nullptr };
-    pb_array_t values_array_{ };
+    pb_array_t values_array_{};
     uint8_t previous_sensor_{ 0 };
     size_t encoded_size_{ 0 };
 
@@ -71,8 +70,7 @@ public:
             size += module > 0 ? pb_varint_size(module) + TagSize : 0;
             size += sensor > 0 ? pb_varint_size(sensor) + TagSize : 0;
             size += pb_varint_size(MaxReadingsPerPacket) + TagSize;
-        }
-        else {
+        } else {
             if (previous_sensor_ + 1 != sensor) {
                 size += pb_varint_size(sensor) + TagSize;
             }
@@ -89,8 +87,7 @@ public:
             record_->sensor = sensor;
             record_->values.arg = (void *)&values_array_;
             previous_sensor_ = sensor;
-        }
-        else {
+        } else {
             if (previous_sensor_ + 1 != sensor) {
                 record_->sensor = sensor;
             }
@@ -118,7 +115,6 @@ public:
         }
         return encoded;
     }
-
 };
 
 static void append(EncodedMessage **head, EncodedMessage **tail, EncodedMessage *node) {
@@ -128,16 +124,17 @@ static void append(EncodedMessage **head, EncodedMessage **tail, EncodedMessage 
 
     node->link = nullptr;
 
+    logdebug("packet: size=%d", node->size);
+
     if ((*head) == nullptr) {
         (*head) = (*tail) = node;
-    }
-    else {
+    } else {
         (*tail)->link = node;
         (*tail) = node;
     }
 }
 
-tl::expected<EncodedMessage*, Error> LoraPacketizer::packetize(GlobalState const *gs, Pool &pool) {
+tl::expected<EncodedMessage *, Error> LoraPacketizer::packetize(GlobalState const *gs, Pool &pool) {
     EncodedMessage *head = nullptr;
     EncodedMessage *tail = nullptr;
 
@@ -160,11 +157,11 @@ tl::expected<EncodedMessage*, Error> LoraPacketizer::packetize(GlobalState const
         auto position = attached_module.position();
         // auto meta = attached_module.meta();
 
-        #if defined(FK_LORA_TRANSMIT_VIRTUAL)
+#if defined(FK_LORA_TRANSMIT_VIRTUAL)
         {
-        #else
+#else
         if (position != ModulePosition::Virtual) {
-        #endif
+#endif
             for (auto &sensor : attached_module.sensors()) {
                 auto reading = sensor.reading();
 
@@ -177,7 +174,8 @@ tl::expected<EncodedMessage*, Error> LoraPacketizer::packetize(GlobalState const
                 }
 
                 record.write_reading(integer_position, sensor_index, reading.calibrated);
-                logdebug("reading: %d/%d %f (%zd)", integer_position, sensor_index, reading.calibrated, record.encoded_size());
+                logdebug("reading: %d/%d %f (%zd)", integer_position, sensor_index, reading.calibrated,
+                         record.encoded_size());
             }
 
             append(&head, &tail, record.encode(pool));
@@ -190,4 +188,4 @@ tl::expected<EncodedMessage*, Error> LoraPacketizer::packetize(GlobalState const
     return head;
 }
 
-}
+} // namespace fk

@@ -164,8 +164,11 @@ bool Rn2903::save_state() {
 }
 
 bool Rn2903::disable_adr() {
-    const char *line = nullptr;
-    if (!simple_query("mac set adr off", &line, 1000)) {
+    if (!simple_query("mac set adr off", 1000)) {
+        return false;
+    }
+
+    if (!simple_query("mac set pwridx 5", 1000)) {
         return false;
     }
 
@@ -173,12 +176,12 @@ bool Rn2903::disable_adr() {
 }
 
 bool Rn2903::provision(const char *app_eui, const char *app_key) {
-    if (strlen(app_eui) != 16) {
+    if (strlen(app_eui) != LoraAppEuiLength * 2) {
         logerror("malformed app_eui");
         return false;
     }
 
-    if (strlen(app_key) != 32) {
+    if (strlen(app_key) != LoraAppKeyLength * 2) {
         logerror("malformed app_key");
         return false;
     }
