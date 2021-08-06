@@ -189,6 +189,11 @@ Rn2903State *Rn2903LoraNetwork::get_state(Pool &pool) {
     }
     state->downlink_counter = atoi(line);
 
+    if (!rn2903_.simple_query("mac get pwridx", &line, 1000)) {
+        return nullptr;
+    }
+    state->power_index = atoi(line);
+
     return state;
 }
 
