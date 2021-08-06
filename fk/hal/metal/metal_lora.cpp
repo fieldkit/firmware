@@ -120,7 +120,20 @@ bool Rn2903LoraNetwork::stop() {
     return true;
 }
 
+bool Rn2903LoraNetwork::configure_tx(uint8_t power_index, uint8_t data_rate) {
+    if (!rn2903_.simple_query("mac set pwridx %d", 1000, power_index)) {
+        return false;
+    }
+
+    if (!rn2903_.simple_query("mac set dr %d", 1000, data_rate)) {
+        return false;
+    }
+
+    return true;
+}
+
 bool Rn2903LoraNetwork::send_bytes(uint8_t port, uint8_t const *data, size_t size, bool confirmed) {
+
     if (!rn2903_.send_bytes(data, size, port, confirmed)) {
         return false;
     }

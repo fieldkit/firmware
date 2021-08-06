@@ -32,14 +32,22 @@ void LoraWorker::run(Pool &pool) {
         return;
     }
 
+    auto confirmed = true;
+
     auto packets = *expected_packets;
     auto tries = 0u;
     while (packets != nullptr && tries < LoraSendTries) {
-        switch (lora.send_bytes(LoraDataPort, packets->buffer, packets->size)) {
+        if (!lora.configure_tx(5, 1)) {
+            logerror("configuring tx");
+            return;
+        }
+
+        switch (lora.send_bytes(LoraDataPort, packets->buffer, packets->size, confirmed, pool)) {
         case LoraErrorCode::None: {
             // Next packet!
             packets = packets->link;
             tries = 0;
+            confirmed = false;
 
             if (packets != nullptr) {
                 loginfo("lora packet delay (%" PRIu32 ")", LoraPacketDelay);

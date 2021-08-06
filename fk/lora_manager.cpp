@@ -91,7 +91,11 @@ bool LoraManager::join_if_necessary(Pool &pool) {
     return joined;
 }
 
-LoraErrorCode LoraManager::send_bytes(uint8_t port, uint8_t const *data, size_t size, bool confirmed) {
+bool LoraManager::configure_tx(uint8_t power_index, uint8_t data_rate) {
+    return network_->configure_tx(power_index, data_rate);
+}
+
+LoraErrorCode LoraManager::send_bytes(uint8_t port, uint8_t const *data, size_t size, bool confirmed, Pool &pool) {
     auto success = network_->send_bytes(port, data, size, confirmed);
     auto code = network_->error();
 
@@ -106,6 +110,13 @@ LoraErrorCode LoraManager::send_bytes(uint8_t port, uint8_t const *data, size_t 
             gs->lora.tx_failures++;
         }
     });
+
+    /*
+    if (code == LoraErrorCode::DataLength) {
+        // Show module state in logs.
+        network_->get_state(pool);
+    }
+    */
 
     return code;
 }

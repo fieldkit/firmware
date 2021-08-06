@@ -168,10 +168,6 @@ bool Rn2903::disable_adr() {
         return false;
     }
 
-    if (!simple_query("mac set pwridx 5", 1000)) {
-        return false;
-    }
-
     return true;
 }
 
