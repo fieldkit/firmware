@@ -7,10 +7,10 @@
 #include "hal/metal/metal_sd_card.h"
 #include "hal/watchdog.h"
 
-#include "platform.h"
 #include "format_sd_card.h"
-#include "standard_page.h"
+#include "platform.h"
 #include "protobuf.h"
+#include "standard_page.h"
 
 // NOTE This is so embarassing.
 #undef abs
@@ -34,6 +34,14 @@ MetalSdCard::MetalSdCard() : sd_(&SD_SPI) {
 }
 
 bool MetalSdCard::begin() {
+    if (availability_ != Availability::Unknown) {
+        if (fk_uptime() < FiveMinutesMs) {
+            return availability_ == Availability::Available;
+        }
+    }
+
+    availability_ = Availability::Unavailable;
+
     SD_SPI.end();
 
     SD_SPI.begin();
@@ -57,6 +65,8 @@ bool MetalSdCard::begin() {
 
     loginfo("card capacity: %" PRIu32 "MB blocks: %" PRIu32, capacity_mb, number_of_blocks);
 
+    availability_ = Availability::Available;
+
     return true;
 }
 
@@ -76,7 +86,6 @@ public:
     bool open();
 
 public:
-
 };
 
 LogFile::LogFile(MetalSdCard *card) : card_(card) {
@@ -106,8 +115,7 @@ bool MetalSdCard::initialize_logs() {
         log_initialized_ = false;
 
         return false;
-    }
-    else {
+    } else {
         auto now = get_clock_now();
         if (log_time_ == 0 || std::abs((int32_t)(now - log_time_)) > (int32_t)OneDayMs) {
             log_time_ = get_clock_now();
@@ -121,8 +129,7 @@ bool MetalSdCard::initialize_logs() {
             for (auto i = 0u; i < sizeof(name_); ++i) {
                 if (name_[i] == ' ') {
                     directory[i] = '_';
-                }
-                else {
+                } else {
                     directory[i] = name_[i];
                 }
             }
@@ -136,7 +143,8 @@ bool MetalSdCard::initialize_logs() {
             }
 
             for (auto counter = 0u; counter < 100u; ++counter) {
-                tiny_snprintf(log_file_name_, sizeof(log_file_name_), "/%s/%s_%02d.txt", directory, formatted.cstr(), counter);
+                tiny_snprintf(log_file_name_, sizeof(log_file_name_), "/%s/%s_%02d.txt", directory, formatted.cstr(),
+                              counter);
                 if (!sd_.exists(log_file_name_)) {
                     loginfo("picked file name %s", log_file_name_);
                     log_initialized_ = true;
@@ -169,7 +177,7 @@ bool MetalSdCard::append_logs(circular_buffer<char> &buffer, circular_buffer<cha
         auto size = 0u;
         StandardPage page{ __func__ };
         Buffer writing{ (uint8_t *)page.ptr(), page.size() };
-        for ( ; iter != buffer.end(); ++iter) {
+        for (; iter != buffer.end(); ++iter) {
             if (*iter != 0) {
                 writing.write(*iter);
                 if (writing.full()) {
@@ -186,9 +194,9 @@ bool MetalSdCard::append_logs(circular_buffer<char> &buffer, circular_buffer<cha
         file.flush();
         file.close();
 
-        loginfo("flushed %d to %s (%" PRIu32 "ms) (%" PRIu32 " bytes) (%" PRIu32 ")", size, log_file_name_, fk_uptime() - started, file.fileSize(), log_writes_);
-    }
-    else {
+        loginfo("flushed %d to %s (%" PRIu32 "ms) (%" PRIu32 " bytes) (%" PRIu32 ")", size, log_file_name_,
+                fk_uptime() - started, file.fileSize(), log_writes_);
+    } else {
         loginfo("ignored (%" PRIu32 "ms)", fk_uptime() - started);
     }
 
@@ -219,9 +227,9 @@ bool MetalSdCard::append_logs(uint8_t const *buffer, size_t size) {
         file.flush();
         file.close();
 
-        loginfo("flushed %d to %s (%" PRIu32 "ms) (%" PRIu32 " bytes) (buffer)", size, log_file_name_, fk_uptime() - started, file.fileSize());
-    }
-    else {
+        loginfo("flushed %d to %s (%" PRIu32 "ms) (%" PRIu32 " bytes) (buffer)", size, log_file_name_,
+                fk_uptime() - started, file.fileSize());
+    } else {
         loginfo("ignored (%" PRIu32 "ms)", fk_uptime() - started);
     }
 
@@ -292,7 +300,8 @@ bool MetalSdCard::format() {
     return true;
 }
 
-bool MetalSdCard::ls(const char *path, size_t skip, fk_app_DirectoryEntry** dir_entries, size_t &number_entries, size_t &total_entries, Pool &pool) {
+bool MetalSdCard::ls(const char *path, size_t skip, fk_app_DirectoryEntry **dir_entries, size_t &number_entries,
+                     size_t &total_entries, Pool &pool) {
     FK_ASSERT_ADDRESS(dir_entries);
 
     *dir_entries = nullptr;
@@ -322,7 +331,8 @@ bool MetalSdCard::ls(const char *path, size_t skip, fk_app_DirectoryEntry** dir_
 
     // Avoid overflowing page allocation by paging.
     auto max_files_per_ls = StandardPageSize / sizeof(fk_app_DirectoryEntry) / 2;
-    auto returning_entries = (size_t)std::min((int32_t)max_files_per_ls, std::max((int32_t)(total_entries - skip), (int32_t)0));
+    auto returning_entries =
+        (size_t)std::min((int32_t)max_files_per_ls, std::max((int32_t)(total_entries - skip), (int32_t)0));
     loginfo("ls netries=%zu max=%zu skip=%zu", returning_entries, max_files_per_ls, skip);
     if (returning_entries == 0) {
         return true;
@@ -375,11 +385,9 @@ SdCardFile *MetalSdCard::open(const char *path, OpenFlags flags, Pool &pool) {
     // These are all or can be considered mutually exclusive.
     if (flags == OpenFlags::Read) {
         sd_flags = O_RDONLY;
-    }
-    else if (flags == OpenFlags::Append) {
+    } else if (flags == OpenFlags::Append) {
         sd_flags = O_WRONLY | O_CREAT | O_EXCL | O_APPEND;
-    }
-    else if (flags == OpenFlags::Write) {
+    } else if (flags == OpenFlags::Write) {
         sd_flags = O_WRONLY | O_CREAT | O_EXCL;
     }
     loginfo("opening '%s' (%d)", path, sd_flags);
@@ -391,20 +399,18 @@ MetalSdCardFile::MetalSdCardFile(const char *path, oflag_t oflag) {
         auto opened = open_path(file_, path, oflag);
         if (!opened) {
             logerror("open failed (serious)");
-        }
-        else if (!*opened) {
+        } else if (!*opened) {
             logerror("open failed");
         }
-    }
-    else {
+    } else {
         if (!file_.open(path, oflag)) {
             logwarn("open failed");
         }
     }
-    if (!file_.isFile())  {
+    if (!file_.isFile()) {
         logwarn("open failed, no file");
     }
-    if (!file_.isOpen())  {
+    if (!file_.isOpen()) {
         logwarn("open failed, closed");
     }
 }
@@ -526,6 +532,6 @@ static bool number_of_files(SdFile &dir, size_t &nfiles) {
     return true;
 }
 
-}
+} // namespace fk
 
 #endif

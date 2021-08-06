@@ -1,35 +1,35 @@
 #include <lwcron/lwcron.h>
 #include <samd51_common.h>
 
-#include "startup_worker.h"
-#include "tasks/tasks.h"
-#include "self_check.h"
-#include "factory_wipe.h"
-#include "storage/storage.h"
-#include "storage/signed_log.h"
-#include "storage/data_record.h"
-#include "records.h"
-#include "state_ref.h"
-#include "state_manager.h"
-#include "status_logging.h"
-#include "utilities.h"
 #include "battery_status.h"
 #include "clock.h"
+#include "factory_wipe.h"
 #include "live_tests.h"
+#include "records.h"
+#include "self_check.h"
+#include "startup_worker.h"
+#include "state_manager.h"
+#include "state_ref.h"
+#include "status_logging.h"
+#include "storage/data_record.h"
+#include "storage/signed_log.h"
+#include "storage/storage.h"
+#include "tasks/tasks.h"
+#include "utilities.h"
 
-#include "readings_worker.h"
 #include "poll_sensors_worker.h"
+#include "readings_worker.h"
 #include "upgrade_from_sd_worker.h"
 
+#include "display/display_views.h"
+#include "factory_wipe_worker.h"
+#include "graceful_shutdown.h"
+#include "hal/metal/metal_lora.h"
 #include "modules/bridge/modules.h"
-#include "modules/scanning.h"
 #include "modules/configure.h"
 #include "modules/configure_module_worker.h"
-#include "hal/metal/metal_lora.h"
-#include "display/display_views.h"
+#include "modules/scanning.h"
 #include "secrets.h"
-#include "graceful_shutdown.h"
-#include "factory_wipe_worker.h"
 
 extern const struct fkb_header_t fkb_header;
 
@@ -195,13 +195,16 @@ bool StartupWorker::load_or_create_state(Pool &pool) {
     for (auto &abp : lora_preconfigured_abp) {
         if (memcmp(gs.get()->lora.device_eui, abp.device_eui, LoraDeviceEuiLength) == 0) {
             memcpy(gs.get()->lora.device_address, abp.device_address, LoraDeviceAddressLength);
-            loginfo("(fixed) lora device address: %s", bytes_to_hex_string_pool(abp.device_address, LoraDeviceAddressLength, pool));
+            loginfo("(fixed) lora device address: %s",
+                    bytes_to_hex_string_pool(abp.device_address, LoraDeviceAddressLength, pool));
 
             memcpy(gs.get()->lora.network_session_key, abp.network_session_key, LoraNetworkSessionKeyLength);
-            loginfo("(fixed) lora network session key: %s", bytes_to_hex_string_pool(abp.network_session_key, LoraNetworkSessionKeyLength, pool));
+            loginfo("(fixed) lora network session key: %s",
+                    bytes_to_hex_string_pool(abp.network_session_key, LoraNetworkSessionKeyLength, pool));
 
             memcpy(gs.get()->lora.app_session_key, abp.app_session_key, LoraAppSessionKeyLength);
-            loginfo("(fixed) lora app session key: %s", bytes_to_hex_string_pool(abp.app_session_key, LoraAppSessionKeyLength, pool));
+            loginfo("(fixed) lora app session key: %s",
+                    bytes_to_hex_string_pool(abp.app_session_key, LoraAppSessionKeyLength, pool));
         }
     }
 
@@ -406,8 +409,7 @@ bool StartupWorker::load_from_files(Storage &storage, GlobalState *gs, Pool &poo
     // TODO This should be managed better.
     if (meta_attributes->records >= 2) {
         gs->transmission.meta_cursor = meta_attributes->records - 2;
-    }
-    else {
+    } else {
         gs->transmission.meta_cursor = 0;
     }
     gs->transmission.data_cursor = data_attributes->records;
@@ -432,8 +434,7 @@ bool StartupWorker::load_previous_location(GlobalState *gs, DataOps *ops, Pool &
         gs->gps.fix = false;
 
         loginfo("(loaded) location(%f, %f)", l.longitude, l.latitude);
-    }
-    else {
+    } else {
         logwarn("unable to read saved location");
     }
 
@@ -658,10 +659,10 @@ bool StartupWorker::check_for_interactive_startup(Pool &pool) {
 }
 
 static void copy_cron_spec_from_pb(const char *name, Schedule &cs, fk_data_JobSchedule const &pb, Pool &pool) {
-    #if defined(FK_DEBUG_OVERRIDE_SCHEDULES)
+#if defined(FK_DEBUG_OVERRIDE_SCHEDULES)
     logwarn("(ignoring) %s schedule (FK_DEBUG_OVERRIDE_SCHEDULES)", name);
     return;
-    #endif
+#endif
 
     auto pbd = pb_get_data_if_provided(pb.cron.arg, pool);
     if (pbd != nullptr) {
@@ -671,7 +672,7 @@ static void copy_cron_spec_from_pb(const char *name, Schedule &cs, fk_data_JobSc
 
     auto intervals_array = reinterpret_cast<pb_array_t *>(pb.intervals.arg);
     if (intervals_array != nullptr && intervals_array->length > 0) {
-        auto intervals_source = reinterpret_cast<fk_app_Interval*>(intervals_array->buffer);
+        auto intervals_source = reinterpret_cast<fk_app_Interval *>(intervals_array->buffer);
         for (auto i = 0u; i < std::min(intervals_array->length, MaximumScheduleIntervals); ++i) {
             cs.intervals[i].start = intervals_source[i].start;
             cs.intervals[i].end = intervals_source[i].end;
@@ -683,7 +684,8 @@ static void copy_cron_spec_from_pb(const char *name, Schedule &cs, fk_data_JobSc
     cs.repeated = pb.repeated;
     cs.duration = pb.duration;
 
-    loginfo("(loaded) %s interval = %" PRIu32 " repeated = %" PRIu32 " duration = %" PRIu32, name, cs.interval, cs.repeated, cs.duration);
+    loginfo("(loaded) %s interval = %" PRIu32 " repeated = %" PRIu32 " duration = %" PRIu32, name, cs.interval,
+            cs.repeated, cs.duration);
 }
 
-}
+} // namespace fk

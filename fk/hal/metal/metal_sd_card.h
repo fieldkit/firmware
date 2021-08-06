@@ -1,8 +1,8 @@
 #pragma once
 
-#include "hal/sd_card.h"
 #include "clock.h"
 #include "config.h"
+#include "hal/sd_card.h"
 
 #if defined(__SAMD51__)
 
@@ -18,6 +18,7 @@ public:
 
 private:
     SdFat sd_;
+    Availability availability_{ Availability::Unknown };
     uint32_t log_time_{ 0 };
     char log_file_name_[MaximumPathLength] = { 0 };
     char name_[MaximumDirectoryNameLength] = { 0 };
@@ -39,12 +40,12 @@ public:
     bool unlink(const char *path) override;
     SdCardFile *open(const char *path, OpenFlags flags, Pool &pool) override;
     bool format() override;
-    bool ls(const char *path, size_t skip, fk_app_DirectoryEntry **files, size_t &number_entries, size_t &total_entries, Pool &pool) override;
+    bool ls(const char *path, size_t skip, fk_app_DirectoryEntry **files, size_t &number_entries, size_t &total_entries,
+            Pool &pool) override;
     void name(const char *name) override;
 
 private:
     bool initialize_logs();
-
 };
 
 class MetalSdCardFile : public SdCardFile {
@@ -63,9 +64,8 @@ public:
     size_t file_size() override;
     bool is_open() const override;
     bool close() override;
-
 };
 
-}
+} // namespace fk
 
 #endif
