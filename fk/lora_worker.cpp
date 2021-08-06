@@ -4,15 +4,15 @@
 #include "hal/random.h"
 #include "lora_manager.h"
 #include "lora_packetizer.h"
+#include "platform.h"
 #include "state_ref.h"
 #include "utilities.h"
-#include "platform.h"
 
 namespace fk {
 
 FK_DECLARE_LOGGER("lora");
 
-tl::expected<EncodedMessage*, Error> packetize(Pool &pool) {
+tl::expected<EncodedMessage *, Error> packetize(Pool &pool) {
     auto gs = get_global_state_ro();
 
     LoraPacketizer packetizer;
@@ -32,13 +32,6 @@ void LoraWorker::run(Pool &pool) {
         logwarn("begin failed");
         return;
     }
-
-    if (false) {
-        if (!lora.factory_reset()) {
-            logwarn("factory-reset failed");
-            return;
-        }
-   }
 
     auto packets = *expected_packets;
     auto tries = 0u;
@@ -86,4 +79,4 @@ void LoraWorker::run(Pool &pool) {
     lora.stop();
 }
 
-}
+} // namespace fk

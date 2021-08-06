@@ -1,6 +1,6 @@
 #include "lora_manager.h"
-#include "state_ref.h"
 #include "state_manager.h"
+#include "state_ref.h"
 #include "utilities.h"
 
 namespace fk {
@@ -15,7 +15,7 @@ bool LoraManager::available() {
     return gs.get()->lora.configured;
 }
 
-static LoraState get_lora_state() {
+static LoraState get_lora_global_state() {
     auto gs = get_global_state_ro();
     return gs.get()->lora;
 }
@@ -24,8 +24,7 @@ bool LoraManager::begin() {
     GlobalStateManager gsm;
 
     auto success = network_->begin();
-
-    auto state = get_lora_state();
+    auto state = get_lora_global_state();
     if (state.asleep > 0) {
         loginfo("waking");
 
@@ -34,9 +33,7 @@ bool LoraManager::begin() {
             return false;
         }
 
-        gsm.apply([=](GlobalState *gs) {
-            gs->lora.asleep = 0;
-        });
+        gsm.apply([=](GlobalState *gs) { gs->lora.asleep = 0; });
 
         awake_ = true;
     }
@@ -64,68 +61,36 @@ static bool is_null_byte_array(uint8_t const *ptr, size_t length) {
 }
 
 bool LoraManager::join_if_necessary(Pool &pool) {
-    GlobalStateManager gsm;
+    auto state = get_lora_global_state();
+    auto module_state = network_->get_state(pool);
 
-    auto state = get_lora_state();
-
-    if (state.joined == 0 || state.joined > fk_uptime() || fk_uptime() - state.joined > OneDayMs) {
-        if (!state.configured) {
-            loginfo("no configuration");
-            gsm.apply([=](GlobalState *gs) {
-                gs->lora.configured = false;
-                gs->lora.joined = 0;
-                gs->lora.asleep = 0;
-            });
-            return false;
-        }
-
-        auto joined = false;
-
-        if (!network_->resume_previous_session()) {
-            if (!is_null_byte_array(state.app_key, LoraAppKeyLength)) {
-                auto app_key = bytes_to_hex_string_pool(state.app_key, LoraAppKeyLength, pool);
-                auto app_eui = bytes_to_hex_string_pool(state.app_eui, LoraAppEuiLength, pool);
-
-                loginfo("joining via otaa");
-
-                joined = network_->join(app_eui, app_key);
-            }
-            else if (!is_null_byte_array(state.app_session_key, LoraAppSessionKeyLength) &&
-                !is_null_byte_array(state.network_session_key, LoraNetworkSessionKeyLength) &&
-                !is_null_byte_array(state.device_address, LoraDeviceAddressLength)) {
-                auto app_session_key = bytes_to_hex_string_pool(state.app_session_key, LoraAppSessionKeyLength, pool);
-                auto network_session_key = bytes_to_hex_string_pool(state.network_session_key, LoraNetworkSessionKeyLength, pool);
-                auto device_address = bytes_to_hex_string_pool(state.device_address, LoraDeviceAddressLength, pool);
-                auto uplink_counter = state.uplink_counter;
-                auto downlink_counter = state.downlink_counter;
-
-                loginfo("joining via abp");
-
-                joined = network_->join(app_session_key, network_session_key, device_address, uplink_counter, downlink_counter);
-            }
-            else {
-                logwarn("no configuration");
-            }
-        }
-        else {
-            loginfo("resumed");
-
-            joined = true;
-        }
-
-        gsm.apply([=](GlobalState *gs) {
-            gs->lora.configured = true;
-            gs->lora.has_module = true;
-            gs->lora.joined = joined ? fk_uptime() : 0;
-            gs->lora.asleep = 0;
-        });
-
-        awake_ = true;
-
-        return joined;
+    if (is_null_byte_array(state.app_eui, LoraAppEuiLength)) {
+        logerror("state missing app-eui");
+        return false;
     }
 
-    return true;
+    auto joined = false;
+    if (is_null_byte_array(module_state->device_address, LoraDeviceAddressLength)) {
+        loginfo("module missing devaddr, joining via otaa");
+        joined = network_->join(bytes_to_hex_string_pool(state.app_eui, LoraAppEuiLength, pool),
+                                bytes_to_hex_string_pool(state.app_key, LoraAppKeyLength, pool));
+    } else {
+        loginfo("joining via stored abp");
+        joined = network_->join_resume();
+    }
+
+    GlobalStateManager gsm;
+    gsm.apply([=](GlobalState *gs) {
+        gs->lora.configured = true;
+        gs->lora.has_module = true;
+        gs->lora.joined = joined ? fk_uptime() : 0;
+        gs->lora.activity = fk_uptime();
+        gs->lora.asleep = 0;
+    });
+
+    awake_ = true;
+
+    return joined;
 }
 
 LoraErrorCode LoraManager::send_bytes(uint8_t port, uint8_t const *data, size_t size, bool confirmed) {
@@ -138,13 +103,6 @@ LoraErrorCode LoraManager::send_bytes(uint8_t port, uint8_t const *data, size_t 
             gs->lora.joined = 0;
         }
         if (success) {
-            auto uplink_counter = network_->uplink_counter();
-            if (uplink_counter - last_save_ > LoraUplinksSaveFrequency) {
-                if (!network_->save_state()) {
-                    logerror("error saving state");
-                }
-                last_save_ = uplink_counter;
-            }
             gs->lora.tx_successes++;
         } else {
             gs->lora.tx_failures++;
@@ -161,9 +119,7 @@ void LoraManager::stop() {
         }
 
         GlobalStateManager gsm;
-        gsm.apply([=](GlobalState *gs) {
-            gs->lora.asleep = fk_uptime();
-        });
+        gsm.apply([=](GlobalState *gs) { gs->lora.asleep = fk_uptime(); });
 
         awake_ = false;
     }

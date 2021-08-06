@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.h"
+#include "pool.h"
 #include "config.h"
 
 namespace fk {
@@ -12,6 +13,14 @@ enum class LoraErrorCode {
     DataLength,
     KeysNotInitialized,
     Mac,
+};
+
+struct Rn2903State {
+    uint8_t device_eui[LoraDeviceEuiLength];
+    uint8_t app_eui[LoraAppEuiLength];
+    uint8_t device_address[LoraDeviceAddressLength];
+    uint32_t uplink_counter;
+    uint32_t downlink_counter;
 };
 
 class LoraNetwork {
@@ -27,21 +36,23 @@ public:
     virtual bool send_bytes(uint8_t port, uint8_t const *data, size_t size, bool confirmed) = 0;
     virtual bool join(const char *app_eui, const char *app_key, int32_t retries = 3, uint32_t retry_delay = 10000) = 0;
     virtual bool join(const char *app_session_key, const char *network_session_key, const char *device_address, uint32_t uplink_counter, uint32_t downlink_counter) = 0;
+    virtual bool join_resume() {
+        return false;
+    }
     virtual bool resume_previous_session() = 0;
     virtual bool save_state() = 0;
-    virtual uint32_t uplink_counter() = 0;
 
 public:
     virtual bool available() const = 0;
-    virtual uint8_t const *device_eui() const = 0;
     virtual LoraErrorCode error() const = 0;
+    virtual Rn2903State *get_state(Pool &pool) {
+        FK_ASSERT(false);
+        return nullptr;
+    }
 
 };
 
 class NoopLoraNetwork : public LoraNetwork {
-private:
-    uint8_t device_eui_[LoraDeviceEuiLength]{ };
-
 public:
     NoopLoraNetwork() { }
 
@@ -88,14 +99,6 @@ public:
 
     bool available() const override {
         return false;
-    }
-
-    uint32_t uplink_counter() override {
-        return 0;
-    }
-
-    uint8_t const *device_eui() const override {
-        return device_eui_;
     }
 
     LoraErrorCode error() const override {

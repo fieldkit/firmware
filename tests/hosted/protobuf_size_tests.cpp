@@ -127,8 +127,8 @@ static void fake_global_state(GlobalState &gs, Pool &pool) {
     gs.general.recording = 1580763366;
 
     gs.lora.configured = true;
-    gs.lora.uplink_counter = 4096;
-    gs.lora.downlink_counter = 1024;
+    // gs.lora.uplink_counter = 4096;
+    // gs.lora.downlink_counter = 1024;
     fake_data(gs.lora.device_eui);
     fake_data(gs.lora.app_eui);
     fake_data(gs.lora.app_key);
@@ -323,7 +323,7 @@ TEST_F(ProtoBufSizeSuite, Configuration) {
     auto encoded = pool_.encode(fk_data_DataRecord_fields, &record.record());
     dump_binary(file_, "data-configuration", encoded);
 
-    ASSERT_EQ(encoded->size, 1344u);
+    ASSERT_EQ(encoded->size, 1338u);
 }
 
 TEST_F(ProtoBufSizeSuite, Modules) {

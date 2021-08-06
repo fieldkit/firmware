@@ -237,7 +237,6 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
     }
 
     auto &record = meta_record.record();
-
     auto name = reinterpret_cast<const char *>(record.identity.name.arg);
     strncpy(gs->general.name, name, sizeof(gs->general.name));
 
@@ -245,62 +244,8 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
     FK_ASSERT(generation->length == GenerationLength);
     memcpy(gs->general.generation, generation->buffer, GenerationLength);
 
-    char gen_string[GenerationLength * 2 + 1];
-    bytes_to_hex_string(gen_string, sizeof(gen_string), gs->general.generation, GenerationLength);
-
     loginfo("(loaded) name: '%s'", gs->general.name);
-    loginfo("(loaded) generation: %s", gen_string);
-
-    auto app_eui = pb_get_data_if_provided(record.lora.appEui.arg, pool);
-    if (app_eui != nullptr) {
-        FK_ASSERT(app_eui->length == LoraAppEuiLength);
-        FK_ASSERT(app_eui->length == sizeof(gs->lora.app_eui));
-        memcpy(gs->lora.app_eui, app_eui->buffer, app_eui->length);
-        loginfo("(loaded) lora app eui: %s", pb_data_to_hex_string(app_eui, pool));
-    }
-
-    auto app_key = pb_get_data_if_provided(record.lora.appKey.arg, pool);
-    if (app_key != nullptr) {
-        FK_ASSERT(app_key->length == LoraAppKeyLength);
-        FK_ASSERT(app_key->length == sizeof(gs->lora.app_key));
-        memcpy(gs->lora.app_key, app_key->buffer, app_key->length);
-        loginfo("(loaded) lora app key: %s", pb_data_to_hex_string(app_key, pool));
-    }
-
-    auto app_session_key = pb_get_data_if_provided(record.lora.appSessionKey.arg, pool);
-    if (app_session_key != nullptr) {
-        FK_ASSERT(app_session_key->length == LoraAppSessionKeyLength);
-        FK_ASSERT(app_session_key->length == sizeof(gs->lora.app_session_key));
-        memcpy(gs->lora.app_session_key, app_session_key->buffer, app_session_key->length);
-        loginfo("(loaded) lora app session key: %s", pb_data_to_hex_string(app_session_key, pool));
-    }
-
-    auto network_session_key = pb_get_data_if_provided(record.lora.networkSessionKey.arg, pool);
-    if (network_session_key != nullptr) {
-        FK_ASSERT(network_session_key->length == LoraNetworkSessionKeyLength);
-        FK_ASSERT(network_session_key->length == sizeof(gs->lora.network_session_key));
-        memcpy(gs->lora.network_session_key, network_session_key->buffer, network_session_key->length);
-        loginfo("(loaded) lora network session key: %s", pb_data_to_hex_string(network_session_key, pool));
-    }
-
-    auto device_address = pb_get_data_if_provided(record.lora.deviceAddress.arg, pool);
-    if (device_address != nullptr) {
-        FK_ASSERT(device_address->length == LoraDeviceAddressLength);
-        FK_ASSERT(device_address->length == sizeof(gs->lora.device_address));
-        memcpy(gs->lora.device_address, device_address->buffer, device_address->length);
-        loginfo("(loaded) lora device address: %s", pb_data_to_hex_string(device_address, pool));
-    }
-
-    gs->lora.uplink_counter = record.lora.uplinkCounter;
-    gs->lora.downlink_counter = record.lora.downlinkCounter;
-
-    if (app_key != nullptr) {
-        gs->lora.configured = true;
-    }
-
-    if (app_session_key != nullptr && network_session_key != nullptr && device_address != nullptr) {
-        gs->lora.configured = true;
-    }
+    loginfo("(loaded) generation: %s", bytes_to_hex_string_pool(gs->general.generation, GenerationLength, pool));
 
     auto networks_array = reinterpret_cast<pb_array_t *>(record.network.networks.arg);
     if (networks_array->length > 0) {
@@ -442,19 +387,21 @@ bool StartupWorker::load_previous_location(GlobalState *gs, DataOps *ops, Pool &
 }
 
 bool StartupWorker::check_for_lora(Pool &pool) {
-    auto gs = get_global_state_rw();
     auto lora = get_lora_network();
     if (!lora->begin()) {
         return true;
     }
 
-    auto device_eui = lora->device_eui();
-    memcpy(gs.get()->lora.device_eui, device_eui, LoraDeviceEuiLength);
-    loginfo("(loaded) lora device eui: %s", bytes_to_hex_string_pool(device_eui, LoraDeviceEuiLength, pool));
+    GlobalStateManager gsm;
+    gsm.apply([=](GlobalState *gs) {
+        gs->lora.has_module = true;
+        gs->lora.activity = fk_uptime();
+        gs->lora.asleep = 0;
+    });
 
-    // Turn the radio off for now, will stay powered when we start
-    // using the thing to send data.
-    lora->stop();
+    // TODO Add turn off after X mechanism, like modules using the above
+    // activity time.
+    // lora->stop();
 
     return true;
 }

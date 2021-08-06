@@ -228,7 +228,6 @@ bool Rn2903::provision(const char *app_session_key, const char *network_session_
     if (!simple_query("mac set deveui %s", 1000, hweui)) {
         return false;
     }
-
     if (!simple_query("mac set devaddr %s", 1000, device_address)) {
         return false;
     }
@@ -315,6 +314,11 @@ bool Rn2903::join(const char *app_eui, const char *app_key, int32_t retries, uin
         tries++;
 
         if (join("otaa")) {
+            const char *line = nullptr;
+            if (!simple_query("mac save", &line, 1000)) {
+                return false;
+            }
+
             return true;
         }
     }
@@ -352,6 +356,8 @@ bool Rn2903::join(const char *mode) {
         return false;
     }
 
+    auto started = fk_uptime();
+
     const char *line = nullptr;
     for (auto i = 0u; i < 60; ++i) {
         if (read_line_sync(&line, 1000, true)) {
@@ -362,7 +368,7 @@ bool Rn2903::join(const char *mode) {
         return false;
     }
 
-    loginfo("rn2903 > '%s'", line);
+    loginfo("rn2903 > '%s' (%d)", line, fk_uptime() - started);
 
     if (strstr(line, "accepted") == nullptr) {
         return false;
@@ -403,11 +409,17 @@ bool Rn2903::send_bytes(uint8_t const *data, size_t size, uint8_t port, bool con
 
     const char *mac_tx_ok = "mac_tx_ok";
     if (strncmp(line, mac_tx_ok, strlen(mac_tx_ok)) == 0) {
+        if (!simple_query("mac save", &line, 1000)) {
+            return false;
+        }
         return true;
     }
 
     const char *mac_rx = "mac_rx";
     if (strncmp(line, mac_rx, strlen(mac_rx)) == 0) {
+        if (!simple_query("mac save", &line, 1000)) {
+            return false;
+        }
         return true;
     }
 
