@@ -54,6 +54,23 @@ bool Rn2903::wake() {
     return false;
 }
 
+bool Rn2903::factory_reset() {
+    const char *line = nullptr;
+
+    auto fr = simple_query("sys factoryRESET", &line, 5000);
+    if (!fr) {
+        return false;
+    }
+
+    if (strncmp(line, "RN", 2) != 0) {
+        error_ = translate_error(line);
+        loginfo("rn2903 > '%s' (%d)", line, error_);
+        return false;
+    }
+
+    return true;
+}
+
 bool Rn2903::read_line_sync(const char **line, uint32_t to, bool quiet) {
     if (!line_reader_.read_line_sync(line, to)) {
         if (!quiet) {

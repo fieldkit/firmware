@@ -106,6 +106,10 @@ bool Rn2903LoraNetwork::wake() {
     return rn2903_.wake();
 }
 
+bool Rn2903LoraNetwork::factory_reset() {
+    return rn2903_.factory_reset();
+}
+
 bool Rn2903LoraNetwork::begin() {
     if (status_ == Availability::Available && powered_) {
         return true;

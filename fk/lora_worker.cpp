@@ -33,6 +33,13 @@ void LoraWorker::run(Pool &pool) {
         return;
     }
 
+    if (false) {
+        if (!lora.factory_reset()) {
+            logwarn("factory-reset failed");
+            return;
+        }
+   }
+
     auto packets = *expected_packets;
     auto tries = 0u;
     while (packets != nullptr && tries < LoraSendTries) {

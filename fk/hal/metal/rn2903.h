@@ -36,6 +36,7 @@ public:
     bool join(const char *mode);
     bool sleep(uint32_t ms);
     bool wake();
+    bool factory_reset();
     bool send_bytes(uint8_t const *data, size_t size, uint8_t port, bool confirmed);
     bool save_state();
 

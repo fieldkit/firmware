@@ -50,6 +50,10 @@ bool LoraManager::begin() {
     return success;
 }
 
+bool LoraManager::factory_reset() {
+    return network_->factory_reset();
+}
+
 static bool is_null_byte_array(uint8_t const *ptr, size_t length) {
     for (auto i = 0u; i < length; ++i) {
         if (ptr[i] != 0) {
