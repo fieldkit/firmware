@@ -33,8 +33,6 @@ bool LoraManager::begin() {
             return false;
         }
 
-        gsm.apply([=](GlobalState *gs) { gs->lora.asleep = 0; });
-
         awake_ = true;
     }
 

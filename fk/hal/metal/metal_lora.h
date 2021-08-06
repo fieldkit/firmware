@@ -1,8 +1,8 @@
 #pragma once
 
+#include "config.h"
 #include "hal/lora.h"
 #include "hal/metal/rn2903.h"
-#include "config.h"
 
 #if defined(__SAMD51__)
 
@@ -12,7 +12,6 @@ class Rn2903LoraNetwork : public LoraNetwork {
 private:
     Availability status_{ Availability::Unknown };
     uint8_t device_eui_[LoraDeviceEuiLength];
-    uint32_t uplink_counter_{ 0 };
     bool powered_{ false };
     Rn2903 rn2903_;
 
@@ -28,7 +27,8 @@ public:
     bool factory_reset() override;
     bool send_bytes(uint8_t port, uint8_t const *data, size_t size, bool confirmed) override;
     bool join(const char *app_eui, const char *app_key, int32_t retries = 3, uint32_t retry_delay = 10000) override;
-    bool join(const char *app_session_key, const char *network_session_key, const char *device_address, uint32_t uplink_counter, uint32_t downlink_counter) override;
+    bool join(const char *app_session_key, const char *network_session_key, const char *device_address,
+              uint32_t uplink_counter, uint32_t downlink_counter) override;
     bool join_resume() override;
     bool resume_previous_session() override;
     bool save_state() override;
@@ -43,9 +43,8 @@ public:
     bool available() const override {
         return status_ == Availability::Available;
     }
-
 };
 
-}
+} // namespace fk
 
 #endif

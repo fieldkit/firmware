@@ -163,6 +163,15 @@ bool Rn2903::save_state() {
     return true;
 }
 
+bool Rn2903::disable_adr() {
+    const char *line = nullptr;
+    if (!simple_query("mac set adr off", &line, 1000)) {
+        return false;
+    }
+
+    return true;
+}
+
 bool Rn2903::provision(const char *app_eui, const char *app_key) {
     if (strlen(app_eui) != 16) {
         logerror("malformed app_eui");
@@ -216,7 +225,8 @@ bool Rn2903::provision(const char *app_eui, const char *app_key) {
     return true;
 }
 
-bool Rn2903::provision(const char *app_session_key, const char *network_session_key, const char *device_address, uint32_t uplink_counter, uint32_t downlink_counter) {
+bool Rn2903::provision(const char *app_session_key, const char *network_session_key, const char *device_address,
+                       uint32_t uplink_counter, uint32_t downlink_counter) {
     const char *line = nullptr;
     if (!simple_query("sys get hweui", &line, 1000)) {
         return false;
@@ -265,8 +275,7 @@ bool Rn2903::configure_us915(uint8_t fsb) {
                     return false;
                 }
             }
-        }
-        else {
+        } else {
             if (!simple_query("mac set ch status %d off", 1000, ch)) {
                 return false;
             }
@@ -326,7 +335,8 @@ bool Rn2903::join(const char *app_eui, const char *app_key, int32_t retries, uin
     return false;
 }
 
-bool Rn2903::join(const char *app_session_key, const char *network_session_key, const char *device_address, uint32_t uplink_counter, uint32_t downlink_counter) {
+bool Rn2903::join(const char *app_session_key, const char *network_session_key, const char *device_address,
+                  uint32_t uplink_counter, uint32_t downlink_counter) {
     if (!provision(app_session_key, network_session_key, device_address, uplink_counter, downlink_counter)) {
         return false;
     }
@@ -447,6 +457,6 @@ LoraErrorCode Rn2903::translate_error(const char *line) {
     return LoraErrorCode::None;
 }
 
-}
+} // namespace fk
 
 #endif

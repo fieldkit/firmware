@@ -17,6 +17,10 @@ bool Rn2903LoraNetwork::join(const char *app_eui, const char *app_key, int32_t r
         return false;
     }
 
+    if (!rn2903_.disable_adr()) {
+        return false;
+    }
+
     return true;
 }
 
@@ -26,11 +30,19 @@ bool Rn2903LoraNetwork::join(const char *app_session_key, const char *network_se
         return false;
     }
 
+    if (!rn2903_.disable_adr()) {
+        return false;
+    }
+
     return true;
 }
 
 bool Rn2903LoraNetwork::join_resume() {
     if (!rn2903_.join("abp")) {
+        return false;
+    }
+
+    if (!rn2903_.disable_adr()) {
         return false;
     }
 
