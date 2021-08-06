@@ -143,7 +143,13 @@ tl::expected<EncodedMessage*, Error> LoraPacketizer::packetize(GlobalState const
 
     auto attached = gs->dynamic.attached();
     if (attached == nullptr) {
-        return tl::unexpected<Error>(Error::General);
+        logwarn("no modules attached");
+        return nullptr;
+    }
+
+    if (gs->readings.time > 0) {
+        logwarn("no module times");
+        return nullptr;
     }
 
     LoraRecord record{ pool };
