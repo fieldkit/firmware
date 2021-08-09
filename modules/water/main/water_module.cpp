@@ -1,24 +1,24 @@
 #include "water_module.h"
-#include "water_api.h"
-#include "platform.h"
-#include "modules/eeprom.h"
 #include "curves.h"
+#include "modules/eeprom.h"
+#include "platform.h"
+#include "water_api.h"
 
 namespace fk {
 
 FK_DECLARE_LOGGER("water");
 
-#define FK_MCP2803_ADDRESS          0x22
-#define FK_ADS1219_ADDRESS          0x45
+#define FK_MCP2803_ADDRESS 0x22
+#define FK_ADS1219_ADDRESS 0x45
 
-#define FK_MCP2803_IODIR            0b00000010
-#define FK_MCP2803_GPPU             0b00000010
+#define FK_MCP2803_IODIR 0b00000010
+#define FK_MCP2803_GPPU 0b00000010
 
-#define FK_MCP2803_GPIO_ON          0b00000001
-#define FK_MCP2803_GPIO_OFF         0b00000000
+#define FK_MCP2803_GPIO_ON 0b00000001
+#define FK_MCP2803_GPIO_OFF 0b00000000
 
-#define FK_MCP2803_GPIO_EXCITE_ON   0b00000101
-#define FK_MCP2803_GPIO_EXCITE_OFF  0b00000001
+#define FK_MCP2803_GPIO_EXCITE_ON 0b00000101
+#define FK_MCP2803_GPIO_EXCITE_OFF 0b00000001
 
 class Mcp2803ReadyChecker : public Ads1219ReadyChecker {
 private:
@@ -48,7 +48,6 @@ public:
         }
         return false;
     }
-
 };
 
 WaterModule::WaterModule(Pool &pool) : pool_(pool.subpool("water", MaximumConfigurationSize)) {
@@ -138,8 +137,7 @@ bool WaterModule::load_configuration(ModuleContext mc, Pool &pool) {
         if (!pb_decode_delimited(&stream, fk_data_ModuleConfiguration_fields, cfg)) {
             // Some modules consider this an error. We continue along uncalibrated.
             logwarn("mod-cfg: decoding");
-        }
-        else {
+        } else {
             loginfo("mod-cfg: decoded");
             cfg_message_ = pool_->wrap_copy(buffer, size);
             cfg_ = cfg;
@@ -279,8 +277,7 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
         if (!excite_control(mcp, true)) {
             return nullptr;
         }
-    }
-    else {
+    } else {
         loginfo("excitation: disabled");
     }
 
@@ -302,7 +299,7 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
 
     loginfo("[%d] water: %f (%f)", mc.position().integer(), uncalibrated, calibrated);
 
-    auto mr = new(pool) NModuleReadings<1>();
+    auto mr = new (pool) NModuleReadings<1>();
 
     auto nreadings = 0u;
     mr->set(nreadings++, ModuleReading{ uncalibrated, calibrated });
@@ -310,8 +307,9 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
     return mr;
 }
 
-bool WaterModule::excite_control(Mcp2803 &mcp, bool high)  {
-    if (!mcp.configure(FK_MCP2803_IODIR, FK_MCP2803_GPPU, high ? FK_MCP2803_GPIO_EXCITE_ON : FK_MCP2803_GPIO_EXCITE_OFF)) {
+bool WaterModule::excite_control(Mcp2803 &mcp, bool high) {
+    if (!mcp.configure(FK_MCP2803_IODIR, FK_MCP2803_GPPU,
+                       high ? FK_MCP2803_GPIO_EXCITE_ON : FK_MCP2803_GPIO_EXCITE_OFF)) {
         logerror("mcp2803::configure-excite");
         return false;
     }

@@ -2,9 +2,9 @@
 
 #include <modules/bridge/modules.h>
 
-#include "records.h"
-#include "mcp_2803.h"
 #include "ads_1219.h"
+#include "mcp_2803.h"
+#include "records.h"
 
 namespace fk {
 
@@ -37,7 +37,6 @@ private:
     bool excite_control(Mcp2803 &mcp, bool high);
     bool initialize(Mcp2803 &mcp, Ads1219 &ads);
     uint32_t excite_duration();
-
 };
 
 } // namespace fk
