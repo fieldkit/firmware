@@ -421,12 +421,13 @@ void MenuView::create_tools_menu() {
 
     for (auto interval : { 2, 10, 30, 60 }) {
         FK_ASSERT(index < number_of_poll_options);
-        tools_poll_options[index++] = to_lambda_option(pool_, pool_->sprintf("Poll (%ds)", interval), [=]() {
+        tools_poll_options[index++] = to_lambda_option(pool_, pool_->sprintf("Poll every %ds", interval), [=]() {
             back_->on_selected();
-            get_ipc()->launch_worker(WorkerCategory::Polling,
-                                     create_pool_worker<PollSensorsWorker>(true, false, interval * 1000));
-            auto gs = get_global_state_ro();
+            auto worker = create_pool_worker<PollSensorsWorker>(true, false, interval * 1000);
+            get_ipc()->signal_workers(WorkerCategory::Polling, 9);
+            get_ipc()->launch_worker(WorkerCategory::Polling, worker, true);
             // TODO Move to subpool to allow for repeated readings presses.
+            auto gs = get_global_state_ro();
             readings_menu_ = create_readings_menu(gs.get(), back_, *pool_);
             previous_menu_ = active_menu_;
             goto_menu(readings_menu_, TenMinutesMs);

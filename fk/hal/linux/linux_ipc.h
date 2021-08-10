@@ -21,8 +21,7 @@ public:
     bool dequeue_topology(Activity **ptr, uint32_t to) override;
 
 public:
-    bool launch_worker(WorkerCategory category, TaskWorker *worker) override;
-
+    bool launch_worker(WorkerCategory category, TaskWorker *worker, bool concurrency_allowed) override;
 };
 
 class LinuxMutex : public Mutex {
@@ -31,7 +30,6 @@ public:
     Lock acquire(uint32_t to) override;
     bool release() override;
     bool is_owner() override;
-
 };
 
 class LinuxRwLock : public RwLock {
@@ -40,7 +38,6 @@ public:
     Lock acquire_read(uint32_t to) override;
     Lock acquire_write(uint32_t to) override;
     bool release() override;
-
 };
 
 extern LinuxMutex storage_mutex;
@@ -52,6 +49,6 @@ extern LinuxMutex i2c_core_mutex;
 extern LinuxMutex i2c_radio_mutex;
 extern LinuxRwLock data_lock;
 
-}
+} // namespace fk
 
 #endif

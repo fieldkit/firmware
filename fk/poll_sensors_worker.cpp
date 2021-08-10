@@ -27,6 +27,10 @@ void PollSensorsWorker::run(Pool &pool) {
         }
 
         fk_delay(interval_);
+
+        if (fk_task_stop_requested(nullptr)) {
+            break;
+        }
     }
 }
 

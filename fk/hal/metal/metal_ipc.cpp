@@ -5,7 +5,7 @@
 
 #include "tasks/tasks.h"
 
-#if defined(FK_HARDWARE_FULL)
+#if defined(__SAMD51__)
 
 namespace fk {
 
@@ -61,7 +61,7 @@ bool MetalIPC::dequeue_activity(Activity **ptr) {
     if (tuple.status != OSS_SUCCESS) {
         return false;
     }
-    *ptr = reinterpret_cast<Activity*>(tuple.value.ptr);
+    *ptr = reinterpret_cast<Activity *>(tuple.value.ptr);
     return true;
 }
 
@@ -75,7 +75,7 @@ bool MetalIPC::dequeue_button(Button **ptr) {
     if (tuple.status != OSS_SUCCESS) {
         return false;
     }
-    *ptr = reinterpret_cast<Button*>(tuple.value.ptr);
+    *ptr = reinterpret_cast<Button *>(tuple.value.ptr);
     return true;
 }
 
@@ -89,7 +89,7 @@ bool MetalIPC::dequeue_topology(Activity **ptr, uint32_t to) {
     if (tuple.status != OSS_SUCCESS) {
         return false;
     }
-    *ptr = reinterpret_cast<Activity*>(tuple.value.ptr);
+    *ptr = reinterpret_cast<Activity *>(tuple.value.ptr);
     return true;
 }
 
@@ -109,8 +109,8 @@ bool MetalIPC::can_launch(WorkerCategory category) {
     return true;
 }
 
-bool MetalIPC::launch_worker(WorkerCategory category, TaskWorker *worker) {
-    if (!can_launch(category)) {
+bool MetalIPC::launch_worker(WorkerCategory category, TaskWorker *worker, bool concurrency_allowed) {
+    if (!concurrency_allowed && !can_launch(category)) {
         logwarn("unable to launch, already running");
         logwarn("deleting 0x%p", worker);
         delete worker;
@@ -290,6 +290,6 @@ bool MetalRwLock::release() {
     return os_rwlock_release(&rwlock_) == OSS_SUCCESS;
 }
 
-}
+} // namespace fk
 
 #endif

@@ -51,7 +51,7 @@ bool LinuxIPC::dequeue_topology(Activity **ptr, uint32_t to) {
     return false;
 }
 
-bool LinuxIPC::launch_worker(WorkerCategory category, TaskWorker *worker) {
+bool LinuxIPC::launch_worker(WorkerCategory category, TaskWorker *worker, bool concurrency_allowed) {
     FK_ASSERT(worker != nullptr);
 
     worker->run();
@@ -93,6 +93,6 @@ bool LinuxRwLock::release() {
     return true;
 }
 
-}
+} // namespace fk
 
 #endif
