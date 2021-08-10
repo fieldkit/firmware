@@ -4,7 +4,8 @@
 
 namespace fk {
 
-PollSensorsWorker::PollSensorsWorker(bool scan, bool read_only) : ReadingsWorker(scan, read_only) {
+PollSensorsWorker::PollSensorsWorker(bool scan, bool read_only, uint32_t interval)
+    : ReadingsWorker(scan, read_only), interval_(interval) {
 }
 
 void PollSensorsWorker::run(Pool &pool) {
@@ -25,7 +26,7 @@ void PollSensorsWorker::run(Pool &pool) {
             FK_ASSERT(listener.flush() >= 0);
         }
 
-        fk_delay(2000);
+        fk_delay(interval_);
     }
 }
 
