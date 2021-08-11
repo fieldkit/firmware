@@ -209,6 +209,8 @@ constexpr size_t MaximumNumberOfPhysicalModules = 5;
 
 constexpr size_t MaximumConfigurationSize = 256;
 
+constexpr uint32_t MinimumModuleStartupDelayMs = 10;
+
 // -------------------------------------------------------------------------------------------
 // LoRa
 

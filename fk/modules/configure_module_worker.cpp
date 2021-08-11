@@ -1,13 +1,13 @@
 #include <samd51_common.h>
 
-#include "state_ref.h"
 #include "hal/board.h"
+#include "state_ref.h"
 
-#include "modules/configure_module_worker.h"
 #include "modules/bridge/modules.h"
-#include "modules/scanning.h"
 #include "modules/configure.h"
+#include "modules/configure_module_worker.h"
 #include "modules/enable_module_power.h"
+#include "modules/scanning.h"
 
 namespace fk {
 
@@ -19,8 +19,7 @@ ConfigureModuleWorker::ConfigureModuleWorker(ModulePosition bay) : bay_(bay), er
 ConfigureModuleWorker::ConfigureModuleWorker(ModulePosition bay, ModuleHeader header) : bay_(bay), header_(header) {
 }
 
-template<typename T>
-void configure_bay_and_update_state(ModMux *mm, ModulePosition which, GlobalState *gs, T fn) {
+template <typename T> void configure_bay_and_update_state(ModMux *mm, ModulePosition which, GlobalState *gs, T fn) {
     for (auto bay = 0u; bay < MaximumNumberOfPhysicalModules; ++bay) {
         if (which == ModulePosition::All || which == ModulePosition::from(bay)) {
             if (!fn(ModulePosition::from(bay))) {
@@ -37,7 +36,7 @@ bool ConfigureModuleWorker::configure(Pool &pool) {
     auto gs = get_global_state_rw();
     auto mm = get_modmux();
 
-    EnableModulePower module_power{ true, ModulePower::Always, bay_ };
+    EnableModulePower module_power{ bay_, ModulePower::Always, MinimumModuleStartupDelayMs };
     if (!module_power.enable()) {
         return false;
     }
@@ -88,4 +87,4 @@ void ConfigureModuleWorker::run(Pool &pool) {
     scan(pool);
 }
 
-}
+} // namespace fk

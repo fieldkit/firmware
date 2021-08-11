@@ -86,14 +86,14 @@ void StartupWorker::run(Pool &pool) {
         return;
     }
 
-    loginfo("check for interactive startup");
-    if (check_for_interactive_startup(pool)) {
+    loginfo("check for programmer startup");
+    if (check_for_programmer_startup(pool)) {
         FK_ASSERT(os_task_start_options(&display_task, display_task.priority, &task_display_params) == OSS_SUCCESS);
         return;
     }
 
-    loginfo("check for programmer startup");
-    if (check_for_programmer_startup(pool)) {
+    loginfo("check for interactive startup");
+    if (check_for_interactive_startup(pool)) {
         FK_ASSERT(os_task_start_options(&display_task, display_task.priority, &task_display_params) == OSS_SUCCESS);
         return;
     }
@@ -156,7 +156,7 @@ void StartupWorker::run(Pool &pool) {
 
         mm->enable_all_modules();
 
-        ReadingsWorker readings_worker{ true, true };
+        ReadingsWorker readings_worker{ true, true, false };
         readings_worker.run(pool);
     }
 

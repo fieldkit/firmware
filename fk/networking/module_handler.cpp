@@ -1,6 +1,6 @@
 #include "networking/module_handler.h"
-#include "state_ref.h"
 #include "modules/enable_module_power.h"
+#include "state_ref.h"
 
 namespace fk {
 
@@ -24,14 +24,10 @@ bool ModuleHandler::handle(HttpServerConnection *connection, Pool &pool) {
     auto lock = mm->lock();
     auto module_bus = get_board()->i2c_module();
 
-    EnableModulePower module_power{ true, configuration.power, bay_ };
+    EnableModulePower module_power{ bay_, configuration.power, configuration.wake_delay };
     if (!module_power.enable()) {
         connection->error(HttpStatus::ServerError, "error powering module", pool);
         return true;
-    }
-
-    if (module_power.was_enabled()) {
-        fk_delay(configuration.wake_delay);
     }
 
     ScanningContext ctx{ mm, gs.get()->location(pool), module_bus, pool };

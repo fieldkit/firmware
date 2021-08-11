@@ -1,16 +1,17 @@
+#pragma once
+
 #include "modules/bridge/modules.h"
-
 namespace fk {
-
 class EnableModulePower {
 private:
-    bool enabled_;
-    ModulePower power_;
     ModulePosition position_;
+    ModulePower power_;
+    uint32_t wake_delay_{ 0 };
     bool was_enabled_{ false };
 
 public:
-    EnableModulePower(bool enabled, ModulePower power, ModulePosition position) : enabled_(enabled), power_(power), position_(position) {
+    EnableModulePower(ModulePosition position, ModulePower power, uint32_t wake_delay)
+        : position_(position), power_(power), wake_delay_(wake_delay) {
     }
 
     virtual ~EnableModulePower();
@@ -24,15 +25,14 @@ private:
 
     bool should_enable();
 
-public:
-    bool enable();
-
-    void fatal_error();
-
     bool was_enabled() {
         return was_enabled_;
     }
 
+public:
+    bool enable();
+
+    void fatal_error();
 };
 
 } // namespace fk

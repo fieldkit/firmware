@@ -1,7 +1,6 @@
 #include "state/modules.h"
-#include "modules/scanning.h"
 #include "modules/registry.h"
-#include "modules/enable_module_power.h"
+#include "modules/scanning.h"
 #include "state.h"
 #include "task_stack.h"
 
@@ -85,8 +84,7 @@ int32_t AttachedModule::initialize(ModuleContext ctx, Pool *pool) {
 
             sensors_.emplace(&s, i);
         }
-    }
-    else {
+    } else {
         logwarn("[%d] no sensors", position_.integer());
     }
 
@@ -95,19 +93,9 @@ int32_t AttachedModule::initialize(ModuleContext ctx, Pool *pool) {
 
 int32_t AttachedModule::take_readings(ReadingsContext ctx, ReadingsListener *listener, Pool *pool) {
     loginfo("[%d] '%s' mk=%02" PRIx32 "%02" PRIx32 " version=%" PRIu32, position_.integer(),
-		    configuration_.display_name_key, meta_->manufacturer, meta_->kind, meta_->version);
+            configuration_.display_name_key, meta_->manufacturer, meta_->kind, meta_->version);
 
     configuration_ = driver_->get_configuration(*pool_);
-
-    EnableModulePower module_power{ true, configuration_.power, position_ };
-    if (!module_power.enable()) {
-        logerror("[%d] error powering module", position_.integer());
-        return 0;
-    }
-    if (module_power.was_enabled()) {
-        logdebug("[%d] wake delay: %" PRIu32 "ms", position_.integer(), configuration_.wake_delay);
-        fk_delay(configuration_.wake_delay);
-    }
 
     auto sensor_metas = driver_->get_sensors(*pool);
     if (sensor_metas == nullptr) {
@@ -141,8 +129,8 @@ int32_t AttachedModule::take_readings(ReadingsContext ctx, ReadingsListener *lis
         if (i < nreadings) {
             auto reading = module_readings->get(i);
 
-            loginfo("[%d] sensor[%2d] name='%s.%s' reading=%f (%f)", position_.integer(), sensor.index(),
-                    meta_->name, sensor.name(), reading.calibrated, reading.uncalibrated);
+            loginfo("[%d] sensor[%2d] name='%s.%s' reading=%f (%f)", position_.integer(), sensor.index(), meta_->name,
+                    sensor.name(), reading.calibrated, reading.uncalibrated);
 
             auto err = listener->sensor_reading(this, &sensor, reading, pool);
             if (err < 0) {
@@ -150,7 +138,8 @@ int32_t AttachedModule::take_readings(ReadingsContext ctx, ReadingsListener *lis
                 return err;
             }
         } else {
-            logwarn("[%d] sensor[%2d] name='%s.%s' no-reading", position_.integer(), sensor.index(), meta_->name, sensor.name());
+            logwarn("[%d] sensor[%2d] name='%s.%s' no-reading", position_.integer(), sensor.index(), meta_->name,
+                    sensor.name());
         }
     }
 
@@ -165,6 +154,10 @@ ModuleConfiguration AttachedModule::get_configuration(Pool *pool) {
     configuration_ = driver_->get_configuration(*pool);
 
     return configuration_;
+}
+
+EnableModulePower AttachedModule::enable() {
+    return EnableModulePower{ position_, configuration_.power, configuration_.wake_delay };
 }
 
 AttachedModules::AttachedModules(Pool &pool) : pool_(&pool) {
@@ -268,7 +261,7 @@ int32_t AttachedModules::scan(Pool &pool) {
 
     mm->enable_all_modules();
 
-    fk_delay(100);
+    fk_delay(10); // TODO Maybe remove
 
     ModuleScanning scanning{ mm };
     auto err = scanning.scan(this, pool);
@@ -307,8 +300,13 @@ int32_t AttachedModules::initialize(Pool &pool) {
 
     for (auto &attached : modules_) {
         auto position = attached.position();
-
         logged_task lt{ pool.sprintf("module[%d]", position.integer()) };
+
+        auto module_power = attached.enable();
+        if (!module_power.enable()) {
+            logerror("[%d] error powering module", position.integer());
+            return -1;
+        }
 
         auto sub = ctx.open_module(position, pool);
         if (!sub.open()) {

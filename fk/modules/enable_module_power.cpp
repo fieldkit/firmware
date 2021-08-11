@@ -14,7 +14,7 @@ EnableModulePower::~EnableModulePower() {
 }
 
 bool EnableModulePower::can_control() {
-    return enabled_ && position_ != ModulePosition::Virtual;
+    return position_ != ModulePosition::Virtual;
 }
 
 bool EnableModulePower::enabled_once() {
@@ -31,6 +31,9 @@ bool EnableModulePower::should_enable() {
 
 bool EnableModulePower::enable() {
     auto mm = get_modmux();
+
+    was_enabled_ = false;
+
     if (enabled_once() || always_enabled() || should_enable()) {
         if (!mm->is_module_on(position_)) {
             logverbose("[%d] powering on", position_.integer());
@@ -43,7 +46,13 @@ bool EnableModulePower::enable() {
             logerror("[%d] enabling module failed", position_.integer());
             return false;
         }
+
+        if (was_enabled_ && wake_delay_ > 0) {
+            logdebug("[%d] wake delay: %" PRIu32 "ms", position_.integer(), wake_delay_);
+            fk_delay(wake_delay_);
+        }
     }
+
     return true;
 }
 
