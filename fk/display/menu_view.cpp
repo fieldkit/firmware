@@ -150,10 +150,10 @@ MenuView::MenuView(ViewController *views, Pool &pool) : pool_(&pool), views_(vie
 
         if (previous_menu_ == nullptr || previous_menu_ == active_menu_) {
             loginfo("selected main-menu '%s'", active_menu_->title);
-            goto_menu(main_menu_);
+            goto_menu(main_menu_, previous_menu_);
         } else {
             loginfo("selected previous-menu '%s'", active_menu_->title);
-            goto_menu(previous_menu_);
+            goto_menu(previous_menu_, previous_menu_);
         }
     });
 
@@ -375,10 +375,7 @@ void MenuView::create_module_menu() {
         back_->on_selected();
         views_->show_home();
     });
-    auto module_program = to_lambda_option(pool_, "Program", [=]() {
-        previous_menu_ = active_menu_;
-        goto_menu(program_menu);
-    });
+    auto module_program = to_lambda_option(pool_, "Program", [=]() { goto_menu(program_menu); });
     auto module_erase = to_lambda_option(pool_, "Erase", [=]() {
         back_->on_selected();
         views_->show_home();
@@ -412,36 +409,99 @@ void MenuView::create_confirmation_menu() {
     confirm_menu_ = new_menu_screen<2>(pool_, "confirm", { confirm_no, confirm_yes });
 }
 
-void MenuView::create_tools_menu() {
-    auto constexpr number_of_poll_options = 5;
-    auto tools_poll_options = (MenuOption **)pool_->malloc(sizeof(MenuOption *) * number_of_poll_options + 1);
-    auto index = 0;
+template <size_t N, typename T>
+MenuScreen *create_numeric_selection(const char *f, int32_t(&&numbers)[N], MenuOption *back, Pool *pool,
+                                     T on_selected) {
+    auto options = (MenuOption **)pool->malloc(sizeof(MenuOption *) * (N + 2));
+    auto index = 0u;
 
-    tools_poll_options[index++] = back_;
+    options[index++] = back;
 
-    for (auto interval : { 2, 10, 30, 60 }) {
-        FK_ASSERT(index < number_of_poll_options);
-        tools_poll_options[index++] = to_lambda_option(pool_, pool_->sprintf("Poll every %ds", interval), [=]() {
-            back_->on_selected();
-            auto worker = create_pool_worker<PollSensorsWorker>(true, false, interval * 1000);
-            get_ipc()->signal_workers(WorkerCategory::Polling, 9);
-            get_ipc()->launch_worker(WorkerCategory::Polling, worker, true);
-            // TODO Move to subpool to allow for repeated readings presses.
-            auto gs = get_global_state_ro();
-            readings_menu_ = create_readings_menu(gs.get(), back_, *pool_);
-            previous_menu_ = active_menu_;
-            goto_menu(readings_menu_, TenMinutesMs);
-        });
+    for (auto interval : numbers) {
+        FK_ASSERT(index <= N);
+        options[index++] = to_lambda_option(pool, pool->sprintf(f, interval), [=]() { on_selected(interval); });
     }
 
-    tools_poll_options[index++] = nullptr;
+    options[index++] = nullptr;
 
-    auto tools_poll_sensors_menu = new (pool_) MenuScreen("poll", tools_poll_options);
+    return new (pool) MenuScreen("numbers", options);
+}
+
+class PollSensorsMenu {
+private:
+    MenuScreen *menu_{ nullptr };
+
+public:
+    MenuScreen *menu() {
+        return menu_;
+    }
+
+public:
+    PollSensorsMenu(GotoMenu *menus, MenuOption *back, Pool *pool) {
+        auto constexpr number_of_options = 5;
+        auto options = (MenuOption **)pool->malloc(sizeof(MenuOption *) * number_of_options + 1);
+        auto index = 0;
+
+        options[index++] = back;
+
+        for (auto interval : { 2, 10, 30, 60 }) {
+            FK_ASSERT(index < number_of_options);
+            options[index++] = to_lambda_option(pool, pool->sprintf("Poll every %ds", interval), [=]() {
+                auto worker = create_pool_worker<PollSensorsWorker>(true, false, interval * 1000);
+                get_ipc()->signal_workers(WorkerCategory::Polling, 9);
+                get_ipc()->launch_worker(WorkerCategory::Polling, worker, true);
+                // TODO Move to subpool to allow for repeated readings presses.
+                auto gs = get_global_state_ro();
+                auto readings_menu = create_readings_menu(gs.get(), back, *pool);
+
+                back->on_selected();
+                menus->goto_menu(readings_menu, TenMinutesMs);
+            });
+        }
+
+        options[index++] = nullptr;
+
+        menu_ = new (pool) MenuScreen("poll", options);
+    }
+};
+
+class PollWaterEcSensorsMenu {
+private:
+    int32_t interval_{ 0 };
+    MenuScreen *menu_{ nullptr };
+
+public:
+    MenuScreen *menu() {
+        return menu_;
+    }
+
+public:
+    PollWaterEcSensorsMenu(GotoMenu *menus, MenuOption *back, Pool *pool) {
+        menu_ =
+            create_numeric_selection<7>("EC Delay = %ds", { 1, 2, 5, 10, 20, 50, 100 }, back, pool, [=](int32_t delay) {
+                auto gs = get_global_state_rw();
+                gs.get()->debugging.ec_excite_delay = delay;
+                loginfo("override ec delay: %dms", delay);
+                back->on_selected();
+                auto poll_sensors = new (pool) PollSensorsMenu(menus, back, pool);
+                menus->goto_menu(poll_sensors->menu());
+            });
+    }
+};
+
+void MenuView::create_tools_menu() {
+    auto poll_sensors = new (pool_) PollSensorsMenu(this, back_, pool_);
 
     auto tools_poll_sensors = to_lambda_option(pool_, "Poll", [=]() {
         back_->on_selected();
-        previous_menu_ = active_menu_;
-        goto_menu(tools_poll_sensors_menu);
+        goto_menu(poll_sensors->menu());
+    });
+
+    auto poll_water_ec_sensors = new (pool_) PollWaterEcSensorsMenu(this, back_, pool_);
+
+    auto tools_poll_water_ec_sensors = to_lambda_option(pool_, "Poll (ec)", [=]() {
+        back_->on_selected();
+        goto_menu(poll_water_ec_sensors->menu());
     });
 
     auto toggle_gps_fixed = to_selectable_lambda_option(
@@ -478,10 +538,7 @@ void MenuView::create_tools_menu() {
 
     auto tools_self_check = to_lambda_option(pool_, "Self Check", [=]() { views_->show_self_check(); });
 
-    auto tools_gps_toggle = to_lambda_option(pool_, "GPS Mode", [=]() {
-        previous_menu_ = tools_menu_;
-        goto_menu(toggle_gps_menu_);
-    });
+    auto tools_gps_toggle = to_lambda_option(pool_, "GPS Mode", [=]() { goto_menu(toggle_gps_menu_); });
 
     auto tools_format_sd = new (pool_) ConfirmOption(this, to_lambda_option(pool_, "Format SD", [=]() {
                                                          back_->on_selected();
@@ -571,27 +628,28 @@ void MenuView::create_tools_menu() {
     (void)tools_crash_hardf;
     (void)tools_crash_assertion;
 
-    tools_menu_ = new_menu_screen<18 - 4>(pool_, "tools",
-                                          {
-                                              back_,
-                                              tools_self_check,
-                                              tools_gps,
-                                              tools_gps_toggle,
-                                              // tools_lora_ranging,
-                                              // tools_lora_ranging_confirmed,
-                                              tools_load_firmware_sd,
-                                              tools_dump_flash,
-                                              tools_backup,
-                                              tools_format_sd,
-                                              tools_sleep_test,
-                                              tools_poll_sensors,
-                                              tools_fsck,
-                                              // tools_crash_hardf,
-                                              // tools_crash_assertion,
-                                              tools_export_data,
-                                              tools_factory_reset,
-                                              tools_restart,
-                                          });
+    tools_menu_ = new_menu_screen<15>(pool_, "tools",
+                                      {
+                                          back_,
+                                          tools_self_check,
+                                          tools_gps,
+                                          tools_gps_toggle,
+                                          // tools_lora_ranging,
+                                          // tools_lora_ranging_confirmed,
+                                          tools_load_firmware_sd,
+                                          tools_dump_flash,
+                                          tools_backup,
+                                          tools_format_sd,
+                                          tools_sleep_test,
+                                          tools_poll_sensors,
+                                          tools_poll_water_ec_sensors,
+                                          tools_fsck,
+                                          // tools_crash_hardf,
+                                          // tools_crash_assertion,
+                                          tools_export_data,
+                                          tools_factory_reset,
+                                          tools_restart,
+                                      });
 }
 
 static WifiNetworkInfo get_self_ap_network() {
@@ -661,10 +719,7 @@ void MenuView::create_network_menu() {
                                               });
 
     auto network_toggle = new (*pool_) ToggleWifiOption(back_, views_);
-    auto network_choose = to_lambda_option(pool_, "Choose", [=]() {
-        previous_menu_ = active_menu_;
-        goto_menu(network_choose_menu_);
-    });
+    auto network_choose = to_lambda_option(pool_, "Choose", [=]() { goto_menu(network_choose_menu_); });
 
     auto network_download_fw = to_lambda_option(pool_, "Upgrade", [=]() {
         back_->on_selected();
@@ -672,10 +727,7 @@ void MenuView::create_network_menu() {
         get_ipc()->launch_worker(create_pool_worker<DownloadFirmwareWorker>());
     });
 
-    auto network_duration = to_lambda_option(pool_, "WiFI Duration", [=]() {
-        previous_menu_ = network_menu_;
-        goto_menu(toggle_wifi_menu_);
-    });
+    auto network_duration = to_lambda_option(pool_, "WiFI Duration", [=]() { goto_menu(toggle_wifi_menu_); });
 
     auto network_upload_resume = to_lambda_option(pool_, "Upload Rsm", [=]() {
         back_->on_selected();
@@ -710,29 +762,13 @@ void MenuView::create_main_menu() {
         auto gs = get_global_state_ro();
         // TODO Move to subpool to allow for repeated readings presses.
         readings_menu_ = create_readings_menu(gs.get(), back_, *pool_);
-        previous_menu_ = active_menu_;
         goto_menu(readings_menu_);
     });
-    auto main_info = to_lambda_option(pool_, "Info", [=]() {
-        previous_menu_ = active_menu_;
-        goto_menu(info_menu_);
-    });
-    auto main_schedules = to_lambda_option(pool_, "Schedules", [=]() {
-        previous_menu_ = active_menu_;
-        goto_menu(schedules_menu_);
-    });
-    auto main_network = to_lambda_option(pool_, "Network", [=]() {
-        previous_menu_ = active_menu_;
-        goto_menu(network_menu_);
-    });
-    auto main_modules = to_lambda_option(pool_, "Modules", [=]() {
-        previous_menu_ = active_menu_;
-        goto_menu(module_bays_menu_);
-    });
-    auto main_tools = to_lambda_option(pool_, "Tools", [=]() {
-        previous_menu_ = active_menu_;
-        goto_menu(tools_menu_);
-    });
+    auto main_info = to_lambda_option(pool_, "Info", [=]() { goto_menu(info_menu_); });
+    auto main_schedules = to_lambda_option(pool_, "Schedules", [=]() { goto_menu(schedules_menu_); });
+    auto main_network = to_lambda_option(pool_, "Network", [=]() { goto_menu(network_menu_); });
+    auto main_modules = to_lambda_option(pool_, "Modules", [=]() { goto_menu(module_bays_menu_); });
+    auto main_tools = to_lambda_option(pool_, "Tools", [=]() { goto_menu(tools_menu_); });
 
     main_menu_ = new_menu_screen<6>(pool_, "main",
                                     {
@@ -785,13 +821,9 @@ void MenuView::tick(ViewController *views, Pool &pool) {
 }
 
 void MenuView::refresh() {
-    auto gs = get_global_state_ro();
-    network_choose_menu_->refresh(gs.get());
-    tools_menu_->refresh(gs.get());
-    toggle_gps_menu_->refresh(gs.get());
-    toggle_wifi_menu_->refresh(gs.get());
-    if (readings_menu_ != nullptr) {
-        readings_menu_->refresh(gs.get());
+    if (active_menu_ != nullptr) {
+        auto gs = get_global_state_ro();
+        active_menu_->refresh(gs.get());
     }
 }
 
@@ -814,7 +846,7 @@ void MenuView::confirm(MenuOption *pending) {
     pending_ = pending;
     confirm_menu_->options[0]->focused(true);
     confirm_menu_->options[1]->focused(false);
-    goto_menu(confirm_menu_);
+    goto_menu(confirm_menu_, previous_menu_);
 }
 
 void MenuView::choose_active_network(WifiNetworkInfo network) {
@@ -908,7 +940,9 @@ MenuOption *MenuView::selected(MenuScreen &screen) {
     return nullptr;
 }
 
-MenuScreen *MenuView::goto_menu(MenuScreen *screen, uint32_t hold_time) {
+MenuScreen *MenuView::goto_menu(MenuScreen *screen, uint32_t hold_time, MenuScreen *previous_menu) {
+    previous_menu_ = (previous_menu != nullptr) ? previous_menu : active_menu_;
+
     auto focusable = -1;
     for (auto i = 0; screen->options[i] != nullptr; ++i) {
         if (screen->options[i]->focused()) {
@@ -932,6 +966,7 @@ MenuScreen *MenuView::goto_menu(MenuScreen *screen, uint32_t hold_time) {
     active_menu_ = screen;
     hold_time_ = hold_time;
     menu_time_ = fk_uptime() + hold_time;
+    refresh();
 
     return screen;
 }

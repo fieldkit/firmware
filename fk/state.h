@@ -1,17 +1,17 @@
 #pragma once
 
-#include <lwcron/lwcron.h>
 #include <fk-app-protocol.h>
+#include <lwcron/lwcron.h>
 
+#include "collections.h"
 #include "common.h"
 #include "config.h"
-#include "pool.h"
-#include "collections.h"
 #include "platform.h"
+#include "pool.h"
 #include "protobuf.h"
 
-#include "modules/bridge/data.h"
 #include "hal/battery_gauge.h" // For MeterReading
+#include "modules/bridge/data.h"
 #include "state/dynamic.h"
 
 namespace fk {
@@ -24,13 +24,7 @@ struct ScheduledTime {
     uint32_t seconds;
 };
 
-enum class BatteryStatus {
-    Unknown,
-    Good,
-    External,
-    Low,
-    Dangerous
-};
+enum class BatteryStatus { Unknown, Good, External, Low, Dangerous };
 
 inline bool battery_status_is_low_power(BatteryStatus status) {
     return status == BatteryStatus::Dangerous || status == BatteryStatus::Low;
@@ -38,12 +32,18 @@ inline bool battery_status_is_low_power(BatteryStatus status) {
 
 inline const char *battery_status_to_string(BatteryStatus status) {
     switch (status) {
-    case BatteryStatus::Unknown: return "unknown";
-    case BatteryStatus::Good: return "good";
-    case BatteryStatus::External: return "external";
-    case BatteryStatus::Low: return "low";
-    case BatteryStatus::Dangerous: return "dangerous";
-    default: return "unknown";
+    case BatteryStatus::Unknown:
+        return "unknown";
+    case BatteryStatus::Good:
+        return "good";
+    case BatteryStatus::External:
+        return "external";
+    case BatteryStatus::Low:
+        return "low";
+    case BatteryStatus::Dangerous:
+        return "dangerous";
+    default:
+        return "unknown";
     }
 }
 
@@ -54,8 +54,8 @@ struct RuntimeState {
 
 struct PowerState {
     bool low_battery{ false };
-    MeterReading battery{ };
-    MeterReading solar{ };
+    MeterReading battery{};
+    MeterReading solar{};
     BatteryStatus battery_status{ BatteryStatus::Unknown };
     bool allow_deep_sleep{ false };
     float charge{ 0 };
@@ -64,8 +64,8 @@ struct PowerState {
 struct WifiNetworkInfo {
     bool valid{ false };
     bool create{ false };
-    char ssid[WifiMaximumSsidLength]{ };
-    char password[WifiMaximumPasswordLength]{ };
+    char ssid[WifiMaximumSsidLength]{};
+    char password[WifiMaximumPasswordLength]{};
 
     WifiNetworkInfo() {
     }
@@ -90,7 +90,7 @@ struct WifiNetworkInfo {
         strncpy(this->password, password, WifiMaximumPasswordLength);
     }
 
-    WifiNetworkInfo& operator=(const WifiNetworkInfo &other) {
+    WifiNetworkInfo &operator=(const WifiNetworkInfo &other) {
         valid = other.valid;
         create = other.create;
         strncpy(this->ssid, other.ssid, WifiMaximumSsidLength);
@@ -127,9 +127,9 @@ public:
     uint8_t satellites{ 0 };
     uint64_t time{ 0 };
     uint16_t hdop{ 0 };
-    float longitude { 0.0f };
-    float latitude { 0.0f };
-    float altitude { 0.0f };
+    float longitude{ 0.0f };
+    float latitude{ 0.0f };
+    float altitude{ 0.0f };
     uint32_t chars{ 0 };
 
 public:
@@ -227,7 +227,7 @@ struct Interval {
 };
 
 struct Schedule {
-    lwcron::CronSpec cron{ };
+    lwcron::CronSpec cron{};
     uint32_t interval{ 0 };
     uint32_t repeated{ 0 };
     uint32_t duration{ 0 };
@@ -235,18 +235,18 @@ struct Schedule {
     Interval intervals[MaximumScheduleIntervals];
     ScheduledTime upcoming;
 
-    Schedule& operator=(const fk_app_Schedule &s);
+    Schedule &operator=(const fk_app_Schedule &s);
 
     void recreate();
     void simple(uint32_t interval);
 };
 
 struct SchedulerState {
-    Schedule readings{ };
-    Schedule network{ };
-    Schedule gps{ };
-    Schedule lora{ };
-    Schedule backup{ };
+    Schedule readings{};
+    Schedule network{};
+    Schedule gps{};
+    Schedule lora{};
+    Schedule backup{};
 };
 
 struct ReadingsState {
@@ -256,8 +256,8 @@ struct ReadingsState {
 
 struct TransmissionState {
     bool enabled{ false };
-    char url[HttpMaximumUrlLength]{ };
-    char token[HttpMaximumTokenLength]{ };
+    char url[HttpMaximumUrlLength]{};
+    char token[HttpMaximumTokenLength]{};
     uint32_t data_cursor{ 0 };
     uint32_t meta_cursor{ 0 };
 };
@@ -270,23 +270,28 @@ struct UpcomingUpdate {
     ScheduledTime backup;
 };
 
+struct DebuggingState {
+    uint32_t ec_excite_delay{ 10 };
+};
+
 struct GlobalState {
 public:
     uint32_t version{ 0 };
     state::DynamicState dynamic;
-    GeneralState general{ };
-    RuntimeState runtime{ };
-    PowerState power{ };
-    GpsState gps{ };
-    MainNetworkState network{ };
-    NotificationState notification{ };
-    ProgressState progress{ };
-    StorageState storage{ };
-    LoraState lora{ };
-    SchedulerState scheduler{ };
-    SdCardState sd_card{ };
-    ReadingsState readings{ };
-    TransmissionState transmission{ };
+    GeneralState general{};
+    RuntimeState runtime{};
+    PowerState power{};
+    GpsState gps{};
+    MainNetworkState network{};
+    NotificationState notification{};
+    ProgressState progress{};
+    StorageState storage{};
+    LoraState lora{};
+    SchedulerState scheduler{};
+    SdCardState sd_card{};
+    ReadingsState readings{};
+    TransmissionState transmission{};
+    DebuggingState debugging{};
 
 public:
     GlobalState();
@@ -300,7 +305,6 @@ public:
 
 public:
     GpsState const *location(Pool &pool) const;
-
 };
 
-}
+} // namespace fk

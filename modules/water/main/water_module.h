@@ -14,6 +14,7 @@ private:
     EncodedMessage *cfg_message_{ nullptr };
     fk_data_ModuleConfiguration *cfg_{ nullptr };
     ModuleHeader header_;
+    uint32_t excite_delay_{ 10 };
 
 public:
     WaterModule(Pool &pool);

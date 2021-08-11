@@ -2,6 +2,7 @@
 #include "curves.h"
 #include "modules/eeprom.h"
 #include "platform.h"
+#include "state_ref.h"
 #include "water_api.h"
 
 namespace fk {
@@ -239,9 +240,13 @@ ModuleConfiguration const WaterModule::get_configuration(Pool &pool) {
 }
 
 uint32_t WaterModule::excite_duration() {
+    auto gs = get_global_state_ro();
+    auto delay = gs.get()->debugging.ec_excite_delay;
+    loginfo("ec delay: %dms", delay);
     switch (header_.kind) {
-    case FK_MODULES_KIND_WATER_EC:
-        return 10;
+    case FK_MODULES_KIND_WATER_EC: {
+        return delay == 0 ? 10 : delay;
+    }
     default:
         return 0;
     };
