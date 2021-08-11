@@ -461,7 +461,8 @@ bool StartupWorker::check_for_lora(Pool &pool) {
 
 bool StartupWorker::save_captured_logs(bool free) {
     loginfo("saving captured logs reset-reason=%s bank=%d", fk_get_reset_reason_string(), fk_nvm_get_active_bank());
-    fk_logs_saved_write(!free);
+    auto echo = false; //! free
+    fk_logs_saved_write(echo);
     if (free) {
         fk_logs_saved_free();
     }
