@@ -220,6 +220,15 @@ struct NotificationState {
     }
 };
 
+struct OpenMenu {
+    uint32_t time;
+    bool readings;
+};
+
+struct DisplayState {
+    OpenMenu open_menu;
+};
+
 struct Interval {
     uint32_t start;
     uint32_t end;
@@ -284,6 +293,7 @@ public:
     GpsState gps{};
     MainNetworkState network{};
     NotificationState notification{};
+    DisplayState display{};
     ProgressState progress{};
     StorageState storage{};
     LoraState lora{};

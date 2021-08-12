@@ -44,6 +44,7 @@ public:
 public:
     void show() override;
     void show_for_module(uint8_t bay);
+    void show_readings();
     void tick(ViewController *views, Pool &pool) override;
     void up(ViewController *views) override;
     void down(ViewController *views) override;

@@ -1,24 +1,24 @@
-#include "tasks/tasks.h"
 #include "hal/metal/metal.h"
 #include "pool.h"
 #include "state_manager.h"
 #include "storage/storage.h"
+#include "tasks/tasks.h"
 #include "timer.h"
 
-#include "display/display_views.h"
-#include "display/home_view.h"
-#include "display/name_view.h"
 #include "display/build_view.h"
-#include "display/qr_code_view.h"
-#include "display/readings_view.h"
-#include "display/self_check_view.h"
+#include "display/display_views.h"
+#include "display/gps_view.h"
+#include "display/home_view.h"
+#include "display/leds.h"
+#include "display/lora_view.h"
 #include "display/menu_view.h"
 #include "display/message_view.h"
 #include "display/module_status_view.h"
-#include "display/lora_view.h"
-#include "display/gps_view.h"
+#include "display/name_view.h"
+#include "display/qr_code_view.h"
+#include "display/readings_view.h"
 #include "display/schedule_view.h"
-#include "display/leds.h"
+#include "display/self_check_view.h"
 
 namespace fk {
 
@@ -42,6 +42,7 @@ private:
     LedsController leds;
     DisplayView *view = &home_view;
     uint32_t notified_{ 0 };
+    uint32_t updated_{ 0 };
 
 public:
     explicit MainViewController(Pool &pool) : pool_(&pool), menu_view{ this, pool } {
@@ -125,11 +126,20 @@ public:
 
     void refresh_notifications() {
         auto gs = get_global_state_ro();
-        auto &notif = gs.get()->notification;
-        if (notif.created > 0 && notified_ < notif.created) {
-            loginfo("notification: '%s'", notif.message);
-            notified_ = notif.created;
-            show_message(notif.message);
+        auto &notification = gs.get()->notification;
+        if (notification.created > 0 && notified_ < notification.created) {
+            loginfo("notification: '%s'", notification.message);
+            notified_ = notification.created;
+            show_message(notification.message);
+        }
+        auto &display = gs.get()->display;
+        if (display.open_menu.time > 0 && display.open_menu.time > updated_) {
+            loginfo("open-menu:");
+            updated_ = display.open_menu.time;
+            if (display.open_menu.readings) {
+                show_view(menu_view);
+                menu_view.show_readings();
+            }
         }
     }
 
@@ -207,7 +217,6 @@ public:
 
         view->hide();
     }
-
 };
 
 void task_handler_display(void *params) {
@@ -218,4 +227,4 @@ void task_handler_display(void *params) {
     get_display()->off();
 }
 
-}
+} // namespace fk
