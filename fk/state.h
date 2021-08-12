@@ -279,8 +279,15 @@ struct UpcomingUpdate {
     ScheduledTime backup;
 };
 
+struct DebuggingUdpTraffic {
+    uint32_t stop_time{ 0 };
+    uint32_t quantity{ 0 };
+    uint32_t interval{ 0 };
+};
+
 struct DebuggingState {
     uint32_t ec_excite_delay{ 10 };
+    DebuggingUdpTraffic udp_traffic;
 };
 
 struct GlobalState {
