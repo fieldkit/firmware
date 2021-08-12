@@ -147,6 +147,9 @@ static void configure_wifi_duration(uint32_t duration, Pool &pool) {
 static void configure_noisy_network(DebuggingUdpTraffic udp) {
     auto gs = get_global_state_rw();
     gs.get()->debugging.udp_traffic = udp;
+    if (udp.stop_time > 0) {
+        gs.get()->scheduler.network.duration = UINT32_MAX;
+    }
 }
 
 MenuView::MenuView(ViewController *views, Pool &pool) : pool_(&pool), views_(views) {
@@ -452,7 +455,7 @@ public:
 
         auto noisy_network_on = to_lambda_option(pool, "Noisy WiFi", [=]() {
             loginfo("noisy wifi");
-            configure_noisy_network(DebuggingUdpTraffic{ 0, 3, 10, true });
+            configure_noisy_network(DebuggingUdpTraffic{ 0, 1, 100, true });
             launch_polling_task(menus, back, pool);
         });
 
@@ -493,7 +496,6 @@ private:
         auto readings_menu = create_readings_menu(gs.get(), back, *pool);
         menus->goto_menu(readings_menu, TenMinutesMs);
     }
-
 };
 
 class PollWaterEcSensorsMenu {

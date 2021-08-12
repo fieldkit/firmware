@@ -38,8 +38,9 @@ void PollSensorsWorker::take_readings() {
 void PollSensorsWorker::before_readings(Pool &pool) {
     auto gs = get_global_state_rw();
     loginfo("before-readings");
-    if (gs.get()->debugging.udp_traffic.readings_triggered) {
-        gs.get()->debugging.udp_traffic.stop_time = fk_uptime() + 1000;
+    auto &udp_traffic = gs.get()->debugging.udp_traffic;
+    if (udp_traffic.readings_triggered) {
+        udp_traffic.stop_time = fk_uptime() + udp_traffic.duration;
     } else {
         auto running = os_task_is_running(&network_task);
         if (running) {
