@@ -86,8 +86,7 @@ bool NetworkServices::serving() {
     if (network_->status() != NetworkStatus::Connected) {
         if (duration_.always_on()) {
             loginfo("stopping: disconnected (always-on)");
-        }
-        else {
+        } else {
             loginfo("stopping: disconnected");
         }
         return false;
@@ -116,8 +115,7 @@ bool NetworkServices::should_stop() {
 bool NetworkServices::try_begin(NetworkSettings settings, uint32_t to, Pool &pool) {
     if (settings.create) {
         loginfo("creating '%s'", settings.ssid);
-    }
-    else {
+    } else {
         loginfo("trying '%s'", settings.ssid);
     }
 
@@ -138,8 +136,7 @@ bool NetworkServices::try_begin(NetworkSettings settings, uint32_t to, Pool &poo
         }
 
         fk_delay(100);
-    }
-    while (fk_uptime() - started < to);
+    } while (fk_uptime() - started < to);
 
     logwarn("try-begin: %dms (too long)", fk_uptime() - started);
 
@@ -183,8 +180,7 @@ void NetworkServices::tick() {
 
     if (connection_pool_.active_connections()) {
         network_->service(nullptr);
-    }
-    else {
+    } else {
         network_->service(tick_pool_);
 
         if (tick_pool_->used() > 0) {
@@ -221,9 +217,7 @@ void NetworkServices::stop() {
     network_->stop();
 
     GlobalStateManager gsm;
-    gsm.apply([=](GlobalState *gs) {
-        gs->network.state = { };
-    });
+    gsm.apply([=](GlobalState *gs) { gs->network.state = {}; });
 
     loginfo("stopped");
 }
@@ -285,10 +279,10 @@ bool NetworkServices::did_configuration_change() {
     auto modified = gs.get()->network.config.modified;
     auto changed = false;
 
+    duration_ = gs.get()->scheduler.network.duration;
+
     if (modified != configuration_modified_) {
         loginfo("configuration modified");
-
-        duration_ = gs.get()->scheduler.network.duration;
         changed = true;
     }
 

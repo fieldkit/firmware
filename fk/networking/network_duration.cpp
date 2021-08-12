@@ -29,8 +29,11 @@ bool NetworkDuration::on(uint32_t activity) const {
 }
 
 NetworkDuration NetworkDuration::operator=(uint32_t seconds) {
-    seconds_ = std::max(seconds, OneMinuteSeconds);
-    loginfo("network-duration: %" PRIu32, seconds_);
+    auto new_value = std::max(seconds, OneMinuteSeconds);
+    if (new_value != seconds_) {
+        seconds_ = new_value;
+        loginfo("network-duration: %" PRIu32, seconds_);
+    }
     return *this;
 }
 

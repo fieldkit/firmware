@@ -147,7 +147,7 @@ static void configure_wifi_duration(uint32_t duration, Pool &pool) {
 static void configure_noisy_network(DebuggingUdpTraffic udp) {
     auto gs = get_global_state_rw();
     gs.get()->debugging.udp_traffic = udp;
-    if (udp.stop_time > 0) {
+    if (udp.duration > 0) {
         gs.get()->scheduler.network.duration = UINT32_MAX;
     }
 }
