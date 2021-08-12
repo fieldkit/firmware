@@ -804,6 +804,12 @@ void MenuView::show_for_module(uint8_t bay) {
     show();
 }
 
+void MenuView::show_readings() {
+    auto gs = get_global_state_ro();
+    auto readings_menu = create_readings_menu(gs.get(), back_, *pool_);
+    goto_menu(readings_menu, TenMinutesMs);
+}
+
 void MenuView::tick(ViewController *views, Pool &pool) {
     auto bus = get_board()->i2c_core();
     auto display = get_display();

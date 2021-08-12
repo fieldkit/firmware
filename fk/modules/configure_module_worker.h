@@ -1,7 +1,7 @@
 #pragma once
 
-#include "worker.h"
 #include "modules/shared/modules.h"
+#include "worker.h"
 
 namespace fk {
 
@@ -25,10 +25,8 @@ public:
 
 private:
     bool configure(Pool &pool);
-    bool scan(Pool &pool);
-
 };
 
 FK_ENABLE_TYPE_NAME(ConfigureModuleWorker);
 
-}
+} // namespace fk
