@@ -129,19 +129,24 @@ struct ToggleWifiOption : public MenuOption {
     }
 };
 
-void configure_gps_duration(uint32_t duration, Pool &pool) {
+static void configure_gps_duration(uint32_t duration, Pool &pool) {
     auto gs = get_global_state_rw();
     gs.get()->scheduler.gps.duration = duration;
     gs.get()->flush(pool);
 }
 
-void configure_wifi_duration(uint32_t duration, Pool &pool) {
+static void configure_wifi_duration(uint32_t duration, Pool &pool) {
     auto gs = get_global_state_rw();
     gs.get()->scheduler.network.duration = duration;
     gs.get()->flush(pool);
     if (!get_network()->enabled()) {
         get_ipc()->launch_worker(create_pool_worker<WifiToggleWorker>());
     }
+}
+
+static void configure_noisy_network(DebuggingUdpTraffic udp) {
+    auto gs = get_global_state_rw();
+    gs.get()->debugging.udp_traffic = udp;
 }
 
 MenuView::MenuView(ViewController *views, Pool &pool) : pool_(&pool), views_(views) {
@@ -430,6 +435,7 @@ MenuScreen *create_numeric_selection(const char *f, int32_t(&&numbers)[N], MenuO
 class PollSensorsMenu {
 private:
     MenuScreen *menu_{ nullptr };
+    uint32_t interval_{ 0 };
 
 public:
     MenuScreen *menu() {
@@ -438,6 +444,25 @@ public:
 
 public:
     PollSensorsMenu(GotoMenu *menus, MenuOption *back, Pool *pool) {
+        auto noisy_network_off = to_lambda_option(pool, "No WiFi", [=]() {
+            loginfo("disabled wifi");
+            configure_noisy_network(DebuggingUdpTraffic{});
+            launch_polling_task(menus, back, pool);
+        });
+
+        auto noisy_network_on = to_lambda_option(pool, "Noisy WiFi", [=]() {
+            loginfo("noisy wifi");
+            configure_noisy_network(DebuggingUdpTraffic{ 0, 3, 10, true });
+            launch_polling_task(menus, back, pool);
+        });
+
+        auto noisy_network_menu = new_menu_screen<3>(pool, "noisy-network",
+                                                     {
+                                                         back,
+                                                         noisy_network_on,
+                                                         noisy_network_off,
+                                                     });
+
         auto constexpr number_of_options = 5;
         auto options = (MenuOption **)pool->malloc(sizeof(MenuOption *) * number_of_options + 1);
         auto index = 0;
@@ -447,15 +472,8 @@ public:
         for (auto interval : { 2, 10, 30, 60 }) {
             FK_ASSERT(index < number_of_options);
             options[index++] = to_lambda_option(pool, pool->sprintf("Poll every %ds", interval), [=]() {
-                auto worker = create_pool_worker<PollSensorsWorker>(true, false, interval * 1000);
-                get_ipc()->signal_workers(WorkerCategory::Polling, 9);
-                get_ipc()->launch_worker(WorkerCategory::Polling, worker, true);
-                // TODO Move to subpool to allow for repeated readings presses.
-                auto gs = get_global_state_ro();
-                auto readings_menu = create_readings_menu(gs.get(), back, *pool);
-
-                back->on_selected();
-                menus->goto_menu(readings_menu, TenMinutesMs);
+                interval_ = interval;
+                menus->goto_menu(noisy_network_menu);
             });
         }
 
@@ -463,6 +481,19 @@ public:
 
         menu_ = new (pool) MenuScreen("poll", options);
     }
+
+private:
+    void launch_polling_task(GotoMenu *menus, MenuOption *back, Pool *pool) {
+        back->on_selected();
+        auto worker = create_pool_worker<PollSensorsWorker>(true, false, interval_ * 1000);
+        get_ipc()->signal_workers(WorkerCategory::Polling, 9);
+        get_ipc()->launch_worker(WorkerCategory::Polling, worker, true);
+        // TODO Move to subpool to allow for repeated readings presses.
+        auto gs = get_global_state_ro();
+        auto readings_menu = create_readings_menu(gs.get(), back, *pool);
+        menus->goto_menu(readings_menu, TenMinutesMs);
+    }
+
 };
 
 class PollWaterEcSensorsMenu {

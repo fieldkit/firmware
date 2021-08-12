@@ -283,6 +283,14 @@ struct DebuggingUdpTraffic {
     uint32_t stop_time{ 0 };
     uint32_t quantity{ 0 };
     uint32_t interval{ 0 };
+    bool readings_triggered{ false };
+
+    DebuggingUdpTraffic() {
+    }
+
+    DebuggingUdpTraffic(uint32_t stop_time, uint32_t quantity, uint32_t interval, bool readings_triggered)
+        : stop_time(stop_time), quantity(quantity), interval(interval), readings_triggered(readings_triggered) {
+    }
 };
 
 struct DebuggingState {

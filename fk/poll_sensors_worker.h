@@ -13,6 +13,10 @@ public:
 
 public:
     void run(Pool &pool) override;
+
+private:
+    void before_readings(Pool &pool);
+    void take_readings();
 };
 
 FK_ENABLE_TYPE_NAME(PollSensorsWorker);
