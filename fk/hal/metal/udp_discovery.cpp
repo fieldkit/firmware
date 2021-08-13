@@ -61,8 +61,8 @@ bool UDPDiscovery::service(Pool *pool) {
 
     if (fk_uptime() > publish_) {
         auto forced_traffic = get_forced_udp_traffic();
-        if (forced_traffic.stop_time > 0) {
-            if (fk_uptime() < forced_traffic.stop_time) {
+        if (forced_traffic.start_time > 0) {
+            if (fk_uptime() > forced_traffic.start_time && fk_uptime() < forced_traffic.stop_time) {
                 for (auto i = 0u; i < forced_traffic.quantity; ++i) {
                     send(fk_app_UdpStatus_UDP_STATUS_ONLINE, pool);
                 }

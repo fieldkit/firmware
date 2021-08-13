@@ -280,6 +280,7 @@ struct UpcomingUpdate {
 };
 
 struct DebuggingUdpTraffic {
+    uint32_t start_time{ 0 };
     uint32_t stop_time{ 0 };
     uint32_t quantity{ 0 };
     uint32_t interval{ 0 };

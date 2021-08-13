@@ -1,4 +1,5 @@
 #include "poll_sensors_worker.h"
+#include "hal/random.h"
 #include "state_ref.h"
 #include "tasks/tasks.h"
 #include "update_readings_listener.h"
@@ -40,7 +41,8 @@ void PollSensorsWorker::before_readings(Pool &pool) {
     loginfo("before-readings");
     auto &udp_traffic = gs.get()->debugging.udp_traffic;
     if (udp_traffic.readings_triggered) {
-        udp_traffic.stop_time = fk_uptime() + udp_traffic.duration;
+        udp_traffic.start_time = fk_uptime() + fk_random_i32(0, 10);
+        udp_traffic.stop_time = udp_traffic.start_time + udp_traffic.duration;
     } else {
         auto running = os_task_is_running(&network_task);
         if (running) {
