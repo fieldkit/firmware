@@ -20,8 +20,7 @@ static void copy_schedule(fk_data_JobSchedule &d, const Schedule &s, Pool &pool)
             intervals[i].start = s.intervals[i].start;
             intervals[i].end = s.intervals[i].end;
             intervals[i].interval = s.intervals[i].interval;
-        }
-        else {
+        } else {
             break;
         }
     }
@@ -37,21 +36,18 @@ static void copy_schedule(fk_data_JobSchedule &d, const Schedule &s, Pool &pool)
     d.jitter = s.jitter;
 }
 
-MetaRecord::MetaRecord(Pool &pool) {
+MetaRecord::MetaRecord(Pool &pool) : pool_(&pool) {
     record_ = pool.malloc<fk_data_DataRecord>();
 }
 
-fk_data_DataRecord &MetaRecord::for_decoding(Pool &pool) {
-    if (record_ == nullptr) {
-        record_ = pool.malloc<fk_data_DataRecord>();
-    }
-    fk_data_record_decoding_new(record_, pool);
-    return *record_;
+fk_data_DataRecord *MetaRecord::for_decoding() {
+    fk_data_record_decoding_new(record_, *pool_);
+    return record_;
 }
 
-fk_data_DataRecord &MetaRecord::record() {
+fk_data_DataRecord *MetaRecord::record() {
     FK_ASSERT(record_ != nullptr);
-    return *record_;
+    return record_;
 }
 
 void MetaRecord::include_state(GlobalState const *gs, fkb_header_t const *fkb_header, Pool &pool) {
@@ -280,4 +276,4 @@ void MetaRecord::include_modules(GlobalState const *gs, fkb_header_t const *fkb_
     record_->modules.arg = (void *)modules_array;
 }
 
-}
+} // namespace fk

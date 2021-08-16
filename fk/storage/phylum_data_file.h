@@ -1,7 +1,7 @@
 #pragma once
 
-#include "storage/phylum.h"
 #include "storage/file_ops.h"
+#include "storage/phylum.h"
 
 namespace fk {
 
@@ -9,7 +9,7 @@ struct index_attribute_t {
     uint32_t record{ (uint32_t)-1 };
     uint32_t position{ (uint32_t)-1 };
     uint32_t nrecords{ 0 };
-    uint8_t  hash[Hash::Length];
+    uint8_t hash[Hash::Length];
 
     index_attribute_t() {
         memset(hash, 0xff, sizeof(hash));
@@ -51,8 +51,9 @@ private:
     static constexpr dhara_sector_t RootDirectorySector = 0;
     Phylum &phylum_;
     Pool &pool_;
+    Pool *reader_pool_{ nullptr };
     const char *name_{ nullptr };
-    phylum::open_file_config file_cfg_{ };
+    phylum::open_file_config file_cfg_{};
     phylum::open_file_attribute *attributes_{ nullptr };
     directory_type dir_{ pc(), RootDirectorySector };
     phylum::file_reader *reader_{ nullptr };
@@ -60,6 +61,7 @@ private:
 
 public:
     PhylumDataFile(Phylum &phylum, Pool &pool);
+    virtual ~PhylumDataFile();
 
 public:
     struct appended_t {
@@ -79,10 +81,10 @@ public:
     appended_t append_immutable(RecordType type, pb_msgdesc_t const *fields, void const *record, Pool &pool);
 
 public:
-    int32_t seek_record_type(RecordType type, file_size_t &position, Pool &pool);
-    int32_t seek_record(record_number_t record, Pool &pool);
-    int32_t seek_position(file_size_t position, Pool &pool);
-    int32_t read(uint8_t *data, size_t size, Pool &pool);
+    int32_t seek_record_type(RecordType type, file_size_t &position);
+    int32_t seek_record(record_number_t record);
+    int32_t seek_position(file_size_t position);
+    int32_t read(uint8_t *data, size_t size);
     int32_t read(pb_msgdesc_t const *fields, void *record, Pool &pool);
     int32_t close();
 
@@ -106,7 +108,6 @@ private:
     phylum::phyctx pc() {
         return phylum_.pc();
     }
-
 };
 
-}
+} // namespace fk

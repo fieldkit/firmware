@@ -43,9 +43,13 @@ void ExportDataWorker::run(Pool &pool) {
     }
 
     auto meta_file = storage.file_reader(Storage::Meta, pool);
-    auto reading = storage.file_reader(Storage::Data, pool);
+
+    auto data_file = storage.file_reader(Storage::Data, pool);
+
+    loginfo("calculating file size");
+
     size_t total_bytes = 0u;
-    if (reading->get_file_size(total_bytes) < 0) {
+    if (data_file->get_file_size(total_bytes) < 0) {
         return;
     }
 
@@ -54,7 +58,24 @@ void ExportDataWorker::run(Pool &pool) {
         return;
     }
 
-    StandardPool loop_pool{ "decode" };
+    loginfo("seeking beginnings");
+
+    StandardPool loop_pool{ "decode-loop" };
+
+    // TODO Make this seek the first data record.
+    auto seek_meta_err = meta_file->seek_record(0, loop_pool);
+    if (!seek_meta_err) {
+        return;
+    }
+
+    // Why is this suddenly necessary?
+    // TODO Make this seek the first data record.
+    auto seek_data_err = data_file->seek_record(0, loop_pool);
+    if (!seek_data_err) {
+        return;
+    }
+
+    loginfo("exporting");
 
     auto bytes_read = 0u;
     auto nrecords = 0u;
@@ -62,7 +83,14 @@ void ExportDataWorker::run(Pool &pool) {
         auto record = loop_pool.malloc<fk_data_DataRecord>();
         fk_data_record_decoding_new(record, loop_pool);
 
-        auto record_read = reading->read(record, fk_data_DataRecord_fields);
+        logdebug("reading data");
+
+        auto record_read = data_file->read(record, fk_data_DataRecord_fields);
+        FK_ASSERT(record_read >= 0);
+        if (record_read < 0) {
+            logerror("error");
+            break;
+        }
         if (record_read == 0) {
             loginfo("done");
             break;
@@ -70,8 +98,10 @@ void ExportDataWorker::run(Pool &pool) {
 
         if (!lookup_meta(record->readings.meta, meta_file, loop_pool)) {
             logerror("error looking up meta (%" PRIu64 ")", record->readings.meta);
-            continue;
+            break;
         }
+
+        logdebug("meta found");
 
         if (writing_ == nullptr) {
             auto path = pool.sprintf("/%s/d_%06" PRIu32 ".csv", formatted.cstr(), meta_record_number_);
@@ -128,12 +158,15 @@ bool ExportDataWorker::lookup_meta(uint32_t meta_record_number, FileReader *meta
 
     meta_pool_.clear();
 
-    if (!meta_file->decode_signed(&meta_record_.for_decoding(meta_pool_), fk_data_DataRecord_fields, meta_pool_)) {
+    meta_record_ = MetaRecord{ meta_pool_ };
+
+    if (!meta_file->decode_signed(meta_record_.for_decoding(), fk_data_DataRecord_fields, meta_pool_)) {
         logerror("error reading meta record");
         return false;
     }
 
     meta_record_number_ = meta_record_number;
+
     if (writing_ != nullptr) {
         writing_->close();
         writing_ = nullptr;
@@ -143,7 +176,7 @@ bool ExportDataWorker::lookup_meta(uint32_t meta_record_number, FileReader *meta
 }
 
 bool ExportDataWorker::write_header() {
-    auto modules_array = reinterpret_cast<pb_array_t *>(meta_record_.record().modules.arg);
+    auto modules_array = reinterpret_cast<pb_array_t *>(meta_record_.record()->modules.arg);
     auto modules = reinterpret_cast<fk_data_ModuleInfo *>(modules_array->buffer);
 
     StackBufferedWriter<StackBufferSize> writer{ writing_ };
@@ -169,7 +202,7 @@ bool ExportDataWorker::write_header() {
 }
 
 ExportDataWorker::WriteStatus ExportDataWorker::write_row(fk_data_DataRecord &record) {
-    auto modules_array = reinterpret_cast<pb_array_t *>(meta_record_.record().modules.arg);
+    auto modules_array = reinterpret_cast<pb_array_t *>(meta_record_.record()->modules.arg);
     auto sensor_groups_array = reinterpret_cast<pb_array_t *>(record.readings.sensorGroups.arg);
 
     auto modules = reinterpret_cast<fk_data_ModuleInfo *>(modules_array->buffer);
@@ -178,13 +211,9 @@ ExportDataWorker::WriteStatus ExportDataWorker::write_row(fk_data_DataRecord &re
     StackBufferedWriter<StackBufferSize> writer{ writing_ };
 
     writer.write("%" PRIu64 ",%" PRIu32 ",%" PRIu32 ",%" PRIu32 ",%" PRIu32 ",%f,%f,%f,%" PRIu32 ",",
-                 record.readings.time, record.readings.reading,
-                 record.readings.meta, record.readings.uptime,
-                 record.readings.location.fix,
-                 record.readings.location.latitude,
-                 record.readings.location.longitude,
-                 record.readings.location.altitude,
-                 record.readings.location.time);
+                 record.readings.time, record.readings.reading, record.readings.meta, record.readings.uptime,
+                 record.readings.location.fix, record.readings.location.latitude, record.readings.location.longitude,
+                 record.readings.location.altitude, record.readings.location.time);
 
     if (modules_array->length != sensor_groups_array->length) {
         writer.write("modules-mismatch\n");
@@ -194,7 +223,7 @@ ExportDataWorker::WriteStatus ExportDataWorker::write_row(fk_data_DataRecord &re
     for (auto i = 0u; i < sensor_groups_array->length; ++i) {
         auto &sensor_group = sensor_groups[i];
         auto sensor_values_array = reinterpret_cast<pb_array_t *>(sensor_group.readings.arg);
-        auto sensor_values = reinterpret_cast<fk_data_SensorAndValue*>(sensor_values_array->buffer);
+        auto sensor_values = reinterpret_cast<fk_data_SensorAndValue *>(sensor_values_array->buffer);
 
         auto &module = modules[i];
 

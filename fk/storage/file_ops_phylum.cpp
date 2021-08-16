@@ -64,7 +64,7 @@ bool MetaOps::read_record(SignedRecordKind kind, MetaRecord &record, Pool &pool)
     }
 
     file_size_t position = UINT32_MAX;
-    err = file.seek_record_type(get_record_type(kind), position, pool);
+    err = file.seek_record_type(get_record_type(kind), position);
     if (err < 0) {
         logerror("seeking record by type");
         return false;
@@ -75,7 +75,7 @@ bool MetaOps::read_record(SignedRecordKind kind, MetaRecord &record, Pool &pool)
         return false;
     }
 
-    auto bytes_read = file.read(fk_data_DataRecord_fields, &record.for_decoding(pool), pool);
+    auto bytes_read = file.read(fk_data_DataRecord_fields, record.for_decoding(), pool);
     if (bytes_read <= 0) {
         logwarn("reading record by type");
         return false;
@@ -106,11 +106,11 @@ tl::expected<uint32_t, Error> DataOps::write_readings(fk_data_DataRecord *record
 
     record_number_t record_number = 0;
 
-    #if defined(FK_PHYLUM_AMPLIFICATION)
+#if defined(FK_PHYLUM_AMPLIFICATION)
     auto amplification = FK_PHYLUM_AMPLIFICATION;
-    #else
+#else
     auto amplification = 1;
-    #endif
+#endif
 
     for (auto i = 0; i < amplification; ++i) {
         auto attributes = file.attributes();
@@ -155,7 +155,7 @@ bool DataOps::read_fixed_record(DataRecord &record, Pool &pool) {
     }
 
     file_size_t position = UINT32_MAX;
-    err = file.seek_record_type(RecordType::Location, position, pool);
+    err = file.seek_record_type(RecordType::Location, position);
     if (err < 0) {
         logerror("seeking record by type");
         return false;
@@ -185,7 +185,7 @@ tl::expected<FileReader::SizeInfo, Error> FileReader::get_size(BlockNumber first
         };
     }
 
-    if (!open_if_necessary(pool)) {
+    if (!open_if_necessary()) {
         return tl::unexpected<Error>(Error::IO);
     }
 
@@ -193,13 +193,13 @@ tl::expected<FileReader::SizeInfo, Error> FileReader::get_size(BlockNumber first
     auto position_of_last = attributes.size;
 
     if (last_block != UINT32_MAX) {
-        position_of_last = pdf_.seek_record(last_block, pool);
+        position_of_last = pdf_.seek_record(last_block);
         if (position_of_last < 0) {
             return tl::unexpected<Error>(Error::IO);
         }
     }
 
-    auto position_of_first = pdf_.seek_record(first_block, pool);
+    auto position_of_first = pdf_.seek_record(first_block);
     if (position_of_first < 0) {
         return tl::unexpected<Error>(Error::IO);
     }
@@ -215,18 +215,24 @@ tl::expected<FileReader::SizeInfo, Error> FileReader::get_size(BlockNumber first
 }
 
 bool FileReader::decode_signed(void *record, pb_msgdesc_t const *fields, Pool &pool) {
-    FK_ASSERT(file_number_ == Storage::Data);
-    return false;
-}
+    FK_ASSERT(pdf_.seek_position(0) >= 0);
 
-bool FileReader::seek_record(RecordNumber record, Pool &pool) {
-    FK_ASSERT(file_number_ == Storage::Data);
-
-    if (!open_if_necessary(pool)) {
+    auto nread = pdf_.read(fields, record, pool);
+    if (nread <= 0) {
         return false;
     }
 
-    auto err = pdf_.seek_record(record, pool_);
+    return true;
+}
+
+bool FileReader::seek_record(RecordNumber record, Pool & /*pool*/) {
+    FK_ASSERT(file_number_ == Storage::Data);
+
+    if (!open_if_necessary()) {
+        return false;
+    }
+
+    auto err = pdf_.seek_record(record);
     if (err < 0) {
         return false;
     }
@@ -238,7 +244,7 @@ int32_t FileReader::read(uint8_t *record, size_t size) {
     FK_ASSERT(file_number_ == Storage::Data);
     FK_ASSERT(pdf_.is_open());
 
-    auto err = pdf_.read(record, size, pool_);
+    auto err = pdf_.read(record, size);
     if (err < 0) {
         return err;
     }
@@ -261,7 +267,7 @@ int32_t FileReader::read(void *record, pb_msgdesc_t const *fields) {
 int32_t FileReader::get_file_size(size_t &file_size) {
     FK_ASSERT(file_number_ == Storage::Data);
 
-    if (!open_if_necessary(pool_)) {
+    if (!open_if_necessary()) {
         return false;
     }
 
@@ -270,12 +276,14 @@ int32_t FileReader::get_file_size(size_t &file_size) {
     return 0;
 }
 
-bool FileReader::open_if_necessary(Pool &pool) {
+bool FileReader::open_if_necessary() {
     if (pdf_.is_open()) {
         return true;
     }
 
-    auto err = pdf_.open("d/00000000", pool);
+    loginfo("opening file");
+
+    auto err = pdf_.open("d/00000000", pool_);
     if (err < 0) {
         return false;
     }

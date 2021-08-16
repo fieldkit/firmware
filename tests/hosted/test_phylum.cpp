@@ -10,7 +10,6 @@ FK_DECLARE_LOGGER("tests");
 
 class PhylumSuite : public ::testing::Test {
 protected:
-
 };
 
 class RecordFaker {
@@ -153,7 +152,7 @@ TEST_F(PhylumSuite, Basic_DataFile_AppendImmutable_SeekRecordType) {
     ASSERT_EQ(file.append_immutable(RecordType::State, fk_data_DataRecord_fields, &fake.record, pool).bytes, 30);
 
     file_size_t position = 0;
-    ASSERT_FALSE(file.seek_record_type(RecordType::Modules, position, pool));
+    ASSERT_FALSE(file.seek_record_type(RecordType::Modules, position));
 
     ASSERT_EQ(file.append_immutable(RecordType::Modules, fk_data_DataRecord_fields, &fake.record, pool).bytes, 30);
 
@@ -195,9 +194,9 @@ TEST_F(PhylumSuite, Basic_DataFile_Reading_SeekBeginningAndEnd) {
 
     ASSERT_EQ(file.open("d/00000000", pool), 0);
 
-    ASSERT_EQ(file.seek_position(0, pool), 0);
+    ASSERT_EQ(file.seek_position(0), 0);
 
-    ASSERT_EQ(file.seek_position(UINT32_MAX, pool), (int32_t)total_written);
+    ASSERT_EQ(file.seek_position(UINT32_MAX), (int32_t)total_written);
 
     ASSERT_TRUE(phylum.sync());
 }
@@ -236,7 +235,7 @@ TEST_F(PhylumSuite, Basic_DataFile_Reading_SeekRecords) {
         StandardPool loop{ "loop" };
         PhylumDataFile file{ phylum, loop };
         ASSERT_EQ(file.open("d/00000000", loop), 0);
-        ASSERT_GE(file.seek_record(i, loop), 0);
+        ASSERT_GE(file.seek_record(i), 0);
 
         RecordFaker fake;
         auto bytes_read = file.read(fk_data_DataRecord_fields, fake.for_decode(pool), pool);

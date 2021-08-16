@@ -628,4 +628,4 @@ fk_app_ModuleHttpReply *fk_module_reply_prepare_encoding(fk_app_ModuleHttpReply 
     return reply;
 }
 
-}
+} // namespace fk

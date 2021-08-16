@@ -1,7 +1,7 @@
 #pragma once
 
-#include "storage/phylum.h"
 #include "storage/file_ops.h"
+#include "storage/phylum.h"
 
 namespace fk {
 
@@ -21,7 +21,6 @@ public:
 
 private:
     tl::expected<uint32_t, Error> write_kind(RecordType record_type, fk_data_DataRecord *record, Pool &pool);
-
 };
 
 class DataOps : public fk::DataOps {
@@ -60,8 +59,7 @@ public:
     int32_t get_file_size(size_t &file_size) override;
 
 private:
-    bool open_if_necessary(Pool &pool);
-
+    bool open_if_necessary();
 };
 
 } // namespace phylum_ops
