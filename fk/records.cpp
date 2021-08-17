@@ -3,15 +3,29 @@
 namespace fk {
 
 static inline void append_array(pb_array_t *array, void const *item) {
-    // TODO: Wasteful.
     auto previous = (void const *)array->buffer;
-    array->length++;
-    array->buffer = array->pool->malloc(array->item_size * array->length);
-    void *ptr = ((uint8_t *)array->buffer) + ((array->length - 1) * array->item_size);
-    if (previous != nullptr) {
-        memcpy(array->buffer, previous, ((array->length - 1) * array->item_size));
+
+    // TODO Eventually this should just use linked lists.
+    // If we haven't allocated a buffer yet or if we've filled that buffer.
+    if (previous == nullptr || array->length == array->allocated) {
+        if (array->allocated > 0) {
+            // Double the allocated buffer and then copy the old array in.
+            array->allocated *= 2;
+        } else {
+            array->allocated = 8;
+        }
+        array->buffer = array->pool->malloc(array->item_size * array->allocated);
+        if (previous != nullptr) {
+            memcpy(array->buffer, previous, array->item_size * array->length);
+        }
     }
+
+    FK_ASSERT(array->length < array->allocated);
+
+    // Append this entry. Notice previous could be wrong, here.
+    void *ptr = ((uint8_t *)array->buffer) + (array->length * array->item_size);
     memcpy(ptr, item, array->item_size);
+    array->length++;
 }
 
 static inline bool pb_data_network_info_item_decode(pb_istream_t *stream, pb_array_t *array) {
