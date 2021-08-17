@@ -2,6 +2,18 @@
 
 namespace fk {
 
+static inline void append_array(pb_array_t *array, void const *item) {
+    // TODO: Wasteful.
+    auto previous = (void const *)array->buffer;
+    array->length++;
+    array->buffer = array->pool->malloc(array->item_size * array->length);
+    void *ptr = ((uint8_t *)array->buffer) + ((array->length - 1) * array->item_size);
+    if (previous != nullptr) {
+        memcpy(array->buffer, previous, ((array->length - 1) * array->item_size));
+    }
+    memcpy(ptr, item, array->item_size);
+}
+
 static inline bool pb_data_network_info_item_decode(pb_istream_t *stream, pb_array_t *array) {
     fk_data_NetworkInfo info;
     info.ssid.funcs.decode = pb_decode_string;
@@ -13,15 +25,7 @@ static inline bool pb_data_network_info_item_decode(pb_istream_t *stream, pb_arr
         return false;
     }
 
-    // TODO: Wasteful.
-    auto previous = (const void *)array->buffer;
-    array->length++;
-    array->buffer = array->pool->malloc(array->item_size * array->length);
-    void *ptr = ((uint8_t *)array->buffer) + ((array->length - 1) * array->item_size);
-    if (previous != nullptr) {
-        memcpy(array->buffer, previous, ((array->length - 1) * array->item_size));
-    }
-    memcpy(ptr, &info, array->item_size);
+    append_array(array, &info);
 
     return true;
 }
@@ -33,15 +37,7 @@ static inline bool pb_data_sensor_and_value_item_decode(pb_istream_t *stream, pb
         return false;
     }
 
-    // TODO: Wasteful.
-    auto previous = (const void *)array->buffer;
-    array->length++;
-    array->buffer = array->pool->malloc(array->item_size * array->length);
-    void *ptr = ((uint8_t *)array->buffer) + ((array->length - 1) * array->item_size);
-    if (previous != nullptr) {
-        memcpy(array->buffer, previous, ((array->length - 1) * array->item_size));
-    }
-    memcpy(ptr, &sensor_value, array->item_size);
+    append_array(array, &sensor_value);
 
     return true;
 }
@@ -63,15 +59,7 @@ static inline bool pb_data_sensor_group_item_decode(pb_istream_t *stream, pb_arr
         return false;
     }
 
-    // TODO: Wasteful.
-    auto previous = (const void *)array->buffer;
-    array->length++;
-    array->buffer = array->pool->malloc(array->item_size * array->length);
-    void *ptr = ((uint8_t *)array->buffer) + ((array->length - 1) * array->item_size);
-    if (previous != nullptr) {
-        memcpy(array->buffer, previous, ((array->length - 1) * array->item_size));
-    }
-    memcpy(ptr, &sensor_group, array->item_size);
+    append_array(array, &sensor_group);
 
     return true;
 }
@@ -87,15 +75,7 @@ static inline bool pb_data_sensor_info_item_decode(pb_istream_t *stream, pb_arra
         return false;
     }
 
-    // TODO: Wasteful.
-    auto previous = (const void *)array->buffer;
-    array->length++;
-    array->buffer = array->pool->malloc(array->item_size * array->length);
-    void *ptr = ((uint8_t *)array->buffer) + ((array->length - 1) * array->item_size);
-    if (previous != nullptr) {
-        memcpy(array->buffer, previous, ((array->length - 1) * array->item_size));
-    }
-    memcpy(ptr, &sensor_info, array->item_size);
+    append_array(array, &sensor_info);
 
     return true;
 }
@@ -121,15 +101,7 @@ static inline bool pb_data_module_info_item_decode(pb_istream_t *stream, pb_arra
         return false;
     }
 
-    // TODO: Wasteful.
-    auto previous = (const void *)array->buffer;
-    array->length++;
-    array->buffer = array->pool->malloc(array->item_size * array->length);
-    void *ptr = ((uint8_t *)array->buffer) + ((array->length - 1) * array->item_size);
-    if (previous != nullptr) {
-        memcpy(array->buffer, previous, ((array->length - 1) * array->item_size));
-    }
-    memcpy(ptr, &module_info, array->item_size);
+    append_array(array, &module_info);
 
     return true;
 }
@@ -145,15 +117,7 @@ static inline bool pb_app_network_info_item_decode(pb_istream_t *stream, pb_arra
         return false;
     }
 
-    // TODO: Wasteful.
-    auto previous = (const void *)array->buffer;
-    array->length++;
-    array->buffer = array->pool->malloc(array->item_size * array->length);
-    void *ptr = ((uint8_t *)array->buffer) + ((array->length - 1) * array->item_size);
-    if (previous != nullptr) {
-        memcpy(array->buffer, previous, ((array->length - 1) * array->item_size));
-    }
-    memcpy(ptr, &info, array->item_size);
+    append_array(array, &info);
 
     return true;
 }
@@ -164,15 +128,7 @@ static inline bool fk_array_interval_decode(pb_istream_t *stream, pb_array_t *ar
         return false;
     }
 
-    // TODO: Wasteful.
-    auto previous = (const void *)array->buffer;
-    array->length++;
-    array->buffer = array->pool->malloc(array->item_size * array->length);
-    void *ptr = ((uint8_t *)array->buffer) + ((array->length - 1) * array->item_size);
-    if (previous != nullptr) {
-        memcpy(array->buffer, previous, ((array->length - 1) * array->item_size));
-    }
-    memcpy(ptr, &interval, array->item_size);
+    append_array(array, &interval);
 
     return true;
 }
@@ -604,15 +560,7 @@ static inline bool pb_decode_float_array(pb_istream_t *stream, const pb_field_t 
 
     auto array = (pb_array_t *)*arg;
 
-    // TODO: Wasteful.
-    auto previous = (const void *)array->buffer;
-    array->length++;
-    array->buffer = array->pool->malloc(array->item_size * array->length);
-    void *ptr = ((uint8_t *)array->buffer) + ((array->length - 1) * array->item_size);
-    if (previous != nullptr) {
-        memcpy(array->buffer, previous, ((array->length - 1) * array->item_size));
-    }
-    memcpy(ptr, &value, array->item_size);
+    append_array(array, &value);
 
     return true;
 }
