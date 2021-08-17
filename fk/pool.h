@@ -120,7 +120,22 @@ public:
     virtual void log_destroy(const char *how);
 
     virtual void log_info(int32_t depth = 0u);
+};
 
+class ScopedClearPool {
+private:
+    Pool *pool_;
+
+public:
+    ScopedClearPool(Pool &pool) : pool_(&pool) {
+    }
+
+    ScopedClearPool(Pool *pool) : pool_(pool) {
+    }
+
+    virtual ~ScopedClearPool() {
+        pool_->clear();
+    }
 };
 
 class StandardPool : public Pool {
@@ -172,12 +187,11 @@ public:
     bool can_malloc(size_t bytes) const {
         return (Pool::size() - Pool::used()) >= aligned_size(bytes);
     }
-
 };
 
 Pool *create_standard_pool_inside(const char *name);
 
-}
+} // namespace fk
 
 /**
  * New operator that allocates from a memory pool. Note that this is global

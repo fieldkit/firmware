@@ -195,16 +195,14 @@ bool StartupWorker::load_or_create_state(Pool &pool) {
     for (auto &abp : lora_preconfigured_abp) {
         if (memcmp(gs.get()->lora.device_eui, abp.device_eui, LoraDeviceEuiLength) == 0) {
             memcpy(gs.get()->lora.device_address, abp.device_address, LoraDeviceAddressLength);
-            loginfo("(fixed) lora device address: %s",
-                    bytes_to_hex_string_pool(abp.device_address, LoraDeviceAddressLength, pool));
+            loginfo("(fixed) lora device address: %s", bytes_to_hex_string_pool(abp.device_address, LoraDeviceAddressLength, pool));
 
             memcpy(gs.get()->lora.network_session_key, abp.network_session_key, LoraNetworkSessionKeyLength);
             loginfo("(fixed) lora network session key: %s",
                     bytes_to_hex_string_pool(abp.network_session_key, LoraNetworkSessionKeyLength, pool));
 
             memcpy(gs.get()->lora.app_session_key, abp.app_session_key, LoraAppSessionKeyLength);
-            loginfo("(fixed) lora app session key: %s",
-                    bytes_to_hex_string_pool(abp.app_session_key, LoraAppSessionKeyLength, pool));
+            loginfo("(fixed) lora app session key: %s", bytes_to_hex_string_pool(abp.app_session_key, LoraAppSessionKeyLength, pool));
         }
     }
 
@@ -685,8 +683,7 @@ static void copy_cron_spec_from_pb(const char *name, Schedule &cs, fk_data_JobSc
     cs.repeated = pb.repeated;
     cs.duration = pb.duration;
 
-    loginfo("(loaded) %s interval = %" PRIu32 " repeated = %" PRIu32 " duration = %" PRIu32, name, cs.interval,
-            cs.repeated, cs.duration);
+    loginfo("(loaded) %s interval = %" PRIu32 " repeated = %" PRIu32 " duration = %" PRIu32, name, cs.interval, cs.repeated, cs.duration);
 }
 
 } // namespace fk

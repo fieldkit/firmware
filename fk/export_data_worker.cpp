@@ -75,27 +75,40 @@ void ExportDataWorker::run(Pool &pool) {
         return;
     }
 
+    NoopProgressCallbacks noop_progress;
+    auto tracker = ProgressTracker{ &noop_progress, Operation::Exporting, "exporting", "", (uint32_t)total_bytes };
+
     loginfo("exporting");
 
+    auto errors = 0;
     auto bytes_read = 0u;
     auto nrecords = 0u;
     while (bytes_read < total_bytes) {
+        auto read_started = fk_uptime();
+
+        ScopedClearPool clear{ loop_pool };
+        ScopedLogLevelChange info_level{ LogLevels::INFO };
+
         auto record = loop_pool.malloc<fk_data_DataRecord>();
         fk_data_record_decoding_new(record, loop_pool);
 
         auto record_read = data_file->read(record, fk_data_DataRecord_fields);
-        FK_ASSERT(record_read >= 0);
         if (record_read < 0) {
-            logerror("error");
-            break;
+            logerror("error (%d)", errors);
+            errors++;
+            continue;
         }
         if (record_read == 0) {
             loginfo("done");
             break;
         }
 
+        // Eventually we can check to see if this record has module meta and we
+        // can use that instead of going back to find the record. Once we move
+        // off the old file system.
         if (!record->has_readings) {
             loginfo("skip meta record");
+            bytes_read += record_read;
             continue;
         }
 
@@ -103,6 +116,10 @@ void ExportDataWorker::run(Pool &pool) {
             logerror("error looking up meta (%" PRIu64 ")", record->readings.meta);
             break;
         }
+
+        auto read_time = fk_uptime() - read_started;
+
+        auto write_started = fk_uptime();
 
         if (writing_ == nullptr) {
             auto path = pool.sprintf("/%s/d_%06" PRIu32 ".csv", formatted.cstr(), meta_record_number_);
@@ -117,10 +134,6 @@ void ExportDataWorker::run(Pool &pool) {
             }
         }
 
-        info_.progress = (float)bytes_read / total_bytes;
-        bytes_read += record_read;
-        nrecords++;
-
         switch (write_row(*record)) {
         case Success: {
             break;
@@ -134,7 +147,13 @@ void ExportDataWorker::run(Pool &pool) {
         }
         }
 
-        loop_pool.clear();
+        auto write_time = fk_uptime() - write_started;
+
+        tracker.update(record_read, read_time, write_time);
+
+        info_.progress = (float)bytes_read / total_bytes;
+        bytes_read += record_read;
+        nrecords++;
     }
 
     if (writing_ != nullptr) {

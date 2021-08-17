@@ -481,7 +481,7 @@ int32_t PhylumDataFile::read(pb_msgdesc_t const *fields, void *record, Pool &poo
     PhylumReader reader{ preader };
     auto istream = pb_istream_from_readable(&reader);
     if (!pb_decode_delimited(&istream, fields, record)) {
-        logerror("read: decode");
+        logerror("read: decode position=%d", position);
         return -1;
     }
 
