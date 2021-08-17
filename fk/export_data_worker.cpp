@@ -83,8 +83,6 @@ void ExportDataWorker::run(Pool &pool) {
         auto record = loop_pool.malloc<fk_data_DataRecord>();
         fk_data_record_decoding_new(record, loop_pool);
 
-        logdebug("reading data");
-
         auto record_read = data_file->read(record, fk_data_DataRecord_fields);
         FK_ASSERT(record_read >= 0);
         if (record_read < 0) {
@@ -96,12 +94,15 @@ void ExportDataWorker::run(Pool &pool) {
             break;
         }
 
+        if (!record->has_readings) {
+            loginfo("skip meta record");
+            continue;
+        }
+
         if (!lookup_meta(record->readings.meta, meta_file, loop_pool)) {
             logerror("error looking up meta (%" PRIu64 ")", record->readings.meta);
             break;
         }
-
-        logdebug("meta found");
 
         if (writing_ == nullptr) {
             auto path = pool.sprintf("/%s/d_%06" PRIu32 ".csv", formatted.cstr(), meta_record_number_);
@@ -210,10 +211,10 @@ ExportDataWorker::WriteStatus ExportDataWorker::write_row(fk_data_DataRecord &re
 
     StackBufferedWriter<StackBufferSize> writer{ writing_ };
 
-    writer.write("%" PRIu64 ",%" PRIu32 ",%" PRIu32 ",%" PRIu32 ",%" PRIu32 ",%f,%f,%f,%" PRIu32 ",",
-                 record.readings.time, record.readings.reading, record.readings.meta, record.readings.uptime,
-                 record.readings.location.fix, record.readings.location.latitude, record.readings.location.longitude,
-                 record.readings.location.altitude, record.readings.location.time);
+    writer.write("%" PRIu64 ",%" PRIu32 ",%" PRIu32 ",%" PRIu32 ",%" PRIu32 ",%f,%f,%f,%" PRIu32 ",", record.readings.time,
+                 record.readings.reading, record.readings.meta, record.readings.uptime, record.readings.location.fix,
+                 record.readings.location.latitude, record.readings.location.longitude, record.readings.location.altitude,
+                 record.readings.location.time);
 
     if (modules_array->length != sensor_groups_array->length) {
         writer.write("modules-mismatch\n");
