@@ -18,7 +18,8 @@ void WaterApiReply::error(const char *message) {
 
     pb_array_t errors_array = {
         .length = sizeof(errors) / sizeof(fk_app_Error),
-        .itemSize = sizeof(fk_app_Error),
+        .allocated = sizeof(errors) / sizeof(fk_app_Error),
+        .item_size = sizeof(fk_app_Error),
         .buffer = pool_->copy(errors, sizeof(errors)),
         .fields = fk_app_Error_fields,
     };

@@ -9,7 +9,8 @@ static void copy_schedule(fk_data_JobSchedule &d, const Schedule &s, Pool &pool)
     auto intervals = (fk_app_Interval *)pool.malloc(sizeof(fk_app_Interval) * MaximumScheduleIntervals);
     auto intervals_array = pool.malloc_with<pb_array_t>({
         .length = 0,
-        .itemSize = sizeof(fk_app_Interval),
+        .allocated = 0,
+        .item_size = sizeof(fk_app_Interval),
         .buffer = intervals,
         .fields = fk_app_Interval_fields,
     });
@@ -135,7 +136,8 @@ void MetaRecord::include_state(GlobalState const *gs, fkb_header_t const *fkb_he
     }
     auto networks_array = pool.malloc_with<pb_array_t>({
         .length = WifiMaximumNumberOfNetworks,
-        .itemSize = sizeof(fk_data_NetworkInfo),
+        .allocated = WifiMaximumNumberOfNetworks,
+        .item_size = sizeof(fk_data_NetworkInfo),
         .buffer = networks,
         .fields = fk_data_NetworkInfo_fields,
     });
@@ -224,7 +226,8 @@ void MetaRecord::include_modules(GlobalState const *gs, fkb_header_t const *fkb_
 
             auto sensors_array = pool.malloc_with<pb_array_t>({
                 .length = sensor_metas->nsensors,
-                .itemSize = sizeof(fk_data_SensorInfo),
+                .allocated = sensor_metas->nsensors,
+                .item_size = sizeof(fk_data_SensorInfo),
                 .buffer = sensor_infos,
                 .fields = fk_data_SensorInfo_fields,
             });
@@ -238,7 +241,8 @@ void MetaRecord::include_modules(GlobalState const *gs, fkb_header_t const *fkb_
 
     auto modules_array = pool.malloc_with<pb_array_t>({
         .length = nmodules,
-        .itemSize = sizeof(fk_data_ModuleInfo),
+        .allocated = nmodules,
+        .item_size = sizeof(fk_data_ModuleInfo),
         .buffer = module_infos,
         .fields = fk_data_ModuleInfo_fields,
     });
