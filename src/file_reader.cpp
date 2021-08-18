@@ -3,18 +3,16 @@
 namespace phylum {
 
 file_reader::file_reader(phyctx pc, directory *directory, found_file file)
-    : pc_(pc), directory_(directory), file_(file), buffer_(std::move(pc.buffers_.allocate(pc.sectors_.sector_size()))),
-      data_chain_(pc, file.chain, "file-rdr") {
+    : pc_(pc), directory_(directory), file_(file), data_chain_(pc, file.chain, "file-rdr") {
 }
 
 file_reader::~file_reader() {
 }
 
 file_size_t file_reader::position() const {
-    auto buffer_position = buffer_.position();
     if (has_chain()) {
         auto dcc = data_chain_.cursor();
-        return dcc.position + buffer_position;
+        return dcc.position;
     }
     return inline_position_;
 }
@@ -64,7 +62,6 @@ int32_t file_reader::read(uint8_t *data, size_t size) {
 }
 
 int32_t file_reader::close() {
-    buffer_.free();
     return 0;
 }
 
