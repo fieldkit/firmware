@@ -4,6 +4,8 @@ namespace fk {
 
 FK_DECLARE_LOGGER("phylum");
 
+constexpr size_t PhylumReadBufferSize = 1024;
+
 using namespace phylum;
 
 static const char *get_attribute_name(uint8_t type) {
@@ -403,6 +405,28 @@ int32_t PhylumDataFile::seek_record_type(RecordType type, file_size_t &position)
     return err;
 }
 
+int32_t PhylumDataFile::open_reader() {
+    if (reader_ != nullptr) {
+        reader_->close();
+    }
+
+    if (reader_pool_ == nullptr) {
+        reader_pool_ = pool_.subpool("pdf-reader", aligned_size(sizeof(phylum::file_reader)) + PhylumReadBufferSize);
+    } else {
+        reader_pool_->clear();
+    }
+
+    reader_ = new (reader_pool_) phylum::file_reader{ pc(), &dir_, dir_.open() };
+
+    auto phylum_reader = new (reader_pool_) PhylumReader{ reader_ };
+
+    auto buffer = (uint8_t *)reader_pool_->malloc(PhylumReadBufferSize);
+
+    buffered_reader_ = new (reader_pool_) BufferedReader(phylum_reader, buffer, PhylumReadBufferSize);
+
+    return 0;
+}
+
 int32_t PhylumDataFile::seek_record(record_number_t record) {
     assert(name_ != nullptr);
 
@@ -410,15 +434,7 @@ int32_t PhylumDataFile::seek_record(record_number_t record) {
 
     loginfo("seek record=%d", record);
 
-    if (reader_ != nullptr) {
-        reader_->close();
-    }
-    if (reader_pool_ == nullptr) {
-        reader_pool_ = pool_.subpool("pdf-reader", aligned_size(sizeof(phylum::file_reader)));
-    } else {
-        reader_pool_->clear();
-    }
-    reader_ = new (reader_pool_) phylum::file_reader{ pc(), &dir_, dir_.open() };
+    FK_ASSERT(open_reader() >= 0);
 
     auto err = reader_->seek_record<index_tree_type>(record);
     if (err < 0) {
@@ -435,15 +451,8 @@ int32_t PhylumDataFile::seek_position(file_size_t position) {
 
     loginfo("seek position=%d", position);
 
-    if (reader_ != nullptr) {
-        reader_->close();
-    }
-    if (reader_pool_ == nullptr) {
-        reader_pool_ = pool_.subpool("pdf-reader", aligned_size(sizeof(phylum::file_reader)));
-    } else {
-        reader_pool_->clear();
-    }
-    reader_ = new (reader_pool_) phylum::file_reader{ pc(), &dir_, dir_.open() };
+    FK_ASSERT(open_reader() >= 0);
+
     auto err = reader_->seek_position<index_tree_type>(position);
     if (err < 0) {
         return err;
@@ -474,24 +483,23 @@ int32_t PhylumDataFile::read(pb_msgdesc_t const *fields, void *record, Pool &poo
 
     logged_task lt{ "df-read" };
 
-    auto position = reader_->position();
+    auto position = reader_->position(); // TODO: Off by buffered_reader position.
 
-    phylum::io_reader *preader = reader_;
+    uint32_t record_size = 0;
 
-    PhylumReader reader{ preader };
-    auto istream = pb_istream_from_readable(&reader);
-    if (!pb_decode_delimited(&istream, fields, record)) {
-        logerror("read: decode position=%d", position);
+    auto outer_stream = pb_istream_from_readable(buffered_reader_);
+    if (!pb_decode_varint32(&outer_stream, &record_size)) {
+        logerror("read: read-record (length) position=%d", position);
         return -1;
     }
 
-    auto position_after = reader_->position();
-
-    if (position_after > size_) {
-        size_ = position_after;
+    auto message_stream = pb_istream_from_readable(buffered_reader_, record_size);
+    if (!pb_decode(&message_stream, fields, record)) {
+        logerror("read: read-record (record) position=%d", position);
+        return -1;
     }
 
-    return position_after - position;
+    return record_size + pb_varint_size(record_size);
 }
 
 int32_t PhylumDataFile::read_delimited_bytes(uint8_t *data, size_t size, Pool &pool) {
@@ -499,14 +507,13 @@ int32_t PhylumDataFile::read_delimited_bytes(uint8_t *data, size_t size, Pool &p
 
     logged_task lt{ "df-read" };
 
-    auto position = reader_->position();
+    auto position = reader_->position(); // TODO: Off by buffered_reader position.
 
-    uint64_t record_size = 0;
+    uint32_t record_size = 0;
 
-    PhylumReader reader{ reader_ };
-    auto istream = pb_istream_from_readable(&reader);
-    if (!pb_decode_varint(&istream, &record_size)) {
-        logerror("read: decode position=%d", position);
+    auto outer_stream = pb_istream_from_readable(buffered_reader_);
+    if (!pb_decode_varint32(&outer_stream, &record_size)) {
+        logerror("read: decode (length)");
         return -1;
     }
 
@@ -518,23 +525,17 @@ int32_t PhylumDataFile::read_delimited_bytes(uint8_t *data, size_t size, Pool &p
         FK_ASSERT(pb_encode_varint(&ostream, record_size));
 
         if (reader_->read(data + ostream.bytes_written, record_size) != (int32_t)record_size) {
-            logerror("read: read-bytes position=%d", position);
+            logerror("read: read-delimited (length) position=%d", position);
             return -1;
         }
     } else {
         if (reader_->read(record_size) != (int32_t)record_size) {
-            logerror("read: read-bytes position=%d", position);
+            logerror("read: read-delimited (record) position=%d", position);
             return -1;
         }
     }
 
-    auto position_after = reader_->position();
-
-    if (position_after > size_) {
-        size_ = position_after;
-    }
-
-    return position_after - position;
+    return record_size + pb_varint_size(record_size);
 }
 
 int32_t PhylumDataFile::close() {
