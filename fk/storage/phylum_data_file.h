@@ -21,14 +21,14 @@ struct records_attribute_t {
     uint32_t nrecords;
 };
 
-#define PHYLUM_DRIVER_FILE_ATTR_RECORDS              (0x01)
-#define PHYLUM_DRIVER_FILE_ATTR_INDEX_LOCATION       (0x02)
-#define PHYLUM_DRIVER_FILE_ATTR_INDEX_UPLOADED       (0x03)
-#define PHYLUM_DRIVER_FILE_ATTR_INDEX_MODULES        (0x04)
-#define PHYLUM_DRIVER_FILE_ATTR_INDEX_SCHEDULE       (0x05)
-#define PHYLUM_DRIVER_FILE_ATTR_INDEX_STATE          (0x06)
-#define PHYLUM_DRIVER_FILE_ATTR_INDEX_DATA           (0x07)
-#define PHYLUM_DRIVER_FILE_ATTR_NUMBER               (0x07)
+#define PHYLUM_DRIVER_FILE_ATTR_RECORDS (0x01)
+#define PHYLUM_DRIVER_FILE_ATTR_INDEX_LOCATION (0x02)
+#define PHYLUM_DRIVER_FILE_ATTR_INDEX_UPLOADED (0x03)
+#define PHYLUM_DRIVER_FILE_ATTR_INDEX_MODULES (0x04)
+#define PHYLUM_DRIVER_FILE_ATTR_INDEX_SCHEDULE (0x05)
+#define PHYLUM_DRIVER_FILE_ATTR_INDEX_STATE (0x06)
+#define PHYLUM_DRIVER_FILE_ATTR_INDEX_DATA (0x07)
+#define PHYLUM_DRIVER_FILE_ATTR_NUMBER (0x07)
 
 static inline uint8_t phylum_file_attr_type_to_index(uint8_t type) {
     return type - 1;
@@ -86,6 +86,7 @@ public:
     int32_t seek_position(file_size_t position);
     int32_t read(uint8_t *data, size_t size);
     int32_t read(pb_msgdesc_t const *fields, void *record, Pool &pool);
+    int32_t read_delimited_bytes(uint8_t *data, size_t size, Pool &pool);
     int32_t close();
 
 public:

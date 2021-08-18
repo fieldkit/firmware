@@ -494,6 +494,49 @@ int32_t PhylumDataFile::read(pb_msgdesc_t const *fields, void *record, Pool &poo
     return position_after - position;
 }
 
+int32_t PhylumDataFile::read_delimited_bytes(uint8_t *data, size_t size, Pool &pool) {
+    assert(reader_ != nullptr);
+
+    logged_task lt{ "df-read" };
+
+    auto position = reader_->position();
+
+    uint64_t record_size = 0;
+
+    PhylumReader reader{ reader_ };
+    auto istream = pb_istream_from_readable(&reader);
+    if (!pb_decode_varint(&istream, &record_size)) {
+        logerror("read: decode position=%d", position);
+        return -1;
+    }
+
+    if (data != nullptr && size > 0) {
+        FK_ASSERT(size >= record_size);
+
+        auto ostream = pb_ostream_from_buffer(data, size);
+
+        FK_ASSERT(pb_encode_varint(&ostream, record_size));
+
+        if (reader_->read(data + ostream.bytes_written, record_size) != (int32_t)record_size) {
+            logerror("read: read-bytes position=%d", position);
+            return -1;
+        }
+    } else {
+        if (reader_->read(record_size) != (int32_t)record_size) {
+            logerror("read: read-bytes position=%d", position);
+            return -1;
+        }
+    }
+
+    auto position_after = reader_->position();
+
+    if (position_after > size_) {
+        size_ = position_after;
+    }
+
+    return position_after - position;
+}
+
 int32_t PhylumDataFile::close() {
     // I'm not super happy about this, but this is required to free
     // the buffer held by the file_reader, since it's dtor will never

@@ -18,9 +18,12 @@ MetaOps::MetaOps(Storage &storage) : storage_(storage) {
 
 static RecordType get_record_type(SignedRecordKind kind) {
     switch (kind) {
-    case SignedRecordKind::State: return RecordType::State;
-    case SignedRecordKind::Modules: return RecordType::Modules;
-    case SignedRecordKind::Schedule: return RecordType::Schedule;
+    case SignedRecordKind::State:
+        return RecordType::State;
+    case SignedRecordKind::Modules:
+        return RecordType::Modules;
+    case SignedRecordKind::Schedule:
+        return RecordType::Schedule;
     default:
         break;
     }
@@ -50,8 +53,7 @@ tl::expected<uint32_t, Error> MetaOps::write_kind(RecordType record_type, fk_dat
 
 tl::expected<FileAttributes, Error> MetaOps::attributes(Pool &pool) {
     return FileAttributes{
-        0 /* size */,
-        0 /* records */
+        0 /* size */, 0 /* records */
     };
 }
 
@@ -174,7 +176,8 @@ bool DataOps::read_fixed_record(DataRecord &record, Pool &pool) {
     return true;
 }
 
-FileReader::FileReader(Storage &storage, FileNumber file_number, Pool &pool) : storage_(storage), file_number_(file_number), pdf_{ storage.phylum(), pool }, pool_(pool) {
+FileReader::FileReader(Storage &storage, FileNumber file_number, Pool &pool)
+    : storage_(storage), file_number_(file_number), pdf_{ storage.phylum(), pool }, pool_(pool) {
 }
 
 tl::expected<FileReader::SizeInfo, Error> FileReader::get_size(BlockNumber first_block, BlockNumber last_block, Pool &pool) {
@@ -257,6 +260,18 @@ int32_t FileReader::read(void *record, pb_msgdesc_t const *fields) {
     FK_ASSERT(pdf_.is_open());
 
     auto err = pdf_.read(fields, record, pool_);
+    if (err < 0) {
+        return err;
+    }
+
+    return err;
+}
+
+int32_t FileReader::read_delimited_bytes(uint8_t *record, size_t size) {
+    FK_ASSERT(file_number_ == Storage::Data);
+    FK_ASSERT(pdf_.is_open());
+
+    auto err = pdf_.read_delimited_bytes(record, size, pool_);
     if (err < 0) {
         return err;
     }
