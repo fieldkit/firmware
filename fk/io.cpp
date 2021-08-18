@@ -7,7 +7,7 @@ namespace fk {
 
 static void write_buffered_writer(char c, void *arg) {
     if (c != 0) {
-        reinterpret_cast<BufferedWriter*>(arg)->write(c);
+        reinterpret_cast<BufferedWriter *>(arg)->write(c);
     }
 }
 
@@ -71,40 +71,43 @@ int32_t BufferedWriter::flush() {
     return position_;
 }
 
-BufferedReader::BufferedReader(Reader *reader, uint8_t *buffer, size_t buffer_size, size_t bytes_read) : reader_(reader), buffer_(buffer),
-                                                                                                         buffer_size_(buffer_size),
-                                                                                                         bytes_read_(bytes_read) {
+BufferedReader::BufferedReader(Reader *reader, uint8_t *buffer, size_t buffer_size, size_t bytes_read)
+    : reader_(reader), buffer_(buffer), buffer_size_(buffer_size), bytes_read_(bytes_read) {
 }
 
 BufferedReader::~BufferedReader() {
 }
 
 int32_t BufferedReader::read(uint8_t *buffer, size_t size) {
-    auto available = bytes_read_ - position_;
-    if (bytes_read_ == 0 || available == 0) {
-        if (reader_ == nullptr) {
-            return -1;
+    auto returning = 0u;
+    while (returning < size) {
+        auto available = bytes_read_ - position_;
+        if (bytes_read_ == 0 || available == 0) {
+            if (reader_ == nullptr) {
+                return -1;
+            }
+
+            auto nread = reader_->read(buffer_, buffer_size_);
+            if (nread <= 0) {
+                return 0;
+            }
+
+            position_ = 0;
+            bytes_read_ = nread;
         }
 
-        auto reading = std::min<size_t>(buffer_size_, size);
-        auto nread = reader_->read(buffer_, reading);
-        if (nread <= 0) {
-            return 0;
-        }
-
-        position_ = 0;
-        bytes_read_ = nread;
+        auto reading = std::min<size_t>(bytes_read_ - position_, size - returning);
+        memcpy(buffer, buffer_ + position_, reading);
+        position_ += reading;
+        returning += reading;
     }
 
-    auto reading = std::min<size_t>(bytes_read_ - position_, size);
-    memcpy(buffer, buffer_ + position_, reading);
-    position_ += reading;
-    return reading;
+    return returning;
 }
 
 int32_t BufferedReader::skip(size_t bytes) {
     position_ += bytes;
-    return position_  < bytes_read_ ? bytes : -1;
+    return position_ < bytes_read_ ? bytes : -1;
 }
 
 BufferedReader BufferedReader::beginning() const {
@@ -118,12 +121,12 @@ BufferedReader BufferedReader::remaining() const {
 }
 
 static bool write_callback(pb_ostream_t *stream, const uint8_t *buf, size_t c) {
-    auto s = reinterpret_cast<Writer*>(stream->state);
+    auto s = reinterpret_cast<Writer *>(stream->state);
     return s->write(buf, c) == (int32_t)c;
 }
 
 static bool read_callback(pb_istream_t *stream, uint8_t *buf, size_t c) {
-    auto s = reinterpret_cast<Reader*>(stream->state);
+    auto s = reinterpret_cast<Reader *>(stream->state);
     auto nread = s->read(buf, c);
     if (nread <= 0) {
         stream->bytes_left = 0; /* EOF */
@@ -136,8 +139,8 @@ pb_ostream_t pb_ostream_from_writable(Writer *s) {
     return stream;
 }
 
-pb_istream_t pb_istream_from_readable(Reader *s) {
-    pb_istream_t stream = { &read_callback, (void *)s, SIZE_MAX };
+pb_istream_t pb_istream_from_readable(Reader *s, size_t bytes_left) {
+    pb_istream_t stream = { &read_callback, (void *)s, bytes_left };
     return stream;
 }
 
@@ -157,4 +160,4 @@ void Buffer::clear() {
     position_ = 0;
 }
 
-}
+} // namespace fk
