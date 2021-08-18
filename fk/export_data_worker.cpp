@@ -90,13 +90,19 @@ void ExportDataWorker::run(Pool &pool) {
         ScopedLogLevelChange info_level{ LogLevels::INFO };
 
         auto record = loop_pool.malloc<fk_data_DataRecord>();
+
         fk_data_record_decoding_new(record, loop_pool);
 
         auto record_read = data_file->read(record, fk_data_DataRecord_fields);
         if (record_read < 0) {
             logerror("error (%d)", errors);
+            if (errors > 0) {
+                break;
+            }
             errors++;
             continue;
+        } else {
+            errors = 0;
         }
         if (record_read == 0) {
             loginfo("done");
