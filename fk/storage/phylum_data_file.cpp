@@ -483,7 +483,7 @@ int32_t PhylumDataFile::read(pb_msgdesc_t const *fields, void *record, Pool &poo
 
     logged_task lt{ "df-read" };
 
-    auto position = reader_->position(); // TODO: Off by buffered_reader position.
+    auto position = reader_->position() + buffered_reader_->position();
 
     uint32_t record_size = 0;
 
@@ -507,7 +507,7 @@ int32_t PhylumDataFile::read_delimited_bytes(uint8_t *data, size_t size, Pool &p
 
     logged_task lt{ "df-read" };
 
-    auto position = reader_->position(); // TODO: Off by buffered_reader position.
+    auto position = reader_->position() + buffered_reader_->position();
 
     uint32_t record_size = 0;
 

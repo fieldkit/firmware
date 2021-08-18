@@ -57,7 +57,7 @@ private:
     phylum::open_file_attribute *attributes_{ nullptr };
     directory_type dir_{ pc(), RootDirectorySector };
     phylum::file_reader *reader_{ nullptr };
-    Reader *buffered_reader_{ nullptr };
+    BufferedReader *buffered_reader_{ nullptr };
     file_size_t size_{ 0 };
 
 public:
