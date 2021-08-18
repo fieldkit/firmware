@@ -54,7 +54,8 @@ public:
             return err;
         }
 
-        phydebugf("seeking record desired=%d found-record=%d found-position=%d", desired_record, found_record, found_record_position);
+        phydebugf("seeking record desired=%d found-record=%d found-position=%d", desired_record, found_record,
+                  found_record_position);
 
         err = seek_position<tree_type>(found_record_position);
         if (err < 0) {

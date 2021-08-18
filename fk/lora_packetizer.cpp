@@ -22,7 +22,7 @@ private:
     Pool *pool_;
     fk_data_LoraRecord *record_{ nullptr };
     float *values_{ nullptr };
-    pb_array_t values_array_{ };
+    pb_array_t values_array_{};
     uint8_t previous_sensor_{ 0 };
     size_t encoded_size_{ 0 };
 
@@ -59,7 +59,8 @@ public:
         previous_sensor_ = 0;
         values_array_ = {
             .length = 0,
-            .itemSize = sizeof(float),
+            .allocated = 0,
+            .item_size = sizeof(float),
             .buffer = (void *)&values_,
         };
 
@@ -73,8 +74,7 @@ public:
             size += module > 0 ? pb_varint_size(module) + TagSize : 0;
             size += sensor > 0 ? pb_varint_size(sensor) + TagSize : 0;
             size += pb_varint_size(MaxReadingsPerPacket) + TagSize;
-        }
-        else {
+        } else {
             if (previous_sensor_ + 1 != sensor) {
                 size += pb_varint_size(sensor) + TagSize;
             }
@@ -91,8 +91,7 @@ public:
             record_->sensor = sensor;
             record_->values.arg = (void *)&values_array_;
             previous_sensor_ = sensor;
-        }
-        else {
+        } else {
             if (previous_sensor_ + 1 != sensor) {
                 record_->sensor = sensor;
             }
@@ -120,7 +119,6 @@ public:
         }
         return encoded;
     }
-
 };
 
 static void append(EncodedMessage **head, EncodedMessage **tail, EncodedMessage *node) {
@@ -132,14 +130,13 @@ static void append(EncodedMessage **head, EncodedMessage **tail, EncodedMessage 
 
     if ((*head) == nullptr) {
         (*head) = (*tail) = node;
-    }
-    else {
+    } else {
         (*tail)->link = node;
         (*tail) = node;
     }
 }
 
-tl::expected<EncodedMessage*, Error> LoraPacketizer::packetize(TakenReadings const &taken, Pool &pool) {
+tl::expected<EncodedMessage *, Error> LoraPacketizer::packetize(TakenReadings const &taken, Pool &pool) {
     EncodedMessage *head = nullptr;
     EncodedMessage *tail = nullptr;
 
@@ -174,4 +171,4 @@ tl::expected<EncodedMessage*, Error> LoraPacketizer::packetize(TakenReadings con
     return head;
 }
 
-}
+} // namespace fk

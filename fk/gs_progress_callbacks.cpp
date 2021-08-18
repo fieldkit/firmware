@@ -28,6 +28,11 @@ void GlobalStateProgressCallbacks::progress(Operation op, float progress) {
             gs->progress.progress = progress;
             break;
         }
+        case Operation::Exporting: {
+            gs->progress.operation = "Exporting";
+            gs->progress.progress = progress;
+            break;
+        }
         case Operation::Upload: {
             gs->progress.operation = "Copying";
             gs->progress.progress = progress;
@@ -47,4 +52,4 @@ void GlobalStateProgressCallbacks::progress(Operation op, float progress) {
     });
 }
 
-}
+} // namespace fk

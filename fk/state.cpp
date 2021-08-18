@@ -46,11 +46,11 @@ void Schedule::simple(uint32_t interval) {
     cron = lwcron::CronSpec::interval(std::max(interval, OneMinuteSeconds));
 }
 
-Schedule& Schedule::operator=(const fk_app_Schedule &s) {
+Schedule &Schedule::operator=(const fk_app_Schedule &s) {
     memzero(intervals, sizeof(intervals));
     if (s.intervals.arg != nullptr) {
-        auto intervals_array = reinterpret_cast<pb_array_t*>(s.intervals.arg);
-        auto intervals_source = reinterpret_cast<fk_app_Interval*>(intervals_array->buffer);
+        auto intervals_array = reinterpret_cast<pb_array_t *>(s.intervals.arg);
+        auto intervals_source = reinterpret_cast<fk_app_Interval *>(intervals_array->buffer);
         for (auto i = 0u; i < std::min(intervals_array->length, MaximumScheduleIntervals); ++i) {
             if (intervals_source[i].interval > 0 && intervals_source[i].start != intervals_source[i].end) {
                 intervals[i].start = intervals_source[i].start;
@@ -70,19 +70,19 @@ Schedule& Schedule::operator=(const fk_app_Schedule &s) {
     return *this;
 }
 
-GlobalStateRef<const GlobalState*> get_global_state_ro() {
+GlobalStateRef<const GlobalState *> get_global_state_ro() {
     auto lock = data_lock.acquire_read(UINT32_MAX);
     FK_ASSERT(lock);
     return { std::move(lock), true, &gs };
 }
 
-GlobalStateRef<GlobalState*> get_global_state_rw() {
+GlobalStateRef<GlobalState *> get_global_state_rw() {
     auto lock = data_lock.acquire_write(UINT32_MAX);
     FK_ASSERT(lock);
     return { std::move(lock), false, &gs };
 }
 
-GlobalStateRef<GlobalState const*> try_get_global_state_ro() {
+GlobalStateRef<GlobalState const *> try_get_global_state_ro() {
     auto lock = data_lock.acquire_read(0);
     if (!lock) {
         return { std::move(lock), false, nullptr };
@@ -138,7 +138,7 @@ bool GlobalState::flush(Pool &pool) {
     MetaRecord meta_record{ pool };
     meta_record.include_state(this, &fkb_header, pool);
 
-    if (!storage.meta_ops()->write_record(SignedRecordKind::State, &meta_record.record(), pool)) {
+    if (!storage.meta_ops()->write_record(SignedRecordKind::State, meta_record.record(), pool)) {
         return false;
     }
 
@@ -159,4 +159,4 @@ GpsState const *GlobalState::location(Pool &pool) const {
     return gps.clone(pool);
 }
 
-}
+} // namespace fk

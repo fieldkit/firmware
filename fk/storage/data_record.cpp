@@ -46,7 +46,8 @@ void DataRecord::include_readings(GlobalState const *gs, fkb_header_t const *fkb
         // initialized. This isn't ideal, continue just sucks.
         auto empty_readings_array = pool.malloc<pb_array_t>();
         empty_readings_array->length = 0;
-        empty_readings_array->itemSize = sizeof(fk_data_SensorAndValue);
+        empty_readings_array->allocated = 0;
+        empty_readings_array->item_size = sizeof(fk_data_SensorAndValue);
         empty_readings_array->buffer = nullptr;
         empty_readings_array->fields = fk_data_SensorAndValue_fields;
 
@@ -70,8 +71,8 @@ void DataRecord::include_readings(GlobalState const *gs, fkb_header_t const *fkb
                 auto reading = sensor.reading();
                 auto sensor_index = sensor.index();
 
-                logverbose("[%d] sensor[%2d] name='%s.%s' calibrated=%f uncalibrated=%f",
-                           position.integer(), sensor_index, meta->name, sensor.name(), reading.calibrated, reading.uncalibrated);
+                logverbose("[%d] sensor[%2d] name='%s.%s' calibrated=%f uncalibrated=%f", position.integer(), sensor_index, meta->name,
+                           sensor.name(), reading.calibrated, reading.uncalibrated);
                 sensor_values[sensor_index] = fk_data_SensorAndValue_init_default;
                 sensor_values[sensor_index].sensor = sensor.index();
                 sensor_values[sensor_index].value = reading.calibrated;
@@ -84,14 +85,14 @@ void DataRecord::include_readings(GlobalState const *gs, fkb_header_t const *fkb
             if (sensors.size() > 0) {
                 auto readings_array = pool.malloc<pb_array_t>();
                 readings_array->length = sensors.size();
-                readings_array->itemSize = sizeof(fk_data_SensorAndValue);
+                readings_array->allocated = sensors.size();
+                readings_array->item_size = sizeof(fk_data_SensorAndValue);
                 readings_array->buffer = sensor_values;
                 readings_array->fields = fk_data_SensorAndValue_fields;
 
                 group.readings.funcs.encode = pb_encode_array;
                 group.readings.arg = readings_array;
-            }
-            else {
+            } else {
                 group.readings.funcs.encode = pb_encode_array;
                 group.readings.arg = nullptr;
             }
@@ -101,7 +102,8 @@ void DataRecord::include_readings(GlobalState const *gs, fkb_header_t const *fkb
 
         auto sensor_groups_array = pool.malloc<pb_array_t>();
         sensor_groups_array->length = nmodules;
-        sensor_groups_array->itemSize = sizeof(fk_data_SensorGroup);
+        sensor_groups_array->allocated = nmodules;
+        sensor_groups_array->item_size = sizeof(fk_data_SensorGroup);
         sensor_groups_array->buffer = groups;
         sensor_groups_array->fields = fk_data_SensorGroup_fields;
 

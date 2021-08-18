@@ -11,7 +11,8 @@ namespace fk {
 
 FK_DECLARE_LOGGER("connection");
 
-HttpServerConnection::HttpServerConnection(Pool *pool, NetworkConnection *conn, uint32_t number, HttpRouter *router) : Connection(pool, conn, number), router_{ router }, req_{ pool_ }, buffer_{ nullptr }, size_{ 0 }, position_{ 0 } {
+HttpServerConnection::HttpServerConnection(Pool *pool, NetworkConnection *conn, uint32_t number, HttpRouter *router)
+    : Connection(pool, conn, number), router_{ router }, req_{ pool_ }, buffer_{ nullptr }, size_{ 0 }, position_{ 0 } {
 }
 
 HttpServerConnection::~HttpServerConnection() {
@@ -34,7 +35,6 @@ int32_t HttpServerConnection::plain(HttpStatus status, const char *status_descri
 
     return 0;
 }
-
 
 int32_t HttpServerConnection::available() const {
     return req_.buffered_body_length();
@@ -69,7 +69,8 @@ int32_t HttpServerConnection::busy(uint32_t delay, const char *message, Pool &po
 
     pb_array_t errors_array = {
         .length = sizeof(errors) / sizeof(fk_app_Error),
-        .itemSize = sizeof(fk_app_Error),
+        .allocated = sizeof(errors) / sizeof(fk_app_Error),
+        .item_size = sizeof(fk_app_Error),
         .buffer = pool_->copy(errors, sizeof(errors)),
         .fields = fk_app_Error_fields,
     };
@@ -99,7 +100,8 @@ int32_t HttpServerConnection::error(HttpStatus status, const char *message, Pool
 
     pb_array_t errors_array = {
         .length = sizeof(errors) / sizeof(fk_app_Error),
-        .itemSize = sizeof(fk_app_Error),
+        .allocated = sizeof(errors) / sizeof(fk_app_Error),
+        .item_size = sizeof(fk_app_Error),
         .buffer = pool_->copy(errors, sizeof(errors)),
         .fields = fk_app_Error_fields,
     };
@@ -169,7 +171,8 @@ int32_t HttpServerConnection::write(HttpStatus status_code, const char *status_m
     return size;
 }
 
-int32_t HttpServerConnection::write(HttpStatus status, const char *status_message, void const *record, pb_msgdesc_t const *fields, Pool &pool) {
+int32_t HttpServerConnection::write(HttpStatus status, const char *status_message, void const *record, pb_msgdesc_t const *fields,
+                                    Pool &pool) {
     auto started = fk_uptime();
 
     size_t size = 0;
@@ -275,7 +278,8 @@ bool HttpServerConnection::service() {
         auto size = pool_->size();
         auto used = pool_->used();
         auto elapsed = fk_uptime() - started_;
-        loginfo("[%" PRIu32 "] closing (%" PRIu32 " tx) (%" PRIu32 " rx) (%zd/%zd pooled) (%" PRIu32 "ms)", number_, bytes_tx_, bytes_rx_, used, size, elapsed);
+        loginfo("[%" PRIu32 "] closing (%" PRIu32 " tx) (%" PRIu32 " rx) (%zd/%zd pooled) (%" PRIu32 "ms)", number_, bytes_tx_, bytes_rx_,
+                used, size, elapsed);
         return false;
     }
 
@@ -291,14 +295,13 @@ bool HttpServerConnection::service() {
                     return true;
                 }
 
-                loginfo("[%" PRIu32 "] routing '%s' path = '%s' (%" PRIu32 " bytes) ('%s')",
-                        number_, req_.url(), path, req_.length(), req_.user_agent());
+                loginfo("[%" PRIu32 "] routing '%s' path = '%s' (%" PRIu32 " bytes) ('%s')", number_, req_.url(), path, req_.length(),
+                        req_.user_agent());
 
                 auto handler = router_->route(path);
                 if (handler == nullptr) {
                     plain(HttpStatus::NotFound, "not found", "404: not found, no handler", *pool_);
-                }
-                else {
+                } else {
                     if (!handler->handle(this, *pool_)) {
                         plain(HttpStatus::ServerError, "internal error", "500: internal error", *pool_);
                     }
@@ -312,4 +315,4 @@ bool HttpServerConnection::service() {
     return true;
 }
 
-}
+} // namespace fk

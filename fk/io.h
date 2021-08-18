@@ -60,7 +60,6 @@ public:
     int32_t write(const char *s, ...);
     int32_t write(char c);
     int32_t flush();
-
 };
 
 class BufferedReader : public Reader {
@@ -90,18 +89,15 @@ public:
     size_t available() const {
         return buffer_size_ - position_;
     }
-
 };
 
-template<size_t Size>
-class StackBufferedWriter : public BufferedWriter {
+template <size_t Size> class StackBufferedWriter : public BufferedWriter {
 private:
-    uint8_t buffer_[Size]{ };
+    uint8_t buffer_[Size]{};
 
 public:
     explicit StackBufferedWriter(Writer *writer) : BufferedWriter(writer, buffer_, Size) {
     }
-
 };
 
 class Buffer {
@@ -126,11 +122,10 @@ public:
     void write(char c);
     bool full() const;
     void clear();
-
 };
 
 pb_ostream_t pb_ostream_from_writable(Writer *s);
 
-pb_istream_t pb_istream_from_readable(Reader *s);
+pb_istream_t pb_istream_from_readable(Reader *s, size_t bytes_left = SIZE_MAX);
 
-}
+} // namespace fk

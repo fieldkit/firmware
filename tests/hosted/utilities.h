@@ -43,8 +43,9 @@ public:
     };
 
     pb_array_t readings_array{
-        .length = (size_t)10,
-        .itemSize = sizeof(fk_data_SensorAndValue),
+        .length = 10u,
+        .allocated = 10u,
+        .item_size = sizeof(fk_data_SensorAndValue),
         .buffer = &readings,
         .fields = fk_data_SensorAndValue_fields,
     };
@@ -62,8 +63,9 @@ public:
     };
 
     pb_array_t sensor_groups_array{
-        .length = (size_t)1,
-        .itemSize = sizeof(fk_data_SensorGroup),
+        .length = 1u,
+        .allocated = 1u,
+        .item_size = sizeof(fk_data_SensorGroup),
         .buffer = &groups,
         .fields = fk_data_SensorGroup_fields,
     };

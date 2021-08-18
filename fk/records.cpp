@@ -2,6 +2,32 @@
 
 namespace fk {
 
+static inline void append_array(pb_array_t *array, void const *item) {
+    auto previous = (void const *)array->buffer;
+
+    // TODO Eventually this should just use linked lists.
+    // If we haven't allocated a buffer yet or if we've filled that buffer.
+    if (previous == nullptr || array->length == array->allocated) {
+        if (array->allocated > 0) {
+            // Double the allocated buffer and then copy the old array in.
+            array->allocated *= 2;
+        } else {
+            array->allocated = 8;
+        }
+        array->buffer = array->pool->malloc(array->item_size * array->allocated);
+        if (previous != nullptr) {
+            memcpy(array->buffer, previous, array->item_size * array->length);
+        }
+    }
+
+    FK_ASSERT(array->length < array->allocated);
+
+    // Append this entry. Notice previous could be wrong, here.
+    void *ptr = ((uint8_t *)array->buffer) + (array->length * array->item_size);
+    memcpy(ptr, item, array->item_size);
+    array->length++;
+}
+
 static inline bool pb_data_network_info_item_decode(pb_istream_t *stream, pb_array_t *array) {
     fk_data_NetworkInfo info;
     info.ssid.funcs.decode = pb_decode_string;
@@ -13,15 +39,7 @@ static inline bool pb_data_network_info_item_decode(pb_istream_t *stream, pb_arr
         return false;
     }
 
-    // TODO: Wasteful.
-    auto previous = (const void *)array->buffer;
-    array->length++;
-    array->buffer = array->pool->malloc(array->itemSize * array->length);
-    void *ptr = ((uint8_t *)array->buffer) + ((array->length - 1) * array->itemSize);
-    if (previous != nullptr) {
-        memcpy(array->buffer, previous, ((array->length - 1) * array->itemSize));
-    }
-    memcpy(ptr, &info, array->itemSize);
+    append_array(array, &info);
 
     return true;
 }
@@ -33,15 +51,7 @@ static inline bool pb_data_sensor_and_value_item_decode(pb_istream_t *stream, pb
         return false;
     }
 
-    // TODO: Wasteful.
-    auto previous = (const void *)array->buffer;
-    array->length++;
-    array->buffer = array->pool->malloc(array->itemSize * array->length);
-    void *ptr = ((uint8_t *)array->buffer) + ((array->length - 1) * array->itemSize);
-    if (previous != nullptr) {
-        memcpy(array->buffer, previous, ((array->length - 1) * array->itemSize));
-    }
-    memcpy(ptr, &sensor_value, array->itemSize);
+    append_array(array, &sensor_value);
 
     return true;
 }
@@ -51,7 +61,8 @@ static inline bool pb_data_sensor_group_item_decode(pb_istream_t *stream, pb_arr
     sensor_group.readings.funcs.decode = pb_decode_array;
     sensor_group.readings.arg = (void *)array->pool->malloc_with<pb_array_t>({
         .length = 0,
-        .itemSize = sizeof(fk_data_SensorAndValue),
+        .allocated = 0,
+        .item_size = sizeof(fk_data_SensorAndValue),
         .buffer = nullptr,
         .fields = fk_data_SensorAndValue_fields,
         .decode_item_fn = pb_data_sensor_and_value_item_decode,
@@ -62,15 +73,7 @@ static inline bool pb_data_sensor_group_item_decode(pb_istream_t *stream, pb_arr
         return false;
     }
 
-    // TODO: Wasteful.
-    auto previous = (const void *)array->buffer;
-    array->length++;
-    array->buffer = array->pool->malloc(array->itemSize * array->length);
-    void *ptr = ((uint8_t *)array->buffer) + ((array->length - 1) * array->itemSize);
-    if (previous != nullptr) {
-        memcpy(array->buffer, previous, ((array->length - 1) * array->itemSize));
-    }
-    memcpy(ptr, &sensor_group, array->itemSize);
+    append_array(array, &sensor_group);
 
     return true;
 }
@@ -86,15 +89,7 @@ static inline bool pb_data_sensor_info_item_decode(pb_istream_t *stream, pb_arra
         return false;
     }
 
-    // TODO: Wasteful.
-    auto previous = (const void *)array->buffer;
-    array->length++;
-    array->buffer = array->pool->malloc(array->itemSize * array->length);
-    void *ptr = ((uint8_t *)array->buffer) + ((array->length - 1) * array->itemSize);
-    if (previous != nullptr) {
-        memcpy(array->buffer, previous, ((array->length - 1) * array->itemSize));
-    }
-    memcpy(ptr, &sensor_info, array->itemSize);
+    append_array(array, &sensor_info);
 
     return true;
 }
@@ -104,7 +99,8 @@ static inline bool pb_data_module_info_item_decode(pb_istream_t *stream, pb_arra
     module_info.sensors.funcs.decode = pb_decode_array;
     module_info.sensors.arg = (void *)array->pool->malloc_with<pb_array_t>({
         .length = 0,
-        .itemSize = sizeof(fk_data_SensorInfo),
+        .allocated = 0,
+        .item_size = sizeof(fk_data_SensorInfo),
         .buffer = nullptr,
         .fields = fk_data_SensorInfo_fields,
         .decode_item_fn = pb_data_sensor_info_item_decode,
@@ -119,15 +115,7 @@ static inline bool pb_data_module_info_item_decode(pb_istream_t *stream, pb_arra
         return false;
     }
 
-    // TODO: Wasteful.
-    auto previous = (const void *)array->buffer;
-    array->length++;
-    array->buffer = array->pool->malloc(array->itemSize * array->length);
-    void *ptr = ((uint8_t *)array->buffer) + ((array->length - 1) * array->itemSize);
-    if (previous != nullptr) {
-        memcpy(array->buffer, previous, ((array->length - 1) * array->itemSize));
-    }
-    memcpy(ptr, &module_info, array->itemSize);
+    append_array(array, &module_info);
 
     return true;
 }
@@ -143,15 +131,7 @@ static inline bool pb_app_network_info_item_decode(pb_istream_t *stream, pb_arra
         return false;
     }
 
-    // TODO: Wasteful.
-    auto previous = (const void *)array->buffer;
-    array->length++;
-    array->buffer = array->pool->malloc(array->itemSize * array->length);
-    void *ptr = ((uint8_t *)array->buffer) + ((array->length - 1) * array->itemSize);
-    if (previous != nullptr) {
-        memcpy(array->buffer, previous, ((array->length - 1) * array->itemSize));
-    }
-    memcpy(ptr, &info, array->itemSize);
+    append_array(array, &info);
 
     return true;
 }
@@ -162,15 +142,7 @@ static inline bool fk_array_interval_decode(pb_istream_t *stream, pb_array_t *ar
         return false;
     }
 
-    // TODO: Wasteful.
-    auto previous = (const void *)array->buffer;
-    array->length++;
-    array->buffer = array->pool->malloc(array->itemSize * array->length);
-    void *ptr = ((uint8_t *)array->buffer) + ((array->length - 1) * array->itemSize);
-    if (previous != nullptr) {
-        memcpy(array->buffer, previous, ((array->length - 1) * array->itemSize));
-    }
-    memcpy(ptr, &interval, array->itemSize);
+    append_array(array, &interval);
 
     return true;
 }
@@ -206,7 +178,8 @@ void fk_data_record_decoding_new(fk_data_DataRecord *record, Pool &pool) {
     record->network.networks.funcs.decode = pb_decode_array;
     record->network.networks.arg = (void *)pool.malloc_with<pb_array_t>({
         .length = 0,
-        .itemSize = sizeof(fk_data_NetworkInfo),
+        .allocated = 0,
+        .item_size = sizeof(fk_data_NetworkInfo),
         .buffer = nullptr,
         .fields = fk_data_NetworkInfo_fields,
         .decode_item_fn = pb_data_network_info_item_decode,
@@ -218,7 +191,8 @@ void fk_data_record_decoding_new(fk_data_DataRecord *record, Pool &pool) {
     record->schedule.readings.intervals.funcs.decode = pb_decode_array;
     record->schedule.readings.intervals.arg = (void *)pool.malloc_with<pb_array_t>({
         .length = 0,
-        .itemSize = sizeof(fk_app_Interval),
+        .allocated = 0,
+        .item_size = sizeof(fk_app_Interval),
         .buffer = nullptr,
         .fields = fk_app_Interval_fields,
         .decode_item_fn = fk_array_interval_decode,
@@ -230,7 +204,8 @@ void fk_data_record_decoding_new(fk_data_DataRecord *record, Pool &pool) {
     record->schedule.network.intervals.funcs.decode = pb_decode_array;
     record->schedule.network.intervals.arg = (void *)pool.malloc_with<pb_array_t>({
         .length = 0,
-        .itemSize = sizeof(fk_app_Interval),
+        .allocated = 0,
+        .item_size = sizeof(fk_app_Interval),
         .buffer = nullptr,
         .fields = fk_app_Interval_fields,
         .decode_item_fn = fk_array_interval_decode,
@@ -242,7 +217,8 @@ void fk_data_record_decoding_new(fk_data_DataRecord *record, Pool &pool) {
     record->schedule.gps.intervals.funcs.decode = pb_decode_array;
     record->schedule.gps.intervals.arg = (void *)pool.malloc_with<pb_array_t>({
         .length = 0,
-        .itemSize = sizeof(fk_app_Interval),
+        .allocated = 0,
+        .item_size = sizeof(fk_app_Interval),
         .buffer = nullptr,
         .fields = fk_app_Interval_fields,
         .decode_item_fn = fk_array_interval_decode,
@@ -254,7 +230,8 @@ void fk_data_record_decoding_new(fk_data_DataRecord *record, Pool &pool) {
     record->schedule.lora.intervals.funcs.decode = pb_decode_array;
     record->schedule.lora.intervals.arg = (void *)pool.malloc_with<pb_array_t>({
         .length = 0,
-        .itemSize = sizeof(fk_app_Interval),
+        .allocated = 0,
+        .item_size = sizeof(fk_app_Interval),
         .buffer = nullptr,
         .fields = fk_app_Interval_fields,
         .decode_item_fn = fk_array_interval_decode,
@@ -269,7 +246,8 @@ void fk_data_record_decoding_new(fk_data_DataRecord *record, Pool &pool) {
     record->modules.funcs.decode = pb_decode_array;
     record->modules.arg = (void *)pool.malloc_with<pb_array_t>({
         .length = 0,
-        .itemSize = sizeof(fk_data_ModuleInfo),
+        .allocated = 0,
+        .item_size = sizeof(fk_data_ModuleInfo),
         .buffer = nullptr,
         .fields = fk_data_ModuleInfo_fields,
         .decode_item_fn = pb_data_module_info_item_decode,
@@ -279,7 +257,8 @@ void fk_data_record_decoding_new(fk_data_DataRecord *record, Pool &pool) {
     record->readings.sensorGroups.funcs.decode = pb_decode_array;
     record->readings.sensorGroups.arg = (void *)pool.malloc_with<pb_array_t>({
         .length = 0,
-        .itemSize = sizeof(fk_data_SensorGroup),
+        .allocated = 0,
+        .item_size = sizeof(fk_data_SensorGroup),
         .buffer = nullptr,
         .fields = fk_data_SensorGroup_fields,
         .decode_item_fn = pb_data_sensor_group_item_decode,
@@ -332,7 +311,8 @@ fk_app_HttpQuery *fk_http_query_prepare_decoding(fk_app_HttpQuery *query, Pool *
     query->schedules.readings.intervals.funcs.decode = pb_decode_array;
     query->schedules.readings.intervals.arg = (void *)pool->malloc_with<pb_array_t>({
         .length = 0,
-        .itemSize = sizeof(fk_app_Interval),
+        .allocated = 0,
+        .item_size = sizeof(fk_app_Interval),
         .buffer = nullptr,
         .fields = fk_app_Interval_fields,
         .decode_item_fn = fk_array_interval_decode,
@@ -344,7 +324,8 @@ fk_app_HttpQuery *fk_http_query_prepare_decoding(fk_app_HttpQuery *query, Pool *
     query->schedules.network.intervals.funcs.decode = pb_decode_array;
     query->schedules.network.intervals.arg = (void *)pool->malloc_with<pb_array_t>({
         .length = 0,
-        .itemSize = sizeof(fk_app_Interval),
+        .allocated = 0,
+        .item_size = sizeof(fk_app_Interval),
         .buffer = nullptr,
         .fields = fk_app_Interval_fields,
         .decode_item_fn = fk_array_interval_decode,
@@ -356,7 +337,8 @@ fk_app_HttpQuery *fk_http_query_prepare_decoding(fk_app_HttpQuery *query, Pool *
     query->schedules.gps.intervals.funcs.decode = pb_decode_array;
     query->schedules.gps.intervals.arg = (void *)pool->malloc_with<pb_array_t>({
         .length = 0,
-        .itemSize = sizeof(fk_app_Interval),
+        .allocated = 0,
+        .item_size = sizeof(fk_app_Interval),
         .buffer = nullptr,
         .fields = fk_app_Interval_fields,
         .decode_item_fn = fk_array_interval_decode,
@@ -368,7 +350,8 @@ fk_app_HttpQuery *fk_http_query_prepare_decoding(fk_app_HttpQuery *query, Pool *
     query->schedules.lora.intervals.funcs.decode = pb_decode_array;
     query->schedules.lora.intervals.arg = (void *)pool->malloc_with<pb_array_t>({
         .length = 0,
-        .itemSize = sizeof(fk_app_Interval),
+        .allocated = 0,
+        .item_size = sizeof(fk_app_Interval),
         .buffer = nullptr,
         .fields = fk_app_Interval_fields,
         .decode_item_fn = fk_array_interval_decode,
@@ -396,7 +379,8 @@ fk_app_HttpQuery *fk_http_query_prepare_decoding(fk_app_HttpQuery *query, Pool *
     query->networkSettings.networks.funcs.decode = pb_decode_array;
     query->networkSettings.networks.arg = (void *)pool->malloc_with<pb_array_t>({
         .length = 0,
-        .itemSize = sizeof(fk_app_NetworkInfo),
+        .allocated = 0,
+        .item_size = sizeof(fk_app_NetworkInfo),
         .buffer = nullptr,
         .fields = fk_app_NetworkInfo_fields,
         .decode_item_fn = pb_app_network_info_item_decode,
@@ -422,19 +406,31 @@ fk_app_HttpReply *fk_http_reply_encoding_initialize(fk_app_HttpReply *reply) {
         }
     }
 
-    if (reply->status.identity.device.arg != nullptr) reply->status.identity.device.funcs.encode = pb_encode_string;
-    if (reply->status.identity.stream.arg != nullptr) reply->status.identity.stream.funcs.encode = pb_encode_string;
-    if (reply->status.identity.deviceId.arg != nullptr) reply->status.identity.deviceId.funcs.encode = pb_encode_data;
-    if (reply->status.identity.firmware.arg != nullptr) reply->status.identity.firmware.funcs.encode = pb_encode_string;
-    if (reply->status.identity.build.arg != nullptr) reply->status.identity.build.funcs.encode = pb_encode_string;
-    if (reply->status.identity.number.arg != nullptr) reply->status.identity.number.funcs.encode = pb_encode_string;
-    if (reply->status.identity.name.arg != nullptr) reply->status.identity.name.funcs.encode = pb_encode_string;
-    if (reply->status.identity.generationId.arg != nullptr) reply->status.identity.generationId.funcs.encode = pb_encode_data;
+    if (reply->status.identity.device.arg != nullptr)
+        reply->status.identity.device.funcs.encode = pb_encode_string;
+    if (reply->status.identity.stream.arg != nullptr)
+        reply->status.identity.stream.funcs.encode = pb_encode_string;
+    if (reply->status.identity.deviceId.arg != nullptr)
+        reply->status.identity.deviceId.funcs.encode = pb_encode_data;
+    if (reply->status.identity.firmware.arg != nullptr)
+        reply->status.identity.firmware.funcs.encode = pb_encode_string;
+    if (reply->status.identity.build.arg != nullptr)
+        reply->status.identity.build.funcs.encode = pb_encode_string;
+    if (reply->status.identity.number.arg != nullptr)
+        reply->status.identity.number.funcs.encode = pb_encode_string;
+    if (reply->status.identity.name.arg != nullptr)
+        reply->status.identity.name.funcs.encode = pb_encode_string;
+    if (reply->status.identity.generationId.arg != nullptr)
+        reply->status.identity.generationId.funcs.encode = pb_encode_data;
 
-    if (reply->status.firmware.version.arg != nullptr) reply->status.firmware.version.funcs.encode = pb_encode_string;
-    if (reply->status.firmware.build.arg != nullptr) reply->status.firmware.build.funcs.encode = pb_encode_string;
-    if (reply->status.firmware.number.arg != nullptr) reply->status.firmware.number.funcs.encode = pb_encode_string;
-    if (reply->status.firmware.hash.arg != nullptr) reply->status.firmware.hash.funcs.encode = pb_encode_string;
+    if (reply->status.firmware.version.arg != nullptr)
+        reply->status.firmware.version.funcs.encode = pb_encode_string;
+    if (reply->status.firmware.build.arg != nullptr)
+        reply->status.firmware.build.funcs.encode = pb_encode_string;
+    if (reply->status.firmware.number.arg != nullptr)
+        reply->status.firmware.number.funcs.encode = pb_encode_string;
+    if (reply->status.firmware.hash.arg != nullptr)
+        reply->status.firmware.hash.funcs.encode = pb_encode_string;
 
     if (reply->status.memory.firmware.arg != nullptr) {
         reply->status.memory.firmware.funcs.encode = pb_encode_array;
@@ -578,15 +574,7 @@ static inline bool pb_decode_float_array(pb_istream_t *stream, const pb_field_t 
 
     auto array = (pb_array_t *)*arg;
 
-    // TODO: Wasteful.
-    auto previous = (const void *)array->buffer;
-    array->length++;
-    array->buffer = array->pool->malloc(array->itemSize * array->length);
-    void *ptr = ((uint8_t *)array->buffer) + ((array->length - 1) * array->itemSize);
-    if (previous != nullptr) {
-        memcpy(array->buffer, previous, ((array->length - 1) * array->itemSize));
-    }
-    memcpy(ptr, &value, array->itemSize);
+    append_array(array, &value);
 
     return true;
 }
@@ -597,7 +585,8 @@ fk_data_ModuleConfiguration *fk_module_configuration_decoding_new(Pool *pool) {
     record->calibration.coefficients.values.funcs.decode = pb_decode_float_array;
     record->calibration.coefficients.values.arg = (void *)pool->malloc_with<pb_array_t>({
         .length = 0,
-        .itemSize = sizeof(float),
+        .allocated = 0,
+        .item_size = sizeof(float),
         .buffer = nullptr,
         .fields = nullptr,
         .decode_item_fn = nullptr,
@@ -628,4 +617,4 @@ fk_app_ModuleHttpReply *fk_module_reply_prepare_encoding(fk_app_ModuleHttpReply 
     return reply;
 }
 
-}
+} // namespace fk
