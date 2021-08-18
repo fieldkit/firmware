@@ -17,7 +17,6 @@ public:
     tl::expected<uint32_t, Error> write_record(SignedRecordKind kind, fk_data_DataRecord *record, Pool &pool) override;
     tl::expected<FileAttributes, Error> attributes(Pool &pool) override;
     bool read_record(SignedRecordKind kind, MetaRecord &record, Pool &pool) override;
-
 };
 
 class DataOps : public fk::DataOps {
@@ -52,6 +51,9 @@ public:
     bool seek_record(RecordNumber record, Pool &pool) override;
     int32_t read(uint8_t *record, size_t size) override;
     int32_t read(void *record, pb_msgdesc_t const *fields) override;
+    int32_t read_delimited_bytes(uint8_t *record, size_t size) override {
+        return -1;
+    }
     int32_t get_file_size(size_t &file_size) override;
 };
 

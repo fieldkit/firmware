@@ -221,7 +221,7 @@ public:
         }
 
         if (selected < 0) {
-            if (flushing) {
+            if (flushing >= 0) {
                 phydebugf("wbuffers[%d]: flush-alloc", flushing);
 
                 debug();

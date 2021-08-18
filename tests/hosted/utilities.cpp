@@ -11,21 +11,16 @@ FK_DECLARE_LOGGER("tests");
 
 size_t write_reading(File &file) {
     fk_data_SensorAndValue readings[] = {
-        { 0, (float)fk_random_i32(0, 100) },
-        { 1, (float)fk_random_i32(0, 100) },
-        { 2, (float)fk_random_i32(0, 100) },
-        { 3, (float)fk_random_i32(0, 100) },
-        { 4, (float)fk_random_i32(0, 100) },
-        { 5, (float)fk_random_i32(0, 100) },
-        { 6, (float)fk_random_i32(0, 100) },
-        { 7, (float)fk_random_i32(0, 100) },
-        { 8, (float)fk_random_i32(0, 100) },
+        { 0, (float)fk_random_i32(0, 100) }, { 1, (float)fk_random_i32(0, 100) }, { 2, (float)fk_random_i32(0, 100) },
+        { 3, (float)fk_random_i32(0, 100) }, { 4, (float)fk_random_i32(0, 100) }, { 5, (float)fk_random_i32(0, 100) },
+        { 6, (float)fk_random_i32(0, 100) }, { 7, (float)fk_random_i32(0, 100) }, { 8, (float)fk_random_i32(0, 100) },
         { 9, (float)fk_random_i32(0, 100) },
     };
 
     pb_array_t readings_array = {
-        .length = (size_t)10,
-        .itemSize = sizeof(fk_data_SensorAndValue),
+        .length = 10u,
+        .allocated = 10u,
+        .item_size = sizeof(fk_data_SensorAndValue),
         .buffer = &readings,
         .fields = fk_data_SensorAndValue_fields,
     };
@@ -43,8 +38,9 @@ size_t write_reading(File &file) {
     };
 
     pb_array_t sensor_groups_array = {
-        .length = (size_t)1,
-        .itemSize = sizeof(fk_data_SensorGroup),
+        .length = 1u,
+        .allocated = 1u,
+        .item_size = sizeof(fk_data_SensorGroup),
         .buffer = &groups,
         .fields = fk_data_SensorGroup_fields,
     };

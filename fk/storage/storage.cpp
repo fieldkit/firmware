@@ -194,7 +194,7 @@ uint32_t Storage::used() {
 
 FileReader *Storage::file_reader(FileNumber file_number, Pool &pool) {
     if (using_phylum_) {
-        return new (pool) phylum_ops::FileReader{ *this, file_number, pool };
+        return new (pool) phylum_ops::FileReader{ *this, Storage::Data, pool };
     }
     return new (pool) darwin::FileReader{ *this, file_number, pool };
 }
@@ -879,4 +879,4 @@ bool Storage::flush() {
     return true;
 }
 
-}
+} // namespace fk

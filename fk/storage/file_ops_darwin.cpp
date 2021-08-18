@@ -1,8 +1,8 @@
-#include "storage/storage.h"
 #include "storage/file_ops_darwin.h"
-#include "utilities.h"
 #include "records.h"
 #include "state.h"
+#include "storage/storage.h"
+#include "utilities.h"
 
 namespace fk {
 
@@ -19,7 +19,7 @@ tl::expected<uint32_t, Error> MetaOps::write_record(SignedRecordKind kind, fk_da
         FK_ASSERT(meta.create());
     }
 
-    auto srl = SignedRecordLog { meta };
+    auto srl = SignedRecordLog{ meta };
     auto meta_record = srl.append_immutable(kind, record, fk_data_DataRecord_fields, pool);
 
     return (*meta_record).record;
@@ -41,7 +41,7 @@ bool MetaOps::read_record(SignedRecordKind kind, MetaRecord &record, Pool &pool)
         return false;
     }
 
-    if (!srl.decode(&record.for_decoding(pool), fk_data_DataRecord_fields, pool)) {
+    if (!srl.decode(record.for_decoding(), fk_data_DataRecord_fields, pool)) {
         return false;
     }
 

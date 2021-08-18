@@ -11,36 +11,32 @@
 
 using namespace fk;
 
-static fkb_header_t fake_header = {
-    .signature          = { 'F', 'K', 'B', 0 },
-    .version            = 1,
-    .size               = sizeof(fkb_header_t),
-    .firmware           = {
-        .flags          = 0,
-        .timestamp      = 1580763366,
-        .number         = 1000,
-        .reserved       = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff },
-        .safe           = 0xff,
-        .previous       = UINT32_MAX,
-        .binary_size    = 65536,
-        .tables_offset  = 8192,
-        .data_size      = 8192,
-        .bss_size       = 8192,
-        .got_size       = 8192,
-        .vtor_offset    = 8192,
-        .got_offset     = 32768,
-        .version        = { 0x0 },
-        .hash_size      = 32,
-        .hash           = { 0xB2 }
-    },
-    .number_symbols     = 100,
-    .number_relocations = 100
-};
+static fkb_header_t fake_header = { .signature = { 'F', 'K', 'B', 0 },
+                                    .version = 1,
+                                    .size = sizeof(fkb_header_t),
+                                    .firmware = { .flags = 0,
+                                                  .timestamp = 1580763366,
+                                                  .number = 1000,
+                                                  .reserved = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+                                                                0xff, 0xff },
+                                                  .safe = 0xff,
+                                                  .previous = UINT32_MAX,
+                                                  .binary_size = 65536,
+                                                  .tables_offset = 8192,
+                                                  .data_size = 8192,
+                                                  .bss_size = 8192,
+                                                  .got_size = 8192,
+                                                  .vtor_offset = 8192,
+                                                  .got_offset = 32768,
+                                                  .version = { 0x0 },
+                                                  .hash_size = 32,
+                                                  .hash = { 0xB2 } },
+                                    .number_symbols = 100,
+                                    .number_relocations = 100 };
 
 FK_DECLARE_LOGGER("readings-worker-tests");
 
-class ReadingsWorkerSuite : public StorageSuite {
-};
+class ReadingsWorkerSuite : public StorageSuite {};
 
 TEST_F(ReadingsWorkerSuite, OnlyDiagnosticsModule_FirstReading) {
     StandardPool pool{ "tests" };
@@ -157,36 +153,36 @@ TEST_F(ReadingsWorkerSuite, ScannedModule_MultipleReadings) {
         MetaRecord meta_record{ pool };
 
         // State record
-        auto bytes_read = reader->read(&meta_record.for_decoding(pool), fk_data_DataRecord_fields);
+        auto bytes_read = reader->read(meta_record.for_decoding(), fk_data_DataRecord_fields);
         ASSERT_EQ(bytes_read, 320);
 
         // Modules record
-        bytes_read = reader->read(&meta_record.for_decoding(pool), fk_data_DataRecord_fields);
+        bytes_read = reader->read(meta_record.for_decoding(), fk_data_DataRecord_fields);
         ASSERT_EQ(bytes_read, 436);
 
         // Data record
-        bytes_read = reader->read(&meta_record.for_decoding(pool), fk_data_DataRecord_fields);
+        bytes_read = reader->read(meta_record.for_decoding(), fk_data_DataRecord_fields);
         ASSERT_EQ(bytes_read, 91);
-        ASSERT_EQ(meta_record.record().readings.reading, 2u);
-        ASSERT_EQ(meta_record.record().readings.meta, 1u);
-        ASSERT_EQ(meta_record.record().readings.uptime, 20321u);
+        ASSERT_EQ(meta_record.record()->readings.reading, 2u);
+        ASSERT_EQ(meta_record.record()->readings.meta, 1u);
+        ASSERT_EQ(meta_record.record()->readings.uptime, 20321u);
 
         // Data record
-        bytes_read = reader->read(&meta_record.for_decoding(pool), fk_data_DataRecord_fields);
+        bytes_read = reader->read(meta_record.for_decoding(), fk_data_DataRecord_fields);
         ASSERT_EQ(bytes_read, 91);
-        ASSERT_EQ(meta_record.record().readings.reading, 3u);
-        ASSERT_EQ(meta_record.record().readings.meta, 1u);
-        ASSERT_EQ(meta_record.record().readings.uptime, 30321u);
+        ASSERT_EQ(meta_record.record()->readings.reading, 3u);
+        ASSERT_EQ(meta_record.record()->readings.meta, 1u);
+        ASSERT_EQ(meta_record.record()->readings.uptime, 30321u);
 
         // Data record
-        bytes_read = reader->read(&meta_record.for_decoding(pool), fk_data_DataRecord_fields);
+        bytes_read = reader->read(meta_record.for_decoding(), fk_data_DataRecord_fields);
         ASSERT_EQ(bytes_read, 91);
-        ASSERT_EQ(meta_record.record().readings.reading, 4u);
-        ASSERT_EQ(meta_record.record().readings.meta, 1u);
-        ASSERT_EQ(meta_record.record().readings.uptime, 40321u);
+        ASSERT_EQ(meta_record.record()->readings.reading, 4u);
+        ASSERT_EQ(meta_record.record()->readings.meta, 1u);
+        ASSERT_EQ(meta_record.record()->readings.uptime, 40321u);
 
         // End of file
-        bytes_read = reader->read(&meta_record.for_decoding(pool), fk_data_DataRecord_fields);
+        bytes_read = reader->read(meta_record.for_decoding(), fk_data_DataRecord_fields);
         ASSERT_EQ(bytes_read, -1);
     }
 }
@@ -241,33 +237,33 @@ TEST_F(ReadingsWorkerSuite, ScannedModule_ModuleAdded) {
         MetaRecord meta_record{ pool };
 
         // State record
-        auto bytes_read = reader->read(&meta_record.for_decoding(pool), fk_data_DataRecord_fields);
+        auto bytes_read = reader->read(meta_record.for_decoding(), fk_data_DataRecord_fields);
         ASSERT_EQ(bytes_read, 320);
 
         // Modules record
-        bytes_read = reader->read(&meta_record.for_decoding(pool), fk_data_DataRecord_fields);
+        bytes_read = reader->read(meta_record.for_decoding(), fk_data_DataRecord_fields);
         ASSERT_EQ(bytes_read, 377);
 
         // Data record
-        bytes_read = reader->read(&meta_record.for_decoding(pool), fk_data_DataRecord_fields);
+        bytes_read = reader->read(meta_record.for_decoding(), fk_data_DataRecord_fields);
         ASSERT_EQ(bytes_read, 80);
-        ASSERT_EQ(meta_record.record().readings.reading, 2u);
-        ASSERT_EQ(meta_record.record().readings.meta, 1u);
-        ASSERT_EQ(meta_record.record().readings.uptime, 20321u);
+        ASSERT_EQ(meta_record.record()->readings.reading, 2u);
+        ASSERT_EQ(meta_record.record()->readings.meta, 1u);
+        ASSERT_EQ(meta_record.record()->readings.uptime, 20321u);
 
         // Modules record
-        bytes_read = reader->read(&meta_record.for_decoding(pool), fk_data_DataRecord_fields);
+        bytes_read = reader->read(meta_record.for_decoding(), fk_data_DataRecord_fields);
         ASSERT_EQ(bytes_read, 436);
 
         // Data record
-        bytes_read = reader->read(&meta_record.for_decoding(pool), fk_data_DataRecord_fields);
+        bytes_read = reader->read(meta_record.for_decoding(), fk_data_DataRecord_fields);
         ASSERT_EQ(bytes_read, 91);
-        ASSERT_EQ(meta_record.record().readings.reading, 4u);
-        ASSERT_EQ(meta_record.record().readings.meta, 3u);
-        ASSERT_EQ(meta_record.record().readings.uptime, 20321u);
+        ASSERT_EQ(meta_record.record()->readings.reading, 4u);
+        ASSERT_EQ(meta_record.record()->readings.meta, 3u);
+        ASSERT_EQ(meta_record.record()->readings.uptime, 20321u);
 
         // End of file
-        bytes_read = reader->read(&meta_record.for_decoding(pool), fk_data_DataRecord_fields);
+        bytes_read = reader->read(meta_record.for_decoding(), fk_data_DataRecord_fields);
         ASSERT_EQ(bytes_read, -1);
     }
 }

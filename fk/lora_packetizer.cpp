@@ -56,7 +56,8 @@ public:
         previous_sensor_ = 0;
         values_array_ = {
             .length = 0,
-            .itemSize = sizeof(float),
+            .allocated = 0,
+            .item_size = sizeof(float),
             .buffer = (void *)&values_,
         };
 

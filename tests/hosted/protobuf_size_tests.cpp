@@ -4,8 +4,8 @@
 
 #include "hal/hal.h"
 #include "networking/http_reply.h"
-#include "storage/signed_log.h"
 #include "storage/meta_record.h"
+#include "storage/signed_log.h"
 #include "update_readings_listener.h"
 
 #include "storage_suite.h"
@@ -14,43 +14,38 @@
 
 using namespace fk;
 
-static fkb_header_t fake_header = {
-    .signature          = { 'F', 'K', 'B', 0 },
-    .version            = 1,
-    .size               = sizeof(fkb_header_t),
-    .firmware           = {
-        .flags          = 0,
-        .timestamp      = 1580763366,
-        .number         = 1000,
-        .reserved       = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff },
-        .safe           = 0xff,
-        .previous       = UINT32_MAX,
-        .binary_size    = 65536,
-        .tables_offset  = 8192,
-        .data_size      = 8192,
-        .bss_size       = 8192,
-        .got_size       = 8192,
-        .vtor_offset    = 8192,
-        .got_offset     = 32768,
-        .version        = { 0x0 },
-        .hash_size      = 32,
-        .hash           = { 0xB2 }
-    },
-    .number_symbols     = 100,
-    .number_relocations = 100
-};
+static fkb_header_t fake_header = { .signature = { 'F', 'K', 'B', 0 },
+                                    .version = 1,
+                                    .size = sizeof(fkb_header_t),
+                                    .firmware = { .flags = 0,
+                                                  .timestamp = 1580763366,
+                                                  .number = 1000,
+                                                  .reserved = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+                                                                0xff, 0xff },
+                                                  .safe = 0xff,
+                                                  .previous = UINT32_MAX,
+                                                  .binary_size = 65536,
+                                                  .tables_offset = 8192,
+                                                  .data_size = 8192,
+                                                  .bss_size = 8192,
+                                                  .got_size = 8192,
+                                                  .vtor_offset = 8192,
+                                                  .got_offset = 32768,
+                                                  .version = { 0x0 },
+                                                  .hash_size = 32,
+                                                  .hash = { 0xB2 } },
+                                    .number_symbols = 100,
+                                    .number_relocations = 100 };
 
 FK_DECLARE_LOGGER("protobuf");
 
-template<typename T = uint8_t, size_t Size>
-static void fake_data(T(&buffer)[Size]) {
+template <typename T = uint8_t, size_t Size> static void fake_data(T (&buffer)[Size]) {
     for (auto i = 0u; i < Size; ++i) {
         buffer[i] = i % 255;
     }
 }
 
-template<typename T = char, size_t Size>
-static void fake_string(T(&buffer)[Size]) {
+template <typename T = char, size_t Size> static void fake_string(T (&buffer)[Size]) {
     for (auto i = 0u; i < Size - 1; ++i) {
         buffer[i] = 'a' + (i % 10);
     }
@@ -58,16 +53,11 @@ static void fake_string(T(&buffer)[Size]) {
 }
 
 static SensorMetadata const fk_module_fake_3_sensor_metas[] = {
-    { .name = "sensor-0", .unitOfMeasure = "m", .flags = 0 },
-    { .name = "sensor-1", .unitOfMeasure = "m", .flags = 0 },
-    { .name = "sensor-2", .unitOfMeasure = "m", .flags = 0 },
-    { .name = "sensor-3", .unitOfMeasure = "m", .flags = 0 },
-    { .name = "sensor-4", .unitOfMeasure = "m", .flags = 0 },
-    { .name = "sensor-5", .unitOfMeasure = "m", .flags = 0 },
-    { .name = "sensor-6", .unitOfMeasure = "m", .flags = 0 },
-    { .name = "sensor-7", .unitOfMeasure = "m", .flags = 0 },
-    { .name = "sensor-8", .unitOfMeasure = "m", .flags = 0 },
-    { .name = "sensor-9", .unitOfMeasure = "m", .flags = 0 },
+    { .name = "sensor-0", .unitOfMeasure = "m", .flags = 0 }, { .name = "sensor-1", .unitOfMeasure = "m", .flags = 0 },
+    { .name = "sensor-2", .unitOfMeasure = "m", .flags = 0 }, { .name = "sensor-3", .unitOfMeasure = "m", .flags = 0 },
+    { .name = "sensor-4", .unitOfMeasure = "m", .flags = 0 }, { .name = "sensor-5", .unitOfMeasure = "m", .flags = 0 },
+    { .name = "sensor-6", .unitOfMeasure = "m", .flags = 0 }, { .name = "sensor-7", .unitOfMeasure = "m", .flags = 0 },
+    { .name = "sensor-8", .unitOfMeasure = "m", .flags = 0 }, { .name = "sensor-9", .unitOfMeasure = "m", .flags = 0 },
 };
 
 static ModuleSensors fk_module_fake_3_sensors = {
@@ -167,9 +157,7 @@ static void fake_global_state(GlobalState &gs, Pool &pool) {
         attached_module.initialize(sub_ctx, &pool);
     }
 
-    float values[] = {
-        23.0f, 332.0f, 934839.0f, 100.0f, 39843.0f, -23.0f, 825398.0f, 41017.0f, 2111193.0f, 937281.0f
-    };
+    float values[] = { 23.0f, 332.0f, 934839.0f, 100.0f, 39843.0f, -23.0f, 825398.0f, 41017.0f, 2111193.0f, 937281.0f };
 
     auto attached_module = attached->get_by_position(position);
     auto &sensors = attached_module->sensors();
@@ -187,16 +175,20 @@ static void fake_modules(GlobalState &gs, Pool &pool) {
 
     ModuleHeader header;
     fake_data(header.id.data);
-    attached->modules().emplace(ModulePosition::from(0), header, &fk_test_module_fake_1, fk_test_module_fake_1.ctor(pool), pool);
+    attached->modules().emplace(ModulePosition::from(0), header, &fk_test_module_fake_1,
+                                fk_test_module_fake_1.ctor(pool), pool);
 
     fake_data(header.id.data);
-    attached->modules().emplace(ModulePosition::from(1), header, &fk_test_module_fake_2, fk_test_module_fake_2.ctor(pool), pool);
+    attached->modules().emplace(ModulePosition::from(1), header, &fk_test_module_fake_2,
+                                fk_test_module_fake_2.ctor(pool), pool);
 
     fake_data(header.id.data);
-    attached->modules().emplace(ModulePosition::from(2), header, &fk_test_module_fake_1, fk_test_module_fake_1.ctor(pool), pool);
+    attached->modules().emplace(ModulePosition::from(2), header, &fk_test_module_fake_1,
+                                fk_test_module_fake_1.ctor(pool), pool);
 
     fake_data(header.id.data);
-    attached->modules().emplace(ModulePosition::from(3), header, &fk_test_module_fake_2, fk_test_module_fake_2.ctor(pool), pool);
+    attached->modules().emplace(ModulePosition::from(3), header, &fk_test_module_fake_2,
+                                fk_test_module_fake_2.ctor(pool), pool);
 
     NoopMutex mutex;
     TwoWireWrapper module_bus{ &mutex, "modules", nullptr };
@@ -247,7 +239,6 @@ public:
 
     void TearDown() override {
     }
-
 };
 
 std::ofstream ProtoBufSizeSuite::file_;
@@ -288,7 +279,8 @@ TEST_F(ProtoBufSizeSuite, ReadingsNoneBackFromFirstModule) {
     fake_data(header.id.data);
     attached->modules().emplace(ModulePosition::from(0), header, &fk_test_module_fake_1, first, pool_);
     fake_data(header.id.data);
-    attached->modules().emplace(ModulePosition::from(1), header, &fk_test_module_fake_2, fk_test_module_fake_2.ctor(pool_), pool_);
+    attached->modules().emplace(ModulePosition::from(1), header, &fk_test_module_fake_2,
+                                fk_test_module_fake_2.ctor(pool_), pool_);
 
     attached->initialize(pool_);
 
@@ -320,7 +312,7 @@ TEST_F(ProtoBufSizeSuite, Configuration) {
     MetaRecord record{ pool_ };
     record.include_state(&gs, &fake_header, pool_);
 
-    auto encoded = pool_.encode(fk_data_DataRecord_fields, &record.record());
+    auto encoded = pool_.encode(fk_data_DataRecord_fields, record.record());
     dump_binary(file_, "data-configuration", encoded);
 
     ASSERT_EQ(encoded->size, 1338u);
@@ -334,7 +326,7 @@ TEST_F(ProtoBufSizeSuite, Modules) {
     MetaRecord record{ pool_ };
     record.include_modules(&gs, &fake_header, pool_);
 
-    auto encoded = pool_.encode(fk_data_DataRecord_fields, &record.record());
+    auto encoded = pool_.encode(fk_data_DataRecord_fields, record.record());
     dump_binary(file_, "data-modules", encoded);
 
     ASSERT_EQ(encoded->size, 957u);

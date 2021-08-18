@@ -95,7 +95,7 @@ bool ReadingsWorker::save(Pool &pool) {
     meta_record.include_modules(gs.get(), &fkb_header, pool);
 
     auto meta_ops = storage.meta_ops();
-    auto meta_record_number = meta_ops->write_record(SignedRecordKind::Modules, &meta_record.record(), pool);
+    auto meta_record_number = meta_ops->write_record(SignedRecordKind::Modules, meta_record.record(), pool);
     if (!meta_record_number) {
         return false;
     }

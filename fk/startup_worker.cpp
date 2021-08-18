@@ -198,16 +198,14 @@ bool StartupWorker::load_or_create_state(Pool &pool) {
     for (auto &abp : lora_preconfigured_abp) {
         if (memcmp(gs.get()->lora.device_eui, abp.device_eui, LoraDeviceEuiLength) == 0) {
             memcpy(gs.get()->lora.device_address, abp.device_address, LoraDeviceAddressLength);
-            loginfo("(fixed) lora device address: %s",
-                    bytes_to_hex_string_pool(abp.device_address, LoraDeviceAddressLength, pool));
+            loginfo("(fixed) lora device address: %s", bytes_to_hex_string_pool(abp.device_address, LoraDeviceAddressLength, pool));
 
             memcpy(gs.get()->lora.network_session_key, abp.network_session_key, LoraNetworkSessionKeyLength);
             loginfo("(fixed) lora network session key: %s",
                     bytes_to_hex_string_pool(abp.network_session_key, LoraNetworkSessionKeyLength, pool));
 
             memcpy(gs.get()->lora.app_session_key, abp.app_session_key, LoraAppSessionKeyLength);
-            loginfo("(fixed) lora app session key: %s",
-                    bytes_to_hex_string_pool(abp.app_session_key, LoraAppSessionKeyLength, pool));
+            loginfo("(fixed) lora app session key: %s", bytes_to_hex_string_pool(abp.app_session_key, LoraAppSessionKeyLength, pool));
         }
     }
 
@@ -227,7 +225,7 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
     if (!storage.meta_ops()->read_record(SignedRecordKind::State, meta_record, pool)) {
         meta_record.include_state(gs, fkb_header(), pool);
 
-        if (!storage.meta_ops()->write_record(SignedRecordKind::State, &meta_record.record(), pool)) {
+        if (!storage.meta_ops()->write_record(SignedRecordKind::State, meta_record.record(), pool)) {
             logerror("writing state");
             return false;
         }
@@ -239,18 +237,59 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
         return true;
     }
 
-    auto &record = meta_record.record();
-    auto name = reinterpret_cast<const char *>(record.identity.name.arg);
+    auto record = meta_record.record();
+
+    auto name = reinterpret_cast<const char *>(record->identity.name.arg);
     strncpy(gs->general.name, name, sizeof(gs->general.name));
 
-    auto generation = reinterpret_cast<pb_data_t *>(record.metadata.generation.arg);
+    auto generation = reinterpret_cast<pb_data_t *>(record->metadata.generation.arg);
     FK_ASSERT(generation->length == GenerationLength);
     memcpy(gs->general.generation, generation->buffer, GenerationLength);
 
     loginfo("(loaded) name: '%s'", gs->general.name);
     loginfo("(loaded) generation: %s", bytes_to_hex_string_pool(gs->general.generation, GenerationLength, pool));
 
-    auto networks_array = reinterpret_cast<pb_array_t *>(record.network.networks.arg);
+    auto app_eui = pb_get_data_if_provided(record->lora.appEui.arg, pool);
+    if (app_eui != nullptr) {
+        FK_ASSERT(app_eui->length == LoraAppEuiLength);
+        FK_ASSERT(app_eui->length == sizeof(gs->lora.app_eui));
+        memcpy(gs->lora.app_eui, app_eui->buffer, app_eui->length);
+        loginfo("(loaded) lora app eui: %s", pb_data_to_hex_string(app_eui, pool));
+    }
+
+    auto app_key = pb_get_data_if_provided(record->lora.appKey.arg, pool);
+    if (app_key != nullptr) {
+        FK_ASSERT(app_key->length == LoraAppKeyLength);
+        FK_ASSERT(app_key->length == sizeof(gs->lora.app_key));
+        memcpy(gs->lora.app_key, app_key->buffer, app_key->length);
+        loginfo("(loaded) lora app key: %s", pb_data_to_hex_string(app_key, pool));
+    }
+
+    auto app_session_key = pb_get_data_if_provided(record->lora.appSessionKey.arg, pool);
+    if (app_session_key != nullptr) {
+        FK_ASSERT(app_session_key->length == LoraAppSessionKeyLength);
+        FK_ASSERT(app_session_key->length == sizeof(gs->lora.app_session_key));
+        memcpy(gs->lora.app_session_key, app_session_key->buffer, app_session_key->length);
+        loginfo("(loaded) lora app session key: %s", pb_data_to_hex_string(app_session_key, pool));
+    }
+
+    auto network_session_key = pb_get_data_if_provided(record->lora.networkSessionKey.arg, pool);
+    if (network_session_key != nullptr) {
+        FK_ASSERT(network_session_key->length == LoraNetworkSessionKeyLength);
+        FK_ASSERT(network_session_key->length == sizeof(gs->lora.network_session_key));
+        memcpy(gs->lora.network_session_key, network_session_key->buffer, network_session_key->length);
+        loginfo("(loaded) lora network session key: %s", pb_data_to_hex_string(network_session_key, pool));
+    }
+
+    auto device_address = pb_get_data_if_provided(record->lora.deviceAddress.arg, pool);
+    if (device_address != nullptr) {
+        FK_ASSERT(device_address->length == LoraDeviceAddressLength);
+        FK_ASSERT(device_address->length == sizeof(gs->lora.device_address));
+        memcpy(gs->lora.device_address, device_address->buffer, device_address->length);
+        loginfo("(loaded) lora device address: %s", pb_data_to_hex_string(device_address, pool));
+    }
+
+    auto networks_array = reinterpret_cast<pb_array_t *>(record->network.networks.arg);
     if (networks_array->length > 0) {
         FK_ASSERT(networks_array->length <= WifiMaximumNumberOfNetworks);
 
@@ -272,15 +311,15 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
         }
     }
 
-    if (record.condition.recording > 0) {
-        gs->general.recording = record.condition.recording;
-        loginfo("(loaded) recording (%" PRIu32 ")", record.condition.recording);
+    if (record->condition.recording > 0) {
+        gs->general.recording = record->condition.recording;
+        loginfo("(loaded) recording (%" PRIu32 ")", record->condition.recording);
     }
 
-    copy_cron_spec_from_pb("readings", gs->scheduler.readings, record.schedule.readings, pool);
-    copy_cron_spec_from_pb("network", gs->scheduler.network, record.schedule.network, pool);
-    copy_cron_spec_from_pb("gps", gs->scheduler.gps, record.schedule.gps, pool);
-    copy_cron_spec_from_pb("lora", gs->scheduler.lora, record.schedule.lora, pool);
+    copy_cron_spec_from_pb("readings", gs->scheduler.readings, record->schedule.readings, pool);
+    copy_cron_spec_from_pb("network", gs->scheduler.network, record->schedule.network, pool);
+    copy_cron_spec_from_pb("gps", gs->scheduler.gps, record->schedule.gps, pool);
+    copy_cron_spec_from_pb("lora", gs->scheduler.lora, record->schedule.lora, pool);
 
     // Check for a need to fixup the duration.
     if (gs->scheduler.network.duration == 0) {
@@ -296,8 +335,8 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
         logwarn("using ten minute gps duration (zero)");
     }
 
-    auto url = pb_get_string_if_provided(record.transmission.wifi.url.arg, pool);
-    auto token = pb_get_string_if_provided(record.transmission.wifi.token.arg, pool);
+    auto url = pb_get_string_if_provided(record->transmission.wifi.url.arg, pool);
+    auto token = pb_get_string_if_provided(record->transmission.wifi.token.arg, pool);
     if (url != nullptr) {
         strncpy(gs->transmission.url, url, sizeof(gs->transmission.url));
         loginfo("(loaded) transmission url: %s", gs->transmission.url);
@@ -320,7 +359,7 @@ bool StartupWorker::create_new_state(Storage &storage, GlobalState *gs, Pool &po
     MetaRecord meta_record{ pool };
     meta_record.include_state(gs, fkb_header(), pool);
 
-    if (!storage.meta_ops()->write_record(SignedRecordKind::State, &meta_record.record(), pool)) {
+    if (!storage.meta_ops()->write_record(SignedRecordKind::State, meta_record.record(), pool)) {
         logerror("writing state");
         fk_logs_flush();
         fk_restart();
@@ -635,8 +674,7 @@ static void copy_cron_spec_from_pb(const char *name, Schedule &cs, fk_data_JobSc
     cs.repeated = pb.repeated;
     cs.duration = pb.duration;
 
-    loginfo("(loaded) %s interval = %" PRIu32 " repeated = %" PRIu32 " duration = %" PRIu32, name, cs.interval,
-            cs.repeated, cs.duration);
+    loginfo("(loaded) %s interval = %" PRIu32 " repeated = %" PRIu32 " duration = %" PRIu32, name, cs.interval, cs.repeated, cs.duration);
 }
 
 } // namespace fk
