@@ -270,18 +270,6 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
         if (!excite_control(mcp, true)) {
             return nullptr;
         }
-
-        fk_delay(excite_for);
-
-        if (!excite_control(mcp, false)) {
-            return nullptr;
-        }
-
-        fk_delay(excite_for);
-
-        if (!excite_control(mcp, true)) {
-            return nullptr;
-        }
     } else {
         loginfo("excitation: disabled");
     }
