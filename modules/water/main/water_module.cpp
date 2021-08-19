@@ -36,6 +36,24 @@ public:
     }
 };
 
+class UnexciteBeforeReadyChecker : public Ads1219ReadyChecker {
+private:
+    Mcp2803 &mcp2803_;
+
+public:
+    UnexciteBeforeReadyChecker(Mcp2803 &mcp2803) : mcp2803_(mcp2803) {
+    }
+
+public:
+    bool block_until_ready(TwoWireWrapper &bus) override {
+        if (!mcp2803_.configure(FK_MCP2803_IODIR, FK_MCP2803_GPPU, FK_MCP2803_GPIO_EXCITE_OFF)) {
+            logerror("mcp2803::configure-excite");
+            return false;
+        }
+        return true;
+    }
+};
+
 class Mcp2803ReadyChecker : public Ads1219ReadyChecker {
 private:
     Mcp2803 &mcp2803_;
@@ -82,7 +100,7 @@ ModuleReturn WaterModule::initialize(ModuleContext mc, Pool &pool) {
     auto &bus = mc.module_bus();
 
     Mcp2803 mcp{ bus, FK_MCP2803_ADDRESS };
-    Ads1219ReadyAfterDelay ready_checker;
+    UnexciteBeforeReadyChecker ready_checker{ mcp };
     Ads1219 ads{ bus, FK_ADS1219_ADDRESS, &ready_checker };
 
     if (!initialize(mcp, ads)) {
@@ -272,7 +290,7 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
     auto &bus = mc.module_bus();
 
     Mcp2803 mcp{ bus, FK_MCP2803_ADDRESS };
-    Ads1219ReadyAfterDelay ready_checker;
+    UnexciteBeforeReadyChecker ready_checker{ mcp };
     Ads1219 ads{ bus, FK_ADS1219_ADDRESS, &ready_checker };
 
     if (!initialize(mcp, ads)) {
@@ -284,10 +302,6 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
         loginfo("excitation: %" PRIu32 "ms", excite_for);
 
         if (!excite_control(mcp, true)) {
-            return nullptr;
-        }
-
-        if (!excite_control(mcp, false)) {
             return nullptr;
         }
     } else {

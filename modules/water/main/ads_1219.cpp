@@ -63,12 +63,14 @@ bool Ads1219::read(int32_t &value) {
         return false;
     }
 
+    /*
     uint8_t status_after = 0;
     if (!I2C_CHECK(bus_.read_register_u8(address_, ADS1219_COMMAND_READ_STATUS_REGISTER, status_after))) {
         return false;
     }
 
     logdebug("status-before-read=0x%x", status_after);
+    */
 
     if (!read_conversion(value)) {
         return false;
@@ -94,12 +96,14 @@ bool Ads1219::read_conversion(int32_t &value) {
 
     logdebug("0x%x 0x%x 0x%x = 0x%x", data[0], data[1], data[2], value);
 
+    /*
     uint8_t status_after = 0;
     if (!I2C_CHECK(bus_.read_register_u8(address_, ADS1219_COMMAND_READ_STATUS_REGISTER, status_after))) {
         return false;
     }
 
     logdebug("status-after=0x%x", status_after);
+    */
 
     return true;
 }
