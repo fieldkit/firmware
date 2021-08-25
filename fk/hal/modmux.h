@@ -1,9 +1,9 @@
 #pragma once
 
-#include "hal/board.h"
-#include "hal/mutex.h"
 #include "activity.h"
 #include "config.h"
+#include "hal/board.h"
+#include "hal/mutex.h"
 
 namespace fk {
 
@@ -13,7 +13,7 @@ namespace fk {
 enum class ModulePower {
     Unknown = 0,
     ReadingsOnly = 1,
-    RareStarts = 2,
+    Unused = 2,
     Always = 3,
 };
 
@@ -69,7 +69,6 @@ public:
 
 public:
     virtual ~ModulesLock();
-
 };
 
 class TopologyChange : public Activity {
@@ -79,7 +78,6 @@ public:
 
 public:
     void consumed() override;
-
 };
 
 class Topology {
@@ -92,11 +90,11 @@ public:
     Topology(uint8_t value);
 
 public:
-    bool operator ==(const Topology &b) const {
+    bool operator==(const Topology &b) const {
         return value_ == b.value_;
     }
 
-    bool operator !=(const Topology &b) const {
+    bool operator!=(const Topology &b) const {
         return value_ != b.value_;
     }
 
@@ -110,7 +108,6 @@ public:
     }
 
     bool all_modules_on() const;
-
 };
 
 class ModMux {
@@ -225,7 +222,7 @@ public:
     }
 
     all_modules all() {
-        return all_modules{ };
+        return all_modules{};
     }
 
 public:
@@ -236,9 +233,8 @@ public:
     bool available() const {
         return available_;
     }
-
 };
 
 ModMux *get_modmux();
 
-}
+} // namespace fk
