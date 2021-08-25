@@ -1,8 +1,8 @@
 #include "atlas_module.h"
-#include "platform.h"
 #include "atlas_api.h"
-#include "modules/eeprom.h"
 #include "curves.h"
+#include "modules/eeprom.h"
+#include "platform.h"
 
 namespace fk {
 
@@ -47,8 +47,7 @@ bool AtlasModule::load_configuration(ModuleContext mc, Pool &pool) {
         if (!pb_decode_delimited(&stream, fk_data_ModuleConfiguration_fields, cfg)) {
             logerror("mod-cfg: error decoding ");
             return false;
-        }
-        else {
+        } else {
             loginfo("mod-cfg: decoded");
             cfg_message_ = pool_->wrap_copy(buffer, size);
             cfg_ = cfg;
@@ -66,7 +65,7 @@ ModuleReturn AtlasModule::api(ModuleContext mc, HttpServerConnection *connection
         }
     }
 
-    OemAtlas atlas{ mc.module_bus(), address_, type_  };
+    OemAtlas atlas{ mc.module_bus(), address_, type_ };
     AtlasApi api{ type_, atlas };
     if (!api.handle(mc, connection, pool)) {
         logerror("error handling api (ms::fatal)");
@@ -85,23 +84,21 @@ ModuleReturn AtlasModule::service(ModuleContext mc, Pool &pool) {
 ModuleSensors const *AtlasModule::get_sensors(Pool &pool) {
     switch (type_) {
     case AtlasSensorType::Ec: {
-        auto meta = pool.malloc_with<SensorMetadata, 3>({
-            {
-                .name = "ec",
-                .unitOfMeasure = "µS/cm",
-                .flags = 0,
-            },
-            {
-                .name = "tds",
-                .unitOfMeasure = "ppm",
-                .flags = 0,
-            },
-            {
-                .name = "salinity",
-                .unitOfMeasure = "",
-                .flags = 0,
-            }
-        });
+        auto meta = pool.malloc_with<SensorMetadata, 3>({ {
+                                                              .name = "ec",
+                                                              .unitOfMeasure = "µS/cm",
+                                                              .flags = 0,
+                                                          },
+                                                          {
+                                                              .name = "tds",
+                                                              .unitOfMeasure = "ppm",
+                                                              .flags = 0,
+                                                          },
+                                                          {
+                                                              .name = "salinity",
+                                                              .unitOfMeasure = "",
+                                                              .flags = 0,
+                                                          } });
         return pool.malloc_with<ModuleSensors>({
             .nsensors = 3,
             .sensors = meta,
@@ -163,12 +160,18 @@ ModuleSensors const *AtlasModule::get_sensors(Pool &pool) {
 
 const char *AtlasModule::get_display_name_key() {
     switch (type_) {
-    case AtlasSensorType::Ec: return "modules.water.ec";
-    case AtlasSensorType::Ph: return "modules.water.ph";
-    case AtlasSensorType::Do: return "modules.water.dox";
-    case AtlasSensorType::Temp: return "modules.water.temp";
-    case AtlasSensorType::Orp: return "modules.water.orp";
-    default: return "modules.water.unknown";
+    case AtlasSensorType::Ec:
+        return "modules.water.ec";
+    case AtlasSensorType::Ph:
+        return "modules.water.ph";
+    case AtlasSensorType::Do:
+        return "modules.water.dox";
+    case AtlasSensorType::Temp:
+        return "modules.water.temp";
+    case AtlasSensorType::Orp:
+        return "modules.water.orp";
+    default:
+        return "modules.water.unknown";
     }
 }
 
@@ -245,12 +248,11 @@ ModuleReadings *AtlasModule::take_readings(ReadingsContext mc, Pool &pool) {
         return nullptr;
     }
 
-    auto mr = new(pool) NModuleReadings<ATLAS_MAXIMUM_VALUES>(number_of_values);
+    auto mr = new (pool) NModuleReadings<ATLAS_MAXIMUM_VALUES>(number_of_values);
     for (auto i = 0u; i < mr->size(); ++i) {
         if (i == 0) {
             mr->set(i, ModuleReading{ values[i], curve->apply(values[i]) });
-        }
-        else {
+        } else {
             mr->set(i, ModuleReading{ values[i] });
         }
     }
