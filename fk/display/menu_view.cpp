@@ -512,8 +512,8 @@ public:
     PollWaterEcSensorsMenu(GotoMenu *menus, MenuOption *back, Pool *pool) {
         menu_ = create_numeric_selection<7>("EC Delay = %dms", { 1, 2, 5, 10, 20, 50, 100 }, back, pool,
                                             [=](int32_t delay) {
-                                                auto gs = get_global_state_rw();
-                                                gs.get()->debugging.ec_excite_delay = delay;
+                                                // auto gs = get_global_state_rw();
+                                                // gs.get()->debugging.ec_excite_delay = delay;
                                                 loginfo("override ec delay: %dms", delay);
                                                 back->on_selected();
                                                 auto poll_sensors = new (pool) PollSensorsMenu(menus, back, pool);
@@ -660,8 +660,9 @@ void MenuView::create_tools_menu() {
     (void)tools_poll_sensors;
     (void)tools_crash_hardf;
     (void)tools_crash_assertion;
+    (void)tools_poll_water_ec_sensors;
 
-    tools_menu_ = new_menu_screen<15>(pool_, "tools",
+    tools_menu_ = new_menu_screen<14>(pool_, "tools",
                                       {
                                           back_,
                                           tools_self_check,
@@ -675,7 +676,7 @@ void MenuView::create_tools_menu() {
                                           tools_format_sd,
                                           tools_sleep_test,
                                           tools_poll_sensors,
-                                          tools_poll_water_ec_sensors,
+                                          // tools_poll_water_ec_sensors,
                                           tools_fsck,
                                           // tools_crash_hardf,
                                           // tools_crash_assertion,
