@@ -3,6 +3,7 @@
 #include <modules/bridge/modules.h>
 
 #include "ads_1219.h"
+#include "curves.h"
 #include "mcp_2803.h"
 #include "records.h"
 
@@ -34,6 +35,7 @@ private:
     bool load_configuration(ModuleContext mc, Pool &pool);
 
 private:
+    Curve *create_modules_default_curve(Pool &pool);
     bool excite_control(Mcp2803 &mcp, bool high);
     bool initialize(Mcp2803 &mcp, Ads1219 &ads);
     bool excite_enabled();

@@ -190,7 +190,8 @@ ModuleReadings *AtlasModule::take_readings(ReadingsContext mc, Pool &pool) {
         return nullptr;
     }
 
-    auto curve = create_curve(cfg_, pool);
+    auto default_curve = create_noop_curve(pool);
+    auto curve = create_curve(default_curve, cfg_, pool);
 
     auto atlas = OemAtlas{ mc.module_bus(), address_, type_ };
     if (!atlas.wake()) {

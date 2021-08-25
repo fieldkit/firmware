@@ -1,5 +1,4 @@
 #include "water_module.h"
-#include "curves.h"
 #include "modules/eeprom.h"
 #include "platform.h"
 #include "state_ref.h"
@@ -286,6 +285,18 @@ bool WaterModule::excite_enabled() {
     };
 }
 
+Curve *WaterModule::create_modules_default_curve(Pool &pool) {
+    switch (header_.kind) {
+    case FK_MODULES_KIND_WATER_EC: {
+        float a = 1e7;
+        float b = -6.683;
+        return create_curve(fk_data_CurveType_CURVE_EXPONENTIAL, a, b, pool);
+    }
+    default:
+        return create_noop_curve(pool);
+    };
+}
+
 ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
     auto &bus = mc.module_bus();
 
@@ -314,7 +325,8 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
         return nullptr;
     }
 
-    auto curve = create_curve(cfg_, pool);
+    auto default_curve = create_modules_default_curve(pool);
+    auto curve = create_curve(default_curve, cfg_, pool);
     auto uncalibrated = ((float)value * 2.048f) / 8388608.0f;
     auto calibrated = curve->apply(uncalibrated);
 
