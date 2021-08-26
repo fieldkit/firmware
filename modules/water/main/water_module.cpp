@@ -325,17 +325,19 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
         return nullptr;
     }
 
+    auto uncalibrated = ((float)value * 2.048f) / 8388608.0f;
+
     auto default_curve = create_modules_default_curve(pool);
     auto curve = create_curve(default_curve, cfg_, pool);
-    auto uncalibrated = ((float)value * 2.048f) / 8388608.0f;
+    auto factory = default_curve->apply(uncalibrated);
     auto calibrated = curve->apply(uncalibrated);
 
-    loginfo("[%d] water: %f (%f)", mc.position().integer(), uncalibrated, calibrated);
+    loginfo("[%d] water: %f (%f) (%f)", mc.position().integer(), uncalibrated, calibrated, factory);
 
     auto mr = new (pool) NModuleReadings<1>();
 
     auto nreadings = 0u;
-    mr->set(nreadings++, ModuleReading{ uncalibrated, calibrated });
+    mr->set(nreadings++, ModuleReading{ uncalibrated, calibrated, factory });
 
     return mr;
 }

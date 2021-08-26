@@ -4,10 +4,10 @@
 
 #include "networking/http_reply.h"
 
-#include "storage/storage.h"
-#include "state.h"
-#include "utilities.h"
 #include "clock.h"
+#include "state.h"
+#include "storage/storage.h"
+#include "utilities.h"
 
 extern const struct fkb_header_t fkb_header;
 
@@ -17,7 +17,7 @@ FK_DECLARE_LOGGER("reply");
 
 HttpReply::HttpReply(Pool &pool, GlobalState const *gs) : pool_(&pool), gs_(gs) {
     reply_ = pool.malloc<fk_app_HttpReply>();
-    *reply_ = { };
+    *reply_ = {};
 }
 
 bool HttpReply::include_success(uint32_t clock, uint32_t uptime) {
@@ -44,8 +44,7 @@ static void copy_schedule(fk_app_Schedule &d, Schedule const &s, Pool *pool) {
             intervals[i].start = s.intervals[i].start;
             intervals[i].end = s.intervals[i].end;
             intervals[i].interval = s.intervals[i].interval;
-        }
-        else {
+        } else {
             break;
         }
     }
@@ -59,26 +58,26 @@ static void copy_schedule(fk_app_Schedule &d, Schedule const &s, Pool *pool) {
     d.duration = s.duration;
 }
 
-static bool try_populate_firmware(fk_app_Firmware& fw, void const *ptr, Pool &pool) {
-    #if defined(__SAMD51__)
+static bool try_populate_firmware(fk_app_Firmware &fw, void const *ptr, Pool &pool) {
+#if defined(__SAMD51__)
     uint32_t logical_address = (uint32_t)ptr;
-    #else
+#else
     if (ptr == nullptr) {
         return false;
     }
 
     uint32_t logical_address = 0;
-    #endif
+#endif
 
     if (!fkb_has_valid_signature(ptr)) {
-        #if defined(__SAMD51__)
+#if defined(__SAMD51__)
         ptr = ((uint8_t *)ptr) + VectorsMaximumSize;
         if (!fkb_has_valid_signature(ptr)) {
             return false;
         }
-        #else
+#else
         return false;
-        #endif
+#endif
     }
 
     fkb_header_t const *fkbh = (fkb_header_t const *)ptr;
@@ -89,7 +88,8 @@ static bool try_populate_firmware(fk_app_Firmware& fw, void const *ptr, Pool &po
     fw.hash.arg = (void *)bytes_to_hex_string_pool(fkbh->firmware.hash, fkbh->firmware.hash_size, pool);
     fw.logical_address = logical_address;
 
-    loginfo("[0x%08" PRIx32 "] firmware: number=%" PRIu32 " version=%s", ptr, fkbh->firmware.number, fkbh->firmware.version);
+    loginfo("[0x%08" PRIx32 "] firmware: number=%" PRIu32 " version=%s", ptr, fkbh->firmware.number,
+            fkbh->firmware.version);
 
     return true;
 }
@@ -149,9 +149,9 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, bool logs, fkb_h
     reply_->status.memory.dataMemoryInstalled = gs_->storage.spi.installed;
     reply_->status.memory.dataMemoryUsed = gs_->storage.spi.used;
     if (reply_->status.memory.dataMemoryInstalled > 0) {
-        reply_->status.memory.dataMemoryConsumption = reply_->status.memory.dataMemoryUsed / reply_->status.memory.dataMemoryInstalled * 100.0f;
+        reply_->status.memory.dataMemoryConsumption =
+            reply_->status.memory.dataMemoryUsed / reply_->status.memory.dataMemoryInstalled * 100.0f;
     }
-
 
     auto maximum_firmware = 4;
     auto all_firmware = pool_->malloc<fk_app_Firmware>(maximum_firmware);
@@ -162,24 +162,19 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, bool logs, fkb_h
         .fields = fk_app_Firmware_fields,
     });
 
-    #if defined(__SAMD51__)
-    constexpr uint32_t addresses[]{
-        0x00000000,
-        0x00000000 + 0x08000,
-        0x04000000,
-        0x04000000 + 0x10000
-    };
+#if defined(__SAMD51__)
+    constexpr uint32_t addresses[]{ 0x00000000, 0x00000000 + 0x08000, 0x04000000, 0x04000000 + 0x10000 };
     for (auto address : addresses) {
         uint32_t *fkbh = (uint32_t *)(address);
         if (try_populate_firmware(all_firmware[firmware_array->length], fkbh, *pool_)) {
             firmware_array->length++;
         }
     }
-    #else
+#else
     if (try_populate_firmware(all_firmware[firmware_array->length], fkb, *pool_)) {
         firmware_array->length++;
     }
-    #endif
+#endif
 
     reply_->status.memory.firmware.arg = (void *)firmware_array;
 
@@ -257,8 +252,7 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, bool logs, fkb_h
         });
 
         reply_->modules.arg = (void *)modules_array;
-    }
-    else {
+    } else {
         logwarn("no modules");
     }
 
@@ -458,6 +452,7 @@ bool HttpReply::include_readings() {
                 auto reading = attached_sensor.reading();
                 readings[s].value = reading.calibrated;
                 readings[s].uncalibrated = reading.uncalibrated;
+                readings[s].factory = reading.factory;
             }
 
             auto readings_array = pool_->malloc_with<pb_array_t>({
@@ -525,7 +520,8 @@ bool HttpReply::include_scan(NetworkScan scan) {
     return true;
 }
 
-bool HttpReply::include_listing(const char *path, fk_app_DirectoryEntry *entries, size_t number_entries, size_t total_entries) {
+bool HttpReply::include_listing(const char *path, fk_app_DirectoryEntry *entries, size_t number_entries,
+                                size_t total_entries) {
     *reply_ = fk_app_HttpReply_init_default;
     reply_->type = fk_app_ReplyType_REPLY_FILES;
 
@@ -552,4 +548,4 @@ bool HttpReply::include_listing(const char *path, fk_app_DirectoryEntry *entries
     return true;
 }
 
-}
+} // namespace fk
