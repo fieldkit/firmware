@@ -50,12 +50,11 @@ void ConnectionPool::service() {
                 update_statistics(c);
 
                 if (activity_elapsed < NetworkConnectionMaximumDuration) {
-                    logtrace("[%" PRIu32 "] [%d] active (%" PRIu32 "ms) (%" PRIu32 "ms) (%" PRIu32 " down) (%" PRIu32 " up)",
-                             c->number(), i, activity_elapsed, started_elapsed, c->bytes_rx_, c->bytes_tx_);
-                }
-                else {
-                    logwarn("[%" PRIu32 "] [%d] killing (%" PRIu32 "ms) (%" PRIu32 "ms) (%" PRIu32 " down) (%" PRIu32 " up)",
-                            c->number(), i, activity_elapsed, started_elapsed, c->bytes_rx_, c->bytes_tx_);
+                    logtrace("[%" PRIu32 "] [%d] active (%" PRIu32 "ms) (%" PRIu32 "ms) (%" PRIu32 " down) (%" PRIu32 " up)", c->number(),
+                             i, activity_elapsed, started_elapsed, c->bytes_rx_, c->bytes_tx_);
+                } else {
+                    logwarn("[%" PRIu32 "] [%d] killing (%" PRIu32 "ms) (%" PRIu32 "ms) (%" PRIu32 " down) (%" PRIu32 " up)", c->number(),
+                            i, activity_elapsed, started_elapsed, c->bytes_rx_, c->bytes_tx_);
                     free_connection(i);
                     continue;
                 }
@@ -74,13 +73,20 @@ void ConnectionPool::service() {
     }
 }
 
+void ConnectionPool::stop() {
+    for (auto i = 0u; i < MaximumConnections; ++i) {
+        if (connections_[i] != nullptr) {
+            free_connection(i);
+        }
+    }
+}
+
 void ConnectionPool::queue(PoolPointer<NetworkConnection> *c, Connection *connection) {
     for (auto i = 0u; i < MaximumConnections; ++i) {
         if (connections_[i] == nullptr) {
             ip4_address ip{ c->get()->remote_address() };
 
-            loginfo("[%" PRIu32 "] connection (socket = %" PRId32 ") (%d.%d.%d.%d)",
-                    connection->number(), c->get()->socket(),
+            loginfo("[%" PRIu32 "] connection (socket = %" PRId32 ") (%d.%d.%d.%d)", connection->number(), c->get()->socket(),
                     ip.u.bytes[0], ip.u.bytes[1], ip.u.bytes[2], ip.u.bytes[3]);
 
             activity_ = fk_uptime();
@@ -158,4 +164,4 @@ uint32_t ConnectionPool::bytes_tx() const {
     return bytes_tx_;
 };
 
-}
+} // namespace fk
