@@ -27273,6 +27273,12 @@ public final class FkApp {
      * @return The uncalibrated.
      */
     float getUncalibrated();
+
+    /**
+     * <code>float factory = 4;</code>
+     * @return The factory.
+     */
+    float getFactory();
   }
   /**
    * Protobuf type {@code fk_app.LiveSensorReading}
@@ -27380,6 +27386,32 @@ public final class FkApp {
     private void clearUncalibrated() {
       
       uncalibrated_ = 0F;
+    }
+
+    public static final int FACTORY_FIELD_NUMBER = 4;
+    private float factory_;
+    /**
+     * <code>float factory = 4;</code>
+     * @return The factory.
+     */
+    @java.lang.Override
+    public float getFactory() {
+      return factory_;
+    }
+    /**
+     * <code>float factory = 4;</code>
+     * @param value The factory to set.
+     */
+    private void setFactory(float value) {
+      
+      factory_ = value;
+    }
+    /**
+     * <code>float factory = 4;</code>
+     */
+    private void clearFactory() {
+      
+      factory_ = 0F;
     }
 
     public static org.conservify.fieldkit.app.pb.FkApp.LiveSensorReading parseFrom(
@@ -27580,6 +27612,34 @@ public final class FkApp {
         return this;
       }
 
+      /**
+       * <code>float factory = 4;</code>
+       * @return The factory.
+       */
+      @java.lang.Override
+      public float getFactory() {
+        return instance.getFactory();
+      }
+      /**
+       * <code>float factory = 4;</code>
+       * @param value The factory to set.
+       * @return This builder for chaining.
+       */
+      public Builder setFactory(float value) {
+        copyOnWrite();
+        instance.setFactory(value);
+        return this;
+      }
+      /**
+       * <code>float factory = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearFactory() {
+        copyOnWrite();
+        instance.clearFactory();
+        return this;
+      }
+
       // @@protoc_insertion_point(builder_scope:fk_app.LiveSensorReading)
     }
     @java.lang.Override
@@ -27599,10 +27659,11 @@ public final class FkApp {
               "sensor_",
               "value_",
               "uncalibrated_",
+              "factory_",
             };
             java.lang.String info =
-                "\u0000\u0003\u0000\u0000\u0001\u0003\u0003\u0000\u0000\u0000\u0001\t\u0002\u0001" +
-                "\u0003\u0001";
+                "\u0000\u0004\u0000\u0000\u0001\u0004\u0004\u0000\u0000\u0000\u0001\t\u0002\u0001" +
+                "\u0003\u0001\u0004\u0001";
             return newMessageInfo(DEFAULT_INSTANCE, info, objects);
         }
         // fall through
