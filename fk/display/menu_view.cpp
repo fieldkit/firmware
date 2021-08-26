@@ -580,7 +580,7 @@ void MenuView::create_tools_menu() {
                                                              views_->show_message("Card Error!");
                                                              return;
                                                          }
-                                                         views_->show_message("Success!");
+                                                         views_->show_message("Success!", FiveSecondsMs);
                                                      }));
 
     auto tools_dump_flash = to_lambda_option(pool_, "Flash -> SD", [=]() {

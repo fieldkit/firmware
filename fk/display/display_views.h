@@ -23,13 +23,12 @@ public:
     virtual void show_build() = 0;
     virtual void show_module_status() = 0;
     virtual void show_module_menu(uint8_t bay) = 0;
-    virtual void show_message(const char *message) = 0;
+    virtual void show_message(const char *message, uint32_t visible_ms = 0) = 0;
     virtual void show_qr_code() = 0;
     virtual void show_lora() = 0;
     virtual void show_gps() = 0;
     virtual void show_schedule() = 0;
     virtual void on_external() = 0;
-
 };
 
 class DisplayView {
@@ -64,4 +63,4 @@ public:
     }
 };
 
-}
+} // namespace fk
