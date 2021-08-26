@@ -796,7 +796,7 @@ void MenuView::create_main_menu() {
         auto gs = get_global_state_ro();
         // TODO Move to subpool to allow for repeated readings presses.
         readings_menu_ = create_readings_menu(gs.get(), back_, *pool_);
-        goto_menu(readings_menu_);
+        goto_menu(readings_menu_, OneMinuteMs, nullptr);
     });
     auto main_info = to_lambda_option(pool_, "Info", [=]() { goto_menu(info_menu_); });
     auto main_schedules = to_lambda_option(pool_, "Schedules", [=]() { goto_menu(schedules_menu_); });
