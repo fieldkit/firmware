@@ -5110,6 +5110,9 @@ export namespace fk_app {
 
         /** LiveSensorReading uncalibrated */
         uncalibrated?: number;
+
+        /** LiveSensorReading factory */
+        factory?: number;
     }
 
     /** Represents a LiveSensorReading. */
@@ -5129,6 +5132,9 @@ export namespace fk_app {
 
         /** LiveSensorReading uncalibrated. */
         public uncalibrated: number;
+
+        /** LiveSensorReading factory. */
+        public factory: number;
 
         /**
          * Creates a new LiveSensorReading instance using the specified properties.
