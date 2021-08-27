@@ -10,10 +10,7 @@ private:
     bool was_enabled_{ false };
 
 public:
-    EnableModulePower(ModulePosition position, ModulePower power, uint32_t wake_delay)
-        : position_(position), power_(power), wake_delay_(wake_delay) {
-    }
-
+    EnableModulePower(ModulePosition position, ModulePower power, uint32_t wake_delay);
     virtual ~EnableModulePower();
 
 private:
@@ -25,9 +22,7 @@ private:
 
     bool should_enable();
 
-    bool was_enabled() {
-        return was_enabled_;
-    }
+    bool was_enabled();
 
 public:
     bool enable();

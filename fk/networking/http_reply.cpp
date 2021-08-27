@@ -4,10 +4,10 @@
 
 #include "networking/http_reply.h"
 
-#include "storage/storage.h"
-#include "state.h"
-#include "utilities.h"
 #include "clock.h"
+#include "state.h"
+#include "storage/storage.h"
+#include "utilities.h"
 
 extern const struct fkb_header_t fkb_header;
 
@@ -89,7 +89,8 @@ static bool try_populate_firmware(fk_app_Firmware &fw, void const *ptr, Pool &po
     fw.hash.arg = (void *)bytes_to_hex_string_pool(fkbh->firmware.hash, fkbh->firmware.hash_size, pool);
     fw.logical_address = logical_address;
 
-    loginfo("[0x%08" PRIx32 "] firmware: number=%" PRIu32 " version=%s", ptr, fkbh->firmware.number, fkbh->firmware.version);
+    loginfo("[0x%08" PRIx32 "] firmware: number=%" PRIu32 " version=%s", ptr, fkbh->firmware.number,
+            fkbh->firmware.version);
 
     return true;
 }
@@ -457,6 +458,7 @@ bool HttpReply::include_readings() {
                 auto reading = attached_sensor.reading();
                 readings[s].value = reading.calibrated;
                 readings[s].uncalibrated = reading.uncalibrated;
+                readings[s].factory = reading.factory;
             }
 
             auto readings_array = pool_->malloc_with<pb_array_t>({
@@ -528,7 +530,8 @@ bool HttpReply::include_scan(NetworkScan scan) {
     return true;
 }
 
-bool HttpReply::include_listing(const char *path, fk_app_DirectoryEntry *entries, size_t number_entries, size_t total_entries) {
+bool HttpReply::include_listing(const char *path, fk_app_DirectoryEntry *entries, size_t number_entries,
+                                size_t total_entries) {
     *reply_ = fk_app_HttpReply_init_default;
     reply_->type = fk_app_ReplyType_REPLY_FILES;
 

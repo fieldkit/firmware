@@ -1,5 +1,4 @@
 #include "water_module.h"
-#include "curves.h"
 #include "modules/eeprom.h"
 #include "platform.h"
 #include "state_ref.h"
@@ -13,13 +12,49 @@ FK_DECLARE_LOGGER("water");
 #define FK_ADS1219_ADDRESS 0x45
 
 #define FK_MCP2803_IODIR 0b00000010
-#define FK_MCP2803_GPPU 0b00000010
+#define FK_MCP2803_GPPU  0b00000010
 
-#define FK_MCP2803_GPIO_ON 0b00000001
+#define FK_MCP2803_GPIO_ON  0b00000001
 #define FK_MCP2803_GPIO_OFF 0b00000000
 
-#define FK_MCP2803_GPIO_EXCITE_ON 0b00000101
+#define FK_MCP2803_GPIO_EXCITE_ON  0b00000101
 #define FK_MCP2803_GPIO_EXCITE_OFF 0b00000001
+
+class Ads1219ReadyAfterDelay : public Ads1219ReadyChecker {
+private:
+    uint32_t delay_{ 1 };
+
+public:
+    Ads1219ReadyAfterDelay() {
+    }
+
+public:
+    bool block_until_ready(TwoWireWrapper &bus) override {
+        fk_delay(delay_);
+        return true;
+    }
+};
+
+class UnexciteBeforeReadyChecker : public Ads1219ReadyChecker {
+private:
+    Mcp2803 &mcp2803_;
+    bool exciting_{ false };
+
+public:
+    UnexciteBeforeReadyChecker(Mcp2803 &mcp2803, bool exciting) : mcp2803_(mcp2803), exciting_(exciting) {
+    }
+
+public:
+    bool block_until_ready(TwoWireWrapper &bus) override {
+        if (exciting_) {
+            if (!mcp2803_.configure(FK_MCP2803_IODIR, FK_MCP2803_GPPU, FK_MCP2803_GPIO_EXCITE_OFF)) {
+                logerror("mcp2803::configure-excite");
+                return false;
+            }
+        }
+        return true;
+    }
+};
 
 class Mcp2803ReadyChecker : public Ads1219ReadyChecker {
 private:
@@ -67,7 +102,7 @@ ModuleReturn WaterModule::initialize(ModuleContext mc, Pool &pool) {
     auto &bus = mc.module_bus();
 
     Mcp2803 mcp{ bus, FK_MCP2803_ADDRESS };
-    Mcp2803ReadyChecker ready_checker{ mcp };
+    UnexciteBeforeReadyChecker ready_checker{ mcp, false };
     Ads1219 ads{ bus, FK_ADS1219_ADDRESS, &ready_checker };
 
     if (!initialize(mcp, ads)) {
@@ -95,7 +130,8 @@ bool WaterModule::initialize(Mcp2803 &mcp, Ads1219 &ads) {
         return false;
     }
 
-    if (!ads.configure(Ads1219VoltageReference::Internal, Ads1219Channel::Diff_0_1, Ads1219Gain::One)) {
+    if (!ads.configure(Ads1219VoltageReference::Internal, Ads1219Channel::Diff_0_1, Ads1219Gain::One,
+                       Ads1219DataRate::DataRate_1000)) {
         logerror("ads1219::configure");
         return false;
     }
@@ -239,45 +275,42 @@ ModuleConfiguration const WaterModule::get_configuration(Pool &pool) {
     return { get_display_name_key(), ModulePower::ReadingsOnly, 0, cfg_message_, DefaultModuleOrder };
 }
 
-uint32_t WaterModule::excite_duration() {
-    auto gs = get_global_state_ro();
-    auto delay = gs.get()->debugging.ec_excite_delay;
-    loginfo("ec delay: %dms", delay);
+bool WaterModule::excite_enabled() {
     switch (header_.kind) {
     case FK_MODULES_KIND_WATER_EC: {
-        return delay == 0 ? 10 : delay;
+        return true;
     }
     default:
-        return 0;
+        return false;
+    };
+}
+
+Curve *WaterModule::create_modules_default_curve(Pool &pool) {
+    switch (header_.kind) {
+    case FK_MODULES_KIND_WATER_EC: {
+        float a = 1e7;
+        float b = -6.683;
+        return create_curve(fk_data_CurveType_CURVE_EXPONENTIAL, a, b, pool);
+    }
+    default:
+        return create_noop_curve(pool);
     };
 }
 
 ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
     auto &bus = mc.module_bus();
 
+    auto exciting = excite_enabled();
     Mcp2803 mcp{ bus, FK_MCP2803_ADDRESS };
-    Mcp2803ReadyChecker ready_checker{ mcp };
+    UnexciteBeforeReadyChecker ready_checker{ mcp, exciting };
     Ads1219 ads{ bus, FK_ADS1219_ADDRESS, &ready_checker };
 
     if (!initialize(mcp, ads)) {
         return nullptr;
     }
 
-    auto excite_for = excite_duration();
-    if (excite_for > 0) {
-        loginfo("excitation: %" PRIu32 "ms", excite_for);
-
-        if (!excite_control(mcp, true)) {
-            return nullptr;
-        }
-
-        fk_delay(excite_for);
-
-        if (!excite_control(mcp, false)) {
-            return nullptr;
-        }
-
-        fk_delay(excite_for);
+    if (excite_enabled()) {
+        loginfo("excitation: enabled");
 
         if (!excite_control(mcp, true)) {
             return nullptr;
@@ -292,22 +325,19 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
         return nullptr;
     }
 
-    if (excite_for > 0) {
-        if (!excite_control(mcp, false)) {
-            return nullptr;
-        }
-    }
-
-    auto curve = create_curve(cfg_, pool);
     auto uncalibrated = ((float)value * 2.048f) / 8388608.0f;
+
+    auto default_curve = create_modules_default_curve(pool);
+    auto curve = create_curve(default_curve, cfg_, pool);
+    auto factory = default_curve->apply(uncalibrated);
     auto calibrated = curve->apply(uncalibrated);
 
-    loginfo("[%d] water: %f (%f)", mc.position().integer(), uncalibrated, calibrated);
+    loginfo("[%d] water: %f (%f) (%f)", mc.position().integer(), uncalibrated, calibrated, factory);
 
     auto mr = new (pool) NModuleReadings<1>();
 
     auto nreadings = 0u;
-    mr->set(nreadings++, ModuleReading{ uncalibrated, calibrated });
+    mr->set(nreadings++, ModuleReading{ uncalibrated, calibrated, factory });
 
     return mr;
 }

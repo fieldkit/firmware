@@ -100,8 +100,8 @@ public:
         show_view(menu_view);
     }
 
-    void show_message(const char *message) override {
-        message_view.message(message);
+    void show_message(const char *message, uint32_t visible_ms) override {
+        message_view.message(message, visible_ms);
         show_view(message_view);
         StandardPool pool{ "display-frame" };
         view->tick(this, pool);
@@ -130,7 +130,7 @@ public:
         if (notification.created > 0 && notified_ < notification.created) {
             loginfo("notification: '%s'", notification.message);
             notified_ = notification.created;
-            show_message(notification.message);
+            show_message(notification.message, 0);
         }
         auto &display = gs.get()->display;
         if (display.open_menu.time > 0 && display.open_menu.time > updated_) {

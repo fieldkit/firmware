@@ -512,8 +512,8 @@ public:
     PollWaterEcSensorsMenu(GotoMenu *menus, MenuOption *back, Pool *pool) {
         menu_ = create_numeric_selection<7>("EC Delay = %dms", { 1, 2, 5, 10, 20, 50, 100 }, back, pool,
                                             [=](int32_t delay) {
-                                                auto gs = get_global_state_rw();
-                                                gs.get()->debugging.ec_excite_delay = delay;
+                                                // auto gs = get_global_state_rw();
+                                                // gs.get()->debugging.ec_excite_delay = delay;
                                                 loginfo("override ec delay: %dms", delay);
                                                 back->on_selected();
                                                 auto poll_sensors = new (pool) PollSensorsMenu(menus, back, pool);
@@ -580,7 +580,7 @@ void MenuView::create_tools_menu() {
                                                              views_->show_message("Card Error!");
                                                              return;
                                                          }
-                                                         views_->show_message("Success!");
+                                                         views_->show_message("Success!", FiveSecondsMs);
                                                      }));
 
     auto tools_dump_flash = to_lambda_option(pool_, "Flash -> SD", [=]() {
@@ -660,8 +660,9 @@ void MenuView::create_tools_menu() {
     (void)tools_poll_sensors;
     (void)tools_crash_hardf;
     (void)tools_crash_assertion;
+    (void)tools_poll_water_ec_sensors;
 
-    tools_menu_ = new_menu_screen<15>(pool_, "tools",
+    tools_menu_ = new_menu_screen<14>(pool_, "tools",
                                       {
                                           back_,
                                           tools_self_check,
@@ -675,7 +676,7 @@ void MenuView::create_tools_menu() {
                                           tools_format_sd,
                                           tools_sleep_test,
                                           tools_poll_sensors,
-                                          tools_poll_water_ec_sensors,
+                                          // tools_poll_water_ec_sensors,
                                           tools_fsck,
                                           // tools_crash_hardf,
                                           // tools_crash_assertion,
@@ -795,7 +796,7 @@ void MenuView::create_main_menu() {
         auto gs = get_global_state_ro();
         // TODO Move to subpool to allow for repeated readings presses.
         readings_menu_ = create_readings_menu(gs.get(), back_, *pool_);
-        goto_menu(readings_menu_);
+        goto_menu(readings_menu_, OneMinuteMs, nullptr);
     });
     auto main_info = to_lambda_option(pool_, "Info", [=]() { goto_menu(info_menu_); });
     auto main_schedules = to_lambda_option(pool_, "Schedules", [=]() { goto_menu(schedules_menu_); });

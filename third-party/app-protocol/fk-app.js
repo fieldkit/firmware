@@ -13233,6 +13233,7 @@
              * @property {fk_app.ISensorCapabilities} [sensor] LiveSensorReading sensor
              * @property {number} [value] LiveSensorReading value
              * @property {number} [uncalibrated] LiveSensorReading uncalibrated
+             * @property {number} [factory] LiveSensorReading factory
              */
     
             /**
@@ -13274,6 +13275,14 @@
             LiveSensorReading.prototype.uncalibrated = 0;
     
             /**
+             * LiveSensorReading factory.
+             * @member {number}factory
+             * @memberof fk_app.LiveSensorReading
+             * @instance
+             */
+            LiveSensorReading.prototype.factory = 0;
+    
+            /**
              * Creates a new LiveSensorReading instance using the specified properties.
              * @function create
              * @memberof fk_app.LiveSensorReading
@@ -13303,6 +13312,8 @@
                     writer.uint32(/* id 2, wireType 5 =*/21).float(message.value);
                 if (message.uncalibrated != null && message.hasOwnProperty("uncalibrated"))
                     writer.uint32(/* id 3, wireType 5 =*/29).float(message.uncalibrated);
+                if (message.factory != null && message.hasOwnProperty("factory"))
+                    writer.uint32(/* id 4, wireType 5 =*/37).float(message.factory);
                 return writer;
             };
     
@@ -13345,6 +13356,9 @@
                         break;
                     case 3:
                         message.uncalibrated = reader.float();
+                        break;
+                    case 4:
+                        message.factory = reader.float();
                         break;
                     default:
                         reader.skipType(tag & 7);
@@ -13392,6 +13406,9 @@
                 if (message.uncalibrated != null && message.hasOwnProperty("uncalibrated"))
                     if (typeof message.uncalibrated !== "number")
                         return "uncalibrated: number expected";
+                if (message.factory != null && message.hasOwnProperty("factory"))
+                    if (typeof message.factory !== "number")
+                        return "factory: number expected";
                 return null;
             };
     
@@ -13416,6 +13433,8 @@
                     message.value = Number(object.value);
                 if (object.uncalibrated != null)
                     message.uncalibrated = Number(object.uncalibrated);
+                if (object.factory != null)
+                    message.factory = Number(object.factory);
                 return message;
             };
     
@@ -13436,6 +13455,7 @@
                     object.sensor = null;
                     object.value = 0;
                     object.uncalibrated = 0;
+                    object.factory = 0;
                 }
                 if (message.sensor != null && message.hasOwnProperty("sensor"))
                     object.sensor = $root.fk_app.SensorCapabilities.toObject(message.sensor, options);
@@ -13443,6 +13463,8 @@
                     object.value = options.json && !isFinite(message.value) ? String(message.value) : message.value;
                 if (message.uncalibrated != null && message.hasOwnProperty("uncalibrated"))
                     object.uncalibrated = options.json && !isFinite(message.uncalibrated) ? String(message.uncalibrated) : message.uncalibrated;
+                if (message.factory != null && message.hasOwnProperty("factory"))
+                    object.factory = options.json && !isFinite(message.factory) ? String(message.factory) : message.factory;
                 return object;
             };
     
