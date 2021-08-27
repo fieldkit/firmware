@@ -183,7 +183,7 @@ struct StorageUpdate {
 };
 
 struct LoraState {
-    bool configured;
+    // bool configured;
     uint8_t device_eui[LoraDeviceEuiLength];
     uint8_t app_key[LoraAppKeyLength];
     uint8_t app_eui[LoraAppEuiLength];

@@ -10,11 +10,6 @@ FK_DECLARE_LOGGER("lora");
 LoraManager::LoraManager(LoraNetwork *network) : network_(network) {
 }
 
-bool LoraManager::available() {
-    auto gs = get_global_state_ro();
-    return gs.get()->lora.configured;
-}
-
 static LoraState get_lora_global_state() {
     auto gs = get_global_state_ro();
     return gs.get()->lora;
@@ -32,9 +27,9 @@ bool LoraManager::begin(Pool &pool) {
             logerror("error waking");
             return false;
         }
-
-        awake_ = true;
     }
+
+    awake_ = true;
 
     gsm.apply([=](GlobalState *gs) {
         gs->lora.has_module = success;
@@ -87,7 +82,6 @@ bool LoraManager::join_if_necessary(Pool &pool) {
 
     GlobalStateManager gsm;
     gsm.apply([=](GlobalState *gs) {
-        gs->lora.configured = true;
         gs->lora.has_module = true;
         gs->lora.joined = joined ? fk_uptime() : 0;
         gs->lora.activity = fk_uptime();
