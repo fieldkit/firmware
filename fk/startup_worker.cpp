@@ -232,6 +232,7 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
     loginfo("(loaded) name: '%s'", gs->general.name);
     loginfo("(loaded) generation: %s", bytes_to_hex_string_pool(gs->general.generation, GenerationLength, pool));
 
+    /*
     auto join_eui = pb_get_data_if_provided(record->lora.appEui.arg, pool);
     if (join_eui != nullptr) {
         FK_ASSERT(join_eui->length == LoraJoinEuiLength);
@@ -271,6 +272,7 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
         memcpy(gs->lora.device_address, device_address->buffer, device_address->length);
         loginfo("(loaded) lora device address: %s", pb_data_to_hex_string(device_address, pool));
     }
+    */
 
     auto networks_array = reinterpret_cast<pb_array_t *>(record->network.networks.arg);
     if (networks_array->length > 0) {

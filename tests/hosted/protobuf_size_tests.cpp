@@ -20,8 +20,7 @@ static fkb_header_t fake_header = { .signature = { 'F', 'K', 'B', 0 },
                                     .firmware = { .flags = 0,
                                                   .timestamp = 1580763366,
                                                   .number = 1000,
-                                                  .reserved = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-                                                                0xff, 0xff },
+                                                  .reserved = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff },
                                                   .safe = 0xff,
                                                   .previous = UINT32_MAX,
                                                   .binary_size = 65536,
@@ -116,11 +115,11 @@ static void fake_global_state(GlobalState &gs, Pool &pool) {
 
     gs.general.recording = 1580763366;
 
-    gs.lora.configured = true;
+    // gs.lora.configured = true;
     // gs.lora.uplink_counter = 4096;
     // gs.lora.downlink_counter = 1024;
     fake_data(gs.lora.device_eui);
-    fake_data(gs.lora.app_eui);
+    fake_data(gs.lora.join_eui);
     fake_data(gs.lora.app_key);
     fake_data(gs.lora.app_session_key);
     fake_data(gs.lora.network_session_key);
@@ -175,20 +174,16 @@ static void fake_modules(GlobalState &gs, Pool &pool) {
 
     ModuleHeader header;
     fake_data(header.id.data);
-    attached->modules().emplace(ModulePosition::from(0), header, &fk_test_module_fake_1,
-                                fk_test_module_fake_1.ctor(pool), pool);
+    attached->modules().emplace(ModulePosition::from(0), header, &fk_test_module_fake_1, fk_test_module_fake_1.ctor(pool), pool);
 
     fake_data(header.id.data);
-    attached->modules().emplace(ModulePosition::from(1), header, &fk_test_module_fake_2,
-                                fk_test_module_fake_2.ctor(pool), pool);
+    attached->modules().emplace(ModulePosition::from(1), header, &fk_test_module_fake_2, fk_test_module_fake_2.ctor(pool), pool);
 
     fake_data(header.id.data);
-    attached->modules().emplace(ModulePosition::from(2), header, &fk_test_module_fake_1,
-                                fk_test_module_fake_1.ctor(pool), pool);
+    attached->modules().emplace(ModulePosition::from(2), header, &fk_test_module_fake_1, fk_test_module_fake_1.ctor(pool), pool);
 
     fake_data(header.id.data);
-    attached->modules().emplace(ModulePosition::from(3), header, &fk_test_module_fake_2,
-                                fk_test_module_fake_2.ctor(pool), pool);
+    attached->modules().emplace(ModulePosition::from(3), header, &fk_test_module_fake_2, fk_test_module_fake_2.ctor(pool), pool);
 
     NoopMutex mutex;
     TwoWireWrapper module_bus{ &mutex, "modules", nullptr };
@@ -279,8 +274,7 @@ TEST_F(ProtoBufSizeSuite, ReadingsNoneBackFromFirstModule) {
     fake_data(header.id.data);
     attached->modules().emplace(ModulePosition::from(0), header, &fk_test_module_fake_1, first, pool_);
     fake_data(header.id.data);
-    attached->modules().emplace(ModulePosition::from(1), header, &fk_test_module_fake_2,
-                                fk_test_module_fake_2.ctor(pool_), pool_);
+    attached->modules().emplace(ModulePosition::from(1), header, &fk_test_module_fake_2, fk_test_module_fake_2.ctor(pool_), pool_);
 
     attached->initialize(pool_);
 
@@ -315,7 +309,7 @@ TEST_F(ProtoBufSizeSuite, Configuration) {
     auto encoded = pool_.encode(fk_data_DataRecord_fields, record.record());
     dump_binary(file_, "data-configuration", encoded);
 
-    ASSERT_EQ(encoded->size, 1338u);
+    ASSERT_EQ(encoded->size, 1256u);
 }
 
 TEST_F(ProtoBufSizeSuite, Modules) {
