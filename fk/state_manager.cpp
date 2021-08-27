@@ -11,7 +11,7 @@ namespace fk {
 
 FK_DECLARE_LOGGER("gsm");
 
-static void initialize_compile_time_wifi(WifiNetworkInfo &network, const char *ssid, const char *password) __attribute__ ((unused));
+static void initialize_compile_time_wifi(WifiNetworkInfo &network, const char *ssid, const char *password) __attribute__((unused));
 
 static void initialize_compile_time_wifi(WifiNetworkInfo &network, const char *ssid, const char *password) {
     loginfo("(hardcoded) wifi '%s'", ssid);
@@ -44,28 +44,15 @@ bool GlobalStateManager::initialize(Pool &pool) {
         nc.password[0] = 0;
     }
 
-    #if defined(__SAMD51__)
-    #if defined(FK_WIFI_0_SSID) && defined(FK_WIFI_0_PASSWORD)
+#if defined(__SAMD51__)
+#if defined(FK_WIFI_0_SSID) && defined(FK_WIFI_0_PASSWORD)
     initialize_compile_time_wifi(gs.get()->network.config.wifi_networks[0], FK_WIFI_0_SSID, FK_WIFI_0_PASSWORD);
-    #endif
+#endif
 
-    #if defined(FK_WIFI_1_SSID) && defined(FK_WIFI_1_PASSWORD)
+#if defined(FK_WIFI_1_SSID) && defined(FK_WIFI_1_PASSWORD)
     initialize_compile_time_wifi(gs.get()->network.config.wifi_networks[1], FK_WIFI_1_SSID, FK_WIFI_1_PASSWORD);
-    #endif
-    #endif
-
-    #if defined(FK_LORA_APP_KEY)
-    loginfo("(hardcoded) lora app key '%s'", FK_LORA_APP_KEY);
-    hex_string_to_bytes(gs.get()->lora.app_key, sizeof(gs.get()->lora.app_key), FK_LORA_APP_KEY);
-    gs.get()->lora.configured = true;
-    #endif
-
-    #if defined(FK_LORA_APP_EUI)
-    loginfo("(hardcoded) lora app eui '%s'", FK_LORA_APP_EUI);
-    hex_string_to_bytes(gs.get()->lora.app_eui, sizeof(gs.get()->lora.app_eui), FK_LORA_APP_EUI);
-    #else
-    bzero(gs.get()->lora.app_eui, sizeof(gs.get()->lora.app_eui));
-    #endif
+#endif
+#endif
 
     if (fk_debug_get_console_attached()) {
         gs.get()->scheduler.readings.interval = DefaultDebugReadingsInterval;
@@ -76,8 +63,7 @@ bool GlobalStateManager::initialize(Pool &pool) {
         gs.get()->scheduler.network.duration = FiveMinutesSeconds;
         gs.get()->scheduler.backup.interval = OneDaySeconds;
         loginfo("using debug schedule");
-    }
-    else {
+    } else {
         gs.get()->scheduler.readings.interval = DefaultReadingsInterval;
         gs.get()->scheduler.network.interval = DefaultNetworkInterval;
         gs.get()->scheduler.gps.interval = DefaultGpsInterval;
@@ -104,4 +90,4 @@ bool GlobalStateManager::rebuild() {
     return true;
 }
 
-}
+} // namespace fk
