@@ -17,7 +17,7 @@ enum class LoraErrorCode {
 
 struct Rn2903State {
     uint8_t device_eui[LoraDeviceEuiLength];
-    uint8_t app_eui[LoraAppEuiLength];
+    uint8_t app_eui[LoraJoinEuiLength];
     uint8_t device_address[LoraDeviceAddressLength];
     uint32_t uplink_counter;
     uint32_t downlink_counter;
@@ -39,8 +39,8 @@ public:
     }
     virtual bool send_bytes(uint8_t port, uint8_t const *data, size_t size, bool confirmed) = 0;
     virtual bool join(const char *app_eui, const char *app_key, int32_t retries = 3, uint32_t retry_delay = 10000) = 0;
-    virtual bool join(const char *app_session_key, const char *network_session_key, const char *device_address,
-                      uint32_t uplink_counter, uint32_t downlink_counter) = 0;
+    virtual bool join(const char *app_session_key, const char *network_session_key, const char *device_address, uint32_t uplink_counter,
+                      uint32_t downlink_counter) = 0;
     virtual bool join_resume() {
         return false;
     }
@@ -90,8 +90,8 @@ public:
         return false;
     }
 
-    bool join(const char *app_session_key, const char *network_session_key, const char *device_address,
-              uint32_t uplink_counter, uint32_t downlink_counter) override {
+    bool join(const char *app_session_key, const char *network_session_key, const char *device_address, uint32_t uplink_counter,
+              uint32_t downlink_counter) override {
         return false;
     }
 

@@ -186,7 +186,7 @@ struct LoraState {
     // bool configured;
     uint8_t device_eui[LoraDeviceEuiLength];
     uint8_t app_key[LoraAppKeyLength];
-    uint8_t app_eui[LoraAppEuiLength];
+    uint8_t join_eui[LoraJoinEuiLength];
     uint8_t device_address[LoraDeviceAddressLength];
     uint8_t network_session_key[LoraNetworkSessionKeyLength];
     uint8_t app_session_key[LoraAppSessionKeyLength];

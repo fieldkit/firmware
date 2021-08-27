@@ -232,12 +232,12 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
     loginfo("(loaded) name: '%s'", gs->general.name);
     loginfo("(loaded) generation: %s", bytes_to_hex_string_pool(gs->general.generation, GenerationLength, pool));
 
-    auto app_eui = pb_get_data_if_provided(record->lora.appEui.arg, pool);
-    if (app_eui != nullptr) {
-        FK_ASSERT(app_eui->length == LoraAppEuiLength);
-        FK_ASSERT(app_eui->length == sizeof(gs->lora.app_eui));
-        memcpy(gs->lora.app_eui, app_eui->buffer, app_eui->length);
-        loginfo("(loaded) lora app eui: %s", pb_data_to_hex_string(app_eui, pool));
+    auto join_eui = pb_get_data_if_provided(record->lora.appEui.arg, pool);
+    if (join_eui != nullptr) {
+        FK_ASSERT(join_eui->length == LoraJoinEuiLength);
+        FK_ASSERT(join_eui->length == sizeof(gs->lora.join_eui));
+        memcpy(gs->lora.join_eui, join_eui->buffer, join_eui->length);
+        loginfo("(loaded) lora join eui: %s", pb_data_to_hex_string(join_eui, pool));
     }
 
     auto app_key = pb_get_data_if_provided(record->lora.appKey.arg, pool);

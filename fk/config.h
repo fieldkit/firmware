@@ -220,9 +220,9 @@ constexpr uint32_t MinimumModuleStartupDelayMs = 10;
 constexpr uint32_t LoraUplinksSaveFrequency = 10;
 
 /**
- * Length of a LoRa App EUI.
+ * Length of a LoRa Join EUI.
  */
-constexpr size_t LoraAppEuiLength = 8;
+constexpr size_t LoraJoinEuiLength = 8;
 
 /**
  * Length of a LoRa Device EUI.

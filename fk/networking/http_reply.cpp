@@ -89,8 +89,7 @@ static bool try_populate_firmware(fk_app_Firmware &fw, void const *ptr, Pool &po
     fw.hash.arg = (void *)bytes_to_hex_string_pool(fkbh->firmware.hash, fkbh->firmware.hash_size, pool);
     fw.logical_address = logical_address;
 
-    loginfo("[0x%08" PRIx32 "] firmware: number=%" PRIu32 " version=%s", ptr, fkbh->firmware.number,
-            fkbh->firmware.version);
+    loginfo("[0x%08" PRIx32 "] firmware: number=%" PRIu32 " version=%s", ptr, fkbh->firmware.number, fkbh->firmware.version);
 
     return true;
 }
@@ -332,9 +331,9 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, bool logs, fkb_h
         .length = sizeof(gs_->lora.device_eui),
         .buffer = gs_->lora.device_eui,
     });
-    auto app_eui_data = pool_->malloc_with<pb_data_t>({
-        .length = sizeof(gs_->lora.app_eui),
-        .buffer = gs_->lora.app_eui,
+    auto join_eui_data = pool_->malloc_with<pb_data_t>({
+        .length = sizeof(gs_->lora.join_eui),
+        .buffer = gs_->lora.join_eui,
     });
     auto app_key_data = pool_->malloc_with<pb_data_t>({
         .length = sizeof(gs_->lora.app_key),
@@ -345,7 +344,7 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, bool logs, fkb_h
     reply_->loraSettings.deviceEui.funcs.encode = pb_encode_data;
     reply_->loraSettings.deviceEui.arg = (void *)device_eui_data;
     reply_->loraSettings.appEui.funcs.encode = pb_encode_data;
-    reply_->loraSettings.appEui.arg = (void *)app_eui_data;
+    reply_->loraSettings.appEui.arg = (void *)join_eui_data;
     reply_->loraSettings.appKey.funcs.encode = pb_encode_data;
     reply_->loraSettings.appKey.arg = (void *)app_key_data;
 
@@ -530,8 +529,7 @@ bool HttpReply::include_scan(NetworkScan scan) {
     return true;
 }
 
-bool HttpReply::include_listing(const char *path, fk_app_DirectoryEntry *entries, size_t number_entries,
-                                size_t total_entries) {
+bool HttpReply::include_listing(const char *path, fk_app_DirectoryEntry *entries, size_t number_entries, size_t total_entries) {
     *reply_ = fk_app_HttpReply_init_default;
     reply_->type = fk_app_ReplyType_REPLY_FILES;
 
