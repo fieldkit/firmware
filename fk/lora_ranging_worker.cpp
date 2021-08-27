@@ -19,7 +19,7 @@ LoraRangingWorker::LoraRangingWorker(bool confirmed) : confirmed_(confirmed) {
 void LoraRangingWorker::run(Pool &pool) {
     LoraManager lora{ get_lora_network() };
 
-    if (!lora.begin()) {
+    if (!lora.begin(pool)) {
         return;
     }
 

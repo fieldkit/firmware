@@ -24,12 +24,12 @@
 #include "display/display_views.h"
 #include "factory_wipe_worker.h"
 #include "graceful_shutdown.h"
-#include "hal/metal/metal_lora.h"
 #include "modules/bridge/modules.h"
 #include "modules/configure.h"
 #include "modules/configure_module_worker.h"
 #include "modules/scanning.h"
 #include "secrets.h"
+#include "lora_manager.h"
 #include "lora_worker.h"
 
 extern const struct fkb_header_t fkb_header;
@@ -161,7 +161,6 @@ void StartupWorker::run(Pool &pool) {
         readings_worker.run(pool);
     }
 
-    // TODO Move this.
     check_for_lora(pool);
 
     loginfo("started");
@@ -413,21 +412,11 @@ bool StartupWorker::load_previous_location(GlobalState *gs, DataOps *ops, Pool &
 }
 
 bool StartupWorker::check_for_lora(Pool &pool) {
-    auto lora = get_lora_network();
-    if (!lora->begin()) {
-        return true;
-    }
-
-    GlobalStateManager gsm;
-    gsm.apply([=](GlobalState *gs) {
-        gs->lora.has_module = true;
-        gs->lora.activity = fk_uptime();
-        gs->lora.asleep = 0;
-    });
-
+    LoraManager lora{ get_lora_network() };
+    lora.begin(pool);
     // TODO Add turn off after X mechanism, like modules using the above
     // activity time.
-    // lora->stop();
+    // lora.stop();
 
     return true;
 }

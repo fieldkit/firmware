@@ -20,7 +20,7 @@ static LoraState get_lora_global_state() {
     return gs.get()->lora;
 }
 
-bool LoraManager::begin() {
+bool LoraManager::begin(Pool &pool) {
     GlobalStateManager gsm;
 
     auto success = network_->begin();
@@ -40,6 +40,14 @@ bool LoraManager::begin() {
         gs->lora.has_module = success;
         gs->lora.joined = 0;
         gs->lora.asleep = 0;
+
+        if (success) {
+            // auto device_eui = network_->device_eui();
+            // memcpy(gs->lora.device_eui, device_eui, LoraDeviceEuiLength);
+            // loginfo("(loaded) lora device eui: %s", bytes_to_hex_string_pool(device_eui, LoraDeviceEuiLength, pool));
+        } else {
+            memzero(gs->lora.device_eui, LoraDeviceEuiLength);
+        }
     });
 
     return success;

@@ -28,7 +28,7 @@ void LoraWorker::run(Pool &pool) {
         return;
     }
 
-    if (!lora.begin()) {
+    if (!lora.begin(pool)) {
         return;
     }
 

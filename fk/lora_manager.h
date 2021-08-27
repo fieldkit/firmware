@@ -14,7 +14,7 @@ public:
     explicit LoraManager(LoraNetwork *network);
 
 public:
-    bool begin();
+    bool begin(Pool &pool);
     bool available();
     bool factory_reset();
     bool join_if_necessary(Pool &pool);
