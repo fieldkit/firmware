@@ -35,7 +35,6 @@ private:
     optional<float> get_salinity(ReadingsContext mc);
     optional<float> get_pressure(ReadingsContext mc);
     bool load_configuration(ModuleContext mc, Pool &pool);
-
 };
 
 } // namespace fk

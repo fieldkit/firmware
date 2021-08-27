@@ -214,6 +214,8 @@ void NetworkServices::stop() {
 
     loginfo("stopping...");
 
+    connection_pool_.stop();
+
     network_->stop();
 
     GlobalStateManager gsm;

@@ -24,7 +24,7 @@ bool ModuleHandler::handle(HttpServerConnection *connection, Pool &pool) {
     auto lock = mm->lock();
     auto module_bus = get_board()->i2c_module();
 
-    EnableModulePower module_power{ bay_, configuration.power, configuration.wake_delay };
+    EnableModulePower module_power{ bay_, ModulePower::Always, configuration.wake_delay };
     if (!module_power.enable()) {
         connection->error(HttpStatus::ServerError, "error powering module", pool);
         return true;

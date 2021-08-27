@@ -4,6 +4,10 @@ namespace fk {
 
 FK_DECLARE_LOGGER("readings");
 
+EnableModulePower::EnableModulePower(ModulePosition position, ModulePower power, uint32_t wake_delay)
+    : position_(position), power_(power), wake_delay_(wake_delay) {
+}
+
 EnableModulePower::~EnableModulePower() {
     if (enabled_once()) {
         logverbose("[%d] powering off", position_.integer());
@@ -25,8 +29,8 @@ bool EnableModulePower::always_enabled() {
     return can_control() && power_ == ModulePower::Always;
 }
 
-bool EnableModulePower::should_enable() {
-    return can_control() && power_ == ModulePower::RareStarts;
+bool EnableModulePower::was_enabled() {
+    return was_enabled_;
 }
 
 bool EnableModulePower::enable() {
@@ -34,7 +38,7 @@ bool EnableModulePower::enable() {
 
     was_enabled_ = false;
 
-    if (enabled_once() || always_enabled() || should_enable()) {
+    if (enabled_once() || always_enabled()) {
         if (!mm->is_module_on(position_)) {
             logverbose("[%d] powering on", position_.integer());
             was_enabled_ = true;

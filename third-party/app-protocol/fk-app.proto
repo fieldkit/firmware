@@ -449,6 +449,7 @@ message LiveSensorReading {
   SensorCapabilities sensor = 1;
   float value = 2;
   float uncalibrated = 3;
+  float factory = 4;
 }
 
 message LiveModuleReadings {

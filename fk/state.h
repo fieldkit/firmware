@@ -297,7 +297,6 @@ struct DebuggingUdpTraffic {
 };
 
 struct DebuggingState {
-    uint32_t ec_excite_delay{ 10 };
     DebuggingUdpTraffic udp_traffic;
 };
 

@@ -355,5 +355,5 @@ TEST_F(ProtoBufSizeSuite, HttpReplyReadings) {
     auto encoded = pool_.encode(fk_app_HttpReply_fields, reply.reply());
     dump_binary(file_, "http-reply-readings", encoded);
 
-    ASSERT_EQ(encoded->size, 292u);
+    ASSERT_EQ(encoded->size, 342u);
 }

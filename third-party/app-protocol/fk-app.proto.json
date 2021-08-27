@@ -1111,6 +1111,10 @@
             "uncalibrated": {
               "type": "float",
               "id": 3
+            },
+            "factory": {
+              "type": "float",
+              "id": 4
             }
           }
         },

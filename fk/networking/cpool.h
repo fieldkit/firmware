@@ -32,6 +32,8 @@ public:
 
     void service();
 
+    void stop();
+
     void queue_debug(PoolPointer<NetworkConnection> *c);
 
     void queue_http(PoolPointer<NetworkConnection> *c);
@@ -49,7 +51,6 @@ public:
 private:
     void update_statistics(Connection *c);
     void free_connection(uint16_t index);
-
 };
 
-}
+} // namespace fk

@@ -3,6 +3,7 @@
 #include <modules/bridge/modules.h>
 
 #include "ads_1219.h"
+#include "curves.h"
 #include "mcp_2803.h"
 #include "records.h"
 
@@ -14,7 +15,6 @@ private:
     EncodedMessage *cfg_message_{ nullptr };
     fk_data_ModuleConfiguration *cfg_{ nullptr };
     ModuleHeader header_;
-    uint32_t excite_delay_{ 10 };
 
 public:
     WaterModule(Pool &pool);
@@ -35,9 +35,10 @@ private:
     bool load_configuration(ModuleContext mc, Pool &pool);
 
 private:
+    Curve *create_modules_default_curve(Pool &pool);
     bool excite_control(Mcp2803 &mcp, bool high);
     bool initialize(Mcp2803 &mcp, Ads1219 &ads);
-    uint32_t excite_duration();
+    bool excite_enabled();
 };
 
 } // namespace fk

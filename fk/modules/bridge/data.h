@@ -10,7 +10,7 @@ namespace fk {
 
 /**
 ** Value for module ordering and ranking.
- */
+*/
 using ModuleOrder = uint16_t;
 
 /**
@@ -21,13 +21,13 @@ constexpr ModuleOrder DefaultModuleOrder = UINT16_MAX / 2;
 /**
  * Module order for internal modules.
  */
-constexpr ModuleOrder ModuleOrderInternal = DefaultModuleOrder  - 10;
+constexpr ModuleOrder ModuleOrderInternal = DefaultModuleOrder - 10;
 
 /**
  * Module order for modules that provide calibration data other
  * modules may use.
  */
-constexpr ModuleOrder ModuleOrderProvidesCalibration = DefaultModuleOrder  - 1;
+constexpr ModuleOrder ModuleOrderProvidesCalibration = DefaultModuleOrder - 1;
 
 /**
  * Configuration information a module can provide to the OS.
@@ -81,23 +81,20 @@ typedef struct ModuleConfiguration {
      * Constructor
      */
     // cppcheck-suppress noExplicitConstructor
-    ModuleConfiguration(const char *display_name_key)
-        : display_name_key(display_name_key) {
+    ModuleConfiguration(const char *display_name_key) : display_name_key(display_name_key) {
     }
 
     /**
      * Constructor
      */
     // cppcheck-suppress noExplicitConstructor
-    ModuleConfiguration(const char *display_name_key, EncodedMessage *message)
-        : display_name_key(display_name_key), message(message) {
+    ModuleConfiguration(const char *display_name_key, EncodedMessage *message) : display_name_key(display_name_key), message(message) {
     }
 
     /**
      * Constructor
      */
-    ModuleConfiguration(const char *display_name_key, ModuleOrder order)
-        : display_name_key(display_name_key), service_order(order) {
+    ModuleConfiguration(const char *display_name_key, ModuleOrder order) : display_name_key(display_name_key), service_order(order) {
     }
 
     /**
@@ -124,7 +121,8 @@ typedef struct ModuleConfiguration {
     /**
      * Constructor
      */
-    ModuleConfiguration(const char *display_name_key, ModulePower power, uint32_t service_interval, EncodedMessage *message, ModuleOrder order)
+    ModuleConfiguration(const char *display_name_key, ModulePower power, uint32_t service_interval, EncodedMessage *message,
+                        ModuleOrder order)
         : display_name_key(display_name_key), message(message), power(power), service_interval(service_interval), service_order(order) {
     }
 } ModuleConfiguration;
@@ -132,6 +130,7 @@ typedef struct ModuleConfiguration {
 struct ModuleReading {
     float calibrated;
     float uncalibrated;
+    float factory;
 
     ModuleReading() : calibrated(0.0), uncalibrated(0.0) {
     }
@@ -140,6 +139,10 @@ struct ModuleReading {
     }
 
     ModuleReading(float uncalibrated, float calibrated) : calibrated(calibrated), uncalibrated(uncalibrated) {
+    }
+
+    ModuleReading(float uncalibrated, float calibrated, float factory)
+        : calibrated(calibrated), uncalibrated(uncalibrated), factory(factory) {
     }
 };
 
@@ -168,14 +171,7 @@ typedef struct ModuleSensors {
     SensorMetadata const *sensors;
 } ModuleSensors;
 
-enum class ModuleStatus {
-    Unknown = 0,
-    Empty,
-    Found,
-    Ok,
-    Warning,
-    Fatal
-};
+enum class ModuleStatus { Unknown = 0, Empty, Found, Ok, Warning, Fatal };
 
 inline const char *get_module_status_string(ModuleStatus ms) {
     switch (ms) {
@@ -196,4 +192,4 @@ inline const char *get_module_status_string(ModuleStatus ms) {
     }
 }
 
-}
+} // namespace fk

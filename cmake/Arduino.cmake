@@ -90,7 +90,7 @@ function(enable_m4_target target_name target_board)
   set(target_asm_flags "-g -x assembler-with-cpp -mcpu=${target_mcu} -mthumb ${target_board_flags}")
 
   set(target_board_ldflags "-mcpu=${target_mcu} -mthumb ${ARDUINO_PROJECT_LD_FLAGS}")
-  set(target_board_libraries "-larm_cortexM4lf_math -mfloat-abi=hard -mfpu=fpv4-sp-d16 -lstdc++")
+  set(target_board_libraries "-larm_cortexM4lf_math -mfloat-abi=hard -mfpu=fpv4-sp-d16 -lstdc++ -lm")
   set(target_includes ${ARDUINO_CMSIS_INCLUDE_DIRECTORY} ${ARDUINO_DEVICE_DIRECTORY} ${ARDUINO_CORE_DIRECTORY} ${target_board_directory})
 
   set(target_bootloader "${module_path}/linking/samd51x19_bootloader_small.ld")
