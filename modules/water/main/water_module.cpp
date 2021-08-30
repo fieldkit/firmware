@@ -20,6 +20,13 @@ FK_DECLARE_LOGGER("water");
 #define FK_MCP2803_GPIO_EXCITE_ON  0b00000101
 #define FK_MCP2803_GPIO_EXCITE_OFF 0b00000001
 
+class NoopReadyChecker : public Ads1219ReadyChecker {
+public:
+    bool block_until_ready(TwoWireWrapper &bus) override {
+        return true;
+    }
+};
+
 class Ads1219ReadyAfterDelay : public Ads1219ReadyChecker {
 private:
     uint32_t delay_{ 1 };
@@ -46,11 +53,9 @@ public:
 
 public:
     bool block_until_ready(TwoWireWrapper &bus) override {
-        if (exciting_) {
-            if (!mcp2803_.configure(FK_MCP2803_IODIR, FK_MCP2803_GPPU, FK_MCP2803_GPIO_EXCITE_OFF)) {
-                logerror("mcp2803::configure-excite");
-                return false;
-            }
+        if (!mcp2803_.configure(FK_MCP2803_IODIR, FK_MCP2803_GPPU, FK_MCP2803_GPIO_EXCITE_OFF)) {
+            logerror("mcp2803::configure-excite");
+            return false;
         }
         return true;
     }
@@ -80,7 +85,7 @@ public:
                 return true;
             }
 
-            fk_delay(10);
+            fk_delay(20);
         }
         return false;
     }
@@ -102,8 +107,8 @@ ModuleReturn WaterModule::initialize(ModuleContext mc, Pool &pool) {
     auto &bus = mc.module_bus();
 
     Mcp2803 mcp{ bus, FK_MCP2803_ADDRESS };
-    UnexciteBeforeReadyChecker ready_checker{ mcp, false };
-    Ads1219 ads{ bus, FK_ADS1219_ADDRESS, &ready_checker };
+    NoopReadyChecker unused_ready_checker;
+    Ads1219 ads{ bus, FK_ADS1219_ADDRESS, &unused_ready_checker };
 
     if (!initialize(mcp, ads)) {
         return { ModuleStatus::Fatal };
@@ -324,19 +329,29 @@ Curve *WaterModule::create_modules_default_curve(Pool &pool) {
     };
 }
 
+Ads1219ReadyChecker *WaterModule::get_ready_checker(Mcp2803 &mcp, Pool &pool) {
+    if (excite_enabled()) {
+        return new (pool) UnexciteBeforeReadyChecker{ mcp, true };
+    }
+    return new (pool) Mcp2803ReadyChecker{ mcp };
+}
+
 ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
     auto &bus = mc.module_bus();
 
-    auto exciting = excite_enabled();
     Mcp2803 mcp{ bus, FK_MCP2803_ADDRESS };
-    UnexciteBeforeReadyChecker ready_checker{ mcp, exciting };
-    Ads1219 ads{ bus, FK_ADS1219_ADDRESS, &ready_checker };
+
+    // TODO We could move the excite logic itself into this and clean up the
+    // branch below, gonna hold off until we've tested longer, though.
+    auto checker = get_ready_checker(mcp, pool);
+    Ads1219 ads{ bus, FK_ADS1219_ADDRESS, checker };
 
     if (!initialize(mcp, ads)) {
         return nullptr;
     }
 
-    if (excite_enabled()) {
+    auto exciting = excite_enabled();
+    if (exciting) {
         loginfo("excitation: enabled");
 
         if (!excite_control(mcp, true)) {
