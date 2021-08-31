@@ -133,7 +133,6 @@ bool Rn2903LoraNetwork::configure_tx(uint8_t power_index, uint8_t data_rate) {
 }
 
 bool Rn2903LoraNetwork::send_bytes(uint8_t port, uint8_t const *data, size_t size, bool confirmed) {
-
     if (!rn2903_.send_bytes(data, size, port, confirmed)) {
         return false;
     }
@@ -146,7 +145,7 @@ Rn2903State *Rn2903LoraNetwork::get_state(Pool &pool) {
 
     auto state = new (pool) Rn2903State();
 
-    loginfo("getting state");
+    loginfo("module: getting state");
 
     if (!rn2903_.simple_query("sys get vdd", &line, 1000)) {
         return false;
@@ -184,13 +183,12 @@ Rn2903State *Rn2903LoraNetwork::get_state(Pool &pool) {
     if (!rn2903_.simple_query("mac get appeui", &line, 1000)) {
         return nullptr;
     }
-    FK_ASSERT(hex_string_to_bytes(state->app_eui, sizeof(state->app_eui), line) == sizeof(state->app_eui));
+    FK_ASSERT(hex_string_to_bytes(state->join_eui, sizeof(state->join_eui), line) == sizeof(state->join_eui));
 
     if (!rn2903_.simple_query("mac get devaddr", &line, 1000)) {
         return nullptr;
     }
-    FK_ASSERT(hex_string_to_bytes(state->device_address, sizeof(state->device_address), line) ==
-              sizeof(state->device_address));
+    FK_ASSERT(hex_string_to_bytes(state->device_address, sizeof(state->device_address), line) == sizeof(state->device_address));
 
     if (!rn2903_.simple_query("mac get upctr", &line, 1000)) {
         return nullptr;

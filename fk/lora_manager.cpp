@@ -65,8 +65,8 @@ bool LoraManager::join_if_necessary(Pool &pool) {
     auto state = get_lora_global_state();
     auto module_state = network_->get_state(pool);
 
-    if (is_null_byte_array(state.join_eui, LoraJoinEuiLength)) {
-        logerror("state missing join-eui");
+    if (is_null_byte_array(module_state->join_eui, LoraJoinEuiLength)) {
+        logerror("module missing join-eui");
         return false;
     }
 

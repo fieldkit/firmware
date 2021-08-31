@@ -17,7 +17,8 @@ enum class LoraErrorCode {
 
 struct Rn2903State {
     uint8_t device_eui[LoraDeviceEuiLength];
-    uint8_t app_eui[LoraJoinEuiLength];
+    uint8_t app_key[LoraAppKeyLength];
+    uint8_t join_eui[LoraJoinEuiLength];
     uint8_t device_address[LoraDeviceAddressLength];
     uint32_t uplink_counter;
     uint32_t downlink_counter;
