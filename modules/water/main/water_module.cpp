@@ -20,6 +20,13 @@ FK_DECLARE_LOGGER("water");
 #define FK_MCP2803_GPIO_EXCITE_ON  0b00000101
 #define FK_MCP2803_GPIO_EXCITE_OFF 0b00000001
 
+class NoopReadyChecker : public Ads1219ReadyChecker {
+public:
+    bool block_until_ready(TwoWireWrapper &bus) override {
+        return true;
+    }
+};
+
 class Ads1219ReadyAfterDelay : public Ads1219ReadyChecker {
 private:
     uint32_t delay_{ 1 };
@@ -46,11 +53,9 @@ public:
 
 public:
     bool block_until_ready(TwoWireWrapper &bus) override {
-        if (exciting_) {
-            if (!mcp2803_.configure(FK_MCP2803_IODIR, FK_MCP2803_GPPU, FK_MCP2803_GPIO_EXCITE_OFF)) {
-                logerror("mcp2803::configure-excite");
-                return false;
-            }
+        if (!mcp2803_.configure(FK_MCP2803_IODIR, FK_MCP2803_GPPU, FK_MCP2803_GPIO_EXCITE_OFF)) {
+            logerror("mcp2803::configure-excite");
+            return false;
         }
         return true;
     }
@@ -80,7 +85,7 @@ public:
                 return true;
             }
 
-            fk_delay(10);
+            fk_delay(20);
         }
         return false;
     }
@@ -102,8 +107,8 @@ ModuleReturn WaterModule::initialize(ModuleContext mc, Pool &pool) {
     auto &bus = mc.module_bus();
 
     Mcp2803 mcp{ bus, FK_MCP2803_ADDRESS };
-    UnexciteBeforeReadyChecker ready_checker{ mcp, false };
-    Ads1219 ads{ bus, FK_ADS1219_ADDRESS, &ready_checker };
+    NoopReadyChecker unused_ready_checker;
+    Ads1219 ads{ bus, FK_ADS1219_ADDRESS, &unused_ready_checker };
 
     if (!initialize(mcp, ads)) {
         return { ModuleStatus::Fatal };
@@ -130,8 +135,7 @@ bool WaterModule::initialize(Mcp2803 &mcp, Ads1219 &ads) {
         return false;
     }
 
-    if (!ads.configure(Ads1219VoltageReference::Internal, Ads1219Channel::Diff_0_1, Ads1219Gain::One,
-                       Ads1219DataRate::DataRate_1000)) {
+    if (!ads.configure(Ads1219VoltageReference::Internal, Ads1219Channel::Diff_0_1, Ads1219Gain::One, Ads1219DataRate::DataRate_1000)) {
         logerror("ads1219::configure");
         return false;
     }
@@ -285,31 +289,69 @@ bool WaterModule::excite_enabled() {
     };
 }
 
+/*
+ * To avoid confusing users by displaying volts for the units on uncalibrated
+ * sensors we apply a default curve to each module. These modules are stable
+ * enough that these curves gives a reasonable representation out of the box.
+ * They came from extensive testing by the amazing Pete Marchetto with fancy
+ * test equipment and should only change when the hardware does or we're better
+ * able to define them.
+ */
 Curve *WaterModule::create_modules_default_curve(Pool &pool) {
     switch (header_.kind) {
+    case FK_MODULES_KIND_WATER_TEMP: {
+        constexpr float TempDefaultCalibrationB = 610.77;
+        constexpr float TempDefaultCalibrationM = -831.84;
+        return create_curve(fk_data_CurveType_CURVE_LINEAR, TempDefaultCalibrationB, TempDefaultCalibrationM, pool);
+    }
+    case FK_MODULES_KIND_WATER_PH: {
+        constexpr float PhDefaultCalibrationB = -18.75;
+        constexpr float PhDefaultCalibrationM = 15.625;
+        return create_curve(fk_data_CurveType_CURVE_LINEAR, PhDefaultCalibrationB, PhDefaultCalibrationM, pool);
+    }
+    case FK_MODULES_KIND_WATER_DO: {
+        constexpr float DoDefaultCalibrationB = 2.8711;
+        constexpr float DoDefaultCalibrationM = 3.4211;
+        return create_curve(fk_data_CurveType_CURVE_LINEAR, DoDefaultCalibrationB, DoDefaultCalibrationM, pool);
+    }
+    case FK_MODULES_KIND_WATER_ORP: {
+        constexpr float OrpDefaultCalibrationB = 0;
+        constexpr float OrpDefaultCalibrationM = 1000;
+        return create_curve(fk_data_CurveType_CURVE_LINEAR, OrpDefaultCalibrationB, OrpDefaultCalibrationM, pool);
+    }
     case FK_MODULES_KIND_WATER_EC: {
-        float a = 1e7;
-        float b = -6.683;
-        return create_curve(fk_data_CurveType_CURVE_EXPONENTIAL, a, b, pool);
+        constexpr float EcDefaultCalibrationA = 1e7;
+        constexpr float EcDefaultCalibrationB = -6.683;
+        return create_curve(fk_data_CurveType_CURVE_EXPONENTIAL, EcDefaultCalibrationA, EcDefaultCalibrationB, pool);
     }
     default:
         return create_noop_curve(pool);
     };
 }
 
+Ads1219ReadyChecker *WaterModule::get_ready_checker(Mcp2803 &mcp, Pool &pool) {
+    if (excite_enabled()) {
+        return new (pool) UnexciteBeforeReadyChecker{ mcp, true };
+    }
+    return new (pool) Mcp2803ReadyChecker{ mcp };
+}
+
 ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
     auto &bus = mc.module_bus();
 
-    auto exciting = excite_enabled();
     Mcp2803 mcp{ bus, FK_MCP2803_ADDRESS };
-    UnexciteBeforeReadyChecker ready_checker{ mcp, exciting };
-    Ads1219 ads{ bus, FK_ADS1219_ADDRESS, &ready_checker };
+
+    // TODO We could move the excite logic itself into this and clean up the
+    // branch below, gonna hold off until we've tested longer, though.
+    auto checker = get_ready_checker(mcp, pool);
+    Ads1219 ads{ bus, FK_ADS1219_ADDRESS, checker };
 
     if (!initialize(mcp, ads)) {
         return nullptr;
     }
 
-    if (excite_enabled()) {
+    auto exciting = excite_enabled();
+    if (exciting) {
         loginfo("excitation: enabled");
 
         if (!excite_control(mcp, true)) {
@@ -343,8 +385,7 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
 }
 
 bool WaterModule::excite_control(Mcp2803 &mcp, bool high) {
-    if (!mcp.configure(FK_MCP2803_IODIR, FK_MCP2803_GPPU,
-                       high ? FK_MCP2803_GPIO_EXCITE_ON : FK_MCP2803_GPIO_EXCITE_OFF)) {
+    if (!mcp.configure(FK_MCP2803_IODIR, FK_MCP2803_GPPU, high ? FK_MCP2803_GPIO_EXCITE_ON : FK_MCP2803_GPIO_EXCITE_OFF)) {
         logerror("mcp2803::configure-excite");
         return false;
     }
