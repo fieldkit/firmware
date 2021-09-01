@@ -103,6 +103,8 @@ timestamps {
 				}
 			}
 
+			refreshDistribution()
+
 			notifySuccess()
 		}
 		catch (Exception e) {
@@ -110,6 +112,4 @@ timestamps {
 			throw e;
 		}
     }
-
-    refreshDistribution()
 }
