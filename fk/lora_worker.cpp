@@ -4,57 +4,63 @@
 #include "hal/random.h"
 #include "lora_manager.h"
 #include "lora_packetizer.h"
+#include "platform.h"
 #include "state_ref.h"
 #include "utilities.h"
-#include "platform.h"
 
 namespace fk {
 
 FK_DECLARE_LOGGER("lora");
 
-tl::expected<EncodedMessage*, Error> packetize(Pool &pool) {
-#if defined(FK_OLD_STATE)
+struct OutgoingPackets {
+    EncodedMessage *packets;
+    bool confirmed;
+};
+
+static OutgoingPackets packetize(Pool &pool) {
     auto gs = get_global_state_ro();
-    if (gs.get()->modules == nullptr) {
-        logwarn("packetize: no modules");
-        return nullptr;
-    }
-
-    auto taken = gs.get()->modules->taken();
-    if (taken.time == 0) {
-        logwarn("packetize: no time");
-        return nullptr;
-    }
-
     LoraPacketizer packetizer;
-    return packetizer.packetize(taken, pool);
-#else
-    return nullptr;
-#endif
+    auto packets = packetizer.packetize(gs.get(), pool);
+    if (!packets) {
+        return OutgoingPackets{ nullptr, false };
+    }
+    auto confirmed = gs.get()->lora.activity == 0;
+    return OutgoingPackets{ *packets, confirmed };
+}
+
+static void update_activity(Pool &pool) {
+    auto gs = get_global_state_rw();
+    gs.get()->lora.activity = fk_uptime();
 }
 
 void LoraWorker::run(Pool &pool) {
     LoraManager lora{ get_lora_network() };
 
-    auto expected_packets = packetize(pool);
-    if (!expected_packets || *expected_packets == nullptr) {
+    auto outgoing = packetize(pool);
+    if (outgoing.packets == nullptr) {
         loginfo("no packets");
         return;
     }
 
-    auto packets = *expected_packets;
-    auto tries = 0u;
-
-    if (!lora.begin()) {
+    if (!lora.begin(pool)) {
         return;
     }
 
+    auto tries = 0u;
+    auto confirmed = outgoing.confirmed;
+    auto packets = outgoing.packets;
     while (packets != nullptr && tries < LoraSendTries) {
-        switch (lora.send_bytes(LoraDataPort, packets->buffer, packets->size)) {
+        if (!lora.configure_tx(5, 1)) {
+            logerror("configuring tx");
+            return;
+        }
+
+        switch (lora.send_bytes(LoraDataPort, packets->buffer, packets->size, confirmed, pool)) {
         case LoraErrorCode::None: {
             // Next packet!
             packets = packets->link;
             tries = 0;
+            confirmed = false;
 
             if (packets != nullptr) {
                 loginfo("lora packet delay (%" PRIu32 ")", LoraPacketDelay);
@@ -91,6 +97,8 @@ void LoraWorker::run(Pool &pool) {
     }
 
     lora.stop();
+
+    update_activity(pool);
 }
 
-}
+} // namespace fk

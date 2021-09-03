@@ -25,7 +25,7 @@ struct SelfCheckSettings {
     }
 
     static SelfCheckSettings defaults() {
-        return { true, true, true, true, false, false };
+        return { true, true, true, false, false, false };
     }
 };
 

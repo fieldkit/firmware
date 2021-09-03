@@ -5,9 +5,9 @@
 #include "hal/lora.h"
 #include "lora_manager.h"
 #include "platform.h"
-#include "utilities.h"
 #include "records.h"
 #include "tasks/tasks.h"
+#include "utilities.h"
 
 namespace fk {
 
@@ -19,7 +19,7 @@ LoraRangingWorker::LoraRangingWorker(bool confirmed) : confirmed_(confirmed) {
 void LoraRangingWorker::run(Pool &pool) {
     LoraManager lora{ get_lora_network() };
 
-    if (!lora.begin()) {
+    if (!lora.begin(pool)) {
         return;
     }
 
@@ -44,9 +44,8 @@ void LoraRangingWorker::run(Pool &pool) {
             auto encoded = work_pool.encode(fk_data_LoraRecord_fields, &record);
             if (encoded == nullptr) {
                 logerror("encode failed");
-            }
-            else {
-                lora.send_bytes(LoraStatusPort, encoded->buffer, encoded->size, confirmed_);
+            } else {
+                lora.send_bytes(LoraStatusPort, encoded->buffer, encoded->size, confirmed_, work_pool);
             }
         }
 

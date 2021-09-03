@@ -89,6 +89,7 @@ void MetaRecord::include_state(GlobalState const *gs, fkb_header_t const *fkb_he
     }
     record_->condition.recording = gs->general.recording;
 
+    /*
     if (gs->lora.configured) {
         auto device_eui_data = pool.malloc_with<pb_data_t>({
             .length = sizeof(gs->lora.device_eui),
@@ -122,9 +123,10 @@ void MetaRecord::include_state(GlobalState const *gs, fkb_header_t const *fkb_he
         record_->lora.appSessionKey.arg = (void *)app_session_key_data;
         record_->lora.networkSessionKey.arg = (void *)network_session_key_data;
         record_->lora.deviceAddress.arg = (void *)device_address_data;
-        record_->lora.uplinkCounter = gs->lora.uplink_counter;
-        record_->lora.downlinkCounter = gs->lora.downlink_counter;
+        // record_->lora.uplinkCounter = gs->lora.uplink_counter;
+        // record_->lora.downlinkCounter = gs->lora.downlink_counter;
     }
+    */
 
     auto networks = pool.malloc<fk_data_NetworkInfo>(WifiMaximumNumberOfNetworks);
     for (auto i = 0u; i < WifiMaximumNumberOfNetworks; ++i) {

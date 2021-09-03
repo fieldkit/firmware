@@ -41,8 +41,9 @@ bool Rn2903::wake() {
             // This should be 'ok', which is the ack from the actual sleep.
             if (read_line_sync(&line, 1000)) {
                 loginfo("rn2903 > '%s'", line);
-
-                line_reader_.read_line_sync(&line, 1000);
+                if (line_reader_.read_line_sync(&line, 1000)) {
+                    loginfo("rn2903 > '%s'", line);
+                }
                 line_reader_.clear();
 
                 return true;
@@ -51,6 +52,23 @@ bool Rn2903::wake() {
     }
 
     return false;
+}
+
+bool Rn2903::factory_reset() {
+    const char *line = nullptr;
+
+    auto fr = simple_query("sys factoryRESET", &line, 5000);
+    if (!fr) {
+        return false;
+    }
+
+    if (strncmp(line, "RN", 2) != 0) {
+        error_ = translate_error(line);
+        loginfo("rn2903 > '%s' (%d)", line, error_);
+        return false;
+    }
+
+    return true;
 }
 
 bool Rn2903::read_line_sync(const char **line, uint32_t to, bool quiet) {
@@ -145,18 +163,26 @@ bool Rn2903::save_state() {
     return true;
 }
 
-bool Rn2903::provision(const char *app_eui, const char *app_key) {
-    if (strlen(app_eui) != 16) {
-        logerror("malformed app_eui");
+bool Rn2903::disable_adr() {
+    if (!simple_query("mac set adr off", 1000)) {
         return false;
     }
 
-    if (strlen(app_key) != 32) {
+    return true;
+}
+
+bool Rn2903::provision(const char *join_eui, const char *app_key) {
+    if (strlen(join_eui) != LoraJoinEuiLength * 2) {
+        logerror("malformed join_eui");
+        return false;
+    }
+
+    if (strlen(app_key) != LoraAppKeyLength * 2) {
         logerror("malformed app_key");
         return false;
     }
 
-    if (!simple_query("mac set appeui %s", 1000, app_eui)) {
+    if (!simple_query("mac set appeui %s", 1000, join_eui)) {
         return false;
     }
 
@@ -198,7 +224,8 @@ bool Rn2903::provision(const char *app_eui, const char *app_key) {
     return true;
 }
 
-bool Rn2903::provision(const char *app_session_key, const char *network_session_key, const char *device_address, uint32_t uplink_counter, uint32_t downlink_counter) {
+bool Rn2903::provision(const char *app_session_key, const char *network_session_key, const char *device_address, uint32_t uplink_counter,
+                       uint32_t downlink_counter) {
     const char *line = nullptr;
     if (!simple_query("sys get hweui", &line, 1000)) {
         return false;
@@ -210,7 +237,6 @@ bool Rn2903::provision(const char *app_session_key, const char *network_session_
     if (!simple_query("mac set deveui %s", 1000, hweui)) {
         return false;
     }
-
     if (!simple_query("mac set devaddr %s", 1000, device_address)) {
         return false;
     }
@@ -248,8 +274,7 @@ bool Rn2903::configure_us915(uint8_t fsb) {
                     return false;
                 }
             }
-        }
-        else {
+        } else {
             if (!simple_query("mac set ch status %d off", 1000, ch)) {
                 return false;
             }
@@ -297,6 +322,11 @@ bool Rn2903::join(const char *app_eui, const char *app_key, int32_t retries, uin
         tries++;
 
         if (join("otaa")) {
+            const char *line = nullptr;
+            if (!simple_query("mac save", &line, 1000)) {
+                return false;
+            }
+
             return true;
         }
     }
@@ -304,7 +334,8 @@ bool Rn2903::join(const char *app_eui, const char *app_key, int32_t retries, uin
     return false;
 }
 
-bool Rn2903::join(const char *app_session_key, const char *network_session_key, const char *device_address, uint32_t uplink_counter, uint32_t downlink_counter) {
+bool Rn2903::join(const char *app_session_key, const char *network_session_key, const char *device_address, uint32_t uplink_counter,
+                  uint32_t downlink_counter) {
     if (!provision(app_session_key, network_session_key, device_address, uplink_counter, downlink_counter)) {
         return false;
     }
@@ -334,6 +365,8 @@ bool Rn2903::join(const char *mode) {
         return false;
     }
 
+    auto started = fk_uptime();
+
     const char *line = nullptr;
     for (auto i = 0u; i < 60; ++i) {
         if (read_line_sync(&line, 1000, true)) {
@@ -344,7 +377,7 @@ bool Rn2903::join(const char *mode) {
         return false;
     }
 
-    loginfo("rn2903 > '%s'", line);
+    loginfo("rn2903 > '%s' (%d)", line, fk_uptime() - started);
 
     if (strstr(line, "accepted") == nullptr) {
         return false;
@@ -385,11 +418,17 @@ bool Rn2903::send_bytes(uint8_t const *data, size_t size, uint8_t port, bool con
 
     const char *mac_tx_ok = "mac_tx_ok";
     if (strncmp(line, mac_tx_ok, strlen(mac_tx_ok)) == 0) {
+        if (!simple_query("mac save", &line, 1000)) {
+            return false;
+        }
         return true;
     }
 
     const char *mac_rx = "mac_rx";
     if (strncmp(line, mac_rx, strlen(mac_rx)) == 0) {
+        if (!simple_query("mac save", &line, 1000)) {
+            return false;
+        }
         return true;
     }
 
@@ -417,6 +456,6 @@ LoraErrorCode Rn2903::translate_error(const char *line) {
     return LoraErrorCode::None;
 }
 
-}
+} // namespace fk
 
 #endif

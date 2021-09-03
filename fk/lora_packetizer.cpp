@@ -1,4 +1,3 @@
-#include "records.h"
 #include "lora_packetizer.h"
 #include "clock.h"
 #include "records.h"
@@ -42,8 +41,6 @@ public:
     void begin(uint32_t time, uint32_t reading) {
         record_->time = time;
         record_->number = reading;
-
-        FK_ASSERT(time > 0);
 
         encoded_size_ = 0;
         encoded_size_ += record_->time > 0 ? pb_varint_size(record_->time) + TagSize : 0;
@@ -128,6 +125,8 @@ static void append(EncodedMessage **head, EncodedMessage **tail, EncodedMessage 
 
     node->link = nullptr;
 
+    logdebug("packet: size=%d", node->size);
+
     if ((*head) == nullptr) {
         (*head) = (*tail) = node;
     } else {
@@ -136,29 +135,48 @@ static void append(EncodedMessage **head, EncodedMessage **tail, EncodedMessage 
     }
 }
 
-tl::expected<EncodedMessage *, Error> LoraPacketizer::packetize(TakenReadings const &taken, Pool &pool) {
+tl::expected<EncodedMessage *, Error> LoraPacketizer::packetize(GlobalState const *gs, Pool &pool) {
     EncodedMessage *head = nullptr;
     EncodedMessage *tail = nullptr;
 
+    auto attached = gs->dynamic.attached();
+    if (attached == nullptr) {
+        logwarn("no modules attached");
+        return nullptr;
+    }
+
+    if (gs->readings.time > 0) {
+        logwarn("no module times");
+        return nullptr;
+    }
+
     LoraRecord record{ pool };
 
-    logdebug("begin time=%" PRIu32 " reading=%" PRIu32, taken.time, taken.number);
+    record.begin(gs->readings.time, gs->readings.nreadings);
 
-    record.begin(taken.time, taken.number);
+    for (auto &attached_module : attached->modules()) {
+        auto position = attached_module.position();
+        // auto meta = attached_module.meta();
 
-    for (auto &module : taken.readings) {
-        if (LoraTransmitVirtual || module.position != ModulePosition::Virtual) {
-            for (auto s = 0u; s < module.readings->size(); ++s) {
-                auto reading = module.readings->get(s);
-                auto position = module.position.integer();
-                auto adding = record.size_of_encoding(position, s, reading.calibrated);
+#if defined(FK_LORA_TRANSMIT_VIRTUAL)
+        {
+#else
+        if (position != ModulePosition::Virtual) {
+#endif
+            for (auto &sensor : attached_module.sensors()) {
+                auto reading = sensor.reading();
+
+                auto integer_position = position.integer();
+                auto sensor_index = sensor.index();
+                auto adding = record.size_of_encoding(integer_position, sensor_index, reading.calibrated);
                 if (record.encoded_size() + adding >= maximum_packet_size_) {
                     append(&head, &tail, record.encode(pool));
                     record.clear();
                 }
 
-                record.write_reading(position, s, reading.calibrated);
-                logdebug("reading: %d/%d %f (%zd)", position, s, reading.calibrated, record.encoded_size());
+                record.write_reading(integer_position, sensor_index, reading.calibrated);
+                logdebug("reading: %d/%d %f (%zd)", integer_position, sensor_index, reading.calibrated,
+                         record.encoded_size());
             }
 
             append(&head, &tail, record.encode(pool));

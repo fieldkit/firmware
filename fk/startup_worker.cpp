@@ -24,12 +24,13 @@
 #include "display/display_views.h"
 #include "factory_wipe_worker.h"
 #include "graceful_shutdown.h"
-#include "hal/metal/metal_lora.h"
 #include "modules/bridge/modules.h"
 #include "modules/configure.h"
 #include "modules/configure_module_worker.h"
 #include "modules/scanning.h"
 #include "secrets.h"
+#include "lora_manager.h"
+#include "lora_worker.h"
 
 extern const struct fkb_header_t fkb_header;
 
@@ -160,7 +161,6 @@ void StartupWorker::run(Pool &pool) {
         readings_worker.run(pool);
     }
 
-    // TODO Move this.
     check_for_lora(pool);
 
     loginfo("started");
@@ -189,22 +189,6 @@ bool StartupWorker::load_or_create_state(Pool &pool) {
     }
 
     get_sd_card()->name(gs.get()->general.name);
-
-    // The preconfigured LoRa ABP state always takes precedence.
-    // TODO Hack
-    for (auto &abp : lora_preconfigured_abp) {
-        if (memcmp(gs.get()->lora.device_eui, abp.device_eui, LoraDeviceEuiLength) == 0) {
-            memcpy(gs.get()->lora.device_address, abp.device_address, LoraDeviceAddressLength);
-            loginfo("(fixed) lora device address: %s", bytes_to_hex_string_pool(abp.device_address, LoraDeviceAddressLength, pool));
-
-            memcpy(gs.get()->lora.network_session_key, abp.network_session_key, LoraNetworkSessionKeyLength);
-            loginfo("(fixed) lora network session key: %s",
-                    bytes_to_hex_string_pool(abp.network_session_key, LoraNetworkSessionKeyLength, pool));
-
-            memcpy(gs.get()->lora.app_session_key, abp.app_session_key, LoraAppSessionKeyLength);
-            loginfo("(fixed) lora app session key: %s", bytes_to_hex_string_pool(abp.app_session_key, LoraAppSessionKeyLength, pool));
-        }
-    }
 
     return true;
 }
@@ -243,18 +227,16 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
     FK_ASSERT(generation->length == GenerationLength);
     memcpy(gs->general.generation, generation->buffer, GenerationLength);
 
-    char gen_string[GenerationLength * 2 + 1];
-    bytes_to_hex_string(gen_string, sizeof(gen_string), gs->general.generation, GenerationLength);
-
     loginfo("(loaded) name: '%s'", gs->general.name);
-    loginfo("(loaded) generation: %s", gen_string);
+    loginfo("(loaded) generation: %s", bytes_to_hex_string_pool(gs->general.generation, GenerationLength, pool));
 
-    auto app_eui = pb_get_data_if_provided(record->lora.appEui.arg, pool);
-    if (app_eui != nullptr) {
-        FK_ASSERT(app_eui->length == LoraAppEuiLength);
-        FK_ASSERT(app_eui->length == sizeof(gs->lora.app_eui));
-        memcpy(gs->lora.app_eui, app_eui->buffer, app_eui->length);
-        loginfo("(loaded) lora app eui: %s", pb_data_to_hex_string(app_eui, pool));
+    /*
+    auto join_eui = pb_get_data_if_provided(record->lora.appEui.arg, pool);
+    if (join_eui != nullptr) {
+        FK_ASSERT(join_eui->length == LoraJoinEuiLength);
+        FK_ASSERT(join_eui->length == sizeof(gs->lora.join_eui));
+        memcpy(gs->lora.join_eui, join_eui->buffer, join_eui->length);
+        loginfo("(loaded) lora join eui: %s", pb_data_to_hex_string(join_eui, pool));
     }
 
     auto app_key = pb_get_data_if_provided(record->lora.appKey.arg, pool);
@@ -288,17 +270,7 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
         memcpy(gs->lora.device_address, device_address->buffer, device_address->length);
         loginfo("(loaded) lora device address: %s", pb_data_to_hex_string(device_address, pool));
     }
-
-    gs->lora.uplink_counter = record->lora.uplinkCounter;
-    gs->lora.downlink_counter = record->lora.downlinkCounter;
-
-    if (app_key != nullptr) {
-        gs->lora.configured = true;
-    }
-
-    if (app_session_key != nullptr && network_session_key != nullptr && device_address != nullptr) {
-        gs->lora.configured = true;
-    }
+    */
 
     auto networks_array = reinterpret_cast<pb_array_t *>(record->network.networks.arg);
     if (networks_array->length > 0) {
@@ -440,19 +412,11 @@ bool StartupWorker::load_previous_location(GlobalState *gs, DataOps *ops, Pool &
 }
 
 bool StartupWorker::check_for_lora(Pool &pool) {
-    auto gs = get_global_state_rw();
-    auto lora = get_lora_network();
-    if (!lora->begin()) {
-        return true;
-    }
-
-    auto device_eui = lora->device_eui();
-    memcpy(gs.get()->lora.device_eui, device_eui, LoraDeviceEuiLength);
-    loginfo("(loaded) lora device eui: %s", bytes_to_hex_string_pool(device_eui, LoraDeviceEuiLength, pool));
-
-    // Turn the radio off for now, will stay powered when we start
-    // using the thing to send data.
-    lora->stop();
+    LoraManager lora{ get_lora_network() };
+    lora.begin(pool);
+    // TODO Add turn off after X mechanism, like modules using the above
+    // activity time.
+    // lora.stop();
 
     return true;
 }

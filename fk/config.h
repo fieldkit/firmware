@@ -68,7 +68,7 @@ constexpr uint32_t TenMinutesMs = FiveMinutesSeconds * 1000 * 2;
 /**
  * Thirty minutes in milliseconds.
  */
-constexpr uint32_t ThirtyMinutesMs  = OneMinuteMs * 30;
+constexpr uint32_t ThirtyMinutesMs = OneMinuteMs * 30;
 
 /**
  * One hour in milliseconds.
@@ -88,7 +88,7 @@ constexpr uint32_t OneHourSeconds = 60 * 60;
 /**
  * One day in seconds.
  */
-constexpr uint32_t OneDaySeconds  = 86400;
+constexpr uint32_t OneDaySeconds = 86400;
 
 /**
  * Threshold for clock drift warning.
@@ -220,14 +220,9 @@ constexpr uint32_t MinimumModuleStartupDelayMs = 10;
 constexpr uint32_t LoraUplinksSaveFrequency = 10;
 
 /**
- * If enabled then the device will transmit readings from virtual modules.
+ * Length of a LoRa Join EUI.
  */
-constexpr bool LoraTransmitVirtual = false;
-
-/**
- * Length of a LoRa App EUI.
- */
-constexpr size_t LoraAppEuiLength = 8;
+constexpr size_t LoraJoinEuiLength = 8;
 
 /**
  * Length of a LoRa Device EUI.
@@ -273,18 +268,6 @@ constexpr size_t LoraSendTries = 3;
  * Delay between LoRa packets.
  */
 constexpr uint32_t LoraPacketDelay = TenSecondsMs;
-
-/**
- * LoRa activation by personalization settings.
- */
-struct LoraAbpSettings {
-    uint8_t device_eui[LoraDeviceEuiLength];
-    uint8_t device_address[LoraDeviceAddressLength];
-    uint8_t network_session_key[LoraNetworkSessionKeyLength];
-    uint8_t app_session_key[LoraAppSessionKeyLength];
-};
-
-extern LoraAbpSettings lora_preconfigured_abp[0];
 
 // -------------------------------------------------------------------------------------------
 // Field Lengths
@@ -468,4 +451,4 @@ constexpr size_t NumberOfWorkerTasks = 2;
  */
 // #define FK_LOGS_FLUSH_AGGRESSIVE
 
-}
+} // namespace fk
