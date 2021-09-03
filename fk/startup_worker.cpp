@@ -165,10 +165,8 @@ void StartupWorker::run(Pool &pool) {
 
     loginfo("started");
 
-    get_ipc()->launch_worker(WorkerCategory::Polling, create_pool_worker<LoraWorker>());
-
 #if defined(__SAMD51__)
-    // FK_ASSERT(os_task_start(&scheduler_task) == OSS_SUCCESS);
+    FK_ASSERT(os_task_start(&scheduler_task) == OSS_SUCCESS);
 #endif
 }
 
