@@ -30,7 +30,7 @@ static tl::expected<SensorGroupTemplate *, Error> get_sensor_group_template(Glob
 
     for (auto &attached_module : attached->modules()) {
         auto meta = attached_module.meta();
-        if (meta->manufacturer == FK_MODULES_MANUFACTURER && meta->kind == FK_MODULES_KIND_WEATHER) {
+        if (meta != nullptr && meta->manufacturer == FK_MODULES_MANUFACTURER && meta->kind == FK_MODULES_KIND_WEATHER) {
             loginfo("found sensor group: weather");
 
             auto sensor_group = new (pool) SensorGroupTemplate(pool);
