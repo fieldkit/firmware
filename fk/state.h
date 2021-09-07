@@ -180,6 +180,7 @@ struct StorageUpdate {
     uint32_t nreadings;
     uint32_t installed;
     uint32_t used;
+    uint32_t time;
 };
 
 struct LoraState {

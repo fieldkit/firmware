@@ -50,8 +50,10 @@ void LoraWorker::run(Pool &pool) {
     auto confirmed = outgoing.confirmed;
     auto packets = outgoing.packets;
     while (packets != nullptr && tries < LoraSendTries) {
+        // TODO Remove this and allow things to auto-configure.
         if (!lora.configure_tx(5, 1)) {
             logerror("configuring tx");
+            FK_ASSERT(0);
             return;
         }
 
@@ -75,6 +77,10 @@ void LoraWorker::run(Pool &pool) {
             loginfo("lora packet delay (%" PRIu32 ")", LoraPacketDelay);
             fk_delay(LoraPacketDelay);
 
+            break;
+        }
+        case LoraErrorCode::Mac: {
+            FK_ASSERT(0);
             break;
         }
         case LoraErrorCode::NotJoined: {

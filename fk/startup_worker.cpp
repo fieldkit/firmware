@@ -372,6 +372,7 @@ bool StartupWorker::load_from_files(Storage &storage, GlobalState *gs, Pool &poo
         .nreadings = data_attributes->nreadings,
         .installed = storage.installed(),
         .used = storage.used(),
+        .time = get_clock_now(),
     };
 
     gs->apply(storage_update);

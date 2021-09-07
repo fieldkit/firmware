@@ -99,13 +99,16 @@ void GlobalState::apply(StorageUpdate &update) {
     storage.data.size = update.data.size;
     storage.data.block = update.data.records;
     readings.nreadings = update.nreadings;
+    readings.time = update.time;
     storage.spi.installed = update.installed;
     storage.spi.used = update.used;
 
     auto storage_used = ((float)storage.spi.used / (float)storage.spi.installed) * 100.0f;
 
-    loginfo("installed=%" PRIu32 " used=%" PRIu32 " %.2f%% meta-size=%" PRIu32 " meta-records=%" PRIu32 " data-size=%" PRIu32 " data-records=%" PRIu32 " readings=%" PRIu32,
-            storage.spi.installed, storage.spi.used, storage_used, storage.meta.size, storage.meta.block, storage.data.size, storage.data.block, readings.nreadings);
+    loginfo("installed=%" PRIu32 " used=%" PRIu32 " %.2f%% meta-size=%" PRIu32 " meta-records=%" PRIu32 " data-size=%" PRIu32
+            " data-records=%" PRIu32 " readings=%" PRIu32,
+            storage.spi.installed, storage.spi.used, storage_used, storage.meta.size, storage.meta.block, storage.data.size,
+            storage.data.block, readings.nreadings);
 }
 
 void GlobalState::apply(UpcomingUpdate &update) {
