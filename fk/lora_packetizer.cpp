@@ -63,13 +63,15 @@ private:
 
 private:
     Pool *pool_;
-    float *values_{ nullptr };
+    uint8_t *buffer_{ nullptr };
     size_t readings_encoded_{ 0 };
     size_t encoded_size_{ 0 };
+    size_t overhead_{ 1 };
+    uint8_t number_{ 0 };
 
 public:
     explicit LoraRecord(Pool &pool) : pool_(&pool) {
-        values_ = pool.malloc<float>(MaxReadingsPerPacket);
+        buffer_ = (uint8_t *)pool.malloc(overhead_ + (sizeof(float) * MaxReadingsPerPacket));
         clear();
     }
 
@@ -78,15 +80,19 @@ public:
         return encoded_size_;
     }
 
-public:
-    void begin(uint32_t time) {
-        encoded_size_ = 0;
-    }
-
+private:
     void clear() {
         encoded_size_ = 0;
         readings_encoded_ = 0;
-        bzero(values_, sizeof(float) * MaxReadingsPerPacket);
+        number_ = 0;
+        bzero(buffer_, overhead_ + (sizeof(float) * MaxReadingsPerPacket));
+    }
+
+public:
+    void begin(uint32_t time) {
+        clear();
+        encoded_size_++;
+        buffer_[0] = number_;
     }
 
     size_t size_of_encoding(float value) const {
@@ -95,7 +101,7 @@ public:
 
     void write_reading(float value) {
         auto size = size_of_encoding(value);
-        values_[readings_encoded_] = value;
+        memcpy(buffer_ + encoded_size_, (uint8_t *)&value, sizeof(value));
         encoded_size_ += size;
         readings_encoded_++;
     }
@@ -104,7 +110,12 @@ public:
         if (readings_encoded_ == 0) {
             return nullptr;
         }
-        return pool.wrap_copy((uint8_t *)values_, encoded_size_);
+        auto copy = pool.wrap_copy(buffer_, encoded_size_);
+        bzero(buffer_, overhead_ + (sizeof(float) * MaxReadingsPerPacket));
+        number_++;
+        encoded_size_ = 1;
+        buffer_[0] = number_;
+        return copy;
     }
 };
 
@@ -146,6 +157,7 @@ tl::expected<EncodedMessage *, Error> LoraPacketizer::packetize(GlobalState cons
     // TODO Varint of delta between the reading and the time.
     record.begin(gs->readings.time);
 
+    // TODO Number frames.
     for (auto &sensor_template : sensor_group->sensors) {
         for (auto &attached_module : attached->modules()) {
             auto header = attached_module.header();
@@ -156,7 +168,6 @@ tl::expected<EncodedMessage *, Error> LoraPacketizer::packetize(GlobalState cons
                         auto adding = record.size_of_encoding(reading.calibrated);
                         if (record.encoded_size() + adding >= maximum_packet_size_) {
                             append(&head, &tail, record.encode(pool));
-                            record.clear();
                         }
                         record.write_reading(reading.calibrated);
                         logdebug("reading: '%s.%s' %f (%zd)", attached_module.name(), attached_sensor.name(), reading.calibrated,
