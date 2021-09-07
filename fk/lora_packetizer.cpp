@@ -1,6 +1,7 @@
 #include "lora_packetizer.h"
 #include "clock.h"
 #include "records.h"
+#include "varint.h"
 
 namespace fk {
 
@@ -66,12 +67,13 @@ private:
     uint8_t *buffer_{ nullptr };
     size_t readings_encoded_{ 0 };
     size_t encoded_size_{ 0 };
-    size_t overhead_{ 1 };
+    static constexpr size_t maximum_overhead_{ 1 + 4 + 4 };
+    static constexpr size_t buffer_size_{ maximum_overhead_ + (sizeof(float) * MaxReadingsPerPacket) };
     uint8_t number_{ 0 };
 
 public:
     explicit LoraRecord(Pool &pool) : pool_(&pool) {
-        buffer_ = (uint8_t *)pool.malloc(overhead_ + (sizeof(float) * MaxReadingsPerPacket));
+        buffer_ = (uint8_t *)pool.malloc(buffer_size_);
         clear();
     }
 
@@ -85,23 +87,38 @@ private:
         encoded_size_ = 0;
         readings_encoded_ = 0;
         number_ = 0;
-        bzero(buffer_, overhead_ + (sizeof(float) * MaxReadingsPerPacket));
+        bzero(buffer_, buffer_size_);
     }
 
 public:
-    void begin(uint32_t time) {
+    void begin(uint32_t age, uint32_t reading) {
         clear();
+
+        auto p = buffer_;
+
+        *p++ = number_;
         encoded_size_++;
-        buffer_[0] = number_;
+
+        p = phylum::varint_encode(age, p, buffer_size_ - encoded_size_);
+        encoded_size_ += phylum::varint_encoding_length(age);
+
+        p = phylum::varint_encode(reading, p, buffer_size_ - encoded_size_);
+        encoded_size_ += phylum::varint_encoding_length(reading);
     }
 
-    size_t size_of_encoding(float value) const {
+    size_t size_of_encoding() const {
         return sizeof(float);
     }
 
+    void write_missing_reading() {
+        // TODO Skipping effectively fills with zeros. Is this ok, long term?
+        encoded_size_ += size_of_encoding();
+        readings_encoded_++;
+    }
+
     void write_reading(float value) {
-        auto size = size_of_encoding(value);
-        memcpy(buffer_ + encoded_size_, (uint8_t *)&value, sizeof(value));
+        auto size = size_of_encoding();
+        memcpy(buffer_ + encoded_size_, (uint8_t *)&value, size);
         encoded_size_ += size;
         readings_encoded_++;
     }
@@ -111,7 +128,7 @@ public:
             return nullptr;
         }
         auto copy = pool.wrap_copy(buffer_, encoded_size_);
-        bzero(buffer_, overhead_ + (sizeof(float) * MaxReadingsPerPacket));
+        bzero(buffer_, buffer_size_);
         number_++;
         encoded_size_ = 1;
         buffer_[0] = number_;
@@ -129,7 +146,7 @@ tl::expected<EncodedMessage *, Error> LoraPacketizer::packetize(GlobalState cons
     EncodedMessage *head = nullptr;
     EncodedMessage *tail = nullptr;
 
-    if (gs->readings.time > 0) {
+    if (gs->readings.time == 0) {
         logwarn("no reading");
         return nullptr;
     }
@@ -154,27 +171,48 @@ tl::expected<EncodedMessage *, Error> LoraPacketizer::packetize(GlobalState cons
 
     LoraRecord record{ pool };
 
-    // TODO Varint of delta between the reading and the time.
-    record.begin(gs->readings.time);
+    // In order to save space, we transmit the difference between the
+    // transmission time and the reading time. Right now we aren't expecting
+    // lots of accuracy from these times.
+    auto now = get_clock_now();
+    if (gs->readings.time > now) {
+        logwarn("future readings");
+        return nullptr;
+    }
+    auto age = now - gs->readings.time;
+    record.begin(age, gs->readings.nreadings);
 
-    // TODO Number frames.
+    loginfo("reading: time=%" PRIu32 " age=%" PRIu32 " reading=#%" PRIu32, gs->readings.time, age, gs->readings.nreadings);
+
+    // Find sensors that fit this template and include them.
     for (auto &sensor_template : sensor_group->sensors) {
+        auto adding = record.size_of_encoding();
+        if (record.encoded_size() + adding >= maximum_packet_size_) {
+            append(&head, &tail, record.encode(pool));
+        }
+
+        auto found = false;
+
         for (auto &attached_module : attached->modules()) {
             auto header = attached_module.header();
             if (header.manufacturer == sensor_template.manufacturer && header.kind == sensor_template.kind) {
                 for (auto &attached_sensor : attached_module.sensors()) {
                     if (attached_sensor.index() == sensor_template.sensor_index) {
                         auto reading = attached_sensor.reading();
-                        auto adding = record.size_of_encoding(reading.calibrated);
-                        if (record.encoded_size() + adding >= maximum_packet_size_) {
-                            append(&head, &tail, record.encode(pool));
-                        }
                         record.write_reading(reading.calibrated);
                         logdebug("reading: '%s.%s' %f (%zd)", attached_module.name(), attached_sensor.name(), reading.calibrated,
                                  record.encoded_size());
+                        found = true;
                     }
                 }
             }
+        }
+
+        // If we don't write a reading we can't decode, as there's no way to know one
+        // was skipped.
+        if (!found) {
+            record.write_missing_reading();
+            logwarn("reading: missing");
         }
     }
 
