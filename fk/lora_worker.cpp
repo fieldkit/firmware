@@ -2,6 +2,7 @@
 
 #include "hal/lora.h"
 #include "hal/random.h"
+#include "hal/hal.h"
 #include "lora_manager.h"
 #include "lora_packetizer.h"
 #include "platform.h"
@@ -34,6 +35,12 @@ static void update_activity(Pool &pool) {
 }
 
 void LoraWorker::run(Pool &pool) {
+    auto lock = lora_mutex.acquire(0);
+    if (!lock) {
+        loginfo("already running");
+        return;
+    }
+
     LoraManager lora{ get_lora_network() };
 
     auto outgoing = packetize(pool);
