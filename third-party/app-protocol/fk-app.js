@@ -10912,15 +10912,14 @@
              * @interface ILoraSettings
              * @property {boolean} [available] LoraSettings available
              * @property {boolean} [modifying] LoraSettings modifying
+             * @property {boolean} [clearing] LoraSettings clearing
+             * @property {number} [frequencyBand] LoraSettings frequencyBand
              * @property {Uint8Array} [deviceEui] LoraSettings deviceEui
              * @property {Uint8Array} [appKey] LoraSettings appKey
-             * @property {Uint8Array} [appEui] LoraSettings appEui
-             * @property {number} [frequencyBand] LoraSettings frequencyBand
+             * @property {Uint8Array} [joinEui] LoraSettings joinEui
              * @property {Uint8Array} [deviceAddress] LoraSettings deviceAddress
              * @property {Uint8Array} [networkSessionKey] LoraSettings networkSessionKey
              * @property {Uint8Array} [appSessionKey] LoraSettings appSessionKey
-             * @property {number} [uplinkCounter] LoraSettings uplinkCounter
-             * @property {number} [downlinkCounter] LoraSettings downlinkCounter
              */
     
             /**
@@ -10954,6 +10953,22 @@
             LoraSettings.prototype.modifying = false;
     
             /**
+             * LoraSettings clearing.
+             * @member {boolean}clearing
+             * @memberof fk_app.LoraSettings
+             * @instance
+             */
+            LoraSettings.prototype.clearing = false;
+    
+            /**
+             * LoraSettings frequencyBand.
+             * @member {number}frequencyBand
+             * @memberof fk_app.LoraSettings
+             * @instance
+             */
+            LoraSettings.prototype.frequencyBand = 0;
+    
+            /**
              * LoraSettings deviceEui.
              * @member {Uint8Array}deviceEui
              * @memberof fk_app.LoraSettings
@@ -10970,20 +10985,12 @@
             LoraSettings.prototype.appKey = $util.newBuffer([]);
     
             /**
-             * LoraSettings appEui.
-             * @member {Uint8Array}appEui
+             * LoraSettings joinEui.
+             * @member {Uint8Array}joinEui
              * @memberof fk_app.LoraSettings
              * @instance
              */
-            LoraSettings.prototype.appEui = $util.newBuffer([]);
-    
-            /**
-             * LoraSettings frequencyBand.
-             * @member {number}frequencyBand
-             * @memberof fk_app.LoraSettings
-             * @instance
-             */
-            LoraSettings.prototype.frequencyBand = 0;
+            LoraSettings.prototype.joinEui = $util.newBuffer([]);
     
             /**
              * LoraSettings deviceAddress.
@@ -11008,22 +11015,6 @@
              * @instance
              */
             LoraSettings.prototype.appSessionKey = $util.newBuffer([]);
-    
-            /**
-             * LoraSettings uplinkCounter.
-             * @member {number}uplinkCounter
-             * @memberof fk_app.LoraSettings
-             * @instance
-             */
-            LoraSettings.prototype.uplinkCounter = 0;
-    
-            /**
-             * LoraSettings downlinkCounter.
-             * @member {number}downlinkCounter
-             * @memberof fk_app.LoraSettings
-             * @instance
-             */
-            LoraSettings.prototype.downlinkCounter = 0;
     
             /**
              * Creates a new LoraSettings instance using the specified properties.
@@ -11053,24 +11044,22 @@
                     writer.uint32(/* id 1, wireType 0 =*/8).bool(message.available);
                 if (message.modifying != null && message.hasOwnProperty("modifying"))
                     writer.uint32(/* id 2, wireType 0 =*/16).bool(message.modifying);
-                if (message.deviceEui != null && message.hasOwnProperty("deviceEui"))
-                    writer.uint32(/* id 3, wireType 2 =*/26).bytes(message.deviceEui);
-                if (message.appKey != null && message.hasOwnProperty("appKey"))
-                    writer.uint32(/* id 4, wireType 2 =*/34).bytes(message.appKey);
-                if (message.appEui != null && message.hasOwnProperty("appEui"))
-                    writer.uint32(/* id 5, wireType 2 =*/42).bytes(message.appEui);
+                if (message.clearing != null && message.hasOwnProperty("clearing"))
+                    writer.uint32(/* id 3, wireType 0 =*/24).bool(message.clearing);
                 if (message.frequencyBand != null && message.hasOwnProperty("frequencyBand"))
-                    writer.uint32(/* id 6, wireType 0 =*/48).uint32(message.frequencyBand);
+                    writer.uint32(/* id 4, wireType 0 =*/32).uint32(message.frequencyBand);
+                if (message.deviceEui != null && message.hasOwnProperty("deviceEui"))
+                    writer.uint32(/* id 5, wireType 2 =*/42).bytes(message.deviceEui);
+                if (message.appKey != null && message.hasOwnProperty("appKey"))
+                    writer.uint32(/* id 6, wireType 2 =*/50).bytes(message.appKey);
+                if (message.joinEui != null && message.hasOwnProperty("joinEui"))
+                    writer.uint32(/* id 7, wireType 2 =*/58).bytes(message.joinEui);
                 if (message.deviceAddress != null && message.hasOwnProperty("deviceAddress"))
-                    writer.uint32(/* id 7, wireType 2 =*/58).bytes(message.deviceAddress);
+                    writer.uint32(/* id 8, wireType 2 =*/66).bytes(message.deviceAddress);
                 if (message.networkSessionKey != null && message.hasOwnProperty("networkSessionKey"))
-                    writer.uint32(/* id 8, wireType 2 =*/66).bytes(message.networkSessionKey);
+                    writer.uint32(/* id 9, wireType 2 =*/74).bytes(message.networkSessionKey);
                 if (message.appSessionKey != null && message.hasOwnProperty("appSessionKey"))
-                    writer.uint32(/* id 9, wireType 2 =*/74).bytes(message.appSessionKey);
-                if (message.uplinkCounter != null && message.hasOwnProperty("uplinkCounter"))
-                    writer.uint32(/* id 10, wireType 0 =*/80).uint32(message.uplinkCounter);
-                if (message.downlinkCounter != null && message.hasOwnProperty("downlinkCounter"))
-                    writer.uint32(/* id 11, wireType 0 =*/88).uint32(message.downlinkCounter);
+                    writer.uint32(/* id 10, wireType 2 =*/82).bytes(message.appSessionKey);
                 return writer;
             };
     
@@ -11112,31 +11101,28 @@
                         message.modifying = reader.bool();
                         break;
                     case 3:
-                        message.deviceEui = reader.bytes();
+                        message.clearing = reader.bool();
                         break;
                     case 4:
-                        message.appKey = reader.bytes();
-                        break;
-                    case 5:
-                        message.appEui = reader.bytes();
-                        break;
-                    case 6:
                         message.frequencyBand = reader.uint32();
                         break;
+                    case 5:
+                        message.deviceEui = reader.bytes();
+                        break;
+                    case 6:
+                        message.appKey = reader.bytes();
+                        break;
                     case 7:
-                        message.deviceAddress = reader.bytes();
+                        message.joinEui = reader.bytes();
                         break;
                     case 8:
-                        message.networkSessionKey = reader.bytes();
+                        message.deviceAddress = reader.bytes();
                         break;
                     case 9:
-                        message.appSessionKey = reader.bytes();
+                        message.networkSessionKey = reader.bytes();
                         break;
                     case 10:
-                        message.uplinkCounter = reader.uint32();
-                        break;
-                    case 11:
-                        message.downlinkCounter = reader.uint32();
+                        message.appSessionKey = reader.bytes();
                         break;
                     default:
                         reader.skipType(tag & 7);
@@ -11179,18 +11165,21 @@
                 if (message.modifying != null && message.hasOwnProperty("modifying"))
                     if (typeof message.modifying !== "boolean")
                         return "modifying: boolean expected";
+                if (message.clearing != null && message.hasOwnProperty("clearing"))
+                    if (typeof message.clearing !== "boolean")
+                        return "clearing: boolean expected";
+                if (message.frequencyBand != null && message.hasOwnProperty("frequencyBand"))
+                    if (!$util.isInteger(message.frequencyBand))
+                        return "frequencyBand: integer expected";
                 if (message.deviceEui != null && message.hasOwnProperty("deviceEui"))
                     if (!(message.deviceEui && typeof message.deviceEui.length === "number" || $util.isString(message.deviceEui)))
                         return "deviceEui: buffer expected";
                 if (message.appKey != null && message.hasOwnProperty("appKey"))
                     if (!(message.appKey && typeof message.appKey.length === "number" || $util.isString(message.appKey)))
                         return "appKey: buffer expected";
-                if (message.appEui != null && message.hasOwnProperty("appEui"))
-                    if (!(message.appEui && typeof message.appEui.length === "number" || $util.isString(message.appEui)))
-                        return "appEui: buffer expected";
-                if (message.frequencyBand != null && message.hasOwnProperty("frequencyBand"))
-                    if (!$util.isInteger(message.frequencyBand))
-                        return "frequencyBand: integer expected";
+                if (message.joinEui != null && message.hasOwnProperty("joinEui"))
+                    if (!(message.joinEui && typeof message.joinEui.length === "number" || $util.isString(message.joinEui)))
+                        return "joinEui: buffer expected";
                 if (message.deviceAddress != null && message.hasOwnProperty("deviceAddress"))
                     if (!(message.deviceAddress && typeof message.deviceAddress.length === "number" || $util.isString(message.deviceAddress)))
                         return "deviceAddress: buffer expected";
@@ -11200,12 +11189,6 @@
                 if (message.appSessionKey != null && message.hasOwnProperty("appSessionKey"))
                     if (!(message.appSessionKey && typeof message.appSessionKey.length === "number" || $util.isString(message.appSessionKey)))
                         return "appSessionKey: buffer expected";
-                if (message.uplinkCounter != null && message.hasOwnProperty("uplinkCounter"))
-                    if (!$util.isInteger(message.uplinkCounter))
-                        return "uplinkCounter: integer expected";
-                if (message.downlinkCounter != null && message.hasOwnProperty("downlinkCounter"))
-                    if (!$util.isInteger(message.downlinkCounter))
-                        return "downlinkCounter: integer expected";
                 return null;
             };
     
@@ -11225,6 +11208,10 @@
                     message.available = Boolean(object.available);
                 if (object.modifying != null)
                     message.modifying = Boolean(object.modifying);
+                if (object.clearing != null)
+                    message.clearing = Boolean(object.clearing);
+                if (object.frequencyBand != null)
+                    message.frequencyBand = object.frequencyBand >>> 0;
                 if (object.deviceEui != null)
                     if (typeof object.deviceEui === "string")
                         $util.base64.decode(object.deviceEui, message.deviceEui = $util.newBuffer($util.base64.length(object.deviceEui)), 0);
@@ -11235,13 +11222,11 @@
                         $util.base64.decode(object.appKey, message.appKey = $util.newBuffer($util.base64.length(object.appKey)), 0);
                     else if (object.appKey.length)
                         message.appKey = object.appKey;
-                if (object.appEui != null)
-                    if (typeof object.appEui === "string")
-                        $util.base64.decode(object.appEui, message.appEui = $util.newBuffer($util.base64.length(object.appEui)), 0);
-                    else if (object.appEui.length)
-                        message.appEui = object.appEui;
-                if (object.frequencyBand != null)
-                    message.frequencyBand = object.frequencyBand >>> 0;
+                if (object.joinEui != null)
+                    if (typeof object.joinEui === "string")
+                        $util.base64.decode(object.joinEui, message.joinEui = $util.newBuffer($util.base64.length(object.joinEui)), 0);
+                    else if (object.joinEui.length)
+                        message.joinEui = object.joinEui;
                 if (object.deviceAddress != null)
                     if (typeof object.deviceAddress === "string")
                         $util.base64.decode(object.deviceAddress, message.deviceAddress = $util.newBuffer($util.base64.length(object.deviceAddress)), 0);
@@ -11257,10 +11242,6 @@
                         $util.base64.decode(object.appSessionKey, message.appSessionKey = $util.newBuffer($util.base64.length(object.appSessionKey)), 0);
                     else if (object.appSessionKey.length)
                         message.appSessionKey = object.appSessionKey;
-                if (object.uplinkCounter != null)
-                    message.uplinkCounter = object.uplinkCounter >>> 0;
-                if (object.downlinkCounter != null)
-                    message.downlinkCounter = object.downlinkCounter >>> 0;
                 return message;
             };
     
@@ -11280,38 +11261,35 @@
                 if (options.defaults) {
                     object.available = false;
                     object.modifying = false;
+                    object.clearing = false;
+                    object.frequencyBand = 0;
                     object.deviceEui = options.bytes === String ? "" : [];
                     object.appKey = options.bytes === String ? "" : [];
-                    object.appEui = options.bytes === String ? "" : [];
-                    object.frequencyBand = 0;
+                    object.joinEui = options.bytes === String ? "" : [];
                     object.deviceAddress = options.bytes === String ? "" : [];
                     object.networkSessionKey = options.bytes === String ? "" : [];
                     object.appSessionKey = options.bytes === String ? "" : [];
-                    object.uplinkCounter = 0;
-                    object.downlinkCounter = 0;
                 }
                 if (message.available != null && message.hasOwnProperty("available"))
                     object.available = message.available;
                 if (message.modifying != null && message.hasOwnProperty("modifying"))
                     object.modifying = message.modifying;
+                if (message.clearing != null && message.hasOwnProperty("clearing"))
+                    object.clearing = message.clearing;
+                if (message.frequencyBand != null && message.hasOwnProperty("frequencyBand"))
+                    object.frequencyBand = message.frequencyBand;
                 if (message.deviceEui != null && message.hasOwnProperty("deviceEui"))
                     object.deviceEui = options.bytes === String ? $util.base64.encode(message.deviceEui, 0, message.deviceEui.length) : options.bytes === Array ? Array.prototype.slice.call(message.deviceEui) : message.deviceEui;
                 if (message.appKey != null && message.hasOwnProperty("appKey"))
                     object.appKey = options.bytes === String ? $util.base64.encode(message.appKey, 0, message.appKey.length) : options.bytes === Array ? Array.prototype.slice.call(message.appKey) : message.appKey;
-                if (message.appEui != null && message.hasOwnProperty("appEui"))
-                    object.appEui = options.bytes === String ? $util.base64.encode(message.appEui, 0, message.appEui.length) : options.bytes === Array ? Array.prototype.slice.call(message.appEui) : message.appEui;
-                if (message.frequencyBand != null && message.hasOwnProperty("frequencyBand"))
-                    object.frequencyBand = message.frequencyBand;
+                if (message.joinEui != null && message.hasOwnProperty("joinEui"))
+                    object.joinEui = options.bytes === String ? $util.base64.encode(message.joinEui, 0, message.joinEui.length) : options.bytes === Array ? Array.prototype.slice.call(message.joinEui) : message.joinEui;
                 if (message.deviceAddress != null && message.hasOwnProperty("deviceAddress"))
                     object.deviceAddress = options.bytes === String ? $util.base64.encode(message.deviceAddress, 0, message.deviceAddress.length) : options.bytes === Array ? Array.prototype.slice.call(message.deviceAddress) : message.deviceAddress;
                 if (message.networkSessionKey != null && message.hasOwnProperty("networkSessionKey"))
                     object.networkSessionKey = options.bytes === String ? $util.base64.encode(message.networkSessionKey, 0, message.networkSessionKey.length) : options.bytes === Array ? Array.prototype.slice.call(message.networkSessionKey) : message.networkSessionKey;
                 if (message.appSessionKey != null && message.hasOwnProperty("appSessionKey"))
                     object.appSessionKey = options.bytes === String ? $util.base64.encode(message.appSessionKey, 0, message.appSessionKey.length) : options.bytes === Array ? Array.prototype.slice.call(message.appSessionKey) : message.appSessionKey;
-                if (message.uplinkCounter != null && message.hasOwnProperty("uplinkCounter"))
-                    object.uplinkCounter = message.uplinkCounter;
-                if (message.downlinkCounter != null && message.hasOwnProperty("downlinkCounter"))
-                    object.downlinkCounter = message.downlinkCounter;
                 return object;
             };
     
