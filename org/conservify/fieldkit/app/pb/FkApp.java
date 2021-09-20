@@ -22789,58 +22789,52 @@ public final class FkApp {
     boolean getModifying();
 
     /**
-     * <code>bytes deviceEui = 3;</code>
-     * @return The deviceEui.
+     * <code>bool clearing = 3;</code>
+     * @return The clearing.
      */
-    com.google.protobuf.ByteString getDeviceEui();
+    boolean getClearing();
 
     /**
-     * <code>bytes appKey = 4;</code>
-     * @return The appKey.
-     */
-    com.google.protobuf.ByteString getAppKey();
-
-    /**
-     * <code>bytes appEui = 5;</code>
-     * @return The appEui.
-     */
-    com.google.protobuf.ByteString getAppEui();
-
-    /**
-     * <code>uint32 frequencyBand = 6;</code>
+     * <code>uint32 frequencyBand = 4;</code>
      * @return The frequencyBand.
      */
     int getFrequencyBand();
 
     /**
-     * <code>bytes deviceAddress = 7;</code>
+     * <code>bytes deviceEui = 5;</code>
+     * @return The deviceEui.
+     */
+    com.google.protobuf.ByteString getDeviceEui();
+
+    /**
+     * <code>bytes appKey = 6;</code>
+     * @return The appKey.
+     */
+    com.google.protobuf.ByteString getAppKey();
+
+    /**
+     * <code>bytes joinEui = 7;</code>
+     * @return The joinEui.
+     */
+    com.google.protobuf.ByteString getJoinEui();
+
+    /**
+     * <code>bytes deviceAddress = 8;</code>
      * @return The deviceAddress.
      */
     com.google.protobuf.ByteString getDeviceAddress();
 
     /**
-     * <code>bytes networkSessionKey = 8;</code>
+     * <code>bytes networkSessionKey = 9;</code>
      * @return The networkSessionKey.
      */
     com.google.protobuf.ByteString getNetworkSessionKey();
 
     /**
-     * <code>bytes appSessionKey = 9;</code>
+     * <code>bytes appSessionKey = 10;</code>
      * @return The appSessionKey.
      */
     com.google.protobuf.ByteString getAppSessionKey();
-
-    /**
-     * <code>uint32 uplinkCounter = 10;</code>
-     * @return The uplinkCounter.
-     */
-    int getUplinkCounter();
-
-    /**
-     * <code>uint32 downlinkCounter = 11;</code>
-     * @return The downlinkCounter.
-     */
-    int getDownlinkCounter();
   }
   /**
    * Protobuf type {@code fk_app.LoraSettings}
@@ -22853,7 +22847,7 @@ public final class FkApp {
     private LoraSettings() {
       deviceEui_ = com.google.protobuf.ByteString.EMPTY;
       appKey_ = com.google.protobuf.ByteString.EMPTY;
-      appEui_ = com.google.protobuf.ByteString.EMPTY;
+      joinEui_ = com.google.protobuf.ByteString.EMPTY;
       deviceAddress_ = com.google.protobuf.ByteString.EMPTY;
       networkSessionKey_ = com.google.protobuf.ByteString.EMPTY;
       appSessionKey_ = com.google.protobuf.ByteString.EMPTY;
@@ -22910,10 +22904,62 @@ public final class FkApp {
       modifying_ = false;
     }
 
-    public static final int DEVICEEUI_FIELD_NUMBER = 3;
+    public static final int CLEARING_FIELD_NUMBER = 3;
+    private boolean clearing_;
+    /**
+     * <code>bool clearing = 3;</code>
+     * @return The clearing.
+     */
+    @java.lang.Override
+    public boolean getClearing() {
+      return clearing_;
+    }
+    /**
+     * <code>bool clearing = 3;</code>
+     * @param value The clearing to set.
+     */
+    private void setClearing(boolean value) {
+      
+      clearing_ = value;
+    }
+    /**
+     * <code>bool clearing = 3;</code>
+     */
+    private void clearClearing() {
+      
+      clearing_ = false;
+    }
+
+    public static final int FREQUENCYBAND_FIELD_NUMBER = 4;
+    private int frequencyBand_;
+    /**
+     * <code>uint32 frequencyBand = 4;</code>
+     * @return The frequencyBand.
+     */
+    @java.lang.Override
+    public int getFrequencyBand() {
+      return frequencyBand_;
+    }
+    /**
+     * <code>uint32 frequencyBand = 4;</code>
+     * @param value The frequencyBand to set.
+     */
+    private void setFrequencyBand(int value) {
+      
+      frequencyBand_ = value;
+    }
+    /**
+     * <code>uint32 frequencyBand = 4;</code>
+     */
+    private void clearFrequencyBand() {
+      
+      frequencyBand_ = 0;
+    }
+
+    public static final int DEVICEEUI_FIELD_NUMBER = 5;
     private com.google.protobuf.ByteString deviceEui_;
     /**
-     * <code>bytes deviceEui = 3;</code>
+     * <code>bytes deviceEui = 5;</code>
      * @return The deviceEui.
      */
     @java.lang.Override
@@ -22921,7 +22967,7 @@ public final class FkApp {
       return deviceEui_;
     }
     /**
-     * <code>bytes deviceEui = 3;</code>
+     * <code>bytes deviceEui = 5;</code>
      * @param value The deviceEui to set.
      */
     private void setDeviceEui(com.google.protobuf.ByteString value) {
@@ -22930,17 +22976,17 @@ public final class FkApp {
       deviceEui_ = value;
     }
     /**
-     * <code>bytes deviceEui = 3;</code>
+     * <code>bytes deviceEui = 5;</code>
      */
     private void clearDeviceEui() {
       
       deviceEui_ = getDefaultInstance().getDeviceEui();
     }
 
-    public static final int APPKEY_FIELD_NUMBER = 4;
+    public static final int APPKEY_FIELD_NUMBER = 6;
     private com.google.protobuf.ByteString appKey_;
     /**
-     * <code>bytes appKey = 4;</code>
+     * <code>bytes appKey = 6;</code>
      * @return The appKey.
      */
     @java.lang.Override
@@ -22948,7 +22994,7 @@ public final class FkApp {
       return appKey_;
     }
     /**
-     * <code>bytes appKey = 4;</code>
+     * <code>bytes appKey = 6;</code>
      * @param value The appKey to set.
      */
     private void setAppKey(com.google.protobuf.ByteString value) {
@@ -22957,70 +23003,44 @@ public final class FkApp {
       appKey_ = value;
     }
     /**
-     * <code>bytes appKey = 4;</code>
+     * <code>bytes appKey = 6;</code>
      */
     private void clearAppKey() {
       
       appKey_ = getDefaultInstance().getAppKey();
     }
 
-    public static final int APPEUI_FIELD_NUMBER = 5;
-    private com.google.protobuf.ByteString appEui_;
+    public static final int JOINEUI_FIELD_NUMBER = 7;
+    private com.google.protobuf.ByteString joinEui_;
     /**
-     * <code>bytes appEui = 5;</code>
-     * @return The appEui.
+     * <code>bytes joinEui = 7;</code>
+     * @return The joinEui.
      */
     @java.lang.Override
-    public com.google.protobuf.ByteString getAppEui() {
-      return appEui_;
+    public com.google.protobuf.ByteString getJoinEui() {
+      return joinEui_;
     }
     /**
-     * <code>bytes appEui = 5;</code>
-     * @param value The appEui to set.
+     * <code>bytes joinEui = 7;</code>
+     * @param value The joinEui to set.
      */
-    private void setAppEui(com.google.protobuf.ByteString value) {
+    private void setJoinEui(com.google.protobuf.ByteString value) {
       value.getClass();
   
-      appEui_ = value;
+      joinEui_ = value;
     }
     /**
-     * <code>bytes appEui = 5;</code>
+     * <code>bytes joinEui = 7;</code>
      */
-    private void clearAppEui() {
+    private void clearJoinEui() {
       
-      appEui_ = getDefaultInstance().getAppEui();
+      joinEui_ = getDefaultInstance().getJoinEui();
     }
 
-    public static final int FREQUENCYBAND_FIELD_NUMBER = 6;
-    private int frequencyBand_;
-    /**
-     * <code>uint32 frequencyBand = 6;</code>
-     * @return The frequencyBand.
-     */
-    @java.lang.Override
-    public int getFrequencyBand() {
-      return frequencyBand_;
-    }
-    /**
-     * <code>uint32 frequencyBand = 6;</code>
-     * @param value The frequencyBand to set.
-     */
-    private void setFrequencyBand(int value) {
-      
-      frequencyBand_ = value;
-    }
-    /**
-     * <code>uint32 frequencyBand = 6;</code>
-     */
-    private void clearFrequencyBand() {
-      
-      frequencyBand_ = 0;
-    }
-
-    public static final int DEVICEADDRESS_FIELD_NUMBER = 7;
+    public static final int DEVICEADDRESS_FIELD_NUMBER = 8;
     private com.google.protobuf.ByteString deviceAddress_;
     /**
-     * <code>bytes deviceAddress = 7;</code>
+     * <code>bytes deviceAddress = 8;</code>
      * @return The deviceAddress.
      */
     @java.lang.Override
@@ -23028,7 +23048,7 @@ public final class FkApp {
       return deviceAddress_;
     }
     /**
-     * <code>bytes deviceAddress = 7;</code>
+     * <code>bytes deviceAddress = 8;</code>
      * @param value The deviceAddress to set.
      */
     private void setDeviceAddress(com.google.protobuf.ByteString value) {
@@ -23037,17 +23057,17 @@ public final class FkApp {
       deviceAddress_ = value;
     }
     /**
-     * <code>bytes deviceAddress = 7;</code>
+     * <code>bytes deviceAddress = 8;</code>
      */
     private void clearDeviceAddress() {
       
       deviceAddress_ = getDefaultInstance().getDeviceAddress();
     }
 
-    public static final int NETWORKSESSIONKEY_FIELD_NUMBER = 8;
+    public static final int NETWORKSESSIONKEY_FIELD_NUMBER = 9;
     private com.google.protobuf.ByteString networkSessionKey_;
     /**
-     * <code>bytes networkSessionKey = 8;</code>
+     * <code>bytes networkSessionKey = 9;</code>
      * @return The networkSessionKey.
      */
     @java.lang.Override
@@ -23055,7 +23075,7 @@ public final class FkApp {
       return networkSessionKey_;
     }
     /**
-     * <code>bytes networkSessionKey = 8;</code>
+     * <code>bytes networkSessionKey = 9;</code>
      * @param value The networkSessionKey to set.
      */
     private void setNetworkSessionKey(com.google.protobuf.ByteString value) {
@@ -23064,17 +23084,17 @@ public final class FkApp {
       networkSessionKey_ = value;
     }
     /**
-     * <code>bytes networkSessionKey = 8;</code>
+     * <code>bytes networkSessionKey = 9;</code>
      */
     private void clearNetworkSessionKey() {
       
       networkSessionKey_ = getDefaultInstance().getNetworkSessionKey();
     }
 
-    public static final int APPSESSIONKEY_FIELD_NUMBER = 9;
+    public static final int APPSESSIONKEY_FIELD_NUMBER = 10;
     private com.google.protobuf.ByteString appSessionKey_;
     /**
-     * <code>bytes appSessionKey = 9;</code>
+     * <code>bytes appSessionKey = 10;</code>
      * @return The appSessionKey.
      */
     @java.lang.Override
@@ -23082,7 +23102,7 @@ public final class FkApp {
       return appSessionKey_;
     }
     /**
-     * <code>bytes appSessionKey = 9;</code>
+     * <code>bytes appSessionKey = 10;</code>
      * @param value The appSessionKey to set.
      */
     private void setAppSessionKey(com.google.protobuf.ByteString value) {
@@ -23091,63 +23111,11 @@ public final class FkApp {
       appSessionKey_ = value;
     }
     /**
-     * <code>bytes appSessionKey = 9;</code>
+     * <code>bytes appSessionKey = 10;</code>
      */
     private void clearAppSessionKey() {
       
       appSessionKey_ = getDefaultInstance().getAppSessionKey();
-    }
-
-    public static final int UPLINKCOUNTER_FIELD_NUMBER = 10;
-    private int uplinkCounter_;
-    /**
-     * <code>uint32 uplinkCounter = 10;</code>
-     * @return The uplinkCounter.
-     */
-    @java.lang.Override
-    public int getUplinkCounter() {
-      return uplinkCounter_;
-    }
-    /**
-     * <code>uint32 uplinkCounter = 10;</code>
-     * @param value The uplinkCounter to set.
-     */
-    private void setUplinkCounter(int value) {
-      
-      uplinkCounter_ = value;
-    }
-    /**
-     * <code>uint32 uplinkCounter = 10;</code>
-     */
-    private void clearUplinkCounter() {
-      
-      uplinkCounter_ = 0;
-    }
-
-    public static final int DOWNLINKCOUNTER_FIELD_NUMBER = 11;
-    private int downlinkCounter_;
-    /**
-     * <code>uint32 downlinkCounter = 11;</code>
-     * @return The downlinkCounter.
-     */
-    @java.lang.Override
-    public int getDownlinkCounter() {
-      return downlinkCounter_;
-    }
-    /**
-     * <code>uint32 downlinkCounter = 11;</code>
-     * @param value The downlinkCounter to set.
-     */
-    private void setDownlinkCounter(int value) {
-      
-      downlinkCounter_ = value;
-    }
-    /**
-     * <code>uint32 downlinkCounter = 11;</code>
-     */
-    private void clearDownlinkCounter() {
-      
-      downlinkCounter_ = 0;
     }
 
     public static org.conservify.fieldkit.app.pb.FkApp.LoraSettings parseFrom(
@@ -23302,91 +23270,35 @@ public final class FkApp {
       }
 
       /**
-       * <code>bytes deviceEui = 3;</code>
-       * @return The deviceEui.
+       * <code>bool clearing = 3;</code>
+       * @return The clearing.
        */
       @java.lang.Override
-      public com.google.protobuf.ByteString getDeviceEui() {
-        return instance.getDeviceEui();
+      public boolean getClearing() {
+        return instance.getClearing();
       }
       /**
-       * <code>bytes deviceEui = 3;</code>
-       * @param value The deviceEui to set.
+       * <code>bool clearing = 3;</code>
+       * @param value The clearing to set.
        * @return This builder for chaining.
        */
-      public Builder setDeviceEui(com.google.protobuf.ByteString value) {
+      public Builder setClearing(boolean value) {
         copyOnWrite();
-        instance.setDeviceEui(value);
+        instance.setClearing(value);
         return this;
       }
       /**
-       * <code>bytes deviceEui = 3;</code>
+       * <code>bool clearing = 3;</code>
        * @return This builder for chaining.
        */
-      public Builder clearDeviceEui() {
+      public Builder clearClearing() {
         copyOnWrite();
-        instance.clearDeviceEui();
+        instance.clearClearing();
         return this;
       }
 
       /**
-       * <code>bytes appKey = 4;</code>
-       * @return The appKey.
-       */
-      @java.lang.Override
-      public com.google.protobuf.ByteString getAppKey() {
-        return instance.getAppKey();
-      }
-      /**
-       * <code>bytes appKey = 4;</code>
-       * @param value The appKey to set.
-       * @return This builder for chaining.
-       */
-      public Builder setAppKey(com.google.protobuf.ByteString value) {
-        copyOnWrite();
-        instance.setAppKey(value);
-        return this;
-      }
-      /**
-       * <code>bytes appKey = 4;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearAppKey() {
-        copyOnWrite();
-        instance.clearAppKey();
-        return this;
-      }
-
-      /**
-       * <code>bytes appEui = 5;</code>
-       * @return The appEui.
-       */
-      @java.lang.Override
-      public com.google.protobuf.ByteString getAppEui() {
-        return instance.getAppEui();
-      }
-      /**
-       * <code>bytes appEui = 5;</code>
-       * @param value The appEui to set.
-       * @return This builder for chaining.
-       */
-      public Builder setAppEui(com.google.protobuf.ByteString value) {
-        copyOnWrite();
-        instance.setAppEui(value);
-        return this;
-      }
-      /**
-       * <code>bytes appEui = 5;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearAppEui() {
-        copyOnWrite();
-        instance.clearAppEui();
-        return this;
-      }
-
-      /**
-       * <code>uint32 frequencyBand = 6;</code>
+       * <code>uint32 frequencyBand = 4;</code>
        * @return The frequencyBand.
        */
       @java.lang.Override
@@ -23394,7 +23306,7 @@ public final class FkApp {
         return instance.getFrequencyBand();
       }
       /**
-       * <code>uint32 frequencyBand = 6;</code>
+       * <code>uint32 frequencyBand = 4;</code>
        * @param value The frequencyBand to set.
        * @return This builder for chaining.
        */
@@ -23404,7 +23316,7 @@ public final class FkApp {
         return this;
       }
       /**
-       * <code>uint32 frequencyBand = 6;</code>
+       * <code>uint32 frequencyBand = 4;</code>
        * @return This builder for chaining.
        */
       public Builder clearFrequencyBand() {
@@ -23414,7 +23326,91 @@ public final class FkApp {
       }
 
       /**
-       * <code>bytes deviceAddress = 7;</code>
+       * <code>bytes deviceEui = 5;</code>
+       * @return The deviceEui.
+       */
+      @java.lang.Override
+      public com.google.protobuf.ByteString getDeviceEui() {
+        return instance.getDeviceEui();
+      }
+      /**
+       * <code>bytes deviceEui = 5;</code>
+       * @param value The deviceEui to set.
+       * @return This builder for chaining.
+       */
+      public Builder setDeviceEui(com.google.protobuf.ByteString value) {
+        copyOnWrite();
+        instance.setDeviceEui(value);
+        return this;
+      }
+      /**
+       * <code>bytes deviceEui = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearDeviceEui() {
+        copyOnWrite();
+        instance.clearDeviceEui();
+        return this;
+      }
+
+      /**
+       * <code>bytes appKey = 6;</code>
+       * @return The appKey.
+       */
+      @java.lang.Override
+      public com.google.protobuf.ByteString getAppKey() {
+        return instance.getAppKey();
+      }
+      /**
+       * <code>bytes appKey = 6;</code>
+       * @param value The appKey to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAppKey(com.google.protobuf.ByteString value) {
+        copyOnWrite();
+        instance.setAppKey(value);
+        return this;
+      }
+      /**
+       * <code>bytes appKey = 6;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearAppKey() {
+        copyOnWrite();
+        instance.clearAppKey();
+        return this;
+      }
+
+      /**
+       * <code>bytes joinEui = 7;</code>
+       * @return The joinEui.
+       */
+      @java.lang.Override
+      public com.google.protobuf.ByteString getJoinEui() {
+        return instance.getJoinEui();
+      }
+      /**
+       * <code>bytes joinEui = 7;</code>
+       * @param value The joinEui to set.
+       * @return This builder for chaining.
+       */
+      public Builder setJoinEui(com.google.protobuf.ByteString value) {
+        copyOnWrite();
+        instance.setJoinEui(value);
+        return this;
+      }
+      /**
+       * <code>bytes joinEui = 7;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearJoinEui() {
+        copyOnWrite();
+        instance.clearJoinEui();
+        return this;
+      }
+
+      /**
+       * <code>bytes deviceAddress = 8;</code>
        * @return The deviceAddress.
        */
       @java.lang.Override
@@ -23422,7 +23418,7 @@ public final class FkApp {
         return instance.getDeviceAddress();
       }
       /**
-       * <code>bytes deviceAddress = 7;</code>
+       * <code>bytes deviceAddress = 8;</code>
        * @param value The deviceAddress to set.
        * @return This builder for chaining.
        */
@@ -23432,7 +23428,7 @@ public final class FkApp {
         return this;
       }
       /**
-       * <code>bytes deviceAddress = 7;</code>
+       * <code>bytes deviceAddress = 8;</code>
        * @return This builder for chaining.
        */
       public Builder clearDeviceAddress() {
@@ -23442,7 +23438,7 @@ public final class FkApp {
       }
 
       /**
-       * <code>bytes networkSessionKey = 8;</code>
+       * <code>bytes networkSessionKey = 9;</code>
        * @return The networkSessionKey.
        */
       @java.lang.Override
@@ -23450,7 +23446,7 @@ public final class FkApp {
         return instance.getNetworkSessionKey();
       }
       /**
-       * <code>bytes networkSessionKey = 8;</code>
+       * <code>bytes networkSessionKey = 9;</code>
        * @param value The networkSessionKey to set.
        * @return This builder for chaining.
        */
@@ -23460,7 +23456,7 @@ public final class FkApp {
         return this;
       }
       /**
-       * <code>bytes networkSessionKey = 8;</code>
+       * <code>bytes networkSessionKey = 9;</code>
        * @return This builder for chaining.
        */
       public Builder clearNetworkSessionKey() {
@@ -23470,7 +23466,7 @@ public final class FkApp {
       }
 
       /**
-       * <code>bytes appSessionKey = 9;</code>
+       * <code>bytes appSessionKey = 10;</code>
        * @return The appSessionKey.
        */
       @java.lang.Override
@@ -23478,7 +23474,7 @@ public final class FkApp {
         return instance.getAppSessionKey();
       }
       /**
-       * <code>bytes appSessionKey = 9;</code>
+       * <code>bytes appSessionKey = 10;</code>
        * @param value The appSessionKey to set.
        * @return This builder for chaining.
        */
@@ -23488,68 +23484,12 @@ public final class FkApp {
         return this;
       }
       /**
-       * <code>bytes appSessionKey = 9;</code>
+       * <code>bytes appSessionKey = 10;</code>
        * @return This builder for chaining.
        */
       public Builder clearAppSessionKey() {
         copyOnWrite();
         instance.clearAppSessionKey();
-        return this;
-      }
-
-      /**
-       * <code>uint32 uplinkCounter = 10;</code>
-       * @return The uplinkCounter.
-       */
-      @java.lang.Override
-      public int getUplinkCounter() {
-        return instance.getUplinkCounter();
-      }
-      /**
-       * <code>uint32 uplinkCounter = 10;</code>
-       * @param value The uplinkCounter to set.
-       * @return This builder for chaining.
-       */
-      public Builder setUplinkCounter(int value) {
-        copyOnWrite();
-        instance.setUplinkCounter(value);
-        return this;
-      }
-      /**
-       * <code>uint32 uplinkCounter = 10;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearUplinkCounter() {
-        copyOnWrite();
-        instance.clearUplinkCounter();
-        return this;
-      }
-
-      /**
-       * <code>uint32 downlinkCounter = 11;</code>
-       * @return The downlinkCounter.
-       */
-      @java.lang.Override
-      public int getDownlinkCounter() {
-        return instance.getDownlinkCounter();
-      }
-      /**
-       * <code>uint32 downlinkCounter = 11;</code>
-       * @param value The downlinkCounter to set.
-       * @return This builder for chaining.
-       */
-      public Builder setDownlinkCounter(int value) {
-        copyOnWrite();
-        instance.setDownlinkCounter(value);
-        return this;
-      }
-      /**
-       * <code>uint32 downlinkCounter = 11;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearDownlinkCounter() {
-        copyOnWrite();
-        instance.clearDownlinkCounter();
         return this;
       }
 
@@ -23571,19 +23511,18 @@ public final class FkApp {
             java.lang.Object[] objects = new java.lang.Object[] {
               "available_",
               "modifying_",
+              "clearing_",
+              "frequencyBand_",
               "deviceEui_",
               "appKey_",
-              "appEui_",
-              "frequencyBand_",
+              "joinEui_",
               "deviceAddress_",
               "networkSessionKey_",
               "appSessionKey_",
-              "uplinkCounter_",
-              "downlinkCounter_",
             };
             java.lang.String info =
-                "\u0000\u000b\u0000\u0000\u0001\u000b\u000b\u0000\u0000\u0000\u0001\u0007\u0002\u0007" +
-                "\u0003\n\u0004\n\u0005\n\u0006\u000b\u0007\n\b\n\t\n\n\u000b\u000b\u000b";
+                "\u0000\n\u0000\u0000\u0001\n\n\u0000\u0000\u0000\u0001\u0007\u0002\u0007\u0003\u0007" +
+                "\u0004\u000b\u0005\n\u0006\n\u0007\n\b\n\t\n\n\n";
             return newMessageInfo(DEFAULT_INSTANCE, info, objects);
         }
         // fall through

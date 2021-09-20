@@ -4274,17 +4274,20 @@ export namespace fk_app {
         /** LoraSettings modifying */
         modifying?: boolean;
 
+        /** LoraSettings clearing */
+        clearing?: boolean;
+
+        /** LoraSettings frequencyBand */
+        frequencyBand?: number;
+
         /** LoraSettings deviceEui */
         deviceEui?: Uint8Array;
 
         /** LoraSettings appKey */
         appKey?: Uint8Array;
 
-        /** LoraSettings appEui */
-        appEui?: Uint8Array;
-
-        /** LoraSettings frequencyBand */
-        frequencyBand?: number;
+        /** LoraSettings joinEui */
+        joinEui?: Uint8Array;
 
         /** LoraSettings deviceAddress */
         deviceAddress?: Uint8Array;
@@ -4294,12 +4297,6 @@ export namespace fk_app {
 
         /** LoraSettings appSessionKey */
         appSessionKey?: Uint8Array;
-
-        /** LoraSettings uplinkCounter */
-        uplinkCounter?: number;
-
-        /** LoraSettings downlinkCounter */
-        downlinkCounter?: number;
     }
 
     /** Represents a LoraSettings. */
@@ -4317,17 +4314,20 @@ export namespace fk_app {
         /** LoraSettings modifying. */
         public modifying: boolean;
 
+        /** LoraSettings clearing. */
+        public clearing: boolean;
+
+        /** LoraSettings frequencyBand. */
+        public frequencyBand: number;
+
         /** LoraSettings deviceEui. */
         public deviceEui: Uint8Array;
 
         /** LoraSettings appKey. */
         public appKey: Uint8Array;
 
-        /** LoraSettings appEui. */
-        public appEui: Uint8Array;
-
-        /** LoraSettings frequencyBand. */
-        public frequencyBand: number;
+        /** LoraSettings joinEui. */
+        public joinEui: Uint8Array;
 
         /** LoraSettings deviceAddress. */
         public deviceAddress: Uint8Array;
@@ -4337,12 +4337,6 @@ export namespace fk_app {
 
         /** LoraSettings appSessionKey. */
         public appSessionKey: Uint8Array;
-
-        /** LoraSettings uplinkCounter. */
-        public uplinkCounter: number;
-
-        /** LoraSettings downlinkCounter. */
-        public downlinkCounter: number;
 
         /**
          * Creates a new LoraSettings instance using the specified properties.
