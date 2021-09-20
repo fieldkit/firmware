@@ -28,3 +28,5 @@ set(arduino-logging_PATH ${CMAKE_SOURCE_DIR}/third-party/arduino-logging)
 set(segger_PATH ${CMAKE_SOURCE_DIR}/third-party/segger)
 
 set(dhara_PATH ${CMAKE_SOURCE_DIR}/third-party/dhara)
+
+set(TheThingsNetwork_PATH ${CMAKE_SOURCE_DIR}/third-party/ttn-library)
