@@ -343,8 +343,8 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, bool logs, fkb_h
     reply_->has_loraSettings = true;
     reply_->loraSettings.deviceEui.funcs.encode = pb_encode_data;
     reply_->loraSettings.deviceEui.arg = (void *)device_eui_data;
-    reply_->loraSettings.appEui.funcs.encode = pb_encode_data;
-    reply_->loraSettings.appEui.arg = (void *)join_eui_data;
+    reply_->loraSettings.joinEui.funcs.encode = pb_encode_data;
+    reply_->loraSettings.joinEui.arg = (void *)join_eui_data;
     reply_->loraSettings.appKey.funcs.encode = pb_encode_data;
     reply_->loraSettings.appKey.arg = (void *)app_key_data;
 

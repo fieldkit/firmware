@@ -163,8 +163,8 @@ void fk_data_record_decoding_new(fk_data_DataRecord *record, Pool &pool) {
     record->metadata.generation.arg = (void *)&pool;
     record->identity.name.funcs.decode = pb_decode_string;
     record->identity.name.arg = (void *)&pool;
-    record->lora.appEui.funcs.decode = pb_decode_data;
-    record->lora.appEui.arg = (void *)&pool;
+    record->lora.joinEui.funcs.decode = pb_decode_data;
+    record->lora.joinEui.arg = (void *)&pool;
     record->lora.appKey.funcs.decode = pb_decode_data;
     record->lora.appKey.arg = (void *)&pool;
     record->lora.deviceEui.funcs.decode = pb_decode_data;
@@ -278,7 +278,7 @@ void fk_data_record_encoding_new(fk_data_DataRecord *record) {
     record->identity.name.funcs.encode = pb_encode_string;
     record->readings.sensorGroups.funcs.encode = pb_encode_array;
     record->modules.funcs.encode = pb_encode_array;
-    record->lora.appEui.funcs.encode = pb_encode_data;
+    record->lora.joinEui.funcs.encode = pb_encode_data;
     record->lora.appKey.funcs.encode = pb_encode_data;
     record->lora.appSessionKey.funcs.encode = pb_encode_data;
     record->lora.networkSessionKey.funcs.encode = pb_encode_data;
@@ -361,8 +361,8 @@ fk_app_HttpQuery *fk_http_query_prepare_decoding(fk_app_HttpQuery *query, Pool *
     query->loraSettings.deviceEui.funcs.decode = pb_decode_data;
     query->loraSettings.deviceEui.arg = (void *)pool;
 
-    query->loraSettings.appEui.funcs.decode = pb_decode_data;
-    query->loraSettings.appEui.arg = (void *)pool;
+    query->loraSettings.joinEui.funcs.decode = pb_decode_data;
+    query->loraSettings.joinEui.arg = (void *)pool;
 
     query->loraSettings.appKey.funcs.decode = pb_decode_data;
     query->loraSettings.appKey.arg = (void *)pool;
