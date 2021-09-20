@@ -12581,10 +12581,10 @@ public final class FkData {
     com.google.protobuf.ByteString getAppKey();
 
     /**
-     * <code>bytes appEui = 3;</code>
-     * @return The appEui.
+     * <code>bytes joinEui = 3;</code>
+     * @return The joinEui.
      */
-    com.google.protobuf.ByteString getAppEui();
+    com.google.protobuf.ByteString getJoinEui();
 
     /**
      * <code>uint32 frequencyBand = 4;</code>
@@ -12633,7 +12633,7 @@ public final class FkData {
     private LoraSettings() {
       deviceEui_ = com.google.protobuf.ByteString.EMPTY;
       appKey_ = com.google.protobuf.ByteString.EMPTY;
-      appEui_ = com.google.protobuf.ByteString.EMPTY;
+      joinEui_ = com.google.protobuf.ByteString.EMPTY;
       deviceAddress_ = com.google.protobuf.ByteString.EMPTY;
       networkSessionKey_ = com.google.protobuf.ByteString.EMPTY;
       appSessionKey_ = com.google.protobuf.ByteString.EMPTY;
@@ -12692,31 +12692,31 @@ public final class FkData {
       appKey_ = getDefaultInstance().getAppKey();
     }
 
-    public static final int APPEUI_FIELD_NUMBER = 3;
-    private com.google.protobuf.ByteString appEui_;
+    public static final int JOINEUI_FIELD_NUMBER = 3;
+    private com.google.protobuf.ByteString joinEui_;
     /**
-     * <code>bytes appEui = 3;</code>
-     * @return The appEui.
+     * <code>bytes joinEui = 3;</code>
+     * @return The joinEui.
      */
     @java.lang.Override
-    public com.google.protobuf.ByteString getAppEui() {
-      return appEui_;
+    public com.google.protobuf.ByteString getJoinEui() {
+      return joinEui_;
     }
     /**
-     * <code>bytes appEui = 3;</code>
-     * @param value The appEui to set.
+     * <code>bytes joinEui = 3;</code>
+     * @param value The joinEui to set.
      */
-    private void setAppEui(com.google.protobuf.ByteString value) {
+    private void setJoinEui(com.google.protobuf.ByteString value) {
       value.getClass();
   
-      appEui_ = value;
+      joinEui_ = value;
     }
     /**
-     * <code>bytes appEui = 3;</code>
+     * <code>bytes joinEui = 3;</code>
      */
-    private void clearAppEui() {
+    private void clearJoinEui() {
       
-      appEui_ = getDefaultInstance().getAppEui();
+      joinEui_ = getDefaultInstance().getJoinEui();
     }
 
     public static final int FREQUENCYBAND_FIELD_NUMBER = 4;
@@ -13030,30 +13030,30 @@ public final class FkData {
       }
 
       /**
-       * <code>bytes appEui = 3;</code>
-       * @return The appEui.
+       * <code>bytes joinEui = 3;</code>
+       * @return The joinEui.
        */
       @java.lang.Override
-      public com.google.protobuf.ByteString getAppEui() {
-        return instance.getAppEui();
+      public com.google.protobuf.ByteString getJoinEui() {
+        return instance.getJoinEui();
       }
       /**
-       * <code>bytes appEui = 3;</code>
-       * @param value The appEui to set.
+       * <code>bytes joinEui = 3;</code>
+       * @param value The joinEui to set.
        * @return This builder for chaining.
        */
-      public Builder setAppEui(com.google.protobuf.ByteString value) {
+      public Builder setJoinEui(com.google.protobuf.ByteString value) {
         copyOnWrite();
-        instance.setAppEui(value);
+        instance.setJoinEui(value);
         return this;
       }
       /**
-       * <code>bytes appEui = 3;</code>
+       * <code>bytes joinEui = 3;</code>
        * @return This builder for chaining.
        */
-      public Builder clearAppEui() {
+      public Builder clearJoinEui() {
         copyOnWrite();
-        instance.clearAppEui();
+        instance.clearJoinEui();
         return this;
       }
 
@@ -13243,7 +13243,7 @@ public final class FkData {
             java.lang.Object[] objects = new java.lang.Object[] {
               "deviceEui_",
               "appKey_",
-              "appEui_",
+              "joinEui_",
               "frequencyBand_",
               "deviceAddress_",
               "networkSessionKey_",
