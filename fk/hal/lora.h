@@ -25,6 +25,13 @@ struct Rn2903State {
     uint8_t power_index;
 };
 
+struct LoraOtaaJoin {
+    uint32_t frequency;
+    const char *device_eui;
+    const char *app_key;
+    const char *join_eui;
+};
+
 class LoraNetwork {
 public:
     virtual bool begin() = 0;
@@ -39,9 +46,7 @@ public:
         return false;
     }
     virtual bool send_bytes(uint8_t port, uint8_t const *data, size_t size, bool confirmed) = 0;
-    virtual bool join(const char *app_eui, const char *app_key, int32_t retries = 3, uint32_t retry_delay = 10000) = 0;
-    virtual bool join(const char *app_session_key, const char *network_session_key, const char *device_address, uint32_t uplink_counter,
-                      uint32_t downlink_counter) = 0;
+    virtual bool join(LoraOtaaJoin &otaa, int32_t retries = 3, uint32_t retry_delay = 10000) = 0;
     virtual bool join_resume() {
         return false;
     }
@@ -87,12 +92,7 @@ public:
         return false;
     }
 
-    bool join(const char *app_eui, const char *app_key, int32_t retries, uint32_t retry_delay) override {
-        return false;
-    }
-
-    bool join(const char *app_session_key, const char *network_session_key, const char *device_address, uint32_t uplink_counter,
-              uint32_t downlink_counter) override {
+    bool join(LoraOtaaJoin &otaa, int32_t retries = 3, uint32_t retry_delay = 10000) override {
         return false;
     }
 

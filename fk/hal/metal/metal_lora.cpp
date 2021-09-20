@@ -12,21 +12,8 @@ FK_DECLARE_LOGGER("lora");
 Rn2903LoraNetwork::Rn2903LoraNetwork() {
 }
 
-bool Rn2903LoraNetwork::join(const char *app_eui, const char *app_key, int32_t retries, uint32_t retry_delay) {
-    if (!rn2903_.join(app_eui, app_key, retries, retry_delay)) {
-        return false;
-    }
-
-    if (!rn2903_.disable_adr()) {
-        return false;
-    }
-
-    return true;
-}
-
-bool Rn2903LoraNetwork::join(const char *app_session_key, const char *network_session_key, const char *device_address,
-                             uint32_t uplink_counter, uint32_t downlink_counter) {
-    if (!rn2903_.join(app_session_key, network_session_key, device_address, uplink_counter, downlink_counter)) {
+bool Rn2903LoraNetwork::join(LoraOtaaJoin &otaa, int32_t retries, uint32_t retry_delay) {
+    if (!rn2903_.join(otaa, retries, retry_delay)) {
         return false;
     }
 

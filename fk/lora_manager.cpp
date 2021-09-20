@@ -73,8 +73,11 @@ bool LoraManager::join_if_necessary(Pool &pool) {
     auto joined = false;
     if (is_null_byte_array(module_state->device_address, LoraDeviceAddressLength)) {
         loginfo("module missing devaddr, joining via otaa");
-        joined = network_->join(bytes_to_hex_string_pool(state.join_eui, LoraJoinEuiLength, pool),
-                                bytes_to_hex_string_pool(state.app_key, LoraAppKeyLength, pool));
+        LoraOtaaJoin otaa;
+        otaa.device_eui = bytes_to_hex_string_pool(state.device_eui, LoraDeviceEuiLength, pool);
+        otaa.join_eui = bytes_to_hex_string_pool(state.join_eui, LoraJoinEuiLength, pool);
+        otaa.app_key = bytes_to_hex_string_pool(state.app_key, LoraAppKeyLength, pool);
+        joined = network_->join(otaa);
     } else {
         loginfo("joining via stored abp");
         joined = network_->join_resume();

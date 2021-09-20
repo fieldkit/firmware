@@ -9,6 +9,9 @@ namespace fk {
 
 FK_DECLARE_LOGGER("lora");
 
+#define TTN_US915_DEFAULT_SF  7
+#define TTN_US915_DEFAULT_FSB 2
+
 Rn2903::Rn2903() : bridge_(get_board()->acquire_i2c_radio()) {
 }
 
@@ -171,35 +174,41 @@ bool Rn2903::disable_adr() {
     return true;
 }
 
-bool Rn2903::provision(const char *join_eui, const char *app_key) {
-    if (strlen(join_eui) != LoraJoinEuiLength * 2) {
+bool Rn2903::provision(LoraOtaaJoin &otaa) {
+    if (strlen(otaa.join_eui) != LoraJoinEuiLength * 2) {
         logerror("malformed join_eui");
         return false;
     }
 
-    if (strlen(app_key) != LoraAppKeyLength * 2) {
+    if (strlen(otaa.app_key) != LoraAppKeyLength * 2) {
         logerror("malformed app_key");
         return false;
     }
 
-    if (!simple_query("mac set appeui %s", 1000, join_eui)) {
+    if (!simple_query("mac set appeui %s", 1000, otaa.join_eui)) {
         return false;
     }
 
-    if (!simple_query("mac set appkey %s", 1000, app_key)) {
+    if (!simple_query("mac set appkey %s", 1000, otaa.app_key)) {
         return false;
     }
 
-    const char *line = nullptr;
-    if (!simple_query("sys get hweui", &line, 1000)) {
-        return false;
-    }
+    if (false) {
+        const char *line = nullptr;
+        if (!simple_query("sys get hweui", &line, 1000)) {
+            return false;
+        }
 
-    char hweui[64];
-    strncpy(hweui, line, sizeof(hweui));
+        char hweui[64];
+        strncpy(hweui, line, sizeof(hweui));
 
-    if (!simple_query("mac set deveui %s", 1000, hweui)) {
-        return false;
+        if (!simple_query("mac set deveui %s", 1000, hweui)) {
+            return false;
+        }
+    } else {
+        if (!simple_query("mac set deveui %s", 1000, otaa.device_eui)) {
+            return false;
+        }
     }
 
     // NOTE: This is required anytime you save parameters. Per the RN2903
@@ -260,6 +269,27 @@ bool Rn2903::provision(const char *app_session_key, const char *network_session_
     return true;
 }
 
+bool Rn2903::configure_radio(LoraOtaaJoin &otaa) {
+
+    if (otaa.frequency == 915) {
+        if (!configure_us915(TTN_US915_DEFAULT_FSB)) {
+            return false;
+        }
+        if (!configure_sf(TTN_US915_DEFAULT_SF)) {
+            return false;
+        }
+    }
+
+    if (otaa.frequency == 868) {
+    }
+
+    return true;
+}
+
+bool Rn2903::configure_eu868(uint8_t fsb) {
+    return true;
+}
+
 bool Rn2903::configure_us915(uint8_t fsb) {
     uint8_t ch_low = fsb > 0 ? (fsb - 1) * 8 : 0;
     uint8_t ch_high = fsb > 0 ? ch_low + 7 : 71;
@@ -299,16 +329,12 @@ bool Rn2903::configure_sf(uint8_t sf) {
     return true;
 }
 
-bool Rn2903::join(const char *app_eui, const char *app_key, int32_t retries, uint32_t retry_delay) {
-    if (!provision(app_eui, app_key)) {
+bool Rn2903::join(LoraOtaaJoin &otaa, int32_t retries, uint32_t retry_delay) {
+    if (!provision(otaa)) {
         return false;
     }
 
-    // NOTE This needs to work with other frequencies.
-    if (!configure_us915(TTN_DEFAULT_FSB)) {
-        return false;
-    }
-    if (!configure_sf(TTN_DEFAULT_SF)) {
+    if (!configure_radio(otaa)) {
         return false;
     }
 
@@ -332,23 +358,6 @@ bool Rn2903::join(const char *app_eui, const char *app_key, int32_t retries, uin
     }
 
     return false;
-}
-
-bool Rn2903::join(const char *app_session_key, const char *network_session_key, const char *device_address, uint32_t uplink_counter,
-                  uint32_t downlink_counter) {
-    if (!provision(app_session_key, network_session_key, device_address, uplink_counter, downlink_counter)) {
-        return false;
-    }
-
-    // NOTE This needs to work with other frequencies.
-    if (!configure_us915(TTN_DEFAULT_FSB)) {
-        return false;
-    }
-    if (!configure_sf(TTN_DEFAULT_SF)) {
-        return false;
-    }
-
-    return join("abp");
 }
 
 static bool is_string_all_zeros(const char *str) {
