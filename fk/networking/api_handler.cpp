@@ -205,6 +205,14 @@ static bool configure(HttpServerConnection *connection, fk_app_HttpQuery *query,
         });
     }
 
+    if (query->loraSettings.clearing) {
+        gsm.apply([&](GlobalState *gs) {
+            auto had_module = gs->lora.has_module;
+            bzero(&gs->lora, sizeof(gs->lora));
+            gs->lora.has_module = had_module;
+        });
+    }
+
     if (query->loraSettings.modifying) {
         gsm.apply([&](GlobalState *gs) {
             // OTAA
