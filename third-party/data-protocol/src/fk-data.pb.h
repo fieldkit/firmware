@@ -46,6 +46,7 @@ typedef struct _fk_data_CalibrationCoefficients {
 typedef struct _fk_data_CalibrationPoint { 
     pb_callback_t references; 
     pb_callback_t uncalibrated; 
+    pb_callback_t factory; 
 } fk_data_CalibrationPoint;
 
 typedef struct _fk_data_Identity { 
@@ -268,6 +269,8 @@ typedef struct _fk_data_TransmissionSettings {
     fk_data_WifiTransmission wifi; 
 } fk_data_TransmissionSettings;
 
+/* *
+ I may break this into a MetaRecord. */
 typedef struct _fk_data_DataRecord { 
     bool has_loggedReading;
     fk_data_LoggedReading loggedReading; 
@@ -295,7 +298,6 @@ typedef struct _fk_data_DataRecord {
     bool has_transmission;
     fk_data_TransmissionSettings transmission; 
     pb_callback_t faults; 
-    uint64_t record; 
 } fk_data_DataRecord;
 
 
@@ -346,10 +348,10 @@ extern "C" {
 #define fk_data_NetworkSettings_init_default     {{{NULL}, NULL}}
 #define fk_data_LoraSettings_init_default        {{{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}, 0, {{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}, 0, 0}
 #define fk_data_Fault_init_default               {0, 0, {{NULL}, NULL}, {{NULL}, NULL}}
-#define fk_data_DataRecord_init_default          {false, fk_data_LoggedReading_init_default, false, fk_data_Metadata_init_default, false, fk_data_LogMessage_init_default, false, fk_data_Status_init_default, false, fk_data_Readings_init_default, {{NULL}, NULL}, false, fk_data_Schedule_init_default, 0, false, fk_data_Identity_init_default, false, fk_data_Condition_init_default, false, fk_data_LoraSettings_init_default, false, fk_data_NetworkSettings_init_default, {{NULL}, NULL}, false, fk_data_TransmissionSettings_init_default, {{NULL}, NULL}, 0}
+#define fk_data_DataRecord_init_default          {false, fk_data_LoggedReading_init_default, false, fk_data_Metadata_init_default, false, fk_data_LogMessage_init_default, false, fk_data_Status_init_default, false, fk_data_Readings_init_default, {{NULL}, NULL}, false, fk_data_Schedule_init_default, 0, false, fk_data_Identity_init_default, false, fk_data_Condition_init_default, false, fk_data_LoraSettings_init_default, false, fk_data_NetworkSettings_init_default, {{NULL}, NULL}, false, fk_data_TransmissionSettings_init_default, {{NULL}, NULL}}
 #define fk_data_SignedRecord_init_default        {_fk_data_SignedRecordKind_MIN, 0, {{NULL}, NULL}, {{NULL}, NULL}, 0}
 #define fk_data_LoraRecord_init_default          {{{NULL}, NULL}, 0, 0, 0, 0, {{NULL}, NULL}, {{NULL}, NULL}}
-#define fk_data_CalibrationPoint_init_default    {{{NULL}, NULL}, {{NULL}, NULL}}
+#define fk_data_CalibrationPoint_init_default    {{{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}}
 #define fk_data_CalibrationCoefficients_init_default {{{NULL}, NULL}}
 #define fk_data_Calibration_init_default         {_fk_data_CurveType_MIN, 0, {{NULL}, NULL}, false, fk_data_CalibrationCoefficients_init_default}
 #define fk_data_ModuleConfiguration_init_default {false, fk_data_Calibration_init_default}
@@ -377,10 +379,10 @@ extern "C" {
 #define fk_data_NetworkSettings_init_zero        {{{NULL}, NULL}}
 #define fk_data_LoraSettings_init_zero           {{{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}, 0, {{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}, 0, 0}
 #define fk_data_Fault_init_zero                  {0, 0, {{NULL}, NULL}, {{NULL}, NULL}}
-#define fk_data_DataRecord_init_zero             {false, fk_data_LoggedReading_init_zero, false, fk_data_Metadata_init_zero, false, fk_data_LogMessage_init_zero, false, fk_data_Status_init_zero, false, fk_data_Readings_init_zero, {{NULL}, NULL}, false, fk_data_Schedule_init_zero, 0, false, fk_data_Identity_init_zero, false, fk_data_Condition_init_zero, false, fk_data_LoraSettings_init_zero, false, fk_data_NetworkSettings_init_zero, {{NULL}, NULL}, false, fk_data_TransmissionSettings_init_zero, {{NULL}, NULL}, 0}
+#define fk_data_DataRecord_init_zero             {false, fk_data_LoggedReading_init_zero, false, fk_data_Metadata_init_zero, false, fk_data_LogMessage_init_zero, false, fk_data_Status_init_zero, false, fk_data_Readings_init_zero, {{NULL}, NULL}, false, fk_data_Schedule_init_zero, 0, false, fk_data_Identity_init_zero, false, fk_data_Condition_init_zero, false, fk_data_LoraSettings_init_zero, false, fk_data_NetworkSettings_init_zero, {{NULL}, NULL}, false, fk_data_TransmissionSettings_init_zero, {{NULL}, NULL}}
 #define fk_data_SignedRecord_init_zero           {_fk_data_SignedRecordKind_MIN, 0, {{NULL}, NULL}, {{NULL}, NULL}, 0}
 #define fk_data_LoraRecord_init_zero             {{{NULL}, NULL}, 0, 0, 0, 0, {{NULL}, NULL}, {{NULL}, NULL}}
-#define fk_data_CalibrationPoint_init_zero       {{{NULL}, NULL}, {{NULL}, NULL}}
+#define fk_data_CalibrationPoint_init_zero       {{{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}}
 #define fk_data_CalibrationCoefficients_init_zero {{{NULL}, NULL}}
 #define fk_data_Calibration_init_zero            {_fk_data_CurveType_MIN, 0, {{NULL}, NULL}, false, fk_data_CalibrationCoefficients_init_zero}
 #define fk_data_ModuleConfiguration_init_zero    {false, fk_data_Calibration_init_zero}
@@ -389,6 +391,7 @@ extern "C" {
 #define fk_data_CalibrationCoefficients_values_tag 1
 #define fk_data_CalibrationPoint_references_tag  1
 #define fk_data_CalibrationPoint_uncalibrated_tag 2
+#define fk_data_CalibrationPoint_factory_tag     3
 #define fk_data_Identity_name_tag                1
 #define fk_data_NetworkSettings_networks_tag     1
 #define fk_data_Calibration_type_tag             1
@@ -527,7 +530,6 @@ extern "C" {
 #define fk_data_DataRecord_logs_tag              13
 #define fk_data_DataRecord_transmission_tag      14
 #define fk_data_DataRecord_faults_tag            15
-#define fk_data_DataRecord_record_tag            16
 
 /* Struct field encoding specification for nanopb */
 #define fk_data_DeviceLocation_FIELDLIST(X, a) \
@@ -765,8 +767,7 @@ X(a, STATIC,   OPTIONAL, MESSAGE,  lora,             11) \
 X(a, STATIC,   OPTIONAL, MESSAGE,  network,          12) \
 X(a, CALLBACK, REPEATED, MESSAGE,  logs,             13) \
 X(a, STATIC,   OPTIONAL, MESSAGE,  transmission,     14) \
-X(a, CALLBACK, REPEATED, MESSAGE,  faults,           15) \
-X(a, STATIC,   SINGULAR, UINT64,   record,           16)
+X(a, CALLBACK, REPEATED, MESSAGE,  faults,           15)
 #define fk_data_DataRecord_CALLBACK pb_default_field_callback
 #define fk_data_DataRecord_DEFAULT NULL
 #define fk_data_DataRecord_loggedReading_MSGTYPE fk_data_LoggedReading
@@ -806,7 +807,8 @@ X(a, CALLBACK, SINGULAR, BYTES,    data,              7)
 
 #define fk_data_CalibrationPoint_FIELDLIST(X, a) \
 X(a, CALLBACK, REPEATED, FLOAT,    references,        1) \
-X(a, CALLBACK, REPEATED, FLOAT,    uncalibrated,      2)
+X(a, CALLBACK, REPEATED, FLOAT,    uncalibrated,      2) \
+X(a, CALLBACK, REPEATED, FLOAT,    factory,           3)
 #define fk_data_CalibrationPoint_CALLBACK pb_default_field_callback
 #define fk_data_CalibrationPoint_DEFAULT NULL
 

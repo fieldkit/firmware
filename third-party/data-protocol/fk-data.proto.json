@@ -561,6 +561,11 @@
               "type": "LogMessage",
               "id": 3
             },
+            "logs": {
+              "rule": "repeated",
+              "type": "LogMessage",
+              "id": 13
+            },
             "status": {
               "type": "Status",
               "id": 4
@@ -598,11 +603,6 @@
               "type": "NetworkSettings",
               "id": 12
             },
-            "logs": {
-              "rule": "repeated",
-              "type": "LogMessage",
-              "id": 13
-            },
             "transmission": {
               "type": "TransmissionSettings",
               "id": 14
@@ -611,10 +611,6 @@
               "rule": "repeated",
               "type": "Fault",
               "id": 15
-            },
-            "record": {
-              "type": "uint64",
-              "id": 16
             }
           }
         },
@@ -705,6 +701,11 @@
               "rule": "repeated",
               "type": "float",
               "id": 2
+            },
+            "factory": {
+              "rule": "repeated",
+              "type": "float",
+              "id": 3
             }
           }
         },

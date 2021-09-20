@@ -192,10 +192,14 @@ message Fault {
   bytes debug = 4;
 }
 
+/**
+ * I may break this into a MetaRecord.
+ */
 message DataRecord {
   LoggedReading loggedReading = 1;
   Metadata metadata = 2;
   LogMessage log = 3;
+  repeated LogMessage logs = 13;
   Status status = 4;
   Readings readings = 5;
   repeated ModuleInfo modules = 6;
@@ -205,10 +209,8 @@ message DataRecord {
   Condition condition = 10;
   LoraSettings lora = 11;
   NetworkSettings network = 12;
-  repeated LogMessage logs = 13;
   TransmissionSettings transmission = 14;
   repeated Fault faults = 15;
-  uint64 record = 16;
 }
 
 enum SignedRecordKind {
@@ -249,6 +251,7 @@ enum CurveType {
 message CalibrationPoint {
   repeated float references = 1;
   repeated float uncalibrated = 2;
+  repeated float factory = 3;
 }
 
 message CalibrationCoefficients {
