@@ -230,8 +230,15 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
     loginfo("(loaded) name: '%s'", gs->general.name);
     loginfo("(loaded) generation: %s", bytes_to_hex_string_pool(gs->general.generation, GenerationLength, pool));
 
-    /*
-    auto join_eui = pb_get_data_if_provided(record->lora.appEui.arg, pool);
+    auto device_eui = pb_get_data_if_provided(record->lora.deviceEui.arg, pool);
+    if (device_eui != nullptr) {
+        FK_ASSERT(device_eui->length == LoraDeviceEuiLength);
+        FK_ASSERT(device_eui->length == sizeof(gs->lora.device_eui));
+        memcpy(gs->lora.device_eui, device_eui->buffer, device_eui->length);
+        loginfo("(loaded) lora device eui: %s", pb_data_to_hex_string(device_eui, pool));
+    }
+
+    auto join_eui = pb_get_data_if_provided(record->lora.joinEui.arg, pool);
     if (join_eui != nullptr) {
         FK_ASSERT(join_eui->length == LoraJoinEuiLength);
         FK_ASSERT(join_eui->length == sizeof(gs->lora.join_eui));
@@ -247,6 +254,7 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
         loginfo("(loaded) lora app key: %s", pb_data_to_hex_string(app_key, pool));
     }
 
+    /*
     auto app_session_key = pb_get_data_if_provided(record->lora.appSessionKey.arg, pool);
     if (app_session_key != nullptr) {
         FK_ASSERT(app_session_key->length == LoraAppSessionKeyLength);

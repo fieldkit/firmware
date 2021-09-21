@@ -52,15 +52,6 @@ bool LoraManager::factory_reset() {
     return network_->factory_reset();
 }
 
-static bool is_null_byte_array(uint8_t const *ptr, size_t length) {
-    for (auto i = 0u; i < length; ++i) {
-        if (ptr[i] != 0) {
-            return false;
-        }
-    }
-    return true;
-}
-
 bool LoraManager::join_if_necessary(Pool &pool) {
     auto state = get_lora_global_state();
     auto module_state = network_->get_state(pool);

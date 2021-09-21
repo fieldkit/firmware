@@ -309,7 +309,7 @@ TEST_F(ProtoBufSizeSuite, Configuration) {
     auto encoded = pool_.encode(fk_data_DataRecord_fields, record.record());
     dump_binary(file_, "data-configuration", encoded);
 
-    ASSERT_EQ(encoded->size, 1256u);
+    ASSERT_EQ(encoded->size, 1296u);
 }
 
 TEST_F(ProtoBufSizeSuite, Modules) {
