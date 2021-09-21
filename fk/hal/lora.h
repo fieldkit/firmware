@@ -50,7 +50,6 @@ public:
     virtual bool join_resume() {
         return false;
     }
-    virtual bool resume_previous_session() = 0;
     virtual bool save_state() = 0;
 
 public:
@@ -93,10 +92,6 @@ public:
     }
 
     bool join(LoraOtaaJoin &otaa, int32_t retries = 3, uint32_t retry_delay = 10000) override {
-        return false;
-    }
-
-    bool resume_previous_session() override {
         return false;
     }
 

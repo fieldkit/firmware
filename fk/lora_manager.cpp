@@ -65,6 +65,11 @@ bool LoraManager::join_if_necessary(Pool &pool) {
     auto state = get_lora_global_state();
     auto module_state = network_->get_state(pool);
 
+    if (state.joined > 0) {
+        loginfo("already joined");
+        return true;
+    }
+
     if (is_null_byte_array(module_state->join_eui, LoraJoinEuiLength)) {
         logerror("module missing join-eui");
         return false;
@@ -74,6 +79,7 @@ bool LoraManager::join_if_necessary(Pool &pool) {
     if (is_null_byte_array(module_state->device_address, LoraDeviceAddressLength)) {
         loginfo("module missing devaddr, joining via otaa");
         LoraOtaaJoin otaa;
+
         otaa.device_eui = bytes_to_hex_string_pool(state.device_eui, LoraDeviceEuiLength, pool);
         otaa.join_eui = bytes_to_hex_string_pool(state.join_eui, LoraJoinEuiLength, pool);
         otaa.app_key = bytes_to_hex_string_pool(state.app_key, LoraAppKeyLength, pool);

@@ -109,14 +109,7 @@ bool TheThingsLoraNetwork::begin() {
         loginfo("version: %s", buffer);
     }
 
-    ttn_.reset(false);
-
-    ttn_.showStatus();
-
-    const char *join_eui = "0000000000000000";
-    const char *app_key = "00000000000000000000000000000000";
-
-    ttn_.join(join_eui, app_key, 1);
+    // ttn_.showStatus();
 
     status_ = Availability::Available;
 
@@ -144,39 +137,152 @@ bool TheThingsLoraNetwork::power(bool on) {
 }
 
 bool TheThingsLoraNetwork::sleep(uint32_t ms) {
-    return false;
+    if (!powered_) {
+        logwarn("unpowered sleep");
+        return true;
+    }
+    ttn_.sleep(ms);
+    return true;
 }
 
 bool TheThingsLoraNetwork::wake() {
-    return false;
+    if (!powered_) {
+        logwarn("unpowered wake");
+        return true;
+    }
+    ttn_.wake();
+    return true;
 }
 
 bool TheThingsLoraNetwork::factory_reset() {
-    return false;
+    ttn_.reset(false);
+    return true;
 }
 
 bool TheThingsLoraNetwork::configure_tx(uint8_t power_index, uint8_t data_rate) {
-    return false;
+    return true;
 }
 
 bool TheThingsLoraNetwork::send_bytes(uint8_t port, uint8_t const *data, size_t size, bool confirmed) {
+    auto ttnr = ttn_.sendBytes(data, size, port, confirmed);
+    switch (ttnr) {
+    case TTN_ERROR_SEND_COMMAND_FAILED: {
+        break;
+    }
+    case TTN_ERROR_UNEXPECTED_RESPONSE: {
+        break;
+    }
+    case TTN_UNSUCESSFUL_RECEIVE: {
+        break;
+    }
+    case TTN_SUCCESSFUL_TRANSMISSION: {
+        if (confirmed) {
+            return save_state();
+        }
+        return true;
+    }
+    case TTN_SUCCESSFUL_RECEIVE: {
+        if (confirmed) {
+            return save_state();
+        }
+        return true;
+    }
+    }
     return false;
 }
 
 bool TheThingsLoraNetwork::join(LoraOtaaJoin &otaa, int32_t retries, uint32_t retry_delay) {
-    return false;
+    if (!ttn_.join(otaa.join_eui, otaa.app_key, retries, retry_delay)) {
+        return false;
+    }
+
+    save_state();
+
+    return true;
 }
 
 bool TheThingsLoraNetwork::join_resume() {
-    return false;
-}
-
-bool TheThingsLoraNetwork::resume_previous_session() {
-    return false;
+    return ttn_.join_resume();
 }
 
 bool TheThingsLoraNetwork::save_state() {
-    return false;
+    ttn_.saveState();
+    return true;
+}
+
+Rn2903State *TheThingsLoraNetwork::get_state(Pool &pool) {
+    const char *line = nullptr;
+
+    auto state = new (pool) Rn2903State();
+
+    loginfo("module: getting state");
+
+    Rn2903 rn2903;
+
+    if (!rn2903.simple_query("sys get vdd", &line, 1000)) {
+        return false;
+    }
+
+    if (!rn2903.simple_query("mac get status", &line, 1000)) {
+        return nullptr;
+    }
+
+    if (!rn2903.simple_query("mac get dr", &line, 1000)) {
+        return false;
+    }
+
+    if (!rn2903.simple_query("mac get adr", &line, 1000)) {
+        return false;
+    }
+
+    if (!rn2903.simple_query("mac get rxdelay1", &line, 1000)) {
+        return false;
+    }
+
+    if (!rn2903.simple_query("mac get rxdelay2", &line, 1000)) {
+        return false;
+    }
+
+    if (!rn2903.simple_query("sys get hweui", &line, 1000)) {
+        return false;
+    }
+
+    if (!rn2903.simple_query("mac get deveui", &line, 1000)) {
+        return nullptr;
+    }
+    FK_ASSERT(hex_string_to_bytes(state->device_eui, sizeof(state->device_eui), line) == sizeof(state->device_eui));
+
+    if (!rn2903.simple_query("mac get appeui", &line, 1000)) {
+        return nullptr;
+    }
+    FK_ASSERT(hex_string_to_bytes(state->join_eui, sizeof(state->join_eui), line) == sizeof(state->join_eui));
+
+    if (!rn2903.simple_query("mac get devaddr", &line, 1000)) {
+        return nullptr;
+    }
+    if (strlen(line) != sizeof(state->device_address) * 2) {
+        loginfo("module: invalid devaddr, too long");
+        bzero(state->device_address, sizeof(state->device_address));
+    } else {
+        FK_ASSERT(hex_string_to_bytes(state->device_address, sizeof(state->device_address), line) == sizeof(state->device_address));
+    }
+
+    if (!rn2903.simple_query("mac get upctr", &line, 1000)) {
+        return nullptr;
+    }
+    state->uplink_counter = atoi(line);
+
+    if (!rn2903.simple_query("mac get dnctr", &line, 1000)) {
+        return nullptr;
+    }
+    state->downlink_counter = atoi(line);
+
+    if (!rn2903.simple_query("mac get pwridx", &line, 1000)) {
+        return nullptr;
+    }
+    state->power_index = atoi(line);
+
+    return state;
 }
 
 Rn2903LoraNetwork::Rn2903LoraNetwork() {
@@ -200,14 +306,6 @@ bool Rn2903LoraNetwork::join_resume() {
     }
 
     if (!rn2903_.disable_adr()) {
-        return false;
-    }
-
-    return true;
-}
-
-bool Rn2903LoraNetwork::resume_previous_session() {
-    if (!rn2903_.join("abp")) {
         return false;
     }
 

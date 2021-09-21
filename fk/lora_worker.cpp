@@ -41,15 +41,18 @@ void LoraWorker::run(Pool &pool) {
         return;
     }
 
-    LoraManager lora{ get_lora_network() };
-
     auto outgoing = packetize(pool);
     if (outgoing.packets == nullptr) {
         loginfo("no packets");
         return;
     }
 
+    LoraManager lora{ get_lora_network() };
     if (!lora.begin(pool)) {
+        return;
+    }
+
+    if (!lora.join_if_necessary(pool)) {
         return;
     }
 
@@ -57,13 +60,6 @@ void LoraWorker::run(Pool &pool) {
     auto confirmed = outgoing.confirmed;
     auto packets = outgoing.packets;
     while (packets != nullptr && tries < LoraSendTries) {
-        // TODO Remove this and allow things to auto-configure.
-        if (!lora.configure_tx(5, 1)) {
-            logerror("configuring tx");
-            FK_ASSERT(0);
-            return;
-        }
-
         switch (lora.send_bytes(LoraDataPort, packets->buffer, packets->size, confirmed, pool)) {
         case LoraErrorCode::None: {
             // Next packet!

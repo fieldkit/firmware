@@ -57,6 +57,7 @@ private:
     DebugStream debug_;
     TheThingsNetwork ttn_{ stream_, debug_, TTN_FP_US915 };
     Availability status_{ Availability::Unknown };
+    LoraErrorCode error_{ LoraErrorCode::None };
     bool powered_{ false };
 
 public:
@@ -73,11 +74,12 @@ public:
     bool send_bytes(uint8_t port, uint8_t const *data, size_t size, bool confirmed) override;
     bool join(LoraOtaaJoin &otaa, int32_t retries, uint32_t retry_delay) override;
     bool join_resume() override;
-    bool resume_previous_session() override;
     bool save_state() override;
 
+    Rn2903State *get_state(Pool &pool) override;
+
     LoraErrorCode error() const override {
-        return LoraErrorCode::None;
+        return error_;
     };
 
     bool available() const override {
@@ -106,11 +108,10 @@ public:
     bool send_bytes(uint8_t port, uint8_t const *data, size_t size, bool confirmed) override;
     bool join(LoraOtaaJoin &otaa, int32_t retries, uint32_t retry_delay) override;
     bool join_resume() override;
-    bool resume_previous_session() override;
     bool save_state() override;
 
 public:
-    Rn2903State *get_state(Pool &pool);
+    Rn2903State *get_state(Pool &pool) override;
 
     LoraErrorCode error() const override {
         return rn2903_.error();
