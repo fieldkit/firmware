@@ -93,6 +93,7 @@ public:
     bool provision(const char *appEui, const char *appKey);
     bool join(const char *appEui, const char *appKey, int8_t retries = -1, uint32_t retryDelay = 10000, lorawan_class_t = CLASS_A);
     bool join(int8_t retries = -1, uint32_t retryDelay = 10000);
+    bool join_resume();
     bool personalize(const char *devAddr, const char *nwkSKey, const char *appSKey);
     bool personalize();
     bool setClass(lorawan_class_t p_lw_class);

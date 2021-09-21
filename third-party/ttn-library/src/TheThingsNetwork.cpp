@@ -544,6 +544,20 @@ bool TheThingsNetwork::join(const char *appEui, const char *appKey, int8_t retri
     return provision(appEui, appKey) && join(retries, retryDelay); // && setClass(p_lw_class);
 }
 
+bool TheThingsNetwork::join_resume() {
+    sendJoinSet(MAC_JOIN_MODE_ABP);
+    readLine(buffer, sizeof(buffer));
+    if (pgmstrcmp(buffer, CMP_ACCEPTED) != 0) {
+        debugPrintMessage(ERR_MESSAGE, ERR_PERSONALIZE_NOT_ACCEPTED, buffer);
+        debugPrintMessage(ERR_MESSAGE, ERR_CHECK_CONFIGURATION);
+        return false;
+    }
+
+    debugPrint("join-resume ok\n");
+
+    return true;
+}
+
 ttn_response_t TheThingsNetwork::sendBytes(const uint8_t *payload, size_t length, port_t port, bool confirm, uint8_t sf) {
     if (sf != 0) {
         setSF(sf);
