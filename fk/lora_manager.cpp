@@ -70,10 +70,12 @@ bool LoraManager::join_if_necessary(Pool &pool) {
         return true;
     }
 
+    /*
     if (is_null_byte_array(module_state->join_eui, LoraJoinEuiLength)) {
         logerror("module missing join-eui");
         return false;
     }
+    */
 
     auto joined = false;
     if (is_null_byte_array(module_state->device_address, LoraDeviceAddressLength)) {
