@@ -10,7 +10,7 @@ namespace fk {
 
 class Sc16is740 : public Reader {
 private:
-    AcquireTwoWireBus *acquire_bus_;
+    AcquireTwoWireBus *acquire_bus_{ nullptr };
 
 public:
     explicit Sc16is740(AcquireTwoWireBus *acquire_bus);
@@ -22,6 +22,7 @@ public:
     bool read_fifo(uint8_t *buffer, size_t size);
     bool write_fifo(uint8_t const *buffer, size_t size);
     bool write(const char *line);
+    bool write(uint8_t byte);
 
 private:
     bool write_register(uint8_t reg, uint8_t value);
@@ -29,9 +30,8 @@ private:
 
 public:
     int32_t read(uint8_t *buffer, size_t size) override;
-
 };
 
-}
+} // namespace fk
 
 #endif

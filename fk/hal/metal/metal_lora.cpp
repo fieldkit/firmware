@@ -9,6 +9,171 @@ namespace fk {
 
 FK_DECLARE_LOGGER("lora");
 
+TwoWireExtenderStream::TwoWireExtenderStream(Sc16is740 &bridge) : bridge_(&bridge) {
+}
+
+int TwoWireExtenderStream::available() {
+    return bridge_->available_for_read();
+}
+
+int TwoWireExtenderStream::read() {
+    if (peek_ >= 0) {
+        auto c = peek_;
+        peek_ = -1;
+        return c;
+    }
+
+    uint8_t value{ 0 };
+    if (bridge_->read(&value, sizeof(value)) != 1) {
+        return -1;
+    }
+
+    return value;
+}
+
+int TwoWireExtenderStream::peek() {
+    if (peek_ >= 0) {
+        return peek_;
+    }
+
+    if (bridge_->available_for_read() <= 0) {
+        logwarn("peek: eos");
+        return -1;
+    }
+
+    peek_ = bridge_->read_u8();
+
+    return peek_;
+}
+
+size_t TwoWireExtenderStream::write(uint8_t byte) {
+    if (!bridge_->write(byte)) {
+        return 0;
+    }
+    return 1;
+}
+
+DebugStream::DebugStream() {
+    position_ = 0;
+    buffer_[0] = 0;
+}
+
+size_t DebugStream::write(uint8_t byte) {
+    FK_ASSERT(position_ < sizeof(buffer_) - 1);
+    if (byte == '\r' || byte == '\n') {
+        if (position_ > 0) {
+            buffer_[position_] = 0;
+            loginfo("debug: %s", buffer_);
+            position_ = 0;
+            buffer_[position_] = 0;
+        }
+    } else {
+        buffer_[position_] = byte;
+        position_++;
+    }
+    return 1;
+}
+
+TheThingsLoraNetwork::TheThingsLoraNetwork() : bridge_(get_board()->acquire_i2c_radio()) {
+}
+
+bool TheThingsLoraNetwork::begin() {
+    if (status_ == Availability::Available && powered_) {
+        return true;
+    }
+
+    status_ = Availability::Unavailable;
+
+    if (!powered_) {
+        if (!power(true)) {
+            return false;
+        }
+
+        fk_delay(50);
+
+        if (!bridge_.begin(57600)) {
+            logwarn("bridge begin");
+            return false;
+        }
+
+        fk_delay(200);
+
+        uint8_t buffer[32];
+        stream_.readBytesUntil('\n', buffer, sizeof(buffer));
+
+        loginfo("version: %s", buffer);
+    }
+
+    ttn_.reset(false);
+
+    ttn_.showStatus();
+
+    const char *join_eui = "0000000000000000";
+    const char *app_key = "00000000000000000000000000000000";
+
+    ttn_.join(join_eui, app_key, 1);
+
+    status_ = Availability::Available;
+
+    return false;
+}
+
+bool TheThingsLoraNetwork::stop() {
+    power(false);
+
+    return true;
+}
+
+bool TheThingsLoraNetwork::power(bool on) {
+    if (on) {
+        logdebug("power on");
+        get_board()->enable_lora();
+        powered_ = true;
+    } else {
+        logdebug("power off");
+        get_board()->disable_lora();
+        powered_ = false;
+    }
+
+    return true;
+}
+
+bool TheThingsLoraNetwork::sleep(uint32_t ms) {
+    return false;
+}
+
+bool TheThingsLoraNetwork::wake() {
+    return false;
+}
+
+bool TheThingsLoraNetwork::factory_reset() {
+    return false;
+}
+
+bool TheThingsLoraNetwork::configure_tx(uint8_t power_index, uint8_t data_rate) {
+    return false;
+}
+
+bool TheThingsLoraNetwork::send_bytes(uint8_t port, uint8_t const *data, size_t size, bool confirmed) {
+    return false;
+}
+
+bool TheThingsLoraNetwork::join(LoraOtaaJoin &otaa, int32_t retries, uint32_t retry_delay) {
+    return false;
+}
+
+bool TheThingsLoraNetwork::join_resume() {
+    return false;
+}
+
+bool TheThingsLoraNetwork::resume_previous_session() {
+    return false;
+}
+
+bool TheThingsLoraNetwork::save_state() {
+    return false;
+}
+
 Rn2903LoraNetwork::Rn2903LoraNetwork() {
 }
 

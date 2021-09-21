@@ -62,16 +62,22 @@ bool Sc16is740::begin(uint32_t baud) {
 
     bus.begin();
 
-    auto oscillator_hz  = 3686400;
+    auto oscillator_hz = 3686400;
     auto baud_rate = baud;
     auto div = oscillator_hz / (baud_rate * 16);
 
-    if (!write_register(LCR_REG, LCR_SPECIAL_START)) return false;
-    if (!write_register(DLL_REG, div & 0xff)) return false;
-    if (!write_register(DLH_REG, div >> 8)) return false;
-    if (!write_register(LCR_REG, LCR_SPECIAL_END)) return false;
-    if (!write_register(LCR_REG, OPTIONS_8N1 & 0x3f)) return false;
-    if (!write_register(FCR_IIR_REG, 0x07)) return false;
+    if (!write_register(LCR_REG, LCR_SPECIAL_START))
+        return false;
+    if (!write_register(DLL_REG, div & 0xff))
+        return false;
+    if (!write_register(DLH_REG, div >> 8))
+        return false;
+    if (!write_register(LCR_REG, LCR_SPECIAL_END))
+        return false;
+    if (!write_register(LCR_REG, OPTIONS_8N1 & 0x3f))
+        return false;
+    if (!write_register(FCR_IIR_REG, 0x07))
+        return false;
 
     return true;
 }
@@ -93,9 +99,7 @@ int32_t Sc16is740::available_for_write() {
 }
 
 bool Sc16is740::read_fifo(uint8_t *buffer, size_t size) {
-    uint8_t setup[1] = {
-        (uint8_t)(RHR_THR_REG << 3)
-    };
+    uint8_t setup[1] = { (uint8_t)(RHR_THR_REG << 3) };
 
     auto bus = acquire_bus_->acquire();
 
@@ -118,6 +122,19 @@ bool Sc16is740::write_fifo(uint8_t const *buffer, size_t size) {
     auto bus = acquire_bus_->acquire();
 
     if (!I2C_CHECK(bus.write(Sc16iS740Address, data, sizeof(data)))) {
+        return false;
+    }
+
+    return true;
+}
+
+bool Sc16is740::write(uint8_t byte) {
+    auto nwrite = available_for_write();
+    if (nwrite < 0) {
+        return false;
+    }
+
+    if (!write_fifo((uint8_t *)&byte, 1)) {
         return false;
     }
 
@@ -165,9 +182,7 @@ bool Sc16is740::write_register(uint8_t reg, uint8_t value) {
 }
 
 bool Sc16is740::read_register(uint8_t reg, uint8_t &value) {
-    uint8_t buffer[1] = {
-        (uint8_t)(reg << 3)
-    };
+    uint8_t buffer[1] = { (uint8_t)(reg << 3) };
 
     auto bus = acquire_bus_->acquire();
 
@@ -199,6 +214,6 @@ int32_t Sc16is740::read(uint8_t *buffer, size_t size) {
     return 0;
 }
 
-}
+} // namespace fk
 
 #endif
