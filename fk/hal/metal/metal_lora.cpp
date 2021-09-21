@@ -41,7 +41,12 @@ int TwoWireExtenderStream::peek() {
         return -1;
     }
 
-    peek_ = bridge_->read_u8();
+    uint8_t value{ 0 };
+    if (bridge_->read(&value, sizeof(value)) != 1) {
+        return -1;
+    }
+
+    peek_ = value;
 
     return peek_;
 }

@@ -27,15 +27,6 @@ public:
 class Reader {
 public:
     virtual int32_t read(uint8_t *buffer, size_t size) = 0;
-
-public:
-    uint8_t read_u8() {
-        uint8_t value{ 0 };
-        if (read(&value, sizeof(value)) != 1) {
-            return 0;
-        }
-        return value;
-    }
 };
 
 class BufferedWriter : public Writer {

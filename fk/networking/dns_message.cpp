@@ -35,10 +35,14 @@ DNSReader::dns_name_length_t DNSReader::read_name(BufferedReader *reader, uint8_
         }
 
         // Check length, 0 means we're done reading this name.
-        auto part_length = reader->read_u8();
+        uint8_t part_length{ 0 };
+        if (reader->read(&part_length, sizeof(part_length)) != 1) {
+            logwarn("unexpected end");
+            return { -1, -1 };
+        }
         bytes++;
 
-        if (part_length == 0) {
+        if (part_length <= 0) {
             break;
         }
 
@@ -48,7 +52,7 @@ DNSReader::dns_name_length_t DNSReader::read_name(BufferedReader *reader, uint8_
         // the pointer offset in the byte after? What's going on?
         if ((part_length & 0xc0) == 0xc0) {
             auto upper = part_length & 0x3f;
-            if (position >  0) {
+            if (position > 0) {
                 if (name != nullptr) {
                     FK_ASSERT(position < name_size);
                     name[position++] = '.';
@@ -57,7 +61,12 @@ DNSReader::dns_name_length_t DNSReader::read_name(BufferedReader *reader, uint8_
             }
 
             auto pointed = reader->beginning();
-            auto offset = (upper << 8) | reader->read_u8();
+            uint8_t value;
+            if (reader->read(&value, sizeof(value)) != 1) {
+                logwarn("unexpected end");
+                return { -1, -1 };
+            }
+            auto offset = (upper << 8) | value;
             pointed.skip(offset);
 
             auto pointer_bytes = read_name(&pointed, name == nullptr ? nullptr : name + position, name_size - position);
@@ -82,8 +91,7 @@ DNSReader::dns_name_length_t DNSReader::read_name(BufferedReader *reader, uint8_
                 return { -1, -1 };
             }
             name[position + part_length] = 0;
-        }
-        else {
+        } else {
             if (reader->skip(part_length) != part_length) {
                 return { -1, -1 };
             }
@@ -230,8 +238,7 @@ int16_t DNSReader::read_records(uint16_t number) {
             auto record_name = read_name(&reader_);
             if (record_name.name != nullptr) {
                 logdebug("srv record (%d) pri=%d w=%d port=%d '%s'", rdlength, priority, weight, port, record_name.name);
-            }
-            else {
+            } else {
                 logdebug("srv record (%d) pri=%d w=%d port=%d <noname>", rdlength, priority, weight, port);
             }
             break;
@@ -240,8 +247,7 @@ int16_t DNSReader::read_records(uint16_t number) {
             auto record_name = read_name(&reader_);
             if (record_name.name != nullptr) {
                 logdebug("ptr record (%d) '%s' (%d)", rdlength, record_name.name, record_name.length);
-            }
-            else {
+            } else {
                 logdebug("ptr record (%d) <noname>", rdlength);
             }
             reader_.skip(rdlength - record_name.length);
@@ -260,9 +266,7 @@ int16_t DNSReader::read_records(uint16_t number) {
     return bytes;
 }
 
-DNSWriter::DNSWriter(Pool *pool) : pool_(pool),
-                                   buffer_((uint8_t *)pool->malloc(size_)),
-                                   writer_{ nullptr, buffer_, size_ } {
+DNSWriter::DNSWriter(Pool *pool) : pool_(pool), buffer_((uint8_t *)pool->malloc(size_)), writer_{ nullptr, buffer_, size_ } {
     begin();
 }
 
