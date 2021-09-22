@@ -114,7 +114,7 @@ constexpr uint32_t DefaultGpsDuration = TenMinutesSeconds;
 constexpr uint32_t DefaultSynchronizeTimeInterval = OneDaySeconds;
 constexpr uint32_t DefaultDebugReadingsInterval = 60;
 constexpr uint32_t DefaultDebugNetworkInterval = 60 * 60 * 60;
-constexpr uint32_t DefaultDebugLoraInterval = 60 * 20;
+constexpr uint32_t DefaultDebugLoraInterval = 60 * 5;
 constexpr uint32_t DefaultDebugGpsInterval = 60 * 60 * 2;
 constexpr uint32_t DefaultDebugGpsDuration = TenMinutesSeconds;
 
