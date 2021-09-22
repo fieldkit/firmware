@@ -178,10 +178,6 @@ bool TheThingsLoraNetwork::factory_reset() {
     return true;
 }
 
-bool TheThingsLoraNetwork::configure_tx(uint8_t power_index, uint8_t data_rate) {
-    return true;
-}
-
 bool TheThingsLoraNetwork::send_bytes(uint8_t port, uint8_t const *data, size_t size, bool confirmed) {
     auto ttnr = ttn_.sendBytes(data, size, port, confirmed);
     switch (ttnr) {
@@ -414,18 +410,6 @@ bool Rn2903LoraNetwork::begin() {
 
 bool Rn2903LoraNetwork::stop() {
     power(false);
-
-    return true;
-}
-
-bool Rn2903LoraNetwork::configure_tx(uint8_t power_index, uint8_t data_rate) {
-    if (!rn2903_.simple_query("mac set pwridx %d", 1000, power_index)) {
-        return false;
-    }
-
-    if (!rn2903_.simple_query("mac set dr %d", 1000, data_rate)) {
-        return false;
-    }
 
     return true;
 }

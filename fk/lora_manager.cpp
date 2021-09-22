@@ -129,10 +129,6 @@ bool LoraManager::join_if_necessary(Pool &pool) {
     return joined;
 }
 
-bool LoraManager::configure_tx(uint8_t power_index, uint8_t data_rate) {
-    return network_->configure_tx(power_index, data_rate);
-}
-
 static bool get_should_confirm() {
     auto lora = get_lora_global_state();
     if (lora.tx_successes > 0 && LoraConfirmEvery > 0) {

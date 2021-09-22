@@ -71,11 +71,10 @@ public:
     bool sleep(uint32_t ms) override;
     bool wake() override;
     bool factory_reset() override;
-    bool configure_tx(uint8_t power_index, uint8_t data_rate) override;
     bool send_bytes(uint8_t port, uint8_t const *data, size_t size, bool confirmed) override;
     bool join(LoraOtaaJoin &otaa, int32_t retries, uint32_t retry_delay) override;
     bool join_resume() override;
-    bool save_state() override;
+    bool save_state();
 
     Rn2903State *get_state(Pool &pool) override;
 
@@ -110,11 +109,10 @@ public:
     bool sleep(uint32_t ms) override;
     bool wake() override;
     bool factory_reset() override;
-    bool configure_tx(uint8_t power_index, uint8_t data_rate) override;
     bool send_bytes(uint8_t port, uint8_t const *data, size_t size, bool confirmed) override;
     bool join(LoraOtaaJoin &otaa, int32_t retries, uint32_t retry_delay) override;
     bool join_resume() override;
-    bool save_state() override;
+    bool save_state();
 
 public:
     Rn2903State *get_state(Pool &pool) override;

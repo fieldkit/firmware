@@ -42,15 +42,11 @@ public:
     virtual bool factory_reset() {
         return false;
     }
-    virtual bool configure_tx(uint8_t power_index, uint8_t data_rate) {
-        return false;
-    }
     virtual bool send_bytes(uint8_t port, uint8_t const *data, size_t size, bool confirmed) = 0;
     virtual bool join(LoraOtaaJoin &otaa, int32_t retries = 3, uint32_t retry_delay = 10000) = 0;
     virtual bool join_resume() {
         return false;
     }
-    virtual bool save_state() = 0;
 
 public:
     virtual bool available() const = 0;
@@ -95,10 +91,6 @@ public:
     }
 
     bool join(LoraOtaaJoin &otaa, int32_t retries = 3, uint32_t retry_delay = 10000) override {
-        return false;
-    }
-
-    bool save_state() override {
         return false;
     }
 
