@@ -214,6 +214,14 @@ int32_t Sc16is740::read(uint8_t *buffer, size_t size) {
     return 0;
 }
 
+bool Sc16is740::drain() {
+    uint8_t buffer[8];
+    while (available_for_read()) {
+        read((uint8_t *)buffer, sizeof(buffer));
+    }
+    return true;
+}
+
 } // namespace fk
 
 #endif

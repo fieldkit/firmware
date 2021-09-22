@@ -55,6 +55,7 @@ size_t TwoWireExtenderStream::write(uint8_t byte) {
     if (!bridge_->write(byte)) {
         return 0;
     }
+
     return 1;
 }
 

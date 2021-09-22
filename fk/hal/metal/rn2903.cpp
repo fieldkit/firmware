@@ -97,11 +97,9 @@ bool Rn2903::send_command(const char *cmd, ...) {
 bool Rn2903::send_command(const char *cmd, va_list args) {
     // Empty anything that's pending. Consider a delay here to be even more
     // sure that nothing's heading our way?
-    char buffer[StackBufferSize];
-    while (bridge_.available_for_read()) {
-        bridge_.read((uint8_t *)buffer, sizeof(buffer));
-    }
+    bridge_.drain();
 
+    char buffer[StackBufferSize];
     auto needed = tiny_vsnprintf(buffer, sizeof(buffer) - 3, cmd, args);
     FK_ASSERT(needed + 3 < (int32_t)sizeof(buffer));
 

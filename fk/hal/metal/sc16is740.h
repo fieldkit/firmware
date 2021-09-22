@@ -23,6 +23,7 @@ public:
     bool write_fifo(uint8_t const *buffer, size_t size);
     bool write(const char *line);
     bool write(uint8_t byte);
+    bool drain();
 
 private:
     bool write_register(uint8_t reg, uint8_t value);
