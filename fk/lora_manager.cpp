@@ -32,16 +32,18 @@ bool LoraManager::begin(Pool &pool) {
     awake_ = true;
 
     gsm.apply([=](GlobalState *gs) {
-        gs->lora.has_module = success;
-        gs->lora.joined = 0;
-        gs->lora.asleep = 0;
-
-        if (success) {
-            // auto device_eui = network_->device_eui();
-            // memcpy(gs->lora.device_eui, device_eui, LoraDeviceEuiLength);
-            // loginfo("(loaded) lora device eui: %s", bytes_to_hex_string_pool(device_eui, LoraDeviceEuiLength, pool));
-        } else {
-            memzero(gs->lora.device_eui, LoraDeviceEuiLength);
+        if (gs->lora.has_module != success) {
+            loginfo("has-module: %d", success);
+            gs->lora.has_module = success;
+            gs->lora.joined = 0;
+            gs->lora.asleep = 0;
+            /*
+            if (success) {
+                auto device_eui = network_->device_eui();
+                memcpy(gs->lora.device_eui, device_eui, LoraDeviceEuiLength);
+                loginfo("(loaded) lora device eui: %s", bytes_to_hex_string_pool(device_eui, LoraDeviceEuiLength, pool));
+            }
+            */
         }
     });
 
@@ -85,21 +87,33 @@ bool LoraManager::join_if_necessary(Pool &pool) {
         return false;
     }
 
-    auto module_state = network_->get_state(pool);
     auto joined = false;
-    if (is_null_byte_array(module_state->device_address, LoraDeviceAddressLength)) {
-        auto state = get_lora_global_state();
+    auto state = get_lora_global_state();
+    auto module_state = network_->get_state(pool);
+#if defined(FK_LORA_TESTING_FORCE_JOIN)
+    auto force_join = state.joined == 0;
+#else
+    auto force_join = false;
+#endif
+    if (force_join || is_null_byte_array(module_state->device_address, LoraDeviceAddressLength)) {
+        if (force_join) {
+            loginfo("force-join enabled");
+        } else {
+            loginfo("module missing devaddr, joining via otaa");
+        }
 
-        loginfo("module missing devaddr, joining via otaa");
         LoraOtaaJoin otaa;
-
         otaa.device_eui = bytes_to_hex_string_pool(state.device_eui, LoraDeviceEuiLength, pool);
         otaa.join_eui = bytes_to_hex_string_pool(state.join_eui, LoraJoinEuiLength, pool);
         otaa.app_key = bytes_to_hex_string_pool(state.app_key, LoraAppKeyLength, pool);
+
         joined = network_->join(otaa);
     } else {
         loginfo("joining via stored abp");
+
         joined = network_->join_resume();
+
+        network_->get_state(pool);
     }
 
     GlobalStateManager gsm;
