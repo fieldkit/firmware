@@ -45,6 +45,11 @@ bool LoraManager::begin(Pool &pool) {
         }
     });
 
+    if (success) {
+        // Just doing this to log errors during startup.
+        verify_status(pool);
+    }
+
     return success;
 }
 
@@ -52,9 +57,8 @@ bool LoraManager::factory_reset() {
     return network_->factory_reset();
 }
 
-bool LoraManager::join_if_necessary(Pool &pool) {
+bool LoraManager::verify_status(Pool &pool) {
     auto state = get_lora_global_state();
-    auto module_state = network_->get_state(pool);
 
     if (state.joined > 0) {
         loginfo("already joined");
@@ -63,16 +67,29 @@ bool LoraManager::join_if_necessary(Pool &pool) {
 
     if (is_null_byte_array(state.device_eui, LoraDeviceEuiLength)) {
         logerror("module missing device-eui");
+        fk_dump_memory("device-eui: ", state.device_eui, LoraDeviceEuiLength);
         return false;
     }
 
     if (is_null_byte_array(state.app_key, LoraAppKeyLength)) {
         logerror("module missing app-key");
+        fk_dump_memory("app-key: ", state.app_key, LoraAppKeyLength);
         return false;
     }
 
+    return true;
+}
+
+bool LoraManager::join_if_necessary(Pool &pool) {
+    if (!verify_status(pool)) {
+        return false;
+    }
+
+    auto module_state = network_->get_state(pool);
     auto joined = false;
     if (is_null_byte_array(module_state->device_address, LoraDeviceAddressLength)) {
+        auto state = get_lora_global_state();
+
         loginfo("module missing devaddr, joining via otaa");
         LoraOtaaJoin otaa;
 

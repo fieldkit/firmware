@@ -22,6 +22,9 @@ public:
 public:
     bool configure_tx(uint8_t power_index, uint8_t data_rate);
     LoraErrorCode send_bytes(uint8_t port, uint8_t const *data, size_t size, bool confirmed, Pool &pool);
+
+private:
+    bool verify_status(Pool &pool);
 };
 
 } // namespace fk
