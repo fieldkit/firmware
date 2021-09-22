@@ -422,10 +422,10 @@ bool StartupWorker::load_previous_location(GlobalState *gs, DataOps *ops, Pool &
 
 bool StartupWorker::check_for_lora(Pool &pool) {
     LoraManager lora{ get_lora_network() };
-    lora.begin(pool);
-    // TODO Add turn off after X mechanism, like modules using the above
-    // activity time.
-    // lora.stop();
+
+    if (lora.begin(pool)) {
+        lora.stop();
+    }
 
     return true;
 }

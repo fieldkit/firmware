@@ -59,6 +59,9 @@ public:
         FK_ASSERT(false);
         return nullptr;
     }
+    virtual bool awake() const {
+        return false;
+    }
 };
 
 class NoopLoraNetwork : public LoraNetwork {

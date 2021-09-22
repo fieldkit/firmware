@@ -141,10 +141,12 @@ bool TheThingsLoraNetwork::power(bool on) {
         logdebug("power on");
         get_board()->enable_lora();
         powered_ = true;
+        awake_ = true;
     } else {
         logdebug("power off");
         get_board()->disable_lora();
         powered_ = false;
+        awake_ = false;
     }
 
     return true;
@@ -156,15 +158,17 @@ bool TheThingsLoraNetwork::sleep(uint32_t ms) {
         return true;
     }
     ttn_.sleep(ms);
+    awake_ = false;
     return true;
 }
 
 bool TheThingsLoraNetwork::wake() {
     if (!powered_) {
-        logwarn("unpowered wake");
-        return true;
+        logwarn("emergency power-on");
+        return power(true);
     }
     ttn_.wake();
+    awake_ = true;
     return true;
 }
 
@@ -335,21 +339,39 @@ bool Rn2903LoraNetwork::power(bool on) {
         logdebug("power on");
         get_board()->enable_lora();
         powered_ = true;
+        awake_ = true;
     } else {
         logdebug("power off");
         get_board()->disable_lora();
         powered_ = false;
+        awake_ = false;
     }
 
     return true;
 }
 
 bool Rn2903LoraNetwork::sleep(uint32_t ms) {
-    return rn2903_.sleep(ms);
+    if (!powered_) {
+        logwarn("powerless sleep");
+        return true;
+    }
+    if (awake_) {
+        awake_ = false;
+        return rn2903_.sleep(ms);
+    }
+    return true;
 }
 
 bool Rn2903LoraNetwork::wake() {
-    return rn2903_.wake();
+    if (!powered_) {
+        logwarn("emergency power-on");
+        return power(true);
+    }
+    if (!awake_) {
+        awake_ = true;
+        return rn2903_.wake();
+    }
+    return true;
 }
 
 bool Rn2903LoraNetwork::factory_reset() {

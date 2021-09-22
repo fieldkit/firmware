@@ -59,6 +59,7 @@ private:
     Availability status_{ Availability::Unknown };
     LoraErrorCode error_{ LoraErrorCode::None };
     bool powered_{ false };
+    bool awake_{ false };
 
 public:
     TheThingsLoraNetwork();
@@ -82,6 +83,10 @@ public:
         return error_;
     };
 
+    bool awake() const override {
+        return awake_;
+    }
+
     bool available() const override {
         return status_ == Availability::Available;
     }
@@ -92,6 +97,7 @@ private:
     Availability status_{ Availability::Unknown };
     uint8_t device_eui_[LoraDeviceEuiLength];
     bool powered_{ false };
+    bool awake_{ false };
     Rn2903 rn2903_;
 
 public:
