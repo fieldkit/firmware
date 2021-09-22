@@ -173,6 +173,8 @@ bool LoraManager::send_bytes(uint8_t port, uint8_t const *data, size_t size, Poo
 
     GlobalStateManager gsm;
     return gsm.apply([=](GlobalState *gs) {
+        gs->lora.activity = fk_uptime();
+
         if (module_error) {
             logerror("module-io-error");
             gs->lora.tx_failures++;
