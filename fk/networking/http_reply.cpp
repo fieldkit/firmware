@@ -339,15 +339,22 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, bool logs, fkb_h
         .length = sizeof(gs_->lora.app_key),
         .buffer = gs_->lora.app_key,
     });
+    auto device_address_data = pool_->malloc_with<pb_data_t>({
+        .length = sizeof(gs_->lora.device_address),
+        .buffer = gs_->lora.device_address,
+    });
 
     reply_->has_loraSettings = true;
     reply_->loraSettings.available = gs_->lora.has_module;
+    reply_->loraSettings.frequencyBand = gs_->lora.frequency_band;
     reply_->loraSettings.deviceEui.funcs.encode = pb_encode_data;
     reply_->loraSettings.deviceEui.arg = (void *)device_eui_data;
     reply_->loraSettings.joinEui.funcs.encode = pb_encode_data;
     reply_->loraSettings.joinEui.arg = (void *)join_eui_data;
     reply_->loraSettings.appKey.funcs.encode = pb_encode_data;
     reply_->loraSettings.appKey.arg = (void *)app_key_data;
+    reply_->loraSettings.deviceAddress.funcs.encode = pb_encode_data;
+    reply_->loraSettings.deviceAddress.arg = (void *)device_address_data;
 
     auto nnetworks = 0u;
     auto networks = pool_->malloc<fk_app_NetworkInfo>(WifiMaximumNumberOfNetworks);

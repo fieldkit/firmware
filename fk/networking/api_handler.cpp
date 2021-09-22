@@ -215,6 +215,11 @@ static bool configure(HttpServerConnection *connection, fk_app_HttpQuery *query,
 
     if (query->loraSettings.modifying) {
         gsm.apply([&](GlobalState *gs) {
+            // Set frequency band if we're given a valid one.
+            if (query->loraSettings.frequencyBand > 0) {
+                gs->lora.frequency_band = query->loraSettings.frequencyBand;
+            }
+
             // OTAA
 
             auto device_eui = pb_get_data_if_provided(query->loraSettings.deviceEui.arg, pool);

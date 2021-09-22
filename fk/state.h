@@ -184,6 +184,7 @@ struct StorageUpdate {
 };
 
 struct LoraState {
+    uint32_t frequency_band;
     uint8_t device_eui[LoraDeviceEuiLength];
     uint8_t app_key[LoraAppKeyLength];
     uint8_t join_eui[LoraJoinEuiLength];
