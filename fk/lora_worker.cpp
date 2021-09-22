@@ -32,7 +32,7 @@ static void update_activity(Pool &pool) {
     gs.get()->lora.activity = fk_uptime();
 }
 
-LoraWorker::LoraWorker() {
+LoraWorker::LoraWorker() : work_{ LoraWorkOperation::Readings } {
 }
 
 LoraWorker::LoraWorker(LoraWork work) : work_(work) {
