@@ -600,7 +600,7 @@ ttn_response_t TheThingsNetwork::sendBytes(const uint8_t *payload, size_t length
 
     if (pgmstrcmp(buffer, CMP_MAC_ERR) == 0) {
         debugPrint("Error: Mac");
-        return TTN_ERROR_UNEXPECTED_RESPONSE;
+        return TTN_ERROR_MAC;
     }
 
     debugPrintMessage(ERR_MESSAGE, ERR_UNEXPECTED_RESPONSE, buffer);

@@ -186,9 +186,15 @@ bool TheThingsLoraNetwork::send_bytes(uint8_t port, uint8_t const *data, size_t 
     auto ttnr = ttn_.sendBytes(data, size, port, confirmed);
     switch (ttnr) {
     case TTN_ERROR_SEND_COMMAND_FAILED: {
+        error_ = LoraErrorCode::ModuleIO;
         break;
     }
     case TTN_ERROR_UNEXPECTED_RESPONSE: {
+        error_ = LoraErrorCode::ModuleIO;
+        break;
+    }
+    case TTN_ERROR_MAC: {
+        error_ = LoraErrorCode::Mac;
         break;
     }
     case TTN_UNSUCESSFUL_RECEIVE: {
