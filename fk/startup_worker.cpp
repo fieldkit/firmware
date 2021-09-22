@@ -254,8 +254,13 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
         loginfo("(loaded) lora app key: %s", pb_data_to_hex_string(app_key, pool));
     }
 
-    if (record->lora.frequencyBand > 0) {
-        gs->lora.frequency_band = record->lora.frequencyBand;
+    switch (record->lora.frequencyBand) {
+    case 915:
+        gs->lora.frequency_band = lora_frequency_t::Us915;
+        break;
+    case 868:
+        gs->lora.frequency_band = lora_frequency_t::Eu868;
+        break;
     }
 
     /*

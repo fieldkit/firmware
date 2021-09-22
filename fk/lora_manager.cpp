@@ -28,7 +28,7 @@ bool LoraManager::begin(Pool &pool) {
         }
     }
 
-    auto success = network_->begin();
+    auto success = network_->begin(state.frequency_band);
 
     awake_ = true;
 

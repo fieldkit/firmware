@@ -52,10 +52,12 @@ public:
 
 class TheThingsLoraNetwork : public LoraNetwork {
 private:
+    Pool *pool_{ nullptr };
     Sc16is740 bridge_;
     TwoWireExtenderStream stream_{ bridge_ };
     DebugStream debug_;
-    TheThingsNetwork ttn_{ stream_, debug_, TTN_FP_US915 };
+    lora_frequency_t frequency_band_{ LoraDefaultFrequency };
+    TheThingsNetwork *ttn_{ nullptr };
     Availability status_{ Availability::Unknown };
     LoraErrorCode error_{ LoraErrorCode::None };
     bool powered_{ false };
@@ -65,7 +67,7 @@ public:
     TheThingsLoraNetwork();
 
 public:
-    bool begin() override;
+    bool begin(lora_frequency_t frequency_band) override;
     bool stop() override;
     bool power(bool on) override;
     bool sleep(uint32_t ms) override;
@@ -104,7 +106,7 @@ public:
     Rn2903LoraNetwork();
 
 public:
-    bool begin() override;
+    bool begin(lora_frequency_t frequency_band) override;
     bool stop() override;
     bool power(bool on) override;
     bool sleep(uint32_t ms) override;

@@ -83,7 +83,15 @@ size_t DebugStream::write(uint8_t byte) {
 TheThingsLoraNetwork::TheThingsLoraNetwork() : bridge_(get_board()->acquire_i2c_radio()) {
 }
 
-bool TheThingsLoraNetwork::begin() {
+bool TheThingsLoraNetwork::begin(lora_frequency_t frequency_band) {
+    if (frequency_band_ != frequency_band) {
+        if (powered_) {
+            power(false);
+            fk_delay(50);
+        }
+        status_ = Availability::Unknown;
+    }
+
     if (status_ == Availability::Available && powered_) {
         return true;
     }
@@ -108,6 +116,14 @@ bool TheThingsLoraNetwork::begin() {
         stream_.readBytesUntil('\n', buffer, sizeof(buffer));
 
         loginfo("version: %s", buffer);
+
+        if (pool_ == nullptr) {
+            pool_ = create_standard_pool_inside("lora-ttn");
+        } else {
+            pool_->clear();
+        }
+
+        ttn_ = new (pool_) TheThingsNetwork{ stream_, debug_, (ttn_fp_t)frequency_band_ };
 
 #if defined(FK_LORA_SET_UPLINK_COUNTER)
         Rn2903 rn2903;
@@ -154,34 +170,39 @@ bool TheThingsLoraNetwork::power(bool on) {
 }
 
 bool TheThingsLoraNetwork::sleep(uint32_t ms) {
+    FK_ASSERT(ttn_ != nullptr);
     if (!powered_) {
         logwarn("unpowered sleep");
         return true;
     }
-    ttn_.sleep(ms);
+    ttn_->sleep(ms);
     awake_ = false;
     return true;
 }
 
 bool TheThingsLoraNetwork::wake() {
+    FK_ASSERT(ttn_ != nullptr);
     if (!powered_) {
         logwarn("emergency power-on");
         return power(true);
     }
-    ttn_.wake();
+    ttn_->wake();
     awake_ = true;
     return true;
 }
 
 bool TheThingsLoraNetwork::factory_reset() {
-    ttn_.reset(false);
+    FK_ASSERT(ttn_ != nullptr);
+    ttn_->reset(false);
     return true;
 }
 
 bool TheThingsLoraNetwork::send_bytes(uint8_t port, uint8_t const *data, size_t size, bool confirmed) {
+    FK_ASSERT(ttn_ != nullptr);
+
     error_ = LoraErrorCode::None;
 
-    switch (ttn_.sendBytes(data, size, port, confirmed)) {
+    switch (ttn_->sendBytes(data, size, port, confirmed)) {
     case TTN_ERROR_SEND_COMMAND_FAILED: {
         error_ = LoraErrorCode::ModuleIO;
         return false;
@@ -216,7 +237,9 @@ bool TheThingsLoraNetwork::send_bytes(uint8_t port, uint8_t const *data, size_t 
 }
 
 bool TheThingsLoraNetwork::join(LoraOtaaJoin &otaa, int32_t retries, uint32_t retry_delay) {
-    if (!ttn_.join(otaa.join_eui, otaa.app_key, retries, retry_delay)) {
+    FK_ASSERT(ttn_ != nullptr);
+
+    if (!ttn_->join(otaa.join_eui, otaa.app_key, retries, retry_delay)) {
         return false;
     }
 
@@ -226,15 +249,19 @@ bool TheThingsLoraNetwork::join(LoraOtaaJoin &otaa, int32_t retries, uint32_t re
 }
 
 bool TheThingsLoraNetwork::join_resume() {
-    return ttn_.join_resume();
+    FK_ASSERT(ttn_ != nullptr);
+    return ttn_->join_resume();
 }
 
 bool TheThingsLoraNetwork::save_state() {
-    ttn_.saveState();
+    FK_ASSERT(ttn_ != nullptr);
+    ttn_->saveState();
     return true;
 }
 
 Rn2903State *TheThingsLoraNetwork::get_state(Pool &pool) {
+    FK_ASSERT(ttn_ != nullptr);
+
     const char *line = nullptr;
 
     auto state = new (pool) Rn2903State();
@@ -384,7 +411,7 @@ bool Rn2903LoraNetwork::factory_reset() {
     return rn2903_.factory_reset();
 }
 
-bool Rn2903LoraNetwork::begin() {
+bool Rn2903LoraNetwork::begin(lora_frequency_t frequency_band) {
     if (status_ == Availability::Available && powered_) {
         return true;
     }

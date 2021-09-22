@@ -4,6 +4,7 @@
 #include <string.h>
 #include "secrets.h"
 #include "common/memory.h"
+#include "lora_frequency.h"
 
 namespace fk {
 
@@ -283,6 +284,11 @@ constexpr size_t LoraSendTries = 3;
  * Delay between LoRa packets.
  */
 constexpr uint32_t LoraPacketDelay = TenSecondsMs;
+
+/**
+ * Default LoRa frequency.
+ */
+constexpr lora_frequency_t LoraDefaultFrequency = lora_frequency_t::Us915;
 
 // -------------------------------------------------------------------------------------------
 // Field Lengths

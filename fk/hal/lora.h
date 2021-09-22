@@ -3,6 +3,7 @@
 #include "common.h"
 #include "config.h"
 #include "pool.h"
+#include "lora_frequency.h"
 
 namespace fk {
 
@@ -34,7 +35,7 @@ struct LoraOtaaJoin {
 
 class LoraNetwork {
 public:
-    virtual bool begin() = 0;
+    virtual bool begin(lora_frequency_t frequency_band) = 0;
     virtual bool stop() = 0;
     virtual bool power(bool on) = 0;
     virtual bool sleep(uint32_t seconds) = 0;
@@ -69,7 +70,7 @@ public:
     }
 
 public:
-    bool begin() override {
+    bool begin(lora_frequency_t frequency_band) override {
         return false;
     }
 

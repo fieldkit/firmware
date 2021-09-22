@@ -216,8 +216,13 @@ static bool configure(HttpServerConnection *connection, fk_app_HttpQuery *query,
     if (query->loraSettings.modifying) {
         gsm.apply([&](GlobalState *gs) {
             // Set frequency band if we're given a valid one.
-            if (query->loraSettings.frequencyBand > 0) {
-                gs->lora.frequency_band = query->loraSettings.frequencyBand;
+            switch (query->loraSettings.frequencyBand) {
+            case 915:
+                gs->lora.frequency_band = lora_frequency_t::Us915;
+                break;
+            case 868:
+                gs->lora.frequency_band = lora_frequency_t::Eu868;
+                break;
             }
 
             // OTAA

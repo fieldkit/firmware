@@ -11,6 +11,7 @@
 #include "protobuf.h"
 
 #include "hal/battery_gauge.h" // For MeterReading
+#include "lora_frequency.h"
 #include "modules/bridge/data.h"
 #include "state/dynamic.h"
 
@@ -184,7 +185,7 @@ struct StorageUpdate {
 };
 
 struct LoraState {
-    uint32_t frequency_band;
+    lora_frequency_t frequency_band;
     uint8_t device_eui[LoraDeviceEuiLength];
     uint8_t app_key[LoraAppKeyLength];
     uint8_t join_eui[LoraJoinEuiLength];

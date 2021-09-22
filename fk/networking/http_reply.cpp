@@ -346,7 +346,15 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, bool logs, fkb_h
 
     reply_->has_loraSettings = true;
     reply_->loraSettings.available = gs_->lora.has_module;
-    reply_->loraSettings.frequencyBand = gs_->lora.frequency_band;
+
+    switch (gs_->lora.frequency_band) {
+    case lora_frequency_t::Us915:
+        reply_->loraSettings.frequencyBand = 915;
+        break;
+    case lora_frequency_t::Eu868:
+        reply_->loraSettings.frequencyBand = 868;
+        break;
+    }
     reply_->loraSettings.deviceEui.funcs.encode = pb_encode_data;
     reply_->loraSettings.deviceEui.arg = (void *)device_eui_data;
     reply_->loraSettings.joinEui.funcs.encode = pb_encode_data;

@@ -105,7 +105,14 @@ void MetaRecord::include_state(GlobalState const *gs, fkb_header_t const *fkb_he
         });
 
         record_->has_lora = true;
-        record_->lora.frequencyBand = gs->lora.frequency_band;
+        switch (gs->lora.frequency_band) {
+        case lora_frequency_t::Us915:
+            record_->lora.frequencyBand = 915;
+            break;
+        case lora_frequency_t::Eu868:
+            record_->lora.frequencyBand = 868;
+            break;
+        }
         record_->lora.deviceEui.arg = (void *)device_eui_data;
         record_->lora.joinEui.arg = (void *)join_eui_data;
         record_->lora.appKey.arg = (void *)app_key_data;
