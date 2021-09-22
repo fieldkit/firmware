@@ -107,9 +107,23 @@ bool TheThingsLoraNetwork::begin() {
         stream_.readBytesUntil('\n', buffer, sizeof(buffer));
 
         loginfo("version: %s", buffer);
-    }
 
-    // ttn_.showStatus();
+#if defined(FK_LORA_SET_UPLINK_COUNTER)
+        Rn2903 rn2903;
+        const char *line = nullptr;
+        if (!rn2903.simple_query("mac get upctr", &line, 1000)) {
+            return nullptr;
+        }
+        auto value = atoi(line);
+        if (value < FK_LORA_SET_UP_COUNTER) {
+            if (!rn2903.simple_query("mac set upctr %d", &line, 1000, FK_LORA_SET_UP_COUNTER)) {
+                return false;
+            }
+
+            save_state();
+        }
+#endif
+    }
 
     status_ = Availability::Available;
 
