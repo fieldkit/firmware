@@ -194,7 +194,7 @@ struct LoraState {
     uint32_t joined;
     uint32_t asleep;
     uint32_t activity;
-    uint32_t join_failures;
+    uint32_t reply_failures;
     uint32_t tx_successes;
     uint32_t tx_failures;
 };
