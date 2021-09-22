@@ -29,8 +29,9 @@ const char accepted[] PROGMEM = "accepted";
 const char mac_tx_ok[] PROGMEM = "mac_tx_ok";
 const char mac_rx[] PROGMEM = "mac_rx";
 const char rn2483[] PROGMEM = "RN2483";
+const char mac_err[] PROGMEM = "mac_err";
 
-const char *const compare_table[] PROGMEM = { ok, on, off, accepted, mac_tx_ok, mac_rx, rn2483 };
+const char *const compare_table[] PROGMEM = { ok, on, off, accepted, mac_tx_ok, mac_rx, rn2483, mac_err };
 
 #define CMP_OK        0
 #define CMP_ON        1
@@ -39,6 +40,7 @@ const char *const compare_table[] PROGMEM = { ok, on, off, accepted, mac_tx_ok, 
 #define CMP_MAC_TX_OK 4
 #define CMP_MAC_RX    5
 #define CMP_RN2483    6
+#define CMP_MAC_ERR   7
 
 #define SENDING  "Sending: "
 #define SEND_MSG "\r\n"
@@ -298,7 +300,7 @@ uint8_t receivedPort(const char *s) {
 TheThingsNetwork::TheThingsNetwork(Stream &modemStream, Stream &debugStream, ttn_fp_t fp, uint8_t sf, uint8_t fsb) {
     this->debugStream = &debugStream;
     this->modemStream = &modemStream;
-    this->modemStream->setTimeout(10000);
+    this->modemStream->setTimeout(20000);
     this->fp = fp;
     this->sf = sf;
     this->fsb = fsb;
@@ -360,6 +362,7 @@ size_t TheThingsNetwork::readLine(char *buffer, size_t size, uint8_t attempts) {
     if (!read) {                     // If attempts is activated return 0 and set RN state marker
         this->needsHardReset = true; // Inform the application about the radio module is not responsive.
         debugPrintLn("No response from RN module.");
+        buffer[0] = 0;
         return 0;
     }
     buffer[read - 1] = '\0'; // set \r to \0
@@ -593,6 +596,11 @@ ttn_response_t TheThingsNetwork::sendBytes(const uint8_t *payload, size_t length
             debugPrintMessage(SUCCESS_MESSAGE, SCS_SUCCESSFUL_TRANSMISSION);
         }
         return TTN_SUCCESSFUL_RECEIVE;
+    }
+
+    if (pgmstrcmp(buffer, CMP_MAC_ERR) == 0) {
+        debugPrint("Error: Mac");
+        return TTN_ERROR_UNEXPECTED_RESPONSE;
     }
 
     debugPrintMessage(ERR_MESSAGE, ERR_UNEXPECTED_RESPONSE, buffer);
