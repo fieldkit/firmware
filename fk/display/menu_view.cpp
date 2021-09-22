@@ -651,13 +651,13 @@ void MenuView::create_tools_menu() {
     (void)tools_crash_assertion;
     (void)tools_poll_water_ec_sensors;
 
-    tools_menu_ = new_menu_screen<14>(pool_, "tools",
+    tools_menu_ = new_menu_screen<15>(pool_, "tools",
                                       {
                                           back_,
                                           tools_self_check,
                                           tools_gps,
                                           tools_gps_toggle,
-                                          // tools_lora_ranging,
+                                          tools_lora_ranging,
                                           tools_load_firmware_sd,
                                           tools_dump_flash,
                                           tools_backup,

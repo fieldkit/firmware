@@ -18,16 +18,17 @@ static LoraState get_lora_global_state() {
 bool LoraManager::begin(Pool &pool) {
     GlobalStateManager gsm;
 
-    auto success = network_->begin();
     auto state = get_lora_global_state();
     if (state.asleep > 0) {
         loginfo("waking");
 
         if (!network_->wake()) {
-            logerror("error waking");
+            logerror("waking. RN module HUP?");
             return false;
         }
     }
+
+    auto success = network_->begin();
 
     awake_ = true;
 
@@ -38,6 +39,12 @@ bool LoraManager::begin(Pool &pool) {
             gs->lora.joined = 0;
             gs->lora.asleep = 0;
             /*
+            gs->lora.activity = 0;
+            gs->lora.confirmed = 0;
+            gs->lora.reply_failures = 0;
+            gs->lora.tx_successes = 0;
+            gs->lora.tx_failures = 0;
+            gs->lora.confirmed_tries = 0;
             if (success) {
                 auto device_eui = network_->device_eui();
                 memcpy(gs->lora.device_eui, device_eui, LoraDeviceEuiLength);

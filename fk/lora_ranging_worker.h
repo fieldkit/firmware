@@ -1,6 +1,7 @@
 #pragma once
 
 #include "worker.h"
+#include "lora_manager.h"
 
 namespace fk {
 
@@ -14,6 +15,9 @@ public:
     const char *name() const override {
         return "lora-range";
     }
+
+private:
+    void loop(LoraManager &lora);
 };
 
 FK_ENABLE_TYPE_NAME(LoraRangingWorker);
