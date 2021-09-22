@@ -29,8 +29,8 @@ namespace fk {
 FK_DECLARE_LOGGER("menu");
 
 template <typename TSelect, typename TSelected>
-SelectableLambdaOption<TSelect, TSelected> *to_selectable_lambda_option(Pool *pool, const char *label,
-                                                                        TSelect select_fn, TSelected selected_fn) {
+SelectableLambdaOption<TSelect, TSelected> *to_selectable_lambda_option(Pool *pool, const char *label, TSelect select_fn,
+                                                                        TSelected selected_fn) {
     return new (*pool) SelectableLambdaOption<TSelect, TSelected>(label, select_fn, selected_fn);
 }
 
@@ -418,8 +418,7 @@ void MenuView::create_confirmation_menu() {
 }
 
 template <size_t N, typename T>
-MenuScreen *create_numeric_selection(const char *f, int32_t(&&numbers)[N], MenuOption *back, Pool *pool,
-                                     T on_selected) {
+MenuScreen *create_numeric_selection(const char *f, int32_t(&&numbers)[N], MenuOption *back, Pool *pool, T on_selected) {
     auto options = (MenuOption **)pool->malloc(sizeof(MenuOption *) * (N + 2));
     auto index = 0u;
 
@@ -510,15 +509,14 @@ public:
 
 public:
     PollWaterEcSensorsMenu(GotoMenu *menus, MenuOption *back, Pool *pool) {
-        menu_ = create_numeric_selection<7>("EC Delay = %dms", { 1, 2, 5, 10, 20, 50, 100 }, back, pool,
-                                            [=](int32_t delay) {
-                                                // auto gs = get_global_state_rw();
-                                                // gs.get()->debugging.ec_excite_delay = delay;
-                                                loginfo("override ec delay: %dms", delay);
-                                                back->on_selected();
-                                                auto poll_sensors = new (pool) PollSensorsMenu(menus, back, pool);
-                                                menus->goto_menu(poll_sensors->menu());
-                                            });
+        menu_ = create_numeric_selection<7>("EC Delay = %dms", { 1, 2, 5, 10, 20, 50, 100 }, back, pool, [=](int32_t delay) {
+            // auto gs = get_global_state_rw();
+            // gs.get()->debugging.ec_excite_delay = delay;
+            loginfo("override ec delay: %dms", delay);
+            back->on_selected();
+            auto poll_sensors = new (pool) PollSensorsMenu(menus, back, pool);
+            menus->goto_menu(poll_sensors->menu());
+        });
     }
 };
 
@@ -596,9 +594,7 @@ void MenuView::create_tools_menu() {
     auto tools_load_firmware_sd = to_lambda_option(pool_, "SD Upgrade", [=]() {
         back_->on_selected();
         views_->show_home();
-        auto params = SdCardFirmware{
-            SdCardFirmwareOperation::Load, "fkbl-fkb.bin", "fk-bundled-fkb.bin", true, false, OneSecondMs
-        };
+        auto params = SdCardFirmware{ SdCardFirmwareOperation::Load, "fkbl-fkb.bin", "fk-bundled-fkb.bin", true, false, OneSecondMs };
         get_ipc()->launch_worker(create_pool_worker<UpgradeFirmwareFromSdWorker>(params));
     });
     auto tools_fsck = to_lambda_option(pool_, "Run Fsck", [=]() {
@@ -609,23 +605,17 @@ void MenuView::create_tools_menu() {
     auto tools_lora_ranging = to_lambda_option(pool_, "LoRa Ranging", [=]() {
         back_->on_selected();
         views_->show_lora();
-        get_ipc()->launch_worker(WorkerCategory::Lora, create_pool_worker<LoraRangingWorker>(false));
-    });
-    auto tools_lora_ranging_confirmed = to_lambda_option(pool_, "LoRa Ranging (Cnf)", [=]() {
-        back_->on_selected();
-        views_->show_lora();
-        get_ipc()->launch_worker(WorkerCategory::Lora, create_pool_worker<LoraRangingWorker>(true));
+        get_ipc()->launch_worker(WorkerCategory::Lora, create_pool_worker<LoraRangingWorker>());
     });
     auto tools_gps = to_lambda_option(pool_, "Watch GPS", [=]() {
         back_->on_selected();
         views_->show_gps();
     });
-    auto tools_factory_reset =
-        new (pool_) ConfirmOption(this, to_lambda_option(pool_, "Factory Reset", [=]() {
-                                      back_->on_selected();
-                                      views_->show_home();
-                                      get_ipc()->launch_worker(create_pool_worker<FactoryWipeWorker>(true));
-                                  }));
+    auto tools_factory_reset = new (pool_) ConfirmOption(this, to_lambda_option(pool_, "Factory Reset", [=]() {
+                                                             back_->on_selected();
+                                                             views_->show_home();
+                                                             get_ipc()->launch_worker(create_pool_worker<FactoryWipeWorker>(true));
+                                                         }));
     auto tools_restart = new (pool_) ConfirmOption(this, to_lambda_option(pool_, "Restart", [=]() {
                                                        get_display()->off();
                                                        fk_graceful_shutdown();
@@ -655,7 +645,6 @@ void MenuView::create_tools_menu() {
     });
 
     (void)tools_lora_ranging;
-    (void)tools_lora_ranging_confirmed;
     (void)tools_sleep_test;
     (void)tools_poll_sensors;
     (void)tools_crash_hardf;
@@ -669,7 +658,6 @@ void MenuView::create_tools_menu() {
                                           tools_gps,
                                           tools_gps_toggle,
                                           // tools_lora_ranging,
-                                          // tools_lora_ranging_confirmed,
                                           tools_load_firmware_sd,
                                           tools_dump_flash,
                                           tools_backup,
@@ -783,12 +771,12 @@ void MenuView::create_network_menu() {
 
     (void)network_download_fw;
 
-    network_menu_ = new_menu_screen<8 - 1>(pool_, "network",
-                                           {
-                                               back_, network_toggle, network_choose, network_upload_resume,
-                                               network_upload_meta, network_upload_data, network_duration,
-                                               // network_download_fw,
-                                           });
+    network_menu_ = new_menu_screen<8 - 1>(
+        pool_, "network",
+        {
+            back_, network_toggle, network_choose, network_upload_resume, network_upload_meta, network_upload_data, network_duration,
+            // network_download_fw,
+        });
 }
 
 void MenuView::create_main_menu() {

@@ -215,9 +215,19 @@ constexpr uint32_t MinimumModuleStartupDelayMs = 10;
 // LoRa
 
 /**
+ * Transmission frequency to save RN module state.
+ */
+constexpr int32_t LoraSaveEveryTx = 15;
+
+/**
  * Transmission frequency to request confirmation packets.
  */
-constexpr int32_t LoraConfirmEvery = 25;
+constexpr int32_t LoraConfirmEveryTx = 0;
+
+/**
+ * Minutes between confirmed transmissions.
+ */
+constexpr int32_t LoraConfirmEveryMinutes = 30;
 
 /**
  * How often to save LoRa radio state.

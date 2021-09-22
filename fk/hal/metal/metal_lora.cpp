@@ -179,22 +179,23 @@ bool TheThingsLoraNetwork::factory_reset() {
 }
 
 bool TheThingsLoraNetwork::send_bytes(uint8_t port, uint8_t const *data, size_t size, bool confirmed) {
-    auto ttnr = ttn_.sendBytes(data, size, port, confirmed);
-    switch (ttnr) {
+    error_ = LoraErrorCode::None;
+
+    switch (ttn_.sendBytes(data, size, port, confirmed)) {
     case TTN_ERROR_SEND_COMMAND_FAILED: {
         error_ = LoraErrorCode::ModuleIO;
-        break;
+        return false;
     }
     case TTN_ERROR_UNEXPECTED_RESPONSE: {
         error_ = LoraErrorCode::ModuleIO;
-        break;
+        return false;
     }
     case TTN_ERROR_MAC: {
         error_ = LoraErrorCode::Mac;
-        break;
+        return true;
     }
     case TTN_UNSUCESSFUL_RECEIVE: {
-        break;
+        return true;
     }
     case TTN_SUCCESSFUL_TRANSMISSION: {
         if (confirmed) {
@@ -209,7 +210,9 @@ bool TheThingsLoraNetwork::send_bytes(uint8_t port, uint8_t const *data, size_t 
         return true;
     }
     }
-    return false;
+
+    logwarn("ignoring unknown error");
+    return true;
 }
 
 bool TheThingsLoraNetwork::join(LoraOtaaJoin &otaa, int32_t retries, uint32_t retry_delay) {
@@ -415,11 +418,9 @@ bool Rn2903LoraNetwork::stop() {
 }
 
 bool Rn2903LoraNetwork::send_bytes(uint8_t port, uint8_t const *data, size_t size, bool confirmed) {
-    if (!rn2903_.send_bytes(data, size, port, confirmed)) {
-        return false;
-    }
-
-    return true;
+    // TODO This needs to handle errors like the TTN implementation.
+    FK_ASSERT(0);
+    return false;
 }
 
 Rn2903State *Rn2903LoraNetwork::get_state(Pool &pool) {

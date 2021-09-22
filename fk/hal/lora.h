@@ -47,6 +47,9 @@ public:
     virtual bool join_resume() {
         return false;
     }
+    virtual bool save_state() {
+        return false;
+    }
 
 public:
     virtual bool available() const = 0;

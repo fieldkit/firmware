@@ -63,7 +63,6 @@ bool LoraManager::verify_status(Pool &pool) {
     auto state = get_lora_global_state();
 
     if (state.joined > 0) {
-        loginfo("already joined");
         return true;
     }
 
@@ -89,6 +88,11 @@ bool LoraManager::join_if_necessary(Pool &pool) {
 
     auto joined = false;
     auto state = get_lora_global_state();
+    if (state.joined > 0) {
+        loginfo("already joined");
+        return true;
+    }
+
     auto module_state = network_->get_state(pool);
 #if defined(FK_LORA_TESTING_FORCE_JOIN)
     auto force_join = state.joined == 0;
@@ -131,44 +135,87 @@ bool LoraManager::join_if_necessary(Pool &pool) {
 
 static bool get_should_confirm() {
     auto lora = get_lora_global_state();
-    if (lora.tx_successes > 0 && LoraConfirmEvery > 0) {
-        if ((lora.tx_successes % LoraConfirmEvery) == 0) {
+    if (lora.tx_successes > 0) {
+        if (LoraConfirmEveryTx > 0 && (lora.tx_successes % LoraConfirmEveryTx) == 0) {
+            loginfo("confirming every %d tx", LoraConfirmEveryTx);
             return true;
         }
     }
     if (lora.confirmed_tries > 0) {
         if (lora.confirmed_tries == 3) {
-            logwarn("%d confirmed tries failed", lora.confirmed_tries);
             lora.confirmed_tries = 0;
+            logwarn("%d confirmed tries failed", lora.confirmed_tries);
             return false;
         }
+        loginfo("%d confirmed tries", lora.confirmed_tries);
         return true;
+    }
+    if (lora.confirmed > 0) {
+        auto minutes_elapsed = (fk_uptime() - lora.confirmed) / OneMinuteMs;
+        if (minutes_elapsed > LoraConfirmEveryMinutes) {
+            loginfo("%d confirmed every %d minutes (%d)", LoraConfirmEveryMinutes, minutes_elapsed);
+            return true;
+        }
     }
     return false;
 }
 
-LoraErrorCode LoraManager::send_bytes(uint8_t port, uint8_t const *data, size_t size, bool confirmed, Pool &pool) {
-    auto should_confirm = get_should_confirm();
-    auto success = network_->send_bytes(port, data, size, confirmed || should_confirm);
-    auto code = network_->error();
+bool LoraManager::send_bytes(uint8_t port, uint8_t const *data, size_t size, Pool &pool) {
+    auto confirmed = get_should_confirm();
+    auto module_error = !network_->send_bytes(port, data, size, confirmed);
 
     GlobalStateManager gsm;
-    gsm.apply([=](GlobalState *gs) {
-        if (code == LoraErrorCode::NotJoined) {
-            logwarn("not-joined");
-            gs->lora.joined = 0;
+    return gsm.apply([=](GlobalState *gs) {
+        if (module_error) {
+            logerror("module-io-error");
+            gs->lora.tx_failures++;
+            return false;
         }
-        if (success) {
+
+        switch (network_->error()) {
+        case LoraErrorCode::ModuleIO: {
+            // We should never get here, should return as a module error above.
+            logwarn("module-io-error");
+            return false;
+        }
+        case LoraErrorCode::Mac: {
+            // It would be unexpected to get this on an unconfirmed message.
+            if (confirmed) {
+                logwarn("mac-error");
+                gs->lora.confirmed_tries++;
+            } else {
+                logwarn("mac-error-unexpected");
+            }
+            gs->lora.tx_failures++;
+            break;
+        }
+        case LoraErrorCode::NotJoined: {
+            // Force a rejoin some time in the future.
+            logwarn("not-joined-error");
+            gs->lora.joined = 0;
+            break;
+        }
+        default: {
             loginfo("success!");
             gs->lora.tx_successes++;
-        } else {
-            logwarn("failed!");
-            gs->lora.tx_failures++;
-            gs->lora.confirmed_tries++;
+            if (confirmed) {
+                gs->lora.confirmed = fk_uptime();
+            } else if (LoraSaveEveryTx > 0) {
+                // We always save ND state after a confirmed message, this saves
+                // the uplink counters periodically.
+                if ((gs->lora.tx_successes % LoraSaveEveryTx) == 0) {
+                    loginfo("saving every %d txs", LoraSaveEveryTx);
+                    if (!network_->save_state()) {
+                        logwarn("saving state");
+                    }
+                }
+            }
+            break;
         }
-    });
+        }
 
-    return code;
+        return true;
+    });
 }
 
 void LoraManager::stop() {

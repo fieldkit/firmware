@@ -74,8 +74,9 @@ public:
     bool send_bytes(uint8_t port, uint8_t const *data, size_t size, bool confirmed) override;
     bool join(LoraOtaaJoin &otaa, int32_t retries, uint32_t retry_delay) override;
     bool join_resume() override;
-    bool save_state();
+    bool save_state() override;
 
+public:
     Rn2903State *get_state(Pool &pool) override;
 
     LoraErrorCode error() const override {
@@ -112,7 +113,7 @@ public:
     bool send_bytes(uint8_t port, uint8_t const *data, size_t size, bool confirmed) override;
     bool join(LoraOtaaJoin &otaa, int32_t retries, uint32_t retry_delay) override;
     bool join_resume() override;
-    bool save_state();
+    bool save_state() override;
 
 public:
     Rn2903State *get_state(Pool &pool) override;

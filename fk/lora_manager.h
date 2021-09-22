@@ -18,7 +18,9 @@ public:
     bool factory_reset();
     bool join_if_necessary(Pool &pool);
     void stop();
-    LoraErrorCode send_bytes(uint8_t port, uint8_t const *data, size_t size, bool confirmed, Pool &pool);
+
+public:
+    bool send_bytes(uint8_t port, uint8_t const *data, size_t size, Pool &pool);
 
 private:
     bool verify_status(Pool &pool);
