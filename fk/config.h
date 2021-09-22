@@ -108,7 +108,7 @@ constexpr uint32_t OneMegabyte = 1024 * 1024;
 
 constexpr uint32_t DefaultReadingsInterval = OneHourSeconds;
 constexpr uint32_t DefaultNetworkInterval = 60 * 60 * 60;
-constexpr uint32_t DefaultLoraInterval = 60 * 60 * 2;
+constexpr uint32_t DefaultLoraInterval = 60 * 60 * 6;
 constexpr uint32_t DefaultGpsInterval = OneDaySeconds;
 constexpr uint32_t DefaultGpsDuration = TenMinutesSeconds;
 constexpr uint32_t DefaultSynchronizeTimeInterval = OneDaySeconds;

@@ -17,8 +17,7 @@ static fkb_header_t fake_header = { .signature = { 'F', 'K', 'B', 0 },
                                     .firmware = { .flags = 0,
                                                   .timestamp = 1580763366,
                                                   .number = 1000,
-                                                  .reserved = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-                                                                0xff, 0xff },
+                                                  .reserved = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff },
                                                   .safe = 0xff,
                                                   .previous = UINT32_MAX,
                                                   .binary_size = 65536,
@@ -154,7 +153,7 @@ TEST_F(ReadingsWorkerSuite, ScannedModule_MultipleReadings) {
 
         // State record
         auto bytes_read = reader->read(meta_record.for_decoding(), fk_data_DataRecord_fields);
-        ASSERT_EQ(bytes_read, 320);
+        ASSERT_EQ(bytes_read, 321);
 
         // Modules record
         bytes_read = reader->read(meta_record.for_decoding(), fk_data_DataRecord_fields);
@@ -238,7 +237,7 @@ TEST_F(ReadingsWorkerSuite, ScannedModule_ModuleAdded) {
 
         // State record
         auto bytes_read = reader->read(meta_record.for_decoding(), fk_data_DataRecord_fields);
-        ASSERT_EQ(bytes_read, 320);
+        ASSERT_EQ(bytes_read, 321);
 
         // Modules record
         bytes_read = reader->read(meta_record.for_decoding(), fk_data_DataRecord_fields);
