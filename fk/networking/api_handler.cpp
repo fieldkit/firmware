@@ -239,6 +239,7 @@ static bool configure(HttpServerConnection *connection, fk_app_HttpQuery *query,
                 memcpy(gs->lora.app_key, app_key->buffer, LoraAppKeyLength);
             }
 
+#if defined(FK_LORA_ABP)
             // ABP
 
             auto app_session_key = pb_get_data_if_provided(query->loraSettings.appSessionKey.arg, pool);
@@ -263,6 +264,7 @@ static bool configure(HttpServerConnection *connection, fk_app_HttpQuery *query,
                 FK_ASSERT(device_address->length == LoraDeviceAddressLength);
                 memcpy(gs->lora.device_address, device_address->buffer, LoraDeviceAddressLength);
             }
+#endif
         });
     }
 
