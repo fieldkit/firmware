@@ -99,8 +99,17 @@ bool LoraManager::configure_tx(uint8_t power_index, uint8_t data_rate) {
     return network_->configure_tx(power_index, data_rate);
 }
 
+static bool get_should_confirm() {
+    auto lora = get_lora_global_state();
+    if (lora.tx_successes > 0 && LoraConfirmEvery > 0) {
+        return lora.tx_successes % LoraConfirmEvery == 0;
+    }
+    return false;
+}
+
 LoraErrorCode LoraManager::send_bytes(uint8_t port, uint8_t const *data, size_t size, bool confirmed, Pool &pool) {
-    auto success = network_->send_bytes(port, data, size, confirmed);
+    auto should_confirm = get_should_confirm();
+    auto success = network_->send_bytes(port, data, size, confirmed || should_confirm);
     auto code = network_->error();
 
     GlobalStateManager gsm;
