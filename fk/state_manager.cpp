@@ -20,6 +20,18 @@ static void initialize_compile_time_wifi(WifiNetworkInfo &network, const char *s
     network.valid = true;
 }
 
+static void initialize_compile_lora(LoraState &lora, const char *device_eui, const char *app_key, const char *join_eui)
+    __attribute__((unused));
+
+static void initialize_compile_lora(LoraState &lora, const char *device_eui, const char *app_key, const char *join_eui) {
+    loginfo("(hardcoded) lora device-eui='%s'", device_eui); // TODO SECURITY
+    hex_string_to_bytes(lora.device_eui, sizeof(lora.device_eui), device_eui);
+    hex_string_to_bytes(lora.app_key, sizeof(lora.app_key), app_key);
+    if (join_eui != nullptr) {
+        hex_string_to_bytes(lora.join_eui, sizeof(lora.join_eui), join_eui);
+    }
+}
+
 bool GlobalStateManager::initialize(Pool &pool) {
     auto gs = get_global_state_rw();
 
@@ -52,6 +64,15 @@ bool GlobalStateManager::initialize(Pool &pool) {
 #if defined(FK_WIFI_1_SSID) && defined(FK_WIFI_1_PASSWORD)
     initialize_compile_time_wifi(gs.get()->network.config.wifi_networks[1], FK_WIFI_1_SSID, FK_WIFI_1_PASSWORD);
 #endif
+
+#if defined(FK_LORA_DEVICE_EUI) && defined(FK_LORA_APP_KEY)
+#if defined(FK_LORA_JOIN_EUI)
+    initialize_compile_lora(gs.get()->lora, FK_LORA_DEVICE_EUI, FK_LORA_APP_KEY, FK_LORA_JOIN_EUI);
+#else
+    initialize_compile_lora(gs.get()->lora, FK_LORA_DEVICE_EUI, FK_LORA_APP_KEY, nullptr);
+#endif
+#endif
+
 #endif
 
     if (fk_debug_get_console_attached()) {

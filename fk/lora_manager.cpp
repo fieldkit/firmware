@@ -61,12 +61,15 @@ bool LoraManager::join_if_necessary(Pool &pool) {
         return true;
     }
 
-    /*
-    if (is_null_byte_array(module_state->join_eui, LoraJoinEuiLength)) {
-        logerror("module missing join-eui");
+    if (is_null_byte_array(module_state->device_eui, LoraDeviceEuiLength)) {
+        logerror("module missing device-eui");
         return false;
     }
-    */
+
+    if (is_null_byte_array(module_state->app_key, LoraAppKeyLength)) {
+        logerror("module missing app-key");
+        return false;
+    }
 
     auto joined = false;
     if (is_null_byte_array(module_state->device_address, LoraDeviceAddressLength)) {

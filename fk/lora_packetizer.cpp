@@ -45,7 +45,7 @@ static tl::expected<SensorGroupTemplate *, Error> get_sensor_group_template(Glob
         }
     }
 
-#if defined(FK_TESTING_DIAGNOSTICS_SENSOR_GROUP)
+#if defined(FK_LORA_TESTING_DIAGNOSTICS_SENSOR_GROUP)
     auto sensor_group = new (pool) SensorGroupTemplate(pool);
     sensor_group->sensors.add(SensorTemplate{ FK_MODULES_MANUFACTURER, FK_MODULES_KIND_DIAGNOSTICS, 0 });
     sensor_group->sensors.add(SensorTemplate{ FK_MODULES_MANUFACTURER, FK_MODULES_KIND_DIAGNOSTICS, 1 });
