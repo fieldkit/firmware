@@ -105,7 +105,17 @@ bool LoraManager::configure_tx(uint8_t power_index, uint8_t data_rate) {
 static bool get_should_confirm() {
     auto lora = get_lora_global_state();
     if (lora.tx_successes > 0 && LoraConfirmEvery > 0) {
-        return lora.tx_successes % LoraConfirmEvery == 0;
+        if ((lora.tx_successes % LoraConfirmEvery) == 0) {
+            return true;
+        }
+    }
+    if (lora.confirmed_tries > 0) {
+        if (lora.confirmed_tries == 3) {
+            logwarn("%d confirmed tries failed", lora.confirmed_tries);
+            lora.confirmed_tries = 0;
+            return false;
+        }
+        return true;
     }
     return false;
 }
@@ -118,12 +128,16 @@ LoraErrorCode LoraManager::send_bytes(uint8_t port, uint8_t const *data, size_t 
     GlobalStateManager gsm;
     gsm.apply([=](GlobalState *gs) {
         if (code == LoraErrorCode::NotJoined) {
+            logwarn("not-joined");
             gs->lora.joined = 0;
         }
         if (success) {
+            loginfo("success!");
             gs->lora.tx_successes++;
         } else {
+            logwarn("failed!");
             gs->lora.tx_failures++;
+            gs->lora.confirmed_tries++;
         }
     });
 

@@ -197,6 +197,7 @@ struct LoraState {
     uint32_t reply_failures;
     uint32_t tx_successes;
     uint32_t tx_failures;
+    uint32_t confirmed_tries;
 };
 
 struct SdCardState {
