@@ -184,15 +184,12 @@ struct StorageUpdate {
 };
 
 struct LoraState {
-    // bool configured;
     uint8_t device_eui[LoraDeviceEuiLength];
     uint8_t app_key[LoraAppKeyLength];
     uint8_t join_eui[LoraJoinEuiLength];
     uint8_t device_address[LoraDeviceAddressLength];
     uint8_t network_session_key[LoraNetworkSessionKeyLength];
     uint8_t app_session_key[LoraAppSessionKeyLength];
-    // uint32_t uplink_counter;
-    // uint32_t downlink_counter;
     bool has_module;
     uint32_t joined;
     uint32_t asleep;
