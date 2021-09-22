@@ -61,12 +61,12 @@ bool LoraManager::join_if_necessary(Pool &pool) {
         return true;
     }
 
-    if (is_null_byte_array(module_state->device_eui, LoraDeviceEuiLength)) {
+    if (is_null_byte_array(state.device_eui, LoraDeviceEuiLength)) {
         logerror("module missing device-eui");
         return false;
     }
 
-    if (is_null_byte_array(module_state->app_key, LoraAppKeyLength)) {
+    if (is_null_byte_array(state.app_key, LoraAppKeyLength)) {
         logerror("module missing app-key");
         return false;
     }
@@ -140,13 +140,6 @@ LoraErrorCode LoraManager::send_bytes(uint8_t port, uint8_t const *data, size_t 
             gs->lora.confirmed_tries++;
         }
     });
-
-    /*
-    if (code == LoraErrorCode::DataLength) {
-        // Show module state in logs.
-        network_->get_state(pool);
-    }
-    */
 
     return code;
 }
