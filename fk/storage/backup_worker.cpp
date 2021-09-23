@@ -91,8 +91,10 @@ bool BackupWorker::write_file(FileReader *file, const char *path, Pool &pool) {
     BLAKE2b b2b;
     b2b.reset(Hash::Length);
 
-    auto buffer = reinterpret_cast<uint8_t*>(pool.malloc(NetworkBufferSize));
+    auto buffer = reinterpret_cast<uint8_t *>(pool.malloc(NetworkBufferSize));
     auto bytes_copied = (uint32_t)0;
+
+    ScopedLogLevelChange log_level_info_only{ LogLevels::INFO };
 
     while (bytes_copied < info->size) {
         auto to_read = std::min<int32_t>(NetworkBufferSize, info->size - bytes_copied);
@@ -102,8 +104,7 @@ bool BackupWorker::write_file(FileReader *file, const char *path, Pool &pool) {
             if (writing->write(buffer, bytes) == bytes) {
                 bytes_copied += bytes;
             }
-        }
-        else {
+        } else {
             break;
         }
     }
