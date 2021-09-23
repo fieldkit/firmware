@@ -430,8 +430,9 @@ bool StartupWorker::load_previous_location(GlobalState *gs, DataOps *ops, Pool &
 }
 
 bool StartupWorker::check_for_lora(Pool &pool) {
-    LoraManager lora{ get_lora_network() };
+    loginfo("checking for lora module");
 
+    LoraManager lora{ get_lora_network() };
     if (lora.begin(pool)) {
         lora.stop();
     }

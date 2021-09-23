@@ -29,28 +29,33 @@ bool LoraManager::begin(Pool &pool) {
     }
 
     auto success = network_->begin(state.frequency_band);
+    auto module_state = success ? network_->get_state(pool) : nullptr;
 
     awake_ = true;
 
-    gsm.apply([=](GlobalState *gs) {
+    gsm.apply([&](GlobalState *gs) {
         if (gs->lora.has_module != success) {
-            loginfo("has-module: %d", success);
             gs->lora.has_module = success;
             gs->lora.joined = 0;
             gs->lora.asleep = 0;
-            /*
+            if (module_state != nullptr) {
+                memcpy(gs->lora.device_address, module_state->device_address, sizeof(gs->lora.device_address));
+                gs->lora.uplink_counter = module_state->uplink_counter;
+                gs->lora.downlink_counter = module_state->downlink_counter;
+            } else {
+                bzero(gs->lora.device_address, sizeof(gs->lora.device_address));
+            }
+            auto device_address_hex = bytes_to_hex_string_pool(gs->lora.device_address, sizeof(gs->lora.device_address), pool);
+            loginfo("has-module: %d device-address: %s", success, device_address_hex);
+#if defined(FK_LORA_FULL_RESET)
+            // This can be deleted eventually.
             gs->lora.activity = 0;
             gs->lora.confirmed = 0;
             gs->lora.reply_failures = 0;
             gs->lora.tx_successes = 0;
             gs->lora.tx_failures = 0;
             gs->lora.confirmed_tries = 0;
-            if (success) {
-                auto device_eui = network_->device_eui();
-                memcpy(gs->lora.device_eui, device_eui, LoraDeviceEuiLength);
-                loginfo("(loaded) lora device eui: %s", bytes_to_hex_string_pool(device_eui, LoraDeviceEuiLength, pool));
-            }
-            */
+#endif
         }
     });
 
@@ -88,6 +93,13 @@ bool LoraManager::verify_status(Pool &pool) {
     return true;
 }
 
+static void update_lora_status(LoraState &lora, Rn2903State const *rn) {
+    lora.uplink_counter = rn->uplink_counter;
+    lora.downlink_counter = rn->downlink_counter;
+    FK_ASSERT(sizeof(lora.device_address) == sizeof(rn->device_address));
+    memcpy(lora.device_address, rn->device_address, sizeof(lora.device_address));
+}
+
 bool LoraManager::join_if_necessary(Pool &pool) {
     if (!verify_status(pool)) {
         return false;
@@ -123,9 +135,9 @@ bool LoraManager::join_if_necessary(Pool &pool) {
         loginfo("joining via stored abp");
 
         joined = network_->join_resume();
-
-        network_->get_state(pool);
     }
+
+    auto state_after = network_->get_state(pool);
 
     GlobalStateManager gsm;
     gsm.apply([=](GlobalState *gs) {
@@ -133,6 +145,7 @@ bool LoraManager::join_if_necessary(Pool &pool) {
         gs->lora.joined = joined ? fk_uptime() : 0;
         gs->lora.activity = fk_uptime();
         gs->lora.asleep = 0;
+        update_lora_status(gs->lora, state_after);
     });
 
     awake_ = true;

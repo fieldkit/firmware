@@ -190,6 +190,8 @@ struct LoraState {
     uint8_t app_key[LoraAppKeyLength];
     uint8_t join_eui[LoraJoinEuiLength];
     uint8_t device_address[LoraDeviceAddressLength];
+    uint32_t uplink_counter;
+    uint32_t downlink_counter;
 #if defined(FK_LORA_ABP)
     uint8_t network_session_key[LoraNetworkSessionKeyLength];
     uint8_t app_session_key[LoraAppSessionKeyLength];

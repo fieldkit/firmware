@@ -607,6 +607,10 @@ void MenuView::create_tools_menu() {
         views_->show_lora();
         get_ipc()->launch_worker(WorkerCategory::Lora, create_pool_worker<LoraRangingWorker>());
     });
+    auto tools_lora_view = to_lambda_option(pool_, "LoRa View", [=]() {
+        back_->on_selected();
+        views_->show_lora();
+    });
     auto tools_gps = to_lambda_option(pool_, "Watch GPS", [=]() {
         back_->on_selected();
         views_->show_gps();
@@ -645,18 +649,20 @@ void MenuView::create_tools_menu() {
     });
 
     (void)tools_lora_ranging;
+    (void)tools_lora_view;
     (void)tools_sleep_test;
     (void)tools_poll_sensors;
     (void)tools_crash_hardf;
     (void)tools_crash_assertion;
     (void)tools_poll_water_ec_sensors;
 
-    tools_menu_ = new_menu_screen<15>(pool_, "tools",
+    tools_menu_ = new_menu_screen<16>(pool_, "tools",
                                       {
                                           back_,
                                           tools_self_check,
                                           tools_gps,
                                           tools_gps_toggle,
+                                          tools_lora_view,
                                           tools_lora_ranging,
                                           tools_load_firmware_sd,
                                           tools_dump_flash,
