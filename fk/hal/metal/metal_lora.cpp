@@ -210,8 +210,8 @@ bool TheThingsLoraNetwork::wake() {
 
 bool TheThingsLoraNetwork::factory_reset() {
     FK_ASSERT(ttn_ != nullptr);
-    ttn_->reset(false);
-    return true;
+    Rn2903 rn2903;
+    return rn2903.factory_reset();
 }
 
 bool TheThingsLoraNetwork::send_bytes(uint8_t port, uint8_t const *data, size_t size, bool confirmed) {
@@ -405,6 +405,7 @@ bool Rn2903LoraNetwork::power(bool on) {
 bool Rn2903LoraNetwork::sleep(uint32_t ms) {
     if (!powered_) {
         logwarn("powerless sleep");
+        awake_ = false;
         return true;
     }
     if (awake_) {
@@ -417,7 +418,9 @@ bool Rn2903LoraNetwork::sleep(uint32_t ms) {
 bool Rn2903LoraNetwork::wake() {
     if (!powered_) {
         logwarn("emergency power-on");
-        return power(true);
+        auto powered = power(true);
+        fk_delay(200);
+        return powered;
     }
     if (!awake_) {
         awake_ = true;
