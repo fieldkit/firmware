@@ -259,12 +259,8 @@ bool TheThingsLoraNetwork::save_state() {
     return true;
 }
 
-Rn2903State *TheThingsLoraNetwork::get_state(Pool &pool) {
-    FK_ASSERT(ttn_ != nullptr);
-
+bool TheThingsLoraNetwork::get_state(Rn2903State *state) {
     const char *line = nullptr;
-
-    auto state = new (pool) Rn2903State();
 
     loginfo("module: getting state");
 
@@ -299,17 +295,17 @@ Rn2903State *TheThingsLoraNetwork::get_state(Pool &pool) {
     }
 
     if (!rn2903.simple_query("mac get deveui", &line, 1000)) {
-        return nullptr;
+        return false;
     }
     FK_ASSERT(hex_string_to_bytes(state->device_eui, sizeof(state->device_eui), line) == sizeof(state->device_eui));
 
     if (!rn2903.simple_query("mac get appeui", &line, 1000)) {
-        return nullptr;
+        return false;
     }
     FK_ASSERT(hex_string_to_bytes(state->join_eui, sizeof(state->join_eui), line) == sizeof(state->join_eui));
 
     if (!rn2903.simple_query("mac get devaddr", &line, 1000)) {
-        return nullptr;
+        return false;
     }
     if (strlen(line) != sizeof(state->device_address) * 2) {
         loginfo("module: invalid devaddr, too long");
@@ -319,12 +315,12 @@ Rn2903State *TheThingsLoraNetwork::get_state(Pool &pool) {
     }
 
     if (!rn2903.simple_query("mac get upctr", &line, 1000)) {
-        return nullptr;
+        return false;
     }
     state->uplink_counter = atoi(line);
 
     if (!rn2903.simple_query("mac get dnctr", &line, 1000)) {
-        return nullptr;
+        return false;
     }
     state->downlink_counter = atoi(line);
 
@@ -333,6 +329,15 @@ Rn2903State *TheThingsLoraNetwork::get_state(Pool &pool) {
     }
     state->power_index = atoi(line);
 
+    return true;
+}
+
+Rn2903State *TheThingsLoraNetwork::get_state(Pool &pool) {
+    FK_ASSERT(ttn_ != nullptr);
+    auto state = new (pool) Rn2903State();
+    if (!get_state(state)) {
+        return nullptr;
+    }
     return state;
 }
 

@@ -55,6 +55,10 @@ public:
 public:
     virtual bool available() const = 0;
     virtual LoraErrorCode error() const = 0;
+    virtual bool get_state(Rn2903State *state) {
+        FK_ASSERT(false);
+        return false;
+    }
     virtual Rn2903State *get_state(Pool &pool) {
         FK_ASSERT(false);
         return nullptr;

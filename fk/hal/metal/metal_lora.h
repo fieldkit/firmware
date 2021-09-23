@@ -79,6 +79,8 @@ public:
     bool save_state() override;
 
 public:
+    bool get_state(Rn2903State *state) override;
+
     Rn2903State *get_state(Pool &pool) override;
 
     LoraErrorCode error() const override {
