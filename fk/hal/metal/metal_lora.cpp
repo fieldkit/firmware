@@ -144,7 +144,7 @@ bool TheThingsLoraNetwork::begin(lora_frequency_t frequency_band) {
 
     status_ = Availability::Available;
 
-    return false;
+    return true;
 }
 
 bool TheThingsLoraNetwork::stop() {
