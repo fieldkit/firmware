@@ -215,102 +215,126 @@ static Confirmation get_should_confirm() {
     return Confirmation{};
 }
 
+enum class PostSendAction {
+    Success,
+    Save,
+    Failure,
+    Rejoin,
+};
+
+static PostSendAction return_rejoin(GlobalState *gs) {
+    gs->lora.joined = 0;
+    gs->lora.tx_confirmed_tries = 0;
+    gs->lora.tx_confirmed_failures = 0;
+    return PostSendAction::Rejoin;
+}
+
+static PostSendAction update_gs_after_send(GlobalState *gs, Confirmation confirmed, bool module_error, LoraErrorCode lora_error) {
+    auto uptime = fk_uptime();
+
+    gs->lora.activity = uptime;
+    gs->lora.tx_total++;
+
+    if (module_error) {
+        logerror("module-io: error");
+        gs->lora.tx_failures++;
+
+        return PostSendAction::Failure;
+    }
+
+    switch (lora_error) {
+    case LoraErrorCode::ModuleIO: {
+        // We should never get here, should return as a module error above.
+        logwarn("module-io: error");
+
+        return PostSendAction::Failure;
+    }
+    case LoraErrorCode::NotJoined: {
+        logwarn("joined: error");
+
+        return return_rejoin(gs);
+    }
+    case LoraErrorCode::Mac: {
+        // It would be unexpected to get this on an unconfirmed message.
+        gs->lora.tx_failures++;
+
+        if (confirmed.confirmed) {
+            if (confirmed.retry) {
+                logwarn("mac-error: failed retry %d/%d", gs->lora.tx_confirmed_tries, gs->lora.tx_confirmed_failures);
+            } else {
+                logwarn("mac-error: failed confirmed %d/%d", gs->lora.tx_confirmed_tries, gs->lora.tx_confirmed_failures);
+            }
+
+            if (LoraConfirmedRetries > 0) {
+                gs->lora.tx_confirmed_tries++;
+            } else {
+                gs->lora.tx_confirmed_failures++;
+                if (gs->lora.tx_confirmed_failures == LoraFailuresBeforeRejoin) {
+                    logwarn("%d confirmed failures, triggering rejoin.", gs->lora.tx_confirmed_failures);
+
+                    return return_rejoin(gs);
+                }
+            }
+        } else {
+            logwarn("mac-error: unexpected");
+        }
+
+        break;
+    }
+    default: {
+        loginfo("success!");
+
+        gs->lora.tx_successes++;
+        gs->lora.tx_confirmed_tries = 0;
+        gs->lora.tx_confirmed_failures = 0;
+
+        if (confirmed.confirmed) {
+            loginfo("saving confirmed");
+
+            gs->lora.confirmed = uptime;
+            gs->lora.state_saved = uptime;
+            return PostSendAction::Save;
+        } else if (LoraSaveEveryTx > 0) {
+            // We always save RN state after a successful confirmed message,
+            // this saves the uplink counters periodically.
+            if ((gs->lora.tx_total % LoraSaveEveryTx) == 0) {
+                loginfo("saving every %d txs", LoraSaveEveryTx);
+
+                gs->lora.state_saved = uptime;
+                return PostSendAction::Save;
+            }
+        }
+
+        break;
+    }
+    }
+
+    return PostSendAction::Success;
+}
+
 bool LoraManager::send_bytes(uint8_t port, uint8_t const *data, size_t size, Pool &pool) {
     auto confirmed = get_should_confirm();
     auto module_error = !network_->send_bytes(port, data, size, confirmed.confirmed);
+    auto lora_error = network_->error();
 
     GlobalStateManager gsm;
-    auto action = gsm.apply([=](GlobalState *gs) {
-        auto uptime = fk_uptime();
+    auto action =
+        gsm.apply_r<PostSendAction>([=](GlobalState *gs) { return update_gs_after_send(gs, confirmed, module_error, lora_error); });
 
-        gs->lora.activity = uptime;
-        gs->lora.tx_total++;
-
-        if (module_error) {
-            logerror("module-io: error");
-            gs->lora.tx_failures++;
-
-            return false;
+    switch (action) {
+    case PostSendAction::Failure:
+        return false;
+    case PostSendAction::Save:
+        if (!network_->save_state()) {
+            logwarn("saving state");
         }
-
-        switch (network_->error()) {
-        case LoraErrorCode::ModuleIO: {
-            // We should never get here, should return as a module error above.
-            logwarn("module-io: error");
-
-            return false;
-        }
-        case LoraErrorCode::NotJoined: {
-            // TODO Force a rejoin some time in the future.
-            logwarn("joined: error");
-
-            gs->lora.joined = 0;
-            gs->lora.tx_confirmed_tries = 0;
-            gs->lora.tx_confirmed_failures = 0;
-
-            break;
-        }
-        case LoraErrorCode::Mac: {
-            // It would be unexpected to get this on an unconfirmed message.
-            gs->lora.tx_failures++;
-
-            if (confirmed.confirmed) {
-                if (confirmed.retry) {
-                    logwarn("mac-error: failed retry");
-                } else {
-                    logwarn("mac-error: failed confirmed");
-                }
-
-                if (LoraConfirmedRetries > 0) {
-                    gs->lora.tx_confirmed_tries++;
-                } else {
-                    gs->lora.tx_confirmed_failures++;
-                    if (gs->lora.tx_confirmed_failures == LoraFailuresBeforeRejoin) {
-                        gs->lora.tx_confirmed_failures = 0;
-                        // TODO Factory reset LoRa module.
-                    }
-                }
-            } else {
-                logwarn("mac-error: unexpected");
-            }
-
-            break;
-        }
-        default: {
-            loginfo("success!");
-
-            gs->lora.tx_successes++;
-            gs->lora.tx_confirmed_tries = 0;
-            gs->lora.tx_confirmed_failures = 0;
-
-            if (confirmed.confirmed) {
-                gs->lora.confirmed = uptime;
-                if (!network_->save_state()) {
-                    logwarn("saving state");
-                } else {
-                    gs->lora.state_saved = uptime;
-                }
-            } else if (LoraSaveEveryTx > 0) {
-                // We always save RN state after a successful confirmed message,
-                // this saves the uplink counters periodically.
-                if ((gs->lora.tx_total % LoraSaveEveryTx) == 0) {
-                    loginfo("saving every %d txs", LoraSaveEveryTx);
-                    if (!network_->save_state()) {
-                        logwarn("saving state");
-                    } else {
-                        gs->lora.state_saved = uptime;
-                    }
-                }
-            }
-
-            break;
-        }
-        }
-
         return true;
-    });
-
-    return action;
+    case PostSendAction::Rejoin:
+        logwarn("factory reset module to trigger join");
+        return network_->factory_reset();
+    default:
+        return true;
+    }
 }
 
 void LoraManager::stop() {
