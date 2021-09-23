@@ -123,7 +123,24 @@ bool TheThingsLoraNetwork::begin(lora_frequency_t frequency_band) {
             pool_->clear();
         }
 
-        ttn_ = new (pool_) TheThingsNetwork{ stream_, debug_, (ttn_fp_t)frequency_band_ };
+        frequency_band_ = frequency_band;
+
+        auto ttnfp = TTN_FP_US915;
+        switch (frequency_band_) {
+        case lora_frequency_t::Us915:
+            ttnfp = TTN_FP_US915;
+            loginfo("frequency-band: Us915");
+            break;
+        case lora_frequency_t::Eu868:
+            ttnfp = TTN_FP_EU868;
+            loginfo("frequency-band: Eu868");
+            break;
+        default:
+            FK_ASSERT(false);
+            break;
+        }
+
+        ttn_ = new (pool_) TheThingsNetwork{ stream_, debug_, ttnfp };
 
 #if defined(FK_LORA_SET_UPLINK_COUNTER)
         Rn2903 rn2903;
