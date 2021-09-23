@@ -185,7 +185,7 @@ struct StorageUpdate {
 };
 
 struct LoraState {
-    lora_frequency_t frequency_band;
+    lora_frequency_t frequency_band{ LoraDefaultFrequency };
     uint8_t device_eui[LoraDeviceEuiLength];
     uint8_t app_key[LoraAppKeyLength];
     uint8_t join_eui[LoraJoinEuiLength];
@@ -196,15 +196,17 @@ struct LoraState {
     uint8_t network_session_key[LoraNetworkSessionKeyLength];
     uint8_t app_session_key[LoraAppSessionKeyLength];
 #endif
-    bool has_module;
-    uint32_t joined;
-    uint32_t asleep;
-    uint32_t activity;
-    uint32_t confirmed;
-    uint32_t reply_failures;
-    uint32_t tx_successes;
-    uint32_t tx_failures;
-    uint32_t confirmed_tries;
+    bool has_module{ false };
+    uint32_t joined{ 0 };
+    uint32_t asleep{ 0 };
+    uint32_t activity{ 0 };
+    uint32_t confirmed{ 0 };
+    uint32_t tx_total{ 0 };
+    uint32_t tx_successes{ 0 };
+    uint32_t tx_failures{ 0 };
+    uint32_t tx_confirmed_tries{ 0 };
+    uint32_t tx_confirmed_failures{ 0 };
+    uint32_t state_saved{ 0 };
 };
 
 struct SdCardState {

@@ -208,7 +208,11 @@ static bool configure(HttpServerConnection *connection, fk_app_HttpQuery *query,
     if (query->loraSettings.clearing) {
         gsm.apply([&](GlobalState *gs) {
             auto had_module = gs->lora.has_module;
-            bzero(&gs->lora, sizeof(gs->lora));
+            gs->lora = {};
+            bzero(gs->lora.device_eui, sizeof(gs->lora.device_eui));
+            bzero(gs->lora.app_key, sizeof(gs->lora.device_eui));
+            bzero(gs->lora.join_eui, sizeof(gs->lora.join_eui));
+            bzero(gs->lora.device_address, sizeof(gs->lora.device_address));
             gs->lora.has_module = had_module;
         });
     }

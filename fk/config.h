@@ -221,6 +221,22 @@ constexpr uint32_t MinimumModuleStartupDelayMs = 10;
 constexpr int32_t LoraSaveEveryTx = 15;
 
 /**
+ * Transmission frequency to save RN module state. 65k hourly saves is about 7
+ * years.
+ */
+constexpr int32_t LoraSaveEveryMinutes = 3600;
+
+/**
+ *
+ */
+constexpr int32_t LoraFailuresBeforeRejoin = 3;
+
+/**
+ * Number of times to retry confirmed message.
+ */
+constexpr int32_t LoraConfirmedRetries = 0;
+
+/**
  * Transmission frequency to request confirmation packets.
  */
 constexpr int32_t LoraConfirmEveryTx = 0;
@@ -229,11 +245,6 @@ constexpr int32_t LoraConfirmEveryTx = 0;
  * Minutes between confirmed transmissions.
  */
 constexpr int32_t LoraConfirmEveryMinutes = 30;
-
-/**
- * How often to save LoRa radio state.
- */
-constexpr uint32_t LoraUplinksSaveFrequency = 10;
 
 /**
  * Length of a LoRa Join EUI.

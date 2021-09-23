@@ -21,7 +21,7 @@ void LoraView::tick(ViewController *views, Pool &pool) {
     auto gs = get_global_state_ro();
     auto &lora = gs.get()->lora;
 
-    tiny_snprintf(status_, sizeof(status_), "rpy %" PRIu32 " txs %" PRIu32 " txf %" PRIu32, lora.reply_failures, lora.tx_successes,
+    tiny_snprintf(status_, sizeof(status_), "rpy %" PRIu32 " txs %" PRIu32 " txf %" PRIu32, lora.tx_confirmed_failures, lora.tx_successes,
                   lora.tx_failures);
 
     if (!lora.has_module) {

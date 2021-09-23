@@ -23,7 +23,7 @@ public:
     bool send_bytes(uint8_t port, uint8_t const *data, size_t size, Pool &pool);
 
 private:
-    bool verify_status(Pool &pool);
+    bool verify_configuration(Pool &pool);
 };
 
 } // namespace fk

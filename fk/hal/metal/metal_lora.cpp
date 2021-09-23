@@ -212,6 +212,9 @@ bool TheThingsLoraNetwork::send_bytes(uint8_t port, uint8_t const *data, size_t 
         return false;
     }
     case TTN_ERROR_MAC: {
+        // Our return value indicates a critical failure of some kind and
+        // usually means we kill the active task. This is failed confirmation
+        // and we can respond to that.
         error_ = LoraErrorCode::Mac;
         return true;
     }
@@ -219,15 +222,9 @@ bool TheThingsLoraNetwork::send_bytes(uint8_t port, uint8_t const *data, size_t 
         return true;
     }
     case TTN_SUCCESSFUL_TRANSMISSION: {
-        if (confirmed) {
-            return save_state();
-        }
         return true;
     }
     case TTN_SUCCESSFUL_RECEIVE: {
-        if (confirmed) {
-            return save_state();
-        }
         return true;
     }
     }
