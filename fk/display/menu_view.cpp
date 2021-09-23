@@ -611,6 +611,15 @@ void MenuView::create_tools_menu() {
         back_->on_selected();
         views_->show_lora();
     });
+    auto tools_lora_reset = to_lambda_option(pool_, "LoRa Factory Reset", [=]() {
+        back_->on_selected();
+
+        auto network = get_lora_network();
+        if (network->wake()) {
+            network->factory_reset();
+            network->sleep(OneDayMs);
+        }
+    });
     auto tools_gps = to_lambda_option(pool_, "Watch GPS", [=]() {
         back_->on_selected();
         views_->show_gps();
@@ -656,7 +665,7 @@ void MenuView::create_tools_menu() {
     (void)tools_crash_assertion;
     (void)tools_poll_water_ec_sensors;
 
-    tools_menu_ = new_menu_screen<16>(pool_, "tools",
+    tools_menu_ = new_menu_screen<17>(pool_, "tools",
                                       {
                                           back_,
                                           tools_self_check,
@@ -664,6 +673,7 @@ void MenuView::create_tools_menu() {
                                           tools_gps_toggle,
                                           tools_lora_view,
                                           tools_lora_ranging,
+                                          tools_lora_reset,
                                           tools_load_firmware_sd,
                                           tools_dump_flash,
                                           tools_backup,
