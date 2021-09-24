@@ -438,6 +438,25 @@ bool StartupWorker::check_for_lora(Pool &pool) {
 
     LoraManager lora{ get_lora_network() };
     if (lora.begin(pool)) {
+        /*
+        while (true) {
+            fk_delay(5000);
+
+            get_lora_network()->get_state(pool);
+
+            loginfo("lora sleep");
+
+            get_lora_network()->sleep(OneDayMs);
+
+            fk_delay(10000);
+
+            loginfo("lora wake");
+
+            get_lora_network()->wake();
+
+            get_lora_network()->get_state(pool);
+        }
+        */
         lora.stop();
     }
 

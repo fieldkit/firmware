@@ -101,6 +101,12 @@ bool TheThingsLoraNetwork::begin(lora_frequency_t frequency_band) {
     status_ = Availability::Unavailable;
 
     if (!powered_) {
+        if (!power(false)) {
+            return false;
+        }
+
+        fk_delay(50);
+
         if (!power(true)) {
             return false;
         }
@@ -194,7 +200,10 @@ bool TheThingsLoraNetwork::sleep(uint32_t ms) {
         logwarn("unpowered sleep");
         return true;
     }
-    ttn_->sleep(ms);
+
+    Rn2903 rn2903;
+    rn2903.sleep(ms);
+
     awake_ = false;
     return true;
 }
@@ -205,7 +214,10 @@ bool TheThingsLoraNetwork::wake() {
         logwarn("emergency power-on");
         return power(true);
     }
-    ttn_->wake();
+
+    Rn2903 rn2903;
+    rn2903.wake();
+
     awake_ = true;
     return true;
 }

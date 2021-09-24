@@ -44,11 +44,15 @@ bool Rn2903::wake() {
             const char *line = nullptr;
 
             // This should be 'ok', which is the ack from the actual sleep.
-            if (read_line_sync(&line, 1000)) {
-                loginfo("rn2903 > '%s'", line);
-                if (line_reader_.read_line_sync(&line, 1000)) {
+            if (read_line_sync(&line, DefaultTimeout)) {
+                if (strncmp(line, "ok", 2) != 0) {
+                    loginfo("rn2903 > '%s' (!OK)", line);
+                } else {
                     loginfo("rn2903 > '%s'", line);
                 }
+
+                fk_delay(500);
+
                 line_reader_.clear();
 
                 return true;
