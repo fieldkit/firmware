@@ -38,13 +38,13 @@ bool LoraManager::begin(Pool &pool) {
     auto has_module = network_->begin(state.frequency_band);
     auto module_state = has_module ? network_->get_state(pool) : nullptr;
 
-    awake_ = true;
+    awake_ = has_module;
 
     if (has_module) {
         // If we have a module and don't have a valid configuration, make sure
         // the module doesn't stick around in some old/obsolete configuration.
         auto state = get_lora_global_state();
-        if (!verify_configuration(state, pool)) {
+        if (!verify_configuration(state, module_state->device_eui, pool)) {
             FK_ASSERT(module_state != nullptr);
 
             if (!is_null_byte_array(module_state->device_eui, sizeof(module_state->device_eui))) {
@@ -92,22 +92,25 @@ bool LoraManager::factory_reset() {
     return network_->factory_reset();
 }
 
-bool LoraManager::verify_configuration(LoraState &state, Pool &pool) {
+bool LoraManager::verify_configuration(LoraState &state, uint8_t *device_eui, Pool &pool) {
     if (state.joined > 0) {
         return true;
     }
 
-    for (auto i = 0u; lora_keys[i].name[0] != 0; ++i) {
-        auto &keys = lora_keys[i];
+    if (device_eui != nullptr) {
+        for (auto i = 0u; lora_keys[i].name[0] != 0; ++i) {
+            auto &keys = lora_keys[i];
 
-        if (memcmp(state.device_eui, keys.device_eui, LoraDeviceEuiLength) == 0) {
-            auto device_eui_hex = bytes_to_hex_string_pool(keys.device_eui, sizeof(keys.device_eui), pool);
-            loginfo("(hardcoded) configuration: '%s' device-eui: %s", keys.name, device_eui_hex);
+            if (memcmp(keys.device_eui, device_eui, LoraDeviceEuiLength) == 0) {
+                auto device_eui_hex = bytes_to_hex_string_pool(keys.device_eui, sizeof(keys.device_eui), pool);
+                loginfo("(hardcoded) configuration: '%s' device-eui: %s", keys.name, device_eui_hex);
 
-            memcpy(state.app_key, keys.app_key, sizeof(state.app_key));
-            state.frequency_band = keys.frequency_band;
+                memcpy(state.device_eui, device_eui, sizeof(state.device_eui));
+                memcpy(state.app_key, keys.app_key, sizeof(state.app_key));
+                state.frequency_band = keys.frequency_band;
 
-            return true;
+                return true;
+            }
         }
     }
 
@@ -129,7 +132,7 @@ bool LoraManager::verify_configuration(LoraState &state, Pool &pool) {
 bool LoraManager::join_if_necessary(Pool &pool) {
     auto state = get_lora_global_state();
 
-    if (!verify_configuration(state, pool)) {
+    if (!verify_configuration(state, state.device_eui, pool)) {
         return false;
     }
 
