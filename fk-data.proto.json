@@ -524,6 +524,14 @@
             "downlinkCounter": {
               "type": "uint32",
               "id": 9
+            },
+            "rxDelay1": {
+              "type": "uint32",
+              "id": 10
+            },
+            "rxDelay2": {
+              "type": "uint32",
+              "id": 11
             }
           }
         },

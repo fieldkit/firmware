@@ -6194,6 +6194,8 @@
              * @property {Uint8Array|null} [appSessionKey] LoraSettings appSessionKey
              * @property {number|null} [uplinkCounter] LoraSettings uplinkCounter
              * @property {number|null} [downlinkCounter] LoraSettings downlinkCounter
+             * @property {number|null} [rxDelay1] LoraSettings rxDelay1
+             * @property {number|null} [rxDelay2] LoraSettings rxDelay2
              */
     
             /**
@@ -6284,6 +6286,22 @@
             LoraSettings.prototype.downlinkCounter = 0;
     
             /**
+             * LoraSettings rxDelay1.
+             * @member {number} rxDelay1
+             * @memberof fk_data.LoraSettings
+             * @instance
+             */
+            LoraSettings.prototype.rxDelay1 = 0;
+    
+            /**
+             * LoraSettings rxDelay2.
+             * @member {number} rxDelay2
+             * @memberof fk_data.LoraSettings
+             * @instance
+             */
+            LoraSettings.prototype.rxDelay2 = 0;
+    
+            /**
              * Creates a new LoraSettings instance using the specified properties.
              * @function create
              * @memberof fk_data.LoraSettings
@@ -6325,6 +6343,10 @@
                     writer.uint32(/* id 8, wireType 0 =*/64).uint32(message.uplinkCounter);
                 if (message.downlinkCounter != null && message.hasOwnProperty("downlinkCounter"))
                     writer.uint32(/* id 9, wireType 0 =*/72).uint32(message.downlinkCounter);
+                if (message.rxDelay1 != null && message.hasOwnProperty("rxDelay1"))
+                    writer.uint32(/* id 10, wireType 0 =*/80).uint32(message.rxDelay1);
+                if (message.rxDelay2 != null && message.hasOwnProperty("rxDelay2"))
+                    writer.uint32(/* id 11, wireType 0 =*/88).uint32(message.rxDelay2);
                 return writer;
             };
     
@@ -6385,6 +6407,12 @@
                         break;
                     case 9:
                         message.downlinkCounter = reader.uint32();
+                        break;
+                    case 10:
+                        message.rxDelay1 = reader.uint32();
+                        break;
+                    case 11:
+                        message.rxDelay2 = reader.uint32();
                         break;
                     default:
                         reader.skipType(tag & 7);
@@ -6448,6 +6476,12 @@
                 if (message.downlinkCounter != null && message.hasOwnProperty("downlinkCounter"))
                     if (!$util.isInteger(message.downlinkCounter))
                         return "downlinkCounter: integer expected";
+                if (message.rxDelay1 != null && message.hasOwnProperty("rxDelay1"))
+                    if (!$util.isInteger(message.rxDelay1))
+                        return "rxDelay1: integer expected";
+                if (message.rxDelay2 != null && message.hasOwnProperty("rxDelay2"))
+                    if (!$util.isInteger(message.rxDelay2))
+                        return "rxDelay2: integer expected";
                 return null;
             };
     
@@ -6499,6 +6533,10 @@
                     message.uplinkCounter = object.uplinkCounter >>> 0;
                 if (object.downlinkCounter != null)
                     message.downlinkCounter = object.downlinkCounter >>> 0;
+                if (object.rxDelay1 != null)
+                    message.rxDelay1 = object.rxDelay1 >>> 0;
+                if (object.rxDelay2 != null)
+                    message.rxDelay2 = object.rxDelay2 >>> 0;
                 return message;
             };
     
@@ -6525,6 +6563,8 @@
                     object.appSessionKey = options.bytes === String ? "" : [];
                     object.uplinkCounter = 0;
                     object.downlinkCounter = 0;
+                    object.rxDelay1 = 0;
+                    object.rxDelay2 = 0;
                 }
                 if (message.deviceEui != null && message.hasOwnProperty("deviceEui"))
                     object.deviceEui = options.bytes === String ? $util.base64.encode(message.deviceEui, 0, message.deviceEui.length) : options.bytes === Array ? Array.prototype.slice.call(message.deviceEui) : message.deviceEui;
@@ -6544,6 +6584,10 @@
                     object.uplinkCounter = message.uplinkCounter;
                 if (message.downlinkCounter != null && message.hasOwnProperty("downlinkCounter"))
                     object.downlinkCounter = message.downlinkCounter;
+                if (message.rxDelay1 != null && message.hasOwnProperty("rxDelay1"))
+                    object.rxDelay1 = message.rxDelay1;
+                if (message.rxDelay2 != null && message.hasOwnProperty("rxDelay2"))
+                    object.rxDelay2 = message.rxDelay2;
                 return object;
             };
     
