@@ -2451,6 +2451,12 @@ export namespace fk_data {
 
         /** LoraSettings downlinkCounter */
         downlinkCounter?: (number|null);
+
+        /** LoraSettings rxDelay1 */
+        rxDelay1?: (number|null);
+
+        /** LoraSettings rxDelay2 */
+        rxDelay2?: (number|null);
     }
 
     /** Represents a LoraSettings. */
@@ -2488,6 +2494,12 @@ export namespace fk_data {
 
         /** LoraSettings downlinkCounter. */
         public downlinkCounter: number;
+
+        /** LoraSettings rxDelay1. */
+        public rxDelay1: number;
+
+        /** LoraSettings rxDelay2. */
+        public rxDelay2: number;
 
         /**
          * Creates a new LoraSettings instance using the specified properties.
