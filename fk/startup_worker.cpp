@@ -264,7 +264,7 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
         break;
     }
 #else
-    loginfo("(ignored) lora configuration");
+    loginfo("(ignoring) lora configuration");
 #endif
 
     /*

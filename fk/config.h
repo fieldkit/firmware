@@ -301,6 +301,17 @@ constexpr uint32_t LoraPacketDelay = TenSecondsMs;
  */
 constexpr lora_frequency_t LoraDefaultFrequency = lora_frequency_t::Us915;
 
+constexpr size_t LoraKeysNameMaximum = 16;
+
+struct lora_keys_t {
+    char name[LoraKeysNameMaximum];
+    lora_frequency_t frequency_band;
+    uint8_t device_eui[LoraDeviceEuiLength];
+    uint8_t app_key[LoraAppKeyLength];
+};
+
+extern lora_keys_t lora_keys[];
+
 // -------------------------------------------------------------------------------------------
 // Field Lengths
 

@@ -36,7 +36,8 @@ bool LoraManager::begin(Pool &pool) {
     if (has_module) {
         // If we have a module and don't have a valid configuration, make sure
         // the module doesn't stick around in some old/obsolete configuration.
-        if (!verify_configuration(pool)) {
+        auto state = get_lora_global_state();
+        if (!verify_configuration(state, pool)) {
             FK_ASSERT(module_state != nullptr);
 
             if (!is_null_byte_array(module_state->device_eui, sizeof(module_state->device_eui))) {
@@ -85,11 +86,23 @@ bool LoraManager::factory_reset() {
     return network_->factory_reset();
 }
 
-bool LoraManager::verify_configuration(Pool &pool) {
-    auto state = get_lora_global_state();
-
+bool LoraManager::verify_configuration(LoraState &state, Pool &pool) {
     if (state.joined > 0) {
         return true;
+    }
+
+    for (auto i = 0u; lora_keys[i].name[0] != 0; ++i) {
+        auto &keys = lora_keys[i];
+
+        if (memcmp(state.device_eui, keys.device_eui, LoraDeviceEuiLength) == 0) {
+            auto device_eui_hex = bytes_to_hex_string_pool(keys.device_eui, sizeof(keys.device_eui), pool);
+            loginfo("(hardcoded) configuration: '%s' device-eui: %s", keys.name, device_eui_hex);
+
+            memcpy(state.app_key, keys.app_key, sizeof(state.app_key));
+            state.frequency_band = keys.frequency_band;
+
+            return true;
+        }
     }
 
     if (is_null_byte_array(state.device_eui, LoraDeviceEuiLength)) {
@@ -115,12 +128,13 @@ static void update_lora_status(LoraState &lora, Rn2903State const *rn) {
 }
 
 bool LoraManager::join_if_necessary(Pool &pool) {
-    if (!verify_configuration(pool)) {
+    auto state = get_lora_global_state();
+
+    if (!verify_configuration(state, pool)) {
         return false;
     }
 
     auto joined = false;
-    auto state = get_lora_global_state();
     if (state.joined > 0) {
         loginfo("already joined");
         return true;

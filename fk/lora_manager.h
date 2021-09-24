@@ -2,6 +2,7 @@
 
 #include "hal/lora.h"
 #include "pool.h"
+#include "state.h"
 
 namespace fk {
 
@@ -23,7 +24,7 @@ public:
     bool send_bytes(uint8_t port, uint8_t const *data, size_t size, Pool &pool);
 
 private:
-    bool verify_configuration(Pool &pool);
+    bool verify_configuration(LoraState &state, Pool &pool);
 };
 
 } // namespace fk
