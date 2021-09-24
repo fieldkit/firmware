@@ -192,6 +192,8 @@ struct LoraState {
     uint8_t device_address[LoraDeviceAddressLength];
     uint32_t uplink_counter;
     uint32_t downlink_counter;
+    uint32_t rx_delay_1{ 0 };
+    uint32_t rx_delay_2{ 0 };
 #if defined(FK_LORA_ABP)
     uint8_t network_session_key[LoraNetworkSessionKeyLength];
     uint8_t app_session_key[LoraAppSessionKeyLength];

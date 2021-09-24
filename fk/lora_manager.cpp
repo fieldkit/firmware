@@ -18,6 +18,8 @@ static LoraState get_lora_global_state() {
 static void update_lora_status(LoraState &lora, Rn2903State const *rn) {
     lora.uplink_counter = rn->uplink_counter;
     lora.downlink_counter = rn->downlink_counter;
+    lora.rx_delay_1 = rn->rx_delay_1;
+    lora.rx_delay_2 = rn->rx_delay_2;
     FK_ASSERT(sizeof(lora.device_address) == sizeof(rn->device_address));
     memcpy(lora.device_address, rn->device_address, sizeof(lora.device_address));
 }

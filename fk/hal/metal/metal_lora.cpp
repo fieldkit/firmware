@@ -344,10 +344,12 @@ bool TheThingsLoraNetwork::get_state(Rn2903State *state) {
     if (!rn2903.simple_query("mac get rxdelay1", &line, DefaultTimeout)) {
         return false;
     }
+    state->rx_delay_1 = atoi(line);
 
     if (!rn2903.simple_query("mac get rxdelay2", &line, DefaultTimeout)) {
         return false;
     }
+    state->rx_delay_2 = atoi(line);
 
     if (!rn2903.simple_query("sys get hweui", &line, DefaultTimeout)) {
         return false;
@@ -543,10 +545,12 @@ Rn2903State *Rn2903LoraNetwork::get_state(Pool &pool) {
     if (!rn2903_.simple_query("mac get rxdelay1", &line, DefaultTimeout)) {
         return false;
     }
+    state->rx_delay_1 = atoi(line);
 
     if (!rn2903_.simple_query("mac get rxdelay2", &line, DefaultTimeout)) {
         return false;
     }
+    state->rx_delay_2 = atoi(line);
 
     if (!rn2903_.simple_query("sys get hweui", &line, DefaultTimeout)) {
         return false;

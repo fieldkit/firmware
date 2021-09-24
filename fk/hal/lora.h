@@ -23,6 +23,8 @@ struct Rn2903State {
     uint8_t device_address[LoraDeviceAddressLength];
     uint32_t uplink_counter;
     uint32_t downlink_counter;
+    uint32_t rx_delay_1;
+    uint32_t rx_delay_2;
     uint8_t power_index;
 };
 
