@@ -34,8 +34,22 @@ bool LoraManager::begin(Pool &pool) {
     awake_ = true;
 
     if (has_module) {
-        // Just doing this to log errors during startup.
-        verify_configuration(pool);
+        // If we have a module and don't have a valid configuration, make sure
+        // the module doesn't stick around in some old/obsolete configuration.
+        if (!verify_configuration(pool)) {
+            FK_ASSERT(module_state != nullptr);
+
+            if (!is_null_byte_array(module_state->device_eui, sizeof(module_state->device_eui))) {
+                loginfo("config invalid, resetting module");
+                if (!factory_reset()) {
+                    logerror("factory reset");
+                    return false;
+                }
+
+                // Get new, blank state.
+                module_state = network_->get_state(pool);
+            }
+        }
     }
 
     return gsm.apply([&](GlobalState *gs) {
@@ -79,13 +93,13 @@ bool LoraManager::verify_configuration(Pool &pool) {
     }
 
     if (is_null_byte_array(state.device_eui, LoraDeviceEuiLength)) {
-        logerror("module missing device-eui");
+        logerror("config missing device-eui");
         fk_dump_memory("device-eui: ", state.device_eui, LoraDeviceEuiLength);
         return false;
     }
 
     if (is_null_byte_array(state.app_key, LoraAppKeyLength)) {
-        logerror("module missing app-key");
+        logerror("config missing app-key");
         fk_dump_memory("app-key: ", state.app_key, LoraAppKeyLength);
         return false;
     }
