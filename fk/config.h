@@ -229,7 +229,7 @@ constexpr int32_t LoraSaveEveryMinutes = 3600;
 /**
  *
  */
-constexpr int32_t LoraFailuresBeforeRejoin = 3;
+constexpr int32_t LoraFailuresBeforeRejoin = 1;
 
 /**
  * Number of times to retry confirmed message.

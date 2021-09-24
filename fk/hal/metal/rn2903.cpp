@@ -435,23 +435,21 @@ bool Rn2903::send_bytes(uint8_t const *data, size_t size, uint8_t port, bool con
 
     loginfo("rn2903 > '%s' (%" PRIu32 "ms)", line, fk_uptime() - started);
 
+    error_ = translate_error(line);
+
     const char *mac_tx_ok = "mac_tx_ok";
     if (strncmp(line, mac_tx_ok, strlen(mac_tx_ok)) == 0) {
-        if (!simple_query("mac save", &line, DefaultTimeout)) {
-            return false;
-        }
         return true;
     }
 
     const char *mac_rx = "mac_rx";
     if (strncmp(line, mac_rx, strlen(mac_rx)) == 0) {
         if (!simple_query("mac save", &line, DefaultTimeout)) {
-            return false;
+            logwarn("saving on mac_rx");
         }
-        return true;
     }
 
-    return false;
+    return true;
 }
 
 constexpr const char *NotJoined = "not_joined";

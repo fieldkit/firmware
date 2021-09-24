@@ -233,6 +233,7 @@ bool TheThingsLoraNetwork::send_bytes(uint8_t port, uint8_t const *data, size_t 
 
     error_ = LoraErrorCode::None;
 
+#if defined(FK_LORA_TTN_SEND)
     switch (ttn_->sendBytes(data, size, port, confirmed)) {
     case TTN_ERROR_SEND_COMMAND_FAILED: {
         error_ = LoraErrorCode::ModuleIO;
@@ -262,6 +263,12 @@ bool TheThingsLoraNetwork::send_bytes(uint8_t port, uint8_t const *data, size_t 
 
     logwarn("ignoring unknown error");
     return true;
+#else
+    Rn2903 rn2903;
+    auto send = rn2903.send_bytes(data, size, port, confirmed);
+    error_ = rn2903.error();
+    return send;
+#endif
 }
 
 bool TheThingsLoraNetwork::join(LoraOtaaJoin &otaa, int32_t retries, uint32_t retry_delay) {

@@ -278,7 +278,7 @@ static PostSendAction update_gs_after_send(GlobalState *gs, Confirmation confirm
     switch (lora_error) {
     case LoraErrorCode::ModuleIO: {
         // We should never get here, should return as a module error above.
-        logwarn("module-io: error");
+        logwarn("module-io: lora-error");
 
         return PostSendAction::Failure;
     }
@@ -287,6 +287,8 @@ static PostSendAction update_gs_after_send(GlobalState *gs, Confirmation confirm
 
         return return_rejoin(gs);
     }
+    case LoraErrorCode::KeysNotInitialized:
+    case LoraErrorCode::DataLength:
     case LoraErrorCode::Mac: {
         // It would be unexpected to get this on an unconfirmed message.
         gs->lora.tx_failures++;
