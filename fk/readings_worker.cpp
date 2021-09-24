@@ -4,6 +4,7 @@
 #include "hal/hal.h"
 #include "readings_worker.h"
 #include "state_manager.h"
+#include "clock.h"
 
 #include "modules/scan_modules_worker.h"
 #include "update_readings_listener.h"
@@ -119,13 +120,12 @@ bool ReadingsWorker::save(Pool &pool) {
         return false;
     }
 
-    storage_update_ = StorageUpdate{
-        .meta = StorageStreamUpdate{ meta_attributes->size, meta_attributes->records },
-        .data = StorageStreamUpdate{ data_attributes->size, data_attributes->records },
-        .nreadings = data_attributes->nreadings,
-        .installed = storage.installed(),
-        .used = storage.used(),
-    };
+    storage_update_ = StorageUpdate{ .meta = StorageStreamUpdate{ meta_attributes->size, meta_attributes->records },
+                                     .data = StorageStreamUpdate{ data_attributes->size, data_attributes->records },
+                                     .nreadings = data_attributes->nreadings,
+                                     .installed = storage.installed(),
+                                     .used = storage.used(),
+                                     .time = get_clock_now() };
 
     if (!storage.flush()) {
         return false;

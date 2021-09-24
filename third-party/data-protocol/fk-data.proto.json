@@ -497,7 +497,7 @@
               "type": "bytes",
               "id": 2
             },
-            "appEui": {
+            "joinEui": {
               "type": "bytes",
               "id": 3
             },

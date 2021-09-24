@@ -77,6 +77,7 @@ extern MetalMutex wifi_mutex;
 extern MetalMutex i2c_module_mutex;
 extern MetalMutex i2c_core_mutex;
 extern MetalMutex i2c_radio_mutex;
+extern MetalMutex lora_mutex;
 extern MetalRwLock data_lock;
 
 } // namespace fk

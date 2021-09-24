@@ -2,6 +2,7 @@
 
 #include "hal/lora.h"
 #include "hal/random.h"
+#include "hal/hal.h"
 #include "lora_manager.h"
 #include "lora_packetizer.h"
 #include "platform.h"
@@ -14,7 +15,6 @@ FK_DECLARE_LOGGER("lora");
 
 struct OutgoingPackets {
     EncodedMessage *packets;
-    bool confirmed;
 };
 
 static OutgoingPackets packetize(Pool &pool) {
@@ -22,10 +22,9 @@ static OutgoingPackets packetize(Pool &pool) {
     LoraPacketizer packetizer;
     auto packets = packetizer.packetize(gs.get(), pool);
     if (!packets) {
-        return OutgoingPackets{ nullptr, false };
+        return OutgoingPackets{ nullptr };
     }
-    auto confirmed = gs.get()->lora.activity == 0;
-    return OutgoingPackets{ *packets, confirmed };
+    return OutgoingPackets{ *packets };
 }
 
 static void update_activity(Pool &pool) {
@@ -33,72 +32,98 @@ static void update_activity(Pool &pool) {
     gs.get()->lora.activity = fk_uptime();
 }
 
-void LoraWorker::run(Pool &pool) {
-    LoraManager lora{ get_lora_network() };
+LoraWorker::LoraWorker() : work_{ LoraWorkOperation::Readings } {
+}
 
-    auto outgoing = packetize(pool);
-    if (outgoing.packets == nullptr) {
-        loginfo("no packets");
+LoraWorker::LoraWorker(LoraWork work) : work_(work) {
+}
+
+void LoraWorker::run(Pool &pool) {
+    auto lock = lora_mutex.acquire(0);
+    if (!lock) {
+        loginfo("already running");
         return;
     }
 
+    LoraManager lora{ get_lora_network() };
     if (!lora.begin(pool)) {
         return;
     }
 
-    auto tries = 0u;
-    auto confirmed = outgoing.confirmed;
-    auto packets = outgoing.packets;
-    while (packets != nullptr && tries < LoraSendTries) {
-        if (!lora.configure_tx(5, 1)) {
-            logerror("configuring tx");
-            return;
-        }
-
-        switch (lora.send_bytes(LoraDataPort, packets->buffer, packets->size, confirmed, pool)) {
-        case LoraErrorCode::None: {
-            // Next packet!
-            packets = packets->link;
-            tries = 0;
-            confirmed = false;
-
-            if (packets != nullptr) {
-                loginfo("lora packet delay (%" PRIu32 ")", LoraPacketDelay);
-                fk_delay(LoraPacketDelay);
-            }
-
-            break;
-        }
-        case LoraErrorCode::DataLength: {
-            tries++;
-
-            loginfo("lora packet delay (%" PRIu32 ")", LoraPacketDelay);
-            fk_delay(LoraPacketDelay);
-
-            break;
-        }
-        case LoraErrorCode::NotJoined: {
-            tries++;
-            // Try joining and then we'll transmit again.
-            if (!lora.join_if_necessary(pool)) {
-                // Force the loop to end.
-                packets = nullptr;
-            }
-
-            break;
-        }
-        default: {
-            // Force the loop to end.
-            packets = nullptr;
-
-            break;
-        }
-        }
+    switch (work_.op) {
+    case LoraWorkOperation::FactoryReset: {
+        factory_reset(lora, pool);
+        break;
+    }
+    case LoraWorkOperation::Configure: {
+        configure(lora, pool);
+        break;
+    }
+    case LoraWorkOperation::Readings: {
+        readings(lora, pool);
+        break;
+    }
     }
 
     lora.stop();
 
     update_activity(pool);
+}
+
+bool LoraWorker::factory_reset(LoraManager &lora, Pool &pool) {
+    // Factory reset the module.
+    if (!lora.factory_reset()) {
+        return false;
+    }
+
+    // NOTE We can power down the module.
+
+    return true;
+}
+
+bool LoraWorker::configure(LoraManager &lora, Pool &pool) {
+    // This is basically an order to try and join a network.
+    if (!lora.join_if_necessary(pool)) {
+        return false;
+    }
+
+    return true;
+}
+
+bool LoraWorker::readings(LoraManager &lora, Pool &pool) {
+    auto outgoing = packetize(pool);
+    auto iterator = outgoing.packets;
+
+    // Log no packets to begin with, just in case that's a surprise.
+    if (iterator == nullptr) {
+        loginfo("no packets");
+        return true;
+    }
+
+    // Loop over linked list of packets to send.
+    while (iterator != nullptr) {
+        // We do this in each pass of the loop because one of them may fail. We
+        // don't bother transmitting, though.
+        if (!lora.join_if_necessary(pool)) {
+            return false;
+        }
+
+        // We defer all error handling to the manager, just try and send all the
+        // packets we've got. It's hard to rationalize retry behavior when
+        // you've got more than one flow.
+        if (!lora.send_bytes(LoraDataPort, iterator->buffer, iterator->size, pool)) {
+            return false;
+        }
+
+        // We only delay if there's more to send.
+        iterator = iterator->link;
+        if (iterator != nullptr) {
+            loginfo("lora packet delay (%" PRIu32 ")", LoraPacketDelay);
+            fk_delay(LoraPacketDelay);
+        }
+    }
+
+    return true;
 }
 
 } // namespace fk

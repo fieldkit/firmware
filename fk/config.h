@@ -4,6 +4,7 @@
 #include <string.h>
 #include "secrets.h"
 #include "common/memory.h"
+#include "lora_frequency.h"
 
 namespace fk {
 
@@ -108,13 +109,13 @@ constexpr uint32_t OneMegabyte = 1024 * 1024;
 
 constexpr uint32_t DefaultReadingsInterval = OneHourSeconds;
 constexpr uint32_t DefaultNetworkInterval = 60 * 60 * 60;
-constexpr uint32_t DefaultLoraInterval = 60 * 60 * 2;
+constexpr uint32_t DefaultLoraInterval = 60 * 60 * 6;
 constexpr uint32_t DefaultGpsInterval = OneDaySeconds;
 constexpr uint32_t DefaultGpsDuration = TenMinutesSeconds;
 constexpr uint32_t DefaultSynchronizeTimeInterval = OneDaySeconds;
 constexpr uint32_t DefaultDebugReadingsInterval = 60;
 constexpr uint32_t DefaultDebugNetworkInterval = 60 * 60 * 60;
-constexpr uint32_t DefaultDebugLoraInterval = 60 * 3;
+constexpr uint32_t DefaultDebugLoraInterval = 60 * 5;
 constexpr uint32_t DefaultDebugGpsInterval = 60 * 60 * 2;
 constexpr uint32_t DefaultDebugGpsDuration = TenMinutesSeconds;
 
@@ -215,9 +216,35 @@ constexpr uint32_t MinimumModuleStartupDelayMs = 10;
 // LoRa
 
 /**
- * How often to save LoRa radio state.
+ * Transmission frequency to save RN module state.
  */
-constexpr uint32_t LoraUplinksSaveFrequency = 10;
+constexpr int32_t LoraSaveEveryTx = 15;
+
+/**
+ * Transmission frequency to save RN module state. 65k hourly saves is about 7
+ * years.
+ */
+constexpr int32_t LoraSaveEveryMinutes = 3600;
+
+/**
+ *
+ */
+constexpr int32_t LoraFailuresBeforeRejoin = 3;
+
+/**
+ * Number of times to retry confirmed message.
+ */
+constexpr int32_t LoraConfirmedRetries = 0;
+
+/**
+ * Transmission frequency to request confirmation packets.
+ */
+constexpr int32_t LoraConfirmEveryTx = 0;
+
+/**
+ * Minutes between confirmed transmissions.
+ */
+constexpr int32_t LoraConfirmEveryMinutes = 30;
 
 /**
  * Length of a LoRa Join EUI.
@@ -268,6 +295,11 @@ constexpr size_t LoraSendTries = 3;
  * Delay between LoRa packets.
  */
 constexpr uint32_t LoraPacketDelay = TenSecondsMs;
+
+/**
+ * Default LoRa frequency.
+ */
+constexpr lora_frequency_t LoraDefaultFrequency = lora_frequency_t::Us915;
 
 // -------------------------------------------------------------------------------------------
 // Field Lengths

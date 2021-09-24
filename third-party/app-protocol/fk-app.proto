@@ -386,15 +386,15 @@ message Recording {
 message LoraSettings {
   bool available = 1;
   bool modifying = 2;
-  bytes deviceEui = 3;
-  bytes appKey = 4;
-  bytes appEui = 5;
-  uint32 frequencyBand = 6;
-  bytes deviceAddress = 7;
-  bytes networkSessionKey = 8;
-  bytes appSessionKey = 9;
-  uint32 uplinkCounter = 10;
-  uint32 downlinkCounter = 11;
+  bool clearing = 3;
+  uint32 frequencyBand = 4;
+  bytes deviceEui = 5;
+  bytes appKey = 6;
+  bytes joinEui = 7;
+
+  bytes deviceAddress = 8;
+  bytes networkSessionKey = 9;
+  bytes appSessionKey = 10;
 }
 
 message Location {

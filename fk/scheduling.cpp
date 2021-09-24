@@ -18,8 +18,8 @@ CurrentSchedules::CurrentSchedules(GlobalState const *gs) {
 }
 
 bool CurrentSchedules::equals(CurrentSchedules const &o) const {
-    return readings == o.readings && network == o.network && gps == o.gps && lora == o.lora &&
-           service_interval == o.service_interval && network_jitter == o.network_jitter;
+    return readings == o.readings && network == o.network && gps == o.gps && lora == o.lora && service_interval == o.service_interval &&
+           network_jitter == o.network_jitter;
 }
 
 ReadingsTask::ReadingsTask(lwcron::CronSpec cron_spec) : lwcron::CronTask(cron_spec) {
@@ -48,7 +48,7 @@ LoraTask::LoraTask(lwcron::CronSpec cron_spec) : lwcron::CronTask(cron_spec) {
 }
 
 void LoraTask::run() {
-    get_ipc()->launch_worker(create_pool_worker<LoraWorker>());
+    get_ipc()->launch_worker(create_pool_worker<LoraWorker>(LoraWork{ LoraWorkOperation::Readings }));
 }
 
 const char *LoraTask::toString() const {

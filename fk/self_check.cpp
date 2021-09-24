@@ -10,26 +10,26 @@ namespace fk {
 FK_DECLARE_LOGGER("check");
 
 void check_message(const char *name, bool ok, uint32_t elapsed, bool critical) {
-    alogf(ok ? LogLevels::INFO : (critical ? LogLevels::ERROR : LogLevels::INFO), LOG_FACILITY, "%s... %s (%" PRIu32  "ms)", name, ok ? "OK" : "ERROR", elapsed);
+    alogf(ok ? LogLevels::INFO : (critical ? LogLevels::ERROR : LogLevels::INFO), LOG_FACILITY, "%s... %s (%" PRIu32 "ms)", name,
+          ok ? "OK" : "ERROR", elapsed);
 }
 
-template<typename T>
-bool single_check(const char *name, T fn) {
+template <typename T> bool single_check(const char *name, T fn) {
     auto started = fk_uptime();
     auto ok = fn();
     check_message(name, ok, fk_uptime() - started, true);
     return ok;
 }
 
-template<typename V, typename T>
-V single_noncritical_check(const char *name, T fn) {
+template <typename V, typename T> V single_noncritical_check(const char *name, T fn) {
     auto started = fk_uptime();
     auto ok = fn();
     check_message(name, ok, fk_uptime() - started, false);
     return ok;
 }
 
-SelfCheck::SelfCheck(Display *display, Network *network, ModMux *mm, ModuleLeds *leds) : display_(display), network_(network), mm_(mm), leds_(leds) {
+SelfCheck::SelfCheck(Display *display, Network *network, ModMux *mm, ModuleLeds *leds)
+    : display_(display), network_(network), mm_(mm), leds_(leds) {
 }
 
 static CheckStatus to_status(bool ok) {
@@ -66,8 +66,7 @@ void SelfCheck::check(SelfCheckSettings settings, SelfCheckCallbacks &callbacks,
 
     if (settings.check_gps) {
         status.gps = to_status(gps());
-    }
-    else {
+    } else {
         status.gps = CheckStatus::Unknown;
     }
     callbacks.update(status);
@@ -75,8 +74,7 @@ void SelfCheck::check(SelfCheckSettings settings, SelfCheckCallbacks &callbacks,
     if (settings.check_sd_card) {
         status.sd_card_open = to_status(sd_card_open());
         status.sd_card_write = to_status(sd_card_write());
-    }
-    else {
+    } else {
         status.sd_card_open = CheckStatus::Unknown;
         status.sd_card_write = CheckStatus::Unknown;
     }
@@ -95,8 +93,7 @@ void SelfCheck::check(SelfCheckSettings settings, SelfCheckCallbacks &callbacks,
         if (settings.module_presence) {
             status.modules = modules(pool);
         }
-    }
-    else {
+    } else {
         status.bp_mux = CheckStatus::Unknown;
         status.bp_shift = CheckStatus::Unknown;
         status.bp_leds = CheckStatus::Unknown;
@@ -333,7 +330,7 @@ bool SelfCheck::lora() {
     return single_noncritical_check<bool>("lora", [=]() {
         auto lora = get_lora_network();
 
-        if (!lora->begin()) {
+        if (!lora->begin(LoraDefaultFrequency)) {
             return false;
         }
 
@@ -390,4 +387,4 @@ void SelfCheck::flash_leds() {
     leds_->off();
 }
 
-}
+} // namespace fk

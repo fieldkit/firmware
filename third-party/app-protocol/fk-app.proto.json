@@ -916,41 +916,37 @@
               "type": "bool",
               "id": 2
             },
-            "deviceEui": {
-              "type": "bytes",
+            "clearing": {
+              "type": "bool",
               "id": 3
-            },
-            "appKey": {
-              "type": "bytes",
-              "id": 4
-            },
-            "appEui": {
-              "type": "bytes",
-              "id": 5
             },
             "frequencyBand": {
               "type": "uint32",
+              "id": 4
+            },
+            "deviceEui": {
+              "type": "bytes",
+              "id": 5
+            },
+            "appKey": {
+              "type": "bytes",
               "id": 6
             },
-            "deviceAddress": {
+            "joinEui": {
               "type": "bytes",
               "id": 7
             },
-            "networkSessionKey": {
+            "deviceAddress": {
               "type": "bytes",
               "id": 8
             },
-            "appSessionKey": {
+            "networkSessionKey": {
               "type": "bytes",
               "id": 9
             },
-            "uplinkCounter": {
-              "type": "uint32",
+            "appSessionKey": {
+              "type": "bytes",
               "id": 10
-            },
-            "downlinkCounter": {
-              "type": "uint32",
-              "id": 11
             }
           }
         },

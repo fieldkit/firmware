@@ -14,6 +14,7 @@ LinuxMutex wifi_mutex;
 LinuxMutex i2c_module_mutex;
 LinuxMutex i2c_core_mutex;
 LinuxMutex i2c_radio_mutex;
+LinuxMutex lora_mutex;
 LinuxRwLock data_lock;
 
 LinuxIPC::LinuxIPC() {

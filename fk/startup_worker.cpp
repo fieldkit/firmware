@@ -230,8 +230,16 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
     loginfo("(loaded) name: '%s'", gs->general.name);
     loginfo("(loaded) generation: %s", bytes_to_hex_string_pool(gs->general.generation, GenerationLength, pool));
 
-    /*
-    auto join_eui = pb_get_data_if_provided(record->lora.appEui.arg, pool);
+#if !(defined(FK_LORA_DEVICE_EUI) && defined(FK_LORA_APP_KEY))
+    auto device_eui = pb_get_data_if_provided(record->lora.deviceEui.arg, pool);
+    if (device_eui != nullptr) {
+        FK_ASSERT(device_eui->length == LoraDeviceEuiLength);
+        FK_ASSERT(device_eui->length == sizeof(gs->lora.device_eui));
+        memcpy(gs->lora.device_eui, device_eui->buffer, device_eui->length);
+        loginfo("(loaded) lora device eui: %s", pb_data_to_hex_string(device_eui, pool));
+    }
+
+    auto join_eui = pb_get_data_if_provided(record->lora.joinEui.arg, pool);
     if (join_eui != nullptr) {
         FK_ASSERT(join_eui->length == LoraJoinEuiLength);
         FK_ASSERT(join_eui->length == sizeof(gs->lora.join_eui));
@@ -247,6 +255,19 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
         loginfo("(loaded) lora app key: %s", pb_data_to_hex_string(app_key, pool));
     }
 
+    switch (record->lora.frequencyBand) {
+    case 915:
+        gs->lora.frequency_band = lora_frequency_t::Us915;
+        break;
+    case 868:
+        gs->lora.frequency_band = lora_frequency_t::Eu868;
+        break;
+    }
+#else
+    loginfo("(ignored) lora configuration");
+#endif
+
+    /*
     auto app_session_key = pb_get_data_if_provided(record->lora.appSessionKey.arg, pool);
     if (app_session_key != nullptr) {
         FK_ASSERT(app_session_key->length == LoraAppSessionKeyLength);
@@ -372,6 +393,7 @@ bool StartupWorker::load_from_files(Storage &storage, GlobalState *gs, Pool &poo
         .nreadings = data_attributes->nreadings,
         .installed = storage.installed(),
         .used = storage.used(),
+        .time = get_clock_now(),
     };
 
     gs->apply(storage_update);
@@ -412,11 +434,31 @@ bool StartupWorker::load_previous_location(GlobalState *gs, DataOps *ops, Pool &
 }
 
 bool StartupWorker::check_for_lora(Pool &pool) {
+    loginfo("checking for lora module");
+
     LoraManager lora{ get_lora_network() };
-    lora.begin(pool);
-    // TODO Add turn off after X mechanism, like modules using the above
-    // activity time.
-    // lora.stop();
+    if (lora.begin(pool)) {
+        /*
+        while (true) {
+            fk_delay(5000);
+
+            get_lora_network()->get_state(pool);
+
+            loginfo("lora sleep");
+
+            get_lora_network()->sleep(OneDayMs);
+
+            fk_delay(10000);
+
+            loginfo("lora wake");
+
+            get_lora_network()->wake();
+
+            get_lora_network()->get_state(pool);
+        }
+        */
+        lora.stop();
+    }
 
     return true;
 }

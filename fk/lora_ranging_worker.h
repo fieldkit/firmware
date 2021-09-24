@@ -1,25 +1,25 @@
 #pragma once
 
 #include "worker.h"
+#include "lora_manager.h"
 
 namespace fk {
 
 class LoraRangingWorker : public Worker {
-private:
-    bool confirmed_;
-
 public:
-    explicit LoraRangingWorker(bool confirmed);
+    explicit LoraRangingWorker();
 
 public:
     void run(Pool &pool) override;
 
-    const char *name() const override{
+    const char *name() const override {
         return "lora-range";
     }
 
+private:
+    void loop(LoraManager &lora);
 };
 
 FK_ENABLE_TYPE_NAME(LoraRangingWorker);
 
-}
+} // namespace fk

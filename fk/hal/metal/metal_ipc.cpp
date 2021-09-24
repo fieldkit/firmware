@@ -19,6 +19,7 @@ MetalMutex wifi_mutex{ "wifi" };
 MetalMutex i2c_module_mutex{ "i2c-module" };
 MetalMutex i2c_core_mutex{ "i2c-core" };
 MetalMutex i2c_radio_mutex{ "i2c-radio" };
+MetalMutex lora_mutex{ "lora" };
 MetalRwLock data_lock;
 
 os_queue_define(activity_queue, 10, OS_QUEUE_FLAGS_QUEUE_ONLY);

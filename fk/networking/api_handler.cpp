@@ -205,13 +205,41 @@ static bool configure(HttpServerConnection *connection, fk_app_HttpQuery *query,
         });
     }
 
+    if (query->loraSettings.clearing) {
+        gsm.apply([&](GlobalState *gs) {
+            auto had_module = gs->lora.has_module;
+            gs->lora = {};
+            bzero(gs->lora.device_eui, sizeof(gs->lora.device_eui));
+            bzero(gs->lora.app_key, sizeof(gs->lora.device_eui));
+            bzero(gs->lora.join_eui, sizeof(gs->lora.join_eui));
+            bzero(gs->lora.device_address, sizeof(gs->lora.device_address));
+            gs->lora.has_module = had_module;
+        });
+    }
+
     if (query->loraSettings.modifying) {
         gsm.apply([&](GlobalState *gs) {
+            // Set frequency band if we're given a valid one.
+            switch (query->loraSettings.frequencyBand) {
+            case 915:
+                gs->lora.frequency_band = lora_frequency_t::Us915;
+                break;
+            case 868:
+                gs->lora.frequency_band = lora_frequency_t::Eu868;
+                break;
+            }
+
+            // OTAA
+
+            auto device_eui = pb_get_data_if_provided(query->loraSettings.deviceEui.arg, pool);
             auto app_key = pb_get_data_if_provided(query->loraSettings.appKey.arg, pool);
-            auto join_eui = pb_get_data_if_provided(query->loraSettings.appEui.arg, pool);
-            auto app_session_key = pb_get_data_if_provided(query->loraSettings.appSessionKey.arg, pool);
-            auto network_session_key = pb_get_data_if_provided(query->loraSettings.networkSessionKey.arg, pool);
-            auto device_address = pb_get_data_if_provided(query->loraSettings.deviceAddress.arg, pool);
+            auto join_eui = pb_get_data_if_provided(query->loraSettings.joinEui.arg, pool);
+
+            if (device_eui != nullptr) {
+                loginfo("lora device eui: %s (%zd)", pb_data_to_hex_string(device_eui, pool), device_eui->length);
+                FK_ASSERT(device_eui->length == LoraDeviceEuiLength);
+                memcpy(gs->lora.device_eui, device_eui->buffer, LoraDeviceEuiLength);
+            }
 
             if (join_eui != nullptr) {
                 loginfo("lora app eui: %s (%zd)", pb_data_to_hex_string(join_eui, pool), join_eui->length);
@@ -224,6 +252,13 @@ static bool configure(HttpServerConnection *connection, fk_app_HttpQuery *query,
                 FK_ASSERT(app_key->length == LoraAppKeyLength);
                 memcpy(gs->lora.app_key, app_key->buffer, LoraAppKeyLength);
             }
+
+#if defined(FK_LORA_ABP)
+            // ABP
+
+            auto app_session_key = pb_get_data_if_provided(query->loraSettings.appSessionKey.arg, pool);
+            auto network_session_key = pb_get_data_if_provided(query->loraSettings.networkSessionKey.arg, pool);
+            auto device_address = pb_get_data_if_provided(query->loraSettings.deviceAddress.arg, pool);
 
             if (app_session_key != nullptr) {
                 loginfo("lora app session key: %s (%zd)", pb_data_to_hex_string(app_session_key, pool), app_session_key->length);
@@ -243,6 +278,7 @@ static bool configure(HttpServerConnection *connection, fk_app_HttpQuery *query,
                 FK_ASSERT(device_address->length == LoraDeviceAddressLength);
                 memcpy(gs->lora.device_address, device_address->buffer, LoraDeviceAddressLength);
             }
+#endif
         });
     }
 

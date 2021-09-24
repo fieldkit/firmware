@@ -339,14 +339,30 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, bool logs, fkb_h
         .length = sizeof(gs_->lora.app_key),
         .buffer = gs_->lora.app_key,
     });
+    auto device_address_data = pool_->malloc_with<pb_data_t>({
+        .length = sizeof(gs_->lora.device_address),
+        .buffer = gs_->lora.device_address,
+    });
 
     reply_->has_loraSettings = true;
+    reply_->loraSettings.available = gs_->lora.has_module;
+
+    switch (gs_->lora.frequency_band) {
+    case lora_frequency_t::Us915:
+        reply_->loraSettings.frequencyBand = 915;
+        break;
+    case lora_frequency_t::Eu868:
+        reply_->loraSettings.frequencyBand = 868;
+        break;
+    }
     reply_->loraSettings.deviceEui.funcs.encode = pb_encode_data;
     reply_->loraSettings.deviceEui.arg = (void *)device_eui_data;
-    reply_->loraSettings.appEui.funcs.encode = pb_encode_data;
-    reply_->loraSettings.appEui.arg = (void *)join_eui_data;
+    reply_->loraSettings.joinEui.funcs.encode = pb_encode_data;
+    reply_->loraSettings.joinEui.arg = (void *)join_eui_data;
     reply_->loraSettings.appKey.funcs.encode = pb_encode_data;
     reply_->loraSettings.appKey.arg = (void *)app_key_data;
+    reply_->loraSettings.deviceAddress.funcs.encode = pb_encode_data;
+    reply_->loraSettings.deviceAddress.arg = (void *)device_address_data;
 
     auto nnetworks = 0u;
     auto networks = pool_->malloc<fk_app_NetworkInfo>(WifiMaximumNumberOfNetworks);

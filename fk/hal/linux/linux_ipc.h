@@ -47,6 +47,7 @@ extern LinuxMutex wifi_mutex;
 extern LinuxMutex i2c_module_mutex;
 extern LinuxMutex i2c_core_mutex;
 extern LinuxMutex i2c_radio_mutex;
+extern LinuxMutex lora_mutex;
 extern LinuxRwLock data_lock;
 
 } // namespace fk

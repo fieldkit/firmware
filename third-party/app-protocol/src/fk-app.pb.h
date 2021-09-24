@@ -289,15 +289,14 @@ typedef struct _fk_app_Location {
 typedef struct _fk_app_LoraSettings { 
     bool available; 
     bool modifying; 
+    bool clearing; 
+    uint32_t frequencyBand; 
     pb_callback_t deviceEui; 
     pb_callback_t appKey; 
-    pb_callback_t appEui; 
-    uint32_t frequencyBand; 
+    pb_callback_t joinEui; 
     pb_callback_t deviceAddress; 
     pb_callback_t networkSessionKey; 
     pb_callback_t appSessionKey; 
-    uint32_t uplinkCounter; 
-    uint32_t downlinkCounter; 
 } fk_app_LoraSettings;
 
 typedef struct _fk_app_MemoryStatus { 
@@ -658,7 +657,7 @@ extern "C" {
 #define fk_app_Range_init_default                {0, 0}
 #define fk_app_DownloadQuery_init_default        {0, {{NULL}, NULL}, {{NULL}, NULL}}
 #define fk_app_Recording_init_default            {0, 0, 0, false, fk_app_Location_init_default}
-#define fk_app_LoraSettings_init_default         {0, 0, {{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}, 0, {{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}, 0, 0}
+#define fk_app_LoraSettings_init_default         {0, 0, 0, 0, {{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}}
 #define fk_app_Location_init_default             {0, 0, 0, 0}
 #define fk_app_WifiTransmission_init_default     {0, {{NULL}, NULL}, {{NULL}, NULL}, 0}
 #define fk_app_Transmission_init_default         {false, fk_app_WifiTransmission_init_default}
@@ -715,7 +714,7 @@ extern "C" {
 #define fk_app_Range_init_zero                   {0, 0}
 #define fk_app_DownloadQuery_init_zero           {0, {{NULL}, NULL}, {{NULL}, NULL}}
 #define fk_app_Recording_init_zero               {0, 0, 0, false, fk_app_Location_init_zero}
-#define fk_app_LoraSettings_init_zero            {0, 0, {{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}, 0, {{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}, 0, 0}
+#define fk_app_LoraSettings_init_zero            {0, 0, 0, 0, {{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}}
 #define fk_app_Location_init_zero                {0, 0, 0, 0}
 #define fk_app_WifiTransmission_init_zero        {0, {{NULL}, NULL}, {{NULL}, NULL}, 0}
 #define fk_app_Transmission_init_zero            {false, fk_app_WifiTransmission_init_zero}
@@ -837,15 +836,14 @@ extern "C" {
 #define fk_app_Location_time_tag                 4
 #define fk_app_LoraSettings_available_tag        1
 #define fk_app_LoraSettings_modifying_tag        2
-#define fk_app_LoraSettings_deviceEui_tag        3
-#define fk_app_LoraSettings_appKey_tag           4
-#define fk_app_LoraSettings_appEui_tag           5
-#define fk_app_LoraSettings_frequencyBand_tag    6
-#define fk_app_LoraSettings_deviceAddress_tag    7
-#define fk_app_LoraSettings_networkSessionKey_tag 8
-#define fk_app_LoraSettings_appSessionKey_tag    9
-#define fk_app_LoraSettings_uplinkCounter_tag    10
-#define fk_app_LoraSettings_downlinkCounter_tag  11
+#define fk_app_LoraSettings_clearing_tag         3
+#define fk_app_LoraSettings_frequencyBand_tag    4
+#define fk_app_LoraSettings_deviceEui_tag        5
+#define fk_app_LoraSettings_appKey_tag           6
+#define fk_app_LoraSettings_joinEui_tag          7
+#define fk_app_LoraSettings_deviceAddress_tag    8
+#define fk_app_LoraSettings_networkSessionKey_tag 9
+#define fk_app_LoraSettings_appSessionKey_tag    10
 #define fk_app_MemoryStatus_sramAvailable_tag    1
 #define fk_app_MemoryStatus_programFlashAvailable_tag 2
 #define fk_app_MemoryStatus_extendedMemoryAvailable_tag 3
@@ -1355,15 +1353,14 @@ X(a, STATIC,   OPTIONAL, MESSAGE,  location,          4)
 #define fk_app_LoraSettings_FIELDLIST(X, a) \
 X(a, STATIC,   SINGULAR, BOOL,     available,         1) \
 X(a, STATIC,   SINGULAR, BOOL,     modifying,         2) \
-X(a, CALLBACK, SINGULAR, BYTES,    deviceEui,         3) \
-X(a, CALLBACK, SINGULAR, BYTES,    appKey,            4) \
-X(a, CALLBACK, SINGULAR, BYTES,    appEui,            5) \
-X(a, STATIC,   SINGULAR, UINT32,   frequencyBand,     6) \
-X(a, CALLBACK, SINGULAR, BYTES,    deviceAddress,     7) \
-X(a, CALLBACK, SINGULAR, BYTES,    networkSessionKey,   8) \
-X(a, CALLBACK, SINGULAR, BYTES,    appSessionKey,     9) \
-X(a, STATIC,   SINGULAR, UINT32,   uplinkCounter,    10) \
-X(a, STATIC,   SINGULAR, UINT32,   downlinkCounter,  11)
+X(a, STATIC,   SINGULAR, BOOL,     clearing,          3) \
+X(a, STATIC,   SINGULAR, UINT32,   frequencyBand,     4) \
+X(a, CALLBACK, SINGULAR, BYTES,    deviceEui,         5) \
+X(a, CALLBACK, SINGULAR, BYTES,    appKey,            6) \
+X(a, CALLBACK, SINGULAR, BYTES,    joinEui,           7) \
+X(a, CALLBACK, SINGULAR, BYTES,    deviceAddress,     8) \
+X(a, CALLBACK, SINGULAR, BYTES,    networkSessionKey,   9) \
+X(a, CALLBACK, SINGULAR, BYTES,    appSessionKey,    10)
 #define fk_app_LoraSettings_CALLBACK pb_default_field_callback
 #define fk_app_LoraSettings_DEFAULT NULL
 

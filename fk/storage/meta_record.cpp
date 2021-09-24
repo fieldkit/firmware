@@ -89,20 +89,37 @@ void MetaRecord::include_state(GlobalState const *gs, fkb_header_t const *fkb_he
     }
     record_->condition.recording = gs->general.recording;
 
-    /*
-    if (gs->lora.configured) {
+    if (!is_null_byte_array(gs->lora.device_eui, sizeof(gs->lora.device_eui)) &&
+        !is_null_byte_array(gs->lora.app_key, sizeof(gs->lora.app_key))) {
         auto device_eui_data = pool.malloc_with<pb_data_t>({
             .length = sizeof(gs->lora.device_eui),
             .buffer = gs->lora.device_eui,
         });
-        auto app_eui_data = pool.malloc_with<pb_data_t>({
-            .length = sizeof(gs->lora.app_eui),
-            .buffer = gs->lora.app_eui,
+        auto join_eui_data = pool.malloc_with<pb_data_t>({
+            .length = sizeof(gs->lora.join_eui),
+            .buffer = gs->lora.join_eui,
         });
         auto app_key_data = pool.malloc_with<pb_data_t>({
             .length = sizeof(gs->lora.app_key),
             .buffer = gs->lora.app_key,
         });
+
+        record_->has_lora = true;
+        switch (gs->lora.frequency_band) {
+        case lora_frequency_t::Us915:
+            record_->lora.frequencyBand = 915;
+            break;
+        case lora_frequency_t::Eu868:
+            record_->lora.frequencyBand = 868;
+            break;
+        }
+        record_->lora.deviceEui.arg = (void *)device_eui_data;
+        record_->lora.joinEui.arg = (void *)join_eui_data;
+        record_->lora.appKey.arg = (void *)app_key_data;
+    }
+
+    /*
+    if (gs->lora.configured) {
         auto app_session_key_data = pool.malloc_with<pb_data_t>({
             .length = sizeof(gs->lora.app_session_key),
             .buffer = gs->lora.app_session_key,
@@ -118,7 +135,7 @@ void MetaRecord::include_state(GlobalState const *gs, fkb_header_t const *fkb_he
 
         record_->has_lora = true;
         record_->lora.deviceEui.arg = (void *)device_eui_data;
-        record_->lora.appEui.arg = (void *)app_eui_data;
+        record_->lora.joinEui.arg = (void *)join_eui_data;
         record_->lora.appKey.arg = (void *)app_key_data;
         record_->lora.appSessionKey.arg = (void *)app_session_key_data;
         record_->lora.networkSessionKey.arg = (void *)network_session_key_data;

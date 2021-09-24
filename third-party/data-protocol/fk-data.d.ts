@@ -2431,8 +2431,8 @@ export namespace fk_data {
         /** LoraSettings appKey */
         appKey?: (Uint8Array|null);
 
-        /** LoraSettings appEui */
-        appEui?: (Uint8Array|null);
+        /** LoraSettings joinEui */
+        joinEui?: (Uint8Array|null);
 
         /** LoraSettings frequencyBand */
         frequencyBand?: (number|null);
@@ -2468,8 +2468,8 @@ export namespace fk_data {
         /** LoraSettings appKey. */
         public appKey: Uint8Array;
 
-        /** LoraSettings appEui. */
-        public appEui: Uint8Array;
+        /** LoraSettings joinEui. */
+        public joinEui: Uint8Array;
 
         /** LoraSettings frequencyBand. */
         public frequencyBand: number;
