@@ -157,8 +157,8 @@ bool TheThingsLoraNetwork::begin(lora_frequency_t frequency_band) {
             return nullptr;
         }
         auto value = atoi(line);
-        if (value < FK_LORA_SET_UP_COUNTER) {
-            if (!rn2903.simple_query("mac set upctr %d", &line, DefaultTimeout, FK_LORA_SET_UP_COUNTER)) {
+        if (value < FK_LORA_SET_UPLINK_COUNTER) {
+            if (!rn2903.simple_query("mac set upctr %d", &line, DefaultTimeout, FK_LORA_SET_UPLINK_COUNTER)) {
                 return false;
             }
 
