@@ -2,6 +2,7 @@
 #include "common.h"
 #include "config.h"
 #include "platform.h"
+#include "state_ref.h" // TODO Remove
 #include "utilities.h"
 
 #if defined(__SAMD51__)
@@ -40,13 +41,17 @@ void UDPDiscovery::stop() {
                 send(fk_app_UdpStatus_UDP_STATUS_BYE, pool_);
                 delay(50);
             }
-        }
-        else {
+        } else {
             logerror("missing pool");
         }
         udp_.stop();
         initialized_ = false;
     }
+}
+
+static DebuggingUdpTraffic get_forced_udp_traffic() {
+    auto gs = get_global_state_ro();
+    return gs.get()->debugging.udp_traffic;
 }
 
 bool UDPDiscovery::service(Pool *pool) {
@@ -55,8 +60,20 @@ bool UDPDiscovery::service(Pool *pool) {
     }
 
     if (fk_uptime() > publish_) {
-        send(fk_app_UdpStatus_UDP_STATUS_ONLINE, pool);
-        publish_ = fk_uptime() + NetworkUdpDiscoveryInterval;
+        auto forced_traffic = get_forced_udp_traffic();
+        if (forced_traffic.start_time > 0) {
+            if (fk_uptime() > forced_traffic.start_time && fk_uptime() < forced_traffic.stop_time) {
+                for (auto i = 0u; i < forced_traffic.quantity; ++i) {
+                    send(fk_app_UdpStatus_UDP_STATUS_ONLINE, pool);
+                }
+                publish_ = fk_uptime() + forced_traffic.interval;
+            } else {
+                publish_ = fk_uptime() + 100;
+            }
+        } else {
+            send(fk_app_UdpStatus_UDP_STATUS_ONLINE, pool);
+            publish_ = fk_uptime() + NetworkUdpDiscoveryInterval;
+        }
     }
 
     return true;

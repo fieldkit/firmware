@@ -1,15 +1,15 @@
 #pragma once
 
+#include "collections.h"
 #include "common.h"
 #include "worker.h"
-#include "collections.h"
 
 namespace fk {
 
 class Button;
 class Activity;
 
-enum class WorkerCategory  {
+enum class WorkerCategory {
     None,
     Readings,
     Polling,
@@ -36,7 +36,11 @@ public:
     }
 
 public:
-    virtual bool launch_worker(WorkerCategory category, TaskWorker *worker) = 0;
+    virtual bool launch_worker(WorkerCategory category, TaskWorker *worker) {
+        return launch_worker(category, worker, false);
+    }
+
+    virtual bool launch_worker(WorkerCategory category, TaskWorker *worker, bool concurrency_allowed) = 0;
 
     virtual bool launch_worker(TaskWorker *worker) {
         return launch_worker(WorkerCategory::None, worker);
@@ -61,7 +65,6 @@ public:
     virtual collection<TaskDisplayInfo> get_workers_display_info(Pool &pool) {
         return { pool };
     }
-
 };
 
 IPC *get_ipc();

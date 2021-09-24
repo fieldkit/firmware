@@ -1,6 +1,6 @@
 #include "lora_manager.h"
-#include "state_ref.h"
 #include "state_manager.h"
+#include "state_ref.h"
 #include "utilities.h"
 
 namespace fk {
@@ -10,144 +10,387 @@ FK_DECLARE_LOGGER("lora");
 LoraManager::LoraManager(LoraNetwork *network) : network_(network) {
 }
 
-bool LoraManager::available() {
-    auto gs = get_global_state_ro();
-    return gs.get()->lora.configured;
-}
-
-static LoraState get_lora_state() {
+static LoraState get_lora_global_state() {
     auto gs = get_global_state_ro();
     return gs.get()->lora;
 }
 
-bool LoraManager::begin() {
+static void update_lora_status(LoraState &lora, Rn2903State const *rn) {
+    lora.uplink_counter = rn->uplink_counter;
+    lora.downlink_counter = rn->downlink_counter;
+    FK_ASSERT(sizeof(lora.device_address) == sizeof(rn->device_address));
+    memcpy(lora.device_address, rn->device_address, sizeof(lora.device_address));
+}
+
+bool LoraManager::begin(Pool &pool) {
     GlobalStateManager gsm;
 
-    auto success = network_->begin();
-
-    auto state = get_lora_state();
+    auto state = get_lora_global_state();
     if (state.asleep > 0) {
         loginfo("waking");
 
         if (!network_->wake()) {
-            logerror("error waking");
+            logerror("waking. RN module HUP?");
             return false;
         }
-
-        gsm.apply([=](GlobalState *gs) {
-            gs->lora.asleep = 0;
-        });
-
-        awake_ = true;
     }
 
-    gsm.apply([=](GlobalState *gs) {
-        gs->lora.has_module = success;
-        gs->lora.joined = 0;
-        gs->lora.asleep = 0;
-    });
+    auto has_module = network_->begin(state.frequency_band);
+    auto module_state = has_module ? network_->get_state(pool) : nullptr;
 
-    return success;
+    awake_ = true;
+
+    if (has_module) {
+        // If we have a module and don't have a valid configuration, make sure
+        // the module doesn't stick around in some old/obsolete configuration.
+        auto state = get_lora_global_state();
+        if (!verify_configuration(state, pool)) {
+            FK_ASSERT(module_state != nullptr);
+
+            if (!is_null_byte_array(module_state->device_eui, sizeof(module_state->device_eui))) {
+                loginfo("config invalid, resetting module");
+                if (!factory_reset()) {
+                    logerror("factory reset");
+                    return false;
+                }
+
+                // Get new, blank state.
+                module_state = network_->get_state(pool);
+            }
+        }
+    }
+
+    return gsm.apply([&](GlobalState *gs) {
+        // Note that this only happens when a module comes or goes.
+        if (gs->lora.has_module != has_module) {
+            gs->lora.has_module = has_module;
+            gs->lora.joined = 0;
+            gs->lora.sessions = 0;
+            gs->lora.asleep = 0;
+            gs->lora.tx_confirmed_tries = 0;
+            if (module_state != nullptr) {
+                update_lora_status(gs->lora, module_state);
+            } else {
+                bzero(gs->lora.device_address, sizeof(gs->lora.device_address));
+            }
+            auto device_address_hex = bytes_to_hex_string_pool(gs->lora.device_address, sizeof(gs->lora.device_address), pool);
+            loginfo("has-module: %d device-address: %s", has_module, device_address_hex);
+#if defined(FK_LORA_FULL_RESET)
+            gs->lora.tx_confirmed_failures = 0;
+            gs->lora.activity = 0;
+            gs->lora.confirmed = 0;
+            gs->lora.tx_successes = 0;
+            gs->lora.tx_failures = 0;
+#endif
+        }
+
+        return has_module;
+    });
 }
 
-static bool is_null_byte_array(uint8_t const *ptr, size_t length) {
-    for (auto i = 0u; i < length; ++i) {
-        if (ptr[i] != 0) {
-            return false;
+bool LoraManager::factory_reset() {
+    return network_->factory_reset();
+}
+
+bool LoraManager::verify_configuration(LoraState &state, Pool &pool) {
+    if (state.joined > 0) {
+        return true;
+    }
+
+    for (auto i = 0u; lora_keys[i].name[0] != 0; ++i) {
+        auto &keys = lora_keys[i];
+
+        if (memcmp(state.device_eui, keys.device_eui, LoraDeviceEuiLength) == 0) {
+            auto device_eui_hex = bytes_to_hex_string_pool(keys.device_eui, sizeof(keys.device_eui), pool);
+            loginfo("(hardcoded) configuration: '%s' device-eui: %s", keys.name, device_eui_hex);
+
+            memcpy(state.app_key, keys.app_key, sizeof(state.app_key));
+            state.frequency_band = keys.frequency_band;
+
+            return true;
         }
     }
+
+    if (is_null_byte_array(state.device_eui, LoraDeviceEuiLength)) {
+        logerror("config missing device-eui");
+        fk_dump_memory("device-eui: ", state.device_eui, LoraDeviceEuiLength);
+        return false;
+    }
+
+    if (is_null_byte_array(state.app_key, LoraAppKeyLength)) {
+        logerror("config missing app-key");
+        fk_dump_memory("app-key: ", state.app_key, LoraAppKeyLength);
+        return false;
+    }
+
     return true;
 }
 
 bool LoraManager::join_if_necessary(Pool &pool) {
-    GlobalStateManager gsm;
+    auto state = get_lora_global_state();
 
-    auto state = get_lora_state();
-
-    if (state.joined == 0 || state.joined > fk_uptime() || fk_uptime() - state.joined > OneDayMs) {
-        if (!state.configured) {
-            loginfo("no configuration");
-            gsm.apply([=](GlobalState *gs) {
-                gs->lora.configured = false;
-                gs->lora.joined = 0;
-                gs->lora.asleep = 0;
-            });
-            return false;
-        }
-
-        auto joined = false;
-
-        if (!network_->resume_previous_session()) {
-            if (!is_null_byte_array(state.app_key, LoraAppKeyLength)) {
-                auto app_key = bytes_to_hex_string_pool(state.app_key, LoraAppKeyLength, pool);
-                auto app_eui = bytes_to_hex_string_pool(state.app_eui, LoraAppEuiLength, pool);
-
-                loginfo("joining via otaa");
-
-                joined = network_->join(app_eui, app_key);
-            }
-            else if (!is_null_byte_array(state.app_session_key, LoraAppSessionKeyLength) &&
-                !is_null_byte_array(state.network_session_key, LoraNetworkSessionKeyLength) &&
-                !is_null_byte_array(state.device_address, LoraDeviceAddressLength)) {
-                auto app_session_key = bytes_to_hex_string_pool(state.app_session_key, LoraAppSessionKeyLength, pool);
-                auto network_session_key = bytes_to_hex_string_pool(state.network_session_key, LoraNetworkSessionKeyLength, pool);
-                auto device_address = bytes_to_hex_string_pool(state.device_address, LoraDeviceAddressLength, pool);
-                auto uplink_counter = state.uplink_counter;
-                auto downlink_counter = state.downlink_counter;
-
-                loginfo("joining via abp");
-
-                joined = network_->join(app_session_key, network_session_key, device_address, uplink_counter, downlink_counter);
-            }
-            else {
-                logwarn("no configuration");
-            }
-        }
-        else {
-            loginfo("resumed");
-
-            joined = true;
-        }
-
-        gsm.apply([=](GlobalState *gs) {
-            gs->lora.configured = true;
-            gs->lora.has_module = true;
-            gs->lora.joined = joined ? fk_uptime() : 0;
-            gs->lora.asleep = 0;
-        });
-
-        awake_ = true;
-
-        return joined;
+    if (!verify_configuration(state, pool)) {
+        return false;
     }
 
-    return true;
-}
+    auto joined = false;
+    if (state.joined > 0) {
+        loginfo("already joined");
+        return true;
+    }
 
-LoraErrorCode LoraManager::send_bytes(uint8_t port, uint8_t const *data, size_t size, bool confirmed) {
-    auto success = network_->send_bytes(port, data, size, confirmed);
-    auto code = network_->error();
+    auto module_state = network_->get_state(pool);
+#if defined(FK_LORA_TESTING_FORCE_JOIN)
+    auto force_join = state.joined == 0;
+#else
+    auto force_join = false;
+#endif
+    auto joined_otaa = false;
+    if (force_join || is_null_byte_array(module_state->device_address, LoraDeviceAddressLength)) {
+        if (force_join) {
+            loginfo("force-join enabled");
+        } else {
+            loginfo("module missing devaddr, joining via otaa");
+        }
+
+        LoraOtaaJoin otaa;
+        otaa.device_eui = bytes_to_hex_string_pool(state.device_eui, LoraDeviceEuiLength, pool);
+        otaa.join_eui = bytes_to_hex_string_pool(state.join_eui, LoraJoinEuiLength, pool);
+        otaa.app_key = bytes_to_hex_string_pool(state.app_key, LoraAppKeyLength, pool);
+
+        joined = network_->join(otaa);
+        joined_otaa = joined;
+    } else {
+        loginfo("joining via stored abp");
+
+        joined = network_->join_resume();
+    }
+
+    auto state_after = network_->get_state(pool);
 
     GlobalStateManager gsm;
     gsm.apply([=](GlobalState *gs) {
-        if (code == LoraErrorCode::NotJoined) {
-            gs->lora.joined = 0;
+        gs->lora.has_module = true;
+        gs->lora.joined = joined ? fk_uptime() : 0;
+        gs->lora.activity = fk_uptime();
+        gs->lora.asleep = 0;
+        if (joined_otaa) {
+            gs->lora.tx_confirmed_tries = 0;
+            gs->lora.tx_confirmed_failures = 0;
         }
-        if (success) {
-            auto uplink_counter = network_->uplink_counter();
-            if (uplink_counter - last_save_ > LoraUplinksSaveFrequency) {
-                if (!network_->save_state()) {
-                    logerror("error saving state");
-                }
-                last_save_ = uplink_counter;
-            }
-            gs->lora.tx_successes++;
-        } else {
-            gs->lora.tx_failures++;
-        }
+        update_lora_status(gs->lora, state_after);
     });
 
-    return code;
+    awake_ = true;
+
+    return joined;
+}
+
+struct Confirmation {
+    bool confirmed;
+    bool retry;
+
+    Confirmation() : confirmed(false), retry(false) {
+    }
+
+    Confirmation(bool confirmed, bool retry) : confirmed(confirmed), retry(retry) {
+    }
+};
+
+static Confirmation get_should_confirm() {
+    auto lora = get_lora_global_state();
+
+    // Handle confirmations every LoraConfirmEveryTx messages.
+    if (LoraConfirmEveryTx > 0 && lora.tx_total > 0) {
+        if (LoraConfirmEveryTx > 0 && (lora.tx_total % LoraConfirmEveryTx) == 0) {
+            loginfo("confirming every %d tx", LoraConfirmEveryTx);
+            lora.tx_confirmed_tries = 0;
+            return Confirmation{ true, false };
+        }
+    }
+
+    // If we're configured to send a confirmation every LoraConfirmEveryMinutes minutes.
+    if (LoraConfirmEveryMinutes > 0) {
+        auto minutes_elapsed = (fk_uptime() - lora.confirmed) / OneMinuteMs;
+        if (minutes_elapsed > LoraConfirmEveryMinutes) {
+            loginfo("%d confirmed every %d minutes (%d)", LoraConfirmEveryMinutes, minutes_elapsed);
+            lora.tx_confirmed_tries = 0;
+            return Confirmation{ true, false };
+        }
+    }
+
+    // Did our last confirmed send fail?
+    if (lora.tx_confirmed_tries > 0) {
+        // This retries a failed confirmation up to LoraConfirmedRetry times.
+        if (LoraConfirmedRetries > 0) {
+            if (lora.tx_confirmed_tries == LoraConfirmedRetries) {
+                lora.tx_confirmed_tries = 0;
+                lora.tx_confirmed_failures++;
+                logwarn("%d confirmed tries failed", lora.tx_confirmed_tries);
+                return Confirmation{};
+            }
+            loginfo("%d confirmed tries", lora.tx_confirmed_tries);
+            return Confirmation{ true, true };
+        } else {
+            lora.tx_confirmed_tries = 0;
+            lora.tx_confirmed_failures++;
+            logwarn("%d confirmed tries failed", lora.tx_confirmed_tries);
+            return Confirmation{};
+        }
+    }
+
+    return Confirmation{};
+}
+
+enum class PostSendAction {
+    Success,
+    Save,
+    Failure,
+    Rejoin,
+};
+
+static PostSendAction return_rejoin(GlobalState *gs) {
+    gs->lora.joined = 0;
+    gs->lora.tx_confirmed_tries = 0;
+    gs->lora.tx_confirmed_failures = 0;
+    gs->lora.sessions = 0;
+    return PostSendAction::Rejoin;
+}
+
+static PostSendAction return_save(GlobalState *gs) {
+    gs->lora.state_saved = fk_uptime();
+    return PostSendAction::Save;
+}
+
+static PostSendAction update_gs_after_send(GlobalState *gs, Confirmation confirmed, bool module_error, LoraErrorCode lora_error) {
+    auto uptime = fk_uptime();
+
+    gs->lora.activity = uptime;
+    gs->lora.tx_total++;
+
+    if (module_error) {
+        logerror("module-io: error");
+        gs->lora.tx_failures++;
+
+        return PostSendAction::Failure;
+    }
+
+    switch (lora_error) {
+    case LoraErrorCode::ModuleIO: {
+        // We should never get here, should return as a module error above.
+        logwarn("module-io: lora-error");
+
+        return PostSendAction::Failure;
+    }
+    case LoraErrorCode::NotJoined: {
+        logwarn("joined: error");
+
+        return return_rejoin(gs);
+    }
+    case LoraErrorCode::KeysNotInitialized:
+    case LoraErrorCode::DataLength:
+    case LoraErrorCode::Mac: {
+        // It would be unexpected to get this on an unconfirmed message.
+        gs->lora.tx_failures++;
+
+        if (confirmed.confirmed) {
+            if (confirmed.retry) {
+                logwarn("mac-error: failed retry %d/%d", gs->lora.tx_confirmed_tries, gs->lora.tx_confirmed_failures);
+            } else {
+                logwarn("mac-error: failed confirmed %d/%d", gs->lora.tx_confirmed_tries, gs->lora.tx_confirmed_failures);
+            }
+
+            if (LoraConfirmedRetries > 0) {
+                gs->lora.tx_confirmed_tries++;
+            } else {
+                gs->lora.tx_confirmed_failures++;
+                if (gs->lora.tx_confirmed_failures == LoraFailuresBeforeRejoin) {
+                    logwarn("%d confirmed failures, triggering rejoin.", gs->lora.tx_confirmed_failures);
+
+                    return return_rejoin(gs);
+                }
+            }
+        } else {
+            logwarn("mac-error: unexpected");
+        }
+
+        break;
+    }
+    default: {
+        loginfo("success!");
+
+        gs->lora.tx_successes++;
+        gs->lora.tx_confirmed_tries = 0;
+        gs->lora.tx_confirmed_failures = 0;
+
+        if (confirmed.confirmed) {
+            loginfo("saving confirmed");
+
+            gs->lora.confirmed = uptime;
+
+            return return_save(gs);
+        } else {
+            if (LoraSaveEveryTx > 0) {
+                // We always save RN state after a successful confirmed message,
+                // this saves the uplink counters periodically.
+                if ((gs->lora.tx_total % LoraSaveEveryTx) == 0) {
+                    loginfo("saving every %d txs", LoraSaveEveryTx);
+
+                    return return_save(gs);
+                }
+            }
+
+            if (LoraSaveEveryMinutes > 0) {
+                // TODO With no way to know how longg we were off this means
+                // we're kind of winging the timing, so we just save the first
+                // one, too. This is fine as long as our interval is pretty
+                // wide, otherwise we'd worry more about a frequent restart
+                // causing a save after every message or something.
+                if (gs->lora.state_saved == 0) {
+                    loginfo("saving every every %d minutes (first)", LoraSaveEveryMinutes);
+
+                    return return_save(gs);
+                }
+
+                auto elapsed_minutes = (fk_uptime() - gs->lora.state_saved) / OneMinuteMs;
+                if (elapsed_minutes > LoraSaveEveryMinutes) {
+                    loginfo("saving every every %d minutes (%d)", LoraSaveEveryMinutes, elapsed_minutes);
+
+                    return return_save(gs);
+                }
+            }
+        }
+
+        break;
+    }
+    }
+
+    return PostSendAction::Success;
+}
+
+bool LoraManager::send_bytes(uint8_t port, uint8_t const *data, size_t size, Pool &pool) {
+    auto confirmed = get_should_confirm();
+    auto module_error = !network_->send_bytes(port, data, size, confirmed.confirmed);
+    auto lora_error = network_->error();
+
+    GlobalStateManager gsm;
+    auto action =
+        gsm.apply_r<PostSendAction>([=](GlobalState *gs) { return update_gs_after_send(gs, confirmed, module_error, lora_error); });
+
+    switch (action) {
+    case PostSendAction::Failure:
+        return false;
+    case PostSendAction::Save:
+        if (!network_->save_state()) {
+            logwarn("saving state");
+        }
+        return true;
+    case PostSendAction::Rejoin:
+        logwarn("factory reset module to trigger join");
+        return network_->factory_reset();
+    default:
+        return true;
+    }
 }
 
 void LoraManager::stop() {
@@ -157,9 +400,7 @@ void LoraManager::stop() {
         }
 
         GlobalStateManager gsm;
-        gsm.apply([=](GlobalState *gs) {
-            gs->lora.asleep = fk_uptime();
-        });
+        gsm.apply([=](GlobalState *gs) { gs->lora.asleep = fk_uptime(); });
 
         awake_ = false;
     }

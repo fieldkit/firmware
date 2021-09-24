@@ -37,16 +37,12 @@ static void run_tasks() {
     uint32_t idle_stack[stack_size];
     uint32_t scheduler_stack[stack_size];
     uint32_t display_stack[stack_size];
-    uint32_t gps_stack[stack_size];
-    // uint32_t debug_stack[128];
     uint32_t worker_stacks[NumberOfWorkerTasks][stack_size];
     uint32_t network_stack[stack_size];
 
     auto total_stacks = sizeof(idle_stack) +
         sizeof(scheduler_stack) +
         sizeof(display_stack) +
-        sizeof(gps_stack) +
-        // sizeof(debug_stack) +
         sizeof(worker_stacks) +
         sizeof(network_stack);
 
@@ -54,33 +50,43 @@ static void run_tasks() {
         "display",
         OS_TASK_START_SUSPENDED,
         task_handler_display,
-        nullptr,
+        &task_display_params,
         display_stack,
         sizeof(display_stack),
-        OS_PRIORITY_NORMAL + 2
+        FK_PRIORITY_NORMAL
+    };
+
+    os_task_options_t network_task_options = {
+        "network",
+        OS_TASK_START_SUSPENDED,
+        task_handler_network,
+        nullptr,
+        network_stack,
+        sizeof(network_stack),
+        FK_PRIORITY_NORMAL
     };
 
     OS_CHECK(os_initialize());
 
     OS_CHECK(os_task_initialize(&idle_task, "idle", OS_TASK_START_RUNNING, &task_handler_idle, nullptr, idle_stack, sizeof(idle_stack)));
     OS_CHECK(os_task_initialize(&scheduler_task, "scheduler", OS_TASK_START_SUSPENDED, &task_handler_scheduler, nullptr, scheduler_stack, sizeof(scheduler_stack)));
-    OS_CHECK(os_task_initialize(&network_task, "network", OS_TASK_START_SUSPENDED, &task_handler_network, nullptr, network_stack, sizeof(network_stack)));
-    #if defined(FK_ENABLE_DEBUG_TASK)
-    // NOTICE NOTICE We share GPS stack! NOTICE NOTICE
-    OS_CHECK(os_task_initialize(&debug_task, "debug", OS_TASK_START_SUSPENDED, &task_handler_debug, nullptr, gps_stack, sizeof(gps_stack)));
-    #else
-    OS_CHECK(os_task_initialize(&gps_task, "gps", OS_TASK_START_SUSPENDED, &task_handler_gps, nullptr, gps_stack, sizeof(gps_stack)));
-    #endif
 
+    OS_CHECK(os_task_initialize_options(&network_task, &network_task_options));
     OS_CHECK(os_task_initialize_options(&display_task, &display_task_options));
 
-    for (size_t i = 0; i < NumberOfWorkerTasks; ++i) {
+    auto data_index = 0u;
+    os_task_user_data_set(&idle_task, &task_data[data_index++]);
+    os_task_user_data_set(&scheduler_task, &task_data[data_index++]);
+    os_task_user_data_set(&network_task, &task_data[data_index++]);
+    os_task_user_data_set(&display_task, &task_data[data_index++]);
+
+    for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
         OS_CHECK(os_task_initialize(&worker_tasks[i], "worker", OS_TASK_START_SUSPENDED, &task_handler_worker, nullptr, worker_stacks[i], sizeof(worker_stacks[i])));
+        os_task_user_data_set(&worker_tasks[i], &task_data[data_index++]);
     }
 
     FK_ASSERT(get_ipc()->begin());
 
-    // FK_ASSERT(get_ipc()->launch_worker(create_pool_worker<Process>()));
     FK_ASSERT(get_ipc()->launch_worker(create_pool_worker<StartupWorker>()));
 
     auto mi = mallinfo();
@@ -88,6 +94,8 @@ static void run_tasks() {
     loginfo("stacks = %d", total_stacks);
     loginfo("free = %" PRIu32, fk_free_memory());
     loginfo("starting os!");
+
+    FK_ASSERT(fk_free_memory() > 2048);
 
     OS_CHECK(os_start());
 }
@@ -120,8 +128,6 @@ static bool initialize_hardware() {
     FK_ASSERT(fk_random_initialize() == 0);
 
     FK_ASSERT(get_flash()->initialize());
-
-    get_board()->enable_everything();
 
     fk_delay(10);
 
@@ -157,7 +163,6 @@ static bool need_segger_initialize() {
 void setup() {
     SEGGER_RTT_WriteString(0, "\n");
     single_threaded_setup();
-    fk_live_tests();
     run_tasks();
 }
 

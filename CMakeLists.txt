@@ -38,7 +38,7 @@ message("Hash: ${GIT_COMMIT_HASH}")
 
 set(VERSION_MAJOR 0 CACHE STRING "Project major version number.")
 set(VERSION_MINOR 1 CACHE STRING "Project minor version number.")
-set(VERSION_PATCH 2 CACHE STRING "Project patch version number.")
+set(VERSION_PATCH 3 CACHE STRING "Project patch version number.")
 
 if(DEFINED ENV{BUILD_NUMBER})
 message("Using ENV build number for prerelease.")
@@ -75,6 +75,9 @@ add_subdirectory(tests)
 # Add a target to generate API documentation with Doxygen
 find_package(Doxygen)
 option(BUILD_DOCUMENTATION "Create and install the HTML based API documentation (requires Doxygen)" ${DOXYGEN_FOUND})
+
+option(FK_PHYLUM "Enable phylum by default" NO)
+option(FK_PHYLUM_AMPLIFICATION "Amplify phylum readings" 1)
 
 if(BUILD_DOCUMENTATION)
     if(NOT DOXYGEN_FOUND)

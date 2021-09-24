@@ -20,8 +20,9 @@ void FactoryWipeWorker::run(Pool &pool) {
         return;
     }
 
+    auto memory = MemoryFactory::get_data_memory();
     GlobalStateProgressCallbacks progress;
-    Storage storage{ MemoryFactory::get_data_memory(), pool };
+    Storage storage{ memory, pool, false, true };
     FactoryWipe factory_wipe{ storage };
 
     if (factory_wipe.wipe(&progress)) {

@@ -20,9 +20,11 @@ struct test_types {
 
 typedef ::testing::Types<
     test_types<layout_256, directory_chain, tree_sector<uint32_t, uint32_t, 5>>,
+    test_types<layout_2048, directory_tree, tree_sector<uint32_t, uint32_t, 201>>,
     test_types<layout_4096, directory_chain, tree_sector<uint32_t, uint32_t, 63>>,
     test_types<layout_4096, directory_chain, tree_sector<uint32_t, uint32_t, 287>>,
     test_types<layout_4096, directory_chain, tree_sector<uint32_t, uint32_t, 405>>,
+    test_types<layout_4096, directory_tree, tree_sector<uint32_t, uint32_t, 201>>,
     test_types<layout_4096, directory_tree, tree_sector<uint32_t, uint32_t, 405>>>
     Implementations;
 
@@ -70,10 +72,10 @@ TYPED_TEST(LargeFileFixture, WriteLargeFileIndexed_ContinuousWrites) {
         file_appender opened{ memory.pc(), &dir, dir.open() };
 
         auto position_index_sector = memory.allocator().allocate();
-        tree_type position_index{ memory.pc(), tree_ptr_t{ position_index_sector }, "posidx" };
+        tree_type position_index{ memory.pc(), tree_ptr_t{ position_index_sector }, "pos-idx" };
 
         auto record_index_sector = memory.allocator().allocate();
-        tree_type record_index{ memory.pc(), tree_ptr_t{ record_index_sector }, "recidx" };
+        tree_type record_index{ memory.pc(), tree_ptr_t{ record_index_sector }, "rec-idx" };
 
         ASSERT_EQ(position_index.create(), 0);
         ASSERT_EQ(record_index.create(), 0);

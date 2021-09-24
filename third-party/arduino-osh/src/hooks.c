@@ -29,6 +29,9 @@ void osi_assert(const char *assertion, const char *file, int line) {
 
 #endif // defined(__SAMD21__) || defined(__SAMD51__)
 
+void osi_debug_dump(os_panic_kind_t code) {
+}
+
 void osi_panic(os_panic_kind_t code) {
     osi_printf("\n\npanic! (%s)\n", os_panic_kind_str(code));
 

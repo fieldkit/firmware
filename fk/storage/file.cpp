@@ -928,9 +928,13 @@ File::SizeInfo File::get_size(BlockNumber first_block, BlockNumber last_block, P
 
     loginfo("position(%" PRIu32 ") = %" PRIu32, first_block, start_position);
 
+    if (last_block >= actual_last_block) {
+        last_block = actual_last_block;
+    }
+
     return {
         .size = size,
-        .last_block = actual_last_block,
+        .last_block = last_block,
     };
 }
 

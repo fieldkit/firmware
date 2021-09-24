@@ -8,8 +8,6 @@
 #include "storage_suite.h"
 #include "export_data_worker.h"
 
-extern "C" __attribute__((constructor)) void fk_module_initialize_random();
-
 using namespace fk;
 
 FK_DECLARE_LOGGER("tests");
@@ -18,11 +16,11 @@ class ExportDataSuite : public StorageSuite {
 protected:
     void SetUp() override {
         StorageSuite::SetUp();
-        fk_module_initialize_random();
+        Storage storage{ memory_, pool_ };
+        ASSERT_TRUE(storage.clear());
     }
 
     void TearDown() override {
-        fk_modules_builtin_clear();
         StorageSuite::TearDown();
     }
 

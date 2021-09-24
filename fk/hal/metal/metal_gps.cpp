@@ -4,7 +4,7 @@
 #include "config.h"
 #include "clock.h"
 
-#if defined(ARDUINO)
+#if defined(__SAMD51__)
 
 #include <Arduino.h>
 

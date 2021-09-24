@@ -81,9 +81,9 @@ int32_t MetalQspiMemory::erase(uint32_t address, size_t length) {
     auto g = geometry();
     return for_each_block_between(address, length, g.block_size, [=](uint32_t block_address) {
         if (!flash_.eraseBlock(block_address / g.block_size)) {
-            return false;
+            return -1;
         }
-        return true;
+        return 0;
     });
 }
 

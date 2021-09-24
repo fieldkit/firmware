@@ -1,46 +1,43 @@
 #include "scheduling.h"
 
-namespace fk {
+#include "storage/backup_worker.h"
 
-#if !defined(__SAMD51__)
-ScheduledTime fk_schedule_get_scheduled_time() {
-    return { };
-}
-#endif
+namespace fk {
 
 CurrentSchedules::CurrentSchedules() {
 }
 
-CurrentSchedules::CurrentSchedules(GlobalState const *gs, ModuleFactory const &module_factory) {
+CurrentSchedules::CurrentSchedules(GlobalState const *gs) {
     readings = gs->scheduler.readings.cron;
     gps = gs->scheduler.gps.cron;
     lora = gs->scheduler.lora.cron;
     network = gs->scheduler.network.cron;
     network_jitter = gs->scheduler.network.jitter;
-    service_interval = module_factory.service_interval();
+    backup = gs->scheduler.backup.cron;
+    service_interval = 0; // module_factory.service_interval();
 }
 
 bool CurrentSchedules::equals(CurrentSchedules const &o) const {
-    return readings == o.readings && network == o.network && gps == o.gps && lora == o.lora &&
-           service_interval == o.service_interval && network_jitter == o.network_jitter;
+    return readings == o.readings && network == o.network && gps == o.gps && lora == o.lora && service_interval == o.service_interval &&
+           network_jitter == o.network_jitter;
 }
 
 ReadingsTask::ReadingsTask(lwcron::CronSpec cron_spec) : lwcron::CronTask(cron_spec) {
 }
 
 void ReadingsTask::run() {
-    get_ipc()->launch_worker(WorkerCategory::Readings, create_pool_worker<ReadingsWorker>(false, false, true));
+    get_ipc()->launch_worker(WorkerCategory::Readings, create_pool_worker<ReadingsWorker>(false, false, ModulePowerState::Unknown));
 }
 
 const char *ReadingsTask::toString() const {
     return "readings";
 }
 
-GpsTask::GpsTask(lwcron::CronSpec cron_spec) : lwcron::CronTask(cron_spec) {
+GpsTask::GpsTask(lwcron::CronSpec cron_spec, GpsService &gps_service) : lwcron::CronTask(cron_spec), gps_service_(gps_service) {
 }
 
 void GpsTask::run() {
-    fk_start_task_if_necessary(&gps_task);
+    gps_service_.begin();
 }
 
 const char *GpsTask::toString() const {
@@ -51,7 +48,7 @@ LoraTask::LoraTask(lwcron::CronSpec cron_spec) : lwcron::CronTask(cron_spec) {
 }
 
 void LoraTask::run() {
-    get_ipc()->launch_worker(create_pool_worker<LoraWorker>());
+    get_ipc()->launch_worker(create_pool_worker<LoraWorker>(LoraWork{ LoraWorkOperation::Readings }));
 }
 
 const char *LoraTask::toString() const {
@@ -101,7 +98,18 @@ const char *ServiceModulesTask::toString() const {
 }
 
 bool ServiceModulesTask::enabled() const {
-    return get_module_factory().service_interval() > 0;
+    return false; // get_module_factory().service_interval() > 0;
+}
+
+BackupTask::BackupTask(lwcron::CronSpec cron_spec) : lwcron::CronTask(cron_spec) {
+}
+
+void BackupTask::run() {
+    get_ipc()->launch_worker(create_pool_worker<BackupWorker>());
+}
+
+const char *BackupTask::toString() const {
+    return "backup";
 }
 
 } // namespace fk

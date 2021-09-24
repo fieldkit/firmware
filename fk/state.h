@@ -1,17 +1,19 @@
 #pragma once
 
-#include <lwcron/lwcron.h>
 #include <fk-app-protocol.h>
+#include <lwcron/lwcron.h>
 
+#include "collections.h"
 #include "common.h"
 #include "config.h"
-#include "pool.h"
-#include "collections.h"
 #include "platform.h"
+#include "pool.h"
 #include "protobuf.h"
 
-#include "modules/bridge/data.h"
 #include "hal/battery_gauge.h" // For MeterReading
+#include "lora_frequency.h"
+#include "modules/bridge/data.h"
+#include "state/dynamic.h"
 
 namespace fk {
 
@@ -23,79 +25,48 @@ struct ScheduledTime {
     uint32_t seconds;
 };
 
-struct SensorState {
-    const char *name;
-    const char *unit_of_measure;
-    uint32_t flags;
-    bool has_live_vaue;
-    ModuleReading live_value;
-};
+enum class BatteryStatus { Unknown, Good, External, Low, Dangerous };
 
-struct ModuleState {
-public:
-    ModulePosition position;
-    uint32_t manufacturer;
-    uint32_t kind;
-    uint32_t version;
-    const char *name;
-    const char *display_name_key;
-    fk_uuid_t *id;
-    uint32_t flags;
-    SensorState *sensors;
-    size_t nsensors;
-};
+inline bool battery_status_is_low_power(BatteryStatus status) {
+    return status == BatteryStatus::Dangerous || status == BatteryStatus::Low;
+}
 
-struct TakenReadings {
-    uint32_t time;
-    uint32_t number;
-    ConstructedModulesCollection constructed_modules;
-    ModuleReadingsCollection readings;
-
-    TakenReadings() {
+inline const char *battery_status_to_string(BatteryStatus status) {
+    switch (status) {
+    case BatteryStatus::Unknown:
+        return "unknown";
+    case BatteryStatus::Good:
+        return "good";
+    case BatteryStatus::External:
+        return "external";
+    case BatteryStatus::Low:
+        return "low";
+    case BatteryStatus::Dangerous:
+        return "dangerous";
+    default:
+        return "unknown";
     }
-
-    TakenReadings(uint32_t time, uint32_t number, ModuleReadingsCollection readings) :
-        time(time), number(number), readings(std::move(readings)) {
-    }
-
-    TakenReadings(uint32_t time, uint32_t number, ConstructedModulesCollection constructed_modules, ModuleReadingsCollection readings) :
-        time(time), number(number), constructed_modules(std::move(constructed_modules)), readings(std::move(readings)) {
-    }
-};
-
-struct ModulesState {
-    Pool *pool{ nullptr };
-    ModuleState *modules{ nullptr };
-    size_t nmodules{ 0 };
-    uint32_t readings_time{ 0 };
-    uint32_t readings_number{ 0 };
-    ModuleReadingsCollection readings{ };
-
-    explicit ModulesState(Pool *pool) : pool(pool), readings{ pool } {
-    }
-
-    TakenReadings taken() {
-        return { readings_time, readings_number, ModuleReadingsCollection(readings) };
-    }
-};
+}
 
 struct RuntimeState {
     uint32_t startup_time{ 0 };
     uint32_t readings{ 0 };
-    bool power_save{ false };
 };
 
 struct PowerState {
+    bool low_battery{ false };
+    MeterReading battery{};
+    MeterReading solar{};
+    BatteryStatus battery_status{ BatteryStatus::Unknown };
+    bool allow_deep_sleep{ false };
     float charge{ 0 };
-    MeterReading battery{ };
-    MeterReading solar{ };
 };
 
 struct WifiNetworkInfo {
     bool valid{ false };
     bool create{ false };
-    char ssid[WifiMaximumSsidLength]{ };
-    char password[WifiMaximumPasswordLength]{ };
+    char ssid[WifiMaximumSsidLength]{};
+    char password[WifiMaximumPasswordLength]{};
 
     WifiNetworkInfo() {
     }
@@ -120,7 +91,7 @@ struct WifiNetworkInfo {
         strncpy(this->password, password, WifiMaximumPasswordLength);
     }
 
-    WifiNetworkInfo& operator=(const WifiNetworkInfo &other) {
+    WifiNetworkInfo &operator=(const WifiNetworkInfo &other) {
         valid = other.valid;
         create = other.create;
         strncpy(this->ssid, other.ssid, WifiMaximumSsidLength);
@@ -157,16 +128,13 @@ public:
     uint8_t satellites{ 0 };
     uint64_t time{ 0 };
     uint16_t hdop{ 0 };
-    float longitude { 0.0f };
-    float latitude { 0.0f };
-    float altitude { 0.0f };
+    float longitude{ 0.0f };
+    float latitude{ 0.0f };
+    float altitude{ 0.0f };
     uint32_t chars{ 0 };
 
 public:
     GpsState *clone(Pool &pool) const;
-};
-
-struct PeripheralState {
 };
 
 struct GeneralState {
@@ -186,33 +154,60 @@ struct StreamState {
     uint32_t modified{ 0 };
 };
 
+struct MemoryState {
+    uint32_t installed{ 0 };
+    uint32_t used{ 0 };
+};
+
 struct StorageState {
+    MemoryState spi;
+    MemoryState qspi;
     StreamState data;
     StreamState meta;
+
+    bool is_phylum() const {
+        return data.block > 0 && meta.block == 0;
+    }
+};
+
+struct StorageStreamUpdate {
+    uint32_t size;
+    uint32_t records;
+};
+
+struct StorageUpdate {
+    StorageStreamUpdate meta;
+    StorageStreamUpdate data;
+    uint32_t nreadings;
+    uint32_t installed;
+    uint32_t used;
+    uint32_t time;
 };
 
 struct LoraState {
-    bool configured;
+    lora_frequency_t frequency_band{ LoraDefaultFrequency };
     uint8_t device_eui[LoraDeviceEuiLength];
     uint8_t app_key[LoraAppKeyLength];
-    uint8_t app_eui[LoraAppEuiLength];
+    uint8_t join_eui[LoraJoinEuiLength];
     uint8_t device_address[LoraDeviceAddressLength];
-    uint8_t network_session_key[LoraNetworkSessionKeyLength];
-    uint8_t app_session_key[LoraAppSessionKeyLength];
     uint32_t uplink_counter;
     uint32_t downlink_counter;
-    bool has_module;
-    uint32_t joined;
-    uint32_t asleep;
-    uint32_t join_failures;
-    uint32_t tx_successes;
-    uint32_t tx_failures;
-};
-
-struct PhysicalModuleState {
-    ModuleStatus status{ ModuleStatus::Unknown };
-    ModuleHeader header;
-    ModuleMetadata const *meta;
+#if defined(FK_LORA_ABP)
+    uint8_t network_session_key[LoraNetworkSessionKeyLength];
+    uint8_t app_session_key[LoraAppSessionKeyLength];
+#endif
+    bool has_module{ false };
+    uint32_t joined{ 0 };
+    uint32_t asleep{ 0 };
+    uint32_t activity{ 0 };
+    uint32_t confirmed{ 0 };
+    uint32_t tx_total{ 0 };
+    uint32_t tx_successes{ 0 };
+    uint32_t tx_failures{ 0 };
+    uint32_t tx_confirmed_tries{ 0 };
+    uint32_t tx_confirmed_failures{ 0 };
+    uint32_t state_saved{ 0 };
+    uint32_t sessions{ 0 };
 };
 
 struct SdCardState {
@@ -235,6 +230,15 @@ struct NotificationState {
     }
 };
 
+struct OpenMenu {
+    uint32_t time;
+    bool readings;
+};
+
+struct DisplayState {
+    OpenMenu open_menu;
+};
+
 struct Interval {
     uint32_t start;
     uint32_t end;
@@ -242,75 +246,101 @@ struct Interval {
 };
 
 struct Schedule {
-    lwcron::CronSpec cron{ };
+    lwcron::CronSpec cron{};
     uint32_t interval{ 0 };
     uint32_t repeated{ 0 };
     uint32_t duration{ 0 };
     uint32_t jitter{ 0 };
     Interval intervals[MaximumScheduleIntervals];
+    ScheduledTime upcoming;
 
-    Schedule& operator=(const fk_app_Schedule &s);
+    Schedule &operator=(const fk_app_Schedule &s);
 
     void recreate();
     void simple(uint32_t interval);
 };
 
 struct SchedulerState {
-    Schedule readings{ };
-    Schedule network{ };
-    Schedule gps{ };
-    Schedule lora{ };
-    ScheduledTime upcoming;
+    Schedule readings{};
+    Schedule network{};
+    Schedule gps{};
+    Schedule lora{};
+    Schedule backup{};
 };
 
 struct ReadingsState {
-    uint32_t number{ 0 };
+    uint32_t nreadings{ 0 };
     uint32_t time{ 0 };
 };
 
 struct TransmissionState {
     bool enabled{ false };
-    char url[HttpMaximumUrlLength]{ };
-    char token[HttpMaximumTokenLength]{ };
+    char url[HttpMaximumUrlLength]{};
+    char token[HttpMaximumTokenLength]{};
     uint32_t data_cursor{ 0 };
     uint32_t meta_cursor{ 0 };
+};
+
+struct UpcomingUpdate {
+    ScheduledTime readings;
+    ScheduledTime network;
+    ScheduledTime gps;
+    ScheduledTime lora;
+    ScheduledTime backup;
+};
+
+struct DebuggingUdpTraffic {
+    uint32_t start_time{ 0 };
+    uint32_t stop_time{ 0 };
+    uint32_t quantity{ 0 };
+    uint32_t interval{ 0 };
+    uint32_t duration{ 1000 };
+    bool readings_triggered{ false };
+
+    DebuggingUdpTraffic() {
+    }
+
+    DebuggingUdpTraffic(uint32_t stop_time, uint32_t quantity, uint32_t interval, bool readings_triggered)
+        : stop_time(stop_time), quantity(quantity), interval(interval), readings_triggered(readings_triggered) {
+    }
+};
+
+struct DebuggingState {
+    DebuggingUdpTraffic udp_traffic;
 };
 
 struct GlobalState {
 public:
     uint32_t version{ 0 };
-    GeneralState general{ };
-    RuntimeState runtime{ };
-    PowerState power{ };
-    PeripheralState peripheral{ };
-    GpsState gps{ };
-    MainNetworkState network{ };
-    NotificationState notification{ };
-    ProgressState progress{ };
-    StorageState storage{ };
-    LoraState lora{ };
-    SchedulerState scheduler{ };
-    PhysicalModuleState physical_modules[MaximumNumberOfPhysicalModules]{ };
-    SdCardState sd_card{ };
-    // TODO Merge these.
-    ModulesState *modules{ };
-    ReadingsState readings{ };
-    TransmissionState transmission{ };
+    state::DynamicState dynamic;
+    GeneralState general{};
+    RuntimeState runtime{};
+    PowerState power{};
+    GpsState gps{};
+    MainNetworkState network{};
+    NotificationState notification{};
+    DisplayState display{};
+    ProgressState progress{};
+    StorageState storage{};
+    LoraState lora{};
+    SchedulerState scheduler{};
+    SdCardState sd_card{};
+    ReadingsState readings{};
+    TransmissionState transmission{};
+    DebuggingState debugging{};
 
 public:
     GlobalState();
 
 public:
-    void update_physical_modules(ConstructedModulesCollection const &modules);
-    void update_data_stream(File const &file);
-    void update_meta_stream(File const &file);
+    void apply(StorageUpdate &update);
+    void apply(UpcomingUpdate &update);
     void released(uint32_t locked) const;
     void released(uint32_t locked);
     bool flush(Pool &pool);
 
 public:
     GpsState const *location(Pool &pool) const;
-
 };
 
-}
+} // namespace fk

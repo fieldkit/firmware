@@ -46,7 +46,7 @@ protected:
 
     int32_t file_trees(file_id_t id, tree_ptr_t position_index, tree_ptr_t record_index) override;
 
-    int32_t read(file_id_t id, std::function<int32_t(read_buffer)> data_fn) override;
+    int32_t read(file_id_t id, io_writer &writer) override;
 
 private:
     int32_t write_header(page_lock &page_lock) override;

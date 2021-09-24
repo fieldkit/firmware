@@ -3,13 +3,14 @@
 
 namespace fk {
 
-FK_DECLARE_LOGGER("readings");
+FK_DECLARE_LOGGER("meta-record");
 
 static void copy_schedule(fk_data_JobSchedule &d, const Schedule &s, Pool &pool) {
     auto intervals = (fk_app_Interval *)pool.malloc(sizeof(fk_app_Interval) * MaximumScheduleIntervals);
     auto intervals_array = pool.malloc_with<pb_array_t>({
         .length = 0,
-        .itemSize = sizeof(fk_app_Interval),
+        .allocated = 0,
+        .item_size = sizeof(fk_app_Interval),
         .buffer = intervals,
         .fields = fk_app_Interval_fields,
     });
@@ -20,8 +21,7 @@ static void copy_schedule(fk_data_JobSchedule &d, const Schedule &s, Pool &pool)
             intervals[i].start = s.intervals[i].start;
             intervals[i].end = s.intervals[i].end;
             intervals[i].interval = s.intervals[i].interval;
-        }
-        else {
+        } else {
             break;
         }
     }
@@ -37,11 +37,17 @@ static void copy_schedule(fk_data_JobSchedule &d, const Schedule &s, Pool &pool)
     d.jitter = s.jitter;
 }
 
-fk_data_DataRecord &MetaRecord::for_decoding(Pool &pool) {
-    return record_ = fk_data_record_decoding_new(pool);
+MetaRecord::MetaRecord(Pool &pool) : pool_(&pool) {
+    record_ = pool.malloc<fk_data_DataRecord>();
 }
 
-fk_data_DataRecord const &MetaRecord::record() {
+fk_data_DataRecord *MetaRecord::for_decoding() {
+    fk_data_record_decoding_new(record_, *pool_);
+    return record_;
+}
+
+fk_data_DataRecord *MetaRecord::record() {
+    FK_ASSERT(record_ != nullptr);
     return record_;
 }
 
@@ -61,38 +67,59 @@ void MetaRecord::include_state(GlobalState const *gs, fkb_header_t const *fkb_he
     auto hash_size = fkb_header->firmware.hash_size;
     auto hash_hex = bytes_to_hex_string_pool(fkb_header->firmware.hash, hash_size, pool);
 
-    record_ = fk_data_record_encoding_new();
-    record_.has_metadata = true;
-    record_.metadata.has_firmware = true;
-    record_.metadata.firmware.version.arg = (void *)fkb_header->firmware.version;
-    record_.metadata.firmware.build.arg = (void *)"";
-    record_.metadata.firmware.hash.arg = (void *)hash_hex;
-    record_.metadata.firmware.number.arg = (void *)pool.sprintf("%d", fkb_header->firmware.number);
-    record_.metadata.firmware.timestamp = fkb_header->firmware.timestamp;
-    record_.metadata.deviceId.arg = (void *)device_id_data;
-    record_.metadata.generation.arg = (void *)generation_data;
-    record_.has_identity = true;
-    record_.identity.name.arg = (void *)gs->general.name;
-    record_.has_condition = true;
-    record_.condition.flags = fk_data_ConditionFlags_CONDITION_FLAGS_NONE;
-    if (gs->general.recording > 0) {
-        record_.condition.flags |= fk_data_ConditionFlags_CONDITION_FLAGS_RECORDING;
+    if (record_ == nullptr) {
+        record_ = pool.malloc<fk_data_DataRecord>();
     }
-    record_.condition.recording = gs->general.recording;
+    fk_data_record_encoding_new(record_);
+    record_->has_metadata = true;
+    record_->metadata.has_firmware = true;
+    record_->metadata.firmware.version.arg = (void *)fkb_header->firmware.version;
+    record_->metadata.firmware.build.arg = (void *)"";
+    record_->metadata.firmware.hash.arg = (void *)hash_hex;
+    record_->metadata.firmware.number.arg = (void *)pool.sprintf("%d", fkb_header->firmware.number);
+    record_->metadata.firmware.timestamp = fkb_header->firmware.timestamp;
+    record_->metadata.deviceId.arg = (void *)device_id_data;
+    record_->metadata.generation.arg = (void *)generation_data;
+    record_->has_identity = true;
+    record_->identity.name.arg = (void *)gs->general.name;
+    record_->has_condition = true;
+    record_->condition.flags = fk_data_ConditionFlags_CONDITION_FLAGS_NONE;
+    if (gs->general.recording > 0) {
+        record_->condition.flags |= fk_data_ConditionFlags_CONDITION_FLAGS_RECORDING;
+    }
+    record_->condition.recording = gs->general.recording;
 
-    if (gs->lora.configured) {
+    if (!is_null_byte_array(gs->lora.device_eui, sizeof(gs->lora.device_eui)) &&
+        !is_null_byte_array(gs->lora.app_key, sizeof(gs->lora.app_key))) {
         auto device_eui_data = pool.malloc_with<pb_data_t>({
             .length = sizeof(gs->lora.device_eui),
             .buffer = gs->lora.device_eui,
         });
-        auto app_eui_data = pool.malloc_with<pb_data_t>({
-            .length = sizeof(gs->lora.app_eui),
-            .buffer = gs->lora.app_eui,
+        auto join_eui_data = pool.malloc_with<pb_data_t>({
+            .length = sizeof(gs->lora.join_eui),
+            .buffer = gs->lora.join_eui,
         });
         auto app_key_data = pool.malloc_with<pb_data_t>({
             .length = sizeof(gs->lora.app_key),
             .buffer = gs->lora.app_key,
         });
+
+        record_->has_lora = true;
+        switch (gs->lora.frequency_band) {
+        case lora_frequency_t::Us915:
+            record_->lora.frequencyBand = 915;
+            break;
+        case lora_frequency_t::Eu868:
+            record_->lora.frequencyBand = 868;
+            break;
+        }
+        record_->lora.deviceEui.arg = (void *)device_eui_data;
+        record_->lora.joinEui.arg = (void *)join_eui_data;
+        record_->lora.appKey.arg = (void *)app_key_data;
+    }
+
+    /*
+    if (gs->lora.configured) {
         auto app_session_key_data = pool.malloc_with<pb_data_t>({
             .length = sizeof(gs->lora.app_session_key),
             .buffer = gs->lora.app_session_key,
@@ -106,16 +133,17 @@ void MetaRecord::include_state(GlobalState const *gs, fkb_header_t const *fkb_he
             .buffer = gs->lora.device_address,
         });
 
-        record_.has_lora = true;
-        record_.lora.deviceEui.arg = (void *)device_eui_data;
-        record_.lora.appEui.arg = (void *)app_eui_data;
-        record_.lora.appKey.arg = (void *)app_key_data;
-        record_.lora.appSessionKey.arg = (void *)app_session_key_data;
-        record_.lora.networkSessionKey.arg = (void *)network_session_key_data;
-        record_.lora.deviceAddress.arg = (void *)device_address_data;
-        record_.lora.uplinkCounter = gs->lora.uplink_counter;
-        record_.lora.downlinkCounter = gs->lora.downlink_counter;
+        record_->has_lora = true;
+        record_->lora.deviceEui.arg = (void *)device_eui_data;
+        record_->lora.joinEui.arg = (void *)join_eui_data;
+        record_->lora.appKey.arg = (void *)app_key_data;
+        record_->lora.appSessionKey.arg = (void *)app_session_key_data;
+        record_->lora.networkSessionKey.arg = (void *)network_session_key_data;
+        record_->lora.deviceAddress.arg = (void *)device_address_data;
+        // record_->lora.uplinkCounter = gs->lora.uplink_counter;
+        // record_->lora.downlinkCounter = gs->lora.downlink_counter;
     }
+    */
 
     auto networks = pool.malloc<fk_data_NetworkInfo>(WifiMaximumNumberOfNetworks);
     for (auto i = 0u; i < WifiMaximumNumberOfNetworks; ++i) {
@@ -127,77 +155,81 @@ void MetaRecord::include_state(GlobalState const *gs, fkb_header_t const *fkb_he
     }
     auto networks_array = pool.malloc_with<pb_array_t>({
         .length = WifiMaximumNumberOfNetworks,
-        .itemSize = sizeof(fk_data_NetworkInfo),
+        .allocated = WifiMaximumNumberOfNetworks,
+        .item_size = sizeof(fk_data_NetworkInfo),
         .buffer = networks,
         .fields = fk_data_NetworkInfo_fields,
     });
 
-    record_.has_network = true;
-    record_.network.networks.arg = (void *)networks_array;
+    record_->has_network = true;
+    record_->network.networks.arg = (void *)networks_array;
 
-    record_.has_schedule = true;
-    record_.schedule.has_readings = true;
-    record_.schedule.has_network = true;
-    record_.schedule.has_gps = true;
-    record_.schedule.has_lora = true;
+    record_->has_schedule = true;
+    record_->schedule.has_readings = true;
+    record_->schedule.has_network = true;
+    record_->schedule.has_gps = true;
+    record_->schedule.has_lora = true;
 
-    copy_schedule(record_.schedule.readings, gs->scheduler.readings, pool);
-    copy_schedule(record_.schedule.network, gs->scheduler.network, pool);
-    copy_schedule(record_.schedule.gps, gs->scheduler.gps, pool);
-    copy_schedule(record_.schedule.lora, gs->scheduler.lora, pool);
+    copy_schedule(record_->schedule.readings, gs->scheduler.readings, pool);
+    copy_schedule(record_->schedule.network, gs->scheduler.network, pool);
+    copy_schedule(record_->schedule.gps, gs->scheduler.gps, pool);
+    copy_schedule(record_->schedule.lora, gs->scheduler.lora, pool);
 
-    record_.has_transmission = true;
-    record_.transmission.has_wifi = true;
-    record_.transmission.wifi.enabled = gs->transmission.enabled;
-    record_.transmission.wifi.url.arg = (void *)gs->transmission.url;
-    record_.transmission.wifi.token.arg = (void *)gs->transmission.token;
+    record_->has_transmission = true;
+    record_->transmission.has_wifi = true;
+    record_->transmission.wifi.enabled = gs->transmission.enabled;
+    record_->transmission.wifi.url.arg = (void *)gs->transmission.url;
+    record_->transmission.wifi.token.arg = (void *)gs->transmission.token;
 }
 
-void MetaRecord::include_modules(GlobalState const *gs, fkb_header_t const *fkb_header, ConstructedModulesCollection &modules, ModuleReadingsCollection &readings, Pool &pool) {
-    auto module_infos = pool.malloc<fk_data_ModuleInfo>(modules.size());
-    auto readings_iter = readings.begin();
+void MetaRecord::include_modules(GlobalState const *gs, fkb_header_t const *fkb_header, Pool &pool) {
+    auto attached = gs->dynamic.attached();
+    if (attached == nullptr) {
+        return;
+    }
 
-    auto index = 0;
-    for (auto &pair : modules) {
-        auto &meta = pair.meta;
-        auto &module = pair.module;
-        if (meta == nullptr || module == nullptr) {
+    auto nmodules = attached->modules().size();
+    if (nmodules == 0) {
+        return;
+    }
+
+    auto module_infos = pool.malloc<fk_data_ModuleInfo>(nmodules);
+    auto module_info = module_infos;
+    for (auto &attached_module : attached->modules()) {
+        auto position = attached_module.position();
+        auto meta = attached_module.meta();
+        auto header = attached_module.header();
+        auto configuration = attached_module.configuration();
+        auto module_instance = attached_module.get();
+        if (meta == nullptr || module_instance == nullptr) {
+            logerror("constructed module");
+            module_info++;
             continue;
         }
 
-        auto sensor_metas = module->get_sensors(pool);
+        auto sensor_metas = module_instance->get_sensors(pool);
 
         auto id_data = pool.malloc_with<pb_data_t>({
             .length = sizeof(fk_uuid_t),
-            .buffer = &pair.found.header.id,
+            .buffer = pool.copy(header.id),
         });
 
-        auto &m = module_infos[index];
-        m = fk_data_ModuleInfo_init_default;
-        m.position = pair.found.position.integer();
-        m.id.funcs.encode = pb_encode_data;
-        m.id.arg = (void *)id_data;
-        m.name.funcs.encode = pb_encode_string;
-        m.name.arg = (void *)pair.configuration.display_name_key;
-        m.has_header = true;
-        m.header.manufacturer = meta->manufacturer;
-        m.header.kind = meta->kind;
-        m.header.version = meta->version;
-        m.flags = meta->flags;
-
-        if (readings_iter != readings.end()) {
-            auto &mr = *readings_iter;
-            if (mr.configuration.message != nullptr) {
-                auto configuration_message_data = pool.malloc_with<pb_data_t>({
-                    .length = mr.configuration.message->size,
-                    .buffer = mr.configuration.message->buffer,
-                });
-                m.configuration.arg = (void *)configuration_message_data;
-            }
-            ++readings_iter;
-        }
-        else {
-            logwarn("readings vs modules size mismatch");
+        module_info->position = position.integer();
+        module_info->id.funcs.encode = pb_encode_data;
+        module_info->id.arg = (void *)id_data;
+        module_info->name.funcs.encode = pb_encode_string;
+        module_info->name.arg = (void *)configuration.display_name_key;
+        module_info->has_header = true;
+        module_info->header.manufacturer = meta->manufacturer;
+        module_info->header.kind = meta->kind;
+        module_info->header.version = meta->version;
+        module_info->flags = meta->flags;
+        if (configuration.message != nullptr) {
+            auto configuration_message_data = pool.malloc_with<pb_data_t>({
+                .length = configuration.message->size,
+                .buffer = configuration.message->buffer,
+            });
+            module_info->configuration.arg = (void *)configuration_message_data;
         }
 
         if (sensor_metas != nullptr && sensor_metas->nsensors > 0) {
@@ -213,21 +245,23 @@ void MetaRecord::include_modules(GlobalState const *gs, fkb_header_t const *fkb_
 
             auto sensors_array = pool.malloc_with<pb_array_t>({
                 .length = sensor_metas->nsensors,
-                .itemSize = sizeof(fk_data_SensorInfo),
+                .allocated = sensor_metas->nsensors,
+                .item_size = sizeof(fk_data_SensorInfo),
                 .buffer = sensor_infos,
                 .fields = fk_data_SensorInfo_fields,
             });
 
-            m.sensors.funcs.encode = pb_encode_array;
-            m.sensors.arg = (void *)sensors_array;
+            module_info->sensors.funcs.encode = pb_encode_array;
+            module_info->sensors.arg = (void *)sensors_array;
         }
 
-        index++;
+        module_info++;
     }
 
     auto modules_array = pool.malloc_with<pb_array_t>({
-        .length = (size_t)index,
-        .itemSize = sizeof(fk_data_ModuleInfo),
+        .length = nmodules,
+        .allocated = nmodules,
+        .item_size = sizeof(fk_data_ModuleInfo),
         .buffer = module_infos,
         .fields = fk_data_ModuleInfo_fields,
     });
@@ -247,19 +281,22 @@ void MetaRecord::include_modules(GlobalState const *gs, fkb_header_t const *fkb_
     auto hash_size = fkb_header->firmware.hash_size;
     auto hash_hex = bytes_to_hex_string_pool(fkb_header->firmware.hash, hash_size, pool);
 
-    record_ = fk_data_record_encoding_new();
-    record_.has_metadata = true;
-    record_.metadata.has_firmware = true;
-    record_.metadata.firmware.version.arg = (void *)fkb_header->firmware.version;
-    record_.metadata.firmware.build.arg = (void *)"";
-    record_.metadata.firmware.hash.arg = (void *)hash_hex;
-    record_.metadata.firmware.number.arg = (void *)pool.sprintf("%d", fkb_header->firmware.number);
-    record_.metadata.firmware.timestamp = fkb_header->firmware.timestamp;
-    record_.metadata.deviceId.arg = (void *)device_id_data;
-    record_.metadata.generation.arg = (void *)generation_data;
-    record_.has_identity = true;
-    record_.identity.name.arg = (void *)gs->general.name;
-    record_.modules.arg = (void *)modules_array;
+    if (record_ == nullptr) {
+        record_ = pool.malloc<fk_data_DataRecord>();
+    }
+    fk_data_record_encoding_new(record_);
+    record_->has_metadata = true;
+    record_->metadata.has_firmware = true;
+    record_->metadata.firmware.version.arg = (void *)fkb_header->firmware.version;
+    record_->metadata.firmware.build.arg = (void *)"";
+    record_->metadata.firmware.hash.arg = (void *)hash_hex;
+    record_->metadata.firmware.number.arg = (void *)pool.sprintf("%d", fkb_header->firmware.number);
+    record_->metadata.firmware.timestamp = fkb_header->firmware.timestamp;
+    record_->metadata.deviceId.arg = (void *)device_id_data;
+    record_->metadata.generation.arg = (void *)generation_data;
+    record_->has_identity = true;
+    record_->identity.name.arg = (void *)gs->general.name;
+    record_->modules.arg = (void *)modules_array;
 }
 
-}
+} // namespace fk

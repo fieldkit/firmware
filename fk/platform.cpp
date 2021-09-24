@@ -87,6 +87,8 @@ using namespace std::chrono;
 std::queue<uint32_t> uptimes;
 
 uint32_t fk_fake_uptime(std::vector<uint32_t> more) {
+    std::queue<uint32_t> empty;
+    std::swap(uptimes, empty);
     for (auto a : more) {
         uptimes.push(a);
     }
@@ -101,9 +103,7 @@ static uint32_t started = 0;
 
 uint32_t fk_uptime() {
     if (uptimes.size() > 0) {
-        auto time = uptimes.front();
-        uptimes.pop();
-        return time;
+        return uptimes.front();
     }
     auto machine_uptime = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     if (started == 0) {
@@ -173,8 +173,16 @@ void fk_free_internal(void *ptr, const char *file, int32_t line) {
     return ::free(ptr);
 }
 
-void osi_panic(os_panic_kind_t code) {
+void osi_debug_dump(os_panic_kind_t code) {
     alogf(LogLevels::ERROR, "error", "panic! (%s)", os_panic_kind_str(code));
+
+    if (osg.scheduled != NULL) {
+        alogf(LogLevels::ERROR, "error", "osg.scheduled '%s' status(%s) (0x%" PRIx32 ")", osg.scheduled->name, os_task_status_str(osg.scheduled->status), osg.scheduled->priority);
+    }
+
+    if (osg.running != NULL) {
+        alogf(LogLevels::ERROR, "error", "osg.running '%s' status(%s) (0x%" PRIx32 ")", osg.running->name, os_task_status_str(osg.running->status), osg.running->priority);
+    }
 
     for (os_task_t *iter = osg.runqueue; iter != NULL; iter = iter->nrp) {
         alogf(LogLevels::ERROR, "error", "rq '%s' status(%s) (0x%" PRIx32 ")", iter->name, os_task_status_str(iter->status), iter->priority);
@@ -185,6 +193,10 @@ void osi_panic(os_panic_kind_t code) {
     }
 
     fk::fk_logs_flush();
+}
+
+void osi_panic(os_panic_kind_t code) {
+    osi_debug_dump(code);
 
     #if defined(__SAMD21__) || defined(__SAMD51__)
     NVIC_SystemReset();

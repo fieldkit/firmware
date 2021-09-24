@@ -10,26 +10,26 @@
 
 #include "modules/service_modules_worker.h"
 #include "modules/scan_modules_worker.h"
-#include "modules/module_factory.h"
 
 #include "networking/upload_data_worker.h"
 
 #include "tasks/tasks.h"
 
-namespace fk {
+#include "gps_service.h"
 
-ScheduledTime fk_schedule_get_scheduled_time();
+namespace fk {
 
 struct CurrentSchedules {
     lwcron::CronSpec readings;
     lwcron::CronSpec network;
     lwcron::CronSpec gps;
     lwcron::CronSpec lora;
+    lwcron::CronSpec backup;
     uint32_t service_interval;
     uint32_t network_jitter;
 
     CurrentSchedules();
-    CurrentSchedules(GlobalState const *gs, ModuleFactory const &module_factory);
+    CurrentSchedules(GlobalState const *gs);
 
     bool equals(CurrentSchedules const &o) const;
 };
@@ -48,8 +48,11 @@ public:
 };
 
 class GpsTask : public lwcron::CronTask, public SchedulerTask {
+private:
+    GpsService &gps_service_;
+
 public:
-    explicit GpsTask(lwcron::CronSpec cron_spec);
+    explicit GpsTask(lwcron::CronSpec cron_spec, GpsService &gps_service);
 
 public:
     void run() override;
@@ -96,6 +99,16 @@ public:
     void run() override ;
     const char *toString() const override;
     bool enabled() const override;
+
+};
+
+class BackupTask : public lwcron::CronTask, public SchedulerTask {
+public:
+    explicit BackupTask(lwcron::CronSpec cron_spec);
+
+public:
+    void run() override;
+    const char *toString() const override;
 
 };
 

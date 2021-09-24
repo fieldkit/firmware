@@ -1,12 +1,12 @@
 #pragma once
 
-#if defined(FK_HARDWARE_FULL)
+#if defined(__SAMD51__)
 
 #include <os.h>
 
+#include "config.h"
 #include "hal/ipc.h"
 #include "hal/mutex.h"
-#include "config.h"
 
 namespace fk {
 
@@ -30,7 +30,7 @@ public:
     void verify() override;
 
 public:
-    bool launch_worker(WorkerCategory category, TaskWorker *worker) override;
+    bool launch_worker(WorkerCategory category, TaskWorker *worker, bool concurrency_allowed) override;
     bool remove_worker(TaskWorker *worker) override;
     bool signal_workers(WorkerCategory category, uint32_t signal) override;
     collection<TaskDisplayInfo> get_workers_display_info(Pool &pool) override;
@@ -39,53 +39,23 @@ public:
 
 private:
     bool can_launch(WorkerCategory category);
-
-};
-
-class NoopMutex {
-public:
-    class Lock {
-    public:
-        Lock() {
-        }
-        virtual ~Lock() {
-        }
-
-    public:
-        operator bool() {
-            return true;
-        }
-    };
-
-public:
-    bool create() {
-        return true;
-    }
-
-    Lock acquire(uint32_t to) {
-        return Lock{ };
-    }
-
-    bool release() {
-        return true;
-    }
-
-    bool is_owner() {
-        return true;
-    }
 };
 
 class MetalMutex : public Mutex {
 private:
+    const char *name_{ "unknown" };
     os_mutex_definition_t def_;
     os_mutex_t mutex_;
+
+public:
+    MetalMutex(const char *name) : name_(name) {
+    }
 
 public:
     bool create() override;
     Lock acquire(uint32_t to) override;
     bool release() override;
     bool is_owner() override;
-
 };
 
 class MetalRwLock : public RwLock {
@@ -98,14 +68,18 @@ public:
     Lock acquire_read(uint32_t to) override;
     Lock acquire_write(uint32_t to) override;
     bool release() override;
-
 };
 
 extern MetalMutex storage_mutex;
 extern MetalMutex modules_mutex;
 extern MetalMutex sd_mutex;
+extern MetalMutex wifi_mutex;
+extern MetalMutex i2c_module_mutex;
+extern MetalMutex i2c_core_mutex;
+extern MetalMutex i2c_radio_mutex;
+extern MetalMutex lora_mutex;
 extern MetalRwLock data_lock;
 
-}
+} // namespace fk
 
 #endif

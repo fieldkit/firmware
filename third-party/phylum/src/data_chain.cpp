@@ -3,54 +3,59 @@
 
 namespace phylum {
 
-int32_t data_chain::write_header(page_lock &page_lock) {
-    logged_task it{ "dc-write-hdr", name() };
-
+int32_t data_chain::write_header(page_lock &lock) {
     assert_valid();
+
+    db().clear();
 
     db().emplace<data_chain_header_t>();
 
     db().terminate();
 
-    page_lock.dirty();
+    lock.dirty();
     appendable(true);
 
     return 0;
 }
 
 int32_t data_chain::seek_sector(dhara_sector_t new_sector, file_size_t position_at_start_of_sector, file_size_t desired_position) {
+    logged_task lt{ "dc-seek", name() };
+
     assert(desired_position >= position_at_start_of_sector);
 
     sector(new_sector);
 
     position_ = position_at_start_of_sector;
     position_at_start_of_sector_ = position_at_start_of_sector;
+    auto skipping = desired_position == UINT32_MAX ? desired_position : desired_position - position_;
 
-    auto nread = skip_bytes(desired_position == UINT32_MAX ? desired_position : desired_position - position_);
+    auto nread = skip_bytes(skipping);
     if (nread < 0) {
         return nread;
     }
 
-    phydebugf("seek done desired=%d position=%d nread=%d", desired_position, position_, nread);
+    phyinfof("seek done desired=%d position=%d nread=%d", desired_position, position_, nread);
 
-    assert(desired_position == InvalidSector || desired_position == position_);
+    assert(desired_position == UINT32_MAX || desired_position == position_);
+
+    if (desired_position == UINT32_MAX) {
+        appendable(true);
+    }
 
     return nread;
 }
 
 int32_t data_chain::skip_bytes(file_size_t bytes) {
+    if (bytes == 0) {
+        return bytes;
+    }
+
     int32_t nread = 0;
 
-    while (true) {
-        auto remaining = MaximumNullReadSize;
-        if (bytes != UINT32_MAX) {
-            remaining = bytes - nread;
-        }
-        if (remaining == 0) {
-            break;
-        }
+    noop_writer dev_null { bytes };
 
-        auto err = read(nullptr, remaining);
+    while (true) {
+        auto err = read_chain(dev_null);
         if (err < 0) {
             return err;
         }
@@ -64,12 +69,13 @@ int32_t data_chain::skip_bytes(file_size_t bytes) {
     return nread;
 }
 
-int32_t data_chain::skip_records(record_number_t number_records) {
+int32_t data_chain::skip_records(record_number_t skipping) {
     int32_t err;
 
-    record_number_t skipped = 0;
+    record_number_t records = 0;
+    file_size_t bytes = 0;
 
-    while (skipped < number_records) {
+    while (records < skipping) {
         uint32_t record_size = 0;
         err = read_delimiter(&record_size);
         if (err < 0) {
@@ -80,26 +86,27 @@ int32_t data_chain::skip_records(record_number_t number_records) {
             break;
         }
 
-        phydebugf("%d record-size: %d (%d delim-bytes)", position_, record_size, err);
-
         err = skip_bytes(record_size);
         if (err < 0) {
             return err;
         }
 
-        skipped++;
+        bytes += err + record_size;
+        records++;
     }
 
-    return skipped;
+    phyverbosef("skipped records=%d bytes=%d position=%d", records, bytes, position_);
+
+    return records;
 }
 
-int32_t data_chain::seek_end_of_buffer(page_lock &/*page_lock*/) {
+int32_t data_chain::seek_end_of_buffer(page_lock &/*lock*/) {
     auto err = db().seek_end();
     if (err < 0) {
         return err;
     }
 
-    phydebugf("seeking end of buffer %d", db().position());
+    phyverbosef("seeking end of buffer %d", db().position());
 
     appendable(true);
 
@@ -109,58 +116,52 @@ int32_t data_chain::seek_end_of_buffer(page_lock &/*page_lock*/) {
 int32_t data_chain::write(uint8_t const *data, size_t size) {
     logged_task it{ "dc-write", name() };
 
-    auto copied = 0u;
-    return write_chain([&](write_buffer buffer, bool &grow) {
-        auto remaining = size - copied;
-        auto copying = std::min<int32_t>(buffer.available(), remaining);
-        if (copying > 0) {
-            memcpy(buffer.cursor(), data + copied, copying);
-            copied += copying;
-        }
-        if (size - copied > 0) {
-            grow = true;
-        }
-        return copying;
-    });
+    read_buffer buffer{ data, size };
+    buffer_reader reader{ buffer };
+    return write_chain(reader);
+}
+
+int32_t data_chain::truncate(uint8_t const *data, size_t size) {
+    assert(head() != InvalidSector && tail() != InvalidSector);
+
+    sector(head());
+
+    auto lock = db().writing(sector());
+
+    auto err = prepare_sector(lock, InvalidSector, true);
+    if (err < 0) {
+        return err;
+    }
+
+    read_buffer buffer{ data, size };
+    buffer_reader reader{ buffer };
+    err = write_chain(lock, reader);
+    if (err < 0) {
+        return err;
+    }
+
+    err = flush(lock);
+    if (err < 0) {
+        return err;
+    }
+
+    return size;
 }
 
 int32_t data_chain::read_delimiter(uint32_t *delimiter) {
     assert(delimiter != nullptr);
 
-    logged_task lt{ "dc-read", name() };
-
     assert_valid();
 
-    *delimiter = 0;
+    varint_decoder decoder;
+    auto err = read_chain(decoder);
+    if (err < 0) {
+        return err;
+    }
 
-    int32_t bits = 0;
-    int32_t nread = 0;
+    *delimiter = decoder.value();
 
-    return read_chain([&](read_buffer view) -> int32_t {
-        uint8_t byte;
-
-        while (true) {
-            auto err = view.read_byte(&byte);
-            if (err < 0) {
-                return err;
-            }
-            if (err != 1) {
-                return -1;
-            }
-
-            nread++;
-
-            uint32_t ll = byte;
-            *delimiter += ((ll & 0x7F) << bits);
-            bits += 7;
-
-            if (!(byte & 0x80)) {
-                break;
-            }
-        }
-
-        return nread;
-    });
+    return err;
 }
 
 int32_t data_chain::read(uint8_t *data, size_t size) {
@@ -168,98 +169,108 @@ int32_t data_chain::read(uint8_t *data, size_t size) {
 
     assert_valid();
 
-    simple_buffer reading{ data, size };
-    return read_chain([&](read_buffer view) {
-        return reading.fill_from(view);
-    });
+    write_buffer buffer{ data, size };
+    buffer_writer writer{ buffer };
+    return read_chain(writer);
 }
 
 file_size_t data_chain::total_bytes() {
-    logged_task lt{ "total-bytes" };
+    logged_task lt{ "total-bytes", name() };
 
-    auto page_lock = db().reading(head());
+    auto lock = db().reading(head());
 
-    back_to_head(page_lock);
+    back_to_head(lock);
 
     auto bytes = 0u;
     do {
         bytes += db().header<data_chain_header_t>()->bytes;
     }
-    while (forward(page_lock) > 0);
+    while (forward(lock) > 0);
 
-    phydebugf("done (%d)", bytes);
+    phyverbosef("done (%d)", bytes);
 
     return bytes;
 }
 
-int32_t data_chain::write_chain(std::function<int32_t(write_buffer, bool &)> data_fn) {
-    logged_task lt{ "write-data-chain" };
-
+int32_t data_chain::write_chain(io_reader &reader) {
     if (!appendable()) {
-        phydebugf("making appendable");
+        phyverbosef("making appendable");
 
-        auto page_lock = db().writing(head());
+        auto lock = db().writing(head());
 
-        assert(back_to_head(page_lock) >= 0);
+        assert(back_to_head(lock) >= 0);
 
-        logged_task lt{ name() };
+        // logged_task lt{ name() };
 
-        auto err = seek_end_of_chain(page_lock);
+        auto err = seek_end_of_chain(lock);
         if (err < 0) {
             return err;
         }
 
-        err = write_header_if_at_start(page_lock);
+        err = write_header_if_at_start(lock);
         if (err < 0) {
             return err;
         }
 
         if (err == 0) {
             auto hdr = db().header<data_chain_header_t>();
-            phydebugf("write resuming sector-bytes=%d", hdr->bytes);
+            phyverbosef("write resuming sector-bytes=%d", hdr->bytes);
             assert(db().skip(hdr->bytes) >= 0);
         }
 
         appendable(true);
     }
 
-    auto page_lock = db().writing(sector());
+    auto lock = db().writing(sector());
 
+    auto err = write_chain(lock, reader);
+    if (err < 0) {
+        return err;
+    }
+
+    return err;
+}
+
+int32_t data_chain::write_chain(page_lock &lock, io_reader &reader) {
     auto written = 0;
 
     while (true) {
-        phydebugf("write: position=%zu available=%zu size=%zu", db().position(), db().available(), db().size());
+        phyverbosef("write: position=%zu available=%zu size=%zu", db().position(), db().available(), db().size());
 
         auto grow = false;
         auto err = db().write_view([&](write_buffer wb) {
-            auto err = data_fn(std::move(wb), grow);
-            if (err < 0) {
-                return err;
+            auto bytes_read = reader.read(wb.cursor(), wb.available());
+            if (bytes_read < 0) {
+                return bytes_read;
             }
 
             // Do this before we grow so the details are saved.
-            assert(db().write_header<data_chain_header_t>([&](data_chain_header_t *header) {
-                assert(header->bytes + err <= (int32_t)sector_size());
-                header->bytes += err;
+            auto err = db().write_header<data_chain_header_t>([&](data_chain_header_t *header) {
+                assert(header->bytes + bytes_read <= (int32_t)sector_size());
+                header->bytes += bytes_read;
                 return 0;
-            }) == 0);
+            });
+            assert(err == 0);
 
-            written += err;
-            position_ += err;
+            written += bytes_read;
+            position_ += bytes_read;
 
-            db().skip(err); // TODO Remove
+            db().skip(bytes_read); // TODO Remove
 
-            return err;
+            if ((int32_t)wb.available() == bytes_read) {
+                grow = true;
+            }
+            return bytes_read;
         });
         if (err < 0) {
             return err;
         }
 
-        page_lock.dirty();
+        lock.dirty();
 
         // Grow and write header.
         if (grow) {
-            auto err = grow_tail(page_lock);
+            auto err = grow_tail(lock);
             if (err < 0) {
                 return err;
             }
@@ -273,8 +284,8 @@ int32_t data_chain::write_chain(std::function<int32_t(write_buffer, bool &)> dat
     }
 
     // TODO Can we remove this?
-    if (page_lock.is_dirty()) {
-        auto err = page_lock.flush(page_lock.sector());
+    if (lock.is_dirty()) {
+        auto err = lock.flush(lock.sector());
         if (err < 0) {
             return err;
         }
@@ -287,19 +298,30 @@ int32_t data_chain::constrain() {
     auto iter = db().begin();
     auto hdr = db().header<data_chain_header_t>();
     auto total = hdr->bytes + iter.position() + iter.size_of_record() + 1 /* Null terminator */;
-    phydebugf("constrain hdr-bytes=%d + hdr-pos=%d + hdr->size=%d + 1 <null> = total=%d", hdr->bytes, iter.position(), iter.size_of_record(), total);
+    phyverbosef("constrain hdr-bytes=%d + hdr-pos=%d + hdr->size=%d + 1 <null> = total=%d", hdr->bytes, iter.position(), iter.size_of_record(), total);
     assert(db().constrain(total) >= 0);
+
+    /**
+     * Due to a bug somewhere, if the sector is empty, then the
+     * delimited buffer position could be just before the null
+     * terminator. This seems like an ok sanity check, that the
+     * position should never be before the minimum position and will
+     * hold us over until I can find the real off by one issue.
+     */
+    auto minimum = 2 + sizeof(data_chain_header_t) + 1;
+    if (db().position() < minimum) {
+        phyverbosef("constraining to minimum position=%d", minimum);
+        db().position(minimum);
+    }
     return 0;
 }
 
-int32_t data_chain::read_chain(std::function<int32_t(read_buffer)> data_fn) {
-    logged_task lt{ "read-data-chain", name() };
-
+int32_t data_chain::read_chain(io_writer &writer) {
     assert_valid();
 
-    auto page_lock = db().reading(sector());
+    auto lock = db().reading(sector());
 
-    auto err = ensure_loaded(page_lock);
+    auto err = ensure_loaded(lock);
     if (err < 0) {
         return err;
     }
@@ -318,14 +340,16 @@ int32_t data_chain::read_chain(std::function<int32_t(read_buffer)> data_fn) {
 
             assert(constrain() >= 0);
 
-            phydebugf("read resuming position=%d available=%d", db().position(), db().available());
+            phyverbosef("read resuming position=%d available=%d", db().position(), db().available());
         }
 
         // If we have data available.
         if (db().available() > 0) {
-            phydebugf("view position=%zu available=%zu", db().position(), db().available());
+            auto read_buffer = db().to_read_buffer();
 
-            auto err = data_fn(db().to_read_buffer());
+            phyverbosef("view position=%zu available=%zu readable=%d", db().position(), db().available(), read_buffer.available());
+
+            auto err = writer.write(read_buffer.cursor(), read_buffer.available());
             if (err < 0) {
                 return err;
             }
@@ -337,7 +361,7 @@ int32_t data_chain::read_chain(std::function<int32_t(read_buffer)> data_fn) {
             }
         }
 
-        auto err = forward(page_lock);
+        auto err = forward(lock);
         if (err < 0) {
             return err;
         } else if (err == 0) {

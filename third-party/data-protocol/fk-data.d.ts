@@ -2431,8 +2431,8 @@ export namespace fk_data {
         /** LoraSettings appKey */
         appKey?: (Uint8Array|null);
 
-        /** LoraSettings appEui */
-        appEui?: (Uint8Array|null);
+        /** LoraSettings joinEui */
+        joinEui?: (Uint8Array|null);
 
         /** LoraSettings frequencyBand */
         frequencyBand?: (number|null);
@@ -2468,8 +2468,8 @@ export namespace fk_data {
         /** LoraSettings appKey. */
         public appKey: Uint8Array;
 
-        /** LoraSettings appEui. */
-        public appEui: Uint8Array;
+        /** LoraSettings joinEui. */
+        public joinEui: Uint8Array;
 
         /** LoraSettings frequencyBand. */
         public frequencyBand: number;
@@ -3109,6 +3109,9 @@ export namespace fk_data {
 
         /** CalibrationPoint uncalibrated */
         uncalibrated?: (number[]|null);
+
+        /** CalibrationPoint factory */
+        factory?: (number[]|null);
     }
 
     /** Represents a CalibrationPoint. */
@@ -3125,6 +3128,9 @@ export namespace fk_data {
 
         /** CalibrationPoint uncalibrated. */
         public uncalibrated: number[];
+
+        /** CalibrationPoint factory. */
+        public factory: number[];
 
         /**
          * Creates a new CalibrationPoint instance using the specified properties.

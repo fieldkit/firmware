@@ -13,12 +13,29 @@ struct FoundModule {
     ModulePosition position;
     ModuleHeader header;
 
+    FoundModule(ModulePosition const &position, ModuleHeader const &header) : position(position), header(header) {
+    }
+
     bool physical() const {
         return position != ModulePosition::Virtual;
     }
 };
 
 using FoundModuleCollection = collection<FoundModule>;
+
+class ScanningListener {
+public:
+    virtual int32_t scanned_module(ModulePosition const position, ModuleHeader const &header, Pool *pool) = 0;
+
+};
+
+class NoopScanningListener : public ScanningListener {
+public:
+    int32_t scanned_module(ModulePosition const position, ModuleHeader const &header, Pool *pool) override {
+        return 0;
+    }
+
+};
 
 class ModuleScanning {
 private:
@@ -28,15 +45,19 @@ public:
     explicit ModuleScanning(ModMux *mm);
 
 public:
-    virtual tl::expected<FoundModuleCollection, Error> scan(Pool &pool);
+    virtual int32_t scan(ScanningListener *listener, Pool &pool);
     virtual bool provision(ModulePosition position, ModuleHeader &header);
     virtual bool configure(ModulePosition position, uint8_t const *buffer, size_t size);
     virtual bool erase(ModulePosition position);
 
+public:
+    // Deprecated
+    virtual tl::expected<FoundModuleCollection, Error> scan(Pool &pool);
+
 private:
     bool available();
-    bool try_scan_single_module(ModulePosition position, FoundModuleCollection &found, Pool &pool);
-    bool try_read_configuration(ModulePosition position, Pool &pool);
+    bool try_scan_single_module(ScanningListener *listener, ModulePosition position, Pool &pool);
+    // bool try_read_configuration(ModulePosition position, Pool &pool);
 
 };
 
@@ -52,6 +73,7 @@ public:
     tl::expected<FoundModuleCollection, Error> scan(Pool &pool) override {
         return FoundModuleCollection(found_);
     }
+
 };
 
 } // namespace fk

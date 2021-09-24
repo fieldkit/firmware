@@ -1,75 +1,65 @@
-#include "water_module.h"
+#include "atlas_module.h"
 
 using namespace fk;
 
 extern "C" {
 
-static Module *fk_module_create_water(Pool &pool) {
-    return new(pool) WaterModule();
+static Module *fk_module_create_atlas(Pool &pool) {
+    return new (pool) AtlasModule(pool);
 }
 
-ModuleMetadata const fk_module_meta_water = {
+ModuleMetadata const fk_module_meta_atlas_ph = {
     .manufacturer = FK_MODULES_MANUFACTURER,
-    .kind = FK_MODULES_KIND_WATER,
-    .version = 0x01,
-    .name = "water",
-    .flags = FK_MODULES_FLAG_NONE,
-    .ctor = fk_module_create_water,
-};
-
-ModuleMetadata const fk_module_meta_water_ph = {
-    .manufacturer = FK_MODULES_MANUFACTURER,
-    .kind = FK_MODULES_KIND_WATER_PH,
+    .kind = FK_MODULES_KIND_ATLAS_PH,
     .version = 0x01,
     .name = "water.ph",
     .flags = FK_MODULES_FLAG_NONE,
-    .ctor = fk_module_create_water,
+    .ctor = fk_module_create_atlas,
 };
 
-ModuleMetadata const fk_module_meta_water_ec = {
+ModuleMetadata const fk_module_meta_atlas_ec = {
     .manufacturer = FK_MODULES_MANUFACTURER,
-    .kind = FK_MODULES_KIND_WATER_EC,
+    .kind = FK_MODULES_KIND_ATLAS_EC,
     .version = 0x01,
     .name = "water.ec",
     .flags = FK_MODULES_FLAG_NONE,
-    .ctor = fk_module_create_water,
+    .ctor = fk_module_create_atlas,
 };
 
-ModuleMetadata const fk_module_meta_water_do = {
+ModuleMetadata const fk_module_meta_atlas_do = {
     .manufacturer = FK_MODULES_MANUFACTURER,
-    .kind = FK_MODULES_KIND_WATER_DO,
+    .kind = FK_MODULES_KIND_ATLAS_DO,
     .version = 0x01,
     .name = "water.do",
     .flags = FK_MODULES_FLAG_NONE,
-    .ctor = fk_module_create_water,
+    .ctor = fk_module_create_atlas,
 };
 
-ModuleMetadata const fk_module_meta_water_temp = {
+ModuleMetadata const fk_module_meta_atlas_temp = {
     .manufacturer = FK_MODULES_MANUFACTURER,
-    .kind = FK_MODULES_KIND_WATER_TEMP,
+    .kind = FK_MODULES_KIND_ATLAS_TEMP,
     .version = 0x01,
     .name = "water.temp",
     .flags = FK_MODULES_FLAG_NONE,
-    .ctor = fk_module_create_water,
+    .ctor = fk_module_create_atlas,
 };
 
-ModuleMetadata const fk_module_meta_water_orp = {
+ModuleMetadata const fk_module_meta_atlas_orp = {
     .manufacturer = FK_MODULES_MANUFACTURER,
-    .kind = FK_MODULES_KIND_WATER_ORP,
+    .kind = FK_MODULES_KIND_ATLAS_ORP,
     .version = 0x01,
     .name = "water.orp",
     .flags = FK_MODULES_FLAG_NONE,
-    .ctor = fk_module_create_water,
+    .ctor = fk_module_create_atlas,
 };
 
 __attribute__((constructor))
-void fk_module_initialize_water() {
-    fk_modules_builtin_register(&fk_module_meta_water);
-    fk_modules_builtin_register(&fk_module_meta_water_ph);
-    fk_modules_builtin_register(&fk_module_meta_water_ec);
-    fk_modules_builtin_register(&fk_module_meta_water_do);
-    fk_modules_builtin_register(&fk_module_meta_water_temp);
-    fk_modules_builtin_register(&fk_module_meta_water_orp);
+void fk_module_initialize_atlas() {
+    fk_modules_builtin_register(&fk_module_meta_atlas_ph);
+    fk_modules_builtin_register(&fk_module_meta_atlas_ec);
+    fk_modules_builtin_register(&fk_module_meta_atlas_do);
+    fk_modules_builtin_register(&fk_module_meta_atlas_temp);
+    fk_modules_builtin_register(&fk_module_meta_atlas_orp);
 }
 
 }

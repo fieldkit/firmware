@@ -29,14 +29,14 @@ bool ReceiveFirmwareWorker::read_complete_and_fail(const char *error, Pool &pool
 
 bool ReceiveFirmwareWorker::write_error(const char *kind, Pool &pool) {
     auto body = pool.sprintf("{ \"%s\": true }", kind);
-    connection_->plain(500, "error", body);
+    connection_->plain(HttpStatus::ServerError, "error", body, pool);
     connection_->close();
     return true;
 }
 
-bool ReceiveFirmwareWorker::write_success(Pool &pool) {
-    auto body = pool.sprintf("{ \"%s\": true }", "success");
-    connection_->plain(200, "ok", body);
+bool ReceiveFirmwareWorker::write_success(const char *hash, Pool &pool) {
+    auto body = pool.sprintf("{ \"success\": true, \"hash\": \"%s\" }", hash);
+    connection_->plain(HttpStatus::Ok, "ok", body, pool);
     connection_->close();
     return true;
 }
@@ -46,6 +46,11 @@ void ReceiveFirmwareWorker::run(Pool &pool) {
     auto expected = connection_->length();
 
     loginfo("receiving %" PRIu32 " bytes...", expected);
+
+    if (expected <= Hash::Length) {
+        read_complete_and_fail("length", pool);
+        return;
+    }
 
     GlobalStateProgressCallbacks gs_progress;
     ProgressTracker tracker{ &gs_progress, Operation::Download, "receiving", "", expected };
@@ -81,23 +86,45 @@ void ReceiveFirmwareWorker::run(Pool &pool) {
         return;
     }
 
+    auto b2b = new (pool) BLAKE2b();
+
+    b2b->reset(Hash::Length);
+
+    loginfo("reading binary");
+
     auto buffer = reinterpret_cast<uint8_t*>(pool.malloc(NetworkBufferSize));
-    auto bytes_copied = (uint32_t)0;
+    auto bytes_copied = 0u;
+    auto bytes_hashing = expected - Hash::Length;
+    auto bytes_hashed = 0u;
 
     while (connection_->active() && bytes_copied < expected) {
         auto bytes = connection_->read(buffer, NetworkBufferSize);
         if (bytes > 0) {
-            if (file->write(buffer, bytes) == bytes) {
+            auto wrote = file->write(buffer, bytes);
+            if (wrote == bytes) {
                 bytes_copied += bytes;
+            }
+            else {
+                logerror("write (%d != %d)", wrote, bytes);
             }
 
             tracker.update(bytes);
+
+            auto nbytes_hash = std::min<int32_t>(bytes_hashing - bytes_hashed, wrote);
+            b2b->update(buffer, nbytes_hash);
+            bytes_hashed += nbytes_hash;
         }
     }
 
     file->close();
 
     tracker.finished();
+
+    Hash received_hash;
+    b2b->finalize(&received_hash.hash, Hash::Length);
+
+    auto hex_hash = bytes_to_hex_string_pool(received_hash.hash, Hash::Length, pool);
+    loginfo("received hash: %s", hex_hash);
 
     if (bytes_copied != expected) {
         logwarn("unexpected bytes %" PRIu32 " != %" PRIu32, bytes_copied, expected);
@@ -107,7 +134,7 @@ void ReceiveFirmwareWorker::run(Pool &pool) {
 
     file->close();
 
-    write_success(pool);
+    write_success(hex_hash, pool);
 
     fk_delay(500);
 

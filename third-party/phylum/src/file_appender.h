@@ -3,10 +3,12 @@
 #include "data_chain.h"
 #include "simple_buffer.h"
 #include "directory.h"
+#include "writer.h"
+#include "helpers.h"
 
 namespace phylum {
 
-class file_appender {
+class file_appender : public io_writer {
 private:
     phyctx pc_;
     directory *directory_{ nullptr };
@@ -39,63 +41,62 @@ public:
         return size_of_delimiter;
     }
 
-    int32_t write(char const *str) {
-        return write((uint8_t *)str, strlen(str));
-    }
+    int32_t seek();
 
-    int32_t write(char const *str, size_t size) {
-        return write((uint8_t *)str, size);
-    }
+    int32_t write(uint8_t const *data, size_t size) override;
 
-    int32_t write(uint8_t const *data, size_t size);
-
-    uint32_t u32(uint8_t type);
-
-    void u32(uint8_t type, uint32_t value);
+    using io_writer::write;
 
     int32_t flush();
 
     int32_t close();
 
-    int32_t index_if_necessary(std::function<int32_t(data_chain_cursor)> fn);
+    int32_t index_necessary();
 
     template<typename tree_type>
     int32_t index_if_necessary(record_number_t record_number) {
-        int32_t err;
+        auto err = index_necessary();
+        if (err <= 0) {
+            return err;
+        }
 
-        err = index_if_necessary([&](data_chain_cursor cursor) {
-            alogf(LogLevels::INFO, "phylum", "indexing position=%d, psos=%d cursor=%d", cursor.position, cursor.position_at_start_of_sector, cursor.sector);
+        auto cursor = this->cursor();
 
-            tree_type position_index{ data_chain_.pc(), file_.position_index, "posidx" };
-            err = position_index.add(cursor.position_at_start_of_sector, cursor.sector);
+        alogf(LogLevels::INFO, "phylum", "indexing position=%" PRIu32 ", psos=%" PRIu32 " cursor=%" PRIu32 " buffer-pos=%zu",
+              cursor.position, cursor.position_at_start_of_sector, cursor.sector, buffer_.position());
+
+        tree_type position_index{ data_chain_.pc(), file_.position_index, "pos-idx" };
+        err = position_index.add(cursor.position_at_start_of_sector, cursor.sector);
+        if (err < 0) {
+            return err;
+        }
+
+        tree_type record_index{ data_chain_.pc(), file_.record_index, "rec-idx" };
+        err = record_index.add(record_number, cursor.position);
+        if (err < 0) {
+            return err;
+        }
+
+        auto position_after = position_index.to_tree_ptr();
+        auto record_after = record_index.to_tree_ptr();
+
+        auto position_changed = position_after != file_.position_index;
+        auto record_changed = record_after != file_.record_index;
+
+        // Update tree_ptr_t's because they wander.
+        if (position_changed || record_changed) {
+            auto err = directory_->file_trees(file_.id, position_after, record_after);
             if (err < 0) {
                 return err;
             }
+        }
 
-            tree_type record_index{ data_chain_.pc(), file_.record_index, "recidx" };
-            err = record_index.add(record_number, cursor.position);
-            if (err < 0) {
-                return err;
-            }
+        return 1;
+    }
 
-            auto position_after = position_index.to_tree_ptr();
-            auto record_after = record_index.to_tree_ptr();
-
-            auto position_changed = position_after != file_.position_index;
-            auto record_changed = record_after != file_.record_index;
-
-            // Update tree_ptr_t's because they wander.
-            if (position_changed || record_changed) {
-                auto err = directory_->file_trees(file_.id, position_after, record_after);
-                if (err < 0) {
-                    return err;
-                }
-            }
-
-            return 0;
-        });
-
-        return err;
+    template <typename tree_type>
+    int32_t seek_position(uint32_t desired_position) {
+        return data_chain_helpers::indexed_seek<tree_type>(data_chain_, file_.position_index, desired_position);
     }
 
 private:

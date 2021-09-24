@@ -1,6 +1,6 @@
 #pragma once
 
-#if defined(ARDUINO)
+#if defined(__SAMD51__)
 
 #include <WiFi101.h>
 #include <WiFiUdp.h>
@@ -52,4 +52,4 @@ private:
 
 }
 
-#endif // defined(ARDUINO)
+#endif // defined(__SAMD51__)

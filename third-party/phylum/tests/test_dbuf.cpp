@@ -15,7 +15,8 @@ TYPED_TEST(DelimitedBufferFixture, SeekEnd_SkipsTerminator) {
     using layout_type = TypeParam;
     layout_type layout;
 
-    malloc_working_buffers buffers{ layout.sector_size };
+    standard_library_malloc buffer_memory;
+    working_buffers buffers{ &buffer_memory, layout.sector_size, 32 };
     delimited_buffer db{ buffers.allocate(layout.sector_size) };
 
     db.emplace<data_chain_header_t>();
@@ -41,7 +42,8 @@ TYPED_TEST(DelimitedBufferFixture, SeekEnd_IgnoresAfterTerminator) {
     using layout_type = TypeParam;
     layout_type layout;
 
-    malloc_working_buffers buffers{ layout.sector_size };
+    standard_library_malloc buffer_memory;
+    working_buffers buffers{ &buffer_memory, layout.sector_size, 32 };
     delimited_buffer db{ buffers.allocate(layout.sector_size) };
 
     db.emplace<data_chain_header_t>();

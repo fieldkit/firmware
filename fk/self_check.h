@@ -16,15 +16,16 @@ struct SelfCheckSettings {
     SelfCheckSettings() {
     }
 
-    SelfCheckSettings(bool gps, bool sd_card, bool backplane, bool lora, bool flash_leds) : check_gps(gps), check_sd_card(sd_card), check_backplane(backplane), check_lora(lora), flash_leds(flash_leds) {
+    SelfCheckSettings(bool gps, bool sd_card, bool backplane, bool lora, bool flash_leds, bool module_presence)
+        : check_gps(gps), check_sd_card(sd_card), check_backplane(backplane), check_lora(lora), flash_leds(flash_leds), module_presence(module_presence) {
     }
 
     static SelfCheckSettings detailed() {
-        return { true, true, true, true, true };
+        return { true, true, true, true, true, true };
     }
 
     static SelfCheckSettings defaults() {
-        return { true, true, true, true, false };
+        return { true, true, true, false, false, false };
     }
 };
 

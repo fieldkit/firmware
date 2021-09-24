@@ -12581,10 +12581,10 @@ public final class FkData {
     com.google.protobuf.ByteString getAppKey();
 
     /**
-     * <code>bytes appEui = 3;</code>
-     * @return The appEui.
+     * <code>bytes joinEui = 3;</code>
+     * @return The joinEui.
      */
-    com.google.protobuf.ByteString getAppEui();
+    com.google.protobuf.ByteString getJoinEui();
 
     /**
      * <code>uint32 frequencyBand = 4;</code>
@@ -12633,7 +12633,7 @@ public final class FkData {
     private LoraSettings() {
       deviceEui_ = com.google.protobuf.ByteString.EMPTY;
       appKey_ = com.google.protobuf.ByteString.EMPTY;
-      appEui_ = com.google.protobuf.ByteString.EMPTY;
+      joinEui_ = com.google.protobuf.ByteString.EMPTY;
       deviceAddress_ = com.google.protobuf.ByteString.EMPTY;
       networkSessionKey_ = com.google.protobuf.ByteString.EMPTY;
       appSessionKey_ = com.google.protobuf.ByteString.EMPTY;
@@ -12692,31 +12692,31 @@ public final class FkData {
       appKey_ = getDefaultInstance().getAppKey();
     }
 
-    public static final int APPEUI_FIELD_NUMBER = 3;
-    private com.google.protobuf.ByteString appEui_;
+    public static final int JOINEUI_FIELD_NUMBER = 3;
+    private com.google.protobuf.ByteString joinEui_;
     /**
-     * <code>bytes appEui = 3;</code>
-     * @return The appEui.
+     * <code>bytes joinEui = 3;</code>
+     * @return The joinEui.
      */
     @java.lang.Override
-    public com.google.protobuf.ByteString getAppEui() {
-      return appEui_;
+    public com.google.protobuf.ByteString getJoinEui() {
+      return joinEui_;
     }
     /**
-     * <code>bytes appEui = 3;</code>
-     * @param value The appEui to set.
+     * <code>bytes joinEui = 3;</code>
+     * @param value The joinEui to set.
      */
-    private void setAppEui(com.google.protobuf.ByteString value) {
+    private void setJoinEui(com.google.protobuf.ByteString value) {
       value.getClass();
   
-      appEui_ = value;
+      joinEui_ = value;
     }
     /**
-     * <code>bytes appEui = 3;</code>
+     * <code>bytes joinEui = 3;</code>
      */
-    private void clearAppEui() {
+    private void clearJoinEui() {
       
-      appEui_ = getDefaultInstance().getAppEui();
+      joinEui_ = getDefaultInstance().getJoinEui();
     }
 
     public static final int FREQUENCYBAND_FIELD_NUMBER = 4;
@@ -13030,30 +13030,30 @@ public final class FkData {
       }
 
       /**
-       * <code>bytes appEui = 3;</code>
-       * @return The appEui.
+       * <code>bytes joinEui = 3;</code>
+       * @return The joinEui.
        */
       @java.lang.Override
-      public com.google.protobuf.ByteString getAppEui() {
-        return instance.getAppEui();
+      public com.google.protobuf.ByteString getJoinEui() {
+        return instance.getJoinEui();
       }
       /**
-       * <code>bytes appEui = 3;</code>
-       * @param value The appEui to set.
+       * <code>bytes joinEui = 3;</code>
+       * @param value The joinEui to set.
        * @return This builder for chaining.
        */
-      public Builder setAppEui(com.google.protobuf.ByteString value) {
+      public Builder setJoinEui(com.google.protobuf.ByteString value) {
         copyOnWrite();
-        instance.setAppEui(value);
+        instance.setJoinEui(value);
         return this;
       }
       /**
-       * <code>bytes appEui = 3;</code>
+       * <code>bytes joinEui = 3;</code>
        * @return This builder for chaining.
        */
-      public Builder clearAppEui() {
+      public Builder clearJoinEui() {
         copyOnWrite();
-        instance.clearAppEui();
+        instance.clearJoinEui();
         return this;
       }
 
@@ -13243,7 +13243,7 @@ public final class FkData {
             java.lang.Object[] objects = new java.lang.Object[] {
               "deviceEui_",
               "appKey_",
-              "appEui_",
+              "joinEui_",
               "frequencyBand_",
               "deviceAddress_",
               "networkSessionKey_",
@@ -17111,6 +17111,23 @@ public final class FkData {
      * @return The uncalibrated at the given index.
      */
     float getUncalibrated(int index);
+
+    /**
+     * <code>repeated float factory = 3;</code>
+     * @return A list containing the factory.
+     */
+    java.util.List<java.lang.Float> getFactoryList();
+    /**
+     * <code>repeated float factory = 3;</code>
+     * @return The count of factory.
+     */
+    int getFactoryCount();
+    /**
+     * <code>repeated float factory = 3;</code>
+     * @param index The index of the element to return.
+     * @return The factory at the given index.
+     */
+    float getFactory(int index);
   }
   /**
    * Protobuf type {@code fk_data.CalibrationPoint}
@@ -17123,6 +17140,7 @@ public final class FkData {
     private CalibrationPoint() {
       references_ = emptyFloatList();
       uncalibrated_ = emptyFloatList();
+      factory_ = emptyFloatList();
     }
     public static final int REFERENCES_FIELD_NUMBER = 1;
     private com.google.protobuf.Internal.FloatList references_;
@@ -17262,6 +17280,76 @@ public final class FkData {
      */
     private void clearUncalibrated() {
       uncalibrated_ = emptyFloatList();
+    }
+
+    public static final int FACTORY_FIELD_NUMBER = 3;
+    private com.google.protobuf.Internal.FloatList factory_;
+    /**
+     * <code>repeated float factory = 3;</code>
+     * @return A list containing the factory.
+     */
+    @java.lang.Override
+    public java.util.List<java.lang.Float>
+        getFactoryList() {
+      return factory_;
+    }
+    /**
+     * <code>repeated float factory = 3;</code>
+     * @return The count of factory.
+     */
+    @java.lang.Override
+    public int getFactoryCount() {
+      return factory_.size();
+    }
+    /**
+     * <code>repeated float factory = 3;</code>
+     * @param index The index of the element to return.
+     * @return The factory at the given index.
+     */
+    @java.lang.Override
+    public float getFactory(int index) {
+      return factory_.getFloat(index);
+    }
+    private int factoryMemoizedSerializedSize = -1;
+    private void ensureFactoryIsMutable() {
+      if (!factory_.isModifiable()) {
+        factory_ =
+            com.google.protobuf.GeneratedMessageLite.mutableCopy(factory_);
+       }
+    }
+    /**
+     * <code>repeated float factory = 3;</code>
+     * @param index The index to set the value at.
+     * @param value The factory to set.
+     */
+    private void setFactory(
+        int index, float value) {
+      ensureFactoryIsMutable();
+      factory_.setFloat(index, value);
+    }
+    /**
+     * <code>repeated float factory = 3;</code>
+     * @param value The factory to add.
+     */
+    private void addFactory(float value) {
+      ensureFactoryIsMutable();
+      factory_.addFloat(value);
+    }
+    /**
+     * <code>repeated float factory = 3;</code>
+     * @param values The factory to add.
+     */
+    private void addAllFactory(
+        java.lang.Iterable<? extends java.lang.Float> values) {
+      ensureFactoryIsMutable();
+      com.google.protobuf.AbstractMessageLite.addAll(
+          values, factory_);
+    }
+    /**
+     * <code>repeated float factory = 3;</code>
+     */
+    private void clearFactory() {
+      factory_ = emptyFloatList();
     }
 
     public static org.conservify.fieldkit.data.pb.FkData.CalibrationPoint parseFrom(
@@ -17497,6 +17585,75 @@ public final class FkData {
         return this;
       }
 
+      /**
+       * <code>repeated float factory = 3;</code>
+       * @return A list containing the factory.
+       */
+      @java.lang.Override
+      public java.util.List<java.lang.Float>
+          getFactoryList() {
+        return java.util.Collections.unmodifiableList(
+            instance.getFactoryList());
+      }
+      /**
+       * <code>repeated float factory = 3;</code>
+       * @return The count of factory.
+       */
+      @java.lang.Override
+      public int getFactoryCount() {
+        return instance.getFactoryCount();
+      }
+      /**
+       * <code>repeated float factory = 3;</code>
+       * @param index The index of the element to return.
+       * @return The factory at the given index.
+       */
+      @java.lang.Override
+      public float getFactory(int index) {
+        return instance.getFactory(index);
+      }
+      /**
+       * <code>repeated float factory = 3;</code>
+       * @param value The factory to set.
+       * @return This builder for chaining.
+       */
+      public Builder setFactory(
+          int index, float value) {
+        copyOnWrite();
+        instance.setFactory(index, value);
+        return this;
+      }
+      /**
+       * <code>repeated float factory = 3;</code>
+       * @param value The factory to add.
+       * @return This builder for chaining.
+       */
+      public Builder addFactory(float value) {
+        copyOnWrite();
+        instance.addFactory(value);
+        return this;
+      }
+      /**
+       * <code>repeated float factory = 3;</code>
+       * @param values The factory to add.
+       * @return This builder for chaining.
+       */
+      public Builder addAllFactory(
+          java.lang.Iterable<? extends java.lang.Float> values) {
+        copyOnWrite();
+        instance.addAllFactory(values);
+        return this;
+      }
+      /**
+       * <code>repeated float factory = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearFactory() {
+        copyOnWrite();
+        instance.clearFactory();
+        return this;
+      }
+
       // @@protoc_insertion_point(builder_scope:fk_data.CalibrationPoint)
     }
     @java.lang.Override
@@ -17515,9 +17672,11 @@ public final class FkData {
             java.lang.Object[] objects = new java.lang.Object[] {
               "references_",
               "uncalibrated_",
+              "factory_",
             };
             java.lang.String info =
-                "\u0000\u0002\u0000\u0000\u0001\u0002\u0002\u0000\u0002\u0000\u0001$\u0002$";
+                "\u0000\u0003\u0000\u0000\u0001\u0003\u0003\u0000\u0003\u0000\u0001$\u0002$\u0003" +
+                "$";
             return newMessageInfo(DEFAULT_INSTANCE, info, objects);
         }
         // fall through

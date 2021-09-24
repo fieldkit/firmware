@@ -13,7 +13,6 @@ private:
 public:
     void tick(ViewController *views, Pool &pool) override;
     void hide() override;
-
 };
 
-}
+} // namespace fk

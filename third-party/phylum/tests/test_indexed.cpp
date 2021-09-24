@@ -22,7 +22,9 @@ struct test_types {
 };
 
 typedef ::testing::Types<
+    test_types<layout_2048, directory_tree, tree_sector<uint32_t, uint32_t, 201>>,
     test_types<layout_4096, directory_tree, tree_sector<uint32_t, uint32_t, 63>>,
+    test_types<layout_4096, directory_tree, tree_sector<uint32_t, uint32_t, 201>>,
     test_types<layout_4096, directory_tree, tree_sector<uint32_t, uint32_t, 405>>>
     Implementations;
 
@@ -332,6 +334,74 @@ TYPED_TEST(IndexedFixture, WriteFile_Large_Records_SeekBeginningAndEnd) {
     });
 }
 
+TYPED_TEST(IndexedFixture, WriteFile_Small_Seeks) {
+    using layout_type = typename TypeParam::layout_type;
+    using directory_type = typename TypeParam::directory_type;
+    using tree_type = typename TypeParam::tree_type;
+    using file_ops_type = file_ops<directory_type, tree_type>;
+
+    layout_type layout;
+    FlashMemory memory{ layout.sector_size };
+
+    memory.mounted<super_chain>([&](super_chain &super) {
+        file_ops_type fops{ memory.pc(), super };
+        ASSERT_EQ(fops.format(), 0);
+        ASSERT_EQ(fops.touch("data.txt"), 0);
+
+        ASSERT_EQ(fops.dir().find("data.txt", open_file_config{ }), 1);
+        file_appender opened{ fops.pc(), &fops.dir(), fops.dir().open() };
+
+        ASSERT_GE(fops.index_if_necessary(opened, 0), 0);
+
+        auto wrote = opened.write(lorem1k);
+        ASSERT_GT(wrote, 0);
+
+        ASSERT_EQ(opened.flush(), 0);
+
+        file_reader reader{ fops.pc(), &fops.dir(), fops.dir().open() };
+
+        ASSERT_EQ(reader.seek_position<tree_type>(UINT32_MAX), wrote);
+    });
+}
+
+TYPED_TEST(IndexedFixture, WriteFile_TouchAndWriteSeparate) {
+    using layout_type = typename TypeParam::layout_type;
+    using directory_type = typename TypeParam::directory_type;
+    using tree_type = typename TypeParam::tree_type;
+    using file_ops_type = file_ops<directory_type, tree_type>;
+
+    layout_type layout;
+    FlashMemory memory{ layout.sector_size };
+
+    memory.mounted<super_chain>([&](super_chain &super) {
+        file_ops_type fops{ memory.pc(), super };
+        ASSERT_EQ(fops.format(), 0);
+        ASSERT_EQ(fops.touch("data.txt"), 0);
+    });
+
+    memory.mounted<super_chain>([&](super_chain &super) {
+        file_ops_type fops{ memory.pc(), super };
+        ASSERT_EQ(fops.dir().find("data.txt", open_file_config{ }), 1);
+
+        file_appender opened{ fops.pc(), &fops.dir(), fops.dir().open() };
+        ASSERT_EQ(opened.seek(), 0);
+
+        ASSERT_GE(fops.index_if_necessary(opened, 0), 0);
+        auto wrote = opened.write(lorem1k);
+        ASSERT_GT(wrote, 0);
+
+        ASSERT_EQ(opened.flush(), 0);
+    });
+
+    memory.mounted<super_chain>([&](super_chain &super) {
+        file_ops_type fops{ memory.pc(), super };
+        ASSERT_EQ(fops.dir().find("data.txt", open_file_config{ }), 1);
+
+        file_reader reader{ fops.pc(), &fops.dir(), fops.dir().open() };
+        ASSERT_EQ(reader.seek_position<tree_type>(UINT32_MAX), (int32_t)strlen(lorem1k));
+    });
+}
+
 TYPED_TEST(IndexedFixture, WriteFile_CreatingBeforeWriting_ReproduceOverwrittenTerminator) {
     using layout_type = typename TypeParam::layout_type;
     using directory_type = typename TypeParam::directory_type;
@@ -353,5 +423,56 @@ TYPED_TEST(IndexedFixture, WriteFile_CreatingBeforeWriting_ReproduceOverwrittenT
         ASSERT_GT(wrote, 0);
 
         ASSERT_EQ(opened.flush(), 0);
+    });
+}
+
+TYPED_TEST(IndexedFixture, WriteFile_IndexedSeekAndAppend) {
+    using layout_type = typename TypeParam::layout_type;
+    using directory_type = typename TypeParam::directory_type;
+    using tree_type = typename TypeParam::tree_type;
+    using file_ops_type = file_ops<directory_type, tree_type>;
+
+    layout_type layout;
+    FlashMemory memory{ layout.sector_size };
+
+    memory.mounted<super_chain>([&](super_chain &super) {
+        file_ops_type fops{ memory.pc(), super };
+        ASSERT_EQ(fops.format(), 0);
+        ASSERT_EQ(fops.touch("data.txt"), 0);
+    });
+
+    auto total_written = 0u;
+
+    memory.mounted<super_chain>([&](super_chain &super) {
+        file_ops_type fops{ memory.pc(), super };
+        ASSERT_EQ(fops.dir().find("data.txt", open_file_config{ }), 1);
+
+        file_appender opened{ fops.pc(), &fops.dir(), fops.dir().open() };
+        ASSERT_EQ(opened.seek(), 0);
+
+        auto index_modifications = 0u;
+        while (index_modifications < 2) {
+            auto err = fops.index_if_necessary(opened, 0);
+            ASSERT_GE(err, 0);
+            index_modifications += err;
+
+            auto wrote = opened.write(lorem256);
+            ASSERT_GT(wrote, 0);
+
+            total_written += wrote;
+        }
+
+        ASSERT_EQ(opened.flush(), 0);
+    });
+
+    memory.mounted<super_chain>([&](super_chain &super) {
+        file_ops_type fops{ memory.pc(), super };
+        ASSERT_EQ(fops.dir().find("data.txt", open_file_config{ }), 1);
+
+        file_appender opened{ fops.pc(), &fops.dir(), fops.dir().open() };
+        ASSERT_EQ(opened.seek_position<tree_type>(UINT32_MAX), (int32_t)total_written);
+        ASSERT_EQ(opened.write(lorem1k), (int32_t)strlen(lorem1k));
+        ASSERT_EQ(opened.close(), 0);
+        ASSERT_EQ(opened.visited_sectors(), 0u);
     });
 }

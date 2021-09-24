@@ -20,34 +20,13 @@ extern void __real_free(void *ptr);
 
 void *__wrap_malloc(size_t size) {
     auto ptr = __real_malloc(size);
-    alogf(LogLevels::DEBUG, "memory", "[0x%" PRIxPTR "] malloc(%zd)", (uintptr_t)ptr, size);
+    alogf(LogLevels::VERBOSE, "memory", "[0x%" PRIxPTR "] malloc(%zd)", (uintptr_t)ptr, size);
     return ptr;
 }
 
 void __wrap_free(void *ptr) {
-    alogf(LogLevels::DEBUG, "memory", "[0x%" PRIxPTR "] free()", (uintptr_t)ptr);
+    alogf(LogLevels::VERBOSE, "memory", "[0x%" PRIxPTR "] free()", (uintptr_t)ptr);
     __real_free(ptr);
-}
-
-#endif
-
-#if defined(__SAMD21__) || defined(__SAMD51__)
-
-static void fk_r9_verify() __attribute__((no_instrument_function));
-
-#define FK_EXPECTED_R9        (*(uint32_t *)0x2003fffc)
-
-static void fk_r9_verify() {
-    register uint32_t reg_r9 asm("r9");
-
-    if (FK_EXPECTED_R9 != reg_r9) {
-        __BKPT(3);
-    }
-}
-
-#else
-
-static void fk_r9_verify() {
 }
 
 #endif
@@ -56,12 +35,58 @@ void __cyg_profile_func_enter(void *this_fn, void *call_site) __attribute__((no_
 
 void __cyg_profile_func_exit(void *this_fn, void *call_site) __attribute__((no_instrument_function));
 
+static int32_t dbg_stack_paint(uint32_t *stack, size_t size) {
+    for (size_t i = 0u; i < size; ++i) {
+        *stack = OSH_STACK_MAGIC_WORD;
+        stack++;
+    }
+    return 0;
+}
+
+int32_t dbg_stack_highwater(uint32_t *stack, size_t size) {
+    for (size_t i = 0u; i < size; ++i) {
+        if (*stack != OSH_STACK_MAGIC_WORD) {
+            return i;
+        }
+        stack++;
+    }
+    return size;
+}
+
 void __cyg_profile_func_enter(void *this_fn, void *call_site) {
-    fk_r9_verify();
+    os_task_t *self = os_task_self();
+    if (self == nullptr) {
+        return;
+    }
+    uint32_t *stack = (uint32_t *)self->stack;
+    uint32_t size_dwords = self->stack_size / sizeof(uint32_t);
+    uint32_t stack_check = 0;
+    uint32_t *sp = &stack_check; // Is clobbered
+    if (sp >= stack && sp < stack + size_dwords) {
+        uint32_t depth = (sp - stack);
+        dbg_stack_paint(stack, depth);
+        /*
+        if (depth > 6000) {
+            SEGGER_RTT_printf(0, "hello %" PRIu32 "\n", depth);
+            if (osi_in_task()) {
+                __BKPT(3);
+            }
+        }
+        */
+    }
+
+    (void)self;
+    (void)sp;
 }
 
 void __cyg_profile_func_exit(void *this_fn, void *call_site) {
-    fk_r9_verify();
+    os_task_t *self = os_task_self();
+    if (self == nullptr) {
+        return;
+    }
+    uint32_t *stack = (uint32_t *)self->stack;
+    uint32_t size_dwords = self->stack_size / sizeof(uint32_t);
+    dbg_stack_highwater(stack, size_dwords);
 }
 
 }
@@ -92,10 +117,6 @@ const char *fk_debug_mode() {
 
 bool fk_debug_get_console_attached() {
     return fk_console_attached;
-}
-
-bool fk_debug_override_schedules() {
-    return false;
 }
 
 void fk_debug_set_console_attached() {

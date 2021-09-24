@@ -5,22 +5,18 @@ namespace fk {
 
 FK_DECLARE_LOGGER("distance");
 
-DistanceModule::DistanceModule() : bridge_(get_board()->acquire_i2c_module()) {
+constexpr uint32_t DistanceReadTimeout = 2000;
+
+constexpr uint32_t DistanceMaximumReadings = 3;
+
+DistanceModule::DistanceModule(Pool &pool) : bridge_(get_board()->acquire_i2c_module()) {
+}
+
+DistanceModule::~DistanceModule() {
 }
 
 ModuleReturn DistanceModule::initialize(ModuleContext mc, Pool &pool) {
     auto bus = get_board()->i2c_module();
-
-    bus.end();
-    bus.begin();
-
-    // enumerate bus
-    for (auto i = 0u; i < 128u; ++i) {
-        auto rv = bus.write(i, nullptr, 0);
-        if (I2C_CHECK(rv)) {
-            loginfo("found 0x%x", i);
-        }
-    }
 
     if (!bridge_.begin(9600)) {
         logerror("initializing bridge (ms::fatal)");
@@ -31,7 +27,7 @@ ModuleReturn DistanceModule::initialize(ModuleContext mc, Pool &pool) {
 }
 
 ModuleReturn DistanceModule::api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
-    connection->busy(0, "unsupported");
+    connection->busy(0, "unsupported", pool);
 
     return { ModuleStatus::Fatal };
 }
@@ -69,9 +65,10 @@ ModuleReadings *DistanceModule::take_readings(ReadingsContext mc, Pool &pool) {
         return nullptr;
     }
 
-    for (auto i = 0; i < 5; ++i) {
+    auto deadline = fk_uptime() + DistanceReadTimeout;
+    while (fk_uptime() < deadline) {
         const char *line = nullptr;
-        if (!line_reader_.read_line_sync(&line, 1000)) {
+        if (!line_reader_.read_line_sync(&line, 500)) {
             logerror("error reading line");
         }
 
@@ -80,22 +77,25 @@ ModuleReadings *DistanceModule::take_readings(ReadingsContext mc, Pool &pool) {
                 auto value = atoi(line + 1);
                 mr->set(nreadings++, (float)value);
                 logdebug("[%d] line: %d", nreadings, value);
-                if (nreadings == 3) {
+                if (nreadings == DistanceMaximumReadings) {
                     break;
                 }
-            }
-            else {
+            } else {
                 logwarn("[%d] line: '%s'", nreadings, line);
             }
         }
     }
 
-    if (nreadings < 3) {
-        logerror("unable to gather enough readings (%d)", nreadings);
+    auto elapsed = fk_uptime() - (deadline - DistanceReadTimeout);
+
+    if (nreadings == 0) {
+        logerror("no readings (%" PRIu32 "ms)", elapsed);
         return nullptr;
     }
 
-    // Calibration value
+    loginfo("done reading (%" PRIu32 "ms)", elapsed);
+
+    // TODO Calibration value
     mr->set(nreadings++, (float)0.0f);
 
     return mr;

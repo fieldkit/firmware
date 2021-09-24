@@ -26,7 +26,11 @@ public:
     }
 };
 
-task_stack *get_task_stack();
+task_stack *log_task_stack_get();
+
+typedef task_stack *(*log_message_task_stack_fn_t)();
+
+void log_configure_task_stack(log_message_task_stack_fn_t stack_fn);
 
 class logged_task {
 private:
@@ -34,7 +38,7 @@ private:
 
 public:
     logged_task(const char *name, const char *thing) {
-        auto tasks = get_task_stack();
+        auto tasks = log_task_stack_get();
         if (tasks != nullptr) {
             pops_  = tasks->push(name);
             pops_ += tasks->push(thing);
@@ -42,7 +46,7 @@ public:
     }
 
     logged_task(const char *name) {
-        auto tasks = get_task_stack();
+        auto tasks = log_task_stack_get();
         if (tasks != nullptr) {
             pops_ = tasks->push(name);
         }
@@ -50,7 +54,7 @@ public:
 
     virtual ~logged_task() {
         while (pops_-- > 0) {
-            get_task_stack()->pop();
+            log_task_stack_get()->pop();
         }
     }
 };

@@ -172,6 +172,14 @@ uint32_t os_task_highwater(os_task_t *task) {
     return task->highwater;
 }
 
+void *os_task_user_data_get(os_task_t *task) {
+    return task->user_data;
+}
+
+void os_task_user_data_set(os_task_t *task, void *user_data) {
+    task->user_data = user_data;
+}
+
 os_status_t os_task_initialize(os_task_t *task, const char *name, os_start_status status, void (*handler)(void *params), void *params, uint32_t *stack, size_t stack_size) {
     os_task_options_t options = {
         name,
@@ -346,6 +354,13 @@ os_task_status os_task_get_status(os_task_t *task) {
     return task->status;
 }
 
+#if defined(__SAMD51__)
+__attribute__((always_inline)) __STATIC_INLINE
+void __set_PSP_noclobber_sp(uint32_t topOfProcStack) {
+    __ASM volatile ("MSR psp, %0\n" : : "r" (topOfProcStack) : );
+}
+#endif
+
 os_status_t os_start(void) {
     if (osg.state != OS_STATE_TASKS_INITIALIZED) {
         return OSS_ERROR_INVALID;
@@ -359,11 +374,16 @@ os_status_t os_start(void) {
     osg.running->status = OS_TASK_STATUS_ACTIVE;
 
     #if defined(__SAMD21__) || defined(__SAMD51__)
-    NVIC_SetPriority(PendSV_IRQn, 0x7);
-    NVIC_SetPriority(SysTick_IRQn, 0x2);
-
+    NVIC_SetPriority(PendSV_IRQn, OS_IRQ_PRIORITY_PENDSV);
+    NVIC_SetPriority(SysTick_IRQn, OS_IRQ_PRIORITY_SYSTICK);
     /* Set PSP to the top of task's stack */
+    #if defined(__SAMD51__)
+    __set_PSP_noclobber_sp((uint32_t)osg.running->sp + OS_STACK_BASIC_FRAME_SIZE);
+    #else
+    #if !defined(__linux__)
     __set_PSP((uint32_t)osg.running->sp + OS_STACK_BASIC_FRAME_SIZE);
+    #endif
+    #endif
     /* Switch to Unprivilleged Thread Mode with PSP */
     __set_CONTROL(0x02);
     /* Execute DSB/ISB after changing CONTORL (recommended) */
@@ -379,7 +399,13 @@ os_status_t os_start(void) {
     return OSS_SUCCESS;
 }
 
+extern uint32_t irq_eic_11_handler;
+
 os_status_t osi_task_status_set(os_task_t *task, os_task_status new_status) {
+#if defined(__SAMD51__)
+    OS_ASSERT(irq_eic_11_handler == 0);
+#endif
+
     OS_LOCK();
 
     uint8_t old_status = task->status;
@@ -806,8 +832,8 @@ void osi_priority_check(os_task_t *scheduled) {
                     osi_printf("scheduler panic: [0x%p] '%s' (%d) < [0x%p] '%s' (%d)",
                                scheduled, scheduled->name, scheduled_priority,
                                iter, iter->name, iter->priority);
+                    osi_debug_dump(OS_PANIC_ASSERTION);
                 }
-                OS_ASSERT(scheduled_priority >= iter->priority);
             }
         }
     }

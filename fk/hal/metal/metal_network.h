@@ -12,15 +12,26 @@
 #include <SPI.h>
 #include <WiFi101.h>
 #include <WiFiUdp.h>
+#include <WiFiSocket.h>
 
 #undef min
 #undef max
 
 namespace fk {
 
+struct WifiBufferedWriter {
+    uint8_t buffer[256];
+    size_t buffer_size{ 256 };
+    size_t position{ 0 };
+    WiFiClient *wcl;
+    int32_t return_value{ 0 };
+    int32_t flush();
+};
+
 class MetalNetworkConnection : public NetworkConnection {
 private:
     WiFiClient wcl_;
+    WifiBufferedWriter *buffered_writer_{ nullptr };
     bool debugging_{ false };
     uint8_t *buffer_{ nullptr };
     size_t size_{ 0 };
@@ -28,7 +39,7 @@ private:
 
 public:
     MetalNetworkConnection();
-    MetalNetworkConnection(WiFiClient wcl);
+    MetalNetworkConnection(Pool *pool, WiFiClient wcl);
     virtual ~MetalNetworkConnection() override;
 
 public:
@@ -60,7 +71,7 @@ private:
     WiFiServer server_{ port_ };
 
 public:
-    MetalNetworkListener(uint16_t port);
+    MetalNetworkListener(Pool *pool, uint16_t port);
 
 public:
     bool begin();
@@ -68,6 +79,25 @@ public:
     PoolPointer<NetworkConnection> *accept() override;
 
     bool stop() override;
+
+};
+
+class StaticWiFiCallbacks : public WiFiCallbacks {
+private:
+    constexpr static size_t ExpectedWiFiBufferSize = 1472;
+    constexpr static size_t NumberOfBuffers = 3;
+
+    struct Buffer {
+        bool taken{ false };
+        void *ptr{ nullptr };
+    };
+    Buffer buffers_[NumberOfBuffers];
+
+public:
+    void initialize(Pool &pool);
+    void *malloc(size_t size) override;
+    void free(void *ptr) override;
+    bool busy(uint32_t elapsed) override;
 
 };
 
@@ -82,6 +112,7 @@ private:
     MDNSDiscovery mdns_discovery_;
     UDPDiscovery udp_discovery_;
     SimpleNTP ntp_;
+    uint8_t status_{ 0 };
 
 public:
     bool begin(NetworkSettings settings, Pool *pool) override;
@@ -91,6 +122,8 @@ public:
     bool serve() override;
 
     uint32_t ip_address() override;
+
+    int32_t rssi() override;
 
     PoolPointer<NetworkListener> *listen(uint16_t port) override;
 

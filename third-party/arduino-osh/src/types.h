@@ -40,6 +40,9 @@ extern "C" {
  */
 #define OS_CONFIG_PARANOIA
 
+#define OS_IRQ_PRIORITY_PENDSV                        (0x7)
+#define OS_IRQ_PRIORITY_SYSTICK                       (0x2)
+
 /**
  *
  */
@@ -175,6 +178,7 @@ typedef struct os_task_t {
     uint32_t flags;
     uint32_t signal;
     uint32_t highwater;
+    void *user_data;
     #if defined(OS_CONFIG_DEBUG)
     uint32_t debug_stack_max;
     #endif

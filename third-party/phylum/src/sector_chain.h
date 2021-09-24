@@ -31,7 +31,12 @@ public:
     sector_chain(phyctx pc, head_tail_t chain, const char *prefix)
         : buffers_(&pc.buffers_), sectors_(&pc.sectors_), allocator_(&pc.allocator_), buffer_(pc.buffers_, pc.sectors_), head_(chain.head),
           tail_(chain.tail), prefix_(prefix) {
-        name("%s[unk]", prefix_);
+        if (head_ == InvalidSector) {
+            name("%s[unk]", prefix_);
+        }
+        else {
+            name("%s[%d]", prefix_, head_);
+        }
     }
 
     virtual ~sector_chain() {
@@ -70,7 +75,7 @@ public:
         return  head_tail_t{ head_, tail_ };
     }
 
-    int32_t log();
+    int32_t log(bool graph = false);
 
     int32_t create_if_necessary();
 
@@ -135,7 +140,12 @@ protected:
 
     void sector(dhara_sector_t sector) {
         sector_ = sector;
-        name("%s[%d]", prefix_, sector_);
+        if (sector_ == InvalidSector) {
+            name("%s[unk]", prefix_, sector_);
+        }
+        else {
+            name("%s[%d]", prefix_, sector_);
+        }
     }
 
     int32_t assert_valid() {
@@ -159,9 +169,9 @@ protected:
 
     int32_t forward(page_lock &page_lock);
 
-    template <typename T>
-    int32_t walk(page_lock &page_lock, T fn) {
-        logged_task lt{ "sc-walk", name() };
+    template <typename WalkFn, typename LoadFn>
+    int32_t walk(page_lock &page_lock, WalkFn walk_fn, LoadFn load_fn) {
+        // logged_task lt{ "sc-walk", name() };
 
         assert_valid();
 
@@ -169,7 +179,7 @@ protected:
             for (auto record_ptr : buffer_) {
                 auto entry = record_ptr.as<entry_t>();
                 assert(entry != nullptr);
-                auto err = fn(page_lock, entry, record_ptr);
+                auto err = walk_fn(page_lock, entry, record_ptr);
                 if (err < 0) {
                     return err;
                 }
@@ -178,6 +188,8 @@ protected:
                 }
             }
 
+            auto previous_sector = sector();
+
             auto err = forward(page_lock);
             if (err < 0) {
                 return err;
@@ -185,13 +197,26 @@ protected:
             if (err == 0) {
                 break;
             }
+
+            err = load_fn(previous_sector, sector());
+            if (err < 0) {
+                break;
+            }
         }
 
         return 0;
     }
-    template <typename T>
-    int32_t walk(T fn) {
-        logged_task lt{ "sc-walk", name() };
+
+    template <typename WalkFn>
+    int32_t walk(WalkFn fn) {
+        return walk(fn, [](dhara_sector_t, dhara_sector_t) {
+            return 0;
+        });
+    }
+
+    template <typename WalkFn, typename LoadFn>
+    int32_t walk(WalkFn walk_fn, LoadFn load_fn) {
+        // logged_task lt{ "sc-walk", name() };
 
         assert_valid();
 
@@ -199,7 +224,12 @@ protected:
 
         assert(back_to_head(page_lock) >= 0);
 
-        return walk(page_lock, fn);
+        auto err = load_fn(InvalidSector, sector());
+        if (err < 0) {
+            return err;
+        }
+
+        return walk(page_lock, walk_fn, load_fn);
     }
 
     int32_t load(page_lock &page_lock);

@@ -52,8 +52,6 @@ int32_t super_chain::update(tree_ptr_t directory_tree) {
 }
 
 int32_t super_chain::write_header(page_lock &page_lock) {
-    logged_task lt{ "sc-write-hdr", this->name() };
-
     db().emplace<super_block_t>();
 
     page_lock.dirty();

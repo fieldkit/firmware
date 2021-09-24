@@ -1,9 +1,9 @@
 #pragma once
 
-#if defined(ARDUINO)
+#if defined(__SAMD51__)
 
-#include "hal/gps.h"
 #include "config.h"
+#include "hal/gps.h"
 
 #include <TinyGPS.h>
 
@@ -19,9 +19,8 @@ public:
     bool begin() override;
     bool service(GpsFix &fix) override;
     bool stop() override;
-
 };
 
-}
+} // namespace fk
 
 #endif

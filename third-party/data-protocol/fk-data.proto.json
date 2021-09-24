@@ -497,7 +497,7 @@
               "type": "bytes",
               "id": 2
             },
-            "appEui": {
+            "joinEui": {
               "type": "bytes",
               "id": 3
             },
@@ -701,6 +701,11 @@
               "rule": "repeated",
               "type": "float",
               "id": 2
+            },
+            "factory": {
+              "rule": "repeated",
+              "type": "float",
+              "id": 3
             }
           }
         },

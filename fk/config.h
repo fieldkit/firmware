@@ -4,6 +4,7 @@
 #include <string.h>
 #include "secrets.h"
 #include "common/memory.h"
+#include "lora_frequency.h"
 
 namespace fk {
 
@@ -68,7 +69,7 @@ constexpr uint32_t TenMinutesMs = FiveMinutesSeconds * 1000 * 2;
 /**
  * Thirty minutes in milliseconds.
  */
-constexpr uint32_t ThirtyMinutesMs  = OneMinuteMs * 30;
+constexpr uint32_t ThirtyMinutesMs = OneMinuteMs * 30;
 
 /**
  * One hour in milliseconds.
@@ -88,7 +89,7 @@ constexpr uint32_t OneHourSeconds = 60 * 60;
 /**
  * One day in seconds.
  */
-constexpr uint32_t OneDaySeconds  = 86400;
+constexpr uint32_t OneDaySeconds = 86400;
 
 /**
  * Threshold for clock drift warning.
@@ -108,13 +109,15 @@ constexpr uint32_t OneMegabyte = 1024 * 1024;
 
 constexpr uint32_t DefaultReadingsInterval = OneHourSeconds;
 constexpr uint32_t DefaultNetworkInterval = 60 * 60 * 60;
-constexpr uint32_t DefaultLoraInterval = 60 * 60 * 2;
+constexpr uint32_t DefaultLoraInterval = 60 * 60 * 6;
 constexpr uint32_t DefaultGpsInterval = OneDaySeconds;
+constexpr uint32_t DefaultGpsDuration = TenMinutesSeconds;
 constexpr uint32_t DefaultSynchronizeTimeInterval = OneDaySeconds;
 constexpr uint32_t DefaultDebugReadingsInterval = 60;
 constexpr uint32_t DefaultDebugNetworkInterval = 60 * 60 * 60;
-constexpr uint32_t DefaultDebugLoraInterval = 60 * 3;
-constexpr uint32_t DefaultDebugGpsInterval = OneDaySeconds;
+constexpr uint32_t DefaultDebugLoraInterval = 60 * 5;
+constexpr uint32_t DefaultDebugGpsInterval = 60 * 60 * 2;
+constexpr uint32_t DefaultDebugGpsDuration = TenMinutesSeconds;
 
 /**
  * Maximum number of intervals per schedule.
@@ -158,7 +161,7 @@ constexpr size_t InMemoryLogBufferSize = 32768;
 /**
  * Size of the network buffers.
  */
-constexpr size_t NetworkBufferSize = 1024;
+constexpr size_t NetworkBufferSize = 1400;
 
 /**
  * Maximum size to use for buffers allocated on the stack.
@@ -207,23 +210,46 @@ constexpr size_t MaximumNumberOfPhysicalModules = 5;
 
 constexpr size_t MaximumConfigurationSize = 256;
 
+constexpr uint32_t MinimumModuleStartupDelayMs = 10;
+
 // -------------------------------------------------------------------------------------------
 // LoRa
 
 /**
- * How often to save LoRa radio state.
+ * Transmission frequency to save RN module state.
  */
-constexpr uint32_t LoraUplinksSaveFrequency = 10;
+constexpr int32_t LoraSaveEveryTx = 10;
 
 /**
- * If enabled then the device will transmit readings from virtual modules.
+ * Transmission frequency to save RN module state. 65k hourly saves is about 7
+ * years.
  */
-constexpr bool LoraTransmitVirtual = false;
+constexpr int32_t LoraSaveEveryMinutes = 3600;
 
 /**
- * Length of a LoRa App EUI.
+ *
  */
-constexpr size_t LoraAppEuiLength = 8;
+constexpr int32_t LoraFailuresBeforeRejoin = 1;
+
+/**
+ * Number of times to retry confirmed message.
+ */
+constexpr int32_t LoraConfirmedRetries = 0;
+
+/**
+ * Transmission frequency to request confirmation packets.
+ */
+constexpr int32_t LoraConfirmEveryTx = 30;
+
+/**
+ * Minutes between confirmed transmissions.
+ */
+constexpr int32_t LoraConfirmEveryMinutes = 0;
+
+/**
+ * Length of a LoRa Join EUI.
+ */
+constexpr size_t LoraJoinEuiLength = 8;
 
 /**
  * Length of a LoRa Device EUI.
@@ -271,16 +297,20 @@ constexpr size_t LoraSendTries = 3;
 constexpr uint32_t LoraPacketDelay = TenSecondsMs;
 
 /**
- * LoRa activation by personalization settings.
+ * Default LoRa frequency.
  */
-struct LoraAbpSettings {
+constexpr lora_frequency_t LoraDefaultFrequency = lora_frequency_t::Us915;
+
+constexpr size_t LoraKeysNameMaximum = 16;
+
+struct lora_keys_t {
+    char name[LoraKeysNameMaximum];
+    lora_frequency_t frequency_band;
     uint8_t device_eui[LoraDeviceEuiLength];
-    uint8_t device_address[LoraDeviceAddressLength];
-    uint8_t network_session_key[LoraNetworkSessionKeyLength];
-    uint8_t app_session_key[LoraAppSessionKeyLength];
+    uint8_t app_key[LoraAppKeyLength];
 };
 
-extern LoraAbpSettings lora_preconfigured_abp[0];
+extern lora_keys_t lora_keys[];
 
 // -------------------------------------------------------------------------------------------
 // Field Lengths
@@ -462,6 +492,6 @@ constexpr size_t NumberOfWorkerTasks = 2;
 /**
  * Enable the aggressive flushing of logs.
  */
-#define FK_LOGS_FLUSH_AGGRESSIVE
+// #define FK_LOGS_FLUSH_AGGRESSIVE
 
-}
+} // namespace fk

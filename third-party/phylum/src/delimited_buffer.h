@@ -187,16 +187,17 @@ public:
         return rp.as<T>();
     }
 
-    template<typename THeader>
-    int32_t write_header(std::function<int32_t(THeader *header)> fn) {
+    template<typename THeader, typename MutateHeaderFunction>
+    int32_t write_header(MutateHeaderFunction fn) {
         ensure_valid();
         auto rp = *begin();
         return fn(as_mutable<THeader>(rp));
     }
 
-    int32_t write_view(std::function<int32_t(write_buffer)> fn) {
+    template<typename WriteFunction>
+    int32_t write_view(WriteFunction fn) {
         ensure_valid();
-        return unsafe_all([&](uint8_t *ptr, size_t size) {
+        return unsafe_all([&](uint8_t *ptr, size_t size) -> int32_t {
             return fn(write_buffer(ptr, size, position()));
         });
     }

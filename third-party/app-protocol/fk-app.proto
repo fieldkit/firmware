@@ -386,15 +386,15 @@ message Recording {
 message LoraSettings {
   bool available = 1;
   bool modifying = 2;
-  bytes deviceEui = 3;
-  bytes appKey = 4;
-  bytes appEui = 5;
-  uint32 frequencyBand = 6;
-  bytes deviceAddress = 7;
-  bytes networkSessionKey = 8;
-  bytes appSessionKey = 9;
-  uint32 uplinkCounter = 10;
-  uint32 downlinkCounter = 11;
+  bool clearing = 3;
+  uint32 frequencyBand = 4;
+  bytes deviceEui = 5;
+  bytes appKey = 6;
+  bytes joinEui = 7;
+
+  bytes deviceAddress = 8;
+  bytes networkSessionKey = 9;
+  bytes appSessionKey = 10;
 }
 
 message Location {
@@ -449,6 +449,7 @@ message LiveSensorReading {
   SensorCapabilities sensor = 1;
   float value = 2;
   float uncalibrated = 3;
+  float factory = 4;
 }
 
 message LiveModuleReadings {
@@ -503,6 +504,32 @@ message HttpReply {
   DirectoryListing listing = 11;
   NearbyNetworks  nearbyNetworks = 12;
   repeated Fault faults = 13;
+}
+
+enum ModuleQueryType {
+  MODULE_QUERY_NONE = 0;
+  MODULE_QUERY_STATUS = 1;
+  MODULE_QUERY_CONFIGURE = 2;
+  MODULE_QUERY_RESET = 3;
+}
+
+message ModuleHttpQuery {
+  ModuleQueryType type = 1;
+  repeated Error errors = 2;
+  bytes configuration = 3;
+}
+
+enum ModuleReplyType {
+  MODULE_REPLY_NONE = 0;
+  MODULE_REPLY_SUCCESS = 1;
+  MODULE_REPLY_BUSY = 2;
+  MODULE_REPLY_ERROR = 3;
+}
+
+message ModuleHttpReply {
+  ModuleReplyType type = 1;
+  repeated Error errors = 2;
+  bytes configuration = 3;
 }
 
 enum UdpStatus {

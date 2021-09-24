@@ -1,23 +1,24 @@
-#include "tasks/tasks.h"
 #include "hal/metal/metal.h"
 #include "pool.h"
 #include "state_manager.h"
 #include "storage/storage.h"
+#include "tasks/tasks.h"
+#include "timer.h"
 
-#include "display/display_views.h"
-#include "display/home_view.h"
-#include "display/name_view.h"
 #include "display/build_view.h"
-#include "display/qr_code_view.h"
-#include "display/readings_view.h"
-#include "display/self_check_view.h"
+#include "display/display_views.h"
+#include "display/gps_view.h"
+#include "display/home_view.h"
+#include "display/leds.h"
+#include "display/lora_view.h"
 #include "display/menu_view.h"
 #include "display/message_view.h"
 #include "display/module_status_view.h"
-#include "display/lora_view.h"
-#include "display/gps_view.h"
+#include "display/name_view.h"
+#include "display/qr_code_view.h"
+#include "display/readings_view.h"
 #include "display/schedule_view.h"
-#include "display/leds.h"
+#include "display/self_check_view.h"
 
 namespace fk {
 
@@ -25,6 +26,7 @@ FK_DECLARE_LOGGER("display");
 
 class MainViewController : public ViewController {
 private:
+    Pool *pool_{ nullptr };
     HomeView home_view;
     ReadingsView readings_view;
     MenuView menu_view;
@@ -40,9 +42,10 @@ private:
     LedsController leds;
     DisplayView *view = &home_view;
     uint32_t notified_{ 0 };
+    uint32_t updated_{ 0 };
 
 public:
-    explicit MainViewController(Pool &pool) : menu_view{ this, pool } {
+    explicit MainViewController(Pool &pool) : pool_(&pool), menu_view{ this, pool } {
         instance_ = this;
     }
 
@@ -97,8 +100,8 @@ public:
         show_view(menu_view);
     }
 
-    void show_message(const char *message) override {
-        message_view.message(message);
+    void show_message(const char *message, uint32_t visible_ms) override {
+        message_view.message(message, visible_ms);
         show_view(message_view);
         StandardPool pool{ "display-frame" };
         view->tick(this, pool);
@@ -123,32 +126,47 @@ public:
 
     void refresh_notifications() {
         auto gs = get_global_state_ro();
-        auto &notif = gs.get()->notification;
-        if (notif.created > 0 && notified_ < notif.created) {
-            loginfo("notification: '%s'", notif.message);
-            notified_ = notif.created;
-            show_message(notif.message);
+        auto &notification = gs.get()->notification;
+        if (notification.created > 0 && notified_ < notification.created) {
+            loginfo("notification: '%s'", notification.message);
+            notified_ = notification.created;
+            show_message(notification.message, 0);
+        }
+        auto &display = gs.get()->display;
+        if (display.open_menu.time > 0 && display.open_menu.time > updated_) {
+            loginfo("open-menu:");
+            updated_ = display.open_menu.time;
+            if (display.open_menu.readings) {
+                show_view(menu_view);
+                menu_view.show_readings();
+            }
         }
     }
 
-    void run() {
-        auto can_stop = os_task_is_running(&scheduler_task);
+    void run(display_params_t *params) {
         if (!leds.begin()) {
             logwarn("leds unavailable");
         }
 
         refresh_notifications();
 
-        IntervalTimer stop_timer;
-        IntervalTimer notifications_timer;
-        StandardPool pool{ "display-frame" };
-        while (!can_stop || !stop_timer.expired(FiveMinutesMs)) {
+        IntervalTimer stop_timer{ FiveMinutesMs };
+        IntervalTimer notifications_timer{ OneSecondMs / 10 };
+        auto maximum_used = 0u;
+        auto frame_pool = pool_->subpool("display-frame", 1024);
+        auto can_stop = os_task_is_running(&scheduler_task);
+        auto should_show_readings = params->readings;
+
+        loginfo("should-show-readings: %d", should_show_readings);
+
+        while (!can_stop || !stop_timer.expired()) {
             if (!view->custom_leds()) {
                 leds.tick();
             }
-            view->tick(this, pool);
 
-            if (notifications_timer.expired(100)) {
+            view->tick(this, *frame_pool);
+
+            if (notifications_timer.expired()) {
                 refresh_notifications();
             }
 
@@ -182,21 +200,31 @@ public:
                 }
                 }
             }
+
+            if (frame_pool->used() > 0) {
+                if (frame_pool->used() > maximum_used) {
+                    maximum_used = frame_pool->used();
+                    loginfo("new display usage maximum: %zu", maximum_used);
+                }
+                frame_pool->clear();
+            }
+
+            if (should_show_readings) {
+                show_readings();
+                should_show_readings = false;
+            }
         }
 
         view->hide();
-
-        pool.clear();
     }
-
 };
 
 void task_handler_display(void *params) {
     StandardPool pool{ "display" };
     MainViewController views{ pool };
-    views.run();
+    views.run((display_params_t *)params);
     get_module_leds()->off();
     get_display()->off();
 }
 
-}
+} // namespace fk

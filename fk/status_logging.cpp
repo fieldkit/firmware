@@ -38,18 +38,58 @@ static void log_status() {
     }
 
     auto now = get_clock_now();
-    auto mi = mallinfo();
     auto name = gs.get()->general.name;
-    ip4_address ip{ gs.get()->network.state.ip };
+    auto readings = gs.get()->readings.nreadings;
+    auto records = gs.get()->storage.data.block + gs.get()->storage.meta.block;
     auto spmi = fk_standard_page_meminfo();
-    auto memory_oddity = mi.arena != mi.uordblks;
     auto percentage = (float)spmi.used / spmi.total * 100.0f;
 
+    auto mi = mallinfo();
+    FK_ASSERT(mi.arena == mi.uordblks);
+
+    char gps_status[64];
+    auto &gps = gs.get()->gps;
+    if (gps.enabled) {
+        if (gps.fix) {
+            snprintf(gps_status, sizeof(gps_status), "chars=%" PRIu32 " satellites=%d ", gps.chars, gps.satellites);
+        }
+        else {
+            snprintf(gps_status, sizeof(gps_status), "chars=%" PRIu32 " ", gps.chars);
+        }
+    }
+    else {
+        snprintf(gps_status, sizeof(gps_status), "off, ");
+    }
+
+    auto length = strlen(gps_status);
+    if (gps.time > 0) {
+        uint32_t age = now - gps.time;
+        snprintf(gps_status + length, sizeof(gps_status) - length, "fix-age=%" PRIu32 " [%f, %f]",
+                 age, gps.longitude, gps.latitude);
+    } else {
+        snprintf(gps_status + length, sizeof(gps_status) - length, "fix-age=inf");
+    }
+
+    char scheduler_status[32];
+    auto &s = gs.get()->scheduler;
+    snprintf(scheduler_status, sizeof(scheduler_status), "%" PRIu32 "/%" PRIu32 "",
+             s.readings.upcoming.seconds, s.gps.upcoming.seconds);
+
+    char network_status[32];
+    ip4_address ip{ gs.get()->network.state.ip };
+    auto rssi = get_network()->rssi();
+    if (get_network()->enabled()) {
+        snprintf(network_status, sizeof(network_status), "%d.%d.%d.%d rssi=%" PRId32 "",
+                 ip.u.bytes[0], ip.u.bytes[1], ip.u.bytes[2], ip.u.bytes[3], rssi);
+    }
+    else {
+        snprintf(network_status, sizeof(network_status), "off");
+    }
+
     FormattedTime formatted{ now };
-    loginfo("%s '%s' (%d.%d.%d.%d) memory(%" PRIu32 " / %zd%s) pages(%zd / %zd / %zd, %.2f%% used)",
-            formatted.cstr(), name, ip.u.bytes[0], ip.u.bytes[1], ip.u.bytes[2], ip.u.bytes[3],
-            fk_free_memory(), (size_t)mi.arena, (memory_oddity ? " ERR" : ""),
-            spmi.total - spmi.free, spmi.highwater, spmi.total, percentage);
+    loginfo("%s '%s' data(readings=%" PRIu32 "/%" PRIu32 ") gps(%s) mem(%zd/%zd/%zd, %.2f%% used) sched(%s) wifi(%s)",
+            formatted.cstr(), name, readings, records, gps_status, spmi.total - spmi.free, spmi.highwater, spmi.total,
+            percentage, scheduler_status, network_status);
 }
 
 void fk_status_log() {
@@ -79,9 +119,6 @@ bool fk_log_diagnostics() {
     char hash_string[128];
     bytes_to_hex_string(hash_string, sizeof(hash_string), fkb_header.firmware.hash, fkb_header.firmware.hash_size);
     loginfo("hash = %s", hash_string);
-
-    loginfo("sizeof(RecordHeader + RecordTail) = %zd + %zd", sizeof(RecordHeader), sizeof(RecordTail));
-    loginfo("sizeof(GlobalState) = %zd", sizeof(GlobalState));
     #endif
 
     return true;

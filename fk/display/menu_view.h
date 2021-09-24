@@ -1,13 +1,19 @@
 #pragma once
 
 #include "common.h"
-#include "hal/display.h"
 #include "display_views.h"
+#include "hal/display.h"
 #include "state.h"
 
 namespace fk {
 
-class MenuView : public DisplayView {
+class GotoMenu {
+public:
+    virtual MenuScreen *goto_menu(MenuScreen *screen, uint32_t hold_time = FiveSecondsMs,
+                                  MenuScreen *previous_menu = nullptr) = 0;
+};
+
+class MenuView : public DisplayView, GotoMenu {
 private:
     Pool *pool_{ nullptr };
     ViewController *views_{ nullptr };
@@ -26,9 +32,11 @@ private:
     MenuScreen *schedules_menu_{ nullptr };
     MenuScreen *confirm_menu_{ nullptr };
     uint32_t menu_time_{ 0 };
+    uint32_t hold_time_{ FiveSecondsMs };
     uint32_t refresh_time_{ 0 };
     ModulePosition selected_module_bay_{ 0 };
     MenuOption *pending_{ nullptr };
+    MenuScreen *readings_menu_{ nullptr };
 
 public:
     MenuView(ViewController *views, Pool &pool);
@@ -36,6 +44,7 @@ public:
 public:
     void show() override;
     void show_for_module(uint8_t bay);
+    void show_readings();
     void tick(ViewController *views, Pool &pool) override;
     void up(ViewController *views) override;
     void down(ViewController *views) override;
@@ -52,7 +61,11 @@ private:
     void create_schedules_menu();
     void create_confirmation_menu();
     void refresh();
-    MenuScreen *goto_menu(MenuScreen *screen);
+    MenuScreen *goto_menu(MenuScreen *screen, MenuScreen *previous_menu) {
+        return goto_menu(screen, FiveSecondsMs, previous_menu);
+    }
+    MenuScreen *goto_menu(MenuScreen *screen, uint32_t hold_time = FiveSecondsMs,
+                          MenuScreen *previous_menu = nullptr) override;
 
 private:
     static void choose_active_network(WifiNetworkInfo network);
@@ -60,7 +73,6 @@ private:
     static void focus_down(MenuScreen &screen);
     static void refresh_visible(MenuScreen &screen, int8_t focused_index);
     static MenuOption *selected(MenuScreen &screen);
-
 };
 
-}
+} // namespace fk

@@ -31,7 +31,7 @@ protected:
             return err;
         }
 
-        logged_task lt{ name() };
+        // logged_task lt{ name() };
 
         db().emplace<T, Args...>(std::forward<Args>(args)...);
 
@@ -50,7 +50,7 @@ protected:
             return err;
         }
 
-        logged_task lt{ name() };
+        // logged_task lt{ name() };
 
         db().append<T>(record, buffer, size);
 

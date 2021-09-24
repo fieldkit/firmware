@@ -24,7 +24,7 @@ TEST(General, EntrySizes) {
 }
 
 TEST(General, ObjectSizes) {
-    phydebugf("sizeof(malloc_working_buffers) = %zu", sizeof(malloc_working_buffers));
+    phydebugf("sizeof(malloc_working_buffers) = %zu", sizeof(working_buffers));
     phydebugf("sizeof(memory_flash_memory) = %zu", sizeof(memory_flash_memory));
     phydebugf("sizeof(memory_sector_map) = %zu", sizeof(memory_sector_map));
     phydebugf("sizeof(sector_allocator) = %zu", sizeof(sector_allocator));
@@ -32,12 +32,16 @@ TEST(General, ObjectSizes) {
 
     phydebugf("sizeof(directory_tree::dir_node_type) = %zu", sizeof(directory_tree::dir_node_type));
     phydebugf("sizeof(directory_tree::dir_tree_type) = %zu", sizeof(directory_tree::dir_tree_type));
-    phydebugf("sizeof(directory_tree::attr_node_type) = %zu", sizeof(directory_tree::attr_node_type));
-    phydebugf("sizeof(directory_tree::attr_tree_type) = %zu", sizeof(directory_tree::attr_tree_type));
+    phydebugf("sizeof(tree_attribute_storage::attr_node_type) = %zu", sizeof(tree_attribute_storage::attr_node_type));
+    phydebugf("sizeof(tree_attribute_storage::attr_tree_type) = %zu", sizeof(tree_attribute_storage::attr_tree_type));
 
     phydebugf("sizeof(delimited_buffer::iterator) = %zu", sizeof(delimited_buffer::iterator));
     phydebugf("sizeof(read_buffer) = %zu", sizeof(read_buffer));
     phydebugf("sizeof(record_ptr) = %zu", sizeof(record_ptr));
+
+    phydebugf("sizeof(tree_sector<uint32_t, uint32_t, 63>::default_node_type) = %zu", sizeof(tree_sector<uint32_t, uint32_t, 63>::default_node_type));
+    phydebugf("sizeof(tree_sector<uint32_t, uint32_t, 405>::default_node_type) = %zu", sizeof(tree_sector<uint32_t, uint32_t, 405>::default_node_type));
+    phydebugf("sizeof(tree_sector<uint32_t, uint32_t, 201>::default_node_type) = %zu", sizeof(tree_sector<uint32_t, uint32_t, 201>::default_node_type));
 }
 
 template <typename T> class BasicsFixture : public PhylumFixture {};
@@ -56,12 +60,20 @@ TYPED_TEST(BasicsFixture, MountFormatMount) {
     typename TypeParam::first_type layout;
     FlashMemory memory{ layout.sector_size };
 
-    memory.begin(true);
+    {
+        memory.begin(true);
+        memory.sync([&]{
+            dir_type dir{ memory.pc(), 0 };
+            ASSERT_EQ(dir.mount(), -1);
+            ASSERT_EQ(dir.format(), 0);
+        });
+    }
 
-    dir_type dir{ memory.pc(), 0 };
-    ASSERT_EQ(dir.mount(), -1);
-    ASSERT_EQ(dir.format(), 0);
-    ASSERT_EQ(dir.mount(), 0);
+    {
+        memory.begin(false);
+        dir_type dir{ memory.pc(), 0 };
+        ASSERT_EQ(dir.mount(), 0);
+    }
 }
 
 TYPED_TEST(BasicsFixture, FormatPersists) {
@@ -75,6 +87,8 @@ TYPED_TEST(BasicsFixture, FormatPersists) {
         dir_type dir{ memory.pc(), 0 };
         ASSERT_EQ(dir.format(), 0);
     });
+
+    memory.begin(false);
 
     memory.sync([&]() {
         dir_type dir{ memory.pc(), 0 };

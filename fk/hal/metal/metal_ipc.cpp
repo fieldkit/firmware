@@ -5,15 +5,21 @@
 
 #include "tasks/tasks.h"
 
-#if defined(FK_HARDWARE_FULL)
+#if defined(__SAMD51__)
 
 namespace fk {
 
 FK_DECLARE_LOGGER("ipc");
 
-MetalMutex storage_mutex;
-MetalMutex modules_mutex;
-MetalMutex sd_mutex;
+MetalMutex storage_mutex{ "storage" };
+MetalMutex modules_mutex{ "modules" };
+MetalMutex workers_mutex{ "workers" };
+MetalMutex sd_mutex{ "sd" };
+MetalMutex wifi_mutex{ "wifi" };
+MetalMutex i2c_module_mutex{ "i2c-module" };
+MetalMutex i2c_core_mutex{ "i2c-core" };
+MetalMutex i2c_radio_mutex{ "i2c-radio" };
+MetalMutex lora_mutex{ "lora" };
 MetalRwLock data_lock;
 
 os_queue_define(activity_queue, 10, OS_QUEUE_FLAGS_QUEUE_ONLY);
@@ -38,6 +44,8 @@ bool MetalIPC::begin() {
 
     FK_ASSERT(storage_mutex.create());
     FK_ASSERT(modules_mutex.create());
+    FK_ASSERT(workers_mutex.create());
+    FK_ASSERT(wifi_mutex.create());
     FK_ASSERT(sd_mutex.create());
     FK_ASSERT(data_lock.create());
 
@@ -54,7 +62,7 @@ bool MetalIPC::dequeue_activity(Activity **ptr) {
     if (tuple.status != OSS_SUCCESS) {
         return false;
     }
-    *ptr = reinterpret_cast<Activity*>(tuple.value.ptr);
+    *ptr = reinterpret_cast<Activity *>(tuple.value.ptr);
     return true;
 }
 
@@ -68,7 +76,7 @@ bool MetalIPC::dequeue_button(Button **ptr) {
     if (tuple.status != OSS_SUCCESS) {
         return false;
     }
-    *ptr = reinterpret_cast<Button*>(tuple.value.ptr);
+    *ptr = reinterpret_cast<Button *>(tuple.value.ptr);
     return true;
 }
 
@@ -82,7 +90,7 @@ bool MetalIPC::dequeue_topology(Activity **ptr, uint32_t to) {
     if (tuple.status != OSS_SUCCESS) {
         return false;
     }
-    *ptr = reinterpret_cast<Activity*>(tuple.value.ptr);
+    *ptr = reinterpret_cast<Activity *>(tuple.value.ptr);
     return true;
 }
 
@@ -102,8 +110,8 @@ bool MetalIPC::can_launch(WorkerCategory category) {
     return true;
 }
 
-bool MetalIPC::launch_worker(WorkerCategory category, TaskWorker *worker) {
-    if (!can_launch(category)) {
+bool MetalIPC::launch_worker(WorkerCategory category, TaskWorker *worker, bool concurrency_allowed) {
+    if (!concurrency_allowed && !can_launch(category)) {
         logwarn("unable to launch, already running");
         logwarn("deleting 0x%p", worker);
         delete worker;
@@ -145,7 +153,8 @@ bool MetalIPC::remove_worker(TaskWorker *worker) {
 bool MetalIPC::signal_workers(WorkerCategory category, uint32_t signal) {
     logdebug("signaling workers (%" PRIu32 ")", signal);
 
-    FK_DISABLE_IRQ();
+    auto lock = workers_mutex.acquire(UINT32_MAX);
+    FK_ASSERT(lock);
 
     for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
         if (os_task_is_running(&worker_tasks[i])) {
@@ -156,15 +165,14 @@ bool MetalIPC::signal_workers(WorkerCategory category, uint32_t signal) {
         }
     }
 
-    FK_ENABLE_IRQ();
-
     return true;
 }
 
 collection<TaskDisplayInfo> MetalIPC::get_workers_display_info(Pool &pool) {
     collection<TaskDisplayInfo> infos{ pool };
 
-    FK_DISABLE_IRQ();
+    auto lock = workers_mutex.acquire(UINT32_MAX);
+    FK_ASSERT(lock);
 
     for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
         if (os_task_is_running(&worker_tasks[i])) {
@@ -175,15 +183,14 @@ collection<TaskDisplayInfo> MetalIPC::get_workers_display_info(Pool &pool) {
         }
     }
 
-    FK_ENABLE_IRQ();
-
     return infos;
 }
 
 bool MetalIPC::has_running_worker(WorkerCategory category) {
     auto found = false;
 
-    FK_DISABLE_IRQ();
+    auto lock = workers_mutex.acquire(UINT32_MAX);
+    FK_ASSERT(lock);
 
     for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
         if (os_task_is_running(&worker_tasks[i])) {
@@ -194,15 +201,14 @@ bool MetalIPC::has_running_worker(WorkerCategory category) {
         }
     }
 
-    FK_ENABLE_IRQ();
-
     return found;
 }
 
 bool MetalIPC::has_any_running_worker() {
     auto found = false;
 
-    FK_DISABLE_IRQ();
+    auto lock = workers_mutex.acquire(UINT32_MAX);
+    FK_ASSERT(lock);
 
     for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
         if (os_task_is_running(&worker_tasks[i])) {
@@ -210,8 +216,6 @@ bool MetalIPC::has_any_running_worker() {
             break;
         }
     }
-
-    FK_ENABLE_IRQ();
 
     return found;
 }
@@ -233,8 +237,10 @@ Lock MetalMutex::acquire(uint32_t to) {
         return Lock{ this };
     }
     if (os_mutex_acquire(&mutex_, to) == OSS_SUCCESS) {
+        logtrace("%s acquire", name_);
         return Lock{ this };
     }
+    logerror("%s failed-acquire!", name_);
     return Lock{ nullptr };
 }
 
@@ -242,6 +248,7 @@ bool MetalMutex::release() {
     if (!os_is_running()) {
         return true;
     }
+    logtrace("%s release", name_);
     os_mutex_release(&mutex_);
     return true;
 }
@@ -284,6 +291,6 @@ bool MetalRwLock::release() {
     return os_rwlock_release(&rwlock_) == OSS_SUCCESS;
 }
 
-}
+} // namespace fk
 
 #endif

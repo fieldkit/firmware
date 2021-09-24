@@ -1,6 +1,6 @@
 #pragma once
 
-#if !defined(ARDUINO)
+#if !defined(__SAMD51__)
 
 #include "hal/hal.h"
 
@@ -13,7 +13,7 @@ private:
 
 public:
     LinuxNetworkConnection();
-    LinuxNetworkConnection(int32_t s, uint32_t remote_address);
+    LinuxNetworkConnection(Pool *pool, int32_t s, uint32_t remote_address);
     ~LinuxNetworkConnection() override;
 
 public:
@@ -45,7 +45,7 @@ private:
     int32_t listening_;
 
 public:
-    LinuxNetworkListener(uint16_t port, int32_t listening);
+    LinuxNetworkListener(Pool *pool, uint16_t port, int32_t listening);
 
 public:
     PoolPointer<NetworkConnection> *accept() override;

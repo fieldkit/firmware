@@ -10,10 +10,11 @@ namespace fk {
 class DistanceModule : public Module {
 private:
     Sc16is740 bridge_;
-    LineReader<256> line_reader_{ &bridge_ };
+    LineReader<64> line_reader_{ &bridge_ };
 
 public:
-    DistanceModule();
+    DistanceModule(Pool &pool);
+    virtual ~DistanceModule();
 
 public:
     ModuleReturn initialize(ModuleContext mc, Pool &pool) override;

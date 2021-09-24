@@ -20,9 +20,13 @@ public:
     ProgressTracker(ProgressCallbacks *callbacks, Operation op, const char *facility, const char *prefix, uint32_t total);
 
 public:
-    void update(int32_t bytes);
+    bool update(int32_t bytes);
 
-    void update(int32_t bytes, uint32_t total);
+    bool update(int32_t bytes, uint32_t total);
+
+    bool update(int32_t bytes, uint32_t read_time, uint32_t write_time);
+
+    bool update(int32_t bytes, uint32_t read_time, uint32_t write_time, uint32_t total);
 
     bool busy() const;
 

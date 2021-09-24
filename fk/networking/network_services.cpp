@@ -2,15 +2,18 @@
 #include <malloc.h>
 
 #include "common.h"
-#include "platform.h"
-#include "networking/network_services.h"
-#include "networking/default_routes.h"
-#include "hal/hal.h"
 #include "device_name.h"
+#include "hal/hal.h"
+#include "networking/default_routes.h"
+#include "networking/network_services.h"
+#include "platform.h"
+#include "state_manager.h"
+#include "state_ref.h"
+#include "tasks/tasks.h"
 
 namespace fk {
 
-FK_DECLARE_LOGGER("httpd");
+FK_DECLARE_LOGGER("network");
 
 static DefaultRoutes default_routes;
 
@@ -18,11 +21,13 @@ static bool network_began(NetworkStatus status) {
     return status == NetworkStatus::Connected || status == NetworkStatus::Listening;
 }
 
-NetworkServices::NetworkServices(Network *network) : network_(network) {
+NetworkServices::NetworkServices(Network *network, Pool &pool)
+    : tick_pool_(pool.subpool("network-tick", 1024)), network_(network) {
+    started_ = fk_uptime();
 }
 
 NetworkServices::~NetworkServices() {
-    loginfo("stopping");
+    logdebug("dtor");
     stop();
 }
 
@@ -30,27 +35,87 @@ bool NetworkServices::enabled() const {
     return network_->enabled();
 }
 
-uint32_t NetworkServices::activity() const {
-    return pool_.activity();
+const char *NetworkServices::ssid() const {
+    return active_settings_.ssid;
 }
 
 bool NetworkServices::active_connections() const {
-    return pool_.active_connections();
+    return connection_pool_.active_connections();
 }
 
-bool NetworkServices::ready_to_serve() const {
+uint32_t NetworkServices::activity() const {
+    return connection_pool_.activity();
+}
+
+uint32_t NetworkServices::bytes_rx() const {
+    return connection_pool_.bytes_rx();
+};
+
+uint32_t NetworkServices::bytes_tx() const {
+    return connection_pool_.bytes_tx();
+};
+
+bool NetworkServices::waiting_to_serve() {
+    if (network_->status() == NetworkStatus::Connected) {
+        loginfo("connected");
+        return false;
+    }
+
+    if (did_configuration_change()) {
+        loginfo("configuration changed");
+        return false;
+    }
+
+    return true;
+}
+
+bool NetworkServices::can_serve() const {
     return network_->status() == NetworkStatus::Connected;
 }
 
-const char *NetworkServices::ssid() const {
-    return settings_.ssid;
+bool NetworkServices::serving() {
+    // Break this loop and go to the beginning to recreate.
+    if (did_configuration_change()) {
+        loginfo("stopping: configuration");
+        return false;
+    }
+
+    // This will happen when a foreign device disconnects from
+    // our WiFi AP and in that case we keep the WiFi on until
+    // we're properly considered inactive.
+    if (network_->status() != NetworkStatus::Connected) {
+        if (duration_.always_on()) {
+            loginfo("stopping: disconnected (always-on)");
+        } else {
+            loginfo("stopping: disconnected");
+        }
+        return false;
+    }
+
+    return true;
 }
 
-bool NetworkServices::begin(NetworkSettings settings, uint32_t to, Pool &pool) {
+bool NetworkServices::should_stop() {
+    // Check to see if we've been inactive for too long.
+    if (!duration_.on(std::max(started_, activity()))) {
+        loginfo("inactive");
+        return true;
+    }
+
+    // Some other task has requested that we stop serving. Menu option
+    // or a self check for example.
+    if (fk_task_stop_requested(&signal_checked_)) {
+        loginfo("stop requested");
+        return true;
+    }
+
+    return false;
+}
+
+bool NetworkServices::try_begin(NetworkSettings settings, uint32_t to, Pool &pool) {
     if (settings.create) {
         loginfo("creating '%s'", settings.ssid);
-    }
-    else {
+    } else {
         loginfo("trying '%s'", settings.ssid);
     }
 
@@ -62,21 +127,30 @@ bool NetworkServices::begin(NetworkSettings settings, uint32_t to, Pool &pool) {
     auto started = fk_uptime();
 
     do {
+        network_->service(nullptr);
+
         if (network_began(network_->status())) {
-            settings_ = settings;
+            logdebug("try-begin: %dms (ok)", fk_uptime() - started);
+
             return true;
         }
 
         fk_delay(100);
-    }
-    while (fk_uptime() - started < to);
+    } while (fk_uptime() - started < to);
 
-    logerror("networking took too long");
+    logwarn("try-begin: %dms (too long)", fk_uptime() - started);
 
     return false;
 }
 
 bool NetworkServices::serve() {
+    logdebug("serve: acquiring");
+
+    auto lock = wifi_mutex.acquire(UINT32_MAX);
+    FK_ASSERT(lock);
+
+    logdebug("serve: initializing");
+
     default_routes.add_routes(router_);
 
     http_listener_ = network_->listen(80);
@@ -93,31 +167,168 @@ bool NetworkServices::serve() {
         return false;
     }
 
-    loginfo("serving");
+    serving_ = true;
+
+    loginfo("serve: ready");
 
     return true;
 }
 
-void NetworkServices::tick(Pool *pool) {
-    if (pool_.available() > 0) {
-        auto http_connection = http_listener_->get()->accept();
-        if (http_connection != nullptr) {
-            pool_.queue_http(http_connection);
-        }
+void NetworkServices::tick() {
+    auto lock = wifi_mutex.acquire(UINT32_MAX);
+    FK_ASSERT(lock);
 
-        auto debug_connection = debug_listener_->get()->accept();
-        if (debug_connection != nullptr) {
-            pool_.queue_debug(debug_connection);
+    if (connection_pool_.active_connections()) {
+        network_->service(nullptr);
+    } else {
+        network_->service(tick_pool_);
+
+        if (tick_pool_->used() > 0) {
+            loginfo("network-tick: %zu/%zu", tick_pool_->used(), tick_pool_->size());
+            tick_pool_->clear();
         }
     }
 
-    network_->service(pool);
+    // We use this instead of connection status because that can
+    // change while we're waiting and before ::serve is called.
+    if (serving_) {
+        if (connection_pool_.available() > 0) {
+            auto http_connection = http_listener_->get()->accept();
+            if (http_connection != nullptr) {
+                connection_pool_.queue_http(http_connection);
+            }
 
-    pool_.service();
+            auto debug_connection = debug_listener_->get()->accept();
+            if (debug_connection != nullptr) {
+                connection_pool_.queue_debug(debug_connection);
+            }
+        }
+
+        connection_pool_.service();
+    }
 }
 
 void NetworkServices::stop() {
+    auto lock = wifi_mutex.acquire(UINT32_MAX);
+    FK_ASSERT(lock);
+
+    loginfo("stopping...");
+
+    connection_pool_.stop();
+
     network_->stop();
+
+    GlobalStateManager gsm;
+    gsm.apply([=](GlobalState *gs) { gs->network.state = {}; });
+
+    loginfo("stopped");
 }
 
+static collection<NetworkSettings> copy_settings(Pool &pool) {
+    collection<NetworkSettings> settings{ pool };
+
+    auto gs = get_global_state_ro();
+    for (auto &wifi_network : gs.get()->network.config.wifi_networks) {
+        if (wifi_network.ssid[0] != 0) {
+            settings.add({
+                .valid = wifi_network.ssid[0] != 0,
+                .create = false,
+                .ssid = wifi_network.ssid,
+                .password = wifi_network.password,
+                .port = 80,
+            });
+        }
+    }
+
+    auto name = pool.strdup(gs.get()->general.name);
+    settings.add({
+        .valid = true,
+        .create = true,
+        .ssid = name,
+        .password = nullptr,
+        .port = 80,
+    });
+
+    return settings;
 }
+
+bool NetworkServices::begin(uint32_t to, Pool &pool) {
+    auto settings = get_selected_settings(pool);
+    if (settings.valid) {
+        if (try_begin(settings, to, pool)) {
+            active_settings_ = settings;
+            return true;
+        }
+    }
+
+    auto network_settings = copy_settings(pool);
+    for (NetworkSettings &s : network_settings) {
+        if (try_begin(s, to, pool)) {
+            active_settings_ = s;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool NetworkServices::did_configuration_change() {
+    if (fk_uptime() - last_checked_configuration_ < ConfigurationCheckIntervalMs) {
+        return false;
+    }
+
+    auto gs = get_global_state_ro();
+    auto modified = gs.get()->network.config.modified;
+    auto changed = false;
+
+    duration_ = gs.get()->scheduler.network.duration;
+
+    if (modified != configuration_modified_) {
+        loginfo("configuration modified");
+        changed = true;
+    }
+
+    if (false) {
+        if (active_settings_.create) {
+            if (strncmp(gs.get()->general.name, active_settings_.ssid, sizeof(gs.get()->general.name)) != 0) {
+                loginfo("name changed '%s' vs '%s'", gs.get()->general.name, active_settings_.ssid);
+                changed = true;
+            }
+        }
+    }
+
+    last_checked_configuration_ = fk_uptime();
+
+    return changed;
+}
+
+NetworkSettings NetworkServices::get_selected_settings(Pool &pool) {
+    auto gs = get_global_state_ro();
+    auto &n = gs.get()->network.config.selected;
+
+    duration_ = gs.get()->scheduler.network.duration;
+
+    if (!n.valid) {
+        return {
+            .valid = false,
+            .create = false,
+            .ssid = nullptr,
+            .password = nullptr,
+            .port = 80,
+        };
+    }
+
+    auto modified = gs.get()->network.config.modified;
+
+    configuration_modified_ = modified;
+
+    return {
+        .valid = true,
+        .create = n.create,
+        .ssid = n.ssid,
+        .password = n.password,
+        .port = 80,
+    };
+}
+
+} // namespace fk

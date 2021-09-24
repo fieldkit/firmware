@@ -13,7 +13,7 @@ ConnectionPool::ConnectionPool(HttpRouter &router) : router_(&router) {
 }
 
 ConnectionPool::~ConnectionPool() {
-    for (auto i = (size_t)0; i < MaximumConnections; ++i) {
+    for (auto i = 0u; i < MaximumConnections; ++i) {
         if (connections_[i] != nullptr) {
             update_statistics(connections_[i]);
             free_connection(i);
@@ -22,8 +22,8 @@ ConnectionPool::~ConnectionPool() {
 }
 
 size_t ConnectionPool::available() {
-    size_t used = 0;
-    for (auto i = (size_t)0; i < MaximumConnections; ++i) {
+    auto used = 0;
+    for (auto i = 0u; i < MaximumConnections; ++i) {
         if (connections_[i] != nullptr) {
             used++;
         }
@@ -50,21 +50,17 @@ void ConnectionPool::service() {
                 update_statistics(c);
 
                 if (activity_elapsed < NetworkConnectionMaximumDuration) {
-                    logtrace("[%" PRIu32 "] [%d] active (%" PRIu32 "ms) (%" PRIu32 "ms) (%" PRIu32 " down) (%" PRIu32 " up)",
-                             c->number(), i, activity_elapsed, started_elapsed, c->bytes_rx_, c->bytes_tx_);
-                }
-                else {
-                    logwarn("[%" PRIu32 "] [%d] killing (%" PRIu32 "ms) (%" PRIu32 "ms) (%" PRIu32 " down) (%" PRIu32 " up)",
-                            c->number(), i, activity_elapsed, started_elapsed, c->bytes_rx_, c->bytes_tx_);
-                    c->close();
+                    logtrace("[%" PRIu32 "] [%d] active (%" PRIu32 "ms) (%" PRIu32 "ms) (%" PRIu32 " down) (%" PRIu32 " up)", c->number(),
+                             i, activity_elapsed, started_elapsed, c->bytes_rx_, c->bytes_tx_);
+                } else {
+                    logwarn("[%" PRIu32 "] [%d] killing (%" PRIu32 "ms) (%" PRIu32 "ms) (%" PRIu32 " down) (%" PRIu32 " up)", c->number(),
+                            i, activity_elapsed, started_elapsed, c->bytes_rx_, c->bytes_tx_);
                     free_connection(i);
                     continue;
                 }
             }
 
-            // loginfo("[%" PRIu32 "] [%d] connection: 0x%p pool=0x%p", c->number(), i, c, pools_[i]);
             auto closing = c->closed() || !c->service();
-            // SEGGER_RTT_printf(0, "~[cpool-ok]~");
             if (closing) {
                 loginfo("[%d] closing: 0x%p", i, c);
                 // Do this before freeing to avoid a race empty pool after a
@@ -77,13 +73,20 @@ void ConnectionPool::service() {
     }
 }
 
+void ConnectionPool::stop() {
+    for (auto i = 0u; i < MaximumConnections; ++i) {
+        if (connections_[i] != nullptr) {
+            free_connection(i);
+        }
+    }
+}
+
 void ConnectionPool::queue(PoolPointer<NetworkConnection> *c, Connection *connection) {
     for (auto i = 0u; i < MaximumConnections; ++i) {
         if (connections_[i] == nullptr) {
             ip4_address ip{ c->get()->remote_address() };
 
-            loginfo("[%" PRIu32 "] connection (socket = %" PRId32 ") (%d.%d.%d.%d)",
-                    connection->number(), c->get()->socket(),
+            loginfo("[%" PRIu32 "] connection (socket = %" PRId32 ") (%d.%d.%d.%d)", connection->number(), c->get()->socket(),
                     ip.u.bytes[0], ip.u.bytes[1], ip.u.bytes[2], ip.u.bytes[3]);
 
             activity_ = fk_uptime();
@@ -110,8 +113,6 @@ void ConnectionPool::queue_http(PoolPointer<NetworkConnection> *c) {
 }
 
 void ConnectionPool::update_statistics(Connection *c) {
-    // TODO This has races.
-
     auto rx = c->bytes_rx_ - c->bytes_rx_previous_;
     auto tx = c->bytes_tx_ - c->bytes_tx_previous_;
 
@@ -129,15 +130,38 @@ void ConnectionPool::update_statistics(Connection *c) {
 }
 
 void ConnectionPool::free_connection(uint16_t index) {
-    auto number = connections_[index]->number();
-    logdebug("[%" PRIu32 "] [%d] free connection", number, index);
-    FK_ASSERT_ADDRESS(connections_[index]);
-    connections_[index]->close();
-    FK_ASSERT_ADDRESS(pools_[index]);
-    delete pools_[index];
-    logdebug("[%" PRIu32 "] [%d] connection freed", number, index);
+    auto connection = connections_[index];
+    auto pool = pools_[index];
+    auto number = connection->number();
+
     connections_[index] = nullptr;
     pools_[index] = nullptr;
+
+    logdebug("[%" PRIu32 "] [%d] free connection", number, index);
+    connection->close();
+    delete pool;
+    logdebug("[%" PRIu32 "] [%d] connection freed", number, index);
 }
 
+bool ConnectionPool::active_connections() const {
+    for (auto i = 0u; i < MaximumConnections; ++i) {
+        if (connections_[i] != nullptr) {
+            return true;
+        }
+    }
+    return false;
 }
+
+uint32_t ConnectionPool::activity() const {
+    return activity_;
+}
+
+uint32_t ConnectionPool::bytes_rx() const {
+    return bytes_rx_;
+};
+
+uint32_t ConnectionPool::bytes_tx() const {
+    return bytes_tx_;
+};
+
+} // namespace fk

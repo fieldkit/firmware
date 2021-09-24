@@ -6,11 +6,11 @@ namespace fk {
 
 FK_DECLARE_LOGGER("memory");
 
-constexpr size_t SizeOfStandardPagePool = 17;
+constexpr size_t SizeOfStandardPagePool = 18;
 
 struct StandardPages {
     void *base{ nullptr };
-    uint32_t available{ 0 };
+    int32_t available{ 0 };
     const char *owner{ nullptr };
     uint32_t allocated{ 0 };
 };
@@ -45,6 +45,25 @@ void fk_standard_page_initialize() {
     loginfo("allocated %zd pages (%zd bytes)", pages_allocated, pages_allocated * StandardPageSize);
 }
 
+void fk_oom() {
+    logerror("oom!");
+
+    for (auto i = 0u; i < SizeOfStandardPagePool; ++i) {
+        if (!pages[i].available && pages[i].base != nullptr) {
+            logerror("[%2d] owner = %s allocated=%" PRIu32,
+                        i, pages[i].owner, pages[i].allocated);
+        }
+    }
+}
+
+static inline bool atomic_compare_exchange(int32_t *ptr, int32_t compare, int32_t exchange) {
+    return __atomic_compare_exchange_n(ptr, &compare, exchange, 0, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
+}
+
+static inline void atomic_store(int32_t *ptr, int32_t value) {
+    __atomic_store_n(ptr, value, __ATOMIC_SEQ_CST);
+}
+
 void *fk_standard_page_malloc(size_t size, const char *name) {
     FK_ASSERT(size == StandardPageSize);
 
@@ -54,39 +73,22 @@ void *fk_standard_page_malloc(size_t size, const char *name) {
 
     auto selected = -1;
 
-    FK_DISABLE_IRQ();
-
     for (auto i = 0u; i < SizeOfStandardPagePool; ++i) {
-        if (pages[i].available) {
-            pages[i].available = false;
+        if (atomic_compare_exchange(&pages[i].available, 1, 0)) {
             selected = i;
             if (i > highwater) {
                 highwater = selected;
             }
-            break;
+            pages[selected].owner = name;
+            #if defined(__SAMD51__)
+            pages[selected].allocated = fk_uptime();
+            #endif
+            logdebug("[%2d] malloc '%s'", selected, name);
+            return pages[selected].base;
         }
     }
 
-    FK_ENABLE_IRQ();
-
-    if (selected >= 0) {
-        pages[selected].owner = name;
-        #if defined(__SAMD51__)
-        pages[selected].allocated = fk_uptime();
-        #endif
-        logdebug("[%2d] malloc '%s'", selected, name);
-        return pages[selected].base;
-    }
-    else {
-        logerror("oom!");
-
-        for (auto i = 0u; i < SizeOfStandardPagePool; ++i) {
-            if (!pages[i].available && pages[i].base != nullptr) {
-                logerror("[%2d] owner = %s allocated=%" PRIu32,
-                         i, pages[i].owner, pages[i].allocated);
-            }
-        }
-    }
+    fk_oom();
 
     FK_ASSERT(false);
     return nullptr;
@@ -96,35 +98,30 @@ void fk_standard_page_free(void *ptr) {
     const char *owner = "<unknown>";
     auto selected = -1;
 
-    // Before we actually free, we still own the page, so we can
-    // garble/zero the page before. Before we do that let's make sure
-    // we have a valid page pointer.
-
     for (auto i = 0u; i < SizeOfStandardPagePool; ++i) {
         if (pages[i].base == ptr && pages[i].base != nullptr) {
             selected = i;
+
+            owner = pages[selected].owner;
+            FK_ASSERT(owner != nullptr);
+
+            pages[selected].owner = nullptr;
+
+            #if defined(FK_ENABLE_MEMORY_GARBLE)
+            fk_memory_garble(ptr, StandardPageSize);
+            #else
+            bzero(ptr, StandardPageSize);
+            #endif
+
+            atomic_store(&pages[selected].available, 1);
             break;
         }
     }
 
-    FK_ASSERT(selected >= 0);
-
-    #if defined(FK_ENABLE_MEMORY_GARBLE)
-    fk_memory_garble(ptr, StandardPageSize);
-    #else
-    bzero(ptr, StandardPageSize);
-    #endif
-
-    // Now we can atomicly update the global pages array. Notice that
-    // this is probably unnecessary.
-
-    FK_DISABLE_IRQ();
-
-    owner = pages[selected].owner;
-    pages[selected].owner = nullptr;
-    pages[selected].available = true;
-
-    FK_ENABLE_IRQ();
+    if (selected == -1) {
+        logerror("unknown page pointer: %p", ptr);
+        FK_ASSERT(selected != -1);
+    }
 
     logdebug("[%2d] free '%s'", selected, owner);
 

@@ -58,7 +58,7 @@ function(fk_add_builtin_module name)
 endfunction()
 
 if(${FK_OVERSIZED})
-  set(ARDUINO_PROJECT_FLAGS "${ARDUINO_PROJECT_FLAGS} -finstrument-functions")
+  set(ARDUINO_PROJECT_FLAGS "${ARDUINO_PROJECT_FLAGS} -finstrument-functions -finstrument-functions-exclude-file-list=arduino-1.8.3,arduinog-logging,arduino-osh -finstrument-functions-exclude-function-list=alog,vlog,log_raw,logerror,loginfo,logdebug,logtrace,SEGGER_RTT,os_,fk_uptime,__get,dbg_")
 endif()
 
 set(ARDUINO_PROJECT_LD_FLAGS "-Wl,-wrap,malloc -Wl,-wrap,free")
@@ -90,6 +90,9 @@ target_link_libraries(fk-bundled ConservifyOS)
 
 find_package(Asf4)
 target_link_libraries(fk-bundled Asf4)
+
+find_package(Dhara)
+target_link_libraries(fk-bundled Dhara)
 
 find_package(Samd51Common)
 target_link_libraries(fk-bundled Samd51Common)
@@ -134,11 +137,15 @@ target_link_libraries(fk-bundled QrCode)
 find_package(ArduinoBase64)
 target_link_libraries(fk-bundled arduino-base64)
 
+find_package(TheThingsNetwork)
+target_link_libraries(fk-bundled TheThingsNetwork)
+
 fk_add_builtin_module(random)
 fk_add_builtin_module(diagnostics)
 fk_add_builtin_module(weather)
-fk_add_builtin_module(atlas)
 fk_add_builtin_module(distance)
+fk_add_builtin_module(atlas)
+fk_add_builtin_module(water)
 
 if(${FK_TARGET_QSPI_MEMORY})
   configure_firmware_linker_script(fk-bundled ${CMAKE_SOURCE_DIR}/boards/samd51/qspi.ld)
@@ -147,7 +154,12 @@ else()
   configure_firmware_linker_script(fk-bundled ${CMAKE_SOURCE_DIR}/boards/samd51/main.ld)
 endif()
 
-target_compile_options(fk-bundled PRIVATE -DFK_VERSION=${FK_VERSION})
+if (${FK_PHYLUM})
+  target_compile_options(fk-bundled PRIVATE -DFK_VERSION=${FK_VERSION} -DFK_PHYLUM=1)
+  target_compile_options(fk-bundled PRIVATE -DFK_PHYLUM_AMPLIFICATION=${FK_PHYLUM_AMPLIFICATION})
+else()
+  target_compile_options(fk-bundled PRIVATE -DFK_VERSION=${FK_VERSION})
+endif()
 
 add_arduino_firmware(fk-bundled)
 

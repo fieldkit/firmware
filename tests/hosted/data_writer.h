@@ -1,8 +1,6 @@
 #pragma once
 
 #include "state.h"
-#include "modules/module_factory.h"
-#include "readings_taker.h"
 
 #include "mocks_and_fakes.h"
 #include "test_modules.h"
@@ -11,7 +9,7 @@ namespace fk {
 
 class DataWriter {
 private:
-    TwoWireWrapper module_bus_{ "modules", nullptr };
+    TwoWireWrapper module_bus_{ nullptr, "modules", nullptr };
     GlobalState gs_;
     DataMemory *memory_;
 
@@ -28,6 +26,7 @@ public:
             }
         }
 
+#if defined(FK_OLD_STATE)
         ScanningContext ctx{ get_modmux(), gs_.location(pool), module_bus_, pool };
 
         FoundModuleCollection found(pool);
@@ -43,8 +42,11 @@ public:
         ModuleFactory module_factory;
         auto constructed_maybe = module_factory.rescan_and_initialize(ctx, scanning, pool);
 
-        ReadingsTaker readings_taker{ storage, get_modmux(), false, true };
+        ReadingsTaker readings_taker{ storage, get_modmux(), false, pool };
         return (bool)readings_taker.take(*constructed_maybe, ctx, pool);
+#else
+        return true;
+#endif
     }
 };
 

@@ -1,6 +1,6 @@
 #include "hal/metal/metal.h"
 
-#if defined(ARDUINO)
+#if defined(__SAMD51__)
 
 namespace fk {
 
@@ -34,18 +34,20 @@ bool MetalButtons::begin() {
         uint8_t pin;
         uint8_t index;
         void (*irq_handler)(void);
+        IRQn irq;
     };
 
     setup_t setups[] = {
-        { BUTTON_LEFT, Buttons::Left, irq_button_left },
-        { BUTTON_MIDDLE, Buttons::Middle, irq_button_middle },
-        { BUTTON_RIGHT, Buttons::Right, irq_button_right },
-        { BUTTON_EXTERNAL, Buttons::External, irq_button_external },
+        { BUTTON_LEFT,     Buttons::Left,     irq_button_left,     EIC_7_IRQn },
+        { BUTTON_MIDDLE,   Buttons::Middle,   irq_button_middle,   EIC_6_IRQn },
+        { BUTTON_RIGHT,    Buttons::Right,    irq_button_right,    EIC_5_IRQn },
+        { BUTTON_EXTERNAL, Buttons::External, irq_button_external, EIC_4_IRQn },
     };
 
     for (auto &s : setups) {
         pinMode(s.pin, INPUT_PULLUP);
         attachInterrupt(digitalPinToInterrupt(s.pin), s.irq_handler, CHANGE);
+        NVIC_SetPriority(s.irq, FK_PRIORITY_BUTTONS);
         if (digitalRead(s.pin) == LOW) {
             buttons_[s.index].changed(true);
         }
@@ -74,4 +76,4 @@ void MetalButtons::irq(uint8_t index, bool down) {
 
 }
 
-#endif // defined(ARDUINO)
+#endif // defined(__SAMD51__)

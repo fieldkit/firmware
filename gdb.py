@@ -20,13 +20,9 @@ class FkSegger(gdb.Command):
         gdb.execute("target extended-remote :" + arg)
         gdb.execute("monitor exec SetRTTSearchRanges 0x20000000 64")
         if True:
-            gdb.execute("b Dummy_Handler")
-            gdb.execute("b HardFault_Handler")
             gdb.execute("b osi_hard_fault_report")
-            gdb.execute("b cm_hard_fault")
-            gdb.execute("b osi_panic")
+            gdb.execute("b fk_debugger_break")
             gdb.execute("b fk_assert")
-            gdb.execute("b __cxa_pure_virtual")
         if False:
             for h in irq_handlers:
                 gdb.execute("b " + h)
@@ -117,9 +113,9 @@ class FkReloadAll(gdb.Command):
         gdb.execute("monitor reset")
 
 
-FkReloadAll()
+# FkReloadAll()
 FkReloadAllAndRun()
 FkSegger()
-FkRunHosted()
-FkRestart()
-FkFixLogs()
+# FkRunHosted()
+# FkRestart()
+# FkFixLogs()

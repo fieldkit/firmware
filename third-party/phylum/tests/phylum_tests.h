@@ -20,6 +20,10 @@ struct layout_256 {
     size_t sector_size{ 256 };
 };
 
+struct layout_2048 {
+    size_t sector_size{ 2048 };
+};
+
 struct layout_4096 {
     size_t sector_size{ 4096 };
 };
@@ -47,9 +51,12 @@ public:
 class FlashMemory {
 private:
     size_t sector_size_;
-    malloc_working_buffers buffers_{ sector_size_ };
+    standard_library_malloc buffer_memory_;
+    working_buffers buffers_{ &buffer_memory_, sector_size_, 32 };
     memory_flash_memory memory_{ sector_size_ };
-    dhara_sector_map sectors_{ buffers_, memory_ };
+    // noop_page_cache page_cache_;
+    simple_page_cache page_cache_{ buffers_.allocate(sector_size_) };
+    dhara_sector_map sectors_{ buffers_, memory_, &page_cache_ };
     test_sector_allocator allocator_{ sectors_ };
     bool formatted_{ false };
     bool initialized_{ false };
@@ -58,12 +65,17 @@ public:
     FlashMemory(size_t sector_size) : sector_size_(sector_size) {
     }
 
+    virtual ~FlashMemory() {
+        phydebugf("flash::dtor sector-size=%d sector-map-size=%d", sector_size_, sectors_.size());
+        page_cache_.debug();
+    }
+
 public:
     size_t sector_size() const {
         return sector_size_;
     }
 
-    malloc_working_buffers &buffers() {
+    working_buffers &buffers() {
         return buffers_;
     }
 
@@ -77,7 +89,9 @@ public:
 
 public:
     void begin(bool force_create) {
-        ASSERT_EQ(sectors_.begin(true), 0);
+        buffers_.clear();
+
+        ASSERT_EQ(sectors_.begin(force_create), 0);
         initialized_ = true;
     }
 
@@ -135,8 +149,8 @@ public:
 
 public:
     PhylumFixture() {
-        attributes_[0] = open_file_attribute{ ATTRIBUTE_ONE, 4, nullptr, false };
-        attributes_[1] = open_file_attribute{ ATTRIBUTE_TWO, 4, nullptr, false };
+        attributes_[0] = open_file_attribute{ ATTRIBUTE_ONE, 4 };
+        attributes_[1] = open_file_attribute{ ATTRIBUTE_TWO, 4 };
     }
 
     virtual ~PhylumFixture() {
@@ -144,10 +158,9 @@ public:
 
 public:
     void SetUp() override {
-        file_cfg_ = {
-            .attributes = attributes_,
-            .nattrs = 2,
-        };
+        file_cfg_ = {};
+        file_cfg_.attributes = attributes_;
+        file_cfg_.nattrs = 2;
         for (auto &attr : attributes_) {
             attr.ptr = malloc(attr.size);
         }
@@ -179,5 +192,44 @@ public:
 class suppress_logs : public temporary_log_level {
 public:
     suppress_logs() : temporary_log_level(LogLevels::NONE) {
+    }
+};
+
+class attributes_helper {
+private:
+    open_file_config file_cfg_;
+
+public:
+    attributes_helper(open_file_config file_cfg) : file_cfg_(file_cfg) {
+    }
+
+public:
+    uint32_t u32(uint8_t type) {
+        assert(file_cfg_.nattrs > 0);
+        for (auto i = 0u; i < file_cfg_.nattrs; ++i) {
+            auto &attr = file_cfg_.attributes[i];
+            if (attr.type == type) {
+                assert(sizeof(uint32_t) == attr.size);
+                return *(uint32_t *)attr.ptr;
+            }
+        }
+        assert(false);
+        return 0;
+    }
+
+    void u32(uint8_t type, uint32_t value) {
+        assert(file_cfg_.nattrs > 0);
+        for (auto i = 0u; i < file_cfg_.nattrs; ++i) {
+            auto &attr = file_cfg_.attributes[i];
+            if (attr.type == type) {
+                assert(sizeof(uint32_t) == attr.size);
+                if (*(uint32_t *)attr.ptr != value) {
+                    *(uint32_t *)attr.ptr = value;
+                    attr.dirty = true;
+                }
+                return;
+            }
+        }
+        assert(false);
     }
 };

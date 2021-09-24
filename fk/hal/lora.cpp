@@ -7,13 +7,14 @@
 namespace fk {
 
 #if defined(FK_HARDWARE_FULL)
-static Rn2903LoraNetwork network;
+static TheThingsLoraNetwork lora_network;
+// static Rn2903LoraNetwork lora_network;
 #else
-static NoopLoraNetwork network;
+static NoopLoraNetwork lora_network;
 #endif
 
 LoraNetwork *get_lora_network() {
-    return &network;
+    return &lora_network;
 }
 
-}
+} // namespace fk

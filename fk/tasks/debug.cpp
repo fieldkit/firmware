@@ -2,7 +2,6 @@
 #include "hal/hal.h"
 
 #include "storage/storage.h"
-#include "readings_taker.h"
 #include "state_ref.h"
 #include "config.h"
 
@@ -13,9 +12,6 @@ FK_DECLARE_LOGGER("debug");
 void fk_verify_state() {
     get_ipc()->verify();
     get_network()->verify();
-
-    auto gs = get_global_state_ro();
-    FK_ASSERT(gs.get()->modules->nmodules >= 0 && gs.get()->modules->nmodules < 10);
 }
 
 void task_handler_debug(void *params) {

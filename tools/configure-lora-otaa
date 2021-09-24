@@ -10,4 +10,4 @@ else
     PORT=$2
 fi
 
-fkdevice-cli --address $1 --port $PORT --lora-app-eui $FK_LORA_APP_EUI --lora-app-key $FK_LORA_APP_KEY
+fkc --address $1 --port $PORT --lora-app-eui $FK_LORA_APP_EUI --lora-app-key $FK_LORA_APP_KEY

@@ -36,7 +36,7 @@ void HomeView::tick(ViewController *views, Pool &pool) {
     screen.network.connected = gs.get()->network.state.connected;
     screen.network.bytes_rx = gs.get()->network.state.bytes_rx;
     screen.network.bytes_tx = gs.get()->network.state.bytes_tx;
-    screen.readings = gs.get()->readings.number;
+    screen.readings = gs.get()->readings.nreadings;
     screen.gps.enabled = gs.get()->gps.enabled;
     screen.gps.fix = gs.get()->gps.fix;
     screen.power = {
@@ -108,7 +108,14 @@ void HomeView::tick(ViewController *views, Pool &pool) {
     }
     case Visible::Uptime: {
         make_pretty_time_string(fk_uptime(), primary_, sizeof(primary_));
+        if (gs.get()->storage.is_phylum()) {
+            strncpy(secondary_, "phylum-fs", sizeof(secondary_));
+        }
+        else {
+            strncpy(secondary_, "legacy-fs", sizeof(secondary_));
+        }
         screen.primary = primary_;
+        screen.secondary = secondary_;
         break;
     }
     }

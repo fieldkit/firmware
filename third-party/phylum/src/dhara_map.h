@@ -11,6 +11,7 @@ extern "C" {
 #include "sector_map.h"
 #include "flash_memory.h"
 #include "simple_buffer.h"
+#include "page_cache.h"
 
 namespace phylum {
 
@@ -26,6 +27,7 @@ class dhara_sector_map : public sector_map {
 private:
     working_buffers *buffers_{ nullptr };
     flash_memory *target_{ nullptr };
+    sector_page_cache *page_cache_{ nullptr };
     simple_buffer buffer_;
     phylum_dhara_t nand_;
     struct dhara_map dmap_;
@@ -35,7 +37,7 @@ private:
     uint32_t nblocks_{ 0 };
 
 public:
-    dhara_sector_map(working_buffers &buffers, flash_memory &target);
+    dhara_sector_map(working_buffers &buffers, flash_memory &target, sector_page_cache *page_cache);
     virtual ~dhara_sector_map();
 
 public:

@@ -1,28 +1,25 @@
-if (NOT DEFINED ARDUINO_IDE)
-  foreach(path $ENV{HOME}/arduino-1.8.3 $ENV{HOME}/conservify/arduino-1.8.3
-               $ENV{HOME}/workspace/arduino-1.8.3
-               ${PROJECT_SOURCE_DIR}/../arduino-1.8.3 ${PROJECT_SOURCE_DIR}/../../arduino-1.8.3)
-      if (EXISTS ${path})
-        set(ARDUINO_IDE ${path})
-        break()
-    endif()
-  endforeach()
+if (NOT EXISTS ${CMAKE_SOURCE_DIR}/third-party/gcc-arm-none-eabi-4_8-2014q1)
+  set(GCC_TOOLCHAIN_URL "https://launchpad.net/gcc-arm-embedded/4.8/4.8-2014-q1-update/+download/gcc-arm-none-eabi-4_8-2014q1-20140314-linux.tar.bz2")
+  set(GCC_TOOLCHAIN_SHA256 "")
 
-  if (NOT DEFINED ARDUINO_IDE)
-    message(FATAL_ERROR "Unable to find Arduino IDE")
+  if (NOT EXISTS ${CMAKE_SOURCE_DIR}/third-party/gcc-arm-none-eabi-4_8-2014q1-20140314-linux.tar.bz2)
+	message("Downloading gcc-arm-none-eabi-4_8-2014q1-20140314-linux.tar.bz2")
+	file(DOWNLOAD ${GCC_TOOLCHAIN_URL} ${CMAKE_SOURCE_DIR}/third-party/gcc-arm-none-eabi-4_8-2014q1-20140314-linux.tar.bz2)
   endif()
+
+  message("Uncompressing gcc-arm-none-eabi-4_8-2014q1-20140314-linux.tar.bz2")
+  execute_process(
+	COMMAND ${CMAKE_COMMAND} -E tar xf ${CMAKE_SOURCE_DIR}/third-party/gcc-arm-none-eabi-4_8-2014q1-20140314-linux.tar.bz2
+	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/third-party
+  )
 endif()
 
-set(ARDUINO_PACKAGES_PATH "${ARDUINO_IDE}/packages")
-set(ARDUINO_TOOLS_PATH "${ARDUINO_PACKAGES_PATH}/arduino/tools")
-set(ARM_TOOLS "${ARDUINO_TOOLS_PATH}/arm-none-eabi-gcc/4.8.3-2014q1/bin")
-
-set(ARDUINO_CMSIS_DIRECTORY "${ARDUINO_TOOLS_PATH}/CMSIS/4.5.0/CMSIS")
+set(ARM_TOOLS "${CMAKE_SOURCE_DIR}/third-party/gcc-arm-none-eabi-4_8-2014q1/bin")
+set(ARDUINO_CMSIS_DIRECTORY "${CMAKE_SOURCE_DIR}/third-party/cmsis/CMSIS")
 set(ARDUINO_CMSIS_INCLUDE_DIRECTORY "${ARDUINO_CMSIS_DIRECTORY}/Include/")
-set(ARDUINO_DEVICE_DIRECTORY "${ARDUINO_TOOLS_PATH}/CMSIS-Atmel/1.2.0/CMSIS/Device/ATMEL")
-set(ARDUINO_BOARD_CORE_ROOT "${ARDUINO_PACKAGES_PATH}/adafruit/hardware/samd/1.2.9")
+set(ARDUINO_DEVICE_DIRECTORY "${CMAKE_SOURCE_DIR}/third-party/cmsis-atmel/CMSIS-Atmel/CMSIS/Device/ATMEL")
+set(ARDUINO_BOARD_CORE_ROOT "${CMAKE_SOURCE_DIR}/third-party/adafruit-arduino-samd")
 set(ARDUINO_BOARD_CORE_LIBRARIES_PATH "${ARDUINO_BOARD_CORE_ROOT}/libraries")
-set(ARDUINO_LIBRARIES_PATH "${ARDUINO_IDE}/libraries")
 set(ARDUINO_CORE_DIRECTORY "${ARDUINO_BOARD_CORE_ROOT}/cores/arduino/")
 
 set(ARDUINO_OBJCOPY "${ARM_TOOLS}/arm-none-eabi-objcopy")
@@ -93,7 +90,7 @@ function(enable_m4_target target_name target_board)
   set(target_asm_flags "-g -x assembler-with-cpp -mcpu=${target_mcu} -mthumb ${target_board_flags}")
 
   set(target_board_ldflags "-mcpu=${target_mcu} -mthumb ${ARDUINO_PROJECT_LD_FLAGS}")
-  set(target_board_libraries "-larm_cortexM4lf_math -mfloat-abi=hard -mfpu=fpv4-sp-d16 -lstdc++")
+  set(target_board_libraries "-larm_cortexM4lf_math -mfloat-abi=hard -mfpu=fpv4-sp-d16 -lstdc++ -lm")
   set(target_includes ${ARDUINO_CMSIS_INCLUDE_DIRECTORY} ${ARDUINO_DEVICE_DIRECTORY} ${ARDUINO_CORE_DIRECTORY} ${target_board_directory})
 
   set(target_bootloader "${module_path}/linking/samd51x19_bootloader_small.ld")

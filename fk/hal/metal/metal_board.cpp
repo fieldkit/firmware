@@ -1,8 +1,9 @@
 #include "hal/board.h"
 #include "platform.h"
 #include "modules/shared/modules.h"
+#include "hal/metal/metal_ipc.h"
 
-#if defined(ARDUINO)
+#if defined(__SAMD51__)
 
 #include <Arduino.h>
 #include <SPI.h>
@@ -123,9 +124,17 @@ void Board::enable_lora() {
 void Board::disable_wifi() {
     digitalWrite(WINC1500_POWER, LOW);
     SPI1.end();
+
+    pinMode(WINC1500_CS, INPUT_PULLUP);
+    pinMode(WINC1500_IRQ, INPUT_PULLUP);
+    pinMode(WINC1500_RESET, INPUT_PULLUP);
 }
 
 void Board::enable_wifi() {
+    pinMode(WINC1500_CS, OUTPUT);
+    pinMode(WINC1500_IRQ, INPUT);
+    pinMode(WINC1500_RESET, OUTPUT);
+
     digitalWrite(WINC1500_POWER, HIGH);
     SPI1.begin();
 }
@@ -169,15 +178,15 @@ SpiWrapper Board::spi_module() {
 }
 
 TwoWireWrapper Board::i2c_core() {
-    return { "i2c-core", &Wire };
+    return TwoWireWrapper { &i2c_core_mutex, "i2c-core", &Wire };
 }
 
 TwoWireWrapper Board::i2c_radio() {
-    return { "i2c-radio", &Wire1 };
+    return TwoWireWrapper{ &i2c_radio_mutex, "i2c-radio", &Wire1 };
 }
 
 TwoWireWrapper Board::i2c_module() {
-    return { "i2c-mod", &Wire2 };
+    return TwoWireWrapper{ &i2c_module_mutex, "i2c-mod", &Wire2 };
 }
 
 SerialWrapper Board::gps_serial() {
@@ -223,8 +232,6 @@ bool SpiWrapper::transfer(uint8_t *command, uint32_t command_length, const uint8
     SPISettings spi_settings{ 50000000, MSBFIRST, SPI_MODE0 };
     auto bus = reinterpret_cast<SPIClass*>(ptr_);
 
-    __disable_irq();
-
     bus->beginTransaction(spi_settings);
     for (uint32_t i = 0; i < command_length; ++i) {
         bus->transfer(command[i]);
@@ -245,8 +252,6 @@ bool SpiWrapper::transfer(uint8_t *command, uint32_t command_length, const uint8
         }
     }
     bus->endTransaction();
-
-    __enable_irq();
 
     return true;
 }
@@ -314,7 +319,7 @@ void SpiWrapper::end() {
     }
 }
 
-TwoWireWrapper::TwoWireWrapper(const char *name, void *ptr) : name_(name), ptr_(ptr) {
+TwoWireWrapper::TwoWireWrapper(Mutex *lock, const char *name, void *ptr) : lock_(lock), name_(name), ptr_(ptr) {
     logverbose("acquire %s", name_);
 }
 
@@ -325,15 +330,16 @@ TwoWireWrapper::~TwoWireWrapper() {
 void TwoWireWrapper::begin() {
     if (ptr_ == nullptr) return;
 
-    __disable_irq();
-
     reinterpret_cast<TwoWire*>(ptr_)->begin();
 
-    __enable_irq();
+    NVIC_SetPriority(SERCOM4_0_IRQn, FK_PRIORITY_SERCOM);
+    NVIC_SetPriority(SERCOM4_1_IRQn, FK_PRIORITY_SERCOM);
+    NVIC_SetPriority(SERCOM4_2_IRQn, FK_PRIORITY_SERCOM);
+    NVIC_SetPriority(SERCOM4_3_IRQn, FK_PRIORITY_SERCOM);
 }
 
 int32_t TwoWireWrapper::read(uint8_t address, void *data, int32_t size) {
-    __disable_irq();
+    auto lock = lock_->acquire(UINT32_MAX);
 
     auto bus = reinterpret_cast<TwoWire*>(ptr_);
     bus->requestFrom(address, size);
@@ -343,13 +349,11 @@ int32_t TwoWireWrapper::read(uint8_t address, void *data, int32_t size) {
     }
     auto rv = bus->endTransmission();
 
-    __enable_irq();
-
     return rv;
 }
 
 int32_t TwoWireWrapper::write(uint8_t address, const void *data, int32_t size) {
-    __disable_irq();
+    auto lock = lock_->acquire(UINT32_MAX);
 
     auto bus = reinterpret_cast<TwoWire*>(ptr_);
     bus->beginTransmission(address);
@@ -357,11 +361,7 @@ int32_t TwoWireWrapper::write(uint8_t address, const void *data, int32_t size) {
     for (auto i = 0; i < size; ++i) {
         bus->write((uint8_t)*ptr++);
     }
-    auto rv = bus->endTransmission();
-
-    __enable_irq();
-
-    return rv;
+    return bus->endTransmission();
 }
 
 static void i2c_end(TwoWire *ptr) {
@@ -382,13 +382,15 @@ static void i2c_end(TwoWire *ptr) {
 }
 
 void TwoWireWrapper::end() {
-    if (ptr_ == nullptr) return;
+    auto lock = lock_->acquire(UINT32_MAX);
 
-    __disable_irq();
+    auto bus = reinterpret_cast<TwoWire*>(ptr_);
 
-    i2c_end(reinterpret_cast<TwoWire*>(ptr_));
+    logwarn("i2c::end");
 
-    __enable_irq();
+    if (bus != nullptr) {
+        i2c_end(bus);
+    }
 }
 
 static bool i2c_recover(uint8_t scl, uint8_t sda) {
@@ -435,11 +437,11 @@ static bool i2c_recover(uint8_t scl, uint8_t sda) {
 }
 
 int32_t TwoWireWrapper::recover() {
-    __disable_irq();
-
-    logwarn("trying to recover i2c bus");
+    auto lock = lock_->acquire(UINT32_MAX);
 
     auto tw = reinterpret_cast<TwoWire*>(ptr_);
+
+    logwarn("trying to recover i2c bus");
 
     i2c_end(tw);
 
@@ -457,8 +459,6 @@ int32_t TwoWireWrapper::recover() {
     }
 
     tw->begin();
-
-    __enable_irq();
 
     return 0;
 }
@@ -482,23 +482,11 @@ bool SerialWrapper::end() {
 }
 
 int32_t SerialWrapper::available() {
-    __disable_irq();
-
-    auto rv = reinterpret_cast<Uart*>(ptr_)->available();
-
-    __enable_irq();
-
-    return rv;
+    return reinterpret_cast<Uart*>(ptr_)->available();
 }
 
 int8_t SerialWrapper::read() {
-    __disable_irq();
-
-    auto rv = reinterpret_cast<Uart*>(ptr_)->read();
-
-    __enable_irq();
-
-    return rv;
+    return reinterpret_cast<Uart*>(ptr_)->read();
 }
 
 }

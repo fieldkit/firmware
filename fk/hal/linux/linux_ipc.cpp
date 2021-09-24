@@ -10,6 +10,11 @@ FK_DECLARE_LOGGER("ipc");
 LinuxMutex storage_mutex;
 LinuxMutex modules_mutex;
 LinuxMutex sd_mutex;
+LinuxMutex wifi_mutex;
+LinuxMutex i2c_module_mutex;
+LinuxMutex i2c_core_mutex;
+LinuxMutex i2c_radio_mutex;
+LinuxMutex lora_mutex;
 LinuxRwLock data_lock;
 
 LinuxIPC::LinuxIPC() {
@@ -47,7 +52,7 @@ bool LinuxIPC::dequeue_topology(Activity **ptr, uint32_t to) {
     return false;
 }
 
-bool LinuxIPC::launch_worker(WorkerCategory category, TaskWorker *worker) {
+bool LinuxIPC::launch_worker(WorkerCategory category, TaskWorker *worker, bool concurrency_allowed) {
     FK_ASSERT(worker != nullptr);
 
     worker->run();
@@ -89,6 +94,6 @@ bool LinuxRwLock::release() {
     return true;
 }
 
-}
+} // namespace fk
 
 #endif

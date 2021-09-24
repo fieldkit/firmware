@@ -31,6 +31,10 @@ int32_t MetalDataMemory::erase(uint32_t address, size_t length) {
     });
 }
 
+int32_t MetalDataMemory::copy_page(uint32_t source, uint32_t destiny, size_t page_size, uint8_t *buffer, size_t buffer_size) {
+    return flash_.copy_page(source, destiny);
+}
+
 int32_t MetalDataMemory::flush() {
     return true;
 }

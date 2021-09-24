@@ -11,18 +11,19 @@ namespace fk {
 
 FK_DECLARE_LOGGER("connection");
 
-HttpServerConnection::HttpServerConnection(Pool *pool, NetworkConnection *conn, uint32_t number, HttpRouter *router) : Connection(pool, conn, number), router_{ router }, req_{ pool_ }, buffer_{ nullptr }, size_{ 0 }, position_{ 0 } {
+HttpServerConnection::HttpServerConnection(Pool *pool, NetworkConnection *conn, uint32_t number, HttpRouter *router)
+    : Connection(pool, conn, number), router_{ router }, req_{ pool_ }, buffer_{ nullptr }, size_{ 0 }, position_{ 0 } {
 }
 
 HttpServerConnection::~HttpServerConnection() {
 }
 
-int32_t HttpServerConnection::plain(int32_t status, const char *status_description, const char *text) {
+int32_t HttpServerConnection::plain(HttpStatus status, const char *status_description, const char *text, Pool &pool) {
     loginfo("[%" PRIu32 "] sending %" PRId32 " '%s'", number_, status, text);
 
     auto length = strlen(text);
 
-    bytes_tx_ += conn_->writef("HTTP/1.1 %" PRId32 " %s\n", status, status_description);
+    bytes_tx_ += conn_->writef("HTTP/1.1 %" PRId32 " %s\n", (int32_t)status, status_description);
     bytes_tx_ += conn_->writef("Fk-Connection: #%" PRIu32 "\n", number_);
     bytes_tx_ += conn_->writef("Content-Length: %zu\n", length);
     bytes_tx_ += conn_->write("Content-Type: text/plain\n");
@@ -34,7 +35,6 @@ int32_t HttpServerConnection::plain(int32_t status, const char *status_descripti
 
     return 0;
 }
-
 
 int32_t HttpServerConnection::available() const {
     return req_.buffered_body_length();
@@ -50,11 +50,11 @@ int32_t HttpServerConnection::read(uint8_t *buffer, size_t size) {
     return Connection::read(buffer, size);
 }
 
-int32_t HttpServerConnection::fault() {
-    return plain(500, "internal error", "internal error");
+int32_t HttpServerConnection::fault(Pool &pool) {
+    return plain(HttpStatus::ServerError, "internal error", "internal error", pool);
 }
 
-int32_t HttpServerConnection::busy(uint32_t delay, const char *message) {
+int32_t HttpServerConnection::busy(uint32_t delay, const char *message, Pool &pool) {
     fk_app_Error errors[] = {
         {
             .message = {
@@ -69,22 +69,24 @@ int32_t HttpServerConnection::busy(uint32_t delay, const char *message) {
 
     pb_array_t errors_array = {
         .length = sizeof(errors) / sizeof(fk_app_Error),
-        .itemSize = sizeof(fk_app_Error),
+        .allocated = sizeof(errors) / sizeof(fk_app_Error),
+        .item_size = sizeof(fk_app_Error),
         .buffer = pool_->copy(errors, sizeof(errors)),
         .fields = fk_app_Error_fields,
     };
 
-    fk_app_HttpReply reply = fk_app_HttpReply_init_default;
-    reply.type = fk_app_ReplyType_REPLY_BUSY;
-    reply.errors.funcs.encode = pb_encode_array;
-    reply.errors.arg = (void *)pool_->copy(&errors_array, sizeof(errors_array));
+    auto reply = pool.malloc<fk_app_HttpReply>();
+    *reply = fk_app_HttpReply_init_default;
+    reply->type = fk_app_ReplyType_REPLY_BUSY;
+    reply->errors.funcs.encode = pb_encode_array;
+    reply->errors.arg = (void *)pool_->copy(&errors_array, sizeof(errors_array));
 
     logwarn("[%" PRIu32 "] busy reply '%s'", number_, message);
 
-    return write(503, message, &reply, fk_app_HttpReply_fields);
+    return write(HttpStatus::Busy, message, reply, fk_app_HttpReply_fields, pool);
 }
 
-int32_t HttpServerConnection::error(int32_t status, const char *message) {
+int32_t HttpServerConnection::error(HttpStatus status, const char *message, Pool &pool) {
     fk_app_Error errors[] = {
         {
             .message = {
@@ -98,31 +100,84 @@ int32_t HttpServerConnection::error(int32_t status, const char *message) {
 
     pb_array_t errors_array = {
         .length = sizeof(errors) / sizeof(fk_app_Error),
-        .itemSize = sizeof(fk_app_Error),
+        .allocated = sizeof(errors) / sizeof(fk_app_Error),
+        .item_size = sizeof(fk_app_Error),
         .buffer = pool_->copy(errors, sizeof(errors)),
         .fields = fk_app_Error_fields,
     };
 
-    fk_app_HttpReply reply = fk_app_HttpReply_init_default;
-    reply.type = fk_app_ReplyType_REPLY_ERROR;
-    reply.errors.funcs.encode = pb_encode_array;
-    reply.errors.arg = (void *)pool_->copy(&errors_array, sizeof(errors_array));
+    auto reply = pool.malloc<fk_app_HttpReply>();
+    *reply = fk_app_HttpReply_init_default;
+    reply->type = fk_app_ReplyType_REPLY_ERROR;
+    reply->errors.funcs.encode = pb_encode_array;
+    reply->errors.arg = (void *)pool_->copy(&errors_array, sizeof(errors_array));
 
     logwarn("[%" PRIu32 "] error reply '%s'", number_, message);
 
-    return write(status, message, &reply, fk_app_HttpReply_fields);
+    return write(status, message, reply, fk_app_HttpReply_fields, pool);
 }
 
-int32_t HttpServerConnection::write(fk_app_HttpReply const *reply) {
-    return write(200, "OK", reply, fk_app_HttpReply_fields);
+int32_t HttpServerConnection::write(fk_app_HttpReply const *reply, Pool &pool) {
+    return write(HttpStatus::Ok, "ok", reply, fk_app_HttpReply_fields, pool);
 }
 
-int32_t HttpServerConnection::write(int32_t status_code, const char *status_message, void const *record, pb_msgdesc_t const *fields) {
+int32_t HttpServerConnection::write(HttpStatus status_code, const char *status_message, uint8_t const *data, size_t size, Pool &pool) {
+    auto started = fk_uptime();
+
+    logdebug("[%" PRIu32 "] replying (%zd bytes)", number_, size);
+
+    bytes_tx_ += conn_->writef("HTTP/1.1 %" PRId32 " %s\n", (uint32_t)status_code, status_message);
+    bytes_tx_ += conn_->writef("Fk-Connection: #%" PRIu32 "\n", number_);
+    bytes_tx_ += conn_->writef("Content-Length: %zu\n", size);
+    bytes_tx_ += conn_->writef("Content-Type: %s\n", "application/octet-stream");
+    bytes_tx_ += conn_->write("Connection: close\n");
+    bytes_tx_ += conn_->write("\n");
+
+    logdebug("[%" PRIu32 "] headers done (%" PRIu32 "ms)", number_, fk_uptime() - started);
+
+    if (buffer_ == nullptr) {
+        size_ = HttpConnectionBufferSize;
+        buffer_ = (uint8_t *)pool_->malloc(size_);
+    }
+
+    BufferedWriter buffered{ this, buffer_, size_ };
+    HexWriter b64_writer{ &buffered };
+    Writer *writer = &buffered;
+
+    if (hex_encoding_) {
+        writer = &b64_writer;
+    }
+
+    logdebug("[%" PRIu32 "] ready to write", number_);
+
+    writer->write(data, size);
+
+    if (!buffered.flush()) {
+        logdebug("[%" PRIu32 "] fail flush", number_);
+        return size;
+    }
+
+    logdebug("[%" PRIu32 "] pb done", number_);
+
+    bytes_tx_ += size;
+    activity_ = fk_uptime();
+
+    logdebug("[%" PRIu32 "] finished", number_);
+
+    req_.finished();
+
+    logdebug("[%" PRIu32 "] done writing (%" PRIu32 "ms)", number_, fk_uptime() - started);
+
+    return size;
+}
+
+int32_t HttpServerConnection::write(HttpStatus status, const char *status_message, void const *record, pb_msgdesc_t const *fields,
+                                    Pool &pool) {
     auto started = fk_uptime();
 
     size_t size = 0;
     if (!pb_get_encoded_size(&size, fields, record)) {
-        return fault();
+        return fault(pool);
     }
 
     size += pb_varint_size(size);
@@ -131,7 +186,7 @@ int32_t HttpServerConnection::write(int32_t status_code, const char *status_mess
 
     logdebug("[%" PRIu32 "] replying (%zd bytes)", number_, content_size);
 
-    bytes_tx_ += conn_->writef("HTTP/1.1 %" PRId32 " %s\n", status_code, status_message);
+    bytes_tx_ += conn_->writef("HTTP/1.1 %" PRId32 " %s\n", (int32_t)status, status_message);
     bytes_tx_ += conn_->writef("Fk-Connection: #%" PRIu32 "\n", number_);
     bytes_tx_ += conn_->writef("Content-Length: %zu\n", content_size);
     bytes_tx_ += conn_->writef("Content-Type: %s\n", "application/octet-stream");
@@ -223,7 +278,8 @@ bool HttpServerConnection::service() {
         auto size = pool_->size();
         auto used = pool_->used();
         auto elapsed = fk_uptime() - started_;
-        loginfo("[%" PRIu32 "] closing (%" PRIu32 " tx) (%" PRIu32 " rx) (%zd/%zd pooled) (%" PRIu32 "ms)", number_, bytes_tx_, bytes_rx_, used, size, elapsed);
+        loginfo("[%" PRIu32 "] closing (%" PRIu32 " tx) (%" PRIu32 " rx) (%zd/%zd pooled) (%" PRIu32 "ms)", number_, bytes_tx_, bytes_rx_,
+                used, size, elapsed);
         return false;
     }
 
@@ -233,22 +289,21 @@ bool HttpServerConnection::service() {
                 auto path = req_.url_parser().path();
                 if (path == nullptr) {
                     auto gs = get_global_state_ro();
-                    plain(200, "ok", pool_->sprintf("Hello! I am a FieldKit station. My name is %s.\nFirmware: %s (#%" PRIu32 ")\n",
-                                                    gs.get()->general.name,
-                                                    fkb_header.firmware.version, fkb_header.firmware.number));
+                    auto body = pool_->sprintf("Hello! I am a FieldKit station. My name is %s.\nFirmware: %s (#%" PRIu32 ")\n",
+                                               gs.get()->general.name, fkb_header.firmware.version, fkb_header.firmware.number);
+                    plain(HttpStatus::Ok, "ok", body, *pool_);
                     return true;
                 }
 
-                loginfo("[%" PRIu32 "] routing '%s' path = '%s' (%" PRIu32 " bytes) ('%s')",
-                        number_, req_.url(), path, req_.length(), req_.user_agent());
+                loginfo("[%" PRIu32 "] routing '%s' path = '%s' (%" PRIu32 " bytes) ('%s')", number_, req_.url(), path, req_.length(),
+                        req_.user_agent());
 
                 auto handler = router_->route(path);
                 if (handler == nullptr) {
-                    plain(404, "not found", "404: not found, no handler");
-                }
-                else {
+                    plain(HttpStatus::NotFound, "not found", "404: not found, no handler", *pool_);
+                } else {
                     if (!handler->handle(this, *pool_)) {
-                        plain(500, "internal error", "500: internal error");
+                        plain(HttpStatus::ServerError, "internal error", "500: internal error", *pool_);
                     }
                 }
                 routed_ = true;
@@ -260,4 +315,4 @@ bool HttpServerConnection::service() {
     return true;
 }
 
-}
+} // namespace fk

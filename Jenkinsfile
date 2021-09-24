@@ -1,6 +1,9 @@
 @Library('conservify') _
 
-conservifyProperties([ disableConcurrentBuilds() ])
+properties([
+	disableConcurrentBuilds(),
+	[$class: 'BuildDiscarderProperty', strategy: [$class: 'LogRotator', numToKeepStr: '20']]
+])
 
 def uploadFirmware(Map parameters = [:]) {
 	def command = "--scheme https"
@@ -33,13 +36,11 @@ def uploadFirmware(Map parameters = [:]) {
 		command += " --version " + parameters.version
 	}
 
-	sh "which fktool"
-
-	def dev = "fktool  --host api.fkdev.org " + command
+	def dev = "third-party/fktool  --host api.fkdev.org " + command
 	echo dev
 	sh dev
 
-	def prod = "fktool  --host api.fieldkit.org " + command
+	def prod = "third-party/fktool  --host api.fieldkit.org " + command
 	echo prod
 	sh prod
 }
@@ -53,7 +54,7 @@ def getBranch(scmInfo) {
 }
 
 timestamps {
-    node () {
+    node ("jenkins-aws-ubuntu") {
 		try {
 			def scmInfo
 
@@ -62,6 +63,8 @@ timestamps {
 			}
 
 			def branch = getBranch(scmInfo)
+
+			notifyStarted()
 
 			stage ('build') {
 				sh "env"
@@ -100,6 +103,8 @@ timestamps {
 				}
 			}
 
+			refreshDistribution()
+
 			notifySuccess()
 		}
 		catch (Exception e) {
@@ -107,6 +112,4 @@ timestamps {
 			throw e;
 		}
     }
-
-    refreshDistribution()
 }

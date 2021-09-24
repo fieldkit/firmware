@@ -13,7 +13,7 @@ FK_DECLARE_LOGGER("download");
 DownloadWorker::DownloadWorker(HttpServerConnection *connection, uint8_t file_number) : connection_(connection), file_number_(file_number) {
 }
 
-DownloadWorker::HeaderInfo DownloadWorker::get_headers(File &file, Pool &pool) {
+DownloadWorker::HeaderInfo DownloadWorker::get_headers(FileReader *file_reader, Pool &pool) {
     fk_serial_number_t sn;
 
     auto gs = get_global_state_ro();
@@ -32,36 +32,61 @@ DownloadWorker::HeaderInfo DownloadWorker::get_headers(File &file, Pool &pool) {
     }
 
     // Calculate the size.
-    auto size_info = file.get_size(first_block, last_block, pool);
+    auto size_info = file_reader->get_size(first_block, last_block, pool);
+    FK_ASSERT(size_info);
 
-    loginfo("last_block = #%" PRIu32 " actual_lb = #%" PRIu32 " record = #%" PRIu32, last_block, size_info.last_block, file.record());
+    loginfo("last_block = #%" PRIu32 " actual_lb = #%" PRIu32 "", last_block, size_info->last_block);
 
     return HeaderInfo{
-        .size = size_info.size,
+        .size = size_info->size,
         .first_block = first_block,
-        .last_block = size_info.last_block,
+        .last_block = size_info->last_block,
         .device_id = bytes_to_hex_string_pool((uint8_t *)&sn, sizeof(sn), pool),
         .generation = bytes_to_hex_string_pool(gs.get()->general.generation, GenerationLength, pool),
     };
 }
 
+// #define FK_TESTING_DOWNLOAD_LIMIT           (1024 * 1024 * 100)
+// #define FK_TESTING_DOWNLOAD_READS_DISABLED
+// #define FK_TESTING_DOWNLOAD_READS_GARBAGE
+
 void DownloadWorker::run(Pool &pool) {
     loginfo("downloading");
 
     auto lock = storage_mutex.acquire(UINT32_MAX);
+    FK_ASSERT(lock);
+
+    // Hello future programmer, you may be wondering why this is here
+    // and even be tempted to remove this so you can chase a
+    // problem. You will want to be very careful about this. This is
+    // here, because if we log heavily during periods of high logging
+    // activity the WiFi module starts to experience all kinds of
+    // truama. My theory is that the logging gets in the way of the
+    // IRQ handling. I believe you can even exacerbate this by moving
+    // your AP further away so that latencies are higher and IRQs
+    // happen during periods of more intense logging, say when
+    // accessing the file system.
+    // You've been warned.
+    auto old_level = (LogLevels)log_get_level();
+    log_configure_level(LogLevels::INFO);
+
+    if ((LogLevels)log_get_level() != LogLevels::INFO) {
+        logwarn("increased log verbosity will cause networking issues");
+    }
 
     auto started = fk_uptime();
     StatisticsMemory memory{ MemoryFactory::get_data_memory() };
     Storage storage{ &memory, pool };
 
     if (!storage.begin()) {
-        connection_->error(500, "error opening storage");
+        connection_->error(HttpStatus::ServerError, "error opening storage", pool);
         return;
     }
 
+    auto file_reader = storage.file_reader(file_number_, pool);
+
     auto is_head = connection_->is_head_method();
-    auto file = storage.file(file_number_);
-    auto info = get_headers(file, pool);
+    auto info = get_headers(file_reader, pool);
 
     if (info.first_block > info.last_block) {
         logwarn("range #%" PRIu32 " - #%" PRIu32 " size = %" PRIu32 " %s", info.first_block, info.last_block, info.size, is_head ? "HEAD": "GET");
@@ -70,7 +95,18 @@ void DownloadWorker::run(Pool &pool) {
         loginfo("range #%" PRIu32 " - #%" PRIu32 " size = %" PRIu32 " %s", info.first_block, info.last_block, info.size, is_head ? "HEAD": "GET");
     }
 
-    memory.log_statistics();
+    memory.log_statistics("flash usage: ");
+
+#if defined(FK_TESTING_DOWNLOAD_LIMIT)
+    FK_ASSERT(info.size > FK_TESTING_DOWNLOAD_LIMIT);
+    info = HeaderInfo{
+        .size = FK_TESTING_DOWNLOAD_LIMIT,
+        .first_block = 0,
+        .last_block = 0,
+        .device_id = "none",
+        .generation = "none",
+    };
+#endif
 
     if (!write_headers(info)) {
         connection_->close();
@@ -88,34 +124,58 @@ void DownloadWorker::run(Pool &pool) {
     GlobalStateProgressCallbacks gs_progress;
     auto tracker = ProgressTracker{ &gs_progress, Operation::Download, "download", "", info.size };
     auto bytes_copied = 0u;
+    auto total_read_time = 0u;
+    auto total_write_time = 0u;
     while (bytes_copied < info.size) {
         auto to_read = std::min<int32_t>(buffer_size, info.size - bytes_copied);
-        auto bytes_read = file.read(buffer, to_read);
-        if (bytes_read != to_read) {
+        auto read_started = fk_uptime();
+#if !defined(FK_TESTING_DOWNLOAD_READS_DISABLED)
+#if !defined(FK_TESTING_DOWNLOAD_READS_GARBAGE)
+        auto bytes_read = file_reader->read(buffer, to_read);
+#else
+        auto bytes_read = memory.read(0, buffer, to_read, MemoryReadFlags::None);
+    #endif
+        if (bytes_read == 0) {
+            break;
+        }
+        if (bytes_read < 0) {
             logerror("read error (%" PRId32 " != %" PRId32 ")", bytes_read, to_read);
             break;
         }
+#else
+        auto bytes_read = to_read;
+        memset(buffer, 0xab, bytes_read);
+#endif
+        auto read_time = fk_uptime() - read_started;
 
-        auto wrote = connection_->write(buffer, to_read);
-        if (wrote != (int32_t)to_read) {
-            logerror("write error (%" PRId32 " != %" PRId32 ")", wrote, to_read);
+        auto write_started = fk_uptime();
+        auto wrote = connection_->write(buffer, bytes_read);
+        if (wrote != bytes_read) {
+            logerror("write error (%" PRId32 " != %" PRId32 ")", wrote, bytes_read);
             break;
         }
 
-        tracker.update(bytes_read);
+        auto write_time = fk_uptime() - write_started;
+
+        tracker.update(bytes_read, read_time, write_time);
 
         bytes_copied += bytes_read;
+        total_read_time += read_time;
+        total_write_time += write_time;
     }
+
+    log_configure_level(old_level);
 
     tracker.finished();
 
     auto elapsed = fk_uptime() - started;
     auto speed = ((bytes_copied / 1024.0f) / (elapsed / 1000.0f));
-    loginfo("done (%d) (%" PRIu32 "ms) %.2fkbps", bytes_copied, elapsed, speed);
+    loginfo("done (%d) (%" PRIu32 "ms) %.2fkbps total-read-time=%" PRIu32 " total-write-time=%" PRIu32,
+            bytes_copied, elapsed, speed, total_read_time, total_write_time);
 
     connection_->close();
 
-    memory.log_statistics();
+    memory.log_statistics("flash usage: ");
 }
 
 bool DownloadWorker::write_headers(HeaderInfo header_info) {

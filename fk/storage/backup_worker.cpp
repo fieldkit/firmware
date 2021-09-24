@@ -57,22 +57,26 @@ void BackupWorker::run(Pool &pool) {
     }
 
     auto meta_path = pool.sprintf("/%s/meta.fkpb", formatted.cstr());
-    auto meta_file = storage.file(Storage::Meta);
+    auto meta_file = storage.file_reader(Storage::Meta, pool);
     if (!write_file(meta_file, meta_path, pool)) {
         return;
     }
 
     auto data_path = pool.sprintf("/%s/data.fkpb", formatted.cstr());
-    auto data_file = storage.file(Storage::Data);
+    auto data_file = storage.file_reader(Storage::Data, pool);
     if (!write_file(data_file, data_path, pool)) {
         return;
     }
 }
 
-bool BackupWorker::write_file(File &file, const char *path, Pool &pool) {
-    auto info = file.get_size(0, UINT32_MAX, pool);
+bool BackupWorker::write_file(FileReader *file, const char *path, Pool &pool) {
+    auto info = file->get_size(0, UINT32_MAX, pool);
+    if (!info) {
+        logerror("get-size");
+        return false;
+    }
 
-    loginfo("total size: %" PRIu32, info.size);
+    loginfo("total size: %" PRIu32, info->size);
 
     auto sd = get_sd_card();
     if (!sd->begin()) {
@@ -87,19 +91,20 @@ bool BackupWorker::write_file(File &file, const char *path, Pool &pool) {
     BLAKE2b b2b;
     b2b.reset(Hash::Length);
 
-    auto buffer = reinterpret_cast<uint8_t*>(pool.malloc(NetworkBufferSize));
+    auto buffer = reinterpret_cast<uint8_t *>(pool.malloc(NetworkBufferSize));
     auto bytes_copied = (uint32_t)0;
 
-    while (bytes_copied < info.size) {
-        auto to_read = std::min<int32_t>(NetworkBufferSize, info.size - bytes_copied);
-        auto bytes = file.read(buffer, to_read);
+    ScopedLogLevelChange log_level_info_only{ LogLevels::INFO };
+
+    while (bytes_copied < info->size) {
+        auto to_read = std::min<int32_t>(NetworkBufferSize, info->size - bytes_copied);
+        auto bytes = file->read(buffer, to_read);
         if (bytes > 0) {
             b2b.update(buffer, bytes);
             if (writing->write(buffer, bytes) == bytes) {
                 bytes_copied += bytes;
             }
-        }
-        else {
+        } else {
             break;
         }
     }
@@ -121,6 +126,11 @@ bool BackupWorker::write_file(File &file, const char *path, Pool &pool) {
     hash_writer->close();
 
     loginfo("done writing %" PRIu32 " bytes hash=%s", bytes_copied, expected_hex);
+
+    if (bytes_copied == 0) {
+        logwarn("empty file '%s'", path);
+        return true;
+    }
 
     uint8_t actual[Hash::Length];
     if (!hash_file(path, actual, pool)) {
@@ -147,8 +157,8 @@ bool BackupWorker::hash_file(const char *path, uint8_t *hash, Pool &pool) {
 
     auto file_size = file->file_size();
     if (file_size == 0) {
-        logerror("empty file '%s'", path);
-        return false;
+        logwarn("empty file '%s'", path);
+        return true;
     }
 
     file->seek_beginning();

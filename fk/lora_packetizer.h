@@ -3,23 +3,23 @@
 #include <fk-data-protocol.h>
 
 #include "common.h"
-#include "readings.h"
+#include "containers.h"
 #include "encoded_message.h"
+#include "state.h"
 
 namespace fk {
 
 class LoraPacketizer {
 private:
     // TODO Calculate this from spreading factor.
-    size_t maximum_packet_size_{ 22 };
+    size_t maximum_packet_size_{ 10 };
 
 public:
     LoraPacketizer();
     virtual ~LoraPacketizer();
 
 public:
-    tl::expected<EncodedMessage*, Error> packetize(TakenReadings const &taken, Pool &pool);
-
+    tl::expected<EncodedMessage *, Error> packetize(GlobalState const *gs, Pool &pool);
 };
 
-}
+} // namespace fk

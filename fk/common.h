@@ -19,6 +19,14 @@ extern "C" {
 #define FK_ENABLE_IRQ      SEGGER_RTT_UNLOCK
 
 /**
+ * These disappeared on after upgrading compilers.
+ */
+#if !defined(PRIu64)
+#define PRIu64             "llu"
+#define PRId64             "lld"
+#endif
+
+/**
  * Invoked to handle assertion failures. This is variadic so we can create more
  * useful messages, with interpolated values, etc...
  */
@@ -88,11 +96,13 @@ using nonstd::nullopt;
  */
 #define FK_ASSERT_GT(a, b)                            FK_ASSERT_INTERNAL((a) > (b), "%d > %d", a, b)
 
+
 #if defined(__SAMD51__)
-#define FK_ASSERT_ADDRESS(ptr)                        FK_ASSERT((intptr_t)ptr != 0 && (intptr_t)ptr >= 0x20000000 && (intptr_t)ptr < 0x20040000);
+#define FK_ADDRESS_VALID(ptr)                         ((intptr_t)ptr != 0 && (intptr_t)ptr >= 0x20000000 && (intptr_t)ptr < 0x20040000)
 #else
-#define FK_ASSERT_ADDRESS(ptr)                        FK_ASSERT((intptr_t)ptr != 0);
+#define FK_ADDRESS_VALID(ptr)                         ((intptr_t)ptr != 0)
 #endif
+#define FK_ASSERT_ADDRESS(ptr)                        FK_ASSERT(FK_ADDRESS_VALID(ptr));
 
 /**
  * Check the return value of an I2C operation and return true if the operation
@@ -116,6 +126,18 @@ using nonstd::nullopt;
 #define logdebug(f, ...)               fk_logf(LogLevels::DEBUG, LOG_FACILITY, f, ## __VA_ARGS__)
 #define logtrace(f, ...)               fk_logf(LogLevels::TRACE, LOG_FACILITY, f, ## __VA_ARGS__)
 #define logverbose(f, ...)             fk_logf(LogLevels::VERBOSE, LOG_FACILITY, f, ## __VA_ARGS__)
+
+
+/**
+ * Default OS priority.
+ */
+#define FK_PRIORITY_NORMAL             (OS_PRIORITY_NORMAL + 1)
+
+#define FK_PRIORITY_BUTTONS            (FK_PRIORITY_NORMAL)
+
+#define FK_PRIORITY_GPS                (FK_PRIORITY_NORMAL)
+
+#define FK_PRIORITY_SERCOM             (FK_PRIORITY_NORMAL)
 
 /**
  * Evaluates to 1 shifted by the given position.

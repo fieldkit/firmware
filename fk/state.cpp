@@ -1,12 +1,14 @@
 #include "state.h"
 #include "state_ref.h"
-#include "storage/meta_ops.h"
+#include "storage/storage.h"
 
 #if defined(__SAMD51__)
 #include "hal/metal/metal_ipc.h"
 #else
 #include "hal/linux/linux_ipc.h"
 #endif
+
+extern const struct fkb_header_t fkb_header;
 
 namespace fk {
 
@@ -44,11 +46,11 @@ void Schedule::simple(uint32_t interval) {
     cron = lwcron::CronSpec::interval(std::max(interval, OneMinuteSeconds));
 }
 
-Schedule& Schedule::operator=(const fk_app_Schedule &s) {
+Schedule &Schedule::operator=(const fk_app_Schedule &s) {
     memzero(intervals, sizeof(intervals));
     if (s.intervals.arg != nullptr) {
-        auto intervals_array = reinterpret_cast<pb_array_t*>(s.intervals.arg);
-        auto intervals_source = reinterpret_cast<fk_app_Interval*>(intervals_array->buffer);
+        auto intervals_array = reinterpret_cast<pb_array_t *>(s.intervals.arg);
+        auto intervals_source = reinterpret_cast<fk_app_Interval *>(intervals_array->buffer);
         for (auto i = 0u; i < std::min(intervals_array->length, MaximumScheduleIntervals); ++i) {
             if (intervals_source[i].interval > 0 && intervals_source[i].start != intervals_source[i].end) {
                 intervals[i].start = intervals_source[i].start;
@@ -68,19 +70,19 @@ Schedule& Schedule::operator=(const fk_app_Schedule &s) {
     return *this;
 }
 
-GlobalStateRef<const GlobalState*> get_global_state_ro() {
+GlobalStateRef<const GlobalState *> get_global_state_ro() {
     auto lock = data_lock.acquire_read(UINT32_MAX);
     FK_ASSERT(lock);
     return { std::move(lock), true, &gs };
 }
 
-GlobalStateRef<GlobalState*> get_global_state_rw() {
+GlobalStateRef<GlobalState *> get_global_state_rw() {
     auto lock = data_lock.acquire_write(UINT32_MAX);
     FK_ASSERT(lock);
     return { std::move(lock), false, &gs };
 }
 
-GlobalStateRef<GlobalState const*> try_get_global_state_ro() {
+GlobalStateRef<GlobalState const *> try_get_global_state_ro() {
     auto lock = data_lock.acquire_read(0);
     if (!lock) {
         return { std::move(lock), false, nullptr };
@@ -91,43 +93,36 @@ GlobalStateRef<GlobalState const*> try_get_global_state_ro() {
 GlobalState::GlobalState() : version(0) {
 }
 
-void GlobalState::update_data_stream(File const &file) {
-    storage.data.size = file.size();
-    storage.data.block = file.end_record();
-    readings.number = file.end_record();
+void GlobalState::apply(StorageUpdate &update) {
+    storage.meta.size = update.meta.size;
+    storage.meta.block = update.meta.records;
+    storage.data.size = update.data.size;
+    storage.data.block = update.data.records;
+    readings.nreadings = update.nreadings;
+    readings.time = update.time;
+    storage.spi.installed = update.installed;
+    storage.spi.used = update.used;
+
+    auto storage_used = ((float)storage.spi.used / (float)storage.spi.installed) * 100.0f;
+
+    loginfo("installed=%" PRIu32 " used=%" PRIu32 " %.2f%% meta-size=%" PRIu32 " meta-records=%" PRIu32 " data-size=%" PRIu32
+            " data-records=%" PRIu32 " readings=%" PRIu32,
+            storage.spi.installed, storage.spi.used, storage_used, storage.meta.size, storage.meta.block, storage.data.size,
+            storage.data.block, readings.nreadings);
 }
 
-void GlobalState::update_meta_stream(File const &file) {
-    storage.meta.size = file.size();
-    storage.meta.block = file.end_record();
-}
-
-void GlobalState::update_physical_modules(ConstructedModulesCollection const &modules) {
-    for (auto &status : physical_modules) {
-        status.meta = nullptr;
-        status.header = { };
-        status.status = ModuleStatus::Empty;
-    }
-
-    for (auto &m : modules) {
-        if (m.found.physical()) {
-            auto index = m.found.position.integer();
-
-            FK_ASSERT(index < MaximumNumberOfPhysicalModules);
-            auto &status = physical_modules[index];
-            status.header = m.found.header;
-            status.meta = m.meta;
-            status.status = m.status;
-
-            loginfo("[%d] '%s' module status = %s", index, m.meta->name, get_module_status_string(m.status));
-        }
-    }
+void GlobalState::apply(UpcomingUpdate &update) {
+    scheduler.readings.upcoming = update.readings;
+    scheduler.gps.upcoming = update.gps;
+    scheduler.network.upcoming = update.network;
+    scheduler.backup.upcoming = update.backup;
+    scheduler.lora.upcoming = update.lora;
 }
 
 void GlobalState::released(uint32_t locked) const {
     auto elapsed = fk_uptime() - locked;
     if (elapsed > 100) {
-        logwarn("read (%" PRIu32 "ms)", elapsed);
+        loginfo("read (%" PRIu32 "ms)", elapsed);
     }
 }
 
@@ -137,13 +132,20 @@ void GlobalState::released(uint32_t locked) {
 }
 
 bool GlobalState::flush(Pool &pool) {
+    // jlewallen: storage-write
     Storage storage{ MemoryFactory::get_data_memory(), pool, false };
     if (!storage.begin()) {
         return false;
     }
 
-    MetaOps ops{ storage };
-    if (!ops.write_state(this, pool)) {
+    MetaRecord meta_record{ pool };
+    meta_record.include_state(this, &fkb_header, pool);
+
+    if (!storage.meta_ops()->write_record(SignedRecordKind::State, meta_record.record(), pool)) {
+        return false;
+    }
+
+    if (!storage.flush()) {
         return false;
     }
 
@@ -160,4 +162,4 @@ GpsState const *GlobalState::location(Pool &pool) const {
     return gps.clone(pool);
 }
 
-}
+} // namespace fk

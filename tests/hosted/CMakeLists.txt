@@ -50,7 +50,7 @@ set_target_properties(libgmock PROPERTIES
 include_directories("${source_dir}/googletest/include"
                     "${source_dir}/googlemock/include")
 
-file(GLOB_RECURSE fk_sources ../../fk/*.cpp ../../fk/*.c ../hosted/test_modules.cpp ../../modules/random/main/*.cpp)
+file(GLOB_RECURSE fk_sources ../../fk/*.cpp ../../fk/*.c ../hosted/test_modules.cpp ../../modules/random/main/*.cpp ../../modules/diagnostics/main/*.cpp)
 file(GLOB         fk_tasks ../../fk/tasks/tasks.cpp)
 
 list(FILTER fk_sources EXCLUDE REGEX ".*main.cpp$")
@@ -82,6 +82,9 @@ target_link_libraries(testall data-protocol)
 find_package(CortexLoading)
 target_link_libraries(testall CortexLoading)
 
+find_package(Dhara)
+target_link_libraries(testall Dhara)
+
 find_package(Samd51Common)
 target_link_libraries(testall Samd51Common)
 
@@ -96,6 +99,6 @@ find_package(ArduinoBase64)
 target_link_libraries(testall arduino-base64)
 
 target_include_directories(testall PRIVATE ../../fk ${CMAKE_SOURCE_DIR}/third-party/nonstd ${CMAKE_SOURCE_DIR}/third-party/tl)
-target_compile_options(testall PUBLIC -Wall -Wno-variadic-macros)
+target_compile_options(testall PUBLIC -Wall -Wno-variadic-macros -DFK_LORA_ABP)
 target_link_libraries(testall libgtest libgmock)
 add_test(NAME testall COMMAND testall)

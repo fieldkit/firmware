@@ -6,7 +6,7 @@ namespace fk {
 /**
  * Maximum number of modules that can be builtin to the firmware.
  */
-#define FK_MODULES_BUILTIN_MAXIMUM (10)
+#define FK_MODULES_BUILTIN_MAXIMUM (20)
 
 typedef struct ModuleNode {
     ModuleMetadata const *meta;
@@ -79,6 +79,9 @@ uint32_t fk_modules_builtin_register(ModuleMetadata const *modmeta) {
     ModuleNode *prev = NULL;
 
     for (auto i = 0; i < FK_MODULES_BUILTIN_MAXIMUM; ++i) {
+        if (nodes[i].meta == modmeta) {
+            return 0;
+        }
         if (nodes[i].meta == NULL) {
             nodes[i].meta = modmeta;
             nodes[i].link = NULL;

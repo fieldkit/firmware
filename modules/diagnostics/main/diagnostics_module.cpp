@@ -21,7 +21,7 @@ static SensorMetadata const fk_module_sensor_metas[] = {
 
     { .name = "free_memory",     .unitOfMeasure = "bytes", .flags = 0 },
     { .name = "uptime",          .unitOfMeasure = "ms",    .flags = 0 },
-    { .name = "temperature",     .unitOfMeasure = "C",     .flags = 0 },
+    { .name = "temperature",     .unitOfMeasure = "°C",    .flags = 0 },
 };
 
 static ModuleSensors const fk_module_sensors = {
@@ -29,12 +29,18 @@ static ModuleSensors const fk_module_sensors = {
     .sensors = fk_module_sensor_metas,
 };
 
+DiagnosticsModule::DiagnosticsModule(Pool &pool) {
+}
+
+DiagnosticsModule::~DiagnosticsModule() {
+}
+
 ModuleReturn DiagnosticsModule::initialize(ModuleContext mc, Pool &pool) {
     return { ModuleStatus::Ok };
 }
 
 ModuleReturn DiagnosticsModule::api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) {
-    connection->busy(0, "unsupported");
+    connection->busy(0, "unsupported", pool);
 
     return { ModuleStatus::Fatal };
 }
@@ -52,7 +58,7 @@ ModuleConfiguration const DiagnosticsModule::get_configuration(Pool &pool) {
 }
 
 ModuleReadings *DiagnosticsModule::take_readings(ReadingsContext mc, Pool &pool) {
-    CoreTemperature core_temperature_sensor{ get_board()->i2c_core() };
+    CoreTemperature core_temperature_sensor;
 
     auto gs = get_global_state_ro();
 

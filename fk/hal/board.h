@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.h"
+#include "hal/mutex.h"
 
 namespace fk {
 
@@ -66,12 +67,13 @@ union TwoWire32 {
 
 class TwoWireWrapper {
 private:
+    Mutex *lock_{ nullptr };
     const char *name_;
     void *ptr_;
 
 public:
-    TwoWireWrapper(const char *name, void *ptr);
-    ~TwoWireWrapper();
+    TwoWireWrapper(Mutex *lock, const char *name, void *ptr);
+    virtual ~TwoWireWrapper();
 
 public:
     void begin();

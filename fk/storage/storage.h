@@ -9,6 +9,8 @@
 #include "storage/bad_blocks.h"
 #include "storage/sequential_memory.h"
 #include "storage/statistics_memory.h"
+#include "storage/file_ops.h"
+#include "storage/phylum.h"
 
 namespace fk {
 
@@ -35,29 +37,54 @@ private:
     DataMemory *data_memory_;
     Pool *pool_;
     SequentialWrapper<BufferedPageMemory> memory_;
+    StatisticsMemory statistics_data_memory_;
     BadBlocks bad_blocks_;
-    FileHeader files_[NumberOfFiles];
+    Phylum phylum_;
+    bool phylum_enabled_{ false };
+    FileHeader *files_{ nullptr };
     BlockNumber file_headers_block_;
     uint32_t timestamp_{ InvalidTimestamp };
     BlockNumber free_block_{ InvalidBlock };
     uint32_t version_{ InvalidVersion };
     bool read_only_;
+    MetaOps *meta_ops_{ nullptr };
+    DataOps *data_ops_{ nullptr };
+    bool allow_phylum_{ false };
+    bool using_phylum_{ false };
+    int32_t bytes_used_{ 0 };
 
 public:
-    Storage(DataMemory *memory, Pool &pool, bool read_only = true);
+    Storage(DataMemory *memory, Pool &pool, bool read_only = true, bool allow_phylum = false);
     virtual ~Storage();
+
+public:
+    Phylum &phylum() {
+        return phylum_;
+    }
+
+    DataOps *data_ops();
+
+    MetaOps *meta_ops();
+
+    FileReader *file_reader(FileNumber file_number, Pool &pool);
+
+    uint32_t installed();
+
+    uint32_t used();
 
 public:
     bool begin();
     bool clear();
-    File file(FileNumber file_number);
-    File file(FileNumber file_number, Pool &pool);
     bool flush();
 
 public:
+    File file(FileNumber file_number);
+    File file(FileNumber file_number, Pool &pool);
     uint32_t fsck(ProgressCallbacks *progress);
 
-public:
+private:
+    bool begin_internal();
+    bool clear_internal();
     SavedState save() const;
     void restore(SavedState const &state);
 

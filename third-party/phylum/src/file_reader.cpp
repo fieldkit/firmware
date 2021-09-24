@@ -3,18 +3,16 @@
 namespace phylum {
 
 file_reader::file_reader(phyctx pc, directory *directory, found_file file)
-    : pc_(pc), directory_(directory), file_(file), buffer_(std::move(pc.buffers_.allocate(pc.sectors_.sector_size()))),
-      data_chain_(pc, file.chain, "file-rdr") {
+    : pc_(pc), directory_(directory), file_(file), data_chain_(pc, file.chain, "file-rdr") {
 }
 
 file_reader::~file_reader() {
 }
 
 file_size_t file_reader::position() const {
-    auto buffer_position = buffer_.position();
     if (has_chain()) {
         auto dcc = data_chain_.cursor();
-        return dcc.position + buffer_position;
+        return dcc.position;
     }
     return inline_position_;
 }
@@ -24,6 +22,8 @@ int32_t file_reader::read(size_t size) {
 }
 
 int32_t file_reader::read(uint8_t *data, size_t size) {
+    logged_task lt{ "fr-read" };
+
     if (has_chain()) {
         auto nread = 0u;
         while (nread < size) {
@@ -31,7 +31,6 @@ int32_t file_reader::read(uint8_t *data, size_t size) {
             if (err < 0) {
                 return err;
             }
-
             if (err == 0) {
                 break;
             }
@@ -50,15 +49,9 @@ int32_t file_reader::read(uint8_t *data, size_t size) {
     assert(size >= file_.directory_size);
 
     simple_buffer filling{ data, size };
+    buffer_writer writer{ filling };
 
-    auto err = directory_->read(file_.id, [&](read_buffer data_buffer) {
-        auto f = filling.fill(data_buffer, [](simple_buffer &/*rb*/) {
-            phyerrorf("unexpected flush");
-            assert(false);
-            return -1;
-        });
-        return f;
-    });
+    auto err = directory_->read(file_.id, writer);
     if (err < 0) {
         return err;
     }
@@ -69,20 +62,6 @@ int32_t file_reader::read(uint8_t *data, size_t size) {
 }
 
 int32_t file_reader::close() {
-    // There's nothing for us to do, yet. Keeping this call just in case.
-    return 0;
-}
-
-uint32_t file_reader::u32(uint8_t type) {
-    assert(file_.cfg.nattrs > 0);
-    for (auto i = 0u; i < file_.cfg.nattrs; ++i) {
-        auto &attr = file_.cfg.attributes[i];
-        if (attr.type == type) {
-            assert(sizeof(uint32_t) == attr.size);
-            return *(uint32_t *)attr.ptr;
-        }
-    }
-    assert(false);
     return 0;
 }
 

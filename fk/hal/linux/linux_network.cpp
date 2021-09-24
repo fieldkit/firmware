@@ -3,7 +3,7 @@
 #include "hal/linux/linux.h"
 #include "hal/linux/linux_network.h"
 
-#if !defined(ARDUINO)
+#if !defined(__SAMD51__)
 
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -18,7 +18,7 @@ FK_DECLARE_LOGGER("network");
 LinuxNetworkConnection::LinuxNetworkConnection() {
 }
 
-LinuxNetworkConnection::LinuxNetworkConnection(int32_t s, uint32_t remote_address) : s_(s), remote_address_(remote_address) {
+LinuxNetworkConnection::LinuxNetworkConnection(Pool *pool, int32_t s, uint32_t remote_address) : s_(s), remote_address_(remote_address) {
 }
 
 LinuxNetworkConnection::~LinuxNetworkConnection() {
@@ -194,7 +194,7 @@ NetworkScan LinuxNetwork::scan(Pool &pool) {
 void LinuxNetwork::verify() {
 }
 
-LinuxNetworkListener::LinuxNetworkListener(uint16_t port, int32_t listening) : port_(port), listening_(listening) {
+LinuxNetworkListener::LinuxNetworkListener(Pool *pool, uint16_t port, int32_t listening) : port_(port), listening_(listening) {
 }
 
 PoolPointer<NetworkConnection> *LinuxNetworkListener::accept() {

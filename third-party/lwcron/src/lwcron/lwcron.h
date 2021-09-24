@@ -3,14 +3,18 @@
 
 #include <cinttypes>
 #include <cstring>
+#include <cstdio>
 
 namespace lwcron {
 
 struct TimeOfDay {
-    uint8_t second;
-    uint8_t minute;
-    uint8_t hour;
-    uint32_t remainder;
+    int32_t hour;
+    int32_t minute;
+    int32_t second;
+    int32_t remainder;
+
+    TimeOfDay(int32_t hour, int32_t minute, int32_t second) : hour(hour), minute(minute), second(second), remainder(0) {
+    }
 
     TimeOfDay(uint32_t t) {
         second = t % 60;
@@ -109,7 +113,7 @@ public:
     virtual void run() = 0;
     virtual bool valid() const = 0;
     virtual bool enabled() const = 0;
-    virtual uint32_t getNextTime(DateTime after, uint32_t seed) = 0;
+    virtual uint32_t getNextTime(DateTime after, uint32_t seed) const = 0;
     virtual void accept(TaskVisitor &visitor) = 0;
     virtual const char *toString() const {
         return "Task<>";
@@ -140,7 +144,7 @@ public:
     void run() override;
     bool valid() const override;
     bool enabled() const override;
-    uint32_t getNextTime(DateTime after, uint32_t seed) override;
+    uint32_t getNextTime(DateTime after, uint32_t seed) const override;
     void accept(TaskVisitor &visitor) override {
         visitor.visit(*this);
     }
@@ -164,13 +168,19 @@ static inline bool bitarray_test(uint8_t (&p)[N], uint32_t n) {
 
 template<size_t N>
 uint32_t bitarray_nset(uint8_t (&bytes)[N]) {
-    auto c = 0;
-    for (auto i = (size_t)0; i < N * 8; ++i) {
+    auto c = 0u;
+    for (auto i = 0u; i < N * 8u; ++i) {
         if (bitarray_test(bytes, i)) {
             c++;
         }
     }
     return c;
+}
+
+template<size_t N>
+static inline void bitarray_clear_set(uint8_t (&p)[N], uint32_t n) {
+    bzero(&p, sizeof(p));
+    p[n / 8] |= (0x1 << (n % 8));
 }
 
 template<size_t N>
@@ -193,7 +203,17 @@ public:
     CronSpec() {
     }
 
-    CronSpec(DateTime when) {
+    CronSpec(TimeOfDay tod) {
+        set(tod);
+    }
+
+    CronSpec(int32_t hours, int32_t minutes, int32_t seconds) {
+        bitarray_set(this->hours, hours);
+        bitarray_set(this->minutes, minutes);
+        bitarray_set(this->seconds, seconds);
+    }
+
+    CronSpec(DateTime const &when) {
         bitarray_set(seconds, when.second());
         bitarray_set(minutes, when.minute());
         bitarray_set(hours, when.hour());
@@ -202,9 +222,11 @@ public:
 public:
     bool valid() const;
 
+    void clear();
+
     void set(TimeOfDay tod);
 
-    uint32_t getNextTime(DateTime after);
+    uint32_t getNextTime(DateTime after) const;
 
     static CronSpec interval(uint32_t seconds);
 
@@ -225,14 +247,24 @@ public:
     }
 
 private:
-    bool matches(CronSpec cs) {
-        return matches(hours, cs.hours, sizeof(hours)) &&
-            matches(minutes, cs.minutes, sizeof(minutes)) &&
-            matches(seconds, cs.seconds, sizeof(seconds));
+    bool matches(CronSpec const &cs) const {
+        return matches_hours(cs) && matches_minutes(cs) && matches_seconds(cs);
     }
 
-    static bool matches(uint8_t *a, uint8_t *b, size_t size) {
-        for (auto i = (size_t)0; i < size; ++i) {
+    bool matches_hours(CronSpec const &cs) const {
+        return matches(hours, cs.hours, sizeof(hours));
+    }
+
+    bool matches_minutes(CronSpec const &cs) const {
+        return matches(minutes, cs.minutes, sizeof(minutes));
+    }
+
+    bool matches_seconds(CronSpec const &cs) const {
+        return matches(seconds, cs.seconds, sizeof(seconds));
+    }
+
+    static bool matches(uint8_t const *a, uint8_t const *b, size_t size) {
+        for (auto i = 0u; i < size; ++i) {
             if ((a[i] & b[i]) > 0) {
                 return true;
             }
@@ -265,7 +297,7 @@ public:
     void run() override;
     bool valid() const override;
     bool enabled() const override;
-    uint32_t getNextTime(DateTime after, uint32_t seed) override;
+    uint32_t getNextTime(DateTime after, uint32_t seed) const override;
     void accept(TaskVisitor &visitor) override {
         visitor.visit(*this);
     }

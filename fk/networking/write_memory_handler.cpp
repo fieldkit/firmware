@@ -32,14 +32,14 @@ bool WriteMemoryWorker::read_complete_and_fail(const char *error, Pool &pool) {
 
 bool WriteMemoryWorker::write_error(const char *kind, Pool &pool) {
     auto body = pool.sprintf("{ \"%s\": true }", kind);
-    connection_->plain(500, "error", body);
+    connection_->plain(HttpStatus::ServerError, "error", body, pool);
     connection_->close();
     return true;
 }
 
 bool WriteMemoryWorker::write_success(Pool &pool) {
     auto body = pool.sprintf("{ \"%s\": true }", "success");
-    connection_->plain(200, "ok", body);
+    connection_->plain(HttpStatus::Ok, "ok", body, pool);
     connection_->close();
     return true;
 }

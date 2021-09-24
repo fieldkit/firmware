@@ -49,6 +49,11 @@ public:
         remaining_ = size;
     }
 
+    template<typename T>
+    T *copy(T const &original) {
+        return reinterpret_cast<T*>(copy(&original, sizeof(T)));
+    }
+
     void *copy(void const *ptr, size_t size);
     char *strdup(const char *str);
     char *strndup(const char *str, size_t len);
@@ -60,6 +65,11 @@ public:
     EncodedMessage *wrap_copy(uint8_t *buffer, size_t size);
 
 public:
+    virtual Pool *subpool(const char *name, size_t page_size) {
+        FK_ASSERT(0);
+        return nullptr;
+    }
+
     virtual size_t allocated() const {
         return used();
     }
@@ -107,20 +117,43 @@ public:
     }
 
 public:
-    void log_destroy(const char *how);
+    virtual void log_destroy(const char *how);
 
-    void log_info();
+    virtual void log_info(int32_t depth = 0u);
+};
 
+class ScopedClearPool {
+private:
+    Pool *pool_;
+
+public:
+    ScopedClearPool(Pool &pool) : pool_(&pool) {
+    }
+
+    ScopedClearPool(Pool *pool) : pool_(pool) {
+    }
+
+    virtual ~ScopedClearPool() {
+        pool_->clear();
+    }
 };
 
 class StandardPool : public Pool {
 private:
     bool free_self_{ false };
+    size_t page_size_{ 0u };
+    Pool *page_source_{ nullptr };
+    // This pool is where we're allocating from, because we've grown.
     StandardPool *sibling_{ nullptr };
+    // This is the first of our children/subpools, used to clear/free.
+    StandardPool *child_{ nullptr };
+    // This is the next child.
+    StandardPool *np_{ nullptr };
 
 public:
     explicit StandardPool(const char *name);
-    explicit StandardPool(const char *name, void *ptr, size_t size, size_t taken);
+    explicit StandardPool(const char *name, size_t page_size, Pool *page_source);
+    explicit StandardPool(const char *name, void *ptr, size_t size, size_t taken, bool free_self);
     virtual ~StandardPool();
 
 public:
@@ -129,6 +162,8 @@ public:
     }
 
 public:
+    void log_info(int32_t depth = 0u) override;
+
     size_t allocated() const override {
         return Pool::allocated() + (sibling_ == nullptr ? 0u : sibling_->allocated());
     }
@@ -141,20 +176,22 @@ public:
         return Pool::used() + (sibling_ == nullptr ? 0u : sibling_->used());
     }
 
+    Pool *subpool(const char *name, size_t page_size) override;
+
     void *malloc(size_t bytes) override;
+
+    using Pool::malloc;
+
     void clear() override;
 
     bool can_malloc(size_t bytes) const {
         return (Pool::size() - Pool::used()) >= aligned_size(bytes);
     }
-
 };
-
-Pool *create_pool_inside(const char *name);
 
 Pool *create_standard_pool_inside(const char *name);
 
-}
+} // namespace fk
 
 /**
  * New operator that allocates from a memory pool. Note that this is global

@@ -14,7 +14,7 @@ function(enable_signed_bin_firmware target)
   add_custom_command(
     OUTPUT ${fkb_bin_file}
     DEPENDS ${elf_file}
-    COMMAND ${loading_PATH}/tools/mkfirmware.py --elf ${elf_file} --fkb ${fkb_elf_file} --bin ${fkb_bin_file}
+    COMMAND ${loading_PATH}/tools/mkfirmware.py --objcopy ${ARM_TOOLS}/arm-none-eabi-objcopy  --elf ${elf_file} --fkb ${fkb_elf_file} --bin ${fkb_bin_file}
     WORKING_DIRECTORY ${binary_dir}
     )
 
@@ -45,7 +45,7 @@ function(enable_fkb_firmware target)
   add_custom_command(
     OUTPUT ${fkb_elf_file}
     DEPENDS ${elf_file}
-    COMMAND ${loading_PATH}/tools/mkfirmware.py --elf ${elf_file} --fkb ${fkb_elf_file} --bin ${fkb_bin_file}
+    COMMAND ${loading_PATH}/tools/mkfirmware.py --objcopy ${ARM_TOOLS}/arm-none-eabi-objcopy --elf ${elf_file} --fkb ${fkb_elf_file} --bin ${fkb_bin_file}
     WORKING_DIRECTORY ${binary_dir}
     )
 
@@ -80,7 +80,7 @@ function(enable_fkb_module target)
   add_custom_command(
     OUTPUT ${fkb_elf_file}
     DEPENDS ${elf_file}
-    COMMAND ${loading_PATH}/tools/mkfirmware.py --elf ${elf_file} --fkb ${fkb_elf_file} --bin ${fkb_bin_file} --dynamic
+    COMMAND ${loading_PATH}/tools/mkfirmware.py --objcopy ${ARM_TOOLS}/arm-none-eabi-objcopy --elf ${elf_file} --fkb ${fkb_elf_file} --bin ${fkb_bin_file} --dynamic
     WORKING_DIRECTORY ${binary_dir}
     )
 
@@ -132,19 +132,3 @@ function(add_fk_module target_name)
 
   enable_fkb_module(${target_name})
 endfunction()
-
-
-if (NOT DEFINED ARDUINO_IDE)
-  foreach(path $ENV{HOME}/arduino-1.8.3 $ENV{HOME}/conservify/arduino-1.8.3
-               $ENV{HOME}/workspace/arduino-1.8.3
-               ${PROJECT_SOURCE_DIR}/../arduino-1.8.3 ${PROJECT_SOURCE_DIR}/../../arduino-1.8.3)
-      if (EXISTS ${path})
-        set(ARDUINO_IDE ${path})
-        break()
-    endif()
-  endforeach()
-
-  if (NOT DEFINED ARDUINO_IDE)
-    message(FATAL_ERROR "Unable to find Arduino IDE")
-  endif()
-endif()

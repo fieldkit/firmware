@@ -10912,15 +10912,14 @@
              * @interface ILoraSettings
              * @property {boolean} [available] LoraSettings available
              * @property {boolean} [modifying] LoraSettings modifying
+             * @property {boolean} [clearing] LoraSettings clearing
+             * @property {number} [frequencyBand] LoraSettings frequencyBand
              * @property {Uint8Array} [deviceEui] LoraSettings deviceEui
              * @property {Uint8Array} [appKey] LoraSettings appKey
-             * @property {Uint8Array} [appEui] LoraSettings appEui
-             * @property {number} [frequencyBand] LoraSettings frequencyBand
+             * @property {Uint8Array} [joinEui] LoraSettings joinEui
              * @property {Uint8Array} [deviceAddress] LoraSettings deviceAddress
              * @property {Uint8Array} [networkSessionKey] LoraSettings networkSessionKey
              * @property {Uint8Array} [appSessionKey] LoraSettings appSessionKey
-             * @property {number} [uplinkCounter] LoraSettings uplinkCounter
-             * @property {number} [downlinkCounter] LoraSettings downlinkCounter
              */
     
             /**
@@ -10954,6 +10953,22 @@
             LoraSettings.prototype.modifying = false;
     
             /**
+             * LoraSettings clearing.
+             * @member {boolean}clearing
+             * @memberof fk_app.LoraSettings
+             * @instance
+             */
+            LoraSettings.prototype.clearing = false;
+    
+            /**
+             * LoraSettings frequencyBand.
+             * @member {number}frequencyBand
+             * @memberof fk_app.LoraSettings
+             * @instance
+             */
+            LoraSettings.prototype.frequencyBand = 0;
+    
+            /**
              * LoraSettings deviceEui.
              * @member {Uint8Array}deviceEui
              * @memberof fk_app.LoraSettings
@@ -10970,20 +10985,12 @@
             LoraSettings.prototype.appKey = $util.newBuffer([]);
     
             /**
-             * LoraSettings appEui.
-             * @member {Uint8Array}appEui
+             * LoraSettings joinEui.
+             * @member {Uint8Array}joinEui
              * @memberof fk_app.LoraSettings
              * @instance
              */
-            LoraSettings.prototype.appEui = $util.newBuffer([]);
-    
-            /**
-             * LoraSettings frequencyBand.
-             * @member {number}frequencyBand
-             * @memberof fk_app.LoraSettings
-             * @instance
-             */
-            LoraSettings.prototype.frequencyBand = 0;
+            LoraSettings.prototype.joinEui = $util.newBuffer([]);
     
             /**
              * LoraSettings deviceAddress.
@@ -11008,22 +11015,6 @@
              * @instance
              */
             LoraSettings.prototype.appSessionKey = $util.newBuffer([]);
-    
-            /**
-             * LoraSettings uplinkCounter.
-             * @member {number}uplinkCounter
-             * @memberof fk_app.LoraSettings
-             * @instance
-             */
-            LoraSettings.prototype.uplinkCounter = 0;
-    
-            /**
-             * LoraSettings downlinkCounter.
-             * @member {number}downlinkCounter
-             * @memberof fk_app.LoraSettings
-             * @instance
-             */
-            LoraSettings.prototype.downlinkCounter = 0;
     
             /**
              * Creates a new LoraSettings instance using the specified properties.
@@ -11053,24 +11044,22 @@
                     writer.uint32(/* id 1, wireType 0 =*/8).bool(message.available);
                 if (message.modifying != null && message.hasOwnProperty("modifying"))
                     writer.uint32(/* id 2, wireType 0 =*/16).bool(message.modifying);
-                if (message.deviceEui != null && message.hasOwnProperty("deviceEui"))
-                    writer.uint32(/* id 3, wireType 2 =*/26).bytes(message.deviceEui);
-                if (message.appKey != null && message.hasOwnProperty("appKey"))
-                    writer.uint32(/* id 4, wireType 2 =*/34).bytes(message.appKey);
-                if (message.appEui != null && message.hasOwnProperty("appEui"))
-                    writer.uint32(/* id 5, wireType 2 =*/42).bytes(message.appEui);
+                if (message.clearing != null && message.hasOwnProperty("clearing"))
+                    writer.uint32(/* id 3, wireType 0 =*/24).bool(message.clearing);
                 if (message.frequencyBand != null && message.hasOwnProperty("frequencyBand"))
-                    writer.uint32(/* id 6, wireType 0 =*/48).uint32(message.frequencyBand);
+                    writer.uint32(/* id 4, wireType 0 =*/32).uint32(message.frequencyBand);
+                if (message.deviceEui != null && message.hasOwnProperty("deviceEui"))
+                    writer.uint32(/* id 5, wireType 2 =*/42).bytes(message.deviceEui);
+                if (message.appKey != null && message.hasOwnProperty("appKey"))
+                    writer.uint32(/* id 6, wireType 2 =*/50).bytes(message.appKey);
+                if (message.joinEui != null && message.hasOwnProperty("joinEui"))
+                    writer.uint32(/* id 7, wireType 2 =*/58).bytes(message.joinEui);
                 if (message.deviceAddress != null && message.hasOwnProperty("deviceAddress"))
-                    writer.uint32(/* id 7, wireType 2 =*/58).bytes(message.deviceAddress);
+                    writer.uint32(/* id 8, wireType 2 =*/66).bytes(message.deviceAddress);
                 if (message.networkSessionKey != null && message.hasOwnProperty("networkSessionKey"))
-                    writer.uint32(/* id 8, wireType 2 =*/66).bytes(message.networkSessionKey);
+                    writer.uint32(/* id 9, wireType 2 =*/74).bytes(message.networkSessionKey);
                 if (message.appSessionKey != null && message.hasOwnProperty("appSessionKey"))
-                    writer.uint32(/* id 9, wireType 2 =*/74).bytes(message.appSessionKey);
-                if (message.uplinkCounter != null && message.hasOwnProperty("uplinkCounter"))
-                    writer.uint32(/* id 10, wireType 0 =*/80).uint32(message.uplinkCounter);
-                if (message.downlinkCounter != null && message.hasOwnProperty("downlinkCounter"))
-                    writer.uint32(/* id 11, wireType 0 =*/88).uint32(message.downlinkCounter);
+                    writer.uint32(/* id 10, wireType 2 =*/82).bytes(message.appSessionKey);
                 return writer;
             };
     
@@ -11112,31 +11101,28 @@
                         message.modifying = reader.bool();
                         break;
                     case 3:
-                        message.deviceEui = reader.bytes();
+                        message.clearing = reader.bool();
                         break;
                     case 4:
-                        message.appKey = reader.bytes();
-                        break;
-                    case 5:
-                        message.appEui = reader.bytes();
-                        break;
-                    case 6:
                         message.frequencyBand = reader.uint32();
                         break;
+                    case 5:
+                        message.deviceEui = reader.bytes();
+                        break;
+                    case 6:
+                        message.appKey = reader.bytes();
+                        break;
                     case 7:
-                        message.deviceAddress = reader.bytes();
+                        message.joinEui = reader.bytes();
                         break;
                     case 8:
-                        message.networkSessionKey = reader.bytes();
+                        message.deviceAddress = reader.bytes();
                         break;
                     case 9:
-                        message.appSessionKey = reader.bytes();
+                        message.networkSessionKey = reader.bytes();
                         break;
                     case 10:
-                        message.uplinkCounter = reader.uint32();
-                        break;
-                    case 11:
-                        message.downlinkCounter = reader.uint32();
+                        message.appSessionKey = reader.bytes();
                         break;
                     default:
                         reader.skipType(tag & 7);
@@ -11179,18 +11165,21 @@
                 if (message.modifying != null && message.hasOwnProperty("modifying"))
                     if (typeof message.modifying !== "boolean")
                         return "modifying: boolean expected";
+                if (message.clearing != null && message.hasOwnProperty("clearing"))
+                    if (typeof message.clearing !== "boolean")
+                        return "clearing: boolean expected";
+                if (message.frequencyBand != null && message.hasOwnProperty("frequencyBand"))
+                    if (!$util.isInteger(message.frequencyBand))
+                        return "frequencyBand: integer expected";
                 if (message.deviceEui != null && message.hasOwnProperty("deviceEui"))
                     if (!(message.deviceEui && typeof message.deviceEui.length === "number" || $util.isString(message.deviceEui)))
                         return "deviceEui: buffer expected";
                 if (message.appKey != null && message.hasOwnProperty("appKey"))
                     if (!(message.appKey && typeof message.appKey.length === "number" || $util.isString(message.appKey)))
                         return "appKey: buffer expected";
-                if (message.appEui != null && message.hasOwnProperty("appEui"))
-                    if (!(message.appEui && typeof message.appEui.length === "number" || $util.isString(message.appEui)))
-                        return "appEui: buffer expected";
-                if (message.frequencyBand != null && message.hasOwnProperty("frequencyBand"))
-                    if (!$util.isInteger(message.frequencyBand))
-                        return "frequencyBand: integer expected";
+                if (message.joinEui != null && message.hasOwnProperty("joinEui"))
+                    if (!(message.joinEui && typeof message.joinEui.length === "number" || $util.isString(message.joinEui)))
+                        return "joinEui: buffer expected";
                 if (message.deviceAddress != null && message.hasOwnProperty("deviceAddress"))
                     if (!(message.deviceAddress && typeof message.deviceAddress.length === "number" || $util.isString(message.deviceAddress)))
                         return "deviceAddress: buffer expected";
@@ -11200,12 +11189,6 @@
                 if (message.appSessionKey != null && message.hasOwnProperty("appSessionKey"))
                     if (!(message.appSessionKey && typeof message.appSessionKey.length === "number" || $util.isString(message.appSessionKey)))
                         return "appSessionKey: buffer expected";
-                if (message.uplinkCounter != null && message.hasOwnProperty("uplinkCounter"))
-                    if (!$util.isInteger(message.uplinkCounter))
-                        return "uplinkCounter: integer expected";
-                if (message.downlinkCounter != null && message.hasOwnProperty("downlinkCounter"))
-                    if (!$util.isInteger(message.downlinkCounter))
-                        return "downlinkCounter: integer expected";
                 return null;
             };
     
@@ -11225,6 +11208,10 @@
                     message.available = Boolean(object.available);
                 if (object.modifying != null)
                     message.modifying = Boolean(object.modifying);
+                if (object.clearing != null)
+                    message.clearing = Boolean(object.clearing);
+                if (object.frequencyBand != null)
+                    message.frequencyBand = object.frequencyBand >>> 0;
                 if (object.deviceEui != null)
                     if (typeof object.deviceEui === "string")
                         $util.base64.decode(object.deviceEui, message.deviceEui = $util.newBuffer($util.base64.length(object.deviceEui)), 0);
@@ -11235,13 +11222,11 @@
                         $util.base64.decode(object.appKey, message.appKey = $util.newBuffer($util.base64.length(object.appKey)), 0);
                     else if (object.appKey.length)
                         message.appKey = object.appKey;
-                if (object.appEui != null)
-                    if (typeof object.appEui === "string")
-                        $util.base64.decode(object.appEui, message.appEui = $util.newBuffer($util.base64.length(object.appEui)), 0);
-                    else if (object.appEui.length)
-                        message.appEui = object.appEui;
-                if (object.frequencyBand != null)
-                    message.frequencyBand = object.frequencyBand >>> 0;
+                if (object.joinEui != null)
+                    if (typeof object.joinEui === "string")
+                        $util.base64.decode(object.joinEui, message.joinEui = $util.newBuffer($util.base64.length(object.joinEui)), 0);
+                    else if (object.joinEui.length)
+                        message.joinEui = object.joinEui;
                 if (object.deviceAddress != null)
                     if (typeof object.deviceAddress === "string")
                         $util.base64.decode(object.deviceAddress, message.deviceAddress = $util.newBuffer($util.base64.length(object.deviceAddress)), 0);
@@ -11257,10 +11242,6 @@
                         $util.base64.decode(object.appSessionKey, message.appSessionKey = $util.newBuffer($util.base64.length(object.appSessionKey)), 0);
                     else if (object.appSessionKey.length)
                         message.appSessionKey = object.appSessionKey;
-                if (object.uplinkCounter != null)
-                    message.uplinkCounter = object.uplinkCounter >>> 0;
-                if (object.downlinkCounter != null)
-                    message.downlinkCounter = object.downlinkCounter >>> 0;
                 return message;
             };
     
@@ -11280,38 +11261,35 @@
                 if (options.defaults) {
                     object.available = false;
                     object.modifying = false;
+                    object.clearing = false;
+                    object.frequencyBand = 0;
                     object.deviceEui = options.bytes === String ? "" : [];
                     object.appKey = options.bytes === String ? "" : [];
-                    object.appEui = options.bytes === String ? "" : [];
-                    object.frequencyBand = 0;
+                    object.joinEui = options.bytes === String ? "" : [];
                     object.deviceAddress = options.bytes === String ? "" : [];
                     object.networkSessionKey = options.bytes === String ? "" : [];
                     object.appSessionKey = options.bytes === String ? "" : [];
-                    object.uplinkCounter = 0;
-                    object.downlinkCounter = 0;
                 }
                 if (message.available != null && message.hasOwnProperty("available"))
                     object.available = message.available;
                 if (message.modifying != null && message.hasOwnProperty("modifying"))
                     object.modifying = message.modifying;
+                if (message.clearing != null && message.hasOwnProperty("clearing"))
+                    object.clearing = message.clearing;
+                if (message.frequencyBand != null && message.hasOwnProperty("frequencyBand"))
+                    object.frequencyBand = message.frequencyBand;
                 if (message.deviceEui != null && message.hasOwnProperty("deviceEui"))
                     object.deviceEui = options.bytes === String ? $util.base64.encode(message.deviceEui, 0, message.deviceEui.length) : options.bytes === Array ? Array.prototype.slice.call(message.deviceEui) : message.deviceEui;
                 if (message.appKey != null && message.hasOwnProperty("appKey"))
                     object.appKey = options.bytes === String ? $util.base64.encode(message.appKey, 0, message.appKey.length) : options.bytes === Array ? Array.prototype.slice.call(message.appKey) : message.appKey;
-                if (message.appEui != null && message.hasOwnProperty("appEui"))
-                    object.appEui = options.bytes === String ? $util.base64.encode(message.appEui, 0, message.appEui.length) : options.bytes === Array ? Array.prototype.slice.call(message.appEui) : message.appEui;
-                if (message.frequencyBand != null && message.hasOwnProperty("frequencyBand"))
-                    object.frequencyBand = message.frequencyBand;
+                if (message.joinEui != null && message.hasOwnProperty("joinEui"))
+                    object.joinEui = options.bytes === String ? $util.base64.encode(message.joinEui, 0, message.joinEui.length) : options.bytes === Array ? Array.prototype.slice.call(message.joinEui) : message.joinEui;
                 if (message.deviceAddress != null && message.hasOwnProperty("deviceAddress"))
                     object.deviceAddress = options.bytes === String ? $util.base64.encode(message.deviceAddress, 0, message.deviceAddress.length) : options.bytes === Array ? Array.prototype.slice.call(message.deviceAddress) : message.deviceAddress;
                 if (message.networkSessionKey != null && message.hasOwnProperty("networkSessionKey"))
                     object.networkSessionKey = options.bytes === String ? $util.base64.encode(message.networkSessionKey, 0, message.networkSessionKey.length) : options.bytes === Array ? Array.prototype.slice.call(message.networkSessionKey) : message.networkSessionKey;
                 if (message.appSessionKey != null && message.hasOwnProperty("appSessionKey"))
                     object.appSessionKey = options.bytes === String ? $util.base64.encode(message.appSessionKey, 0, message.appSessionKey.length) : options.bytes === Array ? Array.prototype.slice.call(message.appSessionKey) : message.appSessionKey;
-                if (message.uplinkCounter != null && message.hasOwnProperty("uplinkCounter"))
-                    object.uplinkCounter = message.uplinkCounter;
-                if (message.downlinkCounter != null && message.hasOwnProperty("downlinkCounter"))
-                    object.downlinkCounter = message.downlinkCounter;
                 return object;
             };
     
@@ -13233,6 +13211,7 @@
              * @property {fk_app.ISensorCapabilities} [sensor] LiveSensorReading sensor
              * @property {number} [value] LiveSensorReading value
              * @property {number} [uncalibrated] LiveSensorReading uncalibrated
+             * @property {number} [factory] LiveSensorReading factory
              */
     
             /**
@@ -13274,6 +13253,14 @@
             LiveSensorReading.prototype.uncalibrated = 0;
     
             /**
+             * LiveSensorReading factory.
+             * @member {number}factory
+             * @memberof fk_app.LiveSensorReading
+             * @instance
+             */
+            LiveSensorReading.prototype.factory = 0;
+    
+            /**
              * Creates a new LiveSensorReading instance using the specified properties.
              * @function create
              * @memberof fk_app.LiveSensorReading
@@ -13303,6 +13290,8 @@
                     writer.uint32(/* id 2, wireType 5 =*/21).float(message.value);
                 if (message.uncalibrated != null && message.hasOwnProperty("uncalibrated"))
                     writer.uint32(/* id 3, wireType 5 =*/29).float(message.uncalibrated);
+                if (message.factory != null && message.hasOwnProperty("factory"))
+                    writer.uint32(/* id 4, wireType 5 =*/37).float(message.factory);
                 return writer;
             };
     
@@ -13345,6 +13334,9 @@
                         break;
                     case 3:
                         message.uncalibrated = reader.float();
+                        break;
+                    case 4:
+                        message.factory = reader.float();
                         break;
                     default:
                         reader.skipType(tag & 7);
@@ -13392,6 +13384,9 @@
                 if (message.uncalibrated != null && message.hasOwnProperty("uncalibrated"))
                     if (typeof message.uncalibrated !== "number")
                         return "uncalibrated: number expected";
+                if (message.factory != null && message.hasOwnProperty("factory"))
+                    if (typeof message.factory !== "number")
+                        return "factory: number expected";
                 return null;
             };
     
@@ -13416,6 +13411,8 @@
                     message.value = Number(object.value);
                 if (object.uncalibrated != null)
                     message.uncalibrated = Number(object.uncalibrated);
+                if (object.factory != null)
+                    message.factory = Number(object.factory);
                 return message;
             };
     
@@ -13436,6 +13433,7 @@
                     object.sensor = null;
                     object.value = 0;
                     object.uncalibrated = 0;
+                    object.factory = 0;
                 }
                 if (message.sensor != null && message.hasOwnProperty("sensor"))
                     object.sensor = $root.fk_app.SensorCapabilities.toObject(message.sensor, options);
@@ -13443,6 +13441,8 @@
                     object.value = options.json && !isFinite(message.value) ? String(message.value) : message.value;
                 if (message.uncalibrated != null && message.hasOwnProperty("uncalibrated"))
                     object.uncalibrated = options.json && !isFinite(message.uncalibrated) ? String(message.uncalibrated) : message.uncalibrated;
+                if (message.factory != null && message.hasOwnProperty("factory"))
+                    object.factory = options.json && !isFinite(message.factory) ? String(message.factory) : message.factory;
                 return object;
             };
     
@@ -15773,6 +15773,598 @@
             };
     
             return HttpReply;
+        })();
+    
+        /**
+         * ModuleQueryType enum.
+         * @enum {string}
+         * @property {number} MODULE_QUERY_NONE=0 MODULE_QUERY_NONE value
+         * @property {number} MODULE_QUERY_STATUS=1 MODULE_QUERY_STATUS value
+         * @property {number} MODULE_QUERY_CONFIGURE=2 MODULE_QUERY_CONFIGURE value
+         * @property {number} MODULE_QUERY_RESET=3 MODULE_QUERY_RESET value
+         */
+        fk_app.ModuleQueryType = (function() {
+            var valuesById = {}, values = Object.create(valuesById);
+            values[valuesById[0] = "MODULE_QUERY_NONE"] = 0;
+            values[valuesById[1] = "MODULE_QUERY_STATUS"] = 1;
+            values[valuesById[2] = "MODULE_QUERY_CONFIGURE"] = 2;
+            values[valuesById[3] = "MODULE_QUERY_RESET"] = 3;
+            return values;
+        })();
+    
+        fk_app.ModuleHttpQuery = (function() {
+    
+            /**
+             * Properties of a ModuleHttpQuery.
+             * @memberof fk_app
+             * @interface IModuleHttpQuery
+             * @property {fk_app.ModuleQueryType} [type] ModuleHttpQuery type
+             * @property {Array.<fk_app.IError>} [errors] ModuleHttpQuery errors
+             * @property {Uint8Array} [configuration] ModuleHttpQuery configuration
+             */
+    
+            /**
+             * Constructs a new ModuleHttpQuery.
+             * @memberof fk_app
+             * @classdesc Represents a ModuleHttpQuery.
+             * @constructor
+             * @param {fk_app.IModuleHttpQuery=} [properties] Properties to set
+             */
+            function ModuleHttpQuery(properties) {
+                this.errors = [];
+                if (properties)
+                    for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                        if (properties[keys[i]] != null)
+                            this[keys[i]] = properties[keys[i]];
+            }
+    
+            /**
+             * ModuleHttpQuery type.
+             * @member {fk_app.ModuleQueryType}type
+             * @memberof fk_app.ModuleHttpQuery
+             * @instance
+             */
+            ModuleHttpQuery.prototype.type = 0;
+    
+            /**
+             * ModuleHttpQuery errors.
+             * @member {Array.<fk_app.IError>}errors
+             * @memberof fk_app.ModuleHttpQuery
+             * @instance
+             */
+            ModuleHttpQuery.prototype.errors = $util.emptyArray;
+    
+            /**
+             * ModuleHttpQuery configuration.
+             * @member {Uint8Array}configuration
+             * @memberof fk_app.ModuleHttpQuery
+             * @instance
+             */
+            ModuleHttpQuery.prototype.configuration = $util.newBuffer([]);
+    
+            /**
+             * Creates a new ModuleHttpQuery instance using the specified properties.
+             * @function create
+             * @memberof fk_app.ModuleHttpQuery
+             * @static
+             * @param {fk_app.IModuleHttpQuery=} [properties] Properties to set
+             * @returns {fk_app.ModuleHttpQuery} ModuleHttpQuery instance
+             */
+            ModuleHttpQuery.create = function create(properties) {
+                return new ModuleHttpQuery(properties);
+            };
+    
+            /**
+             * Encodes the specified ModuleHttpQuery message. Does not implicitly {@link fk_app.ModuleHttpQuery.verify|verify} messages.
+             * @function encode
+             * @memberof fk_app.ModuleHttpQuery
+             * @static
+             * @param {fk_app.IModuleHttpQuery} message ModuleHttpQuery message or plain object to encode
+             * @param {$protobuf.Writer} [writer] Writer to encode to
+             * @returns {$protobuf.Writer} Writer
+             */
+            ModuleHttpQuery.encode = function encode(message, writer) {
+                if (!writer)
+                    writer = $Writer.create();
+                if (message.type != null && message.hasOwnProperty("type"))
+                    writer.uint32(/* id 1, wireType 0 =*/8).int32(message.type);
+                if (message.errors != null && message.errors.length)
+                    for (var i = 0; i < message.errors.length; ++i)
+                        $root.fk_app.Error.encode(message.errors[i], writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
+                if (message.configuration != null && message.hasOwnProperty("configuration"))
+                    writer.uint32(/* id 3, wireType 2 =*/26).bytes(message.configuration);
+                return writer;
+            };
+    
+            /**
+             * Encodes the specified ModuleHttpQuery message, length delimited. Does not implicitly {@link fk_app.ModuleHttpQuery.verify|verify} messages.
+             * @function encodeDelimited
+             * @memberof fk_app.ModuleHttpQuery
+             * @static
+             * @param {fk_app.IModuleHttpQuery} message ModuleHttpQuery message or plain object to encode
+             * @param {$protobuf.Writer} [writer] Writer to encode to
+             * @returns {$protobuf.Writer} Writer
+             */
+            ModuleHttpQuery.encodeDelimited = function encodeDelimited(message, writer) {
+                return this.encode(message, writer).ldelim();
+            };
+    
+            /**
+             * Decodes a ModuleHttpQuery message from the specified reader or buffer.
+             * @function decode
+             * @memberof fk_app.ModuleHttpQuery
+             * @static
+             * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+             * @param {number} [length] Message length if known beforehand
+             * @returns {fk_app.ModuleHttpQuery} ModuleHttpQuery
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            ModuleHttpQuery.decode = function decode(reader, length) {
+                if (!(reader instanceof $Reader))
+                    reader = $Reader.create(reader);
+                var end = length === undefined ? reader.len : reader.pos + length, message = new $root.fk_app.ModuleHttpQuery();
+                while (reader.pos < end) {
+                    var tag = reader.uint32();
+                    switch (tag >>> 3) {
+                    case 1:
+                        message.type = reader.int32();
+                        break;
+                    case 2:
+                        if (!(message.errors && message.errors.length))
+                            message.errors = [];
+                        message.errors.push($root.fk_app.Error.decode(reader, reader.uint32()));
+                        break;
+                    case 3:
+                        message.configuration = reader.bytes();
+                        break;
+                    default:
+                        reader.skipType(tag & 7);
+                        break;
+                    }
+                }
+                return message;
+            };
+    
+            /**
+             * Decodes a ModuleHttpQuery message from the specified reader or buffer, length delimited.
+             * @function decodeDelimited
+             * @memberof fk_app.ModuleHttpQuery
+             * @static
+             * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+             * @returns {fk_app.ModuleHttpQuery} ModuleHttpQuery
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            ModuleHttpQuery.decodeDelimited = function decodeDelimited(reader) {
+                if (!(reader instanceof $Reader))
+                    reader = new $Reader(reader);
+                return this.decode(reader, reader.uint32());
+            };
+    
+            /**
+             * Verifies a ModuleHttpQuery message.
+             * @function verify
+             * @memberof fk_app.ModuleHttpQuery
+             * @static
+             * @param {Object.<string,*>} message Plain object to verify
+             * @returns {string|null} `null` if valid, otherwise the reason why it is not
+             */
+            ModuleHttpQuery.verify = function verify(message) {
+                if (typeof message !== "object" || message === null)
+                    return "object expected";
+                if (message.type != null && message.hasOwnProperty("type"))
+                    switch (message.type) {
+                    default:
+                        return "type: enum value expected";
+                    case 0:
+                    case 1:
+                    case 2:
+                    case 3:
+                        break;
+                    }
+                if (message.errors != null && message.hasOwnProperty("errors")) {
+                    if (!Array.isArray(message.errors))
+                        return "errors: array expected";
+                    for (var i = 0; i < message.errors.length; ++i) {
+                        var error = $root.fk_app.Error.verify(message.errors[i]);
+                        if (error)
+                            return "errors." + error;
+                    }
+                }
+                if (message.configuration != null && message.hasOwnProperty("configuration"))
+                    if (!(message.configuration && typeof message.configuration.length === "number" || $util.isString(message.configuration)))
+                        return "configuration: buffer expected";
+                return null;
+            };
+    
+            /**
+             * Creates a ModuleHttpQuery message from a plain object. Also converts values to their respective internal types.
+             * @function fromObject
+             * @memberof fk_app.ModuleHttpQuery
+             * @static
+             * @param {Object.<string,*>} object Plain object
+             * @returns {fk_app.ModuleHttpQuery} ModuleHttpQuery
+             */
+            ModuleHttpQuery.fromObject = function fromObject(object) {
+                if (object instanceof $root.fk_app.ModuleHttpQuery)
+                    return object;
+                var message = new $root.fk_app.ModuleHttpQuery();
+                switch (object.type) {
+                case "MODULE_QUERY_NONE":
+                case 0:
+                    message.type = 0;
+                    break;
+                case "MODULE_QUERY_STATUS":
+                case 1:
+                    message.type = 1;
+                    break;
+                case "MODULE_QUERY_CONFIGURE":
+                case 2:
+                    message.type = 2;
+                    break;
+                case "MODULE_QUERY_RESET":
+                case 3:
+                    message.type = 3;
+                    break;
+                }
+                if (object.errors) {
+                    if (!Array.isArray(object.errors))
+                        throw TypeError(".fk_app.ModuleHttpQuery.errors: array expected");
+                    message.errors = [];
+                    for (var i = 0; i < object.errors.length; ++i) {
+                        if (typeof object.errors[i] !== "object")
+                            throw TypeError(".fk_app.ModuleHttpQuery.errors: object expected");
+                        message.errors[i] = $root.fk_app.Error.fromObject(object.errors[i]);
+                    }
+                }
+                if (object.configuration != null)
+                    if (typeof object.configuration === "string")
+                        $util.base64.decode(object.configuration, message.configuration = $util.newBuffer($util.base64.length(object.configuration)), 0);
+                    else if (object.configuration.length)
+                        message.configuration = object.configuration;
+                return message;
+            };
+    
+            /**
+             * Creates a plain object from a ModuleHttpQuery message. Also converts values to other types if specified.
+             * @function toObject
+             * @memberof fk_app.ModuleHttpQuery
+             * @static
+             * @param {fk_app.ModuleHttpQuery} message ModuleHttpQuery
+             * @param {$protobuf.IConversionOptions} [options] Conversion options
+             * @returns {Object.<string,*>} Plain object
+             */
+            ModuleHttpQuery.toObject = function toObject(message, options) {
+                if (!options)
+                    options = {};
+                var object = {};
+                if (options.arrays || options.defaults)
+                    object.errors = [];
+                if (options.defaults) {
+                    object.type = options.enums === String ? "MODULE_QUERY_NONE" : 0;
+                    object.configuration = options.bytes === String ? "" : [];
+                }
+                if (message.type != null && message.hasOwnProperty("type"))
+                    object.type = options.enums === String ? $root.fk_app.ModuleQueryType[message.type] : message.type;
+                if (message.errors && message.errors.length) {
+                    object.errors = [];
+                    for (var j = 0; j < message.errors.length; ++j)
+                        object.errors[j] = $root.fk_app.Error.toObject(message.errors[j], options);
+                }
+                if (message.configuration != null && message.hasOwnProperty("configuration"))
+                    object.configuration = options.bytes === String ? $util.base64.encode(message.configuration, 0, message.configuration.length) : options.bytes === Array ? Array.prototype.slice.call(message.configuration) : message.configuration;
+                return object;
+            };
+    
+            /**
+             * Converts this ModuleHttpQuery to JSON.
+             * @function toJSON
+             * @memberof fk_app.ModuleHttpQuery
+             * @instance
+             * @returns {Object.<string,*>} JSON object
+             */
+            ModuleHttpQuery.prototype.toJSON = function toJSON() {
+                return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+            };
+    
+            return ModuleHttpQuery;
+        })();
+    
+        /**
+         * ModuleReplyType enum.
+         * @enum {string}
+         * @property {number} MODULE_REPLY_NONE=0 MODULE_REPLY_NONE value
+         * @property {number} MODULE_REPLY_SUCCESS=1 MODULE_REPLY_SUCCESS value
+         * @property {number} MODULE_REPLY_BUSY=2 MODULE_REPLY_BUSY value
+         * @property {number} MODULE_REPLY_ERROR=3 MODULE_REPLY_ERROR value
+         */
+        fk_app.ModuleReplyType = (function() {
+            var valuesById = {}, values = Object.create(valuesById);
+            values[valuesById[0] = "MODULE_REPLY_NONE"] = 0;
+            values[valuesById[1] = "MODULE_REPLY_SUCCESS"] = 1;
+            values[valuesById[2] = "MODULE_REPLY_BUSY"] = 2;
+            values[valuesById[3] = "MODULE_REPLY_ERROR"] = 3;
+            return values;
+        })();
+    
+        fk_app.ModuleHttpReply = (function() {
+    
+            /**
+             * Properties of a ModuleHttpReply.
+             * @memberof fk_app
+             * @interface IModuleHttpReply
+             * @property {fk_app.ModuleReplyType} [type] ModuleHttpReply type
+             * @property {Array.<fk_app.IError>} [errors] ModuleHttpReply errors
+             * @property {Uint8Array} [configuration] ModuleHttpReply configuration
+             */
+    
+            /**
+             * Constructs a new ModuleHttpReply.
+             * @memberof fk_app
+             * @classdesc Represents a ModuleHttpReply.
+             * @constructor
+             * @param {fk_app.IModuleHttpReply=} [properties] Properties to set
+             */
+            function ModuleHttpReply(properties) {
+                this.errors = [];
+                if (properties)
+                    for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                        if (properties[keys[i]] != null)
+                            this[keys[i]] = properties[keys[i]];
+            }
+    
+            /**
+             * ModuleHttpReply type.
+             * @member {fk_app.ModuleReplyType}type
+             * @memberof fk_app.ModuleHttpReply
+             * @instance
+             */
+            ModuleHttpReply.prototype.type = 0;
+    
+            /**
+             * ModuleHttpReply errors.
+             * @member {Array.<fk_app.IError>}errors
+             * @memberof fk_app.ModuleHttpReply
+             * @instance
+             */
+            ModuleHttpReply.prototype.errors = $util.emptyArray;
+    
+            /**
+             * ModuleHttpReply configuration.
+             * @member {Uint8Array}configuration
+             * @memberof fk_app.ModuleHttpReply
+             * @instance
+             */
+            ModuleHttpReply.prototype.configuration = $util.newBuffer([]);
+    
+            /**
+             * Creates a new ModuleHttpReply instance using the specified properties.
+             * @function create
+             * @memberof fk_app.ModuleHttpReply
+             * @static
+             * @param {fk_app.IModuleHttpReply=} [properties] Properties to set
+             * @returns {fk_app.ModuleHttpReply} ModuleHttpReply instance
+             */
+            ModuleHttpReply.create = function create(properties) {
+                return new ModuleHttpReply(properties);
+            };
+    
+            /**
+             * Encodes the specified ModuleHttpReply message. Does not implicitly {@link fk_app.ModuleHttpReply.verify|verify} messages.
+             * @function encode
+             * @memberof fk_app.ModuleHttpReply
+             * @static
+             * @param {fk_app.IModuleHttpReply} message ModuleHttpReply message or plain object to encode
+             * @param {$protobuf.Writer} [writer] Writer to encode to
+             * @returns {$protobuf.Writer} Writer
+             */
+            ModuleHttpReply.encode = function encode(message, writer) {
+                if (!writer)
+                    writer = $Writer.create();
+                if (message.type != null && message.hasOwnProperty("type"))
+                    writer.uint32(/* id 1, wireType 0 =*/8).int32(message.type);
+                if (message.errors != null && message.errors.length)
+                    for (var i = 0; i < message.errors.length; ++i)
+                        $root.fk_app.Error.encode(message.errors[i], writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
+                if (message.configuration != null && message.hasOwnProperty("configuration"))
+                    writer.uint32(/* id 3, wireType 2 =*/26).bytes(message.configuration);
+                return writer;
+            };
+    
+            /**
+             * Encodes the specified ModuleHttpReply message, length delimited. Does not implicitly {@link fk_app.ModuleHttpReply.verify|verify} messages.
+             * @function encodeDelimited
+             * @memberof fk_app.ModuleHttpReply
+             * @static
+             * @param {fk_app.IModuleHttpReply} message ModuleHttpReply message or plain object to encode
+             * @param {$protobuf.Writer} [writer] Writer to encode to
+             * @returns {$protobuf.Writer} Writer
+             */
+            ModuleHttpReply.encodeDelimited = function encodeDelimited(message, writer) {
+                return this.encode(message, writer).ldelim();
+            };
+    
+            /**
+             * Decodes a ModuleHttpReply message from the specified reader or buffer.
+             * @function decode
+             * @memberof fk_app.ModuleHttpReply
+             * @static
+             * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+             * @param {number} [length] Message length if known beforehand
+             * @returns {fk_app.ModuleHttpReply} ModuleHttpReply
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            ModuleHttpReply.decode = function decode(reader, length) {
+                if (!(reader instanceof $Reader))
+                    reader = $Reader.create(reader);
+                var end = length === undefined ? reader.len : reader.pos + length, message = new $root.fk_app.ModuleHttpReply();
+                while (reader.pos < end) {
+                    var tag = reader.uint32();
+                    switch (tag >>> 3) {
+                    case 1:
+                        message.type = reader.int32();
+                        break;
+                    case 2:
+                        if (!(message.errors && message.errors.length))
+                            message.errors = [];
+                        message.errors.push($root.fk_app.Error.decode(reader, reader.uint32()));
+                        break;
+                    case 3:
+                        message.configuration = reader.bytes();
+                        break;
+                    default:
+                        reader.skipType(tag & 7);
+                        break;
+                    }
+                }
+                return message;
+            };
+    
+            /**
+             * Decodes a ModuleHttpReply message from the specified reader or buffer, length delimited.
+             * @function decodeDelimited
+             * @memberof fk_app.ModuleHttpReply
+             * @static
+             * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+             * @returns {fk_app.ModuleHttpReply} ModuleHttpReply
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            ModuleHttpReply.decodeDelimited = function decodeDelimited(reader) {
+                if (!(reader instanceof $Reader))
+                    reader = new $Reader(reader);
+                return this.decode(reader, reader.uint32());
+            };
+    
+            /**
+             * Verifies a ModuleHttpReply message.
+             * @function verify
+             * @memberof fk_app.ModuleHttpReply
+             * @static
+             * @param {Object.<string,*>} message Plain object to verify
+             * @returns {string|null} `null` if valid, otherwise the reason why it is not
+             */
+            ModuleHttpReply.verify = function verify(message) {
+                if (typeof message !== "object" || message === null)
+                    return "object expected";
+                if (message.type != null && message.hasOwnProperty("type"))
+                    switch (message.type) {
+                    default:
+                        return "type: enum value expected";
+                    case 0:
+                    case 1:
+                    case 2:
+                    case 3:
+                        break;
+                    }
+                if (message.errors != null && message.hasOwnProperty("errors")) {
+                    if (!Array.isArray(message.errors))
+                        return "errors: array expected";
+                    for (var i = 0; i < message.errors.length; ++i) {
+                        var error = $root.fk_app.Error.verify(message.errors[i]);
+                        if (error)
+                            return "errors." + error;
+                    }
+                }
+                if (message.configuration != null && message.hasOwnProperty("configuration"))
+                    if (!(message.configuration && typeof message.configuration.length === "number" || $util.isString(message.configuration)))
+                        return "configuration: buffer expected";
+                return null;
+            };
+    
+            /**
+             * Creates a ModuleHttpReply message from a plain object. Also converts values to their respective internal types.
+             * @function fromObject
+             * @memberof fk_app.ModuleHttpReply
+             * @static
+             * @param {Object.<string,*>} object Plain object
+             * @returns {fk_app.ModuleHttpReply} ModuleHttpReply
+             */
+            ModuleHttpReply.fromObject = function fromObject(object) {
+                if (object instanceof $root.fk_app.ModuleHttpReply)
+                    return object;
+                var message = new $root.fk_app.ModuleHttpReply();
+                switch (object.type) {
+                case "MODULE_REPLY_NONE":
+                case 0:
+                    message.type = 0;
+                    break;
+                case "MODULE_REPLY_SUCCESS":
+                case 1:
+                    message.type = 1;
+                    break;
+                case "MODULE_REPLY_BUSY":
+                case 2:
+                    message.type = 2;
+                    break;
+                case "MODULE_REPLY_ERROR":
+                case 3:
+                    message.type = 3;
+                    break;
+                }
+                if (object.errors) {
+                    if (!Array.isArray(object.errors))
+                        throw TypeError(".fk_app.ModuleHttpReply.errors: array expected");
+                    message.errors = [];
+                    for (var i = 0; i < object.errors.length; ++i) {
+                        if (typeof object.errors[i] !== "object")
+                            throw TypeError(".fk_app.ModuleHttpReply.errors: object expected");
+                        message.errors[i] = $root.fk_app.Error.fromObject(object.errors[i]);
+                    }
+                }
+                if (object.configuration != null)
+                    if (typeof object.configuration === "string")
+                        $util.base64.decode(object.configuration, message.configuration = $util.newBuffer($util.base64.length(object.configuration)), 0);
+                    else if (object.configuration.length)
+                        message.configuration = object.configuration;
+                return message;
+            };
+    
+            /**
+             * Creates a plain object from a ModuleHttpReply message. Also converts values to other types if specified.
+             * @function toObject
+             * @memberof fk_app.ModuleHttpReply
+             * @static
+             * @param {fk_app.ModuleHttpReply} message ModuleHttpReply
+             * @param {$protobuf.IConversionOptions} [options] Conversion options
+             * @returns {Object.<string,*>} Plain object
+             */
+            ModuleHttpReply.toObject = function toObject(message, options) {
+                if (!options)
+                    options = {};
+                var object = {};
+                if (options.arrays || options.defaults)
+                    object.errors = [];
+                if (options.defaults) {
+                    object.type = options.enums === String ? "MODULE_REPLY_NONE" : 0;
+                    object.configuration = options.bytes === String ? "" : [];
+                }
+                if (message.type != null && message.hasOwnProperty("type"))
+                    object.type = options.enums === String ? $root.fk_app.ModuleReplyType[message.type] : message.type;
+                if (message.errors && message.errors.length) {
+                    object.errors = [];
+                    for (var j = 0; j < message.errors.length; ++j)
+                        object.errors[j] = $root.fk_app.Error.toObject(message.errors[j], options);
+                }
+                if (message.configuration != null && message.hasOwnProperty("configuration"))
+                    object.configuration = options.bytes === String ? $util.base64.encode(message.configuration, 0, message.configuration.length) : options.bytes === Array ? Array.prototype.slice.call(message.configuration) : message.configuration;
+                return object;
+            };
+    
+            /**
+             * Converts this ModuleHttpReply to JSON.
+             * @function toJSON
+             * @memberof fk_app.ModuleHttpReply
+             * @instance
+             * @returns {Object.<string,*>} JSON object
+             */
+            ModuleHttpReply.prototype.toJSON = function toJSON() {
+                return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+            };
+    
+            return ModuleHttpReply;
         })();
     
         /**

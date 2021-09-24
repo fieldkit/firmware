@@ -5,7 +5,6 @@
 
 #include "storage/storage.h"
 #include "storage/signed_log.h"
-#include "storage/meta_ops.h"
 #include "state_manager.h"
 #include "utilities.h"
 #include "records.h"
@@ -37,8 +36,7 @@ static bool configure(HttpServerConnection *connection, fk_app_HttpQuery *query,
 void ApiHandler::adjust_time_if_necessary(fk_app_HttpQuery const *query) {
     if (query->time > 0) {
         clock_adjust_maybe(query->time);
-    }
-    else {
+    } else {
         logdebug("query time is missing");
     }
 }
@@ -65,8 +63,8 @@ void ApiHandler::adjust_location_if_necessary(fk_app_HttpQuery const *query) {
 
 bool ApiHandler::handle(HttpServerConnection *connection, Pool &pool) {
     if (connection->length() == 0) {
-        connection->error(500, "invalid query");
-        return true;
+        loginfo("handling %s", "QUERY_STATUS (implied)");
+        return send_status(connection, nullptr, pool);
     }
 
     Reader *reader = connection;
@@ -85,7 +83,7 @@ bool ApiHandler::handle(HttpServerConnection *connection, Pool &pool) {
     if (!pb_decode_delimited(&stream, fk_app_HttpQuery_fields, query)) {
         fk_dump_memory("NOPARSE ", ptr, 256);
         logwarn("error parsing query (%" PRIu32 ")", connection->length());
-        connection->error(500, "error parsing query");
+        connection->error(HttpStatus::BadRequest, "error parsing query", pool);
         return true;
     }
 
@@ -143,7 +141,7 @@ bool ApiHandler::handle(HttpServerConnection *connection, Pool &pool) {
     }
     }
 
-    connection->error(500, "unknown query type");
+    connection->error(HttpStatus::BadRequest, "unknown query type", pool);
 
     return true;
 }
@@ -162,10 +160,27 @@ static void debug_schedule(const char *which, Schedule const &s) {
     }
 }
 
+static bool valid_readings_schedule(const fk_app_Schedule &s) {
+    Schedule app_copy;
+    app_copy = s;
+    for (auto i = 0u; i < MaximumScheduleIntervals; ++i) {
+        auto &ival = app_copy.intervals[i];
+        if (ival.start != ival.end && ival.interval > 0) {
+            return true;
+        }
+    }
+
+    return s.interval > 0;
+}
+
+static bool valid_network_schedule(const fk_app_Schedule &s) {
+    return s.duration >= 60;
+}
+
 static bool configure(HttpServerConnection *connection, fk_app_HttpQuery *query, Pool &pool) {
     auto lock = storage_mutex.acquire(500);
     if (!lock) {
-        return connection->busy(OneSecondMs, "storage busy");
+        return connection->busy(OneSecondMs, "storage busy", pool);
     }
 
     GlobalStateManager gsm;
@@ -183,26 +198,53 @@ static bool configure(HttpServerConnection *connection, fk_app_HttpQuery *query,
         gsm.apply([=](GlobalState *gs) {
             if (query->recording.enabled) {
                 gs->general.recording = get_clock_now();
-            }
-            else {
+            } else {
                 gs->general.recording = 0;
             }
             loginfo("recording: %" PRIu32, gs->general.recording);
         });
     }
 
+    if (query->loraSettings.clearing) {
+        gsm.apply([&](GlobalState *gs) {
+            auto had_module = gs->lora.has_module;
+            gs->lora = {};
+            bzero(gs->lora.device_eui, sizeof(gs->lora.device_eui));
+            bzero(gs->lora.app_key, sizeof(gs->lora.device_eui));
+            bzero(gs->lora.join_eui, sizeof(gs->lora.join_eui));
+            bzero(gs->lora.device_address, sizeof(gs->lora.device_address));
+            gs->lora.has_module = had_module;
+        });
+    }
+
     if (query->loraSettings.modifying) {
         gsm.apply([&](GlobalState *gs) {
-            auto app_key = pb_get_data_if_provided(query->loraSettings.appKey.arg, pool);
-            auto app_eui = pb_get_data_if_provided(query->loraSettings.appEui.arg, pool);
-            auto app_session_key = pb_get_data_if_provided(query->loraSettings.appSessionKey.arg, pool);
-            auto network_session_key = pb_get_data_if_provided(query->loraSettings.networkSessionKey.arg, pool);
-            auto device_address = pb_get_data_if_provided(query->loraSettings.deviceAddress.arg, pool);
+            // Set frequency band if we're given a valid one.
+            switch (query->loraSettings.frequencyBand) {
+            case 915:
+                gs->lora.frequency_band = lora_frequency_t::Us915;
+                break;
+            case 868:
+                gs->lora.frequency_band = lora_frequency_t::Eu868;
+                break;
+            }
 
-            if (app_eui != nullptr) {
-                loginfo("lora app eui: %s (%zd)", pb_data_to_hex_string(app_eui, pool), app_eui->length);
-                FK_ASSERT(app_eui->length == LoraAppEuiLength);
-                memcpy(gs->lora.app_eui, app_eui->buffer, LoraAppEuiLength);
+            // OTAA
+
+            auto device_eui = pb_get_data_if_provided(query->loraSettings.deviceEui.arg, pool);
+            auto app_key = pb_get_data_if_provided(query->loraSettings.appKey.arg, pool);
+            auto join_eui = pb_get_data_if_provided(query->loraSettings.joinEui.arg, pool);
+
+            if (device_eui != nullptr) {
+                loginfo("lora device eui: %s (%zd)", pb_data_to_hex_string(device_eui, pool), device_eui->length);
+                FK_ASSERT(device_eui->length == LoraDeviceEuiLength);
+                memcpy(gs->lora.device_eui, device_eui->buffer, LoraDeviceEuiLength);
+            }
+
+            if (join_eui != nullptr) {
+                loginfo("lora app eui: %s (%zd)", pb_data_to_hex_string(join_eui, pool), join_eui->length);
+                FK_ASSERT(join_eui->length == LoraJoinEuiLength);
+                memcpy(gs->lora.join_eui, join_eui->buffer, LoraJoinEuiLength);
             }
 
             if (app_key != nullptr) {
@@ -211,6 +253,13 @@ static bool configure(HttpServerConnection *connection, fk_app_HttpQuery *query,
                 memcpy(gs->lora.app_key, app_key->buffer, LoraAppKeyLength);
             }
 
+#if defined(FK_LORA_ABP)
+            // ABP
+
+            auto app_session_key = pb_get_data_if_provided(query->loraSettings.appSessionKey.arg, pool);
+            auto network_session_key = pb_get_data_if_provided(query->loraSettings.networkSessionKey.arg, pool);
+            auto device_address = pb_get_data_if_provided(query->loraSettings.deviceAddress.arg, pool);
+
             if (app_session_key != nullptr) {
                 loginfo("lora app session key: %s (%zd)", pb_data_to_hex_string(app_session_key, pool), app_session_key->length);
                 FK_ASSERT(app_session_key->length == LoraAppSessionKeyLength);
@@ -218,7 +267,8 @@ static bool configure(HttpServerConnection *connection, fk_app_HttpQuery *query,
             }
 
             if (network_session_key != nullptr) {
-                loginfo("lora network session key: %s (%zd)", pb_data_to_hex_string(network_session_key, pool), network_session_key->length);
+                loginfo("lora network session key: %s (%zd)", pb_data_to_hex_string(network_session_key, pool),
+                        network_session_key->length);
                 FK_ASSERT(network_session_key->length == LoraNetworkSessionKeyLength);
                 memcpy(gs->lora.network_session_key, network_session_key->buffer, LoraNetworkSessionKeyLength);
             }
@@ -228,6 +278,7 @@ static bool configure(HttpServerConnection *connection, fk_app_HttpQuery *query,
                 FK_ASSERT(device_address->length == LoraDeviceAddressLength);
                 memcpy(gs->lora.device_address, device_address->buffer, LoraDeviceAddressLength);
             }
+#endif
         });
     }
 
@@ -287,23 +338,38 @@ static bool configure(HttpServerConnection *connection, fk_app_HttpQuery *query,
 
     if (query->schedules.modifying) {
         gsm.apply([=](GlobalState *gs) {
-            gs->scheduler.readings = query->schedules.readings;
-            gs->scheduler.network = query->schedules.network;
-            gs->scheduler.gps = query->schedules.gps;
-            gs->scheduler.lora = query->schedules.lora;
-
-            debug_schedule("readings", gs->scheduler.readings);
-            debug_schedule("network", gs->scheduler.network);
-            debug_schedule("gps", gs->scheduler.gps);
-            debug_schedule("lora", gs->scheduler.lora);
-
-            // Don't let people make this useless.
-            if (gs->scheduler.network.duration < OneMinuteSeconds) {
-                gs->scheduler.network.duration = OneMinuteSeconds;
+            if (query->schedules.has_readings) {
+                if (valid_readings_schedule(query->schedules.readings)) {
+                    gs->scheduler.readings = query->schedules.readings;
+                    debug_schedule("readings", gs->scheduler.readings);
+                } else {
+                    loginfo("invalid schedule: readings");
+                }
             }
-            if (gs->scheduler.readings.interval < OneMinuteSeconds) {
-                gs->scheduler.readings.interval = OneMinuteSeconds;
-                logerror("readings duration too short");
+
+            if (query->schedules.has_network) {
+                if (valid_network_schedule(query->schedules.network)) {
+                    gs->scheduler.network = query->schedules.network;
+                    debug_schedule("network", gs->scheduler.network);
+                } else {
+                    loginfo("invalid schedule: network");
+                }
+            }
+
+            if (query->schedules.has_gps) {
+                if (query->schedules.gps.interval > 0) {
+                    gs->scheduler.gps = query->schedules.gps;
+                    debug_schedule("gps", gs->scheduler.gps);
+                } else {
+                    loginfo("invalid schedule: gps");
+                }
+            }
+
+            if (query->schedules.has_lora) {
+                if (query->schedules.lora.interval > 0) {
+                    gs->scheduler.lora = query->schedules.lora;
+                    debug_schedule("lora", gs->scheduler.lora);
+                }
             }
         });
     }
@@ -341,7 +407,7 @@ static bool send_networks(HttpServerConnection *connection, NetworkScan scan, Po
     FK_ASSERT(http_reply.include_success(get_clock_now(), fk_uptime()));
     FK_ASSERT(http_reply.include_scan(scan));
 
-    connection->write(http_reply.reply());
+    connection->write(http_reply.reply(), pool);
     connection->close();
 
     return true;
@@ -354,7 +420,7 @@ static bool send_simple_success(HttpServerConnection *connection, fk_app_HttpQue
 
     FK_ASSERT(http_reply.include_success(get_clock_now(), fk_uptime()));
 
-    connection->write(http_reply.reply());
+    connection->write(http_reply.reply(), pool);
     connection->close();
 
     return true;
@@ -365,16 +431,19 @@ static bool send_status(HttpServerConnection *connection, fk_app_HttpQuery *quer
 
     HttpReply http_reply{ pool, gs.get() };
 
-    auto logs = (query->flags & fk_app_QueryFlags_QUERY_FLAGS_LOGS) == fk_app_QueryFlags_QUERY_FLAGS_LOGS;
+    auto logs = false;
+    if (query != nullptr) {
+        logs = (query->flags & fk_app_QueryFlags_QUERY_FLAGS_LOGS) == fk_app_QueryFlags_QUERY_FLAGS_LOGS;
+    }
 
     FK_ASSERT(http_reply.include_status(get_clock_now(), fk_uptime(), logs, &fkb_header));
 
-    connection->write(http_reply.reply());
+    connection->write(http_reply.reply(), pool);
     connection->close();
 
-    #if defined(FK_LOGS_FLUSH_AGGRESSIVE)
+#if defined(FK_LOGS_FLUSH_AGGRESSIVE)
     fk::fk_logs_flush();
-    #endif
+#endif
 
     return true;
 }
@@ -389,12 +458,12 @@ static bool send_readings(HttpServerConnection *connection, fk_app_HttpQuery *qu
     FK_ASSERT(http_reply.include_status(get_clock_now(), fk_uptime(), logs, &fkb_header));
     FK_ASSERT(http_reply.include_readings());
 
-    connection->write(http_reply.reply());
+    connection->write(http_reply.reply(), pool);
     connection->close();
 
-    #if defined(FK_LOGS_FLUSH_AGGRESSIVE)
+#if defined(FK_LOGS_FLUSH_AGGRESSIVE)
     fk::fk_logs_flush();
-    #endif
+#endif
 
     return true;
 }
@@ -406,7 +475,7 @@ static bool send_files(HttpServerConnection *connection, fk_app_HttpQuery *query
     auto sd = get_sd_card();
     if (!sd->begin()) {
         logwarn("error opening sd");
-        connection->error(500, "error opening sd");
+        connection->error(HttpStatus::ServerError, "error opening sd", pool);
         return true;
     }
 
@@ -419,7 +488,7 @@ static bool send_files(HttpServerConnection *connection, fk_app_HttpQuery *query
 
     if (!sd->ls(path, query->directory.page, &entries, number_entries, total_entries, pool)) {
         logwarn("error listing sd");
-        connection->error(500, "error listing sd");
+        connection->error(HttpStatus::ServerError, "error listing sd", pool);
         return true;
     }
 
@@ -427,10 +496,10 @@ static bool send_files(HttpServerConnection *connection, fk_app_HttpQuery *query
 
     FK_ASSERT(http_reply.include_listing(path, entries, number_entries, total_entries));
 
-    connection->write(http_reply.reply());
+    connection->write(http_reply.reply(), pool);
     connection->close();
 
     return true;
 }
 
-}
+} // namespace fk

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.h"
+#include "hal/display.h"
 #include "display_views.h"
 #include "state_ref.h"
 
@@ -10,9 +11,11 @@ class ReadingsView : public DisplayView {
 private:
     uint32_t dirty_{ true };
     uint32_t position_{ 0 };
+    bool skip_diagnostics_{ true };
 
 public:
-    ReadingsView() { }
+    ReadingsView() {
+    }
 
 public:
     void tick(ViewController *views, Pool &pool) override;
@@ -21,5 +24,7 @@ public:
     void enter(ViewController *views) override;
 
 };
+
+MenuScreen *create_readings_menu(GlobalState const *gs, MenuOption *back_option, Pool &pool);
 
 }

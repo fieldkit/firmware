@@ -6,6 +6,14 @@
 
 namespace fk {
 
+enum class HttpStatus : int32_t {
+    Ok = 200,
+    BadRequest = 400,
+    NotFound = 404,
+    ServerError = 500,
+    Busy = 503,
+};
+
 class HttpServerConnection : public Connection {
 private:
     HttpRouter *router_;
@@ -29,17 +37,17 @@ public:
 
     int32_t read(uint8_t *buffer, size_t size) override;
 
-    int32_t write(int32_t status_code, const char *status_message, void const *record, pb_msgdesc_t const *fields);
+    int32_t write(HttpStatus status, const char *status_message, void const *record, pb_msgdesc_t const *fields, Pool &pool);
+    int32_t write(HttpStatus status, const char *status_message, uint8_t const *data, size_t size, Pool &pool);
 
-    int32_t write(fk_app_HttpReply const *reply);
+    int32_t write(fk_app_HttpReply const *reply, Pool &pool);
 
-    int32_t plain(int32_t status, const char *status_description, const char *text);
+    int32_t plain(HttpStatus status, const char *status_description, const char *text, Pool &pool);
+    int32_t error(HttpStatus status, const char *message, Pool &pool);
 
-    int32_t busy(uint32_t retry, const char *message);
+    int32_t busy(uint32_t retry, const char *message, Pool &pool);
 
-    int32_t error(int32_t status, const char *message);
-
-    int32_t fault();
+    int32_t fault(Pool &pool);
 
     using Connection::write;
 

@@ -29,6 +29,7 @@
 extern "C" {
    #include <utility/EthernetUtil.h>
    uint32_t fkb_external_printf(const char *str, ...);
+    void loginfof(const char *facility, const char *f, ...) __attribute__((format(printf, 2, 3)));
    void fk_assert(const char *assertion, const char *file, int32_t line, const char *f, ...);
 }
 
@@ -45,7 +46,7 @@ extern "C" {
 #define DEBUG_LOGGING
 
 #if defined(DEBUG_LOGGING)
-#define DEBUG_PRINTF(str, ...) fkb_external_printf(str, ##__VA_ARGS__)
+#define DEBUG_PRINTF(str, ...) loginfof("mdns", str, ##__VA_ARGS__)
 #else
 #define DEBUG_PRINTF(str, ...)
 #endif
@@ -126,7 +127,7 @@ MDNS::MDNS(UDP& udp, MDNSAllocator *allocator)
 
 MDNS::~MDNS()
 {
-  DEBUG_PRINTF("MDNS::~MDNS()\n");
+  DEBUG_PRINTF("MDNS::~MDNS()");
   if (_buffer != nullptr) {
       _allocator->free(_buffer);
       _buffer = nullptr;
@@ -165,7 +166,7 @@ int MDNS::begin(const IPAddress& ip, const char* name)
 	if (statusCode)
 	statusCode = this->_udp->beginMulticast(mdnsMulticastIPAddr, MDNS_SERVER_PORT);
 
-    DEBUG_PRINTF("MDNS::begin()\n");
+    DEBUG_PRINTF("MDNS::begin()");
 
 	return statusCode;
 }
@@ -300,7 +301,7 @@ MDNSError_t MDNS::_sendMDNSMessage(uint32_t /*peerAddress*/, uint32_t xid, int t
 #endif
    uint8_t* buf;
 
-   DEBUG_PRINTF("MDNS::_sendMDNSMessage(%d, %d, %d)\n", xid, type, serviceRecord);
+   DEBUG_PRINTF("MDNS::_sendMDNSMessage(%d, %d, %d)", xid, type, serviceRecord);
 
 #if defined(_USE_MALLOC_)
    dnsHeader = (DNSHeader_t*)_allocator->malloc(sizeof(DNSHeader_t));
@@ -318,7 +319,7 @@ MDNSError_t MDNS::_sendMDNSMessage(uint32_t /*peerAddress*/, uint32_t xid, int t
    switch (type) {
       case MDNSPacketTypeServiceRecordRelease:
       case MDNSPacketTypeMyIPAnswer:
-         DEBUG_PRINTF("MDNS::_sendMDNSMessage() MDNSPacketTypeServiceRecordRelease or MDNSPacketTypeMyIPAnswer\n");
+         DEBUG_PRINTF("MDNS::_sendMDNSMessage() MDNSPacketTypeServiceRecordRelease or MDNSPacketTypeMyIPAnswer");
          dnsHeader->answerCount = ethutil_htons(1);
          dnsHeader->queryResponse = 1;
          dnsHeader->authoritiveAnswer = 1;
@@ -328,12 +329,12 @@ MDNSError_t MDNS::_sendMDNSMessage(uint32_t /*peerAddress*/, uint32_t xid, int t
          dnsHeader->additionalCount = ethutil_htons(1);
          dnsHeader->queryResponse = 1;
          dnsHeader->authoritiveAnswer = 1;
-         DEBUG_PRINTF("MDNS::_sendMDNSMessage() MDNSPacketTypeServiceRecord\n");
+         DEBUG_PRINTF("MDNS::_sendMDNSMessage() MDNSPacketTypeServiceRecord");
          break;
       case MDNSPacketTypeNameQuery:
       case MDNSPacketTypeServiceQuery:
          dnsHeader->queryCount = ethutil_htons(1);
-         DEBUG_PRINTF("MDNS::_sendMDNSMessage() MDNSPacketTypeNameQuery or MDNSPacketTypeServiceQuery\n");
+         DEBUG_PRINTF("MDNS::_sendMDNSMessage() MDNSPacketTypeNameQuery or MDNSPacketTypeServiceQuery");
          break;
       case MDNSPacketTypeNoIPv6AddrAvailable:
          dnsHeader->queryCount = ethutil_htons(1);
@@ -507,7 +508,7 @@ MDNSError_t MDNS::_sendMDNSMessage(uint32_t /*peerAddress*/, uint32_t xid, int t
 
 
    auto status = this->_udp->endPacket();
-   fkb_external_printf("MDNS::_sendMDNSMessage() endPacket = %d ptr = %d type = %d\n", status, ptr, type);
+   DEBUG_PRINTF("MDNS::_sendMDNSMessage() endPacket = %d ptr = %d type = %d", status, ptr, type);
 
 
 #if defined(_USE_MALLOC_)
@@ -600,7 +601,7 @@ MDNSError_t MDNS::_processMDNSQuery()
       uint8_t* buf = (uint8_t*)dnsHeader;
       int rLen = 0, tLen = 0;
 
-      DEBUG_PRINTF("MDNS::_processMDNSQuery()\n");
+      DEBUG_PRINTF("MDNS::_processMDNSQuery()");
 
       // read over the query section
       for (i=0; i<qCnt; i++) {
@@ -1187,7 +1188,7 @@ int MDNS::addServiceRecord(const char* name, uint16_t port,
    int i, status = 0;
    MDNSServiceRecord_t* record = NULL;
 
-   DEBUG_PRINTF("MDNS::addServiceRecord()\n");
+   DEBUG_PRINTF("MDNS::addServiceRecord()");
 
    if (NULL != name && 0 != port) {
       for (i=0; i < NumMDNSServiceRecords; i++) {
@@ -1227,7 +1228,7 @@ int MDNS::addServiceRecord(const char* name, uint16_t port,
                }
 
                this->_serviceRecords[i] = record;
-               DEBUG_PRINTF("MDNS::addServiceRecord() sendMDNSMessage() i=%d\n", i);
+               DEBUG_PRINTF("MDNS::addServiceRecord() sendMDNSMessage() i=%d", i);
                status = (MDNSSuccess == this->_sendMDNSMessage(0, 0, (int)MDNSPacketTypeNameQuery, i));
                status = (MDNSSuccess == this->_sendMDNSMessage(0, 0, (int)MDNSPacketTypeServiceRecord, i));
                break;
@@ -1236,7 +1237,7 @@ int MDNS::addServiceRecord(const char* name, uint16_t port,
          else {
              record = this->_serviceRecords[i];
              if (record->port == port && strncmp((char *)record->name, name, sizeof(record->name)) == 0 && proto == record->proto) {
-                 DEBUG_PRINTF("MDNS::addServiceRecord() sendMDNSMessage (resend) i=%d\n", i);
+                 DEBUG_PRINTF("MDNS::addServiceRecord() sendMDNSMessage (resend) i=%d", i);
                  status = (MDNSSuccess == this->_sendMDNSMessage(0, 0, (int)MDNSPacketTypeNameQuery, i));
                  status = (MDNSSuccess == this->_sendMDNSMessage(0, 0, (int)MDNSPacketTypeServiceRecord, i));
                  break;
@@ -1245,7 +1246,7 @@ int MDNS::addServiceRecord(const char* name, uint16_t port,
       }
    }
 
-   DEBUG_PRINTF("MDNS::addServiceRecord() return = %d\n", status);
+   DEBUG_PRINTF("MDNS::addServiceRecord() return = %d", status);
    return status;
 
 errorReturn:
@@ -1265,7 +1266,7 @@ errorReturn:
 
 void MDNS::_removeServiceRecord(int idx, int amplification, int delay)
 {
-    DEBUG_PRINTF("MDNS::_removeServiceRecord(%d)\n", idx);
+    DEBUG_PRINTF("MDNS::_removeServiceRecord(%d)", idx);
    if (NULL != this->_serviceRecords[idx]) {
        for (auto i = 0; i < 1 + amplification; ++i) {
            if (i > 0) {
@@ -1294,7 +1295,7 @@ void MDNS::removeServiceRecord(uint16_t port, MDNSServiceProtocol_t proto, int a
 
 void MDNS::removeServiceRecord(const char* name, uint16_t port, MDNSServiceProtocol_t proto, int amplification, int delay)
 {
-   DEBUG_PRINTF("MDNS::removeServiceRecord()\n");
+   DEBUG_PRINTF("MDNS::removeServiceRecord()");
    int i;
    for (i=0; i<NumMDNSServiceRecords; i++)
       if (port == this->_serviceRecords[i]->port &&
@@ -1320,11 +1321,11 @@ void MDNS::_writeDNSName(const uint8_t* name, uint16_t* pPtr,
    int i, c, len;
 
    if (name == nullptr) {
-       DEBUG_PRINTF("MDNS::writeDNSName(<nullptr>)\n");
+       DEBUG_PRINTF("MDNS::writeDNSName(<nullptr>)");
        return;
    }
 
-   DEBUG_PRINTF("MDNS::writeDNSName(%s)\n", name);
+   DEBUG_PRINTF("MDNS::writeDNSName(%s)", name);
 
    FK_ASSERT_ADDRESS(buf);
 
@@ -1404,7 +1405,7 @@ void MDNS::_writeServiceRecordName(int recordIndex, uint16_t* pPtr, uint8_t* buf
    uint8_t* name = tld ? this->_serviceRecords[recordIndex]->servName :
                          this->_serviceRecords[recordIndex]->name;
 
-   DEBUG_PRINTF("MDNS::_writeServiceRecordName(%s)\n", name);
+   DEBUG_PRINTF("MDNS::_writeServiceRecordName(%s)", name);
 
    this->_writeDNSName(name, &ptr, buf, bufSize, tld);
 
@@ -1426,7 +1427,7 @@ void MDNS::_writeServiceRecordPTR(int recordIndex, uint16_t* pPtr, uint8_t* buf,
 {
    uint16_t ptr = *pPtr;
 
-   DEBUG_PRINTF("MDNS::_writeServiceRecordPTR(%d, recordIndex)\n");
+   DEBUG_PRINTF("MDNS::_writeServiceRecordPTR(%d, recordIndex)");
 
    this->_writeServiceRecordName(recordIndex, &ptr, buf, bufSize, 1);
 

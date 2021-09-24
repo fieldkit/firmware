@@ -6187,7 +6187,7 @@
              * @interface ILoraSettings
              * @property {Uint8Array|null} [deviceEui] LoraSettings deviceEui
              * @property {Uint8Array|null} [appKey] LoraSettings appKey
-             * @property {Uint8Array|null} [appEui] LoraSettings appEui
+             * @property {Uint8Array|null} [joinEui] LoraSettings joinEui
              * @property {number|null} [frequencyBand] LoraSettings frequencyBand
              * @property {Uint8Array|null} [deviceAddress] LoraSettings deviceAddress
              * @property {Uint8Array|null} [networkSessionKey] LoraSettings networkSessionKey
@@ -6228,12 +6228,12 @@
             LoraSettings.prototype.appKey = $util.newBuffer([]);
     
             /**
-             * LoraSettings appEui.
-             * @member {Uint8Array} appEui
+             * LoraSettings joinEui.
+             * @member {Uint8Array} joinEui
              * @memberof fk_data.LoraSettings
              * @instance
              */
-            LoraSettings.prototype.appEui = $util.newBuffer([]);
+            LoraSettings.prototype.joinEui = $util.newBuffer([]);
     
             /**
              * LoraSettings frequencyBand.
@@ -6311,8 +6311,8 @@
                     writer.uint32(/* id 1, wireType 2 =*/10).bytes(message.deviceEui);
                 if (message.appKey != null && message.hasOwnProperty("appKey"))
                     writer.uint32(/* id 2, wireType 2 =*/18).bytes(message.appKey);
-                if (message.appEui != null && message.hasOwnProperty("appEui"))
-                    writer.uint32(/* id 3, wireType 2 =*/26).bytes(message.appEui);
+                if (message.joinEui != null && message.hasOwnProperty("joinEui"))
+                    writer.uint32(/* id 3, wireType 2 =*/26).bytes(message.joinEui);
                 if (message.frequencyBand != null && message.hasOwnProperty("frequencyBand"))
                     writer.uint32(/* id 4, wireType 0 =*/32).uint32(message.frequencyBand);
                 if (message.deviceAddress != null && message.hasOwnProperty("deviceAddress"))
@@ -6366,7 +6366,7 @@
                         message.appKey = reader.bytes();
                         break;
                     case 3:
-                        message.appEui = reader.bytes();
+                        message.joinEui = reader.bytes();
                         break;
                     case 4:
                         message.frequencyBand = reader.uint32();
@@ -6427,9 +6427,9 @@
                 if (message.appKey != null && message.hasOwnProperty("appKey"))
                     if (!(message.appKey && typeof message.appKey.length === "number" || $util.isString(message.appKey)))
                         return "appKey: buffer expected";
-                if (message.appEui != null && message.hasOwnProperty("appEui"))
-                    if (!(message.appEui && typeof message.appEui.length === "number" || $util.isString(message.appEui)))
-                        return "appEui: buffer expected";
+                if (message.joinEui != null && message.hasOwnProperty("joinEui"))
+                    if (!(message.joinEui && typeof message.joinEui.length === "number" || $util.isString(message.joinEui)))
+                        return "joinEui: buffer expected";
                 if (message.frequencyBand != null && message.hasOwnProperty("frequencyBand"))
                     if (!$util.isInteger(message.frequencyBand))
                         return "frequencyBand: integer expected";
@@ -6473,11 +6473,11 @@
                         $util.base64.decode(object.appKey, message.appKey = $util.newBuffer($util.base64.length(object.appKey)), 0);
                     else if (object.appKey.length)
                         message.appKey = object.appKey;
-                if (object.appEui != null)
-                    if (typeof object.appEui === "string")
-                        $util.base64.decode(object.appEui, message.appEui = $util.newBuffer($util.base64.length(object.appEui)), 0);
-                    else if (object.appEui.length)
-                        message.appEui = object.appEui;
+                if (object.joinEui != null)
+                    if (typeof object.joinEui === "string")
+                        $util.base64.decode(object.joinEui, message.joinEui = $util.newBuffer($util.base64.length(object.joinEui)), 0);
+                    else if (object.joinEui.length)
+                        message.joinEui = object.joinEui;
                 if (object.frequencyBand != null)
                     message.frequencyBand = object.frequencyBand >>> 0;
                 if (object.deviceAddress != null)
@@ -6518,7 +6518,7 @@
                 if (options.defaults) {
                     object.deviceEui = options.bytes === String ? "" : [];
                     object.appKey = options.bytes === String ? "" : [];
-                    object.appEui = options.bytes === String ? "" : [];
+                    object.joinEui = options.bytes === String ? "" : [];
                     object.frequencyBand = 0;
                     object.deviceAddress = options.bytes === String ? "" : [];
                     object.networkSessionKey = options.bytes === String ? "" : [];
@@ -6530,8 +6530,8 @@
                     object.deviceEui = options.bytes === String ? $util.base64.encode(message.deviceEui, 0, message.deviceEui.length) : options.bytes === Array ? Array.prototype.slice.call(message.deviceEui) : message.deviceEui;
                 if (message.appKey != null && message.hasOwnProperty("appKey"))
                     object.appKey = options.bytes === String ? $util.base64.encode(message.appKey, 0, message.appKey.length) : options.bytes === Array ? Array.prototype.slice.call(message.appKey) : message.appKey;
-                if (message.appEui != null && message.hasOwnProperty("appEui"))
-                    object.appEui = options.bytes === String ? $util.base64.encode(message.appEui, 0, message.appEui.length) : options.bytes === Array ? Array.prototype.slice.call(message.appEui) : message.appEui;
+                if (message.joinEui != null && message.hasOwnProperty("joinEui"))
+                    object.joinEui = options.bytes === String ? $util.base64.encode(message.joinEui, 0, message.joinEui.length) : options.bytes === Array ? Array.prototype.slice.call(message.joinEui) : message.joinEui;
                 if (message.frequencyBand != null && message.hasOwnProperty("frequencyBand"))
                     object.frequencyBand = message.frequencyBand;
                 if (message.deviceAddress != null && message.hasOwnProperty("deviceAddress"))
@@ -8239,6 +8239,7 @@
              * @interface ICalibrationPoint
              * @property {Array.<number>|null} [references] CalibrationPoint references
              * @property {Array.<number>|null} [uncalibrated] CalibrationPoint uncalibrated
+             * @property {Array.<number>|null} [factory] CalibrationPoint factory
              */
     
             /**
@@ -8252,6 +8253,7 @@
             function CalibrationPoint(properties) {
                 this.references = [];
                 this.uncalibrated = [];
+                this.factory = [];
                 if (properties)
                     for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                         if (properties[keys[i]] != null)
@@ -8273,6 +8275,14 @@
              * @instance
              */
             CalibrationPoint.prototype.uncalibrated = $util.emptyArray;
+    
+            /**
+             * CalibrationPoint factory.
+             * @member {Array.<number>} factory
+             * @memberof fk_data.CalibrationPoint
+             * @instance
+             */
+            CalibrationPoint.prototype.factory = $util.emptyArray;
     
             /**
              * Creates a new CalibrationPoint instance using the specified properties.
@@ -8308,6 +8318,12 @@
                     writer.uint32(/* id 2, wireType 2 =*/18).fork();
                     for (var i = 0; i < message.uncalibrated.length; ++i)
                         writer.float(message.uncalibrated[i]);
+                    writer.ldelim();
+                }
+                if (message.factory != null && message.factory.length) {
+                    writer.uint32(/* id 3, wireType 2 =*/26).fork();
+                    for (var i = 0; i < message.factory.length; ++i)
+                        writer.float(message.factory[i]);
                     writer.ldelim();
                 }
                 return writer;
@@ -8364,6 +8380,16 @@
                         } else
                             message.uncalibrated.push(reader.float());
                         break;
+                    case 3:
+                        if (!(message.factory && message.factory.length))
+                            message.factory = [];
+                        if ((tag & 7) === 2) {
+                            var end2 = reader.uint32() + reader.pos;
+                            while (reader.pos < end2)
+                                message.factory.push(reader.float());
+                        } else
+                            message.factory.push(reader.float());
+                        break;
                     default:
                         reader.skipType(tag & 7);
                         break;
@@ -8413,6 +8439,13 @@
                         if (typeof message.uncalibrated[i] !== "number")
                             return "uncalibrated: number[] expected";
                 }
+                if (message.factory != null && message.hasOwnProperty("factory")) {
+                    if (!Array.isArray(message.factory))
+                        return "factory: array expected";
+                    for (var i = 0; i < message.factory.length; ++i)
+                        if (typeof message.factory[i] !== "number")
+                            return "factory: number[] expected";
+                }
                 return null;
             };
     
@@ -8442,6 +8475,13 @@
                     for (var i = 0; i < object.uncalibrated.length; ++i)
                         message.uncalibrated[i] = Number(object.uncalibrated[i]);
                 }
+                if (object.factory) {
+                    if (!Array.isArray(object.factory))
+                        throw TypeError(".fk_data.CalibrationPoint.factory: array expected");
+                    message.factory = [];
+                    for (var i = 0; i < object.factory.length; ++i)
+                        message.factory[i] = Number(object.factory[i]);
+                }
                 return message;
             };
     
@@ -8461,6 +8501,7 @@
                 if (options.arrays || options.defaults) {
                     object.references = [];
                     object.uncalibrated = [];
+                    object.factory = [];
                 }
                 if (message.references && message.references.length) {
                     object.references = [];
@@ -8471,6 +8512,11 @@
                     object.uncalibrated = [];
                     for (var j = 0; j < message.uncalibrated.length; ++j)
                         object.uncalibrated[j] = options.json && !isFinite(message.uncalibrated[j]) ? String(message.uncalibrated[j]) : message.uncalibrated[j];
+                }
+                if (message.factory && message.factory.length) {
+                    object.factory = [];
+                    for (var j = 0; j < message.factory.length; ++j)
+                        object.factory[j] = options.json && !isFinite(message.factory[j]) ? String(message.factory[j]) : message.factory[j];
                 }
                 return object;
             };

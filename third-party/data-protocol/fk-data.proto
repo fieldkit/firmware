@@ -176,7 +176,7 @@ message NetworkSettings {
 message LoraSettings {
   bytes deviceEui = 1;
   bytes appKey = 2;
-  bytes appEui = 3;
+  bytes joinEui = 3;
   uint32 frequencyBand = 4;
   bytes deviceAddress = 5;
   bytes networkSessionKey = 6;
@@ -251,6 +251,7 @@ enum CurveType {
 message CalibrationPoint {
   repeated float references = 1;
   repeated float uncalibrated = 2;
+  repeated float factory = 3;
 }
 
 message CalibrationCoefficients {

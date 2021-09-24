@@ -3,7 +3,7 @@
 #include "fk.h"
 #include "hal/metal/u8g2_display.h"
 
-#if defined(FK_HARDWARE_FULL)
+#if defined(__SAMD51__)
 
 namespace fk {
 
@@ -436,17 +436,18 @@ void U8g2Display::simple(SimpleScreen &&screen) {
 void U8g2Display::reading(ReadingScreen &screen) {
     draw_.clearBuffer();
 
-    draw_.setFontMode(1);
-    draw_.setFont(u8g2_font_courR08_tf);
+    if (screen.readings->only_one()) {
+        auto reading = *screen.readings->begin();
 
-    draw_.drawUTF8(0, 10, screen.module);
-    draw_.drawUTF8(0, 20, screen.sensor);
-
-    draw_.setFont(u8g2_font_courR10_tf);
-
-    char value[16];
-    tiny_snprintf(value, sizeof(value), "%.3f", screen.value);
-    draw_centered(draw_, 40, value);
+        draw_.setFontMode(1);
+        draw_.setFont(u8g2_font_courR08_tf);
+        draw_.drawUTF8(0, 10, reading.module_name);
+        draw_.drawUTF8(0, 20, reading.sensor_name);
+        draw_.setFont(u8g2_font_courR10_tf);
+        char value[16];
+        tiny_snprintf(value, sizeof(value), "%.3f", reading.value);
+        draw_centered(draw_, 40, value);
+    }
 
     draw_.sendBuffer();
 }

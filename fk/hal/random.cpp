@@ -40,6 +40,7 @@ int32_t fk_random_i32(int32_t start, int32_t end) {
 #if defined(linux)
 
 int32_t fk_random_initialize() {
+    srand(0);
     return 0;
 }
 
@@ -53,7 +54,7 @@ int32_t fk_random_fill_u32(uint32_t *data, size_t size) {
 
 int32_t fk_random_fill_u8(uint8_t *data, size_t size) {
     FK_ASSERT((size % sizeof(uint32_t)) == 0);
-    return fk_random_fill_u32((uint32_t *)data, size / sizeof(uint32_t));
+    return fk_random_fill_u32((uint32_t *)data, size / sizeof(uint32_t)) * sizeof(uint32_t);
 }
 
 int32_t fk_random_i32(int32_t start, int32_t end) {

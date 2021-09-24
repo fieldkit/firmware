@@ -8,6 +8,9 @@
 #include "progress_tracker.h"
 #include "utilities.h"
 
+#include "storage/file_ops_darwin.h"
+#include "storage/file_ops_phylum.h"
+
 namespace fk {
 
 FK_DECLARE_LOGGER("storage");
@@ -87,14 +90,113 @@ SeekSettings SeekSettings::end_of(uint8_t file) {
     return SeekSettings{ file, LastRecord };
 }
 
-Storage::Storage(DataMemory *memory, Pool &pool, bool read_only) : data_memory_(memory), pool_(&pool), memory_(memory, pool), bad_blocks_(memory, pool), read_only_(read_only) {
+Storage::Storage(DataMemory *memory, Pool &pool, bool read_only, bool allow_phylum)
+    : data_memory_(memory), pool_(&pool), memory_(memory, pool), statistics_data_memory_(data_memory_), bad_blocks_(memory, pool),
+      phylum_{ &statistics_data_memory_, pool }, read_only_(read_only), allow_phylum_(allow_phylum) {
     FK_ASSERT(memory != nullptr);
+    files_ = pool.malloc<FileHeader>(NumberOfFiles);
 }
 
 Storage::~Storage() {
     if (!memory_.flush()) {
         logerror("flush failed");
     }
+}
+
+bool Storage::begin() {
+    if (phylum_.mount()) {
+        data_ops_ = new (pool_) phylum_ops::DataOps(*this);
+        meta_ops_ = new (pool_) phylum_ops::MetaOps(*this);
+        using_phylum_ = true;
+        bytes_used_ = phylum_.bytes_used();
+        loginfo("storage-begin: phylum");
+        return true;
+    }
+
+    if (begin_internal()) {
+        data_ops_ = new (pool_) darwin::DataOps(*this);
+        meta_ops_ = new (pool_) darwin::MetaOps(*this);
+        loginfo("storage-begin: darwin");
+        return true;
+    }
+
+    loginfo("storage-begin: nothing");
+    return false;
+}
+
+bool Storage::clear() {
+    loginfo("storage: clearing");
+
+    for (auto block = 0u; block < data_memory_->geometry().nblocks; ++block) {
+        auto block_size = data_memory_->geometry().block_size;
+        auto address = block * block_size;
+        if (data_memory_->erase(address, block_size) < 0) {
+            logerror("erasing block=%" PRIu32, block);
+        }
+    }
+
+    if (!allow_phylum_) {
+        loginfo("storage: formatting darwin-fs");
+
+        if (!clear_internal()) {
+            return false;
+        }
+
+        data_ops_ = new (pool_) darwin::DataOps(*this);
+        meta_ops_ = new (pool_) darwin::MetaOps(*this);
+
+        return true;
+    }
+
+    loginfo("storage: formatting phylum-fs");
+
+    if (!phylum_.format()) {
+        logerror("format");
+        return false;
+    }
+
+    auto data_ops = new (pool_) phylum_ops::DataOps(*this);
+
+    if (!data_ops->touch(*pool_)) {
+        logerror("touch");
+        return false;
+    }
+
+    if (!phylum_.sync()) {
+        logerror("sync");
+        return false;
+    }
+
+    loginfo("storage: cleared");
+
+    data_ops_ = data_ops;
+    meta_ops_ = new (pool_) phylum_ops::MetaOps(*this);
+    using_phylum_ = true;
+
+    return true;
+}
+
+DataOps *Storage::data_ops() {
+    return data_ops_;
+}
+
+MetaOps *Storage::meta_ops() {
+    return meta_ops_;
+}
+
+uint32_t Storage::installed() {
+    return data_memory_->geometry().total_size;
+}
+
+uint32_t Storage::used() {
+    return bytes_used_;
+}
+
+FileReader *Storage::file_reader(FileNumber file_number, Pool &pool) {
+    if (using_phylum_) {
+        return new (pool) phylum_ops::FileReader{ *this, Storage::Data, pool };
+    }
+    return new (pool) darwin::FileReader{ *this, file_number, pool };
 }
 
 bool Storage::valid_block_header(BlockHeader &header) const {
@@ -193,7 +295,7 @@ Storage::BlocksAfter Storage::find_blocks_after(uint32_t starting, FileNumber fi
     return BlocksAfter{ starting, free, tail, bytes_skipped, records_skipped };
 }
 
-bool Storage::begin() {
+bool Storage::begin_internal() {
     auto g = memory_.geometry();
     auto started = fk_uptime();
 
@@ -246,6 +348,7 @@ bool Storage::begin() {
     }
 
     if (!had_valid_blocks) {
+        logdebug("[-] begin: no valid blocks");
         return false;
     }
 
@@ -255,6 +358,7 @@ bool Storage::begin() {
     }
 
     free_block_ = blocks_after.free;
+    bytes_used_ = free_block_ * g.block_size;
 
     logdebug("[-] block: blk %" PRIu32 " found end (%" PRIu32 "ms)", free_block_, fk_uptime() - started);
 
@@ -265,7 +369,7 @@ bool Storage::begin() {
     return true;
 }
 
-bool Storage::clear() {
+bool Storage::clear_internal() {
     auto g = memory_.geometry();
 
     free_block_ = 0;
@@ -284,7 +388,8 @@ bool Storage::clear() {
     while (!range.empty()) {
         uint32_t address = range.middle_block() * g.block_size;
         logdebug("[" PRADDRESS "] erasing block", address);
-        if (!memory_.erase(address, g.block_size)) {
+        auto err = memory_.erase(address, g.block_size);
+        if (err < 0) {
             // We just keep going, clearing earlier blocks. We'll
             // handle this block being bad during reads/seeks. Still
             // mark the block as bad though so that we can remember.
@@ -348,7 +453,7 @@ uint32_t Storage::allocate(uint8_t file, uint32_t previous_tail_address, BlockTa
 
         // Erase new block and write header.
         rv = memory_.erase(address, g.block_size);
-        if (rv <= 0) {
+        if (rv < 0) {
             logerror("[%d] allocating ignoring bad block: blk %" PRIu32 " (erase failed)", file, block);
             bad_blocks_.mark_address_as_bad(address);
             continue;
@@ -494,6 +599,8 @@ SeekValue Storage::seek(SeekSettings settings) {
             address += sizeof(BlockHeader);
         }
 
+        logverbose("[%d] " PRADDRESS " reading head", settings.file, address);
+
         RecordHeader record_head;
         auto rv = memory_.read(address, (uint8_t *)&record_head, sizeof(record_head));
         if (rv <= 0) {
@@ -502,6 +609,8 @@ SeekValue Storage::seek(SeekSettings settings) {
 
         // Is there a valid record here?
         if (!record_head.valid()) {
+            logverbose("[%d] " PRADDRESS " invalid head", settings.file, address);
+
             auto partial_aligned = g.partial_write_boundary_after(address);
             rv = memory_.read(partial_aligned, (uint8_t *)&record_head, sizeof(record_head));
             if (rv <= 0) {
@@ -608,6 +717,9 @@ SeekValue Storage::seek(SeekSettings settings) {
             }
 
             continue;
+        }
+        else {
+            logverbose("[%d] " PRADDRESS " valid head", settings.file, address);
         }
 
         // We've got a valid record header so let's remember this position.
@@ -737,25 +849,34 @@ SavedState Storage::save() const {
     state.timestamp = timestamp_;
     state.free_block = free_block_;
     state.version = version_;
-    static_assert(sizeof(files_) == sizeof(state.files), "sizeof(files_) == sizeof(state.files)");
-    memcpy(state.files, files_, sizeof(files_));
+    static_assert(sizeof(state.files) == sizeof(FileHeader) * NumberOfFiles, "sizeof(state.files) == sizeof(FileHeader) * NumberOfFiles");
+    memcpy(state.files, files_, sizeof(state.files));
     return state;
 }
 
 void Storage::restore(SavedState const &state) {
-    static_assert(sizeof(files_) == sizeof(state.files), "sizeof(files_) == sizeof(state.files)");
-    memcpy(files_, state.files, sizeof(files_));
+    static_assert(sizeof(state.files) == sizeof(FileHeader) * NumberOfFiles, "sizeof(state.files) == sizeof(FileHeader) * NumberOfFiles");
+    memcpy(files_, state.files, sizeof(state.files));
     timestamp_ = state.timestamp;
     free_block_ = state.free_block;
     version_ = state.version;
 }
 
 bool Storage::flush() {
-    if (memory_.flush() <= 0) {
-        return false;
+    if (using_phylum_) {
+        if (!phylum_.sync()) {
+            return false;
+        }
     }
+    else {
+        if (memory_.flush() <= 0) {
+            return false;
+        }
+    }
+
+    statistics_data_memory_.log_statistics("flash usage: ");
 
     return true;
 }
 
-}
+} // namespace fk

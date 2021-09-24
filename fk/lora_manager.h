@@ -2,25 +2,29 @@
 
 #include "hal/lora.h"
 #include "pool.h"
+#include "state.h"
 
 namespace fk {
 
 class LoraManager {
 private:
-    LoraNetwork *network_;
-    uint32_t last_save_{ 0 };
+    LoraNetwork *network_{ nullptr };
     bool awake_{ false };
 
 public:
     explicit LoraManager(LoraNetwork *network);
 
 public:
-    bool begin();
-    bool available();
+    bool begin(Pool &pool);
+    bool factory_reset();
     bool join_if_necessary(Pool &pool);
-    LoraErrorCode send_bytes(uint8_t port, uint8_t const *data, size_t size, bool confirmed = false);
     void stop();
 
+public:
+    bool send_bytes(uint8_t port, uint8_t const *data, size_t size, Pool &pool);
+
+private:
+    bool verify_configuration(LoraState &state, Pool &pool);
 };
 
-}
+} // namespace fk

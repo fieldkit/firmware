@@ -60,11 +60,10 @@ bool pb_encode_array(pb_ostream_t *stream, const pb_field_t *field, void *const 
                 return false;
             }
 
-            ptr += array->itemSize;
+            ptr += array->item_size;
         }
-    }
-    else {
-        auto length = array->itemSize * array->length;
+    } else {
+        auto length = array->item_size * array->length;
 
         // Confusing that we're using PB_WT_STRING here, I know. This is wire
         // type 2. Whic his "length delimited" and used fro string, bytes,
@@ -188,8 +187,7 @@ static size_t pb_varint_size(uint32_t low, uint32_t high) {
 size_t pb_varint_size(uint32_t value) {
     if (value <= 0x7F) {
         return 1;
-    }
-    else {
+    } else {
         return pb_varint_size(value, 0);
     }
 }
@@ -220,7 +218,7 @@ pb_data_t *pb_data_create(void const *data, size_t size, Pool &pool) {
     });
 }
 
-bool pb_encode_logs(pb_ostream_t *stream, const pb_field_t *field, void * const *arg) {
+bool pb_encode_logs(pb_ostream_t *stream, const pb_field_t *field, void *const *arg) {
     auto calculated_size = (size_t *)arg;
 
     if (!pb_encode_tag_for_field(stream, field)) {
