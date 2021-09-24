@@ -253,6 +253,27 @@ bool TheThingsLoraNetwork::send_bytes(uint8_t port, uint8_t const *data, size_t 
 bool TheThingsLoraNetwork::join(LoraOtaaJoin &otaa, int32_t retries, uint32_t retry_delay) {
     FK_ASSERT(ttn_ != nullptr);
 
+    Rn2903 rn2903;
+
+    // NOTE: This is required anytime you save parameters. Per the RN2903
+    // manual, If this parameter was previously saved to user EEPROM by issuing
+    // the mac save command, after modifying its value, the mac save command
+    // should be called again.
+    // https://www.loraserver.io/lora-app-server/use/devices/#to-set-the-appeui-and-appkey
+
+    if (!rn2903.simple_query("mac set devaddr %s", 1000, "00000000")) {
+        return false;
+    }
+    if (!rn2903.simple_query("mac set nwkskey %s", 1000, "00000000000000000000000000000000")) {
+        return false;
+    }
+    if (!rn2903.simple_query("mac set appskey %s", 1000, "00000000000000000000000000000000")) {
+        return false;
+    }
+    if (!rn2903.save_state()) {
+        return false;
+    }
+
     if (!ttn_->join(otaa.join_eui, otaa.app_key, retries, retry_delay)) {
         return false;
     }

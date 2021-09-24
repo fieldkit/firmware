@@ -24,7 +24,7 @@ static void initialize_compile_lora(LoraState &lora, const char *device_eui, con
     __attribute__((unused));
 
 static void initialize_compile_lora(LoraState &lora, const char *device_eui, const char *app_key, const char *join_eui) {
-    loginfo("(hardcoded) lora device-eui='%s'", device_eui); // TODO SECURITY
+    loginfo("(hardcoded) lora device-eui: '%s'", device_eui); // TODO SECURITY
     hex_string_to_bytes(lora.device_eui, sizeof(lora.device_eui), device_eui);
     hex_string_to_bytes(lora.app_key, sizeof(lora.app_key), app_key);
     if (join_eui != nullptr) {

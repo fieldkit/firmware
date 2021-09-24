@@ -229,6 +229,11 @@ static PostSendAction return_rejoin(GlobalState *gs) {
     return PostSendAction::Rejoin;
 }
 
+static PostSendAction return_save(GlobalState *gs) {
+    gs->lora.state_saved = fk_uptime();
+    return PostSendAction::Save;
+}
+
 static PostSendAction update_gs_after_send(GlobalState *gs, Confirmation confirmed, bool module_error, LoraErrorCode lora_error) {
     auto uptime = fk_uptime();
 
@@ -292,16 +297,15 @@ static PostSendAction update_gs_after_send(GlobalState *gs, Confirmation confirm
             loginfo("saving confirmed");
 
             gs->lora.confirmed = uptime;
-            gs->lora.state_saved = uptime;
-            return PostSendAction::Save;
+
+            return return_save(gs);
         } else if (LoraSaveEveryTx > 0) {
             // We always save RN state after a successful confirmed message,
             // this saves the uplink counters periodically.
             if ((gs->lora.tx_total % LoraSaveEveryTx) == 0) {
                 loginfo("saving every %d txs", LoraSaveEveryTx);
 
-                gs->lora.state_saved = uptime;
-                return PostSendAction::Save;
+                return return_save(gs);
             }
         }
 
