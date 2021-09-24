@@ -15,6 +15,13 @@ static LoraState get_lora_global_state() {
     return gs.get()->lora;
 }
 
+static void update_lora_status(LoraState &lora, Rn2903State const *rn) {
+    lora.uplink_counter = rn->uplink_counter;
+    lora.downlink_counter = rn->downlink_counter;
+    FK_ASSERT(sizeof(lora.device_address) == sizeof(rn->device_address));
+    memcpy(lora.device_address, rn->device_address, sizeof(lora.device_address));
+}
+
 bool LoraManager::begin(Pool &pool) {
     GlobalStateManager gsm;
 
@@ -61,9 +68,7 @@ bool LoraManager::begin(Pool &pool) {
             gs->lora.asleep = 0;
             gs->lora.tx_confirmed_tries = 0;
             if (module_state != nullptr) {
-                memcpy(gs->lora.device_address, module_state->device_address, sizeof(gs->lora.device_address));
-                gs->lora.uplink_counter = module_state->uplink_counter;
-                gs->lora.downlink_counter = module_state->downlink_counter;
+                update_lora_status(gs->lora, module_state);
             } else {
                 bzero(gs->lora.device_address, sizeof(gs->lora.device_address));
             }
@@ -118,13 +123,6 @@ bool LoraManager::verify_configuration(LoraState &state, Pool &pool) {
     }
 
     return true;
-}
-
-static void update_lora_status(LoraState &lora, Rn2903State const *rn) {
-    lora.uplink_counter = rn->uplink_counter;
-    lora.downlink_counter = rn->downlink_counter;
-    FK_ASSERT(sizeof(lora.device_address) == sizeof(rn->device_address));
-    memcpy(lora.device_address, rn->device_address, sizeof(lora.device_address));
 }
 
 bool LoraManager::join_if_necessary(Pool &pool) {
