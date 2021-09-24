@@ -7,6 +7,8 @@
 
 namespace fk {
 
+constexpr uint32_t DefaultTimeout = 10000;
+
 FK_DECLARE_LOGGER("lora");
 
 TwoWireExtenderStream::TwoWireExtenderStream(Sc16is740 &bridge) : bridge_(&bridge) {
@@ -145,12 +147,12 @@ bool TheThingsLoraNetwork::begin(lora_frequency_t frequency_band) {
 #if defined(FK_LORA_SET_UPLINK_COUNTER)
         Rn2903 rn2903;
         const char *line = nullptr;
-        if (!rn2903.simple_query("mac get upctr", &line, 1000)) {
+        if (!rn2903.simple_query("mac get upctr", &line, DefaultTimeout)) {
             return nullptr;
         }
         auto value = atoi(line);
         if (value < FK_LORA_SET_UP_COUNTER) {
-            if (!rn2903.simple_query("mac set upctr %d", &line, 1000, FK_LORA_SET_UP_COUNTER)) {
+            if (!rn2903.simple_query("mac set upctr %d", &line, DefaultTimeout, FK_LORA_SET_UP_COUNTER)) {
                 return false;
             }
 
@@ -261,13 +263,13 @@ bool TheThingsLoraNetwork::join(LoraOtaaJoin &otaa, int32_t retries, uint32_t re
     // should be called again.
     // https://www.loraserver.io/lora-app-server/use/devices/#to-set-the-appeui-and-appkey
 
-    if (!rn2903.simple_query("mac set devaddr %s", 1000, "00000000")) {
+    if (!rn2903.simple_query("mac set devaddr %s", DefaultTimeout, "00000000")) {
         return false;
     }
-    if (!rn2903.simple_query("mac set nwkskey %s", 1000, "00000000000000000000000000000000")) {
+    if (!rn2903.simple_query("mac set nwkskey %s", DefaultTimeout, "00000000000000000000000000000000")) {
         return false;
     }
-    if (!rn2903.simple_query("mac set appskey %s", 1000, "00000000000000000000000000000000")) {
+    if (!rn2903.simple_query("mac set appskey %s", DefaultTimeout, "00000000000000000000000000000000")) {
         return false;
     }
     if (!rn2903.save_state()) {
@@ -301,45 +303,45 @@ bool TheThingsLoraNetwork::get_state(Rn2903State *state) {
 
     Rn2903 rn2903;
 
-    if (!rn2903.simple_query("sys get vdd", &line, 1000)) {
+    if (!rn2903.simple_query("sys get vdd", &line, DefaultTimeout)) {
         return false;
     }
 
-    if (!rn2903.simple_query("mac get status", &line, 1000)) {
+    if (!rn2903.simple_query("mac get status", &line, DefaultTimeout)) {
         return nullptr;
     }
 
-    if (!rn2903.simple_query("mac get dr", &line, 1000)) {
+    if (!rn2903.simple_query("mac get dr", &line, DefaultTimeout)) {
         return false;
     }
 
-    if (!rn2903.simple_query("mac get adr", &line, 1000)) {
+    if (!rn2903.simple_query("mac get adr", &line, DefaultTimeout)) {
         return false;
     }
 
-    if (!rn2903.simple_query("mac get rxdelay1", &line, 1000)) {
+    if (!rn2903.simple_query("mac get rxdelay1", &line, DefaultTimeout)) {
         return false;
     }
 
-    if (!rn2903.simple_query("mac get rxdelay2", &line, 1000)) {
+    if (!rn2903.simple_query("mac get rxdelay2", &line, DefaultTimeout)) {
         return false;
     }
 
-    if (!rn2903.simple_query("sys get hweui", &line, 1000)) {
+    if (!rn2903.simple_query("sys get hweui", &line, DefaultTimeout)) {
         return false;
     }
 
-    if (!rn2903.simple_query("mac get deveui", &line, 1000)) {
+    if (!rn2903.simple_query("mac get deveui", &line, DefaultTimeout)) {
         return false;
     }
     FK_ASSERT(hex_string_to_bytes(state->device_eui, sizeof(state->device_eui), line) == sizeof(state->device_eui));
 
-    if (!rn2903.simple_query("mac get appeui", &line, 1000)) {
+    if (!rn2903.simple_query("mac get appeui", &line, DefaultTimeout)) {
         return false;
     }
     FK_ASSERT(hex_string_to_bytes(state->join_eui, sizeof(state->join_eui), line) == sizeof(state->join_eui));
 
-    if (!rn2903.simple_query("mac get devaddr", &line, 1000)) {
+    if (!rn2903.simple_query("mac get devaddr", &line, DefaultTimeout)) {
         return false;
     }
     if (strlen(line) != sizeof(state->device_address) * 2) {
@@ -349,17 +351,17 @@ bool TheThingsLoraNetwork::get_state(Rn2903State *state) {
         FK_ASSERT(hex_string_to_bytes(state->device_address, sizeof(state->device_address), line) == sizeof(state->device_address));
     }
 
-    if (!rn2903.simple_query("mac get upctr", &line, 1000)) {
+    if (!rn2903.simple_query("mac get upctr", &line, DefaultTimeout)) {
         return false;
     }
     state->uplink_counter = atoi(line);
 
-    if (!rn2903.simple_query("mac get dnctr", &line, 1000)) {
+    if (!rn2903.simple_query("mac get dnctr", &line, DefaultTimeout)) {
         return false;
     }
     state->downlink_counter = atoi(line);
 
-    if (!rn2903.simple_query("mac get pwridx", &line, 1000)) {
+    if (!rn2903.simple_query("mac get pwridx", &line, DefaultTimeout)) {
         return nullptr;
     }
     state->power_index = atoi(line);
@@ -500,60 +502,60 @@ Rn2903State *Rn2903LoraNetwork::get_state(Pool &pool) {
 
     loginfo("module: getting state");
 
-    if (!rn2903_.simple_query("sys get vdd", &line, 1000)) {
+    if (!rn2903_.simple_query("sys get vdd", &line, DefaultTimeout)) {
         return false;
     }
 
-    if (!rn2903_.simple_query("mac get status", &line, 1000)) {
+    if (!rn2903_.simple_query("mac get status", &line, DefaultTimeout)) {
         return nullptr;
     }
 
-    if (!rn2903_.simple_query("mac get dr", &line, 1000)) {
+    if (!rn2903_.simple_query("mac get dr", &line, DefaultTimeout)) {
         return false;
     }
 
-    if (!rn2903_.simple_query("mac get adr", &line, 1000)) {
+    if (!rn2903_.simple_query("mac get adr", &line, DefaultTimeout)) {
         return false;
     }
 
-    if (!rn2903_.simple_query("mac get rxdelay1", &line, 1000)) {
+    if (!rn2903_.simple_query("mac get rxdelay1", &line, DefaultTimeout)) {
         return false;
     }
 
-    if (!rn2903_.simple_query("mac get rxdelay2", &line, 1000)) {
+    if (!rn2903_.simple_query("mac get rxdelay2", &line, DefaultTimeout)) {
         return false;
     }
 
-    if (!rn2903_.simple_query("sys get hweui", &line, 1000)) {
+    if (!rn2903_.simple_query("sys get hweui", &line, DefaultTimeout)) {
         return false;
     }
 
-    if (!rn2903_.simple_query("mac get deveui", &line, 1000)) {
+    if (!rn2903_.simple_query("mac get deveui", &line, DefaultTimeout)) {
         return nullptr;
     }
     FK_ASSERT(hex_string_to_bytes(state->device_eui, sizeof(state->device_eui), line) == sizeof(state->device_eui));
 
-    if (!rn2903_.simple_query("mac get appeui", &line, 1000)) {
+    if (!rn2903_.simple_query("mac get appeui", &line, DefaultTimeout)) {
         return nullptr;
     }
     FK_ASSERT(hex_string_to_bytes(state->join_eui, sizeof(state->join_eui), line) == sizeof(state->join_eui));
 
-    if (!rn2903_.simple_query("mac get devaddr", &line, 1000)) {
+    if (!rn2903_.simple_query("mac get devaddr", &line, DefaultTimeout)) {
         return nullptr;
     }
     FK_ASSERT(hex_string_to_bytes(state->device_address, sizeof(state->device_address), line) == sizeof(state->device_address));
 
-    if (!rn2903_.simple_query("mac get upctr", &line, 1000)) {
+    if (!rn2903_.simple_query("mac get upctr", &line, DefaultTimeout)) {
         return nullptr;
     }
     state->uplink_counter = atoi(line);
 
-    if (!rn2903_.simple_query("mac get dnctr", &line, 1000)) {
+    if (!rn2903_.simple_query("mac get dnctr", &line, DefaultTimeout)) {
         return nullptr;
     }
     state->downlink_counter = atoi(line);
 
-    if (!rn2903_.simple_query("mac get pwridx", &line, 1000)) {
+    if (!rn2903_.simple_query("mac get pwridx", &line, DefaultTimeout)) {
         return nullptr;
     }
     state->power_index = atoi(line);

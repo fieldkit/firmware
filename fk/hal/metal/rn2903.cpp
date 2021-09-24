@@ -7,6 +7,8 @@
 
 namespace fk {
 
+constexpr uint32_t DefaultTimeout = 10000;
+
 FK_DECLARE_LOGGER("lora");
 
 #define TTN_US915_DEFAULT_SF  7
@@ -163,7 +165,7 @@ bool Rn2903::simple_query(const char *cmd, const char **line, uint32_t to, ...) 
 }
 
 bool Rn2903::save_state() {
-    if (!simple_query("mac save", 1000)) {
+    if (!simple_query("mac save", DefaultTimeout)) {
         return false;
     }
 
@@ -171,7 +173,7 @@ bool Rn2903::save_state() {
 }
 
 bool Rn2903::disable_adr() {
-    if (!simple_query("mac set adr off", 1000)) {
+    if (!simple_query("mac set adr off", DefaultTimeout)) {
         return false;
     }
 
@@ -189,28 +191,28 @@ bool Rn2903::provision(LoraOtaaJoin &otaa) {
         return false;
     }
 
-    if (!simple_query("mac set appeui %s", 1000, otaa.join_eui)) {
+    if (!simple_query("mac set appeui %s", DefaultTimeout, otaa.join_eui)) {
         return false;
     }
 
-    if (!simple_query("mac set appkey %s", 1000, otaa.app_key)) {
+    if (!simple_query("mac set appkey %s", DefaultTimeout, otaa.app_key)) {
         return false;
     }
 
     if (false) {
         const char *line = nullptr;
-        if (!simple_query("sys get hweui", &line, 1000)) {
+        if (!simple_query("sys get hweui", &line, DefaultTimeout)) {
             return false;
         }
 
         char hweui[64];
         strncpy(hweui, line, sizeof(hweui));
 
-        if (!simple_query("mac set deveui %s", 1000, hweui)) {
+        if (!simple_query("mac set deveui %s", DefaultTimeout, hweui)) {
             return false;
         }
     } else {
-        if (!simple_query("mac set deveui %s", 1000, otaa.device_eui)) {
+        if (!simple_query("mac set deveui %s", DefaultTimeout, otaa.device_eui)) {
             return false;
         }
     }
@@ -220,13 +222,13 @@ bool Rn2903::provision(LoraOtaaJoin &otaa) {
     // the mac save command, after modifying its value, the mac save command
     // should be called again.
     // https://www.loraserver.io/lora-app-server/use/devices/#to-set-the-appeui-and-appkey
-    if (!simple_query("mac set devaddr %s", 1000, "00000000")) {
+    if (!simple_query("mac set devaddr %s", DefaultTimeout, "00000000")) {
         return false;
     }
-    if (!simple_query("mac set nwkskey %s", 1000, "00000000000000000000000000000000")) {
+    if (!simple_query("mac set nwkskey %s", DefaultTimeout, "00000000000000000000000000000000")) {
         return false;
     }
-    if (!simple_query("mac set appskey %s", 1000, "00000000000000000000000000000000")) {
+    if (!simple_query("mac set appskey %s", DefaultTimeout, "00000000000000000000000000000000")) {
         return false;
     }
 
@@ -240,29 +242,29 @@ bool Rn2903::provision(LoraOtaaJoin &otaa) {
 bool Rn2903::provision(const char *app_session_key, const char *network_session_key, const char *device_address, uint32_t uplink_counter,
                        uint32_t downlink_counter) {
     const char *line = nullptr;
-    if (!simple_query("sys get hweui", &line, 1000)) {
+    if (!simple_query("sys get hweui", &line, DefaultTimeout)) {
         return false;
     }
 
     char hweui[64];
     strncpy(hweui, line, sizeof(hweui));
 
-    if (!simple_query("mac set deveui %s", 1000, hweui)) {
+    if (!simple_query("mac set deveui %s", DefaultTimeout, hweui)) {
         return false;
     }
-    if (!simple_query("mac set devaddr %s", 1000, device_address)) {
+    if (!simple_query("mac set devaddr %s", DefaultTimeout, device_address)) {
         return false;
     }
-    if (!simple_query("mac set nwkskey %s", 1000, network_session_key)) {
+    if (!simple_query("mac set nwkskey %s", DefaultTimeout, network_session_key)) {
         return false;
     }
-    if (!simple_query("mac set appskey %s", 1000, app_session_key)) {
+    if (!simple_query("mac set appskey %s", DefaultTimeout, app_session_key)) {
         return false;
     }
-    if (!simple_query("mac set upctr %d", 1000, uplink_counter)) {
+    if (!simple_query("mac set upctr %d", DefaultTimeout, uplink_counter)) {
         return false;
     }
-    if (!simple_query("mac set dnctr %d", 1000, downlink_counter)) {
+    if (!simple_query("mac set dnctr %d", DefaultTimeout, downlink_counter)) {
         return false;
     }
 
@@ -300,24 +302,24 @@ bool Rn2903::configure_us915(uint8_t fsb) {
     uint8_t ch_500 = fsb + 63;
     for (uint8_t ch = 0; ch < 72; ch++) {
         if (ch == ch_500 || (ch <= ch_high && ch >= ch_low)) {
-            if (!simple_query("mac set ch status %d on", 1000, ch)) {
+            if (!simple_query("mac set ch status %d on", DefaultTimeout, ch)) {
                 return false;
             }
             if (ch < 63) {
-                if (!simple_query("mac set ch drrange %d 0 3", 1000, ch)) {
+                if (!simple_query("mac set ch drrange %d 0 3", DefaultTimeout, ch)) {
                     return false;
                 }
             }
         } else {
-            if (!simple_query("mac set ch status %d off", 1000, ch)) {
+            if (!simple_query("mac set ch status %d off", DefaultTimeout, ch)) {
                 return false;
             }
         }
     }
-    if (!simple_query("mac set pwridx 5", 1000)) {
+    if (!simple_query("mac set pwridx 5", DefaultTimeout)) {
         return false;
     }
-    if (!simple_query("mac set retx 7", 1000)) {
+    if (!simple_query("mac set retx 7", DefaultTimeout)) {
         return false;
     }
     return true;
@@ -326,7 +328,7 @@ bool Rn2903::configure_us915(uint8_t fsb) {
 bool Rn2903::configure_sf(uint8_t sf) {
     // NOTE This needs to work with other frequencies.
     auto dr = 10 - sf;
-    if (!simple_query("mac set dr %d", 1000, dr)) {
+    if (!simple_query("mac set dr %d", DefaultTimeout, dr)) {
         return false;
     }
 
@@ -353,7 +355,7 @@ bool Rn2903::join(LoraOtaaJoin &otaa, int32_t retries, uint32_t retry_delay) {
 
         if (join("otaa")) {
             const char *line = nullptr;
-            if (!simple_query("mac save", &line, 1000)) {
+            if (!simple_query("mac save", &line, DefaultTimeout)) {
                 return false;
             }
 
@@ -374,7 +376,7 @@ static bool is_string_all_zeros(const char *str) {
 }
 
 bool Rn2903::join(const char *mode) {
-    if (!simple_query("mac join %s", 1000, mode)) {
+    if (!simple_query("mac join %s", DefaultTimeout, mode)) {
         return false;
     }
 
@@ -382,7 +384,7 @@ bool Rn2903::join(const char *mode) {
 
     const char *line = nullptr;
     for (auto i = 0u; i < 60; ++i) {
-        if (read_line_sync(&line, 1000, true)) {
+        if (read_line_sync(&line, DefaultTimeout, true)) {
             break;
         }
     }
@@ -396,11 +398,11 @@ bool Rn2903::join(const char *mode) {
         return false;
     }
 
-    if (!simple_query("mac get status", &line, 1000)) {
+    if (!simple_query("mac get status", &line, DefaultTimeout)) {
         return false;
     }
 
-    if (!simple_query("mac get devaddr", &line, 1000)) {
+    if (!simple_query("mac get devaddr", &line, DefaultTimeout)) {
         return false;
     }
 
@@ -417,7 +419,7 @@ bool Rn2903::send_bytes(uint8_t const *data, size_t size, uint8_t port, bool con
 
     const char *line = nullptr;
     const char *mode = confirmed ? "cnf" : "uncnf";
-    if (!simple_query("mac tx %s %d %s", 1000, mode, port, hex)) {
+    if (!simple_query("mac tx %s %d %s", DefaultTimeout, mode, port, hex)) {
         return false;
     }
 
@@ -431,7 +433,7 @@ bool Rn2903::send_bytes(uint8_t const *data, size_t size, uint8_t port, bool con
 
     const char *mac_tx_ok = "mac_tx_ok";
     if (strncmp(line, mac_tx_ok, strlen(mac_tx_ok)) == 0) {
-        if (!simple_query("mac save", &line, 1000)) {
+        if (!simple_query("mac save", &line, DefaultTimeout)) {
             return false;
         }
         return true;
@@ -439,7 +441,7 @@ bool Rn2903::send_bytes(uint8_t const *data, size_t size, uint8_t port, bool con
 
     const char *mac_rx = "mac_rx";
     if (strncmp(line, mac_rx, strlen(mac_rx)) == 0) {
-        if (!simple_query("mac save", &line, 1000)) {
+        if (!simple_query("mac save", &line, DefaultTimeout)) {
             return false;
         }
         return true;
