@@ -116,6 +116,8 @@ void MetaRecord::include_state(GlobalState const *gs, fkb_header_t const *fkb_he
         record_->lora.deviceEui.arg = (void *)device_eui_data;
         record_->lora.joinEui.arg = (void *)join_eui_data;
         record_->lora.appKey.arg = (void *)app_key_data;
+        record_->lora.rxDelay1 = gs->lora.rx_delay_1;
+        record_->lora.rxDelay2 = gs->lora.rx_delay_2;
     }
 
     /*
@@ -140,8 +142,8 @@ void MetaRecord::include_state(GlobalState const *gs, fkb_header_t const *fkb_he
         record_->lora.appSessionKey.arg = (void *)app_session_key_data;
         record_->lora.networkSessionKey.arg = (void *)network_session_key_data;
         record_->lora.deviceAddress.arg = (void *)device_address_data;
-        // record_->lora.uplinkCounter = gs->lora.uplink_counter;
-        // record_->lora.downlinkCounter = gs->lora.downlink_counter;
+        record_->lora.uplinkCounter = gs->lora.uplink_counter;
+        record_->lora.downlinkCounter = gs->lora.downlink_counter;
     }
     */
 

@@ -263,6 +263,14 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
         gs->lora.frequency_band = lora_frequency_t::Eu868;
         break;
     }
+
+    if (record->lora.rxDelay1 > 0) {
+        gs->lora.rx_delay_1 = record->lora.rxDelay1;
+    }
+
+    if (record->lora.rxDelay2 > 0) {
+        gs->lora.rx_delay_2 = record->lora.rxDelay2;
+    }
 #else
     loginfo("(ignoring) lora configuration");
 #endif
