@@ -207,6 +207,7 @@ struct LoraState {
     uint32_t tx_confirmed_tries{ 0 };
     uint32_t tx_confirmed_failures{ 0 };
     uint32_t state_saved{ 0 };
+    uint32_t sessions{ 0 };
 };
 
 struct SdCardState {

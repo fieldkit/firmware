@@ -65,6 +65,7 @@ bool LoraManager::begin(Pool &pool) {
         if (gs->lora.has_module != has_module) {
             gs->lora.has_module = has_module;
             gs->lora.joined = 0;
+            gs->lora.sessions = 0;
             gs->lora.asleep = 0;
             gs->lora.tx_confirmed_tries = 0;
             if (module_state != nullptr) {
@@ -252,6 +253,7 @@ static PostSendAction return_rejoin(GlobalState *gs) {
     gs->lora.joined = 0;
     gs->lora.tx_confirmed_tries = 0;
     gs->lora.tx_confirmed_failures = 0;
+    gs->lora.sessions = 0;
     return PostSendAction::Rejoin;
 }
 

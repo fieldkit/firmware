@@ -7,6 +7,7 @@
 #include "lora_packetizer.h"
 #include "platform.h"
 #include "state_ref.h"
+#include "state_manager.h"
 #include "utilities.h"
 
 namespace fk {
@@ -25,11 +26,6 @@ static OutgoingPackets packetize(Pool &pool) {
         return OutgoingPackets{ nullptr };
     }
     return OutgoingPackets{ *packets };
-}
-
-static void update_activity(Pool &pool) {
-    auto gs = get_global_state_rw();
-    gs.get()->lora.activity = fk_uptime();
 }
 
 LoraWorker::LoraWorker() : work_{ LoraWorkOperation::Readings } {
@@ -67,7 +63,11 @@ void LoraWorker::run(Pool &pool) {
 
     lora.stop();
 
-    update_activity(pool);
+    GlobalStateManager gsm;
+    gsm.apply([=](GlobalState *gs) {
+        gs->lora.activity = fk_uptime();
+        gs->lora.sessions++;
+    });
 }
 
 bool LoraWorker::factory_reset(LoraManager &lora, Pool &pool) {
