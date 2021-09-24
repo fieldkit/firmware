@@ -195,7 +195,6 @@ bool TheThingsLoraNetwork::power(bool on) {
 }
 
 bool TheThingsLoraNetwork::sleep(uint32_t ms) {
-    FK_ASSERT(ttn_ != nullptr);
     if (!powered_) {
         logwarn("unpowered sleep");
         return true;
