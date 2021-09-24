@@ -299,13 +299,35 @@ static PostSendAction update_gs_after_send(GlobalState *gs, Confirmation confirm
             gs->lora.confirmed = uptime;
 
             return return_save(gs);
-        } else if (LoraSaveEveryTx > 0) {
-            // We always save RN state after a successful confirmed message,
-            // this saves the uplink counters periodically.
-            if ((gs->lora.tx_total % LoraSaveEveryTx) == 0) {
-                loginfo("saving every %d txs", LoraSaveEveryTx);
+        } else {
+            if (LoraSaveEveryTx > 0) {
+                // We always save RN state after a successful confirmed message,
+                // this saves the uplink counters periodically.
+                if ((gs->lora.tx_total % LoraSaveEveryTx) == 0) {
+                    loginfo("saving every %d txs", LoraSaveEveryTx);
 
-                return return_save(gs);
+                    return return_save(gs);
+                }
+            }
+
+            if (LoraSaveEveryMinutes > 0) {
+                // TODO With no way to know how longg we were off this means
+                // we're kind of winging the timing, so we just save the first
+                // one, too. This is fine as long as our interval is pretty
+                // wide, otherwise we'd worry more about a frequent restart
+                // causing a save after every message or something.
+                if (gs->lora.state_saved == 0) {
+                    loginfo("saving every every %d minutes (first)", LoraSaveEveryMinutes);
+
+                    return return_save(gs);
+                }
+
+                auto elapsed_minutes = (fk_uptime() - gs->lora.state_saved) / OneMinuteMs;
+                if (elapsed_minutes > LoraSaveEveryMinutes) {
+                    loginfo("saving every every %d minutes (%d)", LoraSaveEveryMinutes, elapsed_minutes);
+
+                    return return_save(gs);
+                }
             }
         }
 
