@@ -218,7 +218,7 @@ constexpr uint32_t MinimumModuleStartupDelayMs = 10;
 /**
  * Transmission frequency to save RN module state.
  */
-constexpr int32_t LoraSaveEveryTx = 15;
+constexpr int32_t LoraSaveEveryTx = 10;
 
 /**
  * Transmission frequency to save RN module state. 65k hourly saves is about 7
