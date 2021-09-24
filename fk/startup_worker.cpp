@@ -230,6 +230,7 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
     loginfo("(loaded) name: '%s'", gs->general.name);
     loginfo("(loaded) generation: %s", bytes_to_hex_string_pool(gs->general.generation, GenerationLength, pool));
 
+#if !(defined(FK_LORA_DEVICE_EUI) && defined(FK_LORA_APP_KEY))
     auto device_eui = pb_get_data_if_provided(record->lora.deviceEui.arg, pool);
     if (device_eui != nullptr) {
         FK_ASSERT(device_eui->length == LoraDeviceEuiLength);
@@ -262,6 +263,9 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
         gs->lora.frequency_band = lora_frequency_t::Eu868;
         break;
     }
+#else
+    loginfo("(ignored) lora configuration");
+#endif
 
     /*
     auto app_session_key = pb_get_data_if_provided(record->lora.appSessionKey.arg, pool);
