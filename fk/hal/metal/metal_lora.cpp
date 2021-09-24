@@ -121,7 +121,9 @@ bool TheThingsLoraNetwork::begin(lora_frequency_t frequency_band) {
         fk_delay(200);
 
         uint8_t buffer[32];
+        stream_.setTimeout(1000);
         stream_.readBytesUntil('\n', buffer, sizeof(buffer));
+        stream_.setTimeout(DefaultTimeout);
 
         loginfo("version: %s", buffer);
 
@@ -173,7 +175,9 @@ bool TheThingsLoraNetwork::begin(lora_frequency_t frequency_band) {
 }
 
 bool TheThingsLoraNetwork::stop() {
-    power(false);
+    if (status_ == Availability::Available) {
+        power(false);
+    }
 
     return true;
 }
@@ -195,7 +199,6 @@ bool TheThingsLoraNetwork::power(bool on) {
 }
 
 bool TheThingsLoraNetwork::sleep(uint32_t ms) {
-    FK_ASSERT(ttn_ != nullptr);
     if (!powered_) {
         logwarn("unpowered sleep");
         return true;
