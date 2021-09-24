@@ -38,7 +38,7 @@ bool LoraManager::begin(Pool &pool) {
     auto has_module = network_->begin(state.frequency_band);
     auto module_state = has_module ? network_->get_state(pool) : nullptr;
 
-    awake_ = true;
+    awake_ = has_module;
 
     if (has_module) {
         // If we have a module and don't have a valid configuration, make sure
