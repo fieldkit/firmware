@@ -239,12 +239,12 @@ constexpr int32_t LoraConfirmedRetries = 0;
 /**
  * Transmission frequency to request confirmation packets.
  */
-constexpr int32_t LoraConfirmEveryTx = 0;
+constexpr int32_t LoraConfirmEveryTx = 30;
 
 /**
  * Minutes between confirmed transmissions.
  */
-constexpr int32_t LoraConfirmEveryMinutes = 30;
+constexpr int32_t LoraConfirmEveryMinutes = 0;
 
 /**
  * Length of a LoRa Join EUI.
