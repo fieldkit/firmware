@@ -3,7 +3,7 @@
 #include <inttypes.h>
 #include <string.h>
 
-#define  optional_CONFIG_NO_EXCEPTIONS 1
+#define optional_CONFIG_NO_EXCEPTIONS 1
 #include <nonstd/optional.hpp>
 
 #include "debugging.h"
@@ -14,16 +14,16 @@
 extern "C" {
 #endif
 
-#define FK_DISABLE_IRQ     SEGGER_RTT_LOCK
+#define FK_DISABLE_IRQ SEGGER_RTT_LOCK
 
-#define FK_ENABLE_IRQ      SEGGER_RTT_UNLOCK
+#define FK_ENABLE_IRQ SEGGER_RTT_UNLOCK
 
 /**
  * These disappeared on after upgrading compilers.
  */
 #if !defined(PRIu64)
-#define PRIu64             "llu"
-#define PRId64             "lld"
+#define PRIu64 "llu"
+#define PRId64 "lld"
 #endif
 
 /**
@@ -34,11 +34,11 @@ void fk_assert(const char *assertion, const char *file, int32_t line, const char
 
 void *fk_malloc_internal(size_t size, const char *file, int32_t line);
 
-#define fk_malloc(size)    fk_malloc_internal(size, __FILE__, __LINE__)
+#define fk_malloc(size) fk_malloc_internal(size, __FILE__, __LINE__)
 
 void fk_free_internal(void *ptr, const char *file, int32_t line);
 
-#define fk_free(ptr)       fk_free_internal(ptr, __FILE__, __LINE__)
+#define fk_free(ptr) fk_free_internal(ptr, __FILE__, __LINE__)
 
 /**
  * Zero a region of memory.
@@ -51,115 +51,108 @@ void fk_free_internal(void *ptr, const char *file, int32_t line);
 
 namespace fk {
 
-using nonstd::optional;
 using nonstd::nullopt;
+using nonstd::optional;
 
 /**
  * Halts execution if the given expression evaluates to false. See the fk_assert
  * function for more information.
  */
-#define FK_ASSERT_INTERNAL(expression, f, ...)        (void)((expression) || (fk_assert(#expression, __FILE__, __LINE__, f, ##__VA_ARGS__), 0))
+#define FK_ASSERT_INTERNAL(expression, f, ...) (void)((expression) || (fk_assert(#expression, __FILE__, __LINE__, f, ##__VA_ARGS__), 0))
 
 /**
  * Halts execution if the given expression evaluates to false. See the fk_assert
  * function for more information.
  */
-#define FK_ASSERT(expression)                         FK_ASSERT_INTERNAL(expression, "")
+#define FK_ASSERT(expression) FK_ASSERT_INTERNAL(expression, "")
 
 /**
  *
  */
-#define FK_ASSERT_EQ(a, b)                            FK_ASSERT_INTERNAL((a) == (b), "%d == %d", a, b)
+#define FK_ASSERT_EQ(a, b) FK_ASSERT_INTERNAL((a) == (b), "%d == %d", a, b)
 
 /**
  *
  */
-#define FK_ASSERT_NE(a, b)                            FK_ASSERT_INTERNAL((a) != (b), "%d != %d", a, b)
+#define FK_ASSERT_NE(a, b) FK_ASSERT_INTERNAL((a) != (b), "%d != %d", a, b)
 
 /**
  *
  */
-#define FK_ASSERT_LE(a, b)                            FK_ASSERT_INTERNAL((a) <= (b), "%d <= %d", a, b)
+#define FK_ASSERT_LE(a, b) FK_ASSERT_INTERNAL((a) <= (b), "%d <= %d", a, b)
 
 /**
  *
  */
-#define FK_ASSERT_LT(a, b)                            FK_ASSERT_INTERNAL((a) < (b), "%d < %d", a, b)
+#define FK_ASSERT_LT(a, b) FK_ASSERT_INTERNAL((a) < (b), "%d < %d", a, b)
 
 /**
  *
  */
-#define FK_ASSERT_GE(a, b)                            FK_ASSERT_INTERNAL((a) >= (b), "%d >= %d", a, b)
+#define FK_ASSERT_GE(a, b) FK_ASSERT_INTERNAL((a) >= (b), "%d >= %d", a, b)
 
 /**
  *
  */
-#define FK_ASSERT_GT(a, b)                            FK_ASSERT_INTERNAL((a) > (b), "%d > %d", a, b)
-
+#define FK_ASSERT_GT(a, b) FK_ASSERT_INTERNAL((a) > (b), "%d > %d", a, b)
 
 #if defined(__SAMD51__)
-#define FK_ADDRESS_VALID(ptr)                         ((intptr_t)ptr != 0 && (intptr_t)ptr >= 0x20000000 && (intptr_t)ptr < 0x20040000)
+#define FK_ADDRESS_VALID(ptr) ((intptr_t)ptr != 0 && (intptr_t)ptr >= 0x20000000 && (intptr_t)ptr < 0x20040000)
 #else
-#define FK_ADDRESS_VALID(ptr)                         ((intptr_t)ptr != 0)
+#define FK_ADDRESS_VALID(ptr) ((intptr_t)ptr != 0)
 #endif
-#define FK_ASSERT_ADDRESS(ptr)                        FK_ASSERT(FK_ADDRESS_VALID(ptr));
+#define FK_ASSERT_ADDRESS(ptr) FK_ASSERT(FK_ADDRESS_VALID(ptr));
 
 /**
  * Check the return value of an I2C operation and return true if the operation
  * succeeded and false otherwise.
  */
-#define I2C_CHECK(expr)                               ((expr) == 0)
+#define I2C_CHECK(expr) ((expr) == 0)
 
 /**
  * Declare logger facility to be used for logging calls in this scope.
  */
-#define FK_DECLARE_LOGGER(name)        constexpr const char *LOG_FACILITY = name;
+#define FK_DECLARE_LOGGER(name) constexpr const char *LOG_FACILITY = name;
 
 /**
  * Declare logger facility to be used for logging calls in this class.
  */
 #define FK_DECLARE_LOGGER_MEMBER(name) static constexpr const char *LOG_FACILITY = name;
 
-#define loginfo(f, ...)                fk_logf(LogLevels::INFO, LOG_FACILITY, f, ## __VA_ARGS__)
-#define logwarn(f, ...)                fk_logf(LogLevels::WARN, LOG_FACILITY, f, ## __VA_ARGS__)
-#define logerror(f, ...)               fk_logf(LogLevels::ERROR, LOG_FACILITY, f, ## __VA_ARGS__)
-#define logdebug(f, ...)               fk_logf(LogLevels::DEBUG, LOG_FACILITY, f, ## __VA_ARGS__)
-#define logtrace(f, ...)               fk_logf(LogLevels::TRACE, LOG_FACILITY, f, ## __VA_ARGS__)
-#define logverbose(f, ...)             fk_logf(LogLevels::VERBOSE, LOG_FACILITY, f, ## __VA_ARGS__)
-
+#define loginfo(f, ...)    fk_logf(LogLevels::INFO, LOG_FACILITY, f, ##__VA_ARGS__)
+#define logwarn(f, ...)    fk_logf(LogLevels::WARN, LOG_FACILITY, f, ##__VA_ARGS__)
+#define logerror(f, ...)   fk_logf(LogLevels::ERROR, LOG_FACILITY, f, ##__VA_ARGS__)
+#define logdebug(f, ...)   fk_logf(LogLevels::DEBUG, LOG_FACILITY, f, ##__VA_ARGS__)
+#define logtrace(f, ...)   fk_logf(LogLevels::TRACE, LOG_FACILITY, f, ##__VA_ARGS__)
+#define logverbose(f, ...) fk_logf(LogLevels::VERBOSE, LOG_FACILITY, f, ##__VA_ARGS__)
 
 /**
  * Default OS priority.
  */
-#define FK_PRIORITY_NORMAL             (OS_PRIORITY_NORMAL + 1)
+#define FK_PRIORITY_NORMAL (OS_PRIORITY_NORMAL + 1)
 
-#define FK_PRIORITY_BUTTONS            (FK_PRIORITY_NORMAL)
+#define FK_PRIORITY_BUTTONS (FK_PRIORITY_NORMAL)
 
-#define FK_PRIORITY_GPS                (FK_PRIORITY_NORMAL)
+#define FK_PRIORITY_GPS (FK_PRIORITY_NORMAL)
 
-#define FK_PRIORITY_SERCOM             (FK_PRIORITY_NORMAL)
+#define FK_PRIORITY_SERCOM (FK_PRIORITY_NORMAL)
 
 /**
  * Evaluates to 1 shifted by the given position.
  */
-#define BIT(nr)               (1UL << (nr))
+#define BIT(nr) (1UL << (nr))
 
-enum class Availability {
-    Unknown,
-    Available,
-    Unavailable
-};
+enum class Availability { Unknown, Available, Unavailable };
 
-template<typename T>
-struct TypeName {
-};
+enum class BatteryStatus { Unknown, Good, External, Low, Dangerous };
 
-#define FK_ENABLE_TYPE_NAME(Type)    \
-    template<>                       \
-    struct TypeName<Type> {          \
-        static const char *get() {   \
-            return #Type;            \
-        }                            \
+template <typename T> struct TypeName {};
+
+#define FK_ENABLE_TYPE_NAME(Type)                                                                                                          \
+    template <> struct TypeName<Type> {                                                                                                    \
+        static const char *get() {                                                                                                         \
+            return #Type;                                                                                                                  \
+        }                                                                                                                                  \
     };
 
 /**

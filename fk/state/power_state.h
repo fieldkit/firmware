@@ -4,8 +4,6 @@
 
 namespace fk {
 
-enum class BatteryStatus { Unknown, Good, External, Low, Dangerous };
-
 inline bool battery_status_is_low_power(BatteryStatus status) {
     return status == BatteryStatus::Dangerous || status == BatteryStatus::Low;
 }
