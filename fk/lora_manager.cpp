@@ -406,9 +406,25 @@ void LoraManager::stop() {
 
         GlobalStateManager gsm;
         gsm.apply([=](GlobalState *gs) { gs->lora.asleep = fk_uptime(); });
-
         awake_ = false;
     }
+}
+
+bool LoraManager::power_cycle() {
+    logwarn("power cycling");
+
+    network_->power(false);
+
+    GlobalStateManager gsm;
+    gsm.apply([=](GlobalState *gs) {
+        gs->lora.asleep = 0;
+        gs->lora.joined = 0;
+        gs->lora.has_module = false;
+    });
+
+    awake_ = false;
+
+    return true;
 }
 
 } // namespace fk

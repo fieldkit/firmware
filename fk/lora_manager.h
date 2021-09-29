@@ -17,6 +17,7 @@ public:
 public:
     bool begin(Pool &pool);
     bool factory_reset();
+    bool power_cycle();
     bool join_if_necessary(Pool &pool);
     void stop();
 

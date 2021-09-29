@@ -112,7 +112,7 @@ bool LoraWorker::readings(LoraManager &lora, Pool &pool) {
         // packets we've got. It's hard to rationalize retry behavior when
         // you've got more than one flow.
         if (!lora.send_bytes(LoraDataPort, iterator->buffer, iterator->size, pool)) {
-            return false;
+            return lora.power_cycle();
         }
 
         // We only delay if there's more to send.
