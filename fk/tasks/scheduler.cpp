@@ -53,8 +53,7 @@ void task_handler_scheduler(void *params) {
         if (!gps_service.begin()) {
             logerror("gps");
         }
-    }
-    else {
+    } else {
         get_board()->disable_gps();
         get_board()->disable_wifi();
         update_allow_deep_sleep(true);
@@ -108,6 +107,8 @@ void task_handler_scheduler(void *params) {
             }
 
             if (every_second.expired()) {
+                GlobalStateManager gsm;
+
                 if (enable_allow_deep_sleep_timer.expired()) {
                     loginfo("deep sleep enabled");
                     update_allow_deep_sleep(true);
@@ -138,17 +139,29 @@ void task_handler_scheduler(void *params) {
                     auto time = lwcron::DateTime{ now };
                     if (!scheduler.check(time, 0)) {
                         if (get_can_launch_captive_readings()) {
-                            get_ipc()->launch_worker(WorkerCategory::Readings, create_pool_worker<ReadingsWorker>(false, false, ModulePowerState::AlwaysOn));
+                            get_ipc()->launch_worker(WorkerCategory::Readings,
+                                                     create_pool_worker<ReadingsWorker>(false, false, ModulePowerState::AlwaysOn));
                         }
                     }
 
-                    GlobalStateManager gsm;
                     UpcomingUpdate update;
                     update.readings = get_next_task_time(now, readings_job);
                     update.network = get_next_task_time(now, upload_data_job);
                     update.gps = get_next_task_time(now, gps_job);
                     update.lora = get_next_task_time(now, lora_job);
                     update.backup = get_next_task_time(now, backup_job);
+                    gsm.apply_update(update);
+                } else {
+                    // This avoids showing the user ETAs that never move, as
+                    // we're no longer servicing the same fields in the above
+                    // update.
+                    ScheduledTime zero{};
+                    UpcomingUpdate update;
+                    update.readings = zero;
+                    update.network = zero;
+                    update.gps = zero;
+                    update.lora = zero;
+                    update.backup = zero;
                     gsm.apply_update(update);
                 }
 
@@ -230,4 +243,4 @@ static bool has_module_topology_changed(Topology &existing) {
     return true;
 }
 
-}
+} // namespace fk
