@@ -26,6 +26,10 @@ public:
 
 private:
     bool verify_configuration(LoraState const &state, uint8_t const *device_eui, Pool &pool);
+    void verify_rx_delays(Rn2903State const *rn, Pool &pool);
+
+private:
+    void update_lora_status(LoraState &lora, Rn2903State const *rn);
 };
 
 } // namespace fk

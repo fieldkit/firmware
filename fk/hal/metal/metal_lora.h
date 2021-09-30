@@ -77,6 +77,7 @@ public:
     bool join(LoraOtaaJoin &otaa, int32_t retries, uint32_t retry_delay) override;
     bool join_resume() override;
     bool save_state() override;
+    bool set_rx_delays(uint32_t rx1) override;
 
 public:
     bool get_state(Rn2903State *state) override;

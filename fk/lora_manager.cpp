@@ -15,7 +15,7 @@ static LoraState get_lora_global_state() {
     return gs.get()->lora;
 }
 
-static void update_lora_status(LoraState &lora, Rn2903State const *rn) {
+void LoraManager::update_lora_status(LoraState &lora, Rn2903State const *rn) {
     lora.uplink_counter = rn->uplink_counter;
     lora.downlink_counter = rn->downlink_counter;
     if (lora.rx_delay_1 == 0 && lora.rx_delay_2 == 0) {
@@ -33,6 +33,15 @@ static void update_lora_status(LoraState &lora, Rn2903State const *rn) {
     }
     FK_ASSERT(sizeof(lora.device_address) == sizeof(rn->device_address));
     memcpy(lora.device_address, rn->device_address, sizeof(lora.device_address));
+}
+
+void LoraManager::verify_rx_delays(Rn2903State const *rn, Pool &pool) {
+    if (rn->rx_delay_1 == 5000) {
+        loginfo("rx delays ok");
+        return;
+    }
+
+    network_->set_rx_delays(5000);
 }
 
 bool LoraManager::begin(Pool &pool) {
@@ -71,6 +80,9 @@ bool LoraManager::begin(Pool &pool) {
                 module_state = network_->get_state(pool);
             }
         }
+
+        // We continue even if this fails because we may still get lucky.
+        verify_rx_delays(module_state, pool);
     }
 
     return gsm.apply([&](GlobalState *gs) {

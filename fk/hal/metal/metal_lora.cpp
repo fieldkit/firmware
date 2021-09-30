@@ -274,6 +274,16 @@ bool TheThingsLoraNetwork::send_bytes(uint8_t port, uint8_t const *data, size_t 
 #endif
 }
 
+bool TheThingsLoraNetwork::set_rx_delays(uint32_t rx1) {
+    Rn2903 rn2903;
+
+    if (!rn2903.simple_query("mac set rxdelay1 %" PRIu32, DefaultTimeout, rx1)) {
+        return false;
+    }
+
+    return true;
+}
+
 bool TheThingsLoraNetwork::join(LoraOtaaJoin &otaa, int32_t retries, uint32_t retry_delay) {
     FK_ASSERT(ttn_ != nullptr);
 
