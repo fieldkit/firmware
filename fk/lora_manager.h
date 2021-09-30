@@ -25,7 +25,7 @@ public:
     bool send_bytes(uint8_t port, uint8_t const *data, size_t size, Pool &pool);
 
 private:
-    bool verify_configuration(LoraState &state, uint8_t *device_eui, Pool &pool);
+    bool verify_configuration(LoraState const &state, uint8_t const *device_eui, Pool &pool);
 };
 
 } // namespace fk

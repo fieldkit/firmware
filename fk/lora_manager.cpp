@@ -105,7 +105,7 @@ bool LoraManager::factory_reset() {
     return network_->factory_reset();
 }
 
-bool LoraManager::verify_configuration(LoraState &state, uint8_t *device_eui, Pool &pool) {
+bool LoraManager::verify_configuration(LoraState const &state, uint8_t const *device_eui, Pool &pool) {
     if (state.joined > 0) {
         return true;
     }
@@ -113,16 +113,24 @@ bool LoraManager::verify_configuration(LoraState &state, uint8_t *device_eui, Po
     if (device_eui != nullptr) {
         for (auto i = 0u; lora_keys[i].name[0] != 0; ++i) {
             auto &keys = lora_keys[i];
-
+            auto device_eui_hex = bytes_to_hex_string_pool(keys.device_eui, sizeof(keys.device_eui), pool);
             if (memcmp(keys.device_eui, device_eui, LoraDeviceEuiLength) == 0) {
-                auto device_eui_hex = bytes_to_hex_string_pool(keys.device_eui, sizeof(keys.device_eui), pool);
-                loginfo("(hardcoded) configuration: '%s' device-eui: %s", keys.name, device_eui_hex);
+                if (memcmp(keys.device_eui, state.device_eui, LoraDeviceEuiLength) == 0) {
+                    loginfo("(hardcoded) device-eui: %s configuration: '%s' (already set)", device_eui_hex, keys.name);
+                } else {
+                    loginfo("(hardcoded) device-eui: %s configuration: '%s'", device_eui_hex, keys.name);
 
-                memcpy(state.device_eui, device_eui, sizeof(state.device_eui));
-                memcpy(state.app_key, keys.app_key, sizeof(state.app_key));
-                state.frequency_band = keys.frequency_band;
+                    GlobalStateManager gsm;
+                    gsm.apply([=](GlobalState *gs) {
+                        memcpy(gs->lora.device_eui, device_eui, sizeof(gs->lora.device_eui));
+                        memcpy(gs->lora.app_key, keys.app_key, sizeof(gs->lora.app_key));
+                        gs->lora.frequency_band = keys.frequency_band;
+                    });
+                }
 
                 return true;
+            } else {
+                loginfo("(ignored) device-eui: %s configuration: '%s'", device_eui_hex, keys.name);
             }
         }
     }
