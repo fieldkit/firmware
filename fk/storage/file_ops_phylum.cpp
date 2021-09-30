@@ -218,8 +218,6 @@ tl::expected<FileReader::SizeInfo, Error> FileReader::get_size(BlockNumber first
 }
 
 bool FileReader::decode_signed(void *record, pb_msgdesc_t const *fields, Pool &pool) {
-    FK_ASSERT(pdf_.seek_position(0) >= 0);
-
     auto nread = pdf_.read(fields, record, pool);
     if (nread <= 0) {
         return false;
