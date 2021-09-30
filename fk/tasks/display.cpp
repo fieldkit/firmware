@@ -77,7 +77,8 @@ public:
         show_view(readings_view);
     }
 
-    void show_schedule() override {
+    void show_schedule(ScheduleType type) override {
+        schedule_view.type(type);
         show_view(schedule_view);
     }
 

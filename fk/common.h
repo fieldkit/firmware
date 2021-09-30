@@ -146,6 +146,8 @@ enum class Availability { Unknown, Available, Unavailable };
 
 enum class BatteryStatus { Unknown, Good, External, Low, Dangerous };
 
+enum class ScheduleType { Readings, LoRa };
+
 template <typename T> struct TypeName {};
 
 #define FK_ENABLE_TYPE_NAME(Type)                                                                                                          \

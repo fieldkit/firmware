@@ -28,9 +28,9 @@ void ScheduleView::tick(ViewController *views, Pool &pool) {
 
     auto now = fk_uptime();
     if (update_at_ == 0 || now > update_at_) {
-        auto gs = get_global_state_ro();
-        scheduled_ = gs.get()->scheduler.readings.upcoming;
-        interval_ = gs.get()->scheduler.readings.interval;
+        auto schedule = get();
+        scheduled_ = schedule.upcoming;
+        interval_ = schedule.interval;
         update_at_ = now + OneSecondMs;
     }
 
@@ -57,17 +57,52 @@ void ScheduleView::down(ViewController *views) {
 void ScheduleView::enter(ViewController *views) {
     auto &option = options[position_ % NumberOfOptions];
     if (option.interval >= 0) {
-        GlobalStateManager gsm;
-        gsm.apply([=](GlobalState *gs) {
-            StandardPool pool{ "flush" };
-            loginfo("selected: %s", option.label);
-            gs->scheduler.readings.simple(option.interval);
-            gs->flush(pool);
-            update_at_ = 0; // Force display refresh.
-        });
+        loginfo("selected: %s", option.label);
+        set(option.interval);
     }
 
     views->show_home();
+}
+
+Schedule ScheduleView::get() {
+    auto gs = get_global_state_ro();
+    switch (type_) {
+    case ScheduleType::Readings: {
+        return gs.get()->scheduler.readings;
+    }
+    case ScheduleType::LoRa: {
+        return gs.get()->scheduler.lora;
+    }
+    default: {
+        return gs.get()->scheduler.readings;
+    }
+    }
+}
+
+void ScheduleView::type(ScheduleType type) {
+    type_ = type;
+    update_at_ = 0; // Force display refresh.
+}
+
+void ScheduleView::set(uint32_t interval) {
+    GlobalStateManager gsm;
+    gsm.apply([=](GlobalState *gs) {
+        switch (type_) {
+        case ScheduleType::Readings: {
+            gs->scheduler.readings.simple(interval);
+            return;
+        }
+        case ScheduleType::LoRa: {
+            gs->scheduler.lora.simple(interval);
+            break;
+        }
+        }
+
+        StandardPool pool{ "flush" };
+        gs->flush(pool);
+    });
+
+    update_at_ = 0; // Force display refresh.
 }
 
 } // namespace fk

@@ -820,12 +820,14 @@ void MenuView::create_main_menu() {
 }
 
 void MenuView::create_schedules_menu() {
-    auto schedule_readings = to_lambda_option(pool_, "Readings", [=]() { views_->show_schedule(); });
+    auto schedule_readings = to_lambda_option(pool_, "Readings", [=]() { views_->show_schedule(ScheduleType::Readings); });
+    auto schedule_lora = to_lambda_option(pool_, "LoRa", [=]() { views_->show_schedule(ScheduleType::LoRa); });
 
-    schedules_menu_ = new_menu_screen<2>(pool_, "schedule",
+    schedules_menu_ = new_menu_screen<3>(pool_, "schedule",
                                          {
                                              back_,
                                              schedule_readings,
+                                             schedule_lora,
                                          });
 }
 
