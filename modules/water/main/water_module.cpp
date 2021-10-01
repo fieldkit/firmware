@@ -279,6 +279,16 @@ ModuleConfiguration const WaterModule::get_configuration(Pool &pool) {
     return { get_display_name_key(), ModulePower::ReadingsOnly, 0, cfg_message_, DefaultModuleOrder };
 }
 
+bool WaterModule::averaging_enabled() {
+    switch (header_.kind) {
+    case FK_MODULES_KIND_WATER_DO: {
+        return true;
+    }
+    default:
+        return false;
+    };
+}
+
 bool WaterModule::excite_enabled() {
     switch (header_.kind) {
     case FK_MODULES_KIND_WATER_EC: {
@@ -351,7 +361,10 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
     }
 
     auto exciting = excite_enabled();
+    auto averaging = averaging_enabled();
+
     if (exciting) {
+        FK_ASSERT(!averaging);
         loginfo("excitation: enabled");
 
         if (!excite_control(mcp, true)) {
@@ -361,14 +374,30 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
         loginfo("excitation: disabled");
     }
 
-    int32_t value = 0;
-    if (!ads.read(value)) {
-        logerror("read");
-        return nullptr;
+    constexpr size_t SamplesToAverage = 10;
+    constexpr uint32_t AveragingDelayMs = 10;
+    size_t samples_to_take = averaging ? SamplesToAverage : 1;
+    size_t number_of_values = 0u;
+    float accumulator = 0.0f;
+    for (auto i = 0u; i < samples_to_take; ++i) {
+        int32_t value = 0;
+        if (!ads.read(value)) {
+            logerror("read");
+            return nullptr;
+        }
+
+        auto uncalibrated = ((float)value * 2.048f) / 8388608.0f;
+
+        accumulator += uncalibrated;
+        number_of_values++;
+
+        if (averaging) {
+            loginfo("[%d] water(sample #%d): %f", mc.position().integer(), i, uncalibrated);
+            fk_delay(AveragingDelayMs);
+        }
     }
 
-    auto uncalibrated = ((float)value * 2.048f) / 8388608.0f;
-
+    auto uncalibrated = accumulator / (float)number_of_values;
     auto default_curve = create_modules_default_curve(pool);
     auto curve = create_curve(default_curve, cfg_, pool);
     auto factory = default_curve->apply(uncalibrated);
