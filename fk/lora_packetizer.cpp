@@ -100,11 +100,16 @@ public:
         *p++ = number_;
         encoded_size_++;
 
-        p = phylum::varint_encode(age, p, buffer_size_ - encoded_size_);
-        encoded_size_ += phylum::varint_encoding_length(age);
+        auto age_length = phylum::varint_encoding_length(age);
+        auto reading_length = phylum::varint_encoding_length(reading);
 
-        p = phylum::varint_encode(reading, p, buffer_size_ - encoded_size_);
-        encoded_size_ += phylum::varint_encoding_length(reading);
+        phylum::varint_encode(age, p, buffer_size_ - encoded_size_);
+        encoded_size_ += age_length;
+
+        p += age_length;
+
+        phylum::varint_encode(reading, p, buffer_size_ - encoded_size_);
+        encoded_size_ += reading_length;
     }
 
     size_t size_of_encoding() const {

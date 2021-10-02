@@ -11,7 +11,6 @@ FK_DECLARE_LOGGER("tests");
 
 class LoraPacketizerSuite : public ::testing::Test {
 protected:
-
 };
 
 TEST_F(LoraPacketizerSuite, SingleReading) {
@@ -217,24 +216,23 @@ TEST_F(LoraPacketizerSuite, MultipleModulesVerifyLength3) {
     dynamic.attached()->add_module(am1);
     state::AttachedModule am2{ ModulePosition::from(6), header, nullptr, nullptr, pool };
     auto i = 0u;
-    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 44.954605 } } );
-    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 24.110779 } } );
-    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 100.027252 } } );
-    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 22.812500 } } );
-    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 0.0 } } );
-    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 9.600000 } } );
-    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 0.0 } } );
-    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 2307.421875 } } );
-    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 9.600000 } } );
-    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 0.000000 } } );
-    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 0.000000 } } );
+    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 44.954605 } });
+    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 24.110779 } });
+    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 100.027252 } });
+    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 22.812500 } });
+    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 0.0 } });
+    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 9.600000 } });
+    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 0.0 } });
+    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 2307.421875 } });
+    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 9.600000 } });
+    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 0.000000 } });
+    am2.add_sensor(state::AttachedSensor{ nullptr, i++, ModuleReading{ 0.000000 } });
     dynamic.attached()->add_module(am2);
 
     GlobalState gs;
     gs.readings.time = 1600000000;
     gs.readings.nreadings = 100;
     gs.dynamic = std::move(dynamic);
-
 
     LoraPacketizer packetizer;
     auto packets = packetizer.packetize(&gs, pool);
@@ -243,4 +241,27 @@ TEST_F(LoraPacketizerSuite, MultipleModulesVerifyLength3) {
     for (auto p = *packets; p != nullptr; p = p->link) {
         fk_dump_memory("packet ", p->buffer, p->size);
     }
+}
+
+TEST_F(LoraPacketizerSuite, QuickDecode) {
+    StaticPool<1024> pool("Pool");
+
+    const char *messages[] = {
+        "0005d414f0a78640",
+    };
+
+    uint8_t buffer[32];
+    hex_string_to_bytes(buffer, sizeof(buffer), messages[0]);
+
+    int32_t error = 0;
+    auto age = phylum::varint_decode(buffer + 1, sizeof(buffer) - 1, &error);
+    auto age_length = phylum::varint_encoding_length(age);
+
+    ASSERT_EQ(age, 5u);
+
+    auto reading = phylum::varint_decode(buffer + 1 + age_length, sizeof(buffer) - 1 - age_length, &error);
+    auto reading_length = phylum::varint_encoding_length(reading);
+
+    ASSERT_EQ(reading, 2644u);
+    ASSERT_EQ(reading_length, 2u);
 }
