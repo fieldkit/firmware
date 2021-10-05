@@ -36,6 +36,7 @@ public:
     collection<TaskDisplayInfo> get_workers_display_info(Pool &pool) override;
     bool has_running_worker(WorkerCategory category) override;
     bool has_any_running_worker() override;
+    bool has_stalled_workers(WorkerCategory category, uint32_t stall_ms) override;
 
 private:
     bool can_launch(WorkerCategory category);

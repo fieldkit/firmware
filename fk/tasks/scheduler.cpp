@@ -10,6 +10,7 @@
 #include "timer.h"
 #include "gps_service.h"
 #include "state_manager.h"
+#include "graceful_shutdown.h"
 
 #if defined(__SAMD51__)
 #include "hal/metal/metal_ipc.h"
@@ -168,6 +169,14 @@ void task_handler_scheduler(void *params) {
                 if (!get_ipc()->has_any_running_worker()) {
                     DeepSleep deep_sleep;
                     deep_sleep.try_deep_sleep(scheduler, gps_service);
+                } else {
+                    if (get_ipc()->has_stalled_workers(WorkerCategory::Readings, FiveMinutesMs)) {
+                        logwarn("stalled reading worker, restarting");
+
+                        fk_delay(500);
+
+                        fk_graceful_shutdown();
+                    }
                 }
             }
 

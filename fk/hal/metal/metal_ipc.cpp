@@ -204,6 +204,26 @@ bool MetalIPC::has_running_worker(WorkerCategory category) {
     return found;
 }
 
+bool MetalIPC::has_stalled_workers(WorkerCategory category, uint32_t stall_ms) {
+    auto lock = workers_mutex.acquire(UINT32_MAX);
+    FK_ASSERT(lock);
+
+    auto now = fk_uptime();
+
+    for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
+        if (os_task_is_running(&worker_tasks[i])) {
+            if (running_[i] == category) {
+                auto elapsed = now - worker_tasks[i].started;
+                if (elapsed > stall_ms) {
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
 bool MetalIPC::has_any_running_worker() {
     auto found = false;
 
