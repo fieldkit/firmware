@@ -157,7 +157,7 @@ TEST_F(ReadingsWorkerSuite, ScannedModule_MultipleReadings) {
 
         // Modules record
         bytes_read = reader->read(meta_record.for_decoding(), fk_data_DataRecord_fields);
-        ASSERT_EQ(bytes_read, 436);
+        ASSERT_EQ(bytes_read, 438);
 
         // Data record
         bytes_read = reader->read(meta_record.for_decoding(), fk_data_DataRecord_fields);
@@ -241,7 +241,7 @@ TEST_F(ReadingsWorkerSuite, ScannedModule_ModuleAdded) {
 
         // Modules record
         bytes_read = reader->read(meta_record.for_decoding(), fk_data_DataRecord_fields);
-        ASSERT_EQ(bytes_read, 377);
+        ASSERT_EQ(bytes_read, 379);
 
         // Data record
         bytes_read = reader->read(meta_record.for_decoding(), fk_data_DataRecord_fields);
@@ -252,7 +252,7 @@ TEST_F(ReadingsWorkerSuite, ScannedModule_ModuleAdded) {
 
         // Modules record
         bytes_read = reader->read(meta_record.for_decoding(), fk_data_DataRecord_fields);
-        ASSERT_EQ(bytes_read, 436);
+        ASSERT_EQ(bytes_read, 438);
 
         // Data record
         bytes_read = reader->read(meta_record.for_decoding(), fk_data_DataRecord_fields);

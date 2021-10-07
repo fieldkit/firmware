@@ -20,6 +20,7 @@ public:
     void log_message(uint8_t seed) {
         record = fk_data_DataRecord_init_default;
         record.has_log = true;
+        record.has_metadata = true;
         record.log.uptime = 935985493 + seed;
         record.log.time = seed * 1000;
         record.log.level = (uint32_t)LogLevels::INFO;
@@ -31,6 +32,7 @@ public:
 
     fk_data_DataRecord *for_decode(Pool &pool) {
         record = fk_data_DataRecord_init_default;
+        record.has_metadata = true;
         record.has_log = true;
         record.log.facility.arg = (void *)&pool;
         record.log.facility.funcs.decode = pb_decode_string;
@@ -101,11 +103,11 @@ TEST_F(PhylumSuite, Basic_DataFile_AppendAlways) {
     RecordFaker fake;
     fake.log_message(0);
 
-    ASSERT_EQ(file.append_always(RecordType::Data, fk_data_DataRecord_fields, &fake.record, nullptr, pool).bytes, 30);
+    ASSERT_EQ(file.append_always(RecordType::Data, fk_data_DataRecord_fields, &fake.record, nullptr, pool).bytes, 32);
 
-    ASSERT_EQ(file.append_always(RecordType::Data, fk_data_DataRecord_fields, &fake.record, nullptr, pool).bytes, 30);
+    ASSERT_EQ(file.append_always(RecordType::Data, fk_data_DataRecord_fields, &fake.record, nullptr, pool).bytes, 32);
 
-    ASSERT_EQ(file.append_always(RecordType::Data, fk_data_DataRecord_fields, &fake.record, nullptr, pool).bytes, 30);
+    ASSERT_EQ(file.append_always(RecordType::Data, fk_data_DataRecord_fields, &fake.record, nullptr, pool).bytes, 32);
 
     ASSERT_TRUE(phylum.sync());
 }
@@ -124,13 +126,13 @@ TEST_F(PhylumSuite, Basic_DataFile_AppendImmutable) {
     RecordFaker fake;
     fake.log_message(0);
 
-    ASSERT_EQ(file.append_immutable(RecordType::State, fk_data_DataRecord_fields, &fake.record, pool).bytes, 30);
+    ASSERT_EQ(file.append_immutable(RecordType::State, fk_data_DataRecord_fields, &fake.record, pool).bytes, 32);
 
     ASSERT_EQ(file.append_immutable(RecordType::State, fk_data_DataRecord_fields, &fake.record, pool).bytes, 0);
 
     fake.record.log.message.arg = (void *)"something else";
 
-    ASSERT_EQ(file.append_immutable(RecordType::State, fk_data_DataRecord_fields, &fake.record, pool).bytes, 37);
+    ASSERT_EQ(file.append_immutable(RecordType::State, fk_data_DataRecord_fields, &fake.record, pool).bytes, 41);
 
     ASSERT_TRUE(phylum.sync());
 }
@@ -149,18 +151,18 @@ TEST_F(PhylumSuite, Basic_DataFile_AppendImmutable_SeekRecordType) {
     RecordFaker fake;
     fake.log_message(0);
 
-    ASSERT_EQ(file.append_immutable(RecordType::State, fk_data_DataRecord_fields, &fake.record, pool).bytes, 30);
+    ASSERT_EQ(file.append_immutable(RecordType::State, fk_data_DataRecord_fields, &fake.record, pool).bytes, 32);
 
     file_size_t position = 0;
     ASSERT_FALSE(file.seek_record_type(RecordType::Modules, position));
 
-    ASSERT_EQ(file.append_immutable(RecordType::Modules, fk_data_DataRecord_fields, &fake.record, pool).bytes, 30);
+    ASSERT_EQ(file.append_immutable(RecordType::Modules, fk_data_DataRecord_fields, &fake.record, pool).bytes, 34);
 
     ASSERT_EQ(file.append_immutable(RecordType::State, fk_data_DataRecord_fields, &fake.record, pool).bytes, 0);
 
     fake.record.log.message.arg = (void *)"something else";
 
-    ASSERT_EQ(file.append_immutable(RecordType::State, fk_data_DataRecord_fields, &fake.record, pool).bytes, 37);
+    ASSERT_EQ(file.append_immutable(RecordType::State, fk_data_DataRecord_fields, &fake.record, pool).bytes, 41);
 
     ASSERT_TRUE(phylum.sync());
 

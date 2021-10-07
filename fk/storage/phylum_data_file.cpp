@@ -311,6 +311,7 @@ PhylumDataFile::appended_t PhylumDataFile::append_always(RecordType type, pb_msg
     // Copy a hash we're given to the index record, rather than using the calculated one.
     if (hash != nullptr) {
         memcpy(index_record->hash, hash, sizeof(index_record->hash));
+        record->metadata.record = 0;
     } else {
         hash_writer.finalize(index_record->hash, sizeof(index_record->hash));
     }
