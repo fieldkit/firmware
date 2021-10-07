@@ -944,6 +944,9 @@ export namespace fk_data {
 
         /** Metadata generation */
         generation?: (Uint8Array|null);
+
+        /** Metadata record */
+        record?: (number|Long|null);
     }
 
     /** Represents a Metadata. */
@@ -981,6 +984,9 @@ export namespace fk_data {
 
         /** Metadata generation. */
         public generation: Uint8Array;
+
+        /** Metadata record. */
+        public record: (number|Long);
 
         /**
          * Creates a new Metadata instance using the specified properties.

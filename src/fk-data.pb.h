@@ -223,6 +223,7 @@ typedef struct _fk_data_Metadata {
     bool has_firmware;
     fk_data_Firmware firmware; 
     pb_callback_t generation; 
+    uint64_t record; 
 } fk_data_Metadata;
 
 typedef struct _fk_data_ModuleConfiguration { 
@@ -334,7 +335,7 @@ extern "C" {
 #define fk_data_ModuleInfo_init_default          {0, 0, {{NULL}, NULL}, false, fk_data_ModuleHeader_init_default, false, fk_data_Firmware_init_default, {{NULL}, NULL}, {{NULL}, NULL}, 0, {{NULL}, NULL}}
 #define fk_data_SensorInfo_init_default          {0, {{NULL}, NULL}, {{NULL}, NULL}, 0}
 #define fk_data_Firmware_init_default            {{{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}, 0, {{NULL}, NULL}}
-#define fk_data_Metadata_init_default            {{{NULL}, NULL}, 0, {{NULL}, NULL}, 0, {{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}, false, fk_data_Firmware_init_default, {{NULL}, NULL}}
+#define fk_data_Metadata_init_default            {{{NULL}, NULL}, 0, {{NULL}, NULL}, 0, {{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}, false, fk_data_Firmware_init_default, {{NULL}, NULL}, 0}
 #define fk_data_Status_init_default              {0, 0, 0, 0, 0}
 #define fk_data_LogMessage_init_default          {0, 0, 0, {{NULL}, NULL}, {{NULL}, NULL}}
 #define fk_data_SensorGroup_init_default         {0, {{NULL}, NULL}}
@@ -365,7 +366,7 @@ extern "C" {
 #define fk_data_ModuleInfo_init_zero             {0, 0, {{NULL}, NULL}, false, fk_data_ModuleHeader_init_zero, false, fk_data_Firmware_init_zero, {{NULL}, NULL}, {{NULL}, NULL}, 0, {{NULL}, NULL}}
 #define fk_data_SensorInfo_init_zero             {0, {{NULL}, NULL}, {{NULL}, NULL}, 0}
 #define fk_data_Firmware_init_zero               {{{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}, 0, {{NULL}, NULL}}
-#define fk_data_Metadata_init_zero               {{{NULL}, NULL}, 0, {{NULL}, NULL}, 0, {{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}, false, fk_data_Firmware_init_zero, {{NULL}, NULL}}
+#define fk_data_Metadata_init_zero               {{{NULL}, NULL}, 0, {{NULL}, NULL}, 0, {{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}, false, fk_data_Firmware_init_zero, {{NULL}, NULL}, 0}
 #define fk_data_Status_init_zero                 {0, 0, 0, 0, 0}
 #define fk_data_LogMessage_init_zero             {0, 0, 0, {{NULL}, NULL}, {{NULL}, NULL}}
 #define fk_data_SensorGroup_init_zero            {0, {{NULL}, NULL}}
@@ -497,6 +498,7 @@ extern "C" {
 #define fk_data_Metadata_build_tag               7
 #define fk_data_Metadata_firmware_tag            8
 #define fk_data_Metadata_generation_tag          9
+#define fk_data_Metadata_record_tag              10
 #define fk_data_ModuleConfiguration_calibration_tag 1
 #define fk_data_ModuleInfo_position_tag          1
 #define fk_data_ModuleInfo_address_tag           2
@@ -622,7 +624,8 @@ X(a, CALLBACK, REPEATED, MESSAGE,  sensors,           5) \
 X(a, CALLBACK, REPEATED, MESSAGE,  modules,           6) \
 X(a, CALLBACK, SINGULAR, STRING,   build,             7) \
 X(a, STATIC,   OPTIONAL, MESSAGE,  firmware,          8) \
-X(a, CALLBACK, SINGULAR, BYTES,    generation,        9)
+X(a, CALLBACK, SINGULAR, BYTES,    generation,        9) \
+X(a, STATIC,   SINGULAR, UINT64,   record,           10)
 #define fk_data_Metadata_CALLBACK pb_default_field_callback
 #define fk_data_Metadata_DEFAULT NULL
 #define fk_data_Metadata_sensors_MSGTYPE fk_data_SensorInfo

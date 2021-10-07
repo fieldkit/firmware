@@ -77,6 +77,7 @@ message Metadata {
   repeated ModuleInfo modules = 6;
   Firmware firmware = 8;
   bytes generation = 9;
+  uint64 record = 10;
 }
 
 message Status {

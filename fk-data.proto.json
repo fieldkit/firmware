@@ -239,6 +239,10 @@
             "generation": {
               "type": "bytes",
               "id": 9
+            },
+            "record": {
+              "type": "uint64",
+              "id": 10
             }
           }
         },
