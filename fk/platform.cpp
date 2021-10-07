@@ -208,6 +208,7 @@ void osi_panic(os_panic_kind_t code) {
 }
 
 void osi_hard_fault_report(uintptr_t *stack, uint32_t lr, cortex_hard_fault_t *hfr) {
+#if defined(__SAMD21__) || defined(__SAMD51__)
     alogf(LogLevels::ERROR, "error", "hard fault! stack= 0x%" PRIx32 " lr=0x%" PRIx32 "", (uint32_t)stack, lr);
     alogf(LogLevels::ERROR, "error", "hard fault! mfsr=  0x%" PRIx32 "", (uint32_t)hfr->mfsr.byte);
     alogf(LogLevels::ERROR, "error", "hard fault! mfsr=  0x%" PRIx32 "", (uint32_t)hfr->bfsr.byte);
@@ -225,6 +226,7 @@ void osi_hard_fault_report(uintptr_t *stack, uint32_t lr, cortex_hard_fault_t *h
     alogf(LogLevels::ERROR, "error", "hard fault! lr=    0x%" PRIx32 "", (uint32_t)hfr->registers.LR);
     alogf(LogLevels::ERROR, "error", "hard fault! pc=    0x%" PRIx32 "", (uint32_t)hfr->registers.PC);
     alogf(LogLevels::ERROR, "error", "hard fault! psr=   0x%" PRIx32 "", (uint32_t)hfr->registers.psr.byte);
+#endif // defined(__SAMD21__) || defined(__SAMD51__)
 
 #if defined(__SAMD21__) || defined(__SAMD51__)
     NVIC_SystemReset();
