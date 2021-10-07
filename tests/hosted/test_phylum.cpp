@@ -101,11 +101,11 @@ TEST_F(PhylumSuite, Basic_DataFile_AppendAlways) {
     RecordFaker fake;
     fake.log_message(0);
 
-    ASSERT_EQ(file.append_always(RecordType::Data, fk_data_DataRecord_fields, &fake.record, pool).bytes, 30);
+    ASSERT_EQ(file.append_always(RecordType::Data, fk_data_DataRecord_fields, &fake.record, nullptr, pool).bytes, 30);
 
-    ASSERT_EQ(file.append_always(RecordType::Data, fk_data_DataRecord_fields, &fake.record, pool).bytes, 30);
+    ASSERT_EQ(file.append_always(RecordType::Data, fk_data_DataRecord_fields, &fake.record, nullptr, pool).bytes, 30);
 
-    ASSERT_EQ(file.append_always(RecordType::Data, fk_data_DataRecord_fields, &fake.record, pool).bytes, 30);
+    ASSERT_EQ(file.append_always(RecordType::Data, fk_data_DataRecord_fields, &fake.record, nullptr, pool).bytes, 30);
 
     ASSERT_TRUE(phylum.sync());
 }
@@ -186,7 +186,7 @@ TEST_F(PhylumSuite, Basic_DataFile_Reading_SeekBeginningAndEnd) {
 
         fake.log_message(i);
 
-        auto appended = file.append_always(RecordType::Data, fk_data_DataRecord_fields, &fake.record, loop);
+        auto appended = file.append_always(RecordType::Data, fk_data_DataRecord_fields, &fake.record, nullptr, loop);
         ASSERT_GT(appended.bytes, 0);
 
         total_written += appended.bytes;
@@ -221,7 +221,7 @@ TEST_F(PhylumSuite, Basic_DataFile_Reading_SeekRecords) {
         RecordFaker fake;
         fake.log_message(i);
 
-        auto appended = file.append_always(RecordType::Data, fk_data_DataRecord_fields, &fake.record, loop);
+        auto appended = file.append_always(RecordType::Data, fk_data_DataRecord_fields, &fake.record, nullptr, loop);
         ASSERT_GT(appended.bytes, 0);
 
         total_written += appended.bytes;

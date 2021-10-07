@@ -2,6 +2,7 @@
 
 #include "storage/file_ops.h"
 #include "storage/phylum.h"
+#include "records.h"
 
 namespace fk {
 
@@ -21,14 +22,14 @@ struct records_attribute_t {
     uint32_t nrecords;
 };
 
-#define PHYLUM_DRIVER_FILE_ATTR_RECORDS (0x01)
+#define PHYLUM_DRIVER_FILE_ATTR_RECORDS        (0x01)
 #define PHYLUM_DRIVER_FILE_ATTR_INDEX_LOCATION (0x02)
 #define PHYLUM_DRIVER_FILE_ATTR_INDEX_UPLOADED (0x03)
-#define PHYLUM_DRIVER_FILE_ATTR_INDEX_MODULES (0x04)
+#define PHYLUM_DRIVER_FILE_ATTR_INDEX_MODULES  (0x04)
 #define PHYLUM_DRIVER_FILE_ATTR_INDEX_SCHEDULE (0x05)
-#define PHYLUM_DRIVER_FILE_ATTR_INDEX_STATE (0x06)
-#define PHYLUM_DRIVER_FILE_ATTR_INDEX_DATA (0x07)
-#define PHYLUM_DRIVER_FILE_ATTR_NUMBER (0x07)
+#define PHYLUM_DRIVER_FILE_ATTR_INDEX_STATE    (0x06)
+#define PHYLUM_DRIVER_FILE_ATTR_INDEX_DATA     (0x07)
+#define PHYLUM_DRIVER_FILE_ATTR_NUMBER         (0x07)
 
 static inline uint8_t phylum_file_attr_type_to_index(uint8_t type) {
     return type - 1;
@@ -78,8 +79,8 @@ public:
 
     int32_t open(const char *name, Pool &pool);
     int32_t create(const char *name, Pool &pool);
-    appended_t append_always(RecordType type, pb_msgdesc_t const *fields, void const *record, Pool &pool);
-    appended_t append_immutable(RecordType type, pb_msgdesc_t const *fields, void const *record, Pool &pool);
+    appended_t append_always(RecordType type, pb_msgdesc_t const *fields, fk_data_DataRecord *record, uint8_t const *hash, Pool &pool);
+    appended_t append_immutable(RecordType type, pb_msgdesc_t const *fields, fk_data_DataRecord *record, Pool &pool);
 
 public:
     int32_t seek_record_type(RecordType type, file_size_t &position);
