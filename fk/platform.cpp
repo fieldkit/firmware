@@ -211,12 +211,12 @@ void osi_hard_fault_report(uintptr_t *stack, uint32_t lr, cortex_hard_fault_t *h
 #if defined(__SAMD21__) || defined(__SAMD51__)
     alogf(LogLevels::ERROR, "error", "hard fault! stack= 0x%" PRIx32 " lr=0x%" PRIx32 "", (uint32_t)stack, lr);
     alogf(LogLevels::ERROR, "error", "hard fault! mfsr=  0x%" PRIx32 "", (uint32_t)hfr->mfsr.byte);
-    alogf(LogLevels::ERROR, "error", "hard fault! mfsr=  0x%" PRIx32 "", (uint32_t)hfr->bfsr.byte);
-    alogf(LogLevels::ERROR, "error", "hard fault! mfsr=  0x%" PRIx32 "", (uint32_t)hfr->bfar);
-    alogf(LogLevels::ERROR, "error", "hard fault! mfsr=  0x%" PRIx32 "", (uint32_t)hfr->ufsr.byte);
-    alogf(LogLevels::ERROR, "error", "hard fault! mfsr=  0x%" PRIx32 "", (uint32_t)hfr->hfsr.byte);
-    alogf(LogLevels::ERROR, "error", "hard fault! mfsr=  0x%" PRIx32 "", (uint32_t)hfr->dfsr.byte);
-    alogf(LogLevels::ERROR, "error", "hard fault! mfsr=  0x%" PRIx32 "", (uint32_t)hfr->afsr);
+    alogf(LogLevels::ERROR, "error", "hard fault! bfsr=  0x%" PRIx32 "", (uint32_t)hfr->bfsr.byte);
+    alogf(LogLevels::ERROR, "error", "hard fault! bfar=  0x%" PRIx32 "", (uint32_t)hfr->bfar);
+    alogf(LogLevels::ERROR, "error", "hard fault! ufsr=  0x%" PRIx32 "", (uint32_t)hfr->ufsr.byte);
+    alogf(LogLevels::ERROR, "error", "hard fault! hfsr=  0x%" PRIx32 "", (uint32_t)hfr->hfsr.byte);
+    alogf(LogLevels::ERROR, "error", "hard fault! dfsr=  0x%" PRIx32 "", (uint32_t)hfr->dfsr.byte);
+    alogf(LogLevels::ERROR, "error", "hard fault! afsr=  0x%" PRIx32 "", (uint32_t)hfr->afsr);
 
     alogf(LogLevels::ERROR, "error", "hard fault! r0=    0x%" PRIx32 "", (uint32_t)hfr->registers.R0);
     alogf(LogLevels::ERROR, "error", "hard fault! r1=    0x%" PRIx32 "", (uint32_t)hfr->registers.R1);
