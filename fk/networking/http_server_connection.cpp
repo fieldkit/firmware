@@ -295,8 +295,8 @@ bool HttpServerConnection::service() {
                     return true;
                 }
 
-                loginfo("[%" PRIu32 "] routing '%s' path = '%s' (%" PRIu32 " bytes) ('%s')", number_, req_.url(), path, req_.length(),
-                        req_.user_agent());
+                loginfo("[%" PRIu32 "] routing '%s' qs = '%s' path = '%s' (%" PRIu32 " bytes) ('%s')", number_, req_.url(),
+                        req_.query_string(), path, req_.length(), req_.user_agent());
 
                 auto handler = router_->route(path);
                 if (handler == nullptr) {
