@@ -1055,6 +1055,10 @@
             "time": {
               "type": "uint64",
               "id": 8
+            },
+            "counter": {
+              "type": "uint32",
+              "id": 12
             }
           }
         },

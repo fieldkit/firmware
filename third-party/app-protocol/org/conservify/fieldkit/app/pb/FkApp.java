@@ -25284,6 +25284,12 @@ public final class FkApp {
      * @return The time.
      */
     long getTime();
+
+    /**
+     * <code>uint32 counter = 12;</code>
+     * @return The counter.
+     */
+    int getCounter();
   }
   /**
    * Protobuf type {@code fk_app.HttpQuery}
@@ -25755,6 +25761,32 @@ public final class FkApp {
     private void clearTime() {
       
       time_ = 0L;
+    }
+
+    public static final int COUNTER_FIELD_NUMBER = 12;
+    private int counter_;
+    /**
+     * <code>uint32 counter = 12;</code>
+     * @return The counter.
+     */
+    @java.lang.Override
+    public int getCounter() {
+      return counter_;
+    }
+    /**
+     * <code>uint32 counter = 12;</code>
+     * @param value The counter to set.
+     */
+    private void setCounter(int value) {
+      
+      counter_ = value;
+    }
+    /**
+     * <code>uint32 counter = 12;</code>
+     */
+    private void clearCounter() {
+      
+      counter_ = 0;
     }
 
     public static org.conservify.fieldkit.app.pb.FkApp.HttpQuery parseFrom(
@@ -26330,6 +26362,34 @@ public final class FkApp {
         return this;
       }
 
+      /**
+       * <code>uint32 counter = 12;</code>
+       * @return The counter.
+       */
+      @java.lang.Override
+      public int getCounter() {
+        return instance.getCounter();
+      }
+      /**
+       * <code>uint32 counter = 12;</code>
+       * @param value The counter to set.
+       * @return This builder for chaining.
+       */
+      public Builder setCounter(int value) {
+        copyOnWrite();
+        instance.setCounter(value);
+        return this;
+      }
+      /**
+       * <code>uint32 counter = 12;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearCounter() {
+        copyOnWrite();
+        instance.clearCounter();
+        return this;
+      }
+
       // @@protoc_insertion_point(builder_scope:fk_app.HttpQuery)
     }
     @java.lang.Override
@@ -26357,10 +26417,11 @@ public final class FkApp {
               "locate_",
               "transmission_",
               "directory_",
+              "counter_",
             };
             java.lang.String info =
-                "\u0000\u000b\u0000\u0000\u0001\u000b\u000b\u0000\u0000\u0000\u0001\f\u0002\t\u0003" +
-                "\t\u0004\t\u0005\u000b\u0006\t\u0007\t\b\u0003\t\t\n\t\u000b\t";
+                "\u0000\f\u0000\u0000\u0001\f\f\u0000\u0000\u0000\u0001\f\u0002\t\u0003\t\u0004\t" +
+                "\u0005\u000b\u0006\t\u0007\t\b\u0003\t\t\n\t\u000b\t\f\u000b";
             return newMessageInfo(DEFAULT_INSTANCE, info, objects);
         }
         // fall through

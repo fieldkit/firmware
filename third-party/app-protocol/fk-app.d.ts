@@ -4846,6 +4846,9 @@ export namespace fk_app {
 
         /** HttpQuery time */
         time?: (number|Long);
+
+        /** HttpQuery counter */
+        counter?: number;
     }
 
     /** Represents a HttpQuery. */
@@ -4889,6 +4892,9 @@ export namespace fk_app {
 
         /** HttpQuery time. */
         public time: (number|Long);
+
+        /** HttpQuery counter. */
+        public counter: number;
 
         /**
          * Creates a new HttpQuery instance using the specified properties.
