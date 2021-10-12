@@ -432,6 +432,7 @@ message HttpQuery {
   ListDirectory directory = 11;
   uint32 flags = 5;
   uint64 time = 8;
+  uint32 counter = 12;
 }
 
 message DataStream {
