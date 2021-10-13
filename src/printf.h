@@ -10,10 +10,10 @@
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -35,11 +35,9 @@
 #include <stdarg.h>
 #include <stddef.h>
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 
 /**
  * Tiny sprintf implementation
@@ -48,8 +46,7 @@ extern "C" {
  * \param format A string that specifies the format of the output
  * \return The number of characters that are WRITTEN into the buffer, not counting the terminating null character
  */
-int os_sprintf(char* buffer, const char* format, ...);
-
+int os_sprintf(char *buffer, const char *format, ...);
 
 /**
  * Tiny snprintf/vsnprintf implementation
@@ -59,9 +56,8 @@ int os_sprintf(char* buffer, const char* format, ...);
  * \return The number of characters that are WRITTEN into the buffer, not counting the terminating null character
  *         If the formatted string is truncated the buffer size (count) is returned
  */
-int  os_snprintf(char* buffer, size_t count, const char* format, ...);
-int os_vsnprintf(char* buffer, size_t count, const char* format, va_list va);
-
+int os_snprintf(char *buffer, size_t count, const char *format, ...);
+int os_vsnprintf(char *buffer, size_t count, const char *format, va_list va);
 
 /**
  * printf with output function
@@ -71,12 +67,11 @@ int os_vsnprintf(char* buffer, size_t count, const char* format, va_list va);
  * \param format A string that specifies the format of the output
  * \return The number of characters that are sent to the output function, not counting the terminating null character
  */
-int os_fctprintf(void (*out)(char character, void* arg), void* arg, const char* format, ...);
-int os_vfctprintf(void (*out)(char character, void* arg), void* arg, const char* format, va_list va);
+int os_fctprintf(void (*out)(char character, void *arg), void *arg, const char *format, ...);
+int os_vfctprintf(void (*out)(char character, void *arg), void *arg, const char *format, va_list va);
 
 #ifdef __cplusplus
 }
 #endif
 
-
-#endif  // _PRINTF_H_
+#endif // _PRINTF_H_

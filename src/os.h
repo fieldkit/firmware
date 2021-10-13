@@ -22,19 +22,19 @@
 
 #include "faults.h"
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <string.h>
 #if defined(ARDUINO)
 #include <sam.h>
 #else
 #endif
 
+#include "arduino.h"
+#include "linux.h"
 #include "printf.h"
 #include "segger/SEGGER_RTT.h"
 #include "types.h"
-#include "arduino.h"
-#include "linux.h"
 
 #if defined(__cplusplus)
 extern "C" {
@@ -66,7 +66,7 @@ const char *os_panic_kind_str(os_panic_kind_t kind);
 /**
  * Return the currently executing task.
  */
-#define os_task_self()    ((os_task_t *)osg.running)
+#define os_task_self() ((os_task_t *)osg.running)
 /*
 inline os_task_t *os_task_self() {
     return (os_task_t *)osg.running;
@@ -96,10 +96,8 @@ os_status_t os_configure_hooks(os_task_status_hook_fn_t status_hook, os_logging_
 /**
  *
  */
-os_status_t os_task_initialize(os_task_t *task, const char *name,
-                               os_start_status status,
-                               void (*handler)(void *params), void *params,
-                               uint32_t *stack, size_t stack_size);
+os_status_t os_task_initialize(os_task_t *task, const char *name, os_start_status status, void (*handler)(void *params),
+                               void *params, uint32_t *stack, size_t stack_size);
 
 void *os_task_user_data_get(os_task_t *task);
 

@@ -15,20 +15,18 @@
 
 #include <internal.h>
 
-void PrintTo(os_task_t *task, std::ostream* os) {
+void PrintTo(os_task_t *task, std::ostream *os) {
     if (task == NULL) {
         *os << "<null>";
-    }
-    else {
+    } else {
         *os << "T<'" << task->name << "'>";
     }
 }
 
-void PrintTo(volatile os_task_t *task, std::ostream* os) {
+void PrintTo(volatile os_task_t *task, std::ostream *os) {
     if (task == NULL) {
         *os << "<null>";
-    }
-    else {
+    } else {
         *os << "T<'" << task->name << "'>";
     }
 }
@@ -65,8 +63,10 @@ void tests_dump_runqueue() {
     std::cerr << "osg.rq =";
     for (auto iter = osg.runqueue; iter != NULL; iter = iter->nrp) {
         std::cerr << " T<'" << iter->name << "' " << os_task_status_str(iter->status) << ">";
-        if (osg.running == iter) std::cerr << "*R*";
-        if (osg.scheduled == iter) std::cerr << "*S*";
+        if (osg.running == iter)
+            std::cerr << "*R*";
+        if (osg.scheduled == iter)
+            std::cerr << "*S*";
     }
     std::cerr << std::endl;
 }
@@ -75,8 +75,10 @@ void tests_dump_waitqueue() {
     std::cerr << "osg.wq =";
     for (auto iter = osg.waitqueue; iter != NULL; iter = iter->nrp) {
         std::cerr << " T<'" << iter->name << "' " << os_task_status_str(iter->status) << ">";
-        if (osg.running == iter) std::cerr << "*R*";
-        if (osg.scheduled == iter) std::cerr << "*S*";
+        if (osg.running == iter)
+            std::cerr << "*R*";
+        if (osg.scheduled == iter)
+            std::cerr << "*S*";
     }
     std::cerr << std::endl;
 }
@@ -92,5 +94,4 @@ extern "C" {
 void osi_assert(const char *assertion, const char *file, int line) {
     FAIL() << "Assertion \"" << assertion << "\" failed. File: " << file << " Line: " << line;
 }
-
 }

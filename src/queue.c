@@ -62,12 +62,12 @@ os_tuple_t osi_queue_enqueue_isr(os_queue_t *queue, void *message) {
 
             osi_dispatch_or_queue(blocked_receiver);
 
-            // Manually trigger this since we're inside an arbitrary ISR this won't
-            // necessarily happen. Our SVC handler will check for scheduled/running
-            // changes and do the switch w/o the PendSV.
-            #if defined(__SAMD21__) || defined(__SAMD51__)
+// Manually trigger this since we're inside an arbitrary ISR this won't
+// necessarily happen. Our SVC handler will check for scheduled/running
+// changes and do the switch w/o the PendSV.
+#if defined(__SAMD21__) || defined(__SAMD51__)
             SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
-            #endif
+#endif
 
             return tuple;
         }

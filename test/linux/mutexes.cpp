@@ -9,7 +9,6 @@ class MutexesSuite : public ::testing::Test {
 protected:
     virtual void SetUp();
     virtual void TearDown();
-
 };
 
 void MutexesSuite::SetUp() {

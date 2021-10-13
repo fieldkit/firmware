@@ -4,13 +4,13 @@
 #include <malloc.h>
 #include <sam.h>
 
-#define NUMBER_OF_RECEIVERS            (1)
-#define RECEIVER_PROCESSING_MINIMUM    (50)
-#define RECEIVER_PROCESSING_MAXIMUM    (90)
+#define NUMBER_OF_RECEIVERS         (1)
+#define RECEIVER_PROCESSING_MINIMUM (50)
+#define RECEIVER_PROCESSING_MAXIMUM (90)
 
-#define NUMBER_OF_SENDERS              (1)
-#define SENDER_DELAY_MINIMUM           (100)
-#define SENDER_DELAY_MAXIMUM           (500)
+#define NUMBER_OF_SENDERS    (1)
+#define SENDER_DELAY_MINIMUM (100)
+#define SENDER_DELAY_MAXIMUM (500)
 
 static os_task_t idle_task;
 static os_task_t periodic_task;
@@ -69,8 +69,7 @@ static void task_handler_sender(void *params) {
             auto wms = random(SENDER_DELAY_MINIMUM, SENDER_DELAY_MAXIMUM);
             os_printf("%s: success (%dms)\n" RTT_CTRL_RESET, os_task_name(), wms);
             os_delay(wms);
-        }
-        else {
+        } else {
             auto elapsed = os_uptime() - started;
             os_printf(RTT_CTRL_TEXT_RED "%s: fail (%s) (after %lums)\n" RTT_CTRL_RESET, os_task_name(), os_status_str(status), elapsed);
             free(message);
@@ -99,10 +98,10 @@ static void task_handler_receiver(void *params) {
             os_printf(RTT_CTRL_TEXT_CYAN "%s: success ('%s') (%dms)\n" RTT_CTRL_RESET, os_task_name(), message, wms);
             free((void *)message);
             os_delay(wms);
-        }
-        else {
+        } else {
             auto elapsed = os_uptime() - started;
-            os_printf(RTT_CTRL_TEXT_RED "%s: fail (%s) (after %lums)\n" RTT_CTRL_RESET, os_task_name(), os_status_str(tuple.status), elapsed);
+            os_printf(RTT_CTRL_TEXT_RED "%s: fail (%s) (after %lums)\n" RTT_CTRL_RESET, os_task_name(), os_status_str(tuple.status),
+                      elapsed);
         }
     }
 }
@@ -122,8 +121,7 @@ static void task_handler_periodic(void *params) {
 
         os_printf(RTT_CTRL_TEXT_GREEN "%s releasing\n" RTT_CTRL_RESET, os_task_name());
         OS_CHECK(os_mutex_release(os_mutex(mutex)));
-    }
-    else {
+    } else {
         OS_ASSERT(status == OSS_SUCCESS);
     }
 }
@@ -138,17 +136,18 @@ void setup() {
     // Something goes south with a malloc.
     random(100, 1000);
 
-    #if defined(HSRAM_ADDR)
-    os_printf("starting: %d (0x%p + %lu) (%lu used) (%d)\n", os_free_memory(), HSRAM_ADDR, HSRAM_SIZE, HSRAM_SIZE - os_free_memory(), __get_CONTROL());
-    #else
+#if defined(HSRAM_ADDR)
+    os_printf("starting: %d (0x%p + %lu) (%lu used) (%d)\n", os_free_memory(), HSRAM_ADDR, HSRAM_SIZE, HSRAM_SIZE - os_free_memory(),
+              __get_CONTROL());
+#else
     os_printf("starting: %d\n", os_free_memory());
-    #endif
+#endif
 
-    #if defined(__SAMD51__)
+#if defined(__SAMD51__)
     os_printf("starting: DHCSR = %x\n", CoreDebug->DHCSR);
     os_printf("starting: SystemCoreClock = %lu\n", SystemCoreClock);
     os_printf("starting: SysTick=%lu CYCCNT = %lu\n", SysTick->VAL, DWT->CYCCNT);
-    #endif
+#endif
 
     OS_CHECK(os_initialize());
 
@@ -158,15 +157,8 @@ void setup() {
         char temp[32];
         os_snprintf(temp, sizeof(temp), "receiver-%d", i);
 
-        os_task_options_t receiver_task_options = {
-            strdup(temp),
-            OS_TASK_START_RUNNING,
-            task_handler_receiver,
-            nullptr,
-            receiver_stacks[i],
-            sizeof(receiver_stacks[i]),
-            OS_PRIORITY_NORMAL - 4
-        };
+        os_task_options_t receiver_task_options = { strdup(temp),       OS_TASK_START_RUNNING,      task_handler_receiver, nullptr,
+                                                    receiver_stacks[i], sizeof(receiver_stacks[i]), OS_PRIORITY_NORMAL - 4 };
 
         OS_CHECK(os_task_initialize_options(&receiver_tasks[i], &receiver_task_options));
     }
@@ -174,18 +166,12 @@ void setup() {
     for (auto i = 0; i < NUMBER_OF_SENDERS; ++i) {
         char temp[32];
         os_snprintf(temp, sizeof(temp), "sender-%d", i);
-        OS_CHECK(os_task_initialize(&sender_tasks[i], strdup(temp), OS_TASK_START_RUNNING, &task_handler_sender, NULL, sender_stacks[i], sizeof(sender_stacks[i])));
+        OS_CHECK(os_task_initialize(&sender_tasks[i], strdup(temp), OS_TASK_START_RUNNING, &task_handler_sender, NULL, sender_stacks[i],
+                                    sizeof(sender_stacks[i])));
     }
 
-    os_task_options_t periodic_task_options = {
-        "periodic",
-        OS_TASK_START_SUSPENDED,
-        task_handler_periodic,
-        nullptr,
-        periodic_stack,
-        sizeof(periodic_stack),
-        OS_PRIORITY_NORMAL
-    };
+    os_task_options_t periodic_task_options = { "periodic",     OS_TASK_START_SUSPENDED, task_handler_periodic, nullptr,
+                                                periodic_stack, sizeof(periodic_stack),  OS_PRIORITY_NORMAL };
     OS_CHECK(os_task_initialize_options(&periodic_task, &periodic_task_options));
 
     OS_CHECK(os_queue_create(os_queue(queue), os_queue_def(queue)));
@@ -195,5 +181,6 @@ void setup() {
 }
 
 void loop() {
-    while (1);
+    while (1)
+        ;
 }

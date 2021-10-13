@@ -23,11 +23,11 @@ extern "C" {
 
 static void serial_putchar(char c, void *arg) {
     if (c != 0) {
-        #if defined(OS_CONFIG_DEBUG_RTT)
+#if defined(OS_CONFIG_DEBUG_RTT)
         SEGGER_RTT_PutChar(0, c);
-        #else
+#else
         Serial.print(c);
-        #endif
+#endif
     }
 }
 
@@ -70,7 +70,6 @@ int32_t sysTickHook(void) {
 
     return 1;
 }
-
 }
 
 #endif

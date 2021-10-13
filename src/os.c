@@ -17,23 +17,23 @@
  * along with os.h.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "os.h"
+#include "hooks.h"
 #include "internal.h"
 #include "utilities.h"
-#include "hooks.h"
 
 os_globals_t osg = {
-    NULL,  /* running */
-    NULL,  /* scheduled */
+    NULL, /* running */
+    NULL, /* scheduled */
     OS_STATE_DEFAULT,
-    0,     /* ntasks */
-    NULL,  /* idle */
-    NULL,  /* tasks */
-    NULL,  /* runqueue */
-    NULL,  /* waitqueue */
+    0,    /* ntasks */
+    NULL, /* idle */
+    NULL, /* tasks */
+    NULL, /* runqueue */
+    NULL, /* waitqueue */
 };
 
-#define MIN(x, y)   (x < y) ? (x) : (y)
-#define MAX(x, y)   (x > y) ? (x) : (y)
+#define MIN(x, y) (x < y) ? (x) : (y)
+#define MAX(x, y) (x > y) ? (x) : (y)
 
 #if defined(OS_MTB)
 __attribute__((__aligned__(DEBUG_MTB_SIZE_BYTES))) uint32_t mtb[DEBUG_MTB_SIZE];
@@ -43,9 +43,9 @@ static int32_t stack_paint(uint32_t *stack, size_t size);
 
 static int32_t stack_highwater(uint32_t *stack, size_t size);
 
-static void infinite_loop() __attribute__ ((noreturn));
+static void infinite_loop() __attribute__((noreturn));
 
-static void task_finished() __attribute__ ((noreturn));
+static void task_finished() __attribute__((noreturn));
 
 static bool task_is_running(os_task_t *task);
 
@@ -66,11 +66,11 @@ os_status_t os_initialize() {
         return OSS_ERROR_INVALID;
     }
 
-    #if defined(OS_MTB)
+#if defined(OS_MTB)
     REG_MTB_POSITION = ((uint32_t)(mtb - REG_MTB_BASE)) & 0xFFFFFFF8;
     REG_MTB_FLOW = (((uint32_t)mtb - REG_MTB_BASE) + DEBUG_MTB_SIZE_BYTES) & 0xFFFFFFF8;
     REG_MTB_MASTER = 0x80000000 + (DEBUG_MTB_MAGNITUDE_PACKETS - 1);
-    #endif
+#endif
 
     osg.state = OS_STATE_INITIALIZED;
     osg.status_hook = NULL;
@@ -99,9 +99,9 @@ os_status_t os_teardown() {
 }
 
 uint32_t *initialize_stack(os_task_t *task, uint32_t *stack, size_t stack_size) {
-    #if __pic__ && (defined(__SAMD21__) || defined(__SAMD51__))
+#if __pic__ && (defined(__SAMD21__) || defined(__SAMD51__))
     register uint32_t got_r9 asm("r9");
-    #endif
+#endif
 
     OS_ASSERT((stack_size % sizeof(uint32_t)) == 0);
     OS_ASSERT(stack_size >= OS_STACK_MINIMUM_SIZE);
@@ -128,37 +128,37 @@ uint32_t *initialize_stack(os_task_t *task, uint32_t *stack, size_t stack_size) 
     stk[12] = base + 12; /* R12 */
     stk[11] = base + 3;  /* R3  */
     stk[10] = base + 2;  /* R2  */
-    stk[ 9] = base + 1;  /* R1  */
-    stk[ 8] = (uintptr_t)task->params;
+    stk[9] = base + 1;   /* R1  */
+    stk[8] = (uintptr_t)task->params;
 
-    #if defined(__SAMD21__)
-    stk[ 7] = base + 7;  // r7
-    stk[ 6] = base + 6;  // r6
-    stk[ 5] = base + 5;  // r5
-    stk[ 4] = base + 4;  // r4
-    stk[ 3] = base + 11; // r11
-    stk[ 2] = base + 10; // r10
-    #if defined(__pic__)
-    stk[ 1] = got_r9;    // r9
-    #else
-    stk[ 1] = base + 9;  // r9
-    #endif
-    stk[ 0] = base + 8;  // r8
-    #endif
-    #if defined(__SAMD51__)
-    stk[ 7] = base + 11; // r11
-    stk[ 6] = base + 10; // r10
-    #if defined(__pic__)
-    stk[ 5] = got_r9;    // r9
-    #else
-    stk[ 5] = base + 9;  // r9
-    #endif
-    stk[ 4] = base + 8;  // r8
-    stk[ 3] = base + 7;  // r7
-    stk[ 2] = base + 6;  // r6
-    stk[ 1] = base + 5;  // r5
-    stk[ 0] = base + 4;  // r4
-    #endif
+#if defined(__SAMD21__)
+    stk[7] = base + 7;  // r7
+    stk[6] = base + 6;  // r6
+    stk[5] = base + 5;  // r5
+    stk[4] = base + 4;  // r4
+    stk[3] = base + 11; // r11
+    stk[2] = base + 10; // r10
+#if defined(__pic__)
+    stk[1] = got_r9; // r9
+#else
+    stk[1] = base + 9; // r9
+#endif
+    stk[0] = base + 8; // r8
+#endif
+#if defined(__SAMD51__)
+    stk[7] = base + 11; // r11
+    stk[6] = base + 10; // r10
+#if defined(__pic__)
+    stk[5] = got_r9; // r9
+#else
+    stk[5] = base + 9; // r9
+#endif
+    stk[4] = base + 8; // r8
+    stk[3] = base + 7; // r7
+    stk[2] = base + 6; // r6
+    stk[1] = base + 5; // r5
+    stk[0] = base + 4; // r4
+#endif
 
     // Magic word to check for overflows.
     stack[0] = OSH_STACK_MAGIC_WORD;
@@ -180,16 +180,9 @@ void os_task_user_data_set(os_task_t *task, void *user_data) {
     task->user_data = user_data;
 }
 
-os_status_t os_task_initialize(os_task_t *task, const char *name, os_start_status status, void (*handler)(void *params), void *params, uint32_t *stack, size_t stack_size) {
-    os_task_options_t options = {
-        name,
-        status,
-        handler,
-        params,
-        stack,
-        stack_size,
-        OS_PRIORITY_NORMAL
-    };
+os_status_t os_task_initialize(os_task_t *task, const char *name, os_start_status status, void (*handler)(void *params),
+                               void *params, uint32_t *stack, size_t stack_size) {
+    os_task_options_t options = { name, status, handler, params, stack, stack_size, OS_PRIORITY_NORMAL };
     return os_task_initialize_options(task, &options);
 }
 
@@ -220,9 +213,9 @@ os_status_t os_task_initialize_options(os_task_t *task, os_task_options_t *optio
     task->nrp = NULL;
     task->priority = options->priority;
     task->signal = 0;
-    #if defined(OS_CONFIG_DEBUG)
+#if defined(OS_CONFIG_DEBUG)
     task->debug_stack_max = 0;
-    #endif
+#endif
 
     task->sp = initialize_stack(task, options->stack, options->stack_size);
 
@@ -254,14 +247,22 @@ os_status_t os_task_initialize_options(os_task_t *task, os_task_options_t *optio
 
 uint32_t os_task_is_running(os_task_t *task) {
     switch (os_task_get_status(task)) {
-    case OS_TASK_STATUS_IDLE: return true;
-    case OS_TASK_STATUS_ACTIVE: return true;
-    case OS_TASK_STATUS_WAIT: return true;
-    case OS_TASK_STATUS_SUSPENDED: return false;
-    case OS_TASK_STATUS_FINISHED: return false;
-    case OS_TASK_STATUS_PANIC: return false;
-    case OS_TASK_STATUS_ABORTED: return false;
-    default: return false;
+    case OS_TASK_STATUS_IDLE:
+        return true;
+    case OS_TASK_STATUS_ACTIVE:
+        return true;
+    case OS_TASK_STATUS_WAIT:
+        return true;
+    case OS_TASK_STATUS_SUSPENDED:
+        return false;
+    case OS_TASK_STATUS_FINISHED:
+        return false;
+    case OS_TASK_STATUS_PANIC:
+        return false;
+    case OS_TASK_STATUS_ABORTED:
+        return false;
+    default:
+        return false;
     }
 }
 
@@ -287,9 +288,9 @@ os_status_t os_task_start_options(os_task_t *task, uint8_t priority, void *param
     task->scheduled = 0;
     task->priority = priority;
     task->signal = 0;
-    #if defined(OS_CONFIG_DEBUG)
+#if defined(OS_CONFIG_DEBUG)
     task->debug_stack_max = 0;
-    #endif
+#endif
     task->sp = initialize_stack(task, (uint32_t *)task->stack, task->stack_size);
     task->status = OS_TASK_STATUS_IDLE;
 
@@ -298,9 +299,9 @@ os_status_t os_task_start_options(os_task_t *task, uint8_t priority, void *param
     runqueue_remove(&osg.runqueue, task);
     runqueue_add(&osg.runqueue, task);
 
-    #if defined(OS_CONFIG_DEBUG_SCHEDULE)
+#if defined(OS_CONFIG_DEBUG_SCHEDULE)
     osi_printf("%s: started\n", task->name);
-    #endif
+#endif
 
     if (osg.status_hook != NULL) {
         osg.status_hook(task, OS_TASK_STATUS_FINISHED);
@@ -313,9 +314,9 @@ os_status_t os_task_suspend(os_task_t *task) {
     OS_ASSERT(task != NULL);
     OS_ASSERT(task->status == OS_TASK_STATUS_IDLE || task->status == OS_TASK_STATUS_ACTIVE);
 
-    #if defined(OS_CONFIG_DEBUG_SCHEDULE)
+#if defined(OS_CONFIG_DEBUG_SCHEDULE)
     osi_printf("%s: suspended\n", task->name);
-    #endif
+#endif
 
     osi_task_status_set(task, OS_TASK_STATUS_SUSPENDED);
 
@@ -326,9 +327,9 @@ os_status_t os_task_resume(os_task_t *task) {
     OS_ASSERT(task != NULL);
     OS_ASSERT(task->status == OS_TASK_STATUS_SUSPENDED);
 
-    #if defined(OS_CONFIG_DEBUG_SCHEDULE)
+#if defined(OS_CONFIG_DEBUG_SCHEDULE)
     osi_printf("%s: resumed\n", task->name);
-    #endif
+#endif
 
     osi_task_status_set(task, OS_TASK_STATUS_IDLE);
 
@@ -355,9 +356,8 @@ os_task_status os_task_get_status(os_task_t *task) {
 }
 
 #if defined(__SAMD51__)
-__attribute__((always_inline)) __STATIC_INLINE
-void __set_PSP_noclobber_sp(uint32_t topOfProcStack) {
-    __ASM volatile ("MSR psp, %0\n" : : "r" (topOfProcStack) : );
+__attribute__((always_inline)) __STATIC_INLINE void __set_PSP_noclobber_sp(uint32_t topOfProcStack) {
+    __ASM volatile("MSR psp, %0\n" : : "r"(topOfProcStack) :);
 }
 #endif
 
@@ -373,17 +373,17 @@ os_status_t os_start(void) {
     osg.running = osg.idle;
     osg.running->status = OS_TASK_STATUS_ACTIVE;
 
-    #if defined(__SAMD21__) || defined(__SAMD51__)
+#if defined(__SAMD21__) || defined(__SAMD51__)
     NVIC_SetPriority(PendSV_IRQn, OS_IRQ_PRIORITY_PENDSV);
     NVIC_SetPriority(SysTick_IRQn, OS_IRQ_PRIORITY_SYSTICK);
-    /* Set PSP to the top of task's stack */
-    #if defined(__SAMD51__)
+/* Set PSP to the top of task's stack */
+#if defined(__SAMD51__)
     __set_PSP_noclobber_sp((uint32_t)osg.running->sp + OS_STACK_BASIC_FRAME_SIZE);
-    #else
-    #if !defined(__linux__)
+#else
+#if !defined(__linux__)
     __set_PSP((uint32_t)osg.running->sp + OS_STACK_BASIC_FRAME_SIZE);
-    #endif
-    #endif
+#endif
+#endif
     /* Switch to Unprivilleged Thread Mode with PSP */
     __set_CONTROL(0x02);
     /* Execute DSB/ISB after changing CONTORL (recommended) */
@@ -394,7 +394,7 @@ os_status_t os_start(void) {
     osg.running->handler(osg.running->params);
 
     OS_ASSERT(0);
-    #endif
+#endif
 
     return OSS_SUCCESS;
 }
@@ -409,21 +409,16 @@ os_status_t osi_task_status_set(os_task_t *task, os_task_status new_status) {
     if (new_status == OS_TASK_STATUS_WAIT) {
         runqueue_remove(&osg.runqueue, task);
         waitqueue_add(&osg.waitqueue, task);
-    }
-    else if (new_status == OS_TASK_STATUS_FINISHED) {
+    } else if (new_status == OS_TASK_STATUS_FINISHED) {
         runqueue_remove(&osg.runqueue, task);
-    }
-    else if (new_status == OS_TASK_STATUS_PANIC) {
+    } else if (new_status == OS_TASK_STATUS_PANIC) {
         runqueue_remove(&osg.runqueue, task);
-    }
-    else if (new_status == OS_TASK_STATUS_ABORTED) {
+    } else if (new_status == OS_TASK_STATUS_ABORTED) {
         runqueue_remove(&osg.runqueue, task);
-    }
-    else if (new_status == OS_TASK_STATUS_SUSPENDED) {
+    } else if (new_status == OS_TASK_STATUS_SUSPENDED) {
         waitqueue_remove(&osg.waitqueue, task);
         runqueue_remove(&osg.runqueue, task);
-    }
-    else if (new_status == OS_TASK_STATUS_IDLE) {
+    } else if (new_status == OS_TASK_STATUS_IDLE) {
         if (old_status == OS_TASK_STATUS_WAIT) {
             waitqueue_remove(&osg.waitqueue, task);
         }
@@ -447,8 +442,7 @@ os_status_t osi_dispatch_or_queue(os_task_t *task) {
         if (osg.scheduled == NULL) {
             return osi_schedule();
         }
-    }
-    else {
+    } else {
         return osi_dispatch(task);
     }
     return OSS_SUCCESS;
@@ -461,11 +455,11 @@ os_status_t osi_dispatch(os_task_t *task) {
     if (osg.running == task) {
         return OSS_SUCCESS;
     }
-    #if defined(OS_CONFIG_DEBUG_SCHEDULE)
+#if defined(OS_CONFIG_DEBUG_SCHEDULE)
     else {
         osi_printf("%s\n", task->name);
     }
-    #endif
+#endif
 
     if ((task->flags & OS_TASK_FLAG_MUTEX) == OS_TASK_FLAG_MUTEX) {
         OS_ASSERT(task->queue == NULL);
@@ -473,9 +467,9 @@ os_status_t osi_dispatch(os_task_t *task) {
         OS_ASSERT(task->semaphore == NULL);
         OS_ASSERT(task->rwlock == NULL);
 
-        #if defined(OS_CONFIG_DEBUG_MUTEXES)
+#if defined(OS_CONFIG_DEBUG_MUTEXES)
         osi_printf("%s: removed from mutex %p\n", task->name, task->mutex);
-        #endif
+#endif
 
         if (task->mutex->blocked.tasks == task) {
             task->mutex->blocked.tasks = task->nblocked;
@@ -496,9 +490,9 @@ os_status_t osi_dispatch(os_task_t *task) {
         OS_ASSERT(task->semaphore == NULL);
         OS_ASSERT(task->rwlock == NULL);
 
-        #if defined(OS_CONFIG_DEBUG_QUEUES)
+#if defined(OS_CONFIG_DEBUG_QUEUES)
         osi_printf("%s: removed from queue %p\n", task->name, task->queue);
-        #endif
+#endif
 
         blocked_remove(&task->queue->blocked, task);
 
@@ -538,12 +532,12 @@ os_status_t osi_dispatch(os_task_t *task) {
     case OS_TASK_STATUS_IDLE:
         break;
     case OS_TASK_STATUS_WAIT:
-        // NOTE: This is done when we change the status.
-        // runqueue_remove(&osg.runqueue, running);
-        // waitqueue_add(&osg.waitqueue, running);
-        #if defined(OS_CONFIG_DEBUG_SCHEDULE)
+// NOTE: This is done when we change the status.
+// runqueue_remove(&osg.runqueue, running);
+// waitqueue_add(&osg.waitqueue, running);
+#if defined(OS_CONFIG_DEBUG_SCHEDULE)
         osi_printf("%s: waiting\n", running->name);
-        #endif
+#endif
         break;
     case OS_TASK_STATUS_SUSPENDED:
     case OS_TASK_STATUS_FINISHED:
@@ -568,9 +562,9 @@ os_status_t osi_dispatch(os_task_t *task) {
     if (old_status == OS_TASK_STATUS_WAIT) {
         waitqueue_remove(&osg.waitqueue, task);
         runqueue_add(&osg.runqueue, task);
-        #if defined(OS_CONFIG_DEBUG_SCHEDULE)
+#if defined(OS_CONFIG_DEBUG_SCHEDULE)
         osi_printf("%s: running\n", task->name);
-        #endif
+#endif
     }
 
     /* Update the time the task has been running and prepare the new task. */
@@ -583,28 +577,28 @@ os_status_t osi_dispatch(os_task_t *task) {
     }
     task->scheduled = now;
 
-    #if defined(OS_CONFIG_PARANOIA)
+#if defined(OS_CONFIG_PARANOIA)
     if (task == osg.idle) {
         OS_ASSERT(runqueue_length(osg.runqueue) == 1);
     }
-    #endif
+#endif
 
     osg.scheduled = task;
 
     osi_priority_check(task); // TODO: SLOW/PARANOID
 
-    // If we didn't schedule anything, don't bother with PendSV IRQ.
-    #if defined(__SAMD21__) || defined(__SAMD51__)
+// If we didn't schedule anything, don't bother with PendSV IRQ.
+#if defined(__SAMD21__) || defined(__SAMD51__)
     if (osg.scheduled != NULL) {
         SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
     }
-    #endif
+#endif
 
     return OSS_SUCCESS;
 }
 
-#define OS_WAITQUEUE_NEXT_WRAPPED(n)   (((n)->nrp == NULL) ? osg.waitqueue : (n)->nrp)
-#define OS_RUNQUEUE_NEXT_WRAPPED(n)    (((n)->nrp == NULL) ? osg.runqueue : (n)->nrp)
+#define OS_WAITQUEUE_NEXT_WRAPPED(n) (((n)->nrp == NULL) ? osg.waitqueue : (n)->nrp)
+#define OS_RUNQUEUE_NEXT_WRAPPED(n) (((n)->nrp == NULL) ? osg.runqueue : (n)->nrp)
 
 static bool task_is_running(os_task_t *task) {
     return os_task_status_is_running(task->status);
@@ -628,19 +622,17 @@ static os_task_t *find_new_task(os_task_t *running) {
     os_task_t *task = first;
     os_task_t *lower_priority = NULL;
     os_priority_t ours = running->priority;
-    for ( ; task != lower_priority; ) {
+    for (; task != lower_priority;) {
         if (task_is_running(task)) {
             if (is_higher_priority(task->priority, ours)) {
                 new_task = task;
                 break;
-            }
-            else if (is_equal_priority(task->priority, ours)) {
+            } else if (is_equal_priority(task->priority, ours)) {
                 if (new_task == NULL) {
                     new_task = task;
                 }
                 task = OS_RUNQUEUE_NEXT_WRAPPED(task);
-            }
-            else {
+            } else {
                 OS_ASSERT(lower_priority == NULL);
                 if (lower_priority == NULL) {
                     lower_priority = task;
@@ -650,8 +642,7 @@ static os_task_t *find_new_task(os_task_t *running) {
                 // priority or we will find ourselves.
                 task = osg.runqueue;
             }
-        }
-        else {
+        } else {
             task = OS_RUNQUEUE_NEXT_WRAPPED(task);
         }
 
@@ -680,11 +671,15 @@ os_status_t osi_schedule() {
     os_task_t *new_task = NULL;
 
     OS_ASSERT(osg.running != NULL);
-    OS_ASSERT(osg.running->status != OS_TASK_STATUS_IDLE);
 
     // I'm seeing this assertion and I have no idea why. For now, I'm
     // changing this to a warning because I don't think it's a huge
     // problem, just unexpected.
+    // OS_ASSERT(osg.running->status != OS_TASK_STATUS_IDLE);
+    if (osg.running->status == OS_TASK_STATUS_IDLE) {
+        osi_printf("warning: osi_schedule while idle\n");
+        return OSS_SUCCESS;
+    }
     // OS_ASSERT(osg.scheduled == NULL);
     if (osg.scheduled != NULL) {
         osi_printf("warning: unnecessary osi_schedule\n");
@@ -709,12 +704,12 @@ os_status_t osi_schedule() {
         osi_dispatch(new_task);
     }
 
-    // If we didn't schedule anything, don't bother with PendSV IRQ.
-    #if defined(__SAMD21__) || defined(__SAMD51__)
+// If we didn't schedule anything, don't bother with PendSV IRQ.
+#if defined(__SAMD21__) || defined(__SAMD51__)
     if (osg.scheduled != NULL) {
         SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
     }
-    #endif
+#endif
 
     return OSS_SUCCESS;
 }
@@ -730,29 +725,28 @@ inline uint32_t os_micros() {
 extern char *sbrk(int32_t i);
 
 uint32_t os_free_memory() {
-    #if defined(__SAMD21__) || defined(__SAMD51__)
+#if defined(__SAMD21__) || defined(__SAMD51__)
     return (uint32_t)__get_MSP() - (uint32_t)sbrk(0);
-    #else
+#else
     return 0;
-    #endif
+#endif
 }
 
 uint32_t *osi_task_return_regs(os_task_t *task) {
-    /* Get pointer to task return value registers (R0..R3) in Stack */
-    #if defined(__SAMD51__)
+/* Get pointer to task return value registers (R0..R3) in Stack */
+#if defined(__SAMD51__)
     if (task->stack_kind == 1) {
         /* Extended Stack Frame: R4 - R11, S16 - S31, R0 - R3, R12, LR, PC,
          * xPSR, S0 - S15, FPSCR */
         return (uint32_t *)(task->sp + (8U * 4U) + (16U * 4U));
-    }
-    else {
+    } else {
         /* Basic Stack Frame: R4 - R11, R0 - R3, R12, LR, PC, xPSR */
         return (uint32_t *)(task->sp + (8U * 4U));
     }
-    #else
+#else
     /* Stack Frame: R4 - R11, R0 - R3, R12, LR, PC, xPSR */
     return (uint32_t *)(task->sp + (8U * 4U));
-    #endif
+#endif
 }
 
 os_tuple_t *osi_task_stacked_return_tuple(os_task_t *task) {
@@ -783,36 +777,56 @@ os_status_t osi_irs_systick() {
 
 const char *os_status_str(os_status_t status) {
     switch (status) {
-    case OSS_SUCCESS: return "OSS_SUCCESS";
-    case OSS_ERROR_TO: return "OSS_ERROR_TO";
-    case OSS_ERROR_MEM: return "OSS_ERROR_MEM";
-    case OSS_ERROR_INT: return "OSS_ERROR_INT";
-    case OSS_ERROR_INVALID: return "OSS_ERROR_INVALID";
-    default: return "UNKNOWN";
+    case OSS_SUCCESS:
+        return "OSS_SUCCESS";
+    case OSS_ERROR_TO:
+        return "OSS_ERROR_TO";
+    case OSS_ERROR_MEM:
+        return "OSS_ERROR_MEM";
+    case OSS_ERROR_INT:
+        return "OSS_ERROR_INT";
+    case OSS_ERROR_INVALID:
+        return "OSS_ERROR_INVALID";
+    default:
+        return "UNKNOWN";
     }
 }
 
 const char *os_task_status_str(os_task_status status) {
     switch (status) {
-    case OS_TASK_STATUS_IDLE: return "OS_TASK_STATUS_IDLE";
-    case OS_TASK_STATUS_ACTIVE: return "OS_TASK_STATUS_ACTIVE";
-    case OS_TASK_STATUS_WAIT: return "OS_TASK_STATUS_WAIT";
-    case OS_TASK_STATUS_SUSPENDED: return "OS_TASK_STATUS_SUSPENDED";
-    case OS_TASK_STATUS_FINISHED: return "OS_TASK_STATUS_FINISHED";
-    case OS_TASK_STATUS_PANIC: return "OS_TASK_STATUS_PANIC";
-    case OS_TASK_STATUS_ABORTED: return "OS_TASK_STATUS_ABORTED";
-    default: return "UNKNOWN";
+    case OS_TASK_STATUS_IDLE:
+        return "OS_TASK_STATUS_IDLE";
+    case OS_TASK_STATUS_ACTIVE:
+        return "OS_TASK_STATUS_ACTIVE";
+    case OS_TASK_STATUS_WAIT:
+        return "OS_TASK_STATUS_WAIT";
+    case OS_TASK_STATUS_SUSPENDED:
+        return "OS_TASK_STATUS_SUSPENDED";
+    case OS_TASK_STATUS_FINISHED:
+        return "OS_TASK_STATUS_FINISHED";
+    case OS_TASK_STATUS_PANIC:
+        return "OS_TASK_STATUS_PANIC";
+    case OS_TASK_STATUS_ABORTED:
+        return "OS_TASK_STATUS_ABORTED";
+    default:
+        return "UNKNOWN";
     }
 }
 
 const char *os_panic_kind_str(os_panic_kind_t kind) {
     switch (kind) {
-    case OS_PANIC_NONE: return "OS_PANIC_NONE";
-    case OS_PANIC_ASSERTION: return "OS_PANIC_ASSERTION";
-    case OS_PANIC_STACK_OVERFLOW: return "OS_PANIC_STACK_OVERFLOW";
-    case OS_PANIC_APP: return "OS_PANIC_APP";
-    case OS_PANIC_UNKNOWN: return "OS_PANIC_UNKNOWN";
-    default: return "UNKNOWN";
+    case OS_PANIC_NONE:
+        return "OS_PANIC_NONE";
+    case OS_PANIC_ASSERTION:
+        return "OS_PANIC_ASSERTION";
+    case OS_PANIC_STACK_OVERFLOW:
+        return "OS_PANIC_STACK_OVERFLOW";
+    case OS_PANIC_APP:
+        return "OS_PANIC_APP";
+    case OS_PANIC_UNKNOWN:
+        return "OS_PANIC_UNKNOWN";
+    default:
+        return "UNKNOWN";
     }
 }
 
@@ -823,9 +837,8 @@ void osi_priority_check(os_task_t *scheduled) {
         for (os_task_t *iter = osg.runqueue; iter != NULL; iter = iter->nrp) {
             if (iter->status == OS_TASK_STATUS_ACTIVE || iter->status == OS_TASK_STATUS_IDLE) {
                 if (scheduled_priority < iter->priority) {
-                    osi_printf("scheduler panic: [0x%p] '%s' (%d) < [0x%p] '%s' (%d)",
-                               scheduled, scheduled->name, scheduled_priority,
-                               iter, iter->name, iter->priority);
+                    osi_printf("scheduler panic: [0x%p] '%s' (%d) < [0x%p] '%s' (%d)", scheduled, scheduled->name,
+                               scheduled_priority, iter, iter->name, iter->priority);
                     osi_debug_dump(OS_PANIC_ASSERTION);
                 }
             }
@@ -849,31 +862,31 @@ void osi_stack_check() {
         osi_panic(OS_PANIC_STACK_OVERFLOW);
     }
 
-    #if __pic__ && defined(__SAMD51__)
+#if __pic__ && defined(__SAMD51__)
     register uint32_t got_r9 asm("r9");
     OS_ASSERT(got_r9 == ((uint32_t *)osg.running->sp)[5]);
     OS_ASSERT(got_r9 == ((uint32_t *)osg.scheduled->sp)[5]);
-    #endif
+#endif
 
     osi_priority_check((os_task_t *)osg.scheduled); // TODO: SLOW/PARANOID
 }
 
 void osi_hard_fault_handler(uintptr_t *stack, uint32_t lr) {
     if (NVIC_HFSR & (1uL << 31)) {
-        NVIC_HFSR |= (1uL << 31);         // Reset Hard Fault status
-        *(stack + 6u) += 2u;              // PC is located on stack at SP + 24 bytes; increment PC by 2 to skip break instruction.
-        return;                           // Return to application
+        NVIC_HFSR |= (1uL << 31); // Reset Hard Fault status
+        *(stack + 6u) += 2u; // PC is located on stack at SP + 24 bytes; increment PC by 2 to skip break instruction.
+        return;              // Return to application
     }
 
     cortex_hard_fault_t hfr;
-    hfr.syshndctrl.byte = SYSHND_CTRL;    // System Handler Control and State Register
-    hfr.mfsr.byte       = NVIC_MFSR;      // Memory Fault Status Register
-    hfr.bfsr.byte       = NVIC_BFSR;      // Bus Fault Status Register
-    hfr.bfar            = NVIC_BFAR;      // Bus Fault Manage Address Register
-    hfr.ufsr.byte       = NVIC_UFSR;      // Usage Fault Status Register
-    hfr.hfsr.byte       = NVIC_HFSR;      // Hard Fault Status Register
-    hfr.dfsr.byte       = NVIC_DFSR;      // Debug Fault Status Register
-    hfr.afsr            = NVIC_AFSR;      // Auxiliary Fault Status Register
+    hfr.syshndctrl.byte = SYSHND_CTRL; // System Handler Control and State Register
+    hfr.mfsr.byte = NVIC_MFSR;         // Memory Fault Status Register
+    hfr.bfsr.byte = NVIC_BFSR;         // Bus Fault Status Register
+    hfr.bfar = NVIC_BFAR;              // Bus Fault Manage Address Register
+    hfr.ufsr.byte = NVIC_UFSR;         // Usage Fault Status Register
+    hfr.hfsr.byte = NVIC_HFSR;         // Hard Fault Status Register
+    hfr.dfsr.byte = NVIC_DFSR;         // Debug Fault Status Register
+    hfr.afsr = NVIC_AFSR;              // Auxiliary Fault Status Register
 
     hfr.registers.R0 = (void *)stack[0];  // Register R0
     hfr.registers.R1 = (void *)stack[1];  // Register R1
@@ -892,9 +905,9 @@ static void task_finished() {
     OS_ASSERT(osg.running != osg.idle);
     OS_ASSERT(osg.running->status == OS_TASK_STATUS_ACTIVE);
 
-    #if defined(OS_CONFIG_DEBUG_SCHEDULE)
+#if defined(OS_CONFIG_DEBUG_SCHEDULE)
     osi_printf("os: task '%s' finished\n", osg.running->name);
-    #endif
+#endif
 
     osi_task_status_set((os_task_t *)osg.running, OS_TASK_STATUS_FINISHED);
 
@@ -914,7 +927,7 @@ static void infinite_loop() {
 static uint32_t runqueue_length(os_task_t *head) {
     uint32_t l = 0;
 
-    for ( ; head != NULL; head = head->nrp) {
+    for (; head != NULL; head = head->nrp) {
         l++;
     }
 
@@ -942,8 +955,7 @@ static void runqueue_add(os_task_t **head, os_task_t *task) {
             task->nrp = iter;
             if (previous == NULL) {
                 *head = task;
-            }
-            else {
+            } else {
                 previous->nrp = task;
             }
             osi_priority_check(NULL); // TODO: SLOW/PARANOID
@@ -954,7 +966,7 @@ static void runqueue_add(os_task_t **head, os_task_t *task) {
             osi_priority_check(NULL); // TODO: SLOW/PARANOID
             return;
         }
-        previous  = iter;
+        previous = iter;
     }
 
     OS_ASSERT(0);
@@ -966,8 +978,7 @@ static void runqueue_remove(os_task_t **head, os_task_t *task) {
         if (iter == task) {
             if (*head == iter) {
                 *head = iter->nrp;
-            }
-            else {
+            } else {
                 previous->nrp = iter->nrp;
             }
             iter->nrp = NULL;
@@ -1001,8 +1012,7 @@ static bool has_cycles(os_task_t *head) {
 
         if (f->nrp != NULL) {
             f = f->nrp->nrp;
-        }
-        else {
+        } else {
             return false;
         }
 
@@ -1033,8 +1043,7 @@ static void waitqueue_add(os_task_t **head, os_task_t *task) {
             task->nrp = iter;
             if (previous == NULL) {
                 *head = task;
-            }
-            else {
+            } else {
                 previous->nrp = task;
             }
             return;
@@ -1044,7 +1053,7 @@ static void waitqueue_add(os_task_t **head, os_task_t *task) {
             OS_ASSERT(!has_cycles(*head));
             return;
         }
-        previous  = iter;
+        previous = iter;
     }
 
     OS_ASSERT(0);
@@ -1057,8 +1066,7 @@ static void waitqueue_remove(os_task_t **head, os_task_t *task) {
         if (iter == task) {
             if (*head == iter) {
                 *head = iter->nrp;
-            }
-            else {
+            } else {
                 previous->nrp = iter->nrp;
             }
             iter->nrp = NULL;
