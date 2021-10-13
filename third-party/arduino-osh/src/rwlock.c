@@ -14,9 +14,9 @@
 #include "os.h"
 #include "internal.h"
 
-#define OS_RWLOCK_DESIRED_NONE   0
-#define OS_RWLOCK_DESIRED_READ   1
-#define OS_RWLOCK_DESIRED_WRITE  2
+#define OS_RWLOCK_DESIRED_NONE  0
+#define OS_RWLOCK_DESIRED_READ  1
+#define OS_RWLOCK_DESIRED_WRITE 2
 
 static void blocked_enq(os_rwlock_t *rwlock, os_task_t *task) {
     blocked_append(&rwlock->blocked, task);
@@ -108,15 +108,13 @@ os_status_t osi_rwlock_release(os_rwlock_t *rwlock) {
             rwlock->writer = task;
             osi_task_set_stacked_return(task, OSS_SUCCESS);
             osi_dispatch_or_queue(task);
-        }
-        else {
+        } else {
             os_task_t *previous = NULL;
             for (os_task_t *iter = rwlock->blocked.tasks; iter != NULL; iter = iter->nblocked) {
                 if (iter->c.desired == OS_RWLOCK_DESIRED_READ) {
                     if (previous == NULL) {
                         rwlock->blocked.tasks = iter->nblocked;
-                    }
-                    else {
+                    } else {
                         previous->nblocked = iter->nblocked;
                     }
                     iter->nblocked = NULL;
@@ -124,8 +122,7 @@ os_status_t osi_rwlock_release(os_rwlock_t *rwlock) {
                     osi_task_set_stacked_return(iter, OSS_SUCCESS);
                     osi_task_status_set(iter, OS_TASK_STATUS_IDLE);
                     rwlock->readers++;
-                }
-                else {
+                } else {
                     previous = iter;
                 }
             }

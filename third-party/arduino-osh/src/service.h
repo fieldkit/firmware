@@ -105,78 +105,77 @@ os_status_t os_signal_check(uint32_t *signal);
 /**
  *
  */
-#define os_queue_define(name, size, flags)                                       \
-    os_queue_definition_t _os_queue_def_##name = { #name, size, flags };         \
+#define os_queue_define(name, size, flags)                                                                                                 \
+    os_queue_definition_t _os_queue_def_##name = { #name, size, flags };                                                                   \
     uint32_t _os_queue_##name[os_word_size(os_queue_t) + (size)];
 
 /**
  *
  */
-#define os_queue(name)                ((os_queue_t *)_os_queue_##name)
+#define os_queue(name) ((os_queue_t *)_os_queue_##name)
 
 /**
  *
  */
-#define os_queue_external(name)                                                  \
-    extern os_queue_definition_t _os_queue_def_##name;                           \
+#define os_queue_external(name)                                                                                                            \
+    extern os_queue_definition_t _os_queue_def_##name;                                                                                     \
     extern uint32_t _os_queue_##name[];
 
+/**
+ *
+ */
+#define os_queue_def(name) (os_queue_definition_t *)&_os_queue_def_##name
 
 /**
  *
  */
-#define os_queue_def(name)            (os_queue_definition_t *)&_os_queue_def_##name
-
-/**
- *
- */
-#define os_mutex_define(name, flags)                                \
-    os_mutex_definition_t _os_mutex_def_##name = { #name, flags };  \
+#define os_mutex_define(name, flags)                                                                                                       \
+    os_mutex_definition_t _os_mutex_def_##name = { #name, flags };                                                                         \
     os_mutex_t _os_mutex_##name;
 
 /**
  *
  */
-#define os_mutex(name)                ((os_mutex_t *)&_os_mutex_##name)
+#define os_mutex(name) ((os_mutex_t *)&_os_mutex_##name)
 
 /**
  *
  */
-#define os_mutex_def(name)            ((os_mutex_definition_t *)&_os_mutex_def_##name)
+#define os_mutex_def(name) ((os_mutex_definition_t *)&_os_mutex_def_##name)
 
 /**
  *
  */
-#define os_semaphore_define(name, size, flags)                                   \
-    os_semaphore_definition_t _os_semaphore_def_##name = { #name, size, flags }; \
+#define os_semaphore_define(name, size, flags)                                                                                             \
+    os_semaphore_definition_t _os_semaphore_def_##name = { #name, size, flags };                                                           \
     os_semaphore_t _os_semaphore_##name;
 
 /**
  *
  */
-#define os_semaphore(name)            ((os_semaphore_t *)&_os_semaphore_##name)
+#define os_semaphore(name) ((os_semaphore_t *)&_os_semaphore_##name)
 
 /**
  *
  */
-#define os_semaphore_def(name)        ((os_semaphore_definition_t *)&_os_semaphore_def_##name)
+#define os_semaphore_def(name) ((os_semaphore_definition_t *)&_os_semaphore_def_##name)
 
 /**
  *
  */
-#define os_rwlock_define(name, flags)                                \
-    os_rwlock_definition_t _os_rwlock_def_##name = { #name, flags }; \
+#define os_rwlock_define(name, flags)                                                                                                      \
+    os_rwlock_definition_t _os_rwlock_def_##name = { #name, flags };                                                                       \
     os_rwlock_t _os_rwlock_##name;
 
 /**
  *
  */
-#define os_rwlock(name)               ((os_rwlock_t *)&_os_rwlock_##name)
+#define os_rwlock(name) ((os_rwlock_t *)&_os_rwlock_##name)
 
 /**
  *
  */
-#define os_rwlock_def(name)           ((os_rwlock_definition_t *)&_os_rwlock_def_##name)
+#define os_rwlock_def(name) ((os_rwlock_definition_t *)&_os_rwlock_def_##name)
 
 #if defined(__cplusplus)
 }

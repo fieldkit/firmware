@@ -19,7 +19,7 @@ extern "C" {
 #endif
 
 static inline bool blocked_contains(os_blocked_t *blocked, os_task_t *task) {
-    for (os_task_t *iter = blocked->tasks; iter != NULL; iter = iter->nblocked ) {
+    for (os_task_t *iter = blocked->tasks; iter != NULL; iter = iter->nblocked) {
         if (iter == task) {
             return true;
         }
@@ -32,9 +32,8 @@ static inline void blocked_append(os_blocked_t *blocked, os_task_t *task) {
     OS_ASSERT(task->nblocked == NULL);
     if (blocked->tasks == NULL) {
         blocked->tasks = task;
-    }
-    else {
-        for (os_task_t *iter = blocked->tasks; ; iter = iter->nblocked) {
+    } else {
+        for (os_task_t *iter = blocked->tasks;; iter = iter->nblocked) {
             OS_ASSERT(iter->nblocked != task);
             OS_ASSERT(iter != task);
             if (iter->nblocked == NULL) {
@@ -47,12 +46,11 @@ static inline void blocked_append(os_blocked_t *blocked, os_task_t *task) {
 
 static inline bool blocked_remove(os_blocked_t *blocked, os_task_t *task) {
     os_task_t *previous = NULL;
-    for (os_task_t *iter = blocked->tasks; iter != NULL; iter = iter->nblocked ) {
+    for (os_task_t *iter = blocked->tasks; iter != NULL; iter = iter->nblocked) {
         if (iter == task) {
             if (previous == NULL) {
                 blocked->tasks = task->nblocked;
-            }
-            else {
+            } else {
                 previous->nblocked = task->nblocked;
             }
             task->nblocked = NULL;

@@ -4,13 +4,13 @@
 #include <malloc.h>
 #include <sam.h>
 
-#define NUMBER_OF_RECEIVERS            (8)
-#define RECEIVER_PROCESSING_MINIMUM    (400)
-#define RECEIVER_PROCESSING_MAXIMUM    (800)
+#define NUMBER_OF_RECEIVERS         (8)
+#define RECEIVER_PROCESSING_MINIMUM (400)
+#define RECEIVER_PROCESSING_MAXIMUM (800)
 
-#define NUMBER_OF_SENDERS              (2)
-#define SENDER_DELAY_MINIMUM           (100)
-#define SENDER_DELAY_MAXIMUM           (500)
+#define NUMBER_OF_SENDERS    (2)
+#define SENDER_DELAY_MINIMUM (100)
+#define SENDER_DELAY_MAXIMUM (500)
 
 static os_task_t idle_task;
 static os_task_t monitor_task;
@@ -53,8 +53,7 @@ static void task_handler_sender(void *params) {
             auto wms = random(SENDER_DELAY_MINIMUM, SENDER_DELAY_MAXIMUM);
             os_printf("%s: success (%dms)\n", os_task_name(), wms);
             os_delay(wms);
-        }
-        else {
+        } else {
             auto elapsed = os_uptime() - started;
             os_printf("%s: fail (%s) (after %lums)\n", os_task_name(), os_status_str(status), elapsed);
             free(message);
@@ -83,8 +82,7 @@ static void task_handler_receiver(void *params) {
             os_printf("%s: success ('%s') (%dms)\n", os_task_name(), message, wms);
             free((void *)message);
             os_delay(wms);
-        }
-        else {
+        } else {
             auto elapsed = os_uptime() - started;
             os_printf("%s: fail (%s) (after %lums)\n", os_task_name(), os_status_str(tuple.status), elapsed);
         }
@@ -120,34 +118,38 @@ void setup() {
     // Something goes south with a malloc.
     random(100, 1000);
 
-    #if defined(HSRAM_ADDR)
-    os_printf("starting: %d (0x%p + %lu) (%lu used) (%d)\n", os_free_memory(), HSRAM_ADDR, HSRAM_SIZE, HSRAM_SIZE - os_free_memory(), __get_CONTROL());
-    #else
+#if defined(HSRAM_ADDR)
+    os_printf("starting: %d (0x%p + %lu) (%lu used) (%d)\n", os_free_memory(), HSRAM_ADDR, HSRAM_SIZE, HSRAM_SIZE - os_free_memory(),
+              __get_CONTROL());
+#else
     os_printf("starting: %d\n", os_free_memory());
-    #endif
+#endif
 
-    #if defined(__SAMD51__)
+#if defined(__SAMD51__)
     os_printf("starting: DHCSR = %x\n", CoreDebug->DHCSR);
     os_printf("starting: SystemCoreClock = %lu\n", SystemCoreClock);
     os_printf("starting: SysTick=%lu CYCCNT = %lu\n", SysTick->VAL, DWT->CYCCNT);
-    #endif
+#endif
 
     OS_CHECK(os_initialize());
 
     OS_CHECK(os_task_initialize(&idle_task, "idle", OS_TASK_START_RUNNING, &task_handler_idle, NULL, idle_stack, sizeof(idle_stack)));
 
-    OS_CHECK(os_task_initialize(&monitor_task, "monitor", OS_TASK_START_RUNNING, &task_handler_monitor, NULL, monitor_stack, sizeof(monitor_stack)));
+    OS_CHECK(os_task_initialize(&monitor_task, "monitor", OS_TASK_START_RUNNING, &task_handler_monitor, NULL, monitor_stack,
+                                sizeof(monitor_stack)));
 
     for (auto i = 0; i < NUMBER_OF_RECEIVERS; ++i) {
         char temp[32];
         os_snprintf(temp, sizeof(temp), "receiver-%d", i);
-        OS_CHECK(os_task_initialize(&receiver_tasks[i], strdup(temp), OS_TASK_START_RUNNING, &task_handler_receiver, NULL, receiver_stacks[i], sizeof(receiver_stacks[i])));
+        OS_CHECK(os_task_initialize(&receiver_tasks[i], strdup(temp), OS_TASK_START_RUNNING, &task_handler_receiver, NULL,
+                                    receiver_stacks[i], sizeof(receiver_stacks[i])));
     }
 
     for (auto i = 0; i < NUMBER_OF_SENDERS; ++i) {
         char temp[32];
         os_snprintf(temp, sizeof(temp), "sender-%d", i);
-        OS_CHECK(os_task_initialize(&sender_tasks[i], strdup(temp), OS_TASK_START_RUNNING, &task_handler_sender, NULL, sender_stacks[i], sizeof(sender_stacks[i])));
+        OS_CHECK(os_task_initialize(&sender_tasks[i], strdup(temp), OS_TASK_START_RUNNING, &task_handler_sender, NULL, sender_stacks[i],
+                                    sizeof(sender_stacks[i])));
     }
 
     OS_CHECK(os_queue_create(os_queue(queue), os_queue_def(queue)));
@@ -156,5 +158,6 @@ void setup() {
 }
 
 void loop() {
-    while (1);
+    while (1)
+        ;
 }

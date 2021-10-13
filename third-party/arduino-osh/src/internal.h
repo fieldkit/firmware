@@ -30,7 +30,7 @@
 #include "platform.h"
 
 #if defined(ARDUINO)
-#define OS_NORETURN  __attribute__ ((noreturn))
+#define OS_NORETURN __attribute__((noreturn))
 #else
 #define OS_NORETURN
 #endif
@@ -100,24 +100,21 @@ uint32_t osi_task_set_stacked_return(os_task_t *task, uint32_t v0);
 
 #if defined(__SAMD51__)
 
-#define OS_MAX_INTERRUPT_PRIORITY         (1 << (8 - __NVIC_PRIO_BITS))
+#define OS_MAX_INTERRUPT_PRIORITY (1 << (8 - __NVIC_PRIO_BITS))
 
-#define OS_LOCK()   {                                                                   \
-                        unsigned int LockState;                                         \
-                      __asm volatile ("mrs   %0, basepri  \n\t"                         \
-                                      "mov   r1, %1       \n\t"                         \
-                                      "msr   basepri, r1  \n\t"                         \
-                                      : "=r" (LockState)                                \
-                                      : "i"(OS_MAX_INTERRUPT_PRIORITY)                  \
-                                      : "r1"                                            \
-                                        );
+#define OS_LOCK()                                                                                                                          \
+    {                                                                                                                                      \
+        unsigned int LockState;                                                                                                            \
+        __asm volatile("mrs   %0, basepri  \n\t"                                                                                           \
+                       "mov   r1, %1       \n\t"                                                                                           \
+                       "msr   basepri, r1  \n\t"                                                                                           \
+                       : "=r"(LockState)                                                                                                   \
+                       : "i"(OS_MAX_INTERRUPT_PRIORITY)                                                                                    \
+                       : "r1");
 
-#define OS_UNLOCK()   __asm volatile ("msr   basepri, %0  \n\t"                         \
-                                      :                                                 \
-                                      : "r" (LockState)                                 \
-                                      :                                                 \
-                                      );                                                \
-                    }
+#define OS_UNLOCK()                                                                                                                        \
+    __asm volatile("msr   basepri, %0  \n\t" : : "r"(LockState) :);                                                                        \
+    }
 
 #endif
 

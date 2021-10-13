@@ -9,7 +9,6 @@ class QueuesSuite : public ::testing::Test {
 protected:
     virtual void SetUp();
     virtual void TearDown();
-
 };
 
 void QueuesSuite::SetUp() {
@@ -45,11 +44,7 @@ TEST_F(QueuesSuite, ThreeTasks_Queue_SendBlock) {
     os_task_t tasks[3];
     uint32_t stacks[3][OS_STACK_MINIMUM_SIZE_WORDS];
     const char *messages[5] = {
-        "message-0",
-        "message-1",
-        "message-2",
-        "message-3",
-        "message-4",
+        "message-0", "message-1", "message-2", "message-3", "message-4",
     };
 
     three_tasks_setup(tasks, stacks);

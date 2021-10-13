@@ -35,44 +35,54 @@ void task_handler_idle(void *p);
 
 void task_handler_test(void *p);
 
-template<size_t T, size_t NS, size_t SS>
-static void two_tasks_setup(os_task_t (&tasks)[T], uint32_t (&stacks)[NS][SS]) {
+template <size_t T, size_t NS, size_t SS> static void two_tasks_setup(os_task_t (&tasks)[T], uint32_t (&stacks)[NS][SS]) {
     ASSERT_EQ(os_initialize(), OSS_SUCCESS);
-    ASSERT_EQ(os_task_initialize(&tasks[0], "idle", OS_TASK_START_RUNNING, &task_handler_idle, NULL, stacks[0], sizeof(stacks[0])), OSS_SUCCESS);
-    ASSERT_EQ(os_task_initialize(&tasks[1], "task-1", OS_TASK_START_RUNNING, &task_handler_test, NULL, stacks[1], sizeof(stacks[1])), OSS_SUCCESS);
+    ASSERT_EQ(os_task_initialize(&tasks[0], "idle", OS_TASK_START_RUNNING, &task_handler_idle, NULL, stacks[0], sizeof(stacks[0])),
+              OSS_SUCCESS);
+    ASSERT_EQ(os_task_initialize(&tasks[1], "task-1", OS_TASK_START_RUNNING, &task_handler_test, NULL, stacks[1], sizeof(stacks[1])),
+              OSS_SUCCESS);
     ASSERT_EQ(os_start(), OSS_SUCCESS);
     tests_schedule_task_and_switch();
 }
 
-template<size_t T, size_t NS, size_t SS>
-void three_tasks_setup(os_task_t (&tasks)[T], uint32_t (&stacks)[NS][SS]) {
+template <size_t T, size_t NS, size_t SS> void three_tasks_setup(os_task_t (&tasks)[T], uint32_t (&stacks)[NS][SS]) {
     ASSERT_EQ(os_initialize(), OSS_SUCCESS);
-    ASSERT_EQ(os_task_initialize(&tasks[0], "idle", OS_TASK_START_RUNNING, &task_handler_idle, NULL, stacks[0], sizeof(stacks[0])), OSS_SUCCESS);
-    ASSERT_EQ(os_task_initialize(&tasks[1], "task-1", OS_TASK_START_RUNNING, &task_handler_test, NULL, stacks[1], sizeof(stacks[1])), OSS_SUCCESS);
-    ASSERT_EQ(os_task_initialize(&tasks[2], "task-2", OS_TASK_START_RUNNING, &task_handler_test, NULL, stacks[2], sizeof(stacks[2])), OSS_SUCCESS);
+    ASSERT_EQ(os_task_initialize(&tasks[0], "idle", OS_TASK_START_RUNNING, &task_handler_idle, NULL, stacks[0], sizeof(stacks[0])),
+              OSS_SUCCESS);
+    ASSERT_EQ(os_task_initialize(&tasks[1], "task-1", OS_TASK_START_RUNNING, &task_handler_test, NULL, stacks[1], sizeof(stacks[1])),
+              OSS_SUCCESS);
+    ASSERT_EQ(os_task_initialize(&tasks[2], "task-2", OS_TASK_START_RUNNING, &task_handler_test, NULL, stacks[2], sizeof(stacks[2])),
+              OSS_SUCCESS);
     ASSERT_EQ(os_start(), OSS_SUCCESS);
     tests_schedule_task_and_switch();
 }
 
-template<size_t T, size_t NS, size_t SS>
-void four_tasks_setup(os_task_t (&tasks)[T], uint32_t (&stacks)[NS][SS]) {
+template <size_t T, size_t NS, size_t SS> void four_tasks_setup(os_task_t (&tasks)[T], uint32_t (&stacks)[NS][SS]) {
     ASSERT_EQ(os_initialize(), OSS_SUCCESS);
-    ASSERT_EQ(os_task_initialize(&tasks[0], "idle", OS_TASK_START_RUNNING, &task_handler_idle, NULL, stacks[0], sizeof(stacks[0])), OSS_SUCCESS);
-    ASSERT_EQ(os_task_initialize(&tasks[1], "task-1", OS_TASK_START_RUNNING, &task_handler_test, NULL, stacks[1], sizeof(stacks[1])), OSS_SUCCESS);
-    ASSERT_EQ(os_task_initialize(&tasks[2], "task-2", OS_TASK_START_RUNNING, &task_handler_test, NULL, stacks[2], sizeof(stacks[2])), OSS_SUCCESS);
-    ASSERT_EQ(os_task_initialize(&tasks[3], "task-3", OS_TASK_START_RUNNING, &task_handler_test, NULL, stacks[3], sizeof(stacks[3])), OSS_SUCCESS);
+    ASSERT_EQ(os_task_initialize(&tasks[0], "idle", OS_TASK_START_RUNNING, &task_handler_idle, NULL, stacks[0], sizeof(stacks[0])),
+              OSS_SUCCESS);
+    ASSERT_EQ(os_task_initialize(&tasks[1], "task-1", OS_TASK_START_RUNNING, &task_handler_test, NULL, stacks[1], sizeof(stacks[1])),
+              OSS_SUCCESS);
+    ASSERT_EQ(os_task_initialize(&tasks[2], "task-2", OS_TASK_START_RUNNING, &task_handler_test, NULL, stacks[2], sizeof(stacks[2])),
+              OSS_SUCCESS);
+    ASSERT_EQ(os_task_initialize(&tasks[3], "task-3", OS_TASK_START_RUNNING, &task_handler_test, NULL, stacks[3], sizeof(stacks[3])),
+              OSS_SUCCESS);
     ASSERT_EQ(os_start(), OSS_SUCCESS);
     tests_schedule_task_and_switch();
 }
 
-template<size_t T, size_t NS, size_t SS>
-void five_tasks_setup(os_task_t (&tasks)[T], uint32_t (&stacks)[NS][SS]) {
+template <size_t T, size_t NS, size_t SS> void five_tasks_setup(os_task_t (&tasks)[T], uint32_t (&stacks)[NS][SS]) {
     ASSERT_EQ(os_initialize(), OSS_SUCCESS);
-    ASSERT_EQ(os_task_initialize(&tasks[0], "idle", OS_TASK_START_RUNNING, &task_handler_idle, NULL, stacks[0], sizeof(stacks[0])), OSS_SUCCESS);
-    ASSERT_EQ(os_task_initialize(&tasks[1], "task-1", OS_TASK_START_RUNNING, &task_handler_test, NULL, stacks[1], sizeof(stacks[1])), OSS_SUCCESS);
-    ASSERT_EQ(os_task_initialize(&tasks[2], "task-2", OS_TASK_START_RUNNING, &task_handler_test, NULL, stacks[2], sizeof(stacks[2])), OSS_SUCCESS);
-    ASSERT_EQ(os_task_initialize(&tasks[3], "task-3", OS_TASK_START_RUNNING, &task_handler_test, NULL, stacks[3], sizeof(stacks[3])), OSS_SUCCESS);
-    ASSERT_EQ(os_task_initialize(&tasks[4], "task-4", OS_TASK_START_RUNNING, &task_handler_test, NULL, stacks[4], sizeof(stacks[4])), OSS_SUCCESS);
+    ASSERT_EQ(os_task_initialize(&tasks[0], "idle", OS_TASK_START_RUNNING, &task_handler_idle, NULL, stacks[0], sizeof(stacks[0])),
+              OSS_SUCCESS);
+    ASSERT_EQ(os_task_initialize(&tasks[1], "task-1", OS_TASK_START_RUNNING, &task_handler_test, NULL, stacks[1], sizeof(stacks[1])),
+              OSS_SUCCESS);
+    ASSERT_EQ(os_task_initialize(&tasks[2], "task-2", OS_TASK_START_RUNNING, &task_handler_test, NULL, stacks[2], sizeof(stacks[2])),
+              OSS_SUCCESS);
+    ASSERT_EQ(os_task_initialize(&tasks[3], "task-3", OS_TASK_START_RUNNING, &task_handler_test, NULL, stacks[3], sizeof(stacks[3])),
+              OSS_SUCCESS);
+    ASSERT_EQ(os_task_initialize(&tasks[4], "task-4", OS_TASK_START_RUNNING, &task_handler_test, NULL, stacks[4], sizeof(stacks[4])),
+              OSS_SUCCESS);
     ASSERT_EQ(os_start(), OSS_SUCCESS);
     tests_schedule_task_and_switch();
 }
