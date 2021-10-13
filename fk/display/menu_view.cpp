@@ -154,13 +154,15 @@ static void configure_noisy_network(DebuggingUdpTraffic udp) {
 
 MenuView::MenuView(ViewController *views, Pool &pool) : pool_(&pool), views_(views) {
     back_ = to_lambda_option(&pool, "Back", [=]() {
+        auto title = active_menu_->title;
+
         back_->focused(false);
 
         if (previous_menu_ == nullptr || previous_menu_ == active_menu_) {
-            loginfo("selected main-menu '%s'", active_menu_->title);
+            loginfo("selected '%s' (main)", title);
             goto_menu(main_menu_, previous_menu_);
         } else {
-            loginfo("selected previous-menu '%s'", active_menu_->title);
+            loginfo("selected '%s' (previous)", title);
             goto_menu(previous_menu_, previous_menu_);
         }
     });
@@ -721,7 +723,7 @@ void MenuView::create_network_menu() {
             return gs->scheduler.network.duration == UINT32_MAX;
         });
 
-    toggle_wifi_menu_ = new_menu_screen<3>(pool_, "wifimode",
+    toggle_wifi_menu_ = new_menu_screen<3>(pool_, "wifi-mode",
                                            {
                                                back_,
                                                toggle_wifi_default,
