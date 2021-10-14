@@ -10,6 +10,7 @@
 #include <Arduino.h>
 #include <SEGGER_RTT.h>
 #include <loading.h>
+#include "core_dump.h"
 
 #include <Adafruit_SleepyDog.h>
 #undef min
@@ -29,6 +30,11 @@ extern "C" {
 
 void fk_assert(const char *assertion, const char *file, int32_t line, const char *f, ...) {
     logerrorf("assertion", "\"%s\" failed: file \"%s\", line %" PRIu32, assertion, file, line);
+
+    fk::fk_core_dump_tasks();
+
+    fk::fk_logs_flush();
+
 #if defined(__SAMD21__) || defined(__SAMD51__)
     NVIC_SystemReset();
 #endif // defined(__SAMD21__) || defined(__SAMD51__)
@@ -195,14 +201,16 @@ void osi_debug_dump(os_panic_kind_t code) {
         alogf(LogLevels::ERROR, "error", "wq '%s' status(%s) (0x%" PRIx32 ")", iter->name, os_task_status_str(iter->status),
               iter->priority);
     }
-
-    fk::fk_logs_flush();
 }
 
 void osi_panic(os_panic_kind_t code) {
     osi_debug_dump(code);
 
 #if defined(__SAMD21__) || defined(__SAMD51__)
+    fk::fk_core_dump_tasks();
+
+    fk::fk_logs_flush();
+
     NVIC_SystemReset();
 #endif // defined(__SAMD21__) || defined(__SAMD51__)
 }
@@ -229,6 +237,10 @@ void osi_hard_fault_report(uintptr_t *stack, uint32_t lr, cortex_hard_fault_t *h
 #endif // defined(__SAMD21__) || defined(__SAMD51__)
 
 #if defined(__SAMD21__) || defined(__SAMD51__)
+    fk::fk_core_dump_tasks();
+
+    fk::fk_logs_flush();
+
     NVIC_SystemReset();
 #endif // defined(__SAMD21__) || defined(__SAMD51__)
 }
