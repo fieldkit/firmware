@@ -35,7 +35,12 @@ void fk_log_debugging(const char *source);
 /**
  * Function for dumping memory in hexadecimal encoding to the console for debugging.
  */
-void fk_logs_dump_memory(const char *prefix, uint8_t const *p, size_t size, ...);
+void fk_logs_dump_memory_u8(const char *prefix, uint8_t const *p, size_t size, ...);
+
+/**
+ * Function for dumping memory in hexadecimal encoding to the console for debugging.
+ */
+void fk_logs_dump_memory_u32_filtered(const char *prefix, uint32_t filtering, uint32_t const *p, size_t size, ...);
 
 /**
  * Main logging function, the workhorse. This is called everywhere,
@@ -61,4 +66,4 @@ public:
     }
 };
 
-}
+} // namespace fk
