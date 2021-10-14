@@ -537,7 +537,7 @@ Rn2903State *Rn2903LoraNetwork::get_state(Pool &pool) {
     loginfo("module: getting state");
 
     if (!rn2903_.simple_query("sys get vdd", &line, DefaultTimeout)) {
-        return false;
+        return nullptr;
     }
 
     if (!rn2903_.simple_query("mac get status", &line, DefaultTimeout)) {
@@ -545,25 +545,25 @@ Rn2903State *Rn2903LoraNetwork::get_state(Pool &pool) {
     }
 
     if (!rn2903_.simple_query("mac get dr", &line, DefaultTimeout)) {
-        return false;
+        return nullptr;
     }
 
     if (!rn2903_.simple_query("mac get adr", &line, DefaultTimeout)) {
-        return false;
+        return nullptr;
     }
 
     if (!rn2903_.simple_query("mac get rxdelay1", &line, DefaultTimeout)) {
-        return false;
+        return nullptr;
     }
     state->rx_delay_1 = atoi(line);
 
     if (!rn2903_.simple_query("mac get rxdelay2", &line, DefaultTimeout)) {
-        return false;
+        return nullptr;
     }
     state->rx_delay_2 = atoi(line);
 
     if (!rn2903_.simple_query("sys get hweui", &line, DefaultTimeout)) {
-        return false;
+        return nullptr;
     }
 
     if (!rn2903_.simple_query("mac get deveui", &line, DefaultTimeout)) {
