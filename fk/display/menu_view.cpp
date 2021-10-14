@@ -667,7 +667,7 @@ void MenuView::create_tools_menu() {
     (void)tools_crash_assertion;
     (void)tools_poll_water_ec_sensors;
 
-    tools_menu_ = new_menu_screen<17>(pool_, "tools",
+    tools_menu_ = new_menu_screen<19>(pool_, "tools",
                                       {
                                           back_,
                                           tools_self_check,
@@ -684,8 +684,8 @@ void MenuView::create_tools_menu() {
                                           tools_poll_sensors,
                                           // tools_poll_water_ec_sensors,
                                           tools_fsck,
-                                          // tools_crash_hardf,
-                                          // tools_crash_assertion,
+                                          tools_crash_hardf,
+                                          tools_crash_assertion,
                                           tools_export_data,
                                           tools_factory_reset,
                                           tools_restart,
