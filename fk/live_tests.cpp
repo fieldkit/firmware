@@ -15,6 +15,7 @@
 #include "state_ref.h"
 #include "state_manager.h"
 #include "clock.h"
+#include "core_dump.h"
 
 #include "../modules/weather/main/weather.h"
 
@@ -109,7 +110,7 @@ static bool write_header_file(const char *name, ModuleHeader &header, Pool &pool
 }
 
 static void write_headers() {
-    StandardPool pool{ "write-headers "};
+    StandardPool pool{ "write-headers " };
 
     auto lock = sd_mutex.acquire(UINT32_MAX);
     auto sd = get_sd_card();
@@ -172,6 +173,17 @@ static void write_headers() {
     }
 }
 
+static void test_core_dump() {
+    // fk_core_dump("livetest");
+    // fk_core_dump(nullptr);
+
+    fk_core_dump_tasks();
+
+    while (true) {
+        fk_delay(1000);
+    }
+}
+
 void fk_live_tests() {
     if (false) {
         scan_i2c_module_bus();
@@ -181,10 +193,14 @@ void fk_live_tests() {
     }
     if (false) {
         write_headers();
+    }
+    if (false) {
+        test_core_dump();
+
         while (true) {
             fk_delay(1000);
         }
     }
 }
 
-}
+} // namespace fk
