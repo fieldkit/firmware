@@ -528,8 +528,6 @@ bool StartupWorker::check_for_upgrading_startup(Pool &pool) {
 
     fk_graceful_shutdown();
 
-    fk_logs_flush();
-
     fk_restart();
 
     return true;
