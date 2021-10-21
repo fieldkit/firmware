@@ -93,7 +93,11 @@ template <typename TSelect> struct SensorReadingOption : public MenuOption {
             auto reading = mas.sensor->reading();
             auto position = mas.attached_module->position().integer();
             logverbose("[%d] refresh: %s %.3f", sensor_index_, mas.sensor->name(), reading.calibrated);
-            tiny_snprintf(buffer_, sizeof(buffer_), "[%d] %.3f", position, reading.calibrated);
+            if (position == ModulePosition::Virtual.integer()) {
+                tiny_snprintf(buffer_, sizeof(buffer_), "[%c] %.3f", ' ', reading.calibrated);
+            } else {
+                tiny_snprintf(buffer_, sizeof(buffer_), "[%d] %.3f", position, reading.calibrated);
+            }
             label_ = buffer_;
         }
     }
