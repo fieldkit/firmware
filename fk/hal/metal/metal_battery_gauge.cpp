@@ -29,6 +29,8 @@ bool MetalBatteryGauge::begin() {
 
     auto bus = get_board()->i2c_module();
 
+    bus.begin();
+
     Ina219 battery_monitor{ bus, INA219_ADDRESS_BATTERY };
     if (!battery_monitor.begin(false)) {
         loginfo("battery: ina219 missing");
