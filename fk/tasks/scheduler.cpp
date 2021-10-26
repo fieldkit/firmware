@@ -47,6 +47,8 @@ void task_handler_scheduler(void *params) {
 
     GpsService gps_service{ get_gps() };
 
+    auto display_off = 0;
+
     if (!battery.low_power()) {
         FK_ASSERT(fk_start_task_if_necessary(&display_task));
         FK_ASSERT(fk_start_task_if_necessary(&network_task));
@@ -55,10 +57,12 @@ void task_handler_scheduler(void *params) {
             logerror("gps");
         }
     } else {
-        get_display()->off();
         get_board()->disable_gps();
         get_board()->disable_wifi();
         update_allow_deep_sleep(true);
+        display_off += fk_uptime() + 10000;
+        get_display()->on();
+        get_display()->simple(SimpleScreen{ "low battery" });
     }
 
     uint32_t signal_checked = 0;
@@ -110,6 +114,11 @@ void task_handler_scheduler(void *params) {
 
             if (every_second.expired()) {
                 GlobalStateManager gsm;
+
+                if (display_off > 0) {
+                    get_display()->off();
+                    display_off = 0;
+                }
 
                 if (enable_allow_deep_sleep_timer.expired()) {
                     loginfo("deep sleep enabled");
