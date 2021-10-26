@@ -40,36 +40,20 @@ static void run_tasks() {
     uint32_t worker_stacks[NumberOfWorkerTasks][stack_size];
     uint32_t network_stack[stack_size];
 
-    auto total_stacks = sizeof(idle_stack) +
-        sizeof(scheduler_stack) +
-        sizeof(display_stack) +
-        sizeof(worker_stacks) +
-        sizeof(network_stack);
+    auto total_stacks =
+        sizeof(idle_stack) + sizeof(scheduler_stack) + sizeof(display_stack) + sizeof(worker_stacks) + sizeof(network_stack);
 
-    os_task_options_t display_task_options = {
-        "display",
-        OS_TASK_START_SUSPENDED,
-        task_handler_display,
-        &task_display_params,
-        display_stack,
-        sizeof(display_stack),
-        FK_PRIORITY_NORMAL
-    };
+    os_task_options_t display_task_options = { "display",     OS_TASK_START_SUSPENDED, task_handler_display, &task_display_params,
+                                               display_stack, sizeof(display_stack),   FK_PRIORITY_NORMAL };
 
-    os_task_options_t network_task_options = {
-        "network",
-        OS_TASK_START_SUSPENDED,
-        task_handler_network,
-        nullptr,
-        network_stack,
-        sizeof(network_stack),
-        FK_PRIORITY_NORMAL
-    };
+    os_task_options_t network_task_options = { "network",     OS_TASK_START_SUSPENDED, task_handler_network, nullptr,
+                                               network_stack, sizeof(network_stack),   FK_PRIORITY_NORMAL };
 
     OS_CHECK(os_initialize());
 
     OS_CHECK(os_task_initialize(&idle_task, "idle", OS_TASK_START_RUNNING, &task_handler_idle, nullptr, idle_stack, sizeof(idle_stack)));
-    OS_CHECK(os_task_initialize(&scheduler_task, "scheduler", OS_TASK_START_SUSPENDED, &task_handler_scheduler, nullptr, scheduler_stack, sizeof(scheduler_stack)));
+    OS_CHECK(os_task_initialize(&scheduler_task, "scheduler", OS_TASK_START_SUSPENDED, &task_handler_scheduler, nullptr, scheduler_stack,
+                                sizeof(scheduler_stack)));
 
     OS_CHECK(os_task_initialize_options(&network_task, &network_task_options));
     OS_CHECK(os_task_initialize_options(&display_task, &display_task_options));
@@ -81,7 +65,8 @@ static void run_tasks() {
     os_task_user_data_set(&display_task, &task_data[data_index++]);
 
     for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
-        OS_CHECK(os_task_initialize(&worker_tasks[i], "worker", OS_TASK_START_SUSPENDED, &task_handler_worker, nullptr, worker_stacks[i], sizeof(worker_stacks[i])));
+        OS_CHECK(os_task_initialize(&worker_tasks[i], "worker", OS_TASK_START_SUSPENDED, &task_handler_worker, nullptr, worker_stacks[i],
+                                    sizeof(worker_stacks[i])));
         os_task_user_data_set(&worker_tasks[i], &task_data[data_index++]);
     }
 
