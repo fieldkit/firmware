@@ -24,7 +24,6 @@ public:
 
 public:
     static float voltage_to_percentange(float voltage);
-
 };
 
 } // namespace fk

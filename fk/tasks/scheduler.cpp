@@ -55,6 +55,7 @@ void task_handler_scheduler(void *params) {
             logerror("gps");
         }
     } else {
+        get_display()->off();
         get_board()->disable_gps();
         get_board()->disable_wifi();
         update_allow_deep_sleep(true);
