@@ -1,5 +1,6 @@
 if (NOT EXISTS ${CMAKE_SOURCE_DIR}/third-party/gcc-arm-none-eabi-4_8-2014q1)
-  set(GCC_TOOLCHAIN_URL "https://launchpad.net/gcc-arm-embedded/4.8/4.8-2014-q1-update/+download/gcc-arm-none-eabi-4_8-2014q1-20140314-linux.tar.bz2")
+  # set(GCC_TOOLCHAIN_URL "https://launchpad.net/gcc-arm-embedded/4.8/4.8-2014-q1-update/+download/gcc-arm-none-eabi-4_8-2014q1-20140314-linux.tar.bz2")
+  set(GCC_TOOLCHAIN_URL "https://code.conservify.org/mirror/gcc-arm-none-eabi-4_8-2014q1-20140314-linux.tar.bz2")
   set(GCC_TOOLCHAIN_SHA256 "")
 
   if (NOT EXISTS ${CMAKE_SOURCE_DIR}/third-party/gcc-arm-none-eabi-4_8-2014q1-20140314-linux.tar.bz2)
