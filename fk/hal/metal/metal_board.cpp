@@ -14,23 +14,15 @@ namespace fk {
 FK_DECLARE_LOGGER("board");
 
 const uint8_t spi_pins[] = {
-    PIN_SPI_MISO,  PIN_SPI_MOSI,  PIN_SPI_SCK,
-    PIN_SPI1_MISO, PIN_SPI1_MOSI, PIN_SPI1_SCK,
+    PIN_SPI_MISO, PIN_SPI_MOSI, PIN_SPI_SCK, PIN_SPI1_MISO, PIN_SPI1_MOSI, PIN_SPI1_SCK,
 };
 
 const uint8_t i2c_pins[] = {
-    PIN_WIRE_SDA,  PIN_WIRE_SCL,
-    PIN_WIRE1_SDA, PIN_WIRE1_SCL,
-    PIN_WIRE2_SDA, PIN_WIRE2_SCL,
+    PIN_WIRE_SDA, PIN_WIRE_SCL, PIN_WIRE1_SDA, PIN_WIRE1_SCL, PIN_WIRE2_SDA, PIN_WIRE2_SCL,
 };
 
 const uint8_t qspi_pins[] = {
-    PIN_QSPI_SCK,
-    PIN_QSPI_CS,
-    PIN_QSPI_IO0,
-    PIN_QSPI_IO1,
-    PIN_QSPI_IO2,
-    PIN_QSPI_IO3,
+    PIN_QSPI_SCK, PIN_QSPI_CS, PIN_QSPI_IO0, PIN_QSPI_IO1, PIN_QSPI_IO2, PIN_QSPI_IO3,
 };
 
 const uint8_t radio_spi_cs_pins[] = {
@@ -38,11 +30,7 @@ const uint8_t radio_spi_cs_pins[] = {
 };
 
 const uint8_t core_spi_cs_pins[] = {
-    SPI_FLASH_CS_BANK_1,
-    SPI_FLASH_CS_BANK_2,
-    SPI_FLASH_CS_BANK_3,
-    SPI_FLASH_CS_BANK_4,
-    PIN_SD_CS,
+    SPI_FLASH_CS_BANK_1, SPI_FLASH_CS_BANK_2, SPI_FLASH_CS_BANK_3, SPI_FLASH_CS_BANK_4, PIN_SD_CS,
 };
 
 const uint8_t power_pins[] = {
@@ -83,12 +71,12 @@ bool Board::initialize() {
 }
 
 void Board::disable_everything() {
-    #if defined(FK_TARGET_QSPI_MEMORY)
-    #else
+#if defined(FK_TARGET_QSPI_MEMORY)
+#else
     spi_flash().end();
     spi_radio().end();
     spi_module().end();
-    #endif
+#endif
 
     i2c_core().end();
     i2c_radio().end();
@@ -178,7 +166,7 @@ SpiWrapper Board::spi_module() {
 }
 
 TwoWireWrapper Board::i2c_core() {
-    return TwoWireWrapper { &i2c_core_mutex, "i2c-core", &Wire };
+    return TwoWireWrapper{ &i2c_core_mutex, "i2c-core", &Wire };
 }
 
 TwoWireWrapper Board::i2c_radio() {
@@ -202,9 +190,10 @@ SpiWrapper::~SpiWrapper() {
 }
 
 void SpiWrapper::begin() {
-    if (ptr_ == nullptr) return;
+    if (ptr_ == nullptr)
+        return;
 
-    reinterpret_cast<SPIClass*>(ptr_)->begin();
+    reinterpret_cast<SPIClass *>(ptr_)->begin();
 }
 
 bool SpiWrapper::simple_command(uint8_t command) {
@@ -227,10 +216,9 @@ bool SpiWrapper::transfer_command(uint8_t command, const uint8_t *data_w, uint8_
     return transfer(&command, 1, data_w, data_r, data_length);
 }
 
-
 bool SpiWrapper::transfer(uint8_t *command, uint32_t command_length, const uint8_t *data_w, uint8_t *data_r, uint32_t data_length) {
     SPISettings spi_settings{ 50000000, MSBFIRST, SPI_MODE0 };
-    auto bus = reinterpret_cast<SPIClass*>(ptr_);
+    auto bus = reinterpret_cast<SPIClass *>(ptr_);
 
     bus->beginTransaction(spi_settings);
     for (uint32_t i = 0; i < command_length; ++i) {
@@ -240,13 +228,11 @@ bool SpiWrapper::transfer(uint8_t *command, uint32_t command_length, const uint8
         for (uint32_t i = 0; i < data_length; ++i) {
             data_r[i] = bus->transfer(data_w[i]);
         }
-    }
-    else if (data_r != nullptr) {
+    } else if (data_r != nullptr) {
         for (uint32_t i = 0; i < data_length; ++i) {
             data_r[i] = bus->transfer(0xff);
         }
-    }
-    else if (data_w != nullptr) {
+    } else if (data_w != nullptr) {
         for (uint32_t i = 0; i < data_length; ++i) {
             bus->transfer(data_w[i]);
         }
@@ -257,11 +243,12 @@ bool SpiWrapper::transfer(uint8_t *command, uint32_t command_length, const uint8
 }
 
 void SpiWrapper::end() {
-    if (ptr_ == nullptr) return;
+    if (ptr_ == nullptr)
+        return;
 
     // When we call this during startup, deep sleeping the MCU fails,
     // some sort of rogue IRQ?
-    reinterpret_cast<SPIClass*>(ptr_)->end();
+    reinterpret_cast<SPIClass *>(ptr_)->end();
 
     // NOTE None of the following seems to affect the problem with
     // deep sleep. So right now we're calling disableSPI instead of
@@ -282,8 +269,7 @@ void SpiWrapper::end() {
         NVIC_ClearPendingIRQ(SERCOM4_3_IRQn);
 
         // PERIPH_SPI.disableSPI();
-    }
-    else if (ptr_ == &SPI1) {
+    } else if (ptr_ == &SPI1) {
         pinMode(PIN_SPI1_MISO, INPUT_PULLUP);
         pinMode(PIN_SPI1_MOSI, INPUT_PULLUP);
         pinMode(PIN_SPI1_SCK, INPUT_PULLUP);
@@ -299,8 +285,7 @@ void SpiWrapper::end() {
         NVIC_ClearPendingIRQ(SERCOM2_3_IRQn);
 
         // PERIPH_SPI1.disableSPI();
-    }
-    else if (ptr_ == &SPI2) {
+    } else if (ptr_ == &SPI2) {
         pinMode(PIN_SPI2_MISO, INPUT_PULLUP);
         pinMode(PIN_SPI2_MOSI, INPUT_PULLUP);
         pinMode(PIN_SPI2_SCK, INPUT_PULLUP);
@@ -328,9 +313,10 @@ TwoWireWrapper::~TwoWireWrapper() {
 }
 
 void TwoWireWrapper::begin() {
-    if (ptr_ == nullptr) return;
+    if (ptr_ == nullptr)
+        return;
 
-    reinterpret_cast<TwoWire*>(ptr_)->begin();
+    reinterpret_cast<TwoWire *>(ptr_)->begin();
 
     NVIC_SetPriority(SERCOM4_0_IRQn, FK_PRIORITY_SERCOM);
     NVIC_SetPriority(SERCOM4_1_IRQn, FK_PRIORITY_SERCOM);
@@ -341,7 +327,7 @@ void TwoWireWrapper::begin() {
 int32_t TwoWireWrapper::read(uint8_t address, void *data, int32_t size) {
     auto lock = lock_->acquire(UINT32_MAX);
 
-    auto bus = reinterpret_cast<TwoWire*>(ptr_);
+    auto bus = reinterpret_cast<TwoWire *>(ptr_);
     bus->requestFrom(address, size);
     auto ptr = (uint8_t *)data;
     for (auto i = 0; i < size; ++i) {
@@ -355,7 +341,7 @@ int32_t TwoWireWrapper::read(uint8_t address, void *data, int32_t size) {
 int32_t TwoWireWrapper::write(uint8_t address, const void *data, int32_t size) {
     auto lock = lock_->acquire(UINT32_MAX);
 
-    auto bus = reinterpret_cast<TwoWire*>(ptr_);
+    auto bus = reinterpret_cast<TwoWire *>(ptr_);
     bus->beginTransmission(address);
     auto ptr = (uint8_t *)data;
     for (auto i = 0; i < size; ++i) {
@@ -370,12 +356,10 @@ static void i2c_end(TwoWire *ptr) {
     if (ptr == &Wire) {
         pinMode(PIN_WIRE_SDA, INPUT);
         pinMode(PIN_WIRE_SCL, INPUT);
-    }
-    else if (ptr == &Wire1) {
+    } else if (ptr == &Wire1) {
         pinMode(PIN_WIRE1_SDA, INPUT);
         pinMode(PIN_WIRE1_SCL, INPUT);
-    }
-    else if (ptr == &Wire2) {
+    } else if (ptr == &Wire2) {
         pinMode(PIN_WIRE2_SDA, INPUT);
         pinMode(PIN_WIRE2_SCL, INPUT);
     }
@@ -384,7 +368,7 @@ static void i2c_end(TwoWire *ptr) {
 void TwoWireWrapper::end() {
     auto lock = lock_->acquire(UINT32_MAX);
 
-    auto bus = reinterpret_cast<TwoWire*>(ptr_);
+    auto bus = reinterpret_cast<TwoWire *>(ptr_);
 
     logwarn("i2c::end");
 
@@ -439,7 +423,7 @@ static bool i2c_recover(uint8_t scl, uint8_t sda) {
 int32_t TwoWireWrapper::recover() {
     auto lock = lock_->acquire(UINT32_MAX);
 
-    auto tw = reinterpret_cast<TwoWire*>(ptr_);
+    auto tw = reinterpret_cast<TwoWire *>(ptr_);
 
     logwarn("trying to recover i2c bus");
 
@@ -447,14 +431,11 @@ int32_t TwoWireWrapper::recover() {
 
     if (ptr_ == &Wire) {
         i2c_recover(PIN_WIRE_SCL, PIN_WIRE_SDA);
-    }
-    else if (ptr_ == &Wire1) {
+    } else if (ptr_ == &Wire1) {
         i2c_recover(PIN_WIRE1_SCL, PIN_WIRE1_SDA);
-    }
-    else if (ptr_ == &Wire2) {
+    } else if (ptr_ == &Wire2) {
         i2c_recover(PIN_WIRE2_SCL, PIN_WIRE2_SDA);
-    }
-    else {
+    } else {
         FK_ASSERT(0);
     }
 
@@ -472,23 +453,23 @@ SerialWrapper::~SerialWrapper() {
 }
 
 bool SerialWrapper::begin(uint32_t baud) {
-    reinterpret_cast<Uart*>(ptr_)->begin(baud);
+    reinterpret_cast<Uart *>(ptr_)->begin(baud);
     return true;
 }
 
 bool SerialWrapper::end() {
-    reinterpret_cast<Uart*>(ptr_)->end();
+    reinterpret_cast<Uart *>(ptr_)->end();
     return true;
 }
 
 int32_t SerialWrapper::available() {
-    return reinterpret_cast<Uart*>(ptr_)->available();
+    return reinterpret_cast<Uart *>(ptr_)->available();
 }
 
 int8_t SerialWrapper::read() {
-    return reinterpret_cast<Uart*>(ptr_)->read();
+    return reinterpret_cast<Uart *>(ptr_)->read();
 }
 
-}
+} // namespace fk
 
 #endif
