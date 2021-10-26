@@ -86,17 +86,19 @@ static void run_tasks() {
 }
 
 static bool initialize_backplane() {
-    if (get_module_leds()->begin()) {
-        get_module_leds()->off();
-    }
+    if (false) {
+        if (get_module_leds()->begin()) {
+            get_module_leds()->off();
+        }
 
-    if (!get_modmux()->begin()) {
-        logerror("no backplane!");
+        if (!get_modmux()->begin()) {
+            logerror("no backplane!");
 
-        get_board()->i2c_module().recover();
+            get_board()->i2c_module().recover();
 
-        if (get_modmux()->begin()) {
-            loginfo("i2c recover worked!");
+            if (get_modmux()->begin()) {
+                loginfo("i2c recover worked!");
+            }
         }
     }
 
