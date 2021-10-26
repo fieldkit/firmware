@@ -94,7 +94,7 @@ bool TheThingsLoraNetwork::begin(lora_frequency_t frequency_band) {
         status_ = Availability::Unknown;
     }
 
-    if (status_ == Availability::Available && powered_) {
+    if (status_ != Availability::Unknown && powered_) {
         return true;
     }
 
@@ -404,7 +404,9 @@ bool TheThingsLoraNetwork::get_state(Rn2903State *state) {
 }
 
 Rn2903State *TheThingsLoraNetwork::get_state(Pool &pool) {
-    FK_ASSERT(ttn_ != nullptr);
+    if (ttn_ == nullptr) {
+        return nullptr;
+    }
     auto state = new (pool) Rn2903State();
     if (!get_state(state)) {
         return nullptr;

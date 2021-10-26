@@ -63,6 +63,8 @@ bool LoraManager::begin(Pool &pool) {
     awake_ = has_module;
 
     if (has_module) {
+        FK_ASSERT(module_state != nullptr);
+
         // If we have a module and don't have a valid configuration, make sure
         // the module doesn't stick around in some old/obsolete configuration.
         auto state = get_lora_global_state();
