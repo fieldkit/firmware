@@ -63,7 +63,7 @@ int32_t take_readings(fk_weather_t *weather, sensors_t *sensors, uint8_t *failur
             weather->temperature_2 = weather->temperature_1;
         }
     } else {
-        failures |= FK_WEATHER_SENSORS_BME280;
+        // failures |= FK_WEATHER_SENSORS_BME280;
 
 #if defined(FK_ENABLE_SHT31_AND_MPL3115A2)
         mpl3115a2_reading_t mpl3115a2_reading;
@@ -85,8 +85,8 @@ int32_t take_readings(fk_weather_t *weather, sensors_t *sensors, uint8_t *failur
         weather->pressure = mpl3115a2_reading.pressure;
         weather->temperature_2 = mpl3115a2_reading.temperature;
 #else
-        failures |= FK_WEATHER_SENSORS_SHT31;
-        failures |= FK_WEATHER_SENSORS_MPL3115A2;
+        // failures |= FK_WEATHER_SENSORS_SHT31;
+        // failures |= FK_WEATHER_SENSORS_MPL3115A2;
 #endif
     }
 
