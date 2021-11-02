@@ -225,7 +225,7 @@ ModuleSensors const *WaterModule::get_sensors(Pool &pool) {
     case FK_MODULES_KIND_WATER_DO:
         sensors = pool.malloc_with<SensorMetadata>({
             .name = "do",
-            .unitOfMeasure = "mg/L",
+            .unitOfMeasure = "%",
             .flags = 0,
         });
         break;
