@@ -19,6 +19,8 @@ bool pb_encode_string(pb_ostream_t *stream, const pb_field_t *field, void *const
         return pb_encode_string(stream, (uint8_t *)nullptr, 0);
     }
 
+    FK_ASSERT_ADDRESS(arg);
+
     return pb_encode_string(stream, (uint8_t *)str, strlen(str));
 }
 
