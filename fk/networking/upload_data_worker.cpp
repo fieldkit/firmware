@@ -31,24 +31,18 @@ struct ConnectionInfo {
 ConnectionInfo build_connection_info(uint32_t first, uint32_t last, uint32_t length, const char *type, Pool &pool) {
     fk_serial_number_t sn;
     auto gs = get_global_state_ro();
-    auto headers = pool.sprintf(
-        "Authorization: Bearer %s\r\n"
-        "Content-Type: application/vnd.fk.data+binary\r\n"
-        "Content-Length: %" PRIu32 "\r\n"
-        "Fk-DeviceID: %s\r\n"
-        "Fk-Generation: %s\r\n"
-        "Fk-DeviceName: %s\r\n"
-        "Fk-Blocks: %" PRIu32 ",%" PRIu32 "\r\n"
-        "Fk-Type: %s\r\n",
-        gs.get()->transmission.token,
-        length,
-        bytes_to_hex_string_pool((uint8_t *)&sn, sizeof(sn), pool),
-        bytes_to_hex_string_pool((uint8_t *)&gs.get()->general.generation, sizeof(gs.get()->general.generation), pool),
-        gs.get()->general.name,
-        first,
-        last,
-        type
-    );
+    auto headers =
+        pool.sprintf("Authorization: Bearer %s\r\n"
+                     "Content-Type: application/vnd.fk.data+binary\r\n"
+                     "Content-Length: %" PRIu32 "\r\n"
+                     "Fk-DeviceID: %s\r\n"
+                     "Fk-Generation: %s\r\n"
+                     "Fk-DeviceName: %s\r\n"
+                     "Fk-Blocks: %" PRIu32 ",%" PRIu32 "\r\n"
+                     "Fk-Type: %s\r\n",
+                     gs.get()->transmission.token, length, bytes_to_hex_string_pool((uint8_t *)&sn, sizeof(sn), pool),
+                     bytes_to_hex_string_pool((uint8_t *)&gs.get()->general.generation, sizeof(gs.get()->general.generation), pool),
+                     gs.get()->general.name, first, last, type);
 
     return {
         gs.get()->transmission.url,
@@ -57,7 +51,8 @@ ConnectionInfo build_connection_info(uint32_t first, uint32_t last, uint32_t len
     };
 }
 
-UploadDataWorker::FileUpload UploadDataWorker::upload_file(Storage &storage, uint8_t file_number, uint32_t first_record, const char *type, Pool &pool) {
+UploadDataWorker::FileUpload UploadDataWorker::upload_file(Storage &storage, uint8_t file_number, uint32_t first_record, const char *type,
+                                                           Pool &pool) {
     auto started = fk_uptime();
     auto file = storage.file_reader(file_number, pool);
 
@@ -123,8 +118,7 @@ UploadDataWorker::FileUpload UploadDataWorker::upload_file(Storage &storage, uin
 
     if (!http->read_response()) {
         loginfo("unable to read response");
-    }
-    else {
+    } else {
         loginfo("http status %" PRId32, http->status_code());
         if (http->status_code() == 200 || http->status_code() == 204) {
             success = true;
@@ -198,4 +192,4 @@ void UploadDataWorker::run(Pool &pool) {
     update_after_upload(after);
 }
 
-}
+} // namespace fk
