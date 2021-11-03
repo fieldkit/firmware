@@ -111,12 +111,6 @@ int32_t fk_core_dump_task(os_task_t *task) {
 
     fk_logs_dump_memory_u32_filtered("stack: ", OSH_STACK_MAGIC_WORD, stack, stack_size / sizeof(uint32_t));
 
-    /*
-    for (uint32_t i = 0; i < stack_size / sizeof(uint32_t); ++i) {
-        stack++;
-    }
-    */
-
     return 0;
 }
 
@@ -130,6 +124,8 @@ int32_t fk_core_dump_tasks() {
             return err;
         }
     }
+
+    fk_standard_page_log();
 
     loginfo("core-dump: done");
 
