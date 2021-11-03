@@ -58,8 +58,7 @@ UploadDataWorker::FileUpload UploadDataWorker::upload_file(Storage &storage, uin
 
     auto first_block = first_record;
     auto size_info = file->get_size(first_block, UINT32_MAX, pool);
-    FK_ASSERT(size_info); // TODO
-    if (!size_info) {
+    if (!size_info) { // TODO
         logerror("get-size");
         return { 0 };
     }
