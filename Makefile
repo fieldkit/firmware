@@ -92,8 +92,10 @@ package-old: fw
 	cp tools/jlink-* $(BUILD)/$(PACKAGE)
 	cp $(BUILD)/samd51/bootloader/fkbl.elf $(BUILD)/$(PACKAGE)
 	cp $(BUILD)/samd51/bootloader/fkbl-fkb.bin $(BUILD)/$(PACKAGE)
+	cp $(BUILD)/samd51/bootloader/fkbl-fkb.elf $(BUILD)/$(PACKAGE)
 	cp $(BUILD)/samd51/fk/fk-bundled-fkb.elf $(BUILD)/$(PACKAGE)
 	cp $(BUILD)/samd51/fk/fk-bundled-fkb.bin $(BUILD)/$(PACKAGE)
+	cp $(BUILD)/samd51/fk/*.sym $(BUILD)/$(PACKAGE)
 	cp $(BUILD)/samd09/modules/weather/sidecar/fk-weather-sidecar*.elf $(BUILD)/$(PACKAGE)
 	cp $(BUILD)/samd09/modules/weather/sidecar/fk-weather-sidecar*.bin $(BUILD)/$(PACKAGE)
 	chmod 644 $(BUILD)/$(PACKAGE)/*
