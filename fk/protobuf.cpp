@@ -14,12 +14,16 @@ bool pb_encode_string(pb_ostream_t *stream, const pb_field_t *field, void *const
         return false;
     }
 
+    FK_ASSERT_ADDRESS(arg);
+
     auto str = (const char *)*arg;
     if (str == nullptr) {
         return pb_encode_string(stream, (uint8_t *)nullptr, 0);
     }
 
-    FK_ASSERT_ADDRESS(arg);
+    alogf(LogLevels::VERBOSE, "enc-str", "'%s'", str);
+
+    // fk_debugger_break();
 
     return pb_encode_string(stream, (uint8_t *)str, strlen(str));
 }

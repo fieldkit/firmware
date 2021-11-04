@@ -175,6 +175,8 @@ int32_t HttpServerConnection::write(HttpStatus status, const char *status_messag
                                     Pool &pool) {
     auto started = fk_uptime();
 
+    ScopedLogLevelChange verbosity{ LogLevels ::VERBOSE };
+
     size_t size = 0;
     if (!pb_get_encoded_size(&size, fields, record)) {
         return fault(pool);
