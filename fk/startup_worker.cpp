@@ -105,8 +105,13 @@ void StartupWorker::run(Pool &pool) {
     BatteryChecker battery_checker;
     battery_checker.refresh(true);
 
-    if (!battery_checker.low_power()) {
-        display->company_logo();
+    if (battery_checker.available()) {
+        if (!battery_checker.low_power()) {
+            display->company_logo();
+        }
+    } else {
+        fk_fault_set(&BatteryGaugeFailure);
+        display->fault(&BatteryGaugeFailure);
     }
 
     // NOTE Power cycle modules, this gives us a fresh start. Some times behave
