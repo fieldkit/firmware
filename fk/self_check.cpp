@@ -367,13 +367,8 @@ void SelfCheck::flash_leds() {
 
     leds_->on();
 
-    Color colors[4] = {
-        Color{ 0xff, 0x00, 0x00 },
-        Color{ 0x00, 0xff, 0x00 },
-        Color{ 0x00, 0x00, 0xff },
-        Color{ 0xff, 0xff, 0xff },
-    };
-
+    uint8_t on = 0x40;
+    Color colors[4] = { Color{ on, 0, 0 }, Color{ 0, on, 0 }, Color{ 0, 0, on }, Color{ on, on, on } };
     for (auto &c : colors) {
         for (auto i = 0u; i < 4u; ++i) {
             leds_->color(i, c, false);
