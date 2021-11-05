@@ -40,6 +40,7 @@ private:
     LoraView lora_view;
     GpsView gps_view;
     LedsController leds;
+    FaultView fault_view;
     DisplayView *view = &home_view;
     uint32_t notified_{ 0 };
     uint32_t updated_{ 0 };
@@ -120,6 +121,11 @@ public:
         show_view(gps_view);
     }
 
+    void show_fault(FaultCode *code) {
+        fault_view.fault_code(code);
+        show_view(fault_view);
+    }
+
     void on_external() override {
         show_home(); // show_qr_code
         get_ipc()->launch_worker(create_pool_worker<WifiToggleWorker>(WifiToggleWorker::DesiredState::Enabled));
@@ -157,15 +163,13 @@ public:
         auto frame_pool = pool_->subpool("display-frame", 1024);
         auto can_stop = os_task_is_running(&scheduler_task);
         auto should_show_readings = params->readings;
-
         loginfo("should-show-readings: %d", should_show_readings);
 
+        FaultCode *incoming_fault_code = nullptr;
         while (!can_stop || !stop_timer.expired()) {
             if (!view->custom_leds()) {
                 leds.tick();
             }
-
-            view->tick(this, *frame_pool);
 
             if (notifications_timer.expired()) {
                 refresh_notifications();
@@ -210,10 +214,21 @@ public:
                 frame_pool->clear();
             }
 
+            auto fault = fk_fault_get();
+            if (incoming_fault_code != fault) {
+                incoming_fault_code = fault;
+                if (incoming_fault_code != nullptr) {
+                    loginfo("show fault");
+                    show_fault(incoming_fault_code);
+                }
+            }
+
             if (should_show_readings) {
                 show_readings();
                 should_show_readings = false;
             }
+
+            view->tick(this, *frame_pool);
         }
 
         view->hide();

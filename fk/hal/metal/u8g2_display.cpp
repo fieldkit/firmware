@@ -484,6 +484,23 @@ void U8g2Display::off() {
     draw_.setPowerSave(1);
 }
 
+void U8g2Display::fault(FaultCode const *code) {
+    draw_.setPowerSave(0);
+    draw_.clearBuffer();
+
+    auto y = OLED_HEIGHT / 3;
+
+    draw_.setFontMode(1);
+    draw_.setFont(u8g2_font_courR08_tf);
+    draw_centered(draw_, y, code->code);
+
+    draw_.setFontMode(1);
+    draw_.setFont(u8g2_font_courR08_tf);
+    draw_centered(draw_, y * 2, code->message);
+
+    draw_.sendBuffer();
+}
+
 } // namespace fk
 
 #endif

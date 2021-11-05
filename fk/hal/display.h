@@ -248,6 +248,7 @@ public:
     virtual void simple(SimpleScreen &&screen) = 0;
     virtual void reading(ReadingScreen &screen) = 0;
     virtual void module_status(ModuleStatusScreen &screen) = 0;
+    virtual void fault(FaultCode const *code) = 0;
 };
 
 class NullDisplay : public Display {
@@ -278,6 +279,8 @@ public:
     void reading(ReadingScreen &screen) override {
     }
     void module_status(ModuleStatusScreen &screen) override {
+    }
+    void fault(FaultCode const *code) {
     }
 };
 

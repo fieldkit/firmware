@@ -47,7 +47,7 @@ void BatteryChecker::refresh(bool initialize) {
                 power.battery.ma, power.battery.mw, charge, battery_status_to_string(battery_status_), power.charging ? "(charging)" : "");
     } else {
         logerror("battery: status unavilable, battery dangerously low");
-        battery_status_ = BatteryStatus::Dangerous;
+        battery_status_ = BatteryStatus::Unknown;
     }
 
     if (power.solar.available) {

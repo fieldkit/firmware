@@ -11,6 +11,10 @@ public:
     float charge_{ 0.0f };
 
 public:
+    bool available() const {
+        return battery_status_ != BatteryStatus::Unknown;
+    }
+
     bool low_power_dangerous() const {
         return battery_status_ == BatteryStatus::Dangerous;
     }
