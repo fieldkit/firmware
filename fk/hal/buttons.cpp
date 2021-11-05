@@ -23,21 +23,24 @@ void Button::changed(bool down) {
             time_ = now;
             debounce_ = now;
         }
-    }
-    else if (down_) {
+    } else if (down_) {
         auto elapsed = now - time_;
         down_ = false;
         time_ = 0;
         debounce_ = now;
         pressed_ = now;
-        loginfo("%s (%" PRIu32 "ms)", name_, elapsed);
-        if (get_ipc()->available()) {
-            if (os_task_is_running(&display_task)) {
+
+        auto available = get_ipc()->available();
+        auto display_running = os_task_is_running(&display_task);
+        auto debug_mode = fk_debug_mode();
+        loginfo("%s (%" PRIu32 "ms) (ipc=%d) (debug=%d) (display=%d)", name_, elapsed, available, debug_mode, display_running);
+        if (available) {
+            if (display_running) {
                 if (!get_ipc()->enqueue_button(this)) {
                     logerror("ipc error (button)");
                 }
             }
-            if (!fk_debug_mode()) {
+            if (!debug_mode) {
                 if (!get_ipc()->enqueue_activity(this)) {
                     logerror("ipc error (activity)");
                 }
@@ -72,4 +75,4 @@ Buttons *get_buttons() {
     return &buttons;
 }
 
-}
+} // namespace fk
