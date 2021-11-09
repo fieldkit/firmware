@@ -64,6 +64,8 @@ static void scan_bus(TwoWireWrapper &bus) {
 static void scan_i2c_module_bus() {
     auto mm = get_modmux();
 
+    mm->begin();
+
     mm->disable_all_modules();
 
     fk_delay(1000);
@@ -75,7 +77,7 @@ static void scan_i2c_module_bus() {
     auto bus = get_board()->i2c_module();
 
     while (true) {
-        for (auto i : { ModulePosition::from(3) }) {
+        for (auto i : { ModulePosition::from(1), ModulePosition::from(2), ModulePosition::from(3), ModulePosition::from(4) }) {
             if (!mm->choose(i)) {
                 loginfo("unable to choose %d", i.integer());
                 continue;
