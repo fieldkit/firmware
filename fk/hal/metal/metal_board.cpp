@@ -324,7 +324,7 @@ void TwoWireWrapper::begin() {
     NVIC_SetPriority(SERCOM4_3_IRQn, FK_PRIORITY_SERCOM);
 }
 
-int32_t TwoWireWrapper::read(uint8_t address, void *data, int32_t size) {
+int32_t TwoWireWrapper::read(uint8_t address, void *data, int32_t size, TwoWireFlags flags) {
     auto lock = lock_->acquire(UINT32_MAX);
 
     auto bus = reinterpret_cast<TwoWire *>(ptr_);
@@ -333,12 +333,11 @@ int32_t TwoWireWrapper::read(uint8_t address, void *data, int32_t size) {
     for (auto i = 0; i < size; ++i) {
         *ptr++ = bus->read();
     }
-    auto rv = bus->endTransmission();
-
-    return rv;
+    auto stop = ((uint32_t)flags & (uint32_t)TwoWireFlags::Release) == (uint32_t)TwoWireFlags::Release;
+    return bus->endTransmission(stop);
 }
 
-int32_t TwoWireWrapper::write(uint8_t address, const void *data, int32_t size) {
+int32_t TwoWireWrapper::write(uint8_t address, const void *data, int32_t size, TwoWireFlags flags) {
     auto lock = lock_->acquire(UINT32_MAX);
 
     auto bus = reinterpret_cast<TwoWire *>(ptr_);
@@ -347,7 +346,8 @@ int32_t TwoWireWrapper::write(uint8_t address, const void *data, int32_t size) {
     for (auto i = 0; i < size; ++i) {
         bus->write((uint8_t)*ptr++);
     }
-    return bus->endTransmission();
+    auto stop = ((uint32_t)flags & (uint32_t)TwoWireFlags::Release) == (uint32_t)TwoWireFlags::Release;
+    return bus->endTransmission(stop);
 }
 
 static void i2c_end(TwoWire *ptr) {
