@@ -70,7 +70,7 @@ typedef union {
 static bool mpl3115a2_flag_poll(TwoWireWrapper &bus, uint8_t reg, uint8_t flag, uint8_t desired) {
     while (true) {
         uint8_t value;
-        if (!I2C_CHECK(bus.read_register_u8(MPL3115A2_I2C_ADDRESS, reg, value))) {
+        if (!I2C_CHECK(bus.read_register_u8(MPL3115A2_I2C_ADDRESS, reg, value, TwoWireFlags::HoldOnRW))) {
             return false;
         }
 
@@ -95,17 +95,26 @@ Mpl3115a2::~Mpl3115a2() {
 }
 
 bool Mpl3115a2::begin() {
-    uint8_t identity;
-    if (!I2C_CHECK(bus_.read_register_u8(MPL3115A2_I2C_ADDRESS, MPL3115A2_WHOAMI, identity))) {
+    uint8_t identity = 0x0;
+    loginfo("reading register");
+    if (!I2C_CHECK(bus_.read_register_u8(MPL3115A2_I2C_ADDRESS, MPL3115A2_WHOAMI, identity, TwoWireFlags::HoldOnRW))) {
         return false;
     }
 
     if (identity != MPL3115A2_WHOAMI_EXPECTED) {
+        logerror("wrong identity");
         return false;
+    } else {
+        loginfo("identity: 0x%x", identity);
     }
 
+    fk_delay(10); // NOTE Is this too long?
+
     // Initiate a reset, this never returns success. We poll for ready after.
+    // Notice that we're resetting here and so we do the poll until the sensor
+    // is ready.
     bus_.write_register_u8(MPL3115A2_I2C_ADDRESS, MPL3115A2_CTRL_REG1, MPL3115A2_CTRL_REG1_RST);
+
     fk_delay(10); // NOTE Is this too long?
 
     if (!mpl3115a2_flag_poll(bus_, MPL3115A2_CTRL_REG1, MPL3115A2_CTRL_REG1_RST, 0)) {
@@ -113,13 +122,14 @@ bool Mpl3115a2::begin() {
     }
 
     // Configure oversampling.
-    if (!I2C_CHECK(bus_.write_register_u8(MPL3115A2_I2C_ADDRESS, MPL3115A2_CTRL_REG1, MPL3115A2_CTRL_REG1_OS128))) {
+    if (!I2C_CHECK(bus_.write_register_u8(MPL3115A2_I2C_ADDRESS, MPL3115A2_CTRL_REG1, MPL3115A2_CTRL_REG1_OS128, TwoWireFlags::HoldOnRW))) {
         return false;
     }
 
     // Configure data ready flags.
     if (!I2C_CHECK(bus_.write_register_u8(MPL3115A2_I2C_ADDRESS, MPL3115A2_PT_DATA_CFG,
-                                          MPL3115A2_PT_DATA_CFG_TDEFE | MPL3115A2_PT_DATA_CFG_PDEFE | MPL3115A2_PT_DATA_CFG_DREM))) {
+                                          MPL3115A2_PT_DATA_CFG_TDEFE | MPL3115A2_PT_DATA_CFG_PDEFE | MPL3115A2_PT_DATA_CFG_DREM,
+                                          TwoWireFlags::HoldOnRW))) {
         return false;
     }
 
@@ -135,7 +145,7 @@ bool Mpl3115a2::get(Mpl3115a2Reading *reading) {
     mpl3115a2_ctrl_reg1 reg1;
     reg1.reg = MPL3115A2_CTRL_REG1_OS128;
     reg1.bit.OST = 1;
-    if (!I2C_CHECK(bus_.write_register_u8(MPL3115A2_I2C_ADDRESS, MPL3115A2_CTRL_REG1, reg1.reg))) {
+    if (!I2C_CHECK(bus_.write_register_u8(MPL3115A2_I2C_ADDRESS, MPL3115A2_CTRL_REG1, reg1.reg, TwoWireFlags::HoldOnRW))) {
         return false;
     }
 
@@ -144,12 +154,14 @@ bool Mpl3115a2::get(Mpl3115a2Reading *reading) {
     }
 
     uint8_t praw[3];
-    if (!I2C_CHECK(bus_.read_register_buffer(MPL3115A2_I2C_ADDRESS, MPL3115A2_REGISTER_PRESSURE_MSB, praw, sizeof(praw)))) {
+    if (!I2C_CHECK(bus_.read_register_buffer(MPL3115A2_I2C_ADDRESS, MPL3115A2_REGISTER_PRESSURE_MSB, praw, sizeof(praw),
+                                             TwoWireFlags::HoldOnRW))) {
         return false;
     }
 
     uint8_t traw[2];
-    if (!I2C_CHECK(bus_.read_register_buffer(MPL3115A2_I2C_ADDRESS, MPL3115A2_REGISTER_TEMP_MSB, traw, sizeof(traw)))) {
+    if (!I2C_CHECK(
+            bus_.read_register_buffer(MPL3115A2_I2C_ADDRESS, MPL3115A2_REGISTER_TEMP_MSB, traw, sizeof(traw), TwoWireFlags::HoldOnRW))) {
         return false;
     }
 

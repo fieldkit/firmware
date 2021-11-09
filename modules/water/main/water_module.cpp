@@ -3,6 +3,7 @@
 #include "platform.h"
 #include "state_ref.h"
 #include "water_api.h"
+#include "mpl3115a2.h"
 
 namespace fk {
 
@@ -204,6 +205,17 @@ ModuleReturn WaterModule::service(ModuleContext mc, Pool &pool) {
     return { ModuleStatus::Ok };
 }
 
+static SensorMetadata const fk_module_water_do_sensor_metas[] = {
+    { .name = "do", .unitOfMeasure = "%", .flags = 0 },
+    { .name = "temperature", .unitOfMeasure = "°C", .flags = 0 },
+    { .name = "pressure", .unitOfMeasure = "kPa", .flags = 0 },
+};
+
+static ModuleSensors fk_module_water_do_sensors = {
+    .nsensors = sizeof(fk_module_water_do_sensor_metas) / sizeof(SensorMetadata),
+    .sensors = fk_module_water_do_sensor_metas,
+};
+
 ModuleSensors const *WaterModule::get_sensors(Pool &pool) {
     SensorMetadata *sensors = nullptr;
 
@@ -223,12 +235,7 @@ ModuleSensors const *WaterModule::get_sensors(Pool &pool) {
         });
         break;
     case FK_MODULES_KIND_WATER_DO:
-        sensors = pool.malloc_with<SensorMetadata>({
-            .name = "do",
-            .unitOfMeasure = "%",
-            .flags = 0,
-        });
-        break;
+        return &fk_module_water_do_sensors;
     case FK_MODULES_KIND_WATER_TEMP:
         sensors = pool.malloc_with<SensorMetadata>({
             .name = "temp",
@@ -405,10 +412,25 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
 
     loginfo("[%d] water: %f (%f) (%f)", mc.position().integer(), uncalibrated, calibrated, factory);
 
-    auto mr = new (pool) NModuleReadings<1>();
+    auto has_mpl = header_.kind == FK_MODULES_KIND_WATER_DO;
+    ModuleReadings *mr = has_mpl ? (ModuleReadings *)new (pool) NModuleReadings<3>() : (ModuleReadings *)new (pool) NModuleReadings<1>();
+    mr->set(0, ModuleReading{ uncalibrated, calibrated, factory });
 
-    auto nreadings = 0u;
-    mr->set(nreadings++, ModuleReading{ uncalibrated, calibrated, factory });
+    if (has_mpl) {
+        Mpl3115a2 mpl3115a2{ bus };
+
+        if (mpl3115a2.begin()) {
+            Mpl3115a2Reading reading;
+            if (mpl3115a2.get(&reading)) {
+                mr->set(1, ModuleReading{ reading.temperature });
+                mr->set(2, ModuleReading{ reading.pressure });
+            } else {
+                logerror("mpl3115a2 get");
+            }
+        } else {
+            logerror("mpl3115a2 begin");
+        }
+    }
 
     return mr;
 }

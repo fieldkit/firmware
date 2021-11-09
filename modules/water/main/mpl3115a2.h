@@ -6,8 +6,8 @@
 namespace fk {
 
 struct Mpl3115a2Reading {
-    float pressure;
-    float temperature;
+    float pressure{ 0 };
+    float temperature{ 0 };
 };
 
 class Mpl3115a2 {
