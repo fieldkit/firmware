@@ -3,16 +3,23 @@
 
 namespace fk {
 
+static TwoWireFlags get_tx_write_flags(TwoWireFlags flags) {
+    if (flags == TwoWireFlags::HoldOnRW) {
+        return TwoWireFlags::None;
+    }
+    return TwoWireFlags::Release;
+}
+
 static Board board;
 
 Board *get_board() {
     return &board;
 }
 
-int32_t TwoWireWrapper::read_register_u8(uint8_t address, uint8_t reg, uint8_t &value) {
+int32_t TwoWireWrapper::read_register_u8(uint8_t address, uint8_t reg, uint8_t &value, TwoWireFlags flags) {
     int32_t rv;
 
-    rv = write(address, &reg, sizeof(reg));
+    rv = write(address, &reg, sizeof(reg), get_tx_write_flags(flags));
     if (!I2C_CHECK(rv)) {
         return rv;
     }
@@ -25,25 +32,20 @@ int32_t TwoWireWrapper::read_register_u8(uint8_t address, uint8_t reg, uint8_t &
     return 0;
 }
 
-int32_t TwoWireWrapper::write_register_u8(uint8_t address, uint8_t reg, uint8_t value) {
-    uint8_t command[] = {
-        reg,
-        value
-    };
+int32_t TwoWireWrapper::write_register_u8(uint8_t address, uint8_t reg, uint8_t value, TwoWireFlags flags) {
+    uint8_t command[] = { reg, value };
     return write(address, &command, sizeof(command));
 }
 
-int32_t TwoWireWrapper::write_u8(uint8_t address, uint8_t value) {
-    uint8_t command[] = {
-        value
-    };
+int32_t TwoWireWrapper::write_u8(uint8_t address, uint8_t value, TwoWireFlags flags) {
+    uint8_t command[] = { value };
     return write(address, &command, sizeof(command));
 }
 
-int32_t TwoWireWrapper::write_register_buffer(uint8_t address, uint8_t reg, void const *buffer, int32_t size) {
+int32_t TwoWireWrapper::write_register_buffer(uint8_t address, uint8_t reg, void const *buffer, int32_t size, TwoWireFlags flags) {
     int32_t rv;
 
-    rv = write(address, &reg, sizeof(reg));
+    rv = write(address, &reg, sizeof(reg), get_tx_write_flags(flags));
     if (!I2C_CHECK(rv)) {
         return rv;
     }
@@ -56,10 +58,10 @@ int32_t TwoWireWrapper::write_register_buffer(uint8_t address, uint8_t reg, void
     return 0;
 }
 
-int32_t TwoWireWrapper::read_register_buffer(uint8_t address, uint8_t reg, uint8_t *buffer, int32_t size) {
+int32_t TwoWireWrapper::read_register_buffer(uint8_t address, uint8_t reg, uint8_t *buffer, int32_t size, TwoWireFlags flags) {
     int32_t rv;
 
-    rv = write(address, &reg, sizeof(reg));
+    rv = write(address, &reg, sizeof(reg), get_tx_write_flags(flags));
     if (!I2C_CHECK(rv)) {
         return rv;
     }
@@ -72,28 +74,24 @@ int32_t TwoWireWrapper::read_register_buffer(uint8_t address, uint8_t reg, uint8
     return 0;
 }
 
-int32_t TwoWireWrapper::write_register_u16(uint8_t address, uint8_t reg, uint16_t value) {
+int32_t TwoWireWrapper::write_register_u16(uint8_t address, uint8_t reg, uint16_t value, TwoWireFlags flags) {
     uint8_t command[] = {
         reg,
-        (uint8_t)((value     ) & 0xff),
+        (uint8_t)((value)&0xff),
         (uint8_t)((value >> 8) & 0xff),
     };
     return write(address, &command, sizeof(command));
 }
 
-int32_t TwoWireWrapper::write_register_u32(uint8_t address, uint8_t reg, uint32_t value) {
+int32_t TwoWireWrapper::write_register_u32(uint8_t address, uint8_t reg, uint32_t value, TwoWireFlags flags) {
     uint8_t command[] = {
-        reg,
-        (uint8_t)((value      ) & 0xff),
-        (uint8_t)((value >>  8) & 0xff),
-        (uint8_t)((value >> 16) & 0xff),
-        (uint8_t)((value >> 24) & 0xff),
+        reg, (uint8_t)((value)&0xff), (uint8_t)((value >> 8) & 0xff), (uint8_t)((value >> 16) & 0xff), (uint8_t)((value >> 24) & 0xff),
     };
     return write(address, &command, sizeof(command));
 }
 
-int32_t TwoWireWrapper::read_register_u16(uint8_t address, uint8_t reg, uint16_t &value) {
-    auto rv = write(address, &reg, sizeof(reg));
+int32_t TwoWireWrapper::read_register_u16(uint8_t address, uint8_t reg, uint16_t &value, TwoWireFlags flags) {
+    auto rv = write(address, &reg, sizeof(reg), get_tx_write_flags(flags));
     if (!I2C_CHECK(rv)) {
         return rv;
     }
