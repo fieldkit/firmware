@@ -90,7 +90,7 @@ void ScheduleView::set(uint32_t interval) {
         switch (type_) {
         case ScheduleType::Readings: {
             gs->scheduler.readings.simple(interval);
-            return;
+            break;
         }
         case ScheduleType::LoRa: {
             gs->scheduler.lora.simple(interval);
