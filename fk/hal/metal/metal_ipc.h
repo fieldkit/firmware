@@ -39,7 +39,7 @@ public:
     bool has_stalled_workers(WorkerCategory category, uint32_t stall_ms) override;
 
 private:
-    bool can_launch(WorkerCategory category);
+    bool can_launch(WorkerCategory category, Lock &required_lock);
 };
 
 class MetalMutex : public Mutex {
