@@ -18,6 +18,8 @@ extern "C" {
 
 #define FK_ENABLE_IRQ SEGGER_RTT_UNLOCK
 
+#define FK_PRIORITY_HIGH_OFFSET 2
+
 /**
  * These disappeared on after upgrading compilers.
  */

@@ -369,10 +369,13 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
 
     auto exciting = excite_enabled();
     auto averaging = averaging_enabled();
+    auto priority = fk_task_self_priority_get();
 
     if (exciting) {
         FK_ASSERT(!averaging);
         loginfo("excitation: enabled");
+
+        fk_task_self_priority_set(priority - FK_PRIORITY_HIGH_OFFSET);
 
         if (!excite_control(mcp, true)) {
             return nullptr;
@@ -403,6 +406,8 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
             fk_delay(AveragingDelayMs);
         }
     }
+
+    fk_task_self_priority_set(priority);
 
     auto uncalibrated = accumulator / (float)number_of_values;
     auto default_curve = create_modules_default_curve(pool);
