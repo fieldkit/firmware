@@ -13,6 +13,7 @@ namespace fk {
 class MetalIPC : public IPC {
 private:
     WorkerCategory running_[NumberOfWorkerTasks];
+    uint32_t started_[NumberOfWorkerTasks];
     TaskWorker *workers_[NumberOfWorkerTasks];
 
 public:

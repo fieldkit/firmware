@@ -29,6 +29,7 @@ os_queue_define(topology_queue, 10, OS_QUEUE_FLAGS_QUEUE_ONLY);
 MetalIPC::MetalIPC() {
     for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
         running_[i] = WorkerCategory::None;
+        started_[i] = 0;
         workers_[i] = nullptr;
     }
 }
@@ -126,6 +127,7 @@ bool MetalIPC::launch_worker(WorkerCategory category, TaskWorker *worker, bool c
             worker_tasks[i].name = worker->name();
             running_[i] = category;
             workers_[i] = worker;
+            started_[i] = fk_uptime();
 
             auto priority = worker->priority();
             OS_CHECK(os_task_start_options(&worker_tasks[i], priority, worker));
@@ -149,6 +151,7 @@ bool MetalIPC::remove_worker(TaskWorker *worker) {
     for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
         if (workers_[i] == worker) {
             workers_[i] = nullptr;
+            started_[i] = 0;
             return true;
         }
     }
@@ -219,10 +222,10 @@ bool MetalIPC::has_stalled_workers(WorkerCategory category, uint32_t stall_ms) {
     for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
         if (os_task_is_running(&worker_tasks[i])) {
             if (running_[i] == category) {
-                if (now > worker_tasks[i].started) {
-                    auto elapsed = now - worker_tasks[i].started;
+                if (now > started_[i]) {
+                    auto elapsed = now - started_[i];
                     if (elapsed > stall_ms) {
-                        loginfo("elapsed = %" PRIu32 " started = %" PRIu32, elapsed, worker_tasks[i].started);
+                        loginfo("elapsed = %" PRIu32 " started = %" PRIu32, elapsed, started_[i]);
                         return true;
                     }
                 } else {
