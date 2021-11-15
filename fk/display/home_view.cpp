@@ -105,11 +105,20 @@ void HomeView::tick(ViewController *views, Pool &pool) {
         break;
     }
     case Visible::Uptime: {
+        auto now = get_clock_now();
+        FormattedTime formatted{ now };
+        strncpy(secondary_, formatted.cstr(), sizeof(secondary_));
         make_pretty_time_string(fk_uptime(), primary_, sizeof(primary_));
+        screen.primary = primary_;
+        screen.secondary = secondary_;
+        break;
+    }
+    case Visible::Config: {
+        secondary_[0] = 0;
         if (gs.get()->storage.is_phylum()) {
-            strncpy(secondary_, "phylum-fs", sizeof(secondary_));
+            strncpy(primary_, "phylum-fs", sizeof(primary_));
         } else {
-            strncpy(secondary_, "legacy-fs", sizeof(secondary_));
+            strncpy(primary_, "legacy-fs", sizeof(primary_));
         }
         screen.primary = primary_;
         screen.secondary = secondary_;
@@ -133,11 +142,11 @@ void HomeView::tick(ViewController *views, Pool &pool) {
 }
 
 void HomeView::up(ViewController *views) {
-    visible_ = (visible_ + 4 - 1) % 4;
+    visible_ = (visible_ + 5 - 1) % 5;
 }
 
 void HomeView::down(ViewController *views) {
-    visible_ = (visible_ + 1) % 4;
+    visible_ = (visible_ + 1) % 5;
 }
 
 void HomeView::enter(ViewController *views) {
