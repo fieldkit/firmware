@@ -82,14 +82,15 @@ static bool try_populate_firmware(fk_app_Firmware &fw, void const *ptr, Pool &po
     }
 
     fkb_header_t const *fkbh = (fkb_header_t const *)ptr;
+    auto hash = bytes_to_hex_string_pool(fkbh->firmware.hash, fkbh->firmware.hash_size, pool);
     fw.version.arg = (void *)fkbh->firmware.version;
     fw.build.arg = (void *)"";
     fw.number.arg = (void *)pool.sprintf("%d", fkbh->firmware.number);
     fw.timestamp = fkbh->firmware.timestamp;
-    fw.hash.arg = (void *)bytes_to_hex_string_pool(fkbh->firmware.hash, fkbh->firmware.hash_size, pool);
+    fw.hash.arg = (void *)hash;
     fw.logical_address = logical_address;
 
-    loginfo("[0x%08" PRIx32 "] firmware: number=%" PRIu32 " version=%s", ptr, fkbh->firmware.number, fkbh->firmware.version);
+    loginfo("[0x%08" PRIx32 "] firmware: number=%" PRIu32 " version=%s hash=%s", ptr, fkbh->firmware.number, fkbh->firmware.version, hash);
 
     return true;
 }
@@ -167,6 +168,7 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, bool logs, fkb_h
     constexpr uint32_t addresses[]{ 0x00000000, 0x00000000 + 0x08000, 0x04000000, 0x04000000 + 0x10000 };
     for (auto address : addresses) {
         uint32_t *fkbh = (uint32_t *)(address);
+        all_firmware[firmware_array->length] = fk_app_Firmware_init_default;
         if (try_populate_firmware(all_firmware[firmware_array->length], fkbh, *pool_)) {
             firmware_array->length++;
         }
