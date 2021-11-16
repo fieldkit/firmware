@@ -91,6 +91,8 @@ static bool try_populate_firmware(fk_app_Firmware &fw, void const *ptr, Pool &po
     fw.logical_address = logical_address;
 
     loginfo("[0x%08" PRIx32 "] firmware: number=%" PRIu32 " version=%s hash=%s", ptr, fkbh->firmware.number, fkbh->firmware.version, hash);
+    loginfo("[0x%08" PRIx32 "] addresses: version=0x%p hash=0x%p", ptr, fkbh->firmware.version, hash);
+    loginfo("[0x%08" PRIx32 "] addresses: version=0x%p hash=0x%p", ptr, &fw.version.arg, &fw.hash.arg);
 
     return true;
 }
@@ -163,6 +165,10 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, bool logs, fkb_h
         .buffer = all_firmware,
         .fields = fk_app_Firmware_fields,
     });
+
+    pool_->log_info();
+
+    fk_standard_page_log();
 
 #if defined(__SAMD51__)
     constexpr uint32_t addresses[]{ 0x00000000, 0x00000000 + 0x08000, 0x04000000, 0x04000000 + 0x10000 };
