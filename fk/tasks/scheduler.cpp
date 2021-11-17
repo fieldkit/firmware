@@ -151,7 +151,7 @@ void task_handler_scheduler(void *params) {
                     if (!scheduler.check(time, 0)) {
                         if (get_can_launch_captive_readings()) {
                             get_ipc()->launch_worker(WorkerCategory::Readings,
-                                                     create_pool_worker<ReadingsWorker>(false, false, ModulePowerState::AlwaysOn));
+                                                     create_pool_worker<ReadingsWorker>(false, false, true, ModulePowerState::AlwaysOn));
                         }
                     }
 
@@ -233,7 +233,7 @@ static bool get_can_launch_captive_readings() {
 
     // Will we be throttled?
     auto elapsed = fk_uptime() - gs.get()->runtime.readings;
-    if (elapsed < TenSecondsMs) {
+    if (elapsed < ThirtySecondsMs) {
         return false;
     }
 

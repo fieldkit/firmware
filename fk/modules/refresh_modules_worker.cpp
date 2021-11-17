@@ -7,8 +7,8 @@ RefreshModulesWorker::RefreshModulesWorker() {
 }
 
 void RefreshModulesWorker::run(Pool &pool) {
-    ReadingsWorker worker{ true, true, ModulePowerState::Unknown };
+    ReadingsWorker worker{ true, true, true, ModulePowerState::Unknown };
     worker.run(pool);
 }
 
-}
+} // namespace fk

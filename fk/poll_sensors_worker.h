@@ -9,7 +9,7 @@ private:
     uint32_t interval_{ TenSecondsMs };
 
 public:
-    explicit PollSensorsWorker(bool scan, bool read_only, uint32_t interval);
+    explicit PollSensorsWorker(bool scan, bool read_only, bool throttle, uint32_t interval);
 
 public:
     void run(Pool &pool) override;

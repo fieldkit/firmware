@@ -14,7 +14,7 @@ private:
     StorageUpdate storage_update_;
 
 public:
-    ReadingsWorker(bool scan, bool read_only, bool throttle = true, ModulePowerState power_state = ModulePowerState::Unknown);
+    ReadingsWorker(bool scan, bool read_only, bool throttle, ModulePowerState power_state = ModulePowerState::Unknown);
 
 public:
     void run(Pool &pool) override;

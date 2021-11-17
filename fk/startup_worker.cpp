@@ -621,7 +621,7 @@ bool StartupWorker::check_for_programmer_startup(Pool &pool) {
     ReadingsWorker readings_worker{ false, true, false };
     readings_worker.run(pool);
 
-    get_ipc()->launch_worker(WorkerCategory::Polling, create_pool_worker<PollSensorsWorker>(false, true, TwoSecondsMs));
+    get_ipc()->launch_worker(WorkerCategory::Polling, create_pool_worker<PollSensorsWorker>(false, true, true, ThirtySecondsMs));
 
     task_display_params.readings = true;
 

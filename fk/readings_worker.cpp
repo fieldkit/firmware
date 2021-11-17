@@ -147,7 +147,7 @@ ReadingsWorker::ThrottleAndScanState ReadingsWorker::read_state() {
     auto scanned = gs.get()->dynamic.attached() != nullptr;
     if (gs.get()->runtime.readings > 0) {
         auto elapsed = fk_uptime() - gs.get()->runtime.readings;
-        if (elapsed < TenSecondsMs) {
+        if (elapsed < ThirtySecondsMs) {
             return ThrottleAndScanState{ true, scanned };
         }
     }

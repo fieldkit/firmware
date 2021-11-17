@@ -489,7 +489,7 @@ public:
 private:
     void launch_polling_task(GotoMenu *menus, MenuOption *back, Pool *pool) {
         back->on_selected();
-        auto worker = create_pool_worker<PollSensorsWorker>(true, false, interval_ * 1000);
+        auto worker = create_pool_worker<PollSensorsWorker>(true, false, true, interval_ * 1000);
         get_ipc()->signal_workers(WorkerCategory::Polling, 9);
         get_ipc()->launch_worker(WorkerCategory::Polling, worker, true);
         // TODO Move to subpool to allow for repeated readings presses.
