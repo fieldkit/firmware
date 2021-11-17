@@ -299,6 +299,10 @@ bool WaterModule::averaging_enabled() {
 bool WaterModule::excite_enabled() {
     switch (header_.kind) {
     case FK_MODULES_KIND_WATER_EC: {
+        auto gs = get_global_state_ro();
+        if (gs.get()->debugging.unexciting) {
+            return false;
+        }
         return true;
     }
     default:

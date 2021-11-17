@@ -152,6 +152,11 @@ static void configure_noisy_network(DebuggingUdpTraffic udp) {
     }
 }
 
+static void configure_unexciting() {
+    auto gs = get_global_state_rw();
+    gs.get()->debugging.unexciting = true;
+}
+
 MenuView::MenuView(ViewController *views, Pool &pool) : pool_(&pool), views_(views) {
     back_ = to_lambda_option(&pool, "Back", [=]() {
         auto title = active_menu_->title;
@@ -460,12 +465,13 @@ public:
             launch_polling_task(menus, back, pool);
         });
 
-        auto noisy_network_menu = new_menu_screen<3>(pool, "noisy-network",
-                                                     {
-                                                         back,
-                                                         noisy_network_on,
-                                                         noisy_network_off,
-                                                     });
+        auto unexciting = to_lambda_option(pool, "Unexciting", [=]() {
+            loginfo("unexciting");
+            configure_unexciting();
+            launch_polling_task(menus, back, pool);
+        });
+
+        auto poll_type_menu = new_menu_screen<4>(pool, "poll-type", { back, noisy_network_on, noisy_network_off, unexciting });
 
         auto constexpr number_of_options = 5;
         auto options = (MenuOption **)pool->malloc(sizeof(MenuOption *) * number_of_options + 1);
@@ -477,7 +483,7 @@ public:
             FK_ASSERT(index < number_of_options);
             options[index++] = to_lambda_option(pool, pool->sprintf("Poll every %ds", interval), [=]() {
                 interval_ = interval;
-                menus->goto_menu(noisy_network_menu);
+                menus->goto_menu(poll_type_menu);
             });
         }
 

@@ -58,6 +58,7 @@ struct ReadingsState {
 
 struct DebuggingState {
     DebuggingUdpTraffic udp_traffic;
+    bool unexciting{ false };
 };
 
 struct GlobalState {
