@@ -207,8 +207,8 @@ ModuleReturn WaterModule::service(ModuleContext mc, Pool &pool) {
 
 static SensorMetadata const fk_module_water_do_sensor_metas[] = {
     { .name = "do", .unitOfMeasure = "%", .flags = 0 },
-    { .name = "temperature", .unitOfMeasure = "°C", .flags = 0 },
-    { .name = "pressure", .unitOfMeasure = "kPa", .flags = 0 },
+    { .name = "temperature", .unitOfMeasure = "°C", .flags = FK_MODULES_FLAG_INTERNAL },
+    { .name = "pressure", .unitOfMeasure = "kPa", .flags = FK_MODULES_FLAG_INTERNAL },
 };
 
 static ModuleSensors fk_module_water_do_sensors = {
