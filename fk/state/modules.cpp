@@ -13,7 +13,8 @@ namespace state {
 AttachedSensor::AttachedSensor(SensorMetadata const *meta, uint32_t index) : meta_(meta), index_(index) {
 }
 
-AttachedSensor::AttachedSensor(SensorMetadata const *meta, uint32_t index, ModuleReading reading) : meta_(meta), index_(index), reading_(reading) {
+AttachedSensor::AttachedSensor(SensorMetadata const *meta, uint32_t index, ModuleReading reading)
+    : meta_(meta), index_(index), reading_(reading) {
 }
 
 uint32_t AttachedSensor::index() {
@@ -32,8 +33,7 @@ void AttachedSensor::reading(ModuleReading reading) {
     reading_ = reading;
 }
 
-AttachedModule::AttachedModule(ModulePosition position, ModuleHeader const &header, ModuleMetadata const *meta,
-                               Module *driver, Pool &pool)
+AttachedModule::AttachedModule(ModulePosition position, ModuleHeader const &header, ModuleMetadata const *meta, Module *driver, Pool &pool)
     : position_(position), header_(header), meta_(meta), driver_(driver), pool_(&pool) {
 }
 
@@ -95,8 +95,8 @@ int32_t AttachedModule::initialize(ModuleContext ctx, Pool *pool) {
 }
 
 int32_t AttachedModule::take_readings(ReadingsContext ctx, ReadingsListener *listener, Pool *pool) {
-    loginfo("[%d] '%s' mk=%02" PRIx32 "%02" PRIx32 " version=%" PRIu32, position_.integer(),
-            configuration_.display_name_key, meta_->manufacturer, meta_->kind, meta_->version);
+    loginfo("[%d] '%s' mk=%02" PRIx32 "%02" PRIx32 " version=%" PRIu32, position_.integer(), configuration_.display_name_key,
+            meta_->manufacturer, meta_->kind, meta_->version);
 
     configuration_ = driver_->get_configuration(*pool_);
 
@@ -132,8 +132,8 @@ int32_t AttachedModule::take_readings(ReadingsContext ctx, ReadingsListener *lis
         if (i < nreadings) {
             auto reading = module_readings->get(i);
 
-            loginfo("[%d] sensor[%2d] name='%s.%s' reading=%f (%f)", position_.integer(), sensor.index(), meta_->name,
-                    sensor.name(), reading.calibrated, reading.uncalibrated);
+            loginfo("[%d] sensor[%2d] name='%s.%s' reading=%f (%f)", position_.integer(), sensor.index(), meta_->name, sensor.name(),
+                    reading.calibrated, reading.uncalibrated);
 
             auto err = listener->sensor_reading(this, &sensor, reading, pool);
             if (err < 0) {
@@ -141,8 +141,7 @@ int32_t AttachedModule::take_readings(ReadingsContext ctx, ReadingsListener *lis
                 return err;
             }
         } else {
-            logwarn("[%d] sensor[%2d] name='%s.%s' no-reading", position_.integer(), sensor.index(), meta_->name,
-                    sensor.name());
+            logwarn("[%d] sensor[%2d] name='%s.%s' no-reading", position_.integer(), sensor.index(), meta_->name, sensor.name());
         }
     }
 
@@ -350,6 +349,12 @@ int32_t AttachedModules::take_readings(ReadingsListener *listener, Pool &pool) {
         auto position = attached.position();
 
         logged_task lt{ pool.sprintf("module[%d]", position.integer()) };
+
+        auto module_power = attached.enable();
+        if (!module_power.enable()) {
+            logerror("[%d] error powering module", position.integer());
+            return -1;
+        }
 
         auto sub = ctx.open_readings(position, pool);
         if (!sub.open()) {
