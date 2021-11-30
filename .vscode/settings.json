@@ -6,5 +6,11 @@
       "**/node_modules": true,
       "**/build": true
     }
+  },
+  "search.exclude": {
+    "third-party": true
+  },
+  "files.exclude": {
+    "third-party": true
   }
 }
