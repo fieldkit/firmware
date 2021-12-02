@@ -281,9 +281,13 @@ const char *WaterModule::get_display_name_key() {
 ModuleConfiguration const WaterModule::get_configuration(Pool &pool) {
     switch (header_.kind) {
     case FK_MODULES_KIND_WATER_TEMP:
-        return { get_display_name_key(), ModulePower::ReadingsOnly, 0, cfg_message_, ModuleOrderProvidesCalibration };
+        return ModuleConfiguration{ get_display_name_key(), ModulePower::ReadingsOnly, ModuleTiming{}, cfg_message_,
+                                    ModuleOrderProvidesCalibration };
+    case FK_MODULES_KIND_WATER_EC:
+        return ModuleConfiguration{ get_display_name_key(), ModulePower::ReadingsOnly, ModuleTiming{ 60 }, cfg_message_,
+                                    DefaultModuleOrder };
     };
-    return { get_display_name_key(), ModulePower::ReadingsOnly, 0, cfg_message_, DefaultModuleOrder };
+    return ModuleConfiguration{ get_display_name_key(), ModulePower::ReadingsOnly, ModuleTiming{}, cfg_message_, DefaultModuleOrder };
 }
 
 bool WaterModule::averaging_enabled() {

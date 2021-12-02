@@ -159,7 +159,7 @@ ModuleConfiguration AttachedModule::get_configuration(Pool *pool) {
 }
 
 EnableModulePower AttachedModule::enable() {
-    return EnableModulePower{ position_, configuration_.power, configuration_.wake_delay };
+    return EnableModulePower{ position_, configuration_.power, configuration_.timing.wake_delay };
 }
 
 AttachedModules::AttachedModules(AttachedModules::Modules modules, Pool &pool) : modules_(modules), pool_(&pool) {

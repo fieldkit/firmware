@@ -179,9 +179,10 @@ ModuleConfiguration const AtlasModule::get_configuration(Pool &pool) {
     // Make sure temperature is serviced before any of the other water modules.
     switch (type_) {
     case AtlasSensorType::Temp:
-        return { get_display_name_key(), ModulePower::ReadingsOnly, 0, cfg_message_, ModuleOrderProvidesCalibration };
+        return ModuleConfiguration{ get_display_name_key(), ModulePower::ReadingsOnly, ModuleTiming{}, cfg_message_,
+                                    ModuleOrderProvidesCalibration };
     default:
-        return { get_display_name_key(), ModulePower::ReadingsOnly, 0, cfg_message_, DefaultModuleOrder };
+        return ModuleConfiguration{ get_display_name_key(), ModulePower::ReadingsOnly, ModuleTiming{}, cfg_message_, DefaultModuleOrder };
     }
 }
 

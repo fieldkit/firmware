@@ -29,6 +29,29 @@ constexpr ModuleOrder ModuleOrderInternal = DefaultModuleOrder - 10;
  */
 constexpr ModuleOrder ModuleOrderProvidesCalibration = DefaultModuleOrder - 1;
 
+typedef struct ModuleTiming {
+    /**
+     * Required interval between readings.
+     */
+    uint32_t readings_interval{ 0 };
+
+    /**
+     * How long to wait after powering up the module.
+     */
+    uint32_t wake_delay{ 100 };
+
+    /**
+     * Required interval between being serviced.
+     */
+    uint32_t service_interval{ 0 };
+
+    ModuleTiming() {
+    }
+
+    ModuleTiming(uint32_t readings_interval) : readings_interval(readings_interval) {
+    }
+} ModuleTiming;
+
 /**
  * Configuration information a module can provide to the OS.
  */
@@ -49,14 +72,9 @@ typedef struct ModuleConfiguration {
     ModulePower power{ ModulePower::ReadingsOnly };
 
     /**
-     * How long to wait after powering up the module.
-     */
-    uint32_t wake_delay{ 100 };
-
-    /**
-     * How often the module needs to be serviced.
-     */
-    uint32_t service_interval{ 0 };
+     * Intervals and delays.
+     **/
+    ModuleTiming timing;
 
     /**
      * Preferred module servicing order. This is mostly a hint to the
@@ -65,11 +83,6 @@ typedef struct ModuleConfiguration {
      * physical module order.
      */
     ModuleOrder service_order{ DefaultModuleOrder };
-
-    /**
-     * Shortest interval between readings.
-     */
-    uint32_t minimum_readings_interval{ 0 };
 
     /**
      * Constructor
@@ -107,23 +120,22 @@ typedef struct ModuleConfiguration {
     /**
      * Constructor
      */
-    ModuleConfiguration(const char *display_name_key, ModulePower power, uint32_t service_interval)
-        : display_name_key(display_name_key), power(power), service_interval(service_interval) {
+    ModuleConfiguration(const char *display_name_key, ModulePower power, ModuleTiming timing)
+        : display_name_key(display_name_key), power(power), timing(timing) {
     }
 
     /**
      * Constructor
      */
-    ModuleConfiguration(const char *display_name_key, ModulePower power, uint32_t service_interval, ModuleOrder order)
-        : display_name_key(display_name_key), power(power), service_interval(service_interval), service_order(order) {
+    ModuleConfiguration(const char *display_name_key, ModulePower power, ModuleTiming timing, ModuleOrder order)
+        : display_name_key(display_name_key), power(power), timing(timing), service_order(order) {
     }
 
     /**
      * Constructor
      */
-    ModuleConfiguration(const char *display_name_key, ModulePower power, uint32_t service_interval, EncodedMessage *message,
-                        ModuleOrder order)
-        : display_name_key(display_name_key), message(message), power(power), service_interval(service_interval), service_order(order) {
+    ModuleConfiguration(const char *display_name_key, ModulePower power, ModuleTiming timing, EncodedMessage *message, ModuleOrder order)
+        : display_name_key(display_name_key), message(message), power(power), timing(timing), service_order(order) {
     }
 } ModuleConfiguration;
 
