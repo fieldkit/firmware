@@ -68,7 +68,7 @@ ModuleReadings *FakeModule1::take_readings(ReadingsContext mc, Pool &pool) {
         return nullptr;
     }
     auto mr = new (pool) NModuleReadings<1>();
-    mr->set(0, (float)fk_random_i32(20, 100));
+    mr->set(0, SensorReading{ mc.now(), (float)fk_random_i32(20, 100) });
     return mr;
 }
 
@@ -86,16 +86,11 @@ ModuleMetadata const fk_test_module_fake_1 = {
 };
 
 static SensorMetadata const fk_module_fake_2_sensor_metas[] = {
-    { .name = "sensor-0", .unitOfMeasure = "", .flags = 0 },
-    { .name = "sensor-1", .unitOfMeasure = "", .flags = 0 },
-    { .name = "sensor-2", .unitOfMeasure = "", .flags = 0 },
-    { .name = "sensor-3", .unitOfMeasure = "", .flags = 0 },
-    { .name = "sensor-4", .unitOfMeasure = "", .flags = 0 },
-    { .name = "sensor-5", .unitOfMeasure = "", .flags = 0 },
-    { .name = "sensor-6", .unitOfMeasure = "", .flags = 0 },
-    { .name = "sensor-7", .unitOfMeasure = "", .flags = 0 },
-    { .name = "sensor-8", .unitOfMeasure = "", .flags = 0 },
-    { .name = "sensor-9", .unitOfMeasure = "", .flags = 0 },
+    { .name = "sensor-0", .unitOfMeasure = "", .flags = 0 }, { .name = "sensor-1", .unitOfMeasure = "", .flags = 0 },
+    { .name = "sensor-2", .unitOfMeasure = "", .flags = 0 }, { .name = "sensor-3", .unitOfMeasure = "", .flags = 0 },
+    { .name = "sensor-4", .unitOfMeasure = "", .flags = 0 }, { .name = "sensor-5", .unitOfMeasure = "", .flags = 0 },
+    { .name = "sensor-6", .unitOfMeasure = "", .flags = 0 }, { .name = "sensor-7", .unitOfMeasure = "", .flags = 0 },
+    { .name = "sensor-8", .unitOfMeasure = "", .flags = 0 }, { .name = "sensor-9", .unitOfMeasure = "", .flags = 0 },
 };
 
 static ModuleSensors fk_module_fake_2_sensors = {
@@ -128,7 +123,7 @@ public:
     ModuleReadings *take_readings(ReadingsContext mc, Pool &pool) override {
         auto mr = new (pool) NModuleReadings<10>();
         for (size_t i = 0; i < mr->size(); i++) {
-            mr->set(i, (float)fk_random_i32(20, 100));
+            mr->set(i, SensorReading{ mc.now(), (float)fk_random_i32(20, 100) });
         }
         return mr;
     }
@@ -165,4 +160,4 @@ ModuleMetadata const fk_test_module_fake_diagnostics = {
     .ctor = fk_test_module_create_2,
 };
 
-}
+} // namespace fk

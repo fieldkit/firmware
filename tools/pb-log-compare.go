@@ -189,6 +189,8 @@ func main() {
 	}
 
 	if len(httpReplies) == 2 {
+		fmt.Printf("%v\n", httpReplies[0])
+		fmt.Printf("%v\n", httpReplies[1])
 		changelog, err := diff.Diff(httpReplies[0], httpReplies[1])
 		if err != nil {
 			panic(err)

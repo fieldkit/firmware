@@ -423,7 +423,7 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
 
     auto has_mpl = header_.kind == FK_MODULES_KIND_WATER_DO;
     ModuleReadings *mr = has_mpl ? (ModuleReadings *)new (pool) NModuleReadings<3>() : (ModuleReadings *)new (pool) NModuleReadings<1>();
-    mr->set(0, ModuleReading{ uncalibrated, calibrated, factory });
+    mr->set(0, SensorReading{ mc.now(), uncalibrated, calibrated, factory });
 
     if (has_mpl) {
         Mpl3115a2 mpl3115a2{ bus };
@@ -431,8 +431,8 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
         if (mpl3115a2.begin()) {
             Mpl3115a2Reading reading;
             if (mpl3115a2.get(&reading)) {
-                mr->set(1, ModuleReading{ reading.temperature });
-                mr->set(2, ModuleReading{ reading.pressure });
+                mr->set(1, SensorReading{ mc.now(), reading.temperature });
+                mr->set(2, SensorReading{ mc.now(), reading.pressure });
             } else {
                 logerror("mpl3115a2 get");
             }

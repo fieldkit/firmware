@@ -130,30 +130,32 @@ typedef struct ModuleConfiguration {
     }
 } ModuleConfiguration;
 
-struct ModuleReading {
+struct SensorReading {
+    uint32_t time;
     float calibrated;
     float uncalibrated;
     float factory;
 
-    ModuleReading() : calibrated(0.0), uncalibrated(0.0) {
+    explicit SensorReading() : time(0), calibrated(0.0), uncalibrated(0.0), factory(0.0) {
     }
 
-    ModuleReading(float one_value) : calibrated(one_value), uncalibrated(0.0) {
+    explicit SensorReading(uint32_t time, float one_value) : time(time), calibrated(one_value), uncalibrated(0.0), factory(0.0) {
     }
 
-    ModuleReading(float uncalibrated, float calibrated) : calibrated(calibrated), uncalibrated(uncalibrated) {
+    explicit SensorReading(uint32_t time, float uncalibrated, float calibrated)
+        : time(time), calibrated(calibrated), uncalibrated(uncalibrated), factory(0.0) {
     }
 
-    ModuleReading(float uncalibrated, float calibrated, float factory)
-        : calibrated(calibrated), uncalibrated(uncalibrated), factory(factory) {
+    explicit SensorReading(uint32_t time, float uncalibrated, float calibrated, float factory)
+        : time(time), calibrated(calibrated), uncalibrated(uncalibrated), factory(factory) {
     }
 };
 
 class ModuleReadings {
 public:
     virtual size_t size() const = 0;
-    virtual void set(int32_t i, ModuleReading value) = 0;
-    virtual ModuleReading get(int32_t i) const = 0;
+    virtual void set(int32_t i, SensorReading value) = 0;
+    virtual SensorReading get(int32_t i) const = 0;
     virtual ModuleReadings *clone(Pool &pool) const = 0;
 };
 

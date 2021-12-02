@@ -10,7 +10,8 @@ int32_t UpdateReadingsListener::readings_taken(state::AttachedModule *attached_m
     return 0;
 }
 
-int32_t UpdateReadingsListener::sensor_reading(state::AttachedModule *attached_module, state::AttachedSensor *sensor, ModuleReading reading, Pool *pool) {
+int32_t UpdateReadingsListener::sensor_reading(state::AttachedModule *attached_module, state::AttachedSensor *sensor, SensorReading reading,
+                                               Pool *pool) {
     queue_.add(sensor_reading_t{ 0, attached_module, sensor, reading });
     return 0;
 }

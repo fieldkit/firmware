@@ -10,7 +10,7 @@ private:
         uint32_t version;
         state::AttachedModule *attached_module;
         state::AttachedSensor *sensor;
-        ModuleReading reading;
+        SensorReading reading;
     };
 
     Pool &pool_;
@@ -21,11 +21,11 @@ public:
 
 public:
     int32_t readings_taken(state::AttachedModule *attached_module, ModuleReadings *readings, Pool *pool) override;
-    int32_t sensor_reading(state::AttachedModule *attached_module, state::AttachedSensor *sensor, ModuleReading reading, Pool *pool) override;
+    int32_t sensor_reading(state::AttachedModule *attached_module, state::AttachedSensor *sensor, SensorReading reading,
+                           Pool *pool) override;
 
 public:
     int32_t flush();
-
 };
 
 } // namespace fk

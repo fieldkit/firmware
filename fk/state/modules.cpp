@@ -13,7 +13,7 @@ namespace state {
 AttachedSensor::AttachedSensor(SensorMetadata const *meta, uint32_t index) : meta_(meta), index_(index) {
 }
 
-AttachedSensor::AttachedSensor(SensorMetadata const *meta, uint32_t index, ModuleReading reading)
+AttachedSensor::AttachedSensor(SensorMetadata const *meta, uint32_t index, SensorReading reading)
     : meta_(meta), index_(index), reading_(reading) {
 }
 
@@ -25,11 +25,11 @@ const char *AttachedSensor::name() {
     return meta_->name;
 }
 
-ModuleReading AttachedSensor::reading() {
+SensorReading AttachedSensor::reading() {
     return reading_;
 }
 
-void AttachedSensor::reading(ModuleReading reading) {
+void AttachedSensor::reading(SensorReading reading) {
     reading_ = reading;
 }
 
