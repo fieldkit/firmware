@@ -49,7 +49,7 @@ ModuleSensors const *WeatherModule::get_sensors(Pool &pool) {
 }
 
 ModuleConfiguration const WeatherModule::get_configuration(Pool &pool) {
-    return ModuleConfiguration{ "modules.weather", ModulePower::Always, ModuleTiming{} };
+    return ModuleConfiguration{ "modules.weather", ModulePower::Always };
 }
 
 ModuleReturn WeatherModule::initialize(ModuleContext mc, Pool &pool) {
