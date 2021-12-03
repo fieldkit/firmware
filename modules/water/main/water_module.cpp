@@ -362,6 +362,17 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
 
     Mcp2803 mcp{ bus, FK_MCP2803_ADDRESS };
 
+    // If we were locked out, check to see if it's expired, otherwise we return
+    // nothing, no readings. It may be necessary later to actually specify what
+    // happened to the caller.
+    if (unlocked_ > 0) {
+        if (fk_uptime() < unlocked_) {
+            return nullptr;
+        }
+
+        unlocked_ = 0;
+    }
+
     // TODO We could move the excite logic itself into this and clean up the
     // branch below, gonna hold off until we've tested longer, though.
     auto checker = get_ready_checker(mcp, pool);
@@ -439,6 +450,10 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
         } else {
             logerror("mpl3115a2 begin");
         }
+    }
+
+    if (exciting) {
+        unlocked_ = fk_uptime() + OneMinuteMs;
     }
 
     return mr;
