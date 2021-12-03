@@ -281,9 +281,9 @@ const char *WaterModule::get_display_name_key() {
 ModuleConfiguration const WaterModule::get_configuration(Pool &pool) {
     switch (header_.kind) {
     case FK_MODULES_KIND_WATER_TEMP:
-        return { get_display_name_key(), ModulePower::ReadingsOnly, 0, cfg_message_, ModuleOrderProvidesCalibration };
+        return ModuleConfiguration{ get_display_name_key(), ModulePower::ReadingsOnly, cfg_message_, ModuleOrderProvidesCalibration };
     };
-    return { get_display_name_key(), ModulePower::ReadingsOnly, 0, cfg_message_, DefaultModuleOrder };
+    return ModuleConfiguration{ get_display_name_key(), ModulePower::ReadingsOnly, cfg_message_, DefaultModuleOrder };
 }
 
 bool WaterModule::averaging_enabled() {
@@ -362,6 +362,31 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
 
     Mcp2803 mcp{ bus, FK_MCP2803_ADDRESS };
 
+    auto uptime = fk_uptime();
+
+    // If we were locked out, check to see if it's expired, otherwise we return
+    // nothing, no readings. It may be necessary later to actually specify what
+    // happened to the caller.
+    if (unlocked_ > 0) {
+        if (uptime < unlocked_) {
+            auto remaining = unlocked_ - uptime;
+            if (remaining < 0) {
+                loginfo("[%d] locked (negative) %" PRIu32, mc.position(), remaining);
+                unlocked_ = fk_uptime() + OneMinuteMs;
+                return nullptr;
+            }
+            if (remaining > FiveSecondsMs) {
+                loginfo("[%d] locked %" PRIu32, mc.position(), remaining);
+                return nullptr;
+            }
+
+            loginfo("[%d] locked %" PRIu32 " waiting for expiration.", mc.position(), remaining);
+            fk_delay(remaining);
+        }
+
+        unlocked_ = 0;
+    }
+
     // TODO We could move the excite logic itself into this and clean up the
     // branch below, gonna hold off until we've tested longer, though.
     auto checker = get_ready_checker(mcp, pool);
@@ -423,7 +448,7 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
 
     auto has_mpl = header_.kind == FK_MODULES_KIND_WATER_DO;
     ModuleReadings *mr = has_mpl ? (ModuleReadings *)new (pool) NModuleReadings<3>() : (ModuleReadings *)new (pool) NModuleReadings<1>();
-    mr->set(0, ModuleReading{ uncalibrated, calibrated, factory });
+    mr->set(0, SensorReading{ mc.now(), uncalibrated, calibrated, factory });
 
     if (has_mpl) {
         Mpl3115a2 mpl3115a2{ bus };
@@ -431,8 +456,8 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
         if (mpl3115a2.begin()) {
             Mpl3115a2Reading reading;
             if (mpl3115a2.get(&reading)) {
-                mr->set(1, ModuleReading{ reading.temperature });
-                mr->set(2, ModuleReading{ reading.pressure });
+                mr->set(1, SensorReading{ mc.now(), reading.temperature });
+                mr->set(2, SensorReading{ mc.now(), reading.pressure });
             } else {
                 logerror("mpl3115a2 get");
             }
@@ -440,6 +465,14 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
             logerror("mpl3115a2 begin");
         }
     }
+
+#if !defined(FK_WATER_LOCKOUT_ALL_MODULES)
+    if (exciting) {
+        unlocked_ = uptime + OneMinuteMs;
+    }
+#else
+    unlocked_ = uptime + OneMinuteMs;
+#endif
 
     return mr;
 }

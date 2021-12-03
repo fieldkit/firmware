@@ -193,8 +193,6 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, bool logs, fkb_h
         auto modules = pool_->malloc<fk_app_ModuleCapabilities>(nmodules);
         auto m = 0u;
         for (auto &am : attached->modules()) {
-            // auto &module = gs_->modules->modules[m];
-
             auto &attached_sensors = am.sensors();
 
             auto sensors_array = pool_->malloc_with<pb_array_t>({

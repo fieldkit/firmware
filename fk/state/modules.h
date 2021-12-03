@@ -12,17 +12,17 @@ class AttachedSensor {
 private:
     SensorMetadata const *meta_{ nullptr };
     uint32_t index_{ 0 };
-    ModuleReading reading_;
+    SensorReading reading_;
 
 public:
     AttachedSensor(SensorMetadata const *meta, uint32_t index);
-    AttachedSensor(SensorMetadata const *meta, uint32_t index, ModuleReading reading);
+    AttachedSensor(SensorMetadata const *meta, uint32_t index, SensorReading reading);
 
 public:
     uint32_t index();
     const char *name();
-    ModuleReading reading();
-    void reading(ModuleReading reading);
+    SensorReading reading();
+    void reading(SensorReading reading);
     const char *unit_of_measure() {
         return meta_->unitOfMeasure;
     }
@@ -36,8 +36,7 @@ class AttachedModule;
 class ReadingsListener {
 public:
     virtual int32_t readings_taken(AttachedModule *attached_module, ModuleReadings *readings, Pool *pool) = 0;
-    virtual int32_t sensor_reading(AttachedModule *attached_module, AttachedSensor *sensor, ModuleReading reading,
-                                   Pool *pool) = 0;
+    virtual int32_t sensor_reading(AttachedModule *attached_module, AttachedSensor *sensor, SensorReading reading, Pool *pool) = 0;
 };
 
 class NoopReadingsListener : public ReadingsListener {
@@ -46,8 +45,7 @@ public:
         return 0;
     }
 
-    int32_t sensor_reading(AttachedModule *attached_module, AttachedSensor *sensor, ModuleReading reading,
-                           Pool *pool) override {
+    int32_t sensor_reading(AttachedModule *attached_module, AttachedSensor *sensor, SensorReading reading, Pool *pool) override {
         return 0;
     }
 };
@@ -65,8 +63,7 @@ private:
     Sensors sensors_{ pool_ };
 
 public:
-    AttachedModule(ModulePosition position, ModuleHeader const &header, ModuleMetadata const *meta, Module *driver,
-                   Pool &pool);
+    AttachedModule(ModulePosition position, ModuleHeader const &header, ModuleMetadata const *meta, Module *driver, Pool &pool);
 
 public:
     ModulePosition position() const;

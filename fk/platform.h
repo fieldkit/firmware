@@ -14,6 +14,8 @@ typedef struct fk_serial_number_t {
     fk_serial_number_t();
 } fk_serial_number_t;
 
+typedef uint32_t uptime_t;
+
 /**
  * Return the number of milliseconds since the hardware was started.
  */

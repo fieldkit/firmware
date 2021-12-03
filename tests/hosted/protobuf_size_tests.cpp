@@ -89,7 +89,7 @@ public:
     ModuleReadings *take_readings(ReadingsContext mc, Pool &pool) override {
         auto mr = new (pool) NModuleReadings<10>();
         for (size_t i = 0; i < mr->size(); i++) {
-            mr->set(i, (float)fk_random_i32(20, 100));
+            mr->set(i, SensorReading{ 0, (float)fk_random_i32(20, 100) });
         }
         return mr;
     }
@@ -161,7 +161,7 @@ static void fake_global_state(GlobalState &gs, Pool &pool) {
     auto attached_module = attached->get_by_position(position);
     auto &sensors = attached_module->sensors();
     for (auto &sensor : sensors) {
-        sensor.reading(ModuleReading{ values[sensor.index()] });
+        sensor.reading(SensorReading{ 0, values[sensor.index()] });
     }
 
     gs.dynamic = std::move(dynamic);
@@ -349,5 +349,5 @@ TEST_F(ProtoBufSizeSuite, HttpReplyReadings) {
     auto encoded = pool_.encode(fk_app_HttpReply_fields, reply.reply());
     dump_binary(file_, "http-reply-readings", encoded);
 
-    ASSERT_EQ(encoded->size, 342u);
+    ASSERT_EQ(encoded->size, 292u);
 }
