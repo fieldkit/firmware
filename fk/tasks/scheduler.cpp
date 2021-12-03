@@ -233,7 +233,7 @@ static bool get_can_launch_captive_readings() {
 
     // Will we be throttled?
     auto elapsed = fk_uptime() - gs.get()->runtime.readings;
-    if (elapsed < ThirtySecondsMs) {
+    if (elapsed < TenSecondsMs) {
         return false;
     }
 
