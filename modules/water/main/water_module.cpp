@@ -362,12 +362,26 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
 
     Mcp2803 mcp{ bus, FK_MCP2803_ADDRESS };
 
+    auto uptime = fk_uptime();
+
     // If we were locked out, check to see if it's expired, otherwise we return
     // nothing, no readings. It may be necessary later to actually specify what
     // happened to the caller.
     if (unlocked_ > 0) {
-        if (fk_uptime() < unlocked_) {
-            return nullptr;
+        if (uptime < unlocked_) {
+            auto remaining = unlocked_ - uptime;
+            if (remaining < 0) {
+                loginfo("[%d] locked (negative) %" PRIu32, mc.position(), remaining);
+                unlocked_ = fk_uptime() + OneMinuteMs;
+                return nullptr;
+            }
+            if (remaining > FiveSecondsMs) {
+                loginfo("[%d] locked %" PRIu32, mc.position(), remaining);
+                return nullptr;
+            }
+
+            loginfo("[%d] locked %" PRIu32 " waiting for expiration.", mc.position(), remaining);
+            fk_delay(remaining);
         }
 
         unlocked_ = 0;
@@ -452,9 +466,13 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
         }
     }
 
+#if !defined(FK_WATER_LOCKOUT_ALL_MODULES)
     if (exciting) {
-        unlocked_ = fk_uptime() + OneMinuteMs;
+        unlocked_ = uptime + OneMinuteMs;
     }
+#else
+    unlocked_ = uptime + OneMinuteMs;
+#endif
 
     return mr;
 }
