@@ -222,14 +222,19 @@ bool MetalIPC::has_stalled_workers(WorkerCategory category, uint32_t stall_ms) {
     for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
         if (os_task_is_running(&worker_tasks[i])) {
             if (running_[i] == category) {
+                if (now == started_[i]) {
+                    continue;
+                }
                 if (now > started_[i]) {
                     auto elapsed = now - started_[i];
                     if (elapsed > stall_ms) {
                         loginfo("elapsed = %" PRIu32 " started = %" PRIu32, elapsed, started_[i]);
                         return true;
                     }
+                } else if (started_[i] > 0) {
+                    logwarn("worker started in the future: %" PRIu32 " vs %" PRIu32, now, started_[i]);
                 } else {
-                    logwarn("worker started in the future");
+                    logwarn("worker started wrong: %" PRIu32 " vs %" PRIu32, now, started_[i]);
                 }
             }
         }
