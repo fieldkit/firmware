@@ -373,11 +373,11 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
             if (remaining < 0) {
                 loginfo("[%d] locked (negative) %" PRIu32, mc.position(), remaining);
                 unlocked_ = fk_uptime() + OneMinuteMs;
-                return nullptr;
+                return new (pool) EmptyReadings();
             }
             if (remaining > FiveSecondsMs) {
                 loginfo("[%d] locked %" PRIu32, mc.position(), remaining);
-                return nullptr;
+                return new (pool) EmptyReadings();
             }
 
             loginfo("[%d] locked %" PRIu32 " waiting for expiration.", mc.position(), remaining);

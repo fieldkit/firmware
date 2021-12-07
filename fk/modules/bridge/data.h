@@ -159,6 +159,24 @@ public:
     virtual ModuleReadings *clone(Pool &pool) const = 0;
 };
 
+class EmptyReadings : public ModuleReadings {
+public:
+    size_t size() const override {
+        return 0;
+    }
+
+    void set(int32_t i, SensorReading value) override {
+    }
+
+    SensorReading get(int32_t i) const override {
+        return SensorReading{};
+    }
+
+    ModuleReadings *clone(Pool &pool) const override {
+        return new (pool) EmptyReadings();
+    }
+};
+
 /**
  * Metadata for a particular sensor.
  */
