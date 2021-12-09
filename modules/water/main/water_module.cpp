@@ -410,6 +410,14 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
 
         fk_task_self_priority_set(priority - FK_PRIORITY_HIGH_OFFSET);
 
+        int32_t value = 0;
+        if (!ads.read(value)) {
+            logerror("read");
+            return nullptr;
+        }
+        auto uncalibrated = ((float)value * 2.048f) / 8388608.0f;
+        loginfo("[%d] water(sample #%d): %f", mc.position().integer(), -1, uncalibrated);
+
         if (!excite_control(mcp, true)) {
             return nullptr;
         }
