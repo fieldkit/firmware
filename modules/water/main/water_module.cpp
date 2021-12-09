@@ -399,12 +399,22 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
     auto exciting = excite_enabled();
     auto averaging = averaging_enabled();
     auto priority = fk_task_self_priority_get();
+    auto prereading = 0.0f;
 
     if (exciting) {
         FK_ASSERT(!averaging);
         loginfo("excitation: enabled");
 
         fk_task_self_priority_set(priority - FK_PRIORITY_HIGH_OFFSET);
+
+        int32_t value = 0;
+        if (!ads.read(value)) {
+            logerror("read");
+            return nullptr;
+        }
+
+        prereading = ((float)value * 2.048f) / 8388608.0f;
+        loginfo("[%d] water(sample #%d): %f", mc.position().integer(), -1, prereading);
 
         if (!excite_control(mcp, true)) {
             return nullptr;
@@ -439,6 +449,9 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
     fk_task_self_priority_set(priority);
 
     auto uncalibrated = accumulator / (float)number_of_values;
+    if (exciting) {
+        uncalibrated = uncalibrated - pow(prereading, 1.8f);
+    }
     auto default_curve = create_modules_default_curve(pool);
     auto curve = create_curve(default_curve, cfg_, pool);
     auto factory = default_curve->apply(uncalibrated);
