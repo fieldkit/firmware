@@ -382,9 +382,13 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
 
             loginfo("[%d] locked %" PRIu32 " waiting for expiration.", mc.position(), remaining);
             fk_delay(remaining);
+        } else {
+            loginfo("[%d] locked expired", mc.position());
         }
 
         unlocked_ = 0;
+    } else {
+        loginfo("[%d] unlocked", mc.position());
     }
 
     // TODO We could move the excite logic itself into this and clean up the
