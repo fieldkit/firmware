@@ -98,7 +98,10 @@ bool ReadingsWorker::save(Pool &pool) {
     auto gs = get_global_state_ro();
 
     MetaRecord meta_record{ pool };
-    meta_record.include_modules(gs.get(), &fkb_header, pool);
+    if (!meta_record.include_modules(gs.get(), &fkb_header, pool)) {
+        logwarn("include-modules failed, skipping write");
+        return true;
+    }
 
     auto meta_ops = storage.meta_ops();
     auto meta_record_number = meta_ops->write_record(SignedRecordKind::Modules, meta_record.record(), pool);
