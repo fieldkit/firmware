@@ -180,8 +180,8 @@ void os_task_user_data_set(os_task_t *task, void *user_data) {
     task->user_data = user_data;
 }
 
-os_status_t os_task_initialize(os_task_t *task, const char *name, os_start_status status, void (*handler)(void *params),
-                               void *params, uint32_t *stack, size_t stack_size) {
+os_status_t os_task_initialize(os_task_t *task, const char *name, os_start_status status, void (*handler)(void *params), void *params,
+                               uint32_t *stack, size_t stack_size) {
     os_task_options_t options = { name, status, handler, params, stack, stack_size, OS_PRIORITY_NORMAL };
     return os_task_initialize_options(task, &options);
 }
@@ -598,7 +598,7 @@ os_status_t osi_dispatch(os_task_t *task) {
 }
 
 #define OS_WAITQUEUE_NEXT_WRAPPED(n) (((n)->nrp == NULL) ? osg.waitqueue : (n)->nrp)
-#define OS_RUNQUEUE_NEXT_WRAPPED(n) (((n)->nrp == NULL) ? osg.runqueue : (n)->nrp)
+#define OS_RUNQUEUE_NEXT_WRAPPED(n)  (((n)->nrp == NULL) ? osg.runqueue : (n)->nrp)
 
 static bool task_is_running(os_task_t *task) {
     return os_task_status_is_running(task->status);
@@ -837,8 +837,8 @@ void osi_priority_check(os_task_t *scheduled) {
         for (os_task_t *iter = osg.runqueue; iter != NULL; iter = iter->nrp) {
             if (iter->status == OS_TASK_STATUS_ACTIVE || iter->status == OS_TASK_STATUS_IDLE) {
                 if (scheduled_priority < iter->priority) {
-                    osi_printf("scheduler panic: [0x%p] '%s' (%d) < [0x%p] '%s' (%d)", scheduled, scheduled->name,
-                               scheduled_priority, iter, iter->name, iter->priority);
+                    osi_printf("scheduler panic: [0x%p] '%s' (%d) < [0x%p] '%s' (%d)", scheduled, scheduled->name, scheduled_priority, iter,
+                               iter->name, iter->priority);
                     osi_debug_dump(OS_PANIC_ASSERTION);
                 }
             }
@@ -848,10 +848,13 @@ void osi_priority_check(os_task_t *scheduled) {
     uint8_t priority = 0xff;
     for (os_task_t *iter = osg.runqueue; iter != NULL; iter = iter->nrp) {
         if (!(iter->status == OS_TASK_STATUS_ACTIVE || iter->status == OS_TASK_STATUS_IDLE)) {
-            osi_printf("scheduler panic: [0x%p] '%s' status = %s", iter, iter->name, os_task_status_str(iter->status));
+            osi_printf("scheduler error(sta): [0x%p] '%s' status = %s priority = %d", iter, iter->name, os_task_status_str(iter->status),
+                       iter->priority);
         }
-        OS_ASSERT(iter->status == OS_TASK_STATUS_ACTIVE || iter->status == OS_TASK_STATUS_IDLE);
-        OS_ASSERT(priority >= iter->priority);
+        if (!(priority >= iter->priority)) {
+            osi_printf("scheduler error(pri): [0x%p] '%s' status = %s priority = %d", iter, iter->name, os_task_status_str(iter->status),
+                       iter->priority);
+        }
         priority = iter->priority;
     }
     OS_UNLOCK();
@@ -874,8 +877,8 @@ void osi_stack_check() {
 void osi_hard_fault_handler(uintptr_t *stack, uint32_t lr) {
     if (NVIC_HFSR & (1uL << 31)) {
         NVIC_HFSR |= (1uL << 31); // Reset Hard Fault status
-        *(stack + 6u) += 2u; // PC is located on stack at SP + 24 bytes; increment PC by 2 to skip break instruction.
-        return;              // Return to application
+        *(stack + 6u) += 2u;      // PC is located on stack at SP + 24 bytes; increment PC by 2 to skip break instruction.
+        return;                   // Return to application
     }
 
     cortex_hard_fault_t hfr;
