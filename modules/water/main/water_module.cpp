@@ -321,18 +321,18 @@ bool WaterModule::excite_enabled() {
 Curve *WaterModule::create_modules_default_curve(Pool &pool) {
     switch (header_.kind) {
     case FK_MODULES_KIND_WATER_TEMP: {
-        constexpr float TempDefaultCalibrationB = 610.77;
-        constexpr float TempDefaultCalibrationM = -831.84;
+        constexpr float TempDefaultCalibrationB = -900.53;
+        constexpr float TempDefaultCalibrationM = 662.56;
         return create_curve(fk_data_CurveType_CURVE_LINEAR, TempDefaultCalibrationB, TempDefaultCalibrationM, pool);
     }
     case FK_MODULES_KIND_WATER_PH: {
-        constexpr float PhDefaultCalibrationB = -18.75;
-        constexpr float PhDefaultCalibrationM = 15.625;
+        constexpr float PhDefaultCalibrationB = 15.992;
+        constexpr float PhDefaultCalibrationM = -17.777;
         return create_curve(fk_data_CurveType_CURVE_LINEAR, PhDefaultCalibrationB, PhDefaultCalibrationM, pool);
     }
     case FK_MODULES_KIND_WATER_DO: {
-        constexpr float DoDefaultCalibrationB = 2.8711;
-        constexpr float DoDefaultCalibrationM = 3.4211;
+        constexpr float DoDefaultCalibrationB = 2.9339;
+        constexpr float DoDefaultCalibrationM = 0.0033;
         return create_curve(fk_data_CurveType_CURVE_LINEAR, DoDefaultCalibrationB, DoDefaultCalibrationM, pool);
     }
     case FK_MODULES_KIND_WATER_ORP: {
