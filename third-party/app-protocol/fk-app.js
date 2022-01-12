@@ -12244,6 +12244,7 @@
              * @property {fk_app.IListDirectory} [directory] HttpQuery directory
              * @property {number} [flags] HttpQuery flags
              * @property {number|Long} [time] HttpQuery time
+             * @property {number} [counter] HttpQuery counter
              */
     
             /**
@@ -12349,6 +12350,14 @@
             HttpQuery.prototype.time = $util.Long ? $util.Long.fromBits(0,0,true) : 0;
     
             /**
+             * HttpQuery counter.
+             * @member {number}counter
+             * @memberof fk_app.HttpQuery
+             * @instance
+             */
+            HttpQuery.prototype.counter = 0;
+    
+            /**
              * Creates a new HttpQuery instance using the specified properties.
              * @function create
              * @memberof fk_app.HttpQuery
@@ -12394,6 +12403,8 @@
                     $root.fk_app.Transmission.encode(message.transmission, writer.uint32(/* id 10, wireType 2 =*/82).fork()).ldelim();
                 if (message.directory != null && message.hasOwnProperty("directory"))
                     $root.fk_app.ListDirectory.encode(message.directory, writer.uint32(/* id 11, wireType 2 =*/90).fork()).ldelim();
+                if (message.counter != null && message.hasOwnProperty("counter"))
+                    writer.uint32(/* id 12, wireType 0 =*/96).uint32(message.counter);
                 return writer;
             };
     
@@ -12460,6 +12471,9 @@
                         break;
                     case 8:
                         message.time = reader.uint64();
+                        break;
+                    case 12:
+                        message.counter = reader.uint32();
                         break;
                     default:
                         reader.skipType(tag & 7);
@@ -12573,6 +12587,9 @@
                 if (message.time != null && message.hasOwnProperty("time"))
                     if (!$util.isInteger(message.time) && !(message.time && $util.isInteger(message.time.low) && $util.isInteger(message.time.high)))
                         return "time: integer|Long expected";
+                if (message.counter != null && message.hasOwnProperty("counter"))
+                    if (!$util.isInteger(message.counter))
+                        return "counter: integer expected";
                 return null;
             };
     
@@ -12741,6 +12758,8 @@
                         message.time = object.time;
                     else if (typeof object.time === "object")
                         message.time = new $util.LongBits(object.time.low >>> 0, object.time.high >>> 0).toNumber(true);
+                if (object.counter != null)
+                    message.counter = object.counter >>> 0;
                 return message;
             };
     
@@ -12773,6 +12792,7 @@
                     object.locate = null;
                     object.transmission = null;
                     object.directory = null;
+                    object.counter = 0;
                 }
                 if (message.type != null && message.hasOwnProperty("type"))
                     object.type = options.enums === String ? $root.fk_app.QueryType[message.type] : message.type;
@@ -12799,6 +12819,8 @@
                     object.transmission = $root.fk_app.Transmission.toObject(message.transmission, options);
                 if (message.directory != null && message.hasOwnProperty("directory"))
                     object.directory = $root.fk_app.ListDirectory.toObject(message.directory, options);
+                if (message.counter != null && message.hasOwnProperty("counter"))
+                    object.counter = message.counter;
                 return object;
             };
     

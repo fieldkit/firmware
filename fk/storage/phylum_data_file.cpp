@@ -231,7 +231,8 @@ PhylumDataFile::DataFileAttributes PhylumDataFile::attributes() {
     };
 }
 
-PhylumDataFile::appended_t PhylumDataFile::append_always(RecordType type, pb_msgdesc_t const *fields, void const *record, Pool &pool) {
+PhylumDataFile::appended_t PhylumDataFile::append_always(RecordType type, pb_msgdesc_t const *fields, fk_data_DataRecord *record,
+                                                         uint8_t const *hash, Pool &pool) {
     assert(name_ != nullptr);
 
     logged_task lt{ "df-always" };
@@ -280,16 +281,17 @@ PhylumDataFile::appended_t PhylumDataFile::append_always(RecordType type, pb_msg
 
     logdebug("append-always: writers");
 
+    auto record_number = records->nrecords;
+
+    // If we're given a hash, then we use that one instead and we also assign
+    // the record number, which means hashing this w/o also resetting this to 0
+    // will yield a mismatch.
     blake2b_writer hash_writer{ &opened };
-
     phylum::io_writer *pwriter = &hash_writer;
-
-    constexpr size_t CobsLookaheadBufferSize = 256;
-    write_buffer lookahead{ (uint8_t *)pool.malloc(CobsLookaheadBufferSize), CobsLookaheadBufferSize };
-    phylum::cobs_writer cobs{ pwriter, lookahead };
-    if (false) {
-        cobs.return_bytes_wrote(false);
-        pwriter = &cobs;
+    if (hash != nullptr) {
+        pwriter = &opened;
+        FK_ASSERT(record->has_metadata == true);
+        record->metadata.record = record_number;
     }
 
     logdebug("append-always: encoding");
@@ -301,15 +303,19 @@ PhylumDataFile::appended_t PhylumDataFile::append_always(RecordType type, pb_msg
         return appended_t{ -1 };
     }
 
-    logdebug("append-always: finalizing");
-
     auto bytes_written = ostream.bytes_written;
-    auto record_number = records->nrecords;
 
     logdebug("append-always: record-type=%d attribute-type=%d index=%d number=%" PRIu32 " position=%" PRIu32, type, attribute_type,
              attribute_index, record_number, record_position);
 
-    hash_writer.finalize(index_record->hash, sizeof(index_record->hash));
+    // Copy a hash we're given to the index record, rather than using the calculated one.
+    if (hash != nullptr) {
+        memcpy(index_record->hash, hash, sizeof(index_record->hash));
+        record->metadata.record = 0;
+    } else {
+        hash_writer.finalize(index_record->hash, sizeof(index_record->hash));
+    }
+
     index_record->record = record_number;
     index_record->position = record_position;
     index_record->nrecords++;
@@ -328,6 +334,7 @@ PhylumDataFile::appended_t PhylumDataFile::append_always(RecordType type, pb_msg
 
     size_ = file_size;
 
+    // We can safetly use the indexed hash because we copied or calculated directly into this record.
     auto hash_hex = bytes_to_hex_string_pool(index_record->hash, sizeof(index_record->hash), pool);
     loginfo("wrote record R-%" PRIu32 " position=%zu bytes=%zu total=%zu hash=%s", record_number, record_position, bytes_written, file_size,
             hash_hex);
@@ -337,7 +344,8 @@ PhylumDataFile::appended_t PhylumDataFile::append_always(RecordType type, pb_msg
     return appended_t{ (int32_t)bytes_written, record_number };
 }
 
-PhylumDataFile::appended_t PhylumDataFile::append_immutable(RecordType type, pb_msgdesc_t const *fields, void const *record, Pool &pool) {
+PhylumDataFile::appended_t PhylumDataFile::append_immutable(RecordType type, pb_msgdesc_t const *fields, fk_data_DataRecord *record,
+                                                            Pool &pool) {
     assert(name_ != nullptr);
 
     logged_task lt{ "df-idemp" };
@@ -370,7 +378,7 @@ PhylumDataFile::appended_t PhylumDataFile::append_immutable(RecordType type, pb_
         return appended_t{ 0, index_attribute->record };
     }
 
-    auto appended = append_always(type, fields, record, pool);
+    auto appended = append_always(type, fields, record, hash, pool);
     if (appended.bytes < 0) {
         return appended;
     }

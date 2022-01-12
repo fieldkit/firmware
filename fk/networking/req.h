@@ -15,22 +15,9 @@ namespace fk {
 
 class Connection;
 
-enum class HttpRequestState {
-    New,
-    URL,
-    Headers,
-    Body,
-    Consumed,
-    Error,
-    Done
-};
+enum class HttpRequestState { New, URL, Headers, Body, Consumed, Error, Done };
 
-enum class WellKnownContentType {
-    Unknown,
-    TextPlain,
-    ApplicationOctetStream,
-    ApplicationFkHttp
-};
+enum class WellKnownContentType { Unknown, TextPlain, ApplicationOctetStream, ApplicationFkHttp };
 
 class HttpRequest {
 private:
@@ -141,6 +128,10 @@ public:
         return url_;
     }
 
+    const char *query_string() const {
+        return url_parser_.query_string();
+    }
+
     /**
      * Returns the URL parser with the parsed URL, assuming the URL has been received.
      */
@@ -209,7 +200,6 @@ public:
     int32_t on_headers_complete();
     int32_t on_data(const char *at, size_t length);
     int32_t on_message_complete();
-
 };
 
-}
+} // namespace fk

@@ -105,8 +105,13 @@ void StartupWorker::run(Pool &pool) {
     BatteryChecker battery_checker;
     battery_checker.refresh(true);
 
-    if (!battery_checker.low_power()) {
-        display->company_logo();
+    if (battery_checker.available()) {
+        if (!battery_checker.low_power()) {
+            display->company_logo();
+        }
+    } else {
+        fk_fault_set(&BatteryGaugeFailure);
+        display->fault(&BatteryGaugeFailure);
     }
 
     // NOTE Power cycle modules, this gives us a fresh start. Some times behave
@@ -262,6 +267,14 @@ bool StartupWorker::load_state(Storage &storage, GlobalState *gs, Pool &pool) {
     case 868:
         gs->lora.frequency_band = lora_frequency_t::Eu868;
         break;
+    }
+
+    if (record->lora.rxDelay1 > 0) {
+        gs->lora.rx_delay_1 = record->lora.rxDelay1;
+    }
+
+    if (record->lora.rxDelay2 > 0) {
+        gs->lora.rx_delay_2 = record->lora.rxDelay2;
     }
 #else
     loginfo("(ignoring) lora configuration");
@@ -438,25 +451,6 @@ bool StartupWorker::check_for_lora(Pool &pool) {
 
     LoraManager lora{ get_lora_network() };
     if (lora.begin(pool)) {
-        /*
-        while (true) {
-            fk_delay(5000);
-
-            get_lora_network()->get_state(pool);
-
-            loginfo("lora sleep");
-
-            get_lora_network()->sleep(OneDayMs);
-
-            fk_delay(10000);
-
-            loginfo("lora wake");
-
-            get_lora_network()->wake();
-
-            get_lora_network()->get_state(pool);
-        }
-        */
         lora.stop();
     }
 
@@ -538,8 +532,6 @@ bool StartupWorker::check_for_upgrading_startup(Pool &pool) {
     upgrade_worker.run(pool);
 
     fk_graceful_shutdown();
-
-    fk_logs_flush();
 
     fk_restart();
 
@@ -629,7 +621,7 @@ bool StartupWorker::check_for_programmer_startup(Pool &pool) {
     ReadingsWorker readings_worker{ false, true, false };
     readings_worker.run(pool);
 
-    get_ipc()->launch_worker(WorkerCategory::Polling, create_pool_worker<PollSensorsWorker>(false, true, TwoSecondsMs));
+    get_ipc()->launch_worker(WorkerCategory::Polling, create_pool_worker<PollSensorsWorker>(false, true, true, ThirtySecondsMs));
 
     task_display_params.readings = true;
 

@@ -15,6 +15,7 @@
 #include "state_ref.h"
 #include "state_manager.h"
 #include "clock.h"
+#include "core_dump.h"
 
 #include "../modules/weather/main/weather.h"
 
@@ -63,6 +64,8 @@ static void scan_bus(TwoWireWrapper &bus) {
 static void scan_i2c_module_bus() {
     auto mm = get_modmux();
 
+    mm->begin();
+
     mm->disable_all_modules();
 
     fk_delay(1000);
@@ -74,7 +77,7 @@ static void scan_i2c_module_bus() {
     auto bus = get_board()->i2c_module();
 
     while (true) {
-        for (auto i : { ModulePosition::from(3) }) {
+        for (auto i : { ModulePosition::from(1), ModulePosition::from(2), ModulePosition::from(3), ModulePosition::from(4) }) {
             if (!mm->choose(i)) {
                 loginfo("unable to choose %d", i.integer());
                 continue;
@@ -109,7 +112,7 @@ static bool write_header_file(const char *name, ModuleHeader &header, Pool &pool
 }
 
 static void write_headers() {
-    StandardPool pool{ "write-headers "};
+    StandardPool pool{ "write-headers " };
 
     auto lock = sd_mutex.acquire(UINT32_MAX);
     auto sd = get_sd_card();
@@ -172,6 +175,17 @@ static void write_headers() {
     }
 }
 
+static void test_core_dump() {
+    // fk_core_dump("livetest");
+    // fk_core_dump(nullptr);
+
+    fk_core_dump_tasks();
+
+    while (true) {
+        fk_delay(1000);
+    }
+}
+
 void fk_live_tests() {
     if (false) {
         scan_i2c_module_bus();
@@ -181,10 +195,14 @@ void fk_live_tests() {
     }
     if (false) {
         write_headers();
+    }
+    if (false) {
+        test_core_dump();
+
         while (true) {
             fk_delay(1000);
         }
     }
 }
 
-}
+} // namespace fk

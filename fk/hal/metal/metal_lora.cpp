@@ -94,7 +94,7 @@ bool TheThingsLoraNetwork::begin(lora_frequency_t frequency_band) {
         status_ = Availability::Unknown;
     }
 
-    if (status_ == Availability::Available && powered_) {
+    if (status_ != Availability::Unknown && powered_) {
         return true;
     }
 
@@ -274,6 +274,16 @@ bool TheThingsLoraNetwork::send_bytes(uint8_t port, uint8_t const *data, size_t 
 #endif
 }
 
+bool TheThingsLoraNetwork::set_rx_delays(uint32_t rx1) {
+    Rn2903 rn2903;
+
+    if (!rn2903.simple_query("mac set rxdelay1 %" PRIu32, DefaultTimeout, rx1)) {
+        return false;
+    }
+
+    return true;
+}
+
 bool TheThingsLoraNetwork::join(LoraOtaaJoin &otaa, int32_t retries, uint32_t retry_delay) {
     FK_ASSERT(ttn_ != nullptr);
 
@@ -344,10 +354,12 @@ bool TheThingsLoraNetwork::get_state(Rn2903State *state) {
     if (!rn2903.simple_query("mac get rxdelay1", &line, DefaultTimeout)) {
         return false;
     }
+    state->rx_delay_1 = atoi(line);
 
     if (!rn2903.simple_query("mac get rxdelay2", &line, DefaultTimeout)) {
         return false;
     }
+    state->rx_delay_2 = atoi(line);
 
     if (!rn2903.simple_query("sys get hweui", &line, DefaultTimeout)) {
         return false;
@@ -392,7 +404,9 @@ bool TheThingsLoraNetwork::get_state(Rn2903State *state) {
 }
 
 Rn2903State *TheThingsLoraNetwork::get_state(Pool &pool) {
-    FK_ASSERT(ttn_ != nullptr);
+    if (ttn_ == nullptr) {
+        return nullptr;
+    }
     auto state = new (pool) Rn2903State();
     if (!get_state(state)) {
         return nullptr;
@@ -525,7 +539,7 @@ Rn2903State *Rn2903LoraNetwork::get_state(Pool &pool) {
     loginfo("module: getting state");
 
     if (!rn2903_.simple_query("sys get vdd", &line, DefaultTimeout)) {
-        return false;
+        return nullptr;
     }
 
     if (!rn2903_.simple_query("mac get status", &line, DefaultTimeout)) {
@@ -533,23 +547,25 @@ Rn2903State *Rn2903LoraNetwork::get_state(Pool &pool) {
     }
 
     if (!rn2903_.simple_query("mac get dr", &line, DefaultTimeout)) {
-        return false;
+        return nullptr;
     }
 
     if (!rn2903_.simple_query("mac get adr", &line, DefaultTimeout)) {
-        return false;
+        return nullptr;
     }
 
     if (!rn2903_.simple_query("mac get rxdelay1", &line, DefaultTimeout)) {
-        return false;
+        return nullptr;
     }
+    state->rx_delay_1 = atoi(line);
 
     if (!rn2903_.simple_query("mac get rxdelay2", &line, DefaultTimeout)) {
-        return false;
+        return nullptr;
     }
+    state->rx_delay_2 = atoi(line);
 
     if (!rn2903_.simple_query("sys get hweui", &line, DefaultTimeout)) {
-        return false;
+        return nullptr;
     }
 
     if (!rn2903_.simple_query("mac get deveui", &line, DefaultTimeout)) {

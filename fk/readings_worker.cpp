@@ -84,6 +84,11 @@ bool ReadingsWorker::save(Pool &pool) {
     auto lock = storage_mutex.acquire(UINT32_MAX);
     FK_ASSERT(lock);
 
+    // This makes testing way easier and honestly, so far having the phylum logs
+    // be verbose hasn't been necessary. I'd love a way to keep DEBUG and only
+    // flush on certain conditions.
+    ScopedLogLevelChange temporary_info_only{ LogLevels::INFO };
+
     // jlewallen: storage-write
     Storage storage{ MemoryFactory::get_data_memory(), pool, false };
     if (!storage.begin()) {
@@ -93,7 +98,10 @@ bool ReadingsWorker::save(Pool &pool) {
     auto gs = get_global_state_ro();
 
     MetaRecord meta_record{ pool };
-    meta_record.include_modules(gs.get(), &fkb_header, pool);
+    if (!meta_record.include_modules(gs.get(), &fkb_header, pool)) {
+        logwarn("include-modules failed, skipping write");
+        return true;
+    }
 
     auto meta_ops = storage.meta_ops();
     auto meta_record_number = meta_ops->write_record(SignedRecordKind::Modules, meta_record.record(), pool);

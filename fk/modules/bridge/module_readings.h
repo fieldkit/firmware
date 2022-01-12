@@ -4,11 +4,10 @@
 
 namespace fk {
 
-template<size_t N>
-class NModuleReadings : public ModuleReadings {
+template <size_t N> class NModuleReadings : public ModuleReadings {
 private:
     size_t nreadings_{ N };
-    ModuleReading readings_[N];
+    SensorReading readings_[N];
 
 public:
     NModuleReadings() : nreadings_(N) {
@@ -23,13 +22,13 @@ public:
         return nreadings_;
     }
 
-    void set(int32_t i, ModuleReading reading) override {
+    void set(int32_t i, SensorReading reading) override {
         if ((size_t)i < N) {
             readings_[i] = reading;
         }
     }
 
-    ModuleReading get(int32_t i) const override {
+    SensorReading get(int32_t i) const override {
         return readings_[i];
     }
 
@@ -41,4 +40,4 @@ public:
     }
 };
 
-}
+} // namespace fk

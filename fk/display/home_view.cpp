@@ -39,8 +39,9 @@ void HomeView::tick(ViewController *views, Pool &pool) {
     screen.readings = gs.get()->readings.nreadings;
     screen.gps.enabled = gs.get()->gps.enabled;
     screen.gps.fix = gs.get()->gps.fix;
-    screen.power = {
+    screen.power = HomeScreen::PowerInfo{
         .battery = gs.get()->power.charge,
+        .battery_status = gs.get()->power.battery_status,
     };
     screen.debug_mode = debug_mode;
     screen.logo = true;
@@ -69,8 +70,7 @@ void HomeView::tick(ViewController *views, Pool &pool) {
                 secondary_[sl] = 0;
                 screen.secondary = secondary_;
             }
-        }
-        else {
+        } else {
             screen.primary = name;
         }
         break;
@@ -81,8 +81,7 @@ void HomeView::tick(ViewController *views, Pool &pool) {
             ip4_address ip{ gs.get()->network.state.ip };
             tiny_snprintf(secondary_, sizeof(secondary_), "%d.%d.%d.%d", ip.u.bytes[0], ip.u.bytes[1], ip.u.bytes[2], ip.u.bytes[3]);
             screen.secondary = secondary_;
-        }
-        else {
+        } else {
             screen.primary = "WiFi Off";
         }
         break;
@@ -92,8 +91,7 @@ void HomeView::tick(ViewController *views, Pool &pool) {
             DateTime ts{ fkb_header.firmware.timestamp };
             tiny_snprintf(primary_, sizeof(primary_), "Build #%" PRIu32, fkb_header.firmware.number);
             tiny_snprintf(secondary_, sizeof(secondary_), "%02d%02d-%02d%02d", ts.month(), ts.day(), ts.hour(), ts.minute());
-        }
-        else {
+        } else {
             auto hash_dash = strrchr((char const *)fkb_header.firmware.version, '-');
             if (hash_dash != nullptr) {
                 auto prefix_length = hash_dash - (char const *)fkb_header.firmware.version;
@@ -107,12 +105,20 @@ void HomeView::tick(ViewController *views, Pool &pool) {
         break;
     }
     case Visible::Uptime: {
+        auto now = get_clock_now();
+        FormattedTime formatted{ now };
+        strncpy(secondary_, formatted.cstr(), sizeof(secondary_));
         make_pretty_time_string(fk_uptime(), primary_, sizeof(primary_));
+        screen.primary = primary_;
+        screen.secondary = secondary_;
+        break;
+    }
+    case Visible::Config: {
+        secondary_[0] = 0;
         if (gs.get()->storage.is_phylum()) {
-            strncpy(secondary_, "phylum-fs", sizeof(secondary_));
-        }
-        else {
-            strncpy(secondary_, "legacy-fs", sizeof(secondary_));
+            strncpy(primary_, "phylum-fs", sizeof(primary_));
+        } else {
+            strncpy(primary_, "legacy-fs", sizeof(primary_));
         }
         screen.primary = primary_;
         screen.secondary = secondary_;
@@ -136,11 +142,11 @@ void HomeView::tick(ViewController *views, Pool &pool) {
 }
 
 void HomeView::up(ViewController *views) {
-    visible_ = (visible_ + 4 - 1) % 4;
+    visible_ = (visible_ + 5 - 1) % 5;
 }
 
 void HomeView::down(ViewController *views) {
-    visible_ = (visible_ + 1) % 4;
+    visible_ = (visible_ + 1) % 5;
 }
 
 void HomeView::enter(ViewController *views) {
@@ -159,4 +165,4 @@ void HomeView::show_uptime() {
     visible_ = 3;
 }
 
-}
+} // namespace fk

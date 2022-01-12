@@ -23,6 +23,8 @@ struct Rn2903State {
     uint8_t device_address[LoraDeviceAddressLength];
     uint32_t uplink_counter;
     uint32_t downlink_counter;
+    uint32_t rx_delay_1;
+    uint32_t rx_delay_2;
     uint8_t power_index;
 };
 
@@ -45,6 +47,9 @@ public:
     }
     virtual bool send_bytes(uint8_t port, uint8_t const *data, size_t size, bool confirmed) = 0;
     virtual bool join(LoraOtaaJoin &otaa, int32_t retries = 3, uint32_t retry_delay = 10000) = 0;
+    virtual bool set_rx_delays(uint32_t rx1) {
+        return false;
+    }
     virtual bool join_resume() {
         return false;
     }

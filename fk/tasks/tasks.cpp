@@ -11,19 +11,15 @@ os_task_t network_task;
 os_task_t worker_tasks[NumberOfWorkerTasks];
 
 os_task_t *all_tasks[3 + NumberOfWorkerTasks + 1] = {
-    &scheduler_task,
-    &display_task,
-    &network_task,
-    &worker_tasks[0],
-    &worker_tasks[1],
-    nullptr,
+    &scheduler_task, &display_task, &network_task, &worker_tasks[0], &worker_tasks[1], nullptr,
 };
 
 fk_task_data_t task_data[4 + NumberOfWorkerTasks];
 
 bool fk_can_start_task(os_task_t *task) {
     auto status = os_task_get_status(task);
-    return status == OS_TASK_STATUS_SUSPENDED || status == OS_TASK_STATUS_FINISHED || status == OS_TASK_STATUS_PANIC || status == OS_TASK_STATUS_ABORTED;
+    return status == OS_TASK_STATUS_SUSPENDED || status == OS_TASK_STATUS_FINISHED || status == OS_TASK_STATUS_PANIC ||
+           status == OS_TASK_STATUS_ABORTED;
 }
 
 bool fk_start_task_if_necessary(os_task_t *task) {
@@ -57,6 +53,16 @@ bool fk_task_stop_requested(uint32_t *checked) {
         }
     }
     return false;
+}
+
+uint32_t fk_task_self_priority_get() {
+    return os_task_self()->priority;
+}
+
+uint32_t fk_task_self_priority_set(uint32_t priority) {
+    auto old_priority = os_task_self()->priority;
+    os_task_self()->priority = priority;
+    return old_priority;
 }
 
 } // namespace fk

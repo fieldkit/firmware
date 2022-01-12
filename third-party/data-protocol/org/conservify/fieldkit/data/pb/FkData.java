@@ -5201,6 +5201,12 @@ public final class FkData {
      * @return The generation.
      */
     com.google.protobuf.ByteString getGeneration();
+
+    /**
+     * <code>uint64 record = 10;</code>
+     * @return The record.
+     */
+    long getRecord();
   }
   /**
    * Protobuf type {@code fk_data.Metadata}
@@ -5648,6 +5654,32 @@ public final class FkData {
     private void clearGeneration() {
       
       generation_ = getDefaultInstance().getGeneration();
+    }
+
+    public static final int RECORD_FIELD_NUMBER = 10;
+    private long record_;
+    /**
+     * <code>uint64 record = 10;</code>
+     * @return The record.
+     */
+    @java.lang.Override
+    public long getRecord() {
+      return record_;
+    }
+    /**
+     * <code>uint64 record = 10;</code>
+     * @param value The record to set.
+     */
+    private void setRecord(long value) {
+      
+      record_ = value;
+    }
+    /**
+     * <code>uint64 record = 10;</code>
+     */
+    private void clearRecord() {
+      
+      record_ = 0L;
     }
 
     public static org.conservify.fieldkit.data.pb.FkData.Metadata parseFrom(
@@ -6206,6 +6238,34 @@ public final class FkData {
         return this;
       }
 
+      /**
+       * <code>uint64 record = 10;</code>
+       * @return The record.
+       */
+      @java.lang.Override
+      public long getRecord() {
+        return instance.getRecord();
+      }
+      /**
+       * <code>uint64 record = 10;</code>
+       * @param value The record to set.
+       * @return This builder for chaining.
+       */
+      public Builder setRecord(long value) {
+        copyOnWrite();
+        instance.setRecord(value);
+        return this;
+      }
+      /**
+       * <code>uint64 record = 10;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearRecord() {
+        copyOnWrite();
+        instance.clearRecord();
+        return this;
+      }
+
       // @@protoc_insertion_point(builder_scope:fk_data.Metadata)
     }
     @java.lang.Override
@@ -6233,10 +6293,11 @@ public final class FkData {
               "build_",
               "firmware_",
               "generation_",
+              "record_",
             };
             java.lang.String info =
-                "\u0000\t\u0000\u0000\u0001\t\t\u0000\u0002\u0000\u0001\n\u0002\u0002\u0003\u0208" +
-                "\u0004\u000b\u0005\u001b\u0006\u001b\u0007\u0208\b\t\t\n";
+                "\u0000\n\u0000\u0000\u0001\n\n\u0000\u0002\u0000\u0001\n\u0002\u0002\u0003\u0208" +
+                "\u0004\u000b\u0005\u001b\u0006\u001b\u0007\u0208\b\t\t\n\n\u0003";
             return newMessageInfo(DEFAULT_INSTANCE, info, objects);
         }
         // fall through
@@ -12621,6 +12682,18 @@ public final class FkData {
      * @return The downlinkCounter.
      */
     int getDownlinkCounter();
+
+    /**
+     * <code>uint32 rxDelay1 = 10;</code>
+     * @return The rxDelay1.
+     */
+    int getRxDelay1();
+
+    /**
+     * <code>uint32 rxDelay2 = 11;</code>
+     * @return The rxDelay2.
+     */
+    int getRxDelay2();
   }
   /**
    * Protobuf type {@code fk_data.LoraSettings}
@@ -12876,6 +12949,58 @@ public final class FkData {
     private void clearDownlinkCounter() {
       
       downlinkCounter_ = 0;
+    }
+
+    public static final int RXDELAY1_FIELD_NUMBER = 10;
+    private int rxDelay1_;
+    /**
+     * <code>uint32 rxDelay1 = 10;</code>
+     * @return The rxDelay1.
+     */
+    @java.lang.Override
+    public int getRxDelay1() {
+      return rxDelay1_;
+    }
+    /**
+     * <code>uint32 rxDelay1 = 10;</code>
+     * @param value The rxDelay1 to set.
+     */
+    private void setRxDelay1(int value) {
+      
+      rxDelay1_ = value;
+    }
+    /**
+     * <code>uint32 rxDelay1 = 10;</code>
+     */
+    private void clearRxDelay1() {
+      
+      rxDelay1_ = 0;
+    }
+
+    public static final int RXDELAY2_FIELD_NUMBER = 11;
+    private int rxDelay2_;
+    /**
+     * <code>uint32 rxDelay2 = 11;</code>
+     * @return The rxDelay2.
+     */
+    @java.lang.Override
+    public int getRxDelay2() {
+      return rxDelay2_;
+    }
+    /**
+     * <code>uint32 rxDelay2 = 11;</code>
+     * @param value The rxDelay2 to set.
+     */
+    private void setRxDelay2(int value) {
+      
+      rxDelay2_ = value;
+    }
+    /**
+     * <code>uint32 rxDelay2 = 11;</code>
+     */
+    private void clearRxDelay2() {
+      
+      rxDelay2_ = 0;
     }
 
     public static org.conservify.fieldkit.data.pb.FkData.LoraSettings parseFrom(
@@ -13225,6 +13350,62 @@ public final class FkData {
         return this;
       }
 
+      /**
+       * <code>uint32 rxDelay1 = 10;</code>
+       * @return The rxDelay1.
+       */
+      @java.lang.Override
+      public int getRxDelay1() {
+        return instance.getRxDelay1();
+      }
+      /**
+       * <code>uint32 rxDelay1 = 10;</code>
+       * @param value The rxDelay1 to set.
+       * @return This builder for chaining.
+       */
+      public Builder setRxDelay1(int value) {
+        copyOnWrite();
+        instance.setRxDelay1(value);
+        return this;
+      }
+      /**
+       * <code>uint32 rxDelay1 = 10;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearRxDelay1() {
+        copyOnWrite();
+        instance.clearRxDelay1();
+        return this;
+      }
+
+      /**
+       * <code>uint32 rxDelay2 = 11;</code>
+       * @return The rxDelay2.
+       */
+      @java.lang.Override
+      public int getRxDelay2() {
+        return instance.getRxDelay2();
+      }
+      /**
+       * <code>uint32 rxDelay2 = 11;</code>
+       * @param value The rxDelay2 to set.
+       * @return This builder for chaining.
+       */
+      public Builder setRxDelay2(int value) {
+        copyOnWrite();
+        instance.setRxDelay2(value);
+        return this;
+      }
+      /**
+       * <code>uint32 rxDelay2 = 11;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearRxDelay2() {
+        copyOnWrite();
+        instance.clearRxDelay2();
+        return this;
+      }
+
       // @@protoc_insertion_point(builder_scope:fk_data.LoraSettings)
     }
     @java.lang.Override
@@ -13250,10 +13431,12 @@ public final class FkData {
               "appSessionKey_",
               "uplinkCounter_",
               "downlinkCounter_",
+              "rxDelay1_",
+              "rxDelay2_",
             };
             java.lang.String info =
-                "\u0000\t\u0000\u0000\u0001\t\t\u0000\u0000\u0000\u0001\n\u0002\n\u0003\n\u0004\u000b" +
-                "\u0005\n\u0006\n\u0007\n\b\u000b\t\u000b";
+                "\u0000\u000b\u0000\u0000\u0001\u000b\u000b\u0000\u0000\u0000\u0001\n\u0002\n\u0003" +
+                "\n\u0004\u000b\u0005\n\u0006\n\u0007\n\b\u000b\t\u000b\n\u000b\u000b\u000b";
             return newMessageInfo(DEFAULT_INSTANCE, info, objects);
         }
         // fall through

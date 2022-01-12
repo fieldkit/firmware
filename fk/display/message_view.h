@@ -32,4 +32,21 @@ public:
     }
 };
 
+class FaultView : public DisplayView {
+private:
+    FaultCode *fault_code_{ nullptr };
+
+public:
+    void tick(ViewController *views, Pool &pool) override {
+        if (fault_code_ != nullptr) {
+            get_display()->fault(fault_code_);
+        }
+    }
+
+public:
+    void fault_code(FaultCode *fault_code) {
+        fault_code_ = fault_code;
+    }
+};
+
 } // namespace fk

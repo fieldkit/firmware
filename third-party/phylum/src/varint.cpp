@@ -35,7 +35,7 @@ size_t varint_encoding_length(unsigned long long n) {
 uint8_t *varint_encode(unsigned long long n, uint8_t *buf, int32_t len) {
     uint8_t *ptr = buf;
 
-    while (n & MSBALL) {
+    while (n > 127) {
         *(ptr++) = (n & 0xFF) | MSB;
         n = n >> 7;
         assert((ptr - buf) < len);

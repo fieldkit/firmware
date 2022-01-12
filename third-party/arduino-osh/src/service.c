@@ -23,8 +23,7 @@ uint32_t svc_delay(uint32_t ms) {
     // Don't overflow delay in this case.
     if (ms == UINT32_MAX) {
         osg.running->delay = UINT32_MAX;
-    }
-    else {
+    } else {
         osg.running->delay = os_uptime() + ms;
         OS_ASSERT(osg.running->delay != UINT32_MAX);
     }
@@ -219,8 +218,7 @@ uint32_t os_printf(const char *f, ...) {
     va_start(args, f);
     if (osi_in_task()) {
         rval = __svc_printf(f, &args);
-    }
-    else {
+    } else {
         rval = svc_printf(f, &args);
     }
     va_end(args);

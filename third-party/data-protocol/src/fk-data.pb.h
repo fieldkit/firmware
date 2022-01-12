@@ -140,6 +140,8 @@ typedef struct _fk_data_LoraSettings {
     pb_callback_t appSessionKey; 
     uint32_t uplinkCounter; 
     uint32_t downlinkCounter; 
+    uint32_t rxDelay1; 
+    uint32_t rxDelay2; 
 } fk_data_LoraSettings;
 
 typedef struct _fk_data_ModuleHeader { 
@@ -221,6 +223,7 @@ typedef struct _fk_data_Metadata {
     bool has_firmware;
     fk_data_Firmware firmware; 
     pb_callback_t generation; 
+    uint64_t record; 
 } fk_data_Metadata;
 
 typedef struct _fk_data_ModuleConfiguration { 
@@ -332,7 +335,7 @@ extern "C" {
 #define fk_data_ModuleInfo_init_default          {0, 0, {{NULL}, NULL}, false, fk_data_ModuleHeader_init_default, false, fk_data_Firmware_init_default, {{NULL}, NULL}, {{NULL}, NULL}, 0, {{NULL}, NULL}}
 #define fk_data_SensorInfo_init_default          {0, {{NULL}, NULL}, {{NULL}, NULL}, 0}
 #define fk_data_Firmware_init_default            {{{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}, 0, {{NULL}, NULL}}
-#define fk_data_Metadata_init_default            {{{NULL}, NULL}, 0, {{NULL}, NULL}, 0, {{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}, false, fk_data_Firmware_init_default, {{NULL}, NULL}}
+#define fk_data_Metadata_init_default            {{{NULL}, NULL}, 0, {{NULL}, NULL}, 0, {{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}, false, fk_data_Firmware_init_default, {{NULL}, NULL}, 0}
 #define fk_data_Status_init_default              {0, 0, 0, 0, 0}
 #define fk_data_LogMessage_init_default          {0, 0, 0, {{NULL}, NULL}, {{NULL}, NULL}}
 #define fk_data_SensorGroup_init_default         {0, {{NULL}, NULL}}
@@ -346,7 +349,7 @@ extern "C" {
 #define fk_data_WifiTransmission_init_default    {{{NULL}, NULL}, {{NULL}, NULL}, 0}
 #define fk_data_TransmissionSettings_init_default {false, fk_data_WifiTransmission_init_default}
 #define fk_data_NetworkSettings_init_default     {{{NULL}, NULL}}
-#define fk_data_LoraSettings_init_default        {{{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}, 0, {{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}, 0, 0}
+#define fk_data_LoraSettings_init_default        {{{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}, 0, {{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}, 0, 0, 0, 0}
 #define fk_data_Fault_init_default               {0, 0, {{NULL}, NULL}, {{NULL}, NULL}}
 #define fk_data_DataRecord_init_default          {false, fk_data_LoggedReading_init_default, false, fk_data_Metadata_init_default, false, fk_data_LogMessage_init_default, false, fk_data_Status_init_default, false, fk_data_Readings_init_default, {{NULL}, NULL}, false, fk_data_Schedule_init_default, 0, false, fk_data_Identity_init_default, false, fk_data_Condition_init_default, false, fk_data_LoraSettings_init_default, false, fk_data_NetworkSettings_init_default, {{NULL}, NULL}, false, fk_data_TransmissionSettings_init_default, {{NULL}, NULL}}
 #define fk_data_SignedRecord_init_default        {_fk_data_SignedRecordKind_MIN, 0, {{NULL}, NULL}, {{NULL}, NULL}, 0}
@@ -363,7 +366,7 @@ extern "C" {
 #define fk_data_ModuleInfo_init_zero             {0, 0, {{NULL}, NULL}, false, fk_data_ModuleHeader_init_zero, false, fk_data_Firmware_init_zero, {{NULL}, NULL}, {{NULL}, NULL}, 0, {{NULL}, NULL}}
 #define fk_data_SensorInfo_init_zero             {0, {{NULL}, NULL}, {{NULL}, NULL}, 0}
 #define fk_data_Firmware_init_zero               {{{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}, 0, {{NULL}, NULL}}
-#define fk_data_Metadata_init_zero               {{{NULL}, NULL}, 0, {{NULL}, NULL}, 0, {{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}, false, fk_data_Firmware_init_zero, {{NULL}, NULL}}
+#define fk_data_Metadata_init_zero               {{{NULL}, NULL}, 0, {{NULL}, NULL}, 0, {{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}, false, fk_data_Firmware_init_zero, {{NULL}, NULL}, 0}
 #define fk_data_Status_init_zero                 {0, 0, 0, 0, 0}
 #define fk_data_LogMessage_init_zero             {0, 0, 0, {{NULL}, NULL}, {{NULL}, NULL}}
 #define fk_data_SensorGroup_init_zero            {0, {{NULL}, NULL}}
@@ -377,7 +380,7 @@ extern "C" {
 #define fk_data_WifiTransmission_init_zero       {{{NULL}, NULL}, {{NULL}, NULL}, 0}
 #define fk_data_TransmissionSettings_init_zero   {false, fk_data_WifiTransmission_init_zero}
 #define fk_data_NetworkSettings_init_zero        {{{NULL}, NULL}}
-#define fk_data_LoraSettings_init_zero           {{{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}, 0, {{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}, 0, 0}
+#define fk_data_LoraSettings_init_zero           {{{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}, 0, {{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}, 0, 0, 0, 0}
 #define fk_data_Fault_init_zero                  {0, 0, {{NULL}, NULL}, {{NULL}, NULL}}
 #define fk_data_DataRecord_init_zero             {false, fk_data_LoggedReading_init_zero, false, fk_data_Metadata_init_zero, false, fk_data_LogMessage_init_zero, false, fk_data_Status_init_zero, false, fk_data_Readings_init_zero, {{NULL}, NULL}, false, fk_data_Schedule_init_zero, 0, false, fk_data_Identity_init_zero, false, fk_data_Condition_init_zero, false, fk_data_LoraSettings_init_zero, false, fk_data_NetworkSettings_init_zero, {{NULL}, NULL}, false, fk_data_TransmissionSettings_init_zero, {{NULL}, NULL}}
 #define fk_data_SignedRecord_init_zero           {_fk_data_SignedRecordKind_MIN, 0, {{NULL}, NULL}, {{NULL}, NULL}, 0}
@@ -448,6 +451,8 @@ extern "C" {
 #define fk_data_LoraSettings_appSessionKey_tag   7
 #define fk_data_LoraSettings_uplinkCounter_tag   8
 #define fk_data_LoraSettings_downlinkCounter_tag 9
+#define fk_data_LoraSettings_rxDelay1_tag        10
+#define fk_data_LoraSettings_rxDelay2_tag        11
 #define fk_data_ModuleHeader_manufacturer_tag    1
 #define fk_data_ModuleHeader_kind_tag            2
 #define fk_data_ModuleHeader_version_tag         3
@@ -493,6 +498,7 @@ extern "C" {
 #define fk_data_Metadata_build_tag               7
 #define fk_data_Metadata_firmware_tag            8
 #define fk_data_Metadata_generation_tag          9
+#define fk_data_Metadata_record_tag              10
 #define fk_data_ModuleConfiguration_calibration_tag 1
 #define fk_data_ModuleInfo_position_tag          1
 #define fk_data_ModuleInfo_address_tag           2
@@ -618,7 +624,8 @@ X(a, CALLBACK, REPEATED, MESSAGE,  sensors,           5) \
 X(a, CALLBACK, REPEATED, MESSAGE,  modules,           6) \
 X(a, CALLBACK, SINGULAR, STRING,   build,             7) \
 X(a, STATIC,   OPTIONAL, MESSAGE,  firmware,          8) \
-X(a, CALLBACK, SINGULAR, BYTES,    generation,        9)
+X(a, CALLBACK, SINGULAR, BYTES,    generation,        9) \
+X(a, STATIC,   SINGULAR, UINT64,   record,           10)
 #define fk_data_Metadata_CALLBACK pb_default_field_callback
 #define fk_data_Metadata_DEFAULT NULL
 #define fk_data_Metadata_sensors_MSGTYPE fk_data_SensorInfo
@@ -740,7 +747,9 @@ X(a, CALLBACK, SINGULAR, BYTES,    deviceAddress,     5) \
 X(a, CALLBACK, SINGULAR, BYTES,    networkSessionKey,   6) \
 X(a, CALLBACK, SINGULAR, BYTES,    appSessionKey,     7) \
 X(a, STATIC,   SINGULAR, UINT32,   uplinkCounter,     8) \
-X(a, STATIC,   SINGULAR, UINT32,   downlinkCounter,   9)
+X(a, STATIC,   SINGULAR, UINT32,   downlinkCounter,   9) \
+X(a, STATIC,   SINGULAR, UINT32,   rxDelay1,         10) \
+X(a, STATIC,   SINGULAR, UINT32,   rxDelay2,         11)
 #define fk_data_LoraSettings_CALLBACK pb_default_field_callback
 #define fk_data_LoraSettings_DEFAULT NULL
 

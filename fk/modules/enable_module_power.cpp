@@ -10,10 +10,12 @@ EnableModulePower::EnableModulePower(ModulePosition position, ModulePower power,
 
 EnableModulePower::~EnableModulePower() {
     if (enabled_once()) {
-        logverbose("[%d] powering off", position_.integer());
+        logdebug("[%d] powering off", position_.integer());
         if (!get_modmux()->disable_module(position_)) {
             logerror("[%d] disabling module failed", position_.integer());
         }
+    } else {
+        logdebug("[%d] leaving alone", position_.integer());
     }
 }
 
@@ -40,7 +42,7 @@ bool EnableModulePower::enable() {
 
     if (enabled_once() || always_enabled()) {
         if (!mm->is_module_on(position_)) {
-            logverbose("[%d] powering on", position_.integer());
+            logdebug("[%d] powering on", position_.integer());
             was_enabled_ = true;
         }
 

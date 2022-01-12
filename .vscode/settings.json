@@ -1,0 +1,16 @@
+{
+  "settings": {
+    "files.exclude": {
+      "**/.git": true,
+      "**/.DS_Store": true,
+      "**/node_modules": true,
+      "**/build": true
+    }
+  },
+  "search.exclude": {
+    "third-party": true
+  },
+  "files.exclude": {
+    "third-party": true
+  }
+}

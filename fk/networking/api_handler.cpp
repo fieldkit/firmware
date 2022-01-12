@@ -83,8 +83,7 @@ bool ApiHandler::handle(HttpServerConnection *connection, Pool &pool) {
     if (!pb_decode_delimited(&stream, fk_app_HttpQuery_fields, query)) {
         fk_dump_memory("NOPARSE ", ptr, 256);
         logwarn("error parsing query (%" PRIu32 ")", connection->length());
-        connection->error(HttpStatus::BadRequest, "error parsing query", pool);
-        return true;
+        return send_status(connection, nullptr, pool);
     }
 
     adjust_time_if_necessary(query);

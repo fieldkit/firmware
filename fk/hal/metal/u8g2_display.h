@@ -30,9 +30,9 @@ public:
     void simple(SimpleScreen &&screen) override;
     void reading(ReadingScreen &screen) override;
     void module_status(ModuleStatusScreen &screen) override;
-
+    void fault(FaultCode const *code) override;
 };
 
-}
+} // namespace fk
 
 #endif

@@ -37,10 +37,10 @@ ModuleReturn DistanceModule::service(ModuleContext mc, Pool &pool) {
 }
 
 static SensorMetadata const fk_module_distance_sensor_metas[] = {
-    { .name = "distance_0",  .unitOfMeasure = "mm", .flags = 0 },
-    { .name = "distance_1",  .unitOfMeasure = "mm", .flags = 0 },
-    { .name = "distance_2",  .unitOfMeasure = "mm", .flags = 0 },
-    { .name = "calibration", .unitOfMeasure = "mm", .flags = 0 },
+    { .name = "distance_0", .unitOfMeasure = "mm", .flags = 0 },
+    { .name = "distance_1", .unitOfMeasure = "mm", .flags = 0 },
+    { .name = "distance_2", .unitOfMeasure = "mm", .flags = 0 },
+    { .name = "calibration", .unitOfMeasure = "mm", .flags = FK_MODULES_FLAG_INTERNAL },
 };
 
 static ModuleSensors fk_module_distance_sensors = {
@@ -57,7 +57,7 @@ ModuleConfiguration const DistanceModule::get_configuration(Pool &pool) {
 }
 
 ModuleReadings *DistanceModule::take_readings(ReadingsContext mc, Pool &pool) {
-    auto mr = new(pool) NModuleReadings<4>();
+    auto mr = new (pool) NModuleReadings<4>();
     auto nreadings = 0u;
 
     if (!bridge_.begin(9600)) {
@@ -75,7 +75,7 @@ ModuleReadings *DistanceModule::take_readings(ReadingsContext mc, Pool &pool) {
         if (line != nullptr) {
             if (line[0] == 'R' && line[1] != 0) {
                 auto value = atoi(line + 1);
-                mr->set(nreadings++, (float)value);
+                mr->set(nreadings++, SensorReading{ mc.now(), (float)value });
                 logdebug("[%d] line: %d", nreadings, value);
                 if (nreadings == DistanceMaximumReadings) {
                     break;
@@ -96,7 +96,7 @@ ModuleReadings *DistanceModule::take_readings(ReadingsContext mc, Pool &pool) {
     loginfo("done reading (%" PRIu32 "ms)", elapsed);
 
     // TODO Calibration value
-    mr->set(nreadings++, (float)0.0f);
+    mr->set(nreadings++, SensorReading{ mc.now(), (float)0.0f });
 
     return mr;
 }

@@ -25,8 +25,7 @@ SVC_0_1(svc_example, uint32_t, RET_uint32_t);
 uint32_t os_example() {
     if (osi_in_task()) {
         return __svc_example();
-    }
-    else {
+    } else {
         return svc_example();
     }
 }

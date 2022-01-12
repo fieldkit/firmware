@@ -66,7 +66,7 @@ void ConfigureModuleWorker::run(Pool &pool) {
 
     configure(pool);
 
-    auto worker = create_pool_worker<PollSensorsWorker>(true, false, TenSecondsMs);
+    auto worker = create_pool_worker<PollSensorsWorker>(true, false, true, ThirtySecondsMs);
     get_ipc()->signal_workers(WorkerCategory::Polling, 9);
     get_ipc()->launch_worker(WorkerCategory::Polling, worker, true);
 

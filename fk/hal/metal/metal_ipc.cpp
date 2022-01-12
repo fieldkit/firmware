@@ -29,6 +29,7 @@ os_queue_define(topology_queue, 10, OS_QUEUE_FLAGS_QUEUE_ONLY);
 MetalIPC::MetalIPC() {
     for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
         running_[i] = WorkerCategory::None;
+        started_[i] = 0;
         workers_[i] = nullptr;
     }
 }
@@ -94,7 +95,7 @@ bool MetalIPC::dequeue_topology(Activity **ptr, uint32_t to) {
     return true;
 }
 
-bool MetalIPC::can_launch(WorkerCategory category) {
+bool MetalIPC::can_launch(WorkerCategory category, Lock & /*required_lock*/) {
     if (category == WorkerCategory::None) {
         return true;
     }
@@ -111,7 +112,10 @@ bool MetalIPC::can_launch(WorkerCategory category) {
 }
 
 bool MetalIPC::launch_worker(WorkerCategory category, TaskWorker *worker, bool concurrency_allowed) {
-    if (!concurrency_allowed && !can_launch(category)) {
+    auto lock = workers_mutex.acquire(UINT32_MAX);
+    FK_ASSERT(lock);
+
+    if (!concurrency_allowed && !can_launch(category, lock)) {
         logwarn("unable to launch, already running");
         logwarn("deleting 0x%p", worker);
         delete worker;
@@ -123,6 +127,7 @@ bool MetalIPC::launch_worker(WorkerCategory category, TaskWorker *worker, bool c
             worker_tasks[i].name = worker->name();
             running_[i] = category;
             workers_[i] = worker;
+            started_[i] = fk_uptime();
 
             auto priority = worker->priority();
             OS_CHECK(os_task_start_options(&worker_tasks[i], priority, worker));
@@ -140,9 +145,13 @@ bool MetalIPC::launch_worker(WorkerCategory category, TaskWorker *worker, bool c
 }
 
 bool MetalIPC::remove_worker(TaskWorker *worker) {
+    auto lock = workers_mutex.acquire(UINT32_MAX);
+    FK_ASSERT(lock);
+
     for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
         if (workers_[i] == worker) {
             workers_[i] = nullptr;
+            started_[i] = 0;
             return true;
         }
     }
@@ -151,10 +160,10 @@ bool MetalIPC::remove_worker(TaskWorker *worker) {
 }
 
 bool MetalIPC::signal_workers(WorkerCategory category, uint32_t signal) {
-    logdebug("signaling workers (%" PRIu32 ")", signal);
-
     auto lock = workers_mutex.acquire(UINT32_MAX);
     FK_ASSERT(lock);
+
+    logdebug("signaling workers (%" PRIu32 ")", signal);
 
     for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
         if (os_task_is_running(&worker_tasks[i])) {
@@ -169,10 +178,10 @@ bool MetalIPC::signal_workers(WorkerCategory category, uint32_t signal) {
 }
 
 collection<TaskDisplayInfo> MetalIPC::get_workers_display_info(Pool &pool) {
-    collection<TaskDisplayInfo> infos{ pool };
-
     auto lock = workers_mutex.acquire(UINT32_MAX);
     FK_ASSERT(lock);
+
+    collection<TaskDisplayInfo> infos{ pool };
 
     for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
         if (os_task_is_running(&worker_tasks[i])) {
@@ -187,10 +196,10 @@ collection<TaskDisplayInfo> MetalIPC::get_workers_display_info(Pool &pool) {
 }
 
 bool MetalIPC::has_running_worker(WorkerCategory category) {
-    auto found = false;
-
     auto lock = workers_mutex.acquire(UINT32_MAX);
     FK_ASSERT(lock);
+
+    auto found = false;
 
     for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
         if (os_task_is_running(&worker_tasks[i])) {
@@ -204,11 +213,41 @@ bool MetalIPC::has_running_worker(WorkerCategory category) {
     return found;
 }
 
-bool MetalIPC::has_any_running_worker() {
-    auto found = false;
-
+bool MetalIPC::has_stalled_workers(WorkerCategory category, uint32_t stall_ms) {
     auto lock = workers_mutex.acquire(UINT32_MAX);
     FK_ASSERT(lock);
+
+    auto now = fk_uptime();
+
+    for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
+        if (os_task_is_running(&worker_tasks[i])) {
+            if (running_[i] == category) {
+                if (now == started_[i]) {
+                    continue;
+                }
+                if (now > started_[i]) {
+                    auto elapsed = now - started_[i];
+                    if (elapsed > stall_ms) {
+                        loginfo("elapsed = %" PRIu32 " started = %" PRIu32, elapsed, started_[i]);
+                        return true;
+                    }
+                } else if (started_[i] > 0) {
+                    logwarn("worker started in the future: %" PRIu32 " vs %" PRIu32, now, started_[i]);
+                } else {
+                    logwarn("worker started wrong: %" PRIu32 " vs %" PRIu32, now, started_[i]);
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
+bool MetalIPC::has_any_running_worker() {
+    auto lock = workers_mutex.acquire(UINT32_MAX);
+    FK_ASSERT(lock);
+
+    auto found = false;
 
     for (auto i = 0u; i < NumberOfWorkerTasks; ++i) {
         if (os_task_is_running(&worker_tasks[i])) {

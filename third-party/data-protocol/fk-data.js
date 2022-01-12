@@ -2377,6 +2377,7 @@
              * @property {Array.<fk_data.IModuleInfo>|null} [modules] Metadata modules
              * @property {fk_data.IFirmware|null} [firmware] Metadata firmware
              * @property {Uint8Array|null} [generation] Metadata generation
+             * @property {number|Long|null} [record] Metadata record
              */
     
             /**
@@ -2469,6 +2470,14 @@
             Metadata.prototype.generation = $util.newBuffer([]);
     
             /**
+             * Metadata record.
+             * @member {number|Long} record
+             * @memberof fk_data.Metadata
+             * @instance
+             */
+            Metadata.prototype.record = $util.Long ? $util.Long.fromBits(0,0,true) : 0;
+    
+            /**
              * Creates a new Metadata instance using the specified properties.
              * @function create
              * @memberof fk_data.Metadata
@@ -2512,6 +2521,8 @@
                     $root.fk_data.Firmware.encode(message.firmware, writer.uint32(/* id 8, wireType 2 =*/66).fork()).ldelim();
                 if (message.generation != null && message.hasOwnProperty("generation"))
                     writer.uint32(/* id 9, wireType 2 =*/74).bytes(message.generation);
+                if (message.record != null && message.hasOwnProperty("record"))
+                    writer.uint32(/* id 10, wireType 0 =*/80).uint64(message.record);
                 return writer;
             };
     
@@ -2576,6 +2587,9 @@
                         break;
                     case 9:
                         message.generation = reader.bytes();
+                        break;
+                    case 10:
+                        message.record = reader.uint64();
                         break;
                     default:
                         reader.skipType(tag & 7);
@@ -2653,6 +2667,9 @@
                 if (message.generation != null && message.hasOwnProperty("generation"))
                     if (!(message.generation && typeof message.generation.length === "number" || $util.isString(message.generation)))
                         return "generation: buffer expected";
+                if (message.record != null && message.hasOwnProperty("record"))
+                    if (!$util.isInteger(message.record) && !(message.record && $util.isInteger(message.record.low) && $util.isInteger(message.record.high)))
+                        return "record: integer|Long expected";
                 return null;
             };
     
@@ -2718,6 +2735,15 @@
                         $util.base64.decode(object.generation, message.generation = $util.newBuffer($util.base64.length(object.generation)), 0);
                     else if (object.generation.length)
                         message.generation = object.generation;
+                if (object.record != null)
+                    if ($util.Long)
+                        (message.record = $util.Long.fromValue(object.record)).unsigned = true;
+                    else if (typeof object.record === "string")
+                        message.record = parseInt(object.record, 10);
+                    else if (typeof object.record === "number")
+                        message.record = object.record;
+                    else if (typeof object.record === "object")
+                        message.record = new $util.LongBits(object.record.low >>> 0, object.record.high >>> 0).toNumber(true);
                 return message;
             };
     
@@ -2750,6 +2776,11 @@
                     object.build = "";
                     object.firmware = null;
                     object.generation = options.bytes === String ? "" : [];
+                    if ($util.Long) {
+                        var long = new $util.Long(0, 0, true);
+                        object.record = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+                    } else
+                        object.record = options.longs === String ? "0" : 0;
                 }
                 if (message.deviceId != null && message.hasOwnProperty("deviceId"))
                     object.deviceId = options.bytes === String ? $util.base64.encode(message.deviceId, 0, message.deviceId.length) : options.bytes === Array ? Array.prototype.slice.call(message.deviceId) : message.deviceId;
@@ -2778,6 +2809,11 @@
                     object.firmware = $root.fk_data.Firmware.toObject(message.firmware, options);
                 if (message.generation != null && message.hasOwnProperty("generation"))
                     object.generation = options.bytes === String ? $util.base64.encode(message.generation, 0, message.generation.length) : options.bytes === Array ? Array.prototype.slice.call(message.generation) : message.generation;
+                if (message.record != null && message.hasOwnProperty("record"))
+                    if (typeof message.record === "number")
+                        object.record = options.longs === String ? String(message.record) : message.record;
+                    else
+                        object.record = options.longs === String ? $util.Long.prototype.toString.call(message.record) : options.longs === Number ? new $util.LongBits(message.record.low >>> 0, message.record.high >>> 0).toNumber(true) : message.record;
                 return object;
             };
     
@@ -6194,6 +6230,8 @@
              * @property {Uint8Array|null} [appSessionKey] LoraSettings appSessionKey
              * @property {number|null} [uplinkCounter] LoraSettings uplinkCounter
              * @property {number|null} [downlinkCounter] LoraSettings downlinkCounter
+             * @property {number|null} [rxDelay1] LoraSettings rxDelay1
+             * @property {number|null} [rxDelay2] LoraSettings rxDelay2
              */
     
             /**
@@ -6284,6 +6322,22 @@
             LoraSettings.prototype.downlinkCounter = 0;
     
             /**
+             * LoraSettings rxDelay1.
+             * @member {number} rxDelay1
+             * @memberof fk_data.LoraSettings
+             * @instance
+             */
+            LoraSettings.prototype.rxDelay1 = 0;
+    
+            /**
+             * LoraSettings rxDelay2.
+             * @member {number} rxDelay2
+             * @memberof fk_data.LoraSettings
+             * @instance
+             */
+            LoraSettings.prototype.rxDelay2 = 0;
+    
+            /**
              * Creates a new LoraSettings instance using the specified properties.
              * @function create
              * @memberof fk_data.LoraSettings
@@ -6325,6 +6379,10 @@
                     writer.uint32(/* id 8, wireType 0 =*/64).uint32(message.uplinkCounter);
                 if (message.downlinkCounter != null && message.hasOwnProperty("downlinkCounter"))
                     writer.uint32(/* id 9, wireType 0 =*/72).uint32(message.downlinkCounter);
+                if (message.rxDelay1 != null && message.hasOwnProperty("rxDelay1"))
+                    writer.uint32(/* id 10, wireType 0 =*/80).uint32(message.rxDelay1);
+                if (message.rxDelay2 != null && message.hasOwnProperty("rxDelay2"))
+                    writer.uint32(/* id 11, wireType 0 =*/88).uint32(message.rxDelay2);
                 return writer;
             };
     
@@ -6385,6 +6443,12 @@
                         break;
                     case 9:
                         message.downlinkCounter = reader.uint32();
+                        break;
+                    case 10:
+                        message.rxDelay1 = reader.uint32();
+                        break;
+                    case 11:
+                        message.rxDelay2 = reader.uint32();
                         break;
                     default:
                         reader.skipType(tag & 7);
@@ -6448,6 +6512,12 @@
                 if (message.downlinkCounter != null && message.hasOwnProperty("downlinkCounter"))
                     if (!$util.isInteger(message.downlinkCounter))
                         return "downlinkCounter: integer expected";
+                if (message.rxDelay1 != null && message.hasOwnProperty("rxDelay1"))
+                    if (!$util.isInteger(message.rxDelay1))
+                        return "rxDelay1: integer expected";
+                if (message.rxDelay2 != null && message.hasOwnProperty("rxDelay2"))
+                    if (!$util.isInteger(message.rxDelay2))
+                        return "rxDelay2: integer expected";
                 return null;
             };
     
@@ -6499,6 +6569,10 @@
                     message.uplinkCounter = object.uplinkCounter >>> 0;
                 if (object.downlinkCounter != null)
                     message.downlinkCounter = object.downlinkCounter >>> 0;
+                if (object.rxDelay1 != null)
+                    message.rxDelay1 = object.rxDelay1 >>> 0;
+                if (object.rxDelay2 != null)
+                    message.rxDelay2 = object.rxDelay2 >>> 0;
                 return message;
             };
     
@@ -6525,6 +6599,8 @@
                     object.appSessionKey = options.bytes === String ? "" : [];
                     object.uplinkCounter = 0;
                     object.downlinkCounter = 0;
+                    object.rxDelay1 = 0;
+                    object.rxDelay2 = 0;
                 }
                 if (message.deviceEui != null && message.hasOwnProperty("deviceEui"))
                     object.deviceEui = options.bytes === String ? $util.base64.encode(message.deviceEui, 0, message.deviceEui.length) : options.bytes === Array ? Array.prototype.slice.call(message.deviceEui) : message.deviceEui;
@@ -6544,6 +6620,10 @@
                     object.uplinkCounter = message.uplinkCounter;
                 if (message.downlinkCounter != null && message.hasOwnProperty("downlinkCounter"))
                     object.downlinkCounter = message.downlinkCounter;
+                if (message.rxDelay1 != null && message.hasOwnProperty("rxDelay1"))
+                    object.rxDelay1 = message.rxDelay1;
+                if (message.rxDelay2 != null && message.hasOwnProperty("rxDelay2"))
+                    object.rxDelay2 = message.rxDelay2;
                 return object;
             };
     

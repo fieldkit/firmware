@@ -10,6 +10,7 @@
 #include "timer.h"
 #include "gps_service.h"
 #include "state_manager.h"
+#include "graceful_shutdown.h"
 
 #if defined(__SAMD51__)
 #include "hal/metal/metal_ipc.h"
@@ -46,6 +47,8 @@ void task_handler_scheduler(void *params) {
 
     GpsService gps_service{ get_gps() };
 
+    auto display_off = 0;
+
     if (!battery.low_power()) {
         FK_ASSERT(fk_start_task_if_necessary(&display_task));
         FK_ASSERT(fk_start_task_if_necessary(&network_task));
@@ -53,11 +56,13 @@ void task_handler_scheduler(void *params) {
         if (!gps_service.begin()) {
             logerror("gps");
         }
-    }
-    else {
+    } else {
         get_board()->disable_gps();
         get_board()->disable_wifi();
         update_allow_deep_sleep(true);
+        display_off += fk_uptime() + 10000;
+        get_display()->on();
+        get_display()->simple(SimpleScreen{ "low battery" });
     }
 
     uint32_t signal_checked = 0;
@@ -108,6 +113,13 @@ void task_handler_scheduler(void *params) {
             }
 
             if (every_second.expired()) {
+                GlobalStateManager gsm;
+
+                if (display_off > 0) {
+                    get_display()->off();
+                    display_off = 0;
+                }
+
                 if (enable_allow_deep_sleep_timer.expired()) {
                     loginfo("deep sleep enabled");
                     update_allow_deep_sleep(true);
@@ -138,11 +150,11 @@ void task_handler_scheduler(void *params) {
                     auto time = lwcron::DateTime{ now };
                     if (!scheduler.check(time, 0)) {
                         if (get_can_launch_captive_readings()) {
-                            get_ipc()->launch_worker(WorkerCategory::Readings, create_pool_worker<ReadingsWorker>(false, false, ModulePowerState::AlwaysOn));
+                            get_ipc()->launch_worker(WorkerCategory::Readings,
+                                                     create_pool_worker<ReadingsWorker>(false, false, true, ModulePowerState::AlwaysOn));
                         }
                     }
 
-                    GlobalStateManager gsm;
                     UpcomingUpdate update;
                     update.readings = get_next_task_time(now, readings_job);
                     update.network = get_next_task_time(now, upload_data_job);
@@ -150,11 +162,31 @@ void task_handler_scheduler(void *params) {
                     update.lora = get_next_task_time(now, lora_job);
                     update.backup = get_next_task_time(now, backup_job);
                     gsm.apply_update(update);
+                } else {
+                    // This avoids showing the user ETAs that never move, as
+                    // we're no longer servicing the same fields in the above
+                    // update.
+                    ScheduledTime zero{};
+                    UpcomingUpdate update;
+                    update.readings = zero;
+                    update.network = zero;
+                    update.gps = zero;
+                    update.lora = zero;
+                    update.backup = zero;
+                    gsm.apply_update(update);
                 }
 
                 if (!get_ipc()->has_any_running_worker()) {
                     DeepSleep deep_sleep;
                     deep_sleep.try_deep_sleep(scheduler, gps_service);
+                } else {
+                    if (get_ipc()->has_stalled_workers(WorkerCategory::Readings, FiveMinutesMs)) {
+                        logwarn("stalled reading worker, restarting");
+
+                        fk_delay(500);
+
+                        fk_graceful_shutdown();
+                    }
                 }
             }
 
@@ -230,4 +262,4 @@ static bool has_module_topology_changed(Topology &existing) {
     return true;
 }
 
-}
+} // namespace fk

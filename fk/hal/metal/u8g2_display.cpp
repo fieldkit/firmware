@@ -103,30 +103,21 @@ static int32_t lerp(int32_t start, int32_t end, uint32_t interval, uint32_t time
     return start + (int32_t)((float)(end - start) * scale);
 }
 
-template<typename T>
-static void draw_centered(T draw, uint16_t y, const char *str) {
+template <typename T> static void draw_centered(T draw, uint16_t y, const char *str) {
     auto width = draw.getUTF8Width(str);
     draw.drawUTF8((OLED_WIDTH / 2) - (width / 2), y, str);
 }
 
-template<typename T>
+template <typename T>
 static bool draw_string_auto_sized(T draw, bool bold, uint16_t x, uint16_t y, uint16_t w, uint16_t h, const char *str) {
     constexpr size_t NumberFaces = 5;
 
     uint8_t const *bold_faces[NumberFaces] = {
-        u8g2_font_courB14_tf,
-        u8g2_font_courB14_tf,
-        u8g2_font_courB12_tf,
-        u8g2_font_courB10_tf,
-        u8g2_font_courB08_tf,
+        u8g2_font_courB14_tf, u8g2_font_courB14_tf, u8g2_font_courB12_tf, u8g2_font_courB10_tf, u8g2_font_courB08_tf,
     };
 
     uint8_t const *normal_faces[NumberFaces] = {
-        u8g2_font_courR14_tf,
-        u8g2_font_courR14_tf,
-        u8g2_font_courR12_tf,
-        u8g2_font_courR10_tf,
-        u8g2_font_courR08_tf,
+        u8g2_font_courR14_tf, u8g2_font_courR14_tf, u8g2_font_courR12_tf, u8g2_font_courR10_tf, u8g2_font_courR08_tf,
     };
 
     auto faces = bold ? bold_faces : normal_faces;
@@ -150,28 +141,54 @@ static void pretty_bytes(uint32_t bytes, uint32_t *value, const char **suffix) {
     if (bytes > 1024 * 1024) {
         *value = bytes / (1024 * 1024);
         *suffix = "MB";
-    }
-    else if (bytes > 1024) {
+    } else if (bytes > 1024) {
         *value = bytes / (1024);
         *suffix = "kB";
-    }
-    else {
+    } else {
         *value = bytes;
         *suffix = "B";
     }
 }
 
-static void draw_battery(U8G2_SH1106_128X64_NONAME_F_HW_I2C &draw, float battery) {
-    size_t frames = sizeof(glyph_battery19);
-    size_t frame = (size_t)(battery * frames) / 100.0f;
-    if (frame > frames - 1) {
-        frame = frames - 1;
+static void draw_battery(U8G2_SH1106_128X64_NONAME_F_HW_I2C &draw, HomeScreen::PowerInfo power) {
+    switch (power.battery_status) {
+    case BatteryStatus::Good: {
+        float battery = power.battery;
+        size_t frames = sizeof(glyph_battery19);
+        size_t frame = (size_t)(battery * frames) / 100.0f;
+        if (frame > frames - 1) {
+            frame = frames - 1;
+        }
+        if (frame < 0) {
+            frame = 0;
+        }
+        draw.setFont(u8g2_font_battery19_tn);
+        draw.drawGlyph(OLED_WIDTH - 12, 20, glyph_battery19[frame]);
+        break;
     }
-    if (frame < 0) {
-        frame = 0;
+    case BatteryStatus::External: {
+        draw.setFont(u8g2_font_courB12_tf);
+        draw.drawGlyph(OLED_WIDTH - 12, 20, 'E');
+        break;
     }
-    draw.setFont(u8g2_font_battery19_tn);
-    draw.drawGlyph(OLED_WIDTH - 12, 20, glyph_battery19[frame]);
+    case BatteryStatus::Low: {
+        draw.setFont(u8g2_font_courB12_tf);
+        draw.drawGlyph(OLED_WIDTH - 12, 20, 'L');
+        break;
+    }
+    case BatteryStatus::Dangerous: {
+        draw.setFont(u8g2_font_courB12_tf);
+        draw.drawGlyph(OLED_WIDTH - 12, 20, 'X');
+        break;
+    }
+    case BatteryStatus::Unknown:
+    // FALLTHROUGH
+    default: {
+        draw.setFont(u8g2_font_courB12_tf);
+        draw.drawGlyph(OLED_WIDTH - 12, 20, '?');
+        break;
+    }
+    }
 }
 
 void U8g2Display::home(HomeScreen const &data) {
@@ -192,23 +209,20 @@ void U8g2Display::home(HomeScreen const &data) {
                 draw_.setFont(u8g2_font_courB08_tf);
                 auto width = draw_.getUTF8Width(buffer);
                 draw_.drawUTF8(((OLED_WIDTH - 48) / 2) - (width / 2), 12, buffer);
-            }
-            else {
+            } else {
                 tiny_snprintf(buffer, sizeof(buffer), "%d", data.readings);
                 draw_.setFontMode(0);
                 draw_.setFont(u8g2_font_courB08_tf);
                 auto width = draw_.getUTF8Width(buffer);
                 draw_.drawUTF8(((OLED_WIDTH - 48) / 2) - (width / 2), 12, buffer);
             }
-        }
-        else {
+        } else {
             if (data.debug_mode != nullptr) {
                 auto width = draw_.getUTF8Width(data.debug_mode);
                 draw_.setFontMode(0);
                 draw_.setFont(u8g2_font_courB08_tf);
                 draw_.drawUTF8(((OLED_WIDTH - 48) / 2) - (width / 2), 12, data.debug_mode);
-            }
-            else {
+            } else {
                 tiny_snprintf(buffer, sizeof(buffer), "%d", data.readings);
                 draw_.setFontMode(0);
                 draw_.setFont(u8g2_font_courB08_tf);
@@ -216,8 +230,7 @@ void U8g2Display::home(HomeScreen const &data) {
                 draw_.drawUTF8(((OLED_WIDTH - 48) / 2) - (width / 2), 12, buffer);
             }
         }
-    }
-    else {
+    } else {
         // TODO Modify this so that the percentage is full size and the label varies.
         char buffer[128];
         tiny_snprintf(buffer, sizeof(buffer), "%s %.1f", data.progress.operation, data.progress.progress);
@@ -231,12 +244,11 @@ void U8g2Display::home(HomeScreen const &data) {
         if (toggle_every(data.time, 1000)) {
             draw_.setFont(u8g2_font_cursor_tf);
             draw_.drawGlyph(OLED_WIDTH - 12, 10, glyph_open_cursor_all_recording);
-        }
-        else {
-            draw_battery(draw_, data.power.battery);
+        } else {
+            draw_battery(draw_, data.power);
         }
     } else {
-        draw_battery(draw_, data.power.battery);
+        draw_battery(draw_, data.power);
     }
 
     if (data.network.enabled) {
@@ -244,8 +256,7 @@ void U8g2Display::home(HomeScreen const &data) {
         auto interval = data.network.connected ? 10000 : 1000;
         if (toggle_every(data.time, interval)) {
             draw_.drawGlyph(OLED_WIDTH - 48, 18, glyph_open_iconic_all_wifi_1);
-        }
-        else {
+        } else {
             draw_.drawGlyph(OLED_WIDTH - 48, 18, glyph_open_iconic_all_wifi_2);
         }
     }
@@ -254,7 +265,7 @@ void U8g2Display::home(HomeScreen const &data) {
         draw_.setFont(u8g2_font_open_iconic_all_2x_t);
         auto interval = data.gps.fix ? 10000 : 1000;
         if (toggle_every(data.time, interval)) {
-            draw_.drawGlyph(OLED_WIDTH - 34, 18, glyph_open_iconic_all_gps);
+            draw_.drawGlyph(OLED_WIDTH - 32, 18, glyph_open_iconic_all_gps);
         }
     }
 
@@ -320,8 +331,7 @@ void U8g2Display::menu(MenuScreen const &data) {
                     draw_.setDrawColor(0);
                     draw_.drawUTF8(2 + 10, y + 12, option->label());
                     draw_.setDrawColor(1);
-                }
-                else {
+                } else {
                     draw_.setDrawColor(1);
                     draw_.drawUTF8(2 + 10, y + 12, option->label());
                 }
@@ -397,8 +407,7 @@ void U8g2Display::self_check(SelfCheckScreen const &screen) {
         if (c->value) {
             draw_.setDrawColor(1);
             draw_.drawUTF8(x, y, label);
-        }
-        else {
+        } else {
             draw_.setDrawColor(1);
             draw_.drawBox(x - 2, y - 10, width + 4, 14);
             draw_.setDrawColor(0);
@@ -464,7 +473,7 @@ void U8g2Display::module_status(ModuleStatusScreen &screen) {
     draw_.setFontMode(1);
     draw_.setFont(u8g2_font_courR08_tf);
 
-    draw_centered(draw_, y    , bay_info);
+    draw_centered(draw_, y, bay_info);
     draw_centered(draw_, y * 2, screen.name);
     draw_centered(draw_, y * 3, screen.message);
 
@@ -475,6 +484,23 @@ void U8g2Display::off() {
     draw_.setPowerSave(1);
 }
 
+void U8g2Display::fault(FaultCode const *code) {
+    draw_.setPowerSave(0);
+    draw_.clearBuffer();
+
+    auto y = OLED_HEIGHT / 3;
+
+    draw_.setFontMode(1);
+    draw_.setFont(u8g2_font_courR08_tf);
+    draw_centered(draw_, y, code->code);
+
+    draw_.setFontMode(1);
+    draw_.setFont(u8g2_font_courR08_tf);
+    draw_centered(draw_, y * 2, code->message);
+
+    draw_.sendBuffer();
 }
+
+} // namespace fk
 
 #endif

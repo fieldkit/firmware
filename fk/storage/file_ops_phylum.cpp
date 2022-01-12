@@ -121,7 +121,7 @@ tl::expected<uint32_t, Error> DataOps::write_readings(fk_data_DataRecord *record
         record->readings.reading = record_number;
         loginfo("writing record=#%" PRIu32, record_number);
 
-        auto appended = file.append_always(RecordType::Data, fk_data_DataRecord_fields, record, pool);
+        auto appended = file.append_always(RecordType::Data, fk_data_DataRecord_fields, record, nullptr, pool);
         if (appended.bytes <= 0) {
             logerror("error saving readings");
             return tl::unexpected<Error>(Error::IO);
@@ -218,8 +218,6 @@ tl::expected<FileReader::SizeInfo, Error> FileReader::get_size(BlockNumber first
 }
 
 bool FileReader::decode_signed(void *record, pb_msgdesc_t const *fields, Pool &pool) {
-    FK_ASSERT(pdf_.seek_position(0) >= 0);
-
     auto nread = pdf_.read(fields, record, pool);
     if (nread <= 0) {
         return false;

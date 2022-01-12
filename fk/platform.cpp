@@ -10,6 +10,7 @@
 #include <Arduino.h>
 #include <SEGGER_RTT.h>
 #include <loading.h>
+#include "core_dump.h"
 
 #include <Adafruit_SleepyDog.h>
 #undef min
@@ -29,9 +30,14 @@ extern "C" {
 
 void fk_assert(const char *assertion, const char *file, int32_t line, const char *f, ...) {
     logerrorf("assertion", "\"%s\" failed: file \"%s\", line %" PRIu32, assertion, file, line);
-    #if defined(__SAMD21__) || defined(__SAMD51__)
+
+    fk::fk_core_dump_tasks();
+
+    fk::fk_logs_flush();
+
+#if defined(__SAMD21__) || defined(__SAMD51__)
     NVIC_SystemReset();
-    #endif // defined(__SAMD21__) || defined(__SAMD51__)
+#endif // defined(__SAMD21__) || defined(__SAMD51__)
     os_panic(OS_PANIC_ASSERTION);
 }
 
@@ -177,38 +183,66 @@ void osi_debug_dump(os_panic_kind_t code) {
     alogf(LogLevels::ERROR, "error", "panic! (%s)", os_panic_kind_str(code));
 
     if (osg.scheduled != NULL) {
-        alogf(LogLevels::ERROR, "error", "osg.scheduled '%s' status(%s) (0x%" PRIx32 ")", osg.scheduled->name, os_task_status_str(osg.scheduled->status), osg.scheduled->priority);
+        alogf(LogLevels::ERROR, "error", "osg.scheduled '%s' status(%s) (0x%" PRIx32 ")", osg.scheduled->name,
+              os_task_status_str(osg.scheduled->status), osg.scheduled->priority);
     }
 
     if (osg.running != NULL) {
-        alogf(LogLevels::ERROR, "error", "osg.running '%s' status(%s) (0x%" PRIx32 ")", osg.running->name, os_task_status_str(osg.running->status), osg.running->priority);
+        alogf(LogLevels::ERROR, "error", "osg.running '%s' status(%s) (0x%" PRIx32 ")", osg.running->name,
+              os_task_status_str(osg.running->status), osg.running->priority);
     }
 
     for (os_task_t *iter = osg.runqueue; iter != NULL; iter = iter->nrp) {
-        alogf(LogLevels::ERROR, "error", "rq '%s' status(%s) (0x%" PRIx32 ")", iter->name, os_task_status_str(iter->status), iter->priority);
+        alogf(LogLevels::ERROR, "error", "rq '%s' status(%s) (0x%" PRIx32 ")", iter->name, os_task_status_str(iter->status),
+              iter->priority);
     }
 
     for (os_task_t *iter = osg.waitqueue; iter != NULL; iter = iter->nrp) {
-        alogf(LogLevels::ERROR, "error", "wq '%s' status(%s) (0x%" PRIx32 ")", iter->name, os_task_status_str(iter->status), iter->priority);
+        alogf(LogLevels::ERROR, "error", "wq '%s' status(%s) (0x%" PRIx32 ")", iter->name, os_task_status_str(iter->status),
+              iter->priority);
     }
-
-    fk::fk_logs_flush();
 }
 
 void osi_panic(os_panic_kind_t code) {
     osi_debug_dump(code);
 
-    #if defined(__SAMD21__) || defined(__SAMD51__)
+#if defined(__SAMD21__) || defined(__SAMD51__)
+    fk::fk_core_dump_tasks();
+
+    fk::fk_logs_flush();
+
     NVIC_SystemReset();
-    #endif // defined(__SAMD21__) || defined(__SAMD51__)
+#endif // defined(__SAMD21__) || defined(__SAMD51__)
 }
 
 void osi_hard_fault_report(uintptr_t *stack, uint32_t lr, cortex_hard_fault_t *hfr) {
-    alogf(LogLevels::ERROR, "error", "hard fault!");
+#if defined(__SAMD21__) || defined(__SAMD51__)
+    alogf(LogLevels::ERROR, "error", "hard fault! stack= 0x%" PRIx32 " lr=0x%" PRIx32 "", (uint32_t)stack, lr);
+    alogf(LogLevels::ERROR, "error", "hard fault! mfsr=  0x%" PRIx32 "", (uint32_t)hfr->mfsr.byte);
+    alogf(LogLevels::ERROR, "error", "hard fault! bfsr=  0x%" PRIx32 "", (uint32_t)hfr->bfsr.byte);
+    alogf(LogLevels::ERROR, "error", "hard fault! bfar=  0x%" PRIx32 "", (uint32_t)hfr->bfar);
+    alogf(LogLevels::ERROR, "error", "hard fault! ufsr=  0x%" PRIx32 "", (uint32_t)hfr->ufsr.byte);
+    alogf(LogLevels::ERROR, "error", "hard fault! hfsr=  0x%" PRIx32 "", (uint32_t)hfr->hfsr.byte);
+    alogf(LogLevels::ERROR, "error", "hard fault! dfsr=  0x%" PRIx32 "", (uint32_t)hfr->dfsr.byte);
+    alogf(LogLevels::ERROR, "error", "hard fault! afsr=  0x%" PRIx32 "", (uint32_t)hfr->afsr);
 
-    #if defined(__SAMD21__) || defined(__SAMD51__)
+    alogf(LogLevels::ERROR, "error", "hard fault! r0=    0x%" PRIx32 "", (uint32_t)hfr->registers.R0);
+    alogf(LogLevels::ERROR, "error", "hard fault! r1=    0x%" PRIx32 "", (uint32_t)hfr->registers.R1);
+    alogf(LogLevels::ERROR, "error", "hard fault! r2=    0x%" PRIx32 "", (uint32_t)hfr->registers.R2);
+    alogf(LogLevels::ERROR, "error", "hard fault! r3=    0x%" PRIx32 "", (uint32_t)hfr->registers.R3);
+    alogf(LogLevels::ERROR, "error", "hard fault! r12=   0x%" PRIx32 "", (uint32_t)hfr->registers.R12);
+    alogf(LogLevels::ERROR, "error", "hard fault! lr=    0x%" PRIx32 "", (uint32_t)hfr->registers.LR);
+    alogf(LogLevels::ERROR, "error", "hard fault! pc=    0x%" PRIx32 "", (uint32_t)hfr->registers.PC);
+    alogf(LogLevels::ERROR, "error", "hard fault! psr=   0x%" PRIx32 "", (uint32_t)hfr->registers.psr.byte);
+#endif // defined(__SAMD21__) || defined(__SAMD51__)
+
+#if defined(__SAMD21__) || defined(__SAMD51__)
+    fk::fk_core_dump_tasks();
+
+    fk::fk_logs_flush();
+
     NVIC_SystemReset();
-    #endif // defined(__SAMD21__) || defined(__SAMD51__)
+#endif // defined(__SAMD21__) || defined(__SAMD51__)
 }
 
 #if defined(__SAMD21__) || defined(__SAMD51__)
@@ -219,5 +253,4 @@ void osi_assert(const char *assertion, const char *file, int line) {
 }
 
 #endif // defined(__SAMD21__) || defined(__SAMD51__)
-
 }

@@ -470,6 +470,7 @@ typedef struct _fk_app_HttpQuery {
     fk_app_Transmission transmission; 
     bool has_directory;
     fk_app_ListDirectory directory; 
+    uint32_t counter; 
 } fk_app_HttpQuery;
 
 typedef struct _fk_app_LiveModuleReadings { 
@@ -662,7 +663,7 @@ extern "C" {
 #define fk_app_WifiTransmission_init_default     {0, {{NULL}, NULL}, {{NULL}, NULL}, 0}
 #define fk_app_Transmission_init_default         {false, fk_app_WifiTransmission_init_default}
 #define fk_app_ListDirectory_init_default        {{{NULL}, NULL}, 0}
-#define fk_app_HttpQuery_init_default            {_fk_app_QueryType_MIN, false, fk_app_Identity_init_default, false, fk_app_Recording_init_default, false, fk_app_Schedules_init_default, 0, false, fk_app_NetworkSettings_init_default, false, fk_app_LoraSettings_init_default, 0, false, fk_app_Location_init_default, false, fk_app_Transmission_init_default, false, fk_app_ListDirectory_init_default}
+#define fk_app_HttpQuery_init_default            {_fk_app_QueryType_MIN, false, fk_app_Identity_init_default, false, fk_app_Recording_init_default, false, fk_app_Schedules_init_default, 0, false, fk_app_NetworkSettings_init_default, false, fk_app_LoraSettings_init_default, 0, false, fk_app_Location_init_default, false, fk_app_Transmission_init_default, false, fk_app_ListDirectory_init_default, 0}
 #define fk_app_DataStream_init_default           {0, 0, 0, 0, 0, {{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}}
 #define fk_app_LiveSensorReading_init_default    {false, fk_app_SensorCapabilities_init_default, 0, 0, 0}
 #define fk_app_LiveModuleReadings_init_default   {false, fk_app_ModuleCapabilities_init_default, {{NULL}, NULL}}
@@ -719,7 +720,7 @@ extern "C" {
 #define fk_app_WifiTransmission_init_zero        {0, {{NULL}, NULL}, {{NULL}, NULL}, 0}
 #define fk_app_Transmission_init_zero            {false, fk_app_WifiTransmission_init_zero}
 #define fk_app_ListDirectory_init_zero           {{{NULL}, NULL}, 0}
-#define fk_app_HttpQuery_init_zero               {_fk_app_QueryType_MIN, false, fk_app_Identity_init_zero, false, fk_app_Recording_init_zero, false, fk_app_Schedules_init_zero, 0, false, fk_app_NetworkSettings_init_zero, false, fk_app_LoraSettings_init_zero, 0, false, fk_app_Location_init_zero, false, fk_app_Transmission_init_zero, false, fk_app_ListDirectory_init_zero}
+#define fk_app_HttpQuery_init_zero               {_fk_app_QueryType_MIN, false, fk_app_Identity_init_zero, false, fk_app_Recording_init_zero, false, fk_app_Schedules_init_zero, 0, false, fk_app_NetworkSettings_init_zero, false, fk_app_LoraSettings_init_zero, 0, false, fk_app_Location_init_zero, false, fk_app_Transmission_init_zero, false, fk_app_ListDirectory_init_zero, 0}
 #define fk_app_DataStream_init_zero              {0, 0, 0, 0, 0, {{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}}
 #define fk_app_LiveSensorReading_init_zero       {false, fk_app_SensorCapabilities_init_zero, 0, 0, 0}
 #define fk_app_LiveModuleReadings_init_zero      {false, fk_app_ModuleCapabilities_init_zero, {{NULL}, NULL}}
@@ -933,6 +934,7 @@ extern "C" {
 #define fk_app_HttpQuery_locate_tag              9
 #define fk_app_HttpQuery_transmission_tag        10
 #define fk_app_HttpQuery_directory_tag           11
+#define fk_app_HttpQuery_counter_tag             12
 #define fk_app_LiveModuleReadings_module_tag     1
 #define fk_app_LiveModuleReadings_readings_tag   2
 #define fk_app_LiveSensorReading_sensor_tag      1
@@ -1403,7 +1405,8 @@ X(a, STATIC,   OPTIONAL, MESSAGE,  loraSettings,      7) \
 X(a, STATIC,   SINGULAR, UINT64,   time,              8) \
 X(a, STATIC,   OPTIONAL, MESSAGE,  locate,            9) \
 X(a, STATIC,   OPTIONAL, MESSAGE,  transmission,     10) \
-X(a, STATIC,   OPTIONAL, MESSAGE,  directory,        11)
+X(a, STATIC,   OPTIONAL, MESSAGE,  directory,        11) \
+X(a, STATIC,   SINGULAR, UINT32,   counter,          12)
 #define fk_app_HttpQuery_CALLBACK NULL
 #define fk_app_HttpQuery_DEFAULT NULL
 #define fk_app_HttpQuery_identity_MSGTYPE fk_app_Identity

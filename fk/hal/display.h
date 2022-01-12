@@ -15,8 +15,7 @@ typedef struct xbm_data_t {
     const uint8_t *data;
 } xbm_data_t;
 
-struct DisplayScreen {
-};
+struct DisplayScreen {};
 
 struct TaskProgress {
     const char *operation;
@@ -44,6 +43,7 @@ struct HomeScreen : public DisplayScreen {
 
     struct PowerInfo {
         float battery;
+        BatteryStatus battery_status;
     };
 
     uint32_t time;
@@ -134,7 +134,8 @@ struct DisplayReading {
     DisplayReading() {
     }
 
-    DisplayReading(const char *module_name, const char *sensor_name, float value) : module_name(module_name), sensor_name(sensor_name), value(value) {
+    DisplayReading(const char *module_name, const char *sensor_name, float value)
+        : module_name(module_name), sensor_name(sensor_name), value(value) {
     }
 };
 
@@ -148,8 +149,7 @@ struct ReadingScreen : public DisplayScreen {
     }
 };
 
-template<typename TSelect>
-struct LambdaOption : public MenuOption {
+template <typename TSelect> struct LambdaOption : public MenuOption {
     TSelect select_fn;
 
     LambdaOption(const char *label, TSelect select_fn) : MenuOption(label), select_fn(select_fn) {
@@ -160,12 +160,12 @@ struct LambdaOption : public MenuOption {
     }
 };
 
-template<typename TSelect, typename TSelected>
-struct SelectableLambdaOption : public MenuOption {
+template <typename TSelect, typename TSelected> struct SelectableLambdaOption : public MenuOption {
     TSelect select_fn;
     TSelected selected_fn;
 
-    SelectableLambdaOption(const char *label, TSelect select_fn, TSelected selected_fn) : MenuOption(label), select_fn(select_fn), selected_fn(selected_fn) {
+    SelectableLambdaOption(const char *label, TSelect select_fn, TSelected selected_fn)
+        : MenuOption(label), select_fn(select_fn), selected_fn(selected_fn) {
     }
 
     void on_selected() override {
@@ -197,7 +197,7 @@ struct MenuScreen : public DisplayScreen {
     }
 
     size_t number_of_options() const {
-        for (auto i = 0; ; ++i) {
+        for (auto i = 0;; ++i) {
             if (options[i] == nullptr) {
                 return i;
             }
@@ -248,27 +248,42 @@ public:
     virtual void simple(SimpleScreen &&screen) = 0;
     virtual void reading(ReadingScreen &screen) = 0;
     virtual void module_status(ModuleStatusScreen &screen) = 0;
-
+    virtual void fault(FaultCode const *code) = 0;
 };
 
 class NullDisplay : public Display {
 public:
-    bool begin() override { return true; }
-    void on() override { }
-    void off() override { }
-    void centered(const xbm_data_t &xbm) override { }
-    void company_logo() override { }
-    void fk_logo() override { }
-    void home(HomeScreen const &screen) override { }
-    void menu(MenuScreen const &screen) override { }
-    void qr(QrCodeScreen const &screen) override { }
-    void self_check(SelfCheckScreen const &screen) override { }
-    void simple(SimpleScreen &&screen) override { }
-    void reading(ReadingScreen &screen) override { }
-    void module_status(ModuleStatusScreen &screen) override { }
-
+    bool begin() override {
+        return true;
+    }
+    void on() override {
+    }
+    void off() override {
+    }
+    void centered(const xbm_data_t &xbm) override {
+    }
+    void company_logo() override {
+    }
+    void fk_logo() override {
+    }
+    void home(HomeScreen const &screen) override {
+    }
+    void menu(MenuScreen const &screen) override {
+    }
+    void qr(QrCodeScreen const &screen) override {
+    }
+    void self_check(SelfCheckScreen const &screen) override {
+    }
+    void simple(SimpleScreen &&screen) override {
+    }
+    void reading(ReadingScreen &screen) override {
+    }
+    void module_status(ModuleStatusScreen &screen) override {
+    }
+    void fault(FaultCode const *code) {
+    }
 };
 
 Display *get_display();
 
-}
+} // namespace fk

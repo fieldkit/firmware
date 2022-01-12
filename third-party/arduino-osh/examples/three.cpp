@@ -45,25 +45,27 @@ void setup() {
     uint32_t p2 = p1 / 2;
     uint32_t p3 = p1 / 4;
 
-    #if defined(HSRAM_ADDR)
-    os_printf("starting: %d (0x%p + %lu) (%lu used) (%d)\n", os_free_memory(), HSRAM_ADDR, HSRAM_SIZE, HSRAM_SIZE - os_free_memory(), __get_CONTROL());
-    #else
+#if defined(HSRAM_ADDR)
+    os_printf("starting: %d (0x%p + %lu) (%lu used) (%d)\n", os_free_memory(), HSRAM_ADDR, HSRAM_SIZE, HSRAM_SIZE - os_free_memory(),
+              __get_CONTROL());
+#else
     os_printf("starting: %d\n", os_free_memory());
-    #endif
+#endif
 
     OS_CHECK(os_initialize());
 
     OS_CHECK(os_task_initialize(&idle_task, "idle", OS_TASK_START_RUNNING, &task_handler_idle, NULL, idle_stack, sizeof(idle_stack)));
 
-    OS_CHECK(os_task_initialize(&tasks[0], "task1", OS_TASK_START_RUNNING, &task_handler, (void*)p1, stack1, sizeof(stack1)));
+    OS_CHECK(os_task_initialize(&tasks[0], "task1", OS_TASK_START_RUNNING, &task_handler, (void *)p1, stack1, sizeof(stack1)));
 
-    OS_CHECK(os_task_initialize(&tasks[1], "task2", OS_TASK_START_RUNNING, &task_handler, (void*)p2, stack2, sizeof(stack2)));
+    OS_CHECK(os_task_initialize(&tasks[1], "task2", OS_TASK_START_RUNNING, &task_handler, (void *)p2, stack2, sizeof(stack2)));
 
-    OS_CHECK(os_task_initialize(&tasks[2], "task3", OS_TASK_START_RUNNING, &task_handler, (void*)p3, stack3, sizeof(stack3)));
+    OS_CHECK(os_task_initialize(&tasks[2], "task3", OS_TASK_START_RUNNING, &task_handler, (void *)p3, stack3, sizeof(stack3)));
 
-    OS_CHECK(os_start()) ;
+    OS_CHECK(os_start());
 }
 
 void loop() {
-    while (1);
+    while (1)
+        ;
 }

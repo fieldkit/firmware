@@ -217,7 +217,7 @@ bool ExportDataWorker::write_header() {
         writer.write(",module_index,module_position,module_name");
 
         for (auto j = 0u; j < sensors_array->length; ++j) {
-            writer.write(",%s", (const char *)sensors[j].name.arg);
+            writer.write(",%s,%s_raw_v", (const char *)sensors[j].name.arg, (const char *)sensors[j].name.arg);
         }
     }
 
@@ -256,7 +256,7 @@ ExportDataWorker::WriteStatus ExportDataWorker::write_row(fk_data_DataRecord &re
         writer.write(",%d,%d,%s", i, sensor_group.module, (const char *)module.name.arg);
 
         for (auto j = 0u; j < sensor_values_array->length; ++j) {
-            writer.write(",%f", sensor_values[j].value);
+            writer.write(",%f,%f", sensor_values[j].value, sensor_values[j].uncalibrated);
         }
     }
 

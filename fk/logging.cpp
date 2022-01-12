@@ -13,7 +13,7 @@
 
 namespace fk {
 
-static static_log_buffer<InMemoryLogBufferSize> logs __attribute__((section (".noinit")));
+static static_log_buffer<InMemoryLogBufferSize> logs __attribute__((section(".noinit")));
 static log_buffer::iterator sd_card_iterator;
 static bool logs_buffer_free = true;
 
@@ -33,8 +33,8 @@ typedef struct saved_logs_t {
 
 static saved_logs_t saved_logs = { .pages = { nullptr, nullptr, nullptr, nullptr } };
 
-#define FK_LOGS_LOCK       SEGGER_RTT_LOCK
-#define FK_LOGS_UNLOCK     SEGGER_RTT_UNLOCK
+#define FK_LOGS_LOCK   SEGGER_RTT_LOCK
+#define FK_LOGS_UNLOCK SEGGER_RTT_UNLOCK
 
 static void write_logs_buffer(char c, void *arg) {
     auto app = reinterpret_cast<log_buffer::appender *>(arg);
@@ -91,7 +91,7 @@ void fk_logs_saved_capture() {
     for (auto i = 0u; i < StandardPagesForLogs; ++i) {
         auto page = saved_logs.pages[i];
         if (page != nullptr) {
-            for (auto p = page; p < page + StandardPageSize; ) {
+            for (auto p = page; p < page + StandardPageSize;) {
                 if (*p == 0) {
                     *p = '\n';
                 } else if (!isprint(*p)) {
@@ -164,12 +164,11 @@ size_t write_log(LogMessage const *m, const char *fstring, va_list args) {
 
     if ((LogLevels)m->level == LogLevels::ERROR) {
         color_fs = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_CYAN " %-10s " RTT_CTRL_TEXT_RED "%-7s %s%s: ";
-    }
-    else if ((LogLevels)m->level == LogLevels::WARN) {
+    } else if ((LogLevels)m->level == LogLevels::WARN) {
         color_fs = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_CYAN " %-10s " RTT_CTRL_TEXT_MAGENTA "%-7s %s%s: ";
-    }
-    else {
-        color_fs = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_CYAN " %-10s " RTT_CTRL_TEXT_YELLOW "%-7s " RTT_CTRL_TEXT_GREEN "%s" RTT_CTRL_TEXT_YELLOW "%s" RTT_CTRL_RESET ": ";
+    } else {
+        color_fs = RTT_CTRL_TEXT_GREEN "%08" PRIu32 RTT_CTRL_TEXT_CYAN " %-10s " RTT_CTRL_TEXT_YELLOW "%-7s " RTT_CTRL_TEXT_GREEN
+                                       "%s" RTT_CTRL_TEXT_YELLOW "%s" RTT_CTRL_RESET ": ";
     }
 
     FK_LOGS_LOCK();
@@ -219,8 +218,7 @@ void task_logging_hook(os_task_t *task, os_task_status previous_status) {
     if (was_alive != is_alive) {
         if (is_alive) {
             alogf(LogLevels::INFO, task->name, "alive");
-        }
-        else {
+        } else {
             alogf(LogLevels::INFO, task->name, "dead");
         }
     }
@@ -280,13 +278,11 @@ bool fk_logging_dump_buffer() {
 
 void fk_log_debugging(const char *source) {
     for (os_task_t *iter = osg.runqueue; iter != NULL; iter = iter->nrp) {
-        alogf(LogLevels::DEBUG, source, "rq '%s' status(%s) (0x%" PRIx32 ")", iter->name,
-              os_task_status_str(iter->status), iter->priority);
+        alogf(LogLevels::DEBUG, source, "rq '%s' status(%s) (0x%" PRIx32 ")", iter->name, os_task_status_str(iter->status), iter->priority);
     }
 
     for (os_task_t *iter = osg.waitqueue; iter != NULL; iter = iter->nrp) {
-        alogf(LogLevels::DEBUG, source, "wq '%s' status(%s) (0x%" PRIx32 ")", iter->name,
-              os_task_status_str(iter->status), iter->priority);
+        alogf(LogLevels::DEBUG, source, "wq '%s' status(%s) (0x%" PRIx32 ")", iter->name, os_task_status_str(iter->status), iter->priority);
     }
 
     fk_standard_page_log();
@@ -328,30 +324,83 @@ void fk_logs_printf(const char *f, ...) {
     va_end(args);
 }
 
-void fk_logs_dump_memory(const char *prefix, uint8_t const *ptr, size_t size, ...) {
+void fk_logs_dump_memory_u32_filtered(const char *prefix, uint32_t filtering, uint32_t const *ptr, size_t size, ...) {
     va_list args;
     va_start(args, size);
 
-    #if defined(__SAMD51__)
+#if defined(__SAMD51__)
     FK_LOGS_LOCK();
-    #endif
+#endif
 
     // Prewrite the prefix into the line. We force this to max 32
     // characters here.
-    char line[(32) + (32 * 2) + 1];
-    auto prefix_length = tiny_vsnprintf(line, 32, prefix, args);
-    if (prefix_length > 32) {
-        prefix_length = 32;
+    constexpr int32_t PrefixWidth = 32;
+    constexpr int32_t Width = 32;
+    char line[PrefixWidth + (Width * (sizeof(uint32_t) * 2 + 1)) + 1];
+    auto prefix_length = tiny_vsnprintf(line, PrefixWidth, prefix, args);
+    if (prefix_length > PrefixWidth) {
+        prefix_length = PrefixWidth;
+    }
+    auto p = (char *)nullptr;
+    auto filtered = true;
+    for (auto i = 0u; i < size; ++i) {
+        if (p == nullptr) {
+            p = line + prefix_length;
+        }
+        tiny_sprintf(p, "%08x ", ptr[i]);
+        if (ptr[i] != filtering) {
+            filtered = false;
+        }
+        p += sizeof(uint32_t) * 2 + 1;
+        if ((i + 1) % Width == 0) {
+            *p = 0;
+            if (!filtered) {
+                fk_logs_printf("%s\n", line);
+            } else {
+                fk_logs_printf("%s%08x(*)\n", prefix, filtering);
+            }
+            filtered = true;
+            p = nullptr;
+        }
+    }
+    if (p != nullptr) {
+        *p = 0;
+        fk_logs_printf("%s\n", line);
+        p = nullptr;
+    }
+#if defined(__SAMD51__)
+    FK_LOGS_UNLOCK();
+#endif
+
+    va_end(args);
+}
+
+void fk_logs_dump_memory_u8(const char *prefix, uint8_t const *ptr, size_t size, ...) {
+    va_list args;
+    va_start(args, size);
+
+#if defined(__SAMD51__)
+    FK_LOGS_LOCK();
+#endif
+
+    // Prewrite the prefix into the line. We force this to max 32
+    // characters here.
+    constexpr int32_t PrefixWidth = 32;
+    constexpr int32_t Width = 32;
+    char line[PrefixWidth + (Width * (sizeof(uint8_t) + 1)) + 1];
+    auto prefix_length = tiny_vsnprintf(line, PrefixWidth, prefix, args);
+    if (prefix_length > PrefixWidth) {
+        prefix_length = PrefixWidth;
     }
     auto p = (char *)nullptr;
 
-    for (auto i = (size_t)0; i < size; ++i) {
+    for (auto i = 0u; i < size; ++i) {
         if (p == nullptr) {
             p = line + prefix_length;
         }
         tiny_sprintf(p, "%02x ", ptr[i]);
-        p += 3;
-        if ((i + 1) % 32 == 0) {
+        p += sizeof(uint8_t) * 2 + 1;
+        if ((i + 1) % Width == 0) {
             *p = 0;
             fk_logs_printf("%s\n", line);
             p = nullptr;
@@ -362,9 +411,9 @@ void fk_logs_dump_memory(const char *prefix, uint8_t const *ptr, size_t size, ..
         fk_logs_printf("%s\n", line);
         p = nullptr;
     }
-    #if defined(__SAMD51__)
+#if defined(__SAMD51__)
     FK_LOGS_UNLOCK();
-    #endif
+#endif
 
     va_end(args);
 }
@@ -396,7 +445,7 @@ log_buffer &fk_log_buffer() {
     return logs;
 }
 
-}
+} // namespace fk
 
 namespace fk {
 

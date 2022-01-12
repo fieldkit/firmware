@@ -12,7 +12,7 @@ constexpr uint8_t INA219_ADDRESS_BATTERY = 0x40;
 constexpr uint8_t INA219_ADDRESS_SOLAR = 0x41;
 
 static void irq_charge_pulse() {
-    reinterpret_cast<MetalBatteryGauge*>(get_battery_gauge())->irq();
+    reinterpret_cast<MetalBatteryGauge *>(get_battery_gauge())->irq();
 }
 
 MetalBatteryGauge::MetalBatteryGauge() {
@@ -29,11 +29,12 @@ bool MetalBatteryGauge::begin() {
 
     auto bus = get_board()->i2c_module();
 
+    bus.begin();
+
     Ina219 battery_monitor{ bus, INA219_ADDRESS_BATTERY };
     if (!battery_monitor.begin(false)) {
         loginfo("battery: ina219 missing");
-    }
-    else {
+    } else {
         battery_ = Availability::Available;
         loginfo("battery: ina219 found");
     }
@@ -41,8 +42,7 @@ bool MetalBatteryGauge::begin() {
     Ina219 solar_monitor{ bus, INA219_ADDRESS_SOLAR };
     if (!solar_monitor.begin(false)) {
         loginfo("solar: ina219 missing");
-    }
-    else {
+    } else {
         solar_ = Availability::Available;
         loginfo("solar: ina219 found");
     }
@@ -57,8 +57,8 @@ PowerReading MetalBatteryGauge::get() {
     auto reading = PowerReading{
         .available = true,
         .charging = charging,
-        .battery = { },
-        .solar = { },
+        .battery = {},
+        .solar = {},
     };
 
     if (battery_ == Availability::Available) {

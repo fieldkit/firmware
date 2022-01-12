@@ -114,11 +114,11 @@ TwoWireWrapper::~TwoWireWrapper() {
 void TwoWireWrapper::begin() {
 }
 
-int32_t TwoWireWrapper::read(uint8_t address, void *data, int32_t size) {
+int32_t TwoWireWrapper::read(uint8_t address, void *data, int32_t size, TwoWireFlags flags) {
     return -1;
 }
 
-int32_t TwoWireWrapper::write(uint8_t address, const void *data, int32_t size) {
+int32_t TwoWireWrapper::write(uint8_t address, const void *data, int32_t size, TwoWireFlags flags) {
     return -1;
 }
 
@@ -153,6 +153,6 @@ int8_t SerialWrapper::read() {
     return -1;
 }
 
-}
+} // namespace fk
 
 #endif

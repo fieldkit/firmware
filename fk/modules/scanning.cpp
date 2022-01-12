@@ -25,7 +25,6 @@ public:
         collection_.emplace(position, header);
         return 0;
     }
-
 };
 
 ModuleScanning::ModuleScanning(ModMux *mm) : mm_(mm) {
@@ -95,8 +94,8 @@ bool ModuleScanning::try_scan_single_module(ScanningListener *listener, ModulePo
     fk_uuid_formatted_t pretty_id;
     fk_uuid_sprintf(&header.id, &pretty_id);
 
-    loginfo("[%d] mk=%02" PRIx32 "%02" PRIx32 " v%" PRIu32 " %s", position.integer(),
-            header.manufacturer, header.kind, header.version, pretty_id.str);
+    loginfo("[%d] mk=%02" PRIx32 "%02" PRIx32 " v%" PRIu32 " %s", position.integer(), header.manufacturer, header.kind, header.version,
+            pretty_id.str);
 
     /*
     if (!try_read_configuration(position, pool)) {
@@ -217,10 +216,9 @@ bool ModuleScanning::provision(ModulePosition position, ModuleHeader &header) {
             logerror("[%d] error writing header", position.integer());
             return false;
         }
-    }
-    else {
+    } else {
         loginfo("[%d] keeping existing header", position.integer());
-        fk_logs_dump_memory("header: ", (uint8_t *)&existing_header, sizeof(existing_header));
+        fk_logs_dump_memory_u8("header: ", (uint8_t *)&existing_header, sizeof(existing_header));
     }
 
     return true;
@@ -250,4 +248,4 @@ bool ModuleScanning::erase(ModulePosition position) {
     return true;
 }
 
-}
+} // namespace fk

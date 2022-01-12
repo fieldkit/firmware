@@ -40,8 +40,8 @@ extern "C" {
  */
 #define OS_CONFIG_PARANOIA
 
-#define OS_IRQ_PRIORITY_PENDSV                        (0x7)
-#define OS_IRQ_PRIORITY_SYSTICK                       (0x2)
+#define OS_IRQ_PRIORITY_PENDSV  (0x7)
+#define OS_IRQ_PRIORITY_SYSTICK (0x2)
 
 /**
  *
@@ -50,37 +50,37 @@ extern "C" {
 #define DEBUG_MTB
 */
 
-#define DEBUG_MTB_MAGNITUDE_PACKETS                   (7)
-#define DEBUG_MTB_SIZE                                (1 << (DEBUG_MTB_MAGNITUDE_PACKETS + 1))
-#define DEBUG_MTB_SIZE_BYTES                          (DEBUG_MTB_SIZE << 3)
+#define DEBUG_MTB_MAGNITUDE_PACKETS (7)
+#define DEBUG_MTB_SIZE              (1 << (DEBUG_MTB_MAGNITUDE_PACKETS + 1))
+#define DEBUG_MTB_SIZE_BYTES        (DEBUG_MTB_SIZE << 3)
 
 /**
  * Minimum number of bytes for a stack.
  */
-#define OS_STACK_BASIC_FRAME_SIZE                     (16)
-#define OS_STACK_EXTENDED_FRAME_SIZE                  (32)
-#define OS_STACK_MINIMUM_SIZE_WORDS                   (OS_STACK_EXTENDED_FRAME_SIZE + 8)
-#define OS_STACK_MINIMUM_SIZE                         (OS_STACK_MINIMUM_SIZE_WORDS * 4)
+#define OS_STACK_BASIC_FRAME_SIZE    (16)
+#define OS_STACK_EXTENDED_FRAME_SIZE (32)
+#define OS_STACK_MINIMUM_SIZE_WORDS  (OS_STACK_EXTENDED_FRAME_SIZE + 8)
+#define OS_STACK_MINIMUM_SIZE        (OS_STACK_MINIMUM_SIZE_WORDS * 4)
 
 /**
  *
  */
-#define OSH_STACK_MAGIC_WORD                          (0xE25A2EA5U)
+#define OSH_STACK_MAGIC_WORD (0xE25A2EA5U)
 
 /**
  *
  */
-#define OSH_STACK_MAGIC_PATTERN                       (0xCCCCCCCCU)
+#define OSH_STACK_MAGIC_PATTERN (0xCCCCCCCCU)
 
 /**
  *
  */
-#define OS_ASSERT(expression)                         (void)((expression) || (osi_assert(#expression, __FILE__, __LINE__), 0))
+#define OS_ASSERT(expression) (void)((expression) || (osi_assert(#expression, __FILE__, __LINE__), 0))
 
 /**
  *
  */
-#define OS_CHECK(expression)                          OS_ASSERT((expression) == OSS_SUCCESS)
+#define OS_CHECK(expression) OS_ASSERT((expression) == OSS_SUCCESS)
 
 /**
  *
@@ -111,11 +111,11 @@ static inline bool os_task_status_is_alive(os_task_status status) {
     return status == OS_TASK_STATUS_ACTIVE || status == OS_TASK_STATUS_IDLE || status == OS_TASK_STATUS_WAIT;
 }
 
-#define OS_TASK_FLAG_NONE                             (0)
-#define OS_TASK_FLAG_MUTEX                            (1)
-#define OS_TASK_FLAG_QUEUE                            (2)
-#define OS_TASK_FLAG_SEMAPHORE                        (3)
-#define OS_TASK_FLAG_RWLOCK                           (4)
+#define OS_TASK_FLAG_NONE      (0)
+#define OS_TASK_FLAG_MUTEX     (1)
+#define OS_TASK_FLAG_QUEUE     (2)
+#define OS_TASK_FLAG_SEMAPHORE (3)
+#define OS_TASK_FLAG_RWLOCK    (4)
 
 struct os_queue_t;
 struct os_mutex_t;
@@ -127,15 +127,15 @@ typedef uint32_t os_priority_t;
 /**
  *
  */
-#define OS_PRIORITY_LOWEST                            (os_priority_t)0x00
-#define OS_PRIORITY_IDLE                              (os_priority_t)0x00
-#define OS_PRIORITY_NORMAL                            (os_priority_t)0x10
-#define OS_PRIORITY_HIGHEST                           (os_priority_t)0xff
+#define OS_PRIORITY_LOWEST  (os_priority_t)0x00
+#define OS_PRIORITY_IDLE    (os_priority_t)0x00
+#define OS_PRIORITY_NORMAL  (os_priority_t)0x10
+#define OS_PRIORITY_HIGHEST (os_priority_t)0xff
 
 typedef struct os_task_options_t {
     const char *name;
     os_start_status status;
-    void (*handler)(void*);
+    void (*handler)(void *);
     void *params;
     uint32_t *stack;
     size_t stack_size;
@@ -156,7 +156,7 @@ typedef struct os_task_t {
     volatile uint8_t stack_kind;
     volatile enum os_task_status status;
     const char *name;
-    void (*handler)(void*);
+    void (*handler)(void *);
     void *params;
     struct os_task_t *np;
     struct os_task_t *nrp;
@@ -179,9 +179,9 @@ typedef struct os_task_t {
     uint32_t signal;
     uint32_t highwater;
     void *user_data;
-    #if defined(OS_CONFIG_DEBUG)
+#if defined(OS_CONFIG_DEBUG)
     uint32_t debug_stack_max;
-    #endif
+#endif
 } os_task_t;
 
 /**
@@ -204,8 +204,8 @@ typedef struct os_blocked_t {
 /**
  *
  */
-#define OS_QUEUE_FLAGS_NONE                           0
-#define OS_QUEUE_FLAGS_QUEUE_ONLY                     1
+#define OS_QUEUE_FLAGS_NONE       0
+#define OS_QUEUE_FLAGS_QUEUE_ONLY 1
 
 /**
  *
@@ -230,8 +230,8 @@ typedef struct os_queue_t {
     void *messages[1];
 } os_queue_t;
 
-#define OS_MUTEX_FLAG_NONE                            (0)
-#define OS_MUTEX_FLAG_ABORT_ON_TIMEOUT                (1)
+#define OS_MUTEX_FLAG_NONE             (0)
+#define OS_MUTEX_FLAG_ABORT_ON_TIMEOUT (1)
 
 /**
  *
@@ -240,7 +240,6 @@ typedef struct os_mutex_definition_t {
     const char *name;
     uint32_t flags;
 } os_mutex_definition_t;
-
 
 /**
  *
@@ -262,7 +261,6 @@ typedef struct os_semaphore_definition_t {
     uint32_t flags;
 } os_semaphore_definition_t;
 
-
 /**
  *
  */
@@ -280,7 +278,6 @@ typedef struct os_rwlock_definition_t {
     const char *name;
     uint32_t flags;
 } os_rwlock_definition_t;
-
 
 /**
  *
@@ -308,7 +305,6 @@ typedef void (*os_task_status_hook_fn_t)(os_task_t *task, os_task_status previou
 
 typedef void (*os_logging_hook_fn_t)(char const *f, va_list args);
 
-
 /**
  * Struct with global operating system state.
  */
@@ -317,10 +313,10 @@ typedef struct os_globals_t {
     volatile os_task_t *scheduled;
     os_state_t state;
     uint8_t ntasks;
-    os_task_t *idle;                 //! The idle task. */
-    os_task_t *tasks;                //! Immutable, every task in order of creation. */
-    os_task_t *runqueue;             //! Queue of tasks waiting for a turn to run. */
-    os_task_t *waitqueue;            //! Tasks waiting for something. */
+    os_task_t *idle;      //! The idle task. */
+    os_task_t *tasks;     //! Immutable, every task in order of creation. */
+    os_task_t *runqueue;  //! Queue of tasks waiting for a turn to run. */
+    os_task_t *waitqueue; //! Tasks waiting for something. */
     os_task_status_hook_fn_t status_hook;
     os_logging_hook_fn_t logging_hook;
 } os_globals_t;
@@ -333,13 +329,13 @@ extern os_globals_t osg;
 /* TODO: typedef enum here breaks in the service call macro magic. */
 typedef uint32_t os_status_t;
 
-#define OSS_SUCCESS                                   (0x0) /** Successful call. */
-#define OSS_ERROR                                     (0x1) /** A generic error. */
-#define OSS_ERROR_TO                                  (0x2) /** Timeout related rror. */
-#define OSS_ERROR_MEM                                 (0x3) /** Insufficient memory. */
-#define OSS_ERROR_INT                                 (0x4) /** Operation was interrupted. */
-#define OSS_ERROR_INVALID                             (0x5) /** Invalid operation. */
-#define OSS_ERROR_NOP                                 (0x6) /** No operation. */
+#define OSS_SUCCESS       (0x0) /** Successful call. */
+#define OSS_ERROR         (0x1) /** A generic error. */
+#define OSS_ERROR_TO      (0x2) /** Timeout related rror. */
+#define OSS_ERROR_MEM     (0x3) /** Insufficient memory. */
+#define OSS_ERROR_INT     (0x4) /** Operation was interrupted. */
+#define OSS_ERROR_INVALID (0x5) /** Invalid operation. */
+#define OSS_ERROR_NOP     (0x6) /** No operation. */
 
 /**
  * Tuple for returning multiple values from a service call. This is modified in
@@ -347,7 +343,7 @@ typedef uint32_t os_status_t;
  */
 typedef struct {
     os_status_t status;
-    union  {
+    union {
         uint32_t u32;
         void *ptr;
     } value;

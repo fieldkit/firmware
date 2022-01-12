@@ -3,6 +3,7 @@
 #include "platform.h"
 #include "state_ref.h"
 #include "water_api.h"
+#include "mpl3115a2.h"
 
 namespace fk {
 
@@ -204,6 +205,17 @@ ModuleReturn WaterModule::service(ModuleContext mc, Pool &pool) {
     return { ModuleStatus::Ok };
 }
 
+static SensorMetadata const fk_module_water_do_sensor_metas[] = {
+    { .name = "do", .unitOfMeasure = "%", .flags = 0 },
+    { .name = "temperature", .unitOfMeasure = "°C", .flags = FK_MODULES_FLAG_INTERNAL },
+    { .name = "pressure", .unitOfMeasure = "kPa", .flags = FK_MODULES_FLAG_INTERNAL },
+};
+
+static ModuleSensors fk_module_water_do_sensors = {
+    .nsensors = sizeof(fk_module_water_do_sensor_metas) / sizeof(SensorMetadata),
+    .sensors = fk_module_water_do_sensor_metas,
+};
+
 ModuleSensors const *WaterModule::get_sensors(Pool &pool) {
     SensorMetadata *sensors = nullptr;
 
@@ -223,12 +235,7 @@ ModuleSensors const *WaterModule::get_sensors(Pool &pool) {
         });
         break;
     case FK_MODULES_KIND_WATER_DO:
-        sensors = pool.malloc_with<SensorMetadata>({
-            .name = "do",
-            .unitOfMeasure = "mg/L",
-            .flags = 0,
-        });
-        break;
+        return &fk_module_water_do_sensors;
     case FK_MODULES_KIND_WATER_TEMP:
         sensors = pool.malloc_with<SensorMetadata>({
             .name = "temp",
@@ -274,14 +281,28 @@ const char *WaterModule::get_display_name_key() {
 ModuleConfiguration const WaterModule::get_configuration(Pool &pool) {
     switch (header_.kind) {
     case FK_MODULES_KIND_WATER_TEMP:
-        return { get_display_name_key(), ModulePower::ReadingsOnly, 0, cfg_message_, ModuleOrderProvidesCalibration };
+        return ModuleConfiguration{ get_display_name_key(), ModulePower::ReadingsOnly, cfg_message_, ModuleOrderProvidesCalibration };
     };
-    return { get_display_name_key(), ModulePower::ReadingsOnly, 0, cfg_message_, DefaultModuleOrder };
+    return ModuleConfiguration{ get_display_name_key(), ModulePower::ReadingsOnly, cfg_message_, DefaultModuleOrder };
+}
+
+bool WaterModule::averaging_enabled() {
+    switch (header_.kind) {
+    case FK_MODULES_KIND_WATER_DO: {
+        return true;
+    }
+    default:
+        return false;
+    };
 }
 
 bool WaterModule::excite_enabled() {
     switch (header_.kind) {
     case FK_MODULES_KIND_WATER_EC: {
+        auto gs = get_global_state_ro();
+        if (gs.get()->debugging.unexciting) {
+            return false;
+        }
         return true;
     }
     default:
@@ -300,18 +321,18 @@ bool WaterModule::excite_enabled() {
 Curve *WaterModule::create_modules_default_curve(Pool &pool) {
     switch (header_.kind) {
     case FK_MODULES_KIND_WATER_TEMP: {
-        constexpr float TempDefaultCalibrationB = 610.77;
-        constexpr float TempDefaultCalibrationM = -831.84;
+        constexpr float TempDefaultCalibrationB = -900.53;
+        constexpr float TempDefaultCalibrationM = 662.56;
         return create_curve(fk_data_CurveType_CURVE_LINEAR, TempDefaultCalibrationB, TempDefaultCalibrationM, pool);
     }
     case FK_MODULES_KIND_WATER_PH: {
-        constexpr float PhDefaultCalibrationB = -18.75;
-        constexpr float PhDefaultCalibrationM = 15.625;
+        constexpr float PhDefaultCalibrationB = 15.992;
+        constexpr float PhDefaultCalibrationM = -17.777;
         return create_curve(fk_data_CurveType_CURVE_LINEAR, PhDefaultCalibrationB, PhDefaultCalibrationM, pool);
     }
     case FK_MODULES_KIND_WATER_DO: {
-        constexpr float DoDefaultCalibrationB = 2.8711;
-        constexpr float DoDefaultCalibrationM = 3.4211;
+        constexpr float DoDefaultCalibrationB = 2.9339;
+        constexpr float DoDefaultCalibrationM = 0.0033;
         return create_curve(fk_data_CurveType_CURVE_LINEAR, DoDefaultCalibrationB, DoDefaultCalibrationM, pool);
     }
     case FK_MODULES_KIND_WATER_ORP: {
@@ -341,6 +362,35 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
 
     Mcp2803 mcp{ bus, FK_MCP2803_ADDRESS };
 
+    auto uptime = fk_uptime();
+
+    // If we were locked out, check to see if it's expired, otherwise we return
+    // nothing, no readings. It may be necessary later to actually specify what
+    // happened to the caller.
+    if (unlocked_ > 0) {
+        if (uptime < unlocked_) {
+            auto remaining = unlocked_ - uptime;
+            if (remaining < 0) {
+                loginfo("[%d] locked (negative) %" PRIu32, mc.position(), remaining);
+                unlocked_ = fk_uptime() + OneMinuteMs;
+                return new (pool) EmptyReadings();
+            }
+            if (remaining > FiveSecondsMs) {
+                loginfo("[%d] locked %" PRIu32, mc.position(), remaining);
+                return new (pool) EmptyReadings();
+            }
+
+            loginfo("[%d] locked %" PRIu32 " waiting for expiration.", mc.position(), remaining);
+            fk_delay(remaining);
+        } else {
+            loginfo("[%d] locked expired", mc.position());
+        }
+
+        unlocked_ = 0;
+    } else {
+        loginfo("[%d] unlocked", mc.position());
+    }
+
     // TODO We could move the excite logic itself into this and clean up the
     // branch below, gonna hold off until we've tested longer, though.
     auto checker = get_ready_checker(mcp, pool);
@@ -351,8 +401,24 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
     }
 
     auto exciting = excite_enabled();
+    auto averaging = averaging_enabled();
+    auto priority = fk_task_self_priority_get();
+    auto prereading = 0.0f;
+
     if (exciting) {
+        FK_ASSERT(!averaging);
         loginfo("excitation: enabled");
+
+        fk_task_self_priority_set(priority - FK_PRIORITY_HIGH_OFFSET);
+
+        int32_t value = 0;
+        if (!ads.read(value)) {
+            logerror("read");
+            return nullptr;
+        }
+
+        prereading = ((float)value * 2.048f) / 8388608.0f;
+        loginfo("[%d] water(sample #%d): %f", mc.position().integer(), -1, prereading);
 
         if (!excite_control(mcp, true)) {
             return nullptr;
@@ -361,14 +427,35 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
         loginfo("excitation: disabled");
     }
 
-    int32_t value = 0;
-    if (!ads.read(value)) {
-        logerror("read");
-        return nullptr;
+    constexpr size_t SamplesToAverage = 10;
+    constexpr uint32_t AveragingDelayMs = 10;
+    size_t samples_to_take = averaging ? SamplesToAverage : 1;
+    size_t number_of_values = 0u;
+    float accumulator = 0.0f;
+    for (auto i = 0u; i < samples_to_take; ++i) {
+        int32_t value = 0;
+        if (!ads.read(value)) {
+            logerror("read");
+            return nullptr;
+        }
+
+        auto uncalibrated = ((float)value * 2.048f) / 8388608.0f;
+
+        accumulator += uncalibrated;
+        number_of_values++;
+
+        if (averaging) {
+            loginfo("[%d] water(sample #%d): %f", mc.position().integer(), i, uncalibrated);
+            fk_delay(AveragingDelayMs);
+        }
     }
 
-    auto uncalibrated = ((float)value * 2.048f) / 8388608.0f;
+    fk_task_self_priority_set(priority);
 
+    auto uncalibrated = accumulator / (float)number_of_values;
+    if (exciting) {
+        uncalibrated = uncalibrated - pow(prereading, 1.8f);
+    }
     auto default_curve = create_modules_default_curve(pool);
     auto curve = create_curve(default_curve, cfg_, pool);
     auto factory = default_curve->apply(uncalibrated);
@@ -376,10 +463,33 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
 
     loginfo("[%d] water: %f (%f) (%f)", mc.position().integer(), uncalibrated, calibrated, factory);
 
-    auto mr = new (pool) NModuleReadings<1>();
+    auto has_mpl = header_.kind == FK_MODULES_KIND_WATER_DO;
+    ModuleReadings *mr = has_mpl ? (ModuleReadings *)new (pool) NModuleReadings<3>() : (ModuleReadings *)new (pool) NModuleReadings<1>();
+    mr->set(0, SensorReading{ mc.now(), uncalibrated, calibrated, factory });
 
-    auto nreadings = 0u;
-    mr->set(nreadings++, ModuleReading{ uncalibrated, calibrated, factory });
+    if (has_mpl) {
+        Mpl3115a2 mpl3115a2{ bus };
+
+        if (mpl3115a2.begin()) {
+            Mpl3115a2Reading reading;
+            if (mpl3115a2.get(&reading)) {
+                mr->set(1, SensorReading{ mc.now(), reading.temperature });
+                mr->set(2, SensorReading{ mc.now(), reading.pressure });
+            } else {
+                logerror("mpl3115a2 get");
+            }
+        } else {
+            logerror("mpl3115a2 begin");
+        }
+    }
+
+#if !defined(FK_WATER_LOCKOUT_ALL_MODULES)
+    if (exciting) {
+        unlocked_ = uptime + OneMinuteMs;
+    }
+#else
+    unlocked_ = uptime + OneMinuteMs;
+#endif
 
     return mr;
 }

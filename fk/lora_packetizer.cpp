@@ -34,24 +34,25 @@ static tl::expected<SensorGroupTemplate *, Error> get_sensor_group_template(Glob
             loginfo("found sensor group: weather");
 
             auto sensor_group = new (pool) SensorGroupTemplate(pool);
-            // Temperature, pressure, humidity, and rain.
-            sensor_group->sensors.add(SensorTemplate{ meta->manufacturer, meta->kind, 0 });
-            sensor_group->sensors.add(SensorTemplate{ meta->manufacturer, meta->kind, 1 });
-            sensor_group->sensors.add(SensorTemplate{ meta->manufacturer, meta->kind, 2 });
-            sensor_group->sensors.add(SensorTemplate{ meta->manufacturer, meta->kind, 4 });
-            // Battery level.
-            sensor_group->sensors.add(SensorTemplate{ FK_MODULES_MANUFACTURER, FK_MODULES_KIND_DIAGNOSTICS, 0 });
+            sensor_group->sensors.add(SensorTemplate{ meta->manufacturer, meta->kind, 0 });                        // Humidity
+            sensor_group->sensors.add(SensorTemplate{ meta->manufacturer, meta->kind, 1 });                        // Temperature
+            sensor_group->sensors.add(SensorTemplate{ meta->manufacturer, meta->kind, 2 });                        // Pressure
+            sensor_group->sensors.add(SensorTemplate{ meta->manufacturer, meta->kind, 4 });                        // Rain
+            sensor_group->sensors.add(SensorTemplate{ meta->manufacturer, meta->kind, 5 });                        // Wind Speed
+            sensor_group->sensors.add(SensorTemplate{ meta->manufacturer, meta->kind, 6 });                        // Wind Dir
+            sensor_group->sensors.add(SensorTemplate{ FK_MODULES_MANUFACTURER, FK_MODULES_KIND_DIAGNOSTICS, 1 });  // Battery Vbus
+            sensor_group->sensors.add(SensorTemplate{ FK_MODULES_MANUFACTURER, FK_MODULES_KIND_DIAGNOSTICS, 5 });  // Solar Vbus
+            sensor_group->sensors.add(SensorTemplate{ FK_MODULES_MANUFACTURER, FK_MODULES_KIND_DIAGNOSTICS, 10 }); // Uptime
             return sensor_group;
         }
     }
 
 #if defined(FK_LORA_TESTING_DIAGNOSTICS_SENSOR_GROUP)
     auto sensor_group = new (pool) SensorGroupTemplate(pool);
-    sensor_group->sensors.add(SensorTemplate{ FK_MODULES_MANUFACTURER, FK_MODULES_KIND_DIAGNOSTICS, 0 });
-    sensor_group->sensors.add(SensorTemplate{ FK_MODULES_MANUFACTURER, FK_MODULES_KIND_DIAGNOSTICS, 1 });
-    sensor_group->sensors.add(SensorTemplate{ FK_MODULES_MANUFACTURER, FK_MODULES_KIND_DIAGNOSTICS, 5 });
-    sensor_group->sensors.add(SensorTemplate{ FK_MODULES_MANUFACTURER, FK_MODULES_KIND_DIAGNOSTICS, 10 });
-    sensor_group->sensors.add(SensorTemplate{ FK_MODULES_MANUFACTURER, FK_MODULES_KIND_DIAGNOSTICS, 11 });
+    sensor_group->sensors.add(SensorTemplate{ FK_MODULES_MANUFACTURER, FK_MODULES_KIND_DIAGNOSTICS, 1 });  // Battery Vbus
+    sensor_group->sensors.add(SensorTemplate{ FK_MODULES_MANUFACTURER, FK_MODULES_KIND_DIAGNOSTICS, 5 });  // Solar Vbus
+    sensor_group->sensors.add(SensorTemplate{ FK_MODULES_MANUFACTURER, FK_MODULES_KIND_DIAGNOSTICS, 10 }); // Uptime
+    sensor_group->sensors.add(SensorTemplate{ FK_MODULES_MANUFACTURER, FK_MODULES_KIND_DIAGNOSTICS, 11 }); // Temperature
     return sensor_group;
 #endif
 
@@ -99,11 +100,16 @@ public:
         *p++ = number_;
         encoded_size_++;
 
-        p = phylum::varint_encode(age, p, buffer_size_ - encoded_size_);
-        encoded_size_ += phylum::varint_encoding_length(age);
+        auto age_length = phylum::varint_encoding_length(age);
+        auto reading_length = phylum::varint_encoding_length(reading);
 
-        p = phylum::varint_encode(reading, p, buffer_size_ - encoded_size_);
-        encoded_size_ += phylum::varint_encoding_length(reading);
+        phylum::varint_encode(age, p, buffer_size_ - encoded_size_);
+        encoded_size_ += age_length;
+
+        p += age_length;
+
+        phylum::varint_encode(reading, p, buffer_size_ - encoded_size_);
+        encoded_size_ += reading_length;
     }
 
     size_t size_of_encoding() const {

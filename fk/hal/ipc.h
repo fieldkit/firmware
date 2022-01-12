@@ -62,6 +62,10 @@ public:
         return false;
     }
 
+    virtual bool has_stalled_workers(WorkerCategory category, uint32_t stall_ms) {
+        return false;
+    }
+
     virtual collection<TaskDisplayInfo> get_workers_display_info(Pool &pool) {
         return { pool };
     }

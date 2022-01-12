@@ -175,6 +175,10 @@ int32_t HttpServerConnection::write(HttpStatus status, const char *status_messag
                                     Pool &pool) {
     auto started = fk_uptime();
 
+    pool.log_info();
+
+    fk_standard_page_log();
+
     size_t size = 0;
     if (!pb_get_encoded_size(&size, fields, record)) {
         return fault(pool);
@@ -295,8 +299,8 @@ bool HttpServerConnection::service() {
                     return true;
                 }
 
-                loginfo("[%" PRIu32 "] routing '%s' path = '%s' (%" PRIu32 " bytes) ('%s')", number_, req_.url(), path, req_.length(),
-                        req_.user_agent());
+                loginfo("[%" PRIu32 "] routing '%s' qs = '%s' path = '%s' (%" PRIu32 " bytes) ('%s')", number_, req_.url(),
+                        req_.query_string(), path, req_.length(), req_.user_agent());
 
                 auto handler = router_->route(path);
                 if (handler == nullptr) {

@@ -152,15 +152,22 @@ static void configure_noisy_network(DebuggingUdpTraffic udp) {
     }
 }
 
+static void configure_unexciting() {
+    auto gs = get_global_state_rw();
+    gs.get()->debugging.unexciting = true;
+}
+
 MenuView::MenuView(ViewController *views, Pool &pool) : pool_(&pool), views_(views) {
     back_ = to_lambda_option(&pool, "Back", [=]() {
+        auto title = active_menu_->title;
+
         back_->focused(false);
 
         if (previous_menu_ == nullptr || previous_menu_ == active_menu_) {
-            loginfo("selected main-menu '%s'", active_menu_->title);
+            loginfo("selected '%s' (main)", title);
             goto_menu(main_menu_, previous_menu_);
         } else {
-            loginfo("selected previous-menu '%s'", active_menu_->title);
+            loginfo("selected '%s' (previous)", title);
             goto_menu(previous_menu_, previous_menu_);
         }
     });
@@ -458,12 +465,13 @@ public:
             launch_polling_task(menus, back, pool);
         });
 
-        auto noisy_network_menu = new_menu_screen<3>(pool, "noisy-network",
-                                                     {
-                                                         back,
-                                                         noisy_network_on,
-                                                         noisy_network_off,
-                                                     });
+        auto unexciting = to_lambda_option(pool, "Unexciting", [=]() {
+            loginfo("unexciting");
+            configure_unexciting();
+            launch_polling_task(menus, back, pool);
+        });
+
+        auto poll_type_menu = new_menu_screen<4>(pool, "poll-type", { back, noisy_network_on, noisy_network_off, unexciting });
 
         auto constexpr number_of_options = 5;
         auto options = (MenuOption **)pool->malloc(sizeof(MenuOption *) * number_of_options + 1);
@@ -475,7 +483,7 @@ public:
             FK_ASSERT(index < number_of_options);
             options[index++] = to_lambda_option(pool, pool->sprintf("Poll every %ds", interval), [=]() {
                 interval_ = interval;
-                menus->goto_menu(noisy_network_menu);
+                menus->goto_menu(poll_type_menu);
             });
         }
 
@@ -487,7 +495,7 @@ public:
 private:
     void launch_polling_task(GotoMenu *menus, MenuOption *back, Pool *pool) {
         back->on_selected();
-        auto worker = create_pool_worker<PollSensorsWorker>(true, false, interval_ * 1000);
+        auto worker = create_pool_worker<PollSensorsWorker>(true, false, true, interval_ * 1000);
         get_ipc()->signal_workers(WorkerCategory::Polling, 9);
         get_ipc()->launch_worker(WorkerCategory::Polling, worker, true);
         // TODO Move to subpool to allow for repeated readings presses.
@@ -665,7 +673,7 @@ void MenuView::create_tools_menu() {
     (void)tools_crash_assertion;
     (void)tools_poll_water_ec_sensors;
 
-    tools_menu_ = new_menu_screen<17>(pool_, "tools",
+    tools_menu_ = new_menu_screen<19>(pool_, "tools",
                                       {
                                           back_,
                                           tools_self_check,
@@ -682,8 +690,8 @@ void MenuView::create_tools_menu() {
                                           tools_poll_sensors,
                                           // tools_poll_water_ec_sensors,
                                           tools_fsck,
-                                          // tools_crash_hardf,
-                                          // tools_crash_assertion,
+                                          tools_crash_hardf,
+                                          tools_crash_assertion,
                                           tools_export_data,
                                           tools_factory_reset,
                                           tools_restart,
@@ -721,7 +729,7 @@ void MenuView::create_network_menu() {
             return gs->scheduler.network.duration == UINT32_MAX;
         });
 
-    toggle_wifi_menu_ = new_menu_screen<3>(pool_, "wifimode",
+    toggle_wifi_menu_ = new_menu_screen<3>(pool_, "wifi-mode",
                                            {
                                                back_,
                                                toggle_wifi_default,
@@ -820,12 +828,14 @@ void MenuView::create_main_menu() {
 }
 
 void MenuView::create_schedules_menu() {
-    auto schedule_readings = to_lambda_option(pool_, "Readings", [=]() { views_->show_schedule(); });
+    auto schedule_readings = to_lambda_option(pool_, "Readings", [=]() { views_->show_schedule(ScheduleType::Readings); });
+    auto schedule_lora = to_lambda_option(pool_, "LoRa", [=]() { views_->show_schedule(ScheduleType::LoRa); });
 
-    schedules_menu_ = new_menu_screen<2>(pool_, "schedule",
+    schedules_menu_ = new_menu_screen<3>(pool_, "schedule",
                                          {
                                              back_,
                                              schedule_readings,
+                                             schedule_lora,
                                          });
 }
 

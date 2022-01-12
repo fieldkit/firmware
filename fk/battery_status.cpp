@@ -18,6 +18,8 @@ void BatteryChecker::refresh(bool initialize) {
     if (initialize) {
         if (!gauge->begin()) {
             logerror("battery gauge initialize");
+        } else {
+            loginfo("gauge ready");
         }
     }
 
@@ -32,35 +34,26 @@ void BatteryChecker::refresh(bool initialize) {
             FK_ASSERT(LowBatteryDangerousVoltage < LowBatteryVoltage);
             if (power.battery.bus_voltage < LowBatteryDangerousVoltage) {
                 battery_status_ = BatteryStatus::Dangerous;
-            }
-            else if (power.battery.bus_voltage < LowBatteryVoltage) {
+            } else if (power.battery.bus_voltage < LowBatteryVoltage) {
                 battery_status_ = BatteryStatus::Low;
-            }
-            else {
+            } else {
                 battery_status_ = BatteryStatus::Good;
             }
-        }
-        else {
+        } else {
             battery_status_ = BatteryStatus::External;
         }
 
-        loginfo("battery: v_bus=%fV v_s=%fmV %fmA %fmW %f%% %s %s",
-                power.battery.bus_voltage, power.battery.shunted_voltage,
-                power.battery.ma, power.battery.mw,
-                charge, battery_status_to_string(battery_status_),
-                power.charging ? "(charging)" : "");
-    }
-    else {
+        loginfo("battery: v_bus=%fV v_s=%fmV %fmA %fmW %f%% %s %s", power.battery.bus_voltage, power.battery.shunted_voltage,
+                power.battery.ma, power.battery.mw, charge, battery_status_to_string(battery_status_), power.charging ? "(charging)" : "");
+    } else {
         logerror("battery: status unavilable, battery dangerously low");
-        battery_status_ = BatteryStatus::Dangerous;
+        battery_status_ = BatteryStatus::Unknown;
     }
 
     if (power.solar.available) {
-        loginfo("solar: v_bus=%fV v_s=%fmV %fmA %fmW",
-                power.solar.bus_voltage, power.solar.shunted_voltage,
-                power.solar.ma, power.solar.mw);
-    }
-    else {
+        loginfo("solar: v_bus=%fV v_s=%fmV %fmA %fmW", power.solar.bus_voltage, power.solar.shunted_voltage, power.solar.ma,
+                power.solar.mw);
+    } else {
         loginfo("solar: status unavailable");
     }
 
@@ -74,8 +67,10 @@ void BatteryChecker::refresh(bool initialize) {
 float BatteryChecker::voltage_to_percentange(float voltage) {
     // Bradley gave me this.
     auto charge = (voltage - 3.5f) * 142.85f;
-    if (charge < 0.0f) charge = 0.0f;
-    if (charge > 100.0f) charge = 100.0f;
+    if (charge < 0.0f)
+        charge = 0.0f;
+    if (charge > 100.0f)
+        charge = 100.0f;
     return charge;
 }
 

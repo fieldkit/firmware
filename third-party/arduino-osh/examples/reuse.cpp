@@ -54,11 +54,12 @@ void setup() {
     while (!Serial && millis() < 2000) {
     }
 
-    #if defined(HSRAM_ADDR)
-    os_printf("starting: %d (0x%p + %lu) (%lu used) (%d)\n", os_free_memory(), HSRAM_ADDR, HSRAM_SIZE, HSRAM_SIZE - os_free_memory(), __get_CONTROL());
-    #else
+#if defined(HSRAM_ADDR)
+    os_printf("starting: %d (0x%p + %lu) (%lu used) (%d)\n", os_free_memory(), HSRAM_ADDR, HSRAM_SIZE, HSRAM_SIZE - os_free_memory(),
+              __get_CONTROL());
+#else
     os_printf("starting: %d\n", os_free_memory());
-    #endif
+#endif
 
     OS_CHECK(os_initialize());
 
@@ -66,11 +67,13 @@ void setup() {
 
     OS_CHECK(os_task_initialize(&main_task, "main", OS_TASK_START_RUNNING, &task_handler_main, NULL, main_stack, sizeof(main_stack)));
 
-    OS_CHECK(os_task_initialize(&child_task, "child", OS_TASK_START_SUSPENDED, &task_handler_child, NULL, child_stack, sizeof(child_stack)));
+    OS_CHECK(
+        os_task_initialize(&child_task, "child", OS_TASK_START_SUSPENDED, &task_handler_child, NULL, child_stack, sizeof(child_stack)));
 
     OS_CHECK(os_start());
 }
 
 void loop() {
-    while (1);
+    while (1)
+        ;
 }

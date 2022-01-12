@@ -3,7 +3,7 @@
 #include <Arduino.h>
 #include <errno.h>
 
-#define NUMBER_OF_TASKS         (4)
+#define NUMBER_OF_TASKS (4)
 
 static os_mutex_define(mutex, OS_MUTEX_FLAG_NONE);
 static os_task_t idle_task;
@@ -32,8 +32,7 @@ static void task_handler(void *params) {
 
             os_printf("%s releasing\n", os_task_name());
             OS_CHECK(os_mutex_release(os_mutex(mutex)));
-        }
-        else {
+        } else {
             auto elapsed = os_uptime() - started;
             os_printf("%s failed (%s) (after %lums)\n", os_task_name(), os_status_str(status), elapsed);
             os_delay(10);
@@ -52,11 +51,12 @@ void setup() {
     // Something goes south with a malloc.
     random(100, 1000);
 
-    #if defined(HSRAM_ADDR)
-    os_printf("starting: %d (0x%p + %lu) (%lu used) (%d)\n", os_free_memory(), HSRAM_ADDR, HSRAM_SIZE, HSRAM_SIZE - os_free_memory(), __get_CONTROL());
-    #else
+#if defined(HSRAM_ADDR)
+    os_printf("starting: %d (0x%p + %lu) (%lu used) (%d)\n", os_free_memory(), HSRAM_ADDR, HSRAM_SIZE, HSRAM_SIZE - os_free_memory(),
+              __get_CONTROL());
+#else
     os_printf("starting: %d\n", os_free_memory());
-    #endif
+#endif
 
     OS_CHECK(os_initialize());
     OS_CHECK(os_task_initialize(&idle_task, "idle", OS_TASK_START_RUNNING, &task_handler_idle, NULL, idle_stack, sizeof(idle_stack)));
@@ -73,5 +73,6 @@ void setup() {
 }
 
 void loop() {
-    while (1);
+    while (1)
+        ;
 }

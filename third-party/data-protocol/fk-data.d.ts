@@ -944,6 +944,9 @@ export namespace fk_data {
 
         /** Metadata generation */
         generation?: (Uint8Array|null);
+
+        /** Metadata record */
+        record?: (number|Long|null);
     }
 
     /** Represents a Metadata. */
@@ -981,6 +984,9 @@ export namespace fk_data {
 
         /** Metadata generation. */
         public generation: Uint8Array;
+
+        /** Metadata record. */
+        public record: (number|Long);
 
         /**
          * Creates a new Metadata instance using the specified properties.
@@ -2451,6 +2457,12 @@ export namespace fk_data {
 
         /** LoraSettings downlinkCounter */
         downlinkCounter?: (number|null);
+
+        /** LoraSettings rxDelay1 */
+        rxDelay1?: (number|null);
+
+        /** LoraSettings rxDelay2 */
+        rxDelay2?: (number|null);
     }
 
     /** Represents a LoraSettings. */
@@ -2488,6 +2500,12 @@ export namespace fk_data {
 
         /** LoraSettings downlinkCounter. */
         public downlinkCounter: number;
+
+        /** LoraSettings rxDelay1. */
+        public rxDelay1: number;
+
+        /** LoraSettings rxDelay2. */
+        public rxDelay2: number;
 
         /**
          * Creates a new LoraSettings instance using the specified properties.

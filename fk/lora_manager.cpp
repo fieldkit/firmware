@@ -15,11 +15,33 @@ static LoraState get_lora_global_state() {
     return gs.get()->lora;
 }
 
-static void update_lora_status(LoraState &lora, Rn2903State const *rn) {
+void LoraManager::update_lora_status(LoraState &lora, Rn2903State const *rn) {
     lora.uplink_counter = rn->uplink_counter;
     lora.downlink_counter = rn->downlink_counter;
+    if (lora.rx_delay_1 == 0 && lora.rx_delay_2 == 0) {
+        lora.rx_delay_1 = rn->rx_delay_1;
+        lora.rx_delay_2 = rn->rx_delay_2;
+        loginfo("got new delays");
+    } else {
+        if (lora.rx_delay_1 != rn->rx_delay_1 || lora.rx_delay_2 != rn->rx_delay_2) {
+            lora.rx_delay_1 = rn->rx_delay_1;
+            lora.rx_delay_2 = rn->rx_delay_2;
+            loginfo("delays changed");
+        } else {
+            loginfo("same delays");
+        }
+    }
     FK_ASSERT(sizeof(lora.device_address) == sizeof(rn->device_address));
     memcpy(lora.device_address, rn->device_address, sizeof(lora.device_address));
+}
+
+void LoraManager::verify_rx_delays(Rn2903State const *rn, Pool &pool) {
+    if (rn->rx_delay_1 == 5000) {
+        loginfo("rx delays ok");
+        return;
+    }
+
+    network_->set_rx_delays(5000);
 }
 
 bool LoraManager::begin(Pool &pool) {
@@ -41,6 +63,8 @@ bool LoraManager::begin(Pool &pool) {
     awake_ = has_module;
 
     if (has_module) {
+        FK_ASSERT(module_state != nullptr);
+
         // If we have a module and don't have a valid configuration, make sure
         // the module doesn't stick around in some old/obsolete configuration.
         auto state = get_lora_global_state();
@@ -58,6 +82,9 @@ bool LoraManager::begin(Pool &pool) {
                 module_state = network_->get_state(pool);
             }
         }
+
+        // We continue even if this fails because we may still get lucky.
+        verify_rx_delays(module_state, pool);
     }
 
     return gsm.apply([&](GlobalState *gs) {
@@ -92,7 +119,7 @@ bool LoraManager::factory_reset() {
     return network_->factory_reset();
 }
 
-bool LoraManager::verify_configuration(LoraState &state, uint8_t *device_eui, Pool &pool) {
+bool LoraManager::verify_configuration(LoraState const &state, uint8_t const *device_eui, Pool &pool) {
     if (state.joined > 0) {
         return true;
     }
@@ -100,16 +127,24 @@ bool LoraManager::verify_configuration(LoraState &state, uint8_t *device_eui, Po
     if (device_eui != nullptr) {
         for (auto i = 0u; lora_keys[i].name[0] != 0; ++i) {
             auto &keys = lora_keys[i];
-
+            auto device_eui_hex = bytes_to_hex_string_pool(keys.device_eui, sizeof(keys.device_eui), pool);
             if (memcmp(keys.device_eui, device_eui, LoraDeviceEuiLength) == 0) {
-                auto device_eui_hex = bytes_to_hex_string_pool(keys.device_eui, sizeof(keys.device_eui), pool);
-                loginfo("(hardcoded) configuration: '%s' device-eui: %s", keys.name, device_eui_hex);
+                if (memcmp(keys.device_eui, state.device_eui, LoraDeviceEuiLength) == 0) {
+                    loginfo("(hardcoded) device-eui: %s configuration: '%s' (already set)", device_eui_hex, keys.name);
+                } else {
+                    loginfo("(hardcoded) device-eui: %s configuration: '%s'", device_eui_hex, keys.name);
 
-                memcpy(state.device_eui, device_eui, sizeof(state.device_eui));
-                memcpy(state.app_key, keys.app_key, sizeof(state.app_key));
-                state.frequency_band = keys.frequency_band;
+                    GlobalStateManager gsm;
+                    gsm.apply([=](GlobalState *gs) {
+                        memcpy(gs->lora.device_eui, device_eui, sizeof(gs->lora.device_eui));
+                        memcpy(gs->lora.app_key, keys.app_key, sizeof(gs->lora.app_key));
+                        gs->lora.frequency_band = keys.frequency_band;
+                    });
+                }
 
                 return true;
+            } else {
+                loginfo("(ignored) device-eui: %s configuration: '%s'", device_eui_hex, keys.name);
             }
         }
     }
@@ -404,9 +439,25 @@ void LoraManager::stop() {
 
         GlobalStateManager gsm;
         gsm.apply([=](GlobalState *gs) { gs->lora.asleep = fk_uptime(); });
-
         awake_ = false;
     }
+}
+
+bool LoraManager::power_cycle() {
+    logwarn("power cycling");
+
+    network_->power(false);
+
+    GlobalStateManager gsm;
+    gsm.apply([=](GlobalState *gs) {
+        gs->lora.asleep = 0;
+        gs->lora.joined = 0;
+        gs->lora.has_module = false;
+    });
+
+    awake_ = false;
+
+    return true;
 }
 
 } // namespace fk

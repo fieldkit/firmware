@@ -40,4 +40,4 @@ bool fk_task_stop_requested(uint32_t *checked);
 
 os_task_t **fk_tasks_all();
 
-}
+} // namespace fk

@@ -9,7 +9,6 @@ class ScheduleSuite : public ::testing::Test {
 protected:
     virtual void SetUp();
     virtual void TearDown();
-
 };
 
 void ScheduleSuite::SetUp() {
@@ -25,7 +24,8 @@ TEST_F(ScheduleSuite, OneTask_Initialize) {
     uint32_t stacks[1][OS_STACK_MINIMUM_SIZE_WORDS];
 
     ASSERT_EQ(os_initialize(), OSS_SUCCESS);
-    ASSERT_EQ(os_task_initialize(&tasks[0], "idle", OS_TASK_START_RUNNING, &task_handler_idle, NULL, stacks[0], sizeof(stacks[0])), OSS_SUCCESS);
+    ASSERT_EQ(os_task_initialize(&tasks[0], "idle", OS_TASK_START_RUNNING, &task_handler_idle, NULL, stacks[0], sizeof(stacks[0])),
+              OSS_SUCCESS);
     ASSERT_EQ(os_start(), OSS_SUCCESS);
 
     ASSERT_EQ(osg.ntasks, 1);
@@ -63,7 +63,8 @@ TEST_F(ScheduleSuite, OneTask_Schedule) {
     uint32_t stacks[1][OS_STACK_MINIMUM_SIZE_WORDS];
 
     ASSERT_EQ(os_initialize(), OSS_SUCCESS);
-    ASSERT_EQ(os_task_initialize(&tasks[0], "idle", OS_TASK_START_RUNNING, &task_handler_idle, NULL, stacks[0], sizeof(stacks[0])), OSS_SUCCESS);
+    ASSERT_EQ(os_task_initialize(&tasks[0], "idle", OS_TASK_START_RUNNING, &task_handler_idle, NULL, stacks[0], sizeof(stacks[0])),
+              OSS_SUCCESS);
     ASSERT_EQ(os_start(), OSS_SUCCESS);
 
     ASSERT_EQ(osg.scheduled, nullptr);
@@ -177,7 +178,8 @@ TEST_F(ScheduleSuite, ManyTasks_ScheduleAsTasksGraduallySleep) {
     /* Gradually sleep tasks... */
     ASSERT_EQ(tests_sleep_running_task(), &tasks[1]);
 
-    ASSERT_EQ(tests_schedule_task_and_switch(), &tasks[3]);;
+    ASSERT_EQ(tests_schedule_task_and_switch(), &tasks[3]);
+    ;
 
     /* Gradually sleep tasks... */
     ASSERT_EQ(tests_sleep_running_task(), &tasks[1]);
