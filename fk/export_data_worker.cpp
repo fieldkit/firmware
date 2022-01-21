@@ -207,7 +207,7 @@ bool ExportDataWorker::write_header() {
 
     StackBufferedWriter<StackBufferSize> writer{ writing_ };
 
-    writer.write("time,data_record,meta_record,uptime,gps,latitude,longitude,altitude,gps_time,note");
+    writer.write("unix_time,time,data_record,meta_record,uptime,gps,latitude,longitude,altitude,gps_time,note");
 
     for (auto i = 0u; i < modules_array->length; ++i) {
         auto &module = modules[i];
@@ -236,8 +236,10 @@ ExportDataWorker::WriteStatus ExportDataWorker::write_row(fk_data_DataRecord &re
 
     StackBufferedWriter<StackBufferSize> writer{ writing_ };
 
-    writer.write("%" PRIu64 ",%" PRIu32 ",%" PRIu32 ",%" PRIu32 ",%" PRIu32 ",%f,%f,%f,%" PRIu32 ",", record.readings.time,
-                 record.readings.reading, record.readings.meta, record.readings.uptime, record.readings.location.fix,
+    FormattedTime formatted{ (uint32_t)record.readings.time, TimeFormatReadable };
+
+    writer.write("%s,%" PRIu64 ",%" PRIu32 ",%" PRIu32 ",%" PRIu32 ",%" PRIu32 ",%f,%f,%f,%" PRIu32 ",", formatted.cstr(),
+                 record.readings.time, record.readings.reading, record.readings.meta, record.readings.uptime, record.readings.location.fix,
                  record.readings.location.latitude, record.readings.location.longitude, record.readings.location.altitude,
                  record.readings.location.time);
 
