@@ -357,6 +357,32 @@ Ads1219ReadyChecker *WaterModule::get_ready_checker(Mcp2803 &mcp, Pool &pool) {
     return new (pool) Mcp2803ReadyChecker{ mcp };
 }
 
+bool WaterModule::can_enable() {
+    if (unlocked_ > 0) {
+        auto uptime = fk_uptime();
+        if (uptime < unlocked_) {
+            auto remaining = unlocked_ - uptime;
+            if (remaining < 0) {
+                loginfo("locked (negative) %" PRIu32, remaining);
+                unlocked_ = fk_uptime() + OneMinuteMs;
+                return false;
+            }
+            if (remaining > FiveSecondsMs) {
+                loginfo("locked %" PRIu32, remaining);
+                return false;
+            }
+        } else {
+            loginfo("locked expired");
+        }
+
+        unlocked_ = 0;
+    } else {
+        loginfo("unlocked");
+    }
+
+    return true;
+}
+
 ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
     auto &bus = mc.module_bus();
 

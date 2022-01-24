@@ -26,6 +26,7 @@ public:
     ModuleReturn service(ModuleContext mc, Pool &pool) override;
     ModuleReturn api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) override;
     ModuleReadings *take_readings(ReadingsContext mc, Pool &pool) override;
+    bool can_enable() override;
 
 public:
     ModuleSensors const *get_sensors(Pool &pool) override;

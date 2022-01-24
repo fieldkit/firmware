@@ -39,7 +39,8 @@ struct ModuleReturn {
 class Module {
 private:
 public:
-    virtual ~Module() { }
+    virtual ~Module() {
+    }
 
 public:
     virtual ModuleReturn initialize(ModuleContext mc, Pool &pool) = 0;
@@ -48,7 +49,9 @@ public:
     virtual ModuleConfiguration const get_configuration(Pool &pool) = 0;
     virtual ModuleReturn service(ModuleContext mc, Pool &pool) = 0;
     virtual ModuleReturn api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) = 0;
-
+    virtual bool can_enable() {
+        return true;
+    }
 };
 
 #ifdef __cplusplus
@@ -61,4 +64,4 @@ uint32_t fk_modules_builtin_register(ModuleMetadata const *modmeta);
 }
 #endif
 
-}
+} // namespace fk
