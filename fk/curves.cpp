@@ -94,8 +94,19 @@ Curve *create_curve(Curve *default_curve, fk_data_ModuleConfiguration *cfg, Pool
         return default_curve;
     }
 
-    auto values = reinterpret_cast<float *>(values_array->buffer);
+    if (cfg->calibration.points.arg != nullptr) {
+        auto points_array = reinterpret_cast<pb_array_t *>(cfg->calibration.points.arg);
+        auto points = reinterpret_cast<fk_data_CalibrationPoint *>(points_array->buffer);
+        for (auto i = 0u; i < points_array->length; ++i) {
+            auto uncalibrated_array = reinterpret_cast<pb_array_t *>(points->uncalibrated.arg);
+            auto uncalibrated = reinterpret_cast<float *>(uncalibrated_array->buffer);
+            loginfo("curve[%d]: %.2f", i, uncalibrated[0]);
+        }
+    } else {
+        logwarn("curve missing points");
+    }
 
+    auto values = reinterpret_cast<float *>(values_array->buffer);
     return create_curve(curve_type, values[0], values[1], pool);
 }
 

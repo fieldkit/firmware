@@ -579,8 +579,42 @@ static inline bool pb_decode_float_array(pb_istream_t *stream, const pb_field_t 
     return true;
 }
 
+static inline bool pb_data_module_configuration_point_item_decode(pb_istream_t *stream, pb_array_t *array) {
+    fk_data_CalibrationPoint point = fk_data_CalibrationPoint_init_default;
+
+    point.uncalibrated.funcs.decode = pb_decode_float_array;
+    point.uncalibrated.arg = (void *)array->pool->malloc_with<pb_array_t>({
+        .length = 0,
+        .allocated = 0,
+        .item_size = sizeof(float),
+        .buffer = nullptr,
+        .fields = nullptr,
+        .decode_item_fn = nullptr,
+        .pool = array->pool,
+    });
+
+    if (!pb_decode(stream, fk_data_CalibrationPoint_fields, &point)) {
+        return false;
+    }
+
+    append_array(array, &point);
+
+    return true;
+}
+
 fk_data_ModuleConfiguration *fk_module_configuration_decoding_new(Pool *pool) {
     auto record = (fk_data_ModuleConfiguration *)pool->malloc(sizeof(fk_data_ModuleConfiguration));
+
+    record->calibration.points.funcs.decode = pb_decode_array;
+    record->calibration.points.arg = (void *)pool->malloc_with<pb_array_t>({
+        .length = 0,
+        .allocated = 0,
+        .item_size = sizeof(fk_data_CalibrationPoint),
+        .buffer = nullptr,
+        .fields = fk_data_CalibrationPoint_fields,
+        .decode_item_fn = pb_data_module_configuration_point_item_decode,
+        .pool = pool,
+    });
 
     record->calibration.coefficients.values.funcs.decode = pb_decode_float_array;
     record->calibration.coefficients.values.arg = (void *)pool->malloc_with<pb_array_t>({
