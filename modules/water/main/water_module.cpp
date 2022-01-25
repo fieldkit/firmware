@@ -331,8 +331,8 @@ Curve *WaterModule::create_modules_default_curve(Pool &pool) {
         return create_curve(fk_data_CurveType_CURVE_LINEAR, PhDefaultCalibrationB, PhDefaultCalibrationM, pool);
     }
     case FK_MODULES_KIND_WATER_DO: {
-        constexpr float DoDefaultCalibrationB = 2.9339;
-        constexpr float DoDefaultCalibrationM = 0.0033;
+        constexpr float DoDefaultCalibrationB = 16.663;
+        constexpr float DoDefaultCalibrationM = 2202.1;
         return create_curve(fk_data_CurveType_CURVE_LINEAR, DoDefaultCalibrationB, DoDefaultCalibrationM, pool);
     }
     case FK_MODULES_KIND_WATER_ORP: {
