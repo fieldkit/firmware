@@ -179,7 +179,7 @@ class ElfAnalyzer:
         by_section_name_index = defaultdict(list)
         for r in self.binary.relocations:
             if r.has_section:
-                by_section_name_index[r.section.name_idx].append(r)
+                pass # by_section_name_index[r.section.name_idx].append(r)
 
         logging.info("Done %f", time.time() - started)
 
@@ -189,7 +189,7 @@ class ElfAnalyzer:
 
         for s in self.binary.sections:
             if s.name not in skipping:
-                relocations += by_section_name_index[s.name_idx]
+                pass # relocations += by_section_name_index[s.name_idx]
 
         logging.info("Done %f", time.time() - started)
 
