@@ -593,6 +593,28 @@ static inline bool pb_data_module_configuration_point_item_decode(pb_istream_t *
         .pool = array->pool,
     });
 
+    point.references.funcs.decode = pb_decode_float_array;
+    point.references.arg = (void *)array->pool->malloc_with<pb_array_t>({
+        .length = 0,
+        .allocated = 0,
+        .item_size = sizeof(float),
+        .buffer = nullptr,
+        .fields = nullptr,
+        .decode_item_fn = nullptr,
+        .pool = array->pool,
+    });
+
+    point.factory.funcs.decode = pb_decode_float_array;
+    point.factory.arg = (void *)array->pool->malloc_with<pb_array_t>({
+        .length = 0,
+        .allocated = 0,
+        .item_size = sizeof(float),
+        .buffer = nullptr,
+        .fields = nullptr,
+        .decode_item_fn = nullptr,
+        .pool = array->pool,
+    });
+
     if (!pb_decode(stream, fk_data_CalibrationPoint_fields, &point)) {
         return false;
     }
