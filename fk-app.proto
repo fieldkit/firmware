@@ -451,6 +451,7 @@ message LiveSensorReading {
   float value = 2;
   float uncalibrated = 3;
   float factory = 4;
+  bytes adc = 5;
 }
 
 message LiveModuleReadings {

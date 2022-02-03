@@ -485,6 +485,7 @@ typedef struct _fk_app_LiveSensorReading {
     float value; 
     float uncalibrated; 
     float factory; 
+    pb_callback_t adc; 
 } fk_app_LiveSensorReading;
 
 typedef struct _fk_app_Status { 
@@ -665,7 +666,7 @@ extern "C" {
 #define fk_app_ListDirectory_init_default        {{{NULL}, NULL}, 0}
 #define fk_app_HttpQuery_init_default            {_fk_app_QueryType_MIN, false, fk_app_Identity_init_default, false, fk_app_Recording_init_default, false, fk_app_Schedules_init_default, 0, false, fk_app_NetworkSettings_init_default, false, fk_app_LoraSettings_init_default, 0, false, fk_app_Location_init_default, false, fk_app_Transmission_init_default, false, fk_app_ListDirectory_init_default, 0}
 #define fk_app_DataStream_init_default           {0, 0, 0, 0, 0, {{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}}
-#define fk_app_LiveSensorReading_init_default    {false, fk_app_SensorCapabilities_init_default, 0, 0, 0}
+#define fk_app_LiveSensorReading_init_default    {false, fk_app_SensorCapabilities_init_default, 0, 0, 0, {{NULL}, NULL}}
 #define fk_app_LiveModuleReadings_init_default   {false, fk_app_ModuleCapabilities_init_default, {{NULL}, NULL}}
 #define fk_app_LiveReadings_init_default         {0, {{NULL}, NULL}}
 #define fk_app_DirectoryEntry_init_default       {{{NULL}, NULL}, {{NULL}, NULL}, 0, 0}
@@ -722,7 +723,7 @@ extern "C" {
 #define fk_app_ListDirectory_init_zero           {{{NULL}, NULL}, 0}
 #define fk_app_HttpQuery_init_zero               {_fk_app_QueryType_MIN, false, fk_app_Identity_init_zero, false, fk_app_Recording_init_zero, false, fk_app_Schedules_init_zero, 0, false, fk_app_NetworkSettings_init_zero, false, fk_app_LoraSettings_init_zero, 0, false, fk_app_Location_init_zero, false, fk_app_Transmission_init_zero, false, fk_app_ListDirectory_init_zero, 0}
 #define fk_app_DataStream_init_zero              {0, 0, 0, 0, 0, {{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}}
-#define fk_app_LiveSensorReading_init_zero       {false, fk_app_SensorCapabilities_init_zero, 0, 0, 0}
+#define fk_app_LiveSensorReading_init_zero       {false, fk_app_SensorCapabilities_init_zero, 0, 0, 0, {{NULL}, NULL}}
 #define fk_app_LiveModuleReadings_init_zero      {false, fk_app_ModuleCapabilities_init_zero, {{NULL}, NULL}}
 #define fk_app_LiveReadings_init_zero            {0, {{NULL}, NULL}}
 #define fk_app_DirectoryEntry_init_zero          {{{NULL}, NULL}, {{NULL}, NULL}, 0, 0}
@@ -941,6 +942,7 @@ extern "C" {
 #define fk_app_LiveSensorReading_value_tag       2
 #define fk_app_LiveSensorReading_uncalibrated_tag 3
 #define fk_app_LiveSensorReading_factory_tag     4
+#define fk_app_LiveSensorReading_adc_tag         5
 #define fk_app_Status_version_tag                1
 #define fk_app_Status_uptime_tag                 2
 #define fk_app_Status_identity_tag               3
@@ -1434,8 +1436,9 @@ X(a, CALLBACK, SINGULAR, STRING,   path,              8)
 X(a, STATIC,   OPTIONAL, MESSAGE,  sensor,            1) \
 X(a, STATIC,   SINGULAR, FLOAT,    value,             2) \
 X(a, STATIC,   SINGULAR, FLOAT,    uncalibrated,      3) \
-X(a, STATIC,   SINGULAR, FLOAT,    factory,           4)
-#define fk_app_LiveSensorReading_CALLBACK NULL
+X(a, STATIC,   SINGULAR, FLOAT,    factory,           4) \
+X(a, CALLBACK, SINGULAR, BYTES,    adc,               5)
+#define fk_app_LiveSensorReading_CALLBACK pb_default_field_callback
 #define fk_app_LiveSensorReading_DEFAULT NULL
 #define fk_app_LiveSensorReading_sensor_MSGTYPE fk_app_SensorCapabilities
 

@@ -1115,6 +1115,10 @@
             "factory": {
               "type": "float",
               "id": 4
+            },
+            "adc": {
+              "type": "bytes",
+              "id": 5
             }
           }
         },

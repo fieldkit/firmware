@@ -5113,6 +5113,9 @@ export namespace fk_app {
 
         /** LiveSensorReading factory */
         factory?: number;
+
+        /** LiveSensorReading adc */
+        adc?: Uint8Array;
     }
 
     /** Represents a LiveSensorReading. */
@@ -5135,6 +5138,9 @@ export namespace fk_app {
 
         /** LiveSensorReading factory. */
         public factory: number;
+
+        /** LiveSensorReading adc. */
+        public adc: Uint8Array;
 
         /**
          * Creates a new LiveSensorReading instance using the specified properties.
