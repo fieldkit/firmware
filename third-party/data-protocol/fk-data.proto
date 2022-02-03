@@ -104,6 +104,7 @@ enum DownloadFlags {
 
 message SensorGroup {
   uint32 module = 1;
+  int64 time = 3;
   repeated SensorAndValue readings = 2;
 }
 
@@ -255,6 +256,7 @@ message CalibrationPoint {
   repeated float references = 1;
   repeated float uncalibrated = 2;
   repeated float factory = 3;
+  repeated bytes adc = 4;
 }
 
 message CalibrationCoefficients {
@@ -266,6 +268,7 @@ message Calibration {
   uint32 time = 2;
   repeated CalibrationPoint points = 3;
   CalibrationCoefficients coefficients = 4;
+  Firmware firmware = 5;
 }
 
 message ModuleConfiguration {

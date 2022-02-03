@@ -1300,6 +1300,9 @@ export namespace fk_data {
         /** SensorGroup module */
         module?: (number|null);
 
+        /** SensorGroup time */
+        time?: (number|Long|null);
+
         /** SensorGroup readings */
         readings?: (fk_data.ISensorAndValue[]|null);
     }
@@ -1315,6 +1318,9 @@ export namespace fk_data {
 
         /** SensorGroup module. */
         public module: number;
+
+        /** SensorGroup time. */
+        public time: (number|Long);
 
         /** SensorGroup readings. */
         public readings: fk_data.ISensorAndValue[];
@@ -3130,6 +3136,9 @@ export namespace fk_data {
 
         /** CalibrationPoint factory */
         factory?: (number[]|null);
+
+        /** CalibrationPoint adc */
+        adc?: (Uint8Array[]|null);
     }
 
     /** Represents a CalibrationPoint. */
@@ -3149,6 +3158,9 @@ export namespace fk_data {
 
         /** CalibrationPoint factory. */
         public factory: number[];
+
+        /** CalibrationPoint adc. */
+        public adc: Uint8Array[];
 
         /**
          * Creates a new CalibrationPoint instance using the specified properties.
@@ -3325,6 +3337,9 @@ export namespace fk_data {
 
         /** Calibration coefficients */
         coefficients?: (fk_data.ICalibrationCoefficients|null);
+
+        /** Calibration firmware */
+        firmware?: (fk_data.IFirmware|null);
     }
 
     /** Represents a Calibration. */
@@ -3347,6 +3362,9 @@ export namespace fk_data {
 
         /** Calibration coefficients. */
         public coefficients?: (fk_data.ICalibrationCoefficients|null);
+
+        /** Calibration firmware. */
+        public firmware?: (fk_data.IFirmware|null);
 
         /**
          * Creates a new Calibration instance using the specified properties.
