@@ -47,6 +47,7 @@ typedef struct _fk_data_CalibrationPoint {
     pb_callback_t references; 
     pb_callback_t uncalibrated; 
     pb_callback_t factory; 
+    pb_callback_t adc; 
 } fk_data_CalibrationPoint;
 
 typedef struct _fk_data_Identity { 
@@ -56,14 +57,6 @@ typedef struct _fk_data_Identity {
 typedef struct _fk_data_NetworkSettings { 
     pb_callback_t networks; 
 } fk_data_NetworkSettings;
-
-typedef struct _fk_data_Calibration { 
-    fk_data_CurveType type; 
-    uint32_t time; 
-    pb_callback_t points; 
-    bool has_coefficients;
-    fk_data_CalibrationCoefficients coefficients; 
-} fk_data_Calibration;
 
 typedef struct _fk_data_Condition { 
     uint32_t flags; 
@@ -166,6 +159,7 @@ typedef struct _fk_data_SensorAndValue {
 typedef struct _fk_data_SensorGroup { 
     uint32_t module; 
     pb_callback_t readings; 
+    int64_t time; 
 } fk_data_SensorGroup;
 
 typedef struct _fk_data_SensorInfo { 
@@ -204,6 +198,16 @@ typedef struct _fk_data_WifiTransmission {
     bool enabled; 
 } fk_data_WifiTransmission;
 
+typedef struct _fk_data_Calibration { 
+    fk_data_CurveType type; 
+    uint32_t time; 
+    pb_callback_t points; 
+    bool has_coefficients;
+    fk_data_CalibrationCoefficients coefficients; 
+    bool has_firmware;
+    fk_data_Firmware firmware; 
+} fk_data_Calibration;
+
 typedef struct _fk_data_LoggedReading { 
     uint32_t version; 
     bool has_location;
@@ -225,11 +229,6 @@ typedef struct _fk_data_Metadata {
     pb_callback_t generation; 
     uint64_t record; 
 } fk_data_Metadata;
-
-typedef struct _fk_data_ModuleConfiguration { 
-    bool has_calibration;
-    fk_data_Calibration calibration; 
-} fk_data_ModuleConfiguration;
 
 typedef struct _fk_data_ModuleInfo { 
     uint32_t position; 
@@ -303,6 +302,11 @@ typedef struct _fk_data_DataRecord {
     pb_callback_t faults; 
 } fk_data_DataRecord;
 
+typedef struct _fk_data_ModuleConfiguration { 
+    bool has_calibration;
+    fk_data_Calibration calibration; 
+} fk_data_ModuleConfiguration;
+
 
 /* Helper constants for enums */
 #define _fk_data_DownloadFlags_MIN fk_data_DownloadFlags_READING_FLAGS_NONE
@@ -338,7 +342,7 @@ extern "C" {
 #define fk_data_Metadata_init_default            {{{NULL}, NULL}, 0, {{NULL}, NULL}, 0, {{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}, false, fk_data_Firmware_init_default, {{NULL}, NULL}, 0}
 #define fk_data_Status_init_default              {0, 0, 0, 0, 0}
 #define fk_data_LogMessage_init_default          {0, 0, 0, {{NULL}, NULL}, {{NULL}, NULL}}
-#define fk_data_SensorGroup_init_default         {0, {{NULL}, NULL}}
+#define fk_data_SensorGroup_init_default         {0, {{NULL}, NULL}, 0}
 #define fk_data_Readings_init_default            {0, 0, 0, false, fk_data_DeviceLocation_init_default, {{NULL}, NULL}, 0, 0}
 #define fk_data_Interval_init_default            {0, 0, 0}
 #define fk_data_JobSchedule_init_default         {{{NULL}, NULL}, 0, 0, 0, 0, {{NULL}, NULL}}
@@ -354,9 +358,9 @@ extern "C" {
 #define fk_data_DataRecord_init_default          {false, fk_data_LoggedReading_init_default, false, fk_data_Metadata_init_default, false, fk_data_LogMessage_init_default, false, fk_data_Status_init_default, false, fk_data_Readings_init_default, {{NULL}, NULL}, false, fk_data_Schedule_init_default, 0, false, fk_data_Identity_init_default, false, fk_data_Condition_init_default, false, fk_data_LoraSettings_init_default, false, fk_data_NetworkSettings_init_default, {{NULL}, NULL}, false, fk_data_TransmissionSettings_init_default, {{NULL}, NULL}}
 #define fk_data_SignedRecord_init_default        {_fk_data_SignedRecordKind_MIN, 0, {{NULL}, NULL}, {{NULL}, NULL}, 0}
 #define fk_data_LoraRecord_init_default          {{{NULL}, NULL}, 0, 0, 0, 0, {{NULL}, NULL}, {{NULL}, NULL}}
-#define fk_data_CalibrationPoint_init_default    {{{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}}
+#define fk_data_CalibrationPoint_init_default    {{{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}}
 #define fk_data_CalibrationCoefficients_init_default {{{NULL}, NULL}}
-#define fk_data_Calibration_init_default         {_fk_data_CurveType_MIN, 0, {{NULL}, NULL}, false, fk_data_CalibrationCoefficients_init_default}
+#define fk_data_Calibration_init_default         {_fk_data_CurveType_MIN, 0, {{NULL}, NULL}, false, fk_data_CalibrationCoefficients_init_default, false, fk_data_Firmware_init_default}
 #define fk_data_ModuleConfiguration_init_default {false, fk_data_Calibration_init_default}
 #define fk_data_DeviceLocation_init_zero         {0, 0, 0, 0, 0, {{NULL}, NULL}, 0, 0, 0}
 #define fk_data_SensorReading_init_zero          {0, 0, 0, 0}
@@ -369,7 +373,7 @@ extern "C" {
 #define fk_data_Metadata_init_zero               {{{NULL}, NULL}, 0, {{NULL}, NULL}, 0, {{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}, false, fk_data_Firmware_init_zero, {{NULL}, NULL}, 0}
 #define fk_data_Status_init_zero                 {0, 0, 0, 0, 0}
 #define fk_data_LogMessage_init_zero             {0, 0, 0, {{NULL}, NULL}, {{NULL}, NULL}}
-#define fk_data_SensorGroup_init_zero            {0, {{NULL}, NULL}}
+#define fk_data_SensorGroup_init_zero            {0, {{NULL}, NULL}, 0}
 #define fk_data_Readings_init_zero               {0, 0, 0, false, fk_data_DeviceLocation_init_zero, {{NULL}, NULL}, 0, 0}
 #define fk_data_Interval_init_zero               {0, 0, 0}
 #define fk_data_JobSchedule_init_zero            {{{NULL}, NULL}, 0, 0, 0, 0, {{NULL}, NULL}}
@@ -385,9 +389,9 @@ extern "C" {
 #define fk_data_DataRecord_init_zero             {false, fk_data_LoggedReading_init_zero, false, fk_data_Metadata_init_zero, false, fk_data_LogMessage_init_zero, false, fk_data_Status_init_zero, false, fk_data_Readings_init_zero, {{NULL}, NULL}, false, fk_data_Schedule_init_zero, 0, false, fk_data_Identity_init_zero, false, fk_data_Condition_init_zero, false, fk_data_LoraSettings_init_zero, false, fk_data_NetworkSettings_init_zero, {{NULL}, NULL}, false, fk_data_TransmissionSettings_init_zero, {{NULL}, NULL}}
 #define fk_data_SignedRecord_init_zero           {_fk_data_SignedRecordKind_MIN, 0, {{NULL}, NULL}, {{NULL}, NULL}, 0}
 #define fk_data_LoraRecord_init_zero             {{{NULL}, NULL}, 0, 0, 0, 0, {{NULL}, NULL}, {{NULL}, NULL}}
-#define fk_data_CalibrationPoint_init_zero       {{{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}}
+#define fk_data_CalibrationPoint_init_zero       {{{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}}
 #define fk_data_CalibrationCoefficients_init_zero {{{NULL}, NULL}}
-#define fk_data_Calibration_init_zero            {_fk_data_CurveType_MIN, 0, {{NULL}, NULL}, false, fk_data_CalibrationCoefficients_init_zero}
+#define fk_data_Calibration_init_zero            {_fk_data_CurveType_MIN, 0, {{NULL}, NULL}, false, fk_data_CalibrationCoefficients_init_zero, false, fk_data_Firmware_init_zero}
 #define fk_data_ModuleConfiguration_init_zero    {false, fk_data_Calibration_init_zero}
 
 /* Field tags (for use in manual encoding/decoding) */
@@ -395,12 +399,9 @@ extern "C" {
 #define fk_data_CalibrationPoint_references_tag  1
 #define fk_data_CalibrationPoint_uncalibrated_tag 2
 #define fk_data_CalibrationPoint_factory_tag     3
+#define fk_data_CalibrationPoint_adc_tag         4
 #define fk_data_Identity_name_tag                1
 #define fk_data_NetworkSettings_networks_tag     1
-#define fk_data_Calibration_type_tag             1
-#define fk_data_Calibration_time_tag             2
-#define fk_data_Calibration_points_tag           3
-#define fk_data_Calibration_coefficients_tag     4
 #define fk_data_Condition_flags_tag              1
 #define fk_data_Condition_recording_tag          2
 #define fk_data_DeviceLocation_fix_tag           1
@@ -465,6 +466,7 @@ extern "C" {
 #define fk_data_SensorAndValue_uncalibrated_tag  3
 #define fk_data_SensorGroup_module_tag           1
 #define fk_data_SensorGroup_readings_tag         2
+#define fk_data_SensorGroup_time_tag             3
 #define fk_data_SensorInfo_number_tag            1
 #define fk_data_SensorInfo_name_tag              2
 #define fk_data_SensorInfo_unitOfMeasure_tag     3
@@ -486,6 +488,11 @@ extern "C" {
 #define fk_data_WifiTransmission_url_tag         1
 #define fk_data_WifiTransmission_token_tag       2
 #define fk_data_WifiTransmission_enabled_tag     3
+#define fk_data_Calibration_type_tag             1
+#define fk_data_Calibration_time_tag             2
+#define fk_data_Calibration_points_tag           3
+#define fk_data_Calibration_coefficients_tag     4
+#define fk_data_Calibration_firmware_tag         5
 #define fk_data_LoggedReading_version_tag        1
 #define fk_data_LoggedReading_location_tag       2
 #define fk_data_LoggedReading_reading_tag        3
@@ -499,7 +506,6 @@ extern "C" {
 #define fk_data_Metadata_firmware_tag            8
 #define fk_data_Metadata_generation_tag          9
 #define fk_data_Metadata_record_tag              10
-#define fk_data_ModuleConfiguration_calibration_tag 1
 #define fk_data_ModuleInfo_position_tag          1
 #define fk_data_ModuleInfo_address_tag           2
 #define fk_data_ModuleInfo_name_tag              3
@@ -536,6 +542,7 @@ extern "C" {
 #define fk_data_DataRecord_logs_tag              13
 #define fk_data_DataRecord_transmission_tag      14
 #define fk_data_DataRecord_faults_tag            15
+#define fk_data_ModuleConfiguration_calibration_tag 1
 
 /* Struct field encoding specification for nanopb */
 #define fk_data_DeviceLocation_FIELDLIST(X, a) \
@@ -652,7 +659,8 @@ X(a, CALLBACK, SINGULAR, STRING,   message,           5)
 
 #define fk_data_SensorGroup_FIELDLIST(X, a) \
 X(a, STATIC,   SINGULAR, UINT32,   module,            1) \
-X(a, CALLBACK, REPEATED, MESSAGE,  readings,          2)
+X(a, CALLBACK, REPEATED, MESSAGE,  readings,          2) \
+X(a, STATIC,   SINGULAR, INT64,    time,              3)
 #define fk_data_SensorGroup_CALLBACK pb_default_field_callback
 #define fk_data_SensorGroup_DEFAULT NULL
 #define fk_data_SensorGroup_readings_MSGTYPE fk_data_SensorAndValue
@@ -817,7 +825,8 @@ X(a, CALLBACK, SINGULAR, BYTES,    data,              7)
 #define fk_data_CalibrationPoint_FIELDLIST(X, a) \
 X(a, CALLBACK, REPEATED, FLOAT,    references,        1) \
 X(a, CALLBACK, REPEATED, FLOAT,    uncalibrated,      2) \
-X(a, CALLBACK, REPEATED, FLOAT,    factory,           3)
+X(a, CALLBACK, REPEATED, FLOAT,    factory,           3) \
+X(a, CALLBACK, REPEATED, BYTES,    adc,               4)
 #define fk_data_CalibrationPoint_CALLBACK pb_default_field_callback
 #define fk_data_CalibrationPoint_DEFAULT NULL
 
@@ -830,11 +839,13 @@ X(a, CALLBACK, REPEATED, FLOAT,    values,            1)
 X(a, STATIC,   SINGULAR, UENUM,    type,              1) \
 X(a, STATIC,   SINGULAR, UINT32,   time,              2) \
 X(a, CALLBACK, REPEATED, MESSAGE,  points,            3) \
-X(a, STATIC,   OPTIONAL, MESSAGE,  coefficients,      4)
+X(a, STATIC,   OPTIONAL, MESSAGE,  coefficients,      4) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  firmware,          5)
 #define fk_data_Calibration_CALLBACK pb_default_field_callback
 #define fk_data_Calibration_DEFAULT NULL
 #define fk_data_Calibration_points_MSGTYPE fk_data_CalibrationPoint
 #define fk_data_Calibration_coefficients_MSGTYPE fk_data_CalibrationCoefficients
+#define fk_data_Calibration_firmware_MSGTYPE fk_data_Firmware
 
 #define fk_data_ModuleConfiguration_FIELDLIST(X, a) \
 X(a, STATIC,   OPTIONAL, MESSAGE,  calibration,       1)

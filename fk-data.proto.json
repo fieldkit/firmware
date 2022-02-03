@@ -307,6 +307,10 @@
               "type": "uint32",
               "id": 1
             },
+            "time": {
+              "type": "int64",
+              "id": 3
+            },
             "readings": {
               "rule": "repeated",
               "type": "SensorAndValue",
@@ -718,6 +722,11 @@
               "rule": "repeated",
               "type": "float",
               "id": 3
+            },
+            "adc": {
+              "rule": "repeated",
+              "type": "bytes",
+              "id": 4
             }
           }
         },
@@ -748,6 +757,10 @@
             "coefficients": {
               "type": "CalibrationCoefficients",
               "id": 4
+            },
+            "firmware": {
+              "type": "Firmware",
+              "id": 5
             }
           }
         },
