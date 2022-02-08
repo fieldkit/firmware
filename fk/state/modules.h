@@ -95,6 +95,7 @@ public:
     int32_t take_readings(ReadingsContext ctx, ReadingsListener *listener, Pool *pool);
     ModuleConfiguration get_configuration(Pool *pool);
     bool has_id(fk_uuid_t const &id) const;
+    bool can_enable();
     EnableModulePower enable();
 
 #if defined(__linux__)

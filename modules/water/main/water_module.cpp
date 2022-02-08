@@ -310,6 +310,19 @@ bool WaterModule::excite_enabled() {
     };
 }
 
+bool WaterModule::lockout_enabled() {
+    switch (header_.kind) {
+    case FK_MODULES_KIND_WATER_EC: {
+        return true;
+    }
+    case FK_MODULES_KIND_WATER_PH: {
+        return true;
+    }
+    default:
+        return false;
+    };
+}
+
 /*
  * To avoid confusing users by displaying volts for the units on uncalibrated
  * sensors we apply a default curve to each module. These modules are stable
@@ -355,6 +368,32 @@ Ads1219ReadyChecker *WaterModule::get_ready_checker(Mcp2803 &mcp, Pool &pool) {
         return new (pool) UnexciteBeforeReadyChecker{ mcp, true };
     }
     return new (pool) Mcp2803ReadyChecker{ mcp };
+}
+
+bool WaterModule::can_enable() {
+    if (unlocked_ > 0) {
+        auto uptime = fk_uptime();
+        if (uptime < unlocked_) {
+            auto remaining = unlocked_ - uptime;
+            if (remaining < 0) {
+                loginfo("locked (negative) %" PRIu32, remaining);
+                unlocked_ = fk_uptime() + OneMinuteMs;
+                return false;
+            }
+            if (remaining > FiveSecondsMs) {
+                loginfo("locked %" PRIu32, remaining);
+                return false;
+            }
+        } else {
+            loginfo("locked expired");
+        }
+
+        unlocked_ = 0;
+    } else {
+        loginfo("unlocked");
+    }
+
+    return true;
 }
 
 ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
@@ -483,12 +522,12 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
         }
     }
 
-#if !defined(FK_WATER_LOCKOUT_ALL_MODULES)
-    if (exciting) {
+#if defined(FK_WATER_LOCKOUT_ALL_MODULES)
+    unlocked_ = uptime + OneMinuteMs;
+#else
+    if (lockout_enabled()) {
         unlocked_ = uptime + OneMinuteMs;
     }
-#else
-    unlocked_ = uptime + OneMinuteMs;
 #endif
 
     return mr;

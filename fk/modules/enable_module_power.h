@@ -7,7 +7,7 @@ private:
     ModulePosition position_;
     ModulePower power_;
     uint32_t wake_delay_{ 0 };
-    bool was_enabled_{ false };
+    uint32_t enabled_at_{ 0 };
 
 public:
     EnableModulePower(ModulePosition position, ModulePower power, uint32_t wake_delay);
