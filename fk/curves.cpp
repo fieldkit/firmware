@@ -104,7 +104,7 @@ Curve *create_curve(Curve *default_curve, fk_data_ModuleConfiguration *cfg, Pool
             auto uncalibrated = reinterpret_cast<float *>(uncalibrated_array->buffer);
             auto references = reinterpret_cast<float *>(references_array->buffer);
             auto factory = reinterpret_cast<float *>(factory_array->buffer);
-            loginfo("curve[%d]: uncal=%.2f ref=%.2f factory=%.2f", i, uncalibrated[0], references[0], factory[0]);
+            loginfo("curve[%d]: uncal=%f ref=%f factory=%f", i, uncalibrated[0], references[0], factory[0]);
         }
     } else {
         logwarn("curve missing points");
