@@ -158,6 +158,11 @@ ModuleConfiguration AttachedModule::get_configuration(Pool *pool) {
     return configuration_;
 }
 
+bool AttachedModule::can_enable() {
+    FK_ASSERT(driver_ != nullptr);
+    return driver_->can_enable();
+}
+
 EnableModulePower AttachedModule::enable() {
     return EnableModulePower{ position_, configuration_.power, configuration_.timing.wake_delay };
 }
@@ -350,15 +355,20 @@ int32_t AttachedModules::take_readings(ReadingsListener *listener, Pool &pool) {
 
         logged_task lt{ pool.sprintf("module[%d]", position.integer()) };
 
+        if (!attached.can_enable()) {
+            loginfo("enable locked out");
+            continue;
+        }
+
         auto module_power = attached.enable();
         if (!module_power.enable()) {
-            logerror("[%d] error powering module", position.integer());
+            logerror("powering module");
             return -1;
         }
 
         auto sub = ctx.open_readings(position, pool);
         if (!sub.open()) {
-            logerror("[%d] choosing module", position.integer());
+            logerror("choosing module");
         } else {
             auto err = attached.take_readings(sub, listener, &pool);
             if (err < 0) {

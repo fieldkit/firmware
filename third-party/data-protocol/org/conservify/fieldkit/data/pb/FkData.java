@@ -7437,6 +7437,12 @@ public final class FkData {
     int getModule();
 
     /**
+     * <code>int64 time = 3;</code>
+     * @return The time.
+     */
+    long getTime();
+
+    /**
      * <code>repeated .fk_data.SensorAndValue readings = 2;</code>
      */
     java.util.List<org.conservify.fieldkit.data.pb.FkData.SensorAndValue> 
@@ -7485,6 +7491,32 @@ public final class FkData {
     private void clearModule() {
       
       module_ = 0;
+    }
+
+    public static final int TIME_FIELD_NUMBER = 3;
+    private long time_;
+    /**
+     * <code>int64 time = 3;</code>
+     * @return The time.
+     */
+    @java.lang.Override
+    public long getTime() {
+      return time_;
+    }
+    /**
+     * <code>int64 time = 3;</code>
+     * @param value The time to set.
+     */
+    private void setTime(long value) {
+      
+      time_ = value;
+    }
+    /**
+     * <code>int64 time = 3;</code>
+     */
+    private void clearTime() {
+      
+      time_ = 0L;
     }
 
     public static final int READINGS_FIELD_NUMBER = 2;
@@ -7704,6 +7736,34 @@ public final class FkData {
       }
 
       /**
+       * <code>int64 time = 3;</code>
+       * @return The time.
+       */
+      @java.lang.Override
+      public long getTime() {
+        return instance.getTime();
+      }
+      /**
+       * <code>int64 time = 3;</code>
+       * @param value The time to set.
+       * @return This builder for chaining.
+       */
+      public Builder setTime(long value) {
+        copyOnWrite();
+        instance.setTime(value);
+        return this;
+      }
+      /**
+       * <code>int64 time = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearTime() {
+        copyOnWrite();
+        instance.clearTime();
+        return this;
+      }
+
+      /**
        * <code>repeated .fk_data.SensorAndValue readings = 2;</code>
        */
       @java.lang.Override
@@ -7824,10 +7884,11 @@ public final class FkData {
               "module_",
               "readings_",
               org.conservify.fieldkit.data.pb.FkData.SensorAndValue.class,
+              "time_",
             };
             java.lang.String info =
-                "\u0000\u0002\u0000\u0000\u0001\u0002\u0002\u0000\u0001\u0000\u0001\u000b\u0002\u001b" +
-                "";
+                "\u0000\u0003\u0000\u0000\u0001\u0003\u0003\u0000\u0001\u0000\u0001\u000b\u0002\u001b" +
+                "\u0003\u0002";
             return newMessageInfo(DEFAULT_INSTANCE, info, objects);
         }
         // fall through
@@ -17311,6 +17372,23 @@ public final class FkData {
      * @return The factory at the given index.
      */
     float getFactory(int index);
+
+    /**
+     * <code>repeated bytes adc = 4;</code>
+     * @return A list containing the adc.
+     */
+    java.util.List<com.google.protobuf.ByteString> getAdcList();
+    /**
+     * <code>repeated bytes adc = 4;</code>
+     * @return The count of adc.
+     */
+    int getAdcCount();
+    /**
+     * <code>repeated bytes adc = 4;</code>
+     * @param index The index of the element to return.
+     * @return The adc at the given index.
+     */
+    com.google.protobuf.ByteString getAdc(int index);
   }
   /**
    * Protobuf type {@code fk_data.CalibrationPoint}
@@ -17324,6 +17402,7 @@ public final class FkData {
       references_ = emptyFloatList();
       uncalibrated_ = emptyFloatList();
       factory_ = emptyFloatList();
+      adc_ = emptyProtobufList();
     }
     public static final int REFERENCES_FIELD_NUMBER = 1;
     private com.google.protobuf.Internal.FloatList references_;
@@ -17533,6 +17612,77 @@ public final class FkData {
      */
     private void clearFactory() {
       factory_ = emptyFloatList();
+    }
+
+    public static final int ADC_FIELD_NUMBER = 4;
+    private com.google.protobuf.Internal.ProtobufList<com.google.protobuf.ByteString> adc_;
+    /**
+     * <code>repeated bytes adc = 4;</code>
+     * @return A list containing the adc.
+     */
+    @java.lang.Override
+    public java.util.List<com.google.protobuf.ByteString>
+        getAdcList() {
+      return adc_;
+    }
+    /**
+     * <code>repeated bytes adc = 4;</code>
+     * @return The count of adc.
+     */
+    @java.lang.Override
+    public int getAdcCount() {
+      return adc_.size();
+    }
+    /**
+     * <code>repeated bytes adc = 4;</code>
+     * @param index The index of the element to return.
+     * @return The adc at the given index.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString getAdc(int index) {
+      return adc_.get(index);
+    }
+    private void ensureAdcIsMutable() {
+      if (!adc_.isModifiable()) {
+        adc_ =
+            com.google.protobuf.GeneratedMessageLite.mutableCopy(adc_);
+       }
+    }
+    /**
+     * <code>repeated bytes adc = 4;</code>
+     * @param index The index to set the value at.
+     * @param value The adc to set.
+     */
+    private void setAdc(
+        int index, com.google.protobuf.ByteString value) {
+      value.getClass();
+  ensureAdcIsMutable();
+      adc_.set(index, value);
+    }
+    /**
+     * <code>repeated bytes adc = 4;</code>
+     * @param value The adc to add.
+     */
+    private void addAdc(com.google.protobuf.ByteString value) {
+      value.getClass();
+  ensureAdcIsMutable();
+      adc_.add(value);
+    }
+    /**
+     * <code>repeated bytes adc = 4;</code>
+     * @param values The adc to add.
+     */
+    private void addAllAdc(
+        java.lang.Iterable<? extends com.google.protobuf.ByteString> values) {
+      ensureAdcIsMutable();
+      com.google.protobuf.AbstractMessageLite.addAll(
+          values, adc_);
+    }
+    /**
+     * <code>repeated bytes adc = 4;</code>
+     */
+    private void clearAdc() {
+      adc_ = emptyProtobufList();
     }
 
     public static org.conservify.fieldkit.data.pb.FkData.CalibrationPoint parseFrom(
@@ -17837,6 +17987,75 @@ public final class FkData {
         return this;
       }
 
+      /**
+       * <code>repeated bytes adc = 4;</code>
+       * @return A list containing the adc.
+       */
+      @java.lang.Override
+      public java.util.List<com.google.protobuf.ByteString>
+          getAdcList() {
+        return java.util.Collections.unmodifiableList(
+            instance.getAdcList());
+      }
+      /**
+       * <code>repeated bytes adc = 4;</code>
+       * @return The count of adc.
+       */
+      @java.lang.Override
+      public int getAdcCount() {
+        return instance.getAdcCount();
+      }
+      /**
+       * <code>repeated bytes adc = 4;</code>
+       * @param index The index of the element to return.
+       * @return The adc at the given index.
+       */
+      @java.lang.Override
+      public com.google.protobuf.ByteString getAdc(int index) {
+        return instance.getAdc(index);
+      }
+      /**
+       * <code>repeated bytes adc = 4;</code>
+       * @param value The adc to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAdc(
+          int index, com.google.protobuf.ByteString value) {
+        copyOnWrite();
+        instance.setAdc(index, value);
+        return this;
+      }
+      /**
+       * <code>repeated bytes adc = 4;</code>
+       * @param value The adc to add.
+       * @return This builder for chaining.
+       */
+      public Builder addAdc(com.google.protobuf.ByteString value) {
+        copyOnWrite();
+        instance.addAdc(value);
+        return this;
+      }
+      /**
+       * <code>repeated bytes adc = 4;</code>
+       * @param values The adc to add.
+       * @return This builder for chaining.
+       */
+      public Builder addAllAdc(
+          java.lang.Iterable<? extends com.google.protobuf.ByteString> values) {
+        copyOnWrite();
+        instance.addAllAdc(values);
+        return this;
+      }
+      /**
+       * <code>repeated bytes adc = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearAdc() {
+        copyOnWrite();
+        instance.clearAdc();
+        return this;
+      }
+
       // @@protoc_insertion_point(builder_scope:fk_data.CalibrationPoint)
     }
     @java.lang.Override
@@ -17856,10 +18075,11 @@ public final class FkData {
               "references_",
               "uncalibrated_",
               "factory_",
+              "adc_",
             };
             java.lang.String info =
-                "\u0000\u0003\u0000\u0000\u0001\u0003\u0003\u0000\u0003\u0000\u0001$\u0002$\u0003" +
-                "$";
+                "\u0000\u0004\u0000\u0000\u0001\u0004\u0004\u0000\u0004\u0000\u0001$\u0002$\u0003" +
+                "$\u0004\u001c";
             return newMessageInfo(DEFAULT_INSTANCE, info, objects);
         }
         // fall through
@@ -18299,6 +18519,17 @@ public final class FkData {
      * @return The coefficients.
      */
     org.conservify.fieldkit.data.pb.FkData.CalibrationCoefficients getCoefficients();
+
+    /**
+     * <code>.fk_data.Firmware firmware = 5;</code>
+     * @return Whether the firmware field is set.
+     */
+    boolean hasFirmware();
+    /**
+     * <code>.fk_data.Firmware firmware = 5;</code>
+     * @return The firmware.
+     */
+    org.conservify.fieldkit.data.pb.FkData.Firmware getFirmware();
   }
   /**
    * Protobuf type {@code fk_data.Calibration}
@@ -18515,6 +18746,52 @@ public final class FkData {
      * <code>.fk_data.CalibrationCoefficients coefficients = 4;</code>
      */
     private void clearCoefficients() {  coefficients_ = null;
+      
+    }
+
+    public static final int FIRMWARE_FIELD_NUMBER = 5;
+    private org.conservify.fieldkit.data.pb.FkData.Firmware firmware_;
+    /**
+     * <code>.fk_data.Firmware firmware = 5;</code>
+     */
+    @java.lang.Override
+    public boolean hasFirmware() {
+      return firmware_ != null;
+    }
+    /**
+     * <code>.fk_data.Firmware firmware = 5;</code>
+     */
+    @java.lang.Override
+    public org.conservify.fieldkit.data.pb.FkData.Firmware getFirmware() {
+      return firmware_ == null ? org.conservify.fieldkit.data.pb.FkData.Firmware.getDefaultInstance() : firmware_;
+    }
+    /**
+     * <code>.fk_data.Firmware firmware = 5;</code>
+     */
+    private void setFirmware(org.conservify.fieldkit.data.pb.FkData.Firmware value) {
+      value.getClass();
+  firmware_ = value;
+      
+      }
+    /**
+     * <code>.fk_data.Firmware firmware = 5;</code>
+     */
+    @java.lang.SuppressWarnings({"ReferenceEquality"})
+    private void mergeFirmware(org.conservify.fieldkit.data.pb.FkData.Firmware value) {
+      value.getClass();
+  if (firmware_ != null &&
+          firmware_ != org.conservify.fieldkit.data.pb.FkData.Firmware.getDefaultInstance()) {
+        firmware_ =
+          org.conservify.fieldkit.data.pb.FkData.Firmware.newBuilder(firmware_).mergeFrom(value).buildPartial();
+      } else {
+        firmware_ = value;
+      }
+      
+    }
+    /**
+     * <code>.fk_data.Firmware firmware = 5;</code>
+     */
+    private void clearFirmware() {  firmware_ = null;
       
     }
 
@@ -18836,6 +19113,53 @@ public final class FkData {
         return this;
       }
 
+      /**
+       * <code>.fk_data.Firmware firmware = 5;</code>
+       */
+      @java.lang.Override
+      public boolean hasFirmware() {
+        return instance.hasFirmware();
+      }
+      /**
+       * <code>.fk_data.Firmware firmware = 5;</code>
+       */
+      @java.lang.Override
+      public org.conservify.fieldkit.data.pb.FkData.Firmware getFirmware() {
+        return instance.getFirmware();
+      }
+      /**
+       * <code>.fk_data.Firmware firmware = 5;</code>
+       */
+      public Builder setFirmware(org.conservify.fieldkit.data.pb.FkData.Firmware value) {
+        copyOnWrite();
+        instance.setFirmware(value);
+        return this;
+        }
+      /**
+       * <code>.fk_data.Firmware firmware = 5;</code>
+       */
+      public Builder setFirmware(
+          org.conservify.fieldkit.data.pb.FkData.Firmware.Builder builderForValue) {
+        copyOnWrite();
+        instance.setFirmware(builderForValue.build());
+        return this;
+      }
+      /**
+       * <code>.fk_data.Firmware firmware = 5;</code>
+       */
+      public Builder mergeFirmware(org.conservify.fieldkit.data.pb.FkData.Firmware value) {
+        copyOnWrite();
+        instance.mergeFirmware(value);
+        return this;
+      }
+      /**
+       * <code>.fk_data.Firmware firmware = 5;</code>
+       */
+      public Builder clearFirmware() {  copyOnWrite();
+        instance.clearFirmware();
+        return this;
+      }
+
       // @@protoc_insertion_point(builder_scope:fk_data.Calibration)
     }
     @java.lang.Override
@@ -18857,10 +19181,11 @@ public final class FkData {
               "points_",
               org.conservify.fieldkit.data.pb.FkData.CalibrationPoint.class,
               "coefficients_",
+              "firmware_",
             };
             java.lang.String info =
-                "\u0000\u0004\u0000\u0000\u0001\u0004\u0004\u0000\u0001\u0000\u0001\f\u0002\u000b" +
-                "\u0003\u001b\u0004\t";
+                "\u0000\u0005\u0000\u0000\u0001\u0005\u0005\u0000\u0001\u0000\u0001\f\u0002\u000b" +
+                "\u0003\u001b\u0004\t\u0005\t";
             return newMessageInfo(DEFAULT_INSTANCE, info, objects);
         }
         // fall through

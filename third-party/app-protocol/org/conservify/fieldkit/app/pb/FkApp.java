@@ -27279,6 +27279,12 @@ public final class FkApp {
      * @return The factory.
      */
     float getFactory();
+
+    /**
+     * <code>bytes adc = 5;</code>
+     * @return The adc.
+     */
+    com.google.protobuf.ByteString getAdc();
   }
   /**
    * Protobuf type {@code fk_app.LiveSensorReading}
@@ -27289,6 +27295,7 @@ public final class FkApp {
       // @@protoc_insertion_point(message_implements:fk_app.LiveSensorReading)
       LiveSensorReadingOrBuilder {
     private LiveSensorReading() {
+      adc_ = com.google.protobuf.ByteString.EMPTY;
     }
     public static final int SENSOR_FIELD_NUMBER = 1;
     private org.conservify.fieldkit.app.pb.FkApp.SensorCapabilities sensor_;
@@ -27412,6 +27419,33 @@ public final class FkApp {
     private void clearFactory() {
       
       factory_ = 0F;
+    }
+
+    public static final int ADC_FIELD_NUMBER = 5;
+    private com.google.protobuf.ByteString adc_;
+    /**
+     * <code>bytes adc = 5;</code>
+     * @return The adc.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString getAdc() {
+      return adc_;
+    }
+    /**
+     * <code>bytes adc = 5;</code>
+     * @param value The adc to set.
+     */
+    private void setAdc(com.google.protobuf.ByteString value) {
+      value.getClass();
+  
+      adc_ = value;
+    }
+    /**
+     * <code>bytes adc = 5;</code>
+     */
+    private void clearAdc() {
+      
+      adc_ = getDefaultInstance().getAdc();
     }
 
     public static org.conservify.fieldkit.app.pb.FkApp.LiveSensorReading parseFrom(
@@ -27640,6 +27674,34 @@ public final class FkApp {
         return this;
       }
 
+      /**
+       * <code>bytes adc = 5;</code>
+       * @return The adc.
+       */
+      @java.lang.Override
+      public com.google.protobuf.ByteString getAdc() {
+        return instance.getAdc();
+      }
+      /**
+       * <code>bytes adc = 5;</code>
+       * @param value The adc to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAdc(com.google.protobuf.ByteString value) {
+        copyOnWrite();
+        instance.setAdc(value);
+        return this;
+      }
+      /**
+       * <code>bytes adc = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearAdc() {
+        copyOnWrite();
+        instance.clearAdc();
+        return this;
+      }
+
       // @@protoc_insertion_point(builder_scope:fk_app.LiveSensorReading)
     }
     @java.lang.Override
@@ -27660,10 +27722,11 @@ public final class FkApp {
               "value_",
               "uncalibrated_",
               "factory_",
+              "adc_",
             };
             java.lang.String info =
-                "\u0000\u0004\u0000\u0000\u0001\u0004\u0004\u0000\u0000\u0000\u0001\t\u0002\u0001" +
-                "\u0003\u0001\u0004\u0001";
+                "\u0000\u0005\u0000\u0000\u0001\u0005\u0005\u0000\u0000\u0000\u0001\t\u0002\u0001" +
+                "\u0003\u0001\u0004\u0001\u0005\n";
             return newMessageInfo(DEFAULT_INSTANCE, info, objects);
         }
         // fall through

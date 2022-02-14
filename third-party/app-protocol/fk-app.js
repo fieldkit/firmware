@@ -13234,6 +13234,7 @@
              * @property {number} [value] LiveSensorReading value
              * @property {number} [uncalibrated] LiveSensorReading uncalibrated
              * @property {number} [factory] LiveSensorReading factory
+             * @property {Uint8Array} [adc] LiveSensorReading adc
              */
     
             /**
@@ -13283,6 +13284,14 @@
             LiveSensorReading.prototype.factory = 0;
     
             /**
+             * LiveSensorReading adc.
+             * @member {Uint8Array}adc
+             * @memberof fk_app.LiveSensorReading
+             * @instance
+             */
+            LiveSensorReading.prototype.adc = $util.newBuffer([]);
+    
+            /**
              * Creates a new LiveSensorReading instance using the specified properties.
              * @function create
              * @memberof fk_app.LiveSensorReading
@@ -13314,6 +13323,8 @@
                     writer.uint32(/* id 3, wireType 5 =*/29).float(message.uncalibrated);
                 if (message.factory != null && message.hasOwnProperty("factory"))
                     writer.uint32(/* id 4, wireType 5 =*/37).float(message.factory);
+                if (message.adc != null && message.hasOwnProperty("adc"))
+                    writer.uint32(/* id 5, wireType 2 =*/42).bytes(message.adc);
                 return writer;
             };
     
@@ -13359,6 +13370,9 @@
                         break;
                     case 4:
                         message.factory = reader.float();
+                        break;
+                    case 5:
+                        message.adc = reader.bytes();
                         break;
                     default:
                         reader.skipType(tag & 7);
@@ -13409,6 +13423,9 @@
                 if (message.factory != null && message.hasOwnProperty("factory"))
                     if (typeof message.factory !== "number")
                         return "factory: number expected";
+                if (message.adc != null && message.hasOwnProperty("adc"))
+                    if (!(message.adc && typeof message.adc.length === "number" || $util.isString(message.adc)))
+                        return "adc: buffer expected";
                 return null;
             };
     
@@ -13435,6 +13452,11 @@
                     message.uncalibrated = Number(object.uncalibrated);
                 if (object.factory != null)
                     message.factory = Number(object.factory);
+                if (object.adc != null)
+                    if (typeof object.adc === "string")
+                        $util.base64.decode(object.adc, message.adc = $util.newBuffer($util.base64.length(object.adc)), 0);
+                    else if (object.adc.length)
+                        message.adc = object.adc;
                 return message;
             };
     
@@ -13456,6 +13478,7 @@
                     object.value = 0;
                     object.uncalibrated = 0;
                     object.factory = 0;
+                    object.adc = options.bytes === String ? "" : [];
                 }
                 if (message.sensor != null && message.hasOwnProperty("sensor"))
                     object.sensor = $root.fk_app.SensorCapabilities.toObject(message.sensor, options);
@@ -13465,6 +13488,8 @@
                     object.uncalibrated = options.json && !isFinite(message.uncalibrated) ? String(message.uncalibrated) : message.uncalibrated;
                 if (message.factory != null && message.hasOwnProperty("factory"))
                     object.factory = options.json && !isFinite(message.factory) ? String(message.factory) : message.factory;
+                if (message.adc != null && message.hasOwnProperty("adc"))
+                    object.adc = options.bytes === String ? $util.base64.encode(message.adc, 0, message.adc.length) : options.bytes === Array ? Array.prototype.slice.call(message.adc) : message.adc;
                 return object;
             };
     

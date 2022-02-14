@@ -26,6 +26,7 @@ public:
     ModuleReturn service(ModuleContext mc, Pool &pool) override;
     ModuleReturn api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) override;
     ModuleReadings *take_readings(ReadingsContext mc, Pool &pool) override;
+    bool can_enable() override;
 
 public:
     ModuleSensors const *get_sensors(Pool &pool) override;
@@ -40,6 +41,7 @@ private:
     bool excite_control(Mcp2803 &mcp, bool high);
     bool initialize(Mcp2803 &mcp, Ads1219 &ads);
     bool excite_enabled();
+    bool lockout_enabled();
     bool averaging_enabled();
     Ads1219ReadyChecker *get_ready_checker(Mcp2803 &mcp, Pool &pool);
 };

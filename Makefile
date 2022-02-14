@@ -106,6 +106,7 @@ package-old: fw
 	cp $(BUILD)/$(PACKAGE).zip $(BUILD)/fk-firmware.zip
 
 veryclean: clean
+	rm -f fk/secrets.h
 
 cppcheck:
 	rm -rf $(BUILD)/cpp-check
