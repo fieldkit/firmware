@@ -205,8 +205,12 @@ bool MetaRecord::include_modules(GlobalState const *gs, fkb_header_t const *fkb_
         auto header = attached_module.header();
         auto configuration = attached_module.configuration();
         auto module_instance = attached_module.get();
+
+        // Always set position. Everything else can be the default values.
+        module_info->position = position.integer();
+
+        // Skip over any uninitialized modules.
         if (meta == nullptr || module_instance == nullptr) {
-            logerror("constructed module");
             module_info++;
             continue;
         }
@@ -218,7 +222,6 @@ bool MetaRecord::include_modules(GlobalState const *gs, fkb_header_t const *fkb_
             .buffer = pool.copy(header.id),
         });
 
-        module_info->position = position.integer();
         module_info->id.funcs.encode = pb_encode_data;
         module_info->id.arg = (void *)id_data;
         module_info->name.funcs.encode = pb_encode_string;
