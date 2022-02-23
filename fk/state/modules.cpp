@@ -42,6 +42,9 @@ ModulePosition AttachedModule::position() const {
 }
 
 ModuleStatus AttachedModule::status() const {
+    if (driver_ == nullptr) {
+        return ModuleStatus::Fatal;
+    }
     return status_;
 }
 
