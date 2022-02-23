@@ -35,6 +35,7 @@ bool ModuleConfigurer::configure(ModulePosition position, uint8_t const *buffer,
     if (!scanning_->configure(position, buffer, size)) {
         return false;
     }
+
     return true;
 }
 
