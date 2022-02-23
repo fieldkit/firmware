@@ -296,66 +296,6 @@ void MenuView::create_module_menu() {
         loginfo("program water-orp: %d", selected_module_bay_.integer());
         get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, header));
     });
-    auto program_atlas_ph = to_lambda_option(pool_, "Atlas (pH)", [=]() {
-        back_->on_selected();
-        views_->show_module_status();
-        ModuleHeader header = {
-            .manufacturer = FK_MODULES_MANUFACTURER,
-            .kind = FK_MODULES_KIND_ATLAS_PH,
-            .version = 0x01,
-            .id = { 0 },
-        };
-        loginfo("program water-ph: %d", selected_module_bay_.integer());
-        get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, header));
-    });
-    auto program_atlas_ec = to_lambda_option(pool_, "Atlas (EC)", [=]() {
-        back_->on_selected();
-        views_->show_module_status();
-        ModuleHeader header = {
-            .manufacturer = FK_MODULES_MANUFACTURER,
-            .kind = FK_MODULES_KIND_ATLAS_EC,
-            .version = 0x01,
-            .id = { 0 },
-        };
-        loginfo("program water-ec: %d", selected_module_bay_.integer());
-        get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, header));
-    });
-    auto program_atlas_do = to_lambda_option(pool_, "Atlas (DO)", [=]() {
-        back_->on_selected();
-        views_->show_module_status();
-        ModuleHeader header = {
-            .manufacturer = FK_MODULES_MANUFACTURER,
-            .kind = FK_MODULES_KIND_ATLAS_DO,
-            .version = 0x01,
-            .id = { 0 },
-        };
-        loginfo("program water-do: %d", selected_module_bay_.integer());
-        get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, header));
-    });
-    auto program_atlas_temp = to_lambda_option(pool_, "Atlas (Temp)", [=]() {
-        back_->on_selected();
-        views_->show_module_status();
-        ModuleHeader header = {
-            .manufacturer = FK_MODULES_MANUFACTURER,
-            .kind = FK_MODULES_KIND_ATLAS_TEMP,
-            .version = 0x01,
-            .id = { 0 },
-        };
-        loginfo("program water-temp: %d", selected_module_bay_.integer());
-        get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, header));
-    });
-    auto program_atlas_orp = to_lambda_option(pool_, "Atlas (ORP)", [=]() {
-        back_->on_selected();
-        views_->show_module_status();
-        ModuleHeader header = {
-            .manufacturer = FK_MODULES_MANUFACTURER,
-            .kind = FK_MODULES_KIND_ATLAS_ORP,
-            .version = 0x01,
-            .id = { 0 },
-        };
-        loginfo("program water-orp: %d", selected_module_bay_.integer());
-        get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, header));
-    });
     auto program_distance = to_lambda_option(pool_, "Distance", [=]() {
         back_->on_selected();
         views_->show_module_status();
@@ -368,22 +308,17 @@ void MenuView::create_module_menu() {
         loginfo("program distance: %d", selected_module_bay_.integer());
         get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, header));
     });
-    auto program_menu = new_menu_screen<13>(pool_, "program",
-                                            {
-                                                back_,
-                                                program_weather,
-                                                program_atlas_ph,
-                                                program_atlas_ec,
-                                                program_atlas_do,
-                                                program_atlas_temp,
-                                                program_atlas_orp,
-                                                program_water_ph,
-                                                program_water_ec,
-                                                program_water_do,
-                                                program_water_temp,
-                                                program_water_orp,
-                                                program_distance,
-                                            });
+    auto program_menu = new_menu_screen<8>(pool_, "program",
+                                           {
+                                               back_,
+                                               program_weather,
+                                               program_water_ph,
+                                               program_water_ec,
+                                               program_water_do,
+                                               program_water_temp,
+                                               program_water_orp,
+                                               program_distance,
+                                           });
 
     auto module_back = to_lambda_option(pool_, "Back", [=]() { views_->show_module_status(); });
     auto module_home = to_lambda_option(pool_, "Home", [=]() {
