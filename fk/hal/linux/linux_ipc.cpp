@@ -62,6 +62,16 @@ bool LinuxIPC::launch_worker(WorkerCategory category, TaskWorker *worker, bool c
     return true;
 }
 
+bool LinuxIPC::fork_worker(WorkerCategory category, TaskWorker *worker) {
+    FK_ASSERT(worker != nullptr);
+
+    worker->run();
+
+    delete worker;
+
+    return true;
+}
+
 bool LinuxMutex::create() {
     return true;
 }

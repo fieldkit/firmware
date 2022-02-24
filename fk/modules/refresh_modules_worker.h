@@ -5,8 +5,11 @@
 namespace fk {
 
 class RefreshModulesWorker : public Worker {
+private:
+    bool readings_{ true };
+
 public:
-    RefreshModulesWorker();
+    RefreshModulesWorker(bool readings = true);
 
 public:
     void run(Pool &pool) override;
@@ -23,9 +26,8 @@ public:
             .visible = false,
         };
     }
-
 };
 
 FK_ENABLE_TYPE_NAME(RefreshModulesWorker);
 
-}
+} // namespace fk

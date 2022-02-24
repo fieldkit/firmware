@@ -17,14 +17,19 @@ void PollSensorsWorker::run(Pool &pool) {
         logwarn("scan failed, continuing");
     }
 
+    auto take_readings_at = 0u;
+
     while (true) {
         if (fk_task_stop_requested(nullptr)) {
             break;
         }
 
-        take_readings();
+        if (fk_uptime() > take_readings_at) {
+            take_readings();
+            take_readings_at = fk_uptime() + interval_;
+        }
 
-        fk_delay(interval_);
+        fk_delay(500);
     }
 }
 
@@ -38,14 +43,12 @@ void PollSensorsWorker::take_readings() {
 
 void PollSensorsWorker::before_readings(Pool &pool) {
     auto gs = get_global_state_rw();
-    loginfo("before-readings");
     auto &udp_traffic = gs.get()->debugging.udp_traffic;
     if (udp_traffic.readings_triggered) {
         udp_traffic.start_time = fk_uptime() + fk_random_i32(0, 10);
         udp_traffic.stop_time = udp_traffic.start_time + udp_traffic.duration;
     } else {
-        auto running = os_task_is_running(&network_task);
-        if (running) {
+        if (os_task_is_running(&network_task)) {
             os_signal(&network_task, 9);
         }
     }

@@ -42,6 +42,8 @@ public:
 
     virtual bool launch_worker(WorkerCategory category, TaskWorker *worker, bool concurrency_allowed) = 0;
 
+    virtual bool fork_worker(WorkerCategory category, TaskWorker *worker) = 0;
+
     virtual bool launch_worker(TaskWorker *worker) {
         return launch_worker(WorkerCategory::None, worker);
     }

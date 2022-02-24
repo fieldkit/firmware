@@ -144,6 +144,12 @@ bool MetalIPC::launch_worker(WorkerCategory category, TaskWorker *worker, bool c
     return false;
 }
 
+bool MetalIPC::fork_worker(WorkerCategory category, TaskWorker *worker) {
+    worker->run();
+
+    return true;
+}
+
 bool MetalIPC::remove_worker(TaskWorker *worker) {
     auto lock = workers_mutex.acquire(UINT32_MAX);
     FK_ASSERT(lock);

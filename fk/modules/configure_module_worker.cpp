@@ -10,6 +10,8 @@
 #include "modules/configure_module_worker.h"
 #include "modules/enable_module_power.h"
 #include "modules/scanning.h"
+#include "modules/refresh_modules_worker.h"
+
 #include "poll_sensors_worker.h"
 
 namespace fk {
@@ -64,17 +66,23 @@ bool ConfigureModuleWorker::configure(Pool &pool) {
 void ConfigureModuleWorker::run(Pool &pool) {
     auto lock = get_modmux()->lock();
 
+    get_ipc()->signal_workers(WorkerCategory::Polling, 9);
+
     configure(pool);
 
-    auto worker = create_pool_worker<PollSensorsWorker>(true, false, true, ThirtySecondsMs);
-    get_ipc()->signal_workers(WorkerCategory::Polling, 9);
-    get_ipc()->launch_worker(WorkerCategory::Polling, worker, true);
+    if (!erase_) {
+        GlobalStateManager gsm;
+        gsm.apply([=](GlobalState *gs) {
+            gs->display.open_menu.time = fk_uptime();
+            gs->display.open_menu.readings = true;
+        });
 
-    GlobalStateManager gsm;
-    gsm.apply([=](GlobalState *gs) {
-        gs->display.open_menu.time = fk_uptime();
-        gs->display.open_menu.readings = true;
-    });
+        auto worker = create_pool_worker<PollSensorsWorker>(true, false, true, ThirtySecondsMs);
+        get_ipc()->launch_worker(WorkerCategory::Polling, worker, true);
+    } else {
+        auto worker = create_pool_worker<RefreshModulesWorker>(false);
+        worker->run();
+    }
 }
 
 } // namespace fk

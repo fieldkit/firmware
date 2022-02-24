@@ -34,10 +34,6 @@ SelectableLambdaOption<TSelect, TSelected> *to_selectable_lambda_option(Pool *po
     return new (*pool) SelectableLambdaOption<TSelect, TSelected>(label, select_fn, selected_fn);
 }
 
-template <typename TSelect> LambdaOption<TSelect> *to_lambda_option(Pool *pool, const char *label, TSelect fn) {
-    return new (*pool) LambdaOption<TSelect>(label, fn);
-}
-
 template <size_t N> MenuScreen *new_menu_screen(Pool *pool, const char *title, MenuOption *(&&options)[N]) {
     auto n_options = (MenuOption **)pool->malloc(sizeof(MenuOption *) * (N + 1));
     for (size_t i = 0; i < N; ++i) {
