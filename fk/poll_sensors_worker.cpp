@@ -13,8 +13,8 @@ PollSensorsWorker::PollSensorsWorker(bool scan, bool read_only, bool throttle, u
 }
 
 void PollSensorsWorker::run(Pool &pool) {
-    if (!prepare(pool)) {
-        logwarn("prepare failed, continuing");
+    if (!scan(pool)) {
+        logwarn("scan failed, continuing");
     }
 
     while (true) {

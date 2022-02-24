@@ -24,8 +24,16 @@ void ReadingsWorker::run(Pool &pool) {
         return;
     }
 
-    if (!prepare(pool)) {
+    auto state = read_state();
+    if (throttle_ && state.throttle) {
+        logwarn("readings throttled");
         return;
+    }
+
+    if (scan_ || !state.scanned) {
+        if (!scan(pool)) {
+            return;
+        }
     }
 
     UpdateReadingsListener listener{ pool };
@@ -46,17 +54,9 @@ void ReadingsWorker::run(Pool &pool) {
     }
 }
 
-bool ReadingsWorker::prepare(Pool &pool) {
-    auto state = read_state();
-    if (throttle_ && state.throttle) {
-        logwarn("readings throttled");
-        return false;
-    }
-
-    if (scan_ || !state.scanned) {
-        ScanModulesWorker scan_worker;
-        scan_worker.run(pool);
-    }
+bool ReadingsWorker::scan(Pool &pool) {
+    ScanModulesWorker scan_worker;
+    scan_worker.run(pool);
 
     return true;
 }

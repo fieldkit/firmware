@@ -164,6 +164,7 @@ public:
         auto can_stop = os_task_is_running(&scheduler_task);
         auto should_show_readings = params->readings;
         auto dequeue_button = false;
+
         loginfo("should-show-readings: %d", should_show_readings);
 
         FaultCode *incoming_fault_code = nullptr;
