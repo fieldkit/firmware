@@ -207,6 +207,7 @@ bool MetaRecord::include_modules(GlobalState const *gs, fkb_header_t const *fkb_
         auto module_instance = attached_module.get();
 
         // Always set position. Everything else can be the default values.
+        *module_info = fk_data_ModuleInfo_init_default;
         module_info->position = position.integer();
 
         // Skip over any uninitialized modules.
