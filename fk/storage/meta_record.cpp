@@ -220,7 +220,7 @@ bool MetaRecord::include_modules(GlobalState const *gs, fkb_header_t const *fkb_
 
         auto id_data = pool.malloc_with<pb_data_t>({
             .length = sizeof(fk_uuid_t),
-            .buffer = pool.copy(header.id),
+            .buffer = pool.copy(&header.id, sizeof(fk_uuid_t)),
         });
 
         module_info->id.funcs.encode = pb_encode_data;
@@ -233,9 +233,10 @@ bool MetaRecord::include_modules(GlobalState const *gs, fkb_header_t const *fkb_
         module_info->header.version = meta->version;
         module_info->flags = meta->flags;
         if (configuration.message != nullptr) {
-            auto configuration_message_data = pool.malloc_with<pb_data_t>({
-                .length = configuration.message->size,
-                .buffer = configuration.message->buffer,
+            auto configuration_copy = pool.copy(configuration.message);
+            auto configuration_message_data = pool.malloc_with<pb_data_t>(pb_data_t{
+                .length = configuration_copy->size,
+                .buffer = configuration_copy->buffer,
             });
             module_info->configuration.arg = (void *)configuration_message_data;
         }
