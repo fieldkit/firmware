@@ -494,9 +494,13 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
 
     auto uncalibrated = accumulator / (float)number_of_values;
     if (exciting) {
-        float compensated = uncalibrated - pow(prereading, 1.8f);
-        loginfo("[%d] water: r=%f p=%f c=%f", mc.position().integer(), uncalibrated, prereading, compensated);
-        uncalibrated = compensated;
+        if (prereading > 0) {
+            float compensated = uncalibrated - pow(prereading, 1.8f);
+            loginfo("[%d] water: r=%f p=%f c=%f", mc.position().integer(), uncalibrated, prereading, compensated);
+            uncalibrated = compensated;
+        } else {
+            loginfo("[%d] water: r=%f p=%f (negative prereading)", mc.position().integer(), uncalibrated, prereading);
+        }
     }
     auto default_curve = create_modules_default_curve(pool);
     auto curve = create_curve(default_curve, cfg_, pool);
