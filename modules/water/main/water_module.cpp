@@ -483,8 +483,9 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
         accumulator += uncalibrated;
         number_of_values++;
 
+        loginfo("[%d] water(sample #%d): %f", mc.position().integer(), i, uncalibrated);
+
         if (averaging) {
-            loginfo("[%d] water(sample #%d): %f", mc.position().integer(), i, uncalibrated);
             fk_delay(AveragingDelayMs);
         }
     }
