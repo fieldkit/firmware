@@ -43,7 +43,7 @@ public:
 public:
     virtual float apply(float uncalibrated) override {
         loginfo("cal(exp): a = %f b = %f", a_, b_);
-        return a_ * exp(b_ * uncalibrated);
+        return a_ * pow(uncalibrated, b_);
     }
 };
 
