@@ -354,8 +354,8 @@ Curve *WaterModule::create_modules_default_curve(Pool &pool) {
         return create_curve(fk_data_CurveType_CURVE_LINEAR, OrpDefaultCalibrationB, OrpDefaultCalibrationM, pool);
     }
     case FK_MODULES_KIND_WATER_EC: {
-        constexpr float EcDefaultCalibrationA = 1e7;
-        constexpr float EcDefaultCalibrationB = -6.683;
+        constexpr float EcDefaultCalibrationA = 3432.6f;
+        constexpr float EcDefaultCalibrationB = -3.636f;
         return create_curve(fk_data_CurveType_CURVE_EXPONENTIAL, EcDefaultCalibrationA, EcDefaultCalibrationB, pool);
     }
     default:
