@@ -2,6 +2,7 @@
 
 #include "hal/board.h"
 #include "hal/display.h"
+#include "hal/ipc.h"
 #include "platform.h"
 #include "readings_view.h"
 #include "state_ref.h"
@@ -70,7 +71,6 @@ void ReadingsView::down(ViewController *views) {
 }
 
 void ReadingsView::enter(ViewController *views) {
-    logwarn("show home");
     views->show_home();
 }
 
@@ -148,9 +148,12 @@ MenuScreen *create_readings_menu(GlobalState const *gs, MenuOption *back_option,
         }
     }
 
-    back_option->focused(false);
+    auto back_that_stops_polling = to_lambda_option(&pool, "Back", [=]() {
+        get_ipc()->signal_workers(WorkerCategory::Polling, 9);
+        back_option->on_selected();
+    });
 
-    options[option_index++] = back_option;
+    options[option_index++] = back_that_stops_polling;
 
     options[option_index] = nullptr;
 

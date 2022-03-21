@@ -22,6 +22,7 @@ public:
 
 public:
     bool launch_worker(WorkerCategory category, TaskWorker *worker, bool concurrency_allowed) override;
+    bool fork_worker(WorkerCategory category, TaskWorker *worker) override;
 };
 
 class LinuxMutex : public Mutex {

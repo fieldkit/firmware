@@ -205,8 +205,13 @@ bool MetaRecord::include_modules(GlobalState const *gs, fkb_header_t const *fkb_
         auto header = attached_module.header();
         auto configuration = attached_module.configuration();
         auto module_instance = attached_module.get();
+
+        // Always set position. Everything else can be the default values.
+        *module_info = fk_data_ModuleInfo_init_default;
+        module_info->position = position.integer();
+
+        // Skip over any uninitialized modules.
         if (meta == nullptr || module_instance == nullptr) {
-            logerror("constructed module");
             module_info++;
             continue;
         }
@@ -215,10 +220,9 @@ bool MetaRecord::include_modules(GlobalState const *gs, fkb_header_t const *fkb_
 
         auto id_data = pool.malloc_with<pb_data_t>({
             .length = sizeof(fk_uuid_t),
-            .buffer = pool.copy(header.id),
+            .buffer = pool.copy(&header.id, sizeof(fk_uuid_t)),
         });
 
-        module_info->position = position.integer();
         module_info->id.funcs.encode = pb_encode_data;
         module_info->id.arg = (void *)id_data;
         module_info->name.funcs.encode = pb_encode_string;
@@ -229,9 +233,10 @@ bool MetaRecord::include_modules(GlobalState const *gs, fkb_header_t const *fkb_
         module_info->header.version = meta->version;
         module_info->flags = meta->flags;
         if (configuration.message != nullptr) {
-            auto configuration_message_data = pool.malloc_with<pb_data_t>({
-                .length = configuration.message->size,
-                .buffer = configuration.message->buffer,
+            auto configuration_copy = pool.copy(configuration.message);
+            auto configuration_message_data = pool.malloc_with<pb_data_t>(pb_data_t{
+                .length = configuration_copy->size,
+                .buffer = configuration_copy->buffer,
             });
             module_info->configuration.arg = (void *)configuration_message_data;
         }

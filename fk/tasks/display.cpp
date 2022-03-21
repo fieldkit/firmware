@@ -163,6 +163,8 @@ public:
         auto frame_pool = pool_->subpool("display-frame", 1024);
         auto can_stop = os_task_is_running(&scheduler_task);
         auto should_show_readings = params->readings;
+        auto dequeue_button = false;
+
         loginfo("should-show-readings: %d", should_show_readings);
 
         FaultCode *incoming_fault_code = nullptr;
@@ -175,35 +177,39 @@ public:
                 refresh_notifications();
             }
 
-            Button *button = nullptr;
-            if (get_ipc()->dequeue_button(&button)) {
-                stop_timer.mark();
+            if (dequeue_button) {
+                Button *button = nullptr;
+                if (get_ipc()->dequeue_button(&button)) {
+                    stop_timer.mark();
 
-                switch (button->index()) {
-                case Buttons::Right: {
-                    loginfo("down");
-                    view->down(this);
-                    break;
+                    switch (button->index()) {
+                    case Buttons::Right: {
+                        loginfo("down");
+                        view->down(this);
+                        break;
+                    }
+                    case Buttons::Middle: {
+                        loginfo("enter");
+                        view->enter(this);
+                        break;
+                    }
+                    case Buttons::Left: {
+                        loginfo("up");
+                        view->up(this);
+                        break;
+                    }
+                    case Buttons::External: {
+                        loginfo("external");
+                        view->external(this);
+                        break;
+                    }
+                    default: {
+                        break;
+                    }
+                    }
                 }
-                case Buttons::Middle: {
-                    loginfo("enter");
-                    view->enter(this);
-                    break;
-                }
-                case Buttons::Left: {
-                    loginfo("up");
-                    view->up(this);
-                    break;
-                }
-                case Buttons::External: {
-                    loginfo("external");
-                    view->external(this);
-                    break;
-                }
-                default: {
-                    break;
-                }
-                }
+            } else {
+                dequeue_button = true;
             }
 
             if (frame_pool->used() > 0) {

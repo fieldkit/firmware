@@ -220,7 +220,7 @@ bool HttpReply::include_status(uint32_t clock, uint32_t uptime, bool logs, fkb_h
             auto id = am.id();
             auto id_data = pool_->malloc_with<pb_data_t>({
                 .length = sizeof(fk_uuid_t),
-                .buffer = pool_->copy(id),
+                .buffer = pool_->copy(&id, sizeof(fk_uuid_t)),
             });
 
             auto header = am.header();
@@ -447,7 +447,7 @@ bool HttpReply::include_readings() {
 
         auto id_data = pool_->malloc_with<pb_data_t>({
             .length = sizeof(fk_uuid_t),
-            .buffer = pool_->copy(id),
+            .buffer = pool_->copy(&id, sizeof(fk_uuid_t)),
         });
 
         lmr[m] = fk_app_LiveModuleReadings_init_default;

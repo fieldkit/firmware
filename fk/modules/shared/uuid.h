@@ -17,7 +17,9 @@ typedef struct fk_uuid_formatted_t {
     char str[16 * 2 + 1 + 4];
 } fk_uuid_formatted_t;
 
-int32_t fk_uuid_sprintf(fk_uuid_t *uuid, fk_uuid_formatted_t *f);
+int32_t fk_uuid_sprintf(fk_uuid_t const *uuid, fk_uuid_formatted_t *f);
+
+int32_t fk_uuid_is_valid(fk_uuid_t const *uuid);
 
 #ifdef __cplusplus
 }

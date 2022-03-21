@@ -49,11 +49,6 @@ public:
         remaining_ = size;
     }
 
-    template<typename T>
-    T *copy(T const &original) {
-        return reinterpret_cast<T*>(copy(&original, sizeof(T)));
-    }
-
     void *copy(void const *ptr, size_t size);
     char *strdup(const char *str);
     char *strndup(const char *str, size_t len);
@@ -92,27 +87,23 @@ public:
         return ptr;
     }
 
-    template<typename T>
-    T *malloc() {
+    template <typename T> T *malloc() {
         return (T *)malloc(sizeof(T));
     }
 
-    template<typename T>
-    T *malloc_with(T &&value) {
+    template <typename T> T *malloc_with(T &&value) {
         auto ptr = (T *)malloc(sizeof(T));
         *ptr = std::move(value);
         return ptr;
     }
 
-    template<typename T, size_t N>
-    T *malloc_with(T (&&value)[N]) {
+    template <typename T, size_t N> T *malloc_with(T(&&value)[N]) {
         auto ptr = (T *)malloc(sizeof(T) * N);
         memcpy(ptr, &value, sizeof(T) * N);
         return ptr;
     }
 
-    template<typename T>
-    T *malloc(size_t n) {
+    template <typename T> T *malloc(size_t n) {
         return (T *)malloc(sizeof(T) * n);
     }
 

@@ -15,12 +15,18 @@ bool LedsController::begin() {
 
 static Color get_color(ModuleStatus status) {
     switch (status) {
-    case ModuleStatus::Unknown: return { 0, 0, 0 };
-    case ModuleStatus::Empty: return { 0, 0, 0 };
-    case ModuleStatus::Found: return { 0x20, 0x20, 0x20 };
-    case ModuleStatus::Ok: return { 0xff, 0xff, 0xff };
-    case ModuleStatus::Warning: return { 0xcc, 0xcc, 0 };
-    case ModuleStatus::Fatal: return { 0xff, 0, 0 };
+    case ModuleStatus::Unknown:
+        return { 0, 0, 0 };
+    case ModuleStatus::Empty:
+        return { 0, 0, 0 };
+    case ModuleStatus::Found:
+        return { 0x20, 0x20, 0x20 };
+    case ModuleStatus::Ok:
+        return { 0xff, 0xff, 0xff };
+    case ModuleStatus::Warning:
+        return { 0xcc, 0xcc, 0 };
+    case ModuleStatus::Fatal:
+        return { 0xff, 0, 0 };
     }
 
     return { 0xff, 0, 0 };
@@ -55,4 +61,4 @@ void LedsController::tick() {
     version_ = gs.get()->version;
 }
 
-}
+} // namespace fk

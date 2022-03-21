@@ -177,6 +177,10 @@ template <typename TSelect, typename TSelected> struct SelectableLambdaOption : 
     }
 };
 
+template <typename TSelect> LambdaOption<TSelect> *to_lambda_option(Pool *pool, const char *label, TSelect fn) {
+    return new (*pool) LambdaOption<TSelect>(label, fn);
+}
+
 struct MenuScreen : public DisplayScreen {
     const char *title{ nullptr };
 

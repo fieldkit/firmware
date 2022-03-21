@@ -81,7 +81,6 @@ bool ModuleScanning::try_scan_single_module(ScanningListener *listener, ModulePo
     if (!fk_module_header_valid(&header)) {
         auto expected = fk_module_header_sign(&header);
         logerror("[%d] invalid header (%" PRIx32 " != %" PRIx32 ")", position.integer(), expected, header.crc);
-        fk_dump_memory("HDR ", (uint8_t *)&header, sizeof(header));
 
         auto err = listener->scanned_module(position, header, &pool);
         if (err < 0) {

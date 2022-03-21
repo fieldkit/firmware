@@ -354,8 +354,8 @@ Curve *WaterModule::create_modules_default_curve(Pool &pool) {
         return create_curve(fk_data_CurveType_CURVE_LINEAR, OrpDefaultCalibrationB, OrpDefaultCalibrationM, pool);
     }
     case FK_MODULES_KIND_WATER_EC: {
-        constexpr float EcDefaultCalibrationA = 1e7;
-        constexpr float EcDefaultCalibrationB = -6.683;
+        constexpr float EcDefaultCalibrationA = 3432.6f;
+        constexpr float EcDefaultCalibrationB = -3.636f;
         return create_curve(fk_data_CurveType_CURVE_EXPONENTIAL, EcDefaultCalibrationA, EcDefaultCalibrationB, pool);
     }
     default:
@@ -483,8 +483,9 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
         accumulator += uncalibrated;
         number_of_values++;
 
+        loginfo("[%d] water(sample #%d): %f", mc.position().integer(), i, uncalibrated);
+
         if (averaging) {
-            loginfo("[%d] water(sample #%d): %f", mc.position().integer(), i, uncalibrated);
             fk_delay(AveragingDelayMs);
         }
     }
@@ -493,7 +494,13 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
 
     auto uncalibrated = accumulator / (float)number_of_values;
     if (exciting) {
-        uncalibrated = uncalibrated - pow(prereading, 1.8f);
+        if (prereading > 0) {
+            float compensated = uncalibrated - pow(prereading, 1.8f);
+            loginfo("[%d] water: r=%f p=%f c=%f", mc.position().integer(), uncalibrated, prereading, compensated);
+            uncalibrated = compensated;
+        } else {
+            loginfo("[%d] water: r=%f p=%f (negative prereading)", mc.position().integer(), uncalibrated, prereading);
+        }
     }
     auto default_curve = create_modules_default_curve(pool);
     auto curve = create_curve(default_curve, cfg_, pool);

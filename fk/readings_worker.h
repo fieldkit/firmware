@@ -27,7 +27,7 @@ public:
     }
 
 protected:
-    bool prepare(Pool &pool);
+    bool scan(Pool &pool);
     bool take(state::ReadingsListener *listener, Pool &pool);
     bool save(Pool &pool);
     bool update_global_state(Pool &pool);

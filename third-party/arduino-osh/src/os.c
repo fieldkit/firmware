@@ -639,7 +639,7 @@ static os_task_t *find_new_task(os_task_t *running) {
                 }
                 task = OS_RUNQUEUE_NEXT_WRAPPED(task);
             } else {
-                OS_ASSERT(lower_priority == NULL);
+                // OS_ASSERT(lower_priority == NULL);
                 if (lower_priority == NULL) {
                     lower_priority = task;
                 }

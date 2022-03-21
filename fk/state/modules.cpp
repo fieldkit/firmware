@@ -42,6 +42,9 @@ ModulePosition AttachedModule::position() const {
 }
 
 ModuleStatus AttachedModule::status() const {
+    if (driver_ == nullptr) {
+        return ModuleStatus::Fatal;
+    }
     return status_;
 }
 
@@ -95,6 +98,11 @@ int32_t AttachedModule::initialize(ModuleContext ctx, Pool *pool) {
 }
 
 int32_t AttachedModule::take_readings(ReadingsContext ctx, ReadingsListener *listener, Pool *pool) {
+    if (driver_ == nullptr) {
+        logwarn("[%d] no driver", position_.integer());
+        return 0;
+    }
+
     loginfo("[%d] '%s' mk=%02" PRIx32 "%02" PRIx32 " version=%" PRIu32, position_.integer(), configuration_.display_name_key,
             meta_->manufacturer, meta_->kind, meta_->version);
 
@@ -159,7 +167,9 @@ ModuleConfiguration AttachedModule::get_configuration(Pool *pool) {
 }
 
 bool AttachedModule::can_enable() {
-    FK_ASSERT(driver_ != nullptr);
+    if (driver_ == nullptr) {
+        return false;
+    }
     return driver_->can_enable();
 }
 
@@ -175,6 +185,11 @@ AttachedModules::AttachedModules(Pool &pool) : pool_(&pool) {
 }
 
 int32_t AttachedModules::scanned_module(ModulePosition const position, ModuleHeader const &header, Pool *pool) {
+    if (!fk_uuid_is_valid(&header.id)) {
+        modules_.emplace(position, header, nullptr, nullptr, *pool_);
+        return 0;
+    }
+
     auto attached = get_by_id(header.id);
     if (attached == nullptr) {
         loginfo("[%d] initializing module", position.integer());
@@ -229,6 +244,9 @@ AttachedModule *AttachedModules::get_by_position(ModulePosition const position) 
 }
 
 AttachedModule *AttachedModules::get_by_id(fk_uuid_t const &id) {
+    if (!fk_uuid_is_valid(&id)) {
+        return nullptr;
+    }
     for (auto &am : modules_) {
         if (am.has_id(id)) {
             return &am;
