@@ -8336,15 +8336,17 @@
          * @enum {string}
          * @property {number} CURVE_NONE=0 CURVE_NONE value
          * @property {number} CURVE_LINEAR=1 CURVE_LINEAR value
-         * @property {number} CURVE_EXPONENTIAL=2 CURVE_EXPONENTIAL value
+         * @property {number} CURVE_POWER=2 CURVE_POWER value
          * @property {number} CURVE_LOGARITHMIC=3 CURVE_LOGARITHMIC value
+         * @property {number} CURVE_EXPONENTIAL=4 CURVE_EXPONENTIAL value
          */
         fk_data.CurveType = (function() {
             var valuesById = {}, values = Object.create(valuesById);
             values[valuesById[0] = "CURVE_NONE"] = 0;
             values[valuesById[1] = "CURVE_LINEAR"] = 1;
-            values[valuesById[2] = "CURVE_EXPONENTIAL"] = 2;
+            values[valuesById[2] = "CURVE_POWER"] = 2;
             values[valuesById[3] = "CURVE_LOGARITHMIC"] = 3;
+            values[valuesById[4] = "CURVE_EXPONENTIAL"] = 4;
             return values;
         })();
     
@@ -9102,6 +9104,7 @@
                     case 1:
                     case 2:
                     case 3:
+                    case 4:
                         break;
                     }
                 if (message.time != null && message.hasOwnProperty("time"))
@@ -9150,13 +9153,17 @@
                 case 1:
                     message.type = 1;
                     break;
-                case "CURVE_EXPONENTIAL":
+                case "CURVE_POWER":
                 case 2:
                     message.type = 2;
                     break;
                 case "CURVE_LOGARITHMIC":
                 case 3:
                     message.type = 3;
+                    break;
+                case "CURVE_EXPONENTIAL":
+                case 4:
+                    message.type = 4;
                     break;
                 }
                 if (object.time != null)

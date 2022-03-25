@@ -22,7 +22,7 @@ $(PROTO_NAME)_pb2.py: build $(PROTO_NAME).proto
 	PATH=$(PATH):$(PROTOC_BIN) $(PROTOC) --python_out=./ $(PROTO_NAME).proto
 
 $(PROTO_NAME).pb.go: build $(PROTO_NAME).proto
-	go get -u google.golang.org/protobuf
+	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 	$(PROTOC) --go_out=./ $(PROTO_NAME).proto
 
 $(JAVA_DEP): build $(PROTO_NAME).proto
