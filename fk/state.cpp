@@ -47,7 +47,9 @@ void Schedule::simple(uint32_t interval) {
 }
 
 Schedule &Schedule::operator=(const fk_app_Schedule &s) {
-    memzero(intervals, sizeof(intervals));
+    for (auto i = 0u; i < MaximumScheduleIntervals; ++i) {
+        intervals[i] = Interval{};
+    }
     if (s.intervals.arg != nullptr) {
         auto intervals_array = reinterpret_cast<pb_array_t *>(s.intervals.arg);
         auto intervals_source = reinterpret_cast<fk_app_Interval *>(intervals_array->buffer);
