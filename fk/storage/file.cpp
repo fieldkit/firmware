@@ -17,17 +17,18 @@ FK_DECLARE_LOGGER("storage");
 #if !defined(linux)
 // #define FK_STORAGE_LOGGING_HASHING
 #endif
-#define FK_OP_STR_READ     "rd"
-#define FK_OP_STR_WRITE    "wr"
-#define FK_OP_STR_HEADER   "head"
-#define FK_OP_STR_DATA     "data"
+#define FK_OP_STR_READ   "rd"
+#define FK_OP_STR_WRITE  "wr"
+#define FK_OP_STR_HEADER "head"
+#define FK_OP_STR_DATA   "data"
 
-static void log_hashed_data(const char *op, const char *c, FileNumber file, RecordNumber record, StorageAddress address, void const *data, size_t size) {
-    #if defined(FK_STORAGE_LOGGING_HASHING)
+static void log_hashed_data(const char *op, const char *c, FileNumber file, RecordNumber record, StorageAddress address, void const *data,
+                            size_t size) {
+#if defined(FK_STORAGE_LOGGING_HASHING)
     char prefix[32];
     tiny_snprintf(prefix, sizeof(prefix), "%s-%s hash %5d " PRADDRESS " ", op, c, record, address);
     fk_dump_memory(prefix, (const uint8_t *)data, size);
-    #endif
+#endif
 }
 
 File::File(Storage *storage, FileNumber file, Pool &pool)
@@ -36,12 +37,10 @@ File::File(Storage *storage, FileNumber file, Pool &pool)
 }
 
 File::File(File &&o)
-    : storage_{ o.storage_ }, memory_{ std::move(o.memory_) }, file_{ o.file_ },
-      record_address_{ o.record_address_ }, tail_{ o.tail_ }, record_{ o.record_ }, version_{ o.version_ },
-      record_remaining_{ o.record_remaining_ }, record_size_{ o.record_size_ }, position_{ o.position_ },
-      size_{ o.size_ }, number_hash_errors_{ o.number_hash_errors_ }, bytes_in_block_{ o.bytes_in_block_ },
-      records_in_block_{ o.records_in_block_ }, wasted_{ o.wasted_ }, partial_allowed_{ o.partial_allowed_ },
-      hash_{ o.hash_ } {
+    : storage_{ o.storage_ }, memory_{ std::move(o.memory_) }, file_{ o.file_ }, record_address_{ o.record_address_ }, tail_{ o.tail_ },
+      record_{ o.record_ }, version_{ o.version_ }, record_remaining_{ o.record_remaining_ }, record_size_{ o.record_size_ },
+      position_{ o.position_ }, size_{ o.size_ }, number_hash_errors_{ o.number_hash_errors_ }, bytes_in_block_{ o.bytes_in_block_ },
+      records_in_block_{ o.records_in_block_ }, wasted_{ o.wasted_ }, partial_allowed_{ o.partial_allowed_ }, hash_{ o.hash_ } {
 } // namespace fk
 
 File::~File() {
@@ -107,11 +106,10 @@ int32_t File::write_record_header(RecordSize size) {
             auto previous_tail = tail_;
             tail_ = g.partial_write_boundary_after(tail_);
 
-            if (g.is_start_of_block(tail_))  {
+            if (g.is_start_of_block(tail_)) {
                 tail_ -= SizeofBlockTail;
                 left_in_block = 0;
-            }
-            else {
+            } else {
                 left_in_block = g.remaining_in_block(tail_) - SizeofBlockTail;
                 wasted_ += tail_ - previous_tail;
             }
@@ -203,11 +201,11 @@ int32_t File::write_record_tail(RecordSize size) {
 
     logverbose("[%d] " PRADDRESS " write footer 0x%06" PRIx32, file_, tail_, (StorageAddress)(tail_ + sizeof(record_tail)));
 
-    #if defined(FK_STORAGE_LOGGING_HASHING)
+#if defined(FK_STORAGE_LOGGING_HASHING)
     char buffer[Hash::Length * 2 + 1];
     bytes_to_hex_string(buffer, sizeof(buffer), record_tail.hash.hash, Hash::Length);
     logdebug("[%d] 0x%06x hash(#%" PRIu32 ") %s", file_, record_address_, record_ - 1, buffer);
-    #endif
+#endif
 
     tail_ += sizeof(record_tail);
     bytes_in_block_ += size;
@@ -248,12 +246,7 @@ int32_t File::try_write(uint8_t const *record, size_t size) {
 }
 
 RecordReference File::reference() const {
-    return RecordReference{
-        .address = record_address_,
-        .position = position_ - record_size_,
-        .record = record_,
-        .record_size = record_size_,
-    };
+    return RecordReference(record_address_, position_ - record_size_, record_, record_size_);
 }
 
 bool File::seek_end() {
@@ -281,8 +274,7 @@ bool File::seek(RecordReference reference) {
     bytes_in_block_ = 0;
     records_in_block_ = 0;
 
-    logtrace("[" PRADDRESS "] seek reference position = %" PRIu32 " R-%" PRIu32 " size=%" PRIu32,
-             tail_, position_, record_, record_size_);
+    logtrace("[" PRADDRESS "] seek reference position = %" PRIu32 " R-%" PRIu32 " size=%" PRIu32, tail_, position_, record_, record_size_);
 
     return true;
 }
@@ -446,8 +438,7 @@ int32_t File::rewind() {
     }
 
     if (record_tail.valid()) {
-        logdebug("[" PRADDRESS "] tail (%d) (%" PRIu32 ") (%" PRIx32 ")", tail_, __LINE__,
-                 record_tail.size, record_tail.size);
+        logdebug("[" PRADDRESS "] tail (%d) (%" PRIu32 ") (%" PRIx32 ")", tail_, __LINE__, record_tail.size, record_tail.size);
 
         if (record_tail.size > g.block_size) {
             fk_dump_memory("TAIL ", (uint8_t *)&record_tail, sizeof(record_tail));
@@ -458,8 +449,7 @@ int32_t File::rewind() {
         tail_ -= record_tail.size;
 
         tail_ -= sizeof(RecordHeader);
-    }
-    else {
+    } else {
         uint32_t previous_record = find_previous_sector_aligned_record(tail_);
         if (previous_record == InvalidAddress) {
             logerror("[" PRADDRESS "] rewind invalid record tail, unable to find previous record in block", tail_);
@@ -492,7 +482,7 @@ int32_t File::rewind() {
     hash_.reset(Hash::Length);
     hash_.update(&record_header, sizeof(record_header));
 
-    log_hashed_data(FK_OP_STR_READ, FK_OP_STR_HEADER,file_, record_, tail_, &record_header, sizeof(RecordHeader));
+    log_hashed_data(FK_OP_STR_READ, FK_OP_STR_HEADER, file_, record_, tail_, &record_header, sizeof(RecordHeader));
 
     record_ = record_header.record;
     record_size_ = record_header.size;
@@ -522,8 +512,7 @@ int32_t File::search_for_following_block() {
 
         if (!block_header.verify_hash() || block_header.version != version_) {
             loginfo("[%d] " PRADDRESS " invalid block header", file_, iter);
-        }
-        else {
+        } else {
             if (block_header.file == file_) {
                 loginfo("[%d] " PRADDRESS " found", file_, iter);
                 tail_ = iter;
@@ -564,8 +553,7 @@ int32_t File::find_following_block() {
             logerror("[%d] " PRADDRESS " unable to resume", file_, tail_);
             return 0;
         }
-    }
-    else {
+    } else {
         tail_ = block_tail.linked;
     }
 
@@ -597,7 +585,7 @@ int32_t File::try_read_record_header(uint32_t tail, RecordHeader &record_header)
 
     logverbose("[%d] " PRADDRESS " record header (%" PRIu32 " bytes) R-%" PRIu32, file_, tail, record_header.size, record_header.record);
 
-    unread_header_  = false;
+    unread_header_ = false;
 
     return record_header.size;
 }
@@ -621,8 +609,7 @@ int32_t File::read_record_header() {
             }
 
             left_in_block = g.remaining_in_block(tail_) - SizeofBlockTail;
-        }
-        else {
+        } else {
             RecordHeader record_header;
             if (!try_read_record_header(tail_, record_header)) {
                 auto partial_aligned = g.partial_write_boundary_after(tail_);
@@ -643,7 +630,7 @@ int32_t File::read_record_header() {
             hash_.reset(Hash::Length);
             hash_.update(&record_header, sizeof(RecordHeader));
 
-            log_hashed_data(FK_OP_STR_READ, FK_OP_STR_HEADER,file_, record_, tail_, &record_header, sizeof(RecordHeader));
+            log_hashed_data(FK_OP_STR_READ, FK_OP_STR_HEADER, file_, record_, tail_, &record_header, sizeof(RecordHeader));
 
             tail_ += sizeof(RecordHeader);
 
@@ -662,10 +649,11 @@ int32_t File::read(uint8_t *record, size_t size) {
     if (unread_header_) {
         tail_ += sizeof(RecordHeader);
         unread_header_ = false;
-        logtrace("[%d] " PRADDRESS " BEGIN read skip header (%zd bytes) (rr = %" PRIu32 ") (%" PRIu32 " lib)", file_, tail_, size, record_remaining_, left_in_block);
-    }
-    else {
-        logtrace("[%d] " PRADDRESS " BEGIN read (%zd bytes) (rr = %" PRIu32 ") (%" PRIu32 " lib)", file_, tail_, size, record_remaining_, left_in_block);
+        logtrace("[%d] " PRADDRESS " BEGIN read skip header (%zd bytes) (rr = %" PRIu32 ") (%" PRIu32 " lib)", file_, tail_, size,
+                 record_remaining_, left_in_block);
+    } else {
+        logtrace("[%d] " PRADDRESS " BEGIN read (%zd bytes) (rr = %" PRIu32 ") (%" PRIu32 " lib)", file_, tail_, size, record_remaining_,
+                 left_in_block);
     }
 
     while (bytes_read < size) {
@@ -675,8 +663,7 @@ int32_t File::read(uint8_t *record, size_t size) {
             }
 
             left_in_block = g.remaining_in_block(tail_) - SizeofBlockTail;
-        }
-        else if (bytes_read < size) {
+        } else if (bytes_read < size) {
             auto buffer_remaining = size - bytes_read;
             auto reading = std::min<size_t>(left_in_block, std::min<size_t>(buffer_remaining, record_remaining_));
             FK_ASSERT(reading > 0);
@@ -704,8 +691,7 @@ int32_t File::read(uint8_t *record, size_t size) {
 
                 left_in_block -= sizeof(RecordTail);
             }
-        }
-        else {
+        } else {
             break;
         }
     }
@@ -725,8 +711,8 @@ int32_t File::read_record_tail() {
     Hash hash;
     hash_.finalize(&hash.hash, Hash::Length);
     if (memcmp(hash.hash, record_tail.hash.hash, Hash::Length) != 0) {
-        logerror("[%d] " PRADDRESS " hash mismatch: (R-%" PRIu32 ") (record address = " PRADDRESS ") (record_size = %" PRIu32 ")",
-                 file_, tail_, record_, record_address_, record_tail.size);
+        logerror("[%d] " PRADDRESS " hash mismatch: (R-%" PRIu32 ") (record address = " PRADDRESS ") (record_size = %" PRIu32 ")", file_,
+                 tail_, record_, record_address_, record_tail.size);
         fk_dump_memory("ACT ", record_tail.hash.hash, Hash::Length);
         fk_dump_memory("EXP ", hash.hash, Hash::Length);
         number_hash_errors_++;
@@ -745,7 +731,7 @@ void File::update() {
 }
 
 static bool write_callback(pb_ostream_t *stream, const uint8_t *buf, size_t c) {
-    auto file = reinterpret_cast<File*>(stream->state);
+    auto file = reinterpret_cast<File *>(stream->state);
     if (file->write_partial(buf, c) != (int32_t)c) {
         return false;
     }
@@ -754,7 +740,7 @@ static bool write_callback(pb_ostream_t *stream, const uint8_t *buf, size_t c) {
 }
 
 static bool read_callback(pb_istream_t *stream, uint8_t *buf, size_t c) {
-    auto file = reinterpret_cast<File*>(stream->state);
+    auto file = reinterpret_cast<File *>(stream->state);
     if (file->read(buf, c) != (int32_t)c) {
         return false;
     }
