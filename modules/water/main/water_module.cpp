@@ -334,29 +334,24 @@ bool WaterModule::lockout_enabled() {
 Curve *WaterModule::create_modules_default_curve(Pool &pool) {
     switch (header_.kind) {
     case FK_MODULES_KIND_WATER_TEMP: {
-        constexpr float TempDefaultCalibrationB = -900.53;
-        constexpr float TempDefaultCalibrationM = 662.56;
-        return create_curve(fk_data_CurveType_CURVE_LINEAR, TempDefaultCalibrationB, TempDefaultCalibrationM, pool);
+        constexpr float TempDefaultCalibration[3]{ -900.53, 662.56, 0 };
+        return create_curve(fk_data_CurveType_CURVE_LINEAR, TempDefaultCalibration, pool);
     }
     case FK_MODULES_KIND_WATER_PH: {
-        constexpr float PhDefaultCalibrationB = 15.992;
-        constexpr float PhDefaultCalibrationM = -17.777;
-        return create_curve(fk_data_CurveType_CURVE_LINEAR, PhDefaultCalibrationB, PhDefaultCalibrationM, pool);
+        constexpr float PhDefaultCalibration[3] = { 15.992, -17.777, 0 };
+        return create_curve(fk_data_CurveType_CURVE_LINEAR, PhDefaultCalibration, pool);
     }
     case FK_MODULES_KIND_WATER_DO: {
-        constexpr float DoDefaultCalibrationB = 16.663;
-        constexpr float DoDefaultCalibrationM = 2202.1;
-        return create_curve(fk_data_CurveType_CURVE_LINEAR, DoDefaultCalibrationB, DoDefaultCalibrationM, pool);
+        constexpr float DoDefaultCalibration[3] = { 16.663, 2202.1, 0 };
+        return create_curve(fk_data_CurveType_CURVE_LINEAR, DoDefaultCalibration, pool);
     }
     case FK_MODULES_KIND_WATER_ORP: {
-        constexpr float OrpDefaultCalibrationB = 0;
-        constexpr float OrpDefaultCalibrationM = 1000;
-        return create_curve(fk_data_CurveType_CURVE_LINEAR, OrpDefaultCalibrationB, OrpDefaultCalibrationM, pool);
+        constexpr float OrpDefaultCalibration[3] = { 0, 1000, 0 };
+        return create_curve(fk_data_CurveType_CURVE_LINEAR, OrpDefaultCalibration, pool);
     }
     case FK_MODULES_KIND_WATER_EC: {
-        constexpr float EcDefaultCalibrationA = 3432.6f;
-        constexpr float EcDefaultCalibrationB = -3.636f;
-        return create_curve(fk_data_CurveType_CURVE_EXPONENTIAL, EcDefaultCalibrationA, EcDefaultCalibrationB, pool);
+        constexpr float EcDefaultCalibration[3] = { 3432.6 - 3.636, 0 };
+        return create_curve(fk_data_CurveType_CURVE_POWER, EcDefaultCalibration, pool);
     }
     default:
         return create_noop_curve(pool);
