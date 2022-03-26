@@ -98,19 +98,12 @@ Curve *create_curve(Curve *default_curve, fk_data_ModuleConfiguration *cfg, Pool
     }
 
     if (!cfg->calibration.has_coefficients) {
-        loginfo("using default curve: no coefficients");
+        logwarn("using default curve: no coefficients");
         return default_curve;
     }
 
     if (cfg->calibration.coefficients.values.arg == nullptr) {
-        loginfo("using default curve: malformed coefficients (none)");
-        return default_curve;
-    }
-
-    auto curve_type = cfg->calibration.type;
-    auto values_array = reinterpret_cast<pb_array_t *>(cfg->calibration.coefficients.values.arg);
-    if (values_array->length != 2) {
-        loginfo("using default curve: malformed coefficients (number)");
+        logwarn("using default curve: malformed coefficients (none)");
         return default_curve;
     }
 
@@ -128,6 +121,34 @@ Curve *create_curve(Curve *default_curve, fk_data_ModuleConfiguration *cfg, Pool
         }
     } else {
         logwarn("curve missing points");
+    }
+
+    auto expected_coefficients = 0u;
+
+    switch (cfg->calibration.type) {
+    case fk_data_CurveType_CURVE_LINEAR: {
+        expected_coefficients = 2u;
+        break;
+    }
+    case fk_data_CurveType_CURVE_POWER: {
+        expected_coefficients = 2u;
+        break;
+    }
+    case fk_data_CurveType_CURVE_EXPONENTIAL: {
+        expected_coefficients = 3u;
+        break;
+    }
+    default: {
+        logwarn("using default curve: unexpected curve-type (%d)", cfg->calibration.type);
+        return default_curve;
+    }
+    }
+
+    auto curve_type = cfg->calibration.type;
+    auto values_array = reinterpret_cast<pb_array_t *>(cfg->calibration.coefficients.values.arg);
+    if (values_array->length != expected_coefficients) {
+        logwarn("using default curve: malformed coefficients (%d != %d)", values_array->length != expected_coefficients);
+        return default_curve;
     }
 
     float coefficients[3] = { 0, 0, 0 };
