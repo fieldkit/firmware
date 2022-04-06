@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 for name in [ "animals", "adjectives" ]:
     with open(name + ".txt", 'r') as f:
