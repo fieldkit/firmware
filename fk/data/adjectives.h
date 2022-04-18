@@ -75,7 +75,7 @@ const char *adjectives[328] = {
   "Creative",
   "Cuddly",
   "Curly",
-  "Curvy",
+  "Capable",
   "Cute",
   "Dangerous",
   "Dapper",

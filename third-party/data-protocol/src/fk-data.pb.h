@@ -34,8 +34,9 @@ typedef enum _fk_data_SignedRecordKind {
 typedef enum _fk_data_CurveType { 
     fk_data_CurveType_CURVE_NONE = 0, 
     fk_data_CurveType_CURVE_LINEAR = 1, 
-    fk_data_CurveType_CURVE_EXPONENTIAL = 2, 
-    fk_data_CurveType_CURVE_LOGARITHMIC = 3 
+    fk_data_CurveType_CURVE_POWER = 2, 
+    fk_data_CurveType_CURVE_LOGARITHMIC = 3, 
+    fk_data_CurveType_CURVE_EXPONENTIAL = 4 
 } fk_data_CurveType;
 
 /* Struct definitions */
@@ -322,8 +323,8 @@ typedef struct _fk_data_ModuleConfiguration {
 #define _fk_data_SignedRecordKind_ARRAYSIZE ((fk_data_SignedRecordKind)(fk_data_SignedRecordKind_SIGNED_RECORD_KIND_OTHER+1))
 
 #define _fk_data_CurveType_MIN fk_data_CurveType_CURVE_NONE
-#define _fk_data_CurveType_MAX fk_data_CurveType_CURVE_LOGARITHMIC
-#define _fk_data_CurveType_ARRAYSIZE ((fk_data_CurveType)(fk_data_CurveType_CURVE_LOGARITHMIC+1))
+#define _fk_data_CurveType_MAX fk_data_CurveType_CURVE_EXPONENTIAL
+#define _fk_data_CurveType_ARRAYSIZE ((fk_data_CurveType)(fk_data_CurveType_CURVE_EXPONENTIAL+1))
 
 
 #ifdef __cplusplus

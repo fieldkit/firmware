@@ -16,8 +16,8 @@ find_package(Threads REQUIRED)
 
 include(ExternalProject)
 
-set(GTEST_URL ${CMAKE_SOURCE_DIR}/third-party/googletest-release-1.10.0.tar.gz)
-set(GTEST_SHA256 SHA256=9dc9157a9a1551ec7a7e43daea9a694a0bb5fb8bec81235d8a1e6ef64c716dcb)
+set(GTEST_URL ${CMAKE_SOURCE_DIR}/third-party/googletest-release-1.11.0.tar.gz)
+set(GTEST_SHA256 SHA256=b4870bf121ff7795ba20d20bcdd8627b8e088f2d1dab299a031c1034eddc93d5)
 ExternalProject_Add(
     gtest
     URL ${GTEST_URL}

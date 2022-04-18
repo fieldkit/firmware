@@ -31,19 +31,36 @@ public:
     }
 };
 
-class ExponentialCurve : public Curve {
+class PowerCurve : public Curve {
 private:
     float a_{ 0.0f };
     float b_{ 0.0f };
 
 public:
-    ExponentialCurve(float a, float b) : a_(a), b_(b) {
+    PowerCurve(float a, float b) : a_(a), b_(b) {
     }
 
 public:
     virtual float apply(float uncalibrated) override {
-        loginfo("cal(exp): a = %f b = %f", a_, b_);
+        loginfo("cal(power): a = %f b = %f", a_, b_);
         return a_ * pow(uncalibrated, b_);
+    }
+};
+
+class ExponentialCurve : public Curve {
+private:
+    float a_{ 0.0f };
+    float b_{ 0.0f };
+    float c_{ 0.0f };
+
+public:
+    ExponentialCurve(float a, float b, float c) : a_(a), b_(b), c_(c) {
+    }
+
+public:
+    virtual float apply(float uncalibrated) override {
+        loginfo("cal(exponential): a = %f b = %f c = %f", a_, b_, c_);
+        return a_ + b_ * exp(uncalibrated * c_);
     }
 };
 
@@ -51,13 +68,16 @@ Curve *create_noop_curve(Pool &pool) {
     return new (pool) NoopCurve();
 }
 
-Curve *create_curve(fk_data_CurveType curve_type, float c0, float c1, Pool &pool) {
+Curve *create_curve(fk_data_CurveType curve_type, float const *coefficients, Pool &pool) {
     switch (curve_type) {
     case fk_data_CurveType_CURVE_LINEAR: {
-        return new (pool) LinearCurve(c0, c1);
+        return new (pool) LinearCurve(coefficients[0], coefficients[1]);
+    }
+    case fk_data_CurveType_CURVE_POWER: {
+        return new (pool) PowerCurve(coefficients[0], coefficients[1]);
     }
     case fk_data_CurveType_CURVE_EXPONENTIAL: {
-        return new (pool) ExponentialCurve(c0, c1);
+        return new (pool) ExponentialCurve(coefficients[0], coefficients[1], coefficients[2]);
     }
     default: {
         logerror("unexpected curve-type (%d)", curve_type);
@@ -78,19 +98,12 @@ Curve *create_curve(Curve *default_curve, fk_data_ModuleConfiguration *cfg, Pool
     }
 
     if (!cfg->calibration.has_coefficients) {
-        loginfo("using default curve: no coefficients");
+        logwarn("using default curve: no coefficients");
         return default_curve;
     }
 
     if (cfg->calibration.coefficients.values.arg == nullptr) {
-        loginfo("using default curve: malformed coefficients (none)");
-        return default_curve;
-    }
-
-    auto curve_type = cfg->calibration.type;
-    auto values_array = reinterpret_cast<pb_array_t *>(cfg->calibration.coefficients.values.arg);
-    if (values_array->length != 2) {
-        loginfo("using default curve: malformed coefficients (number)");
+        logwarn("using default curve: malformed coefficients (none)");
         return default_curve;
     }
 
@@ -110,8 +123,40 @@ Curve *create_curve(Curve *default_curve, fk_data_ModuleConfiguration *cfg, Pool
         logwarn("curve missing points");
     }
 
+    auto expected_coefficients = 0u;
+
+    switch (cfg->calibration.type) {
+    case fk_data_CurveType_CURVE_LINEAR: {
+        expected_coefficients = 2u;
+        break;
+    }
+    case fk_data_CurveType_CURVE_POWER: {
+        expected_coefficients = 2u;
+        break;
+    }
+    case fk_data_CurveType_CURVE_EXPONENTIAL: {
+        expected_coefficients = 3u;
+        break;
+    }
+    default: {
+        logwarn("using default curve: unexpected curve-type (%d)", cfg->calibration.type);
+        return default_curve;
+    }
+    }
+
+    auto curve_type = cfg->calibration.type;
+    auto values_array = reinterpret_cast<pb_array_t *>(cfg->calibration.coefficients.values.arg);
+    if (values_array->length != expected_coefficients) {
+        logwarn("using default curve: malformed coefficients (%d != %d)", values_array->length != expected_coefficients);
+        return default_curve;
+    }
+
+    float coefficients[3] = { 0, 0, 0 };
     auto values = reinterpret_cast<float *>(values_array->buffer);
-    return create_curve(curve_type, values[0], values[1], pool);
+    for (auto i = 0u; i < values_array->length; ++i) {
+        coefficients[i] = values[i];
+    }
+    return create_curve(curve_type, coefficients, pool);
 }
 
 } // namespace fk

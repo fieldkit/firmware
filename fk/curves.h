@@ -12,7 +12,7 @@ public:
 
 Curve *create_noop_curve(Pool &pool);
 
-Curve *create_curve(fk_data_CurveType curve_type, float c0, float c1, Pool &pool);
+Curve *create_curve(fk_data_CurveType curve_type, float const *coefficients, Pool &pool);
 
 Curve *create_curve(Curve *default_curve, fk_data_ModuleConfiguration *cfg, Pool &pool);
 
