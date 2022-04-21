@@ -182,6 +182,7 @@ FileReader::FileReader(Storage &storage, FileNumber file_number, Pool &pool)
 
 tl::expected<FileReader::SizeInfo, Error> FileReader::get_size(BlockNumber first_block, BlockNumber last_block, Pool &pool) {
     if (file_number_ == Storage::Meta) {
+        logerror("get-size(fail): Storage::Meta");
         return SizeInfo{
             .size = 0,
             .last_block = 0,
@@ -189,6 +190,7 @@ tl::expected<FileReader::SizeInfo, Error> FileReader::get_size(BlockNumber first
     }
 
     if (!open_if_necessary()) {
+        logerror("get-size(fail): unable to open");
         return tl::unexpected<Error>(Error::IO);
     }
 
@@ -198,12 +200,14 @@ tl::expected<FileReader::SizeInfo, Error> FileReader::get_size(BlockNumber first
     if (last_block != UINT32_MAX) {
         position_of_last = pdf_.seek_record(last_block);
         if (position_of_last < 0) {
+            logerror("get-size(fail): position-of-last < 0");
             return tl::unexpected<Error>(Error::IO);
         }
     }
 
     auto position_of_first = pdf_.seek_record(first_block);
     if (position_of_first < 0) {
+        logerror("get-size(fail): position-of-first < 0");
         return tl::unexpected<Error>(Error::IO);
     }
 
