@@ -22,6 +22,8 @@ DynamicState::~DynamicState() {
 }
 
 DynamicState &DynamicState::operator=(DynamicState &&rhs) {
+    alogf(LogLevels::INFO, "dynamic", "attaching");
+
     if (this != &rhs) {
         if (pool_ != nullptr) {
             delete pool_;
@@ -36,6 +38,6 @@ DynamicState &DynamicState::operator=(DynamicState &&rhs) {
     return *this;
 }
 
-} // namespace fk
+} // namespace state
 
 } // namespace fk

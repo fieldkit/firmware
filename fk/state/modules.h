@@ -113,6 +113,7 @@ private:
     using Modules = collection<AttachedModule>;
     Modules modules_{ pool_ };
     Pool *pool_{ nullptr };
+    bool initialized_{ false };
 
 public:
     AttachedModules(Modules modules, Pool &pool);
@@ -136,6 +137,10 @@ public:
     ModuleAndSensor get_nth_sensor(size_t n);
     Modules &modules() {
         return modules_;
+    }
+
+    bool initialized() const {
+        return initialized_;
     }
 
 private:

@@ -144,6 +144,8 @@ int32_t ModuleScanning::scan(ScanningListener *listener, Pool &pool) {
     // If the backplane isn't available, try and find a single module
     // on the bus.
     if (!available()) {
+        loginfo("backplane unavailable, single mode scan");
+
         if (!try_scan_single_module(listener, ModulePosition::Solo, pool)) {
             logerror("[-] single module scan failed");
         }

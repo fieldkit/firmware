@@ -355,6 +355,8 @@ int32_t AttachedModules::initialize(Pool &pool) {
 
     loginfo("initialize elapsed=%" PRIu32 "ms", elapsed);
 
+    initialized_ = true;
+
     return 0;
 }
 

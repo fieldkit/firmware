@@ -67,10 +67,6 @@ bool ReadingsWorker::take(state::ReadingsListener *listener, Pool &pool) {
     // danger, yet but it's strange.
     auto gs = get_global_state_ro();
     auto attached = gs.get()->dynamic.attached();
-    if (attached == nullptr) {
-        logerror("scan necessary");
-        return false;
-    }
 
     if (attached->take_readings(listener, pool) < 0) {
         logerror("take readings");
@@ -152,7 +148,8 @@ bool ReadingsWorker::update_global_state(Pool &pool) {
 
 ReadingsWorker::ThrottleAndScanState ReadingsWorker::read_state() {
     auto gs = get_global_state_rw();
-    auto scanned = gs.get()->dynamic.attached() != nullptr;
+    auto attached = gs.get()->dynamic.attached();
+    auto scanned = attached != nullptr && attached->initialized();
     if (gs.get()->runtime.readings > 0) {
         auto elapsed = fk_uptime() - gs.get()->runtime.readings;
         if (elapsed < TenSecondsMs) {
