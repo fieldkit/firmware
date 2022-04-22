@@ -154,21 +154,27 @@ void StartupWorker::run(Pool &pool) {
     ModuleRegistry registry;
     registry.initialize();
 
+    // Prepare for self-check.
+    NoopSelfCheckCallbacks noop_callbacks;
+    SelfCheck self_check(display, get_network(), mm, get_module_leds());
+
+    // Run self check and initialize modules if we have sufficient power.
     if (!battery_checker.low_power()) {
-        // Run self-check.
-        NoopSelfCheckCallbacks noop_callbacks;
-        SelfCheck self_check(display, get_network(), mm, get_module_leds());
         self_check.check(SelfCheckSettings::defaults(), noop_callbacks, &pool);
 
         mm->enable_all_modules();
 
         ReadingsWorker readings_worker{ true, true, false };
         readings_worker.run(pool);
+
+        check_for_lora(pool);
+
+        loginfo("started normally");
+    } else {
+        self_check.check(SelfCheckSettings::low_power(), noop_callbacks, &pool);
+
+        loginfo("started under low power");
     }
-
-    check_for_lora(pool);
-
-    loginfo("started");
 
 #if defined(__SAMD51__)
     FK_ASSERT(os_task_start(&scheduler_task) == OSS_SUCCESS);
