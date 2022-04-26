@@ -31,9 +31,13 @@ void ReadingsWorker::run(Pool &pool) {
     }
 
     if (scan_ || !state.scanned) {
+        loginfo("scanning");
+
         if (!scan(pool)) {
             return;
         }
+    } else {
+        loginfo("scan skipped");
     }
 
     UpdateReadingsListener listener{ pool };

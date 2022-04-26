@@ -148,7 +148,6 @@ private:
 
 public:
     int32_t create(Pool &pool);
-    int32_t initialize(Pool &pool);
     int32_t take_readings(ReadingsListener *listener, Pool &pool);
 #if defined(__linux__)
 public:
