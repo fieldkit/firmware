@@ -41,7 +41,7 @@ private:
         const char *generation;
     };
 
-    bool write_headers(HeaderInfo header_info);
+    bool write_headers(HeaderInfo header_info, Pool &pool);
 
     tl::expected<DownloadWorker::HeaderInfo, Error> get_headers(FileReader *file_reader, Pool &pool);
 };

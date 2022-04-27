@@ -58,24 +58,6 @@ void DownloadWorker::run(Pool &pool) {
     auto lock = storage_mutex.acquire(UINT32_MAX);
     FK_ASSERT(lock);
 
-    // Hello future programmer, you may be wondering why this is here
-    // and even be tempted to remove this so you can chase a
-    // problem. You will want to be very careful about this. This is
-    // here, because if we log heavily during periods of high logging
-    // activity the WiFi module starts to experience all kinds of
-    // truama. My theory is that the logging gets in the way of the
-    // IRQ handling. I believe you can even exacerbate this by moving
-    // your AP further away so that latencies are higher and IRQs
-    // happen during periods of more intense logging, say when
-    // accessing the file system.
-    // You've been warned.
-    auto old_level = (LogLevels)log_get_level();
-    log_configure_level(LogLevels::INFO);
-
-    if ((LogLevels)log_get_level() != LogLevels::INFO) {
-        logwarn("increased log verbosity will cause networking issues");
-    }
-
     auto started = fk_uptime();
     StatisticsMemory memory{ MemoryFactory::get_data_memory() };
     Storage storage{ &memory, pool };
@@ -117,7 +99,7 @@ void DownloadWorker::run(Pool &pool) {
     };
 #endif
 
-    if (!write_headers(info)) {
+    if (!write_headers(info, pool)) {
         connection_->close();
         return;
     }
@@ -125,6 +107,24 @@ void DownloadWorker::run(Pool &pool) {
     if (is_head || info.size == 0) {
         connection_->close();
         return;
+    }
+
+    // Hello future programmer, you may be wondering why this is here
+    // and even be tempted to remove this so you can chase a
+    // problem. You will want to be very careful about this. This is
+    // here, because if we log heavily during periods of high logging
+    // activity the WiFi module starts to experience all kinds of
+    // truama. My theory is that the logging gets in the way of the
+    // IRQ handling. I believe you can even exacerbate this by moving
+    // your AP further away so that latencies are higher and IRQs
+    // happen during periods of more intense logging, say when
+    // accessing the file system.
+    // You've been warned.
+    auto old_level = (LogLevels)log_get_level();
+    log_configure_level(LogLevels::INFO);
+
+    if ((LogLevels)log_get_level() != LogLevels::INFO) {
+        logwarn("increased log verbosity will cause networking issues");
     }
 
     size_t buffer_size = NetworkBufferSize;
@@ -187,7 +187,7 @@ void DownloadWorker::run(Pool &pool) {
     memory.log_statistics("flash usage: ");
 }
 
-bool DownloadWorker::write_headers(HeaderInfo header_info) {
+bool DownloadWorker::write_headers(HeaderInfo header_info, Pool &pool) {
     StackBufferedWriter<StackBufferSize> buffered{ connection_ };
 
     auto status = connection_->is_head_method() ? 204 : 200;
@@ -204,6 +204,10 @@ bool DownloadWorker::write_headers(HeaderInfo header_info) {
     CHECK(buffered.write("Fk-Bytes: %" PRIu32 "\n", header_info.size));
     CHECK(buffered.write("Fk-DeviceId: %s\n", header_info.device_id));
     CHECK(buffered.write("Fk-Generation: %s\n\n", header_info.generation));
+
+    auto flushed = buffered.flush();
+
+    loginfo("flushed %d", flushed);
 
     return true;
 }
