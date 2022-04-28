@@ -53,6 +53,11 @@ tl::expected<DownloadWorker::HeaderInfo, Error> DownloadWorker::get_headers(File
 // #define FK_TESTING_DOWNLOAD_READS_GARBAGE
 
 void DownloadWorker::run(Pool &pool) {
+    serve(pool);
+    connection_->busy(false);
+}
+
+void DownloadWorker::serve(Pool &pool) {
     loginfo("downloading");
 
     auto lock = storage_mutex.acquire(UINT32_MAX);

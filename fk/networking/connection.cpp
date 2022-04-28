@@ -21,6 +21,10 @@ bool Connection::service() {
         return true;
     }
 
+    if (busy_) {
+        return true;
+    }
+
     if (FK_ADDRESS_VALID(conn_)) {
         auto status = wifi_mutex.with<NetworkConnectionStatus>([&]() {
             if (conn_ == nullptr) {
@@ -33,8 +37,7 @@ bool Connection::service() {
             loginfo("[%" PRIu32 "] disconnected", number_);
             return false;
         }
-    }
-    else {
+    } else {
         FK_ASSERT_ADDRESS(conn_);
     }
 
@@ -110,4 +113,4 @@ int32_t Connection::close() {
     });
 }
 
-}
+} // namespace fk

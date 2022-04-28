@@ -33,6 +33,8 @@ public:
     }
 
 private:
+    void serve(Pool &pool);
+
     struct HeaderInfo {
         uint32_t size;
         uint32_t first_block;

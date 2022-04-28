@@ -18,6 +18,7 @@ protected:
     uint32_t bytes_tx_{ 0 };
     uint32_t bytes_rx_previous_{ 0 };
     uint32_t bytes_tx_previous_{ 0 };
+    bool busy_{ true };
 
 public:
     Connection(Pool *pool, NetworkConnection *conn, uint32_t number);
@@ -51,18 +52,23 @@ public:
 
     bool closed() const {
         if (conn_ != nullptr) {
-            // alogf(LogLevels::DEBUG, "debugging", "[0x%p] connection: 0x%p", this, conn_);
             FK_ASSERT_ADDRESS(conn_);
             return false;
         }
-        // alogf(LogLevels::DEBUG, "debugging", "[0x%p] closed", this);
         return true;
+    }
+
+    void busy(bool busy) {
+        busy_ = busy;
+    }
+
+    bool busy() const {
+        return busy_;
     }
 
     Pool *pool() {
         return pool_;
     }
-
 };
 
-}
+} // namespace fk

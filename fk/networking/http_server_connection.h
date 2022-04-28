@@ -49,6 +49,7 @@ public:
 
     int32_t fault(Pool &pool);
 
+    using Connection::busy;
     using Connection::write;
 
 public:
@@ -81,7 +82,6 @@ public:
     }
 
     int32_t available() const;
-
 };
 
-}
+} // namespace fk
