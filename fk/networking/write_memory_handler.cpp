@@ -18,7 +18,7 @@ WriteMemoryWorker::WriteMemoryWorker(HttpServerConnection *connection) : connect
 bool WriteMemoryWorker::read_complete_and_fail(const char *error, Pool &pool) {
     auto expected = connection_->length();
     auto bytes_copied = (uint32_t)0;
-    auto buffer = reinterpret_cast<uint8_t*>(pool.malloc(NetworkBufferSize));
+    auto buffer = reinterpret_cast<uint8_t *>(pool.malloc(NetworkBufferSize));
 
     while (connection_->active() && bytes_copied < expected) {
         auto bytes = connection_->read(buffer, NetworkBufferSize);
@@ -54,6 +54,11 @@ static_assert(VectorsMaximumSize + sizeof(fkb_header_t) < NetworkBufferSize, "of
 #endif
 
 void WriteMemoryWorker::run(Pool &pool) {
+    serve(pool);
+    connection_->busy(false);
+}
+
+void WriteMemoryWorker::serve(Pool &pool) {
     auto lock = sd_mutex.acquire(UINT32_MAX);
     auto expected = connection_->length();
 
@@ -81,7 +86,7 @@ void WriteMemoryWorker::run(Pool &pool) {
     FlashWriter writer{ &flash, address };
     BufferedWriter buffered{ &writer, (uint8_t *)pool.malloc(NetworkBufferSize), NetworkBufferSize };
 
-    auto buffer = reinterpret_cast<uint8_t*>(pool.malloc(NetworkBufferSize));
+    auto buffer = reinterpret_cast<uint8_t *>(pool.malloc(NetworkBufferSize));
     auto bytes_copied = (uint32_t)0;
 
     while (connection_->active() && bytes_copied < expected) {
@@ -92,8 +97,7 @@ void WriteMemoryWorker::run(Pool &pool) {
                 logerror("write error");
                 read_complete_and_fail("write", pool);
                 return;
-            }
-            else {
+            } else {
                 bytes_copied += bytes;
             }
 
@@ -144,9 +148,10 @@ void WriteMemoryWorker::run(Pool &pool) {
 }
 
 bool WriteMemoryHandler::handle(HttpServerConnection *connection, Pool &pool) {
+    connection->busy(true);
     auto worker = create_pool_worker<WriteMemoryWorker>(connection);
     get_ipc()->launch_worker(WorkerCategory::Transfer, worker);
     return true;
 }
 
-}
+} // namespace fk

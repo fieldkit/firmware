@@ -12,7 +12,6 @@ public:
 
 public:
     bool handle(HttpServerConnection *connection, Pool &pool) override;
-
 };
 
 class DownloadFileWorker : public Worker {
@@ -30,6 +29,8 @@ public:
     }
 
 private:
+    void serve(Pool &pool);
+
     struct HeaderInfo {
         uint32_t size;
         const char *device_id;
@@ -39,9 +40,8 @@ private:
     bool write_headers(HeaderInfo header_info);
 
     HeaderInfo get_headers(SdCardFile *file, Pool &pool);
-
 };
 
 FK_ENABLE_TYPE_NAME(DownloadFileWorker);
 
-}
+} // namespace fk

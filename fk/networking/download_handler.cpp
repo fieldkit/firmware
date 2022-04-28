@@ -221,6 +221,7 @@ DownloadHandler::DownloadHandler(uint8_t file_number) : file_number_(file_number
 }
 
 bool DownloadHandler::handle(HttpServerConnection *connection, Pool &pool) {
+    connection->busy(true);
     auto worker = create_pool_worker<DownloadWorker>(connection, file_number_);
     get_ipc()->launch_worker(WorkerCategory::Transfer, worker);
     return true;

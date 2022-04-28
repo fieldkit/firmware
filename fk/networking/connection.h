@@ -18,7 +18,7 @@ protected:
     uint32_t bytes_tx_{ 0 };
     uint32_t bytes_rx_previous_{ 0 };
     uint32_t bytes_tx_previous_{ 0 };
-    bool busy_{ true };
+    bool busy_{ false };
 
 public:
     Connection(Pool *pool, NetworkConnection *conn, uint32_t number);

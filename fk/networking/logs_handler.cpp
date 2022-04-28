@@ -33,6 +33,11 @@ DownloadLogsWorker::HeaderInfo DownloadLogsWorker::get_headers(Pool &pool) {
 }
 
 void DownloadLogsWorker::run(Pool &pool) {
+    serve(pool);
+    connection_->busy(false);
+}
+
+void DownloadLogsWorker::serve(Pool &pool) {
     loginfo("downloading logs");
 
     LogBufferLock lock;
@@ -83,7 +88,10 @@ void DownloadLogsWorker::run(Pool &pool) {
 bool DownloadLogsWorker::write_headers(HeaderInfo header_info) {
     StackBufferedWriter<StackBufferSize> buffered{ connection_ };
 
-    #define CHECK(expr)  if ((expr) == 0) { return false; }
+#define CHECK(expr)                                                                                                                        \
+    if ((expr) == 0) {                                                                                                                     \
+        return false;                                                                                                                      \
+    }
     CHECK(buffered.write("HTTP/1.1 %d OK\n", 200));
     CHECK(buffered.write("Content-Length: %" PRIu32 "\n", header_info.size));
     CHECK(buffered.write("Content-Type: %s\n", "text/plain"));
@@ -98,9 +106,10 @@ DownloadLogsHandler::DownloadLogsHandler() {
 }
 
 bool DownloadLogsHandler::handle(HttpServerConnection *connection, Pool &pool) {
+    connection->busy(true);
     auto worker = create_pool_worker<DownloadLogsWorker>(connection);
     get_ipc()->launch_worker(WorkerCategory::Transfer, worker);
     return true;
 }
 
-}
+} // namespace fk

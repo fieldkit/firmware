@@ -8,7 +8,6 @@ namespace fk {
 class ReceiveFirmwareHandler : public HttpHandler {
 public:
     bool handle(HttpServerConnection *connection, Pool &pool) override;
-
 };
 
 class ReceiveFirmwareWorker : public Worker {
@@ -26,6 +25,8 @@ public:
     }
 
 private:
+    void serve(Pool &pool);
+
     /**
      * This is dumb and only here to workaround a common bug in HTTP
      * client libraries that will EPIPE/Broken Pipe if we reply with
@@ -34,9 +35,8 @@ private:
     bool read_complete_and_fail(const char *error, Pool &pool);
     bool write_error(const char *kind, Pool &pool);
     bool write_success(const char *hash, Pool &pool);
-
 };
 
 FK_ENABLE_TYPE_NAME(ReceiveFirmwareWorker);
 
-}
+} // namespace fk
