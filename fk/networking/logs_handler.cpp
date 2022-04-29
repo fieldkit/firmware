@@ -106,9 +106,12 @@ DownloadLogsHandler::DownloadLogsHandler() {
 }
 
 bool DownloadLogsHandler::handle(HttpServerConnection *connection, Pool &pool) {
+    // The two calls are annoying, necessary to avoid races.
     connection->busy(true);
     auto worker = create_pool_worker<DownloadLogsWorker>(connection);
-    get_ipc()->launch_worker(WorkerCategory::Transfer, worker);
+    if (!get_ipc()->launch_worker(WorkerCategory::Transfer, worker)) {
+        connection->busy(false);
+    }
     return true;
 }
 
