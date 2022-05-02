@@ -42,7 +42,7 @@ bool ReceiveFirmwareWorker::write_success(const char *hash, Pool &pool) {
 }
 
 void ReceiveFirmwareWorker::run(Pool &pool) {
-    run(pool);
+    serve(pool);
     connection_->busy(false);
 }
 
