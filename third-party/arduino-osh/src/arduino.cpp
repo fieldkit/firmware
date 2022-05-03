@@ -63,22 +63,10 @@ uint32_t osi_platform_micros() {
 
 extern void SysTick_DefaultHandler(void);
 
-uint32_t irq_systick = 0;
-
-extern uint32_t irq_eic_11_handler;
-
 int32_t sysTickHook(void) {
-    if (irq_eic_11_handler != 0) {
-        osi_printf("\n\n\nsys-tick during eic-11\n\n\n");
-    }
-
-    __atomic_store_n(&irq_systick, 1, __ATOMIC_SEQ_CST);
-
     SysTick_DefaultHandler();
 
     osi_irs_systick();
-
-    __atomic_store_n(&irq_systick, 0, __ATOMIC_SEQ_CST);
 
     return 1;
 }
