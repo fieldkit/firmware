@@ -12,7 +12,10 @@
 #include <SPI.h>
 #include <WiFi101.h>
 #include <WiFiUdp.h>
+
+#if !defined(FK_UNDERWATER)
 #include <WiFiSocket.h>
+#endif
 
 #undef min
 #undef max
@@ -62,7 +65,6 @@ public:
     uint32_t remote_address() override;
 
     bool stop() override;
-
 };
 
 class MetalNetworkListener : public NetworkListener {
@@ -79,9 +81,9 @@ public:
     PoolPointer<NetworkConnection> *accept() override;
 
     bool stop() override;
-
 };
 
+#if !defined(FK_UNDERWATER)
 class StaticWiFiCallbacks : public WiFiCallbacks {
 private:
     constexpr static size_t ExpectedWiFiBufferSize = 1472;
@@ -98,8 +100,8 @@ public:
     void *malloc(size_t size) override;
     void free(void *ptr) override;
     bool busy(uint32_t elapsed) override;
-
 };
+#endif
 
 class MetalNetwork : public Network {
 private:
@@ -151,6 +153,6 @@ public:
 FK_ENABLE_TYPE_NAME(MetalNetworkConnection);
 FK_ENABLE_TYPE_NAME(MetalNetworkListener);
 
-}
+} // namespace fk
 
 #endif
