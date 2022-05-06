@@ -312,6 +312,14 @@ class ElfAnalyzer:
             )
         assert actual_size == expected_size
 
+        final_read_size = actual_size % 512
+        if final_read_size > 0 and final_read_size < 32:
+            logging.error(
+                "Size invalid: size % 512 should be 0 or > 32"
+                % (final_read_size,)
+            )
+        assert final_read_size == 0 or final_read_size > 32
+
 
 class FkbHeader:
     SIGNATURE_FIELD = 0
