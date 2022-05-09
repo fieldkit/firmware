@@ -8,7 +8,6 @@
 #include "state_ref.h"
 
 #include "compare_banks_worker.h"
-#include "dump_flash_memory_worker.h"
 #include "export_data_worker.h"
 #include "lora_ranging_worker.h"
 #include "poll_sensors_worker.h"
@@ -22,6 +21,8 @@
 #include "networking/upload_data_worker.h"
 
 #include "display/readings_view.h"
+
+#include "storage/dump_flash_memory_worker.h"
 #include "storage/backup_worker.h"
 
 namespace fk {
