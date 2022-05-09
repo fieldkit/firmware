@@ -63,6 +63,9 @@ void DownloadWorker::serve(Pool &pool) {
     auto lock = storage_mutex.acquire(UINT32_MAX);
     FK_ASSERT(lock);
 
+    auto old_level = (LogLevels)log_get_level();
+    log_configure_level(LogLevels::VERBOSE);
+
     auto started = fk_uptime();
     StatisticsMemory memory{ MemoryFactory::get_data_memory() };
     Storage storage{ &memory, pool };
@@ -125,7 +128,6 @@ void DownloadWorker::serve(Pool &pool) {
     // happen during periods of more intense logging, say when
     // accessing the file system.
     // You've been warned.
-    auto old_level = (LogLevels)log_get_level();
     log_configure_level(LogLevels::INFO);
 
     if ((LogLevels)log_get_level() != LogLevels::INFO) {

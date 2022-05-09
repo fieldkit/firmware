@@ -335,6 +335,8 @@ int32_t data_chain::read_chain(io_writer &writer) {
 
     assert(constrain() >= 0);
 
+    auto nread_this_call = 0u;
+
     while (true) {
         // If we're at the start of the buffer, seek past the
         // data_chain_header so we can read the number of bytes in
@@ -360,7 +362,7 @@ int32_t data_chain::read_chain(io_writer &writer) {
 
             auto err = writer.write(read_buffer.cursor(), read_buffer.available());
             if (err < 0) {
-                phyerrorf("read-chain: write fail (%d)", err);
+                phyerrorf("read-chain: write fail (%d bytes-read-this-call) (%d)", nread_this_call, err);
                 return err;
             }
 
