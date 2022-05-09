@@ -69,9 +69,9 @@ public:
         }
         if (err < 0) {
             if (desired_record == UINT32_MAX) {
-                phyerrorf("skip-records failed (UINT32_MAX)");
+                phyerrorf("skip-records failed (UINT32_MAX) (err=%d)", err);
             } else {
-                phyerrorf("skip-records failed (%d)", desired_record - found_record);
+                phyerrorf("skip-records failed (%d) (err=%d)", desired_record - found_record, err);
             }
             return err;
         }

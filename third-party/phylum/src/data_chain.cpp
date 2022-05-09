@@ -81,7 +81,7 @@ int32_t data_chain::skip_records(record_number_t skipping) {
         uint32_t record_size = 0;
         err = read_delimiter(&record_size);
         if (err < 0) {
-            phyerrorf("skip-records: read-delimiter failed");
+            phyerrorf("skip-records: read-delimiter failed (%d/%d) (%d bytes so far)", records, skipping, bytes);
             return err;
         }
 
@@ -91,7 +91,8 @@ int32_t data_chain::skip_records(record_number_t skipping) {
 
         err = skip_bytes(record_size);
         if (err < 0) {
-            phyerrorf("skip-records: skip-bytes failed (%d)", record_size);
+            phyerrorf("skip-records: skip-bytes failed (%d/%d) (%d bytes so far) (%d bytes in record)", records,
+                      skipping, bytes, record_size);
             return err;
         }
 
@@ -359,7 +360,7 @@ int32_t data_chain::read_chain(io_writer &writer) {
 
             auto err = writer.write(read_buffer.cursor(), read_buffer.available());
             if (err < 0) {
-                phyerrorf("read-chain: write fail");
+                phyerrorf("read-chain: write fail (%d)", err);
                 return err;
             }
 
