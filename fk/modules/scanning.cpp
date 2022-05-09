@@ -74,7 +74,7 @@ bool ModuleScanning::try_scan_single_module(ScanningListener *listener, ModulePo
     ModuleHeader header;
     bzero(&header, sizeof(ModuleHeader));
     if (!mm_->read_eeprom(ModuleEeprom::HeaderAddress, (uint8_t *)&header, sizeof(ModuleHeader))) {
-        logwarn("[%d] error reading header", position.integer());
+        logwarn("[%d] unable to read eeprom", position.integer());
         return false;
     }
 
