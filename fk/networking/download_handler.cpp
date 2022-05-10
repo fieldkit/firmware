@@ -64,7 +64,7 @@ void DownloadWorker::serve(Pool &pool) {
     FK_ASSERT(lock);
 
     auto old_level = (LogLevels)log_get_level();
-    log_configure_level(LogLevels::VERBOSE);
+    log_configure_level(LogLevels::DEBUG);
 
     auto started = fk_uptime();
     StatisticsMemory memory{ MemoryFactory::get_data_memory() };
