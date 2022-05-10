@@ -79,7 +79,7 @@ void DumpFlashMemoryWorker::dump_phylum_storage(SdCardFile *file, Pool &pool) {
     auto buffer = (uint8_t *)pool.malloc(sector_size);
     auto nsectors = sectors.size();
 
-    for (auto sector = 0u; nsectors; ++sector) {
+    for (auto sector = 0u; sector < nsectors; ++sector) {
         auto err = sectors.read(sector, buffer, sector_size);
         if (err < 0) {
             logerror("error reading sector %d (%d)", sector, err);
