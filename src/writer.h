@@ -85,9 +85,16 @@ public:
         return value_;
     }
 
+    bool done() const {
+        return done_;
+    }
+
+    int32_t bytes_read() const {
+        return bytes_read_;
+    }
+
 public:
     int32_t write(uint8_t const *data, size_t size) override;
-
 };
 
 constexpr size_t HashSize = 32;
@@ -105,7 +112,6 @@ public:
 
 public:
     void finalize(void *hash, size_t buffer_length);
-
 };
 
 } // namespace phylum

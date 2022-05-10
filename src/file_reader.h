@@ -1,10 +1,10 @@
 #pragma once
 
 #include "data_chain.h"
-#include "simple_buffer.h"
 #include "directory.h"
-#include "reader.h"
 #include "helpers.h"
+#include "reader.h"
+#include "simple_buffer.h"
 
 namespace phylum {
 
@@ -33,13 +33,11 @@ public:
     int32_t close();
 
 public:
-    template <typename tree_type>
-    int32_t seek_position(uint32_t desired_position) {
+    template <typename tree_type> int32_t seek_position(uint32_t desired_position) {
         return data_chain_helpers::indexed_seek<tree_type>(data_chain_, file_.position_index, desired_position);
     }
 
-    template <typename tree_type>
-    int32_t seek_record(record_number_t desired_record) {
+    template <typename tree_type> int32_t seek_record(record_number_t desired_record) {
         int32_t err;
 
         // TODO Skip this if desired_record == 0
@@ -66,11 +64,15 @@ public:
 
         if (desired_record == UINT32_MAX) {
             err = data_chain_.skip_records(desired_record);
-        }
-        else {
+        } else {
             err = data_chain_.skip_records(desired_record - found_record);
         }
         if (err < 0) {
+            if (desired_record == UINT32_MAX) {
+                phyerrorf("skip-records failed (UINT32_MAX) (err=%d)", err);
+            } else {
+                phyerrorf("skip-records failed (%d) (err=%d)", desired_record - found_record, err);
+            }
             return err;
         }
 
