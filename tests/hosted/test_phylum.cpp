@@ -17,6 +17,18 @@ public:
     fk_data_DataRecord record = fk_data_DataRecord_init_default;
 
 public:
+    void of_size(size_t size, Pool &pool) {
+        FK_ASSERT(size >= 6);
+
+        auto buffer = (uint8_t *)pool.malloc(size);
+        memset(buffer, '.', size);
+        buffer[size - 6] = 0;
+        record = fk_data_DataRecord_init_default;
+        record.has_log = true;
+        record.log.message.arg = (void *)buffer;
+        record.log.message.funcs.encode = pb_encode_string;
+    }
+
     void log_message(uint8_t seed) {
         record = fk_data_DataRecord_init_default;
         record.has_log = true;
@@ -269,4 +281,53 @@ TEST_F(PhylumSuite, Basic_StartStop) {
 
     DataRecord record{ pool };
     ASSERT_FALSE(ops->read_fixed_record(record, pool));
+}
+
+TEST_F(PhylumSuite, Basic_DataFile_MiddleRecordSizeDelimiterOnSectorBoundary) {
+    auto data_memory = MemoryFactory::get_data_memory();
+    ASSERT_TRUE(data_memory->begin());
+
+    StandardPool pool{ "tests" };
+    Phylum phylum{ data_memory, pool };
+    ASSERT_TRUE(phylum.format());
+    PhylumDataFile file{ phylum, pool };
+    ASSERT_EQ(file.create("d/00000000", pool), 0);
+    ASSERT_EQ(file.open("d/00000000", pool), 0);
+
+    auto total_written = 0u;
+    auto nrecords = 3u;
+
+    // This and the size of the appended record below are fine tuned to
+    // reproduce the issue where a record delimiter is multiple bytes and
+    // spans a sector boundary.
+    // It would be very nice to have a way to verify that we're reproducing this
+    // scenario to make this test more robust.
+    auto fake_record_size = 4078;
+
+    for (auto i = 0u; i < nrecords; ++i) {
+        StandardPool loop{ "loop" };
+
+        RecordFaker fake;
+        fake.of_size(fake_record_size, loop);
+
+        auto appended = file.append_always(RecordType::Data, fk_data_DataRecord_fields, &fake.record, nullptr, loop);
+        loginfo("appended %d %d", appended.bytes, appended.record);
+
+        ASSERT_EQ(appended.bytes, fake_record_size + 2);
+        ASSERT_GT(appended.bytes, 0);
+
+        total_written += appended.bytes;
+    }
+
+    ASSERT_TRUE(phylum.sync());
+
+    {
+        StandardPool loop{ "loop" };
+        PhylumDataFile file{ phylum, loop };
+        ASSERT_EQ(file.open("d/00000000", loop), 0);
+
+        ScopedLogLevelChange change{ LogLevels::VERBOSE };
+
+        ASSERT_GE(file.seek_record(2), 0);
+    }
 }

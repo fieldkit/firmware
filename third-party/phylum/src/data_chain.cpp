@@ -153,21 +153,34 @@ int32_t data_chain::truncate(uint8_t const *data, size_t size) {
     return size;
 }
 
+/**
+ * This would mean very very large blocks of data. Only really around to give us
+ * a early, fixed breaking condition below.
+ */
+constexpr size_t MaximumDelimiterLength = 32;
+
 int32_t data_chain::read_delimiter(uint32_t *delimiter) {
     assert(delimiter != nullptr);
 
     assert_valid();
 
     varint_decoder decoder;
-    auto err = read_chain(decoder);
-    if (err < 0) {
-        phyerrorf("read-delimiter: read-chain failed");
-        return err;
+    while (!decoder.done()) {
+        auto err = read_chain(decoder);
+        if (err < 0) {
+            phyerrorf("read-delimiter: read-chain failed");
+            return err;
+        }
+
+        if (decoder.bytes_read() > MaximumDelimiterLength) {
+            phyerrorf("read-delimiter: maximum length reached");
+            return -1;
+        }
     }
 
     *delimiter = decoder.value();
 
-    return err;
+    return decoder.bytes_read();
 }
 
 int32_t data_chain::read(uint8_t *data, size_t size) {

@@ -24,15 +24,14 @@ int32_t varint_decoder::write(uint8_t const *data, size_t size) {
         uint8_t byte = 0;
         auto err = buffer.read_byte(&byte);
         if (err < 0) {
-            phydebugf("varint-decoder read-byte failed (%d) (%d/%d bytes)", err, nread, size);
-            return err;
+            break;
         }
         if (err != 1) {
-            phydebugf("varint-decoder failed (%d) (%d/%d bytes)", err, nread, size);
             return -1;
         }
 
         nread++;
+        bytes_read_++;
 
         uint32_t ll = byte;
         value_ += ((ll & 0x7F) << width_);
