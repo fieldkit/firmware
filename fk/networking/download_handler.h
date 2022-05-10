@@ -15,7 +15,6 @@ public:
 
 public:
     bool handle(HttpServerConnection *connection, Pool &pool) override;
-
 };
 
 class DownloadWorker : public Worker {
@@ -34,6 +33,8 @@ public:
     }
 
 private:
+    void serve(Pool &pool);
+
     struct HeaderInfo {
         uint32_t size;
         uint32_t first_block;
@@ -42,12 +43,11 @@ private:
         const char *generation;
     };
 
-    bool write_headers(HeaderInfo header_info);
+    bool write_headers(HeaderInfo header_info, Pool &pool);
 
-    HeaderInfo get_headers(FileReader *file_reader, Pool &pool);
-
+    tl::expected<DownloadWorker::HeaderInfo, Error> get_headers(FileReader *file_reader, Pool &pool);
 };
 
 FK_ENABLE_TYPE_NAME(DownloadWorker);
 
-}
+} // namespace fk

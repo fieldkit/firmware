@@ -133,7 +133,12 @@ void GlobalState::released(uint32_t locked) {
     version++;
 }
 
-bool GlobalState::flush(Pool &pool) {
+bool GlobalState::flush(uint32_t timeout, Pool &pool) {
+    auto lock = storage_mutex.acquire(timeout);
+    if (!lock) {
+        return false;
+    }
+
     // jlewallen: storage-write
     Storage storage{ MemoryFactory::get_data_memory(), pool, false };
     if (!storage.begin()) {

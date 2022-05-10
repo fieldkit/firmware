@@ -24,7 +24,7 @@ void fk_standard_page_initialize() {
 
     if (pages_allocated == 0) {
         auto number_pages = SizeOfStandardPagePool;
-        auto memory = reinterpret_cast<uint8_t*>(fk_malloc(StandardPageSize * number_pages));
+        auto memory = reinterpret_cast<uint8_t *>(fk_malloc(StandardPageSize * number_pages));
 
         FK_ASSERT(number_pages <= SizeOfStandardPagePool);
         FK_ASSERT(number_pages > 0);
@@ -50,8 +50,7 @@ void fk_oom() {
 
     for (auto i = 0u; i < SizeOfStandardPagePool; ++i) {
         if (!pages[i].available && pages[i].base != nullptr) {
-            logerror("[%2d] owner = %s allocated=%" PRIu32,
-                        i, pages[i].owner, pages[i].allocated);
+            logerror("[%2d] owner = %s allocated=%" PRIu32, i, pages[i].owner, pages[i].allocated);
         }
     }
 }
@@ -80,9 +79,9 @@ void *fk_standard_page_malloc(size_t size, const char *name) {
                 highwater = selected;
             }
             pages[selected].owner = name;
-            #if defined(__SAMD51__)
+#if defined(__SAMD51__)
             pages[selected].allocated = fk_uptime();
-            #endif
+#endif
             logdebug("[%2d] malloc '%s'", selected, name);
             return pages[selected].base;
         }
@@ -91,6 +90,13 @@ void *fk_standard_page_malloc(size_t size, const char *name) {
     fk_oom();
 
     FK_ASSERT(false);
+
+#if defined(__SAMD51__)
+    while (true) {
+        fk_delay(1000);
+    }
+#endif
+
     return nullptr;
 }
 
@@ -107,11 +113,11 @@ void fk_standard_page_free(void *ptr) {
 
             pages[selected].owner = nullptr;
 
-            #if defined(FK_ENABLE_MEMORY_GARBLE)
+#if defined(FK_ENABLE_MEMORY_GARBLE)
             fk_memory_garble(ptr, StandardPageSize);
-            #else
+#else
             bzero(ptr, StandardPageSize);
-            #endif
+#endif
 
             atomic_store(&pages[selected].available, 1);
             break;
@@ -135,8 +141,7 @@ StandardPageMemInfo fk_standard_page_meminfo() {
         if (pages[i].available) {
             info.free++;
             info.total++;
-        }
-        else if (pages[i].base != nullptr) {
+        } else if (pages[i].base != nullptr) {
             info.used++;
             info.total++;
         }

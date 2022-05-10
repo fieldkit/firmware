@@ -2,6 +2,7 @@
 
 #include "worker.h"
 #include "storage/storage.h"
+#include "hal/sd_card.h"
 
 namespace fk {
 
@@ -14,8 +15,11 @@ public:
         return "dumpmem";
     }
 
+private:
+    void dump_darwin_storage(SdCardFile *file, Pool &pool);
+    void dump_phylum_storage(SdCardFile *file, Pool &pool);
 };
 
 FK_ENABLE_TYPE_NAME(DumpFlashMemoryWorker);
 
-}
+} // namespace fk

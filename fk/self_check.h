@@ -12,20 +12,28 @@ struct SelfCheckSettings {
     bool check_lora{ false };
     bool flash_leds{ false };
     bool module_presence{ true };
+    bool check_network{ false };
 
+private:
     SelfCheckSettings() {
     }
 
-    SelfCheckSettings(bool gps, bool sd_card, bool backplane, bool lora, bool flash_leds, bool module_presence)
-        : check_gps(gps), check_sd_card(sd_card), check_backplane(backplane), check_lora(lora), flash_leds(flash_leds), module_presence(module_presence) {
+    SelfCheckSettings(bool gps, bool sd_card, bool backplane, bool lora, bool flash_leds, bool module_presence, bool check_network)
+        : check_gps(gps), check_sd_card(sd_card), check_backplane(backplane), check_lora(lora), flash_leds(flash_leds),
+          module_presence(module_presence), check_network(check_network) {
     }
 
+public:
     static SelfCheckSettings detailed() {
-        return { true, true, true, true, true, true };
+        return { true, true, true, true, true, true, true };
     }
 
     static SelfCheckSettings defaults() {
-        return { true, true, true, false, false, false };
+        return { true, true, true, false, false, false, true };
+    }
+
+    static SelfCheckSettings low_power() {
+        return { false, false, false, false, false, false, false };
     }
 };
 
@@ -113,7 +121,6 @@ private:
     bool lora();
     ModuleCheckStatus modules(Pool *pool);
     void flash_leds();
-
 };
 
-}
+} // namespace fk

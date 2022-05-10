@@ -63,6 +63,10 @@ int32_t BufferedWriter::flush() {
         return -1;
     }
     if (position_ > 0) {
+        // This assertion is probably obsolete. I need to cleanup the
+        // PoolPointer work for NetworkConnections. At one point the cpool was
+        // freeing connections while they were still in use and we'd see crashes
+        // in here.
         FK_ASSERT(writer_ != nullptr);
         auto rv = writer_->write(buffer_, position_);
         position_ = 0;

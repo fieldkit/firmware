@@ -276,7 +276,10 @@ TEST_F(ProtoBufSizeSuite, ReadingsNoneBackFromFirstModule) {
     fake_data(header.id.data);
     attached->modules().emplace(ModulePosition::from(1), header, &fk_test_module_fake_2, fk_test_module_fake_2.ctor(pool_), pool_);
 
-    attached->initialize(pool_);
+    for (auto &attached_module : attached->modules()) {
+        auto sub_ctx = ctx.open_module(attached_module.position(), pool_);
+        attached_module.initialize(sub_ctx, &pool_);
+    }
 
     UpdateReadingsListener listener{ pool_ };
     attached->take_readings(&listener, pool_);

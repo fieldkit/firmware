@@ -8,7 +8,6 @@
 #include "state_ref.h"
 
 #include "compare_banks_worker.h"
-#include "dump_flash_memory_worker.h"
 #include "export_data_worker.h"
 #include "lora_ranging_worker.h"
 #include "poll_sensors_worker.h"
@@ -22,6 +21,8 @@
 #include "networking/upload_data_worker.h"
 
 #include "display/readings_view.h"
+
+#include "storage/dump_flash_memory_worker.h"
 #include "storage/backup_worker.h"
 
 namespace fk {
@@ -128,13 +129,13 @@ struct ToggleWifiOption : public MenuOption {
 static void configure_gps_duration(uint32_t duration, Pool &pool) {
     auto gs = get_global_state_rw();
     gs.get()->scheduler.gps.duration = duration;
-    gs.get()->flush(pool);
+    gs.get()->flush(OneSecondMs, pool);
 }
 
 static void configure_wifi_duration(uint32_t duration, Pool &pool) {
     auto gs = get_global_state_rw();
     gs.get()->scheduler.network.duration = duration;
-    gs.get()->flush(pool);
+    gs.get()->flush(OneSecondMs, pool);
     if (!get_network()->enabled()) {
         get_ipc()->launch_worker(create_pool_worker<WifiToggleWorker>());
     }

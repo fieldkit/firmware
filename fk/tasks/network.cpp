@@ -16,9 +16,7 @@ void try_and_serve_connections() {
         NetworkServices services{ get_network(), pool };
         GlobalStateManager gsm;
 
-        gsm.apply([=](GlobalState *gs) {
-            gs->network.state = { };
-        });
+        gsm.apply([=](GlobalState *gs) { gs->network.state = {}; });
 
         loginfo("starting network...");
 

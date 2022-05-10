@@ -99,7 +99,7 @@ void ScheduleView::set(uint32_t interval) {
         }
 
         StandardPool pool{ "flush" };
-        gs->flush(pool);
+        gs->flush(OneSecondMs, pool);
     });
 
     update_at_ = 0; // Force display refresh.

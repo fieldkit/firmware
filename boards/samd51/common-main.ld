@@ -48,6 +48,8 @@ SECTIONS
     *(.rodata*)
 
     KEEP(*(.eh_frame*))
+
+    . = . + 28;
   } > FLASH
 
   .ARM.extab ALIGN(0x4) :

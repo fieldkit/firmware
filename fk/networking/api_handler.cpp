@@ -147,7 +147,7 @@ bool ApiHandler::handle(HttpServerConnection *connection, Pool &pool) {
 
 static bool flush_configuration(Pool &pool) {
     auto gs = get_global_state_rw();
-    return gs.get()->flush(pool);
+    return gs.get()->flush(OneSecondMs, pool);
 }
 
 static void debug_schedule(const char *which, Schedule const &s) {
@@ -392,6 +392,7 @@ static bool configure(HttpServerConnection *connection, fk_app_HttpQuery *query,
     }
 
     if (!flush_configuration(pool)) {
+        logerror("unable to flush configuration (mutex?)");
         return false;
     }
 

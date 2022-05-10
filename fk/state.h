@@ -89,7 +89,7 @@ public:
     void apply(UpcomingUpdate &update);
     void released(uint32_t locked) const;
     void released(uint32_t locked);
-    bool flush(Pool &pool);
+    bool flush(uint32_t timeout, Pool &pool);
 
 public:
     GpsState const *location(Pool &pool) const;

@@ -1,5 +1,5 @@
-#include "phylum.h"
 #include "data_chain.h"
+#include "phylum.h"
 
 namespace phylum {
 
@@ -18,7 +18,8 @@ int32_t data_chain::write_header(page_lock &lock) {
     return 0;
 }
 
-int32_t data_chain::seek_sector(dhara_sector_t new_sector, file_size_t position_at_start_of_sector, file_size_t desired_position) {
+int32_t data_chain::seek_sector(dhara_sector_t new_sector, file_size_t position_at_start_of_sector,
+                                file_size_t desired_position) {
     logged_task lt{ "dc-seek", name() };
 
     assert(desired_position >= position_at_start_of_sector);
@@ -52,11 +53,12 @@ int32_t data_chain::skip_bytes(file_size_t bytes) {
 
     int32_t nread = 0;
 
-    noop_writer dev_null { bytes };
+    noop_writer dev_null{ bytes };
 
     while (true) {
         auto err = read_chain(dev_null);
         if (err < 0) {
+            phyerrorf("skip-bytes: read-chain failed (%d/%d)", nread, bytes);
             return err;
         }
         if (err == 0) {
@@ -79,6 +81,7 @@ int32_t data_chain::skip_records(record_number_t skipping) {
         uint32_t record_size = 0;
         err = read_delimiter(&record_size);
         if (err < 0) {
+            phyerrorf("skip-records: read-delimiter failed (%d/%d) (%d bytes so far)", records, skipping, bytes);
             return err;
         }
 
@@ -88,6 +91,8 @@ int32_t data_chain::skip_records(record_number_t skipping) {
 
         err = skip_bytes(record_size);
         if (err < 0) {
+            phyerrorf("skip-records: skip-bytes failed (%d/%d) (%d bytes so far) (%d bytes in record)", records,
+                      skipping, bytes, record_size);
             return err;
         }
 
@@ -95,12 +100,12 @@ int32_t data_chain::skip_records(record_number_t skipping) {
         records++;
     }
 
-    phyverbosef("skipped records=%d bytes=%d position=%d", records, bytes, position_);
+    phydebugf("skipped records=%d bytes=%d position=%d", records, bytes, position_);
 
     return records;
 }
 
-int32_t data_chain::seek_end_of_buffer(page_lock &/*lock*/) {
+int32_t data_chain::seek_end_of_buffer(page_lock & /*lock*/) {
     auto err = db().seek_end();
     if (err < 0) {
         return err;
@@ -148,20 +153,41 @@ int32_t data_chain::truncate(uint8_t const *data, size_t size) {
     return size;
 }
 
+/**
+ * This would mean very very large blocks of data. Only really around to give us
+ * a early, fixed breaking condition below.
+ */
+constexpr int32_t MaximumDelimiterLength = 32;
+
 int32_t data_chain::read_delimiter(uint32_t *delimiter) {
     assert(delimiter != nullptr);
 
     assert_valid();
 
     varint_decoder decoder;
-    auto err = read_chain(decoder);
-    if (err < 0) {
-        return err;
+    while (!decoder.done()) {
+        auto err = read_chain(decoder);
+        if (err < 0) {
+            phyerrorf("read-delimiter: read-chain failed");
+            return err;
+        }
+        if (err == 0) {
+            if (decoder.bytes_read() > 0) {
+                phyerrorf("read-delimiter: no-more-data");
+                return -1;
+            }
+            return 0;
+        }
+
+        if (decoder.bytes_read() > MaximumDelimiterLength) {
+            phyerrorf("read-delimiter: maximum length reached");
+            return -1;
+        }
     }
 
     *delimiter = decoder.value();
 
-    return err;
+    return decoder.bytes_read();
 }
 
 int32_t data_chain::read(uint8_t *data, size_t size) {
@@ -184,8 +210,7 @@ file_size_t data_chain::total_bytes() {
     auto bytes = 0u;
     do {
         bytes += db().header<data_chain_header_t>()->bytes;
-    }
-    while (forward(lock) > 0);
+    } while (forward(lock) > 0);
 
     phyverbosef("done (%d)", bytes);
 
@@ -298,7 +323,8 @@ int32_t data_chain::constrain() {
     auto iter = db().begin();
     auto hdr = db().header<data_chain_header_t>();
     auto total = hdr->bytes + iter.position() + iter.size_of_record() + 1 /* Null terminator */;
-    phyverbosef("constrain hdr-bytes=%d + hdr-pos=%d + hdr->size=%d + 1 <null> = total=%d", hdr->bytes, iter.position(), iter.size_of_record(), total);
+    phyverbosef("constrain hdr-bytes=%d + hdr-pos=%d + hdr->size=%d + 1 <null> = total=%d", hdr->bytes, iter.position(),
+                iter.size_of_record(), total);
     assert(db().constrain(total) >= 0);
 
     /**
@@ -323,10 +349,13 @@ int32_t data_chain::read_chain(io_writer &writer) {
 
     auto err = ensure_loaded(lock);
     if (err < 0) {
+        phyerrorf("read-chain: load fail");
         return err;
     }
 
     assert(constrain() >= 0);
+
+    auto nread_this_call = 0u;
 
     while (true) {
         // If we're at the start of the buffer, seek past the
@@ -335,6 +364,7 @@ int32_t data_chain::read_chain(io_writer &writer) {
         if (db().position() == 0) {
             auto err = db().seek_end();
             if (err < 0) {
+                phyerrorf("read-chain: seek-end fail");
                 return err;
             }
 
@@ -347,10 +377,12 @@ int32_t data_chain::read_chain(io_writer &writer) {
         if (db().available() > 0) {
             auto read_buffer = db().to_read_buffer();
 
-            phyverbosef("view position=%zu available=%zu readable=%d", db().position(), db().available(), read_buffer.available());
+            phyverbosef("view position=%zu available=%zu readable=%d", db().position(), db().available(),
+                        read_buffer.available());
 
             auto err = writer.write(read_buffer.cursor(), read_buffer.available());
             if (err < 0) {
+                phyerrorf("read-chain: write fail (%d bytes-read-this-call) (%d)", nread_this_call, err);
                 return err;
             }
 
@@ -363,6 +395,7 @@ int32_t data_chain::read_chain(io_writer &writer) {
 
         auto err = forward(lock);
         if (err < 0) {
+            phyerrorf("read-chain: forward fail");
             return err;
         } else if (err == 0) {
             break;

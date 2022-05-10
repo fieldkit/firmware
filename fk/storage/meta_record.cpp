@@ -189,11 +189,13 @@ bool MetaRecord::include_state(GlobalState const *gs, fkb_header_t const *fkb_he
 bool MetaRecord::include_modules(GlobalState const *gs, fkb_header_t const *fkb_header, Pool &pool) {
     auto attached = gs->dynamic.attached();
     if (attached == nullptr) {
+        logwarn("meta-include-modules: no attached");
         return false;
     }
 
     auto nmodules = attached->modules().size();
     if (nmodules == 0) {
+        logwarn("meta-include-modules: nmodules = 0");
         return false;
     }
 

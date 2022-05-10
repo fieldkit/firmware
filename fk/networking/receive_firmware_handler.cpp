@@ -15,7 +15,7 @@ ReceiveFirmwareWorker::ReceiveFirmwareWorker(HttpServerConnection *connection) :
 bool ReceiveFirmwareWorker::read_complete_and_fail(const char *error, Pool &pool) {
     auto expected = connection_->length();
     auto bytes_copied = (uint32_t)0;
-    auto buffer = reinterpret_cast<uint8_t*>(pool.malloc(NetworkBufferSize));
+    auto buffer = reinterpret_cast<uint8_t *>(pool.malloc(NetworkBufferSize));
 
     while (connection_->active() && bytes_copied < expected) {
         auto bytes = connection_->read(buffer, NetworkBufferSize);
@@ -42,6 +42,11 @@ bool ReceiveFirmwareWorker::write_success(const char *hash, Pool &pool) {
 }
 
 void ReceiveFirmwareWorker::run(Pool &pool) {
+    serve(pool);
+    connection_->busy(false);
+}
+
+void ReceiveFirmwareWorker::serve(Pool &pool) {
     auto lock = sd_mutex.acquire(UINT32_MAX);
     auto expected = connection_->length();
 
@@ -92,7 +97,7 @@ void ReceiveFirmwareWorker::run(Pool &pool) {
 
     loginfo("reading binary");
 
-    auto buffer = reinterpret_cast<uint8_t*>(pool.malloc(NetworkBufferSize));
+    auto buffer = reinterpret_cast<uint8_t *>(pool.malloc(NetworkBufferSize));
     auto bytes_copied = 0u;
     auto bytes_hashing = expected - Hash::Length;
     auto bytes_hashed = 0u;
@@ -103,8 +108,7 @@ void ReceiveFirmwareWorker::run(Pool &pool) {
             auto wrote = file->write(buffer, bytes);
             if (wrote == bytes) {
                 bytes_copied += bytes;
-            }
-            else {
+            } else {
                 logerror("write (%d != %d)", wrote, bytes);
             }
 
@@ -165,9 +169,13 @@ void ReceiveFirmwareWorker::run(Pool &pool) {
 }
 
 bool ReceiveFirmwareHandler::handle(HttpServerConnection *connection, Pool &pool) {
+    // The two calls are annoying, necessary to avoid races.
+    connection->busy(true);
     auto worker = create_pool_worker<ReceiveFirmwareWorker>(connection);
-    get_ipc()->launch_worker(WorkerCategory::Transfer, worker);
+    if (!get_ipc()->launch_worker(WorkerCategory::Transfer, worker)) {
+        connection->busy(false);
+    }
     return true;
 }
 
-}
+} // namespace fk

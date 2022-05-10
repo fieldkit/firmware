@@ -74,7 +74,7 @@ bool ModuleScanning::try_scan_single_module(ScanningListener *listener, ModulePo
     ModuleHeader header;
     bzero(&header, sizeof(ModuleHeader));
     if (!mm_->read_eeprom(ModuleEeprom::HeaderAddress, (uint8_t *)&header, sizeof(ModuleHeader))) {
-        logwarn("[%d] error reading header", position.integer());
+        logwarn("[%d] unable to read eeprom", position.integer());
         return false;
     }
 
@@ -96,13 +96,6 @@ bool ModuleScanning::try_scan_single_module(ScanningListener *listener, ModulePo
     loginfo("[%d] mk=%02" PRIx32 "%02" PRIx32 " v%" PRIu32 " %s", position.integer(), header.manufacturer, header.kind, header.version,
             pretty_id.str);
 
-    /*
-    if (!try_read_configuration(position, pool)) {
-        logerror("[%d] error reading config", position.integer());
-        return false;
-    }
-    */
-
     auto err = listener->scanned_module(position, header, &pool);
     if (err < 0) {
         return false;
@@ -111,26 +104,7 @@ bool ModuleScanning::try_scan_single_module(ScanningListener *listener, ModulePo
     return true;
 }
 
-/*
-bool ModuleScanning::try_read_configuration(ModulePosition position, Pool &pool) {
-    // Take ownership over the module bus.
-    auto module_bus = get_board()->i2c_module();
-    ModuleEeprom eeprom{ module_bus };
-
-    size_t size = 0;
-    auto buffer = (uint8_t *)pool.malloc(MaximumConfigurationSize);
-    bzero(buffer, MaximumConfigurationSize);
-    if (!eeprom.read_configuration(buffer, size, MaximumConfigurationSize)) {
-        return false;
-    }
-
-    return true;
-}
-*/
-
 int32_t ModuleScanning::scan(ScanningListener *listener, Pool &pool) {
-    FoundModuleCollection found(pool);
-
     // If any virtual modules are enabled, sneak the modules into the final
     // position. Right now we don't have a backplane that will support this many
     // modules anyway, still make sure we're safe.
@@ -144,6 +118,8 @@ int32_t ModuleScanning::scan(ScanningListener *listener, Pool &pool) {
     // If the backplane isn't available, try and find a single module
     // on the bus.
     if (!available()) {
+        loginfo("backplane unavailable, single mode scan");
+
         if (!try_scan_single_module(listener, ModulePosition::Solo, pool)) {
             logerror("[-] single module scan failed");
         }
@@ -166,8 +142,6 @@ int32_t ModuleScanning::scan(ScanningListener *listener, Pool &pool) {
     if (!mm_->choose_nothing()) {
         logwarn("[-] error deselecting");
     }
-
-    loginfo("done (%zd modules)", found.size());
 
     return 0;
 }

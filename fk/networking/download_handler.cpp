@@ -13,7 +13,7 @@ FK_DECLARE_LOGGER("download");
 DownloadWorker::DownloadWorker(HttpServerConnection *connection, uint8_t file_number) : connection_(connection), file_number_(file_number) {
 }
 
-DownloadWorker::HeaderInfo DownloadWorker::get_headers(FileReader *file_reader, Pool &pool) {
+tl::expected<DownloadWorker::HeaderInfo, Error> DownloadWorker::get_headers(FileReader *file_reader, Pool &pool) {
     fk_serial_number_t sn;
 
     auto gs = get_global_state_ro();
@@ -33,7 +33,9 @@ DownloadWorker::HeaderInfo DownloadWorker::get_headers(FileReader *file_reader, 
 
     // Calculate the size.
     auto size_info = file_reader->get_size(first_block, last_block, pool);
-    FK_ASSERT(size_info);
+    if (!size_info) {
+        return tl::unexpected<Error>(Error::IO);
+    }
 
     loginfo("last_block = #%" PRIu32 " actual_lb = #%" PRIu32 "", last_block, size_info->last_block);
 
@@ -51,28 +53,18 @@ DownloadWorker::HeaderInfo DownloadWorker::get_headers(FileReader *file_reader, 
 // #define FK_TESTING_DOWNLOAD_READS_GARBAGE
 
 void DownloadWorker::run(Pool &pool) {
+    serve(pool);
+    connection_->busy(false);
+}
+
+void DownloadWorker::serve(Pool &pool) {
     loginfo("downloading");
 
     auto lock = storage_mutex.acquire(UINT32_MAX);
     FK_ASSERT(lock);
 
-    // Hello future programmer, you may be wondering why this is here
-    // and even be tempted to remove this so you can chase a
-    // problem. You will want to be very careful about this. This is
-    // here, because if we log heavily during periods of high logging
-    // activity the WiFi module starts to experience all kinds of
-    // truama. My theory is that the logging gets in the way of the
-    // IRQ handling. I believe you can even exacerbate this by moving
-    // your AP further away so that latencies are higher and IRQs
-    // happen during periods of more intense logging, say when
-    // accessing the file system.
-    // You've been warned.
     auto old_level = (LogLevels)log_get_level();
-    log_configure_level(LogLevels::INFO);
-
-    if ((LogLevels)log_get_level() != LogLevels::INFO) {
-        logwarn("increased log verbosity will cause networking issues");
-    }
+    log_configure_level(LogLevels::DEBUG);
 
     auto started = fk_uptime();
     StatisticsMemory memory{ MemoryFactory::get_data_memory() };
@@ -86,13 +78,20 @@ void DownloadWorker::run(Pool &pool) {
     auto file_reader = storage.file_reader(file_number_, pool);
 
     auto is_head = connection_->is_head_method();
-    auto info = get_headers(file_reader, pool);
+    auto maybe_info = get_headers(file_reader, pool);
+    if (!maybe_info) {
+        connection_->error(HttpStatus::ServerError, "error analysing storage", pool);
+        return;
+    }
+
+    auto info = *maybe_info;
 
     if (info.first_block > info.last_block) {
-        logwarn("range #%" PRIu32 " - #%" PRIu32 " size = %" PRIu32 " %s", info.first_block, info.last_block, info.size, is_head ? "HEAD": "GET");
-    }
-    else {
-        loginfo("range #%" PRIu32 " - #%" PRIu32 " size = %" PRIu32 " %s", info.first_block, info.last_block, info.size, is_head ? "HEAD": "GET");
+        logwarn("range #%" PRIu32 " - #%" PRIu32 " size = %" PRIu32 " %s", info.first_block, info.last_block, info.size,
+                is_head ? "HEAD" : "GET");
+    } else {
+        loginfo("range #%" PRIu32 " - #%" PRIu32 " size = %" PRIu32 " %s", info.first_block, info.last_block, info.size,
+                is_head ? "HEAD" : "GET");
     }
 
     memory.log_statistics("flash usage: ");
@@ -108,7 +107,7 @@ void DownloadWorker::run(Pool &pool) {
     };
 #endif
 
-    if (!write_headers(info)) {
+    if (!write_headers(info, pool)) {
         connection_->close();
         return;
     }
@@ -116,6 +115,23 @@ void DownloadWorker::run(Pool &pool) {
     if (is_head || info.size == 0) {
         connection_->close();
         return;
+    }
+
+    // Hello future programmer, you may be wondering why this is here
+    // and even be tempted to remove this so you can chase a
+    // problem. You will want to be very careful about this. This is
+    // here, because if we log heavily during periods of high logging
+    // activity the WiFi module starts to experience all kinds of
+    // truama. My theory is that the logging gets in the way of the
+    // IRQ handling. I believe you can even exacerbate this by moving
+    // your AP further away so that latencies are higher and IRQs
+    // happen during periods of more intense logging, say when
+    // accessing the file system.
+    // You've been warned.
+    log_configure_level(LogLevels::INFO);
+
+    if ((LogLevels)log_get_level() != LogLevels::INFO) {
+        logwarn("increased log verbosity will cause networking issues");
     }
 
     size_t buffer_size = NetworkBufferSize;
@@ -134,7 +150,7 @@ void DownloadWorker::run(Pool &pool) {
         auto bytes_read = file_reader->read(buffer, to_read);
 #else
         auto bytes_read = memory.read(0, buffer, to_read, MemoryReadFlags::None);
-    #endif
+#endif
         if (bytes_read == 0) {
             break;
         }
@@ -170,20 +186,23 @@ void DownloadWorker::run(Pool &pool) {
 
     auto elapsed = fk_uptime() - started;
     auto speed = ((bytes_copied / 1024.0f) / (elapsed / 1000.0f));
-    loginfo("done (%d) (%" PRIu32 "ms) %.2fkbps total-read-time=%" PRIu32 " total-write-time=%" PRIu32,
-            bytes_copied, elapsed, speed, total_read_time, total_write_time);
+    loginfo("done (%d) (%" PRIu32 "ms) %.2fkbps total-read-time=%" PRIu32 " total-write-time=%" PRIu32, bytes_copied, elapsed, speed,
+            total_read_time, total_write_time);
 
     connection_->close();
 
     memory.log_statistics("flash usage: ");
 }
 
-bool DownloadWorker::write_headers(HeaderInfo header_info) {
+bool DownloadWorker::write_headers(HeaderInfo header_info, Pool &pool) {
     StackBufferedWriter<StackBufferSize> buffered{ connection_ };
 
     auto status = connection_->is_head_method() ? 204 : 200;
 
-    #define CHECK(expr)  if ((expr) == 0) { return false; }
+#define CHECK(expr)                                                                                                                        \
+    if ((expr) == 0) {                                                                                                                     \
+        return false;                                                                                                                      \
+    }
     CHECK(buffered.write("HTTP/1.1 %d OK\n", status));
     CHECK(buffered.write("Content-Length: %" PRIu32 "\n", header_info.size));
     CHECK(buffered.write("Content-Type: %s\n", "application/octet-stream"));
@@ -193,6 +212,10 @@ bool DownloadWorker::write_headers(HeaderInfo header_info) {
     CHECK(buffered.write("Fk-DeviceId: %s\n", header_info.device_id));
     CHECK(buffered.write("Fk-Generation: %s\n\n", header_info.generation));
 
+    auto flushed = buffered.flush();
+
+    loginfo("flushed %d", flushed);
+
     return true;
 }
 
@@ -200,9 +223,13 @@ DownloadHandler::DownloadHandler(uint8_t file_number) : file_number_(file_number
 }
 
 bool DownloadHandler::handle(HttpServerConnection *connection, Pool &pool) {
+    // The two calls are annoying, necessary to avoid races.
+    connection->busy(true);
     auto worker = create_pool_worker<DownloadWorker>(connection, file_number_);
-    get_ipc()->launch_worker(WorkerCategory::Transfer, worker);
+    if (!get_ipc()->launch_worker(WorkerCategory::Transfer, worker)) {
+        connection->busy(false);
+    }
     return true;
 }
 
-}
+} // namespace fk

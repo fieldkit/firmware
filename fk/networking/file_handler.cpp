@@ -24,6 +24,11 @@ DownloadFileWorker::HeaderInfo DownloadFileWorker::get_headers(SdCardFile *file,
 }
 
 void DownloadFileWorker::run(Pool &pool) {
+    serve(pool);
+    connection_->busy(false);
+}
+
+void DownloadFileWorker::serve(Pool &pool) {
     auto lock = sd_mutex.acquire(UINT32_MAX);
 
     auto started = fk_uptime();
@@ -61,7 +66,7 @@ void DownloadFileWorker::run(Pool &pool) {
     ProgressTracker tracker{ &gs_progress, Operation::Download, "sendfile", "", info.size };
     BufferedWriter writer{ connection_, (uint8_t *)pool.malloc(NetworkBufferSize), NetworkBufferSize };
 
-    auto buffer = reinterpret_cast<uint8_t*>(pool.malloc(NetworkBufferSize));
+    auto buffer = reinterpret_cast<uint8_t *>(pool.malloc(NetworkBufferSize));
     auto bytes_copied = 0u;
 
     while (connection_->active() && bytes_copied < info.size) {
@@ -89,7 +94,10 @@ void DownloadFileWorker::run(Pool &pool) {
 bool DownloadFileWorker::write_headers(HeaderInfo header_info) {
     StackBufferedWriter<StackBufferSize> buffered{ connection_ };
 
-    #define CHECK(expr)  if ((expr) == 0) { return false; }
+#define CHECK(expr)                                                                                                                        \
+    if ((expr) == 0) {                                                                                                                     \
+        return false;                                                                                                                      \
+    }
     CHECK(buffered.write("HTTP/1.1 %d OK\n", 200));
     CHECK(buffered.write("Content-Length: %" PRIu32 "\n", header_info.size));
     CHECK(buffered.write("Content-Type: %s\n", "text/plain"));
@@ -104,9 +112,13 @@ DownloadFileHandler::DownloadFileHandler() {
 }
 
 bool DownloadFileHandler::handle(HttpServerConnection *connection, Pool &pool) {
+    // The two calls are annoying, necessary to avoid races.
+    connection->busy(true);
     auto worker = create_pool_worker<DownloadFileWorker>(connection);
-    get_ipc()->launch_worker(WorkerCategory::Transfer, worker);
+    if (!get_ipc()->launch_worker(WorkerCategory::Transfer, worker)) {
+        connection->busy(false);
+    }
     return true;
 }
 
-}
+} // namespace fk

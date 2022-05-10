@@ -115,7 +115,7 @@ int32_t AttachedModule::take_readings(ReadingsContext ctx, ReadingsListener *lis
     }
 
     if (sensor_metas->nsensors != sensors_.size()) {
-        logwarn("[%d] sensors change");
+        logerror("[%d] sensors change (%zu vs %zu)", position_.integer(), sensor_metas->nsensors, sensors_.size());
     }
 
     auto module_readings = driver_->take_readings(ctx, *pool);
@@ -313,47 +313,7 @@ int32_t AttachedModules::create(Pool &pool) {
         return err;
     }
 
-    return 0;
-}
-
-int32_t AttachedModules::initialize(Pool &pool) {
-    auto started = fk_uptime();
-
-    loginfo("initialize begin");
-
-    auto mm = get_modmux();
-    auto gps = GpsState{};
-    auto bus = get_board()->i2c_module();
-    ScanningContext ctx{ mm, &gps, bus, pool };
-
-    for (auto &attached : modules_) {
-        auto position = attached.position();
-        logged_task lt{ pool.sprintf("module[%d]", position.integer()) };
-
-        auto module_power = attached.enable();
-        if (!module_power.enable()) {
-            logerror("[%d] error powering module", position.integer());
-            return -1;
-        }
-
-        auto sub = ctx.open_module(position, pool);
-        if (!sub.open()) {
-            logerror("[%d] choosing module", position.integer());
-        } else {
-            auto err = attached.initialize(sub, &pool);
-            if (err < 0) {
-                return err;
-            }
-        }
-    }
-
-    if (!mm->choose_nothing()) {
-        logerror("[-] deselecting");
-    }
-
-    auto elapsed = fk_uptime() - started;
-
-    loginfo("initialize elapsed=%" PRIu32 "ms", elapsed);
+    initialized_ = true;
 
     return 0;
 }

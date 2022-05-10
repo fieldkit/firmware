@@ -399,13 +399,7 @@ os_status_t os_start(void) {
     return OSS_SUCCESS;
 }
 
-extern uint32_t irq_eic_11_handler;
-
 os_status_t osi_task_status_set(os_task_t *task, os_task_status new_status) {
-#if defined(__SAMD51__)
-    OS_ASSERT(irq_eic_11_handler == 0);
-#endif
-
     OS_LOCK();
 
     uint8_t old_status = task->status;
@@ -843,8 +837,8 @@ void osi_priority_check(os_task_t *scheduled) {
         for (os_task_t *iter = osg.runqueue; iter != NULL; iter = iter->nrp) {
             if (iter->status == OS_TASK_STATUS_ACTIVE || iter->status == OS_TASK_STATUS_IDLE) {
                 if (scheduled_priority < iter->priority) {
-                    osi_printf("scheduler panic: [0x%p] '%s' (%d) < [0x%p] '%s' (%d)", scheduled, scheduled->name, scheduled_priority, iter,
-                               iter->name, iter->priority);
+                    osi_printf("scheduler panic: [0x%p] '%s' (%d) < [0x%p] '%s' (%d)\n", scheduled, scheduled->name, scheduled_priority,
+                               iter, iter->name, iter->priority);
                     osi_debug_dump(OS_PANIC_ASSERTION);
                 }
             }
@@ -854,11 +848,11 @@ void osi_priority_check(os_task_t *scheduled) {
     uint8_t priority = 0xff;
     for (os_task_t *iter = osg.runqueue; iter != NULL; iter = iter->nrp) {
         if (!(iter->status == OS_TASK_STATUS_ACTIVE || iter->status == OS_TASK_STATUS_IDLE)) {
-            osi_printf("scheduler error(sta): [0x%p] '%s' status = %s priority = %d", iter, iter->name, os_task_status_str(iter->status),
+            osi_printf("scheduler error(sta): [0x%p] '%s' status = %s priority = %d\n", iter, iter->name, os_task_status_str(iter->status),
                        iter->priority);
         }
         if (!(priority >= iter->priority)) {
-            osi_printf("scheduler error(pri): [0x%p] '%s' status = %s priority = %d", iter, iter->name, os_task_status_str(iter->status),
+            osi_printf("scheduler error(pri): [0x%p] '%s' status = %s priority = %d\n", iter, iter->name, os_task_status_str(iter->status),
                        iter->priority);
         }
         priority = iter->priority;

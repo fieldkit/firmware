@@ -21,8 +21,7 @@ static bool network_began(NetworkStatus status) {
     return status == NetworkStatus::Connected || status == NetworkStatus::Listening;
 }
 
-NetworkServices::NetworkServices(Network *network, Pool &pool)
-    : tick_pool_(pool.subpool("network-tick", 1024)), network_(network) {
+NetworkServices::NetworkServices(Network *network, Pool &pool) : tick_pool_(pool.subpool("network-tick", 1024)), network_(network) {
     started_ = fk_uptime();
 }
 
@@ -137,6 +136,8 @@ bool NetworkServices::try_begin(NetworkSettings settings, uint32_t to, Pool &poo
 
         fk_delay(100);
     } while (fk_uptime() - started < to);
+
+    stop();
 
     logwarn("try-begin: %dms (too long)", fk_uptime() - started);
 

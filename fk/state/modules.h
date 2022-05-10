@@ -113,6 +113,7 @@ private:
     using Modules = collection<AttachedModule>;
     Modules modules_{ pool_ };
     Pool *pool_{ nullptr };
+    bool initialized_{ false };
 
 public:
     AttachedModules(Modules modules, Pool &pool);
@@ -138,12 +139,15 @@ public:
         return modules_;
     }
 
+    bool initialized() const {
+        return initialized_;
+    }
+
 private:
     int32_t scan(Pool &pool);
 
 public:
     int32_t create(Pool &pool);
-    int32_t initialize(Pool &pool);
     int32_t take_readings(ReadingsListener *listener, Pool &pool);
 #if defined(__linux__)
 public:

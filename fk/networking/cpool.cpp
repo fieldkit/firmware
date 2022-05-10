@@ -61,7 +61,7 @@ void ConnectionPool::service() {
             }
 
             auto closing = c->closed() || !c->service();
-            if (closing) {
+            if (closing && !c->busy()) {
                 loginfo("[%d] closing: 0x%p", i, c);
                 // Do this before freeing to avoid a race empty pool after a
                 // long connection, for example.
@@ -131,16 +131,19 @@ void ConnectionPool::update_statistics(Connection *c) {
 
 void ConnectionPool::free_connection(uint16_t index) {
     auto connection = connections_[index];
-    auto pool = pools_[index];
-    auto number = connection->number();
 
-    connections_[index] = nullptr;
-    pools_[index] = nullptr;
+    if (!connection->busy()) {
+        auto pool = pools_[index];
+        auto number = connection->number();
 
-    logdebug("[%" PRIu32 "] [%d] free connection", number, index);
-    connection->close();
-    delete pool;
-    logdebug("[%" PRIu32 "] [%d] connection freed", number, index);
+        connections_[index] = nullptr;
+        pools_[index] = nullptr;
+
+        logdebug("[%" PRIu32 "] [%d] free connection", number, index);
+        connection->close();
+        delete pool;
+        logdebug("[%" PRIu32 "] [%d] connection freed", number, index);
+    }
 }
 
 bool ConnectionPool::active_connections() const {

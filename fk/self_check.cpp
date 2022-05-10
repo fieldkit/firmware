@@ -61,7 +61,11 @@ void SelfCheck::check(SelfCheckSettings settings, SelfCheckCallbacks &callbacks,
     status.spi_memory = to_status(spi_memory());
     callbacks.update(status);
 
-    status.wifi = to_status(wifi(pool));
+    if (settings.check_network) {
+        status.wifi = to_status(wifi(pool));
+    } else {
+        status.wifi = CheckStatus::Unknown;
+    }
     callbacks.update(status);
 
     if (settings.check_gps) {
