@@ -136,15 +136,17 @@ bool BackupWorker::write_file(FileReader *file, const char *path, Pool &pool) {
         return true;
     }
 
-    uint8_t actual[Hash::Length];
-    if (!hash_file(path, actual, pool)) {
-        return false;
-    }
+    if (verify_) {
+        uint8_t actual[Hash::Length];
+        if (!hash_file(path, actual, pool)) {
+            return false;
+        }
 
-    if (memcmp(actual, expected, Hash::Length) != 0) {
-        logerror("hash mismatch!");
-        fk_dump_memory("expected ", (uint8_t *)&expected, Hash::Length);
-        fk_dump_memory("actual   ", (uint8_t *)&actual, Hash::Length);
+        if (memcmp(actual, expected, Hash::Length) != 0) {
+            logerror("hash mismatch!");
+            fk_dump_memory("expected ", (uint8_t *)&expected, Hash::Length);
+            fk_dump_memory("actual   ", (uint8_t *)&actual, Hash::Length);
+        }
     }
 
     return true;

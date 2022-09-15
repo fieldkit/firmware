@@ -9,6 +9,7 @@ namespace fk {
 
 class BackupWorker : public Worker {
 private:
+    bool verify_{ false };
     TaskDisplayInfo info_;
 
 public:
