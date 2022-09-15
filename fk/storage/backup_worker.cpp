@@ -56,10 +56,12 @@ void BackupWorker::run(Pool &pool) {
         return;
     }
 
-    auto meta_path = pool.sprintf("/%s/meta.fkpb", formatted.cstr());
-    auto meta_file = storage.file_reader(Storage::Meta, pool);
-    if (!write_file(meta_file, meta_path, pool)) {
-        return;
+    if (!storage.is_phylum()) {
+        auto meta_path = pool.sprintf("/%s/meta.fkpb", formatted.cstr());
+        auto meta_file = storage.file_reader(Storage::Meta, pool);
+        if (!write_file(meta_file, meta_path, pool)) {
+            return;
+        }
     }
 
     auto data_path = pool.sprintf("/%s/data.fkpb", formatted.cstr());

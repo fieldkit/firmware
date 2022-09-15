@@ -17,7 +17,7 @@ namespace fk {
 /**
  * Format specifier for addresses.
  */
-#define PRADDRESS                                 "0x%08" PRIx32
+#define PRADDRESS "0x%08" PRIx32
 
 struct SavedState {
     FileHeader files[NumberOfFiles];
@@ -60,6 +60,10 @@ public:
 public:
     Phylum &phylum() {
         return phylum_;
+    }
+
+    bool is_phylum() const {
+        return using_phylum_;
     }
 
     DataOps *data_ops();
@@ -131,7 +135,8 @@ private:
         BlocksAfter() : starting(InvalidAddress), free(InvalidAddress), tail(InvalidAddress), bytes(0), records(0) {
         }
 
-        BlocksAfter(BlockNumber starting, BlockNumber free, BlockNumber tail, StorageSize bytes, RecordNumber records) : starting(starting), free(free), tail(tail), bytes(bytes), records(records) {
+        BlocksAfter(BlockNumber starting, BlockNumber free, BlockNumber tail, StorageSize bytes, RecordNumber records)
+            : starting(starting), free(free), tail(tail), bytes(bytes), records(records) {
         }
 
         operator bool() const {
@@ -140,7 +145,6 @@ private:
     };
 
     BlocksAfter find_blocks_after(uint32_t starting_block, FileNumber file, RecordNumber record);
-
 };
 
 inline bool is_memory_completely(uint8_t const *data, size_t size, uint8_t byte) {
@@ -160,4 +164,4 @@ inline bool is_memory_zeros(uint8_t const *data, size_t size) {
     return is_memory_completely(data, size, 0x00);
 }
 
-}
+} // namespace fk
