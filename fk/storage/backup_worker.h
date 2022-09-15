@@ -8,6 +8,9 @@
 namespace fk {
 
 class BackupWorker : public Worker {
+private:
+    TaskDisplayInfo info_;
+
 public:
     explicit BackupWorker();
 
@@ -19,10 +22,13 @@ public:
         return "backup";
     }
 
+    TaskDisplayInfo display_info() const override {
+        return info_;
+    }
+
 private:
     bool write_file(FileReader *file, const char *path, Pool &pool);
     bool hash_file(const char *path, uint8_t *hash, Pool &pool);
-
 };
 
 FK_ENABLE_TYPE_NAME(BackupWorker);

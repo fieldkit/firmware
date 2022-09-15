@@ -17,7 +17,7 @@ namespace fk {
 
 FK_DECLARE_LOGGER("backup");
 
-BackupWorker::BackupWorker() {
+BackupWorker::BackupWorker() : info_{ "Backup", 0.0f, true } {
 }
 
 void BackupWorker::run(Pool &pool) {
@@ -104,6 +104,8 @@ bool BackupWorker::write_file(FileReader *file, const char *path, Pool &pool) {
             if (writing->write(buffer, bytes) == bytes) {
                 bytes_copied += bytes;
             }
+
+            info_.progress = (float)bytes_copied / info->size;
         } else {
             break;
         }
