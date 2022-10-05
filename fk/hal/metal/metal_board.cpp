@@ -150,7 +150,7 @@ void Board::enable_wifi() {
 
 EepromLock Board::lock_eeprom() {
 #if defined(FK_UNDERWATER)
-    FK_ASSERT(false);
+    // FK_ASSERT(false);
     return EepromLock{ 0 };
 #else
     digitalWrite(MODULE_EEPROM_LOCK, HIGH);
@@ -164,7 +164,7 @@ EepromLock Board::lock_eeprom() {
 
 void Board::release_eeprom() {
 #if defined(FK_UNDERWATER)
-    FK_ASSERT(false);
+    // FK_ASSERT(false);
 #else
     digitalWrite(MODULE_EEPROM_LOCK, LOW);
 #endif
