@@ -305,7 +305,19 @@ void MenuView::create_module_menu() {
         loginfo("program distance: %d", selected_module_bay_.integer());
         get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, header));
     });
-    auto program_menu = new_menu_screen<8>(pool_, "program",
+    auto program_omni_water = to_lambda_option(pool_, "Omni Water", [=]() {
+        back_->on_selected();
+        views_->show_module_status();
+        ModuleHeader header = {
+            .manufacturer = FK_MODULES_MANUFACTURER,
+            .kind = FK_MODULES_KIND_WATER_OMNI,
+            .version = 0x01,
+            .id = { 0 },
+        };
+        loginfo("program omni-water: %d", selected_module_bay_.integer());
+        get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, header));
+    });
+    auto program_menu = new_menu_screen<9>(pool_, "program",
                                            {
                                                back_,
                                                program_weather,
@@ -315,6 +327,7 @@ void MenuView::create_module_menu() {
                                                program_water_temp,
                                                program_water_orp,
                                                program_distance,
+                                               program_omni_water,
                                            });
 
     auto module_back = to_lambda_option(pool_, "Back", [=]() { views_->show_module_status(); });
@@ -357,7 +370,7 @@ void MenuView::create_confirmation_menu() {
 }
 
 template <size_t N, typename T>
-MenuScreen *create_numeric_selection(const char *f, int32_t(&&numbers)[N], MenuOption *back, Pool *pool, T on_selected) {
+MenuScreen *create_numeric_selection(const char *f, int32_t (&&numbers)[N], MenuOption *back, Pool *pool, T on_selected) {
     auto options = (MenuOption **)pool->malloc(sizeof(MenuOption *) * (N + 2));
     auto index = 0u;
 
