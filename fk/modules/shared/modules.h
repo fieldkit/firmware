@@ -39,6 +39,7 @@ uint8_t fk_module_is_available_i2c_address(uint8_t address);
 #define FK_MODULES_KIND_WATER_DO                   (0x11)
 #define FK_MODULES_KIND_WATER_TEMP                 (0x12)
 #define FK_MODULES_KIND_WATER_ORP                  (0x13)
+#define FK_MODULES_KIND_WATER_OMNI                 (0x14)
 
 #define FK_MODULES_KIND_RANDOM                     (0xa0)
 #define FK_MODULES_KIND_DIAGNOSTICS                (0xa1)

@@ -38,6 +38,12 @@ function(fk_add_builtin_module name)
   find_package(Samd51Common)
   target_link_libraries(${target_name} Samd51Common)
 
+  # OmniWater depends on and uses code from the standard, separate water modules.
+  # TODO Would be nice to generalize this as a parameter to fk_add_builtin_module.
+  if(${name} MATCHES "omni_water")
+    target_include_directories(${target_name} PUBLIC ${CMAKE_SOURCE_DIR}/modules/water/main)
+  endif()
+
   # NOTE: For DateTime
   find_package(lwcron)
   target_link_libraries(${target_name} lwcron)
@@ -146,6 +152,7 @@ fk_add_builtin_module(weather)
 fk_add_builtin_module(distance)
 fk_add_builtin_module(atlas)
 fk_add_builtin_module(water)
+fk_add_builtin_module(omni_water) # TODO: If FKUW
 
 if(${FK_TARGET_QSPI_MEMORY})
   configure_firmware_linker_script(fk-bundled ${CMAKE_SOURCE_DIR}/boards/samd51/qspi.ld)
