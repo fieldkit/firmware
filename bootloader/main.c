@@ -7,8 +7,12 @@
 
 #include "bl.h"
 
-#define FK_BUTTON_LEFT             GPIO(GPIO_PORTA, 23)
-#define FK_FAILSAFE_HOLD_TIME      1000 * 10
+#if defined(FK_UNDERWATER)
+#define FK_BUTTON_LEFT GPIO(GPIO_PORTB, 0)
+#else
+#define FK_BUTTON_LEFT GPIO(GPIO_PORTA, 23)
+#endif
+#define FK_FAILSAFE_HOLD_TIME 1000 * 10
 
 extern enum reset_reason _get_reset_reason(void);
 

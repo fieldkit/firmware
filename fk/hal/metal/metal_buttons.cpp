@@ -38,10 +38,18 @@ bool MetalButtons::begin() {
     };
 
     setup_t setups[] = {
-        { BUTTON_LEFT,     Buttons::Left,     irq_button_left,     EIC_7_IRQn },
-        { BUTTON_MIDDLE,   Buttons::Middle,   irq_button_middle,   EIC_6_IRQn },
-        { BUTTON_RIGHT,    Buttons::Right,    irq_button_right,    EIC_5_IRQn },
+#if defined(FK_UNDERWATER)
+        // Would love to DRY this up with the IRQs defined in the Arduino table.
+        { BUTTON_LEFT, Buttons::Left, irq_button_left, EIC_0_IRQn },
+        { BUTTON_MIDDLE, Buttons::Middle, irq_button_middle, EIC_1_IRQn },
+        { BUTTON_RIGHT, Buttons::Right, irq_button_right, EIC_2_IRQn },
+        { BUTTON_EXTERNAL, Buttons::External, irq_button_external, EIC_0_IRQn },
+#else
+        { BUTTON_LEFT, Buttons::Left, irq_button_left, EIC_7_IRQn },
+        { BUTTON_MIDDLE, Buttons::Middle, irq_button_middle, EIC_6_IRQn },
+        { BUTTON_RIGHT, Buttons::Right, irq_button_right, EIC_5_IRQn },
         { BUTTON_EXTERNAL, Buttons::External, irq_button_external, EIC_4_IRQn },
+#endif
     };
 
     for (auto &s : setups) {

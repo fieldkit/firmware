@@ -21,10 +21,17 @@ constexpr uint8_t SPI_FLASH_CS_BANK_2 = 41u; // PC12
 constexpr uint8_t SPI_FLASH_CS_BANK_3 = 40u; // PC13
 constexpr uint8_t SPI_FLASH_CS_BANK_4 = 43u; // PC14
 
-constexpr uint8_t BUTTON_RIGHT = 32u;    // PA21
-constexpr uint8_t BUTTON_MIDDLE = 31u;   // PA22
+#if defined(FK_UNDERWATER)
+constexpr uint8_t BUTTON_LEFT = 12u;   // PB00
+constexpr uint8_t BUTTON_MIDDLE = 13u; // PB01
+constexpr uint8_t BUTTON_RIGHT = 9u;   // PB02
+constexpr uint8_t BUTTON_EXTERNAL = BUTTON_LEFT;
+#else
 constexpr uint8_t BUTTON_LEFT = 30u;     // PA23
+constexpr uint8_t BUTTON_MIDDLE = 31u;   // PA22
+constexpr uint8_t BUTTON_RIGHT = 32u;    // PA21
 constexpr uint8_t BUTTON_EXTERNAL = 74u; // PB04
+#endif
 
 constexpr uint8_t LORA_POWER = 76u; // PC30
 
