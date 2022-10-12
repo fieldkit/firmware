@@ -85,26 +85,6 @@ static void run_tasks() {
     OS_CHECK(os_start());
 }
 
-static bool initialize_backplane() {
-    if (false) {
-        if (get_module_leds()->begin()) {
-            get_module_leds()->off();
-        }
-
-        if (!get_modmux()->begin()) {
-            logerror("no backplane!");
-
-            get_board()->i2c_module().recover();
-
-            if (get_modmux()->begin()) {
-                loginfo("i2c recover worked!");
-            }
-        }
-    }
-
-    return true;
-}
-
 static bool initialize_hardware() {
     FK_ASSERT(get_board()->initialize());
 
@@ -118,8 +98,6 @@ static bool initialize_hardware() {
 
     fk_delay(10);
 
-    initialize_backplane();
-
     return true;
 }
 
@@ -132,21 +110,7 @@ static void single_threaded_setup() {
 
     FK_ASSERT(fk_log_diagnostics());
 }
-/*
-static bool need_segger_initialize() {
-    SEGGER_RTT_CB* p = &_SEGGER_RTT;
-    if (strncmp(&p->acID[7], "RTT", 3) != 0) {
-        return true;
-    }
-    if (strncmp(&p->acID[6], "SEGGER", 6) != 0) {
-        return true;
-    }
-    if (p->acID[6] != ' ') {
-        return true;
-    }
-    return false;
-}
-*/
+
 void setup() {
     SEGGER_RTT_WriteString(0, "\n");
     single_threaded_setup();
