@@ -99,11 +99,7 @@ void Board::enable_everything() {
 }
 
 void Board::disable_gps() {
-#if defined(FK_UNDERWATER)
-    FK_ASSERT(false);
-#else
     digitalWrite(GPS_POWER, LOW);
-#endif
 }
 
 void Board::enable_gps() {
