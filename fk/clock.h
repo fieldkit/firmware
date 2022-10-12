@@ -40,24 +40,23 @@ public:
     void compare();
 
 public:
+#if !defined(FK_UNDERWATER)
     void read_timestamp_registers();
 
     void clear_timestamp_registers();
 
+    void log_tsr(uint8_t *ts);
+#endif
+
 private:
     bool adjust_internal(DateTime now);
-
-    void log_tsr(uint8_t *ts);
-
 };
 
-template<size_t N>
-constexpr size_t length(char const (&)[N]) {
+template <size_t N> constexpr size_t length(char const (&)[N]) {
     return N - 1;
 }
 
-template <typename T>
-constexpr T const &constexpr_max(T const &a, T const &b) {
+template <typename T> constexpr T const &constexpr_max(T const &a, T const &b) {
     return a > b ? a : b;
 }
 
@@ -67,11 +66,11 @@ constexpr const char *TimeFormatMachine = "%04d%02d%02d_%02d%02d%02d";
 constexpr size_t MaximumLengthOfMachineTimeString = length("00000000_000000");
 constexpr const char *TimeFormatLogs = "%04d%02d%02d_%02d%02d";
 constexpr size_t MaximumLengthOfLogsTimeString = length("00000000_0000");
-constexpr size_t MaximumLengthOfTimeString = constexpr_max(constexpr_max(MaximumLengthOfReadableTimeString, MaximumLengthOfMachineTimeString), MaximumLengthOfLogsTimeString);
+constexpr size_t MaximumLengthOfTimeString =
+    constexpr_max(constexpr_max(MaximumLengthOfReadableTimeString, MaximumLengthOfMachineTimeString), MaximumLengthOfLogsTimeString);
 
 class FormattedTime {
 public:
-
 private:
     char buffer_[MaximumLengthOfTimeString + 1];
 
@@ -88,8 +87,6 @@ private:
     static void time_to_string(const char *f, char *buffer, size_t length, DateTime dt) {
         tiny_snprintf(buffer, length, f, dt.year(), dt.month(), dt.day(), dt.hour(), dt.minute(), dt.second());
     }
-
-
 };
 
 CoreClock *get_clock();
@@ -100,4 +97,4 @@ uint32_t clock_adjust(uint32_t new_epoch);
 
 uint32_t clock_adjust_maybe(uint32_t new_epoch);
 
-}
+} // namespace fk

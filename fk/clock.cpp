@@ -15,32 +15,32 @@ namespace fk {
 
 #if defined(__SAMD51__)
 
-#define CTRL_OFFSET           0x24
-#define CTRL_OSCILLATOR       0x25
-#define CTRL_BATTERY          0x26
-#define CTRL_PIN_IO           0x27
-#define CTRL_FUNCTION         0x28
-#define CTRL_INTA_EN          0x29
-#define CTRL_INTB_EN          0x2a
-#define CTRL_FLAGS            0x2b
-#define CTRL_RAMBYTE          0x2c
-#define CTRL_WDOG             0x2d
-#define CTRL_STOP_EN          0x2e
-#define CTRL_RESETS           0x2f
-#define CTRL_RAM              0x40
+#define CTRL_OFFSET     0x24
+#define CTRL_OSCILLATOR 0x25
+#define CTRL_BATTERY    0x26
+#define CTRL_PIN_IO     0x27
+#define CTRL_FUNCTION   0x28
+#define CTRL_INTA_EN    0x29
+#define CTRL_INTB_EN    0x2a
+#define CTRL_FLAGS      0x2b
+#define CTRL_RAMBYTE    0x2c
+#define CTRL_WDOG       0x2d
+#define CTRL_STOP_EN    0x2e
+#define CTRL_RESETS     0x2f
+#define CTRL_RAM        0x40
 
-#define FLAGS_TSR1F	          BIT(0)
-#define FLAGS_TSR2F	          BIT(1)
-#define FLAGS_TSR3F	          BIT(2)
-#define FLAGS_BSF             BIT(3)
-#define FLAGS_WDF             BIT(4)
-#define FLAGS_A1F             BIT(5)
-#define FLAGS_A2F             BIT(6)
-#define FLAGS_PIF             BIT(7)
+#define FLAGS_TSR1F BIT(0)
+#define FLAGS_TSR2F BIT(1)
+#define FLAGS_TSR3F BIT(2)
+#define FLAGS_BSF   BIT(3)
+#define FLAGS_WDF   BIT(4)
+#define FLAGS_A1F   BIT(5)
+#define FLAGS_A2F   BIT(6)
+#define FLAGS_PIF   BIT(7)
 
-#define NVRAM_SIZE	          0x40
-#define RESET_CPR	            0xa4
-#define STOP_EN_STOP	        BIT(0)
+#define NVRAM_SIZE   0x40
+#define RESET_CPR    0xa4
+#define STOP_EN_STOP BIT(0)
 
 FK_DECLARE_LOGGER("clock");
 
@@ -53,6 +53,7 @@ static void CALENDAR_0_initialize(void) {
     calendar_init(&CALENDAR_0, RTC);
 }
 
+#if !defined(FK_UNDERWATER)
 static uint8_t bcd2bin(uint8_t val) {
     return val - 6 * (val >> 4);
 }
@@ -60,6 +61,7 @@ static uint8_t bcd2bin(uint8_t val) {
 static uint8_t bin2bcd(uint8_t val) {
     return val + 6 * (val / 10);
 }
+#endif
 
 CoreClock::CoreClock() {
 }
@@ -86,6 +88,8 @@ bool CoreClock::configure() {
 
     auto bus = get_board()->i2c_core();
 
+#if defined(FK_UNDERWATER)
+#else
     uint8_t bsm;
     if (!I2C_CHECK(bus.read_register_u8(Address, 0x26, bsm))) {
         return false;
@@ -97,6 +101,7 @@ bool CoreClock::configure() {
             return false;
         }
     }
+#endif
 
     configured_ = true;
 
@@ -159,6 +164,8 @@ bool CoreClock::adjust_internal(DateTime now) {
 bool CoreClock::adjust(DateTime now) {
     auto bus = get_board()->i2c_core();
 
+#if defined(FK_UNDERWATER)
+#else
     uint8_t adjust_command[] = {
         CTRL_STOP_EN,
         STOP_EN_STOP,
@@ -183,6 +190,7 @@ bool CoreClock::adjust(DateTime now) {
     if (!I2C_CHECK(bus.write(Address, &resume_command, sizeof(resume_command)))) {
         return false;
     }
+#endif
 
     return adjust_internal(now);
 }
@@ -192,12 +200,7 @@ bool CoreClock::internal(DateTime &time) {
     calendar_get_date_time(&CALENDAR_0, &mcu_time);
 
     time = DateTime{
-        mcu_time.date.year,
-        mcu_time.date.month,
-        mcu_time.date.day,
-        mcu_time.time.hour,
-        mcu_time.time.min,
-        mcu_time.time.sec,
+        mcu_time.date.year, mcu_time.date.month, mcu_time.date.day, mcu_time.time.hour, mcu_time.time.min, mcu_time.time.sec,
     };
 
     return true;
@@ -206,6 +209,8 @@ bool CoreClock::internal(DateTime &time) {
 bool CoreClock::external(DateTime &time) {
     auto bus = get_board()->i2c_core();
 
+#if defined(FK_UNDERWATER)
+#else
     uint8_t data[8];
     if (!I2C_CHECK(bus.read_register_buffer(Address, 0x00, data, sizeof(data)))) {
         return false;
@@ -216,14 +221,9 @@ bool CoreClock::external(DateTime &time) {
         loginfo("possible accuracy error!");
     }
 
-    time = DateTime{
-        (uint16_t)(bcd2bin(data[7]) + 2000),
-        bcd2bin(data[6] & 0b00011111),
-        bcd2bin(data[4] & 0b00111111),
-        bcd2bin(data[3] & 0b00111111),
-        bcd2bin(data[2] & 0b01111111),
-        bcd2bin(data[1] & 0b01111111)
-    };
+    time = DateTime{ (uint16_t)(bcd2bin(data[7]) + 2000), bcd2bin(data[6] & 0b00011111), bcd2bin(data[4] & 0b00111111),
+                     bcd2bin(data[3] & 0b00111111),       bcd2bin(data[2] & 0b01111111), bcd2bin(data[1] & 0b01111111) };
+#endif
 
     return true;
 }
@@ -244,6 +244,7 @@ DateTime CoreClock::get_external() {
     return time;
 }
 
+#if !defined(FK_UNDERWATER)
 void CoreClock::read_timestamp_registers() {
     auto bus = get_board()->i2c_core();
 
@@ -266,16 +267,10 @@ void CoreClock::clear_timestamp_registers() {
 }
 
 void CoreClock::log_tsr(uint8_t *ts) {
-    loginfo("tsr: %04d/%02d/%02d %02d:%02d:%02d.%d",
-            bcd2bin(ts[6]) + 2000,
-            bcd2bin(ts[5] & 0b00011111),
-            bcd2bin(ts[4] & 0b00111111),
-            bcd2bin(ts[3] & 0b00111111),
-            bcd2bin(ts[2] & 0b01111111),
-            bcd2bin(ts[1] & 0b01111111),
-            bcd2bin(ts[0])
-        );
+    loginfo("tsr: %04d/%02d/%02d %02d:%02d:%02d.%d", bcd2bin(ts[6]) + 2000, bcd2bin(ts[5] & 0b00011111), bcd2bin(ts[4] & 0b00111111),
+            bcd2bin(ts[3] & 0b00111111), bcd2bin(ts[2] & 0b01111111), bcd2bin(ts[1] & 0b01111111), bcd2bin(ts[0]));
 }
+#endif
 
 void CoreClock::compare() {
     DateTime internal_time;
@@ -294,8 +289,7 @@ void CoreClock::compare() {
     if (diff > TimeDriftWarnThreshold || diff < -TimeDriftWarnThreshold) {
         FormattedTime internal_formatted{ internal_unix };
         FormattedTime external_formatted{ external_unix };
-        loginfo("drift: '%s' -> '%s' (%" PRIu32 " - %" PRIu32 " = %" PRId64 ")",
-                external_formatted.cstr(), internal_formatted.cstr(),
+        loginfo("drift: '%s' -> '%s' (%" PRIu32 " - %" PRIu32 " = %" PRId64 ")", external_formatted.cstr(), internal_formatted.cstr(),
                 external_unix, internal_unix, diff);
         if (!adjust_internal(external_time)) {
             logerror("error adjusting internal clock");
@@ -318,8 +312,8 @@ uint32_t clock_adjust(uint32_t new_epoch) {
 
     FormattedTime new_formatted{ new_epoch };
     FormattedTime old_formatted{ old_epoch };
-    loginfo("utc: '%s' -> '%s' (%" PRIu32 " - %" PRIu32 " = %" PRId64 ")", old_formatted.cstr(), new_formatted.cstr(),
-            old_epoch, new_epoch, (int64_t)new_epoch - old_epoch);
+    loginfo("utc: '%s' -> '%s' (%" PRIu32 " - %" PRIu32 " = %" PRId64 ")", old_formatted.cstr(), new_formatted.cstr(), old_epoch, new_epoch,
+            (int64_t)new_epoch - old_epoch);
 
     return new_epoch;
 }
