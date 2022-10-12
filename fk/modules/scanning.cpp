@@ -160,13 +160,15 @@ tl::expected<FoundModuleCollection, Error> ModuleScanning::scan(Pool &pool) {
 }
 
 bool ModuleScanning::provision(ModulePosition position, ModuleHeader &header) {
-    if (!available()) {
-        return false;
-    }
+    if (position.requires_mod_mux()) {
+        if (!available()) {
+            return false;
+        }
 
-    if (!mm_->choose(position)) {
-        logerror("[%d] error choosing module", position.integer());
-        return false;
+        if (!mm_->choose(position)) {
+            logerror("[%d] error choosing module", position.integer());
+            return false;
+        }
     }
 
     auto module_bus = get_board()->i2c_module();

@@ -39,6 +39,10 @@ public:
         return integer_;
     }
 
+    bool requires_mod_mux() const {
+        return integer_ > 0;
+    }
+
 public:
     static const ModulePosition Virtual;
     static const ModulePosition None;
