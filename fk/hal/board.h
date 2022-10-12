@@ -166,6 +166,7 @@ public:
     SerialWrapper gps_serial();
 
 public:
+    AcquireTwoWireBus *acquire_i2c_core();
     AcquireTwoWireBus *acquire_i2c_radio();
     AcquireTwoWireBus *acquire_i2c_module();
 };

@@ -107,6 +107,13 @@ int32_t TwoWireWrapper::read_register_u16(uint8_t address, uint8_t reg, uint16_t
     return 0;
 }
 
+class AcquireBusI2cCore : public AcquireTwoWireBus {
+public:
+    TwoWireWrapper acquire() override {
+        return get_board()->i2c_core();
+    }
+};
+
 class AcquireBusI2cRadio : public AcquireTwoWireBus {
 public:
     TwoWireWrapper acquire() override {
@@ -120,6 +127,12 @@ public:
         return get_board()->i2c_module();
     }
 };
+
+AcquireBusI2cCore acquire_i2c_core_;
+
+AcquireTwoWireBus *Board::acquire_i2c_core() {
+    return &acquire_i2c_core_;
+}
 
 AcquireBusI2cRadio acquire_i2c_radio_;
 
