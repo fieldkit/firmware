@@ -73,7 +73,7 @@ enable_arduino_toolchain()
 
 enable_language(ASM)
 
-enable_m4_board(fieldkit_underwater)
+enable_m4_board(${FIELDKIT_BOARD})
 
 file(GLOB_RECURSE sources *.cpp *.c *.h *.s)
 
@@ -152,7 +152,11 @@ fk_add_builtin_module(weather)
 fk_add_builtin_module(distance)
 fk_add_builtin_module(atlas)
 fk_add_builtin_module(water)
-fk_add_builtin_module(omni_water) # TODO: If FKUW
+
+if(${FIELDKIT_BOARD} STREQUAL "fieldkit_underwater")
+  fk_add_builtin_module(omni_water)
+  target_compile_options(fk-bundled PRIVATE -DFK_UNDERWATER=1)
+endif()
 
 if(${FK_TARGET_QSPI_MEMORY})
   configure_firmware_linker_script(fk-bundled ${CMAKE_SOURCE_DIR}/boards/samd51/qspi.ld)
@@ -165,11 +169,9 @@ if (${FK_PHYLUM})
   target_compile_options(fk-bundled PRIVATE -DFK_VERSION=${FK_VERSION} -DFK_PHYLUM=1)
   target_compile_options(fk-bundled PRIVATE -DFK_PHYLUM_AMPLIFICATION=${FK_PHYLUM_AMPLIFICATION})
   target_compile_options(fk-bundled PRIVATE -DFK_DEBUG_LOGGING_SD_DISABLED=1)
-  target_compile_options(fk-bundled PRIVATE -DFK_UNDERWATER=1)
 else()
   target_compile_options(fk-bundled PRIVATE -DFK_VERSION=${FK_VERSION})
   target_compile_options(fk-bundled PRIVATE -DFK_DEBUG_LOGGING_SD_DISABLED=1)
-  target_compile_options(fk-bundled PRIVATE -DFK_UNDERWATER=1)
 endif()
 
 add_arduino_firmware(fk-bundled)

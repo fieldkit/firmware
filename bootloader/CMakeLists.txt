@@ -11,11 +11,15 @@ enable_arduino_toolchain()
 
 enable_language(ASM)
 
-enable_m4_board(fieldkit_core)
+enable_m4_board(${FIELDKIT_BOARD})
 
 file(GLOB sources *.cpp *.c *.s *.h)
 
 add_arduino_library(fkbl "${sources}")
+
+if(${FIELDKIT_BOARD} STREQUAL "fieldkit_underwater")
+    target_compile_options(fkbl PRIVATE -DFK_UNDERWATER=1)
+endif()
 
 target_compile_options(fkbl PRIVATE -Wall -Werror -Wno-main)
 
@@ -39,7 +43,6 @@ target_link_libraries(fkbl arduino-logging)
 target_include_directories(fkbl PUBLIC ${CMAKE_SOURCE_DIR}/fk/common)
 
 target_compile_options(fkbl PRIVATE -DFK_VERSION=${FK_VERSION})
-target_compile_options(fkbl PRIVATE -DFK_UNDERWATER=1)
 
 configure_firmware_linker_script(fkbl ${CMAKE_SOURCE_DIR}/boards/samd51/bootloader.ld)
 
