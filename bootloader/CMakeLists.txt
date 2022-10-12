@@ -39,6 +39,7 @@ target_link_libraries(fkbl arduino-logging)
 target_include_directories(fkbl PUBLIC ${CMAKE_SOURCE_DIR}/fk/common)
 
 target_compile_options(fkbl PRIVATE -DFK_VERSION=${FK_VERSION})
+target_compile_options(fkbl PRIVATE -DFK_UNDERWATER=1)
 
 configure_firmware_linker_script(fkbl ${CMAKE_SOURCE_DIR}/boards/samd51/bootloader.ld)
 

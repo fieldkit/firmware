@@ -67,7 +67,7 @@ enable_arduino_toolchain()
 
 enable_language(ASM)
 
-enable_m4_board(fieldkit_core)
+enable_m4_board(fieldkit_underwater)
 
 file(GLOB_RECURSE sources *.cpp *.c *.h *.s)
 
@@ -158,8 +158,11 @@ if (${FK_PHYLUM})
   target_compile_options(fk-bundled PRIVATE -DFK_VERSION=${FK_VERSION} -DFK_PHYLUM=1)
   target_compile_options(fk-bundled PRIVATE -DFK_PHYLUM_AMPLIFICATION=${FK_PHYLUM_AMPLIFICATION})
   target_compile_options(fk-bundled PRIVATE -DFK_DEBUG_LOGGING_SD_DISABLED=1)
+  target_compile_options(fk-bundled PRIVATE -DFK_UNDERWATER=1)
 else()
   target_compile_options(fk-bundled PRIVATE -DFK_VERSION=${FK_VERSION})
+  target_compile_options(fk-bundled PRIVATE -DFK_DEBUG_LOGGING_SD_DISABLED=1)
+  target_compile_options(fk-bundled PRIVATE -DFK_UNDERWATER=1)
 endif()
 
 add_arduino_firmware(fk-bundled)
