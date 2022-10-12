@@ -55,6 +55,13 @@ void StartupWorker::fkb_header(fkb_header_t *fkb_header) {
 }
 
 void StartupWorker::run(Pool &pool) {
+#if defined(FK_UNDERWATER)
+    const uint8_t AccessoriesPower = 23u;
+    loginfo("fkuw: accessories: on");
+    pinMode(AccessoriesPower, OUTPUT);
+    digitalWrite(AccessoriesPower, HIGH);
+#endif
+
     get_board()->i2c_core().begin();
 
 #if defined(__SAMD51__)
@@ -66,8 +73,9 @@ void StartupWorker::run(Pool &pool) {
     fk_live_tests();
 #endif
 
-    loginfo("ready display");
+    loginfo("readying display");
     auto display = get_display();
+    loginfo("display ready");
 
     loginfo("check for self test startup");
     if (check_for_self_test_startup(pool)) {
@@ -105,6 +113,7 @@ void StartupWorker::run(Pool &pool) {
     BatteryChecker battery_checker;
     battery_checker.refresh(true);
 
+#if !defined(FK_UNDERWATER)
     if (battery_checker.available()) {
         if (!battery_checker.low_power()) {
             display->company_logo();
@@ -113,6 +122,9 @@ void StartupWorker::run(Pool &pool) {
         fk_fault_set(&BatteryGaugeFailure);
         display->fault(&BatteryGaugeFailure);
     }
+#else
+    logwarn("fkuw: skipping battery check");
+#endif
 
     // NOTE Power cycle modules, this gives us a fresh start. Some times behave
     // funny, specifically temperature. Without this the first attempt down
@@ -160,7 +172,12 @@ void StartupWorker::run(Pool &pool) {
 
     // Run self check and initialize modules if we have sufficient power.
     if (!battery_checker.low_power()) {
-        self_check.check(SelfCheckSettings::defaults(), noop_callbacks, &pool);
+#if defined(FK_UNDERWATER)
+        auto settings = SelfCheckSettings::fkuw_defaults();
+#else
+        auto settings = SelfCheckSettings::defaults();
+#endif
+        self_check.check(settings, noop_callbacks, &pool);
 
         mm->enable_all_modules();
 

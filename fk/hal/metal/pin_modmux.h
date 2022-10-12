@@ -4,14 +4,9 @@
 
 namespace fk {
 
-class MetalModMux : public ModMux {
-private:
-    uint8_t gpio_{ 0 };
-    ModulePosition active_module_{ ModulePosition::None };
-    ModulePower bay_power_[MaximumNumberOfPhysicalModules];
-
+class PinModMux : public ModMux {
 public:
-    MetalModMux();
+    PinModMux();
 
 public:
     bool begin() override;
@@ -30,12 +25,6 @@ public:
     bool any_modules_on(ModulePower power) override;
     bool is_module_on(ModulePosition position) override;
     bool read_eeprom(uint32_t address, uint8_t *data, size_t size) override;
-
-public:
-    void irq();
-
-private:
-    bool update_gpio(uint8_t new_gpio);
 };
 
 } // namespace fk

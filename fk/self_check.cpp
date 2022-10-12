@@ -46,10 +46,13 @@ void SelfCheck::check(SelfCheckSettings settings, SelfCheckCallbacks &callbacks,
     status.rtc = to_status(rtc());
     callbacks.update(status);
 
-    status.battery_gauge = to_status(battery_gauge());
-    callbacks.update(status);
-
-    status.solar_gauge = to_status(solar_gauge());
+    if (settings.check_battery) {
+        status.battery_gauge = to_status(battery_gauge());
+        status.solar_gauge = to_status(solar_gauge());
+    } else {
+        status.battery_gauge = CheckStatus::Unknown;
+        status.solar_gauge = CheckStatus::Unknown;
+    }
     callbacks.update(status);
 
     status.temperature = to_status(temperature());

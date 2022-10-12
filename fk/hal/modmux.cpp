@@ -59,12 +59,14 @@ bool ModMux::check_modules() {
     return false;
 }
 
-ModulesLock::ModulesLock() {}
+ModulesLock::ModulesLock() {
+}
 
 ModulesLock::ModulesLock(ModulesLock const &o) : eeprom_(o.eeprom_), locked_(o.locked_) {
 }
 
-ModulesLock::ModulesLock(Lock lock, EepromLock eeprom, uint32_t locked) : lock_(std::move(lock)), eeprom_(std::move(eeprom)), locked_(locked) {
+ModulesLock::ModulesLock(Lock lock, EepromLock eeprom, uint32_t locked)
+    : lock_(std::move(lock)), eeprom_(std::move(eeprom)), locked_(locked) {
 }
 
 ModulesLock::ModulesLock(ModulesLock &&o) : lock_(std::move(o.lock_)), eeprom_(std::move(o.eeprom_)), locked_(exchange(o.locked_, 0)) {
@@ -105,8 +107,7 @@ Topology::Topology(uint8_t value) : value_(value) {
     for (auto i = 0u; i < 4u; ++i) {
         if (value_ & (1 << ((i * 2) + 1))) {
             *ptr = '0' + i;
-        }
-        else {
+        } else {
             *ptr = ' ';
         }
         ptr++;
@@ -114,8 +115,7 @@ Topology::Topology(uint8_t value) : value_(value) {
     for (auto i = 0u; i < 4u; ++i) {
         if (value_ & (1 << ((i * 2) + 0))) {
             *ptr = '0' + i;
-        }
-        else {
+        } else {
             *ptr = ' ';
         }
         ptr++;
@@ -129,7 +129,11 @@ bool Topology::all_modules_on() const {
 }
 
 #if defined(FK_HARDWARE_FULL)
+#if defined(FK_UNDERWATER)
+PinModMux mm;
+#else
 MetalModMux mm;
+#endif
 #else
 LinuxModMux mm;
 #endif
@@ -138,4 +142,4 @@ ModMux *get_modmux() {
     return &mm;
 }
 
-}
+} // namespace fk

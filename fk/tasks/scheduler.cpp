@@ -41,17 +41,23 @@ static ScheduledTime get_next_task_time(uint32_t now, lwcron::Task &task) {
 }
 
 void task_handler_scheduler(void *params) {
-    BatteryChecker battery;
+    auto display_off = 0;
 
+#if defined(FK_UNDERWATER)
+    NoopBatteryChecker battery;
+#else
+    BatteryChecker battery;
     battery.refresh();
+#endif
 
     GpsService gps_service{ get_gps() };
 
-    auto display_off = 0;
-
     if (!battery.low_power()) {
         FK_ASSERT(fk_start_task_if_necessary(&display_task));
+
+#if !defined(FK_UNDERWATER)
         FK_ASSERT(fk_start_task_if_necessary(&network_task));
+#endif
 
         if (!gps_service.begin()) {
             logerror("gps");
@@ -70,15 +76,19 @@ void task_handler_scheduler(void *params) {
         auto schedules = get_config_schedules();
 
         ReadingsTask readings_job{ schedules.readings };
+        SynchronizeTimeTask synchronize_time_job{ DefaultSynchronizeTimeInterval };
         BackupTask backup_job{ schedules.backup };
         UploadDataTask upload_data_job{ schedules.network, schedules.network_jitter };
         LoraTask lora_job{ schedules.lora };
         GpsTask gps_job{ schedules.gps, gps_service };
         ServiceModulesTask service_modules_job{ schedules.service_interval };
-        SynchronizeTimeTask synchronize_time_job{ DefaultSynchronizeTimeInterval };
 
+#if !defined(FK_UNDERWATER)
         lwcron::Task *tasks[7]{ &synchronize_time_job, &readings_job, &upload_data_job, &lora_job, &gps_job,
                                 &service_modules_job,  &backup_job };
+#else
+        lwcron::Task *tasks[4]{ &synchronize_time_job, &readings_job, &backup_job, &gps_job };
+#endif
         lwcron::Scheduler scheduler{ tasks };
         Topology topology;
 

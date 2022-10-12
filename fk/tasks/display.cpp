@@ -128,7 +128,9 @@ public:
 
     void on_external() override {
         show_home(); // show_qr_code
+#if !defined(FK_UNDERWATER)
         get_ipc()->launch_worker(create_pool_worker<WifiToggleWorker>(WifiToggleWorker::DesiredState::Enabled));
+#endif
     }
 
     void refresh_notifications() {
