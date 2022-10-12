@@ -108,7 +108,7 @@ void Board::enable_gps() {
 
 void Board::disable_lora() {
 #if defined(FK_UNDERWATER)
-    FK_ASSERT(false);
+    logwarn("fkuw: disable-lora ignored");
 #else
     digitalWrite(LORA_POWER, LOW);
 #endif
@@ -116,7 +116,7 @@ void Board::disable_lora() {
 
 void Board::enable_lora() {
 #if defined(FK_UNDERWATER)
-    FK_ASSERT(false);
+    logwarn("fkuw: enable-lora ignored");
 #else
     digitalWrite(LORA_POWER, HIGH);
 #endif
@@ -124,7 +124,7 @@ void Board::enable_lora() {
 
 void Board::disable_wifi() {
 #if defined(FK_UNDERWATER)
-    FK_ASSERT(false);
+    logwarn("fkuw: disable-wifi ignored");
 #else
     digitalWrite(WINC1500_POWER, LOW);
     SPI1.end();
@@ -137,7 +137,7 @@ void Board::disable_wifi() {
 
 void Board::enable_wifi() {
 #if defined(FK_UNDERWATER)
-    FK_ASSERT(false);
+    logwarn("fkuw: enable-wifi ignored");
 #else
     pinMode(WINC1500_CS, OUTPUT);
     pinMode(WINC1500_IRQ, INPUT);
@@ -150,7 +150,7 @@ void Board::enable_wifi() {
 
 EepromLock Board::lock_eeprom() {
 #if defined(FK_UNDERWATER)
-    // FK_ASSERT(false);
+    logwarn("fkuw: lock-eeprom ignored");
     return EepromLock{ 0 };
 #else
     digitalWrite(MODULE_EEPROM_LOCK, HIGH);
@@ -164,7 +164,7 @@ EepromLock Board::lock_eeprom() {
 
 void Board::release_eeprom() {
 #if defined(FK_UNDERWATER)
-    // FK_ASSERT(false);
+    logwarn("fkuw: release-eeprom ignored");
 #else
     digitalWrite(MODULE_EEPROM_LOCK, LOW);
 #endif
@@ -172,7 +172,7 @@ void Board::release_eeprom() {
 
 void Board::signal_eeprom(uint8_t times) {
 #if defined(FK_UNDERWATER)
-    FK_ASSERT(false);
+    logwarn("fkuw: signal-eeprom ignored");
 #else
     for (auto i = 0; i < times; ++i) {
         digitalWrite(MODULE_EEPROM_LOCK, HIGH);
@@ -184,39 +184,19 @@ void Board::signal_eeprom(uint8_t times) {
 }
 
 SpiWrapper Board::spi_flash() {
-#if defined(FK_UNDERWATER)
-    FK_ASSERT(false);
-    return { nullptr, nullptr };
-#else
     return { "spi-flash", &SPI };
-#endif
 }
 
 SpiWrapper Board::spi_sd() {
-#if defined(FK_UNDERWATER)
-    FK_ASSERT(false);
-    return { nullptr, nullptr };
-#else
     return { "spi-sd", &SPI2 };
-#endif
 }
 
 SpiWrapper Board::spi_radio() {
-#if defined(FK_UNDERWATER)
-    FK_ASSERT(false);
-    return { nullptr, nullptr };
-#else
     return { "spi-radio", &SPI1 };
-#endif
 }
 
 SpiWrapper Board::spi_module() {
-#if defined(FK_UNDERWATER)
-    FK_ASSERT(false);
-    return { nullptr, nullptr };
-#else
     return { "spi-mod", nullptr };
-#endif
 }
 
 TwoWireWrapper Board::i2c_core() {
@@ -224,12 +204,7 @@ TwoWireWrapper Board::i2c_core() {
 }
 
 TwoWireWrapper Board::i2c_radio() {
-#if defined(FK_UNDERWATER)
-    FK_ASSERT(false);
-    return TwoWireWrapper{ nullptr, nullptr, nullptr };
-#else
     return TwoWireWrapper{ &i2c_radio_mutex, "i2c-radio", &Wire1 };
-#endif
 }
 
 TwoWireWrapper Board::i2c_module() {
