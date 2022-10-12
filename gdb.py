@@ -16,7 +16,7 @@ class FkSegger(gdb.Command):
             print("Pass JLink port: js 2331")
             return
         if True:
-            gdb.execute("add-symbol-file build/samd51/bootloader/fkbl.elf 0x0000")
+            gdb.execute("add-symbol-file build/samd51-fkuw/bootloader/fkbl.elf 0x0000")
         gdb.execute("target extended-remote :" + arg)
         gdb.execute("monitor exec SetRTTSearchRanges 0x20000000 64")
         if True:
@@ -83,12 +83,11 @@ class FkReloadAllAndRun(gdb.Command):
         )
 
     def invoke(self, arg, from_tty):
-        made = subprocess.run(["make", "fw", "-j4"])
+        made = subprocess.run(["make", "fw", "-j4", "samd51-fkuw"])
         if made.returncode != 0:
-            # gdb.execute("load build/samd51-pic/fk/fk-bundled-fkb.elf")
             return False
-        gdb.execute("load build/samd51/bootloader/fkbl-fkb.elf")
-        gdb.execute("load build/samd51/fk/fk-bundled-fkb.elf")
+        gdb.execute("load build/samd51-fkuw/bootloader/fkbl-fkb.elf")
+        gdb.execute("load build/samd51-fkuw/fk/fk-bundled-fkb.elf")
         gdb.execute("monitor reset")
         # NOTE GDB is crashing with this?!
         if False:
@@ -106,10 +105,9 @@ class FkReloadAll(gdb.Command):
     def invoke(self, arg, from_tty):
         made = subprocess.run(["make", "fw", "-j4"])
         if made.returncode != 0:
-            # gdb.execute("load build/samd51-pic/fk/fk-bundled-fkb.elf")
             return False
-        gdb.execute("load build/samd51/bootloader/fkbl-fkb.elf")
-        gdb.execute("load build/samd51/fk/fk-bundled-fkb.elf")
+        gdb.execute("load build/samd51-fkuw/bootloader/fkbl-fkb.elf")
+        gdb.execute("load build/samd51-fkuw/fk/fk-bundled-fkb.elf")
         gdb.execute("monitor reset")
 
 
