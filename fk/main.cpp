@@ -80,7 +80,7 @@ static void run_tasks() {
     loginfo("free = %" PRIu32, fk_free_memory());
     loginfo("starting os!");
 
-    FK_ASSERT(fk_free_memory() > 2048);
+    FK_ASSERT(fk_free_memory() > 1024);
 
     OS_CHECK(os_start());
 }
