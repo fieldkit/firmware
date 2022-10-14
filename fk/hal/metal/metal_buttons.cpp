@@ -8,23 +8,25 @@ FK_DECLARE_LOGGER("buttons");
 
 static void irq_button_left() {
     auto down = digitalRead(BUTTON_LEFT) == LOW;
-    reinterpret_cast<MetalButtons*>(get_buttons())->irq(Buttons::Left, down);
+    reinterpret_cast<MetalButtons *>(get_buttons())->irq(Buttons::Left, down);
 }
 
 static void irq_button_middle() {
     auto down = digitalRead(BUTTON_MIDDLE) == LOW;
-    reinterpret_cast<MetalButtons*>(get_buttons())->irq(Buttons::Middle, down);
+    reinterpret_cast<MetalButtons *>(get_buttons())->irq(Buttons::Middle, down);
 }
 
 static void irq_button_right() {
     auto down = digitalRead(BUTTON_RIGHT) == LOW;
-    reinterpret_cast<MetalButtons*>(get_buttons())->irq(Buttons::Right, down);
+    reinterpret_cast<MetalButtons *>(get_buttons())->irq(Buttons::Right, down);
 }
 
+#if !defined(FK_UNDERWATER)
 static void irq_button_external() {
     auto down = digitalRead(BUTTON_EXTERNAL) == LOW;
-    reinterpret_cast<MetalButtons*>(get_buttons())->irq(Buttons::External, down);
+    reinterpret_cast<MetalButtons *>(get_buttons())->irq(Buttons::External, down);
 }
+#endif
 
 MetalButtons::MetalButtons() {
 }
@@ -43,7 +45,6 @@ bool MetalButtons::begin() {
         { BUTTON_LEFT, Buttons::Left, irq_button_left, EIC_0_IRQn },
         { BUTTON_MIDDLE, Buttons::Middle, irq_button_middle, EIC_1_IRQn },
         { BUTTON_RIGHT, Buttons::Right, irq_button_right, EIC_2_IRQn },
-        { BUTTON_EXTERNAL, Buttons::External, irq_button_external, EIC_0_IRQn },
 #else
         { BUTTON_LEFT, Buttons::Left, irq_button_left, EIC_7_IRQn },
         { BUTTON_MIDDLE, Buttons::Middle, irq_button_middle, EIC_6_IRQn },
@@ -70,10 +71,14 @@ bool MetalButtons::is_debug_pressed() const {
 
 bool MetalButtons::get(uint8_t which) const {
     switch (which) {
-    case Left: return digitalRead(BUTTON_LEFT) == LOW;
-    case Middle: return digitalRead(BUTTON_MIDDLE) == LOW;
-    case Right: return digitalRead(BUTTON_RIGHT) == LOW;
-    case External: return digitalRead(BUTTON_EXTERNAL) == LOW;
+    case Left:
+        return digitalRead(BUTTON_LEFT) == LOW;
+    case Middle:
+        return digitalRead(BUTTON_MIDDLE) == LOW;
+    case Right:
+        return digitalRead(BUTTON_RIGHT) == LOW;
+    case External:
+        return digitalRead(BUTTON_EXTERNAL) == LOW;
     }
     return false;
 }
@@ -82,6 +87,6 @@ void MetalButtons::irq(uint8_t index, bool down) {
     buttons_[index].changed(down);
 }
 
-}
+} // namespace fk
 
 #endif // defined(__SAMD51__)
