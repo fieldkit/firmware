@@ -183,7 +183,7 @@ ModuleSensors const *OmniWaterModule::get_sensors(Pool &pool) {
     */
 
     return pool.malloc_with<ModuleSensors>({
-        .nsensors = 1,
+        .nsensors = 0,
         .sensors = sensors,
     });
 }
