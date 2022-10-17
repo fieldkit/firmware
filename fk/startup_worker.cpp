@@ -132,7 +132,13 @@ void StartupWorker::run(Pool &pool) {
     // I tried moving the enable all to after the storage read and ran into the
     // same issue. After the self check seems ok, though?
     auto mm = get_modmux();
+
+    if (!mm->begin()) {
+        logwarn("backplane error");
+    }
+
     mm->disable_all_modules();
+
     // Lock, just during startup.
     auto lock = mm->lock();
 

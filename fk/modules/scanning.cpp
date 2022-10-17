@@ -123,6 +123,7 @@ int32_t ModuleScanning::scan(ScanningListener *listener, Pool &pool) {
         if (!try_scan_single_module(listener, ModulePosition::Solo, pool)) {
             logerror("[-] single module scan failed");
         }
+
         return 0;
     }
 
@@ -162,6 +163,7 @@ tl::expected<FoundModuleCollection, Error> ModuleScanning::scan(Pool &pool) {
 bool ModuleScanning::provision(ModulePosition position, ModuleHeader &header) {
     if (position.requires_mod_mux()) {
         if (!available()) {
+            logerror("[%d] requires modmux, unavailable", position.integer());
             return false;
         }
 

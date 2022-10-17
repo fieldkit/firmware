@@ -5,6 +5,9 @@
 namespace fk {
 
 class PinModMux : public ModMux {
+private:
+    int8_t enabled_{ -1 };
+
 public:
     PinModMux();
 

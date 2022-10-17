@@ -40,7 +40,11 @@ public:
     }
 
     bool requires_mod_mux() const {
+#if defined(FK_UNDERWATER)
+        return true;
+#else
         return integer_ > 0;
+#endif
     }
 
 public:
@@ -185,7 +189,11 @@ public:
     public:
         iterator begin() const {
             if (available_) {
+#if defined(FK_UNDERWATER)
+                return iterator(0);
+#else
                 return iterator(1);
+#endif
             }
             return iterator(0);
         }
@@ -199,7 +207,11 @@ public:
 
         size_t size() const {
             if (available_) {
+#if defined(FK_UNDERWATER)
+                return MaximumNumberOfPhysicalModules;
+#else
                 return MaximumNumberOfPhysicalModules - 1;
+#endif
             }
             return 1;
         }

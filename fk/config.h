@@ -206,7 +206,11 @@ constexpr bool ModulesPowerIndividually = true;
  * connected to a single station. This is governed by the largest backplanes and
  * their possible combinations.
  */
+#if defined(FK_UNDERWATER)
+constexpr size_t MaximumNumberOfPhysicalModules = 1;
+#else
 constexpr size_t MaximumNumberOfPhysicalModules = 5;
+#endif
 
 constexpr size_t MaximumConfigurationSize = 256;
 
