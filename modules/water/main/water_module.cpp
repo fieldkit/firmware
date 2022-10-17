@@ -368,64 +368,17 @@ Ads1219ReadyChecker *WaterModule::get_ready_checker(Mcp2803 &mcp, Pool &pool) {
 }
 
 bool WaterModule::can_enable() {
-    if (unlocked_ > 0) {
-        auto uptime = fk_uptime();
-        if (uptime < unlocked_) {
-            auto remaining = unlocked_ - uptime;
-            if (remaining < 0) {
-                loginfo("locked (negative) %" PRIu32, remaining);
-                unlocked_ = fk_uptime() + OneMinuteMs;
-                return false;
-            }
-            if (remaining > FiveSecondsMs) {
-                loginfo("locked %" PRIu32, remaining);
-                return false;
-            }
-        } else {
-            loginfo("locked expired");
-        }
-
-        unlocked_ = 0;
-    } else {
-        loginfo("unlocked");
-    }
-
-    return true;
+    return lockout_.can_enable();
 }
 
 ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
-    auto &bus = mc.module_bus();
-
-    Mcp2803 mcp{ bus, FK_MCP2803_ADDRESS };
+    if (!lockout_.try_enable(mc.position())) {
+        return new (pool) EmptyReadings();
+    }
 
     auto uptime = fk_uptime();
-
-    // If we were locked out, check to see if it's expired, otherwise we return
-    // nothing, no readings. It may be necessary later to actually specify what
-    // happened to the caller.
-    if (unlocked_ > 0) {
-        if (uptime < unlocked_) {
-            auto remaining = unlocked_ - uptime;
-            if (remaining < 0) {
-                loginfo("[%d] locked (negative) %" PRIu32, mc.position(), remaining);
-                unlocked_ = fk_uptime() + OneMinuteMs;
-                return new (pool) EmptyReadings();
-            }
-            if (remaining > FiveSecondsMs) {
-                loginfo("[%d] locked %" PRIu32, mc.position(), remaining);
-                return new (pool) EmptyReadings();
-            }
-
-            loginfo("[%d] locked %" PRIu32 " waiting for expiration.", mc.position(), remaining);
-            fk_delay(remaining);
-        } else {
-            loginfo("[%d] locked expired", mc.position());
-        }
-
-        unlocked_ = 0;
-    } else {
-        loginfo("[%d] unlocked", mc.position());
-    }
+    auto &bus = mc.module_bus();
+    Mcp2803 mcp{ bus, FK_MCP2803_ADDRESS };
 
     // TODO We could move the excite logic itself into this and clean up the
     // branch below, gonna hold off until we've tested longer, though.
@@ -527,10 +480,10 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
     }
 
 #if defined(FK_WATER_LOCKOUT_ALL_MODULES)
-    unlocked_ = uptime + OneMinuteMs;
+    lockout_.enable_until_uptime(uptime + OneMinuteMs);
 #else
     if (lockout_enabled()) {
-        unlocked_ = uptime + OneMinuteMs;
+        lockout_.enable_until_uptime(uptime + OneMinuteMs);
     }
 #endif
 

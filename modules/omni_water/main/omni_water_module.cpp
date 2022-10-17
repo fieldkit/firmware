@@ -141,51 +141,19 @@ ModuleReturn OmniWaterModule::service(ModuleContext mc, Pool &pool) {
     return { ModuleStatus::Ok };
 }
 
+static SensorMetadata const fk_module_omni_water_sensor_metas[] = {
+    { .name = "temp", .unitOfMeasure = "°C", .flags = 0 },  { .name = "ph", .unitOfMeasure = "pH", .flags = 0 },
+    { .name = "ec", .unitOfMeasure = "µS/cm", .flags = 0 }, { .name = "do", .unitOfMeasure = "%", .flags = 0 },
+    { .name = "orp", .unitOfMeasure = "mV", .flags = 0 },
+};
+
+static ModuleSensors fk_module_omni_water_sensors = {
+    .nsensors = sizeof(fk_module_omni_water_sensor_metas) / sizeof(SensorMetadata),
+    .sensors = fk_module_omni_water_sensor_metas,
+};
+
 ModuleSensors const *OmniWaterModule::get_sensors(Pool &pool) {
-    SensorMetadata *sensors = nullptr;
-
-    /*
-    switch (header_.kind) {
-    case FK_MODULES_KIND_WATER_PH:
-        sensors = pool.malloc_with<SensorMetadata>({
-            .name = "ph",
-            .unitOfMeasure = "pH",
-            .flags = 0,
-        });
-        break;
-    case FK_MODULES_KIND_WATER_EC:
-        sensors = pool.malloc_with<SensorMetadata>({
-            .name = "ec",
-            .unitOfMeasure = "µS/cm",
-            .flags = 0,
-        });
-        break;
-    case FK_MODULES_KIND_WATER_DO:
-        return &fk_module_water_do_sensors;
-    case FK_MODULES_KIND_WATER_TEMP:
-        sensors = pool.malloc_with<SensorMetadata>({
-            .name = "temp",
-            .unitOfMeasure = "°C",
-            .flags = 0,
-        });
-        break;
-    case FK_MODULES_KIND_WATER_ORP:
-        sensors = pool.malloc_with<SensorMetadata>({
-            .name = "orp",
-            .unitOfMeasure = "mV",
-            .flags = 0,
-        });
-        break;
-    default:
-        logwarn("unknown water module kind: %d", header_.kind);
-        return nullptr;
-    };
-    */
-
-    return pool.malloc_with<ModuleSensors>({
-        .nsensors = 0,
-        .sensors = sensors,
-    });
+    return &fk_module_omni_water_sensors;
 }
 
 ModuleConfiguration const OmniWaterModule::get_configuration(Pool &pool) {
@@ -193,10 +161,25 @@ ModuleConfiguration const OmniWaterModule::get_configuration(Pool &pool) {
 }
 
 bool OmniWaterModule::can_enable() {
-    return true;
+    return lockout_.can_enable();
 }
 
 ModuleReadings *OmniWaterModule::take_readings(ReadingsContext mc, Pool &pool) {
+    if (!lockout_.try_enable(mc.position())) {
+        return new (pool) EmptyReadings();
+    }
+
+    auto uptime = fk_uptime();
+    auto &bus = mc.module_bus();
+    Mcp2803 mcp{ bus, FK_MCP2803_ADDRESS };
+    // Mcp2803ReadyChecker checker{ mcp };
+    // Ads1219 ads{ bus, FK_ADS1219_ADDRESS, checker };
+
+    // TODO: TAKE READINGS
+
+    // Enable lockout.
+    lockout_.enable_until_uptime(uptime + OneMinuteMs);
+
     return nullptr;
 }
 

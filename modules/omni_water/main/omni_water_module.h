@@ -2,10 +2,11 @@
 
 #include <modules/bridge/modules.h>
 
+#include "mcp_2803.h"
 #include "ads_1219.h"
 #include "curves.h"
-#include "mcp_2803.h"
 #include "records.h"
+#include "module_lockout.h"
 
 namespace fk {
 
@@ -15,7 +16,7 @@ private:
     EncodedMessage *cfg_message_{ nullptr };
     fk_data_ModuleConfiguration *cfg_{ nullptr };
     ModuleHeader header_;
-    uptime_t unlocked_{ 0 };
+    ModuleLockout lockout_;
 
 public:
     OmniWaterModule(Pool &pool);
