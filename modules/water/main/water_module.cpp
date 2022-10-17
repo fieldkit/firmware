@@ -4,6 +4,7 @@
 #include "state_ref.h"
 #include "water_api.h"
 #include "mpl3115a2.h"
+#include "ready_checkers.h"
 
 namespace fk {
 
@@ -20,77 +21,6 @@ FK_DECLARE_LOGGER("water");
 
 #define FK_MCP2803_GPIO_EXCITE_ON  0b00000101
 #define FK_MCP2803_GPIO_EXCITE_OFF 0b00000001
-
-class NoopReadyChecker : public Ads1219ReadyChecker {
-public:
-    bool block_until_ready(TwoWireWrapper &bus) override {
-        return true;
-    }
-};
-
-class Ads1219ReadyAfterDelay : public Ads1219ReadyChecker {
-private:
-    uint32_t delay_{ 1 };
-
-public:
-    Ads1219ReadyAfterDelay() {
-    }
-
-public:
-    bool block_until_ready(TwoWireWrapper &bus) override {
-        fk_delay(delay_);
-        return true;
-    }
-};
-
-class UnexciteBeforeReadyChecker : public Ads1219ReadyChecker {
-private:
-    Mcp2803 &mcp2803_;
-    bool exciting_{ false };
-
-public:
-    UnexciteBeforeReadyChecker(Mcp2803 &mcp2803, bool exciting) : mcp2803_(mcp2803), exciting_(exciting) {
-    }
-
-public:
-    bool block_until_ready(TwoWireWrapper &bus) override {
-        if (!mcp2803_.configure(FK_MCP2803_IODIR, FK_MCP2803_GPPU, FK_MCP2803_GPIO_EXCITE_OFF)) {
-            logerror("mcp2803::configure-excite");
-            return false;
-        }
-        return true;
-    }
-};
-
-class Mcp2803ReadyChecker : public Ads1219ReadyChecker {
-private:
-    Mcp2803 &mcp2803_;
-
-public:
-    Mcp2803ReadyChecker(Mcp2803 &mcp2803) : mcp2803_(mcp2803) {
-    }
-
-public:
-    bool block_until_ready(TwoWireWrapper &bus) override {
-        auto give_up = fk_uptime() + 1000;
-        while (fk_uptime() < give_up) {
-            uint8_t gpio{ 0 };
-
-            if (!mcp2803_.read_gpio(gpio)) {
-                return false;
-            }
-
-            logdebug("gpio: 0x%x", gpio);
-
-            if (!(gpio & 0x2)) {
-                return true;
-            }
-
-            fk_delay(20);
-        }
-        return false;
-    }
-};
 
 WaterModule::WaterModule(Pool &pool) : pool_(pool.subpool("water", MaximumConfigurationSize)) {
 }
@@ -362,7 +292,8 @@ Curve *WaterModule::create_modules_default_curve(Pool &pool) {
 
 Ads1219ReadyChecker *WaterModule::get_ready_checker(Mcp2803 &mcp, Pool &pool) {
     if (excite_enabled()) {
-        return new (pool) UnexciteBeforeReadyChecker{ mcp, true };
+
+        return new (pool) UnexciteBeforeReadyChecker{ mcp, Mcp2803Config{ FK_MCP2803_IODIR, FK_MCP2803_GPPU, FK_MCP2803_GPIO_EXCITE_OFF } };
     }
     return new (pool) Mcp2803ReadyChecker{ mcp };
 }
