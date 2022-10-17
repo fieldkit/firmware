@@ -174,7 +174,10 @@ bool MetalNetwork::begin(NetworkSettings settings, Pool *pool) {
      */
     NVIC_SetPriority(EIC_11_IRQn, OS_IRQ_PRIORITY_SYSTICK - 1);
 
+#if defined(FK_UNDERWATER)
+#else
     WiFi.setPins(WINC1500_CS, WINC1500_IRQ, WINC1500_RESET);
+#endif
 
     status_ = WiFi.status();
 

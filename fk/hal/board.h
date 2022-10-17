@@ -5,14 +5,14 @@
 
 namespace fk {
 
+#if defined(FK_UNDERWATER)
+constexpr uint8_t GPS_POWER = 55u;
+#else
 constexpr uint8_t WINC1500_CS = 95u;    // PC25
 constexpr uint8_t WINC1500_POWER = 56u; // PB07
 constexpr uint8_t WINC1500_IRQ = 97u;   // PC27
 constexpr uint8_t WINC1500_RESET = 96u; // PC26
 
-#if defined(FK_UNDERWATER)
-constexpr uint8_t GPS_POWER = 55u;
-#else
 constexpr uint8_t GPS_POWER = 55u;
 #endif
 

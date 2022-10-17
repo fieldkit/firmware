@@ -26,7 +26,10 @@ const uint8_t qspi_pins[] = {
 };
 
 const uint8_t radio_spi_cs_pins[] = {
+#if defined(FK_UNDERWATER)
+#else
     WINC1500_CS,
+#endif
 };
 
 const uint8_t core_spi_cs_pins[] = {
@@ -34,7 +37,10 @@ const uint8_t core_spi_cs_pins[] = {
 };
 
 const uint8_t power_pins[] = {
+#if defined(FK_UNDERWATER)
+#else
     WINC1500_POWER,
+#endif
     GPS_POWER,
 };
 
