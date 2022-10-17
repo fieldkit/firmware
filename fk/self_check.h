@@ -35,7 +35,7 @@ public:
     }
 
     static SelfCheckSettings fkuw_defaults() {
-        return { true, true, true, false, false, false, false, false };
+        return { true, true, false, false, false, false, false, false };
     }
 
     static SelfCheckSettings low_power() {
