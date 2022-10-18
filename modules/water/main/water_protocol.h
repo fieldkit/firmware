@@ -36,12 +36,13 @@ private:
     TwoWireWrapper &bus_;
     WaterModality modality_;
     WaterMcpGpioConfig mcp_config_;
+    bool standalone_orp_{ false };
     Mcp2803 mcp_{ bus_, FK_MCP2803_ADDRESS };
     Ads1219 ads_{ bus_, FK_ADS1219_ADDRESS, this };
     Ads1219ReadyChecker *readings_checker_{ nullptr };
 
 public:
-    WaterProtocol(Pool &pool, TwoWireWrapper &bus, WaterModality modality, WaterMcpGpioConfig mcp_config);
+    WaterProtocol(Pool &pool, TwoWireWrapper &bus, WaterModality modality, WaterMcpGpioConfig mcp_config, bool standalone_orp);
 
 private:
     bool excite_control(bool high);

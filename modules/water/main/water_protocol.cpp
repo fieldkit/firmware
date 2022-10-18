@@ -6,8 +6,8 @@ namespace fk {
 
 FK_DECLARE_LOGGER("waterproto");
 
-WaterProtocol::WaterProtocol(Pool &pool, TwoWireWrapper &bus, WaterModality modality, WaterMcpGpioConfig mcp_config)
-    : pool_(pool), bus_(bus), modality_(modality), mcp_config_(mcp_config) {
+WaterProtocol::WaterProtocol(Pool &pool, TwoWireWrapper &bus, WaterModality modality, WaterMcpGpioConfig mcp_config, bool standalone_orp)
+    : pool_(pool), bus_(bus), modality_(modality), mcp_config_(mcp_config), standalone_orp_(standalone_orp) {
     if (excite_enabled()) {
         readings_checker_ =
             new (pool) UnexciteBeforeReadyChecker{ mcp_, Mcp2803Config{ mcp_config_.io_dir, mcp_config_.pullups, mcp_config_.excite_off } };
@@ -124,7 +124,11 @@ bool WaterProtocol::initialize() {
         channel = Ads1219Channel::Diff_0_1;
         break;
     case ORP:
-        channel = Ads1219Channel::Diff_0_1;
+        if (standalone_orp_) {
+            channel = Ads1219Channel::Diff_0_1; // Standalone
+        } else {
+            channel = Ads1219Channel::Diff_2_3; // Omni
+        }
         break;
     };
 

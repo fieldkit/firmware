@@ -201,7 +201,7 @@ ModuleReturn WaterModule::initialize(ModuleContext mc, Pool &pool) {
     }
 
     auto &bus = mc.module_bus();
-    WaterProtocol water_protocol{ pool, bus, get_modality(), StandaloneWaterMcpConfig };
+    WaterProtocol water_protocol{ pool, bus, get_modality(), StandaloneWaterMcpConfig, true };
 
     if (!water_protocol.initialize()) {
         return { ModuleStatus::Fatal };
@@ -218,7 +218,7 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
     auto uptime = fk_uptime();
 
     auto &bus = mc.module_bus();
-    WaterProtocol water_protocol{ pool, bus, get_modality(), StandaloneWaterMcpConfig };
+    WaterProtocol water_protocol{ pool, bus, get_modality(), StandaloneWaterMcpConfig, true };
 
     if (!water_protocol.initialize()) {
         logwarn("water-proto: initialize error");
