@@ -108,7 +108,27 @@ bool WaterProtocol::initialize() {
         return false;
     }
 
-    if (!ads_.configure(Ads1219VoltageReference::Internal, Ads1219Channel::Diff_0_1, Ads1219Gain::One, Ads1219DataRate::DataRate_1000)) {
+    auto channel = Ads1219Channel::Diff_0_1;
+
+    switch (modality_) {
+    case Temp:
+        channel = Ads1219Channel::Single_0;
+        break;
+    case PH:
+        channel = Ads1219Channel::Single_0;
+        break;
+    case EC:
+        channel = Ads1219Channel::Single_0;
+        break;
+    case DO:
+        channel = Ads1219Channel::Diff_0_1;
+        break;
+    case ORP:
+        channel = Ads1219Channel::Diff_0_1;
+        break;
+    };
+
+    if (!ads_.configure(Ads1219VoltageReference::Internal, channel, Ads1219Gain::One, Ads1219DataRate::DataRate_1000)) {
         logerror("ads1219::configure");
         return false;
     }
