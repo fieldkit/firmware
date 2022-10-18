@@ -28,52 +28,6 @@ WaterModule::WaterModule(Pool &pool) : pool_(pool.subpool("water", MaximumConfig
 WaterModule::~WaterModule() {
 }
 
-ModuleReturn WaterModule::initialize(ModuleContext mc, Pool &pool) {
-    loginfo("initialize");
-
-    if (!load_configuration(mc, pool)) {
-        return { ModuleStatus::Fatal };
-    }
-
-    auto &bus = mc.module_bus();
-
-    Mcp2803 mcp{ bus, FK_MCP2803_ADDRESS };
-    NoopReadyChecker unused_ready_checker;
-    Ads1219 ads{ bus, FK_ADS1219_ADDRESS, &unused_ready_checker };
-
-    if (!initialize(mcp, ads)) {
-        return { ModuleStatus::Fatal };
-    }
-
-    return { ModuleStatus::Ok };
-}
-
-bool WaterModule::initialize(Mcp2803 &mcp, Ads1219 &ads) {
-    if (!mcp.configure(FK_MCP2803_IODIR, FK_MCP2803_GPPU, FK_MCP2803_GPIO_OFF)) {
-        logerror("mcp2803::begin");
-        return false;
-    }
-
-    if (!mcp.configure(FK_MCP2803_IODIR, FK_MCP2803_GPPU, FK_MCP2803_GPIO_ON)) {
-        logerror("mcp2803::begin");
-        return false;
-    }
-
-    fk_delay(100);
-
-    if (!ads.begin()) {
-        logerror("ads1219::begin");
-        return false;
-    }
-
-    if (!ads.configure(Ads1219VoltageReference::Internal, Ads1219Channel::Diff_0_1, Ads1219Gain::One, Ads1219DataRate::DataRate_1000)) {
-        logerror("ads1219::configure");
-        return false;
-    }
-
-    return true;
-}
-
 bool WaterModule::load_configuration(ModuleContext mc, Pool &pool) {
     ModuleEeprom eeprom{ mc.module_bus() };
 
@@ -240,6 +194,14 @@ bool WaterModule::excite_enabled() {
     };
 }
 
+bool WaterModule::excite_control(Mcp2803 &mcp, bool high) {
+    if (!mcp.configure(FK_MCP2803_IODIR, FK_MCP2803_GPPU, high ? FK_MCP2803_GPIO_EXCITE_ON : FK_MCP2803_GPIO_EXCITE_OFF)) {
+        logerror("mcp2803::configure-excite");
+        return false;
+    }
+    return true;
+}
+
 bool WaterModule::lockout_enabled() {
     switch (header_.kind) {
     case FK_MODULES_KIND_WATER_EC: {
@@ -292,7 +254,6 @@ Curve *WaterModule::create_modules_default_curve(Pool &pool) {
 
 Ads1219ReadyChecker *WaterModule::get_ready_checker(Mcp2803 &mcp, Pool &pool) {
     if (excite_enabled()) {
-
         return new (pool) UnexciteBeforeReadyChecker{ mcp, Mcp2803Config{ FK_MCP2803_IODIR, FK_MCP2803_GPPU, FK_MCP2803_GPIO_EXCITE_OFF } };
     }
     return new (pool) Mcp2803ReadyChecker{ mcp };
@@ -300,6 +261,52 @@ Ads1219ReadyChecker *WaterModule::get_ready_checker(Mcp2803 &mcp, Pool &pool) {
 
 bool WaterModule::can_enable() {
     return lockout_.can_enable();
+}
+
+ModuleReturn WaterModule::initialize(ModuleContext mc, Pool &pool) {
+    loginfo("initialize");
+
+    if (!load_configuration(mc, pool)) {
+        return { ModuleStatus::Fatal };
+    }
+
+    auto &bus = mc.module_bus();
+
+    Mcp2803 mcp{ bus, FK_MCP2803_ADDRESS };
+    NoopReadyChecker unused_ready_checker;
+    Ads1219 ads{ bus, FK_ADS1219_ADDRESS, &unused_ready_checker };
+
+    if (!initialize(mcp, ads)) {
+        return { ModuleStatus::Fatal };
+    }
+
+    return { ModuleStatus::Ok };
+}
+
+bool WaterModule::initialize(Mcp2803 &mcp, Ads1219 &ads) {
+    if (!mcp.configure(FK_MCP2803_IODIR, FK_MCP2803_GPPU, FK_MCP2803_GPIO_OFF)) {
+        logerror("mcp2803::begin");
+        return false;
+    }
+
+    if (!mcp.configure(FK_MCP2803_IODIR, FK_MCP2803_GPPU, FK_MCP2803_GPIO_ON)) {
+        logerror("mcp2803::begin");
+        return false;
+    }
+
+    fk_delay(100);
+
+    if (!ads.begin()) {
+        logerror("ads1219::begin");
+        return false;
+    }
+
+    if (!ads.configure(Ads1219VoltageReference::Internal, Ads1219Channel::Diff_0_1, Ads1219Gain::One, Ads1219DataRate::DataRate_1000)) {
+        logerror("ads1219::configure");
+        return false;
+    }
+
+    return true;
 }
 
 ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
@@ -421,12 +428,6 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
     return mr;
 }
 
-bool WaterModule::excite_control(Mcp2803 &mcp, bool high) {
-    if (!mcp.configure(FK_MCP2803_IODIR, FK_MCP2803_GPPU, high ? FK_MCP2803_GPIO_EXCITE_ON : FK_MCP2803_GPIO_EXCITE_OFF)) {
-        logerror("mcp2803::configure-excite");
-        return false;
-    }
-    return true;
 }
 
 } // namespace fk
