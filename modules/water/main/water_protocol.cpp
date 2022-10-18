@@ -6,19 +6,11 @@ namespace fk {
 
 FK_DECLARE_LOGGER("waterproto");
 
-#define FK_MCP2803_IODIR 0b00000010
-#define FK_MCP2803_GPPU  0b00000010
-
-#define FK_MCP2803_GPIO_ON  0b00000001
-#define FK_MCP2803_GPIO_OFF 0b00000000
-
-#define FK_MCP2803_GPIO_EXCITE_ON  0b00000101
-#define FK_MCP2803_GPIO_EXCITE_OFF 0b00000001
-
-WaterProtocol::WaterProtocol(Pool &pool, TwoWireWrapper &bus, WaterModality modality) : pool_(pool), bus_(bus), modality_(modality) {
+WaterProtocol::WaterProtocol(Pool &pool, TwoWireWrapper &bus, WaterModality modality, WaterMcpGpioConfig mcp_config)
+    : pool_(pool), bus_(bus), modality_(modality), mcp_config_(mcp_config) {
     if (excite_enabled()) {
         readings_checker_ =
-            new (pool) UnexciteBeforeReadyChecker{ mcp_, Mcp2803Config{ FK_MCP2803_IODIR, FK_MCP2803_GPPU, FK_MCP2803_GPIO_EXCITE_OFF } };
+            new (pool) UnexciteBeforeReadyChecker{ mcp_, Mcp2803Config{ mcp_config_.io_dir, mcp_config_.pullups, mcp_config_.excite_off } };
     }
 
     readings_checker_ = new (pool) Mcp2803ReadyChecker{ mcp_ };
@@ -99,12 +91,12 @@ Curve *WaterProtocol::create_modules_default_curve(Pool &pool) {
 }
 
 bool WaterProtocol::initialize() {
-    if (!mcp_.configure(FK_MCP2803_IODIR, FK_MCP2803_GPPU, FK_MCP2803_GPIO_OFF)) {
+    if (!mcp_.configure(mcp_config_.io_dir, mcp_config_.pullups, mcp_config_.off)) {
         logerror("mcp2803::begin");
         return false;
     }
 
-    if (!mcp_.configure(FK_MCP2803_IODIR, FK_MCP2803_GPPU, FK_MCP2803_GPIO_ON)) {
+    if (!mcp_.configure(mcp_config_.io_dir, mcp_config_.pullups, mcp_config_.on)) {
         logerror("mcp2803::begin");
         return false;
     }
@@ -125,7 +117,7 @@ bool WaterProtocol::initialize() {
 }
 
 bool WaterProtocol::excite_control(bool high) {
-    if (!mcp_.configure(FK_MCP2803_IODIR, FK_MCP2803_GPPU, high ? FK_MCP2803_GPIO_EXCITE_ON : FK_MCP2803_GPIO_EXCITE_OFF)) {
+    if (!mcp_.configure(mcp_config_.io_dir, mcp_config_.pullups, high ? mcp_config_.excite_on : mcp_config_.excite_off)) {
         logerror("mcp2803::configure-excite");
         return false;
     }

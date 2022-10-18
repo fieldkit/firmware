@@ -11,6 +11,18 @@ namespace fk {
 
 FK_DECLARE_LOGGER("water");
 
+#define FK_MCP2803_IODIR 0b00000010
+#define FK_MCP2803_GPPU  0b00000010
+
+#define FK_MCP2803_GPIO_ON  0b00000001
+#define FK_MCP2803_GPIO_OFF 0b00000000
+
+#define FK_MCP2803_GPIO_EXCITE_ON  0b00000101
+#define FK_MCP2803_GPIO_EXCITE_OFF 0b00000001
+
+static WaterMcpGpioConfig StandaloneWaterMcpConfig{ FK_MCP2803_IODIR,    FK_MCP2803_GPPU,           FK_MCP2803_GPIO_ON,
+                                                    FK_MCP2803_GPIO_OFF, FK_MCP2803_GPIO_EXCITE_ON, FK_MCP2803_GPIO_EXCITE_OFF };
+
 WaterModule::WaterModule(Pool &pool) : pool_(pool.subpool("water", MaximumConfigurationSize)) {
 }
 
@@ -189,7 +201,7 @@ ModuleReturn WaterModule::initialize(ModuleContext mc, Pool &pool) {
     }
 
     auto &bus = mc.module_bus();
-    WaterProtocol water_protocol{ pool, bus, WaterModality::PH };
+    WaterProtocol water_protocol{ pool, bus, get_modality(), StandaloneWaterMcpConfig };
 
     if (!water_protocol.initialize()) {
         return { ModuleStatus::Fatal };
@@ -206,7 +218,7 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
     auto uptime = fk_uptime();
 
     auto &bus = mc.module_bus();
-    WaterProtocol water_protocol{ pool, bus, WaterModality::PH };
+    WaterProtocol water_protocol{ pool, bus, get_modality(), StandaloneWaterMcpConfig };
 
     if (!water_protocol.initialize()) {
         logwarn("water-proto: initialize error");

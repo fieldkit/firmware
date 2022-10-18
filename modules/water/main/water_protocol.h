@@ -15,6 +15,15 @@ enum WaterModality { Temp, PH, EC, DO, ORP };
 #define FK_MCP2803_ADDRESS 0x22
 #define FK_ADS1219_ADDRESS 0x45
 
+struct WaterMcpGpioConfig {
+    uint8_t io_dir;
+    uint8_t pullups;
+    uint8_t on;
+    uint8_t off;
+    uint8_t excite_on;
+    uint8_t excite_off;
+};
+
 struct WaterReadings {
     float uncalibrated;
     float calibrated;
@@ -26,12 +35,13 @@ private:
     Pool &pool_;
     TwoWireWrapper &bus_;
     WaterModality modality_;
+    WaterMcpGpioConfig mcp_config_;
     Mcp2803 mcp_{ bus_, FK_MCP2803_ADDRESS };
     Ads1219 ads_{ bus_, FK_ADS1219_ADDRESS, this };
     Ads1219ReadyChecker *readings_checker_{ nullptr };
 
 public:
-    WaterProtocol(Pool &pool, TwoWireWrapper &bus, WaterModality modality);
+    WaterProtocol(Pool &pool, TwoWireWrapper &bus, WaterModality modality, WaterMcpGpioConfig mcp_config);
 
 private:
     bool excite_control(bool high);
