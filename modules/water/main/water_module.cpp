@@ -163,6 +163,24 @@ bool WaterModule::can_enable() {
     return lockout_.can_enable();
 }
 
+WaterModality WaterModule::get_modality() const {
+    switch (header_.kind) {
+    case FK_MODULES_KIND_WATER_PH:
+        return WaterModality::PH;
+    case FK_MODULES_KIND_WATER_EC:
+        return WaterModality::EC;
+    case FK_MODULES_KIND_WATER_DO:
+        return WaterModality::DO;
+    case FK_MODULES_KIND_WATER_TEMP:
+        return WaterModality::Temp;
+    case FK_MODULES_KIND_WATER_ORP:
+        return WaterModality::ORP;
+    default:
+        logerror("unknown water module kind %d, fall back on temp", header_.kind);
+        return WaterModality::Temp;
+    };
+}
+
 ModuleReturn WaterModule::initialize(ModuleContext mc, Pool &pool) {
     loginfo("initialize");
 

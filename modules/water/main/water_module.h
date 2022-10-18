@@ -6,6 +6,7 @@
 #include "mcp_2803.h"
 #include "curves.h"
 #include "records.h"
+#include "water_protocol.h"
 #include "module_lockout.h"
 
 namespace fk {
@@ -38,13 +39,7 @@ private:
     bool load_configuration(ModuleContext mc, Pool &pool);
 
 private:
-    // Curve *create_modules_default_curve(Pool &pool);
-    // bool excite_control(Mcp2803 &mcp, bool high);
-    // bool initialize(Mcp2803 &mcp, Ads1219 &ads);
-    // bool excite_enabled();
-    // bool lockout_enabled();
-    // bool averaging_enabled();
-    // Ads1219ReadyChecker *get_ready_checker(Mcp2803 &mcp, Pool &pool);
+    WaterModality get_modality() const;
 };
 
 } // namespace fk
