@@ -6,6 +6,7 @@
 #include "ads_1219.h"
 #include "curves.h"
 #include "records.h"
+#include "water_protocol.h"
 #include "module_lockout.h"
 
 namespace fk {

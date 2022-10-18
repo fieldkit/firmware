@@ -4,7 +4,6 @@
 #include "modules/eeprom.h"
 #include "platform.h"
 #include "state_ref.h"
-#include "mpl3115a2.h"
 
 namespace fk {
 
@@ -13,7 +12,7 @@ FK_DECLARE_LOGGER("omniwater");
 #define FK_MCP2803_ADDRESS 0x22
 #define FK_ADS1219_ADDRESS 0x45
 
-#define FK_MCP2803_IODIR 0b00000010
+#define FK_MCP2803_IODIR 0b00111010
 #define FK_MCP2803_GPPU  0b00000010
 
 #define FK_MCP2803_GPIO_ON  0b00000001
@@ -22,60 +21,51 @@ FK_DECLARE_LOGGER("omniwater");
 #define FK_MCP2803_GPIO_EXCITE_ON  0b00000101
 #define FK_MCP2803_GPIO_EXCITE_OFF 0b00000001
 
+#define FK_MCP2803_GPIO_PH   0b00101000
+#define FK_MCP2803_GPIO_EC   0b00001000
+#define FK_MCP2803_GPIO_TEMP 0b00011000
+#define FK_MCP2803_GPIO_DO   0b00111000
+#define FK_MCP2803_GPIO_ORP  0b00000000
+
+static WaterMcpGpioConfig OmniPhConfig{ FK_MCP2803_IODIR,
+                                        FK_MCP2803_GPPU,
+                                        FK_MCP2803_GPIO_ON | FK_MCP2803_GPIO_PH,
+                                        FK_MCP2803_GPIO_OFF | FK_MCP2803_GPIO_PH,
+                                        FK_MCP2803_GPIO_EXCITE_ON | FK_MCP2803_GPIO_PH,
+                                        FK_MCP2803_GPIO_EXCITE_OFF | FK_MCP2803_GPIO_PH };
+
+static WaterMcpGpioConfig OmniEcConfig{ FK_MCP2803_IODIR,
+                                        FK_MCP2803_GPPU,
+                                        FK_MCP2803_GPIO_ON | FK_MCP2803_GPIO_EC,
+                                        FK_MCP2803_GPIO_OFF | FK_MCP2803_GPIO_EC,
+                                        FK_MCP2803_GPIO_EXCITE_ON | FK_MCP2803_GPIO_EC,
+                                        FK_MCP2803_GPIO_EXCITE_OFF | FK_MCP2803_GPIO_EC };
+
+static WaterMcpGpioConfig OmniTempConfig{ FK_MCP2803_IODIR,
+                                          FK_MCP2803_GPPU,
+                                          FK_MCP2803_GPIO_ON | FK_MCP2803_GPIO_TEMP,
+                                          FK_MCP2803_GPIO_OFF | FK_MCP2803_GPIO_TEMP,
+                                          FK_MCP2803_GPIO_EXCITE_ON | FK_MCP2803_GPIO_TEMP,
+                                          FK_MCP2803_GPIO_EXCITE_OFF | FK_MCP2803_GPIO_TEMP };
+
+static WaterMcpGpioConfig OmniDoConfig{ FK_MCP2803_IODIR,
+                                        FK_MCP2803_GPPU,
+                                        FK_MCP2803_GPIO_ON | FK_MCP2803_GPIO_DO,
+                                        FK_MCP2803_GPIO_OFF | FK_MCP2803_GPIO_DO,
+                                        FK_MCP2803_GPIO_EXCITE_ON | FK_MCP2803_GPIO_DO,
+                                        FK_MCP2803_GPIO_EXCITE_OFF | FK_MCP2803_GPIO_DO };
+
+static WaterMcpGpioConfig OmniOrpConfig{ FK_MCP2803_IODIR,
+                                         FK_MCP2803_GPPU,
+                                         FK_MCP2803_GPIO_ON | FK_MCP2803_GPIO_ORP,
+                                         FK_MCP2803_GPIO_OFF | FK_MCP2803_GPIO_ORP,
+                                         FK_MCP2803_GPIO_EXCITE_ON | FK_MCP2803_GPIO_ORP,
+                                         FK_MCP2803_GPIO_EXCITE_OFF | FK_MCP2803_GPIO_ORP };
+
 OmniWaterModule::OmniWaterModule(Pool &pool) : pool_(pool.subpool("omniwater", MaximumConfigurationSize)) {
 }
 
 OmniWaterModule::~OmniWaterModule() {
-}
-
-ModuleReturn OmniWaterModule::initialize(ModuleContext mc, Pool &pool) {
-    loginfo("initialize");
-
-    /*
-    if (!load_configuration(mc, pool)) {
-        return { ModuleStatus::Fatal };
-    }
-
-    auto &bus = mc.module_bus();
-
-    Mcp2803 mcp{ bus, FK_MCP2803_ADDRESS };
-    NoopReadyChecker unused_ready_checker;
-    Ads1219 ads{ bus, FK_ADS1219_ADDRESS, &unused_ready_checker };
-
-    if (!initialize(mcp, ads)) {
-        return { ModuleStatus::Fatal };
-    }
-    */
-
-    return { ModuleStatus::Ok };
-}
-
-bool OmniWaterModule::initialize(Mcp2803 &mcp, Ads1219 &ads) {
-    /*
-    if (!mcp.configure(FK_MCP2803_IODIR, FK_MCP2803_GPPU, FK_MCP2803_GPIO_OFF)) {
-        logerror("mcp2803::begin");
-        return false;
-    }
-
-    if (!mcp.configure(FK_MCP2803_IODIR, FK_MCP2803_GPPU, FK_MCP2803_GPIO_ON)) {
-        logerror("mcp2803::begin");
-        return false;
-    }
-
-    fk_delay(100);
-
-    if (!ads.begin()) {
-        logerror("ads1219::begin");
-        return false;
-    }
-
-    if (!ads.configure(Ads1219VoltageReference::Internal, Ads1219Channel::Diff_0_1, Ads1219Gain::One, Ads1219DataRate::DataRate_1000)) {
-        logerror("ads1219::configure");
-        return false;
-    }
-    */
-
-    return true;
 }
 
 bool OmniWaterModule::load_configuration(ModuleContext mc, Pool &pool) {
@@ -164,18 +154,57 @@ bool OmniWaterModule::can_enable() {
     return lockout_.can_enable();
 }
 
+ModuleReturn OmniWaterModule::initialize(ModuleContext mc, Pool &pool) {
+    loginfo("initialize");
+
+    if (!load_configuration(mc, pool)) {
+        return { ModuleStatus::Fatal };
+    }
+
+    auto &bus = mc.module_bus();
+    WaterProtocol water_protocol{ pool, bus, WaterModality::PH, OmniPhConfig, false };
+    if (!water_protocol.initialize()) {
+        return { ModuleStatus::Fatal };
+    }
+
+    return { ModuleStatus::Ok };
+}
+
+struct Modality {
+    WaterModality modality;
+    WaterMcpGpioConfig config;
+};
+
+static Modality AllModalities[] = {
+    { WaterModality::PH, OmniPhConfig }, { WaterModality::EC, OmniEcConfig },   { WaterModality::Temp, OmniTempConfig },
+    { WaterModality::DO, OmniDoConfig }, { WaterModality::ORP, OmniOrpConfig },
+};
+
 ModuleReadings *OmniWaterModule::take_readings(ReadingsContext mc, Pool &pool) {
     if (!lockout_.try_enable(mc.position())) {
         return new (pool) EmptyReadings();
     }
 
     auto uptime = fk_uptime();
-    auto &bus = mc.module_bus();
-    Mcp2803 mcp{ bus, FK_MCP2803_ADDRESS };
-    // Mcp2803ReadyChecker checker{ mcp };
-    // Ads1219 ads{ bus, FK_ADS1219_ADDRESS, checker };
 
-    // TODO: TAKE READINGS
+    auto &bus = mc.module_bus();
+
+    for (auto &modality : AllModalities) {
+        loginfo("omni:modality %d", modality.modality);
+
+        WaterProtocol water_protocol{ pool, bus, modality.modality, modality.config, false };
+        if (!water_protocol.initialize()) {
+            logwarn("water-proto: initialize error");
+            return nullptr;
+        }
+
+        auto water_readings = water_protocol.take_readings(mc, cfg_, pool);
+        if (water_readings == nullptr) {
+            return nullptr;
+        }
+
+        fk_delay(100);
+    }
 
     // Enable lockout.
     lockout_.enable_until_uptime(uptime + OneMinuteMs);
