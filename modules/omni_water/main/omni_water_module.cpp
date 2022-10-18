@@ -171,13 +171,15 @@ ModuleReturn OmniWaterModule::initialize(ModuleContext mc, Pool &pool) {
 }
 
 struct Modality {
+    const char *name;
     WaterModality modality;
     WaterMcpGpioConfig config;
 };
 
 static Modality AllModalities[] = {
-    { WaterModality::PH, OmniPhConfig }, { WaterModality::EC, OmniEcConfig },   { WaterModality::Temp, OmniTempConfig },
-    { WaterModality::DO, OmniDoConfig }, { WaterModality::ORP, OmniOrpConfig },
+    { "ph", WaterModality::PH, OmniPhConfig },       { "ec", WaterModality::EC, OmniEcConfig },
+    { "temp", WaterModality::Temp, OmniTempConfig }, { "do", WaterModality::DO, OmniDoConfig },
+    { "orp", WaterModality::ORP, OmniOrpConfig },
 };
 
 ModuleReadings *OmniWaterModule::take_readings(ReadingsContext mc, Pool &pool) {
@@ -190,7 +192,7 @@ ModuleReadings *OmniWaterModule::take_readings(ReadingsContext mc, Pool &pool) {
     auto &bus = mc.module_bus();
 
     for (auto &modality : AllModalities) {
-        loginfo("omni:modality %d", modality.modality);
+        loginfo("omni:modality %s", modality.name);
 
         WaterProtocol water_protocol{ pool, bus, modality.modality, modality.config, false };
         if (!water_protocol.initialize()) {
