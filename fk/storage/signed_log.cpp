@@ -3,7 +3,7 @@
 
 #include "storage/signed_log.h"
 #include "storage/storage.h"
-#include "clock.h"
+#include "hal/clock.h"
 
 namespace fk {
 
@@ -21,8 +21,8 @@ tl::expected<uint32_t, Error> SignedRecordLog::seek_record(SignedRecordKind kind
         return tl::unexpected<Error>(Error::IO);
     }
 
-    logdebug("[" PRADDRESS "] seek record %" PRIu32 " position=%" PRIu32 " record=#%" PRIu32,
-             file_.tail(), (int32_t)kind, file_.position(), file_.record());
+    logdebug("[" PRADDRESS "] seek record %" PRIu32 " position=%" PRIu32 " record=#%" PRIu32, file_.tail(), (int32_t)kind, file_.position(),
+             file_.record());
 
     if (file_.record() == 1 || file_.position() == 0) {
         return tl::unexpected<Error>(Error::EoF);
@@ -68,13 +68,13 @@ tl::expected<uint32_t, Error> SignedRecordLog::seek_record(SignedRecordKind kind
         return tl::unexpected<Error>(Error::IO);
     }
 
-    logdebug("[" PRADDRESS "] found record R%" PRIu32 " position=%" PRIu32,
-             file_.tail(), file_.record(), file_.position());
+    logdebug("[" PRADDRESS "] found record R%" PRIu32 " position=%" PRIu32, file_.tail(), file_.record(), file_.position());
 
     return file_.record();
 }
 
-tl::expected<AppendedRecord, Error> SignedRecordLog::append_always(SignedRecordKind kind, void const *record, pb_msgdesc_t const *fields, Pool &pool) {
+tl::expected<AppendedRecord, Error> SignedRecordLog::append_always(SignedRecordKind kind, void const *record, pb_msgdesc_t const *fields,
+                                                                   Pool &pool) {
     auto encoded = pool.encode(fields, record);
 
     uint8_t hash[Hash::Length];
@@ -111,7 +111,8 @@ tl::expected<AppendedRecord, Error> SignedRecordLog::append_always(SignedRecordK
     return AppendedRecord{ (uint32_t)sr->record, (uint32_t)record_size };
 }
 
-tl::expected<AppendedRecord, Error> SignedRecordLog::append_immutable(SignedRecordKind kind, void const *record, pb_msgdesc_t const *fields, Pool &pool) {
+tl::expected<AppendedRecord, Error> SignedRecordLog::append_immutable(SignedRecordKind kind, void const *record, pb_msgdesc_t const *fields,
+                                                                      Pool &pool) {
     auto sought = seek_record(kind);
     if (sought) {
         // TODO This could be better, for example we could have a custom nanopb
@@ -148,8 +149,7 @@ tl::expected<AppendedRecord, Error> SignedRecordLog::append_immutable(SignedReco
                 return tl::unexpected<Error>(Error::IO);
             }
             return AppendedRecord{ (uint32_t)sr->record, 0u };
-        }
-        else {
+        } else {
             if (DebugEnableMemoryDumps) {
                 if (log_is_debug()) {
                     auto record_data = (pb_data_t *)sr->data.arg;
@@ -158,8 +158,7 @@ tl::expected<AppendedRecord, Error> SignedRecordLog::append_immutable(SignedReco
                 }
             }
         }
-    }
-    else {
+    } else {
         loginfo("no record, appending");
     }
 
@@ -167,9 +166,9 @@ tl::expected<AppendedRecord, Error> SignedRecordLog::append_immutable(SignedReco
         logwarn("creating new file");
     }
 
-    #if defined(FK_VERBOSE_SIGNED_LOG_WRITES)
+#if defined(FK_VERBOSE_SIGNED_LOG_WRITES)
     ScopedLogLevelChange enable_trace{ LogLevels::TRACE };
-    #endif
+#endif
 
     auto rv = append_always(kind, record, fields, pool);
 
@@ -198,4 +197,4 @@ bool SignedRecordLog::decode(void *record, pb_msgdesc_t const *fields, Pool &poo
     return true;
 }
 
-}
+} // namespace fk

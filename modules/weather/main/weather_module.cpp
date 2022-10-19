@@ -4,7 +4,7 @@
 #include "modules/eeprom.h"
 #include "weather.h"
 #include "platform.h"
-#include "clock.h"
+#include "hal/clock.h"
 
 namespace fk {
 

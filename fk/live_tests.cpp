@@ -14,7 +14,6 @@
 #include "hal/hal.h"
 #include "state_ref.h"
 #include "state_manager.h"
-#include "clock.h"
 #include "core_dump.h"
 
 #include "../modules/weather/main/weather.h"

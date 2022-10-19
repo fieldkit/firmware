@@ -5,7 +5,7 @@
 #include "hal/random.h"
 #include "utilities.h"
 #include "secrets.h"
-#include "clock.h"
+#include "hal/clock.h"
 
 namespace fk {
 

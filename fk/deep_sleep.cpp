@@ -1,5 +1,5 @@
 #include "deep_sleep.h"
-#include "clock.h"
+#include "hal/clock.h"
 #include "hal/network.h"
 #include "hal/random.h"
 #include "tasks/tasks.h"

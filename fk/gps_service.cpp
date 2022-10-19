@@ -1,6 +1,6 @@
 #include "gps_service.h"
 #include "state_manager.h"
-#include "clock.h"
+#include "hal/clock.h"
 
 namespace fk {
 

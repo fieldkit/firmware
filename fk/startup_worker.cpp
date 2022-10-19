@@ -2,7 +2,7 @@
 #include <samd51_common.h>
 
 #include "battery_status.h"
-#include "clock.h"
+#include "hal/clock.h"
 #include "factory_wipe.h"
 #include "live_tests.h"
 #include "records.h"

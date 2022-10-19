@@ -5,7 +5,6 @@
 #include "storage/storage.h"
 #include "tasks/tasks.h"
 #include "hal/hal.h"
-#include "clock.h"
 #include "state_manager.h"
 #include "state_ref.h"
 

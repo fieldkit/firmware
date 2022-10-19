@@ -1,6 +1,6 @@
 #include <lwcron/lwcron.h>
 
-#include "clock.h"
+#include "hal/clock.h"
 #include "tasks/tasks.h"
 #include "state_ref.h"
 #include "scheduling.h"

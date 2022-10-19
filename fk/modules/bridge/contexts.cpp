@@ -1,12 +1,14 @@
 #include "modules/bridge/contexts.h"
-#include "clock.h"
+#include "hal/clock.h"
 
 namespace fk {
 
-ScanningContext::ScanningContext(ModMux *mm, GpsState const *gps, TwoWireWrapper &module_bus, Pool &pool) : mm_(mm), gps_(gps), module_bus_(&module_bus), power_state_(ModulePowerState::Unknown) {
+ScanningContext::ScanningContext(ModMux *mm, GpsState const *gps, TwoWireWrapper &module_bus, Pool &pool)
+    : mm_(mm), gps_(gps), module_bus_(&module_bus), power_state_(ModulePowerState::Unknown) {
 }
 
-ScanningContext::ScanningContext(ModMux *mm, GpsState const *gps, TwoWireWrapper &module_bus, ModulePowerState power_state, Pool &pool) : mm_(mm), gps_(gps), module_bus_(&module_bus), power_state_(power_state) {
+ScanningContext::ScanningContext(ModMux *mm, GpsState const *gps, TwoWireWrapper &module_bus, ModulePowerState power_state, Pool &pool)
+    : mm_(mm), gps_(gps), module_bus_(&module_bus), power_state_(power_state) {
 }
 
 GpsState const *ScanningContext::gps() {
@@ -21,7 +23,8 @@ ReadingsContext ScanningContext::open_readings(ModulePosition position, Pool &po
     return ReadingsContext{ *this, position, power_state_, pool };
 }
 
-ModuleContext::ModuleContext(ScanningContext &from, ModulePosition position, Pool &pool) : mm_(from.mm_), module_bus_(from.module_bus_), position_(position) {
+ModuleContext::ModuleContext(ScanningContext &from, ModulePosition position, Pool &pool)
+    : mm_(from.mm_), module_bus_(from.module_bus_), position_(position) {
 }
 
 bool ModuleContext::open() {
@@ -40,8 +43,8 @@ uint32_t ModuleContext::now() const {
     return get_clock_now();
 }
 
-ReadingsContext::ReadingsContext(ScanningContext &from, ModulePosition position, ModulePowerState power_state, Pool &pool) :
-    ModuleContext(from, position, pool), power_state_(power_state) {
+ReadingsContext::ReadingsContext(ScanningContext &from, ModulePosition position, ModulePowerState power_state, Pool &pool)
+    : ModuleContext(from, position, pool), power_state_(power_state) {
 }
 
-}
+} // namespace fk

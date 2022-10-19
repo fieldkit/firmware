@@ -2,13 +2,13 @@
 #include <tiny_printf.h>
 
 #include "home_view.h"
+#include "platform.h"
+#include "state_ref.h"
+#include "utilities.h"
 #include "hal/board.h"
 #include "hal/display.h"
 #include "hal/network.h"
-#include "state_ref.h"
-#include "platform.h"
-#include "utilities.h"
-#include "clock.h"
+#include "hal/clock.h"
 
 #if defined(__SAMD51__)
 #include "hal/metal/metal_ipc.h"

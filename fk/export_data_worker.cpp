@@ -3,8 +3,8 @@
 #include "hal/hal.h"
 #include "hal/memory.h"
 #include "hal/sd_card.h"
+#include "hal/clock.h"
 
-#include "clock.h"
 #include "records.h"
 
 #include "storage/signed_log.h"

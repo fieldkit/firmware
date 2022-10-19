@@ -1,9 +1,9 @@
 #include "fk.h"
 #include "self_check.h"
-#include "clock.h"
 #include "temperature.h"
 #include "modules/scanning.h"
 #include "hal/metal/metal.h"
+#include "hal/clock.h"
 
 namespace fk {
 

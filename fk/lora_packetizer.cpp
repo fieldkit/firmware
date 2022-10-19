@@ -1,5 +1,5 @@
 #include "lora_packetizer.h"
-#include "clock.h"
+#include "hal/clock.h"
 #include "records.h"
 #include "varint.h"
 
