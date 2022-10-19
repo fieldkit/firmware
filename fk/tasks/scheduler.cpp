@@ -79,12 +79,17 @@ void task_handler_scheduler(void *params) {
         GpsTask gps_job{ schedules.gps, gps_service };
         ServiceModulesTask service_modules_job{ schedules.service_interval };
 
-#if !defined(FK_UNDERWATER)
-        lwcron::Task *tasks[7]{ &synchronize_time_job, &readings_job, &upload_data_job, &lora_job, &gps_job,
-                                &service_modules_job,  &backup_job };
-#else
-        lwcron::Task *tasks[4]{ &synchronize_time_job, &readings_job, &backup_job, &gps_job };
+        lwcron::Task *tasks[] {
+            &synchronize_time_job, &readings_job, &backup_job, &gps_job, &service_modules_job
+#if !defined(FK_DISABLE_NETWORK)
+                ,
+                &upload_data_job
 #endif
+#if !defined(FK_DISABLE_LORA)
+                ,
+                &lora_job
+#endif
+        };
         lwcron::Scheduler scheduler{ tasks };
         Topology topology;
 
