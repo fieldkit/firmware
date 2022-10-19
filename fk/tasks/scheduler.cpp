@@ -51,7 +51,7 @@ void task_handler_scheduler(void *params) {
     if (!battery.low_power()) {
         FK_ASSERT(fk_start_task_if_necessary(&display_task));
 
-#if !defined(FK_UNDERWATER)
+#if !defined(FK_DISABLE_NETWORK)
         FK_ASSERT(fk_start_task_if_necessary(&network_task));
 #endif
 
