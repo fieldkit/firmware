@@ -39,15 +39,6 @@ public:
 
     void compare();
 
-public:
-#if !defined(FK_UNDERWATER)
-    void read_timestamp_registers();
-
-    void clear_timestamp_registers();
-
-    void log_tsr(uint8_t *ts);
-#endif
-
 private:
     bool adjust_internal(DateTime now);
 };

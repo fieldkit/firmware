@@ -239,34 +239,6 @@ DateTime CoreClock::get_external() {
     return time;
 }
 
-#if !defined(FK_UNDERWATER)
-void CoreClock::read_timestamp_registers() {
-    auto bus = get_board()->i2c_core();
-
-    uint8_t data[6 * 3];
-    if (!I2C_CHECK(bus.read_register_buffer(Address, 0x11, data, sizeof(data)))) {
-        return;
-    }
-
-    log_tsr(&data[6 * 0]);
-    log_tsr(&data[6 * 1]);
-    log_tsr(&data[6 * 2]);
-}
-
-void CoreClock::clear_timestamp_registers() {
-    loginfo("clearing TSR (seems broken)");
-
-    auto bus = get_board()->i2c_core();
-
-    bus.write_register_u8(Address, 0x2f, 0x25);
-}
-
-void CoreClock::log_tsr(uint8_t *ts) {
-    loginfo("tsr: %04d/%02d/%02d %02d:%02d:%02d.%d", bcd2bin(ts[6]) + 2000, bcd2bin(ts[5] & 0b00011111), bcd2bin(ts[4] & 0b00111111),
-            bcd2bin(ts[3] & 0b00111111), bcd2bin(ts[2] & 0b01111111), bcd2bin(ts[1] & 0b01111111), bcd2bin(ts[0]));
-}
-#endif
-
 void CoreClock::compare() {
     DateTime internal_time;
     if (!internal(internal_time)) {
