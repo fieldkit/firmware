@@ -12,9 +12,6 @@ using DateTime = lwcron::DateTime;
 
 class CoreClock {
 private:
-    constexpr static uint8_t Address = 0x51u;
-
-private:
     bool configured_{ false };
 
 public:

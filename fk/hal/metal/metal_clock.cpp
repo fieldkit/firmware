@@ -39,6 +39,35 @@ namespace fk {
 
 FK_DECLARE_LOGGER("clock");
 
+class ExternalClock {
+public:
+    virtual bool configure() = 0;
+    virtual bool adjust(DateTime now) = 0;
+    virtual bool read(DateTime &time) = 0;
+};
+
+class Version1Clock : public ExternalClock {
+    constexpr static uint8_t Address = 0x51u;
+
+public:
+    bool configure() override;
+    bool adjust(DateTime now) override;
+    bool read(DateTime &time) override;
+};
+
+class FkUwClock : public ExternalClock {
+public:
+    bool configure() override;
+    bool adjust(DateTime now) override;
+    bool read(DateTime &time) override;
+};
+
+#if defined(FK_UNDERWATER)
+static Version1Clock external_clock;
+#else
+static FkUwClock external_clock;
+#endif
+
 struct calendar_descriptor CALENDAR_0;
 
 static CoreClock clock;
@@ -47,16 +76,6 @@ static void CALENDAR_0_initialize(void) {
     hri_mclk_set_APBAMASK_RTC_bit(MCLK);
     calendar_init(&CALENDAR_0, RTC);
 }
-
-#if !defined(FK_UNDERWATER)
-static uint8_t bcd2bin(uint8_t val) {
-    return val - 6 * (val >> 4);
-}
-
-static uint8_t bin2bcd(uint8_t val) {
-    return val + 6 * (val / 10);
-}
-#endif
 
 CoreClock::CoreClock() {
 }
@@ -81,22 +100,9 @@ bool CoreClock::configure() {
         return true;
     }
 
-    auto bus = get_board()->i2c_core();
-
-#if defined(FK_UNDERWATER)
-#else
-    uint8_t bsm;
-    if (!I2C_CHECK(bus.read_register_u8(Address, 0x26, bsm))) {
+    if (!external_clock.configure()) {
         return false;
     }
-
-    if (bsm != 0) {
-        loginfo("fixing battery switch mode = 0x%x", bsm);
-        if (!I2C_CHECK(bus.write_register_u8(Address, 0x26, 0x00))) {
-            return false;
-        }
-    }
-#endif
 
     configured_ = true;
 
@@ -157,35 +163,9 @@ bool CoreClock::adjust_internal(DateTime now) {
 }
 
 bool CoreClock::adjust(DateTime now) {
-    auto bus = get_board()->i2c_core();
-
-#if defined(FK_UNDERWATER)
-#else
-    uint8_t adjust_command[] = {
-        CTRL_STOP_EN,
-        STOP_EN_STOP,
-        RESET_CPR,
-        0,
-        bin2bcd(now.second()),
-        bin2bcd(now.minute()),
-        bin2bcd(now.hour()),
-        bin2bcd(now.day()),
-        bin2bcd(0),
-        bin2bcd(now.month()),
-        bin2bcd(now.year() - 2000),
-    };
-    if (!I2C_CHECK(bus.write(Address, &adjust_command, sizeof(adjust_command)))) {
+    if (!external_clock.adjust(now)) {
         return false;
     }
-
-    uint8_t resume_command[] = {
-        CTRL_STOP_EN,
-        0,
-    };
-    if (!I2C_CHECK(bus.write(Address, &resume_command, sizeof(resume_command)))) {
-        return false;
-    }
-#endif
 
     return adjust_internal(now);
 }
@@ -202,25 +182,7 @@ bool CoreClock::internal(DateTime &time) {
 }
 
 bool CoreClock::external(DateTime &time) {
-    auto bus = get_board()->i2c_core();
-
-#if defined(FK_UNDERWATER)
-#else
-    uint8_t data[8];
-    if (!I2C_CHECK(bus.read_register_buffer(Address, 0x00, data, sizeof(data)))) {
-        return false;
-    }
-
-    auto os_flag = data[1] & 0b10000000;
-    if (os_flag) {
-        loginfo("possible accuracy error!");
-    }
-
-    time = DateTime{ (uint16_t)(bcd2bin(data[7]) + 2000), bcd2bin(data[6] & 0b00011111), bcd2bin(data[4] & 0b00111111),
-                     bcd2bin(data[3] & 0b00111111),       bcd2bin(data[2] & 0b01111111), bcd2bin(data[1] & 0b01111111) };
-#endif
-
-    return true;
+    return external_clock.read(time);
 }
 
 DateTime CoreClock::now() {
@@ -283,6 +245,94 @@ uint32_t clock_adjust(uint32_t new_epoch) {
             (int64_t)new_epoch - old_epoch);
 
     return new_epoch;
+}
+
+static uint8_t bcd2bin(uint8_t val) {
+    return val - 6 * (val >> 4);
+}
+
+static uint8_t bin2bcd(uint8_t val) {
+    return val + 6 * (val / 10);
+}
+
+bool Version1Clock ::configure() {
+    auto bus = get_board()->i2c_core();
+
+    uint8_t bsm;
+    if (!I2C_CHECK(bus.read_register_u8(Address, 0x26, bsm))) {
+        return false;
+    }
+
+    if (bsm != 0) {
+        loginfo("fixing battery switch mode = 0x%x", bsm);
+        if (!I2C_CHECK(bus.write_register_u8(Address, 0x26, 0x00))) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool Version1Clock ::adjust(DateTime now) {
+    auto bus = get_board()->i2c_core();
+
+    uint8_t adjust_command[] = {
+        CTRL_STOP_EN,
+        STOP_EN_STOP,
+        RESET_CPR,
+        0,
+        bin2bcd(now.second()),
+        bin2bcd(now.minute()),
+        bin2bcd(now.hour()),
+        bin2bcd(now.day()),
+        bin2bcd(0),
+        bin2bcd(now.month()),
+        bin2bcd(now.year() - 2000),
+    };
+    if (!I2C_CHECK(bus.write(Address, &adjust_command, sizeof(adjust_command)))) {
+        return false;
+    }
+
+    uint8_t resume_command[] = {
+        CTRL_STOP_EN,
+        0,
+    };
+    if (!I2C_CHECK(bus.write(Address, &resume_command, sizeof(resume_command)))) {
+        return false;
+    }
+
+    return true;
+}
+
+bool Version1Clock ::read(DateTime &time) {
+    auto bus = get_board()->i2c_core();
+
+    uint8_t data[8];
+    if (!I2C_CHECK(bus.read_register_buffer(Address, 0x00, data, sizeof(data)))) {
+        return false;
+    }
+
+    auto os_flag = data[1] & 0b10000000;
+    if (os_flag) {
+        loginfo("possible accuracy error!");
+    }
+
+    time = DateTime{ (uint16_t)(bcd2bin(data[7]) + 2000), bcd2bin(data[6] & 0b00011111), bcd2bin(data[4] & 0b00111111),
+                     bcd2bin(data[3] & 0b00111111),       bcd2bin(data[2] & 0b01111111), bcd2bin(data[1] & 0b01111111) };
+
+    return true;
+}
+
+bool FkUwClock ::configure() {
+    return true;
+}
+
+bool FkUwClock ::adjust(DateTime now) {
+    return true;
+}
+
+bool FkUwClock ::read(DateTime &time) {
+    return true;
 }
 
 } // namespace fk
