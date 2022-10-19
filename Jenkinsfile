@@ -93,7 +93,7 @@ timestamps {
 			currentBuild.description = version.trim()
 
 			stage ('archive') {
-				archiveArtifacts artifacts: "build/*.zip, build/*/*.zip, build/samd51/bootloader/*.elf, build/samd51/bootloader/*.bin, build/*/fk/*.bin, build/*/fk/*.elf, build/*/modules/*/*/*.bin, build/*/modules/*/*/*.elf"
+				archiveArtifacts artifacts: "build/*.zip, build/*/*.zip"
 			}
 
 			stage ('distribute') {
