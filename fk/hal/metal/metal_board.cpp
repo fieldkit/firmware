@@ -46,6 +46,10 @@ const uint8_t power_pins[] = {
 
 bool Board::initialize() {
 #if defined(FK_UNDERWATER)
+    const uint8_t AccessoriesPower = 23u;
+    loginfo("fkuw: accessories: on");
+    pinMode(AccessoriesPower, OUTPUT);
+    digitalWrite(AccessoriesPower, HIGH);
 #else
     pinMode(WINC1500_POWER, OUTPUT);
     pinMode(WINC1500_CS, OUTPUT);

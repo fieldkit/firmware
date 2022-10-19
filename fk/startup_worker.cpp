@@ -55,13 +55,6 @@ void StartupWorker::fkb_header(fkb_header_t *fkb_header) {
 }
 
 void StartupWorker::run(Pool &pool) {
-#if defined(FK_UNDERWATER)
-    const uint8_t AccessoriesPower = 23u;
-    loginfo("fkuw: accessories: on");
-    pinMode(AccessoriesPower, OUTPUT);
-    digitalWrite(AccessoriesPower, HIGH);
-#endif
-
     get_board()->i2c_core().begin();
 
 #if defined(__SAMD51__)
