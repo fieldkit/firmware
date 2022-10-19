@@ -102,22 +102,25 @@ void StartupWorker::run(Pool &pool) {
 
     // Ensure we initialize the battery gauge before refreshing, since
     // we're booting. BatteryChecker assumes the gauge is ready to go.
-    loginfo("check for low power startup");
-    BatteryChecker battery_checker;
-    battery_checker.refresh(true);
+    auto low_power_startup = false;
+    auto gauge = get_battery_gauge();
+    if (gauge->expected()) {
+        loginfo("check for low power startup");
+        BatteryChecker battery_checker;
+        battery_checker.refresh(true);
 
-#if !defined(FK_UNDERWATER)
-    if (battery_checker.available()) {
-        if (!battery_checker.low_power()) {
-            display->company_logo();
+        if (battery_checker.available()) {
+            low_power_startup = battery_checker.low_power();
+            if (!low_power_startup) {
+                display->company_logo();
+            }
+        } else {
+            fk_fault_set(&BatteryGaugeFailure);
+            display->fault(&BatteryGaugeFailure);
         }
     } else {
-        fk_fault_set(&BatteryGaugeFailure);
-        display->fault(&BatteryGaugeFailure);
+        logwarn("fkuw: skipping battery check");
     }
-#else
-    logwarn("fkuw: skipping battery check");
-#endif
 
     // NOTE Power cycle modules, this gives us a fresh start. Some times behave
     // funny, specifically temperature. Without this the first attempt down
@@ -147,12 +150,12 @@ void StartupWorker::run(Pool &pool) {
 
     auto memory = MemoryFactory::get_data_memory();
     if (memory->begin()) {
-#if defined(__SAMD51__)
+        // #if defined(__SAMD51__)
         // The new file system code is very verbose at the DEBG level
         // and so this ensures the full startup ends up in the
         // logs. There should be a better fix, for this though.
         ScopedLogLevelChange temporary_info_only{ LogLevels::INFO };
-#endif
+        // #endif
         if (!load_or_create_state(pool)) {
             logerror("load or create state");
         }
@@ -170,12 +173,8 @@ void StartupWorker::run(Pool &pool) {
     SelfCheck self_check(display, get_network(), mm, get_module_leds());
 
     // Run self check and initialize modules if we have sufficient power.
-    if (!battery_checker.low_power()) {
-#if defined(FK_UNDERWATER)
-        auto settings = SelfCheckSettings::fkuw_defaults();
-#else
+    if (!low_power_startup) {
         auto settings = SelfCheckSettings::defaults();
-#endif
         self_check.check(settings, noop_callbacks, &pool);
 
         mm->enable_all_modules();

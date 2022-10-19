@@ -43,12 +43,8 @@ static ScheduledTime get_next_task_time(uint32_t now, lwcron::Task &task) {
 void task_handler_scheduler(void *params) {
     auto display_off = 0;
 
-#if defined(FK_UNDERWATER)
-    NoopBatteryChecker battery;
-#else
     BatteryChecker battery;
     battery.refresh();
-#endif
 
     GpsService gps_service{ get_gps() };
 

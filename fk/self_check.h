@@ -26,16 +26,18 @@ private:
     }
 
 public:
-    static SelfCheckSettings detailed() {
-        return { true, true, true, true, true, true, true, true };
+#if defined(FK_UNDERWATER)
+    static SelfCheckSettings defaults() {
+        return { true, true, false, false, false, false, false, false };
     }
-
+#else
     static SelfCheckSettings defaults() {
         return { true, true, true, false, false, false, true, true };
     }
+#endif
 
-    static SelfCheckSettings fkuw_defaults() {
-        return { true, true, false, false, false, false, false, false };
+    static SelfCheckSettings detailed() {
+        return { true, true, true, true, true, true, true, true };
     }
 
     static SelfCheckSettings low_power() {
