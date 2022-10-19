@@ -14,34 +14,36 @@ struct SelfCheckSettings {
     bool module_presence{ true };
     bool check_network{ false };
     bool check_battery{ true };
+    bool check_temperature{ true };
 
 private:
     SelfCheckSettings() {
     }
 
     SelfCheckSettings(bool gps, bool sd_card, bool backplane, bool lora, bool flash_leds, bool module_presence, bool check_network,
-                      bool check_battery)
+                      bool check_battery, bool check_temperature)
         : check_gps(gps), check_sd_card(sd_card), check_backplane(backplane), check_lora(lora), flash_leds(flash_leds),
-          module_presence(module_presence), check_network(check_network), check_battery(check_battery) {
+          module_presence(module_presence), check_network(check_network), check_battery(check_battery),
+          check_temperature(check_temperature) {
     }
 
 public:
 #if defined(FK_UNDERWATER)
     static SelfCheckSettings defaults() {
-        return { true, true, false, false, false, false, false, false };
+        return { true, true, false, false, false, false, false, false, false };
     }
 #else
     static SelfCheckSettings defaults() {
-        return { true, true, true, false, false, false, true, true };
+        return { true, true, true, false, false, false, true, true, true };
     }
 #endif
 
     static SelfCheckSettings detailed() {
-        return { true, true, true, true, true, true, true, true };
+        return { true, true, true, true, true, true, true, true, true };
     }
 
     static SelfCheckSettings low_power() {
-        return { false, false, false, false, false, false, false, true };
+        return { false, false, false, false, false, false, false, true, true };
     }
 };
 

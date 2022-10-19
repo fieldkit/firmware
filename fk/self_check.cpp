@@ -55,7 +55,11 @@ void SelfCheck::check(SelfCheckSettings settings, SelfCheckCallbacks &callbacks,
     }
     callbacks.update(status);
 
-    status.temperature = to_status(temperature());
+    if (settings.check_temperature) {
+        status.temperature = to_status(temperature());
+    } else {
+        status.temperature = CheckStatus::Unknown;
+    }
     callbacks.update(status);
 
     status.qspi_memory = to_status(qspi_memory());
