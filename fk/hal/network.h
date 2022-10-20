@@ -12,18 +12,9 @@ typedef struct ip4_address {
     } u;
 } ip4_address;
 
-enum class NetworkStatus {
-    Error = 0,
-    Ready,
-    Off,
-    Listening,
-    Connected
-};
+enum class NetworkStatus { Error = 0, Ready, Off, Listening, Connected };
 
-enum class NetworkConnectionStatus {
-    Connected,
-    Disconnected
-};
+enum class NetworkConnectionStatus { Connected, Disconnected };
 
 typedef struct NetworkSettings {
     bool valid;
@@ -53,12 +44,9 @@ public:
 
     virtual int32_t write(const char *str) = 0;
 
-    virtual int32_t socket() = 0;
-
     virtual uint32_t remote_address() = 0;
 
     virtual bool stop() = 0;
-
 };
 
 class NetworkListener {
@@ -66,7 +54,6 @@ public:
     virtual PoolPointer<NetworkConnection> *accept() = 0;
 
     virtual bool stop() = 0;
-
 };
 
 class NetworkScan {
@@ -75,7 +62,7 @@ private:
     size_t length_;
 
 public:
-    NetworkScan(const char **networks, size_t length): networks_(networks), length_(length) {
+    NetworkScan(const char **networks, size_t length) : networks_(networks), length_(length) {
     }
 
 public:
@@ -90,7 +77,6 @@ public:
     const char *network(size_t i) const {
         return networks_[i];
     }
-
 };
 
 class Network {
@@ -136,29 +122,29 @@ public:
         }
         return status() == NetworkStatus::Connected;
     }
-
 };
 
 Network *get_network();
 
-template<typename ConcreteWrapped, class... Args, typename ConcreteWrapee = StandardPoolWrapper<NetworkConnection, ConcreteWrapped, Args...>>
-inline PoolPointer<NetworkConnection> *create_network_connection_wrapper(Args &&... args) {
+template <typename ConcreteWrapped, class... Args,
+          typename ConcreteWrapee = StandardPoolWrapper<NetworkConnection, ConcreteWrapped, Args...>>
+inline PoolPointer<NetworkConnection> *create_network_connection_wrapper(Args &&...args) {
     auto pool = create_standard_pool_inside(TypeName<ConcreteWrapped>::get());
     return new (pool) ConcreteWrapee(pool, std::forward<Args>(args)...);
 }
 
-template<typename ConcreteWrapped, class... Args, typename ConcreteWrapee = StandardPoolWrapper<NetworkListener, ConcreteWrapped, Args...>>
-inline PoolPointer<NetworkListener> *create_network_listener_wrapper(Args &&... args) {
+template <typename ConcreteWrapped, class... Args, typename ConcreteWrapee = StandardPoolWrapper<NetworkListener, ConcreteWrapped, Args...>>
+inline PoolPointer<NetworkListener> *create_network_listener_wrapper(Args &&...args) {
     auto pool = create_standard_pool_inside(TypeName<ConcreteWrapped>::get());
     return new (pool) ConcreteWrapee(pool, std::forward<Args>(args)...);
 }
 
-template<typename ConcreteWrapped, class... Args, typename ConcreteWrapee = WeakPoolWrapper<NetworkListener, ConcreteWrapped, Args...>>
-inline PoolPointer<NetworkListener> *create_weak_network_listener_wrapper(Pool &pool, Args &&... args) {
+template <typename ConcreteWrapped, class... Args, typename ConcreteWrapee = WeakPoolWrapper<NetworkListener, ConcreteWrapped, Args...>>
+inline PoolPointer<NetworkListener> *create_weak_network_listener_wrapper(Pool &pool, Args &&...args) {
     return new (pool) ConcreteWrapee(pool, std::forward<Args>(args)...);
 }
 
 FK_ENABLE_TYPE_NAME(NetworkConnection);
 FK_ENABLE_TYPE_NAME(NetworkListener);
 
-}
+} // namespace fk

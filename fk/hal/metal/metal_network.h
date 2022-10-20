@@ -13,12 +13,9 @@
 #include <WiFi101.h>
 #include <WiFiUdp.h>
 
-#if !defined(FK_UNDERWATER)
+#if !defined(FK_NETWORK_ESP32)
 #include <WiFiSocket.h>
 #endif
-
-#undef min
-#undef max
 
 namespace fk {
 
@@ -60,8 +57,6 @@ public:
 
     int32_t write(const char *str) override;
 
-    int32_t socket() override;
-
     uint32_t remote_address() override;
 
     bool stop() override;
@@ -83,26 +78,6 @@ public:
     bool stop() override;
 };
 
-#if !defined(FK_UNDERWATER)
-class StaticWiFiCallbacks : public WiFiCallbacks {
-private:
-    constexpr static size_t ExpectedWiFiBufferSize = 1472;
-    constexpr static size_t NumberOfBuffers = 3;
-
-    struct Buffer {
-        bool taken{ false };
-        void *ptr{ nullptr };
-    };
-    Buffer buffers_[NumberOfBuffers];
-
-public:
-    void initialize(Pool &pool);
-    void *malloc(size_t size) override;
-    void free(void *ptr) override;
-    bool busy(uint32_t elapsed) override;
-};
-#endif
-
 class MetalNetwork : public Network {
 private:
     Availability availability_{ Availability::Unknown };
@@ -115,6 +90,11 @@ private:
     UDPDiscovery udp_discovery_;
     SimpleNTP ntp_;
     uint8_t status_{ 0 };
+
+protected:
+    Pool &network_pool() {
+        return *pool_;
+    }
 
 public:
     bool begin(NetworkSettings settings, Pool *pool) override;
@@ -131,7 +111,7 @@ public:
 
     void service(Pool *pool) override;
 
-    PoolPointer<NetworkConnection> *open_connection(const char *scheme, const char *hostname, uint16_t port) override;
+    PoolPointer<NetworkConnection> *open_connection(const char *scheme, const char *hostname, uint16_t port) = 0;
 
     bool stop() override;
 
@@ -148,6 +128,12 @@ public:
     NetworkScan scan(Pool &pool) override;
 
     void verify() override;
+
+public:
+    virtual bool start_ap(NetworkSettings settings) = 0;
+    virtual bool connected() {
+        return true;
+    }
 };
 
 FK_ENABLE_TYPE_NAME(MetalNetworkConnection);

@@ -5,15 +5,9 @@
 
 #if defined(__SAMD51__)
 
-#if !defined(FK_UNDERWATER)
-#include <WiFiSocket.h>
-#endif
-
 namespace fk {
 
-#if !defined(FK_UNDERWATER)
-static StaticWiFiCallbacks staticWiFiCallbacks;
-#endif
+FK_DECLARE_LOGGER("network");
 
 const char *get_wifi_status(uint8_t status) {
     switch (status) {
@@ -39,9 +33,11 @@ const char *get_wifi_status(uint8_t status) {
         return "WL_AP_CONNECTED";
     case WL_AP_FAILED:
         return "WL_AP_FAILED";
-#if !defined(FK_UNDERWATER)
+#if defined(WL_PROVISIONING)
     case WL_PROVISIONING:
         return "WL_PROVISIONING";
+#endif
+#if defined(WL_PROVISIONING_FAILED)
     case WL_PROVISIONING_FAILED:
         return "WL_PROVISIONING_FAILED";
 #endif
@@ -49,8 +45,6 @@ const char *get_wifi_status(uint8_t status) {
         return "Unknown";
     }
 }
-
-FK_DECLARE_LOGGER("network");
 
 MetalNetworkConnection::MetalNetworkConnection() {
 }
@@ -90,9 +84,6 @@ int32_t MetalNetworkConnection::read(uint8_t *buffer, size_t size) {
     if (buffer_ != nullptr) {
         auto copying = std::min<size_t>(size_ - position_, nread);
         if (copying > 0) {
-#if !defined(FK_UNDERWATER)
-            logdebug("[%d] copying %zd + %zd", wcl_.socket(), position_, copying);
-#endif
             memcpy(buffer_ + position_, buffer, copying);
             position_ += copying;
         }
@@ -145,14 +136,6 @@ int32_t MetalNetworkConnection::vwritef(const char *str, va_list args) {
     return buffered_writer_->return_value;
 }
 
-int32_t MetalNetworkConnection::socket() {
-#if defined(FK_UNDERWATER)
-    return -1;
-#else
-    return wcl_.socket();
-#endif
-}
-
 uint32_t MetalNetworkConnection::remote_address() {
     return wcl_.remoteIP();
 }
@@ -160,15 +143,6 @@ uint32_t MetalNetworkConnection::remote_address() {
 bool MetalNetworkConnection::stop() {
     wcl_.flush();
     wcl_.stop();
-
-    /*
-    auto s = wcl_.socket();
-    if (buffer_ != nullptr && position_ > 0) {
-        char temp[32];
-        tiny_snprintf(temp, sizeof(temp), "CDGB-%d ", s);
-        fk_dump_memory(temp, buffer_, position_);
-    }
-    */
 
     return true;
 }
@@ -185,12 +159,6 @@ bool MetalNetwork::begin(NetworkSettings settings, Pool *pool) {
 
     pool_ = pool;
 
-#if !defined(FK_UNDERWATER)
-    staticWiFiCallbacks.initialize(*pool_);
-
-    WiFiSocketClass::callbacks = &staticWiFiCallbacks;
-#endif
-
     get_board()->enable_wifi();
 
     fk_delay(100);
@@ -201,11 +169,6 @@ bool MetalNetwork::begin(NetworkSettings settings, Pool *pool) {
      * causes contention/leaks in the buffer memory of the module.
      */
     NVIC_SetPriority(EIC_11_IRQn, OS_IRQ_PRIORITY_SYSTICK - 1);
-
-#if defined(FK_UNDERWATER)
-#else
-    WiFi.setPins(WINC1500_CS, WINC1500_IRQ, WINC1500_RESET);
-#endif
 
     status_ = WiFi.status();
 
@@ -224,12 +187,10 @@ bool MetalNetwork::begin(NetworkSettings settings, Pool *pool) {
                 WiFi.beginAP(settings.ssid, settings.password);
             } else {
                 loginfo("creating '%s'", settings.ssid);
-#if defined(FK_UNDERWATER)
-                WiFi.beginAP(settings.ssid);
-#else
-                IPAddress ip{ 192, 168, 2, 1 };
-                WiFi.beginAP(settings.ssid, 2, ip);
-#endif
+
+                if (!start_ap(settings)) {
+                    return false;
+                }
             }
         } else {
             loginfo("connecting '%s'", settings.ssid);
@@ -267,12 +228,9 @@ bool MetalNetwork::serve() {
     loginfo("ready (ip = %d.%d.%d.%d) (status = %s)", ip[0], ip[1], ip[2], ip[3], get_wifi_status(status_));
 
     if (status_ == WL_AP_CONNECTED) {
-#if defined(FK_UNDERWATER)
-#else
-        uint8_t mac_address[6];
-        WiFi.APClientMacAddress(mac_address);
-        loginfo("remote mac: %s", bytes_to_hex_string_pool(mac_address, sizeof(mac_address), *pool_));
-#endif
+        if (!connected()) {
+            return false;
+        }
     }
 
     serving_ = true;
@@ -328,30 +286,6 @@ void MetalNetwork::service(Pool *pool) {
             ntp_.service();
         }
     }
-}
-
-PoolPointer<NetworkConnection> *MetalNetwork::open_connection(const char *scheme, const char *hostname, uint16_t port) {
-    WiFiClient wcl;
-
-    if (strcmp(scheme, "https") == 0) {
-        logdebug("connection %s %d (ssl) rssi=%d", hostname, port, WiFi.RSSI());
-#if defined(FK_UNDERWATER)
-        if (!wcl.connectSSL(hostname, port)) {
-            return nullptr;
-        }
-#else
-        if (!wcl.connectSSL(hostname, port, true)) {
-            return nullptr;
-        }
-#endif
-    } else {
-        logdebug("connection %s %d rssi=%d", hostname, port, WiFi.RSSI());
-        if (!wcl.connect(hostname, port)) {
-            return nullptr;
-        }
-    }
-
-    return create_network_connection_wrapper<MetalNetworkConnection>(wcl);
 }
 
 bool MetalNetwork::stop() {
@@ -432,7 +366,7 @@ bool MetalNetworkListener::begin() {
 }
 
 PoolPointer<NetworkConnection> *MetalNetworkListener::accept() {
-#if defined(FK_UNDERWATER)
+#if defined(FK_NETWORK_ESP32)
     auto wcl = server_.available(nullptr);
 #else
     auto wcl = server_.available(nullptr, true);
@@ -447,45 +381,6 @@ PoolPointer<NetworkConnection> *MetalNetworkListener::accept() {
 bool MetalNetworkListener::stop() {
     return true;
 }
-
-#if !defined(FK_UNDERWATER)
-void StaticWiFiCallbacks::initialize(Pool &pool) {
-    for (auto i = 0u; i < NumberOfBuffers; ++i) {
-        buffers_[i].ptr = pool.malloc(ExpectedWiFiBufferSize);
-        buffers_[i].taken = false;
-    }
-}
-
-void *StaticWiFiCallbacks::malloc(size_t size) {
-    FK_ASSERT(size == ExpectedWiFiBufferSize);
-
-    for (auto i = 0u; i < NumberOfBuffers; ++i) {
-        if (!buffers_[i].taken) {
-            buffers_[i].taken = true;
-            alogf(LogLevels::DEBUG, "network", "malloc() = 0x%p", buffers_[i].ptr);
-            return buffers_[i].ptr;
-        }
-    }
-
-    return nullptr;
-}
-
-void StaticWiFiCallbacks::free(void *ptr) {
-    for (auto i = 0u; i < NumberOfBuffers; ++i) {
-        if (buffers_[i].ptr == ptr) {
-            buffers_[i].taken = false;
-            alogf(LogLevels::DEBUG, "network", "free(0x%p)", buffers_[i].ptr);
-            return;
-        }
-    }
-
-    alogf(LogLevels::WARN, "network", "free of old network buffer, ignoring 0x%p", ptr);
-}
-
-bool StaticWiFiCallbacks::busy(uint32_t elapsed) {
-    return true;
-}
-#endif
 
 } // namespace fk
 
