@@ -2,46 +2,9 @@
 
 #include "common.h"
 #include "hal/mutex.h"
+#include "hal/pins.h"
 
 namespace fk {
-
-#if defined(FK_UNDERWATER)
-constexpr uint8_t GPS_POWER = 55u;
-#else
-constexpr uint8_t WINC1500_CS = 95u;    // PC25
-constexpr uint8_t WINC1500_POWER = 56u; // PB07
-constexpr uint8_t WINC1500_IRQ = 97u;   // PC27
-constexpr uint8_t WINC1500_RESET = 96u; // PC26
-
-constexpr uint8_t GPS_POWER = 55u;
-#endif
-
-constexpr uint8_t QSPI_FLASH_CS = 90u; // PB11 (PIN_QSPI_CS)
-
-constexpr uint8_t PIN_SD_CS = 8u; // PB18
-
-constexpr uint8_t SPI_FLASH_CS_BANK_1 = 44u; // PC11
-constexpr uint8_t SPI_FLASH_CS_BANK_2 = 41u; // PC12
-constexpr uint8_t SPI_FLASH_CS_BANK_3 = 40u; // PC13
-constexpr uint8_t SPI_FLASH_CS_BANK_4 = 43u; // PC14
-
-#if defined(FK_UNDERWATER)
-constexpr uint8_t BUTTON_LEFT = 12u;   // PB00
-constexpr uint8_t BUTTON_MIDDLE = 13u; // PB01
-constexpr uint8_t BUTTON_RIGHT = 9u;   // PB02
-constexpr uint8_t BUTTON_EXTERNAL = BUTTON_LEFT;
-#else
-constexpr uint8_t BUTTON_LEFT = 30u;     // PA23
-constexpr uint8_t BUTTON_MIDDLE = 31u;   // PA22
-constexpr uint8_t BUTTON_RIGHT = 32u;    // PA21
-constexpr uint8_t BUTTON_EXTERNAL = 74u; // PB04
-#endif
-
-constexpr uint8_t LORA_POWER = 76u; // PC30
-
-constexpr uint8_t MODULE_EEPROM_LOCK = 13u; // PB01
-constexpr uint8_t MODULE_SWAP = 69u;        // PB03
-constexpr uint8_t MODULE_SOLO_ENABLE = 75u; // PB03
 
 class SpiWrapper {
 private:
