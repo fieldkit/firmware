@@ -191,6 +191,9 @@ ModuleReadings *OmniWaterModule::take_readings(ReadingsContext mc, Pool &pool) {
 
     auto &bus = mc.module_bus();
 
+    auto mr = new (pool) NModuleReadings<5>();
+    auto position = 0u;
+
     for (auto &modality : AllModalities) {
         loginfo("omni:modality %s", modality.name);
 
@@ -202,8 +205,13 @@ ModuleReadings *OmniWaterModule::take_readings(ReadingsContext mc, Pool &pool) {
 
         auto water_readings = water_protocol.take_readings(mc, cfg_, pool);
         if (water_readings == nullptr) {
-            return nullptr;
+            logwarn("water-proto: readings error");
+        } else {
+            auto sr = SensorReading{ mc.now(), water_readings->uncalibrated, water_readings->calibrated, water_readings->factory };
+            mr->set(position, sr);
         }
+
+        position++;
 
         fk_delay(100);
     }
@@ -211,7 +219,11 @@ ModuleReadings *OmniWaterModule::take_readings(ReadingsContext mc, Pool &pool) {
     // Enable lockout.
     lockout_.enable_until_uptime(uptime + OneMinuteMs);
 
-    return nullptr;
+    if (mr->size() == 0) {
+        return nullptr;
+    }
+
+    return mr;
 }
 
 } // namespace fk
