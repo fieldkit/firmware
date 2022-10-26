@@ -102,9 +102,9 @@ template <typename TSelect> struct SensorReadingOption : public MenuOption {
             auto position = mas.attached_module->position().integer();
             logverbose("[%d] refresh: %s %.3f", sensor_index_, mas.sensor->name(), reading.calibrated);
             if (position == ModulePosition::Virtual.integer()) {
-                tiny_snprintf(reading_, sizeof(reading_), "[%c] %.3f", ' ', reading.calibrated);
+                tiny_snprintf(reading_, sizeof(reading_), "[%c] %.3f", ' ', reading.uncalibrated);
             } else {
-                tiny_snprintf(reading_, sizeof(reading_), "[%d] %.3f", position, reading.calibrated);
+                tiny_snprintf(reading_, sizeof(reading_), "[%d] %.3f", position, reading.uncalibrated);
             }
             tiny_snprintf(help_, sizeof(help_), "[%c] %s", ' ', mas.sensor->name());
             if (label_ == nullptr || (label_ != reading_ && label_ != help_)) {
