@@ -132,8 +132,8 @@ ModuleReturn OmniWaterModule::service(ModuleContext mc, Pool &pool) {
 }
 
 static SensorMetadata const fk_module_omni_water_sensor_metas[] = {
-    { .name = "temp", .unitOfMeasure = "°C", .flags = 0 },  { .name = "ph", .unitOfMeasure = "pH", .flags = 0 },
-    { .name = "ec", .unitOfMeasure = "µS/cm", .flags = 0 }, { .name = "do", .unitOfMeasure = "%", .flags = 0 },
+    { .name = "ph", .unitOfMeasure = "pH", .flags = 0 },   { .name = "ec", .unitOfMeasure = "µS/cm", .flags = 0 },
+    { .name = "temp", .unitOfMeasure = "°C", .flags = 0 }, { .name = "do", .unitOfMeasure = "%", .flags = 0 },
     { .name = "orp", .unitOfMeasure = "mV", .flags = 0 },
 };
 
