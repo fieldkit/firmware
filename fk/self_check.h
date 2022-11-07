@@ -32,11 +32,18 @@ public:
     static SelfCheckSettings defaults() {
         return { true, true, false, false, false, false, false, false, false };
     }
+
+    static SelfCheckSettings detailed() {
+        return { true, true, false, false, false, false, false, false, false };
+    }
+
+    static SelfCheckSettings low_power() {
+        return { false, false, false, false, false, false, false, true, true };
+    }
 #else
     static SelfCheckSettings defaults() {
         return { true, true, true, false, false, false, true, true, true };
     }
-#endif
 
     static SelfCheckSettings detailed() {
         return { true, true, true, true, true, true, true, true, true };
@@ -45,6 +52,7 @@ public:
     static SelfCheckSettings low_power() {
         return { false, false, false, false, false, false, false, true, true };
     }
+#endif
 };
 
 enum class CheckStatus : uint8_t {
