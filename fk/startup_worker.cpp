@@ -122,6 +122,8 @@ void StartupWorker::run(Pool &pool) {
         logwarn("fkuw: skipping battery check");
     }
 
+    get_board()->i2c_module().begin();
+
     // NOTE Power cycle modules, this gives us a fresh start. Some times behave
     // funny, specifically temperature. Without this the first attempt down
     // below during the scan fails fails.
