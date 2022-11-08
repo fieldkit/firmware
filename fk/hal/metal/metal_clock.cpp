@@ -6,6 +6,7 @@
 #include <hal/include/hpl_calendar.h>
 #include <hal/include/hal_calendar.h>
 #include "hal/clock.h"
+#include "hal/metal/pcf2127.h"
 #include "config.h"
 
 namespace fk {
@@ -55,17 +56,10 @@ public:
     bool read(DateTime &time) override;
 };
 
-class FkUwClock : public ExternalClock {
-public:
-    bool configure() override;
-    bool adjust(DateTime now) override;
-    bool read(DateTime &time) override;
-};
-
 #if defined(FK_UNDERWATER)
-static Version1Clock external_clock;
+static Pcf2127 external_clock;
 #else
-static FkUwClock external_clock;
+static Version1Clock external_clock;
 #endif
 
 struct calendar_descriptor CALENDAR_0;
@@ -320,18 +314,6 @@ bool Version1Clock ::read(DateTime &time) {
     time = DateTime{ (uint16_t)(bcd2bin(data[7]) + 2000), bcd2bin(data[6] & 0b00011111), bcd2bin(data[4] & 0b00111111),
                      bcd2bin(data[3] & 0b00111111),       bcd2bin(data[2] & 0b01111111), bcd2bin(data[1] & 0b01111111) };
 
-    return true;
-}
-
-bool FkUwClock ::configure() {
-    return true;
-}
-
-bool FkUwClock ::adjust(DateTime now) {
-    return true;
-}
-
-bool FkUwClock ::read(DateTime &time) {
     return true;
 }
 
