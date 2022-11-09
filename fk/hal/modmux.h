@@ -63,6 +63,18 @@ public:
     }
 };
 
+class EepromLock {
+private:
+    uint32_t locked_{ 0 };
+
+public:
+    explicit EepromLock();
+    explicit EepromLock(uint32_t locked);
+    EepromLock(EepromLock const &o);
+    EepromLock(EepromLock &&o);
+    virtual ~EepromLock();
+};
+
 class ModulesLock {
 private:
     Lock lock_;
@@ -140,6 +152,13 @@ public:
     virtual bool any_modules_on(ModulePower power) = 0;
     virtual bool is_module_on(ModulePosition position) = 0;
     virtual bool read_eeprom(uint32_t address, uint8_t *data, size_t size) = 0;
+    virtual EepromLock lock_eeprom() {
+        return EepromLock{};
+    }
+    virtual void release_eeprom() {
+    }
+    virtual void signal_eeprom(uint8_t times) {
+    }
 
 public:
     class iterator {

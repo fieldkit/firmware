@@ -30,6 +30,9 @@ public:
     bool any_modules_on(ModulePower power) override;
     bool is_module_on(ModulePosition position) override;
     bool read_eeprom(uint32_t address, uint8_t *data, size_t size) override;
+    EepromLock lock_eeprom() override;
+    void release_eeprom() override;
+    void signal_eeprom(uint8_t times) override;
 
 public:
     void irq();

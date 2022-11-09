@@ -140,41 +140,6 @@ void Board::enable_wifi() {
 #endif
 }
 
-EepromLock Board::lock_eeprom() {
-#if defined(FK_UNDERWATER)
-    logwarn("fkuw: lock-eeprom ignored");
-    return EepromLock{ 0 };
-#else
-    digitalWrite(MODULE_EEPROM_LOCK, HIGH);
-
-    // See the documentation of this define for more information.
-    fk_delay(FK_MODULES_EEPROM_WRITE_TIME);
-
-    return EepromLock{ fk_uptime() };
-#endif
-}
-
-void Board::release_eeprom() {
-#if defined(FK_UNDERWATER)
-    logwarn("fkuw: release-eeprom ignored");
-#else
-    digitalWrite(MODULE_EEPROM_LOCK, LOW);
-#endif
-}
-
-void Board::signal_eeprom(uint8_t times) {
-#if defined(FK_UNDERWATER)
-    logwarn("fkuw: signal-eeprom ignored");
-#else
-    for (auto i = 0; i < times; ++i) {
-        digitalWrite(MODULE_EEPROM_LOCK, HIGH);
-        fk_delay(5);
-        digitalWrite(MODULE_EEPROM_LOCK, LOW);
-        fk_delay(5);
-    }
-#endif
-}
-
 SpiWrapper Board::spi_flash() {
     return { "spi-flash", &SPI };
 }

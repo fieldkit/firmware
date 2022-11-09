@@ -95,18 +95,6 @@ public:
     int8_t read();
 };
 
-class EepromLock {
-private:
-    uint32_t locked_{ 0 };
-
-public:
-    explicit EepromLock();
-    explicit EepromLock(uint32_t locked);
-    EepromLock(EepromLock const &o);
-    EepromLock(EepromLock &&o);
-    virtual ~EepromLock();
-};
-
 class Board {
 public:
     bool initialize();
@@ -116,9 +104,6 @@ public:
     void enable_gps();
     void disable_wifi();
     void enable_wifi();
-    EepromLock lock_eeprom();
-    void release_eeprom();
-    void signal_eeprom(uint8_t times);
 
 public:
     SpiWrapper spi_flash();

@@ -41,22 +41,6 @@ void Board::disable_wifi() {
 void Board::enable_wifi() {
 }
 
-void Board::disable_lora() {
-}
-
-void Board::enable_lora() {
-}
-
-EepromLock Board::lock_eeprom() {
-    return EepromLock{ fk_uptime() };
-}
-
-void Board::signal_eeprom(uint8_t times) {
-}
-
-void Board::release_eeprom() {
-}
-
 SpiWrapper Board::spi_flash() {
     return { "spi-flash", nullptr };
 }
