@@ -106,9 +106,9 @@ void StartupWorker::run(Pool &pool) {
     auto gauge = get_battery_gauge();
     if (gauge->expected()) {
         loginfo("check for low power startup");
+
         BatteryChecker battery_checker;
         battery_checker.refresh(true);
-
         if (battery_checker.available()) {
             low_power_startup = battery_checker.low_power();
             if (!low_power_startup) {
@@ -119,7 +119,7 @@ void StartupWorker::run(Pool &pool) {
             display->fault(&BatteryGaugeFailure);
         }
     } else {
-        logwarn("fkuw: skipping battery check");
+        loginfo("skipping battery check");
     }
 
     get_board()->i2c_module().begin();
