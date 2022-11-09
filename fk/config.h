@@ -443,7 +443,12 @@ constexpr int32_t StorageAvailableBlockLookAhead = 10;
 /**
  * Maximum number of memory banks we're capable of supporting.
  */
-constexpr size_t StorageMaximumNumberOfMemoryBanks = 2;
+#if defined(FK_UNDERWATER)
+#define FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS 1
+#else
+#define FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS 2
+#endif
+constexpr size_t StorageMaximumNumberOfMemoryBanks = FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS;
 
 // -------------------------------------------------------------------------------------------
 // Debug
