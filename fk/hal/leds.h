@@ -12,10 +12,6 @@ struct Color {
 
 class ModuleLeds {
 public:
-    ModuleLeds();
-    virtual ~ModuleLeds();
-
-public:
     virtual bool begin() = 0;
     virtual bool brightness(uint8_t value, bool refresh = true) = 0;
     virtual void off() = 0;
@@ -24,7 +20,6 @@ public:
     virtual void off(uint8_t position) = 0;
     virtual void on(uint8_t position) = 0;
     virtual bool refresh() = 0;
-
 };
 
 ModuleLeds *get_module_leds();
