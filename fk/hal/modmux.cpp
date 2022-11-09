@@ -4,6 +4,8 @@
 #include "hal/metal/metal.h"
 #include "hal/linux/linux.h"
 
+#include <utility>
+
 namespace fk {
 
 FK_DECLARE_LOGGER("modmux");
@@ -57,6 +59,24 @@ bool ModMux::check_modules() {
     loginfo("topology: [%s]", topology_after->string());
 
     return false;
+}
+
+EepromLock::EepromLock() {
+}
+
+EepromLock::EepromLock(uint32_t locked) : locked_(locked) {
+}
+
+EepromLock::EepromLock(EepromLock const &o) : locked_(o.locked_) {
+}
+
+EepromLock::EepromLock(EepromLock &&o) : locked_(std::exchange(o.locked_, 0)) {
+}
+
+EepromLock::~EepromLock() {
+    if (locked_ > 0) {
+        get_modmux()->release_eeprom();
+    }
 }
 
 ModulesLock::ModulesLock() {

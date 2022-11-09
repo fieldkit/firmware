@@ -406,24 +406,6 @@ void MetalModMux::signal_eeprom(uint8_t times) {
 #endif
 }
 
-EepromLock::EepromLock() {
-}
-
-EepromLock::EepromLock(EepromLock const &o) : locked_(o.locked_) {
-}
-
-EepromLock::EepromLock(uint32_t locked) : locked_(locked) {
-}
-
-EepromLock::EepromLock(EepromLock &&o) : locked_(exchange(o.locked_, 0)) {
-}
-
-EepromLock::~EepromLock() {
-    if (locked_ > 0) {
-        get_modmux()->release_eeprom();
-    }
-}
-
 } // namespace fk
 
 #endif
