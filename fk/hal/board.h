@@ -116,8 +116,6 @@ public:
     void enable_gps();
     void disable_wifi();
     void enable_wifi();
-    void disable_lora();
-    void enable_lora();
     EepromLock lock_eeprom();
     void release_eeprom();
     void signal_eeprom(uint8_t times);

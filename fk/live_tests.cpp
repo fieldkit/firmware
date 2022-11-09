@@ -33,7 +33,7 @@ static void scan_i2c_radio_bus() {
 
     bus.begin();
 
-    get_board()->enable_lora();
+    // get_board()->enable_lora();
 
     fk_delay(1000);
 

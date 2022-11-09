@@ -98,14 +98,12 @@ void Board::disable_everything() {
 
     disable_gps();
     disable_wifi();
-    disable_lora();
 #endif
 }
 
 void Board::enable_everything() {
     enable_gps();
     enable_wifi();
-    enable_lora();
 }
 
 void Board::disable_gps() {
@@ -114,22 +112,6 @@ void Board::disable_gps() {
 
 void Board::enable_gps() {
     digitalWrite(GPS_POWER, HIGH);
-}
-
-void Board::disable_lora() {
-#if defined(FK_UNDERWATER)
-    logwarn("fkuw: disable-lora ignored");
-#else
-    digitalWrite(LORA_POWER, LOW);
-#endif
-}
-
-void Board::enable_lora() {
-#if defined(FK_UNDERWATER)
-    logwarn("fkuw: enable-lora ignored");
-#else
-    digitalWrite(LORA_POWER, HIGH);
-#endif
 }
 
 void Board::disable_wifi() {
