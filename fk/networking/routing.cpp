@@ -16,7 +16,7 @@ HttpHandler *HttpRouter::route(const char *url) {
     if (url == nullptr) {
         return nullptr;
     }
-    for (auto i = (size_t)0; i < maximum_number_of_routes(); ++i) {
+    for (auto i = 0u; i < maximum_number_of_routes(); ++i) {
         if (routes_[i] == nullptr) {
             return nullptr;
         }
@@ -28,7 +28,7 @@ HttpHandler *HttpRouter::route(const char *url) {
 }
 
 bool HttpRouter::add_route(HttpRoute *route) {
-    for (auto i = (size_t)0; i < maximum_number_of_routes(); ++i) {
+    for (auto i = 0u; i < maximum_number_of_routes(); ++i) {
         if (routes_[i] == nullptr) {
             routes_[i] = route;
             return true;
@@ -40,4 +40,4 @@ bool HttpRouter::add_route(HttpRoute *route) {
     return false;
 }
 
-}
+} // namespace fk
