@@ -129,6 +129,10 @@ public:
 
     void verify() override;
 
+protected:
+    virtual void disable() = 0;
+    virtual void enable() = 0;
+
 public:
     virtual bool start_ap(NetworkSettings settings) = 0;
     virtual bool connected() {

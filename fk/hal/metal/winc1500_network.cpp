@@ -36,6 +36,13 @@ bool Winc1500Network::begin(NetworkSettings settings, Pool *pool) {
 
     WiFi.setPins(WINC1500_CS, WINC1500_IRQ, WINC1500_RESET);
 
+    /**
+     * Very important that this IRQ be handled immediately or terrible
+     * things begin to happen to the network transfers because this
+     * causes contention/leaks in the buffer memory of the module.
+     */
+    NVIC_SetPriority(EIC_11_IRQn, OS_IRQ_PRIORITY_SYSTICK - 1);
+
     return MetalNetwork::begin(settings, pool);
 }
 
@@ -68,6 +75,24 @@ PoolPointer<NetworkConnection> *Winc1500Network::open_connection(const char *sch
     }
 
     return create_network_connection_wrapper<MetalNetworkConnection>(wcl);
+}
+
+void Winc1500Network::disable() {
+    digitalWrite(WINC1500_POWER, LOW);
+    SPI1.end();
+
+    pinMode(WINC1500_CS, INPUT_PULLUP);
+    pinMode(WINC1500_IRQ, INPUT_PULLUP);
+    pinMode(WINC1500_RESET, INPUT_PULLUP);
+}
+
+void Winc1500Network::enable() {
+    pinMode(WINC1500_CS, OUTPUT);
+    pinMode(WINC1500_IRQ, INPUT);
+    pinMode(WINC1500_RESET, OUTPUT);
+
+    digitalWrite(WINC1500_POWER, HIGH);
+    SPI1.begin();
 }
 
 void StaticWiFiCallbacks::initialize(Pool &pool) {
@@ -109,4 +134,4 @@ bool StaticWiFiCallbacks::busy(uint32_t elapsed) {
 
 #endif
 
-}
+} // namespace fk

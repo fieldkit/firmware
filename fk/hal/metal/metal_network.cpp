@@ -159,24 +159,19 @@ bool MetalNetwork::begin(NetworkSettings settings, Pool *pool) {
 
     pool_ = pool;
 
-    get_board()->enable_wifi();
+    enable();
 
     fk_delay(100);
 
-    /**
-     * Very important that this IRQ be handled immediately or terrible
-     * things begin to happen to the network transfers because this
-     * causes contention/leaks in the buffer memory of the module.
-     */
-    NVIC_SetPriority(EIC_11_IRQn, OS_IRQ_PRIORITY_SYSTICK - 1);
-
     status_ = WiFi.status();
-
     if (status_ == WL_NO_SHIELD) {
-        get_board()->disable_wifi();
+        disable();
         availability_ = Availability::Unavailable;
         return false;
     }
+
+    auto fv = WiFi.firmwareVersion();
+    loginfo("wifi: version %s", fv);
 
     availability_ = Availability::Available;
 
@@ -304,7 +299,7 @@ bool MetalNetwork::stop() {
         logdebug("wifi-end");
         WiFi.end();
         logdebug("disable-wifi");
-        get_board()->disable_wifi();
+        disable();
         enabled_ = false;
     }
     pool_ = nullptr;

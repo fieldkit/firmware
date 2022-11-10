@@ -10,6 +10,12 @@ Esp32Network::Esp32Network() {
 }
 
 bool Esp32Network::begin(NetworkSettings settings, Pool *pool) {
+    pinMode(WIFI_ESP32_CS, OUTPUT);
+    digitalWrite(WIFI_ESP32_CS, HIGH);
+    SPI1.begin();
+
+    WiFi.setPins(WIFI_ESP32_CS, WIFI_ESP32_ACK, WIFI_ESP32_RESET, WIFI_ESP32_GPIO0, &SPI1);
+
     return MetalNetwork::begin(settings, pool);
 }
 
@@ -34,6 +40,12 @@ PoolPointer<NetworkConnection> *Esp32Network::open_connection(const char *scheme
     }
 
     return create_network_connection_wrapper<MetalNetworkConnection>(wcl);
+}
+
+void Esp32Network::disable() {
+}
+
+void Esp32Network::enable() {
 }
 
 #endif

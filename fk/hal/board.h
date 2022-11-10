@@ -102,8 +102,6 @@ public:
     void enable_everything();
     void disable_gps();
     void enable_gps();
-    void disable_wifi();
-    void enable_wifi();
 
 public:
     SpiWrapper spi_flash();

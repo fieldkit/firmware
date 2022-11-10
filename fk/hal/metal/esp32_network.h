@@ -16,6 +16,10 @@ public:
 
 public:
     bool start_ap(NetworkSettings settings) override;
+
+protected:
+    void disable() override;
+    void enable() override;
 };
 
 #endif

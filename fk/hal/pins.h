@@ -16,6 +16,11 @@ constexpr uint8_t PIN_SD_CS = 8u; // PB18
 constexpr uint8_t QSPI_FLASH_CS = 90u; // PB11 (PIN_QSPI_CS)
 
 #if defined(FK_UNDERWATER)
+const uint8_t WIFI_ESP32_CS = 95u;
+const uint8_t WIFI_ESP32_ACK = 97u;
+const uint8_t WIFI_ESP32_RESET = 98u;
+const uint8_t WIFI_ESP32_GPIO0 = 88u;
+
 constexpr uint8_t GPS_POWER = 55u;
 #else
 constexpr uint8_t WINC1500_CS = 95u;    // PC25

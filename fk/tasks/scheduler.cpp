@@ -59,8 +59,9 @@ void task_handler_scheduler(void *params) {
             logerror("gps");
         }
     } else {
-        get_board()->disable_gps();
-        get_board()->disable_wifi();
+        // Neither of these should be on when we are first started.
+        // get_board()->disable_gps();
+        // get_board()->disable_wifi();
         update_allow_deep_sleep(true);
         display_off += fk_uptime() + 10000;
         get_display()->on();

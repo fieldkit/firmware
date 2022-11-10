@@ -97,13 +97,11 @@ void Board::disable_everything() {
     i2c_module().end();
 
     disable_gps();
-    disable_wifi();
 #endif
 }
 
 void Board::enable_everything() {
     enable_gps();
-    enable_wifi();
 }
 
 void Board::disable_gps() {
@@ -112,32 +110,6 @@ void Board::disable_gps() {
 
 void Board::enable_gps() {
     digitalWrite(GPS_POWER, HIGH);
-}
-
-void Board::disable_wifi() {
-#if defined(FK_UNDERWATER)
-    logwarn("fkuw: disable-wifi ignored");
-#else
-    digitalWrite(WINC1500_POWER, LOW);
-    SPI1.end();
-
-    pinMode(WINC1500_CS, INPUT_PULLUP);
-    pinMode(WINC1500_IRQ, INPUT_PULLUP);
-    pinMode(WINC1500_RESET, INPUT_PULLUP);
-#endif
-}
-
-void Board::enable_wifi() {
-#if defined(FK_UNDERWATER)
-    logwarn("fkuw: enable-wifi ignored");
-#else
-    pinMode(WINC1500_CS, OUTPUT);
-    pinMode(WINC1500_IRQ, INPUT);
-    pinMode(WINC1500_RESET, OUTPUT);
-
-    digitalWrite(WINC1500_POWER, HIGH);
-    SPI1.begin();
-#endif
 }
 
 SpiWrapper Board::spi_flash() {
