@@ -11,6 +11,17 @@ namespace fk {
 
 FK_DECLARE_LOGGER("udp");
 
+/**
+ * These libraries have different conventions for success from this call, and
+ * actually now that I'm thinking of this I remember there being an earlier bug
+ * with the value in the Winc1500 version of the library.
+ */
+#if defined(FK_NETWORK_ESP32)
+#define CHECK_UDP_END_PACKET(rv) (rv) == 1
+#else
+#define CHECK_UDP_END_PACKET(rv) (rv) == 0
+#endif
+
 UDPDiscovery::UDPDiscovery() {
 }
 
@@ -106,7 +117,7 @@ bool UDPDiscovery::send(fk_app_UdpStatus status, Pool *pool) {
 
     udp_.write(encoded->buffer, encoded->size);
 
-    if (udp_.endPacket() != 0) {
+    if (!CHECK_UDP_END_PACKET(udp_.endPacket())) {
         logerror("send failed!");
         return false;
     }
