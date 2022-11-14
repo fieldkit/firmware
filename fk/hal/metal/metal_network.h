@@ -138,6 +138,9 @@ public:
     virtual bool connected() {
         return true;
     }
+
+private:
+    void check_status();
 };
 
 FK_ENABLE_TYPE_NAME(MetalNetworkConnection);

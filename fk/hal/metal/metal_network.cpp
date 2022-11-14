@@ -202,6 +202,14 @@ bool MetalNetwork::begin(NetworkSettings settings, Pool *pool) {
     return true;
 }
 
+void MetalNetwork::check_status() {
+    auto new_status = WiFi.status();
+    if (new_status != status_) {
+        loginfo("wifi: status change (%s -> %s", get_wifi_status(status_), get_wifi_status(new_status));
+        status_ = new_status;
+    }
+}
+
 bool MetalNetwork::serve() {
     fk_delay(500);
 
@@ -217,7 +225,7 @@ bool MetalNetwork::serve() {
 
     synchronize_time();
 
-    status_ = WiFi.status();
+    check_status();
 
     IPAddress ip = WiFi.localIP();
     loginfo("ready (ip = %d.%d.%d.%d) (status = %s)", ip[0], ip[1], ip[2], ip[3], get_wifi_status(status_));
@@ -272,7 +280,7 @@ PoolPointer<NetworkListener> *MetalNetwork::listen(uint16_t port) {
 }
 
 void MetalNetwork::service(Pool *pool) {
-    status_ = WiFi.status();
+    check_status();
 
     if (pool != nullptr) {
         if (serving_) {
