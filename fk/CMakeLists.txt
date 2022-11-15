@@ -44,6 +44,11 @@ function(fk_add_builtin_module name)
     target_include_directories(${target_name} PUBLIC ${CMAKE_SOURCE_DIR}/modules/water/main)
   endif()
 
+  if(${name} MATCHES "omni_water")
+    find_package(Ms5837)
+    target_link_libraries(${target_name} Ms5837)
+  endif()
+
   # NOTE: For DateTime
   find_package(lwcron)
   target_link_libraries(${target_name} lwcron)

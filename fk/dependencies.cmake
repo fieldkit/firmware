@@ -11,6 +11,8 @@ else()
     set(WiFi101_PATH ${CMAKE_SOURCE_DIR}/third-party/wifi101)
 endif()
 
+set(Ms5837_PATH ${CMAKE_SOURCE_DIR}/third-party/blue_robotics_ms5837)
+
 set(lwcron_PATH ${CMAKE_SOURCE_DIR}/third-party/lwcron)
 set(u8g2_PATH ${CMAKE_SOURCE_DIR}/third-party/u8g2)
 set(TinyGPS_PATH ${CMAKE_SOURCE_DIR}/third-party/tiny-gps)
