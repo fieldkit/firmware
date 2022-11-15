@@ -17,6 +17,7 @@
 #include "hal/ipc.h"
 #include "hal/modmux.h"
 #include "hal/leds.h"
+#include "hal/marker_lights.h"
 
 #if defined(__SAMD51__)
 #include "hal/metal/metal.h"
