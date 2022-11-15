@@ -6,7 +6,7 @@
 
 namespace fk {
 
-const uint8_t ModulePowerPins[] = { 56u, 68u, 61u, 60u };
+const uint8_t ModulePowerPins[4][2] = { { 56u, 59u }, { 68u, 0u }, { 61u, 0u }, { 60u, 0u } };
 
 FK_DECLARE_LOGGER("pinmodmux");
 
@@ -19,9 +19,13 @@ bool PinModMux::begin() {
 
     loginfo("begin");
 
-    for (auto pin : ModulePowerPins) {
-        pinMode(pin, OUTPUT);
-        digitalWrite(pin, LOW);
+    for (auto &pins : ModulePowerPins) {
+        for (auto pin : pins) {
+            if (pin > 0) {
+                pinMode(pin, OUTPUT);
+                digitalWrite(pin, LOW);
+            }
+        }
     }
 
     return true;
@@ -62,7 +66,11 @@ bool PinModMux::enable_module(ModulePosition position, ModulePower power) {
     }
 
     logdebug("[%d] selecting", position.integer());
-    digitalWrite(ModulePowerPins[position.integer()], HIGH);
+    for (auto &pin : ModulePowerPins[position.integer()]) {
+        if (pin > 0) {
+            digitalWrite(pin, HIGH);
+        }
+    }
 
     fk_delay(100);
 
@@ -112,9 +120,13 @@ bool PinModMux::read_eeprom(uint32_t address, uint8_t *data, size_t size) {
 }
 
 bool PinModMux::choose_nothing() {
-    for (auto pin : ModulePowerPins) {
-        pinMode(pin, OUTPUT);
-        digitalWrite(pin, LOW);
+    for (auto &pins : ModulePowerPins) {
+        for (auto pin : pins) {
+            if (pin > 0) {
+                pinMode(pin, OUTPUT);
+                digitalWrite(pin, LOW);
+            }
+        }
     }
 
     return true;
