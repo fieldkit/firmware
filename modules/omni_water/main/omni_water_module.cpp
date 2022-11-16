@@ -1,4 +1,5 @@
 #include "omni_water_module.h"
+#include "water_depth_module.h"
 #include "omni_water_api.h"
 
 #include "modules/eeprom.h"
@@ -131,11 +132,13 @@ ModuleReturn OmniWaterModule::service(ModuleContext mc, Pool &pool) {
     return { ModuleStatus::Ok };
 }
 
-static SensorMetadata const fk_module_omni_water_sensor_metas[] = {
-    { .name = "ph", .unitOfMeasure = "pH", .flags = 0 },   { .name = "ec", .unitOfMeasure = "µS/cm", .flags = 0 },
-    { .name = "temp", .unitOfMeasure = "°C", .flags = 0 }, { .name = "do", .unitOfMeasure = "%", .flags = 0 },
-    { .name = "orp", .unitOfMeasure = "mV", .flags = 0 },
-};
+static SensorMetadata const fk_module_omni_water_sensor_metas[] = { { .name = "ph", .unitOfMeasure = "pH", .flags = 0 },
+                                                                    { .name = "ec", .unitOfMeasure = "µS/cm", .flags = 0 },
+                                                                    { .name = "temp", .unitOfMeasure = "°C", .flags = 0 },
+                                                                    { .name = "do", .unitOfMeasure = "%", .flags = 0 },
+                                                                    { .name = "orp", .unitOfMeasure = "mV", .flags = 0 },
+                                                                    { .name = "pressure.temp", .unitOfMeasure = "°C", .flags = 0 },
+                                                                    { .name = "pressure.pressure", .unitOfMeasure = "Pa", .flags = 0 } };
 
 static ModuleSensors fk_module_omni_water_sensors = {
     .nsensors = sizeof(fk_module_omni_water_sensor_metas) / sizeof(SensorMetadata),
@@ -191,7 +194,7 @@ ModuleReadings *OmniWaterModule::take_readings(ReadingsContext mc, Pool &pool) {
 
     auto &bus = mc.module_bus();
 
-    auto mr = new (pool) NModuleReadings<5>();
+    auto mr = new (pool) NModuleReadings<7>();
     auto position = 0u;
 
     for (auto &modality : AllModalities) {
@@ -214,6 +217,17 @@ ModuleReadings *OmniWaterModule::take_readings(ReadingsContext mc, Pool &pool) {
         position++;
 
         fk_delay(100);
+    }
+
+    // Defensively ensuring we're setting the correct indices. Shouldn't be easy
+    // for this to happen as things are now.
+    position = 5;
+
+    WaterDepthModule depth_modules{ *pool_ };
+    auto depth_readings = depth_modules.take_readings(mc, pool);
+    if (depth_readings != nullptr) {
+        mr->set(position++, depth_readings->get(0));
+        mr->set(position++, depth_readings->get(1));
     }
 
     // Enable lockout.
