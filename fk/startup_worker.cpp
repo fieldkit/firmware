@@ -495,7 +495,6 @@ bool StartupWorker::check_for_self_test_startup(Pool &pool) {
     auto sd = get_sd_card();
 
     if (!sd->begin()) {
-        logerror("error opening sd card");
         return false;
     }
 
@@ -527,7 +526,6 @@ bool StartupWorker::check_for_upgrading_startup(Pool &pool) {
     auto sd = get_sd_card();
 
     if (!sd->begin()) {
-        logerror("error opening sd card");
         return false;
     }
 
@@ -566,7 +564,6 @@ bool StartupWorker::check_for_provision_startup(Pool &pool) {
     auto sd = get_sd_card();
 
     if (!sd->begin()) {
-        logerror("error opening sd card");
         return false;
     }
 
@@ -601,7 +598,6 @@ bool StartupWorker::check_for_programmer_startup(Pool &pool) {
     auto sd = get_sd_card();
 
     if (!sd->begin()) {
-        logerror("error opening sd card");
         return false;
     }
 
