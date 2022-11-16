@@ -157,6 +157,7 @@ DateTime CoreClock::get_external() {
     DateTime time;
     if (!external(time)) {
         logerror("error getting external time");
+        return DateTime{};
     }
     return time;
 }
@@ -188,13 +189,19 @@ void CoreClock::compare() {
 
 uint32_t clock_adjust(uint32_t new_epoch) {
     auto clock = get_clock();
-    auto old_epoch = clock->get_external().unix_time();
-    FK_ASSERT(clock->adjust(new_epoch));
+    auto previous_external = clock->get_external();
+    if (previous_external.year() == 0) {
+        return 0;
+    }
+
+    auto previous_epoch = previous_external.unix_time();
+
+    clock->adjust(new_epoch);
 
     FormattedTime new_formatted{ new_epoch };
-    FormattedTime old_formatted{ old_epoch };
-    loginfo("utc: '%s' -> '%s' (%" PRIu32 " - %" PRIu32 " = %" PRId64 ")", old_formatted.cstr(), new_formatted.cstr(), old_epoch, new_epoch,
-            (int64_t)new_epoch - old_epoch);
+    FormattedTime old_formatted{ previous_epoch };
+    loginfo("utc: '%s' -> '%s' (%" PRIu32 " - %" PRIu32 " = %" PRId64 ")", old_formatted.cstr(), new_formatted.cstr(), previous_epoch,
+            new_epoch, (int64_t)new_epoch - previous_epoch);
 
     return new_epoch;
 }
