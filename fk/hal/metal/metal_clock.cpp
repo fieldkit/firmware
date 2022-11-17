@@ -159,6 +159,10 @@ DateTime CoreClock::get_external() {
         logerror("error getting external time");
         return DateTime{};
     }
+    else {
+        loginfo("have external time");
+    }
+
     return time;
 }
 
@@ -167,6 +171,7 @@ void CoreClock::compare() {
     if (!internal(internal_time)) {
         return;
     }
+
     DateTime external_time;
     if (!external(external_time)) {
         return;

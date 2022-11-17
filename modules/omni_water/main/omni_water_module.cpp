@@ -223,7 +223,7 @@ ModuleReadings *OmniWaterModule::take_readings(ReadingsContext mc, Pool &pool) {
     // for this to happen as things are now.
     position = 5;
 
-    WaterDepthModule depth_modules{ *pool_ };
+    WaterDepthModule depth_modules{ pool };
     auto depth_readings = depth_modules.take_readings(mc, pool);
     if (depth_readings != nullptr) {
         mr->set(position++, depth_readings->get(0));
