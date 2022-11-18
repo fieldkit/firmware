@@ -20,6 +20,9 @@ const uint8_t MS5837_02BA01 = 0x00; // Sensor version: From MS5837_02BA datashee
 const uint8_t MS5837_02BA21 = 0x15; // Sensor version: From MS5837_02BA datasheet Version PROM Word 0
 const uint8_t MS5837_30BA26 = 0x1A; // Sensor version: From MS5837_30BA datasheet Version PROM Word 0
 
+// https://github.com/hepingood/ms5837/blob/master/src/driver_ms5837.c
+// https://github.com/TEConnectivity/MS5837_Generic_C_Driver/blob/master/ms5837.c
+
 extern "C" {
 uint32_t fkb_external_printf(const char *str, ...);
 void alogf(uint8_t level, const char *facility, const char *f, ...) __attribute__((format(printf, 3, 4)));
@@ -154,18 +157,34 @@ void MS5837::calculate() {
 
     // Terms called
     dT = D2_temp - uint32_t(C[5]) * 256l;
+
+    alogf(2 /*DEBUG*/, "ms5837", "C[1] = %" PRId16 "", C[1]);
+    alogf(2 /*DEBUG*/, "ms5837", "C[2] = %" PRId16 "", C[2]);
+    alogf(2 /*DEBUG*/, "ms5837", "C[3] = %" PRId16 "", C[3]);
+    alogf(2 /*DEBUG*/, "ms5837", "C[4] = %" PRId16 "", C[4]);
+    alogf(2 /*DEBUG*/, "ms5837", "C[5] = %" PRId16 "", C[5]);
+    alogf(2 /*DEBUG*/, "ms5837", "C[6] = %" PRId16 "", C[6]);
+
+    alogf(2 /*DEBUG*/, "ms5837", "dT = %" PRIu32 " - %" PRIu32 " * 256 = %" PRId32 "", D2_temp, uint32_t(C[5]), dT);
+
     if (_model == MS5837_02BA) {
-        SENS = int64_t(C[1]) * 65536l + (int64_t(C[3]) * dT) / 128l;
-        OFF = int64_t(C[2]) * 131072l + (int64_t(C[4]) * dT) / 64l;
-        P = (D1_pres * SENS / (2097152l) - OFF) / (32768l);
+        SENS = (int64_t(C[1]) * int64_t(65536l)) + ((int64_t(C[3]) * dT) / 128l);
+        OFF = (int64_t(C[2]) * int64_t(131072l)) + ((int64_t(C[4]) * dT) / 64l);
+        P = int64_t(D1_pres * (SENS / int64_t(2097152l)) - OFF) / (32768l);
     } else {
-        SENS = int64_t(C[1]) * 32768l + (int64_t(C[3]) * dT) / 256l;
-        OFF = int64_t(C[2]) * 65536l + (int64_t(C[4]) * dT) / 128l;
+        SENS = (int64_t(C[1]) * 32768l) + ((int64_t(C[3]) * dT) / 256l);
+        OFF = (int64_t(C[2]) * 65536l) + ((int64_t(C[4]) * dT) / 128l);
         P = (D1_pres * SENS / (2097152l) - OFF) / (8192l);
     }
 
+    alogf(2 /*DEBUG*/, "ms5837", "SENS = %" PRId64 "", SENS);
+    alogf(2 /*DEBUG*/, "ms5837", "OFF = %" PRId64 "", OFF);
+    alogf(2 /*DEBUG*/, "ms5837", "P = %" PRId32 "", P);
+
     // Temp conversion
     TEMP = 2000l + int64_t(dT) * C[6] / 8388608LL;
+
+    alogf(2 /*DEBUG*/, "ms5837", "TEMP = 2000 + %" PRId64 " * %" PRIu32 " / 8388608 = %" PRId32 "", int64_t(dT), uint32_t(C[6]), TEMP);
 
     // Second order compensation
     if (_model == MS5837_02BA) {
@@ -173,20 +192,37 @@ void MS5837::calculate() {
             Ti = (11 * int64_t(dT) * int64_t(dT)) / (34359738368LL);
             OFFi = (31 * (TEMP - 2000) * (TEMP - 2000)) / 8;
             SENSi = (63 * (TEMP - 2000) * (TEMP - 2000)) / 32;
+
+            alogf(2 /*DEBUG*/, "ms5837", "1.Ti = %" PRId32 "", Ti);
+            alogf(2 /*DEBUG*/, "ms5837", "1.OFFi = %" PRId32 "", OFFi);
+            alogf(2 /*DEBUG*/, "ms5837", "1.SENSi = %" PRId32 "", SENSi);
         }
     } else {
         if ((TEMP / 100) < 20) { // Low temp
             Ti = (3 * int64_t(dT) * int64_t(dT)) / (8589934592LL);
             OFFi = (3 * (TEMP - 2000) * (TEMP - 2000)) / 2;
             SENSi = (5 * (TEMP - 2000) * (TEMP - 2000)) / 8;
+
+            alogf(2 /*DEBUG*/, "ms5837", "2.Ti = %" PRId32 "", Ti);
+
             if ((TEMP / 100) < -15) { // Very low temp
                 OFFi = OFFi + 7 * (TEMP + 1500l) * (TEMP + 1500l);
                 SENSi = SENSi + 4 * (TEMP + 1500l) * (TEMP + 1500l);
+
+                alogf(2 /*DEBUG*/, "ms5837", "3.OFFi = %" PRId32 "", OFFi);
+                alogf(2 /*DEBUG*/, "ms5837", "3.SENSi = %" PRId32 "", SENSi);
+            } else {
+                alogf(2 /*DEBUG*/, "ms5837", "2.OFFi = %" PRId32 "", OFFi);
+                alogf(2 /*DEBUG*/, "ms5837", "2.SENSi = %" PRId32 "", SENSi);
             }
         } else if ((TEMP / 100) >= 20) { // High temp
             Ti = 2 * (dT * dT) / (137438953472LL);
             OFFi = (1 * (TEMP - 2000) * (TEMP - 2000)) / 16;
             SENSi = 0;
+
+            alogf(2 /*DEBUG*/, "ms5837", "4.Ti = %" PRId32 "", Ti);
+            alogf(2 /*DEBUG*/, "ms5837", "4.OFFi = %" PRId32 "", OFFi);
+            alogf(2 /*DEBUG*/, "ms5837", "4.SENSi = %" PRId32 "", SENSi);
         }
     }
 
@@ -195,11 +231,16 @@ void MS5837::calculate() {
 
     TEMP = (TEMP - Ti);
 
+    alogf(2 /*DEBUG*/, "ms5837", "D1_pres = %" PRIu32 "", D1_pres);
+
     if (_model == MS5837_02BA) {
-        P = ((int64_t(D1_pres * SENS2) / 2097152l - OFF2) / 32768l);
+        P = (((int64_t(D1_pres) * int64_t(SENS2) / 2097152l) - OFF2) / 32768l);
     } else {
-        P = ((int64_t(D1_pres * SENS2) / 2097152l - OFF2) / 8192l);
+        P = (((int64_t(D1_pres) * int64_t(SENS2) / 2097152l) - OFF2) / 8192l);
     }
+
+    alogf(2 /*DEBUG*/, "ms5837", "TEMP = %" PRId32 "", TEMP);
+    alogf(2 /*DEBUG*/, "ms5837", "P = %" PRId32 "", P);
 }
 
 float MS5837::pressure(float conversion) {
