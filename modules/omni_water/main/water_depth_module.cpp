@@ -59,7 +59,7 @@ ModuleReadings *WaterDepthModule::take_readings(ReadingsContext mc, Pool &pool) 
     ms5837.read();
 
     auto temperature = ms5837.temperature();
-    auto pressure = ms5837.pressure(MS5837::Pa);
+    auto pressure = ms5837.pressure();
 
     auto mr = new (pool) NModuleReadings<2>();
     mr->set(0, SensorReading{ mc.now(), temperature });
