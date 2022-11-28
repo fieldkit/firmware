@@ -25,6 +25,8 @@
 #include "storage/dump_flash_memory_worker.h"
 #include "storage/backup_worker.h"
 
+#include "uw/esp32_passthru_worker.h"
+
 namespace fk {
 
 FK_DECLARE_LOGGER("menu");
@@ -618,28 +620,26 @@ void MenuView::create_tools_menu() {
     (void)tools_crash_assertion;
     (void)tools_poll_water_ec_sensors;
 
+#if defined(FK_UNDERWATER)
+    auto tools_esp32_passthru = to_lambda_option(pool_, "ESP32 Passthru", [=]() {
+        back_->on_selected();
+        views_->show_home();
+        get_ipc()->launch_worker(create_pool_worker<Esp32PassthruWorker>());
+    });
+
+    tools_menu_ = new_menu_screen<20>(pool_, "tools",
+#else
     tools_menu_ = new_menu_screen<19>(pool_, "tools",
+#endif
                                       {
-                                          back_,
-                                          tools_self_check,
-                                          tools_gps,
-                                          tools_gps_toggle,
-                                          tools_lora_view,
-                                          tools_lora_ranging,
-                                          tools_lora_reset,
-                                          tools_load_firmware_sd,
-                                          tools_dump_flash,
-                                          tools_backup,
-                                          tools_format_sd,
-                                          tools_sleep_test,
-                                          tools_poll_sensors,
-                                          // tools_poll_water_ec_sensors,
-                                          tools_fsck,
-                                          tools_crash_hardf,
-                                          tools_crash_assertion,
-                                          tools_export_data,
-                                          tools_factory_reset,
-                                          tools_restart,
+                                          back_, tools_self_check, tools_gps, tools_gps_toggle, tools_lora_view, tools_lora_ranging,
+                                              tools_lora_reset, tools_load_firmware_sd, tools_dump_flash, tools_backup, tools_format_sd,
+                                              tools_sleep_test, tools_poll_sensors,
+#if defined(FK_UNDERWATER)
+                                              tools_esp32_passthru,
+#endif
+                                              tools_fsck, tools_crash_hardf, tools_crash_assertion, tools_export_data, tools_factory_reset,
+                                              tools_restart,
                                       });
 }
 
