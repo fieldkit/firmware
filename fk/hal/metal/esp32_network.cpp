@@ -14,7 +14,7 @@ bool Esp32Network::begin(NetworkSettings settings, Pool *pool) {
     digitalWrite(WIFI_ESP32_CS, HIGH);
     SPI1.begin();
 
-    WiFi.setPins(WIFI_ESP32_CS, WIFI_ESP32_ACK, WIFI_ESP32_RESET, WIFI_ESP32_GPIO0, &SPI1);
+    // WiFi.setPins(WIFI_ESP32_CS, WIFI_ESP32_ACK, WIFI_ESP32_RESET, WIFI_ESP32_GPIO0, &SPI1);
 
     return MetalNetwork::begin(settings, pool);
 }

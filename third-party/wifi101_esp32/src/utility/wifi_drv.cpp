@@ -1060,8 +1060,7 @@ void WiFiDrv::pinMode(uint8_t pin, uint8_t mode)
     SpiDrv::spiSlaveDeselect();
 }
 
-PinStatus WiFiDrv::digitalRead(uint8_t pin)
-{
+uint8_t WiFiDrv::digitalRead(uint8_t pin) {
     WAIT_FOR_SLAVE_SELECT();
     // Send Command
     SpiDrv::sendCmd(GET_DIGITAL_READ, PARAM_NUMS_1);

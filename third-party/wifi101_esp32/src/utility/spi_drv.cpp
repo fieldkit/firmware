@@ -50,18 +50,19 @@ extern "C" {
 #include "utility/debug.h"
 }
 
-static uint8_t SLAVESELECT = 10; // ss
-static uint8_t SLAVEREADY  = 7;  // handshake pin
-static uint8_t SLAVERESET  = 5;  // reset pin
+static uint8_t SLAVESELECT = 95u; // ss
+static uint8_t SLAVEREADY = 97u;  // handshake pin
+static uint8_t SLAVERESET = 98u;  // reset pin
 
 static bool inverted_reset = false;
 
 #define DELAY_TRANSFER()
 
 #ifndef SPIWIFI
-#define SPIWIFI SPI
+#define SPIWIFI SPI1
 #endif
 
+#define NINA_GPIO0 88u
 #ifndef NINA_GPIOIRQ
 #define NINA_GPIOIRQ    NINA_GPIO0
 #endif
