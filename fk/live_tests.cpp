@@ -16,6 +16,9 @@
 #include "state_manager.h"
 #include "core_dump.h"
 
+#include "networking/network_services.h"
+#include "hal/pins.h"
+
 #include "../modules/weather/main/weather.h"
 
 extern const struct fkb_header_t fkb_header;
@@ -27,6 +30,10 @@ FK_DECLARE_LOGGER("live-tests");
 static void scan_i2c_radio_bus() __attribute__((unused));
 
 static void scan_i2c_module_bus() __attribute__((unused));
+
+static void wifi_test() __attribute__((unused));
+
+static void wifi_low_level_test() __attribute__((unused));
 
 static void scan_i2c_radio_bus() {
     auto bus = get_board()->i2c_radio();
@@ -185,7 +192,189 @@ static void test_core_dump() {
     }
 }
 
+// #define FK_NETWORK_ESP32
+
+static void wifi_low_level_test() {
+#if defined(FK_NETWORK_ESP32)
+    pinMode(WIFI_ESP32_CS, OUTPUT);
+    digitalWrite(WIFI_ESP32_CS, HIGH);
+    SPI1.begin();
+
+    // WiFi.setPins(WIFI_ESP32_CS, WIFI_ESP32_ACK, WIFI_ESP32_RESET, WIFI_ESP32_GPIO0, &SPI1);
+
+    if (WiFi.status() == WL_NO_MODULE) {
+        logwarn("communication with wifi module failed!");
+        while (true)
+            ;
+    }
+    String fv = WiFi.firmwareVersion();
+    loginfo("firmware: %s", fv.c_str());
+
+    WiFi.noLowPowerMode();
+
+    int serverPort = 80;
+    WiFiServer server(serverPort);
+
+    loginfo("attempting to connect to SSID");
+
+    // Connect to WPA/WPA2 network. Change this line if using open or WEP network:
+    uint8_t status = -1;
+    do {
+        status = WiFi.begin("Cottonwood", "asdfasdf");
+        delay(100); // wait until connection is ready!
+    } while (status != WL_CONNECTED);
+
+    loginfo("connected to wifi!");
+
+    server.begin();
+
+    auto total_bytes = 1024 * 1024;
+
+    // size_t size = 2048u;
+    size_t size = 1024u;
+    char *buffer = (char *)malloc(size);
+
+    while (true) {
+        // listen for incoming clients
+        WiFiClient client = server.available();
+        if (client) {
+            loginfo("New client");
+            // an http request ends with a blank line
+            boolean currentLineIsBlank = true;
+            while (client.connected()) {
+                if (client.available()) {
+                    char c = client.read();
+                    Serial.write(c);
+                    // if you've gotten to the end of the line (received a newline
+                    // character) and the line is blank, the http request has ended,
+                    // so you can send a reply
+                    if (c == '\n' && currentLineIsBlank) {
+                        // send a standard http response header
+                        client.println("HTTP/1.1 200 OK");
+                        client.println("Content-Type: text/html");
+                        client.println("Connection: close"); // the connection will be closed after completion of the response
+                        client.print("Content-Length: ");
+                        client.print(total_bytes);
+                        client.println("");
+                        client.println();
+                        auto remaining = total_bytes;
+                        memset(buffer, size, 0);
+                        memset(buffer, size - 1, 'A');
+                        auto tries = 0u;
+                        while (remaining > 0) {
+                            auto wrote = client.print(buffer);
+                            if (wrote == 0) {
+                                logerror("oh no, 0 bytes written (%zu total, %zu remaining)", total_bytes - remaining, remaining);
+                                fk_delay(500);
+                                if (tries++ == 2) {
+                                    break;
+                                }
+                            } else {
+                                tries = 0;
+                            }
+                            fk_delay(10);
+                            remaining -= wrote;
+                        }
+                        break;
+                    }
+                    if (c == '\n') {
+                        // you're starting a new line
+                        currentLineIsBlank = true;
+                    } else if (c != '\r') {
+                        // you've gotten a character on the current line
+                        currentLineIsBlank = false;
+                    }
+                }
+            }
+            // give the web browser time to receive the data
+            fk_delay(1);
+
+            // close the connection:
+            client.stop();
+            loginfo("disconnected");
+        }
+
+        fk_delay(10);
+    }
+#endif
+}
+
+static void wifi_test() {
+    StandardPool pool{ "network-task" };
+    NetworkServices services{ get_network(), pool };
+    GlobalStateManager gsm;
+
+    gsm.apply([=](GlobalState *gs) {
+        gs->network.config.wifi_networks[0] = {};
+        gs->network.config.wifi_networks[0].valid = true;
+        strncpy(gs->network.config.wifi_networks[0].ssid, "Cottonwood", sizeof(gs->network.config.wifi_networks[0].ssid));
+        strncpy(gs->network.config.wifi_networks[0].password, "asdfasdf", sizeof(gs->network.config.wifi_networks[0].password));
+    });
+
+    loginfo("starting network...");
+
+    if (!services.begin(NetworkConnectionTimeoutMs, pool)) {
+        logerror("error starting server");
+        return;
+    }
+
+    loginfo("started");
+
+    loginfo("waiting to serve");
+
+    // In self AP mode we're waiting for connections now, and hold off doing
+    // anything useful until something joins.
+    while (services.waiting_to_serve()) {
+        if (services.should_stop()) {
+            return;
+        }
+
+        services.tick();
+
+        fk_delay(10);
+    }
+
+    if (!services.can_serve()) {
+        loginfo("unable to serve, retrying");
+        return;
+    }
+
+    // Start the network services now that we've got things to talk to.
+    if (!services.serve()) {
+        logerror("error serving");
+        return;
+    }
+
+    loginfo("awaiting connections...");
+
+    gsm.apply([=](GlobalState *gs) {
+        gs->network.state.enabled = fk_uptime();
+        gs->network.state.connected = fk_uptime();
+        gs->network.state.ip = get_network()->ip_address();
+    });
+
+    while (services.serving()) {
+        if (services.should_stop()) {
+            return;
+        }
+
+        services.tick();
+
+        if (!services.active_connections()) {
+            fk_delay(10);
+        }
+    }
+}
+
 void fk_live_tests() {
+    if (false) {
+        // wifi_test();
+        wifi_low_level_test();
+
+        while (true) {
+            fk_delay(1000);
+        }
+    }
     if (false) {
         scan_i2c_module_bus();
     }
