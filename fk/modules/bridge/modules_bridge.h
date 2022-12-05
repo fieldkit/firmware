@@ -1,5 +1,7 @@
 #pragma once
 
+#include <fk-data-protocol.h>
+
 #include "common.h"
 #include "pool.h"
 #include "hal/board.h"
@@ -7,6 +9,7 @@
 
 #include "networking/http_connection.h"
 
+#include "modules/eeprom.h"
 #include "modules/bridge/data.h"
 #include "modules/bridge/contexts.h"
 #include "modules/bridge/module_readings.h"
@@ -41,6 +44,9 @@ private:
 public:
     virtual ~Module() {
     }
+
+protected:
+    std::pair<EncodedMessage *, fk_data_ModuleConfiguration *> read_configuration_eeprom(ModuleEeprom &eeprom, Pool *pool);
 
 public:
     virtual ModuleReturn initialize(ModuleContext mc, Pool &pool) = 0;

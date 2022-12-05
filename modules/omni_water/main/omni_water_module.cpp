@@ -89,29 +89,10 @@ bool OmniWaterModule::load_configuration(ModuleContext mc, Pool &pool) {
 
     loginfo("have header: mk=%02" PRIx32 "%02" PRIx32, header_.manufacturer, header_.kind);
 
-    /*
-    cfg_message_ = nullptr;
-    cfg_ = nullptr;
     pool_->clear();
-
-    size_t size = 0;
-    auto buffer = (uint8_t *)pool.malloc(MaximumConfigurationSize);
-    bzero(buffer, MaximumConfigurationSize);
-    if (!eeprom.read_configuration(buffer, size, MaximumConfigurationSize)) {
-        logwarn("mod-cfg: reading");
-    } else if (size > 0) {
-        auto cfg = fk_module_configuration_decoding_new(pool_);
-        auto stream = pb_istream_from_buffer(buffer, size);
-        if (!pb_decode_delimited(&stream, fk_data_ModuleConfiguration_fields, cfg)) {
-            // Some modules consider this an error. We continue along uncalibrated.
-            logwarn("mod-cfg: decoding");
-        } else {
-            loginfo("mod-cfg: decoded");
-            cfg_message_ = pool_->wrap_copy(buffer, size);
-            cfg_ = cfg;
-        }
-    }
-    */
+    auto cfgs = read_configuration_eeprom(eeprom, pool_);
+    cfg_message_ = cfgs.first;
+    cfg_ = cfgs.second;
 
     return true;
 }
