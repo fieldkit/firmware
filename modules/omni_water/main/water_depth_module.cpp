@@ -56,6 +56,26 @@ ModuleReadings *WaterDepthModule::take_readings(ReadingsContext mc, Pool &pool) 
         return nullptr;
     }
 
+    /**
+     * Hello traveller!
+     *
+     * As of today, we do this manually rather than relying on the
+     * self-identification features of these chips. According to the
+     * documentation the `version` portion of the first PROM register is
+     * supposed to identify the model for these.
+     *
+     * Only, there seems to be some issues.
+     *
+     * None of the 30BA sensors I've received or seen in the wild declare
+     * themselves properly. In fact, all of the versions come back as 0,
+     * indicating that they are 02BA models. Only, we know they aren't because
+     * the values produced by them only make sense if you force the model to
+     * 30BA.
+     *
+     * This means we'll need some user intervention to understand which model is
+     * actually attached.
+     */
+    ms5837.setModel(MS5837::MS5837_02BA);
     ms5837.read();
 
     auto temperature = ms5837.temperature();

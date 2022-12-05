@@ -219,13 +219,12 @@ ModuleReadings *OmniWaterModule::take_readings(ReadingsContext mc, Pool &pool) {
         fk_delay(100);
     }
 
-    // Defensively ensuring we're setting the correct indices. Shouldn't be easy
-    // for this to happen as things are now.
-    position = 5;
-
     WaterDepthModule depth_modules{ pool };
     auto depth_readings = depth_modules.take_readings(mc, pool);
     if (depth_readings != nullptr) {
+        // Defensively ensuring we're setting the correct indices. Shouldn't be easy
+        // for this to happen as things are now.
+        position = 5;
         mr->set(position++, depth_readings->get(0));
         mr->set(position++, depth_readings->get(1));
     }
