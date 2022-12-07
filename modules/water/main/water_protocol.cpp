@@ -214,7 +214,7 @@ WaterReadings *WaterProtocol::take_readings(ReadingsContext mc, fk_data_ModuleCo
         }
     }
     auto default_curve = create_modules_default_curve(pool);
-    auto curve = create_curve(default_curve, cfg, pool);
+    auto curve = create_curve(default_curve, (uint32_t)modality_, cfg, pool);
     auto factory = default_curve->apply(uncalibrated);
     auto calibrated = curve->apply(uncalibrated);
 
