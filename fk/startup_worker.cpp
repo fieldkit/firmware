@@ -88,8 +88,14 @@ void StartupWorker::run(Pool &pool) {
         return;
     }
 
-    loginfo("check for programmer startup");
-    if (check_for_programmer_startup(pool)) {
+    loginfo("check for program modules startup");
+    if (check_for_program_modules_startup(pool)) {
+        FK_ASSERT(os_task_start_options(&display_task, display_task.priority, &task_display_params) == OSS_SUCCESS);
+        return;
+    }
+
+    loginfo("check for configure modules startup");
+    if (check_for_configure_modules_startup(pool)) {
         FK_ASSERT(os_task_start_options(&display_task, display_task.priority, &task_display_params) == OSS_SUCCESS);
         return;
     }
@@ -593,7 +599,67 @@ bool StartupWorker::check_for_provision_startup(Pool &pool) {
     return true;
 }
 
-bool StartupWorker::check_for_programmer_startup(Pool &pool) {
+bool StartupWorker::check_for_configure_modules_startup(Pool &pool) {
+    auto lock = sd_mutex.acquire(UINT32_MAX);
+    auto sd = get_sd_card();
+
+    if (!sd->begin()) {
+        return false;
+    }
+
+    auto config_file = "fk-configure.cfg";
+    if (!sd->is_file(config_file)) {
+        loginfo("no %s found", config_file);
+        return false;
+    }
+
+    auto file = sd->open(config_file, OpenFlags::Read, pool);
+    if (file == nullptr || !file->is_open()) {
+        logerror("unable to open '%s'", config_file);
+        return false;
+    }
+
+    auto file_size = (int32_t)file->file_size();
+    if (file_size == 0) {
+        logerror("empty file '%s'", config_file);
+        return false;
+    }
+
+    auto buffer = (uint8_t *)pool.malloc(file_size);
+    auto bytes_read = file->read(buffer, file_size);
+    if (bytes_read != file_size) {
+        logerror("error reading file '%s'", config_file);
+        return false;
+    }
+
+    BatteryChecker battery_checker;
+    battery_checker.refresh(true);
+
+    ModuleRegistry registry;
+    registry.initialize();
+
+    // Right now we're using this for fkuw and the pin based modmux can only
+    // power one module at a time.
+    // get_modmux()->enable_all_modules();
+    get_modmux()->enable_module(ModulePosition::from(0), ModulePower::Always);
+
+    auto module_bus = get_board()->i2c_module();
+    ModuleEeprom eeprom{ module_bus };
+    if (!eeprom.write_configuration(buffer, bytes_read)) {
+        logerror("writing module configuration");
+    }
+
+    ReadingsWorker readings_worker{ false, true, false };
+    readings_worker.run(pool);
+
+    get_ipc()->launch_worker(WorkerCategory::Polling, create_pool_worker<PollSensorsWorker>(false, true, true, ThirtySecondsMs));
+
+    task_display_params.readings = true;
+
+    return false;
+}
+
+bool StartupWorker::check_for_program_modules_startup(Pool &pool) {
     auto lock = sd_mutex.acquire(UINT32_MAX);
     auto sd = get_sd_card();
 
