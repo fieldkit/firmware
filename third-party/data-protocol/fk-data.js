@@ -8914,6 +8914,7 @@
              * @interface ICalibration
              * @property {fk_data.CurveType|null} [type] Calibration type
              * @property {number|null} [time] Calibration time
+             * @property {number|null} [kind] Calibration kind
              * @property {Array.<fk_data.ICalibrationPoint>|null} [points] Calibration points
              * @property {fk_data.ICalibrationCoefficients|null} [coefficients] Calibration coefficients
              * @property {fk_data.IFirmware|null} [firmware] Calibration firmware
@@ -8950,6 +8951,14 @@
              * @instance
              */
             Calibration.prototype.time = 0;
+    
+            /**
+             * Calibration kind.
+             * @member {number} kind
+             * @memberof fk_data.Calibration
+             * @instance
+             */
+            Calibration.prototype.kind = 0;
     
             /**
              * Calibration points.
@@ -9010,6 +9019,8 @@
                     $root.fk_data.CalibrationCoefficients.encode(message.coefficients, writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
                 if (message.firmware != null && message.hasOwnProperty("firmware"))
                     $root.fk_data.Firmware.encode(message.firmware, writer.uint32(/* id 5, wireType 2 =*/42).fork()).ldelim();
+                if (message.kind != null && message.hasOwnProperty("kind"))
+                    writer.uint32(/* id 6, wireType 0 =*/48).uint32(message.kind);
                 return writer;
             };
     
@@ -9049,6 +9060,9 @@
                         break;
                     case 2:
                         message.time = reader.uint32();
+                        break;
+                    case 6:
+                        message.kind = reader.uint32();
                         break;
                     case 3:
                         if (!(message.points && message.points.length))
@@ -9110,6 +9124,9 @@
                 if (message.time != null && message.hasOwnProperty("time"))
                     if (!$util.isInteger(message.time))
                         return "time: integer expected";
+                if (message.kind != null && message.hasOwnProperty("kind"))
+                    if (!$util.isInteger(message.kind))
+                        return "kind: integer expected";
                 if (message.points != null && message.hasOwnProperty("points")) {
                     if (!Array.isArray(message.points))
                         return "points: array expected";
@@ -9168,6 +9185,8 @@
                 }
                 if (object.time != null)
                     message.time = object.time >>> 0;
+                if (object.kind != null)
+                    message.kind = object.kind >>> 0;
                 if (object.points) {
                     if (!Array.isArray(object.points))
                         throw TypeError(".fk_data.Calibration.points: array expected");
@@ -9211,6 +9230,7 @@
                     object.time = 0;
                     object.coefficients = null;
                     object.firmware = null;
+                    object.kind = 0;
                 }
                 if (message.type != null && message.hasOwnProperty("type"))
                     object.type = options.enums === String ? $root.fk_data.CurveType[message.type] : message.type;
@@ -9225,6 +9245,8 @@
                     object.coefficients = $root.fk_data.CalibrationCoefficients.toObject(message.coefficients, options);
                 if (message.firmware != null && message.hasOwnProperty("firmware"))
                     object.firmware = $root.fk_data.Firmware.toObject(message.firmware, options);
+                if (message.kind != null && message.hasOwnProperty("kind"))
+                    object.kind = message.kind;
                 return object;
             };
     
@@ -9249,6 +9271,7 @@
              * @memberof fk_data
              * @interface IModuleConfiguration
              * @property {fk_data.ICalibration|null} [calibration] ModuleConfiguration calibration
+             * @property {Array.<fk_data.ICalibration>|null} [calibrations] ModuleConfiguration calibrations
              */
     
             /**
@@ -9260,6 +9283,7 @@
              * @param {fk_data.IModuleConfiguration=} [properties] Properties to set
              */
             function ModuleConfiguration(properties) {
+                this.calibrations = [];
                 if (properties)
                     for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                         if (properties[keys[i]] != null)
@@ -9273,6 +9297,14 @@
              * @instance
              */
             ModuleConfiguration.prototype.calibration = null;
+    
+            /**
+             * ModuleConfiguration calibrations.
+             * @member {Array.<fk_data.ICalibration>} calibrations
+             * @memberof fk_data.ModuleConfiguration
+             * @instance
+             */
+            ModuleConfiguration.prototype.calibrations = $util.emptyArray;
     
             /**
              * Creates a new ModuleConfiguration instance using the specified properties.
@@ -9300,6 +9332,9 @@
                     writer = $Writer.create();
                 if (message.calibration != null && message.hasOwnProperty("calibration"))
                     $root.fk_data.Calibration.encode(message.calibration, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+                if (message.calibrations != null && message.calibrations.length)
+                    for (var i = 0; i < message.calibrations.length; ++i)
+                        $root.fk_data.Calibration.encode(message.calibrations[i], writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
                 return writer;
             };
     
@@ -9336,6 +9371,11 @@
                     switch (tag >>> 3) {
                     case 1:
                         message.calibration = $root.fk_data.Calibration.decode(reader, reader.uint32());
+                        break;
+                    case 2:
+                        if (!(message.calibrations && message.calibrations.length))
+                            message.calibrations = [];
+                        message.calibrations.push($root.fk_data.Calibration.decode(reader, reader.uint32()));
                         break;
                     default:
                         reader.skipType(tag & 7);
@@ -9377,6 +9417,15 @@
                     if (error)
                         return "calibration." + error;
                 }
+                if (message.calibrations != null && message.hasOwnProperty("calibrations")) {
+                    if (!Array.isArray(message.calibrations))
+                        return "calibrations: array expected";
+                    for (var i = 0; i < message.calibrations.length; ++i) {
+                        var error = $root.fk_data.Calibration.verify(message.calibrations[i]);
+                        if (error)
+                            return "calibrations." + error;
+                    }
+                }
                 return null;
             };
     
@@ -9397,6 +9446,16 @@
                         throw TypeError(".fk_data.ModuleConfiguration.calibration: object expected");
                     message.calibration = $root.fk_data.Calibration.fromObject(object.calibration);
                 }
+                if (object.calibrations) {
+                    if (!Array.isArray(object.calibrations))
+                        throw TypeError(".fk_data.ModuleConfiguration.calibrations: array expected");
+                    message.calibrations = [];
+                    for (var i = 0; i < object.calibrations.length; ++i) {
+                        if (typeof object.calibrations[i] !== "object")
+                            throw TypeError(".fk_data.ModuleConfiguration.calibrations: object expected");
+                        message.calibrations[i] = $root.fk_data.Calibration.fromObject(object.calibrations[i]);
+                    }
+                }
                 return message;
             };
     
@@ -9413,10 +9472,17 @@
                 if (!options)
                     options = {};
                 var object = {};
+                if (options.arrays || options.defaults)
+                    object.calibrations = [];
                 if (options.defaults)
                     object.calibration = null;
                 if (message.calibration != null && message.hasOwnProperty("calibration"))
                     object.calibration = $root.fk_data.Calibration.toObject(message.calibration, options);
+                if (message.calibrations && message.calibrations.length) {
+                    object.calibrations = [];
+                    for (var j = 0; j < message.calibrations.length; ++j)
+                        object.calibrations[j] = $root.fk_data.Calibration.toObject(message.calibrations[j], options);
+                }
                 return object;
             };
     

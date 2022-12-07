@@ -16,7 +16,9 @@ $(PROTO_NAME).d.ts: $(PROTO_NAME).js
 	node_modules/.bin/pbts -o $(PROTO_NAME).d.ts $(PROTO_NAME).js
 
 src/$(PROTO_NAME).pb.c src/$(PROTO_NAME).pb.h: build $(PROTO_NAME).proto
-	PATH=$(PATH):$(PROTOC_BIN) $(PROTOC) --plugin=protoc-gen-nanopb=build/nanopb/generator/protoc-gen-nanopb --nanopb_out=./src $(PROTO_NAME).proto
+	PATH=$(PATH):$(PROTOC_BIN) PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python build/nanopb/generator/nanopb_generator.py $(PROTO_NAME).proto
+	mkdir -p src
+	mv $(PROTO_NAME).pb.[ch] src
 
 $(PROTO_NAME)_pb2.py: build $(PROTO_NAME).proto
 	PATH=$(PATH):$(PROTOC_BIN) $(PROTOC) --python_out=./ $(PROTO_NAME).proto
@@ -24,6 +26,7 @@ $(PROTO_NAME)_pb2.py: build $(PROTO_NAME).proto
 $(PROTO_NAME).pb.go: build $(PROTO_NAME).proto
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 	$(PROTOC) --go_out=./ $(PROTO_NAME).proto
+	mv github.com/*/*/*.go .
 
 $(JAVA_DEP): build $(PROTO_NAME).proto
 	$(PROTOC) --java_out=lite:./ $(PROTO_NAME).proto
