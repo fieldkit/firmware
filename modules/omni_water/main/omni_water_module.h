@@ -14,8 +14,7 @@ namespace fk {
 class OmniWaterModule : public Module {
 private:
     Pool *pool_{ nullptr };
-    EncodedMessage *cfg_message_{ nullptr };
-    fk_data_ModuleConfiguration *cfg_{ nullptr };
+    std::pair<EncodedMessage *, fk_data_ModuleConfiguration *> cfg_;
     ModuleHeader header_;
     ModuleLockout lockout_;
 

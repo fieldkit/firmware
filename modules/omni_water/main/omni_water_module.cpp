@@ -90,9 +90,7 @@ bool OmniWaterModule::load_configuration(ModuleContext mc, Pool &pool) {
     loginfo("have header: mk=%02" PRIx32 "%02" PRIx32, header_.manufacturer, header_.kind);
 
     pool_->clear();
-    auto cfgs = read_configuration_eeprom(eeprom, pool_);
-    cfg_message_ = cfgs.first;
-    cfg_ = cfgs.second;
+    cfg_ = read_configuration_eeprom(eeprom, pool_);
 
     return true;
 }
@@ -131,7 +129,7 @@ ModuleSensors const *OmniWaterModule::get_sensors(Pool &pool) {
 }
 
 ModuleConfiguration const OmniWaterModule::get_configuration(Pool &pool) {
-    return ModuleConfiguration{ "modules.water.omni", ModulePower::ReadingsOnly, cfg_message_, DefaultModuleOrder };
+    return ModuleConfiguration{ "modules.water.omni", ModulePower::ReadingsOnly, cfg_.first, DefaultModuleOrder };
 }
 
 bool OmniWaterModule::can_enable() {
@@ -187,7 +185,7 @@ ModuleReadings *OmniWaterModule::take_readings(ReadingsContext mc, Pool &pool) {
             return nullptr;
         }
 
-        auto water_readings = water_protocol.take_readings(mc, cfg_, pool);
+        auto water_readings = water_protocol.take_readings(mc, cfg_.second, pool);
         if (water_readings == nullptr) {
             logwarn("water-proto: readings error");
         } else {

@@ -35,7 +35,7 @@ bool WaterApiReply::has_errors() const {
 bool WaterApiReply::status_reply(uint8_t const *buffer, size_t size) {
     reply_.type = fk_app_ModuleReplyType_MODULE_REPLY_SUCCESS;
 
-    if (size > 0) {
+    if (size > 0 && buffer != nullptr) {
         auto cfg_data = pool_->malloc_with<pb_data_t>({
             .length = size,
             .buffer = buffer,
