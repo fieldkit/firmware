@@ -267,11 +267,13 @@ message CalibrationCoefficients {
 message Calibration {
   CurveType type = 1;
   uint32 time = 2;
+  uint32 kind = 6;
   repeated CalibrationPoint points = 3;
   CalibrationCoefficients coefficients = 4;
   Firmware firmware = 5;
 }
 
 message ModuleConfiguration {
-  Calibration calibration = 1;
+  Calibration calibration = 1; // DEPRECATED
+  repeated Calibration calibrations = 2;
 }

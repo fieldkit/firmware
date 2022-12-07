@@ -750,6 +750,10 @@
               "type": "uint32",
               "id": 2
             },
+            "kind": {
+              "type": "uint32",
+              "id": 6
+            },
             "points": {
               "rule": "repeated",
               "type": "CalibrationPoint",
@@ -770,6 +774,11 @@
             "calibration": {
               "type": "Calibration",
               "id": 1
+            },
+            "calibrations": {
+              "rule": "repeated",
+              "type": "Calibration",
+              "id": 2
             }
           }
         }
