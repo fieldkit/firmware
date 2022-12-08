@@ -212,7 +212,7 @@ constexpr size_t MaximumNumberOfPhysicalModules = 1;
 constexpr size_t MaximumNumberOfPhysicalModules = 5;
 #endif
 
-constexpr size_t MaximumConfigurationSize = 256;
+constexpr size_t MaximumConfigurationSize = 1024;
 
 constexpr uint32_t MinimumModuleStartupDelayMs = 10;
 
