@@ -43,9 +43,11 @@ PoolPointer<NetworkConnection> *Esp32Network::open_connection(const char *scheme
 }
 
 void Esp32Network::disable() {
+    digitalWrite(WIFI_ESP32_RESET, LOW);
 }
 
 void Esp32Network::enable() {
+    digitalWrite(WIFI_ESP32_RESET, HIGH);
 }
 
 #endif
