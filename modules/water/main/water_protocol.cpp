@@ -11,9 +11,9 @@ WaterProtocol::WaterProtocol(Pool &pool, TwoWireWrapper &bus, WaterModality moda
     if (excite_enabled()) {
         readings_checker_ =
             new (pool) UnexciteBeforeReadyChecker{ mcp_, Mcp2803Config{ mcp_config_.io_dir, mcp_config_.pullups, mcp_config_.excite_off } };
+    } else {
+        readings_checker_ = new (pool) Mcp2803ReadyChecker{ mcp_ };
     }
-
-    readings_checker_ = new (pool) Mcp2803ReadyChecker{ mcp_ };
 }
 
 bool WaterProtocol::averaging_enabled() const {
