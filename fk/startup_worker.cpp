@@ -638,10 +638,13 @@ bool StartupWorker::check_for_configure_modules_startup(Pool &pool) {
     ModuleRegistry registry;
     registry.initialize();
 
+#if defined(FK_UNDERWATER)
     // Right now we're using this for fkuw and the pin based modmux can only
     // power one module at a time.
-    // get_modmux()->enable_all_modules();
     get_modmux()->enable_module(ModulePosition::from(0), ModulePower::Always);
+#else
+    get_modmux()->enable_all_modules();
+#endif
 
     auto module_bus = get_board()->i2c_module();
     ModuleEeprom eeprom{ module_bus };
