@@ -20,6 +20,7 @@
 #include "networking/download_firmware_worker.h"
 #include "networking/upload_data_worker.h"
 
+#include "display/debug_module_view.h"
 #include "display/readings_view.h"
 
 #include "storage/dump_flash_memory_worker.h"
@@ -343,16 +344,24 @@ void MenuView::create_module_menu() {
         views_->show_home();
         get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_));
     });
+    auto module_debug = to_lambda_option(pool_, "Debug", [=]() {
+        auto gs = get_global_state_ro();
+        debug_module_menu_ = create_debug_module_menu(selected_module_bay_, gs.get(), back_, *pool_);
+        if (debug_module_menu_ != nullptr) {
+            goto_menu(debug_module_menu_, OneMinuteMs, nullptr);
+        }
+    });
 
     (void)module_program;
     (void)module_erase;
 
-    module_menu_ = new_menu_screen<4>(pool_, "module",
+    module_menu_ = new_menu_screen<5>(pool_, "module",
                                       {
                                           module_back,
                                           module_home,
                                           module_program,
                                           module_erase,
+                                          module_debug,
                                       });
 }
 

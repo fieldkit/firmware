@@ -6,6 +6,8 @@
 #include "platform.h"
 #include "state_ref.h"
 
+#include "hal/display.h"
+
 namespace fk {
 
 FK_DECLARE_LOGGER("omniwater");
@@ -216,6 +218,33 @@ ModuleReadings *OmniWaterModule::take_readings(ReadingsContext mc, Pool &pool) {
     }
 
     return mr;
+}
+
+MenuScreen *OmniWaterModule::debug_menu(Pool *pool) {
+    auto option_index = 0u;
+    auto options = (MenuOption **)pool->malloc(sizeof(MenuOption *) * (5 + 1));
+    for (auto &modality : AllModalities) {
+        options[option_index++] = to_lambda_option(pool, modality.name, [=]() {
+            loginfo("'%s' selected", modality.name);
+
+            auto mm = get_modmux();
+
+            // TODO Need to get our module position.
+            mm->enable_module(ModulePosition::from(0), ModulePower::Always);
+
+            auto bus = get_board()->i2c_module();
+            WaterProtocol water_protocol{ *pool, bus, modality.modality, modality.config, false };
+            if (!water_protocol.initialize()) {
+                logwarn("water-proto: initialize error");
+            }
+        });
+    }
+
+    // options[option_index++] = back_;
+
+    options[option_index] = nullptr;
+
+    return new (pool) MenuScreen("omni-debug", options);
 }
 
 } // namespace fk

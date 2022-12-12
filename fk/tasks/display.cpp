@@ -19,6 +19,7 @@
 #include "display/readings_view.h"
 #include "display/schedule_view.h"
 #include "display/self_check_view.h"
+#include "display/debug_module_view.h"
 
 namespace fk {
 

@@ -72,6 +72,7 @@ public:
     }
     ModuleStatus status() const;
     const char *name() const;
+    MenuScreen *debug_menu(Pool *pool);
     ModuleMetadata const *meta() const;
     ModuleConfiguration configuration() const;
     Sensors &sensors() {

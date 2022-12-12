@@ -16,6 +16,7 @@
 
 namespace fk {
 
+class MenuScreen;
 class ModuleContext;
 class HttpServerConnection;
 
@@ -55,6 +56,9 @@ public:
     virtual ModuleConfiguration const get_configuration(Pool &pool) = 0;
     virtual ModuleReturn service(ModuleContext mc, Pool &pool) = 0;
     virtual ModuleReturn api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) = 0;
+    virtual MenuScreen *debug_menu(Pool *pool) {
+        return nullptr;
+    }
     virtual bool can_enable() {
         return true;
     }
