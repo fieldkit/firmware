@@ -207,7 +207,7 @@ constexpr bool ModulesPowerIndividually = true;
  * their possible combinations.
  */
 #if defined(FK_UNDERWATER)
-constexpr size_t MaximumNumberOfPhysicalModules = 1;
+constexpr size_t MaximumNumberOfPhysicalModules = 4;
 #else
 constexpr size_t MaximumNumberOfPhysicalModules = 5;
 #endif

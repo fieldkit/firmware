@@ -6,7 +6,16 @@
 
 namespace fk {
 
-const uint8_t ModulePowerPins[4][2] = { { 56u, 59u }, { 68u, 0u }, { 61u, 0u }, { 60u, 0u } };
+#define FKUW_PIN_OMNI_POWER   (56u)
+#define FKUW_PIN_MS5837_POWER (59u)
+#define FKUW_PIN_BAY_1_POWER  (68u)
+#define FKUW_PIN_BAY_2_POWER  (61u)
+#define FKUW_PIN_BAY_3_POWER  (60u)
+
+const uint8_t ModulePowerPins[4][2] = { { FKUW_PIN_OMNI_POWER, FKUW_PIN_MS5837_POWER }, // These are polled together, for now.
+                                        { FKUW_PIN_BAY_1_POWER, 0u },
+                                        { FKUW_PIN_BAY_2_POWER, 0u },
+                                        { FKUW_PIN_BAY_3_POWER, 0u } };
 
 FK_DECLARE_LOGGER("pinmodmux");
 
@@ -15,7 +24,7 @@ PinModMux::PinModMux() {
 
 bool PinModMux::begin() {
     available_ = true;
-    enabled_ = -1;
+    enabled_ = ModulePosition::None;
 
     loginfo("begin");
 
@@ -72,17 +81,17 @@ bool PinModMux::enable_module(ModulePosition position, ModulePower power) {
         }
     }
 
+    enabled_ = position;
+
     fk_delay(100);
 
     return true;
 }
 
 bool PinModMux::disable_module(ModulePosition position) {
-    if (enabled_ >= 0 && enabled_ != position.integer()) {
+    if (enabled_ != ModulePosition::None && enabled_ != position) {
         logwarn("[%d] disabled while inactive");
     }
-
-    enabled_ = -1;
 
     return disable_all_modules();
 }
@@ -129,6 +138,8 @@ bool PinModMux::choose_nothing() {
         }
     }
 
+    enabled_ = ModulePosition::None;
+
     return true;
 }
 
@@ -141,11 +152,11 @@ ModulesLock PinModMux::lock() {
 }
 
 bool PinModMux::any_modules_on(ModulePower power) {
-    return false;
+    return enabled_ != ModulePosition::None;
 }
 
 bool PinModMux::is_module_on(ModulePosition position) {
-    return false;
+    return enabled_ == position;
 }
 
 } // namespace fk
