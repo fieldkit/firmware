@@ -37,6 +37,8 @@ bool Mcp2803::configure(uint8_t iodir, uint8_t gppu, uint8_t gpio) {
         gpio,  // GPIO
     };
 
+    logdebug("configure(io=0x%x gpio=0x%x)", iodir, gpio);
+
     auto rv = bus_.write(address_, buffer, sizeof(buffer));
     if (!I2C_CHECK(rv)) {
         return false;
