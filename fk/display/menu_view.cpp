@@ -157,6 +157,12 @@ static void configure_unexciting() {
     gs.get()->debugging.unexciting = true;
 }
 
+static void disable_readings_this_run() {
+    auto gs = get_global_state_rw();
+    gs.get()->scheduler.readings.interval = 0;
+    gs.get()->scheduler.readings.cron = {};
+}
+
 MenuView::MenuView(ViewController *views, Pool &pool) : pool_(&pool), views_(views) {
     back_ = to_lambda_option(&pool, "Back", [=]() {
         auto title = active_menu_->title;
@@ -345,10 +351,12 @@ void MenuView::create_module_menu() {
         get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_));
     });
     auto module_debug = to_lambda_option(pool_, "Debug", [=]() {
+        disable_readings_this_run();
+
         auto gs = get_global_state_ro();
         debug_module_menu_ = create_debug_module_menu(selected_module_bay_, gs.get(), back_, *pool_);
         if (debug_module_menu_ != nullptr) {
-            goto_menu(debug_module_menu_, OneMinuteMs, nullptr);
+            goto_menu(debug_module_menu_, ThirtyMinutesMs, nullptr);
         }
     });
 
