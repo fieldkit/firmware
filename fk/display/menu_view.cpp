@@ -357,7 +357,7 @@ void MenuView::create_confirmation_menu() {
 }
 
 template <size_t N, typename T>
-MenuScreen *create_numeric_selection(const char *f, int32_t(&&numbers)[N], MenuOption *back, Pool *pool, T on_selected) {
+MenuScreen *create_numeric_selection(const char *f, int32_t (&&numbers)[N], MenuOption *back, Pool *pool, T on_selected) {
     auto options = (MenuOption **)pool->malloc(sizeof(MenuOption *) * (N + 2));
     auto index = 0u;
 
@@ -524,12 +524,12 @@ void MenuView::create_tools_menu() {
     auto tools_dump_flash = to_lambda_option(pool_, "Flash -> SD", [=]() {
         back_->on_selected();
         views_->show_home();
-        get_ipc()->launch_worker(create_pool_worker<DumpFlashMemoryWorker>());
+        get_ipc()->launch_worker(WorkerCategory::Transfer, create_pool_worker<DumpFlashMemoryWorker>());
     });
     auto tools_backup = to_lambda_option(pool_, "Backup", [=]() {
         back_->on_selected();
         views_->show_home();
-        get_ipc()->launch_worker(create_pool_worker<BackupWorker>());
+        get_ipc()->launch_worker(WorkerCategory::Transfer, create_pool_worker<BackupWorker>());
     });
     auto tools_load_firmware_sd = to_lambda_option(pool_, "SD Upgrade", [=]() {
         back_->on_selected();
@@ -540,7 +540,7 @@ void MenuView::create_tools_menu() {
     auto tools_fsck = to_lambda_option(pool_, "Run Fsck", [=]() {
         back_->on_selected();
         views_->show_home();
-        get_ipc()->launch_worker(create_pool_worker<FsckWorker>());
+        get_ipc()->launch_worker(WorkerCategory::Storage,create_pool_worker<FsckWorker>());
     });
     auto tools_lora_ranging = to_lambda_option(pool_, "LoRa Ranging", [=]() {
         back_->on_selected();

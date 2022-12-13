@@ -105,7 +105,7 @@ BackupTask::BackupTask(lwcron::CronSpec cron_spec) : lwcron::CronTask(cron_spec)
 }
 
 void BackupTask::run() {
-    get_ipc()->launch_worker(create_pool_worker<BackupWorker>());
+    get_ipc()->launch_worker(WorkerCategory::Transfer, create_pool_worker<BackupWorker>());
 }
 
 const char *BackupTask::toString() const {

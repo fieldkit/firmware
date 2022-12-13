@@ -21,6 +21,17 @@ ReadingsWorker::ReadingsWorker(bool scan, bool read_only, bool throttle, ModuleP
 
 void ReadingsWorker::run(Pool &pool) {
     if (get_ipc()->has_running_worker(WorkerCategory::Polling)) {
+        logwarn("skip: polling task");
+        return;
+    }
+
+    if (get_ipc()->has_running_worker(WorkerCategory::Transfer)) {
+        logwarn("skip: transfer task");
+        return;
+    }
+
+    if (get_ipc()->has_running_worker(WorkerCategory::Storage)) {
+        logwarn("skip: storage task");
         return;
     }
 
