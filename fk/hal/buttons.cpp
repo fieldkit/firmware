@@ -24,6 +24,11 @@ void Button::changed(bool down) {
             time_ = now;
             debounce_ = now;
             logdebug("%s down", name_);
+            if (!fk_debug_mode()) {
+                if (!get_ipc()->enqueue_activity(this)) {
+                    logerror("ipc error (activity)");
+                }
+            }
         } else {
             logdebug("%s down (ignore)", name_);
         }

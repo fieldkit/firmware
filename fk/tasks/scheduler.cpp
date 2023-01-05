@@ -120,7 +120,7 @@ void task_handler_scheduler(void *params) {
                 break;
             }
 
-            if (activity != nullptr) {
+            if (activity != nullptr && fk_can_start_task(&display_task)) {
                 if (fk_start_task_if_necessary(&display_task)) {
                     loginfo("activity:display-started");
                     get_ipc()->launch_worker(create_pool_worker<RefreshModulesWorker>());
