@@ -138,13 +138,14 @@ public:
         auto gs = get_global_state_ro();
         auto &notification = gs.get()->notification;
         if (notification.created > 0 && notified_ < notification.created) {
-            loginfo("notification: '%s'", notification.message);
+            loginfo("notif: '%s'", notification.message);
             notified_ = notification.created;
             show_message(notification.message, 0);
         }
+
         auto &display = gs.get()->display;
         if (display.open_menu.time > 0 && display.open_menu.time > updated_) {
-            loginfo("open-menu:");
+            loginfo("open-menu");
             updated_ = display.open_menu.time;
             if (display.open_menu.readings) {
                 show_view(menu_view);
@@ -167,8 +168,6 @@ public:
         auto can_stop = os_task_is_running(&scheduler_task);
         auto should_show_readings = params->readings;
         auto dequeue_button = false;
-
-        loginfo("should-show-readings: %d", should_show_readings);
 
         FaultCode *incoming_fault_code = nullptr;
         while (!can_stop || !stop_timer.expired()) {

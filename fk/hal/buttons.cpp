@@ -15,6 +15,7 @@ Button::Button(const char *name, uint8_t index) : name_(name), index_(index) {
 void Button::changed(bool down) {
     auto now = fk_uptime();
     if (debounce_ > 0 && now - debounce_ < ButtonDebounceDelay) {
+        logdebug("%s debounce", name_);
         return;
     }
     if (down) {
@@ -22,6 +23,9 @@ void Button::changed(bool down) {
             down_ = true;
             time_ = now;
             debounce_ = now;
+            logdebug("%s down", name_);
+        } else {
+            logdebug("%s down (ignore)", name_);
         }
     } else if (down_) {
         auto elapsed = now - time_;

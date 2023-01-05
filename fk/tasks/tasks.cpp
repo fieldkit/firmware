@@ -24,9 +24,11 @@ bool fk_can_start_task(os_task_t *task) {
 
 bool fk_start_task_if_necessary(os_task_t *task) {
     if (fk_task_stop_requested(nullptr)) {
+        alogf(LogLevels::ERROR, "tasks", "start-task:FAILED:stopping");
         return false;
     }
     if (!fk_can_start_task(task)) {
+        alogf(LogLevels::ERROR, "tasks", "start-task:FAILED:status");
         return false;
     }
     os_task_start(task);

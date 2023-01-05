@@ -104,6 +104,8 @@ void task_handler_scheduler(void *params) {
             // This throttles this loop, so we take a pass when we dequeue or timeout.
             Activity *activity = nullptr;
             if (get_ipc()->dequeue_activity(&activity)) {
+                loginfo("activity:dequeue");
+
                 if (!enable_allow_deep_sleep_timer.enabled()) {
                     loginfo("deep sleep disabled");
                     update_allow_deep_sleep(false);
@@ -120,7 +122,10 @@ void task_handler_scheduler(void *params) {
 
             if (activity != nullptr) {
                 if (fk_start_task_if_necessary(&display_task)) {
+                    loginfo("activity:display-started");
                     get_ipc()->launch_worker(create_pool_worker<RefreshModulesWorker>());
+                } else {
+                    logerror("activity:display-start:FAILED");
                 }
             }
 
