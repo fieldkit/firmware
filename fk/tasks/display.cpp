@@ -135,7 +135,12 @@ public:
     }
 
     void refresh_notifications() {
-        auto gs = get_global_state_ro();
+        auto gs = try_get_global_state_ro();
+        if (!gs) {
+            logwarn("refresh: no gs");
+            return;
+        }
+
         auto &notification = gs.get()->notification;
         if (notification.created > 0 && notified_ < notification.created) {
             loginfo("notif: '%s'", notification.message);
