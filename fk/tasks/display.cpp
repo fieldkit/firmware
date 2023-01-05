@@ -161,7 +161,7 @@ public:
 
         refresh_notifications();
 
-        IntervalTimer stop_timer{ FiveMinutesMs };
+        IntervalTimer stop_timer{ OneMinuteMs };
         IntervalTimer notifications_timer{ OneSecondMs / 10 };
         auto maximum_used = 0u;
         auto frame_pool = pool_->subpool("display-frame", 1024);
