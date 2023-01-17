@@ -2,7 +2,7 @@
 #include <samd51_common.h>
 
 #include "battery_status.h"
-#include "clock.h"
+#include "hal/clock.h"
 #include "factory_wipe.h"
 #include "live_tests.h"
 #include "records.h"
@@ -66,8 +66,9 @@ void StartupWorker::run(Pool &pool) {
     fk_live_tests();
 #endif
 
-    loginfo("ready display");
+    loginfo("readying display");
     auto display = get_display();
+    loginfo("display ready");
 
     loginfo("check for self test startup");
     if (check_for_self_test_startup(pool)) {
@@ -87,8 +88,14 @@ void StartupWorker::run(Pool &pool) {
         return;
     }
 
-    loginfo("check for programmer startup");
-    if (check_for_programmer_startup(pool)) {
+    loginfo("check for program modules startup");
+    if (check_for_program_modules_startup(pool)) {
+        FK_ASSERT(os_task_start_options(&display_task, display_task.priority, &task_display_params) == OSS_SUCCESS);
+        return;
+    }
+
+    loginfo("check for configure modules startup");
+    if (check_for_configure_modules_startup(pool)) {
         FK_ASSERT(os_task_start_options(&display_task, display_task.priority, &task_display_params) == OSS_SUCCESS);
         return;
     }
@@ -101,18 +108,27 @@ void StartupWorker::run(Pool &pool) {
 
     // Ensure we initialize the battery gauge before refreshing, since
     // we're booting. BatteryChecker assumes the gauge is ready to go.
-    loginfo("check for low power startup");
-    BatteryChecker battery_checker;
-    battery_checker.refresh(true);
+    auto low_power_startup = false;
+    auto gauge = get_battery_gauge();
+    if (gauge->expected()) {
+        loginfo("check for low power startup");
 
-    if (battery_checker.available()) {
-        if (!battery_checker.low_power()) {
-            display->company_logo();
+        BatteryChecker battery_checker;
+        battery_checker.refresh(true);
+        if (battery_checker.available()) {
+            low_power_startup = battery_checker.low_power();
+            if (!low_power_startup) {
+                display->company_logo();
+            }
+        } else {
+            fk_fault_set(&BatteryGaugeFailure);
+            display->fault(&BatteryGaugeFailure);
         }
     } else {
-        fk_fault_set(&BatteryGaugeFailure);
-        display->fault(&BatteryGaugeFailure);
+        loginfo("skipping battery check");
     }
+
+    get_board()->i2c_module().begin();
 
     // NOTE Power cycle modules, this gives us a fresh start. Some times behave
     // funny, specifically temperature. Without this the first attempt down
@@ -120,7 +136,13 @@ void StartupWorker::run(Pool &pool) {
     // I tried moving the enable all to after the storage read and ran into the
     // same issue. After the self check seems ok, though?
     auto mm = get_modmux();
+
+    if (!mm->begin()) {
+        logwarn("backplane error");
+    }
+
     mm->disable_all_modules();
+
     // Lock, just during startup.
     auto lock = mm->lock();
 
@@ -136,12 +158,12 @@ void StartupWorker::run(Pool &pool) {
 
     auto memory = MemoryFactory::get_data_memory();
     if (memory->begin()) {
-#if defined(__SAMD51__)
+        // #if defined(__SAMD51__)
         // The new file system code is very verbose at the DEBG level
         // and so this ensures the full startup ends up in the
         // logs. There should be a better fix, for this though.
         ScopedLogLevelChange temporary_info_only{ LogLevels::INFO };
-#endif
+        // #endif
         if (!load_or_create_state(pool)) {
             logerror("load or create state");
         }
@@ -159,8 +181,9 @@ void StartupWorker::run(Pool &pool) {
     SelfCheck self_check(display, get_network(), mm, get_module_leds());
 
     // Run self check and initialize modules if we have sufficient power.
-    if (!battery_checker.low_power()) {
-        self_check.check(SelfCheckSettings::defaults(), noop_callbacks, &pool);
+    if (!low_power_startup) {
+        auto settings = SelfCheckSettings::defaults();
+        self_check.check(settings, noop_callbacks, &pool);
 
         mm->enable_all_modules();
 
@@ -478,7 +501,6 @@ bool StartupWorker::check_for_self_test_startup(Pool &pool) {
     auto sd = get_sd_card();
 
     if (!sd->begin()) {
-        logerror("error opening sd card");
         return false;
     }
 
@@ -510,7 +532,6 @@ bool StartupWorker::check_for_upgrading_startup(Pool &pool) {
     auto sd = get_sd_card();
 
     if (!sd->begin()) {
-        logerror("error opening sd card");
         return false;
     }
 
@@ -549,7 +570,6 @@ bool StartupWorker::check_for_provision_startup(Pool &pool) {
     auto sd = get_sd_card();
 
     if (!sd->begin()) {
-        logerror("error opening sd card");
         return false;
     }
 
@@ -579,12 +599,74 @@ bool StartupWorker::check_for_provision_startup(Pool &pool) {
     return true;
 }
 
-bool StartupWorker::check_for_programmer_startup(Pool &pool) {
+bool StartupWorker::check_for_configure_modules_startup(Pool &pool) {
     auto lock = sd_mutex.acquire(UINT32_MAX);
     auto sd = get_sd_card();
 
     if (!sd->begin()) {
-        logerror("error opening sd card");
+        return false;
+    }
+
+    auto config_file = "fk-configure.cfg";
+    if (!sd->is_file(config_file)) {
+        loginfo("no %s found", config_file);
+        return false;
+    }
+
+    auto file = sd->open(config_file, OpenFlags::Read, pool);
+    if (file == nullptr || !file->is_open()) {
+        logerror("unable to open '%s'", config_file);
+        return false;
+    }
+
+    auto file_size = (int32_t)file->file_size();
+    if (file_size == 0) {
+        logerror("empty file '%s'", config_file);
+        return false;
+    }
+
+    auto buffer = (uint8_t *)pool.malloc(file_size);
+    auto bytes_read = file->read(buffer, file_size);
+    if (bytes_read != file_size) {
+        logerror("error reading file '%s'", config_file);
+        return false;
+    }
+
+    BatteryChecker battery_checker;
+    battery_checker.refresh(true);
+
+    ModuleRegistry registry;
+    registry.initialize();
+
+#if defined(FK_UNDERWATER)
+    // Right now we're using this for fkuw and the pin based modmux can only
+    // power one module at a time.
+    get_modmux()->enable_module(ModulePosition::from(0), ModulePower::Always);
+#else
+    get_modmux()->enable_all_modules();
+#endif
+
+    auto module_bus = get_board()->i2c_module();
+    ModuleEeprom eeprom{ module_bus };
+    if (!eeprom.write_configuration(buffer, bytes_read)) {
+        logerror("writing module configuration");
+    }
+
+    ReadingsWorker readings_worker{ false, true, false };
+    readings_worker.run(pool);
+
+    get_ipc()->launch_worker(WorkerCategory::Polling, create_pool_worker<PollSensorsWorker>(false, true, true, ThirtySecondsMs));
+
+    task_display_params.readings = true;
+
+    return false;
+}
+
+bool StartupWorker::check_for_program_modules_startup(Pool &pool) {
+    auto lock = sd_mutex.acquire(UINT32_MAX);
+    auto sd = get_sd_card();
+
+    if (!sd->begin()) {
         return false;
     }
 

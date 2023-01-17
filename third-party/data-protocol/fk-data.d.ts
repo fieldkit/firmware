@@ -3333,6 +3333,9 @@ export namespace fk_data {
         /** Calibration time */
         time?: (number|null);
 
+        /** Calibration kind */
+        kind?: (number|null);
+
         /** Calibration points */
         points?: (fk_data.ICalibrationPoint[]|null);
 
@@ -3357,6 +3360,9 @@ export namespace fk_data {
 
         /** Calibration time. */
         public time: number;
+
+        /** Calibration kind. */
+        public kind: number;
 
         /** Calibration points. */
         public points: fk_data.ICalibrationPoint[];
@@ -3443,6 +3449,9 @@ export namespace fk_data {
 
         /** ModuleConfiguration calibration */
         calibration?: (fk_data.ICalibration|null);
+
+        /** ModuleConfiguration calibrations */
+        calibrations?: (fk_data.ICalibration[]|null);
     }
 
     /** Represents a ModuleConfiguration. */
@@ -3456,6 +3465,9 @@ export namespace fk_data {
 
         /** ModuleConfiguration calibration. */
         public calibration?: (fk_data.ICalibration|null);
+
+        /** ModuleConfiguration calibrations. */
+        public calibrations: fk_data.ICalibration[];
 
         /**
          * Creates a new ModuleConfiguration instance using the specified properties.

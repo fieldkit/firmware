@@ -9,8 +9,7 @@ namespace fk {
 
 class GotoMenu {
 public:
-    virtual MenuScreen *goto_menu(MenuScreen *screen, uint32_t hold_time = FiveSecondsMs,
-                                  MenuScreen *previous_menu = nullptr) = 0;
+    virtual MenuScreen *goto_menu(MenuScreen *screen, uint32_t hold_time = FiveSecondsMs, MenuScreen *previous_menu = nullptr) = 0;
 };
 
 class MenuView : public DisplayView, GotoMenu {
@@ -37,6 +36,7 @@ private:
     ModulePosition selected_module_bay_{ 0 };
     MenuOption *pending_{ nullptr };
     MenuScreen *readings_menu_{ nullptr };
+    MenuScreen *debug_module_menu_{ nullptr };
 
 public:
     MenuView(ViewController *views, Pool &pool);
@@ -64,8 +64,7 @@ private:
     MenuScreen *goto_menu(MenuScreen *screen, MenuScreen *previous_menu) {
         return goto_menu(screen, FiveSecondsMs, previous_menu);
     }
-    MenuScreen *goto_menu(MenuScreen *screen, uint32_t hold_time = FiveSecondsMs,
-                          MenuScreen *previous_menu = nullptr) override;
+    MenuScreen *goto_menu(MenuScreen *screen, uint32_t hold_time = FiveSecondsMs, MenuScreen *previous_menu = nullptr) override;
 
 private:
     static void choose_active_network(WifiNetworkInfo network);

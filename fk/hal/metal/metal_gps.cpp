@@ -1,8 +1,8 @@
 #include "hal/hal.h"
 #include "hal/metal/metal.h"
+#include "hal/clock.h"
 #include "platform.h"
 #include "config.h"
-#include "clock.h"
 
 #if defined(__SAMD51__)
 
@@ -25,7 +25,7 @@ bool MetalGps::begin() {
     Serial1.println(PMTK_SET_NMEA_UPDATE_1HZ);
     Serial1.println(PMTK_API_SET_FIX_CTL_1HZ);
 
-    gps_ = { };
+    gps_ = {};
 
     return true;
 }
@@ -54,10 +54,9 @@ bool MetalGps::service(GpsFix &fix) {
                     loginfo("%s", buffer_);
                 }
                 position_ = 0;
-            }
-            else {
+            } else {
                 buffer_[position_++] = c;
-                buffer_[position_  ] = 0;
+                buffer_[position_] = 0;
             }
         }
     }
@@ -66,7 +65,8 @@ bool MetalGps::service(GpsFix &fix) {
     fix.hdop = gps_.hdop();
 
     gps_.f_get_position(&fix.latitude, &fix.longitude, &fix.position_fix_age);
-    gps_.crack_datetime((int *)&time.year, &time.month, &time.day, &time.hour, &time.minute, &time.second, &time.hundredths, &time.time_fix_age);
+    gps_.crack_datetime((int *)&time.year, &time.month, &time.day, &time.hour, &time.minute, &time.second, &time.hundredths,
+                        &time.time_fix_age);
     gps_.get_datetime(&time.date, &time.time, &time.time_fix_age);
 
     auto valid = true;
@@ -83,8 +83,7 @@ bool MetalGps::service(GpsFix &fix) {
         auto now = DateTime(time.year, time.month, time.day, time.hour, time.minute, time.second);
         fix.time = now.unix_time();
         fix.time_fix_age = time.time_fix_age;
-    }
-    else {
+    } else {
         valid = false;
     }
 
@@ -94,9 +93,8 @@ bool MetalGps::service(GpsFix &fix) {
 
     if (valid) {
         fix.valid = true;
-    }
-    else {
-        fix = { };
+    } else {
+        fix = {};
     }
 
     // Do this after, so that these are included even if we have
@@ -117,11 +115,11 @@ bool MetalGps::stop() {
 
     get_board()->disable_gps();
 
-    gps_ = { };
+    gps_ = {};
 
     return true;
 }
 
-}
+} // namespace fk
 
 #endif

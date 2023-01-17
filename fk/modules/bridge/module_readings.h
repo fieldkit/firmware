@@ -18,10 +18,6 @@ public:
     }
 
 public:
-    size_t size() const override {
-        return nreadings_;
-    }
-
     void set(int32_t i, SensorReading reading) override {
         if ((size_t)i < N) {
             readings_[i] = reading;
@@ -30,6 +26,10 @@ public:
 
     SensorReading get(int32_t i) const override {
         return readings_[i];
+    }
+
+    size_t size() const override {
+        return nreadings_;
     }
 
     ModuleReadings *clone(Pool &pool) const override {

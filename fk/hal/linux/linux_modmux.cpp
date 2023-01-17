@@ -61,9 +61,8 @@ optional<Topology> LinuxModMux::read_topology_register() {
 
 ModulesLock LinuxModMux::lock() {
     auto modules_lock = modules_mutex.acquire(UINT32_MAX);
-    auto eeprom_lock = get_board()->lock_eeprom();
 
-    return { std::move(modules_lock), std::move(eeprom_lock), fk_uptime() };
+    return { std::move(modules_lock), std::move(EepromLock{}), fk_uptime() };
 }
 
 bool LinuxModMux::any_modules_on(ModulePower power) {
@@ -96,6 +95,6 @@ bool LinuxModMux::clear_all() {
     return true;
 }
 
-}
+} // namespace fk
 
 #endif

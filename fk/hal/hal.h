@@ -5,6 +5,7 @@
 
 #include "hal/board.h"
 
+#include "hal/clock.h"
 #include "hal/watchdog.h"
 #include "hal/random.h"
 #include "hal/network.h"
@@ -16,6 +17,7 @@
 #include "hal/ipc.h"
 #include "hal/modmux.h"
 #include "hal/leds.h"
+#include "hal/marker_lights.h"
 
 #if defined(__SAMD51__)
 #include "hal/metal/metal.h"

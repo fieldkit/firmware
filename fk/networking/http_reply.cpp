@@ -1,10 +1,10 @@
 #include <loading.h>
 
 #include "hal/network.h"
+#include "hal/clock.h"
 
 #include "networking/http_reply.h"
 
-#include "clock.h"
 #include "state.h"
 #include "storage/storage.h"
 #include "utilities.h"

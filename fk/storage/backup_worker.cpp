@@ -8,7 +8,6 @@
 #include "hal/memory.h"
 #include "hal/sd_card.h"
 
-#include "clock.h"
 #include "records.h"
 
 #include "storage/signed_log.h"

@@ -55,6 +55,14 @@ message("Version: ${FK_VERSION}")
 
 message("Target Architecture: ${TARGET_ARCH}")
 
+message("FK_UNDERWATER: ${FK_UNDERWATER}")
+
+if("${FK_UNDERWATER}" STREQUAL "")
+  set(FIELDKIT_BOARD "fieldkit_core")
+else()
+  set(FIELDKIT_BOARD "fieldkit_underwater")
+endif()
+
 enable_testing()
 
 add_subdirectory(boards)

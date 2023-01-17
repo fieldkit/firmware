@@ -4,12 +4,6 @@
 
 namespace fk {
 
-ModuleLeds::ModuleLeds() {
-}
-
-ModuleLeds::~ModuleLeds() {
-}
-
 class NoopModuleLeds : public ModuleLeds {
 public:
     bool begin() override {
@@ -40,9 +34,12 @@ public:
     }
 };
 
-NoopModuleLeds noop_leds;
 #if defined(FK_HARDWARE_FULL)
+#if defined(FK_UNDERWATER)
+NoopModuleLeds module_leds;
+#else
 MetalLeds module_leds;
+#endif
 #else
 LinuxLeds module_leds;
 #endif

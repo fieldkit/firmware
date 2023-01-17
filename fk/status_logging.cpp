@@ -5,7 +5,6 @@
 #include "storage/storage.h"
 #include "tasks/tasks.h"
 #include "hal/hal.h"
-#include "clock.h"
 #include "state_manager.h"
 #include "state_ref.h"
 
@@ -62,7 +61,7 @@ static void log_status() {
     auto length = strlen(gps_status);
     if (gps.time > 0) {
         uint32_t age = now - gps.time;
-        snprintf(gps_status + length, sizeof(gps_status) - length, "fix-age=%" PRIu32 " [%f, %f]", age, gps.longitude, gps.latitude);
+        snprintf(gps_status + length, sizeof(gps_status) - length, "fix-age=%" PRIu32 "", age);
     } else {
         snprintf(gps_status + length, sizeof(gps_status) - length, "fix-age=inf");
     }

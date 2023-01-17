@@ -39,6 +39,14 @@ public:
         return integer_;
     }
 
+    bool requires_mod_mux() const {
+#if defined(FK_UNDERWATER)
+        return true;
+#else
+        return integer_ > 0;
+#endif
+    }
+
 public:
     static const ModulePosition Virtual;
     static const ModulePosition None;
@@ -53,6 +61,18 @@ public:
     bool solo() const {
         return integer_ == Solo.integer();
     }
+};
+
+class EepromLock {
+private:
+    uint32_t locked_{ 0 };
+
+public:
+    explicit EepromLock();
+    explicit EepromLock(uint32_t locked);
+    EepromLock(EepromLock const &o);
+    EepromLock(EepromLock &&o);
+    virtual ~EepromLock();
 };
 
 class ModulesLock {
@@ -132,6 +152,13 @@ public:
     virtual bool any_modules_on(ModulePower power) = 0;
     virtual bool is_module_on(ModulePosition position) = 0;
     virtual bool read_eeprom(uint32_t address, uint8_t *data, size_t size) = 0;
+    virtual EepromLock lock_eeprom() {
+        return EepromLock{};
+    }
+    virtual void release_eeprom() {
+    }
+    virtual void signal_eeprom(uint8_t times) {
+    }
 
 public:
     class iterator {
@@ -181,7 +208,11 @@ public:
     public:
         iterator begin() const {
             if (available_) {
+#if defined(FK_UNDERWATER)
+                return iterator(0);
+#else
                 return iterator(1);
+#endif
             }
             return iterator(0);
         }
@@ -195,7 +226,11 @@ public:
 
         size_t size() const {
             if (available_) {
+#if defined(FK_UNDERWATER)
+                return MaximumNumberOfPhysicalModules;
+#else
                 return MaximumNumberOfPhysicalModules - 1;
+#endif
             }
             return 1;
         }

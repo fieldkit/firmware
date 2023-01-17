@@ -37,7 +37,9 @@ GpsTask::GpsTask(lwcron::CronSpec cron_spec, GpsService &gps_service) : lwcron::
 }
 
 void GpsTask::run() {
-    gps_service_.begin();
+    if (!gps_service_.is_running()) {
+        gps_service_.begin();
+    }
 }
 
 const char *GpsTask::toString() const {

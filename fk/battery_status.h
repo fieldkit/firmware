@@ -4,6 +4,25 @@
 
 namespace fk {
 
+class NoopBatteryChecker {
+public:
+    bool available() const {
+        return false;
+    }
+
+    bool low_power_dangerous() const {
+        return false;
+    }
+
+    bool low_power() const {
+        return false;
+    }
+
+public:
+    void refresh(bool initialize = false) {
+    }
+};
+
 class BatteryChecker {
 public:
     bool have_charge_{ false };

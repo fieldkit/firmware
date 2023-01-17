@@ -35,29 +35,22 @@ private:
     };
 
     ModuleHandler module_handlers[5]{
-        { ModulePosition::from(0) },
-        { ModulePosition::from(1) },
-        { ModulePosition::from(2) },
-        { ModulePosition::from(3) },
-        { ModulePosition::from(4) },
+        { ModulePosition::from(0) }, { ModulePosition::from(1) }, { ModulePosition::from(2) },
+        { ModulePosition::from(3) }, { ModulePosition::from(4) },
     };
 
     HttpRoute modules[5]{
-        { "/fk/v1/modules/0", &module_handlers[0] },
-        { "/fk/v1/modules/1", &module_handlers[1] },
-        { "/fk/v1/modules/2", &module_handlers[2] },
-        { "/fk/v1/modules/3", &module_handlers[3] },
+        { "/fk/v1/modules/0", &module_handlers[0] }, { "/fk/v1/modules/1", &module_handlers[1] },
+        { "/fk/v1/modules/2", &module_handlers[2] }, { "/fk/v1/modules/3", &module_handlers[3] },
         { "/fk/v1/modules/4", &module_handlers[4] },
     };
 
 public:
     void add_routes(HttpRouter &router) {
         // NOTE: Order is important here.
-        router.add_route(&modules[0]);
-        router.add_route(&modules[1]);
-        router.add_route(&modules[2]);
-        router.add_route(&modules[3]);
-        router.add_route(&modules[4]);
+        for (auto i = 0u; i < MaximumNumberOfPhysicalModules; ++i) {
+            router.add_route(&modules[i]);
+        }
         router.add_route(&downloads[0]);
         router.add_route(&downloads[1]);
         router.add_route(&downloads[2]);
@@ -66,7 +59,6 @@ public:
         router.add_route(&write_memory);
         router.add_route(&api);
     }
-
 };
 
-}
+} // namespace fk

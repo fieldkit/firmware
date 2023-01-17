@@ -1,6 +1,6 @@
 #include "gps_service.h"
 #include "state_manager.h"
-#include "clock.h"
+#include "hal/clock.h"
 
 namespace fk {
 
@@ -104,8 +104,8 @@ bool GpsService::service() {
     }
 
     if (status_timer_.expired() || log_status) {
-        loginfo("satellites(%d) time(%" PRIu32 ") location(%f, %f) statistics(%" PRIu32 "chrs, %d/%d)", fix.satellites,
-                fix.time, fix.longitude, fix.latitude, fix.chars, fix.good, fix.failed);
+        loginfo("satellites(%d) time(%" PRIu32 ") location(%f, %f) statistics(%" PRIu32 "chrs, %d/%d)", fix.satellites, fix.time,
+                fix.longitude, fix.latitude, fix.chars, fix.good, fix.failed);
 
         auto duration = get_gps_duration();
         if (duration < UINT32_MAX) {

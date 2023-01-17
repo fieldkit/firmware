@@ -11,11 +11,15 @@ enable_arduino_toolchain()
 
 enable_language(ASM)
 
-enable_m4_board(fieldkit_core)
+enable_m4_board(${FIELDKIT_BOARD})
 
 file(GLOB sources *.cpp *.c *.s *.h)
 
 add_arduino_library(fkbl "${sources}")
+
+if(${FIELDKIT_BOARD} STREQUAL "fieldkit_underwater")
+    target_compile_options(fkbl PRIVATE -DFK_UNDERWATER=1)
+endif()
 
 target_compile_options(fkbl PRIVATE -Wall -Werror -Wno-main)
 

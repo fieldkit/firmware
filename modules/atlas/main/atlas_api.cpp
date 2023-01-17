@@ -54,8 +54,7 @@ bool AtlasApi::handle(ModuleContext mc, HttpServerConnection *connection, Pool &
 bool AtlasApi::send_reply(HttpStatus status_code, HttpServerConnection *connection, AtlasApiReply &reply, Pool &pool) {
     if (reply.has_errors()) {
         connection->write(status_code, "error", reply.reply(), fk_app_ModuleHttpReply_fields, pool);
-    }
-    else {
+    } else {
         connection->write(status_code, "ok", reply.reply(), fk_app_ModuleHttpReply_fields, pool);
     }
 
@@ -69,9 +68,8 @@ bool AtlasApi::status(ModuleContext mc, AtlasApiReply &reply, Pool &pool) {
     ModuleEeprom eeprom{ module_bus };
 
     size_t size = 0;
-    auto buffer = (uint8_t *)pool.malloc(MaximumConfigurationSize);
-    bzero(buffer, MaximumConfigurationSize);
-    if (!eeprom.read_configuration(buffer, size, MaximumConfigurationSize)) {
+    uint8_t *buffer = nullptr;
+    if (!eeprom.read_configuration(&buffer, size, &pool)) {
         logwarn("reading configuration");
         return false;
     }

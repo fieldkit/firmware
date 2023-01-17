@@ -3,19 +3,20 @@
 #include <modules/bridge/modules.h>
 
 #include "ads_1219.h"
-#include "curves.h"
 #include "mcp_2803.h"
+#include "curves.h"
 #include "records.h"
+#include "water_protocol.h"
+#include "module_lockout.h"
 
 namespace fk {
 
 class WaterModule : public Module {
 private:
     Pool *pool_{ nullptr };
-    EncodedMessage *cfg_message_{ nullptr };
-    fk_data_ModuleConfiguration *cfg_{ nullptr };
+    std::pair<EncodedMessage *, fk_data_ModuleConfiguration *> cfg_;
     ModuleHeader header_;
-    uptime_t unlocked_{ 0 };
+    ModuleLockout lockout_;
 
 public:
     WaterModule(Pool &pool);
@@ -37,13 +38,7 @@ private:
     bool load_configuration(ModuleContext mc, Pool &pool);
 
 private:
-    Curve *create_modules_default_curve(Pool &pool);
-    bool excite_control(Mcp2803 &mcp, bool high);
-    bool initialize(Mcp2803 &mcp, Ads1219 &ads);
-    bool excite_enabled();
-    bool lockout_enabled();
-    bool averaging_enabled();
-    Ads1219ReadyChecker *get_ready_checker(Mcp2803 &mcp, Pool &pool);
+    WaterModality get_modality() const;
 };
 
 } // namespace fk

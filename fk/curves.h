@@ -14,6 +14,6 @@ Curve *create_noop_curve(Pool &pool);
 
 Curve *create_curve(fk_data_CurveType curve_type, float const *coefficients, Pool &pool);
 
-Curve *create_curve(Curve *default_curve, fk_data_ModuleConfiguration *cfg, Pool &pool);
+Curve *create_curve(Curve *default_curve, uint32_t kind, fk_data_ModuleConfiguration *cfg, Pool &pool);
 
 } // namespace fk

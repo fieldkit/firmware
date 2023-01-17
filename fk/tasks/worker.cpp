@@ -1,7 +1,5 @@
 #include "tasks/tasks.h"
 #include "hal/hal.h"
-#include "clock.h"
-#include "protobuf.h"
 #include "storage/storage.h"
 
 namespace fk {
@@ -12,7 +10,7 @@ void task_handler_worker(void *params) {
     FK_ASSERT(params != nullptr);
 
     auto started = fk_uptime();
-    auto worker = reinterpret_cast<TaskWorker*>(params);
+    auto worker = reinterpret_cast<TaskWorker *>(params);
 
     worker->run();
 
@@ -27,8 +25,8 @@ void task_handler_worker(void *params) {
     auto bytes_left = os_task_highwater(self) * sizeof(uint32_t);
     auto stack_percentage = bytes_left / (float)self->stack_size * 100.0f;
 
-    loginfo("done (%" PRIu32 "ms) stack: %" PRIu32 " / %" PRIu32 " bytes %.2f%% free",
-            fk_uptime() - started, self->stack_size, bytes_left, stack_percentage);
+    loginfo("done (%" PRIu32 "ms) stack: %" PRIu32 " / %" PRIu32 " bytes %.2f%% free", fk_uptime() - started, self->stack_size, bytes_left,
+            stack_percentage);
 }
 
-}
+} // namespace fk

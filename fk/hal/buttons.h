@@ -13,6 +13,7 @@ private:
     uint32_t time_{ 0 };
     uint32_t pressed_{ 0 };
     bool down_{ false };
+    bool had_display_{ false };
 
 public:
     Button(const char *name, uint8_t index);
@@ -37,7 +38,6 @@ private:
     bool is_enter() const;
     bool is_down() const;
     bool is_external() const;
-
 };
 
 class Buttons {
@@ -57,9 +57,8 @@ public:
     virtual bool is_debug_pressed() const = 0;
 
     virtual bool get(uint8_t which) const = 0;
-
 };
 
 Buttons *get_buttons();
 
-}
+} // namespace fk

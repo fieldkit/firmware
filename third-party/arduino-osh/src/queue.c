@@ -60,7 +60,7 @@ os_tuple_t osi_queue_enqueue_isr(os_queue_t *queue, void *message) {
             receive_rv->status = OSS_SUCCESS;
             receive_rv->value.ptr = message;
 
-            osi_printf("osh[queue-enq-isr]: osi-dispatch-or-queue\n");
+            // osi_printf("osh[queue-enq-isr]: osi-dispatch-or-queue\n");
 
             osi_dispatch_or_queue(blocked_receiver);
 
@@ -106,7 +106,7 @@ os_status_t osi_queue_enqueue(os_queue_t *queue, void *message, uint32_t to) {
             receive_rv->status = OSS_SUCCESS;
             receive_rv->value.ptr = message;
 
-            osi_printf("osh[queue-enq]: osi-dispatch-or-queue\n");
+            // osi_printf("osh[queue-enq]: osi-dispatch-or-queue\n");
 
             osi_dispatch_or_queue(blocked_receiver);
 
@@ -168,7 +168,7 @@ os_status_t osi_queue_dequeue(os_queue_t *queue, void **message, uint32_t to) {
             send_rv->status = OSS_SUCCESS;
             send_rv->value.ptr = NULL;
 
-            osi_printf("osh[queue-deq]: osi-dispatch-or-queue\n");
+            // osi_printf("osh[queue-deq]: osi-dispatch-or-queue\n");
 
             osi_dispatch_or_queue(blocked_sender);
         }

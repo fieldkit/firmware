@@ -21,40 +21,16 @@ void Board::disable_everything() {
     i2c_radio().end();
     i2c_module().end();
     disable_gps();
-    disable_wifi();
 }
 
 void Board::enable_everything() {
     enable_gps();
-    enable_wifi();
 }
 
 void Board::disable_gps() {
 }
 
 void Board::enable_gps() {
-}
-
-void Board::disable_wifi() {
-}
-
-void Board::enable_wifi() {
-}
-
-void Board::disable_lora() {
-}
-
-void Board::enable_lora() {
-}
-
-EepromLock Board::lock_eeprom() {
-    return EepromLock{ fk_uptime() };
-}
-
-void Board::signal_eeprom(uint8_t times) {
-}
-
-void Board::release_eeprom() {
 }
 
 SpiWrapper Board::spi_flash() {

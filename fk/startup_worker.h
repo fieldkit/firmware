@@ -50,11 +50,11 @@ private:
     bool check_for_provision_startup(Pool &pool);
     bool check_for_self_test_startup(Pool &pool);
     bool check_for_interactive_startup(Pool &pool);
-    bool check_for_programmer_startup(Pool &pool);
+    bool check_for_configure_modules_startup(Pool &pool);
+    bool check_for_program_modules_startup(Pool &pool);
     bool check_for_lora(Pool &pool);
-
 };
 
 FK_ENABLE_TYPE_NAME(StartupWorker);
 
-}
+} // namespace fk

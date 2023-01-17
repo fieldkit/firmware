@@ -12,8 +12,7 @@ private:
     AtlasSensorType type_{ AtlasSensorType::Unknown };
     uint8_t address_{ 0 };
     Pool *pool_{ nullptr };
-    EncodedMessage *cfg_message_{ nullptr };
-    fk_data_ModuleConfiguration *cfg_{ nullptr };
+    std::pair<EncodedMessage *, fk_data_ModuleConfiguration *> cfg_;
 
 public:
     AtlasModule(Pool &pool);

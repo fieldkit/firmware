@@ -2,35 +2,9 @@
 
 #include "common.h"
 #include "hal/mutex.h"
+#include "hal/pins.h"
 
 namespace fk {
-
-constexpr uint8_t WINC1500_CS = 95u;    // PC25
-constexpr uint8_t WINC1500_POWER = 56u; // PB07
-constexpr uint8_t WINC1500_IRQ = 97u;   // PC27
-constexpr uint8_t WINC1500_RESET = 96u; // PC26
-
-constexpr uint8_t GPS_POWER = 55u;
-
-constexpr uint8_t QSPI_FLASH_CS = 90u; // PB11 (PIN_QSPI_CS)
-
-constexpr uint8_t PIN_SD_CS = 8u; // PB18
-
-constexpr uint8_t SPI_FLASH_CS_BANK_1 = 44u; // PC11
-constexpr uint8_t SPI_FLASH_CS_BANK_2 = 41u; // PC12
-constexpr uint8_t SPI_FLASH_CS_BANK_3 = 40u; // PC13
-constexpr uint8_t SPI_FLASH_CS_BANK_4 = 43u; // PC14
-
-constexpr uint8_t BUTTON_RIGHT = 32u;    // PA21
-constexpr uint8_t BUTTON_MIDDLE = 31u;   // PA22
-constexpr uint8_t BUTTON_LEFT = 30u;     // PA23
-constexpr uint8_t BUTTON_EXTERNAL = 74u; // PB04
-
-constexpr uint8_t LORA_POWER = 76u; // PC30
-
-constexpr uint8_t MODULE_EEPROM_LOCK = 13u; // PB01
-constexpr uint8_t MODULE_SWAP = 69u;        // PB03
-constexpr uint8_t MODULE_SOLO_ENABLE = 75u; // PB03
 
 class SpiWrapper {
 private:
@@ -121,18 +95,6 @@ public:
     int8_t read();
 };
 
-class EepromLock {
-private:
-    uint32_t locked_{ 0 };
-
-public:
-    explicit EepromLock();
-    explicit EepromLock(uint32_t locked);
-    EepromLock(EepromLock const &o);
-    EepromLock(EepromLock &&o);
-    virtual ~EepromLock();
-};
-
 class Board {
 public:
     bool initialize();
@@ -140,13 +102,6 @@ public:
     void enable_everything();
     void disable_gps();
     void enable_gps();
-    void disable_wifi();
-    void enable_wifi();
-    void disable_lora();
-    void enable_lora();
-    EepromLock lock_eeprom();
-    void release_eeprom();
-    void signal_eeprom(uint8_t times);
 
 public:
     SpiWrapper spi_flash();
@@ -159,6 +114,7 @@ public:
     SerialWrapper gps_serial();
 
 public:
+    AcquireTwoWireBus *acquire_i2c_core();
     AcquireTwoWireBus *acquire_i2c_radio();
     AcquireTwoWireBus *acquire_i2c_module();
 };

@@ -160,6 +160,13 @@ bool AttachedModule::has_id(fk_uuid_t const &id) const {
     return memcmp(&header_.id, &id, sizeof(fk_uuid_t)) == 0;
 }
 
+MenuScreen *AttachedModule::debug_menu(Pool *pool) {
+    if (driver_ != nullptr) {
+        return driver_->debug_menu(pool);
+    }
+    return nullptr;
+}
+
 ModuleConfiguration AttachedModule::get_configuration(Pool *pool) {
     configuration_ = driver_->get_configuration(*pool);
 

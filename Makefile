@@ -8,7 +8,7 @@ BUILD_NUMBER ?= none
 
 default: setup all
 
-all: samd51 samd09 test
+all: samd51 samd51-fkuw samd09 test
 
 checks: amd64
 	valgrind $(BUILD)/amd64/tests/hosted/testall
@@ -26,11 +26,15 @@ setup: .python-setup fk/secrets.h fk/secrets.cpp fk/data/animals.h fk/data/adjec
 	pip3 install lief
 	touch .python-setup
 
-cmake: $(BUILD)/samd51 $(BUILD)/samd09 $(BUILD)/amd64
+cmake: $(BUILD)/samd51 $(BUILD)/samd51-fkuw $(BUILD)/samd09 $(BUILD)/amd64
 
 $(BUILD)/samd51: setup
 	mkdir -p $(BUILD)/samd51
-	cd $(BUILD)/samd51      && cmake -DTARGET_ARCH=samd51 ../../
+	cd $(BUILD)/samd51 && cmake -DTARGET_ARCH=samd51 ../../
+
+$(BUILD)/samd51-fkuw: setup
+	mkdir -p $(BUILD)/samd51-fkuw
+	cd $(BUILD)/samd51-fkuw && cmake -DTARGET_ARCH=samd51 -DFK_UNDERWATER=1 ../../
 
 $(BUILD)/amd64: setup
 	mkdir -p $(BUILD)/amd64
@@ -44,15 +48,19 @@ samd51: $(BUILD)/samd51
 	cd $(BUILD)/samd51 && $(MAKE)
 	true || tools/stack-usage.py $(BUILD)/samd51 > doc/stack-usage.txt
 
+samd51-fkuw: $(BUILD)/samd51-fkuw
+	cd $(BUILD)/samd51-fkuw && $(MAKE)
+	true || tools/stack-usage.py $(BUILD)/samd51-fkuw > doc/stack-usage.txt
+
 samd09: $(BUILD)/samd09
 	cd $(BUILD)/samd09 && $(MAKE)
 
 amd64: $(BUILD)/amd64 tests/hosted/dns_packets.h
 	cd $(BUILD)/amd64 && $(MAKE)
 
-fw: samd51 samd09
+fw: samd51 samd51-fkuw samd09
 
-code: samd51 samd09 amd64
+code: samd51 samd51-fkuw samd09 amd64
 
 tests/hosted/dns_packets.h: tools/write_test_packets.py
 	tools/write_test_packets.py > tests/hosted/dns_packets.h
@@ -83,27 +91,9 @@ fk/data/adjectives.h: fk/data/adjectives.txt
 fk/data/animals.h: fk/data/animals.txt
 	cd fk/data && ./generate.py
 
-package: samd51 samd09
+package: samd51 samd51-fkuw samd09
 	cd build/samd51/fk && $(MAKE) package
-
-package-old: fw
-	mkdir -p $(BUILD)/$(PACKAGE)
-	cp tools/flash-* $(BUILD)/$(PACKAGE)
-	cp tools/jlink-* $(BUILD)/$(PACKAGE)
-	cp $(BUILD)/samd51/bootloader/fkbl.elf $(BUILD)/$(PACKAGE)
-	cp $(BUILD)/samd51/bootloader/fkbl-fkb.bin $(BUILD)/$(PACKAGE)
-	cp $(BUILD)/samd51/bootloader/fkbl-fkb.elf $(BUILD)/$(PACKAGE)
-	cp $(BUILD)/samd51/fk/fk-bundled-fkb.elf $(BUILD)/$(PACKAGE)
-	cp $(BUILD)/samd51/fk/fk-bundled-fkb.bin $(BUILD)/$(PACKAGE)
-	cp $(BUILD)/samd51/fk/*.sym $(BUILD)/$(PACKAGE)
-	cp $(BUILD)/samd09/modules/weather/sidecar/fk-weather-sidecar*.elf $(BUILD)/$(PACKAGE)
-	cp $(BUILD)/samd09/modules/weather/sidecar/fk-weather-sidecar*.bin $(BUILD)/$(PACKAGE)
-	chmod 644 $(BUILD)/$(PACKAGE)/*
-	chmod 755 $(BUILD)/$(PACKAGE)/flash-*
-	chmod 755 $(BUILD)/$(PACKAGE)/jlink-*
-	touch $(BUILD)/$(PACKAGE)/fk.cfg-disabled
-	cd $(BUILD) && zip -r $(PACKAGE).zip $(PACKAGE)
-	cp $(BUILD)/$(PACKAGE).zip $(BUILD)/fk-firmware.zip
+	cd build/samd51-fkuw/fk && $(MAKE) package
 
 veryclean: clean
 	rm -f fk/secrets.h

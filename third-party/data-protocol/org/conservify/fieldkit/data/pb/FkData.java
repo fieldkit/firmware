@@ -18505,6 +18505,12 @@ public final class FkData {
     int getTime();
 
     /**
+     * <code>uint32 kind = 6;</code>
+     * @return The kind.
+     */
+    int getKind();
+
+    /**
      * <code>repeated .fk_data.CalibrationPoint points = 3;</code>
      */
     java.util.List<org.conservify.fieldkit.data.pb.FkData.CalibrationPoint> 
@@ -18617,6 +18623,32 @@ public final class FkData {
     private void clearTime() {
       
       time_ = 0;
+    }
+
+    public static final int KIND_FIELD_NUMBER = 6;
+    private int kind_;
+    /**
+     * <code>uint32 kind = 6;</code>
+     * @return The kind.
+     */
+    @java.lang.Override
+    public int getKind() {
+      return kind_;
+    }
+    /**
+     * <code>uint32 kind = 6;</code>
+     * @param value The kind to set.
+     */
+    private void setKind(int value) {
+      
+      kind_ = value;
+    }
+    /**
+     * <code>uint32 kind = 6;</code>
+     */
+    private void clearKind() {
+      
+      kind_ = 0;
     }
 
     public static final int POINTS_FIELD_NUMBER = 3;
@@ -18974,6 +19006,34 @@ public final class FkData {
       }
 
       /**
+       * <code>uint32 kind = 6;</code>
+       * @return The kind.
+       */
+      @java.lang.Override
+      public int getKind() {
+        return instance.getKind();
+      }
+      /**
+       * <code>uint32 kind = 6;</code>
+       * @param value The kind to set.
+       * @return This builder for chaining.
+       */
+      public Builder setKind(int value) {
+        copyOnWrite();
+        instance.setKind(value);
+        return this;
+      }
+      /**
+       * <code>uint32 kind = 6;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearKind() {
+        copyOnWrite();
+        instance.clearKind();
+        return this;
+      }
+
+      /**
        * <code>repeated .fk_data.CalibrationPoint points = 3;</code>
        */
       @java.lang.Override
@@ -19191,10 +19251,11 @@ public final class FkData {
               org.conservify.fieldkit.data.pb.FkData.CalibrationPoint.class,
               "coefficients_",
               "firmware_",
+              "kind_",
             };
             java.lang.String info =
-                "\u0000\u0005\u0000\u0000\u0001\u0005\u0005\u0000\u0001\u0000\u0001\f\u0002\u000b" +
-                "\u0003\u001b\u0004\t\u0005\t";
+                "\u0000\u0006\u0000\u0000\u0001\u0006\u0006\u0000\u0001\u0000\u0001\f\u0002\u000b" +
+                "\u0003\u001b\u0004\t\u0005\t\u0006\u000b";
             return newMessageInfo(DEFAULT_INSTANCE, info, objects);
         }
         // fall through
@@ -19254,15 +19315,37 @@ public final class FkData {
       com.google.protobuf.MessageLiteOrBuilder {
 
     /**
+     * <pre>
+     * DEPRECATED
+     * </pre>
+     *
      * <code>.fk_data.Calibration calibration = 1;</code>
      * @return Whether the calibration field is set.
      */
     boolean hasCalibration();
     /**
+     * <pre>
+     * DEPRECATED
+     * </pre>
+     *
      * <code>.fk_data.Calibration calibration = 1;</code>
      * @return The calibration.
      */
     org.conservify.fieldkit.data.pb.FkData.Calibration getCalibration();
+
+    /**
+     * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+     */
+    java.util.List<org.conservify.fieldkit.data.pb.FkData.Calibration> 
+        getCalibrationsList();
+    /**
+     * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+     */
+    org.conservify.fieldkit.data.pb.FkData.Calibration getCalibrations(int index);
+    /**
+     * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+     */
+    int getCalibrationsCount();
   }
   /**
    * Protobuf type {@code fk_data.ModuleConfiguration}
@@ -19273,10 +19356,15 @@ public final class FkData {
       // @@protoc_insertion_point(message_implements:fk_data.ModuleConfiguration)
       ModuleConfigurationOrBuilder {
     private ModuleConfiguration() {
+      calibrations_ = emptyProtobufList();
     }
     public static final int CALIBRATION_FIELD_NUMBER = 1;
     private org.conservify.fieldkit.data.pb.FkData.Calibration calibration_;
     /**
+     * <pre>
+     * DEPRECATED
+     * </pre>
+     *
      * <code>.fk_data.Calibration calibration = 1;</code>
      */
     @java.lang.Override
@@ -19284,6 +19372,10 @@ public final class FkData {
       return calibration_ != null;
     }
     /**
+     * <pre>
+     * DEPRECATED
+     * </pre>
+     *
      * <code>.fk_data.Calibration calibration = 1;</code>
      */
     @java.lang.Override
@@ -19291,6 +19383,10 @@ public final class FkData {
       return calibration_ == null ? org.conservify.fieldkit.data.pb.FkData.Calibration.getDefaultInstance() : calibration_;
     }
     /**
+     * <pre>
+     * DEPRECATED
+     * </pre>
+     *
      * <code>.fk_data.Calibration calibration = 1;</code>
      */
     private void setCalibration(org.conservify.fieldkit.data.pb.FkData.Calibration value) {
@@ -19299,6 +19395,10 @@ public final class FkData {
       
       }
     /**
+     * <pre>
+     * DEPRECATED
+     * </pre>
+     *
      * <code>.fk_data.Calibration calibration = 1;</code>
      */
     @java.lang.SuppressWarnings({"ReferenceEquality"})
@@ -19314,10 +19414,107 @@ public final class FkData {
       
     }
     /**
+     * <pre>
+     * DEPRECATED
+     * </pre>
+     *
      * <code>.fk_data.Calibration calibration = 1;</code>
      */
     private void clearCalibration() {  calibration_ = null;
       
+    }
+
+    public static final int CALIBRATIONS_FIELD_NUMBER = 2;
+    private com.google.protobuf.Internal.ProtobufList<org.conservify.fieldkit.data.pb.FkData.Calibration> calibrations_;
+    /**
+     * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+     */
+    @java.lang.Override
+    public java.util.List<org.conservify.fieldkit.data.pb.FkData.Calibration> getCalibrationsList() {
+      return calibrations_;
+    }
+    /**
+     * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+     */
+    public java.util.List<? extends org.conservify.fieldkit.data.pb.FkData.CalibrationOrBuilder> 
+        getCalibrationsOrBuilderList() {
+      return calibrations_;
+    }
+    /**
+     * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+     */
+    @java.lang.Override
+    public int getCalibrationsCount() {
+      return calibrations_.size();
+    }
+    /**
+     * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+     */
+    @java.lang.Override
+    public org.conservify.fieldkit.data.pb.FkData.Calibration getCalibrations(int index) {
+      return calibrations_.get(index);
+    }
+    /**
+     * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+     */
+    public org.conservify.fieldkit.data.pb.FkData.CalibrationOrBuilder getCalibrationsOrBuilder(
+        int index) {
+      return calibrations_.get(index);
+    }
+    private void ensureCalibrationsIsMutable() {
+      if (!calibrations_.isModifiable()) {
+        calibrations_ =
+            com.google.protobuf.GeneratedMessageLite.mutableCopy(calibrations_);
+       }
+    }
+
+    /**
+     * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+     */
+    private void setCalibrations(
+        int index, org.conservify.fieldkit.data.pb.FkData.Calibration value) {
+      value.getClass();
+  ensureCalibrationsIsMutable();
+      calibrations_.set(index, value);
+    }
+    /**
+     * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+     */
+    private void addCalibrations(org.conservify.fieldkit.data.pb.FkData.Calibration value) {
+      value.getClass();
+  ensureCalibrationsIsMutable();
+      calibrations_.add(value);
+    }
+    /**
+     * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+     */
+    private void addCalibrations(
+        int index, org.conservify.fieldkit.data.pb.FkData.Calibration value) {
+      value.getClass();
+  ensureCalibrationsIsMutable();
+      calibrations_.add(index, value);
+    }
+    /**
+     * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+     */
+    private void addAllCalibrations(
+        java.lang.Iterable<? extends org.conservify.fieldkit.data.pb.FkData.Calibration> values) {
+      ensureCalibrationsIsMutable();
+      com.google.protobuf.AbstractMessageLite.addAll(
+          values, calibrations_);
+    }
+    /**
+     * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+     */
+    private void clearCalibrations() {
+      calibrations_ = emptyProtobufList();
+    }
+    /**
+     * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+     */
+    private void removeCalibrations(int index) {
+      ensureCalibrationsIsMutable();
+      calibrations_.remove(index);
     }
 
     public static org.conservify.fieldkit.data.pb.FkData.ModuleConfiguration parseFrom(
@@ -19416,6 +19613,10 @@ public final class FkData {
 
 
       /**
+       * <pre>
+       * DEPRECATED
+       * </pre>
+       *
        * <code>.fk_data.Calibration calibration = 1;</code>
        */
       @java.lang.Override
@@ -19423,6 +19624,10 @@ public final class FkData {
         return instance.hasCalibration();
       }
       /**
+       * <pre>
+       * DEPRECATED
+       * </pre>
+       *
        * <code>.fk_data.Calibration calibration = 1;</code>
        */
       @java.lang.Override
@@ -19430,6 +19635,10 @@ public final class FkData {
         return instance.getCalibration();
       }
       /**
+       * <pre>
+       * DEPRECATED
+       * </pre>
+       *
        * <code>.fk_data.Calibration calibration = 1;</code>
        */
       public Builder setCalibration(org.conservify.fieldkit.data.pb.FkData.Calibration value) {
@@ -19438,6 +19647,10 @@ public final class FkData {
         return this;
         }
       /**
+       * <pre>
+       * DEPRECATED
+       * </pre>
+       *
        * <code>.fk_data.Calibration calibration = 1;</code>
        */
       public Builder setCalibration(
@@ -19447,6 +19660,10 @@ public final class FkData {
         return this;
       }
       /**
+       * <pre>
+       * DEPRECATED
+       * </pre>
+       *
        * <code>.fk_data.Calibration calibration = 1;</code>
        */
       public Builder mergeCalibration(org.conservify.fieldkit.data.pb.FkData.Calibration value) {
@@ -19455,10 +19672,116 @@ public final class FkData {
         return this;
       }
       /**
+       * <pre>
+       * DEPRECATED
+       * </pre>
+       *
        * <code>.fk_data.Calibration calibration = 1;</code>
        */
       public Builder clearCalibration() {  copyOnWrite();
         instance.clearCalibration();
+        return this;
+      }
+
+      /**
+       * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+       */
+      @java.lang.Override
+      public java.util.List<org.conservify.fieldkit.data.pb.FkData.Calibration> getCalibrationsList() {
+        return java.util.Collections.unmodifiableList(
+            instance.getCalibrationsList());
+      }
+      /**
+       * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+       */
+      @java.lang.Override
+      public int getCalibrationsCount() {
+        return instance.getCalibrationsCount();
+      }/**
+       * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+       */
+      @java.lang.Override
+      public org.conservify.fieldkit.data.pb.FkData.Calibration getCalibrations(int index) {
+        return instance.getCalibrations(index);
+      }
+      /**
+       * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+       */
+      public Builder setCalibrations(
+          int index, org.conservify.fieldkit.data.pb.FkData.Calibration value) {
+        copyOnWrite();
+        instance.setCalibrations(index, value);
+        return this;
+      }
+      /**
+       * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+       */
+      public Builder setCalibrations(
+          int index, org.conservify.fieldkit.data.pb.FkData.Calibration.Builder builderForValue) {
+        copyOnWrite();
+        instance.setCalibrations(index,
+            builderForValue.build());
+        return this;
+      }
+      /**
+       * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+       */
+      public Builder addCalibrations(org.conservify.fieldkit.data.pb.FkData.Calibration value) {
+        copyOnWrite();
+        instance.addCalibrations(value);
+        return this;
+      }
+      /**
+       * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+       */
+      public Builder addCalibrations(
+          int index, org.conservify.fieldkit.data.pb.FkData.Calibration value) {
+        copyOnWrite();
+        instance.addCalibrations(index, value);
+        return this;
+      }
+      /**
+       * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+       */
+      public Builder addCalibrations(
+          org.conservify.fieldkit.data.pb.FkData.Calibration.Builder builderForValue) {
+        copyOnWrite();
+        instance.addCalibrations(builderForValue.build());
+        return this;
+      }
+      /**
+       * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+       */
+      public Builder addCalibrations(
+          int index, org.conservify.fieldkit.data.pb.FkData.Calibration.Builder builderForValue) {
+        copyOnWrite();
+        instance.addCalibrations(index,
+            builderForValue.build());
+        return this;
+      }
+      /**
+       * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+       */
+      public Builder addAllCalibrations(
+          java.lang.Iterable<? extends org.conservify.fieldkit.data.pb.FkData.Calibration> values) {
+        copyOnWrite();
+        instance.addAllCalibrations(values);
+        return this;
+      }
+      /**
+       * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+       */
+      public Builder clearCalibrations() {
+        copyOnWrite();
+        instance.clearCalibrations();
+        return this;
+      }
+      /**
+       * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+       */
+      public Builder removeCalibrations(int index) {
+        copyOnWrite();
+        instance.removeCalibrations(index);
         return this;
       }
 
@@ -19479,9 +19802,12 @@ public final class FkData {
         case BUILD_MESSAGE_INFO: {
             java.lang.Object[] objects = new java.lang.Object[] {
               "calibration_",
+              "calibrations_",
+              org.conservify.fieldkit.data.pb.FkData.Calibration.class,
             };
             java.lang.String info =
-                "\u0000\u0001\u0000\u0000\u0001\u0001\u0001\u0000\u0000\u0000\u0001\t";
+                "\u0000\u0002\u0000\u0000\u0001\u0002\u0002\u0000\u0001\u0000\u0001\t\u0002\u001b" +
+                "";
             return newMessageInfo(DEFAULT_INSTANCE, info, objects);
         }
         // fall through

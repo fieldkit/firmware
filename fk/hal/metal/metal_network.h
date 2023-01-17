@@ -12,10 +12,10 @@
 #include <SPI.h>
 #include <WiFi101.h>
 #include <WiFiUdp.h>
-#include <WiFiSocket.h>
 
-#undef min
-#undef max
+#if !defined(FK_NETWORK_ESP32)
+#include <WiFiSocket.h>
+#endif
 
 namespace fk {
 
@@ -57,12 +57,9 @@ public:
 
     int32_t write(const char *str) override;
 
-    int32_t socket() override;
-
     uint32_t remote_address() override;
 
     bool stop() override;
-
 };
 
 class MetalNetworkListener : public NetworkListener {
@@ -79,26 +76,6 @@ public:
     PoolPointer<NetworkConnection> *accept() override;
 
     bool stop() override;
-
-};
-
-class StaticWiFiCallbacks : public WiFiCallbacks {
-private:
-    constexpr static size_t ExpectedWiFiBufferSize = 1472;
-    constexpr static size_t NumberOfBuffers = 3;
-
-    struct Buffer {
-        bool taken{ false };
-        void *ptr{ nullptr };
-    };
-    Buffer buffers_[NumberOfBuffers];
-
-public:
-    void initialize(Pool &pool);
-    void *malloc(size_t size) override;
-    void free(void *ptr) override;
-    bool busy(uint32_t elapsed) override;
-
 };
 
 class MetalNetwork : public Network {
@@ -113,6 +90,11 @@ private:
     UDPDiscovery udp_discovery_;
     SimpleNTP ntp_;
     uint8_t status_{ 0 };
+
+protected:
+    Pool &network_pool() {
+        return *pool_;
+    }
 
 public:
     bool begin(NetworkSettings settings, Pool *pool) override;
@@ -129,7 +111,7 @@ public:
 
     void service(Pool *pool) override;
 
-    PoolPointer<NetworkConnection> *open_connection(const char *scheme, const char *hostname, uint16_t port) override;
+    PoolPointer<NetworkConnection> *open_connection(const char *scheme, const char *hostname, uint16_t port) = 0;
 
     bool stop() override;
 
@@ -146,11 +128,24 @@ public:
     NetworkScan scan(Pool &pool) override;
 
     void verify() override;
+
+protected:
+    virtual void disable() = 0;
+    virtual void enable() = 0;
+
+public:
+    virtual bool start_ap(NetworkSettings settings) = 0;
+    virtual bool connected() {
+        return true;
+    }
+
+private:
+    void check_status();
 };
 
 FK_ENABLE_TYPE_NAME(MetalNetworkConnection);
 FK_ENABLE_TYPE_NAME(MetalNetworkListener);
 
-}
+} // namespace fk
 
 #endif

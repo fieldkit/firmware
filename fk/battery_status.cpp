@@ -11,9 +11,12 @@ constexpr float LowBatteryDangerousVoltage = 3.5f;
 constexpr float LowBatteryVoltage = 3.7f;
 
 void BatteryChecker::refresh(bool initialize) {
-    logdebug("taking battery reading");
-
     auto gauge = get_battery_gauge();
+    if (!gauge->expected()) {
+        return;
+    }
+
+    logdebug("taking battery reading");
 
     if (initialize) {
         if (!gauge->begin()) {

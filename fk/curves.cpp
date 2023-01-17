@@ -86,29 +86,19 @@ Curve *create_curve(fk_data_CurveType curve_type, float const *coefficients, Poo
     }
 }
 
-Curve *create_curve(Curve *default_curve, fk_data_ModuleConfiguration *cfg, Pool &pool) {
-    if (cfg == nullptr) {
-        loginfo("using default curve: no configuration");
-        return default_curve;
-    }
-
-    if (!cfg->has_calibration) {
-        loginfo("using default curve: no calibration");
-        return default_curve;
-    }
-
-    if (!cfg->calibration.has_coefficients) {
+Curve *create_curve(Curve *default_curve, fk_data_Calibration *calibration, Pool &pool) {
+    if (!calibration->has_coefficients) {
         logwarn("using default curve: no coefficients");
         return default_curve;
     }
 
-    if (cfg->calibration.coefficients.values.arg == nullptr) {
+    if (calibration->coefficients.values.arg == nullptr) {
         logwarn("using default curve: malformed coefficients (none)");
         return default_curve;
     }
 
-    if (cfg->calibration.points.arg != nullptr) {
-        auto points_array = reinterpret_cast<pb_array_t *>(cfg->calibration.points.arg);
+    if (calibration->points.arg != nullptr) {
+        auto points_array = reinterpret_cast<pb_array_t *>(calibration->points.arg);
         auto points = reinterpret_cast<fk_data_CalibrationPoint *>(points_array->buffer);
         for (auto i = 0u; i < points_array->length; ++i) {
             auto uncalibrated_array = reinterpret_cast<pb_array_t *>(points[i].uncalibrated.arg);
@@ -125,7 +115,7 @@ Curve *create_curve(Curve *default_curve, fk_data_ModuleConfiguration *cfg, Pool
 
     auto expected_coefficients = 0u;
 
-    switch (cfg->calibration.type) {
+    switch (calibration->type) {
     case fk_data_CurveType_CURVE_LINEAR: {
         expected_coefficients = 2u;
         break;
@@ -139,13 +129,13 @@ Curve *create_curve(Curve *default_curve, fk_data_ModuleConfiguration *cfg, Pool
         break;
     }
     default: {
-        logwarn("using default curve: unexpected curve-type (%d)", cfg->calibration.type);
+        logwarn("using default curve: unexpected curve-type (%d)", calibration->type);
         return default_curve;
     }
     }
 
-    auto curve_type = cfg->calibration.type;
-    auto values_array = reinterpret_cast<pb_array_t *>(cfg->calibration.coefficients.values.arg);
+    auto curve_type = calibration->type;
+    auto values_array = reinterpret_cast<pb_array_t *>(calibration->coefficients.values.arg);
     if (values_array->length != expected_coefficients) {
         logwarn("using default curve: malformed coefficients (%d != %d)", values_array->length != expected_coefficients);
         return default_curve;
@@ -156,7 +146,33 @@ Curve *create_curve(Curve *default_curve, fk_data_ModuleConfiguration *cfg, Pool
     for (auto i = 0u; i < values_array->length; ++i) {
         coefficients[i] = values[i];
     }
+
     return create_curve(curve_type, coefficients, pool);
+}
+
+Curve *create_curve(Curve *default_curve, uint32_t kind, fk_data_ModuleConfiguration *cfg, Pool &pool) {
+    if (cfg == nullptr) {
+        loginfo("using default curve: no configuration");
+        return default_curve;
+    }
+
+    if (cfg->calibrations.arg != nullptr) {
+        auto calibrations_array = reinterpret_cast<pb_array_t *>(cfg->calibrations.arg);
+        auto calibrations = reinterpret_cast<fk_data_Calibration *>(calibrations_array->buffer);
+        for (auto i = 0u; i < calibrations_array->length; ++i) {
+            if (calibrations[i].kind == kind) {
+                loginfo("curve: found kind among calibrations");
+                return create_curve(default_curve, &calibrations[i], pool);
+            }
+        }
+    }
+
+    if (!cfg->has_calibration) {
+        loginfo("using default curve: no calibration");
+        return default_curve;
+    }
+
+    return create_curve(default_curve, &cfg->calibration, pool);
 }
 
 } // namespace fk

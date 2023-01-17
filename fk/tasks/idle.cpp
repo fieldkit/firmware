@@ -1,4 +1,4 @@
-#include "clock.h"
+#include "hal/clock.h"
 #include "config.h"
 #include "memory.h"
 #include "status_logging.h"

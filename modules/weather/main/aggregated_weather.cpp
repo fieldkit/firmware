@@ -1,7 +1,7 @@
 #include "aggregated_weather.h"
 
 #include "weather.h"
-#include "clock.h"
+#include "hal/clock.h"
 
 namespace fk {
 

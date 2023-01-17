@@ -8,7 +8,7 @@ enable_arduino_toolchain()
 
 enable_language(ASM)
 
-enable_m4_board(fieldkit_core)
+enable_m4_board(${FIELDKIT_BOARD})
 
 file(GLOB common_sources ../*.cpp ../*.c)
 

@@ -3,7 +3,7 @@
 
 #if defined(__SAMD51__)
 
-#include "clock.h"
+#include "hal/clock.h"
 
 namespace fk {
 
@@ -82,15 +82,15 @@ bool SimpleNTP::send() {
 
     bzero(buffer, sizeof(buffer));
 
-    buffer[0] = 0b11100011;   // LI, Version, Mode
-    buffer[1] = 0;            // Stratum, or type of clock
-    buffer[2] = 6;            // Polling Interval
-    buffer[3] = 0xEC;         // Peer Clock Precision
+    buffer[0] = 0b11100011; // LI, Version, Mode
+    buffer[1] = 0;          // Stratum, or type of clock
+    buffer[2] = 6;          // Polling Interval
+    buffer[3] = 0xEC;       // Peer Clock Precision
     // 8 bytes of zero for Root Delay & Root Dispersion
-    buffer[12]  = 49;
-    buffer[13]  = 0x4E;
-    buffer[14]  = 49;
-    buffer[15]  = 52;
+    buffer[12] = 49;
+    buffer[13] = 0x4E;
+    buffer[14] = 49;
+    buffer[15] = 52;
 
     udp_.beginPacket(addresses_[index_ % NumberOfAddresses], 123);
     udp_.write(buffer, sizeof(buffer));
@@ -101,6 +101,6 @@ bool SimpleNTP::send() {
     return true;
 }
 
-}
+} // namespace fk
 
 #endif // defined(__SAMD51__)

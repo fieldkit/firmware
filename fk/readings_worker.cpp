@@ -4,7 +4,6 @@
 #include "hal/hal.h"
 #include "readings_worker.h"
 #include "state_manager.h"
-#include "clock.h"
 
 #include "modules/scan_modules_worker.h"
 #include "update_readings_listener.h"
