@@ -2,12 +2,18 @@
 
 import subprocess
 import dataclasses
+import os
+
 
 @dataclasses.dataclass
 class Env:
     target: str
-   
-env = Env("samd51-fkuw")
+
+
+env = Env("samd51-fkuw") if os.getenv("FKUW") else Env("samd51")
+
+print(f"Env: {env}")
+
 
 class FkSegger(gdb.Command):
     "Segger mode."
@@ -22,7 +28,9 @@ class FkSegger(gdb.Command):
             print("Pass JLink port: js 2331")
             return
         if True:
-            gdb.execute(f"add-symbol-file build/{env.target}/bootloader/fkbl.elf 0x0000")
+            gdb.execute(
+                f"add-symbol-file build/{env.target}/bootloader/fkbl.elf 0x0000"
+            )
         gdb.execute("target extended-remote :" + arg)
         gdb.execute("monitor exec SetRTTSearchRanges 0x20000000 64")
         if True:
