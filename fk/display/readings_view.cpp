@@ -74,18 +74,22 @@ void ReadingsView::enter(ViewController *views) {
     views->show_home();
 }
 
-template <typename TSelect> struct SensorReadingOption : public MenuOption {
+struct SensorReadingsConfig {
+    bool voltages{ false };
+};
+
+struct SensorReadingOption : public MenuOption {
+    SensorReadingsConfig *config_;
     uint32_t sensor_index_;
-    TSelect select_fn_;
     char reading_[32];
     char help_[32];
     bool show_help_{ false };
 
-    SensorReadingOption(uint32_t sensor_index, TSelect select_fn) : MenuOption("..."), sensor_index_(sensor_index), select_fn_(select_fn) {
+    SensorReadingOption(SensorReadingsConfig *config, uint32_t sensor_index)
+        : MenuOption("..."), config_(config), sensor_index_(sensor_index) {
     }
 
     void on_selected() override {
-        select_fn_(*this);
         show_help_ = !show_help_;
         if (show_help_) {
             label_ = help_;
@@ -101,10 +105,11 @@ template <typename TSelect> struct SensorReadingOption : public MenuOption {
             auto reading = mas.sensor->reading();
             auto position = mas.attached_module->position().integer();
             logverbose("[%d] refresh: %s %.3f", sensor_index_, mas.sensor->name(), reading.calibrated);
+            auto value = config_->voltages ? reading.uncalibrated : reading.calibrated;
             if (position == ModulePosition::Virtual.integer()) {
-                tiny_snprintf(reading_, sizeof(reading_), "[%c] %.3f", ' ', reading.calibrated);
+                tiny_snprintf(reading_, sizeof(reading_), "[%c] %.3f", ' ', value);
             } else {
-                tiny_snprintf(reading_, sizeof(reading_), "[%d] %.3f", position, reading.calibrated);
+                tiny_snprintf(reading_, sizeof(reading_), "[%d] %.3f", position, value);
             }
             tiny_snprintf(help_, sizeof(help_), "[%c] %s", ' ', mas.sensor->name());
             if (label_ == nullptr || (label_ != reading_ && label_ != help_)) {
@@ -114,8 +119,8 @@ template <typename TSelect> struct SensorReadingOption : public MenuOption {
     }
 };
 
-template <typename TSelect> SensorReadingOption<TSelect> *to_sensor_reading_option(Pool *pool, uint32_t sensor_index, TSelect fn) {
-    return new (*pool) SensorReadingOption<TSelect>(sensor_index, fn);
+SensorReadingOption *to_sensor_reading_option(Pool *pool, SensorReadingsConfig *config, uint32_t sensor_index) {
+    return new (*pool) SensorReadingOption(config, sensor_index);
 }
 
 MenuScreen *create_readings_menu(GlobalState const *gs, MenuOption *back_option, Pool &pool) {
@@ -125,7 +130,9 @@ MenuScreen *create_readings_menu(GlobalState const *gs, MenuOption *back_option,
     }
 
     auto nsensors = attached->number_of_sensors();
-    auto options = (MenuOption **)pool.malloc(sizeof(MenuOption *) * (nsensors + 2));
+    auto config = new (pool) SensorReadingsConfig();
+    auto noptions = (nsensors + 3);
+    auto options = (MenuOption **)pool.malloc(sizeof(MenuOption *) * noptions);
     auto sensor_index = 0u;
     auto option_index = 0u;
 
@@ -133,10 +140,7 @@ MenuScreen *create_readings_menu(GlobalState const *gs, MenuOption *back_option,
         if (true || !attached_module.is_virtual()) {
             for (auto &sensor : attached_module.sensors()) {
                 FK_ASSERT(option_index < nsensors);
-                auto option = to_sensor_reading_option(&pool, sensor_index, [=](MenuOption &option) {
-                    // Called after this function exits, watch for stacked references.
-                    loginfo("[%d] selected reading", sensor_index);
-                });
+                auto option = to_sensor_reading_option(&pool, config, sensor_index);
                 option->refresh(gs);
                 options[option_index] = option;
                 sensor_index++;
@@ -147,6 +151,15 @@ MenuScreen *create_readings_menu(GlobalState const *gs, MenuOption *back_option,
             sensor_index += attached_module.sensors().size();
         }
     }
+
+    options[option_index++] = to_lambda_option(&pool, "V/U", [=]() {
+        config->voltages = !config->voltages;
+        for (auto i = 0u; i < noptions - 1; i++) {
+            if (options[i] != nullptr) {
+                options[i]->refresh(gs);
+            }
+        }
+    });
 
     auto back_that_stops_polling = to_lambda_option(&pool, "Back", [=]() {
         get_ipc()->signal_workers(WorkerCategory::Polling, 9);
