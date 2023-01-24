@@ -26,6 +26,9 @@ public:
     const char *unit_of_measure() {
         return meta_->unitOfMeasure;
     }
+    const char *uncalibrated_unit_of_measure() {
+        return meta_->uncalibratedUnitOfMeasure;
+    }
     uint32_t flags() {
         return meta_->flags;
     }

@@ -106,7 +106,7 @@ struct SensorReadingOption : public MenuOption {
             auto position = mas.attached_module->position().integer();
             logverbose("[%d] refresh: %s %.3f", sensor_index_, mas.sensor->name(), reading.calibrated);
             auto value = config_->voltages ? reading.uncalibrated : reading.calibrated;
-            auto suffix = config_->voltages ? "V" : "";
+            auto suffix = config_->voltages ? mas.sensor->uncalibrated_unit_of_measure() : mas.sensor->unit_of_measure();
             if (position == ModulePosition::Virtual.integer()) {
                 tiny_snprintf(reading_, sizeof(reading_), "[%c] %.3f%s", ' ', value, suffix);
             } else {
