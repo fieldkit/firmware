@@ -705,6 +705,9 @@ export namespace fk_data {
         /** SensorInfo unitOfMeasure */
         unitOfMeasure?: (string|null);
 
+        /** SensorInfo uncalibratedUnitOfMeasure */
+        uncalibratedUnitOfMeasure?: (string|null);
+
         /** SensorInfo flags */
         flags?: (number|null);
     }
@@ -726,6 +729,9 @@ export namespace fk_data {
 
         /** SensorInfo unitOfMeasure. */
         public unitOfMeasure: string;
+
+        /** SensorInfo uncalibratedUnitOfMeasure. */
+        public uncalibratedUnitOfMeasure: string;
 
         /** SensorInfo flags. */
         public flags: number;

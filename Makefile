@@ -4,7 +4,7 @@ PROTOC = $(PROTOC_BIN)/protoc
 PROTO_NAME = fk-data
 JAVA_DEP = org/conservify/fieldkit/data/pb/FkData.java
 
-all: $(PROTO_NAME).proto.json $(PROTO_NAME).js $(PROTO_NAME).d.ts $(PROTO_NAME).pb.go src/$(PROTO_NAME).pb.c src/$(PROTO_NAME).pb.h $(JAVA_DEP) $(PROTO_NAME)_pb2.py
+all: $(PROTO_NAME).proto.json $(PROTO_NAME).js $(PROTO_NAME).d.ts $(PROTO_NAME).pb.go src/$(PROTO_NAME).pb.c src/$(PROTO_NAME).pb.h $(JAVA_DEP) $(PROTO_NAME)_pb2.py $(PROTO_NAME).dart
 
 $(PROTO_NAME).proto.json: build $(PROTO_NAME).proto
 	node_modules/.bin/pbjs $(PROTO_NAME).proto -t json -o $(PROTO_NAME).proto.json
@@ -22,6 +22,9 @@ src/$(PROTO_NAME).pb.c src/$(PROTO_NAME).pb.h: build $(PROTO_NAME).proto
 
 $(PROTO_NAME)_pb2.py: build $(PROTO_NAME).proto
 	PATH=$(PATH):$(PROTOC_BIN) $(PROTOC) --python_out=./ $(PROTO_NAME).proto
+
+$(PROTO_NAME).dart: build $(PROTO_NAME).proto
+	PATH=$(PATH):$(PROTOC_BIN) $(PROTOC) --dart_out=./ $(PROTO_NAME).proto
 
 $(PROTO_NAME).pb.go: build $(PROTO_NAME).proto
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest

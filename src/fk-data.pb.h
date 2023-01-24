@@ -168,6 +168,7 @@ typedef struct _fk_data_SensorInfo {
     pb_callback_t name;
     pb_callback_t unitOfMeasure;
     uint32_t flags;
+    pb_callback_t uncalibratedUnitOfMeasure;
 } fk_data_SensorInfo;
 
 typedef struct _fk_data_SensorReading { 
@@ -340,7 +341,7 @@ extern "C" {
 #define fk_data_SensorAndValue_init_default      {0, 0, 0}
 #define fk_data_ModuleHeader_init_default        {0, 0, 0}
 #define fk_data_ModuleInfo_init_default          {0, 0, {{NULL}, NULL}, false, fk_data_ModuleHeader_init_default, false, fk_data_Firmware_init_default, {{NULL}, NULL}, {{NULL}, NULL}, 0, {{NULL}, NULL}}
-#define fk_data_SensorInfo_init_default          {0, {{NULL}, NULL}, {{NULL}, NULL}, 0}
+#define fk_data_SensorInfo_init_default          {0, {{NULL}, NULL}, {{NULL}, NULL}, 0, {{NULL}, NULL}}
 #define fk_data_Firmware_init_default            {{{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}, 0, {{NULL}, NULL}}
 #define fk_data_Metadata_init_default            {{{NULL}, NULL}, 0, {{NULL}, NULL}, 0, {{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}, false, fk_data_Firmware_init_default, {{NULL}, NULL}, 0}
 #define fk_data_Status_init_default              {0, 0, 0, 0, 0}
@@ -371,7 +372,7 @@ extern "C" {
 #define fk_data_SensorAndValue_init_zero         {0, 0, 0}
 #define fk_data_ModuleHeader_init_zero           {0, 0, 0}
 #define fk_data_ModuleInfo_init_zero             {0, 0, {{NULL}, NULL}, false, fk_data_ModuleHeader_init_zero, false, fk_data_Firmware_init_zero, {{NULL}, NULL}, {{NULL}, NULL}, 0, {{NULL}, NULL}}
-#define fk_data_SensorInfo_init_zero             {0, {{NULL}, NULL}, {{NULL}, NULL}, 0}
+#define fk_data_SensorInfo_init_zero             {0, {{NULL}, NULL}, {{NULL}, NULL}, 0, {{NULL}, NULL}}
 #define fk_data_Firmware_init_zero               {{{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}, 0, {{NULL}, NULL}}
 #define fk_data_Metadata_init_zero               {{{NULL}, NULL}, 0, {{NULL}, NULL}, 0, {{NULL}, NULL}, {{NULL}, NULL}, {{NULL}, NULL}, false, fk_data_Firmware_init_zero, {{NULL}, NULL}, 0}
 #define fk_data_Status_init_zero                 {0, 0, 0, 0, 0}
@@ -474,6 +475,7 @@ extern "C" {
 #define fk_data_SensorInfo_name_tag              2
 #define fk_data_SensorInfo_unitOfMeasure_tag     3
 #define fk_data_SensorInfo_flags_tag             4
+#define fk_data_SensorInfo_uncalibratedUnitOfMeasure_tag 5
 #define fk_data_SensorReading_reading_tag        1
 #define fk_data_SensorReading_time_tag           2
 #define fk_data_SensorReading_sensor_tag         3
@@ -614,7 +616,8 @@ X(a, CALLBACK, SINGULAR, BYTES,    configuration,     9)
 X(a, STATIC,   SINGULAR, UINT32,   number,            1) \
 X(a, CALLBACK, SINGULAR, STRING,   name,              2) \
 X(a, CALLBACK, SINGULAR, STRING,   unitOfMeasure,     3) \
-X(a, STATIC,   SINGULAR, UINT32,   flags,             4)
+X(a, STATIC,   SINGULAR, UINT32,   flags,             4) \
+X(a, CALLBACK, SINGULAR, STRING,   uncalibratedUnitOfMeasure,   5)
 #define fk_data_SensorInfo_CALLBACK pb_default_field_callback
 #define fk_data_SensorInfo_DEFAULT NULL
 

@@ -170,6 +170,10 @@
               "type": "string",
               "id": 3
             },
+            "uncalibratedUnitOfMeasure": {
+              "type": "string",
+              "id": 5
+            },
             "flags": {
               "type": "uint32",
               "id": 4
