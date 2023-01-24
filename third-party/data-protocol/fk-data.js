@@ -1827,6 +1827,7 @@
              * @property {number|null} [number] SensorInfo number
              * @property {string|null} [name] SensorInfo name
              * @property {string|null} [unitOfMeasure] SensorInfo unitOfMeasure
+             * @property {string|null} [uncalibratedUnitOfMeasure] SensorInfo uncalibratedUnitOfMeasure
              * @property {number|null} [flags] SensorInfo flags
              */
     
@@ -1870,6 +1871,14 @@
             SensorInfo.prototype.unitOfMeasure = "";
     
             /**
+             * SensorInfo uncalibratedUnitOfMeasure.
+             * @member {string} uncalibratedUnitOfMeasure
+             * @memberof fk_data.SensorInfo
+             * @instance
+             */
+            SensorInfo.prototype.uncalibratedUnitOfMeasure = "";
+    
+            /**
              * SensorInfo flags.
              * @member {number} flags
              * @memberof fk_data.SensorInfo
@@ -1909,6 +1918,8 @@
                     writer.uint32(/* id 3, wireType 2 =*/26).string(message.unitOfMeasure);
                 if (message.flags != null && message.hasOwnProperty("flags"))
                     writer.uint32(/* id 4, wireType 0 =*/32).uint32(message.flags);
+                if (message.uncalibratedUnitOfMeasure != null && message.hasOwnProperty("uncalibratedUnitOfMeasure"))
+                    writer.uint32(/* id 5, wireType 2 =*/42).string(message.uncalibratedUnitOfMeasure);
                 return writer;
             };
     
@@ -1951,6 +1962,9 @@
                         break;
                     case 3:
                         message.unitOfMeasure = reader.string();
+                        break;
+                    case 5:
+                        message.uncalibratedUnitOfMeasure = reader.string();
                         break;
                     case 4:
                         message.flags = reader.uint32();
@@ -1999,6 +2013,9 @@
                 if (message.unitOfMeasure != null && message.hasOwnProperty("unitOfMeasure"))
                     if (!$util.isString(message.unitOfMeasure))
                         return "unitOfMeasure: string expected";
+                if (message.uncalibratedUnitOfMeasure != null && message.hasOwnProperty("uncalibratedUnitOfMeasure"))
+                    if (!$util.isString(message.uncalibratedUnitOfMeasure))
+                        return "uncalibratedUnitOfMeasure: string expected";
                 if (message.flags != null && message.hasOwnProperty("flags"))
                     if (!$util.isInteger(message.flags))
                         return "flags: integer expected";
@@ -2023,6 +2040,8 @@
                     message.name = String(object.name);
                 if (object.unitOfMeasure != null)
                     message.unitOfMeasure = String(object.unitOfMeasure);
+                if (object.uncalibratedUnitOfMeasure != null)
+                    message.uncalibratedUnitOfMeasure = String(object.uncalibratedUnitOfMeasure);
                 if (object.flags != null)
                     message.flags = object.flags >>> 0;
                 return message;
@@ -2046,6 +2065,7 @@
                     object.name = "";
                     object.unitOfMeasure = "";
                     object.flags = 0;
+                    object.uncalibratedUnitOfMeasure = "";
                 }
                 if (message.number != null && message.hasOwnProperty("number"))
                     object.number = message.number;
@@ -2055,6 +2075,8 @@
                     object.unitOfMeasure = message.unitOfMeasure;
                 if (message.flags != null && message.hasOwnProperty("flags"))
                     object.flags = message.flags;
+                if (message.uncalibratedUnitOfMeasure != null && message.hasOwnProperty("uncalibratedUnitOfMeasure"))
+                    object.uncalibratedUnitOfMeasure = message.uncalibratedUnitOfMeasure;
                 return object;
             };
     
