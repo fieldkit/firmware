@@ -293,6 +293,9 @@ export namespace fk_app {
         /** SensorCapabilities unitOfMeasure */
         unitOfMeasure?: string;
 
+        /** SensorCapabilities uncalibratedUnitOfMeasure */
+        uncalibratedUnitOfMeasure?: string;
+
         /** SensorCapabilities path */
         path?: string;
 
@@ -326,6 +329,9 @@ export namespace fk_app {
 
         /** SensorCapabilities unitOfMeasure. */
         public unitOfMeasure: string;
+
+        /** SensorCapabilities uncalibratedUnitOfMeasure. */
+        public uncalibratedUnitOfMeasure: string;
 
         /** SensorCapabilities path. */
         public path: string;
