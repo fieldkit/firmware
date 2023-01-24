@@ -1905,6 +1905,18 @@ public final class FkApp {
         getUnitOfMeasureBytes();
 
     /**
+     * <code>string uncalibratedUnitOfMeasure = 9;</code>
+     * @return The uncalibratedUnitOfMeasure.
+     */
+    java.lang.String getUncalibratedUnitOfMeasure();
+    /**
+     * <code>string uncalibratedUnitOfMeasure = 9;</code>
+     * @return The bytes for uncalibratedUnitOfMeasure.
+     */
+    com.google.protobuf.ByteString
+        getUncalibratedUnitOfMeasureBytes();
+
+    /**
      * <pre>
      * v2
      * </pre>
@@ -1952,6 +1964,7 @@ public final class FkApp {
     private SensorCapabilities() {
       name_ = "";
       unitOfMeasure_ = "";
+      uncalibratedUnitOfMeasure_ = "";
       path_ = "";
     }
     public static final int NUMBER_FIELD_NUMBER = 1;
@@ -2123,6 +2136,53 @@ public final class FkApp {
         com.google.protobuf.ByteString value) {
       checkByteStringIsUtf8(value);
       unitOfMeasure_ = value.toStringUtf8();
+      
+    }
+
+    public static final int UNCALIBRATEDUNITOFMEASURE_FIELD_NUMBER = 9;
+    private java.lang.String uncalibratedUnitOfMeasure_;
+    /**
+     * <code>string uncalibratedUnitOfMeasure = 9;</code>
+     * @return The uncalibratedUnitOfMeasure.
+     */
+    @java.lang.Override
+    public java.lang.String getUncalibratedUnitOfMeasure() {
+      return uncalibratedUnitOfMeasure_;
+    }
+    /**
+     * <code>string uncalibratedUnitOfMeasure = 9;</code>
+     * @return The bytes for uncalibratedUnitOfMeasure.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getUncalibratedUnitOfMeasureBytes() {
+      return com.google.protobuf.ByteString.copyFromUtf8(uncalibratedUnitOfMeasure_);
+    }
+    /**
+     * <code>string uncalibratedUnitOfMeasure = 9;</code>
+     * @param value The uncalibratedUnitOfMeasure to set.
+     */
+    private void setUncalibratedUnitOfMeasure(
+        java.lang.String value) {
+      value.getClass();
+  
+      uncalibratedUnitOfMeasure_ = value;
+    }
+    /**
+     * <code>string uncalibratedUnitOfMeasure = 9;</code>
+     */
+    private void clearUncalibratedUnitOfMeasure() {
+      
+      uncalibratedUnitOfMeasure_ = getDefaultInstance().getUncalibratedUnitOfMeasure();
+    }
+    /**
+     * <code>string uncalibratedUnitOfMeasure = 9;</code>
+     * @param value The bytes for uncalibratedUnitOfMeasure to set.
+     */
+    private void setUncalibratedUnitOfMeasureBytes(
+        com.google.protobuf.ByteString value) {
+      checkByteStringIsUtf8(value);
+      uncalibratedUnitOfMeasure_ = value.toStringUtf8();
       
     }
 
@@ -2543,6 +2603,55 @@ public final class FkApp {
       }
 
       /**
+       * <code>string uncalibratedUnitOfMeasure = 9;</code>
+       * @return The uncalibratedUnitOfMeasure.
+       */
+      @java.lang.Override
+      public java.lang.String getUncalibratedUnitOfMeasure() {
+        return instance.getUncalibratedUnitOfMeasure();
+      }
+      /**
+       * <code>string uncalibratedUnitOfMeasure = 9;</code>
+       * @return The bytes for uncalibratedUnitOfMeasure.
+       */
+      @java.lang.Override
+      public com.google.protobuf.ByteString
+          getUncalibratedUnitOfMeasureBytes() {
+        return instance.getUncalibratedUnitOfMeasureBytes();
+      }
+      /**
+       * <code>string uncalibratedUnitOfMeasure = 9;</code>
+       * @param value The uncalibratedUnitOfMeasure to set.
+       * @return This builder for chaining.
+       */
+      public Builder setUncalibratedUnitOfMeasure(
+          java.lang.String value) {
+        copyOnWrite();
+        instance.setUncalibratedUnitOfMeasure(value);
+        return this;
+      }
+      /**
+       * <code>string uncalibratedUnitOfMeasure = 9;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearUncalibratedUnitOfMeasure() {
+        copyOnWrite();
+        instance.clearUncalibratedUnitOfMeasure();
+        return this;
+      }
+      /**
+       * <code>string uncalibratedUnitOfMeasure = 9;</code>
+       * @param value The bytes for uncalibratedUnitOfMeasure to set.
+       * @return This builder for chaining.
+       */
+      public Builder setUncalibratedUnitOfMeasureBytes(
+          com.google.protobuf.ByteString value) {
+        copyOnWrite();
+        instance.setUncalibratedUnitOfMeasureBytes(value);
+        return this;
+      }
+
+      /**
        * <pre>
        * v2
        * </pre>
@@ -2710,10 +2819,11 @@ public final class FkApp {
               "path_",
               "flags_",
               "value_",
+              "uncalibratedUnitOfMeasure_",
             };
             java.lang.String info =
-                "\u0000\b\u0000\u0000\u0001\b\b\u0000\u0000\u0000\u0001\u000b\u0002\u000b\u0003\u0208" +
-                "\u0004\u000b\u0005\u0208\u0006\u0208\u0007\u000b\b\t";
+                "\u0000\t\u0000\u0000\u0001\t\t\u0000\u0000\u0000\u0001\u000b\u0002\u000b\u0003\u0208" +
+                "\u0004\u000b\u0005\u0208\u0006\u0208\u0007\u000b\b\t\t\u0208";
             return newMessageInfo(DEFAULT_INSTANCE, info, objects);
         }
         // fall through

@@ -630,6 +630,7 @@
              * @property {string} [name] SensorCapabilities name
              * @property {number} [frequency] SensorCapabilities frequency
              * @property {string} [unitOfMeasure] SensorCapabilities unitOfMeasure
+             * @property {string} [uncalibratedUnitOfMeasure] SensorCapabilities uncalibratedUnitOfMeasure
              * @property {string} [path] SensorCapabilities path
              * @property {number} [flags] SensorCapabilities flags
              * @property {fk_app.ILiveValue} [value] SensorCapabilities value
@@ -688,6 +689,14 @@
              * @instance
              */
             SensorCapabilities.prototype.unitOfMeasure = "";
+    
+            /**
+             * SensorCapabilities uncalibratedUnitOfMeasure.
+             * @member {string}uncalibratedUnitOfMeasure
+             * @memberof fk_app.SensorCapabilities
+             * @instance
+             */
+            SensorCapabilities.prototype.uncalibratedUnitOfMeasure = "";
     
             /**
              * SensorCapabilities path.
@@ -753,6 +762,8 @@
                     writer.uint32(/* id 7, wireType 0 =*/56).uint32(message.flags);
                 if (message.value != null && message.hasOwnProperty("value"))
                     $root.fk_app.LiveValue.encode(message.value, writer.uint32(/* id 8, wireType 2 =*/66).fork()).ldelim();
+                if (message.uncalibratedUnitOfMeasure != null && message.hasOwnProperty("uncalibratedUnitOfMeasure"))
+                    writer.uint32(/* id 9, wireType 2 =*/74).string(message.uncalibratedUnitOfMeasure);
                 return writer;
             };
     
@@ -801,6 +812,9 @@
                         break;
                     case 5:
                         message.unitOfMeasure = reader.string();
+                        break;
+                    case 9:
+                        message.uncalibratedUnitOfMeasure = reader.string();
                         break;
                     case 6:
                         message.path = reader.string();
@@ -861,6 +875,9 @@
                 if (message.unitOfMeasure != null && message.hasOwnProperty("unitOfMeasure"))
                     if (!$util.isString(message.unitOfMeasure))
                         return "unitOfMeasure: string expected";
+                if (message.uncalibratedUnitOfMeasure != null && message.hasOwnProperty("uncalibratedUnitOfMeasure"))
+                    if (!$util.isString(message.uncalibratedUnitOfMeasure))
+                        return "uncalibratedUnitOfMeasure: string expected";
                 if (message.path != null && message.hasOwnProperty("path"))
                     if (!$util.isString(message.path))
                         return "path: string expected";
@@ -897,6 +914,8 @@
                     message.frequency = object.frequency >>> 0;
                 if (object.unitOfMeasure != null)
                     message.unitOfMeasure = String(object.unitOfMeasure);
+                if (object.uncalibratedUnitOfMeasure != null)
+                    message.uncalibratedUnitOfMeasure = String(object.uncalibratedUnitOfMeasure);
                 if (object.path != null)
                     message.path = String(object.path);
                 if (object.flags != null)
@@ -931,6 +950,7 @@
                     object.path = "";
                     object.flags = 0;
                     object.value = null;
+                    object.uncalibratedUnitOfMeasure = "";
                 }
                 if (message.number != null && message.hasOwnProperty("number"))
                     object.number = message.number;
@@ -948,6 +968,8 @@
                     object.flags = message.flags;
                 if (message.value != null && message.hasOwnProperty("value"))
                     object.value = $root.fk_app.LiveValue.toObject(message.value, options);
+                if (message.uncalibratedUnitOfMeasure != null && message.hasOwnProperty("uncalibratedUnitOfMeasure"))
+                    object.uncalibratedUnitOfMeasure = message.uncalibratedUnitOfMeasure;
                 return object;
             };
     

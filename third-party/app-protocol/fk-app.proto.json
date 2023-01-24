@@ -130,6 +130,10 @@
               "type": "string",
               "id": 5
             },
+            "uncalibratedUnitOfMeasure": {
+              "type": "string",
+              "id": 9
+            },
             "path": {
               "type": "string",
               "id": 6
