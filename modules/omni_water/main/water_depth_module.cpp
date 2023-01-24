@@ -24,8 +24,8 @@ ModuleReturn WaterDepthModule::service(ModuleContext mc, Pool &pool) {
 }
 
 static SensorMetadata const fk_module_water_depth_sensor_metas[] = {
-    { .name = "temp", .unitOfMeasure = "°C", .flags = 0 },
-    { .name = "depth", .unitOfMeasure = "pa", .flags = 0 },
+    { .name = "temp", .unitOfMeasure = "°C", .uncalibratedUnitOfMeasure = "°C", .flags = 0 },
+    { .name = "depth", .unitOfMeasure = "Pa", .uncalibratedUnitOfMeasure = "Pa", .flags = 0 },
 };
 
 static ModuleSensors fk_module_water_depth_sensors = {

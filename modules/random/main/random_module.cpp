@@ -24,11 +24,16 @@ ModuleReturn RandomModule::service(ModuleContext mc, Pool &pool) {
 }
 
 static SensorMetadata const fk_module_random_sensor_metas[] = {
-    { .name = "random_0", .unitOfMeasure = "", .flags = 0 }, { .name = "random_1", .unitOfMeasure = "", .flags = 0 },
-    { .name = "random_2", .unitOfMeasure = "", .flags = 0 }, { .name = "random_3", .unitOfMeasure = "", .flags = 0 },
-    { .name = "random_4", .unitOfMeasure = "", .flags = 0 }, { .name = "random_5", .unitOfMeasure = "", .flags = 0 },
-    { .name = "random_6", .unitOfMeasure = "", .flags = 0 }, { .name = "random_7", .unitOfMeasure = "", .flags = 0 },
-    { .name = "random_8", .unitOfMeasure = "", .flags = 0 }, { .name = "random_9", .unitOfMeasure = "", .flags = 0 },
+    { .name = "random_0", .unitOfMeasure = "", .uncalibratedUnitOfMeasure = "", .flags = 0 },
+    { .name = "random_1", .unitOfMeasure = "", .uncalibratedUnitOfMeasure = "", .flags = 0 },
+    { .name = "random_2", .unitOfMeasure = "", .uncalibratedUnitOfMeasure = "", .flags = 0 },
+    { .name = "random_3", .unitOfMeasure = "", .uncalibratedUnitOfMeasure = "", .flags = 0 },
+    { .name = "random_4", .unitOfMeasure = "", .uncalibratedUnitOfMeasure = "", .flags = 0 },
+    { .name = "random_5", .unitOfMeasure = "", .uncalibratedUnitOfMeasure = "", .flags = 0 },
+    { .name = "random_6", .unitOfMeasure = "", .uncalibratedUnitOfMeasure = "", .flags = 0 },
+    { .name = "random_7", .unitOfMeasure = "", .uncalibratedUnitOfMeasure = "", .flags = 0 },
+    { .name = "random_8", .unitOfMeasure = "", .uncalibratedUnitOfMeasure = "", .flags = 0 },
+    { .name = "random_9", .unitOfMeasure = "", .uncalibratedUnitOfMeasure = "", .flags = 0 },
 };
 
 static ModuleSensors fk_module_random_sensors = {

@@ -113,13 +113,15 @@ ModuleReturn OmniWaterModule::service(ModuleContext mc, Pool &pool) {
     return { ModuleStatus::Ok };
 }
 
-static SensorMetadata const fk_module_omni_water_sensor_metas[] = { { .name = "ph", .unitOfMeasure = "pH", .flags = 0 },
-                                                                    { .name = "ec", .unitOfMeasure = "µS/cm", .flags = 0 },
-                                                                    { .name = "temp", .unitOfMeasure = "°C", .flags = 0 },
-                                                                    { .name = "do", .unitOfMeasure = "%", .flags = 0 },
-                                                                    { .name = "orp", .unitOfMeasure = "mV", .flags = 0 },
-                                                                    { .name = "pressure.temp", .unitOfMeasure = "°C", .flags = 0 },
-                                                                    { .name = "pressure.pressure", .unitOfMeasure = "Pa", .flags = 0 } };
+static SensorMetadata const fk_module_omni_water_sensor_metas[] = {
+    { .name = "ph", .unitOfMeasure = "pH", .uncalibratedUnitOfMeasure = "V", .flags = 0 },
+    { .name = "ec", .unitOfMeasure = "µS/cm", .uncalibratedUnitOfMeasure = "V", .flags = 0 },
+    { .name = "temp", .unitOfMeasure = "°C", .uncalibratedUnitOfMeasure = "V", .flags = 0 },
+    { .name = "do", .unitOfMeasure = "%", .uncalibratedUnitOfMeasure = "V", .flags = 0 },
+    { .name = "orp", .unitOfMeasure = "mV", .uncalibratedUnitOfMeasure = "V", .flags = 0 },
+    { .name = "pressure.temp", .unitOfMeasure = "°C", .uncalibratedUnitOfMeasure = "°C", .flags = 0 },
+    { .name = "pressure.pressure", .unitOfMeasure = "Pa", .uncalibratedUnitOfMeasure = "Pa", .flags = 0 }
+};
 
 static ModuleSensors fk_module_omni_water_sensors = {
     .nsensors = sizeof(fk_module_omni_water_sensor_metas) / sizeof(SensorMetadata),

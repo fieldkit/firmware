@@ -84,16 +84,19 @@ ModuleSensors const *AtlasModule::get_sensors(Pool &pool) {
         auto meta = pool.malloc_with<SensorMetadata, 3>({ {
                                                               .name = "ec",
                                                               .unitOfMeasure = "µS/cm",
+                                                              .uncalibratedUnitOfMeasure = "µS/cm",
                                                               .flags = 0,
                                                           },
                                                           {
                                                               .name = "tds",
                                                               .unitOfMeasure = "ppm",
+                                                              .uncalibratedUnitOfMeasure = "ppm",
                                                               .flags = 0,
                                                           },
                                                           {
                                                               .name = "salinity",
                                                               .unitOfMeasure = "",
+                                                              .uncalibratedUnitOfMeasure = "",
                                                               .flags = 0,
                                                           } });
         return pool.malloc_with<ModuleSensors>({
@@ -105,6 +108,7 @@ ModuleSensors const *AtlasModule::get_sensors(Pool &pool) {
         auto meta = pool.malloc_with<SensorMetadata>({
             .name = "ph",
             .unitOfMeasure = "pH",
+            .uncalibratedUnitOfMeasure = "pH",
             .flags = 0,
         });
         return pool.malloc_with<ModuleSensors>({
@@ -116,6 +120,7 @@ ModuleSensors const *AtlasModule::get_sensors(Pool &pool) {
         auto meta = pool.malloc_with<SensorMetadata>({
             .name = "dox",
             .unitOfMeasure = "mg/L",
+            .uncalibratedUnitOfMeasure = "mg/L",
             .flags = 0,
         });
         return pool.malloc_with<ModuleSensors>({
@@ -127,6 +132,7 @@ ModuleSensors const *AtlasModule::get_sensors(Pool &pool) {
         auto meta = pool.malloc_with<SensorMetadata>({
             .name = "temp",
             .unitOfMeasure = "°C",
+            .uncalibratedUnitOfMeasure = "°C",
             .flags = 0,
         });
         return pool.malloc_with<ModuleSensors>({
@@ -138,6 +144,7 @@ ModuleSensors const *AtlasModule::get_sensors(Pool &pool) {
         auto meta = pool.malloc_with<SensorMetadata>({
             .name = "orp",
             .unitOfMeasure = "mV",
+            .uncalibratedUnitOfMeasure = "mV",
             .flags = 0,
         });
         return pool.malloc_with<ModuleSensors>({

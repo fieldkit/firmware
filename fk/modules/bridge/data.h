@@ -183,6 +183,7 @@ public:
 typedef struct SensorMetadata {
     const char *name;
     const char *unitOfMeasure;
+    const char *uncalibratedUnitOfMeasure;
     uint32_t flags;
 } SensorMetadata;
 

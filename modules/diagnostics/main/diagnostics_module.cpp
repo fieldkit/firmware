@@ -7,16 +7,21 @@
 namespace fk {
 
 static SensorMetadata const fk_module_sensor_metas[] = {
-    { .name = "battery_charge", .unitOfMeasure = "%", .flags = 0 },
+    { .name = "battery_charge", .unitOfMeasure = "%", .uncalibratedUnitOfMeasure = "%", .flags = 0 },
 
-    { .name = "battery_vbus", .unitOfMeasure = "v", .flags = 0 },    { .name = "battery_vs", .unitOfMeasure = "mv", .flags = 0 },
-    { .name = "battery_ma", .unitOfMeasure = "ma", .flags = 0 },     { .name = "battery_power", .unitOfMeasure = "mw", .flags = 0 },
+    { .name = "battery_vbus", .unitOfMeasure = "V", .uncalibratedUnitOfMeasure = "V", .flags = 0 },
+    { .name = "battery_vs", .unitOfMeasure = "mV", .uncalibratedUnitOfMeasure = "mV", .flags = 0 },
+    { .name = "battery_ma", .unitOfMeasure = "mA", .uncalibratedUnitOfMeasure = "mA", .flags = 0 },
+    { .name = "battery_power", .unitOfMeasure = "mW", .uncalibratedUnitOfMeasure = "mW", .flags = 0 },
 
-    { .name = "solar_vbus", .unitOfMeasure = "v", .flags = 0 },      { .name = "solar_vs", .unitOfMeasure = "mv", .flags = 0 },
-    { .name = "solar_ma", .unitOfMeasure = "ma", .flags = 0 },       { .name = "solar_power", .unitOfMeasure = "mw", .flags = 0 },
+    { .name = "solar_vbus", .unitOfMeasure = "V", .uncalibratedUnitOfMeasure = "V", .flags = 0 },
+    { .name = "solar_vs", .unitOfMeasure = "mV", .uncalibratedUnitOfMeasure = "mV", .flags = 0 },
+    { .name = "solar_ma", .unitOfMeasure = "mA", .uncalibratedUnitOfMeasure = "mA", .flags = 0 },
+    { .name = "solar_power", .unitOfMeasure = "mW", .uncalibratedUnitOfMeasure = "mW", .flags = 0 },
 
-    { .name = "free_memory", .unitOfMeasure = "bytes", .flags = 0 }, { .name = "uptime", .unitOfMeasure = "ms", .flags = 0 },
-    { .name = "temperature", .unitOfMeasure = "°C", .flags = 0 },
+    { .name = "free_memory", .unitOfMeasure = "bytes", .uncalibratedUnitOfMeasure = "bytes", .flags = 0 },
+    { .name = "uptime", .unitOfMeasure = "ms", .uncalibratedUnitOfMeasure = "ms", .flags = 0 },
+    { .name = "temperature", .unitOfMeasure = "°C", .uncalibratedUnitOfMeasure = "°C", .flags = 0 },
 };
 
 static ModuleSensors const fk_module_sensors = {

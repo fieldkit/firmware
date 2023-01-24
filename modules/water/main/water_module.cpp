@@ -72,9 +72,9 @@ ModuleReturn WaterModule::service(ModuleContext mc, Pool &pool) {
 }
 
 static SensorMetadata const fk_module_water_do_sensor_metas[] = {
-    { .name = "do", .unitOfMeasure = "%", .flags = 0 },
-    { .name = "temperature", .unitOfMeasure = "°C", .flags = FK_MODULES_FLAG_INTERNAL },
-    { .name = "pressure", .unitOfMeasure = "kPa", .flags = FK_MODULES_FLAG_INTERNAL },
+    { .name = "do", .unitOfMeasure = "%", .uncalibratedUnitOfMeasure = "%", .flags = 0 },
+    { .name = "temperature", .unitOfMeasure = "°C", .uncalibratedUnitOfMeasure = "°C", .flags = FK_MODULES_FLAG_INTERNAL },
+    { .name = "pressure", .unitOfMeasure = "kPa", .uncalibratedUnitOfMeasure = "kPa", .flags = FK_MODULES_FLAG_INTERNAL },
 };
 
 static ModuleSensors fk_module_water_do_sensors = {
@@ -90,6 +90,7 @@ ModuleSensors const *WaterModule::get_sensors(Pool &pool) {
         sensors = pool.malloc_with<SensorMetadata>({
             .name = "ph",
             .unitOfMeasure = "pH",
+            .uncalibratedUnitOfMeasure = "pH",
             .flags = 0,
         });
         break;
@@ -97,6 +98,7 @@ ModuleSensors const *WaterModule::get_sensors(Pool &pool) {
         sensors = pool.malloc_with<SensorMetadata>({
             .name = "ec",
             .unitOfMeasure = "µS/cm",
+            .uncalibratedUnitOfMeasure = "µS/cm",
             .flags = 0,
         });
         break;
@@ -106,6 +108,7 @@ ModuleSensors const *WaterModule::get_sensors(Pool &pool) {
         sensors = pool.malloc_with<SensorMetadata>({
             .name = "temp",
             .unitOfMeasure = "°C",
+            .uncalibratedUnitOfMeasure = "°C",
             .flags = 0,
         });
         break;
@@ -113,6 +116,7 @@ ModuleSensors const *WaterModule::get_sensors(Pool &pool) {
         sensors = pool.malloc_with<SensorMetadata>({
             .name = "orp",
             .unitOfMeasure = "mV",
+            .uncalibratedUnitOfMeasure = "mV",
             .flags = 0,
         });
         break;
