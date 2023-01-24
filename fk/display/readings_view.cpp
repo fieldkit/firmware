@@ -106,10 +106,11 @@ struct SensorReadingOption : public MenuOption {
             auto position = mas.attached_module->position().integer();
             logverbose("[%d] refresh: %s %.3f", sensor_index_, mas.sensor->name(), reading.calibrated);
             auto value = config_->voltages ? reading.uncalibrated : reading.calibrated;
+            auto suffix = config_->voltages ? "V" : "";
             if (position == ModulePosition::Virtual.integer()) {
-                tiny_snprintf(reading_, sizeof(reading_), "[%c] %.3f", ' ', value);
+                tiny_snprintf(reading_, sizeof(reading_), "[%c] %.3f%s", ' ', value, suffix);
             } else {
-                tiny_snprintf(reading_, sizeof(reading_), "[%d] %.3f", position, value);
+                tiny_snprintf(reading_, sizeof(reading_), "[%d] %.3f%s", position, value, suffix);
             }
             tiny_snprintf(help_, sizeof(help_), "[%c] %s", ' ', mas.sensor->name());
             if (label_ == nullptr || (label_ != reading_ && label_ != help_)) {
