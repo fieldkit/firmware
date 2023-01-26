@@ -20,7 +20,6 @@ private:
     LoraWork work_;
 
 public:
-    explicit LoraWorker();
     explicit LoraWorker(LoraWork work);
 
 public:

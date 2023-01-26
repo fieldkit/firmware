@@ -23,4 +23,4 @@ struct BufferPtr {
 
 using EncodedMessage = BufferPtr;
 
-}
+} // namespace fk

@@ -379,7 +379,7 @@ static PostSendAction update_gs_after_send(GlobalState *gs, Confirmation confirm
             }
 
             if (LoraSaveEveryMinutes > 0) {
-                // TODO With no way to know how longg we were off this means
+                // TODO With no way to know how long we were off this means
                 // we're kind of winging the timing, so we just save the first
                 // one, too. This is fine as long as our interval is pretty
                 // wide, otherwise we'd worry more about a frequent restart
