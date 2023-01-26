@@ -58,8 +58,11 @@ public:
 };
 
 class LoraTask : public lwcron::CronTask, public SchedulerTask {
+private:
+    LoraWorkOperation op_;
+
 public:
-    explicit LoraTask(lwcron::CronSpec cron_spec);
+    explicit LoraTask(lwcron::CronSpec cron_spec, LoraWorkOperation op);
 
 public:
     void run() override;

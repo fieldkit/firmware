@@ -79,6 +79,10 @@ public:
     }
 
 public:
+    size_t readings_encoded() const {
+        return readings_encoded_;
+    }
+
     size_t encoded_size() const {
         return encoded_size_;
     }
@@ -92,7 +96,7 @@ private:
     }
 
 public:
-    void begin(uint32_t age, uint32_t reading) {
+    void begin_readings(uint32_t age, uint32_t reading) {
         clear();
 
         auto p = buffer_;
@@ -130,7 +134,7 @@ public:
     }
 
     EncodedMessage *encode(Pool &pool) {
-        if (readings_encoded_ == 0) {
+        if (encoded_size_ == 0) {
             return nullptr;
         }
         auto copy = pool.wrap_copy(buffer_, encoded_size_);
@@ -140,15 +144,20 @@ public:
         buffer_[0] = number_;
         return copy;
     }
+
+    void gps(GpsState const &gps) {
+        clear();
+
+        auto ptr = (float *)buffer_;
+        ptr[0] = gps.longitude;
+        ptr[1] = gps.latitude;
+        ptr[2] = gps.altitude;
+
+        encoded_size_ += sizeof(float) * 3;
+    }
 };
 
-LoraPacketizer::LoraPacketizer() {
-}
-
-LoraPacketizer::~LoraPacketizer() {
-}
-
-tl::expected<EncodedMessage *, Error> LoraPacketizer::packetize(GlobalState const *gs, Pool &pool) {
+tl::expected<EncodedMessage *, Error> LoraReadingsPacketizer::packetize(GlobalState const *gs, Pool &pool) {
     EncodedMessage *head = nullptr;
     EncodedMessage *tail = nullptr;
 
@@ -186,14 +195,14 @@ tl::expected<EncodedMessage *, Error> LoraPacketizer::packetize(GlobalState cons
         return nullptr;
     }
     auto age = now - gs->readings.time;
-    record.begin(age, gs->readings.nreadings);
+    record.begin_readings(age, gs->readings.nreadings);
 
     loginfo("reading: time=%" PRIu32 " age=%" PRIu32 " reading=#%" PRIu32, gs->readings.time, age, gs->readings.nreadings);
 
     // Find sensors that fit this template and include them.
     for (auto &sensor_template : sensor_group->sensors) {
         auto adding = record.size_of_encoding();
-        if (record.encoded_size() + adding >= maximum_packet_size_) {
+        if (record.encoded_size() + adding >= LoraMaximumPacketSize) {
             append(&head, &tail, record.encode(pool));
         }
 
@@ -221,6 +230,22 @@ tl::expected<EncodedMessage *, Error> LoraPacketizer::packetize(GlobalState cons
             logwarn("reading: missing");
         }
     }
+
+    if (record.readings_encoded() > 0) {
+        append(&head, &tail, record.encode(pool));
+    }
+
+    return head;
+}
+
+tl::expected<EncodedMessage *, Error> LoraLocationPacketizer::packetize(GlobalState const *gs, Pool &pool) {
+    EncodedMessage *head = nullptr;
+    EncodedMessage *tail = nullptr;
+
+    loginfo("packetizing gps");
+
+    LoraRecord record{ pool };
+    record.gps(gs->gps);
 
     append(&head, &tail, record.encode(pool));
 

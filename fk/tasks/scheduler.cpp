@@ -76,7 +76,7 @@ void task_handler_scheduler(void *params) {
         SynchronizeTimeTask synchronize_time_job{ DefaultSynchronizeTimeInterval };
         BackupTask backup_job{ schedules.backup };
         UploadDataTask upload_data_job{ schedules.network, schedules.network_jitter };
-        LoraTask lora_job{ schedules.lora };
+        LoraTask lora_readings_job{ schedules.lora, LoraWorkOperation::Readings };
         GpsTask gps_job{ schedules.gps, gps_service };
         ServiceModulesTask service_modules_job{ schedules.service_interval };
 

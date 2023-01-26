@@ -46,11 +46,11 @@ const char *GpsTask::toString() const {
     return "gps";
 }
 
-LoraTask::LoraTask(lwcron::CronSpec cron_spec) : lwcron::CronTask(cron_spec) {
+LoraTask::LoraTask(lwcron::CronSpec cron_spec, LoraWorkOperation op) : lwcron::CronTask(cron_spec), op_(op) {
 }
 
 void LoraTask::run() {
-    get_ipc()->launch_worker(create_pool_worker<LoraWorker>(LoraWork{ LoraWorkOperation::Readings }));
+    get_ipc()->launch_worker(create_pool_worker<LoraWorker>(LoraWork{ op_ }));
 }
 
 const char *LoraTask::toString() const {
