@@ -88,7 +88,7 @@ void task_handler_scheduler(void *params) {
 #endif
 #if !defined(FK_DISABLE_LORA)
                 ,
-                &lora_job
+                &lora_readings_job
 #endif
         };
         lwcron::Scheduler scheduler{ tasks };
@@ -176,7 +176,7 @@ void task_handler_scheduler(void *params) {
                     update.readings = get_next_task_time(now, readings_job);
                     update.network = get_next_task_time(now, upload_data_job);
                     update.gps = get_next_task_time(now, gps_job);
-                    update.lora = get_next_task_time(now, lora_job);
+                    update.lora = get_next_task_time(now, lora_readings_job);
                     update.backup = get_next_task_time(now, backup_job);
                     gsm.apply_update(update);
                 } else {
@@ -208,6 +208,10 @@ void task_handler_scheduler(void *params) {
             }
 
             gps_service.service();
+
+            if (gps_service.first_fix()) {
+                get_ipc()->launch_worker(create_pool_worker<LoraWorker>(LoraWork{ LoraWorkOperation::Location }));
+            }
         }
     }
 

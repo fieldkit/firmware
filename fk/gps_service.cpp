@@ -52,6 +52,10 @@ bool GpsService::service() {
         return true;
     }
 
+    if (first_fix_) {
+        first_fix_ = false;
+    }
+
     GpsFix fix;
     FK_ASSERT(gps_->service(fix));
 
@@ -74,10 +78,14 @@ bool GpsService::service() {
                     gs->gps.satellites = fix.satellites;
                     gs->gps.hdop = fix.hdop;
                     gs->gps.chars = fix.chars;
+                    if (gs->gps.fixed_at == 0) {
+                        gs->gps.fixed_at = fk_uptime();
+                    }
                 });
 
                 if (fixed_at_ == 0) {
                     fixed_at_ = fk_uptime();
+                    first_fix_ = true;
                 }
 
                 FK_ASSERT(fix.time > 0);
