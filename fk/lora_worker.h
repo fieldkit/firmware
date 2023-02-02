@@ -11,6 +11,7 @@ enum class LoraWorkOperation {
     Configure,
     Readings,
     Location,
+    Status,
 };
 
 struct LoraWork {
@@ -40,6 +41,7 @@ private:
     bool configure(LoraManager &lora, Pool &pool);
     bool readings(LoraManager &lora, Pool &pool);
     bool location(LoraManager &lora, Pool &pool);
+    bool status(LoraManager &lora, Pool &pool);
 
 private:
     struct OutgoingPackets {

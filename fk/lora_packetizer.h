@@ -19,4 +19,9 @@ public:
     tl::expected<EncodedMessage *, Error> packetize(GlobalState const *gs, Pool &pool);
 };
 
+class LoraStatusPacketizer {
+public:
+    tl::expected<EncodedMessage *, Error> packetize(GlobalState const *gs, Pool &pool);
+};
+
 } // namespace fk

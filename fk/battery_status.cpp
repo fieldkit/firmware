@@ -63,6 +63,8 @@ void BatteryChecker::refresh(bool initialize) {
     auto gs = get_global_state_rw();
     gs.get()->power.battery = power.battery;
     gs.get()->power.solar = power.solar;
+    gs.get()->power.battery_trend = gs.get()->power.battery_trend.update(power.battery);
+    gs.get()->power.solar_trend = gs.get()->power.solar_trend.update(power.solar);
     gs.get()->power.charge = charge;
     gs.get()->power.battery_status = battery_status_;
 }

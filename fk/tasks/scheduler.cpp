@@ -68,6 +68,7 @@ void task_handler_scheduler(void *params) {
         get_display()->simple(SimpleScreen{ "low battery" });
     }
 
+    DateTime now{ get_clock_now() };
     uint32_t signal_checked = 0;
     while (!fk_task_stop_requested(&signal_checked)) {
         auto schedules = get_config_schedules();
@@ -148,6 +149,13 @@ void task_handler_scheduler(void *params) {
                     loginfo("refreshing battery");
                     battery.refresh();
                     loginfo("refreshing battery (%" PRIu32 "ms)", fk_uptime() - started);
+
+                    DateTime new_now{ get_clock_now() };
+                    if (new_now.day() != now.day()) {
+                        get_ipc()->launch_worker(create_pool_worker<LoraWorker>(LoraWork{ LoraWorkOperation::Status }));
+                    }
+
+                    now = new_now;
                 }
 
                 if (!battery.low_power_dangerous()) {

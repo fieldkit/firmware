@@ -18,7 +18,7 @@ LoraWorker::LoraWorker(LoraWork work) : work_(work) {
 }
 
 void LoraWorker::run(Pool &pool) {
-    auto lock = lora_mutex.acquire(0);
+    auto lock = lora_mutex.acquire(UINT32_MAX);
     if (!lock) {
         loginfo("already running");
         return;
@@ -44,6 +44,10 @@ void LoraWorker::run(Pool &pool) {
     }
     case LoraWorkOperation::Location: {
         location(lora, pool);
+        break;
+    }
+    case LoraWorkOperation::Status: {
+        status(lora, pool);
         break;
     }
     }
@@ -124,6 +128,12 @@ bool LoraWorker::location(LoraManager &lora, Pool &pool) {
     loginfo("location");
 
     return packets<LoraLocationPacketizer>(lora, LoraLocationPort, pool);
+}
+
+bool LoraWorker::status(LoraManager &lora, Pool &pool) {
+    loginfo("status");
+
+    return packets<LoraStatusPacketizer>(lora, LoraStatusPort, pool);
 }
 
 } // namespace fk

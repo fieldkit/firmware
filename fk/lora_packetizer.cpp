@@ -152,8 +152,19 @@ public:
         ptr[0] = gps.longitude;
         ptr[1] = gps.latitude;
         ptr[2] = gps.altitude;
-
         encoded_size_ += sizeof(float) * 3;
+    }
+
+    void status(GlobalState const *gs) {
+        clear();
+
+        auto ptr = (float *)buffer_;
+        ptr[0] = gs->power.battery.bus_voltage;
+        ptr[1] = gs->power.battery_trend.min_v;
+        ptr[2] = gs->power.battery_trend.max_v;
+        ptr[3] = gs->power.solar_trend.min_v;
+        ptr[4] = gs->power.solar_trend.max_v;
+        encoded_size_ += sizeof(float) * 5;
     }
 };
 
@@ -246,6 +257,20 @@ tl::expected<EncodedMessage *, Error> LoraLocationPacketizer::packetize(GlobalSt
 
     LoraRecord record{ pool };
     record.gps(gs->gps);
+
+    append(&head, &tail, record.encode(pool));
+
+    return head;
+}
+
+tl::expected<EncodedMessage *, Error> LoraStatusPacketizer::packetize(GlobalState const *gs, Pool &pool) {
+    EncodedMessage *head = nullptr;
+    EncodedMessage *tail = nullptr;
+
+    loginfo("packetizing status");
+
+    LoraRecord record{ pool };
+    record.status(gs);
 
     append(&head, &tail, record.encode(pool));
 
