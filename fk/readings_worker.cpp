@@ -79,6 +79,7 @@ bool ReadingsWorker::take(state::ReadingsListener *listener, Pool &pool) {
     // So, this is a little strange because we're getting a read only
     // lock but we do actually write the live readings. No real
     // danger, yet but it's strange.
+    // Wait, what? TODO
     auto gs = get_global_state_ro();
     auto attached = gs.get()->dynamic.attached();
 

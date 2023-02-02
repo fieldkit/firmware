@@ -126,7 +126,6 @@ int32_t AttachedModule::take_readings(ReadingsContext ctx, ReadingsListener *lis
     }
 
     auto nreadings = module_readings->size();
-
     loginfo("[%d] %d readings", position_.integer(), nreadings);
 
     auto err = listener->readings_taken(this, module_readings, pool);

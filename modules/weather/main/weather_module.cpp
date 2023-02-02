@@ -67,7 +67,12 @@ ModuleReturn WeatherModule::service(ModuleContext mc, Pool &pool) {
 }
 
 ModuleReadings *WeatherModule::take_readings(ReadingsContext mc, Pool &pool) {
-    return delegate_.take_readings(mc, pool);
+    auto readings = delegate_.take_readings(mc, pool);
+    if (readings == nullptr) {
+        logwarn("power cycle");
+        mc.power_cycle();
+    }
+    return readings;
 }
 
 } // namespace fk

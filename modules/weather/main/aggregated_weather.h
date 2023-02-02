@@ -7,11 +7,13 @@
 namespace fk {
 
 class AggregatedWeather {
+private:
+    int8_t failures_{ -1 };
+
 public:
     ModuleReturn initialize(ModuleContext mc, Pool &pool);
     ModuleReturn service(ModuleContext mc, Pool &pool);
     ModuleReadings *take_readings(ModuleContext mc, Pool &pool);
-
 };
 
 } // namespace fk
