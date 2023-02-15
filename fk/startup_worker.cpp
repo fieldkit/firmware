@@ -187,7 +187,7 @@ void StartupWorker::run(Pool &pool) {
 
         mm->enable_all_modules();
 
-        ReadingsWorker readings_worker{ true, true, false };
+        ReadingsWorker readings_worker{ true, true, false, false };
         readings_worker.run(pool);
 
         check_for_lora(pool);
@@ -652,7 +652,7 @@ bool StartupWorker::check_for_configure_modules_startup(Pool &pool) {
         logerror("writing module configuration");
     }
 
-    ReadingsWorker readings_worker{ false, true, false };
+    ReadingsWorker readings_worker{ false, true, false, false };
     readings_worker.run(pool);
 
     get_ipc()->launch_worker(WorkerCategory::Polling, create_pool_worker<PollSensorsWorker>(false, true, true, ThirtySecondsMs));
@@ -706,7 +706,7 @@ bool StartupWorker::check_for_program_modules_startup(Pool &pool) {
     ConfigureModuleWorker configure_worker{ ModulePosition::All, header };
     configure_worker.run(pool);
 
-    ReadingsWorker readings_worker{ false, true, false };
+    ReadingsWorker readings_worker{ false, true, false, false };
     readings_worker.run(pool);
 
     get_ipc()->launch_worker(WorkerCategory::Polling, create_pool_worker<PollSensorsWorker>(false, true, true, ThirtySecondsMs));

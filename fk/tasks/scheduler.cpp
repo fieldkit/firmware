@@ -87,7 +87,7 @@ void task_handler_scheduler(void *params) {
                 ,
                 &upload_data_job
 #endif
-#if !defined(FK_DISABLE_LORA)
+#if !defined(FK_DISABLE_LORA) && defined(FK_LORA_FIXED)
                 ,
                 &lora_readings_job
 #endif

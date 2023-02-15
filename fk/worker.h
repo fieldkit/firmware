@@ -38,7 +38,6 @@ public:
     virtual const char *name() const {
         return "worker";
     }
-
 };
 
 class Worker {
@@ -64,17 +63,16 @@ public:
             .visible = true,
         };
     }
-
 };
 
-template<typename Wrapped, typename ConcreteWrapped = Wrapped, class... Args>
-class PoolWorker : public TaskWorker, public PoolPointer<Wrapped>  {
+template <typename Wrapped, typename ConcreteWrapped = Wrapped, class... Args>
+class PoolWorker : public TaskWorker, public PoolPointer<Wrapped> {
 private:
     Pool *pool_;
     ConcreteWrapped wrapped_;
 
 public:
-    PoolWorker(Pool *pool, Args&&... args) : pool_(pool), wrapped_(std::forward<Args>(args)...) {
+    PoolWorker(Pool *pool, Args &&...args) : pool_(pool), wrapped_(std::forward<Args>(args)...) {
     }
 
     virtual ~PoolWorker() {
@@ -113,14 +111,13 @@ public:
     TaskDisplayInfo display_info() const override {
         return wrapped_.display_info();
     }
-
 };
 
-template<typename Wrapped, class... Args>
-inline TaskWorker *create_pool_worker(Args &&... args) {
-    return create_chained_pool_wrapper<Wrapped, TaskWorker, PoolWorker<Wrapped, Wrapped, Args...>, PoolWorker<Wrapped, Wrapped, Args...>>(std::forward<Args>(args)...);
+template <typename Wrapped, class... Args> inline TaskWorker *create_pool_worker(Args &&...args) {
+    return create_chained_pool_wrapper<Wrapped, TaskWorker, PoolWorker<Wrapped, Wrapped, Args...>, PoolWorker<Wrapped, Wrapped, Args...>>(
+        std::forward<Args>(args)...);
 }
 
 FK_ENABLE_TYPE_NAME(Worker);
 
-}
+} // namespace fk

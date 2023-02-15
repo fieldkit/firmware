@@ -9,7 +9,7 @@ namespace fk {
 FK_DECLARE_LOGGER("psw");
 
 PollSensorsWorker::PollSensorsWorker(bool scan, bool read_only, bool throttle, uint32_t interval)
-    : ReadingsWorker(scan, read_only, throttle), interval_(interval) {
+    : ReadingsWorker(scan, read_only, throttle, false), interval_(interval) {
 }
 
 void PollSensorsWorker::run(Pool &pool) {

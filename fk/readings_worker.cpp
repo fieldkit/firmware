@@ -7,6 +7,7 @@
 
 #include "modules/scan_modules_worker.h"
 #include "update_readings_listener.h"
+#include "lora_worker.h"
 
 extern const struct fkb_header_t fkb_header;
 
@@ -14,8 +15,8 @@ namespace fk {
 
 FK_DECLARE_LOGGER("rw");
 
-ReadingsWorker::ReadingsWorker(bool scan, bool read_only, bool throttle, ModulePowerState power_state)
-    : scan_(scan), read_only_(read_only), throttle_(throttle), power_state_(power_state) {
+ReadingsWorker::ReadingsWorker(bool scan, bool read_only, bool throttle, bool unattended, ModulePowerState power_state)
+    : scan_(scan), read_only_(read_only), throttle_(throttle), unattended_(unattended), power_state_(power_state) {
 }
 
 void ReadingsWorker::run(Pool &pool) {
@@ -66,6 +67,29 @@ void ReadingsWorker::run(Pool &pool) {
 
         update_global_state(pool);
     }
+
+    if (unattended_) {
+        if (spawn_lora_if_due(pool)) {
+            LoraWorker worker{ LoraWork{ LoraWorkOperation::Readings } };
+            worker.run(pool);
+        }
+    }
+}
+
+bool ReadingsWorker::spawn_lora_if_due(Pool &pool) {
+    auto gs = get_global_state_rw();
+    if (gs.get()->lora.has_module) {
+        auto &lora = gs.get()->scheduler.lora;
+        auto elapsed_since = fk_uptime() - lora.mark;
+        auto should = elapsed_since > lora.interval * OneSecondMs;
+        loginfo("%s lora %" PRId32 "ms elapsed (%" PRIu32 "ms, %" PRIu32 "s)", should ? "spawning" : "skipping", elapsed_since, lora.mark,
+                lora.interval);
+        if (should) {
+            lora.mark = fk_uptime();
+            return true;
+        }
+    }
+    return false;
 }
 
 bool ReadingsWorker::scan(Pool &pool) {

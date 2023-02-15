@@ -26,6 +26,7 @@ struct Schedule {
     uint32_t repeated{ 0 };
     uint32_t duration{ 0 };
     uint32_t jitter{ 0 };
+    uint32_t mark{ 0 };
     Interval intervals[MaximumScheduleIntervals];
     ScheduledTime upcoming;
 

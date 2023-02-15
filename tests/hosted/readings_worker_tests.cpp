@@ -47,7 +47,7 @@ TEST_F(ReadingsWorkerSuite, OnlyDiagnosticsModule_FirstReading) {
 
     ASSERT_EQ(gs.get()->readings.nreadings, 0u);
 
-    ReadingsWorker readings_worker{ true, false, ModulePowerState::Unknown };
+    ReadingsWorker readings_worker{ true, false, false, ModulePowerState::Unknown };
     readings_worker.run(pool);
 
     ASSERT_EQ(gs.get()->readings.nreadings, 1u);
@@ -63,7 +63,7 @@ TEST_F(ReadingsWorkerSuite, OnlyDiagnosticsModule_SecondReading) {
 
     ASSERT_EQ(gs.get()->readings.nreadings, 0u);
 
-    ReadingsWorker readings_worker{ true, false, ModulePowerState::Unknown };
+    ReadingsWorker readings_worker{ true, false, false, ModulePowerState::Unknown };
     readings_worker.run(pool);
 
     ASSERT_EQ(gs.get()->readings.nreadings, 1u);
@@ -91,7 +91,7 @@ TEST_F(ReadingsWorkerSuite, ScannedModule_InvalidHeader) {
 
     fk_fake_uptime({ 20321 });
 
-    ReadingsWorker readings_worker{ true, false, ModulePowerState::Unknown };
+    ReadingsWorker readings_worker{ true, false, false, ModulePowerState::Unknown };
     readings_worker.run(pool);
 
     ASSERT_EQ(gs.get()->readings.nreadings, 1u);
@@ -121,7 +121,7 @@ TEST_F(ReadingsWorkerSuite, ScannedModule_MultipleReadings) {
 
     ASSERT_EQ(gs.get()->readings.nreadings, 0u);
 
-    ReadingsWorker readings_worker{ true, false, ModulePowerState::Unknown };
+    ReadingsWorker readings_worker{ true, false, false, ModulePowerState::Unknown };
     readings_worker.run(pool);
 
     ASSERT_EQ(gs.get()->readings.nreadings, 1u);
@@ -207,7 +207,7 @@ TEST_F(ReadingsWorkerSuite, ScannedModule_ModuleAdded) {
 
     ASSERT_EQ(gs.get()->readings.nreadings, 0u);
 
-    ReadingsWorker readings_worker{ true, false, ModulePowerState::Unknown };
+    ReadingsWorker readings_worker{ true, false, false, ModulePowerState::Unknown };
 
     fk_fake_uptime({ 20321 });
 
