@@ -16,11 +16,11 @@ struct Option {
     int32_t interval;
 };
 
-static constexpr size_t NumberOfOptions = 7;
+static constexpr size_t NumberOfOptions = 8;
 
 static Option options[NumberOfOptions] = { { "Set 1min", 60 },       { "Set 5min", 60 * 5 },   { "Set 10min", 60 * 10 },
-                                           { "Set 30min", 60 * 30 }, { "Set 60min", 60 * 60 }, { "Cancel", -1 },
-                                           { "Never (!)", 0 } };
+                                           { "Set 30min", 60 * 30 }, { "Set 60min", 60 * 60 }, { "Set 6hrs", 60 * 60 * 6 },
+                                           { "Cancel", -1 },         { "Never (!)", 0 } };
 
 void ScheduleView::tick(ViewController *views, Pool &pool) {
     auto bus = get_board()->i2c_core();
