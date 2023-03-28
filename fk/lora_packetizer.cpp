@@ -28,6 +28,9 @@ static tl::expected<SensorGroupTemplate *, Error> get_sensor_group_template(Glob
         return nullptr;
     }
 
+    auto water_sensor_group = new (pool) SensorGroupTemplate(pool);
+    auto has_any_water = false;
+
     for (auto &attached_module : attached->modules()) {
         auto meta = attached_module.meta();
         if (meta != nullptr && meta->manufacturer == FK_MODULES_MANUFACTURER && meta->kind == FK_MODULES_KIND_WEATHER) {
@@ -45,6 +48,33 @@ static tl::expected<SensorGroupTemplate *, Error> get_sensor_group_template(Glob
             sensor_group->sensors.add(SensorTemplate{ FK_MODULES_MANUFACTURER, FK_MODULES_KIND_DIAGNOSTICS, 10 }); // Uptime
             return sensor_group;
         }
+        if (meta != nullptr && meta->manufacturer == FK_MODULES_MANUFACTURER && meta->kind == FK_MODULES_KIND_WATER_TEMP) {
+            loginfo("found sensor group: temp");
+            water_sensor_group->sensors.add(SensorTemplate{ meta->manufacturer, meta->kind, 0 }); // Temp
+            has_any_water = true;
+        }
+        if (meta != nullptr && meta->manufacturer == FK_MODULES_MANUFACTURER && meta->kind == FK_MODULES_KIND_WATER_PH) {
+            loginfo("found sensor group: ph");
+            water_sensor_group->sensors.add(SensorTemplate{ meta->manufacturer, meta->kind, 0 }); // pH
+            has_any_water = true;
+        }
+        if (meta != nullptr && meta->manufacturer == FK_MODULES_MANUFACTURER && meta->kind == FK_MODULES_KIND_WATER_EC) {
+            loginfo("found sensor group: ec");
+            water_sensor_group->sensors.add(SensorTemplate{ meta->manufacturer, meta->kind, 0 }); // EC
+            has_any_water = true;
+        }
+        if (meta != nullptr && meta->manufacturer == FK_MODULES_MANUFACTURER && meta->kind == FK_MODULES_KIND_WATER_DO) {
+            loginfo("found sensor group: do");
+            water_sensor_group->sensors.add(SensorTemplate{ meta->manufacturer, meta->kind, 0 }); // DO
+            has_any_water = true;
+        }
+    }
+
+    if (has_any_water) {
+        water_sensor_group->sensors.add(SensorTemplate{ FK_MODULES_MANUFACTURER, FK_MODULES_KIND_DIAGNOSTICS, 1 });  // Battery Vbus
+        water_sensor_group->sensors.add(SensorTemplate{ FK_MODULES_MANUFACTURER, FK_MODULES_KIND_DIAGNOSTICS, 5 });  // Solar Vbus
+        water_sensor_group->sensors.add(SensorTemplate{ FK_MODULES_MANUFACTURER, FK_MODULES_KIND_DIAGNOSTICS, 10 }); // Uptime
+        return water_sensor_group;
     }
 
 #if defined(FK_LORA_TESTING_DIAGNOSTICS_SENSOR_GROUP)
