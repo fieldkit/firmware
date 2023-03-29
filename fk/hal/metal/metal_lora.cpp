@@ -351,7 +351,7 @@ bool TheThingsLoraNetwork::get_state(Rn2903State *state) {
     }
 
     if (!rn2903.simple_query("mac get status", &line, DefaultTimeout)) {
-        return nullptr;
+        return false;
     }
 
     if (!rn2903.simple_query("mac get dr", &line, DefaultTimeout)) {
@@ -407,7 +407,7 @@ bool TheThingsLoraNetwork::get_state(Rn2903State *state) {
     state->downlink_counter = atoi(line);
 
     if (!rn2903.simple_query("mac get pwridx", &line, DefaultTimeout)) {
-        return nullptr;
+        return false;
     }
     state->power_index = atoi(line);
 

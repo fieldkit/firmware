@@ -34,8 +34,6 @@ static tl::expected<SensorGroupTemplate *, Error> get_sensor_group_template(Glob
     for (auto &attached_module : attached->modules()) {
         auto meta = attached_module.meta();
         if (meta != nullptr && meta->manufacturer == FK_MODULES_MANUFACTURER && meta->kind == FK_MODULES_KIND_WEATHER) {
-            loginfo("found sensor group: weather");
-
             auto sensor_group = new (pool) SensorGroupTemplate(pool);
             sensor_group->sensors.add(SensorTemplate{ meta->manufacturer, meta->kind, 0 });                        // Humidity
             sensor_group->sensors.add(SensorTemplate{ meta->manufacturer, meta->kind, 1 });                        // Temperature
@@ -46,25 +44,26 @@ static tl::expected<SensorGroupTemplate *, Error> get_sensor_group_template(Glob
             sensor_group->sensors.add(SensorTemplate{ FK_MODULES_MANUFACTURER, FK_MODULES_KIND_DIAGNOSTICS, 1 });  // Battery Vbus
             sensor_group->sensors.add(SensorTemplate{ FK_MODULES_MANUFACTURER, FK_MODULES_KIND_DIAGNOSTICS, 5 });  // Solar Vbus
             sensor_group->sensors.add(SensorTemplate{ FK_MODULES_MANUFACTURER, FK_MODULES_KIND_DIAGNOSTICS, 10 }); // Uptime
+            loginfo("sensor group: weather");
             return sensor_group;
         }
         if (meta != nullptr && meta->manufacturer == FK_MODULES_MANUFACTURER && meta->kind == FK_MODULES_KIND_WATER_TEMP) {
-            loginfo("found sensor group: temp");
+            loginfo("sensor group: temp");
             water_sensor_group->sensors.add(SensorTemplate{ meta->manufacturer, meta->kind, 0 }); // Temp
             has_any_water = true;
         }
         if (meta != nullptr && meta->manufacturer == FK_MODULES_MANUFACTURER && meta->kind == FK_MODULES_KIND_WATER_PH) {
-            loginfo("found sensor group: ph");
+            loginfo("sensor group: ph");
             water_sensor_group->sensors.add(SensorTemplate{ meta->manufacturer, meta->kind, 0 }); // pH
             has_any_water = true;
         }
         if (meta != nullptr && meta->manufacturer == FK_MODULES_MANUFACTURER && meta->kind == FK_MODULES_KIND_WATER_EC) {
-            loginfo("found sensor group: ec");
+            loginfo("sensor group: ec");
             water_sensor_group->sensors.add(SensorTemplate{ meta->manufacturer, meta->kind, 0 }); // EC
             has_any_water = true;
         }
         if (meta != nullptr && meta->manufacturer == FK_MODULES_MANUFACTURER && meta->kind == FK_MODULES_KIND_WATER_DO) {
-            loginfo("found sensor group: do");
+            loginfo("sensor group: do");
             water_sensor_group->sensors.add(SensorTemplate{ meta->manufacturer, meta->kind, 0 }); // DO
             has_any_water = true;
         }
@@ -83,6 +82,7 @@ static tl::expected<SensorGroupTemplate *, Error> get_sensor_group_template(Glob
     sensor_group->sensors.add(SensorTemplate{ FK_MODULES_MANUFACTURER, FK_MODULES_KIND_DIAGNOSTICS, 5 });  // Solar Vbus
     sensor_group->sensors.add(SensorTemplate{ FK_MODULES_MANUFACTURER, FK_MODULES_KIND_DIAGNOSTICS, 10 }); // Uptime
     sensor_group->sensors.add(SensorTemplate{ FK_MODULES_MANUFACTURER, FK_MODULES_KIND_DIAGNOSTICS, 11 }); // Temperature
+    loginfo("sensor group: diagnostics");
     return sensor_group;
 #endif
 
