@@ -120,7 +120,7 @@ static SensorMetadata const fk_module_omni_water_sensor_metas[] = {
     { .name = "do", .unitOfMeasure = "%", .uncalibratedUnitOfMeasure = "V", .flags = 0 },
     { .name = "orp", .unitOfMeasure = "mV", .uncalibratedUnitOfMeasure = "V", .flags = 0 },
     { .name = "pressure.temp", .unitOfMeasure = "°C", .uncalibratedUnitOfMeasure = "°C", .flags = 0 },
-    { .name = "pressure.pressure", .unitOfMeasure = "Pa", .uncalibratedUnitOfMeasure = "Pa", .flags = 0 }
+    { .name = "pressure.pressure", .unitOfMeasure = "kPa", .uncalibratedUnitOfMeasure = "kPa", .flags = 0 }
 };
 
 static ModuleSensors fk_module_omni_water_sensors = {

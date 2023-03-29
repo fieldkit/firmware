@@ -25,7 +25,7 @@ ModuleReturn WaterDepthModule::service(ModuleContext mc, Pool &pool) {
 
 static SensorMetadata const fk_module_water_depth_sensor_metas[] = {
     { .name = "temp", .unitOfMeasure = "°C", .uncalibratedUnitOfMeasure = "°C", .flags = 0 },
-    { .name = "depth", .unitOfMeasure = "Pa", .uncalibratedUnitOfMeasure = "Pa", .flags = 0 },
+    { .name = "depth", .unitOfMeasure = "kPa", .uncalibratedUnitOfMeasure = "kPa", .flags = 0 },
 };
 
 static ModuleSensors fk_module_water_depth_sensors = {
@@ -78,12 +78,13 @@ ModuleReadings *WaterDepthModule::take_readings(ReadingsContext mc, Pool &pool) 
     ms5837.setModel(MS5837::MS5837_02BA);
     ms5837.read();
 
+    const float MBAR_TO_KPA = 0.1f;
     auto temperature = ms5837.temperature();
-    auto pressure = ms5837.pressure();
+    auto pressure_kpa = ms5837.pressure(MBAR_TO_KPA);
 
     auto mr = new (pool) NModuleReadings<2>();
     mr->set(0, SensorReading{ mc.now(), temperature, temperature });
-    mr->set(1, SensorReading{ mc.now(), pressure, pressure });
+    mr->set(1, SensorReading{ mc.now(), pressure_kpa, pressure_kpa });
 
     return mr;
 }
