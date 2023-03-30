@@ -638,6 +638,8 @@ bool StartupWorker::check_for_configure_modules_startup(Pool &pool) {
     ModuleRegistry registry;
     registry.initialize();
 
+    get_modmux()->begin();
+
 #if defined(FK_UNDERWATER)
     // Right now we're using this for fkuw and the pin based modmux can only
     // power one module at a time.
