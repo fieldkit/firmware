@@ -151,9 +151,21 @@ bool ModuleEeprom::write_configuration(uint8_t const *buffer, size_t size) {
     return true;
 }
 
-bool ModuleEeprom::erase_configuration() {
-    if (!erase_page(ConfigurationAddress)) {
-        return false;
+bool ModuleEeprom::erase_configuration(size_t size) {
+    auto address = ConfigurationAddress;
+    auto remaining = size;
+
+    while (remaining > 0) {
+        if (!erase_page(address)) {
+            return false;
+        }
+
+        if (remaining < EEPROM_PAGE_SIZE) {
+            break;
+        }
+
+        remaining -= EEPROM_PAGE_SIZE;
+        address += EEPROM_PAGE_SIZE;
     }
 
     loginfo("configuration erased");

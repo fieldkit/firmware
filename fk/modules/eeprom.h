@@ -30,7 +30,7 @@ public:
     bool read_configuration(uint8_t **buffer, size_t &size, Pool *pool);
     bool read_configuration(void *record, pb_msgdesc_t const *fields);
     bool write_configuration(uint8_t const *buffer, size_t size);
-    bool erase_configuration();
+    bool erase_configuration(size_t size = 0);
     bool erase_all();
 
 public:
