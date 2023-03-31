@@ -163,8 +163,13 @@ Curve *create_curve(Curve *default_curve, uint32_t kind, fk_data_ModuleConfigura
             if (calibrations[i].kind == kind) {
                 loginfo("curve: found kind among calibrations");
                 return create_curve(default_curve, &calibrations[i], pool);
+            } else {
+                logdebug("using default curve: skipping (%d != %d)", calibrations[i].kind, kind);
             }
         }
+        loginfo("using default curve: no calibration of kind (%d) (length=%zu)", kind, calibrations_array->length);
+    } else {
+        loginfo("using default curve: no calibrations");
     }
 
     if (!cfg->has_calibration) {
