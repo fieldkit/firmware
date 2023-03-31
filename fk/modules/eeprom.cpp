@@ -232,6 +232,9 @@ bool ModuleEeprom::read_data_delimited(uint32_t address, uint8_t **buffer, size_
 
     auto ptr = (uint8_t *)pool->malloc(buffer_size);
     auto remaining = buffer_size;
+    auto start = ptr;
+
+    memzero(ptr, buffer_size);
 
     while (remaining > 0) {
         size_t to_read = MIN(EEPROM_PAGE_SIZE, remaining);
@@ -244,7 +247,7 @@ bool ModuleEeprom::read_data_delimited(uint32_t address, uint8_t **buffer, size_
         address += to_read;
     }
 
-    *buffer = ptr;
+    *buffer = start;
     bytes_read = buffer_size;
 
     return true;
