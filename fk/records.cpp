@@ -663,6 +663,8 @@ static inline bool pb_data_module_configuration_calibration_decode(pb_istream_t 
 fk_data_ModuleConfiguration *fk_module_configuration_decoding_new(Pool *pool) {
     auto record = (fk_data_ModuleConfiguration *)pool->malloc(sizeof(fk_data_ModuleConfiguration));
 
+    (*record) = fk_data_ModuleConfiguration_init_default;
+
     record->calibrations.funcs.decode = pb_decode_array;
     record->calibrations.arg = (void *)pool->malloc_with<pb_array_t>({
         .length = 0,
