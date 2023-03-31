@@ -646,16 +646,14 @@ bool StartupWorker::check_for_configure_modules_startup(Pool &pool) {
     get_modmux()->enable_module(ModulePosition::from(0), ModulePower::Always);
 #else
     get_modmux()->enable_all_modules();
+
+    get_modmux()->choose(ModulePosition::from(1));
 #endif
 
     auto module_bus = get_board()->i2c_module();
     ModuleEeprom eeprom{ module_bus };
-    if (eeprom.erase_configuration(bytes_read)) {
-        if (!eeprom.write_configuration(buffer, bytes_read)) {
-            logerror("writing module configuration");
-        }
-    } else {
-        logerror("erasing module configuration");
+    if (!eeprom.write_configuration(buffer, bytes_read)) {
+        logerror("writing module configuration");
     }
 
     ReadingsWorker readings_worker{ false, true, false, false };
