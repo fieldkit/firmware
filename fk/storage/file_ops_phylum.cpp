@@ -269,18 +269,6 @@ int32_t FileReader::read(void *record, pb_msgdesc_t const *fields) {
     return err;
 }
 
-int32_t FileReader::read_delimited_bytes(uint8_t *record, size_t size) {
-    FK_ASSERT(file_number_ == Storage::Data);
-    FK_ASSERT(pdf_.is_open());
-
-    auto err = pdf_.read_delimited_bytes(record, size, pool_);
-    if (err < 0) {
-        return err;
-    }
-
-    return err;
-}
-
 int32_t FileReader::get_file_size(size_t &file_size) {
     FK_ASSERT(file_number_ == Storage::Data);
 
