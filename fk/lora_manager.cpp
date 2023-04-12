@@ -87,7 +87,7 @@ bool LoraManager::begin(Pool &pool) {
         verify_rx_delays(module_state, pool);
     }
 
-    return gsm.apply([&](GlobalState *gs) {
+    gsm.apply([&](GlobalState *gs) {
         // Note that this only happens when a module comes or goes.
         if (gs->lora.has_module != has_module) {
             gs->lora.has_module = has_module;
@@ -110,9 +110,9 @@ bool LoraManager::begin(Pool &pool) {
             gs->lora.tx_failures = 0;
 #endif
         }
-
-        return has_module;
     });
+
+    return has_module;
 }
 
 bool LoraManager::factory_reset() {

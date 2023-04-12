@@ -126,6 +126,7 @@ bool TheThingsLoraNetwork::begin(lora_frequency_t frequency_band) {
 
         if (!bridge_.begin(57600)) {
             logwarn("bridge begin");
+            power(false);
             return false;
         }
 
