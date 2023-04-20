@@ -5,6 +5,11 @@ namespace fk {
 
 FK_DECLARE_LOGGER("lockout");
 
+void ModuleLockout::enable_until_uptime(uint32_t unlocked) {
+    unlocked_ = unlocked;
+    loginfo("lockout enabled until %" PRIu32, unlocked);
+}
+
 bool ModuleLockout::can_enable() {
     if (unlocked_ > 0) {
         auto uptime = fk_uptime();
