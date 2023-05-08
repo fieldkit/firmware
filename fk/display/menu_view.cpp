@@ -135,6 +135,12 @@ static void configure_gps_duration(uint32_t duration, Pool &pool) {
     gs.get()->flush(OneSecondMs, pool);
 }
 
+static void forget_networks(Pool &pool) {
+    auto gs = get_global_state_rw();
+    memzero((void *)&gs.get()->network.config, sizeof(NetworkConfiguration));
+    gs.get()->flush(OneSecondMs, pool);
+}
+
 static void configure_wifi_duration(uint32_t duration, Pool &pool) {
     auto gs = get_global_state_rw();
     gs.get()->scheduler.network.duration = duration;
@@ -755,13 +761,19 @@ void MenuView::create_network_menu() {
         get_ipc()->launch_worker(create_pool_worker<UploadDataWorker>(false, true));
     });
 
+    auto network_forget = to_lambda_option(pool_, "Forget Networks", [=]() {
+        StandardPool pool{ "forget-networks" };
+        forget_networks(pool);
+        back_->on_selected();
+        views_->show_home();
+    });
+
     (void)network_download_fw;
 
-    network_menu_ = new_menu_screen<8 - 1>(
+    network_menu_ = new_menu_screen<8>(
         pool_, "network",
         {
-            back_, network_toggle, network_choose, network_upload_resume, network_upload_meta, network_upload_data, network_duration,
-            // network_download_fw,
+            back_, network_toggle, network_choose, network_upload_resume, network_upload_meta, network_upload_data, network_duration, network_forget,
         });
 }
 
