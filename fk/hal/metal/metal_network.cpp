@@ -213,15 +213,19 @@ void MetalNetwork::check_status() {
 bool MetalNetwork::serve() {
     fk_delay(500);
 
+#if defined(FK_NETWORK_ENABLE_MDNS)
     mdns_discovery_.pool(pool_);
     if (!mdns_discovery_.start()) {
         logwarn("mdns discovery failed");
     }
+#endif
 
+#if defined(FK_NETWORK_ENABLE_UDP_DISCOVERY)
     udp_discovery_.pool(pool_);
     if (!udp_discovery_.start()) {
         logwarn("udp discovery failed");
     }
+#endif
 
     synchronize_time();
 
@@ -284,9 +288,15 @@ void MetalNetwork::service(Pool *pool) {
 
     if (pool != nullptr) {
         if (serving_) {
+#if defined(FK_NETWORK_ENABLE_MDNS)
             mdns_discovery_.service(pool);
+#endif
+#if defined(FK_NETWORK_ENABLE_UDP_DISCOVERY)
             udp_discovery_.service(pool);
+#endif
+#if defined(FK_NETWORK_ENABLE_NTP)
             ntp_.service();
+#endif
         }
     }
 }
@@ -294,14 +304,20 @@ void MetalNetwork::service(Pool *pool) {
 bool MetalNetwork::stop() {
     if (enabled_) {
         if (serving_) {
+#if defined(FK_NETWORK_ENABLE_NTP)
             logdebug("ntp-stop");
             ntp_.stop();
-            // Ensure the previous removal gets loose?
-            fk_delay(500);
+#endif
+#if defined(FK_NETWORK_ENABLE_UDP_DISCOVERY)
             logdebug("udp-stop");
             udp_discovery_.stop();
+#endif
+#if defined(FK_NETWORK_ENABLE_MDNS)
             logdebug("mdns-stop");
             mdns_discovery_.stop();
+            // Ensure the previous removal gets loose?
+            fk_delay(500);
+#endif
             serving_ = false;
         }
         logdebug("wifi-end");
@@ -320,8 +336,10 @@ bool MetalNetwork::enabled() {
 
 bool MetalNetwork::synchronize_time() {
     if (!settings_.create) {
+#if defined(FK_NETWORK_ENABLE_NTP)
         ntp_.pool(pool_);
         ntp_.start();
+#endif
     }
     return true;
 }

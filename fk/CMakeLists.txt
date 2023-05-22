@@ -87,6 +87,11 @@ add_arduino_library(fk-bundled "${sources}")
 target_include_directories(fk-bundled PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/third-party/nonstd ${CMAKE_SOURCE_DIR}/third-party/tl)
 
 target_compile_options(fk-bundled PRIVATE -Wall -Werror -DFK_HARDWARE_FULL)
+target_compile_options(fk-bundled PRIVATE -DFK_NETWORK_ENABLE_NTP -DFK_NETWORK_ENABLE_UDP_DISCOVERY -DFK_NETWORK_ENABLE_MDNS)
+
+# target_compile_options(fk-bundled PRIVATE -DFK_IPC_SINGLE_THREADED)
+# target_compile_options(fk-bundled PRIVATE -DFK_LIVE_TEST_WIFI)
+# target_compile_options(fk-bundled PRIVATE -DFK_LIVE_TEST_WINC1500_OTA)
 
 find_package(SeggerRTT)
 target_link_libraries(fk-bundled SeggerRTT)

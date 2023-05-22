@@ -86,9 +86,15 @@ private:
     bool enabled_{ false };
     bool serving_{ false };
     WiFiServer server_{ 80 };
+#if defined(FK_NETWORK_ENABLE_MDNS)
     MDNSDiscovery mdns_discovery_;
+#endif
+#if defined(FK_NETWORK_ENABLE_UDP_DISCOVERY)
     UDPDiscovery udp_discovery_;
+#endif
+#if defined(FK_NETWORK_ENABLE_NTP)
     SimpleNTP ntp_;
+#endif
     uint8_t status_{ 0 };
 
 protected:
