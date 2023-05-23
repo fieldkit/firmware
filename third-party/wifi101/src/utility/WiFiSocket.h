@@ -98,6 +98,7 @@ private:
       int length;
     } buffer;
     struct sockaddr _lastSendtoAddr;
+    uint8_t _lastSendtoAddrLen;
   } _info[MAX_SOCKET];
 };
 
