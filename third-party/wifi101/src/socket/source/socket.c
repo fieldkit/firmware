@@ -77,6 +77,8 @@ MACROS
 #define SSL_FLAGS_NO_TX_COPY    NBIT5
 #define SSL_FLAGS_CHECK_SNI     NBIT6
 
+uint32_t fkb_external_printf(const char *str, ...);
+
 /*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
 PRIVATE DATA TYPES
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
@@ -744,6 +746,7 @@ sint16 send(SOCKET sock, void *pvSendBuffer, uint16 u16SendLength, uint16 flags)
         s16Ret =
             SOCKET_REQUEST(u8Cmd | M2M_REQ_DATA_PKT, (uint8 *)&strSend, sizeof(tstrSendCmd), pvSendBuffer, u16SendLength, u16DataOffset);
         if (s16Ret != SOCK_ERR_NO_ERROR) {
+            fkb_external_printf("::send(buffer-full) %d %d\n", (uint32_t)s16Ret, (uint32_t)u16DataOffset);
             s16Ret = SOCK_ERR_BUFFER_FULL;
         }
     }
@@ -796,6 +799,7 @@ sint16 sendto(SOCKET sock, void *pvSendBuffer, uint16 u16SendLength, uint16 flag
                                     u16SendLength, UDP_TX_PACKET_OFFSET);
 
             if (s16Ret != SOCK_ERR_NO_ERROR) {
+                fkb_external_printf("::sendto(buffer-full)\n");
                 s16Ret = SOCK_ERR_BUFFER_FULL;
             }
         }

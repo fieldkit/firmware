@@ -316,20 +316,42 @@ size_t WiFiSocketClass::write(SOCKET sock, const uint8_t *buf, size_t size) {
     return size;
 }
 
+extern "C" {
+    uint32_t fkb_external_printf(const char *str, ...);
+}
+
+namespace fk {
+    void fk_dump_memory(const char *prefix, const uint8_t *p, size_t size, ...);
+}
+
 sint16 WiFiSocketClass::sendto(SOCKET sock, void *pvSendBuffer, uint16 u16SendLength, uint16 flags, struct sockaddr *pstrDestAddr,
                                uint8 u8AddrLen) {
     m2m_wifi_handle_events(NULL);
 
     if (_info[sock].state != SOCKET_STATE_BOUND) {
+        fkb_external_printf("WiFiSocketClass::sendto(UNBOUND)\n");
         return -1;
     }
 
     if (memcmp(&_info[sock]._lastSendtoAddr, pstrDestAddr, sizeof(_info[sock]._lastSendtoAddr)) != 0) {
+            fk::fk_dump_memory("before ", (uint8_t *)&_info[sock]._lastSendtoAddr, _info[sock]._lastSendtoAddrLen);
+            fk::fk_dump_memory("after  ", (uint8_t *)pstrDestAddr, u8AddrLen);
+        }
+
+        fkb_external_printf("WiFiSocketClass::sendto-addr-change(%d)\n", sock);
         memcpy(&_info[sock]._lastSendtoAddr, pstrDestAddr, sizeof(_info[sock]._lastSendtoAddr));
 
-        return ::sendto(sock, pvSendBuffer, u16SendLength, flags, pstrDestAddr, u8AddrLen);
+        auto rv = ::sendto(sock, pvSendBuffer, u16SendLength, flags, pstrDestAddr, u8AddrLen);
+        if (rv != 0) {
+            fkb_external_printf("WiFiSocketClass::sendto(%d, %d)\n", sock, rv);
+        }
+        return rv;
     } else {
-        return ::send(sock, pvSendBuffer, u16SendLength, 0);
+        auto rv = ::send(sock, pvSendBuffer, u16SendLength, 0);
+        if (rv != 0) {
+            fkb_external_printf("WiFiSocketClass::send(%d, %d)\n", sock, rv);
+        }
+        return rv;
     }
 }
 

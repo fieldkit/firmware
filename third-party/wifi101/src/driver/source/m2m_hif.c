@@ -267,6 +267,9 @@ sint8 hif_deinit(void *arg) {
     m2m_memset((uint8 *)&gstrHifCxt, 0, sizeof(tstrHifContext));
     return ret;
 }
+
+uint32 fkb_external_printf(const char *str, ...);
+
 /**
 *	@fn		NMI_API sint8 hif_send(uint8 u8Gid,uint8 u8Opcode,uint8 *pu8CtrlBuf,uint16 u16CtrlBufSize,
                        uint8 *pu8DataBuf,uint16 u16DataSize, uint16 u16DataOffset)
@@ -288,7 +291,6 @@ sint8 hif_deinit(void *arg) {
                 Packet buffer size (including the HIF header).
 *    @return		The function shall return ZERO for successful operation and a negative value otherwise.
 */
-
 sint8 hif_send(uint8 u8Gid, uint8 u8Opcode, uint8 *pu8CtrlBuf, uint16 u16CtrlBufSize, uint8 *pu8DataBuf, uint16 u16DataSize,
                uint16 u16DataOffset) {
     sint8 ret = M2M_ERR_SEND;
@@ -302,6 +304,9 @@ sint8 hif_send(uint8 u8Gid, uint8 u8Opcode, uint8 *pu8CtrlBuf, uint16 u16CtrlBuf
     } else {
         strHif.u16Length += u16CtrlBufSize;
     }
+    if (strHif.u16Length > M2M_HIF_MAX_PACKET_SIZE) {
+        fkb_external_printf("\n\nstrHif.u16Length <= M2M_HIF_MAX_PACKET_SIZE\n\n");
+    }
     ret = hif_chip_wake();
     if (ret == M2M_SUCCESS) {
         volatile uint32 reg, dma_addr = 0;
@@ -314,14 +319,18 @@ sint8 hif_send(uint8 u8Gid, uint8 u8Opcode, uint8 *pu8CtrlBuf, uint16 u16CtrlBuf
         reg |= ((uint32)u8Opcode << 8);
         reg |= ((uint32)strHif.u16Length << 16);
         ret = nm_write_reg(NMI_STATE_REG, reg);
-        if (M2M_SUCCESS != ret)
+        if (M2M_SUCCESS != ret) {
+            fkb_external_printf("hif_send: err1.0\n");
             goto ERR1;
+        }
 
         reg = 0UL;
         reg |= NBIT1;
         ret = nm_write_reg(WIFI_HOST_RCV_CTRL_2, reg);
-        if (M2M_SUCCESS != ret)
+        if (M2M_SUCCESS != ret) {
+            fkb_external_printf("hif_send: err1.1\n");
             goto ERR1;
+        }
 #else
         reg = 0UL;
         reg |= NBIT1;
@@ -329,15 +338,19 @@ sint8 hif_send(uint8 u8Gid, uint8 u8Opcode, uint8 *pu8CtrlBuf, uint16 u16CtrlBuf
         reg |= (u8Gid == M2M_REQ_GROUP_IP) ? (NBIT3) : (0); /*IP = 1 or non IP*/
         reg |= ((uint32)strHif.u16Length << 4);             /*length of pkt max = 4096*/
         ret = nm_write_reg(WIFI_HOST_RCV_CTRL_2, reg);
-        if (M2M_SUCCESS != ret)
+        if (M2M_SUCCESS != ret) {
+            fkb_external_printf("hif_send: err1.2\n");
             goto ERR1;
+        }
 #endif
         dma_addr = 0;
 
         for (cnt = 0; cnt < 1000; cnt++) {
             ret = nm_read_reg_with_ret(WIFI_HOST_RCV_CTRL_2, (uint32 *)&reg);
-            if (ret != M2M_SUCCESS)
+            if (ret != M2M_SUCCESS) {
+                fkb_external_printf("hif_send: break\n");
                 break;
+            }
             /*
              * If it takes too long to get a response, the slow down to
              * avoid back-to-back register read operations.
@@ -353,7 +366,13 @@ sint8 hif_send(uint8 u8Gid, uint8 u8Opcode, uint8 *pu8CtrlBuf, uint16 u16CtrlBuf
                 if (ret != M2M_SUCCESS) {
                     /*in case of read error clear the DMA address and return error*/
                     dma_addr = 0;
+                    fkb_external_printf("hif_send: err1.3\n");
                     goto ERR1;
+                }
+                else {
+                    if (dma_addr == 0) {
+                        fkb_external_printf("hif_send: dma_addr=0\n");
+                    }
                 }
                 /*in case of success break */
                 break;
@@ -365,41 +384,54 @@ sint8 hif_send(uint8 u8Gid, uint8 u8Opcode, uint8 *pu8CtrlBuf, uint16 u16CtrlBuf
             u32CurrAddr = dma_addr;
             strHif.u16Length = NM_BSP_B_L_16(strHif.u16Length);
             ret = nm_write_block(u32CurrAddr, (uint8 *)&strHif, M2M_HIF_HDR_OFFSET);
-            if (M2M_SUCCESS != ret)
+            if (M2M_SUCCESS != ret) {
+                fkb_external_printf("hif_send: err1.4\n");
                 goto ERR1;
+            }
             u32CurrAddr += M2M_HIF_HDR_OFFSET;
             if (pu8CtrlBuf != NULL) {
                 ret = nm_write_block(u32CurrAddr, pu8CtrlBuf, u16CtrlBufSize);
-                if (M2M_SUCCESS != ret)
+                if (M2M_SUCCESS != ret) {
+                    fkb_external_printf("hif_send: err1.5\n");
                     goto ERR1;
+                }
                 u32CurrAddr += u16CtrlBufSize;
             }
             if (pu8DataBuf != NULL) {
                 u32CurrAddr += (u16DataOffset - u16CtrlBufSize);
                 ret = nm_write_block(u32CurrAddr, pu8DataBuf, u16DataSize);
-                if (M2M_SUCCESS != ret)
+                if (M2M_SUCCESS != ret) {
+                    fkb_external_printf("hif_send: err1.6\n");
                     goto ERR1;
+                }
                 u32CurrAddr += u16DataSize;
             }
 
             reg = dma_addr << 2;
             reg |= NBIT1;
             ret = nm_write_reg(WIFI_HOST_RCV_CTRL_3, reg);
-            if (M2M_SUCCESS != ret)
+            if (M2M_SUCCESS != ret) {
+                fkb_external_printf("hif_send: err1.7\n");
                 goto ERR1;
+            }
         } else {
             ret = hif_chip_sleep();
-            M2M_DBG("Failed to alloc rx size %d\n", ret);
+            M2M_DBG("Failed to alloc rx size %d cnt=%d\n", ret, cnt);
             ret = M2M_ERR_MEM_ALLOC;
+            fkb_external_printf("hif_send: err2.0 cnt=%d\n", cnt);
             goto ERR2;
         }
 
     } else {
         M2M_ERR("(HIF)Fail to wakup the chip\n");
+        fkb_external_printf("hif_send: err2.1\n");
         goto ERR2;
     }
     /*actual sleep ret = M2M_SUCCESS*/
     ret = hif_chip_sleep();
+    if (ret != M2M_SUCCESS) {
+        fkb_external_printf("hif_send: err-sleep\n");
+    }
     return ret;
 ERR1:
     /*reset the count but no actual sleep as it already bus error*/
