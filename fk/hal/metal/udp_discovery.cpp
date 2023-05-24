@@ -30,17 +30,10 @@ UDPDiscovery::~UDPDiscovery() {
 }
 
 bool UDPDiscovery::start() {
-    if (initialized_) {
-        return true;
+    if (!initialized_) {
+        initialized_ = true;
+        publish_ = 0;
     }
-
-    if (!udp_.beginMulticast(IPAddress(224, 1, 2, 3), 22143)) {
-        logerror("unable to begin udp");
-        return false;
-    }
-
-    initialized_ = true;
-    publish_ = 0;
 
     return true;
 }
@@ -55,7 +48,7 @@ void UDPDiscovery::stop() {
         } else {
             logerror("missing pool");
         }
-        udp_.stop();
+
         initialized_ = false;
     }
 }
@@ -110,6 +103,11 @@ bool UDPDiscovery::send(fk_app_UdpStatus status, Pool *pool) {
 
     loginfo("publishing");
 
+    if (!udp_.beginMulticast(IPAddress(224, 1, 2, 3), 22143)) {
+        logerror("unable to begin udp");
+        return false;
+    }
+
     if (!udp_.beginPacket(IPAddress(224, 1, 2, 3), NetworkUdpDiscoveryPort)) {
         logerror("begin failed!");
         return false;
@@ -121,6 +119,8 @@ bool UDPDiscovery::send(fk_app_UdpStatus status, Pool *pool) {
         logerror("send failed!");
         return false;
     }
+
+    udp_.stop();
 
     return true;
 }
