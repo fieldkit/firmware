@@ -13,10 +13,9 @@ namespace fk {
 
 class WaterModule : public Module {
 private:
-    Pool *pool_{ nullptr };
-    std::pair<EncodedMessage *, fk_data_ModuleConfiguration *> cfg_;
     ModuleHeader header_;
     ModuleLockout lockout_;
+    WaterConfig cfg_;
 
 public:
     WaterModule(Pool &pool);

@@ -65,7 +65,7 @@ static WaterMcpGpioConfig OmniOrpConfig{ FK_MCP2803_IODIR,
                                          FK_MCP2803_GPIO_EXCITE_ON | FK_MCP2803_GPIO_ORP,
                                          FK_MCP2803_GPIO_EXCITE_OFF | FK_MCP2803_GPIO_ORP };
 
-OmniWaterModule::OmniWaterModule(Pool &pool) : pool_(pool.subpool("omniwater", MaximumConfigurationSize)) {
+OmniWaterModule::OmniWaterModule(Pool &pool) {
 }
 
 OmniWaterModule::~OmniWaterModule() {
@@ -91,8 +91,10 @@ bool OmniWaterModule::load_configuration(ModuleContext mc, Pool &pool) {
 
     loginfo("have header: mk=%02" PRIx32 "%02" PRIx32, header_.manufacturer, header_.kind);
 
-    pool_->clear();
-    cfg_ = read_configuration_eeprom(eeprom, pool_);
+    auto cfg = read_configuration_eeprom(eeprom, &pool);
+    if (!cfg_.load(cfg)) {
+        logwarn("configuration error");
+    }
 
     return true;
 }
@@ -133,7 +135,7 @@ ModuleSensors const *OmniWaterModule::get_sensors(Pool &pool) {
 }
 
 ModuleConfiguration const OmniWaterModule::get_configuration(Pool &pool) {
-    return ModuleConfiguration{ "modules.water.omni", ModulePower::ReadingsOnly, cfg_.first, DefaultModuleOrder };
+    return ModuleConfiguration{ "modules.water.omni", ModulePower::ReadingsOnly, cfg_.encoded(), DefaultModuleOrder };
 }
 
 bool OmniWaterModule::can_enable() {
@@ -189,7 +191,7 @@ ModuleReadings *OmniWaterModule::take_readings(ReadingsContext mc, Pool &pool) {
             return nullptr;
         }
 
-        auto water_readings = water_protocol.take_readings(mc, cfg_.second, pool);
+        auto water_readings = water_protocol.take_readings(mc, &cfg_.cal_, pool);
         if (water_readings == nullptr) {
             logwarn("water-proto: readings error");
         } else {
@@ -241,8 +243,6 @@ MenuScreen *OmniWaterModule::debug_menu(Pool *pool) {
             }
         });
     }
-
-    // options[option_index++] = back_;
 
     options[option_index] = nullptr;
 

@@ -165,7 +165,7 @@ static uint32_t get_kind_from_modality(WaterModality m) {
     return 0;
 }
 
-WaterReadings *WaterProtocol::take_readings(ReadingsContext mc, fk_data_ModuleConfiguration *cfg, Pool &pool) {
+WaterReadings *WaterProtocol::take_readings(ReadingsContext mc, calibration_config_t *cal, Pool &pool) {
     auto exciting = excite_enabled();
     auto averaging = averaging_enabled();
     auto priority = fk_task_self_priority_get();
@@ -230,7 +230,7 @@ WaterReadings *WaterProtocol::take_readings(ReadingsContext mc, fk_data_ModuleCo
         }
     }
     auto default_curve = create_modules_default_curve(pool);
-    auto curve = create_curve(default_curve, get_kind_from_modality(modality_), cfg, pool);
+    auto curve = create_curve(default_curve, get_kind_from_modality(modality_), cal, pool);
     auto factory = default_curve->apply(uncalibrated);
     auto calibrated = curve->apply(uncalibrated);
 

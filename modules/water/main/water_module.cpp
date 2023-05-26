@@ -23,7 +23,7 @@ FK_DECLARE_LOGGER("water");
 static WaterMcpGpioConfig StandaloneWaterMcpConfig{ FK_MCP2803_IODIR,    FK_MCP2803_GPPU,           FK_MCP2803_GPIO_ON,
                                                     FK_MCP2803_GPIO_OFF, FK_MCP2803_GPIO_EXCITE_ON, FK_MCP2803_GPIO_EXCITE_OFF };
 
-WaterModule::WaterModule(Pool &pool) : pool_(pool.subpool("water", MaximumConfigurationSize)) {
+WaterModule::WaterModule(Pool &pool) {
 }
 
 WaterModule::~WaterModule() {
@@ -49,8 +49,10 @@ bool WaterModule::load_configuration(ModuleContext mc, Pool &pool) {
 
     loginfo("have header: mk=%02" PRIx32 "%02" PRIx32, header_.manufacturer, header_.kind);
 
-    pool_->clear();
-    cfg_ = read_configuration_eeprom(eeprom, pool_);
+    auto cfg = read_configuration_eeprom(eeprom, &pool);
+    if (!cfg_.load(cfg)) {
+        logwarn("configuration error");
+    }
 
     return true;
 }
@@ -151,9 +153,9 @@ const char *WaterModule::get_display_name_key() {
 ModuleConfiguration const WaterModule::get_configuration(Pool &pool) {
     switch (header_.kind) {
     case FK_MODULES_KIND_WATER_TEMP:
-        return ModuleConfiguration{ get_display_name_key(), ModulePower::ReadingsOnly, cfg_.first, ModuleOrderProvidesCalibration };
+        return ModuleConfiguration{ get_display_name_key(), ModulePower::ReadingsOnly, cfg_.encoded(), ModuleOrderProvidesCalibration };
     };
-    return ModuleConfiguration{ get_display_name_key(), ModulePower::ReadingsOnly, cfg_.first, DefaultModuleOrder };
+    return ModuleConfiguration{ get_display_name_key(), ModulePower::ReadingsOnly, cfg_.encoded(), DefaultModuleOrder };
 }
 
 bool WaterModule::can_enable() {
@@ -210,7 +212,7 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
         return nullptr;
     }
 
-    auto water_readings = water_protocol.take_readings(mc, cfg_.second, pool);
+    auto water_readings = water_protocol.take_readings(mc, &cfg_.cal_, pool);
     if (water_readings == nullptr) {
         return nullptr;
     }

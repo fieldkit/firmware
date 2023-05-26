@@ -53,7 +53,7 @@ private:
 public:
     bool initialize();
 
-    WaterReadings *take_readings(ReadingsContext mc, fk_data_ModuleConfiguration *cfg, Pool &pool);
+    WaterReadings *take_readings(ReadingsContext mc, calibration_config_t *cal, Pool &pool);
 
     bool block_until_ready(TwoWireWrapper &bus) override;
 

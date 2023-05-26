@@ -86,19 +86,39 @@ Curve *create_curve(fk_data_CurveType curve_type, float const *coefficients, Poo
     }
 }
 
-Curve *create_curve(Curve *default_curve, fk_data_Calibration *calibration, Pool &pool) {
-    if (!calibration->has_coefficients) {
-        logwarn("using default curve: no coefficients");
+Curve *create_curve(Curve *default_curve, uint32_t kind, calibration_config_t *cal, Pool &pool) {
+    if (cal == nullptr) {
+        loginfo("using default curve: no configuration");
         return default_curve;
     }
 
-    if (calibration->coefficients.values.arg == nullptr) {
-        logwarn("using default curve: malformed coefficients (none)");
-        return default_curve;
+    for (auto i = 0u; i < CalibrationMaximumCalibrations; ++i) {
+        auto &calibration = cal->calibrations[i];
+        if (calibration.kind == kind) {
+            loginfo("curve: found!");
+            return create_curve(calibration.type, calibration.coefficients, pool);
+        } else {
+            logdebug("curve: skipping (%d != %d)", kind, cal->calibrations[i].kind);
+        }
     }
 
-    if (calibration->points.arg != nullptr) {
-        auto points_array = reinterpret_cast<pb_array_t *>(calibration->points.arg);
+    loginfo("using default curve: no calibration");
+    return default_curve;
+}
+
+bool fill_calibration(fk_data_Calibration *cfg, calibration_t *cal) {
+    if (!cfg->has_coefficients) {
+        logwarn("load-cal: no coefficients");
+        return false;
+    }
+
+    if (cfg->coefficients.values.arg == nullptr) {
+        logwarn("load-cal: malformed coefficients (none)");
+        return false;
+    }
+
+    if (cfg->points.arg != nullptr) {
+        auto points_array = reinterpret_cast<pb_array_t *>(cfg->points.arg);
         auto points = reinterpret_cast<fk_data_CalibrationPoint *>(points_array->buffer);
         for (auto i = 0u; i < points_array->length; ++i) {
             auto uncalibrated_array = reinterpret_cast<pb_array_t *>(points[i].uncalibrated.arg);
@@ -110,12 +130,12 @@ Curve *create_curve(Curve *default_curve, fk_data_Calibration *calibration, Pool
             loginfo("curve[%d]: uncal=%f ref=%f factory=%f", i, uncalibrated[0], references[0], factory[0]);
         }
     } else {
-        logwarn("curve missing points");
+        logwarn("load-cal: curve missing points");
     }
 
     auto expected_coefficients = 0u;
 
-    switch (calibration->type) {
+    switch (cfg->type) {
     case fk_data_CurveType_CURVE_LINEAR: {
         expected_coefficients = 2u;
         break;
@@ -129,55 +149,72 @@ Curve *create_curve(Curve *default_curve, fk_data_Calibration *calibration, Pool
         break;
     }
     default: {
-        logwarn("using default curve: unexpected curve-type (%d)", calibration->type);
-        return default_curve;
+        logwarn("load-cal: unexpected curve-type (%d)", cfg->type);
+        return false;
     }
     }
 
-    auto curve_type = calibration->type;
-    auto values_array = reinterpret_cast<pb_array_t *>(calibration->coefficients.values.arg);
+    auto curve_type = cfg->type;
+    auto values_array = reinterpret_cast<pb_array_t *>(cfg->coefficients.values.arg);
     if (values_array->length != expected_coefficients) {
-        logwarn("using default curve: malformed coefficients (%d != %d)", values_array->length != expected_coefficients);
-        return default_curve;
+        logwarn("load-cal: malformed coefficients (%d != %d)", values_array->length != expected_coefficients);
+        return false;
     }
 
-    float coefficients[3] = { 0, 0, 0 };
     auto values = reinterpret_cast<float *>(values_array->buffer);
     for (auto i = 0u; i < values_array->length; ++i) {
-        coefficients[i] = values[i];
+        cal->coefficients[i] = values[i];
     }
+    cal->type = curve_type;
+    cal->kind = cfg->kind;
 
-    return create_curve(curve_type, coefficients, pool);
+    return true;
 }
 
-Curve *create_curve(Curve *default_curve, uint32_t kind, fk_data_ModuleConfiguration *cfg, Pool &pool) {
+bool fill_calibration_config(fk_data_ModuleConfiguration *cfg, calibration_config_t *cal) {
+    memzero(cal, sizeof(calibration_config_t));
+
     if (cfg == nullptr) {
-        loginfo("using default curve: no configuration");
-        return default_curve;
+        loginfo("load-cal: no configuration");
+        return false;
     }
 
     if (cfg->calibrations.arg != nullptr) {
         auto calibrations_array = reinterpret_cast<pb_array_t *>(cfg->calibrations.arg);
         auto calibrations = reinterpret_cast<fk_data_Calibration *>(calibrations_array->buffer);
         for (auto i = 0u; i < calibrations_array->length; ++i) {
-            if (calibrations[i].kind == kind) {
-                loginfo("curve: found kind among calibrations");
-                return create_curve(default_curve, &calibrations[i], pool);
-            } else {
-                logdebug("using default curve: skipping (%d != %d)", calibrations[i].kind, kind);
+            if (!fill_calibration(&calibrations[i], &cal->calibrations[i])) {
+                return false;
             }
         }
-        loginfo("using default curve: no calibration of kind (%d) (length=%zu)", kind, calibrations_array->length);
-    } else {
-        loginfo("using default curve: no calibrations");
+        return true;
     }
 
-    if (!cfg->has_calibration) {
-        loginfo("using default curve: no calibration");
-        return default_curve;
+    if (cfg->has_calibration) {
+        return fill_calibration(&cfg->calibration, &cal->calibrations[0]);
     }
 
-    return create_curve(default_curve, &cfg->calibration, pool);
+    return false;
+}
+
+bool WaterConfig::load(std::pair<EncodedMessage *, fk_data_ModuleConfiguration *> loaded) {
+    memzero(&cal_, sizeof(cal_));
+    memzero(serialized_, WaterConfigSerializedMaximum);
+    encoded_ = EncodedMessage{};
+
+    if (loaded.first != nullptr) {
+        if (!fill_calibration_config(loaded.second, &cal_)) {
+            logwarn("configuration error");
+        }
+
+        auto size = loaded.first->size;
+        auto buffer = loaded.first->buffer;
+        FK_ASSERT(size <= WaterConfigSerializedMaximum);
+        memcpy(serialized_, buffer, size);
+        encoded_ = EncodedMessage{ size, buffer };
+    }
+
+    return true;
 }
 
 } // namespace fk
