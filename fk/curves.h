@@ -43,6 +43,9 @@ public:
     }
 
     EncodedMessage *encoded() {
+        if (encoded_.size == 0) {
+            return nullptr;
+        }
         return &encoded_;
     }
 };
