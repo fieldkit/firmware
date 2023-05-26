@@ -6308,6 +6308,9 @@ export namespace fk_app {
 
         /** UdpMessage counter */
         counter?: number;
+
+        /** UdpMessage port */
+        port?: number;
     }
 
     /** Represents an UdpMessage. */
@@ -6327,6 +6330,9 @@ export namespace fk_app {
 
         /** UdpMessage counter. */
         public counter: number;
+
+        /** UdpMessage port. */
+        public port: number;
 
         /**
          * Creates a new UdpMessage instance using the specified properties.

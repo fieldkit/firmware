@@ -5323,6 +5323,7 @@ class UdpMessage extends $pb.GeneratedMessage {
     ..a<$core.List<$core.int>>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'deviceId', $pb.PbFieldType.OY, protoName: 'deviceId')
     ..e<UdpStatus>(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'status', $pb.PbFieldType.OE, defaultOrMaker: UdpStatus.UDP_STATUS_ONLINE, valueOf: UdpStatus.valueOf, enumValues: UdpStatus.values)
     ..a<$core.int>(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'counter', $pb.PbFieldType.OU3)
+    ..a<$core.int>(4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'port', $pb.PbFieldType.OU3)
     ..hasRequiredFields = false
   ;
 
@@ -5331,6 +5332,7 @@ class UdpMessage extends $pb.GeneratedMessage {
     $core.List<$core.int>? deviceId,
     UdpStatus? status,
     $core.int? counter,
+    $core.int? port,
   }) {
     final _result = create();
     if (deviceId != null) {
@@ -5341,6 +5343,9 @@ class UdpMessage extends $pb.GeneratedMessage {
     }
     if (counter != null) {
       _result.counter = counter;
+    }
+    if (port != null) {
+      _result.port = port;
     }
     return _result;
   }
@@ -5391,5 +5396,14 @@ class UdpMessage extends $pb.GeneratedMessage {
   $core.bool hasCounter() => $_has(2);
   @$pb.TagNumber(3)
   void clearCounter() => clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.int get port => $_getIZ(3);
+  @$pb.TagNumber(4)
+  set port($core.int v) { $_setUnsignedInt32(3, v); }
+  @$pb.TagNumber(4)
+  $core.bool hasPort() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearPort() => clearField(4);
 }
 

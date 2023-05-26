@@ -907,8 +907,9 @@ const UdpMessage$json = const {
     const {'1': 'deviceId', '3': 1, '4': 1, '5': 12, '10': 'deviceId'},
     const {'1': 'status', '3': 2, '4': 1, '5': 14, '6': '.fk_app.UdpStatus', '10': 'status'},
     const {'1': 'counter', '3': 3, '4': 1, '5': 13, '10': 'counter'},
+    const {'1': 'port', '3': 4, '4': 1, '5': 13, '10': 'port'},
   ],
 };
 
 /// Descriptor for `UdpMessage`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List udpMessageDescriptor = $convert.base64Decode('CgpVZHBNZXNzYWdlEhoKCGRldmljZUlkGAEgASgMUghkZXZpY2VJZBIpCgZzdGF0dXMYAiABKA4yES5ma19hcHAuVWRwU3RhdHVzUgZzdGF0dXMSGAoHY291bnRlchgDIAEoDVIHY291bnRlcg==');
+final $typed_data.Uint8List udpMessageDescriptor = $convert.base64Decode('CgpVZHBNZXNzYWdlEhoKCGRldmljZUlkGAEgASgMUghkZXZpY2VJZBIpCgZzdGF0dXMYAiABKA4yES5ma19hcHAuVWRwU3RhdHVzUgZzdGF0dXMSGAoHY291bnRlchgDIAEoDVIHY291bnRlchISCgRwb3J0GAQgASgNUgRwb3J0');
