@@ -29,13 +29,19 @@ struct calibration_config_t {
 const size_t WaterConfigSerializedMaximum = 512;
 
 class WaterConfig {
-public:
+private:
     calibration_config_t cal_;
     EncodedMessage encoded_;
     uint8_t serialized_[WaterConfigSerializedMaximum];
 
 public:
     bool load(std::pair<EncodedMessage *, fk_data_ModuleConfiguration *> loaded);
+
+public:
+    calibration_config_t *cal() {
+        return &cal_;
+    }
+
     EncodedMessage *encoded() {
         return &encoded_;
     }

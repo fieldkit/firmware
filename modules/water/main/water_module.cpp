@@ -212,7 +212,7 @@ ModuleReadings *WaterModule::take_readings(ReadingsContext mc, Pool &pool) {
         return nullptr;
     }
 
-    auto water_readings = water_protocol.take_readings(mc, &cfg_.cal_, pool);
+    auto water_readings = water_protocol.take_readings(mc, cfg_.cal(), pool);
     if (water_readings == nullptr) {
         return nullptr;
     }
