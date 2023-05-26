@@ -16458,6 +16458,7 @@
              * @property {Uint8Array} [deviceId] UdpMessage deviceId
              * @property {fk_app.UdpStatus} [status] UdpMessage status
              * @property {number} [counter] UdpMessage counter
+             * @property {number} [port] UdpMessage port
              */
     
             /**
@@ -16499,6 +16500,14 @@
             UdpMessage.prototype.counter = 0;
     
             /**
+             * UdpMessage port.
+             * @member {number}port
+             * @memberof fk_app.UdpMessage
+             * @instance
+             */
+            UdpMessage.prototype.port = 0;
+    
+            /**
              * Creates a new UdpMessage instance using the specified properties.
              * @function create
              * @memberof fk_app.UdpMessage
@@ -16528,6 +16537,8 @@
                     writer.uint32(/* id 2, wireType 0 =*/16).int32(message.status);
                 if (message.counter != null && message.hasOwnProperty("counter"))
                     writer.uint32(/* id 3, wireType 0 =*/24).uint32(message.counter);
+                if (message.port != null && message.hasOwnProperty("port"))
+                    writer.uint32(/* id 4, wireType 0 =*/32).uint32(message.port);
                 return writer;
             };
     
@@ -16570,6 +16581,9 @@
                         break;
                     case 3:
                         message.counter = reader.uint32();
+                        break;
+                    case 4:
+                        message.port = reader.uint32();
                         break;
                     default:
                         reader.skipType(tag & 7);
@@ -16620,6 +16634,9 @@
                 if (message.counter != null && message.hasOwnProperty("counter"))
                     if (!$util.isInteger(message.counter))
                         return "counter: integer expected";
+                if (message.port != null && message.hasOwnProperty("port"))
+                    if (!$util.isInteger(message.port))
+                        return "port: integer expected";
                 return null;
             };
     
@@ -16652,6 +16669,8 @@
                 }
                 if (object.counter != null)
                     message.counter = object.counter >>> 0;
+                if (object.port != null)
+                    message.port = object.port >>> 0;
                 return message;
             };
     
@@ -16672,6 +16691,7 @@
                     object.deviceId = options.bytes === String ? "" : [];
                     object.status = options.enums === String ? "UDP_STATUS_ONLINE" : 0;
                     object.counter = 0;
+                    object.port = 0;
                 }
                 if (message.deviceId != null && message.hasOwnProperty("deviceId"))
                     object.deviceId = options.bytes === String ? $util.base64.encode(message.deviceId, 0, message.deviceId.length) : options.bytes === Array ? Array.prototype.slice.call(message.deviceId) : message.deviceId;
@@ -16679,6 +16699,8 @@
                     object.status = options.enums === String ? $root.fk_app.UdpStatus[message.status] : message.status;
                 if (message.counter != null && message.hasOwnProperty("counter"))
                     object.counter = message.counter;
+                if (message.port != null && message.hasOwnProperty("port"))
+                    object.port = message.port;
                 return object;
             };
     

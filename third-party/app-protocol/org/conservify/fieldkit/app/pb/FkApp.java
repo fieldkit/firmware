@@ -34322,6 +34322,12 @@ public final class FkApp {
      * @return The counter.
      */
     int getCounter();
+
+    /**
+     * <code>uint32 port = 4;</code>
+     * @return The port.
+     */
+    int getPort();
   }
   /**
    * Protobuf type {@code fk_app.UdpMessage}
@@ -34427,6 +34433,32 @@ public final class FkApp {
     private void clearCounter() {
       
       counter_ = 0;
+    }
+
+    public static final int PORT_FIELD_NUMBER = 4;
+    private int port_;
+    /**
+     * <code>uint32 port = 4;</code>
+     * @return The port.
+     */
+    @java.lang.Override
+    public int getPort() {
+      return port_;
+    }
+    /**
+     * <code>uint32 port = 4;</code>
+     * @param value The port to set.
+     */
+    private void setPort(int value) {
+      
+      port_ = value;
+    }
+    /**
+     * <code>uint32 port = 4;</code>
+     */
+    private void clearPort() {
+      
+      port_ = 0;
     }
 
     public static org.conservify.fieldkit.app.pb.FkApp.UdpMessage parseFrom(
@@ -34626,6 +34658,34 @@ public final class FkApp {
         return this;
       }
 
+      /**
+       * <code>uint32 port = 4;</code>
+       * @return The port.
+       */
+      @java.lang.Override
+      public int getPort() {
+        return instance.getPort();
+      }
+      /**
+       * <code>uint32 port = 4;</code>
+       * @param value The port to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPort(int value) {
+        copyOnWrite();
+        instance.setPort(value);
+        return this;
+      }
+      /**
+       * <code>uint32 port = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearPort() {
+        copyOnWrite();
+        instance.clearPort();
+        return this;
+      }
+
       // @@protoc_insertion_point(builder_scope:fk_app.UdpMessage)
     }
     @java.lang.Override
@@ -34645,10 +34705,11 @@ public final class FkApp {
               "deviceId_",
               "status_",
               "counter_",
+              "port_",
             };
             java.lang.String info =
-                "\u0000\u0003\u0000\u0000\u0001\u0003\u0003\u0000\u0000\u0000\u0001\n\u0002\f\u0003" +
-                "\u000b";
+                "\u0000\u0004\u0000\u0000\u0001\u0004\u0004\u0000\u0000\u0000\u0001\n\u0002\f\u0003" +
+                "\u000b\u0004\u000b";
             return newMessageInfo(DEFAULT_INSTANCE, info, objects);
         }
         // fall through

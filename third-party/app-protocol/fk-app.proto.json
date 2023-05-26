@@ -1356,6 +1356,10 @@
             "counter": {
               "type": "uint32",
               "id": 3
+            },
+            "port": {
+              "type": "uint32",
+              "id": 4
             }
           }
         }

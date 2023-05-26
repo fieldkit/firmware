@@ -544,4 +544,5 @@ message UdpMessage {
   bytes deviceId = 1;
   UdpStatus status = 2;
   uint32 counter = 3;
+  uint32 port = 4;
 }
