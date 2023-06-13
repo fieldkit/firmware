@@ -94,7 +94,7 @@ Curve *create_curve(Curve *default_curve, uint32_t kind, calibration_config_t *c
 
     for (auto i = 0u; i < CalibrationMaximumCalibrations; ++i) {
         auto &calibration = cal->calibrations[i];
-        if (calibration.kind == kind || calibration.kind == 0) {
+        if (calibration.kind == kind) {
             loginfo("curve: found!");
             return create_curve(calibration.type, calibration.coefficients, pool);
         } else {
@@ -179,7 +179,13 @@ bool fill_calibration_config(fk_data_ModuleConfiguration *cfg, calibration_confi
         return false;
     }
 
+    if (cfg->has_calibration) {
+        loginfo("load-cal: single");
+        return fill_calibration(&cfg->calibration, &cal->calibrations[0]);
+    }
+
     if (cfg->calibrations.arg != nullptr) {
+        loginfo("load-cal: multiple");
         auto calibrations_array = reinterpret_cast<pb_array_t *>(cfg->calibrations.arg);
         auto calibrations = reinterpret_cast<fk_data_Calibration *>(calibrations_array->buffer);
         for (auto i = 0u; i < calibrations_array->length; ++i) {
@@ -188,10 +194,6 @@ bool fill_calibration_config(fk_data_ModuleConfiguration *cfg, calibration_confi
             }
         }
         return true;
-    }
-
-    if (cfg->has_calibration) {
-        return fill_calibration(&cfg->calibration, &cal->calibrations[0]);
     }
 
     return false;
