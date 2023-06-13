@@ -94,7 +94,7 @@ Curve *create_curve(Curve *default_curve, uint32_t kind, calibration_config_t *c
 
     for (auto i = 0u; i < CalibrationMaximumCalibrations; ++i) {
         auto &calibration = cal->calibrations[i];
-        if (calibration.kind == kind) {
+        if (calibration.kind == kind || calibration.kind == 0) {
             loginfo("curve: found!");
             return create_curve(calibration.type, calibration.coefficients, pool);
         } else {
