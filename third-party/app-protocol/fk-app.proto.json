@@ -269,6 +269,10 @@
               "type": "bool",
               "id": 5
             },
+            "supportsUdp": {
+              "type": "bool",
+              "id": 6
+            },
             "networks": {
               "rule": "repeated",
               "type": "NetworkInfo",

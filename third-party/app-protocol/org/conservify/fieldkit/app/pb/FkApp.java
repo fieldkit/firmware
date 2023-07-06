@@ -5727,6 +5727,12 @@ public final class FkApp {
     boolean getModifying();
 
     /**
+     * <code>bool supportsUdp = 6;</code>
+     * @return The supportsUdp.
+     */
+    boolean getSupportsUdp();
+
+    /**
      * <code>repeated .fk_app.NetworkInfo networks = 2;</code>
      */
     java.util.List<org.conservify.fieldkit.app.pb.FkApp.NetworkInfo> 
@@ -5895,6 +5901,32 @@ public final class FkApp {
     private void clearModifying() {
       
       modifying_ = false;
+    }
+
+    public static final int SUPPORTSUDP_FIELD_NUMBER = 6;
+    private boolean supportsUdp_;
+    /**
+     * <code>bool supportsUdp = 6;</code>
+     * @return The supportsUdp.
+     */
+    @java.lang.Override
+    public boolean getSupportsUdp() {
+      return supportsUdp_;
+    }
+    /**
+     * <code>bool supportsUdp = 6;</code>
+     * @param value The supportsUdp to set.
+     */
+    private void setSupportsUdp(boolean value) {
+      
+      supportsUdp_ = value;
+    }
+    /**
+     * <code>bool supportsUdp = 6;</code>
+     */
+    private void clearSupportsUdp() {
+      
+      supportsUdp_ = false;
     }
 
     public static final int NETWORKS_FIELD_NUMBER = 2;
@@ -6238,6 +6270,34 @@ public final class FkApp {
       }
 
       /**
+       * <code>bool supportsUdp = 6;</code>
+       * @return The supportsUdp.
+       */
+      @java.lang.Override
+      public boolean getSupportsUdp() {
+        return instance.getSupportsUdp();
+      }
+      /**
+       * <code>bool supportsUdp = 6;</code>
+       * @param value The supportsUdp to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSupportsUdp(boolean value) {
+        copyOnWrite();
+        instance.setSupportsUdp(value);
+        return this;
+      }
+      /**
+       * <code>bool supportsUdp = 6;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearSupportsUdp() {
+        copyOnWrite();
+        instance.clearSupportsUdp();
+        return this;
+      }
+
+      /**
        * <code>repeated .fk_app.NetworkInfo networks = 2;</code>
        */
       @java.lang.Override
@@ -6361,10 +6421,11 @@ public final class FkApp {
               "connected_",
               "macAddress_",
               "modifying_",
+              "supportsUdp_",
             };
             java.lang.String info =
-                "\u0000\u0005\u0000\u0000\u0001\u0005\u0005\u0000\u0001\u0000\u0001\u0004\u0002\u001b" +
-                "\u0003\t\u0004\u0208\u0005\u0007";
+                "\u0000\u0006\u0000\u0000\u0001\u0006\u0006\u0000\u0001\u0000\u0001\u0004\u0002\u001b" +
+                "\u0003\t\u0004\u0208\u0005\u0007\u0006\u0007";
             return newMessageInfo(DEFAULT_INSTANCE, info, objects);
         }
         // fall through

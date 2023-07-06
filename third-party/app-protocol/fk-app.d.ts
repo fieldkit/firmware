@@ -890,6 +890,9 @@ export namespace fk_app {
         /** NetworkSettings modifying */
         modifying?: boolean;
 
+        /** NetworkSettings supportsUdp */
+        supportsUdp?: boolean;
+
         /** NetworkSettings networks */
         networks?: fk_app.INetworkInfo[];
     }
@@ -914,6 +917,9 @@ export namespace fk_app {
 
         /** NetworkSettings modifying. */
         public modifying: boolean;
+
+        /** NetworkSettings supportsUdp. */
+        public supportsUdp: boolean;
 
         /** NetworkSettings networks. */
         public networks: fk_app.INetworkInfo[];
