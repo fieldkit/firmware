@@ -150,6 +150,7 @@ message NetworkSettings {
   NetworkInfo connected = 3;
   string macAddress = 4;
   bool modifying = 5;
+  bool supportsUdp = 6;
   repeated NetworkInfo networks = 2;
 }
 

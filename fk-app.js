@@ -2199,6 +2199,7 @@
              * @property {fk_app.INetworkInfo} [connected] NetworkSettings connected
              * @property {string} [macAddress] NetworkSettings macAddress
              * @property {boolean} [modifying] NetworkSettings modifying
+             * @property {boolean} [supportsUdp] NetworkSettings supportsUdp
              * @property {Array.<fk_app.INetworkInfo>} [networks] NetworkSettings networks
              */
     
@@ -2250,6 +2251,14 @@
             NetworkSettings.prototype.modifying = false;
     
             /**
+             * NetworkSettings supportsUdp.
+             * @member {boolean}supportsUdp
+             * @memberof fk_app.NetworkSettings
+             * @instance
+             */
+            NetworkSettings.prototype.supportsUdp = false;
+    
+            /**
              * NetworkSettings networks.
              * @member {Array.<fk_app.INetworkInfo>}networks
              * @memberof fk_app.NetworkSettings
@@ -2292,6 +2301,8 @@
                     writer.uint32(/* id 4, wireType 2 =*/34).string(message.macAddress);
                 if (message.modifying != null && message.hasOwnProperty("modifying"))
                     writer.uint32(/* id 5, wireType 0 =*/40).bool(message.modifying);
+                if (message.supportsUdp != null && message.hasOwnProperty("supportsUdp"))
+                    writer.uint32(/* id 6, wireType 0 =*/48).bool(message.supportsUdp);
                 return writer;
             };
     
@@ -2337,6 +2348,9 @@
                         break;
                     case 5:
                         message.modifying = reader.bool();
+                        break;
+                    case 6:
+                        message.supportsUdp = reader.bool();
                         break;
                     case 2:
                         if (!(message.networks && message.networks.length))
@@ -2392,6 +2406,9 @@
                 if (message.modifying != null && message.hasOwnProperty("modifying"))
                     if (typeof message.modifying !== "boolean")
                         return "modifying: boolean expected";
+                if (message.supportsUdp != null && message.hasOwnProperty("supportsUdp"))
+                    if (typeof message.supportsUdp !== "boolean")
+                        return "supportsUdp: boolean expected";
                 if (message.networks != null && message.hasOwnProperty("networks")) {
                     if (!Array.isArray(message.networks))
                         return "networks: array expected";
@@ -2427,6 +2444,8 @@
                     message.macAddress = String(object.macAddress);
                 if (object.modifying != null)
                     message.modifying = Boolean(object.modifying);
+                if (object.supportsUdp != null)
+                    message.supportsUdp = Boolean(object.supportsUdp);
                 if (object.networks) {
                     if (!Array.isArray(object.networks))
                         throw TypeError(".fk_app.NetworkSettings.networks: array expected");
@@ -2460,6 +2479,7 @@
                     object.connected = null;
                     object.macAddress = "";
                     object.modifying = false;
+                    object.supportsUdp = false;
                 }
                 if (message.createAccessPoint != null && message.hasOwnProperty("createAccessPoint"))
                     object.createAccessPoint = message.createAccessPoint;
@@ -2474,6 +2494,8 @@
                     object.macAddress = message.macAddress;
                 if (message.modifying != null && message.hasOwnProperty("modifying"))
                     object.modifying = message.modifying;
+                if (message.supportsUdp != null && message.hasOwnProperty("supportsUdp"))
+                    object.supportsUdp = message.supportsUdp;
                 return object;
             };
     
