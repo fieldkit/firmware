@@ -21,6 +21,15 @@
 
 #include "../modules/weather/main/weather.h"
 
+#if defined(__SAMD51__)
+#include <WiFi101.h>
+
+#if !defined(FK_NETWORK_ESP32)
+#include <driver/include/m2m_types.h>
+#include <driver/include/m2m_ota.h>
+#endif
+#endif
+
 extern const struct fkb_header_t fkb_header;
 
 namespace fk {
@@ -31,9 +40,9 @@ static void scan_i2c_radio_bus() __attribute__((unused));
 
 static void scan_i2c_module_bus() __attribute__((unused));
 
-static void wifi_test() __attribute__((unused));
-
 static void wifi_low_level_test() __attribute__((unused));
+
+static void write_headers() __attribute__((unused));
 
 static void scan_i2c_radio_bus() {
     auto bus = get_board()->i2c_radio();
@@ -181,21 +190,8 @@ static void write_headers() {
     }
 }
 
-static void test_core_dump() {
-    // fk_core_dump("livetest");
-    // fk_core_dump(nullptr);
-
-    fk_core_dump_tasks();
-
-    while (true) {
-        fk_delay(1000);
-    }
-}
-
-// #define FK_NETWORK_ESP32
-
 static void wifi_low_level_test() {
-#if defined(FK_NETWORK_ESP32)
+#if defined(FK_NETWORK_ESP32) && defined(FK_WIFI_0_SSID) && defined(FK_WIFI_0_PASSWORD)
     pinMode(WIFI_ESP32_CS, OUTPUT);
     digitalWrite(WIFI_ESP32_CS, HIGH);
     SPI1.begin();
@@ -220,7 +216,7 @@ static void wifi_low_level_test() {
     // Connect to WPA/WPA2 network. Change this line if using open or WEP network:
     uint8_t status = -1;
     do {
-        status = WiFi.begin("Cottonwood", "asdfasdf");
+        status = WiFi.begin(FK_WIFI_0_SSID, FK_WIFI_0_PASSWORD);
         delay(100); // wait until connection is ready!
     } while (status != WL_CONNECTED);
 
@@ -299,6 +295,9 @@ static void wifi_low_level_test() {
 #endif
 }
 
+#if defined(FK_LIVE_TEST_WIFI) && defined(FK_WIFI_0_SSID) && defined(FK_WIFI_0_PASSWORD)
+static void wifi_test() __attribute__((unused));
+
 static void wifi_test() {
     StandardPool pool{ "network-task" };
     NetworkServices services{ get_network(), pool };
@@ -307,8 +306,8 @@ static void wifi_test() {
     gsm.apply([=](GlobalState *gs) {
         gs->network.config.wifi_networks[0] = {};
         gs->network.config.wifi_networks[0].valid = true;
-        strncpy(gs->network.config.wifi_networks[0].ssid, "Cottonwood", sizeof(gs->network.config.wifi_networks[0].ssid));
-        strncpy(gs->network.config.wifi_networks[0].password, "asdfasdf", sizeof(gs->network.config.wifi_networks[0].password));
+        strncpy(gs->network.config.wifi_networks[0].ssid, FK_WIFI_0_SSID, sizeof(gs->network.config.wifi_networks[0].ssid));
+        strncpy(gs->network.config.wifi_networks[0].password, FK_WIFI_0_PASSWORD, sizeof(gs->network.config.wifi_networks[0].password));
     });
 
     loginfo("starting network...");
@@ -365,32 +364,144 @@ static void wifi_test() {
         }
     }
 }
+#endif
+
+#if defined(FK_LIVE_TEST_WINC1500_OTA) && !defined(FK_NETWORK_ESP32)
+#define MAIN_WLAN_SSID FK_WIFI_0_SSID
+#define MAIN_WLAN_AUTH M2M_WIFI_SEC_WPA_PSK
+#define MAIN_WLAN_PSK  FK_WIFI_0_PASSWORD
+#define MAIN_OTA_URL   "http://192.168.0.100:8000/m2m_ota_3a0.bin"
+
+static void wifi_cb(uint8_t u8MsgType, void *pvMsg) {
+    switch (u8MsgType) {
+    case M2M_WIFI_RESP_CON_STATE_CHANGED: {
+        tstrM2mWifiStateChanged *pstrWifiState = (tstrM2mWifiStateChanged *)pvMsg;
+        if (pstrWifiState->u8CurrState == M2M_WIFI_CONNECTED) {
+            m2m_wifi_request_dhcp_client();
+        } else if (pstrWifiState->u8CurrState == M2M_WIFI_DISCONNECTED) {
+            loginfo("Wi-Fi disconnected");
+
+            /* Connect to defined AP. */
+            m2m_wifi_connect((char *)MAIN_WLAN_SSID, sizeof(MAIN_WLAN_SSID), MAIN_WLAN_AUTH, (void *)MAIN_WLAN_PSK, M2M_WIFI_CH_ALL);
+        }
+
+        break;
+    }
+
+    case M2M_WIFI_REQ_DHCP_CONF: {
+        uint8_t *pu8IPAddress = (uint8_t *)pvMsg;
+        loginfo("Wi-Fi connected");
+        loginfo("Wi-Fi IP is %u.%u.%u.%u", pu8IPAddress[0], pu8IPAddress[1], pu8IPAddress[2], pu8IPAddress[3]);
+        m2m_ota_start_update((uint8_t *)MAIN_OTA_URL);
+        break;
+    }
+
+    default: {
+        break;
+    }
+    }
+}
+
+static void OtaUpdateCb(uint8_t u8OtaUpdateStatusType, uint8_t u8OtaUpdateStatus) {
+    loginfo("OtaUpdateCb %d %d", u8OtaUpdateStatusType, u8OtaUpdateStatus);
+    if (u8OtaUpdateStatusType == DL_STATUS) {
+        if (u8OtaUpdateStatus == OTA_STATUS_SUCCESS) {
+            /* Start Host Controller OTA HERE ... Before switching.... */
+            loginfo("OtaUpdateCb m2m_ota_switch_firmware start.");
+            m2m_ota_switch_firmware();
+        } else {
+            loginfo("OtaUpdateCb FAIL u8OtaUpdateStatus: %d", u8OtaUpdateStatus);
+        }
+    } else if (u8OtaUpdateStatusType == SW_STATUS) {
+        if (u8OtaUpdateStatus == OTA_STATUS_SUCCESS) {
+            loginfo("OTA Success. Press reset your board.");
+            /* system_reset(); */
+        }
+    }
+}
+
+static void OtaNotifCb(tstrOtaUpdateInfo *pv) {
+    loginfo("OtaNotifCb");
+}
+
+static void wifi_firmware_upgrade() __attribute__((unused));
+
+static void wifi_firmware_upgrade() {
+    tstrWifiInitParam param;
+    int8_t ret;
+
+    pinMode(WINC1500_CS, OUTPUT);
+    pinMode(WINC1500_IRQ, INPUT);
+    pinMode(WINC1500_RESET, OUTPUT);
+
+    digitalWrite(WINC1500_POWER, HIGH);
+    SPI1.begin();
+
+    WiFi.setPins(WINC1500_CS, WINC1500_IRQ, WINC1500_RESET);
+    NVIC_SetPriority(EIC_11_IRQn, OS_IRQ_PRIORITY_SYSTICK - 1);
+
+    /* Initialize the BSP. */
+    nm_bsp_init();
+
+    /* Initialize Wi-Fi parameters structure. */
+    memset((uint8_t *)&param, 0, sizeof(tstrWifiInitParam));
+
+    /* Initialize Wi-Fi driver with data and status callbacks. */
+    param.pfAppWifiCb = wifi_cb;
+    ret = m2m_wifi_init(&param);
+    if (M2M_SUCCESS != ret) {
+        loginfo("main: m2m_wifi_init call error!(%d)\r\n", ret);
+        while (1) {
+        }
+    }
+
+    /* Connect to defined AP. */
+    m2m_wifi_connect((char *)MAIN_WLAN_SSID, sizeof(MAIN_WLAN_SSID), MAIN_WLAN_AUTH, (void *)MAIN_WLAN_PSK, M2M_WIFI_CH_ALL);
+
+    /* Init ota function. */
+    m2m_ota_init(OtaUpdateCb, OtaNotifCb);
+
+    while (1) {
+        /* Handle pending events from network controller. */
+        while (m2m_wifi_handle_events(NULL) != M2M_SUCCESS) {
+        }
+    }
+}
+
+void wifi_server() {
+    {
+        StandardPool pool{ "wifi-server" };
+        GlobalStateManager gsm;
+        gsm.initialize(pool);
+
+        ModuleRegistry registry;
+        registry.initialize();
+    }
+
+    wifi_test();
+}
+#endif
 
 void fk_live_tests() {
-    if (false) {
-        // wifi_test();
-        wifi_low_level_test();
+#if defined(FK_LIVE_TEST_WINC1500_OTA)
+#if !defined(FK_NETWORK_ESP32)
+    wifi_firmware_upgrade();
+#endif
 
-        while (true) {
-            fk_delay(1000);
-        }
+    while (true) {
+        fk_delay(1000);
     }
-    if (false) {
-        scan_i2c_module_bus();
-    }
-    if (false) {
-        scan_i2c_radio_bus();
-    }
-    if (false) {
-        write_headers();
-    }
-    if (false) {
-        test_core_dump();
+#endif
 
-        while (true) {
-            fk_delay(1000);
-        }
+#if defined(FK_LIVE_TEST_WIFI)
+#if !defined(FK_NETWORK_ESP32)
+    wifi_server();
+#endif
+
+    while (true) {
+        fk_delay(1000);
     }
+#endif
 }
 
 } // namespace fk

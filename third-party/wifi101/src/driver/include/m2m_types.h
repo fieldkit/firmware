@@ -2084,7 +2084,7 @@ typedef struct {
 	OTA return status
 */
 typedef enum {
-	OTA_STATUS_SUCSESS        = 0,
+	OTA_STATUS_SUCCESS        = 0,
 	/*!< OTA Success with not errors. */
 	OTA_STATUS_FAIL           = 1,
 	/*!< OTA generic fail. */
