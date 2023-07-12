@@ -28,10 +28,16 @@ class TableRelocation:
 
 class TableSymbol:
     def __init__(
-        self, name: str, size: int, got_offset: int, relocs: List[TableRelocation]
+        self,
+        name: str,
+        value: int,
+        size: int,
+        got_offset: int,
+        relocs: List[TableRelocation],
     ):
         super().__init__()
         self.name: str = name
+        self.value: int = value
         self.size: int = size
         self.got_offset: int = got_offset
         self.relocs: List[TableRelocation] = []
@@ -270,7 +276,7 @@ class ElfAnalyzer:
 
     def add_symbol(self, symbol: lief.ELF.Symbol, size: int, address: int, offset: int):
         if not symbol in self.symbols:
-            ts = TableSymbol(symbol.name, size, offset, [])
+            ts = TableSymbol(symbol.name, symbol.value, size, offset, [])
             self.symbols[symbol] = ts
         return self.symbols[symbol]
 
@@ -279,6 +285,10 @@ class ElfAnalyzer:
         self.binary = lief.ELF.parse(self.elf_path)
         if self.dynamic:
             self.find_relocations()
+        else:
+            elf_symbols = utilities.get_symbols_in_elf(self.elf_path)
+            for symbol in elf_symbols:
+                self.add_symbol(symbol, 0, 0, 0)
         logging.info("Done, %s elapsed", time.time() - started)
 
     def get_binary_sections(self):
@@ -447,6 +457,15 @@ class FkbWriter:
         symbols = bytearray()
         relocations = bytearray()
 
+        logging.info(
+            "Packing table: %d"
+            % (
+                len(
+                    self.ea.symbols,
+                )
+            )
+        )
+
         # Address in the symbol table we write to the image seems totally wrong...
         indices = {}
         index = 0
@@ -478,6 +497,7 @@ class FkbWriter:
     def add_table_section(self, table: bytes, table_alignment: int):
         section = self.ea.fkdyn()
         if not section:
+            logging.warning("Missing fkdyn")
             return
 
         extra_padding = utilities.aligned(len(table), table_alignment) - len(table)
@@ -489,7 +509,9 @@ class FkbWriter:
         )
 
 
-def make_binary_from_elf(objcopy_path: str, elf_path: str, bin_path: str, expected_size: int):
+def make_binary_from_elf(
+    objcopy_path: str, elf_path: str, bin_path: str, expected_size: int
+):
     command = [objcopy_path, "-O", "binary", elf_path, bin_path]
     logging.info("Exporting '%s' to '%s'" % (elf_path, bin_path))
     logging.info(" ".join(command))
@@ -516,7 +538,9 @@ def main():
     configure_logging()
 
     parser = argparse.ArgumentParser(description="Firmware Preparation Tool")
-    parser.add_argument("--objcopy", dest="objcopy_path", default=None, help="Path to objcopy tool")
+    parser.add_argument(
+        "--objcopy", dest="objcopy_path", default=None, help="Path to objcopy tool"
+    )
     parser.add_argument(
         "--no-verbose",
         dest="no_verbose",
@@ -575,7 +599,12 @@ def main():
                 if args.dynamic:
                     ea.write_bin(args.bin_path)
                 else:
-                    make_binary_from_elf(args.objcopy_path, args.fkb_path, args.bin_path, ea.get_binary_size())
+                    make_binary_from_elf(
+                        args.objcopy_path,
+                        args.fkb_path,
+                        args.bin_path,
+                        ea.get_binary_size(),
+                    )
         else:
             if args.bin_path:
                 make_binary_from_elf(args.objcopy_path, args.elf_path, args.bin_path)
