@@ -187,7 +187,7 @@ void NetworkServices::tick() {
         network_->service(tick_pool_);
 
         if (tick_pool_->used() > 0) {
-            loginfo("network-tick: %zu/%zu", tick_pool_->used(), tick_pool_->size());
+            logverbose("network-tick: %zu/%zu", tick_pool_->used(), tick_pool_->size());
             tick_pool_->clear();
         }
     }

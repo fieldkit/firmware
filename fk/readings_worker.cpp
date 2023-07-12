@@ -163,6 +163,8 @@ bool ReadingsWorker::save(Pool &pool) {
         return false;
     }
 
+    loginfo("storage-update wrote=%" PRIu32 " data-attr=%" PRIu32, *data_record_number, data_attributes->records);
+
     storage_update_ = StorageUpdate{ .meta = StorageStreamUpdate{ meta_attributes->size, meta_attributes->records },
                                      .data = StorageStreamUpdate{ data_attributes->size, data_attributes->records },
                                      .nreadings = data_attributes->nreadings,

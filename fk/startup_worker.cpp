@@ -429,6 +429,9 @@ bool StartupWorker::load_from_files(Storage &storage, GlobalState *gs, Pool &poo
         return false;
     }
 
+    loginfo("meta size=%" PRIu32 " records=%" PRIu32, meta_attributes->size, meta_attributes->records);
+    loginfo("data size=%" PRIu32 " records=%" PRIu32, data_attributes->size, data_attributes->records);
+
     auto storage_update = StorageUpdate{
         .meta = StorageStreamUpdate{ meta_attributes->size, meta_attributes->records },
         .data = StorageStreamUpdate{ data_attributes->size, data_attributes->records },
