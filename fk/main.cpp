@@ -114,6 +114,18 @@ static void single_threaded_setup() {
 void setup() {
     SEGGER_RTT_WriteString(0, "\n");
     single_threaded_setup();
+
+#if defined(FK_IPC_SINGLE_THREADED)
+#if defined(__SAMD51__)
+    get_board()->i2c_core().begin();
+    auto clock = get_clock();
+    if (!clock->begin()) {
+        logerror("rtc error");
+    }
+    fk_live_tests();
+#endif
+#endif
+
     run_tasks();
 }
 

@@ -103,10 +103,12 @@ bool NetworkServices::should_stop() {
 
     // Some other task has requested that we stop serving. Menu option
     // or a self check for example.
+#if !defined(FK_IPC_SINGLE_THREADED)
     if (fk_task_stop_requested(&signal_checked_)) {
         loginfo("stop requested");
         return true;
     }
+#endif
 
     return false;
 }
