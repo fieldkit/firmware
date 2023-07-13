@@ -18,8 +18,8 @@
 //  <http://www.gnu.org/licenses/>.
 //
 
-#define  HAS_SERVICE_REGISTRATION      1  // disabling saves about 1.25 kilobytes
-#define  HAS_NAME_BROWSING             1  // disable together with above, additionally saves about 4.3 kilobytes
+#define HAS_SERVICE_REGISTRATION 1 // disabling saves about 1.25 kilobytes
+#define HAS_NAME_BROWSING        1 // disable together with above, additionally saves about 4.3 kilobytes
 
 #include <string.h>
 #include <stdlib.h>
@@ -27,20 +27,19 @@
 #include <Udp.h>
 
 extern "C" {
-   #include <utility/EthernetUtil.h>
-   uint32_t fkb_external_printf(const char *str, ...);
-    void loginfof(const char *facility, const char *f, ...) __attribute__((format(printf, 2, 3)));
-   void fk_assert(const char *assertion, const char *file, int32_t line, const char *f, ...);
+#include <utility/EthernetUtil.h>
+uint32_t fkb_external_printf(const char *str, ...);
+void loginfof(const char *facility, const char *f, ...) __attribute__((format(printf, 2, 3)));
+void fk_assert(const char *assertion, const char *file, int32_t line, const char *f, ...);
 }
 
-#define FK_ASSERT_INTERNAL(expression, f, ...)        (void)((expression) || (fk_assert(#expression, __FILE__, __LINE__, f, ##__VA_ARGS__), 0))
-#define FK_ASSERT(expression)                         FK_ASSERT_INTERNAL(expression, "")
-
+#define FK_ASSERT_INTERNAL(expression, f, ...) (void)((expression) || (fk_assert(#expression, __FILE__, __LINE__, f, ##__VA_ARGS__), 0))
+#define FK_ASSERT(expression)                  FK_ASSERT_INTERNAL(expression, "")
 
 #if defined(__SAMD51__)
-#define FK_ASSERT_ADDRESS(ptr)                        FK_ASSERT((intptr_t)ptr != 0 && (intptr_t)ptr >= 0x20000000 && (intptr_t)ptr < 0x20040000);
+#define FK_ASSERT_ADDRESS(ptr) FK_ASSERT((intptr_t)ptr != 0 && (intptr_t)ptr >= 0x20000000 && (intptr_t)ptr < 0x20040000);
 #else
-#define FK_ASSERT_ADDRESS(ptr)                        FK_ASSERT((intptr_t)ptr != 0);
+#define FK_ASSERT_ADDRESS(ptr) FK_ASSERT((intptr_t)ptr != 0);
 #endif
 
 #define DEBUG_LOGGING
@@ -53,100 +52,91 @@ extern "C" {
 
 #include "MDNS.h"
 
-#define  MDNS_DEFAULT_NAME       "arduino"
-#define  MDNS_TLD                ".local"
-#define  DNS_SD_SERVICE          "_services._dns-sd._udp.local"
-#define  MDNS_SERVER_PORT        (5353)
-#define  MDNS_NQUERY_RESEND_TIME (1000)   // 1 second, name query resend timeout
-#define  MDNS_SQUERY_RESEND_TIME (10000)  // 10 seconds, service query resend timeout
-#define  MDNS_RESPONSE_TTL       (10)     //
+#define MDNS_DEFAULT_NAME       "arduino"
+#define MDNS_TLD                ".local"
+#define DNS_SD_SERVICE          "_services._dns-sd._udp.local"
+#define MDNS_SERVER_PORT        (5353)
+#define MDNS_NQUERY_RESEND_TIME (1000)  // 1 second, name query resend timeout
+#define MDNS_SQUERY_RESEND_TIME (10000) // 10 seconds, service query resend timeout
+#define MDNS_RESPONSE_TTL       (10)    //
 
-#define  MDNS_MAX_SERVICES_PER_PACKET  (6)
+#define MDNS_MAX_SERVICES_PER_PACKET (6)
 
-//#define  _BROKEN_MALLOC_   1
+// #define  _BROKEN_MALLOC_   1
 #undef _USE_MALLOC_
 
 static uint8_t mdnsMulticastIPAddr[] = { 224, 0, 0, 251 };
-//static uint8_t mdnsHWAddr[] = { 0x01, 0x00, 0x5e, 0x00, 0x00, 0xfb };
+// static uint8_t mdnsHWAddr[] = { 0x01, 0x00, 0x5e, 0x00, 0x00, 0xfb };
 
 typedef enum _MDNSPacketType_t {
-   MDNSPacketTypeMyIPAnswer,
-   MDNSPacketTypeNoIPv6AddrAvailable,
-   MDNSPacketTypeServiceRecord,
-   MDNSPacketTypeServiceRecordRelease,
-   MDNSPacketTypeNameQuery,
-   MDNSPacketTypeServiceQuery,
+    MDNSPacketTypeMyIPAnswer,
+    MDNSPacketTypeNoIPv6AddrAvailable,
+    MDNSPacketTypeServiceRecord,
+    MDNSPacketTypeServiceRecordRelease,
+    MDNSPacketTypeNameQuery,
+    MDNSPacketTypeServiceQuery,
 } MDNSPacketType_t;
 
 typedef struct _DNSHeader_t {
-   uint16_t    xid;
-   uint8_t     recursionDesired:1;
-   uint8_t     truncated:1;
-   uint8_t     authoritiveAnswer:1;
-   uint8_t     opCode:4;
-   uint8_t     queryResponse:1;
-   uint8_t     responseCode:4;
-   uint8_t     checkingDisabled:1;
-   uint8_t     authenticatedData:1;
-   uint8_t     zReserved:1;
-   uint8_t     recursionAvailable:1;
-   uint16_t    queryCount;
-   uint16_t    answerCount;
-   uint16_t    authorityCount;
-   uint16_t    additionalCount;
+    uint16_t xid;
+    uint8_t recursionDesired : 1;
+    uint8_t truncated : 1;
+    uint8_t authoritiveAnswer : 1;
+    uint8_t opCode : 4;
+    uint8_t queryResponse : 1;
+    uint8_t responseCode : 4;
+    uint8_t checkingDisabled : 1;
+    uint8_t authenticatedData : 1;
+    uint8_t zReserved : 1;
+    uint8_t recursionAvailable : 1;
+    uint16_t queryCount;
+    uint16_t answerCount;
+    uint16_t authorityCount;
+    uint16_t additionalCount;
 } __attribute__((__packed__)) DNSHeader_t;
 
-typedef enum _DNSOpCode_t {
-   DNSOpQuery     = 0,
-   DNSOpIQuery    = 1,
-   DNSOpStatus    = 2,
-   DNSOpNotify    = 4,
-   DNSOpUpdate    = 5
-} DNSOpCode_t;
+typedef enum _DNSOpCode_t { DNSOpQuery = 0, DNSOpIQuery = 1, DNSOpStatus = 2, DNSOpNotify = 4, DNSOpUpdate = 5 } DNSOpCode_t;
 
-MDNS::MDNS(UDP& udp) : MDNS(udp, nullptr)
-{
+MDNS::MDNS(UDP &udp) : MDNS(udp, nullptr) {
 }
 
-MDNS::MDNS(UDP& udp, MDNSAllocator *allocator)
-{
-   memset(&this->_mdnsData, 0, sizeof(MDNSDataInternal_t));
-   memset(&this->_serviceRecords, 0, sizeof(this->_serviceRecords));
+MDNS::MDNS(UDP &udp, MDNSAllocator *allocator) {
+    memset(&this->_mdnsData, 0, sizeof(MDNSDataInternal_t));
+    memset(&this->_serviceRecords, 0, sizeof(this->_serviceRecords));
 
-   this->_allocator = allocator;
-   this->_udp = &udp;
-   this->_state = MDNSStateIdle;
-//   this->_sock = -1;
+    this->_allocator = allocator;
+    this->_udp = &udp;
+    this->_state = MDNSStateIdle;
+    //   this->_sock = -1;
 
-   this->_name = NULL;
-   this->_resolveNames[0] = NULL;
-   this->_resolveNames[1] = NULL;
+    this->_name = NULL;
+    this->_resolveNames[0] = NULL;
+    this->_resolveNames[1] = NULL;
 
-   this->_lastAnnounceMillis = 0;
+    this->_lastAnnounceMillis = 0;
 }
 
-MDNS::~MDNS()
-{
-  DEBUG_PRINTF("MDNS::~MDNS()");
-  if (_buffer != nullptr) {
-      _allocator->free(_buffer);
-      _buffer = nullptr;
-  }
-	this->_udp->stop();
+MDNS::~MDNS() {
+    DEBUG_PRINTF("MDNS::~MDNS()");
+    if (_buffer != nullptr) {
+        _allocator->free(_buffer);
+        _buffer = nullptr;
+    }
+    this->_udp->stop();
 }
 
 // return values:
 // 1 on success
 // 0 otherwise
-int MDNS::begin(const IPAddress& ip, const char* name)
-{
-	// if we were called very soon after the board was booted, we need to give the
-	// EthernetShield (WIZnet) some time to come up. Hence, we delay until millis() is at
-	// least 3000. This is necessary, so that if we need to add a service record directly
-	// after begin, the announce packet does not get lost in the bowels of the WIZnet chip.
-	while (millis() < 3000) delay(100);
+int MDNS::begin(const IPAddress &ip, const char *name) {
+    // if we were called very soon after the board was booted, we need to give the
+    // EthernetShield (WIZnet) some time to come up. Hence, we delay until millis() is at
+    // least 3000. This is necessary, so that if we need to add a service record directly
+    // after begin, the announce packet does not get lost in the bowels of the WIZnet chip.
+    while (millis() < 3000)
+        delay(100);
 
-	_ipAddress = ip;
+    _ipAddress = ip;
     _buffer = nullptr;
     _name = nullptr;
     _resolveNames[0] = nullptr;
@@ -161,607 +151,566 @@ int MDNS::begin(const IPAddress& ip, const char* name)
     _resolveTimeouts[0] = 0;
     _resolveTimeouts[1] = 0;
 
-	int statusCode = 0;
-	statusCode = this->setName(name);
-	if (statusCode)
-	statusCode = this->_udp->beginMulticast(mdnsMulticastIPAddr, MDNS_SERVER_PORT);
+    int statusCode = 0;
+    statusCode = this->setName(name);
+    if (statusCode)
+        statusCode = this->_udp->beginMulticast(mdnsMulticastIPAddr, MDNS_SERVER_PORT);
 
     DEBUG_PRINTF("MDNS::begin()");
 
-	return statusCode;
+    return statusCode;
 }
 
 // return values:
 // 1 on success
 // 0 otherwise
-int MDNS::begin(const IPAddress& ip)
-{
-   return this->begin(ip, MDNS_DEFAULT_NAME);
+int MDNS::begin(const IPAddress &ip) {
+    return this->begin(ip, MDNS_DEFAULT_NAME);
 }
 
 // return values:
 // 1 on success
 // 0 otherwise
-int MDNS::_initQuery(uint8_t idx, const char* name, unsigned long timeout)
-{
-   int statusCode = 0;
+int MDNS::_initQuery(uint8_t idx, const char *name, unsigned long timeout) {
+    int statusCode = 0;
 
-   if (NULL == this->_resolveNames[idx] && NULL != ((0==idx) ? (void*)this->_nameFoundCallback :
-                                                               (void*)this->_serviceFoundCallback)) {
-      this->_resolveNames[idx] = (uint8_t*)name;
+    if (NULL == this->_resolveNames[idx] && NULL != ((0 == idx) ? (void *)this->_nameFoundCallback : (void *)this->_serviceFoundCallback)) {
+        this->_resolveNames[idx] = (uint8_t *)name;
 
-      if (timeout)
-         this->_resolveTimeouts[idx] = millis() + timeout;
-      else
-         this->_resolveTimeouts[idx] = 0;
+        if (timeout)
+            this->_resolveTimeouts[idx] = millis() + timeout;
+        else
+            this->_resolveTimeouts[idx] = 0;
 
-      statusCode = (MDNSSuccess == this->_sendMDNSMessage(0,
-                                             0,
-                                             (idx == 0) ? MDNSPacketTypeNameQuery :
-                                                          MDNSPacketTypeServiceQuery,
-                                             0));
-   } else
-      _allocator->free((void*)name);
+        statusCode = (MDNSSuccess == this->_sendMDNSMessage(0, 0, (idx == 0) ? MDNSPacketTypeNameQuery : MDNSPacketTypeServiceQuery, 0));
+    } else
+        _allocator->free((void *)name);
 
-   return statusCode;
+    return statusCode;
 }
 
-void MDNS::_cancelQuery(uint8_t idx)
-{
-   if (NULL != this->_resolveNames[idx]) {
-      _allocator->free(this->_resolveNames[idx]);
-      this->_resolveNames[idx] = NULL;
-   }
+void MDNS::_cancelQuery(uint8_t idx) {
+    if (NULL != this->_resolveNames[idx]) {
+        _allocator->free(this->_resolveNames[idx]);
+        this->_resolveNames[idx] = NULL;
+    }
 }
 
 // return values:
 // 1 on success
 // 0 otherwise
-int MDNS::resolveName(const char* name, unsigned long timeout)
-{
-   this->cancelResolveName();
+int MDNS::resolveName(const char *name, unsigned long timeout) {
+    this->cancelResolveName();
 
-   char* n = (char*)_allocator->malloc(strlen(name) + 7 + 1);
-   if (NULL == n)
-      return 0;
+    char *n = (char *)_allocator->malloc(strlen(name) + 7 + 1);
+    if (NULL == n)
+        return 0;
 
-   strcpy(n, name);
-   strcat(n, MDNS_TLD);
+    strcpy(n, name);
+    strcat(n, MDNS_TLD);
 
-   return this->_initQuery(0, n, timeout);
+    return this->_initQuery(0, n, timeout);
 }
 
-void MDNS::setNameResolvedCallback(MDNSNameFoundCallback newCallback)
-{
-   this->_nameFoundCallback = newCallback;
+void MDNS::setNameResolvedCallback(MDNSNameFoundCallback newCallback) {
+    this->_nameFoundCallback = newCallback;
 }
 
-void MDNS::cancelResolveName()
-{
-   this->_cancelQuery(0);
+void MDNS::cancelResolveName() {
+    this->_cancelQuery(0);
 }
 
-int MDNS::isResolvingName()
-{
-   return (NULL != this->_resolveNames[0]);
+int MDNS::isResolvingName() {
+    return (NULL != this->_resolveNames[0]);
 }
 
-void MDNS::setServiceFoundCallback(MDNSServiceFoundCallback newCallback)
-{
-   this->_serviceFoundCallback = newCallback;
+void MDNS::setServiceFoundCallback(MDNSServiceFoundCallback newCallback) {
+    this->_serviceFoundCallback = newCallback;
 }
 
 // return values:
 // 1 on success
 // 0 otherwise
-int MDNS::startDiscoveringService(const char* serviceName,
-                                                  MDNSServiceProtocol_t proto,
-                                                  unsigned long timeout)
-{
-   this->stopDiscoveringService();
+int MDNS::startDiscoveringService(const char *serviceName, MDNSServiceProtocol_t proto, unsigned long timeout) {
+    this->stopDiscoveringService();
 
-   char* n = (char*)_allocator->malloc(strlen(serviceName) + 13 + 1);
-   if (NULL == n)
-      return 0;
+    char *n = (char *)_allocator->malloc(strlen(serviceName) + 13 + 1);
+    if (NULL == n)
+        return 0;
 
-   strcpy(n, serviceName);
+    strcpy(n, serviceName);
 
-   const uint8_t* srv_type = this->_postfixForProtocol(proto);
-   if (srv_type)
-      strcat(n, (const char*)srv_type);
+    const uint8_t *srv_type = this->_postfixForProtocol(proto);
+    if (srv_type)
+        strcat(n, (const char *)srv_type);
 
-   this->_resolveServiceProto = proto;
+    this->_resolveServiceProto = proto;
 
-   return this->_initQuery(1, n, timeout);
+    return this->_initQuery(1, n, timeout);
 }
 
-void MDNS::stopDiscoveringService()
-{
-   this->_cancelQuery(1);
+void MDNS::stopDiscoveringService() {
+    this->_cancelQuery(1);
 }
 
-int MDNS::isDiscoveringService()
-{
-   return (NULL != this->_resolveNames[1]);
+int MDNS::isDiscoveringService() {
+    return (NULL != this->_resolveNames[1]);
 }
 
 // return value:
 // A DNSError_t (DNSSuccess on success, something else otherwise)
 // in "int" mode: positive on success, negative on error
-MDNSError_t MDNS::_sendMDNSMessage(uint32_t /*peerAddress*/, uint32_t xid, int type,
-                                                   int serviceRecord)
-{
-   MDNSError_t statusCode = MDNSSuccess;
-   uint16_t ptr = 0;
+MDNSError_t MDNS::_sendMDNSMessage(uint32_t /*peerAddress*/, uint32_t xid, int type, int serviceRecord) {
+    MDNSError_t statusCode = MDNSSuccess;
+    uint16_t ptr = 0;
 #if defined(_USE_MALLOC_)
-   DNSHeader_t* dnsHeader = NULL;
+    DNSHeader_t *dnsHeader = NULL;
 #else
-   DNSHeader_t dnsHeaderBuf;
-   DNSHeader_t* dnsHeader = &dnsHeaderBuf;
+    DNSHeader_t dnsHeaderBuf;
+    DNSHeader_t *dnsHeader = &dnsHeaderBuf;
 #endif
-   uint8_t* buf;
+    uint8_t *buf;
 
-   DEBUG_PRINTF("MDNS::_sendMDNSMessage(%d, %d, %d)", xid, type, serviceRecord);
+    DEBUG_PRINTF("MDNS::_sendMDNSMessage(%d, %d, %d)", xid, type, serviceRecord);
 
 #if defined(_USE_MALLOC_)
-   dnsHeader = (DNSHeader_t*)_allocator->malloc(sizeof(DNSHeader_t));
-   if (NULL == dnsHeader) {
-      statusCode = MDNSOutOfMemory;
-      goto errorReturn;
-   }
+    dnsHeader = (DNSHeader_t *)_allocator->malloc(sizeof(DNSHeader_t));
+    if (NULL == dnsHeader) {
+        statusCode = MDNSOutOfMemory;
+        goto errorReturn;
+    }
 #endif
 
-   memset(dnsHeader, 0, sizeof(DNSHeader_t));
+    memset(dnsHeader, 0, sizeof(DNSHeader_t));
 
-   dnsHeader->xid = ethutil_htons(xid);
-   dnsHeader->opCode = DNSOpQuery;
+    dnsHeader->xid = ethutil_htons(xid);
+    dnsHeader->opCode = DNSOpQuery;
 
-   switch (type) {
-      case MDNSPacketTypeServiceRecordRelease:
-      case MDNSPacketTypeMyIPAnswer:
-         DEBUG_PRINTF("MDNS::_sendMDNSMessage() MDNSPacketTypeServiceRecordRelease or MDNSPacketTypeMyIPAnswer");
-         dnsHeader->answerCount = ethutil_htons(1);
-         dnsHeader->queryResponse = 1;
-         dnsHeader->authoritiveAnswer = 1;
-         break;
-      case MDNSPacketTypeServiceRecord:
-         dnsHeader->answerCount = ethutil_htons(4);
-         dnsHeader->additionalCount = ethutil_htons(1);
-         dnsHeader->queryResponse = 1;
-         dnsHeader->authoritiveAnswer = 1;
-         DEBUG_PRINTF("MDNS::_sendMDNSMessage() MDNSPacketTypeServiceRecord");
-         break;
-      case MDNSPacketTypeNameQuery:
-      case MDNSPacketTypeServiceQuery:
-         dnsHeader->queryCount = ethutil_htons(1);
-         DEBUG_PRINTF("MDNS::_sendMDNSMessage() MDNSPacketTypeNameQuery or MDNSPacketTypeServiceQuery");
-         break;
-      case MDNSPacketTypeNoIPv6AddrAvailable:
-         dnsHeader->queryCount = ethutil_htons(1);
-         dnsHeader->additionalCount = ethutil_htons(1);
-         dnsHeader->responseCode = 0x03;
-         dnsHeader->authoritiveAnswer = 1;
-         dnsHeader->queryResponse = 1;
-         break;
-   }
+    switch (type) {
+    case MDNSPacketTypeServiceRecordRelease:
+    case MDNSPacketTypeMyIPAnswer:
+        DEBUG_PRINTF("MDNS::_sendMDNSMessage() MDNSPacketTypeServiceRecordRelease or MDNSPacketTypeMyIPAnswer");
+        dnsHeader->answerCount = ethutil_htons(1);
+        dnsHeader->queryResponse = 1;
+        dnsHeader->authoritiveAnswer = 1;
+        break;
+    case MDNSPacketTypeServiceRecord:
+        dnsHeader->answerCount = ethutil_htons(4);
+        dnsHeader->additionalCount = ethutil_htons(1);
+        dnsHeader->queryResponse = 1;
+        dnsHeader->authoritiveAnswer = 1;
+        DEBUG_PRINTF("MDNS::_sendMDNSMessage() MDNSPacketTypeServiceRecord");
+        break;
+    case MDNSPacketTypeNameQuery:
+    case MDNSPacketTypeServiceQuery:
+        dnsHeader->queryCount = ethutil_htons(1);
+        DEBUG_PRINTF("MDNS::_sendMDNSMessage() MDNSPacketTypeNameQuery or MDNSPacketTypeServiceQuery");
+        break;
+    case MDNSPacketTypeNoIPv6AddrAvailable:
+        dnsHeader->queryCount = ethutil_htons(1);
+        dnsHeader->additionalCount = ethutil_htons(1);
+        dnsHeader->responseCode = 0x03;
+        dnsHeader->authoritiveAnswer = 1;
+        dnsHeader->queryResponse = 1;
+        break;
+    }
 
+    this->_udp->beginPacket(mdnsMulticastIPAddr, MDNS_SERVER_PORT);
+    this->_udp->write((uint8_t *)dnsHeader, sizeof(DNSHeader_t));
 
+    ptr += sizeof(DNSHeader_t);
+    buf = (uint8_t *)dnsHeader;
 
-
-   this->_udp->beginPacket(mdnsMulticastIPAddr,MDNS_SERVER_PORT);
-   this->_udp->write((uint8_t*)dnsHeader,sizeof(DNSHeader_t));
-
-   ptr += sizeof(DNSHeader_t);
-   buf = (uint8_t*)dnsHeader;
-
-   // construct the answer section
-   switch (type) {
-      case MDNSPacketTypeMyIPAnswer: {
-         this->_writeMyIPAnswerRecord(&ptr, buf, sizeof(DNSHeader_t));
-         break;
-      }
+    // construct the answer section
+    switch (type) {
+    case MDNSPacketTypeMyIPAnswer: {
+        this->_writeMyIPAnswerRecord(&ptr, buf, sizeof(DNSHeader_t));
+        break;
+    }
 
 #if defined(HAS_SERVICE_REGISTRATION) && HAS_SERVICE_REGISTRATION
 
-      case MDNSPacketTypeServiceRecord: {
+    case MDNSPacketTypeServiceRecord: {
 
-         // SRV location record
-         this->_writeServiceRecordName(serviceRecord, &ptr, buf, sizeof(DNSHeader_t), 0);
+        // SRV location record
+        this->_writeServiceRecordName(serviceRecord, &ptr, buf, sizeof(DNSHeader_t), 0);
 
-         buf[0] = 0x00;
-         buf[1] = 0x21;    // SRV record
-         buf[2] = 0x80;    // cache flush
-         buf[3] = 0x01;    // class IN
+        buf[0] = 0x00;
+        buf[1] = 0x21; // SRV record
+        buf[2] = 0x80; // cache flush
+        buf[3] = 0x01; // class IN
 
-         // ttl
-         *((uint32_t*)&buf[4]) = ethutil_htonl(MDNS_RESPONSE_TTL);
+        // ttl
+        *((uint32_t *)&buf[4]) = ethutil_htonl(MDNS_RESPONSE_TTL);
 
-         // data length
-         *((uint16_t*)&buf[8]) = ethutil_htons(8 + strlen((char*)this->_name));
+        // data length
+        *((uint16_t *)&buf[8]) = ethutil_htons(8 + strlen((char *)this->_name));
 
-         this->_udp->write((uint8_t*)buf,10);
-         ptr += 10;
-         // priority and weight
-         buf[0] = buf[1] = buf[2] = buf[3] = 0;
+        this->_udp->write((uint8_t *)buf, 10);
+        ptr += 10;
+        // priority and weight
+        buf[0] = buf[1] = buf[2] = buf[3] = 0;
 
-         // port
-         *((uint16_t*)&buf[4]) = ethutil_htons(this->_serviceRecords[serviceRecord]->port);
+        // port
+        *((uint16_t *)&buf[4]) = ethutil_htons(this->_serviceRecords[serviceRecord]->port);
 
-         this->_udp->write((uint8_t*)buf,6);
-         ptr += 6;
-         // target
-         this->_writeDNSName(this->_name, &ptr, buf, sizeof(DNSHeader_t), 1);
+        this->_udp->write((uint8_t *)buf, 6);
+        ptr += 6;
+        // target
+        this->_writeDNSName(this->_name, &ptr, buf, sizeof(DNSHeader_t), 1);
 
-         // TXT record
-         this->_writeServiceRecordName(serviceRecord, &ptr, buf, sizeof(DNSHeader_t), 0);
+        // TXT record
+        this->_writeServiceRecordName(serviceRecord, &ptr, buf, sizeof(DNSHeader_t), 0);
 
-         buf[0] = 0x00;
-         buf[1] = 0x10;    // TXT record
-         buf[2] = 0x80;    // cache flush
-         buf[3] = 0x01;    // class IN
+        buf[0] = 0x00;
+        buf[1] = 0x10; // TXT record
+        buf[2] = 0x80; // cache flush
+        buf[3] = 0x01; // class IN
 
-         // ttl
-         *((uint32_t*)&buf[4]) = ethutil_htonl(MDNS_RESPONSE_TTL);
+        // ttl
+        *((uint32_t *)&buf[4]) = ethutil_htonl(MDNS_RESPONSE_TTL);
 
-         this->_udp->write((uint8_t*)buf,8);
-         ptr += 8;
+        this->_udp->write((uint8_t *)buf, 8);
+        ptr += 8;
 
-         // data length && text
-         if (NULL == this->_serviceRecords[serviceRecord]->textContent) {
+        // data length && text
+        if (NULL == this->_serviceRecords[serviceRecord]->textContent) {
             buf[0] = 0x00;
             buf[1] = 0x01;
             buf[2] = 0x00;
 
-            this->_udp->write((uint8_t*)buf,3);
+            this->_udp->write((uint8_t *)buf, 3);
             ptr += 3;
-         } else {
-            int slen = strlen((char*)this->_serviceRecords[serviceRecord]->textContent);
-            *((uint16_t*)buf) = ethutil_htons(slen);
-            this->_udp->write((uint8_t*)buf,2);
+        } else {
+            int slen = strlen((char *)this->_serviceRecords[serviceRecord]->textContent);
+            *((uint16_t *)buf) = ethutil_htons(slen);
+            this->_udp->write((uint8_t *)buf, 2);
             ptr += 2;
 
-            this->_udp->write((uint8_t*)this->_serviceRecords[serviceRecord]->textContent,slen);
+            this->_udp->write((uint8_t *)this->_serviceRecords[serviceRecord]->textContent, slen);
             ptr += slen;
-         }
+        }
 
-         // PTR record (for the dns-sd service in general)
-         this->_writeDNSName((const uint8_t*)DNS_SD_SERVICE, &ptr, buf,
-                                          sizeof(DNSHeader_t), 1);
+        // PTR record (for the dns-sd service in general)
+        this->_writeDNSName((const uint8_t *)DNS_SD_SERVICE, &ptr, buf, sizeof(DNSHeader_t), 1);
 
-         buf[0] = 0x00;
-         buf[1] = 0x0c;    // PTR record
-         buf[2] = 0x00;    // no cache flush
-         buf[3] = 0x01;    // class IN
+        buf[0] = 0x00;
+        buf[1] = 0x0c; // PTR record
+        buf[2] = 0x00; // no cache flush
+        buf[3] = 0x01; // class IN
 
-         // ttl
-         *((uint32_t*)&buf[4]) = ethutil_htonl(MDNS_RESPONSE_TTL);
+        // ttl
+        *((uint32_t *)&buf[4]) = ethutil_htonl(MDNS_RESPONSE_TTL);
 
-         // data length.
-         uint16_t dlen = strlen((char*)this->_serviceRecords[serviceRecord]->servName) + 2;
-         *((uint16_t*)&buf[8]) = ethutil_htons(dlen);
+        // data length.
+        uint16_t dlen = strlen((char *)this->_serviceRecords[serviceRecord]->servName) + 2;
+        *((uint16_t *)&buf[8]) = ethutil_htons(dlen);
 
-         this->_udp->write((uint8_t*)buf, 10);
-         ptr += 10;
+        this->_udp->write((uint8_t *)buf, 10);
+        ptr += 10;
 
-         this->_writeServiceRecordName(serviceRecord, &ptr, buf, sizeof(DNSHeader_t), 1);
+        this->_writeServiceRecordName(serviceRecord, &ptr, buf, sizeof(DNSHeader_t), 1);
 
-         // PTR record (our service)
-         this->_writeServiceRecordPTR(serviceRecord, &ptr, buf, sizeof(DNSHeader_t),
-                                      MDNS_RESPONSE_TTL);
+        // PTR record (our service)
+        this->_writeServiceRecordPTR(serviceRecord, &ptr, buf, sizeof(DNSHeader_t), MDNS_RESPONSE_TTL);
 
-         // finally, our IP address as additional record
-         this->_writeMyIPAnswerRecord(&ptr, buf, sizeof(DNSHeader_t));
+        // finally, our IP address as additional record
+        this->_writeMyIPAnswerRecord(&ptr, buf, sizeof(DNSHeader_t));
 
-         break;
-      }
+        break;
+    }
 
-      case MDNSPacketTypeServiceRecordRelease: {
-         // just send our service PTR with a TTL of zero
-         this->_writeServiceRecordPTR(serviceRecord, &ptr, buf, sizeof(DNSHeader_t), 0);
-         break;
-      }
+    case MDNSPacketTypeServiceRecordRelease: {
+        // just send our service PTR with a TTL of zero
+        this->_writeServiceRecordPTR(serviceRecord, &ptr, buf, sizeof(DNSHeader_t), 0);
+        break;
+    }
 
 #endif // defined(HAS_SERVICE_REGISTRATION) && HAS_SERVICE_REGISTRATION
 
 #if defined(HAS_NAME_BROWSING) && HAS_NAME_BROWSING
 
-      case MDNSPacketTypeNameQuery:
-      case MDNSPacketTypeServiceQuery:
-      {
-         // construct a query for the currently set _resolveNames[0]
-         this->_writeDNSName(
-               (type == MDNSPacketTypeServiceQuery) ? this->_resolveNames[1] :
-                                                      this->_resolveNames[0],
-               &ptr, buf, sizeof(DNSHeader_t), 1);
+    case MDNSPacketTypeNameQuery:
+    case MDNSPacketTypeServiceQuery: {
+        // construct a query for the currently set _resolveNames[0]
+        this->_writeDNSName((type == MDNSPacketTypeServiceQuery) ? this->_resolveNames[1] : this->_resolveNames[0], &ptr, buf,
+                            sizeof(DNSHeader_t), 1);
 
-         buf[0] = buf[2] = 0x0;
-         buf[1] = (type == MDNSPacketTypeServiceQuery) ? 0x0c : 0x01;
-         buf[3] = 0x1;
+        buf[0] = buf[2] = 0x0;
+        buf[1] = (type == MDNSPacketTypeServiceQuery) ? 0x0c : 0x01;
+        buf[3] = 0x1;
 
-         this->_udp->write((uint8_t*)buf, sizeof(DNSHeader_t));
-         ptr += sizeof(DNSHeader_t);
+        this->_udp->write((uint8_t *)buf, sizeof(DNSHeader_t));
+        ptr += sizeof(DNSHeader_t);
 
-         this->_resolveLastSendMillis[(type == MDNSPacketTypeServiceQuery) ? 1 : 0] = millis();
+        this->_resolveLastSendMillis[(type == MDNSPacketTypeServiceQuery) ? 1 : 0] = millis();
 
-         break;
-      }
+        break;
+    }
 
 #endif // defined(HAS_NAME_BROWSING) && HAS_NAME_BROWSING
 
-      case MDNSPacketTypeNoIPv6AddrAvailable: {
-         // since the WIZnet doesn't have IPv6, we will respond with a Not Found message
-         this->_writeDNSName(this->_name, &ptr, buf, sizeof(DNSHeader_t), 1);
+    case MDNSPacketTypeNoIPv6AddrAvailable: {
+        // since the WIZnet doesn't have IPv6, we will respond with a Not Found message
+        this->_writeDNSName(this->_name, &ptr, buf, sizeof(DNSHeader_t), 1);
 
-         buf[0] = buf[2] = 0x0;
-         buf[1] = 0x1c; // AAAA record
-         buf[3] = 0x01;
+        buf[0] = buf[2] = 0x0;
+        buf[1] = 0x1c; // AAAA record
+        buf[3] = 0x01;
 
-         this->_udp->write((uint8_t*)buf, 4);
-         ptr += 4;
+        this->_udp->write((uint8_t *)buf, 4);
+        ptr += 4;
 
-         // send our IPv4 address record as additional record, in case the peer wants it.
-         this->_writeMyIPAnswerRecord(&ptr, buf, sizeof(DNSHeader_t));
+        // send our IPv4 address record as additional record, in case the peer wants it.
+        this->_writeMyIPAnswerRecord(&ptr, buf, sizeof(DNSHeader_t));
 
-         break;
-      }
-   }
+        break;
+    }
+    }
 
-
-   auto status = this->_udp->endPacket();
-   DEBUG_PRINTF("MDNS::_sendMDNSMessage() endPacket = %d ptr = %d type = %d", status, ptr, type);
-
+    auto status = this->_udp->endPacket();
+    DEBUG_PRINTF("MDNS::_sendMDNSMessage() endPacket = %d ptr = %d type = %d", status, ptr, type);
 
 #if defined(_USE_MALLOC_)
 errorReturn:
 
-   if (NULL != dnsHeader)
-      my_free(dnsHeader);
+    if (NULL != dnsHeader)
+        my_free(dnsHeader);
 #endif
 
-   return statusCode;
+    return statusCode;
 }
 
 // return value:
 // A DNSError_t (DNSSuccess on success, something else otherwise)
 // in "int" mode: positive on success, negative on error
-MDNSError_t MDNS::_processMDNSQuery()
-{
-   MDNSError_t statusCode = MDNSSuccess;
+MDNSError_t MDNS::_processMDNSQuery() {
+    MDNSError_t statusCode = MDNSSuccess;
 #if defined(_USE_MALLOC_)
-   DNSHeader_t* dnsHeader = NULL;
+    DNSHeader_t *dnsHeader = NULL;
 #else
-   DNSHeader_t dnsHeaderBuf;
-   DNSHeader_t* dnsHeader = &dnsHeaderBuf;
+    DNSHeader_t dnsHeaderBuf;
+    DNSHeader_t *dnsHeader = &dnsHeaderBuf;
 #endif
-   unsigned int i, j;
-   uint8_t* buf;
-   uint32_t xid = 0;
-   uint16_t udp_len, qCnt, aCnt, aaCnt, addCnt;
-   uint8_t recordsAskedFor[NumMDNSServiceRecords+2];
-   uint8_t recordsFound[2];
-   uint8_t wantsIPv6Addr = 0;
-   uint8_t * udpBuffer = NULL;
-   uintptr_t ptr;
+    unsigned int i, j;
+    uint8_t *buf;
+    uint32_t xid = 0;
+    uint16_t udp_len, qCnt, aCnt, aaCnt, addCnt;
+    uint8_t recordsAskedFor[NumMDNSServiceRecords + 2];
+    uint8_t recordsFound[2];
+    uint8_t wantsIPv6Addr = 0;
+    uint8_t *udpBuffer = NULL;
+    uintptr_t ptr;
 
-   memset(recordsAskedFor, 0, sizeof(uint8_t)*(NumMDNSServiceRecords+2));
-   memset(recordsFound, 0, sizeof(uint8_t)*2);
+    memset(recordsAskedFor, 0, sizeof(uint8_t) * (NumMDNSServiceRecords + 2));
+    memset(recordsFound, 0, sizeof(uint8_t) * 2);
 
+    udp_len = this->_udp->parsePacket();
+    if (0 == udp_len) {
+        statusCode = MDNSTryLater;
+        goto errorReturn;
+    }
 
-   udp_len = this->_udp->parsePacket();
-   if (0 == udp_len) {
-      statusCode = MDNSTryLater;
-      goto errorReturn;
-   }
+    if (_buffer == nullptr) {
+        _buffer = (uint8_t *)_allocator->malloc(1024);
+        if (NULL == _buffer) {
+            this->_udp->flush();
+            statusCode = MDNSOutOfMemory;
+            goto errorReturn;
+        }
+    }
 
-   if (_buffer == nullptr) {
-       _buffer = (uint8_t*) _allocator->malloc(1024);
-       if (NULL == _buffer) {
-           this->_udp->flush();
-           statusCode = MDNSOutOfMemory;
-           goto errorReturn;
-       }
-   }
+#if defined(__SAMD51__)
+    FK_ASSERT_ADDRESS(_buffer);
+#endif
 
-   #if defined(__SAMD51__)
-   FK_ASSERT_ADDRESS(_buffer);
-   #endif
-
-   udpBuffer = _buffer;
-   if (udp_len > 1024) {
-       this->_udp->flush();
-       statusCode = MDNSOutOfMemory;
-       goto errorReturn;
-   }
-   this->_udp->read((uint8_t*)udpBuffer, udp_len);//read _remaining UDP packet from W5100/W5200 into memory
-   ptr = (uintptr_t)udpBuffer;
+    udpBuffer = _buffer;
+    if (udp_len > 1024) {
+        this->_udp->flush();
+        statusCode = MDNSOutOfMemory;
+        goto errorReturn;
+    }
+    this->_udp->read((uint8_t *)udpBuffer, udp_len); // read _remaining UDP packet from W5100/W5200 into memory
+    ptr = (uintptr_t)udpBuffer;
 
 #if defined(_USE_MALLOC_)
-   dnsHeader = (DNSHeader_t*)_allocator->malloc(sizeof(DNSHeader_t));
-   if (NULL == dnsHeader) {
-      statusCode = MDNSOutOfMemory;
-      goto errorReturn;
-   }
+    dnsHeader = (DNSHeader_t *)_allocator->malloc(sizeof(DNSHeader_t));
+    if (NULL == dnsHeader) {
+        statusCode = MDNSOutOfMemory;
+        goto errorReturn;
+    }
 #endif
 
-   buf = (uint8_t*)dnsHeader;
-   memcpy((uint8_t*)buf, (uint16_t*)ptr ,sizeof(DNSHeader_t));
+    buf = (uint8_t *)dnsHeader;
+    memcpy((uint8_t *)buf, (uint16_t *)ptr, sizeof(DNSHeader_t));
 
-   xid = ethutil_ntohs(dnsHeader->xid);
-   qCnt = ethutil_ntohs(dnsHeader->queryCount);
-   aCnt = ethutil_ntohs(dnsHeader->answerCount);
-   aaCnt = ethutil_ntohs(dnsHeader->authorityCount);
-   addCnt = ethutil_ntohs(dnsHeader->additionalCount);
+    xid = ethutil_ntohs(dnsHeader->xid);
+    qCnt = ethutil_ntohs(dnsHeader->queryCount);
+    aCnt = ethutil_ntohs(dnsHeader->answerCount);
+    aaCnt = ethutil_ntohs(dnsHeader->authorityCount);
+    addCnt = ethutil_ntohs(dnsHeader->additionalCount);
 
-   if (0 == dnsHeader->queryResponse &&
-       DNSOpQuery == dnsHeader->opCode &&
-       MDNS_SERVER_PORT == this->_udp->remotePort())
-	  {
-      // process an MDNS query
-      int offset = sizeof(DNSHeader_t);
-      uint8_t* buf = (uint8_t*)dnsHeader;
-      int rLen = 0, tLen = 0;
+    if (0 == dnsHeader->queryResponse && DNSOpQuery == dnsHeader->opCode && MDNS_SERVER_PORT == this->_udp->remotePort()) {
+        // process an MDNS query
+        int offset = sizeof(DNSHeader_t);
+        uint8_t *buf = (uint8_t *)dnsHeader;
+        int rLen = 0, tLen = 0;
 
-      DEBUG_PRINTF("MDNS::_processMDNSQuery()");
+        DEBUG_PRINTF("MDNS::_processMDNSQuery()");
 
-      // read over the query section
-      for (i=0; i<qCnt; i++) {
-         // construct service name data structures for comparison
-         const uint8_t* servNames[NumMDNSServiceRecords+2];
-         int servLens[NumMDNSServiceRecords+2];
-         uint8_t servNamePos[NumMDNSServiceRecords+2];
-         uint8_t servMatches[NumMDNSServiceRecords+2];
+        // read over the query section
+        for (i = 0; i < qCnt; i++) {
+            // construct service name data structures for comparison
+            const uint8_t *servNames[NumMDNSServiceRecords + 2];
+            int servLens[NumMDNSServiceRecords + 2];
+            uint8_t servNamePos[NumMDNSServiceRecords + 2];
+            uint8_t servMatches[NumMDNSServiceRecords + 2];
 
-         // first entry is our own MDNS name, the rest are our services
-         servNames[0] = (const uint8_t*)this->_name;
-         servNamePos[0] = 0;
-         servLens[0] = strlen((char*)this->_name);
-         servMatches[0] = 1;
+            // first entry is our own MDNS name, the rest are our services
+            servNames[0] = (const uint8_t *)this->_name;
+            servNamePos[0] = 0;
+            servLens[0] = strlen((char *)this->_name);
+            servMatches[0] = 1;
 
-         // second entry is our own the general DNS-SD service
-         servNames[1] = (const uint8_t*)DNS_SD_SERVICE;
-         servNamePos[1] = 0;
-         servLens[1] = strlen((char*)DNS_SD_SERVICE);
-         servMatches[1] = 1;
+            // second entry is our own the general DNS-SD service
+            servNames[1] = (const uint8_t *)DNS_SD_SERVICE;
+            servNamePos[1] = 0;
+            servLens[1] = strlen((char *)DNS_SD_SERVICE);
+            servMatches[1] = 1;
 
-         for (j=2; j<NumMDNSServiceRecords+2; j++)
-            if (NULL != this->_serviceRecords[j-2] && NULL != this->_serviceRecords[j-2]->servName) {
-               servNames[j] = this->_serviceRecords[j-2]->servName;
-               servLens[j] = strlen((char*)servNames[j]);
-               servMatches[j] = 1;
-               servNamePos[j] = 0;
-            } else {
-               servNames[j] = NULL;
-               servLens[j] = 0;
-               servMatches[j] = 0;
-               servNamePos[j] = 0;
+            for (j = 2; j < NumMDNSServiceRecords + 2; j++)
+                if (NULL != this->_serviceRecords[j - 2] && NULL != this->_serviceRecords[j - 2]->servName) {
+                    servNames[j] = this->_serviceRecords[j - 2]->servName;
+                    servLens[j] = strlen((char *)servNames[j]);
+                    servMatches[j] = 1;
+                    servNamePos[j] = 0;
+                } else {
+                    servNames[j] = NULL;
+                    servLens[j] = 0;
+                    servMatches[j] = 0;
+                    servNamePos[j] = 0;
+                }
+
+            tLen = 0;
+            do {
+
+                memcpy((uint8_t *)buf, (uint16_t *)(ptr + offset), 1);
+                offset += 1;
+
+                rLen = buf[0];
+                tLen += 1;
+
+                if (rLen > 128) { // handle DNS name compression, kinda, sorta
+
+                    memcpy((uint8_t *)buf, (uint16_t *)(ptr + offset), 1);
+                    offset += 1;
+
+                    for (j = 0; j < NumMDNSServiceRecords + 2; j++) {
+                        if (servNamePos[j] && servNamePos[j] != buf[0]) {
+                            servMatches[j] = 0;
+                        }
+                    }
+
+                    tLen += 1;
+                } else if (rLen > 0) {
+                    int tr = rLen, ir;
+
+                    while (tr > 0) {
+                        ir = (tr > (int)sizeof(DNSHeader_t)) ? sizeof(DNSHeader_t) : tr;
+
+                        memcpy((uint8_t *)buf, (uint16_t *)(ptr + offset), ir);
+                        offset += ir;
+                        tr -= ir;
+
+                        for (j = 0; j < NumMDNSServiceRecords + 2; j++) {
+                            if (!recordsAskedFor[j] && servMatches[j])
+                                servMatches[j] &= this->_matchStringPart(&servNames[j], &servLens[j], buf, ir);
+                        }
+                    }
+
+                    tLen += rLen;
+                }
+            } while (rLen > 0 && rLen <= 128);
+
+            // if this matched a name of ours (and there are no characters left), then
+            // check whether this is an A record query (for our own name) or a PTR record query
+            // (for one of our services).
+            // if so, we'll note to send a record
+
+            memcpy((uint8_t *)buf, (uint16_t *)(ptr + offset), 4);
+            offset += 4;
+
+            for (j = 0; j < NumMDNSServiceRecords + 2; j++) {
+                if (!recordsAskedFor[j] && servNames[j] && servMatches[j] && 0 == servLens[j]) {
+                    if (0 == servNamePos[j])
+                        servNamePos[j] = offset - 4 - tLen;
+
+                    if (buf[0] == 0 && buf[3] == 0x01 && (buf[2] == 0x00 || buf[2] == 0x80)) {
+
+                        if ((0 == j && 0x01 == buf[1]) || (0 < j && (0x0c == buf[1] || 0x10 == buf[1] || 0x21 == buf[1])))
+                            recordsAskedFor[j] = 1;
+                        else if (0 == j && 0x1c == buf[1])
+                            wantsIPv6Addr = 1;
+                    }
+                }
             }
-
-         tLen = 0;
-         do {
-
-        	memcpy((uint8_t*)buf, (uint16_t*)(ptr+offset) ,1);
-            offset += 1;
-
-            rLen = buf[0];
-            tLen += 1;
-
-            if (rLen > 128) {// handle DNS name compression, kinda, sorta
-
-
-            	memcpy((uint8_t*)buf, (uint16_t*)(ptr+offset) ,1);
-            	offset += 1;
-
-               for (j=0; j<NumMDNSServiceRecords+2; j++) {
-                  if (servNamePos[j] && servNamePos[j] != buf[0]) {
-                     servMatches[j] = 0;
-                  }
-               }
-
-               tLen += 1;
-            } else if (rLen > 0) {
-               int tr = rLen, ir;
-
-               while (tr > 0) {
-                  ir = (tr > (int)sizeof(DNSHeader_t)) ? sizeof(DNSHeader_t) : tr;
-
-                  memcpy((uint8_t*)buf, (uint16_t*)(ptr+offset) ,ir);
-                  offset += ir;
-                  tr -= ir;
-
-                  for (j=0; j<NumMDNSServiceRecords+2; j++) {
-                     if (!recordsAskedFor[j] && servMatches[j])
-                        servMatches[j] &= this->_matchStringPart(&servNames[j], &servLens[j], buf,
-                                                                 ir);
-                  }
-               }
-
-               tLen += rLen;
-            }
-         } while (rLen > 0 && rLen <= 128);
-
-         // if this matched a name of ours (and there are no characters left), then
-         // check whether this is an A record query (for our own name) or a PTR record query
-         // (for one of our services).
-         // if so, we'll note to send a record
-
-         memcpy((uint8_t*)buf, (uint16_t*)(ptr+offset) ,4);
-         offset += 4;
-
-         for (j=0; j<NumMDNSServiceRecords+2; j++) {
-            if (!recordsAskedFor[j] && servNames[j] && servMatches[j] && 0 == servLens[j]) {
-               if (0 == servNamePos[j])
-                  servNamePos[j] = offset - 4 - tLen;
-
-               if (buf[0] == 0 && buf[3] == 0x01 &&
-                  (buf[2] == 0x00 || buf[2] == 0x80)) {
-
-                  if ((0 == j && 0x01 == buf[1]) || (0 < j && (0x0c == buf[1] || 0x10 == buf[1] || 0x21 == buf[1])))
-                     recordsAskedFor[j] = 1;
-                  else if (0 == j && 0x1c == buf[1])
-                     wantsIPv6Addr = 1;
-               }
-            }
-         }
-      }
-   }
+        }
+    }
 
 #if (defined(HAS_SERVICE_REGISTRATION) && HAS_SERVICE_REGISTRATION) || (defined(HAS_NAME_BROWSING) && HAS_NAME_BROWSING)
 
-   else if (1 == dnsHeader->queryResponse &&
-              DNSOpQuery == dnsHeader->opCode &&
-              MDNS_SERVER_PORT == this->_udp->remotePort() &&
-              (NULL != this->_resolveNames[0] || NULL != this->_resolveNames[1]))
-	     {
-         int offset = sizeof(DNSHeader_t);
-         uint8_t* buf = (uint8_t*)dnsHeader;
-         int rLen = 0, tLen = 0;
+    else if (1 == dnsHeader->queryResponse && DNSOpQuery == dnsHeader->opCode && MDNS_SERVER_PORT == this->_udp->remotePort() &&
+             (NULL != this->_resolveNames[0] || NULL != this->_resolveNames[1])) {
+        int offset = sizeof(DNSHeader_t);
+        uint8_t *buf = (uint8_t *)dnsHeader;
+        int rLen = 0, tLen = 0;
 
-         uint8_t* ptrNames[MDNS_MAX_SERVICES_PER_PACKET];
-         uint16_t ptrOffsets[MDNS_MAX_SERVICES_PER_PACKET];
-         uint16_t ptrPorts[MDNS_MAX_SERVICES_PER_PACKET];
-         uint8_t ptrIPs[MDNS_MAX_SERVICES_PER_PACKET];
-         uint8_t servIPs[MDNS_MAX_SERVICES_PER_PACKET][5];
-         uint8_t* servTxt[MDNS_MAX_SERVICES_PER_PACKET];
-         memset(servIPs, 0, sizeof(uint8_t)*MDNS_MAX_SERVICES_PER_PACKET*5);
-         memset(servTxt, 0, sizeof(uint8_t*)*MDNS_MAX_SERVICES_PER_PACKET);
+        uint8_t *ptrNames[MDNS_MAX_SERVICES_PER_PACKET];
+        uint16_t ptrOffsets[MDNS_MAX_SERVICES_PER_PACKET];
+        uint16_t ptrPorts[MDNS_MAX_SERVICES_PER_PACKET];
+        uint8_t ptrIPs[MDNS_MAX_SERVICES_PER_PACKET];
+        uint8_t servIPs[MDNS_MAX_SERVICES_PER_PACKET][5];
+        uint8_t *servTxt[MDNS_MAX_SERVICES_PER_PACKET];
+        memset(servIPs, 0, sizeof(uint8_t) * MDNS_MAX_SERVICES_PER_PACKET * 5);
+        memset(servTxt, 0, sizeof(uint8_t *) * MDNS_MAX_SERVICES_PER_PACKET);
 
-         const uint8_t* ptrNamesCmp[MDNS_MAX_SERVICES_PER_PACKET];
-         int ptrLensCmp[MDNS_MAX_SERVICES_PER_PACKET];
-         uint8_t ptrNamesMatches[MDNS_MAX_SERVICES_PER_PACKET];
+        const uint8_t *ptrNamesCmp[MDNS_MAX_SERVICES_PER_PACKET];
+        int ptrLensCmp[MDNS_MAX_SERVICES_PER_PACKET];
+        uint8_t ptrNamesMatches[MDNS_MAX_SERVICES_PER_PACKET];
 
-         uint8_t checkAARecords = 0;
-         memset(ptrNames, 0, sizeof(uint8_t*)*MDNS_MAX_SERVICES_PER_PACKET);
+        uint8_t checkAARecords = 0;
+        memset(ptrNames, 0, sizeof(uint8_t *) * MDNS_MAX_SERVICES_PER_PACKET);
 
-         const uint8_t* servNames[2];
-         uint8_t servNamePos[2];
-         int servLens[2];
-         uint8_t servMatches[2];
-         uint8_t firstNamePtrByte = 0;
-         uint8_t partMatched[2];
-         uint8_t lastWasCompressed[2];
-         uint8_t servWasCompressed[2];
+        const uint8_t *servNames[2];
+        uint8_t servNamePos[2];
+        int servLens[2];
+        uint8_t servMatches[2];
+        uint8_t firstNamePtrByte = 0;
+        uint8_t partMatched[2];
+        uint8_t lastWasCompressed[2];
+        uint8_t servWasCompressed[2];
 
-         servNamePos[0] = servNamePos[1] = 0;
+        servNamePos[0] = servNamePos[1] = 0;
 
-         for (i=0; i<(unsigned int)(qCnt+aCnt+aaCnt+addCnt); i++) {
+        for (i = 0; i < (unsigned int)(qCnt + aCnt + aaCnt + addCnt); i++) {
 
-            for (j=0; j<2; j++) {
-               if (NULL != this->_resolveNames[j]) {
-                  servNames[j] = this->_resolveNames[j];
-                  servLens[j] = strlen((const char*)this->_resolveNames[j]);
-                  servMatches[j] = 1;
-               } else {
-                  servNames[j] = NULL;
-                  servLens[j] = servMatches[j] = 0;
-               }
+            for (j = 0; j < 2; j++) {
+                if (NULL != this->_resolveNames[j]) {
+                    servNames[j] = this->_resolveNames[j];
+                    servLens[j] = strlen((const char *)this->_resolveNames[j]);
+                    servMatches[j] = 1;
+                } else {
+                    servNames[j] = NULL;
+                    servLens[j] = servMatches[j] = 0;
+                }
             }
 
-            for (j=0; j<MDNS_MAX_SERVICES_PER_PACKET; j++) {
-               if (NULL != ptrNames[j]) {
-                  ptrNamesCmp[j] = ptrNames[j];
-                  ptrLensCmp[j] = strlen((const char*)ptrNames[j]);
-                  ptrNamesMatches[j] = 1;
-               }
+            for (j = 0; j < MDNS_MAX_SERVICES_PER_PACKET; j++) {
+                if (NULL != ptrNames[j]) {
+                    ptrNamesCmp[j] = ptrNames[j];
+                    ptrLensCmp[j] = strlen((const char *)ptrNames[j]);
+                    ptrNamesMatches[j] = 1;
+                }
             }
 
             partMatched[0] = partMatched[1] = 0;
@@ -771,71 +720,69 @@ MDNSError_t MDNS::_processMDNSQuery()
             tLen = 0;
 
             do {
-            	memcpy((uint8_t*)buf, (uint16_t*)(ptr+offset) ,1);
-               offset += 1;
-               rLen = buf[0];
-               tLen += 1;
+                memcpy((uint8_t *)buf, (uint16_t *)(ptr + offset), 1);
+                offset += 1;
+                rLen = buf[0];
+                tLen += 1;
 
-               if (rLen > 128) { // handle DNS name compression, kinda, sorta...
+                if (rLen > 128) { // handle DNS name compression, kinda, sorta...
 
-            	   memcpy((uint8_t*)buf, (uint16_t*)(ptr+offset) ,1);
-                  offset += 1;
+                    memcpy((uint8_t *)buf, (uint16_t *)(ptr + offset), 1);
+                    offset += 1;
 
-                  for (j=0; j<2; j++) {
-                     if (servNamePos[j] && servNamePos[j] != buf[0])
-                        servMatches[j] = 0;
-                     else
-                        servWasCompressed[j] = 1;
+                    for (j = 0; j < 2; j++) {
+                        if (servNamePos[j] && servNamePos[j] != buf[0])
+                            servMatches[j] = 0;
+                        else
+                            servWasCompressed[j] = 1;
 
-                     lastWasCompressed[j] = 1;
-                  }
+                        lastWasCompressed[j] = 1;
+                    }
 
-                  tLen += 1;
+                    tLen += 1;
 
-                  if (0 == firstNamePtrByte)
-                     firstNamePtrByte = buf[0];
-               } else if (rLen > 0) {
-                  if (i < qCnt)
-                     offset += rLen;
-                  else {
-                     int tr = rLen, ir;
+                    if (0 == firstNamePtrByte)
+                        firstNamePtrByte = buf[0];
+                } else if (rLen > 0) {
+                    if (i < qCnt)
+                        offset += rLen;
+                    else {
+                        int tr = rLen, ir;
 
-                     if (0 == firstNamePtrByte)
-                        firstNamePtrByte = offset-1; // -1, since we already read length (1 byte)
+                        if (0 == firstNamePtrByte)
+                            firstNamePtrByte = offset - 1; // -1, since we already read length (1 byte)
 
-                     while (tr > 0) {
-                        ir = (tr > (int)sizeof(DNSHeader_t)) ? sizeof(DNSHeader_t) : tr;
-                        memcpy((uint8_t*)buf, (uint16_t*)(ptr+offset) ,ir);
-                        offset += ir;
-                        tr -= ir;
+                        while (tr > 0) {
+                            ir = (tr > (int)sizeof(DNSHeader_t)) ? sizeof(DNSHeader_t) : tr;
+                            memcpy((uint8_t *)buf, (uint16_t *)(ptr + offset), ir);
+                            offset += ir;
+                            tr -= ir;
 
-                        for (j=0; j<2; j++) {
-                           if (!recordsFound[j] && servMatches[j] && servNames[j])
-                              servMatches[j] &= this->_matchStringPart(&servNames[j], &servLens[j],
-                                                                       buf, ir);
-                              if (!partMatched[j])
-                                 partMatched[j] = servMatches[j];
+                            for (j = 0; j < 2; j++) {
+                                if (!recordsFound[j] && servMatches[j] && servNames[j])
+                                    servMatches[j] &= this->_matchStringPart(&servNames[j], &servLens[j], buf, ir);
+                                if (!partMatched[j])
+                                    partMatched[j] = servMatches[j];
 
-                              lastWasCompressed[j] = 0;
+                                lastWasCompressed[j] = 0;
+                            }
+
+                            for (j = 0; j < MDNS_MAX_SERVICES_PER_PACKET; j++) {
+                                if (NULL != ptrNames[j] && ptrNamesMatches[j]) {
+                                    // only compare the part we have. this is incorrect, but good enough,
+                                    // since actual MDNS implementations won't go here anyways, as they
+                                    // should use name compression. This is just so that multiple Arduinos
+                                    // running this MDNSResponder code should be able to find each other's
+                                    // services.
+                                    if (ptrLensCmp[j] >= ir)
+                                        ptrNamesMatches[j] &= this->_matchStringPart(&ptrNamesCmp[j], &ptrLensCmp[j], buf, ir);
+                                }
+                            }
                         }
 
-                        for (j=0; j<MDNS_MAX_SERVICES_PER_PACKET; j++) {
-                           if (NULL != ptrNames[j] && ptrNamesMatches[j]) {
-                              // only compare the part we have. this is incorrect, but good enough,
-                              // since actual MDNS implementations won't go here anyways, as they
-                              // should use name compression. This is just so that multiple Arduinos
-                              // running this MDNSResponder code should be able to find each other's
-                              // services.
-                              if (ptrLensCmp[j] >= ir)
-                                 ptrNamesMatches[j] &= this->_matchStringPart(&ptrNamesCmp[j],
-                                                            &ptrLensCmp[j], buf, ir);
-                           }
-                        }
-                     }
-
-                     tLen += rLen;
-                  }
-               }
+                        tLen += rLen;
+                    }
+                }
             } while (rLen > 0 && rLen <= 128);
 
             // if this matched a name of ours (and there are no characters left), then
@@ -1427,7 +1374,7 @@ void MDNS::_writeServiceRecordPTR(int recordIndex, uint16_t* pPtr, uint8_t* buf,
 {
    uint16_t ptr = *pPtr;
 
-   DEBUG_PRINTF("MDNS::_writeServiceRecordPTR(%d, recordIndex)");
+   DEBUG_PRINTF("MDNS::_writeServiceRecordPTR(%d)", recordIndex);
 
    this->_writeServiceRecordName(recordIndex, &ptr, buf, bufSize, 1);
 
