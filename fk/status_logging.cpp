@@ -72,10 +72,8 @@ static void log_status() {
 
     char network_status[32];
     ip4_address ip{ gs.get()->network.state.ip };
-    auto rssi = get_network()->rssi();
     if (get_network()->enabled()) {
-        snprintf(network_status, sizeof(network_status), "%d.%d.%d.%d rssi=%" PRId32 "", ip.u.bytes[0], ip.u.bytes[1], ip.u.bytes[2],
-                 ip.u.bytes[3], rssi);
+        snprintf(network_status, sizeof(network_status), "%d.%d.%d.%d", ip.u.bytes[0], ip.u.bytes[1], ip.u.bytes[2], ip.u.bytes[3]);
     } else {
         snprintf(network_status, sizeof(network_status), "off");
     }
