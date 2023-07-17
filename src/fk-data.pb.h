@@ -153,8 +153,16 @@ typedef struct _fk_data_NetworkInfo {
 
 typedef struct _fk_data_SensorAndValue { 
     uint32_t sensor;
-    float value;
-    float uncalibrated;
+    pb_size_t which_calibrated;
+    union {
+        float calibratedValue;
+        bool calibratedNull;
+    } calibrated;
+    pb_size_t which_uncalibrated;
+    union {
+        float uncalibratedValue;
+        bool uncalibratedNull;
+    } uncalibrated;
 } fk_data_SensorAndValue;
 
 typedef struct _fk_data_SensorGroup { 
@@ -338,7 +346,7 @@ extern "C" {
 #define fk_data_DeviceLocation_init_default      {0, 0, 0, 0, 0, {{NULL}, NULL}, 0, 0, 0}
 #define fk_data_SensorReading_init_default       {0, 0, 0, 0}
 #define fk_data_LoggedReading_init_default       {0, false, fk_data_DeviceLocation_init_default, false, fk_data_SensorReading_init_default}
-#define fk_data_SensorAndValue_init_default      {0, 0, 0}
+#define fk_data_SensorAndValue_init_default      {0, 0, {0}, 0, {0}}
 #define fk_data_ModuleHeader_init_default        {0, 0, 0}
 #define fk_data_ModuleInfo_init_default          {0, 0, {{NULL}, NULL}, false, fk_data_ModuleHeader_init_default, false, fk_data_Firmware_init_default, {{NULL}, NULL}, {{NULL}, NULL}, 0, {{NULL}, NULL}}
 #define fk_data_SensorInfo_init_default          {0, {{NULL}, NULL}, {{NULL}, NULL}, 0, {{NULL}, NULL}}
@@ -369,7 +377,7 @@ extern "C" {
 #define fk_data_DeviceLocation_init_zero         {0, 0, 0, 0, 0, {{NULL}, NULL}, 0, 0, 0}
 #define fk_data_SensorReading_init_zero          {0, 0, 0, 0}
 #define fk_data_LoggedReading_init_zero          {0, false, fk_data_DeviceLocation_init_zero, false, fk_data_SensorReading_init_zero}
-#define fk_data_SensorAndValue_init_zero         {0, 0, 0}
+#define fk_data_SensorAndValue_init_zero         {0, 0, {0}, 0, {0}}
 #define fk_data_ModuleHeader_init_zero           {0, 0, 0}
 #define fk_data_ModuleInfo_init_zero             {0, 0, {{NULL}, NULL}, false, fk_data_ModuleHeader_init_zero, false, fk_data_Firmware_init_zero, {{NULL}, NULL}, {{NULL}, NULL}, 0, {{NULL}, NULL}}
 #define fk_data_SensorInfo_init_zero             {0, {{NULL}, NULL}, {{NULL}, NULL}, 0, {{NULL}, NULL}}
@@ -466,8 +474,10 @@ extern "C" {
 #define fk_data_NetworkInfo_create_tag           3
 #define fk_data_NetworkInfo_preferred_tag        4
 #define fk_data_SensorAndValue_sensor_tag        1
-#define fk_data_SensorAndValue_value_tag         2
-#define fk_data_SensorAndValue_uncalibrated_tag  3
+#define fk_data_SensorAndValue_calibratedValue_tag 2
+#define fk_data_SensorAndValue_calibratedNull_tag 4
+#define fk_data_SensorAndValue_uncalibratedValue_tag 3
+#define fk_data_SensorAndValue_uncalibratedNull_tag 5
 #define fk_data_SensorGroup_module_tag           1
 #define fk_data_SensorGroup_readings_tag         2
 #define fk_data_SensorGroup_time_tag             3
@@ -584,8 +594,10 @@ X(a, STATIC,   OPTIONAL, MESSAGE,  reading,           3)
 
 #define fk_data_SensorAndValue_FIELDLIST(X, a) \
 X(a, STATIC,   SINGULAR, UINT32,   sensor,            1) \
-X(a, STATIC,   SINGULAR, FLOAT,    value,             2) \
-X(a, STATIC,   SINGULAR, FLOAT,    uncalibrated,      3)
+X(a, STATIC,   ONEOF,    FLOAT,    (calibrated,calibratedValue,calibrated.calibratedValue),   2) \
+X(a, STATIC,   ONEOF,    FLOAT,    (uncalibrated,uncalibratedValue,uncalibrated.uncalibratedValue),   3) \
+X(a, STATIC,   ONEOF,    BOOL,     (calibrated,calibratedNull,calibrated.calibratedNull),   4) \
+X(a, STATIC,   ONEOF,    BOOL,     (uncalibrated,uncalibratedNull,uncalibrated.uncalibratedNull),   5)
 #define fk_data_SensorAndValue_CALLBACK NULL
 #define fk_data_SensorAndValue_DEFAULT NULL
 

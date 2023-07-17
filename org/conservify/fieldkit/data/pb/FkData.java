@@ -2166,16 +2166,32 @@ public final class FkData {
     int getSensor();
 
     /**
-     * <code>float value = 2;</code>
-     * @return The value.
+     * <code>bool calibratedNull = 4;</code>
+     * @return The calibratedNull.
      */
-    float getValue();
+    boolean getCalibratedNull();
 
     /**
-     * <code>float uncalibrated = 3;</code>
-     * @return The uncalibrated.
+     * <code>float calibratedValue = 2;</code>
+     * @return The calibratedValue.
      */
-    float getUncalibrated();
+    float getCalibratedValue();
+
+    /**
+     * <code>bool uncalibratedNull = 5;</code>
+     * @return The uncalibratedNull.
+     */
+    boolean getUncalibratedNull();
+
+    /**
+     * <code>float uncalibratedValue = 3;</code>
+     * @return The uncalibratedValue.
+     */
+    float getUncalibratedValue();
+
+    public org.conservify.fieldkit.data.pb.FkData.SensorAndValue.CalibratedCase getCalibratedCase();
+
+    public org.conservify.fieldkit.data.pb.FkData.SensorAndValue.UncalibratedCase getUncalibratedCase();
   }
   /**
    * Protobuf type {@code fk_data.SensorAndValue}
@@ -2187,6 +2203,92 @@ public final class FkData {
       SensorAndValueOrBuilder {
     private SensorAndValue() {
     }
+    private int calibratedCase_ = 0;
+    private java.lang.Object calibrated_;
+    public enum CalibratedCase {
+      CALIBRATEDNULL(4),
+      CALIBRATEDVALUE(2),
+      CALIBRATED_NOT_SET(0);
+      private final int value;
+      private CalibratedCase(int value) {
+        this.value = value;
+      }
+      /**
+       * @deprecated Use {@link #forNumber(int)} instead.
+       */
+      @java.lang.Deprecated
+      public static CalibratedCase valueOf(int value) {
+        return forNumber(value);
+      }
+
+      public static CalibratedCase forNumber(int value) {
+        switch (value) {
+          case 4: return CALIBRATEDNULL;
+          case 2: return CALIBRATEDVALUE;
+          case 0: return CALIBRATED_NOT_SET;
+          default: return null;
+        }
+      }
+      public int getNumber() {
+        return this.value;
+      }
+    };
+
+    @java.lang.Override
+    public CalibratedCase
+    getCalibratedCase() {
+      return CalibratedCase.forNumber(
+          calibratedCase_);
+    }
+
+    private void clearCalibrated() {
+      calibratedCase_ = 0;
+      calibrated_ = null;
+    }
+
+    private int uncalibratedCase_ = 0;
+    private java.lang.Object uncalibrated_;
+    public enum UncalibratedCase {
+      UNCALIBRATEDNULL(5),
+      UNCALIBRATEDVALUE(3),
+      UNCALIBRATED_NOT_SET(0);
+      private final int value;
+      private UncalibratedCase(int value) {
+        this.value = value;
+      }
+      /**
+       * @deprecated Use {@link #forNumber(int)} instead.
+       */
+      @java.lang.Deprecated
+      public static UncalibratedCase valueOf(int value) {
+        return forNumber(value);
+      }
+
+      public static UncalibratedCase forNumber(int value) {
+        switch (value) {
+          case 5: return UNCALIBRATEDNULL;
+          case 3: return UNCALIBRATEDVALUE;
+          case 0: return UNCALIBRATED_NOT_SET;
+          default: return null;
+        }
+      }
+      public int getNumber() {
+        return this.value;
+      }
+    };
+
+    @java.lang.Override
+    public UncalibratedCase
+    getUncalibratedCase() {
+      return UncalibratedCase.forNumber(
+          uncalibratedCase_);
+    }
+
+    private void clearUncalibrated() {
+      uncalibratedCase_ = 0;
+      uncalibrated_ = null;
+    }
+
     public static final int SENSOR_FIELD_NUMBER = 1;
     private int sensor_;
     /**
@@ -2213,56 +2315,124 @@ public final class FkData {
       sensor_ = 0;
     }
 
-    public static final int VALUE_FIELD_NUMBER = 2;
-    private float value_;
+    public static final int CALIBRATEDNULL_FIELD_NUMBER = 4;
     /**
-     * <code>float value = 2;</code>
-     * @return The value.
+     * <code>bool calibratedNull = 4;</code>
+     * @return The calibratedNull.
      */
     @java.lang.Override
-    public float getValue() {
-      return value_;
+    public boolean getCalibratedNull() {
+      if (calibratedCase_ == 4) {
+        return (java.lang.Boolean) calibrated_;
+      }
+      return false;
     }
     /**
-     * <code>float value = 2;</code>
-     * @param value The value to set.
+     * <code>bool calibratedNull = 4;</code>
+     * @param value The calibratedNull to set.
      */
-    private void setValue(float value) {
-      
-      value_ = value;
+    private void setCalibratedNull(boolean value) {
+      calibratedCase_ = 4;
+      calibrated_ = value;
     }
     /**
-     * <code>float value = 2;</code>
+     * <code>bool calibratedNull = 4;</code>
      */
-    private void clearValue() {
-      
-      value_ = 0F;
+    private void clearCalibratedNull() {
+      if (calibratedCase_ == 4) {
+        calibratedCase_ = 0;
+        calibrated_ = null;
+      }
     }
 
-    public static final int UNCALIBRATED_FIELD_NUMBER = 3;
-    private float uncalibrated_;
+    public static final int CALIBRATEDVALUE_FIELD_NUMBER = 2;
     /**
-     * <code>float uncalibrated = 3;</code>
-     * @return The uncalibrated.
+     * <code>float calibratedValue = 2;</code>
+     * @return The calibratedValue.
      */
     @java.lang.Override
-    public float getUncalibrated() {
-      return uncalibrated_;
+    public float getCalibratedValue() {
+      if (calibratedCase_ == 2) {
+        return (java.lang.Float) calibrated_;
+      }
+      return 0F;
     }
     /**
-     * <code>float uncalibrated = 3;</code>
-     * @param value The uncalibrated to set.
+     * <code>float calibratedValue = 2;</code>
+     * @param value The calibratedValue to set.
      */
-    private void setUncalibrated(float value) {
-      
+    private void setCalibratedValue(float value) {
+      calibratedCase_ = 2;
+      calibrated_ = value;
+    }
+    /**
+     * <code>float calibratedValue = 2;</code>
+     */
+    private void clearCalibratedValue() {
+      if (calibratedCase_ == 2) {
+        calibratedCase_ = 0;
+        calibrated_ = null;
+      }
+    }
+
+    public static final int UNCALIBRATEDNULL_FIELD_NUMBER = 5;
+    /**
+     * <code>bool uncalibratedNull = 5;</code>
+     * @return The uncalibratedNull.
+     */
+    @java.lang.Override
+    public boolean getUncalibratedNull() {
+      if (uncalibratedCase_ == 5) {
+        return (java.lang.Boolean) uncalibrated_;
+      }
+      return false;
+    }
+    /**
+     * <code>bool uncalibratedNull = 5;</code>
+     * @param value The uncalibratedNull to set.
+     */
+    private void setUncalibratedNull(boolean value) {
+      uncalibratedCase_ = 5;
       uncalibrated_ = value;
     }
     /**
-     * <code>float uncalibrated = 3;</code>
+     * <code>bool uncalibratedNull = 5;</code>
      */
-    private void clearUncalibrated() {
-      
-      uncalibrated_ = 0F;
+    private void clearUncalibratedNull() {
+      if (uncalibratedCase_ == 5) {
+        uncalibratedCase_ = 0;
+        uncalibrated_ = null;
+      }
+    }
+
+    public static final int UNCALIBRATEDVALUE_FIELD_NUMBER = 3;
+    /**
+     * <code>float uncalibratedValue = 3;</code>
+     * @return The uncalibratedValue.
+     */
+    @java.lang.Override
+    public float getUncalibratedValue() {
+      if (uncalibratedCase_ == 3) {
+        return (java.lang.Float) uncalibrated_;
+      }
+      return 0F;
+    }
+    /**
+     * <code>float uncalibratedValue = 3;</code>
+     * @param value The uncalibratedValue to set.
+     */
+    private void setUncalibratedValue(float value) {
+      uncalibratedCase_ = 3;
+      uncalibrated_ = value;
+    }
+    /**
+     * <code>float uncalibratedValue = 3;</code>
+     */
+    private void clearUncalibratedValue() {
+      if (uncalibratedCase_ == 3) {
+        uncalibratedCase_ = 0;
+        uncalibrated_ = null;
+      }
     }
 
     public static org.conservify.fieldkit.data.pb.FkData.SensorAndValue parseFrom(
@@ -2359,6 +2529,30 @@ public final class FkData {
         super(DEFAULT_INSTANCE);
       }
 
+      @java.lang.Override
+      public CalibratedCase
+          getCalibratedCase() {
+        return instance.getCalibratedCase();
+      }
+
+      public Builder clearCalibrated() {
+        copyOnWrite();
+        instance.clearCalibrated();
+        return this;
+      }
+
+      @java.lang.Override
+      public UncalibratedCase
+          getUncalibratedCase() {
+        return instance.getUncalibratedCase();
+      }
+
+      public Builder clearUncalibrated() {
+        copyOnWrite();
+        instance.clearUncalibrated();
+        return this;
+      }
+
 
       /**
        * <code>uint32 sensor = 1;</code>
@@ -2389,58 +2583,114 @@ public final class FkData {
       }
 
       /**
-       * <code>float value = 2;</code>
-       * @return The value.
+       * <code>bool calibratedNull = 4;</code>
+       * @return The calibratedNull.
        */
       @java.lang.Override
-      public float getValue() {
-        return instance.getValue();
+      public boolean getCalibratedNull() {
+        return instance.getCalibratedNull();
       }
       /**
-       * <code>float value = 2;</code>
-       * @param value The value to set.
+       * <code>bool calibratedNull = 4;</code>
+       * @param value The calibratedNull to set.
        * @return This builder for chaining.
        */
-      public Builder setValue(float value) {
+      public Builder setCalibratedNull(boolean value) {
         copyOnWrite();
-        instance.setValue(value);
+        instance.setCalibratedNull(value);
         return this;
       }
       /**
-       * <code>float value = 2;</code>
+       * <code>bool calibratedNull = 4;</code>
        * @return This builder for chaining.
        */
-      public Builder clearValue() {
+      public Builder clearCalibratedNull() {
         copyOnWrite();
-        instance.clearValue();
+        instance.clearCalibratedNull();
         return this;
       }
 
       /**
-       * <code>float uncalibrated = 3;</code>
-       * @return The uncalibrated.
+       * <code>float calibratedValue = 2;</code>
+       * @return The calibratedValue.
        */
       @java.lang.Override
-      public float getUncalibrated() {
-        return instance.getUncalibrated();
+      public float getCalibratedValue() {
+        return instance.getCalibratedValue();
       }
       /**
-       * <code>float uncalibrated = 3;</code>
-       * @param value The uncalibrated to set.
+       * <code>float calibratedValue = 2;</code>
+       * @param value The calibratedValue to set.
        * @return This builder for chaining.
        */
-      public Builder setUncalibrated(float value) {
+      public Builder setCalibratedValue(float value) {
         copyOnWrite();
-        instance.setUncalibrated(value);
+        instance.setCalibratedValue(value);
         return this;
       }
       /**
-       * <code>float uncalibrated = 3;</code>
+       * <code>float calibratedValue = 2;</code>
        * @return This builder for chaining.
        */
-      public Builder clearUncalibrated() {
+      public Builder clearCalibratedValue() {
         copyOnWrite();
-        instance.clearUncalibrated();
+        instance.clearCalibratedValue();
+        return this;
+      }
+
+      /**
+       * <code>bool uncalibratedNull = 5;</code>
+       * @return The uncalibratedNull.
+       */
+      @java.lang.Override
+      public boolean getUncalibratedNull() {
+        return instance.getUncalibratedNull();
+      }
+      /**
+       * <code>bool uncalibratedNull = 5;</code>
+       * @param value The uncalibratedNull to set.
+       * @return This builder for chaining.
+       */
+      public Builder setUncalibratedNull(boolean value) {
+        copyOnWrite();
+        instance.setUncalibratedNull(value);
+        return this;
+      }
+      /**
+       * <code>bool uncalibratedNull = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearUncalibratedNull() {
+        copyOnWrite();
+        instance.clearUncalibratedNull();
+        return this;
+      }
+
+      /**
+       * <code>float uncalibratedValue = 3;</code>
+       * @return The uncalibratedValue.
+       */
+      @java.lang.Override
+      public float getUncalibratedValue() {
+        return instance.getUncalibratedValue();
+      }
+      /**
+       * <code>float uncalibratedValue = 3;</code>
+       * @param value The uncalibratedValue to set.
+       * @return This builder for chaining.
+       */
+      public Builder setUncalibratedValue(float value) {
+        copyOnWrite();
+        instance.setUncalibratedValue(value);
+        return this;
+      }
+      /**
+       * <code>float uncalibratedValue = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearUncalibratedValue() {
+        copyOnWrite();
+        instance.clearUncalibratedValue();
         return this;
       }
 
@@ -2460,13 +2710,15 @@ public final class FkData {
         }
         case BUILD_MESSAGE_INFO: {
             java.lang.Object[] objects = new java.lang.Object[] {
-              "sensor_",
-              "value_",
+              "calibrated_",
+              "calibratedCase_",
               "uncalibrated_",
+              "uncalibratedCase_",
+              "sensor_",
             };
             java.lang.String info =
-                "\u0000\u0003\u0000\u0000\u0001\u0003\u0003\u0000\u0000\u0000\u0001\u000b\u0002\u0001" +
-                "\u0003\u0001";
+                "\u0000\u0005\u0002\u0000\u0001\u0005\u0005\u0000\u0000\u0000\u0001\u000b\u00024\u0000" +
+                "\u00034\u0001\u0004:\u0000\u0005:\u0001";
             return newMessageInfo(DEFAULT_INSTANCE, info, objects);
         }
         // fall through

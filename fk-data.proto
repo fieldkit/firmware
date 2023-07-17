@@ -30,8 +30,16 @@ message LoggedReading {
 
 message SensorAndValue {
   uint32 sensor = 1;
-  float value = 2;
-  float uncalibrated = 3;
+  oneof calibrated {
+    bool calibratedNull = 4;
+    float calibratedValue = 2;
+  }
+  oneof uncalibrated {
+    bool uncalibratedNull = 5;
+    float uncalibratedValue = 3;
+  }
+  // value = 2;
+  // uncalibrated = 3;
 }
 
 message ModuleHeader {

@@ -84,16 +84,38 @@
           }
         },
         "SensorAndValue": {
+          "oneofs": {
+            "calibrated": {
+              "oneof": [
+                "calibratedNull",
+                "calibratedValue"
+              ]
+            },
+            "uncalibrated": {
+              "oneof": [
+                "uncalibratedNull",
+                "uncalibratedValue"
+              ]
+            }
+          },
           "fields": {
             "sensor": {
               "type": "uint32",
               "id": 1
             },
-            "value": {
+            "calibratedNull": {
+              "type": "bool",
+              "id": 4
+            },
+            "calibratedValue": {
               "type": "float",
               "id": 2
             },
-            "uncalibrated": {
+            "uncalibratedNull": {
+              "type": "bool",
+              "id": 5
+            },
+            "uncalibratedValue": {
               "type": "float",
               "id": 3
             }
