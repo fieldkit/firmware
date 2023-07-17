@@ -256,6 +256,18 @@ TEST_F(ProtoBufSizeSuite, Readings) {
     ASSERT_EQ(encoded->size, 221u);
 }
 
+TEST_F(ProtoBufSizeSuite, OneReading) {
+    fk_data_SensorAndValue value = fk_data_SensorAndValue_init_default;
+    value.sensor = 0xff;
+    value.value = 100.0f;
+    value.uncalibrated = 100.0f;
+
+    auto encoded = pool_.encode(fk_data_SensorAndValue_fields, &value);
+    dump_binary(file_, "sensor-and-value", encoded);
+
+    ASSERT_EQ(encoded->size, 14u);
+}
+
 TEST_F(ProtoBufSizeSuite, ReadingsNoneBackFromFirstModule) {
     GlobalState gs;
     fake_global_state(gs, pool_);
