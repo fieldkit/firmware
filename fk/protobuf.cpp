@@ -21,10 +21,6 @@ bool pb_encode_string(pb_ostream_t *stream, const pb_field_t *field, void *const
         return pb_encode_string(stream, (uint8_t *)nullptr, 0);
     }
 
-    alogf(LogLevels::VERBOSE, "enc-str", "'%s'", str);
-
-    // fk_debugger_break();
-
     return pb_encode_string(stream, (uint8_t *)str, strlen(str));
 }
 
