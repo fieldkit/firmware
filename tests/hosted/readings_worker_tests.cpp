@@ -161,21 +161,21 @@ TEST_F(ReadingsWorkerSuite, ScannedModule_MultipleReadings) {
 
         // Data record
         bytes_read = reader->read(meta_record.for_decoding(), fk_data_DataRecord_fields);
-        ASSERT_EQ(bytes_read, 106);
+        ASSERT_EQ(bytes_read, 167);
         ASSERT_EQ(meta_record.record()->readings.reading, 2u);
         ASSERT_EQ(meta_record.record()->readings.meta, 1u);
         ASSERT_EQ(meta_record.record()->readings.uptime, 20321u);
 
         // Data record
         bytes_read = reader->read(meta_record.for_decoding(), fk_data_DataRecord_fields);
-        ASSERT_EQ(bytes_read, 106);
+        ASSERT_EQ(bytes_read, 167);
         ASSERT_EQ(meta_record.record()->readings.reading, 3u);
         ASSERT_EQ(meta_record.record()->readings.meta, 1u);
         ASSERT_EQ(meta_record.record()->readings.uptime, 30321u);
 
         // Data record
         bytes_read = reader->read(meta_record.for_decoding(), fk_data_DataRecord_fields);
-        ASSERT_EQ(bytes_read, 106);
+        ASSERT_EQ(bytes_read, 167);
         ASSERT_EQ(meta_record.record()->readings.reading, 4u);
         ASSERT_EQ(meta_record.record()->readings.meta, 1u);
         ASSERT_EQ(meta_record.record()->readings.uptime, 40321u);
@@ -245,7 +245,7 @@ TEST_F(ReadingsWorkerSuite, ScannedModule_ModuleAdded) {
 
         // Data record
         bytes_read = reader->read(meta_record.for_decoding(), fk_data_DataRecord_fields);
-        ASSERT_EQ(bytes_read, 95);
+        ASSERT_EQ(bytes_read, 154);
         ASSERT_EQ(meta_record.record()->readings.reading, 2u);
         ASSERT_EQ(meta_record.record()->readings.meta, 1u);
         ASSERT_EQ(meta_record.record()->readings.uptime, 20321u);
@@ -256,7 +256,7 @@ TEST_F(ReadingsWorkerSuite, ScannedModule_ModuleAdded) {
 
         // Data record
         bytes_read = reader->read(meta_record.for_decoding(), fk_data_DataRecord_fields);
-        ASSERT_EQ(bytes_read, 106);
+        ASSERT_EQ(bytes_read, 167);
         ASSERT_EQ(meta_record.record()->readings.reading, 4u);
         ASSERT_EQ(meta_record.record()->readings.meta, 3u);
         ASSERT_EQ(meta_record.record()->readings.uptime, 20321u);

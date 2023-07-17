@@ -258,7 +258,7 @@ ExportDataWorker::WriteStatus ExportDataWorker::write_row(fk_data_DataRecord &re
         writer.write(",%d,%d,%s", i, sensor_group.module, (const char *)module.name.arg);
 
         for (auto j = 0u; j < sensor_values_array->length; ++j) {
-            writer.write(",%f,%f", sensor_values[j].value, sensor_values[j].uncalibrated);
+            writer.write(",%f,%f", sensor_values[j].calibrated.calibratedValue, sensor_values[j].uncalibrated.uncalibratedValue);
         }
     }
 

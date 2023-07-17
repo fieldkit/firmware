@@ -36,10 +36,16 @@ void write_alternating(DataMemory *memory, size_t total);
 class ReadingRecord {
 public:
     fk_data_SensorAndValue readings[10]{
-        { 0, (float)fk_random_i32(0, 100) }, { 1, (float)fk_random_i32(0, 100) }, { 2, (float)fk_random_i32(0, 100) },
-        { 3, (float)fk_random_i32(0, 100) }, { 4, (float)fk_random_i32(0, 100) }, { 5, (float)fk_random_i32(0, 100) },
-        { 6, (float)fk_random_i32(0, 100) }, { 7, (float)fk_random_i32(0, 100) }, { 8, (float)fk_random_i32(0, 100) },
-        { 9, (float)fk_random_i32(0, 100) },
+        { 0, fk_data_SensorAndValue_calibratedValue_tag, { (float)fk_random_i32(0, 100) } },
+        { 1, fk_data_SensorAndValue_calibratedValue_tag, { (float)fk_random_i32(0, 100) } },
+        { 2, fk_data_SensorAndValue_calibratedValue_tag, { (float)fk_random_i32(0, 100) } },
+        { 3, fk_data_SensorAndValue_calibratedValue_tag, { (float)fk_random_i32(0, 100) } },
+        { 4, fk_data_SensorAndValue_calibratedValue_tag, { (float)fk_random_i32(0, 100) } },
+        { 5, fk_data_SensorAndValue_calibratedValue_tag, { (float)fk_random_i32(0, 100) } },
+        { 6, fk_data_SensorAndValue_calibratedValue_tag, { (float)fk_random_i32(0, 100) } },
+        { 7, fk_data_SensorAndValue_calibratedValue_tag, { (float)fk_random_i32(0, 100) } },
+        { 8, fk_data_SensorAndValue_calibratedValue_tag, { (float)fk_random_i32(0, 100) } },
+        { 9, fk_data_SensorAndValue_calibratedValue_tag, { (float)fk_random_i32(0, 100) } },
     };
 
     pb_array_t readings_array{
