@@ -357,11 +357,17 @@ export namespace fk_data {
         /** SensorAndValue sensor */
         sensor?: (number|null);
 
-        /** SensorAndValue value */
-        value?: (number|null);
+        /** SensorAndValue calibratedNull */
+        calibratedNull?: (boolean|null);
 
-        /** SensorAndValue uncalibrated */
-        uncalibrated?: (number|null);
+        /** SensorAndValue calibratedValue */
+        calibratedValue?: (number|null);
+
+        /** SensorAndValue uncalibratedNull */
+        uncalibratedNull?: (boolean|null);
+
+        /** SensorAndValue uncalibratedValue */
+        uncalibratedValue?: (number|null);
     }
 
     /** Represents a SensorAndValue. */
@@ -376,11 +382,23 @@ export namespace fk_data {
         /** SensorAndValue sensor. */
         public sensor: number;
 
-        /** SensorAndValue value. */
-        public value: number;
+        /** SensorAndValue calibratedNull. */
+        public calibratedNull: boolean;
+
+        /** SensorAndValue calibratedValue. */
+        public calibratedValue: number;
+
+        /** SensorAndValue uncalibratedNull. */
+        public uncalibratedNull: boolean;
+
+        /** SensorAndValue uncalibratedValue. */
+        public uncalibratedValue: number;
+
+        /** SensorAndValue calibrated. */
+        public calibrated?: ("calibratedNull"|"calibratedValue");
 
         /** SensorAndValue uncalibrated. */
-        public uncalibrated: number;
+        public uncalibrated?: ("uncalibratedNull"|"uncalibratedValue");
 
         /**
          * Creates a new SensorAndValue instance using the specified properties.

@@ -959,8 +959,10 @@
              * @memberof fk_data
              * @interface ISensorAndValue
              * @property {number|null} [sensor] SensorAndValue sensor
-             * @property {number|null} [value] SensorAndValue value
-             * @property {number|null} [uncalibrated] SensorAndValue uncalibrated
+             * @property {boolean|null} [calibratedNull] SensorAndValue calibratedNull
+             * @property {number|null} [calibratedValue] SensorAndValue calibratedValue
+             * @property {boolean|null} [uncalibratedNull] SensorAndValue uncalibratedNull
+             * @property {number|null} [uncalibratedValue] SensorAndValue uncalibratedValue
              */
     
             /**
@@ -987,20 +989,61 @@
             SensorAndValue.prototype.sensor = 0;
     
             /**
-             * SensorAndValue value.
-             * @member {number} value
+             * SensorAndValue calibratedNull.
+             * @member {boolean} calibratedNull
              * @memberof fk_data.SensorAndValue
              * @instance
              */
-            SensorAndValue.prototype.value = 0;
+            SensorAndValue.prototype.calibratedNull = false;
+    
+            /**
+             * SensorAndValue calibratedValue.
+             * @member {number} calibratedValue
+             * @memberof fk_data.SensorAndValue
+             * @instance
+             */
+            SensorAndValue.prototype.calibratedValue = 0;
+    
+            /**
+             * SensorAndValue uncalibratedNull.
+             * @member {boolean} uncalibratedNull
+             * @memberof fk_data.SensorAndValue
+             * @instance
+             */
+            SensorAndValue.prototype.uncalibratedNull = false;
+    
+            /**
+             * SensorAndValue uncalibratedValue.
+             * @member {number} uncalibratedValue
+             * @memberof fk_data.SensorAndValue
+             * @instance
+             */
+            SensorAndValue.prototype.uncalibratedValue = 0;
+    
+            // OneOf field names bound to virtual getters and setters
+            var $oneOfFields;
+    
+            /**
+             * SensorAndValue calibrated.
+             * @member {"calibratedNull"|"calibratedValue"|undefined} calibrated
+             * @memberof fk_data.SensorAndValue
+             * @instance
+             */
+            Object.defineProperty(SensorAndValue.prototype, "calibrated", {
+                get: $util.oneOfGetter($oneOfFields = ["calibratedNull", "calibratedValue"]),
+                set: $util.oneOfSetter($oneOfFields)
+            });
     
             /**
              * SensorAndValue uncalibrated.
-             * @member {number} uncalibrated
+             * @member {"uncalibratedNull"|"uncalibratedValue"|undefined} uncalibrated
              * @memberof fk_data.SensorAndValue
              * @instance
              */
-            SensorAndValue.prototype.uncalibrated = 0;
+            Object.defineProperty(SensorAndValue.prototype, "uncalibrated", {
+                get: $util.oneOfGetter($oneOfFields = ["uncalibratedNull", "uncalibratedValue"]),
+                set: $util.oneOfSetter($oneOfFields)
+            });
     
             /**
              * Creates a new SensorAndValue instance using the specified properties.
@@ -1028,10 +1071,14 @@
                     writer = $Writer.create();
                 if (message.sensor != null && message.hasOwnProperty("sensor"))
                     writer.uint32(/* id 1, wireType 0 =*/8).uint32(message.sensor);
-                if (message.value != null && message.hasOwnProperty("value"))
-                    writer.uint32(/* id 2, wireType 5 =*/21).float(message.value);
-                if (message.uncalibrated != null && message.hasOwnProperty("uncalibrated"))
-                    writer.uint32(/* id 3, wireType 5 =*/29).float(message.uncalibrated);
+                if (message.calibratedValue != null && message.hasOwnProperty("calibratedValue"))
+                    writer.uint32(/* id 2, wireType 5 =*/21).float(message.calibratedValue);
+                if (message.uncalibratedValue != null && message.hasOwnProperty("uncalibratedValue"))
+                    writer.uint32(/* id 3, wireType 5 =*/29).float(message.uncalibratedValue);
+                if (message.calibratedNull != null && message.hasOwnProperty("calibratedNull"))
+                    writer.uint32(/* id 4, wireType 0 =*/32).bool(message.calibratedNull);
+                if (message.uncalibratedNull != null && message.hasOwnProperty("uncalibratedNull"))
+                    writer.uint32(/* id 5, wireType 0 =*/40).bool(message.uncalibratedNull);
                 return writer;
             };
     
@@ -1069,11 +1116,17 @@
                     case 1:
                         message.sensor = reader.uint32();
                         break;
+                    case 4:
+                        message.calibratedNull = reader.bool();
+                        break;
                     case 2:
-                        message.value = reader.float();
+                        message.calibratedValue = reader.float();
+                        break;
+                    case 5:
+                        message.uncalibratedNull = reader.bool();
                         break;
                     case 3:
-                        message.uncalibrated = reader.float();
+                        message.uncalibratedValue = reader.float();
                         break;
                     default:
                         reader.skipType(tag & 7);
@@ -1110,15 +1163,34 @@
             SensorAndValue.verify = function verify(message) {
                 if (typeof message !== "object" || message === null)
                     return "object expected";
+                var properties = {};
                 if (message.sensor != null && message.hasOwnProperty("sensor"))
                     if (!$util.isInteger(message.sensor))
                         return "sensor: integer expected";
-                if (message.value != null && message.hasOwnProperty("value"))
-                    if (typeof message.value !== "number")
-                        return "value: number expected";
-                if (message.uncalibrated != null && message.hasOwnProperty("uncalibrated"))
-                    if (typeof message.uncalibrated !== "number")
-                        return "uncalibrated: number expected";
+                if (message.calibratedNull != null && message.hasOwnProperty("calibratedNull")) {
+                    properties.calibrated = 1;
+                    if (typeof message.calibratedNull !== "boolean")
+                        return "calibratedNull: boolean expected";
+                }
+                if (message.calibratedValue != null && message.hasOwnProperty("calibratedValue")) {
+                    if (properties.calibrated === 1)
+                        return "calibrated: multiple values";
+                    properties.calibrated = 1;
+                    if (typeof message.calibratedValue !== "number")
+                        return "calibratedValue: number expected";
+                }
+                if (message.uncalibratedNull != null && message.hasOwnProperty("uncalibratedNull")) {
+                    properties.uncalibrated = 1;
+                    if (typeof message.uncalibratedNull !== "boolean")
+                        return "uncalibratedNull: boolean expected";
+                }
+                if (message.uncalibratedValue != null && message.hasOwnProperty("uncalibratedValue")) {
+                    if (properties.uncalibrated === 1)
+                        return "uncalibrated: multiple values";
+                    properties.uncalibrated = 1;
+                    if (typeof message.uncalibratedValue !== "number")
+                        return "uncalibratedValue: number expected";
+                }
                 return null;
             };
     
@@ -1136,10 +1208,14 @@
                 var message = new $root.fk_data.SensorAndValue();
                 if (object.sensor != null)
                     message.sensor = object.sensor >>> 0;
-                if (object.value != null)
-                    message.value = Number(object.value);
-                if (object.uncalibrated != null)
-                    message.uncalibrated = Number(object.uncalibrated);
+                if (object.calibratedNull != null)
+                    message.calibratedNull = Boolean(object.calibratedNull);
+                if (object.calibratedValue != null)
+                    message.calibratedValue = Number(object.calibratedValue);
+                if (object.uncalibratedNull != null)
+                    message.uncalibratedNull = Boolean(object.uncalibratedNull);
+                if (object.uncalibratedValue != null)
+                    message.uncalibratedValue = Number(object.uncalibratedValue);
                 return message;
             };
     
@@ -1156,17 +1232,30 @@
                 if (!options)
                     options = {};
                 var object = {};
-                if (options.defaults) {
+                if (options.defaults)
                     object.sensor = 0;
-                    object.value = 0;
-                    object.uncalibrated = 0;
-                }
                 if (message.sensor != null && message.hasOwnProperty("sensor"))
                     object.sensor = message.sensor;
-                if (message.value != null && message.hasOwnProperty("value"))
-                    object.value = options.json && !isFinite(message.value) ? String(message.value) : message.value;
-                if (message.uncalibrated != null && message.hasOwnProperty("uncalibrated"))
-                    object.uncalibrated = options.json && !isFinite(message.uncalibrated) ? String(message.uncalibrated) : message.uncalibrated;
+                if (message.calibratedValue != null && message.hasOwnProperty("calibratedValue")) {
+                    object.calibratedValue = options.json && !isFinite(message.calibratedValue) ? String(message.calibratedValue) : message.calibratedValue;
+                    if (options.oneofs)
+                        object.calibrated = "calibratedValue";
+                }
+                if (message.uncalibratedValue != null && message.hasOwnProperty("uncalibratedValue")) {
+                    object.uncalibratedValue = options.json && !isFinite(message.uncalibratedValue) ? String(message.uncalibratedValue) : message.uncalibratedValue;
+                    if (options.oneofs)
+                        object.uncalibrated = "uncalibratedValue";
+                }
+                if (message.calibratedNull != null && message.hasOwnProperty("calibratedNull")) {
+                    object.calibratedNull = message.calibratedNull;
+                    if (options.oneofs)
+                        object.calibrated = "calibratedNull";
+                }
+                if (message.uncalibratedNull != null && message.hasOwnProperty("uncalibratedNull")) {
+                    object.uncalibratedNull = message.uncalibratedNull;
+                    if (options.oneofs)
+                        object.uncalibrated = "uncalibratedNull";
+                }
                 return object;
             };
     
