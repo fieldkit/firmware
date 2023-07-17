@@ -104,13 +104,25 @@ struct SensorReadingOption : public MenuOption {
             auto mas = attached->get_nth_sensor(sensor_index_);
             auto reading = mas.sensor->reading();
             auto position = mas.attached_module->position().integer();
-            logverbose("[%d] refresh: %s %.3f", sensor_index_, mas.sensor->name(), reading.calibrated);
+            if (reading.calibrated.has_value()) {
+                logverbose("[%d] refresh: %s %.3f", sensor_index_, mas.sensor->name(), reading.calibrated.value());
+            } else {
+                logverbose("[%d] refresh: %s <none>", sensor_index_, mas.sensor->name());
+            }
             auto value = config_->voltages ? reading.uncalibrated : reading.calibrated;
             auto suffix = config_->voltages ? mas.sensor->uncalibrated_unit_of_measure() : mas.sensor->unit_of_measure();
             if (position == ModulePosition::Virtual.integer()) {
-                tiny_snprintf(reading_, sizeof(reading_), "[%c] %.3f%s", ' ', value, suffix);
+                if (value.has_value()) {
+                    tiny_snprintf(reading_, sizeof(reading_), "[%c] %.3f%s", ' ', value.value(), suffix);
+                } else {
+                    tiny_snprintf(reading_, sizeof(reading_), "[%c] <none>", ' ');
+                }
             } else {
-                tiny_snprintf(reading_, sizeof(reading_), "[%d] %.3f%s", position, value, suffix);
+                if (value.has_value()) {
+                    tiny_snprintf(reading_, sizeof(reading_), "[%d] %.3f%s", position, value.value(), suffix);
+                } else {
+                    tiny_snprintf(reading_, sizeof(reading_), "[%d] <none>", position);
+                }
             }
             tiny_snprintf(help_, sizeof(help_), "[%c] %s", ' ', mas.sensor->name());
             if (label_ == nullptr || (label_ != reading_ && label_ != help_)) {

@@ -132,18 +132,18 @@ typedef struct ModuleConfiguration {
 
 struct SensorReading {
     uint32_t time;
-    float calibrated;
-    float uncalibrated;
-    float factory;
+    optional<float> calibrated;
+    optional<float> uncalibrated;
+    optional<float> factory;
 
-    explicit SensorReading() : time(0), calibrated(0.0), uncalibrated(0.0), factory(0.0) {
+    explicit SensorReading() : time(0) {
     }
 
-    explicit SensorReading(uint32_t time, float one_value) : time(time), calibrated(one_value), uncalibrated(0.0), factory(0.0) {
+    explicit SensorReading(uint32_t time, float one_value) : time(time), calibrated(one_value) {
     }
 
     explicit SensorReading(uint32_t time, float uncalibrated, float calibrated)
-        : time(time), calibrated(calibrated), uncalibrated(uncalibrated), factory(0.0) {
+        : time(time), calibrated(calibrated), uncalibrated(uncalibrated) {
     }
 
     explicit SensorReading(uint32_t time, float uncalibrated, float calibrated, float factory)

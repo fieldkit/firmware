@@ -477,9 +477,9 @@ bool HttpReply::include_readings() {
                 readings[s].sensor.unitOfMeasure.arg = (void *)attached_sensor.unit_of_measure();
                 readings[s].sensor.flags = attached_sensor.flags();
                 auto reading = attached_sensor.reading();
-                readings[s].value = reading.calibrated;
-                readings[s].uncalibrated = reading.uncalibrated;
-                readings[s].factory = reading.factory;
+                readings[s].value = reading.calibrated.value_or(0);
+                readings[s].uncalibrated = reading.uncalibrated.value_or(0);
+                readings[s].factory = reading.factory.value_or(0);
             }
 
             auto readings_array = pool_->malloc_with<pb_array_t>({

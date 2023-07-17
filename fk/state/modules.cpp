@@ -140,7 +140,7 @@ int32_t AttachedModule::take_readings(ReadingsContext ctx, ReadingsListener *lis
             auto reading = module_readings->get(i);
 
             loginfo("[%d] sensor[%2d] name='%s.%s' reading=%f (%f)", position_.integer(), sensor.index(), meta_->name, sensor.name(),
-                    reading.calibrated, reading.uncalibrated);
+                    reading.calibrated.value_or(0), reading.uncalibrated.value_or(0));
 
             auto err = listener->sensor_reading(this, &sensor, reading, pool);
             if (err < 0) {

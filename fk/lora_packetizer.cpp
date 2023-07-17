@@ -255,9 +255,11 @@ tl::expected<EncodedMessage *, Error> LoraReadingsPacketizer::packetize(GlobalSt
                 for (auto &attached_sensor : attached_module.sensors()) {
                     if (attached_sensor.index() == sensor_template.sensor_index) {
                         auto reading = attached_sensor.reading();
-                        record.write_reading(reading.calibrated);
-                        logdebug("reading: '%s.%s' %f (%zd)", attached_module.name(), attached_sensor.name(), reading.calibrated,
-                                 record.encoded_size());
+                        if (reading.calibrated.has_value()) {
+                            record.write_reading(reading.calibrated.value());
+                            logdebug("reading: '%s.%s' %f (%zd)", attached_module.name(), attached_sensor.name(),
+                                     reading.calibrated.value(), record.encoded_size());
+                        }
                         found = true;
                     }
                 }
