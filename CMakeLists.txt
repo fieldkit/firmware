@@ -38,7 +38,7 @@ message("Hash: ${GIT_COMMIT_HASH}")
 
 set(VERSION_MAJOR 0 CACHE STRING "Project major version number.")
 set(VERSION_MINOR 2 CACHE STRING "Project minor version number.")
-set(VERSION_PATCH 0 CACHE STRING "Project patch version number.")
+set(VERSION_PATCH 9 CACHE STRING "Project patch version number.")
 
 if(DEFINED ENV{BUILD_NUMBER})
 message("Using ENV build number for prerelease.")
