@@ -37,10 +37,10 @@ ModuleReturn DistanceModule::service(ModuleContext mc, Pool &pool) {
 }
 
 static SensorMetadata const fk_module_distance_sensor_metas[] = {
-    { .name = "distance_0", .unitOfMeasure = "mm", .flags = 0 },
-    { .name = "distance_1", .unitOfMeasure = "mm", .flags = 0 },
-    { .name = "distance_2", .unitOfMeasure = "mm", .flags = 0 },
-    { .name = "calibration", .unitOfMeasure = "mm", .flags = FK_MODULES_FLAG_INTERNAL },
+    { .name = "distance_0", .unitOfMeasure = "mm", .uncalibratedUnitOfMeasure = "mm", .flags = 0 },
+    { .name = "distance_1", .unitOfMeasure = "mm", .uncalibratedUnitOfMeasure = "mm", .flags = 0 },
+    { .name = "distance_2", .unitOfMeasure = "mm", .uncalibratedUnitOfMeasure = "mm", .flags = 0 },
+    { .name = "calibration", .unitOfMeasure = "mm", .uncalibratedUnitOfMeasure = "mm", .flags = FK_MODULES_FLAG_INTERNAL },
 };
 
 static ModuleSensors fk_module_distance_sensors = {

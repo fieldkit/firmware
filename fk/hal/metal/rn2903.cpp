@@ -280,7 +280,6 @@ bool Rn2903::provision(const char *app_session_key, const char *network_session_
 }
 
 bool Rn2903::configure_radio(LoraOtaaJoin &otaa) {
-
     if (otaa.frequency == 915) {
         if (!configure_us915(TTN_US915_DEFAULT_FSB)) {
             return false;

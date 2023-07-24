@@ -38,6 +38,17 @@ function(fk_add_builtin_module name)
   find_package(Samd51Common)
   target_link_libraries(${target_name} Samd51Common)
 
+  # OmniWater depends on and uses code from the standard, separate water modules.
+  # TODO Would be nice to generalize this as a parameter to fk_add_builtin_module.
+  if(${name} MATCHES "omni_water")
+    target_include_directories(${target_name} PUBLIC ${CMAKE_SOURCE_DIR}/modules/water/main)
+  endif()
+
+  if(${name} MATCHES "omni_water")
+    find_package(Ms5837)
+    target_link_libraries(${target_name} Ms5837)
+  endif()
+
   # NOTE: For DateTime
   find_package(lwcron)
   target_link_libraries(${target_name} lwcron)
@@ -67,7 +78,7 @@ enable_arduino_toolchain()
 
 enable_language(ASM)
 
-enable_m4_board(fieldkit_core)
+enable_m4_board(${FIELDKIT_BOARD})
 
 file(GLOB_RECURSE sources *.cpp *.c *.h *.s)
 
@@ -76,6 +87,11 @@ add_arduino_library(fk-bundled "${sources}")
 target_include_directories(fk-bundled PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/third-party/nonstd ${CMAKE_SOURCE_DIR}/third-party/tl)
 
 target_compile_options(fk-bundled PRIVATE -Wall -Werror -DFK_HARDWARE_FULL)
+target_compile_options(fk-bundled PRIVATE -DFK_NETWORK_ENABLE_NTP -DFK_NETWORK_ENABLE_UDP_DISCOVERY -DFK_NETWORK_ENABLE_MDNS)
+
+# target_compile_options(fk-bundled PRIVATE -DFK_IPC_SINGLE_THREADED)
+# target_compile_options(fk-bundled PRIVATE -DFK_LIVE_TEST_WIFI)
+# target_compile_options(fk-bundled PRIVATE -DFK_LIVE_TEST_WINC1500_OTA)
 
 find_package(SeggerRTT)
 target_link_libraries(fk-bundled SeggerRTT)
@@ -147,6 +163,17 @@ fk_add_builtin_module(distance)
 fk_add_builtin_module(atlas)
 fk_add_builtin_module(water)
 
+if(${FIELDKIT_BOARD} STREQUAL "fieldkit_underwater")
+  fk_add_builtin_module(omni_water)
+  target_compile_options(fk-bundled PRIVATE -DFK_UNDERWATER=1)
+  target_compile_options(fk-bundled PRIVATE -DFK_DISABLE_LORA=1)
+  target_compile_options(fk-bundled PRIVATE -DFK_DISABLE_NETWORK=1)
+  target_compile_options(fk-bundled PRIVATE -DFK_NETWORK_ESP32=1)
+  add_custom_target(package COMMAND ${CMAKE_SOURCE_DIR}/tools/package.sh ${CMAKE_BINARY_DIR} ${FK_VERSION}-fkuw)
+else()
+  add_custom_target(package COMMAND ${CMAKE_SOURCE_DIR}/tools/package.sh ${CMAKE_BINARY_DIR} ${FK_VERSION})
+endif()
+
 if(${FK_TARGET_QSPI_MEMORY})
   configure_firmware_linker_script(fk-bundled ${CMAKE_SOURCE_DIR}/boards/samd51/qspi.ld)
   target_compile_options(fk-bundled PRIVATE -DFK_TARGET_QSPI_MEMORY)
@@ -154,7 +181,7 @@ else()
   configure_firmware_linker_script(fk-bundled ${CMAKE_SOURCE_DIR}/boards/samd51/main.ld)
 endif()
 
-if (${FK_PHYLUM})
+if(${FK_PHYLUM})
   target_compile_options(fk-bundled PRIVATE -DFK_VERSION=${FK_VERSION} -DFK_PHYLUM=1)
   target_compile_options(fk-bundled PRIVATE -DFK_PHYLUM_AMPLIFICATION=${FK_PHYLUM_AMPLIFICATION})
 else()
@@ -166,5 +193,3 @@ add_arduino_firmware(fk-bundled)
 enable_fkb_firmware(fk-bundled)
 
 configure_file(version.txt.in ${CMAKE_BINARY_DIR}/version.txt)
-
-add_custom_target(package COMMAND ${CMAKE_SOURCE_DIR}/tools/package.sh ${CMAKE_BINARY_DIR}/../ ${FK_VERSION})

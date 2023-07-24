@@ -38,7 +38,7 @@ message("Hash: ${GIT_COMMIT_HASH}")
 
 set(VERSION_MAJOR 0 CACHE STRING "Project major version number.")
 set(VERSION_MINOR 2 CACHE STRING "Project minor version number.")
-set(VERSION_PATCH 0 CACHE STRING "Project patch version number.")
+set(VERSION_PATCH 9 CACHE STRING "Project patch version number.")
 
 if(DEFINED ENV{BUILD_NUMBER})
 message("Using ENV build number for prerelease.")
@@ -54,6 +54,14 @@ set(FK_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}-${GIT_BRANCH}
 message("Version: ${FK_VERSION}")
 
 message("Target Architecture: ${TARGET_ARCH}")
+
+message("FK_UNDERWATER: ${FK_UNDERWATER}")
+
+if("${FK_UNDERWATER}" STREQUAL "")
+  set(FIELDKIT_BOARD "fieldkit_core")
+else()
+  set(FIELDKIT_BOARD "fieldkit_underwater")
+endif()
 
 enable_testing()
 

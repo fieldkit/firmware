@@ -126,7 +126,6 @@ int32_t AttachedModule::take_readings(ReadingsContext ctx, ReadingsListener *lis
     }
 
     auto nreadings = module_readings->size();
-
     loginfo("[%d] %d readings", position_.integer(), nreadings);
 
     auto err = listener->readings_taken(this, module_readings, pool);
@@ -141,7 +140,7 @@ int32_t AttachedModule::take_readings(ReadingsContext ctx, ReadingsListener *lis
             auto reading = module_readings->get(i);
 
             loginfo("[%d] sensor[%2d] name='%s.%s' reading=%f (%f)", position_.integer(), sensor.index(), meta_->name, sensor.name(),
-                    reading.calibrated, reading.uncalibrated);
+                    reading.calibrated.value_or(0), reading.uncalibrated.value_or(0));
 
             auto err = listener->sensor_reading(this, &sensor, reading, pool);
             if (err < 0) {
@@ -158,6 +157,13 @@ int32_t AttachedModule::take_readings(ReadingsContext ctx, ReadingsListener *lis
 
 bool AttachedModule::has_id(fk_uuid_t const &id) const {
     return memcmp(&header_.id, &id, sizeof(fk_uuid_t)) == 0;
+}
+
+MenuScreen *AttachedModule::debug_menu(Pool *pool) {
+    if (driver_ != nullptr) {
+        return driver_->debug_menu(pool);
+    }
+    return nullptr;
 }
 
 ModuleConfiguration AttachedModule::get_configuration(Pool *pool) {

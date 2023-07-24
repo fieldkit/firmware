@@ -26,6 +26,9 @@ public:
     const char *unit_of_measure() {
         return meta_->unitOfMeasure;
     }
+    const char *uncalibrated_unit_of_measure() {
+        return meta_->uncalibratedUnitOfMeasure;
+    }
     uint32_t flags() {
         return meta_->flags;
     }
@@ -72,6 +75,7 @@ public:
     }
     ModuleStatus status() const;
     const char *name() const;
+    MenuScreen *debug_menu(Pool *pool);
     ModuleMetadata const *meta() const;
     ModuleConfiguration configuration() const;
     Sensors &sensors() {

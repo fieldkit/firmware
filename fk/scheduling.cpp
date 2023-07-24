@@ -26,7 +26,8 @@ ReadingsTask::ReadingsTask(lwcron::CronSpec cron_spec) : lwcron::CronTask(cron_s
 }
 
 void ReadingsTask::run() {
-    get_ipc()->launch_worker(WorkerCategory::Readings, create_pool_worker<ReadingsWorker>(false, false, true, ModulePowerState::Unknown));
+    get_ipc()->launch_worker(WorkerCategory::Readings,
+                             create_pool_worker<ReadingsWorker>(false, false, true, true, ModulePowerState::Unknown));
 }
 
 const char *ReadingsTask::toString() const {
@@ -37,18 +38,20 @@ GpsTask::GpsTask(lwcron::CronSpec cron_spec, GpsService &gps_service) : lwcron::
 }
 
 void GpsTask::run() {
-    gps_service_.begin();
+    if (!gps_service_.is_running()) {
+        gps_service_.begin();
+    }
 }
 
 const char *GpsTask::toString() const {
     return "gps";
 }
 
-LoraTask::LoraTask(lwcron::CronSpec cron_spec) : lwcron::CronTask(cron_spec) {
+LoraTask::LoraTask(lwcron::CronSpec cron_spec, LoraWorkOperation op) : lwcron::CronTask(cron_spec), op_(op) {
 }
 
 void LoraTask::run() {
-    get_ipc()->launch_worker(create_pool_worker<LoraWorker>(LoraWork{ LoraWorkOperation::Readings }));
+    get_ipc()->launch_worker(create_pool_worker<LoraWorker>(LoraWork{ op_ }));
 }
 
 const char *LoraTask::toString() const {
@@ -105,7 +108,7 @@ BackupTask::BackupTask(lwcron::CronSpec cron_spec) : lwcron::CronTask(cron_spec)
 }
 
 void BackupTask::run() {
-    get_ipc()->launch_worker(create_pool_worker<BackupWorker>());
+    get_ipc()->launch_worker(WorkerCategory::Transfer, create_pool_worker<BackupWorker>());
 }
 
 const char *BackupTask::toString() const {

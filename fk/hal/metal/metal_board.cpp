@@ -26,7 +26,10 @@ const uint8_t qspi_pins[] = {
 };
 
 const uint8_t radio_spi_cs_pins[] = {
+#if defined(FK_UNDERWATER)
+#else
     WINC1500_CS,
+#endif
 };
 
 const uint8_t core_spi_cs_pins[] = {
@@ -34,11 +37,20 @@ const uint8_t core_spi_cs_pins[] = {
 };
 
 const uint8_t power_pins[] = {
+#if defined(FK_UNDERWATER)
+#else
     WINC1500_POWER,
+#endif
     GPS_POWER,
 };
 
 bool Board::initialize() {
+#if defined(FK_UNDERWATER)
+    const uint8_t AccessoriesPower = 23u;
+    loginfo("fkuw: accessories: on");
+    pinMode(AccessoriesPower, OUTPUT);
+    digitalWrite(AccessoriesPower, HIGH);
+#else
     pinMode(WINC1500_POWER, OUTPUT);
     pinMode(WINC1500_CS, OUTPUT);
     pinMode(WINC1500_IRQ, INPUT);
@@ -66,11 +78,13 @@ bool Board::initialize() {
     digitalWrite(MODULE_SOLO_ENABLE, HIGH);
 
     disable_everything();
-
+#endif
     return true;
 }
 
 void Board::disable_everything() {
+#if defined(FK_UNDERWATER)
+#else
 #if defined(FK_TARGET_QSPI_MEMORY)
 #else
     spi_flash().end();
@@ -83,14 +97,11 @@ void Board::disable_everything() {
     i2c_module().end();
 
     disable_gps();
-    disable_wifi();
-    disable_lora();
+#endif
 }
 
 void Board::enable_everything() {
     enable_gps();
-    enable_wifi();
-    enable_lora();
 }
 
 void Board::disable_gps() {
@@ -99,54 +110,6 @@ void Board::disable_gps() {
 
 void Board::enable_gps() {
     digitalWrite(GPS_POWER, HIGH);
-}
-
-void Board::disable_lora() {
-    digitalWrite(LORA_POWER, LOW);
-}
-
-void Board::enable_lora() {
-    digitalWrite(LORA_POWER, HIGH);
-}
-
-void Board::disable_wifi() {
-    digitalWrite(WINC1500_POWER, LOW);
-    SPI1.end();
-
-    pinMode(WINC1500_CS, INPUT_PULLUP);
-    pinMode(WINC1500_IRQ, INPUT_PULLUP);
-    pinMode(WINC1500_RESET, INPUT_PULLUP);
-}
-
-void Board::enable_wifi() {
-    pinMode(WINC1500_CS, OUTPUT);
-    pinMode(WINC1500_IRQ, INPUT);
-    pinMode(WINC1500_RESET, OUTPUT);
-
-    digitalWrite(WINC1500_POWER, HIGH);
-    SPI1.begin();
-}
-
-EepromLock Board::lock_eeprom() {
-    digitalWrite(MODULE_EEPROM_LOCK, HIGH);
-
-    // See the documentation of this define for more information.
-    fk_delay(FK_MODULES_EEPROM_WRITE_TIME);
-
-    return EepromLock{ fk_uptime() };
-}
-
-void Board::release_eeprom() {
-    digitalWrite(MODULE_EEPROM_LOCK, LOW);
-}
-
-void Board::signal_eeprom(uint8_t times) {
-    for (auto i = 0; i < times; ++i) {
-        digitalWrite(MODULE_EEPROM_LOCK, HIGH);
-        fk_delay(5);
-        digitalWrite(MODULE_EEPROM_LOCK, LOW);
-        fk_delay(5);
-    }
 }
 
 SpiWrapper Board::spi_flash() {

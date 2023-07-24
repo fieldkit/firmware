@@ -27,7 +27,7 @@ TEST_F(LoraPacketizerSuite, SingleReading) {
     gs.readings.nreadings = 100;
     gs.dynamic = std::move(dynamic);
 
-    LoraPacketizer packetizer;
+    LoraReadingsPacketizer packetizer;
     auto packets = packetizer.packetize(&gs, pool);
     ASSERT_TRUE(packets);
 
@@ -54,7 +54,7 @@ TEST_F(LoraPacketizerSuite, OneModuleMultipleReadings) {
     gs.readings.nreadings = 100;
     gs.dynamic = std::move(dynamic);
 
-    LoraPacketizer packetizer;
+    LoraReadingsPacketizer packetizer;
     auto packets = packetizer.packetize(&gs, pool);
     ASSERT_TRUE(packets);
 
@@ -86,7 +86,7 @@ TEST_F(LoraPacketizerSuite, TwoModulesMultipleReadings) {
     gs.readings.nreadings = 100;
     gs.dynamic = std::move(dynamic);
 
-    LoraPacketizer packetizer;
+    LoraReadingsPacketizer packetizer;
     auto packets = packetizer.packetize(&gs, pool);
     ASSERT_TRUE(packets);
 
@@ -125,7 +125,7 @@ TEST_F(LoraPacketizerSuite, MultipleModulesVerifyLength1) {
     gs.readings.nreadings = 100;
     gs.dynamic = std::move(dynamic);
 
-    LoraPacketizer packetizer;
+    LoraReadingsPacketizer packetizer;
     auto packets = packetizer.packetize(&gs, pool);
     ASSERT_TRUE(packets);
 
@@ -159,7 +159,7 @@ TEST_F(LoraPacketizerSuite, MultipleModulesVerifyLength2) {
     gs.readings.nreadings = 100;
     gs.dynamic = std::move(dynamic);
 
-    LoraPacketizer packetizer;
+    LoraReadingsPacketizer packetizer;
     auto packets = packetizer.packetize(&gs, pool);
     ASSERT_TRUE(packets);
 
@@ -234,7 +234,7 @@ TEST_F(LoraPacketizerSuite, MultipleModulesVerifyLength3) {
     gs.readings.nreadings = 100;
     gs.dynamic = std::move(dynamic);
 
-    LoraPacketizer packetizer;
+    LoraReadingsPacketizer packetizer;
     auto packets = packetizer.packetize(&gs, pool);
     ASSERT_TRUE(packets);
 

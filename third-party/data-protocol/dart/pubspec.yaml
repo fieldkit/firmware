@@ -1,0 +1,6 @@
+name: fk_data_protocol
+version: 1.0.0
+repository: https://github.com/fieldkit/data-protocol/
+
+environment:
+  sdk: ">=2.18.0"

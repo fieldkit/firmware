@@ -20,10 +20,13 @@
 #include "networking/download_firmware_worker.h"
 #include "networking/upload_data_worker.h"
 
+#include "display/debug_module_view.h"
 #include "display/readings_view.h"
 
 #include "storage/dump_flash_memory_worker.h"
 #include "storage/backup_worker.h"
+
+#include "uw/esp32_passthru_worker.h"
 
 namespace fk {
 
@@ -132,6 +135,12 @@ static void configure_gps_duration(uint32_t duration, Pool &pool) {
     gs.get()->flush(OneSecondMs, pool);
 }
 
+static void forget_networks(Pool &pool) {
+    auto gs = get_global_state_rw();
+    memzero((void *)&gs.get()->network.config, sizeof(NetworkConfiguration));
+    gs.get()->flush(OneSecondMs, pool);
+}
+
 static void configure_wifi_duration(uint32_t duration, Pool &pool) {
     auto gs = get_global_state_rw();
     gs.get()->scheduler.network.duration = duration;
@@ -152,6 +161,12 @@ static void configure_noisy_network(DebuggingUdpTraffic udp) {
 static void configure_unexciting() {
     auto gs = get_global_state_rw();
     gs.get()->debugging.unexciting = true;
+}
+
+static void disable_readings_this_run() {
+    auto gs = get_global_state_rw();
+    gs.get()->scheduler.readings.interval = 0;
+    gs.get()->scheduler.readings.cron = {};
 }
 
 MenuView::MenuView(ViewController *views, Pool &pool) : pool_(&pool), views_(views) {
@@ -305,7 +320,19 @@ void MenuView::create_module_menu() {
         loginfo("program distance: %d", selected_module_bay_.integer());
         get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, header));
     });
-    auto program_menu = new_menu_screen<8>(pool_, "program",
+    auto program_omni_water = to_lambda_option(pool_, "Omni Water", [=]() {
+        back_->on_selected();
+        views_->show_module_status();
+        ModuleHeader header = {
+            .manufacturer = FK_MODULES_MANUFACTURER,
+            .kind = FK_MODULES_KIND_WATER_OMNI,
+            .version = 0x01,
+            .id = { 0 },
+        };
+        loginfo("program omni-water: %d", selected_module_bay_.integer());
+        get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_, header));
+    });
+    auto program_menu = new_menu_screen<9>(pool_, "program",
                                            {
                                                back_,
                                                program_weather,
@@ -315,6 +342,7 @@ void MenuView::create_module_menu() {
                                                program_water_temp,
                                                program_water_orp,
                                                program_distance,
+                                               program_omni_water,
                                            });
 
     auto module_back = to_lambda_option(pool_, "Back", [=]() { views_->show_module_status(); });
@@ -328,16 +356,26 @@ void MenuView::create_module_menu() {
         views_->show_home();
         get_ipc()->launch_worker(create_pool_worker<ConfigureModuleWorker>(selected_module_bay_));
     });
+    auto module_debug = to_lambda_option(pool_, "Debug", [=]() {
+        disable_readings_this_run();
+
+        auto gs = get_global_state_ro();
+        debug_module_menu_ = create_debug_module_menu(selected_module_bay_, gs.get(), back_, *pool_);
+        if (debug_module_menu_ != nullptr) {
+            goto_menu(debug_module_menu_, ThirtyMinutesMs, nullptr);
+        }
+    });
 
     (void)module_program;
     (void)module_erase;
 
-    module_menu_ = new_menu_screen<4>(pool_, "module",
+    module_menu_ = new_menu_screen<5>(pool_, "module",
                                       {
                                           module_back,
                                           module_home,
                                           module_program,
                                           module_erase,
+                                          module_debug,
                                       });
 }
 
@@ -357,7 +395,7 @@ void MenuView::create_confirmation_menu() {
 }
 
 template <size_t N, typename T>
-MenuScreen *create_numeric_selection(const char *f, int32_t(&&numbers)[N], MenuOption *back, Pool *pool, T on_selected) {
+MenuScreen *create_numeric_selection(const char *f, int32_t (&&numbers)[N], MenuOption *back, Pool *pool, T on_selected) {
     auto options = (MenuOption **)pool->malloc(sizeof(MenuOption *) * (N + 2));
     auto index = 0u;
 
@@ -524,12 +562,12 @@ void MenuView::create_tools_menu() {
     auto tools_dump_flash = to_lambda_option(pool_, "Flash -> SD", [=]() {
         back_->on_selected();
         views_->show_home();
-        get_ipc()->launch_worker(create_pool_worker<DumpFlashMemoryWorker>());
+        get_ipc()->launch_worker(WorkerCategory::Transfer, create_pool_worker<DumpFlashMemoryWorker>());
     });
     auto tools_backup = to_lambda_option(pool_, "Backup", [=]() {
         back_->on_selected();
         views_->show_home();
-        get_ipc()->launch_worker(create_pool_worker<BackupWorker>());
+        get_ipc()->launch_worker(WorkerCategory::Transfer, create_pool_worker<BackupWorker>());
     });
     auto tools_load_firmware_sd = to_lambda_option(pool_, "SD Upgrade", [=]() {
         back_->on_selected();
@@ -540,7 +578,7 @@ void MenuView::create_tools_menu() {
     auto tools_fsck = to_lambda_option(pool_, "Run Fsck", [=]() {
         back_->on_selected();
         views_->show_home();
-        get_ipc()->launch_worker(create_pool_worker<FsckWorker>());
+        get_ipc()->launch_worker(WorkerCategory::Storage,create_pool_worker<FsckWorker>());
     });
     auto tools_lora_ranging = to_lambda_option(pool_, "LoRa Ranging", [=]() {
         back_->on_selected();
@@ -605,28 +643,26 @@ void MenuView::create_tools_menu() {
     (void)tools_crash_assertion;
     (void)tools_poll_water_ec_sensors;
 
+#if defined(FK_UNDERWATER)
+    auto tools_esp32_passthru = to_lambda_option(pool_, "ESP32 Passthru", [=]() {
+        back_->on_selected();
+        views_->show_home();
+        get_ipc()->launch_worker(create_pool_worker<Esp32PassthruWorker>());
+    });
+
+    tools_menu_ = new_menu_screen<20>(pool_, "tools",
+#else
     tools_menu_ = new_menu_screen<19>(pool_, "tools",
+#endif
                                       {
-                                          back_,
-                                          tools_self_check,
-                                          tools_gps,
-                                          tools_gps_toggle,
-                                          tools_lora_view,
-                                          tools_lora_ranging,
-                                          tools_lora_reset,
-                                          tools_load_firmware_sd,
-                                          tools_dump_flash,
-                                          tools_backup,
-                                          tools_format_sd,
-                                          tools_sleep_test,
-                                          tools_poll_sensors,
-                                          // tools_poll_water_ec_sensors,
-                                          tools_fsck,
-                                          tools_crash_hardf,
-                                          tools_crash_assertion,
-                                          tools_export_data,
-                                          tools_factory_reset,
-                                          tools_restart,
+                                          back_, tools_self_check, tools_gps, tools_gps_toggle, tools_lora_view, tools_lora_ranging,
+                                              tools_lora_reset, tools_load_firmware_sd, tools_dump_flash, tools_backup, tools_format_sd,
+                                              tools_sleep_test, tools_poll_sensors,
+#if defined(FK_UNDERWATER)
+                                              tools_esp32_passthru,
+#endif
+                                              tools_fsck, tools_crash_hardf, tools_crash_assertion, tools_export_data, tools_factory_reset,
+                                              tools_restart,
                                       });
 }
 
@@ -725,13 +761,19 @@ void MenuView::create_network_menu() {
         get_ipc()->launch_worker(create_pool_worker<UploadDataWorker>(false, true));
     });
 
+    auto network_forget = to_lambda_option(pool_, "Forget Networks", [=]() {
+        StandardPool pool{ "forget-networks" };
+        forget_networks(pool);
+        back_->on_selected();
+        views_->show_home();
+    });
+
     (void)network_download_fw;
 
-    network_menu_ = new_menu_screen<8 - 1>(
+    network_menu_ = new_menu_screen<8>(
         pool_, "network",
         {
-            back_, network_toggle, network_choose, network_upload_resume, network_upload_meta, network_upload_data, network_duration,
-            // network_download_fw,
+            back_, network_toggle, network_choose, network_upload_resume, network_upload_meta, network_upload_data, network_duration, network_forget,
         });
 }
 

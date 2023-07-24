@@ -1,6 +1,6 @@
 #include <lwcron/lwcron.h>
 
-#include "clock.h"
+#include "hal/clock.h"
 #include "tasks/tasks.h"
 #include "state_ref.h"
 #include "scheduling.h"
@@ -41,44 +41,57 @@ static ScheduledTime get_next_task_time(uint32_t now, lwcron::Task &task) {
 }
 
 void task_handler_scheduler(void *params) {
-    BatteryChecker battery;
+    auto display_off = 0;
 
+    BatteryChecker battery;
     battery.refresh();
 
     GpsService gps_service{ get_gps() };
 
-    auto display_off = 0;
-
     if (!battery.low_power()) {
         FK_ASSERT(fk_start_task_if_necessary(&display_task));
+
+#if !defined(FK_DISABLE_NETWORK)
         FK_ASSERT(fk_start_task_if_necessary(&network_task));
+#endif
 
         if (!gps_service.begin()) {
             logerror("gps");
         }
     } else {
-        get_board()->disable_gps();
-        get_board()->disable_wifi();
+        // Neither of these should be on when we are first started.
+        // get_board()->disable_gps();
+        // get_board()->disable_wifi();
         update_allow_deep_sleep(true);
         display_off += fk_uptime() + 10000;
         get_display()->on();
         get_display()->simple(SimpleScreen{ "low battery" });
     }
 
+    DateTime now{ get_clock_now() };
     uint32_t signal_checked = 0;
     while (!fk_task_stop_requested(&signal_checked)) {
         auto schedules = get_config_schedules();
 
         ReadingsTask readings_job{ schedules.readings };
+        SynchronizeTimeTask synchronize_time_job{ DefaultSynchronizeTimeInterval };
         BackupTask backup_job{ schedules.backup };
         UploadDataTask upload_data_job{ schedules.network, schedules.network_jitter };
-        LoraTask lora_job{ schedules.lora };
+        LoraTask lora_readings_job{ schedules.lora, LoraWorkOperation::Readings };
         GpsTask gps_job{ schedules.gps, gps_service };
         ServiceModulesTask service_modules_job{ schedules.service_interval };
-        SynchronizeTimeTask synchronize_time_job{ DefaultSynchronizeTimeInterval };
 
-        lwcron::Task *tasks[7]{ &synchronize_time_job, &readings_job, &upload_data_job, &lora_job, &gps_job,
-                                &service_modules_job,  &backup_job };
+        lwcron::Task *tasks[] {
+            &synchronize_time_job, &readings_job, &backup_job, &gps_job, &service_modules_job
+#if !defined(FK_DISABLE_NETWORK)
+                ,
+                &upload_data_job
+#endif
+#if !defined(FK_DISABLE_LORA) && defined(FK_LORA_FIXED)
+                ,
+                &lora_readings_job
+#endif
+        };
         lwcron::Scheduler scheduler{ tasks };
         Topology topology;
 
@@ -92,6 +105,8 @@ void task_handler_scheduler(void *params) {
             // This throttles this loop, so we take a pass when we dequeue or timeout.
             Activity *activity = nullptr;
             if (get_ipc()->dequeue_activity(&activity)) {
+                loginfo("activity:dequeue");
+
                 if (!enable_allow_deep_sleep_timer.enabled()) {
                     loginfo("deep sleep disabled");
                     update_allow_deep_sleep(false);
@@ -106,9 +121,12 @@ void task_handler_scheduler(void *params) {
                 break;
             }
 
-            if (activity != nullptr) {
+            if (activity != nullptr && fk_can_start_task(&display_task)) {
                 if (fk_start_task_if_necessary(&display_task)) {
+                    loginfo("activity:display-started");
                     get_ipc()->launch_worker(create_pool_worker<RefreshModulesWorker>());
+                } else {
+                    logerror("activity:display-start:FAILED");
                 }
             }
 
@@ -131,6 +149,13 @@ void task_handler_scheduler(void *params) {
                     loginfo("refreshing battery");
                     battery.refresh();
                     loginfo("refreshing battery (%" PRIu32 "ms)", fk_uptime() - started);
+
+                    DateTime new_now{ get_clock_now() };
+                    if (new_now.day() != now.day()) {
+                        get_ipc()->launch_worker(create_pool_worker<LoraWorker>(LoraWork{ LoraWorkOperation::Status }));
+                    }
+
+                    now = new_now;
                 }
 
                 if (!battery.low_power_dangerous()) {
@@ -159,7 +184,7 @@ void task_handler_scheduler(void *params) {
                     update.readings = get_next_task_time(now, readings_job);
                     update.network = get_next_task_time(now, upload_data_job);
                     update.gps = get_next_task_time(now, gps_job);
-                    update.lora = get_next_task_time(now, lora_job);
+                    update.lora = get_next_task_time(now, lora_readings_job);
                     update.backup = get_next_task_time(now, backup_job);
                     gsm.apply_update(update);
                 } else {
@@ -191,6 +216,10 @@ void task_handler_scheduler(void *params) {
             }
 
             gps_service.service();
+
+            if (gps_service.first_fix()) {
+                get_ipc()->launch_worker(create_pool_worker<LoraWorker>(LoraWork{ LoraWorkOperation::Location }));
+            }
         }
     }
 

@@ -21,8 +21,7 @@ FK_DECLARE_LOGGER("memory");
 BankedDataMemory::BankedDataMemory(DataMemory **memories, size_t size) : memories_(memories), size_(size) {
 }
 
-template<typename F>
-int32_t with_bank(DataMemory **memories, size_t size, uint32_t address, F fn) {
+template <typename F> int32_t with_bank(DataMemory **memories, size_t size, uint32_t address, F fn) {
     auto bank_address = address;
     for (auto i = 0u; i < size; ++i) {
         auto &bank = *memories[i];
@@ -71,22 +70,19 @@ FlashGeometry BankedDataMemory::geometry() const {
 }
 
 int32_t BankedDataMemory::read(uint32_t address, uint8_t *data, size_t length, MemoryReadFlags flags) {
-    return with_bank(memories_, size_, address, [&](DataMemory &bank, uint32_t bank_address) {
-        return bank.read(bank_address, data, length, flags);
-    });
+    return with_bank(memories_, size_, address,
+                     [&](DataMemory &bank, uint32_t bank_address) { return bank.read(bank_address, data, length, flags); });
 }
 
 int32_t BankedDataMemory::write(uint32_t address, uint8_t const *data, size_t length, MemoryWriteFlags flags) {
-    return with_bank(memories_, size_, address, [&](DataMemory &bank, uint32_t bank_address) {
-        return bank.write(bank_address, data, length, flags);
-    });
+    return with_bank(memories_, size_, address,
+                     [&](DataMemory &bank, uint32_t bank_address) { return bank.write(bank_address, data, length, flags); });
 }
 
 int32_t BankedDataMemory::erase(uint32_t address, size_t length) {
     return for_each_block_between(address, length, geometry_.block_size, [=](uint32_t block_address) {
-        return with_bank(memories_, size_, block_address, [&](DataMemory &bank, uint32_t bank_address) {
-            return bank.erase(bank_address, geometry_.block_size);
-        });
+        return with_bank(memories_, size_, block_address,
+                         [&](DataMemory &bank, uint32_t bank_address) { return bank.erase(bank_address, geometry_.block_size); });
     });
 }
 
@@ -95,8 +91,7 @@ int32_t BankedDataMemory::copy_page(uint32_t source, uint32_t destiny, size_t pa
         return with_bank(memories_, size_, destiny, [&](DataMemory &destiny_bank, uint32_t destiny_bank_address) -> int32_t {
             if (&source_bank == &destiny_bank) {
                 return source_bank.copy_page(source_bank_address, destiny_bank_address, page_size, buffer, buffer_size);
-            }
-            else {
+            } else {
                 FK_ASSERT(buffer_size >= page_size);
 
                 logdebug("[0x%08" PRIx32 "] slow-copy to [0x%08" PRIx32 "]", source, destiny);
@@ -180,7 +175,7 @@ int32_t TranslatingMemory::execute(uint32_t *got, uint32_t *entry) {
 
 #if FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS == 4
 
-MetalDataMemory banks[MemoryFactory::NumberOfDataMemoryBanks] {
+MetalDataMemory banks[MemoryFactory::NumberOfDataMemoryBanks]{
     { SPI_FLASH_CS_BANK_1 },
     { SPI_FLASH_CS_BANK_2 },
     { SPI_FLASH_CS_BANK_3 },
@@ -188,13 +183,20 @@ MetalDataMemory banks[MemoryFactory::NumberOfDataMemoryBanks] {
 };
 DataMemory *bank_pointers[]{ &banks[0], &banks[1], &banks[2], &banks[3] };
 
-#else
+#elif FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS == 2
 
-MetalDataMemory banks[MemoryFactory::NumberOfDataMemoryBanks] {
+MetalDataMemory banks[MemoryFactory::NumberOfDataMemoryBanks]{
     { SPI_FLASH_CS_BANK_1 },
     { SPI_FLASH_CS_BANK_2 },
 };
 DataMemory *bank_pointers_normal[]{ &banks[0], &banks[1] };
+
+#elif FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS == 1
+
+MetalDataMemory banks[MemoryFactory::NumberOfDataMemoryBanks]{
+    { SPI_FLASH_CS_BANK_1 },
+};
+DataMemory *bank_pointers_normal[]{ &banks[0] };
 
 #endif
 
@@ -232,15 +234,15 @@ DataMemory **MemoryFactory::get_data_memory_banks() {
 }
 
 DataMemory *MemoryFactory::get_data_memory() {
-    #if defined(FK_ENABLE_PAGE_CACHE)
+#if defined(FK_ENABLE_PAGE_CACHE)
     return &flash_caching_memory;
-    #else
+#else
     return &banked_flash_memory;
-    #endif
+#endif
 }
 
 ExecutableMemory *MemoryFactory::get_qspi_memory() {
     return &qspi_memory_translated;
 }
 
-}
+} // namespace fk

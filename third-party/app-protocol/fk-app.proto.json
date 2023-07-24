@@ -130,6 +130,10 @@
               "type": "string",
               "id": 5
             },
+            "uncalibratedUnitOfMeasure": {
+              "type": "string",
+              "id": 9
+            },
             "path": {
               "type": "string",
               "id": 6
@@ -264,6 +268,10 @@
             "modifying": {
               "type": "bool",
               "id": 5
+            },
+            "supportsUdp": {
+              "type": "bool",
+              "id": 6
             },
             "networks": {
               "rule": "repeated",
@@ -1352,6 +1360,10 @@
             "counter": {
               "type": "uint32",
               "id": 3
+            },
+            "port": {
+              "type": "uint32",
+              "id": 4
             }
           }
         }

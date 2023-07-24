@@ -30,8 +30,16 @@ message LoggedReading {
 
 message SensorAndValue {
   uint32 sensor = 1;
-  float value = 2;
-  float uncalibrated = 3;
+  oneof calibrated {
+    bool calibratedNull = 4;
+    float calibratedValue = 2;
+  }
+  oneof uncalibrated {
+    bool uncalibratedNull = 5;
+    float uncalibratedValue = 3;
+  }
+  // value = 2;
+  // uncalibrated = 3;
 }
 
 message ModuleHeader {
@@ -56,6 +64,7 @@ message SensorInfo {
   uint32 number = 1;
   string name = 2;
   string unitOfMeasure = 3;
+  string uncalibratedUnitOfMeasure = 5;
   uint32 flags = 4;
 }
 
@@ -267,11 +276,13 @@ message CalibrationCoefficients {
 message Calibration {
   CurveType type = 1;
   uint32 time = 2;
+  uint32 kind = 6;
   repeated CalibrationPoint points = 3;
   CalibrationCoefficients coefficients = 4;
   Firmware firmware = 5;
 }
 
 message ModuleConfiguration {
-  Calibration calibration = 1;
+  Calibration calibration = 1; // DEPRECATED
+  repeated Calibration calibrations = 2;
 }

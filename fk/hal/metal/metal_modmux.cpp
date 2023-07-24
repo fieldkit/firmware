@@ -81,38 +81,38 @@ bool MetalModMux::begin() {
         loginfo("started, all modules off...");
         available_ = true;
 
-        // Setup IRQ handler for getting notified about module topology changes.
-        #if defined(FK_TOPOLOGY_CHANGES)
+// Setup IRQ handler for getting notified about module topology changes.
+#if defined(FK_TOPOLOGY_CHANGES)
         pinMode(MODULE_SWAP, INPUT);
         auto irq = digitalPinToInterrupt(MODULE_SWAP);
         attachInterrupt(irq, topology_irq, CHANGE);
-        NVIC_SetPriority(EIC_3_IRQn, FK_PRIORITY_BUTTONS);
-        #endif
+        NVIC_SetPriority(EIC_3_IRQn, FK_PRIORITY_TOPOLOGY_PIN);
+#endif
     }
 
     return success;
 }
 
 bool MetalModMux::enable_topology_irq() {
-    #if defined(FK_TOPOLOGY_CHANGES)
+#if defined(FK_TOPOLOGY_CHANGES)
     auto bus = get_board()->i2c_module();
 
     if (!I2C_CHECK(bus.write_register_u8(MCP23008_ADDRESS, MCP23008_GPINTEN, 0b10101010))) {
         return false;
     }
-    #endif
+#endif
 
     return true;
 }
 
 bool MetalModMux::disable_topology_irq() {
-    #if defined(FK_TOPOLOGY_CHANGES)
+#if defined(FK_TOPOLOGY_CHANGES)
     auto bus = get_board()->i2c_module();
 
     if (!I2C_CHECK(bus.write_register_u8(MCP23008_ADDRESS, MCP23008_GPINTEN, 0b00000000))) {
         return false;
     }
-    #endif
+#endif
 
     return true;
 }
@@ -139,8 +139,7 @@ bool MetalModMux::update_gpio(uint8_t new_gpio) {
 
     if (gpio_ == new_gpio) {
         logdebug("gpio = 0x%x (noop)", new_gpio);
-    }
-    else {
+    } else {
         loginfo("gpio = 0x%x", new_gpio);
     }
 
@@ -271,8 +270,7 @@ bool MetalModMux::choose(ModulePosition position) {
         if (!I2C_CHECK(bus.write_u8(TCA9548A_ADDRESS, 1 << mux_position))) {
             logwarn("choose %d fail", mux_position);
             continue;
-        }
-        else {
+        } else {
             if (i > 0) {
                 logwarn("choose took %d tries", i);
             }
@@ -329,7 +327,7 @@ void MetalModMux::irq() {
 
 ModulesLock MetalModMux::lock() {
     auto modules_lock = modules_mutex.acquire(UINT32_MAX);
-    auto eeprom_lock = get_board()->lock_eeprom();
+    auto eeprom_lock = lock_eeprom();
 
     FK_ASSERT(modules_lock);
 
@@ -353,7 +351,8 @@ bool MetalModMux::any_modules_on(ModulePower power) {
     for (auto i = 0u; i < MaximumNumberOfPhysicalModules; ++i) {
         auto mp = ModulePosition::from(i);
         // Power for backpack is controlled via a GPIO.
-        if (mp.solo()) continue;
+        if (mp.solo())
+            continue;
         if (is_module_on(mp)) {
             auto bp = bay_power_[mp.integer()];
             if (bp == power) {
@@ -370,6 +369,41 @@ bool MetalModMux::is_module_on(ModulePosition position) {
     auto mux_position = to_mux_position(position);
     auto new_gpio = gpio_ | (1 << mux_position);
     return new_gpio == gpio_;
+}
+
+EepromLock MetalModMux::lock_eeprom() {
+#if defined(FK_UNDERWATER)
+    logwarn("fkuw: lock-eeprom ignored");
+    return EepromLock{ 0 };
+#else
+    digitalWrite(MODULE_EEPROM_LOCK, HIGH);
+
+    // See the documentation of this define for more information.
+    fk_delay(FK_MODULES_EEPROM_WRITE_TIME);
+
+    return EepromLock{ fk_uptime() };
+#endif
+}
+
+void MetalModMux::release_eeprom() {
+#if defined(FK_UNDERWATER)
+    logwarn("fkuw: release-eeprom ignored");
+#else
+    digitalWrite(MODULE_EEPROM_LOCK, LOW);
+#endif
+}
+
+void MetalModMux::signal_eeprom(uint8_t times) {
+#if defined(FK_UNDERWATER)
+    logwarn("fkuw: signal-eeprom ignored");
+#else
+    for (auto i = 0; i < times; ++i) {
+        digitalWrite(MODULE_EEPROM_LOCK, HIGH);
+        fk_delay(5);
+        digitalWrite(MODULE_EEPROM_LOCK, LOW);
+        fk_delay(5);
+    }
+#endif
 }
 
 } // namespace fk

@@ -15,6 +15,7 @@ private:
     uint32_t fixed_at_{ 0u };
     uint32_t adjusted_at_{ 0u };
     bool running_{ false };
+    bool first_fix_{ false };
 
 public:
     GpsService(Gps *gps);
@@ -29,6 +30,9 @@ public:
     bool begin();
     bool service();
     bool stop();
+    bool first_fix() const {
+        return first_fix_;
+    }
 };
 
 } // namespace fk

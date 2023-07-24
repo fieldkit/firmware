@@ -8,7 +8,7 @@ FK_DECLARE_LOGGER("mod-ee");
 /**
  * Return the smaller of two values.
  */
-#define MIN(a, b)   ((a > b) ? (b) : (a))
+#define MIN(a, b) ((a > b) ? (b) : (a))
 
 ModuleEeprom::ModuleEeprom(TwoWireWrapper &wire) : wire_(&wire) {
 }
@@ -20,7 +20,7 @@ static bool read_page(TwoWireWrapper *wire, uint16_t address, uint8_t *data, siz
     // TODO This could be done better.
     uint8_t buffer[sizeof(uint16_t)];
     buffer[0] = (address >> 8) & 0xff;
-    buffer[1] = (address) & 0xff;
+    buffer[1] = (address)&0xff;
 
     if (!I2C_CHECK(wire->write(ModuleEeprom::EepromAddress, buffer, sizeof(buffer)))) {
         return false;
@@ -40,7 +40,7 @@ static bool write_page(TwoWireWrapper *wire, uint16_t address, uint8_t *data, si
     // TODO This could be done better.
     uint8_t buffer[sizeof(uint16_t) + size];
     buffer[0] = (address >> 8) & 0xff;
-    buffer[1] = (address) & 0xff;
+    buffer[1] = (address)&0xff;
     memcpy(buffer + sizeof(uint16_t), data, size);
 
     if (!I2C_CHECK(wire->write(ModuleEeprom::EepromAddress, buffer, sizeof(buffer)))) {
@@ -115,8 +115,8 @@ bool ModuleEeprom::write_header(ModuleHeader &header) {
     return true;
 }
 
-bool ModuleEeprom::read_configuration(uint8_t *buffer, size_t &size, size_t buffer_size) {
-    if (!read_data_delimited(ConfigurationAddress, (uint8_t *)buffer, size, buffer_size)) {
+bool ModuleEeprom::read_configuration(uint8_t **buffer, size_t &size, Pool *pool) {
+    if (!read_data_delimited(ConfigurationAddress, buffer, size, pool)) {
         return false;
     }
 
@@ -125,9 +125,25 @@ bool ModuleEeprom::read_configuration(uint8_t *buffer, size_t &size, size_t buff
     return true;
 }
 
-bool ModuleEeprom::write_configuration(uint8_t const *buffer, size_t size) {
-    // TODO Checksum?
+static bool read_callback(pb_istream_t *stream, uint8_t *buf, size_t c) {
+    return reinterpret_cast<ModuleEeprom *>(stream->state)->read_stream(buf, c);
+}
 
+pb_istream_t pb_istream_from_eeprom(ModuleEeprom *eeprom) {
+    return { &read_callback, (void *)eeprom, UINT32_MAX, 0 };
+}
+
+bool ModuleEeprom::read_configuration(void *record, pb_msgdesc_t const *fields) {
+    stream_position_ = ConfigurationAddress;
+    pb_istream_t istream = pb_istream_from_eeprom(this);
+    if (!pb_decode_delimited(&istream, fields, record)) {
+        return 0;
+    }
+
+    return true;
+}
+
+bool ModuleEeprom::write_configuration(uint8_t const *buffer, size_t size) {
     if (!write(wire_, ConfigurationAddress, (uint8_t *)buffer, size)) {
         return false;
     }
@@ -135,12 +151,34 @@ bool ModuleEeprom::write_configuration(uint8_t const *buffer, size_t size) {
     return true;
 }
 
-bool ModuleEeprom::erase_configuration() {
-    if (!erase_page(ConfigurationAddress)) {
-        return false;
+bool ModuleEeprom::erase_configuration(size_t size) {
+    auto address = ConfigurationAddress;
+    auto remaining = size;
+
+    while (remaining > 0) {
+        if (!erase_page(address)) {
+            return false;
+        }
+
+        if (remaining < EEPROM_PAGE_SIZE) {
+            break;
+        }
+
+        remaining -= EEPROM_PAGE_SIZE;
+        address += EEPROM_PAGE_SIZE;
     }
 
     loginfo("configuration erased");
+
+    return true;
+}
+
+bool ModuleEeprom::read_stream(void *data, size_t size) {
+    if (!read(wire_, stream_position_, (uint8_t *)data, size)) {
+        return false;
+    }
+
+    stream_position_ += size;
 
     return true;
 }
@@ -174,13 +212,29 @@ bool ModuleEeprom::erase_page(uint32_t address) {
     return true;
 }
 
-bool ModuleEeprom::read_data_delimited(uint32_t address, uint8_t *buffer, size_t &bytes_read, size_t buffer_size) {
-    uint8_t *ptr = buffer;
-    size_t remaining = buffer_size;
-
-    FK_ASSERT(buffer_size >= EEPROM_PAGE_SIZE);
-
+bool ModuleEeprom::read_data_delimited(uint32_t address, uint8_t **buffer, size_t &bytes_read, Pool *pool) {
+    *buffer = nullptr;
     bytes_read = 0;
+
+    pb_byte_t size_bytes_and_some[8];
+    if (!read_page(wire_, address, size_bytes_and_some, sizeof(size_bytes_and_some))) {
+        return false;
+    }
+
+    uint32_t encoded_size = 0u;
+    auto stream = pb_istream_from_buffer((pb_byte_t *)size_bytes_and_some, sizeof(size_bytes_and_some));
+    if (!::pb_decode_varint32(&stream, &encoded_size)) {
+        return true;
+    }
+
+    auto buffer_size = pb_varint_size(encoded_size) + encoded_size;
+    loginfo("eeprom: allocating %" PRIu32 " bytes", buffer_size);
+
+    auto ptr = (uint8_t *)pool->malloc(buffer_size);
+    auto remaining = buffer_size;
+    auto start = ptr;
+
+    memzero(ptr, buffer_size);
 
     while (remaining > 0) {
         size_t to_read = MIN(EEPROM_PAGE_SIZE, remaining);
@@ -188,31 +242,15 @@ bool ModuleEeprom::read_data_delimited(uint32_t address, uint8_t *buffer, size_t
             return false;
         }
 
-        if (bytes_read == 0) {
-            auto stream = pb_istream_from_buffer((pb_byte_t *)buffer, to_read);
-            bool pb_decode_varint32(pb_istream_t *stream, uint32_t *dest);
-            uint32_t encoded_size = 0;
-            if (!::pb_decode_varint32(&stream, &encoded_size)) {
-                return true;
-            }
-
-            bytes_read = pb_varint_size(encoded_size) + encoded_size;
-
-            FK_ASSERT(encoded_size < buffer_size);
-
-            if (encoded_size < EEPROM_PAGE_SIZE) {
-                return true;
-            }
-
-            remaining = bytes_read;
-        }
-
         ptr += to_read;
         remaining -= to_read;
         address += to_read;
     }
 
+    *buffer = start;
+    bytes_read = buffer_size;
+
     return true;
 }
 
-}
+} // namespace fk

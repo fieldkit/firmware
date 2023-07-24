@@ -34,8 +34,7 @@ struct CurrentSchedules {
     bool equals(CurrentSchedules const &o) const;
 };
 
-class SchedulerTask {
-};
+class SchedulerTask {};
 
 class ReadingsTask : public lwcron::CronTask, public SchedulerTask {
 public:
@@ -44,7 +43,6 @@ public:
 public:
     void run() override;
     const char *toString() const override;
-
 };
 
 class GpsTask : public lwcron::CronTask, public SchedulerTask {
@@ -57,18 +55,19 @@ public:
 public:
     void run() override;
     const char *toString() const override;
-
 };
 
 class LoraTask : public lwcron::CronTask, public SchedulerTask {
+private:
+    LoraWorkOperation op_;
+
 public:
-    explicit LoraTask(lwcron::CronSpec cron_spec);
+    explicit LoraTask(lwcron::CronSpec cron_spec, LoraWorkOperation op);
 
 public:
     void run() override;
     const char *toString() const override;
     bool enabled() const override;
-
 };
 
 class UploadDataTask : public lwcron::CronTask, public SchedulerTask {
@@ -78,7 +77,6 @@ public:
 public:
     void run() override;
     const char *toString() const override;
-
 };
 
 class SynchronizeTimeTask : public lwcron::PeriodicTask, public SchedulerTask {
@@ -88,7 +86,6 @@ public:
 public:
     void run() override;
     const char *toString() const override;
-
 };
 
 class ServiceModulesTask : public lwcron::PeriodicTask, public SchedulerTask {
@@ -96,10 +93,9 @@ public:
     explicit ServiceModulesTask(uint32_t interval);
 
 public:
-    void run() override ;
+    void run() override;
     const char *toString() const override;
     bool enabled() const override;
-
 };
 
 class BackupTask : public lwcron::CronTask, public SchedulerTask {
@@ -109,7 +105,6 @@ public:
 public:
     void run() override;
     const char *toString() const override;
-
 };
 
 } // namespace fk

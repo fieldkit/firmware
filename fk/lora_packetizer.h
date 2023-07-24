@@ -9,15 +9,17 @@
 
 namespace fk {
 
-class LoraPacketizer {
-private:
-    // TODO Calculate this from spreading factor.
-    size_t maximum_packet_size_{ 10 };
-
+class LoraReadingsPacketizer {
 public:
-    LoraPacketizer();
-    virtual ~LoraPacketizer();
+    tl::expected<EncodedMessage *, Error> packetize(GlobalState const *gs, Pool &pool);
+};
 
+class LoraLocationPacketizer {
+public:
+    tl::expected<EncodedMessage *, Error> packetize(GlobalState const *gs, Pool &pool);
+};
+
+class LoraStatusPacketizer {
 public:
     tl::expected<EncodedMessage *, Error> packetize(GlobalState const *gs, Pool &pool);
 };

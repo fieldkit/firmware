@@ -15,13 +15,25 @@ Button::Button(const char *name, uint8_t index) : name_(name), index_(index) {
 void Button::changed(bool down) {
     auto now = fk_uptime();
     if (debounce_ > 0 && now - debounce_ < ButtonDebounceDelay) {
+        logdebug("%s debounce", name_);
         return;
     }
+
+    auto debug_mode = fk_debug_mode();
+    auto display_running = os_task_is_running(&display_task);
     if (down) {
+        // Logging here can increase latency so much that testing button related
+        // things becomes pointless.
         if (!down_) {
             down_ = true;
             time_ = now;
             debounce_ = now;
+            had_display_ = display_running;
+            if (!debug_mode || !display_running) {
+                if (!get_ipc()->enqueue_activity(this)) {
+                    logerror("ipc error (activity)");
+                }
+            }
         }
     } else if (down_) {
         auto elapsed = now - time_;
@@ -31,11 +43,10 @@ void Button::changed(bool down) {
         pressed_ = now;
 
         auto available = get_ipc()->available();
-        auto display_running = os_task_is_running(&display_task);
-        auto debug_mode = fk_debug_mode();
-        loginfo("%s (%" PRIu32 "ms) (ipc=%d) (debug=%d) (display=%d)", name_, elapsed, available, debug_mode, display_running);
+        loginfo("%s (%" PRIu32 "ms) (ipc=%d) (debug=%d) (display=%d/%d)", name_, elapsed, available, debug_mode, had_display_,
+                display_running);
         if (available) {
-            if (display_running) {
+            if (had_display_) {
                 if (!get_ipc()->enqueue_button(this)) {
                     logerror("ipc error (button)");
                 }

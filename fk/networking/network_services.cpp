@@ -103,10 +103,12 @@ bool NetworkServices::should_stop() {
 
     // Some other task has requested that we stop serving. Menu option
     // or a self check for example.
+#if !defined(FK_IPC_SINGLE_THREADED)
     if (fk_task_stop_requested(&signal_checked_)) {
         loginfo("stop requested");
         return true;
     }
+#endif
 
     return false;
 }
@@ -185,7 +187,7 @@ void NetworkServices::tick() {
         network_->service(tick_pool_);
 
         if (tick_pool_->used() > 0) {
-            loginfo("network-tick: %zu/%zu", tick_pool_->used(), tick_pool_->size());
+            logverbose("network-tick: %zu/%zu", tick_pool_->used(), tick_pool_->size());
             tick_pool_->clear();
         }
     }

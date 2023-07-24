@@ -88,8 +88,10 @@ public:
     int32_t seek_position(file_size_t position);
     int32_t read(uint8_t *data, size_t size);
     int32_t read(pb_msgdesc_t const *fields, void *record, Pool &pool);
-    int32_t read_delimited_bytes(uint8_t *data, size_t size, Pool &pool);
     int32_t close();
+
+private:
+    int32_t read_delimited_bytes(uint8_t *data, size_t size, Pool &pool);
 
 public:
     struct DataFileAttributes {

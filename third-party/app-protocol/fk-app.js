@@ -630,6 +630,7 @@
              * @property {string} [name] SensorCapabilities name
              * @property {number} [frequency] SensorCapabilities frequency
              * @property {string} [unitOfMeasure] SensorCapabilities unitOfMeasure
+             * @property {string} [uncalibratedUnitOfMeasure] SensorCapabilities uncalibratedUnitOfMeasure
              * @property {string} [path] SensorCapabilities path
              * @property {number} [flags] SensorCapabilities flags
              * @property {fk_app.ILiveValue} [value] SensorCapabilities value
@@ -688,6 +689,14 @@
              * @instance
              */
             SensorCapabilities.prototype.unitOfMeasure = "";
+    
+            /**
+             * SensorCapabilities uncalibratedUnitOfMeasure.
+             * @member {string}uncalibratedUnitOfMeasure
+             * @memberof fk_app.SensorCapabilities
+             * @instance
+             */
+            SensorCapabilities.prototype.uncalibratedUnitOfMeasure = "";
     
             /**
              * SensorCapabilities path.
@@ -753,6 +762,8 @@
                     writer.uint32(/* id 7, wireType 0 =*/56).uint32(message.flags);
                 if (message.value != null && message.hasOwnProperty("value"))
                     $root.fk_app.LiveValue.encode(message.value, writer.uint32(/* id 8, wireType 2 =*/66).fork()).ldelim();
+                if (message.uncalibratedUnitOfMeasure != null && message.hasOwnProperty("uncalibratedUnitOfMeasure"))
+                    writer.uint32(/* id 9, wireType 2 =*/74).string(message.uncalibratedUnitOfMeasure);
                 return writer;
             };
     
@@ -801,6 +812,9 @@
                         break;
                     case 5:
                         message.unitOfMeasure = reader.string();
+                        break;
+                    case 9:
+                        message.uncalibratedUnitOfMeasure = reader.string();
                         break;
                     case 6:
                         message.path = reader.string();
@@ -861,6 +875,9 @@
                 if (message.unitOfMeasure != null && message.hasOwnProperty("unitOfMeasure"))
                     if (!$util.isString(message.unitOfMeasure))
                         return "unitOfMeasure: string expected";
+                if (message.uncalibratedUnitOfMeasure != null && message.hasOwnProperty("uncalibratedUnitOfMeasure"))
+                    if (!$util.isString(message.uncalibratedUnitOfMeasure))
+                        return "uncalibratedUnitOfMeasure: string expected";
                 if (message.path != null && message.hasOwnProperty("path"))
                     if (!$util.isString(message.path))
                         return "path: string expected";
@@ -897,6 +914,8 @@
                     message.frequency = object.frequency >>> 0;
                 if (object.unitOfMeasure != null)
                     message.unitOfMeasure = String(object.unitOfMeasure);
+                if (object.uncalibratedUnitOfMeasure != null)
+                    message.uncalibratedUnitOfMeasure = String(object.uncalibratedUnitOfMeasure);
                 if (object.path != null)
                     message.path = String(object.path);
                 if (object.flags != null)
@@ -931,6 +950,7 @@
                     object.path = "";
                     object.flags = 0;
                     object.value = null;
+                    object.uncalibratedUnitOfMeasure = "";
                 }
                 if (message.number != null && message.hasOwnProperty("number"))
                     object.number = message.number;
@@ -948,6 +968,8 @@
                     object.flags = message.flags;
                 if (message.value != null && message.hasOwnProperty("value"))
                     object.value = $root.fk_app.LiveValue.toObject(message.value, options);
+                if (message.uncalibratedUnitOfMeasure != null && message.hasOwnProperty("uncalibratedUnitOfMeasure"))
+                    object.uncalibratedUnitOfMeasure = message.uncalibratedUnitOfMeasure;
                 return object;
             };
     
@@ -2177,6 +2199,7 @@
              * @property {fk_app.INetworkInfo} [connected] NetworkSettings connected
              * @property {string} [macAddress] NetworkSettings macAddress
              * @property {boolean} [modifying] NetworkSettings modifying
+             * @property {boolean} [supportsUdp] NetworkSettings supportsUdp
              * @property {Array.<fk_app.INetworkInfo>} [networks] NetworkSettings networks
              */
     
@@ -2228,6 +2251,14 @@
             NetworkSettings.prototype.modifying = false;
     
             /**
+             * NetworkSettings supportsUdp.
+             * @member {boolean}supportsUdp
+             * @memberof fk_app.NetworkSettings
+             * @instance
+             */
+            NetworkSettings.prototype.supportsUdp = false;
+    
+            /**
              * NetworkSettings networks.
              * @member {Array.<fk_app.INetworkInfo>}networks
              * @memberof fk_app.NetworkSettings
@@ -2270,6 +2301,8 @@
                     writer.uint32(/* id 4, wireType 2 =*/34).string(message.macAddress);
                 if (message.modifying != null && message.hasOwnProperty("modifying"))
                     writer.uint32(/* id 5, wireType 0 =*/40).bool(message.modifying);
+                if (message.supportsUdp != null && message.hasOwnProperty("supportsUdp"))
+                    writer.uint32(/* id 6, wireType 0 =*/48).bool(message.supportsUdp);
                 return writer;
             };
     
@@ -2315,6 +2348,9 @@
                         break;
                     case 5:
                         message.modifying = reader.bool();
+                        break;
+                    case 6:
+                        message.supportsUdp = reader.bool();
                         break;
                     case 2:
                         if (!(message.networks && message.networks.length))
@@ -2370,6 +2406,9 @@
                 if (message.modifying != null && message.hasOwnProperty("modifying"))
                     if (typeof message.modifying !== "boolean")
                         return "modifying: boolean expected";
+                if (message.supportsUdp != null && message.hasOwnProperty("supportsUdp"))
+                    if (typeof message.supportsUdp !== "boolean")
+                        return "supportsUdp: boolean expected";
                 if (message.networks != null && message.hasOwnProperty("networks")) {
                     if (!Array.isArray(message.networks))
                         return "networks: array expected";
@@ -2405,6 +2444,8 @@
                     message.macAddress = String(object.macAddress);
                 if (object.modifying != null)
                     message.modifying = Boolean(object.modifying);
+                if (object.supportsUdp != null)
+                    message.supportsUdp = Boolean(object.supportsUdp);
                 if (object.networks) {
                     if (!Array.isArray(object.networks))
                         throw TypeError(".fk_app.NetworkSettings.networks: array expected");
@@ -2438,6 +2479,7 @@
                     object.connected = null;
                     object.macAddress = "";
                     object.modifying = false;
+                    object.supportsUdp = false;
                 }
                 if (message.createAccessPoint != null && message.hasOwnProperty("createAccessPoint"))
                     object.createAccessPoint = message.createAccessPoint;
@@ -2452,6 +2494,8 @@
                     object.macAddress = message.macAddress;
                 if (message.modifying != null && message.hasOwnProperty("modifying"))
                     object.modifying = message.modifying;
+                if (message.supportsUdp != null && message.hasOwnProperty("supportsUdp"))
+                    object.supportsUdp = message.supportsUdp;
                 return object;
             };
     
@@ -16436,6 +16480,7 @@
              * @property {Uint8Array} [deviceId] UdpMessage deviceId
              * @property {fk_app.UdpStatus} [status] UdpMessage status
              * @property {number} [counter] UdpMessage counter
+             * @property {number} [port] UdpMessage port
              */
     
             /**
@@ -16477,6 +16522,14 @@
             UdpMessage.prototype.counter = 0;
     
             /**
+             * UdpMessage port.
+             * @member {number}port
+             * @memberof fk_app.UdpMessage
+             * @instance
+             */
+            UdpMessage.prototype.port = 0;
+    
+            /**
              * Creates a new UdpMessage instance using the specified properties.
              * @function create
              * @memberof fk_app.UdpMessage
@@ -16506,6 +16559,8 @@
                     writer.uint32(/* id 2, wireType 0 =*/16).int32(message.status);
                 if (message.counter != null && message.hasOwnProperty("counter"))
                     writer.uint32(/* id 3, wireType 0 =*/24).uint32(message.counter);
+                if (message.port != null && message.hasOwnProperty("port"))
+                    writer.uint32(/* id 4, wireType 0 =*/32).uint32(message.port);
                 return writer;
             };
     
@@ -16548,6 +16603,9 @@
                         break;
                     case 3:
                         message.counter = reader.uint32();
+                        break;
+                    case 4:
+                        message.port = reader.uint32();
                         break;
                     default:
                         reader.skipType(tag & 7);
@@ -16598,6 +16656,9 @@
                 if (message.counter != null && message.hasOwnProperty("counter"))
                     if (!$util.isInteger(message.counter))
                         return "counter: integer expected";
+                if (message.port != null && message.hasOwnProperty("port"))
+                    if (!$util.isInteger(message.port))
+                        return "port: integer expected";
                 return null;
             };
     
@@ -16630,6 +16691,8 @@
                 }
                 if (object.counter != null)
                     message.counter = object.counter >>> 0;
+                if (object.port != null)
+                    message.port = object.port >>> 0;
                 return message;
             };
     
@@ -16650,6 +16713,7 @@
                     object.deviceId = options.bytes === String ? "" : [];
                     object.status = options.enums === String ? "UDP_STATUS_ONLINE" : 0;
                     object.counter = 0;
+                    object.port = 0;
                 }
                 if (message.deviceId != null && message.hasOwnProperty("deviceId"))
                     object.deviceId = options.bytes === String ? $util.base64.encode(message.deviceId, 0, message.deviceId.length) : options.bytes === Array ? Array.prototype.slice.call(message.deviceId) : message.deviceId;
@@ -16657,6 +16721,8 @@
                     object.status = options.enums === String ? $root.fk_app.UdpStatus[message.status] : message.status;
                 if (message.counter != null && message.hasOwnProperty("counter"))
                     object.counter = message.counter;
+                if (message.port != null && message.hasOwnProperty("port"))
+                    object.port = message.port;
                 return object;
             };
     

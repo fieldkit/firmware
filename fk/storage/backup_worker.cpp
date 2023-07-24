@@ -8,7 +8,6 @@
 #include "hal/memory.h"
 #include "hal/sd_card.h"
 
-#include "clock.h"
 #include "records.h"
 
 #include "storage/signed_log.h"
@@ -17,7 +16,7 @@ namespace fk {
 
 FK_DECLARE_LOGGER("backup");
 
-BackupWorker::BackupWorker() {
+BackupWorker::BackupWorker() : info_{ "Backup", 0.0f, true } {
 }
 
 void BackupWorker::run(Pool &pool) {
@@ -56,10 +55,12 @@ void BackupWorker::run(Pool &pool) {
         return;
     }
 
-    auto meta_path = pool.sprintf("/%s/meta.fkpb", formatted.cstr());
-    auto meta_file = storage.file_reader(Storage::Meta, pool);
-    if (!write_file(meta_file, meta_path, pool)) {
-        return;
+    if (!storage.is_phylum()) {
+        auto meta_path = pool.sprintf("/%s/meta.fkpb", formatted.cstr());
+        auto meta_file = storage.file_reader(Storage::Meta, pool);
+        if (!write_file(meta_file, meta_path, pool)) {
+            return;
+        }
     }
 
     auto data_path = pool.sprintf("/%s/data.fkpb", formatted.cstr());
@@ -104,6 +105,8 @@ bool BackupWorker::write_file(FileReader *file, const char *path, Pool &pool) {
             if (writing->write(buffer, bytes) == bytes) {
                 bytes_copied += bytes;
             }
+
+            info_.progress = (float)bytes_copied / info->size;
         } else {
             break;
         }
@@ -132,15 +135,17 @@ bool BackupWorker::write_file(FileReader *file, const char *path, Pool &pool) {
         return true;
     }
 
-    uint8_t actual[Hash::Length];
-    if (!hash_file(path, actual, pool)) {
-        return false;
-    }
+    if (verify_) {
+        uint8_t actual[Hash::Length];
+        if (!hash_file(path, actual, pool)) {
+            return false;
+        }
 
-    if (memcmp(actual, expected, Hash::Length) != 0) {
-        logerror("hash mismatch!");
-        fk_dump_memory("expected ", (uint8_t *)&expected, Hash::Length);
-        fk_dump_memory("actual   ", (uint8_t *)&actual, Hash::Length);
+        if (memcmp(actual, expected, Hash::Length) != 0) {
+            logerror("hash mismatch!");
+            fk_dump_memory("expected ", (uint8_t *)&expected, Hash::Length);
+            fk_dump_memory("actual   ", (uint8_t *)&actual, Hash::Length);
+        }
     }
 
     return true;

@@ -10,19 +10,19 @@ EnableModulePower::EnableModulePower(ModulePosition position, ModulePower power,
 
 EnableModulePower::~EnableModulePower() {
     if (enabled_once()) {
-        logdebug("[%d] powering off", position_.integer());
+        loginfo("[%d] module power off", position_.integer());
         if (!get_modmux()->disable_module(position_)) {
             logerror("[%d] disabling module failed", position_.integer());
         }
 
         auto off_time = fk_uptime();
         if (enabled_at_ > 0) {
-            loginfo("[%d] module on for %" PRIu32, position_.integer(), off_time - enabled_at_);
+            loginfo("[%d] module power on for %" PRIu32, position_.integer(), off_time - enabled_at_);
         } else {
-            logerror("[%d] module unexpectedly on", position_.integer());
+            logwarn("[%d] module power unexpectedly on for %" PRIu32, position_.integer(), off_time - enabled_at_);
         }
     } else {
-        logdebug("[%d] leaving alone", position_.integer());
+        loginfo("[%d] module power left as-is", position_.integer());
     }
 }
 
@@ -49,20 +49,28 @@ bool EnableModulePower::enable() {
 
     if (enabled_once() || always_enabled()) {
         if (!mm->is_module_on(position_)) {
-            logdebug("[%d] powering on", position_.integer());
+            loginfo("[%d] module power on", position_.integer());
+            enabled_at_ = fk_uptime();
+        } else {
+            logwarn("[%d] module power already on", position_.integer());
             enabled_at_ = fk_uptime();
         }
 
         // Updates power flag even if the module is already on.
-        loginfo("enable-module power=%d", power_);
         if (!mm->enable_module(position_, power_)) {
             logerror("[%d] enabling module failed", position_.integer());
             return false;
         }
 
         if (enabled_at_ > 0 && wake_delay_ > 0) {
-            logdebug("[%d] wake delay: %" PRIu32 "ms", position_.integer(), wake_delay_);
+            loginfo("[%d] wake delay: %" PRIu32 "ms", position_.integer(), wake_delay_);
             fk_delay(wake_delay_);
+        }
+    } else {
+        if (mm->is_module_on(position_)) {
+            logwarn("[%d] module power enable ignored and already on", position_.integer());
+        } else {
+            logwarn("[%d] module power enable ignored", position_.integer());
         }
     }
 

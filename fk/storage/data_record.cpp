@@ -2,7 +2,7 @@
 #include "storage/data_record.h"
 #include "records.h"
 #include "state.h"
-#include "clock.h"
+#include "hal/clock.h"
 
 namespace fk {
 
@@ -72,11 +72,23 @@ void DataRecord::include_readings(GlobalState const *gs, fkb_header_t const *fkb
                 auto sensor_index = sensor.index();
 
                 logverbose("[%d] sensor[%2d] name='%s.%s' calibrated=%f uncalibrated=%f", position.integer(), sensor_index, meta->name,
-                           sensor.name(), reading.calibrated, reading.uncalibrated);
+                           sensor.name(), reading.calibrated.value_or(0), reading.uncalibrated.value_or(0));
                 sensor_values[sensor_index] = fk_data_SensorAndValue_init_default;
                 sensor_values[sensor_index].sensor = sensor.index();
-                sensor_values[sensor_index].value = reading.calibrated;
-                sensor_values[sensor_index].uncalibrated = reading.uncalibrated;
+                if (reading.calibrated.has_value()) {
+                    sensor_values[sensor_index].which_calibrated = fk_data_SensorAndValue_calibratedValue_tag;
+                    sensor_values[sensor_index].calibrated.calibratedValue = reading.calibrated.value();
+                } else {
+                    sensor_values[sensor_index].which_calibrated = fk_data_SensorAndValue_calibratedNull_tag;
+                    sensor_values[sensor_index].calibrated.calibratedNull = true;
+                }
+                if (reading.uncalibrated.has_value()) {
+                    sensor_values[sensor_index].which_uncalibrated = fk_data_SensorAndValue_uncalibratedValue_tag;
+                    sensor_values[sensor_index].uncalibrated.uncalibratedValue = reading.uncalibrated.value();
+                } else {
+                    sensor_values[sensor_index].which_uncalibrated = fk_data_SensorAndValue_uncalibratedNull_tag;
+                    sensor_values[sensor_index].uncalibrated.uncalibratedNull = true;
+                }
             }
 
             auto &group = groups[group_index];

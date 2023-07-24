@@ -1,6 +1,9 @@
+#if !defined(FK_DISABLE_LORA)
+
 #include "hal/metal/metal_lora.h"
-#include "hal/board.h"
 #include "hal/metal/sc16is740.h"
+#include "hal/board.h"
+#include "hal/pins.h"
 #include "utilities.h"
 
 #include <Arduino.h>
@@ -10,6 +13,14 @@ namespace fk {
 constexpr uint32_t DefaultTimeout = 10000;
 
 FK_DECLARE_LOGGER("lora");
+
+static void disable_lora() {
+    digitalWrite(LORA_POWER, LOW);
+}
+
+static void enable_lora() {
+    digitalWrite(LORA_POWER, HIGH);
+}
 
 TwoWireExtenderStream::TwoWireExtenderStream(Sc16is740 &bridge) : bridge_(&bridge) {
 }
@@ -115,6 +126,7 @@ bool TheThingsLoraNetwork::begin(lora_frequency_t frequency_band) {
 
         if (!bridge_.begin(57600)) {
             logwarn("bridge begin");
+            power(false);
             return false;
         }
 
@@ -185,12 +197,12 @@ bool TheThingsLoraNetwork::stop() {
 bool TheThingsLoraNetwork::power(bool on) {
     if (on) {
         logdebug("power on");
-        get_board()->enable_lora();
+        enable_lora();
         powered_ = true;
         awake_ = true;
     } else {
         logdebug("power off");
-        get_board()->disable_lora();
+        disable_lora();
         powered_ = false;
         awake_ = false;
     }
@@ -340,7 +352,7 @@ bool TheThingsLoraNetwork::get_state(Rn2903State *state) {
     }
 
     if (!rn2903.simple_query("mac get status", &line, DefaultTimeout)) {
-        return nullptr;
+        return false;
     }
 
     if (!rn2903.simple_query("mac get dr", &line, DefaultTimeout)) {
@@ -396,7 +408,7 @@ bool TheThingsLoraNetwork::get_state(Rn2903State *state) {
     state->downlink_counter = atoi(line);
 
     if (!rn2903.simple_query("mac get pwridx", &line, DefaultTimeout)) {
-        return nullptr;
+        return false;
     }
     state->power_index = atoi(line);
 
@@ -448,12 +460,12 @@ bool Rn2903LoraNetwork::save_state() {
 bool Rn2903LoraNetwork::power(bool on) {
     if (on) {
         logdebug("power on");
-        get_board()->enable_lora();
+        enable_lora();
         powered_ = true;
         awake_ = true;
     } else {
         logdebug("power off");
-        get_board()->disable_lora();
+        disable_lora();
         powered_ = false;
         awake_ = false;
     }
@@ -602,3 +614,5 @@ Rn2903State *Rn2903LoraNetwork::get_state(Pool &pool) {
 }
 
 } // namespace fk
+
+#endif

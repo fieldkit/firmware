@@ -9,7 +9,7 @@
 #include "utilities.h"
 #include "records.h"
 #include "base64.h"
-#include "clock.h"
+#include "hal/clock.h"
 
 #include "readings_worker.h"
 #include "simple_workers.h"

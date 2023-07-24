@@ -179,8 +179,8 @@ int32_t PhylumDataFile::open(const char *name, Pool &pool) {
 
     name_ = name;
 
-    PhylumAttributes attributes{ file_cfg_, pool_ };
-    attributes.debug();
+    // PhylumAttributes attributes{ file_cfg_, pool_ };
+    // attributes.debug();
 
     return 0;
 }

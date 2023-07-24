@@ -6,7 +6,12 @@ invoke_pic:
         .fnstart
         .cantunwind
 
+        /*
+        Disabled for now:
+        1) We aren't using this functionality.
         mov     r9, r1
+        */
+
         bx      r0
 
         .fnend

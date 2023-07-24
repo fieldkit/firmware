@@ -454,7 +454,11 @@ void U8g2Display::reading(ReadingScreen &screen) {
         draw_.drawUTF8(0, 20, reading.sensor_name);
         draw_.setFont(u8g2_font_courR10_tf);
         char value[16];
-        tiny_snprintf(value, sizeof(value), "%.3f", reading.value);
+        if (reading.value.has_value()) {
+            tiny_snprintf(value, sizeof(value), "%.3f", reading.value.value());
+        } else {
+            tiny_snprintf(value, sizeof(value), "<none>");
+        }
         draw_centered(draw_, 40, value);
     }
 

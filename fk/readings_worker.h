@@ -10,11 +10,12 @@ private:
     bool scan_;
     bool read_only_;
     bool throttle_;
+    bool unattended_;
     ModulePowerState power_state_{ ModulePowerState::Unknown };
     StorageUpdate storage_update_;
 
 public:
-    ReadingsWorker(bool scan, bool read_only, bool throttle, ModulePowerState power_state = ModulePowerState::Unknown);
+    ReadingsWorker(bool scan, bool read_only, bool throttle, bool unattended, ModulePowerState power_state = ModulePowerState::Unknown);
 
 public:
     void run(Pool &pool) override;
@@ -39,6 +40,8 @@ private:
     };
 
     ThrottleAndScanState read_state();
+
+    bool spawn_lora_if_due(Pool &pool);
 };
 
 FK_ENABLE_TYPE_NAME(ReadingsWorker);

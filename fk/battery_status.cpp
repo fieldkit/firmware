@@ -11,9 +11,12 @@ constexpr float LowBatteryDangerousVoltage = 3.5f;
 constexpr float LowBatteryVoltage = 3.7f;
 
 void BatteryChecker::refresh(bool initialize) {
-    logdebug("taking battery reading");
-
     auto gauge = get_battery_gauge();
+    if (!gauge->expected()) {
+        return;
+    }
+
+    logdebug("taking battery reading");
 
     if (initialize) {
         if (!gauge->begin()) {
@@ -60,6 +63,8 @@ void BatteryChecker::refresh(bool initialize) {
     auto gs = get_global_state_rw();
     gs.get()->power.battery = power.battery;
     gs.get()->power.solar = power.solar;
+    gs.get()->power.battery_trend = gs.get()->power.battery_trend.update(power.battery);
+    gs.get()->power.solar_trend = gs.get()->power.solar_trend.update(power.solar);
     gs.get()->power.charge = charge;
     gs.get()->power.battery_status = battery_status_;
 }

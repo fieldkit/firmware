@@ -1,7 +1,7 @@
 #pragma once
 
-#include "clock.h"
 #include "config.h"
+#include "hal/clock.h"
 #include "hal/sd_card.h"
 
 #if defined(__SAMD51__)

@@ -31,12 +31,9 @@ public:
 
     int32_t write(const char *str) override;
 
-    int32_t socket() override;
-
     uint32_t remote_address() override;
 
     bool stop() override;
-
 };
 
 class LinuxNetworkListener : public NetworkListener {
@@ -51,7 +48,6 @@ public:
     PoolPointer<NetworkConnection> *accept() override;
 
     bool stop() override;
-
 };
 
 class LinuxNetwork : public Network {
@@ -90,12 +86,11 @@ public:
     NetworkScan scan(Pool &pool) override;
 
     void verify();
-
 };
 
 FK_ENABLE_TYPE_NAME(LinuxNetworkConnection);
 FK_ENABLE_TYPE_NAME(LinuxNetworkListener);
 
-}
+} // namespace fk
 
 #endif

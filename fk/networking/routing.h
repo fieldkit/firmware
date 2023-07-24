@@ -20,7 +20,6 @@ public:
      * Handle an incoming HTTP request.
      */
     virtual bool handle(HttpServerConnection *connection, Pool &pool) = 0;
-
 };
 
 /**
@@ -49,7 +48,6 @@ public:
     HttpHandler *handler() {
         return handler_;
     }
-
 };
 
 /**
@@ -79,7 +77,6 @@ public:
     constexpr size_t maximum_number_of_routes() {
         return HttpMaximumRoutes;
     }
-
 };
 
-}
+} // namespace fk

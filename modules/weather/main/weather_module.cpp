@@ -4,33 +4,33 @@
 #include "modules/eeprom.h"
 #include "weather.h"
 #include "platform.h"
-#include "clock.h"
+#include "hal/clock.h"
 
 namespace fk {
 
 FK_DECLARE_LOGGER("weather");
 
 static SensorMetadata const fk_module_weather_sensor_metas[] = {
-    { .name = "humidity", .unitOfMeasure = "%", .flags = 0 },
-    { .name = "temperature_1", .unitOfMeasure = "°C", .flags = 0 },
-    { .name = "pressure", .unitOfMeasure = "kPa", .flags = 0 },
-    { .name = "temperature_2", .unitOfMeasure = "°C", .flags = 0 },
+    { .name = "humidity", .unitOfMeasure = "%", .uncalibratedUnitOfMeasure = "%", .flags = 0 },
+    { .name = "temperature_1", .unitOfMeasure = "°C", .uncalibratedUnitOfMeasure = "°C", .flags = 0 },
+    { .name = "pressure", .unitOfMeasure = "kPa", .uncalibratedUnitOfMeasure = "kPa", .flags = 0 },
+    { .name = "temperature_2", .unitOfMeasure = "°C", .uncalibratedUnitOfMeasure = "°C", .flags = 0 },
 
-    { .name = "rain", .unitOfMeasure = "mm", .flags = 0 },
+    { .name = "rain", .unitOfMeasure = "mm", .uncalibratedUnitOfMeasure = "mm", .flags = 0 },
 
-    { .name = "wind_speed", .unitOfMeasure = "km/hr", .flags = 0 },
-    { .name = "wind_dir", .unitOfMeasure = "°", .flags = 0 },
-    { .name = "wind_dir_mv", .unitOfMeasure = "mv", .flags = 0 },
+    { .name = "wind_speed", .unitOfMeasure = "km/hr", .uncalibratedUnitOfMeasure = "km/hr", .flags = 0 },
+    { .name = "wind_dir", .unitOfMeasure = "°", .uncalibratedUnitOfMeasure = "°", .flags = 0 },
+    { .name = "wind_dir_mv", .unitOfMeasure = "mV", .uncalibratedUnitOfMeasure = "mV", .flags = 0 },
 
-    { .name = "wind_hr_max_speed", .unitOfMeasure = "km/hr", .flags = 0 },
-    { .name = "wind_hr_max_dir", .unitOfMeasure = "°", .flags = 0 },
-    { .name = "wind_10m_max_speed", .unitOfMeasure = "km/hr", .flags = 0 },
-    { .name = "wind_10m_max_dir", .unitOfMeasure = "°", .flags = 0 },
-    { .name = "wind_2m_avg_speed", .unitOfMeasure = "km/hr", .flags = 0 },
-    { .name = "wind_2m_avg_dir", .unitOfMeasure = "°", .flags = 0 },
+    { .name = "wind_hr_max_speed", .unitOfMeasure = "km/hr", .uncalibratedUnitOfMeasure = "km/hr", .flags = 0 },
+    { .name = "wind_hr_max_dir", .unitOfMeasure = "°", .uncalibratedUnitOfMeasure = "°", .flags = 0 },
+    { .name = "wind_10m_max_speed", .unitOfMeasure = "km/hr", .uncalibratedUnitOfMeasure = "km/hr", .flags = 0 },
+    { .name = "wind_10m_max_dir", .unitOfMeasure = "°", .uncalibratedUnitOfMeasure = "°", .flags = 0 },
+    { .name = "wind_2m_avg_speed", .unitOfMeasure = "km/hr", .uncalibratedUnitOfMeasure = "km/hr", .flags = 0 },
+    { .name = "wind_2m_avg_dir", .unitOfMeasure = "°", .uncalibratedUnitOfMeasure = "°", .flags = 0 },
 
-    { .name = "rain_this_hour", .unitOfMeasure = "mm", .flags = 0 },
-    { .name = "rain_prev_hour", .unitOfMeasure = "mm", .flags = 0 },
+    { .name = "rain_this_hour", .unitOfMeasure = "mm", .uncalibratedUnitOfMeasure = "mm", .flags = 0 },
+    { .name = "rain_prev_hour", .unitOfMeasure = "mm", .uncalibratedUnitOfMeasure = "mm", .flags = 0 },
 };
 
 static ModuleSensors fk_module_weather_sensors = {
@@ -67,7 +67,12 @@ ModuleReturn WeatherModule::service(ModuleContext mc, Pool &pool) {
 }
 
 ModuleReadings *WeatherModule::take_readings(ReadingsContext mc, Pool &pool) {
-    return delegate_.take_readings(mc, pool);
+    auto readings = delegate_.take_readings(mc, pool);
+    if (readings == nullptr) {
+        logwarn("power cycle");
+        mc.power_cycle();
+    }
+    return readings;
 }
 
 } // namespace fk

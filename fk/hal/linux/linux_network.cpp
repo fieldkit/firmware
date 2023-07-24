@@ -84,10 +84,6 @@ int32_t LinuxNetworkConnection::vwritef(const char *str, va_list args) {
     return needed;
 }
 
-int32_t LinuxNetworkConnection::socket() {
-    return s_;
-}
-
 uint32_t LinuxNetworkConnection::remote_address() {
     return remote_address_;
 }
@@ -230,6 +226,6 @@ bool LinuxNetworkListener::stop() {
     return true;
 }
 
-}
+} // namespace fk
 
 #endif

@@ -102,6 +102,7 @@ message SensorCapabilities {
   string name = 3;
   uint32 frequency = 4;
   string unitOfMeasure = 5;
+  string uncalibratedUnitOfMeasure = 9;
 
   // v2
   string path = 6;
@@ -149,6 +150,7 @@ message NetworkSettings {
   NetworkInfo connected = 3;
   string macAddress = 4;
   bool modifying = 5;
+  bool supportsUdp = 6;
   repeated NetworkInfo networks = 2;
 }
 
@@ -543,4 +545,5 @@ message UdpMessage {
   bytes deviceId = 1;
   UdpStatus status = 2;
   uint32 counter = 3;
+  uint32 port = 4;
 }

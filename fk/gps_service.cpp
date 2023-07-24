@@ -1,6 +1,6 @@
 #include "gps_service.h"
 #include "state_manager.h"
-#include "clock.h"
+#include "hal/clock.h"
 
 namespace fk {
 
@@ -52,6 +52,10 @@ bool GpsService::service() {
         return true;
     }
 
+    if (first_fix_) {
+        first_fix_ = false;
+    }
+
     GpsFix fix;
     FK_ASSERT(gps_->service(fix));
 
@@ -74,10 +78,14 @@ bool GpsService::service() {
                     gs->gps.satellites = fix.satellites;
                     gs->gps.hdop = fix.hdop;
                     gs->gps.chars = fix.chars;
+                    if (gs->gps.fixed_at == 0) {
+                        gs->gps.fixed_at = fk_uptime();
+                    }
                 });
 
                 if (fixed_at_ == 0) {
                     fixed_at_ = fk_uptime();
+                    first_fix_ = true;
                 }
 
                 FK_ASSERT(fix.time > 0);
@@ -104,8 +112,8 @@ bool GpsService::service() {
     }
 
     if (status_timer_.expired() || log_status) {
-        loginfo("satellites(%d) time(%" PRIu32 ") location(%f, %f) statistics(%" PRIu32 "chrs, %d/%d)", fix.satellites,
-                fix.time, fix.longitude, fix.latitude, fix.chars, fix.good, fix.failed);
+        loginfo("satellites(%d) time(%" PRIu32 ") location(%f, %f) statistics(%" PRIu32 "chrs, %d/%d)", fix.satellites, fix.time,
+                fix.longitude, fix.latitude, fix.chars, fix.good, fix.failed);
 
         auto duration = get_gps_duration();
         if (duration < UINT32_MAX) {

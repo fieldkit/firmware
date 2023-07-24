@@ -4,10 +4,10 @@
 #include "hal/hal.h"
 #include "readings_worker.h"
 #include "state_manager.h"
-#include "clock.h"
 
 #include "modules/scan_modules_worker.h"
 #include "update_readings_listener.h"
+#include "lora_worker.h"
 
 extern const struct fkb_header_t fkb_header;
 
@@ -15,12 +15,23 @@ namespace fk {
 
 FK_DECLARE_LOGGER("rw");
 
-ReadingsWorker::ReadingsWorker(bool scan, bool read_only, bool throttle, ModulePowerState power_state)
-    : scan_(scan), read_only_(read_only), throttle_(throttle), power_state_(power_state) {
+ReadingsWorker::ReadingsWorker(bool scan, bool read_only, bool throttle, bool unattended, ModulePowerState power_state)
+    : scan_(scan), read_only_(read_only), throttle_(throttle), unattended_(unattended), power_state_(power_state) {
 }
 
 void ReadingsWorker::run(Pool &pool) {
     if (get_ipc()->has_running_worker(WorkerCategory::Polling)) {
+        logwarn("skip: polling task");
+        return;
+    }
+
+    if (get_ipc()->has_running_worker(WorkerCategory::Transfer)) {
+        logwarn("skip: transfer task");
+        return;
+    }
+
+    if (get_ipc()->has_running_worker(WorkerCategory::Storage)) {
+        logwarn("skip: storage task");
         return;
     }
 
@@ -56,6 +67,29 @@ void ReadingsWorker::run(Pool &pool) {
 
         update_global_state(pool);
     }
+
+    if (unattended_) {
+        if (spawn_lora_if_due(pool)) {
+            LoraWorker worker{ LoraWork{ LoraWorkOperation::Readings } };
+            worker.run(pool);
+        }
+    }
+}
+
+bool ReadingsWorker::spawn_lora_if_due(Pool &pool) {
+    auto gs = get_global_state_rw();
+    if (gs.get()->lora.has_module) {
+        auto &lora = gs.get()->scheduler.lora;
+        auto elapsed_since = fk_uptime() - lora.mark;
+        auto should = elapsed_since > lora.interval * OneSecondMs;
+        loginfo("%s lora %" PRId32 "ms elapsed (%" PRIu32 "ms, %" PRIu32 "s)", should ? "spawning" : "skipping", elapsed_since, lora.mark,
+                lora.interval);
+        if (should) {
+            lora.mark = fk_uptime();
+            return true;
+        }
+    }
+    return false;
 }
 
 bool ReadingsWorker::scan(Pool &pool) {
@@ -69,6 +103,7 @@ bool ReadingsWorker::take(state::ReadingsListener *listener, Pool &pool) {
     // So, this is a little strange because we're getting a read only
     // lock but we do actually write the live readings. No real
     // danger, yet but it's strange.
+    // Wait, what? TODO
     auto gs = get_global_state_ro();
     auto attached = gs.get()->dynamic.attached();
 
@@ -127,6 +162,8 @@ bool ReadingsWorker::save(Pool &pool) {
     if (!data_attributes) {
         return false;
     }
+
+    loginfo("storage-update wrote=%" PRIu32 " data-attr=%" PRIu32, *data_record_number, data_attributes->records);
 
     storage_update_ = StorageUpdate{ .meta = StorageStreamUpdate{ meta_attributes->size, meta_attributes->records },
                                      .data = StorageStreamUpdate{ data_attributes->size, data_attributes->records },

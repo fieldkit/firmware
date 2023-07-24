@@ -1,7 +1,7 @@
 #include "aggregated_weather.h"
 
 #include "weather.h"
-#include "clock.h"
+#include "hal/clock.h"
 
 namespace fk {
 
@@ -177,6 +177,14 @@ ModuleReadings *AggregatedWeather::take_readings(ModuleContext mc, Pool &pool) {
             return nullptr;
         }
     }
+
+    // If the number of failures changed on the module, something has gone wrong.
+    // Looking into an issue Paulo has seen on his station.
+    if (failures_ >= 0 && failures_ != aw->failures) {
+        logerror("new failures, hup module");
+        return nullptr;
+    }
+    failures_ = (int8_t)aw->failures;
 
     // Detect the unmetered weather scenario.
     if (unmetered) {

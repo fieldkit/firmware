@@ -1,5 +1,5 @@
 #include "lora_packetizer.h"
-#include "clock.h"
+#include "hal/clock.h"
 #include "records.h"
 #include "varint.h"
 
@@ -28,11 +28,12 @@ static tl::expected<SensorGroupTemplate *, Error> get_sensor_group_template(Glob
         return nullptr;
     }
 
+    auto water_sensor_group = new (pool) SensorGroupTemplate(pool);
+    auto has_any_water = false;
+
     for (auto &attached_module : attached->modules()) {
         auto meta = attached_module.meta();
         if (meta != nullptr && meta->manufacturer == FK_MODULES_MANUFACTURER && meta->kind == FK_MODULES_KIND_WEATHER) {
-            loginfo("found sensor group: weather");
-
             auto sensor_group = new (pool) SensorGroupTemplate(pool);
             sensor_group->sensors.add(SensorTemplate{ meta->manufacturer, meta->kind, 0 });                        // Humidity
             sensor_group->sensors.add(SensorTemplate{ meta->manufacturer, meta->kind, 1 });                        // Temperature
@@ -43,8 +44,36 @@ static tl::expected<SensorGroupTemplate *, Error> get_sensor_group_template(Glob
             sensor_group->sensors.add(SensorTemplate{ FK_MODULES_MANUFACTURER, FK_MODULES_KIND_DIAGNOSTICS, 1 });  // Battery Vbus
             sensor_group->sensors.add(SensorTemplate{ FK_MODULES_MANUFACTURER, FK_MODULES_KIND_DIAGNOSTICS, 5 });  // Solar Vbus
             sensor_group->sensors.add(SensorTemplate{ FK_MODULES_MANUFACTURER, FK_MODULES_KIND_DIAGNOSTICS, 10 }); // Uptime
+            loginfo("sensor group: weather");
             return sensor_group;
         }
+        if (meta != nullptr && meta->manufacturer == FK_MODULES_MANUFACTURER && meta->kind == FK_MODULES_KIND_WATER_TEMP) {
+            loginfo("sensor group: temp");
+            water_sensor_group->sensors.add(SensorTemplate{ meta->manufacturer, meta->kind, 0 }); // Temp
+            has_any_water = true;
+        }
+        if (meta != nullptr && meta->manufacturer == FK_MODULES_MANUFACTURER && meta->kind == FK_MODULES_KIND_WATER_PH) {
+            loginfo("sensor group: ph");
+            water_sensor_group->sensors.add(SensorTemplate{ meta->manufacturer, meta->kind, 0 }); // pH
+            has_any_water = true;
+        }
+        if (meta != nullptr && meta->manufacturer == FK_MODULES_MANUFACTURER && meta->kind == FK_MODULES_KIND_WATER_EC) {
+            loginfo("sensor group: ec");
+            water_sensor_group->sensors.add(SensorTemplate{ meta->manufacturer, meta->kind, 0 }); // EC
+            has_any_water = true;
+        }
+        if (meta != nullptr && meta->manufacturer == FK_MODULES_MANUFACTURER && meta->kind == FK_MODULES_KIND_WATER_DO) {
+            loginfo("sensor group: do");
+            water_sensor_group->sensors.add(SensorTemplate{ meta->manufacturer, meta->kind, 0 }); // DO
+            has_any_water = true;
+        }
+    }
+
+    if (has_any_water) {
+        water_sensor_group->sensors.add(SensorTemplate{ FK_MODULES_MANUFACTURER, FK_MODULES_KIND_DIAGNOSTICS, 1 });  // Battery Vbus
+        water_sensor_group->sensors.add(SensorTemplate{ FK_MODULES_MANUFACTURER, FK_MODULES_KIND_DIAGNOSTICS, 5 });  // Solar Vbus
+        water_sensor_group->sensors.add(SensorTemplate{ FK_MODULES_MANUFACTURER, FK_MODULES_KIND_DIAGNOSTICS, 10 }); // Uptime
+        return water_sensor_group;
     }
 
 #if defined(FK_LORA_TESTING_DIAGNOSTICS_SENSOR_GROUP)
@@ -53,6 +82,7 @@ static tl::expected<SensorGroupTemplate *, Error> get_sensor_group_template(Glob
     sensor_group->sensors.add(SensorTemplate{ FK_MODULES_MANUFACTURER, FK_MODULES_KIND_DIAGNOSTICS, 5 });  // Solar Vbus
     sensor_group->sensors.add(SensorTemplate{ FK_MODULES_MANUFACTURER, FK_MODULES_KIND_DIAGNOSTICS, 10 }); // Uptime
     sensor_group->sensors.add(SensorTemplate{ FK_MODULES_MANUFACTURER, FK_MODULES_KIND_DIAGNOSTICS, 11 }); // Temperature
+    loginfo("sensor group: diagnostics");
     return sensor_group;
 #endif
 
@@ -79,6 +109,10 @@ public:
     }
 
 public:
+    size_t readings_encoded() const {
+        return readings_encoded_;
+    }
+
     size_t encoded_size() const {
         return encoded_size_;
     }
@@ -92,7 +126,7 @@ private:
     }
 
 public:
-    void begin(uint32_t age, uint32_t reading) {
+    void begin_readings(uint32_t age, uint32_t reading) {
         clear();
 
         auto p = buffer_;
@@ -130,7 +164,7 @@ public:
     }
 
     EncodedMessage *encode(Pool &pool) {
-        if (readings_encoded_ == 0) {
+        if (encoded_size_ == 0) {
             return nullptr;
         }
         auto copy = pool.wrap_copy(buffer_, encoded_size_);
@@ -140,15 +174,31 @@ public:
         buffer_[0] = number_;
         return copy;
     }
+
+    void gps(GpsState const &gps) {
+        clear();
+
+        auto ptr = (float *)buffer_;
+        ptr[0] = gps.longitude;
+        ptr[1] = gps.latitude;
+        ptr[2] = gps.altitude;
+        encoded_size_ += sizeof(float) * 3;
+    }
+
+    void status(GlobalState const *gs) {
+        clear();
+
+        auto ptr = (float *)buffer_;
+        ptr[0] = gs->power.battery.bus_voltage;
+        ptr[1] = gs->power.battery_trend.min_v;
+        ptr[2] = gs->power.battery_trend.max_v;
+        ptr[3] = gs->power.solar_trend.min_v;
+        ptr[4] = gs->power.solar_trend.max_v;
+        encoded_size_ += sizeof(float) * 5;
+    }
 };
 
-LoraPacketizer::LoraPacketizer() {
-}
-
-LoraPacketizer::~LoraPacketizer() {
-}
-
-tl::expected<EncodedMessage *, Error> LoraPacketizer::packetize(GlobalState const *gs, Pool &pool) {
+tl::expected<EncodedMessage *, Error> LoraReadingsPacketizer::packetize(GlobalState const *gs, Pool &pool) {
     EncodedMessage *head = nullptr;
     EncodedMessage *tail = nullptr;
 
@@ -186,14 +236,14 @@ tl::expected<EncodedMessage *, Error> LoraPacketizer::packetize(GlobalState cons
         return nullptr;
     }
     auto age = now - gs->readings.time;
-    record.begin(age, gs->readings.nreadings);
+    record.begin_readings(age, gs->readings.nreadings);
 
     loginfo("reading: time=%" PRIu32 " age=%" PRIu32 " reading=#%" PRIu32, gs->readings.time, age, gs->readings.nreadings);
 
     // Find sensors that fit this template and include them.
     for (auto &sensor_template : sensor_group->sensors) {
         auto adding = record.size_of_encoding();
-        if (record.encoded_size() + adding >= maximum_packet_size_) {
+        if (record.encoded_size() + adding >= LoraMaximumPacketSize) {
             append(&head, &tail, record.encode(pool));
         }
 
@@ -205,9 +255,11 @@ tl::expected<EncodedMessage *, Error> LoraPacketizer::packetize(GlobalState cons
                 for (auto &attached_sensor : attached_module.sensors()) {
                     if (attached_sensor.index() == sensor_template.sensor_index) {
                         auto reading = attached_sensor.reading();
-                        record.write_reading(reading.calibrated);
-                        logdebug("reading: '%s.%s' %f (%zd)", attached_module.name(), attached_sensor.name(), reading.calibrated,
-                                 record.encoded_size());
+                        if (reading.calibrated.has_value()) {
+                            record.write_reading(reading.calibrated.value());
+                            logdebug("reading: '%s.%s' %f (%zd)", attached_module.name(), attached_sensor.name(),
+                                     reading.calibrated.value(), record.encoded_size());
+                        }
                         found = true;
                     }
                 }
@@ -221,6 +273,36 @@ tl::expected<EncodedMessage *, Error> LoraPacketizer::packetize(GlobalState cons
             logwarn("reading: missing");
         }
     }
+
+    if (record.readings_encoded() > 0) {
+        append(&head, &tail, record.encode(pool));
+    }
+
+    return head;
+}
+
+tl::expected<EncodedMessage *, Error> LoraLocationPacketizer::packetize(GlobalState const *gs, Pool &pool) {
+    EncodedMessage *head = nullptr;
+    EncodedMessage *tail = nullptr;
+
+    loginfo("packetizing gps");
+
+    LoraRecord record{ pool };
+    record.gps(gs->gps);
+
+    append(&head, &tail, record.encode(pool));
+
+    return head;
+}
+
+tl::expected<EncodedMessage *, Error> LoraStatusPacketizer::packetize(GlobalState const *gs, Pool &pool) {
+    EncodedMessage *head = nullptr;
+    EncodedMessage *tail = nullptr;
+
+    loginfo("packetizing status");
+
+    LoraRecord record{ pool };
+    record.status(gs);
 
     append(&head, &tail, record.encode(pool));
 

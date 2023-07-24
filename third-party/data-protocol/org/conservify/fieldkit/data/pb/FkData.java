@@ -2166,16 +2166,32 @@ public final class FkData {
     int getSensor();
 
     /**
-     * <code>float value = 2;</code>
-     * @return The value.
+     * <code>bool calibratedNull = 4;</code>
+     * @return The calibratedNull.
      */
-    float getValue();
+    boolean getCalibratedNull();
 
     /**
-     * <code>float uncalibrated = 3;</code>
-     * @return The uncalibrated.
+     * <code>float calibratedValue = 2;</code>
+     * @return The calibratedValue.
      */
-    float getUncalibrated();
+    float getCalibratedValue();
+
+    /**
+     * <code>bool uncalibratedNull = 5;</code>
+     * @return The uncalibratedNull.
+     */
+    boolean getUncalibratedNull();
+
+    /**
+     * <code>float uncalibratedValue = 3;</code>
+     * @return The uncalibratedValue.
+     */
+    float getUncalibratedValue();
+
+    public org.conservify.fieldkit.data.pb.FkData.SensorAndValue.CalibratedCase getCalibratedCase();
+
+    public org.conservify.fieldkit.data.pb.FkData.SensorAndValue.UncalibratedCase getUncalibratedCase();
   }
   /**
    * Protobuf type {@code fk_data.SensorAndValue}
@@ -2187,6 +2203,92 @@ public final class FkData {
       SensorAndValueOrBuilder {
     private SensorAndValue() {
     }
+    private int calibratedCase_ = 0;
+    private java.lang.Object calibrated_;
+    public enum CalibratedCase {
+      CALIBRATEDNULL(4),
+      CALIBRATEDVALUE(2),
+      CALIBRATED_NOT_SET(0);
+      private final int value;
+      private CalibratedCase(int value) {
+        this.value = value;
+      }
+      /**
+       * @deprecated Use {@link #forNumber(int)} instead.
+       */
+      @java.lang.Deprecated
+      public static CalibratedCase valueOf(int value) {
+        return forNumber(value);
+      }
+
+      public static CalibratedCase forNumber(int value) {
+        switch (value) {
+          case 4: return CALIBRATEDNULL;
+          case 2: return CALIBRATEDVALUE;
+          case 0: return CALIBRATED_NOT_SET;
+          default: return null;
+        }
+      }
+      public int getNumber() {
+        return this.value;
+      }
+    };
+
+    @java.lang.Override
+    public CalibratedCase
+    getCalibratedCase() {
+      return CalibratedCase.forNumber(
+          calibratedCase_);
+    }
+
+    private void clearCalibrated() {
+      calibratedCase_ = 0;
+      calibrated_ = null;
+    }
+
+    private int uncalibratedCase_ = 0;
+    private java.lang.Object uncalibrated_;
+    public enum UncalibratedCase {
+      UNCALIBRATEDNULL(5),
+      UNCALIBRATEDVALUE(3),
+      UNCALIBRATED_NOT_SET(0);
+      private final int value;
+      private UncalibratedCase(int value) {
+        this.value = value;
+      }
+      /**
+       * @deprecated Use {@link #forNumber(int)} instead.
+       */
+      @java.lang.Deprecated
+      public static UncalibratedCase valueOf(int value) {
+        return forNumber(value);
+      }
+
+      public static UncalibratedCase forNumber(int value) {
+        switch (value) {
+          case 5: return UNCALIBRATEDNULL;
+          case 3: return UNCALIBRATEDVALUE;
+          case 0: return UNCALIBRATED_NOT_SET;
+          default: return null;
+        }
+      }
+      public int getNumber() {
+        return this.value;
+      }
+    };
+
+    @java.lang.Override
+    public UncalibratedCase
+    getUncalibratedCase() {
+      return UncalibratedCase.forNumber(
+          uncalibratedCase_);
+    }
+
+    private void clearUncalibrated() {
+      uncalibratedCase_ = 0;
+      uncalibrated_ = null;
+    }
+
     public static final int SENSOR_FIELD_NUMBER = 1;
     private int sensor_;
     /**
@@ -2213,56 +2315,124 @@ public final class FkData {
       sensor_ = 0;
     }
 
-    public static final int VALUE_FIELD_NUMBER = 2;
-    private float value_;
+    public static final int CALIBRATEDNULL_FIELD_NUMBER = 4;
     /**
-     * <code>float value = 2;</code>
-     * @return The value.
+     * <code>bool calibratedNull = 4;</code>
+     * @return The calibratedNull.
      */
     @java.lang.Override
-    public float getValue() {
-      return value_;
+    public boolean getCalibratedNull() {
+      if (calibratedCase_ == 4) {
+        return (java.lang.Boolean) calibrated_;
+      }
+      return false;
     }
     /**
-     * <code>float value = 2;</code>
-     * @param value The value to set.
+     * <code>bool calibratedNull = 4;</code>
+     * @param value The calibratedNull to set.
      */
-    private void setValue(float value) {
-      
-      value_ = value;
+    private void setCalibratedNull(boolean value) {
+      calibratedCase_ = 4;
+      calibrated_ = value;
     }
     /**
-     * <code>float value = 2;</code>
+     * <code>bool calibratedNull = 4;</code>
      */
-    private void clearValue() {
-      
-      value_ = 0F;
+    private void clearCalibratedNull() {
+      if (calibratedCase_ == 4) {
+        calibratedCase_ = 0;
+        calibrated_ = null;
+      }
     }
 
-    public static final int UNCALIBRATED_FIELD_NUMBER = 3;
-    private float uncalibrated_;
+    public static final int CALIBRATEDVALUE_FIELD_NUMBER = 2;
     /**
-     * <code>float uncalibrated = 3;</code>
-     * @return The uncalibrated.
+     * <code>float calibratedValue = 2;</code>
+     * @return The calibratedValue.
      */
     @java.lang.Override
-    public float getUncalibrated() {
-      return uncalibrated_;
+    public float getCalibratedValue() {
+      if (calibratedCase_ == 2) {
+        return (java.lang.Float) calibrated_;
+      }
+      return 0F;
     }
     /**
-     * <code>float uncalibrated = 3;</code>
-     * @param value The uncalibrated to set.
+     * <code>float calibratedValue = 2;</code>
+     * @param value The calibratedValue to set.
      */
-    private void setUncalibrated(float value) {
-      
+    private void setCalibratedValue(float value) {
+      calibratedCase_ = 2;
+      calibrated_ = value;
+    }
+    /**
+     * <code>float calibratedValue = 2;</code>
+     */
+    private void clearCalibratedValue() {
+      if (calibratedCase_ == 2) {
+        calibratedCase_ = 0;
+        calibrated_ = null;
+      }
+    }
+
+    public static final int UNCALIBRATEDNULL_FIELD_NUMBER = 5;
+    /**
+     * <code>bool uncalibratedNull = 5;</code>
+     * @return The uncalibratedNull.
+     */
+    @java.lang.Override
+    public boolean getUncalibratedNull() {
+      if (uncalibratedCase_ == 5) {
+        return (java.lang.Boolean) uncalibrated_;
+      }
+      return false;
+    }
+    /**
+     * <code>bool uncalibratedNull = 5;</code>
+     * @param value The uncalibratedNull to set.
+     */
+    private void setUncalibratedNull(boolean value) {
+      uncalibratedCase_ = 5;
       uncalibrated_ = value;
     }
     /**
-     * <code>float uncalibrated = 3;</code>
+     * <code>bool uncalibratedNull = 5;</code>
      */
-    private void clearUncalibrated() {
-      
-      uncalibrated_ = 0F;
+    private void clearUncalibratedNull() {
+      if (uncalibratedCase_ == 5) {
+        uncalibratedCase_ = 0;
+        uncalibrated_ = null;
+      }
+    }
+
+    public static final int UNCALIBRATEDVALUE_FIELD_NUMBER = 3;
+    /**
+     * <code>float uncalibratedValue = 3;</code>
+     * @return The uncalibratedValue.
+     */
+    @java.lang.Override
+    public float getUncalibratedValue() {
+      if (uncalibratedCase_ == 3) {
+        return (java.lang.Float) uncalibrated_;
+      }
+      return 0F;
+    }
+    /**
+     * <code>float uncalibratedValue = 3;</code>
+     * @param value The uncalibratedValue to set.
+     */
+    private void setUncalibratedValue(float value) {
+      uncalibratedCase_ = 3;
+      uncalibrated_ = value;
+    }
+    /**
+     * <code>float uncalibratedValue = 3;</code>
+     */
+    private void clearUncalibratedValue() {
+      if (uncalibratedCase_ == 3) {
+        uncalibratedCase_ = 0;
+        uncalibrated_ = null;
+      }
     }
 
     public static org.conservify.fieldkit.data.pb.FkData.SensorAndValue parseFrom(
@@ -2359,6 +2529,30 @@ public final class FkData {
         super(DEFAULT_INSTANCE);
       }
 
+      @java.lang.Override
+      public CalibratedCase
+          getCalibratedCase() {
+        return instance.getCalibratedCase();
+      }
+
+      public Builder clearCalibrated() {
+        copyOnWrite();
+        instance.clearCalibrated();
+        return this;
+      }
+
+      @java.lang.Override
+      public UncalibratedCase
+          getUncalibratedCase() {
+        return instance.getUncalibratedCase();
+      }
+
+      public Builder clearUncalibrated() {
+        copyOnWrite();
+        instance.clearUncalibrated();
+        return this;
+      }
+
 
       /**
        * <code>uint32 sensor = 1;</code>
@@ -2389,58 +2583,114 @@ public final class FkData {
       }
 
       /**
-       * <code>float value = 2;</code>
-       * @return The value.
+       * <code>bool calibratedNull = 4;</code>
+       * @return The calibratedNull.
        */
       @java.lang.Override
-      public float getValue() {
-        return instance.getValue();
+      public boolean getCalibratedNull() {
+        return instance.getCalibratedNull();
       }
       /**
-       * <code>float value = 2;</code>
-       * @param value The value to set.
+       * <code>bool calibratedNull = 4;</code>
+       * @param value The calibratedNull to set.
        * @return This builder for chaining.
        */
-      public Builder setValue(float value) {
+      public Builder setCalibratedNull(boolean value) {
         copyOnWrite();
-        instance.setValue(value);
+        instance.setCalibratedNull(value);
         return this;
       }
       /**
-       * <code>float value = 2;</code>
+       * <code>bool calibratedNull = 4;</code>
        * @return This builder for chaining.
        */
-      public Builder clearValue() {
+      public Builder clearCalibratedNull() {
         copyOnWrite();
-        instance.clearValue();
+        instance.clearCalibratedNull();
         return this;
       }
 
       /**
-       * <code>float uncalibrated = 3;</code>
-       * @return The uncalibrated.
+       * <code>float calibratedValue = 2;</code>
+       * @return The calibratedValue.
        */
       @java.lang.Override
-      public float getUncalibrated() {
-        return instance.getUncalibrated();
+      public float getCalibratedValue() {
+        return instance.getCalibratedValue();
       }
       /**
-       * <code>float uncalibrated = 3;</code>
-       * @param value The uncalibrated to set.
+       * <code>float calibratedValue = 2;</code>
+       * @param value The calibratedValue to set.
        * @return This builder for chaining.
        */
-      public Builder setUncalibrated(float value) {
+      public Builder setCalibratedValue(float value) {
         copyOnWrite();
-        instance.setUncalibrated(value);
+        instance.setCalibratedValue(value);
         return this;
       }
       /**
-       * <code>float uncalibrated = 3;</code>
+       * <code>float calibratedValue = 2;</code>
        * @return This builder for chaining.
        */
-      public Builder clearUncalibrated() {
+      public Builder clearCalibratedValue() {
         copyOnWrite();
-        instance.clearUncalibrated();
+        instance.clearCalibratedValue();
+        return this;
+      }
+
+      /**
+       * <code>bool uncalibratedNull = 5;</code>
+       * @return The uncalibratedNull.
+       */
+      @java.lang.Override
+      public boolean getUncalibratedNull() {
+        return instance.getUncalibratedNull();
+      }
+      /**
+       * <code>bool uncalibratedNull = 5;</code>
+       * @param value The uncalibratedNull to set.
+       * @return This builder for chaining.
+       */
+      public Builder setUncalibratedNull(boolean value) {
+        copyOnWrite();
+        instance.setUncalibratedNull(value);
+        return this;
+      }
+      /**
+       * <code>bool uncalibratedNull = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearUncalibratedNull() {
+        copyOnWrite();
+        instance.clearUncalibratedNull();
+        return this;
+      }
+
+      /**
+       * <code>float uncalibratedValue = 3;</code>
+       * @return The uncalibratedValue.
+       */
+      @java.lang.Override
+      public float getUncalibratedValue() {
+        return instance.getUncalibratedValue();
+      }
+      /**
+       * <code>float uncalibratedValue = 3;</code>
+       * @param value The uncalibratedValue to set.
+       * @return This builder for chaining.
+       */
+      public Builder setUncalibratedValue(float value) {
+        copyOnWrite();
+        instance.setUncalibratedValue(value);
+        return this;
+      }
+      /**
+       * <code>float uncalibratedValue = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearUncalibratedValue() {
+        copyOnWrite();
+        instance.clearUncalibratedValue();
         return this;
       }
 
@@ -2460,13 +2710,15 @@ public final class FkData {
         }
         case BUILD_MESSAGE_INFO: {
             java.lang.Object[] objects = new java.lang.Object[] {
-              "sensor_",
-              "value_",
+              "calibrated_",
+              "calibratedCase_",
               "uncalibrated_",
+              "uncalibratedCase_",
+              "sensor_",
             };
             java.lang.String info =
-                "\u0000\u0003\u0000\u0000\u0001\u0003\u0003\u0000\u0000\u0000\u0001\u000b\u0002\u0001" +
-                "\u0003\u0001";
+                "\u0000\u0005\u0002\u0000\u0001\u0005\u0005\u0000\u0000\u0000\u0001\u000b\u00024\u0000" +
+                "\u00034\u0001\u0004:\u0000\u0005:\u0001";
             return newMessageInfo(DEFAULT_INSTANCE, info, objects);
         }
         // fall through
@@ -3946,6 +4198,18 @@ public final class FkData {
         getUnitOfMeasureBytes();
 
     /**
+     * <code>string uncalibratedUnitOfMeasure = 5;</code>
+     * @return The uncalibratedUnitOfMeasure.
+     */
+    java.lang.String getUncalibratedUnitOfMeasure();
+    /**
+     * <code>string uncalibratedUnitOfMeasure = 5;</code>
+     * @return The bytes for uncalibratedUnitOfMeasure.
+     */
+    com.google.protobuf.ByteString
+        getUncalibratedUnitOfMeasureBytes();
+
+    /**
      * <code>uint32 flags = 4;</code>
      * @return The flags.
      */
@@ -3962,6 +4226,7 @@ public final class FkData {
     private SensorInfo() {
       name_ = "";
       unitOfMeasure_ = "";
+      uncalibratedUnitOfMeasure_ = "";
     }
     public static final int NUMBER_FIELD_NUMBER = 1;
     private int number_;
@@ -4080,6 +4345,53 @@ public final class FkData {
         com.google.protobuf.ByteString value) {
       checkByteStringIsUtf8(value);
       unitOfMeasure_ = value.toStringUtf8();
+      
+    }
+
+    public static final int UNCALIBRATEDUNITOFMEASURE_FIELD_NUMBER = 5;
+    private java.lang.String uncalibratedUnitOfMeasure_;
+    /**
+     * <code>string uncalibratedUnitOfMeasure = 5;</code>
+     * @return The uncalibratedUnitOfMeasure.
+     */
+    @java.lang.Override
+    public java.lang.String getUncalibratedUnitOfMeasure() {
+      return uncalibratedUnitOfMeasure_;
+    }
+    /**
+     * <code>string uncalibratedUnitOfMeasure = 5;</code>
+     * @return The bytes for uncalibratedUnitOfMeasure.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getUncalibratedUnitOfMeasureBytes() {
+      return com.google.protobuf.ByteString.copyFromUtf8(uncalibratedUnitOfMeasure_);
+    }
+    /**
+     * <code>string uncalibratedUnitOfMeasure = 5;</code>
+     * @param value The uncalibratedUnitOfMeasure to set.
+     */
+    private void setUncalibratedUnitOfMeasure(
+        java.lang.String value) {
+      value.getClass();
+  
+      uncalibratedUnitOfMeasure_ = value;
+    }
+    /**
+     * <code>string uncalibratedUnitOfMeasure = 5;</code>
+     */
+    private void clearUncalibratedUnitOfMeasure() {
+      
+      uncalibratedUnitOfMeasure_ = getDefaultInstance().getUncalibratedUnitOfMeasure();
+    }
+    /**
+     * <code>string uncalibratedUnitOfMeasure = 5;</code>
+     * @param value The bytes for uncalibratedUnitOfMeasure to set.
+     */
+    private void setUncalibratedUnitOfMeasureBytes(
+        com.google.protobuf.ByteString value) {
+      checkByteStringIsUtf8(value);
+      uncalibratedUnitOfMeasure_ = value.toStringUtf8();
       
     }
 
@@ -4331,6 +4643,55 @@ public final class FkData {
       }
 
       /**
+       * <code>string uncalibratedUnitOfMeasure = 5;</code>
+       * @return The uncalibratedUnitOfMeasure.
+       */
+      @java.lang.Override
+      public java.lang.String getUncalibratedUnitOfMeasure() {
+        return instance.getUncalibratedUnitOfMeasure();
+      }
+      /**
+       * <code>string uncalibratedUnitOfMeasure = 5;</code>
+       * @return The bytes for uncalibratedUnitOfMeasure.
+       */
+      @java.lang.Override
+      public com.google.protobuf.ByteString
+          getUncalibratedUnitOfMeasureBytes() {
+        return instance.getUncalibratedUnitOfMeasureBytes();
+      }
+      /**
+       * <code>string uncalibratedUnitOfMeasure = 5;</code>
+       * @param value The uncalibratedUnitOfMeasure to set.
+       * @return This builder for chaining.
+       */
+      public Builder setUncalibratedUnitOfMeasure(
+          java.lang.String value) {
+        copyOnWrite();
+        instance.setUncalibratedUnitOfMeasure(value);
+        return this;
+      }
+      /**
+       * <code>string uncalibratedUnitOfMeasure = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearUncalibratedUnitOfMeasure() {
+        copyOnWrite();
+        instance.clearUncalibratedUnitOfMeasure();
+        return this;
+      }
+      /**
+       * <code>string uncalibratedUnitOfMeasure = 5;</code>
+       * @param value The bytes for uncalibratedUnitOfMeasure to set.
+       * @return This builder for chaining.
+       */
+      public Builder setUncalibratedUnitOfMeasureBytes(
+          com.google.protobuf.ByteString value) {
+        copyOnWrite();
+        instance.setUncalibratedUnitOfMeasureBytes(value);
+        return this;
+      }
+
+      /**
        * <code>uint32 flags = 4;</code>
        * @return The flags.
        */
@@ -4378,10 +4739,11 @@ public final class FkData {
               "name_",
               "unitOfMeasure_",
               "flags_",
+              "uncalibratedUnitOfMeasure_",
             };
             java.lang.String info =
-                "\u0000\u0004\u0000\u0000\u0001\u0004\u0004\u0000\u0000\u0000\u0001\u000b\u0002\u0208" +
-                "\u0003\u0208\u0004\u000b";
+                "\u0000\u0005\u0000\u0000\u0001\u0005\u0005\u0000\u0000\u0000\u0001\u000b\u0002\u0208" +
+                "\u0003\u0208\u0004\u000b\u0005\u0208";
             return newMessageInfo(DEFAULT_INSTANCE, info, objects);
         }
         // fall through
@@ -18505,6 +18867,12 @@ public final class FkData {
     int getTime();
 
     /**
+     * <code>uint32 kind = 6;</code>
+     * @return The kind.
+     */
+    int getKind();
+
+    /**
      * <code>repeated .fk_data.CalibrationPoint points = 3;</code>
      */
     java.util.List<org.conservify.fieldkit.data.pb.FkData.CalibrationPoint> 
@@ -18617,6 +18985,32 @@ public final class FkData {
     private void clearTime() {
       
       time_ = 0;
+    }
+
+    public static final int KIND_FIELD_NUMBER = 6;
+    private int kind_;
+    /**
+     * <code>uint32 kind = 6;</code>
+     * @return The kind.
+     */
+    @java.lang.Override
+    public int getKind() {
+      return kind_;
+    }
+    /**
+     * <code>uint32 kind = 6;</code>
+     * @param value The kind to set.
+     */
+    private void setKind(int value) {
+      
+      kind_ = value;
+    }
+    /**
+     * <code>uint32 kind = 6;</code>
+     */
+    private void clearKind() {
+      
+      kind_ = 0;
     }
 
     public static final int POINTS_FIELD_NUMBER = 3;
@@ -18974,6 +19368,34 @@ public final class FkData {
       }
 
       /**
+       * <code>uint32 kind = 6;</code>
+       * @return The kind.
+       */
+      @java.lang.Override
+      public int getKind() {
+        return instance.getKind();
+      }
+      /**
+       * <code>uint32 kind = 6;</code>
+       * @param value The kind to set.
+       * @return This builder for chaining.
+       */
+      public Builder setKind(int value) {
+        copyOnWrite();
+        instance.setKind(value);
+        return this;
+      }
+      /**
+       * <code>uint32 kind = 6;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearKind() {
+        copyOnWrite();
+        instance.clearKind();
+        return this;
+      }
+
+      /**
        * <code>repeated .fk_data.CalibrationPoint points = 3;</code>
        */
       @java.lang.Override
@@ -19191,10 +19613,11 @@ public final class FkData {
               org.conservify.fieldkit.data.pb.FkData.CalibrationPoint.class,
               "coefficients_",
               "firmware_",
+              "kind_",
             };
             java.lang.String info =
-                "\u0000\u0005\u0000\u0000\u0001\u0005\u0005\u0000\u0001\u0000\u0001\f\u0002\u000b" +
-                "\u0003\u001b\u0004\t\u0005\t";
+                "\u0000\u0006\u0000\u0000\u0001\u0006\u0006\u0000\u0001\u0000\u0001\f\u0002\u000b" +
+                "\u0003\u001b\u0004\t\u0005\t\u0006\u000b";
             return newMessageInfo(DEFAULT_INSTANCE, info, objects);
         }
         // fall through
@@ -19254,15 +19677,37 @@ public final class FkData {
       com.google.protobuf.MessageLiteOrBuilder {
 
     /**
+     * <pre>
+     * DEPRECATED
+     * </pre>
+     *
      * <code>.fk_data.Calibration calibration = 1;</code>
      * @return Whether the calibration field is set.
      */
     boolean hasCalibration();
     /**
+     * <pre>
+     * DEPRECATED
+     * </pre>
+     *
      * <code>.fk_data.Calibration calibration = 1;</code>
      * @return The calibration.
      */
     org.conservify.fieldkit.data.pb.FkData.Calibration getCalibration();
+
+    /**
+     * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+     */
+    java.util.List<org.conservify.fieldkit.data.pb.FkData.Calibration> 
+        getCalibrationsList();
+    /**
+     * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+     */
+    org.conservify.fieldkit.data.pb.FkData.Calibration getCalibrations(int index);
+    /**
+     * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+     */
+    int getCalibrationsCount();
   }
   /**
    * Protobuf type {@code fk_data.ModuleConfiguration}
@@ -19273,10 +19718,15 @@ public final class FkData {
       // @@protoc_insertion_point(message_implements:fk_data.ModuleConfiguration)
       ModuleConfigurationOrBuilder {
     private ModuleConfiguration() {
+      calibrations_ = emptyProtobufList();
     }
     public static final int CALIBRATION_FIELD_NUMBER = 1;
     private org.conservify.fieldkit.data.pb.FkData.Calibration calibration_;
     /**
+     * <pre>
+     * DEPRECATED
+     * </pre>
+     *
      * <code>.fk_data.Calibration calibration = 1;</code>
      */
     @java.lang.Override
@@ -19284,6 +19734,10 @@ public final class FkData {
       return calibration_ != null;
     }
     /**
+     * <pre>
+     * DEPRECATED
+     * </pre>
+     *
      * <code>.fk_data.Calibration calibration = 1;</code>
      */
     @java.lang.Override
@@ -19291,6 +19745,10 @@ public final class FkData {
       return calibration_ == null ? org.conservify.fieldkit.data.pb.FkData.Calibration.getDefaultInstance() : calibration_;
     }
     /**
+     * <pre>
+     * DEPRECATED
+     * </pre>
+     *
      * <code>.fk_data.Calibration calibration = 1;</code>
      */
     private void setCalibration(org.conservify.fieldkit.data.pb.FkData.Calibration value) {
@@ -19299,6 +19757,10 @@ public final class FkData {
       
       }
     /**
+     * <pre>
+     * DEPRECATED
+     * </pre>
+     *
      * <code>.fk_data.Calibration calibration = 1;</code>
      */
     @java.lang.SuppressWarnings({"ReferenceEquality"})
@@ -19314,10 +19776,107 @@ public final class FkData {
       
     }
     /**
+     * <pre>
+     * DEPRECATED
+     * </pre>
+     *
      * <code>.fk_data.Calibration calibration = 1;</code>
      */
     private void clearCalibration() {  calibration_ = null;
       
+    }
+
+    public static final int CALIBRATIONS_FIELD_NUMBER = 2;
+    private com.google.protobuf.Internal.ProtobufList<org.conservify.fieldkit.data.pb.FkData.Calibration> calibrations_;
+    /**
+     * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+     */
+    @java.lang.Override
+    public java.util.List<org.conservify.fieldkit.data.pb.FkData.Calibration> getCalibrationsList() {
+      return calibrations_;
+    }
+    /**
+     * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+     */
+    public java.util.List<? extends org.conservify.fieldkit.data.pb.FkData.CalibrationOrBuilder> 
+        getCalibrationsOrBuilderList() {
+      return calibrations_;
+    }
+    /**
+     * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+     */
+    @java.lang.Override
+    public int getCalibrationsCount() {
+      return calibrations_.size();
+    }
+    /**
+     * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+     */
+    @java.lang.Override
+    public org.conservify.fieldkit.data.pb.FkData.Calibration getCalibrations(int index) {
+      return calibrations_.get(index);
+    }
+    /**
+     * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+     */
+    public org.conservify.fieldkit.data.pb.FkData.CalibrationOrBuilder getCalibrationsOrBuilder(
+        int index) {
+      return calibrations_.get(index);
+    }
+    private void ensureCalibrationsIsMutable() {
+      if (!calibrations_.isModifiable()) {
+        calibrations_ =
+            com.google.protobuf.GeneratedMessageLite.mutableCopy(calibrations_);
+       }
+    }
+
+    /**
+     * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+     */
+    private void setCalibrations(
+        int index, org.conservify.fieldkit.data.pb.FkData.Calibration value) {
+      value.getClass();
+  ensureCalibrationsIsMutable();
+      calibrations_.set(index, value);
+    }
+    /**
+     * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+     */
+    private void addCalibrations(org.conservify.fieldkit.data.pb.FkData.Calibration value) {
+      value.getClass();
+  ensureCalibrationsIsMutable();
+      calibrations_.add(value);
+    }
+    /**
+     * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+     */
+    private void addCalibrations(
+        int index, org.conservify.fieldkit.data.pb.FkData.Calibration value) {
+      value.getClass();
+  ensureCalibrationsIsMutable();
+      calibrations_.add(index, value);
+    }
+    /**
+     * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+     */
+    private void addAllCalibrations(
+        java.lang.Iterable<? extends org.conservify.fieldkit.data.pb.FkData.Calibration> values) {
+      ensureCalibrationsIsMutable();
+      com.google.protobuf.AbstractMessageLite.addAll(
+          values, calibrations_);
+    }
+    /**
+     * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+     */
+    private void clearCalibrations() {
+      calibrations_ = emptyProtobufList();
+    }
+    /**
+     * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+     */
+    private void removeCalibrations(int index) {
+      ensureCalibrationsIsMutable();
+      calibrations_.remove(index);
     }
 
     public static org.conservify.fieldkit.data.pb.FkData.ModuleConfiguration parseFrom(
@@ -19416,6 +19975,10 @@ public final class FkData {
 
 
       /**
+       * <pre>
+       * DEPRECATED
+       * </pre>
+       *
        * <code>.fk_data.Calibration calibration = 1;</code>
        */
       @java.lang.Override
@@ -19423,6 +19986,10 @@ public final class FkData {
         return instance.hasCalibration();
       }
       /**
+       * <pre>
+       * DEPRECATED
+       * </pre>
+       *
        * <code>.fk_data.Calibration calibration = 1;</code>
        */
       @java.lang.Override
@@ -19430,6 +19997,10 @@ public final class FkData {
         return instance.getCalibration();
       }
       /**
+       * <pre>
+       * DEPRECATED
+       * </pre>
+       *
        * <code>.fk_data.Calibration calibration = 1;</code>
        */
       public Builder setCalibration(org.conservify.fieldkit.data.pb.FkData.Calibration value) {
@@ -19438,6 +20009,10 @@ public final class FkData {
         return this;
         }
       /**
+       * <pre>
+       * DEPRECATED
+       * </pre>
+       *
        * <code>.fk_data.Calibration calibration = 1;</code>
        */
       public Builder setCalibration(
@@ -19447,6 +20022,10 @@ public final class FkData {
         return this;
       }
       /**
+       * <pre>
+       * DEPRECATED
+       * </pre>
+       *
        * <code>.fk_data.Calibration calibration = 1;</code>
        */
       public Builder mergeCalibration(org.conservify.fieldkit.data.pb.FkData.Calibration value) {
@@ -19455,10 +20034,116 @@ public final class FkData {
         return this;
       }
       /**
+       * <pre>
+       * DEPRECATED
+       * </pre>
+       *
        * <code>.fk_data.Calibration calibration = 1;</code>
        */
       public Builder clearCalibration() {  copyOnWrite();
         instance.clearCalibration();
+        return this;
+      }
+
+      /**
+       * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+       */
+      @java.lang.Override
+      public java.util.List<org.conservify.fieldkit.data.pb.FkData.Calibration> getCalibrationsList() {
+        return java.util.Collections.unmodifiableList(
+            instance.getCalibrationsList());
+      }
+      /**
+       * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+       */
+      @java.lang.Override
+      public int getCalibrationsCount() {
+        return instance.getCalibrationsCount();
+      }/**
+       * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+       */
+      @java.lang.Override
+      public org.conservify.fieldkit.data.pb.FkData.Calibration getCalibrations(int index) {
+        return instance.getCalibrations(index);
+      }
+      /**
+       * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+       */
+      public Builder setCalibrations(
+          int index, org.conservify.fieldkit.data.pb.FkData.Calibration value) {
+        copyOnWrite();
+        instance.setCalibrations(index, value);
+        return this;
+      }
+      /**
+       * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+       */
+      public Builder setCalibrations(
+          int index, org.conservify.fieldkit.data.pb.FkData.Calibration.Builder builderForValue) {
+        copyOnWrite();
+        instance.setCalibrations(index,
+            builderForValue.build());
+        return this;
+      }
+      /**
+       * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+       */
+      public Builder addCalibrations(org.conservify.fieldkit.data.pb.FkData.Calibration value) {
+        copyOnWrite();
+        instance.addCalibrations(value);
+        return this;
+      }
+      /**
+       * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+       */
+      public Builder addCalibrations(
+          int index, org.conservify.fieldkit.data.pb.FkData.Calibration value) {
+        copyOnWrite();
+        instance.addCalibrations(index, value);
+        return this;
+      }
+      /**
+       * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+       */
+      public Builder addCalibrations(
+          org.conservify.fieldkit.data.pb.FkData.Calibration.Builder builderForValue) {
+        copyOnWrite();
+        instance.addCalibrations(builderForValue.build());
+        return this;
+      }
+      /**
+       * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+       */
+      public Builder addCalibrations(
+          int index, org.conservify.fieldkit.data.pb.FkData.Calibration.Builder builderForValue) {
+        copyOnWrite();
+        instance.addCalibrations(index,
+            builderForValue.build());
+        return this;
+      }
+      /**
+       * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+       */
+      public Builder addAllCalibrations(
+          java.lang.Iterable<? extends org.conservify.fieldkit.data.pb.FkData.Calibration> values) {
+        copyOnWrite();
+        instance.addAllCalibrations(values);
+        return this;
+      }
+      /**
+       * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+       */
+      public Builder clearCalibrations() {
+        copyOnWrite();
+        instance.clearCalibrations();
+        return this;
+      }
+      /**
+       * <code>repeated .fk_data.Calibration calibrations = 2;</code>
+       */
+      public Builder removeCalibrations(int index) {
+        copyOnWrite();
+        instance.removeCalibrations(index);
         return this;
       }
 
@@ -19479,9 +20164,12 @@ public final class FkData {
         case BUILD_MESSAGE_INFO: {
             java.lang.Object[] objects = new java.lang.Object[] {
               "calibration_",
+              "calibrations_",
+              org.conservify.fieldkit.data.pb.FkData.Calibration.class,
             };
             java.lang.String info =
-                "\u0000\u0001\u0000\u0000\u0001\u0001\u0001\u0000\u0000\u0000\u0001\t";
+                "\u0000\u0002\u0000\u0000\u0001\u0002\u0002\u0000\u0001\u0000\u0001\t\u0002\u001b" +
+                "";
             return newMessageInfo(DEFAULT_INSTANCE, info, objects);
         }
         // fall through

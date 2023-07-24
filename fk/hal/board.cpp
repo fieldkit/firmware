@@ -107,6 +107,13 @@ int32_t TwoWireWrapper::read_register_u16(uint8_t address, uint8_t reg, uint16_t
     return 0;
 }
 
+class AcquireBusI2cCore : public AcquireTwoWireBus {
+public:
+    TwoWireWrapper acquire() override {
+        return get_board()->i2c_core();
+    }
+};
+
 class AcquireBusI2cRadio : public AcquireTwoWireBus {
 public:
     TwoWireWrapper acquire() override {
@@ -121,6 +128,12 @@ public:
     }
 };
 
+AcquireBusI2cCore acquire_i2c_core_;
+
+AcquireTwoWireBus *Board::acquire_i2c_core() {
+    return &acquire_i2c_core_;
+}
+
 AcquireBusI2cRadio acquire_i2c_radio_;
 
 AcquireTwoWireBus *Board::acquire_i2c_radio() {
@@ -131,24 +144,6 @@ AcquireBusI2cModule acquire_i2c_module_;
 
 AcquireTwoWireBus *Board::acquire_i2c_module() {
     return &acquire_i2c_module_;
-}
-
-EepromLock::EepromLock() {
-}
-
-EepromLock::EepromLock(EepromLock const &o) : locked_(o.locked_) {
-}
-
-EepromLock::EepromLock(uint32_t locked) : locked_(locked) {
-}
-
-EepromLock::EepromLock(EepromLock &&o) : locked_(exchange(o.locked_, 0)) {
-}
-
-EepromLock::~EepromLock() {
-    if (locked_ > 0) {
-        get_board()->release_eeprom();
-    }
 }
 
 } // namespace fk

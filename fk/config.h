@@ -206,9 +206,13 @@ constexpr bool ModulesPowerIndividually = true;
  * connected to a single station. This is governed by the largest backplanes and
  * their possible combinations.
  */
+#if defined(FK_UNDERWATER)
+constexpr size_t MaximumNumberOfPhysicalModules = 4;
+#else
 constexpr size_t MaximumNumberOfPhysicalModules = 5;
+#endif
 
-constexpr size_t MaximumConfigurationSize = 256;
+constexpr size_t MaximumConfigurationSize = 1024;
 
 constexpr uint32_t MinimumModuleStartupDelayMs = 10;
 
@@ -277,19 +281,29 @@ constexpr size_t LoraNetworkSessionKeyLength = 16;
 constexpr size_t LoraAppSessionKeyLength = 16;
 
 /**
- * LoRaWAN port for status messages.
- */
-constexpr uint8_t LoraStatusPort = 11;
-
-/**
  * LoRaWAN port for data messages.
  */
 constexpr uint8_t LoraDataPort = 10;
 
 /**
+ * LoRaWAN port for status messages.
+ */
+constexpr uint8_t LoraStatusPort = 11;
+
+/**
+ * LoRaWAN port for location messages.
+ */
+constexpr uint8_t LoraLocationPort = 12;
+
+/**
  * Number of times to try a LoRa transmission.
  */
 constexpr size_t LoraSendTries = 3;
+
+/**
+ * TODO Calculate this from spreading factor.
+ */
+constexpr size_t LoraMaximumPacketSize{ 10 };
 
 /**
  * Delay between LoRa packets.
@@ -439,7 +453,12 @@ constexpr int32_t StorageAvailableBlockLookAhead = 10;
 /**
  * Maximum number of memory banks we're capable of supporting.
  */
-constexpr size_t StorageMaximumNumberOfMemoryBanks = 2;
+#if defined(FK_UNDERWATER)
+#define FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS 1
+#else
+#define FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS 2
+#endif
+constexpr size_t StorageMaximumNumberOfMemoryBanks = FK_MAXIMUM_NUMBER_OF_MEMORY_BANKS;
 
 // -------------------------------------------------------------------------------------------
 // Debug

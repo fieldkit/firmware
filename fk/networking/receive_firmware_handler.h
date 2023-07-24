@@ -20,6 +20,10 @@ public:
 public:
     void run(Pool &pool) override;
 
+    uint8_t priority() const override {
+        return FK_PRIORITY_NETWORK_TASK;
+    }
+
     const char *name() const override {
         return "uplfirmware";
     }

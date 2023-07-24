@@ -253,7 +253,51 @@ TEST_F(ProtoBufSizeSuite, Readings) {
     auto encoded = pool_.encode(fk_data_DataRecord_fields, &record.record());
     dump_binary(file_, "data-readings", encoded);
 
-    ASSERT_EQ(encoded->size, 221u);
+    ASSERT_EQ(encoded->size, 265u);
+}
+
+TEST_F(ProtoBufSizeSuite, OneReading) {
+    fk_data_SensorAndValue value = fk_data_SensorAndValue_init_default;
+    value.sensor = 0xff;
+    value.which_calibrated = fk_data_SensorAndValue_calibratedValue_tag;
+    value.calibrated.calibratedValue = 100.0f;
+    value.which_uncalibrated = fk_data_SensorAndValue_uncalibratedValue_tag;
+    value.uncalibrated.uncalibratedValue = 200.0f;
+
+    auto encoded = pool_.encode(fk_data_SensorAndValue_fields, &value);
+    dump_binary(file_, "sensor-and-value", encoded);
+
+    ASSERT_EQ(encoded->size, 14u);
+}
+
+TEST_F(ProtoBufSizeSuite, ParseSensorAndValueUnserializedZeros) {
+    uint8_t bytes[] = { 0x08, 0xff, 0x01 };
+    fk_data_SensorAndValue value = fk_data_SensorAndValue_init_default;
+
+    auto stream = pb_istream_from_buffer(bytes, sizeof(bytes));
+    ASSERT_EQ(pb_decode(&stream, fk_data_SensorAndValue_fields, &value), true);
+
+    ASSERT_EQ(value.which_calibrated, 0);
+    ASSERT_EQ(value.which_uncalibrated, 0);
+    ASSERT_EQ(value.calibrated.calibratedValue, 0);
+    ASSERT_EQ(value.calibrated.calibratedNull, 0);
+    ASSERT_EQ(value.uncalibrated.uncalibratedValue, 0);
+    ASSERT_EQ(value.uncalibrated.uncalibratedNull, 0);
+}
+
+TEST_F(ProtoBufSizeSuite, ParseSensorAndValuePopulated) {
+    uint8_t bytes[] = { 0x08, 0xff, 0x01, 0x15, 0x00, 0x00, 0xc8, 0x42, 0x1d, 0x00, 0x00, 0x48, 0x43 };
+    fk_data_SensorAndValue value = fk_data_SensorAndValue_init_default;
+
+    auto stream = pb_istream_from_buffer(bytes, sizeof(bytes));
+    ASSERT_EQ(pb_decode(&stream, fk_data_SensorAndValue_fields, &value), true);
+
+    ASSERT_EQ(value.which_calibrated, fk_data_SensorAndValue_calibratedValue_tag);
+    ASSERT_EQ(value.which_uncalibrated, fk_data_SensorAndValue_uncalibratedValue_tag);
+    ASSERT_EQ(value.calibrated.calibratedValue, 100.0f);
+    ASSERT_EQ(value.calibrated.calibratedNull, 0);
+    ASSERT_EQ(value.uncalibrated.uncalibratedValue, 200.0f);
+    ASSERT_EQ(value.uncalibrated.uncalibratedNull, 0);
 }
 
 TEST_F(ProtoBufSizeSuite, ReadingsNoneBackFromFirstModule) {
@@ -299,7 +343,7 @@ TEST_F(ProtoBufSizeSuite, ReadingsNoneBackFromFirstModule) {
     auto encoded = pool_.encode(fk_data_DataRecord_fields, &record.record());
     dump_binary(file_, "data-readings-failed-first", encoded);
 
-    ASSERT_EQ(encoded->size, 111u);
+    ASSERT_EQ(encoded->size, 137u);
 }
 
 TEST_F(ProtoBufSizeSuite, Configuration) {

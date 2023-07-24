@@ -14,28 +14,11 @@ namespace fk {
 
 FK_DECLARE_LOGGER("lora");
 
-struct OutgoingPackets {
-    EncodedMessage *packets;
-};
-
-static OutgoingPackets packetize(Pool &pool) {
-    auto gs = get_global_state_ro();
-    LoraPacketizer packetizer;
-    auto packets = packetizer.packetize(gs.get(), pool);
-    if (!packets) {
-        return OutgoingPackets{ nullptr };
-    }
-    return OutgoingPackets{ *packets };
-}
-
-LoraWorker::LoraWorker() : work_{ LoraWorkOperation::Readings } {
-}
-
 LoraWorker::LoraWorker(LoraWork work) : work_(work) {
 }
 
 void LoraWorker::run(Pool &pool) {
-    auto lock = lora_mutex.acquire(0);
+    auto lock = lora_mutex.acquire(UINT32_MAX);
     if (!lock) {
         loginfo("already running");
         return;
@@ -59,6 +42,14 @@ void LoraWorker::run(Pool &pool) {
         readings(lora, pool);
         break;
     }
+    case LoraWorkOperation::Location: {
+        location(lora, pool);
+        break;
+    }
+    case LoraWorkOperation::Status: {
+        status(lora, pool);
+        break;
+    }
     }
 
     lora.stop();
@@ -71,6 +62,8 @@ void LoraWorker::run(Pool &pool) {
 }
 
 bool LoraWorker::factory_reset(LoraManager &lora, Pool &pool) {
+    loginfo("factory-reset");
+
     // Factory reset the module.
     if (!lora.factory_reset()) {
         return false;
@@ -82,6 +75,8 @@ bool LoraWorker::factory_reset(LoraManager &lora, Pool &pool) {
 }
 
 bool LoraWorker::configure(LoraManager &lora, Pool &pool) {
+    loginfo("configure");
+
     // This is basically an order to try and join a network.
     if (!lora.join_if_necessary(pool)) {
         return false;
@@ -90,10 +85,7 @@ bool LoraWorker::configure(LoraManager &lora, Pool &pool) {
     return true;
 }
 
-bool LoraWorker::readings(LoraManager &lora, Pool &pool) {
-    auto outgoing = packetize(pool);
-    auto iterator = outgoing.packets;
-
+bool LoraWorker::packets(LoraManager &lora, uint8_t port, EncodedMessage *iterator, Pool &pool) {
     // Log no packets to begin with, just in case that's a surprise.
     if (iterator == nullptr) {
         loginfo("no packets");
@@ -111,7 +103,7 @@ bool LoraWorker::readings(LoraManager &lora, Pool &pool) {
         // We defer all error handling to the manager, just try and send all the
         // packets we've got. It's hard to rationalize retry behavior when
         // you've got more than one flow.
-        if (!lora.send_bytes(LoraDataPort, iterator->buffer, iterator->size, pool)) {
+        if (!lora.send_bytes(port, iterator->buffer, iterator->size, pool)) {
             return lora.power_cycle();
         }
 
@@ -124,6 +116,24 @@ bool LoraWorker::readings(LoraManager &lora, Pool &pool) {
     }
 
     return true;
+}
+
+bool LoraWorker::readings(LoraManager &lora, Pool &pool) {
+    loginfo("readings");
+
+    return packets<LoraReadingsPacketizer>(lora, LoraDataPort, pool);
+}
+
+bool LoraWorker::location(LoraManager &lora, Pool &pool) {
+    loginfo("location");
+
+    return packets<LoraLocationPacketizer>(lora, LoraLocationPort, pool);
+}
+
+bool LoraWorker::status(LoraManager &lora, Pool &pool) {
+    loginfo("status");
+
+    return packets<LoraStatusPacketizer>(lora, LoraStatusPort, pool);
 }
 
 } // namespace fk

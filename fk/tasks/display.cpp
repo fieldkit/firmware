@@ -19,6 +19,7 @@
 #include "display/readings_view.h"
 #include "display/schedule_view.h"
 #include "display/self_check_view.h"
+#include "display/debug_module_view.h"
 
 namespace fk {
 
@@ -128,20 +129,28 @@ public:
 
     void on_external() override {
         show_home(); // show_qr_code
+#if !defined(FK_DISABLE_NETWORK)
         get_ipc()->launch_worker(create_pool_worker<WifiToggleWorker>(WifiToggleWorker::DesiredState::Enabled));
+#endif
     }
 
     void refresh_notifications() {
-        auto gs = get_global_state_ro();
+        auto gs = try_get_global_state_ro();
+        if (!gs) {
+            logwarn("refresh: no gs");
+            return;
+        }
+
         auto &notification = gs.get()->notification;
         if (notification.created > 0 && notified_ < notification.created) {
-            loginfo("notification: '%s'", notification.message);
+            loginfo("notif: '%s'", notification.message);
             notified_ = notification.created;
             show_message(notification.message, 0);
         }
+
         auto &display = gs.get()->display;
         if (display.open_menu.time > 0 && display.open_menu.time > updated_) {
-            loginfo("open-menu:");
+            loginfo("open-menu");
             updated_ = display.open_menu.time;
             if (display.open_menu.readings) {
                 show_view(menu_view);
@@ -157,15 +166,13 @@ public:
 
         refresh_notifications();
 
-        IntervalTimer stop_timer{ FiveMinutesMs };
+        IntervalTimer stop_timer{ OneMinuteMs };
         IntervalTimer notifications_timer{ OneSecondMs / 10 };
         auto maximum_used = 0u;
         auto frame_pool = pool_->subpool("display-frame", 1024);
         auto can_stop = os_task_is_running(&scheduler_task);
         auto should_show_readings = params->readings;
         auto dequeue_button = false;
-
-        loginfo("should-show-readings: %d", should_show_readings);
 
         FaultCode *incoming_fault_code = nullptr;
         while (!can_stop || !stop_timer.expired()) {

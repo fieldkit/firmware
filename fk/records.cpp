@@ -624,8 +624,57 @@ static inline bool pb_data_module_configuration_point_item_decode(pb_istream_t *
     return true;
 }
 
+static inline bool pb_data_module_configuration_calibration_decode(pb_istream_t *stream, pb_array_t *array) {
+    auto pool = array->pool;
+
+    fk_data_Calibration calibration = fk_data_Calibration_init_default;
+
+    calibration.points.funcs.decode = pb_decode_array;
+    calibration.points.arg = (void *)pool->malloc_with<pb_array_t>({
+        .length = 0,
+        .allocated = 0,
+        .item_size = sizeof(fk_data_CalibrationPoint),
+        .buffer = nullptr,
+        .fields = fk_data_CalibrationPoint_fields,
+        .decode_item_fn = pb_data_module_configuration_point_item_decode,
+        .pool = pool,
+    });
+
+    calibration.coefficients.values.funcs.decode = pb_decode_float_array;
+    calibration.coefficients.values.arg = (void *)pool->malloc_with<pb_array_t>({
+        .length = 0,
+        .allocated = 0,
+        .item_size = sizeof(float),
+        .buffer = nullptr,
+        .fields = nullptr,
+        .decode_item_fn = nullptr,
+        .pool = pool,
+    });
+
+    if (!pb_decode(stream, fk_data_Calibration_fields, &calibration)) {
+        return false;
+    }
+
+    append_array(array, &calibration);
+
+    return true;
+}
+
 fk_data_ModuleConfiguration *fk_module_configuration_decoding_new(Pool *pool) {
     auto record = (fk_data_ModuleConfiguration *)pool->malloc(sizeof(fk_data_ModuleConfiguration));
+
+    (*record) = fk_data_ModuleConfiguration_init_default;
+
+    record->calibrations.funcs.decode = pb_decode_array;
+    record->calibrations.arg = (void *)pool->malloc_with<pb_array_t>({
+        .length = 0,
+        .allocated = 0,
+        .item_size = sizeof(fk_data_Calibration),
+        .buffer = nullptr,
+        .fields = fk_data_Calibration_fields,
+        .decode_item_fn = pb_data_module_configuration_calibration_decode,
+        .pool = pool,
+    });
 
     record->calibration.points.funcs.decode = pb_decode_array;
     record->calibration.points.arg = (void *)pool->malloc_with<pb_array_t>({

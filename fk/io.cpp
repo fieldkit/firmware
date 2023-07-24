@@ -101,7 +101,7 @@ int32_t BufferedReader::read(uint8_t *buffer, size_t size) {
         }
 
         auto reading = std::min<size_t>(bytes_read_ - position_, size - returning);
-        memcpy(buffer, buffer_ + position_, reading);
+        memcpy(buffer + returning, buffer_ + position_, reading);
         position_ += reading;
         returning += reading;
     }

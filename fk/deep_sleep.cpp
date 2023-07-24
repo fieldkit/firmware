@@ -1,5 +1,5 @@
 #include "deep_sleep.h"
-#include "clock.h"
+#include "hal/clock.h"
 #include "hal/network.h"
 #include "hal/random.h"
 #include "tasks/tasks.h"
@@ -15,6 +15,8 @@ constexpr uint32_t MinimumAcceptableDeepSleepMs = (MinimumDeepSleepMs / 1000) * 
 static uint32_t deep_sleep() {
     auto now_before = get_clock_now();
 
+    logdebug("sleeping");
+
     fk_deep_sleep(MinimumDeepSleepMs);
 
     auto now_after = get_clock_now();
@@ -24,9 +26,7 @@ static uint32_t deep_sleep() {
     }
 
     auto elapsed = (now_after - now_before) * 1000;
-    if (elapsed > 0) {
-        logdebug("before=%" PRIu32 " now=%" PRIu32 " elapsed=%" PRIu32, now_before, now_after, elapsed);
-    }
+    logdebug("before=%" PRIu32 " now=%" PRIu32 " elapsed=%" PRIu32, now_before, now_after, elapsed);
 
     fk_uptime_adjust_after_sleep(elapsed);
 

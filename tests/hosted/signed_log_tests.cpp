@@ -8,7 +8,7 @@
 #include "hal/linux/linux.h"
 #include "storage/storage.h"
 #include "storage/signed_log.h"
-#include "clock.h"
+#include "hal/clock.h"
 #include "protobuf.h"
 #include "modules/scanning.h"
 #include "modules/registry.h"
@@ -20,8 +20,7 @@ using namespace fk;
 
 FK_DECLARE_LOGGER("tests");
 
-class SignedLogSuite : public StorageSuite {
-};
+class SignedLogSuite : public StorageSuite {};
 
 TEST_F(SignedLogSuite, OpeningEmptyFile) {
     GlobalState gs;

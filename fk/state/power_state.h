@@ -33,6 +33,24 @@ struct MeterReading {
     float mw;
 };
 
+struct MeterTrend {
+    float min_v;
+    float max_v;
+
+    MeterTrend() : min_v(100), max_v(0) {
+    }
+
+    MeterTrend(float min_v, float max_v) : min_v(min_v), max_v(max_v) {
+    }
+
+    MeterTrend update(MeterReading const &reading) const {
+        return MeterTrend{
+            std::min(min_v, reading.bus_voltage),
+            std::max(max_v, reading.bus_voltage),
+        };
+    }
+};
+
 struct PowerReading {
     bool available;
     bool charging;
@@ -49,6 +67,8 @@ struct PowerState {
     bool low_battery{ false };
     MeterReading battery{};
     MeterReading solar{};
+    MeterTrend battery_trend;
+    MeterTrend solar_trend;
     BatteryStatus battery_status{ BatteryStatus::Unknown };
     bool allow_deep_sleep{ false };
     float charge{ 0 };

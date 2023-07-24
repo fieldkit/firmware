@@ -14,10 +14,21 @@
 #include "hal/hal.h"
 #include "state_ref.h"
 #include "state_manager.h"
-#include "clock.h"
 #include "core_dump.h"
 
+#include "networking/network_services.h"
+#include "hal/pins.h"
+
 #include "../modules/weather/main/weather.h"
+
+#if defined(__SAMD51__)
+#include <WiFi101.h>
+
+#if !defined(FK_NETWORK_ESP32)
+#include <driver/include/m2m_types.h>
+#include <driver/include/m2m_ota.h>
+#endif
+#endif
 
 extern const struct fkb_header_t fkb_header;
 
@@ -29,12 +40,16 @@ static void scan_i2c_radio_bus() __attribute__((unused));
 
 static void scan_i2c_module_bus() __attribute__((unused));
 
+static void wifi_low_level_test() __attribute__((unused));
+
+static void write_headers() __attribute__((unused));
+
 static void scan_i2c_radio_bus() {
     auto bus = get_board()->i2c_radio();
 
     bus.begin();
 
-    get_board()->enable_lora();
+    // get_board()->enable_lora();
 
     fk_delay(1000);
 
@@ -175,34 +190,318 @@ static void write_headers() {
     }
 }
 
-static void test_core_dump() {
-    // fk_core_dump("livetest");
-    // fk_core_dump(nullptr);
+static void wifi_low_level_test() {
+#if defined(FK_NETWORK_ESP32) && defined(FK_WIFI_0_SSID) && defined(FK_WIFI_0_PASSWORD)
+    pinMode(WIFI_ESP32_CS, OUTPUT);
+    digitalWrite(WIFI_ESP32_CS, HIGH);
+    SPI1.begin();
 
-    fk_core_dump_tasks();
+    // WiFi.setPins(WIFI_ESP32_CS, WIFI_ESP32_ACK, WIFI_ESP32_RESET, WIFI_ESP32_GPIO0, &SPI1);
+
+    if (WiFi.status() == WL_NO_MODULE) {
+        logwarn("communication with wifi module failed!");
+        while (true)
+            ;
+    }
+    String fv = WiFi.firmwareVersion();
+    loginfo("firmware: %s", fv.c_str());
+
+    WiFi.noLowPowerMode();
+
+    int serverPort = 80;
+    WiFiServer server(serverPort);
+
+    loginfo("attempting to connect to SSID");
+
+    // Connect to WPA/WPA2 network. Change this line if using open or WEP network:
+    uint8_t status = -1;
+    do {
+        status = WiFi.begin(FK_WIFI_0_SSID, FK_WIFI_0_PASSWORD);
+        delay(100); // wait until connection is ready!
+    } while (status != WL_CONNECTED);
+
+    loginfo("connected to wifi!");
+
+    server.begin();
+
+    auto total_bytes = 1024 * 1024;
+
+    // size_t size = 2048u;
+    size_t size = 1024u;
+    char *buffer = (char *)malloc(size);
+
+    while (true) {
+        // listen for incoming clients
+        WiFiClient client = server.available();
+        if (client) {
+            loginfo("New client");
+            // an http request ends with a blank line
+            boolean currentLineIsBlank = true;
+            while (client.connected()) {
+                if (client.available()) {
+                    char c = client.read();
+                    Serial.write(c);
+                    // if you've gotten to the end of the line (received a newline
+                    // character) and the line is blank, the http request has ended,
+                    // so you can send a reply
+                    if (c == '\n' && currentLineIsBlank) {
+                        // send a standard http response header
+                        client.println("HTTP/1.1 200 OK");
+                        client.println("Content-Type: text/html");
+                        client.println("Connection: close"); // the connection will be closed after completion of the response
+                        client.print("Content-Length: ");
+                        client.print(total_bytes);
+                        client.println("");
+                        client.println();
+                        auto remaining = total_bytes;
+                        memset(buffer, size, 0);
+                        memset(buffer, size - 1, 'A');
+                        auto tries = 0u;
+                        while (remaining > 0) {
+                            auto wrote = client.print(buffer);
+                            if (wrote == 0) {
+                                logerror("oh no, 0 bytes written (%zu total, %zu remaining)", total_bytes - remaining, remaining);
+                                fk_delay(500);
+                                if (tries++ == 2) {
+                                    break;
+                                }
+                            } else {
+                                tries = 0;
+                            }
+                            fk_delay(10);
+                            remaining -= wrote;
+                        }
+                        break;
+                    }
+                    if (c == '\n') {
+                        // you're starting a new line
+                        currentLineIsBlank = true;
+                    } else if (c != '\r') {
+                        // you've gotten a character on the current line
+                        currentLineIsBlank = false;
+                    }
+                }
+            }
+            // give the web browser time to receive the data
+            fk_delay(1);
+
+            // close the connection:
+            client.stop();
+            loginfo("disconnected");
+        }
+
+        fk_delay(10);
+    }
+#endif
+}
+
+#if defined(FK_LIVE_TEST_WIFI) && defined(FK_WIFI_0_SSID) && defined(FK_WIFI_0_PASSWORD)
+static void wifi_test() __attribute__((unused));
+
+static void wifi_test() {
+    StandardPool pool{ "network-task" };
+    NetworkServices services{ get_network(), pool };
+    GlobalStateManager gsm;
+
+    gsm.apply([=](GlobalState *gs) {
+        gs->network.config.wifi_networks[0] = {};
+        gs->network.config.wifi_networks[0].valid = true;
+        strncpy(gs->network.config.wifi_networks[0].ssid, FK_WIFI_0_SSID, sizeof(gs->network.config.wifi_networks[0].ssid));
+        strncpy(gs->network.config.wifi_networks[0].password, FK_WIFI_0_PASSWORD, sizeof(gs->network.config.wifi_networks[0].password));
+    });
+
+    loginfo("starting network...");
+
+    if (!services.begin(NetworkConnectionTimeoutMs, pool)) {
+        logerror("error starting server");
+        return;
+    }
+
+    loginfo("started");
+
+    loginfo("waiting to serve");
+
+    // In self AP mode we're waiting for connections now, and hold off doing
+    // anything useful until something joins.
+    while (services.waiting_to_serve()) {
+        if (services.should_stop()) {
+            return;
+        }
+
+        services.tick();
+
+        fk_delay(10);
+    }
+
+    if (!services.can_serve()) {
+        loginfo("unable to serve, retrying");
+        return;
+    }
+
+    // Start the network services now that we've got things to talk to.
+    if (!services.serve()) {
+        logerror("error serving");
+        return;
+    }
+
+    loginfo("awaiting connections...");
+
+    gsm.apply([=](GlobalState *gs) {
+        gs->network.state.enabled = fk_uptime();
+        gs->network.state.connected = fk_uptime();
+        gs->network.state.ip = get_network()->ip_address();
+    });
+
+    while (services.serving()) {
+        if (services.should_stop()) {
+            return;
+        }
+
+        services.tick();
+
+        if (!services.active_connections()) {
+            fk_delay(10);
+        }
+    }
+}
+#endif
+
+#if defined(FK_LIVE_TEST_WINC1500_OTA) && !defined(FK_NETWORK_ESP32)
+#define MAIN_WLAN_SSID FK_WIFI_0_SSID
+#define MAIN_WLAN_AUTH M2M_WIFI_SEC_WPA_PSK
+#define MAIN_WLAN_PSK  FK_WIFI_0_PASSWORD
+#define MAIN_OTA_URL   "http://192.168.0.100:8000/m2m_ota_3a0.bin"
+
+static void wifi_cb(uint8_t u8MsgType, void *pvMsg) {
+    switch (u8MsgType) {
+    case M2M_WIFI_RESP_CON_STATE_CHANGED: {
+        tstrM2mWifiStateChanged *pstrWifiState = (tstrM2mWifiStateChanged *)pvMsg;
+        if (pstrWifiState->u8CurrState == M2M_WIFI_CONNECTED) {
+            m2m_wifi_request_dhcp_client();
+        } else if (pstrWifiState->u8CurrState == M2M_WIFI_DISCONNECTED) {
+            loginfo("Wi-Fi disconnected");
+
+            /* Connect to defined AP. */
+            m2m_wifi_connect((char *)MAIN_WLAN_SSID, sizeof(MAIN_WLAN_SSID), MAIN_WLAN_AUTH, (void *)MAIN_WLAN_PSK, M2M_WIFI_CH_ALL);
+        }
+
+        break;
+    }
+
+    case M2M_WIFI_REQ_DHCP_CONF: {
+        uint8_t *pu8IPAddress = (uint8_t *)pvMsg;
+        loginfo("Wi-Fi connected");
+        loginfo("Wi-Fi IP is %u.%u.%u.%u", pu8IPAddress[0], pu8IPAddress[1], pu8IPAddress[2], pu8IPAddress[3]);
+        m2m_ota_start_update((uint8_t *)MAIN_OTA_URL);
+        break;
+    }
+
+    default: {
+        break;
+    }
+    }
+}
+
+static void OtaUpdateCb(uint8_t u8OtaUpdateStatusType, uint8_t u8OtaUpdateStatus) {
+    loginfo("OtaUpdateCb %d %d", u8OtaUpdateStatusType, u8OtaUpdateStatus);
+    if (u8OtaUpdateStatusType == DL_STATUS) {
+        if (u8OtaUpdateStatus == OTA_STATUS_SUCCESS) {
+            /* Start Host Controller OTA HERE ... Before switching.... */
+            loginfo("OtaUpdateCb m2m_ota_switch_firmware start.");
+            m2m_ota_switch_firmware();
+        } else {
+            loginfo("OtaUpdateCb FAIL u8OtaUpdateStatus: %d", u8OtaUpdateStatus);
+        }
+    } else if (u8OtaUpdateStatusType == SW_STATUS) {
+        if (u8OtaUpdateStatus == OTA_STATUS_SUCCESS) {
+            loginfo("OTA Success. Press reset your board.");
+            /* system_reset(); */
+        }
+    }
+}
+
+static void OtaNotifCb(tstrOtaUpdateInfo *pv) {
+    loginfo("OtaNotifCb");
+}
+
+static void wifi_firmware_upgrade() __attribute__((unused));
+
+static void wifi_firmware_upgrade() {
+    tstrWifiInitParam param;
+    int8_t ret;
+
+    pinMode(WINC1500_CS, OUTPUT);
+    pinMode(WINC1500_IRQ, INPUT);
+    pinMode(WINC1500_RESET, OUTPUT);
+
+    digitalWrite(WINC1500_POWER, HIGH);
+    SPI1.begin();
+
+    WiFi.setPins(WINC1500_CS, WINC1500_IRQ, WINC1500_RESET);
+    NVIC_SetPriority(EIC_11_IRQn, OS_IRQ_PRIORITY_SYSTICK - 1);
+
+    /* Initialize the BSP. */
+    nm_bsp_init();
+
+    /* Initialize Wi-Fi parameters structure. */
+    memset((uint8_t *)&param, 0, sizeof(tstrWifiInitParam));
+
+    /* Initialize Wi-Fi driver with data and status callbacks. */
+    param.pfAppWifiCb = wifi_cb;
+    ret = m2m_wifi_init(&param);
+    if (M2M_SUCCESS != ret) {
+        loginfo("main: m2m_wifi_init call error!(%d)\r\n", ret);
+        while (1) {
+        }
+    }
+
+    /* Connect to defined AP. */
+    m2m_wifi_connect((char *)MAIN_WLAN_SSID, sizeof(MAIN_WLAN_SSID), MAIN_WLAN_AUTH, (void *)MAIN_WLAN_PSK, M2M_WIFI_CH_ALL);
+
+    /* Init ota function. */
+    m2m_ota_init(OtaUpdateCb, OtaNotifCb);
+
+    while (1) {
+        /* Handle pending events from network controller. */
+        while (m2m_wifi_handle_events(NULL) != M2M_SUCCESS) {
+        }
+    }
+}
+
+void wifi_server() {
+    {
+        StandardPool pool{ "wifi-server" };
+        GlobalStateManager gsm;
+        gsm.initialize(pool);
+
+        ModuleRegistry registry;
+        registry.initialize();
+    }
+
+    wifi_test();
+}
+#endif
+
+void fk_live_tests() {
+#if defined(FK_LIVE_TEST_WINC1500_OTA)
+#if !defined(FK_NETWORK_ESP32)
+    wifi_firmware_upgrade();
+#endif
 
     while (true) {
         fk_delay(1000);
     }
-}
+#endif
 
-void fk_live_tests() {
-    if (false) {
-        scan_i2c_module_bus();
-    }
-    if (false) {
-        scan_i2c_radio_bus();
-    }
-    if (false) {
-        write_headers();
-    }
-    if (false) {
-        test_core_dump();
+#if defined(FK_LIVE_TEST_WIFI)
+#if !defined(FK_NETWORK_ESP32)
+    wifi_server();
+#endif
 
-        while (true) {
-            fk_delay(1000);
-        }
+    while (true) {
+        fk_delay(1000);
     }
+#endif
 }
 
 } // namespace fk

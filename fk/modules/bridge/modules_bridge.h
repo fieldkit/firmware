@@ -1,5 +1,7 @@
 #pragma once
 
+#include <fk-data-protocol.h>
+
 #include "common.h"
 #include "pool.h"
 #include "hal/board.h"
@@ -7,12 +9,14 @@
 
 #include "networking/http_connection.h"
 
+#include "modules/eeprom.h"
 #include "modules/bridge/data.h"
 #include "modules/bridge/contexts.h"
 #include "modules/bridge/module_readings.h"
 
 namespace fk {
 
+class MenuScreen;
 class ModuleContext;
 class HttpServerConnection;
 
@@ -42,6 +46,9 @@ public:
     virtual ~Module() {
     }
 
+protected:
+    std::pair<EncodedMessage *, fk_data_ModuleConfiguration *> read_configuration_eeprom(ModuleEeprom &eeprom, Pool *pool);
+
 public:
     virtual ModuleReturn initialize(ModuleContext mc, Pool &pool) = 0;
     virtual ModuleReadings *take_readings(ReadingsContext mc, Pool &pool) = 0;
@@ -49,6 +56,9 @@ public:
     virtual ModuleConfiguration const get_configuration(Pool &pool) = 0;
     virtual ModuleReturn service(ModuleContext mc, Pool &pool) = 0;
     virtual ModuleReturn api(ModuleContext mc, HttpServerConnection *connection, Pool &pool) = 0;
+    virtual MenuScreen *debug_menu(Pool *pool) {
+        return nullptr;
+    }
     virtual bool can_enable() {
         return true;
     }

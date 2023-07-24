@@ -32,14 +32,12 @@ ModuleReturn AtlasModule::initialize(ModuleContext mc, Pool &pool) {
 bool AtlasModule::load_configuration(ModuleContext mc, Pool &pool) {
     ModuleEeprom eeprom{ mc.module_bus() };
 
-    cfg_message_ = nullptr;
-    cfg_ = nullptr;
+    cfg_ = { nullptr, nullptr };
     pool_->clear();
 
     size_t size = 0;
-    auto buffer = (uint8_t *)pool.malloc(MaximumConfigurationSize);
-    bzero(buffer, MaximumConfigurationSize);
-    if (!eeprom.read_configuration(buffer, size, MaximumConfigurationSize)) {
+    uint8_t *buffer = nullptr;
+    if (!eeprom.read_configuration(&buffer, size, &pool)) {
         logwarn("error reading configuration");
     } else if (size > 0) {
         auto cfg = fk_module_configuration_decoding_new(pool_);
@@ -49,8 +47,7 @@ bool AtlasModule::load_configuration(ModuleContext mc, Pool &pool) {
             return false;
         } else {
             loginfo("mod-cfg: decoded");
-            cfg_message_ = pool_->wrap_copy(buffer, size);
-            cfg_ = cfg;
+            cfg_ = { pool_->wrap_copy(buffer, size), cfg };
         }
     }
 
@@ -87,16 +84,19 @@ ModuleSensors const *AtlasModule::get_sensors(Pool &pool) {
         auto meta = pool.malloc_with<SensorMetadata, 3>({ {
                                                               .name = "ec",
                                                               .unitOfMeasure = "µS/cm",
+                                                              .uncalibratedUnitOfMeasure = "µS/cm",
                                                               .flags = 0,
                                                           },
                                                           {
                                                               .name = "tds",
                                                               .unitOfMeasure = "ppm",
+                                                              .uncalibratedUnitOfMeasure = "ppm",
                                                               .flags = 0,
                                                           },
                                                           {
                                                               .name = "salinity",
                                                               .unitOfMeasure = "",
+                                                              .uncalibratedUnitOfMeasure = "",
                                                               .flags = 0,
                                                           } });
         return pool.malloc_with<ModuleSensors>({
@@ -108,6 +108,7 @@ ModuleSensors const *AtlasModule::get_sensors(Pool &pool) {
         auto meta = pool.malloc_with<SensorMetadata>({
             .name = "ph",
             .unitOfMeasure = "pH",
+            .uncalibratedUnitOfMeasure = "pH",
             .flags = 0,
         });
         return pool.malloc_with<ModuleSensors>({
@@ -119,6 +120,7 @@ ModuleSensors const *AtlasModule::get_sensors(Pool &pool) {
         auto meta = pool.malloc_with<SensorMetadata>({
             .name = "dox",
             .unitOfMeasure = "mg/L",
+            .uncalibratedUnitOfMeasure = "mg/L",
             .flags = 0,
         });
         return pool.malloc_with<ModuleSensors>({
@@ -130,6 +132,7 @@ ModuleSensors const *AtlasModule::get_sensors(Pool &pool) {
         auto meta = pool.malloc_with<SensorMetadata>({
             .name = "temp",
             .unitOfMeasure = "°C",
+            .uncalibratedUnitOfMeasure = "°C",
             .flags = 0,
         });
         return pool.malloc_with<ModuleSensors>({
@@ -141,6 +144,7 @@ ModuleSensors const *AtlasModule::get_sensors(Pool &pool) {
         auto meta = pool.malloc_with<SensorMetadata>({
             .name = "orp",
             .unitOfMeasure = "mV",
+            .uncalibratedUnitOfMeasure = "mV",
             .flags = 0,
         });
         return pool.malloc_with<ModuleSensors>({
@@ -179,9 +183,9 @@ ModuleConfiguration const AtlasModule::get_configuration(Pool &pool) {
     // Make sure temperature is serviced before any of the other water modules.
     switch (type_) {
     case AtlasSensorType::Temp:
-        return ModuleConfiguration{ get_display_name_key(), ModulePower::ReadingsOnly, cfg_message_, ModuleOrderProvidesCalibration };
+        return ModuleConfiguration{ get_display_name_key(), ModulePower::ReadingsOnly, cfg_.first, ModuleOrderProvidesCalibration };
     default:
-        return ModuleConfiguration{ get_display_name_key(), ModulePower::ReadingsOnly, cfg_message_, DefaultModuleOrder };
+        return ModuleConfiguration{ get_display_name_key(), ModulePower::ReadingsOnly, cfg_.first, DefaultModuleOrder };
     }
 }
 
@@ -191,7 +195,8 @@ ModuleReadings *AtlasModule::take_readings(ReadingsContext mc, Pool &pool) {
     }
 
     auto default_curve = create_noop_curve(pool);
-    auto curve = create_curve(default_curve, cfg_, pool);
+    // auto curve = create_curve(default_curve, (uint32_t)type_, cfg_.second, pool);
+    auto curve = default_curve;
 
     auto atlas = OemAtlas{ mc.module_bus(), address_, type_ };
     if (!atlas.wake()) {
