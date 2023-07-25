@@ -77,6 +77,8 @@ UploadDataWorker::FileUpload UploadDataWorker::upload_file(Storage &storage, uin
 
     loginfo("uploading %" PRIu32 " -> %" PRIu32 " %" PRIu32 " bytes", first_block, last_block, upload_length);
 
+    auto guard = wifi_mutex.acquire(UINT32_MAX);
+
     auto http = open_http_connection("POST", connection_info.url, connection_info.headers, false, pool);
     if (http == nullptr) {
         logwarn("unable to open connection");
