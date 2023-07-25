@@ -162,9 +162,6 @@ void UploadDataWorker::run(Pool &pool) {
     auto lock = storage_mutex.acquire(UINT32_MAX);
 
     auto start_records = get_start_records();
-    if (all_meta_) {
-        start_records.meta = 0;
-    }
     if (all_data_) {
         start_records.data = 0;
     }
@@ -177,11 +174,6 @@ void UploadDataWorker::run(Pool &pool) {
     }
 
     auto after = start_records;
-
-    auto meta_upload = upload_file(storage, Storage::Meta, start_records.meta, "meta", pool);
-    if (meta_upload) {
-        after.meta = meta_upload.record;
-    }
 
     auto data_upload = upload_file(storage, Storage::Data, start_records.data, "data", pool);
     if (data_upload) {
