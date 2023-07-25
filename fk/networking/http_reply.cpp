@@ -439,6 +439,9 @@ bool HttpReply::include_readings() {
         return true;
     }
 
+    auto clock = get_clock_now();
+    auto readings_time = clock;
+
     auto lmr = pool_->malloc<fk_app_LiveModuleReadings>(nmodules);
     auto m = 0;
     for (auto &am : attached->modules()) {
@@ -480,6 +483,10 @@ bool HttpReply::include_readings() {
                 readings[s].value = reading.calibrated.value_or(0);
                 readings[s].uncalibrated = reading.uncalibrated.value_or(0);
                 readings[s].factory = reading.factory.value_or(0);
+
+                if (reading.time < clock && reading.time < readings_time) {
+                    readings_time = reading.time;
+                }
             }
 
             auto readings_array = pool_->malloc_with<pb_array_t>({
@@ -506,7 +513,7 @@ bool HttpReply::include_readings() {
 
     auto live_readings = pool_->malloc<fk_app_LiveReadings>();
     live_readings[0] = fk_app_LiveReadings_init_default;
-    live_readings[0].time = 0;
+    live_readings[0].time = readings_time;
     live_readings[0].modules.arg = (void *)lmr_array;
 
     auto live_readings_array = pool_->malloc_with<pb_array_t>({
@@ -519,7 +526,7 @@ bool HttpReply::include_readings() {
 
     reply_->type = fk_app_ReplyType_REPLY_READINGS;
     reply_->has_status = true;
-    reply_->status.time = get_clock_now();
+    reply_->status.time = clock;
     reply_->liveReadings.arg = (void *)live_readings_array;
 
     return true;
