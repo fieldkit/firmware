@@ -449,6 +449,8 @@ int32_t PhylumDataFile::seek_record(record_number_t record) {
         return err;
     }
 
+    buffered_reader_->reset();
+
     return reader_->position();
 }
 
@@ -465,6 +467,8 @@ int32_t PhylumDataFile::seek_position(file_size_t position) {
     if (err < 0) {
         return err;
     }
+
+    buffered_reader_->reset();
 
     if (position == UINT32_MAX) {
         size_ = reader_->position();

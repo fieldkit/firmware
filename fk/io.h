@@ -72,6 +72,15 @@ public:
 public:
     int32_t read(uint8_t *buffer, size_t size) override;
     int32_t skip(size_t bytes);
+    int32_t reset() {
+        position_ = 0;
+        bytes_read_ = 0;
+        return 0;
+    }
+
+    size_t bytes_read() const {
+        return bytes_read_;
+    }
 
     size_t position() const {
         return position_;
