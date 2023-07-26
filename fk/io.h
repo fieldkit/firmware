@@ -4,6 +4,7 @@
 #include <pb_encode.h>
 
 #include "common.h"
+#include "encoded_message.h"
 
 namespace fk {
 
@@ -21,6 +22,25 @@ public:
 
     int32_t write_u16(uint16_t value) {
         return write((uint8_t *)&value, sizeof(value));
+    }
+
+    int32_t write_message(EncodedMessage *m) {
+        if (m == nullptr || m->size == 0) {
+            return 0;
+        }
+
+        auto copied = 0u;
+        while (copied < m->size) {
+            auto bytes_copied = write(m->buffer + copied, m->size - copied);
+            if (bytes_copied < 0) {
+                return -1;
+            }
+            if (bytes_copied > 0) {
+                copied += bytes_copied;
+            }
+        }
+
+        return copied;
     }
 };
 

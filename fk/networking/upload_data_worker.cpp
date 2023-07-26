@@ -53,10 +53,17 @@ ConnectionInfo build_connection_info(uint32_t first, uint32_t last, uint32_t len
 
 UploadDataWorker::FileUpload UploadDataWorker::upload_file(Storage &storage, uint8_t file_number, uint32_t first_record, const char *type,
                                                            Pool &pool) {
+    ScopedLogLevelChange change{ LogLevels::INFO };
+
     auto started = fk_uptime();
     auto file = storage.file_reader(file_number, pool);
 
+    loginfo("reading modules-meta record");
+    auto meta = file->read_signed_record_bytes(SignedRecordKind::Modules, pool);
+    auto meta_size = meta != nullptr ? meta->size : 0;
+
     auto first_block = first_record;
+    loginfo("reading size since %" PRIu32, first_block);
     auto size_info = file->get_size(first_block, UINT32_MAX, pool);
     if (!size_info) { // TODO
         logerror("get-size");
@@ -69,13 +76,14 @@ UploadDataWorker::FileUpload UploadDataWorker::upload_file(Storage &storage, uin
         return { 0 };
     }
 
-    auto connection_info = build_connection_info(first_block, last_block, upload_length, type, pool);
+    auto connection_info = build_connection_info(first_block, last_block, meta_size + upload_length, type, pool);
     if (strlen(connection_info.url) == 0 || strlen(connection_info.token) == 0) {
         loginfo("no configuration");
         return { 0 };
     }
 
-    loginfo("uploading %" PRIu32 " -> %" PRIu32 " %" PRIu32 " bytes", first_block, last_block, upload_length);
+    loginfo("uploading %" PRIu32 " -> %" PRIu32 " %" PRIu32 " bytes (%" PRIu32 " bytes meta)", first_block, last_block,
+            meta_size + upload_length, meta_size);
 
     auto guard = wifi_mutex.acquire(UINT32_MAX);
 
@@ -86,10 +94,20 @@ UploadDataWorker::FileUpload UploadDataWorker::upload_file(Storage &storage, uin
     }
 
     auto buffer = (uint8_t *)pool.malloc(NetworkBufferSize);
-    auto bytes_copied = 0u;
+
+    if (meta != nullptr) {
+        loginfo("uploading %d meta...", meta_size);
+        auto bytes_wrote = http->write_message(meta);
+        if ((int32_t)meta_size != bytes_wrote) {
+            logwarn("write error (%" PRId32 " != %" PRId32 ")", bytes_wrote, meta_size);
+        }
+
+        fk_dump_memory("meta ", meta->buffer, meta->size);
+    }
 
     loginfo("uploading file...");
 
+    auto bytes_copied = 0u;
     GlobalStateProgressCallbacks gs_progress;
     auto tracker = ProgressTracker{ &gs_progress, Operation::Upload, "upload", "", upload_length };
     while (bytes_copied != upload_length) {
