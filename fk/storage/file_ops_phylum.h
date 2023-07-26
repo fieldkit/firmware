@@ -57,6 +57,7 @@ public:
     int32_t read(uint8_t *record, size_t size) override;
     int32_t read(void *record, pb_msgdesc_t const *fields) override;
     int32_t get_file_size(size_t &file_size) override;
+    EncodedMessage *read_signed_record_bytes(SignedRecordKind kind, Pool &pool) override;
 
 private:
     bool open_if_necessary();

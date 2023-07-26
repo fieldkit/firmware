@@ -296,6 +296,34 @@ bool FileReader::open_if_necessary() {
     return true;
 }
 
+EncodedMessage *FileReader::read_signed_record_bytes(SignedRecordKind kind, Pool &pool) {
+    FK_ASSERT(file_number_ == Storage::Data);
+
+    if (!open_if_necessary()) {
+        return nullptr;
+    }
+
+    file_size_t position = UINT32_MAX;
+    auto err = pdf_.seek_record_type(get_record_type(kind), position);
+    if (err < 0) {
+        logerror("seeking record by type");
+        return nullptr;
+    }
+
+    if (position == UINT32_MAX) {
+        loginfo("lookup %d: invalid position", (int32_t)kind);
+        return nullptr;
+    }
+
+    EncodedMessage *bytes = nullptr;
+    if (pdf_.read_delimited_bytes_into_message(&bytes, StandardPageSize, pool) < 0) {
+        loginfo("read-bytes error");
+        return nullptr;
+    }
+
+    return bytes;
+}
+
 } // namespace phylum_ops
 
 } // namespace fk

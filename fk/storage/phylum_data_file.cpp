@@ -510,6 +510,52 @@ int32_t PhylumDataFile::read(pb_msgdesc_t const *fields, void *record, Pool &poo
     return record_size + pb_varint_size(record_size);
 }
 
+int32_t PhylumDataFile::read_delimited_bytes_into_message(EncodedMessage **data, size_t size, Pool &pool) {
+    assert(reader_ != nullptr);
+
+    logged_task lt{ "df-read" };
+
+    auto position = reader_->position() + buffered_reader_->position();
+
+    loginfo("reading record at %" PRIu32 " buffered = (%" PRIu32 "/%" PRIu32 ")", reader_->position(), buffered_reader_->position(),
+            buffered_reader_->bytes_read());
+
+    uint32_t record_size = 0;
+
+    auto outer_stream = pb_istream_from_readable(buffered_reader_);
+    if (!pb_decode_varint32(&outer_stream, &record_size)) {
+        logerror("read: decode (length)");
+        return -1;
+    }
+
+    loginfo("reading record at %" PRIu32 " buffered = (%" PRIu32 "/%" PRIu32 ")", reader_->position(), buffered_reader_->position(),
+            buffered_reader_->bytes_read());
+
+    auto size_bytes = pb_varint_size(record_size);
+    auto buffer_size = record_size + size_bytes;
+    if (buffer_size > size) {
+        logerror("read: too-big");
+        return -1;
+    }
+
+    auto buffer = (uint8_t *)pool.malloc(buffer_size);
+
+    FK_ASSERT(size >= record_size);
+
+    auto ostream = pb_ostream_from_buffer(buffer, size);
+
+    FK_ASSERT(pb_encode_varint(&ostream, record_size));
+
+    if (buffered_reader_->read(buffer + ostream.bytes_written, record_size) != (int32_t)record_size) {
+        logerror("read: read-delimited (length) position=%d", position);
+        return -1;
+    }
+
+    (*data) = pool.wrap(buffer, buffer_size);
+
+    return buffer_size;
+}
+
 int32_t PhylumDataFile::read_delimited_bytes(uint8_t *data, size_t size, Pool &pool) {
     assert(reader_ != nullptr);
 
