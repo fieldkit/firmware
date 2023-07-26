@@ -63,8 +63,7 @@ void DownloadWorker::serve(Pool &pool) {
     auto lock = storage_mutex.acquire(UINT32_MAX);
     FK_ASSERT(lock);
 
-    auto old_level = (LogLevels)log_get_level();
-    log_configure_level(LogLevels::DEBUG);
+    ScopedLogLevelChange change{ LogLevels::DEBUG };
 
     auto started = fk_uptime();
     StatisticsMemory memory{ MemoryFactory::get_data_memory() };
@@ -179,8 +178,6 @@ void DownloadWorker::serve(Pool &pool) {
         total_read_time += read_time;
         total_write_time += write_time;
     }
-
-    log_configure_level(old_level);
 
     tracker.finished();
 
