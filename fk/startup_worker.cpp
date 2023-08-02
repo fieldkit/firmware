@@ -656,10 +656,15 @@ bool StartupWorker::check_for_configure_modules_startup(Pool &pool) {
 #endif
 
     auto module_bus = get_board()->i2c_module();
+
+    loginfo("erasing configuration for %" PRIu32, file_size);
     ModuleEeprom eeprom{ module_bus };
-    if (!eeprom.erase_configuration(bytes_read)) {
+    if (!eeprom.erase_configuration(file_size)) {
         logerror("erasing module configuration");
     }
+
+    loginfo("writing configuration");
+    log_bytes("modcfg-file", buffer, file_size);
     if (!eeprom.write_configuration(buffer, bytes_read)) {
         logerror("writing module configuration");
     }
