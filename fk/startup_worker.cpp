@@ -657,6 +657,9 @@ bool StartupWorker::check_for_configure_modules_startup(Pool &pool) {
 
     auto module_bus = get_board()->i2c_module();
     ModuleEeprom eeprom{ module_bus };
+    if (!eeprom.erase_configuration(bytes_read)) {
+        logerror("erasing module configuration");
+    }
     if (!eeprom.write_configuration(buffer, bytes_read)) {
         logerror("writing module configuration");
     }
