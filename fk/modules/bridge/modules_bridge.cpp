@@ -15,7 +15,7 @@ size_t log_bytes(const char *prefix, uint8_t const *ptr, size_t size) {
 
         bytes_to_hex_string(hex, hex_size, ptr + pos, logging);
 
-        alogf(LogLevels::INFO, "%s %s", prefix, hex);
+        alogf(LogLevels::INFO, "mod-cfg", "%s %s", prefix, hex);
 
         remaining -= logging;
         pos += logging;
