@@ -663,12 +663,20 @@ bool StartupWorker::check_for_configure_modules_startup(Pool &pool) {
         logerror("erasing module configuration");
     }
 
+    loginfo("after erase");
+    auto reading = (uint8_t *)pool.malloc(256);
+    eeprom.read_data(EEPROM_ADDRESS_CONFIG, reading, 256);
+    log_bytes("modcfg-read", reading, 256);
+
     loginfo("writing configuration");
     log_bytes("modcfg-file", buffer, file_size);
     if (!eeprom.write_configuration(buffer, bytes_read)) {
         logerror("writing module configuration");
     }
 
+    loginfo("after write");
+    eeprom.read_data(EEPROM_ADDRESS_CONFIG, reading, 256);
+    log_bytes("modcfg-read", reading, 256);
     ReadingsWorker readings_worker{ false, true, false, false };
     readings_worker.run(pool);
 
