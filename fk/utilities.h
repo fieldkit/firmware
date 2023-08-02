@@ -6,6 +6,8 @@
 
 namespace fk {
 
+size_t log_bytes(const char *prefix, uint8_t const *ptr, size_t size);
+
 /**
  * Write hex representation of bytes to a separate buffer.
  */

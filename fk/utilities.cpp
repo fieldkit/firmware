@@ -11,6 +11,26 @@
 
 namespace fk {
 
+size_t log_bytes(const char *prefix, uint8_t const *ptr, size_t size) {
+    auto bytes_per_line = 32u;
+    auto remaining = size;
+    char hex_size = bytes_per_line * 2 + 1;
+    char hex[hex_size];
+
+    for (auto pos = 0u; pos < size;) {
+        auto logging = std::min<int32_t>(bytes_per_line, remaining);
+
+        bytes_to_hex_string(hex, hex_size, ptr + pos, logging);
+
+        alogf(LogLevels::INFO, "mod-cfg", "%s %s", prefix, hex);
+
+        remaining -= logging;
+        pos += logging;
+    }
+
+    return size;
+}
+
 size_t bytes_to_hex_string(char *buffer, size_t buffer_size, const uint8_t *data, size_t data_size) {
     auto length = data_size * 2;
     char *s = buffer;

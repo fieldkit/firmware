@@ -635,6 +635,8 @@ bool StartupWorker::check_for_configure_modules_startup(Pool &pool) {
         return false;
     }
 
+    log_bytes("modcfg-file", buffer, file_size);
+
     BatteryChecker battery_checker;
     battery_checker.refresh(true);
 
