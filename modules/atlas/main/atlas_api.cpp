@@ -83,7 +83,7 @@ bool AtlasApi::clear(ModuleContext mc, AtlasApiReply &reply, Pool &pool) {
     auto module_bus = get_board()->i2c_module();
     ModuleEeprom eeprom{ module_bus };
 
-    if (!eeprom.erase_configuration()) {
+    if (!eeprom.erase_configuration(EEPROM_ADDRESS_CONFIG_SIZE)) {
         logerror("clearing module configuration");
     }
 

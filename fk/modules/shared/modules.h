@@ -74,6 +74,7 @@ uint8_t fk_module_is_available_i2c_address(uint8_t address);
 #define EEPROM_ADDRESS_HEADER      (0x00)
 #define EEPROM_ADDRESS_HEADER_SIZE (EEPROM_PAGE_SIZE * 2)
 #define EEPROM_ADDRESS_CONFIG      (EEPROM_ADDRESS_HEADER + EEPROM_ADDRESS_HEADER_SIZE)
+#define EEPROM_ADDRESS_CONFIG_SIZE (2048)
 
 /**
  * Seeds the CRC of module information to avoid false positives and 0 checksums.
