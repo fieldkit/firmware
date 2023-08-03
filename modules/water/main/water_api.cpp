@@ -91,16 +91,16 @@ bool WaterApi::clear(ModuleContext mc, WaterApiReply &reply, Pool &pool) {
 }
 
 bool WaterApi::calibrate(ModuleContext mc, WaterApiReply &reply, fk_app_ModuleHttpQuery *query, Pool &pool) {
-    if (!clear(mc, reply, pool)) {
-        return false;
-    }
-
     auto data = (pb_data_t *)query->configuration.arg;
 
     loginfo("configuring (%zd bytes)", data->length);
 
     auto module_bus = get_board()->i2c_module();
     ModuleEeprom eeprom{ module_bus };
+
+    if (!eeprom.erase_configuration(data->length)) {
+        logerror("clearing module configuration");
+    }
 
     if (!eeprom.write_configuration((uint8_t *)data->buffer, data->length)) {
         logerror("writing module configuration");
